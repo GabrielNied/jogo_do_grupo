@@ -42,6 +42,7 @@ node_modules/
 .idea/
 .vscode/*
 !.vscode/extensions.json
+!.vscode/settings.json
 *.swp
 
 # ---------- Assistentes de IA (config pessoal) ----------
