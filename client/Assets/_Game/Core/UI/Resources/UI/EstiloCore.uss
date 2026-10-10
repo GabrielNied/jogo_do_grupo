@@ -1,0 +1,148 @@
+/*
+ * Estilo base das telas do client (provisório: uma pessoa ajusta o visual depois).
+ * Carregado pelo Core na raiz da interface, então vale também para as telas das funcionalidades.
+ * Os nomes das classes estão em EstiloCore.cs, para usar no código sem digitar texto solto.
+ */
+
+.raiz-interface {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.tela {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    align-items: center;
+    justify-content: center;
+    background-color: rgb(18, 22, 30);
+}
+
+.painel {
+    width: 560px;
+    padding: 40px;
+    border-radius: 12px;
+    background-color: rgb(32, 38, 50);
+    border-width: 1px;
+    border-color: rgb(60, 70, 90);
+}
+
+.titulo {
+    font-size: 56px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    color: rgb(240, 240, 240);
+    margin-bottom: 8px;
+}
+
+.subtitulo {
+    font-size: 26px;
+    -unity-text-align: middle-center;
+    color: rgb(180, 188, 200);
+    margin-bottom: 24px;
+}
+
+.texto {
+    font-size: 22px;
+    color: rgb(220, 224, 230);
+    white-space: normal;
+}
+
+.campo {
+    flex-direction: column;
+    margin-left: 0;
+    margin-right: 0;
+    margin-bottom: 16px;
+}
+
+.campo > .unity-base-field__label {
+    min-width: 0;
+    font-size: 20px;
+    color: rgb(200, 206, 216);
+    margin-bottom: 6px;
+}
+
+.campo .unity-base-text-field__input {
+    min-height: 44px;
+    font-size: 22px;
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+.linha-botoes {
+    flex-direction: row;
+    justify-content: space-between;
+    margin-top: 8px;
+    margin-left: -4px;
+    margin-right: -4px;
+}
+
+.botao {
+    flex-grow: 1;
+    min-height: 52px;
+    margin-left: 0;
+    margin-right: 0;
+    font-size: 22px;
+    border-radius: 8px;
+    border-width: 0;
+    color: rgb(240, 240, 240);
+    background-color: rgb(70, 80, 100);
+}
+
+.botao:hover {
+    background-color: rgb(85, 96, 120);
+}
+
+.botao:disabled {
+    opacity: 0.5;
+}
+
+.botao-principal {
+    background-color: rgb(46, 125, 80);
+}
+
+.botao-principal:hover {
+    background-color: rgb(56, 145, 95);
+}
+
+.linha-botoes > .botao {
+    margin-left: 4px;
+    margin-right: 4px;
+}
+
+.mensagem {
+    min-height: 32px;
+    margin-top: 12px;
+    font-size: 20px;
+    white-space: normal;
+    -unity-text-align: middle-center;
+    color: rgb(200, 206, 216);
+}
+
+.mensagem-erro {
+    color: rgb(255, 120, 110);
+}
+
+.mensagem-aviso {
+    color: rgb(240, 200, 100);
+}
+
+.barra-carregamento {
+    width: 480px;
+    height: 12px;
+    margin-top: 24px;
+    border-radius: 6px;
+    background-color: rgb(40, 46, 60);
+    overflow: hidden;
+}
+
+.barra-carregamento-preenchimento {
+    width: 0;
+    height: 100%;
+    background-color: rgb(46, 125, 80);
+}
