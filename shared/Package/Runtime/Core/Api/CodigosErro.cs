@@ -1,8 +1,9 @@
 namespace JogoDoGrupo.Shared.Core.Api
 {
     /// <summary>
-    /// Códigos de erro que o servidor coloca em <see cref="ErroApi.Codigo"/>.
-    /// O status HTTP de cada um está indicado ao lado.
+    /// Códigos de erro de conta e genéricos que o servidor coloca em <see cref="ErroApi.Codigo"/>.
+    /// Cada funcionalidade define os próprios em <c>Features/&lt;X&gt;/CodigosErro&lt;X&gt;</c>
+    /// (ex.: <c>CodigosErroPersonagem</c>). O status HTTP de cada um está indicado ao lado.
     /// </summary>
     public static class CodigosErro
     {
@@ -20,17 +21,5 @@ namespace JogoDoGrupo.Shared.Core.Api
 
         /// <summary>401: rota protegida chamada sem token, com token inválido ou expirado.</summary>
         public const string NaoAutenticado = "NaoAutenticado";
-
-        /// <summary>400: nome de personagem fora das regras de <c>RegrasPersonagem</c>.</summary>
-        public const string NomeInvalido = "NomeInvalido";
-
-        /// <summary>409: já existe personagem com esse nome (sem diferenciar maiúsculas).</summary>
-        public const string NomeJaExiste = "NomeJaExiste";
-
-        /// <summary>409: a conta já tem o máximo de personagens.</summary>
-        public const string LimitePersonagens = "LimitePersonagens";
-
-        /// <summary>400: valor que não existe no enum <c>Raca</c>.</summary>
-        public const string RacaInvalida = "RacaInvalida";
     }
 }

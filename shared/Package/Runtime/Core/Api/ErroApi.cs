@@ -7,7 +7,10 @@ namespace JogoDoGrupo.Shared.Core.Api
     [System.Serializable]
     public class ErroApi
     {
-        /// <summary>Um dos valores de <see cref="CodigosErro"/>.</summary>
+        /// <summary>
+        /// Um dos valores de <see cref="CodigosErro"/> ou dos códigos da funcionalidade
+        /// (ex.: <c>CodigosErroPersonagem</c>).
+        /// </summary>
         public string Codigo = "";
 
         /// <summary>Texto para depuração e log. A UI do client não deve depender dele.</summary>
