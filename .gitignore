@@ -47,6 +47,7 @@ node_modules/
 
 # ---------- Assistentes de IA (config pessoal) ----------
 .claude/settings.local.json
+.claude/worktrees/
 CLAUDE.local.md
 AGENTS.local.md
 
@@ -54,6 +55,11 @@ AGENTS.local.md
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# ---------- Banco de dados local (SQLite) ----------
+*.db
+*.db-shm
+*.db-wal
 
 # ---------- Segredos ----------
 .env
