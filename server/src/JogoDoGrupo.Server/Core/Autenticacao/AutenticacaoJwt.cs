@@ -14,10 +14,11 @@ internal static class AutenticacaoJwt
     /// </summary>
     public static IServiceCollection AdicionarAutenticacaoJwt(
         this IServiceCollection servicos,
-        IConfiguration configuracao
+        IConfiguration configuracao,
+        IHostEnvironment ambiente
     )
     {
-        var jwt = ConfiguracaoJwt.Ler(configuracao);
+        var jwt = ConfiguracaoJwt.Ler(configuracao, ambiente);
         servicos.AddSingleton(jwt);
         servicos.AddSingleton(TimeProvider.System);
         servicos.AddSingleton<GeradorTokens>();

@@ -30,7 +30,7 @@ builder.Services.Configure<RouteHandlerOptions>(opcoes => opcoes.ThrowOnBadReque
 builder.Services.AddDbContext<JogoDbContext>(opcoes =>
     opcoes.UseSqlite(builder.Configuration.GetConnectionString("Jogo"))
 );
-builder.Services.AdicionarAutenticacaoJwt(builder.Configuration);
+builder.Services.AdicionarAutenticacaoJwt(builder.Configuration, builder.Environment);
 builder.Services.AdicionarContas();
 
 foreach (var modulo in modulos)

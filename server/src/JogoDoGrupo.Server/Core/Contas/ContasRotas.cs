@@ -11,6 +11,12 @@ namespace JogoDoGrupo.Server.Core.Contas;
 /// <summary>Registro e login (rotas de <see cref="RotasContas"/>, sem token).</summary>
 internal static class ContasRotas
 {
+    // Hash fixo usado no login de conta inexistente, gerado uma vez com o hasher padrão.
+    private static readonly Conta ContaFicticia = new();
+    private static readonly Lazy<string> HashFicticio = new(() =>
+        new PasswordHasher<Conta>().HashPassword(ContaFicticia, Guid.NewGuid().ToString())
+    );
+
     public static IServiceCollection AdicionarContas(this IServiceCollection servicos) =>
         servicos.AddSingleton<IPasswordHasher<Conta>, PasswordHasher<Conta>>();
 
@@ -78,7 +84,14 @@ internal static class ContasRotas
             StatusCodes.Status401Unauthorized,
             CodigosErro.CredenciaisInvalidas
         );
-        if (string.IsNullOrEmpty(requisicao.Usuario) || string.IsNullOrEmpty(requisicao.Senha))
+        // Valores vazios ou maiores que o máximo nunca existem: responde sem consultar o banco
+        // nem calcular hash (evita gastar CPU com senhas enormes).
+        if (
+            string.IsNullOrEmpty(requisicao.Usuario)
+            || string.IsNullOrEmpty(requisicao.Senha)
+            || requisicao.Usuario.Length > RegrasConta.UsuarioMaximo
+            || requisicao.Senha.Length > RegrasConta.SenhaMaximo
+        )
         {
             return falha;
         }
@@ -88,6 +101,8 @@ internal static class ContasRotas
             .FirstOrDefaultAsync(c => c.UsuarioNormalizado == normalizado, cancelamento);
         if (conta == null)
         {
+            // Calcula um hash mesmo assim, para o tempo de resposta não revelar se o usuário existe.
+            hasher.VerifyHashedPassword(ContaFicticia, HashFicticio.Value, requisicao.Senha);
             return falha;
         }
 

@@ -17,7 +17,14 @@ public sealed class ConfiguracaoJwt
     public string Audiencia { get; set; } = "";
     public int ValidadeHoras { get; set; } = 12;
 
-    internal static ConfiguracaoJwt Ler(IConfiguration configuracao)
+    /// <summary>
+    /// Início da chave de desenvolvimento do appsettings.Development.json. Uma chave com este
+    /// prefixo é recusada fora do ambiente Development.
+    /// </summary>
+    private const string PrefixoChaveDesenvolvimento = "SO-PARA-DESENVOLVIMENTO";
+
+    /// <summary>Lê e valida a seção; configuração inválida impede o servidor de subir.</summary>
+    internal static ConfiguracaoJwt Ler(IConfiguration configuracao, IHostEnvironment ambiente)
     {
         var jwt =
             configuracao.GetSection(Secao).Get<ConfiguracaoJwt>()
@@ -28,6 +35,24 @@ public sealed class ConfiguracaoJwt
             throw new InvalidOperationException(
                 "Jwt:Chave ausente ou com menos de 32 bytes. Em desenvolvimento ela vem do "
                     + "appsettings.Development.json; em produção, defina a variável de ambiente Jwt__Chave."
+            );
+        }
+
+        if (
+            !ambiente.IsDevelopment()
+            && jwt.Chave.StartsWith(PrefixoChaveDesenvolvimento, StringComparison.Ordinal)
+        )
+        {
+            throw new InvalidOperationException(
+                $"Jwt:Chave é a chave de desenvolvimento, mas o ambiente é \"{ambiente.EnvironmentName}\". "
+                    + "Defina uma chave secreta própria na variável de ambiente Jwt__Chave."
+            );
+        }
+
+        if (string.IsNullOrWhiteSpace(jwt.Emissor) || string.IsNullOrWhiteSpace(jwt.Audiencia))
+        {
+            throw new InvalidOperationException(
+                "Jwt:Emissor e Jwt:Audiencia não podem ficar vazios (veja appsettings.json)."
             );
         }
 
