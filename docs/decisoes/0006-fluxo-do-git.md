@@ -1,7 +1,7 @@
 # 0006. Fluxo do Git com main protegida e commitlint
 
 **Data:** 2026-10-10
-**Status:** aceita
+**Status:** aceita; a parte do ruleset foi substituída pelo [ADR 0007](0007-protecao-local-da-main.md) (repo privado)
 
 ## Contexto
 

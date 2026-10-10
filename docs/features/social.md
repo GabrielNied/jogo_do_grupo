@@ -11,6 +11,7 @@ Party (time), guilda e chat.
 ## Definido
 
 - Party: tamanho e divisão de loot
+- Party de até 5 jogadores (o tamanho de uma dungeon); raids juntam 10 (decidido em 2026-10-10)
 - Guilda: níveis, base própria, benefícios
 
 ## Em aberto

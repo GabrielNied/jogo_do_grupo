@@ -48,7 +48,7 @@ Assets da Asset Store e plugins de terceiros ficam fora de `_Game/` (em `Assets/
 
 ## Cenas
 
-- Cada região do mundo aberto é uma cena em `Features/Mundo/Scenes/Regioes/`, carregada de forma aditiva.
+- Cada região do jogo é uma cena em `Features/Mundo/Scenes/Regioes/`, carregada de forma aditiva.
 - Cada dungeon e raid é uma cena em `Features/Instancias/Scenes/`.
 - Cenas de `Core/Scenes/` (inicialização, login) são do responsável do core.
 - Não edite cenas de outras pessoas. Veja o [CONTRIBUTING.md](../CONTRIBUTING.md).
