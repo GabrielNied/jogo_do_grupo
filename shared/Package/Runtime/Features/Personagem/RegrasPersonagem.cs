@@ -15,8 +15,9 @@ namespace JogoDoGrupo.Shared.Features.Personagem
         public const int NomeMaximo = 16;
 
         /// <summary>
-        /// Nome com <see cref="NomeMinimo"/> a <see cref="NomeMaximo"/> caracteres, todos letras
-        /// (<see cref="char.IsLetter(char)"/>): sem espaços, números nem símbolos.
+        /// Nome com <see cref="NomeMinimo"/> a <see cref="NomeMaximo"/> caracteres, só letras ASCII
+        /// A-Z e a-z (equivale a <c>^[A-Za-z]{3,16}$</c>): sem acentos, espaços, números nem símbolos.
+        /// Aceitar acentos é questão em aberto para o grupo (ver <c>docs/features/personagem.md</c>).
         /// </summary>
         /// <returns><see cref="CodigosErro.NomeInvalido"/> ou <c>null</c> se válido.</returns>
         public static string? ValidarNome(string? nome)
@@ -28,7 +29,8 @@ namespace JogoDoGrupo.Shared.Features.Personagem
 
             foreach (var c in nome)
             {
-                if (!char.IsLetter(c))
+                var letraAscii = (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
+                if (!letraAscii)
                 {
                     return CodigosErro.NomeInvalido;
                 }
