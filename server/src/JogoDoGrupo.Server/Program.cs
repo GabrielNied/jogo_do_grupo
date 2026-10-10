@@ -1,7 +1,12 @@
 using System.Reflection;
 using JogoDoGrupo.Server.Core;
+using JogoDoGrupo.Server.Core.Api;
+using JogoDoGrupo.Server.Core.Autenticacao;
+using JogoDoGrupo.Server.Core.Contas;
+using JogoDoGrupo.Server.Core.Persistencia;
+using Microsoft.EntityFrameworkCore;
 
-var contexto = new ServerContext();
+var builder = WebApplication.CreateBuilder(args);
 
 var modulos = Assembly
     .GetExecutingAssembly()
@@ -13,10 +18,52 @@ var modulos = Assembly
     .OrderBy(m => m.Nome)
     .ToList();
 
+// JSON no formato do JsonUtility do Unity: campos públicos, nomes como no C# e enums como número.
+builder.Services.ConfigureHttpJsonOptions(opcoes =>
+{
+    opcoes.SerializerOptions.IncludeFields = true;
+    opcoes.SerializerOptions.PropertyNamingPolicy = null;
+});
+
+// Corpo ausente ou JSON malformado lança exceção, e o TratamentoErrosMiddleware responde 400.
+builder.Services.Configure<RouteHandlerOptions>(opcoes => opcoes.ThrowOnBadRequest = true);
+builder.Services.AddDbContext<JogoDbContext>(opcoes =>
+    opcoes.UseSqlite(builder.Configuration.GetConnectionString("Jogo"))
+);
+builder.Services.AdicionarAutenticacaoJwt(builder.Configuration);
+builder.Services.AdicionarContas();
+
+foreach (var modulo in modulos)
+{
+    modulo.ConfigurarServicos(builder.Services, builder.Configuration);
+}
+
+var app = builder.Build();
+
+if (app.Environment.IsDevelopment())
+{
+    using var escopo = app.Services.CreateScope();
+    escopo.ServiceProvider.GetRequiredService<JogoDbContext>().Database.Migrate();
+}
+
+app.UsarErrosApi();
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.MapearContas();
+foreach (var modulo in modulos)
+{
+    modulo.MapearRotas(app);
+}
+
+var contexto = new ServerContext();
+
 foreach (var modulo in modulos)
 {
     modulo.Inicializar(contexto);
-    Console.WriteLine($"[ok] {modulo.Nome}");
+    app.Logger.LogInformation("[ok] {Modulo}", modulo.Nome);
 }
 
-Console.WriteLine($"Servidor iniciado com {modulos.Count} funcionalidades.");
+app.Logger.LogInformation("Servidor iniciado com {Quantidade} funcionalidades.", modulos.Count);
+
+app.Run();
