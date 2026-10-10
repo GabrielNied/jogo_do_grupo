@@ -6,7 +6,7 @@ Cada funcionalidade tem um responsável (veja [docs/responsaveis.md](docs/respon
 
 Precisa de algo de outra funcionalidade?
 1. Abra uma issue marcando o responsável, **ou**
-2. Faça o PR e peça review do responsável (o CODEOWNERS faz isso automaticamente).
+2. Faça o PR e peça review do responsável (em Reviewers, no PR; o repo é privado no plano gratuito, então o CODEOWNERS não pede sozinho).
 
 Arquivos compartilhados (`Core/`, `ProjectSettings/`, `Packages/manifest.json`, cenas principais) pertencem ao responsável pelo **core**. Mudanças neles sempre passam por review.
 
@@ -19,7 +19,7 @@ A `main` é protegida: ninguém envia direto para ela, nem os admins. Todo traba
 - **Commit:** `<tipo>(<escopo>): <descrição em minúsculas>` → `feat(itens): adiciona limite de fusões por raridade`.
 - **PR:** o título segue o mesmo padrão do commit e vira o commit na `main` (squash merge). Um PR = uma funcionalidade.
 - **Antes de abrir o PR:** `dotnet csharpier format .` (detalhes em [docs/convencoes.md](docs/convencoes.md#formatação)).
-- **Para entrar na main:** checks `csharpier`, `build` e `padrao-git` verdes e 1 aprovação, incluindo o responsável pela pasta alterada.
+- **Para entrar na main (combinado do grupo):** checks `csharpier`, `build` e `padrao-git` verdes e 1 aprovação de outra pessoa, incluindo o responsável pela pasta. O repo é privado no plano gratuito, então o GitHub não bloqueia: cada um respeita, e o review é pedido à mão.
 
 ## Unity: evitando conflitos em cenas e prefabs
 
@@ -53,6 +53,7 @@ Regras:
 - Skill nova: crie `.claude/skills/<nome>/SKILL.md` (nome em minúsculas com hífen, igual ao da pasta, e `description` dizendo quando usar) e adicione na tabela de procedimentos do `AGENTS.md`.
 - Configurações pessoais ficam fora do git (`.claude/settings.local.json`, `CLAUDE.local.md`, `AGENTS.local.md`).
 - O código gerado por IA é responsabilidade de quem abre o PR: revise, rode o build e o CSharpier.
+- **Vários agentes em paralelo:** cada agente tem uma área fixa e trabalha no seu worktree; as pessoas decidem, montam o que é visual no Unity e fazem o merge. Veja [docs/agentes.md](docs/agentes.md).
 
 ## Documentação
 

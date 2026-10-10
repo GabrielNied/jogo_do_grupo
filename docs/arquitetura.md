@@ -13,7 +13,8 @@
                    └────────────────┘
 ```
 
-- **Servidor autoritativo:** o servidor decide tudo que importa (dano, drops, fusão, economia). O cliente envia intenções e mostra resultados. Isso evita trapaças.
+- **Servidor autoritativo:** o servidor decide tudo que importa (dano, drops, fusão, economia). O cliente envia intenções e mostra resultados. Isso evita trapaças. (O lançamento do New World teve exploits atribuídos a decisões confiadas ao client; veja as [referências](referencias.md#new-world-amazon-2021).)
+- **Economia atômica:** qualquer operação que move ouro ou itens (troca, venda, fusão, craft) acontece por inteiro ou não acontece, numa única transação. Falha no meio nunca pode duplicar nem sumir com nada.
 - **Shared:** regras e tipos compilados nos dois lados, para não duplicar código.
 
 ## Organização por funcionalidade
@@ -53,7 +54,9 @@ Cada funcionalidade recebe uma faixa de 1000 IDs, declarada em `shared/Package/R
 
 - Biblioteca de rede (ex.: LiteNetLib)
 - Banco de dados e persistência
-- Como dividir o mundo aberto entre servidores (por região?)
+- Como hospedar as sessões de grupo pequeno: um processo de servidor por sessão ou várias sessões por processo? Onde fica o hub social?
+- ~~Como dividir o mundo aberto entre servidores (por região?)~~ não se aplica mais: o jogo usa sessões de grupo pequeno (D1 da [validação](brainstorm/validacao.md)).
+- Sincronização do combate de ação: como o servidor autoritativo valida acertos com latência (D4).
 - Testes automatizados
 
 Cada uma vira um ADR em [decisoes/](decisoes/) quando for decidida.

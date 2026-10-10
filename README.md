@@ -1,6 +1,6 @@
 # Jogo do Grupo
 
-MMORPG para PC desenvolvido em grupo. Mundo aberto, economia movida pelos jogadores e sistema de fusão de itens.
+RPG de ação online para PC, medieval, feito para jogar com poucas pessoas. Sem classes: as skills estão nos itens, e o grupo, com papéis de tank, healer e DPS, sobe de nível, junta loot e derrota bosses cada vez mais fortes em dungeons e raids. Veja a [visão geral](docs/visao-geral.md).
 
 | Parte | Tecnologia | Pasta |
 |---|---|---|
@@ -149,7 +149,7 @@ git commit -m "feat(itens): adiciona minha tarefa"  # <tipo>(<escopo>): <descri�
 git push -u origin feature/itens/minha-tarefa
 ```
 
-Depois, abra o PR no GitHub com o título no mesmo padrão do commit e preencha o template. O PR entra na `main` com os checks verdes (`csharpier`, `build`, `padrao-git`) e a aprovação do responsável pela pasta. Detalhes em [docs/git.md](docs/git.md).
+Depois, abra o PR no GitHub com o título no mesmo padrão do commit e preencha o template. Peça review ao responsável pela pasta (Reviewers, no PR). O combinado é fazer o merge só com os checks verdes (`csharpier`, `build`, `padrao-git`) e a aprovação de outra pessoa. Detalhes em [docs/git.md](docs/git.md).
 
 ## Dia a dia
 
@@ -194,10 +194,12 @@ jogo_do_grupo/
 │       ├── Core/
 │       └── Features/<X>/
 ├── docs/            Documentação (visão, arquitetura, features, decisões)
-├── .claude/skills/  Procedimentos para assistentes de IA (ver AGENTS.md)
+├── .claude/
+│   ├── agents/      Agentes especializados para trabalho em paralelo (ver docs/agentes.md)
+│   └── skills/      Procedimentos para assistentes de IA (ver AGENTS.md)
 ├── .github/         CODEOWNERS, templates de PR/issue, CI, ruleset da main
 ├── .husky/          Hooks do git (commitlint, bloqueio de push na main)
-├── scripts/git/     Validador de nome de branch
+├── scripts/         Validador de branch, export do FigJam, hooks dos agentes
 └── AGENTS.md        Instruções para qualquer assistente de IA
 ```
 
@@ -208,18 +210,18 @@ A regra principal: **cada funcionalidade vive na própria pasta, nas três parte
 | Funcionalidade | Pasta | IDs de mensagem | Descrição |
 |---|---|---|---|
 | Core | `Core` | 0–999 | Rede, autenticação, persistência, eventos |
-| Mundo | `Mundo` | 1000–1999 | Mapa aberto, regiões, clima, exploração e viagem rápida. |
+| Mundo | `Mundo` | 1000–1999 | Hub social e regiões jogadas em sessões de grupo pequeno; clima e ciclo de dia e noite. |
 | NPCs | `Npcs` | 2000–2999 | Papel dos NPCs no mundo, comerciantes e reputação. |
-| Personagem | `Personagem` | 3000–3999 | Raças, classes, atributos e progressão de nível. |
-| Skills (magias) | `Skills` | 4000–4999 | Magias de cada classe, custo e recarga. |
-| Habilidades (talentos) | `Talentos` | 5000–5999 | Árvore de pontos de talento. |
-| Combate | `Combate` | 6000–6999 | Cálculo de dano, seleção de alvo e efeitos de status. Usado por PvE e PvP. |
+| Personagem | `Personagem` | 3000–3999 | Raças (com skill base), atributos e progressão de nível. Sem classes. |
+| Skills (magias) | `Skills` | 4000–4999 | Skills sorteadas nos itens e skill base da raça; custo e recarga. |
+| Habilidades (talentos) | `Talentos` | 5000–5999 | Árvore de pontos de talento. ⏸️ Adiada: o jogo começa sem talentos. |
+| Combate | `Combate` | 6000–6999 | Combate de ação (estilo New World): dano, esquiva, efeitos de status. Usado por PvE e PvP. |
 | Itens | `Itens` | 7000–7999 | Inventário, equipamentos, raridades e sistema de fusão. |
 | Profissões | `Profissoes` | 8000–8999 | Craft e coleta, conectados à economia. |
 | Economia | `Economia` | 9000–9999 | Moedas, mercado, comércio entre jogadores, saídas de recursos e taxas. |
 | Missões | `Missoes` | 10000–10999 | História principal, missões secundárias e diárias. |
 | Mobs e bosses | `Mobs` | 11000–11999 | Tipos de mobs, comportamento por região e bosses com mecânicas marcantes. |
-| Dungeons e raids | `Instancias` | 12000–12999 | Conteúdo instanciado: dungeons para grupos pequenos e raids para grupos grandes (endgame). |
+| Dungeons e raids | `Instancias` | 12000–12999 | Dungeons (5 jogadores) e raids (10), com bosses cada vez mais fortes. |
 | Social | `Social` | 13000–13999 | Party (time), guilda e chat. |
 | PvP | `Pvp` | 14000–14999 | Arenas, PvP no mundo aberto e guerra de guildas. |
 
@@ -227,7 +229,7 @@ Responsáveis por cada uma: [docs/responsaveis.md](docs/responsaveis.md).
 
 ## Documentação
 
-- [Visão geral do jogo](docs/visao-geral.md)
+- [Visão geral do jogo](docs/visao-geral.md) · [Jogos de referência](docs/referencias.md)
 - [Arquitetura](docs/arquitetura.md)
 - [Convenções de código](docs/convencoes.md)
 - [Fluxo do Git: branches, commits e PRs](docs/git.md)
@@ -237,14 +239,14 @@ Responsáveis por cada uma: [docs/responsaveis.md](docs/responsaveis.md).
 
 ## Usando IA no projeto
 
-Qualquer assistente (Claude, ChatGPT/Codex, Copilot, Cursor, Gemini...) deve seguir o [AGENTS.md](AGENTS.md): ele resume as regras do repo e lista os procedimentos prontos (skills) em [.claude/skills/](.claude/skills/). Veja [CONTRIBUTING.md](CONTRIBUTING.md#usando-ia).
+Qualquer assistente (Claude, ChatGPT/Codex, Copilot, Cursor, Gemini...) deve seguir o [AGENTS.md](AGENTS.md): ele resume as regras do repo e lista os procedimentos prontos (skills) em [.claude/skills/](.claude/skills/). Veja [CONTRIBUTING.md](CONTRIBUTING.md#usando-ia). Para vários agentes implementando partes diferentes ao mesmo tempo, veja [docs/agentes.md](docs/agentes.md).
 
 ## Status e próximos passos
 
 Estrutura do repo, projeto Unity, CI (build, CSharpier, commitlint), hooks do git e documentação base prontos e publicados. Falta:
 
-1. Proteger a `main`: importar o ruleset e ajustar as opções de merge ([docs/git.md](docs/git.md#proteção-da-main-para-o-admin-do-repo)).
-2. Preencher [docs/responsaveis.md](docs/responsaveis.md), ativar o [.github/CODEOWNERS](.github/CODEOWNERS) e adicionar o grupo como collaborators.
+1. ~~Proteger a `main` com ruleset~~ decidido: repo privado com proteção local ([ADR 0007](docs/decisoes/0007-protecao-local-da-main.md)). Opções de merge já aplicadas.
+2. Preencher [docs/responsaveis.md](docs/responsaveis.md) e o [.github/CODEOWNERS](.github/CODEOWNERS); convites de collaborator enviados (aguardando aceite).
 3. Decidir como integrar o Cursor ao Unity (o Unity não gera `.csproj` para ele).
 4. Decidir (e registrar em ADR): biblioteca de rede, banco de dados, divisão do mundo entre servidores, testes.
 5. Primeiro marco: a [fatia jogável](docs/visao-geral.md#primeiro-marco-fatia-jogável).

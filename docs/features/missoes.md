@@ -11,6 +11,7 @@ História principal, missões secundárias e diárias.
 ## Definido
 
 - Principal, secundárias e diárias
+- O loop principal é leveling, loot e eventos, com foco em bosses, dungeons e raids (D5 da [validação de 2026-10-10](../brainstorm/validacao.md)); missões entram como parte desse loop
 
 ## Em aberto
 

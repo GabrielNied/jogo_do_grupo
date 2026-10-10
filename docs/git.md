@@ -6,14 +6,17 @@ Ninguém envia código direto para a `main`. Todo trabalho segue o caminho:
 main ──► branch da tarefa ──► commits ──► PR ──► CI + review ──► squash merge na main
 ```
 
-As regras são conferidas em três lugares:
+O repositório é **privado** no plano gratuito do GitHub, que não oferece proteção de branch para repo privado. Por isso a proteção é **local e por combinado** ([ADR 0007](decisoes/0007-protecao-local-da-main.md)):
 
 | Onde | O que confere | Arquivo |
 |---|---|---|
 | Na sua máquina, ao commitar | Mensagem do commit (commitlint) | `.husky/commit-msg` |
-| Na sua máquina, ao dar push | Bloqueia push na `main` e branch fora do padrão | `.husky/pre-push` |
+| Na sua máquina, ao dar push | **Bloqueia push na `main`** e branch fora do padrão | `.husky/pre-push` |
 | No GitHub, no PR | Título do PR, nome da branch, formatação, build | `.github/workflows/` |
-| No GitHub, na `main` | PR obrigatório, aprovação, CODEOWNERS, CI verde | `.github/rulesets/proteger-main.json` |
+| No GitHub, na `main` | **Avisa** (check vermelho) quando um commit entra na `main` sem PR | `.github/workflows/padrao-git.yml` |
+| ~~No GitHub, na `main`~~ | ~~PR obrigatório, aprovação, CODEOWNERS, CI verde~~ | `.github/rulesets/proteger-main.json`, **não ativo** enquanto o repo for privado no plano gratuito |
+
+O GitHub não impede um merge sem aprovação nem um push com `--no-verify`. O que segura a `main` é o hook local, o aviso do CI e o combinado do grupo abaixo. **Nunca use `--no-verify`.**
 
 Os tipos e escopos válidos ficam num lugar só: [commitlint.config.mjs](../commitlint.config.mjs).
 
@@ -106,17 +109,20 @@ Os commits dentro da branch podem ser pequenos e frequentes. Como o merge é por
 - **Título do PR = mensagem do commit final**, no mesmo padrão: `feat(itens): adiciona limite de fusões por raridade`. O CI confere.
 - Um PR = uma funcionalidade. Se precisar mexer em duas, separe em dois PRs.
 - Preencha o [template](../.github/pull_request_template.md).
-- Para entrar na `main`, o PR precisa de:
+- **Combinado do grupo** para fazer o merge (o GitHub não bloqueia; cada um respeita):
   - checks verdes: `csharpier`, `build` e `padrao-git`;
-  - 1 aprovação, incluindo o responsável pela pasta ([CODEOWNERS](../.github/CODEOWNERS));
+  - 1 aprovação de outra pessoa, incluindo o responsável pela pasta (veja [docs/responsaveis.md](responsaveis.md));
   - todas as conversas do review resolvidas;
   - branch atualizada com a `main` (botão "Update branch" no PR);
-  - um novo push depois da aprovação exige aprovar de novo.
-- Merge sempre por **squash**.
+  - um novo push depois da aprovação pede uma nova aprovação.
+- **Peça o review manualmente** (Reviewers, no PR). Em repo privado no plano gratuito, o `CODEOWNERS` não pede review sozinho; ele continua servindo de mapa de quem cuida de cada pasta.
+- Merge sempre por **squash** (o repo só permite squash).
 
 ## Proteção da main (para o admin do repo)
 
-A proteção é um **ruleset** do GitHub, versionado em [.github/rulesets/proteger-main.json](../.github/rulesets/proteger-main.json). Ele bloqueia push direto, force push e exclusão da `main`, exige PR com as regras acima e só permite squash merge. Ninguém tem bypass, nem os admins.
+**Situação atual:** o repo é privado no plano gratuito, e o GitHub recusa rulesets nesse caso. As opções de merge (passo 2 abaixo) já estão aplicadas. O ruleset (passo 1) fica pronto no repo para o dia em que o repo ficar público ou a conta passar para o GitHub Pro. Veja o [ADR 0007](decisoes/0007-protecao-local-da-main.md).
+
+A proteção completa é um **ruleset** do GitHub, versionado em [.github/rulesets/proteger-main.json](../.github/rulesets/proteger-main.json). Ele bloqueia push direto, force push e exclusão da `main`, exige PR com as regras acima e só permite squash merge. Ninguém tem bypass, nem os admins.
 
 Para aplicar (depois do primeiro push da `main`, porque o ruleset bloqueia até a criação da branch):
 
@@ -125,9 +131,9 @@ Para aplicar (depois do primeiro push da `main`, porque o ruleset bloqueia até 
    git commit -m "chore(core): cria estrutura inicial do projeto"
    git push --no-verify -u origin main
    ```
-1. **Settings > Rules > Rulesets > New ruleset > Import a ruleset** e escolha o arquivo `proteger-main.json`. Confira e salve.
+1. *(Só com repo público ou GitHub Pro.)* **Settings > Rules > Rulesets > New ruleset > Import a ruleset** e escolha o arquivo `proteger-main.json`. Confira e salve. Pela linha de comando: `gh api -X POST repos/GabrielNied/jogo_do_grupo/rulesets --input .github/rulesets/proteger-main.json`.
 2. **Settings > General > Pull Requests:**
-   - desmarque "Allow merge commits" e "Allow rebase merging"; deixe só **"Allow squash merging"**, com a mensagem padrão **"Default to pull request title"**;
+   - desmarque "Allow merge commits" e "Allow rebase merging"; deixe só **"Allow squash merging"**, com a mensagem padrão **"Default to pull request title and commit details"**;
    - marque **"Always suggest updating pull request branches"** e **"Automatically delete head branches"**.
 
 Mudou o ruleset no GitHub? Exporte de novo (Rulesets > ... > Export) e atualize o JSON no repo por PR.

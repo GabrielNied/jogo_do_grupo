@@ -3,8 +3,11 @@
 As ideias do grupo nascem no board do FigJam **"Jogo do Grupo - Definição de Features"**. O arquivo [figjam.md](figjam.md) é uma cópia do board em texto, para que todo mundo (e qualquer IA) leia as ideias sem acessar o Figma.
 
 ```
-FigJam (ideias livres) ──export──► docs/brainstorm/figjam.md ──validação──► docs/features/<x>.md
+FigJam (ideias livres) ──export──► figjam.md ──pauta──► validacao.md ──decisão──► docs/features/<x>.md
 ```
+
+- [figjam.md](figjam.md): cópia do board (gerada).
+- [validacao.md](validacao.md): pauta de validação, com as perguntas que o grupo precisa decidir a partir das ideias do board.
 
 - **`figjam.md` é gerado:** não edite à mão. Para mudar uma ideia, mude no FigJam e exporte de novo.
 - **Ideias do brainstorm não são decisões.** Só viram regra quando o grupo valida e alguém leva para o `docs/features/<x>.md` da funcionalidade (em "Definido" ou "Em aberto").

@@ -11,7 +11,7 @@ Código C# usado **pelo cliente e pelo servidor**: regras do jogo, tipos, consta
 
 - Fórmulas e regras que os dois lados precisam (dano, fusão de itens, custo de talentos)
 - Definições de mensagens de rede e seus IDs
-- Enums e tipos de domínio (raridade, tipo de item, classe)
+- Enums e tipos de domínio (raridade, tipo de item, raça)
 
 ## O que não colocar
 

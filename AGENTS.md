@@ -4,7 +4,7 @@ Instruções para assistentes de IA (Claude, Codex/ChatGPT, Copilot, Cursor, Gem
 
 ## O projeto
 
-MMORPG para PC feito em grupo. Monorepo em C#:
+RPG de ação online para PC, para grupos pequenos (sem classes, skills nos itens, foco em bosses, dungeons e raids; veja [docs/visao-geral.md](docs/visao-geral.md)). Feito em grupo. Monorepo em C#:
 
 - `client/`: Unity 6000.6.5f1 com URP (C# 9). Código em `client/Assets/_Game/{Core,Features/<X>}/`, um `.asmdef` por funcionalidade.
 - `server/`: .NET 10, sem engine, **autoritativo** (decide dano, drops, fusão, economia). Código em `server/src/JogoDoGrupo.Server/{Core,Features/<X>}/`.
@@ -47,7 +47,7 @@ Ainda não há testes automatizados. O cliente Unity não compila pela linha de 
 8. **Formatação é do CSharpier.** Não ajuste estilo à mão nem discuta formatação; rode `dotnet csharpier format .`.
 9. **Unity:** não edite cenas (`.unity`) nem `ProjectSettings/` sem pedido explícito. Prefira prefabs. Não crie nem apague `.meta` à mão.
 10. **Mudou regra do jogo?** Atualize `docs/features/<x>.md` na mesma mudança. **Decisão técnica?** Crie um ADR.
-11. **Git:** nunca commite nem dê push na `main`; trabalhe numa branch `<tipo>/<escopo>/<descricao>`. Commits e títulos de PR no padrão `<tipo>(<escopo>): <descrição em português, minúscula>`, validados pelo commitlint (tipos e escopos em `commitlint.config.mjs`). Nunca use `--no-verify`. Só faça commit ou push quando a pessoa pedir. Detalhes em [docs/git.md](docs/git.md).
+11. **Git:** nunca commite nem dê push na `main`; trabalhe numa branch `<tipo>/<escopo>/<descricao>`. Commits e títulos de PR no padrão `<tipo>(<escopo>): <descrição em português, minúscula>`, validados pelo commitlint (tipos e escopos em `commitlint.config.mjs`). Nunca use `--no-verify`. Só faça commit ou push quando a pessoa pedir (pedir uma orquestração de agentes conta como pedido para as branches dos agentes; merge é sempre humano). Detalhes em [docs/git.md](docs/git.md).
 12. Cada informação mora em um documento só (tabela em [docs/README.md](docs/README.md#onde-cada-coisa-fica-fonte-única)). Não copie conteúdo entre docs; aponte com link.
 
 ## Procedimentos (skills)
@@ -61,6 +61,11 @@ Para as tarefas abaixo, **leia o arquivo indicado e siga os passos**. Algumas fe
 | Começar uma tarefa / criar ou renomear branch | [.claude/skills/nova-branch/SKILL.md](.claude/skills/nova-branch/SKILL.md) |
 | Escrever mensagem de commit ou título de PR, commitar | [.claude/skills/fazer-commit/SKILL.md](.claude/skills/fazer-commit/SKILL.md) |
 | Deixar uma mudança pronta para PR | [.claude/skills/preparar-pr/SKILL.md](.claude/skills/preparar-pr/SKILL.md) |
+| Dividir uma tarefa entre vários agentes e coordenar | [.claude/skills/orquestrar-tarefa/SKILL.md](.claude/skills/orquestrar-tarefa/SKILL.md) |
+
+## Vários agentes em paralelo
+
+O trabalho é dividido entre agentes especializados, cada um com uma área fixa (ex.: `server-funcionalidade` só edita `server/.../Features/`). Se você foi chamado como um desses agentes, siga a definição em [.claude/agents/](.claude/agents/) e fique na sua área. O fluxo (contrato primeiro, depois server e client em paralelo, cada um no seu worktree) está em [docs/agentes.md](docs/agentes.md).
 
 ## Onde ler mais
 

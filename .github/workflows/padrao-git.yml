@@ -2,15 +2,21 @@ name: Padrão do Git
 
 # Com squash merge, o título do PR vira a mensagem do commit na main.
 # Por isso o título passa pelo commitlint, além do nome da branch.
+# Na main, como o repo é privado no plano gratuito (sem proteção de branch no GitHub),
+# um job avisa com check vermelho quando algum commit entra sem PR (ADR 0007).
 on:
   pull_request:
     types: [opened, edited, synchronize, reopened]
+  push:
+    branches: [main]
 
 permissions:
   contents: read
+  pull-requests: read
 
 jobs:
   padrao-git:
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -29,3 +35,28 @@ jobs:
         env:
           BRANCH: ${{ github.head_ref }}
         run: node scripts/git/validar-branch.mjs "$BRANCH"
+
+  main-via-pr:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Todo commit novo na main veio de um PR?
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          falhou=0
+          for sha in $(jq -r '.commits[].id' "$GITHUB_EVENT_PATH"); do
+            total=$(gh api "repos/$REPO/commits/$sha/pulls" --jq 'length')
+            if [ "$total" = "0" ]; then
+              sleep 10
+              total=$(gh api "repos/$REPO/commits/$sha/pulls" --jq 'length')
+            fi
+            if [ "$total" = "0" ]; then
+              echo "::error::O commit $sha entrou na main sem PR. Todo trabalho vai por branch e PR (docs/git.md)."
+              falhou=1
+            else
+              echo "✔ $sha veio de PR."
+            fi
+          done
+          exit $falhou

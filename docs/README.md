@@ -3,9 +3,11 @@
 | Documento | Conteúdo |
 |---|---|
 | [visao-geral.md](visao-geral.md) | O que é o jogo e seus pilares |
+| [referencias.md](referencias.md) | Jogos usados como base, por sistema |
 | [arquitetura.md](arquitetura.md) | Como cliente, servidor e shared se organizam |
 | [convencoes.md](convencoes.md) | Padrões de código e nomes |
 | [git.md](git.md) | Branches, commits (commitlint), PRs e proteção da `main` |
+| [agentes.md](agentes.md) | Vários agentes de IA trabalhando em paralelo: papéis, áreas e fluxo |
 | [responsaveis.md](responsaveis.md) | Quem cuida de cada funcionalidade |
 | [brainstorm/](brainstorm/) | Cópia em texto do board do FigJam (ideias não validadas) |
 | [features/](features/) | Um documento por funcionalidade do jogo |
@@ -27,5 +29,7 @@ Cada informação mora em um lugar só. Os outros documentos apontam para ele em
 | Tipos e escopos de commit | [commitlint.config.mjs](../commitlint.config.mjs) |
 | Responsabilidades, Unity sem conflito, uso de IA | [CONTRIBUTING.md](../CONTRIBUTING.md) |
 | Ideias do brainstorm (não validadas) | [brainstorm/figjam.md](brainstorm/figjam.md), gerado do FigJam |
+| Decisões de design em aberto (validação das ideias) | [brainstorm/validacao.md](brainstorm/validacao.md) |
 | Regras de cada funcionalidade | [features/](features/) |
 | Instruções para assistentes de IA | [AGENTS.md](../AGENTS.md) |
+| Papéis e fluxo dos agentes | [agentes.md](agentes.md) e [.claude/agents/](../.claude/agents/) |
