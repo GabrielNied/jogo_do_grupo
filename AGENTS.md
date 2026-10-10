@@ -31,6 +31,12 @@ Ainda não há testes automatizados. O cliente Unity não compila pela linha de 
 
 ## Regras que você deve seguir
 
+0. **Nunca apague o que as pessoas criaram. Ajuste ou melhore, nunca remova.** Esta regra vem antes de todas as outras e vale mesmo que pareça óbvio que algo está sobrando.
+   - Não apague arquivos, pastas, assets, seções ou itens de documentação, ideias, comentários de outras pessoas, conteúdo do Figma, branches, issues ou PRs (nem feche issues/PRs).
+   - Não use comandos git que descartam trabalho: `git reset --hard`, `git clean`, `git checkout -- <arquivo>`, `git restore` sem `--staged`, `git stash drop`, `git push --force` (inclusive `--force-with-lease`), `git branch -D`. Se um deles for necessário, explique e deixe a pessoa rodar.
+   - Editar para melhorar é permitido, desde que a intenção original continue lá. Ao reescrever o texto de alguém, preserve as ideias; se mudar o sentido, pergunte antes.
+   - Algo ficou obsoleto, duplicado ou errado? **Marque** (ex.: "~~texto~~ substituído por ..." ou status `substituída` num ADR) ou mova para o lugar certo, e avise a pessoa.
+   - Se algo realmente precisar sumir, diga à pessoa exatamente o que apagar e deixe que ela apague.
 1. **Fique nas pastas da funcionalidade da tarefa** (`Features/<X>/` em client, server e shared, e `docs/features/<x>.md`). Se precisar mexer em outra funcionalidade ou em `Core/`, pare e avise a pessoa: isso exige review do responsável.
 2. **Funcionalidades não se referenciam diretamente.** Comunicação por eventos e contratos definidos em `shared/Package/Runtime/Features/<dono>/`. Não adicione referência de um `.asmdef` de feature para outro.
 3. **Servidor autoritativo:** regras que decidem resultado (dano, drop, fusão, preço) rodam no servidor. O cliente envia intenções e mostra resultados.
@@ -63,3 +69,4 @@ Para as tarefas abaixo, **leia o arquivo indicado e siga os passos**. Algumas fe
 - [docs/git.md](docs/git.md): branches, commits, PRs e proteção da `main`
 - [CONTRIBUTING.md](CONTRIBUTING.md): responsabilidades, Unity sem conflito, uso de IA
 - [docs/features/](docs/features/): regras de cada funcionalidade
+- [docs/brainstorm/figjam.md](docs/brainstorm/figjam.md): ideias do FigJam, **não validadas** (não trate como regra). Não leia o FigJam direto pelo conector de Figma: a cota do plano gratuito é mínima; use este arquivo.

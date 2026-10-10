@@ -7,10 +7,11 @@
 | [convencoes.md](convencoes.md) | Padrões de código e nomes |
 | [git.md](git.md) | Branches, commits (commitlint), PRs e proteção da `main` |
 | [responsaveis.md](responsaveis.md) | Quem cuida de cada funcionalidade |
+| [brainstorm/](brainstorm/) | Cópia em texto do board do FigJam (ideias não validadas) |
 | [features/](features/) | Um documento por funcionalidade do jogo |
 | [decisoes/](decisoes/) | Decisões técnicas registradas (ADRs) |
 
-O brainstorm de ideias fica no board do FigJam **"Jogo do Grupo - Definição de Features"** (time "Gabriel Nied's team", pasta "Team project"). Quando uma ideia for aprovada, ela entra no documento da funcionalidade.
+O brainstorm de ideias fica no board do FigJam **"Jogo do Grupo - Definição de Features"** (time "Gabriel Nied's team", pasta "Team project"). Uma cópia em texto, para ler sem acessar o Figma, fica em [brainstorm/figjam.md](brainstorm/figjam.md) ([como atualizar](brainstorm/README.md)). Quando uma ideia for aprovada, ela entra no documento da funcionalidade.
 
 ## Onde cada coisa fica (fonte única)
 
@@ -25,5 +26,6 @@ Cada informação mora em um lugar só. Os outros documentos apontam para ele em
 | Branches, commits, PRs, proteção da `main` | [git.md](git.md) |
 | Tipos e escopos de commit | [commitlint.config.mjs](../commitlint.config.mjs) |
 | Responsabilidades, Unity sem conflito, uso de IA | [CONTRIBUTING.md](../CONTRIBUTING.md) |
+| Ideias do brainstorm (não validadas) | [brainstorm/figjam.md](brainstorm/figjam.md), gerado do FigJam |
 | Regras de cada funcionalidade | [features/](features/) |
 | Instruções para assistentes de IA | [AGENTS.md](../AGENTS.md) |

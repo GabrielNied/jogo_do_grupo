@@ -48,6 +48,7 @@ Procedimentos prontos (skills) ficam em `.claude/skills/<nome>/SKILL.md`, no for
 
 Regras:
 
+- **A IA nunca apaga o que as pessoas criaram**: arquivos, docs, ideias, assets, Figma, branches, issues. Ela pode ajustar e melhorar; o que ficar obsoleto é marcado, não removido, e apagar fica sempre com uma pessoa. É a regra 0 do [AGENTS.md](AGENTS.md). Se o seu assistente tentar apagar algo, recuse e avise o core.
 - **Não edite o `CLAUDE.md`** nem crie arquivos de instrução específicos de uma ferramenta (`.cursorrules`, `GEMINI.md`, `.github/copilot-instructions.md`...). Regra nova vai no `AGENTS.md`, para valer em todas.
 - Skill nova: crie `.claude/skills/<nome>/SKILL.md` (nome em minúsculas com hífen, igual ao da pasta, e `description` dizendo quando usar) e adicione na tabela de procedimentos do `AGENTS.md`.
 - Configurações pessoais ficam fora do git (`.claude/settings.local.json`, `CLAUDE.local.md`, `AGENTS.local.md`).
