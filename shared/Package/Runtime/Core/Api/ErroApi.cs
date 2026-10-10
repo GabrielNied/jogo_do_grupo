@@ -1,8 +1,11 @@
 namespace JogoDoGrupo.Shared.Core.Api
 {
     /// <summary>
-    /// Corpo de toda resposta de erro da API HTTP (status 4xx).
+    /// Corpo de toda resposta de erro da API HTTP (status 4xx e 5xx).
     /// Enviado pelo servidor; o client lê <see cref="Codigo"/> para decidir o que mostrar.
+    /// Se uma resposta 4xx/5xx vier sem corpo, com JSON inválido ou com código desconhecido,
+    /// o client trata como erro genérico (exceção: 401 em rota protegida é sempre
+    /// <see cref="CodigosErro.NaoAutenticado"/>).
     /// </summary>
     [System.Serializable]
     public class ErroApi

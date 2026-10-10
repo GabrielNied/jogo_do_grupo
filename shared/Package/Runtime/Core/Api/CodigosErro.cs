@@ -25,7 +25,18 @@ namespace JogoDoGrupo.Shared.Core.Api
         /// </summary>
         public const string CredenciaisInvalidas = "CredenciaisInvalidas";
 
-        /// <summary>401: rota protegida chamada sem token, com token inválido ou expirado.</summary>
+        /// <summary>
+        /// 401: rota protegida chamada sem token, com token inválido ou expirado. O servidor
+        /// escreve <see cref="ErroApi"/> também no 401 gerado pela autenticação JWT
+        /// (ex.: em <c>JwtBearerEvents.OnChallenge</c>). O client trata qualquer 401 em rota
+        /// protegida como <c>NaoAutenticado</c>, mesmo sem corpo.
+        /// </summary>
         public const string NaoAutenticado = "NaoAutenticado";
+
+        /// <summary>400: corpo ausente ou JSON malformado, em qualquer rota.</summary>
+        public const string RequisicaoInvalida = "RequisicaoInvalida";
+
+        /// <summary>500: falha inesperada no servidor.</summary>
+        public const string ErroInterno = "ErroInterno";
     }
 }
