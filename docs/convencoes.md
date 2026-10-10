@@ -36,7 +36,7 @@ A formatação é automática e não se discute em review: quem decide é o [CSh
 
 - O workflow [format.yml](../.github/workflows/format.yml) roda o `check` em todo PR e push na `main`. PR com código fora do padrão não passa.
 - Plugin do editor, com "formatar ao salvar":
-  - **VS Code:** extensão `csharpier.csharpier-vscode` (o repo já recomenda em `.vscode/extensions.json`). Em Settings, `editor.formatOnSave: true` e o CSharpier como formatador padrão de C#.
+  - **VS Code e Cursor:** extensão `csharpier.csharpier-vscode` (o repo já recomenda em `.vscode/extensions.json`). O "formatar ao salvar" com o CSharpier já vem ligado pelo `.vscode/settings.json` do repo.
   - **Rider:** plugin "CSharpier" (Settings > Tools > CSharpier > Run on Save).
   - **Visual Studio:** extensão "CSharpier" (Tools > Options > CSharpier > Reformat on Save).
 - Largura máxima da linha: 100 caracteres (padrão do CSharpier, explícito no `.editorconfig`).

@@ -1,8 +1,9 @@
 {
   "recommendations": [
     "csharpier.csharpier-vscode",
+    "editorconfig.editorconfig",
     "ms-dotnettools.csdevkit",
     "visualstudiotoolsforunity.vstuc",
-    "editorconfig.editorconfig"
+    "anysphere.csharp"
   ]
 }

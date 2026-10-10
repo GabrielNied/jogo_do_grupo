@@ -34,7 +34,8 @@ Os comandos deste guia são para **Windows** e funcionam no Git Bash e no PowerS
 | [Node.js](https://nodejs.org) | **20 ou mais nova** (recomendado: 24 LTS) | Só para as ferramentas do git (commitlint, hooks). O jogo não usa Node. | `node --version` |
 | [Unity Hub](https://unity.com/download) | Mais recente | Instalar e abrir o Unity | — |
 | Unity Editor | **6000.6.5f1** (exatamente essa) | Cliente do jogo | Unity Hub > Installs |
-| Editor de código | VS Code, Rider ou Visual Studio | Escrever C# | — |
+| Editor de código | VS Code, Cursor, Rider ou Visual Studio | Escrever C# | — |
+| [GitHub CLI](https://cli.github.com) (recomendado) | Mais recente | Abrir e revisar PRs pelo terminal; usado pelos assistentes de IA | `gh --version` |
 
 **Instalando o Unity certo:** no Unity Hub, vá em **Installs > Install Editor > Archive** e procure a versão `6000.6.5f1`. Também dá para colar `unityhub://6000.6.5f1/3ff58d469c8a` na barra do navegador, que abre o Hub direto nela. Os módulos extras não são necessários para começar. Versão diferente **não serve**: o Unity atualizaria os arquivos do projeto e geraria conflitos para todo mundo.
 
@@ -43,10 +44,11 @@ Os comandos deste guia são para **Windows** e funcionam no Git Bash e no PowerS
 | Editor | Instale |
 |---|---|
 | VS Code | Aceite as extensões recomendadas que o VS Code sugere ao abrir o repo (CSharpier, C# Dev Kit, Unity, EditorConfig). Lista em [.vscode/extensions.json](.vscode/extensions.json). |
+| Cursor | CSharpier, EditorConfig e **C# (Anysphere)** (`anysphere.csharp`). As extensões C# Dev Kit e Unity, da Microsoft, não existem no marketplace do Cursor. |
 | Rider | Plugin "CSharpier" (o suporte a Unity já vem embutido) |
 | Visual Studio | Extensão "CSharpier" e a carga de trabalho "Desenvolvimento de jogos com Unity" |
 
-Em todos, ative **formatar ao salvar** com o CSharpier ([como fazer](docs/convencoes.md#formatação)).
+No VS Code e no Cursor, o **formatar ao salvar** com o CSharpier já vem ligado pelo [.vscode/settings.json](.vscode/settings.json). No Rider e no Visual Studio, ative manualmente ([como fazer](docs/convencoes.md#formatação)).
 
 ### 3. Configure o Git (uma vez por máquina)
 
@@ -54,6 +56,12 @@ Em todos, ative **formatar ao salvar** com o CSharpier ([como fazer](docs/conven
 git config --global user.name "Seu Nome"
 git config --global user.email "seu-email-do-github@exemplo.com"
 git lfs install
+```
+
+Se instalou o GitHub CLI, faça login (abre o navegador; escolha **HTTPS** e aceite autenticar o Git com as credenciais do GitHub):
+
+```
+gh auth login
 ```
 
 ### 4. Clone o repositório
@@ -106,6 +114,7 @@ Servidor iniciado com 14 funcionalidades.
    - no **Package Manager** (Window > Package Manager > In Project) aparece **"Jogo do Grupo - Shared"**;
    - a cena `Assets/_Game/Core/Scenes/SampleScene` abre normalmente.
 4. Em **Edit > Preferences > External Tools**, escolha seu editor de código em **External Script Editor**. É isso que faz o autocomplete funcionar nos scripts do Unity.
+   - **Cursor:** o Unity ainda não reconhece o Cursor (o pacote de IDE do Unity só conhece Visual Studio, VS Code e Rider), então não gera os `.csproj` e o autocomplete das APIs do Unity não funciona. Até o core decidir uma solução (ex.: um pacote de integração com o Cursor), use o Cursor para server e shared, e o VS Code, o Rider ou o Visual Studio para os scripts do Unity.
 
 Mais detalhes, e quais configurações do projeto não devem ser alteradas: [client/README.md](client/README.md).
 
@@ -232,10 +241,10 @@ Qualquer assistente (Claude, ChatGPT/Codex, Copilot, Cursor, Gemini...) deve seg
 
 ## Status e próximos passos
 
-Estrutura do repo, projeto Unity, CI (build, CSharpier, commitlint), hooks do git e documentação base prontos. Falta:
+Estrutura do repo, projeto Unity, CI (build, CSharpier, commitlint), hooks do git e documentação base prontos e publicados. Falta:
 
-1. Primeiro commit na `main` e push; conferir os workflows passando no GitHub.
-2. Proteger a `main`: importar o ruleset e ajustar as opções de merge ([docs/git.md](docs/git.md#proteção-da-main-para-o-admin-do-repo)).
-3. Preencher [docs/responsaveis.md](docs/responsaveis.md), ativar o [.github/CODEOWNERS](.github/CODEOWNERS) e adicionar o grupo como collaborators.
+1. Proteger a `main`: importar o ruleset e ajustar as opções de merge ([docs/git.md](docs/git.md#proteção-da-main-para-o-admin-do-repo)).
+2. Preencher [docs/responsaveis.md](docs/responsaveis.md), ativar o [.github/CODEOWNERS](.github/CODEOWNERS) e adicionar o grupo como collaborators.
+3. Decidir como integrar o Cursor ao Unity (o Unity não gera `.csproj` para ele).
 4. Decidir (e registrar em ADR): biblioteca de rede, banco de dados, divisão do mundo entre servidores, testes.
 5. Primeiro marco: a [fatia jogável](docs/visao-geral.md#primeiro-marco-fatia-jogável).
