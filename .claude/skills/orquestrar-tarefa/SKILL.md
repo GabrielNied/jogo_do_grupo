@@ -40,6 +40,7 @@ Funcionalidade: <X> (pasta Features/<X>/, escopo de commit <x>)
 Objetivo: <o que deve funcionar ao final, em 2–4 linhas>
 Contrato: <arquivos e IDs do shared já na main, ou "não se aplica">
 Regras de design: docs/features/<x>.md, seções <...>
+Issue: #<N> (coloque "Closes #<N>" na descrição do PR)
 Fora do escopo: <o que NÃO fazer>
 Pronto quando: <critérios verificáveis>
 Autorização: pode commitar, enviar a branch e abrir PR. Não faça merge.
@@ -54,6 +55,13 @@ Para cada relatório:
 - **"Para outros agentes"** vira uma nova subtarefa (outra rodada) ou um item para a pessoa (montar no Unity, decidir algo).
 - **Dúvidas** vão para a pessoa; não decida regras de design por conta própria.
 - Lance o `revisor` para cada PR aberto.
+- Achados do revisor que valem a pena viram **commits novos na mesma branch**, feitos pelo agente que abriu o PR (retome-o com a mensagem dos ajustes).
+
+### Quando pedir o merge
+
+Só diga à pessoa que um PR está **pronto para merge** depois que: os checks passaram, o `revisor` aprovou e os ajustes escolhidos foram aplicados. Até lá, deixe claro: "em revisão, **não mergear ainda**".
+
+Se um PR for mergeado antes dos ajustes, **não envie mais nada para a branch dele** (ela foi apagada no merge e o push a recriaria). Crie uma branch nova a partir da `origin/main`, traga os commits com `git cherry-pick` e abra um PR novo.
 
 ## 6. Resumo final para a pessoa
 
