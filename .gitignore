@@ -55,6 +55,11 @@ AGENTS.local.md
 Thumbs.db
 desktop.ini
 
+# ---------- Banco de dados local (SQLite) ----------
+*.db
+*.db-shm
+*.db-wal
+
 # ---------- Segredos ----------
 .env
 *.env.local
