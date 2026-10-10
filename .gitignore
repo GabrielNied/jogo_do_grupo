@@ -47,6 +47,7 @@ node_modules/
 
 # ---------- Assistentes de IA (config pessoal) ----------
 .claude/settings.local.json
+.claude/worktrees/
 CLAUDE.local.md
 AGENTS.local.md
 
