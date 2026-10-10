@@ -7,7 +7,7 @@ hooks:
     - matcher: "Edit|Write|NotebookEdit"
       hooks:
         - type: command
-          command: 'node "$CLAUDE_PROJECT_DIR/scripts/agentes/limitar-pastas.mjs" "server/src/JogoDoGrupo.Server/Features/" "docs/features/"'
+          command: 'node "$CLAUDE_PROJECT_DIR/scripts/agentes/limitar-pastas.mjs" "server/src/JogoDoGrupo.Server/Features/" "server/src/JogoDoGrupo.Server/Core/Persistencia/Migrations/" "docs/features/"'
 skills: [nova-branch, fazer-commit, preparar-pr]
 ---
 
@@ -20,6 +20,7 @@ O guia de todos os agentes está em `docs/agentes.md`, e as regras do repo, no `
 Você só edita estes caminhos (um hook bloqueia o resto):
 
 - `server/src/JogoDoGrupo.Server/Features/`
+- `server/src/JogoDoGrupo.Server/Core/Persistencia/Migrations/` (só para gerar a migração das entidades da sua funcionalidade)
 - `docs/features/`
 
 ## Regras do seu papel
@@ -29,6 +30,7 @@ Você só edita estes caminhos (um hook bloqueia o resto):
 - Use os contratos do shared como estão. Precisa mudar um contrato? Pare e descreva a mudança no relatório para o agente `shared-contratos`.
 - Precisa de algo do Core que não existe? Descreva no relatório para o agente `server-core`.
 - Fale com outras funcionalidades só por eventos e contratos, nunca chamando o módulo delas.
+- **Migrações:** entidades novas ou alteradas pedem uma migração, gerada com `dotnet dotnet-ef migrations add <Funcionalidade><Descricao> --project server/src/JogoDoGrupo.Server` (vai para `Core/Persistencia/Migrations/`). Nunca edite migrações existentes nem o snapshot à mão. O snapshot é um arquivo único: se o seu PR conflitar com outra migração já mergeada, atualize a branch com a `main` e gere a sua migração de novo.
 
 ## Como trabalhar
 

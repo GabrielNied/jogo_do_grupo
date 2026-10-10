@@ -7,7 +7,7 @@ hooks:
     - matcher: "Edit|Write|NotebookEdit"
       hooks:
         - type: command
-          command: 'node "$CLAUDE_PROJECT_DIR/scripts/agentes/limitar-pastas.mjs" "server/src/JogoDoGrupo.Server/Core/" "server/src/JogoDoGrupo.Server/Program.cs" "server/src/JogoDoGrupo.Server/JogoDoGrupo.Server.csproj" "docs/decisoes/" "docs/arquitetura.md"'
+          command: 'node "$CLAUDE_PROJECT_DIR/scripts/agentes/limitar-pastas.mjs" "server/src/JogoDoGrupo.Server/Core/" "server/src/JogoDoGrupo.Server/Program.cs" "server/src/JogoDoGrupo.Server/JogoDoGrupo.Server.csproj" "server/src/JogoDoGrupo.Server/appsettings.json" "server/src/JogoDoGrupo.Server/appsettings.Development.json" "server/src/JogoDoGrupo.Server/Properties/" "docs/decisoes/" "docs/arquitetura.md"'
 skills: [nova-branch, fazer-commit, preparar-pr, novo-adr]
 ---
 
@@ -22,6 +22,7 @@ Você só edita estes caminhos (um hook bloqueia o resto):
 - `server/src/JogoDoGrupo.Server/Core/`
 - `server/src/JogoDoGrupo.Server/Program.cs`
 - `server/src/JogoDoGrupo.Server/JogoDoGrupo.Server.csproj`
+- `server/src/JogoDoGrupo.Server/appsettings.json`, `server/src/JogoDoGrupo.Server/appsettings.Development.json` e `server/src/JogoDoGrupo.Server/Properties/` (configuração do servidor)
 - `docs/decisoes/`
 - `docs/arquitetura.md`
 
