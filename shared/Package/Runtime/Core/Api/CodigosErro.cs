@@ -1,8 +1,9 @@
 namespace JogoDoGrupo.Shared.Core.Api
 {
     /// <summary>
-    /// Códigos de erro que o servidor coloca em <see cref="ErroApi.Codigo"/>.
-    /// O status HTTP de cada um está indicado ao lado.
+    /// Códigos de erro de conta e genéricos que o servidor coloca em <see cref="ErroApi.Codigo"/>.
+    /// Cada funcionalidade define os próprios em <c>Features/&lt;X&gt;/CodigosErro&lt;X&gt;</c>
+    /// (ex.: <c>CodigosErroPersonagem</c>). O status HTTP de cada um está indicado ao lado.
     /// </summary>
     public static class CodigosErro
     {
@@ -12,25 +13,30 @@ namespace JogoDoGrupo.Shared.Core.Api
         /// <summary>400: senha fora das regras de <c>RegrasConta</c> (só no registro).</summary>
         public const string SenhaInvalida = "SenhaInvalida";
 
-        /// <summary>409: já existe conta com esse usuário.</summary>
+        /// <summary>
+        /// 409: já existe conta com esse usuário, comparando sem diferenciar maiúsculas
+        /// ("Ana" bloqueia "ana").
+        /// </summary>
         public const string UsuarioJaExiste = "UsuarioJaExiste";
 
-        /// <summary>401: usuário ou senha errados no login.</summary>
+        /// <summary>
+        /// 401: usuário ou senha errados no login. O usuário é comparado sem diferenciar
+        /// maiúsculas; a senha, exatamente.
+        /// </summary>
         public const string CredenciaisInvalidas = "CredenciaisInvalidas";
 
-        /// <summary>401: rota protegida chamada sem token, com token inválido ou expirado.</summary>
+        /// <summary>
+        /// 401: rota protegida chamada sem token, com token inválido ou expirado. O servidor
+        /// escreve <see cref="ErroApi"/> também no 401 gerado pela autenticação JWT
+        /// (ex.: em <c>JwtBearerEvents.OnChallenge</c>). O client trata qualquer 401 em rota
+        /// protegida como <c>NaoAutenticado</c>, mesmo sem corpo.
+        /// </summary>
         public const string NaoAutenticado = "NaoAutenticado";
 
-        /// <summary>400: nome de personagem fora das regras de <c>RegrasPersonagem</c>.</summary>
-        public const string NomeInvalido = "NomeInvalido";
+        /// <summary>400: corpo ausente ou JSON malformado, em qualquer rota.</summary>
+        public const string RequisicaoInvalida = "RequisicaoInvalida";
 
-        /// <summary>409: já existe personagem com esse nome (sem diferenciar maiúsculas).</summary>
-        public const string NomeJaExiste = "NomeJaExiste";
-
-        /// <summary>409: a conta já tem o máximo de personagens.</summary>
-        public const string LimitePersonagens = "LimitePersonagens";
-
-        /// <summary>400: valor que não existe no enum <c>Raca</c>.</summary>
-        public const string RacaInvalida = "RacaInvalida";
+        /// <summary>500: falha inesperada no servidor.</summary>
+        public const string ErroInterno = "ErroInterno";
     }
 }

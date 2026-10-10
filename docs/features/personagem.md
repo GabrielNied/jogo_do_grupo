@@ -124,7 +124,7 @@ O formato exato dessas respostas (códigos e campos) é definido no contrato do 
 
 ## Expõe
 
-API HTTP para listar e criar personagens (por que HTTP: [ADR 0009](../decisoes/0009-api-http-para-conta-e-personagens.md)). Todas as chamadas exigem o token (JWT) do login; sem ele, o servidor responde 401. Os tipos ficam em [shared/Package/Runtime/Features/Personagem/](../../shared/Package/Runtime/Features/Personagem/), usados pelo servidor e pelo client; o contrato completo entra pelo PR #14 e é a fonte dos nomes e tipos exatos.
+API HTTP para listar e criar personagens (por que HTTP: [ADR 0009](../decisoes/0009-api-http-para-conta-e-personagens.md)). Todas as chamadas exigem o token (JWT) do login; sem ele, o servidor responde 401. Os tipos ficam em [shared/Package/Runtime/Features/Personagem/](../../shared/Package/Runtime/Features/Personagem/), usados pelo servidor e pelo client; o código do contrato é a fonte dos nomes e tipos exatos.
 
 | Rota | O que faz | Envia | Recebe |
 |---|---|---|---|
@@ -136,4 +136,5 @@ API HTTP para listar e criar personagens (por que HTTP: [ADR 0009](../decisoes/0
 - **`Raca`:** enum do shared (hoje só `Humano`). No JSON trafega como **número**, não como texto.
 - **`RegrasPersonagem.ValidarNome`:** validador do formato do nome, usado pelo client e pelo servidor.
 - **`ListaPersonagensResponse`:** a lista de personagens da conta (de 0 a 4).
+- **`CodigosErroPersonagem`:** os códigos dos motivos de recusa (`NomeInvalido`, `NomeJaExiste`, `LimitePersonagens`, `RacaInvalida`), que chegam no campo `Codigo` do `ErroApi` do Core. Erros genéricos (não autenticado, requisição inválida, erro interno) usam os códigos do Core (`CodigosErro`).
 - Por serem HTTP, essas rotas não usam IDs de mensagem da faixa 3000–3999.
