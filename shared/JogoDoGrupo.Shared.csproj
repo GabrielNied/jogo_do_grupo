@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    Biblioteca compartilhada entre cliente (Unity) e servidor.
+    Alvo .NET Standard 2.1 e C# 9 porque é o máximo que o Unity suporta.
+    O código fica em Package/ para o Unity importar como pacote local (UPM).
+  -->
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <LangVersion>9.0</LangVersion>
+    <Nullable>enable</Nullable>
+    <RootNamespace>JogoDoGrupo.Shared</RootNamespace>
+    <AssemblyName>JogoDoGrupo.Shared</AssemblyName>
+  </PropertyGroup>
+</Project>

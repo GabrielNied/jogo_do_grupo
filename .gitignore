@@ -1,0 +1,60 @@
+# ---------- Unity (client/) ----------
+/client/[Ll]ibrary/
+/client/[Tt]emp/
+/client/[Oo]bj/
+/client/[Bb]uild/
+/client/[Bb]uilds/
+/client/[Ll]ogs/
+/client/[Uu]ser[Ss]ettings/
+/client/[Mm]emoryCaptures/
+/client/[Rr]ecordings/
+/client/.utmp/
+/client/*.csproj
+/client/*.sln
+/client/*.slnx
+/client/*.unityproj
+/client/*.pidb
+/client/*.booproj
+/client/*.svd
+/client/*.pdb
+/client/*.mdb
+/client/*.opendb
+/client/*.VC.db
+/client/Assets/Plugins/Editor/JetBrains*
+/client/Assets/AssetStoreTools*
+/client/crashlytics-build.properties
+*.apk
+*.aab
+*.unitypackage
+
+# ---------- .NET (server/ e shared/) ----------
+bin/
+obj/
+*.user
+*.suo
+TestResults/
+
+# ---------- Node (só ferramentas do git: commitlint, husky) ----------
+node_modules/
+
+# ---------- IDEs ----------
+.vs/
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.swp
+
+# ---------- Assistentes de IA (config pessoal) ----------
+.claude/settings.local.json
+CLAUDE.local.md
+AGENTS.local.md
+
+# ---------- Sistema ----------
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ---------- Segredos ----------
+.env
+*.env.local
+appsettings.*.local.json

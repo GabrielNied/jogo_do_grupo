@@ -1,0 +1,9 @@
+# Bloqueia push direto na main e branches fora do padrão (regras em scripts/git/validar-branch.mjs).
+zero=0000000000000000000000000000000000000000
+while read -r local_ref local_sha remote_ref remote_sha; do
+  # Apagar uma branch remota não precisa de validação.
+  [ "$local_sha" = "$zero" ] && continue
+  case "$remote_ref" in
+    refs/heads/*) node scripts/git/validar-branch.mjs "${remote_ref#refs/heads/}" || exit 1 ;;
+  esac
+done

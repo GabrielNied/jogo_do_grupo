@@ -1,0 +1,2 @@
+# Valida a mensagem de commit com o commitlint (regras em commitlint.config.mjs).
+npx --no -- commitlint --edit "$1"

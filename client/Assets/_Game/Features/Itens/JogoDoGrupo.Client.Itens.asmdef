@@ -1,0 +1,17 @@
+{
+  "name": "JogoDoGrupo.Client.Itens",
+  "rootNamespace": "JogoDoGrupo.Client.Features.Itens",
+  "references": [
+    "JogoDoGrupo.Client.Core",
+    "JogoDoGrupo.Shared"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

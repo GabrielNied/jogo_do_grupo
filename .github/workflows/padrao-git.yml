@@ -1,0 +1,31 @@
+name: Padrão do Git
+
+# Com squash merge, o título do PR vira a mensagem do commit na main.
+# Por isso o título passa pelo commitlint, além do nome da branch.
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  padrao-git:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Título do PR (commitlint)
+        env:
+          TITULO: ${{ github.event.pull_request.title }}
+        run: printf '%s\n' "$TITULO" | npx --no -- commitlint --verbose
+      - name: Nome da branch
+        env:
+          BRANCH: ${{ github.head_ref }}
+        run: node scripts/git/validar-branch.mjs "$BRANCH"

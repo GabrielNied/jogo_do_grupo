@@ -1,0 +1,105 @@
+# Define quem precisa revisar mudanças em cada pasta.
+# Para ativar uma linha: remova o "#" e troque @usuario pelo usuário do GitHub do responsável.
+# Regras mais abaixo têm prioridade sobre as de cima.
+
+# ---------- Core e arquivos compartilhados ----------
+# *                                    @responsavel-core
+# /client/Assets/_Game/Core/           @responsavel-core
+# /client/ProjectSettings/             @responsavel-core
+# /client/Packages/                    @responsavel-core
+# /server/src/JogoDoGrupo.Server/Core/ @responsavel-core
+# /shared/Package/Runtime/Core/        @responsavel-core
+# /.github/                            @responsavel-core
+# /.husky/                             @responsavel-core
+# /scripts/                            @responsavel-core
+# /.claude/                            @responsavel-core
+# /AGENTS.md                           @responsavel-core
+# /CLAUDE.md                           @responsavel-core
+# /commitlint.config.mjs               @responsavel-core
+# /package.json                        @responsavel-core
+# /package-lock.json                   @responsavel-core
+
+# ---------- Funcionalidades ----------
+# Mundo
+# /client/Assets/_Game/Features/Mundo/ @usuario
+# /server/src/JogoDoGrupo.Server/Features/Mundo/ @usuario
+# /shared/Package/Runtime/Features/Mundo/ @usuario
+# /docs/features/mundo.md @usuario
+
+# NPCs
+# /client/Assets/_Game/Features/Npcs/ @usuario
+# /server/src/JogoDoGrupo.Server/Features/Npcs/ @usuario
+# /shared/Package/Runtime/Features/Npcs/ @usuario
+# /docs/features/npcs.md @usuario
+
+# Personagem
+# /client/Assets/_Game/Features/Personagem/ @usuario
+# /server/src/JogoDoGrupo.Server/Features/Personagem/ @usuario
+# /shared/Package/Runtime/Features/Personagem/ @usuario
+# /docs/features/personagem.md @usuario
+
+# Skills (magias)
+# /client/Assets/_Game/Features/Skills/ @usuario
+# /server/src/JogoDoGrupo.Server/Features/Skills/ @usuario
+# /shared/Package/Runtime/Features/Skills/ @usuario
+# /docs/features/skills.md @usuario
+
+# Habilidades (talentos)
+# /client/Assets/_Game/Features/Talentos/ @usuario
+# /server/src/JogoDoGrupo.Server/Features/Talentos/ @usuario
+# /shared/Package/Runtime/Features/Talentos/ @usuario
+# /docs/features/talentos.md @usuario
+
+# Combate
+# /client/Assets/_Game/Features/Combate/ @usuario
+# /server/src/JogoDoGrupo.Server/Features/Combate/ @usuario
+# /shared/Package/Runtime/Features/Combate/ @usuario
+# /docs/features/combate.md @usuario
+
+# Itens
+# /client/Assets/_Game/Features/Itens/ @usuario
+# /server/src/JogoDoGrupo.Server/Features/Itens/ @usuario
+# /shared/Package/Runtime/Features/Itens/ @usuario
+# /docs/features/itens.md @usuario
+
+# Profissões
+# /client/Assets/_Game/Features/Profissoes/ @usuario
+# /server/src/JogoDoGrupo.Server/Features/Profissoes/ @usuario
+# /shared/Package/Runtime/Features/Profissoes/ @usuario
+# /docs/features/profissoes.md @usuario
+
+# Economia
+# /client/Assets/_Game/Features/Economia/ @usuario
+# /server/src/JogoDoGrupo.Server/Features/Economia/ @usuario
+# /shared/Package/Runtime/Features/Economia/ @usuario
+# /docs/features/economia.md @usuario
+
+# Missões
+# /client/Assets/_Game/Features/Missoes/ @usuario
+# /server/src/JogoDoGrupo.Server/Features/Missoes/ @usuario
+# /shared/Package/Runtime/Features/Missoes/ @usuario
+# /docs/features/missoes.md @usuario
+
+# Mobs e bosses
+# /client/Assets/_Game/Features/Mobs/ @usuario
+# /server/src/JogoDoGrupo.Server/Features/Mobs/ @usuario
+# /shared/Package/Runtime/Features/Mobs/ @usuario
+# /docs/features/mobs.md @usuario
+
+# Dungeons e raids
+# /client/Assets/_Game/Features/Instancias/ @usuario
+# /server/src/JogoDoGrupo.Server/Features/Instancias/ @usuario
+# /shared/Package/Runtime/Features/Instancias/ @usuario
+# /docs/features/instancias.md @usuario
+
+# Social
+# /client/Assets/_Game/Features/Social/ @usuario
+# /server/src/JogoDoGrupo.Server/Features/Social/ @usuario
+# /shared/Package/Runtime/Features/Social/ @usuario
+# /docs/features/social.md @usuario
+
+# PvP
+# /client/Assets/_Game/Features/Pvp/ @usuario
+# /server/src/JogoDoGrupo.Server/Features/Pvp/ @usuario
+# /shared/Package/Runtime/Features/Pvp/ @usuario
+# /docs/features/pvp.md @usuario

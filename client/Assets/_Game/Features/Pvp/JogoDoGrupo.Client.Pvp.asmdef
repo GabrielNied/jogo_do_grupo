@@ -1,0 +1,17 @@
+{
+  "name": "JogoDoGrupo.Client.Pvp",
+  "rootNamespace": "JogoDoGrupo.Client.Features.Pvp",
+  "references": [
+    "JogoDoGrupo.Client.Core",
+    "JogoDoGrupo.Shared"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

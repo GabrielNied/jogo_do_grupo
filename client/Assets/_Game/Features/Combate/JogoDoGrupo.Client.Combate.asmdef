@@ -1,0 +1,17 @@
+{
+  "name": "JogoDoGrupo.Client.Combate",
+  "rootNamespace": "JogoDoGrupo.Client.Features.Combate",
+  "references": [
+    "JogoDoGrupo.Client.Core",
+    "JogoDoGrupo.Shared"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

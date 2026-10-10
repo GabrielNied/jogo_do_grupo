@@ -1,0 +1,19 @@
+{
+  "name": "jogo-do-grupo-tooling",
+  "private": true,
+  "description": "Ferramentas de padrão do Git (commitlint e hooks). O jogo é C#; isto só roda no git e no CI.",
+  "type": "module",
+  "scripts": {
+    "prepare": "husky",
+    "commitlint": "commitlint",
+    "validar-branch": "node scripts/git/validar-branch.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "21.2.3",
+    "@commitlint/config-conventional": "21.2.3",
+    "husky": "9.1.7"
+  }
+}

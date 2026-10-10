@@ -1,0 +1,20 @@
+name: Server e Shared
+
+# Sem filtro de paths: "build" é um check obrigatório da main, e um check
+# obrigatório que não roda deixa o PR travado esperando para sempre.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+      - run: dotnet build JogoDoGrupo.slnx -c Release
