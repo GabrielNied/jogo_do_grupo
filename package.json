@@ -1,12 +1,13 @@
 {
   "name": "jogo-do-grupo-tooling",
   "private": true,
-  "description": "Ferramentas de padrão do Git (commitlint e hooks). O jogo é C#; isto só roda no git e no CI.",
+  "description": "Ferramentas do repo (commitlint, hooks do git, export do FigJam). O jogo é C#; isto não roda no jogo.",
   "type": "module",
   "scripts": {
     "prepare": "husky",
     "commitlint": "commitlint",
-    "validar-branch": "node scripts/git/validar-branch.mjs"
+    "validar-branch": "node scripts/git/validar-branch.mjs",
+    "figma:exportar": "node scripts/figma/exportar-brainstorm.mjs"
   },
   "engines": {
     "node": ">=20"
