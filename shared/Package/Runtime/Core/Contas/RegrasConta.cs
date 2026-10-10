@@ -7,6 +7,9 @@ namespace JogoDoGrupo.Shared.Core.Contas
     /// <summary>
     /// Regras de formato de usuário e senha. O client usa para avisar antes de enviar;
     /// o servidor valida de novo no registro e responde 400 com o código retornado.
+    /// O usuário é único sem diferenciar maiúsculas ("Ana" e "ana" são a mesma conta), o login
+    /// compara sem diferenciar maiúsculas e o servidor guarda o usuário como foi digitado no registro.
+    /// Essas checagens são só do servidor.
     /// </summary>
     public static class RegrasConta
     {

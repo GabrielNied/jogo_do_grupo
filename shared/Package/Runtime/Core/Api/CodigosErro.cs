@@ -13,10 +13,16 @@ namespace JogoDoGrupo.Shared.Core.Api
         /// <summary>400: senha fora das regras de <c>RegrasConta</c> (só no registro).</summary>
         public const string SenhaInvalida = "SenhaInvalida";
 
-        /// <summary>409: já existe conta com esse usuário.</summary>
+        /// <summary>
+        /// 409: já existe conta com esse usuário, comparando sem diferenciar maiúsculas
+        /// ("Ana" bloqueia "ana").
+        /// </summary>
         public const string UsuarioJaExiste = "UsuarioJaExiste";
 
-        /// <summary>401: usuário ou senha errados no login.</summary>
+        /// <summary>
+        /// 401: usuário ou senha errados no login. O usuário é comparado sem diferenciar
+        /// maiúsculas; a senha, exatamente.
+        /// </summary>
         public const string CredenciaisInvalidas = "CredenciaisInvalidas";
 
         /// <summary>401: rota protegida chamada sem token, com token inválido ou expirado.</summary>
