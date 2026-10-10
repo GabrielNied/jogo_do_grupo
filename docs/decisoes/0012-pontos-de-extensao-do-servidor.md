@@ -21,4 +21,4 @@ Opções avaliadas para os pontos de extensão: interfaces separadas (`IModuloCo
 - Adicionar rotas, serviços ou tabelas continua sem arquivo central de registro.
 - Um `DbContext` permite transações que cruzam funcionalidades (necessário para a economia atômica).
 - O snapshot das migrações é um arquivo compartilhado: dois PRs com migração ao mesmo tempo conflitam nele. Quem fizer merge depois atualiza a branch e gera a migração de novo (`dotnet dotnet-ef migrations remove` e `add`).
-- Agentes de funcionalidade precisam de permissão para escrever em `Core/Persistencia/Migrations/` (a pasta fica fora da área deles hoje), ou uma pessoa gera a migração.
+- Agentes de funcionalidade precisam de permissão para escrever em `Core/Persistencia/Migrations/`, que ficava fora da área deles. A liberação está no PR [#21](https://github.com/GabrielNied/jogo_do_grupo/pull/21).
