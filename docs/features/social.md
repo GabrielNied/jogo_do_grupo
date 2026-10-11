@@ -260,6 +260,27 @@ Client (EditMode): interpretar os comandos (`/c`, `/g`, `/s Nome texto`, `/r`, `
 
 ## Expõe
 
-- Contrato do grupo na faixa 13000–13999 (mensagens de convidar, aceitar, recusar, sair, expulsar, passar liderança e a lista do grupo), a definir pelo agente de contrato a partir das regras acima.
+- Contrato do grupo na faixa 13000–13999 (mensagens de convidar, aceitar, recusar, sair, expulsar, passar liderança e a lista do grupo), ~~a definir pelo agente de contrato a partir das regras acima~~ definido em 2026-10-11, veja [Contrato do grupo](#contrato-do-grupo) abaixo.
 - Contrato do chat na mesma faixa 13000–13999 (enviar mensagem, mensagem recebida, recusa e histórico da Cidade), a definir pelo agente de contrato a partir das regras do chat.
 - Consulta "quem é o grupo de um personagem" para outras funcionalidades (ex.: dungeons), por evento ou contrato do shared, sem referência direta entre funcionalidades.
+
+### Contrato do grupo
+
+Código em `shared/Package/Runtime/Features/Social/` (fonte dos nomes e tipos exatos). Tempo real; a identidade de quem pede vem sempre da sessão.
+
+| ID | Mensagem | Direção | Campos |
+|---|---|---|---|
+| 13000 | `ConvidarParaGrupo` | client → servidor | `Nome` |
+| 13001 | `ResponderConvite` | client → servidor | `ConviteId`, `Aceitar` |
+| 13002 | `SairDoGrupo` | client → servidor | nenhum |
+| 13003 | `ExpulsarDoGrupo` | client → servidor | `PersonagemId` |
+| 13004 | `PassarLideranca` | client → servidor | `PersonagemId` |
+| 13010 | `ConviteRecebido` | servidor → convidado | `ConviteId`, `NomeDoConvidante`, `ValidadeSegundos` |
+| 13011 | `ListaDoGrupo` | servidor → membros | `GrupoId`, `LiderId`, `Membros[]` (`MembroDoGrupo`: `PersonagemId`, `Nome`, `Online`); lista vazia = sem grupo |
+| 13012 | `AvisoDoGrupo` | servidor → client | `Tipo` (`TipoDeAvisoDoGrupo`), `PersonagemId`, `Nome` |
+| 13013 | `OperacaoDoGrupoRecusada` | servidor → quem pediu | `Codigo` (`CodigosErroSocial`) |
+
+- `TipoDeAvisoDoGrupo`: os avisos da lista acima que não têm mensagem própria (`ConviteRecusado`, `ConviteExpirou`, `EntrouNoGrupo`, `SaiuDoGrupo`, `LiderMudou`, `ExpulsoDoGrupo`, `GrupoDesfeito`, `MembroOffline`, `MembroVoltou`). `ConviteRecebido` e `ListaDoGrupo` são mensagens.
+- `CodigosErroSocial`: os 16 códigos da tabela de erros.
+- `RegrasGrupo`: os números do grupo como constantes (5 membros, 60 s, 120 s, 30 s, 1 convite por segundo, 5 convites por alvo) e as contas puras (`VagasLivres`, `ConviteExpirou`, `VagaGuardadaVenceu`, `ReconviteBloqueado`, `DeveDesfazer`, `PosicaoDoHerdeiro`).
+- Os IDs 13005 a 13009 e 13014 a 13019 ficam livres para o grupo; o chat começa em 13020.
