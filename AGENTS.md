@@ -30,6 +30,8 @@ npm run unity:executar -- <Metodo>   # roda um script de editor em modo batch (e
 npm run unity:editor                 # sai 1 se o editor do projeto está aberto (ignora o Hub)
 npm run unity:meta                   # gera os .meta de scripts, pastas, .asmdef, .uss/.tss e textos, sem Unity
 npm run unity:importar               # gera os outros .meta (prefab, asset...) e fecha (editor fechado)
+npm run limpar-agentes               # simula a limpeza de worktrees e branches já mescladas
+npm run limpar-agentes -- --aplicar  # remove (só o que já está na main; --remotas inclui o GitHub)
 npm run validar-branch -- <branch>   # confere nome de branch
 npm run tarefa -- listar             # lista tarefas livres e em andamento
 npm run tarefa -- puxar <N>          # puxa a tarefa para em andamento e cria a branch
@@ -48,6 +50,7 @@ Testes em `tests/` (xUnit; [ADR 0013](docs/decisoes/0013-testes-automatizados.md
    - Editar para melhorar é permitido, desde que a intenção original continue lá. Ao reescrever o texto de alguém, preserve as ideias; se mudar o sentido, pergunte antes.
    - Algo ficou obsoleto, duplicado ou errado? **Marque** (ex.: "~~texto~~ substituído por ..." ou status `substituída` num ADR) ou mova para o lugar certo, e avise a pessoa.
    - Se algo realmente precisar sumir, diga à pessoa exatamente o que apagar e deixe que ela apague.
+   - **Exceção: o que agentes criam para trabalhar é temporário e deve sair depois de usado.** Worktrees, branches locais e branches remotas de agentes, depois que o PR entra na `main`, saem com `npm run limpar-agentes -- --aplicar` (ou `-- --remotas --aplicar` para as do GitHub). O script só remove o que já está na `main`; o que tiver mudança não commitada ou commit fora de PR mesclado fica, com o motivo. Não use `git worktree remove` ou `git branch -D` direto ([ADR 0018](docs/decisoes/0018-limpeza-do-que-os-agentes-criam.md)).
 1. **Fique nas pastas da funcionalidade da tarefa** (`Features/<X>/` em client, server e shared, e `docs/features/<x>.md`). Se precisar mexer em outra funcionalidade ou em `Core/`, pare e avise a pessoa: isso exige review do responsável.
 2. **Funcionalidades não se referenciam diretamente.** Comunicação por eventos e contratos definidos por quem publica: se o **client usa** (mensagens de rede, DTOs, regras puras), em `shared/Package/Runtime/Features/<dono>/`; se **só o servidor usa** (eventos e consultas entre funcionalidades), em `server/src/JogoDoGrupo.Server/Contratos/<Dono>/` ([ADR 0016](docs/decisoes/0016-eventos-entre-funcionalidades-do-servidor.md)). Não adicione referência de um `.asmdef` de feature para outro.
 3. **Servidor autoritativo:** regras que decidem resultado (dano, drop, fusão, preço) rodam no servidor. O cliente envia intenções e mostra resultados.
