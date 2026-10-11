@@ -197,6 +197,96 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
         }
 
         [Test]
+        public void Sol_e_a_luz_principal_com_sombra_e_o_preenchimento_e_mais_fraco_e_sem_sombra()
+        {
+            Construir();
+
+            var sol = _hub.transform.Find(ConstrutorHub.NomeLuz).GetComponent<Light>();
+            var preenchimento = _hub
+                .transform.Find(ConstrutorHub.NomePreenchimento)
+                .GetComponent<Light>();
+
+            Assert.AreEqual(LightType.Directional, sol.type);
+            Assert.AreEqual(LightType.Directional, preenchimento.type);
+            Assert.AreSame(sol, RenderSettings.sun, "O sol deve ser a luz principal da cena.");
+            Assert.AreNotEqual(LightShadows.None, sol.shadows);
+            Assert.Greater(sol.shadowStrength, 0f);
+            Assert.Less(sol.shadowStrength, 1f, "A sombra não pode ser preta.");
+            Assert.AreEqual(LightShadows.None, preenchimento.shadows);
+            Assert.Greater(preenchimento.intensity, 0f);
+            Assert.Less(preenchimento.intensity, sol.intensity);
+
+            // O preenchimento vem do lado oposto ao do sol (as luzes apontam em sentidos opostos
+            // no plano horizontal), para clarear o lado do personagem fora do sol.
+            var deSol = Vector3.ProjectOnPlane(sol.transform.forward, Vector3.up);
+            var dePreenchimento = Vector3.ProjectOnPlane(
+                preenchimento.transform.forward,
+                Vector3.up
+            );
+            Assert.Less(Vector3.Dot(deSol.normalized, dePreenchimento.normalized), -0.9f);
+        }
+
+        [Test]
+        public void Lanternas_da_praca_e_do_portao_tem_luz_de_ponto_com_alcance()
+        {
+            Construir();
+
+            var props = _hub.transform.Find(ConstrutorHub.NomeProps);
+            var lanternas = props
+                .Cast<Transform>()
+                .Where(t => t.name == ConstrutorHub.PrefabDaLanterna)
+                .ToList();
+
+            var esperadas = LayoutDoHub.Props.Count(p =>
+                p.Prefab == ConstrutorHub.PrefabDaLanterna
+            );
+            Assert.Greater(esperadas, 0);
+            Assert.AreEqual(esperadas, lanternas.Count, "Faltam lanternas no hub.");
+
+            var daPraca = lanternas.Count(t =>
+                Mathf.Abs(t.position.x) < 12f && Mathf.Abs(t.position.z) < 12f
+            );
+            var doPortao = lanternas.Count(t => t.position.z > 30f && Mathf.Abs(t.position.x) < 8f);
+            Assert.AreEqual(4, daPraca, "A praça tem uma lanterna em cada canto.");
+            Assert.AreEqual(2, doPortao, "O portão tem uma lanterna de cada lado.");
+
+            foreach (var lanterna in lanternas)
+            {
+                var luz = lanterna.GetComponentInChildren<Light>();
+                Assert.IsNotNull(luz, $"Lanterna em {lanterna.position} sem luz.");
+                Assert.IsTrue(luz.enabled);
+                Assert.AreEqual(LightType.Point, luz.type);
+                Assert.Greater(luz.range, 0f);
+                Assert.AreEqual(ConfigIluminacao.AlcanceDaLanterna, luz.range, 1e-4f);
+                Assert.AreEqual(ConfigIluminacao.IntensidadeDaLanterna, luz.intensity, 1e-4f);
+                // Chama quente: mais vermelho que azul.
+                Assert.Greater(luz.color.r, luz.color.b);
+            }
+        }
+
+        [Test]
+        public void Trocar_de_bioma_muda_a_cor_do_ambiente_e_o_preenchimento_acompanha()
+        {
+            Construir();
+
+            var sol = _hub.transform.Find(ConstrutorHub.NomeLuz).GetComponent<Light>();
+            var preenchimento = _hub
+                .transform.Find(ConstrutorHub.NomePreenchimento)
+                .GetComponent<Light>();
+
+            AmbienteDosBiomas.Aplicar(AmbienteDosBiomas.Do(Bioma.Campo), sol, preenchimento);
+            var ceuDoCampo = RenderSettings.ambientSkyColor;
+            var corDoPreenchimento = preenchimento.color;
+
+            AmbienteDosBiomas.Aplicar(AmbienteDosBiomas.Do(Bioma.Lava), sol, preenchimento);
+
+            Assert.AreNotEqual(ceuDoCampo, RenderSettings.ambientSkyColor);
+            Assert.AreNotEqual(corDoPreenchimento, preenchimento.color);
+            Assert.AreEqual(AmbienteDosBiomas.Do(Bioma.Lava).ForcaDoSol, sol.intensity, 1e-4f);
+            Assert.Less(preenchimento.intensity, sol.intensity);
+        }
+
+        [Test]
         public void Props_ficam_na_area_andavel_e_longe_do_nascimento()
         {
             foreach (var peca in LayoutDoHub.Props)
