@@ -1,4 +1,5 @@
 using JogoDoGrupo.Client.Core.Jogo;
+using JogoDoGrupo.Client.Features.Mundo.Presenca;
 using UnityEngine;
 
 namespace JogoDoGrupo.Client.Features.Mundo.Hub
@@ -33,7 +34,11 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
         /// </summary>
         public static PosicaoInicial Construir()
         {
-            Montar();
+            var raiz = Montar();
+            // A presença vive sob o hub: some com a cena do mundo e conecta quando o jogador existir.
+            var presenca = new GameObject("Presenca");
+            presenca.AddComponent<PresencaNoMundo>();
+            presenca.transform.SetParent(raiz.transform, false);
             return new PosicaoInicial(
                 LayoutDoHub.PontoDeNascimento,
                 LayoutDoHub.RotacaoDeNascimento
