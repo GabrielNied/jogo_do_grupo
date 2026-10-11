@@ -81,6 +81,47 @@ namespace JogoDoGrupo.Client.Core.UI
         public const string Dica = "dica";
 
         /// <summary>
+        /// Painel de uma janela do jogo aberta por atalho (use junto com <see cref="Painel"/>).
+        /// </summary>
+        public const string Janela = "janela";
+
+        /// <summary>Linha do topo da janela: título e botão de fechar.</summary>
+        public const string JanelaCabecalho = "janela-cabecalho";
+
+        /// <summary>Título dentro do cabeçalho da janela (use junto com <see cref="Titulo"/>).</summary>
+        public const string JanelaTitulo = "janela-titulo";
+
+        /// <summary>Botão de fechar no canto da janela (use junto com <see cref="Botao"/>).</summary>
+        public const string JanelaFechar = "janela-fechar";
+
+        /// <summary>Área da janela que recebe o conteúdo da funcionalidade.</summary>
+        public const string JanelaConteudo = "janela-conteudo";
+
+        /// <summary>Dica de como fechar, no pé da janela (ex.: "I ou Esc: fechar").</summary>
+        public const string JanelaRodape = "janela-rodape";
+
+        /// <summary>Linha de "rótulo: valor" dentro de uma janela (ex.: "Nível  3").</summary>
+        public const string LinhaDado = "linha-dado";
+
+        /// <summary>Rótulo de uma <see cref="LinhaDado"/> (use junto com <see cref="Texto"/>).</summary>
+        public const string RotuloDado = "rotulo-dado";
+
+        /// <summary>Barra com as teclas das janelas, no canto inferior direito do jogo.</summary>
+        public const string BarraAtalhos = "barra-atalhos";
+
+        /// <summary>Um item da <see cref="BarraAtalhos"/>: a tecla e o nome da janela.</summary>
+        public const string Atalho = "atalho";
+
+        /// <summary>Destaque do <see cref="Atalho"/> da janela aberta.</summary>
+        public const string AtalhoAtivo = "atalho-ativo";
+
+        /// <summary>A tecla dentro de um <see cref="Atalho"/>.</summary>
+        public const string AtalhoTecla = "atalho-tecla";
+
+        /// <summary>O nome da janela dentro de um <see cref="Atalho"/>.</summary>
+        public const string AtalhoNome = "atalho-nome";
+
+        /// <summary>
         /// A raiz da interface não pode capturar o clique: vazia, ela fica na frente dos
         /// painéis das funcionalidades e o botão Fechar não recebe o mouse. As telas
         /// filhas continuam capturando.
