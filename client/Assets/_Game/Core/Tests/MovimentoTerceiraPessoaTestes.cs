@@ -163,6 +163,95 @@ namespace JogoDoGrupo.Client.Core.Tests
             Assert.AreEqual(-50f, movimento.VelocidadeVertical(-49.9f, false, 1f), Tolerancia);
         }
 
+        [Test]
+        public void Pular_NoChao_Sobe()
+        {
+            var movimento = new MovimentoTerceiraPessoa();
+
+            var velocidade = movimento.Pular(
+                MovimentoTerceiraPessoa.VelocidadeGrudarNoChao,
+                true,
+                true
+            );
+
+            Assert.Greater(velocidade, 0f);
+            Assert.AreEqual(movimento.VelocidadeDoPulo, velocidade, Tolerancia);
+        }
+
+        [Test]
+        public void Pular_SemPedido_NaoMuda()
+        {
+            var movimento = new MovimentoTerceiraPessoa();
+
+            Assert.AreEqual(-2f, movimento.Pular(-2f, true, false), Tolerancia);
+        }
+
+        [Test]
+        public void Pular_NoAr_NaoSomaOutraVelocidade()
+        {
+            var movimento = new MovimentoTerceiraPessoa();
+
+            Assert.AreEqual(3f, movimento.Pular(3f, false, true), Tolerancia);
+            Assert.AreEqual(-4f, movimento.Pular(-4f, false, true), Tolerancia);
+        }
+
+        [Test]
+        public void Pular_JaSubindo_NaoSomaOutraVelocidade()
+        {
+            var movimento = new MovimentoTerceiraPessoa();
+            var subindo = movimento.Pular(-2f, true, true);
+
+            Assert.AreEqual(subindo, movimento.Pular(subindo, true, true), Tolerancia);
+        }
+
+        [Test]
+        public void VelocidadeDoPulo_VemDaGravidadeEDaAltura()
+        {
+            var movimento = new MovimentoTerceiraPessoa { Gravidade = 20f, AlturaPulo = 1.25f };
+
+            Assert.AreEqual(Mathf.Sqrt(2f * 20f * 1.25f), movimento.VelocidadeDoPulo, Tolerancia);
+        }
+
+        [Test]
+        public void AlturaEstimadaDoPulo_FicaPertoDe125Metros()
+        {
+            var movimento = new MovimentoTerceiraPessoa();
+
+            Assert.AreEqual(1.25f, movimento.AlturaEstimadaDoPulo, 0.01f);
+        }
+
+        [Test]
+        public void Pulo_SimuladoFrameAFrame_AlcancaCercaDe125Metros()
+        {
+            var movimento = new MovimentoTerceiraPessoa();
+            const float dt = 1f / 60f;
+            var velocidade = movimento.Pular(
+                MovimentoTerceiraPessoa.VelocidadeGrudarNoChao,
+                true,
+                true
+            );
+            var altura = 0f;
+            var maxima = 0f;
+
+            // Mesma ordem do ControleTerceiraPessoa: sobe com a velocidade, depois a gravidade age.
+            for (var i = 0; i < 600 && (altura > 0f || i == 0); i++)
+            {
+                altura += velocidade * dt;
+                maxima = Mathf.Max(maxima, altura);
+                velocidade = movimento.VelocidadeVertical(velocidade, false, dt);
+            }
+
+            Assert.AreEqual(1.25f, maxima, 0.1f);
+            Assert.LessOrEqual(altura, 0f);
+        }
+
+        [Test]
+        public void Gravidade_ZeroOuAlturaZero_NaoGeraPulo()
+        {
+            Assert.AreEqual(0f, new MovimentoTerceiraPessoa { Gravidade = 0f }.VelocidadeDoPulo);
+            Assert.AreEqual(0f, new MovimentoTerceiraPessoa { AlturaPulo = 0f }.VelocidadeDoPulo);
+        }
+
         private static void AssertVetor(Vector3 esperado, Vector3 obtido)
         {
             Assert.AreEqual(esperado.x, obtido.x, Tolerancia, "x");

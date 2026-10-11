@@ -30,6 +30,23 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
         /// <summary>Velocidade máxima de queda, em m/s.</summary>
         public float VelocidadeMaximaQueda { get; set; } = 50f;
 
+        /// <summary>Altura do pulo (Espaço), em metros, com a <see cref="Gravidade"/> atual.</summary>
+        public float AlturaPulo { get; set; } = 1.25f;
+
+        /// <summary>
+        /// Velocidade vertical inicial do pulo, em m/s: <c>sqrt(2 * gravidade * altura)</c>,
+        /// a que alcança a <see cref="AlturaPulo"/> com a <see cref="Gravidade"/>.
+        /// </summary>
+        public float VelocidadeDoPulo =>
+            Gravidade <= 0f || AlturaPulo <= 0f ? 0f : Mathf.Sqrt(2f * Gravidade * AlturaPulo);
+
+        /// <summary>
+        /// Altura máxima, em metros, que um pulo com a <see cref="VelocidadeDoPulo"/> alcança
+        /// com a <see cref="Gravidade"/> (sem teto e sem a queda máxima): <c>v² / (2 * g)</c>.
+        /// </summary>
+        public float AlturaEstimadaDoPulo =>
+            Gravidade <= 0f ? 0f : VelocidadeDoPulo * VelocidadeDoPulo / (2f * Gravidade);
+
         /// <summary>
         /// Direção unitária no plano XZ a partir do input (x = lado, y = frente) e do ângulo
         /// horizontal da câmera em graus: "frente" é para onde a câmera olha.
@@ -86,6 +103,21 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
 
             var nova = atual - Gravidade * Mathf.Max(0f, deltaTempo);
             return Mathf.Max(nova, -VelocidadeMaximaQueda);
+        }
+
+        /// <summary>
+        /// Aplica o pulo: se foi pedido e o jogador está no chão sem estar subindo, a velocidade
+        /// vertical vira a <see cref="VelocidadeDoPulo"/>. No ar (ou já subindo) devolve a
+        /// velocidade atual sem somar nada: não há segundo pulo.
+        /// </summary>
+        public float Pular(float atual, bool noChao, bool pedido)
+        {
+            if (!pedido || !noChao || atual > 0f)
+            {
+                return atual;
+            }
+
+            return VelocidadeDoPulo;
         }
     }
 }
