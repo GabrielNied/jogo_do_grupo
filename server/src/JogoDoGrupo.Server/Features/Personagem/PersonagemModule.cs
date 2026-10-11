@@ -1,3 +1,4 @@
+using JogoDoGrupo.Server.Contratos.Personagem;
 using JogoDoGrupo.Server.Core;
 using JogoDoGrupo.Server.Core.TempoReal;
 
@@ -7,8 +8,11 @@ public sealed class PersonagemModule : IFeatureModule
 {
     public string Nome => "Personagem";
 
-    public void ConfigurarServicos(IServiceCollection servicos, IConfiguration configuracao) =>
+    public void ConfigurarServicos(IServiceCollection servicos, IConfiguration configuracao)
+    {
         servicos.AddScoped<IVerificadorPersonagem, VerificadorPersonagem>();
+        servicos.AddSingleton<IDiretorioDePersonagens, DiretorioDePersonagens>();
+    }
 
     public void MapearRotas(IEndpointRouteBuilder rotas) => PersonagensRotas.Mapear(rotas);
 
