@@ -24,6 +24,11 @@ namespace JogoDoGrupo.Client.Features.Personagem
         private Label _mensagem;
         private VisualElement _dados;
         private Label _nota;
+        private Label _barraTexto;
+        private VisualElement _barraPreenchimento;
+        private VisualElement _atributos;
+        private Label _gastoMensagem;
+        private Button _confirmar;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void Registrar()
@@ -46,14 +51,41 @@ namespace JogoDoGrupo.Client.Features.Personagem
             _nota = new Label(TextosPersonagem.NotaDaFicha);
             _nota.AddToClassList(EstiloCore.Mensagem);
 
+            var barra = new VisualElement();
+            barra.AddToClassList(EstiloCore.BarraCarregamento);
+            _barraPreenchimento = new VisualElement();
+            _barraPreenchimento.AddToClassList(EstiloCore.BarraCarregamentoPreenchimento);
+            barra.Add(_barraPreenchimento);
+            _barraTexto = new Label();
+            _barraTexto.AddToClassList(EstiloCore.Texto);
+
+            _atributos = new VisualElement();
+            _gastoMensagem = new Label();
+            _gastoMensagem.AddToClassList(EstiloCore.Mensagem);
+            _confirmar = new Button(ConfirmarGasto) { text = "Gastar pontos" };
+            _confirmar.AddToClassList(EstiloCore.Botao);
+            _confirmar.AddToClassList(EstiloCore.BotaoPrincipal);
+
             conteudo.Add(_mensagem);
             conteudo.Add(_dados);
+            conteudo.Add(_barraTexto);
+            conteudo.Add(barra);
+            conteudo.Add(_atributos);
+            conteudo.Add(_gastoMensagem);
+            conteudo.Add(_confirmar);
             conteudo.Add(_nota);
         }
 
         protected override void AoAbrir()
         {
+            ProgressoDoClient.Estado.Mudou += AtualizarProgresso;
             Carregar();
+            AtualizarProgresso();
+        }
+
+        protected override void AoFechar()
+        {
+            ProgressoDoClient.Estado.Mudou -= AtualizarProgresso;
         }
 
         /// <summary>Pede a lista ao servidor (<c>GET</c>) e mostra o personagem que está no mundo.</summary>
@@ -94,6 +126,7 @@ namespace JogoDoGrupo.Client.Features.Personagem
                 }
 
                 MostrarFicha(personagem);
+                await CarregarProgresso(personagemId);
             }
             catch (Exception e)
             {
@@ -127,6 +160,112 @@ namespace JogoDoGrupo.Client.Features.Personagem
                 elemento.Add(valor);
                 _dados.Add(elemento);
             }
+        }
+
+        private async Awaitable CarregarProgresso(long personagemId)
+        {
+            var resposta = await ClienteApi.Get<ProgressoResponse>(
+                RotasPersonagem.ProgressoDe(personagemId)
+            );
+            if (!Aberta || !resposta.Sucesso || resposta.Corpo == null)
+            {
+                return;
+            }
+
+            ProgressoDoClient.Estado.Aplicar(resposta.Corpo);
+        }
+
+        private void AtualizarProgresso()
+        {
+            if (!Aberta)
+            {
+                return;
+            }
+
+            var estado = ProgressoDoClient.Estado;
+            _barraTexto.text = TextosPersonagem.TextoDaBarra(estado);
+            _barraPreenchimento.style.width = Length.Percent(estado.FracaoDaBarra * 100f);
+            _confirmar.SetEnabled(estado.PodeConfirmar);
+
+            _atributos.Clear();
+            AdicionarAtributo("Força", "Forca", estado.Distribuidos.Forca, estado.Rascunho.Forca);
+            AdicionarAtributo(
+                "Destreza",
+                "Destreza",
+                estado.Distribuidos.Destreza,
+                estado.Rascunho.Destreza
+            );
+            AdicionarAtributo(
+                "Intelecto",
+                "Intelecto",
+                estado.Distribuidos.Intelecto,
+                estado.Rascunho.Intelecto
+            );
+            AdicionarAtributo(
+                "Vitalidade",
+                "Vitalidade",
+                estado.Distribuidos.Vitalidade,
+                estado.Rascunho.Vitalidade
+            );
+            AdicionarAtributo(
+                "Espírito",
+                "Espirito",
+                estado.Distribuidos.Espirito,
+                estado.Rascunho.Espirito
+            );
+
+            var livres = new Label("Pontos livres: " + estado.PontosLivres);
+            livres.AddToClassList(EstiloCore.Texto);
+            _atributos.Add(livres);
+        }
+
+        private void AdicionarAtributo(string rotulo, string chave, int distribuido, int rascunho)
+        {
+            var linha = new VisualElement();
+            linha.AddToClassList(EstiloCore.LinhaBotoes);
+            var texto = new Label(rotulo + ": " + (distribuido + rascunho));
+            texto.AddToClassList(EstiloCore.Texto);
+            var mais = new Button(() => ProgressoDoClient.Estado.AumentarRascunho(chave))
+            {
+                text = "+",
+            };
+            mais.AddToClassList(EstiloCore.Botao);
+            mais.SetEnabled(
+                RegrasAtributos.Total(ProgressoDoClient.Estado.Rascunho)
+                    < ProgressoDoClient.Estado.PontosLivres
+            );
+            linha.Add(texto);
+            linha.Add(mais);
+            _atributos.Add(linha);
+        }
+
+        private async void ConfirmarGasto()
+        {
+            var pedido = ProgressoDoClient.Estado.MontarPedido();
+            if (pedido == null)
+            {
+                return;
+            }
+
+            var personagemId = EntradaNoJogo.PersonagemId;
+            var resposta = await ClienteApi.Post<ProgressoResponse>(
+                RotasPersonagem.AtributosDe(personagemId),
+                pedido
+            );
+            if (!Aberta)
+            {
+                return;
+            }
+
+            if (!resposta.Sucesso || resposta.Corpo == null)
+            {
+                _gastoMensagem.text = TextosPersonagem.MensagemDoGasto(resposta.CodigoErro);
+                _gastoMensagem.EnableInClassList(EstiloCore.MensagemErro, true);
+                return;
+            }
+
+            _gastoMensagem.text = "";
+            ProgressoDoClient.Estado.Aplicar(resposta.Corpo);
         }
 
         private void MostrarMensagem(string texto, bool erro)
