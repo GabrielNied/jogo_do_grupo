@@ -1,0 +1,8 @@
+/* Aprovado: opção 01 acolhedora. Logo permanece arquivo de imagem aprovado. */
+@font-face{font-family:'Lumora Title';src:url('fontes/NunitoSans%5BYTLC,opsz,wdth,wght%5D.ttf') format('truetype');font-weight:200 1000;font-style:normal;font-display:swap}
+@font-face{font-family:'Lumora Text';src:url('fontes/SourceSans3%5Bwght%5D.ttf') format('truetype');font-weight:200 900;font-style:normal;font-display:swap}
+:root{--font-title:'Lumora Title',Arial,sans-serif;--font-body:'Lumora Text',Arial,sans-serif;--text-base:1rem;--text-small:0.875rem;--weight-title:800;--weight-body:500;--weight-label:700;--leading-body:1.5}
+.lumora-title{font-family:var(--font-title);font-weight:var(--weight-title);line-height:1.2}
+.lumora-text{font-family:var(--font-body);font-size:var(--text-base);font-weight:var(--weight-body);line-height:var(--leading-body)}
+.lumora-label{font-family:var(--font-body);font-weight:var(--weight-label);line-height:1.25}
+.lumora-number{font-family:var(--font-body);font-variant-numeric:tabular-nums;font-weight:600}

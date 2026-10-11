@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="pt-BR"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lumora — Kit visual v1</title>
+<style>
+:root{color-scheme:dark;--bg:#173b50;--ink:#f4e6cb;--gold:#f5be63;--cyan:#39b9ae}*{box-sizing:border-box}body{margin:0;background:#102b3b;color:var(--ink);font:17px/1.6 system-ui,sans-serif}main{max-width:1400px;margin:auto;padding:40px 24px 80px}h1,h2,h3{font-family:Georgia,serif;line-height:1.2}h1{font-size:44px;margin-bottom:12px}h2{margin-top:52px;color:var(--gold)}a{color:var(--cyan)}p{max-width:900px}.lead{font-size:20px}.tag{display:inline-block;border:1px solid #688a48;padding:3px 12px;border-radius:20px;font-size:14px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}.card{margin:0;background:var(--bg);border:1px solid #8f754b;border-radius:8px;overflow:hidden}.card img{width:100%;height:auto;display:block}.card figcaption{padding:16px 20px}.card strong{display:block;color:var(--gold)}.asset img{aspect-ratio:16/10;object-fit:contain;background:repeating-conic-gradient(#26475a 0% 25%,#173b50 0% 50%) 50%/24px 24px}.asset{padding-top:12px}.note{border-left:3px solid var(--gold);padding:8px 20px;background:#173b50}.swatches{display:flex;gap:12px;flex-wrap:wrap}.swatches span{border-top:40px solid var(--c);padding:8px 12px;background:#173b50}.logo{width:min(760px,100%);display:block;margin:25px 0}@media(max-width:800px){.grid{grid-template-columns:1fr}h1{font-size:34px}}
+</style>
+<main>
+<span class="tag">Exploração visual • versão 1 • 11/10/2026</span>
+<h1>Lumora — identidade em uso</h1>
+<p class="lead">Fantasia alegre, poder extraordinário e um mundo que ganha a cara de quem vive nele.</p>
+<a href="elementos/logo-horizontal-aprovada.png"><img class="logo" src="elementos/logo-horizontal-aprovada.png" alt="Logo horizontal aprovada de Lumora, A New Horizon"></a>
+<p><a href="LEIA-ME.md">Catálogo e diretrizes completos</a> · Clique nas imagens para abrir em tamanho original.</p>
+<div class="swatches"><span style="--c:#173b50">#173B50</span><span style="--c:#39b9ae">#39B9AE</span><span style="--c:#f5be63">#F5BE63</span><span style="--c:#f4e6cb">#F4E6CB</span><span style="--c:#688a48">#688A48</span></div>
+<h2>Interface e mundo</h2><p>Novas propostas para avaliação. Valores, retratos, nomes e regras ilustrados não definem o jogo.</p>
+<div class="grid">
+<figure class="card"><a href="pranchas/01-componentes.png"><img src="pranchas/01-componentes.png" alt="Componentes e estados de interface"></a><figcaption><strong>01 — Componentes</strong>Botões, controles, diálogos, carregamento e feedback.</figcaption></figure>
+<figure class="card"><a href="pranchas/02-hud-inventario.png"><img src="pranchas/02-hud-inventario.png" alt="HUD, inventário e equipamentos"></a><figcaption><strong>02 — Aventura e equipamentos</strong>Combate, itens e comparação. Decoração do HUD ainda será reduzida ou opcional.</figcaption></figure>
+<figure class="card"><a href="pranchas/03-grupo-social.png"><img src="pranchas/03-grupo-social.png" alt="Grupo, amigos, chat e guilda"></a><figcaption><strong>03 — Grupo e comunidade</strong>Folhas e calçada como linguagem social. Corrigir classes e vagas antes de implementar.</figcaption></figure>
+<figure class="card"><a href="pranchas/04-cidade-economia.png"><img src="pranchas/04-cidade-economia.png" alt="Mercado, criação, fusão e decoração"></a><figcaption><strong>04 — Cidade, criação e trocas</strong>Economia, preparação, personalização e aplicações no cenário.</figcaption></figure>
+<figure class="card"><a href="pranchas/05-mini-marcas.png"><img src="pranchas/05-mini-marcas.png" alt="Oito estudos de simplificação do emblema"></a><figcaption><strong>05 — Mini marcas</strong>Duas cores, uma cor, compacto e relevo. Estudos 03, 04 e 07 recomendados para aprofundar.</figcaption></figure>
+<figure class="card"><a href="pranchas/06-materiais.png"><img src="pranchas/06-materiais.png" alt="Atlas de materiais"></a><figcaption><strong>06 — Materiais</strong>Painel, arenito, tecido, pergaminho, calçada e folhas.</figcaption></figure>
+</div>
+<h2>Elementos separados</h2><p>Fundos raster e moldura para começar composições. Não são texturas de repetição contínua nem componentes redimensionáveis finalizados.</p>
+<div class="grid">
+<figure class="card asset"><a href="elementos/fundo-petrol.png"><img src="elementos/fundo-petrol.png" alt="Fundo azul profundo"></a><figcaption><strong>Fundo azul</strong>Centro calmo para conteúdo e textura nas bordas.</figcaption></figure>
+<figure class="card asset"><a href="elementos/pergaminho.png"><img src="elementos/pergaminho.png" alt="Fundo de pergaminho"></a><figcaption><strong>Pergaminho</strong>Base clara para documentos e leitura.</figcaption></figure>
+<figure class="card asset"><a href="elementos/moldura-folhas-calcada.png"><img src="elementos/moldura-folhas-calcada.png" alt="Moldura transparente com folhas e calçada"></a><figcaption><strong>Moldura transparente</strong>Folhas nos cantos e pedra na base. Centro e exterior transparentes conferidos.</figcaption></figure>
+<figure class="card asset"><a href="exploracoes/silhueta-v2.png"><img src="exploracoes/silhueta-v2.png" alt="Exploração de silhueta do emblema"></a><figcaption><strong>Silhueta — exploração</strong>Ainda contém resíduos. Requer limpeza e finalização antes de uso em produção.</figcaption></figure>
+</div>
+<h2>O que preservar</h2><p class="note">Logo horizontal v5 aprovada: letras e dourado fixos, O rachado com essência inclinada atrás. Emblema: cascas de arenito mel fosco com sombras definidas. Não substituir matrizes aprovadas pelas reproduções das pranchas.</p>
+<p>As imagens conceituais não alteram regras de gameplay. O jogo continua sem classes fixas; construção e territórios fazem parte da visão de longo prazo. Tipografia de apoio, contraste e tamanhos pequenos ainda exigem validação.</p>
+</main></html>
