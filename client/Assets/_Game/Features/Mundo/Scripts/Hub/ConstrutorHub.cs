@@ -1,5 +1,8 @@
+using System.Collections.Generic;
 using JogoDoGrupo.Client.Core.Jogo;
 using JogoDoGrupo.Client.Features.Mundo.Presenca;
+using JogoDoGrupo.Client.Features.Mundo.Terreno;
+using JogoDoGrupo.Shared.Features.Mundo;
 using UnityEngine;
 
 namespace JogoDoGrupo.Client.Features.Mundo.Hub
@@ -19,13 +22,20 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
         public const string NomeProps = "Props";
         public const string NomeTerreno = "TerrenoFora";
         public const string NomePropsFora = "PropsFora";
+        public const string NomePecasDosBiomas = "PecasDosBiomas";
         public const string NomeLuz = "Sol";
+        public const string NomeAmbiente = "Ambiente";
 
         private const string PastaPrefabs = "Mundo/";
 
         // Os prefabs em Resources foram gerados com o módulo de 2 m. Enquanto o chão medido
         // for menor que LayoutDoHub.Lado, as peças são ampliadas para acompanhar o layout.
         private static float _escalaDasPecas = 1f;
+
+        // Cópias tingidas dos materiais das peças, uma por material e bioma: as peças do mesmo
+        // bioma dividem o mesmo material.
+        private static readonly Dictionary<(Material, Bioma), Material> _materiaisTingidos =
+            new Dictionary<(Material, Bioma), Material>();
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void Registrar()
@@ -65,8 +75,9 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
             CriarEstradas(raiz.transform);
             CriarProps(raiz.transform);
             CriarPropsFora(raiz.transform);
-            CriarLuz(raiz.transform);
-            ConfigurarAmbiente();
+            CriarPecasDosBiomas(raiz.transform);
+            var sol = CriarLuz(raiz.transform);
+            ConfigurarAmbiente(raiz.transform, sol);
 
             return raiz;
         }
@@ -85,81 +96,20 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
             chao.name = NomeChao;
         }
 
-        // Terreno de ~1 km montado em código (o prefab Terreno_Fora continua no disco, no tamanho
-        // antigo). As placas cobrem campo, mata e colinas sem tapar a cidade. Um colisor na
-        // raiz e barreiras na borda. A face de cima fica em Y = 0.
+        // Até 2026-10-11 o terreno era de ~1 km, plano, feito de placas coloridas (campo, mata e
+        // colinas) com um colisor só. Agora é o mundo de 3 km com relevo do MapaDoMundo: o
+        // ConstrutorDoTerreno cria o chão em blocos (cada um com o seu colisor), a água, a lava e
+        // as barreiras da borda. O prefab Terreno_Fora continua no disco e só empresta o material.
         private static void CriarTerreno(Transform pai)
         {
             var terreno = new GameObject(NomeTerreno);
             terreno.transform.SetParent(pai, false);
-
-            var metade = LayoutDoHub.Metade;
-            var borda = LayoutDoHub.MetadeDoTerreno;
-            var material = MaterialDoTerreno();
-            var campo = new Color(0.55f, 0.68f, 0.34f);
-            var mata = new Color(0.2f, 0.38f, 0.18f);
-            var colinas = new Color(0.52f, 0.44f, 0.28f);
-
-            // Norte inteiro: campo, para onde sai a estrada.
-            CriarPlaca(terreno.transform, "Campo", -borda, borda, metade, borda, material, campo);
-            // Leste e sul leste: mata. Oeste e sul oeste: colinas.
-            CriarPlaca(terreno.transform, "Mata", metade, borda, -borda, metade, material, mata);
-            CriarPlaca(terreno.transform, "Mata", 0f, metade, -borda, -metade, material, mata);
-            CriarPlaca(
-                terreno.transform,
-                "Colinas",
-                -borda,
-                -metade,
-                -borda,
-                metade,
-                material,
-                colinas
-            );
-            CriarPlaca(
-                terreno.transform,
-                "Colinas",
-                -metade,
-                0f,
-                -borda,
-                -metade,
-                material,
-                colinas
-            );
-
-            var chao = terreno.AddComponent<BoxCollider>();
-            chao.center = new Vector3(0f, -0.5f, 0f);
-            chao.size = new Vector3(LayoutDoHub.LadoDoTerreno, 1f, LayoutDoHub.LadoDoTerreno);
-
-            const float alturaDaBarreira = 20f;
-            const float espessura = 1f;
-            var deslocamento = borda + espessura / 2f;
-            var lado = LayoutDoHub.LadoDoTerreno;
-            CriarBarreira(
-                terreno.transform,
-                "Barreira_Norte",
-                new Vector3(0f, alturaDaBarreira / 2f, deslocamento),
-                new Vector3(lado + 2f * espessura, alturaDaBarreira, espessura)
-            );
-            CriarBarreira(
-                terreno.transform,
-                "Barreira_Sul",
-                new Vector3(0f, alturaDaBarreira / 2f, -deslocamento),
-                new Vector3(lado + 2f * espessura, alturaDaBarreira, espessura)
-            );
-            CriarBarreira(
-                terreno.transform,
-                "Barreira_Oeste",
-                new Vector3(-deslocamento, alturaDaBarreira / 2f, 0f),
-                new Vector3(espessura, alturaDaBarreira, lado)
-            );
-            CriarBarreira(
-                terreno.transform,
-                "Barreira_Leste",
-                new Vector3(deslocamento, alturaDaBarreira / 2f, 0f),
-                new Vector3(espessura, alturaDaBarreira, lado)
-            );
+            ConstrutorDoTerreno.Construir(terreno.transform, MaterialDoTerreno());
         }
 
+        // Placa plana e colorida do terreno antigo e, logo abaixo, a barreira dele. O jogo não
+        // usa mais nenhuma das duas (o chão e as barreiras agora são do ConstrutorDoTerreno);
+        // ficam aqui para quem precisar de um chão plano de teste.
         private static void CriarPlaca(
             Transform pai,
             string nome,
@@ -353,13 +303,100 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
             var props = new GameObject(NomePropsFora).transform;
             props.SetParent(pai, false);
 
+            // As peças do miolo ficam apoiadas no relevo. As que cairiam dentro da água ou da
+            // lava (onde um bioma de fora avança sobre o miolo) são puladas.
             foreach (var peca in LayoutDoHub.PropsFora)
             {
-                Instanciar(peca.Prefab, new Vector3(peca.X, 0f, peca.Z), peca.Guinada, props);
+                var altura = MapaDoMundo.AlturaEm(peca.X, peca.Z);
+                if (altura < MapaDoMundo.NivelDaAgua)
+                {
+                    continue;
+                }
+
+                var instancia = Instanciar(
+                    peca.Prefab,
+                    new Vector3(peca.X, altura, peca.Z),
+                    peca.Guinada,
+                    props
+                );
+                Tingir(instancia, MapaDoMundo.BiomaEm(peca.X, peca.Z));
             }
         }
 
-        private static void CriarLuz(Transform pai)
+        // Árvores e pedras além do miolo de 1 km, por bioma, na altura do chão e na cor do bioma.
+        private static void CriarPecasDosBiomas(Transform pai)
+        {
+            var pecas = new GameObject(NomePecasDosBiomas).transform;
+            pecas.SetParent(pai, false);
+
+            foreach (var peca in PecasDosBiomas.Todas)
+            {
+                var instancia = Instanciar(
+                    peca.Prefab,
+                    new Vector3(peca.X, peca.Y, peca.Z),
+                    peca.Guinada,
+                    pecas
+                );
+                if (instancia == null)
+                {
+                    continue;
+                }
+
+                instancia.transform.localScale *= peca.Escala;
+                Tingir(instancia, peca.Bioma);
+            }
+        }
+
+        // Troca os materiais da peça por cópias multiplicadas pela cor do bioma. Branco (campo,
+        // mata, colinas e cidade) deixa a peça como ela é.
+        private static void Tingir(GameObject peca, Bioma bioma)
+        {
+            var cor = CoresDosBiomas.DasPecas(bioma);
+            if (peca == null || cor == Color.white)
+            {
+                return;
+            }
+
+            foreach (var renderizador in peca.GetComponentsInChildren<Renderer>(true))
+            {
+                var materiais = renderizador.sharedMaterials;
+                for (var i = 0; i < materiais.Length; i++)
+                {
+                    materiais[i] = MaterialTingido(materiais[i], bioma, cor);
+                }
+
+                renderizador.sharedMaterials = materiais;
+            }
+        }
+
+        private static Material MaterialTingido(Material original, Bioma bioma, Color cor)
+        {
+            if (original == null)
+            {
+                return null;
+            }
+
+            var chave = (original, bioma);
+            if (_materiaisTingidos.TryGetValue(chave, out var pronto) && pronto != null)
+            {
+                return pronto;
+            }
+
+            var tingido = new Material(original) { name = $"{original.name}_{bioma}" };
+            if (tingido.HasProperty("_BaseColor"))
+            {
+                tingido.SetColor("_BaseColor", tingido.GetColor("_BaseColor") * cor);
+            }
+            else if (tingido.HasProperty("_Color"))
+            {
+                tingido.SetColor("_Color", tingido.GetColor("_Color") * cor);
+            }
+
+            _materiaisTingidos[chave] = tingido;
+            return tingido;
+        }
+
+        private static Light CriarLuz(Transform pai)
         {
             var objeto = new GameObject(NomeLuz);
             objeto.transform.SetParent(pai, false);
@@ -370,16 +407,21 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
             luz.color = new Color(1f, 0.96f, 0.86f);
             luz.intensity = 1.1f;
             luz.shadows = LightShadows.Soft;
+            return luz;
         }
 
         // A cena do mundo é nova: sem skybox, a luz ambiente seria preta. Fica em tom frio e
-        // suave, para as sombras do sol não ficarem pretas.
-        private static void ConfigurarAmbiente()
+        // suave, para as sombras do sol não ficarem pretas. Desde 2026-10-11 as cores moram no
+        // AmbienteDosBiomas (o padrão dele é o que estava aqui), que também liga a névoa e troca
+        // tudo conforme o bioma em que o jogador está.
+        private static void ConfigurarAmbiente(Transform pai, Light sol)
         {
-            RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Trilight;
-            RenderSettings.ambientSkyColor = new Color(0.62f, 0.72f, 0.85f);
-            RenderSettings.ambientEquatorColor = new Color(0.5f, 0.52f, 0.5f);
-            RenderSettings.ambientGroundColor = new Color(0.32f, 0.3f, 0.26f);
+            var nascimento = LayoutDoHub.PontoDeNascimento;
+            AmbienteDosBiomas.Aplicar(AmbienteDosBiomas.Em(nascimento.x, nascimento.z), sol);
+
+            var objeto = new GameObject(NomeAmbiente);
+            objeto.transform.SetParent(pai, false);
+            objeto.AddComponent<AmbienteDosBiomas>().Configurar(sol);
         }
 
         private static GameObject Instanciar(

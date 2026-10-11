@@ -1,3 +1,5 @@
+using JogoDoGrupo.Shared.Features.Mundo;
+
 namespace JogoDoGrupo.Server.Features.Mundo;
 
 /// <summary>Posição e orientação de um avatar na cidade.</summary>
@@ -5,7 +7,7 @@ public readonly record struct PosicaoNaCidade(float X, float Y, float Z, float R
 
 /// <summary>
 /// Regras puras do movimento na cidade (sem rede): o servidor recusa deslocamento mais rápido
-/// do que correr. Valores em docs/features/mundo.md.
+/// do que correr, para fora do mundo ou longe do chão. Valores em docs/features/mundo.md.
 /// </summary>
 public static class ValidadorDeMovimento
 {
@@ -21,12 +23,27 @@ public static class ValidadorDeMovimento
     /// <summary>Tempo máximo (ms) que conta para o deslocamento permitido: não acumula ao ficar parado.</summary>
     public const long TempoMaximoMs = 1000;
 
-    /// <summary>Limite do terreno em X e Z (m): 1 km de lado, centrado na origem.</summary>
-    public const float LimiteHorizontal = 500f;
+    /// <summary>
+    /// Limite do terreno em X e Z (m): metade do lado do mundo, centrado na origem. Era 500 m
+    /// (terreno de 1 km) até 2026-10-11; o mundo passou a 3 km.
+    /// </summary>
+    public const float LimiteHorizontal = MapaDoMundo.Metade;
 
-    /// <summary>Faixa de altura aceita (m).</summary>
-    public const float AlturaMinima = -5f;
-    public const float AlturaMaxima = 50f;
+    /// <summary>
+    /// Faixa de altura aceita em qualquer ponto (m). Era de -5 a 50 m enquanto o chão era plano;
+    /// agora acompanha o relevo, e a conferência fina é contra o chão do ponto (abaixo).
+    /// </summary>
+    public const float AlturaMinima = MapaDoMundo.AlturaMinima - FolgaAbaixoDoChao;
+    public const float AlturaMaxima = MapaDoMundo.AlturaMaxima + FolgaAcimaDoChao;
+
+    /// <summary>Quanto o avatar pode ficar abaixo do chão do ponto (m): folga de encosta.</summary>
+    public const float FolgaAbaixoDoChao = 3f;
+
+    /// <summary>
+    /// Quanto o avatar pode ficar acima do chão do ponto (m): pulo e queda de penhasco (o maior
+    /// paredão do mapa tem uns 70 m).
+    /// </summary>
+    public const float FolgaAcimaDoChao = 90f;
 
     /// <summary>
     /// Confere se ir de <paramref name="atual"/> a <paramref name="desejada"/> em
@@ -51,6 +68,13 @@ public static class ValidadorDeMovimento
             || desejada.Y < AlturaMinima
             || desejada.Y > AlturaMaxima
         )
+        {
+            return false;
+        }
+
+        // O chão tem relevo: a altura pedida precisa estar perto do chão daquele ponto.
+        var chao = MapaDoMundo.AlturaEm(desejada.X, desejada.Z);
+        if (desejada.Y < chao - FolgaAbaixoDoChao || desejada.Y > chao + FolgaAcimaDoChao)
         {
             return false;
         }

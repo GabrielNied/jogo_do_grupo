@@ -3,6 +3,8 @@ using System.Linq;
 using System.Reflection;
 using JogoDoGrupo.Client.Core.Jogo;
 using JogoDoGrupo.Client.Features.Mundo.Hub;
+using JogoDoGrupo.Client.Features.Mundo.Terreno;
+using JogoDoGrupo.Shared.Features.Mundo;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -17,10 +19,18 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
         private Color _ceu;
         private Color _horizonte;
         private Color _solo;
+        private bool _nevoa;
+        private FogMode _modoDaNevoa;
+        private Color _corDaNevoa;
+        private float _densidadeDaNevoa;
 
         [SetUp]
         public void Preparar()
         {
+            _nevoa = RenderSettings.fog;
+            _modoDaNevoa = RenderSettings.fogMode;
+            _corDaNevoa = RenderSettings.fogColor;
+            _densidadeDaNevoa = RenderSettings.fogDensity;
             _modo = RenderSettings.ambientMode;
             _ceu = RenderSettings.ambientSkyColor;
             _horizonte = RenderSettings.ambientEquatorColor;
@@ -39,6 +49,10 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
             RenderSettings.ambientSkyColor = _ceu;
             RenderSettings.ambientEquatorColor = _horizonte;
             RenderSettings.ambientGroundColor = _solo;
+            RenderSettings.fog = _nevoa;
+            RenderSettings.fogMode = _modoDaNevoa;
+            RenderSettings.fogColor = _corDaNevoa;
+            RenderSettings.fogDensity = _densidadeDaNevoa;
         }
 
         private PosicaoInicial Construir()
@@ -228,11 +242,23 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
             var terreno = _hub.transform.Find(ConstrutorHub.NomeTerreno);
             Assert.IsNotNull(terreno, "O hub deveria ter o terreno de fora.");
 
-            var chao = terreno.GetComponent<Collider>();
-            Assert.IsNotNull(chao, "O terreno precisa de um colisor na raiz.");
-            Assert.GreaterOrEqual(chao.bounds.size.x, LayoutDoHub.LadoDoTerreno - 0.01f);
-            Assert.GreaterOrEqual(chao.bounds.size.z, LayoutDoHub.LadoDoTerreno - 0.01f);
-            Assert.AreEqual(0f, chao.bounds.max.y, 0.01f);
+            // Até 2026-10-11 era um colisor só na raiz, de 1 km, com a face de cima em zero. Agora
+            // o chão é uma malha com relevo em blocos, cada um com o seu colisor: juntos cobrem
+            // o mundo de 3 km. Perto da cidade ele continua plano, em Y = 0 (o laço abaixo).
+            var blocos = terreno.Find(ConstrutorDoTerreno.NomeBlocos);
+            Assert.IsNotNull(blocos, "O terreno precisa dos blocos do chão.");
+            var colisores = blocos.GetComponentsInChildren<MeshCollider>();
+            var total = ConstrutorDoTerreno.BlocosPorLado * ConstrutorDoTerreno.BlocosPorLado;
+            Assert.AreEqual(total, colisores.Length);
+            var chao = colisores[0].bounds;
+            foreach (var colisor in colisores)
+            {
+                chao.Encapsulate(colisor.bounds);
+            }
+
+            Assert.GreaterOrEqual(chao.size.x, MapaDoMundo.Lado - 0.01f);
+            Assert.GreaterOrEqual(chao.size.z, MapaDoMundo.Lado - 0.01f);
+            Assert.GreaterOrEqual(chao.size.x, LayoutDoHub.LadoDoTerreno - 0.01f);
 
             // Faixa livre logo fora dos muros (os props começam mais longe), em passo de 5 m.
             var testados = 0;
@@ -286,21 +312,29 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
         {
             Construir();
 
-            var pertoDaBorda = LayoutDoHub.MetadeDoTerreno - 5f;
+            // A borda era a do terreno de 1 km (LayoutDoHub.MetadeDoTerreno) até 2026-10-11; agora
+            // é a do mundo de 3 km. Os raios saem acima do pico mais alto, para o relevo não ficar
+            // na frente: a barreira sobe até lá.
+            var pertoDaBorda = MapaDoMundo.Metade - 5f;
+            var alto = MapaDoMundo.AlturaMaxima + 10f;
             var testes = new[]
             {
+                (new Vector3(pertoDaBorda, alto, 0f), Vector3.right),
+                (new Vector3(-pertoDaBorda, alto, 0f), Vector3.left),
+                (new Vector3(0f, alto, -pertoDaBorda), Vector3.back),
+                (new Vector3(30f, alto, pertoDaBorda), Vector3.forward),
                 (new Vector3(pertoDaBorda, 1f, 0f), Vector3.right),
-                (new Vector3(-pertoDaBorda, 1f, 0f), Vector3.left),
                 (new Vector3(0f, 1f, -pertoDaBorda), Vector3.back),
-                (new Vector3(30f, 1f, pertoDaBorda), Vector3.forward),
             };
 
             foreach (var (origem, direcao) in testes)
             {
-                Assert.IsTrue(Physics.Raycast(origem, direcao, out var batida, 20f));
+                var batidas = Physics.RaycastAll(origem, direcao, 20f);
+                var naBarreira = batidas.Where(b => b.collider.name.StartsWith("Barreira_"));
+                Assert.IsNotEmpty(naBarreira, $"Sem barreira saindo de {origem}.");
                 Assert.AreEqual(
-                    LayoutDoHub.MetadeDoTerreno,
-                    Mathf.Abs(Vector3.Dot(batida.point, direcao)),
+                    MapaDoMundo.Metade,
+                    Mathf.Abs(Vector3.Dot(naBarreira.First().point, direcao)),
                     0.05f
                 );
             }
@@ -463,6 +497,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
             var nomes = LayoutDoHub
                 .Props.Concat(LayoutDoHub.PropsFora)
                 .Select(p => p.Prefab)
+                .Concat(PecasDosBiomas.Todas.Select(p => p.Prefab))
                 .Concat(
                     new[]
                     {
@@ -559,11 +594,15 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
             Assert.GreaterOrEqual(colinas, 50);
             Assert.Greater(pedrasNasColinas, colinas / 2, "As colinas têm mais pedra que árvore.");
 
+            // Até 2026-10-11 cada área era uma placa colorida com o nome dela. Agora o chão é uma
+            // malha só, pintada pelo mapa do mundo: as três áreas continuam nos mesmos lados.
+            Assert.AreEqual(Bioma.Campo, MapaDoMundo.BiomaEm(0f, 250f));
+            Assert.AreEqual(Bioma.Mata, MapaDoMundo.BiomaEm(250f, -100f));
+            Assert.AreEqual(Bioma.Colinas, MapaDoMundo.BiomaEm(-250f, -100f));
+
             Construir();
             var terreno = _hub.transform.Find(ConstrutorHub.NomeTerreno);
-            Assert.IsNotNull(terreno.Find("Campo"));
-            Assert.GreaterOrEqual(terreno.Cast<Transform>().Count(t => t.name == "Mata"), 1);
-            Assert.GreaterOrEqual(terreno.Cast<Transform>().Count(t => t.name == "Colinas"), 1);
+            Assert.IsNotNull(terreno.Find(ConstrutorDoTerreno.NomeBlocos));
         }
     }
 }
