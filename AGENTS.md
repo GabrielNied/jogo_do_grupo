@@ -19,7 +19,7 @@ A lista de funcionalidades e as faixas de IDs de mensagem estão no [README.md](
 dotnet tool restore                  # uma vez: instala o CSharpier
 npm install                          # uma vez: commitlint e hooks do git (husky)
 dotnet build JogoDoGrupo.slnx        # compila server e shared
-dotnet run --project server/src/JogoDoGrupo.Server
+npm run server:rodar                 # sobe o servidor (dotnet run --project server/src/JogoDoGrupo.Server)
 dotnet csharpier format .            # formata (rode antes de terminar qualquer mudança em C#)
 dotnet csharpier check .             # o que o CI confere
 dotnet test JogoDoGrupo.slnx         # todos os testes (o CI também roda)

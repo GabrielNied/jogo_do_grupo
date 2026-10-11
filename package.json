@@ -8,6 +8,7 @@
     "commitlint": "commitlint",
     "validar-branch": "node scripts/git/validar-branch.mjs",
     "figma:exportar": "node scripts/figma/exportar-brainstorm.mjs",
+    "server:rodar": "dotnet run --project server/src/JogoDoGrupo.Server",
     "unity:compilar": "node scripts/unity/compilar-client.mjs",
     "unity:recompilar": "node scripts/unity/unity.mjs recompilar",
     "unity:testes": "node scripts/unity/unity.mjs testes",

@@ -96,7 +96,7 @@ git config merge.unityyamlmerge.recursive binary
 
 ```
 dotnet build JogoDoGrupo.slnx
-dotnet run --project server/src/JogoDoGrupo.Server
+npm run server:rodar        # o mesmo que dotnet run --project server/src/JogoDoGrupo.Server
 ```
 
 O build termina com `0 Warning(s)` e `0 Error(s)`. O servidor lista os módulos, cria o banco local (`server/src/JogoDoGrupo.Server/jogodogrupo.db`, fora do git) e fica rodando:
@@ -165,7 +165,7 @@ Depois, abra o PR no GitHub com o título no mesmo padrão do commit e preencha 
 | Começar o dia / nova tarefa | `git switch main && git pull --rebase origin main` |
 | Atualizar sua branch com a `main` | `git pull --rebase origin main` |
 | Antes de commitar C# | `dotnet csharpier format .` |
-| Compilar e rodar o servidor | `dotnet build JogoDoGrupo.slnx` e `dotnet run --project server/src/JogoDoGrupo.Server` |
+| Compilar e rodar o servidor | `dotnet build JogoDoGrupo.slnx` e `npm run server:rodar` |
 | Mudou o `package-lock.json` | `npm install` |
 | Mudou o `dotnet-tools.json` | `dotnet tool restore` |
 | Vai editar um binário (PSD, FBX, Blend) | `git lfs lock <arquivo>` antes; `git lfs unlock <arquivo>` depois |
