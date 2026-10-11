@@ -16,6 +16,23 @@ const RAIZ = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const CLIENT = join(RAIZ, "client");
 const SAIDA = join(tmpdir(), "jogo-do-grupo-unity-compilar");
 
+// Library/ do Unity (test runner, NUnit, pacotes): num worktree de agente ela não existe,
+// então usa a do checkout principal do repositório.
+function acharLibrary() {
+  const local = join(CLIENT, "Library");
+  if (existsSync(local)) return local;
+  try {
+    const comum = execFileSync("git", ["rev-parse", "--path-format=absolute", "--git-common-dir"], {
+      cwd: RAIZ,
+      encoding: "utf8",
+    }).trim();
+    const principal = join(dirname(comum), "client/Library");
+    if (existsSync(principal)) return principal;
+  } catch {}
+  return local;
+}
+const LIBRARY = acharLibrary();
+
 const versao = readFileSync(join(CLIENT, "ProjectSettings/ProjectVersion.txt"), "utf8").match(
   /m_EditorVersion:\s*(\S+)/,
 )[1];
@@ -62,24 +79,54 @@ function scripts(pasta) {
 }
 
 const nossos = new Set(asmdefs.map((a) => a.name));
-const pacotesUnity = join(CLIENT, "Library/ScriptAssemblies");
+const pacotesUnity = join(LIBRARY, "ScriptAssemblies");
 const avisos = [];
 const projetos = [];
+
+// NUnit do Unity: só existe depois que o editor abriu o projeto (Library/PackageCache).
+function acharNunit() {
+  const cache = join(LIBRARY, "PackageCache");
+  if (!existsSync(cache)) return null;
+  const achado = readdirSync(cache, { recursive: true }).find(
+    (f) => f.endsWith("nunit.framework.dll") && f.includes("unity-custom"),
+  );
+  return achado ? join(cache, achado) : null;
+}
+const ehEditor = (a) => (a.includePlatforms ?? []).includes("Editor");
+const ehTeste = (a) =>
+  (a.optionalUnityReferences ?? []).includes("TestAssemblies") ||
+  (a.references ?? []).some((r) => /TestRunner/.test(r)) ||
+  (a.precompiledReferences ?? []).includes("nunit.framework.dll");
 
 for (const a of asmdefs) {
   const arquivos = scripts(a.pasta);
   if (arquivos.length === 0) continue;
+  const nunit = ehTeste(a) ? acharNunit() : null;
+  if (ehTeste(a) && !nunit) {
+    avisos.push(`${a.name}: pulado (testes; abra o projeto no Unity uma vez para criar a Library).`);
+    continue;
+  }
   const referencias = (a.references ?? []).map((r) => {
     if (nossos.has(r)) return `    <ProjectReference Include="${join(SAIDA, r, r + ".csproj")}" />`;
     const dll = join(pacotesUnity, r + ".dll");
     if (!existsSync(dll)) avisos.push(`${a.name}: referência "${r}" não encontrada (abra o projeto no Unity uma vez).`);
     return `    <Reference Include="${dll}" Private="false" />`;
   });
+  const dlls = [`${dllsUnity}/UnityEngine.*Module.dll`, `${dllsUnity}/UnityEngine.dll`];
+  if (ehEditor(a) || ehTeste(a)) {
+    dlls.push(`${dllsUnity}/UnityEditor.*Module.dll`);
+  }
+  if (nunit) {
+    dlls.push(nunit);
+    for (const dll of ["UnityEngine.TestRunner.dll", "UnityEditor.TestRunner.dll"]) {
+      if (existsSync(join(pacotesUnity, dll))) dlls.push(join(pacotesUnity, dll));
+    }
+  }
   const unity = a.noEngineReferences
     ? ""
-    : `    <Reference Include="${dllsUnity}/UnityEngine.*Module.dll" Private="false" />\n    <Reference Include="${dllsUnity}/UnityEngine.dll" Private="false" />`;
+    : dlls.map((d) => `    <Reference Include="${d}" Private="false" />`).join("\n");
   const csproj = `<Project Sdk="Microsoft.NET.Sdk">
-  <!-- Gerado por scripts/unity/compilar-client.mjs a partir de ${a.arquivo}. Não edite. -->
+  <!-- Gerado por scripts/unity/compilar-client.mjs. Não edite. -->
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
     <LangVersion>9.0</LangVersion>
