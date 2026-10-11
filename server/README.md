@@ -19,4 +19,4 @@ Para criar uma funcionalidade nova, crie a pasta e uma classe que implemente `IF
 
 ## Pendências
 
-Decisões ainda em aberto (vão virar ADRs em `docs/decisoes/`): biblioteca de rede para o tempo real. ~~Testes automatizados~~ decididos no [ADR 0013](../docs/decisoes/0013-testes-automatizados.md); ~~banco de dados~~ decidido no [ADR 0010](../docs/decisoes/0010-banco-de-dados.md).
+~~Biblioteca de rede para o tempo real~~ decidida: LiteNetLib por UDP ([ADR 0015](../docs/decisoes/0015-litenetlib-para-o-tempo-real.md)). ~~Testes automatizados~~ decididos no [ADR 0013](../docs/decisoes/0013-testes-automatizados.md); ~~banco de dados~~ decidido no [ADR 0010](../docs/decisoes/0010-banco-de-dados.md). Ainda em aberto: divisão do mundo entre servidores.

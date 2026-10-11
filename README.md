@@ -259,5 +259,5 @@ Estrutura do repo, projeto Unity, CI (build, CSharpier, commitlint), hooks do gi
 1. ~~Proteger a `main` com ruleset~~ decidido: repo privado com proteção local ([ADR 0007](docs/decisoes/0007-protecao-local-da-main.md)). Opções de merge já aplicadas.
 2. Preencher [docs/responsaveis.md](docs/responsaveis.md) e o [.github/CODEOWNERS](.github/CODEOWNERS); convites de collaborator enviados (aguardando aceite).
 3. Decidir como integrar o Cursor ao Unity (o Unity não gera `.csproj` para ele).
-4. Decidir (e registrar em ADR): biblioteca de rede e divisão do mundo entre servidores. ~~Banco de dados e testes~~ já foram decididos nos ADRs 0010 e 0013.
+4. ~~Decidir a biblioteca de rede~~ decidido: LiteNetLib por UDP ([ADR 0015](docs/decisoes/0015-litenetlib-para-o-tempo-real.md)). Ainda em aberto: divisão do mundo entre servidores. ~~Banco de dados e testes~~ já foram decididos nos ADRs 0010 e 0013.
 5. Primeiro marco: a [fatia jogável](docs/visao-geral.md#primeiro-marco-fatia-jogável).
