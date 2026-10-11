@@ -1,11 +1,4 @@
-/*
- * Visual das telas: moldura, botão e campo em textura 9-slice (arte nossa).
- * As png são geradas por scripts/ui/gerar-moldura.mjs. Não desenhe outra à mão.
- * Carregado pelo Core na raiz da interface, então vale também para as funcionalidades.
- * Os nomes das classes estão em EstiloCore.cs. Cor e tamanho ficam aqui, não no C#.
- * A regra está em docs/arquitetura.md (seção "Estilo").
- */
-
+/* Integração das classes históricas com Lumora. Valores: design/interface/config-visual.json. */
 .raiz-interface {
     position: absolute;
     left: 0;
@@ -23,343 +16,222 @@
     bottom: 0;
     align-items: center;
     justify-content: center;
-    background-color: rgb(8, 6, 5);
+    padding: var(--lumora-espacamento-padrao);
+    background-color: var(--lumora-cores-petroleo);
+    background-image: url("../../Visual/Resources/Lumora/Arte/fundo-petrol.png");
 }
 
 .tela-sobre-jogo {
-    background-color: rgba(0, 0, 0, 0.62);
+    background-color: var(--lumora-cores-veu);
+    background-image: none;
 }
 
 .painel {
-    width: 560px;
-    padding: 40px 44px;
-    background-color: rgb(22, 16, 12);
-    background-image: url("project://database/Assets/_Game/Core/UI/Resources/UI/moldura.png");
-    -unity-slice-left: 36;
-    -unity-slice-right: 36;
-    -unity-slice-top: 36;
-    -unity-slice-bottom: 36;
-    border-radius: 0;
-    border-width: 0;
+    width: var(--lumora-dimensoes-painel-entrada);
+    max-width: 100%;
+    max-height: var(--lumora-dimensoes-dialogo-percentual);
+    flex-shrink: 1;
 }
 
 .painel-largo {
-    width: 640px;
-    max-height: 90%;
+    width: var(--lumora-dimensoes-painel-largo);
 }
 
 .titulo {
-    font-size: 40px;
-    letter-spacing: 2px;
-    -unity-font-style: bold;
     -unity-text-align: middle-center;
-    color: rgb(232, 196, 120);
-    margin-bottom: 8px;
+    margin-bottom: var(--lumora-espacamento-pequeno);
+    flex-shrink: 0;
 }
 
 .subtitulo {
-    font-size: 20px;
-    letter-spacing: 1px;
     -unity-text-align: middle-center;
-    color: rgb(176, 148, 104);
-    margin-bottom: 20px;
-}
-
-.texto {
-    font-size: 20px;
-    color: rgb(228, 214, 188);
-    white-space: normal;
+    color: var(--lumora-cores-texto-secundario);
+    margin-bottom: var(--lumora-espacamento-amplo);
 }
 
 .texto-ganho {
-    color: rgb(126, 196, 96);
+    color: var(--lumora-cores-ganho);
 }
 
-.linha-lista {
-    min-height: 40px;
-    margin-bottom: 6px;
-    padding-left: 12px;
-    padding-right: 12px;
-    padding-top: 6px;
-    padding-bottom: 6px;
-    background-image: url("project://database/Assets/_Game/Core/UI/Resources/UI/slot.png");
-    -unity-slice-left: 6;
-    -unity-slice-right: 6;
-    -unity-slice-top: 6;
-    -unity-slice-bottom: 6;
+.linha-lista, .linha-dado {
+    min-height: var(--lumora-dimensoes-alvo-minimo);
+    margin-bottom: var(--lumora-espacamento-curto);
+    padding: var(--lumora-espacamento-pequeno) var(--lumora-espacamento-medio);
+    background-color: var(--lumora-cores-campo);
+    border-width: var(--lumora-bordas-fina);
+    border-color: var(--lumora-cores-borda-discreta);
+    border-radius: var(--lumora-bordas-raio-cartao);
 }
 
-.campo {
-    flex-direction: column;
-    margin-left: 0;
-    margin-right: 0;
-    margin-bottom: 16px;
+.linha-dado {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-between;
 }
 
-.campo > .unity-base-field__label {
+.linha-dado > .texto {
+    flex-shrink: 1;
     min-width: 0;
-    font-size: 18px;
-    letter-spacing: 1px;
-    color: rgb(196, 164, 112);
-    margin-bottom: 6px;
+    margin-right: var(--lumora-espacamento-pequeno);
 }
 
-.campo .unity-base-text-field__input {
-    min-height: 44px;
-    font-size: 22px;
-    padding-left: 12px;
-    padding-right: 12px;
-    color: rgb(236, 224, 200);
-    background-color: rgb(10, 8, 6);
-    background-image: url("project://database/Assets/_Game/Core/UI/Resources/UI/campo.png");
-    -unity-slice-left: 6;
-    -unity-slice-right: 6;
-    -unity-slice-top: 6;
-    -unity-slice-bottom: 6;
-    border-radius: 0;
-    border-width: 0;
-}
-
-.campo .unity-base-text-field__input:focus {
-    border-color: rgb(212, 176, 96);
+.rotulo-dado {
+    color: var(--lumora-cores-texto-secundario);
 }
 
 .linha-botoes {
-    flex-direction: row;
-    justify-content: space-between;
-    margin-top: 8px;
-    margin-left: -4px;
-    margin-right: -4px;
+    margin-top: var(--lumora-espacamento-pequeno);
+    flex-shrink: 0;
 }
 
 .botao {
+    margin: var(--lumora-espacamento-minimo);
     flex-grow: 1;
-    min-height: 48px;
-    margin-left: 0;
-    margin-right: 0;
-    margin-top: 8px;
-    font-size: 20px;
-    letter-spacing: 1px;
-    -unity-font-style: bold;
-    color: rgb(244, 228, 196);
-    background-color: rgb(42, 32, 22);
-    background-image: url("project://database/Assets/_Game/Core/UI/Resources/UI/botao.png");
-    -unity-slice-left: 10;
-    -unity-slice-right: 10;
-    -unity-slice-top: 10;
-    -unity-slice-bottom: 10;
-    -unity-background-image-tint-color: rgb(255, 255, 255);
-    border-radius: 0;
-    border-width: 0;
-}
-
-.botao:hover {
-    color: rgb(255, 244, 214);
-    -unity-background-image-tint-color: rgb(255, 228, 176);
-}
-
-.botao:focus {
-    -unity-background-image-tint-color: rgb(255, 228, 176);
-}
-
-.botao:disabled {
-    opacity: 0.45;
-}
-
-.botao-principal {
-    color: rgb(255, 236, 196);
-    background-color: rgb(92, 62, 22);
-    background-image: url("project://database/Assets/_Game/Core/UI/Resources/UI/botao-principal.png");
-}
-
-.botao-principal:hover {
-    -unity-background-image-tint-color: rgb(255, 236, 200);
-}
-
-.linha-botoes > .botao {
-    margin-left: 4px;
-    margin-right: 4px;
-    margin-top: 0;
+    flex-shrink: 1;
+    min-width: 0;
 }
 
 .mensagem {
-    min-height: 32px;
-    margin-top: 12px;
-    font-size: 18px;
+    min-height: var(--lumora-dimensoes-mensagem);
+    margin-top: var(--lumora-espacamento-medio);
+    font-size: var(--lumora-tipografia-leitura);
     white-space: normal;
     -unity-text-align: middle-center;
-    color: rgb(196, 176, 144);
+    color: var(--lumora-cores-texto-secundario);
+    flex-shrink: 0;
 }
 
 .mensagem-erro {
-    color: rgb(220, 84, 64);
+    color: var(--lumora-cores-erro);
 }
 
 .mensagem-aviso {
-    color: rgb(232, 186, 96);
+    color: var(--lumora-cores-ouro);
 }
 
 .lista {
-    height: 320px;
+    height: var(--lumora-dimensoes-lista);
     flex-shrink: 1;
-    margin-bottom: 8px;
-    padding: 8px;
-    background-color: rgb(10, 8, 6);
-    background-image: url("project://database/Assets/_Game/Core/UI/Resources/UI/campo.png");
-    -unity-slice-left: 6;
-    -unity-slice-right: 6;
-    -unity-slice-top: 6;
-    -unity-slice-bottom: 6;
-    border-radius: 0;
-    border-width: 0;
+    min-height: var(--lumora-dimensoes-alvo-minimo);
+    margin-bottom: var(--lumora-espacamento-pequeno);
+    padding: var(--lumora-espacamento-pequeno);
+    background-color: var(--lumora-cores-campo);
+    border-radius: var(--lumora-bordas-raio-campo);
 }
 
 .barra-carregamento {
-    width: 480px;
-    height: 14px;
-    margin-top: 24px;
-    border-radius: 0;
-    background-color: rgb(10, 8, 6);
-    border-width: 1px;
-    border-color: rgb(120, 92, 48);
+    width: var(--lumora-dimensoes-dialogo);
+    max-width: 100%;
+    height: var(--lumora-dimensoes-carregamento);
+    margin-top: var(--lumora-espacamento-grande);
+    border-radius: var(--lumora-bordas-raio-campo);
+    background-color: var(--lumora-cores-trilho);
+    border-width: var(--lumora-bordas-fina);
+    border-color: var(--lumora-cores-borda-botao);
     overflow: hidden;
 }
 
 .barra-carregamento-preenchimento {
     width: 0;
     height: 100%;
-    background-color: rgb(196, 152, 64);
+    background-color: var(--lumora-cores-essencia);
 }
 
 .dica {
     position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 120px;
-    font-size: 26px;
-    letter-spacing: 1px;
-    -unity-font-style: bold;
+    left: var(--lumora-espacamento-padrao);
+    right: var(--lumora-espacamento-padrao);
+    bottom: var(--lumora-dimensoes-dica-base);
+    font-size: var(--lumora-tipografia-subtitulo);
+    white-space: normal;
     -unity-text-align: middle-center;
-    color: rgb(255, 220, 140);
-}
-
-/* Janelas do jogo abertas por atalho (C, I, L, M): a mesma moldura para todas. */
-
-.janela {
-    padding-top: 28px;
+    color: var(--lumora-cores-ouro);
+    text-shadow: var(--lumora-bordas-fina) var(--lumora-bordas-fina) var(--lumora-bordas-destaque) var(--lumora-cores-sombra);
 }
 
 .janela-cabecalho {
     flex-direction: row;
     align-items: center;
-    margin-bottom: 16px;
-    padding-bottom: 12px;
-    border-bottom-width: 1px;
-    border-bottom-color: rgb(120, 92, 48);
+    margin-bottom: var(--lumora-espacamento-padrao);
+    padding-bottom: var(--lumora-espacamento-medio);
+    border-bottom-width: var(--lumora-bordas-fina);
+    border-bottom-color: var(--lumora-cores-borda-botao);
 }
 
 .janela-titulo {
     flex-grow: 1;
-    font-size: 32px;
+    flex-shrink: 1;
+    min-width: 0;
     margin-bottom: 0;
     -unity-text-align: middle-left;
 }
 
 .janela-fechar {
     flex-grow: 0;
-    width: 44px;
-    min-height: 44px;
-    margin-top: 0;
+    flex-shrink: 0;
+    width: var(--lumora-dimensoes-alvo-minimo);
+    min-height: var(--lumora-dimensoes-alvo-minimo);
     padding: 0;
 }
 
 .janela-conteudo {
-    flex-shrink: 1;
-    min-height: 120px;
+    min-width: 0;
+    flex-shrink: 0;
 }
 
 .janela-rodape {
-    margin-top: 16px;
-    font-size: 16px;
-    letter-spacing: 1px;
+    margin-top: var(--lumora-espacamento-padrao);
+    font-size: var(--lumora-tipografia-leitura);
+    white-space: normal;
     -unity-text-align: middle-center;
-    color: rgb(150, 128, 92);
+    color: var(--lumora-cores-texto-secundario);
 }
-
-.linha-dado {
-    flex-direction: row;
-    justify-content: space-between;
-    min-height: 40px;
-    margin-bottom: 6px;
-    padding: 6px 12px;
-    background-image: url("project://database/Assets/_Game/Core/UI/Resources/UI/slot.png");
-    -unity-slice-left: 6;
-    -unity-slice-right: 6;
-    -unity-slice-top: 6;
-    -unity-slice-bottom: 6;
-}
-
-.rotulo-dado {
-    color: rgb(196, 164, 112);
-}
-
-/* Barra de atalhos: só mostra as teclas, não recebe clique. */
 
 .barra-atalhos {
     position: absolute;
-    right: 24px;
-    bottom: 24px;
+    left: var(--lumora-espacamento-grande);
+    right: var(--lumora-espacamento-grande);
+    bottom: var(--lumora-espacamento-grande);
     flex-direction: row;
-    align-items: center;
+    flex-wrap: wrap;
+    justify-content: flex-end;
 }
 
 .atalho {
     flex-direction: row;
     align-items: center;
-    margin-left: 14px;
-    opacity: 0.8;
-}
-
-.atalho-ativo {
-    opacity: 1;
+    margin-left: var(--lumora-espacamento-medio);
+    margin-top: var(--lumora-espacamento-minimo);
+    padding: var(--lumora-espacamento-minimo);
+    background-color: var(--lumora-cores-painel);
+    border-radius: var(--lumora-bordas-raio-campo);
 }
 
 .atalho-tecla {
-    min-width: 30px;
-    height: 30px;
-    padding: 0 6px;
-    margin-right: 6px;
-    font-size: 16px;
-    -unity-font-style: bold;
+    min-width: var(--lumora-dimensoes-barra);
+    min-height: var(--lumora-dimensoes-barra);
+    padding: 0 var(--lumora-espacamento-curto);
+    margin-right: var(--lumora-espacamento-curto);
+    font-size: var(--lumora-tipografia-leitura);
     -unity-text-align: middle-center;
-    color: rgb(244, 228, 196);
-    background-color: rgba(22, 16, 12, 0.85);
-    border-width: 1px;
-    border-color: rgb(120, 92, 48);
+    color: var(--lumora-cores-marfim);
+    border-width: var(--lumora-bordas-fina);
+    border-color: var(--lumora-cores-borda-botao);
 }
 
 .atalho-nome {
-    font-size: 16px;
-    letter-spacing: 1px;
-    color: rgb(228, 214, 188);
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.9);
+    font-size: var(--lumora-tipografia-leitura);
+    color: var(--lumora-cores-marfim);
 }
 
 .atalho-ativo > .atalho-tecla {
-    color: rgb(22, 16, 12);
-    background-color: rgb(232, 196, 120);
-    border-color: rgb(255, 236, 196);
+    color: var(--lumora-cores-petroleo);
+    background-color: var(--lumora-cores-ouro);
 }
 
 .atalho-ativo > .atalho-nome {
-    color: rgb(255, 220, 140);
+    color: var(--lumora-cores-ouro);
 }
-
-/*
- * HUD do jogo: uma região por parte da tela (docs/features/interface.md, "HUD do jogo").
- * Nada aqui recebe clique. Cada funcionalidade põe o seu elemento na sua região, que já
- * está posicionada: o elemento dela não precisa de position: absolute.
- */
 
 .hud {
     position: absolute;
@@ -371,16 +243,17 @@
 
 .hud-regiao {
     position: absolute;
+    max-width: var(--lumora-dimensoes-dialogo-percentual);
 }
 
 .hud-inferior-esquerda {
-    left: 24px;
-    bottom: 24px;
+    left: var(--lumora-espacamento-grande);
+    bottom: var(--lumora-dimensoes-status);
     align-items: flex-start;
 }
 
 .hud-lateral-esquerda {
-    left: 24px;
+    left: var(--lumora-espacamento-grande);
     bottom: 50%;
     align-items: flex-start;
     justify-content: flex-end;
@@ -389,54 +262,105 @@
 .hud-topo-centro {
     left: 0;
     right: 0;
-    top: 24px;
+    top: var(--lumora-espacamento-grande);
     align-items: center;
 }
 
 .hud-centro-avisos {
     left: 0;
     right: 0;
-    top: 140px;
+    top: var(--lumora-dimensoes-avisos-topo);
     align-items: center;
 }
 
 .hud-inferior-centro {
     left: 0;
     right: 0;
-    bottom: 180px;
+    bottom: var(--lumora-dimensoes-avisos-base);
     align-items: center;
 }
 
 .hud-superior-direita {
-    right: 24px;
-    top: 24px;
+    right: var(--lumora-espacamento-grande);
+    top: var(--lumora-espacamento-grande);
     align-items: flex-end;
 }
 
-/* Mensagens de sistema: a linha nova entra embaixo e empurra as outras para cima. */
-
 .avisos {
     align-items: center;
+    max-width: 100%;
 }
 
 .aviso {
-    margin-top: 4px;
-    padding: 2px 12px;
-    font-size: 18px;
-    -unity-font-style: bold;
+    margin-top: var(--lumora-espacamento-minimo);
+    padding: var(--lumora-espacamento-minimo) var(--lumora-espacamento-medio);
+    font-size: var(--lumora-tipografia-controle);
+    white-space: normal;
     -unity-text-align: middle-center;
-    background-color: rgba(0, 0, 0, 0.45);
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.9);
+    background-color: var(--lumora-cores-painel);
 }
 
 .aviso-informacao {
-    color: rgb(244, 238, 226);
+    color: var(--lumora-cores-marfim);
 }
 
 .aviso-aviso {
-    color: rgb(240, 200, 90);
+    color: var(--lumora-cores-ouro);
 }
 
 .aviso-erro {
-    color: rgb(228, 84, 64);
+    color: var(--lumora-cores-erro);
+}
+
+.lumora-estreito .linha-botoes {
+    flex-direction: column;
+}
+
+.lumora-estreito .painel {
+    width: 100%;
+}
+
+.lumora-estreito .atalho-nome {
+    display: none;
+}
+
+.lumora-estreito .hud-inferior-esquerda {
+    left: var(--lumora-espacamento-pequeno);
+    right: var(--lumora-espacamento-pequeno);
+}
+
+.lumora-estreito .hud-superior-direita {
+    right: var(--lumora-espacamento-pequeno);
+    top: var(--lumora-espacamento-pequeno);
+}
+
+.mundo-minimapa {
+    width: var(--lumora-dimensoes-minimapa);
+    height: var(--lumora-dimensoes-minimapa);
+    border-radius: var(--lumora-dimensoes-minimapa-raio);
+    border-width: var(--lumora-bordas-destaque);
+    border-color: var(--lumora-cores-ouro);
+    overflow: hidden;
+    background-color: var(--lumora-cores-trilho);
+}
+
+.mundo-minimapa-norte {
+    position: absolute;
+    top: var(--lumora-espacamento-minimo);
+    left: 0;
+    right: 0;
+    -unity-text-align: upper-center;
+    font-size: var(--lumora-tipografia-leitura);
+    color: var(--lumora-cores-marfim);
+    text-shadow: var(--lumora-bordas-fina) var(--lumora-bordas-fina) var(--lumora-bordas-destaque) var(--lumora-cores-sombra);
+}
+
+.mundo-mapa {
+    width: var(--lumora-dimensoes-mapa);
+    height: var(--lumora-dimensoes-mapa);
+    max-width: 100%;
+    margin-top: var(--lumora-espacamento-pequeno);
+    align-self: center;
+    border-width: var(--lumora-bordas-destaque);
+    border-color: var(--lumora-cores-ouro);
 }

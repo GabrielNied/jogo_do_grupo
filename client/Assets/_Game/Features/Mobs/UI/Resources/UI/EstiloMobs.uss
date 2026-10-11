@@ -12,41 +12,42 @@
     top: 0;
     right: 0;
     bottom: 0;
-    --cor-aviso: rgba(220, 50, 40, 0.9);
-    --cor-aviso-preenchimento: rgba(220, 50, 40, 0.35);
+    --cor-aviso: var(--lumora-cores-perigo);
+    --cor-aviso-preenchimento: var(--lumora-cores-perigo-preenchimento);
 }
 
 .inimigo-etiqueta {
     position: absolute;
-    width: 120px;
+    width: var(--lumora-dimensoes-inimigo-largura);
     align-items: center;
     translate: -50% -100%;
 }
 
 .inimigo-nome {
-    font-size: 14px;
-    -unity-font-style: bold;
-    color: rgb(240, 232, 214);
-    -unity-text-outline-width: 1px;
-    -unity-text-outline-color: rgb(10, 8, 6);
+    font-size: var(--lumora-tipografia-leitura);
+    color: var(--lumora-cores-marfim);
+    -unity-text-outline-width: var(--lumora-bordas-fina);
+    -unity-text-outline-color: var(--lumora-cores-trilho);
+    white-space: normal;
+    -unity-text-align: middle-center;
 }
 
 .inimigo-etiqueta-fortalecida .inimigo-nome {
-    color: rgb(255, 96, 80);
+    color: var(--lumora-cores-erro);
 }
 
 .inimigo-barra {
-    width: 100px;
-    height: 8px;
-    margin-top: 2px;
-    background-color: rgb(10, 8, 6);
-    border-width: 1px;
-    border-color: rgb(120, 92, 48);
+    width: var(--lumora-dimensoes-inimigo-barra);
+    height: var(--lumora-dimensoes-inimigo-barra-altura);
+    margin-top: var(--lumora-espacamento-minimo);
+    background-color: var(--lumora-cores-trilho);
+    border-width: var(--lumora-bordas-fina);
+    border-color: var(--lumora-cores-borda-botao);
     overflow: hidden;
 }
 
 .inimigo-preenchimento {
     height: 100%;
     width: 100%;
-    background-color: rgb(176, 48, 40);
+    background-color: var(--lumora-cores-vida);
 }

@@ -7,6 +7,39 @@ namespace JogoDoGrupo.Client.Core.Visual.Tests
     public class EstiloVisualTestes
     {
         [Test]
+        public void CoresDeDesenho_PreservamRgbEAlfaDosTokens()
+        {
+            var cor = EstiloVisual.Cor(ConfigVisual.Cores.Perigo);
+            Assert.AreEqual(233f / 255, cor.r, 0.0001f);
+            Assert.AreEqual(0.9f, cor.a, 0.0001f);
+            Assert.AreEqual(1, EstiloVisual.Cor(ConfigVisual.Cores.Ouro).a);
+        }
+
+        [TestCase(null)]
+        [TestCase("inválida")]
+        [TestCase("rgba(256, 0, 0, 1)")]
+        [TestCase("rgba(0, 0, 0, 2)")]
+        public void CoresDeDesenho_RejeitamTokensInvalidos(string token)
+        {
+            Assert.Throws<ArgumentException>(() => EstiloVisual.Cor(token));
+        }
+
+        [Test]
+        public void LeituraAumentada_PreservaHierarquiaDasClassesMigradas()
+        {
+            var raiz = new VisualElement();
+            var titulo = new Label("Personagens");
+            titulo.AddToClassList("titulo");
+            var subtitulo = new Label("Sua aventura");
+            subtitulo.AddToClassList("subtitulo");
+            raiz.Add(titulo);
+            raiz.Add(subtitulo);
+            EstiloVisual.DefinirTamanhoTexto(raiz, 24);
+            Assert.AreEqual(ConfigVisual.Tipografia.Titulo, titulo.style.fontSize.value.value);
+            Assert.GreaterOrEqual(subtitulo.style.fontSize.value.value, 24);
+        }
+
+        [Test]
         public void Responsividade_AlternaNosLimiaresESaiDoModoCompacto()
         {
             var raiz = new VisualElement();

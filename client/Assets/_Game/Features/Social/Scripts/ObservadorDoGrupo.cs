@@ -18,8 +18,6 @@ namespace JogoDoGrupo.Client.Features.Social
         private const string NomeObservador = "Social.Observador";
         private const string NomeRaiz = "Social";
 
-        private static readonly Vector2Int ResolucaoReferencia = new Vector2Int(1920, 1080);
-
         private static ObservadorDoGrupo _instancia;
 
         private GameObject _jogadorAtendido;
@@ -87,11 +85,7 @@ namespace JogoDoGrupo.Client.Features.Social
             documento.panelSettings = configuracao;
             raiz.SetActive(true);
 
-            var estilo = Resources.Load<StyleSheet>(EstiloCore.CaminhoEstilo);
-            if (estilo != null)
-            {
-                documento.rootVisualElement.styleSheets.Add(estilo);
-            }
+            EstiloCore.Aplicar(documento.rootVisualElement);
 
             var container = new VisualElement { name = "SocialInterface" };
             container.AddToClassList(EstiloCore.RaizInterface);
@@ -110,7 +104,7 @@ namespace JogoDoGrupo.Client.Features.Social
             painel.name = "PainelSocial";
             painel.hideFlags = HideFlags.DontSave;
             painel.scaleMode = PanelScaleMode.ScaleWithScreenSize;
-            painel.referenceResolution = ResolucaoReferencia;
+            painel.referenceResolution = EstiloCore.ResolucaoReferencia;
             painel.screenMatchMode = PanelScreenMatchMode.MatchWidthOrHeight;
             painel.match = 0.5f;
 

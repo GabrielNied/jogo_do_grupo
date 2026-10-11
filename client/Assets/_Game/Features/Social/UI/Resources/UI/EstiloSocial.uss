@@ -1,55 +1,46 @@
-/* Chat de texto (Social). Canto inferior esquerdo, na região do HUD. */
-
+/* Chat: mantém o comportamento de esmaecer, com a tipografia Lumora. */
 .chat {
-    width: 520px;
-    margin-bottom: 120px;
+    width: var(--lumora-dimensoes-chat-largura);
+    max-width: 100%;
+    margin-bottom: var(--lumora-dimensoes-dica-base);
     transition-property: opacity;
     transition-duration: 0.4s;
 }
 
-/* Sem atividade por 10 s: quase transparente. */
 .chat-esmaecido {
     opacity: 0.3;
 }
 
 .chat-linhas {
-    padding: 6px 8px;
-    background-color: rgba(10, 8, 6, 0.55);
-    border-radius: 4px;
+    padding: var(--lumora-espacamento-curto) var(--lumora-espacamento-pequeno);
+    background-color: var(--lumora-cores-painel);
+    border-width: var(--lumora-bordas-fina);
+    border-color: var(--lumora-cores-borda-discreta);
+    border-radius: var(--lumora-bordas-raio-cartao);
 }
 
 .chat-linha {
-    font-size: 15px;
+    font-size: var(--lumora-tipografia-leitura);
     white-space: normal;
-    color: rgb(255, 255, 255);
+    color: var(--lumora-cores-marfim);
 }
 
 .chat-cidade {
-    color: rgb(255, 255, 255);
+    color: var(--lumora-cores-marfim);
 }
 
 .chat-grupo {
-    color: rgb(110, 170, 255);
+    color: var(--lumora-cores-essencia);
 }
 
 .chat-sussurro {
-    color: rgb(255, 130, 190);
+    color: var(--lumora-cores-sussurro);
 }
 
 .chat-sistema {
-    color: rgb(255, 214, 90);
+    color: var(--lumora-cores-ouro);
 }
 
 .chat-campo {
-    margin-top: 4px;
-    margin-left: 0;
-    margin-right: 0;
-}
-
-.chat-campo > .unity-base-text-field__input {
-    font-size: 15px;
-    background-color: rgb(10, 8, 6);
-    color: rgb(255, 255, 255);
-    border-width: 1px;
-    border-color: rgb(120, 92, 48);
+    margin: var(--lumora-espacamento-minimo) 0 0;
 }

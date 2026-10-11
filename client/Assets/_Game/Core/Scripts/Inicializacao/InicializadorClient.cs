@@ -15,7 +15,6 @@ namespace JogoDoGrupo.Client.Core.Inicializacao
     {
         private const string NomeObjeto = "JogoDoGrupo.Interface";
         private const string AvisoSessaoExpirada = "Sua sessão expirou. Entre de novo.";
-        private static readonly Vector2Int ResolucaoReferencia = new Vector2Int(1920, 1080);
 
         private static PanelSettings _painel;
 
@@ -46,7 +45,7 @@ namespace JogoDoGrupo.Client.Core.Inicializacao
             _painel = painel;
             Application.quitting += AoSair;
             painel.scaleMode = PanelScaleMode.ScaleWithScreenSize;
-            painel.referenceResolution = ResolucaoReferencia;
+            painel.referenceResolution = EstiloCore.ResolucaoReferencia;
             painel.screenMatchMode = PanelScreenMatchMode.MatchWidthOrHeight;
             painel.match = 0.5f;
 
@@ -70,17 +69,7 @@ namespace JogoDoGrupo.Client.Core.Inicializacao
             documento.panelSettings = painel;
             objeto.SetActive(true);
 
-            var estilo = Resources.Load<StyleSheet>(EstiloCore.CaminhoEstilo);
-            if (estilo != null)
-            {
-                documento.rootVisualElement.styleSheets.Add(estilo);
-            }
-            else
-            {
-                Debug.LogError(
-                    $"[InicializadorClient] Estilo não encontrado em Resources/{EstiloCore.CaminhoEstilo}.uss."
-                );
-            }
+            EstiloCore.Aplicar(documento.rootVisualElement);
 
             var raizDocumento = documento.rootVisualElement;
             EstiloCore.NaoBloquearCliques(raizDocumento);

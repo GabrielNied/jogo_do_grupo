@@ -19,6 +19,8 @@ namespace JogoDoGrupo.Client.Features.Social
 
         private PainelGrupo _painel;
 
+        public override bool MolduraSocial => true;
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void Registrar()
         {

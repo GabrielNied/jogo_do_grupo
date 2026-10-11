@@ -1,3 +1,6 @@
+using System;
+using JogoDoGrupo.Client.Core.Visual;
+using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace JogoDoGrupo.Client.Core.UI
@@ -11,6 +14,36 @@ namespace JogoDoGrupo.Client.Core.UI
     /// </summary>
     public static class EstiloCore
     {
+        public static Vector2Int ResolucaoReferencia =>
+            new Vector2Int(
+                ConfigVisual.Responsividade.ReferenciaLargura,
+                ConfigVisual.Responsividade.ReferenciaAltura
+            );
+
+        /// <summary>Aplica a identidade também nos documentos independentes das funcionalidades.</summary>
+        public static void Aplicar(VisualElement raiz)
+        {
+            if (raiz == null)
+                throw new ArgumentNullException(nameof(raiz));
+            EstiloVisual.Aplicar(raiz);
+            var estilo =
+                Resources.Load<StyleSheet>(CaminhoEstilo)
+                ?? throw new InvalidOperationException(
+                    "Estilo de integração Lumora não importado."
+                );
+            if (!raiz.styleSheets.Contains(estilo))
+                raiz.styleSheets.Add(estilo);
+            NaoBloquearCliques(raiz);
+        }
+
+        /// <summary>Painel com rolagem vertical, limitado à área disponível.</summary>
+        public static ScrollView CriarPainel(bool social = false)
+        {
+            var painel = ComponentesVisuais.PainelRolavel(social);
+            painel.AddToClassList(Painel);
+            return painel;
+        }
+
         /// <summary>Caminho em <c>Resources</c> do USS base.</summary>
         public const string CaminhoEstilo = "UI/EstiloCore";
 
