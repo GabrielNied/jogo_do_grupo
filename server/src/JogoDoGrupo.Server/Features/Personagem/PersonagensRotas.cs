@@ -1,4 +1,5 @@
 using System.Data;
+using System.Globalization;
 using System.Security.Claims;
 using JogoDoGrupo.Server.Core.Api;
 using JogoDoGrupo.Server.Core.Autenticacao;
@@ -25,6 +26,8 @@ internal static class PersonagensRotas
         var grupo = rotas.MapGroup(RotasPersonagem.Personagens).RequireAuthorization();
         grupo.MapGet("", ListarAsync);
         grupo.MapPost("", CriarAsync);
+        grupo.MapGet("/{personagemId}/progresso", ProgressoAsync);
+        grupo.MapPost("/{personagemId}/atributos", AtributosAsync);
     }
 
     private static async Task<IResult> ListarAsync(
@@ -178,4 +181,146 @@ internal static class PersonagensRotas
 
     private static IResult NomeJaExiste() =>
         RespostasApi.Erro(StatusCodes.Status409Conflict, CodigosErroPersonagem.NomeJaExiste);
+
+    private static async Task<IResult> ProgressoAsync(
+        string personagemId,
+        ClaimsPrincipal usuario,
+        JogoDbContext db,
+        CancellationToken cancelamento
+    )
+    {
+        var personagem = await BuscarDaContaAsync(
+            personagemId,
+            usuario.ObterContaId(),
+            db,
+            cancelamento
+        );
+        return personagem == null
+            ? PersonagemNaoEncontrado()
+            : Results.Ok(personagem.ParaProgresso());
+    }
+
+    private static async Task<IResult> AtributosAsync(
+        string personagemId,
+        DistribuirAtributosRequest? requisicao,
+        ClaimsPrincipal usuario,
+        JogoDbContext db,
+        ILogger<PersonagemModule> log,
+        CancellationToken cancelamento
+    )
+    {
+        var sqlite = db.Database.GetDbConnection() as SqliteConnection;
+        var esperaAnterior = sqlite?.DefaultTimeout;
+        if (sqlite != null)
+        {
+            sqlite.DefaultTimeout = EsperaTravaSegundos;
+        }
+
+        try
+        {
+            return await GastarEmTransacaoAsync(
+                personagemId,
+                requisicao?.Pontos,
+                usuario.ObterContaId(),
+                db,
+                cancelamento
+            );
+        }
+        catch (Exception e) when (e.EhBancoOcupado())
+        {
+            log.LogWarning(
+                "Banco ocupado por mais de {Espera} s ao gastar pontos de atributo.",
+                EsperaTravaSegundos
+            );
+            return RespostasApi.Erro(
+                StatusCodes.Status503ServiceUnavailable,
+                CodigosErro.ServidorOcupado,
+                "Servidor ocupado. Tente de novo."
+            );
+        }
+        finally
+        {
+            if (sqlite != null && esperaAnterior != null)
+            {
+                sqlite.DefaultTimeout = esperaAnterior.Value;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gasta o pedido inteiro ou não gasta nada. Serializable no SQLite abre com
+    /// <c>BEGIN IMMEDIATE</c>, então dois gastos simultâneos não usam os mesmos pontos.
+    /// </summary>
+    private static async Task<IResult> GastarEmTransacaoAsync(
+        string personagemId,
+        PontosDeAtributos? pontos,
+        long contaId,
+        JogoDbContext db,
+        CancellationToken cancelamento
+    )
+    {
+        await using var transacao = await db.Database.BeginTransactionAsync(
+            IsolationLevel.Serializable,
+            cancelamento
+        );
+
+        var personagem = await BuscarDaContaAsync(personagemId, contaId, db, cancelamento);
+        if (personagem == null)
+        {
+            return PersonagemNaoEncontrado();
+        }
+
+        var erro = RegrasAtributos.ValidarDistribuicao(personagem.PontosLivres, pontos);
+        if (erro == CodigosErroPersonagem.AtributoInvalido)
+        {
+            return RespostasApi.Erro(StatusCodes.Status400BadRequest, erro);
+        }
+
+        if (erro != null)
+        {
+            return RespostasApi.Erro(StatusCodes.Status409Conflict, erro);
+        }
+
+        var gasto = pontos!;
+        personagem.PontosLivres -= (int)RegrasAtributos.Total(gasto);
+        personagem.Forca += gasto.Forca;
+        personagem.Destreza += gasto.Destreza;
+        personagem.Intelecto += gasto.Intelecto;
+        personagem.Vitalidade += gasto.Vitalidade;
+        personagem.Espirito += gasto.Espirito;
+
+        await db.SaveChangesAsync(cancelamento);
+        await transacao.CommitAsync(cancelamento);
+        return Results.Ok(personagem.ParaProgresso());
+    }
+
+    private static async Task<Personagem?> BuscarDaContaAsync(
+        string personagemId,
+        long contaId,
+        JogoDbContext db,
+        CancellationToken cancelamento
+    )
+    {
+        if (
+            !long.TryParse(
+                personagemId,
+                NumberStyles.None,
+                CultureInfo.InvariantCulture,
+                out var id
+            )
+            || id <= 0
+        )
+        {
+            return null;
+        }
+
+        return await db.Set<Personagem>()
+            .FirstOrDefaultAsync(p => p.Id == id && p.ContaId == contaId, cancelamento);
+    }
+
+    private static IResult PersonagemNaoEncontrado() =>
+        RespostasApi.Erro(
+            StatusCodes.Status404NotFound,
+            CodigosErroPersonagem.PersonagemNaoEncontrado
+        );
 }

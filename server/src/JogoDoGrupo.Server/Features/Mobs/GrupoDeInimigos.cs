@@ -73,6 +73,7 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate
     private readonly HashSet<long> _vistos = [];
     private PassoDosInimigos _pendente = new();
     private long _proximoId;
+    private long _proximaMorte = 1;
     private long? _ultimoPassoMs;
 
     /// <param name="definicao">Ficha da criatura do grupo.</param>
@@ -636,7 +637,8 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate
                 Area,
                 inimigo.X,
                 inimigo.Z,
-                inimigo.Atacantes.Order().ToArray()
+                inimigo.Atacantes.Order().ToArray(),
+                _proximaMorte++
             )
         );
     }

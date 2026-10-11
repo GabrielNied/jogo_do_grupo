@@ -1,4 +1,5 @@
 using JogoDoGrupo.Shared.Features.Combate;
+using JogoDoGrupo.Shared.Features.Personagem;
 
 namespace JogoDoGrupo.Server.Features.Combate;
 
@@ -11,27 +12,45 @@ internal static class CalculadoraRecursos
     /// <summary>Valor base de cada atributo (proposta; Personagem ainda não define).</summary>
     public const int AtributoBase = 0;
 
-    /// <summary>Pontos distribuídos: vêm de Personagem (#65); por ora valem 0.</summary>
+    /// <summary>
+    /// Zero usado por <see cref="AtributosFinais(AtributosCombate, AtributosCombate)"/>.
+    /// A rota, o ataque e o dano leem os pontos de <c>IPontosDistribuidos</c>.
+    /// </summary>
     public const int PontosDistribuidos = 0;
 
     public static AtributosCombate AtributosFinais(
         AtributosCombate equipamentos,
         AtributosCombate efeitos
     ) =>
+        AtributosFinais(
+            equipamentos,
+            efeitos,
+            new PontosDeAtributos
+            {
+                Forca = PontosDistribuidos,
+                Destreza = PontosDistribuidos,
+                Intelecto = PontosDistribuidos,
+                Vitalidade = PontosDistribuidos,
+                Espirito = PontosDistribuidos,
+            }
+        );
+
+    public static AtributosCombate AtributosFinais(
+        AtributosCombate equipamentos,
+        AtributosCombate efeitos,
+        PontosDeAtributos pontos
+    ) =>
         new()
         {
-            Forca = Final(equipamentos.Forca, efeitos.Forca),
-            Destreza = Final(equipamentos.Destreza, efeitos.Destreza),
-            Intelecto = Final(equipamentos.Intelecto, efeitos.Intelecto),
-            Vitalidade = Final(equipamentos.Vitalidade, efeitos.Vitalidade),
-            Espirito = Final(equipamentos.Espirito, efeitos.Espirito),
+            Forca = Final(pontos.Forca, equipamentos.Forca, efeitos.Forca),
+            Destreza = Final(pontos.Destreza, equipamentos.Destreza, efeitos.Destreza),
+            Intelecto = Final(pontos.Intelecto, equipamentos.Intelecto, efeitos.Intelecto),
+            Vitalidade = Final(pontos.Vitalidade, equipamentos.Vitalidade, efeitos.Vitalidade),
+            Espirito = Final(pontos.Espirito, equipamentos.Espirito, efeitos.Espirito),
         };
 
-    private static int Final(int equipamentos, int efeitos) =>
-        Math.Max(
-            0,
-            RegrasRecursos.ValorFinal(AtributoBase, PontosDistribuidos, equipamentos, efeitos)
-        );
+    private static int Final(int pontos, int equipamentos, int efeitos) =>
+        Math.Max(0, RegrasRecursos.ValorFinal(AtributoBase, pontos, equipamentos, efeitos));
 
     /// <summary>Cria os recursos cheios para um personagem novo.</summary>
     public static RecursosPersonagem Novo(long personagemId, AtributosCombate a, DateTime agora) =>
