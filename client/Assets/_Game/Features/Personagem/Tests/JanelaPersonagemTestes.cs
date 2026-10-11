@@ -37,7 +37,10 @@ namespace JogoDoGrupo.Client.Features.Personagem.Tests
         [Test]
         public void ProcurarPorId_SemListaOuSemOId_DevolveNulo()
         {
-            var lista = new[] { new PersonagemResumo { Id = 1, Nome = "Ana" } };
+            var lista = new[]
+            {
+                new PersonagemResumo { Id = 1, Nome = "Ana" },
+            };
 
             Assert.IsNull(TextosPersonagem.ProcurarPorId(null, 1));
             Assert.IsNull(TextosPersonagem.ProcurarPorId(new PersonagemResumo[0], 1));
