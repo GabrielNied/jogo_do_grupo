@@ -54,12 +54,28 @@ jobs:
           sudo docker image prune --all --force
           df -h /
 
-      # Com LFS: testes do hub conferem os modelos (.fbx). Hoje são ~3,5 MB por execução,
-      # longe da cota grátis de 1 GB/mês.
+      # Os testes do hub conferem os modelos (.fbx), que estão no LFS. Para não gastar a cota de
+      # banda do LFS (1 GB/mês grátis) a cada execução, os arquivos ficam no cache do Actions
+      # (grátis) e o git lfs pull só baixa o que mudou desde a última vez.
       - uses: actions/checkout@v4
         if: env.TEM_LICENCA == 'true'
         with:
-          lfs: true
+          lfs: false
+
+      - name: Lista os arquivos LFS
+        if: env.TEM_LICENCA == 'true'
+        run: git lfs ls-files --long | cut -d ' ' -f1 | sort > .lfs-arquivos
+
+      - uses: actions/cache@v4
+        if: env.TEM_LICENCA == 'true'
+        with:
+          path: .git/lfs
+          key: lfs-${{ hashFiles('.lfs-arquivos') }}
+          restore-keys: lfs-
+
+      - name: Baixa só os arquivos LFS que faltam
+        if: env.TEM_LICENCA == 'true'
+        run: git lfs pull
 
       - uses: actions/cache@v4
         if: env.TEM_LICENCA == 'true'
