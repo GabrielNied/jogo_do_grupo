@@ -1,0 +1,4 @@
+# Git LFS (o core.hooksPath aponta para o husky; veja .husky/pre-push).
+if command -v git-lfs >/dev/null 2>&1; then
+  git lfs post-merge "$@"
+fi
