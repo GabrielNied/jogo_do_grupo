@@ -1,4 +1,5 @@
 using JogoDoGrupo.Client.Core.Jogo;
+using JogoDoGrupo.Client.Features.Mundo.DiaENoite;
 using JogoDoGrupo.Client.Features.Mundo.Hub;
 using JogoDoGrupo.Shared.Features.Mundo;
 using UnityEngine;
@@ -170,30 +171,73 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
             return Ambiente.Entre(resultado, deFora, Mathf.Clamp01(fora));
         }
 
+        /// <summary>Hora usada enquanto o servidor não mandou a dele (fora do mundo, nos testes).</summary>
+        public const float HoraSemCiclo = 12f;
+
+        /// <summary>Cor da lua: a luz principal à noite puxa para este azul frio.</summary>
+        public static readonly Color CorDaLua = new Color(0.55f, 0.62f, 0.8f);
+
         /// <summary>
-        /// Hora do dia, de 0 a 24. O ciclo (#163) ainda não existe: fica em meio-dia até ele
-        /// escrever aqui. Noite é das 20h às 5h.
+        /// Hora do dia, de 0 a 24. Quem escreve é o <see cref="CicloDoDia"/>, com a hora do
+        /// servidor (#163); sem ela, meio-dia. Noite é a de <see cref="RegrasDiaENoite"/>.
         /// </summary>
-        public static float Hora = 12f;
+        public static float Hora = HoraSemCiclo;
 
-        /// <summary>Se <paramref name="hora"/> cai na noite.</summary>
-        public static bool EhNoite(float hora) => hora >= 20f || hora < 5f;
+        /// <summary>Se <paramref name="hora"/> cai na noite (das 20h às 5h).</summary>
+        public static bool EhNoite(float hora) => RegrasDiaENoite.EhNoite(hora);
 
         /// <summary>
-        /// Escurece o céu e o sol quando é noite. A névoa mantém a cor do bioma.
+        /// Escurece o céu, a luz ambiente, a névoa e o sol conforme a noite chega, aos poucos no
+        /// crepúsculo (<see cref="CicloVisual.Escuridao"/>). À noite o sol vira a lua, fria e fraca.
         /// </summary>
         public static Ambiente ComHora(Ambiente ambiente, float hora)
         {
-            if (!EhNoite(hora))
+            var noite = CicloVisual.Escuridao(hora);
+            if (noite <= 0f)
             {
                 return ambiente;
             }
 
-            ambiente.Ceu = Color.Lerp(ambiente.Ceu, Color.black, 0.72f);
-            ambiente.Horizonte = Color.Lerp(ambiente.Horizonte, Color.black, 0.55f);
-            ambiente.Sol = Color.Lerp(ambiente.Sol, new Color(0.55f, 0.62f, 0.8f), 0.7f);
-            ambiente.ForcaDoSol *= 0.15f;
+            ambiente.Ceu = Color.Lerp(
+                ambiente.Ceu,
+                Color.black,
+                ConfigDiaENoite.EscurecimentoDoCeu * noite
+            );
+            ambiente.Horizonte = Color.Lerp(
+                ambiente.Horizonte,
+                Color.black,
+                ConfigDiaENoite.EscurecimentoDoHorizonte * noite
+            );
+            ambiente.Nevoa = Color.Lerp(
+                ambiente.Nevoa,
+                Color.black,
+                ConfigDiaENoite.EscurecimentoDaNevoa * noite
+            );
+            ambiente.Sol = Color.Lerp(ambiente.Sol, CorDaLua, ConfigDiaENoite.MisturaDaLua * noite);
+            ambiente.ForcaDoSol *= Mathf.Lerp(1f, ConfigDiaENoite.ForcaDaLua, noite);
             return ambiente;
+        }
+
+        /// <summary>
+        /// Gira o <paramref name="sol"/> pela hora (sol de dia, lua à noite) e mantém o
+        /// <paramref name="preenchimento"/> do lado oposto. Os dois são opcionais.
+        /// </summary>
+        public static void GirarLuzes(float hora, Light sol, Light preenchimento)
+        {
+            var giro = CicloVisual.GiroDaLuz(hora);
+            if (sol != null)
+            {
+                sol.transform.rotation = Quaternion.Euler(CicloVisual.AlturaDaLuz(hora), giro, 0f);
+            }
+
+            if (preenchimento != null)
+            {
+                preenchimento.transform.rotation = Quaternion.Euler(
+                    ConfigIluminacao.AlturaDoPreenchimento,
+                    giro + 180f,
+                    0f
+                );
+            }
         }
 
         /// <summary>Ambiente em (<paramref name="x"/>, <paramref name="z"/>), na <see cref="Hora"/> atual.</summary>
@@ -286,6 +330,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
                 : destino;
             _aplicado = true;
             Aplicar(_atual, _sol, _preenchimento);
+            GirarLuzes(Hora, _sol, _preenchimento);
             AplicarEfeito(_atual.Efeito, posicao);
 
             // O fundo da câmera é o céu do bioma. A névoa, mais à frente, esconde o fim do alcance.

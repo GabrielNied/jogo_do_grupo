@@ -89,10 +89,10 @@ Quatro lugares fixos (issue #157), sempre nas mesmas coordenadas, montados pelo 
 
 ### Céu e clima visual
 
-De dia (issue #164). O ciclo de hora continua na #163; até lá a hora fica em meio-dia, e a noite (20h–5h) só entra quando alguém escrever `AmbienteDosBiomas.Hora`.
+Por bioma (issue #164), escurecendo com a hora do servidor ([Dia e noite](#dia-e-noite-163-contrato-da-380)).
 
 - **Céu:** cor própria por bioma, mais escura à noite. A névoa não pinta o fundo.
-- **Névoa:** aberta no campo, um pouco mais densa e quente no deserto, curta na neve, fechada no pântano.
+- **Névoa:** aberta no campo, um pouco mais densa e quente no deserto, curta na neve, fechada no pântano. À noite escurece junto com o céu (menos que ele, para o horizonte não sumir).
 - **Efeito leve,** poucas partículas em volta do jogador: poeira no deserto, neve caindo na montanha, brasa na lava, névoa rasteira no pântano, vaga-lume na mata só de noite. O efeito do deserto não aparece na neve. Chuva, tempestade e qualquer clima que mude regra ficam de fora.
 
 ### Primeira caverna
@@ -180,6 +180,14 @@ Valores em `RegrasDiaENoite`, **a calibrar**:
 | Noite (lanternas acesas) | `InicioDaNoite`, `FimDaNoite` | das 20h às 5h |
 
 **No servidor (#381):** o `RelogioDoMundo` começa às 8h quando o servidor liga e fica em memória (reiniciar o servidor volta às 8h). Quem entra na cidade recebe `HoraDoMundo` logo depois de `EstadoDaCidade`; a cada 30 s (`ConfigDiaENoiteServidor.IntervaloDeSincroniaSegundos`) todos os presentes recebem a mesma hora de novo. Quem não está na área não recebe.
+
+**No client (#382):** o `CicloDoDia` (na cena do mundo) ouve `HoraDoMundo`, avança a hora entre as mensagens e escreve em `AmbienteDosBiomas.Hora`. Antes da primeira mensagem o client não inventa hora (fica o meio-dia de sempre). Com a hora:
+
+- **Escuridão:** a troca é suave no crepúsculo, de 1 h antes a 1 h depois do início e do fim da noite (19h–21h e 4h–6h). O céu, a luz ambiente, a névoa e o sol escurecem; à noite a luz principal vira a lua, azul e fraca.
+- **Sol e lua:** a luz principal gira no céu. Ao meio do dia (12h30) fica no ângulo calibrado da luz de dia (42°); ao nascer e ao se pôr desce a 8°; à noite a lua faz o mesmo caminho do outro lado, até 35°. O giro dá a volta sem pular. A luz de preenchimento fica sempre do lado oposto.
+- **Lanternas:** acendem às 20h e apagam às 5h (`RegrasDiaENoite.EhNoite`), no meio do crepúsculo.
+
+Valores em `ConfigDiaENoite` (client), **a calibrar** no editor.
 
 A hora anda no mesmo ritmo o dia todo, então a noite dura 7,5 min de cada 20. A proposta do livro (40 min de dia e 20 de noite) continua em [Em aberto](#em-aberto); adotá-la é mudar constante e, se o ritmo da noite for diferente do dia, a função `HoraApos`.
 
