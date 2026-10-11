@@ -16,6 +16,8 @@ namespace JogoDoGrupo.Client.Core.Inicializacao
         private const string AvisoSessaoExpirada = "Sua sessão expirou. Entre de novo.";
         private static readonly Vector2Int ResolucaoReferencia = new Vector2Int(1920, 1080);
 
+        private static PanelSettings _painel;
+
         // AfterSceneLoad: roda depois do BeforeSceneLoad em que as funcionalidades registram as telas.
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void Inicializar()
@@ -32,8 +34,13 @@ namespace JogoDoGrupo.Client.Core.Inicializacao
 
         private static VisualElement CriarInterface()
         {
+            // Criado em código: DontSave para não ir para cena/asset, e destruído ao sair do Play
+            // para não acumular instâncias órfãs no editor com o domain reload desligado.
             var painel = ScriptableObject.CreateInstance<PanelSettings>();
             painel.name = "PainelInterface";
+            painel.hideFlags = HideFlags.DontSave;
+            _painel = painel;
+            Application.quitting += AoSair;
             painel.scaleMode = PanelScaleMode.ScaleWithScreenSize;
             painel.referenceResolution = ResolucaoReferencia;
             painel.screenMatchMode = PanelScreenMatchMode.MatchWidthOrHeight;
@@ -75,6 +82,19 @@ namespace JogoDoGrupo.Client.Core.Inicializacao
             container.AddToClassList(EstiloCore.RaizInterface);
             documento.rootVisualElement.Add(container);
             return container;
+        }
+
+        private static void AoSair()
+        {
+            Application.quitting -= AoSair;
+            Sessao.Expirou -= AoExpirarSessao;
+            if (_painel != null)
+            {
+                // Instância de runtime (não asset): destrói na hora, sem depender do fim do frame.
+                UnityEngine.Object.DestroyImmediate(_painel);
+            }
+
+            _painel = null;
         }
 
         private static void AoExpirarSessao()

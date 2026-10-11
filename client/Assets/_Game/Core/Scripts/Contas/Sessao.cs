@@ -46,9 +46,23 @@ namespace JogoDoGrupo.Client.Core.Contas
             ExpiraEm = DateTimeOffset.MinValue;
         }
 
-        /// <summary>Chamado pelo <see cref="Api.ClienteApi"/> ao receber 401 em rota protegida.</summary>
-        internal static void Expirar()
+        /// <summary>
+        /// Chamado pelo <see cref="Api.ClienteApi"/> ao receber 401 em rota protegida.
+        /// Só encerra a sessão e dispara <see cref="Expirou"/> se <paramref name="tokenEnviado"/>
+        /// ainda for o <see cref="Token"/> atual: um 401 repetido ou atrasado (de uma sessão
+        /// anterior) não derruba a sessão nova nem dispara a expiração de novo.
+        /// </summary>
+        internal static void ExpirarSeAtual(string tokenEnviado)
         {
+            // Sem token enviado não havia sessão para expirar.
+            if (
+                string.IsNullOrEmpty(tokenEnviado)
+                || !string.Equals(tokenEnviado, Token, StringComparison.Ordinal)
+            )
+            {
+                return;
+            }
+
             Encerrar();
             Expirou?.Invoke();
         }
