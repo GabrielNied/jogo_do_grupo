@@ -271,7 +271,7 @@ Client (EditMode): interpretar os comandos (`/c`, `/g`, `/s Nome texto`, `/r`, `
 
 ### Amigos e ignorar (issue #180)
 
-**Proposta**, a confirmar pelo grupo; os números são constantes de `RegrasAmigos` (shared). Nesta página estão as regras e o [contrato](#contrato-de-amigos-e-ignorar); o servidor e a tela são tarefas próprias (#394 e #395).
+**Proposta**, a confirmar pelo grupo; os números são constantes de `RegrasAmigos` (shared). Nesta página estão as regras e o [contrato](#contrato-de-amigos-e-ignorar). O **servidor** de amigos e ignorados está implementado (#394); a **tela** no client segue em #395.
 
 **Base:** Battle.net e World of Warcraft (lista de amigos da conta, ignorar). **Igual:** pedido e aceite, amigo de conta vê qualquer personagem seu online, ignorar corta sussurro e convite. **Diferente:** não há amizade só de personagem nem nota no amigo; quem foi ignorado não recebe aviso.
 
@@ -302,7 +302,7 @@ Quem decide: **servidor** (quem é amigo de quem, quem está online, o que o ign
 - Ignorar alguém **desfaz a amizade** e apaga os pedidos entre os dois. Deixar de ignorar não traz a amizade de volta.
 - Enquanto um dos dois ignora o outro, **nos dois sentidos**: sussurro não é entregue, convite de grupo não chega e pedido de amizade não é criado. Quem foi ignorado recebe `AlvoNaoEncontrado`, a mesma resposta de um nome que não existe, e não fica sabendo. Quem ignora e tenta pedir amizade recebe `AlvoIgnorado` (precisa tirar da lista antes).
 - Mensagens do ignorado em **Cidade** e **Grupo** continuam sendo escondidas pelo client de quem ignora, agora a partir da lista do servidor.
-- Até o servidor de ignorados (#394) existir, vale a lista local do [chat](#moderação-mínima) (50 nomes, neste computador).
+- Com o servidor (#394), a lista de ignorados vem do servidor; o client ainda pode esconder mensagens em Cidade/Grupo localmente até #395 integrar a lista remota.
 
 #### Recusas do pedido de amizade (ordem em que o servidor confere)
 
@@ -325,7 +325,7 @@ Outras recusas: `PedidoNaoEncontrado` (responder ou cancelar pedido que não exi
 
 Regras puras (shared, feitos em #392): limites de 100, 50 e 50 nas bordas; vaga guardada por pedido enviado; cada linha da tabela de recusas e a ordem entre elas; pedido cruzado vira aceite; ignorado recebe `AlvoNaoEncontrado`; contato barrado nos dois sentidos.
 
-Servidor (#394): pedido duplicado não cria outro; aceite cria a amizade nos dois lados; dois pedidos cruzados ao mesmo tempo viram uma amizade só; ignorado não consegue sussurrar, convidar nem pedir amizade; ignorar desfaz a amizade; o estado online muda ao entrar, sair e trocar de personagem; as listas sobrevivem a reiniciar o servidor.
+Servidor (#394, implementado): pedido duplicado não cria outro; aceite cria a amizade nos dois lados; dois pedidos cruzados ao mesmo tempo viram uma amizade só; ignorado não consegue sussurrar, convidar nem pedir amizade; ignorar desfaz a amizade; o estado online muda ao entrar, sair e trocar de personagem; as listas persistem no banco e sobrevivem a reiniciar o servidor.
 
 ## Depende de
 

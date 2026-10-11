@@ -19,4 +19,7 @@ public interface IDiretorioDePersonagens
     /// nome vazio, se o id não existe.
     /// </summary>
     bool TentarObterNome(long personagemId, out string nome);
+
+    /// <summary>A conta dona do personagem. Falso se o id não existe.</summary>
+    bool TentarObterContaDoPersonagem(long personagemId, out long contaId);
 }

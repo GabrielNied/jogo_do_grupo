@@ -4,6 +4,7 @@ using JogoDoGrupo.Server.Contratos.Personagem;
 using JogoDoGrupo.Server.Core;
 using JogoDoGrupo.Server.Core.TempoReal;
 using JogoDoGrupo.Shared.Features.Social;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace JogoDoGrupo.Server.Features.Social;
 
@@ -18,6 +19,7 @@ public sealed class SocialModule : IFeatureModule
 {
     private readonly DiretorioTardio _diretorio = new();
     private GruposDoServidor? _grupos;
+    private AmigosDoServidor? _amigos;
 
     /// <summary>Quem tem sessão de tempo real agora, por personagem (para entregar o chat).</summary>
     private readonly ConcurrentDictionary<long, SessaoTempoReal> _online = new();
@@ -91,12 +93,50 @@ public sealed class SocialModule : IFeatureModule
                 (sessao, pedido) =>
                     _grupos!.PassarLideranca(sessao.PersonagemId, pedido.PersonagemId)
             )
-            .Ao<EnviarMensagemDeChat>(SocialMessageIds.EnviarMensagemDeChat, AoEnviarMensagem);
+            .Ao<EnviarMensagemDeChat>(SocialMessageIds.EnviarMensagemDeChat, AoEnviarMensagem)
+            .Ao<PedirAmizade>(
+                SocialMessageIds.PedirAmizade,
+                (sessao, pedido) => _amigos!.PedirAmizade(sessao.PersonagemId, pedido.Nome)
+            )
+            .Ao<ResponderPedidoDeAmizade>(
+                SocialMessageIds.ResponderPedidoDeAmizade,
+                (sessao, pedido) =>
+                    _amigos!.ResponderPedido(sessao.PersonagemId, pedido.PedidoId, pedido.Aceitar)
+            )
+            .Ao<CancelarPedidoDeAmizade>(
+                SocialMessageIds.CancelarPedidoDeAmizade,
+                (sessao, pedido) => _amigos!.CancelarPedido(sessao.PersonagemId, pedido.PedidoId)
+            )
+            .Ao<RemoverAmigo>(
+                SocialMessageIds.RemoverAmigo,
+                (sessao, pedido) => _amigos!.RemoverAmigo(sessao.PersonagemId, pedido.AmigoId)
+            )
+            .Ao<IgnorarJogador>(
+                SocialMessageIds.IgnorarJogador,
+                (sessao, pedido) => _amigos!.Ignorar(sessao.PersonagemId, pedido.Nome)
+            )
+            .Ao<DeixarDeIgnorar>(
+                SocialMessageIds.DeixarDeIgnorar,
+                (sessao, pedido) => _amigos!.DeixarDeIgnorar(sessao.PersonagemId, pedido.IgnoradoId)
+            );
 
     public void Inicializar(ServerContext contexto)
     {
         var saida = new SaidaTempoReal(contexto.TempoReal);
-        var grupos = new GruposDoServidor(_diretorio, saida);
+        var escopos = _servicos!.GetRequiredService<IServiceScopeFactory>();
+        _amigos = new AmigosDoServidor(
+            _diretorio,
+            saida,
+            escopos,
+            () => TimeProvider.System.GetUtcNow().ToUnixTimeSeconds()
+        );
+        _amigos.Carregar();
+        var grupos = new GruposDoServidor(
+            _diretorio,
+            saida,
+            () => Environment.TickCount64,
+            _amigos.ContatoBarradoEntrePersonagens
+        );
         _grupos = grupos;
 
         _tempoReal = contexto.TempoReal;
@@ -110,6 +150,7 @@ public sealed class SocialModule : IFeatureModule
         {
             _online[sessao.PersonagemId] = sessao;
             saida.Registrar(sessao);
+            _amigos!.RegistrarOnline(sessao.ContaId, sessao.PersonagemId);
             grupos.AoConectar(sessao.PersonagemId);
         };
         contexto.TempoReal.SessaoEncerrada += sessao =>
@@ -118,6 +159,7 @@ public sealed class SocialModule : IFeatureModule
             _online.TryRemove(new KeyValuePair<long, SessaoTempoReal>(sessao.PersonagemId, sessao));
             _limites!.Esquecer(sessao.PersonagemId);
             // Sessão já substituída por outra do mesmo personagem: ele continua online.
+            _amigos!.RemoverOnline(sessao.ContaId, sessao.PersonagemId);
             if (saida.Remover(sessao))
             {
                 grupos.AoDesconectar(sessao.PersonagemId);
@@ -127,6 +169,7 @@ public sealed class SocialModule : IFeatureModule
         {
             _online[sessao.PersonagemId] = sessao;
             saida.Registrar(sessao);
+            _amigos!.RegistrarOnline(sessao.ContaId, sessao.PersonagemId);
             grupos.AoConectar(sessao.PersonagemId);
         }
     }
@@ -174,7 +217,8 @@ public sealed class SocialModule : IFeatureModule
                 sessao.PersonagemId,
                 pedido,
                 _online.ContainsKey,
-                _grupos!.ListaDe
+                _grupos!.ListaDe,
+                _amigos!.ContatoBarradoEntrePersonagens
             );
             if (resultado.Recusa != null)
             {
@@ -245,6 +289,12 @@ public sealed class SocialModule : IFeatureModule
         {
             nome = "";
             return _real?.TentarObterNome(personagemId, out nome) ?? false;
+        }
+
+        public bool TentarObterContaDoPersonagem(long personagemId, out long contaId)
+        {
+            contaId = 0;
+            return _real?.TentarObterContaDoPersonagem(personagemId, out contaId) ?? false;
         }
     }
 }

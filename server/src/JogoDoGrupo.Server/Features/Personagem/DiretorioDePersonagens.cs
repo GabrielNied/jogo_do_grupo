@@ -48,4 +48,17 @@ internal sealed class DiretorioDePersonagens(IServiceScopeFactory escopos) : IDi
         nome = nomes.Count == 0 ? "" : nomes[0];
         return nomes.Count != 0;
     }
+
+    public bool TentarObterContaDoPersonagem(long personagemId, out long contaId)
+    {
+        using var escopo = escopos.CreateScope();
+        var db = escopo.ServiceProvider.GetRequiredService<JogoDbContext>();
+        var contas = db.Set<Personagem>()
+            .Where(p => p.Id == personagemId)
+            .Select(p => p.ContaId)
+            .Take(1)
+            .ToList();
+        contaId = contas.Count == 0 ? 0 : contas[0];
+        return contas.Count != 0;
+    }
 }
