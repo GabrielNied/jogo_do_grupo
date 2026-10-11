@@ -91,6 +91,11 @@ De dia (issue #164). O ciclo de hora continua na #163; até lá a hora fica em m
 - **Céu:** cor própria por bioma, mais escura à noite. A névoa não pinta o fundo.
 - **Névoa:** aberta no campo, um pouco mais densa e quente no deserto, curta na neve, fechada no pântano.
 - **Efeito leve,** poucas partículas em volta do jogador: poeira no deserto, neve caindo na montanha, brasa na lava, névoa rasteira no pântano, vaga-lume na mata só de noite. O efeito do deserto não aparece na neve. Chuva, tempestade e qualquer clima que mude regra ficam de fora.
+
+### Primeira caverna
+
+Uma boca nas colinas, por volta de (-220, -80), e um interior **à parte** (issue #158): o piso fica em Y = -40, na mesma coluna, sem furar o chão do mundo e sem ser a dungeon da issue #66. Atravessar a boca (2 m) leva 4 m corredor adentro; voltar à boca de dentro devolve ao mesmo ponto do lado de fora. O client informa a posição nova; o servidor guarda, sem posição forçada. Sem loot, inimigo ou segunda entrada.
+
 - **Luz de dia (2026-10-11, issue #162):** sem ciclo de dia e noite (continua em aberto). ~~Um sol direcional a 50° com sombra suave, luz ambiente suave e lanternas com a luz de ponto gravada no prefab (fraca, sem calibragem para o módulo de 4 m).~~ Substituído em 2026-10-11 por: o **sol** é a luz principal da cena, num ângulo de 42° que alonga a sombra de casas, torres e morros, com sombra suave que não chega a preto (chão claro sem estourar, mata sem ficar preta); uma **luz de preenchimento** direcional, sem sombra, do lado oposto ao sol e bem mais fraca que ele, mantém o lado do personagem fora do sol (e o rosto) visível; as **lanternas** da praça e do portão têm luz de ponto de cor quente, com alcance de 20 m (cinco módulos de 4 m) e força para clarear a base do poste. A cor e a força do sol e do preenchimento acompanham o bioma. Os valores moram em `ConfigIluminacao`. A distância das sombras vem do asset do URP (Core), não do Mundo.
 
 ## Depende de
