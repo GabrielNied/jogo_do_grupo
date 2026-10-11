@@ -15,7 +15,7 @@ O grupo quer que vários agentes de IA implementem partes diferentes do jogo ao 
 - **Proteções no Claude Code**:
   - cada agente tem um hook que bloqueia edição fora da sua área (`scripts/agentes/limitar-pastas.mjs`); os agentes de client também não editam cenas, prefabs nem `.meta`;
   - um hook do projeto (`.claude/settings.json`) bloqueia comandos que apagam ou descartam trabalho, aplicando a regra 0 (`scripts/agentes/bloquear-apagar.mjs`).
-- **Coordenação** pela skill `orquestrar-tarefa`: plano aprovado pela pessoa, contrato primeiro, agentes em paralelo, revisor em cada PR.
+- **Coordenação** pela skill `orquestrar-tarefa`: plano aprovado pela pessoa, contrato primeiro, agentes em paralelo. ~~Revisor em cada PR~~ substituído em 2026-10-11 por: revisor só em PR de risco, como em [agentes.md](../agentes.md#regras-para-todos-os-agentes).
 - **Pessoas** decidem, montam o que é visual no Unity, testam e fazem o merge.
 
 ## Consequências
