@@ -177,6 +177,7 @@ Depois, abra o PR no GitHub com o título no mesmo padrão do commit e preencha 
 | `Could not execute because the specified command or file was not found` ao rodar `dotnet csharpier` | Rode `dotnet tool restore` na raiz do repo. |
 | O commit passa sem validação, ou `git config core.hooksPath` vem vazio | Rode `npm install` na raiz do repo. |
 | O hook recusou a mensagem de commit | Corrija para `<tipo>(<escopo>): <descrição em minúsculas>`. Veja [docs/git.md](docs/git.md#commits). |
+| `npm` falha no PowerShell por política de execução | Use `npm.cmd` nesta máquina ou peça ao administrador uma política de execução compatível. |
 | `Não envie direto para a main` ao dar push | Crie uma branch: `git switch -c feature/<escopo>/<descricao>`. |
 | Imagens ou modelos aparecem quebrados no Unity, ou arquivos com poucas linhas de texto no lugar de binários | O LFS não baixou os arquivos: `git lfs install` e depois `git lfs pull`. |
 | O Unity pede para atualizar ou trocar a versão do projeto | Cancele e abra com a **6000.6.5f1**. Nunca aceite o upgrade. |
@@ -205,6 +206,8 @@ jogo_do_grupo/
 ├── .claude/
 │   ├── agents/      Agentes especializados para trabalho em paralelo (ver docs/agentes.md)
 │   └── skills/      Procedimentos para assistentes de IA (ver AGENTS.md)
+├── .agents/         Entradas das skills para descoberta automática pelo Codex
+├── .codex/          Perfis e hook equivalentes para sessões locais do Codex
 ├── .github/         CODEOWNERS, templates de PR/issue, CI, ruleset da main
 ├── .husky/          Hooks do git (commitlint, bloqueio de push na main)
 ├── scripts/         Validador de branch, export do FigJam, hooks dos agentes
@@ -256,5 +259,5 @@ Estrutura do repo, projeto Unity, CI (build, CSharpier, commitlint), hooks do gi
 1. ~~Proteger a `main` com ruleset~~ decidido: repo privado com proteção local ([ADR 0007](docs/decisoes/0007-protecao-local-da-main.md)). Opções de merge já aplicadas.
 2. Preencher [docs/responsaveis.md](docs/responsaveis.md) e o [.github/CODEOWNERS](.github/CODEOWNERS); convites de collaborator enviados (aguardando aceite).
 3. Decidir como integrar o Cursor ao Unity (o Unity não gera `.csproj` para ele).
-4. Decidir (e registrar em ADR): biblioteca de rede, banco de dados, divisão do mundo entre servidores, testes.
+4. Decidir (e registrar em ADR): biblioteca de rede e divisão do mundo entre servidores. ~~Banco de dados e testes~~ já foram decididos nos ADRs 0010 e 0013.
 5. Primeiro marco: a [fatia jogável](docs/visao-geral.md#primeiro-marco-fatia-jogável).

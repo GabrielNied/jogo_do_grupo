@@ -7,7 +7,19 @@ import { readFileSync } from "node:fs";
 
 const entrada = JSON.parse(readFileSync(0, "utf8") || "{}");
 const comando = entrada.tool_input?.command ?? "";
+const nomeFerramentaCodex = entrada.tool_name ?? "";
 
+// No Codex, apply_patch chega ao hook como uma única string em `command`.
+// Detectamos somente a operação explícita de remover arquivo; remover linhas
+// dentro de um arquivo continua sendo uma edição permitida pela regra 0.
+if (nomeFerramentaCodex === "apply_patch" && /^\*\*\* Delete File:/m.test(comando)) {
+  console.error(
+    "Bloqueado pela regra 0 do AGENTS.md (apagar arquivo): a IA nunca apaga o que " +
+      "as pessoas criaram. Ajuste ou marque como obsoleto. Se algo precisar mesmo " +
+      "ser apagado, explique à pessoa e deixe que ela rode o comando.",
+  );
+  process.exit(2);
+}
 // Início de um comando: começo da linha ou depois de ; & | ( ou quebra de linha.
 const ini = String.raw`(?:^|[;&|(\n]\s*)`;
 

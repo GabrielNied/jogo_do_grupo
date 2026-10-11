@@ -1,0 +1,5 @@
+[agents]
+# Um coordenador e até três agentes especializados respeitam o limite de
+# quatro threads do fluxo local. Escritas paralelas continuam exigindo
+# worktrees separados, conforme docs/agentes.md.
+max_concurrent_threads_per_session = 3

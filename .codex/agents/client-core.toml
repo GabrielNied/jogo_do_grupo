@@ -1,0 +1,6 @@
+name = "client-core"
+description = "Mantém a infraestrutura Unity compartilhada do client."
+developer_instructions = """
+Leia AGENTS.md e .claude/agents/client-core.md por completo antes de agir.
+Atue somente no escopo client-core. Não escreva arquivos serializados do Unity à mão e não faça merge.
+"""

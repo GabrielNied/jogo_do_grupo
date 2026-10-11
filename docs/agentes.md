@@ -76,7 +76,27 @@ Os agentes estão em [.claude/agents/](../.claude/agents/). Cada um roda num git
 - **Manual:** peça diretamente "use o agente server-funcionalidade para ..." ou abra um terminal por agente com `claude --agent <nome>`.
 - `/agents` lista os agentes disponíveis.
 
-### Outras IAs (Codex, Cursor, Copilot, Gemini...)
+### Codex
+
+O Codex lê automaticamente o `AGENTS.md` da raiz. Os perfis equivalentes aos
+agentes do Claude ficam em [`.codex/agents/`](../.codex/agents/): peça pelo
+nome do papel (por exemplo, `server-funcionalidade`) ao delegar uma subtarefa.
+Cada perfil manda ler a definição canônica em [`.claude/agents/`](../.claude/agents/),
+que continua sendo a fonte única das responsabilidades, escopos e relatórios.
+Os procedimentos também são descobertos pelo Codex em [`.agents/skills/`](../.agents/skills/);
+cada entrada encaminha para a skill canônica em [`.claude/skills/`](../.claude/skills/).
+
+Em um projeto confiável, o Codex também carrega [`.codex/hooks.json`](../.codex/hooks.json),
+que aplica a regra 0 antes de comandos destrutivos e de remoção explícita de
+arquivos por patch. Revise e aprove o hook uma vez com `/hooks` ao iniciar o
+Codex localmente.
+
+Agentes que escrevem nunca trabalham na mesma cópia do repositório em paralelo.
+Crie os worktrees antes de delegar e passe o caminho de cada um no pedido; o
+agente revisor é somente leitura e pode rodar em paralelo. O Codex limita a
+sessão a três subagentes além do coordenador.
+
+### Outras IAs (Cursor, Copilot, Gemini...)
 
 Abra **uma sessão por agente**, cada uma no seu worktree:
 

@@ -1,0 +1,17 @@
+{
+  "description": "Proteções compartilhadas do Jogo do Grupo para sessões Codex confiáveis.",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|apply_patch",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node scripts/agentes/bloquear-apagar.mjs",
+            "statusMessage": "Aplicando a regra 0 do repositório"
+          }
+        ]
+      }
+    ]
+  }
+}
