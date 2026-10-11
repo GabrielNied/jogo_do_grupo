@@ -34,6 +34,7 @@ Arte 3D de item (modelo, ícone, encaixe) é do `artista-itens`. Não baixe asse
 
 - Uma tarefa diz a camada: contrato, servidor ou client. Não misture as três no mesmo PR. O contrato vai para a `main` antes do servidor e do client.
 - O servidor decide o que o baú dá e o que entra no inventário. O client pede e mostra.
+- Visual do client: a seção **Estilo** de `docs/arquitetura.md`. Classes de `EstiloCore`; cor e tamanho no USS, não no C#.
 - C# 9 no shared e no client (`namespace X { }` com chaves, sem `UnityEngine` no shared). C# moderno no servidor.
 - Fale com Mundo, Personagem e as outras só por contrato ou por API do Core. Não referencie o assembly delas.
 - **Testes** do que mudou, no mesmo PR. Servidor: `dotnet test`. Client: `npm run unity:compilar`.
