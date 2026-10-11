@@ -23,6 +23,18 @@ public class VelocidadeNoServidorTestes
         return cidade.Mover(1, c, de with { X = de.X + dx }).Resultado;
     }
 
+    // Gasta o orçamento inteiro num salto sem o tempo andar (sem suspeita), para o limite de
+    // velocidade valer passo a passo (ADR 0024).
+    private static void EsvaziarOrcamento(CidadeDoMundo<Conexao> cidade, Conexao c)
+    {
+        var de = cidade.Obter(1)!.Posicao;
+        var teto = (float)ValidadorDeMovimento.TetoDoOrcamento(RegrasVelocidade.CorrerPadrao);
+        Assert.Equal(
+            ResultadoMovimento.Aceito,
+            cidade.Mover(1, c, de with { X = de.X + teto }).Resultado
+        );
+    }
+
     [Fact]
     public void Quem_entra_tem_as_velocidades_padrao()
     {
@@ -38,13 +50,14 @@ public class VelocidadeNoServidorTestes
     }
 
     [Fact]
-    public void Sem_mudanca_correr_alem_do_padrao_e_recusado()
+    public void Sem_mudanca_correr_alem_do_padrao_conta_como_suspeita()
     {
         var cidade = Nova();
         var c = new Conexao();
         cidade.Entrar(1, c);
+        EsvaziarOrcamento(cidade, c);
 
-        Assert.Equal(ResultadoMovimento.Recusado, AndarEmUmSegundo(cidade, c, 9f));
+        Assert.Equal(ResultadoMovimento.AceitoComSuspeita, AndarEmUmSegundo(cidade, c, 9f));
     }
 
     [Fact]
@@ -53,6 +66,7 @@ public class VelocidadeNoServidorTestes
         var cidade = Nova();
         var c = new Conexao();
         cidade.Entrar(1, c);
+        EsvaziarOrcamento(cidade, c);
 
         var nova = cidade.MudarVelocidades(1, c, 2f, 10f)!.Value;
 
@@ -67,6 +81,7 @@ public class VelocidadeNoServidorTestes
         var cidade = Nova();
         var c = new Conexao();
         cidade.Entrar(1, c);
+        EsvaziarOrcamento(cidade, c);
         var rapida = cidade.MudarVelocidades(1, c, 2f, 10f)!.Value;
         cidade.ConfirmarVelocidades(1, c, rapida.Sequencia);
 
@@ -75,7 +90,7 @@ public class VelocidadeNoServidorTestes
         // O client pode ainda não ter recebido: a rápida continua aceita.
         Assert.Equal(ResultadoMovimento.Aceito, AndarEmUmSegundo(cidade, c, 9f));
         Assert.True(cidade.ConfirmarVelocidades(1, c, lenta.Sequencia));
-        Assert.Equal(ResultadoMovimento.Recusado, AndarEmUmSegundo(cidade, c, 9f));
+        Assert.Equal(ResultadoMovimento.AceitoComSuspeita, AndarEmUmSegundo(cidade, c, 9f));
         Assert.Equal(ResultadoMovimento.Aceito, AndarEmUmSegundo(cidade, c, 3f));
     }
 

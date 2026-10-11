@@ -144,6 +144,14 @@ namespace JogoDoGrupo.Client.Features.Combate
         {
             var intencao = _gerador.Criar(tipo, DirecaoDaMira());
             ConexaoTempoReal.Enviar(CombateMessageIds.IntencaoDeAtaque, intencao);
+
+            // Anima na hora, sem esperar o servidor (ADR 0024). O acerto e o dano continuam
+            // sendo dele: o número de dano só aparece com AtaqueAcertou.
+            var jogador = EntradaNoJogo.Jogador;
+            if (jogador != null)
+            {
+                AnimadorDeAtaque.Tocar(jogador.GetComponentInChildren<Animator>(), tipo);
+            }
         }
 
         /// <summary>Para onde a câmera olha no plano do chão, em graus (0 = +Z, cresce para +X).</summary>
@@ -167,12 +175,8 @@ namespace JogoDoGrupo.Client.Features.Combate
                 return;
             }
 
+            // A animação própria já tocou ao apertar (ADR 0024).
             _ultimoTipoProprio = ataque.Tipo;
-            var jogador = EntradaNoJogo.Jogador;
-            if (jogador != null)
-            {
-                AnimadorDeAtaque.Tocar(jogador.GetComponentInChildren<Animator>(), ataque.Tipo);
-            }
         }
 
         private void AoAcertarAtaque(AtaqueAcertou ataque)

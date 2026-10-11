@@ -10,11 +10,11 @@ using UnityEngine.InputSystem;
 namespace JogoDoGrupo.Client.Features.Combate
 {
     /// <summary>
-    /// Esquiva no client: o Alt esquerdo envia a intenção com a direção do movimento e o
-    /// personagem se desloca na hora (predição, no ritmo de <see cref="RegrasEsquiva"/>). A
-    /// animação toca quando o servidor confirma e, se ele recusar, o movimento antecipado é
-    /// desfeito e o motivo aparece no aviso do jogo. Vigor, posição final e recusa são decididos
-    /// pelo servidor; a posição dele continua prevalecendo (correção da presença do Mundo).
+    /// Esquiva no client: o Alt esquerdo envia a intenção com a direção do movimento, e o
+    /// personagem se desloca e anima na hora, no ritmo de <see cref="RegrasEsquiva"/>. O client é
+    /// dono do próprio corpo (ADR 0024): se o servidor recusar (ex.: sem vigor), o motivo aparece
+    /// no aviso do jogo e a esquiva para onde está, sem voltar no tempo. O servidor decide o
+    /// vigor gasto; a posição só muda por fora com uma posição forçada do Mundo.
     /// </summary>
     internal sealed class ControleEsquiva : MonoBehaviour
     {
@@ -138,6 +138,9 @@ namespace JogoDoGrupo.Client.Features.Combate
             _predicao.Iniciar(intencao.Sequencia, posicao.x, posicao.z, intencao.DirecaoY);
             jogador.transform.rotation = Quaternion.Euler(0f, intencao.DirecaoY, 0f);
 
+            // Anima na hora, sem esperar a resposta do servidor (ADR 0024).
+            AnimadorDeEsquiva.Tocar(jogador.GetComponentInChildren<Animator>());
+
             // O andar normal fica parado durante a esquiva: ela é o único deslocamento.
             if (_controle != null)
             {
@@ -170,17 +173,8 @@ namespace JogoDoGrupo.Client.Features.Combate
 
         private void AoIniciarEsquiva(EsquivaIniciada esquiva)
         {
-            if (!ApresentacaoEsquiva.EhMinha(esquiva.PersonagemId, _personagemId))
-            {
-                // Animação dos outros jogadores é do visual deles (Mundo/Personagem).
-                return;
-            }
-
-            var jogador = EntradaNoJogo.Jogador;
-            if (jogador != null)
-            {
-                AnimadorDeEsquiva.Tocar(jogador.GetComponentInChildren<Animator>());
-            }
+            // A própria esquiva já animou ao apertar (ADR 0024); a dos outros jogadores é do
+            // visual deles (Mundo/Personagem).
         }
 
         private void AoRecusarEsquiva(EsquivaRecusada recusa)
@@ -190,30 +184,10 @@ namespace JogoDoGrupo.Client.Features.Combate
                 TipoDeAviso.Erro
             );
 
-            if (!_predicao.Recusar(recusa.Sequencia, out var voltarX, out var voltarZ))
+            // Para onde está, sem voltar no tempo (ADR 0024): o client é dono do próprio corpo.
+            if (_predicao.Recusar(recusa.Sequencia, out _, out _))
             {
-                return;
-            }
-
-            DevolverControle();
-            var jogador = EntradaNoJogo.Jogador;
-            if (jogador == null)
-            {
-                return;
-            }
-
-            // CharacterController só aceita teleporte com ele desligado.
-            var posicao = jogador.transform.position;
-            var corpo = jogador.GetComponent<CharacterController>();
-            if (corpo != null)
-            {
-                corpo.enabled = false;
-            }
-
-            jogador.transform.position = new Vector3((float)voltarX, posicao.y, (float)voltarZ);
-            if (corpo != null)
-            {
-                corpo.enabled = true;
+                DevolverControle();
             }
         }
     }

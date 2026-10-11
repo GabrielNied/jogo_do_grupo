@@ -33,5 +33,11 @@ namespace JogoDoGrupo.Shared.Features.Mundo
 
         /// <summary>Client → servidor: pede velocidades de teste, só em desenvolvimento (<see cref="Mundo.PedirVelocidadeDeTeste"/>).</summary>
         public const ushort PedirVelocidadeDeTeste = 1008;
+
+        /// <summary>Servidor → client: única correção da própria posição, com confirmação (<see cref="Mundo.PosicaoForcada"/>).</summary>
+        public const ushort PosicaoForcada = 1009;
+
+        /// <summary>Client → servidor: aplicou a posição forçada (<see cref="Mundo.ConfirmarPosicaoForcada"/>).</summary>
+        public const ushort ConfirmarPosicaoForcada = 1010;
     }
 }

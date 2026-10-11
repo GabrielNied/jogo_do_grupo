@@ -408,10 +408,8 @@ public class AtaqueTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDeA
                 Sequencia = 1,
             }
         );
-        var posicao = await ana.Cliente.ReceberAsync<PosicaoJogador>(
-            MundoMessageIds.PosicaoJogador
-        );
-        Assert.Equal(3f, posicao.X); // o movimento foi aceito
+        // O servidor não devolve a posição ao dono (ADR 0024): confere a dele.
+        await PosicaoNoServidor.EsperarAsync(servidor.Falso.Services, ana.Id, p => p.X == 3f); // o movimento foi aceito
 
         Atacar(ana, direcao: DirecaoParaOBoneco);
         await ana.Cliente.ReceberAsync<AtaqueIniciado>(CombateMessageIds.AtaqueIniciado);
@@ -438,10 +436,7 @@ public class AtaqueTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDeA
                 Sequencia = 1,
             }
         );
-        var posicao = await ana.Cliente.ReceberAsync<PosicaoJogador>(
-            MundoMessageIds.PosicaoJogador
-        );
-        Assert.Equal(3f, posicao.X);
+        await PosicaoNoServidor.EsperarAsync(servidor.Falso.Services, ana.Id, p => p.X == 3f);
 
         await Task.Delay(RegrasAtaque.PreparoMs(TipoDeAtaque.Pesado) + Margem.Milliseconds);
 
@@ -463,10 +458,7 @@ public class AtaqueTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDeA
                 Sequencia = 1,
             }
         );
-        Assert.Equal(
-            3f,
-            (await ana.Cliente.ReceberAsync<PosicaoJogador>(MundoMessageIds.PosicaoJogador)).X
-        );
+        await PosicaoNoServidor.EsperarAsync(servidor.Falso.Services, ana.Id, p => p.X == 3f);
         await Task.Delay(700);
 
         // De X = 3 o boneco está fora do alcance e do cone (direção 0).
@@ -482,10 +474,7 @@ public class AtaqueTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDeA
                 Sequencia = 2,
             }
         );
-        Assert.Equal(
-            0f,
-            (await ana.Cliente.ReceberAsync<PosicaoJogador>(MundoMessageIds.PosicaoJogador)).X
-        );
+        await PosicaoNoServidor.EsperarAsync(servidor.Falso.Services, ana.Id, p => p.X == 0f);
 
         var acertou = await ana.Cliente.ReceberAsync<AtaqueAcertou>(
             CombateMessageIds.AtaqueAcertou

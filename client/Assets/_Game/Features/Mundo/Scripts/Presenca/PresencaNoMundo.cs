@@ -11,7 +11,11 @@ namespace JogoDoGrupo.Client.Features.Mundo.Presenca
     /// </summary>
     public sealed class PresencaNoMundo : MonoBehaviour
     {
-        /// <summary>Acima desta distância (m) a posição do servidor vence a local.</summary>
+        /// <summary>
+        /// ~~Acima desta distância (m) a posição do servidor vence a local.~~ Sem uso desde o ADR
+        /// 0024: o jogador local é dono da própria posição, e só a posição forçada (sempre
+        /// aplicada) e o nascimento mudam ele de lugar.
+        /// </summary>
         public const float DistanciaDeCorrecao = 3f;
 
         private readonly System.Collections.Generic.Dictionary<long, GameObject> _visuais =
@@ -86,6 +90,12 @@ namespace JogoDoGrupo.Client.Features.Mundo.Presenca
                 _velocidades = new Vector2(andar, correr);
                 _controle?.AplicarVelocidadesDoServidor(andar, correr);
             };
+            _presenca.PosicaoForcada += (posicao, rotacao) =>
+            {
+                _correcaoPendente = true;
+                _posicaoCorrigida = posicao;
+                _rotacaoCorrigida = rotacao;
+            };
             _presenca.PosicaoDoServidor += (posicao, rotacao) =>
             {
                 _correcaoPendente = true;
@@ -131,12 +141,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Presenca
 
         private void Corrigir(GameObject jogador)
         {
-            var distancia = Vector3.Distance(jogador.transform.position, _posicaoCorrigida);
-            if (distancia <= DistanciaDeCorrecao)
-            {
-                return;
-            }
-
+            // Nascimento ou posição forçada pelo servidor: aplica sempre (ADR 0024).
             // O CharacterController desfaz posições definidas direto no transform enquanto ativo.
             var corpo = jogador.GetComponent<CharacterController>();
             if (corpo != null)

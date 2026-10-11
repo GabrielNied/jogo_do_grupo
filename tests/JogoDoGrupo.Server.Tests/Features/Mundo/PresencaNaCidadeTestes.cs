@@ -3,6 +3,7 @@ using JogoDoGrupo.Server.Contratos.Mundo;
 using JogoDoGrupo.Server.Core.Eventos;
 using JogoDoGrupo.Server.Features.Mundo;
 using JogoDoGrupo.Server.Tests.Core.TempoReal;
+using JogoDoGrupo.Server.Tests.Infra;
 using JogoDoGrupo.Shared.Features.Mundo;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -33,7 +34,7 @@ public class PresencaNaCidadeTestes(TempoRealFixture f) : IClassFixture<TempoRea
     }
 
     [Fact]
-    public async Task Movimento_valido_e_replicado_e_alem_da_velocidade_e_recusado()
+    public async Task Movimento_valido_so_vai_aos_outros_e_impossivel_vira_posicao_forcada()
     {
         var (a, _, idA) = await f.EntrarAsync();
         using var _a = a;
@@ -54,9 +55,7 @@ public class PresencaNaCidadeTestes(TempoRealFixture f) : IClassFixture<TempoRea
                 Sequencia = 7,
             }
         );
-        var propria = await a.ReceberAsync<PosicaoJogador>(MundoMessageIds.PosicaoJogador);
-        Assert.Equal(7, propria.Sequencia);
-        Assert.Equal(0.3f, propria.X);
+        // O dono é dono da própria posição (ADR 0024): só os outros recebem.
         var replica = await b.ReceberAsync<PosicaoJogador>(MundoMessageIds.PosicaoJogador);
         Assert.Equal(idA, replica.PersonagemId);
         Assert.Equal(0.3f, replica.X);
@@ -71,9 +70,36 @@ public class PresencaNaCidadeTestes(TempoRealFixture f) : IClassFixture<TempoRea
                 Sequencia = 8,
             }
         );
-        var corrigida = await a.ReceberAsync<PosicaoJogador>(MundoMessageIds.PosicaoJogador);
-        Assert.Equal(8, corrigida.Sequencia);
-        Assert.Equal(0.3f, corrigida.X);
+        // 40 m de uma vez passa do orçamento e da tolerância: o servidor força a posição dele.
+        var forcada = await a.ReceberAsync<PosicaoForcada>(MundoMessageIds.PosicaoForcada);
+        Assert.Equal(0.3f, forcada.X);
+        Assert.DoesNotContain(MundoMessageIds.PosicaoJogador, a.IdsRecebidos);
+
+        // Até confirmar, o movimento (ainda de antes do teleporte) é ignorado.
+        a.Enviar(
+            MundoMessageIds.IntencaoDeMovimento,
+            new IntencaoDeMovimento
+            {
+                X = 1f,
+                Z = z,
+                Sequencia = 9,
+            }
+        );
+        a.Enviar(
+            MundoMessageIds.ConfirmarPosicaoForcada,
+            new ConfirmarPosicaoForcada { Sequencia = forcada.Sequencia }
+        );
+        a.Enviar(
+            MundoMessageIds.IntencaoDeMovimento,
+            new IntencaoDeMovimento
+            {
+                X = 1.2f,
+                Z = z,
+                Sequencia = 10,
+            }
+        );
+        var depois = await b.ReceberAsync<PosicaoJogador>(MundoMessageIds.PosicaoJogador);
+        Assert.Equal(1.2f, depois.X);
     }
 
     [Fact]
@@ -144,7 +170,8 @@ public class PresencaNaCidadeTestes(TempoRealFixture f) : IClassFixture<TempoRea
                 Sequencia = 1,
             }
         );
-        await a.ReceberAsync<PosicaoJogador>(MundoMessageIds.PosicaoJogador);
+        // O servidor não devolve a posição ao dono (ADR 0024): confere a dele.
+        await PosicaoNoServidor.EsperarAsync(f.Fabrica.Services, idA, p => p.X == 0.3f);
 
         var entrada = Assert.Single(entradas, e => e.PersonagemId == idA);
         Assert.Equal(AreasDoMundo.Cidade, entrada.Area);

@@ -279,12 +279,14 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
         }
 
         [Test]
-        public void Presenca_PosicaoDoProprioJogadorViraCorrecao()
+        public void Presenca_PosicaoDoProprioJogadorNaoViraCorrecao()
         {
+            // ADR 0024: o jogador local é dono da própria posição; eco não corrige.
             var conexao = new ConexaoFalsa { Conectado = true };
             using var presenca = new PresencaNaCidade(conexao, 1);
             Vector3? recebida = null;
             presenca.PosicaoDoServidor += (posicao, _) => recebida = posicao;
+            presenca.PosicaoForcada += (posicao, _) => recebida = posicao;
 
             conexao.Receber(
                 MundoMessageIds.PosicaoJogador,
@@ -296,8 +298,52 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
                 }
             );
 
-            Assert.That(recebida, Is.EqualTo(new Vector3(2f, 0f, 3f)));
+            Assert.That(recebida, Is.Null);
             Assert.That(presenca.Avatares.Quantidade, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void Presenca_PosicaoForcadaAvisaEConfirmaComAMesmaSequencia()
+        {
+            var conexao = new ConexaoFalsa { Conectado = true };
+            using var presenca = new PresencaNaCidade(conexao, 1);
+            Vector3? recebida = null;
+            presenca.PosicaoForcada += (posicao, _) => recebida = posicao;
+
+            conexao.Receber(
+                MundoMessageIds.PosicaoForcada,
+                new PosicaoForcada
+                {
+                    X = 5f,
+                    Z = -24f,
+                    Sequencia = 3,
+                }
+            );
+
+            Assert.That(recebida, Is.EqualTo(new Vector3(5f, 0f, -24f)));
+            var confirmacao = conexao.Enviados.Find(e =>
+                e.Id == MundoMessageIds.ConfirmarPosicaoForcada
+            );
+            Assert.That(((ConfirmarPosicaoForcada)confirmacao.Mensagem).Sequencia, Is.EqualTo(3));
+        }
+
+        [Test]
+        public void Presenca_NascimentoSoNaPrimeiraEntrada()
+        {
+            var conexao = new ConexaoFalsa { Conectado = true };
+            using var presenca = new PresencaNaCidade(conexao, 1);
+            var vezes = 0;
+            presenca.PosicaoDoServidor += (_, __) => vezes++;
+            var estado = new EstadoDaCidade
+            {
+                Eu = new JogadorVisivel { PersonagemId = 1, Z = -24f },
+                Outros = new JogadorVisivel[0],
+            };
+
+            conexao.Receber(MundoMessageIds.EstadoDaCidade, estado);
+            conexao.Receber(MundoMessageIds.EstadoDaCidade, estado); // reconexão
+
+            Assert.That(vezes, Is.EqualTo(1));
         }
 
         [Test]
