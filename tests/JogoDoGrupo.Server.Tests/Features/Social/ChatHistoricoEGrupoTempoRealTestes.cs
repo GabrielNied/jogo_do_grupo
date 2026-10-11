@@ -91,8 +91,12 @@ public class ChatHistoricoEGrupoTempoRealTestes(ServidorDeTeste servidor)
             SocialMessageIds.ResponderConvite,
             new ResponderConvite { ConviteId = convite.ConviteId, Aceitar = true }
         );
-        var lista = await a.ReceberAsync<ListaDoGrupo>(SocialMessageIds.ListaDoGrupo);
-        Assert.Contains(lista.Membros, m => m.PersonagemId == idB);
+        // A lista vazia de quando ela conectou pode vir antes: espera a que já tem o B.
+        ListaDoGrupo lista;
+        do
+        {
+            lista = await a.ReceberAsync<ListaDoGrupo>(SocialMessageIds.ListaDoGrupo);
+        } while (lista.Membros.All(m => m.PersonagemId != idB));
 
         Falar(a, CanalDeChat.Grupo, "vamos para a dungeon");
 

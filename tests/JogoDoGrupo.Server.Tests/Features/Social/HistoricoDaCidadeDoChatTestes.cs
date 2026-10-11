@@ -89,7 +89,9 @@ public class HistoricoDaCidadeDoChatTestes
     [Fact]
     public async Task Guardar_de_varias_threads_nao_perde_nem_passa_do_limite()
     {
-        var tarefas = Enumerable.Range(0, 200).Select(i => Task.Run(() => Guardar($"mensagem {i}")));
+        var tarefas = Enumerable
+            .Range(0, 200)
+            .Select(i => Task.Run(() => Guardar($"mensagem {i}")));
         await Task.WhenAll(tarefas);
 
         Assert.Equal(RegrasChat.HistoricoDaCidadeMensagens, _historico.Atual().Length);
