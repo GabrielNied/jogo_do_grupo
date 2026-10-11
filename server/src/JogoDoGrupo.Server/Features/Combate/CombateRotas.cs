@@ -1,6 +1,7 @@
 using System.Data;
 using System.Globalization;
 using System.Security.Claims;
+using JogoDoGrupo.Server.Contratos.Personagem;
 using JogoDoGrupo.Server.Core.Api;
 using JogoDoGrupo.Server.Core.Autenticacao;
 using JogoDoGrupo.Server.Core.Persistencia;
@@ -31,6 +32,7 @@ internal static class CombateRotas
         ClaimsPrincipal usuario,
         JogoDbContext db,
         IBonusDeAtributos bonus,
+        IPontosDistribuidos pontos,
         TimeProvider relogio,
         ILogger<CombateModule> log,
         CancellationToken cancelamento
@@ -61,7 +63,8 @@ internal static class CombateRotas
 
         var atributos = CalculadoraRecursos.AtributosFinais(
             await bonus.EquipamentosAsync(id, cancelamento),
-            await bonus.EfeitosAsync(id, cancelamento)
+            await bonus.EfeitosAsync(id, cancelamento),
+            await pontos.ObterAsync(id, cancelamento)
         );
 
         var sqlite = db.Database.GetDbConnection() as SqliteConnection;

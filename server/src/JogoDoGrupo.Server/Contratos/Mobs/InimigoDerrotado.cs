@@ -14,6 +14,8 @@ namespace JogoDoGrupo.Server.Contratos.Mobs;
 /// <para>
 /// Sai do laço de IA de Mobs, não do laço de rede: o assinante precisa ser seguro entre threads
 /// e não pode bloquear (trabalho com banco vai para uma <c>Task</c>).
+/// <see cref="Sequencia"/> distingue esta morte das outras do mesmo <see cref="InimigoId"/>
+/// (o id volta a ser usado quando o inimigo reaparece).
 /// </para>
 /// </summary>
 public sealed record InimigoDerrotado(
@@ -25,5 +27,6 @@ public sealed record InimigoDerrotado(
     string Area,
     double X,
     double Z,
-    IReadOnlyList<long> Participantes
+    IReadOnlyList<long> Participantes,
+    long Sequencia
 );

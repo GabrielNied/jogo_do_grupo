@@ -1,6 +1,8 @@
 using System.Data;
+using JogoDoGrupo.Server.Contratos.Personagem;
 using JogoDoGrupo.Server.Core.Persistencia;
 using JogoDoGrupo.Shared.Features.Combate;
+using JogoDoGrupo.Shared.Features.Personagem;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 
@@ -53,12 +55,7 @@ internal static class RecursosDoAtaque
     {
         using var escopo = escopos.CreateScope();
         var db = escopo.ServiceProvider.GetRequiredService<JogoDbContext>();
-        var bonus = escopo.ServiceProvider.GetRequiredService<IBonusDeAtributos>();
-
-        var atributos = CalculadoraRecursos.AtributosFinais(
-            await bonus.EquipamentosAsync(personagemId, cancelamento),
-            await bonus.EfeitosAsync(personagemId, cancelamento)
-        );
+        var atributos = await AtributosAsync(escopo.ServiceProvider, personagemId, cancelamento);
 
         var sqlite = db.Database.GetDbConnection() as SqliteConnection;
         var esperaAnterior = sqlite?.DefaultTimeout;
@@ -150,12 +147,7 @@ internal static class RecursosDoAtaque
     {
         using var escopo = escopos.CreateScope();
         var db = escopo.ServiceProvider.GetRequiredService<JogoDbContext>();
-        var bonus = escopo.ServiceProvider.GetRequiredService<IBonusDeAtributos>();
-
-        var atributos = CalculadoraRecursos.AtributosFinais(
-            await bonus.EquipamentosAsync(personagemId, cancelamento),
-            await bonus.EfeitosAsync(personagemId, cancelamento)
-        );
+        var atributos = await AtributosAsync(escopo.ServiceProvider, personagemId, cancelamento);
 
         var sqlite = db.Database.GetDbConnection() as SqliteConnection;
         var esperaAnterior = sqlite?.DefaultTimeout;
@@ -208,7 +200,7 @@ internal static class RecursosDoAtaque
         }
     }
 
-    /// <summary>A Força final do personagem agora (equipamentos mais efeitos).</summary>
+    /// <summary>A Força final do personagem agora (pontos, equipamentos e efeitos).</summary>
     public static async Task<int> ForcaAsync(
         IServiceScopeFactory escopos,
         long personagemId,
@@ -216,12 +208,21 @@ internal static class RecursosDoAtaque
     )
     {
         using var escopo = escopos.CreateScope();
-        var bonus = escopo.ServiceProvider.GetRequiredService<IBonusDeAtributos>();
-        return CalculadoraRecursos
-            .AtributosFinais(
-                await bonus.EquipamentosAsync(personagemId, cancelamento),
-                await bonus.EfeitosAsync(personagemId, cancelamento)
-            )
-            .Forca;
+        return (await AtributosAsync(escopo.ServiceProvider, personagemId, cancelamento)).Forca;
+    }
+
+    private static async Task<AtributosCombate> AtributosAsync(
+        IServiceProvider servicos,
+        long personagemId,
+        CancellationToken cancelamento
+    )
+    {
+        var bonus = servicos.GetRequiredService<IBonusDeAtributos>();
+        var pontos = servicos.GetRequiredService<IPontosDistribuidos>();
+        return CalculadoraRecursos.AtributosFinais(
+            await bonus.EquipamentosAsync(personagemId, cancelamento),
+            await bonus.EfeitosAsync(personagemId, cancelamento),
+            await pontos.ObterAsync(personagemId, cancelamento)
+        );
     }
 }

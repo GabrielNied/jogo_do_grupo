@@ -98,6 +98,26 @@ namespace JogoDoGrupo.Server.Core.Persistencia.Migrations
                     b.ToTable("ItensInventario", (string)null);
                 });
 
+            modelBuilder.Entity("JogoDoGrupo.Server.Features.Personagem.MortePremiada", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("InimigoId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("Sequencia")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("InimigoId", "Sequencia")
+                        .IsUnique();
+
+                    b.ToTable("MortesPremiadas", (string)null);
+                });
+
             modelBuilder.Entity("JogoDoGrupo.Server.Features.Personagem.Personagem", b =>
                 {
                     b.Property<long>("Id")
@@ -109,6 +129,18 @@ namespace JogoDoGrupo.Server.Core.Persistencia.Migrations
 
                     b.Property<DateTime>("CriadoEm")
                         .HasColumnType("TEXT");
+
+                    b.Property<int>("Destreza")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Espirito")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Forca")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Intelecto")
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("Nivel")
                         .HasColumnType("INTEGER");
@@ -123,7 +155,16 @@ namespace JogoDoGrupo.Server.Core.Persistencia.Migrations
                         .HasMaxLength(16)
                         .HasColumnType("TEXT");
 
+                    b.Property<int>("PontosLivres")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int>("Raca")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Vitalidade")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("XpAtual")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
