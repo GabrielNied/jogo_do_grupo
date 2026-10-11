@@ -71,3 +71,45 @@
     color: rgb(228, 214, 188);
     margin-bottom: 4px;
 }
+
+.personagem-escolha-raca {
+    flex-direction: row;
+    margin-bottom: 8px;
+}
+
+.personagem-lista-racas {
+    width: 200px;
+    margin-right: 12px;
+}
+
+.personagem-raca-botao {
+    min-height: 44px;
+    margin-bottom: 4px;
+    padding: 4px 12px;
+    font-size: 20px;
+    -unity-text-align: middle-left;
+}
+
+.personagem-cartao-raca {
+    flex-grow: 1;
+    flex-shrink: 1;
+    padding: 10px 16px;
+    background-color: rgb(28, 22, 16);
+    border-width: 1px;
+    border-color: rgb(120, 92, 52);
+}
+
+.personagem-cartao-texto {
+    font-size: 16px;
+    white-space: normal;
+    margin-top: 6px;
+    color: rgb(228, 214, 188);
+}
+
+.personagem-cartao-citacao {
+    font-size: 16px;
+    white-space: normal;
+    margin-top: 10px;
+    -unity-font-style: italic;
+    color: rgb(212, 176, 96);
+}

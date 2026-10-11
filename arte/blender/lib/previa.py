@@ -9,7 +9,7 @@ import numpy as np
 
 from . import textura
 
-TAMANHO_QUADRO = 512
+TAMANHO_QUADRO = 384
 COR_FUNDO = (0.42, 0.47, 0.52)
 COR_CHAO = (0.33, 0.36, 0.30)
 

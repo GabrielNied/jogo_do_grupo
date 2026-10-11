@@ -41,9 +41,9 @@ def raiz_do_repo():
     return os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 
 
-def pasta_modelos_unity():
+def pasta_modelos_unity(feature="Mobs"):
     return os.path.join(
-        raiz_do_repo(), "client", "Assets", "_Game", "Features", "Mobs", "Art", "Modelos"
+        raiz_do_repo(), "client", "Assets", "_Game", "Features", feature, "Art", "Modelos"
     )
 
 

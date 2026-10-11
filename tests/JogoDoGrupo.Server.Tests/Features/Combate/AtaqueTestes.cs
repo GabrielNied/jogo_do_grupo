@@ -139,7 +139,7 @@ public class AtaqueTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDeA
         var resposta = await ServidorDeTeste.PostJsonAsync(
             http,
             RotasPersonagem.Personagens,
-            new CriarPersonagemRequest { Nome = ServidorDeTeste.NomeUnico(), Raca = Raca.Humano }
+            new CriarPersonagemRequest { Nome = ServidorDeTeste.NomeUnico(), Raca = Raca.Valdren }
         );
         resposta.EnsureSuccessStatusCode();
         var personagem = await ServidorDeTeste.LerJsonAsync<PersonagemResumo>(resposta);

@@ -39,7 +39,7 @@ public class BancoOcupadoApiTestes(ServidorDeTeste servidor) : IClassFixture<Ser
         );
         using var cliente = await ServidorDeTeste.CriarClienteLogadoEmAsync(fabrica);
         var nome = ServidorDeTeste.NomeUnico();
-        var requisicao = new CriarPersonagemRequest { Nome = nome, Raca = Raca.Humano };
+        var requisicao = new CriarPersonagemRequest { Nome = nome, Raca = Raca.Valdren };
         long personagemId = 0;
         if (bau)
         {

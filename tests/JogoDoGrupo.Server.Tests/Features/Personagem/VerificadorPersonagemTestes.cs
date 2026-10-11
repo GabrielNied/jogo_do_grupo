@@ -16,7 +16,11 @@ public class VerificadorPersonagemTestes(ServidorDeTeste servidor) : IClassFixtu
         var resposta = await ServidorDeTeste.PostJsonAsync(
             cliente,
             RotasPersonagem.Personagens,
-            new CriarPersonagemRequest { Nome = ServidorDeTeste.NomeUnico("V"), Raca = Raca.Humano }
+            new CriarPersonagemRequest
+            {
+                Nome = ServidorDeTeste.NomeUnico("V"),
+                Raca = Raca.Valdren,
+            }
         );
         resposta.EnsureSuccessStatusCode();
         var id = (await ServidorDeTeste.LerJsonAsync<PersonagemResumo>(resposta)).Id;

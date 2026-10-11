@@ -21,7 +21,7 @@ public class ChatHistoricoEGrupoTempoRealTestes(ServidorDeTeste servidor)
         var resposta = await ServidorDeTeste.PostJsonAsync(
             http,
             RotasPersonagem.Personagens,
-            new CriarPersonagemRequest { Nome = nome, Raca = Raca.Humano }
+            new CriarPersonagemRequest { Nome = nome, Raca = Raca.Valdren }
         );
         resposta.EnsureSuccessStatusCode();
         var id = (await ServidorDeTeste.LerJsonAsync<PersonagemResumo>(resposta)).Id;

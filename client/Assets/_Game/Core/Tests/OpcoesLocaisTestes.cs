@@ -31,6 +31,24 @@ namespace JogoDoGrupo.Client.Core.Tests
         }
 
         [Test]
+        public void Resolucao_padrao_ou_invalida_vale_zero()
+        {
+            var padrao = OpcoesLocais.Ler(OpcoesLocais.Padrao().Gravar());
+            Assert.AreEqual(0, padrao.Largura);
+            Assert.AreEqual(0, padrao.Altura);
+
+            var invalida = OpcoesLocais.Padrao();
+            invalida.DefinirResolucao(1280, 0);
+            var lido = OpcoesLocais.Ler(invalida.Gravar());
+            Assert.AreEqual(0, lido.Largura);
+            Assert.AreEqual(0, lido.Altura);
+
+            var negativa = OpcoesLocais.Ler("geral=80\nlargura=-5\naltura=720");
+            Assert.AreEqual(0, negativa.Largura);
+            Assert.AreEqual(0, negativa.Altura);
+        }
+
+        [Test]
         public void Valor_fora_da_faixa_e_limitado()
         {
             Assert.AreEqual(0, OpcoesLocais.LimitarVolume(-10));

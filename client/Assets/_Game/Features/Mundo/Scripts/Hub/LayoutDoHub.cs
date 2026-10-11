@@ -233,13 +233,9 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
                 new PecaDoHub("Lanterna", 11f, -11f, 0f),
                 new PecaDoHub("Lanterna", -11f, 11f, 0f),
                 new PecaDoHub("Lanterna", 11f, 11f, 0f),
-                // Lanternas do portão (as torres ficam em x = ±6, z = 38), antes dos pilares.
-                new PecaDoHub("Lanterna", -5.2f, 30.6f, 0f),
-                new PecaDoHub("Lanterna", 5.2f, 30.6f, 0f),
-                // Pilares que marcam o vão do portão: a pedra tem ~5 m depois da escala do hub,
-                // então o centro fica a 6,6 m para a face interna parar em x = ±4.
-                new PecaDoHub("Pedra_Grande", -6.6f, 34.4f, 0f),
-                new PecaDoHub("Pedra_Grande", 6.6f, 34.4f, 0f),
+                // Lanternas do portão (as torres ficam em x = ±6, z = 38).
+                new PecaDoHub("Lanterna", -5.2f, 33.8f, 0f),
+                new PecaDoHub("Lanterna", 5.2f, 33.8f, 0f),
             };
 
             // Um quadrante (x e z positivos) é desenhado e espelhado para os outros três.
@@ -264,6 +260,10 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
                     AdicionarCasa(lista, casaLarga, sx, sz, 28f, 12f, -1f, 0f);
                     AdicionarCasa(lista, casaLarga, sx, sz, 12f, 28f, 0f, -1f);
 
+                    // Sem quarteirão extra nem barracas no mercado: as casas (8 x 8 m e 12 x 8 m)
+                    // e as barracas que a #274 pôs ali ficavam em cima da rua em anel e das casas
+                    // vizinhas. O chão de pedra do mercado e das ruas laterais continua.
+
                     // Praça do canto: barraca virada para a fonte, árvores e uma carroça ou pedra.
                     var barraca = pedra ? "Barraca_Vermelha" : "Barraca_Verde";
                     var guinada = sx < 0 ? (sz < 0 ? 45f : 135f) : (sz < 0 ? -45f : -135f);
@@ -279,7 +279,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
                     // Árvores no que sobra ao lado das casas largas.
                     lista.Add(new PecaDoHub("Arvore", sx * 33.8f, sz * 9f, 70f));
                     lista.Add(new PecaDoHub("Arvore", sx * 33.8f, sz * 15f, 110f));
-                    lista.Add(new PecaDoHub("Arvore", sx * 11.5f, sz * 33.8f, 160f));
+                    lista.Add(new PecaDoHub("Arvore", sx * 9f, sz * 33.8f, 160f));
                     lista.Add(new PecaDoHub("Arvore", sx * 15f, sz * 33.8f, 200f));
                 }
             }

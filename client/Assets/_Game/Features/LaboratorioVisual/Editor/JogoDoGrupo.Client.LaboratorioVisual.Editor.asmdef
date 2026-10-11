@@ -1,0 +1,7 @@
+{
+  "name": "JogoDoGrupo.Client.LaboratorioVisual.Editor",
+  "rootNamespace": "JogoDoGrupo.Client.Features.LaboratorioVisual.Editor",
+  "references": [],
+  "includePlatforms": ["Editor"],
+  "autoReferenced": false
+}

@@ -18,5 +18,18 @@ namespace JogoDoGrupo.Shared.Features.Itens
         /// respondem igual). Nem Core nem Personagem tinham um código para isso em 2026-10-11.
         /// </summary>
         public const string PersonagemNaoEncontrado = "PersonagemNaoEncontrado";
+
+        /// <summary>
+        /// Tempo real, em <see cref="ColetaRecusada.Codigo"/>: não há item no chão com esse id
+        /// para este personagem (nunca existiu, já foi coletado, expirou ou é de outro), ou o
+        /// pedido de "tudo por perto" não achou nada ao alcance.
+        /// </summary>
+        public const string LootNaoEncontrado = "LootNaoEncontrado";
+
+        /// <summary>
+        /// Tempo real, em <see cref="ColetaRecusada.Codigo"/>: o item está a mais de
+        /// <see cref="RegrasLoot.RaioDeColetaMetros"/> do personagem.
+        /// </summary>
+        public const string LongeDemais = "LongeDemais";
     }
 }

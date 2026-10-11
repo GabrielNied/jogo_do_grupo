@@ -161,13 +161,14 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
         {
             Construir();
 
-            // Eixos livres de props (a fonte fica no centro; o portão abre o lado norte, que é
-            // testado à parte).
+            // Linhas livres de props (a rua em anel, de pedra e sem colisor).
+            var anel = -LayoutDoHub.CentroDoAnel;
             var testes = new[]
             {
-                (new Vector3(-8f, 1f, 0f), Vector3.left),
-                (new Vector3(8f, 1f, 0f), Vector3.right),
-                (new Vector3(0f, 1f, -8f), Vector3.back),
+                (new Vector3(0f, 1f, anel), Vector3.left),
+                (new Vector3(0f, 1f, anel), Vector3.right),
+                (new Vector3(anel, 1f, 0f), Vector3.forward),
+                (new Vector3(anel, 1f, 0f), Vector3.back),
             };
 
             foreach (var (origem, direcao) in testes)
@@ -306,28 +307,11 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
 
         // Se uma cápsula do CharacterController (a 5 cm do chão) passa de "pe" andando "distancia"
         // metros na direção horizontal "direcao" sem bater em nada.
-        // ignorarRelevo: fora dos muros o chão sobe aos poucos (os blocos do terreno); o que
-        // interessa é não haver muro, prop ou torre no caminho.
-        private static bool JogadorPassa(
-            Vector3 pe,
-            Vector3 direcao,
-            float distancia,
-            bool ignorarRelevo = false
-        )
+        private static bool JogadorPassa(Vector3 pe, Vector3 direcao, float distancia)
         {
             var baixo = pe + Vector3.up * (EntradaNoJogo.RaioJogador + 0.05f);
             var alto = pe + Vector3.up * (EntradaNoJogo.AlturaJogador - EntradaNoJogo.RaioJogador);
-            var batidas = Physics.CapsuleCastAll(
-                baixo,
-                alto,
-                EntradaNoJogo.RaioJogador,
-                direcao,
-                distancia
-            );
-            return !batidas.Any(b =>
-                !ignorarRelevo
-                || b.collider.transform.parent?.name != ConstrutorDoTerreno.NomeBlocos
-            );
+            return !Physics.CapsuleCast(baixo, alto, EntradaNoJogo.RaioJogador, direcao, distancia);
         }
 
         [Test]
@@ -350,7 +334,8 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
 
             // Até 2026-10-11 era um colisor só na raiz, de 1 km, com a face de cima em zero. Agora
             // o chão é uma malha com relevo em blocos, cada um com o seu colisor: juntos cobrem
-            // o mundo de 3 km. Logo fora dos muros ele sobe aos poucos, seguindo MapaDoMundo.AlturaEm.
+            // o mundo de 3 km. Logo fora dos muros ele sobe devagar (a faixa inicial, até 5 m):
+            // o laço abaixo confere a face de cima contra MapaDoMundo.AlturaEm.
             var blocos = terreno.Find(ConstrutorDoTerreno.NomeBlocos);
             Assert.IsNotNull(blocos, "O terreno precisa dos blocos do chão.");
             var colisores = blocos.GetComponentsInChildren<MeshCollider>();
@@ -373,10 +358,9 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
             {
                 for (var z = -limite; z <= limite; z += 5f)
                 {
-                    var altura = MapaDoMundo.AlturaEm(x, z);
-                    var ponto = new Vector3(x, altura, z);
                     var foraDoQuadradoDaCidade =
                         Mathf.Max(Mathf.Abs(x), Mathf.Abs(z)) > LayoutDoHub.Metade;
+                    var ponto = new Vector3(x, MapaDoMundo.AlturaEm(x, z), z);
                     if (!foraDoQuadradoDaCidade || ArvoreOuPedraPerto(ponto, 2.5f))
                     {
                         continue;
@@ -388,14 +372,14 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
                         $"Sem chão em {ponto}."
                     );
                     Assert.AreEqual(
-                        altura,
+                        ponto.y,
                         batida.point.y,
-                        0.3f,
+                        0.2f,
                         $"Chão fora do relevo em {ponto}."
                     );
                     Assert.IsTrue(batida.collider.transform.IsChildOf(terreno));
                     Assert.IsTrue(
-                        JogadorPassa(ponto, Vector3.forward, 0.1f),
+                        JogadorPassa(ponto + Vector3.up * 0.3f, Vector3.forward, 0.1f),
                         $"Colisor na altura do jogador em {ponto}."
                     );
                 }
@@ -491,18 +475,20 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
         {
             Construir();
 
-            // De dentro da cidade (norte da fonte) até a ponta da estrada, por todo o vão.
+            // De dentro da cidade (norte da fonte) até a ponta da estrada, por todo o vão. A
+            // estrada sobe devagar fora dos muros: o jogador anda em passos de 1 m, com os pés
+            // um pouco acima do chão (o CharacterController sobe degrau).
+            var fim = LayoutDoHub.Metade + LayoutDoHub.ComprimentoDaEstradaFora;
             foreach (var x in new[] { -1.5f, 0f, 1.5f })
             {
-                Assert.IsTrue(
-                    JogadorPassa(
-                        new Vector3(x, 0f, 10f),
-                        Vector3.forward,
-                        LayoutDoHub.Metade + LayoutDoHub.ComprimentoDaEstradaFora - 10f,
-                        ignorarRelevo: true
-                    ),
-                    $"Algo bloqueia a saída em x = {x}."
-                );
+                for (var z = 10f; z < fim; z += 1f)
+                {
+                    var y = Mathf.Max(MapaDoMundo.AlturaEm(x, z), MapaDoMundo.AlturaEm(x, z + 1f));
+                    Assert.IsTrue(
+                        JogadorPassa(new Vector3(x, y + 0.3f, z), Vector3.forward, 1f),
+                        $"Algo bloqueia a saída em x = {x}, z = {z}."
+                    );
+                }
             }
         }
 
@@ -612,11 +598,9 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
             var nomes = LayoutDoHub
                 .Props.Concat(LayoutDoHub.PropsFora)
                 .Select(p => p.Prefab)
-                .Concat(
-                    PecasDosBiomas
-                        .Todas.Select(p => p.Prefab)
-                        .Where(n => !VegetacaoProcedural.ConsegueCriar(n))
-                )
+                .Concat(PecasDosBiomas.Todas.Select(p => p.Prefab))
+                // Cacto, pinheiro, rocha vulcânica etc. nascem em código, sem prefab.
+                .Where(nome => !VegetacaoProcedural.ConsegueCriar(nome))
                 .Concat(
                     new[]
                     {
