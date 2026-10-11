@@ -1,0 +1,26 @@
+{
+  "name": "JogoDoGrupo.Client.Itens.Tests",
+  "rootNamespace": "JogoDoGrupo.Client.Features.Itens.Tests",
+  "references": [
+    "JogoDoGrupo.Client.Itens",
+    "JogoDoGrupo.Client.Core",
+    "JogoDoGrupo.Shared",
+    "UnityEngine.TestRunner",
+    "UnityEditor.TestRunner"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": true,
+  "precompiledReferences": [
+    "nunit.framework.dll"
+  ],
+  "autoReferenced": false,
+  "defineConstraints": [
+    "UNITY_INCLUDE_TESTS"
+  ],
+  "versionDefines": [],
+  "noEngineReferences": false
+}
