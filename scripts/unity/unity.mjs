@@ -38,10 +38,10 @@ const comandos = {
       console.error("Uso: npm run unity:executar -- <Classe.Metodo>");
       process.exit(2);
     }
-    return ["run", CLIENT, "--", "-executeMethod", resto[0], "-quit"];
+    return ["run", CLIENT, "--", "-executeMethod", resto[0]];
   },
-  // -quit vai depois de `--`: é argumento do editor, não do CLI. O import grava os .meta.
-  importar: ["run", CLIENT, "--", "-quit"],
+  // `unity run` já abre em batch e fecha. Repassar `-quit` conflita com a flag reservada do CLI.
+  importar: ["run", CLIENT],
 };
 
 const montar = comandos[acao];
