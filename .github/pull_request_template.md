@@ -18,9 +18,9 @@
 - [ ] Mexi só nas pastas da minha funcionalidade (ou pedi review do responsável)
 - [ ] Atualizei `docs/features/` se mudei alguma regra do jogo
 - [ ] Usei IDs de mensagem dentro da faixa da minha funcionalidade
-- [ ] Rodei `dotnet csharpier format .`
-- [ ] Escrevi ou atualizei testes e rodei `dotnet test` (código de client: `npm run unity:compilar`)
-- [ ] Testei localmente (servidor compila / cliente abre sem erros)
+- [ ] Rodei as verificações locais proporcionais da skill `preparar-pr`
+- [ ] Escrevi ou atualizei testes e rodei a validação da camada alterada (se houver código)
+- [ ] Descrevi abaixo como validei localmente a alteração
 
 ## Como testar
 

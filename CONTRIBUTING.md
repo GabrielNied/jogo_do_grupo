@@ -18,7 +18,7 @@ A `main` é protegida: ninguém envia direto para ela, nem os admins. Todo traba
 - **Branch:** `<tipo>/<escopo>/<descricao>` → `feature/itens/fusao-basica`, `fix/economia/taxa-leilao`.
 - **Commit:** `<tipo>(<escopo>): <descrição em minúsculas>` → `feat(itens): adiciona limite de fusões por raridade`.
 - **PR:** o título segue o mesmo padrão do commit e vira o commit na `main` (squash merge). Um PR = uma funcionalidade.
-- **Antes de abrir o PR:** `dotnet csharpier format .` e `dotnet test JogoDoGrupo.slnx` (mexeu no client: `npm run unity:compilar`). Detalhes em [docs/convencoes.md](docs/convencoes.md#testes).
+- **Antes de abrir o PR:** siga a verificação proporcional da skill `preparar-pr`: documentação e configuração não exigem build/testes globais; código C# exige os testes da camada alterada (client: também `npm run unity:compilar`). Detalhes em [docs/convencoes.md](docs/convencoes.md#testes).
 - **Testes junto com o código:** todo PR de código traz os testes do que mudou, na mesma branch. PR de código sem teste não entra.
 - **Para entrar na main (combinado do grupo):** checks `csharpier`, `build` e `padrao-git` verdes e 1 aprovação de outra pessoa, incluindo o responsável pela pasta. O repo é privado no plano gratuito, então o GitHub não bloqueia: cada um respeita, e o review é pedido à mão.
 
