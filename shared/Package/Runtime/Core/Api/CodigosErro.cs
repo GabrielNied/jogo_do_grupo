@@ -36,6 +36,18 @@ namespace JogoDoGrupo.Shared.Core.Api
         /// <summary>400: corpo ausente ou JSON malformado, em qualquer rota.</summary>
         public const string RequisicaoInvalida = "RequisicaoInvalida";
 
+        /// <summary>403: usuário autenticado sem permissão para a rota ou o recurso.</summary>
+        public const string AcessoNegado = "AcessoNegado";
+
+        /// <summary>404: a rota não existe.</summary>
+        public const string RotaNaoEncontrada = "RotaNaoEncontrada";
+
+        /// <summary>405: a rota existe, mas não aceita esse método HTTP.</summary>
+        public const string MetodoNaoPermitido = "MetodoNaoPermitido";
+
+        /// <summary>503: banco ou servidor ocupado; o client pode tentar de novo.</summary>
+        public const string ServidorOcupado = "ServidorOcupado";
+
         /// <summary>500: falha inesperada no servidor.</summary>
         public const string ErroInterno = "ErroInterno";
     }
