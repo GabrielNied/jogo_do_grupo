@@ -12,7 +12,7 @@ Regras mínimas para jogar o [primeiro marco](../visao-geral.md#primeiro-marco-f
 
 Já decidido pelo grupo e que esta fatia respeita (não é reaberto aqui):
 
-- Sessão pequena em instâncias, sem mundo aberto (D1); sem classes (D2); skills nos itens, sorteadas (D3); combate de ação no ritmo do New World, sem spam de skills (D4); papéis tank, healer e DPS, dungeon de 5 (D6); ataques telegrafados ([combate.md](combate.md)). Detalhes na [validação](../brainstorm/validacao.md).
+- ~~Sessão pequena em instâncias, sem mundo aberto (D1)~~ Substituído em 2026-10-11 por mundo persistente (D1 opção A). Sem classes (D2); skills nos itens, sorteadas (D3); combate de ação no ritmo do New World, sem spam de skills (D4); papéis tank, healer e DPS, dungeon de 5 (D6); ataques telegrafados ([combate.md](combate.md)). Detalhes na [validação](../brainstorm/validacao.md). A fatia ainda cobre uma área e uma dungeon.
 - Servidor autoritativo: o client envia intenções; dano, custo, drop, XP e morte são decididos pelo servidor.
 
 ## Proposta
@@ -21,7 +21,7 @@ Tudo marcado **proposta** abaixo vem do plano de desenvolvimento do grupo, ou é
 
 ## Fora desta fatia
 
-20 jogadores na mesma instância, mundo contínuo, cinco raças, 25 skills, catálogos de peças, fome, mercado e profissões (contrariam D1 ou seguem em aberto em S1 a S10).
+Várias regiões, dezenas de jogadores na mesma área, cinco raças, 25 skills, catálogos de peças, fome, mercado e profissões (seguem em aberto em S1 a S10, ou são escala para depois desta fatia). ~~20 jogadores na mesma instância e mundo contínuo ficam de fora porque contrariam D1~~ substituído em 2026-10-11: o mundo contínuo é o formato do jogo; esta fatia ainda cobre uma área e uma dungeon.
 
 ## Em aberto
 
@@ -32,7 +32,7 @@ Tudo marcado **proposta** abaixo vem do plano de desenvolvimento do grupo, ou é
 
 ## Regras
 
-**Base:** New World (ritmo, ataque e esquiva), World of Warcraft (dungeon de 5), Diablo IV (loot no chão). **Igual:** ação em 3ª pessoa, esquiva com custo de vigor, dungeon com boss, itens caindo no chão. **Diferente:** sem classes, skills nos itens, sessão pequena.
+**Base:** New World (ritmo, ataque e esquiva), World of Warcraft (dungeon de 5), Diablo IV (loot no chão). **Igual:** ação em 3ª pessoa, esquiva com custo de vigor, dungeon com boss, itens caindo no chão. **Diferente:** sem classes, skills nos itens. ~~Sessão pequena~~ substituído em 2026-10-11 por mundo persistente; a fatia ainda tem uma área e uma dungeon.
 
 ### 1. Atributos e recursos
 

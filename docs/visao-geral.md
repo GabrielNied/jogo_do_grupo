@@ -2,13 +2,13 @@
 
 ## O jogo
 
-RPG de ação online para PC, medieval, em terceira pessoa, feito para **jogar com poucas pessoas**. O grupo entra em sessões pequenas para subir de nível, juntar loot, enfrentar eventos e, principalmente, derrotar bosses cada vez mais fortes em dungeons e raids.
+RPG de ação online para PC, medieval, em terceira pessoa, de **mundo aberto**. ~~feito para **jogar com poucas pessoas**. O grupo entra em sessões pequenas para subir de nível, juntar loot, enfrentar eventos e, principalmente, derrotar bosses cada vez mais fortes em dungeons e raids.~~ Substituído em 2026-10-11 (D1 opção A): os jogadores compartilham um mundo contínuo, sobem de nível, juntam loot, enfrentam eventos e derrotam bosses cada vez mais fortes em dungeons e raids.
 
-Decisões de direção tomadas em 2026-10-10, a partir do brainstorm: veja [brainstorm/validacao.md](brainstorm/validacao.md). Jogos usados como base: [referencias.md](referencias.md).
+Decisões de direção tomadas em 2026-10-10 e revisadas em 2026-10-11, a partir do brainstorm: veja [brainstorm/validacao.md](brainstorm/validacao.md). Jogos usados como base: [referencias.md](referencias.md).
 
 ## Pilares
 
-1. **Sessões de grupo pequeno:** o foco é jogar em poucas pessoas, em instâncias, e não num mundo aberto com centenas de jogadores.
+1. ~~**Sessões de grupo pequeno:** o foco é jogar em poucas pessoas, em instâncias, e não num mundo aberto com centenas de jogadores.~~ Substituído em 2026-10-11 por: **Mundo persistente:** um mundo único e contínuo, compartilhado por quem está na área. Dungeons e raids continuam instanciadas.
 2. **Sem classes, você é o que equipa:** as skills estão nos itens, geradas aleatoriamente, e a combinação de itens define o estilo de jogo.
 3. **Combate de ação:** mira, esquiva e posicionamento, no estilo de New World.
 4. **Progressão por loot e bosses, sem fim:** subir de nível farmando mapas em grupo, juntar muito loot, participar de eventos e derrotar bosses mais fortes em dungeons (5 jogadores) e raids (10), com dificuldade que escala sem fim, no estilo de Diablo.
@@ -40,7 +40,7 @@ PC.
 
 Antes de expandir, o objetivo é uma versão pequena e completa. Revisada em 2026-10-10 a partir das decisões D1–D5:
 
-- [ ] Uma área segura (hub) onde o grupo se encontra
+- [ ] Uma área segura (a cidade) do mundo persistente, onde os jogadores se encontram. ~~Uma área segura (hub) onde o grupo se encontra~~ substituído em 2026-10-11 pela cidade compartilhada (D1 opção A).
 - [ ] Uma dungeon instanciada para até 5 jogadores, com um boss no final
 - [ ] Itens suficientes para montar os três papéis: tank, healer e DPS
 - [ ] Uma raça, com a sua skill base
@@ -58,9 +58,9 @@ O que foi substituído fica registrado aqui, para entender de onde o projeto vei
 
 **Até 2026-10-10** (antes da validação do brainstorm):
 
-- ~~MMORPG para PC, criado em grupo, com mundo aberto e foco em trazer mecânicas novas para o gênero.~~ Substituído pela descrição de "O jogo" acima (decisão D1).
+- ~~MMORPG para PC, criado em grupo, com mundo aberto e foco em trazer mecânicas novas para o gênero.~~ Substituído em 2026-10-10 pelas sessões de grupo pequeno (D1 opção B). ~~Sessões de grupo pequeno~~ substituídas em 2026-10-11 pelo mundo persistente (D1 opção A); vale a descrição atual de "O jogo".
 - Pilares antigos:
-  1. ~~**Mundo aberto:** exploração livre, regiões conectadas, PvP no mundo aberto com áreas seguras.~~ Substituído pelas sessões de grupo pequeno (D1).
+  1. ~~**Mundo aberto:** exploração livre, regiões conectadas, PvP no mundo aberto com áreas seguras.~~ Substituído em 2026-10-10 pelas sessões de grupo pequeno. ~~Sessões de grupo pequeno~~ substituídas em 2026-10-11: o mundo aberto volta (D1 opção A).
   2. **Economia movida pelos jogadores:** profissões interdependentes, itens negociáveis (inclusive os fundidos), casa de leilão e saídas de recursos para evitar inflação. Não foi descartado: fica para ser decidido durante a construção (veja [economia.md](features/economia.md)).
   3. **Fusão de itens:** continua como pilar 6.
   4. ~~**Personalização de personagem:** raças, classes, magias (skills) e árvore de talentos.~~ Substituído por "sem classes, você é o que equipa" (D2 e D3).

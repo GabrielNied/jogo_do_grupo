@@ -166,8 +166,8 @@ Cada funcionalidade recebe uma faixa de 1000 IDs, declarada em `shared/Package/R
 
 - Biblioteca de rede para o **tempo real** (ex.: LiteNetLib). Conta e personagens já usam HTTP ([ADR 0009](decisoes/0009-api-http-para-conta-e-personagens.md)).
 - ~~Banco de dados e persistência~~ decidido: EF Core com SQLite no desenvolvimento e PostgreSQL depois ([ADR 0010](decisoes/0010-banco-de-dados.md)).
-- Como hospedar as sessões de grupo pequeno: um processo de servidor por sessão ou várias sessões por processo? Onde fica o hub social?
-- ~~Como dividir o mundo aberto entre servidores (por região?)~~ não se aplica mais: o jogo usa sessões de grupo pequeno (D1 da [validação](brainstorm/validacao.md)).
+- ~~Como hospedar as sessões de grupo pequeno: um processo de servidor por sessão ou várias sessões por processo? Onde fica o hub social?~~ Substituído em 2026-10-11: o formato voltou a ser mundo persistente (D1 opção A da [validação](brainstorm/validacao.md)).
+- ~~Como dividir o mundo aberto entre servidores (por região?)~~ ~~não se aplica mais: o jogo usa sessões de grupo pequeno~~ substituído em 2026-10-11: volta a valer. Como dividir o mundo persistente entre servidores (por região?) e onde a cidade roda.
 - Sincronização do combate de ação: como o servidor autoritativo valida acertos com latência (D4).
 - ~~Testes automatizados~~ decidido: xUnit no shared e no servidor, com testes de integração da API ([ADR 0013](decisoes/0013-testes-automatizados.md)).
 
