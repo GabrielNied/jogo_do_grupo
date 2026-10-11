@@ -54,7 +54,7 @@ A etapa 3 só entra no plano quando o PR mexe em Core, segurança ou numa regra 
 - Mudanças de docs, `.meta` e configuração você faz direto, sem agente e sem revisor.
 - Os `.meta` e os materiais que o Unity gerar entram no mesmo PR. Quem abre o PR roda `npm run conferir-unity`. Não peça para a pessoa commitar isso depois do merge.
 - Um editor por vez. `npm run unity:editor` olha só o `Unity.exe` do Editor, não o Hub. Se estiver aberto, o agente abre o PR do código, avisa **uma vez** e para. Não retome o mesmo agente para gerar `.meta`. Quando a pessoa fechar o editor, o coordenador roda `npm run unity:importar` no worktree e commita os `.meta`. A primeira importação de um worktree novo é lenta; não abra outro worktree de client para repetir isso.
-- Sem Unity no ambiente (nuvem), ninguém espera pelo Unity: o agente abre o PR normal e registra o que faltou com `npm run tarefa -- pendencia-unity <PR> --falta "..."` ([ADR 0017](../../../docs/decisoes/0017-unity-no-ci.md)). O coordenador não relança o agente por isso.
+- Sem Unity no ambiente (nuvem), ninguém espera pelo Unity: o agente abre o PR normal e registra o que faltou com `npm run tarefa -- pendencia-unity <PR> --falta "..."` ([ADR 0018](../../../docs/decisoes/0018-unity-no-ci.md)). O coordenador não relança o agente por isso.
 
 **Modelo por tarefa:** cada agente já tem `model` e `effort` no próprio arquivo (Opus em `server-core` e `client-core`; Sonnet nos demais; `designer-docs` com effort baixo). ~~Ao lançar, suba para `opus` quando a tarefa envolver segurança, concorrência, dinheiro ou itens do jogo, ou uma regra difícil.~~ substituído em 2026-10-11 por: Sonnet é o padrão. Opus só em Core, segurança ou regra de dano, preço ou fusão que a doc ainda não fechou.
 
