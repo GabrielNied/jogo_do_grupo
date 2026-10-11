@@ -55,7 +55,16 @@ public sealed class ServicoDeAtaques : IHostedService, IDisposable
 
     public Task StopAsync(CancellationToken cancelamento)
     {
-        _parada.Cancel();
+        try
+        {
+            _parada.Cancel();
+        }
+        catch (ObjectDisposedException)
+        {
+            // O host pode parar de novo depois de já ter descartado o serviço (ex.: o servidor
+            // parado à mão e depois descartado); parar duas vezes não é erro.
+        }
+
         return Task.CompletedTask;
     }
 

@@ -7,7 +7,7 @@ using JogoDoGrupo.Shared.Features.Social;
 namespace JogoDoGrupo.Server.Tests.Features.Social;
 
 /// <summary>Diretório de mentira: os personagens que o teste cadastrar.</summary>
-public sealed class DiretorioFalso : IDiretorioDePersonagens
+public sealed class DiretorioDoChatFalso : IDiretorioDePersonagens
 {
     private readonly Dictionary<long, string> _nomes = [];
 
@@ -65,7 +65,7 @@ public class ChatDoServidorTestes
     private const long Caio = 3;
 
     private readonly RelogioFalso _relogio = new();
-    private readonly DiretorioFalso _diretorio = new();
+    private readonly DiretorioDoChatFalso _diretorio = new();
     private readonly PosicoesFalsas _posicoes = new();
     private readonly HashSet<long> _online = [Ana, Bia, Caio];
     private readonly ChatDoServidor _chat;
