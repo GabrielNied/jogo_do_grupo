@@ -3,22 +3,31 @@ name: Client (Unity)
 # Compila o client e roda os testes EditMode num Unity de verdade (GameCI), para que quem não
 # tem Unity na máquina, como um agente na nuvem, não precise fazer isso localmente (ADR 0017).
 #
-# Só roda em PR que mexe no client ou no shared, para poupar os minutos do plano gratuito.
-# Por isso não é check obrigatório da main: com filtro de paths, um check obrigatório que não
-# roda deixa o PR travado (veja server.yml).
+# Leva uns 10 minutos, então não roda em cada PR (não atrasa ninguém nem gasta a cota à toa):
+# - depois do merge na main, se mexeu no client ou no shared. Merges seguidos cancelam a
+#   execução anterior, então um lote de merges gera uma execução só;
+# - num PR com a label "testar-unity", para validar antes do merge;
+# - à mão, em Actions > Client (Unity) > Run workflow.
+# Se falhar na main, abre uma pendência "pendente-unity" para o próximo agente com Unity.
+# Não é check obrigatório.
 #
 # Precisa dos secrets UNITY_LICENSE, UNITY_EMAIL e UNITY_PASSWORD (licença Personal).
 # Sem eles, o job só avisa e passa.
 on:
-  pull_request:
+  push:
+    branches: [main]
     paths:
       - "client/**"
       - "shared/Package/**"
       - ".github/workflows/client.yml"
+  pull_request:
+    types: [labeled, synchronize]
+  workflow_dispatch:
 
 permissions:
   contents: read
   checks: write
+  issues: write
 
 concurrency:
   group: client-unity-${{ github.ref }}
@@ -26,6 +35,7 @@ concurrency:
 
 jobs:
   testes:
+    if: github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'testar-unity')
     runs-on: ubuntu-latest
     timeout-minutes: 45
     env:
@@ -80,3 +90,20 @@ jobs:
         with:
           name: resultados-unity
           path: artifacts
+
+      # Quebrou na main: vira pendência para o próximo agente com Unity (ADR 0017).
+      - name: Abre pendência de Unity
+        if: failure() && github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          LINK: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh api -X POST "repos/${{ github.repository }}/issues" \
+            -f title="[Unity] Client falhou na main (${GITHUB_SHA::7})" \
+            -f labels[]=pendente-unity \
+            -f body="O workflow Client (Unity) falhou depois do merge do commit ${GITHUB_SHA}: $LINK
+
+          **Falta:**
+          - [ ] Ver o log, corrigir a compilação ou os testes EditMode e confirmar com \`npm run unity:compilar\` e \`npm run unity:testes\`.
+
+          Puxe com \`npm run tarefa -- puxar <este número>\` (cria uma branch nova a partir da main)."

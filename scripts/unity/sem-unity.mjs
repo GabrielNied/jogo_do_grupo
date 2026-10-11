@@ -2,7 +2,8 @@
 //
 // Compilar e testar o client sem Unity é impossível, e tentar de novo só gasta rodada de
 // agente. Então o comando sai 0 com um aviso claro, e quem confere é o CI: o workflow
-// "Client (Unity)" compila e roda os testes EditMode em todo PR que mexe em client/ ou shared/.
+// "Client (Unity)" compila e roda os testes EditMode depois do merge na main, e o que só o
+// Unity faz vira pendência (npm run tarefa -- pendencia-unity).
 //
 // UNITY_OBRIGATORIO=1 faz o comando falhar (sai 2) em vez de pular.
 
@@ -23,7 +24,7 @@ export function pularSemUnity(acao, motivo) {
     process.exit(2);
   }
   console.log(`⏭ ${acao} pulado: ${motivo}`);
-  console.log('  Não tente de novo nem contorne. O CI ("Client (Unity)") compila e testa o client no PR.');
+  console.log('  Não tente de novo nem contorne. O CI ("Client (Unity)") compila e testa depois do merge.');
   console.log("  .meta de script, pasta, .asmdef e estilo saem sem Unity: npm run unity:meta");
   console.log('  O que só o Unity faz vira pendência: npm run tarefa -- pendencia-unity <pr> --falta "..."');
   process.exit(0);
