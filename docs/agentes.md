@@ -19,6 +19,7 @@ A organização por funcionalidade ([arquitetura.md](arquitetura.md)) é o que t
 | `artista-personagens` | `Features/Personagem/`, `ThirdParty/`, `docs/arte/` | Modelos, animações, Animator, prefabs por raça, encaixes | `feature/personagem/<descricao>-arte` | Sonnet |
 | `artista-itens` | `Features/Itens/`, `ThirdParty/`, `docs/arte/` | Modelos de armas e equipamentos, ícones, encaixe | `feature/itens/<descricao>-arte` | Sonnet |
 | `itens` | `Features/Itens/` no shared, no servidor e no client, mais `docs/features/itens.md` | Inventário, baú, equipamentos e loot. A arte 3D continua com o `artista-itens` | `feature/itens/<descricao>-contrato`, `-server` ou `-client` | Sonnet (Opus se a regra decidir drop, preço ou fusão de verdade) |
+| `economia` | `Features/Economia/` no shared, no servidor e no client, mais `docs/features/economia.md` | Coroas, loja de NPC, mercado, baú de grupo, taxas e saídas de moeda; mantém o fluxo de moeda coerente. Balanceamento de combate não é dele | `feature/economia/<descricao>-contrato`, `-server` ou `-client` | Sonnet (Opus se a regra decidir preço, taxa ou troca de verdade) |
 | `revisor` | Nenhuma (somente leitura) | Só PRs de risco: Core, segurança, concorrência, contrato ou regra que decide resultado (dano, drop, fusão, preço). O resto fica com o CI e a verificação do autor | — | Sonnet (Opus só nesses PRs de risco) |
 
 As definições completas (regras de cada papel, passo a passo e formato do relatório) estão em [.claude/agents/](../.claude/agents/). São arquivos markdown que **qualquer IA consegue ler**.
