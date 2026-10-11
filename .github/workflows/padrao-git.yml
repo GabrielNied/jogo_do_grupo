@@ -18,6 +18,7 @@ jobs:
   padrao-git:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
         with:
@@ -48,6 +49,7 @@ jobs:
   main-via-pr:
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - name: Todo commit novo na main veio de um PR?
         env:

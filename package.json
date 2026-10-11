@@ -17,7 +17,8 @@
     "unity:meta": "node scripts/unity/gerar-meta.mjs",
     "testar-scripts": "node --test \"scripts/**/*.test.mjs\"",
     "conferir-unity": "node scripts/git/conferir-arquivos-unity.mjs",
-    "tarefa": "node scripts/git/tarefas.mjs"
+    "tarefa": "node scripts/git/tarefas.mjs",
+    "limpar-agentes": "node scripts/git/limpar-agentes.mjs"
   },
   "engines": {
     "node": ">=20"
