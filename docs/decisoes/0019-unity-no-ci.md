@@ -19,6 +19,7 @@ Toda verificação do client dependia do Unity instalado na máquina de quem fez
 
 - Agentes de código (`client-*`, `shared-contratos`, `regras-do-jogo`) podem trabalhar inteiros na nuvem. O Unity local fica para os artistas e para o teste visual de uma pessoa.
 - Cada execução gasta de 10 a 15 minutos de Actions (o plano gratuito de repo privado tem 2.000 por mês). Rodando por lote de merges, e não por PR, isso fica longe do limite.
+- Os arquivos LFS (modelos e texturas) ficam no cache do Actions, que é grátis, e só os que mudaram são baixados. Assim, a cota de banda do LFS (1 GB/mês) só é gasta quando entra arte nova, não a cada execução. Não troque por `lfs: true` no checkout, que baixaria tudo toda vez.
 - Um erro de compilação do client pode chegar à `main` e só aparecer na execução depois do merge. Ele vira pendência e é corrigido em seguida. Quem quiser a garantia antes do merge usa a label `testar-unity`.
 - A licença Personal fica num secret do repositório. Se a senha da conta mudar ou a licença expirar, o job falha até alguém atualizar o secret. Só uma pessoa faz isso, numa máquina com Unity e acesso de admin ao repo. Os outros devs não precisam fazer nada:
   1. Unity Hub > Preferences > Licenses > **Add** > **Get a free personal license** (gera `C:\ProgramData\Unity\Unity_lic.ulf`; o `UnityEntitlementLicense.xml` não serve).
