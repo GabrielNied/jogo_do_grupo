@@ -46,6 +46,10 @@ Mostre à pessoa uma tabela e **espere o ok** antes de lançar qualquer agente:
 A etapa 3 só entra no plano quando o PR mexe em Core, segurança ou numa regra de dano, preço ou fusão que a doc ainda não fechou. ~~concorrência, contrato ou regra que decide resultado (dano, drop, fusão, preço)~~ substituído em 2026-10-11 por: recorte com os números já no contrato e com teste no próprio PR (mesmo um baú que sorteia item, mesmo corrida coberta por teste) não leva revisor. Arte, tela, conteúdo 3D e ligar um botão também não. O CI e a verificação do autor são a qualidade mínima.
 
 **Economize agentes:** a regra 16 do `AGENTS.md` manda implementar o corte na hora, não só relatar.
+- **Tarefa pequena (até ~50 linhas: constantes, contrato curto, doc curta, config, um teste) você faz direto, sem agente, sem ficha e sem tabela de aprovação.** Cada agente custa 50–80 mil tokens fixos só para ler o contexto; isso supera o custo da própria mudança.
+- **Agrupe:** várias tarefas pequenas da mesma área vão num agente só, num prompt só, num PR só (se o escopo de commit for o mesmo).
+- **Sessão do coordenador curta:** o contexto da conversa pesa mais que os agentes. Ao fechar uma rodada ou um marco, sugira `/clear` à pessoa em uma linha, deixando o estado na issue ou no PR.
+- **Prompt do agente enxuto:** passe a ficha e os caminhos dos arquivos; não cole docs inteiras.
 - Tarefa pequena e clara não precisa de `designer-docs`: as regras vão na ficha.
 - Mudanças de docs, `.meta` e configuração você faz direto, sem agente e sem revisor.
 - Os `.meta` e os materiais que o Unity gerar entram no mesmo PR. Quem abre o PR roda `npm run conferir-unity`. Não peça para a pessoa commitar isso depois do merge.
