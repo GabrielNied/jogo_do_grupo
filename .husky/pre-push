@@ -1,9 +1,18 @@
 # Bloqueia push direto na main e branches fora do padrão (regras em scripts/git/validar-branch.mjs).
+# A entrada (refs do push) é guardada para também ser repassada ao Git LFS no fim.
+entrada=$(cat)
 zero=0000000000000000000000000000000000000000
-while read -r local_ref local_sha remote_ref remote_sha; do
+printf '%s\n' "$entrada" | while read -r local_ref local_sha remote_ref remote_sha; do
+  [ -z "$local_ref" ] && continue
   # Apagar uma branch remota não precisa de validação.
   [ "$local_sha" = "$zero" ] && continue
   case "$remote_ref" in
     refs/heads/*) node scripts/git/validar-branch.mjs "${remote_ref#refs/heads/}" || exit 1 ;;
   esac
-done
+done || exit 1
+
+# Git LFS: o core.hooksPath aponta para o husky, então o hook do LFS só roda se for chamado
+# daqui. Sem isto, modelos e texturas nunca sobem para o GitHub (só o ponteiro).
+if [ -n "$entrada" ] && command -v git-lfs >/dev/null 2>&1; then
+  printf '%s\n' "$entrada" | git lfs pre-push "$@" || exit 1
+fi
