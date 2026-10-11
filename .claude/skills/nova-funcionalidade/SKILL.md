@@ -67,12 +67,21 @@ Em `client/Assets/_Game/Features/<X>/`:
 - `.github/CODEOWNERS`: novo bloco comentado no mesmo formato dos outros (client, server, shared, doc).
 - `commitlint.config.mjs`: adicione `"<x>"` (a pasta em minúsculas) na lista `escopos`. Sem isso, commits e branches da funcionalidade são recusados.
 
-### 5. Conferir
+### 5. Testes
+
+Crie as pastas de teste da funcionalidade, para quem implementar já saber onde escrever:
+
+- `tests/JogoDoGrupo.Shared.Tests/Features/<X>/` (regras do shared)
+- `tests/JogoDoGrupo.Server.Tests/Features/<X>/` (rotas e lógica do servidor)
+
+Cada uma com um primeiro teste simples, por exemplo a faixa de IDs: `Assert.Equal(<INICIO>, <X>MessageIds.Faixa.Inicio)`. Daí em diante, todo PR da funcionalidade traz os testes do que mudou ([docs/convencoes.md](../../../docs/convencoes.md#testes)).
+
+### 6. Conferir
 
 ```
-dotnet build JogoDoGrupo.slnx
 dotnet csharpier format .
-dotnet csharpier check .
+dotnet test JogoDoGrupo.slnx
+npm run unity:compilar
 ```
 
 O build deve terminar sem avisos. Ao rodar o servidor, o novo módulo aparece como `[ok] <X>`.

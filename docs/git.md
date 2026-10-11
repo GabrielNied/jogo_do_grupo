@@ -110,7 +110,8 @@ Os commits dentro da branch podem ser pequenos e frequentes. Como o merge é por
 - Um PR = uma funcionalidade. Se precisar mexer em duas, separe em dois PRs.
 - Preencha o [template](../.github/pull_request_template.md).
 - **Combinado do grupo** para fazer o merge (o GitHub não bloqueia; cada um respeita):
-  - checks verdes: `csharpier`, `build` e `padrao-git`;
+  - checks verdes: `csharpier`, `build` (que também roda os testes) e `padrao-git`;
+  - testes do que mudou, no próprio PR (PR de código sem teste não entra);
   - 1 aprovação de outra pessoa, incluindo o responsável pela pasta (veja [docs/responsaveis.md](responsaveis.md));
   - todas as conversas do review resolvidas;
   - branch atualizada com a `main` (botão "Update branch" no PR);

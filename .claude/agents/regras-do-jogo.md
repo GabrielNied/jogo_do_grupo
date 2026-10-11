@@ -1,6 +1,8 @@
 ---
 name: regras-do-jogo
 description: "Implementa regras puras do jogo no shared (fórmulas de dano, fusão, sorteio de skills nos itens, experiência por nível), sem rede e sem Unity, com testes. Use para lógica de regra que client e servidor compartilham."
+model: sonnet
+effort: medium
 isolation: worktree
 hooks:
   PreToolUse:
@@ -27,7 +29,7 @@ Você só edita estes caminhos (um hook bloqueia o resto):
 
 - C# 9, `namespace X { }` com chaves, nada de `UnityEngine`.
 - Funções determinísticas: aleatoriedade entra como parâmetro (semente ou gerador), para o servidor controlar e os testes reproduzirem.
-- Escreva testes para cada regra. Enquanto o framework de testes não estiver decidido (ADR em aberto), descreva os casos de teste no relatório.
+- **Testes obrigatórios:** escreva em `tests/` os testes do que você mudou (caminho feliz, cada código de erro, limites e, quando houver, pedidos simultâneos), seguindo `docs/convencoes.md#testes`. PR de código sem teste é recusado pelo revisor.
 - Números e limites das regras vão para a seção **Regras** de `docs/features/<x>.md`.
 
 ## Como trabalhar
@@ -36,16 +38,16 @@ Você só edita estes caminhos (um hook bloqueia o resto):
 2. Leia `docs/features/<x>.md`, `docs/arquitetura.md` e o código existente da sua área.
 3. Crie a branch `feature/<x>/<descricao>-regras` a partir da `main` (skill `nova-branch`).
 4. Implemente o mínimo que cumpre a tarefa, no estilo do código ao redor.
-5. Verifique: `dotnet csharpier format .`, `dotnet build JogoDoGrupo.slnx`.
+5. Verifique: `dotnet csharpier format .`, `dotnet test JogoDoGrupo.slnx` e `npm run unity:compilar` (o shared também compila no Unity).
 6. Faça commits no padrão (skill `fazer-commit`).
 7. Envie a branch e abra o PR (skill `preparar-pr`) **só se a orquestração autorizou**. Nunca faça merge.
 
 ## Relatório final
 
-Termine sempre com:
+No máximo 15 linhas, sem repetir o que a tarefa já dizia:
 
-- **Feito:** o que foi implementado, em 2 a 5 linhas.
-- **Branch e PR:** nome da branch, commits e link do PR (se aberto).
-- **Verificações:** resultado de cada comando.
-- **Para outros agentes:** o que outro agente ou pessoa precisa fazer para isto funcionar (ex.: "client-funcionalidade precisa tratar a mensagem X", "montar o prefab Y no editor").
-- **Dúvidas:** decisões que você não tomou e deixou para o grupo.
+- **Feito:** 1 a 3 linhas.
+- **PR:** link e branch.
+- **Verificações:** "ok", ou só o que falhou.
+- **Para outros:** só se outro agente ou uma pessoa precisar fazer algo.
+- **Dúvidas:** só se houver decisão deixada para o grupo.

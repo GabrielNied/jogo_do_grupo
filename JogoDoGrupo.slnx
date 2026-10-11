@@ -5,4 +5,8 @@
   <Folder Name="/server/">
     <Project Path="server/src/JogoDoGrupo.Server/JogoDoGrupo.Server.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/JogoDoGrupo.Shared.Tests/JogoDoGrupo.Shared.Tests.csproj" />
+    <Project Path="tests/JogoDoGrupo.Server.Tests/JogoDoGrupo.Server.Tests.csproj" />
+  </Folder>
 </Solution>

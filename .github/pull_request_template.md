@@ -19,6 +19,7 @@
 - [ ] Atualizei `docs/features/` se mudei alguma regra do jogo
 - [ ] Usei IDs de mensagem dentro da faixa da minha funcionalidade
 - [ ] Rodei `dotnet csharpier format .`
+- [ ] Escrevi ou atualizei testes e rodei `dotnet test` (código de client: `npm run unity:compilar`)
 - [ ] Testei localmente (servidor compila / cliente abre sem erros)
 
 ## Como testar

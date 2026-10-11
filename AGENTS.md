@@ -22,12 +22,14 @@ dotnet build JogoDoGrupo.slnx        # compila server e shared
 dotnet run --project server/src/JogoDoGrupo.Server
 dotnet csharpier format .            # formata (rode antes de terminar qualquer mudança em C#)
 dotnet csharpier check .             # o que o CI confere
+dotnet test JogoDoGrupo.slnx         # todos os testes (o CI também roda)
+npm run unity:compilar               # compila o client contra as DLLs do Unity
 npm run validar-branch -- <branch>   # confere nome de branch
 printf '%s
 ' "<msg>" | npx --no -- commitlint   # confere mensagem de commit
 ```
 
-Ainda não há testes automatizados. O cliente Unity não compila pela linha de comando.
+Testes em `tests/` (xUnit; [ADR 0013](docs/decisoes/0013-testes-automatizados.md), guia em [docs/convencoes.md](docs/convencoes.md#testes)). O editor do Unity não roda pela linha de comando, mas `npm run unity:compilar` confere se o client compila.
 
 ## Regras que você deve seguir
 
@@ -46,9 +48,17 @@ Ainda não há testes automatizados. O cliente Unity não compila pela linha de 
 7. **Nomes de domínio em português sem acento** (`Itens`, `Fusao`, `Profissoes`); termos técnicos em inglês são ok (`Module`, `Handler`). Campos privados `_camelCase`. Detalhes em [docs/convencoes.md](docs/convencoes.md).
 8. **Formatação é do CSharpier.** Não ajuste estilo à mão nem discuta formatação; rode `dotnet csharpier format .`.
 9. **Unity:** não edite cenas (`.unity`) nem `ProjectSettings/` sem pedido explícito. Prefira prefabs. Não crie nem apague `.meta` à mão.
-10. **Mudou regra do jogo?** Atualize `docs/features/<x>.md` na mesma mudança. **Decisão técnica?** Crie um ADR.
-11. **Git:** nunca commite nem dê push na `main`; trabalhe numa branch `<tipo>/<escopo>/<descricao>`. Commits e títulos de PR no padrão `<tipo>(<escopo>): <descrição em português, minúscula>`, validados pelo commitlint (tipos e escopos em `commitlint.config.mjs`). Nunca use `--no-verify`. Só faça commit ou push quando a pessoa pedir (pedir uma orquestração de agentes conta como pedido para as branches dos agentes; merge é sempre humano). Detalhes em [docs/git.md](docs/git.md).
-12. Cada informação mora em um documento só (tabela em [docs/README.md](docs/README.md#onde-cada-coisa-fica-fonte-única)). Não copie conteúdo entre docs; aponte com link.
+10. **Todo PR de código traz testes** do que mudou (caminho feliz, erros, limites, concorrência quando houver). Rode `dotnet test` antes de terminar; mexeu no client, rode `npm run unity:compilar`.
+11. **Mudou regra do jogo?** Atualize `docs/features/<x>.md` na mesma mudança. **Decisão técnica?** Crie um ADR.
+12. **Git:** nunca commite nem dê push na `main`; trabalhe numa branch `<tipo>/<escopo>/<descricao>`. Commits e títulos de PR no padrão `<tipo>(<escopo>): <descrição em português, minúscula>`, validados pelo commitlint (tipos e escopos em `commitlint.config.mjs`). Nunca use `--no-verify`. Só faça commit ou push quando a pessoa pedir (pedir uma orquestração de agentes conta como pedido para as branches dos agentes; merge é sempre humano). Detalhes em [docs/git.md](docs/git.md).
+13. **Economize IA sem perder qualidade.** Qualidade vem primeiro; economize no que não a afeta:
+    - Leia só o que a tarefa precisa (AGENTS.md, a doc da funcionalidade, o código que vai mudar); não varra o repo inteiro.
+    - Verifique por comando (`dotnet test`, `npm run unity:compilar`, CSharpier), não à mão: nada de subir servidor, `curl` ou projetos temporários se um teste resolve. Se faltar teste, escreva o teste em vez de testar à mão.
+    - Não repita o que o CI já confere, nem reverifique o que já passou.
+    - Dúvida de regra ou contrato: pergunte antes de implementar, para não refazer.
+    - Respostas e relatórios curtos: o que mudou, links e pendências. Nada de repetir o pedido ou listar verificações que passaram.
+    - Reaproveite padrões e ajudantes que já existem (ex.: `ServidorDeTeste`) em vez de criar outros.
+14. Cada informação mora em um documento só (tabela em [docs/README.md](docs/README.md#onde-cada-coisa-fica-fonte-única)). Não copie conteúdo entre docs; aponte com link.
 
 ## Procedimentos (skills)
 

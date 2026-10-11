@@ -14,7 +14,19 @@ Você é o **coordenador**: não implementa; planeja, lança os agentes e junta 
 - A regra de design está clara o bastante para implementar? Se não, a primeira etapa é o `designer-docs`, ou perguntar ao grupo.
 - A tarefa depende do Core (rede, sessões, despacho de mensagens) que ainda não existe? Então a etapa é `server-core` ou `client-core`, não a funcionalidade.
 
-## 2. Montar o plano e pedir aprovação
+## 2. Ficha da tarefa (antes de qualquer agente)
+
+Quase todo retrabalho vem de decisão tomada tarde. Antes de lançar agentes, escreva na issue (ou numa issue nova) uma **ficha** curta e peça a aprovação da pessoa uma vez:
+
+- **Objetivo:** o que funciona ao final, em 2–3 linhas.
+- **Contrato:** rotas/mensagens, DTOs com campos e tipos, códigos de erro e status (em que arquivo e pasta cada um fica).
+- **Regras:** números, limites e quem decide (servidor).
+- **Testes esperados:** lista dos casos (caminho feliz, cada erro, limites, concorrência).
+- **Fora do escopo** e **dúvidas em aberto**: o que precisa de decisão do grupo antes de começar.
+
+Com a ficha aprovada, os prompts dos agentes saem dela, e o revisor compara o PR com ela.
+
+## 3. Montar o plano e pedir aprovação
 
 Mostre à pessoa uma tabela e **espere o ok** antes de lançar qualquer agente:
 
@@ -27,11 +39,18 @@ Mostre à pessoa uma tabela e **espere o ok** antes de lançar qualquer agente:
 
 Pergunte junto: os agentes podem commitar, enviar as branches e abrir PRs? (Merge é sempre humano.)
 
-## 3. Contrato primeiro
+**Economize agentes:**
+- Tarefa pequena e clara não precisa de `designer-docs`: as regras vão na ficha.
+- Mudanças de docs, `.meta` e configuração você faz direto, sem agente e sem revisor.
+- Os `.meta` do Unity entram no próprio PR do client: peça à pessoa para abrir o editor antes do merge.
+
+**Modelo por tarefa:** cada agente já tem `model` e `effort` no próprio arquivo (Opus em `server-core` e `client-core`; Sonnet nos demais; `designer-docs` com effort baixo). Ao lançar, suba para `opus` (parâmetro `model` da chamada) quando a tarefa de funcionalidade envolver segurança, concorrência, dinheiro ou itens do jogo, ou uma regra difícil; mantenha o padrão no resto.
+
+## 4. Contrato primeiro
 
 Se há contrato, lance o `shared-contratos` sozinho. Quando o PR dele estiver aberto, peça à pessoa para revisar e fazer o merge. Os agentes seguintes rodam em worktrees que partem da `main`, então **só lance a próxima etapa depois do merge**.
 
-## 4. Etapas em paralelo
+## 5. Etapas em paralelo
 
 Lance os agentes independentes **na mesma mensagem, em segundo plano**, um por subtarefa. Cada prompt precisa ser completo, porque o agente não vê esta conversa:
 
@@ -40,21 +59,22 @@ Funcionalidade: <X> (pasta Features/<X>/, escopo de commit <x>)
 Objetivo: <o que deve funcionar ao final, em 2–4 linhas>
 Contrato: <arquivos e IDs do shared já na main, ou "não se aplica">
 Regras de design: docs/features/<x>.md, seções <...>
+Ficha: issue #<N> (contrato, regras e testes esperados)
 Issue: #<N> (coloque "Closes #<N>" na descrição do PR)
 Fora do escopo: <o que NÃO fazer>
-Pronto quando: <critérios verificáveis>
+Pronto quando: <critérios verificáveis> + testes da ficha passando em `dotnet test`
 Autorização: pode commitar, enviar a branch e abrir PR. Não faça merge.
 ```
 
 Nunca lance dois agentes na mesma área ao mesmo tempo (ex.: dois `server-funcionalidade` na mesma funcionalidade).
 
-## 5. Juntar os resultados
+## 6. Juntar os resultados
 
 Para cada relatório:
 
 - **"Para outros agentes"** vira uma nova subtarefa (outra rodada) ou um item para a pessoa (montar no Unity, decidir algo).
 - **Dúvidas** vão para a pessoa; não decida regras de design por conta própria.
-- Lance o `revisor` para cada PR aberto.
+- Lance o `revisor` só para PRs de **código**, numa passada só. Suba o revisor para `opus` em PRs de Core, segurança, concorrência ou contrato.
 - Achados do revisor que valem a pena viram **commits novos na mesma branch**, feitos pelo agente que abriu o PR (retome-o com a mensagem dos ajustes).
 
 ### Quando pedir o merge
@@ -63,7 +83,7 @@ Só diga à pessoa que um PR está **pronto para merge** depois que: os checks p
 
 Se um PR for mergeado antes dos ajustes, **não envie mais nada para a branch dele** (ela foi apagada no merge e o push a recriaria). Crie uma branch nova a partir da `origin/main`, traga os commits com `git cherry-pick` e abra um PR novo.
 
-## 6. Resumo final para a pessoa
+## 7. Resumo final para a pessoa
 
 - PRs abertos, com links, e o veredito do revisor de cada um.
 - O que montar no editor do Unity e como testar.

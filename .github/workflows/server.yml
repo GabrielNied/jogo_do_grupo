@@ -1,4 +1,4 @@
-name: Server e Shared
+name: Server, Shared e testes
 
 # Sem filtro de paths: "build" é um check obrigatório da main, e um check
 # obrigatório que não roda deixa o PR travado esperando para sempre.
@@ -18,3 +18,5 @@ jobs:
         with:
           dotnet-version: "10.0.x"
       - run: dotnet build JogoDoGrupo.slnx -c Release
+      - name: Testes
+        run: dotnet test JogoDoGrupo.slnx -c Release --no-build

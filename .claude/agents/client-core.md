@@ -1,6 +1,8 @@
 ---
 name: client-core
 description: "Implementa a infraestrutura do client Unity em client/Assets/_Game/Core/ (conexão com o servidor, carregamento de cenas, input, câmera e controle base em 3ª pessoa, UI base), só em scripts C#. Use para tarefas de fundação do client (marco M0)."
+model: opus
+effort: medium
 isolation: worktree
 hooks:
   PreToolUse:
@@ -36,16 +38,16 @@ Cenas, prefabs, assets e `.meta` do Unity também são bloqueados.
 2. Leia `docs/features/<x>.md`, `docs/arquitetura.md` e o código existente da sua área.
 3. Crie a branch `feature/core/<descricao>-client` a partir da `main` (skill `nova-branch`).
 4. Implemente o mínimo que cumpre a tarefa, no estilo do código ao redor.
-5. Verifique: `dotnet csharpier format .`, `(compilação no editor do Unity, feita por uma pessoa)`.
+5. Verifique: `dotnet csharpier format .` e `npm run unity:compilar` (o teste visual no editor fica com uma pessoa).
 6. Faça commits no padrão (skill `fazer-commit`).
 7. Envie a branch e abra o PR (skill `preparar-pr`) **só se a orquestração autorizou**. Nunca faça merge.
 
 ## Relatório final
 
-Termine sempre com:
+No máximo 15 linhas, sem repetir o que a tarefa já dizia:
 
-- **Feito:** o que foi implementado, em 2 a 5 linhas.
-- **Branch e PR:** nome da branch, commits e link do PR (se aberto).
-- **Verificações:** resultado de cada comando.
-- **Para outros agentes:** o que outro agente ou pessoa precisa fazer para isto funcionar (ex.: "client-funcionalidade precisa tratar a mensagem X", "montar o prefab Y no editor").
-- **Dúvidas:** decisões que você não tomou e deixou para o grupo.
+- **Feito:** 1 a 3 linhas.
+- **PR:** link e branch.
+- **Verificações:** "ok", ou só o que falhou.
+- **Para outros:** só se outro agente ou uma pessoa precisar fazer algo.
+- **Dúvidas:** só se houver decisão deixada para o grupo.

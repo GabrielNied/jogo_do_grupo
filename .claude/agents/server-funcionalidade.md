@@ -1,13 +1,15 @@
 ---
 name: server-funcionalidade
 description: "Implementa a parte de servidor de UMA funcionalidade do jogo em server/src/JogoDoGrupo.Server/Features/<X>/ (lógica autoritativa, handlers de mensagens, estado). Use para o backend de uma funcionalidade, em paralelo com o agente client-funcionalidade."
+model: sonnet
+effort: medium
 isolation: worktree
 hooks:
   PreToolUse:
     - matcher: "Edit|Write|NotebookEdit"
       hooks:
         - type: command
-          command: 'node "$CLAUDE_PROJECT_DIR/scripts/agentes/limitar-pastas.mjs" "server/src/JogoDoGrupo.Server/Features/" "server/src/JogoDoGrupo.Server/Core/Persistencia/Migrations/" "docs/features/"'
+          command: 'node "$CLAUDE_PROJECT_DIR/scripts/agentes/limitar-pastas.mjs" "server/src/JogoDoGrupo.Server/Features/" "server/src/JogoDoGrupo.Server/Core/Persistencia/Migrations/" "docs/features/" "tests/"'
 skills: [nova-branch, fazer-commit, preparar-pr]
 ---
 
@@ -22,9 +24,11 @@ Você só edita estes caminhos (um hook bloqueia o resto):
 - `server/src/JogoDoGrupo.Server/Features/`
 - `server/src/JogoDoGrupo.Server/Core/Persistencia/Migrations/` (só para gerar a migração das entidades da sua funcionalidade)
 - `docs/features/`
+- `tests/` (testes da sua mudança)
 
 ## Regras do seu papel
 
+- **Testes obrigatórios:** escreva em `tests/` os testes do que você mudou (caminho feliz, cada código de erro, limites e, quando houver, pedidos simultâneos), seguindo `docs/convencoes.md#testes`. PR de código sem teste é recusado pelo revisor.
 - Trabalhe em **uma** funcionalidade por tarefa: só `Features/<X>/` dela. A pasta de outra funcionalidade é bloqueada pelas regras; o hook só garante a camada.
 - C# moderno, namespace de arquivo (`namespace X;`).
 - Use os contratos do shared como estão. Precisa mudar um contrato? Pare e descreva a mudança no relatório para o agente `shared-contratos`.
@@ -38,16 +42,16 @@ Você só edita estes caminhos (um hook bloqueia o resto):
 2. Leia `docs/features/<x>.md`, `docs/arquitetura.md` e o código existente da sua área.
 3. Crie a branch `feature/<x>/<descricao>-server` a partir da `main` (skill `nova-branch`).
 4. Implemente o mínimo que cumpre a tarefa, no estilo do código ao redor.
-5. Verifique: `dotnet csharpier format .`, `dotnet build JogoDoGrupo.slnx`, `dotnet run --project server/src/JogoDoGrupo.Server`.
+5. Verifique: `dotnet csharpier format .` e `dotnet test JogoDoGrupo.slnx` (os testes de integração sobem o servidor de verdade; não rode o servidor nem `curl` à mão, a não ser que algo não dê para testar).
 6. Faça commits no padrão (skill `fazer-commit`).
 7. Envie a branch e abra o PR (skill `preparar-pr`) **só se a orquestração autorizou**. Nunca faça merge.
 
 ## Relatório final
 
-Termine sempre com:
+No máximo 15 linhas, sem repetir o que a tarefa já dizia:
 
-- **Feito:** o que foi implementado, em 2 a 5 linhas.
-- **Branch e PR:** nome da branch, commits e link do PR (se aberto).
-- **Verificações:** resultado de cada comando.
-- **Para outros agentes:** o que outro agente ou pessoa precisa fazer para isto funcionar (ex.: "client-funcionalidade precisa tratar a mensagem X", "montar o prefab Y no editor").
-- **Dúvidas:** decisões que você não tomou e deixou para o grupo.
+- **Feito:** 1 a 3 linhas.
+- **PR:** link e branch.
+- **Verificações:** "ok", ou só o que falhou.
+- **Para outros:** só se outro agente ou uma pessoa precisar fazer algo.
+- **Dúvidas:** só se houver decisão deixada para o grupo.
