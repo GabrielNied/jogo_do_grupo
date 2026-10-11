@@ -152,7 +152,11 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
         {
             var meioDoDia = (RegrasDiaENoite.FimDaNoite + RegrasDiaENoite.InicioDaNoite) / 2f;
 
-            Assert.AreEqual(ConfigIluminacao.AlturaDoSol, CicloVisual.AlturaDaLuz(meioDoDia), 1e-3f);
+            Assert.AreEqual(
+                ConfigIluminacao.AlturaDoSol,
+                CicloVisual.AlturaDaLuz(meioDoDia),
+                1e-3f
+            );
             Assert.AreEqual(
                 Mathf.Repeat(ConfigIluminacao.GiroDoSol, 360f),
                 CicloVisual.GiroDaLuz(meioDoDia),
@@ -171,7 +175,11 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
                 Assert.LessOrEqual(altura, 90f, $"{h}h");
 
                 var giro = CicloVisual.GiroDaLuz(h);
-                Assert.Less(Mathf.Abs(Mathf.DeltaAngle(anterior, giro)), 5f, $"Giro pulou às {h}h.");
+                Assert.Less(
+                    Mathf.Abs(Mathf.DeltaAngle(anterior, giro)),
+                    5f,
+                    $"Giro pulou às {h}h."
+                );
                 anterior = giro;
             }
         }
@@ -196,7 +204,11 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
                         -0.99f,
                         $"{hora}h"
                     );
-                    Assert.Less(sol.transform.forward.y, 0f, $"A luz aponta para baixo às {hora}h.");
+                    Assert.Less(
+                        sol.transform.forward.y,
+                        0f,
+                        $"A luz aponta para baixo às {hora}h."
+                    );
                 }
             }
             finally

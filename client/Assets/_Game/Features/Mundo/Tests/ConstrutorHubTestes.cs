@@ -266,10 +266,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
                 Assert.IsNotNull(luz, $"Lanterna em {lanterna.position} sem luz.");
                 // Acende e apaga pela hora do mundo (#382); de dia, apagada.
                 Assert.IsNotNull(luz.GetComponent<DiaENoite.LuzDaLanterna>());
-                Assert.AreEqual(
-                    DiaENoite.LuzDaLanterna.Acesa(AmbienteDosBiomas.Hora),
-                    luz.enabled
-                );
+                Assert.AreEqual(DiaENoite.LuzDaLanterna.Acesa(AmbienteDosBiomas.Hora), luz.enabled);
                 Assert.AreEqual(LightType.Point, luz.type);
                 Assert.Greater(luz.range, 0f);
                 Assert.AreEqual(ConfigIluminacao.AlcanceDaLanterna, luz.range, 1e-4f);
