@@ -74,8 +74,7 @@ public sealed class CidadeDoMundo<TSessao>(Func<long> relogioMs)
                     sessao,
                     ValidadorDeMovimento.Nascimento,
                     relogioMs(),
-                    VelocidadesNaCidade.Padrao,
-                    null
+                    VelocidadesNaCidade.Padrao
                 )
                 : entrada! with
                 {
@@ -111,19 +110,30 @@ public sealed class CidadeDoMundo<TSessao>(Func<long> relogioMs)
             }
 
             var agora = relogioMs();
-            if (
-                !ValidadorDeMovimento.Permitido(
-                    entrada.Posicao,
-                    desejada,
-                    agora - entrada.UltimoMs,
-                    LimiteDeVelocidade(entrada)
-                )
-            )
+            var decorrido = agora - entrada.UltimoMs;
+            var janela = entrada.Janela is { } aberta && agora <= aberta.AteMs ? aberta : null;
+            var permitido =
+                janela != null
+                    ? ValidadorDeMovimento.PermitidoNaJanela(
+                        janela.Origem,
+                        entrada.Posicao,
+                        desejada,
+                        decorrido,
+                        janela.DistanciaMaxima,
+                        janela.Velocidade
+                    )
+                    : ValidadorDeMovimento.Permitido(
+                        entrada.Posicao,
+                        desejada,
+                        decorrido,
+                        LimiteDeVelocidade(entrada)
+                    );
+            if (!permitido)
             {
                 return (ResultadoMovimento.Recusado, Converter(personagemId, entrada));
             }
 
-            entrada = entrada with { Posicao = desejada, UltimoMs = agora };
+            entrada = entrada with { Posicao = desejada, UltimoMs = agora, Janela = janela };
             _avatares[personagemId] = entrada;
             return (ResultadoMovimento.Aceito, Converter(personagemId, entrada));
         }
@@ -196,6 +206,48 @@ public sealed class CidadeDoMundo<TSessao>(Func<long> relogioMs)
     }
 
     /// <summary>
+    /// Abre uma janela de deslocamento para o personagem (veja <c>IDeslocamentosDoMundo</c>): até
+    /// <paramref name="distanciaMetros"/> de onde ele está agora, em
+    /// <paramref name="duracaoSegundos"/>. Falso se ele não está na cidade ou se os números não
+    /// servem (zero, negativos ou não finitos).
+    /// </summary>
+    public bool AbrirJanela(long personagemId, double distanciaMetros, double duracaoSegundos)
+    {
+        if (
+            !double.IsFinite(distanciaMetros)
+            || !double.IsFinite(duracaoSegundos)
+            || distanciaMetros <= 0
+            || duracaoSegundos <= 0
+        )
+        {
+            return false;
+        }
+
+        lock (_trava)
+        {
+            if (!_avatares.TryGetValue(personagemId, out var entrada))
+            {
+                return false;
+            }
+
+            var ateMs =
+                relogioMs()
+                + (long)Math.Ceiling(duracaoSegundos * 1000.0)
+                + ValidadorDeMovimento.FolgaDaJanelaMs;
+            _avatares[personagemId] = entrada with
+            {
+                Janela = new JanelaDeDeslocamento(
+                    entrada.Posicao,
+                    ateMs,
+                    distanciaMetros,
+                    distanciaMetros / duracaoSegundos
+                ),
+            };
+            return true;
+        }
+    }
+
+    /// <summary>
     /// Tira o avatar. Falso se a sessão não estava na cidade (ou já foi substituída por outra
     /// do mesmo personagem).
     /// </summary>
@@ -250,6 +302,15 @@ public sealed class CidadeDoMundo<TSessao>(Func<long> relogioMs)
         PosicaoNaCidade Posicao,
         long UltimoMs,
         VelocidadesNaCidade Confirmadas,
-        VelocidadesNaCidade? Pendente
+        VelocidadesNaCidade? Pendente = null,
+        JanelaDeDeslocamento? Janela = null
+    );
+
+    // Onde o personagem estava quando a janela abriu, até quando ela vale e os limites dela.
+    private sealed record JanelaDeDeslocamento(
+        PosicaoNaCidade Origem,
+        long AteMs,
+        double DistanciaMaxima,
+        double Velocidade
     );
 }

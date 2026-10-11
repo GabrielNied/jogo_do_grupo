@@ -25,6 +25,7 @@ public sealed class MundoModule : IFeatureModule
     {
         _permitirVelocidadeDeTeste = configuracao.GetValue<bool>(ChavePermitirVelocidadeDeTeste);
         servicos.AddSingleton<IPosicoesDoMundo>(new PosicoesDaCidade(_cidade));
+        servicos.AddSingleton<IDeslocamentosDoMundo>(new DeslocamentosDaCidade(_cidade));
     }
 
     public void RegistrarMensagens(MensagensTempoReal mensagens) =>

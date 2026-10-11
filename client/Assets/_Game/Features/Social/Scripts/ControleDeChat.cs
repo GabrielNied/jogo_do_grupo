@@ -36,6 +36,7 @@ namespace JogoDoGrupo.Client.Features.Social
             _servico.Mudou += Redesenhar;
             _painel.EnterApertado += AoApertarEnter;
             _painel.EscApertado += AoApertarEsc;
+            BloqueioDeEntradaPorTexto.RegistrarBloqueioDeAtalhos(() => _painel.Aberta);
             Redesenhar();
         }
 

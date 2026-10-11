@@ -26,8 +26,8 @@ public sealed record ResultadoDoChat(
 /// <summary>
 /// Decide o chat de texto (regras em docs/features/social.md): quem falou, o que chega e a
 /// quem. Não conhece a rede: recebe o id de quem pediu (da sessão autenticada, nunca de um
-/// campo do client) e devolve o que entregar. O canal Grupo ainda responde
-/// <c>NaoEstaEmGrupo</c> para todos: ele entra quando o servidor do grupo existir.
+/// campo do client) e devolve o que entregar. Quem é o grupo de um personagem vem de quem
+/// chama (<c>grupoDe</c>), para o chat não depender de como os grupos são guardados.
 /// </summary>
 public sealed class ChatDoServidor(
     LimitesDoChat limites,
@@ -39,10 +39,14 @@ public sealed class ChatDoServidor(
     /// <param name="remetenteId">Personagem da sessão que mandou o pedido.</param>
     /// <param name="pedido">O que o client mandou.</param>
     /// <param name="estaOnline">Se um personagem tem sessão de tempo real agora.</param>
+    /// <param name="grupoDe">
+    /// A lista do grupo de um personagem (vazia se não tem grupo). Sem ela, ninguém tem grupo.
+    /// </param>
     public ResultadoDoChat Processar(
         long remetenteId,
         EnviarMensagemDeChat pedido,
-        Func<long, bool> estaOnline
+        Func<long, bool> estaOnline,
+        Func<long, ListaDoGrupo>? grupoDe = null
     )
     {
         if (!RegrasChat.CanalValido(pedido.Canal))
@@ -98,7 +102,18 @@ public sealed class ChatDoServidor(
                 break;
 
             default:
-                return ResultadoDoChat.Recusar(CodigosErroSocial.NaoEstaEmGrupo);
+                var membros = grupoDe?.Invoke(remetenteId).Membros ?? [];
+                if (membros.All(membro => membro.PersonagemId != remetenteId))
+                {
+                    return ResultadoDoChat.Recusar(CodigosErroSocial.NaoEstaEmGrupo);
+                }
+
+                // Membro offline com a vaga guardada não recebe o que foi dito enquanto estava fora.
+                destinatarios = membros
+                    .Where(membro => membro.Online || membro.PersonagemId == remetenteId)
+                    .Select(membro => membro.PersonagemId)
+                    .ToArray();
+                break;
         }
 
         limites.Registrar(remetenteId, pedido.Canal, limite.Texto);
