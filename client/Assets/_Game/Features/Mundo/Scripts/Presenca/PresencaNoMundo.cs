@@ -1,6 +1,8 @@
+using System.Collections.Generic;
 using JogoDoGrupo.Client.Core.Jogo;
 using JogoDoGrupo.Client.Core.Jogo.Controle;
 using JogoDoGrupo.Client.Core.TempoReal;
+using JogoDoGrupo.Client.Features.Mundo;
 using UnityEngine;
 
 namespace JogoDoGrupo.Client.Features.Mundo.Presenca
@@ -29,6 +31,14 @@ namespace JogoDoGrupo.Client.Features.Mundo.Presenca
         private bool _correcaoPendente;
         private Vector3 _posicaoCorrigida;
         private float _rotacaoCorrigida;
+
+        /// <summary>A presença da cena do mundo, ou <c>null</c> fora dela. O mapa lê os outros jogadores daqui.</summary>
+        public static PresencaNoMundo Atual { get; private set; }
+
+        private void OnEnable()
+        {
+            Atual = this;
+        }
 
         private void Update()
         {
@@ -75,6 +85,11 @@ namespace JogoDoGrupo.Client.Features.Mundo.Presenca
 
         private void OnDestroy()
         {
+            if (Atual == this)
+            {
+                Atual = null;
+            }
+
             LigarControle(null);
             _presenca?.Dispose();
             _presenca = null;
@@ -185,6 +200,32 @@ namespace JogoDoGrupo.Client.Features.Mundo.Presenca
             );
             raiz.transform.SetParent(transform, true);
             _visuais[avatar.PersonagemId] = raiz;
+        }
+
+        /// <summary>
+        /// Copia os outros jogadores da presença para o mapa. Todos estão na área da cidade:
+        /// é a única presença que o client recebe.
+        /// </summary>
+        public void CopiarOutros(List<MarcadorDoMapa> destino)
+        {
+            destino.Clear();
+            if (_presenca == null)
+            {
+                return;
+            }
+
+            foreach (var avatar in _presenca.Avatares.Todos)
+            {
+                destino.Add(
+                    new MarcadorDoMapa(
+                        avatar.Posicao.x,
+                        avatar.Posicao.z,
+                        avatar.RotacaoY,
+                        ProjecaoDoMapa.AreaDaCidade,
+                        false
+                    )
+                );
+            }
         }
 
         private void RemoverVisual(AvatarRemoto avatar)

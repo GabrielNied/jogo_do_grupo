@@ -159,38 +159,38 @@ Em `server/src/JogoDoGrupo.Server/Contratos/Mundo/` ([ADR 0016](../decisoes/0016
 
 Os eventos saem depois das mensagens de rede da mesma mudança (`EstadoDaCidade`, `JogadorEntrou`, `JogadorSaiu`).
 
-## Minimapa e mapa-múndi (propostas, issues #91 e #92)
+## Minimapa e mapa-múndi (issues #91 e #92)
 
-Tudo abaixo é **proposta** para o grupo validar; nada aqui é decisão ainda. Respeita o já decidido: a fatia tem **uma cidade e uma dungeon** ([fatia-jogavel.md](fatia-jogavel.md)), servidor autoritativo e presença na cidade (#77, mensagens 1000–1005 acima).
+~~Tudo abaixo é **proposta** para o grupo validar; nada aqui é decisão ainda.~~ Decidido em 2026-10-11, quando o mapa e o minimapa entraram no client. Norte fixo (não gira com a câmera), raio de 40 m, sem viagem rápida e sem mensagem nova do servidor. A dungeon desenhada no mapa espera a issue #66; até lá o mapa mostra o mundo de 3 km.
 
-**Base:** WoW e New World (minimapa no canto, mapa em tela cheia). **Igual:** minimapa circular/quadrado de cima; tecla M abre o mapa. **Diferente:** sem viagem rápida e sem névoa de exploração na fatia.
+**Base:** WoW e New World (minimapa no canto, mapa em tela cheia). **Igual:** minimapa circular de cima; tecla M abre o mapa. **Diferente:** sem viagem rápida e sem névoa de exploração na fatia.
 
 ### Minimapa
 
-- Fica no canto superior direito, visto de cima, centrado no jogador, com raio de **40 m** (**proposta**). Na cidade (~~40 × 40 m~~ 80 × 80 m, substituído em 2026-10-11) cobre o centro, não a cidade inteira.
-- Aparece: seta do jogador (posição e direção); jogadores da mesma área; a **entrada da dungeon** (portão norte); NPCs; inimigos próximos.
-- **Visibilidade:** o minimapa mostra só o que o client já recebe. Jogadores vêm da presença da cidade (`EstadoDaCidade`, `JogadorEntrou`, `PosicaoJogador`). Inimigos e NPCs entram quando as respectivas funcionalidades enviarem posições; até lá não aparecem. **O servidor não envia nada extra** por causa do minimapa e não revela quem está fora do alcance de visão que já usa.
-- Jogadores do grupo (party, [social.md](social.md)) com marcador de cor diferente dos demais; inimigos em vermelho só se vivos e dentro do raio.
-- Implementação no client: câmera ortográfica de cima para uma render texture, criada por script (sem cena/prefab à mão). Sem tecla própria na primeira versão (sempre visível); tamanho/ocultar fica para o HUD (#93).
+- Fica no canto superior direito, visto de cima, centrado no jogador, com raio de **40 m**, norte para cima. Na cidade (~~40 × 40 m~~ 80 × 80 m, substituído em 2026-10-11) cobre o centro, não a cidade inteira.
+- Aparece: seta do jogador (posição e direção); jogadores da mesma área; o chão que a câmera de cima já vê. ~~A **entrada da dungeon** (portão norte), NPCs e inimigos próximos como ícone próprio.~~ Substituído em 2026-10-11: NPC, inimigo e dungeon só ganham ícone quando a funcionalidade deles publicar a posição sem o Mundo referenciar outra feature. O que já está no mundo aparece na câmera de cima.
+- **Visibilidade:** o minimapa mostra só o que o client já recebe. Jogadores vêm da presença da cidade (`EstadoDaCidade`, `JogadorEntrou`, `PosicaoJogador`). Inimigos e NPCs entram quando as respectivas funcionalidades enviarem posições; até lá não aparecem como ícone. **O servidor não envia nada extra** por causa do minimapa e não revela quem está fora do alcance de visão que já usa.
+- ~~Jogadores do grupo (party, [social.md](social.md)) com marcador de cor diferente dos demais; inimigos em vermelho só se vivos e dentro do raio.~~ A cor de grupo espera um contrato que o Mundo possa ler sem referenciar Social. Inimigo em vermelho espera o mesmo de Mobs.
+- Implementação no client: câmera ortográfica de cima para uma render texture, criada por script (sem cena/prefab à mão). Sem tecla própria na primeira versão (sempre visível); tamanho/ocultar fica para o HUD (#93). Debaixo do relevo (caverna) a câmera não desenha o chão de cima.
 - **Fora da fatia:** zoom, ícones de recursos, rastro de caminho, marcador colocado pelo jogador.
 - **Testes esperados** (client, EditMode): conversão posição do mundo para posição no minimapa (centro, borda, fora do raio); filtro por raio de 40 m; seta gira com `RotacaoY`.
 
 ### Mapa-múndi
 
 - Tecla **M** abre/fecha uma tela cheia; Esc também fecha. O jogo continua rodando por baixo.
-- Na fatia mostra **duas áreas**: a **cidade** (com desenho do hub e o portão norte) e a **dungeon** (esquema: entrada, três salões e salão do boss). Cada área com o **nome** escrito. A área onde o jogador está aparece destacada; as outras ficam como ícone.
+- ~~Na fatia mostra **duas áreas**: a **cidade** (com desenho do hub e o portão norte) e a **dungeon** (esquema: entrada, três salões e salão do boss). Cada área com o **nome** escrito. A área onde o jogador está aparece destacada; as outras ficam como ícone.~~ Substituído em 2026-10-11: o mapa pinta os biomas do mundo de 3 km. A cidade murada ganha contorno quando o jogador está dentro dela. O esquema da dungeon continua para a issue #66.
 - Marcadores: o próprio jogador (seta) e os aliados da mesma área (mesma fonte do minimapa: presença); **marcadores de missão** só quando [missões](missoes.md) definir posições (fora da fatia por enquanto).
-- **Visibilidade:** o mapa só mostra posições que o client já tem. Aliados em **outra** área (ex.: o grupo na dungeon e você na cidade) não têm posição, só o ícone da área com a contagem de aliados, se o servidor já informar a instância do grupo. Isso é decisão do grupo (item em aberto).
-- O mapa da dungeon mostra os salões já visitados pelo grupo? **Em aberto.**
-- **Sem viagem rápida na fatia** (proposta): a cidade e a dungeon se ligam pelo portão. Viagem rápida segue em aberto acima ("Como funciona a viagem rápida?").
+- **Visibilidade:** o mapa só mostra posições que o client já tem. Aliados em **outra** área não entram no mesmo mapa. ~~O ícone da área com a contagem de aliados, se o servidor já informar a instância do grupo,~~ continua em aberto.
+- O mapa da dungeon mostra os salões já visitados pelo grupo? **Em aberto** (depende da #66).
+- **Sem viagem rápida na fatia**: a cidade e a dungeon se ligam pelo portão. Viagem rápida segue em aberto acima ("Como funciona a viagem rápida?").
 - **Fora da fatia:** várias regiões, névoa de exploração, zoom e arrasto, anotações, viagem rápida.
 - **Quem decide:** nada do mapa é regra de jogo; o servidor só envia as posições da presença, o client desenha. Se algum dia houver viagem rápida, ela será validada pelo servidor.
-- **Testes esperados** (client, EditMode): tecla M alterna o painel; ícone da área atual destacado; sem posições de áreas diferentes no mesmo mapa.
+- **Testes esperados** (client, EditMode): tecla M abre o mapa; a cidade só é destacada para quem está nela; sem posições de áreas diferentes no mesmo mapa.
 
 ### Em aberto (dúvidas ao grupo)
 
-- [ ] Raio do minimapa (40 m) e se ele gira com a câmera ou fica fixo ao norte.
-- [ ] Mostrar inimigos no minimapa sempre ou só em combate? Pode tirar o susto do telegrafado.
+- [x] ~~Raio do minimapa (40 m) e se ele gira com a câmera ou fica fixo ao norte.~~ Decidido em 2026-10-11: 40 m, norte fixo.
+- [ ] Mostrar inimigos no minimapa sempre ou só em combate? Pode tirar o susto do telegrafado. Enquanto isso, o ícone não existe; o modelo só aparece se a câmera de cima já o vê.
 - [ ] Aliados em outra área aparecem no mapa-múndi (e o servidor envia a instância do grupo)?
 - [ ] O mapa da dungeon revela salões só depois de visitados?
 - [ ] Viagem rápida existe depois da fatia? Com custo, só a pontos descobertos?
