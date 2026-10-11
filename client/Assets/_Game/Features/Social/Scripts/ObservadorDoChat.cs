@@ -72,10 +72,15 @@ namespace JogoDoGrupo.Client.Features.Social
                     _servico.AoReceberHistorico
                 )
             );
+            AvisosDoJogo.Mostrado += AoMostrarAviso;
         }
+
+        private void AoMostrarAviso(string texto, TipoDeAviso _) =>
+            _servico?.AdicionarSistema(texto);
 
         private void OnDestroy()
         {
+            AvisosDoJogo.Mostrado -= AoMostrarAviso;
             foreach (var assinatura in _assinaturas)
             {
                 assinatura.Dispose();

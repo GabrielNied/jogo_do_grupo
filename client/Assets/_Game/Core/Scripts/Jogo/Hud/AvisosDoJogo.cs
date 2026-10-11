@@ -1,3 +1,5 @@
+using System;
+
 namespace JogoDoGrupo.Client.Core.Jogo
 {
     /// <summary>
@@ -14,11 +16,24 @@ namespace JogoDoGrupo.Client.Core.Jogo
     public static class AvisosDoJogo
     {
         /// <summary>
-        /// Mostra a mensagem. Fora do mundo (sem HUD) ou com texto vazio, não faz nada.
+        /// Dispara quando uma mensagem entra. A Social copia a linha no canal Sistema.
+        /// O Core não referencia a Social.
+        /// </summary>
+        public static event Action<string, TipoDeAviso> Mostrado;
+
+        /// <summary>
+        /// Mostra a mensagem. Fora do mundo (sem HUD) o painel não aparece, mas
+        /// <see cref="Mostrado"/> ainda dispara. Texto vazio não faz nada.
         /// </summary>
         public static void Mostrar(string texto, TipoDeAviso tipo = TipoDeAviso.Informacao)
         {
+            if (string.IsNullOrWhiteSpace(texto))
+            {
+                return;
+            }
+
             Hud.Avisos?.Mostrar(texto, tipo);
+            Mostrado?.Invoke(texto, tipo);
         }
     }
 }
