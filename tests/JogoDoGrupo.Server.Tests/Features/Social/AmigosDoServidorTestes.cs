@@ -118,6 +118,19 @@ public sealed class AmigosDoServidorTestes
         recarregado.RegistrarOnline(1, AmbienteDeAmigos.A);
         Assert.Equal(amigosAntes, _a.Saida.ListaAmigos(AmbienteDeAmigos.A).Amigos.Length);
     }
+
+    [Fact]
+    public void Sem_carregar_antes_o_primeiro_uso_le_do_banco()
+    {
+        var pedidoId = _a.Pedir(AmbienteDeAmigos.A, AmbienteDeAmigos.B);
+        _a.Amigos.ResponderPedido(AmbienteDeAmigos.B, pedidoId, true);
+        _a.Saida.Limpar();
+
+        var novo = _a.RecriarSemCarregar();
+        novo.RegistrarOnline(1, AmbienteDeAmigos.A);
+
+        Assert.Single(_a.Saida.ListaAmigos(AmbienteDeAmigos.A).Amigos);
+    }
 }
 
 internal sealed class SaidaAmigosGravada : ISaidaAmigos, ISaidaDoGrupo
@@ -208,6 +221,12 @@ internal sealed class AmbienteDeAmigos
     {
         Amigos = CriarAmigos();
         Amigos.Carregar();
+        return Amigos;
+    }
+
+    public AmigosDoServidor RecriarSemCarregar()
+    {
+        Amigos = CriarAmigos();
         return Amigos;
     }
 
