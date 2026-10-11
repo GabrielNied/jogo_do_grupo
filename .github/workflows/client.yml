@@ -49,9 +49,9 @@ jobs:
       # este job não usa (Android, .NET, Haskell, CodeQL): libera mais de 20 GB.
       - name: Libera espaço em disco
         if: env.TEM_LICENCA == 'true'
+        # Só os dois maiores (~15 GB): apagar tudo e limpar o docker levava 3 minutos.
         run: |
-          sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc /opt/hostedtoolcache/CodeQL
-          sudo docker image prune --all --force
+          sudo rm -rf /usr/local/lib/android /opt/hostedtoolcache/CodeQL
           df -h /
 
       # Os testes do hub conferem os modelos (.fbx), que estão no LFS. Para não gastar a cota de
@@ -114,7 +114,15 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           LINK: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        # Se já há uma pendência aberta de falha na main, comenta nela em vez de abrir outra.
         run: |
+          aberta=$(gh api "repos/${{ github.repository }}/issues?state=open&labels=pendente-unity&per_page=50" \
+            -q '[.[] | select(.title | startswith("[Unity] Client falhou na main"))][0].number // empty')
+          if [ -n "$aberta" ]; then
+            gh api -X POST "repos/${{ github.repository }}/issues/$aberta/comments" \
+              -f body="Falhou de novo no commit ${GITHUB_SHA}: $LINK"
+            exit 0
+          fi
           gh api -X POST "repos/${{ github.repository }}/issues" \
             -f title="[Unity] Client falhou na main (${GITHUB_SHA::7})" \
             -f labels[]=pendente-unity \

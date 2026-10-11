@@ -14,7 +14,7 @@ Várias pessoas (e assistentes de IA) vão trabalhar no mesmo repositório. Sem 
 - **Branches `<tipo>/<escopo>/<descricao>`**, validadas por `scripts/git/validar-branch.mjs`, que lê as listas do `commitlint.config.mjs`.
 - **Hooks locais com husky** (`npm install` ativa): `commit-msg` roda o commitlint e `pre-push` bloqueia push na `main` e branch fora do padrão.
 - **No CI** (`padrao-git.yml`), o título do PR passa pelo commitlint, porque no squash merge ele vira o commit na `main`; o nome da branch também é validado.
-- O workflow de build deixa de filtrar por `paths`, porque um check obrigatório que não roda trava o PR.
+- ~~O workflow de build deixa de filtrar por `paths`, porque um check obrigatório que não roda trava o PR.~~ Substituído em 2026-10-11 pelo [ADR 0019](0019-unity-no-ci.md): o plano grátis de repo privado não tem check obrigatório, então o build voltou a filtrar por `paths`.
 
 ## Consequências
 
