@@ -1,4 +1,5 @@
 using System.Buffers.Binary;
+using System.Collections.Concurrent;
 using System.Threading.Channels;
 using JogoDoGrupo.Server.Core.TempoReal;
 using JogoDoGrupo.Shared.Core.TempoReal;
@@ -16,6 +17,7 @@ public sealed class ClienteTempoRealDeTeste : IDisposable
 
     private readonly NetManager _rede;
     private readonly Channel<byte[]> _recebidos = Channel.CreateUnbounded<byte[]>();
+    private readonly ConcurrentQueue<ushort> _ids = new();
     private readonly TaskCompletionSource<NetPeer> _conectado = new(
         TaskCreationOptions.RunContinuationsAsynchronously
     );
@@ -29,7 +31,15 @@ public sealed class ClienteTempoRealDeTeste : IDisposable
         ouvinte.PeerConnectedEvent += peer => _conectado.TrySetResult(peer);
         ouvinte.PeerDisconnectedEvent += (_, info) => _desconectado.TrySetResult(info);
         ouvinte.NetworkReceiveEvent += (_, leitor, _, _) =>
-            _recebidos.Writer.TryWrite(leitor.GetRemainingBytes());
+        {
+            var pacote = leitor.GetRemainingBytes();
+            if (pacote.Length >= 2)
+            {
+                _ids.Enqueue(BinaryPrimitives.ReadUInt16LittleEndian(pacote));
+            }
+
+            _recebidos.Writer.TryWrite(pacote);
+        };
         _rede = new NetManager(ouvinte)
         {
             UnsyncedEvents = true,
@@ -40,6 +50,12 @@ public sealed class ClienteTempoRealDeTeste : IDisposable
         };
         _rede.Start();
     }
+
+    /// <summary>
+    /// Os IDs de tudo que já chegou, na ordem (mesmo o que <see cref="ReceberAsync{T}"/>
+    /// descartou). Serve para conferir que uma mensagem <b>não</b> chegou.
+    /// </summary>
+    public IReadOnlyList<ushort> IdsRecebidos => _ids.ToArray();
 
     /// <summary>Completa quando o servidor desconecta (ou a conexão cai).</summary>
     public Task<DisconnectInfo> Desconectado => _desconectado.Task;
