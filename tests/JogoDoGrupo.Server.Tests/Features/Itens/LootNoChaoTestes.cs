@@ -71,6 +71,9 @@ public class LootNoChaoTestes(ServidorDeLoot servidor) : IClassFixture<ServidorD
     private const int Escudo = CatalogoItens.EscudoDeTeste;
     private const int Pocao = CatalogoItens.PocaoDeTeste;
 
+    // Cada morte publicada tem a própria sequência, como as de Mobs.
+    private static long _mortes;
+
     private async Task<Jogador> NovoJogadorAsync()
     {
         servidor.Relogio.Reiniciar();
@@ -118,7 +121,8 @@ public class LootNoChaoTestes(ServidorDeLoot servidor) : IClassFixture<ServidorD
             posicao.Area,
             posicao.X + distancia,
             posicao.Z,
-            quem.Select(j => j.Id).Order().ToArray()
+            quem.Select(j => j.Id).Order().ToArray(),
+            Interlocked.Increment(ref _mortes)
         );
         servidor.Servico<EventosDoServidor>().Publicar(derrota);
     }
