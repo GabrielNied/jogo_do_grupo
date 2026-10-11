@@ -5,7 +5,8 @@
     "JogoDoGrupo.Client.Core",
     "JogoDoGrupo.Shared",
     "UnityEngine.TestRunner",
-    "UnityEditor.TestRunner"
+    "UnityEditor.TestRunner",
+    "JogoDoGrupo.Client.Visual"
   ],
   "includePlatforms": [
     "Editor"

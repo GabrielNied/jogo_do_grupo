@@ -1,115 +1,113 @@
-/*
- * Estilo das telas de Personagem. Complementa o EstiloCore.uss.
- * Os nomes das classes estão em EstiloPersonagem.cs.
- * Mesma moldura do Core: cantos retos, borda dourada, texto quente.
- */
-
+/* Lumora: seleção e criação, complementa os componentes compartilhados. */
 .personagem-painel-selecao {
-    width: 640px;
+    width: var(--lumora-dimensoes-painel-largo);
 }
 
 .personagem-lista {
-    margin-bottom: 8px;
+    margin-bottom: var(--lumora-espacamento-pequeno);
 }
 
 .personagem-item {
     flex-direction: column;
     align-items: flex-start;
-    min-height: 72px;
-    margin-left: 0;
-    margin-right: 0;
-    margin-bottom: 8px;
-    padding: 10px 16px;
-    border-radius: 0;
-    border-width: 0;
-    background-color: rgb(28, 22, 16);
-    background-image: url("project://database/Assets/_Game/Core/UI/Resources/UI/slot.png");
-    -unity-slice-left: 6;
-    -unity-slice-right: 6;
-    -unity-slice-top: 6;
-    -unity-slice-bottom: 6;
-    color: rgb(228, 214, 188);
+    min-width: 0;
+    min-height: var(--lumora-dimensoes-alvo-minimo);
+    margin: 0 0 var(--lumora-espacamento-pequeno);
+    padding: var(--lumora-espacamento-controle) var(--lumora-espacamento-padrao);
+    border-radius: var(--lumora-bordas-raio-cartao);
+    border-width: var(--lumora-bordas-fina);
+    border-color: var(--lumora-cores-borda-discreta);
+    background-color: var(--lumora-cores-campo);
+    color: var(--lumora-cores-marfim);
+    white-space: normal;
+    font-size: var(--lumora-tipografia-controle);
 }
 
 .personagem-item:hover {
-    background-color: rgb(48, 36, 24);
-    border-top-color: rgb(168, 132, 68);
+    background-color: var(--lumora-cores-hover);
+    border-color: var(--lumora-cores-ouro);
 }
 
-.personagem-item-selecionado {
-    border-color: rgb(212, 176, 96);
-    background-color: rgb(58, 42, 22);
-    -unity-background-image-tint-color: rgb(255, 214, 140);
+.personagem-item:active {
+    background-color: var(--lumora-cores-pressionado);
 }
 
-.personagem-item-selecionado:hover {
-    background-color: rgb(68, 50, 26);
+.personagem-item:focus {
+    border-color: var(--lumora-cores-essencia);
+    border-width: var(--lumora-bordas-destaque);
 }
 
-/* Mantém a borda e o fundo da seleção quando o tema aplica :focus/:active ao botão. */
-.personagem-item.personagem-item-selecionado:focus,
-.personagem-item.personagem-item-selecionado:active {
-    border-color: rgb(212, 176, 96);
-    background-color: rgb(68, 50, 26);
+.personagem-item.personagem-item-selecionado {
+    background-color: var(--lumora-cores-selecionado);
+    border-color: var(--lumora-cores-essencia);
+    border-left-width: var(--lumora-bordas-selecao);
+}
+
+.personagem-item:disabled {
+    background-color: var(--lumora-cores-desabilitado);
+    color: var(--lumora-cores-texto-desabilitado);
+    border-color: var(--lumora-cores-borda-desabilitado);
 }
 
 .personagem-item-nome {
-    font-size: 24px;
-    -unity-font-style: bold;
-    -unity-text-align: middle-left;
-    color: rgb(236, 214, 160);
+    font-size: var(--lumora-tipografia-subtitulo);
+    white-space: normal;
+    color: var(--lumora-cores-ouro);
 }
 
 .personagem-item-detalhes {
-    font-size: 18px;
-    -unity-text-align: middle-left;
-    color: rgb(176, 148, 104);
-}
-
-.personagem-racas .unity-radio-button {
-    font-size: 20px;
-    color: rgb(228, 214, 188);
-    margin-bottom: 4px;
+    font-size: var(--lumora-tipografia-leitura);
+    white-space: normal;
+    color: var(--lumora-cores-texto-secundario);
 }
 
 .personagem-escolha-raca {
     flex-direction: row;
-    margin-bottom: 8px;
+    margin-bottom: var(--lumora-espacamento-pequeno);
+    min-width: 0;
 }
 
 .personagem-lista-racas {
-    width: 200px;
-    margin-right: 12px;
+    width: var(--lumora-dimensoes-item);
+    margin-right: var(--lumora-espacamento-medio);
+    flex-shrink: 0;
 }
 
 .personagem-raca-botao {
-    min-height: 44px;
-    margin-bottom: 4px;
-    padding: 4px 12px;
-    font-size: 20px;
+    min-height: var(--lumora-dimensoes-alvo-minimo);
+    margin-bottom: var(--lumora-espacamento-minimo);
+    padding: var(--lumora-espacamento-pequeno) var(--lumora-espacamento-medio);
     -unity-text-align: middle-left;
 }
 
 .personagem-cartao-raca {
     flex-grow: 1;
     flex-shrink: 1;
-    padding: 10px 16px;
-    background-color: rgb(28, 22, 16);
-    border-width: 1px;
-    border-color: rgb(120, 92, 52);
+    min-width: 0;
+    padding: var(--lumora-espacamento-controle) var(--lumora-espacamento-padrao);
+    background-color: var(--lumora-cores-campo);
+    border-width: var(--lumora-bordas-fina);
+    border-color: var(--lumora-cores-borda-discreta);
+    border-radius: var(--lumora-bordas-raio-cartao);
 }
 
-.personagem-cartao-texto {
-    font-size: 16px;
+.personagem-cartao-texto, .personagem-cartao-citacao {
+    font-size: var(--lumora-tipografia-leitura);
     white-space: normal;
-    margin-top: 6px;
-    color: rgb(228, 214, 188);
+    margin-top: var(--lumora-espacamento-curto);
+    color: var(--lumora-cores-marfim);
 }
 
 .personagem-cartao-citacao {
-    font-size: 16px;
-    white-space: normal;
-    margin-top: 10px;
-    -unity-font-style: italic;
-    color: rgb(212, 176, 96);
+    margin-top: var(--lumora-espacamento-controle);
+    color: var(--lumora-cores-ouro);
+}
+
+.lumora-estreito .personagem-escolha-raca {
+    flex-direction: column;
+}
+
+.lumora-estreito .personagem-lista-racas {
+    width: 100%;
+    margin-right: 0;
 }

@@ -1,71 +1,81 @@
-/*
- * Estilo da janela do grupo. Complementa o EstiloCore.uss.
- * Os nomes das classes estao em EstiloSocial.cs.
- * Mesma moldura do Core: cantos retos, borda dourada, texto quente.
- */
-
+/* Lumora social: legibilidade, quebra e ações de grupo. */
 .social-convidar {
     flex-direction: row;
     align-items: flex-end;
-    margin-bottom: 8px;
+    margin-bottom: var(--lumora-espacamento-pequeno);
 }
 
 .social-convidar > .campo {
     flex-grow: 1;
+    flex-shrink: 1;
+    min-width: 0;
     margin-bottom: 0;
-    margin-right: 8px;
+    margin-right: var(--lumora-espacamento-pequeno);
 }
 
 .social-convidar > .botao {
     flex-grow: 0;
-    min-width: 140px;
+    min-width: var(--lumora-dimensoes-social-convidar);
     margin-top: 0;
 }
 
 .social-secao {
-    margin-bottom: 12px;
+    margin-bottom: var(--lumora-espacamento-medio);
 }
 
 .social-linha {
     flex-direction: row;
+    flex-wrap: wrap;
     align-items: center;
 }
 
 .social-nome {
     flex-grow: 1;
     flex-shrink: 1;
+    min-width: 0;
 }
 
 .social-lider {
-    color: rgb(236, 214, 160);
-    -unity-font-style: bold;
+    color: var(--lumora-cores-ouro);
 }
 
 .social-offline {
-    opacity: 0.5;
+    color: var(--lumora-cores-texto-secundario);
 }
 
 .social-acoes {
     flex-direction: row;
-    flex-shrink: 0;
+    flex-wrap: wrap;
 }
 
 .social-botao {
     flex-grow: 0;
-    min-height: 36px;
-    min-width: 96px;
+    min-height: var(--lumora-dimensoes-alvo-minimo);
+    min-width: var(--lumora-dimensoes-social-acao);
     margin-top: 0;
-    margin-left: 6px;
-    font-size: 16px;
+    margin-left: var(--lumora-espacamento-curto);
+    font-size: var(--lumora-tipografia-controle);
 }
 
 .social-rodape {
-    margin-top: 8px;
+    margin-top: var(--lumora-espacamento-pequeno);
 }
 
-/* Aviso por cima do jogo (convite recebido, mensagens do grupo), acima da dica do bau. */
-
 .social-aviso-tela {
-    bottom: 190px;
-    font-size: 22px;
+    bottom: var(--lumora-dimensoes-social-aviso-base);
+    font-size: var(--lumora-tipografia-subtitulo);
+}
+
+.lumora-estreito .social-convidar {
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.lumora-estreito .social-convidar > .campo {
+    margin-right: 0;
+}
+
+.lumora-estreito .social-acoes {
+    width: 100%;
+    margin-top: var(--lumora-espacamento-pequeno);
 }

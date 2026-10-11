@@ -30,6 +30,9 @@ permissions:
   contents: read
   checks: write
   issues: write
+  # GET /pulls/{n} do script que fecha pendências. Sem isto o token devolve 403 e o job
+  # fica vermelho mesmo quando a compilação e os testes EditMode passaram.
+  pull-requests: read
 
 concurrency:
   group: client-unity-${{ github.ref }}
@@ -91,6 +94,7 @@ jobs:
 
       # Compila todos os assemblies (erro de compilação reprova) e roda os testes EditMode.
       - uses: game-ci/unity-test-runner@v4
+        id: testes-editmode
         if: env.TEM_LICENCA == 'true'
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
@@ -120,7 +124,8 @@ jobs:
 
       # Quebrou na main: vira pendência para o próximo agente com Unity (ADR 0019).
       - name: Abre pendência de Unity
-        if: failure() && github.event_name == 'push'
+        # Só quando os testes EditMode falharam. Uma falha ao fechar pendências não é client quebrado.
+        if: failure() && github.event_name == 'push' && steps.testes-editmode.outcome == 'failure'
         env:
           GH_TOKEN: ${{ github.token }}
           LINK: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}

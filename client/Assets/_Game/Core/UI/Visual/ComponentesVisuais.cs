@@ -5,6 +5,32 @@ namespace JogoDoGrupo.Client.Core.Visual
 {
     public static class ComponentesVisuais
     {
+        public static ScrollView PainelRolavel(bool social = false)
+        {
+            var painel = new ScrollView(ScrollViewMode.Vertical)
+            {
+                horizontalScrollerVisibility = ScrollerVisibility.Hidden,
+                verticalScrollerVisibility = ScrollerVisibility.Auto,
+            };
+            painel.AddToClassList("ui-painel");
+            painel.AddToClassList("ui-painel-rolavel");
+            if (social)
+                painel.AddToClassList("ui-painel-social");
+            return painel;
+        }
+
+        public static VisualElement Marca()
+        {
+            var marca = new VisualElement
+            {
+                name = "lumora.marca",
+                tooltip = "Lumora — A New Horizon",
+                pickingMode = PickingMode.Ignore,
+            };
+            marca.AddToClassList("ui-marca");
+            return marca;
+        }
+
         public static Label Texto(string texto, bool titulo = false, bool subtitulo = false)
         {
             var elemento = new Label(texto) { enableRichText = false };

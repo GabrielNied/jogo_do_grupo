@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using JogoDoGrupo.Client.Core.Visual;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -35,8 +36,10 @@ namespace JogoDoGrupo.Client.Features.Mobs
         private readonly Dictionary<long, Etiqueta> _etiquetas = new Dictionary<long, Etiqueta>();
         private readonly List<long> _paraRemover = new List<long>();
 
-        private Color _corDoAviso = new Color(1f, 0f, 0f, 0.8f);
-        private Color _corDoPreenchimento = new Color(1f, 0f, 0f, 0.3f);
+        private Color _corDoAviso = EstiloVisual.Cor(ConfigVisual.Cores.Perigo);
+        private Color _corDoPreenchimento = EstiloVisual.Cor(
+            ConfigVisual.Cores.PerigoPreenchimento
+        );
         private IReadOnlyCollection<InimigoNoClient> _inimigos;
         private Camera _camera;
 

@@ -3,7 +3,8 @@
 // delas já está no commit testado. Assim ninguém com Unity precisa refazer o que o CI fez.
 //
 // Uso: node scripts/git/fechar-pendencias-do-ci.mjs <sha-testado> <link-da-execucao>
-// Precisa de GH_TOKEN e GITHUB_REPOSITORY (o Actions já define).
+// Precisa de GH_TOKEN com leitura de pull requests (pull-requests: read no workflow) e de
+// GITHUB_REPOSITORY (o Actions já define os dois). Sem a permissão, GET /pulls/{n} devolve 403.
 
 import { execFileSync } from "node:child_process";
 import { LABEL_PENDENCIA, prDaPendencia, resolvidaPeloCi } from "./pendencia-unity.mjs";

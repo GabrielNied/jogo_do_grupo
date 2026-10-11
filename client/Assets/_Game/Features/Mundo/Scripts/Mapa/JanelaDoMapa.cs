@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using JogoDoGrupo.Client.Core.Jogo;
 using JogoDoGrupo.Client.Core.Jogo.Janelas;
 using JogoDoGrupo.Client.Core.UI;
+using JogoDoGrupo.Client.Core.Visual;
 using JogoDoGrupo.Client.Features.Mundo.Presenca;
 using JogoDoGrupo.Client.Features.Mundo.Terreno;
 using JogoDoGrupo.Shared.Features.Mundo;
@@ -32,9 +33,13 @@ namespace JogoDoGrupo.Client.Features.Mundo
             conteudo.Add(legenda);
 
             _mapa = new VisualElement { name = "mundo.mapa-mundi" };
-            _mapa.style.width = 420;
-            _mapa.style.height = 420;
-            _mapa.style.marginTop = 8;
+            _mapa.AddToClassList("mundo-mapa");
+            _mapa.RegisterCallback<GeometryChangedEvent>(e =>
+            {
+                // Mantém a proporção ao estreitar a área disponível.
+                if (e.newRect.width > 0 && e.newRect.height != e.newRect.width)
+                    _mapa.style.height = e.newRect.width;
+            });
             _mapa.generateVisualContent += DesenharFundo;
             conteudo.Add(_mapa);
 
@@ -132,8 +137,8 @@ namespace JogoDoGrupo.Client.Features.Mundo
                 var y = (1f - v1) * ret.height;
                 var largura = (u1 - u0) * ret.width;
                 var altura = (v1 - v0) * ret.height;
-                pincel.strokeColor = new Color(1f, 0.92f, 0.55f);
-                pincel.lineWidth = 2f;
+                pincel.strokeColor = EstiloVisual.Cor(ConfigVisual.Cores.Ouro);
+                pincel.lineWidth = ConfigVisual.Bordas.Destaque;
                 pincel.BeginPath();
                 pincel.MoveTo(new Vector2(x, y));
                 pincel.LineTo(new Vector2(x + largura, y));
@@ -150,7 +155,14 @@ namespace JogoDoGrupo.Client.Features.Mundo
                     continue;
                 }
 
-                Ponto(pincel, ret, outro.X, outro.Z, 4f, new Color(0.95f, 0.95f, 0.85f));
+                Ponto(
+                    pincel,
+                    ret,
+                    outro.X,
+                    outro.Z,
+                    ConfigVisual.Dimensoes.MarcadorAliado,
+                    EstiloVisual.Cor(ConfigVisual.Cores.Marfim)
+                );
             }
 
             if (jogador != null)
@@ -161,9 +173,9 @@ namespace JogoDoGrupo.Client.Features.Mundo
                 Seta(
                     pincel,
                     centro,
-                    9f,
+                    ConfigVisual.Dimensoes.MarcadorJogador,
                     ProjecaoDoMapa.AnguloDaSeta(jogador.transform.eulerAngles.y),
-                    new Color(1f, 0.85f, 0.2f)
+                    EstiloVisual.Cor(ConfigVisual.Cores.Essencia)
                 );
             }
         }

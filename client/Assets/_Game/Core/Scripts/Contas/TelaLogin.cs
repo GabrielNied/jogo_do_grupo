@@ -1,6 +1,7 @@
 using System;
 using JogoDoGrupo.Client.Core.Api;
 using JogoDoGrupo.Client.Core.UI;
+using JogoDoGrupo.Client.Core.Visual;
 using JogoDoGrupo.Shared.Core.Api;
 using JogoDoGrupo.Shared.Core.Contas;
 using UnityEngine;
@@ -27,11 +28,9 @@ namespace JogoDoGrupo.Client.Core.Contas
 
         protected override void Montar(VisualElement raiz)
         {
-            var painel = new VisualElement();
-            painel.AddToClassList(EstiloCore.Painel);
+            var painel = EstiloCore.CriarPainel(social: true);
 
-            var titulo = new Label("Jogo do Grupo");
-            titulo.AddToClassList(EstiloCore.Titulo);
+            var titulo = ComponentesVisuais.Marca();
 
             var subtitulo = new Label("Entre com a sua conta");
             subtitulo.AddToClassList(EstiloCore.Subtitulo);

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using JogoDoGrupo.Client.Core.Jogo;
+using JogoDoGrupo.Client.Core.Visual;
 using JogoDoGrupo.Client.Features.Mundo.Presenca;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -36,7 +37,7 @@ namespace JogoDoGrupo.Client.Features.Mundo
             _camera.orthographicSize = ProjecaoDoMapa.RaioDoMinimapa;
             _camera.targetTexture = _textura;
             _camera.clearFlags = CameraClearFlags.SolidColor;
-            _camera.backgroundColor = new Color(0.12f, 0.14f, 0.12f);
+            _camera.backgroundColor = EstiloVisual.Cor(ConfigVisual.Cores.Trilho);
             _camera.nearClipPlane = 0.3f;
             _camera.farClipPlane = 400f;
             _camera.depth = -50f;
@@ -51,14 +52,7 @@ namespace JogoDoGrupo.Client.Features.Mundo
 
             _raiz = new VisualElement { name = "mundo.minimapa" };
             _raiz.pickingMode = PickingMode.Ignore;
-            _raiz.style.width = 168;
-            _raiz.style.height = 168;
-            _raiz.style.borderTopLeftRadius = 84;
-            _raiz.style.borderTopRightRadius = 84;
-            _raiz.style.borderBottomLeftRadius = 84;
-            _raiz.style.borderBottomRightRadius = 84;
-            _raiz.style.overflow = Overflow.Hidden;
-            _raiz.style.backgroundColor = new Color(0.12f, 0.14f, 0.12f);
+            _raiz.AddToClassList("mundo-minimapa");
 
             _vista = new VisualElement();
             _vista.pickingMode = PickingMode.Ignore;
@@ -82,13 +76,7 @@ namespace JogoDoGrupo.Client.Features.Mundo
 
             var norte = new Label("N");
             norte.pickingMode = PickingMode.Ignore;
-            norte.style.position = Position.Absolute;
-            norte.style.top = 4;
-            norte.style.left = 0;
-            norte.style.right = 0;
-            norte.style.unityTextAlign = TextAnchor.UpperCenter;
-            norte.style.color = Color.white;
-            norte.style.fontSize = 12;
+            norte.AddToClassList("mundo-minimapa-norte");
             _raiz.Add(norte);
 
             regiao.Add(_raiz);
@@ -176,8 +164,8 @@ namespace JogoDoGrupo.Client.Features.Mundo
                     Losango(
                         pincel,
                         new Vector2(centro.x + x * escala, centro.y - y * escala),
-                        4f,
-                        new Color(0.95f, 0.95f, 0.85f)
+                        ConfigVisual.Dimensoes.MarcadorAliado,
+                        EstiloVisual.Cor(ConfigVisual.Cores.Marfim)
                     );
                 }
             }
@@ -185,9 +173,9 @@ namespace JogoDoGrupo.Client.Features.Mundo
             Seta(
                 pincel,
                 centro,
-                8f,
+                ConfigVisual.Dimensoes.MarcadorMinimapa,
                 ProjecaoDoMapa.AnguloDaSeta(_rotacao),
-                new Color(1f, 0.85f, 0.2f)
+                EstiloVisual.Cor(ConfigVisual.Cores.Essencia)
             );
         }
 

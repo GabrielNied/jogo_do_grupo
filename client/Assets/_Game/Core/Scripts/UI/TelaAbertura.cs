@@ -1,4 +1,5 @@
 using JogoDoGrupo.Client.Core.Contas;
+using JogoDoGrupo.Client.Core.Visual;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -19,8 +20,7 @@ namespace JogoDoGrupo.Client.Core.UI
 
         protected override void Montar(VisualElement raiz)
         {
-            var titulo = new Label("Jogo do Grupo");
-            titulo.AddToClassList(EstiloCore.Titulo);
+            var titulo = ComponentesVisuais.Marca();
 
             var subtitulo = new Label("Carregando...");
             subtitulo.AddToClassList(EstiloCore.Subtitulo);

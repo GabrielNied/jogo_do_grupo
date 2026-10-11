@@ -14,7 +14,7 @@
     --lumora-cores-borda-amostra: #84958C;
     --lumora-cores-borda-botao: #A88C55;
     --lumora-cores-hover: #285A6A;
-    --lumora-cores-pressionado: #347182;
+    --lumora-cores-pressionado: #2F6878;
     --lumora-cores-desabilitado: #30444C;
     --lumora-cores-texto-desabilitado: #9CA8A8;
     --lumora-cores-borda-desabilitado: #53626A;
@@ -26,11 +26,18 @@
     --lumora-cores-erro: #E99383;
     --lumora-cores-trilho: #0A2534;
     --lumora-cores-veu: rgba(3, 15, 23, 0.85);
+    --lumora-cores-vida: #A8403B;
+    --lumora-cores-ganho: #A9CD82;
+    --lumora-cores-sussurro: #E9B5D5;
+    --lumora-cores-sombra: rgba(3, 15, 23, 0.95);
+    --lumora-cores-perigo: rgba(233, 147, 131, 0.9);
+    --lumora-cores-perigo-preenchimento: rgba(233, 147, 131, 0.35);
     --lumora-tipografia-leitura: 16px;
     --lumora-tipografia-leitura-maxima: 24px;
     --lumora-tipografia-controle: 18px;
     --lumora-tipografia-titulo: 28px;
     --lumora-tipografia-subtitulo: 22px;
+    --lumora-tipografia-dano-pesado: 44px;
     --lumora-espacamento-minimo: 4px;
     --lumora-espacamento-pequeno: 8px;
     --lumora-espacamento-medio: 12px;
@@ -64,6 +71,31 @@
     --lumora-dimensoes-dialogo-percentual: 90%;
     --lumora-dimensoes-comparacao-altura: 300px;
     --lumora-dimensoes-menu-estreito-altura: 180px;
+    --lumora-dimensoes-painel-entrada: 560px;
+    --lumora-dimensoes-painel-largo: 720px;
+    --lumora-dimensoes-lista: 320px;
+    --lumora-dimensoes-mensagem: 32px;
+    --lumora-dimensoes-carregamento: 14px;
+    --lumora-dimensoes-dica-base: 120px;
+    --lumora-dimensoes-avisos-topo: 140px;
+    --lumora-dimensoes-avisos-base: 180px;
+    --lumora-dimensoes-chat-largura: 520px;
+    --lumora-dimensoes-recursos-largura: 320px;
+    --lumora-dimensoes-inimigo-largura: 160px;
+    --lumora-dimensoes-inimigo-barra: 120px;
+    --lumora-dimensoes-inimigo-barra-altura: 8px;
+    --lumora-dimensoes-minimapa: 168px;
+    --lumora-dimensoes-minimapa-raio: 84px;
+    --lumora-dimensoes-mapa: 420px;
+    --lumora-dimensoes-dano-largura: 120px;
+    --lumora-dimensoes-social-aviso-base: 190px;
+    --lumora-dimensoes-social-acao: 96px;
+    --lumora-dimensoes-social-convidar: 140px;
+    --lumora-dimensoes-logo-entrada-largura: 400px;
+    --lumora-dimensoes-logo-entrada-altura: 156px;
+    --lumora-dimensoes-marcador-aliado: 4px;
+    --lumora-dimensoes-marcador-jogador: 9px;
+    --lumora-dimensoes-marcador-minimapa: 8px;
     --lumora-bordas-fina: 1px;
     --lumora-bordas-destaque: 2px;
     --lumora-bordas-selecao: 4px;
@@ -78,3 +110,6 @@
     --lumora-ornamentos-fatia-vertical: 160;
     --lumora-ornamentos-deslocamento: -4px;
 }
+.lumora-ui, .lumora-ui TextElement, .lumora-ui .unity-text-element { -unity-font-definition: url("Fontes/LumoraSource-500.ttf"); -unity-font-style: normal; }
+.lumora-ui .ui-titulo, .lumora-ui .titulo, .lumora-ui .ui-subtitulo, .lumora-ui .subtitulo, .lumora-ui .personagem-item-nome { -unity-font-definition: url("Fontes/LumoraNunito-800.ttf"); -unity-font-style: normal; }
+.lumora-ui Button, .lumora-ui .unity-button { -unity-font-definition: url("Fontes/LumoraSource-700.ttf"); -unity-font-style: normal; }
