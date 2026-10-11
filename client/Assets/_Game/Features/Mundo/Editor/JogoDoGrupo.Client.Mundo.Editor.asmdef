@@ -1,7 +1,9 @@
 {
   "name": "JogoDoGrupo.Client.Mundo.Editor",
   "rootNamespace": "JogoDoGrupo.Client.Features.Mundo.Editor",
-  "references": [],
+  "references": [
+    "JogoDoGrupo.Client.Mundo"
+  ],
   "includePlatforms": [
     "Editor"
   ],

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using System.Reflection;
 using JogoDoGrupo.Client.Core.Jogo;
@@ -137,7 +137,8 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
             Assert.AreEqual(LayoutDoHub.Lado, limites.size.z, 0.01f);
             Assert.AreEqual(0f, limites.center.x, 0.01f);
             Assert.AreEqual(0f, limites.center.z, 0.01f);
-            Assert.AreEqual(4 * (LayoutDoHub.CelulasPorLado - 1), colisores.Length);
+            // 76 células de borda, menos as 2 do vão do portão.
+            Assert.AreEqual(4 * (LayoutDoHub.CelulasPorLado - 1) - 2, colisores.Length);
             Assert.GreaterOrEqual(limites.size.y, LayoutDoHub.AlturaTorre - 0.01f);
         }
 
@@ -146,13 +147,14 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
         {
             Construir();
 
-            // Linhas livres de props: z = -13 para os lados e x = -10 para frente e para trás.
+            // Linhas livres de props (a rua em anel, de pedra e sem colisor): z = -11 para os lados e
+            // x = -11 para frente e para trás.
             var testes = new[]
             {
-                (new Vector3(0f, 1f, -13f), Vector3.left),
-                (new Vector3(0f, 1f, -13f), Vector3.right),
-                (new Vector3(-10f, 1f, 0f), Vector3.forward),
-                (new Vector3(-10f, 1f, 0f), Vector3.back),
+                (new Vector3(0f, 1f, -11f), Vector3.left),
+                (new Vector3(0f, 1f, -11f), Vector3.right),
+                (new Vector3(-11f, 1f, 0f), Vector3.forward),
+                (new Vector3(-11f, 1f, 0f), Vector3.back),
             };
 
             foreach (var (origem, direcao) in testes)
@@ -195,6 +197,278 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
                     Vector3.Distance(posicao, LayoutDoHub.PontoDeNascimento),
                     2.5f,
                     $"{peca.Prefab} em {posicao} está colado no nascimento."
+                );
+            }
+        }
+
+        // Se uma cápsula do CharacterController (a 5 cm do chão) passa de "pe" andando "distancia"
+        // metros na direção horizontal "direcao" sem bater em nada.
+        private static bool JogadorPassa(Vector3 pe, Vector3 direcao, float distancia)
+        {
+            var baixo = pe + Vector3.up * (EntradaNoJogo.RaioJogador + 0.05f);
+            var alto = pe + Vector3.up * (EntradaNoJogo.AlturaJogador - EntradaNoJogo.RaioJogador);
+            return !Physics.CapsuleCast(baixo, alto, EntradaNoJogo.RaioJogador, direcao, distancia);
+        }
+
+        [Test]
+        public void Nascimento_fica_dentro_da_cidade_murada_olhando_para_a_fonte()
+        {
+            var inicio = Construir();
+
+            Assert.AreEqual(new Vector3(0f, 0f, -12f), inicio.Posicao);
+            Assert.Less(Mathf.Abs(inicio.Posicao.x), LayoutDoHub.MetadeAndavel);
+            Assert.Less(Mathf.Abs(inicio.Posicao.z), LayoutDoHub.MetadeAndavel);
+            Assert.AreEqual(Vector3.forward, inicio.Rotacao * Vector3.forward);
+        }
+
+        [Test]
+        public void Terreno_de_fora_tem_chao_andavel_com_a_face_de_cima_em_zero()
+        {
+            Construir();
+            var terreno = _hub.transform.Find(ConstrutorHub.NomeTerreno);
+            Assert.IsNotNull(terreno, "O hub deveria ter o terreno de fora.");
+
+            var chao = terreno.GetComponent<Collider>();
+            Assert.IsNotNull(chao, "O terreno precisa de um colisor na raiz.");
+            Assert.GreaterOrEqual(chao.bounds.size.x, 119.99f);
+            Assert.GreaterOrEqual(chao.bounds.size.z, 119.99f);
+            Assert.AreEqual(0f, chao.bounds.max.y, 0.01f);
+
+            // Pontos de uma grade em volta da cidade, sem árvore ou pedra por perto.
+            var testados = 0;
+            for (var x = -55f; x <= 55f; x += 10f)
+            {
+                for (var z = -55f; z <= 55f; z += 10f)
+                {
+                    var ponto = new Vector3(x, 0f, z);
+                    var foraDoQuadradoDaCidade =
+                        Mathf.Max(Mathf.Abs(x), Mathf.Abs(z)) > LayoutDoHub.Metade;
+                    if (!foraDoQuadradoDaCidade || ArvoreOuPedraPerto(ponto, 2.5f))
+                    {
+                        continue;
+                    }
+
+                    testados++;
+                    Assert.IsTrue(
+                        Physics.Raycast(ponto + Vector3.up * 5f, Vector3.down, out var batida, 10f),
+                        $"Sem chão em {ponto}."
+                    );
+                    Assert.AreEqual(0f, batida.point.y, 0.01f, $"Chão fora de Y = 0 em {ponto}.");
+                    Assert.IsTrue(batida.collider.transform.IsChildOf(terreno));
+                    Assert.IsTrue(
+                        JogadorPassa(ponto, Vector3.forward, 0.1f),
+                        $"Colisor na altura do jogador em {ponto}."
+                    );
+                }
+            }
+
+            Assert.Greater(testados, 50, "Poucos pontos de fora para conferir.");
+        }
+
+        private static bool ArvoreOuPedraPerto(Vector3 ponto, float distancia)
+        {
+            foreach (var peca in LayoutDoHub.PropsFora)
+            {
+                var dx = peca.X - ponto.x;
+                var dz = peca.Z - ponto.z;
+                if (dx * dx + dz * dz < distancia * distancia)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        [Test]
+        public void Barreiras_invisiveis_seguram_o_jogador_na_borda_do_terreno()
+        {
+            Construir();
+
+            var testes = new[]
+            {
+                (new Vector3(55f, 1f, 0f), Vector3.right),
+                (new Vector3(-55f, 1f, 0f), Vector3.left),
+                (new Vector3(0f, 1f, -55f), Vector3.back),
+                (new Vector3(30f, 1f, 55f), Vector3.forward),
+            };
+
+            foreach (var (origem, direcao) in testes)
+            {
+                Assert.IsTrue(Physics.Raycast(origem, direcao, out var batida, 20f));
+                Assert.AreEqual(
+                    LayoutDoHub.MetadeDoTerreno,
+                    Mathf.Abs(Vector3.Dot(batida.point, direcao)),
+                    0.05f
+                );
+            }
+        }
+
+        [Test]
+        public void Vao_do_portao_nao_e_muro_solido()
+        {
+            Construir();
+            var muros = _hub.transform.Find(ConstrutorHub.NomeMuros);
+            var z = LayoutDoHub.CentroDaCelula(LayoutDoHub.CelulasPorLado - 1);
+
+            // Nenhum colisor ocupa o vão (4 m de largura, na altura do jogador e acima).
+            var noVao = Physics.OverlapBox(
+                new Vector3(0f, 2f, z),
+                new Vector3(LayoutDoHub.MetadeDoPortao - 0.05f, 1.9f, LayoutDoHub.Modulo / 2f),
+                Quaternion.identity
+            );
+            Assert.IsEmpty(noVao.Select(c => c.name).ToArray(), "Há colisor no vão do portão.");
+
+            foreach (var colisor in muros.GetComponentsInChildren<Collider>())
+            {
+                Assert.IsFalse(
+                    colisor.bounds.Contains(new Vector3(0f, 1f, z)),
+                    $"{colisor.name} cobre o centro do portão."
+                );
+            }
+
+            // O vão tem 4 m: as torres dos dois lados são sólidas.
+            foreach (var direcao in new[] { Vector3.left, Vector3.right })
+            {
+                Assert.IsTrue(
+                    Physics.Raycast(new Vector3(0f, 1f, z), direcao, out var batida, 10f)
+                );
+                Assert.AreEqual(LayoutDoHub.MetadeDoPortao, Mathf.Abs(batida.point.x), 0.05f);
+                Assert.IsTrue(batida.collider.transform.IsChildOf(muros));
+            }
+        }
+
+        [Test]
+        public void Jogador_sai_da_cidade_pelo_portao_ate_o_fim_da_estrada()
+        {
+            Construir();
+
+            // De dentro da cidade (norte da fonte) até a ponta da estrada, por todo o vão.
+            foreach (var x in new[] { -1.5f, 0f, 1.5f })
+            {
+                Assert.IsTrue(
+                    JogadorPassa(new Vector3(x, 0f, 10f), Vector3.forward, 40f),
+                    $"Algo bloqueia a saída em x = {x}."
+                );
+            }
+        }
+
+        [Test]
+        public void Estrada_atravessa_o_portao_e_segue_pelo_terreno_de_fora()
+        {
+            Construir();
+            var estradas = _hub.transform.Find(ConstrutorHub.NomeEstradas);
+            var pontas = estradas
+                .Cast<Transform>()
+                .Select(t => t.position)
+                .Where(p => Mathf.Abs(p.x) < LayoutDoHub.MetadeDoPortao)
+                .ToArray();
+
+            Assert.IsTrue(pontas.Any(p => Mathf.Abs(p.z - 19f) < 0.01f), "Sem estrada no portão.");
+            Assert.IsTrue(
+                pontas.Any(p =>
+                    p.z > LayoutDoHub.Metade + LayoutDoHub.ComprimentoDaEstradaFora - 2f
+                ),
+                "A estrada de fora não chega ao fim."
+            );
+            Assert.IsEmpty(
+                estradas.GetComponentsInChildren<Collider>(),
+                "Estrada não pode ter colisor."
+            );
+        }
+
+        [Test]
+        public void Cidade_tem_ruas_em_anel_ligadas_as_estradas_em_cruz()
+        {
+            // O anel passa por ±11 e encontra a cruz.
+            Assert.IsTrue(LayoutDoHub.EhEstradaDaCidade(11f, 9f));
+            Assert.IsTrue(LayoutDoHub.EhEstradaDaCidade(-9f, -11f));
+            Assert.IsTrue(LayoutDoHub.EhEstradaDaCidade(11f, 1f));
+            // Quarteirão entre o anel e a praça, e fora do anel, não são rua.
+            Assert.IsFalse(LayoutDoHub.EhEstradaDaCidade(8f, 8f));
+            Assert.IsFalse(LayoutDoHub.EhEstradaDaCidade(15f, 7f));
+        }
+
+        [Test]
+        public void Props_de_fora_ficam_longe_da_cidade_e_do_corredor_do_portao()
+        {
+            Assert.GreaterOrEqual(LayoutDoHub.PropsFora.Count, 30);
+
+            foreach (var peca in LayoutDoHub.PropsFora)
+            {
+                var posicao = new Vector3(peca.X, 0f, peca.Z);
+                Assert.Greater(
+                    Mathf.Max(Mathf.Abs(peca.X), Mathf.Abs(peca.Z)),
+                    LayoutDoHub.Metade + 3f,
+                    $"{peca.Prefab} em {posicao} encosta nos muros."
+                );
+                Assert.LessOrEqual(Mathf.Abs(peca.X), LayoutDoHub.MetadeDoTerreno - 1f);
+                Assert.LessOrEqual(Mathf.Abs(peca.Z), LayoutDoHub.MetadeDoTerreno - 1f);
+                Assert.IsFalse(
+                    Mathf.Abs(peca.X) < 4f && peca.Z > 0f,
+                    $"{peca.Prefab} em {posicao} está na estrada do portão."
+                );
+            }
+        }
+
+        [Test]
+        public void Props_da_cidade_nao_se_sobrepoem()
+        {
+            Construir();
+            var props = _hub.transform.Find(ConstrutorHub.NomeProps);
+            var caixas = props
+                .Cast<Transform>()
+                .Select(t => (nome: t.name, colisores: t.GetComponentsInChildren<Collider>()))
+                .Where(p => p.colisores.Length > 0)
+                .Select(p =>
+                {
+                    var limites = p.colisores[0].bounds;
+                    foreach (var colisor in p.colisores)
+                    {
+                        limites.Encapsulate(colisor.bounds);
+                    }
+
+                    // Encostar não conta (casas coladas): só sobreposição de mais de 2 cm.
+                    limites.Expand(-0.04f);
+                    return (p.nome, limites);
+                })
+                .ToArray();
+
+            for (var i = 0; i < caixas.Length; i++)
+            {
+                for (var j = i + 1; j < caixas.Length; j++)
+                {
+                    Assert.IsFalse(
+                        caixas[i].limites.Intersects(caixas[j].limites),
+                        $"{caixas[i].nome} em {caixas[i].limites.center} sobrepõe {caixas[j].nome} em {caixas[j].limites.center}."
+                    );
+                }
+            }
+        }
+
+        [Test]
+        public void Todos_os_prefabs_do_layout_existem_em_Resources()
+        {
+            var nomes = LayoutDoHub
+                .Props.Concat(LayoutDoHub.PropsFora)
+                .Select(p => p.Prefab)
+                .Concat(
+                    new[]
+                    {
+                        LayoutDoHub.PrefabChao,
+                        LayoutDoHub.PrefabTerreno,
+                        LayoutDoHub.PrefabMuro,
+                        LayoutDoHub.PrefabTorre,
+                        LayoutDoHub.PrefabEstrada,
+                    }
+                )
+                .Distinct();
+
+            foreach (var nome in nomes)
+            {
+                Assert.IsNotNull(
+                    Resources.Load<GameObject>("Mundo/" + nome),
+                    $"Prefab 'Mundo/{nome}' não existe: rode Jogo do Grupo > Mundo > Gerar peças do hub."
                 );
             }
         }
