@@ -252,6 +252,80 @@ namespace JogoDoGrupo.Client.Core.Tests
             Assert.AreEqual(0f, new MovimentoTerceiraPessoa { AlturaPulo = 0f }.VelocidadeDoPulo);
         }
 
+        [Test]
+        public void Padrao_Andar2Correr55SemVoo()
+        {
+            var movimento = new MovimentoTerceiraPessoa();
+
+            Assert.AreEqual(2f, movimento.VelocidadeAndar);
+            Assert.AreEqual(5.5f, movimento.VelocidadeCorrer);
+            Assert.AreEqual(20f, movimento.Aceleracao);
+            Assert.AreEqual(20f, movimento.Gravidade);
+            Assert.AreEqual(1.25f, movimento.AlturaPulo);
+            Assert.IsFalse(movimento.Voando);
+        }
+
+        [Test]
+        public void CorrerAlterado_EntraNoCalculo()
+        {
+            var movimento = new MovimentoTerceiraPessoa();
+
+            movimento.VelocidadeCorrer = 12f;
+
+            Assert.AreEqual(12f, movimento.VelocidadeAlvo(Vector2.up, true), Tolerancia);
+            Assert.AreEqual(2f, movimento.VelocidadeAlvo(Vector2.up, false), Tolerancia);
+        }
+
+        [Test]
+        public void Voando_NoAr_NaoCai()
+        {
+            var movimento = new MovimentoTerceiraPessoa { Voando = true };
+
+            Assert.AreEqual(0f, movimento.VelocidadeVertical(0f, false, 0.1f), Tolerancia);
+            Assert.AreEqual(0f, movimento.VelocidadeVertical(-10f, false, 1f), Tolerancia);
+        }
+
+        [Test]
+        public void Voando_SobeEDesce()
+        {
+            var movimento = new MovimentoTerceiraPessoa
+            {
+                Voando = true,
+                VelocidadeVerticalVoo = 6f,
+            };
+
+            Assert.AreEqual(6f, movimento.VelocidadeVertical(0f, false, 0.1f, 1f), Tolerancia);
+            Assert.AreEqual(-6f, movimento.VelocidadeVertical(0f, true, 0.1f, -1f), Tolerancia);
+            Assert.AreEqual(6f, movimento.VelocidadeVertical(0f, false, 0.1f, 5f), Tolerancia);
+        }
+
+        [Test]
+        public void Voando_NaoPula()
+        {
+            var movimento = new MovimentoTerceiraPessoa { Voando = true };
+
+            Assert.AreEqual(0f, movimento.Pular(0f, true, true), Tolerancia);
+        }
+
+        [Test]
+        public void VooDesligado_PuloEQuedaIguais()
+        {
+            var movimento = new MovimentoTerceiraPessoa { Voando = true };
+            movimento.Voando = false;
+
+            Assert.AreEqual(
+                movimento.VelocidadeDoPulo,
+                movimento.Pular(MovimentoTerceiraPessoa.VelocidadeGrudarNoChao, true, true),
+                Tolerancia
+            );
+            Assert.AreEqual(-2f, movimento.VelocidadeVertical(0f, false, 0.1f, 1f), Tolerancia);
+            Assert.AreEqual(
+                MovimentoTerceiraPessoa.VelocidadeGrudarNoChao,
+                movimento.VelocidadeVertical(-5f, true, 0.1f, 1f),
+                Tolerancia
+            );
+        }
+
         private static void AssertVetor(Vector3 esperado, Vector3 obtido)
         {
             Assert.AreEqual(esperado.x, obtido.x, Tolerancia, "x");

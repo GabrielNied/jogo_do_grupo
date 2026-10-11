@@ -5,7 +5,8 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
     /// <summary>
     /// Move o jogador local com o <see cref="CharacterController"/>: anda na direção da câmera,
     /// corre com Shift, pula com Espaço (só no chão), vira para onde anda, cai com gravidade e alimenta o Animator do visual.
-    /// O cálculo fica em <see cref="MovimentoTerceiraPessoa"/>. Criado pela
+    /// Os valores do movimento e o voo de desenvolvimento aparecem no Inspector e valem na hora,
+    /// também com o Play aberto. O cálculo fica em <see cref="MovimentoTerceiraPessoa"/>. Criado pela
     /// <see cref="EntradaNoJogo"/>; não precisa ser montado em cena.
     /// </summary>
     [RequireComponent(typeof(CharacterController))]
@@ -14,6 +15,35 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
         /// <summary>Quanto o jogador vira por segundo para a direção do movimento, em graus.</summary>
         [SerializeField]
         private float _velocidadeVirar = 720f;
+
+        [Header("Movimento (ajustável no Play)")]
+        [SerializeField, Min(0f), Tooltip("m/s")]
+        private float _velocidadeAndar = MovimentoTerceiraPessoa.VelocidadeAndarPadrao;
+
+        [SerializeField, Min(0f), Tooltip("m/s. Conectado, o servidor puxa de volta acima de 5,5.")]
+        private float _velocidadeCorrer = MovimentoTerceiraPessoa.VelocidadeCorrerPadrao;
+
+        [SerializeField, Min(0f), Tooltip("m/s²")]
+        private float _aceleracao = MovimentoTerceiraPessoa.AceleracaoPadrao;
+
+        [SerializeField, Min(0f), Tooltip("m/s²")]
+        private float _gravidade = MovimentoTerceiraPessoa.GravidadePadrao;
+
+        [SerializeField, Min(0f), Tooltip("m/s")]
+        private float _velocidadeMaximaQueda = MovimentoTerceiraPessoa.VelocidadeMaximaQuedaPadrao;
+
+        [SerializeField, Min(0f), Tooltip("m")]
+        private float _alturaPulo = MovimentoTerceiraPessoa.AlturaPuloPadrao;
+
+        [Header("Voo (só no editor)")]
+        [
+            SerializeField,
+            Tooltip("Sem gravidade; Espaço sobe e Ctrl desce. Ignorado fora do editor.")
+        ]
+        private bool _voar;
+
+        [SerializeField, Min(0f), Tooltip("m/s")]
+        private float _velocidadeVerticalVoo = MovimentoTerceiraPessoa.VelocidadeVerticalVooPadrao;
 
         private readonly MovimentoTerceiraPessoa _movimento = new MovimentoTerceiraPessoa();
 
@@ -34,7 +64,10 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
         /// <summary>Se o jogador está no chão.</summary>
         public bool NoChao => _corpo != null && _corpo.isGrounded;
 
-        /// <summary>Valores de velocidade e gravidade (ajustáveis por quem criar o jogador).</summary>
+        /// <summary>
+        /// Valores de velocidade e gravidade (ajustáveis por quem criar o jogador). Mudar um
+        /// campo no Inspector reaplica todos os campos do Inspector aqui.
+        /// </summary>
         public MovimentoTerceiraPessoa Movimento => _movimento;
 
         internal void Configurar(
@@ -52,6 +85,25 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
         private void Awake()
         {
             _corpo = GetComponent<CharacterController>();
+            AplicarCamposNoMovimento();
+        }
+
+        // Chamado pelo editor a cada mudança no Inspector, também durante o Play.
+        private void OnValidate()
+        {
+            AplicarCamposNoMovimento();
+        }
+
+        private void AplicarCamposNoMovimento()
+        {
+            _movimento.VelocidadeAndar = _velocidadeAndar;
+            _movimento.VelocidadeCorrer = _velocidadeCorrer;
+            _movimento.Aceleracao = _aceleracao;
+            _movimento.Gravidade = _gravidade;
+            _movimento.VelocidadeMaximaQueda = _velocidadeMaximaQueda;
+            _movimento.AlturaPulo = _alturaPulo;
+            _movimento.Voando = _voar;
+            _movimento.VelocidadeVerticalVoo = _velocidadeVerticalVoo;
         }
 
         private void Update()
@@ -86,7 +138,8 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
             _velocidadeVertical = _movimento.VelocidadeVertical(
                 _velocidadeVertical,
                 _corpo.isGrounded,
-                dt
+                dt,
+                InputAtivo ? _acoes.Subir : 0f
             );
             _velocidadeVertical = _movimento.Pular(
                 _velocidadeVertical,
