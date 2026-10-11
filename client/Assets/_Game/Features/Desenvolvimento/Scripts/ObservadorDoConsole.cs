@@ -108,8 +108,8 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento
 
             DefinirJogoAtivo(false);
             _jogoPausadoPeloConsole = true;
-            Cursor.lockState = CursorLockMode.None;
-            Cursor.visible = true;
+            UnityEngine.Cursor.lockState = CursorLockMode.None;
+            UnityEngine.Cursor.visible = true;
         }
 
         private void Fechar()
@@ -131,8 +131,8 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento
             }
 
             DefinirJogoAtivo(true);
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;
+            UnityEngine.Cursor.lockState = CursorLockMode.Locked;
+            UnityEngine.Cursor.visible = false;
         }
 
         private static void Enviar(string texto)
