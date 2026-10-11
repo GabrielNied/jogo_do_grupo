@@ -267,6 +267,11 @@ public class GrupoDeInimigosTestes
         Assert.Equal(0.0, aviso.CentroX, 3);
         Assert.Equal(inimigo.Z + RegrasInimigo.DistanciaDoGolpeMetros, aviso.CentroZ, 3);
         Assert.True(RegrasInimigo.NoAlcanceDeAtaque(14 - inimigo.Z));
+        Assert.Equal(TipoDeAtaqueDeInimigo.Golpe, aviso.Tipo);
+        var area = Assert.Single(aviso.Areas);
+        Assert.Equal(aviso.CentroX, area.CentroX);
+        Assert.Equal(aviso.CentroZ, area.CentroZ);
+        Assert.Equal(aviso.Raio, area.Raio);
 
         // Durante o aviso ainda não há dano.
         var durante = campo.Avancar(RegrasInimigo.PreparoDoAtaqueSegundos - 0.1);
