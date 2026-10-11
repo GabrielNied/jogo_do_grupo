@@ -24,6 +24,7 @@ namespace JogoDoGrupo.Client.Features.Personagem.Editor
 
         public const string ParametroVelocidade = "Velocidade";
         public const string ParametroNoChao = "NoChao";
+        public const string ParametroEsquiva = "Esquiva";
 
         /// <summary>Altura do personagem em metros.</summary>
         public const float AlturaAlvo = 1.8f;
@@ -36,6 +37,7 @@ namespace JogoDoGrupo.Client.Features.Personagem.Editor
         const string ClipeParado = "CharacterArmature|Idle";
         const string ClipeAndar = "CharacterArmature|Walk";
         const string ClipeCorrer = "CharacterArmature|Run";
+        const string ClipeRoll = "CharacterArmature|Roll";
         const string OssoTopoDaCabeca = "Head_end";
 
         [MenuItem("Jogo do Grupo/Personagem/Gerar jogador humano")]
@@ -125,6 +127,7 @@ namespace JogoDoGrupo.Client.Features.Personagem.Editor
             var controller = AnimatorController.CreateAnimatorControllerAtPath(CaminhoController);
             controller.AddParameter(ParametroVelocidade, AnimatorControllerParameterType.Float);
             controller.AddParameter(ParametroNoChao, AnimatorControllerParameterType.Bool);
+            controller.AddParameter(ParametroEsquiva, AnimatorControllerParameterType.Trigger);
 
             var parametros = controller.parameters;
             foreach (var p in parametros)
@@ -139,7 +142,22 @@ namespace JogoDoGrupo.Client.Features.Personagem.Editor
             arvore.AddChild(ObterClipe(ClipeParado), 0f);
             arvore.AddChild(ObterClipe(ClipeAndar), VelocidadeAndar);
             arvore.AddChild(ObterClipe(ClipeCorrer), VelocidadeCorrer);
-            maquina.defaultState = BuscarEstado(maquina, "Movimento");
+            var movimento = BuscarEstado(maquina, "Movimento");
+            maquina.defaultState = movimento;
+
+            var esquiva = maquina.AddState("Esquiva", new Vector3(300f, 0f, 0f));
+            esquiva.motion = ObterClipe(ClipeRoll);
+
+            var qualquerParaEsquiva = maquina.AddAnyStateTransition(esquiva);
+            qualquerParaEsquiva.AddCondition(AnimatorConditionMode.If, 0, ParametroEsquiva);
+            qualquerParaEsquiva.duration = 0.05f;
+            qualquerParaEsquiva.canTransitionToSelf = false;
+
+            var esquivaParaMovimento = esquiva.AddTransition(movimento);
+            esquivaParaMovimento.hasExitTime = true;
+            esquivaParaMovimento.exitTime = 0.85f;
+            esquivaParaMovimento.duration = 0.12f;
+
             EditorUtility.SetDirty(controller);
             return controller;
         }
