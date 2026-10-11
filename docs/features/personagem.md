@@ -234,6 +234,7 @@ API HTTP para listar e criar personagens (por que HTTP: [ADR 0009](../decisoes/0
 - **`ListaPersonagensResponse`:** a lista de personagens da conta (de 0 a 4).
 - **`CodigosErroPersonagem`:** os códigos dos motivos de recusa (`NomeInvalido`, `NomeJaExiste`, `LimitePersonagens`, `RacaInvalida`), que chegam no campo `Codigo` do `ErroApi` do Core. Erros genéricos (não autenticado, requisição inválida, erro interno) usam os códigos do Core (`CodigosErro`).
 - Por serem HTTP, essas rotas não usam IDs de mensagem da faixa 3000–3999.
+- **`IDiretorioDePersonagens`** (só no servidor, em `server/src/JogoDoGrupo.Server/Contratos/Personagem/`, [ADR 0016](../decisoes/0016-eventos-entre-funcionalidades-do-servidor.md)): consulta de nome ↔ id para as outras funcionalidades. `TentarObterPorNome` não diferencia maiúsculas; `TentarObterNome` devolve o nome como foi digitado. Diz se o personagem **existe**; se está online quem sabe é o Mundo (`IPosicoesDoMundo`).
 
 ## Visual do jogador (arte)
 
