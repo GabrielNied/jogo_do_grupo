@@ -35,6 +35,7 @@ namespace JogoDoGrupo.Client.Core.UI
         private static Tela _telaAtual;
         private static string _chaveAtual;
         private static string _chaveTelaAposLogin;
+        private static string _avisoLogin;
 
         /// <summary>Chave da tela aberta agora, ou <c>null</c> se nenhuma.</summary>
         public static string ChaveAtual => _chaveAtual;
@@ -182,8 +183,19 @@ namespace JogoDoGrupo.Client.Core.UI
         public static void VoltarParaLogin(string aviso = null)
         {
             Sessao.Encerrar();
-            TelaLogin.AvisoAoAbrir = aviso;
+            _avisoLogin = aviso;
             Abrir(TelasCore.Login);
+        }
+
+        /// <summary>
+        /// Devolve o aviso passado em <see cref="VoltarParaLogin"/> (ou <c>null</c>) e o apaga.
+        /// Usado pela tela de login ao abrir.
+        /// </summary>
+        internal static string ConsumirAvisoLogin()
+        {
+            var aviso = _avisoLogin;
+            _avisoLogin = null;
+            return aviso;
         }
 
         /// <summary>Chamado pelo inicializador do Core com o elemento que recebe as telas.</summary>
@@ -225,6 +237,7 @@ namespace JogoDoGrupo.Client.Core.UI
             _telaAtual = null;
             _chaveAtual = null;
             _chaveTelaAposLogin = null;
+            _avisoLogin = null;
         }
     }
 }

@@ -14,10 +14,9 @@ namespace JogoDoGrupo.Client.Core.Contas
     /// </summary>
     internal sealed class TelaLogin : Tela
     {
-        /// <summary>Aviso mostrado na próxima abertura (ex.: sessão expirada); consumido ao abrir.</summary>
-        internal static string AvisoAoAbrir;
-
         private const string MensagemGenerica = "Algo deu errado. Tente de novo.";
+        private const string MensagemContaCriadaSemLogin =
+            "Conta criada, mas não foi possível entrar. Use Entrar.";
 
         private TextField _usuario;
         private TextField _senha;
@@ -75,12 +74,11 @@ namespace JogoDoGrupo.Client.Core.Contas
 
         protected override void AoAbrir()
         {
-            if (!string.IsNullOrEmpty(AvisoAoAbrir))
+            var aviso = Navegacao.ConsumirAvisoLogin();
+            if (!string.IsNullOrEmpty(aviso))
             {
-                MostrarMensagem(AvisoAoAbrir, EstiloCore.MensagemAviso);
+                MostrarMensagem(aviso, EstiloCore.MensagemAviso);
             }
-
-            AvisoAoAbrir = null;
 
             // Dá o foco depois do primeiro layout, quando o campo já pode receber foco.
             _usuario.schedule.Execute(() => _usuario.Focus());
@@ -122,7 +120,7 @@ namespace JogoDoGrupo.Client.Core.Contas
             MostrarMensagem("Entrando...");
             try
             {
-                await Entrar(usuario, senha);
+                await Entrar(usuario, senha, contaRecemCriada: false);
             }
             catch (Exception e)
             {
@@ -152,6 +150,7 @@ namespace JogoDoGrupo.Client.Core.Contas
 
             DefinirEsperando(true);
             MostrarMensagem("Criando a conta...");
+            var contaCriada = false;
             try
             {
                 var registro = await ClienteApi.Post(
@@ -170,15 +169,19 @@ namespace JogoDoGrupo.Client.Core.Contas
                     return;
                 }
 
+                contaCriada = true;
                 MostrarMensagem("Conta criada. Entrando...");
-                await Entrar(usuario, senha);
+                await Entrar(usuario, senha, contaRecemCriada: true);
             }
             catch (Exception e)
             {
                 Debug.LogException(e);
                 if (Aberta)
                 {
-                    MostrarMensagem(MensagemGenerica, EstiloCore.MensagemErro);
+                    MostrarMensagem(
+                        contaCriada ? MensagemContaCriadaSemLogin : MensagemGenerica,
+                        EstiloCore.MensagemErro
+                    );
                 }
             }
             finally
@@ -190,8 +193,12 @@ namespace JogoDoGrupo.Client.Core.Contas
             }
         }
 
-        /// <summary>Faz o login; com sucesso, guarda a sessão e sai desta tela.</summary>
-        private async Awaitable Entrar(string usuario, string senha)
+        /// <summary>
+        /// Faz o login; com sucesso, guarda a sessão e sai desta tela. Se falhar logo depois do
+        /// registro (<paramref name="contaRecemCriada"/>), avisa que a conta foi criada e que é
+        /// só usar Entrar.
+        /// </summary>
+        private async Awaitable Entrar(string usuario, string senha, bool contaRecemCriada)
         {
             var resposta = await ClienteApi.Post<LoginResponse>(
                 RotasContas.Login,
@@ -203,16 +210,18 @@ namespace JogoDoGrupo.Client.Core.Contas
                 return;
             }
 
-            if (!resposta.Sucesso)
+            if (!resposta.Sucesso || string.IsNullOrEmpty(resposta.Corpo.Token))
             {
-                MostrarMensagem(MensagemDoErro(resposta.CodigoErro), EstiloCore.MensagemErro);
-                return;
-            }
+                if (resposta.Sucesso)
+                {
+                    Debug.LogWarning("[TelaLogin] O login respondeu sem token.");
+                }
 
-            if (string.IsNullOrEmpty(resposta.Corpo.Token))
-            {
-                Debug.LogWarning("[TelaLogin] O login respondeu sem token.");
-                MostrarMensagem(MensagemGenerica, EstiloCore.MensagemErro);
+                var mensagem =
+                    contaRecemCriada ? MensagemContaCriadaSemLogin
+                    : resposta.Sucesso ? MensagemGenerica
+                    : MensagemDoErro(resposta.CodigoErro);
+                MostrarMensagem(mensagem, EstiloCore.MensagemErro);
                 return;
             }
 
@@ -252,6 +261,8 @@ namespace JogoDoGrupo.Client.Core.Contas
                     $"A senha deve ter de {RegrasConta.SenhaMinimo} a {RegrasConta.SenhaMaximo} caracteres.",
                 CodigosErroCliente.SemConexao =>
                     "Não foi possível conectar ao servidor. Verifique a conexão e tente de novo.",
+                CodigosErroCliente.HttpBloqueado =>
+                    "Não foi possível conectar ao servidor (HTTP bloqueado nas configurações do projeto).",
                 _ => MensagemGenerica,
             };
         }
@@ -274,12 +285,6 @@ namespace JogoDoGrupo.Client.Core.Contas
             {
                 _mensagem.AddToClassList(classe);
             }
-        }
-
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        private static void Reiniciar()
-        {
-            AvisoAoAbrir = null;
         }
     }
 }
