@@ -34,6 +34,10 @@ public sealed class MundoModule : IFeatureModule
             .Ao<EntrarNaCidade>(MundoMessageIds.EntrarNaCidade, AoEntrar)
             .Ao<IntencaoDeMovimento>(MundoMessageIds.IntencaoDeMovimento, AoMover)
             .Ao<ConfirmarVelocidade>(MundoMessageIds.ConfirmarVelocidade, AoConfirmarVelocidade)
+            .Ao<ConfirmarPosicaoForcada>(
+                MundoMessageIds.ConfirmarPosicaoForcada,
+                AoConfirmarPosicaoForcada
+            )
             .Ao<PedirVelocidadeDeTeste>(
                 MundoMessageIds.PedirVelocidadeDeTeste,
                 AoPedirVelocidadeDeTeste
@@ -71,6 +75,8 @@ public sealed class MundoModule : IFeatureModule
         }
     }
 
+    // O client é dono da própria posição (ADR 0024): o servidor valida e repassa aos outros,
+    // sem devolver a posição ao dono. Só o caso grave vira PosicaoForcada, com confirmação.
     private void AoMover(SessaoTempoReal sessao, IntencaoDeMovimento intencao)
     {
         var desejada = new PosicaoNaCidade(intencao.X, intencao.Y, intencao.Z, intencao.RotacaoY);
@@ -80,24 +86,32 @@ public sealed class MundoModule : IFeatureModule
             return;
         }
 
-        // O dono sempre recebe a posição autoritativa com a sequência (corrige a predição se recusada).
-        _tempoReal!.Enviar(
-            sessao,
-            MundoMessageIds.PosicaoJogador,
-            Posicao(avatar, intencao.Sequencia),
-            EntregaTempoReal.Sequenciada
-        );
-        if (resultado != ResultadoMovimento.Aceito)
+        switch (resultado)
         {
-            return;
-        }
+            case ResultadoMovimento.Recusado:
+                if (_cidade.PosicaoForcadaPendente(sessao.PersonagemId) is { } sequencia)
+                {
+                    EnviarPosicaoForcada(sessao, avatar, sequencia);
+                }
 
+                return;
+            case ResultadoMovimento.Aceito:
+            case ResultadoMovimento.AceitoComSuspeita:
+                Replicar(sessao, avatar);
+                return;
+            default:
+                return;
+        }
+    }
+
+    private void Replicar(SessaoTempoReal dono, AvatarNaCidade<SessaoTempoReal> avatar)
+    {
         var replica = Posicao(avatar, 0);
         foreach (var outro in _cidade.Presentes())
         {
-            if (!ReferenceEquals(outro.Sessao, sessao))
+            if (!ReferenceEquals(outro.Sessao, dono))
             {
-                _tempoReal.Enviar(
+                _tempoReal!.Enviar(
                     outro.Sessao,
                     MundoMessageIds.PosicaoJogador,
                     replica,
@@ -106,6 +120,29 @@ public sealed class MundoModule : IFeatureModule
             }
         }
     }
+
+    private void EnviarPosicaoForcada(
+        SessaoTempoReal sessao,
+        AvatarNaCidade<SessaoTempoReal> avatar,
+        int sequencia
+    ) =>
+        _tempoReal!.Enviar(
+            sessao,
+            MundoMessageIds.PosicaoForcada,
+            new PosicaoForcada
+            {
+                X = avatar.Posicao.X,
+                Y = avatar.Posicao.Y,
+                Z = avatar.Posicao.Z,
+                RotacaoY = avatar.Posicao.RotacaoY,
+                Sequencia = sequencia,
+            }
+        );
+
+    private void AoConfirmarPosicaoForcada(
+        SessaoTempoReal sessao,
+        ConfirmarPosicaoForcada confirmacao
+    ) => _cidade.ConfirmarPosicaoForcada(sessao.PersonagemId, sessao, confirmacao.Sequencia);
 
     private void AoConfirmarVelocidade(SessaoTempoReal sessao, ConfirmarVelocidade confirmacao) =>
         _cidade.ConfirmarVelocidades(sessao.PersonagemId, sessao, confirmacao.Sequencia);

@@ -28,7 +28,18 @@ public enum ResultadoMovimento
     /// <summary>O jogador não está na cidade.</summary>
     ForaDaCidade,
     Aceito,
+
+    /// <summary>Aceito, mas além do orçamento (dentro da tolerância): contou como suspeita.</summary>
+    AceitoComSuspeita,
+
+    /// <summary>
+    /// Impossível: a posição do servidor ficou, e o client precisa receber
+    /// <c>PosicaoForcada</c> (<see cref="CidadeDoMundo{TSessao}.PosicaoForcadaPendente"/>).
+    /// </summary>
     Recusado,
+
+    /// <summary>Ignorado: há uma posição forçada esperando a confirmação do client.</summary>
+    AguardandoConfirmacao,
 }
 
 /// <summary>
@@ -74,11 +85,18 @@ public sealed class CidadeDoMundo<TSessao>(Func<long> relogioMs)
                     sessao,
                     ValidadorDeMovimento.Nascimento,
                     relogioMs(),
-                    VelocidadesNaCidade.Padrao
+                    VelocidadesNaCidade.Padrao,
+                    ValidadorDeMovimento.TetoDoOrcamento(VelocidadesNaCidade.Padrao.Maxima)
                 )
                 : entrada! with
                 {
                     Sessao = sessao,
+                    // Reconexão: o client pode ter andado sem conexão; não vira posição forçada.
+                    Orcamento =
+                        LimiteDeVelocidade(entrada)
+                        * ValidadorDeMovimento.OrcamentoAoReconectarSegundos,
+                    UltimoMs = relogioMs(),
+                    ForcadaPendente = null,
                 };
             _avatares[personagemId] = entrada;
             var outros = _avatares
@@ -110,32 +128,174 @@ public sealed class CidadeDoMundo<TSessao>(Func<long> relogioMs)
             }
 
             var agora = relogioMs();
-            var decorrido = agora - entrada.UltimoMs;
-            var janela = entrada.Janela is { } aberta && agora <= aberta.AteMs ? aberta : null;
-            var permitido =
-                janela != null
-                    ? ValidadorDeMovimento.PermitidoNaJanela(
-                        janela.Origem,
-                        entrada.Posicao,
-                        desejada,
-                        decorrido,
-                        janela.DistanciaMaxima,
-                        janela.Velocidade
-                    )
-                    : ValidadorDeMovimento.Permitido(
-                        entrada.Posicao,
-                        desejada,
-                        decorrido,
-                        LimiteDeVelocidade(entrada)
-                    );
-            if (!permitido)
+            if (entrada.ForcadaPendente != null)
             {
+                // Movimento de antes do teleporte: só volta a valer depois da confirmação.
+                return (ResultadoMovimento.AguardandoConfirmacao, Converter(personagemId, entrada));
+            }
+
+            var decorrido = agora - entrada.UltimoMs;
+            var limite = LimiteDeVelocidade(entrada);
+            var orcamento = ValidadorDeMovimento.Recarregar(entrada.Orcamento, decorrido, limite);
+            var suspeitas = Math.Max(
+                0,
+                entrada.Suspeitas
+                    - (
+                        Math.Max(0, decorrido)
+                        / 1000.0
+                        * ValidadorDeMovimento.SuspeitasEsvaziadasPorSegundo
+                    )
+            );
+
+            // Janela de deslocamento (ex.: esquiva aceita): o passo vale pelas regras dela e não
+            // gasta o orçamento.
+            var janela = entrada.Janela is { } aberta && agora <= aberta.AteMs ? aberta : null;
+            if (
+                janela != null
+                && ValidadorDeMovimento.PermitidoNaJanela(
+                    janela.Origem,
+                    entrada.Posicao,
+                    desejada,
+                    decorrido,
+                    janela.DistanciaMaxima,
+                    janela.Velocidade
+                )
+            )
+            {
+                entrada = entrada with
+                {
+                    Posicao = desejada,
+                    UltimoMs = agora,
+                    Janela = janela,
+                    Orcamento = orcamento,
+                    Suspeitas = suspeitas,
+                };
+                _avatares[personagemId] = entrada;
+                return (ResultadoMovimento.Aceito, Converter(personagemId, entrada));
+            }
+
+            var julgamento = ValidadorDeMovimento.Julgar(entrada.Posicao, desejada, orcamento);
+            if (julgamento == JulgamentoDoPasso.Suspeito)
+            {
+                suspeitas += 1;
+                if (suspeitas > ValidadorDeMovimento.LimiteDeSuspeitas)
+                {
+                    julgamento = JulgamentoDoPasso.Grave;
+                }
+            }
+
+            if (julgamento == JulgamentoDoPasso.Grave)
+            {
+                // A posição do servidor fica e o client recebe PosicaoForcada (ADR 0024).
+                var sequencia = entrada.SequenciaForcada + 1;
+                entrada = entrada with
+                {
+                    UltimoMs = agora,
+                    Orcamento = orcamento,
+                    Suspeitas = 0,
+                    SequenciaForcada = sequencia,
+                    ForcadaPendente = sequencia,
+                };
+                _avatares[personagemId] = entrada;
                 return (ResultadoMovimento.Recusado, Converter(personagemId, entrada));
             }
 
-            entrada = entrada with { Posicao = desejada, UltimoMs = agora, Janela = janela };
+            var andou = ValidadorDeMovimento.DistanciaHorizontal(entrada.Posicao, desejada);
+            var suspeito = julgamento == JulgamentoDoPasso.Suspeito;
+            entrada = entrada with
+            {
+                Posicao = desejada,
+                UltimoMs = agora,
+                Janela = janela,
+                Orcamento = Math.Max(0, orcamento - andou),
+                Suspeitas = suspeitas,
+                TotalDeSuspeitas = entrada.TotalDeSuspeitas + (suspeito ? 1 : 0),
+            };
             _avatares[personagemId] = entrada;
-            return (ResultadoMovimento.Aceito, Converter(personagemId, entrada));
+            return (
+                suspeito ? ResultadoMovimento.AceitoComSuspeita : ResultadoMovimento.Aceito,
+                Converter(personagemId, entrada)
+            );
+        }
+    }
+
+    /// <summary>
+    /// Sequência da posição forçada que espera a confirmação do client, ou <c>null</c>.
+    /// </summary>
+    public int? PosicaoForcadaPendente(long personagemId)
+    {
+        lock (_trava)
+        {
+            return _avatares.TryGetValue(personagemId, out var entrada)
+                ? entrada.ForcadaPendente
+                : null;
+        }
+    }
+
+    /// <summary>
+    /// Manda o personagem para <paramref name="posicao"/> (teleporte, renascer, empurrão).
+    /// Devolve a sequência para a <c>PosicaoForcada</c>, ou <c>null</c> se ele não está na
+    /// cidade. Até a confirmação, o movimento do client é ignorado.
+    /// </summary>
+    public int? ForcarPosicao(long personagemId, PosicaoNaCidade posicao)
+    {
+        lock (_trava)
+        {
+            if (!_avatares.TryGetValue(personagemId, out var entrada))
+            {
+                return null;
+            }
+
+            var sequencia = entrada.SequenciaForcada + 1;
+            _avatares[personagemId] = entrada with
+            {
+                Posicao = posicao,
+                SequenciaForcada = sequencia,
+                ForcadaPendente = sequencia,
+                Janela = null,
+            };
+            return sequencia;
+        }
+    }
+
+    /// <summary>
+    /// O client aplicou a posição forçada <paramref name="sequencia"/>: o movimento volta a
+    /// valer, com o orçamento cheio. Falso (e nada muda) se a sequência não é a pendente.
+    /// </summary>
+    public bool ConfirmarPosicaoForcada(long personagemId, TSessao sessao, int sequencia)
+    {
+        lock (_trava)
+        {
+            if (
+                !_avatares.TryGetValue(personagemId, out var entrada)
+                || !ReferenceEquals(entrada.Sessao, sessao)
+                || entrada.ForcadaPendente != sequencia
+            )
+            {
+                return false;
+            }
+
+            _avatares[personagemId] = entrada with
+            {
+                ForcadaPendente = null,
+                UltimoMs = relogioMs(),
+                Orcamento = ValidadorDeMovimento.TetoDoOrcamento(LimiteDeVelocidade(entrada)),
+            };
+            return true;
+        }
+    }
+
+    /// <summary>
+    /// Quantos passos suspeitos o personagem teve nesta presença (para o GM e o log; <c>0</c> se
+    /// ele não está na cidade).
+    /// </summary>
+    public int TotalDeSuspeitas(long personagemId)
+    {
+        lock (_trava)
+        {
+            return _avatares.TryGetValue(personagemId, out var entrada)
+                ? entrada.TotalDeSuspeitas
+                : 0;
         }
     }
 
@@ -302,8 +462,13 @@ public sealed class CidadeDoMundo<TSessao>(Func<long> relogioMs)
         PosicaoNaCidade Posicao,
         long UltimoMs,
         VelocidadesNaCidade Confirmadas,
+        double Orcamento,
         VelocidadesNaCidade? Pendente = null,
-        JanelaDeDeslocamento? Janela = null
+        JanelaDeDeslocamento? Janela = null,
+        double Suspeitas = 0,
+        int TotalDeSuspeitas = 0,
+        int SequenciaForcada = 0,
+        int? ForcadaPendente = null
     );
 
     // Onde o personagem estava quando a janela abriu, até quando ela vale e os limites dela.

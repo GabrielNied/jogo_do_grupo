@@ -81,7 +81,8 @@ namespace JogoDoGrupo.Client.Features.Combate
     /// Antecipa o deslocamento da esquiva enquanto o servidor não responde, no mesmo ritmo de
     /// <see cref="RegrasEsquiva"/> (reta, <see cref="RegrasEsquiva.DistanciaMetros"/> em
     /// <see cref="RegrasEsquiva.DuracaoSegundos"/>). Se o servidor recusar durante o movimento,
-    /// devolve o ponto de partida para desfazer. A posição final continua sendo a do servidor.
+    /// a esquiva para onde está (ADR 0024); o ponto de partida ainda é devolvido para quem
+    /// precisar dele, mas o client não volta no tempo.
     /// </summary>
     internal sealed class PredicaoDeEsquiva
     {

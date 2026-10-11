@@ -261,7 +261,12 @@ public class EsquivaTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDe
             MundoMessageIds.IntencaoDeMovimento,
             new IntencaoDeMovimento { Z = z + 0.01f, Sequencia = 1 }
         );
-        await ana.Cliente.ReceberAsync<PosicaoJogador>(MundoMessageIds.PosicaoJogador);
+        // O servidor não devolve a posição ao dono (ADR 0024): confere a dele.
+        await PosicaoNoServidor.EsperarAsync(
+            servidor.Falso.Services,
+            ana.Id,
+            p => p.Z == z + 0.01f
+        );
 
         Esquivar(ana);
         await IniciadaAsync(ana);
@@ -272,11 +277,12 @@ public class EsquivaTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDe
             MundoMessageIds.IntencaoDeMovimento,
             new IntencaoDeMovimento { Z = z + 2.8f, Sequencia = 2 }
         );
-        var posicao = await ana.Cliente.ReceberAsync<PosicaoJogador>(
-            MundoMessageIds.PosicaoJogador
+        var posicao = await PosicaoNoServidor.EsperarAsync(
+            servidor.Falso.Services,
+            ana.Id,
+            p => p.Z == z + 2.8f
         );
 
-        Assert.Equal(2, posicao.Sequencia);
         Assert.Equal(z + 2.8f, posicao.Z);
     }
 

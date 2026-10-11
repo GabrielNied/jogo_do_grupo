@@ -5,6 +5,19 @@ namespace JogoDoGrupo.Server.Features.Mundo;
 /// <summary>Posição e orientação de um avatar na cidade.</summary>
 public readonly record struct PosicaoNaCidade(float X, float Y, float Z, float RotacaoY);
 
+/// <summary>Como o servidor vê um passo do client (ADR 0024).</summary>
+public enum JulgamentoDoPasso
+{
+    /// <summary>Dentro do orçamento: aceita.</summary>
+    Normal,
+
+    /// <summary>Um pouco além do orçamento: aceita e conta como suspeita.</summary>
+    Suspeito,
+
+    /// <summary>Impossível (ou suspeita demais): o servidor força a posição.</summary>
+    Grave,
+}
+
 /// <summary>
 /// Regras puras do movimento na cidade (sem rede): o servidor recusa deslocamento mais rápido
 /// do que correr, para fora do mundo ou longe do chão. Valores em docs/features/mundo.md.
@@ -107,6 +120,78 @@ public static class ValidadorDeMovimento
 
         return Distancia(atual, desejada) <= (velocidade * Segundos(decorridoMs)) + Folga;
     }
+
+    /// <summary>
+    /// Quanto deslocamento (em segundos de corrida) o orçamento junta no máximo (ADR 0024). É o
+    /// que absorve pacotes que chegam em rajada: o tempo de rede não vira recusa.
+    /// </summary>
+    public const double OrcamentoMaximoSegundos = 2.0;
+
+    /// <summary>
+    /// Orçamento dado a quem reconecta (s de corrida): o client pode ter andado um pouco enquanto
+    /// a conexão estava caída, e isso não pode virar posição forçada.
+    /// </summary>
+    public const double OrcamentoAoReconectarSegundos = 10.0;
+
+    /// <summary>
+    /// Excesso (m) além do orçamento que ainda é aceito, só contando como suspeita. Cobre uma
+    /// esquiva (5 m) que o client fez e o servidor recusou: o jogador não volta no tempo.
+    /// </summary>
+    public const double ToleranciaDeExcesso = 6.0;
+
+    /// <summary>
+    /// Suspeitas acumuladas que viram posição forçada. Cada passo suspeito soma 1, e o contador
+    /// esvazia <see cref="SuspeitasEsvaziadasPorSegundo"/> por segundo: só abuso repetido passa.
+    /// </summary>
+    public const double LimiteDeSuspeitas = 5.0;
+
+    public const double SuspeitasEsvaziadasPorSegundo = 0.5;
+
+    /// <summary>Teto do orçamento para a velocidade dada (m).</summary>
+    public static double TetoDoOrcamento(float velocidade) =>
+        (velocidade * OrcamentoMaximoSegundos) + Folga;
+
+    /// <summary>
+    /// Orçamento depois de <paramref name="decorridoMs"/>: soma o que dá para correr nesse tempo,
+    /// até o teto. Tempo negativo não soma. Um orçamento já acima do teto (dado na reconexão)
+    /// não é cortado, só deixa de crescer.
+    /// </summary>
+    public static double Recarregar(double orcamento, long decorridoMs, float velocidade)
+    {
+        var teto = TetoDoOrcamento(velocidade);
+        if (orcamento >= teto)
+        {
+            return orcamento;
+        }
+
+        return Math.Min(orcamento + (velocidade * Math.Max(0, decorridoMs) / 1000.0), teto);
+    }
+
+    /// <summary>
+    /// Julga um passo contra o orçamento. Posição inválida (fora do mundo, longe do chão, não
+    /// finita) ou excesso acima de <see cref="ToleranciaDeExcesso"/> é grave; excesso menor é
+    /// suspeito, mas aceito.
+    /// </summary>
+    public static JulgamentoDoPasso Julgar(
+        PosicaoNaCidade atual,
+        PosicaoNaCidade desejada,
+        double orcamento
+    )
+    {
+        if (!PosicaoValida(desejada))
+        {
+            return JulgamentoDoPasso.Grave;
+        }
+
+        var excesso = Distancia(atual, desejada) - orcamento;
+        return excesso <= 0 ? JulgamentoDoPasso.Normal
+            : excesso <= ToleranciaDeExcesso ? JulgamentoDoPasso.Suspeito
+            : JulgamentoDoPasso.Grave;
+    }
+
+    /// <summary>Distância no plano horizontal (m) entre duas posições.</summary>
+    public static double DistanciaHorizontal(PosicaoNaCidade de, PosicaoNaCidade para) =>
+        Distancia(de, para);
 
     // Números finitos, dentro do mundo e perto do chão daquele ponto.
     private static bool PosicaoValida(PosicaoNaCidade desejada)

@@ -7,9 +7,11 @@ namespace JogoDoGrupo.Client.Features.Mundo.Presenca
 {
     /// <summary>
     /// Lógica da presença: entra na cidade a cada conexão, mantém o registro dos outros
-    /// jogadores e envia a posição local em taxa limitada. O servidor decide; a posição enviada
-    /// é só uma intenção, e a posição autoritativa do próprio jogador chega por
-    /// <see cref="PosicaoDoServidor"/>.
+    /// jogadores e envia a posição local em taxa limitada. O jogador local é dono da própria
+    /// posição (ADR 0024): o servidor valida e repassa aos outros, sem devolver. A posição do
+    /// jogador só muda por fora em dois casos: o nascimento (<see cref="PosicaoDoServidor"/>, na
+    /// primeira entrada) e a <see cref="PosicaoForcada"/> (teleporte, morte, empurrão ou trapaça
+    /// grosseira), que é confirmada ao servidor na hora.
     /// </summary>
     public sealed class PresencaNaCidade : IDisposable
     {
@@ -19,6 +21,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Presenca
         private readonly LimitadorDeTaxa _limitador = new LimitadorDeTaxa(EnviosPorSegundo);
         private readonly IDisposable[] _assinaturas;
         private int _sequencia;
+        private bool _posicionado;
         private bool _descartado;
 
         public PresencaNaCidade(IConexaoDePresenca conexao, long meuPersonagemId)
@@ -32,6 +35,10 @@ namespace JogoDoGrupo.Client.Features.Mundo.Presenca
                 _conexao.Assinar<JogadorEntrou>(MundoMessageIds.JogadorEntrou, AoEntrar),
                 _conexao.Assinar<JogadorSaiu>(MundoMessageIds.JogadorSaiu, AoSair),
                 _conexao.Assinar<PosicaoJogador>(MundoMessageIds.PosicaoJogador, AoReceberPosicao),
+                _conexao.Assinar<PosicaoForcada>(
+                    MundoMessageIds.PosicaoForcada,
+                    AoReceberPosicaoForcada
+                ),
                 _conexao.Assinar<VelocidadesDeMovimento>(
                     MundoMessageIds.VelocidadesDeMovimento,
                     AoReceberVelocidades
@@ -48,10 +55,16 @@ namespace JogoDoGrupo.Client.Features.Mundo.Presenca
         public RegistroDeAvatares Avatares { get; }
 
         /// <summary>
-        /// Posição e rotação autoritativas do jogador local (snapshot de entrada ou resposta a uma
-        /// intenção). Quem move o jogador decide se a diferença justifica corrigir.
+        /// Onde o jogador local nasce: só no primeiro <c>EstadoDaCidade</c>. Na reconexão o
+        /// jogador continua onde está (ADR 0024).
         /// </summary>
         public event Action<Vector3, float> PosicaoDoServidor;
+
+        /// <summary>
+        /// O servidor mandou o jogador para outra posição (<c>PosicaoForcada</c>). Quem move o
+        /// jogador aplica sempre; a confirmação ao servidor já é enviada aqui.
+        /// </summary>
+        public event Action<Vector3, float> PosicaoForcada;
 
         /// <summary>
         /// Andar e correr (m/s) que o servidor deu ao jogador local. Quem move o jogador aplica;
@@ -147,8 +160,9 @@ namespace JogoDoGrupo.Client.Features.Mundo.Presenca
             }
 
             Avatares.Aplicar(estado);
-            if (estado.Eu != null)
+            if (estado.Eu != null && !_posicionado)
             {
+                _posicionado = true;
                 PosicaoDoServidor?.Invoke(
                     new Vector3(estado.Eu.X, estado.Eu.Y, estado.Eu.Z),
                     estado.Eu.RotacaoY
@@ -164,6 +178,21 @@ namespace JogoDoGrupo.Client.Features.Mundo.Presenca
             {
                 Avatares.Saiu(mensagem.PersonagemId);
             }
+        }
+
+        private void AoReceberPosicaoForcada(PosicaoForcada forcada)
+        {
+            if (forcada == null)
+            {
+                return;
+            }
+
+            PosicaoForcada?.Invoke(new Vector3(forcada.X, forcada.Y, forcada.Z), forcada.RotacaoY);
+            _conexao.Enviar(
+                MundoMessageIds.ConfirmarPosicaoForcada,
+                new ConfirmarPosicaoForcada { Sequencia = forcada.Sequencia },
+                EntregaTempoReal.Confiavel
+            );
         }
 
         private void AoReceberVelocidades(VelocidadesDeMovimento velocidades)
@@ -191,10 +220,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Presenca
 
             if (posicao.PersonagemId == Avatares.MeuPersonagemId)
             {
-                PosicaoDoServidor?.Invoke(
-                    new Vector3(posicao.X, posicao.Y, posicao.Z),
-                    posicao.RotacaoY
-                );
+                // O jogador local é dono da própria posição (ADR 0024): não reconcilia.
                 return;
             }
 
