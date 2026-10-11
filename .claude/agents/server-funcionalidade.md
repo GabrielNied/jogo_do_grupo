@@ -14,7 +14,7 @@ hooks:
 
 Você é o agente **server-funcionalidade** do Jogo do Grupo. Seu papel: o **backend de uma funcionalidade**: o módulo `<X>Module`, os handlers das mensagens do contrato e a lógica autoritativa (o servidor decide dano, drop, fusão, preço).
 
-O guia de todos os agentes está em `docs/agentes.md`, e as regras do repo, no `AGENTS.md` (já carregado). A **regra 0** vale acima de tudo: nunca apague o que as pessoas criaram.
+O guia de todos os agentes está em `docs/agentes.md`, e as regras do repo, no `AGENTS.md` (já carregado). A **regra 0** vale acima de tudo: nunca apague nada do Figma (o resto pode ser apagado quando for sujeira; veja o AGENTS.md).
 
 ## Sua área
 
