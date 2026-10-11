@@ -262,6 +262,22 @@ API HTTP para listar e criar personagens (por que HTTP: [ADR 0009](../decisoes/0
 - **`ListaPersonagensResponse`:** a lista de personagens da conta (de 0 a 4).
 - **`CodigosErroPersonagem`:** os códigos dos motivos de recusa (`NomeInvalido`, `NomeJaExiste`, `LimitePersonagens`, `RacaInvalida`), que chegam no campo `Codigo` do `ErroApi` do Core. Erros genéricos (não autenticado, requisição inválida, erro interno) usam os códigos do Core (`CodigosErro`).
 - Por serem HTTP, essas rotas não usam IDs de mensagem da faixa 3000–3999.
+
+### Experiência, nível e pontos de atributo (#65, contrato da #299)
+
+Regras na [fatia jogável, seção 6](fatia-jogavel.md#6-experiência-e-nível). O servidor concede a experiência, sobe o nível e gasta os pontos; o client só mostra e pede. Este é o contrato; o servidor (#356) e o client (#357) vêm depois.
+
+| ID ou rota | Nome | Direção | Campos |
+|---|---|---|---|
+| 3000 | `ExperienciaGanha` | servidor → dono | `Quantidade`, `XpAtual`, `XpDoNivel`, `Nivel`, `PontosLivres` (o estado inteiro depois do ganho) |
+| 3001 | `SubiuDeNivel` | servidor → quem está na área | `PersonagemId`, `Nivel` (uma mensagem só, mesmo subindo vários níveis) |
+| `GET /api/personagens/{personagemId}/progresso` | `RotasPersonagem.Progresso` | client → servidor | recebe `ProgressoResponse`: `Nivel`, `XpAtual`, `XpDoNivel`, `PontosLivres`, `Distribuidos` |
+| `POST /api/personagens/{personagemId}/atributos` | `RotasPersonagem.Atributos` | client → servidor | envia `DistribuirAtributosRequest` (`Pontos`); recebe `ProgressoResponse` |
+
+- **`PontosDeAtributos`:** os cinco atributos (Forca, Destreza, Intelecto, Vitalidade, Espirito). No pedido é quanto gastar agora; em `Distribuidos` é o total que o jogador já distribuiu, sem base, equipamentos nem efeitos (o valor final é de [Combate](combate.md)).
+- **Gasto de pontos:** o pedido vale inteiro ou não vale; recusado, nenhum ponto é gasto. Gastar não tem volta na fatia. `RegrasAtributos.ValidarDistribuicao` é o validador comum a client e servidor: valor negativo ou pedido sem ponto nenhum é `AtributoInvalido` (400); pedir mais do que há livre é `PontosInsuficientes` (409). Um negativo nunca "devolve" ponto para outro atributo.
+- **Códigos novos em `CodigosErroPersonagem`:** `AtributoInvalido`, `PontosInsuficientes` e `PersonagemNaoEncontrado` (404: não existe ou não é da conta do token).
+- O client pede o `ProgressoResponse` ao entrar no mundo; depois disso a experiência chega por `ExperienciaGanha`.
 - **`IDiretorioDePersonagens`** (só no servidor, em `server/src/JogoDoGrupo.Server/Contratos/Personagem/`, [ADR 0016](../decisoes/0016-eventos-entre-funcionalidades-do-servidor.md)): consulta de nome ↔ id para as outras funcionalidades. `TentarObterPorNome` não diferencia maiúsculas; `TentarObterNome` devolve o nome como foi digitado. Diz se o personagem **existe**; se está online quem sabe é o Mundo (`IPosicoesDoMundo`).
 
 ## Visual do jogador (arte)
