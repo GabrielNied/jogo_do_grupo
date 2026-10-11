@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using JogoDoGrupo.Client.Core.Jogo;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -146,6 +147,7 @@ namespace JogoDoGrupo.Client.Features.Social
                     break;
                 case KeyCode.Escape:
                     evento.StopPropagation();
+                    BloqueioDeEntradaPorTexto.EscConsumidoNesteFrame = true;
                     EscApertado?.Invoke();
                     break;
             }
