@@ -1,7 +1,7 @@
 name: Client (Unity)
 
 # Compila o client e roda os testes EditMode num Unity de verdade (GameCI), para que quem não
-# tem Unity na máquina, como um agente na nuvem, não precise fazer isso localmente (ADR 0018).
+# tem Unity na máquina, como um agente na nuvem, não precise fazer isso localmente (ADR 0019).
 #
 # Leva uns 10 minutos, então não roda em cada PR (não atrasa ninguém nem gasta a cota à toa):
 # - depois do merge na main, se mexeu no client ou no shared. Merges seguidos cancelam a
@@ -43,7 +43,7 @@ jobs:
     steps:
       - name: Licença do Unity configurada?
         if: env.TEM_LICENCA != 'true'
-        run: echo "::warning::Sem o secret UNITY_LICENSE o client não foi compilado nem testado. Veja docs/decisoes/0018-unity-no-ci.md."
+        run: echo "::warning::Sem o secret UNITY_LICENSE o client não foi compilado nem testado. Veja docs/decisoes/0019-unity-no-ci.md."
 
       # A imagem do Unity não cabe no disco livre do runner. Remove SDKs pré-instalados que
       # este job não usa (Android, .NET, Haskell, CodeQL): libera mais de 20 GB.
@@ -92,7 +92,7 @@ jobs:
           name: resultados-unity
           path: artifacts
 
-      # Quebrou na main: vira pendência para o próximo agente com Unity (ADR 0018).
+      # Quebrou na main: vira pendência para o próximo agente com Unity (ADR 0019).
       - name: Abre pendência de Unity
         if: failure() && github.event_name == 'push'
         env:

@@ -1,5 +1,5 @@
 // Hook de início de sessão (Claude Code): numa máquina com Unity, avisa o agente das
-// pendências de Unity abertas, deixadas por agentes que trabalharam sem Unity (ADR 0018).
+// pendências de Unity abertas, deixadas por agentes que trabalharam sem Unity (ADR 0019).
 // Sem Unity, sem gh ou sem rede, não diz nada e sai 0: nunca atrapalha a sessão.
 
 import { execFileSync } from "node:child_process";
