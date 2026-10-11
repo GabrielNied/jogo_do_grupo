@@ -7,6 +7,13 @@ description: Cria a branch de uma tarefa no padrão do repo (<tipo>/<escopo>/<de
 
 Ninguém trabalha na `main`. Toda tarefa começa numa branch. Regras completas: `docs/git.md#branches`.
 
+> [!TIP]
+> Se a tarefa estiver associada a uma issue no GitHub, **prefira usar:**
+> ```
+> npm run tarefa -- puxar <numero> [nome-da-branch]
+> ```
+> Isso confere que ninguém está trabalhando na mesma tarefa, bloqueia contra concorrência (`em-andamento`) e cria a branch automaticamente. Veja a skill `puxar-tarefa`.
+
 ## 1. Montar o nome
 
 Formato: `<tipo>/<escopo>/<descricao>`

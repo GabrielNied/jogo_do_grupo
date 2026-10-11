@@ -24,18 +24,22 @@ Quase todo retrabalho vem de decisão tomada tarde. Antes de lançar agentes, es
 - **Testes esperados:** lista dos casos (caminho feliz, cada erro, limites, concorrência).
 - **Fora do escopo** e **dúvidas em aberto**: o que precisa de decisão do grupo antes de começar.
 
-Com a ficha aprovada, os prompts dos agentes saem dela. Se o PR for de risco e houver revisor, ele compara o PR com a ficha.
+Com a ficha aprovada, os prompts dos agentes saem dela. Se a tarefa for dividida em várias etapas com agentes em paralelo, crie as subtarefas correspondentes com:
+```
+npm run tarefa -- subtarefa <N> --titulo "<titulo da subtarefa>" --agente <papel> [--escopo <escopo>]
+```
+Isso gera uma issue filha com label do agente, vinculada ao Project, garantindo que cada agente trave a sua parte individualmente.
 
 ## 3. Montar o plano e pedir aprovação
 
 Mostre à pessoa uma tabela e **espere o ok** antes de lançar qualquer agente:
 
-| Etapa | Agente | Tarefa | Depende de |
-|---|---|---|---|
-| 1 | shared-contratos | ... | — |
-| 2a | server-funcionalidade | ... | 1 mergeado |
-| 2b | client-funcionalidade | ... | 1 mergeado |
-| 3 | revisor | só se o PR for de risco (veja abaixo) | 2a, 2b |
+| Etapa | Agente | Tarefa | Depende de | Issue |
+|---|---|---|---|---|
+| 1 | shared-contratos | ... | — | #... |
+| 2a | server-funcionalidade | ... | 1 mergeado | #... |
+| 2b | client-funcionalidade | ... | 1 mergeado | #... |
+| 3 | revisor | só se o PR for de risco (veja abaixo) | 2a, 2b | — |
 
 Pergunte junto: os agentes podem commitar, enviar as branches e abrir PRs? (Merge é sempre humano.)
 
@@ -50,11 +54,11 @@ A etapa 3 só entra no plano quando o PR mexe em Core, segurança, concorrência
 
 ## 4. Contrato primeiro
 
-Se há contrato, lance o `shared-contratos` sozinho. Quando o PR dele estiver aberto, peça à pessoa para revisar e fazer o merge. Os agentes seguintes rodam em worktrees que partem da `main`, então **só lance a próxima etapa depois do merge**.
+Se há contrato, lance o `shared-contratos` sozinho. Antes de codificar, o agente puxa a tarefa (`npm run tarefa -- puxar <N>`). Quando o PR dele estiver aberto, peça à pessoa para revisar e fazer o merge. Os agentes seguintes rodam em worktrees que partem da `main`, então **só lance a próxima etapa depois do merge**.
 
 ## 5. Etapas em paralelo
 
-Lance os agentes independentes **na mesma mensagem, em segundo plano**, um por subtarefa. Cada prompt precisa ser completo, porque o agente não vê esta conversa:
+Lance os agentes independentes **na mesma mensagem, em segundo plano**, um por subtarefa. Cada agente deve começar puxando sua subtarefa (`npm run tarefa -- puxar <N> [branch] --agente <papel> --worktree <caminho>`) para registrá-la em andamento e evitar qualquer concorrência. Cada prompt precisa ser completo, porque o agente não vê esta conversa:
 
 ```
 Funcionalidade: <X> (pasta Features/<X>/, escopo de commit <x>)
@@ -63,6 +67,7 @@ Contrato: <arquivos e IDs do shared já na main, ou "não se aplica">
 Regras de design: docs/features/<x>.md, seções <...>
 Ficha: issue #<N> (contrato, regras e testes esperados)
 Issue: #<N> (coloque "Closes #<N>" na descrição do PR)
+Puxar tarefa: rode `npm run tarefa -- puxar <N> <branch> --agente <papel> --worktree <caminho>` antes de codificar.
 Fora do escopo: <o que NÃO fazer>
 Pronto quando: <critérios verificáveis> + testes da ficha passando em `dotnet test`
 Autorização: pode commitar, enviar a branch e abrir PR. Não faça merge.

@@ -1,0 +1,623 @@
+// Gerenciador de tarefas (issues e project) do Jogo do Grupo.
+// Garante fluxo seguro para múltiplos desenvolvedores e agentes em paralelo:
+// quando alguém puxa uma tarefa, ela entra em "em andamento" (com label e project status)
+// e impede que outra pessoa ou agente trabalhe na mesma tarefa ao mesmo tempo.
+//
+// Uso:
+//   npm run tarefa -- listar
+//   npm run tarefa -- puxar <numero> [nome-da-branch] [--agente <nome>] [--worktree <caminho>]
+//   npm run tarefa -- liberar <numero> [--motivo "<motivo>"]
+//   npm run tarefa -- status <numero>
+//   npm run tarefa -- concluir <numero>
+
+import { execFileSync, spawnSync } from "node:child_process";
+import { escopos, tipos } from "../../commitlint.config.mjs";
+
+const PROJECT_OWNER = "GabrielNied";
+const PROJECT_NUMBER = "1";
+const PROJECT_ID = "PVT_kwHOASeGls4BmgwX";
+const STATUS_FIELD_ID = "PVTSSF_lAHOASeGls4BmgwXzhlJfmU";
+const STATUS_OPTIONS = {
+  Todo: "f75ad846",
+  "In Progress": "47fc9ee4",
+  Done: "98236657",
+};
+
+const tiposDeBranch = tipos.map((t) => (t === "feat" ? "feature" : t));
+const padraoBranch = new RegExp(
+  `^(${tiposDeBranch.join("|")})/(${escopos.join("|")})/[a-z0-9]+(-[a-z0-9]+)*$`,
+);
+
+function executarGh(args, opcoes = {}) {
+  try {
+    const res = execFileSync("gh", args, {
+      encoding: "utf8",
+      stdio: ["pipe", "pipe", "pipe"],
+      ...opcoes,
+    });
+    return res.trim();
+  } catch (erro) {
+    if (opcoes.ignorarErro) {
+      return null;
+    }
+    const msg = erro.stderr ? erro.stderr.toString().trim() : erro.message;
+    throw new Error(`Falha ao executar 'gh ${args.join(" ")}':\n${msg}`);
+  }
+}
+
+function executarGit(args, opcoes = {}) {
+  const res = spawnSync("git", args, {
+    encoding: "utf8",
+    stdio: opcoes.silencioso ? ["pipe", "pipe", "pipe"] : "inherit",
+    ...opcoes,
+  });
+  if (res.status !== 0) {
+    throw new Error(`Falha no git ${args.join(" ")}`);
+  }
+  return res.stdout ? res.stdout.trim() : "";
+}
+
+function obterUsuarioAtual() {
+  try {
+    const res = executarGh(["api", "user", "--jq", ".login"], { ignorarErro: true });
+    return res || "desenvolvedor";
+  } catch {
+    return "desenvolvedor";
+  }
+}
+
+function buscarItensDoProjeto() {
+  try {
+    const raw = executarGh(
+      ["project", "item-list", PROJECT_NUMBER, "--owner", PROJECT_OWNER, "--format", "json"],
+      { ignorarErro: true },
+    );
+    if (!raw) return [];
+    const dados = JSON.parse(raw);
+    return dados.items || [];
+  } catch {
+    return [];
+  }
+}
+
+function sincronizarStatusProjeto(numeroIssue, urlIssue, novoStatusNome) {
+  const optionId = STATUS_OPTIONS[novoStatusNome];
+  if (!optionId) return;
+
+  try {
+    const itens = buscarItensDoProjeto();
+    let item = itens.find((i) => i.content && i.content.number === numeroIssue);
+
+    if (!item && urlIssue) {
+      const addRes = executarGh(
+        ["project", "item-add", PROJECT_NUMBER, "--owner", PROJECT_OWNER, "--url", urlIssue, "--format", "json"],
+        { ignorarErro: true },
+      );
+      if (addRes) {
+        const itemCriado = JSON.parse(addRes);
+        item = itemCriado;
+      }
+    }
+
+    if (item && item.id) {
+      executarGh(
+        [
+          "project",
+          "item-edit",
+          "--id",
+          item.id,
+          "--field-id",
+          STATUS_FIELD_ID,
+          "--single-select-option-id",
+          optionId,
+          "--project-id",
+          PROJECT_ID,
+        ],
+        { ignorarErro: true },
+      );
+    }
+  } catch {
+    // Integração com projeto é best-effort; a label na issue é autoritativa
+  }
+}
+
+function gerarSlug(texto) {
+  return texto
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\[.*?\]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 30);
+}
+
+function sugerirNomeBranch(issue) {
+  const labels = (issue.labels || []).map((l) => (typeof l === "string" ? l : l.name));
+  let escopoEncontrado = "core";
+
+  for (const escopo of escopos) {
+    if (labels.includes(escopo)) {
+      escopoEncontrado = escopo;
+      break;
+    }
+  }
+
+  const slug = gerarSlug(issue.title) || `task-${issue.number}`;
+  return `feature/${escopoEncontrado}/${slug}`;
+}
+
+// -------------------------------------------------------------
+// Comandos
+// -------------------------------------------------------------
+
+async function listarTarefas() {
+  console.log("🔍 Consultando tarefas abertas no GitHub...");
+  const rawIssues = executarGh([
+    "issue",
+    "list",
+    "--state",
+    "open",
+    "--json",
+    "number,title,labels,assignees,url",
+  ]);
+
+  const issues = JSON.parse(rawIssues);
+  const itensProjeto = buscarItensDoProjeto();
+
+  const emAndamento = [];
+  const disponiveis = [];
+  const bloqueadas = [];
+
+  for (const issue of issues) {
+    const labels = (issue.labels || []).map((l) => (typeof l === "string" ? l : l.name));
+    const temLabelAndamento = labels.includes("em-andamento");
+    const temLabelBloqueada = labels.includes("bloqueada");
+
+    const itemProj = itensProjeto.find((i) => i.content && i.content.number === issue.number);
+    const statusProj = itemProj ? itemProj.status : null;
+    const estaEmAndamento = temLabelAndamento || statusProj === "In Progress" || (issue.assignees && issue.assignees.length > 0);
+
+    if (temLabelBloqueada) {
+      bloqueadas.push({ issue, labels, itemProj });
+    } else if (estaEmAndamento) {
+      emAndamento.push({ issue, labels, itemProj });
+    } else {
+      disponiveis.push({ issue, labels, itemProj });
+    }
+  }
+
+  console.log("\n=======================================================");
+  console.log("📋 QUADRO DE TAREFAS - JOGO DO GRUPO");
+  console.log("=======================================================\n");
+
+  console.log(`🚀 EM ANDAMENTO (${emAndamento.length}):`);
+  if (emAndamento.length === 0) {
+    console.log("   (Nenhuma tarefa em andamento no momento)");
+  } else {
+    for (const { issue, labels } of emAndamento) {
+      const responsaveis = (issue.assignees || []).map((a) => a.login).join(", ") || "agente / não atribuído";
+      const agentesTags = labels.filter((l) => l.startsWith("agente:")).join(", ") || "";
+      console.log(`   #${issue.number} - ${issue.title}`);
+      console.log(`     Responsável: ${responsaveis}${agentesTags ? ` | Papel: ${agentesTags}` : ""}`);
+    }
+  }
+
+  console.log(`\n✨ DISPONÍVEIS PARA PUXAR (${disponiveis.length}):`);
+  if (disponiveis.length === 0) {
+    console.log("   (Nenhuma tarefa livre no momento)");
+  } else {
+    for (const { issue, labels } of disponiveis) {
+      const agentesTags = labels.filter((l) => l.startsWith("agente:")).join(", ") || "geral";
+      console.log(`   #${issue.number} - ${issue.title}`);
+      console.log(`     Recomendado para: [${agentesTags}]`);
+    }
+  }
+
+  if (bloqueadas.length > 0) {
+    console.log(`\n⛔ BLOQUEADAS (${bloqueadas.length}):`);
+    for (const { issue } of bloqueadas) {
+      console.log(`   #${issue.number} - ${issue.title}`);
+    }
+  }
+
+  console.log("\n-------------------------------------------------------");
+  console.log("Para assumir uma tarefa:");
+  console.log("  npm run tarefa -- puxar <numero> [nome-da-branch] [--agente <nome>]");
+  console.log("-------------------------------------------------------\n");
+}
+
+async function puxarTarefa(args) {
+  const numero = parseInt(args[0], 10);
+  if (isNaN(numero)) {
+    console.error("✖ Informe o número da tarefa. Exemplo: npm run tarefa -- puxar 36");
+    process.exit(1);
+  }
+
+  let nomeBranch = null;
+  let nomeAgente = null;
+  let worktreePath = null;
+
+  for (let i = 1; i < args.length; i++) {
+    if (args[i] === "--agente" && args[i + 1]) {
+      nomeAgente = args[i + 1];
+      i++;
+    } else if (args[i] === "--worktree" && args[i + 1]) {
+      worktreePath = args[i + 1];
+      i++;
+    } else if (!args[i].startsWith("--") && !nomeBranch) {
+      nomeBranch = args[i];
+    }
+  }
+
+  console.log(`🔍 Verificando tarefa #${numero}...`);
+  const rawIssue = executarGh([
+    "issue",
+    "view",
+    numero.toString(),
+    "--json",
+    "number,title,state,labels,assignees,url",
+  ]);
+
+  const issue = JSON.parse(rawIssue);
+  if (issue.state !== "OPEN") {
+    console.error(`✖ A tarefa #${numero} está com estado "${issue.state}". Só é possível puxar tarefas abertas.`);
+    process.exit(1);
+  }
+
+  const labels = (issue.labels || []).map((l) => (typeof l === "string" ? l : l.name));
+  const temLabelAndamento = labels.includes("em-andamento");
+
+  const itensProjeto = buscarItensDoProjeto();
+  const itemProj = itensProjeto.find((i) => i.content && i.content.number === issue.number);
+  const statusProj = itemProj ? itemProj.status : null;
+
+  // Verificação de concorrência
+  if (temLabelAndamento || statusProj === "In Progress") {
+    const responsaveis = (issue.assignees || []).map((a) => a.login).join(", ") || "outro desenvolvedor/agente";
+    console.error(`\n⛔ BLOQUEADO: A tarefa #${numero} ("${issue.title}") já está EM ANDAMENTO por: ${responsaveis}!`);
+    console.error("Para evitar retrabalho e conflitos, múltiplos desenvolvedores ou agentes não podem atuar na mesma tarefa.");
+    console.error(`Se a tarefa foi abandonada ou transferida, peça para o responsável liberar com:`);
+    console.error(`  npm run tarefa -- liberar ${numero}\n`);
+    process.exit(1);
+  }
+
+  if (labels.includes("bloqueada")) {
+    console.error(`\n⛔ ATENÇÃO: A tarefa #${numero} está marcada como BLOQUEADA por dependência ou decisão técnica.`);
+    console.error("Resolva os impedimentos antes de iniciar o desenvolvimento.\n");
+    process.exit(1);
+  }
+
+  // Nome da branch
+  if (!nomeBranch) {
+    nomeBranch = sugerirNomeBranch(issue);
+    console.log(`ℹ Nome de branch sugerido automaticamente: ${nomeBranch}`);
+  }
+
+  if (!padraoBranch.test(nomeBranch)) {
+    console.error(`✖ Nome de branch inválido: "${nomeBranch}"`);
+    console.error("  Formato: <tipo>/<escopo>/<descricao-em-kebab-case>");
+    console.error(`  Tipos válidos: ${tiposDeBranch.join(", ")}`);
+    console.error(`  Escopos válidos: ${escopos.join(", ")}`);
+    process.exit(1);
+  }
+
+  const usuario = nomeAgente ? `agente ${nomeAgente}` : `@${obterUsuarioAtual()}`;
+  console.log(`\n🔒 Reivindicando tarefa #${numero} para ${usuario}...`);
+
+  // 1. Marca na issue como em-andamento
+  executarGh(["issue", "edit", numero.toString(), "--add-label", "em-andamento"]);
+
+  // 2. Atribui no GitHub se for pessoa
+  if (!nomeAgente) {
+    executarGh(["issue", "edit", numero.toString(), "--add-assignee", "@me"], { ignorarErro: true });
+  }
+
+  // 3. Move no Project para In Progress
+  sincronizarStatusProjeto(numero, issue.url, "In Progress");
+
+  // 4. Comenta na issue
+  const comentario = `🚀 **Tarefa em andamento**\n\n- **Responsável:** ${usuario}\n- **Branch:** \`${nomeBranch}\`\n- **Início:** ${new Date().toISOString()}\n\n*Esta tarefa foi puxada e está bloqueada para outros agentes/desenvolvedores até ser concluída ou liberada.*`;
+  executarGh(["issue", "comment", numero.toString(), "--body", comentario], { ignorarErro: true });
+
+  // 5. Configura Git (Worktree ou Branch local)
+  console.log(`🌿 Configurando branch "${nomeBranch}"...`);
+  if (worktreePath) {
+    executarGit(["fetch", "origin", "main"]);
+    executarGit(["worktree", "add", worktreePath, "-b", nomeBranch, "origin/main"]);
+    console.log(`✔ Worktree criado em: ${worktreePath}`);
+  } else {
+    // Branch local no repositório atual
+    try {
+      executarGit(["switch", "main"]);
+      executarGit(["pull", "--rebase", "origin", "main"]);
+      executarGit(["switch", "-c", nomeBranch]);
+    } catch {
+      // Se switch main falhar (ex: worktree com main aberta ou uncommitted), tenta direto
+      executarGit(["switch", "-c", nomeBranch]);
+    }
+  }
+
+  console.log(`\n=======================================================`);
+  console.log(`✔ TAREFA #${numero} PUXADA COM SUCESSO!`);
+  console.log(`=======================================================`);
+  console.log(`Tarefa:     #${numero} - ${issue.title}`);
+  console.log(`Atribuída:  ${usuario}`);
+  console.log(`Branch:     ${nomeBranch}`);
+  console.log(`Status:     Em andamento (bloqueada contra concorrência)`);
+  console.log(`\nPróximos passos:`);
+  console.log(`1. Desenvolva as alterações e escreva os testes necessários.`);
+  console.log(`2. Formate e confira com: npm run preparar-pr (ou verificação proporcional).`);
+  console.log(`3. Ao abrir o PR, inclua "Closes #${numero}" na descrição para fechar a tarefa automaticamente no merge.`);
+  console.log(`4. Se precisar interromper sem concluir, libere com: npm run tarefa -- liberar ${numero}\n`);
+}
+
+async function liberarTarefa(args) {
+  const numero = parseInt(args[0], 10);
+  if (isNaN(numero)) {
+    console.error("✖ Informe o número da tarefa. Exemplo: npm run tarefa -- liberar 36");
+    process.exit(1);
+  }
+
+  let motivo = "Não especificado";
+  for (let i = 1; i < args.length; i++) {
+    if (args[i] === "--motivo" && args[i + 1]) {
+      motivo = args[i + 1];
+      break;
+    }
+  }
+
+  console.log(`🔍 Verificando tarefa #${numero}...`);
+  const rawIssue = executarGh([
+    "issue",
+    "view",
+    numero.toString(),
+    "--json",
+    "number,title,labels,assignees,url",
+  ]);
+  const issue = JSON.parse(rawIssue);
+
+  console.log(`🔓 Liberando tarefa #${numero} e devolvendo para a fila...`);
+
+  // Remove label em-andamento
+  executarGh(["issue", "edit", numero.toString(), "--remove-label", "em-andamento"], { ignorarErro: true });
+
+  // Remove assignees
+  if (issue.assignees && issue.assignees.length > 0) {
+    for (const assignee of issue.assignees) {
+      executarGh(["issue", "edit", numero.toString(), "--remove-assignee", assignee.login], { ignorarErro: true });
+    }
+  }
+
+  // Volta para Todo no projeto
+  sincronizarStatusProjeto(numero, issue.url, "Todo");
+
+  // Adiciona comentário de liberação
+  const autor = obterUsuarioAtual();
+  const comentario = `🔓 **Tarefa liberada**\n\nA tarefa foi liberada por @${autor} e está disponível para outros desenvolvedores ou agentes.\n**Motivo:** ${motivo}`;
+  executarGh(["issue", "comment", numero.toString(), "--body", comentario], { ignorarErro: true });
+
+  console.log(`✔ Tarefa #${numero} liberada com sucesso! Ela voltou para o estado DISPONÍVEL.`);
+}
+
+async function verStatus(args) {
+  const numero = parseInt(args[0], 10);
+  if (isNaN(numero)) {
+    console.error("✖ Informe o número da tarefa. Exemplo: npm run tarefa -- status 36");
+    process.exit(1);
+  }
+
+  const rawIssue = executarGh([
+    "issue",
+    "view",
+    numero.toString(),
+    "--json",
+    "number,title,state,labels,assignees,comments,url",
+  ]);
+  const issue = JSON.parse(rawIssue);
+  const labels = (issue.labels || []).map((l) => (typeof l === "string" ? l : l.name));
+  const temLabelAndamento = labels.includes("em-andamento");
+
+  const itensProjeto = buscarItensDoProjeto();
+  const itemProj = itensProjeto.find((i) => i.content && i.content.number === issue.number);
+  const statusProj = itemProj ? itemProj.status : "Não definido no projeto";
+
+  console.log(`\n=======================================================`);
+  console.log(`STATUS DA TAREFA #${issue.number}`);
+  console.log(`=======================================================`);
+  console.log(`Título:        ${issue.title}`);
+  console.log(`Estado:        ${issue.state}`);
+  console.log(`Em andamento?  ${temLabelAndamento ? "SIM (Bloqueada)" : "NÃO (Livre)"}`);
+  console.log(`Projeto:       ${statusProj}`);
+  console.log(`Responsáveis:  ${(issue.assignees || []).map((a) => a.login).join(", ") || "Nenhum"}`);
+  console.log(`Labels:        ${labels.join(", ") || "Nenhuma"}`);
+  console.log(`URL:           ${issue.url}`);
+
+  if (issue.comments && issue.comments.length > 0) {
+    const ultimoComentario = issue.comments[issue.comments.length - 1];
+    console.log(`\nÚltimo comentário (${ultimoComentario.author.login}):`);
+    console.log(ultimoComentario.body.slice(0, 300) + (ultimoComentario.body.length > 300 ? "..." : ""));
+  }
+  console.log("=======================================================\n");
+}
+
+async function concluirTarefa(args) {
+  const numero = parseInt(args[0], 10);
+  if (isNaN(numero)) {
+    console.error("✖ Informe o número da tarefa. Exemplo: npm run tarefa -- concluir 36");
+    process.exit(1);
+  }
+
+  console.log(`🏁 Marcando tarefa #${numero} como concluída no projeto...`);
+  const rawIssue = executarGh([
+    "issue",
+    "view",
+    numero.toString(),
+    "--json",
+    "number,url",
+  ]);
+  const issue = JSON.parse(rawIssue);
+
+  executarGh(["issue", "edit", numero.toString(), "--remove-label", "em-andamento"], { ignorarErro: true });
+  sincronizarStatusProjeto(numero, issue.url, "Done");
+
+  console.log(`✔ Tarefa #${numero} movida para "Done" no projeto.`);
+}
+
+async function criarSubtarefa(args) {
+  const parentNumero = parseInt(args[0], 10);
+  if (isNaN(parentNumero)) {
+    console.error("✖ Informe o número da tarefa pai. Exemplo: npm run tarefa -- subtarefa 36 --titulo '...' --agente client-core");
+    process.exit(1);
+  }
+
+  let titulo = null;
+  let agente = null;
+  let escopo = null;
+
+  for (let i = 1; i < args.length; i++) {
+    if (args[i] === "--titulo" && args[i + 1]) {
+      titulo = args[i + 1];
+      i++;
+    } else if (args[i] === "--agente" && args[i + 1]) {
+      agente = args[i + 1];
+      i++;
+    } else if (args[i] === "--escopo" && args[i + 1]) {
+      escopo = args[i + 1];
+      i++;
+    }
+  }
+
+  if (!titulo) {
+    console.error("✖ O título da subtarefa é obrigatório (--titulo '...')");
+    process.exit(1);
+  }
+
+  console.log(`🔍 Verificando tarefa pai #${parentNumero}...`);
+  const rawParent = executarGh([
+    "issue",
+    "view",
+    parentNumero.toString(),
+    "--json",
+    "number,title,labels,url",
+  ]);
+  const parent = JSON.parse(rawParent);
+
+  // Escopo padrão deduzido da tarefa pai ou "core"
+  if (!escopo) {
+    const parentLabels = (parent.labels || []).map((l) => (typeof l === "string" ? l : l.name));
+    escopo = escopos.find((e) => parentLabels.includes(e)) || "core";
+  }
+
+  const labels = [escopo];
+  if (agente) {
+    labels.push(`agente:${agente}`);
+  }
+
+  const tituloCompleto = `[#${parentNumero}] ${titulo}`;
+  const corpo = `Subtarefa de #${parentNumero} (${parent.title})\n\n**Papel:** ${agente || "geral"}\n**Escopo:** ${escopo}\n\nParent: #${parentNumero}`;
+
+  console.log(`✨ Criando subtarefa "${tituloCompleto}"...`);
+  const novaIssueUrl = executarGh([
+    "issue",
+    "create",
+    "--title",
+    tituloCompleto,
+    "--body",
+    corpo,
+    "--label",
+    labels.join(","),
+  ]);
+
+  const novoNumeroMatch = novaIssueUrl.match(/\/issues\/(\d+)$/);
+  const novoNumero = novoNumeroMatch ? parseInt(novoNumeroMatch[1], 10) : null;
+
+  if (novoNumero) {
+    sincronizarStatusProjeto(novoNumero, novaIssueUrl, "Todo");
+    executarGh([
+      "issue",
+      "comment",
+      parentNumero.toString(),
+      "--body",
+      `- [ ] #${novoNumero} (${titulo}) - Papel: \`${agente || "geral"}\``,
+    ], { ignorarErro: true });
+    console.log(`✔ Subtarefa #${novoNumero} criada com sucesso e vinculada à tarefa #${parentNumero}!`);
+    console.log(`URL: ${novaIssueUrl}`);
+  }
+}
+
+function exibirAjuda() {
+  console.log(`
+Uso: npm run tarefa -- <comando> [argumentos]
+
+Comandos disponíveis:
+  listar                          Lista tarefas abertas, separando as disponíveis das em andamento.
+  puxar <numero> [branch] [opts]  Reivindica a tarefa, bloqueia contra duplicidade e cria a branch.
+                                  Opções:
+                                    --agente <nome>     Identifica o papel do agente (ex: server-core).
+                                    --worktree <path>   Cria a branch em um worktree separado.
+  liberar <numero> [--motivo ...] Libera uma tarefa em andamento de volta para a fila de disponíveis.
+  subtarefa <pai> [opts]          Cria uma subtarefa para um agente específico vinculada à tarefa pai.
+                                  Opções:
+                                    --titulo "..."      Título da subtarefa.
+                                    --agente <nome>     Papel do agente (ex: client-core).
+                                    --escopo <escopo>   Escopo funcional (ex: core, personagem).
+  status <numero>                 Exibe detalhes completos e o estado de bloqueio da tarefa.
+  concluir <numero>               Atualiza o status no projeto para "Done".
+  ajuda                           Mostra esta mensagem de ajuda.
+
+Exemplos:
+  npm run tarefa -- listar
+  npm run tarefa -- puxar 36
+  npm run tarefa -- puxar 36 feature/core/entrada-no-jogo-client --agente client-core
+  npm run tarefa -- subtarefa 36 --titulo "Controle de 3a pessoa" --agente client-core
+  npm run tarefa -- liberar 36 --motivo "Pausa para almoço"
+`);
+}
+
+// -------------------------------------------------------------
+// Entrypoint
+// -------------------------------------------------------------
+
+const comando = process.argv[2] || "listar";
+const argumentos = process.argv.slice(3);
+
+switch (comando) {
+  case "listar":
+  case "list":
+  case "ls":
+    await listarTarefas();
+    break;
+  case "puxar":
+  case "iniciar":
+  case "start":
+  case "claim":
+    await puxarTarefa(argumentos);
+    break;
+  case "liberar":
+  case "abandonar":
+  case "release":
+    await liberarTarefa(argumentos);
+    break;
+  case "subtarefa":
+  case "subtask":
+    await criarSubtarefa(argumentos);
+    break;
+  case "status":
+    await verStatus(argumentos);
+    break;
+  case "concluir":
+  case "done":
+    await concluirTarefa(argumentos);
+    break;
+  case "ajuda":
+  case "help":
+  case "--help":
+  case "-h":
+    exibirAjuda();
+    break;
+  default:
+    console.error(`✖ Comando desconhecido: "${comando}"`);
+    exibirAjuda();
+    process.exit(1);
+}

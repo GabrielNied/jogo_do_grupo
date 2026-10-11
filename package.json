@@ -13,7 +13,8 @@
     "unity:testes": "node scripts/unity/unity.mjs testes",
     "unity:executar": "node scripts/unity/unity.mjs executar",
     "unity:importar": "node scripts/unity/unity.mjs importar",
-    "conferir-unity": "node scripts/git/conferir-arquivos-unity.mjs"
+    "conferir-unity": "node scripts/git/conferir-arquivos-unity.mjs",
+    "tarefa": "node scripts/git/tarefas.mjs"
   },
   "engines": {
     "node": ">=20"

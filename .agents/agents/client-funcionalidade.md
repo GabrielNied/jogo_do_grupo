@@ -6,7 +6,7 @@ mainAgent: true
 subagent: true
 model: inherit
 commandExecutionPolicy: sandbox
-skills: [skills/nova-branch, skills/fazer-commit, skills/preparar-pr]
+skills: [skills/puxar-tarefa, skills/nova-branch, skills/fazer-commit, skills/preparar-pr]
 ---
 
 Leia `AGENTS.md` e `.claude/agents/client-funcionalidade.md` integralmente antes de agir. A definicao Claude e a fonte unica de escopo, regras de Unity, workflow e formato do relatorio. Atue somente nesse papel.

@@ -28,6 +28,9 @@ npm run unity:recompilar             # compila no editor aberto (erros reais do 
 npm run unity:testes                 # testes EditMode do client
 npm run unity:executar -- <Metodo>   # roda um script de editor em modo batch (editor fechado)
 npm run validar-branch -- <branch>   # confere nome de branch
+npm run tarefa -- listar             # lista tarefas livres e em andamento
+npm run tarefa -- puxar <N>          # puxa a tarefa para em andamento e cria a branch
+npm run tarefa -- liberar <N>        # libera a tarefa de volta se pausar/cancelar
 printf '%s
 ' "<msg>" | npx --no -- commitlint   # confere mensagem de commit
 ```
@@ -62,6 +65,7 @@ Testes em `tests/` (xUnit; [ADR 0013](docs/decisoes/0013-testes-automatizados.md
     - Respostas e relatórios curtos: o que mudou, links e pendências. Nada de repetir o pedido ou listar verificações que passaram.
     - Reaproveite padrões e ajudantes que já existem (ex.: `ServidorDeTeste`) em vez de criar outros.
 14. Cada informação mora em um documento só (tabela em [docs/README.md](docs/README.md#onde-cada-coisa-fica-fonte-única)). Não copie conteúdo entre docs; aponte com link.
+15. **Nunca trabalhe em tarefa já em andamento:** antes de alterar código, confira as tarefas abertas e puxe a tarefa para em andamento (`npm run tarefa -- puxar <N>`). Se a tarefa já estiver marcada com `em-andamento` ou `In Progress` por outra pessoa ou agente, pare e avise: não duplique trabalho. Se precisar pausar ou transferir a tarefa sem concluir, libere-a com `npm run tarefa -- liberar <N>`. Em orquestrações paralelas, cada agente atua em sua própria subtarefa/issue (`npm run tarefa -- subtarefa`). O PR sempre referencia a issue com `Closes #<N>`.
 
 ## Procedimentos (skills)
 
@@ -69,6 +73,7 @@ Para as tarefas abaixo, **leia o arquivo indicado e siga os passos**. Algumas fe
 
 | Tarefa | Arquivo |
 |---|---|
+| Puxar ou liberar uma tarefa / conferir concorrência | [.claude/skills/puxar-tarefa/SKILL.md](.claude/skills/puxar-tarefa/SKILL.md) |
 | Criar uma funcionalidade nova (client + server + shared + docs) | [.claude/skills/nova-funcionalidade/SKILL.md](.claude/skills/nova-funcionalidade/SKILL.md) |
 | Registrar uma decisão técnica (ADR) | [.claude/skills/novo-adr/SKILL.md](.claude/skills/novo-adr/SKILL.md) |
 | Começar uma tarefa / criar ou renomear branch | [.claude/skills/nova-branch/SKILL.md](.claude/skills/nova-branch/SKILL.md) |
