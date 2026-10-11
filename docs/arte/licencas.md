@@ -8,4 +8,4 @@ Todo asset que entra em `client/Assets/ThirdParty/` precisa de uma linha aqui, n
 
 | Pacote / modelo | Fonte | Licença | Link | Pasta | Crédito | Data | Quem baixou |
 |---|---|---|---|---|---|---|---|
-| | | | | | | | |
+| Quaternius "LowPoly RPG Characters" (só `Monk.fbx`, `Monk_Texture.png` e `License.txt`) | OpenGameArt (Quaternius) | CC0 | https://opengameart.org/content/lowpoly-rpg-characters | `client/Assets/ThirdParty/Quaternius/RPGCharacters/` | não obrigatório (Quaternius) | 2026-10-10 | agente artista-personagens |
