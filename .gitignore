@@ -36,6 +36,9 @@ TestResults/
 
 # ---------- Node (só ferramentas do git: commitlint, husky) ----------
 node_modules/
+# Hooks gerados (husky e git lfs gravam aqui); sem isto, worktrees antigos parecem ter
+# mudança não commitada e o npm run limpar-agentes não os remove.
+.husky/_/
 
 # ---------- IDEs ----------
 .vs/
