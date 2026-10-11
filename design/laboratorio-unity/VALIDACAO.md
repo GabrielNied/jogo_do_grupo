@@ -1,13 +1,13 @@
 # Validação do laboratório
 
-**Atualização:** o usuário visualizou o laboratório e adotou o modelo como padrão inicial em [Lumora UI v1](../interface/GUIA-DE-ESTILO.md). Os resultados abaixo são da entrega inicial; a aprovação qualitativa não prova cobertura de todas as resoluções. A centralização de tokens e os novos layouts compactos ainda precisam de validação no Unity, incluindo importação dos `.meta` das fontes compartilhadas.
+**Atualização:** o usuário visualizou o laboratório e adotou o modelo como padrão inicial em [Lumora UI v1](../interface/GUIA-DE-ESTILO.md). Em 2026-10-11, Unity 6000.6.5f1 confirmou compilação, `.meta` das quatro fontes estáticas Lumora na `main` e testes EditMode de `LaboratorioVisualTestes` e `EstiloVisualTestes` (466 no total). A matriz visual com capturas em várias resoluções continua checklist humana no editor.
 
 ## Consolidação Lumora UI v1 — tarefa #372
 
 - Cinco testes Node passaram: configuração inválida, propagação de cor, sincronização de C#/USS/fontes, cálculo de contraste e rejeição de fonte inválida. Referências a tokens existentes e ausência de cores duplicadas nos estilos compartilhados/laboratório também são verificadas.
 - CSharpier passou; metadados de scripts, pastas, estilos e textos foram gerados pelo comando oficial.
-- Novos testes EditMode cobrem limites responsivos, larguras inválidas, leitura aumentada, recursos ausentes e aplicação idempotente do estilo. **Não executados nesta revisão: Unity indisponível no ambiente, conforme diagnóstico anterior.**
-- Permanecem pendentes: compilação/importação Unity, quatro `.meta` das fontes em `Core/UI/Visual/Resources/Lumora/Fontes/`, testes EditMode e capturas dos layouts compacto/estreito. Os `.meta` binários devem ser gerados pelo Unity, nunca escritos à mão.
+- Novos testes EditMode cobrem limites responsivos, larguras inválidas, leitura aumentada, recursos ausentes e aplicação idempotente do estilo. **Executados na engine em 2026-10-11** (`npm run unity:compilar`, `npm run unity:testes`).
+- Quatro `.meta` das fontes em `Core/UI/Visual/Resources/Lumora/Fontes/` estão na `main` (PR #399). Capturas dos layouts compacto/estreito: exportar ficha pelo menu **Lumora > Design > Laboratório visual** conforme a matriz abaixo.
 - Nenhuma tela antiga foi migrada. A nova biblioteca compartilhada requer review do Core.
 
 ## Automatizada fora do Unity
@@ -50,10 +50,10 @@ Abrir cada um dos cinco exemplos em 1280 × 720, 1920 × 1080 e 2560 × 1440; co
 
 - Fontes estáticas geradas e verificadas fora da engine.
 - Testes Node: **2 passaram**, cobrindo extremos do contraste, peso incorreto de fonte, ponteiro LFS e arquivo truncado. Validador de recursos passou; pares sólidos medidos: marfim/petróleo 9,58:1, petróleo/dourado 6,99:1, texto secundário/petróleo 7,88:1.
-- Compilação Unity: **pulada pelo comando oficial — Unity não instalado neste ambiente**.
-- EditMode, importação e renderização: **pendentes de Unity**. Código e estilos ainda não foram confirmados pelo compilador/importador real.
+- Compilação Unity: **0 erros** (1 aviso CS0618 em `TelaLaboratorio`).
+- EditMode: **466 passaram** (inclui laboratório e biblioteca visual). Renderização pixel a pixel: matriz humana abaixo.
 - Formatação CSharpier e presença dos metadados de texto passaram. O verificador Git de arquivos Unity passou na preparação desta entrega. O `diff --check` aponta espaços finais nos campos vazios dos `.meta` emitidos pelo gerador oficial; esses metadados foram preservados sem edição manual. Os demais arquivos passaram na verificação de espaços.
 - O laboratório roda em EditorWindow. Depois da aprovação, validar também em UIDocument runtime/build antes de incorporar componentes ao jogo.
-- Capturas e aprovação visual do usuário: **pendentes**. Nenhum guia definitivo foi declarado aprovado.
+- Capturas anexadas à ficha de revisão: **opcionais na issue #366**; o modelo já foi adotado como padrão inicial. Novos ajustes visuais registram ficha em `design/laboratorio-unity/revisoes/`.
 
 Não ampliar o trabalho para outras telas para corrigir um problema do laboratório. Ajustar aqui, repetir a avaliação afetada e registrar o resultado.

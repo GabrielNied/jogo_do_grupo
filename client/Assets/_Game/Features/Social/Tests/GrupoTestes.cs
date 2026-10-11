@@ -494,10 +494,26 @@ namespace JogoDoGrupo.Client.Features.Social.Tests
                 CodigosErroSocial.CanalIndisponivel,
                 CodigosErroSocial.SussurroParaSiMesmo,
             };
+            var doAmigos = new[]
+            {
+                CodigosErroSocial.AmizadeConsigoMesmo,
+                CodigosErroSocial.AlvoIgnorado,
+                CodigosErroSocial.JaSaoAmigos,
+                CodigosErroSocial.PedidoJaPendente,
+                CodigosErroSocial.PedidosRapidosDemais,
+                CodigosErroSocial.ListaDeAmigosCheia,
+                CodigosErroSocial.AlvoComPedidosDemais,
+                CodigosErroSocial.PedidoNaoEncontrado,
+                CodigosErroSocial.AmigoNaoEncontrado,
+                CodigosErroSocial.IgnorarASiMesmo,
+                CodigosErroSocial.JaIgnorado,
+                CodigosErroSocial.ListaDeIgnoradosCheia,
+                CodigosErroSocial.IgnoradoNaoEncontrado,
+            };
             var codigos = typeof(CodigosErroSocial)
                 .GetFields()
                 .Select(f => (string)f.GetRawConstantValue())
-                .Where(c => !doChat.Contains(c))
+                .Where(c => !doChat.Contains(c) && !doAmigos.Contains(c))
                 .ToArray();
 
             Assert.AreEqual(16, codigos.Length);
