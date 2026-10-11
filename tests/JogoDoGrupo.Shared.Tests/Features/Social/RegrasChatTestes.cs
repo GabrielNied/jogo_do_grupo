@@ -19,7 +19,9 @@ public class RegrasChatTestes
 
     [Fact]
     public void Ids_do_chat_ficam_depois_dos_do_grupo() =>
-        Assert.True(SocialMessageIds.EnviarMensagemDeChat > SocialMessageIds.OperacaoDoGrupoRecusada);
+        Assert.True(
+            SocialMessageIds.EnviarMensagemDeChat > SocialMessageIds.OperacaoDoGrupoRecusada
+        );
 
     [Fact]
     public void CanalDeChat_tem_valores_estaveis()
@@ -108,11 +110,11 @@ public class RegrasChatTestes
     [InlineData("a\r\nb", "a  b")]
     [InlineData("a\tb", "a b")]
     [InlineData("\n\n oi \n", "oi")]
-    [InlineData("a b c", "a b c")]
+    [InlineData("a\u2028b\u2029c", "a b c")]
     [InlineData("a\u0000b", "a b")]
     [InlineData("", "")]
     [InlineData("   ", "")]
-    public void Limpar_troca_quebras_e_controles_por_espaco_e_apara(string texto, string esperado) =>
+    public void Limpar_troca_quebras_e_controles_por_espaco(string texto, string esperado) =>
         Assert.Equal(esperado, RegrasChat.Limpar(texto));
 
     [Fact]
@@ -225,6 +227,6 @@ public class RegrasChatTestes
     [InlineData(0.0, false)]
     [InlineData(600.0, false)]
     [InlineData(600.1, true)]
-    public void Historico_nao_entrega_mensagem_com_mais_de_10_minutos(double segundos, bool velha) =>
+    public void Historico_nao_entrega_mensagem_de_mais_de_10_min(double segundos, bool velha) =>
         Assert.Equal(velha, RegrasChat.VelhaDemaisParaOHistorico(segundos));
 }

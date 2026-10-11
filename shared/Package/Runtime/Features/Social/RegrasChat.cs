@@ -143,6 +143,6 @@ namespace JogoDoGrupo.Shared.Features.Social
             segundosDesdeAMensagem > HistoricoDaCidadeSegundos;
 
         private static bool EhControleOuQuebra(char c) =>
-            char.IsControl(c) || c == ' ' || c == ' ';
+            char.IsControl(c) || c == '\u2028' || c == '\u2029';
     }
 }
