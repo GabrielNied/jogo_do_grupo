@@ -33,7 +33,7 @@ public class CidadeDoMundoTestes
         var a = new Conexao();
         cidade.Entrar(1, a);
         _agora += 1000;
-        cidade.Mover(1, a, new(3f, 0, -12f, 0));
+        cidade.Mover(1, a, new(3f, 0, -24f, 0));
 
         var (novo, eu, _) = cidade.Entrar(1, a);
 
@@ -49,12 +49,12 @@ public class CidadeDoMundoTestes
         cidade.Entrar(1, a);
 
         _agora += 1000;
-        var (ok, av) = cidade.Mover(1, a, new(4f, 0, -12f, 1f));
+        var (ok, av) = cidade.Mover(1, a, new(4f, 0, -24f, 1f));
         Assert.Equal(ResultadoMovimento.Aceito, ok);
         Assert.Equal(4f, av!.Posicao.X);
 
         _agora += 100;
-        var (recusado, mantido) = cidade.Mover(1, a, new(40f, 0, -12f, 0));
+        var (recusado, mantido) = cidade.Mover(1, a, new(40f, 0, -24f, 0));
         Assert.Equal(ResultadoMovimento.Recusado, recusado);
         Assert.Equal(4f, mantido!.Posicao.X);
     }
@@ -70,7 +70,7 @@ public class CidadeDoMundoTestes
         cidade.Entrar(1, new Conexao());
         Assert.Equal(
             ResultadoMovimento.ForaDaCidade,
-            cidade.Mover(1, new Conexao(), new(0, 0, -12, 0)).Resultado
+            cidade.Mover(1, new Conexao(), new(0, 0, -24, 0)).Resultado
         );
     }
 

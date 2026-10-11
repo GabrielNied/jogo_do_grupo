@@ -10,7 +10,7 @@ public readonly record struct PosicaoNaCidade(float X, float Y, float Z, float R
 public static class ValidadorDeMovimento
 {
     /// <summary>Ponto de nascimento do hub (docs/features/mundo.md, "Nascimento").</summary>
-    public static readonly PosicaoNaCidade Nascimento = new(0f, 0f, -12f, 0f);
+    public static readonly PosicaoNaCidade Nascimento = new(0f, 0f, -24f, 0f);
 
     /// <summary>Velocidade de corrida do client (m/s).</summary>
     public const float VelocidadeMaxima = 5.5f;
@@ -21,8 +21,8 @@ public static class ValidadorDeMovimento
     /// <summary>Tempo máximo (ms) que conta para o deslocamento permitido: não acumula ao ficar parado.</summary>
     public const long TempoMaximoMs = 1000;
 
-    /// <summary>Limite do terreno em X e Z (m): o terreno tem 120 x 120 m centrado na origem.</summary>
-    public const float LimiteHorizontal = 60f;
+    /// <summary>Limite do terreno em X e Z (m): 1 km de lado, centrado na origem.</summary>
+    public const float LimiteHorizontal = 500f;
 
     /// <summary>Faixa de altura aceita (m).</summary>
     public const float AlturaMinima = -5f;
