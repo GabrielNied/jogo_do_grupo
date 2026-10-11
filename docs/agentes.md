@@ -11,8 +11,8 @@ A organização por funcionalidade ([arquitetura.md](arquitetura.md)) é o que t
 | `designer-docs` | `docs/features/`, validação, referências, visão geral | Uma decisão de design precisa virar regra escrita, ou uma funcionalidade precisa ser detalhada antes de implementar | `docs/<x>/<descricao>` |
 | `shared-contratos` | `shared/Package/Runtime/`, `docs/features/` | **Antes** de server e client: mensagens, IDs, eventos e tipos que os dois lados usam | `feature/<x>/<descricao>-contrato` |
 | `regras-do-jogo` | `shared/Package/Runtime/Features/`, `tests/`, `docs/features/` | Fórmulas puras (dano, fusão, sorteio de skills, experiência), com testes | `feature/<x>/<descricao>-regras` |
-| `server-core` | `server/.../Core/`, `Program.cs`, `.csproj` do servidor, ADRs, arquitetura | Infra do servidor: rede, sessões de grupo, despacho de mensagens, eventos, persistência | `feature/core/<descricao>-server` |
-| `server-funcionalidade` | `server/.../Features/`, `docs/features/` | Backend de **uma** funcionalidade | `feature/<x>/<descricao>-server` |
+| `server-core` | `server/.../Core/`, `Program.cs`, `.csproj` e configuração (`appsettings`, `Properties/`) do servidor, ADRs, arquitetura | Infra do servidor: rede, sessões de grupo, despacho de mensagens, eventos, persistência | `feature/core/<descricao>-server` |
+| `server-funcionalidade` | `server/.../Features/`, migrações em `server/.../Core/Persistencia/Migrations/`, `docs/features/` | Backend de **uma** funcionalidade | `feature/<x>/<descricao>-server` |
 | `client-core` | `client/Assets/_Game/Core/` (só scripts) | Infra do client: conexão, cenas, input, câmera e controle em 3ª pessoa, UI base | `feature/core/<descricao>-client` |
 | `client-funcionalidade` | `client/Assets/_Game/Features/` (só scripts) | Client de **uma** funcionalidade | `feature/<x>/<descricao>-client` |
 | `revisor` | Nenhuma (somente leitura) | Revisar cada PR contra as regras antes do review humano | — |
