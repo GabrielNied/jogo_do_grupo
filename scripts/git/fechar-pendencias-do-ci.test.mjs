@@ -6,6 +6,7 @@ import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
 const workflow = readFileSync(new URL("../../.github/workflows/client.yml", import.meta.url), "utf8");
+const script = readFileSync(new URL("./fechar-pendencias-do-ci.mjs", import.meta.url), "utf8");
 
 test("o workflow lê pull requests para fechar pendências sem marcar o client como quebrado", () => {
   assert.match(workflow, /pull-requests: read/);
@@ -15,4 +16,9 @@ test("o workflow lê pull requests para fechar pendências sem marcar o client c
     workflow,
     /failure\(\) && github\.event_name == 'push' && steps\.testes-editmode\.outcome == 'failure'/,
   );
+});
+
+test("a comparação pede só o status, sem baixar o diff", () => {
+  assert.match(script, /--jq",\s*"\.status"/);
+  assert.doesNotMatch(script, /comparacao\.status/);
 });

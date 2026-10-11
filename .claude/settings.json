@@ -8,6 +8,11 @@
             "type": "command",
             "command": "node \"$CLAUDE_PROJECT_DIR/scripts/agentes/avisar-pendencias-unity.mjs\"",
             "timeout": 15
+          },
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/scripts/agentes/preparar-nuvem.mjs\" --hook",
+            "timeout": 15
           }
         ]
       }
