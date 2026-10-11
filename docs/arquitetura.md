@@ -98,6 +98,44 @@ public sealed class PersonagemModule : IFeatureModule
 
 **Configuração** (`server/src/JogoDoGrupo.Server/appsettings.json`): `ConnectionStrings:Jogo` e a seção `Jwt` (`Chave`, `Emissor`, `Audiencia`, `ValidadeHoras`). A URL `http://localhost:5080` e a chave de desenvolvimento estão em `appsettings.Development.json`. Em produção, defina as variáveis de ambiente `ASPNETCORE_ENVIRONMENT=Production`, `ASPNETCORE_URLS` (a URL em que o servidor escuta) e `Jwt__Chave` (pelo menos 32 bytes). O servidor não sobe com chave curta, com `Jwt:Emissor` ou `Jwt:Audiencia` vazios, nem com a chave de desenvolvimento fora do ambiente Development.
 
+## Client: como uma funcionalidade se pluga
+
+O client monta a interface em código ([ADR 0011](decisoes/0011-telas-com-ui-toolkit-em-codigo.md)): ao dar Play em qualquer cena, o Core cria o `UIDocument`, abre a tela de abertura e depois o login. As funcionalidades só registram as próprias telas; o Core nunca referencia uma funcionalidade. Código do Core em `client/Assets/_Game/Core/Scripts/`.
+
+```csharp
+public static class TelasPersonagem
+{
+    public const string Selecao = "personagem.selecao";
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+    private static void Registrar()
+    {
+        Navegacao.Registrar(Selecao, () => new TelaSelecao());
+        Navegacao.DefinirTelaAposLogin(Selecao);
+    }
+}
+
+public sealed class TelaSelecao : Tela
+{
+    protected override void Montar(VisualElement raiz) { /* monta os elementos com as classes de EstiloCore */ }
+
+    protected override async void AoAbrir()
+    {
+        var resposta = await ClienteApi.Get<ListaPersonagensResponse>(RotasPersonagem.Personagens);
+        if (!Aberta) return; // a tela pode ter sido fechada durante a espera (ex.: sessão expirou)
+        // ...
+    }
+}
+```
+
+- **Telas:** herde de `Tela` (`JogoDoGrupo.Client.Core.UI`), monte os elementos em `Montar` e carregue dados em `AoAbrir`. Confira `Aberta` depois de **cada** `await`.
+- **Registro:** num método `[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]`, chame `Navegacao.Registrar(chave, () => new MinhaTela())`. Chaves no formato `"<funcionalidade>.<tela>"`. O Core abre a primeira tela só depois (`AfterSceneLoad`), então a ordem é garantida.
+- **Navegação:** `Navegacao.Abrir(chave)` troca de tela (cria uma instância nova). `DefinirTelaAposLogin(chave)` escolhe a tela que abre depois do login. `VoltarParaLogin()` encerra a sessão ("Sair"). `Abrir` não recebe parâmetros: para passar dados entre telas da mesma funcionalidade, use um estado estático da funcionalidade.
+- **Servidor:** `ClienteApi.Get<T>(rota)` e `ClienteApi.Post<T>(rota, corpo)` (`JogoDoGrupo.Client.Core.Api`) devolvem `RespostaApi<T>` com `Sucesso`, `Status`, `Corpo` e `CodigoErro`. Não lançam exceção por erro de rede ou HTTP. Um 401 numa rota protegida encerra a sessão e abre o login sozinho. Use as rotas e DTOs do shared.
+- **Estilo:** as classes de `EstiloCore` (`Painel`, `Titulo`, `Campo`, `Botao`, `BotaoPrincipal`, `MensagemErro`...) já valem em qualquer tela. Estilo próprio vai em USS dentro de `Features/<X>/UI/Resources/`, carregado com `Resources.Load`.
+- **Sessão:** `Sessao` (`JogoDoGrupo.Client.Core.Contas`) guarda o token só em memória; o `ClienteApi` envia o token sozinho.
+- **Unity:** scripts novos geram `.meta` ao abrir o editor; commite os `.meta` no mesmo PR ou logo depois. O client chama o servidor por HTTP em desenvolvimento: em **Project Settings > Player > Other Settings**, **Allow downloads over HTTP** precisa estar em "Allowed in development builds".
+
 ## Faixas de IDs de mensagem
 
 Cada funcionalidade recebe uma faixa de 1000 IDs, declarada em `shared/Package/Runtime/Features/<X>/<X>MessageIds.cs` com um `MessageIdRange`. A tabela com todas as faixas fica no [README da raiz](../README.md#funcionalidades). Uma funcionalidade nova pega a próxima faixa livre.
