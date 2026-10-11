@@ -185,5 +185,26 @@ namespace JogoDoGrupo.Client.Core.Tests
             Assert.AreEqual(ListaDeAvisos.Maximo, painel.Raiz.childCount);
             Assert.AreEqual("mensagem 7", ((Label)painel.Raiz[4]).text);
         }
+
+        [Test]
+        public void Mostrar_DisparaOEvento_EIgnoraTextoVazio()
+        {
+            string recebido = null;
+            void Ouvir(string texto, TipoDeAviso tipo) => recebido = texto;
+            AvisosDoJogo.Mostrado += Ouvir;
+            try
+            {
+                AvisosDoJogo.Mostrar("Inventário cheio", TipoDeAviso.Aviso);
+                Assert.AreEqual("Inventário cheio", recebido);
+
+                recebido = "ainda";
+                AvisosDoJogo.Mostrar("  ", TipoDeAviso.Erro);
+                Assert.AreEqual("ainda", recebido);
+            }
+            finally
+            {
+                AvisosDoJogo.Mostrado -= Ouvir;
+            }
+        }
     }
 }

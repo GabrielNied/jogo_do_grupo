@@ -203,7 +203,7 @@ Nada do HUD recebe clique, salvo o que uma funcionalidade pedir (ex.: aceitar co
 - Três tipos: **informação** (branco), **aviso** (amarelo) e **erro** (vermelho). Exemplos: "Ana entrou no grupo", "Inventário cheio", "Vigor insuficiente".
 - A mesma mensagem repetida em menos de **2 s** não cria linha nova: a linha existente ganha um contador ("x2") e o tempo dela recomeça.
 - As funcionalidades publicam a mensagem por um ponto do Core (nome sugerido: `AvisosDoJogo.Mostrar(texto, tipo)`), sem referenciar a interface de outra funcionalidade. O texto é o que a pessoa lê; códigos de erro do servidor são traduzidos por quem publica.
-- Quando o chat existir (#95), as mensagens de sistema **também** entram no histórico do chat (veja [social.md](social.md)); a lista do HUD continua.
+- ~~Quando o chat existir (#95), as mensagens de sistema **também** entram no histórico do chat (veja [social.md](social.md)); a lista do HUD continua.~~ Substituído em 2026-10-11: a Social assina `AvisosDoJogo.Mostrado` e copia a linha no canal Sistema; a lista do HUD continua. O Core não referencia a Social.
 
 #### Quem monta o quê
 
