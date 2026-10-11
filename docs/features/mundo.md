@@ -19,7 +19,7 @@
 
 - [x] ~~Quantas pessoas por sessão? (a fatia jogável propõe até 4)~~ Substituído em 2026-10-11: a sessão deixou de ser o formato do jogo. O tamanho do grupo da dungeon continua em [instâncias](instancias.md).
 - [x] ~~Existe um hub social compartilhado entre grupos ou cada grupo tem o seu?~~ Decidido em 2026-10-11: a cidade faz parte do mundo único. Quem está na área se vê.
-- [ ] As regiões são mapas fixos, gerados ou uma mistura? Em 2026-10-11 o terreno aberto passou a ser **gerado por semente fixa** (sempre o mesmo mundo; [ADR 0019](../decisoes/0019-mapa-do-mundo-no-shared.md), proposta). Lugares feitos à mão por cima dele continuam em aberto.
+- [ ] As regiões são mapas fixos, gerados ou uma mistura? Em 2026-10-11 o terreno aberto passou a ser **gerado por semente fixa** (sempre o mesmo mundo; [ADR 0020](../decisoes/0020-mapa-do-mundo-no-shared.md), proposta). Lugares feitos à mão por cima dele continuam em aberto.
 - [x] ~~Tamanho do mapa e quantidade de regiões. A primeira área (cidade e arredores) ficou em cerca de 1 km com três áreas (campo, mata e colinas); o resto do mundo continua em aberto.~~ Decidido em 2026-10-11 (Gabriel, issue #135): **3 km de lado e sete biomas**. Veja "Biomas e relevo".
 - [ ] A lava causa dano? O pântano deixa o jogador mais lento? Frio e calor têm efeito? Hoje os biomas são só cenário.
 - [ ] Quais inimigos vivem em cada bioma?
@@ -46,7 +46,7 @@ Primeira área jogável (issue #36): o Core chama o construtor do Mundo ao entra
 
 ### Biomas e relevo
 
-Decidido pelo Gabriel em 2026-10-11 (issue #135). Substitui o terreno plano de 1 km. A decisão técnica está no [ADR 0019](../decisoes/0019-mapa-do-mundo-no-shared.md).
+Decidido pelo Gabriel em 2026-10-11 (issue #135). Substitui o terreno plano de 1 km. A decisão técnica está no [ADR 0020](../decisoes/0020-mapa-do-mundo-no-shared.md).
 
 - **Tamanho:** quadrado de **3 km × 3 km** (de -1500 a +1500 m em X e Z), com a cidade no centro. Barreiras invisíveis na borda.
 - **Biomas (sete):**
