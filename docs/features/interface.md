@@ -6,7 +6,7 @@
 
 ## Resumo
 
-Telas e menus do client que não pertencem a uma funcionalidade do jogo. Por enquanto, o menu de opções aberto com Esc (issue #89). Código no Core do client; mudanças em `Core/` pedem review do responsável.
+Telas e menus do client que não pertencem a uma funcionalidade do jogo. Por enquanto, o menu de opções aberto com Esc (issue #89), o [HUD do jogo](#hud-do-jogo) (#93) e a [base de áudio](#áudio) (#96). Código no Core do client; mudanças em `Core/` pedem review do responsável.
 
 ## Definido
 
@@ -26,8 +26,20 @@ Telas e menus do client que não pertencem a uma funcionalidade do jogo. Por enq
   - [ ] Tecla de **correr**: segurar (proposta) ou alternar?
   - [ ] Combate ([combate.md](combate.md)) ainda não decidiu se **bloqueio**, **stamina** e **troca de arma** entram na fatia jogável; as linhas dessas ações da tabela só valem se entrarem
   - [ ] [personagem.md](personagem.md) só define andar e correr; **pular** não existe nas docs, então não tem atalho (se entrar, sugestão: Espaço vira pular e a esquiva vai para Alt)
-- [ ] HUD configurável (#93): só listado, não desenhado aqui.
-- [ ] Áudio (#96): só listado; os sons em si não são desenhados aqui.
+- [ ] ~~HUD configurável (#93): só listado, não desenhado aqui.~~ substituído em 2026-10-11 por [HUD do jogo](#hud-do-jogo) (proposta de layout e regras)
+- [ ] ~~Áudio (#96): só listado; os sons em si não são desenhados aqui.~~ substituído em 2026-10-11 por [Áudio](#áudio) (proposta de áreas com música, sons e fontes)
+- [ ] HUD do jogo (#93), decisões do grupo:
+  - [ ] Aprovar as posições da tabela de layout (proposta)
+  - [ ] **Alvo sem tab target:** vale "o inimigo sob a mira ou o último que você acertou" (proposta), ou o jogador trava o alvo com uma tecla?
+  - [ ] Número de dano: mostrar **só o meu dano e o que eu recebo** (proposta) ou também o dos aliados? E a cura que eu faço nos outros?
+  - [ ] Aviso de ataque no HUD **só para o boss** (proposta) ou também para o inimigo comum?
+  - [ ] Ver a vida exata dos aliados (número) ou só a barra (proposta: barra e porcentagem)?
+  - [ ] Opção para esconder o HUD inteiro (captura de tela): entra na primeira versão? (proposta: não)
+- [ ] Áudio (#96), decisões do grupo:
+  - [ ] Aprovar as áreas com música e a troca entre elas (proposta)
+  - [ ] Aprovar as fontes CC0 sugeridas; quem baixa escolhe as faixas e registra em [licenças](../arte/licencas.md)
+  - [ ] Som posicional de outros jogadores (passos, golpes): entra na primeira versão? (proposta: sim, só golpes e acertos, até 25 m)
+  - [ ] "Som que se ouve de longe" e noite escura ([validação](../brainstorm/validacao.md), S8) ficam fora desta base; entram quando o grupo decidir S8
 
 ## Regras
 
@@ -96,13 +108,127 @@ A tela fica em **Opções > Teclas**, com uma linha por ação (nome, tecla atua
 
 **Testes esperados** (client, EditMode): os padrões não têm tecla repetida nem reservada; trocar para tecla livre grava e lê de volta; trocar para tecla usada troca as duas ações; tecla reservada é recusada sem mudar nada; botão do mouse recusado em ação só de teclado; restaurar uma ação e restaurar todas voltam ao padrão; arquivo corrompido ou com tecla repetida volta aos padrões.
 
+### HUD do jogo
+
+Tudo aqui é **proposta** (issue #93). **Base:** World of Warcraft (lista do grupo e barra do alvo) e New World (combate de ação com poucos elementos na tela), veja [referências](../referencias.md). **Igual:** lista do grupo à esquerda, barra do boss no topo, números de dano sobre o alvo. **Diferente:** não há alvo travado por Tab (o combate é de mira livre, D4), então o "alvo" do HUD é calculado; e a tela mostra menos coisas (sem barras de skills de classe, sem medidor de dano).
+
+O HUD só **mostra** o que o servidor já enviou. Ele não decide vida, dano, alvo de ataque nem quem está no grupo.
+
+#### Layout
+
+| Região da tela | Elemento | De onde vem o dado |
+|---|---|---|
+| Canto inferior esquerdo | Barras do personagem: vida, vigor e energia (já existem) | [fatia-jogavel.md](fatia-jogavel.md), seção 1 |
+| Lateral esquerda, do meio para cima | **Lista do grupo**: até 4 aliados (o grupo tem 5 e você não aparece na lista) | lista do grupo de [social.md](social.md) e a vida que o servidor envia |
+| Topo, centro | **Barra do alvo** e, acima dela, a **barra do boss** | vida do inimigo ([fatia-jogavel.md](fatia-jogavel.md), seções 4 e 7) |
+| Centro, logo abaixo da barra do boss | **Aviso de ataque telegrafado** | início do preparo do ataque, enviado pelo servidor |
+| No mundo, sobre quem levou o dano | **Texto flutuante de dano** | resultado do golpe, enviado pelo servidor |
+| Parte de baixo, centro | **Mensagens de sistema** | avisos das funcionalidades (convite, loot, erro) |
+| Canto superior direito | Minimapa | [mundo.md](mundo.md#minimapa) |
+
+Nada do HUD recebe clique, salvo o que uma funcionalidade pedir (ex.: aceitar convite): o cursor fica preso à câmera durante o jogo. Com o menu do Esc ou o mapa aberto, o HUD continua visível por baixo, sem atualizar animações de aviso atrasadas (um aviso que já venceu não aparece ao fechar o menu).
+
+#### Lista do grupo
+
+- Uma linha por aliado, na **ordem da lista do servidor** (ordem de entrada), com: nome, barra de vida com porcentagem e uma marca de **líder**.
+- Estados da linha: **normal**; **caído** (barra vazia, ícone e a contagem de 45 s descendo, veja [fatia-jogavel.md](fatia-jogavel.md), seção 7); **offline** (linha apagada, sem barra, enquanto a vaga está guardada); **longe** (aliado em outra área: linha apagada com o nome da área, sem vida).
+- Vida abaixo de **30%**: a barra pisca, para o healer notar.
+- Sem grupo, a lista não aparece.
+- A lista mostra só vida. Vigor, energia e efeitos de status dos aliados ficam fora da primeira versão.
+
+#### Barra do alvo e barra do boss
+
+- O combate não tem alvo travado. O **alvo do HUD** é, nesta ordem: (1) o inimigo vivo **sob a mira** (centro da tela) a até **30 m**; (2) se não houver, o **último inimigo que você acertou ou que acertou você** nos últimos **5 s**. Sem nenhum dos dois, a barra some.
+- A barra mostra nome, nível, vida em barra e em porcentagem. Não mostra o número exato de vida.
+- **Boss:** enquanto a luta do boss está ativa para o seu grupo, a barra do boss fica **fixa no topo**, larga, mesmo sem mirar nele. A barra do alvo comum continua aparecendo abaixo, menor, se você mirar em outro inimigo.
+- Inimigo morto: a barra some na hora.
+- O alvo do HUD **não muda o golpe**: o acerto continua sendo o volume do ataque, decidido pelo servidor.
+
+#### Aviso de ataque telegrafado
+
+- O aviso principal é **no mundo** (área marcada no chão, brilho ou animação de preparo), e é de [combate](combate.md) e [mobs](mobs.md). O HUD só reforça.
+- Para ataques do **boss** (aviso de **3 s**): nome do ataque e uma barra que esvazia até o golpe, abaixo da barra do boss.
+- Se o **seu personagem está dentro da área marcada**, a borda da tela fica vermelha até você sair ou o golpe acontecer. O client calcula isso com a área que o servidor enviou; é só aviso, o dano continua sendo decidido pelo servidor.
+- Ataque do inimigo comum (aviso de cerca de 1 s): **sem aviso no HUD**, só no mundo, para a tela não piscar o tempo todo com grupos de 3 a 5 inimigos.
+- Dois avisos do boss ao mesmo tempo: mostra os dois, o que acontece primeiro em cima. No máximo **3** na tela.
+
+#### Texto flutuante de dano
+
+- O número aparece **quando o servidor confirma** o dano ou a cura, nunca pela animação do client.
+- Aparece sobre quem levou o dano, sobe e some em **1 s**.
+- Mostra: o dano que **você causou** (branco; ataque pesado em tamanho maior), o dano que **você recebeu** (vermelho) e a cura que **você recebeu** (verde). Dano entre aliados e inimigos que não envolve você não aparece.
+- No máximo **20** números na tela; passando disso, os mais antigos somem primeiro.
+- Golpe que acertou vários inimigos mostra um número por inimigo.
+
+#### Mensagens de sistema
+
+- Lista de até **5** linhas; cada linha some depois de **6 s**. Linha nova entra embaixo e empurra as outras.
+- Três tipos: **informação** (branco), **aviso** (amarelo) e **erro** (vermelho). Exemplos: "Ana entrou no grupo", "Inventário cheio", "Vigor insuficiente".
+- A mesma mensagem repetida em menos de **2 s** não cria linha nova: a linha existente ganha um contador ("x2") e o tempo dela recomeça.
+- As funcionalidades publicam a mensagem por um ponto do Core (nome sugerido: `AvisosDoJogo.Mostrar(texto, tipo)`), sem referenciar a interface de outra funcionalidade. O texto é o que a pessoa lê; códigos de erro do servidor são traduzidos por quem publica.
+- Quando o chat existir (#95), as mensagens de sistema **também** entram no histórico do chat (veja [social.md](social.md)); a lista do HUD continua.
+
+#### Quem monta o quê
+
+O Core cria a moldura do HUD com as regiões da tabela e entrega um contêiner por região. Cada funcionalidade preenche a sua região, sem referência direta entre funcionalidades: **Social** a lista do grupo, **Combate** as barras do personagem, a barra do alvo, o aviso e o texto de dano, **Mundo** o minimapa. As mensagens de sistema são do Core. A forma do registro (nome das regiões e da API) é do agente `client-core`.
+
+**Testes esperados** (client, EditMode): escolha do alvo (sob a mira ganha do último acertado; mais de 30 m não conta; some depois de 5 s; inimigo morto some); barra do boss fica visível sem mira enquanto a luta está ativa; lista do grupo na ordem do servidor, sem a própria pessoa, com os estados caído, offline e longe; barra pisca abaixo de 30%; aviso do boss respeita o limite de 3 e a ordem por tempo; borda vermelha liga e desliga ao entrar e sair da área; limite de 20 números de dano; mensagens de sistema: limite de 5, expiração em 6 s e contador de repetidas.
+
+### Áudio
+
+Tudo aqui é **proposta** (issue #96). **Base:** World of Warcraft (uma música por área, com troca suave ao mudar de área) e New World (golpes com som pesado, que dão a sensação do acerto). **Igual:** música por área e sons de combate posicionados no mundo. **Diferente:** poucas faixas, todas CC0, e nada de dublagem.
+
+O áudio é só do client: o servidor não envia "toque este som". Os sons tocam em resposta ao que o client já recebe (acerto confirmado, aviso de ataque, mensagem de sistema).
+
+#### Áreas com música
+
+| Área | Música | Quando troca |
+|---|---|---|
+| Abertura, login e seleção de personagem | tema do jogo (calma) | ao entrar no mundo |
+| Cidade (hub) | faixa de cidade medieval, calma, em repetição | ao sair pelo portão |
+| Dungeon (entrada e três salões) | faixa de tensão, baixa | ao entrar na dungeon |
+| Luta do boss | faixa de combate | quando a luta começa; volta para a faixa da dungeon quando o boss morre ou o grupo cai |
+| Vitória | toque curto (até 10 s), uma vez | ao matar o boss; depois, faixa da dungeon |
+
+- Troca de faixa com transição cruzada de **2 s**. Uma faixa por vez.
+- Em combate fora do boss a música não muda (o grupo de inimigos comuns é rápido demais para trocar faixa).
+- Caído: a música baixa para **50%** até levantar ou voltar ao hub.
+
+#### Efeitos
+
+- **Combate (no mundo, posicionais):** golpe leve e pesado no ar, acerto, esquiva, aviso de ataque do inimigo, morte do inimigo, queda e levantar do personagem. O som de **acerto** toca quando o servidor confirma; o do golpe no ar toca com a animação.
+- **Ambiente (no mundo):** fonte da praça, passos do próprio personagem.
+- **Interface (sem posição):** clique de botão, abrir e fechar painel, mensagem de erro, convite recebido, item coletado, subir de nível.
+- Sons de outros jogadores: só golpes e acertos, até **25 m** de distância; passos de outros jogadores ficam fora.
+- No máximo **16** efeitos ao mesmo tempo; passando disso, os mais distantes são cortados primeiro.
+
+#### Volumes e mixer
+
+- Um mixer com três grupos: **Geral**, com **Música** e **Efeitos** dentro dele. São os três volumes do [menu de opções](#opções-iniciais) (0 a 100, padrões 80 / 70 / 80). Sons de interface entram em Efeitos.
+- Volume 0 silencia o grupo. A escala do controle é percebida como linear pela pessoa (o client converte para decibéis).
+- Com a janela do jogo sem foco, o som continua (o jogo é online e não pausa).
+- O mixer e as fontes de áudio são criados pelo Unity (script de editor ou em tempo de execução), nunca escritos à mão ([ADR 0014](../decisoes/0014-conteudo-3d-e-agentes-artistas.md)).
+
+#### Fontes CC0 sugeridas
+
+Só entram arquivos **CC0** (ou CC-BY com crédito), em `client/Assets/ThirdParty/`, com uma linha em [licenças](../arte/licencas.md) **no mesmo PR que traz o arquivo**. Esta lista indica onde procurar; nenhuma faixa foi escolhida nem baixada ainda, e a licença de cada arquivo precisa ser conferida na página dele na hora de baixar.
+
+| Para quê | Onde procurar | Observação |
+|---|---|---|
+| Efeitos de interface | Kenney, pacotes "Interface Sounds" e "UI Audio" (kenney.nl) | mesma fonte das peças do hub; pacotes CC0 |
+| Efeitos de combate e impacto | Kenney, pacotes "Impact Sounds" e "RPG Audio" (kenney.nl) | golpes, passos, itens |
+| Música por área | OpenGameArt (opengameart.org), filtrando por licença **CC0** | cada faixa tem licença própria: conferir uma a uma |
+| Ambiente (fonte, vento) | Freesound (freesound.org), filtrando por **Creative Commons 0** | exige conta para baixar; conferir a licença do arquivo |
+
+**Testes esperados** (client, EditMode): a área atual escolhe a faixa certa (cidade, dungeon, boss, vitória e volta); começar e terminar a luta do boss troca e destroca a faixa; volume do menu vira o volume do grupo certo (0 silencia, 100 é o máximo, valor fora da faixa é limitado); limite de 16 efeitos corta os mais distantes; som de outro jogador além de 25 m não toca.
+
 ### Fora desta primeira versão
 
-Remapear teclas, ajustes de HUD, acessibilidade (daltonismo, tamanho de texto), controle de gamepad e opções de rede.
+~~Remapear teclas~~ (substituído em 2026-10-11: tem regras em [Teclas e atalhos](#teclas-e-atalhos)), ajustes de HUD (mover, redimensionar ou esconder elementos), dublagem e música dinâmica por intensidade do combate, acessibilidade (daltonismo, tamanho de texto), controle de gamepad e opções de rede.
 
 ## Depende de
 
-[Personagem](personagem.md) (sair da conta), Core do client (input, UI base).
+[Personagem](personagem.md) (sair da conta), Core do client (input, UI base). O HUD também depende de [Social](social.md) (lista do grupo), [Combate](combate.md) e [Mobs](mobs.md) (vida, dano e avisos de ataque, pelas regras de [fatia-jogavel.md](fatia-jogavel.md)) e de [Mundo](mundo.md) (minimapa e área atual, que também escolhe a música).
 
 ## Expõe
 
