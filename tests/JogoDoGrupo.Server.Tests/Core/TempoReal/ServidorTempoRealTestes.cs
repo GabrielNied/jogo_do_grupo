@@ -242,7 +242,11 @@ public class ServidorTempoRealTestes(TempoRealFixture f) : IClassFixture<TempoRe
         f.TempoReal.Desconectar(f.SessaoDaConta(contaId)!);
 
         await cliente.Desconectado.WaitAsync(ClienteTempoRealDeTeste.Espera);
-        Assert.Null(f.SessaoDaConta(contaId));
+        // O client pode saber da desconexão antes de o servidor terminar de remover a sessão.
+        await TempoRealFixture.EsperarAsync(
+            () => f.SessaoDaConta(contaId) == null,
+            "sessão removida após desconectar pelo servidor"
+        );
     }
 
     // ── Despacho por faixa ────────────────────────────────────────────────────

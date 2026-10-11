@@ -27,6 +27,8 @@ namespace JogoDoGrupo.Client.Core.Inicializacao
             Navegacao.Registrar(TelasCore.Login, () => new TelaLogin());
             Navegacao.Registrar(TelasCore.SemTelaAposLogin, () => new TelaSemTelaAposLogin());
 
+            // Antes de qualquer chamada ao servidor (a sessão restaurada pode chamar a API).
+            ConfiguracaoServidor.Aplicar();
             Navegacao.Inicializar(CriarInterface());
             Sessao.Restaurar();
             Sessao.Expirou += AoExpirarSessao;

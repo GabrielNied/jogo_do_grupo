@@ -1,4 +1,5 @@
 using JogoDoGrupo.Client.Core.Jogo;
+using JogoDoGrupo.Client.Features.Mundo.Hub;
 using JogoDoGrupo.Shared.Features.Mundo;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -57,6 +58,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
         public const float Rapidez = 1.2f;
 
         private Light _sol;
+        private Light _preenchimento;
         private Ambiente _atual;
         private bool _aplicado;
 
@@ -65,12 +67,12 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
             new Ambiente
             {
                 Ceu = new Color(0.62f, 0.72f, 0.85f),
-                Horizonte = new Color(0.5f, 0.52f, 0.5f),
-                Solo = new Color(0.32f, 0.3f, 0.26f),
+                Horizonte = new Color(0.56f, 0.58f, 0.55f),
+                Solo = new Color(0.4f, 0.37f, 0.32f),
                 Nevoa = new Color(0.66f, 0.76f, 0.86f),
                 Densidade = 0.003f,
                 Sol = new Color(1f, 0.96f, 0.86f),
-                ForcaDoSol = 1.1f,
+                ForcaDoSol = 1.05f,
             };
 
         /// <summary>Ambiente de <paramref name="bioma"/> quando só ele existe no lugar.</summary>
@@ -87,7 +89,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
                         Nevoa = new Color(0.88f, 0.78f, 0.6f),
                         Densidade = 0.0032f,
                         Sol = new Color(1f, 0.9f, 0.7f),
-                        ForcaDoSol = 1.35f,
+                        ForcaDoSol = 1.2f,
                     };
                 case Bioma.Neve:
                     return new Ambiente
@@ -116,7 +118,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
                     {
                         Ceu = new Color(0.42f, 0.5f, 0.42f),
                         Horizonte = new Color(0.36f, 0.42f, 0.34f),
-                        Solo = new Color(0.2f, 0.24f, 0.18f),
+                        Solo = new Color(0.26f, 0.3f, 0.23f),
                         Nevoa = new Color(0.44f, 0.52f, 0.42f),
                         Densidade = 0.0065f,
                         Sol = new Color(0.82f, 0.9f, 0.74f),
@@ -152,8 +154,34 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
             return Misturar(MapaDoMundo.PesosEm(x, z));
         }
 
+        /// <summary>Cor da luz de preenchimento: a do céu, com um pouco da cor do sol.</summary>
+        public static Color CorDoPreenchimento(Ambiente ambiente)
+        {
+            return Color.Lerp(
+                ambiente.Ceu,
+                ambiente.Sol,
+                ConfigIluminacao.MisturaDoSolNoPreenchimento
+            );
+        }
+
+        /// <summary>Força da luz de preenchimento: uma fração da do sol, para nunca passar dela.</summary>
+        public static float ForcaDoPreenchimento(Ambiente ambiente)
+        {
+            return ambiente.ForcaDoSol * ConfigIluminacao.FracaoDoPreenchimento;
+        }
+
         /// <summary>Aplica <paramref name="ambiente"/> à cena (e ao <paramref name="sol"/>, se houver).</summary>
         public static void Aplicar(Ambiente ambiente, Light sol)
+        {
+            Aplicar(ambiente, sol, null);
+        }
+
+        /// <summary>
+        /// Aplica <paramref name="ambiente"/> à cena, ao <paramref name="sol"/> e à luz de
+        /// <paramref name="preenchimento"/> (que ilumina o lado do personagem fora do sol); os
+        /// dois são opcionais.
+        /// </summary>
+        public static void Aplicar(Ambiente ambiente, Light sol, Light preenchimento)
         {
             RenderSettings.ambientMode = AmbientMode.Trilight;
             RenderSettings.ambientSkyColor = ambiente.Ceu;
@@ -169,12 +197,22 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
                 sol.color = ambiente.Sol;
                 sol.intensity = ambiente.ForcaDoSol;
             }
+
+            if (preenchimento != null)
+            {
+                preenchimento.color = CorDoPreenchimento(ambiente);
+                preenchimento.intensity = ForcaDoPreenchimento(ambiente);
+            }
         }
 
-        /// <summary>Diz qual luz é o sol, para a cor e a força dela acompanharem o bioma.</summary>
-        public void Configurar(Light sol)
+        /// <summary>
+        /// Diz qual luz é o sol (e qual é o preenchimento, se houver), para a cor e a força
+        /// delas acompanharem o bioma.
+        /// </summary>
+        public void Configurar(Light sol, Light preenchimento = null)
         {
             _sol = sol;
+            _preenchimento = preenchimento;
         }
 
         private void Update()
@@ -193,7 +231,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
                 ? Ambiente.Entre(_atual, destino, Mathf.Clamp01(Rapidez * Time.deltaTime))
                 : destino;
             _aplicado = true;
-            Aplicar(_atual, _sol);
+            Aplicar(_atual, _sol, _preenchimento);
 
             // A cena do mundo não tem céu próprio: o fundo da câmera acompanha a névoa, para o
             // horizonte não ficar de outra cor.

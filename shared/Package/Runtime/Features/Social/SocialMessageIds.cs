@@ -37,5 +37,19 @@ namespace JogoDoGrupo.Shared.Features.Social
 
         /// <summary>Servidor → quem pediu: a operação de grupo foi recusada.</summary>
         public const ushort OperacaoDoGrupoRecusada = 13013;
+
+        // ── Chat (13100 a 13199) ──────────────────────────────────────────────────
+
+        /// <summary>Client → servidor: envia uma mensagem de chat em um canal.</summary>
+        public const ushort EnviarMensagemDeChat = 13100;
+
+        /// <summary>Servidor → quem recebe (e o remetente): uma mensagem de chat aceita.</summary>
+        public const ushort MensagemDeChat = 13101;
+
+        /// <summary>Servidor → remetente: a mensagem foi recusada e não chegou a ninguém.</summary>
+        public const ushort MensagemDeChatRecusada = 13102;
+
+        /// <summary>Servidor → quem entra na cidade: as últimas mensagens do canal Cidade.</summary>
+        public const ushort HistoricoDaCidade = 13103;
     }
 }

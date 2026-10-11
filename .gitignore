@@ -71,3 +71,6 @@ desktop.ini
 .env
 *.env.local
 appsettings.*.local.json
+
+# Endereço do servidor local de cada pessoa (veja ConfiguracaoServidor.cs, #198).
+client/servidor.json

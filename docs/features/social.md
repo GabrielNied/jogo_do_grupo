@@ -162,6 +162,16 @@ Concorrência:
 - Convite aceito enquanto o convidante cai: `ConvidanteOffline`, e nenhum grupo meio criado.
 - Duas expulsões simultâneas do mesmo alvo: uma vale, a outra recebe `AlvoNaoEstaNoGrupo`.
 
+#### Servidor (issue #221)
+
+Código em `server/src/JogoDoGrupo.Server/Features/Social/`: as regras vivem em `GruposDoServidor` (estado em memória, uma trava só, relógio injetável), o tempo real liga as mensagens a elas (`SocialModule`, `SaidaTempoReal`) e `VarreduraDosGrupos` aplica os prazos a cada segundo. Escolhas que as regras acima deixavam abertas:
+
+- **Online** é ter uma sessão autenticada no tempo real (não precisa estar na cidade).
+- **Ordem das recusas ao convidar:** `NaoELider`, `ConvitesRapidosDemais`, nome (`AlvoNaoEncontrado`, `ConviteParaSiMesmo`, alvo offline), `AlvoJaEmGrupo`, `ReconviteBloqueado`, `ConviteJaPendente`, `GrupoCheio`, `AlvoComConvitesDemais`. Toda tentativa que passa de `NaoELider` conta no limite de 1 por segundo, mesmo se for recusada.
+- **Convite que acabou sem resposta** (expirou, o convidante caiu sem grupo ou o alvo entrou em outro grupo) fica lembrado por 60 s só para o alvo receber o código certo ao aceitar (`ConviteExpirado`, `ConvidanteOffline`, `AlvoJaEmGrupo`); depois disso vale `ConviteNaoEncontrado`. Convite cancelado por outro motivo (líder mudou, grupo desfeito, alvo caiu) some na hora.
+- **Líder offline:** a vaga guardada e a troca de liderança vencem juntas, passados os 120 s; ali ele sai do grupo como se tivesse saído.
+- **Reconvite bloqueado** vale para quem expulsou e para o grupo, e continua valendo se a expulsão desfez o grupo.
+
 ### Chat de texto (issue #95)
 
 Tudo aqui é **proposta**; nada é decisão ainda. Base: chat do [World of Warcraft](../referencias.md) (canais com cor, sussurro por nome, comandos com barra). Igual: canal da área, canal do grupo, sussurro e abrir a caixa com Enter. Diferente: só três canais, sem canais criados por jogadores, sem canal de comércio e sem guilda por enquanto.
@@ -261,7 +271,7 @@ Client (EditMode): interpretar os comandos (`/c`, `/g`, `/s Nome texto`, `/r`, `
 ## Expõe
 
 - Contrato do grupo na faixa 13000–13999 (mensagens de convidar, aceitar, recusar, sair, expulsar, passar liderança e a lista do grupo), ~~a definir pelo agente de contrato a partir das regras acima~~ definido em 2026-10-11, veja [Contrato do grupo](#contrato-do-grupo) abaixo.
-- Contrato do chat na mesma faixa 13000–13999 (enviar mensagem, mensagem recebida, recusa e histórico da Cidade), a definir pelo agente de contrato a partir das regras do chat.
+- Contrato do chat na mesma faixa 13000–13999 (enviar mensagem, mensagem recebida, recusa e histórico da Cidade), ~~a definir pelo agente de contrato a partir das regras do chat~~ definido em 2026-10-11, veja [Contrato do chat](#contrato-do-chat) abaixo.
 - Consulta "quem é o grupo de um personagem" para outras funcionalidades (ex.: dungeons), por evento ou contrato do shared, sem referência direta entre funcionalidades.
 
 ### Contrato do grupo
@@ -293,3 +303,17 @@ Código em `client/Assets/_Game/Features/Social/`. O client só envia intençõe
 - **Convite recebido:** aparece uma linha por cima do jogo ("Fulano convidou você para o grupo. O: responder"); a resposta é dada na janela. A contagem de 60 s na tela é só para mostrar; vencido ou não, quem decide é o servidor.
 - **Avisos e recusas** (`AvisoDoGrupo`, `OperacaoDoGrupoRecusada`) viram uma mensagem por 6 s, na janela e por cima do jogo.
 - Trocar de personagem ou sair do mundo esquece o grupo na tela; o do próximo personagem chega pelo servidor.
+
+### Contrato do chat
+
+Código em `shared/Package/Runtime/Features/Social/`. Tempo real, entrega confiável; quem falou vem sempre da sessão.
+
+| ID | Mensagem | Direção | Campos |
+|---|---|---|---|
+| 13100 | `EnviarMensagemDeChat` | client → servidor | `Canal` (`CanalDeChat`: Cidade 0, Grupo 1, Sussurro 2), `Texto`, `NomeDoAlvo` (só no sussurro) |
+| 13101 | `MensagemDeChat` | servidor → quem recebe e o remetente | `Canal`, `RemetenteId`, `NomeDoRemetente`, `NomeDoAlvo`, `Texto`, `HoraUnixMs` |
+| 13102 | `MensagemDeChatRecusada` | servidor → remetente | `Codigo` (`CodigosErroSocial`), `SegundosRestantes` (só em `Silenciado`) |
+| 13103 | `HistoricoDaCidade` | servidor → quem entra na cidade | `Mensagens[]` (`MensagemDeChat`, da mais antiga para a mais nova) |
+
+- `CodigosErroSocial` ganhou os códigos do chat (`MensagemVazia`, `MensagemLongaDemais`, `MensagensRapidasDemais`, `MensagemRepetida`, `Silenciado`, `CanalIndisponivel`, `SussurroParaSiMesmo`); `NaoEstaEmGrupo` e `AlvoNaoEncontrado` são os mesmos do grupo.
+- `RegrasChat`: os números da tabela de limites como constantes e as contas puras (`Limpar`, `Validar`, `ChaveDeRepeticao`, `FrequenciaEstourou`, `Repetida`, `DeveSilenciar`, `SilencioRestanteSegundos`, `VelhaDemaisParaOHistorico`). Os limites só do client (100 linhas, 50 ignorados, 8 linhas no painel) ficam no client.
