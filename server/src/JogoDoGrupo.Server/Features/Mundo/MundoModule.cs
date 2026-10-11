@@ -19,6 +19,10 @@ public sealed class MundoModule : IFeatureModule
     private ServidorTempoReal? _tempoReal;
     private EventosDoServidor? _eventos;
 
+    // Criado pelo contêiner quando o app sobe (hosted service); o manipulador de rede só o usa
+    // depois que uma sessão se autentica.
+    private volatile ServicoDaHoraDoMundo? _hora;
+
     public string Nome => "Mundo";
 
     public void ConfigurarServicos(IServiceCollection servicos, IConfiguration configuracao)
@@ -26,6 +30,19 @@ public sealed class MundoModule : IFeatureModule
         _permitirVelocidadeDeTeste = configuracao.GetValue<bool>(ChavePermitirVelocidadeDeTeste);
         servicos.AddSingleton<IPosicoesDoMundo>(new PosicoesDaCidade(_cidade));
         servicos.AddSingleton<IDeslocamentosDoMundo>(new DeslocamentosDaCidade(_cidade));
+        servicos.AddSingleton(sp => new RelogioDoMundo(sp.GetRequiredService<TimeProvider>()));
+        servicos.AddSingleton(sp =>
+        {
+            var servico = new ServicoDaHoraDoMundo(
+                sp.GetRequiredService<RelogioDoMundo>(),
+                sp.GetRequiredService<ServidorTempoReal>(),
+                () => _cidade.Presentes().Select(a => a.Sessao).ToArray(),
+                sp.GetRequiredService<ILogger<ServicoDaHoraDoMundo>>()
+            );
+            _hora = servico;
+            return servico;
+        });
+        servicos.AddHostedService(sp => sp.GetRequiredService<ServicoDaHoraDoMundo>());
     }
 
     public void RegistrarMensagens(MensagensTempoReal mensagens) =>
@@ -62,6 +79,8 @@ public sealed class MundoModule : IFeatureModule
         {
             EnviarVelocidades(sessao, velocidades);
         }
+
+        _hora?.Enviar(sessao);
 
         if (novo)
         {

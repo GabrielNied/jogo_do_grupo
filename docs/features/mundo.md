@@ -179,6 +179,8 @@ Valores em `RegrasDiaENoite`, **a calibrar**:
 | Hora quando o servidor liga | `HoraInicial` | 8h |
 | Noite (lanternas acesas) | `InicioDaNoite`, `FimDaNoite` | das 20h às 5h |
 
+**No servidor (#381):** o `RelogioDoMundo` começa às 8h quando o servidor liga e fica em memória (reiniciar o servidor volta às 8h). Quem entra na cidade recebe `HoraDoMundo` logo depois de `EstadoDaCidade`; a cada 30 s (`ConfigDiaENoiteServidor.IntervaloDeSincroniaSegundos`) todos os presentes recebem a mesma hora de novo. Quem não está na área não recebe.
+
 A hora anda no mesmo ritmo o dia todo, então a noite dura 7,5 min de cada 20. A proposta do livro (40 min de dia e 20 de noite) continua em [Em aberto](#em-aberto); adotá-la é mudar constante e, se o ritmo da noite for diferente do dia, a função `HoraApos`.
 
 ### Eventos e consulta para outras funcionalidades do servidor (#119)
