@@ -31,6 +31,9 @@ public sealed class ServidorDeTeste : WebApplicationFactory<Program>
     {
         builder.UseEnvironment("Development");
         builder.UseSetting("ConnectionStrings:Jogo", $"Data Source={_arquivoBanco}");
+        // Cada servidor de teste escuta o UDP numa porta livre, só no loopback.
+        builder.UseSetting("TempoReal:Porta", "0");
+        builder.UseSetting("TempoReal:Endereco", "127.0.0.1");
     }
 
     /// <summary>Nome único só com letras (serve para usuário e para personagem).</summary>

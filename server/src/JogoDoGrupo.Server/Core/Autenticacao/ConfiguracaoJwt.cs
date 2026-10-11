@@ -1,4 +1,5 @@
 using System.Text;
+using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 
 namespace JogoDoGrupo.Server.Core.Autenticacao;
@@ -72,4 +73,16 @@ public sealed class ConfiguracaoJwt
     }
 
     internal SymmetricSecurityKey ChaveDeAssinatura() => new(Encoding.UTF8.GetBytes(Chave));
+
+    /// <summary>Validação do token, a mesma no HTTP e no tempo real.</summary>
+    internal TokenValidationParameters ParametrosDeValidacao() =>
+        new()
+        {
+            ValidIssuer = Emissor,
+            ValidAudience = Audiencia,
+            IssuerSigningKey = ChaveDeAssinatura(),
+            ValidAlgorithms = [SecurityAlgorithms.HmacSha256],
+            NameClaimType = JwtRegisteredClaimNames.Sub,
+            ClockSkew = TimeSpan.FromSeconds(30),
+        };
 }

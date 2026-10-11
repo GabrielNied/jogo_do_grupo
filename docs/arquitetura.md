@@ -51,7 +51,7 @@ Assim, cada pessoa trabalha em pastas diferentes e os conflitos de merge ficam r
 | Canal | Usado para | Contrato |
 |---|---|---|
 | **API HTTP** (JSON, token JWT) | Conta, login, seleção e criação de personagem | DTOs e rotas em `shared/Package/Runtime/{Core,Features/<X>}/` ([ADR 0009](decisoes/0009-api-http-para-conta-e-personagens.md)) |
-| **Tempo real** (UDP, a decidir) | Movimento, combate, sessões de jogo | Mensagens com IDs na faixa de cada funcionalidade |
+| ~~**Tempo real** (UDP, a decidir)~~ **Tempo real** (UDP, LiteNetLib, [ADR 0015](decisoes/0015-litenetlib-para-o-tempo-real.md)) | Movimento, combate, presença no mundo | Mensagens com IDs na faixa de cada funcionalidade ([Servidor: tempo real](#servidor-tempo-real-udp)) |
 
 Telas do client: UI Toolkit montada em código ([ADR 0011](decisoes/0011-telas-com-ui-toolkit-em-codigo.md)).
 
@@ -97,7 +97,34 @@ public sealed class PersonagemModule : IFeatureModule
 
   Em desenvolvimento o servidor aplica as migrações ao iniciar (o banco é o arquivo `server/src/JogoDoGrupo.Server/jogodogrupo.db`, fora do git; para zerar, pare o servidor e apague o arquivo). Se outro PR com migração entrar antes, atualize a branch, rode `migrations remove` e gere de novo.
 
-**Configuração** (`server/src/JogoDoGrupo.Server/appsettings.json`): `ConnectionStrings:Jogo` e a seção `Jwt` (`Chave`, `Emissor`, `Audiencia`, `ValidadeHoras`). A URL `http://localhost:5080` e a chave de desenvolvimento estão em `appsettings.Development.json`. Em produção, defina as variáveis de ambiente `ASPNETCORE_ENVIRONMENT=Production`, `ASPNETCORE_URLS` (a URL em que o servidor escuta) e `Jwt__Chave` (pelo menos 32 bytes). O servidor não sobe com chave curta, com `Jwt:Emissor` ou `Jwt:Audiencia` vazios, nem com a chave de desenvolvimento fora do ambiente Development.
+### Servidor: tempo real (UDP)
+
+O Core sobe um host LiteNetLib junto com o app (código em `Core/TempoReal/`). Cada pacote é o ID da mensagem em 2 bytes (`ushort`, little-endian) seguido do DTO do shared em JSON UTF-8, no mesmo formato da API HTTP. O client conecta com a chave `TempoReal:ChaveConexao` e manda `AutenticarTempoReal` (JWT do login e personagem). Só depois de `ResultadoAutenticacaoTempoReal` aceito a conexão vira sessão e as mensagens chegam às funcionalidades. Recusada, a conexão pode tentar de novo até `TempoReal:TempoParaAutenticarMs`; depois disso, ou sem tentar, é desconectada. Uma conta tem uma sessão só: autenticar de novo (ex.: reconexão) encerra a anterior.
+
+```csharp
+public void RegistrarMensagens(MensagensTempoReal mensagens) =>
+    mensagens.Faixa(MundoMessageIds.Faixa)
+        .Ao<EntrarNaCidade>(MundoMessageIds.EntrarNaCidade, AoEntrar);
+
+public void Inicializar(ServerContext contexto)
+{
+    _tempoReal = contexto.TempoReal;
+    _tempoReal.SessaoEncerrada += AoSair;
+}
+
+private void AoEntrar(SessaoTempoReal sessao, EntrarNaCidade _) =>
+    _tempoReal.Enviar(sessao, MundoMessageIds.EstadoDaCidade, new EstadoDaCidade { /* ... */ });
+```
+
+- **Faixa:** `RegistrarMensagens` (opcional em `IFeatureModule`, roda antes de `Inicializar`) reserva a faixa e registra um manipulador por ID. Faixa sobreposta, faixa do Core, ID fora da faixa ou ID repetido impedem o servidor de subir.
+- **Recusa:** mensagem com ID fora de qualquer faixa registrada, sem manipulador, com JSON inválido ou de conexão não autenticada é descartada (a conexão continua) e dispara `MensagemRecusada`.
+- **Sessão:** `SessaoTempoReal` traz `Id`, `ContaId` e `PersonagemId`. `contexto.TempoReal.Sessoes` lista as autenticadas.
+- **Envio:** `Enviar(sessao, id, dto, entrega)` e `EnviarParaTodos(id, dto, entrega, exceto)`. `EntregaTempoReal.Confiavel` (padrão) chega sempre e na ordem; `Sequenciada` pode se perder e descarta pacote velho (use para posição). `Desconectar(sessao)` encerra.
+- **Eventos:** `SessaoAutenticada` e `SessaoEncerrada` (saiu, caiu depois de `TempoReal:TempoQuedaMs`, foi substituída ou desconectada).
+- **Laço único:** manipuladores e eventos rodam um de cada vez no laço de rede; não bloqueie nele. Trabalho com banco vai para uma `Task`, que responde com `Enviar` (pode ser chamado de qualquer thread).
+- **Personagem da conta:** o Core pergunta a um `IVerificadorPersonagem` registrado na DI. Sem ele, toda autenticação é recusada com `AcessoNegado`.
+
+**Configuração** (`server/src/JogoDoGrupo.Server/appsettings.json`): `ConnectionStrings:Jogo`, a seção `TempoReal` (`Endereco`, `Porta` 5081, `ChaveConexao`, `TempoParaAutenticarMs`, `TempoQuedaMs`) e a seção `Jwt` (`Chave`, `Emissor`, `Audiencia`, `ValidadeHoras`). A URL `http://localhost:5080` e a chave de desenvolvimento estão em `appsettings.Development.json`. Em produção, defina as variáveis de ambiente `ASPNETCORE_ENVIRONMENT=Production`, `ASPNETCORE_URLS` (a URL em que o servidor escuta) e `Jwt__Chave` (pelo menos 32 bytes). O servidor não sobe com chave curta, com `Jwt:Emissor` ou `Jwt:Audiencia` vazios, nem com a chave de desenvolvimento fora do ambiente Development.
 
 ## Client: como uma funcionalidade se pluga
 

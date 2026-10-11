@@ -1,0 +1,430 @@
+using System.Collections.Concurrent;
+using System.Net;
+using JogoDoGrupo.Shared.Core;
+using JogoDoGrupo.Shared.Core.Api;
+using JogoDoGrupo.Shared.Core.TempoReal;
+using LiteNetLib;
+
+namespace JogoDoGrupo.Server.Core.TempoReal;
+
+/// <summary>Como o pacote viaja.</summary>
+public enum EntregaTempoReal
+{
+    /// <summary>Chega sempre e na ordem (entrar na cidade, alguém saiu).</summary>
+    Confiavel,
+
+    /// <summary>Pode se perder; um pacote velho que chega depois de um novo é descartado (posição).</summary>
+    Sequenciada,
+}
+
+/// <summary>
+/// Host UDP do tempo real (LiteNetLib, ADR 0015). Sobe junto com o app. Cada conexão vira uma
+/// <see cref="SessaoTempoReal"/>; ela só passa às funcionalidades depois de se autenticar com o
+/// JWT do login e um personagem da conta. Uma conta tem no máximo uma sessão: autenticar de
+/// novo encerra a anterior.
+/// <para>
+/// Recebimento, manipuladores e eventos rodam num só laço (um de cada vez). Os métodos públicos
+/// de envio e <see cref="Desconectar"/> podem ser chamados de qualquer thread.
+/// </para>
+/// </summary>
+public sealed class ServidorTempoReal : BackgroundService
+{
+    private const int IntervaloMs = 10;
+
+    private readonly ConfiguracaoTempoReal _configuracao;
+    private readonly MensagensTempoReal _mensagens;
+    private readonly AutenticadorTempoReal _autenticador;
+    private readonly ILogger<ServidorTempoReal> _log;
+    private readonly NetManager _rede;
+
+    // Só o laço mexe nestes dois.
+    private readonly Dictionary<int, SessaoTempoReal> _conexoes = [];
+    private readonly Dictionary<long, SessaoTempoReal> _porConta = [];
+
+    private readonly ConcurrentDictionary<SessaoTempoReal, byte> _autenticadas = new();
+    private readonly ConcurrentQueue<Action> _pendentes = new();
+    private CancellationToken _parada;
+    private int _parado;
+
+    internal ServidorTempoReal(
+        ConfiguracaoTempoReal configuracao,
+        MensagensTempoReal mensagens,
+        AutenticadorTempoReal autenticador,
+        ILogger<ServidorTempoReal> log
+    )
+    {
+        _configuracao = configuracao;
+        _mensagens = mensagens;
+        _autenticador = autenticador;
+        _log = log;
+
+        var ouvinte = new EventBasedNetListener();
+        ouvinte.ConnectionRequestEvent += pedido => pedido.AcceptIfKey(_configuracao.ChaveConexao);
+        ouvinte.PeerConnectedEvent += peer => _conexoes[peer.Id] = new SessaoTempoReal(peer);
+        ouvinte.PeerDisconnectedEvent += (peer, _) =>
+        {
+            if (_conexoes.TryGetValue(peer.Id, out var sessao) && sessao.Peer == peer)
+            {
+                Encerrar(sessao, desconectar: false);
+            }
+        };
+        ouvinte.NetworkReceiveEvent += (peer, leitor, _, _) =>
+        {
+            if (_conexoes.TryGetValue(peer.Id, out var sessao) && sessao.Peer == peer)
+            {
+                Receber(sessao, leitor.GetRemainingBytes());
+            }
+        };
+
+        _rede = new NetManager(ouvinte)
+        {
+            AutoRecycle = true,
+            IPv6Enabled = false,
+            DisconnectTimeout = _configuracao.TempoQuedaMs,
+        };
+    }
+
+    /// <summary>Porta UDP em que o servidor escuta (a real, mesmo com <c>TempoReal:Porta</c> 0).</summary>
+    public int Porta => _rede.LocalPort;
+
+    /// <summary>Sessões autenticadas neste momento (cópia).</summary>
+    public IReadOnlyCollection<SessaoTempoReal> Sessoes => _autenticadas.Keys.ToArray();
+
+    /// <summary>Uma sessão acabou de se autenticar. Roda no laço de rede.</summary>
+    public event Action<SessaoTempoReal>? SessaoAutenticada;
+
+    /// <summary>
+    /// Uma sessão autenticada acabou (saiu, caiu, foi substituída ou desconectada). Roda no laço
+    /// de rede; <c>ContaId</c> e <c>PersonagemId</c> ainda estão preenchidos.
+    /// </summary>
+    public event Action<SessaoTempoReal>? SessaoEncerrada;
+
+    /// <summary>Uma mensagem foi descartada. Roda no laço de rede.</summary>
+    public event Action<SessaoTempoReal, ushort, MotivoRecusa>? MensagemRecusada;
+
+    /// <summary>Envia a uma sessão. Devolve <c>false</c> se ela já não está conectada.</summary>
+    public bool Enviar<T>(
+        SessaoTempoReal sessao,
+        ushort id,
+        T mensagem,
+        EntregaTempoReal entrega = EntregaTempoReal.Confiavel
+    )
+    {
+        if (sessao.Peer.ConnectionState != ConnectionState.Connected)
+        {
+            return false;
+        }
+
+        sessao.Peer.Send(ProtocoloTempoReal.Codificar(id, mensagem), Metodo(entrega));
+        return true;
+    }
+
+    /// <summary>Envia a todas as sessões autenticadas, menos <paramref name="exceto"/>.</summary>
+    public void EnviarParaTodos<T>(
+        ushort id,
+        T mensagem,
+        EntregaTempoReal entrega = EntregaTempoReal.Confiavel,
+        SessaoTempoReal? exceto = null
+    )
+    {
+        var pacote = ProtocoloTempoReal.Codificar(id, mensagem);
+        var metodo = Metodo(entrega);
+        foreach (var sessao in _autenticadas.Keys)
+        {
+            if (sessao != exceto && sessao.Peer.ConnectionState == ConnectionState.Connected)
+            {
+                sessao.Peer.Send(pacote, metodo);
+            }
+        }
+    }
+
+    /// <summary>Encerra a sessão (no próximo passo do laço) e desconecta o client.</summary>
+    public void Desconectar(SessaoTempoReal sessao) =>
+        _pendentes.Enqueue(() => Encerrar(sessao, desconectar: true));
+
+    public override Task StartAsync(CancellationToken cancelamento)
+    {
+        var endereco = IPAddress.Parse(_configuracao.Endereco);
+        if (!_rede.Start(endereco, IPAddress.IPv6Any, _configuracao.Porta))
+        {
+            throw new InvalidOperationException(
+                $"Não foi possível abrir a porta UDP {_configuracao.Porta} do tempo real."
+            );
+        }
+
+        _log.LogInformation("Tempo real escutando em UDP {Endereco}:{Porta}.", endereco, Porta);
+        return base.StartAsync(cancelamento);
+    }
+
+    public override async Task StopAsync(CancellationToken cancelamento)
+    {
+        await base.StopAsync(cancelamento);
+        // O host pode pedir a parada duas vezes ao mesmo tempo (ex.: no WebApplicationFactory).
+        if (Interlocked.Exchange(ref _parado, 1) == 0 && _rede.IsRunning)
+        {
+            _rede.Stop();
+        }
+    }
+
+    protected override async Task ExecuteAsync(CancellationToken parada)
+    {
+        _parada = parada;
+        while (!parada.IsCancellationRequested)
+        {
+            Passo();
+            try
+            {
+                await Task.Delay(IntervaloMs, parada);
+            }
+            catch (OperationCanceledException)
+            {
+                break;
+            }
+        }
+    }
+
+    private void Passo()
+    {
+        _rede.PollEvents();
+        while (_pendentes.TryDequeue(out var acao))
+        {
+            acao();
+        }
+
+        ExpirarNaoAutenticadas();
+    }
+
+    private void Receber(SessaoTempoReal sessao, byte[] pacote)
+    {
+        if (!ProtocoloTempoReal.TentarLerId(pacote, out var id))
+        {
+            Recusar(sessao, 0, MotivoRecusa.PacoteInvalido);
+            return;
+        }
+
+        if (!sessao.Autenticada)
+        {
+            ReceberAntesDeAutenticar(sessao, id, pacote);
+            return;
+        }
+
+        if (CoreMessageIds.Faixa.Contem(id))
+        {
+            // AutenticarTempoReal de quem já entrou, ou ID do Core sem uso.
+            Recusar(sessao, id, MotivoRecusa.SemManipulador);
+            return;
+        }
+
+        MotivoRecusa? motivo;
+        try
+        {
+            motivo = _mensagens.Despachar(sessao, id, pacote);
+        }
+        catch (Exception e)
+        {
+            _log.LogError(
+                e,
+                "Erro ao tratar a mensagem {Id} da conta {Conta}.",
+                id,
+                sessao.ContaId
+            );
+            return;
+        }
+
+        if (motivo is { } recusa)
+        {
+            Recusar(sessao, id, recusa);
+        }
+    }
+
+    private void ReceberAntesDeAutenticar(SessaoTempoReal sessao, ushort id, byte[] pacote)
+    {
+        if (id != TempoRealIds.AutenticarTempoReal)
+        {
+            Recusar(sessao, id, MotivoRecusa.NaoAutenticada);
+            return;
+        }
+
+        if (sessao.AutenticacaoEmAndamento)
+        {
+            return;
+        }
+
+        var pedido = ProtocoloTempoReal.LerCorpo<AutenticarTempoReal>(pacote);
+        if (pedido == null)
+        {
+            Recusar(sessao, id, MotivoRecusa.CorpoInvalido);
+            ResponderAutenticacao(sessao, CodigosErro.NaoAutenticado);
+            return;
+        }
+
+        sessao.AutenticacaoEmAndamento = true;
+        _ = AutenticarAsync(sessao, pedido);
+    }
+
+    // Validar o token e consultar o banco ficam fora do laço; o resultado volta para ele.
+    private async Task AutenticarAsync(SessaoTempoReal sessao, AutenticarTempoReal pedido)
+    {
+        ResultadoAutenticacao resultado;
+        try
+        {
+            resultado = await _autenticador.AutenticarAsync(pedido, _parada);
+        }
+        catch (Exception e)
+        {
+            if (!_parada.IsCancellationRequested)
+            {
+                _log.LogError(e, "Erro ao autenticar a conexão de tempo real.");
+            }
+
+            resultado = new(CodigosErro.ErroInterno, 0, 0);
+        }
+
+        _pendentes.Enqueue(() => ConcluirAutenticacao(sessao, resultado));
+    }
+
+    private void ConcluirAutenticacao(SessaoTempoReal sessao, ResultadoAutenticacao resultado)
+    {
+        sessao.AutenticacaoEmAndamento = false;
+        if (!EstaConectada(sessao))
+        {
+            return;
+        }
+
+        if (!resultado.Aceita)
+        {
+            // A conexão continua pendente: pode tentar de novo até o prazo de autenticar.
+            ResponderAutenticacao(sessao, resultado.Codigo);
+            return;
+        }
+
+        if (_porConta.TryGetValue(resultado.ContaId, out var anterior))
+        {
+            Encerrar(anterior, desconectar: true);
+        }
+
+        sessao.ContaId = resultado.ContaId;
+        sessao.PersonagemId = resultado.PersonagemId;
+        sessao.Autenticada = true;
+        _porConta[sessao.ContaId] = sessao;
+        _autenticadas[sessao] = 0;
+
+        ResponderAutenticacao(sessao, "");
+        _log.LogInformation(
+            "Tempo real: conta {Conta} entrou com o personagem {Personagem}.",
+            sessao.ContaId,
+            sessao.PersonagemId
+        );
+        Avisar(SessaoAutenticada, sessao);
+    }
+
+    private void ResponderAutenticacao(SessaoTempoReal sessao, string codigo) =>
+        Enviar(
+            sessao,
+            TempoRealIds.ResultadoAutenticacaoTempoReal,
+            new ResultadoAutenticacaoTempoReal { Aceita = codigo.Length == 0, Codigo = codigo }
+        );
+
+    private void ExpirarNaoAutenticadas()
+    {
+        var agora = Environment.TickCount64;
+        List<SessaoTempoReal>? expiradas = null;
+        foreach (var sessao in _conexoes.Values)
+        {
+            if (
+                !sessao.Autenticada
+                && !sessao.AutenticacaoEmAndamento
+                && agora - sessao.ConectadaEm > _configuracao.TempoParaAutenticarMs
+            )
+            {
+                (expiradas ??= []).Add(sessao);
+            }
+        }
+
+        foreach (var sessao in expiradas ?? [])
+        {
+            Encerrar(sessao, desconectar: true);
+        }
+    }
+
+    private void Encerrar(SessaoTempoReal sessao, bool desconectar)
+    {
+        if (!EstaConectada(sessao))
+        {
+            return;
+        }
+
+        _conexoes.Remove(sessao.Id);
+        if (desconectar)
+        {
+            _rede.DisconnectPeer(sessao.Peer);
+        }
+
+        if (!sessao.Autenticada)
+        {
+            return;
+        }
+
+        _autenticadas.TryRemove(sessao, out _);
+        if (_porConta.TryGetValue(sessao.ContaId, out var daConta) && daConta == sessao)
+        {
+            _porConta.Remove(sessao.ContaId);
+        }
+
+        Avisar(SessaoEncerrada, sessao);
+    }
+
+    private bool EstaConectada(SessaoTempoReal sessao) =>
+        _conexoes.TryGetValue(sessao.Id, out var atual) && atual == sessao;
+
+    private void Recusar(SessaoTempoReal sessao, ushort id, MotivoRecusa motivo)
+    {
+        _log.LogDebug(
+            "Mensagem {Id} recusada ({Motivo}) da conexão {Conexao}.",
+            id,
+            motivo,
+            sessao.Id
+        );
+        if (MensagemRecusada == null)
+        {
+            return;
+        }
+
+        foreach (var ouvinte in MensagemRecusada.GetInvocationList())
+        {
+            try
+            {
+                ((Action<SessaoTempoReal, ushort, MotivoRecusa>)ouvinte)(sessao, id, motivo);
+            }
+            catch (Exception e)
+            {
+                _log.LogError(e, "Erro num ouvinte de MensagemRecusada.");
+            }
+        }
+    }
+
+    private void Avisar(Action<SessaoTempoReal>? evento, SessaoTempoReal sessao)
+    {
+        if (evento == null)
+        {
+            return;
+        }
+
+        foreach (var ouvinte in evento.GetInvocationList())
+        {
+            try
+            {
+                ((Action<SessaoTempoReal>)ouvinte)(sessao);
+            }
+            catch (Exception e)
+            {
+                _log.LogError(e, "Erro num ouvinte de sessão do tempo real.");
+            }
+        }
+    }
+
+    private static DeliveryMethod Metodo(EntregaTempoReal entrega) =>
+        entrega == EntregaTempoReal.Sequenciada
+            ? DeliveryMethod.Sequenced
+            : DeliveryMethod.ReliableOrdered;
+}
