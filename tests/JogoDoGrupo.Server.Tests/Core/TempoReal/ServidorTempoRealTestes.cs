@@ -265,7 +265,7 @@ public class ServidorTempoRealTestes(TempoRealFixture f) : IClassFixture<TempoRe
 
     [Theory]
     [InlineData(999)] // faixa do Core, sem uso
-    [InlineData(MundoMessageIds.EntrarNaCidade)] // faixa do Mundo, ainda não registrada
+    [InlineData(2000)] // faixa de outra funcionalidade, ainda não registrada
     [InlineData(59999)]
     [InlineData(60100)]
     [InlineData(ushort.MaxValue)]
