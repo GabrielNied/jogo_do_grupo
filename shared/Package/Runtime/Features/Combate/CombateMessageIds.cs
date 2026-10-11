@@ -6,5 +6,20 @@ namespace JogoDoGrupo.Shared.Features.Combate
     public static class CombateMessageIds
     {
         public static readonly MessageIdRange Faixa = new MessageIdRange(6000, 6999);
+
+        /// <summary>Client → servidor: pedido de ataque leve ou pesado, com a direção da mira.</summary>
+        public const ushort IntencaoDeAtaque = 6000;
+
+        /// <summary>Servidor → quem está na área: um ataque começou o preparo.</summary>
+        public const ushort AtaqueIniciado = 6001;
+
+        /// <summary>Servidor → quem está na área: o golpe acertou um ou mais alvos.</summary>
+        public const ushort AtaqueAcertou = 6002;
+
+        /// <summary>Servidor → atacante: o pedido de ataque foi recusado.</summary>
+        public const ushort AtaqueRecusado = 6003;
+
+        /// <summary>Servidor → dono: vida, vigor ou energia do próprio personagem mudaram.</summary>
+        public const ushort RecursosMudaram = 6004;
     }
 }

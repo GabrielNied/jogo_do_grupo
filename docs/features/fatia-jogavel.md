@@ -62,6 +62,7 @@ Quem decide: **servidor** (acerto, dano, custo). O client envia a intenção (le
 - O mesmo golpe **não acerta o mesmo alvo duas vezes**; acerta vários alvos no volume.
 - Pedir novo ataque durante a ação espera o fim dela (fila de 1 pedido, descartado se passar de 0,3 s, **proposta**).
 - Sem vigor suficiente, o pesado é recusado (o leve sempre pode).
+- Valores que faltavam para implementar, **proposta a calibrar** (constantes em `RegrasAtaque`, no shared): recuperação de 0,3 s no leve e 0,6 s no pesado; dano do golpe = (dano da espada 20 + 2 por ponto de Força) x o multiplicador do ataque, arredondado; o volume é medido no plano do chão (a altura não conta, então por enquanto o pulo não tira ninguém do golpe).
 - As skills dos itens ficam fora desta seção (veja [skills.md](skills.md) e [itens.md](itens.md)).
 - Base: New World. Igual: leve e pesado, sem parry. Diferente: só uma arma na fatia.
 - **Testes esperados:** acerto único por golpe e alvo; vários alvos no volume; pesado recusado sem vigor; fila de ataque; dano calculado só no servidor.
