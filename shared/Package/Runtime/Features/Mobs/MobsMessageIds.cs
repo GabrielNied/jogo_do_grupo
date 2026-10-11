@@ -6,5 +6,20 @@ namespace JogoDoGrupo.Shared.Features.Mobs
     public static class MobsMessageIds
     {
         public static readonly MessageIdRange Faixa = new MessageIdRange(11000, 11999);
+
+        /// <summary>Servidor → quem entra na área: os inimigos vivos que estão nela.</summary>
+        public const ushort InimigosDaArea = 11000;
+
+        /// <summary>Servidor → quem está na área: posição, estado, alvo ou vida de um inimigo.</summary>
+        public const ushort InimigoMudou = 11001;
+
+        /// <summary>Servidor → quem está na área: um inimigo começou o aviso do golpe.</summary>
+        public const ushort InimigoPreparaAtaque = 11002;
+
+        /// <summary>Servidor → quem está na área: um inimigo morreu.</summary>
+        public const ushort InimigoMorreu = 11003;
+
+        /// <summary>Servidor → quem está na área: um inimigo apareceu (respawn).</summary>
+        public const ushort InimigoApareceu = 11004;
     }
 }

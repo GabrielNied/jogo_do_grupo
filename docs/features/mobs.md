@@ -72,17 +72,54 @@ Só a criatura **comum**. O sorteio acontece uma vez, quando ela aparece (inclus
 - O Javali do Campo usa os números do inimigo comum da fatia (seção 4 e ficha da issue #63).
 - Faixas de id: comuns de 1 a 99, chefes de 100 a 199, chefes raros de 200 a 299. Id publicado não muda nem é reaproveitado.
 
+### Inimigo comum da fatia (issue #63)
+
+As regras de base estão em [fatia-jogavel.md](fatia-jogavel.md), seção 4. O que a ficha da issue #63 acrescentou, e o que faltava para o contrato, fica aqui. Tudo **proposta a calibrar**, em constantes de `RegrasInimigo` (vida, dano e tempo de volta vêm da tabela acima).
+
+| Item | Valor |
+|---|---|
+| Criatura | Javali do Campo (id 1), em grupos de 3 a 5 |
+| Onde | campo aberto, a uns 150 m do portão norte da cidade (decidido em 2026-10-11); a dungeon reaproveita o mesmo inimigo, sem volta |
+| Visão | vê o jogador a **12 m** |
+| Alerta | **0,5 s** entre ver e começar a perseguir; o grupo todo entra em alerta junto |
+| Perseguição | **4 m/s**, em linha reta (mais lento que o jogador correndo) |
+| Ataque | começa a até **2 m** do alvo; **1 s** de aviso, depois o golpe e **1,5 s** de recuperação |
+| Área do golpe | círculo de **1,5 m** de raio no chão, com o centro **1,5 m** à frente do inimigo; fica fixa desde o aviso |
+| Desistência | a mais de **30 m** do ponto de origem ele volta (a **6 m/s**), com a vida cheia, sem escolher alvo até chegar |
+| Corpo | raio de **0,6 m** como alvo dos golpes dos jogadores |
+| Atualização da IA | passo fixo, **10 vezes por segundo** |
+
+- **Estados:** repouso → alerta → perseguição ⇄ ataque; alerta, perseguição e ataque → retorno → repouso; qualquer estado vivo → morto. Morto não muda mais: a volta é um inimigo novo (`InimigoApareceu`), com a variante sorteada de novo.
+- **Alvo:** o jogador mais próximo que ele viu. Enquanto esse alvo continuar valendo, ele **não troca**, mesmo com outro mais perto. No empate de distância fica o de menor id.
+- **Golpe telegrafado:** quem estiver na área quando o aviso acaba leva o dano; quem saiu a tempo não leva (a esquiva de 5 m tira o jogador da área).
+- Sem desvio de obstáculos na fatia: o campo é aberto.
+
 ## Depende de
 
-- Ainda nada no código. A IA, o dano e a posição no mundo dependem de [Combate](combate.md) (alvo e dano) e de [Mundo](mundo.md) (posição dos jogadores), que as issues #61 e #119 preparam.
+- ~~Ainda nada no código. A IA, o dano e a posição no mundo dependem de [Combate](combate.md) (alvo e dano) e de [Mundo](mundo.md) (posição dos jogadores), que as issues #61 e #119 preparam.~~ Substituído em 2026-10-11: os dois contratos já existem no servidor (`Contratos/Combate/IAlvosDeCombate` e `Contratos/Mundo/IPosicoesDoMundo`). O inimigo da issue #63 vai usá-los; o contrato do shared (abaixo) ainda não depende de nenhuma outra funcionalidade.
 
 ## Expõe
 
-Código em `shared/Package/Runtime/Features/Mobs/` (regras e números acima, não copiados aqui). Ainda **não há mensagens de rede**: as criaturas ainda não aparecem no mundo (issue #63).
+Código em `shared/Package/Runtime/Features/Mobs/` (regras e números acima, não copiados aqui). ~~Ainda **não há mensagens de rede**: as criaturas ainda não aparecem no mundo (issue #63).~~ Substituído em 2026-10-11: o contrato do inimigo comum está abaixo; o servidor e o client que o usam são as issues #268 e #269.
 
 - `CategoriaDeCriatura`: `Comum`, `Chefe`, `ChefeRaro`.
 - `VarianteDeCriatura`: `Normal`, `Fortalecida`.
 - `DefinicaoDeCriatura` e `CatalogoCriaturas`: a ficha fixa de cada criatura e `Obter` por id.
 - `RegrasCriaturas`: fórmulas puras (variante, aparição, vida, dano, experiência, multiplicador de recompensa e tamanho).
+
+Inimigo comum (tempo real; regras em "Inimigo comum da fatia"):
+
+| ID | Mensagem | Direção | Campos |
+|---|---|---|---|
+| 11000 | `InimigosDaArea` | servidor → quem entra na área | `Inimigos[]` (`InimigoNoMundo`: `InimigoId`, `CriaturaId`, `Variante`, `X`, `Y`, `Z`, `RotacaoY`, `Vida`, `VidaMaxima`, `Estado`, `AlvoId`); só os vivos |
+| 11001 | `InimigoMudou` | servidor → quem está na área | `InimigoId`, `X`, `Y`, `Z`, `RotacaoY`, `Estado`, `AlvoId`, `Vida`, `Sequencia` (o client descarta a que não for maior que a última) |
+| 11002 | `InimigoPreparaAtaque` | servidor → quem está na área | `InimigoId`, `PreparoMs`, `CentroX`, `CentroZ`, `Raio`, `DirecaoY` |
+| 11003 | `InimigoMorreu` | servidor → quem está na área | `InimigoId` |
+| 11004 | `InimigoApareceu` | servidor → quem está na área | `Inimigo` (`InimigoNoMundo`) |
+
+- `EstadoDeInimigo`: `Repouso` 0, `Alerta` 1, `Perseguicao` 2, `Ataque` 3, `Retorno` 4, `Morto` 5.
+- `InimigoId` é o mesmo `AlvoId` que o Combate manda em `AcertoDeAtaque`: o dano de um golpe do jogador chega por `AtaqueAcertou`, não por `InimigoMudou`. `AlvoId` 0 (`RegrasInimigo.SemAlvo`) é sem alvo.
+- `CriaturaId` aponta para o `CatalogoCriaturas` (nome, nível, categoria); a ficha da issue chamava esse campo de `Tipo`.
+- `RegrasInimigo`: constantes de balanceamento e fórmulas puras (`TransicaoValida`, `EstaVivo`, `ProcuraAlvo`, `TamanhoDoGrupo`, `Ve`, `NoAlcanceDeAtaque`, `DeveDesistir`, `EscolherAlvo`, `DirecaoPara`, `Avancar`, `CentroDoGolpe`, `EstaNaAreaDoGolpe`). O servidor decide; o client usa só para mostrar.
 
 No servidor (`server/.../Features/Mobs/`): `SorteadorDeCriaturas` (sorteia a variante e a aparição) e `AparicaoDeChefeRaro` (o controle de um ponto de chefe raro). Ainda não estão ligados ao mundo.
