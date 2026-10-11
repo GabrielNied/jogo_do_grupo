@@ -161,6 +161,26 @@ Campos: `PersonagemId` (long), `X`, `Y`, `Z`, `RotacaoY` (float). Usado em `Esta
 - ~~**Caso grave** (posição fora do mundo, longe do chão, não finita, excesso acima de 6 m ou suspeita demais): a posição do servidor fica, e o dono recebe `PosicaoForcada`. O client aplica e confirma (`ConfirmarPosicaoForcada`); até lá, o movimento dele é ignorado. Teleporte, renascer e empurrão de boss usam o mesmo caminho (`CidadeDoMundo.ForcarPosicao`).~~ Substituído em 2026-10-11: o jogador se move livremente e só informa a posição. O servidor grava e repassa aos outros; andar rápido, salto ou sair do limite **não** manda `PosicaoForcada`. Número não finito é ignorado. `ForcarPosicao` continua só para teleporte explícito (renascer, empurrão), que ainda não é o movimento normal.
 - **No client:** o nascimento só é aplicado na primeira entrada; na reconexão o jogador continua onde está.
 
+### Dia e noite (#163, contrato da #380)
+
+Um relógio só, do servidor: todos na área veem a mesma hora, e entrar no meio do dia não recomeça o ciclo. Nesta leva a noite é **cenário**: não esconde inimigo, não muda spawn e não pede tocha (o efeito de jogo continua em aberto, S8). Este é o contrato; o servidor (#381) e o client (#382) vêm depois.
+
+| ID | Mensagem | Direção | Campos |
+|---|---|---|---|
+| 1011 | `HoraDoMundo` | servidor → client | `Hora` (0 a menos de 24), `DuracaoDoDiaSegundos` |
+
+O servidor manda `HoraDoMundo` ao entrar na área e repete de tempos em tempos para corrigir o relógio do client; entre as mensagens o client avança a hora com `RegrasDiaENoite.HoraApos` e escreve o resultado em `AmbienteDosBiomas.Hora`.
+
+Valores em `RegrasDiaENoite`, **a calibrar**:
+
+| Valor | Constante | Hoje |
+|---|---|---|
+| Duração de um dia inteiro | `DuracaoDoDiaSegundos` | 1200 s (20 min reais; uma hora do mundo = 50 s) |
+| Hora quando o servidor liga | `HoraInicial` | 8h |
+| Noite (lanternas acesas) | `InicioDaNoite`, `FimDaNoite` | das 20h às 5h |
+
+A hora anda no mesmo ritmo o dia todo, então a noite dura 7,5 min de cada 20. A proposta do livro (40 min de dia e 20 de noite) continua em [Em aberto](#em-aberto); adotá-la é mudar constante e, se o ritmo da noite for diferente do dia, a função `HoraApos`.
+
 ### Eventos e consulta para outras funcionalidades do servidor (#119)
 
 Em `server/src/JogoDoGrupo.Server/Contratos/Mundo/` ([ADR 0016](../decisoes/0016-eventos-entre-funcionalidades-do-servidor.md)); só o servidor usa, o client não vê.
