@@ -16,8 +16,9 @@ namespace JogoDoGrupo.Server.Features.Personagem;
 /// </summary>
 internal static class PersonagensRotas
 {
-    // Quantas vezes a criação é tentada se o banco continuar ocupado depois do tempo de espera.
-    private const int TentativasComBancoOcupado = 3;
+    // Espera máxima pela trava do banco na criação (o client desiste em 10 s). O padrão da
+    // conexão é 30 s; só a conexão desta requisição muda, e volta ao valor anterior no fim.
+    private const int EsperaTravaSegundos = 5;
 
     // SQLITE_BUSY e SQLITE_LOCKED: outra transação segura o banco.
     private const int SqliteOcupado = 5;
@@ -76,38 +77,53 @@ internal static class PersonagensRotas
         }
 
         var contaId = usuario.ObterContaId();
-        for (var tentativa = 1; ; tentativa++)
+
+        // O Microsoft.Data.Sqlite espera a trava pelo tempo do comando, que vem do
+        // DefaultTimeout da conexão (inclusive no BEGIN e no COMMIT).
+        var sqlite = db.Database.GetDbConnection() as SqliteConnection;
+        var esperaAnterior = sqlite?.DefaultTimeout;
+        if (sqlite != null)
         {
-            try
+            sqlite.DefaultTimeout = EsperaTravaSegundos;
+        }
+
+        try
+        {
+            return await CriarEmTransacaoAsync(requisicao, contaId, db, relogio, cancelamento);
+        }
+        catch (Exception e) when (EhBancoOcupado(e))
+        {
+            // Uma tentativa só: o banco continuou ocupado depois da espera. 500 como qualquer
+            // falha inesperada (código próprio para "ocupado" fica para a issue #28).
+            log.LogWarning(
+                "Banco ocupado por mais de {Espera} s ao criar personagem.",
+                EsperaTravaSegundos
+            );
+            return RespostasApi.Erro(
+                StatusCodes.Status500InternalServerError,
+                CodigosErro.ErroInterno,
+                "Servidor ocupado. Tente de novo."
+            );
+        }
+        finally
+        {
+            if (sqlite != null && esperaAnterior != null)
             {
-                return await CriarEmTransacaoAsync(requisicao, contaId, db, relogio, cancelamento);
-            }
-            catch (Exception e) when (EhBancoOcupado(e))
-            {
-                db.ChangeTracker.Clear();
-                log.LogWarning(
-                    "Banco ocupado ao criar personagem (tentativa {Tentativa} de {Total}).",
-                    tentativa,
-                    TentativasComBancoOcupado
-                );
-                if (tentativa >= TentativasComBancoOcupado)
-                {
-                    return RespostasApi.Erro(
-                        StatusCodes.Status503ServiceUnavailable,
-                        CodigosErro.ErroInterno,
-                        "Servidor ocupado. Tente de novo."
-                    );
-                }
+                sqlite.DefaultTimeout = esperaAnterior.Value;
             }
         }
     }
 
     /// <summary>
     /// Confere o limite e o nome e cria o personagem numa transação só.
-    /// Serializable no SQLite abre a transação com <c>BEGIN IMMEDIATE</c>: ela já começa com a
+    /// No SQLite, Serializable abre a transação com <c>BEGIN IMMEDIATE</c>: ela já começa com a
     /// trava de escrita, então dois pedidos simultâneos rodam um depois do outro (o segundo espera
     /// o primeiro terminar) e o segundo conta o personagem que o primeiro criou. Assim a conta
     /// nunca passa de <see cref="RegrasPersonagem.MaximoPorConta"/>.
+    /// Isso vale só para o SQLite. No PostgreSQL, Serializable não trava na entrada: uma das
+    /// transações concorrentes falha no commit com erro de serialização (40001) e precisaria ser
+    /// tratada ou repetida. Isso fica para a issue #28, junto com mover
+    /// <see cref="EhBancoOcupado"/> para o Core (<c>ErrosBanco</c>).
     /// </summary>
     private static async Task<IResult> CriarEmTransacaoAsync(
         CriarPersonagemRequest requisicao,
