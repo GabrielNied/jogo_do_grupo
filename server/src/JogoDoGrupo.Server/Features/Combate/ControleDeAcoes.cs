@@ -63,6 +63,13 @@ public sealed class ControleDeAcoes
                 _estados[personagemId] = estado;
             }
 
+            if (agoraMs < estado.OcupadoAteMs)
+            {
+                // Em outra ação (ex.: esquiva): não ataca nem entra na fila.
+                acao = null;
+                return ResultadoDoPedido.Recusado;
+            }
+
             var atual = estado.Atual;
             if (atual != null && agoraMs < atual.FimMs)
             {
@@ -105,6 +112,53 @@ public sealed class ControleDeAcoes
         lock (_trava)
         {
             return ProximaDaFila(personagemId, acaoId, agoraMs, liberar: true);
+        }
+    }
+
+    /// <summary>
+    /// Reserva o personagem para uma ação que não é ataque (ex.: a esquiva) por
+    /// <paramref name="duracaoMs"/>. Falso se ele está no meio de um ataque ou de outra reserva:
+    /// de dois pedidos no mesmo instante, um vale. Durante a reserva, <see cref="Pedir"/> recusa.
+    /// </summary>
+    public bool TentarOcupar(long personagemId, long agoraMs, long duracaoMs, out long ocupacaoId)
+    {
+        lock (_trava)
+        {
+            if (!_estados.TryGetValue(personagemId, out var estado))
+            {
+                estado = new Estado();
+                _estados[personagemId] = estado;
+            }
+
+            var emAtaque = estado.Atual != null && agoraMs < estado.Atual.FimMs;
+            if (emAtaque || agoraMs < estado.OcupadoAteMs)
+            {
+                ocupacaoId = 0;
+                return false;
+            }
+
+            estado.OcupacaoId = ++_proximoId;
+            estado.OcupadoAteMs = agoraMs + Math.Max(0, duracaoMs);
+            ocupacaoId = estado.OcupacaoId;
+            return true;
+        }
+    }
+
+    /// <summary>
+    /// A reserva <paramref name="ocupacaoId"/> não valeu (sem vigor, caído): libera o personagem
+    /// na hora. Não faz nada se a reserva já é outra ou o personagem foi esquecido.
+    /// </summary>
+    public void Desocupar(long personagemId, long ocupacaoId)
+    {
+        lock (_trava)
+        {
+            if (
+                _estados.TryGetValue(personagemId, out var estado)
+                && estado.OcupacaoId == ocupacaoId
+            )
+            {
+                estado.OcupadoAteMs = 0;
+            }
         }
     }
 
@@ -164,5 +218,7 @@ public sealed class ControleDeAcoes
     {
         public AcaoDeAtaque? Atual;
         public PedidoDeAtaque? Fila;
+        public long OcupadoAteMs;
+        public long OcupacaoId;
     }
 }

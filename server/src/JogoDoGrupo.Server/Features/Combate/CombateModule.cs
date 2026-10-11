@@ -11,6 +11,7 @@ public sealed class CombateModule : IFeatureModule
     // Criado pelo contêiner quando o app sobe (hosted service); o manipulador de rede só o usa
     // depois que uma sessão se autentica.
     private volatile ServicoDeAtaques? _ataques;
+    private volatile ServicoDeEsquivas? _esquivas;
 
     public string Nome => "Combate";
 
@@ -18,6 +19,16 @@ public sealed class CombateModule : IFeatureModule
     {
         servicos.AddSingleton<IBonusDeAtributos, SemBonusDeAtributos>();
         servicos.AddSingleton<IAlvosDeCombate>(new BonecoDeTreino());
+        servicos.AddSingleton<ControleDeAcoes>();
+        servicos.AddSingleton(sp => new ServicoDeEsquivas(
+            sp.GetRequiredService<ServidorTempoReal>(),
+            sp.GetRequiredService<IPosicoesDoMundo>(),
+            sp.GetRequiredService<IDeslocamentosDoMundo>(),
+            sp.GetRequiredService<ControleDeAcoes>(),
+            sp.GetRequiredService<IServiceScopeFactory>(),
+            sp.GetRequiredService<TimeProvider>(),
+            sp.GetRequiredService<ILogger<ServicoDeEsquivas>>()
+        ));
         servicos.AddSingleton(sp =>
         {
             var servico = new ServicoDeAtaques(
@@ -26,9 +37,11 @@ public sealed class CombateModule : IFeatureModule
                 sp.GetServices<IAlvosDeCombate>(),
                 sp.GetRequiredService<IServiceScopeFactory>(),
                 sp.GetRequiredService<TimeProvider>(),
-                sp.GetRequiredService<ILogger<ServicoDeAtaques>>()
+                sp.GetRequiredService<ILogger<ServicoDeAtaques>>(),
+                controle: sp.GetRequiredService<ControleDeAcoes>()
             );
             _ataques = servico;
+            _esquivas = sp.GetRequiredService<ServicoDeEsquivas>();
             return servico;
         });
         servicos.AddHostedService(sp => sp.GetRequiredService<ServicoDeAtaques>());
@@ -42,6 +55,10 @@ public sealed class CombateModule : IFeatureModule
             .Ao<IntencaoDeAtaque>(
                 CombateMessageIds.IntencaoDeAtaque,
                 (sessao, intencao) => _ataques?.AoAtacar(sessao, intencao)
+            )
+            .Ao<IntencaoDeEsquiva>(
+                CombateMessageIds.IntencaoDeEsquiva,
+                (sessao, intencao) => _esquivas?.AoEsquivar(sessao, intencao)
             );
 
     public void Inicializar(ServerContext contexto) { }

@@ -24,6 +24,18 @@ public static class ValidadorDeMovimento
     public const long TempoMaximoMs = 1000;
 
     /// <summary>
+    /// Folga (m) no limite de distância de uma janela de deslocamento: só cobre o arredondamento
+    /// dos números (5 m passa, 5,1 m não).
+    /// </summary>
+    public const double ToleranciaDaJanela = 0.01;
+
+    /// <summary>
+    /// Tempo a mais (ms) que uma janela de deslocamento fica aberta depois da duração pedida,
+    /// para a última posição do deslocamento não ser recusada por atraso de rede.
+    /// </summary>
+    public const long FolgaDaJanelaMs = 150;
+
+    /// <summary>
     /// Limite do terreno em X e Z (m): metade do lado do mundo, centrado na origem. Era 500 m
     /// (terreno de 1 km) até 2026-10-11; o mundo passou a 3 km.
     /// </summary>
@@ -52,6 +64,45 @@ public static class ValidadorDeMovimento
     /// </summary>
     public static bool Permitido(PosicaoNaCidade atual, PosicaoNaCidade desejada, long decorridoMs)
     {
+        if (!PosicaoValida(desejada))
+        {
+            return false;
+        }
+
+        return Distancia(atual, desejada) <= (VelocidadeMaxima * Segundos(decorridoMs)) + Folga;
+    }
+
+    /// <summary>
+    /// O mesmo de <see cref="Permitido"/>, mas dentro de uma janela de deslocamento (ex.: a
+    /// esquiva): o passo pode ir a <paramref name="velocidade"/> (m/s), e a posição não pode
+    /// ficar a mais de <paramref name="distanciaMaxima"/> (m) de <paramref name="origem"/>, que
+    /// é onde o personagem estava quando a janela abriu.
+    /// </summary>
+    public static bool PermitidoNaJanela(
+        PosicaoNaCidade origem,
+        PosicaoNaCidade atual,
+        PosicaoNaCidade desejada,
+        long decorridoMs,
+        double distanciaMaxima,
+        double velocidade
+    )
+    {
+        if (!PosicaoValida(desejada))
+        {
+            return false;
+        }
+
+        if (Distancia(origem, desejada) > distanciaMaxima + ToleranciaDaJanela)
+        {
+            return false;
+        }
+
+        return Distancia(atual, desejada) <= (velocidade * Segundos(decorridoMs)) + Folga;
+    }
+
+    // Números finitos, dentro do mundo e perto do chão daquele ponto.
+    private static bool PosicaoValida(PosicaoNaCidade desejada)
+    {
         if (
             !float.IsFinite(desejada.X)
             || !float.IsFinite(desejada.Y)
@@ -74,15 +125,17 @@ public static class ValidadorDeMovimento
 
         // O chão tem relevo: a altura pedida precisa estar perto do chão daquele ponto.
         var chao = MapaDoMundo.AlturaEm(desejada.X, desejada.Z);
-        if (desejada.Y < chao - FolgaAbaixoDoChao || desejada.Y > chao + FolgaAcimaDoChao)
-        {
-            return false;
-        }
+        return desejada.Y >= chao - FolgaAbaixoDoChao && desejada.Y <= chao + FolgaAcimaDoChao;
+    }
 
-        var segundos = Math.Clamp(decorridoMs, 0, TempoMaximoMs) / 1000.0;
-        var dx = (double)desejada.X - atual.X;
-        var dz = (double)desejada.Z - atual.Z;
-        var distancia = Math.Sqrt((dx * dx) + (dz * dz));
-        return distancia <= (VelocidadeMaxima * segundos) + Folga;
+    private static double Segundos(long decorridoMs) =>
+        Math.Clamp(decorridoMs, 0, TempoMaximoMs) / 1000.0;
+
+    // Deslocamento no plano horizontal (queda e pulo não contam).
+    private static double Distancia(PosicaoNaCidade de, PosicaoNaCidade para)
+    {
+        var dx = (double)para.X - de.X;
+        var dz = (double)para.Z - de.Z;
+        return Math.Sqrt((dx * dx) + (dz * dz));
     }
 }

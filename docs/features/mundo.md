@@ -115,6 +115,7 @@ Em `server/src/JogoDoGrupo.Server/Contratos/Mundo/` ([ADR 0016](../decisoes/0016
 | `JogadorEntrouNaArea` (`PersonagemId`, `Area`) | evento publicado quando o personagem passa a estar numa área. Pedir para entrar de novo, já estando nela, não repete |
 | `JogadorSaiuDaArea` (`PersonagemId`, `Area`) | evento publicado quando o personagem sai do jogo ou a conexão cai. Quando chega, a consulta já não encontra o personagem |
 | `IPosicoesDoMundo` | consulta pela injeção de dependência: `TentarObter(personagemId, out PosicaoNoMundo)` (área, X, Y, Z, rotação: a posição que o servidor aceitou) e `PersonagensNaArea(area)` |
+| `IDeslocamentosDoMundo` | pedido pela injeção de dependência: `AbrirJanela(personagemId, distanciaMetros, duracaoSegundos)` deixa o personagem se afastar até essa distância de onde está, nessa duração (mais 150 ms de folga de rede), mais rápido que a corrida; fora da janela volta o limite de 5,5 m/s. O Mundo continua validando cada posição. Usado pela esquiva (Combate, #233) |
 | `AreasDoMundo.Cidade` | o nome da única área de hoje (a cidade e o terreno em volta) |
 
 Os eventos saem depois das mensagens de rede da mesma mudança (`EstadoDaCidade`, `JogadorEntrou`, `JogadorSaiu`).

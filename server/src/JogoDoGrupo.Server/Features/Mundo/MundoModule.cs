@@ -14,8 +14,11 @@ public sealed class MundoModule : IFeatureModule
 
     public string Nome => "Mundo";
 
-    public void ConfigurarServicos(IServiceCollection servicos, IConfiguration configuracao) =>
+    public void ConfigurarServicos(IServiceCollection servicos, IConfiguration configuracao)
+    {
         servicos.AddSingleton<IPosicoesDoMundo>(new PosicoesDaCidade(_cidade));
+        servicos.AddSingleton<IDeslocamentosDoMundo>(new DeslocamentosDaCidade(_cidade));
+    }
 
     public void RegistrarMensagens(MensagensTempoReal mensagens) =>
         mensagens
