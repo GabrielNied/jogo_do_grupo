@@ -211,7 +211,7 @@ internal static class RecursosDoAtaque
         return (await AtributosAsync(escopo.ServiceProvider, personagemId, cancelamento)).Forca;
     }
 
-    private static async Task<AtributosCombate> AtributosAsync(
+    internal static async Task<AtributosCombate> AtributosAsync(
         IServiceProvider servicos,
         long personagemId,
         CancellationToken cancelamento
