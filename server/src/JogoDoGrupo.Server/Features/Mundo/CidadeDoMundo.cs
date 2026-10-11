@@ -90,16 +90,69 @@ public sealed class CidadeDoMundo<TSessao>(Func<long> relogioMs)
             }
 
             var agora = relogioMs();
-            if (
-                !ValidadorDeMovimento.Permitido(entrada.Posicao, desejada, agora - entrada.UltimoMs)
-            )
+            var decorrido = agora - entrada.UltimoMs;
+            var janela = entrada.Janela is { } aberta && agora <= aberta.AteMs ? aberta : null;
+            var permitido =
+                janela != null
+                    ? ValidadorDeMovimento.PermitidoNaJanela(
+                        janela.Origem,
+                        entrada.Posicao,
+                        desejada,
+                        decorrido,
+                        janela.DistanciaMaxima,
+                        janela.Velocidade
+                    )
+                    : ValidadorDeMovimento.Permitido(entrada.Posicao, desejada, decorrido);
+            if (!permitido)
             {
                 return (ResultadoMovimento.Recusado, Converter(personagemId, entrada));
             }
 
-            entrada = entrada with { Posicao = desejada, UltimoMs = agora };
+            entrada = entrada with { Posicao = desejada, UltimoMs = agora, Janela = janela };
             _avatares[personagemId] = entrada;
             return (ResultadoMovimento.Aceito, Converter(personagemId, entrada));
+        }
+    }
+
+    /// <summary>
+    /// Abre uma janela de deslocamento para o personagem (veja <c>IDeslocamentosDoMundo</c>): até
+    /// <paramref name="distanciaMetros"/> de onde ele está agora, em
+    /// <paramref name="duracaoSegundos"/>. Falso se ele não está na cidade ou se os números não
+    /// servem (zero, negativos ou não finitos).
+    /// </summary>
+    public bool AbrirJanela(long personagemId, double distanciaMetros, double duracaoSegundos)
+    {
+        if (
+            !double.IsFinite(distanciaMetros)
+            || !double.IsFinite(duracaoSegundos)
+            || distanciaMetros <= 0
+            || duracaoSegundos <= 0
+        )
+        {
+            return false;
+        }
+
+        lock (_trava)
+        {
+            if (!_avatares.TryGetValue(personagemId, out var entrada))
+            {
+                return false;
+            }
+
+            var ateMs =
+                relogioMs()
+                + (long)Math.Ceiling(duracaoSegundos * 1000.0)
+                + ValidadorDeMovimento.FolgaDaJanelaMs;
+            _avatares[personagemId] = entrada with
+            {
+                Janela = new JanelaDeDeslocamento(
+                    entrada.Posicao,
+                    ateMs,
+                    distanciaMetros,
+                    distanciaMetros / duracaoSegundos
+                ),
+            };
+            return true;
         }
     }
 
@@ -147,5 +200,18 @@ public sealed class CidadeDoMundo<TSessao>(Func<long> relogioMs)
     private static AvatarNaCidade<TSessao> Converter(long id, Entrada e) =>
         new(id, e.Sessao, e.Posicao);
 
-    private sealed record Entrada(TSessao Sessao, PosicaoNaCidade Posicao, long UltimoMs);
+    private sealed record Entrada(
+        TSessao Sessao,
+        PosicaoNaCidade Posicao,
+        long UltimoMs,
+        JanelaDeDeslocamento? Janela = null
+    );
+
+    // Onde o personagem estava quando a janela abriu, até quando ela vale e os limites dela.
+    private sealed record JanelaDeDeslocamento(
+        PosicaoNaCidade Origem,
+        long AteMs,
+        double DistanciaMaxima,
+        double Velocidade
+    );
 }

@@ -24,11 +24,30 @@ internal static class RecursosDoAtaque
     // Mesma espera pela trava do banco da rota de recursos.
     private const int EsperaTravaSegundos = 5;
 
-    public static async Task<InicioDoAtaque> TentarIniciarAsync(
+    public static Task<InicioDoAtaque> TentarIniciarAsync(
         IServiceScopeFactory escopos,
         TimeProvider relogio,
         long personagemId,
         TipoDeAtaque tipo,
+        CancellationToken cancelamento
+    ) =>
+        TentarGastarVigorAsync(
+            escopos,
+            relogio,
+            personagemId,
+            RegrasAtaque.CustoDeVigor(tipo),
+            cancelamento
+        );
+
+    /// <summary>
+    /// A mesma conferência para qualquer ação que custa vigor (ataque ou esquiva): recusa quem
+    /// está caído ou não tem <paramref name="custo"/> de vigor; senão cobra, uma vez só.
+    /// </summary>
+    public static async Task<InicioDoAtaque> TentarGastarVigorAsync(
+        IServiceScopeFactory escopos,
+        TimeProvider relogio,
+        long personagemId,
+        int custo,
         CancellationToken cancelamento
     )
     {
@@ -69,12 +88,11 @@ internal static class RecursosDoAtaque
             }
 
             string? recusa = null;
-            var custo = RegrasAtaque.CustoDeVigor(tipo);
             if (recursos.Vida <= 0)
             {
                 recusa = CodigosErroCombate.VoceEstaCaido;
             }
-            else if (!RegrasAtaque.TemVigor(tipo, recursos.Vigor))
+            else if (recursos.Vigor < custo)
             {
                 recusa = CodigosErroCombate.VigorInsuficiente;
             }

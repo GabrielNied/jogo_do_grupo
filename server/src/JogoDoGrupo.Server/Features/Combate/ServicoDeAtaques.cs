@@ -26,7 +26,7 @@ public sealed class ServicoDeAtaques : IHostedService, IDisposable
     private readonly TimeProvider _relogio;
     private readonly ILogger<ServicoDeAtaques> _log;
     private readonly Func<long> _relogioMs;
-    private readonly ControleDeAcoes _controle = new();
+    private readonly ControleDeAcoes _controle;
     private readonly Dictionary<long, SessaoTempoReal> _sessoes = [];
     private readonly Lock _travaSessoes = new();
     private readonly CancellationTokenSource _parada = new();
@@ -38,9 +38,12 @@ public sealed class ServicoDeAtaques : IHostedService, IDisposable
         IServiceScopeFactory escopos,
         TimeProvider relogio,
         ILogger<ServicoDeAtaques> log,
-        Func<long>? relogioMs = null
+        Func<long>? relogioMs = null,
+        ControleDeAcoes? controle = null
     )
     {
+        // O mesmo controle da esquiva, para ataque e esquiva não valerem ao mesmo tempo.
+        _controle = controle ?? new ControleDeAcoes();
         _tempoReal = tempoReal;
         _posicoes = posicoes;
         _fontes = fontes.ToArray();

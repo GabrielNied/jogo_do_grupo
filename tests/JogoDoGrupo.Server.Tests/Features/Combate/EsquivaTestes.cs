@@ -1,0 +1,298 @@
+using JogoDoGrupo.Server.Core.Persistencia;
+using JogoDoGrupo.Server.Features.Combate;
+using JogoDoGrupo.Server.Features.Mundo;
+using JogoDoGrupo.Server.Tests.Core.TempoReal;
+using JogoDoGrupo.Server.Tests.Infra;
+using JogoDoGrupo.Shared.Features.Combate;
+using JogoDoGrupo.Shared.Features.Mundo;
+using JogoDoGrupo.Shared.Features.Personagem;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace JogoDoGrupo.Server.Tests.Features.Combate;
+
+/// <summary>
+/// Integração da esquiva: client UDP de verdade contra o servidor, com banco SQLite e o Mundo
+/// de verdade. A conta fina da janela de deslocamento (5 m, 0,6 s) está nos testes do Mundo,
+/// com relógio controlado; aqui o tempo é o real.
+/// </summary>
+public class EsquivaTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDeAtaque>
+{
+    private async Task<Jogador> NovoJogadorAsync(bool naCidade = true)
+    {
+        servidor.Bonus.Equipamentos = new AtributosCombate();
+        servidor.Bonus.Efeitos = new AtributosCombate();
+
+        var http = await ServidorDeTeste.CriarClienteLogadoEmAsync(servidor.Falso);
+        var resposta = await ServidorDeTeste.PostJsonAsync(
+            http,
+            RotasPersonagem.Personagens,
+            new CriarPersonagemRequest { Nome = ServidorDeTeste.NomeUnico(), Raca = Raca.Humano }
+        );
+        resposta.EnsureSuccessStatusCode();
+        var personagem = await ServidorDeTeste.LerJsonAsync<PersonagemResumo>(resposta);
+
+        var (cliente, resultado) = await ClienteTempoRealDeTeste.AutenticarAsync(
+            servidor.Porta,
+            http.DefaultRequestHeaders.Authorization!.Parameter!,
+            personagem.Id
+        );
+        Assert.True(resultado.Aceita, resultado.Codigo);
+        var jogador = new Jogador(http, cliente, personagem.Id);
+        if (naCidade)
+        {
+            cliente.Enviar(MundoMessageIds.EntrarNaCidade, new EntrarNaCidade());
+            await cliente.ReceberAsync<EstadoDaCidade>(MundoMessageIds.EstadoDaCidade);
+        }
+
+        return jogador;
+    }
+
+    private static void Esquivar(Jogador j, int sequencia = 1, float direcao = 0f) =>
+        j.Cliente.Enviar(
+            CombateMessageIds.IntencaoDeEsquiva,
+            new IntencaoDeEsquiva { DirecaoY = direcao, Sequencia = sequencia }
+        );
+
+    private static Task<EsquivaIniciada> IniciadaAsync(Jogador j) =>
+        j.Cliente.ReceberAsync<EsquivaIniciada>(CombateMessageIds.EsquivaIniciada);
+
+    private static Task<EsquivaRecusada> RecusadaAsync(Jogador j) =>
+        j.Cliente.ReceberAsync<EsquivaRecusada>(CombateMessageIds.EsquivaRecusada);
+
+    private static async Task<int> VigorAsync(Jogador j)
+    {
+        var resposta = await j.Http.GetAsync(RotasCombate.RecursosDe(j.Id));
+        resposta.EnsureSuccessStatusCode();
+        return (await ServidorDeTeste.LerJsonAsync<RecursosResponse>(resposta)).VigorAtual;
+    }
+
+    /// <summary>Muda o que está guardado dos recursos (cria a linha se for a primeira vez).</summary>
+    private async Task DefinirRecursosAsync(Jogador j, int? vida = null, int? vigor = null)
+    {
+        await VigorAsync(j);
+        using var escopo = servidor.Falso.Services.CreateScope();
+        var db = escopo.ServiceProvider.GetRequiredService<JogoDbContext>();
+        var r = await db.Set<RecursosPersonagem>().SingleAsync(x => x.PersonagemId == j.Id);
+        if (vida != null)
+        {
+            r.Vida = vida.Value;
+        }
+
+        if (vigor != null)
+        {
+            var agora = servidor.Relogio.GetUtcNow().UtcDateTime;
+            r.Vigor = vigor.Value;
+            r.UltimoGastoVigorEm = agora;
+            r.VigorContadoAte = agora;
+        }
+
+        await db.SaveChangesAsync();
+    }
+
+    [Fact]
+    public async Task Esquiva_gasta_15_de_vigor_e_avisa_o_dono_e_quem_esta_na_area()
+    {
+        using var ana = await NovoJogadorAsync();
+        using var beto = await NovoJogadorAsync();
+        await DefinirRecursosAsync(ana, vigor: 100);
+
+        Esquivar(ana, direcao: 90f);
+
+        var recursos = await ana.Cliente.ReceberAsync<RecursosMudaram>(
+            CombateMessageIds.RecursosMudaram
+        );
+        Assert.Equal(100 - RegrasEsquiva.CustoDeVigor, recursos.VigorAtual);
+        Assert.Equal(RegrasRecursos.VigorMaximo(), recursos.VigorMaximo);
+
+        foreach (var jogador in new[] { ana, beto })
+        {
+            var iniciada = await IniciadaAsync(jogador);
+            Assert.Equal(ana.Id, iniciada.PersonagemId);
+            Assert.Equal(90f, iniciada.DirecaoY);
+            Assert.Equal(RegrasEsquiva.DuracaoMs, iniciada.DuracaoMs);
+        }
+
+        Assert.Equal(100 - RegrasEsquiva.CustoDeVigor, await VigorAsync(ana));
+        Assert.False(beto.Recebeu(CombateMessageIds.RecursosMudaram));
+    }
+
+    [Fact]
+    public async Task Sem_vigor_a_esquiva_e_recusada_e_nada_e_gasto()
+    {
+        using var ana = await NovoJogadorAsync();
+        await DefinirRecursosAsync(ana, vigor: RegrasEsquiva.CustoDeVigor - 1);
+
+        Esquivar(ana, sequencia: 7);
+
+        var recusada = await RecusadaAsync(ana);
+        Assert.Equal(7, recusada.Sequencia);
+        Assert.Equal(CodigosErroCombate.VigorInsuficiente, recusada.Codigo);
+        Assert.Equal(RegrasEsquiva.CustoDeVigor - 1, await VigorAsync(ana));
+        Assert.False(ana.Recebeu(CombateMessageIds.EsquivaIniciada));
+    }
+
+    [Fact]
+    public async Task Com_exatamente_15_de_vigor_a_esquiva_vale_e_zera_o_vigor()
+    {
+        using var ana = await NovoJogadorAsync();
+        await DefinirRecursosAsync(ana, vigor: RegrasEsquiva.CustoDeVigor);
+
+        Esquivar(ana);
+
+        await IniciadaAsync(ana);
+        Assert.Equal(0, await VigorAsync(ana));
+    }
+
+    [Fact]
+    public async Task Caido_nao_esquiva()
+    {
+        using var ana = await NovoJogadorAsync();
+        await DefinirRecursosAsync(ana, vida: 0, vigor: 100);
+
+        Esquivar(ana, sequencia: 3);
+
+        var recusada = await RecusadaAsync(ana);
+        Assert.Equal(3, recusada.Sequencia);
+        Assert.Equal(CodigosErroCombate.VoceEstaCaido, recusada.Codigo);
+        Assert.Equal(100, await VigorAsync(ana));
+    }
+
+    [Fact]
+    public async Task Recusada_por_falta_de_vigor_nao_prende_o_personagem()
+    {
+        using var ana = await NovoJogadorAsync();
+        await DefinirRecursosAsync(ana, vigor: 0);
+        Esquivar(ana, sequencia: 1);
+        Assert.Equal(CodigosErroCombate.VigorInsuficiente, (await RecusadaAsync(ana)).Codigo);
+
+        // Logo em seguida, com vigor, vale: a recusa liberou a reserva da ação.
+        await DefinirRecursosAsync(ana, vigor: 50);
+        Esquivar(ana, sequencia: 2);
+
+        await IniciadaAsync(ana);
+        Assert.Equal(50 - RegrasEsquiva.CustoDeVigor, await VigorAsync(ana));
+    }
+
+    [Fact]
+    public async Task Segunda_esquiva_durante_a_primeira_e_recusada_e_o_vigor_sai_uma_vez_so()
+    {
+        using var ana = await NovoJogadorAsync();
+        await DefinirRecursosAsync(ana, vigor: 100);
+
+        Esquivar(ana, sequencia: 1);
+        Esquivar(ana, sequencia: 2);
+
+        var recusada = await RecusadaAsync(ana);
+        Assert.Equal(2, recusada.Sequencia);
+        Assert.Equal(CodigosErroCombate.AcaoEmAndamento, recusada.Codigo);
+        await TempoRealFixture.EsperarAsync(
+            () => ana.Recebeu(CombateMessageIds.EsquivaIniciada),
+            "EsquivaIniciada"
+        );
+        Assert.Equal(100 - RegrasEsquiva.CustoDeVigor, await VigorAsync(ana));
+        Assert.Equal(1, ana.Recebidas(CombateMessageIds.EsquivaIniciada));
+    }
+
+    [Fact]
+    public async Task Duas_esquivas_seguidas_gastam_vigor_duas_vezes()
+    {
+        using var ana = await NovoJogadorAsync();
+        await DefinirRecursosAsync(ana, vigor: 100);
+
+        Esquivar(ana, sequencia: 1);
+        await IniciadaAsync(ana);
+        await Task.Delay(RegrasEsquiva.DuracaoMs + 100);
+        Esquivar(ana, sequencia: 2);
+        await IniciadaAsync(ana);
+
+        Assert.Equal(100 - (2 * RegrasEsquiva.CustoDeVigor), await VigorAsync(ana));
+    }
+
+    [Fact]
+    public async Task Esquiva_durante_um_ataque_e_recusada()
+    {
+        using var ana = await NovoJogadorAsync();
+        await DefinirRecursosAsync(ana, vigor: 100);
+
+        ana.Cliente.Enviar(
+            CombateMessageIds.IntencaoDeAtaque,
+            new IntencaoDeAtaque { Tipo = TipoDeAtaque.Pesado, Sequencia = 1 }
+        );
+        await ana.Cliente.ReceberAsync<AtaqueIniciado>(CombateMessageIds.AtaqueIniciado);
+        Esquivar(ana, sequencia: 2);
+
+        var recusada = await RecusadaAsync(ana);
+        Assert.Equal(2, recusada.Sequencia);
+        Assert.Equal(CodigosErroCombate.AcaoEmAndamento, recusada.Codigo);
+        Assert.Equal(100 - RegrasAtaque.CustoDeVigor(TipoDeAtaque.Pesado), await VigorAsync(ana));
+    }
+
+    [Fact]
+    public async Task Ataque_durante_a_esquiva_e_recusado()
+    {
+        using var ana = await NovoJogadorAsync();
+        await DefinirRecursosAsync(ana, vigor: 100);
+
+        Esquivar(ana, sequencia: 1);
+        await IniciadaAsync(ana);
+        ana.Cliente.Enviar(
+            CombateMessageIds.IntencaoDeAtaque,
+            new IntencaoDeAtaque { Tipo = TipoDeAtaque.Pesado, Sequencia = 2 }
+        );
+
+        var recusado = await ana.Cliente.ReceberAsync<AtaqueRecusado>(
+            CombateMessageIds.AtaqueRecusado
+        );
+        Assert.Equal(2, recusado.Sequencia);
+        Assert.Equal(CodigosErroCombate.AcaoEmAndamento, recusado.Codigo);
+        Assert.Equal(100 - RegrasEsquiva.CustoDeVigor, await VigorAsync(ana));
+    }
+
+    [Fact]
+    public async Task Depois_da_esquiva_o_mundo_aceita_o_deslocamento_mais_rapido_que_a_corrida()
+    {
+        using var ana = await NovoJogadorAsync();
+        await DefinirRecursosAsync(ana, vigor: 100);
+        var z = ValidadorDeMovimento.Nascimento.Z;
+
+        // Um passo curto zera a contagem de tempo do Mundo logo antes da esquiva.
+        ana.Cliente.Enviar(
+            MundoMessageIds.IntencaoDeMovimento,
+            new IntencaoDeMovimento { Z = z + 0.01f, Sequencia = 1 }
+        );
+        await ana.Cliente.ReceberAsync<PosicaoJogador>(MundoMessageIds.PosicaoJogador);
+
+        Esquivar(ana);
+        await IniciadaAsync(ana);
+        await Task.Delay(300);
+
+        // 2,8 m em pouco mais de 0,3 s: correndo não dá (5,5 m/s), na esquiva dá (8,3 m/s).
+        ana.Cliente.Enviar(
+            MundoMessageIds.IntencaoDeMovimento,
+            new IntencaoDeMovimento { Z = z + 2.8f, Sequencia = 2 }
+        );
+        var posicao = await ana.Cliente.ReceberAsync<PosicaoJogador>(
+            MundoMessageIds.PosicaoJogador
+        );
+
+        Assert.Equal(2, posicao.Sequencia);
+        Assert.Equal(z + 2.8f, posicao.Z);
+    }
+
+    [Fact]
+    public async Task Fora_do_mundo_a_esquiva_e_descartada_sem_gastar_vigor()
+    {
+        using var ana = await NovoJogadorAsync(naCidade: false);
+        await DefinirRecursosAsync(ana, vigor: 100);
+
+        Esquivar(ana);
+        // Um pedido conhecido depois: quando a resposta dele chega, a esquiva já foi tratada.
+        ana.Cliente.Enviar(MundoMessageIds.EntrarNaCidade, new EntrarNaCidade());
+        await ana.Cliente.ReceberAsync<EstadoDaCidade>(MundoMessageIds.EstadoDaCidade);
+
+        Assert.False(ana.Recebeu(CombateMessageIds.EsquivaIniciada));
+        Assert.False(ana.Recebeu(CombateMessageIds.EsquivaRecusada));
+        Assert.Equal(100, await VigorAsync(ana));
+    }
+}
