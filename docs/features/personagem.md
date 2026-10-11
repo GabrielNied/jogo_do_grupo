@@ -92,8 +92,9 @@ Ordem das telas: abertura/carregamento → login (ou registro) → seleção de 
    - se o pedido falhar por **não autenticado** (401), volta para o login;
    - se falhar por **qualquer outro motivo** (ex.: servidor fora do ar, sem internet), mostra um erro genérico ("Não foi possível carregar os personagens.") com o botão **Tentar de novo**, que repete o pedido;
    - mostra cada personagem com **nome, raça e nível**, em **ordem de criação** (Id crescente: o mais antigo primeiro);
-   - ao abrir a tela, vem selecionado o **primeiro personagem da lista**; se a lista estiver vazia, nenhum fica selecionado e só aparece o botão Criar;
-   - botão **Criar**: abre a tela de criação;
+   - ao abrir a tela, vem selecionado o **primeiro personagem da lista**; se a lista estiver vazia, nenhum fica selecionado e ~~só aparece o botão Criar~~ substituído em 2026-10-11 por: aparecem só os botões **Criar** e **Sair** (Sair para não prender a pessoa na tela);
+   - botão **Criar**: abre a tela de criação; com **4 personagens** fica desabilitado e a tela mostra o aviso "Você já tem o máximo de 4 personagens." (quem garante o limite continua sendo o servidor);
+   - botão **Sair**: encerra a sessão e volta para o login;
    - botão **Entrar**: só funciona com um personagem selecionado. **Por enquanto não leva a um mundo** (ainda não existe): mostra a mensagem "O jogo ainda não foi implementado." e continua na seleção. Não chama o servidor.
 4. **Criação de personagem:**
    - campo de **nome** e escolha de **raça** (só Humano);

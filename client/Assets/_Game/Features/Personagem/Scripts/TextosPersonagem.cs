@@ -1,0 +1,68 @@
+using JogoDoGrupo.Client.Core.Api;
+using JogoDoGrupo.Shared.Features.Personagem;
+
+namespace JogoDoGrupo.Client.Features.Personagem
+{
+    /// <summary>
+    /// Textos das telas de Personagem mostrados à pessoa (mensagens de
+    /// <c>docs/features/personagem.md</c>).
+    /// </summary>
+    internal static class TextosPersonagem
+    {
+        public const string Generica = "Algo deu errado. Tente de novo.";
+
+        public const string SemConexao =
+            "Não foi possível conectar ao servidor. Verifique a conexão e tente de novo.";
+
+        public const string ErroAoCarregar = "Não foi possível carregar os personagens.";
+
+        public const string JogoNaoImplementado = "O jogo ainda não foi implementado.";
+
+        public static readonly string NomeInvalido =
+            $"O nome deve ter de {RegrasPersonagem.NomeMinimo} a {RegrasPersonagem.NomeMaximo} "
+            + "letras (A–Z, sem acento, espaço ou número).";
+
+        public static readonly string LimiteAtingido =
+            $"Você já tem o máximo de {RegrasPersonagem.MaximoPorConta} personagens.";
+
+        // Códigos de CodigosErroCliente (Core) comparados pelo valor, para não depender de
+        // símbolos que podem ainda não existir no Core desta versão.
+        private const string CodigoHttpBloqueado = "HttpBloqueado";
+        private const string CodigoCancelada = "Cancelada";
+
+        /// <summary>
+        /// Se a requisição foi cancelada pelo próprio client (ex.: ao sair do Play):
+        /// não há nada para mostrar.
+        /// </summary>
+        public static bool FoiCancelada(string codigo)
+        {
+            return codigo == CodigoCancelada;
+        }
+
+        /// <summary>Nome da raça em português, para mostrar na interface.</summary>
+        public static string NomeDaRaca(Raca raca)
+        {
+            return raca switch
+            {
+                Raca.Humano => "Humano",
+                // Raça nova no enum ainda sem tradução: mostra o nome do código.
+                _ => raca.ToString(),
+            };
+        }
+
+        /// <summary>Mensagem para a recusa do <c>POST</c> de criação.</summary>
+        public static string MensagemDaRecusa(string codigo)
+        {
+            return codigo switch
+            {
+                CodigosErroPersonagem.NomeInvalido => NomeInvalido,
+                CodigosErroPersonagem.NomeJaExiste => "Esse nome já está em uso.",
+                CodigosErroPersonagem.RacaInvalida => "Raça inválida.",
+                CodigosErroPersonagem.LimitePersonagens => LimiteAtingido,
+                CodigosErroCliente.SemConexao => SemConexao,
+                CodigoHttpBloqueado => SemConexao,
+                _ => Generica,
+            };
+        }
+    }
+}
