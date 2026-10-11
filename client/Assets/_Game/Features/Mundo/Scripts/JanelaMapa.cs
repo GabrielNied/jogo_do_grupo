@@ -4,9 +4,7 @@ using UnityEngine;
 namespace JogoDoGrupo.Client.Features.Mundo
 {
     /// <summary>
-    /// Mapa (tecla M) nas <see cref="JanelasDoJogo"/>. O mapa-múndi ainda é uma decisão do
-    /// grupo (issue #92): por enquanto a janela reserva o atalho e avisa que está em construção.
-    /// Troque a fábrica por uma <see cref="JanelaDoJogo"/> própria quando o mapa existir.
+    /// Mapa (tecla M) nas <see cref="JanelasDoJogo"/>. O conteúdo é a <see cref="JanelaDoMapa"/>.
     /// </summary>
     internal static class JanelaMapa
     {
@@ -15,6 +13,10 @@ namespace JogoDoGrupo.Client.Features.Mundo
         public const string Tecla = "M";
         public const int Ordem = 40;
 
+        /// <summary>
+        /// ~~Texto da janela em construção.~~ Substituído em 2026-10-11 pela
+        /// <see cref="JanelaDoMapa"/>.
+        /// </summary>
         public const string Texto = "O mapa do mundo, com a sua posição, vai aparecer aqui.";
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
@@ -25,13 +27,7 @@ namespace JogoDoGrupo.Client.Features.Mundo
 
         internal static DefinicaoDeJanela CriarDefinicao()
         {
-            return new DefinicaoDeJanela(
-                Chave,
-                Titulo,
-                Tecla,
-                Ordem,
-                () => new JanelaEmConstrucao(Texto)
-            );
+            return new DefinicaoDeJanela(Chave, Titulo, Tecla, Ordem, () => new JanelaDoMapa());
         }
     }
 }

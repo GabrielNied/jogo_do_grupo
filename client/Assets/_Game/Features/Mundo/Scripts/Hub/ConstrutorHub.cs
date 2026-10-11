@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using JogoDoGrupo.Client.Core.Jogo;
+using JogoDoGrupo.Client.Features.Mundo;
 using JogoDoGrupo.Client.Features.Mundo.Presenca;
 using JogoDoGrupo.Client.Features.Mundo.Terreno;
 using JogoDoGrupo.Shared.Features.Mundo;
@@ -56,6 +57,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
             // A presença vive sob o hub: some com a cena do mundo e conecta quando o jogador existir.
             var presenca = new GameObject("Presenca");
             presenca.AddComponent<PresencaNoMundo>();
+            presenca.AddComponent<Minimapa>();
             presenca.transform.SetParent(raiz.transform, false);
             return new PosicaoInicial(
                 LayoutDoHub.PontoDeNascimento,
