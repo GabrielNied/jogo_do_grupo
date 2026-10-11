@@ -90,3 +90,31 @@ API HTTP do recorte de teste (mesmo estilo de [Personagem](personagem.md#expõe)
 Nem o Core nem Personagem tinham um código para personagem inexistente em 2026-10-11, por isso `PersonagemNaoEncontrado` nasce aqui; se o grupo preferir, ele pode migrar para Personagem. Erros genéricos (requisição inválida, erro interno) usam os códigos do Core (`CodigosErro`).
 
 - Por serem HTTP, essas rotas não usam IDs da faixa 7000–7999.
+
+### Loot no chão (#64, contrato da #367)
+
+Regras na [fatia jogável, seção 5](fatia-jogavel.md#5-loot-no-chão): loot **individual**, cada participante sorteia o próprio e só ele o vê. O servidor sorteia, guarda o dono e valida a coleta. Este é o contrato; o servidor (#368) e o client (#369) vêm depois. Tempo real, faixa 7000–7999:
+
+| ID | Mensagem | Direção | Campos |
+|---|---|---|---|
+| 7000 | `LootApareceu` | servidor → o dono | `Loot` (`LootNoChao`: `LootId`, `ItemId`, `Nome`, `X`, `Z`, `ExpiraEmSegundos`) |
+| 7001 | `ColetarLoot` | client → servidor | `LootId` (0 = tudo o que é meu por perto) |
+| 7002 | `LootColetado` | servidor → o dono | `LootId`, `Entrada` (`EntradaInventario`) |
+| 7003 | `ColetaRecusada` | servidor → o dono | `LootId`, `Codigo` (`LootNaoEncontrado`, `LongeDemais`, `InventarioCheio`) |
+| 7004 | `LootSumiu` | servidor → o dono | `LootId` (expirou) |
+
+Valores em `RegrasLoot`, todos **proposta a calibrar**:
+
+| Valor | Constante | Hoje |
+|---|---|---|
+| Itens por participante, por inimigo comum | `ChanceDeNenhumItem`, `ChanceDeUmItem`, `ChanceDeDoisItens` | 50% nenhum, 40% um, 10% dois |
+| Tempo no chão, reservado ao dono | `ReservaSegundos` | 180 s |
+| Distância para coletar | `RaioDeColetaMetros` | 3 m, no plano do chão |
+| Distância em que o client mostra o item | `RaioDeVisaoMetros` | 12 m (não é regra do servidor) |
+
+- **Tecla F:** o client envia `ColetarLoot` com `LootId` 0 e o servidor coleta tudo o que é do personagem dentro de 3 m; os "12 m" da fatia viram a distância em que o item aparece na tela. Com um `LootId`, coleta só aquele item.
+- **Qual item cai:** uniforme no catálogo de teste, com reposição (igual ao baú). Sem raridade nem skills.
+- **Inventário cheio:** o item fica no chão até expirar; os que couberem entram.
+- **Posição:** `X` e `Z` de onde o inimigo caiu. O servidor não conhece a altura do terreno; o client assenta o item no chão.
+- **Quem volta ao jogo** recebe de novo `LootApareceu` dos itens que ainda estão no prazo, com o tempo que falta.
+- A proposta do livro para o dono do loot (maior dano, #332) continua em aberto e não muda este contrato: ele só fala de "o dono".
