@@ -33,6 +33,24 @@ namespace JogoDoGrupo.Client.Features.Personagem
         /// <summary>Grupo de opções de raça na criação.</summary>
         public const string Racas = "personagem-racas";
 
+        /// <summary>Linha da criação: lista de raças à esquerda, cartão à direita.</summary>
+        public const string EscolhaDeRaca = "personagem-escolha-raca";
+
+        /// <summary>Coluna dos botões de raça.</summary>
+        public const string ListaDeRacas = "personagem-lista-racas";
+
+        /// <summary>Botão de uma raça (use junto com <see cref="Item"/>).</summary>
+        public const string RacaBotao = "personagem-raca-botao";
+
+        /// <summary>Cartão com a descrição da raça escolhida.</summary>
+        public const string CartaoDaRaca = "personagem-cartao-raca";
+
+        /// <summary>Linha de texto do cartão da raça.</summary>
+        public const string CartaoTexto = "personagem-cartao-texto";
+
+        /// <summary>Frase de seleção da raça, em destaque.</summary>
+        public const string CartaoCitacao = "personagem-cartao-citacao";
+
         /// <summary>Adiciona o USS de Personagem à raiz da tela.</summary>
         public static void Aplicar(VisualElement raiz)
         {

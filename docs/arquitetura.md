@@ -204,7 +204,7 @@ private static void Registrar()
 {
     EntradaNoJogo.DefinirConstrutorDeMundo(ConstrutorHub.Construir);
     EntradaNoJogo.DefinirVisualDoJogador(_ =>
-        Resources.Load<GameObject>("Personagem/Jogador_Humano"));
+        Resources.Load<GameObject>("Personagem/Jogador_Valdren"));
 }
 ```
 
