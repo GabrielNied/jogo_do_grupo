@@ -41,6 +41,12 @@ public sealed class DiretorioDoChatFalso : IDiretorioDePersonagens
         nome = "";
         return false;
     }
+
+    public bool TentarObterContaDoPersonagem(long personagemId, out long contaId)
+    {
+        contaId = personagemId;
+        return _nomes.ContainsKey(personagemId);
+    }
 }
 
 /// <summary>Posições de mentira: quem o teste puser na cidade.</summary>

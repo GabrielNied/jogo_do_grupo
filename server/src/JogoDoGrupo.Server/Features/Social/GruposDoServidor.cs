@@ -19,7 +19,8 @@ namespace JogoDoGrupo.Server.Features.Social;
 public sealed class GruposDoServidor(
     IDiretorioDePersonagens diretorio,
     ISaidaDoGrupo saida,
-    Func<long> relogioMs
+    Func<long> relogioMs,
+    Func<long, long, bool>? contatoBarradoEntrePersonagens = null
 )
 {
     private readonly Lock _trava = new();
@@ -34,7 +35,7 @@ public sealed class GruposDoServidor(
     private long _proximoConvite;
 
     public GruposDoServidor(IDiretorioDePersonagens diretorio, ISaidaDoGrupo saida)
-        : this(diretorio, saida, () => Environment.TickCount64) { }
+        : this(diretorio, saida, () => Environment.TickCount64, null) { }
 
     // ── Consultas ───────────────────────────────────────────────────────────────
 
@@ -208,6 +209,12 @@ public sealed class GruposDoServidor(
             if (alvo == de)
             {
                 Recusar(de, CodigosErroSocial.ConviteParaSiMesmo);
+                return;
+            }
+
+            if (contatoBarradoEntrePersonagens?.Invoke(de, alvo) == true)
+            {
+                Recusar(de, CodigosErroSocial.AlvoNaoEncontrado);
                 return;
             }
 

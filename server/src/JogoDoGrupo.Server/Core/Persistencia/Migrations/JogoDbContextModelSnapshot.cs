@@ -177,6 +177,81 @@ namespace JogoDoGrupo.Server.Core.Persistencia.Migrations
                     b.ToTable("Personagens", (string)null);
                 });
 
+            modelBuilder.Entity("JogoDoGrupo.Server.Features.Social.AmizadeSalva", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("AmigoContaId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("ContaId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("NomeReferencia")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ContaId", "AmigoContaId")
+                        .IsUnique();
+
+                    b.ToTable("SocialAmizades", (string)null);
+                });
+
+            modelBuilder.Entity("JogoDoGrupo.Server.Features.Social.IgnoradoSalvo", b =>
+                {
+                    b.Property<long>("IgnoradoId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("ContaId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("IgnoradoContaId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Nome")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("IgnoradoId");
+
+                    b.HasIndex("ContaId", "IgnoradoContaId")
+                        .IsUnique();
+
+                    b.ToTable("SocialIgnorados", (string)null);
+                });
+
+            modelBuilder.Entity("JogoDoGrupo.Server.Features.Social.PedidoAmizadeSalvo", b =>
+                {
+                    b.Property<long>("PedidoId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("DeContaId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("NomeAlvo")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("ParaContaId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("PedidoId");
+
+                    b.HasIndex("DeContaId", "ParaContaId")
+                        .IsUnique();
+
+                    b.ToTable("SocialPedidosAmizade", (string)null);
+                });
+
             modelBuilder.Entity("JogoDoGrupo.Server.Features.Combate.RecursosPersonagem", b =>
                 {
                     b.HasOne("JogoDoGrupo.Server.Features.Personagem.Personagem", null)

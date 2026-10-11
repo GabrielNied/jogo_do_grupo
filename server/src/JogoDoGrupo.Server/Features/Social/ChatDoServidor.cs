@@ -46,7 +46,8 @@ public sealed class ChatDoServidor(
         long remetenteId,
         EnviarMensagemDeChat pedido,
         Func<long, bool> estaOnline,
-        Func<long, ListaDoGrupo>? grupoDe = null
+        Func<long, ListaDoGrupo>? grupoDe = null,
+        Func<long, long, bool>? contatoBarradoEntrePersonagens = null
     )
     {
         if (!RegrasChat.CanalValido(pedido.Canal))
@@ -90,6 +91,11 @@ public sealed class ChatDoServidor(
                 if (alvoId == remetenteId)
                 {
                     return ResultadoDoChat.Recusar(CodigosErroSocial.SussurroParaSiMesmo);
+                }
+
+                if (contatoBarradoEntrePersonagens?.Invoke(remetenteId, alvoId) == true)
+                {
+                    return ResultadoDoChat.Recusar(CodigosErroSocial.AlvoNaoEncontrado);
                 }
 
                 // Offline responde igual a nome inexistente, para não revelar quem existe.

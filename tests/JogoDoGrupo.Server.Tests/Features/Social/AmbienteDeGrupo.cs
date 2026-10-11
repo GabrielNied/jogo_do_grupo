@@ -8,12 +8,14 @@ namespace JogoDoGrupo.Server.Tests.Features.Social;
 public sealed class DiretorioFalso : IDiretorioDePersonagens
 {
     private readonly Dictionary<long, string> _nomes = [];
+    private readonly Dictionary<long, long> _contas = [];
 
-    public void Adicionar(long id, string nome)
+    public void Adicionar(long id, string nome, long? contaId = null)
     {
         lock (_nomes)
         {
             _nomes[id] = nome;
+            _contas[id] = contaId ?? id;
         }
     }
 
@@ -42,6 +44,14 @@ public sealed class DiretorioFalso : IDiretorioDePersonagens
             var achou = _nomes.TryGetValue(personagemId, out var atual);
             nome = atual ?? "";
             return achou;
+        }
+    }
+
+    public bool TentarObterContaDoPersonagem(long personagemId, out long contaId)
+    {
+        lock (_nomes)
+        {
+            return _contas.TryGetValue(personagemId, out contaId);
         }
     }
 }
