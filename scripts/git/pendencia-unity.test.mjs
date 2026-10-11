@@ -6,7 +6,9 @@ import {
   branchDaPendencia,
   corpoDoPrComPendencia,
   corpoPendencia,
+  faltasDaPendencia,
   prDaPendencia,
+  resolvidaPeloCi,
   tituloPendencia,
 } from "./pendencia-unity.mjs";
 
@@ -43,4 +45,32 @@ test("o PR menciona a pendência uma vez só, sem Closes (o merge não pode fech
   assert.equal(corpoDoPrComPendencia(uma, 160), uma);
   assert.doesNotMatch(uma, /Closes #160/);
   assert.match(corpoDoPrComPendencia(null, 3), /^\n\nPendência de Unity: #3 /);
+});
+
+const corpoCom = (...faltas) => corpoPendencia({ pr: 1, branch: "feature/x/y", faltas });
+
+test("lê os itens da lista Falta e para no fim dela", () => {
+  assert.deepEqual(faltasDaPendencia(corpoCom("compilar", "rodar os testes EditMode")), [
+    "compilar",
+    "rodar os testes EditMode",
+  ]);
+  assert.deepEqual(faltasDaPendencia("sem lista"), []);
+  assert.deepEqual(faltasDaPendencia(null), []);
+});
+
+test("só compilar e testes EditMode o CI resolve", () => {
+  assert.ok(resolvidaPeloCi(corpoCom("Compilar o shared no Unity (npm run unity:compilar): contrato de dia e noite")));
+  assert.ok(resolvidaPeloCi(corpoCom("rodar o teste EditMode Mostrar_DisparaOEvento (worktree sem Library)")));
+  assert.ok(resolvidaPeloCi(corpoCom("compilar e rodar os testes EditMode")));
+});
+
+test("o que pede gente, olho ou asset continua aberto", () => {
+  assert.equal(resolvidaPeloCi(corpoCom("compilar", ".meta das texturas novas")), false);
+  assert.equal(
+    resolvidaPeloCi(corpoCom("rodar os testes EditMode de ProjecaoDoMapaTestes e, no Play Mode, conferir o minimapa")),
+    false,
+  );
+  assert.equal(resolvidaPeloCi(corpoCom("unity:compilar; teste visual do Inspector")), false);
+  assert.equal(resolvidaPeloCi(corpoCom("Rodar GeradorJogadorHumano.Gerar (unity:executar)")), false);
+  assert.equal(resolvidaPeloCi("Issue sem lista de faltas"), false);
 });

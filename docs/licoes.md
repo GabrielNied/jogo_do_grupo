@@ -17,3 +17,7 @@ Formato: `### AAAA-MM-DD · título` com **O que houve**, **Regra** e **Origem**
 - **O coordenador reparte por arquivo.** Artista só em `arte/` e `Features/Personagem/{Art,Editor,Resources}`; contrato, servidor, tela e testes ficam com o coordenador (ou outro agente). Assim os dois trabalham ao mesmo tempo sem mexer no mesmo arquivo; o nome do prefab (`Jogador_<NomeDoEnum>`) é o único combinado entre eles.
 - **Push depois do merge não entra na `main`.** O PR #383 foi mergeado enquanto eu ainda commitava docs na mesma branch; o último commit ficou de fora. Antes do push final, `gh pr view <N> --json state`; se já foi mergeado, parta de `origin/main` e abra um PR novo (foi o #389).
 - **Shell: heredoc grande com muitas aspas e `sed` em cadeia falha por inteiro.** Um erro de parse não executou nada e quase passou despercebido. Para arquivos de código use a ferramenta de escrita de arquivos; `sed` só para trocas de uma linha.
+
+### 2026-10-11 · CI do Unity cancelado na main (issue #402)
+
+- **`cancel-in-progress` na `main` com merges frequentes = nenhuma execução termina.** O Client (Unity) leva ~9 min e os merges vinham a cada poucos minutos: 9 de 10 execuções na `main` foram canceladas, o client ficou sem validação e pendências de "compilar/rodar EditMode" se acumularam esperando alguém com Unity. Na `main`, a execução em andamento termina; só PR cancela. Pendência que só pede compilar e testar EditMode não é criada, e as antigas fecham sozinhas quando o CI passa ([ADR 0019](decisoes/0019-unity-no-ci.md)).
