@@ -86,21 +86,29 @@ public class MapaDoMundoTestes
     }
 
     [Fact]
-    public void Cidade_e_a_faixa_em_volta_ficam_planas_em_zero()
+    public void Dentro_dos_muros_o_chao_fica_plano_em_zero()
     {
         foreach (var (x, z, altura) in Pontos(1))
         {
-            if (Math.Max(Math.Abs(x), Math.Abs(z)) <= MapaDoMundo.RaioPlano)
+            if (Math.Max(Math.Abs(x), Math.Abs(z)) <= MapaDoMundo.MetadeDaCidade)
             {
                 Assert.Equal(0f, altura);
             }
         }
 
-        // O nascimento, a praça e o fim da estrada do portão (80 m ao norte).
         Assert.Equal(0f, MapaDoMundo.AlturaEm(0f, -24f));
         Assert.Equal(0f, MapaDoMundo.AlturaEm(3.3f, 7.1f));
-        Assert.Equal(0f, MapaDoMundo.AlturaEm(0f, 80f));
-        Assert.Equal(0f, MapaDoMundo.AlturaEm(-119f, 119f));
+    }
+
+    [Fact]
+    public void Faixa_fora_dos_muros_sobe_devagar_e_a_estrada_norte_acompanha()
+    {
+        var noPortao = MapaDoMundo.AlturaEm(0f, 80f);
+        var naLateral = MapaDoMundo.AlturaEm(90f, 90f);
+
+        Assert.InRange(noPortao, 1f, MapaDoMundo.SubidaMaximaDaFaixaInicial);
+        Assert.True(noPortao > naLateral, "A estrada do portão sobe mais que as laterais.");
+        Assert.InRange(MapaDoMundo.AlturaEm(0f, 80f) - MapaDoMundo.AlturaEm(0f, 50f), 0.5f, 4f);
     }
 
     [Fact]

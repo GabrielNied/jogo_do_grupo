@@ -20,10 +20,14 @@ namespace JogoDoGrupo.Shared.Features.Mundo
         public const float MetadeDaCidade = 40f;
 
         /// <summary>
-        /// Até esta distância do centro (a maior entre |x| e |z|) o chão é plano, em Y = 0: a
-        /// cidade, a estrada do portão e uma faixa em volta dos muros.
+        /// Até esta distância do centro (a maior entre |x| e |z|) a chegada à cidade ainda não
+        /// entrou no relevo dos biomas distantes: dentro dos muros é plano; entre os muros e este
+        /// raio há uma subida leve (a estrada do portão acompanha).
         /// </summary>
         public const float RaioPlano = 130f;
+
+        /// <summary>Subida máxima na faixa entre os muros e <see cref="RaioPlano"/>, em metros.</summary>
+        public const float SubidaMaximaDaFaixaInicial = 5f;
 
         /// <summary>
         /// Distância do centro (a maior entre |x| e |z|) em que campo, mata e colinas dão lugar
@@ -221,6 +225,16 @@ namespace JogoDoGrupo.Shared.Features.Mundo
             }
 
             var alcance = Math.Max(Math.Abs(x), Math.Abs(z));
+            if (alcance <= MetadeDaCidade)
+            {
+                return 0f;
+            }
+
+            if (alcance <= RaioPlano)
+            {
+                return AlturaDaFaixaInicial(x, z, alcance);
+            }
+
             var mascara = Suave(RaioPlano, 230f, alcance);
             if (mascara <= 0f)
             {
@@ -272,6 +286,19 @@ namespace JogoDoGrupo.Shared.Features.Mundo
             var fronteira = 20f * fora * dentro + 18f * fora * (1f - puro);
 
             return mascara * (altura + fronteira);
+        }
+
+        /// <summary>
+        /// Relevo entre os muros e <see cref="RaioPlano"/>: sobe aos poucos, mais forte na estrada
+        /// do portão (norte) e mais suave nas laterais.
+        /// </summary>
+        private static float AlturaDaFaixaInicial(float x, float z, float alcance)
+        {
+            var t = Suave(MetadeDaCidade, RaioPlano, alcance);
+            var corredor = 1f - Suave(6f, 10f, Math.Abs(x));
+            var norte = Suave(MetadeDaCidade - 4f, RaioPlano, z);
+            var peso = 0.2f + 0.8f * corredor * Math.Max(norte, 0.12f);
+            return SubidaMaximaDaFaixaInicial * t * peso;
         }
 
         // Campo: quase plano, até 1,5 m.
