@@ -45,3 +45,27 @@ Primeira área jogável (issue #36): o Core chama o construtor do Mundo ao entra
 ## Depende de
 
 ## Expõe
+
+### Mensagens UDP – Core (faixa 0–999, `TempoRealIds`)
+
+| ID | Nome | Direção | Campos |
+|----|------|---------|--------|
+| 1 | `AutenticarTempoReal` | client → servidor | `Token` (string), `PersonagemId` (long) |
+| 2 | `ResultadoAutenticacaoTempoReal` | servidor → client | `Aceita` (bool), `Codigo` (string) — vazio quando aceita; `CodigosErro.NaoAutenticado` ou `CodigosErro.AcessoNegado` quando recusa |
+
+### Tipo compartilhado – `JogadorVisivel`
+
+Campos: `PersonagemId` (long), `X`, `Y`, `Z`, `RotacaoY` (float). Usado em `EstadoDaCidade`, `JogadorEntrou` e `PosicaoJogador`.
+
+### Mensagens UDP – Mundo (faixa 1000–1999, `MundoMessageIds`)
+
+| ID | Nome | Direção | Campos |
+|----|------|---------|--------|
+| 1000 | `EntrarNaCidade` | client → servidor | *(nenhum — a conexão já está autenticada)* |
+| 1001 | `EstadoDaCidade` | servidor → client | `Eu` (JogadorVisivel), `Outros` (JogadorVisivel[]) |
+| 1002 | `IntencaoDeMovimento` | client → servidor | `X`, `Y`, `Z`, `RotacaoY` (float), `Sequencia` (int) |
+| 1003 | `PosicaoJogador` | servidor → client | `PersonagemId` (long), `X`, `Y`, `Z`, `RotacaoY` (float), `Sequencia` (int) |
+| 1004 | `JogadorEntrou` | servidor → client | `Jogador` (JogadorVisivel) |
+| 1005 | `JogadorSaiu` | servidor → client | `PersonagemId` (long) |
+
+> **Proposta para o servidor (fora deste PR):** recusar `IntencaoDeMovimento` que implique deslocamento acima de 5,5 m/s (valor atual de `MovimentoTerceiraPessoa.VelocidadeCorrer` no client). Esta checagem não está implementada aqui.
