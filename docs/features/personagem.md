@@ -86,7 +86,7 @@ Decidido pelo grupo em 2026-10-10. É **provisório**: serve para implementar a 
 | Criação de personagem | Personagem |
 
 1. **Abertura/carregamento:** tela inicial do jogo (Core).
-2. **Login ou registro de conta:** nome de usuário + senha (Core). Ao logar, o client recebe o token (JWT) usado nas chamadas abaixo e o grava neste computador. Na próxima abertura, se o token ainda valer, o login é pulado. **Sair** (nesta tela ou no menu do Esc, "Sair da conta") apaga o token gravado.
+2. **Login ou registro de conta:** nome de usuário + senha (Core). Ao logar, o client recebe o token (JWT) usado nas chamadas abaixo e o grava neste computador. Nas aberturas seguintes o login é pulado, até **Sair** (nesta tela ou no menu do Esc, "Sair da conta"), que apaga o token gravado.
 3. **Seleção de personagem:**
    - ao abrir, pede a lista de personagens da conta ao servidor (`GET`);
    - se o pedido falhar por **não autenticado** (401), volta para o login;

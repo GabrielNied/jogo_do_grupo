@@ -6,7 +6,7 @@ namespace JogoDoGrupo.Client.Core.Contas
 {
     /// <summary>
     /// Sessão da conta logada: token JWT e expiração. Fica em memória e também gravada neste
-    /// computador, para o próximo Play entrar direto até o token expirar ou a pessoa sair.
+    /// computador, para o próximo Play entrar direto até a pessoa sair da conta.
     /// Não grava a senha. O <see cref="Api.ClienteApi"/> envia o token nas rotas protegidas.
     /// </summary>
     public static class Sessao

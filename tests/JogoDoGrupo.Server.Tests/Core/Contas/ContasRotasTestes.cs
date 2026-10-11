@@ -27,7 +27,7 @@ public class ContasRotasTestes(ServidorDeTeste servidor) : IClassFixture<Servido
         Assert.Equal(HttpStatusCode.OK, login.StatusCode);
         var corpo = await ServidorDeTeste.LerJsonAsync<LoginResponse>(login);
         Assert.False(string.IsNullOrEmpty(corpo.Token));
-        Assert.True(corpo.ExpiraEmUnix > DateTimeOffset.UtcNow.ToUnixTimeSeconds());
+        Assert.True(corpo.ExpiraEmUnix > DateTimeOffset.UtcNow.AddYears(50).ToUnixTimeSeconds());
     }
 
     [Fact]
