@@ -225,10 +225,7 @@ public class GrupoDeInimigosTestes
 
         var esperado =
             antes.Z
-            + (
-                RegrasInimigo.VelocidadeDePerseguicaoMetrosPorSegundo
-                * RegrasInimigo.PassoSegundos
-            );
+            + (RegrasInimigo.VelocidadeDePerseguicaoMetrosPorSegundo * RegrasInimigo.PassoSegundos);
         Assert.Equal(esperado, campo.Unico.Z, 3);
         Assert.Equal(0.0, campo.Unico.X, 3);
         Assert.True(Assert.Single(passo.Mudancas).SoPosicao);
@@ -277,13 +274,7 @@ public class GrupoDeInimigosTestes
 
         var golpe = Assert.Single(campo.Passo().Golpes);
         Assert.Equal(
-            new GolpeDeInimigoAcertou(
-                inimigo.InimigoId,
-                Javali.Id,
-                Jogador,
-                Javali.DanoBase,
-                Area
-            ),
+            new GolpeDeInimigoAcertou(inimigo.InimigoId, Javali.Id, Jogador, Javali.DanoBase, Area),
             golpe
         );
 

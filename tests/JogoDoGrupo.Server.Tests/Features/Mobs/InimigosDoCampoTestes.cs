@@ -40,10 +40,7 @@ public class InimigosDoCampoTestes(TempoRealFixture f) : IClassFixture<TempoReal
                 Assert.Equal(javali.Id, i.CriaturaId);
                 Assert.Equal(EstadoDeInimigo.Repouso, i.Estado);
                 Assert.Equal(i.VidaMaxima, i.Vida);
-                Assert.Equal(
-                    RegrasCriaturas.VidaMaxima(javali.VidaBase, i.Variante),
-                    i.VidaMaxima
-                );
+                Assert.Equal(RegrasCriaturas.VidaMaxima(javali.VidaBase, i.Variante), i.VidaMaxima);
                 var doCentro = RegrasInimigo.Distancia(
                     ConfigInimigosDoCampo.PontoX,
                     ConfigInimigosDoCampo.PontoZ,

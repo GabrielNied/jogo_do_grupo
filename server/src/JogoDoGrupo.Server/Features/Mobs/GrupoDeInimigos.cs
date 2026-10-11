@@ -123,10 +123,7 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate
     {
         lock (_trava)
         {
-            return _inimigos
-                .Where(i => RegrasInimigo.EstaVivo(i.Estado))
-                .Select(Retrato)
-                .ToArray();
+            return _inimigos.Where(i => RegrasInimigo.EstaVivo(i.Estado)).Select(Retrato).ToArray();
         }
     }
 
@@ -554,12 +551,7 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate
         inimigo.X = novoX;
         inimigo.Z = novoZ;
 
-        var falta = RegrasInimigo.Distancia(
-            inimigo.X,
-            inimigo.Z,
-            inimigo.OrigemX,
-            inimigo.OrigemZ
-        );
+        var falta = RegrasInimigo.Distancia(inimigo.X, inimigo.Z, inimigo.OrigemX, inimigo.OrigemZ);
         if (falta <= ConfigInimigosDoCampo.ToleranciaDeChegadaMetros)
         {
             inimigo.X = inimigo.OrigemX;

@@ -40,7 +40,5 @@ public sealed class MobsModule : IFeatureModule
     }
 
     public void Inicializar(ServerContext contexto) =>
-        contexto.Eventos.Assinar<JogadorEntrouNaArea>(evento =>
-            _inimigos?.AoEntrarNaArea(evento)
-        );
+        contexto.Eventos.Assinar<JogadorEntrouNaArea>(evento => _inimigos?.AoEntrarNaArea(evento));
 }
