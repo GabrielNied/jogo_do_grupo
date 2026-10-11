@@ -519,6 +519,8 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
             Assert.IsTrue(LayoutDoHub.EhEstradaDaCidade(22f, 18f));
             Assert.IsTrue(LayoutDoHub.EhEstradaDaCidade(-18f, -22f));
             Assert.IsTrue(LayoutDoHub.EhEstradaDaCidade(22f, 2f));
+            Assert.IsTrue(LayoutDoHub.EhEstradaDaCidade(14f, 18f));
+            Assert.IsTrue(LayoutDoHub.EhEstradaDaCidade(18f, 8f));
             // Quarteirão entre o anel e a praça, e fora do anel, não são rua.
             Assert.IsFalse(LayoutDoHub.EhEstradaDaCidade(16f, 16f));
             Assert.IsFalse(LayoutDoHub.EhEstradaDaCidade(30f, 14f));
