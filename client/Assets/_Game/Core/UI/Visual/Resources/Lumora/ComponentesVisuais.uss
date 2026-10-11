@@ -1,0 +1,17 @@
+.lumora-ui { font-size: var(--lumora-tipografia-leitura); color: var(--lumora-cores-marfim); min-width: 0; min-height: 0; }
+.lumora-ui .ui-titulo { font-size: var(--lumora-tipografia-titulo); color: var(--lumora-cores-ouro); white-space: normal; }
+.lumora-ui .ui-subtitulo { font-size: var(--lumora-tipografia-subtitulo); color: var(--lumora-cores-ouro); white-space: normal; }
+.lumora-ui .ui-texto { font-size: var(--lumora-tipografia-leitura); white-space: normal; }
+.lumora-ui .ui-linha { flex-direction: row; flex-wrap: wrap; min-width: 0; }
+.lumora-ui .ui-painel { background-color: var(--lumora-cores-painel); padding: var(--lumora-espacamento-grande); border-width: var(--lumora-bordas-fina); border-color: var(--lumora-cores-ouro); border-radius: var(--lumora-bordas-raio-painel); min-width: 0; }
+.lumora-ui .ui-botao { font-size: var(--lumora-tipografia-controle); min-height: var(--lumora-dimensoes-alvo-minimo); white-space: normal; padding: var(--lumora-espacamento-medio) var(--lumora-espacamento-intermediario); background-color: var(--lumora-cores-petroleo); color: var(--lumora-cores-marfim); border-width: var(--lumora-bordas-fina); border-color: var(--lumora-cores-borda-botao); border-radius: var(--lumora-bordas-raio-botao); }
+.lumora-ui .ui-botao:hover { background-color: var(--lumora-cores-hover); border-color: var(--lumora-cores-essencia); }
+.lumora-ui .ui-botao:focus { border-color: var(--lumora-cores-essencia); border-width: var(--lumora-bordas-destaque); }
+.lumora-ui .ui-botao:active { background-color: var(--lumora-cores-pressionado); }
+.lumora-ui .ui-botao:disabled { background-color: var(--lumora-cores-desabilitado); color: var(--lumora-cores-texto-desabilitado); border-color: var(--lumora-cores-borda-desabilitado); }
+.lumora-ui .ui-primario { background-color: var(--lumora-cores-ouro); color: var(--lumora-cores-petroleo); }
+.lumora-ui .ui-primario:hover { background-color: var(--lumora-cores-hover-primario); }
+.lumora-ui .ui-primario:active { background-color: var(--lumora-cores-borda-primario); color: var(--lumora-cores-petroleo); }
+.lumora-ui .ui-primario:disabled { background-color: var(--lumora-cores-desabilitado); color: var(--lumora-cores-texto-desabilitado); }
+.lumora-ui.lumora-estreito .ui-linha { flex-direction: column; }
+.lumora-ui.lumora-estreito .ui-painel { padding: var(--lumora-espacamento-padrao); }

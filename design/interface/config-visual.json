@@ -1,0 +1,103 @@
+{
+  "versao": 1,
+  "Cores": {
+    "Petroleo": "#173B50",
+    "Essencia": "#39B9AE",
+    "Ouro": "#F5BE63",
+    "Marfim": "#F4E6CB",
+    "Verde": "#688A48",
+    "TextoSecundario": "#C7D6D5",
+    "Topo": "rgba(9, 29, 40, 0.94)",
+    "Menu": "rgba(9, 29, 40, 0.92)",
+    "Painel": "rgba(9, 32, 45, 0.94)",
+    "BordaDiscreta": "#59717A",
+    "Retrato": "#27616E",
+    "BordaAmostra": "#84958C",
+    "BordaBotao": "#A88C55",
+    "Hover": "#285A6A",
+    "Pressionado": "#347182",
+    "Desabilitado": "#30444C",
+    "TextoDesabilitado": "#9CA8A8",
+    "BordaDesabilitado": "#53626A",
+    "BordaPrimario": "#E5AA45",
+    "HoverPrimario": "#F7D28C",
+    "Selecionado": "#245361",
+    "Campo": "#0B2432",
+    "BordaCampo": "#6C8C92",
+    "Erro": "#E99383",
+    "Trilho": "#0A2534",
+    "Veu": "rgba(3, 15, 23, 0.85)"
+  },
+  "Tipografia": {
+    "Leitura": 16,
+    "LeituraMaxima": 24,
+    "Controle": 18,
+    "Titulo": 28,
+    "Subtitulo": 22
+  },
+  "Espacamento": {
+    "Minimo": 4,
+    "Pequeno": 8,
+    "Medio": 12,
+    "Padrao": 16,
+    "Intermediario": 18,
+    "Amplo": 20,
+    "Grande": 24,
+    "Extra": 32,
+    "Curto": 6,
+    "Controle": 10
+  },
+  "Dimensoes": {
+    "AlvoMinimo": 44,
+    "Campo": 38,
+    "Barra": 30,
+    "Menu": 224,
+    "Ferramentas": 260,
+    "Dialogo": 480,
+    "Retrato": 64,
+    "RaioRetrato": 32,
+    "Item": 180,
+    "ItemAltura": 96,
+    "CartaoMinimo": 160,
+    "Atalho": 94,
+    "AtalhoAltura": 84,
+    "CampoRotulo": 110,
+    "Status": 46,
+    "PainelSocialMinimo": 400,
+    "LogoLargura": 210,
+    "LogoAltura": 72,
+    "ChatAltura": 160,
+    "PranchaPercentual": 45,
+    "DialogoPercentual": 90,
+    "ComparacaoAltura": 300,
+    "MenuEstreitoAltura": 180
+  },
+  "Bordas": {
+    "Fina": 1,
+    "Destaque": 2,
+    "Selecao": 4,
+    "RaioPainel": 8,
+    "RaioBotao": 5,
+    "RaioCartao": 6,
+    "RaioCampo": 4
+  },
+  "Ornamentos": {
+    "Topo": 62,
+    "Lateral": 56,
+    "Base": 82,
+    "FatiaHorizontal": 180,
+    "FatiaVertical": 160,
+    "Deslocamento": -4
+  },
+  "Responsividade": {
+    "CompactoAte": 1100,
+    "EstreitoAte": 720,
+    "ReferenciaLargura": 1920,
+    "ReferenciaAltura": 1080
+  },
+  "Fontes": {
+    "Leitura": "Lumora/Fontes/LumoraSource-500",
+    "Controle": "Lumora/Fontes/LumoraSource-700",
+    "Titulo": "Lumora/Fontes/LumoraNunito-800"
+  }
+}

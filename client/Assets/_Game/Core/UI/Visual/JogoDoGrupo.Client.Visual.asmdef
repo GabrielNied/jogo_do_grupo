@@ -1,0 +1,6 @@
+{
+  "name": "JogoDoGrupo.Client.Visual",
+  "rootNamespace": "JogoDoGrupo.Client.Core.Visual",
+  "references": [],
+  "autoReferenced": false
+}

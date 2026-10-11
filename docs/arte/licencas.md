@@ -6,6 +6,12 @@ Todo asset que entra em `client/Assets/ThirdParty/` precisa de uma linha aqui, n
 - **CC-BY:** uso livre com **crédito ao autor** no jogo (tela de créditos). Preencha a coluna "Crédito".
 - **Outras licenças** (Asset Store, pagas, "só uso pessoal"): não entram sem decisão do grupo.
 
+## Fontes da identidade visual aprovadas pelo usuário
+
+Nunito Sans e Source Sans 3 foram escolhidas explicitamente para Lumora. Suas licenças são **SIL OFL 1.1**, preservadas com as fontes em `design/tipografia/fontes/` e nas cópias geradas para `Core/UI/Visual/Resources/Lumora/Fontes/`. As instâncias estáticas usam nomes internos próprios `LumoraNunito` e `LumoraSource`; avisos de autoria e licenças acompanham a distribuição. Origem: Google Fonts, [Nunito Sans](https://github.com/google/fonts/tree/main/ofl/nunitosans) e [Source Sans 3](https://github.com/google/fonts/tree/main/ofl/sourcesans3). Procedimento de derivação e fonte única: [guia visual](../../design/interface/GUIA-DE-ESTILO.md).
+
+## Modelos de terceiros
+
 | Pacote / modelo | Fonte | Licença | Link | Pasta | Crédito | Data | Quem baixou |
 |---|---|---|---|---|---|---|---|
 | Quaternius "LowPoly RPG Characters" (só `Monk.fbx`, `Monk_Texture.png` e `License.txt`) | OpenGameArt (Quaternius) | CC0 | https://opengameart.org/content/lowpoly-rpg-characters | `client/Assets/ThirdParty/Quaternius/RPGCharacters/` | não obrigatório (Quaternius) | 2026-10-10 | agente artista-personagens |

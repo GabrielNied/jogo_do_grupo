@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using JogoDoGrupo.Client.Core.Visual;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -18,7 +19,7 @@ namespace JogoDoGrupo.Client.Features.LaboratorioVisual.Editor
         };
         public VisualElement Raiz { get; }
         public int SecaoAtual { get; private set; }
-        public int TamanhoTexto { get; private set; } = 16;
+        public int TamanhoTexto { get; private set; } = ConfigVisual.Tipografia.Leitura;
         public bool Comparando { get; private set; }
         private readonly RecursosLaboratorio _recursos;
         private readonly VisualElement _conteudo;
@@ -35,6 +36,7 @@ namespace JogoDoGrupo.Client.Features.LaboratorioVisual.Editor
             Raiz.name = "laboratorio-visual";
             if (recursos != null)
             {
+                EstiloVisual.Aplicar(Raiz);
                 Raiz.styleSheets.Add(recursos.Estilo);
                 Raiz.style.unityFontDefinition = FontDefinition.FromFont(recursos.Leitura);
                 Raiz.style.backgroundImage = new StyleBackground(recursos.Fundo);
@@ -48,7 +50,11 @@ namespace JogoDoGrupo.Client.Features.LaboratorioVisual.Editor
                         image = recursos.Logo,
                         scaleMode = ScaleMode.ScaleToFit,
                         name = "marca",
-                        style = { width = 210, height = 72 },
+                        style =
+                        {
+                            width = ConfigVisual.Dimensoes.LogoLargura,
+                            height = ConfigVisual.Dimensoes.LogoAltura,
+                        },
                     }
                 );
             var apresentacao = Elemento("lab-apresentacao");
@@ -57,9 +63,13 @@ namespace JogoDoGrupo.Client.Features.LaboratorioVisual.Editor
             topo.Add(apresentacao);
             var ferramentas = Elemento("lab-ferramentas");
             topo.Add(ferramentas);
-            var tamanho = new SliderInt("Texto", 16, 24)
+            var tamanho = new SliderInt(
+                "Texto",
+                ConfigVisual.Tipografia.Leitura,
+                ConfigVisual.Tipografia.LeituraMaxima
+            )
             {
-                value = 16,
+                value = ConfigVisual.Tipografia.Leitura,
                 showInputField = true,
                 name = "tamanho-texto",
             };
@@ -175,14 +185,15 @@ namespace JogoDoGrupo.Client.Features.LaboratorioVisual.Editor
 
         public void DefinirTamanhoTexto(int tamanho)
         {
-            TamanhoTexto = Mathf.Clamp(tamanho, 16, 24);
+            TamanhoTexto = EstiloVisual.LimitarTexto(tamanho);
             Raiz.style.fontSize = TamanhoTexto;
             Raiz.Query<TextElement>()
                 .ForEach(e =>
                 {
                     e.style.fontSize =
-                        e.ClassListContains("lab-titulo") ? 28
-                        : e.ClassListContains("lab-subtitulo") ? 22
+                        e.ClassListContains("lab-titulo") ? ConfigVisual.Tipografia.Titulo
+                        : e.ClassListContains("lab-subtitulo")
+                            ? Mathf.Max(ConfigVisual.Tipografia.Subtitulo, TamanhoTexto)
                         : TamanhoTexto;
                     if (
                         _recursos != null
@@ -192,7 +203,10 @@ namespace JogoDoGrupo.Client.Features.LaboratorioVisual.Editor
                     )
                         e.style.unityFontDefinition = FontDefinition.FromFont(_recursos.Leitura);
                 });
-            Raiz.Query<Button>().ForEach(b => b.style.fontSize = Mathf.Max(18, TamanhoTexto));
+            Raiz.Query<Button>()
+                .ForEach(b =>
+                    b.style.fontSize = Mathf.Max(ConfigVisual.Tipografia.Controle, TamanhoTexto)
+                );
         }
 
         public void Comparar(bool mostrar)
@@ -249,7 +263,16 @@ namespace JogoDoGrupo.Client.Features.LaboratorioVisual.Editor
             painel.Add(Barra("Essência • 72 / 100", 72));
             painel.Add(Texto("Informação • Sucesso • Atenção • Erro", "lab-leitura"));
             var cores = Elemento("lab-linha");
-            foreach (var hex in new[] { "#173B50", "#39B9AE", "#F5BE63", "#F4E6CB", "#688A48" })
+            foreach (
+                var hex in new[]
+                {
+                    ConfigVisual.Cores.Petroleo,
+                    ConfigVisual.Cores.Essencia,
+                    ConfigVisual.Cores.Ouro,
+                    ConfigVisual.Cores.Marfim,
+                    ConfigVisual.Cores.Verde,
+                }
+            )
             {
                 var amostra = Elemento("lab-amostra");
                 ColorUtility.TryParseHtmlString(hex, out var cor);
@@ -287,7 +310,11 @@ namespace JogoDoGrupo.Client.Features.LaboratorioVisual.Editor
                 )
             );
             var chat = Painel("Conversa do grupo", false);
-            var mensagens = new ScrollView { name = "mensagens-chat", style = { height = 160 } };
+            var mensagens = new ScrollView
+            {
+                name = "mensagens-chat",
+                style = { height = ConfigVisual.Dimensoes.ChatAltura },
+            };
             mensagens.Add(Texto("Seraphina: Vamos seguir pela ponte!", "lab-leitura"));
             mensagens.Add(Texto("Brin: Já levei os suprimentos.", "lab-leitura"));
             chat.Add(mensagens);

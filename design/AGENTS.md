@@ -13,6 +13,8 @@ Leia [README.md](README.md) antes de alterar esta pasta. O material de design fi
 
 ## Organização e validação
 
+O padrão inicial de interfaces adotado pelo usuário é [Lumora UI v1](interface/GUIA-DE-ESTILO.md). Valores editáveis em `interface/config-visual.json`; gerar e conferir as saídas conforme o guia. A base provisória anterior foi preservada como histórico. Aprovação do padrão não dispensa validação por tela.
+
 Preservar trabalhos anteriores e licenças. ZIPs gerados não precisam ser versionados junto aos conteúdos. Links e fontes devem funcionar por caminhos relativos, sem referências absolutas a `D:` ou ao perfil do usuário. Conferir referências locais, fontes/arquivos binários e scripts dos HTMLs ao reorganizar; não rodar testes .NET/Unity para uma alteração só de design/documentação.
 
 Pranchas e silhuetas novas são propostas até aprovação explícita. Sempre comunicar limitações de limpeza, transparência, escala e implementação, sem apresentar exploração como componente final.
