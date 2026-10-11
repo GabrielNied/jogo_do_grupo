@@ -26,6 +26,7 @@ Tipos de mobs, comportamento por região e bosses com mecânicas marcantes.
 - [ ] O nome "fortalecida" fica, ou o grupo prefere outro (elite, enfurecida)?
 - [ ] Os números da criatura fortalecida e do chefe raro (tabelas em "Regras").
 - [ ] As três primeiras criaturas (Javali do Campo, Guardião do Reflexo, Presa-Velha) são só um ponto de partida: nomes, espécies e onde ficam.
+- [ ] **Livro de Asterra (proposta do board, 2026-10-11, não validada):** o Javali do Campo vira o Javali Ferrugem (dano 18, grupo de 8 a 15) ou os dois convivem? As cinco espécies, o bestiário com conhecimento e a captura do cervo entram no MVP? As manadas que nunca entram na cidade e seguem rotas? Veja "Livro de Asterra: bestiário".
 - [ ] O chefe raro avisa quando aparece (mensagem na área, marca no mapa) ou o jogador tem que achar?
 - [ ] O chefe raro some sozinho se ninguém o matar? Proposta atual: fica até morrer.
 - [ ] Dungeon tem chefe raro (um sorteio ao criar a instância)? As regras já servem; falta decidir.
@@ -113,6 +114,18 @@ O chefe raro no campo (issue #310; **proposta**, a confirmar no review):
 - **Onde:** a Presa-Velha tem um ponto próprio no campo, com centro em (-60, 230) na área `cidade` (ele nasce 4 m ao norte do centro, como o inimigo de um grupo de um; uns 60 m a oeste do grupo de javalis, fora da visão deles). Valores em `ConfigInimigosDoCampo`.
 - **Como aparece:** o servidor sobe sem o chefe; o `AparicaoDeChefeRaro` faz o primeiro sorteio no primeiro passo e depois um por intervalo (1800 s, chance de 20%). Quando sorteia, ele chega como `InimigoApareceu`, com `Variante` normal, e fica até morrer, sem novo sorteio. A morte manda `InimigoMorreu` e `InimigoDerrotado` como a de qualquer inimigo e recomeça a espera; a volta é um inimigo novo (id novo), por sorteio, nunca por tempo fixo.
 - **IA:** a do inimigo comum, com vida (1500) e dano (80) da própria ficha. Quem entra na área recebe os inimigos vivos do campo, chefe incluído. Não há aviso de aparição (continua em aberto).
+
+### Livro de Asterra: bestiário (proposta do board, 2026-10-11)
+
+Do "Livro de ideias" do [FigJam](../brainstorm/figjam.md) (seções 05, 09 e 10). **Proposta do board, não validada pelo grupo**; não troca nenhuma ficha acima. Os números do livro são só referência.
+
+- **Conflito com o já implementado:** o livro descreve o **Javali Ferrugem** (nível 3, vida 180, ataque-base 18, grupos de 8 a 15, perseguição de 180 m) como a primeira grande puxada. O **Javali do Campo** acima tem nível 3 e vida 180 como ele, mas dano 40 e grupo de 3 a 5. Não foi trocado; veja "Em aberto".
+- **Espécies propostas** (nível, vida, grupo): Lobo de Geada (22, 1.400, 6 a 12; perseguição 240 m), Carapaça de Brasa (30, 3.200, 15 a 30), Cervo de Galhada Oca (12, 650, manadas de 60 a 150, não hostil, foge de fogo e ruído), Mariposa de Breu (10, 90, enxames de 20 a 50, atraída pela luz). Chefes de mundo: **Ancião Trovejante** (nível 45, vida 250.000, FUTURO) e **Colosso Basáltico** (nível 50, vida 350.000, FUTURO), hostis entre si. Todos de força fixa, sem escalar com jogadores (já é a regra do jogo).
+- **Cinco espécies, um boss e uma dungeon** é o escopo do MVP no livro; o boss é o mineral da Mina do Reflexo (veja [instâncias](instancias.md)).
+- **Reação a luz e som (proposta):** cada espécie tem resposta própria (mariposa busca luz, lobo exposto hesita, gigante vê clarões de longe, cervo foge de ruído).
+- **Manadas com rota (proposta):** pontos de rota (pasto, rio, repouso, retorno), sem ficar parada esperando o jogador. Provocada, persegue até a distância-padrão da espécie (180/240 m, valores de referência) e volta ao perder o alvo ou passar do limite. **Nunca entra na cidade** (encerra a perseguição na borda; não ataca moradores ou comerciantes). Pode cruzar ponte de gelo. Confronto entre gigantes só em zona selvagem que ambos alcançam.
+- **Bestiário (proposta):** o primeiro encontro libera silhueta, região e comportamento; derrotas e observações revelam ataques e fraquezas (ex.: 5 derrotas de javali revelam o sinal da investida, 20 o ponto fraco). Cada jogador registra as próprias observações. **Captura:** só espécies marcadas como capturáveis, com conhecimento avançado e isca; o primeiro companheiro é o cervo jovem (fora do combate, sem ser montaria). Captura não vira pet de boss.
+- **Loot por dano (proposta):** o item de cada mob vai a quem causou mais dano (empate: o primeiro atacante); não há prioridade de loot para cura ou tanque. Depende de [itens](itens.md) e é regra de combate/loot, não de Mobs.
 
 ## Depende de
 

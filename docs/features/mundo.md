@@ -26,6 +26,9 @@
 - [ ] Como funciona a viagem rápida?
 - [ ] Clima dinâmico afeta gameplay?
 - [ ] Luz e som como mecânica (noite escura, skills que iluminam)? Veja S8 na validação.
+- [ ] **Livro de Asterra (proposta do board, 2026-10-11, não validada):** o grupo adota os nomes de região e de lugar (Vale das Fogueiras, Mata do Eco, Serra do Vidro Frio, Caldeira Rubra, Planalto Astral, Brasa Mansa...)? Como encaixam nos sete biomas de 3 km já decididos (o livro não tem deserto nem pântano e tem o Planalto Astral)? Veja "Livro de Asterra: regiões e cidade".
+- [ ] Ciclo de 40 min de dia e 20 min de noite (proposta do livro): vale? Liga com a #163.
+- [ ] Bases e construção em pontos marcados: FUTURO, fora do MVP.
 
 ## Regras
 
@@ -97,6 +100,19 @@ De dia (issue #164). O ciclo de hora continua na #163; até lá a hora fica em m
 Uma boca nas colinas, por volta de (-220, -80), e um interior **à parte** (issue #158): o piso fica em Y = -40, na mesma coluna, sem furar o chão do mundo e sem ser a dungeon da issue #66. Atravessar a boca (2 m) leva 4 m corredor adentro; voltar à boca de dentro devolve ao mesmo ponto do lado de fora. O client informa a posição nova; o servidor guarda, sem posição forçada. Sem loot, inimigo ou segunda entrada.
 
 - **Luz de dia (2026-10-11, issue #162):** sem ciclo de dia e noite (continua em aberto). ~~Um sol direcional a 50° com sombra suave, luz ambiente suave e lanternas com a luz de ponto gravada no prefab (fraca, sem calibragem para o módulo de 4 m).~~ Substituído em 2026-10-11 por: o **sol** é a luz principal da cena, num ângulo de 42° que alonga a sombra de casas, torres e morros, com sombra suave que não chega a preto (chão claro sem estourar, mata sem ficar preta); uma **luz de preenchimento** direcional, sem sombra, do lado oposto ao sol e bem mais fraca que ele, mantém o lado do personagem fora do sol (e o rosto) visível; as **lanternas** da praça e do portão têm luz de ponto de cor quente, com alcance de 20 m (cinco módulos de 4 m) e força para clarear a base do poste. A cor e a força do sol e do preenchimento acompanham o bioma. Os valores moram em `ConfigIluminacao`. A distância das sombras vem do asset do URP (Core), não do Mundo.
+
+### Livro de Asterra: regiões e cidade (proposta do board, 2026-10-11)
+
+Tudo abaixo vem do "Livro de ideias" do [FigJam](../brainstorm/figjam.md) (seções 02, 06, 07 e 10). É **proposta do board (2026-10-11), não validada pelo grupo**; nada aqui muda o que já está em "Biomas e relevo". Nomes e números novos continuam propostas.
+
+- **Regiões do livro:** **Vale das Fogueiras** (inicial: campos, bosques baixos, rios, Vila da Brasa Mansa, Fazenda dos Cascos, Ponte Partida, Colina do Sino), **Mata do Eco** (floresta de manadas, Dólmen das Vozes), **Serra do Vidro Frio** (gelo e travessias, dungeon curta Mina do Reflexo), **Caldeira Rubra** e **Planalto Astral** (avançadas, FUTURO). Encaixe aproximado nos biomas atuais, a validar: Vale = campo e arredores; Mata do Eco = mata; Serra = montanhas de neve; Caldeira = montanhas de lava; Planalto Astral ainda sem bioma. O livro não cita deserto nem pântano, que já existem.
+- **Cidade "Brasa Mansa"** (nome proposto para o hub): já construída, com forja, cozinha, banco, mercado, vendedores e ponto de retorno; o jogador não constrói a cidade. Os serviços são de [itens](itens.md) e [economia](economia.md); aqui só o lugar.
+- **Bases e construção: FUTURO** ("EM BREVE"). Pontos marcados no mapa poderão receber bases de jogadores, grupos ou guildas (não é construção livre). Acampamentos montáveis, faróis e pontes comunitárias também ficam para depois. No MVP, fogueiras e estações já colocadas servem à culinária e às pausas. Peças, custos e permissões não estão definidos.
+- **Escopo do MVP no livro:** mundo persistente, mapa pronto com uma cidade e subáreas (floresta, rios, caverna), referência de 20 jogadores por instância, expedições que não apagam o progresso. Meteoros, invasões, fendas e PvP são posteriores.
+- **Ciclo de dia e noite (proposta):** 40 min de dia e 20 min de noite; a noite reduz a leitura de mobs entre árvores, mas mantém contornos. Liga com a #163 (hora do mundo).
+- **Luz e som (proposta):** tochas (perto), flechas de fogo (marcam destino) e orbes (área grande) como fontes de luz; cada espécie reage à luz e ao som (veja [mobs](mobs.md)). Marcas de impacto (martelada, fuligem) são superficiais e não destroem o relevo. **Ponte de gelo:** superfície temporária entre margens válidas, com aviso de rachadura; criaturas também atravessam.
+- **Caído e retorno sem perdas (proposta):** ao zerar a vida, 45 s caído; aliado levanta em 3 s com 20% da vida; senão retorna à cidade mais próxima ou a teleporte descoberto, sem perder XP, moeda, equipamento ou durabilidade. A regra de combate e grupo é de [combate](combate.md) e [social](social.md); aqui só o retorno e os pontos de teleporte (ligados à viagem rápida em aberto).
+- **Eventos de mundo: FUTURO** (Chuva de Ferro Estelar no Planalto, Cerco da Brasa Mansa, Fenda do Horizonte): sem prioridade no MVP, ficam no backlog de eventos de mundo.
 
 ## Depende de
 

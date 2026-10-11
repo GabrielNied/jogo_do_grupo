@@ -17,8 +17,27 @@ Craft e coleta, conectados à economia.
 
 - [ ] Quais profissões existem?
 - [ ] Um personagem pode ter quantas profissões?
+- [ ] O board (2026-10-11) propõe seis profissões (veja [Proposta do board](#proposta-do-board-2026-10-11-não-validada)); falta o grupo validar e decidir o limite por personagem.
 
 ## Regras
+
+### Proposta do board (2026-10-11, não validada)
+
+Proposta do board em 2026-10-11, **não validada pelo grupo** (seção 08 do [Livro de ideias](../brainstorm/figjam.md#asterra--livro-de-ideias-do-jogo)):
+
+| Profissão | Papel proposto |
+|---|---|
+| Lenhador | madeira comum e de eco, resina |
+| Minerador | ferro, quartzo, ferro estelar (veio raro atrai criaturas) |
+| Curtidor | couro cru, tiras, couro reforçado |
+| Ferreiro | lingotes em armas, escudos; peças comuns servem de doador de infusão |
+| Alquimista | energia arcana, óleo, essência de promoção |
+| Cozinheiro | refeições que restauram saciedade e dão benefícios |
+
+- **Princípio:** materiais básicos continuam na cadeia de receitas; jogador novo e avançado contribuem para as mesmas metas.
+- **Receitas que atravessam níveis** (exemplos): couro reforçado, chapéu da aurora, poção de energia, essência de promoção (consumida ao promover raridade; veja [itens.md](itens.md#proposta-do-board-2026-10-11-não-validada)). Craft cria itens no nível 1.
+- **Alimentação:** saciedade de 0 a 100; dano de 60% (vazia) a 100% (cheia), linear; perde 1/min fora de cidade (+1/min em combate), metade em área segura, nada desconectado. Três receitas de expedição (Caldo dos Errantes, Assado de Galhada, Ensopado da Fornalha) com buffs de 15 a 20 min. Valores do board.
+- **Forja (na cidade):** infundir, promover raridade, transferir skills e produzir equipamentos, conforme os requisitos da peça.
 
 ## Depende de
 

@@ -37,9 +37,37 @@ Decidido pelo grupo em 2026-10-10. É **provisório**: serve para implementar a 
 
 Estas funções não concedem prêmios nem persistem dados. Integração com servidor, mensagens, barra de XP e prevenção de prêmio duplicado continuam na #65. O padrão para outros valores ajustáveis está nas [convenções](../convencoes.md#valores-de-balanceamento).
 
+## Raças propostas no board (2026-10-11)
+
+O "Livro de ideias de Asterra" do FigJam propõe **cinco povos jogáveis**. Cada raça dá um **traço** e uma **skill racial**; armas e equipamentos continuam livres para todos, e cada raça tem 1 ou 2 modelos iniciais. O board avisa que nomes e números novos **continuam propostas**: **ainda não implementado** e o servidor segue aceitando só Humano ([Raça](#raça)). Texto completo de cada raça (identidade, aparência, combinações): [figjam.md](../brainstorm/figjam.md#01--raças-de-asterra).
+
+| Raça | Traço | Skill racial (recarga) |
+|---|---|---|
+| Valdren (humanos da fronteira) | Espírito de Comunidade: comer perto de outro jogador compartilha 10 de saciedade, uma vez por refeição | Estandarte dos Errantes: 20 s de vigor e resistência a interrupção para aliados em 25 m (90 s) |
+| Aurídeos (portadores da alvorada) | Olhar Crepuscular: reconhecem contornos próximos com pouca luz | Aurora Errante: orbe que ilumina 35 m por 30 s e pode ser lançado a até 100 m (70 s) |
+| Graníticos (filhos da montanha) | Raiz de Pedra: parados preparando uma ação, sofrem 20% menos deslocamento por empurrões | Ressonância Ancestral: 3 pulsos em 6 s, raio de 30 m, desequilibram inimigos comuns (75 s) |
+| Cinéreos (herdeiros da brasa) | Corpo de Fornalha: 15% menos dano de queimadura | Sopro de Cinzas: faixa de 25 m por 8 m por 8 s, inflamável (65 s) |
+| Silvanos (guardiões das trilhas) | Leitor de Rastros: pegadas de criaturas estudadas ficam mais visíveis | Chamado da Clareira: figura sonora e luminosa a até 60 m por 12 s atrai criaturas (60 s) |
+
+O Humano provisório provavelmente vira **Valdren** (ambos são humanos); isso precisa de confirmação do grupo. Quando a decisão sair, ela ainda precisa chegar em [Skills](skills.md) (as skills raciais) e no enum `Raca`.
+
+## Nível, atributos e rotina (proposta do board, 2026-10-11)
+
+Do "Livro de ideias de Asterra" ([seções 10 e 09](../brainstorm/figjam.md#10--regras-da-primeira-versão)). **Proposta do board (2026-10-11), não validada pelo grupo**; nada disto está implementado e a curva provisória continua a da [fatia](fatia-jogavel.md#6-experiência-e-nível).
+
+- **Nível do personagem** é separado do nível e da raridade dos itens. Proposta: níveis 1 a 30 no MVP (igual à fatia), **5 pontos de atributo por nível**.
+- **Cinco atributos:** Força (golpes físicos pesados), Destreza (ataques ágeis e arco), Intelecto (magia), Vitalidade (vida e defesa), Espírito (cura, energia e apoio). Os efeitos numéricos ficam para [combate.md](combate.md) e [itens](itens.md).
+- **Fontes de XP:** derrotar inimigos, explorar pontos novos, coletar, produzir receitas e concluir objetivos.
+- **Skills não são aprendidas:** subir de nível mexe em atributos e no **orçamento de preparação** (12 pontos iniciais, +1 a cada 5 níveis); as skills continuam dos itens ([skills.md](skills.md#preparação-de-skills-proposta-do-board-2026-10-11)).
+- **Rotina:** "três builds" de exemplo, bestiário (registro por observação, cervo jovem como primeiro companheiro) e o ciclo preparar, explorar, voltar: veja a [seção 09](../brainstorm/figjam.md#09--personagem-cooperação-e-rotina). O bestiário e a captura não têm funcionalidade dona ainda.
+- **Ataques, defesa e recursos** (golpe leve e pesado por arma, sem parry, bloqueio por defesa contra potência, 100 de vigor e de energia): pertencem a [combate.md](combate.md); o board repete os valores da fatia.
+- **Morte:** o board propõe 45 s caído, 3 s para levantar e 20% de vida, **iguais** à seção [Morte e caído](#morte-e-caído-issue-97). Novo: caído também pode ser levantado pela skill Hino do Recomeço ([skills.md](skills.md)).
+
 ## Em aberto
 
-- [ ] Quais raças existem e qual a skill base de cada uma? (as raças definitivas substituem a raça provisória Humano)
+- [ ] Conflito livro x docs: o board pede **sem perda nenhuma na morte** (nem durabilidade) e esta doc já prevê isso só para a fatia; confirmar se vale para o jogo todo.
+- [ ] Conflito livro x docs: o board dá o **orçamento de skills de 12 pontos** com o nível (+1 a cada 5), mas ainda não diz se os atributos mudam o orçamento. Validar com o grupo.
+- [ ] Quais raças existem e qual a skill base de cada uma? (as raças definitivas substituem a raça provisória Humano) **Proposta no board: cinco raças, veja [Raças propostas](#raças-propostas-no-board-2026-10-11); falta o grupo validar.**
 - [ ] ~~Quais raças e classes existem?~~ classes não existem mais (D2)
 - [ ] O que o nível dá ao personagem (atributos, espaços de skill, acesso a itens)?
 - [ ] Nível máximo e curva de progressão

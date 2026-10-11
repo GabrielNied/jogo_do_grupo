@@ -20,6 +20,10 @@ Esta página detalha o **grupo** (convite, lista, líder, sair e expulsar; issue
 
 - [ ] Tamanho máximo de party e guilda? Party decidida em 2026-10-10: 5 (veja "Definido"); ~~party~~ sai desta pergunta. Falta o tamanho da guilda.
 - [ ] Regras de divisão de loot
+- [ ] **Proposta do livro de Asterra (2026-10-11), não validada pelo grupo** ([figjam.md](../brainstorm/figjam.md), seção 10, "Grupo, disputa de loot e PvP futuro"):
+  - **Tamanho:** instância de 20 jogadores e grupo que pode reunir os 20, com vida e localização dos aliados e baú compartilhado conforme permissão. **Conflito:** hoje está definido party de 5 e raid de 10 (2026-10-10); a regra não muda, a pergunta fica aberta (veja a pergunta de raid abaixo e [instancias.md](instancias.md)).
+  - **Loot por dano:** o dano ao mob define quem recebe os itens **individualmente**, mesmo dentro do grupo; o primeiro golpe no recurso garante a coleta. Empate favorece o primeiro atacante; a contagem zera se o mob voltar e recuperar vida; só conta dano real, sem excedente após a morte. Cura e tanque sem prioridade automática; a participação por apoio e defesa pode dar XP, sem mudar o dono dos itens; amigos compensam por troca. **Conflito:** a [fatia](fatia-jogavel.md#5-loot-no-chão) decidiu em 2026-10-11 loot individual para quem participou, não por maior dano; a decisão vale e o livro fica registrado aqui.
+  - **Aliados:** skills não causam dano entre membros do grupo.
 - [ ] Líder: quem herda quando o líder sai ou cai? (proposta: o membro mais antigo no grupo) e o líder pode passar a liderança? (proposta: sim)
 - [ ] Só o líder expulsa, ou qualquer membro pode pedir votação? (proposta: só o líder expulsa, sem votação)
 - [ ] Tempo que a vaga fica guardada após desconexão (proposta: 120 s) e tempo de validade do convite (proposta: 60 s)

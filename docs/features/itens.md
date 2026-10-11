@@ -22,6 +22,7 @@ Inventário, equipamentos, raridades e sistema de fusão.
 - [ ] Quantas raridades/tiers?
 - [ ] Quantas skills um item pode ter? A raridade muda isso?
 - [ ] Herança de atributos na fusão: porcentagem ou escolha do jogador?
+- [ ] Conflitos com a proposta do board (2026-10-11, veja [Proposta do board](#proposta-do-board-2026-10-11-não-validada)): o board põe infusão só entre mesmo tipo **e** raridade, ganho fixo de 2% por doador (sem retorno decrescente) e nenhum custo em moeda; o Definido pede mesmo tipo **ou** tier, retorno decrescente e custo crescente em ouro. Moeda: o board usa "coroas", o Definido fala em "ouro". Nada foi trocado; o grupo decide.
 
 ## Regras
 
@@ -35,6 +36,28 @@ Ficha aprovada em 2026-10-11. É um **recorte de teste** para ter o fluxo invent
 - O servidor só grava se **todos** os itens sorteados couberem nos 40 espaços. Se não couberem, responde `InventarioCheio` e **não grava nada** (nem parte dos itens).
 - Itens deste recorte não têm raridade, skills nem fusão.
 - Fora deste recorte: sorteio com raridade, drop de mobs, persistência definitiva, UI, prefab de baú, mundo.
+
+### Proposta do board (2026-10-11, não validada)
+
+Proposta do board em 2026-10-11, **não validada pelo grupo**: nomes e números do [Livro de ideias](../brainstorm/figjam.md#asterra--livro-de-ideias-do-jogo) (seções 03 e 12) são propostas e não substituem o [Definido](#definido). Resumo, sem copiar o texto:
+
+- **Anatomia do equipamento:** nome, tipo, região de origem, raridade, nível, atributo fixo (tipo + região), atributos aleatórios (o tipo limita o conjunto), um atributo sorteado como **infusível**, skills sorteadas (gravadas no item) e infusões usadas.
+- **Cinco raridades** (responde "quantas raridades/skills" em Em aberto, se aprovado):
+
+| Raridade | Skills (níveis que liberam) | Nível máx. | Infusões |
+|---|---|---|---|
+| Comum (cinza) | 1 (1) | 10 | 10 |
+| Incomum (verde) | 2 (1, 5) | 15 | 15 |
+| Raro (azul) | 3 (1, 5, 10) | 20 | 20 |
+| Épico (roxo) | 4 (1, 5, 10, 15) | 25 | 25 |
+| Lendário (dourado) | 5 (1, 5, 10, 15, 20) | 30 | 30 |
+
+- **Infusão:** sacrifica doadores do mesmo tipo e raridade (região livre); cada doador ocupa 1 slot e soma 2% do valor-base do atributo infusível (sem recalcular sobre o infundido). Prévia antes/depois e confirmação; favorito fica protegido.
+- **Fusão de skills (infusão especial):** em vez de reforçar atributo, o doador compatível transfere uma skill que **substitui** uma do receptor; gasta 1 slot de infusão e não soma atributo. A skill herda o requisito de nível do slot; sem skill repetida na peça.
+- **Promoção:** exige nível máximo e infusões cheias + componentes na forja (couro reforçado, lingote da região, essência de promoção). Sobe 1 raridade, nível volta a 1, contador de infusões zera; ganhos e skills já liberadas permanecem; escolhe 1 de 2 skills sorteadas para o novo slot.
+- **Loot e inventário:** F coleta, segurar F escolhe; dono do loot = quem mais causou dano ao mob; recurso fica com quem acertou primeiro (reserva liberada após 15 s sem interação); inventário grande sem peso, com busca e favoritos. Transmog: a peça obtida registra a aparência, sem mudar atributos.
+- **Equipamento por função e peça:** 11 posições (capacete, peito, luvas, calça, botas, cinto, 2 anéis, 2 brincos, adorno); 4 famílias (Vigia/Bastião tanque, Predador/Ruptor dano físico, Aurora/Tempestade mago, Batedor/Olho Longo arqueiro), cada uma com variação A (atributo principal) e B (especialização); 72 modelos-base. Graus Inicial/Médio/Forte multiplicam os valores-base por 1/2/4 (não as skills); grau é um eixo e raridade é outro. Misturar famílias é livre. A tabela de valores por peça fica no board.
+- **Base:** fusão/infusão de equipamento com sacrifício de itens, de jogos de loot. Igual: o item doador é destruído. Diferente: skills nos itens e transferência de skill por substituição.
 
 ## Depende de
 
