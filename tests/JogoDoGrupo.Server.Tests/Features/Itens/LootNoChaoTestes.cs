@@ -81,7 +81,7 @@ public class LootNoChaoTestes(ServidorDeLoot servidor) : IClassFixture<ServidorD
         var resposta = await ServidorDeTeste.PostJsonAsync(
             http,
             RotasPersonagem.Personagens,
-            new CriarPersonagemRequest { Nome = ServidorDeTeste.NomeUnico(), Raca = Raca.Humano }
+            new CriarPersonagemRequest { Nome = ServidorDeTeste.NomeUnico(), Raca = Raca.Valdren }
         );
         resposta.EnsureSuccessStatusCode();
         var personagem = await ServidorDeTeste.LerJsonAsync<PersonagemResumo>(resposta);

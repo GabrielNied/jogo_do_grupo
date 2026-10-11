@@ -185,7 +185,7 @@ public class ExperienciaDoPersonagemTestes(ServidorDeTeste servidor)
             new CriarPersonagemRequest
             {
                 Nome = ServidorDeTeste.NomeUnico("Xp"),
-                Raca = Raca.Humano,
+                Raca = Raca.Valdren,
             }
         );
         Assert.Equal(HttpStatusCode.Created, resposta.StatusCode);
