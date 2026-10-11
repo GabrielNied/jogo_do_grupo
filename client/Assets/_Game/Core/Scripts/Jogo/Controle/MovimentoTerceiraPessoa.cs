@@ -15,23 +15,59 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
         /// <summary>Velocidade vertical mantida no chão, para o CharacterController grudar em rampas.</summary>
         public const float VelocidadeGrudarNoChao = -2f;
 
+        public const float VelocidadeAndarPadrao = 2f;
+
+        /// <summary>
+        /// Correr padrão, em m/s. O servidor recusa deslocamento acima disso
+        /// (<c>ValidadorDeMovimento.VelocidadeMaxima</c>), mesmo que o client corra mais.
+        /// </summary>
+        public const float VelocidadeCorrerPadrao = 5.5f;
+
+        public const float AceleracaoPadrao = 20f;
+        public const float GravidadePadrao = 20f;
+        public const float VelocidadeMaximaQuedaPadrao = 50f;
+        public const float AlturaPuloPadrao = 1.25f;
+        public const float VelocidadeVerticalVooPadrao = 6f;
+
+        private bool _voando;
+
         /// <summary>Velocidade de andar, em m/s.</summary>
-        public float VelocidadeAndar { get; set; } = 2f;
+        public float VelocidadeAndar { get; set; } = VelocidadeAndarPadrao;
 
         /// <summary>Velocidade de correr (Shift), em m/s.</summary>
-        public float VelocidadeCorrer { get; set; } = 5.5f;
+        public float VelocidadeCorrer { get; set; } = VelocidadeCorrerPadrao;
 
         /// <summary>Quanto a velocidade muda por segundo ao acelerar ou frear, em m/s².</summary>
-        public float Aceleracao { get; set; } = 20f;
+        public float Aceleracao { get; set; } = AceleracaoPadrao;
 
         /// <summary>Gravidade, em m/s² (positivo, puxa para baixo).</summary>
-        public float Gravidade { get; set; } = 20f;
+        public float Gravidade { get; set; } = GravidadePadrao;
 
         /// <summary>Velocidade máxima de queda, em m/s.</summary>
-        public float VelocidadeMaximaQueda { get; set; } = 50f;
+        public float VelocidadeMaximaQueda { get; set; } = VelocidadeMaximaQuedaPadrao;
 
         /// <summary>Altura do pulo (Espaço), em metros, com a <see cref="Gravidade"/> atual.</summary>
-        public float AlturaPulo { get; set; } = 1.25f;
+        public float AlturaPulo { get; set; } = AlturaPuloPadrao;
+
+        /// <summary>Velocidade de subir e descer voando, em m/s.</summary>
+        public float VelocidadeVerticalVoo { get; set; } = VelocidadeVerticalVooPadrao;
+
+        /// <summary>
+        /// Se o voo de desenvolvimento pode ser ligado: só no editor. Num build o
+        /// <see cref="Voando"/> fica sempre falso.
+        /// </summary>
+        public static bool VooDisponivel => Application.isEditor;
+
+        /// <summary>
+        /// Voo de desenvolvimento, para olhar o mapa: sem gravidade, sem pulo, sobe e desce
+        /// com <see cref="VelocidadeVerticalVoo"/>. Não é regra de jogo; fora do editor ignora
+        /// o valor pedido (ver <see cref="VooDisponivel"/>).
+        /// </summary>
+        public bool Voando
+        {
+            get => _voando && VooDisponivel;
+            set => _voando = value;
+        }
 
         /// <summary>
         /// Velocidade vertical inicial do pulo, em m/s: <c>sqrt(2 * gravidade * altura)</c>,
@@ -93,9 +129,21 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
         /// <summary>
         /// Nova velocidade vertical: no chão (sem subir) gruda com
         /// <see cref="VelocidadeGrudarNoChao"/>; no ar soma a gravidade até a queda máxima.
+        /// Com o voo ligado (<see cref="Voando"/>), ignora a gravidade: <paramref name="subida"/> (-1 desce, 1 sobe)
+        /// vezes a <see cref="VelocidadeVerticalVoo"/>.
         /// </summary>
-        public float VelocidadeVertical(float atual, bool noChao, float deltaTempo)
+        public float VelocidadeVertical(
+            float atual,
+            bool noChao,
+            float deltaTempo,
+            float subida = 0f
+        )
         {
+            if (Voando)
+            {
+                return Mathf.Clamp(subida, -1f, 1f) * VelocidadeVerticalVoo;
+            }
+
             if (noChao && atual <= 0f)
             {
                 return VelocidadeGrudarNoChao;
@@ -108,11 +156,11 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
         /// <summary>
         /// Aplica o pulo: se foi pedido e o jogador está no chão sem estar subindo, a velocidade
         /// vertical vira a <see cref="VelocidadeDoPulo"/>. No ar (ou já subindo) devolve a
-        /// velocidade atual sem somar nada: não há segundo pulo.
+        /// velocidade atual sem somar nada: não há segundo pulo. Com o voo ligado não pula.
         /// </summary>
         public float Pular(float atual, bool noChao, bool pedido)
         {
-            if (!pedido || !noChao || atual > 0f)
+            if (Voando || !pedido || !noChao || atual > 0f)
             {
                 return atual;
             }

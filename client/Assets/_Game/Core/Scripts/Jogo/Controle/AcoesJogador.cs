@@ -16,6 +16,7 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
         private readonly InputAction _olharControle;
         private readonly InputAction _correr;
         private readonly InputAction _pular;
+        private readonly InputAction _subir;
         private readonly InputAction _menu;
 
         public AcoesJogador()
@@ -58,6 +59,16 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
 
             _pular = new InputAction("Pular", InputActionType.Button, "<Keyboard>/space");
 
+            _subir = new InputAction("Subir", InputActionType.Value, expectedControlType: "Axis");
+            _subir
+                .AddCompositeBinding("1DAxis")
+                .With("Positive", "<Keyboard>/space")
+                .With("Negative", "<Keyboard>/leftCtrl");
+            _subir
+                .AddCompositeBinding("1DAxis")
+                .With("Positive", "<Gamepad>/buttonSouth")
+                .With("Negative", "<Gamepad>/buttonEast");
+
             _menu = new InputAction("Menu", InputActionType.Button, "<Keyboard>/escape");
             _menu.AddBinding("<Gamepad>/start");
         }
@@ -77,6 +88,9 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
         /// <summary>Se o botão de pular (Espaço) foi apertado neste frame.</summary>
         public bool PularApertado => _pular.WasPressedThisFrame();
 
+        /// <summary>Subir (Espaço) ou descer (Ctrl esquerdo) no voo de desenvolvimento, de -1 a 1.</summary>
+        public float Subir => _subir.ReadValue<float>();
+
         /// <summary>Se o botão do menu (Esc) foi apertado neste frame.</summary>
         public bool MenuApertado => _menu.WasPressedThisFrame();
 
@@ -87,6 +101,7 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
             _olharControle.Enable();
             _correr.Enable();
             _pular.Enable();
+            _subir.Enable();
             _menu.Enable();
         }
 
@@ -97,6 +112,7 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
             _olharControle.Disable();
             _correr.Disable();
             _pular.Disable();
+            _subir.Disable();
             _menu.Disable();
         }
 
@@ -107,6 +123,7 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
             _olharControle.Dispose();
             _correr.Dispose();
             _pular.Dispose();
+            _subir.Dispose();
             _menu.Dispose();
         }
     }

@@ -54,7 +54,17 @@ Ataque da primeira arma (tempo real; regras e números em [fatia-jogavel.md](fat
 | 6004 | `RecursosMudaram` | servidor → dono | vida, vigor e energia atuais e máximos |
 
 - `RegrasAtaque`: constantes de balanceamento do ataque e fórmulas puras (`PreparoSegundos`, `RecuperacaoSegundos`, `DuracaoSegundos`, `CustoDeVigor`, `TemVigor`, `Dano`, `EntraNaFila`, `EstaNoVolume`). O servidor decide; o client usa só para tocar a animação no tempo certo.
-- Os IDs 6010 a 6012 ficam reservados para a esquiva (#62).
+- ~~Os IDs 6010 a 6012 ficam reservados para a esquiva (#62).~~ Substituído em 2026-10-11: o contrato da esquiva está abaixo.
+
+Esquiva (tempo real; regras e números em [fatia-jogavel.md](fatia-jogavel.md), seção 3):
+
+| ID | Mensagem | Direção | Campos |
+|---|---|---|---|
+| 6010 | `IntencaoDeEsquiva` | client → servidor | `DirecaoY` (graus, mesma convenção do ataque), `Sequencia` |
+| 6011 | `EsquivaRecusada` | servidor → dono | `Sequencia`, `Codigo` (os mesmos códigos do ataque: `VigorInsuficiente`, `AcaoEmAndamento`, `VoceEstaCaido`) |
+| 6012 | `EsquivaIniciada` | servidor → quem está na área | `PersonagemId`, `DirecaoY`, `DuracaoMs` |
+
+- `RegrasEsquiva`: constantes de balanceamento (5 m, 0,6 s, 15 de vigor) e fórmulas puras (`TemVigor`, `EmAndamento`, `DistanciaPermitidaAte`, `DeslocamentoCabe`, `Destino`). A posição continua chegando pelas mensagens do Mundo.
 
 ### Ataque no servidor (#215)
 

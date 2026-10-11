@@ -67,5 +67,28 @@ namespace JogoDoGrupo.Client.Features.Combate
             energia = new BarraRecurso(RotuloEnergia, corpo.EnergiaAtual, corpo.EnergiaMaxima);
             return true;
         }
+
+        /// <summary>
+        /// As três barras de uma mensagem <see cref="RecursosMudaram"/> do servidor, ou
+        /// <c>false</c> se veio sem corpo.
+        /// </summary>
+        public static bool TentarMontar(
+            RecursosMudaram corpo,
+            out BarraRecurso vida,
+            out BarraRecurso vigor,
+            out BarraRecurso energia
+        )
+        {
+            if (corpo == null)
+            {
+                vida = vigor = energia = default;
+                return false;
+            }
+
+            vida = new BarraRecurso(RotuloVida, corpo.VidaAtual, corpo.VidaMaxima);
+            vigor = new BarraRecurso(RotuloVigor, corpo.VigorAtual, corpo.VigorMaximo);
+            energia = new BarraRecurso(RotuloEnergia, corpo.EnergiaAtual, corpo.EnergiaMaxima);
+            return true;
+        }
     }
 }
