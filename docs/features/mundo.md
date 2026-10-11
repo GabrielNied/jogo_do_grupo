@@ -194,3 +194,5 @@ Tudo abaixo é **proposta** para o grupo validar; nada aqui é decisão ainda. R
 - [ ] Aliados em outra área aparecem no mapa-múndi (e o servidor envia a instância do grupo)?
 - [ ] O mapa da dungeon revela salões só depois de visitados?
 - [ ] Viagem rápida existe depois da fatia? Com custo, só a pontos descobertos?
+
+- **Ajuste da luz para os modelos (2026-10-11, issue #311):** o ambiente padrão (campo, mata e colinas) ficou mais claro (céu, horizonte e solo) e o sol um pouco mais forte, o preenchimento subiu para 40% do sol e a sombra do sol ficou mais leve (0,55), para o lado do personagem e das criaturas fora do sol, de textura escura, continuar legível sem perder o volume. Horizonte e solo da lava e do pântano subiram um pouco. A névoa, o céu e o ângulo do sol não mudaram, e não há Volume no mundo (o URP não liga pós-processamento na câmera do Core), então não há tonemapping. Para conferir: `npm run unity:executar -- JogoDoGrupo.Client.Features.Mundo.Editor.CapturaDaIluminacao.Capturar` (editor fechado) salva em `%TEMP%` uma folha com o personagem e as criaturas vistos de quatro lados; exemplos em `docs/arte/renders/`.

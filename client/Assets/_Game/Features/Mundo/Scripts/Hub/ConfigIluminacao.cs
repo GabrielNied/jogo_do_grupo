@@ -18,7 +18,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
         public const float GiroDoSol = -35f;
 
         /// <summary>Quanto a sombra do sol escurece (0 = some, 1 = preta). Abaixo de 1 para o chão claro e a mata não ficarem pretos.</summary>
-        public const float ForcaDaSombra = 0.8f;
+        public const float ForcaDaSombra = 0.55f;
 
         // ----- Luz de preenchimento (rosto do personagem fora do sol) -----
 
@@ -29,7 +29,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
         public const float GiroDoPreenchimento = GiroDoSol + 180f;
 
         /// <summary>Força do preenchimento em relação à do sol. Tem de ser bem menor que 1: o sol continua sendo a luz principal.</summary>
-        public const float FracaoDoPreenchimento = 0.28f;
+        public const float FracaoDoPreenchimento = 0.4f;
 
         /// <summary>Quanto da cor do sol entra na cor do preenchimento (o resto é a cor do céu).</summary>
         public const float MisturaDoSolNoPreenchimento = 0.25f;
