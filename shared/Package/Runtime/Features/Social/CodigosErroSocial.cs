@@ -54,5 +54,30 @@ namespace JogoDoGrupo.Shared.Features.Social
 
         /// <summary>Reconvidar quem foi expulso há pouco tempo.</summary>
         public const string ReconviteBloqueado = "ReconviteBloqueado";
+
+        // ── Chat, em MensagemDeChatRecusada.Codigo ────────────────────────────────
+        // O chat também usa NaoEstaEmGrupo (falar em Grupo sem grupo) e AlvoNaoEncontrado
+        // (sussurro para nome inexistente ou personagem offline).
+
+        /// <summary>Texto vazio depois de tirar os espaços.</summary>
+        public const string MensagemVazia = "MensagemVazia";
+
+        /// <summary>Texto maior que o tamanho máximo.</summary>
+        public const string MensagemLongaDemais = "MensagemLongaDemais";
+
+        /// <summary>O personagem passou do limite de mensagens por janela de tempo.</summary>
+        public const string MensagensRapidasDemais = "MensagensRapidasDemais";
+
+        /// <summary>A mesma mensagem no mesmo canal em pouco tempo.</summary>
+        public const string MensagemRepetida = "MensagemRepetida";
+
+        /// <summary>O personagem está em silêncio automático.</summary>
+        public const string Silenciado = "Silenciado";
+
+        /// <summary>Falar em Cidade fora da cidade, ou em canal que não existe.</summary>
+        public const string CanalIndisponivel = "CanalIndisponivel";
+
+        /// <summary>Sussurro para o próprio personagem.</summary>
+        public const string SussurroParaSiMesmo = "SussurroParaSiMesmo";
     }
 }
