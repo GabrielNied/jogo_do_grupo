@@ -27,7 +27,7 @@ Telas e menus do client que não pertencem a uma funcionalidade do jogo. Por enq
   - [ ] Outras janelas que o grupo quer com atalho (sugestões: **K** skills, **N** talentos, **O** social, **P** profissões)
   - [ ] A barra de atalhos fica sempre visível (como está) ou some depois que a pessoa aprende?
 - [ ] Teclas e atalhos (#90), decisões do grupo:
-  - [ ] Aprovar os atalhos padrão da tabela (proposta). Pontos de atenção: **ataque pesado no botão direito** (no New World o pesado é segurar o botão esquerdo e o bloqueio fica no direito; aqui o bloqueio vai para **Q**) e ~~**esquiva no Espaço** (no New World é Alt)~~ substituído em 2026-10-11: o Espaço já é o pulo no client; a proposta passa a ser **esquiva no Alt esquerdo**, como no New World
+  - [ ] Aprovar os atalhos padrão da tabela (proposta). Pontos de atenção: **ataque pesado no botão direito** (no New World o pesado é segurar o botão esquerdo e o bloqueio fica no direito; aqui o bloqueio vai para **Q**) e ~~**esquiva no Espaço** (no New World é Alt)~~ substituído em 2026-10-11: o Espaço já é o pulo no client; a proposta passa a ser **esquiva no Alt esquerdo**, como no New World. **Decidido pelo Gabriel em 2026-10-11: esquiva no Alt esquerdo.** O ataque pesado no botão direito segue em aberto
   - [ ] Tecla já usada: **trocar as duas ações** (proposta) ou deixar a outra sem tecla?
   - [ ] Tecla de **correr**: segurar (proposta) ou alternar?
   - [ ] Combate ([combate.md](combate.md)) ainda não decidiu se **bloqueio**, **stamina** e **troca de arma** entram na fatia jogável; as linhas dessas ações da tabela só valem se entrarem
@@ -117,7 +117,7 @@ A tela fica em **Opções > Teclas**, com uma linha por ação (nome, tecla atua
 | Correr | Shift (segurar) | sim |
 | Câmera | mover o mouse | não (sensibilidade fica em Opções) |
 | Pular (já existe no client) | Espaço | sim |
-| Esquiva | ~~Espaço~~ Alt esquerdo (substituído em 2026-10-11) | sim |
+| Esquiva | ~~Espaço~~ Alt esquerdo (substituído e decidido em 2026-10-11) | sim |
 | Ataque leve | botão esquerdo do mouse | sim |
 | Ataque pesado | botão direito do mouse | sim |
 | Bloqueio (se entrar no combate) | Q | sim |

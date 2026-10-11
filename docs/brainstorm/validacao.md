@@ -283,12 +283,12 @@ A ordem é a sugerida para a conversa: primeiro o que trava código.
 
 | # | Assunto | Onde estão as perguntas | O que trava |
 |---|---|---|---|
-| 1 | Onde moram os tipos que só o servidor usa (eventos e consultas entre funcionalidades) | [ADR 0016](../decisoes/0016-eventos-entre-funcionalidades-do-servidor.md), "Em aberto" (o ADR entra com o PR #126) | Ataque (#61), esquiva (#62), chat (#121), caído (#125) |
-| 2 | Teclas: o pulo fica? Esquiva no Alt esquerdo? Ataque pesado no botão direito? | [interface.md](../features/interface.md#em-aberto), "Teclas e atalhos" | Esquiva (#62), trocar teclas (#124) |
-| 3 | Ataque: tamanho do cone, sem compensação de lag na fatia, boneco de treino na cidade | ficha da issue #61 e [combate.md](../features/combate.md#em-aberto) | Ataque (#61) e tudo o que vem depois |
-| 4 | Inimigos no campo aberto (com respawn) ou só na dungeon? | ficha da issue #63 | Inimigo (#63), loot (#64), XP (#65) |
+| 1 | Onde moram os tipos que só o servidor usa (eventos e consultas entre funcionalidades). **Decidido pelo Gabriel em 2026-10-11:** em `server/src/JogoDoGrupo.Server/Contratos/<Dono>/`; o ADR 0016 já entrou | [ADR 0016](../decisoes/0016-eventos-entre-funcionalidades-do-servidor.md), "Em aberto" (o ADR entra com o PR #126) | Ataque (#61), esquiva (#62), chat (#121), caído (#125) |
+| 2 | Teclas: o pulo fica? Esquiva no Alt esquerdo? Ataque pesado no botão direito? **Decidido pelo Gabriel em 2026-10-11:** só a esquiva, no **Alt esquerdo**; o pulo e o ataque pesado seguem em aberto | [interface.md](../features/interface.md#em-aberto), "Teclas e atalhos" | Esquiva (#62), trocar teclas (#124) |
+| 3 | Ataque: tamanho do cone, sem compensação de lag na fatia, boneco de treino na cidade. **Decidido pelo Gabriel em 2026-10-11:** cone de **2,5 m e 90°**, **sem** compensação de lag na fatia e boneco de treino na cidade | ficha da issue #61 e [combate.md](../features/combate.md#em-aberto) | Ataque (#61) e tudo o que vem depois |
+| 4 | Inimigos no campo aberto (com respawn) ou só na dungeon? **Decidido pelo Gabriel em 2026-10-11:** o primeiro grupo fica no **campo aberto**, a uns 150 m do portão norte, com respawn de **120 s** | ficha da issue #63 | Inimigo (#63), loot (#64), XP (#65) |
 | 5 | Grupo: herança da liderança, expulsão, tempos de convite e de vaga | [social.md](../features/social.md#em-aberto) | Grupo (#120), dungeon (#66) |
-| 6 | Morte e caído: a contagem para enquanto alguém levanta? Pode voltar à cidade antes? Quem é o dono no código? | [personagem.md](../features/personagem.md#em-aberto), "Morte e caído" | Caído (#125) |
+| 6 | Morte e caído: a contagem para enquanto alguém levanta? Pode voltar à cidade antes? Quem é o dono no código? **Decidido pelo Gabriel em 2026-10-11:** só o dono: o estado caído é de **Combate**, e Personagem só mostra a tela; as outras duas perguntas seguem em aberto | [personagem.md](../features/personagem.md#em-aberto), "Morte e caído" | Caído (#125) |
 | 7 | XP: inteiro para cada participante? Valores por inimigo e pelo boss | ficha da issue #65 e [fatia-jogavel.md](../features/fatia-jogavel.md), seção 6 | XP (#65) |
 | 8 | Loot: chances de drop e o que quer dizer "raio de 12 m" | ficha da issue #64 e [fatia-jogavel.md](../features/fatia-jogavel.md), seção 5 | Loot (#64) |
 | 9 | Chat: canal Cidade só na cidade? Ignorar no computador ou na conta? Guardar mensagens? | [social.md](../features/social.md#em-aberto), "Chat" | Chat (#121) |
