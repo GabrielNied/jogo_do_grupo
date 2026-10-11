@@ -23,6 +23,10 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
 
         private const string PastaPrefabs = "Mundo/";
 
+        // Os prefabs em Resources foram gerados com o módulo de 2 m. Enquanto o chão medido
+        // for menor que LayoutDoHub.Lado, as peças são ampliadas para acompanhar o layout.
+        private static float _escalaDasPecas = 1f;
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void Registrar()
         {
@@ -53,6 +57,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
         public static GameObject Montar()
         {
             var raiz = new GameObject(NomeRaiz);
+            _escalaDasPecas = MedirEscalaDasPecas();
 
             CriarChao(raiz.transform);
             CriarTerreno(raiz.transform);
@@ -80,25 +85,146 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
             chao.name = NomeChao;
         }
 
-        // O chão de fora da cidade: grama de 120 x 120 m com colisor, face de cima em Y = 0, e
-        // barreiras invisíveis na borda para ninguém cair do mundo. Fica por baixo e em volta do
-        // chão da cidade. A reserva (cubo) só existe para o terreno nunca ficar sem colisão.
+        // Terreno de ~1 km montado em código (o prefab Terreno_Fora continua no disco, no tamanho
+        // antigo). As placas cobrem campo, mata e colinas sem tapar a cidade. Um colisor na
+        // raiz e barreiras na borda. A face de cima fica em Y = 0.
         private static void CriarTerreno(Transform pai)
         {
-            var terreno = Instanciar(LayoutDoHub.PrefabTerreno, Vector3.zero, 0f, pai);
-            if (terreno == null)
+            var terreno = new GameObject(NomeTerreno);
+            terreno.transform.SetParent(pai, false);
+
+            var metade = LayoutDoHub.Metade;
+            var borda = LayoutDoHub.MetadeDoTerreno;
+            var material = MaterialDoTerreno();
+            var campo = new Color(0.55f, 0.68f, 0.34f);
+            var mata = new Color(0.2f, 0.38f, 0.18f);
+            var colinas = new Color(0.52f, 0.44f, 0.28f);
+
+            // Norte inteiro: campo, para onde sai a estrada.
+            CriarPlaca(terreno.transform, "Campo", -borda, borda, metade, borda, material, campo);
+            // Leste e sul leste: mata. Oeste e sul oeste: colinas.
+            CriarPlaca(terreno.transform, "Mata", metade, borda, -borda, metade, material, mata);
+            CriarPlaca(terreno.transform, "Mata", 0f, metade, -borda, -metade, material, mata);
+            CriarPlaca(
+                terreno.transform,
+                "Colinas",
+                -borda,
+                -metade,
+                -borda,
+                metade,
+                material,
+                colinas
+            );
+            CriarPlaca(
+                terreno.transform,
+                "Colinas",
+                -metade,
+                0f,
+                -borda,
+                -metade,
+                material,
+                colinas
+            );
+
+            var chao = terreno.AddComponent<BoxCollider>();
+            chao.center = new Vector3(0f, -0.5f, 0f);
+            chao.size = new Vector3(LayoutDoHub.LadoDoTerreno, 1f, LayoutDoHub.LadoDoTerreno);
+
+            const float alturaDaBarreira = 20f;
+            const float espessura = 1f;
+            var deslocamento = borda + espessura / 2f;
+            var lado = LayoutDoHub.LadoDoTerreno;
+            CriarBarreira(
+                terreno.transform,
+                "Barreira_Norte",
+                new Vector3(0f, alturaDaBarreira / 2f, deslocamento),
+                new Vector3(lado + 2f * espessura, alturaDaBarreira, espessura)
+            );
+            CriarBarreira(
+                terreno.transform,
+                "Barreira_Sul",
+                new Vector3(0f, alturaDaBarreira / 2f, -deslocamento),
+                new Vector3(lado + 2f * espessura, alturaDaBarreira, espessura)
+            );
+            CriarBarreira(
+                terreno.transform,
+                "Barreira_Oeste",
+                new Vector3(-deslocamento, alturaDaBarreira / 2f, 0f),
+                new Vector3(espessura, alturaDaBarreira, lado)
+            );
+            CriarBarreira(
+                terreno.transform,
+                "Barreira_Leste",
+                new Vector3(deslocamento, alturaDaBarreira / 2f, 0f),
+                new Vector3(espessura, alturaDaBarreira, lado)
+            );
+        }
+
+        private static void CriarPlaca(
+            Transform pai,
+            string nome,
+            float x0,
+            float x1,
+            float z0,
+            float z1,
+            Material origem,
+            Color cor
+        )
+        {
+            var placa = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            placa.name = nome;
+            placa.transform.SetParent(pai, false);
+            placa.transform.localPosition = new Vector3((x0 + x1) * 0.5f, -0.5f, (z0 + z1) * 0.5f);
+            placa.transform.localScale = new Vector3(x1 - x0, 1f, z1 - z0);
+
+            var colisor = placa.GetComponent<Collider>();
+            if (Application.isPlaying)
             {
-                terreno = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                terreno.transform.SetParent(pai, false);
-                terreno.transform.localPosition = new Vector3(0f, -0.5f, 0f);
-                terreno.transform.localScale = new Vector3(
-                    LayoutDoHub.LadoDoTerreno,
-                    1f,
-                    LayoutDoHub.LadoDoTerreno
-                );
+                Object.Destroy(colisor);
+            }
+            else
+            {
+                Object.DestroyImmediate(colisor);
             }
 
-            terreno.name = NomeTerreno;
+            var renderizador = placa.GetComponent<Renderer>();
+            var material = origem != null ? new Material(origem) : renderizador.material;
+            if (material.HasProperty("_BaseColor"))
+            {
+                material.SetColor("_BaseColor", cor);
+            }
+
+            material.color = cor;
+            renderizador.sharedMaterial = material;
+        }
+
+        private static void CriarBarreira(
+            Transform pai,
+            string nome,
+            Vector3 centro,
+            Vector3 tamanho
+        )
+        {
+            var barreira = new GameObject(nome);
+            barreira.transform.SetParent(pai, false);
+            barreira.transform.localPosition = centro;
+            var caixa = barreira.AddComponent<BoxCollider>();
+            caixa.size = tamanho;
+        }
+
+        private static Material MaterialDoTerreno()
+        {
+            var modelo = Resources.Load<GameObject>(PastaPrefabs + LayoutDoHub.PrefabTerreno);
+            var renderizador =
+                modelo != null ? modelo.GetComponentInChildren<Renderer>(true) : null;
+            if (renderizador != null && renderizador.sharedMaterial != null)
+            {
+                return renderizador.sharedMaterial;
+            }
+
+            var chao = Resources.Load<GameObject>(PastaPrefabs + LayoutDoHub.PrefabChao);
+            renderizador = chao != null ? chao.GetComponentInChildren<Renderer>(true) : null;
+            return renderizador != null ? renderizador.sharedMaterial : null;
         }
 
         private static void CriarMuros(Transform pai)
@@ -276,7 +402,29 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
                 posicao,
                 Quaternion.Euler(0f, guinada, 0f)
             );
+            instancia.transform.localScale = Vector3.one * _escalaDasPecas;
             return instancia;
+        }
+
+        // O cubo do chão foi gerado com a largura da cidade da época. A razão até o lado atual
+        // é a escala de todas as peças (1 quando os prefabs já nascem no tamanho do layout).
+        private static float MedirEscalaDasPecas()
+        {
+            var modelo = Resources.Load<GameObject>(PastaPrefabs + LayoutDoHub.PrefabChao);
+            var renderizador =
+                modelo != null ? modelo.GetComponentInChildren<Renderer>(true) : null;
+            if (renderizador == null)
+            {
+                return 1f;
+            }
+
+            var largura = renderizador.transform.localScale.x;
+            if (largura < 1f)
+            {
+                return 1f;
+            }
+
+            return LayoutDoHub.Lado / largura;
         }
     }
 }

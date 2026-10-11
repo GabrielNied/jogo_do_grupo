@@ -3,6 +3,19 @@ using UnityEngine;
 
 namespace JogoDoGrupo.Client.Features.Mundo.Hub
 {
+    /// <summary>As três áreas do terreno em volta da cidade.</summary>
+    public enum AreaDoTerreno
+    {
+        /// <summary>Campo aberto ao norte, para onde sai a estrada do portão.</summary>
+        Campo,
+
+        /// <summary>Mata a leste e no sul leste, com árvores próximas.</summary>
+        Mata,
+
+        /// <summary>Colinas a oeste e no sul oeste, com mais pedra do que árvore.</summary>
+        Colinas,
+    }
+
     /// <summary>Uma peça do hub: qual prefab de <c>Resources/Mundo/</c> e onde fica.</summary>
     public readonly struct PecaDoHub
     {
@@ -33,10 +46,10 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
     public static class LayoutDoHub
     {
         /// <summary>Lado do hub, em metros. O hub é um quadrado centrado na origem.</summary>
-        public const float Lado = 40f;
+        public const float Lado = 80f;
 
-        /// <summary>Medida da grade de encaixe das peças, em metros (peça Kenney x 2).</summary>
-        public const float Modulo = 2f;
+        /// <summary>Medida da grade de encaixe das peças, em metros (peça Kenney x 4).</summary>
+        public const float Modulo = 4f;
 
         /// <summary>Metade do lado: o chão vai de -Metade a +Metade em X e em Z.</summary>
         public const float Metade = Lado / 2f;
@@ -45,10 +58,10 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
         public const float EspessuraMuro = Modulo;
 
         /// <summary>Altura do muro, em metros.</summary>
-        public const float AlturaMuro = 3f;
+        public const float AlturaMuro = 6f;
 
         /// <summary>Altura das torres de canto, em metros.</summary>
-        public const float AlturaTorre = 6f;
+        public const float AlturaTorre = 12f;
 
         /// <summary>Metade da área andável (face interna dos muros), em metros.</summary>
         public const float MetadeAndavel = Metade - EspessuraMuro;
@@ -56,32 +69,32 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
         /// <summary>Número de células por lado da grade (20).</summary>
         public const int CelulasPorLado = (int)(Lado / Modulo);
 
-        /// <summary>Metade da praça de pedra no centro, em metros (praça de 12 x 12 m).</summary>
-        public const float MetadePraca = 6f;
+        /// <summary>Metade da praça de pedra no centro, em metros (praça de 24 x 24 m).</summary>
+        public const float MetadePraca = 12f;
 
-        /// <summary>Metade da largura das duas estradas em cruz, em metros (4 m de largura).</summary>
-        public const float MetadeEstrada = 2f;
+        /// <summary>Metade da largura das duas estradas em cruz, em metros (8 m de largura).</summary>
+        public const float MetadeEstrada = 4f;
 
         /// <summary>
-        /// Centro da rua em anel, em metros: um quadrado de uma célula (2 m) de largura que passa
-        /// por <c>x</c> ou <c>z</c> = ±11 e liga as duas estradas em cruz.
+        /// Centro da rua em anel, em metros: um quadrado de uma célula (4 m) de largura que passa
+        /// por <c>x</c> ou <c>z</c> = ±22 e liga as duas estradas em cruz.
         /// </summary>
-        public const float CentroDoAnel = 11f;
+        public const float CentroDoAnel = 22f;
 
-        /// <summary>Lado do terreno de grama em volta da cidade, em metros (cidade no meio).</summary>
-        public const float LadoDoTerreno = 120f;
+        /// <summary>Lado do terreno em volta da cidade, em metros (cidade no meio, cerca de 1 km).</summary>
+        public const float LadoDoTerreno = 1000f;
 
         /// <summary>Metade do terreno: ele vai de -Metade a +Metade em X e em Z.</summary>
         public const float MetadeDoTerreno = LadoDoTerreno / 2f;
 
         /// <summary>
-        /// Metade da largura do portão norte, em metros: o vão no muro tem 4 m (duas células), na
+        /// Metade da largura do portão norte, em metros: o vão no muro tem 8 m (duas células), na
         /// linha de células do norte, e continua na estrada que sai da cidade.
         /// </summary>
-        public const float MetadeDoPortao = 2f;
+        public const float MetadeDoPortao = 4f;
 
         /// <summary>Comprimento da estrada que sai do portão, medido a partir do muro, em metros.</summary>
-        public const float ComprimentoDaEstradaFora = 20f;
+        public const float ComprimentoDaEstradaFora = 40f;
 
         public const string PrefabChao = "Chao_Hub";
         public const string PrefabTerreno = "Terreno_Fora";
@@ -90,7 +103,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
         public const string PrefabEstrada = "Estrada";
 
         /// <summary>Onde o jogador nasce: pés no chão, ao sul da fonte, olhando para ela (+Z).</summary>
-        public static readonly Vector3 PontoDeNascimento = new Vector3(0f, 0f, -12f);
+        public static readonly Vector3 PontoDeNascimento = new Vector3(0f, 0f, -24f);
 
         /// <summary>Para onde o jogador olha ao nascer (+Z).</summary>
         public static readonly Quaternion RotacaoDeNascimento = Quaternion.identity;
@@ -104,9 +117,30 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
 
         /// <summary>
         /// Árvores e pedras do terreno de fora, espalhadas por uma semente fixa (sempre o mesmo
-        /// resultado): longe da cidade e fora do corredor da estrada do portão.
+        /// resultado): longe da cidade, fora do corredor da estrada do portão, e com densidade
+        /// diferente em cada <see cref="AreaDoTerreno"/>.
         /// </summary>
         public static readonly IReadOnlyList<PecaDoHub> PropsFora = GerarPropsFora();
+
+        /// <summary>
+        /// Área do terreno em (<paramref name="x"/>, <paramref name="z"/>). O norte inteiro, a
+        /// partir dos muros, é campo. A leste (e no sul leste) é mata. A oeste (e no sul oeste)
+        /// são colinas.
+        /// </summary>
+        public static AreaDoTerreno AreaEm(float x, float z)
+        {
+            if (z >= Metade)
+            {
+                return AreaDoTerreno.Campo;
+            }
+
+            if (x >= 0f)
+            {
+                return AreaDoTerreno.Mata;
+            }
+
+            return AreaDoTerreno.Colinas;
+        }
 
         /// <summary>
         /// Centro da célula <paramref name="indice"/> (0 a <see cref="CelulasPorLado"/> - 1) ao
@@ -163,18 +197,18 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
             {
                 new PecaDoHub("Fonte", 0f, 0f, 0f),
                 // Bancos em volta da fonte.
-                new PecaDoHub("Banco", -3.5f, -3.5f, 45f),
-                new PecaDoHub("Banco", 3.5f, -3.5f, -45f),
-                new PecaDoHub("Banco", -3.5f, 3.5f, -45f),
-                new PecaDoHub("Banco", 3.5f, 3.5f, 45f),
+                new PecaDoHub("Banco", -7f, -7f, 45f),
+                new PecaDoHub("Banco", 7f, -7f, -45f),
+                new PecaDoHub("Banco", -7f, 7f, -45f),
+                new PecaDoHub("Banco", 7f, 7f, 45f),
                 // Lanternas nos cantos da praça.
-                new PecaDoHub("Lanterna", -5.5f, -5.5f, 0f),
-                new PecaDoHub("Lanterna", 5.5f, -5.5f, 0f),
-                new PecaDoHub("Lanterna", -5.5f, 5.5f, 0f),
-                new PecaDoHub("Lanterna", 5.5f, 5.5f, 0f),
-                // Lanternas do portão (as torres ficam em x = ±3, z = 19).
-                new PecaDoHub("Lanterna", -2.6f, 16.9f, 0f),
-                new PecaDoHub("Lanterna", 2.6f, 16.9f, 0f),
+                new PecaDoHub("Lanterna", -11f, -11f, 0f),
+                new PecaDoHub("Lanterna", 11f, -11f, 0f),
+                new PecaDoHub("Lanterna", -11f, 11f, 0f),
+                new PecaDoHub("Lanterna", 11f, 11f, 0f),
+                // Lanternas do portão (as torres ficam em x = ±6, z = 38).
+                new PecaDoHub("Lanterna", -5.2f, 33.8f, 0f),
+                new PecaDoHub("Lanterna", 5.2f, 33.8f, 0f),
             };
 
             // Um quadrante (x e z positivos) é desenhado e espelhado para os outros três.
@@ -187,35 +221,35 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
                     var casaLarga = pedra ? "Casa_Pedra_Larga" : "Casa_Madeira_Larga";
 
                     // Lanternas na esquina da rua em anel com cada estrada em cruz.
-                    lista.Add(new PecaDoHub("Lanterna", sx * 2.6f, sz * 10.3f, 0f));
+                    lista.Add(new PecaDoHub("Lanterna", sx * 5.2f, sz * 20.6f, 0f));
 
                     // Três casas pequenas em volta da praça, de porta para ela (as duas primeiras)
                     // e para a rua em anel (a terceira).
-                    AdicionarCasa(lista, casaPequena, sx, sz, 4f, 8f, 0f, -1f);
-                    AdicionarCasa(lista, casaPequena, sx, sz, 8f, 4f, -1f, 0f);
-                    AdicionarCasa(lista, casaPequena, sx, sz, 8f, 8f, 1f, 0f);
+                    AdicionarCasa(lista, casaPequena, sx, sz, 8f, 16f, 0f, -1f);
+                    AdicionarCasa(lista, casaPequena, sx, sz, 16f, 8f, -1f, 0f);
+                    AdicionarCasa(lista, casaPequena, sx, sz, 16f, 16f, 1f, 0f);
 
                     // Duas casas largas do outro lado da rua em anel, de porta para ela.
-                    AdicionarCasa(lista, casaLarga, sx, sz, 14f, 6f, -1f, 0f);
-                    AdicionarCasa(lista, casaLarga, sx, sz, 6f, 14f, 0f, -1f);
+                    AdicionarCasa(lista, casaLarga, sx, sz, 28f, 12f, -1f, 0f);
+                    AdicionarCasa(lista, casaLarga, sx, sz, 12f, 28f, 0f, -1f);
 
                     // Praça do canto: barraca virada para a fonte, árvores e uma carroça ou pedra.
                     var barraca = pedra ? "Barraca_Vermelha" : "Barraca_Verde";
                     var guinada = sx < 0 ? (sz < 0 ? 45f : 135f) : (sz < 0 ? -45f : -135f);
-                    lista.Add(new PecaDoHub(barraca, sx * 14.4f, sz * 13.6f, guinada));
-                    lista.Add(new PecaDoHub("Arvore_Alta", sx * 16.6f, sz * 16.6f, 40f * (sx + 2)));
-                    lista.Add(new PecaDoHub("Arvore", sx * 16.4f, sz * 13.1f, 30f * (sz + 3)));
+                    lista.Add(new PecaDoHub(barraca, sx * 28.8f, sz * 27.2f, guinada));
+                    lista.Add(new PecaDoHub("Arvore_Alta", sx * 33.2f, sz * 33.2f, 40f * (sx + 2)));
+                    lista.Add(new PecaDoHub("Arvore", sx * 32.8f, sz * 26.2f, 30f * (sz + 3)));
                     lista.Add(
                         pedra
-                            ? new PecaDoHub("Pedra_Pequena", sx * 13.3f, sz * 16.8f, 0f)
-                            : new PecaDoHub("Carroca", sx * 13.5f, sz * 16.5f, 0f)
+                            ? new PecaDoHub("Pedra_Pequena", sx * 26.6f, sz * 33.6f, 0f)
+                            : new PecaDoHub("Carroca", sx * 27f, sz * 33f, 0f)
                     );
 
                     // Árvores no que sobra ao lado das casas largas.
-                    lista.Add(new PecaDoHub("Arvore", sx * 16.9f, sz * 4.5f, 70f));
-                    lista.Add(new PecaDoHub("Arvore", sx * 16.9f, sz * 7.5f, 110f));
-                    lista.Add(new PecaDoHub("Arvore", sx * 4.5f, sz * 16.9f, 160f));
-                    lista.Add(new PecaDoHub("Arvore", sx * 7.5f, sz * 16.9f, 200f));
+                    lista.Add(new PecaDoHub("Arvore", sx * 33.8f, sz * 9f, 70f));
+                    lista.Add(new PecaDoHub("Arvore", sx * 33.8f, sz * 15f, 110f));
+                    lista.Add(new PecaDoHub("Arvore", sx * 9f, sz * 33.8f, 160f));
+                    lista.Add(new PecaDoHub("Arvore", sx * 15f, sz * 33.8f, 200f));
                 }
             }
 
@@ -239,16 +273,27 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
             lista.Add(new PecaDoHub(prefab, sx * x, sz * z, guinada));
         }
 
+        // Folga em volta do quadrado da cidade, da borda do mapa e do corredor da estrada.
+        private const float FolgaDaCidade = 24f;
+        private const float FolgaDaBorda = 12f;
+        private const float MetadeDoCorredor = 6f;
+
+        // Até esta distância do centro (Chebyshev) a vegetação é mais densa; depois, mais rala.
+        private const float AlcancePerto = 220f;
+
         private static IReadOnlyList<PecaDoHub> GerarPropsFora()
         {
-            const int quantidade = 46;
-            const float distanciaMinimaEntreProps = 4.5f;
-            // Folga em volta do quadrado da cidade e do terreno, em metros.
-            const float folgaDaCidade = 8f;
-            const float folgaDaBorda = 3f;
-            const float metadeDoCorredor = 5f;
-
-            var nomes = new[]
+            var sorteio = new Sorteio(20261011u);
+            var lista = new List<PecaDoHub>();
+            var campo = new[]
+            {
+                "Arvore_Redonda",
+                "Arvore",
+                "Arvore",
+                "Arvore_Alta",
+                "Pedra_Pequena",
+            };
+            var mata = new[]
             {
                 "Arvore",
                 "Arvore",
@@ -256,34 +301,45 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
                 "Arvore_Alta",
                 "Arvore_Torta",
                 "Arvore_Redonda",
+            };
+            var colinas = new[]
+            {
+                "Pedra_Grande",
                 "Pedra_Grande",
                 "Pedra_Larga",
                 "Pedra_Pequena",
+                "Arvore_Torta",
+                "Arvore",
             };
 
-            // Gerador congruencial linear próprio: o resultado não depende da plataforma.
-            var estado = 20261011u;
-            float Proximo()
+            // Campo: aberto, árvores afastadas. Mata: muitas árvores. Colinas: mais pedra.
+            Espalhar(lista, ref sorteio, campo, 36, 18f, true, AreaDoTerreno.Campo);
+            Espalhar(lista, ref sorteio, campo, 28, 28f, false, AreaDoTerreno.Campo);
+            Espalhar(lista, ref sorteio, mata, 80, 9f, true, AreaDoTerreno.Mata);
+            Espalhar(lista, ref sorteio, mata, 60, 14f, false, AreaDoTerreno.Mata);
+            Espalhar(lista, ref sorteio, colinas, 48, 12f, true, AreaDoTerreno.Colinas);
+            Espalhar(lista, ref sorteio, colinas, 36, 18f, false, AreaDoTerreno.Colinas);
+
+            return lista;
+        }
+
+        private static void Espalhar(
+            List<PecaDoHub> lista,
+            ref Sorteio sorteio,
+            string[] nomes,
+            int quantidade,
+            float distanciaMinima,
+            bool pertoDaCidade,
+            AreaDoTerreno area
+        )
+        {
+            var colocadas = 0;
+            var distancia2 = distanciaMinima * distanciaMinima;
+            for (var tentativa = 0; tentativa < 16000 && colocadas < quantidade; tentativa++)
             {
-                estado = unchecked(estado * 1664525u + 1013904223u);
-                return (estado >> 8) / 16777216f;
-            }
-
-            var lista = new List<PecaDoHub>();
-            for (var tentativa = 0; tentativa < 4000 && lista.Count < quantidade; tentativa++)
-            {
-                var x = (Proximo() * 2f - 1f) * (MetadeDoTerreno - folgaDaBorda);
-                var z = (Proximo() * 2f - 1f) * (MetadeDoTerreno - folgaDaBorda);
-                var prefab = nomes[(int)(Proximo() * nomes.Length) % nomes.Length];
-                var guinada = Proximo() * 360f;
-
-                if (Mathf.Max(Mathf.Abs(x), Mathf.Abs(z)) < Metade + folgaDaCidade)
-                {
-                    continue;
-                }
-
-                // Corredor da estrada que sai do portão (e o prolongamento dela até a borda).
-                if (Mathf.Abs(x) < metadeDoCorredor && z > 0f)
+                var x = (sorteio.Proximo() * 2f - 1f) * (MetadeDoTerreno - FolgaDaBorda);
+                var z = (sorteio.Proximo() * 2f - 1f) * (MetadeDoTerreno - FolgaDaBorda);
+                if (!CabeNaArea(x, z, area, pertoDaCidade))
                 {
                     continue;
                 }
@@ -293,20 +349,76 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
                 {
                     var dx = outra.X - x;
                     var dz = outra.Z - z;
-                    if (dx * dx + dz * dz < distanciaMinimaEntreProps * distanciaMinimaEntreProps)
+                    if (dx * dx + dz * dz < distancia2)
                     {
                         perto = true;
                         break;
                     }
                 }
 
-                if (!perto)
+                if (perto)
                 {
-                    lista.Add(new PecaDoHub(prefab, x, z, guinada));
+                    continue;
                 }
+
+                var prefab = nomes[(int)(sorteio.Proximo() * nomes.Length) % nomes.Length];
+                lista.Add(new PecaDoHub(prefab, x, z, sorteio.Proximo() * 360f));
+                colocadas++;
+            }
+        }
+
+        private static bool CabeNaArea(float x, float z, AreaDoTerreno area, bool pertoDaCidade)
+        {
+            if (Mathf.Abs(x) > MetadeDoTerreno - FolgaDaBorda)
+            {
+                return false;
             }
 
-            return lista;
+            if (Mathf.Abs(z) > MetadeDoTerreno - FolgaDaBorda)
+            {
+                return false;
+            }
+
+            if (Mathf.Max(Mathf.Abs(x), Mathf.Abs(z)) < Metade + FolgaDaCidade)
+            {
+                return false;
+            }
+
+            // Corredor da estrada que sai do portão, até a borda norte.
+            if (Mathf.Abs(x) < MetadeDoCorredor && z > 0f)
+            {
+                return false;
+            }
+
+            if (AreaEm(x, z) != area)
+            {
+                return false;
+            }
+
+            var alcance = Mathf.Max(Mathf.Abs(x), Mathf.Abs(z));
+            if (pertoDaCidade)
+            {
+                return alcance < AlcancePerto;
+            }
+
+            return alcance >= AlcancePerto;
+        }
+
+        // Gerador congruencial linear próprio: o resultado não depende da plataforma.
+        private struct Sorteio
+        {
+            public uint Estado;
+
+            public Sorteio(uint estado)
+            {
+                Estado = estado;
+            }
+
+            public float Proximo()
+            {
+                Estado = unchecked(Estado * 1664525u + 1013904223u);
+                return (Estado >> 8) / 16777216f;
+            }
         }
     }
 }

@@ -8,8 +8,10 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
 {
     /// <summary>
     /// Gera os prefabs do hub em <c>Features/Mundo/Resources/Mundo/</c> a partir dos modelos
-    /// Kenney "Fantasy Town Kit" (CC0) de <c>ThirdParty/</c>: escala para a grade de 2 m,
-    /// material de cores (URP Lit) e colisores. Reproduzível: rodar de novo regenera tudo.
+    /// Kenney "Fantasy Town Kit" (CC0) de <c>ThirdParty/</c>: escala para a grade de
+    /// <see cref="LayoutDoHub.Modulo"/> metros, material de cores (URP Lit) e colisores.
+    /// Reproduzível: rodar de novo regenera tudo. Os prefabs já no disco podem ser de uma
+    /// grade anterior; o <c>ConstrutorHub</c> mede o chão e amplia as peças até o layout.
     /// Com o editor fechado: <c>npm run unity:executar -- JogoDoGrupo.Client.Features.Mundo.Editor.GeradorDePecasDoHub.Gerar</c>.
     /// </summary>
     public static class GeradorDePecasDoHub
@@ -18,8 +20,10 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
         private const string PastaPecas = "Assets/_Game/Features/Mundo/Resources/Mundo";
         private const string PastaMateriais = PastaPecas + "/Materiais";
 
-        // Medida da grade: as peças Kenney têm 1 m de lado; o hub usa o dobro.
-        private const float M = 2f;
+        // Medida da grade: as peças Kenney têm 1 m de lado. Ajuste leva cápsulas e pedras
+        // (afinadas quando o módulo era 2 m) para o módulo atual.
+        private const float M = LayoutDoHub.Modulo;
+        private const float Ajuste = M / 2f;
 
         private enum Colisor
         {
@@ -71,28 +75,60 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
                 cores
             );
 
-            CriarPeca("Muro_Bloco", "wall-block", new Vector3(M, 3f, M), Colisor.Caixa, cores);
-            CriarPeca("Torre_Canto", "wall-block", new Vector3(M, 6f, M), Colisor.Caixa, cores);
+            CriarPeca(
+                "Muro_Bloco",
+                "wall-block",
+                new Vector3(M, LayoutDoHub.AlturaMuro, M),
+                Colisor.Caixa,
+                cores
+            );
+            CriarPeca(
+                "Torre_Canto",
+                "wall-block",
+                new Vector3(M, LayoutDoHub.AlturaTorre, M),
+                Colisor.Caixa,
+                cores
+            );
             CriarPeca("Estrada", "road", new Vector3(M, M, M), Colisor.Nenhum, cores);
             CriarPeca("Fonte", "fountain-round", new Vector3(M, M, M), Colisor.Caixa, cores);
             CriarPeca("Banco", "stall-bench", new Vector3(M, M, M), Colisor.Caixa, cores);
             CriarPeca("Barraca_Vermelha", "stall-red", new Vector3(M, M, M), Colisor.Caixa, cores);
             CriarPeca("Barraca_Verde", "stall-green", new Vector3(M, M, M), Colisor.Caixa, cores);
             CriarPeca("Carroca", "cart", new Vector3(M, M, M), Colisor.Caixa, cores);
-            CriarPeca("Pedra_Grande", "rock-large", Vector3.one * 1.5f, Colisor.Caixa, cores);
-            CriarPeca("Pedra_Larga", "rock-wide", Vector3.one * 1.5f, Colisor.Caixa, cores);
+            CriarPeca(
+                "Pedra_Grande",
+                "rock-large",
+                Vector3.one * (1.5f * Ajuste),
+                Colisor.Caixa,
+                cores
+            );
+            CriarPeca(
+                "Pedra_Larga",
+                "rock-wide",
+                Vector3.one * (1.5f * Ajuste),
+                Colisor.Caixa,
+                cores
+            );
             CriarPeca("Pedra_Pequena", "rock-small", Vector3.one * M, Colisor.Caixa, cores);
 
             // Troncos e postes: cápsula fina em vez da caixa da copa/da lâmpada.
-            CriarPeca("Arvore", "tree", Vector3.one * M, Colisor.Capsula, cores, 0.45f, 1.5f);
+            CriarPeca(
+                "Arvore",
+                "tree",
+                Vector3.one * M,
+                Colisor.Capsula,
+                cores,
+                0.45f * Ajuste,
+                1.5f * Ajuste
+            );
             CriarPeca(
                 "Arvore_Alta",
                 "tree-high",
                 Vector3.one * M,
                 Colisor.Capsula,
                 cores,
-                0.45f,
-                2f
+                0.45f * Ajuste,
+                2f * Ajuste
             );
             CriarPeca(
                 "Arvore_Torta",
@@ -100,8 +136,8 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
                 Vector3.one * M,
                 Colisor.Capsula,
                 cores,
-                0.45f,
-                1.5f
+                0.45f * Ajuste,
+                1.5f * Ajuste
             );
             CriarPeca(
                 "Arvore_Redonda",
@@ -109,8 +145,8 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
                 Vector3.one * M,
                 Colisor.Capsula,
                 cores,
-                0.45f,
-                2f
+                0.45f * Ajuste,
+                2f * Ajuste
             );
             CriarPeca(
                 "Lanterna",
@@ -118,8 +154,8 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
                 Vector3.one * M,
                 Colisor.Capsula,
                 cores,
-                0.2f,
-                3.1f,
+                0.2f * Ajuste,
+                3.1f * Ajuste,
                 true
             );
 
@@ -177,7 +213,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
             return material;
         }
 
-        // Chão de 40 x 40 m com a face de cima em Y = 0 (cubo de 1 m de espessura abaixo).
+        // Chão da cidade com a face de cima em Y = 0 (cubo de 1 m de espessura abaixo).
         private static void CriarChao(Material material)
         {
             var raiz = new GameObject("Chao_Hub");
@@ -185,7 +221,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
             cubo.name = "Visual";
             cubo.transform.SetParent(raiz.transform, false);
             cubo.transform.localPosition = new Vector3(0f, -0.5f, 0f);
-            cubo.transform.localScale = new Vector3(40f, 1f, 40f);
+            cubo.transform.localScale = new Vector3(LayoutDoHub.Lado, 1f, LayoutDoHub.Lado);
             cubo.GetComponent<Renderer>().sharedMaterial = material;
             Salvar(raiz, "Chao_Hub");
         }
@@ -485,7 +521,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
             luz.type = LightType.Point;
             luz.color = new Color(1f, 0.74f, 0.42f);
             luz.intensity = 3f;
-            luz.range = 8f;
+            luz.range = 8f * Ajuste;
             luz.shadows = LightShadows.None;
         }
 
