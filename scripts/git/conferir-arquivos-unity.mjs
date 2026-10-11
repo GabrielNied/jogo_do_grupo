@@ -115,9 +115,10 @@ if (faltam.length === 0 && soltos.length === 0) {
 }
 
 if (faltam.length > 0) {
-  console.error("Faltam .meta no commit (o Unity gera; não escreva à mão):");
+  console.error("Faltam .meta no commit (não escreva à mão):");
   for (const arquivo of faltam) console.error(`  ${arquivo}`);
-  console.error("Com o editor fechado, no worktree desta branch: npm run unity:importar");
+  console.error("Script C# ou pasta nova: npm run unity:meta (não precisa do Unity).");
+  console.error("Outros arquivos: com o editor fechado, neste worktree, npm run unity:importar.");
 }
 if (soltos.length > 0) {
   console.error("O Unity alterou arquivos que ficaram fora do commit:");

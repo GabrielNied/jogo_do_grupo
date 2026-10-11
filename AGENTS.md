@@ -28,7 +28,8 @@ npm run unity:recompilar             # compila no editor aberto (erros reais do 
 npm run unity:testes                 # testes EditMode do client
 npm run unity:executar -- <Metodo>   # roda um script de editor em modo batch (editor fechado)
 npm run unity:editor                 # sai 1 se o editor do projeto está aberto (ignora o Hub)
-npm run unity:importar               # gera os .meta que faltam e fecha (editor fechado)
+npm run unity:meta                   # gera os .meta de scripts C# e pastas novas, sem Unity
+npm run unity:importar               # gera os outros .meta (prefab, asset...) e fecha (editor fechado)
 npm run validar-branch -- <branch>   # confere nome de branch
 npm run tarefa -- listar             # lista tarefas livres e em andamento
 npm run tarefa -- puxar <N>          # puxa a tarefa para em andamento e cria a branch
@@ -55,7 +56,7 @@ Testes em `tests/` (xUnit; [ADR 0013](docs/decisoes/0013-testes-automatizados.md
 6. **Server:** C# moderno com namespace de arquivo (`namespace X;`). Módulos implementam `IFeatureModule` e são descobertos sozinhos; não crie arquivo central de registro.
 7. **Nomes de domínio em português sem acento** (`Itens`, `Fusao`, `Profissoes`); termos técnicos em inglês são ok (`Module`, `Handler`). Campos privados `_camelCase`. Detalhes em [docs/convencoes.md](docs/convencoes.md).
 8. **Formatação é do CSharpier.** Não ajuste estilo à mão nem discuta formatação; rode `dotnet csharpier format .`.
-9. **Unity:** nunca escreva à mão cenas (`.unity`), prefabs, `.asset` ou `.meta`, nem mexa em `ProjectSettings/` sem pedido explícito. Conteúdo do Unity é **criado pelo próprio Unity**: por script de editor (`npm run unity:executar`) ou pelo editor aberto via Unity CLI ([ADR 0014](docs/decisoes/0014-conteudo-3d-e-agentes-artistas.md)). Assets de terceiros só CC0 (ou CC-BY com crédito), em `client/Assets/ThirdParty/`, registrados em [docs/arte/licencas.md](docs/arte/licencas.md).
+9. **Unity:** nunca escreva à mão cenas (`.unity`), prefabs, `.asset` ou `.meta`, nem mexa em `ProjectSettings/` sem pedido explícito. A exceção é o `.meta` de **script C# e de pasta nova**, que não depende do Unity: gere com `npm run unity:meta` (nunca à mão, e nunca troque um `.meta` que já existe). Conteúdo do Unity é **criado pelo próprio Unity**: por script de editor (`npm run unity:executar`) ou pelo editor aberto via Unity CLI ([ADR 0014](docs/decisoes/0014-conteudo-3d-e-agentes-artistas.md)). Assets de terceiros só CC0 (ou CC-BY com crédito), em `client/Assets/ThirdParty/`, registrados em [docs/arte/licencas.md](docs/arte/licencas.md).
 10. **Todo PR de código traz testes** do que mudou (caminho feliz, erros, limites, concorrência quando houver). A verificação local é proporcional ao que mudou, conforme a matriz da skill `preparar-pr`: não rode build, testes .NET ou Unity por ritual em PR só de documentação, configuração ou instruções de IA. Código server/shared roda `dotnet test`; client/shared também roda `npm run unity:compilar`; scripts e hooks têm validação direcionada.
 11. **Mudou regra do jogo?** Atualize `docs/features/<x>.md` na mesma mudança. **Decisão técnica?** Crie um ADR.
 12. **Git:** nunca commite nem dê push na `main`; trabalhe numa branch `<tipo>/<escopo>/<descricao>`. Commits e títulos de PR no padrão `<tipo>(<escopo>): <descrição em português, minúscula>`, validados pelo commitlint (tipos e escopos em `commitlint.config.mjs`). Nunca use `--no-verify`. Só faça commit ou push quando a pessoa pedir (pedir uma orquestração de agentes conta como pedido para as branches dos agentes; merge é sempre humano). Detalhes em [docs/git.md](docs/git.md).

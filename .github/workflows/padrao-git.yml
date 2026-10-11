@@ -36,6 +36,8 @@ jobs:
         env:
           BRANCH: ${{ github.head_ref }}
         run: node scripts/git/validar-branch.mjs "$BRANCH"
+      - name: Testes dos scripts do repo
+        run: npm run testar-scripts
       - name: Arquivos do Unity no commit
         env:
           CI: "true"
