@@ -19,7 +19,11 @@ Toda verificação do client dependia do Unity instalado na máquina de quem fez
 
 - Agentes de código (`client-*`, `shared-contratos`, `regras-do-jogo`) podem trabalhar inteiros na nuvem. O Unity local fica para os artistas e para o teste visual de uma pessoa.
 - Cada PR de client gasta de 10 a 15 minutos de Actions (o plano gratuito de repo privado tem 2.000 por mês). Se apertar, dá para rodar só quando o PR sai de rascunho.
-- A licença Personal fica num secret do repositório. Se a senha da conta mudar ou a licença expirar, o job falha até alguém atualizar o secret.
+- A licença Personal fica num secret do repositório. Se a senha da conta mudar ou a licença expirar, o job falha até alguém atualizar o secret. Só uma pessoa faz isso, numa máquina com Unity e acesso de admin ao repo. Os outros devs não precisam fazer nada:
+  1. Unity Hub > Preferences > Licenses > **Add** > **Get a free personal license** (gera `C:\ProgramData\Unity\Unity_lic.ulf`; o `UnityEntitlementLicense.xml` não serve).
+  2. No PowerShell: `cmd /c 'gh secret set UNITY_LICENSE < "C:\ProgramData\Unity\Unity_lic.ulf"'` (o `<` não funciona direto no PowerShell).
+  3. `gh secret set UNITY_EMAIL` e `gh secret set UNITY_PASSWORD`, da mesma conta.
+- O workflow fixa a imagem do GameCI na versão do Unity do projeto. Quem atualizar o Unity atualiza a imagem no `client.yml` também.
 - Até alguém cadastrar os secrets, o job só avisa e passa. Nesse intervalo, o client de um agente sem Unity só é compilado quando alguém puxa a pendência.
 - Como o PR pode ir para merge antes da validação, a `main` pode ficar com o client quebrado até a pendência ser resolvida. O CI com licença reduz esse risco; a pendência garante que alguém vai resolver.
 - O teste visual no editor continua sendo de uma pessoa.

@@ -35,6 +35,15 @@ jobs:
         if: env.TEM_LICENCA != 'true'
         run: echo "::warning::Sem o secret UNITY_LICENSE o client não foi compilado nem testado. Veja docs/decisoes/0017-unity-no-ci.md."
 
+      # A imagem do Unity não cabe no disco livre do runner. Remove SDKs pré-instalados que
+      # este job não usa (Android, .NET, Haskell, CodeQL): libera mais de 20 GB.
+      - name: Libera espaço em disco
+        if: env.TEM_LICENCA == 'true'
+        run: |
+          sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc /opt/hostedtoolcache/CodeQL
+          sudo docker image prune --all --force
+          df -h /
+
       # Sem LFS: os testes EditMode não usam modelos e texturas, e LFS gasta a cota de banda.
       - uses: actions/checkout@v4
         if: env.TEM_LICENCA == 'true'
@@ -60,6 +69,9 @@ jobs:
         with:
           projectPath: client
           testMode: editmode
+          # Imagem "base" (sem módulos de build): os testes EditMode não precisam de IL2CPP.
+          # Atualize junto com client/ProjectSettings/ProjectVersion.txt quando o Unity mudar.
+          customImage: unityci/editor:ubuntu-6000.6.5f1-base-3
           githubToken: ${{ github.token }}
           checkName: Testes EditMode (Unity)
 
