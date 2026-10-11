@@ -6,7 +6,7 @@ Cada funcionalidade tem um responsável (veja [docs/responsaveis.md](docs/respon
 
 Precisa de algo de outra funcionalidade?
 1. Abra uma issue marcando o responsável, **ou**
-2. Faça o PR e peça review do responsável (em Reviewers, no PR; o repo é privado no plano gratuito, então o CODEOWNERS não pede sozinho).
+2. Faça o PR e, se mexeu em `Core/` ou na pasta de outra pessoa, peça review do responsável (em Reviewers, no PR).
 
 Arquivos compartilhados (`Core/`, `ProjectSettings/`, `Packages/manifest.json`, cenas principais) pertencem ao responsável pelo **core**. Mudanças neles sempre passam por review.
 
@@ -20,7 +20,7 @@ A `main` é protegida: ninguém envia direto para ela, nem os admins. Todo traba
 - **PR:** o título segue o mesmo padrão do commit e vira o commit na `main` (squash merge). Um PR = uma funcionalidade.
 - **Antes de abrir o PR:** siga a verificação proporcional da skill `preparar-pr`: documentação e configuração não exigem build/testes globais; código C# exige os testes da camada alterada (client: também `npm run unity:compilar`). Detalhes em [docs/convencoes.md](docs/convencoes.md#testes).
 - **Testes junto com o código:** todo PR de código traz os testes do que mudou, na mesma branch. PR de código sem teste não entra.
-- **Para entrar na main (combinado do grupo):** checks `csharpier`, `build` e `padrao-git` verdes e 1 aprovação de outra pessoa, incluindo o responsável pela pasta. O repo é privado no plano gratuito, então o GitHub não bloqueia: cada um respeita, e o review é pedido à mão.
+- **Para entrar na main:** o GitHub exige os checks `csharpier`, `build` e `padrao-git` verdes com a branch atualizada; aprovação não é obrigatória ([ADR 0029](docs/decisoes/0029-main-protegida-com-repo-publico.md), regras em [docs/git.md](docs/git.md)).
 
 ## Unity: evitando conflitos em cenas e prefabs
 

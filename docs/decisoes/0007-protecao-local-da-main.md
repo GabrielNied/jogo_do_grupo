@@ -1,7 +1,7 @@
 # 0007. Repo privado com proteção local da main
 
 **Data:** 2026-10-10
-**Status:** aceita (substitui a parte de ruleset do [ADR 0006](0006-fluxo-do-git.md))
+**Status:** substituída por [0029](0029-main-protegida-com-repo-publico.md) (o repo ficou público)
 
 ## Contexto
 
