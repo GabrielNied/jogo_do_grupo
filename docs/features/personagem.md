@@ -141,3 +141,19 @@ API HTTP para listar e criar personagens (por que HTTP: [ADR 0009](../decisoes/0
 - **`ListaPersonagensResponse`:** a lista de personagens da conta (de 0 a 4).
 - **`CodigosErroPersonagem`:** os códigos dos motivos de recusa (`NomeInvalido`, `NomeJaExiste`, `LimitePersonagens`, `RacaInvalida`), que chegam no campo `Codigo` do `ErroApi` do Core. Erros genéricos (não autenticado, requisição inválida, erro interno) usam os códigos do Core (`CodigosErro`).
 - Por serem HTTP, essas rotas não usam IDs de mensagem da faixa 3000–3999.
+
+## Visual do jogador (arte)
+
+O visual do personagem humano é um modelo low-poly CC0 (Quaternius, ver [licenças](../arte/licencas.md)), já com esqueleto e animações. O client só **mostra**; quem decide posição e estado é o servidor.
+
+- **Prefab:** `client/Assets/_Game/Features/Personagem/Resources/Personagem/Jogador_Humano.prefab` (carregar com `Resources.Load<GameObject>("Personagem/Jogador_Humano")`). Altura de 1,8 m, pés em Y=0, frente em +Z. O `Animator` fica na raiz do prefab. Não tem `CharacterController`, câmera nem lógica: isso é do Core.
+- **Geração:** tudo (importação do FBX, material, controller e prefab) sai do script de editor `Features/Personagem/Editor/GeradorJogadorHumano.cs`, menu **Jogo do Grupo > Personagem > Gerar jogador humano**. Rodar de novo recria o mesmo resultado. Não edite o controller e o prefab à mão.
+- **Parâmetros do Animator** (usados pelo Core e, depois, pelo combate):
+
+| Parâmetro | Tipo | Significado |
+|---|---|---|
+| `Velocidade` | float | velocidade horizontal em m/s |
+| `NoChao` | bool | `true` quando está no chão (padrão `true`); ainda não muda nenhum estado |
+
+- **Estados:** um único estado `Movimento`, um blend tree 1D por `Velocidade`: parado (0 m/s), andar (2 m/s), correr (5 m/s). Entre os pontos o Animator mistura os clipes. Esquivar, ataques, skill, dano e morte entram nas próximas tarefas (o modelo já traz clipes de `Attack`, `Roll`, `RecieveHit` e `Death`).
+- **Encaixe de equipamento:** o nome **`EncaixeMaoDireita`** fica reservado para o ponto de encaixe da mão direita (uso do artista de itens). Ainda **não existe** no prefab; o osso do modelo onde ele vai ficar é `Weapon.R`.
