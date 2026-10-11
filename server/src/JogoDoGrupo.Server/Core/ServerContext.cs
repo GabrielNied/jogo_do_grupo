@@ -1,3 +1,4 @@
+using JogoDoGrupo.Server.Core.Eventos;
 using JogoDoGrupo.Server.Core.TempoReal;
 
 namespace JogoDoGrupo.Server.Core;
@@ -13,4 +14,10 @@ public sealed class ServerContext(ServidorTempoReal tempoReal)
     /// <c>SessaoAutenticada</c> e <c>SessaoEncerrada</c>.
     /// </summary>
     public ServidorTempoReal TempoReal { get; } = tempoReal;
+
+    /// <summary>
+    /// Eventos entre funcionalidades: uma publica, as outras assinam, sem referência direta
+    /// (ADR 0016). Assine no <c>Inicializar</c>.
+    /// </summary>
+    public EventosDoServidor Eventos { get; } = new();
 }

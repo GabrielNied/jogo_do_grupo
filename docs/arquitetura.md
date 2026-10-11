@@ -97,6 +97,29 @@ public sealed class PersonagemModule : IFeatureModule
 
   Em desenvolvimento o servidor aplica as migrações ao iniciar (o banco é o arquivo `server/src/JogoDoGrupo.Server/jogodogrupo.db`, fora do git; para zerar, pare o servidor e apague o arquivo). Se outro PR com migração entrar antes, atualize a branch, rode `migrations remove` e gere de novo.
 
+### Servidor: eventos entre funcionalidades
+
+Uma funcionalidade avisa as outras por `contexto.Eventos` (`EventosDoServidor`, em `Core/Eventos/`), sem referenciá-las ([ADR 0016](decisoes/0016-eventos-entre-funcionalidades-do-servidor.md), em proposta).
+
+```csharp
+public void Inicializar(ServerContext contexto)
+{
+    _eventos = contexto.Eventos;
+    _eventos.Assinar<JogadorSaiuDaArea>(AoSairDaArea); // tipo definido por quem publica
+}
+
+private void AoEntrar(SessaoTempoReal sessao, EntrarNaCidade _) =>
+    _eventos.Publicar(new JogadorEntrouNaArea { /* ... */ });
+```
+
+- **Entrega:** síncrona, na thread de quem publica, na ordem de inscrição. Publique do laço de rede e não bloqueie no manipulador.
+- **Tipo exato:** quem assina `T` não recebe tipos derivados de `T`.
+- **Evento dentro de evento:** o que um manipulador publica só é entregue depois que o evento atual chegou a todos.
+- **Falha:** a exceção de um assinante não impede os outros; no fim, quem publicou recebe uma `AggregateException`.
+- **Perguntas** (ler o estado de outra funcionalidade) usam uma interface registrada na DI pelo dono, como o `IVerificadorPersonagem`, e não eventos.
+
+Os eventos do exemplo ainda não existem; o primeiro par de verdade vem com o Mundo (issue #119).
+
 ### Servidor: tempo real (UDP)
 
 O Core sobe um host LiteNetLib junto com o app (código em `Core/TempoReal/`). Cada pacote é o ID da mensagem em 2 bytes (`ushort`, little-endian) seguido do DTO do shared em JSON UTF-8, no mesmo formato da API HTTP. O client conecta com a chave `TempoReal:ChaveConexao` e manda `AutenticarTempoReal` (JWT do login e personagem). Só depois de `ResultadoAutenticacaoTempoReal` aceito a conexão vira sessão e as mensagens chegam às funcionalidades. Recusada, a conexão pode tentar de novo até `TempoReal:TempoParaAutenticarMs`; depois disso, ou sem tentar, é desconectada. Uma conta tem uma sessão só: autenticar de novo (ex.: reconexão) encerra a anterior.
