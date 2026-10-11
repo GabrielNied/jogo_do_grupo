@@ -19,7 +19,7 @@ namespace JogoDoGrupo.Client.Features.Combate.Tests
         public void SemVigor_PesadoEEsquivaNaoSeguem_LeveSegue()
         {
             var prontidao = new ProntidaoLocal();
-            prontidao.RegistrarVigor(RegrasAtaque.CustoDeVigorPesado - 1);
+            prontidao.RegistrarVigor(RegrasEsquiva.CustoDeVigor - 1);
 
             Assert.IsFalse(prontidao.PodeAtacar(TipoDeAtaque.Pesado, 0));
             Assert.IsFalse(prontidao.PodeEsquivar(0));
