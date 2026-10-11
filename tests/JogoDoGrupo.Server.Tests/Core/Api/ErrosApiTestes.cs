@@ -5,12 +5,59 @@ using JogoDoGrupo.Server.Tests.Infra;
 using JogoDoGrupo.Shared.Core.Api;
 using JogoDoGrupo.Shared.Core.Contas;
 using JogoDoGrupo.Shared.Features.Personagem;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace JogoDoGrupo.Server.Tests.Core.Api;
 
 public class ErrosApiTestes(ServidorDeTeste servidor) : IClassFixture<ServidorDeTeste>
 {
     private readonly HttpClient _cliente = servidor.CreateClient();
+
+    [Theory]
+    [InlineData("GET")]
+    [InlineData("POST")]
+    public async Task Rota_inexistente_da_404_com_corpo(string metodo)
+    {
+        using var requisicao = new HttpRequestMessage(new HttpMethod(metodo), "/api/inexistente");
+
+        var resposta = await _cliente.SendAsync(requisicao);
+
+        await AssertErro(resposta, HttpStatusCode.NotFound, CodigosErro.RotaNaoEncontrada);
+    }
+
+    [Theory]
+    [InlineData("GET")]
+    [InlineData("DELETE")]
+    public async Task Metodo_nao_aceito_da_405_com_corpo_e_preserva_allow(string metodo)
+    {
+        using var requisicao = new HttpRequestMessage(new HttpMethod(metodo), RotasContas.Login);
+
+        var resposta = await _cliente.SendAsync(requisicao);
+
+        await AssertErro(resposta, HttpStatusCode.MethodNotAllowed, CodigosErro.MetodoNaoPermitido);
+        Assert.Contains("POST", resposta.Content.Headers.Allow);
+    }
+
+    [Fact]
+    public async Task Token_valido_sem_permissao_da_403_com_corpo()
+    {
+        using var fabrica = servidor.WithWebHostBuilder(builder =>
+            builder.ConfigureServices(servicos =>
+                servicos.AddAuthorization(opcoes =>
+                    opcoes.DefaultPolicy = new AuthorizationPolicyBuilder()
+                        .RequireAuthenticatedUser()
+                        .RequireClaim("permissao", "administrar")
+                        .Build()
+                )
+            )
+        );
+        using var cliente = await ServidorDeTeste.CriarClienteLogadoEmAsync(fabrica);
+
+        var resposta = await cliente.GetAsync(RotasPersonagem.Personagens);
+
+        await AssertErro(resposta, HttpStatusCode.Forbidden, CodigosErro.AcessoNegado);
+    }
 
     [Fact]
     public async Task Corpo_ausente_da_400_requisicao_invalida()
@@ -85,6 +132,7 @@ public class ErrosApiTestes(ServidorDeTeste servidor) : IClassFixture<ServidorDe
     )
     {
         Assert.Equal(status, resposta.StatusCode);
+        Assert.Equal("application/json", resposta.Content.Headers.ContentType?.MediaType);
         var erro = await ServidorDeTeste.LerJsonAsync<ErroApi>(resposta);
         Assert.Equal(codigo, erro.Codigo);
     }
