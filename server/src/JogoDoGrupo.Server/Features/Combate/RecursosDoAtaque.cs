@@ -135,6 +135,79 @@ internal static class RecursosDoAtaque
         }
     }
 
+    /// <summary>
+    /// Tira <paramref name="dano"/> da vida do personagem (nunca abaixo de 0), na mesma transação
+    /// <c>Serializable</c> do resto: golpes simultâneos rodam um depois do outro e somam. Devolve
+    /// o novo estado para o dono.
+    /// </summary>
+    public static async Task<RecursosMudaram> TirarVidaAsync(
+        IServiceScopeFactory escopos,
+        TimeProvider relogio,
+        long personagemId,
+        int dano,
+        CancellationToken cancelamento
+    )
+    {
+        using var escopo = escopos.CreateScope();
+        var db = escopo.ServiceProvider.GetRequiredService<JogoDbContext>();
+        var bonus = escopo.ServiceProvider.GetRequiredService<IBonusDeAtributos>();
+
+        var atributos = CalculadoraRecursos.AtributosFinais(
+            await bonus.EquipamentosAsync(personagemId, cancelamento),
+            await bonus.EfeitosAsync(personagemId, cancelamento)
+        );
+
+        var sqlite = db.Database.GetDbConnection() as SqliteConnection;
+        var esperaAnterior = sqlite?.DefaultTimeout;
+        if (sqlite != null)
+        {
+            sqlite.DefaultTimeout = EsperaTravaSegundos;
+        }
+
+        try
+        {
+            await using var transacao = await db.Database.BeginTransactionAsync(
+                IsolationLevel.Serializable,
+                cancelamento
+            );
+
+            var agora = relogio.GetUtcNow().UtcDateTime;
+            var recursos = await db.Set<RecursosPersonagem>()
+                .FirstOrDefaultAsync(r => r.PersonagemId == personagemId, cancelamento);
+            if (recursos == null)
+            {
+                recursos = CalculadoraRecursos.Novo(personagemId, atributos, agora);
+                db.Set<RecursosPersonagem>().Add(recursos);
+            }
+            else
+            {
+                CalculadoraRecursos.Atualizar(recursos, atributos, agora);
+            }
+
+            recursos.Vida = Math.Max(0, recursos.Vida - dano);
+
+            await db.SaveChangesAsync(cancelamento);
+            await transacao.CommitAsync(cancelamento);
+
+            return new RecursosMudaram
+            {
+                VidaAtual = recursos.Vida,
+                VidaMaxima = RegrasRecursos.VidaMaxima(atributos.Vitalidade),
+                VigorAtual = recursos.Vigor,
+                VigorMaximo = RegrasRecursos.VigorMaximo(),
+                EnergiaAtual = recursos.Energia,
+                EnergiaMaxima = RegrasRecursos.EnergiaMaxima(atributos.Espirito),
+            };
+        }
+        finally
+        {
+            if (sqlite != null && esperaAnterior != null)
+            {
+                sqlite.DefaultTimeout = esperaAnterior.Value;
+            }
+        }
+    }
+
     /// <summary>A Força final do personagem agora (equipamentos mais efeitos).</summary>
     public static async Task<int> ForcaAsync(
         IServiceScopeFactory escopos,

@@ -1,4 +1,5 @@
 using JogoDoGrupo.Server.Contratos.Combate;
+using JogoDoGrupo.Server.Contratos.Mobs;
 using JogoDoGrupo.Server.Contratos.Mundo;
 using JogoDoGrupo.Server.Core;
 using JogoDoGrupo.Server.Core.TempoReal;
@@ -12,6 +13,7 @@ public sealed class CombateModule : IFeatureModule
     // depois que uma sessão se autentica.
     private volatile ServicoDeAtaques? _ataques;
     private volatile ServicoDeEsquivas? _esquivas;
+    private volatile ServicoDeDanoRecebido? _danoRecebido;
 
     public string Nome => "Combate";
 
@@ -31,6 +33,17 @@ public sealed class CombateModule : IFeatureModule
         ));
         servicos.AddSingleton(sp =>
         {
+            var servico = new ServicoDeDanoRecebido(
+                sp.GetRequiredService<ServidorTempoReal>(),
+                sp.GetRequiredService<IServiceScopeFactory>(),
+                sp.GetRequiredService<TimeProvider>(),
+                sp.GetRequiredService<ILogger<ServicoDeDanoRecebido>>()
+            );
+            _danoRecebido = servico;
+            return servico;
+        });
+        servicos.AddSingleton(sp =>
+        {
             var servico = new ServicoDeAtaques(
                 sp.GetRequiredService<ServidorTempoReal>(),
                 sp.GetRequiredService<IPosicoesDoMundo>(),
@@ -45,6 +58,7 @@ public sealed class CombateModule : IFeatureModule
             return servico;
         });
         servicos.AddHostedService(sp => sp.GetRequiredService<ServicoDeAtaques>());
+        servicos.AddHostedService(sp => sp.GetRequiredService<ServicoDeDanoRecebido>());
     }
 
     public void MapearRotas(IEndpointRouteBuilder rotas) => CombateRotas.Mapear(rotas);
@@ -61,5 +75,8 @@ public sealed class CombateModule : IFeatureModule
                 (sessao, intencao) => _esquivas?.AoEsquivar(sessao, intencao)
             );
 
-    public void Inicializar(ServerContext contexto) { }
+    public void Inicializar(ServerContext contexto) =>
+        contexto.Eventos.Assinar<GolpeDeInimigoAcertou>(evento =>
+            _danoRecebido?.AoGolpeDeInimigo(evento)
+        );
 }
