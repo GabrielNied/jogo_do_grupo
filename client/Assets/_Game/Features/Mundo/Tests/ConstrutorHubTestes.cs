@@ -334,7 +334,8 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
 
             // Até 2026-10-11 era um colisor só na raiz, de 1 km, com a face de cima em zero. Agora
             // o chão é uma malha com relevo em blocos, cada um com o seu colisor: juntos cobrem
-            // o mundo de 3 km. Perto da cidade ele continua plano, em Y = 0 (o laço abaixo).
+            // o mundo de 3 km. Logo fora dos muros ele sobe devagar (a faixa inicial, até 5 m):
+            // o laço abaixo confere a face de cima contra MapaDoMundo.AlturaEm.
             var blocos = terreno.Find(ConstrutorDoTerreno.NomeBlocos);
             Assert.IsNotNull(blocos, "O terreno precisa dos blocos do chão.");
             var colisores = blocos.GetComponentsInChildren<MeshCollider>();
@@ -357,9 +358,9 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
             {
                 for (var z = -limite; z <= limite; z += 5f)
                 {
-                    var ponto = new Vector3(x, 0f, z);
                     var foraDoQuadradoDaCidade =
                         Mathf.Max(Mathf.Abs(x), Mathf.Abs(z)) > LayoutDoHub.Metade;
+                    var ponto = new Vector3(x, MapaDoMundo.AlturaEm(x, z), z);
                     if (!foraDoQuadradoDaCidade || ArvoreOuPedraPerto(ponto, 2.5f))
                     {
                         continue;
@@ -370,10 +371,15 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
                         Physics.Raycast(ponto + Vector3.up * 5f, Vector3.down, out var batida, 10f),
                         $"Sem chão em {ponto}."
                     );
-                    Assert.AreEqual(0f, batida.point.y, 0.01f, $"Chão fora de Y = 0 em {ponto}.");
+                    Assert.AreEqual(
+                        ponto.y,
+                        batida.point.y,
+                        0.2f,
+                        $"Chão fora do relevo em {ponto}."
+                    );
                     Assert.IsTrue(batida.collider.transform.IsChildOf(terreno));
                     Assert.IsTrue(
-                        JogadorPassa(ponto, Vector3.forward, 0.1f),
+                        JogadorPassa(ponto + Vector3.up * 0.3f, Vector3.forward, 0.1f),
                         $"Colisor na altura do jogador em {ponto}."
                     );
                 }
@@ -469,17 +475,20 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
         {
             Construir();
 
-            // De dentro da cidade (norte da fonte) até a ponta da estrada, por todo o vão.
+            // De dentro da cidade (norte da fonte) até a ponta da estrada, por todo o vão. A
+            // estrada sobe devagar fora dos muros: o jogador anda em passos de 1 m, com os pés
+            // um pouco acima do chão (o CharacterController sobe degrau).
+            var fim = LayoutDoHub.Metade + LayoutDoHub.ComprimentoDaEstradaFora;
             foreach (var x in new[] { -1.5f, 0f, 1.5f })
             {
-                Assert.IsTrue(
-                    JogadorPassa(
-                        new Vector3(x, 0f, 10f),
-                        Vector3.forward,
-                        LayoutDoHub.Metade + LayoutDoHub.ComprimentoDaEstradaFora - 10f
-                    ),
-                    $"Algo bloqueia a saída em x = {x}."
-                );
+                for (var z = 10f; z < fim; z += 1f)
+                {
+                    var y = Mathf.Max(MapaDoMundo.AlturaEm(x, z), MapaDoMundo.AlturaEm(x, z + 1f));
+                    Assert.IsTrue(
+                        JogadorPassa(new Vector3(x, y + 0.3f, z), Vector3.forward, 1f),
+                        $"Algo bloqueia a saída em x = {x}, z = {z}."
+                    );
+                }
             }
         }
 
@@ -590,6 +599,8 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
                 .Props.Concat(LayoutDoHub.PropsFora)
                 .Select(p => p.Prefab)
                 .Concat(PecasDosBiomas.Todas.Select(p => p.Prefab))
+                // Cacto, pinheiro, rocha vulcânica etc. nascem em código, sem prefab.
+                .Where(nome => !VegetacaoProcedural.ConsegueCriar(nome))
                 .Concat(
                     new[]
                     {
