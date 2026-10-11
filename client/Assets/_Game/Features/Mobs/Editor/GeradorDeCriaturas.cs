@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using JogoDoGrupo.Shared.Features.Mobs;
 using UnityEditor;
 using UnityEditor.Animations;
@@ -9,98 +10,106 @@ using UnityEngine;
 namespace JogoDoGrupo.Client.Features.Mobs.Editor
 {
     /// <summary>
-    /// Gera de forma reproduzivel os materiais, o AnimatorController e o prefab de cada criatura
-    /// do CatalogoCriaturas a partir de modelos Quaternius (CC0). Cada prefab fica em
+    /// Gera de forma reproduzivel o material, o AnimatorController e o prefab de cada criatura
+    /// do CatalogoCriaturas a partir dos modelos proprios feitos no Blender por script
+    /// (arte/blender/, padrao em docs/arte/padrao-de-modelos.md). Cada prefab fica em
     /// Resources/Mobs/Criatura_&lt;id&gt; (o ApresentadorDeInimigos carrega por esse nome).
     /// Menu: Jogo do Grupo/Mobs/Gerar criaturas.
     /// </summary>
     public static class GeradorDeCriaturas
     {
-        public const string CaminhoPorco = "Assets/ThirdParty/Quaternius/FarmAnimals/Pig.fbx";
-        public const string CaminhoDragao = "Assets/ThirdParty/Quaternius/MonsterPack/Dragon.fbx";
         public const string PastaArte = "Assets/_Game/Features/Mobs/Art";
+        public const string PastaModelos = PastaArte + "/Modelos";
         public const string PastaResources = "Assets/_Game/Features/Mobs/Resources/Mobs";
 
         public const string ParametroMorrer = "Morrer";
         public const string ParametroAtacar = "Atacar";
-        public const string EstadoParado = "Parado";
-        public const string EstadoMorte = "Morte";
-        public const string EstadoAtaque = "Ataque";
+        public const string ParametroAndando = "Andando";
 
-        // Valores ajustaveis (balanceamento visual): altura final de cada criatura, em metros.
-        public const float AlturaJavali = 0.9f;
-        public const float AlturaPresaVelha = 1.5f;
-        public const float AlturaGuardiao = 3.5f;
+        // Nomes dos clipes (iguais aos das acoes no Blender) e dos estados do controlador.
+        public const string ClipeParado = "Idle";
+        public const string ClipeAndar = "Andar";
+        public const string ClipeAtaque = "Atacar";
+        public const string ClipeMorte = "Morrer";
+        public static readonly string[] Clipes =
+        {
+            ClipeParado,
+            ClipeAndar,
+            ClipeAtaque,
+            ClipeMorte,
+        };
 
-        // A morte do porco nao existe no pacote: o corpo tomba de lado nesse tempo.
-        const float DuracaoTombo = 0.6f;
-        const float AnguloTombo = 90f;
+        // Mapas de textura que o Blender grava ao lado do FBX: <Nome>_<Mapa>.png.
+        public const string MapaCor = "Cor";
+        public const string MapaBrilho = "Brilho"; // R = metal, A = lisura
+        public const string MapaEmissao = "Emissao";
 
-        static readonly Color CorCorpoJavali = new Color(0.27f, 0.18f, 0.12f);
-        static readonly Color CorFocinhoJavali = new Color(0.16f, 0.11f, 0.09f);
-        static readonly Color CorCorpoPresaVelha = new Color(0.62f, 0.6f, 0.55f);
-        static readonly Color CorFocinhoPresaVelha = new Color(0.75f, 0.68f, 0.55f);
+        // Valores ajustaveis (balanceamento visual).
+        const float LisuraPelo = 0.12f;
+        const float IntensidadeEmissao = 2.2f;
+        const int TamanhoMaximoTextura = 1024;
+        const float TransicaoAndar = 0.15f;
+        const float TransicaoAtaque = 0.08f;
+        const float TransicaoMorte = 0.05f;
+        const float VoltaDoAtaque = 0.15f;
 
         sealed class Receita
         {
             public int Id;
-            public string Modelo;
-            public float Altura;
-            public string ClipeParado;
-            public string ClipeAtaque; // null: sem ataque
-            public string ClipeMorte; // null: tombo gerado por script
-            public Color? CorCorpo;
-            public Color? CorFocinho;
+            public string Nome;
+            public bool TemBrilho;
+            public bool TemEmissao;
         }
 
         static readonly Receita[] Receitas =
         {
-            new Receita
-            {
-                Id = CatalogoCriaturas.JavaliDoCampo,
-                Modelo = CaminhoPorco,
-                Altura = AlturaJavali,
-                ClipeParado = "Armature|Idle",
-                CorCorpo = CorCorpoJavali,
-                CorFocinho = CorFocinhoJavali,
-            },
+            new Receita { Id = CatalogoCriaturas.JavaliDoCampo, Nome = "JavaliDoCampo" },
             new Receita
             {
                 Id = CatalogoCriaturas.GuardiaoDoReflexo,
-                Modelo = CaminhoDragao,
-                Altura = AlturaGuardiao,
-                ClipeParado = "DragonArmature|Dragon_Flying",
-                ClipeAtaque = "DragonArmature|Dragon_Attack",
-                ClipeMorte = "DragonArmature|Dragon_Death",
+                Nome = "GuardiaoDoReflexo",
+                TemBrilho = true,
+                TemEmissao = true,
             },
-            new Receita
-            {
-                Id = CatalogoCriaturas.PresaVelha,
-                Modelo = CaminhoPorco,
-                Altura = AlturaPresaVelha,
-                ClipeParado = "Armature|Idle",
-                CorCorpo = CorCorpoPresaVelha,
-                CorFocinho = CorFocinhoPresaVelha,
-            },
+            new Receita { Id = CatalogoCriaturas.PresaVelha, Nome = "PresaVelha" },
         };
 
         public static string CaminhoPrefab(int id) =>
             PastaResources + "/Criatura_" + id + ".prefab";
+
+        public static string CaminhoModelo(string nome) => PastaModelos + "/" + nome + ".fbx";
+
+        public static string CaminhoTextura(string nome, string mapa) =>
+            PastaModelos + "/" + nome + "_" + mapa + ".png";
+
+        /// <summary>Caminho do FBX de cada criatura gerada.</summary>
+        public static IEnumerable<string> Modelos()
+        {
+            foreach (var receita in Receitas)
+                yield return CaminhoModelo(receita.Nome);
+        }
 
         [MenuItem("Jogo do Grupo/Mobs/Gerar criaturas")]
         public static void Gerar()
         {
             CriarPasta(PastaArte);
             CriarPasta(PastaResources);
+            var relatorio = new StringBuilder();
             foreach (var receita in Receitas)
             {
-                ConfigurarImportacao(receita);
-                var materiais = CriarMateriais(receita);
+                ConfigurarTexturas(receita);
+                ConfigurarModelo(receita);
+                var material = CriarMaterial(receita);
                 var controller = CriarController(receita);
-                CriarPrefab(receita, materiais, controller);
+                CriarPrefab(receita, material, controller, relatorio);
             }
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
+            // O modo batch nao mostra o console: o resumo fica na pasta temporaria.
+            File.WriteAllText(
+                Path.Combine(Path.GetTempPath(), "gerador-mobs.txt"),
+                relatorio.ToString()
+            );
         }
 
         static void CriarPasta(string caminho)
@@ -112,15 +121,56 @@ namespace JogoDoGrupo.Client.Features.Mobs.Editor
             AssetDatabase.CreateFolder(pai, Path.GetFileName(caminho));
         }
 
-        static void ConfigurarImportacao(Receita receita)
+        static void ConfigurarTexturas(Receita receita)
         {
-            var importer = (ModelImporter)AssetImporter.GetAtPath(receita.Modelo);
+            ConfigurarTextura(CaminhoTextura(receita.Nome, MapaCor), true);
+            if (receita.TemBrilho)
+                ConfigurarTextura(CaminhoTextura(receita.Nome, MapaBrilho), false);
+            if (receita.TemEmissao)
+                ConfigurarTextura(CaminhoTextura(receita.Nome, MapaEmissao), true);
+        }
+
+        static void ConfigurarTextura(string caminho, bool cor)
+        {
+            var importer = AssetImporter.GetAtPath(caminho) as TextureImporter;
+            if (importer == null)
+                throw new InvalidOperationException("Textura nao encontrada: " + caminho);
+            importer.textureType = TextureImporterType.Default;
+            importer.sRGBTexture = cor;
+            importer.alphaSource = cor
+                ? TextureImporterAlphaSource.None
+                : TextureImporterAlphaSource.FromInput;
+            importer.alphaIsTransparency = false;
+            importer.mipmapEnabled = true;
+            importer.maxTextureSize = TamanhoMaximoTextura;
+            importer.anisoLevel = 4;
+            importer.wrapMode = TextureWrapMode.Clamp;
+            importer.SaveAndReimport();
+        }
+
+        static void ConfigurarModelo(Receita receita)
+        {
+            var caminho = CaminhoModelo(receita.Nome);
+            var importer = AssetImporter.GetAtPath(caminho) as ModelImporter;
+            if (importer == null)
+                throw new InvalidOperationException("Modelo nao encontrado: " + caminho);
+            importer.globalScale = 1f;
+            importer.useFileScale = true;
+            importer.importCameras = false;
+            importer.importLights = false;
+            importer.importBlendShapes = false;
+            importer.materialImportMode = ModelImporterMaterialImportMode.None;
+            importer.importAnimation = true;
             importer.animationType = ModelImporterAnimationType.Generic;
             importer.avatarSetup = ModelImporterAvatarSetup.CreateFromThisModel;
             var clipes = importer.defaultClipAnimations;
             foreach (var clipe in clipes)
             {
-                var repete = clipe.name == receita.ClipeParado;
+                // O Blender exporta "<Armadura>|<Acao>"; o clipe fica so com o nome da acao.
+                var nome = clipe.takeName;
+                var barra = nome.LastIndexOf('|');
+                clipe.name = barra >= 0 ? nome.Substring(barra + 1) : nome;
+                var repete = clipe.name == ClipeParado || clipe.name == ClipeAndar;
                 clipe.loopTime = repete;
                 clipe.loopPose = repete;
             }
@@ -132,151 +182,175 @@ namespace JogoDoGrupo.Client.Features.Mobs.Editor
         {
             foreach (var objeto in AssetDatabase.LoadAllAssetsAtPath(modelo))
             {
-                if (objeto is AnimationClip clipe && clipe.name == nome)
+                if (
+                    objeto is AnimationClip clipe
+                    && clipe.name == nome
+                    && !clipe.name.StartsWith("__preview__")
+                )
                     return clipe;
             }
             throw new InvalidOperationException("Clipe nao encontrado em " + modelo + ": " + nome);
         }
 
-        // Materiais proprios (copiados dos do modelo, com a cor trocada) quando a receita pede.
-        static Material[] CriarMateriais(Receita receita)
+        static Material CriarMaterial(Receita receita)
         {
-            var originais = ObterMateriaisDoModelo(receita.Modelo);
-            if (receita.CorCorpo == null)
-                return originais;
-            var resultado = new Material[originais.Length];
-            for (var i = 0; i < originais.Length; i++)
+            var shader = Shader.Find("Universal Render Pipeline/Lit");
+            if (shader == null)
+                throw new InvalidOperationException("Shader URP Lit nao encontrado.");
+            var caminho = PastaArte + "/Criatura_" + receita.Id + ".mat";
+            var material = AssetDatabase.LoadAssetAtPath<Material>(caminho);
+            if (material == null)
             {
-                // O corpo e o primeiro material do porco; os demais (focinho) usam a outra cor.
-                var cor = i == 0 ? receita.CorCorpo.Value : receita.CorFocinho.Value;
-                var caminho = PastaArte + "/Criatura_" + receita.Id + "_" + i + ".mat";
-                var material = AssetDatabase.LoadAssetAtPath<Material>(caminho);
-                if (material == null)
-                {
-                    material = new Material(originais[i]);
-                    AssetDatabase.CreateAsset(material, caminho);
-                }
-                material.SetColor("_BaseColor", cor);
-                material.SetFloat("_Smoothness", 0f);
-                EditorUtility.SetDirty(material);
-                resultado[i] = material;
+                material = new Material(shader);
+                AssetDatabase.CreateAsset(material, caminho);
             }
-            return resultado;
-        }
+            material.shader = shader;
+            material.name = "Criatura_" + receita.Id;
 
-        static Material[] ObterMateriaisDoModelo(string modelo)
-        {
-            var prefabDoModelo = AssetDatabase.LoadAssetAtPath<GameObject>(modelo);
-            var lista = new List<Material>();
-            var vistos = new HashSet<Material>();
-            foreach (var r in prefabDoModelo.GetComponentsInChildren<Renderer>())
+            var cor = AssetDatabase.LoadAssetAtPath<Texture2D>(
+                CaminhoTextura(receita.Nome, MapaCor)
+            );
+            material.SetTexture("_BaseMap", cor);
+            material.mainTexture = cor;
+            material.SetColor("_BaseColor", Color.white);
+            material.SetFloat("_Metallic", 0f);
+            material.SetFloat("_Smoothness", LisuraPelo);
+
+            if (receita.TemBrilho)
             {
-                foreach (var m in r.sharedMaterials)
-                {
-                    if (m != null && vistos.Add(m))
-                        lista.Add(m);
-                }
+                // Com o mapa, o URP le o metal do canal R e multiplica a lisura do canal A.
+                material.SetTexture(
+                    "_MetallicGlossMap",
+                    AssetDatabase.LoadAssetAtPath<Texture2D>(
+                        CaminhoTextura(receita.Nome, MapaBrilho)
+                    )
+                );
+                material.SetFloat("_Smoothness", 1f);
+                material.EnableKeyword("_METALLICSPECGLOSSMAP");
             }
-            return lista.ToArray();
+            else
+            {
+                material.SetTexture("_MetallicGlossMap", null);
+                material.DisableKeyword("_METALLICSPECGLOSSMAP");
+            }
+
+            if (receita.TemEmissao)
+            {
+                material.SetTexture(
+                    "_EmissionMap",
+                    AssetDatabase.LoadAssetAtPath<Texture2D>(
+                        CaminhoTextura(receita.Nome, MapaEmissao)
+                    )
+                );
+                material.SetColor("_EmissionColor", Color.white * IntensidadeEmissao);
+                material.EnableKeyword("_EMISSION");
+                material.globalIlluminationFlags = MaterialGlobalIlluminationFlags.RealtimeEmissive;
+            }
+            else
+            {
+                material.SetTexture("_EmissionMap", null);
+                material.SetColor("_EmissionColor", Color.black);
+                material.DisableKeyword("_EMISSION");
+                material.globalIlluminationFlags = MaterialGlobalIlluminationFlags.EmissiveIsBlack;
+            }
+            EditorUtility.SetDirty(material);
+            return material;
         }
 
         static AnimatorController CriarController(Receita receita)
         {
+            var modelo = CaminhoModelo(receita.Nome);
             var caminho = PastaArte + "/Criatura_" + receita.Id + ".controller";
             if (AssetDatabase.LoadAssetAtPath<AnimatorController>(caminho) != null)
                 AssetDatabase.DeleteAsset(caminho);
             var controller = AnimatorController.CreateAnimatorControllerAtPath(caminho);
             controller.AddParameter(ParametroMorrer, AnimatorControllerParameterType.Trigger);
-            if (receita.ClipeAtaque != null)
-                controller.AddParameter(ParametroAtacar, AnimatorControllerParameterType.Trigger);
+            controller.AddParameter(ParametroAtacar, AnimatorControllerParameterType.Trigger);
+            controller.AddParameter(ParametroAndando, AnimatorControllerParameterType.Bool);
 
             var maquina = controller.layers[0].stateMachine;
-            var parado = maquina.AddState(EstadoParado, new Vector3(250f, 0f, 0f));
-            parado.motion = ObterClipe(receita.Modelo, receita.ClipeParado);
+            var parado = maquina.AddState(ClipeParado, new Vector3(250f, 0f, 0f));
+            parado.motion = ObterClipe(modelo, ClipeParado);
             maquina.defaultState = parado;
+            var andar = maquina.AddState(ClipeAndar, new Vector3(500f, 0f, 0f));
+            andar.motion = ObterClipe(modelo, ClipeAndar);
+            var ataque = maquina.AddState(ClipeAtaque, new Vector3(375f, -120f, 0f));
+            ataque.motion = ObterClipe(modelo, ClipeAtaque);
+            var morte = maquina.AddState(ClipeMorte, new Vector3(375f, 140f, 0f));
+            morte.motion = ObterClipe(modelo, ClipeMorte);
 
-            AnimationClip morte;
-            if (receita.ClipeMorte != null)
-            {
-                morte = ObterClipe(receita.Modelo, receita.ClipeMorte);
-            }
-            else
-            {
-                morte = CriarClipeDeTombo(receita.Id);
-                AssetDatabase.AddObjectToAsset(morte, controller);
-            }
-            var estadoMorte = maquina.AddState(EstadoMorte, new Vector3(250f, 120f, 0f));
-            estadoMorte.motion = morte;
-            var paraMorte = maquina.AddAnyStateTransition(estadoMorte);
-            paraMorte.AddCondition(AnimatorConditionMode.If, 0, ParametroMorrer);
-            paraMorte.duration = 0.05f;
-            paraMorte.canTransitionToSelf = false;
+            var paraAndar = parado.AddTransition(andar);
+            paraAndar.AddCondition(AnimatorConditionMode.If, 0, ParametroAndando);
+            paraAndar.duration = TransicaoAndar;
+            var paraParado = andar.AddTransition(parado);
+            paraParado.AddCondition(AnimatorConditionMode.IfNot, 0, ParametroAndando);
+            paraParado.duration = TransicaoAndar;
 
-            if (receita.ClipeAtaque != null)
+            // So ataca parado ou andando (nunca depois de morto).
+            foreach (var origem in new[] { parado, andar })
             {
-                var ataque = maquina.AddState(EstadoAtaque, new Vector3(250f, -120f, 0f));
-                ataque.motion = ObterClipe(receita.Modelo, receita.ClipeAtaque);
-                var paraAtaque = maquina.AddAnyStateTransition(ataque);
+                var paraAtaque = origem.AddTransition(ataque);
                 paraAtaque.AddCondition(AnimatorConditionMode.If, 0, ParametroAtacar);
-                paraAtaque.duration = 0.05f;
-                paraAtaque.canTransitionToSelf = false;
-                var voltar = ataque.AddTransition(parado);
-                voltar.hasExitTime = true;
-                voltar.exitTime = 0.9f;
-                voltar.duration = 0.1f;
+                paraAtaque.duration = TransicaoAtaque;
             }
+            var voltar = ataque.AddTransition(parado);
+            voltar.hasExitTime = true;
+            voltar.exitTime = 1f;
+            voltar.duration = VoltaDoAtaque;
+
+            var paraMorte = maquina.AddAnyStateTransition(morte);
+            paraMorte.AddCondition(AnimatorConditionMode.If, 0, ParametroMorrer);
+            paraMorte.duration = TransicaoMorte;
+            paraMorte.canTransitionToSelf = false;
 
             EditorUtility.SetDirty(controller);
             return controller;
         }
 
-        // Clipe de morte do porco: tomba de lado (o pacote so traz idle e pulo).
-        static AnimationClip CriarClipeDeTombo(int id)
-        {
-            var clipe = new AnimationClip { name = "Criatura_" + id + "_Tombo" };
-            var curva = AnimationCurve.EaseInOut(0f, 0f, DuracaoTombo, AnguloTombo);
-            clipe.SetCurve("", typeof(Transform), "localEulerAnglesRaw.z", curva);
-            return clipe;
-        }
-
         static void CriarPrefab(
             Receita receita,
-            Material[] materiais,
-            AnimatorController controller
+            Material material,
+            AnimatorController controller,
+            StringBuilder relatorio
         )
         {
-            var modelo = AssetDatabase.LoadAssetAtPath<GameObject>(receita.Modelo);
+            var modelo = AssetDatabase.LoadAssetAtPath<GameObject>(CaminhoModelo(receita.Nome));
             var raiz = new GameObject("Criatura_" + receita.Id);
             var instancia = (GameObject)PrefabUtility.InstantiatePrefab(modelo);
             try
             {
+                // O FBX ja vem em metros, olhando para +Z e com os pes em Y=0. A raiz fica em
+                // escala 1: o servidor manda a escala da instancia (ApresentadorDeInimigos).
                 instancia.name = "Modelo";
                 instancia.transform.SetParent(raiz.transform, false);
-
-                if (receita.CorCorpo != null)
+                foreach (var r in instancia.GetComponentsInChildren<Renderer>())
                 {
-                    var originais = ObterMateriaisDoModelo(receita.Modelo);
-                    foreach (var r in instancia.GetComponentsInChildren<Renderer>())
-                        r.sharedMaterials = Trocar(r.sharedMaterials, originais, materiais);
+                    var materiais = new Material[r.sharedMaterials.Length];
+                    for (var i = 0; i < materiais.Length; i++)
+                        materiais[i] = material;
+                    r.sharedMaterials = materiais;
                 }
-
-                // Escala para a altura alvo e pes em Y=0. A raiz fica em escala 1: o servidor manda
-                // a escala da instancia (ApresentadorDeInimigos).
-                var limites = Limites(instancia);
-                var escala = receita.Altura / limites.size.y;
-                instancia.transform.localScale = Vector3.one * escala;
-                limites = Limites(instancia);
-                instancia.transform.localPosition = new Vector3(0f, -limites.min.y, 0f);
-                File.AppendAllText(
-                    Path.Combine(Path.GetTempPath(), "gerador-mobs.txt"),
-                    receita.Id + " escala=" + escala + " altura=" + limites.size + "\n"
-                );
 
                 var animator = instancia.GetComponent<Animator>();
                 if (animator == null)
                     animator = instancia.AddComponent<Animator>();
                 animator.runtimeAnimatorController = controller;
                 animator.applyRootMotion = false;
+                animator.cullingMode = AnimatorCullingMode.CullUpdateTransforms;
+
+                var limites = Limites(instancia);
+                var cabeca = Procurar(instancia.transform, "Cabeca");
+                relatorio.AppendLine(
+                    receita.Id
+                        + " "
+                        + receita.Nome
+                        + " limites="
+                        + limites.min.ToString("F3")
+                        + ".."
+                        + limites.max.ToString("F3")
+                        + " cabeca="
+                        + (cabeca == null ? "?" : cabeca.position.ToString("F3"))
+                );
 
                 PrefabUtility.SaveAsPrefabAsset(raiz, CaminhoPrefab(receita.Id));
             }
@@ -286,15 +360,17 @@ namespace JogoDoGrupo.Client.Features.Mobs.Editor
             }
         }
 
-        static Material[] Trocar(Material[] atuais, Material[] originais, Material[] novos)
+        static Transform Procurar(Transform pai, string nome)
         {
-            var resultado = new Material[atuais.Length];
-            for (var i = 0; i < atuais.Length; i++)
+            if (pai.name == nome)
+                return pai;
+            foreach (Transform filho in pai)
             {
-                var indice = Array.IndexOf(originais, atuais[i]);
-                resultado[i] = indice >= 0 ? novos[indice] : atuais[i];
+                var achado = Procurar(filho, nome);
+                if (achado != null)
+                    return achado;
             }
-            return resultado;
+            return null;
         }
 
         static Bounds Limites(GameObject objeto)
