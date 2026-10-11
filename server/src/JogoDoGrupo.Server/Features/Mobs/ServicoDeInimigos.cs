@@ -12,7 +12,7 @@ namespace JogoDoGrupo.Server.Features.Mobs;
 /// (<c>Contratos/Mobs/</c>). A decisão é toda do grupo; aqui só há rede e eventos.
 /// </summary>
 public sealed class ServicoDeInimigos(
-    GrupoDeInimigos grupo,
+    IReadOnlyList<GrupoDeInimigos> grupos,
     ServidorTempoReal tempoReal,
     IPosicoesDoMundo posicoes,
     EventosDoServidor eventos,
@@ -44,6 +44,14 @@ public sealed class ServicoDeInimigos(
 
     /// <summary>Um passo do laço: avança a IA, envia e publica. Os testes chamam direto.</summary>
     public void Avancar()
+    {
+        foreach (var grupo in grupos)
+        {
+            Avancar(grupo);
+        }
+    }
+
+    private void Avancar(GrupoDeInimigos grupo)
     {
         var jogadores = new List<JogadorNoCampo>();
         foreach (var personagemId in posicoes.PersonagensNaArea(grupo.Area))
@@ -104,7 +112,8 @@ public sealed class ServicoDeInimigos(
     /// <summary>Quem entra na área do grupo recebe os inimigos vivos (laço de rede).</summary>
     public void AoEntrarNaArea(JogadorEntrouNaArea evento)
     {
-        if (evento.Area != grupo.Area)
+        var daArea = grupos.Where(g => g.Area == evento.Area).ToArray();
+        if (daArea.Length == 0)
         {
             return;
         }
@@ -115,7 +124,7 @@ public sealed class ServicoDeInimigos(
             tempoReal.Enviar(
                 sessao,
                 MobsMessageIds.InimigosDaArea,
-                new InimigosDaArea { Inimigos = grupo.Vivos() }
+                new InimigosDaArea { Inimigos = daArea.SelectMany(g => g.Vivos()).ToArray() }
             );
         }
     }

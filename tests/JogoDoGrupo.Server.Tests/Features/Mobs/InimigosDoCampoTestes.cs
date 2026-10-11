@@ -20,7 +20,14 @@ public class InimigosDoCampoTestes(TempoRealFixture f) : IClassFixture<TempoReal
         using var _c = cliente;
 
         cliente.Enviar(MundoMessageIds.EntrarNaCidade, new EntrarNaCidade());
-        var area = await cliente.ReceberAsync<InimigosDaArea>(MobsMessageIds.InimigosDaArea);
+        var todos = await cliente.ReceberAsync<InimigosDaArea>(MobsMessageIds.InimigosDaArea);
+        // O chefe raro pode estar no campo (sorteio); aqui só vale o grupo de javalis.
+        var area = new InimigosDaArea
+        {
+            Inimigos = todos
+                .Inimigos.Where(i => i.CriaturaId == RegrasInimigo.CriaturaDaFatia)
+                .ToArray(),
+        };
 
         var javali = CatalogoCriaturas.Obter(RegrasInimigo.CriaturaDaFatia);
         Assert.InRange(

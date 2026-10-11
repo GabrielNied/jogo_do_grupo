@@ -66,6 +66,9 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate
     private readonly Func<long> _relogioMs;
     private readonly Inimigo[] _inimigos;
 
+    /// <summary>Só no chefe raro: decide quando ele aparece; nulo nas outras categorias.</summary>
+    private readonly AparicaoDeChefeRaro? _aparicao;
+
     /// <summary>Jogadores que o grupo viu e que continuam na área.</summary>
     private readonly HashSet<long> _vistos = [];
     private PassoDosInimigos _pendente = new();
@@ -101,6 +104,13 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate
         _proximoId = primeiroId;
         Area = area;
 
+        if (definicao.Categoria == CategoriaDeCriatura.ChefeRaro)
+        {
+            // Um chefe raro é um só e começa fora do mundo: quem o traz é o sorteio.
+            ArgumentOutOfRangeException.ThrowIfNotEqual(tamanho, 1);
+            _aparicao = new AparicaoDeChefeRaro(definicao, sorteador, Instante(_relogioMs()));
+        }
+
         _inimigos = new Inimigo[tamanho];
         for (var i = 0; i < tamanho; i++)
         {
@@ -109,6 +119,10 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate
                 pontoX + (Math.Sin(angulo) * ConfigInimigosDoCampo.RaioDoEspalhamentoMetros),
                 pontoZ + (Math.Cos(angulo) * ConfigInimigosDoCampo.RaioDoEspalhamentoMetros)
             );
+            if (_aparicao != null)
+            {
+                _inimigos[i].Estado = EstadoDeInimigo.Morto;
+            }
         }
     }
 
@@ -152,6 +166,18 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate
             for (var i = 0; i < _inimigos.Length; i++)
             {
                 var morto = _inimigos[i];
+                if (
+                    _aparicao != null
+                    && morto.Estado == EstadoDeInimigo.Morto
+                    && _aparicao.Atualizar(Instante(agora))
+                )
+                {
+                    var chefe = Criar(morto.OrigemX, morto.OrigemZ);
+                    _inimigos[i] = chefe;
+                    passo.Aparicoes.Add(new InimigoApareceu { Inimigo = Retrato(chefe) });
+                    continue;
+                }
+
                 if (
                     morto.Estado == EstadoDeInimigo.Morto
                     && morto.VoltaEmMs is { } volta
@@ -588,8 +614,16 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate
         inimigo.Alvo = RegrasInimigo.SemAlvo;
         inimigo.Preparando = false;
 
-        var intervalo = inimigo.Criatura.Definicao.IntervaloDeAparicaoSegundos;
-        inimigo.VoltaEmMs = intervalo > 0 ? _relogioMs() + (intervalo * 1000L) : null;
+        if (_aparicao != null)
+        {
+            // O chefe raro não volta por tempo fixo: a espera recomeça e o sorteio decide.
+            _aparicao.RegistrarMorte(Instante(_relogioMs()));
+        }
+        else
+        {
+            var intervalo = inimigo.Criatura.Definicao.IntervaloDeAparicaoSegundos;
+            inimigo.VoltaEmMs = intervalo > 0 ? _relogioMs() + (intervalo * 1000L) : null;
+        }
 
         _pendente.Mortes.Add(new InimigoMorreu { InimigoId = inimigo.Id });
         _pendente.Derrotas.Add(
@@ -699,6 +733,10 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate
     // O inimigo anda no plano; a altura é a do chão do ponto, a mesma que o client desenha.
     private static float Altura(Inimigo inimigo) =>
         MapaDoMundo.AlturaEm((float)inimigo.X, (float)inimigo.Z);
+
+    // O relógio do grupo é em ms; o controle do chefe raro usa instantes. Só a diferença importa.
+    private static DateTimeOffset Instante(long relogioMs) =>
+        DateTimeOffset.UnixEpoch.AddMilliseconds(relogioMs);
 
     private static long EmMs(double segundos) => (long)Math.Round(segundos * 1000.0);
 
