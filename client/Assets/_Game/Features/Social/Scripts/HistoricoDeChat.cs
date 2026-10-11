@@ -60,17 +60,26 @@ namespace JogoDoGrupo.Client.Features.Social
         /// As últimas <paramref name="quantidade"/> linhas que podem aparecer (sem as de nomes
         /// ignorados), da mais antiga para a mais nova.
         /// </summary>
-        public List<LinhaDeChat> Ultimas(int quantidade, ListaDeIgnorados ignorados)
+        public List<LinhaDeChat> Ultimas(int quantidade, ListaDeIgnorados ignorados) =>
+            Ultimas(quantidade, ignorados, null);
+
+        public List<LinhaDeChat> Ultimas(
+            int quantidade,
+            ListaDeIgnorados ignorados,
+            EstadoDeAmigos amigos
+        )
         {
             var resultado = new List<LinhaDeChat>();
             for (var i = _linhas.Count - 1; i >= 0 && resultado.Count < quantidade; i--)
             {
                 var linha = _linhas[i];
                 var escondida =
-                    ignorados != null
-                    && !linha.Propria
+                    !linha.Propria
                     && linha.Canal != CanalDaLinha.Sistema
-                    && ignorados.Contem(linha.Nome);
+                    && (
+                        (ignorados != null && ignorados.Contem(linha.Nome))
+                        || (amigos != null && amigos.Contem(linha.Nome))
+                    );
                 if (!escondida)
                 {
                     resultado.Add(linha);

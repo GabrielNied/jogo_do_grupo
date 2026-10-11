@@ -18,6 +18,8 @@ public sealed class AmigosDoServidor(
 )
 {
     private readonly Lock _trava = new();
+    private readonly Lock _travaDaCarga = new();
+    private volatile bool _carregado;
 
     private readonly Dictionary<long, Dictionary<long, long>> _amigos = [];
     private readonly Dictionary<long, Dictionary<long, string>> _nomesAmizade = [];
@@ -30,6 +32,10 @@ public sealed class AmigosDoServidor(
     private long _proximoPedidoId = 1;
     private long _proximoIgnoradoId = 1;
 
+    /// <summary>
+    /// Lê do banco amigos, pedidos e ignorados. Não precisa ser chamado na subida: o primeiro
+    /// uso carrega sozinho, depois que o banco já foi migrado.
+    /// </summary>
     public void Carregar()
     {
         using var escopo = escopos.CreateScope();
@@ -61,10 +67,29 @@ public sealed class AmigosDoServidor(
                 _proximoIgnoradoId = Math.Max(_proximoIgnoradoId, ign.IgnoradoId + 1);
             }
         }
+
+        _carregado = true;
+    }
+
+    private void GarantirCarregado()
+    {
+        if (_carregado)
+        {
+            return;
+        }
+
+        lock (_travaDaCarga)
+        {
+            if (!_carregado)
+            {
+                Carregar();
+            }
+        }
     }
 
     public void RegistrarOnline(long contaId, long personagemId)
     {
+        GarantirCarregado();
         if (!diretorio.TentarObterNome(personagemId, out var nome))
         {
             return;
@@ -84,6 +109,7 @@ public sealed class AmigosDoServidor(
 
     public void RemoverOnline(long contaId, long personagemId)
     {
+        GarantirCarregado();
         List<long> amigosConta;
         lock (_trava)
         {
@@ -123,6 +149,7 @@ public sealed class AmigosDoServidor(
 
     public void PedirAmizade(long dePersonagemId, string? nome)
     {
+        GarantirCarregado();
         if (!ContaDe(dePersonagemId, out var deConta))
         {
             return;
@@ -182,6 +209,7 @@ public sealed class AmigosDoServidor(
 
     public void ResponderPedido(long dePersonagemId, long pedidoId, bool aceitar)
     {
+        GarantirCarregado();
         if (!ContaDe(dePersonagemId, out var conta))
         {
             return;
@@ -218,6 +246,7 @@ public sealed class AmigosDoServidor(
 
     public void CancelarPedido(long dePersonagemId, long pedidoId)
     {
+        GarantirCarregado();
         if (!ContaDe(dePersonagemId, out var conta))
         {
             return;
@@ -238,6 +267,7 @@ public sealed class AmigosDoServidor(
 
     public void RemoverAmigo(long dePersonagemId, long amigoId)
     {
+        GarantirCarregado();
         if (!ContaDe(dePersonagemId, out var conta))
         {
             return;
@@ -262,6 +292,7 @@ public sealed class AmigosDoServidor(
 
     public void Ignorar(long dePersonagemId, string? nome)
     {
+        GarantirCarregado();
         if (!ContaDe(dePersonagemId, out var conta))
         {
             return;
@@ -320,6 +351,7 @@ public sealed class AmigosDoServidor(
 
     public void DeixarDeIgnorar(long dePersonagemId, long ignoradoId)
     {
+        GarantirCarregado();
         if (!ContaDe(dePersonagemId, out var conta))
         {
             return;
@@ -342,6 +374,7 @@ public sealed class AmigosDoServidor(
 
     public bool ContatoBarradoEntrePersonagens(long origemPersonagemId, long alvoPersonagemId)
     {
+        GarantirCarregado();
         if (
             !ContaDe(origemPersonagemId, out var origemConta)
             || !ContaDe(alvoPersonagemId, out var alvoConta)

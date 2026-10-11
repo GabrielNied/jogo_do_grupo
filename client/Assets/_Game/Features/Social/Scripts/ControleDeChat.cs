@@ -152,7 +152,11 @@ namespace JogoDoGrupo.Client.Features.Social
             _atividade.Registrar(Agora());
             var fuso = TimeZoneInfo.Local.GetUtcOffset(DateTimeOffset.UtcNow);
             _painel.Mostrar(
-                _servico.Historico.Ultimas(PainelDeChat.LinhasVisiveis, _servico.Ignorados),
+                _servico.Historico.Ultimas(
+                    PainelDeChat.LinhasVisiveis,
+                    _servico.Ignorados,
+                    _servico.Amigos
+                ),
                 fuso
             );
         }

@@ -130,7 +130,7 @@ public sealed class SocialModule : IFeatureModule
             escopos,
             () => TimeProvider.System.GetUtcNow().ToUnixTimeSeconds()
         );
-        _amigos.Carregar();
+        // Carrega do banco no primeiro uso: na subida o banco pode não estar migrado ainda.
         var grupos = new GruposDoServidor(
             _diretorio,
             saida,
