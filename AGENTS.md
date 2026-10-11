@@ -27,6 +27,8 @@ npm run unity:compilar               # compila o client contra as DLLs do Unity 
 npm run unity:recompilar             # compila no editor aberto (erros reais do Unity)
 npm run unity:testes                 # testes EditMode do client
 npm run unity:executar -- <Metodo>   # roda um script de editor em modo batch (editor fechado)
+npm run unity:editor                 # sai 1 se o editor do projeto está aberto (ignora o Hub)
+npm run unity:importar               # gera os .meta que faltam e fecha (editor fechado)
 npm run validar-branch -- <branch>   # confere nome de branch
 npm run tarefa -- listar             # lista tarefas livres e em andamento
 npm run tarefa -- puxar <N>          # puxa a tarefa para em andamento e cria a branch
@@ -66,6 +68,11 @@ Testes em `tests/` (xUnit; [ADR 0013](docs/decisoes/0013-testes-automatizados.md
     - Reaproveite padrões e ajudantes que já existem (ex.: `ServidorDeTeste`) em vez de criar outros.
 14. Cada informação mora em um documento só (tabela em [docs/README.md](docs/README.md#onde-cada-coisa-fica-fonte-única)). Não copie conteúdo entre docs; aponte com link.
 15. **Nunca trabalhe em tarefa já em andamento:** antes de alterar código, confira as tarefas abertas e puxe a tarefa para em andamento (`npm run tarefa -- puxar <N>`). Se a tarefa já estiver marcada com `em-andamento` ou `In Progress` por outra pessoa ou agente, pare e avise: não duplique trabalho. Se precisar pausar ou transferir a tarefa sem concluir, libere-a com `npm run tarefa -- liberar <N>`. Em orquestrações paralelas, cada agente atua em sua própria subtarefa/issue (`npm run tarefa -- subtarefa`). O PR sempre referencia a issue com `Closes #<N>`.
+16. **Gargalo ou melhoria de custo de IA: implemente na hora.** Se a tarefa mostrar um retrabalho que se repete (agente relançado, revisor em cima de teste que já existe, comando que falha e abre outra rodada, espera que um script resolve), corrija no mesmo PR ou num PR pequeno de processo. Não deixe só anotado.
+    - O corte é de consumo: menos agentes, menos releitura, menos ida e volta. A qualidade mínima continua: teste do que mudou, servidor autoritativo, CI e a regra 0.
+    - Não use isso para ampliar o jogo, trocar regra de design ou reescrever o que já funciona.
+    - Agente de funcionalidade que esbarrar nisso descreve o corte no relatório. O coordenador implementa antes de encerrar, se couber numa mudança pequena de skill, script ou doc de processo.
+    - Uma curiosidade ou um polimento visual não é gargalo. Gargalo é a mesma espera acontecendo de novo.
 
 ## Procedimentos (skills)
 

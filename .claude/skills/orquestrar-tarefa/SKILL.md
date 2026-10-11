@@ -45,7 +45,7 @@ Mostre à pessoa uma tabela e **espere o ok** antes de lançar qualquer agente:
 
 A etapa 3 só entra no plano quando o PR mexe em Core, segurança ou numa regra de dano, preço ou fusão que a doc ainda não fechou. ~~concorrência, contrato ou regra que decide resultado (dano, drop, fusão, preço)~~ substituído em 2026-10-11 por: recorte com os números já no contrato e com teste no próprio PR (mesmo um baú que sorteia item, mesmo corrida coberta por teste) não leva revisor. Arte, tela, conteúdo 3D e ligar um botão também não. O CI e a verificação do autor são a qualidade mínima.
 
-**Economize agentes:**
+**Economize agentes:** a regra 16 do `AGENTS.md` manda implementar o corte na hora, não só relatar.
 - Tarefa pequena e clara não precisa de `designer-docs`: as regras vão na ficha.
 - Mudanças de docs, `.meta` e configuração você faz direto, sem agente e sem revisor.
 - Os `.meta` e os materiais que o Unity gerar entram no mesmo PR. Quem abre o PR roda `npm run conferir-unity`. Não peça para a pessoa commitar isso depois do merge.
