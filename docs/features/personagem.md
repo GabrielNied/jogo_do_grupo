@@ -35,6 +35,8 @@ Decidido pelo grupo em 2026-10-10. É **provisório**: serve para implementar a 
 
 `XpParaOProximoNivel` arredonda para o inteiro mais próximo (empates para longe de zero), inclusive ao consultar o nível máximo; nesse nível, o custo é apenas informativo. `AplicarGanho` recebe nível, XP dentro do nível e ganho; devolve nível, XP restante e pontos ganhos nessa aplicação. Pode subir vários níveis e guarda o excedente no teto. Ganho zero ou negativo preserva o estado; nível fora da faixa e XP acumulado negativo são recusados. XP usa `long`; soma acima da capacidade é recusada, sem truncamento.
 
+`AplicarAjuste` existe só para o comando de teste `xp` ([Desenvolvimento](desenvolvimento.md)). A quantidade pode ser negativa: desce de nível, devolve a barra do nível anterior e tira `PontosPorNivel` dos pontos livres por nível perdido, sem passar de zero e sem desfazer pontos já gastos.
+
 Estas funções não concedem prêmios nem persistem dados. Integração com servidor, mensagens, barra de XP e prevenção de prêmio duplicado continuam na #65. O padrão para outros valores ajustáveis está nas [convenções](../convencoes.md#valores-de-balanceamento).
 
 ## Raças propostas no board (2026-10-11)

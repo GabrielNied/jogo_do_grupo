@@ -103,3 +103,9 @@
 # /server/src/JogoDoGrupo.Server/Features/Pvp/ @usuario
 # /shared/Package/Runtime/Features/Pvp/ @usuario
 # /docs/features/pvp.md @usuario
+
+# Desenvolvimento
+# /client/Assets/_Game/Features/Desenvolvimento/ @usuario
+# /server/src/JogoDoGrupo.Server/Features/Desenvolvimento/ @usuario
+# /shared/Package/Runtime/Features/Desenvolvimento/ @usuario
+# /docs/features/desenvolvimento.md @usuario

@@ -1,4 +1,5 @@
 using JogoDoGrupo.Server.Contratos.Combate;
+using JogoDoGrupo.Server.Contratos.Mobs;
 using JogoDoGrupo.Server.Contratos.Mundo;
 using JogoDoGrupo.Server.Core;
 using JogoDoGrupo.Server.Core.Eventos;
@@ -60,6 +61,7 @@ public sealed class MobsModule : IFeatureModule
             return servico;
         });
         servicos.AddHostedService(sp => sp.GetRequiredService<ServicoDeInimigos>());
+        servicos.AddSingleton<ISpawnDeTeste>(sp => sp.GetRequiredService<ServicoDeInimigos>());
     }
 
     public void Inicializar(ServerContext contexto) =>

@@ -29,6 +29,10 @@ public sealed class MundoModule : IFeatureModule
     {
         _permitirVelocidadeDeTeste = configuracao.GetValue<bool>(ChavePermitirVelocidadeDeTeste);
         servicos.AddSingleton<IPosicoesDoMundo>(new PosicoesDaCidade(_cidade));
+        servicos.AddSingleton<ITeleporteDeTeste>(sp => new TeleporteDeTeste(
+            _cidade,
+            sp.GetRequiredService<ServidorTempoReal>()
+        ));
         servicos.AddSingleton<IDeslocamentosDoMundo>(new DeslocamentosDaCidade(_cidade));
         servicos.AddSingleton(sp => new RelogioDoMundo(sp.GetRequiredService<TimeProvider>()));
         servicos.AddSingleton(sp =>

@@ -34,6 +34,7 @@ export const escopos = [
   "instancias",
   "social",
   "pvp",
+  "desenvolvimento",
 ];
 
 export default {

@@ -19,3 +19,4 @@ Cada funcionalidade tem um responsável, que revisa os PRs das pastas dela. Depo
 | Dungeons e raids | | `Features/Instancias/` |
 | Social | | `Features/Social/` |
 | PvP | | `Features/Pvp/` |
+| Desenvolvimento | | `Features/Desenvolvimento/` |

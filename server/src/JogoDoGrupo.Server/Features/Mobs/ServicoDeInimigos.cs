@@ -1,3 +1,4 @@
+using JogoDoGrupo.Server.Contratos.Mobs;
 using JogoDoGrupo.Server.Contratos.Mundo;
 using JogoDoGrupo.Server.Core.Eventos;
 using JogoDoGrupo.Server.Core.TempoReal;
@@ -17,7 +18,7 @@ public sealed class ServicoDeInimigos(
     IPosicoesDoMundo posicoes,
     EventosDoServidor eventos,
     ILogger<ServicoDeInimigos> log
-) : BackgroundService
+) : BackgroundService, ISpawnDeTeste
 {
     protected override async Task ExecuteAsync(CancellationToken parada)
     {
@@ -107,6 +108,48 @@ public sealed class ServicoDeInimigos(
         {
             Publicar(derrota);
         }
+    }
+
+    /// <summary>A que distância, no eixo X, o spawn de teste nasce do personagem.</summary>
+    public const double DistanciaDoSpawnDeTeste = 2;
+
+    /// <summary>
+    /// Põe um inimigo a mais no maior grupo da área do personagem (o comum, não o chefe raro
+    /// de um só) e avisa quem está na área.
+    /// </summary>
+    public (bool Aceito, string Texto) SpawnarPerto(long personagemId)
+    {
+        if (!posicoes.TentarObter(personagemId, out var posicao))
+        {
+            return (false, "Você não está no mundo.");
+        }
+
+        var grupo = grupos
+            .Where(g => g.Area == posicao.Area)
+            .OrderByDescending(g => g.Tamanho)
+            .FirstOrDefault();
+        if (grupo == null)
+        {
+            return (false, "Não há inimigos nesta área.");
+        }
+
+        var inimigo = grupo.ForcarAparicao(posicao.X + DistanciaDoSpawnDeTeste, posicao.Z);
+        if (inimigo == null)
+        {
+            return (false, "Limite de spawn de teste.");
+        }
+
+        var mensagem = new InimigoApareceu { Inimigo = inimigo };
+        var presentes = posicoes.PersonagensNaArea(posicao.Area).ToHashSet();
+        foreach (var sessao in tempoReal.Sessoes)
+        {
+            if (presentes.Contains(sessao.PersonagemId))
+            {
+                tempoReal.Enviar(sessao, MobsMessageIds.InimigoApareceu, mensagem);
+            }
+        }
+
+        return (true, "Inimigo spawnado.");
     }
 
     /// <summary>Quem entra na área do grupo recebe os inimigos vivos (laço de rede).</summary>

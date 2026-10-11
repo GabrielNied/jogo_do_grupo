@@ -31,6 +31,9 @@ public sealed class PersonagemModule : IFeatureModule
         servicos.AddSingleton<IPontosDistribuidos>(sp =>
             sp.GetRequiredService<ExperienciaDoPersonagem>()
         );
+        servicos.AddSingleton<IAjusteDeExperienciaDeTeste>(sp =>
+            sp.GetRequiredService<ExperienciaDoPersonagem>()
+        );
         servicos.AddHostedService<IniciarExperiencia>();
     }
 
