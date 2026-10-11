@@ -83,13 +83,13 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
         public static Ambiente Padrao =>
             new Ambiente
             {
-                Ceu = new Color(0.62f, 0.72f, 0.85f),
-                Horizonte = new Color(0.56f, 0.58f, 0.55f),
-                Solo = new Color(0.4f, 0.37f, 0.32f),
+                Ceu = new Color(0.76f, 0.83f, 0.94f),
+                Horizonte = new Color(0.72f, 0.7f, 0.66f),
+                Solo = new Color(0.56f, 0.5f, 0.42f),
                 Nevoa = new Color(0.66f, 0.76f, 0.86f),
                 Densidade = 0.0016f,
                 Sol = new Color(1f, 0.96f, 0.86f),
-                ForcaDoSol = 1.05f,
+                ForcaDoSol = 1.2f,
                 Efeito = EfeitoDoClima.Nenhum,
             };
 
@@ -126,8 +126,8 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
                     return new Ambiente
                     {
                         Ceu = new Color(0.36f, 0.22f, 0.2f),
-                        Horizonte = new Color(0.42f, 0.22f, 0.14f),
-                        Solo = new Color(0.5f, 0.2f, 0.08f),
+                        Horizonte = new Color(0.48f, 0.26f, 0.18f),
+                        Solo = new Color(0.55f, 0.24f, 0.12f),
                         Nevoa = new Color(0.3f, 0.15f, 0.12f),
                         Densidade = 0.0045f,
                         Sol = new Color(1f, 0.62f, 0.42f),
@@ -138,8 +138,8 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
                     return new Ambiente
                     {
                         Ceu = new Color(0.42f, 0.5f, 0.42f),
-                        Horizonte = new Color(0.36f, 0.42f, 0.34f),
-                        Solo = new Color(0.26f, 0.3f, 0.23f),
+                        Horizonte = new Color(0.42f, 0.48f, 0.4f),
+                        Solo = new Color(0.32f, 0.36f, 0.28f),
                         Nevoa = new Color(0.44f, 0.52f, 0.42f),
                         Densidade = 0.011f,
                         Sol = new Color(0.82f, 0.9f, 0.74f),
