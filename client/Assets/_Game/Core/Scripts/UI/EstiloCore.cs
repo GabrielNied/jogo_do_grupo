@@ -21,8 +21,14 @@ namespace JogoDoGrupo.Client.Core.UI
         /// <summary>Raiz de cada tela: ocupa a tela inteira e centraliza o conteúdo (o Core aplica).</summary>
         public const string Tela = "tela";
 
+        /// <summary>Como <see cref="Tela"/>, com véu escuro para um painel aberto por cima do jogo.</summary>
+        public const string TelaSobreJogo = "tela-sobre-jogo";
+
         /// <summary>Caixa central com fundo, para formulários e listas.</summary>
         public const string Painel = "painel";
+
+        /// <summary>Painel mais largo, para lista (use junto com <see cref="Painel"/>).</summary>
+        public const string PainelLargo = "painel-largo";
 
         /// <summary>Texto grande de título.</summary>
         public const string Titulo = "titulo";
@@ -32,6 +38,12 @@ namespace JogoDoGrupo.Client.Core.UI
 
         /// <summary>Texto comum, com quebra de linha.</summary>
         public const string Texto = "texto";
+
+        /// <summary>Linha de item ganho (use junto com <see cref="Texto"/>).</summary>
+        public const string TextoGanho = "texto-ganho";
+
+        /// <summary>Linha dentro de uma <see cref="Lista"/>.</summary>
+        public const string LinhaLista = "linha-lista";
 
         /// <summary>Campo de formulário (ex.: <c>TextField</c>), com o rótulo acima.</summary>
         public const string Campo = "campo";
@@ -59,5 +71,11 @@ namespace JogoDoGrupo.Client.Core.UI
 
         /// <summary>Parte preenchida da barra de carregamento (largura em porcentagem).</summary>
         public const string BarraCarregamentoPreenchimento = "barra-carregamento-preenchimento";
+
+        /// <summary>Área rolável de linhas (inventário, lista longa).</summary>
+        public const string Lista = "lista";
+
+        /// <summary>Texto de ação no pé da tela, por cima do jogo (ex.: "E: abrir o baú").</summary>
+        public const string Dica = "dica";
     }
 }
