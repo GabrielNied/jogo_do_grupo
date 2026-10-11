@@ -98,7 +98,7 @@ Esquiva (tempo real; regras e números em [fatia-jogavel.md](fatia-jogavel.md), 
 ### Golpe de inimigo tira vida (#278)
 
 - Combate, dono da vida, assina `GolpeDeInimigoAcertou` (`Contratos/Mobs/`, ADR 0016). Mobs decide quem estava no círculo; um evento por personagem atingido.
-- A vida cai em `Dano` (sem defesa por enquanto; a conta fica em `ServicoDeDanoRecebido.DanoFinal`, onde a defesa entra depois), **nunca abaixo de 0**, e o dono recebe `RecursosMudaram` (só ele). A morte e o renascimento são a #125: em 0 a vida só para.
+- A vida cai em `Dano` (sem defesa por enquanto; a conta fica em `ServicoDeDanoRecebido.DanoFinal`, onde a defesa entra depois), **nunca abaixo de 0**, e o dono recebe `RecursosMudaram` (só ele). Vida 0 leva ao estado caído ([abaixo](#estado-caído-no-servidor-125)); quem já está caído não recebe dano (o golpe é ignorado).
 - O assinante não bloqueia (o evento sai do laço de IA de Mobs): o banco roda numa tarefa, na mesma transação dos outros recursos, então golpes simultâneos no mesmo personagem somam. Personagem sem recursos criados começa da vida cheia; um que não existe só registra erro no log.
 
 ### Esquiva no servidor (#233)
@@ -109,3 +109,24 @@ Esquiva (tempo real; regras e números em [fatia-jogavel.md](fatia-jogavel.md), 
 - **Ataque e esquiva não valem ao mesmo tempo:** a esquiva é recusada durante um ataque (do começo ao fim da recuperação) e durante outra esquiva; o ataque pedido durante a esquiva é recusado com `AcaoEmAndamento`, sem entrar na fila. De dois pedidos no mesmo instante, um vale. A esquiva **não cancela** o preparo de um ataque (proposta; a pergunta segue aberta na #62).
 - Direção inválida ou esquiva de quem ainda não entrou no mundo: o pedido é descartado sem resposta, como no ataque.
 - Parede: o servidor ainda não conhece a geometria; valida distância, velocidade e os limites do mundo. Colisão com parede fica no client até o servidor ter o mapa.
+
+### Estado caído no servidor (#125, subtarefa #423)
+
+Combate é o dono do estado caído (decidido em 2026-10-11). As regras e os casos de borda estão em [personagem.md](personagem.md#morte-e-caído-issue-97) e em [fatia-jogavel.md](fatia-jogavel.md) (seção 7); aqui só o contrato e o que o servidor faz.
+
+| ID | Nome | Direção | Campos |
+|---|---|---|---|
+| 6020 | `ComecarALevantar` | client → servidor | `AlvoId` |
+| 6021 | `CancelarLevantar` | client → servidor | (vazio) |
+| 6022 | `VoltarParaACidade` | client → servidor | (vazio) |
+| 6023 | `EstadoDeQueda` | servidor → caído, ajudante e quem está na área | `PersonagemId`, `Estado` (`FaseDeQueda`: `Vivo`=0, `Caido`=1, `Levantando`=2, `Retorno`=3), `SegundosRestantes`, `AjudanteId`, `ProgressoMs` |
+| 6024 | `AcaoRecusada` | servidor → quem pediu | `Codigo`: `VoceEstaCaido`, `AlvoNaoEstaCaido`, `LongeDemais`, `JaEstaSendoLevantado`, `NaoEstaCaido`, `AindaNaoPodeVoltar` |
+
+- **Números** em `RegrasQueda` (shared): 45 s caído, 3 s para levantar, 20% da vida, 2 m (2,0 vale), 5 s até poder voltar. O servidor lê os tempos de `ConfigQueda` (padrão = `RegrasQueda`; os testes de integração usam tempos curtos).
+- **Quando cai:** vida 0 depois de um golpe de inimigo. `EstadoDeQueda` com `Caido` vai ao dono, ao grupo e à área; `PersonagemCaiu` é publicado em `Contratos/Combate/`.
+- **Levantar:** `Levantando` com `AjudanteId` e `ProgressoMs`; ao completar, `Vivo` com 20% da vida (vigor e energia como estavam), `RecursosMudaram` ao dono e o evento `PersonagemLevantou`. O servidor confere o alcance a cada 100 ms: sair dos 2 m, soltar, levar dano, cair, atacar, esquivar ou desconectar interrompem e zeram o progresso (volta `Caido`).
+- **Voltar à cidade:** fim dos 45 s ou `VoltarParaACidade` (depois de 5 s). Vida, vigor e energia vão ao máximo, `Retorno` é enviado e o evento `PersonagemVoltouParaACidade` é publicado: **quem leva o personagem ao ponto de nascimento é o Mundo** (ainda não assina o evento; veja abaixo). Nada de item, XP, moeda ou nível muda.
+- **Uma saída por queda:** levantar, fim do tempo e voltar disputam a mesma trava (`ControleDeQueda`); a primeira que vence ganha e as outras viram `NaoEstaCaido` ou `AlvoNaoEstaCaido`. Se a interação termina no mesmo ms do fim do tempo, levantar vence.
+- **Contagem não para** enquanto alguém levanta, e **não há** os 2 s sem dano depois de levantar (os dois seguem em aberto em [personagem.md](personagem.md#em-aberto)).
+- **Para outras funcionalidades (ADR 0016):** `IEstadoDeQueda.EstaCaido(id)` (Mobs deve ignorar quem está caído: não atacar nem contar como alvo) e os eventos `PersonagemCaiu`, `PersonagemLevantou` e `PersonagemVoltouParaACidade`, em `server/.../Contratos/Combate/`.
+- **Pendências de outras funcionalidades:** Social ainda não expõe o grupo em `Contratos/` (hoje qualquer jogador vivo a até 2 m levanta e o aviso vai a toda a área; TODO em `ServicoDeQueda`); Mundo ainda não assina `PersonagemVoltouParaACidade` para mover ao nascimento; Mobs ainda não consulta `IEstadoDeQueda`.

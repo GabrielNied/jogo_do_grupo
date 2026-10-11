@@ -7,7 +7,7 @@ namespace JogoDoGrupo.Server.Features.Combate;
 /// <summary>
 /// O dano que o personagem recebe de fora de Combate. Hoje só o golpe de inimigo: Mobs decide
 /// quem estava no círculo e publica <see cref="GolpeDeInimigoAcertou"/>; aqui, como dono da vida,
-/// se decide quanto o golpe tira. A morte do jogador não é tratada aqui: a vida só para em 0.
+/// se decide quanto o golpe tira. Vida 0 vira o estado caído em <see cref="ServicoDeQueda"/>; quem já está caído não leva dano.
 /// <para>
 /// O evento sai do laço de IA de Mobs e o manipulador não bloqueia: o banco roda numa tarefa,
 /// e o aviso ao dono sai pelo <see cref="ServidorTempoReal"/> (seguro para qualquer thread).
@@ -19,15 +19,18 @@ public sealed class ServicoDeDanoRecebido : IHostedService
     private readonly IServiceScopeFactory _escopos;
     private readonly TimeProvider _relogio;
     private readonly ILogger<ServicoDeDanoRecebido> _log;
+    private readonly ServicoDeQueda? _queda;
     private readonly CancellationTokenSource _parada = new();
 
     public ServicoDeDanoRecebido(
         ServidorTempoReal tempoReal,
         IServiceScopeFactory escopos,
         TimeProvider relogio,
-        ILogger<ServicoDeDanoRecebido> log
+        ILogger<ServicoDeDanoRecebido> log,
+        ServicoDeQueda? queda = null
     )
     {
+        _queda = queda;
         _tempoReal = tempoReal;
         _escopos = escopos;
         _relogio = relogio;
@@ -66,6 +69,12 @@ public sealed class ServicoDeDanoRecebido : IHostedService
                 return;
             }
 
+            // Quem está caído não recebe dano.
+            if (_queda?.EstaCaido(golpe.PersonagemId) == true)
+            {
+                return;
+            }
+
             var recursos = await RecursosDoAtaque.TirarVidaAsync(
                 _escopos,
                 _relogio,
@@ -81,6 +90,9 @@ public sealed class ServicoDeDanoRecebido : IHostedService
             {
                 _tempoReal.Enviar(sessao, CombateMessageIds.RecursosMudaram, recursos);
             }
+
+            // Vida 0 leva a caído; vida acima de 0 interrompe quem este personagem levantava.
+            _queda?.AoDano(golpe.PersonagemId, recursos.VidaAtual);
         }
         catch (OperationCanceledException) { }
         catch (Exception e)

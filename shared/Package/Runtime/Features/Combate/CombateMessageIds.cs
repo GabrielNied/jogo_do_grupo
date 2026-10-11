@@ -30,5 +30,20 @@ namespace JogoDoGrupo.Shared.Features.Combate
 
         /// <summary>Servidor → quem está na área: um personagem começou a esquivar.</summary>
         public const ushort EsquivaIniciada = 6012;
+
+        /// <summary>Client → servidor: o ajudante começa a levantar um aliado caído.</summary>
+        public const ushort ComecarALevantar = 6020;
+
+        /// <summary>Client → servidor: o ajudante soltou a interação.</summary>
+        public const ushort CancelarLevantar = 6021;
+
+        /// <summary>Client → servidor: o caído pede para voltar à cidade.</summary>
+        public const ushort VoltarParaACidade = 6022;
+
+        /// <summary>Servidor → caído, ajudante e quem está na área: o estado de queda mudou.</summary>
+        public const ushort EstadoDeQueda = 6023;
+
+        /// <summary>Servidor → quem pediu: o pedido do estado caído foi recusado.</summary>
+        public const ushort AcaoRecusada = 6024;
     }
 }
