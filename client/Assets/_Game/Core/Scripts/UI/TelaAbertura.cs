@@ -1,3 +1,4 @@
+using JogoDoGrupo.Client.Core.Contas;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -5,7 +6,7 @@ namespace JogoDoGrupo.Client.Core.UI
 {
     /// <summary>
     /// Abertura/carregamento: nome do jogo e uma barra curta de carregamento; ao terminar,
-    /// abre o login.
+    /// abre o login, ou a tela após o login se a sessão gravada ainda valer.
     /// </summary>
     internal sealed class TelaAbertura : Tela
     {
@@ -59,7 +60,14 @@ namespace JogoDoGrupo.Client.Core.UI
             if (progresso >= 1f)
             {
                 _atualizacao.Pause();
-                Navegacao.Abrir(TelasCore.Login);
+                if (Sessao.Ativa)
+                {
+                    Navegacao.AbrirTelaAposLogin();
+                }
+                else
+                {
+                    Navegacao.Abrir(TelasCore.Login);
+                }
             }
         }
     }

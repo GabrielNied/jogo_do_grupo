@@ -5,11 +5,15 @@ using UnityEngine;
 namespace JogoDoGrupo.Client.Core.Contas
 {
     /// <summary>
-    /// Sessão da conta logada: token JWT e expiração, só em memória (some ao fechar o jogo).
-    /// O <see cref="Api.ClienteApi"/> envia o token nas rotas protegidas.
+    /// Sessão da conta logada: token JWT e expiração. Fica em memória e também gravada neste
+    /// computador, para o próximo Play entrar direto até o token expirar ou a pessoa sair.
+    /// Não grava a senha. O <see cref="Api.ClienteApi"/> envia o token nas rotas protegidas.
     /// </summary>
     public static class Sessao
     {
+        private const string ChaveToken = "jogodogrupo.sessao.token";
+        private const string ChaveExpira = "jogodogrupo.sessao.expira";
+
         /// <summary>Token JWT da conta, ou <c>null</c> sem sessão.</summary>
         public static string Token { get; private set; }
 
@@ -37,10 +41,46 @@ namespace JogoDoGrupo.Client.Core.Contas
 
             Token = resposta.Token;
             ExpiraEm = DateTimeOffset.FromUnixTimeSeconds(resposta.ExpiraEmUnix);
+            Gravar();
         }
 
-        /// <summary>Apaga o token (ex.: "Sair"). Não dispara <see cref="Expirou"/>.</summary>
+        /// <summary>
+        /// Traz de volta o token gravado, se ainda não expirou. Chamado na abertura do jogo.
+        /// Token vencido é apagado.
+        /// </summary>
+        public static void Restaurar()
+        {
+            if (Ativa)
+            {
+                return;
+            }
+
+            var token = PlayerPrefs.GetString(ChaveToken, "");
+            var textoExpira = PlayerPrefs.GetString(ChaveExpira, "");
+            if (string.IsNullOrEmpty(token) || !long.TryParse(textoExpira, out var unix))
+            {
+                return;
+            }
+
+            Token = token;
+            ExpiraEm = DateTimeOffset.FromUnixTimeSeconds(unix);
+            if (!Ativa)
+            {
+                Encerrar();
+            }
+        }
+
+        /// <summary>Apaga o token da memória e do computador (ex.: "Sair"). Não dispara <see cref="Expirou"/>.</summary>
         public static void Encerrar()
+        {
+            EsquecerMemoria();
+            PlayerPrefs.DeleteKey(ChaveToken);
+            PlayerPrefs.DeleteKey(ChaveExpira);
+            PlayerPrefs.Save();
+        }
+
+        /// <summary>Limpa só a memória. O login gravado continua, para o próximo Play.</summary>
+        internal static void EsquecerMemoria()
         {
             Token = null;
             ExpiraEm = DateTimeOffset.MinValue;
@@ -70,8 +110,15 @@ namespace JogoDoGrupo.Client.Core.Contas
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void Reiniciar()
         {
-            Encerrar();
+            EsquecerMemoria();
             Expirou = null;
+        }
+
+        private static void Gravar()
+        {
+            PlayerPrefs.SetString(ChaveToken, Token ?? "");
+            PlayerPrefs.SetString(ChaveExpira, ExpiraEm.ToUnixTimeSeconds().ToString());
+            PlayerPrefs.Save();
         }
     }
 }

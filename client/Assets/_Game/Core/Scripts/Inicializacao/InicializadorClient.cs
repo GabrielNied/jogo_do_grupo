@@ -28,6 +28,7 @@ namespace JogoDoGrupo.Client.Core.Inicializacao
             Navegacao.Registrar(TelasCore.SemTelaAposLogin, () => new TelaSemTelaAposLogin());
 
             Navegacao.Inicializar(CriarInterface());
+            Sessao.Restaurar();
             Sessao.Expirou += AoExpirarSessao;
 
             Navegacao.Abrir(TelasCore.Abertura);
