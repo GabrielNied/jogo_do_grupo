@@ -1,5 +1,7 @@
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
+using JogoDoGrupo.Shared.Core.Contas;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 
@@ -36,6 +38,34 @@ public sealed class ServidorDeTeste : WebApplicationFactory<Program>
     {
         var letras = Guid.NewGuid().ToString("N").Select(c => (char)('a' + c % 26)).Take(10);
         return prefixo + new string(letras.ToArray());
+    }
+
+    /// <summary>
+    /// Registra uma conta nova (usuário único) e devolve um cliente já logado, com o token no
+    /// header <c>Authorization</c>. Use para testar rotas que exigem login.
+    /// </summary>
+    public async Task<HttpClient> CriarClienteLogadoAsync(string senha = "senha-segura")
+    {
+        var cliente = CreateClient();
+        var usuario = NomeUnico("U");
+        var registro = await PostJsonAsync(
+            cliente,
+            RotasContas.Registrar,
+            new RegistrarContaRequest { Usuario = usuario, Senha = senha }
+        );
+        registro.EnsureSuccessStatusCode();
+        var login = await PostJsonAsync(
+            cliente,
+            RotasContas.Login,
+            new LoginRequest { Usuario = usuario, Senha = senha }
+        );
+        login.EnsureSuccessStatusCode();
+        var token = (await LerJsonAsync<LoginResponse>(login)).Token;
+        cliente.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+            "Bearer",
+            token
+        );
+        return cliente;
     }
 
     public static Task<HttpResponseMessage> PostJsonAsync<T>(
