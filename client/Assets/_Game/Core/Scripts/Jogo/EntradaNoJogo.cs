@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using JogoDoGrupo.Client.Core.Jogo.Controle;
+using JogoDoGrupo.Client.Core.TempoReal;
 using JogoDoGrupo.Client.Core.UI;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -132,6 +133,8 @@ namespace JogoDoGrupo.Client.Core.Jogo
             }
 
             NoJogo = false;
+            // Fora do mundo não há presença: fecha o tempo real (no-op se já estava fechado).
+            ConexaoTempoReal.Desconectar();
             PersonagemId = 0;
             Jogador = null;
 
