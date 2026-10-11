@@ -6,6 +6,17 @@ using UnityEngine.Rendering;
 
 namespace JogoDoGrupo.Client.Features.Mundo.Terreno
 {
+    /// <summary>Efeito visual leve de um bioma. Não muda regra nenhuma.</summary>
+    public enum EfeitoDoClima
+    {
+        Nenhum = 0,
+        Poeira = 1,
+        NeveCaindo = 2,
+        Brasa = 3,
+        NevoaRasteira = 4,
+        Vagalume = 5,
+    }
+
     /// <summary>Luz e névoa de um lugar do mundo.</summary>
     public struct Ambiente
     {
@@ -30,6 +41,9 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
         /// <summary>Força do sol.</summary>
         public float ForcaDoSol;
 
+        /// <summary>Efeito visual leve deste lugar. Nenhum nos biomas sem clima visual.</summary>
+        public EfeitoDoClima Efeito;
+
         /// <summary>Mistura dois ambientes: 0 dá <paramref name="a"/>, 1 dá <paramref name="b"/>.</summary>
         public static Ambiente Entre(Ambiente a, Ambiente b, float t)
         {
@@ -42,6 +56,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
                 Densidade = Mathf.Lerp(a.Densidade, b.Densidade, t),
                 Sol = Color.Lerp(a.Sol, b.Sol, t),
                 ForcaDoSol = Mathf.Lerp(a.ForcaDoSol, b.ForcaDoSol, t),
+                Efeito = t < 0.5f ? a.Efeito : b.Efeito,
             };
         }
     }
@@ -61,6 +76,8 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
         private Light _preenchimento;
         private Ambiente _atual;
         private bool _aplicado;
+        private ParticleSystem _particulas;
+        private EfeitoDoClima _efeitoAtual = EfeitoDoClima.Nenhum;
 
         /// <summary>Ambiente em volta da cidade (campo, mata e colinas): o que o jogo já tinha.</summary>
         public static Ambiente Padrao =>
@@ -70,9 +87,10 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
                 Horizonte = new Color(0.56f, 0.58f, 0.55f),
                 Solo = new Color(0.4f, 0.37f, 0.32f),
                 Nevoa = new Color(0.66f, 0.76f, 0.86f),
-                Densidade = 0.003f,
+                Densidade = 0.0016f,
                 Sol = new Color(1f, 0.96f, 0.86f),
                 ForcaDoSol = 1.05f,
+                Efeito = EfeitoDoClima.Nenhum,
             };
 
         /// <summary>Ambiente de <paramref name="bioma"/> quando só ele existe no lugar.</summary>
@@ -87,9 +105,10 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
                         Horizonte = new Color(0.66f, 0.58f, 0.44f),
                         Solo = new Color(0.46f, 0.38f, 0.26f),
                         Nevoa = new Color(0.88f, 0.78f, 0.6f),
-                        Densidade = 0.0032f,
+                        Densidade = 0.0024f,
                         Sol = new Color(1f, 0.9f, 0.7f),
                         ForcaDoSol = 1.2f,
+                        Efeito = EfeitoDoClima.Poeira,
                     };
                 case Bioma.Neve:
                     return new Ambiente
@@ -98,9 +117,10 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
                         Horizonte = new Color(0.62f, 0.68f, 0.76f),
                         Solo = new Color(0.5f, 0.54f, 0.6f),
                         Nevoa = new Color(0.86f, 0.9f, 0.95f),
-                        Densidade = 0.0038f,
+                        Densidade = 0.007f,
                         Sol = new Color(0.9f, 0.95f, 1f),
                         ForcaDoSol = 0.95f,
+                        Efeito = EfeitoDoClima.NeveCaindo,
                     };
                 case Bioma.Lava:
                     return new Ambiente
@@ -112,6 +132,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
                         Densidade = 0.0045f,
                         Sol = new Color(1f, 0.62f, 0.42f),
                         ForcaDoSol = 0.7f,
+                        Efeito = EfeitoDoClima.Brasa,
                     };
                 case Bioma.Pantano:
                     return new Ambiente
@@ -120,9 +141,10 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
                         Horizonte = new Color(0.36f, 0.42f, 0.34f),
                         Solo = new Color(0.26f, 0.3f, 0.23f),
                         Nevoa = new Color(0.44f, 0.52f, 0.42f),
-                        Densidade = 0.0065f,
+                        Densidade = 0.011f,
                         Sol = new Color(0.82f, 0.9f, 0.74f),
                         ForcaDoSol = 0.75f,
+                        Efeito = EfeitoDoClima.NevoaRasteira,
                     };
                 default:
                     return Padrao;
@@ -148,10 +170,42 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
             return Ambiente.Entre(resultado, deFora, Mathf.Clamp01(fora));
         }
 
-        /// <summary>Ambiente em (<paramref name="x"/>, <paramref name="z"/>).</summary>
+        /// <summary>
+        /// Hora do dia, de 0 a 24. O ciclo (#163) ainda não existe: fica em meio-dia até ele
+        /// escrever aqui. Noite é das 20h às 5h.
+        /// </summary>
+        public static float Hora = 12f;
+
+        /// <summary>Se <paramref name="hora"/> cai na noite.</summary>
+        public static bool EhNoite(float hora) => hora >= 20f || hora < 5f;
+
+        /// <summary>
+        /// Escurece o céu e o sol quando é noite. A névoa mantém a cor do bioma.
+        /// </summary>
+        public static Ambiente ComHora(Ambiente ambiente, float hora)
+        {
+            if (!EhNoite(hora))
+            {
+                return ambiente;
+            }
+
+            ambiente.Ceu = Color.Lerp(ambiente.Ceu, Color.black, 0.72f);
+            ambiente.Horizonte = Color.Lerp(ambiente.Horizonte, Color.black, 0.55f);
+            ambiente.Sol = Color.Lerp(ambiente.Sol, new Color(0.55f, 0.62f, 0.8f), 0.7f);
+            ambiente.ForcaDoSol *= 0.15f;
+            return ambiente;
+        }
+
+        /// <summary>Ambiente em (<paramref name="x"/>, <paramref name="z"/>), na <see cref="Hora"/> atual.</summary>
         public static Ambiente Em(float x, float z)
         {
-            return Misturar(MapaDoMundo.PesosEm(x, z));
+            var ambiente = ComHora(Misturar(MapaDoMundo.PesosEm(x, z)), Hora);
+            if (MapaDoMundo.BiomaEm(x, z) == Bioma.Mata && EhNoite(Hora))
+            {
+                ambiente.Efeito = EfeitoDoClima.Vagalume;
+            }
+
+            return ambiente;
         }
 
         /// <summary>Cor da luz de preenchimento: a do céu, com um pouco da cor do sol.</summary>
@@ -232,13 +286,72 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
                 : destino;
             _aplicado = true;
             Aplicar(_atual, _sol, _preenchimento);
+            AplicarEfeito(_atual.Efeito, posicao);
 
-            // A cena do mundo não tem céu próprio: o fundo da câmera acompanha a névoa, para o
-            // horizonte não ficar de outra cor.
+            // O fundo da câmera é o céu do bioma. A névoa, mais à frente, esconde o fim do alcance.
             var camera = Camera.main;
             if (camera != null)
             {
-                camera.backgroundColor = _atual.Nevoa;
+                camera.backgroundColor = _atual.Ceu;
+            }
+        }
+
+        private void AplicarEfeito(EfeitoDoClima efeito, Vector3 posicao)
+        {
+            if (_particulas == null)
+            {
+                var objeto = new GameObject("EfeitoDoClima");
+                objeto.transform.SetParent(transform, false);
+                _particulas = objeto.AddComponent<ParticleSystem>();
+                var principal = _particulas.main;
+                principal.loop = true;
+                principal.playOnAwake = false;
+                principal.maxParticles = 40;
+                principal.simulationSpace = ParticleSystemSimulationSpace.World;
+                principal.startLifetime = 3f;
+                var emissao = _particulas.emission;
+                emissao.rateOverTime = 8f;
+                var forma = _particulas.shape;
+                forma.shapeType = ParticleSystemShapeType.Sphere;
+                forma.radius = 8f;
+            }
+
+            _particulas.transform.position = posicao + Vector3.up * 2f;
+            if (efeito == _efeitoAtual)
+            {
+                return;
+            }
+
+            _efeitoAtual = efeito;
+            var ligar = _particulas.emission;
+            ligar.enabled = efeito != EfeitoDoClima.Nenhum;
+            if (efeito == EfeitoDoClima.Nenhum)
+            {
+                _particulas.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+                return;
+            }
+
+            var modulo = _particulas.main;
+            modulo.startColor = CorDoEfeito(efeito);
+            modulo.startSpeed = efeito == EfeitoDoClima.NeveCaindo ? 1.5f : 0.4f;
+            modulo.gravityModifier = efeito == EfeitoDoClima.Brasa ? -0.3f : 0.2f;
+            _particulas.Play();
+        }
+
+        private static Color CorDoEfeito(EfeitoDoClima efeito)
+        {
+            switch (efeito)
+            {
+                case EfeitoDoClima.Poeira:
+                    return new Color(0.85f, 0.72f, 0.45f);
+                case EfeitoDoClima.NeveCaindo:
+                    return Color.white;
+                case EfeitoDoClima.Brasa:
+                    return new Color(1f, 0.4f, 0.1f);
+                case EfeitoDoClima.NevoaRasteira:
+                    return new Color(0.55f, 0.65f, 0.5f);
+                default:
+                    return new Color(0.8f, 1f, 0.4f);
             }
         }
 

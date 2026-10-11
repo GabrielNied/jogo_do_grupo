@@ -517,5 +517,37 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
             var sol = _hub.transform.Find(ConstrutorHub.NomeLuz).GetComponent<Light>();
             Assert.AreEqual(esperado.ForcaDoSol, sol.intensity, 1e-4f);
         }
+
+        [Test]
+        public void Cada_bioma_tem_o_seu_ceu_e_o_efeito_nao_vaza()
+        {
+            Assert.AreEqual(EfeitoDoClima.Poeira, AmbienteDosBiomas.Do(Bioma.Deserto).Efeito);
+            Assert.AreEqual(EfeitoDoClima.NeveCaindo, AmbienteDosBiomas.Do(Bioma.Neve).Efeito);
+            Assert.AreNotEqual(
+                AmbienteDosBiomas.Do(Bioma.Deserto).Efeito,
+                AmbienteDosBiomas.Do(Bioma.Neve).Efeito
+            );
+            Assert.Greater(
+                AmbienteDosBiomas.Do(Bioma.Pantano).Densidade,
+                AmbienteDosBiomas.Padrao.Densidade
+            );
+
+            var dia = AmbienteDosBiomas.ComHora(AmbienteDosBiomas.Padrao, 12f);
+            var noite = AmbienteDosBiomas.ComHora(AmbienteDosBiomas.Padrao, 22f);
+            Assert.Less(noite.Ceu.grayscale, dia.Ceu.grayscale);
+            Assert.AreEqual(dia.Nevoa, noite.Nevoa);
+
+            AmbienteDosBiomas.Hora = 22f;
+            try
+            {
+                Assert.AreEqual(EfeitoDoClima.Vagalume, AmbienteDosBiomas.Em(250f, -100f).Efeito);
+            }
+            finally
+            {
+                AmbienteDosBiomas.Hora = 12f;
+            }
+
+            Assert.AreNotEqual(EfeitoDoClima.Vagalume, AmbienteDosBiomas.Em(250f, -100f).Efeito);
+        }
     }
 }
