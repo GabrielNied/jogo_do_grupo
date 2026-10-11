@@ -57,6 +57,13 @@ Telas do client: UI Toolkit montada em código ([ADR 0011](decisoes/0011-telas-c
 
 ## Servidor: como uma funcionalidade se pluga
 
+### Observabilidade
+
+O Core grava logs estruturados em `logs/servidor-.ndjson`, com rotação diária e retenção de 14
+dias. Senhas, tokens e texto de chat não são registrados. `GET /saude` confirma que o processo
+está respondendo; `GET /admin/metricas` exige a claim `permissao=administrar` e retorna jogadores
+online, ouro criado/destruído e erros no último minuto ([ADR 0022](decisoes/0022-serilog-para-observabilidade.md)).
+
 O servidor é um app ASP.NET Core em `http://localhost:5080` (desenvolvimento). O `Program.cs` encontra todos os `IFeatureModule` sozinho e chama, nesta ordem, `ConfigurarServicos`, `MapearRotas` e `Inicializar`. Os dois primeiros são opcionais ([ADR 0012](decisoes/0012-pontos-de-extensao-do-servidor.md)).
 
 ```csharp
