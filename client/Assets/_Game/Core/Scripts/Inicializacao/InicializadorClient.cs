@@ -80,9 +80,13 @@ namespace JogoDoGrupo.Client.Core.Inicializacao
                 );
             }
 
+            var raizDocumento = documento.rootVisualElement;
+            EstiloCore.NaoBloquearCliques(raizDocumento);
+
             var container = new VisualElement { name = "Telas" };
             container.AddToClassList(EstiloCore.RaizInterface);
-            documento.rootVisualElement.Add(container);
+            EstiloCore.NaoBloquearCliques(container);
+            raizDocumento.Add(container);
             return container;
         }
 

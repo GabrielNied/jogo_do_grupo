@@ -1,5 +1,6 @@
 /*
- * Visual das telas: moldura de jogo (painel escuro, borda dourada, cantos retos).
+ * Visual das telas: moldura, botão e campo em textura 9-slice (arte nossa).
+ * As png são geradas por scripts/ui/gerar-moldura.mjs. Não desenhe outra à mão.
  * Carregado pelo Core na raiz da interface, então vale também para as funcionalidades.
  * Os nomes das classes estão em EstiloCore.cs. Cor e tamanho ficam aqui, não no C#.
  * A regra está em docs/arquitetura.md (seção "Estilo").
@@ -11,6 +12,7 @@
     top: 0;
     right: 0;
     bottom: 0;
+    picking-mode: Ignore;
 }
 
 .tela {
@@ -30,14 +32,15 @@
 
 .painel {
     width: 560px;
-    padding: 28px 32px;
+    padding: 40px 44px;
     background-color: rgb(22, 16, 12);
+    background-image: url("project://database/Assets/_Game/Core/UI/Resources/UI/moldura.png");
+    -unity-slice-left: 36;
+    -unity-slice-right: 36;
+    -unity-slice-top: 36;
+    -unity-slice-bottom: 36;
     border-radius: 0;
-    border-width: 2px;
-    border-top-color: rgb(196, 160, 88);
-    border-left-color: rgb(168, 132, 68);
-    border-right-color: rgb(74, 52, 24);
-    border-bottom-color: rgb(52, 36, 16);
+    border-width: 0;
 }
 
 .painel-largo {
@@ -73,7 +76,17 @@
 }
 
 .linha-lista {
-    margin-bottom: 4px;
+    min-height: 40px;
+    margin-bottom: 6px;
+    padding-left: 12px;
+    padding-right: 12px;
+    padding-top: 6px;
+    padding-bottom: 6px;
+    background-image: url("project://database/Assets/_Game/Core/UI/Resources/UI/slot.png");
+    -unity-slice-left: 6;
+    -unity-slice-right: 6;
+    -unity-slice-top: 6;
+    -unity-slice-bottom: 6;
 }
 
 .campo {
@@ -98,10 +111,13 @@
     padding-right: 12px;
     color: rgb(236, 224, 200);
     background-color: rgb(10, 8, 6);
-    background-image: none;
+    background-image: url("project://database/Assets/_Game/Core/UI/Resources/UI/campo.png");
+    -unity-slice-left: 6;
+    -unity-slice-right: 6;
+    -unity-slice-top: 6;
+    -unity-slice-bottom: 6;
     border-radius: 0;
-    border-width: 1px;
-    border-color: rgb(120, 92, 48);
+    border-width: 0;
 }
 
 .campo .unity-base-text-field__input:focus {
@@ -125,25 +141,25 @@
     font-size: 20px;
     letter-spacing: 1px;
     -unity-font-style: bold;
-    color: rgb(232, 214, 176);
+    color: rgb(244, 228, 196);
     background-color: rgb(42, 32, 22);
-    background-image: none;
+    background-image: url("project://database/Assets/_Game/Core/UI/Resources/UI/botao.png");
+    -unity-slice-left: 10;
+    -unity-slice-right: 10;
+    -unity-slice-top: 10;
+    -unity-slice-bottom: 10;
+    -unity-background-image-tint-color: rgb(255, 255, 255);
     border-radius: 0;
-    border-width: 2px;
-    border-top-color: rgb(168, 132, 68);
-    border-left-color: rgb(148, 112, 56);
-    border-right-color: rgb(70, 48, 22);
-    border-bottom-color: rgb(48, 32, 14);
+    border-width: 0;
 }
 
 .botao:hover {
-    color: rgb(255, 236, 196);
-    background-color: rgb(64, 48, 30);
-    border-top-color: rgb(220, 180, 96);
+    color: rgb(255, 244, 214);
+    -unity-background-image-tint-color: rgb(255, 228, 176);
 }
 
 .botao:focus {
-    border-top-color: rgb(220, 180, 96);
+    -unity-background-image-tint-color: rgb(255, 228, 176);
 }
 
 .botao:disabled {
@@ -151,15 +167,13 @@
 }
 
 .botao-principal {
-    color: rgb(255, 228, 170);
+    color: rgb(255, 236, 196);
     background-color: rgb(92, 62, 22);
-    border-top-color: rgb(232, 196, 112);
-    border-left-color: rgb(200, 160, 80);
+    background-image: url("project://database/Assets/_Game/Core/UI/Resources/UI/botao-principal.png");
 }
 
 .botao-principal:hover {
-    background-color: rgb(112, 76, 28);
-    border-top-color: rgb(244, 214, 140);
+    -unity-background-image-tint-color: rgb(255, 236, 200);
 }
 
 .linha-botoes > .botao {
@@ -191,9 +205,13 @@
     margin-bottom: 8px;
     padding: 8px;
     background-color: rgb(10, 8, 6);
+    background-image: url("project://database/Assets/_Game/Core/UI/Resources/UI/campo.png");
+    -unity-slice-left: 6;
+    -unity-slice-right: 6;
+    -unity-slice-top: 6;
+    -unity-slice-bottom: 6;
     border-radius: 0;
-    border-width: 1px;
-    border-color: rgb(92, 70, 36);
+    border-width: 0;
 }
 
 .barra-carregamento {
