@@ -83,10 +83,7 @@ namespace JogoDoGrupo.Client.Features.Mobs
             var painel = ScriptableObject.CreateInstance<PanelSettings>();
             painel.name = "PainelMobs";
             painel.hideFlags = HideFlags.DontSave;
-            painel.scaleMode = PanelScaleMode.ScaleWithScreenSize;
-            painel.referenceResolution = EstiloCore.ResolucaoReferencia;
-            painel.screenMatchMode = PanelScreenMatchMode.MatchWidthOrHeight;
-            painel.match = 0.5f;
+            EstiloCore.ConfigurarEscala(painel);
 
             // Abaixo das barras do Combate (-2), do painel de Itens e da interface do Core (0).
             painel.sortingOrder = -3f;

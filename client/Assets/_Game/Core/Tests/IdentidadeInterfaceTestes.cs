@@ -18,7 +18,7 @@ namespace JogoDoGrupo.Client.Core.Tests
             var objeto = new GameObject("Teste de identidade");
             objeto.SetActive(false);
             var configuracao = ScriptableObject.CreateInstance<PanelSettings>();
-            configuracao.scaleMode = PanelScaleMode.ConstantPixelSize;
+            EstiloCore.ConfigurarEscala(configuracao);
             configuracao.themeStyleSheet = Resources.Load<ThemeStyleSheet>(EstiloCore.CaminhoTema);
             var documento = objeto.AddComponent<UIDocument>();
             documento.panelSettings = configuracao;
@@ -85,6 +85,23 @@ namespace JogoDoGrupo.Client.Core.Tests
             Assert.IsTrue(raiz.ClassListContains("lumora-ui"));
             Assert.AreEqual(PickingMode.Ignore, raiz.pickingMode);
             Assert.Throws<ArgumentNullException>(() => EstiloCore.Aplicar(null));
+        }
+
+        [Test]
+        public void Escala_NaoReduzTextoEmMonitoresMenores()
+        {
+            var painel = ScriptableObject.CreateInstance<PanelSettings>();
+            try
+            {
+                EstiloCore.ConfigurarEscala(painel);
+                Assert.AreEqual(PanelScaleMode.ConstantPixelSize, painel.scaleMode);
+                Assert.GreaterOrEqual(painel.scale, 1);
+                Assert.Throws<ArgumentNullException>(() => EstiloCore.ConfigurarEscala(null));
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(painel);
+            }
         }
 
         [Test]

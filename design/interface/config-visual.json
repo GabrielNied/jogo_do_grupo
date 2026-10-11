@@ -125,7 +125,8 @@
     "CompactoAte": 1100,
     "EstreitoAte": 720,
     "ReferenciaLargura": 1920,
-    "ReferenciaAltura": 1080
+    "ReferenciaAltura": 1080,
+    "EscalaBase": 1
   },
   "Fontes": {
     "Leitura": "Lumora/Fontes/LumoraSource-500",

@@ -20,6 +20,16 @@ namespace JogoDoGrupo.Client.Core.UI
                 ConfigVisual.Responsividade.ReferenciaAltura
             );
 
+        /// <summary>Preserva o mínimo de leitura; a geometria da raiz decide o layout.</summary>
+        public static void ConfigurarEscala(PanelSettings painel)
+        {
+            if (painel == null)
+                throw new ArgumentNullException(nameof(painel));
+            painel.scaleMode = PanelScaleMode.ConstantPixelSize;
+            painel.scale = ConfigVisual.Responsividade.EscalaBase;
+            painel.referenceResolution = ResolucaoReferencia;
+        }
+
         /// <summary>Aplica a identidade também nos documentos independentes das funcionalidades.</summary>
         public static void Aplicar(VisualElement raiz)
         {

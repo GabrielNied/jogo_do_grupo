@@ -103,10 +103,7 @@ namespace JogoDoGrupo.Client.Features.Social
             var painel = ScriptableObject.CreateInstance<PanelSettings>();
             painel.name = "PainelSocial";
             painel.hideFlags = HideFlags.DontSave;
-            painel.scaleMode = PanelScaleMode.ScaleWithScreenSize;
-            painel.referenceResolution = EstiloCore.ResolucaoReferencia;
-            painel.screenMatchMode = PanelScreenMatchMode.MatchWidthOrHeight;
-            painel.match = 0.5f;
+            EstiloCore.ConfigurarEscala(painel);
 
             // Abaixo da interface do Core (ordem 0), para o menu do Esc ficar por cima.
             painel.sortingOrder = -1f;

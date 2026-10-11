@@ -55,7 +55,7 @@ Novos tipos de controle precisam incluir normal, hover, pressionado, foco, desab
 
 ## Responsividade e legibilidade obrigatórias
 
-Usar a largura **resolvida da raiz da tela**, não só `Screen.width`. `EstiloVisual` acompanha `GeometryChangedEvent` e aplica `lumora-compacto` e `lumora-estreito` pelos limiares da configuração. O USS específico deve reagir a essas classes com empilhamento, quebra e rolagem. Os componentes compartilhados já permitem quebra de texto e linhas; cada composição ainda precisa de teste visual. USS não recebe automaticamente as media queries de um site.
+Nos documentos do jogo, aplicar `EstiloCore.ConfigurarEscala(painel)` para preservar a leitura em pixels e a geometria disponível ([ADR 0028](../../docs/decisoes/0028-escala-legivel-das-interfaces.md)). Usar a largura **resolvida da raiz da tela**, não só `Screen.width`. `EstiloVisual` acompanha `GeometryChangedEvent` e aplica `lumora-compacto` e `lumora-estreito` pelos limiares da configuração. O USS específico deve reagir a essas classes com empilhamento, quebra e rolagem. Os componentes compartilhados já permitem quebra de texto e linhas; cada composição ainda precisa de teste visual. USS não recebe automaticamente as media queries de um site.
 
 - Leitura parte do token `Tipografia.Leitura` (atualmente 16 px); botões partem de `Controle` (18 px). Títulos usam Nunito Sans 800 e leitura/controles Source Sans 3 nos pesos aprovados. Evitar fallback e negrito sintético.
 - Prever aumento de texto até `LeituraMaxima`; não reduzir fonte para fazer caber. Conteúdo longo deve quebrar ou rolar.

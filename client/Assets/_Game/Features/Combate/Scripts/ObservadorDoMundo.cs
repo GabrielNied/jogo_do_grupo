@@ -98,10 +98,7 @@ namespace JogoDoGrupo.Client.Features.Combate
             var painel = ScriptableObject.CreateInstance<PanelSettings>();
             painel.name = "PainelCombate";
             painel.hideFlags = HideFlags.DontSave;
-            painel.scaleMode = PanelScaleMode.ScaleWithScreenSize;
-            painel.referenceResolution = EstiloCore.ResolucaoReferencia;
-            painel.screenMatchMode = PanelScreenMatchMode.MatchWidthOrHeight;
-            painel.match = 0.5f;
+            EstiloCore.ConfigurarEscala(painel);
 
             // Abaixo da interface do Core (ordem 0) e do painel de Itens.
             painel.sortingOrder = -2f;

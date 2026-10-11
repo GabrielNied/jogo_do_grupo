@@ -142,6 +142,7 @@ namespace JogoDoGrupo.Client.Core.Visual
             public const int EstreitoAte = 720;
             public const int ReferenciaLargura = 1920;
             public const int ReferenciaAltura = 1080;
+            public const int EscalaBase = 1;
         }
 
         public static class Fontes

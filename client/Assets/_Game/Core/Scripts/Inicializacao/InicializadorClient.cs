@@ -44,10 +44,7 @@ namespace JogoDoGrupo.Client.Core.Inicializacao
             painel.hideFlags = HideFlags.DontSave;
             _painel = painel;
             Application.quitting += AoSair;
-            painel.scaleMode = PanelScaleMode.ScaleWithScreenSize;
-            painel.referenceResolution = EstiloCore.ResolucaoReferencia;
-            painel.screenMatchMode = PanelScreenMatchMode.MatchWidthOrHeight;
-            painel.match = 0.5f;
+            EstiloCore.ConfigurarEscala(painel);
 
             var tema = Resources.Load<ThemeStyleSheet>(EstiloCore.CaminhoTema);
             if (tema != null)

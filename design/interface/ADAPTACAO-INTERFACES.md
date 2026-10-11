@@ -16,6 +16,8 @@ Aplicação do [padrão Lumora](GUIA-DE-ESTILO.md) ao fluxo real do client. O la
 
 ## Recursos e manutenção
 
+Os documentos usam a mesma escala de pixels, definida por `EstiloCore.ConfigurarEscala`, sem redução automática dos textos ao diminuir a resolução.
+
 Fontes e arte de runtime são saídas do gerador indicado no guia. O comando de conferência compara seus bytes com as matrizes e verifica tokens, cores avulsas e referências de recursos dos estilos migrados. Não editar as cópias de runtime. Texturas históricas de `Core/UI/Resources/UI` foram preservadas, mas deixaram de ser usadas pelos estilos migrados.
 
 ## Validação
