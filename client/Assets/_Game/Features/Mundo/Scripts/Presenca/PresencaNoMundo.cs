@@ -1,4 +1,5 @@
 using JogoDoGrupo.Client.Core.Jogo;
+using JogoDoGrupo.Client.Core.Jogo.Controle;
 using JogoDoGrupo.Client.Core.TempoReal;
 using UnityEngine;
 
@@ -17,6 +18,10 @@ namespace JogoDoGrupo.Client.Features.Mundo.Presenca
             new System.Collections.Generic.Dictionary<long, GameObject>();
 
         private PresencaNaCidade _presenca;
+        private ControleTerceiraPessoa _controle;
+
+        // Última velocidade do servidor: pode chegar antes de o controle do jogador existir.
+        private Vector2? _velocidades;
         private bool _correcaoPendente;
         private Vector3 _posicaoCorrigida;
         private float _rotacaoCorrigida;
@@ -39,6 +44,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Presenca
                 return;
             }
 
+            LigarControle(jogador);
             if (_correcaoPendente)
             {
                 _correcaoPendente = false;
@@ -65,6 +71,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Presenca
 
         private void OnDestroy()
         {
+            LigarControle(null);
             _presenca?.Dispose();
             _presenca = null;
         }
@@ -74,6 +81,11 @@ namespace JogoDoGrupo.Client.Features.Mundo.Presenca
             _presenca = new PresencaNaCidade(new ConexaoDePresencaReal(), personagemId);
             _presenca.Avatares.Criado += CriarVisual;
             _presenca.Avatares.Removido += RemoverVisual;
+            _presenca.VelocidadesDoServidor += (andar, correr) =>
+            {
+                _velocidades = new Vector2(andar, correr);
+                _controle?.AplicarVelocidadesDoServidor(andar, correr);
+            };
             _presenca.PosicaoDoServidor += (posicao, rotacao) =>
             {
                 _correcaoPendente = true;
@@ -87,6 +99,35 @@ namespace JogoDoGrupo.Client.Features.Mundo.Presenca
                 ConexaoTempoReal.Conectar(personagemId);
             }
         }
+
+        // Liga o controle do jogador atual (o jogador é recriado a cada entrada no mundo): a
+        // velocidade do servidor vai para ele, e mudar o Inspector vira pedido ao servidor.
+        private void LigarControle(GameObject jogador)
+        {
+            var controle = jogador != null ? jogador.GetComponent<ControleTerceiraPessoa>() : null;
+            if (controle == _controle)
+            {
+                return;
+            }
+
+            if (_controle != null)
+            {
+                _controle.VelocidadesPedidasNoInspector -= PedirVelocidade;
+            }
+
+            _controle = controle;
+            if (_controle != null)
+            {
+                _controle.VelocidadesPedidasNoInspector += PedirVelocidade;
+                if (_velocidades is { } v)
+                {
+                    _controle.AplicarVelocidadesDoServidor(v.x, v.y);
+                }
+            }
+        }
+
+        private void PedirVelocidade(float andar, float correr) =>
+            _presenca?.PedirVelocidadeDeTeste(andar, correr);
 
         private void Corrigir(GameObject jogador)
         {

@@ -14,8 +14,11 @@ public static class ValidadorDeMovimento
     /// <summary>Ponto de nascimento do hub (docs/features/mundo.md, "Nascimento").</summary>
     public static readonly PosicaoNaCidade Nascimento = new(0f, 0f, -24f, 0f);
 
-    /// <summary>Velocidade de corrida do client (m/s).</summary>
-    public const float VelocidadeMaxima = 5.5f;
+    /// <summary>
+    /// Velocidade de corrida de quem acabou de entrar (m/s). A de cada personagem é do servidor
+    /// e pode mudar (CidadeDoMundo, VelocidadesDeMovimento).
+    /// </summary>
+    public const float VelocidadeMaxima = RegrasVelocidade.CorrerPadrao;
 
     /// <summary>Folga fixa (m) para jitter de rede e de tick.</summary>
     public const float Folga = 0.5f;
@@ -47,10 +50,15 @@ public static class ValidadorDeMovimento
 
     /// <summary>
     /// Confere se ir de <paramref name="atual"/> a <paramref name="desejada"/> em
-    /// <paramref name="decorridoMs"/> é possível correndo. O deslocamento é medido no plano
-    /// horizontal (queda e pulo não contam).
+    /// <paramref name="decorridoMs"/> é possível a <paramref name="velocidade"/> (m/s; padrão:
+    /// correr). O deslocamento é medido no plano horizontal (queda e pulo não contam).
     /// </summary>
-    public static bool Permitido(PosicaoNaCidade atual, PosicaoNaCidade desejada, long decorridoMs)
+    public static bool Permitido(
+        PosicaoNaCidade atual,
+        PosicaoNaCidade desejada,
+        long decorridoMs,
+        float velocidade = VelocidadeMaxima
+    )
     {
         if (
             !float.IsFinite(desejada.X)
@@ -83,6 +91,6 @@ public static class ValidadorDeMovimento
         var dx = (double)desejada.X - atual.X;
         var dz = (double)desejada.Z - atual.Z;
         var distancia = Math.Sqrt((dx * dx) + (dz * dz));
-        return distancia <= (VelocidadeMaxima * segundos) + Folga;
+        return distancia <= (velocidade * segundos) + Folga;
     }
 }

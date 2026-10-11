@@ -1,4 +1,19 @@
+using JogoDoGrupo.Shared.Features.Mundo;
+
 namespace JogoDoGrupo.Server.Features.Mundo;
+
+/// <summary>Velocidades de um personagem (m/s) e a sequência da mudança que as trouxe.</summary>
+public readonly record struct VelocidadesNaCidade(float Andar, float Correr, int Sequencia)
+{
+    public static readonly VelocidadesNaCidade Padrao = new(
+        RegrasVelocidade.AndarPadrao,
+        RegrasVelocidade.CorrerPadrao,
+        0
+    );
+
+    /// <summary>A maior das duas: o limite do deslocamento.</summary>
+    public float Maxima => RegrasVelocidade.Maxima(Andar, Correr);
+}
 
 /// <summary>Um avatar presente na cidade, com a sessão (conexão) dona dele.</summary>
 public sealed record AvatarNaCidade<TSessao>(
@@ -55,7 +70,13 @@ public sealed class CidadeDoMundo<TSessao>(Func<long> relogioMs)
         {
             var novo = !_avatares.TryGetValue(personagemId, out var entrada);
             entrada = novo
-                ? new Entrada(sessao, ValidadorDeMovimento.Nascimento, relogioMs())
+                ? new Entrada(
+                    sessao,
+                    ValidadorDeMovimento.Nascimento,
+                    relogioMs(),
+                    VelocidadesNaCidade.Padrao,
+                    null
+                )
                 : entrada! with
                 {
                     Sessao = sessao,
@@ -91,7 +112,12 @@ public sealed class CidadeDoMundo<TSessao>(Func<long> relogioMs)
 
             var agora = relogioMs();
             if (
-                !ValidadorDeMovimento.Permitido(entrada.Posicao, desejada, agora - entrada.UltimoMs)
+                !ValidadorDeMovimento.Permitido(
+                    entrada.Posicao,
+                    desejada,
+                    agora - entrada.UltimoMs,
+                    LimiteDeVelocidade(entrada)
+                )
             )
             {
                 return (ResultadoMovimento.Recusado, Converter(personagemId, entrada));
@@ -100,6 +126,72 @@ public sealed class CidadeDoMundo<TSessao>(Func<long> relogioMs)
             entrada = entrada with { Posicao = desejada, UltimoMs = agora };
             _avatares[personagemId] = entrada;
             return (ResultadoMovimento.Aceito, Converter(personagemId, entrada));
+        }
+    }
+
+    /// <summary>
+    /// As velocidades que o client deve usar agora (a pendente, se houver, senão a confirmada),
+    /// ou <c>null</c> se o personagem não está na cidade.
+    /// </summary>
+    public VelocidadesNaCidade? Velocidades(long personagemId)
+    {
+        lock (_trava)
+        {
+            return _avatares.TryGetValue(personagemId, out var entrada)
+                ? entrada.Pendente ?? entrada.Confirmadas
+                : null;
+        }
+    }
+
+    /// <summary>
+    /// Muda as velocidades do personagem. A nova fica pendente até o client confirmar com a
+    /// sequência devolvida; enquanto isso, vale a maior entre a antiga e a nova (o client pode
+    /// ainda não ter recebido o aviso). <c>null</c> se a sessão não está na cidade.
+    /// </summary>
+    public VelocidadesNaCidade? MudarVelocidades(
+        long personagemId,
+        TSessao sessao,
+        float andar,
+        float correr
+    )
+    {
+        lock (_trava)
+        {
+            if (
+                !_avatares.TryGetValue(personagemId, out var entrada)
+                || !ReferenceEquals(entrada.Sessao, sessao)
+            )
+            {
+                return null;
+            }
+
+            var ultima = (entrada.Pendente ?? entrada.Confirmadas).Sequencia;
+            var nova = new VelocidadesNaCidade(andar, correr, ultima + 1);
+            _avatares[personagemId] = entrada with { Pendente = nova };
+            return nova;
+        }
+    }
+
+    /// <summary>
+    /// O client aplicou a mudança <paramref name="sequencia"/>. Falso (e nada muda) se não há
+    /// mudança pendente com essa sequência.
+    /// </summary>
+    public bool ConfirmarVelocidades(long personagemId, TSessao sessao, int sequencia)
+    {
+        lock (_trava)
+        {
+            if (
+                !_avatares.TryGetValue(personagemId, out var entrada)
+                || !ReferenceEquals(entrada.Sessao, sessao)
+                || entrada.Pendente is not { } pendente
+                || pendente.Sequencia != sequencia
+            )
+            {
+                return false;
+            }
+
+            _avatares[personagemId] = entrada with { Confirmadas = pendente, Pendente = null };
+            return true;
         }
     }
 
@@ -147,5 +239,17 @@ public sealed class CidadeDoMundo<TSessao>(Func<long> relogioMs)
     private static AvatarNaCidade<TSessao> Converter(long id, Entrada e) =>
         new(id, e.Sessao, e.Posicao);
 
-    private sealed record Entrada(TSessao Sessao, PosicaoNaCidade Posicao, long UltimoMs);
+    // Até o client confirmar, vale a maior entre a confirmada e a pendente.
+    private static float LimiteDeVelocidade(Entrada e) =>
+        e.Pendente is { } pendente
+            ? Math.Max(e.Confirmadas.Maxima, pendente.Maxima)
+            : e.Confirmadas.Maxima;
+
+    private sealed record Entrada(
+        TSessao Sessao,
+        PosicaoNaCidade Posicao,
+        long UltimoMs,
+        VelocidadesNaCidade Confirmadas,
+        VelocidadesNaCidade? Pendente
+    );
 }

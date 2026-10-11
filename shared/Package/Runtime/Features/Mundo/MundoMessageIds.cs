@@ -24,5 +24,14 @@ namespace JogoDoGrupo.Shared.Features.Mundo
 
         /// <summary>Servidor → client: outro jogador saiu da área visível.</summary>
         public const ushort JogadorSaiu = 1005;
+
+        /// <summary>Servidor → client: velocidades do personagem (<see cref="Mundo.VelocidadesDeMovimento"/>).</summary>
+        public const ushort VelocidadesDeMovimento = 1006;
+
+        /// <summary>Client → servidor: confirma as velocidades aplicadas (<see cref="Mundo.ConfirmarVelocidade"/>).</summary>
+        public const ushort ConfirmarVelocidade = 1007;
+
+        /// <summary>Client → servidor: pede velocidades de teste, só em desenvolvimento (<see cref="Mundo.PedirVelocidadeDeTeste"/>).</summary>
+        public const ushort PedirVelocidadeDeTeste = 1008;
     }
 }

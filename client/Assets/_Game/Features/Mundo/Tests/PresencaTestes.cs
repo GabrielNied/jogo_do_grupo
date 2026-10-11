@@ -346,5 +346,46 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
             Assert.That(presenca.Avatares.Quantidade, Is.EqualTo(0));
             Assert.That(conexao.Contar(MundoMessageIds.EntrarNaCidade), Is.EqualTo(1));
         }
+
+        [Test]
+        public void Velocidade_DoServidorAvisaEConfirmaComAMesmaSequencia()
+        {
+            var conexao = new ConexaoFalsa { Conectado = true };
+            using var presenca = new PresencaNaCidade(conexao, 1);
+            (float Andar, float Correr)? recebida = null;
+            presenca.VelocidadesDoServidor += (andar, correr) => recebida = (andar, correr);
+
+            conexao.Receber(
+                MundoMessageIds.VelocidadesDeMovimento,
+                new VelocidadesDeMovimento
+                {
+                    Andar = 3f,
+                    Correr = 9f,
+                    Sequencia = 4,
+                }
+            );
+
+            Assert.AreEqual((3f, 9f), recebida);
+            var confirmacao = conexao.Enviados.Find(e =>
+                e.Id == MundoMessageIds.ConfirmarVelocidade
+            );
+            Assert.AreEqual(4, ((ConfirmarVelocidade)confirmacao.Mensagem).Sequencia);
+            Assert.AreEqual(EntregaTempoReal.Confiavel, confirmacao.Entrega);
+        }
+
+        [Test]
+        public void Velocidade_PedidoDeTesteSoComConexao()
+        {
+            var conexao = new ConexaoFalsa { Conectado = false };
+            using var presenca = new PresencaNaCidade(conexao, 1);
+
+            Assert.IsFalse(presenca.PedirVelocidadeDeTeste(2f, 10f));
+            Assert.AreEqual(0, conexao.Contar(MundoMessageIds.PedirVelocidadeDeTeste));
+
+            conexao.Conectado = true;
+            Assert.IsTrue(presenca.PedirVelocidadeDeTeste(2f, 10f));
+            var pedido = conexao.Enviados.Find(e => e.Id == MundoMessageIds.PedirVelocidadeDeTeste);
+            Assert.AreEqual(10f, ((PedirVelocidadeDeTeste)pedido.Mensagem).Correr);
+        }
     }
 }
