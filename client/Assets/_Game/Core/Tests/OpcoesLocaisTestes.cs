@@ -28,8 +28,6 @@ namespace JogoDoGrupo.Client.Core.Tests
             Assert.AreEqual(1280, lido.Largura);
             Assert.AreEqual(720, lido.Altura);
             Assert.AreEqual(OpcoesLocais.IdiomaPadrao, lido.Idioma);
-            Assert.AreEqual(0, lido.Largura);
-            Assert.AreEqual(0, lido.Altura);
         }
 
         [Test]
