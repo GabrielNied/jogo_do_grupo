@@ -1,0 +1,55 @@
+/* Chat de texto (Social). Canto inferior esquerdo, na região do HUD. */
+
+.chat {
+    width: 520px;
+    margin-bottom: 120px;
+    transition-property: opacity;
+    transition-duration: 0.4s;
+}
+
+/* Sem atividade por 10 s: quase transparente. */
+.chat-esmaecido {
+    opacity: 0.3;
+}
+
+.chat-linhas {
+    padding: 6px 8px;
+    background-color: rgba(10, 8, 6, 0.55);
+    border-radius: 4px;
+}
+
+.chat-linha {
+    font-size: 15px;
+    white-space: normal;
+    color: rgb(255, 255, 255);
+}
+
+.chat-cidade {
+    color: rgb(255, 255, 255);
+}
+
+.chat-grupo {
+    color: rgb(110, 170, 255);
+}
+
+.chat-sussurro {
+    color: rgb(255, 130, 190);
+}
+
+.chat-sistema {
+    color: rgb(255, 214, 90);
+}
+
+.chat-campo {
+    margin-top: 4px;
+    margin-left: 0;
+    margin-right: 0;
+}
+
+.chat-campo > .unity-base-text-field__input {
+    font-size: 15px;
+    background-color: rgb(10, 8, 6);
+    color: rgb(255, 255, 255);
+    border-width: 1px;
+    border-color: rgb(120, 92, 48);
+}

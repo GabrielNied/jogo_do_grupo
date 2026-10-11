@@ -128,6 +128,7 @@ A tela fica em **Opções > Teclas**, com uma linha por ação (nome, tecla atua
 | Inventário | I | sim |
 | Missões | L | sim |
 | Mapa | M | sim |
+| Chat (abrir e enviar) | Enter | não por enquanto (fixa no código do chat; Esc fecha a caixa sem enviar) |
 | Menu | Esc | **não** (reservada) |
 
 **Regras de troca (proposta):**
