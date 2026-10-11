@@ -15,6 +15,7 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
         private readonly InputAction _olharMouse;
         private readonly InputAction _olharControle;
         private readonly InputAction _correr;
+        private readonly InputAction _pular;
         private readonly InputAction _menu;
 
         public AcoesJogador()
@@ -55,6 +56,8 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
             _correr.AddBinding("<Keyboard>/rightShift");
             _correr.AddBinding("<Gamepad>/leftStickPress");
 
+            _pular = new InputAction("Pular", InputActionType.Button, "<Keyboard>/space");
+
             _menu = new InputAction("Menu", InputActionType.Button, "<Keyboard>/escape");
             _menu.AddBinding("<Gamepad>/start");
         }
@@ -71,6 +74,9 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
         /// <summary>Se o botão de correr está pressionado.</summary>
         public bool Correr => _correr.IsPressed();
 
+        /// <summary>Se o botão de pular (Espaço) foi apertado neste frame.</summary>
+        public bool PularApertado => _pular.WasPressedThisFrame();
+
         /// <summary>Se o botão do menu (Esc) foi apertado neste frame.</summary>
         public bool MenuApertado => _menu.WasPressedThisFrame();
 
@@ -80,6 +86,7 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
             _olharMouse.Enable();
             _olharControle.Enable();
             _correr.Enable();
+            _pular.Enable();
             _menu.Enable();
         }
 
@@ -89,6 +96,7 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
             _olharMouse.Disable();
             _olharControle.Disable();
             _correr.Disable();
+            _pular.Disable();
             _menu.Disable();
         }
 
@@ -98,6 +106,7 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
             _olharMouse.Dispose();
             _olharControle.Dispose();
             _correr.Dispose();
+            _pular.Dispose();
             _menu.Dispose();
         }
     }

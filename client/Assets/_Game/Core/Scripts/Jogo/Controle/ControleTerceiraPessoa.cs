@@ -4,7 +4,7 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
 {
     /// <summary>
     /// Move o jogador local com o <see cref="CharacterController"/>: anda na direção da câmera,
-    /// corre com Shift, vira para onde anda, cai com gravidade e alimenta o Animator do visual.
+    /// corre com Shift, pula com Espaço (só no chão), vira para onde anda, cai com gravidade e alimenta o Animator do visual.
     /// O cálculo fica em <see cref="MovimentoTerceiraPessoa"/>. Criado pela
     /// <see cref="EntradaNoJogo"/>; não precisa ser montado em cena.
     /// </summary>
@@ -87,6 +87,11 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
                 _velocidadeVertical,
                 _corpo.isGrounded,
                 dt
+            );
+            _velocidadeVertical = _movimento.Pular(
+                _velocidadeVertical,
+                _corpo.isGrounded,
+                InputAtivo && _acoes.PularApertado
             );
 
             var deslocamento =
