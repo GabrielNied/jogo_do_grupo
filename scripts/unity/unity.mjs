@@ -8,10 +8,12 @@
 //                                         O editor precisa estar fechado.
 //   npm run unity:importar                abre o projeto em batch, gera os .meta que faltam
 //                                         e fecha. O editor precisa estar fechado.
+//   npm run unity:editor                  só o editor do projeto (não o Hub). Sai 1 se aberto.
 //
 // O CLI vem com o Unity Hub. Em outro lugar, defina UNITY_CLI com o caminho do executável.
 
 import { spawnSync } from "node:child_process";
+import { editorDoProjetoAberto } from "./editor-aberto.mjs";
 import { existsSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
@@ -46,6 +48,14 @@ const montar = comandos[acao];
 if (!montar) {
   console.error(`Ação desconhecida: ${acao}. Use: ${Object.keys(comandos).join(", ")}.`);
   process.exit(2);
+}
+if (acao === "importar" || acao === "testes" || acao === "executar") {
+  const abertos = editorDoProjetoAberto();
+  if (abertos.length > 0) {
+    console.error("Editor do Unity aberto. Feche a janela do projeto antes de importar:");
+    for (const linha of abertos) console.error(`  ${linha.replace("|", " ")}`);
+    process.exit(1);
+  }
 }
 const args = typeof montar === "function" ? montar() : montar;
 const resultado = spawnSync(cli, ["--non-interactive", "--no-banner", ...args], { stdio: "inherit" });

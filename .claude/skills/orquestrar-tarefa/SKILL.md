@@ -41,16 +41,17 @@ Mostre à pessoa uma tabela e **espere o ok** antes de lançar qualquer agente:
 | 2b | client-funcionalidade | ... | 1 mergeado | #... |
 | 3 | revisor | só se o PR for de risco (veja abaixo) | 2a, 2b | — |
 
-Pergunte junto: os agentes podem commitar, enviar as branches e abrir PRs? (Merge é sempre humano.)
+~~Pergunte junto: os agentes podem commitar, enviar as branches e abrir PRs?~~ substituído em 2026-10-11 por: pedir a implementação já autoriza commit, push e PR. Merge continua humano. Se a issue já tem a ficha, não peça aprovação de novo.
 
-A etapa 3 só entra no plano quando o PR mexe em Core, segurança, concorrência, contrato ou regra que decide resultado (dano, drop, fusão, preço). Arte, tela, conteúdo 3D e ligar um botão ficam de fora: o CI e a verificação do autor são a qualidade mínima.
+A etapa 3 só entra no plano quando o PR mexe em Core, segurança ou numa regra de dano, preço ou fusão que a doc ainda não fechou. ~~concorrência, contrato ou regra que decide resultado (dano, drop, fusão, preço)~~ substituído em 2026-10-11 por: recorte com os números já no contrato e com teste no próprio PR (mesmo um baú que sorteia item, mesmo corrida coberta por teste) não leva revisor. Arte, tela, conteúdo 3D e ligar um botão também não. O CI e a verificação do autor são a qualidade mínima.
 
 **Economize agentes:**
 - Tarefa pequena e clara não precisa de `designer-docs`: as regras vão na ficha.
 - Mudanças de docs, `.meta` e configuração você faz direto, sem agente e sem revisor.
 - Os `.meta` e os materiais que o Unity gerar entram no mesmo PR. Quem abre o PR roda `npm run conferir-unity`. Não peça para a pessoa commitar isso depois do merge.
+- Um editor por vez. `npm run unity:editor` olha só o `Unity.exe` do Editor, não o Hub. Se estiver aberto, o agente abre o PR do código, avisa **uma vez** e para. Não retome o mesmo agente para gerar `.meta`. Quando a pessoa fechar o editor, o coordenador roda `npm run unity:importar` no worktree e commita os `.meta`. A primeira importação de um worktree novo é lenta; não abra outro worktree de client para repetir isso.
 
-**Modelo por tarefa:** cada agente já tem `model` e `effort` no próprio arquivo (Opus em `server-core` e `client-core`; Sonnet nos demais; `designer-docs` com effort baixo). Ao lançar, suba para `opus` (parâmetro `model` da chamada) quando a tarefa de funcionalidade envolver segurança, concorrência, dinheiro ou itens do jogo, ou uma regra difícil; mantenha o padrão no resto.
+**Modelo por tarefa:** cada agente já tem `model` e `effort` no próprio arquivo (Opus em `server-core` e `client-core`; Sonnet nos demais; `designer-docs` com effort baixo). ~~Ao lançar, suba para `opus` quando a tarefa envolver segurança, concorrência, dinheiro ou itens do jogo, ou uma regra difícil.~~ substituído em 2026-10-11 por: Sonnet é o padrão. Opus só em Core, segurança ou regra de dano, preço ou fusão que a doc ainda não fechou.
 
 ## 4. Contrato primeiro
 
@@ -81,7 +82,7 @@ Para cada relatório:
 
 - **"Para outros agentes"** vira uma nova subtarefa (outra rodada) ou um item para a pessoa (montar no Unity, decidir algo).
 - **Dúvidas** vão para a pessoa; não decida regras de design por conta própria.
-- Lance o `revisor` numa passada só, e só em PR de risco (Core, segurança, concorrência, contrato ou regra que decide resultado). Use `opus` nesses casos. No resto, não lance revisor: o CI e a skill `preparar-pr` bastam.
+- Lance o `revisor` numa passada só, e só em PR de Core, segurança ou regra de dano, preço ou fusão ainda aberta. Não use o revisor para repetir um teste que o PR já trouxe. No resto, o CI e a skill `preparar-pr` bastam.
 - Achados do revisor que valem a pena viram **commits novos na mesma branch**, feitos pelo agente que abriu o PR (retome-o com a mensagem dos ajustes).
 
 ### Quando pedir o merge
