@@ -51,9 +51,9 @@ Sempre rode `git diff --check`. Depois aplique **só** as linhas que cobrem os a
 | Instruções/configuração de IA (`AGENTS.md`, `.claude/`, `.codex/`, `.agents/`) | `git diff --check` e valide diretamente o formato/comportamento alterado (ex.: `node --check` para hook, parse de JSON/TOML). |
 | Script Node ou ferramenta de automação | `node --check <arquivo>` e o teste/comando específico do script. Rode testes do projeto só se o script os altera ou dispara. |
 | C# de servidor ou shared | `dotnet csharpier format .`, `dotnet csharpier check .` e `dotnet test JogoDoGrupo.slnx -c Release`. Não rode `dotnet build` separado: o teste já compila. |
-| C# de client | `dotnet csharpier format .`, `dotnet csharpier check .`, `npm run unity:compilar` e `npm run unity:testes` quando houver testes EditMode afetados ou adicionados. |
+| C# de client | `dotnet csharpier format .`, `dotnet csharpier check .`, `npm run unity:compilar`, `npm run conferir-unity` e `npm run unity:testes` quando houver testes EditMode afetados ou adicionados. |
 | Shared usado pelo client | Além da linha de server/shared, `npm run unity:compilar`. |
-| Conteúdo Unity gerado (cena, prefab, asset, animação) | O comando Unity que gerou/alterou o conteúdo e `npm run unity:recompilar` (editor aberto) ou `npm run unity:compilar` (fechado); `npm run unity:testes` se a lógica/teste EditMode mudou. |
+| Conteúdo Unity gerado (cena, prefab, asset, animação) | O comando Unity que gerou/alterou o conteúdo, `npm run conferir-unity` e `npm run unity:recompilar` (editor aberto) ou `npm run unity:compilar` (fechado); `npm run unity:testes` se a lógica/teste EditMode mudou. |
 | Dependência, CI ou configuração de build | O comando que usa a configuração alterada e o teste/build especificamente afetado. |
 
 Se o risco extrapolar essa matriz (segurança, concorrência, migração, mudança ampla de Core), acrescente a verificação necessária e explique o motivo. Se o CSharpier alterar arquivos, inclua essas mudanças.
@@ -67,6 +67,7 @@ Se o risco extrapolar essa matriz (segurança, concorrência, migração, mudan�
 
 - Branch: confira com `npm run validar-branch -- "$(git branch --show-current)"`. Se estiver na `main` ou fora do padrão, siga a skill `nova-branch`. Nunca faça push na `main`.
 - Commits: siga a skill `fazer-commit`. Confira as mensagens da branch com `npx --no -- commitlint --from origin/main --to HEAD`.
+- Se a branch mexe em `client/Assets/` ou `shared/Package/`, rode `npm run conferir-unity` **antes** de abrir o PR. Se falhar, não abra: faltam `.meta` ou o Unity alterou `.mat`/prefab que ficou fora do commit. Gere com `npm run unity:importar` (editor fechado, neste worktree) e inclua no commit. Não escreva esses arquivos à mão. `ProjectSettings/` continua de fora, salvo pedido da pessoa.
 - Só faça commit ou push se a pessoa pedir.
 
 ## 7. Título e descrição do PR

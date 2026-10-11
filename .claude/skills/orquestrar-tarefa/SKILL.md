@@ -44,7 +44,7 @@ A etapa 3 só entra no plano quando o PR mexe em Core, segurança, concorrência
 **Economize agentes:**
 - Tarefa pequena e clara não precisa de `designer-docs`: as regras vão na ficha.
 - Mudanças de docs, `.meta` e configuração você faz direto, sem agente e sem revisor.
-- Os `.meta` do Unity entram no próprio PR do client: peça à pessoa para abrir o editor antes do merge.
+- Os `.meta` e os materiais que o Unity gerar entram no mesmo PR. Quem abre o PR roda `npm run conferir-unity`. Não peça para a pessoa commitar isso depois do merge.
 
 **Modelo por tarefa:** cada agente já tem `model` e `effort` no próprio arquivo (Opus em `server-core` e `client-core`; Sonnet nos demais; `designer-docs` com effort baixo). Ao lançar, suba para `opus` (parâmetro `model` da chamada) quando a tarefa de funcionalidade envolver segurança, concorrência, dinheiro ou itens do jogo, ou uma regra difícil; mantenha o padrão no resto.
 
