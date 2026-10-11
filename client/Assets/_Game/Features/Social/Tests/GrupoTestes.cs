@@ -483,9 +483,21 @@ namespace JogoDoGrupo.Client.Features.Social.Tests
         [Test]
         public void Recusada_TodosOsCodigosTemTextoProprio()
         {
+            // Os códigos do chat (MensagemVazia ... SussurroParaSiMesmo) têm textos em TextosDeChat.
+            var doChat = new[]
+            {
+                CodigosErroSocial.MensagemVazia,
+                CodigosErroSocial.MensagemLongaDemais,
+                CodigosErroSocial.MensagensRapidasDemais,
+                CodigosErroSocial.MensagemRepetida,
+                CodigosErroSocial.Silenciado,
+                CodigosErroSocial.CanalIndisponivel,
+                CodigosErroSocial.SussurroParaSiMesmo,
+            };
             var codigos = typeof(CodigosErroSocial)
                 .GetFields()
                 .Select(f => (string)f.GetRawConstantValue())
+                .Where(c => !doChat.Contains(c))
                 .ToArray();
 
             Assert.AreEqual(16, codigos.Length);
