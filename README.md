@@ -99,11 +99,14 @@ dotnet build JogoDoGrupo.slnx
 dotnet run --project server/src/JogoDoGrupo.Server
 ```
 
-O build termina com `0 Warning(s)` e `0 Error(s)`, e o servidor lista os módulos e termina com:
+O build termina com `0 Warning(s)` e `0 Error(s)`. O servidor lista os módulos, cria o banco local (`server/src/JogoDoGrupo.Server/jogodogrupo.db`, fora do git) e fica rodando:
 
 ```
 Servidor iniciado com 14 funcionalidades.
+Now listening on: http://localhost:5080
 ```
+
+Deixe-o rodando enquanto testa o client; para parar, `Ctrl+C`. Detalhes de configuração em [docs/arquitetura.md](docs/arquitetura.md#servidor-como-uma-funcionalidade-se-pluga).
 
 ### 7. Abra o cliente no Unity
 
@@ -113,7 +116,9 @@ Servidor iniciado com 14 funcionalidades.
    - o **Console** (Window > General > Console) está sem erros vermelhos;
    - no **Package Manager** (Window > Package Manager > In Project) aparece **"Jogo do Grupo - Shared"**;
    - a cena `Assets/_Game/Core/Scenes/SampleScene` abre normalmente.
-4. Em **Edit > Preferences > External Tools**, escolha seu editor de código em **External Script Editor**. É isso que faz o autocomplete funcionar nos scripts do Unity.
+4. Em **Edit > Project Settings > Player > Other Settings**, confira que **Allow downloads over HTTP** está em "Allowed in development builds". Sem isso, o client não consegue falar com o servidor local.
+5. Com o servidor rodando (passo 6), dê Play: aparece a abertura e depois o login. Crie uma conta para testar.
+6. Em **Edit > Preferences > External Tools**, escolha seu editor de código em **External Script Editor**. É isso que faz o autocomplete funcionar nos scripts do Unity.
    - **Cursor:** o Unity ainda não reconhece o Cursor (o pacote de IDE do Unity só conhece Visual Studio, VS Code e Rider), então não gera os `.csproj` e o autocomplete das APIs do Unity não funciona. Até o core decidir uma solução (ex.: um pacote de integração com o Cursor), use o Cursor para server e shared, e o VS Code, o Rider ou o Visual Studio para os scripts do Unity.
 
 Mais detalhes, e quais configurações do projeto não devem ser alteradas: [client/README.md](client/README.md).
