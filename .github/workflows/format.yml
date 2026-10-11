@@ -8,6 +8,9 @@ on:
 jobs:
   csharpier:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
     steps:
       - uses: actions/checkout@v4
         with:
@@ -16,4 +19,27 @@ jobs:
         with:
           dotnet-version: "10.0.x"
       - run: dotnet tool restore
-      - run: dotnet csharpier check .
+      - id: conferir
+        run: dotnet csharpier check .
+      # Sessões de IA na nuvem não têm .NET nem conseguem ler o log deste job: o diff vai
+      # para um comentário do PR, que a API entrega, e o agente aplica com `git apply`.
+      # PR de fork não recebe permissão de escrita, então fica só com o log.
+      - name: Publica o diff da formatação no PR
+        if: >-
+          failure() && steps.conferir.outcome == 'failure'
+          && github.event_name == 'pull_request'
+          && github.event.pull_request.head.repo.full_name == github.repository
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          dotnet csharpier format .
+          {
+            echo '<!-- csharpier-diff -->'
+            echo 'O `dotnet csharpier check .` falhou. Rode `dotnet csharpier format .` ou aplique este diff com `git apply`:'
+            echo
+            echo '```diff'
+            git diff | head -c 60000
+            echo '```'
+          } > "$RUNNER_TEMP/csharpier-diff.md"
+          gh pr comment "$PR" --body-file "$RUNNER_TEMP/csharpier-diff.md" --edit-last --create-if-none

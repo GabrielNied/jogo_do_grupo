@@ -6,12 +6,13 @@
 
 ## Resumo
 
-Telas e menus do client que não pertencem a uma funcionalidade do jogo. Por enquanto, o menu de opções aberto com Esc (issue #89), o [HUD do jogo](#hud-do-jogo) (#93) e a [base de áudio](#áudio) (#96). Código no Core do client; mudanças em `Core/` pedem review do responsável.
+Telas e menus do client que não pertencem a uma funcionalidade do jogo. Por enquanto, o menu de opções aberto com Esc (issue #89), as [janelas do jogo](#janelas-do-jogo) abertas por atalho (#134), o [HUD do jogo](#hud-do-jogo) (#93) e a [base de áudio](#áudio) (#96). Código no Core do client; mudanças em `Core/` pedem review do responsável.
 
 ## Definido
 
 - O menu abre com **Esc**, tem **continuar**, **opções**, **sair da conta** e **sair do jogo**. "Sair da conta" já existe (apaga o token gravado; veja [personagem.md](personagem.md)).
 - Opções iniciais (da issue #89): volume (geral, música, efeitos), qualidade gráfica, resolução e tela cheia, sensibilidade da câmera, idioma. Gravadas neste computador.
+- **Janelas do jogo por atalho** (#134, decidido por Gabriel em 2026-10-11; provisório, o grupo pode ajustar): **C** personagem, **I** inventário, **L** missões, **M** mapa. **Uma janela por vez**, e com janela aberta o personagem fica **parado**. Regras em [Janelas do jogo](#janelas-do-jogo).
 - Remapear teclas fica fora (tarefa própria, #90). Os atalhos padrão e as regras de troca estão em [Teclas e atalhos](#teclas-e-atalhos) (em proposta).
 
 ## Em aberto
@@ -20,6 +21,11 @@ Telas e menus do client que não pertencem a uma funcionalidade do jogo. Por enq
 - [ ] Idiomas disponíveis na primeira versão (proposta: só português; a opção existe mas lista um idioma).
 - [ ] Sair do jogo/da conta dentro de dungeon ou combate: sai na hora ou tem espera (proposta: espera de 10 s em combate)? Decisão do grupo.
 - [ ] ~~Remapear teclas (#90): só listado, não desenhado aqui.~~ substituído em 2026-10-11 por [Teclas e atalhos](#teclas-e-atalhos) (proposta de atalhos padrão e regras de troca)
+- [ ] Janelas do jogo (#134), decisões do grupo:
+  - [ ] Confirmar **uma janela por vez e personagem parado** (decisão provisória de 2026-10-11) ou permitir várias janelas abertas e andar com elas (como no WoW)?
+  - [ ] Com o chat aberto (#95), as letras não podem abrir janela: a regra entra junto com o chat
+  - [ ] Outras janelas que o grupo quer com atalho (sugestões: **K** skills, **N** talentos, **O** social, **P** profissões)
+  - [ ] A barra de atalhos fica sempre visível (como está) ou some depois que a pessoa aprende?
 - [ ] Teclas e atalhos (#90), decisões do grupo:
   - [ ] Aprovar os atalhos padrão da tabela (proposta). Pontos de atenção: **ataque pesado no botão direito** (no New World o pesado é segurar o botão esquerdo e o bloqueio fica no direito; aqui o bloqueio vai para **Q**) e ~~**esquiva no Espaço** (no New World é Alt)~~ substituído em 2026-10-11: o Espaço já é o pulo no client; a proposta passa a ser **esquiva no Alt esquerdo**, como no New World
   - [ ] Tecla já usada: **trocar as duas ações** (proposta) ou deixar a outra sem tecla?
@@ -57,6 +63,33 @@ Telas e menus do client que não pertencem a uma funcionalidade do jogo. Por enq
 
 Com o menu aberto, o cursor fica livre e a câmera e o movimento não recebem input (**proposta**).
 
+### Janelas do jogo
+
+Decidido por Gabriel em 2026-10-11 (#134); é **provisório** e o grupo pode ajustar. **Base:** MMOs de PC (World of Warcraft, New World), veja [referências](../referencias.md). **Igual:** uma letra abre cada janela e a mesma letra fecha; Esc fecha a janela aberta. **Diferente:** só uma janela aberta por vez e o personagem fica parado, como no New World (no WoW dá para abrir várias e andar com elas).
+
+| Tecla | Janela | Dona | Hoje mostra |
+|---|---|---|---|
+| **C** | Personagem | [Personagem](personagem.md) | nome, raça e nível, como o servidor informa. Atributos e equipamentos entram quando existirem |
+| **I** | Inventário | [Itens](itens.md) | o inventário do personagem; aberta pelo baú (E), mostra também os ganhos |
+| **L** | Missões | [Missões](missoes.md) | aviso "Em construção" (as missões ainda não existem) |
+| **M** | Mapa | [Mundo](mundo.md#mapa-múndi) | aviso "Em construção" (o mapa é a decisão #92) |
+
+- **A tecla alterna:** abre a janela; apertar de novo fecha.
+- **Uma janela por vez:** abrir outra fecha a que estava aberta.
+- **Esc** fecha a janela aberta. Sem janela aberta, Esc abre o [menu](#menu-esc). Um Esc nunca faz as duas coisas.
+- Com janela aberta, o personagem fica **parado**, a câmera não gira e o cursor fica livre. O jogo **não pausa**: o mundo segue rodando e o personagem fica vulnerável.
+- Com o **menu do Esc aberto**, os atalhos de janela não disparam.
+- Toda janela tem a mesma moldura: título, botão de fechar (X) no canto e, no pé, a dica de como fechar (ex.: "I ou Esc: fechar").
+- **Barra de atalhos:** no canto inferior direito, mostra a tecla de cada janela e a do menu, com a janela aberta em destaque. Só mostra, não recebe clique. Quando a moldura do HUD existir (#122), a barra passa a ser uma região dela.
+- Janela com defeito mostra "Não foi possível abrir esta janela." e continua fechável; o jogo não trava.
+- **Teclas que uma janela não pode usar:** as de outra ação da tabela de [Teclas e atalhos](#teclas-e-atalhos) (W, A, S, D, Q, E, R) e a de outra janela. O client recusa o registro na inicialização.
+- Trocar as teclas das janelas é a tela de **Opções > Teclas** (#124); até lá valem as da tabela.
+- Servidor autoritativo não se aplica: abrir janela não afeta regra de jogo. O que a janela mostra vem do servidor (inventário, personagem).
+
+**Quem monta o quê:** o Core cuida do atalho, da moldura, do Esc, do cursor e da barra. Cada funcionalidade registra a sua janela e monta só o conteúdo, sem referenciar outra funcionalidade (API em [arquitetura.md](../arquitetura.md#entrada-no-mundo)).
+
+**Testes** (client, EditMode): chave ou tecla repetida, reservada ou inválida é recusada; a tecla abre e fecha; abrir outra fecha a atual; Esc fecha a janela antes de abrir o menu; atalho não abre janela com o menu aberto; ordem e destaque da barra de atalhos; janela com defeito mostra o aviso.
+
 ### Opções iniciais
 
 | Opção | Valores (proposta) | Padrão |
@@ -91,8 +124,10 @@ A tela fica em **Opções > Teclas**, com uma linha por ação (nome, tecla atua
 | Skills 1, 2 e 3 (se entrarem, ver combate.md) | 1, 2, 3 | sim |
 | Trocar de arma (se entrar, S10) | R | sim |
 | Interagir | E | sim |
-| Mapa | M | sim |
+| Personagem | C | sim |
 | Inventário | I | sim |
+| Missões | L | sim |
+| Mapa | M | sim |
 | Menu | Esc | **não** (reservada) |
 
 **Regras de troca (proposta):**

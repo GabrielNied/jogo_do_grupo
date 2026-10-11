@@ -242,3 +242,115 @@
     -unity-text-align: middle-center;
     color: rgb(255, 220, 140);
 }
+
+/* Janelas do jogo abertas por atalho (C, I, L, M): a mesma moldura para todas. */
+
+.janela {
+    padding-top: 28px;
+}
+
+.janela-cabecalho {
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom-width: 1px;
+    border-bottom-color: rgb(120, 92, 48);
+}
+
+.janela-titulo {
+    flex-grow: 1;
+    font-size: 32px;
+    margin-bottom: 0;
+    -unity-text-align: middle-left;
+}
+
+.janela-fechar {
+    flex-grow: 0;
+    width: 44px;
+    min-height: 44px;
+    margin-top: 0;
+    padding: 0;
+}
+
+.janela-conteudo {
+    flex-shrink: 1;
+    min-height: 120px;
+}
+
+.janela-rodape {
+    margin-top: 16px;
+    font-size: 16px;
+    letter-spacing: 1px;
+    -unity-text-align: middle-center;
+    color: rgb(150, 128, 92);
+}
+
+.linha-dado {
+    flex-direction: row;
+    justify-content: space-between;
+    min-height: 40px;
+    margin-bottom: 6px;
+    padding: 6px 12px;
+    background-image: url("project://database/Assets/_Game/Core/UI/Resources/UI/slot.png");
+    -unity-slice-left: 6;
+    -unity-slice-right: 6;
+    -unity-slice-top: 6;
+    -unity-slice-bottom: 6;
+}
+
+.rotulo-dado {
+    color: rgb(196, 164, 112);
+}
+
+/* Barra de atalhos: só mostra as teclas, não recebe clique. */
+
+.barra-atalhos {
+    position: absolute;
+    right: 24px;
+    bottom: 24px;
+    flex-direction: row;
+    align-items: center;
+}
+
+.atalho {
+    flex-direction: row;
+    align-items: center;
+    margin-left: 14px;
+    opacity: 0.8;
+}
+
+.atalho-ativo {
+    opacity: 1;
+}
+
+.atalho-tecla {
+    min-width: 30px;
+    height: 30px;
+    padding: 0 6px;
+    margin-right: 6px;
+    font-size: 16px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    color: rgb(244, 228, 196);
+    background-color: rgba(22, 16, 12, 0.85);
+    border-width: 1px;
+    border-color: rgb(120, 92, 48);
+}
+
+.atalho-nome {
+    font-size: 16px;
+    letter-spacing: 1px;
+    color: rgb(228, 214, 188);
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.9);
+}
+
+.atalho-ativo > .atalho-tecla {
+    color: rgb(22, 16, 12);
+    background-color: rgb(232, 196, 120);
+    border-color: rgb(255, 236, 196);
+}
+
+.atalho-ativo > .atalho-nome {
+    color: rgb(255, 220, 140);
+}

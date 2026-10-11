@@ -29,6 +29,14 @@ Decidido pelo grupo em 2026-10-10. É **provisório**: serve para implementar a 
 - Comunicação pela API HTTP do [ADR 0009](../decisoes/0009-api-http-para-conta-e-personagens.md) (veja [Expõe](#expõe)).
 - O **servidor decide**: valida o nome, a unicidade, a raça e o limite de 4. O client só confere o formato do nome para dar retorno rápido.
 
+## Regras puras de experiência (#136)
+
+`RegrasExperiencia` implementa a curva provisória da [fatia jogável, seção 6](fatia-jogavel.md#6-experiência-e-nível). Os ajustes ficam em [ConfigExperiencia](../../shared/Package/Runtime/Features/Personagem/ConfigExperiencia.cs): nível máximo, pontos por nível, base de XP e expoente da curva. Reduzir a base acelera a progressão; o expoente controla o crescimento do custo entre níveis.
+
+`XpParaOProximoNivel` arredonda para o inteiro mais próximo (empates para longe de zero), inclusive ao consultar o nível máximo; nesse nível, o custo é apenas informativo. `AplicarGanho` recebe nível, XP dentro do nível e ganho; devolve nível, XP restante e pontos ganhos nessa aplicação. Pode subir vários níveis e guarda o excedente no teto. Ganho zero ou negativo preserva o estado; nível fora da faixa e XP acumulado negativo são recusados. XP usa `long`; soma acima da capacidade é recusada, sem truncamento.
+
+Estas funções não concedem prêmios nem persistem dados. Integração com servidor, mensagens, barra de XP e prevenção de prêmio duplicado continuam na #65. O padrão para outros valores ajustáveis está nas [convenções](../convencoes.md#valores-de-balanceamento).
+
 ## Em aberto
 
 - [ ] Quais raças existem e qual a skill base de cada uma? (as raças definitivas substituem a raça provisória Humano)

@@ -14,6 +14,8 @@
     "unity:executar": "node scripts/unity/unity.mjs executar",
     "unity:editor": "node scripts/unity/editor-aberto.mjs",
     "unity:importar": "node scripts/unity/unity.mjs importar",
+    "unity:meta": "node scripts/unity/gerar-meta.mjs",
+    "testar-scripts": "node --test \"scripts/**/*.test.mjs\"",
     "conferir-unity": "node scripts/git/conferir-arquivos-unity.mjs",
     "tarefa": "node scripts/git/tarefas.mjs"
   },
