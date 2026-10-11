@@ -48,13 +48,13 @@ export function validar() {
   }
   const assembly = JSON.parse(ler(feature + "Editor/JogoDoGrupo.Client.LaboratorioVisual.Editor.asmdef"));
   assert.deepEqual(assembly.includePlatforms, ["Editor"], "Laboratório vazando para o build");
-  assert.deepEqual(assembly.references, [], "Laboratório depende de outra funcionalidade");
+  assert.deepEqual(assembly.references, ["JogoDoGrupo.Client.Visual"], "Laboratório deve depender somente da biblioteca visual compartilhada");
   const tela = ler(feature + "Editor/TelaLaboratorio.cs").toString();
   assert(!/RuntimeInitializeOnLoadMethod|InitializeOnLoad|UnityWebRequest|HttpClient/.test(tela), "Integração automática ou rede proibida");
   const estilo = ler(feature + "Editor/Laboratorio.uss").toString();
-  for (const cor of ["#173B50", "#39B9AE", "#F5BE63", "#F4E6CB", "#688A48"])
-    assert(estilo.includes(cor), "Token de paleta ausente: " + cor);
-  for (const par of [["#F4E6CB", "#173B50"], ["#173B50", "#F5BE63"], ["#C7D6D5", "#173B50"]]) {
+  assert(!/#[0-9a-f]{6}/i.test(estilo), "Não duplicar cores no estilo do laboratório");
+  const { Cores } = JSON.parse(ler("design/interface/config-visual.json"));
+  for (const par of [[Cores.Marfim, Cores.Petroleo], [Cores.Petroleo, Cores.Ouro], [Cores.TextoSecundario, Cores.Petroleo]]) {
     const ratio = contraste(...par);
     assert(ratio >= 4.5, "Contraste sólido insuficiente: " + par);
     console.log(par.join(" / ") + ": " + ratio.toFixed(2) + ":1");

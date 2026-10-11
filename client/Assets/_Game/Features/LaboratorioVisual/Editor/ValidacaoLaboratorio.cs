@@ -1,4 +1,5 @@
 using System.Text;
+using JogoDoGrupo.Client.Core.Visual;
 using UnityEngine.UIElements;
 
 namespace JogoDoGrupo.Client.Features.LaboratorioVisual.Editor
@@ -21,7 +22,7 @@ namespace JogoDoGrupo.Client.Features.LaboratorioVisual.Editor
                         || botao.worldBound.width <= 0
                     )
                         return;
-                    if (botao.resolvedStyle.height < 44)
+                    if (botao.resolvedStyle.height < ConfigVisual.Dimensoes.AlvoMinimo)
                     {
                         texto.AppendLine("- ALERTA: alvo menor que 44 px lógicos: " + botao.text);
                         alertas++;
@@ -30,7 +31,7 @@ namespace JogoDoGrupo.Client.Features.LaboratorioVisual.Editor
             raiz.Query<Label>(className: "lab-leitura")
                 .ForEach(label =>
                 {
-                    if (label.resolvedStyle.fontSize < 16)
+                    if (label.resolvedStyle.fontSize < ConfigVisual.Tipografia.Leitura)
                     {
                         texto.AppendLine("- ALERTA: leitura menor que 16 px: " + label.text);
                         alertas++;

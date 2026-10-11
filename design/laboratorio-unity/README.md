@@ -1,6 +1,8 @@
 # Laboratório visual no Unity — proposta para validação
 
-Área aditiva ligada à [tarefa #355](https://github.com/GabrielNied/jogo_do_grupo/issues/355). Implementação em [LaboratorioVisual](../../client/Assets/_Game/Features/LaboratorioVisual/Editor/). **Ainda não aprovada visualmente.**
+**Atualização:** o usuário visualizou o laboratório e adotou sua direção como padrão inicial. O [guia Lumora UI v1](../interface/GUIA-DE-ESTILO.md) agora orienta as novas telas; a configuração central e a adaptação responsiva novas ainda precisam de validação na engine. As observações de proposta abaixo registram a primeira entrega, sem revogar essa adoção.
+
+Área aditiva ligada à [tarefa #355](https://github.com/GabrielNied/jogo_do_grupo/issues/355). Implementação em [LaboratorioVisual](../../client/Assets/_Game/Features/LaboratorioVisual/Editor/). **Modelo adotado como padrão inicial; a nova centralização e responsividade aguardam validação na engine.**
 
 ## Abrir
 
@@ -38,7 +40,7 @@ Nomes, quantidades, barras e itens são dados de demonstração, sem classes ou 
 
 Seguir [VALIDACAO.md](VALIDACAO.md). A janela exporta uma ficha Markdown com contexto, hashes e alertas estruturais. Isso não substitui aprovação humana. Não há captura automática de tela nesta versão: anexar capturas reais da janela à ficha antes de aprovar.
 
-Após aprovação, consolidar o guia de estilo para IAs a partir destes componentes e das decisões já aprovadas. Até lá, [BASE-PROVISORIA.md](BASE-PROVISORIA.md) orienta a implementação sem transformar explorações em regra definitiva.
+O [guia Lumora UI v1](../interface/GUIA-DE-ESTILO.md) agora orienta os agentes. A [BASE-PROVISORIA.md](BASE-PROVISORIA.md) foi preservada como histórico da etapa anterior.
 
 ## Estado desta entrega
 

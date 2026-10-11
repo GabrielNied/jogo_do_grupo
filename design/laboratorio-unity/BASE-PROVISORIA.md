@@ -1,5 +1,7 @@
 # Base de implementação — provisória
 
+**Histórico:** substituída como orientação vigente pelo [guia Lumora UI v1](../interface/GUIA-DE-ESTILO.md), após o usuário adotar o modelo visual. O texto abaixo registra a fase inicial e não deve bloquear a criação de novas telas no padrão atual.
+
 Este documento descreve o laboratório; não aprova novas telas. Decisões de marca e tipografia continuam nas [fontes oficiais de design](../README.md). Quando o usuário validar a renderização real, os componentes aceitos poderão virar o guia definitivo para IAs.
 
 ## Regras para continuar o laboratório

@@ -101,6 +101,8 @@ O trabalho é dividido entre agentes especializados, cada um com uma área fixa 
 
 ## Onde ler mais
 
+Para interfaces do client, seguir obrigatoriamente [Lumora UI v1](design/interface/GUIA-DE-ESTILO.md) e as instruções de [client/Assets/_Game/AGENTS.md](client/Assets/_Game/AGENTS.md). Valores visuais têm fonte única em `design/interface/config-visual.json`; novas telas usam a biblioteca compartilhada, sem copiar a feature de demonstração.
+
 - [docs/arquitetura.md](docs/arquitetura.md): organização e regras de dependência
 - [docs/convencoes.md](docs/convencoes.md): nomes, C#, formatação
 - [docs/git.md](docs/git.md): branches, commits, PRs e proteção da `main`

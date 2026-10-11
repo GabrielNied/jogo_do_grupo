@@ -4,6 +4,9 @@ Ponto de entrada da identidade visual, referências de interface e materiais de 
 
 ## Comece por aqui
 
+- [Guia Lumora UI v1](interface/GUIA-DE-ESTILO.md): padrão adotado para novas telas, componentes compartilhados, responsividade e validação.
+- [Configuração visual central](interface/config-visual.json): cores, medidas, espaçamentos e fontes; editar aqui e executar o gerador indicado no guia.
+
 - [Galeria visual](interface/index.html): pranchas de interface, materiais, mini marcas e elementos separados. Abrir localmente no navegador; o GitHub exibe o código HTML.
 - [Tipografia escolhida](tipografia/comparacao-sem-serifa.html): opção **01 acolhedora**, com fontes locais. O seletor mantém alternativas como histórico.
 - [Especificação tipográfica atual](tipografia/PADRAO-TIPOGRAFICO.md): a seção **APROVADO — padrão atual** prevalece sobre propostas anteriores.

@@ -1,5 +1,15 @@
 # Validação do laboratório
 
+**Atualização:** o usuário visualizou o laboratório e adotou o modelo como padrão inicial em [Lumora UI v1](../interface/GUIA-DE-ESTILO.md). Os resultados abaixo são da entrega inicial; a aprovação qualitativa não prova cobertura de todas as resoluções. A centralização de tokens e os novos layouts compactos ainda precisam de validação no Unity, incluindo importação dos `.meta` das fontes compartilhadas.
+
+## Consolidação Lumora UI v1 — tarefa #372
+
+- Cinco testes Node passaram: configuração inválida, propagação de cor, sincronização de C#/USS/fontes, cálculo de contraste e rejeição de fonte inválida. Referências a tokens existentes e ausência de cores duplicadas nos estilos compartilhados/laboratório também são verificadas.
+- CSharpier passou; metadados de scripts, pastas, estilos e textos foram gerados pelo comando oficial.
+- Novos testes EditMode cobrem limites responsivos, larguras inválidas, leitura aumentada, recursos ausentes e aplicação idempotente do estilo. **Não executados nesta revisão: Unity indisponível no ambiente, conforme diagnóstico anterior.**
+- Permanecem pendentes: compilação/importação Unity, quatro `.meta` das fontes em `Core/UI/Visual/Resources/Lumora/Fontes/`, testes EditMode e capturas dos layouts compacto/estreito. Os `.meta` binários devem ser gerados pelo Unity, nunca escritos à mão.
+- Nenhuma tela antiga foi migrada. A nova biblioteca compartilhada requer review do Core.
+
 ## Automatizada fora do Unity
 
 Na raiz do repositório:
