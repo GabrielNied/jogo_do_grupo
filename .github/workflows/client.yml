@@ -4,8 +4,10 @@ name: Client (Unity)
 # tem Unity na máquina, como um agente na nuvem, não precise fazer isso localmente (ADR 0019).
 #
 # Leva uns 10 minutos, então não roda em cada PR (não atrasa ninguém nem gasta a cota à toa):
-# - depois do merge na main, se mexeu no client ou no shared. Merges seguidos cancelam a
-#   execução anterior, então um lote de merges gera uma execução só;
+# - depois do merge na main, se mexeu no client ou no shared. A execução em andamento na main
+#   termina (cancelar a cada merge fazia quase nenhuma chegar ao fim); a fila guarda só a mais
+#   nova, então um lote de merges gera uma execução a mais, não uma por merge. Se passar, fecha
+#   as pendências que só pediam compilar e rodar os testes EditMode;
 # - num PR com a label "testar-unity", para validar antes do merge;
 # - à mão, em Actions > Client (Unity) > Run workflow.
 # Se falhar na main, abre uma pendência "pendente-unity" para o próximo agente com Unity.
@@ -31,7 +33,8 @@ permissions:
 
 concurrency:
   group: client-unity-${{ github.ref }}
-  cancel-in-progress: true
+  # Em PR, um push novo substitui o anterior. Na main, a execução em andamento termina.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   testes:
@@ -107,6 +110,13 @@ jobs:
         with:
           name: resultados-unity
           path: artifacts
+
+      # Passou na main: fecha as pendências que só pediam o que este job acabou de fazer.
+      - name: Fecha pendências resolvidas pelo CI
+        if: success() && github.event_name == 'push' && env.TEM_LICENCA == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/git/fechar-pendencias-do-ci.mjs "$GITHUB_SHA" "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
 
       # Quebrou na main: vira pendência para o próximo agente com Unity (ADR 0019).
       - name: Abre pendência de Unity

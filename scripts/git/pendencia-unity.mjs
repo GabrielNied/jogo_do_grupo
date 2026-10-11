@@ -55,3 +55,35 @@ export function corpoDoPrComPendencia(corpoAtual, numero) {
   if (corpo.includes(linha)) return corpo;
   return `${corpo.trimEnd()}\n\n${linha}\n`;
 }
+
+/** Itens da lista "**Falta:**" do corpo da pendência (marcados ou não). */
+export function faltasDaPendencia(corpo) {
+  const linhas = (corpo ?? "").split(/\r?\n/);
+  const inicio = linhas.findIndex((linha) => linha.trim() === "**Falta:**");
+  if (inicio < 0) return [];
+  const faltas = [];
+  for (const linha of linhas.slice(inicio + 1)) {
+    const item = /^\s*- \[[ xX]\] (.+)$/.exec(linha);
+    if (item) faltas.push(item[1].trim());
+    else if (linha.trim() !== "") break;
+  }
+  return faltas;
+}
+
+// O CI "Client (Unity)" compila todos os assemblies e roda todos os testes EditMode. O que
+// pede outra coisa (Play Mode, olhar, gerar .meta/assets, rodar gerador) continua com gente.
+const PEDE_SO_O_CI = /compil|edit ?mode|unity:testes|\btestes?\b/i;
+const PEDE_GENTE =
+  /play|visual|olhar|conferir no|ver no|inspector|\.meta|\bmeta\b|importar|unity:executar|gerador|gerar|prefab|cena|textura|material|modelo|blender/i;
+
+/**
+ * A pendência só pede o que o CI "Client (Unity)" já faz na main (compilar e rodar os testes
+ * EditMode)? Então uma execução verde depois do merge do PR a resolve.
+ */
+export function resolvidaPeloCi(corpo) {
+  const faltas = faltasDaPendencia(corpo);
+  return (
+    faltas.length > 0 &&
+    faltas.every((falta) => PEDE_SO_O_CI.test(falta) && !PEDE_GENTE.test(falta))
+  );
+}
