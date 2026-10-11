@@ -31,6 +31,7 @@ Cada informação mora em um lugar só. Os outros documentos apontam para ele em
 | Ideias do brainstorm (não validadas) | [brainstorm/figjam.md](brainstorm/figjam.md), gerado do FigJam |
 | Decisões de design em aberto (validação das ideias) | [brainstorm/validacao.md](brainstorm/validacao.md) |
 | Regras de cada funcionalidade | [features/](features/) |
+| Padrão dos modelos 3D próprios e como gerá-los | [arte/padrao-de-modelos.md](arte/padrao-de-modelos.md) |
 | Jogar com o grupo com o servidor no PC de alguém | [hospedagem.md](hospedagem.md) |
 | Instruções para assistentes de IA | [AGENTS.md](../AGENTS.md) |
 | Papéis e fluxo dos agentes | [agentes.md](agentes.md) e [.claude/agents/](../.claude/agents/) |

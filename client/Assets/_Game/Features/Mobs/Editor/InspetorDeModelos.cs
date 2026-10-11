@@ -14,13 +14,7 @@ namespace JogoDoGrupo.Client.Features.Mobs.Editor
         public static void Listar()
         {
             var sb = new StringBuilder();
-            foreach (
-                var caminho in new[]
-                {
-                    GeradorDeCriaturas.CaminhoPorco,
-                    GeradorDeCriaturas.CaminhoDragao,
-                }
-            )
+            foreach (var caminho in GeradorDeCriaturas.Modelos())
             {
                 sb.AppendLine(caminho);
                 foreach (var o in AssetDatabase.LoadAllAssetsAtPath(caminho))
