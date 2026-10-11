@@ -108,6 +108,12 @@ O que o servidor acrescentou ao implementar (issue #268; **proposta**, decidido 
 - **Dano no jogador:** Mobs decide **quem** o golpe pegou e publica `GolpeDeInimigoAcertou`; tirar a vida é de quem é dono dela ([Combate](combate.md)), que ainda **não** assina o evento. Até lá o golpe é avisado e decidido, mas não tira vida.
 - **Quem participou da morte:** quem causou dano ao inimigo desde que ele apareceu, em ordem crescente de id (`InimigoDerrotado.Participantes`; o Combate informa o atacante em `IAlvosDeCombate.TentarAplicarDano`). A lista zera quando ele desiste e volta (a vida também volta ao máximo) e quando ele reaparece. Quem só foi alvo do inimigo, sem causar dano, não participa.
 
+O chefe raro no campo (issue #310; **proposta**, a confirmar no review):
+
+- **Onde:** a Presa-Velha tem um ponto próprio no campo, com centro em (-60, 230) na área `cidade` (ele nasce 4 m ao norte do centro, como o inimigo de um grupo de um; uns 60 m a oeste do grupo de javalis, fora da visão deles). Valores em `ConfigInimigosDoCampo`.
+- **Como aparece:** o servidor sobe sem o chefe; o `AparicaoDeChefeRaro` faz o primeiro sorteio no primeiro passo e depois um por intervalo (1800 s, chance de 20%). Quando sorteia, ele chega como `InimigoApareceu`, com `Variante` normal, e fica até morrer, sem novo sorteio. A morte manda `InimigoMorreu` e `InimigoDerrotado` como a de qualquer inimigo e recomeça a espera; a volta é um inimigo novo (id novo), por sorteio, nunca por tempo fixo.
+- **IA:** a do inimigo comum, com vida (1500) e dano (80) da própria ficha. Quem entra na área recebe os inimigos vivos do campo, chefe incluído. Não há aviso de aparição (continua em aberto).
+
 ## Depende de
 
 - ~~Ainda nada no código. A IA, o dano e a posição no mundo dependem de [Combate](combate.md) (alvo e dano) e de [Mundo](mundo.md) (posição dos jogadores), que as issues #61 e #119 preparam.~~ Substituído em 2026-10-11: os dois contratos já existem no servidor (`Contratos/Combate/IAlvosDeCombate` e `Contratos/Mundo/IPosicoesDoMundo`). O inimigo da issue #63 vai usá-los; o contrato do shared (abaixo) ainda não depende de nenhuma outra funcionalidade.
@@ -138,7 +144,7 @@ Inimigo comum (tempo real; regras em "Inimigo comum da fatia"):
 - `CriaturaId` aponta para o `CatalogoCriaturas` (nome, nível, categoria); a ficha da issue chamava esse campo de `Tipo`.
 - `RegrasInimigo`: constantes de balanceamento e fórmulas puras (`TransicaoValida`, `EstaVivo`, `ProcuraAlvo`, `TamanhoDoGrupo`, `Ve`, `NoAlcanceDeAtaque`, `DeveDesistir`, `EscolherAlvo`, `DirecaoPara`, `Avancar`, `CentroDoGolpe`, `EstaNaAreaDoGolpe`). O servidor decide; o client usa só para mostrar.
 
-No servidor (`server/.../Features/Mobs/`): `SorteadorDeCriaturas` (sorteia a variante e a aparição) e `AparicaoDeChefeRaro` (o controle de um ponto de chefe raro). ~~Ainda não estão ligados ao mundo.~~ Substituído em 2026-10-11 (issue #268): o sorteador já sorteia a variante dos inimigos do campo; o chefe raro continua sem ligação com o mundo.
+No servidor (`server/.../Features/Mobs/`): `SorteadorDeCriaturas` (sorteia a variante e a aparição) e `AparicaoDeChefeRaro` (o controle de um ponto de chefe raro). ~~Ainda não estão ligados ao mundo.~~ Substituído em 2026-10-11 (issue #268): o sorteador já sorteia a variante dos inimigos do campo; o chefe raro ficou sem ligação com o mundo até a issue #310, que ligou a Presa-Velha ao campo (seção "O chefe raro no campo", abaixo).
 
 Inimigos do campo no servidor (issue #268): `GrupoDeInimigos` (a IA, sem rede, e o alvo dos golpes), `ServicoDeInimigos` (o laço de 10 passos por segundo, que envia as mensagens acima e publica os eventos) e `ConfigInimigosDoCampo` (ponto do grupo, espalhamento e id inicial).
 

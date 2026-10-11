@@ -21,6 +21,17 @@ public static class ConfigInimigosDoCampo
     public const double PontoZ = 190.0;
 
     /// <summary>
+    /// Ponto do chefe raro (Presa-Velha), no plano do chão: no campo, uns 60 m a oeste e 40 m
+    /// além do grupo de javalis, fora da visão deles (proposta, a calibrar).
+    /// </summary>
+    public const double PontoDoChefeRaroX = -60.0;
+
+    public const double PontoDoChefeRaroZ = 230.0;
+
+    /// <summary>Id do primeiro (e único) chefe raro; cada aparição soma 1, longe dos do grupo comum.</summary>
+    public const long PrimeiroIdDoChefeRaro = 1_000_000_100_000;
+
+    /// <summary>
     /// Raio, em metros, do círculo em volta do centro em que ficam os pontos de origem, a
     /// distâncias iguais um do outro.
     /// </summary>
