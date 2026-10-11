@@ -17,13 +17,17 @@ namespace JogoDoGrupo.Client.Core.Api
     /// <see cref="RespostaApi"/> (sucesso, status, corpo ou <see cref="ErroApi"/>).
     /// Resposta de erro sem corpo ou com JSON inválido vira
     /// <see cref="CodigosErroCliente.RespostaInvalida"/>; falha de rede vira
-    /// <see cref="CodigosErroCliente.SemConexao"/>.
+    /// <see cref="CodigosErroCliente.SemConexao"/>; HTTP bloqueado pelo Unity vira
+    /// <see cref="CodigosErroCliente.HttpBloqueado"/>; sair do Play no meio vira
+    /// <see cref="CodigosErroCliente.Cancelada"/>. Só um <c>corpo</c> que o
+    /// <c>JsonUtility</c> não consegue serializar (erro de programação) lança exceção.
     /// </para>
     /// <para>
     /// Rota protegida (<c>autenticar = true</c>, o padrão): envia
     /// <c>Authorization: Bearer &lt;token&gt;</c> se houver <see cref="Sessao"/>. Qualquer 401
-    /// nela vira <see cref="CodigosErro.NaoAutenticado"/>, encerra a sessão e o Core volta para
-    /// o login (<see cref="Sessao.Expirou"/>) antes de o <c>await</c> retornar. Por isso, depois
+    /// nela vira <see cref="CodigosErro.NaoAutenticado"/>. Se o token enviado ainda for o da
+    /// sessão atual, a sessão é encerrada e o Core volta para o login
+    /// (<see cref="Sessao.Expirou"/>) antes de o <c>await</c> retornar. Por isso, depois
     /// do <c>await</c>, confira <c>Tela.Aberta</c> antes de mexer na interface.
     /// </para>
     /// <para>Rotas de conta (registro e login) não são protegidas: passe <c>autenticar: false</c>.</para>
@@ -66,23 +70,14 @@ namespace JogoDoGrupo.Client.Core.Api
         public static async Awaitable<RespostaApi<T>> Get<T>(string rota, bool autenticar = true)
         {
             var resposta = new RespostaApi<T>();
-            using (
-                var requisicao = CriarRequisicao(
-                    UnityWebRequest.kHttpVerbGET,
-                    rota,
-                    null,
-                    autenticar
-                )
-            )
-            {
-                await Enviar(requisicao);
-                PreencherStatus(resposta, requisicao, autenticar);
-                if (resposta.Sucesso)
-                {
-                    LerCorpo(resposta, requisicao);
-                }
-            }
-
+            await Executar(
+                UnityWebRequest.kHttpVerbGET,
+                rota,
+                null,
+                autenticar,
+                resposta,
+                requisicao => LerCorpo(resposta, requisicao)
+            );
             return resposta;
         }
 
@@ -97,23 +92,14 @@ namespace JogoDoGrupo.Client.Core.Api
         )
         {
             var resposta = new RespostaApi<T>();
-            using (
-                var requisicao = CriarRequisicao(
-                    UnityWebRequest.kHttpVerbPOST,
-                    rota,
-                    corpo,
-                    autenticar
-                )
-            )
-            {
-                await Enviar(requisicao);
-                PreencherStatus(resposta, requisicao, autenticar);
-                if (resposta.Sucesso)
-                {
-                    LerCorpo(resposta, requisicao);
-                }
-            }
-
+            await Executar(
+                UnityWebRequest.kHttpVerbPOST,
+                rota,
+                corpo,
+                autenticar,
+                resposta,
+                requisicao => LerCorpo(resposta, requisicao)
+            );
             return resposta;
         }
 
@@ -128,66 +114,153 @@ namespace JogoDoGrupo.Client.Core.Api
         )
         {
             var resposta = new RespostaApi();
-            using (
-                var requisicao = CriarRequisicao(
-                    UnityWebRequest.kHttpVerbPOST,
-                    rota,
-                    corpo,
-                    autenticar
-                )
-            )
+            await Executar(UnityWebRequest.kHttpVerbPOST, rota, corpo, autenticar, resposta, null);
+            return resposta;
+        }
+
+        /// <summary>
+        /// Envia a requisição e preenche <paramref name="resposta"/>. <paramref name="lerCorpo"/>
+        /// (opcional) roda só no sucesso, antes do descarte da requisição.
+        /// </summary>
+        private static async Awaitable Executar(
+            string metodo,
+            string rota,
+            object corpo,
+            bool autenticar,
+            RespostaApi resposta,
+            Action<UnityWebRequest> lerCorpo
+        )
+        {
+            // Monta o JSON antes de criar a requisição: se lançar, não sobra nada sem descarte.
+            var json = corpo != null ? Encoding.UTF8.GetBytes(JsonUtility.ToJson(corpo)) : null;
+
+            // Guarda o token enviado: um 401 só encerra a sessão se ela ainda for a mesma.
+            var tokenEnviado = autenticar ? Sessao.Token : null;
+            var url = UrlBase + rota;
+
+            UnityWebRequest requisicao;
+            UnityWebRequestAsyncOperation operacao;
+            try
             {
-                await Enviar(requisicao);
-                PreencherStatus(resposta, requisicao, autenticar);
+                requisicao = CriarRequisicao(metodo, url, json, tokenEnviado);
+            }
+            catch (Exception e)
+            {
+                FalharAntesDeEnviar(resposta, metodo, url, e);
+                return;
             }
 
-            return resposta;
+            using (requisicao)
+            {
+                try
+                {
+                    operacao = requisicao.SendWebRequest();
+                }
+                catch (Exception e)
+                {
+                    FalharAntesDeEnviar(resposta, metodo, url, e);
+                    return;
+                }
+
+                try
+                {
+                    while (!operacao.isDone)
+                    {
+                        await Awaitable.NextFrameAsync(Application.exitCancellationToken);
+                    }
+                }
+                catch (OperationCanceledException)
+                {
+                    requisicao.Abort();
+                    resposta.Erro = CriarErro(
+                        CodigosErroCliente.Cancelada,
+                        "O jogo foi fechado durante a chamada."
+                    );
+                    return;
+                }
+
+                PreencherStatus(resposta, requisicao, autenticar, tokenEnviado);
+                if (resposta.Sucesso)
+                {
+                    lerCorpo?.Invoke(requisicao);
+                }
+            }
         }
 
         private static UnityWebRequest CriarRequisicao(
             string metodo,
-            string rota,
-            object corpo,
-            bool autenticar
+            string url,
+            byte[] json,
+            string token
         )
         {
-            var requisicao = new UnityWebRequest(UrlBase + rota, metodo)
+            var requisicao = new UnityWebRequest(url, metodo);
+            try
             {
-                downloadHandler = new DownloadHandlerBuffer(),
-                timeout = TempoLimiteSegundos,
-            };
+                requisicao.downloadHandler = new DownloadHandlerBuffer();
+                requisicao.timeout = TempoLimiteSegundos;
 
-            if (corpo != null)
-            {
-                var json = JsonUtility.ToJson(corpo);
-                requisicao.uploadHandler = new UploadHandlerRaw(Encoding.UTF8.GetBytes(json));
-                requisicao.SetRequestHeader("Content-Type", "application/json");
+                if (json != null)
+                {
+                    requisicao.uploadHandler = new UploadHandlerRaw(json);
+                    requisicao.SetRequestHeader("Content-Type", "application/json");
+                }
+
+                requisicao.SetRequestHeader("Accept", "application/json");
+
+                // Quem decide se o token vale é o servidor; o client só manda o que tem.
+                if (!string.IsNullOrEmpty(token))
+                {
+                    requisicao.SetRequestHeader("Authorization", "Bearer " + token);
+                }
+
+                return requisicao;
             }
-
-            requisicao.SetRequestHeader("Accept", "application/json");
-
-            // Quem decide se o token vale é o servidor; o client só manda o que tem.
-            if (autenticar && !string.IsNullOrEmpty(Sessao.Token))
+            catch
             {
-                requisicao.SetRequestHeader("Authorization", "Bearer " + Sessao.Token);
+                requisicao.Dispose();
+                throw;
             }
-
-            return requisicao;
         }
 
-        private static async Awaitable Enviar(UnityWebRequest requisicao)
+        /// <summary>
+        /// Converte em erro uma exceção ao criar ou enviar a requisição (ex.: URL inválida ou
+        /// HTTP inseguro bloqueado pelo Unity, que lança <c>InvalidOperationException</c>).
+        /// </summary>
+        private static void FalharAntesDeEnviar(
+            RespostaApi resposta,
+            string metodo,
+            string url,
+            Exception e
+        )
         {
-            var operacao = requisicao.SendWebRequest();
-            while (!operacao.isDone)
+            resposta.Status = 0;
+
+            if (
+                e is InvalidOperationException
+                && url.StartsWith("http://", StringComparison.OrdinalIgnoreCase)
+            )
             {
-                await Awaitable.NextFrameAsync();
+                resposta.Erro = CriarErro(CodigosErroCliente.HttpBloqueado, e.Message);
+                Debug.LogError(
+                    $"[ClienteApi] {metodo} {url}: o Unity bloqueou HTTP sem criptografia ({e.Message}). "
+                        + "Libere em Project Settings > Player > Other Settings > "
+                        + "Allow downloads over HTTP (\"Allowed in development builds\")."
+                );
+                return;
             }
+
+            resposta.Erro = CriarErro(CodigosErroCliente.SemConexao, e.Message);
+            Debug.LogWarning(
+                $"[ClienteApi] {metodo} {url}: não foi possível enviar ({e.GetType().Name}: {e.Message})."
+            );
         }
 
         private static void PreencherStatus(
             RespostaApi resposta,
             UnityWebRequest requisicao,
-            bool autenticar
+            bool autenticar,
+            string tokenEnviado
         )
         {
             var status = requisicao.responseCode;
@@ -217,9 +290,9 @@ namespace JogoDoGrupo.Client.Core.Api
                     "Token ausente, inválido ou expirado."
                 );
                 Debug.LogWarning(
-                    $"[ClienteApi] {requisicao.method} {requisicao.url}: 401, sessão expirada."
+                    $"[ClienteApi] {requisicao.method} {requisicao.url}: 401, não autenticado."
                 );
-                Sessao.Expirar();
+                Sessao.ExpirarSeAtual(tokenEnviado);
                 return;
             }
 

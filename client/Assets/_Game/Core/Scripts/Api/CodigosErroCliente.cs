@@ -19,5 +19,18 @@ namespace JogoDoGrupo.Client.Core.Api
         /// ou sucesso com JSON ausente ou inválido. Trate como erro genérico.
         /// </summary>
         public const string RespostaInvalida = "RespostaInvalida";
+
+        /// <summary>
+        /// O Unity recusou enviar por HTTP sem criptografia. No desenvolvimento, libere em
+        /// Project Settings > Player > Other Settings > Allow downloads over HTTP.
+        /// <see cref="RespostaApi.Status"/> é 0. Trate como erro de conexão.
+        /// </summary>
+        public const string HttpBloqueado = "HttpBloqueado";
+
+        /// <summary>
+        /// A chamada foi interrompida porque o jogo fechou (ou o Play parou no editor).
+        /// <see cref="RespostaApi.Status"/> é 0. Não precisa mostrar nada.
+        /// </summary>
+        public const string Cancelada = "Cancelada";
     }
 }
