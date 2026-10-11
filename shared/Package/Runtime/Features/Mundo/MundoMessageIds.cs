@@ -39,5 +39,8 @@ namespace JogoDoGrupo.Shared.Features.Mundo
 
         /// <summary>Client → servidor: aplicou a posição forçada (<see cref="Mundo.ConfirmarPosicaoForcada"/>).</summary>
         public const ushort ConfirmarPosicaoForcada = 1010;
+
+        /// <summary>Servidor → client: a hora do mundo (<see cref="Mundo.HoraDoMundo"/>).</summary>
+        public const ushort HoraDoMundo = 1011;
     }
 }
