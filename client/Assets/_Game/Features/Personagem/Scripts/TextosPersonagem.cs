@@ -24,8 +24,11 @@ namespace JogoDoGrupo.Client.Features.Personagem
 
         public const string ErroAoCarregarFicha = "Não foi possível carregar o personagem.";
 
-        public const string NotaDaFicha =
-            "Atributos e equipamentos aparecem aqui quando forem implementados.";
+        public const string NotaDaFicha = "Equipamentos aparecem aqui quando forem implementados.";
+
+        public const string PontosInsuficientes = "Não há pontos livres para esse gasto.";
+
+        public const string AtributoInvalido = "Escolha ao menos um ponto para gastar.";
 
         public static readonly string NomeInvalido =
             $"O nome deve ter de {RegrasPersonagem.NomeMinimo} a {RegrasPersonagem.NomeMaximo} "
@@ -110,6 +113,31 @@ namespace JogoDoGrupo.Client.Features.Personagem
                 CodigoHttpBloqueado => SemConexao,
                 _ => Generica,
             };
+        }
+
+        /// <summary>Mensagem para a recusa do gasto de pontos.</summary>
+        public static string MensagemDoGasto(string codigo)
+        {
+            return codigo switch
+            {
+                CodigosErroPersonagem.PontosInsuficientes => PontosInsuficientes,
+                CodigosErroPersonagem.AtributoInvalido => AtributoInvalido,
+                CodigosErroPersonagem.PersonagemNaoEncontrado => ErroAoCarregarFicha,
+                CodigosErroCliente.SemConexao => SemConexao,
+                CodigoHttpBloqueado => SemConexao,
+                _ => Generica,
+            };
+        }
+
+        public static string TextoDaBarra(EstadoDeProgresso progresso)
+        {
+            return "Nível "
+                + progresso.Nivel
+                + "  ·  "
+                + progresso.XpAtual
+                + " / "
+                + progresso.XpDoNivel
+                + " XP";
         }
     }
 }
