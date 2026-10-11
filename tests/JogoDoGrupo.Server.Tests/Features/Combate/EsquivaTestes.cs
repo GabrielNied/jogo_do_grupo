@@ -225,10 +225,7 @@ public class EsquivaTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDe
         var recusada = await RecusadaAsync(ana);
         Assert.Equal(2, recusada.Sequencia);
         Assert.Equal(CodigosErroCombate.AcaoEmAndamento, recusada.Codigo);
-        Assert.Equal(
-            100 - RegrasAtaque.CustoDeVigor(TipoDeAtaque.Pesado),
-            await VigorAsync(ana)
-        );
+        Assert.Equal(100 - RegrasAtaque.CustoDeVigor(TipoDeAtaque.Pesado), await VigorAsync(ana));
     }
 
     [Fact]
