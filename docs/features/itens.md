@@ -14,7 +14,8 @@ Inventário, equipamentos, raridades e sistema de fusão.
 - **Os itens carregam as skills, sorteadas aleatoriamente** (D3 da [validação de 2026-10-10](../brainstorm/validacao.md)), e a combinação de itens equipados define o estilo de jogo (D2)
 - Estilo looter: muito loot é parte do loop principal (D5)
 - Os itens equipados definem o papel no grupo: tank, healer ou DPS (veja [combate.md](combate.md))
-- Sistema de fusão: limite de fusões por raridade, item sacrificado é destruído, só funde itens do mesmo tipo ou tier, herança parcial de atributos, retorno decrescente, custo crescente em ouro (tira moeda do jogo), teto de atributo por tier
+- ~~Sistema de fusão: limite de fusões por raridade, item sacrificado é destruído, só funde itens do mesmo tipo ou tier, herança parcial de atributos, retorno decrescente, custo crescente em ouro (tira moeda do jogo), teto de atributo por tier~~ (substituído em 2026-10-11 pela decisão abaixo)
+- **Fusão/infusão** (decidido por Gabriel em 2026-10-11, a validar pelo grupo): vale a infusão do board ([Proposta do board](#proposta-do-board-2026-10-11-não-validada)): só doadores do mesmo tipo **e** raridade, +2% fixo do valor-base por doador, sem retorno decrescente, **com custo em coroas** (mantém a saída de moeda). O item sacrificado continua destruído. O custo exato em coroas é valor a propor (dono: agente economia, PR #360); veja [economia.md](economia.md).
 - Itens negociáveis, inclusive os fundidos (fomentar a economia)
 
 ## Em aberto
@@ -22,7 +23,8 @@ Inventário, equipamentos, raridades e sistema de fusão.
 - [ ] Quantas raridades/tiers?
 - [ ] Quantas skills um item pode ter? A raridade muda isso?
 - [ ] Herança de atributos na fusão: porcentagem ou escolha do jogador?
-- [ ] Conflitos com a proposta do board (2026-10-11, veja [Proposta do board](#proposta-do-board-2026-10-11-não-validada)): o board põe infusão só entre mesmo tipo **e** raridade, ganho fixo de 2% por doador (sem retorno decrescente) e nenhum custo em moeda; o Definido pede mesmo tipo **ou** tier, retorno decrescente e custo crescente em ouro. Moeda: o board usa "coroas", o Definido fala em "ouro". Nada foi trocado; o grupo decide.
+- [ ] Custo exato em coroas da infusão: a propor (agente economia).
+- [ ] Ajustes à tabela de raridades: pendente de Gabriel (a tabela do board foi adotada "com ajustes" ainda não informados; segue como proposta).
 
 ## Regras
 
