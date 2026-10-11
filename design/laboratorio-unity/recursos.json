@@ -1,0 +1,69 @@
+{
+  "estado": "proposta; aprovação visual pendente",
+  "recursos": [
+    {
+      "caminho": "marca/logo-horizontal.png",
+      "sha256": "aec9f03cbaddbf872454aeb868d86d703af83c41e472bc6d67bd3ac42633b755"
+    },
+    {
+      "caminho": "marca/simbolo-referencia.png",
+      "sha256": "a1ee6768f64e33f31221ba8ce89168a218566eba2f5b71c0aa4fe2586527a49a"
+    },
+    {
+      "caminho": "interface/elementos/moldura-folhas-calcada.png",
+      "sha256": "b587021f3fd9985b93f1ed1397abde394f7f701729dacdedaeb9052b5e740768"
+    },
+    {
+      "caminho": "interface/elementos/fundo-petrol.png",
+      "sha256": "30a9436fc74625e781186e0a12bc61dab7fbc30122db1687451f6e1634162f39"
+    },
+    {
+      "caminho": "interface/elementos/pergaminho.png",
+      "sha256": "7b2b6795950caa034dc3028f4be3b4acb9010df1d9335dd83dbdd97274197706"
+    },
+    {
+      "caminho": "interface/pranchas/01-componentes.png",
+      "sha256": "6bea166336e7cdf4a35925f797d9cffeed097519a69f66ba4de6ee83d3404b30"
+    },
+    {
+      "caminho": "interface/pranchas/02-hud-inventario.png",
+      "sha256": "1d7f2f03b86017e37c5bc94e99647d5692307e20df52fdafa37869bcc196e0e4"
+    },
+    {
+      "caminho": "interface/pranchas/03-grupo-social.png",
+      "sha256": "5f196057d6e92d15f4d256d1aec59abf18c1969eef3c6952ef2bf230476894dd"
+    },
+    {
+      "caminho": "interface/pranchas/04-cidade-economia.png",
+      "sha256": "3a0b911b5cccadf5706c486d5a258b85ea819d95df8114a89c6aeaf7115c5a1c"
+    },
+    {
+      "caminho": "interface/pranchas/05-mini-marcas.png",
+      "sha256": "93f7f2ef666cc503f9dadaa15768b290bda8b32e7b9c3e2a7492d6b3c14a5291"
+    },
+    {
+      "caminho": "interface/pranchas/06-materiais.png",
+      "sha256": "e3ab2b670215c116648335ab16923b17261f8d074f707fe0811017046c167b35"
+    },
+    {
+      "caminho": "laboratorio-unity/fontes/LumoraNunito-800.ttf",
+      "sha256": "451c854661f0314ee05533dc0a7af43931faa5ff22e16751b7f48120ec9951ef",
+      "peso": 800
+    },
+    {
+      "caminho": "laboratorio-unity/fontes/LumoraSource-500.ttf",
+      "sha256": "2d11d90432a2e080033e984594018f1055efebc995ca1d114c36381bdd8d6d5f",
+      "peso": 500
+    },
+    {
+      "caminho": "laboratorio-unity/fontes/LumoraSource-600.ttf",
+      "sha256": "ee85dd2c5414a4fb21c188b00a2869b4a2b32a777bc18d4fbba8bc25b89194cb",
+      "peso": 600
+    },
+    {
+      "caminho": "laboratorio-unity/fontes/LumoraSource-700.ttf",
+      "sha256": "3f7e5acd3b36cd6e3568219633b720ab12fb973becec9780431176260679d0e4",
+      "peso": 700
+    }
+  ]
+}

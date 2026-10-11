@@ -1,0 +1,62 @@
+.lumora-lab {
+    --lab-petrol: #173B50;
+    --lab-essencia: #39B9AE;
+    --lab-ouro: #F5BE63;
+    --lab-marfim: #F4E6CB;
+    --lab-verde: #688A48;
+    flex-grow: 1;
+    background-color: var(--lab-petrol);
+    color: var(--lab-marfim);
+    font-size: 16px;
+    position: relative;
+    -unity-background-scale-mode: stretch-to-fill;
+}
+.lab-topo { flex-direction: row; align-items: center; padding: 12px 24px; background-color: rgba(9, 29, 40, 0.94); border-bottom-width: 2px; border-bottom-color: var(--lab-ouro); flex-shrink: 0; }
+.lab-apresentacao { flex-grow: 1; margin-left: 20px; }
+.lab-ferramentas { width: 260px; margin-left: 16px; }
+.lab-titulo { font-size: 28px; color: var(--lab-ouro); white-space: normal; margin-bottom: 8px; }
+.lab-subtitulo { font-size: 22px; color: var(--lab-ouro); white-space: normal; margin-bottom: 12px; }
+.lab-suave, .lab-nota { color: #C7D6D5; white-space: normal; margin-bottom: 16px; }
+.lab-legenda { color: var(--lab-ouro); margin-bottom: 18px; }
+.lab-corpo { flex-grow: 1; flex-direction: row; min-height: 0; }
+.lab-menu { width: 224px; flex-shrink: 0; padding: 24px 12px; background-color: rgba(9, 29, 40, 0.92); border-right-width: 1px; border-right-color: #59717A; }
+.lab-nota { margin-top: 24px; padding: 8px; }
+.lab-area { flex-grow: 1; flex-direction: row; min-width: 0; }
+.lab-tela { flex-grow: 1; min-width: 0; flex-basis: 0; }
+.lab-metade { width: 50%; }
+.lab-rolagem { flex-grow: 1; }
+.lab-conteudo { padding: 24px; }
+.lab-referencia { width: 45%; margin: 16px; background-color: #0B2432; }
+.lab-painel { position: relative; padding: 24px; margin-top: 18px; background-color: rgba(9, 32, 45, 0.94); border-width: 1px; border-color: var(--lab-ouro); border-radius: 8px; }
+.lab-ornamentado { padding: 62px 56px 82px 56px; min-height: 400px; }
+.lab-moldura { position: absolute; left: -4px; right: -4px; top: -4px; bottom: -4px; -unity-background-scale-mode: stretch-to-fill; -unity-slice-left: 180; -unity-slice-right: 180; -unity-slice-top: 160; -unity-slice-bottom: 160; }
+.lab-leitura { white-space: normal; margin-bottom: 12px; }
+.lab-linha, .lab-cartoes, .lab-grade { flex-direction: row; flex-wrap: wrap; margin-top: 12px; margin-bottom: 12px; }
+.lab-cartao { flex-grow: 1; flex-basis: 180px; min-width: 160px; padding: 16px; margin: 6px; background-color: #173B50; border-width: 1px; border-color: #688A48; border-radius: 6px; }
+.lab-retrato { width: 64px; height: 64px; border-radius: 32px; background-color: #27616E; border-width: 2px; border-color: var(--lab-ouro); font-size: 28px; -unity-text-align: middle-center; margin-bottom: 16px; }
+.lab-amostra { width: 64px; height: 44px; border-width: 1px; border-color: #84958C; margin-right: 12px; border-radius: 4px; }
+.lab-pergaminho { background-color: var(--lab-marfim); padding: 24px; margin: 18px 0; color: #173B50; -unity-background-scale-mode: stretch-to-fill; }
+.lab-pergaminho .lab-subtitulo { color: #173B50; }
+.lumora-lab Button { min-height: 44px; padding: 10px 18px; margin: 4px; border-width: 1px; border-color: #A88C55; border-radius: 5px; background-color: #173B50; color: var(--lab-marfim); white-space: normal; font-size: 18px; }
+.lumora-lab Button:hover { background-color: #285A6A; border-color: var(--lab-essencia); }
+.lumora-lab Button:focus { border-width: 2px; border-color: var(--lab-essencia); }
+.lumora-lab Button:active { background-color: #347182; }
+.lumora-lab Button:disabled { background-color: #30444C; color: #9CA8A8; border-color: #53626A; opacity: 0.65; }
+.lumora-lab .lab-primario { background-color: var(--lab-ouro); color: #173B50; border-color: #E5AA45; }
+.lumora-lab .lab-primario:hover { background-color: #F7D28C; color: #173B50; }
+.lumora-lab .lab-selecionado { background-color: #245361; border-left-width: 4px; border-left-color: var(--lab-essencia); }
+.lumora-lab .lab-aba { -unity-text-align: middle-left; margin-bottom: 10px; }
+.lumora-lab .lab-item { width: 180px; min-height: 96px; border-color: var(--lab-essencia); }
+.lumora-lab .lab-atalho { width: 94px; min-height: 84px; border-color: var(--lab-essencia); }
+.lumora-lab TextField, .lumora-lab Toggle, .lumora-lab Slider { margin: 10px 4px; min-height: 32px; }
+.lumora-lab .unity-base-field__label { color: var(--lab-marfim); min-width: 110px; white-space: normal; }
+.lumora-lab .unity-text-field__input { background-color: #0B2432; color: var(--lab-marfim); border-width: 1px; border-color: #6C8C92; padding: 8px; min-height: 38px; }
+.lumora-lab .unity-text-field__input:focus { border-color: var(--lab-essencia); border-width: 2px; }
+.lumora-lab .lab-erro .unity-text-field__input { border-color: #E99383; border-width: 2px; }
+.lab-barra { margin: 12px 4px; height: 30px; }
+.lumora-lab .unity-progress-bar__background { background-color: #0A2534; border-width: 1px; border-color: #6C8C92; border-radius: 4px; }
+.lumora-lab .unity-progress-bar__progress { background-color: var(--lab-essencia); }
+.lumora-lab .unity-progress-bar__title { display: none; }
+.lab-veu { position: absolute; left: 0; right: 0; top: 0; bottom: 0; background-color: rgba(3, 15, 23, 0.85); align-items: center; justify-content: center; }
+.lab-dialogo { width: 480px; max-width: 90%; background-color: #173B50; border-width: 2px; border-color: var(--lab-ouro); border-radius: 8px; padding: 32px; }
+.lab-status { flex-shrink: 0; background-color: #0B2432; color: var(--lab-marfim); padding: 12px 24px; min-height: 46px; white-space: normal; }

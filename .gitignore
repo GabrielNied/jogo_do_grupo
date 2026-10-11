@@ -9,6 +9,9 @@
 /client/[Mm]emoryCaptures/
 /client/[Rr]ecordings/
 /client/.utmp/
+# Recursos de design importados localmente apenas pelo laboratório do editor.
+/client/Assets/_Game/Features/LaboratorioVisual/Editor/RecursosGerados/
+/client/Assets/_Game/Features/LaboratorioVisual/Editor/RecursosGerados.meta
 /client/*.csproj
 /client/*.sln
 /client/*.slnx
