@@ -30,6 +30,8 @@ Tipos de mobs, comportamento por região e bosses com mecânicas marcantes.
 - [ ] O chefe raro some sozinho se ninguém o matar? Proposta atual: fica até morrer.
 - [ ] Dungeon tem chefe raro (um sorteio ao criar a instância)? As regras já servem; falta decidir.
 - [ ] Loot próprio do chefe raro (item que só ele larga): depende de [itens.md](itens.md).
+- [ ] As escolhas do servidor do inimigo comum (lista em "Inimigo comum da fatia"): o grupo perder o alvo de vista na desistência, o ataque ir até o fim, o golpe pegar todos no círculo e o inimigo levar dano na volta.
+- [ ] O tamanho do grupo do campo é sorteado de novo a cada volta do grupo inteiro, ou fica fixo como hoje?
 
 ## Regras
 
@@ -94,9 +96,23 @@ As regras de base estão em [fatia-jogavel.md](fatia-jogavel.md), seção 4. O q
 - **Golpe telegrafado:** quem estiver na área quando o aviso acaba leva o dano; quem saiu a tempo não leva (a esquiva de 5 m tira o jogador da área).
 - Sem desvio de obstáculos na fatia: o campo é aberto.
 
+O que o servidor acrescentou ao implementar (issue #268; **proposta**, decidido pelo loop autônomo em 2026-10-11, a confirmar no review):
+
+- **O grupo divide o que vê:** o jogador que um inimigo viu vale para todos, e é assim que o grupo acorda junto. Quem sai da área deixa de ser visto, e quando ninguém do grupo está em alerta, perseguindo ou atacando, o grupo esquece todos (quem voltou para longe não é perseguido pelo inimigo que reaparece).
+- **Desistência:** quando um inimigo passa dos 30 m e desiste, o grupo **perde o alvo dele de vista**; só volta a persegui-lo se alguém do grupo o vir de novo (a 12 m). Sem ninguém à vista, quem ainda perseguia também volta.
+- **O ataque vai até o fim:** depois do aviso, o inimigo dá o golpe e cumpre a recuperação mesmo que o alvo fuja ou saia da área. Só a morte interrompe.
+- **O golpe pega todos** os personagens que estão no círculo quando o aviso acaba, não só o alvo. Conta o centro do personagem (sem raio de corpo).
+- **Na volta ele ainda leva dano** (só o morto não leva), mas não reage até chegar ao ponto de origem.
+- **Onde:** o centro do grupo fica em (0, 190), 150 m ao norte do portão (que está em (0, 40)), com os pontos de origem num círculo de 4 m de raio. O campo faz parte da área `cidade`. O tamanho do grupo (3 a 5) é sorteado quando o servidor sobe e não muda até ele reiniciar.
+- **Id do inimigo:** começa em 1.000.000.000.000 e soma 1; cada volta depois de morto é um inimigo novo, com id novo. Nunca coincide com id de personagem nem com o boneco de treino.
+- **Dano no jogador:** Mobs decide **quem** o golpe pegou e publica `GolpeDeInimigoAcertou`; tirar a vida é de quem é dono dela ([Combate](combate.md)), que ainda **não** assina o evento. Até lá o golpe é avisado e decidido, mas não tira vida.
+- **Quem participou da morte:** por enquanto, os personagens que o grupo tinha à vista na hora da morte. Passa a ser quem causou dano quando o Combate informar o atacante em `IAlvosDeCombate.TentarAplicarDano`.
+
 ## Depende de
 
 - ~~Ainda nada no código. A IA, o dano e a posição no mundo dependem de [Combate](combate.md) (alvo e dano) e de [Mundo](mundo.md) (posição dos jogadores), que as issues #61 e #119 preparam.~~ Substituído em 2026-10-11: os dois contratos já existem no servidor (`Contratos/Combate/IAlvosDeCombate` e `Contratos/Mundo/IPosicoesDoMundo`). O inimigo da issue #63 vai usá-los; o contrato do shared (abaixo) ainda não depende de nenhuma outra funcionalidade.
+- **Mundo** (desde a issue #268): a posição dos jogadores da área por `IPosicoesDoMundo`, o evento `JogadorEntrouNaArea` (para mandar `InimigosDaArea`) e a altura do chão por `MapaDoMundo.AlturaEm`.
+- **Combate** (desde a issue #268): o grupo de inimigos é um `IAlvosDeCombate` (o `InimigoId` é o `AlvoId`) e usa o cone de `RegrasAtaque.EstaNoVolume`.
 
 ## Expõe
 
@@ -122,4 +138,13 @@ Inimigo comum (tempo real; regras em "Inimigo comum da fatia"):
 - `CriaturaId` aponta para o `CatalogoCriaturas` (nome, nível, categoria); a ficha da issue chamava esse campo de `Tipo`.
 - `RegrasInimigo`: constantes de balanceamento e fórmulas puras (`TransicaoValida`, `EstaVivo`, `ProcuraAlvo`, `TamanhoDoGrupo`, `Ve`, `NoAlcanceDeAtaque`, `DeveDesistir`, `EscolherAlvo`, `DirecaoPara`, `Avancar`, `CentroDoGolpe`, `EstaNaAreaDoGolpe`). O servidor decide; o client usa só para mostrar.
 
-No servidor (`server/.../Features/Mobs/`): `SorteadorDeCriaturas` (sorteia a variante e a aparição) e `AparicaoDeChefeRaro` (o controle de um ponto de chefe raro). Ainda não estão ligados ao mundo.
+No servidor (`server/.../Features/Mobs/`): `SorteadorDeCriaturas` (sorteia a variante e a aparição) e `AparicaoDeChefeRaro` (o controle de um ponto de chefe raro). ~~Ainda não estão ligados ao mundo.~~ Substituído em 2026-10-11 (issue #268): o sorteador já sorteia a variante dos inimigos do campo; o chefe raro continua sem ligação com o mundo.
+
+Inimigos do campo no servidor (issue #268): `GrupoDeInimigos` (a IA, sem rede, e o alvo dos golpes), `ServicoDeInimigos` (o laço de 10 passos por segundo, que envia as mensagens acima e publica os eventos) e `ConfigInimigosDoCampo` (ponto do grupo, espalhamento e id inicial).
+
+Eventos para as outras funcionalidades do servidor (`server/.../Contratos/Mobs/`, [ADR 0016](../decisoes/0016-eventos-entre-funcionalidades-do-servidor.md)). Saem do laço de IA, não do laço de rede: o assinante precisa ser seguro entre threads e não bloquear.
+
+| Evento | Quando | Campos |
+|---|---|---|
+| `GolpeDeInimigoAcertou` | o golpe de um inimigo pegou um personagem (um evento por personagem) | `InimigoId`, `CriaturaId`, `PersonagemId`, `Dano` (já com a variante, antes de defesa), `Area` |
+| `InimigoDerrotado` | um inimigo morreu (uma vez por morte) | `InimigoId`, `CriaturaId`, `Variante`, `Experiencia`, `MultiplicadorDeRecompensa`, `Area`, `X`, `Z`, `Participantes` |
