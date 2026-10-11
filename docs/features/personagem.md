@@ -39,6 +39,14 @@ Decidido pelo grupo em 2026-10-10. É **provisório**: serve para implementar a 
 - [ ] Excluir personagem: pode? Tem confirmação (ex.: digitar o nome) ou tempo de espera antes de apagar de vez?
 - [ ] Renomear personagem: pode? Tem custo ou limite?
 - [ ] Aceitar letras acentuadas no nome (ç, ã, é...) no futuro? Hoje o grupo decidiu só A–Z (veja [Regras](#regras))
+- [ ] Morte e caído (#97), decisões do grupo (regras em proposta em [Morte e caído](#morte-e-caído-issue-97)):
+  - [ ] A contagem de 45 s **para enquanto um aliado está levantando** (proposta) ou continua correndo?
+  - [ ] "Voltar à cidade" antes do fim da contagem: pode (proposta: sim, depois de 5 s caído) ou tem que esperar os 45 s?
+  - [ ] Depois de levantar, **2 s sem receber dano** (proposta), para não cair de novo no mesmo golpe?
+  - [ ] Inimigos ignoram quem está caído (proposta) ou continuam batendo e o caído pode "morrer de vez"?
+  - [ ] Quem voltou à cidade pode **entrar de novo na mesma dungeon** enquanto o grupo ainda luta? (decisão da dungeon, #66)
+  - [ ] Cair tem algum custo depois da fatia (durabilidade, XP, tempo de espera)? Na fatia não tem perda nenhuma
+  - [ ] Qual funcionalidade é dona do estado caído no código: Personagem (como a issue #97) ou Combate (que já é dono da vida)? Decisão técnica, vira contrato
 
 ## Regras
 
@@ -121,10 +129,86 @@ Se mais de um motivo vale ao mesmo tempo, o servidor responde só o primeiro, ne
 
 O formato exato dessas respostas (códigos e campos) é definido no contrato do shared (veja [Expõe](#expõe)).
 
+### Morte e caído (issue #97)
+
+As regras base já estão em [fatia-jogavel.md](fatia-jogavel.md), seção 7, e não são repetidas aqui: caído por **45 s**, aliado levanta com **3 s** de interação, volta com **20%** de vida, dano no ajudante interrompe, fim do tempo leva ao hub **sem perdas**. Esta seção detalha a **tela**, os casos de borda e o retorno. Tudo abaixo é **proposta**.
+
+**Base:** New World (o personagem fica caído e um aliado o levanta) e World of Warcraft (voltar para um ponto seguro), veja [referências](../referencias.md). **Igual:** aliado levanta segurando a tecla de interagir; quem não é levantado volta para a cidade. **Diferente:** não há perda de item, de durabilidade nem de XP, e não existe correr como fantasma até o corpo.
+
+Quem decide: **servidor** (quando cai, a contagem, quem está levantando, a vida ao levantar e onde reaparece). O client envia três intenções: **começar a levantar** um aliado, **cancelar** e **voltar à cidade**.
+
+#### Estados
+
+| Estado | Entra quando | Sai para |
+|---|---|---|
+| Vivo | vida acima de 0 | Caído, quando a vida chega a 0 |
+| Caído | vida chegou a 0 | Levantando (um aliado começou a interação); Retorno (a contagem acabou, a pessoa escolheu voltar ou o grupo todo caiu) |
+| Levantando | um aliado segura a interação | Vivo com 20% de vida (os 3 s se completaram); Caído (a interação foi interrompida) |
+| Retorno | fim da contagem, escolha da pessoa ou derrota do grupo | Vivo, na cidade, com vida, vigor e energia cheios |
+
+#### Enquanto está caído
+
+- Não anda, não ataca, não esquiva, não interage e não usa itens: o servidor recusa essas intenções com `VoceEstaCaido`. A câmera continua girando e o chat e o mapa funcionam.
+- Não recebe dano nem efeitos, e os inimigos **trocam de alvo** (deixam de perseguir quem caiu).
+- Vigor e energia ficam como estavam e não regeneram.
+- A contagem é do servidor. O client mostra o tempo que o servidor enviou e não decide o fim.
+- **Voltar à cidade:** liberado depois de **5 s** caído (evita clique sem querer), segurando o botão por **1 s**. Antes disso: `AindaNaoPodeVoltar`.
+- **Desconectar caído:** a contagem continua no servidor. Se a pessoa voltar depois do fim, aparece na cidade.
+
+#### Levantar um aliado
+
+- Quem pode: um jogador **vivo** da mesma instância, a até **2 m** do caído, segurando **Interagir** (E, veja [teclas](interface.md#teclas-e-atalhos)) por 3 s.
+- Interrompe e **zera o progresso**: soltar a tecla, afastar-se mais de 2 m, levar dano, cair, ou atacar e esquivar.
+- **Um ajudante por vez:** o primeiro que começou vale; o segundo recebe `JaEstaSendoLevantado` (é a regra da fatia: dois ajudantes não duplicam a cura).
+- A contagem de 45 s **para** enquanto alguém está levantando e volta a correr se a interação for interrompida (em aberto).
+- Ao levantar: **20% da vida máxima**, vigor e energia como estavam, no mesmo lugar, com **2 s sem receber dano** (em aberto).
+- Não há limite de quantas vezes alguém pode cair e ser levantado na mesma dungeon (na fatia).
+
+#### Retorno à cidade
+
+- A pessoa reaparece no **ponto de nascimento da cidade** ([mundo.md](mundo.md)), com vida, vigor e energia cheios.
+- Não perde item, XP, moeda nem nível. O loot que já era dela continua no chão da instância pelo tempo normal ([fatia-jogavel.md](fatia-jogavel.md), seção 5).
+- Continua **membro do grupo** ([social.md](social.md)); só sai da instância. Voltar a entrar na mesma dungeon é decisão de [instâncias](instancias.md) (#66).
+- **Todos caídos ao mesmo tempo** (inclusive quem joga sozinho): é a derrota da fatia. Não espera os 45 s: a tela de derrota aparece por **5 s** e todos voltam à cidade; a instância fecha.
+
+#### Na tela
+
+| Quem vê | O que aparece |
+|---|---|
+| Quem caiu | tela escurecida e sem cor; "Você caiu"; a contagem em segundos, grande; "Aguardando um aliado" ou "Ana está levantando você" com a barra de 3 s; o botão **Voltar à cidade** (apagado nos primeiros 5 s) |
+| Aliados | marcador sobre o caído com a contagem, visível através de paredes até **40 m**; a linha dele na lista do grupo em estado caído ([HUD](interface.md)); mensagem de sistema "Ana caiu" |
+| Aliado a até 2 m | "Segure E para levantar" |
+| Quem está levantando | barra de 3 s no centro da tela; se for interrompido, o motivo ("Você levou dano", "Longe demais") |
+| Todos, na derrota | "O grupo caiu" por 5 s, depois a cidade |
+
+A música baixa enquanto a pessoa está caída (regra do áudio, em [interface.md](interface.md)).
+
+#### Erros que o servidor devolve (**proposta** de nomes)
+
+| Código | Quando |
+|---|---|
+| `VoceEstaCaido` | quem está caído tenta andar, atacar, esquivar, interagir ou levantar alguém |
+| `AlvoNaoEstaCaido` | tentar levantar quem está vivo ou já voltou à cidade |
+| `LongeDemais` | começar a levantar a mais de 2 m |
+| `JaEstaSendoLevantado` | outro aliado já está levantando aquele personagem |
+| `NaoEstaCaido` | pedir "voltar à cidade" sem estar caído |
+| `AindaNaoPodeVoltar` | pedir "voltar à cidade" antes de 5 s caído |
+
+#### Testes esperados
+
+Os da [fatia](fatia-jogavel.md) (seção 7) continuam valendo. A mais:
+
+- Servidor, caminho feliz: vida 0 leva a caído; aliado completa 3 s e a pessoa volta com 20% da vida; fim dos 45 s leva à cidade com tudo cheio e sem perder item nem XP; quem volta continua no grupo.
+- Servidor, erros: um teste por código da tabela, conferindo que nada muda no estado.
+- Servidor, limites: levantar a 2,0 m vale e além disso é `LongeDemais`; "voltar à cidade" com 4,9 s é recusado e com 5 s vale; interromper com 2,9 s zera o progresso; a contagem parada durante a interação volta a correr do ponto em que parou; os 2 s sem dano depois de levantar acabam no tempo certo.
+- Servidor, concorrência: dois ajudantes começam juntos e só um vale; o tempo acaba no mesmo instante em que a interação termina e sai **um** resultado só; o ajudante cai no meio e a interação é interrompida; o último jogador vivo cai enquanto levanta outro e o resultado é a derrota, uma vez só; "voltar à cidade" pedido no instante em que o aliado termina de levantar dá um resultado só.
+- Client (EditMode): a tela mostra o tempo recebido do servidor; o botão de voltar fica apagado nos primeiros 5 s; a tela muda entre "aguardando" e "está levantando você"; a barra do ajudante some ao ser interrompida.
+
 ## Depende de
 
 - **Core:** conta, login/registro e emissão do token (JWT). Personagem só lê qual é a conta a partir do token.
 - **[Skills](skills.md):** a skill base de cada raça (quando as raças definitivas existirem).
+- **Morte e caído:** vida e dano de [combate](combate.md) e [mobs](mobs.md) (#61, #63), grupo de [social](social.md), ponto de nascimento de [mundo](mundo.md) e a instância de [instâncias](instancias.md) (#66), sempre por evento ou contrato do shared.
 
 ## Expõe
 
