@@ -54,12 +54,7 @@ Várias funcionalidades podem andar ao mesmo tempo, cada uma com o seu trio de a
 
 Os artistas ([ADR 0014](decisoes/0014-conteudo-3d-e-agentes-artistas.md)) buscam assets CC0 conforme a necessidade e montam o conteúdo **pelo Unity** (editor aberto via Unity CLI, ou scripts de editor em modo batch). Como o projeto Unity é um só, **os passos com Unity rodam um agente por vez, no checkout principal**; buscar assets e escrever código pode andar em paralelo. Enquanto um artista usa o Unity, ninguém troca a branch do checkout principal. Antes de abrir o PR, `npm run conferir-unity` confirma que `.meta` e materiais alterados pelo Unity entraram no commit. O CI repete a parte dos `.meta` que faltam.
 
-**Aprendido em 2026-10-11 (raças, PR #383):**
-
-- **Um Blender por vez.** Vários `blender.exe` ao mesmo tempo (agentes ou comandos em paralelo) travaram e reiniciaram o computador. O artista roda um modelo por vez, em primeiro plano, com limite de tempo, e confere com `tasklist` que nenhum ficou vivo antes do próximo. Prévia em baixa resolução, uma por modelo. Coordenador nenhum dispara Blender em paralelo nem por subagente.
-- **Commit por etapa, mesmo em WIP.** Uma mudança grande não commitada no checkout principal foi perdida quando algo fora da sessão reverteu a árvore de trabalho (nem `stash` guardou). O agente commita ao fim de cada etapa grande (scripts, binários gerados, gerador, docs) na branch da tarefa; o commit pode ser ajustado depois, o arquivo perdido não volta. Trabalho longo de artista pede worktree próprio quando houver outras sessões no mesmo diretório.
-- **`npm run unity:editor` olha qualquer Unity aberto**, até o de outro projeto (ex.: `jogo_do_grupo_pendencias`), e então bloqueia o modo batch. Se bloquear, confira quem está aberto na saída do comando e espere ou peça para fechar essa janela.
-- **O coordenador reparte por arquivo.** Artista só em `arte/` e `Features/Personagem/{Art,Editor,Resources}`; contrato, servidor, tela e testes ficam com o coordenador (ou outro agente). Assim os dois trabalham ao mesmo tempo sem mexer no mesmo arquivo; o nome do prefab (`Jogador_<NomeDoEnum>`) é o único combinado entre eles.
+Lições de processo (Blender, commits em etapas, Unity aberto) estão em [licoes.md](licoes.md).
 
 ### Fechamento: o coordenador integra e limpa o que criou
 

@@ -76,6 +76,7 @@ Testes em `tests/` (xUnit; [ADR 0013](docs/decisoes/0013-testes-automatizados.md
     - Não use isso para ampliar o jogo, trocar regra de design ou reescrever o que já funciona.
     - Agente de funcionalidade que esbarrar nisso descreve o corte no relatório. O coordenador implementa antes de encerrar, se couber numa mudança pequena de skill, script ou doc de processo.
     - Uma curiosidade ou um polimento visual não é gargalo. Gargalo é a mesma espera acontecendo de novo.
+    - Tropeço de processo (travou, sumiu, refeito, ferramenta enganou): registre a lição com a skill `registrar-licao` ([docs/licoes.md](docs/licoes.md)) no mesmo PR.
 
 17. **Balanceamento:** separe valores ajustáveis dos cálculos, em constantes nomeadas no topo da classe ou `Config<Assunto>` da funcionalidade. Siga [Valores de balanceamento](docs/convencoes.md#valores-de-balanceamento).
 
@@ -88,6 +89,7 @@ Para as tarefas abaixo, **leia o arquivo indicado e siga os passos**. Algumas fe
 | Puxar ou liberar uma tarefa / conferir concorrência | [.claude/skills/puxar-tarefa/SKILL.md](.claude/skills/puxar-tarefa/SKILL.md) |
 | Criar uma funcionalidade nova (client + server + shared + docs) | [.claude/skills/nova-funcionalidade/SKILL.md](.claude/skills/nova-funcionalidade/SKILL.md) |
 | Registrar uma decisão técnica (ADR) | [.claude/skills/novo-adr/SKILL.md](.claude/skills/novo-adr/SKILL.md) |
+| Registrar um problema de processo e a regra para não repetir | [.claude/skills/registrar-licao/SKILL.md](.claude/skills/registrar-licao/SKILL.md) |
 | Começar uma tarefa / criar ou renomear branch | [.claude/skills/nova-branch/SKILL.md](.claude/skills/nova-branch/SKILL.md) |
 | Escrever mensagem de commit ou título de PR, commitar | [.claude/skills/fazer-commit/SKILL.md](.claude/skills/fazer-commit/SKILL.md) |
 | Deixar uma mudança pronta para PR | [.claude/skills/preparar-pr/SKILL.md](.claude/skills/preparar-pr/SKILL.md) |
