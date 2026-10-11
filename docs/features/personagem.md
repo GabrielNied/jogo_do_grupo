@@ -116,6 +116,8 @@ O servidor recusa e diz o motivo, para o client mostrar uma mensagem clara:
 | Limite atingido | a conta já tem 4 personagens | "Você já tem o máximo de 4 personagens." |
 | Não autenticado | sem token ou token inválido/expirado | volta para o login (Core) |
 
+Se mais de um motivo vale ao mesmo tempo, o servidor responde só o primeiro, nesta ordem: nome inválido, raça inválida, limite atingido, nome em uso.
+
 O formato exato dessas respostas (códigos e campos) é definido no contrato do shared (veja [Expõe](#expõe)).
 
 ## Depende de
