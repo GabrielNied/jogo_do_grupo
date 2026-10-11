@@ -45,6 +45,88 @@ function executarGh(args, opcoes = {}) {
   }
 }
 
+// Issues pela API REST (`gh api`), não por `gh issue`: o `gh issue` usa GraphQL, que é
+// bloqueado em sessões de IA na nuvem. O REST funciona igual na máquina local.
+// `{owner}/{repo}` é preenchido pelo gh a partir do remote do repositório atual.
+const REPO = "repos/{owner}/{repo}";
+
+function apiGh(caminho, { metodo = "GET", campos = {}, ignorarErro = false } = {}) {
+  const args = ["api", "-X", metodo, caminho];
+  for (const [chave, valor] of Object.entries(campos)) {
+    for (const v of Array.isArray(valor) ? valor : [valor]) {
+      args.push("-f", `${chave}${Array.isArray(valor) ? "[]" : ""}=${v}`);
+    }
+  }
+  const res = executarGh(args, { ignorarErro });
+  return res ? JSON.parse(res) : null;
+}
+
+// Converte a resposta REST para o formato que o resto do script já usava (o do `gh issue --json`).
+function normalizarIssue(bruta) {
+  return {
+    number: bruta.number,
+    title: bruta.title,
+    state: (bruta.state || "").toUpperCase(),
+    labels: (bruta.labels || []).map((l) => ({ name: typeof l === "string" ? l : l.name })),
+    assignees: (bruta.assignees || []).map((a) => ({ login: a.login })),
+    url: bruta.html_url,
+  };
+}
+
+function obterIssue(numero, { comComentarios = false } = {}) {
+  const issue = normalizarIssue(apiGh(`${REPO}/issues/${numero}`));
+  if (comComentarios) {
+    const comentarios = apiGh(`${REPO}/issues/${numero}/comments?per_page=100`) || [];
+    issue.comments = comentarios.map((c) => ({ author: { login: c.user.login }, body: c.body }));
+  }
+  return issue;
+}
+
+function listarIssuesAbertas() {
+  const issues = [];
+  for (let pagina = 1; ; pagina++) {
+    const lote = apiGh(`${REPO}/issues?state=open&per_page=100&page=${pagina}`) || [];
+    // A rota de issues também devolve PRs; eles não são tarefas.
+    issues.push(...lote.filter((i) => !i.pull_request).map(normalizarIssue));
+    if (lote.length < 100) return issues;
+  }
+}
+
+function adicionarLabel(numero, label) {
+  apiGh(`${REPO}/issues/${numero}/labels`, { metodo: "POST", campos: { labels: [label] } });
+}
+
+function removerLabel(numero, label) {
+  apiGh(`${REPO}/issues/${numero}/labels/${encodeURIComponent(label)}`, {
+    metodo: "DELETE",
+    ignorarErro: true,
+  });
+}
+
+function atribuir(numero, login) {
+  apiGh(`${REPO}/issues/${numero}/assignees`, {
+    metodo: "POST",
+    campos: { assignees: [login] },
+    ignorarErro: true,
+  });
+}
+
+function desatribuir(numero, login) {
+  apiGh(`${REPO}/issues/${numero}/assignees`, {
+    metodo: "DELETE",
+    campos: { assignees: [login] },
+    ignorarErro: true,
+  });
+}
+
+function comentar(numero, corpo) {
+  apiGh(`${REPO}/issues/${numero}/comments`, {
+    metodo: "POST",
+    campos: { body: corpo },
+    ignorarErro: true,
+  });
+}
+
 function executarGit(args, opcoes = {}) {
   const res = spawnSync("git", args, {
     encoding: "utf8",
@@ -153,16 +235,7 @@ function sugerirNomeBranch(issue) {
 
 async function listarTarefas() {
   console.log("🔍 Consultando tarefas abertas no GitHub...");
-  const rawIssues = executarGh([
-    "issue",
-    "list",
-    "--state",
-    "open",
-    "--json",
-    "number,title,labels,assignees,url",
-  ]);
-
-  const issues = JSON.parse(rawIssues);
+  const issues = listarIssuesAbertas();
   const itensProjeto = buscarItensDoProjeto();
 
   const emAndamento = [];
@@ -251,15 +324,7 @@ async function puxarTarefa(args) {
   }
 
   console.log(`🔍 Verificando tarefa #${numero}...`);
-  const rawIssue = executarGh([
-    "issue",
-    "view",
-    numero.toString(),
-    "--json",
-    "number,title,state,labels,assignees,url",
-  ]);
-
-  const issue = JSON.parse(rawIssue);
+  const issue = obterIssue(numero);
   if (issue.state !== "OPEN") {
     console.error(`✖ A tarefa #${numero} está com estado "${issue.state}". Só é possível puxar tarefas abertas.`);
     process.exit(1);
@@ -306,11 +371,11 @@ async function puxarTarefa(args) {
   console.log(`\n🔒 Reivindicando tarefa #${numero} para ${usuario}...`);
 
   // 1. Marca na issue como em-andamento
-  executarGh(["issue", "edit", numero.toString(), "--add-label", "em-andamento"]);
+  adicionarLabel(numero, "em-andamento");
 
   // 2. Atribui no GitHub se for pessoa
   if (!nomeAgente) {
-    executarGh(["issue", "edit", numero.toString(), "--add-assignee", "@me"], { ignorarErro: true });
+    atribuir(numero, obterUsuarioAtual());
   }
 
   // 3. Move no Project para In Progress
@@ -318,7 +383,7 @@ async function puxarTarefa(args) {
 
   // 4. Comenta na issue
   const comentario = `🚀 **Tarefa em andamento**\n\n- **Responsável:** ${usuario}\n- **Branch:** \`${nomeBranch}\`\n- **Início:** ${new Date().toISOString()}\n\n*Esta tarefa foi puxada e está bloqueada para outros agentes/desenvolvedores até ser concluída ou liberada.*`;
-  executarGh(["issue", "comment", numero.toString(), "--body", comentario], { ignorarErro: true });
+  comentar(numero, comentario);
 
   // 5. Configura Git (Worktree ou Branch local)
   console.log(`🌿 Configurando branch "${nomeBranch}"...`);
@@ -368,24 +433,17 @@ async function liberarTarefa(args) {
   }
 
   console.log(`🔍 Verificando tarefa #${numero}...`);
-  const rawIssue = executarGh([
-    "issue",
-    "view",
-    numero.toString(),
-    "--json",
-    "number,title,labels,assignees,url",
-  ]);
-  const issue = JSON.parse(rawIssue);
+  const issue = obterIssue(numero);
 
   console.log(`🔓 Liberando tarefa #${numero} e devolvendo para a fila...`);
 
   // Remove label em-andamento
-  executarGh(["issue", "edit", numero.toString(), "--remove-label", "em-andamento"], { ignorarErro: true });
+  removerLabel(numero, "em-andamento");
 
   // Remove assignees
   if (issue.assignees && issue.assignees.length > 0) {
     for (const assignee of issue.assignees) {
-      executarGh(["issue", "edit", numero.toString(), "--remove-assignee", assignee.login], { ignorarErro: true });
+      desatribuir(numero, assignee.login);
     }
   }
 
@@ -395,7 +453,7 @@ async function liberarTarefa(args) {
   // Adiciona comentário de liberação
   const autor = obterUsuarioAtual();
   const comentario = `🔓 **Tarefa liberada**\n\nA tarefa foi liberada por @${autor} e está disponível para outros desenvolvedores ou agentes.\n**Motivo:** ${motivo}`;
-  executarGh(["issue", "comment", numero.toString(), "--body", comentario], { ignorarErro: true });
+  comentar(numero, comentario);
 
   console.log(`✔ Tarefa #${numero} liberada com sucesso! Ela voltou para o estado DISPONÍVEL.`);
 }
@@ -407,14 +465,7 @@ async function verStatus(args) {
     process.exit(1);
   }
 
-  const rawIssue = executarGh([
-    "issue",
-    "view",
-    numero.toString(),
-    "--json",
-    "number,title,state,labels,assignees,comments,url",
-  ]);
-  const issue = JSON.parse(rawIssue);
+  const issue = obterIssue(numero, { comComentarios: true });
   const labels = (issue.labels || []).map((l) => (typeof l === "string" ? l : l.name));
   const temLabelAndamento = labels.includes("em-andamento");
 
@@ -449,16 +500,9 @@ async function concluirTarefa(args) {
   }
 
   console.log(`🏁 Marcando tarefa #${numero} como concluída no projeto...`);
-  const rawIssue = executarGh([
-    "issue",
-    "view",
-    numero.toString(),
-    "--json",
-    "number,url",
-  ]);
-  const issue = JSON.parse(rawIssue);
+  const issue = obterIssue(numero);
 
-  executarGh(["issue", "edit", numero.toString(), "--remove-label", "em-andamento"], { ignorarErro: true });
+  removerLabel(numero, "em-andamento");
   sincronizarStatusProjeto(numero, issue.url, "Done");
 
   console.log(`✔ Tarefa #${numero} movida para "Done" no projeto.`);
@@ -494,14 +538,7 @@ async function criarSubtarefa(args) {
   }
 
   console.log(`🔍 Verificando tarefa pai #${parentNumero}...`);
-  const rawParent = executarGh([
-    "issue",
-    "view",
-    parentNumero.toString(),
-    "--json",
-    "number,title,labels,url",
-  ]);
-  const parent = JSON.parse(rawParent);
+  const parent = obterIssue(parentNumero);
 
   // Escopo padrão deduzido da tarefa pai ou "core"
   if (!escopo) {
@@ -518,29 +555,16 @@ async function criarSubtarefa(args) {
   const corpo = `Subtarefa de #${parentNumero} (${parent.title})\n\n**Papel:** ${agente || "geral"}\n**Escopo:** ${escopo}\n\nParent: #${parentNumero}`;
 
   console.log(`✨ Criando subtarefa "${tituloCompleto}"...`);
-  const novaIssueUrl = executarGh([
-    "issue",
-    "create",
-    "--title",
-    tituloCompleto,
-    "--body",
-    corpo,
-    "--label",
-    labels.join(","),
-  ]);
-
-  const novoNumeroMatch = novaIssueUrl.match(/\/issues\/(\d+)$/);
-  const novoNumero = novoNumeroMatch ? parseInt(novoNumeroMatch[1], 10) : null;
+  const novaIssue = apiGh(`${REPO}/issues`, {
+    metodo: "POST",
+    campos: { title: tituloCompleto, body: corpo, labels },
+  });
+  const novoNumero = novaIssue ? novaIssue.number : null;
+  const novaIssueUrl = novaIssue ? novaIssue.html_url : null;
 
   if (novoNumero) {
     sincronizarStatusProjeto(novoNumero, novaIssueUrl, "Todo");
-    executarGh([
-      "issue",
-      "comment",
-      parentNumero.toString(),
-      "--body",
-      `- [ ] #${novoNumero} (${titulo}) - Papel: \`${agente || "geral"}\``,
-    ], { ignorarErro: true });
+    comentar(parentNumero, `- [ ] #${novoNumero} (${titulo}) - Papel: \`${agente || "geral"}\``);
     console.log(`✔ Subtarefa #${novoNumero} criada com sucesso e vinculada à tarefa #${parentNumero}!`);
     console.log(`URL: ${novaIssueUrl}`);
   }
