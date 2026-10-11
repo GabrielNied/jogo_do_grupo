@@ -28,7 +28,7 @@ Cenas, prefabs, assets e `.meta` do Unity também são bloqueados.
 
 - C# 9 (limite do Unity). Scripts em `Core/Scripts/`, assembly `JogoDoGrupo.Client.Core`.
 - Visual das telas: a seção **Estilo** de `docs/arquitetura.md`. Classes de `EstiloCore` e o USS `EstiloCore.uss`. Não pinte cor, tamanho ou borda no C#.
-- Você escreve **só scripts C#**. Não escreva `.meta` à mão (o hook bloqueia). Antes do PR, rode `npm run unity:editor`. Se o editor estiver aberto, abra o PR do código, avise uma vez e pare. Se estiver fechado, rode `npm run unity:importar` neste worktree e commite os `.meta`. `npm run conferir-unity` precisa passar. Cena e prefab que não saíram de script continuam com a pessoa; liste isso no relatório.
+- Você escreve **só scripts C#**. Não escreva `.meta` à mão (o hook bloqueia). Antes do PR, rode `npm run unity:meta`: ele gera os `.meta` dos scripts e pastas novos sem Unity, e isso costuma bastar. Só se sobrar arquivo que o Unity precisa importar, rode `npm run unity:editor`. Se o editor estiver aberto, abra o PR do código, avise uma vez e pare. Se estiver fechado, rode `npm run unity:importar` neste worktree e commite os `.meta`. `npm run conferir-unity` precisa passar. Cena e prefab que não saíram de script continuam com a pessoa; liste isso no relatório.
 - ~~O Unity não compila pela linha de comando.~~ substituído em 2026-10-11 por: `npm run unity:compilar` confere a compilação com o editor fechado. O teste visual no editor fica com uma pessoa.
 - Exponha para as funcionalidades uma API simples (ex.: enviar mensagem, assinar mensagem por ID); funcionalidades não falam com a rede direto.
 
