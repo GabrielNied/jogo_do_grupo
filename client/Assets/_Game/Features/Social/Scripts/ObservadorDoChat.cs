@@ -51,7 +51,17 @@ namespace JogoDoGrupo.Client.Features.Social
                     ConexaoTempoReal.Enviar(SocialMessageIds.EnviarMensagemDeChat, mensagem),
                 () => EntradaNoJogo.PersonagemId,
                 () => DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
-                new ListaDeIgnorados(new ArmazenamentoPlayerPrefs())
+                new ListaDeIgnorados(new ArmazenamentoVazio()),
+                ignorar: nome =>
+                    ConexaoTempoReal.Enviar(
+                        SocialMessageIds.IgnorarJogador,
+                        new IgnorarJogador { Nome = nome }
+                    ),
+                deixarDeIgnorar: id =>
+                    ConexaoTempoReal.Enviar(
+                        SocialMessageIds.DeixarDeIgnorar,
+                        new DeixarDeIgnorar { IgnoradoId = id }
+                    )
             );
 
             _assinaturas.Add(
@@ -72,7 +82,20 @@ namespace JogoDoGrupo.Client.Features.Social
                     _servico.AoReceberHistorico
                 )
             );
+            _assinaturas.Add(
+                ConexaoTempoReal.Assinar<JogoDoGrupo.Shared.Features.Social.ListaDeIgnorados>(
+                    SocialMessageIds.ListaDeIgnorados,
+                    lista => _servico.Amigos.Aplicar(lista)
+                )
+            );
             AvisosDoJogo.Mostrado += AoMostrarAviso;
+        }
+
+        private sealed class ArmazenamentoVazio : IArmazenamentoDeTexto
+        {
+            public string Ler(string chave) => "";
+
+            public void Gravar(string chave, string valor) { }
         }
 
         private void AoMostrarAviso(string texto, TipoDeAviso _) =>

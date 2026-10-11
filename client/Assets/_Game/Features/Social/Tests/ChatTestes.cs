@@ -422,14 +422,48 @@ namespace JogoDoGrupo.Client.Features.Social.Tests
         }
 
         [Test]
-        public void Enviar_IgnorarEDesignorar_AtualizamAListaESomamSemServidor()
+        public void Enviar_IgnorarEDesignorar_EnviamIntencaoAoServidor()
         {
-            _servico.Enviar("/ignorar Chato");
-            Assert.IsTrue(_ignorados.Contem("Chato"));
+            string nomeIgnorado = null;
+            long idDesignorado = -1;
+            _servico = new ServicoDeChat(
+                m =>
+                {
+                    _enviadas.Add(m);
+                    return true;
+                },
+                () => _meuId,
+                () => _agora,
+                _ignorados,
+                _servico.Amigos,
+                nome =>
+                {
+                    nomeIgnorado = nome;
+                    return true;
+                },
+                id =>
+                {
+                    idDesignorado = id;
+                    return true;
+                }
+            );
+            _servico.Amigos.Aplicar(
+                new JogoDoGrupo.Shared.Features.Social.ListaDeIgnorados
+                {
+                    Ignorados = new[]
+                    {
+                        new JogadorIgnorado { IgnoradoId = 9, Nome = "Chato" },
+                    },
+                }
+            );
 
-            _servico.Enviar("/designorar Chato");
-            Assert.IsFalse(_ignorados.Contem("Chato"));
+            _servico.Enviar("/ignorar Chato");
+            _servico.Enviar("/designorar chato");
+
+            Assert.AreEqual("Chato", nomeIgnorado);
+            Assert.AreEqual(9, idDesignorado);
             Assert.AreEqual(0, _enviadas.Count);
+            Assert.IsFalse(_ignorados.Contem("Chato"));
         }
 
         [Test]
