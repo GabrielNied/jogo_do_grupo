@@ -45,8 +45,7 @@ public class ContratoSocialTestes
         );
 
     [Fact]
-    public void Ids_de_social_sao_distintos() =>
-        Assert.Equal(_ids.Length, _ids.Distinct().Count());
+    public void Ids_de_social_sao_distintos() => Assert.Equal(_ids.Length, _ids.Distinct().Count());
 
     [Fact]
     public void Ids_do_grupo_tem_os_numeros_do_contrato()
