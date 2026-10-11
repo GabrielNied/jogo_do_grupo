@@ -86,7 +86,7 @@ Quem decide: **servidor** (IA, alvo, dano, morte). Força **fixa**: o inimigo n�
 - Ataque **telegrafado**: avisa (brilho ou animação) cerca de 1 s antes do golpe, dando para esquivar (valor a calibrar).
 - Decidido em 2026-10-11: a vida é **valor fixo**, igual para grupos de 1 a 5, sem escalar por jogador; o número segue a calibrar.
 - Exemplo de força fixa: inimigo de nível 3 com **180 de vida** diante de jogador de nível 1 ou 30 (**proposta**).
-- Sem respawn durante uma corrida de dungeon; o respawn de **120 s** do plano fica para o mundo (fora da fatia).
+- Sem respawn durante uma corrida de dungeon; ~~o respawn de **120 s** do plano fica para o mundo (fora da fatia).~~ Decidido pelo Gabriel em 2026-10-11: o primeiro grupo de inimigos fica no **campo aberto**, a uns 150 m do portão norte, e volta **120 s** depois de morto; a dungeon reaproveita o mesmo inimigo, sem volta. Detalhes em [mobs.md](mobs.md), "Inimigo comum da fatia".
 - O client mostra barra de vida, aviso do ataque e morte; não decide dano.
 - Base: RYL e Diablo IV (grupos de inimigos). Diferente: grupos pequenos.
 - **Testes esperados:** vida igual com 1 ou 5 jogadores; transições de estado; dano só no servidor; inimigo morto não age.

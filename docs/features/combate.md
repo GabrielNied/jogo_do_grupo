@@ -17,6 +17,10 @@ Cálculo de dano, seleção de alvo e efeitos de status. Usado por PvE e PvP.
 - **Papéis no grupo: tank, healer e DPS**, no estilo de World of Warcraft (decidido em 2026-10-10). Sem classes, o papel vem da combinação de itens equipados (D2)
 - **Buffs de grupo**: cada papel traz buffs que complementam o time
 - **Ataques telegrafados** (decidido em 2026-10-10): bosses e inimigos fortes avisam antes de bater (área marcada no chão, brilho ou animação de preparo) e o jogador tem tempo de esquivar ou sair da área. Base: Final Fantasy XIV e WoW
+- **Decisões do Gabriel em 2026-10-11** (estavam só em comentário de issue):
+  - **Ataque (#61):** cone de **2,5 m e 90°** à frente do atacante; **sem compensação de lag na fatia**; boneco de treino na cidade. Os números moram em `RegrasAtaque`.
+  - **Esquiva (#62):** o dono do código é **Combate** (o vigor é dele); a tecla é o Alt esquerdo ([interface.md](interface.md)).
+  - **Caído (#125):** o dono do estado é **Combate**, que já é dono da vida; [Personagem](personagem.md#morte-e-caído-issue-97) só mostra a tela.
 
 ## Em aberto
 
@@ -24,7 +28,7 @@ Cálculo de dano, seleção de alvo e efeitos de status. Usado por PvE e PvP.
 - [ ] Ataque leve e pesado, bloqueio, stamina: quais entram na fatia jogável?
 - [ ] **Troca de arma** (duas armas, como New World e Throne and Liberty)? Veja S10 na [validação](../brainstorm/validacao.md)
 - [x] ~~Bosses com ataques telegrafados?~~ Decidido em 2026-10-10: sim (veja "Definido")
-- [ ] Como o servidor valida acertos com a latência (lag compensation)?
+- [ ] Como o servidor valida acertos com a latência (lag compensation)? Decidido pelo Gabriel em 2026-10-11 **para a fatia**: sem compensação de lag (o cone é medido no momento do acerto, com a posição que o servidor tem). Depois da fatia a pergunta segue aberta (issue #172).
 - [ ] Quais efeitos de status existem?
 - [ ] Como funciona o agro (ameaça) para o tank segurar os inimigos?
 - [ ] Quais buffs cada papel traz? Eles acumulam?
