@@ -28,6 +28,7 @@ namespace JogoDoGrupo.Client.Features.Combate
         private PainelAtaque _painelAtaque;
         private PainelRecursos _painelRecursos;
         private ControleRecursos _recursos;
+        private ProntidaoLocal _prontidao;
         private InputAction _leve;
         private InputAction _pesado;
         private TipoDeAtaque _ultimoTipoProprio = TipoDeAtaque.Leve;
@@ -36,13 +37,15 @@ namespace JogoDoGrupo.Client.Features.Combate
             long personagemId,
             PainelAtaque painelAtaque,
             PainelRecursos painelRecursos,
-            ControleRecursos recursos
+            ControleRecursos recursos,
+            ProntidaoLocal prontidao
         )
         {
             _personagemId = personagemId;
             _painelAtaque = painelAtaque;
             _painelRecursos = painelRecursos;
             _recursos = recursos;
+            _prontidao = prontidao;
 
             // Botões do mouse, como em docs/features/interface.md (Teclas e atalhos).
             _leve = new InputAction("AtaqueLeve", InputActionType.Button, "<Mouse>/leftButton");
@@ -142,8 +145,21 @@ namespace JogoDoGrupo.Client.Features.Combate
 
         private void Enviar(TipoDeAtaque tipo)
         {
+            var agora = Time.unscaledTime;
+            if (_prontidao != null && !_prontidao.PodeAtacar(tipo, agora))
+            {
+                var semVigor = _prontidao.Vigor is int vigor && !RegrasAtaque.TemVigor(tipo, vigor);
+                _aviso.Mostrar(
+                    semVigor
+                        ? ApresentacaoAtaque.TextoVigorInsuficiente
+                        : ApresentacaoAtaque.TextoAcaoEmAndamento
+                );
+                return;
+            }
+
             var intencao = _gerador.Criar(tipo, DirecaoDaMira());
             ConexaoTempoReal.Enviar(CombateMessageIds.IntencaoDeAtaque, intencao);
+            _prontidao?.MarcarAtaque(tipo, agora);
 
             // Anima na hora, sem esperar o servidor (ADR 0024). O acerto e o dano continuam
             // sendo dele: o número de dano só aparece com AtaqueAcertou.
@@ -236,6 +252,7 @@ namespace JogoDoGrupo.Client.Features.Combate
             )
             {
                 _painelRecursos.Mostrar(vida, vigor, energia);
+                _prontidao?.RegistrarVigor(vigor.Atual);
                 _recursos?.RegistrarAtualizacaoDoServidor();
             }
         }

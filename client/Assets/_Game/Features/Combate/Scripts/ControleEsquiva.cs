@@ -23,15 +23,17 @@ namespace JogoDoGrupo.Client.Features.Combate
         private readonly List<IDisposable> _assinaturas = new List<IDisposable>();
 
         private long _personagemId;
+        private ProntidaoLocal _prontidao;
         private InputAction _esquiva;
         private InputAction _mover;
         private CharacterController _corpo;
         private ControleTerceiraPessoa _controle;
         private bool _inputAnterior = true;
 
-        public void Configurar(long personagemId)
+        public void Configurar(long personagemId, ProntidaoLocal prontidao)
         {
             _personagemId = personagemId;
+            _prontidao = prontidao;
 
             _esquiva = new InputAction(
                 "Esquiva",
@@ -129,8 +131,22 @@ namespace JogoDoGrupo.Client.Features.Combate
                 jogador.transform.eulerAngles.y
             );
 
+            var agora = Time.unscaledTime;
+            if (_prontidao != null && !_prontidao.PodeEsquivar(agora))
+            {
+                var semVigor = _prontidao.Vigor is int vigor && !RegrasEsquiva.TemVigor(vigor);
+                AvisosDoJogo.Mostrar(
+                    semVigor
+                        ? ApresentacaoEsquiva.TextoVigorInsuficiente
+                        : ApresentacaoEsquiva.TextoAcaoEmAndamento,
+                    TipoDeAviso.Aviso
+                );
+                return;
+            }
+
             var intencao = _gerador.Criar(direcao);
             ConexaoTempoReal.Enviar(CombateMessageIds.IntencaoDeEsquiva, intencao);
+            _prontidao?.MarcarEsquiva(agora);
 
             _corpo = jogador.GetComponent<CharacterController>();
             _controle = jogador.GetComponent<ControleTerceiraPessoa>();
