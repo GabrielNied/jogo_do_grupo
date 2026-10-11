@@ -21,3 +21,8 @@ Formato: `### AAAA-MM-DD · título` com **O que houve**, **Regra** e **Origem**
 ### 2026-10-11 · CI do Unity cancelado na main (issue #402)
 
 - **`cancel-in-progress` na `main` com merges frequentes = nenhuma execução termina.** O Client (Unity) leva ~9 min e os merges vinham a cada poucos minutos: 9 de 10 execuções na `main` foram canceladas, o client ficou sem validação e pendências de "compilar/rodar EditMode" se acumularam esperando alguém com Unity. Na `main`, a execução em andamento termina; só PR cancela. Pendência que só pede compilar e testar EditMode não é criada, e as antigas fecham sozinhas quando o CI passa ([ADR 0019](decisoes/0019-unity-no-ci.md)).
+
+### 2026-10-11 · Rodadas perdidas na nuvem e subtarefas vazias (issue #227)
+
+- **Sem .NET na nuvem, cada erro de formatação custava uma rodada de CI** e, no PR de client, reiniciava os 10 min do Unity. A rede do ambiente já deixa baixar o .NET, e o npm só funciona pelo proxy (o `registry.npmjs.org` vem na lista "sem proxy" sem ter saída direta). `npm run nuvem:preparar` instala npm, .NET 10 e CSharpier; um hook de início de sessão já dispara isso em segundo plano na nuvem. Formate e rode `dotnet test` antes do push.
+- **Subtarefa só com "Subtarefa de #N" obrigava a reler a issue pai, a doc e o contrato.** `npm run tarefa -- subtarefa` agora escreve onde ler e onde mexer, e o coordenador passa `--contexto` com o que fazer.

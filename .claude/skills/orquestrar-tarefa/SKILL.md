@@ -26,7 +26,7 @@ Quase todo retrabalho vem de decisão tomada tarde. Antes de lançar agentes, es
 
 Com a ficha aprovada, os prompts dos agentes saem dela. Se a tarefa for dividida em várias etapas com agentes em paralelo, crie as subtarefas correspondentes com:
 ```
-npm run tarefa -- subtarefa <N> --titulo "<titulo da subtarefa>" --agente <papel> [--escopo <escopo>]
+npm run tarefa -- subtarefa <N> --titulo "<titulo da subtarefa>" --agente <papel> [--escopo <escopo>] --contexto "<o que fazer, em 2-4 linhas, com a seção da doc>"
 ```
 Isso gera uma issue filha com label do agente, vinculada ao Project, garantindo que cada agente trave a sua parte individualmente.
 

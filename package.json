@@ -19,7 +19,8 @@
     "testar-scripts": "node --test \"scripts/**/*.test.mjs\"",
     "conferir-unity": "node scripts/git/conferir-arquivos-unity.mjs",
     "tarefa": "node scripts/git/tarefas.mjs",
-    "limpar-agentes": "node scripts/git/limpar-agentes.mjs"
+    "limpar-agentes": "node scripts/git/limpar-agentes.mjs",
+    "nuvem:preparar": "node scripts/agentes/preparar-nuvem.mjs"
   },
   "engines": {
     "node": ">=20"

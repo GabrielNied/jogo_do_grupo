@@ -13,6 +13,8 @@
 
 import { execFileSync, spawnSync } from "node:child_process";
 import { escopos, tipos } from "../../commitlint.config.mjs";
+import { readdirSync } from "node:fs";
+import { corpoSubtarefa } from "./subtarefa.mjs";
 import {
   LABEL_PENDENCIA,
   branchDaPendencia,
@@ -569,6 +571,7 @@ async function criarSubtarefa(args) {
   let titulo = null;
   let agente = null;
   let escopo = null;
+  let contexto = "";
 
   for (let i = 1; i < args.length; i++) {
     if (args[i] === "--titulo" && args[i + 1]) {
@@ -579,6 +582,9 @@ async function criarSubtarefa(args) {
       i++;
     } else if (args[i] === "--escopo" && args[i + 1]) {
       escopo = args[i + 1];
+      i++;
+    } else if (args[i] === "--contexto" && args[i + 1]) {
+      contexto = args[i + 1];
       i++;
     }
   }
@@ -603,7 +609,20 @@ async function criarSubtarefa(args) {
   }
 
   const tituloCompleto = `[#${parentNumero}] ${titulo}`;
-  const corpo = `Subtarefa de #${parentNumero} (${parent.title})\n\n**Papel:** ${agente || "geral"}\n**Escopo:** ${escopo}\n\nParent: #${parentNumero}`;
+  let pastas = [];
+  try {
+    pastas = readdirSync("shared/Package/Runtime/Features");
+  } catch {
+    // Sem a pasta (rodando fora da raiz): a pasta sai do escopo com a primeira letra maiúscula.
+  }
+  const corpo = corpoSubtarefa({
+    pai: parentNumero,
+    tituloPai: parent.title,
+    papel: agente,
+    escopo,
+    pastas,
+    contexto,
+  });
 
   console.log(`✨ Criando subtarefa "${tituloCompleto}"...`);
   const novaIssue = apiGh(`${REPO}/issues`, {
@@ -677,6 +696,7 @@ Comandos disponíveis:
                                     --titulo "..."      Título da subtarefa.
                                     --agente <nome>     Papel do agente (ex: client-core).
                                     --escopo <escopo>   Escopo funcional (ex: core, personagem).
+                                    --contexto "..."    O que o agente precisa fazer (vai no corpo).
   status <numero>                 Exibe detalhes completos e o estado de bloqueio da tarefa.
   concluir <numero>               Atualiza o status no projeto para "Done".
   pendencia-unity <pr> --falta .. Registra o que ficou sem Unity num PR (issue "pendente-unity"),
