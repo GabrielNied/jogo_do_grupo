@@ -10,8 +10,10 @@ import {
   ignoradoPeloUnity,
   metaDePasta,
   metaDeScript,
+  metaDoTipo,
   novoGuid,
   procurarSemMeta,
+  tipoDoArquivo,
 } from "./gerar-meta.mjs";
 
 function pastaTemporaria(t) {
@@ -82,15 +84,49 @@ test("não mexe no que já tem meta", (t) => {
   assert.equal(readFileSync(join(raiz, "Antigo.cs.meta"), "utf8"), "fileFormatVersion: 2\nguid: abc");
 });
 
-test("arquivo que não é script fica para o Unity", (t) => {
+test("os outros modelos batem com os .meta que o Unity já gravou no repo", () => {
+  const ler = (caminho) => readFileSync(new URL(`../../${caminho}`, import.meta.url), "utf8");
+  const guid = (texto) => /^guid: ([0-9a-f]{32})$/m.exec(texto)[1];
+  const casos = [
+    ["asmdef", "client/Assets/_Game/Core/JogoDoGrupo.Client.Core.asmdef.meta"],
+    ["uss", "client/Assets/_Game/Core/UI/Resources/UI/EstiloCore.uss.meta"],
+    ["tss", "client/Assets/_Game/Core/UI/Resources/UI/TemaPadrao.tss.meta"],
+    ["texto", "client/Assets/ThirdParty/Kenney/FantasyTownKit/License.txt.meta"],
+  ];
+
+  for (const [tipo, caminho] of casos) {
+    const real = ler(caminho);
+    assert.equal(metaDoTipo(tipo, guid(real)), real, caminho);
+  }
+});
+
+test("tipo do arquivo: o que dá para gerar sem o Unity", () => {
+  assert.equal(tipoDoArquivo("Regra.cs"), "script");
+  assert.equal(tipoDoArquivo("JogoDoGrupo.Client.Mobs.asmdef"), "asmdef");
+  assert.equal(tipoDoArquivo("Estilo.USS"), "uss");
+  assert.equal(tipoDoArquivo("Tema.tss"), "tss");
+  assert.equal(tipoDoArquivo("Licenca.txt"), "texto");
+  assert.equal(tipoDoArquivo("dados.json"), "texto");
+  assert.equal(tipoDoArquivo("package.json"), null);
+  assert.equal(tipoDoArquivo("Tela.uxml"), null);
+  assert.equal(tipoDoArquivo("Modelo.fbx"), null);
+  assert.throws(() => metaDoTipo("prefab", novoGuid()));
+});
+
+test("asmdef, estilo e texto ganham meta; prefab fica para o Unity", (t) => {
   const raiz = pastaTemporaria(t);
   writeFileSync(join(raiz, "Peca.prefab"), "");
   writeFileSync(join(raiz, "Modulo.asmdef"), "");
+  writeFileSync(join(raiz, "Estilo.uss"), "");
+  writeFileSync(join(raiz, "Leia.txt"), "");
 
   const { gerar, soUnity } = procurarSemMeta(raiz);
+  gravar(gerar);
 
-  assert.deepEqual(gerar, []);
-  assert.deepEqual(soUnity.sort(), [join(raiz, "Modulo.asmdef"), join(raiz, "Peca.prefab")]);
+  assert.deepEqual(gerar.map(({ tipo }) => tipo).sort(), ["asmdef", "texto", "uss"]);
+  assert.deepEqual(soUnity, [join(raiz, "Peca.prefab")]);
+  assert.match(readFileSync(join(raiz, "Modulo.asmdef.meta"), "utf8"), /\nAssemblyDefinitionImporter:\n/);
+  assert.match(readFileSync(join(raiz, "Estilo.uss.meta"), "utf8"), /fileID: 12385,/);
 });
 
 test("ignora o que o Unity ignora", (t) => {

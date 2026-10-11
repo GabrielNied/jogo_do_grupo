@@ -18,16 +18,16 @@ import { existsSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { pularSemUnity } from "./sem-unity.mjs";
 
 const RAIZ = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const CLIENT = join(RAIZ, "client");
 
-const candidatos = [
-  process.env.UNITY_CLI,
-  "C:/Program Files/Unity Hub/resources/unity.exe",
-  "/Applications/Unity Hub.app/Contents/Resources/unity",
-].filter(Boolean);
-const cli = candidatos.find((c) => existsSync(c)) ?? "unity";
+// UNITY_CLI, quando definido, é o único candidato (um caminho errado não cai em outro Unity).
+const candidatos = process.env.UNITY_CLI
+  ? [process.env.UNITY_CLI]
+  : ["C:/Program Files/Unity Hub/resources/unity.exe", "/Applications/Unity Hub.app/Contents/Resources/unity"];
+const cli = candidatos.find((c) => existsSync(c)) ?? process.env.UNITY_CLI ?? "unity";
 
 const [acao, ...resto] = process.argv.slice(2);
 const comandos = {
@@ -59,6 +59,11 @@ if (acao === "importar" || acao === "testes" || acao === "executar") {
 }
 const args = typeof montar === "function" ? montar() : montar;
 const resultado = spawnSync(cli, ["--non-interactive", "--no-banner", ...args], { stdio: "inherit" });
+// Sem Unity neste ambiente (ex.: agente na nuvem): compilar, testar e importar ficam com o CI
+// e com o npm run unity:meta. Gerar conteúdo (executar) não tem substituto e continua sendo erro.
+if (resultado.error?.code === "ENOENT" && acao !== "executar") {
+  pularSemUnity(`unity:${acao}`, `não há Unity CLI neste ambiente (${process.platform}).`);
+}
 if (resultado.error) {
   console.error(`✖ Não consegui rodar o Unity CLI (${cli}). Instale o Unity Hub ou defina UNITY_CLI.`);
   process.exit(2);
