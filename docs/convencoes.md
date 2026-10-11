@@ -24,6 +24,17 @@
 - **Servidor:** C# moderno, namespace de arquivo (`namespace X;`).
 - **Cliente:** C# 9 (limite do Unity).
 
+## Valores de balanceamento
+
+- Separe os valores ajustáveis do jogo (XP, velocidades, capacidade de inventário, custos, tempos e limites) dos cálculos. Não espalhe números literais pela lógica.
+- Para poucos valores, use constantes nomeadas reunidas no topo da classe. Para um conjunto de ajustes, use `Config<Assunto>` na pasta da funcionalidade responsável. Exemplo: [ConfigExperiencia](../shared/Package/Runtime/Features/Personagem/ConfigExperiencia.cs).
+- Documente unidade, finalidade e efeito do ajuste. Mantenha uma única fonte de valores; outras classes referenciam a configuração, sem copiar números.
+- Regras compartilhadas ficam no shared; configurações exclusivas do servidor ou do client ficam no respectivo lado. O servidor continua decidindo resultados; valores enviados pelo client nunca substituem a configuração do servidor.
+- Constantes são adequadas ao balanceamento que muda entre versões (exigem recompilar). Se for necessário ajustar em execução, use configuração carregada e validada pelo servidor; o client recebe apenas o necessário para apresentação.
+- Teste os valores padrão e os limites das regras; ao recalibrar, atualize as expectativas de balanceamento. Não migre outras funcionalidades sem uma tarefa para isso.
+
+Motivo da decisão: [ADR 0017](decisoes/0017-valores-de-balanceamento.md).
+
 ## Formatação
 
 A formatação é automática e não se discute em review: quem decide é o [CSharpier](https://csharpier.com) (versão fixada em `dotnet-tools.json`). Ele formata os `.cs` e os `.csproj` de client, server e shared, e ignora o que está no `.gitignore`.

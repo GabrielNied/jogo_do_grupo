@@ -75,6 +75,8 @@ Testes em `tests/` (xUnit; [ADR 0013](docs/decisoes/0013-testes-automatizados.md
     - Agente de funcionalidade que esbarrar nisso descreve o corte no relatório. O coordenador implementa antes de encerrar, se couber numa mudança pequena de skill, script ou doc de processo.
     - Uma curiosidade ou um polimento visual não é gargalo. Gargalo é a mesma espera acontecendo de novo.
 
+17. **Balanceamento:** separe valores ajustáveis dos cálculos, em constantes nomeadas no topo da classe ou `Config<Assunto>` da funcionalidade. Siga [Valores de balanceamento](docs/convencoes.md#valores-de-balanceamento).
+
 ## Procedimentos (skills)
 
 Para as tarefas abaixo, **leia o arquivo indicado e siga os passos**. Algumas ferramentas (Claude Code, Cursor, Copilot) já carregam esses arquivos sozinhas; nas outras, abra o arquivo.
