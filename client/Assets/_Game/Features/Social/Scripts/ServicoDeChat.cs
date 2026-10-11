@@ -15,21 +15,31 @@ namespace JogoDoGrupo.Client.Features.Social
         private readonly Func<long> _meuId;
         private readonly Func<long> _agoraUnixMs;
 
+        private readonly Func<string, bool> _ignorar;
+        private readonly Func<long, bool> _deixarDeIgnorar;
+
         public ServicoDeChat(
             Func<EnviarMensagemDeChat, bool> enviar,
             Func<long> meuId,
             Func<long> agoraUnixMs,
-            ListaDeIgnorados ignorados
+            ListaDeIgnorados ignorados,
+            EstadoDeAmigos amigos = null,
+            Func<string, bool> ignorar = null,
+            Func<long, bool> deixarDeIgnorar = null
         )
         {
             _enviar = enviar;
             _meuId = meuId;
             _agoraUnixMs = agoraUnixMs;
+            _ignorar = ignorar;
+            _deixarDeIgnorar = deixarDeIgnorar;
             Ignorados = ignorados;
+            Amigos = amigos ?? new EstadoDeAmigos();
         }
 
         public HistoricoDeChat Historico { get; } = new HistoricoDeChat();
         public ListaDeIgnorados Ignorados { get; }
+        public EstadoDeAmigos Amigos { get; }
         public EstadoDoEnvio Estado { get; } = new EstadoDoEnvio();
 
         /// <summary>Algo novo no histórico ou nos ignorados: a tela deve se redesenhar.</summary>
@@ -80,7 +90,7 @@ namespace JogoDoGrupo.Client.Features.Social
                 mensagem.Canal == CanalDeChat.Sussurro
                 && !propria
                 && !string.IsNullOrEmpty(mensagem.NomeDoRemetente)
-                && !Ignorados.Contem(mensagem.NomeDoRemetente)
+                && !NomeEstaIgnorado(mensagem.NomeDoRemetente)
             )
             {
                 Estado.UltimoSussurroRecebido = mensagem.NomeDoRemetente;
@@ -164,30 +174,36 @@ namespace JogoDoGrupo.Client.Features.Social
 
         private string Ignorar(string nome)
         {
-            switch (Ignorados.Adicionar(nome))
+            if (string.IsNullOrWhiteSpace(nome))
             {
-                case ResultadoDeIgnorar.Adicionado:
-                    Mudou?.Invoke();
-                    return $"Você não vê mais as mensagens de {nome}. Use /designorar {nome} para desfazer.";
-                case ResultadoDeIgnorar.JaIgnorado:
-                    return $"{nome} já está na sua lista de ignorados.";
-                case ResultadoDeIgnorar.ListaCheia:
-                    return $"A lista de ignorados está cheia ({ListaDeIgnorados.Maximo} nomes). Use /designorar Nome para abrir espaço.";
-                default:
-                    return "Use /ignorar Nome.";
+                return "Use /ignorar Nome.";
             }
+
+            if (_ignorar == null || !_ignorar(nome))
+            {
+                return TextosDeChat.ChatSemConexao;
+            }
+
+            return null;
         }
 
         private string Designorar(string nome)
         {
-            if (Ignorados.Remover(nome))
+            if (!Amigos.TentarIgnorado(nome, out var ignorado))
             {
-                Mudou?.Invoke();
-                return $"Você voltou a ver as mensagens de {nome}.";
+                return $"{nome} não está na sua lista de ignorados.";
             }
 
-            return $"{nome} não está na sua lista de ignorados.";
+            if (_deixarDeIgnorar == null || !_deixarDeIgnorar(ignorado.IgnoradoId))
+            {
+                return TextosDeChat.ChatSemConexao;
+            }
+
+            return null;
         }
+
+        private bool NomeEstaIgnorado(string nome) =>
+            Amigos.Contem(nome) || (Ignorados != null && Ignorados.Contem(nome));
 
         private static string TextoDaTroca(ResultadoDoComando resultado) =>
             resultado.Canal == CanalDeChat.Sussurro
