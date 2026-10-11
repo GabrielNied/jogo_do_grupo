@@ -44,9 +44,19 @@ public sealed class ServidorDeTeste : WebApplicationFactory<Program>
     /// Registra uma conta nova (usuário único) e devolve um cliente já logado, com o token no
     /// header <c>Authorization</c>. Use para testar rotas que exigem login.
     /// </summary>
-    public async Task<HttpClient> CriarClienteLogadoAsync(string senha = "senha-segura")
+    public Task<HttpClient> CriarClienteLogadoAsync(string senha = "senha-segura") =>
+        CriarClienteLogadoEmAsync(this, senha);
+
+    /// <summary>
+    /// O mesmo de <see cref="CriarClienteLogadoAsync"/>, para uma fábrica derivada
+    /// (<c>WithWebHostBuilder</c>, ex.: com um serviço trocado por um falso). Ela usa o mesmo banco.
+    /// </summary>
+    public static async Task<HttpClient> CriarClienteLogadoEmAsync(
+        WebApplicationFactory<Program> fabrica,
+        string senha = "senha-segura"
+    )
     {
-        var cliente = CreateClient();
+        var cliente = fabrica.CreateClient();
         var usuario = NomeUnico("U");
         var registro = await PostJsonAsync(
             cliente,
