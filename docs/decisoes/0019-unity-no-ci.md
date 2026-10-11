@@ -1,4 +1,4 @@
-# 0017. Unity no CI e agentes sem Unity
+# 0019. Unity no CI e agentes sem Unity
 
 **Data:** 2026-10-11
 **Status:** proposta
@@ -14,11 +14,13 @@ Toda verificação do client dependia do Unity instalado na máquina de quem fez
 3. **`npm run unity:meta` cobre também `.asmdef`, `.uss`, `.tss` e textos.** Esses `.meta` também são texto fixo mais um guid, conferidos por teste contra os que o Unity já gravou no repo. Modelos, texturas, prefabs, cenas e `.uxml` continuam saindo só do Unity.
 
 4. **O que só o Unity faz vira pendência, e o PR não espera.** Sem Unity, o agente abre o PR normal (pode ir para merge sem essa validação) e roda `npm run tarefa -- pendencia-unity <PR> --falta "..."`. Isso cria uma issue `pendente-unity` que o PR só menciona, sem `Closes`, para continuar aberta depois do merge. Numa máquina com Unity, um hook de início de sessão avisa o agente das pendências abertas. Quem puxa trabalha na branch do PR, se ele ainda estiver aberto, ou numa branch nova a partir da `main`. Assim o trabalho anda na nuvem, e nada que faltou validar se perde.
+5. **Cada workflow só roda quando precisa.** O plano grátis de repo privado não tem check obrigatório ([ADR 0007](0007-protecao-local-da-main.md)), então filtrar por `paths` não trava PR. Server e testes .NET só rodam quando o código .NET muda. A formatação só roda em PR com C#, e não repete depois do merge. O padrão do Git não roda quando só a descrição do PR muda. Push novo num PR cancela a rodada antiga. Um PR só de docs gasta uns 15 segundos de CI. Se o repo ganhar proteção de branch, os checks que virarem obrigatórios voltam a rodar sem filtro.
 
 ## Consequências
 
 - Agentes de código (`client-*`, `shared-contratos`, `regras-do-jogo`) podem trabalhar inteiros na nuvem. O Unity local fica para os artistas e para o teste visual de uma pessoa.
 - Cada execução gasta de 10 a 15 minutos de Actions (o plano gratuito de repo privado tem 2.000 por mês). Rodando por lote de merges, e não por PR, isso fica longe do limite.
+- Os arquivos LFS (modelos e texturas) ficam no cache do Actions, que é grátis, e só os que mudaram são baixados. Assim, a cota de banda do LFS (1 GB/mês) só é gasta quando entra arte nova, não a cada execução. Não troque por `lfs: true` no checkout, que baixaria tudo toda vez.
 - Um erro de compilação do client pode chegar à `main` e só aparecer na execução depois do merge. Ele vira pendência e é corrigido em seguida. Quem quiser a garantia antes do merge usa a label `testar-unity`.
 - A licença Personal fica num secret do repositório. Se a senha da conta mudar ou a licença expirar, o job falha até alguém atualizar o secret. Só uma pessoa faz isso, numa máquina com Unity e acesso de admin ao repo. Os outros devs não precisam fazer nada:
   1. Unity Hub > Preferences > Licenses > **Add** > **Get a free personal license** (gera `C:\ProgramData\Unity\Unity_lic.ulf`; o `UnityEntitlementLicense.xml` não serve).

@@ -14,7 +14,7 @@ Até a entrada no jogo (marco M0), não havia teste automatizado. Agentes e revi
   - `tests/JogoDoGrupo.Server.Tests/`: unidade e **integração da API**, com o servidor de verdade em memória (`WebApplicationFactory`) e um banco SQLite temporário por classe de teste (`Infra/ServidorDeTeste.cs`).
 - As pastas dos testes espelham o código: `Core/<Area>/` e `Features/<X>/`.
 - **Todo PR de código traz testes** do que mudou: regras novas, rotas novas, casos de erro e, quando houver, concorrência. O revisor recusa PR de código sem teste.
-- **CI:** `dotnet test` roda em todo PR (job `build`).
+- **CI:** ~~`dotnet test` roda em todo PR (job `build`).~~ Substituído em 2026-10-11 pelo [ADR 0019](0019-unity-no-ci.md): `dotnet test` roda em todo PR que mexe em código .NET (job `build`).
 - **Client:** `npm run unity:compilar` compila cada `.asmdef` contra as DLLs do Unity, sem abrir o editor. Testes do Unity Test Framework ficam para quando houver lógica de client que valha testar fora do editor.
 
 ## Consequências

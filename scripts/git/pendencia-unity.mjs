@@ -2,7 +2,7 @@
 // validar num PR. O PR segue normal (pode ir para merge); o que faltou vira uma issue com a
 // label `pendente-unity`, que continua aberta depois do merge. O próximo agente numa máquina
 // com Unity puxa (`npm run tarefa -- puxar <N>`): se o PR ainda está aberto, trabalha na
-// branch dele; se já entrou na main, numa branch nova, cujo PR fecha a pendência (ADR 0017).
+// branch dele; se já entrou na main, numa branch nova, cujo PR fecha a pendência (ADR 0019).
 //
 // Aqui ficam só as partes puras, testadas em pendencia-unity.test.mjs. Os comandos estão em
 // tarefas.mjs.

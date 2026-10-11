@@ -1,9 +1,23 @@
 name: Formatação
 
+# Só roda em PR que mexe em C# ou na configuração do CSharpier. Não roda de novo na main:
+# ela só recebe squash de PR, que já passou por aqui. O plano grátis de repo privado não tem
+# check obrigatório (ADR 0007), então o filtro não trava PR nenhum.
 on:
-  push:
-    branches: [main]
   pull_request:
+    paths:
+      - "**/*.cs"
+      - "**/*.csproj"
+      - "dotnet-tools.json"
+      - ".config/**"
+      - ".csharpierrc*"
+      - ".csharpierignore"
+      - ".editorconfig"
+      - ".github/workflows/format.yml"
+
+concurrency:
+  group: formatacao-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   csharpier:

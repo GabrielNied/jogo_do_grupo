@@ -1,7 +1,7 @@
 name: Client (Unity)
 
 # Compila o client e roda os testes EditMode num Unity de verdade (GameCI), para que quem não
-# tem Unity na máquina, como um agente na nuvem, não precise fazer isso localmente (ADR 0017).
+# tem Unity na máquina, como um agente na nuvem, não precise fazer isso localmente (ADR 0019).
 #
 # Leva uns 10 minutos, então não roda em cada PR (não atrasa ninguém nem gasta a cota à toa):
 # - depois do merge na main, se mexeu no client ou no shared. Merges seguidos cancelam a
@@ -43,22 +43,39 @@ jobs:
     steps:
       - name: Licença do Unity configurada?
         if: env.TEM_LICENCA != 'true'
-        run: echo "::warning::Sem o secret UNITY_LICENSE o client não foi compilado nem testado. Veja docs/decisoes/0017-unity-no-ci.md."
+        run: echo "::warning::Sem o secret UNITY_LICENSE o client não foi compilado nem testado. Veja docs/decisoes/0019-unity-no-ci.md."
 
       # A imagem do Unity não cabe no disco livre do runner. Remove SDKs pré-instalados que
       # este job não usa (Android, .NET, Haskell, CodeQL): libera mais de 20 GB.
       - name: Libera espaço em disco
         if: env.TEM_LICENCA == 'true'
+        # Só os dois maiores (~15 GB): apagar tudo e limpar o docker levava 3 minutos.
         run: |
-          sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc /opt/hostedtoolcache/CodeQL
-          sudo docker image prune --all --force
+          sudo rm -rf /usr/local/lib/android /opt/hostedtoolcache/CodeQL
           df -h /
 
-      # Sem LFS: os testes EditMode não usam modelos e texturas, e LFS gasta a cota de banda.
+      # Os testes do hub conferem os modelos (.fbx), que estão no LFS. Para não gastar a cota de
+      # banda do LFS (1 GB/mês grátis) a cada execução, os arquivos ficam no cache do Actions
+      # (grátis) e o git lfs pull só baixa o que mudou desde a última vez.
       - uses: actions/checkout@v4
         if: env.TEM_LICENCA == 'true'
         with:
           lfs: false
+
+      - name: Lista os arquivos LFS
+        if: env.TEM_LICENCA == 'true'
+        run: git lfs ls-files --long | cut -d ' ' -f1 | sort > .lfs-arquivos
+
+      - uses: actions/cache@v4
+        if: env.TEM_LICENCA == 'true'
+        with:
+          path: .git/lfs
+          key: lfs-${{ hashFiles('.lfs-arquivos') }}
+          restore-keys: lfs-
+
+      - name: Baixa só os arquivos LFS que faltam
+        if: env.TEM_LICENCA == 'true'
+        run: git lfs pull
 
       - uses: actions/cache@v4
         if: env.TEM_LICENCA == 'true'
@@ -91,13 +108,21 @@ jobs:
           name: resultados-unity
           path: artifacts
 
-      # Quebrou na main: vira pendência para o próximo agente com Unity (ADR 0017).
+      # Quebrou na main: vira pendência para o próximo agente com Unity (ADR 0019).
       - name: Abre pendência de Unity
         if: failure() && github.event_name == 'push'
         env:
           GH_TOKEN: ${{ github.token }}
           LINK: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        # Se já há uma pendência aberta de falha na main, comenta nela em vez de abrir outra.
         run: |
+          aberta=$(gh api "repos/${{ github.repository }}/issues?state=open&labels=pendente-unity&per_page=50" \
+            -q '[.[] | select(.title | startswith("[Unity] Client falhou na main"))][0].number // empty')
+          if [ -n "$aberta" ]; then
+            gh api -X POST "repos/${{ github.repository }}/issues/$aberta/comments" \
+              -f body="Falhou de novo no commit ${GITHUB_SHA}: $LINK"
+            exit 0
+          fi
           gh api -X POST "repos/${{ github.repository }}/issues" \
             -f title="[Unity] Client falhou na main (${GITHUB_SHA::7})" \
             -f labels[]=pendente-unity \

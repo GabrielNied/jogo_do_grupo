@@ -14,9 +14,17 @@ permissions:
   contents: read
   pull-requests: read
 
+# Push novo no mesmo PR cancela a rodada antiga.
+concurrency:
+  group: padrao-git-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   padrao-git:
-    if: github.event_name == 'pull_request'
+    # "edited" também dispara quando só a descrição muda; só o título importa aqui.
+    if: >-
+      github.event_name == 'pull_request'
+      && (github.event.action != 'edited' || github.event.changes.title != null)
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
