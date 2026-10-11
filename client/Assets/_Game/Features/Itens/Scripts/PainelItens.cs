@@ -6,32 +6,24 @@ using UnityEngine.UIElements;
 namespace JogoDoGrupo.Client.Features.Itens
 {
     /// <summary>
-    /// A interface de Itens no mundo, em UI Toolkit montada em código: o painel do inventário
-    /// (com os ganhos do baú, quando houver) e a dica "E: abrir o baú". Só mostra o que recebe;
-    /// quem decide o que aparece é o <see cref="ControleItens"/>.
+    /// O conteúdo da janela do inventário, em UI Toolkit montado em código: o aviso, os ganhos
+    /// do baú (quando houver) e a lista de itens. Só mostra o que recebe; quem decide o que
+    /// aparece é a <see cref="JanelaInventario"/>. A moldura, o título e o botão de fechar são
+    /// do Core (<c>JanelasDoJogo</c>).
     /// </summary>
     internal sealed class PainelItens
     {
-        private readonly VisualElement _fundo;
-        private readonly Label _titulo;
+        private readonly Action<string> _definirTitulo;
         private readonly Label _aviso;
         private readonly Label _tituloGanhos;
         private readonly VisualElement _ganhos;
         private readonly ScrollView _lista;
-        private readonly Label _dica;
 
-        public PainelItens(VisualElement raiz, Action aoFechar)
+        /// <param name="conteudo">Área da janela que recebe os elementos.</param>
+        /// <param name="definirTitulo">Troca o título da janela (ex.: "Inventário (3/20)").</param>
+        public PainelItens(VisualElement conteudo, Action<string> definirTitulo)
         {
-            _fundo = new VisualElement { name = "itens.painel" };
-            _fundo.AddToClassList(EstiloCore.Tela);
-            _fundo.AddToClassList(EstiloCore.TelaSobreJogo);
-
-            var painel = new VisualElement();
-            painel.AddToClassList(EstiloCore.Painel);
-            painel.AddToClassList(EstiloCore.PainelLargo);
-
-            _titulo = new Label();
-            _titulo.AddToClassList(EstiloCore.Titulo);
+            _definirTitulo = definirTitulo;
 
             _aviso = new Label();
             _aviso.AddToClassList(EstiloCore.Mensagem);
@@ -47,46 +39,29 @@ namespace JogoDoGrupo.Client.Features.Itens
             _lista = new ScrollView(ScrollViewMode.Vertical);
             _lista.AddToClassList(EstiloCore.Lista);
 
-            var fechar = new Button(() => aoFechar?.Invoke()) { text = "Fechar" };
-            fechar.AddToClassList(EstiloCore.Botao);
+            conteudo.Add(_aviso);
+            conteudo.Add(_tituloGanhos);
+            conteudo.Add(_ganhos);
+            conteudo.Add(tituloLista);
+            conteudo.Add(_lista);
 
-            painel.Add(_titulo);
-            painel.Add(_aviso);
-            painel.Add(_tituloGanhos);
-            painel.Add(_ganhos);
-            painel.Add(tituloLista);
-            painel.Add(_lista);
-            painel.Add(fechar);
-            _fundo.Add(painel);
-            raiz.Add(_fundo);
-
-            // A dica não pode pegar o mouse nem esconder o jogo: texto solto embaixo da tela.
-            _dica = new Label();
-            _dica.pickingMode = PickingMode.Ignore;
-            _dica.AddToClassList(EstiloCore.Dica);
-            raiz.Add(_dica);
-
-            Esconder();
-            EsconderDica();
+            Aviso(null, false);
+            DefinirGanhos(null);
         }
 
-        /// <summary>Se o painel do inventário está na tela.</summary>
-        public bool Visivel => _fundo.style.display != DisplayStyle.None;
-
-        /// <summary>Abre o painel com "Carregando" enquanto o servidor responde.</summary>
+        /// <summary>Mostra "Carregando" enquanto o servidor responde.</summary>
         public void MostrarCarregando(string titulo)
         {
-            _titulo.text = titulo;
+            _definirTitulo?.Invoke(titulo);
             Aviso(null, false);
             DefinirGanhos(null);
             DefinirLista(null);
             _lista.Add(Linha("Carregando..."));
-            _fundo.style.display = DisplayStyle.Flex;
         }
 
         /// <summary>
-        /// Atualiza o painel (e o abre). <paramref name="ganhos"/> vazio/nulo esconde a seção de
-        /// ganhos; <paramref name="aviso"/> nulo não mostra mensagem.
+        /// Atualiza o conteúdo. <paramref name="ganhos"/> vazio/nulo esconde a seção de ganhos;
+        /// <paramref name="aviso"/> nulo não mostra mensagem.
         /// </summary>
         public void Mostrar(
             string titulo,
@@ -96,27 +71,10 @@ namespace JogoDoGrupo.Client.Features.Itens
             IReadOnlyList<string> inventario
         )
         {
-            _titulo.text = titulo;
+            _definirTitulo?.Invoke(titulo);
             Aviso(aviso, avisoEhErro);
             DefinirGanhos(ganhos);
             DefinirLista(inventario);
-            _fundo.style.display = DisplayStyle.Flex;
-        }
-
-        public void Esconder()
-        {
-            _fundo.style.display = DisplayStyle.None;
-        }
-
-        public void MostrarDica(string texto)
-        {
-            _dica.text = texto;
-            _dica.style.display = DisplayStyle.Flex;
-        }
-
-        public void EsconderDica()
-        {
-            _dica.style.display = DisplayStyle.None;
         }
 
         private void Aviso(string texto, bool erro)

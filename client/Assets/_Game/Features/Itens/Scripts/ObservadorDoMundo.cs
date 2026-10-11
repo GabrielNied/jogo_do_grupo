@@ -8,7 +8,7 @@ using UnityEngine.UIElements;
 namespace JogoDoGrupo.Client.Features.Itens
 {
     /// <summary>
-    /// Percebe que o jogador entrou no mundo e monta ali o baú de teste e a interface de Itens,
+    /// Percebe que o jogador entrou no mundo e monta ali o baú de teste e a dica do baú,
     /// na mesma cena do jogador (o "Sair" descarrega tudo junto). Itens não toma o construtor de
     /// mundo, que é do Mundo: o <see cref="EntradaNoJogo"/> não avisa quando entra, então este
     /// objeto confere <see cref="EntradaNoJogo.NoJogo"/> a cada frame.
@@ -102,14 +102,7 @@ namespace JogoDoGrupo.Client.Features.Itens
             documento.rootVisualElement.Add(container);
 
             var controle = raiz.AddComponent<ControleItens>();
-            controle.Configurar(
-                jogador,
-                personagemId,
-                bau.transform,
-                ProcurarCamera(cena),
-                container,
-                configuracao
-            );
+            controle.Configurar(jogador, bau.transform, container, configuracao);
         }
 
         /// <summary>Baú à frente e à direita do jogador, com a base no chão (se achar).</summary>
