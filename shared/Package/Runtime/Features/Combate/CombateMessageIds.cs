@@ -21,5 +21,14 @@ namespace JogoDoGrupo.Shared.Features.Combate
 
         /// <summary>Servidor → dono: vida, vigor ou energia do próprio personagem mudaram.</summary>
         public const ushort RecursosMudaram = 6004;
+
+        /// <summary>Client → servidor: pedido de esquiva, com a direção do deslocamento.</summary>
+        public const ushort IntencaoDeEsquiva = 6010;
+
+        /// <summary>Servidor → dono: o pedido de esquiva foi recusado.</summary>
+        public const ushort EsquivaRecusada = 6011;
+
+        /// <summary>Servidor → quem está na área: um personagem começou a esquivar.</summary>
+        public const ushort EsquivaIniciada = 6012;
     }
 }
