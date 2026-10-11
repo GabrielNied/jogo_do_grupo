@@ -11,6 +11,7 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSy
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { pularSemUnity, temUnityNaMaquina } from "./sem-unity.mjs";
 
 const RAIZ = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const CLIENT = join(RAIZ, "client");
@@ -42,6 +43,11 @@ const dadosUnity =
     ? `/Applications/Unity/Hub/Editor/${versao}/Unity.app/Contents`
     : `C:/Program Files/Unity/Hub/Editor/${versao}/Editor/Data`);
 const dllsUnity = join(dadosUnity, "Managed/UnityEngine");
+// Nenhum Unity nesta máquina (ex.: agente na nuvem): pula e deixa para o CI.
+// Unity de outra versão, ou UNITY_EDITOR_DATA errado, continua sendo erro.
+if (!existsSync(dllsUnity) && !temUnityNaMaquina()) {
+  pularSemUnity("unity:compilar", `não há Unity instalado neste ambiente (${process.platform}).`);
+}
 if (!existsSync(dllsUnity)) {
   console.error(`✖ Não achei as DLLs do Unity ${versao} em ${dllsUnity}.`);
   console.error("  Instale essa versão pelo Unity Hub ou defina UNITY_EDITOR_DATA.");

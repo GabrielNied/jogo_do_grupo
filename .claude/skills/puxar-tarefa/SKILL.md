@@ -60,7 +60,17 @@ O que o comando faz:
 - Remove atribuição e move no Project de volta para `Todo`.
 - Comenta na issue o motivo da liberação para que outra pessoa ou agente possa assumir.
 
-## 5. Conclusão
+## 5. Pendências de Unity
+
+Sem Unity no ambiente (ex.: nuvem), o agente abre o PR normal e registra o que não conseguiu fazer ou validar:
+
+```
+npm run tarefa -- pendencia-unity <pr> --falta "compilar e rodar os testes EditMode" --falta ".meta das texturas novas"
+```
+
+Isso cria uma issue `pendente-unity` com a branch e os passos. O PR só menciona a pendência (sem `Closes`), então ela continua aberta depois do merge. O `listar` mostra as pendências numa seção própria, e numa máquina com Unity o início da sessão do Claude Code avisa delas. Quem tem Unity puxa com `npm run tarefa -- puxar <N>`: com o PR aberto, o comando abre a branch dele; com o PR já na `main`, cria `chore/<escopo>/unity-pendencia-<N>`.
+
+## 6. Conclusão
 
 Ao abrir o PR, adicione sempre `Closes #<numero>` no corpo do PR. No squash merge da `main`, a issue é fechada e o item vai para `Done`. Se precisar marcar manualmente:
 

@@ -51,6 +51,9 @@ node_modules/
 CLAUDE.local.md
 AGENTS.local.md
 
+# ---------- Logs soltos de verificação (ex.: verificacao.log de agentes) ----------
+/*.log
+
 # ---------- Sistema ----------
 .DS_Store
 Thumbs.db

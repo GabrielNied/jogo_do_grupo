@@ -1,0 +1,109 @@
+name: Client (Unity)
+
+# Compila o client e roda os testes EditMode num Unity de verdade (GameCI), para que quem não
+# tem Unity na máquina, como um agente na nuvem, não precise fazer isso localmente (ADR 0017).
+#
+# Leva uns 10 minutos, então não roda em cada PR (não atrasa ninguém nem gasta a cota à toa):
+# - depois do merge na main, se mexeu no client ou no shared. Merges seguidos cancelam a
+#   execução anterior, então um lote de merges gera uma execução só;
+# - num PR com a label "testar-unity", para validar antes do merge;
+# - à mão, em Actions > Client (Unity) > Run workflow.
+# Se falhar na main, abre uma pendência "pendente-unity" para o próximo agente com Unity.
+# Não é check obrigatório.
+#
+# Precisa dos secrets UNITY_LICENSE, UNITY_EMAIL e UNITY_PASSWORD (licença Personal).
+# Sem eles, o job só avisa e passa.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "client/**"
+      - "shared/Package/**"
+      - ".github/workflows/client.yml"
+  pull_request:
+    types: [labeled, synchronize]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  checks: write
+  issues: write
+
+concurrency:
+  group: client-unity-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  testes:
+    if: github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'testar-unity')
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      TEM_LICENCA: ${{ secrets.UNITY_LICENSE != '' }}
+    steps:
+      - name: Licença do Unity configurada?
+        if: env.TEM_LICENCA != 'true'
+        run: echo "::warning::Sem o secret UNITY_LICENSE o client não foi compilado nem testado. Veja docs/decisoes/0017-unity-no-ci.md."
+
+      # A imagem do Unity não cabe no disco livre do runner. Remove SDKs pré-instalados que
+      # este job não usa (Android, .NET, Haskell, CodeQL): libera mais de 20 GB.
+      - name: Libera espaço em disco
+        if: env.TEM_LICENCA == 'true'
+        run: |
+          sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc /opt/hostedtoolcache/CodeQL
+          sudo docker image prune --all --force
+          df -h /
+
+      # Sem LFS: os testes EditMode não usam modelos e texturas, e LFS gasta a cota de banda.
+      - uses: actions/checkout@v4
+        if: env.TEM_LICENCA == 'true'
+        with:
+          lfs: false
+
+      - uses: actions/cache@v4
+        if: env.TEM_LICENCA == 'true'
+        with:
+          path: client/Library
+          key: Library-${{ hashFiles('client/Packages/packages-lock.json', 'client/ProjectSettings/ProjectVersion.txt') }}-${{ hashFiles('client/Assets/**', 'shared/Package/**') }}
+          restore-keys: |
+            Library-${{ hashFiles('client/Packages/packages-lock.json', 'client/ProjectSettings/ProjectVersion.txt') }}-
+            Library-
+
+      # Compila todos os assemblies (erro de compilação reprova) e roda os testes EditMode.
+      - uses: game-ci/unity-test-runner@v4
+        if: env.TEM_LICENCA == 'true'
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          projectPath: client
+          testMode: editmode
+          # Imagem "base" (sem módulos de build): os testes EditMode não precisam de IL2CPP.
+          # Atualize junto com client/ProjectSettings/ProjectVersion.txt quando o Unity mudar.
+          customImage: unityci/editor:ubuntu-6000.6.5f1-base-3
+          githubToken: ${{ github.token }}
+          checkName: Testes EditMode (Unity)
+
+      - uses: actions/upload-artifact@v4
+        if: always() && env.TEM_LICENCA == 'true'
+        with:
+          name: resultados-unity
+          path: artifacts
+
+      # Quebrou na main: vira pendência para o próximo agente com Unity (ADR 0017).
+      - name: Abre pendência de Unity
+        if: failure() && github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          LINK: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh api -X POST "repos/${{ github.repository }}/issues" \
+            -f title="[Unity] Client falhou na main (${GITHUB_SHA::7})" \
+            -f labels[]=pendente-unity \
+            -f body="O workflow Client (Unity) falhou depois do merge do commit ${GITHUB_SHA}: $LINK
+
+          **Falta:**
+          - [ ] Ver o log, corrigir a compilação ou os testes EditMode e confirmar com \`npm run unity:compilar\` e \`npm run unity:testes\`.
+
+          Puxe com \`npm run tarefa -- puxar <este número>\` (cria uma branch nova a partir da main)."
