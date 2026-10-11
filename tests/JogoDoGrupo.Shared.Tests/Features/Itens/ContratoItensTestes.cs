@@ -1,0 +1,73 @@
+using JogoDoGrupo.Shared.Core.Api;
+using JogoDoGrupo.Shared.Features.Itens;
+
+namespace JogoDoGrupo.Shared.Tests.Features.Itens;
+
+public class ContratoItensTestes
+{
+    [Fact]
+    public void Catalogo_tem_exatamente_os_4_ids_combinados()
+    {
+        Assert.Equal(new[] { 1, 2, 3, 4 }, CatalogoItens.Todos);
+        Assert.Equal(4, CatalogoItens.Todos.Distinct().Count());
+        Assert.Equal(1, CatalogoItens.EspadaDeTeste);
+        Assert.Equal(2, CatalogoItens.EscudoDeTeste);
+        Assert.Equal(3, CatalogoItens.PocaoDeTeste);
+        Assert.Equal(4, CatalogoItens.MoedaDeTeste);
+    }
+
+    [Theory]
+    [InlineData(1, "Espada de teste")]
+    [InlineData(2, "Escudo de teste")]
+    [InlineData(3, "Poção de teste")]
+    [InlineData(4, "Moeda de teste")]
+    public void ObterNome_devolve_o_nome_exibido(int itemId, string esperado) =>
+        Assert.Equal(esperado, CatalogoItens.ObterNome(itemId));
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(5)]
+    [InlineData(-1)]
+    public void ObterNome_devolve_null_fora_do_catalogo(int itemId) =>
+        Assert.Null(CatalogoItens.ObterNome(itemId));
+
+    [Fact]
+    public void Limites_sao_os_do_recorte_de_teste()
+    {
+        Assert.Equal(40, RegrasItens.EspacosInventario);
+        Assert.Equal(1, RegrasItens.MinimoItensPorBau);
+        Assert.Equal(3, RegrasItens.MaximoItensPorBau);
+    }
+
+    [Fact]
+    public void Rotas_sao_os_textos_combinados()
+    {
+        Assert.Equal("/api/personagens/{personagemId}/inventario", RotasItens.Inventario);
+        Assert.Equal("/api/personagens/{personagemId}/bau", RotasItens.Bau);
+        Assert.Equal("/api/personagens/42/inventario", RotasItens.InventarioDe(42));
+        Assert.Equal("/api/personagens/42/bau", RotasItens.BauDe(42));
+    }
+
+    [Fact]
+    public void Codigos_de_erro_sao_os_textos_combinados()
+    {
+        Assert.Equal("InventarioCheio", CodigosErroItens.InventarioCheio);
+        Assert.Equal("PersonagemNaoEncontrado", CodigosErroItens.PersonagemNaoEncontrado);
+    }
+
+    [Fact]
+    public void Codigos_de_erro_nao_repetem_os_do_core()
+    {
+        Assert.NotEqual(CodigosErro.NaoAutenticado, CodigosErroItens.InventarioCheio);
+        Assert.NotEqual(CodigosErro.NaoAutenticado, CodigosErroItens.PersonagemNaoEncontrado);
+    }
+
+    [Fact]
+    public void Respostas_comecam_com_arrays_vazios_e_nao_nulos()
+    {
+        Assert.Empty(new InventarioResponse().Entradas);
+        Assert.Empty(new AbrirBauResponse().Ganhos);
+        Assert.Empty(new AbrirBauResponse().Inventario);
+        Assert.Equal("", new EntradaInventario().Nome);
+    }
+}
