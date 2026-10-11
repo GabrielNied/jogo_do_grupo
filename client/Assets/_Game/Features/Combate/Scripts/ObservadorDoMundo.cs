@@ -15,8 +15,6 @@ namespace JogoDoGrupo.Client.Features.Combate
         private const string NomeObservador = "Combate.Observador";
         private const string NomeRaiz = "Combate";
 
-        private static readonly Vector2Int ResolucaoReferencia = new Vector2Int(1920, 1080);
-
         private static ObservadorDoMundo _instancia;
 
         private GameObject _jogadorAtendido;
@@ -71,11 +69,7 @@ namespace JogoDoGrupo.Client.Features.Combate
             documento.panelSettings = configuracao;
             raiz.SetActive(true);
 
-            var estilo = Resources.Load<StyleSheet>(EstiloCore.CaminhoEstilo);
-            if (estilo != null)
-            {
-                documento.rootVisualElement.styleSheets.Add(estilo);
-            }
+            EstiloCore.Aplicar(documento.rootVisualElement);
 
             var container = new VisualElement { name = "CombateInterface" };
             container.AddToClassList(EstiloCore.RaizInterface);
@@ -104,10 +98,7 @@ namespace JogoDoGrupo.Client.Features.Combate
             var painel = ScriptableObject.CreateInstance<PanelSettings>();
             painel.name = "PainelCombate";
             painel.hideFlags = HideFlags.DontSave;
-            painel.scaleMode = PanelScaleMode.ScaleWithScreenSize;
-            painel.referenceResolution = ResolucaoReferencia;
-            painel.screenMatchMode = PanelScreenMatchMode.MatchWidthOrHeight;
-            painel.match = 0.5f;
+            EstiloCore.ConfigurarEscala(painel);
 
             // Abaixo da interface do Core (ordem 0) e do painel de Itens.
             painel.sortingOrder = -2f;

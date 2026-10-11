@@ -15,7 +15,7 @@
     "BordaAmostra": "#84958C",
     "BordaBotao": "#A88C55",
     "Hover": "#285A6A",
-    "Pressionado": "#347182",
+    "Pressionado": "#2F6878",
     "Desabilitado": "#30444C",
     "TextoDesabilitado": "#9CA8A8",
     "BordaDesabilitado": "#53626A",
@@ -26,14 +26,21 @@
     "BordaCampo": "#6C8C92",
     "Erro": "#E99383",
     "Trilho": "#0A2534",
-    "Veu": "rgba(3, 15, 23, 0.85)"
+    "Veu": "rgba(3, 15, 23, 0.85)",
+    "Vida": "#A8403B",
+    "Ganho": "#A9CD82",
+    "Sussurro": "#E9B5D5",
+    "Sombra": "rgba(3, 15, 23, 0.95)",
+    "Perigo": "rgba(233, 147, 131, 0.9)",
+    "PerigoPreenchimento": "rgba(233, 147, 131, 0.35)"
   },
   "Tipografia": {
     "Leitura": 16,
     "LeituraMaxima": 24,
     "Controle": 18,
     "Titulo": 28,
-    "Subtitulo": 22
+    "Subtitulo": 22,
+    "DanoPesado": 44
   },
   "Espacamento": {
     "Minimo": 4,
@@ -70,7 +77,32 @@
     "PranchaPercentual": 45,
     "DialogoPercentual": 90,
     "ComparacaoAltura": 300,
-    "MenuEstreitoAltura": 180
+    "MenuEstreitoAltura": 180,
+    "PainelEntrada": 560,
+    "PainelLargo": 720,
+    "Lista": 320,
+    "Mensagem": 32,
+    "Carregamento": 14,
+    "DicaBase": 120,
+    "AvisosTopo": 140,
+    "AvisosBase": 180,
+    "ChatLargura": 520,
+    "RecursosLargura": 320,
+    "InimigoLargura": 160,
+    "InimigoBarra": 120,
+    "InimigoBarraAltura": 8,
+    "Minimapa": 168,
+    "MinimapaRaio": 84,
+    "Mapa": 420,
+    "DanoLargura": 120,
+    "SocialAvisoBase": 190,
+    "SocialAcao": 96,
+    "SocialConvidar": 140,
+    "LogoEntradaLargura": 400,
+    "LogoEntradaAltura": 156,
+    "MarcadorAliado": 4,
+    "MarcadorJogador": 9,
+    "MarcadorMinimapa": 8
   },
   "Bordas": {
     "Fina": 1,
@@ -93,7 +125,8 @@
     "CompactoAte": 1100,
     "EstreitoAte": 720,
     "ReferenciaLargura": 1920,
-    "ReferenciaAltura": 1080
+    "ReferenciaAltura": 1080,
+    "EscalaBase": 1
   },
   "Fontes": {
     "Leitura": "Lumora/Fontes/LumoraSource-500",

@@ -20,6 +20,8 @@ namespace JogoDoGrupo.Client.Core.Tests
             public int Aberturas;
             public int Fechamentos;
             public bool FalharAoMontar;
+            public bool Social;
+            public override bool MolduraSocial => Social;
 
             protected override void Montar(VisualElement conteudo)
             {
@@ -51,6 +53,24 @@ namespace JogoDoGrupo.Client.Core.Tests
         private static DefinicaoDeJanela Definicao(Func<JanelaDoJogo> criar)
         {
             return new DefinicaoDeJanela("itens.inventario", "Inventário", "I", 20, criar);
+        }
+
+        [Test]
+        public void MolduraSocial_RolaConteudoEPreservaFecharSemDependerDaFeature()
+        {
+            var presenter = new ApresentadorDeJanelas(new VisualElement(), () => { });
+            presenter.Mostrar(Definicao(() => new JanelaDeTeste { Social = true }));
+            var painel = presenter.Raiz.Q<ScrollView>(null, EstiloCore.Painel);
+            Assert.IsNotNull(painel);
+            Assert.IsTrue(painel.ClassListContains("ui-painel-social"));
+            Assert.IsNotNull(painel.Q<Label>("teste.rotulo"));
+            presenter.Mostrar(Definicao(() => new JanelaDeTeste()));
+            Assert.IsFalse(
+                presenter
+                    .Raiz.Q<ScrollView>(null, EstiloCore.Painel)
+                    .ClassListContains("ui-painel-social")
+            );
+            presenter.Esconder();
         }
 
         [Test]

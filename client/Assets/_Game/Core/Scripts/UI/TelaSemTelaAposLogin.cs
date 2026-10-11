@@ -10,8 +10,7 @@ namespace JogoDoGrupo.Client.Core.UI
     {
         protected override void Montar(VisualElement raiz)
         {
-            var painel = new VisualElement();
-            painel.AddToClassList(EstiloCore.Painel);
+            var painel = EstiloCore.CriarPainel();
 
             var titulo = new Label("Jogo do Grupo");
             titulo.AddToClassList(EstiloCore.Titulo);

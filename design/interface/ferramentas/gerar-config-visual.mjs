@@ -8,6 +8,18 @@ const raiz = resolve(dirname(fileURLToPath(import.meta.url)), "../../..");
 export const pastaVisual = "client/Assets/_Game/Core/UI/Visual/";
 export const nomeUss = (grupo, nome) => "--lumora-" + grupo.toLowerCase() + "-" + nome.replace(/[A-Z]/g, (c, i) => (i ? "-" : "") + c.toLowerCase());
 
+export function conferirEstilo(estilo, tokens, arquivo) {
+  assert(!/#[0-9a-f]{6}|rgba?\(/i.test(estilo), "Cor duplicada fora da configuração: " + arquivo);
+  for (const m of estilo.matchAll(/var\((--lumora-[a-z-]+)\)/g))
+    assert(tokens.includes(m[1] + ":"), "Token inexistente: " + m[1]);
+  conferirRecursos(estilo, arquivo);
+}
+
+function conferirRecursos(estilo, arquivo) {
+  for (const m of estilo.matchAll(/url\("([^"]+)"\)/g))
+    assert(readFileSync(resolve(raiz, dirname(arquivo), m[1])).length > 0, "Recurso ausente: " + m[1]);
+}
+
 export function gerar(config) {
   assert.equal(config.versao, 1, "Versão de configuração desconhecida");
   for (const grupo of ["Cores", "Tipografia", "Espacamento", "Dimensoes", "Bordas", "Ornamentos", "Responsividade", "Fontes"])
@@ -40,7 +52,15 @@ export function gerar(config) {
     }
     cs += "        }\n";
   }
-  return { cs: cs + "    }\n}\n", uss: uss + "}\n" };
+  uss += "}\n";
+  const papeis = {
+    Leitura: ".lumora-ui, .lumora-ui TextElement, .lumora-ui .unity-text-element",
+    Titulo: ".lumora-ui .ui-titulo, .lumora-ui .titulo, .lumora-ui .ui-subtitulo, .lumora-ui .subtitulo, .lumora-ui .personagem-item-nome",
+    Controle: ".lumora-ui Button, .lumora-ui .unity-button",
+  };
+  for (const [papel, seletores] of Object.entries(papeis))
+    uss += `${seletores} { -unity-font-definition: url("Fontes/${config.Fontes[papel].split('/').at(-1)}.ttf"); -unity-font-style: normal; }\n`;
+  return { cs: cs + "    }\n}\n", uss };
 }
 
 export function executar(conferir = false) {
@@ -52,6 +72,11 @@ export function executar(conferir = false) {
   ]);
   for (const fonte of ["LumoraNunito-800.ttf", "LumoraSource-500.ttf", "LumoraSource-600.ttf", "LumoraSource-700.ttf", "nunitosans-OFL.txt", "sourcesans3-OFL.txt"])
     arquivos.set(pastaVisual + "Resources/Lumora/Fontes/" + fonte, readFileSync(resolve(raiz, "design/laboratorio-unity/fontes/" + fonte)));
+  for (const [origem, nome] of [
+    ["design/marca/logo-horizontal.png", "logo-horizontal.png"],
+    ["design/interface/elementos/moldura-folhas-calcada.png", "moldura-folhas-calcada.png"],
+    ["design/interface/elementos/fundo-petrol.png", "fundo-petrol.png"],
+  ]) arquivos.set(pastaVisual + "Resources/Lumora/Arte/" + nome, readFileSync(resolve(raiz, origem)));
   for (const [caminho, valor] of arquivos) {
     const absoluto = resolve(raiz, caminho);
     if (conferir) {
@@ -67,11 +92,16 @@ export function executar(conferir = false) {
   // O CSharpier altera apenas whitespace neste arquivo de constantes.
   const atual = readFileSync(resolve(raiz, pastaVisual + "ConfigVisual.cs"), "utf8");
   assert.equal(atual.replace(/\s/g, ""), saida.cs.replace(/\s/g, ""), "ConfigVisual.cs desatualizado");
-  for (const arquivo of [pastaVisual + "Resources/Lumora/ComponentesVisuais.uss", "client/Assets/_Game/Features/LaboratorioVisual/Editor/Laboratorio.uss"]) {
+  conferirRecursos(saida.uss, pastaVisual + "Resources/Lumora/TokensVisuais.uss");
+  for (const arquivo of [pastaVisual + "Resources/Lumora/ComponentesVisuais.uss", "client/Assets/_Game/Features/LaboratorioVisual/Editor/Laboratorio.uss",
+    "client/Assets/_Game/Core/UI/Resources/UI/EstiloCore.uss",
+    "client/Assets/_Game/Features/Personagem/UI/Resources/Personagem/EstiloPersonagem.uss",
+    "client/Assets/_Game/Features/Social/UI/Resources/UI/EstiloSocial.uss",
+    "client/Assets/_Game/Features/Social/UI/Resources/Social/EstiloSocial.uss",
+    "client/Assets/_Game/Features/Combate/UI/Resources/UI/EstiloCombate.uss",
+    "client/Assets/_Game/Features/Mobs/UI/Resources/UI/EstiloMobs.uss"]) {
     const estilo = readFileSync(resolve(raiz, arquivo), "utf8");
-    assert(!/#[0-9a-f]{6}|rgba\(/i.test(estilo), "Cor duplicada fora da configuração: " + arquivo);
-    for (const m of estilo.matchAll(/var\((--lumora-[a-z-]+)\)/g))
-      assert(saida.uss.includes(m[1] + ":"), "Token inexistente: " + m[1]);
+    conferirEstilo(estilo, saida.uss, arquivo);
   }
   console.log(conferir ? "Configuração, tokens e fontes sincronizados." : "ConfigVisual, tokens e fontes gerados.");
 }

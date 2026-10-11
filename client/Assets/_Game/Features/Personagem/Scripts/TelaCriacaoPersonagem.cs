@@ -36,8 +36,7 @@ namespace JogoDoGrupo.Client.Features.Personagem
         {
             EstiloPersonagem.Aplicar(raiz);
 
-            var painel = new VisualElement();
-            painel.AddToClassList(EstiloCore.Painel);
+            var painel = EstiloCore.CriarPainel(social: true);
             painel.AddToClassList(EstiloPersonagem.PainelSelecao);
 
             var titulo = new Label("Novo personagem");

@@ -1,16 +1,23 @@
 .recursos {
     position: absolute;
-    left: 24px;
-    top: 24px;
-    width: 320px;
+    left: var(--lumora-espacamento-grande);
+    top: var(--lumora-espacamento-grande);
+    width: var(--lumora-dimensoes-recursos-largura);
+    max-width: var(--lumora-dimensoes-dialogo-percentual);
+    padding: var(--lumora-espacamento-pequeno);
+    background-color: var(--lumora-cores-painel);
+    border-width: var(--lumora-bordas-fina);
+    border-color: var(--lumora-cores-borda-botao);
+    border-radius: var(--lumora-bordas-raio-cartao);
 }
 
 .recurso-barra {
-    height: 22px;
-    margin-bottom: 6px;
-    background-color: rgb(10, 8, 6);
-    border-width: 1px;
-    border-color: rgb(120, 92, 48);
+    min-height: var(--lumora-dimensoes-barra);
+    margin-bottom: var(--lumora-espacamento-curto);
+    background-color: var(--lumora-cores-trilho);
+    border-width: var(--lumora-bordas-fina);
+    border-color: var(--lumora-cores-borda-discreta);
+    border-radius: var(--lumora-bordas-raio-campo);
     overflow: hidden;
     justify-content: center;
 }
@@ -24,22 +31,25 @@
 }
 
 .barra-vida {
-    background-color: rgb(176, 48, 40);
+    background-color: var(--lumora-cores-vida);
 }
 
 .barra-vigor {
-    background-color: rgb(196, 152, 64);
+    background-color: var(--lumora-cores-ouro);
 }
 
 .barra-energia {
-    background-color: rgb(52, 104, 176);
+    background-color: var(--lumora-cores-essencia);
 }
 
 .recurso-texto {
-    font-size: 14px;
-    -unity-font-style: bold;
+    align-self: center;
+    padding: 0 var(--lumora-espacamento-pequeno);
+    background-color: var(--lumora-cores-painel);
+    font-size: var(--lumora-tipografia-leitura);
     -unity-text-align: middle-center;
-    color: rgb(255, 240, 210);
+    color: var(--lumora-cores-marfim);
+    text-shadow: var(--lumora-bordas-fina) var(--lumora-bordas-fina) var(--lumora-bordas-destaque) var(--lumora-cores-sombra);
 }
 
 .numeros-de-dano {
@@ -52,29 +62,36 @@
 
 .dano-numero {
     position: absolute;
-    left: -60px;
+    left: 0;
+    translate: -50% 0;
     top: 0;
-    width: 120px;
-    font-size: 28px;
-    -unity-font-style: bold;
+    width: var(--lumora-dimensoes-dano-largura);
+    font-size: var(--lumora-tipografia-titulo);
     -unity-text-align: middle-center;
-    color: rgb(255, 255, 255);
-    text-shadow: 1px 1px 2px rgb(0, 0, 0);
+    color: var(--lumora-cores-marfim);
+    text-shadow: var(--lumora-bordas-fina) var(--lumora-bordas-fina) var(--lumora-bordas-destaque) var(--lumora-cores-sombra);
 }
 
 .dano-pesado {
-    font-size: 44px;
+    font-size: var(--lumora-tipografia-dano-pesado);
+    color: var(--lumora-cores-ouro);
 }
 
 .aviso-de-ataque {
     position: absolute;
     left: 50%;
     top: 58%;
-    width: 320px;
-    margin-left: -160px;
-    font-size: 18px;
-    -unity-font-style: bold;
+    width: var(--lumora-dimensoes-recursos-largura);
+    translate: -50% 0;
+    font-size: var(--lumora-tipografia-controle);
     -unity-text-align: middle-center;
-    color: rgb(230, 80, 64);
-    text-shadow: 1px 1px 2px rgb(0, 0, 0);
+    color: var(--lumora-cores-erro);
+    background-color: var(--lumora-cores-painel);
+    white-space: normal;
+}
+
+.lumora-estreito .recursos {
+    left: var(--lumora-espacamento-pequeno);
+    top: var(--lumora-espacamento-pequeno);
+    width: var(--lumora-dimensoes-ferramentas);
 }

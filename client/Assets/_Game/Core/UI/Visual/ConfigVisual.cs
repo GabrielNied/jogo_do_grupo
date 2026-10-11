@@ -19,7 +19,7 @@ namespace JogoDoGrupo.Client.Core.Visual
             public const string BordaAmostra = "#84958C";
             public const string BordaBotao = "#A88C55";
             public const string Hover = "#285A6A";
-            public const string Pressionado = "#347182";
+            public const string Pressionado = "#2F6878";
             public const string Desabilitado = "#30444C";
             public const string TextoDesabilitado = "#9CA8A8";
             public const string BordaDesabilitado = "#53626A";
@@ -31,6 +31,12 @@ namespace JogoDoGrupo.Client.Core.Visual
             public const string Erro = "#E99383";
             public const string Trilho = "#0A2534";
             public const string Veu = "rgba(3, 15, 23, 0.85)";
+            public const string Vida = "#A8403B";
+            public const string Ganho = "#A9CD82";
+            public const string Sussurro = "#E9B5D5";
+            public const string Sombra = "rgba(3, 15, 23, 0.95)";
+            public const string Perigo = "rgba(233, 147, 131, 0.9)";
+            public const string PerigoPreenchimento = "rgba(233, 147, 131, 0.35)";
         }
 
         public static class Tipografia
@@ -40,6 +46,7 @@ namespace JogoDoGrupo.Client.Core.Visual
             public const int Controle = 18;
             public const int Titulo = 28;
             public const int Subtitulo = 22;
+            public const int DanoPesado = 44;
         }
 
         public static class Espacamento
@@ -81,6 +88,31 @@ namespace JogoDoGrupo.Client.Core.Visual
             public const int DialogoPercentual = 90;
             public const int ComparacaoAltura = 300;
             public const int MenuEstreitoAltura = 180;
+            public const int PainelEntrada = 560;
+            public const int PainelLargo = 720;
+            public const int Lista = 320;
+            public const int Mensagem = 32;
+            public const int Carregamento = 14;
+            public const int DicaBase = 120;
+            public const int AvisosTopo = 140;
+            public const int AvisosBase = 180;
+            public const int ChatLargura = 520;
+            public const int RecursosLargura = 320;
+            public const int InimigoLargura = 160;
+            public const int InimigoBarra = 120;
+            public const int InimigoBarraAltura = 8;
+            public const int Minimapa = 168;
+            public const int MinimapaRaio = 84;
+            public const int Mapa = 420;
+            public const int DanoLargura = 120;
+            public const int SocialAvisoBase = 190;
+            public const int SocialAcao = 96;
+            public const int SocialConvidar = 140;
+            public const int LogoEntradaLargura = 400;
+            public const int LogoEntradaAltura = 156;
+            public const int MarcadorAliado = 4;
+            public const int MarcadorJogador = 9;
+            public const int MarcadorMinimapa = 8;
         }
 
         public static class Bordas
@@ -110,6 +142,7 @@ namespace JogoDoGrupo.Client.Core.Visual
             public const int EstreitoAte = 720;
             public const int ReferenciaLargura = 1920;
             public const int ReferenciaAltura = 1080;
+            public const int EscalaBase = 1;
         }
 
         public static class Fontes

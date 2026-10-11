@@ -39,6 +39,9 @@ namespace JogoDoGrupo.Client.Core.Jogo.Janelas
         /// </summary>
         public bool Aberta { get; private set; }
 
+        /// <summary>Solicita folhas e calçada na moldura, com espaço reservado à decoração.</summary>
+        public virtual bool MolduraSocial => false;
+
         /// <summary>Cria os elementos dentro de <paramref name="conteudo"/>. Chamado uma vez.</summary>
         protected abstract void Montar(VisualElement conteudo);
 

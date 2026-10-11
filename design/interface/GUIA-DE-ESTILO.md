@@ -17,7 +17,7 @@ node design/interface/ferramentas/gerar-config-visual.mjs --conferir
 node --test design/interface/ferramentas/config-visual.test.mjs
 ```
 
-O gerador produz `ConfigVisual.cs`, `TokensVisuais.uss` e cópias idênticas das fontes estáticas aprovadas em `Resources/Lumora/Fontes`, com licenças. Não editar saídas à mão. CSharpier formata o C# gerado. Fontes binárias são importadas pelo Unity; seus `.meta` nunca devem ser escritos à mão. Mudar a configuração altera somente telas que já a consomem; telas antigas não são migradas automaticamente.
+O gerador produz `ConfigVisual.cs`, `TokensVisuais.uss` (incluindo os papéis tipográficos) e cópias idênticas das fontes estáticas aprovadas em `Resources/Lumora/Fontes`, com licenças. Copia também a logo, o fundo petróleo e a moldura social para `Resources/Lumora/Arte`. Não editar saídas à mão. CSharpier formata o C# gerado. Fontes e imagens binárias são importadas pelo Unity; seus `.meta` nunca devem ser escritos à mão. Mudar a configuração altera somente telas que já a consomem; telas antigas não são migradas automaticamente.
 
 ## Linguagens visuais
 
@@ -45,13 +45,17 @@ painel.Add(ComponentesVisuais.Botao("Convidar", AbrirConvite, principal: true));
 raiz.Add(painel);
 ```
 
-O helper de painel entrega a base neutra. Folhas/calçada e pergaminho continuam recursos separados: usar as imagens de [elementos](elementos/), importadas pelo Unity na tarefa da tela, e os tokens de ornamentos; a moldura deve ignorar o ponteiro. Não preencher a interface com uma prancha raster nem copiar a implementação de demonstração como regra de gameplay.
+O helper `Painel()` entrega a base neutra. `PainelRolavel(social: true)` cria uma superfície com rolagem vertical e a moldura de folhas/calçada aprovada, aplicada como fundo sem elemento adicional que intercepte o ponteiro. Os tokens de ornamentos reservam espaço ao redor do conteúdo. `Marca()` usa a imagem aprovada, sem reescrever o lettering. Pergaminho continua um recurso separado de [elementos](elementos/). Não preencher a interface com uma prancha raster nem copiar a implementação de demonstração como regra de gameplay.
 
-Novos tipos de controle precisam incluir normal, hover, pressionado, foco, desabilitado e erro quando aplicável, usando os tokens do respectivo estado. Formulários, slots, tooltips e barras ainda não têm factories compartilhadas; usar os exemplos do laboratório e promover um componente reutilizável quando necessário, com testes. Não declarar um componente disponível se só existir na prancha.
+As telas existentes usam a integração `EstiloCore.Aplicar(raizDocumento)`, que instala o mesmo padrão nos documentos independentes. As classes antigas `titulo`, `subtitulo`, `texto`, `painel`, `botao` e `botao-principal` são aliases do estilo compartilhado, sem cópia dos valores. Novos formulários podem usar `campo` e `campo-erro`, acompanhados de mensagem textual; os estados dos campos estão no USS compartilhado. A tipografia por classe também vale para elementos adicionados depois de respostas do servidor. Para desenhos com `Painter2D`, usar `EstiloVisual.Cor(ConfigVisual.Cores.<Papel>)`.
+
+Dentro do fluxo do Core, `EstiloCore.CriarPainel()` cria o painel rolável e mantém as classes de integração. Uma `JanelaDoJogo` pode sobrescrever `MolduraSocial` para solicitar a moldura decorada. O registro das janelas, seus atalhos e suas ações continuam sob responsabilidade dos donos atuais. Ver o [registro da adaptação das interfaces existentes](ADAPTACAO-INTERFACES.md).
+
+Novos tipos de controle precisam incluir normal, hover, pressionado, foco, desabilitado e erro quando aplicável, usando os tokens do respectivo estado. Slots, tooltips e barras ainda não têm factories compartilhadas; usar os exemplos do laboratório e promover um componente reutilizável quando necessário, com testes. Não declarar um componente disponível se só existir na prancha.
 
 ## Responsividade e legibilidade obrigatórias
 
-Usar a largura **resolvida da raiz da tela**, não só `Screen.width`. `EstiloVisual` acompanha `GeometryChangedEvent` e aplica `lumora-compacto` e `lumora-estreito` pelos limiares da configuração. O USS específico deve reagir a essas classes com empilhamento, quebra e rolagem. Os componentes compartilhados já permitem quebra de texto e linhas; cada composição ainda precisa de teste visual. USS não recebe automaticamente as media queries de um site.
+Nos documentos do jogo, aplicar `EstiloCore.ConfigurarEscala(painel)` para preservar a leitura em pixels e a geometria disponível ([ADR 0028](../../docs/decisoes/0028-escala-legivel-das-interfaces.md)). Usar a largura **resolvida da raiz da tela**, não só `Screen.width`. `EstiloVisual` acompanha `GeometryChangedEvent` e aplica `lumora-compacto` e `lumora-estreito` pelos limiares da configuração. O USS específico deve reagir a essas classes com empilhamento, quebra e rolagem. Os componentes compartilhados já permitem quebra de texto e linhas; cada composição ainda precisa de teste visual. USS não recebe automaticamente as media queries de um site.
 
 - Leitura parte do token `Tipografia.Leitura` (atualmente 16 px); botões partem de `Controle` (18 px). Títulos usam Nunito Sans 800 e leitura/controles Source Sans 3 nos pesos aprovados. Evitar fallback e negrito sintético.
 - Prever aumento de texto até `LeituraMaxima`; não reduzir fonte para fazer caber. Conteúdo longo deve quebrar ou rolar.

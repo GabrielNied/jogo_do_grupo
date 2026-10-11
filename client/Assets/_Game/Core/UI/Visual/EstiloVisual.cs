@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -60,9 +61,9 @@ namespace JogoDoGrupo.Client.Core.Visual
                 .ForEach(e =>
                 {
                     e.style.fontSize =
-                        e.ClassListContains("ui-titulo")
+                        e.ClassListContains("ui-titulo") || e.ClassListContains("titulo")
                             ? Mathf.Max(ConfigVisual.Tipografia.Titulo, leitura)
-                        : e.ClassListContains("ui-subtitulo")
+                        : e.ClassListContains("ui-subtitulo") || e.ClassListContains("subtitulo")
                             ? Mathf.Max(ConfigVisual.Tipografia.Subtitulo, leitura)
                         : e is Button ? Mathf.Max(ConfigVisual.Tipografia.Controle, leitura)
                         : leitura;
@@ -76,6 +77,33 @@ namespace JogoDoGrupo.Client.Core.Visual
                 ConfigVisual.Tipografia.Leitura,
                 ConfigVisual.Tipografia.LeituraMaxima
             );
+        }
+
+        /// <summary>Cor de token para desenhos feitos com Painter2D.</summary>
+        public static Color Cor(string token)
+        {
+            if (ColorUtility.TryParseHtmlString(token, out var cor))
+                return cor;
+            if (token != null && token.StartsWith("rgba(") && token.EndsWith(")"))
+            {
+                var canais = token.Substring(5, token.Length - 6).Split(',');
+                if (
+                    canais.Length == 4
+                    && byte.TryParse(canais[0].Trim(), out var r)
+                    && byte.TryParse(canais[1].Trim(), out var g)
+                    && byte.TryParse(canais[2].Trim(), out var b)
+                    && float.TryParse(
+                        canais[3].Trim(),
+                        NumberStyles.Float,
+                        CultureInfo.InvariantCulture,
+                        out var a
+                    )
+                    && a >= 0
+                    && a <= 1
+                )
+                    return new Color(r / 255f, g / 255f, b / 255f, a);
+            }
+            throw new ArgumentException("Token de cor inválido.", nameof(token));
         }
     }
 }

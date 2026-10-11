@@ -13,14 +13,6 @@ namespace JogoDoGrupo.Client.Core.Jogo
     {
         private const string NomeElemento = "core.menu-jogo";
 
-        // Fundo meio transparente: o mundo continua visível atrás do menu.
-        private static readonly UnityEngine.Color CorFundo = new UnityEngine.Color(
-            0f,
-            0f,
-            0f,
-            0.55f
-        );
-
         private readonly Action _aoContinuar;
         private VisualElement _raiz;
 
@@ -41,10 +33,9 @@ namespace JogoDoGrupo.Client.Core.Jogo
 
             _raiz = new VisualElement { name = NomeElemento };
             _raiz.AddToClassList(EstiloCore.Tela);
-            _raiz.style.backgroundColor = CorFundo;
+            _raiz.AddToClassList(EstiloCore.TelaSobreJogo);
 
-            var painel = new VisualElement();
-            painel.AddToClassList(EstiloCore.Painel);
+            var painel = EstiloCore.CriarPainel();
 
             var titulo = new Label("Menu");
             titulo.AddToClassList(EstiloCore.Titulo);
@@ -64,7 +55,6 @@ namespace JogoDoGrupo.Client.Core.Jogo
 
             var sairJogo = new Button(SairDoJogo) { text = "Sair do jogo" };
             sairJogo.AddToClassList(EstiloCore.Botao);
-            sairJogo.style.marginTop = 8;
 
             var linha = new VisualElement();
             linha.AddToClassList(EstiloCore.LinhaBotoes);
@@ -88,8 +78,7 @@ namespace JogoDoGrupo.Client.Core.Jogo
             }
 
             _raiz.Clear();
-            var painel = new VisualElement();
-            painel.AddToClassList(EstiloCore.Painel);
+            var painel = EstiloCore.CriarPainel();
             var titulo = new Label("Opções");
             titulo.AddToClassList(EstiloCore.Titulo);
             painel.Add(titulo);

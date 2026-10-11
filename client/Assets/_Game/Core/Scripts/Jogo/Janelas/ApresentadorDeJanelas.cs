@@ -50,8 +50,7 @@ namespace JogoDoGrupo.Client.Core.Jogo.Janelas
             _raiz.AddToClassList(EstiloCore.Tela);
             _raiz.AddToClassList(EstiloCore.TelaSobreJogo);
 
-            var painel = new VisualElement();
-            painel.AddToClassList(EstiloCore.Painel);
+            var painel = EstiloCore.CriarPainel();
             painel.AddToClassList(EstiloCore.PainelLargo);
             painel.AddToClassList(EstiloCore.Janela);
 
@@ -100,6 +99,7 @@ namespace JogoDoGrupo.Client.Core.Jogo.Janelas
             }
 
             _janela = janela;
+            painel.EnableInClassList("ui-painel-social", janela.MolduraSocial);
             try
             {
                 janela.Abrir(conteudo, texto => titulo.text = texto);
