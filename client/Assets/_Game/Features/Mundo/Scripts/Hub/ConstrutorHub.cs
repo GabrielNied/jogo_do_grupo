@@ -1,0 +1,220 @@
+using JogoDoGrupo.Client.Core.Jogo;
+using UnityEngine;
+
+namespace JogoDoGrupo.Client.Features.Mundo.Hub
+{
+    /// <summary>
+    /// Monta o hub (área segura) em tempo de execução a partir dos prefabs de
+    /// <c>Resources/Mundo/</c> e registra-se no Core como construtor de mundo. O Core chama
+    /// <see cref="Construir"/> quando o jogador entra; tudo o que é criado vai para a cena do
+    /// mundo, que o Core descarrega ao sair.
+    /// </summary>
+    public static class ConstrutorHub
+    {
+        public const string NomeRaiz = "Hub";
+        public const string NomeChao = "Chao";
+        public const string NomeMuros = "Muros";
+        public const string NomeEstradas = "Estradas";
+        public const string NomeProps = "Props";
+        public const string NomeLuz = "Sol";
+
+        private const string PastaPrefabs = "Mundo/";
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+        private static void Registrar()
+        {
+            EntradaNoJogo.DefinirConstrutorDeMundo(Construir);
+        }
+
+        /// <summary>
+        /// Cria o hub e devolve onde o jogador nasce (pés no chão, olhando para a fonte).
+        /// </summary>
+        public static PosicaoInicial Construir()
+        {
+            Montar();
+            return new PosicaoInicial(
+                LayoutDoHub.PontoDeNascimento,
+                LayoutDoHub.RotacaoDeNascimento
+            );
+        }
+
+        /// <summary>
+        /// Cria os objetos do hub na cena ativa, sob um objeto <see cref="NomeRaiz"/>, que é
+        /// devolvido. Peça sem prefab em <c>Resources</c> é pulada com um aviso; só o chão e os
+        /// muros têm uma versão simples de reserva, para o hub nunca ficar sem colisão.
+        /// </summary>
+        public static GameObject Montar()
+        {
+            var raiz = new GameObject(NomeRaiz);
+
+            CriarChao(raiz.transform);
+            CriarMuros(raiz.transform);
+            CriarEstradas(raiz.transform);
+            CriarProps(raiz.transform);
+            CriarLuz(raiz.transform);
+            ConfigurarAmbiente();
+
+            return raiz;
+        }
+
+        private static void CriarChao(Transform pai)
+        {
+            var chao = Instanciar(LayoutDoHub.PrefabChao, Vector3.zero, 0f, pai);
+            if (chao == null)
+            {
+                chao = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                chao.transform.SetParent(pai, false);
+                chao.transform.localPosition = new Vector3(0f, -0.5f, 0f);
+                chao.transform.localScale = new Vector3(LayoutDoHub.Lado, 1f, LayoutDoHub.Lado);
+            }
+
+            chao.name = NomeChao;
+        }
+
+        private static void CriarMuros(Transform pai)
+        {
+            var muros = new GameObject(NomeMuros).transform;
+            muros.SetParent(pai, false);
+
+            var ultimo = LayoutDoHub.CelulasPorLado - 1;
+            for (var i = 0; i <= ultimo; i++)
+            {
+                var centro = LayoutDoHub.CentroDaCelula(i);
+                var borda = i == 0 || i == ultimo;
+
+                // Lados sul e norte inteiros; lados oeste e leste sem as células de canto.
+                CriarMuro(muros, centro, LayoutDoHub.CentroDaCelula(0), borda);
+                CriarMuro(muros, centro, LayoutDoHub.CentroDaCelula(ultimo), borda);
+                if (!borda)
+                {
+                    CriarMuro(muros, LayoutDoHub.CentroDaCelula(0), centro, false);
+                    CriarMuro(muros, LayoutDoHub.CentroDaCelula(ultimo), centro, false);
+                }
+            }
+        }
+
+        private static void CriarMuro(Transform pai, float x, float z, bool torre)
+        {
+            var posicao = new Vector3(x, 0f, z);
+            var nome = torre ? LayoutDoHub.PrefabTorre : LayoutDoHub.PrefabMuro;
+            var altura = torre ? LayoutDoHub.AlturaTorre : LayoutDoHub.AlturaMuro;
+
+            if (Instanciar(nome, posicao, 0f, pai) != null)
+            {
+                return;
+            }
+
+            var reserva = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            reserva.name = nome;
+            reserva.transform.SetParent(pai, false);
+            reserva.transform.localPosition = posicao + new Vector3(0f, altura / 2f, 0f);
+            reserva.transform.localScale = new Vector3(
+                LayoutDoHub.Modulo,
+                altura,
+                LayoutDoHub.Modulo
+            );
+        }
+
+        private static void CriarEstradas(Transform pai)
+        {
+            var estradas = new GameObject(NomeEstradas).transform;
+            estradas.SetParent(pai, false);
+
+            for (var i = 0; i < LayoutDoHub.CelulasPorLado; i++)
+            {
+                for (var j = 0; j < LayoutDoHub.CelulasPorLado; j++)
+                {
+                    var x = LayoutDoHub.CentroDaCelula(i);
+                    var z = LayoutDoHub.CentroDaCelula(j);
+                    if (!EhEstrada(x, z))
+                    {
+                        continue;
+                    }
+
+                    // Só células dentro da área andável: os muros ocupam a borda.
+                    if (!LayoutDoHub.DentroDaAreaAndavel(new Vector3(x, 0f, z), 0f))
+                    {
+                        continue;
+                    }
+
+                    // Um prefab que falta já foi avisado na primeira vez; não repete 100 vezes.
+                    if (
+                        Instanciar(LayoutDoHub.PrefabEstrada, new Vector3(x, 0f, z), 0f, estradas)
+                        == null
+                    )
+                    {
+                        return;
+                    }
+                }
+            }
+        }
+
+        /// <summary>Se a célula centrada em (x, z) é praça ou parte das duas estradas em cruz.</summary>
+        internal static bool EhEstrada(float x, float z)
+        {
+            var naPraca =
+                Mathf.Abs(x) < LayoutDoHub.MetadePraca && Mathf.Abs(z) < LayoutDoHub.MetadePraca;
+            var naEstrada =
+                Mathf.Abs(x) < LayoutDoHub.MetadeEstrada
+                || Mathf.Abs(z) < LayoutDoHub.MetadeEstrada;
+            return naPraca || naEstrada;
+        }
+
+        private static void CriarProps(Transform pai)
+        {
+            var props = new GameObject(NomeProps).transform;
+            props.SetParent(pai, false);
+
+            foreach (var peca in LayoutDoHub.Props)
+            {
+                Instanciar(peca.Prefab, new Vector3(peca.X, 0f, peca.Z), peca.Guinada, props);
+            }
+        }
+
+        private static void CriarLuz(Transform pai)
+        {
+            var objeto = new GameObject(NomeLuz);
+            objeto.transform.SetParent(pai, false);
+            objeto.transform.localRotation = Quaternion.Euler(50f, -30f, 0f);
+
+            var luz = objeto.AddComponent<Light>();
+            luz.type = LightType.Directional;
+            luz.color = new Color(1f, 0.96f, 0.86f);
+            luz.intensity = 1.1f;
+            luz.shadows = LightShadows.Soft;
+        }
+
+        // A cena do mundo é nova: sem skybox, a luz ambiente seria preta. Fica em tom frio e
+        // suave, para as sombras do sol não ficarem pretas.
+        private static void ConfigurarAmbiente()
+        {
+            RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Trilight;
+            RenderSettings.ambientSkyColor = new Color(0.62f, 0.72f, 0.85f);
+            RenderSettings.ambientEquatorColor = new Color(0.5f, 0.52f, 0.5f);
+            RenderSettings.ambientGroundColor = new Color(0.32f, 0.3f, 0.26f);
+        }
+
+        private static GameObject Instanciar(
+            string prefab,
+            Vector3 posicao,
+            float guinada,
+            Transform pai
+        )
+        {
+            var modelo = Resources.Load<GameObject>(PastaPrefabs + prefab);
+            if (modelo == null)
+            {
+                Debug.LogWarning($"[Mundo] Prefab '{PastaPrefabs}{prefab}' não encontrado.");
+                return null;
+            }
+
+            var instancia = Object.Instantiate(modelo, pai);
+            instancia.name = prefab;
+            instancia.transform.SetLocalPositionAndRotation(
+                posicao,
+                Quaternion.Euler(0f, guinada, 0f)
+            );
+            return instancia;
+        }
+    }
+}
