@@ -109,7 +109,7 @@ namespace JogoDoGrupo.Client.Core.Tests
         {
             var painel = EstiloCore.CriarPainel(social: true);
             var botao = new Button { name = "teste.acao" };
-            painel.Add(botao);
+            painel.contentContainer.Add(botao);
             Assert.AreSame(painel.contentContainer, botao.parent);
             Assert.AreSame(botao, painel.Q<Button>("teste.acao"));
             Assert.AreEqual(ScrollerVisibility.Auto, painel.verticalScrollerVisibility);
