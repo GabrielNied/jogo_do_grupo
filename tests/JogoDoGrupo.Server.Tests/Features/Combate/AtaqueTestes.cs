@@ -33,7 +33,12 @@ public sealed class AlvoFalso(long id) : IAlvosDeCombate
         double direcaoYGraus
     ) => Ativo ? [new AlvoDeCombate(id, origemX, origemZ, 0.5, 100, 100)] : [];
 
-    public bool TentarAplicarDano(long alvoId, int dano, out ResultadoDeDano resultado)
+    public bool TentarAplicarDano(
+        long alvoId,
+        int dano,
+        long atacanteId,
+        out ResultadoDeDano resultado
+    )
     {
         resultado = default;
         if (alvoId != id)
@@ -676,7 +681,7 @@ public class AtaqueTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDeA
     public async Task Boneco_derrubado_nao_e_alvo_e_a_vida_cheia_volta_depois_de_5_segundos()
     {
         using var ana = await NovoJogadorAsync();
-        Assert.True(servidor.Boneco.TentarAplicarDano(ConfigBonecoDeTreino.AlvoId, 170, out _));
+        Assert.True(servidor.Boneco.TentarAplicarDano(ConfigBonecoDeTreino.AlvoId, 170, 1, out _));
 
         Atacar(ana); // sobram 10 de vida: o golpe leva só o que resta
         var acertou = await ana.Cliente.ReceberAsync<AtaqueAcertou>(

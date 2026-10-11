@@ -49,7 +49,7 @@ public class BonecoDeTreinoTestes
     {
         var boneco = Novo();
 
-        Assert.True(boneco.TentarAplicarDano(ConfigBonecoDeTreino.AlvoId, 20, out var r));
+        Assert.True(boneco.TentarAplicarDano(ConfigBonecoDeTreino.AlvoId, 20, 1, out var r));
 
         Assert.Equal(new ResultadoDeDano(ConfigBonecoDeTreino.AlvoId, 20, 160, 180), r);
         Assert.Equal(160, boneco.VidaAtual);
@@ -60,14 +60,14 @@ public class BonecoDeTreinoTestes
     public void Dano_maior_que_a_vida_so_tira_o_que_tem_e_o_boneco_sai_de_combate()
     {
         var boneco = Novo();
-        boneco.TentarAplicarDano(ConfigBonecoDeTreino.AlvoId, 170, out _);
+        boneco.TentarAplicarDano(ConfigBonecoDeTreino.AlvoId, 170, 1, out _);
 
-        Assert.True(boneco.TentarAplicarDano(ConfigBonecoDeTreino.AlvoId, 44, out var r));
+        Assert.True(boneco.TentarAplicarDano(ConfigBonecoDeTreino.AlvoId, 44, 1, out var r));
 
         Assert.Equal(10, r.Dano);
         Assert.Equal(0, r.VidaRestante);
         Assert.Empty(NoVolume(boneco));
-        Assert.False(boneco.TentarAplicarDano(ConfigBonecoDeTreino.AlvoId, 20, out _));
+        Assert.False(boneco.TentarAplicarDano(ConfigBonecoDeTreino.AlvoId, 20, 1, out _));
     }
 
     [Theory]
@@ -76,23 +76,23 @@ public class BonecoDeTreinoTestes
     public void Dano_zero_ou_negativo_e_recusado_e_nao_cura(int dano)
     {
         var boneco = Novo();
-        boneco.TentarAplicarDano(ConfigBonecoDeTreino.AlvoId, 50, out _);
+        boneco.TentarAplicarDano(ConfigBonecoDeTreino.AlvoId, 50, 1, out _);
 
-        Assert.False(boneco.TentarAplicarDano(ConfigBonecoDeTreino.AlvoId, dano, out _));
+        Assert.False(boneco.TentarAplicarDano(ConfigBonecoDeTreino.AlvoId, dano, 1, out _));
         Assert.Equal(130, boneco.VidaAtual);
     }
 
     [Fact]
     public void Id_que_nao_e_do_boneco_e_recusado()
     {
-        Assert.False(Novo().TentarAplicarDano(12345, 20, out _));
+        Assert.False(Novo().TentarAplicarDano(12345, 20, 1, out _));
     }
 
     [Fact]
     public void Volta_a_vida_cheia_5_segundos_depois_do_ultimo_golpe()
     {
         var boneco = Novo();
-        boneco.TentarAplicarDano(ConfigBonecoDeTreino.AlvoId, 100, out _);
+        boneco.TentarAplicarDano(ConfigBonecoDeTreino.AlvoId, 100, 1, out _);
 
         Passar(4.9);
         Assert.Equal(80, boneco.VidaAtual);
@@ -106,9 +106,9 @@ public class BonecoDeTreinoTestes
     public void Cada_golpe_reinicia_a_contagem_dos_5_segundos()
     {
         var boneco = Novo();
-        boneco.TentarAplicarDano(ConfigBonecoDeTreino.AlvoId, 20, out _);
+        boneco.TentarAplicarDano(ConfigBonecoDeTreino.AlvoId, 20, 1, out _);
         Passar(3);
-        boneco.TentarAplicarDano(ConfigBonecoDeTreino.AlvoId, 20, out _);
+        boneco.TentarAplicarDano(ConfigBonecoDeTreino.AlvoId, 20, 1, out _);
 
         Passar(3); // 6 s do primeiro golpe, 3 s do último
         Assert.Equal(140, boneco.VidaAtual);
@@ -121,7 +121,7 @@ public class BonecoDeTreinoTestes
     public void Boneco_derrotado_volta_a_ser_alvo_depois_de_5_segundos()
     {
         var boneco = Novo();
-        boneco.TentarAplicarDano(ConfigBonecoDeTreino.AlvoId, 500, out _);
+        boneco.TentarAplicarDano(ConfigBonecoDeTreino.AlvoId, 500, 1, out _);
         Assert.Empty(NoVolume(boneco));
 
         Passar(5);
@@ -157,7 +157,7 @@ public class BonecoDeTreinoTestes
                 .Select(_ =>
                     Task.Run(() =>
                     {
-                        if (boneco.TentarAplicarDano(ConfigBonecoDeTreino.AlvoId, 20, out var r))
+                        if (boneco.TentarAplicarDano(ConfigBonecoDeTreino.AlvoId, 20, 1, out var r))
                         {
                             Interlocked.Add(ref total, r.Dano);
                         }

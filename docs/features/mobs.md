@@ -106,7 +106,7 @@ O que o servidor acrescentou ao implementar (issue #268; **proposta**, decidido 
 - **Onde:** o centro do grupo fica em (0, 190), 150 m ao norte do portão (que está em (0, 40)), com os pontos de origem num círculo de 4 m de raio. O campo faz parte da área `cidade`. O tamanho do grupo (3 a 5) é sorteado quando o servidor sobe e não muda até ele reiniciar.
 - **Id do inimigo:** começa em 1.000.000.000.000 e soma 1; cada volta depois de morto é um inimigo novo, com id novo. Nunca coincide com id de personagem nem com o boneco de treino.
 - **Dano no jogador:** Mobs decide **quem** o golpe pegou e publica `GolpeDeInimigoAcertou`; tirar a vida é de quem é dono dela ([Combate](combate.md)), que ainda **não** assina o evento. Até lá o golpe é avisado e decidido, mas não tira vida.
-- **Quem participou da morte:** por enquanto, os personagens que o grupo tinha à vista na hora da morte. Passa a ser quem causou dano quando o Combate informar o atacante em `IAlvosDeCombate.TentarAplicarDano`.
+- **Quem participou da morte:** quem causou dano ao inimigo desde que ele apareceu, em ordem crescente de id (`InimigoDerrotado.Participantes`; o Combate informa o atacante em `IAlvosDeCombate.TentarAplicarDano`). A lista zera quando ele desiste e volta (a vida também volta ao máximo) e quando ele reaparece. Quem só foi alvo do inimigo, sem causar dano, não participa.
 
 ## Depende de
 

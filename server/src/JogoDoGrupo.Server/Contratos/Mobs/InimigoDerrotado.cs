@@ -7,9 +7,9 @@ namespace JogoDoGrupo.Server.Contratos.Mobs;
 /// (loot e experiência). <see cref="Experiencia"/> e <see cref="MultiplicadorDeRecompensa"/> já
 /// contam a variante. A posição é no plano do chão, onde ele caiu.
 /// <para>
-/// <see cref="Participantes"/> são os personagens que o grupo do inimigo tinha à vista na hora
-/// da morte (pode vir vazio). É provisório: quando o Combate informar quem deu cada golpe,
-/// passa a ser quem causou dano.
+/// <see cref="Participantes"/> são os personagens que causaram dano ao inimigo desde que ele
+/// apareceu (a lista zera quando ele desiste e volta), em ordem crescente de id. Quem só foi
+/// alvo dele, sem causar dano, não participa.
 /// </para>
 /// <para>
 /// Sai do laço de IA de Mobs, não do laço de rede: o assinante precisa ser seguro entre threads

@@ -355,7 +355,7 @@ public class GrupoDeInimigosTestes
         campo.Por(Jogador, 0, 14);
         campo.AteOEstado(EstadoDeInimigo.Perseguicao, 2);
         var id = campo.Unico.InimigoId;
-        Assert.True(campo.Grupo.TentarAplicarDano(id, 50, out _));
+        Assert.True(campo.Grupo.TentarAplicarDano(id, 50, 1, out _));
 
         // O jogador foge para muito longe; o inimigo vai atrás até o limite.
         campo.Por(Jogador, 0, 200);
@@ -539,7 +539,7 @@ public class GrupoDeInimigosTestes
         campo.Por(Jogador, 0, 6);
         campo.Passo();
 
-        Assert.True(campo.Grupo.TentarAplicarDano(PrimeiroId, 30, out var resultado));
+        Assert.True(campo.Grupo.TentarAplicarDano(PrimeiroId, 30, 1, out var resultado));
         Assert.Equal(
             new ResultadoDeDano(PrimeiroId, 30, Javali.VidaBase - 30, Javali.VidaBase),
             resultado
@@ -559,7 +559,7 @@ public class GrupoDeInimigosTestes
     {
         var campo = new Campo();
 
-        Assert.False(campo.Grupo.TentarAplicarDano(alvoId, dano, out _));
+        Assert.False(campo.Grupo.TentarAplicarDano(alvoId, dano, 1, out _));
         Assert.Equal(Javali.VidaBase, campo.Unico.Vida);
     }
 
@@ -570,11 +570,11 @@ public class GrupoDeInimigosTestes
         campo.Por(Jogador, 0, 6);
         campo.Passo();
 
-        Assert.True(campo.Grupo.TentarAplicarDano(PrimeiroId, 1000, out var resultado));
+        Assert.True(campo.Grupo.TentarAplicarDano(PrimeiroId, 1000, 1, out var resultado));
         Assert.Equal(Javali.VidaBase, resultado.Dano);
         Assert.Equal(0, resultado.VidaRestante);
 
-        Assert.False(campo.Grupo.TentarAplicarDano(PrimeiroId, 10, out _));
+        Assert.False(campo.Grupo.TentarAplicarDano(PrimeiroId, 10, 1, out _));
         Assert.Empty(campo.Grupo.Vivos());
         Assert.Empty(campo.Grupo.AlvosNoVolume(Area, 0, 3, 0));
 
@@ -587,7 +587,7 @@ public class GrupoDeInimigosTestes
     }
 
     [Fact]
-    public void Morte_publica_a_derrota_com_a_recompensa_e_quem_estava_a_vista()
+    public void Morte_publica_a_derrota_com_a_recompensa_e_so_quem_deu_dano()
     {
         var campo = new Campo(variante: VarianteDeCriatura.Fortalecida);
         campo.Por(Jogador, 0, 6);
@@ -595,7 +595,7 @@ public class GrupoDeInimigosTestes
         campo.Por(50, 0, 100);
         campo.Passo();
 
-        Assert.True(campo.Grupo.TentarAplicarDano(PrimeiroId, 1000, out _));
+        Assert.True(campo.Grupo.TentarAplicarDano(PrimeiroId, 1000, Jogador, out _));
 
         var derrota = Assert.Single(campo.Passo().Derrotas);
         Assert.Equal(PrimeiroId, derrota.InimigoId);
@@ -612,14 +612,14 @@ public class GrupoDeInimigosTestes
         Assert.Equal(Area, derrota.Area);
         Assert.Equal(0.0, derrota.X, 3);
         Assert.Equal(4.0, derrota.Z, 3);
-        Assert.Equal(new[] { 4L, Jogador }, derrota.Participantes);
+        Assert.Equal(new[] { Jogador }, derrota.Participantes);
     }
 
     [Fact]
     public void Dois_golpes_no_mesmo_instante_um_mata_e_os_outros_nao_acertam()
     {
         var campo = new Campo();
-        Assert.True(campo.Grupo.TentarAplicarDano(PrimeiroId, Javali.VidaBase - 10, out _));
+        Assert.True(campo.Grupo.TentarAplicarDano(PrimeiroId, Javali.VidaBase - 10, 1, out _));
 
         var acertos = 0;
         Parallel.For(
@@ -627,7 +627,7 @@ public class GrupoDeInimigosTestes
             16,
             _ =>
             {
-                if (campo.Grupo.TentarAplicarDano(PrimeiroId, 50, out var resultado))
+                if (campo.Grupo.TentarAplicarDano(PrimeiroId, 50, 1, out var resultado))
                 {
                     Assert.Equal(10, resultado.Dano);
                     Interlocked.Increment(ref acertos);
@@ -646,7 +646,7 @@ public class GrupoDeInimigosTestes
     {
         var campo = new Campo();
         var morte = campo.AgoraMs;
-        Assert.True(campo.Grupo.TentarAplicarDano(PrimeiroId, 1000, out _));
+        Assert.True(campo.Grupo.TentarAplicarDano(PrimeiroId, 1000, 1, out _));
         Assert.Single(campo.Passo().Mortes);
 
         campo.AgoraMs = morte + (Javali.IntervaloDeAparicaoSegundos * 1000L) - 1;
@@ -674,7 +674,7 @@ public class GrupoDeInimigosTestes
         var campo = new Campo();
         campo.Por(Jogador, 0, 6);
         campo.Passo();
-        Assert.True(campo.Grupo.TentarAplicarDano(PrimeiroId, 1000, out _));
+        Assert.True(campo.Grupo.TentarAplicarDano(PrimeiroId, 1000, Jogador, out _));
         Assert.Equal(new[] { Jogador }, Assert.Single(campo.Passo().Derrotas).Participantes);
 
         // O jogador continua na área, mas voltou para longe do grupo.
@@ -694,7 +694,7 @@ public class GrupoDeInimigosTestes
         var campo = new Campo();
         campo.Por(Jogador, 0, 14);
         campo.Avancar(2);
-        Assert.True(campo.Grupo.TentarAplicarDano(PrimeiroId, 1000, out _));
+        Assert.True(campo.Grupo.TentarAplicarDano(PrimeiroId, 1000, 1, out _));
         campo.Jogadores.Clear();
         campo.AgoraMs += Javali.IntervaloDeAparicaoSegundos * 1000L;
         Assert.Single(campo.Passo().Aparicoes);
@@ -704,5 +704,78 @@ public class GrupoDeInimigosTestes
 
         Assert.Equal(PrimeiroId + 1, mudanca.Mensagem.InimigoId);
         Assert.Equal(1, mudanca.Mensagem.Sequencia);
+    }
+
+    [Fact]
+    public void Quem_bateu_participa_e_quem_so_estava_perto_nao_em_ordem_de_id()
+    {
+        var campo = new Campo();
+        campo.Por(9, 0, 6);
+        campo.Por(4, 1, 6);
+        campo.Por(5, 0, 7);
+        campo.Passo();
+
+        Assert.True(campo.Grupo.TentarAplicarDano(PrimeiroId, 10, 9, out _));
+        Assert.True(campo.Grupo.TentarAplicarDano(PrimeiroId, 10, 4, out _));
+        Assert.True(campo.Grupo.TentarAplicarDano(PrimeiroId, 10, 9, out _));
+        Assert.True(campo.Grupo.TentarAplicarDano(PrimeiroId, 1000, 4, out _));
+
+        var derrota = Assert.Single(campo.Passo().Derrotas);
+        Assert.Equal(new[] { 4L, 9L }, derrota.Participantes);
+    }
+
+    [Fact]
+    public void Quem_bateu_e_se_afastou_continua_participando()
+    {
+        var campo = new Campo();
+        campo.Por(Jogador, 0, 6);
+        campo.Passo();
+        Assert.True(campo.Grupo.TentarAplicarDano(PrimeiroId, 10, Jogador, out _));
+        campo.Jogadores.Clear();
+
+        Assert.True(campo.Grupo.TentarAplicarDano(PrimeiroId, 1000, 7, out _));
+
+        Assert.Equal(new[] { 7L, Jogador }, Assert.Single(campo.Passo().Derrotas).Participantes);
+    }
+
+    [Fact]
+    public void Dano_recusado_nao_conta_o_atacante()
+    {
+        var campo = new Campo();
+
+        Assert.False(campo.Grupo.TentarAplicarDano(PrimeiroId, 0, Jogador, out _));
+        Assert.True(campo.Grupo.TentarAplicarDano(PrimeiroId, 1000, 7, out _));
+
+        Assert.Equal(new[] { 7L }, Assert.Single(campo.Passo().Derrotas).Participantes);
+    }
+
+    [Fact]
+    public void Lista_de_atacantes_zera_quando_o_inimigo_reaparece()
+    {
+        var campo = new Campo();
+        Assert.True(campo.Grupo.TentarAplicarDano(PrimeiroId, 1000, Jogador, out _));
+        Assert.Equal(new[] { Jogador }, Assert.Single(campo.Passo().Derrotas).Participantes);
+
+        campo.AgoraMs += Javali.IntervaloDeAparicaoSegundos * 1000L;
+        Assert.Single(campo.Passo().Aparicoes);
+        Assert.True(campo.Grupo.TentarAplicarDano(PrimeiroId + 1, 1000, 7, out _));
+
+        Assert.Equal(new[] { 7L }, Assert.Single(campo.Passo().Derrotas).Participantes);
+    }
+
+    [Fact]
+    public void Lista_de_atacantes_zera_quando_o_inimigo_desiste_e_volta()
+    {
+        var campo = new Campo();
+        campo.Por(Jogador, 0, 14);
+        campo.AteOEstado(EstadoDeInimigo.Perseguicao, 2);
+        Assert.True(campo.Grupo.TentarAplicarDano(campo.Unico.InimigoId, 50, Jogador, out _));
+        campo.Por(Jogador, 0, 200);
+        campo.Avancar(6);
+        campo.AteOEstado(EstadoDeInimigo.Retorno, 4);
+
+        Assert.True(campo.Grupo.TentarAplicarDano(PrimeiroId, 1000, 7, out _));
+
+        Assert.Equal(new[] { 7L }, Assert.Single(campo.Passo().Derrotas).Participantes);
     }
 }

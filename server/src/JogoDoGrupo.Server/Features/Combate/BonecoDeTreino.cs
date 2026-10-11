@@ -78,7 +78,12 @@ public sealed class BonecoDeTreino(Func<long> relogioMs) : IAlvosDeCombate
         ];
     }
 
-    public bool TentarAplicarDano(long alvoId, int dano, out ResultadoDeDano resultado)
+    public bool TentarAplicarDano(
+        long alvoId,
+        int dano,
+        long atacanteId,
+        out ResultadoDeDano resultado
+    )
     {
         resultado = default;
         if (alvoId != ConfigBonecoDeTreino.AlvoId || dano <= 0)
