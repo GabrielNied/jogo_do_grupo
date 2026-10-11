@@ -18,7 +18,20 @@ class Receita:
     escala: fator final (modelagem -> metros do jogo).
     """
 
-    def __init__(self, nome, construir, pintar, medidas, escala=1.0, tamanho_textura=1024, ao_distancia=0.35):
+    def __init__(
+        self,
+        nome,
+        construir,
+        pintar,
+        medidas,
+        escala=1.0,
+        tamanho_textura=1024,
+        ao_distancia=0.35,
+        rig=None,
+        feature="Mobs",
+    ):
+        self.rig = rig or quadrupede  # modulo com criar_esqueleto, animar e ACOES
+        self.feature = feature  # pasta Features/<feature>/Art/Modelos do client
         self.nome = nome
         self.construir = construir
         self.pintar = pintar
@@ -29,6 +42,9 @@ class Receita:
 
 
 def _escalar_medidas(m, s):
+    if hasattr(m, "escalar"):
+        m.escalar(s)
+        return m
     for campo in ("corpo", "cabeca", "rabo", "orelha", "perna_dianteira", "perna_traseira"):
         setattr(m, campo, tuple(c * s for c in getattr(m, campo)))
     m.altura_tombo *= s
@@ -44,7 +60,7 @@ def gerar(receita):
     """
     inicio = time.time()
     args = cena.argumentos()
-    saida = args.get("--saida") or cena.pasta_modelos_unity()
+    saida = args.get("--saida") or cena.pasta_modelos_unity(receita.feature)
     os.makedirs(saida, exist_ok=True)
 
     cena.limpar_cena()
@@ -75,9 +91,12 @@ def gerar(receita):
     zs = np.array([v.co.z for v in obj.data.vertices])
     dz = -float(zs.min())
     obj.data.transform(Matrix.Translation((0.0, 0.0, dz)))
-    for campo in ("corpo", "cabeca", "rabo", "orelha", "perna_dianteira", "perna_traseira"):
-        x, y, z = getattr(receita.medidas, campo)
-        setattr(receita.medidas, campo, (x, y, z + dz))
+    if hasattr(receita.medidas, "deslocar"):
+        receita.medidas.deslocar(dz)
+    else:
+        for campo in ("corpo", "cabeca", "rabo", "orelha", "perna_dianteira", "perna_traseira"):
+            x, y, z = getattr(receita.medidas, campo)
+            setattr(receita.medidas, campo, (x, y, z + dz))
 
     s = receita.escala
     if s != 1.0:
@@ -85,9 +104,9 @@ def gerar(receita):
         obj.data.update()
     m = _escalar_medidas(receita.medidas, s)
     obj.name = receita.nome + "_Malha"  # libera o nome para a armadura (raiz do FBX)
-    arm = quadrupede.criar_esqueleto(receita.nome, m)
+    arm = receita.rig.criar_esqueleto(receita.nome, m)
     esqueleto.vincular(obj, arm)
-    quadrupede.animar(arm, m)
+    receita.rig.animar(arm, m)
 
     fbx = os.path.join(saida, receita.nome + ".fbx")
     cena.exportar_fbx(fbx, arm, obj)
@@ -101,15 +120,18 @@ def gerar(receita):
         os.makedirs(pasta, exist_ok=True)
         cam, alvo = previa.preparar(altura)
         centro = (0.0, 0.0, altura * 0.45)
-        dist = altura * 2.6
+        dist = altura * getattr(receita.rig, "DISTANCIA_VISTAS", 2.6)
         previa.vistas(os.path.join(pasta, receita.nome + "_vistas.png"), cam, alvo, centro, dist)
-        rosto = (0.0, m.cabeca[1] - 0.2 * m.escala, m.cabeca[2] - 0.08 * m.escala)
+        if hasattr(receita.rig, "centro_rosto"):
+            rosto = receita.rig.centro_rosto(m)
+        else:
+            rosto = (0.0, m.cabeca[1] - 0.2 * m.escala, m.cabeca[2] - 0.08 * m.escala)
         previa.vistas(
             os.path.join(pasta, receita.nome + "_rosto.png"),
             cam,
             alvo,
             rosto,
-            altura * 1.1,
+            altura * getattr(receita.rig, "DISTANCIA_ROSTO", 1.1),
             [(30, 12), (-35, 20), (90, 5)],
         )
         previa.acoes(
@@ -119,6 +141,6 @@ def gerar(receita):
             centro,
             dist,
             arm,
-            quadrupede.ACOES,
+            receita.rig.ACOES,
         )
     print("[%s] pronto em %.1f s: %s" % (receita.nome, time.time() - inicio, fbx))
