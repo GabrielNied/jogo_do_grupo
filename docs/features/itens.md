@@ -65,6 +65,8 @@ Proposta do board em 2026-10-11, **não validada pelo grupo**: nomes e números 
 
 - **Core:** conta, login e o token (JWT) que as rotas exigem.
 - **[Personagem](personagem.md):** o `Id` do personagem, que vai na rota. O inventário pertence ao personagem.
+- **[Mobs](mobs.md):** o evento de morte do inimigo, com quem participou e onde ele caiu (loot no chão).
+- **[Mundo](mundo.md):** a posição do personagem, para conferir a distância da coleta, e o aviso de quem entrou na área.
 
 ## Expõe
 
@@ -118,3 +120,12 @@ Valores em `RegrasLoot`, todos **proposta a calibrar**:
 - **Posição:** `X` e `Z` de onde o inimigo caiu. O servidor não conhece a altura do terreno; o client assenta o item no chão.
 - **Quem volta ao jogo** recebe de novo `LootApareceu` dos itens que ainda estão no prazo, com o tempo que falta.
 - A proposta do livro para o dono do loot (maior dano, #332) continua em aberto e não muda este contrato: ele só fala de "o dono".
+
+**No servidor (#368):**
+
+- Quem **participou** é quem o evento de morte de Mobs lista (`InimigoDerrotado.Participantes`: causou dano ao inimigo). Cada um tem um sorteio próprio; a variante do inimigo ainda não muda o loot.
+- O chão fica **em memória**: se o servidor reinicia, o que estava no chão some (o inventário não, ele é do banco).
+- A coleta confere, nesta ordem: o item existe e é do jogador (senão `LootNaoEncontrado`), está ao alcance com a posição que o Mundo aceitou (senão `LongeDemais`) e cabe no inventário (senão `InventarioCheio`). O item só sai do chão depois de gravado.
+- Dois pedidos do mesmo item ao mesmo tempo: um coleta, o outro recebe `LootNaoEncontrado`.
+- O item some até 1 s depois do prazo (`ConfigLootServidor.IntervaloDaVarreduraSegundos`); a coleta confere o prazo na hora.
+- Se o banco falhar na coleta, o item volta para o chão e o jogador não recebe resposta: basta apertar F de novo.
