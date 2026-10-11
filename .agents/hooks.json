@@ -1,0 +1,16 @@
+{
+  "bloquear-apagar": {
+    "PreToolUse": [
+      {
+        "matcher": "run_command",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node scripts/agentes/bloquear-apagar.mjs",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

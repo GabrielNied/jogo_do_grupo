@@ -96,6 +96,26 @@ Crie os worktrees antes de delegar e passe o caminho de cada um no pedido; o
 agente revisor é somente leitura e pode rodar em paralelo. O Codex limita a
 sessão a três subagentes além do coordenador.
 
+### Antigravity
+
+O Antigravity reconhece o `AGENTS.md` da raiz e as skills em
+[`.agents/skills/`](../.agents/skills/), que apontam para os procedimentos
+canônicos em [`.claude/skills/`](../.claude/skills/). Os perfis equivalentes
+aos agentes do Claude ficam em [`.agents/agents/`](../.agents/agents/): cada
+um manda ler a definição canônica correspondente antes de atuar, sem duplicar
+as regras do papel.
+
+Em uma sessão confiável, habilite o hook
+[`.agents/hooks.json`](../.agents/hooks.json) em **Customizations > Hooks**
+(ou use `/hooks` no CLI). Ele chama o mesmo bloqueio de comandos destrutivos
+usado pelas outras ferramentas. Os perfis são para Antigravity 2.0 e CLI; no
+IDE que ainda não listar agentes personalizados, as regras, skills e hook
+continuam funcionando e o papel pode ser pedido explicitamente no prompt.
+
+Ao delegar escrita em paralelo, use worktrees isolados. Escolha o papel em
+`/agents` ou peça ao agente principal para delegar o nome apropriado; mantenha
+o `revisor` somente leitura.
+
 ### Outras IAs (Cursor, Copilot, Gemini...)
 
 Abra **uma sessão por agente**, cada uma no seu worktree:
