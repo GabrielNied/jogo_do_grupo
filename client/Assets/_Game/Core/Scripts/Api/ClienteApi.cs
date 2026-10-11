@@ -25,8 +25,8 @@ namespace JogoDoGrupo.Client.Core.Api
     /// <para>
     /// Rota protegida (<c>autenticar = true</c>, o padrão): envia
     /// <c>Authorization: Bearer &lt;token&gt;</c> se houver <see cref="Sessao"/>. Qualquer 401
-    /// nela vira <see cref="CodigosErro.NaoAutenticado"/>. Se o token enviado ainda for o da
-    /// sessão atual, a sessão é encerrada e o Core volta para o login
+    /// nela vira <see cref="CodigosErro.NaoAutenticado"/>. Se um token foi enviado e ele ainda
+    /// for o da sessão atual, a sessão é encerrada e o Core volta para o login
     /// (<see cref="Sessao.Expirou"/>) antes de o <c>await</c> retornar. Por isso, depois
     /// do <c>await</c>, confira <c>Tela.Aberta</c> antes de mexer na interface.
     /// </para>
@@ -239,6 +239,8 @@ namespace JogoDoGrupo.Client.Core.Api
             if (
                 e is InvalidOperationException
                 && url.StartsWith("http://", StringComparison.OrdinalIgnoreCase)
+                && e.Message != null
+                && e.Message.IndexOf("Insecure connection", StringComparison.OrdinalIgnoreCase) >= 0
             )
             {
                 resposta.Erro = CriarErro(CodigosErroCliente.HttpBloqueado, e.Message);

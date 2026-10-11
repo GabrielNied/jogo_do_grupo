@@ -90,7 +90,8 @@ namespace JogoDoGrupo.Client.Core.Inicializacao
             Sessao.Expirou -= AoExpirarSessao;
             if (_painel != null)
             {
-                UnityEngine.Object.Destroy(_painel);
+                // Instância de runtime (não asset): destrói na hora, sem depender do fim do frame.
+                UnityEngine.Object.DestroyImmediate(_painel);
             }
 
             _painel = null;

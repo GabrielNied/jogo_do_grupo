@@ -54,7 +54,11 @@ namespace JogoDoGrupo.Client.Core.Contas
         /// </summary>
         internal static void ExpirarSeAtual(string tokenEnviado)
         {
-            if (!string.Equals(tokenEnviado, Token, StringComparison.Ordinal))
+            // Sem token enviado não havia sessão para expirar.
+            if (
+                string.IsNullOrEmpty(tokenEnviado)
+                || !string.Equals(tokenEnviado, Token, StringComparison.Ordinal)
+            )
             {
                 return;
             }

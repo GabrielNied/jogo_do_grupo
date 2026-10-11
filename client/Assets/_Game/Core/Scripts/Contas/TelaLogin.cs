@@ -158,7 +158,8 @@ namespace JogoDoGrupo.Client.Core.Contas
                     new RegistrarContaRequest { Usuario = usuario, Senha = senha },
                     autenticar: false
                 );
-                if (!Aberta)
+                // Cancelada: o jogo está fechando; não há o que mostrar.
+                if (!Aberta || registro.CodigoErro == CodigosErroCliente.Cancelada)
                 {
                     return;
                 }
@@ -205,7 +206,8 @@ namespace JogoDoGrupo.Client.Core.Contas
                 new LoginRequest { Usuario = usuario, Senha = senha },
                 autenticar: false
             );
-            if (!Aberta)
+            // Cancelada: o jogo está fechando; não há o que mostrar.
+            if (!Aberta || resposta.CodigoErro == CodigosErroCliente.Cancelada)
             {
                 return;
             }
