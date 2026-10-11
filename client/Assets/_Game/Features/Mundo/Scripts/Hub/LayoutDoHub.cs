@@ -236,9 +236,6 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
                 // Lanternas do portão (as torres ficam em x = ±6, z = 38).
                 new PecaDoHub("Lanterna", -5.2f, 33.8f, 0f),
                 new PecaDoHub("Lanterna", 5.2f, 33.8f, 0f),
-                // Pilares que marcam o vão do portão.
-                new PecaDoHub("Pedra_Grande", -5.6f, 34.4f, 0f),
-                new PecaDoHub("Pedra_Grande", 5.6f, 34.4f, 0f),
             };
 
             // Um quadrante (x e z positivos) é desenhado e espelhado para os outros três.
@@ -263,17 +260,9 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
                     AdicionarCasa(lista, casaLarga, sx, sz, 28f, 12f, -1f, 0f);
                     AdicionarCasa(lista, casaLarga, sx, sz, 12f, 28f, 0f, -1f);
 
-                    // Quarteirão extra na rua lateral (casas de tamanhos diferentes).
-                    AdicionarCasa(lista, casaPequena, sx, sz, 18f, 22f, 0f, 1f);
-                    AdicionarCasa(lista, casaLarga, sx, sz, 22f, 18f, -1f, 0f);
-
-                    // Mercado leste/oeste da praça (barracas viradas para a rua).
-                    if (sx > 0)
-                    {
-                        lista.Add(new PecaDoHub("Barraca_Vermelha", sx * 18f, 8f, -90f));
-                        lista.Add(new PecaDoHub("Barraca_Verde", sx * 22f, 10f, -90f));
-                        lista.Add(new PecaDoHub("Carroca", sx * 20f, 14f, 0f));
-                    }
+                    // Sem quarteirão extra nem barracas no mercado: as casas (8 x 8 m e 12 x 8 m)
+                    // e as barracas que a #274 pôs ali ficavam em cima da rua em anel e das casas
+                    // vizinhas. O chão de pedra do mercado e das ruas laterais continua.
 
                     // Praça do canto: barraca virada para a fonte, árvores e uma carroça ou pedra.
                     var barraca = pedra ? "Barraca_Vermelha" : "Barraca_Verde";
