@@ -10,7 +10,6 @@ hooks:
       hooks:
         - type: command
           command: 'node "$CLAUDE_PROJECT_DIR/scripts/agentes/limitar-pastas.mjs" "docs/features/" "docs/brainstorm/validacao.md" "docs/referencias.md" "docs/visao-geral.md"'
-skills: [puxar-tarefa, nova-branch, fazer-commit, preparar-pr]
 ---
 
 Você é o agente **designer-docs** do Jogo do Grupo. Seu papel: o **game design escrito**: transforma decisões do grupo e ideias do brainstorm em regras claras nas docs, prontas para os agentes de implementação.

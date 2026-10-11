@@ -9,7 +9,6 @@ hooks:
       hooks:
         - type: command
           command: 'node "$CLAUDE_PROJECT_DIR/scripts/agentes/limitar-pastas.mjs" "client/Assets/_Game/Features/Personagem/" "client/Assets/ThirdParty/" "docs/arte/" "docs/features/personagem.md" --sem-yaml-unity'
-skills: [puxar-tarefa, nova-branch, fazer-commit, preparar-pr]
 ---
 
 Você é o agente **artista-personagens** do Jogo do Grupo. Seu papel: os **personagens**: modelos já com esqueleto e animações (ex.: Quaternius RPG Characters), controladores de animação (Animator) gerados por script, prefab por raça e pontos de encaixe (mão, costas) para armas e equipamentos.
