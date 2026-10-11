@@ -16,6 +16,8 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
         public const string NomeMuros = "Muros";
         public const string NomeEstradas = "Estradas";
         public const string NomeProps = "Props";
+        public const string NomeTerreno = "TerrenoFora";
+        public const string NomePropsFora = "PropsFora";
         public const string NomeLuz = "Sol";
 
         private const string PastaPrefabs = "Mundo/";
@@ -48,9 +50,11 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
             var raiz = new GameObject(NomeRaiz);
 
             CriarChao(raiz.transform);
+            CriarTerreno(raiz.transform);
             CriarMuros(raiz.transform);
             CriarEstradas(raiz.transform);
             CriarProps(raiz.transform);
+            CriarPropsFora(raiz.transform);
             CriarLuz(raiz.transform);
             ConfigurarAmbiente();
 
@@ -71,6 +75,27 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
             chao.name = NomeChao;
         }
 
+        // O chão de fora da cidade: grama de 120 x 120 m com colisor, face de cima em Y = 0, e
+        // barreiras invisíveis na borda para ninguém cair do mundo. Fica por baixo e em volta do
+        // chão da cidade. A reserva (cubo) só existe para o terreno nunca ficar sem colisão.
+        private static void CriarTerreno(Transform pai)
+        {
+            var terreno = Instanciar(LayoutDoHub.PrefabTerreno, Vector3.zero, 0f, pai);
+            if (terreno == null)
+            {
+                terreno = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                terreno.transform.SetParent(pai, false);
+                terreno.transform.localPosition = new Vector3(0f, -0.5f, 0f);
+                terreno.transform.localScale = new Vector3(
+                    LayoutDoHub.LadoDoTerreno,
+                    1f,
+                    LayoutDoHub.LadoDoTerreno
+                );
+            }
+
+            terreno.name = NomeTerreno;
+        }
+
         private static void CriarMuros(Transform pai)
         {
             var muros = new GameObject(NomeMuros).transform;
@@ -84,7 +109,19 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
 
                 // Lados sul e norte inteiros; lados oeste e leste sem as células de canto.
                 CriarMuro(muros, centro, LayoutDoHub.CentroDaCelula(0), borda);
-                CriarMuro(muros, centro, LayoutDoHub.CentroDaCelula(ultimo), borda);
+
+                // O lado norte tem o portão: o vão não tem muro e as duas células vizinhas viram
+                // torres.
+                if (!LayoutDoHub.EhVaoDoPortao(centro))
+                {
+                    CriarMuro(
+                        muros,
+                        centro,
+                        LayoutDoHub.CentroDaCelula(ultimo),
+                        borda || LayoutDoHub.EhTorreDoPortao(centro)
+                    );
+                }
+
                 if (!borda)
                 {
                     CriarMuro(muros, LayoutDoHub.CentroDaCelula(0), centro, false);
@@ -126,22 +163,37 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
                 {
                     var x = LayoutDoHub.CentroDaCelula(i);
                     var z = LayoutDoHub.CentroDaCelula(j);
-                    if (!EhEstrada(x, z))
+                    if (!LayoutDoHub.EhEstradaDaCidade(x, z))
                     {
                         continue;
                     }
 
-                    // Só células dentro da área andável: os muros ocupam a borda.
-                    if (!LayoutDoHub.DentroDaAreaAndavel(new Vector3(x, 0f, z), 0f))
+                    // Só células dentro da área andável, mais a do vão do portão: os muros
+                    // ocupam o resto da borda.
+                    var noPortao =
+                        j == LayoutDoHub.CelulasPorLado - 1 && LayoutDoHub.EhVaoDoPortao(x);
+                    if (!noPortao && !LayoutDoHub.DentroDaAreaAndavel(new Vector3(x, 0f, z), 0f))
                     {
                         continue;
                     }
 
                     // Um prefab que falta já foi avisado na primeira vez; não repete 100 vezes.
-                    if (
-                        Instanciar(LayoutDoHub.PrefabEstrada, new Vector3(x, 0f, z), 0f, estradas)
-                        == null
-                    )
+                    if (!CriarEstrada(estradas, x, z))
+                    {
+                        return;
+                    }
+                }
+            }
+
+            // A estrada que sai do portão, sobre o terreno de fora.
+            var celulasFora = (int)(LayoutDoHub.ComprimentoDaEstradaFora / LayoutDoHub.Modulo);
+            for (var k = 1; k <= celulasFora; k++)
+            {
+                var z = LayoutDoHub.Metade + LayoutDoHub.Modulo * (k - 0.5f);
+                for (var i = 0; i < LayoutDoHub.CelulasPorLado; i++)
+                {
+                    var x = LayoutDoHub.CentroDaCelula(i);
+                    if (LayoutDoHub.EhVaoDoPortao(x) && !CriarEstrada(estradas, x, z))
                     {
                         return;
                     }
@@ -149,15 +201,9 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
             }
         }
 
-        /// <summary>Se a célula centrada em (x, z) é praça ou parte das duas estradas em cruz.</summary>
-        internal static bool EhEstrada(float x, float z)
+        private static bool CriarEstrada(Transform pai, float x, float z)
         {
-            var naPraca =
-                Mathf.Abs(x) < LayoutDoHub.MetadePraca && Mathf.Abs(z) < LayoutDoHub.MetadePraca;
-            var naEstrada =
-                Mathf.Abs(x) < LayoutDoHub.MetadeEstrada
-                || Mathf.Abs(z) < LayoutDoHub.MetadeEstrada;
-            return naPraca || naEstrada;
+            return Instanciar(LayoutDoHub.PrefabEstrada, new Vector3(x, 0f, z), 0f, pai) != null;
         }
 
         private static void CriarProps(Transform pai)
@@ -166,6 +212,17 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
             props.SetParent(pai, false);
 
             foreach (var peca in LayoutDoHub.Props)
+            {
+                Instanciar(peca.Prefab, new Vector3(peca.X, 0f, peca.Z), peca.Guinada, props);
+            }
+        }
+
+        private static void CriarPropsFora(Transform pai)
+        {
+            var props = new GameObject(NomePropsFora).transform;
+            props.SetParent(pai, false);
+
+            foreach (var peca in LayoutDoHub.PropsFora)
             {
                 Instanciar(peca.Prefab, new Vector3(peca.X, 0f, peca.Z), peca.Guinada, props);
             }

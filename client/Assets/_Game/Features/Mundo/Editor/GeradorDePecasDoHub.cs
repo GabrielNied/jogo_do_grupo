@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using JogoDoGrupo.Client.Features.Mundo.Hub;
 using UnityEditor;
 using UnityEngine;
 
@@ -38,6 +39,37 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
             var grama = CriarMaterial("Grama", new Color(0.42f, 0.6f, 0.3f), null);
 
             CriarChao(grama);
+            CriarTerreno(grama);
+
+            // Casas: paredes de painéis (porta ao sul, janelas, parede lisa ao norte) e telhado.
+            CriarCasa(
+                "Casa_Pedra_Pequena",
+                2,
+                2,
+                "wall",
+                "wall-door",
+                "wall-window-shutters",
+                cores
+            );
+            CriarCasa("Casa_Pedra_Larga", 3, 2, "wall", "wall-door", "wall-window-shutters", cores);
+            CriarCasa(
+                "Casa_Madeira_Pequena",
+                2,
+                2,
+                "wall-wood",
+                "wall-wood-door",
+                "wall-wood-window-shutters",
+                cores
+            );
+            CriarCasa(
+                "Casa_Madeira_Larga",
+                3,
+                2,
+                "wall-wood",
+                "wall-wood-door",
+                "wall-wood-window-shutters",
+                cores
+            );
 
             CriarPeca("Muro_Bloco", "wall-block", new Vector3(M, 3f, M), Colisor.Caixa, cores);
             CriarPeca("Torre_Canto", "wall-block", new Vector3(M, 6f, M), Colisor.Caixa, cores);
@@ -56,6 +88,24 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
             CriarPeca(
                 "Arvore_Alta",
                 "tree-high",
+                Vector3.one * M,
+                Colisor.Capsula,
+                cores,
+                0.45f,
+                2f
+            );
+            CriarPeca(
+                "Arvore_Torta",
+                "tree-crooked",
+                Vector3.one * M,
+                Colisor.Capsula,
+                cores,
+                0.45f,
+                1.5f
+            );
+            CriarPeca(
+                "Arvore_Redonda",
+                "tree-high-round",
                 Vector3.one * M,
                 Colisor.Capsula,
                 cores,
@@ -138,6 +188,228 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
             cubo.transform.localScale = new Vector3(40f, 1f, 40f);
             cubo.GetComponent<Renderer>().sharedMaterial = material;
             Salvar(raiz, "Chao_Hub");
+        }
+
+        // Terreno de grama de fora da cidade: quatro placas em volta do chão da cidade (sem
+        // sobrepor), com UM colisor de 1 m de espessura sob tudo (face de cima em Y = 0), mais
+        // barreiras invisíveis nas bordas.
+        private static void CriarTerreno(Material material)
+        {
+            const float lado = LayoutDoHub.LadoDoTerreno;
+            const float metade = LayoutDoHub.MetadeDoTerreno;
+            const float faixa = metade - LayoutDoHub.Metade;
+
+            var raiz = new GameObject("Terreno_Fora");
+
+            // Norte e sul de lado a lado; oeste e leste entre eles.
+            var meio = LayoutDoHub.Metade + faixa / 2f;
+            CriarPlaca(
+                raiz.transform,
+                "Norte",
+                new Vector3(0f, -0.5f, meio),
+                lado,
+                faixa,
+                material
+            );
+            CriarPlaca(raiz.transform, "Sul", new Vector3(0f, -0.5f, -meio), lado, faixa, material);
+            CriarPlaca(
+                raiz.transform,
+                "Oeste",
+                new Vector3(-meio, -0.5f, 0f),
+                faixa,
+                LayoutDoHub.Lado,
+                material
+            );
+            CriarPlaca(
+                raiz.transform,
+                "Leste",
+                new Vector3(meio, -0.5f, 0f),
+                faixa,
+                LayoutDoHub.Lado,
+                material
+            );
+
+            var chao = raiz.AddComponent<BoxCollider>();
+            chao.center = new Vector3(0f, -0.5f, 0f);
+            chao.size = new Vector3(lado, 1f, lado);
+
+            const float alturaDaBarreira = 20f;
+            const float espessura = 1f;
+            var deslocamento = metade + espessura / 2f;
+            CriarBarreira(
+                raiz.transform,
+                "Barreira_Norte",
+                new Vector3(0f, alturaDaBarreira / 2f, deslocamento),
+                new Vector3(lado + 2f * espessura, alturaDaBarreira, espessura)
+            );
+            CriarBarreira(
+                raiz.transform,
+                "Barreira_Sul",
+                new Vector3(0f, alturaDaBarreira / 2f, -deslocamento),
+                new Vector3(lado + 2f * espessura, alturaDaBarreira, espessura)
+            );
+            CriarBarreira(
+                raiz.transform,
+                "Barreira_Oeste",
+                new Vector3(-deslocamento, alturaDaBarreira / 2f, 0f),
+                new Vector3(espessura, alturaDaBarreira, lado)
+            );
+            CriarBarreira(
+                raiz.transform,
+                "Barreira_Leste",
+                new Vector3(deslocamento, alturaDaBarreira / 2f, 0f),
+                new Vector3(espessura, alturaDaBarreira, lado)
+            );
+
+            Salvar(raiz, LayoutDoHub.PrefabTerreno);
+        }
+
+        private static void CriarPlaca(
+            Transform pai,
+            string nome,
+            Vector3 centro,
+            float larguraX,
+            float larguraZ,
+            Material material
+        )
+        {
+            var placa = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            placa.name = nome;
+            placa.transform.SetParent(pai, false);
+            placa.transform.localPosition = centro;
+            placa.transform.localScale = new Vector3(larguraX, 1f, larguraZ);
+            placa.GetComponent<Renderer>().sharedMaterial = material;
+            // O colisor é o do terreno inteiro, na raiz.
+            UnityEngine.Object.DestroyImmediate(placa.GetComponent<Collider>());
+        }
+
+        private static void CriarBarreira(
+            Transform pai,
+            string nome,
+            Vector3 centro,
+            Vector3 tamanho
+        )
+        {
+            var barreira = new GameObject(nome);
+            barreira.transform.SetParent(pai, false);
+            barreira.transform.localPosition = centro;
+            barreira.AddComponent<BoxCollider>().size = tamanho;
+        }
+
+        // Casa de celulasX x celulasZ células de 2 m: painéis Kenney de 1 m escalados para a grade
+        // em volta da planta (porta no meio do lado sul, que é a frente: o ConstrutorHub gira a
+        // casa para a rua), janelas nos outros lados, e um telhado de quatro águas por cima.
+        // Um colisor de caixa cobre a casa toda.
+        private static void CriarCasa(
+            string nome,
+            int celulasX,
+            int celulasZ,
+            string parede,
+            string porta,
+            string janela,
+            Material material
+        )
+        {
+            var raiz = new GameObject(nome);
+            var largura = celulasX * M;
+            var profundidade = celulasZ * M;
+
+            for (var i = 0; i < celulasX; i++)
+            {
+                for (var j = 0; j < celulasZ; j++)
+                {
+                    var x = (i - (celulasX - 1) / 2f) * M;
+                    var z = (j - (celulasZ - 1) / 2f) * M;
+                    var centro = new Vector3(x, 0f, z);
+
+                    // O painel Kenney fica na borda -X da célula; a guinada vira essa borda para
+                    // o lado de fora: oeste 0, norte 90, leste 180, sul -90.
+                    if (j == 0)
+                    {
+                        var modelo = i == celulasX / 2 ? porta : janela;
+                        PosicionarPainel(raiz.transform, modelo, centro, -90f, material);
+                    }
+
+                    if (j == celulasZ - 1)
+                    {
+                        PosicionarPainel(raiz.transform, parede, centro, 90f, material);
+                    }
+
+                    if (i == 0)
+                    {
+                        PosicionarPainel(
+                            raiz.transform,
+                            j == celulasZ / 2 ? janela : parede,
+                            centro,
+                            0f,
+                            material
+                        );
+                    }
+
+                    if (i == celulasX - 1)
+                    {
+                        PosicionarPainel(
+                            raiz.transform,
+                            j == celulasZ / 2 ? janela : parede,
+                            centro,
+                            180f,
+                            material
+                        );
+                    }
+                }
+            }
+
+            // Telhado de quatro águas (roof-point, 1,1 x 1,1 m, 0,5 m de altura): esticado para
+            // cobrir a planta com um beiral de 25 cm.
+            var telhado = InstanciarModelo("roof-point", material);
+            telhado.name = "Telhado";
+            telhado.transform.SetParent(raiz.transform, false);
+            telhado.transform.localPosition = new Vector3(0f, M, 0f);
+            telhado.transform.localScale = new Vector3(
+                (largura + 0.5f) / 1.1f,
+                2f,
+                (profundidade + 0.5f) / 1.1f
+            );
+
+            var caixa = raiz.AddComponent<BoxCollider>();
+            caixa.center = new Vector3(0f, 1.5f, 0f);
+            caixa.size = new Vector3(largura, 3f, profundidade);
+
+            Salvar(raiz, nome);
+        }
+
+        private static void PosicionarPainel(
+            Transform pai,
+            string modelo,
+            Vector3 centro,
+            float guinada,
+            Material material
+        )
+        {
+            var painel = InstanciarModelo(modelo, material);
+            painel.name = modelo;
+            painel.transform.SetParent(pai, false);
+            painel.transform.SetLocalPositionAndRotation(centro, Quaternion.Euler(0f, guinada, 0f));
+            painel.transform.localScale = Vector3.one * M;
+        }
+
+        private static GameObject InstanciarModelo(string modelo, Material material)
+        {
+            var prefabModelo = AssetDatabase.LoadAssetAtPath<GameObject>(
+                $"{PastaKenney}/{modelo}.fbx"
+            );
+            if (prefabModelo == null)
+            {
+                throw new FileNotFoundException($"Modelo '{modelo}.fbx' não encontrado.");
+            }
+
+            var instancia = (GameObject)PrefabUtility.InstantiatePrefab(prefabModelo);
+            foreach (var renderizador in instancia.GetComponentsInChildren<Renderer>())
+            {
+                renderizador.sharedMaterial = material;
+            }
+
+            return instancia;
         }
 
         private static void CriarPeca(
