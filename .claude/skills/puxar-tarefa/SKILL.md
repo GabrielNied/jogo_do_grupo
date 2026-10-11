@@ -1,0 +1,69 @@
+---
+name: puxar-tarefa
+description: Confere se uma tarefa está livre, puxa-a para em andamento (bloqueia concorrência), registra no GitHub Issues/Project e cria a branch de desenvolvimento. Use antes de iniciar o desenvolvimento de qualquer tarefa ou funcionalidade, ou ao liberar/trocar de tarefa.
+---
+
+# Puxar tarefa (gestão e concorrência)
+
+Evita que mais de uma pessoa ou agente trabalhe na mesma tarefa ao mesmo tempo. Ninguém começa a codificar sem puxar a tarefa antes.
+
+## 1. Listar tarefas disponíveis
+
+```
+npm run tarefa -- listar
+```
+
+Confira o quadro:
+- **EM ANDAMENTO:** já tem alguém trabalhando (bloqueada contra concorrência). **Não mexa.**
+- **DISPONÍVEIS:** abertas e livres. Escolha uma daqui.
+- **BLOQUEADAS:** dependem de decisão de design ou contrato pendente.
+
+## 2. Puxar a tarefa
+
+```
+npm run tarefa -- puxar <numero> [nome-da-branch] [--agente <papel>] [--worktree <caminho>]
+```
+
+Exemplos:
+- Pessoa: `npm run tarefa -- puxar 36` (deduz a branch automaticamente ou você passa uma)
+- Agente em worktree: `npm run tarefa -- puxar 36 feature/core/entrada-no-jogo-client --agente client-core --worktree ../jdg-core-client`
+
+O que o comando faz:
+1. Valida se a issue existe e se está aberta.
+2. **Confere se já está em andamento:** se outro agente ou pessoa já puxou, o comando **recusa a ação e para imediatamente** para evitar trabalho duplicado.
+3. Adiciona a label `em-andamento` na issue.
+4. Move o status no GitHub Projects para `In Progress`.
+5. Atribui ao desenvolvedor (`@me`) ou anota o papel do agente.
+6. Publica comentário na issue registrando o início e a branch.
+7. Atualiza com a `origin/main` e cria a branch (ou worktree) no padrão `<tipo>/<escopo>/<descricao>`.
+
+## 3. Subtarefas para vários agentes em paralelo
+
+Quando uma issue é um épico ou conjunto de tarefas para múltiplos agentes (ex.: contrato + server + client):
+
+```
+npm run tarefa -- subtarefa <parent-id> --titulo "<titulo>" --agente <papel> [--escopo <escopo>]
+```
+
+Isso cria uma issue filha vinculada, com a label do agente (`agente:<papel>`), permitindo que cada agente puxe e trave sua própria tarefa sem conflito com os outros.
+
+## 4. Liberar a tarefa (se não for concluir)
+
+Se você ou o agente precisar pausar, cancelar ou transferir o trabalho antes de abrir o PR:
+
+```
+npm run tarefa -- liberar <numero> --motivo "Pausa ou impedimento"
+```
+
+O que o comando faz:
+- Remove a label `em-andamento`.
+- Remove atribuição e move no Project de volta para `Todo`.
+- Comenta na issue o motivo da liberação para que outra pessoa ou agente possa assumir.
+
+## 5. Conclusão
+
+Ao abrir o PR, adicione sempre `Closes #<numero>` no corpo do PR. No squash merge da `main`, a issue é fechada e o item vai para `Done`. Se precisar marcar manualmente:
+
+```
+npm run tarefa -- concluir <numero>
+```

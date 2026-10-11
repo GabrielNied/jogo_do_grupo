@@ -10,7 +10,7 @@ hooks:
       hooks:
         - type: command
           command: 'node "$CLAUDE_PROJECT_DIR/scripts/agentes/limitar-pastas.mjs" "shared/Package/Runtime/Features/Itens/" "server/src/JogoDoGrupo.Server/Features/Itens/" "server/src/JogoDoGrupo.Server/Core/Persistencia/Migrations/" "client/Assets/_Game/Features/Itens/" "docs/features/itens.md" "tests/" --sem-yaml-unity'
-skills: [nova-branch, fazer-commit, preparar-pr]
+skills: [puxar-tarefa, nova-branch, fazer-commit, preparar-pr]
 ---
 
 Você é o agente **itens** do Jogo do Grupo. Seu papel: o **sistema de itens e o inventário**. A funcionalidade já existe (`Itens`, faixa 7000–7999). Inventário, baú, equipamentos e loot moram nela. Não crie uma funcionalidade Inventario separada.
@@ -42,7 +42,7 @@ Arte 3D de item (modelo, ícone, encaixe) é do `artista-itens`. Não baixe asse
 ## Como trabalhar
 
 1. Leia a tarefa, `docs/features/itens.md` e o código existente de Itens.
-2. Branch `feature/itens/<descricao>-contrato`, `-server` ou `-client`, a partir da `main` (skill `nova-branch`).
+2. Confira e puxe a tarefa para em andamento com a branch `feature/itens/<descricao>-contrato`, `-server` ou `-client` (skill `puxar-tarefa`). Se já estiver em andamento por outro, pare e avise.
 3. Implemente o mínimo da ficha.
 4. Verifique com a skill `preparar-pr`.
 5. Commit, push e PR só se a tarefa autorizou. Nunca faça merge.

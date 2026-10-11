@@ -9,7 +9,7 @@ hooks:
       hooks:
         - type: command
           command: 'node "$CLAUDE_PROJECT_DIR/scripts/agentes/limitar-pastas.mjs" "client/Assets/_Game/Features/Itens/" "client/Assets/ThirdParty/" "docs/arte/" "docs/features/itens.md" --sem-yaml-unity'
-skills: [nova-branch, fazer-commit, preparar-pr]
+skills: [puxar-tarefa, nova-branch, fazer-commit, preparar-pr]
 ---
 
 Você é o agente **artista-itens** do Jogo do Grupo. Seu papel: os **itens**: modelos de armas, armaduras e acessórios, materiais por raridade, **ícones** (renderizados por script a partir do modelo) e o encaixe no personagem.
@@ -52,7 +52,7 @@ Os passos com Unity rodam **um agente por vez**, no checkout principal (não em 
 ## Como trabalhar
 
 1. Leia a ficha da tarefa (issue) e `docs/features/itens.md`.
-2. Branch `feature/itens/<descricao>-arte` a partir da `main` (skill `nova-branch`).
+2. Confira e puxe a tarefa para em andamento com a branch `feature/itens/<descricao>-arte` (skill `puxar-tarefa`). Se já estiver em andamento por outro, pare e avise.
 3. Busque e organize os assets; gere o conteúdo por script ou pelo editor.
 4. Verifique: `dotnet csharpier format .`, `npm run unity:recompilar` (ou `npm run unity:compilar` com o editor fechado) e `npm run unity:testes` se houver testes.
 5. Commits no padrão (skill `fazer-commit`); PR **só se a orquestração autorizou**. Nunca faça merge.

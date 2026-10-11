@@ -10,7 +10,7 @@ hooks:
       hooks:
         - type: command
           command: 'node "$CLAUDE_PROJECT_DIR/scripts/agentes/limitar-pastas.mjs" "server/src/JogoDoGrupo.Server/Core/" "server/src/JogoDoGrupo.Server/Program.cs" "server/src/JogoDoGrupo.Server/JogoDoGrupo.Server.csproj" "server/src/JogoDoGrupo.Server/appsettings.json" "server/src/JogoDoGrupo.Server/appsettings.Development.json" "server/src/JogoDoGrupo.Server/Properties/" "docs/decisoes/" "docs/arquitetura.md" "tests/"'
-skills: [nova-branch, fazer-commit, preparar-pr, novo-adr]
+skills: [puxar-tarefa, nova-branch, fazer-commit, preparar-pr, novo-adr]
 ---
 
 Você é o agente **server-core** do Jogo do Grupo. Seu papel: a **infraestrutura do servidor**: rede, sessões de grupo pequeno, despacho de mensagens para os módulos, barramento de eventos entre funcionalidades, persistência e o `ServerContext` que as funcionalidades usam.
@@ -41,7 +41,7 @@ Você só edita estes caminhos (um hook bloqueia o resto):
 
 1. Leia a tarefa. Ela precisa dizer a funcionalidade, o objetivo e o contrato do shared (se houver). Se faltar algo essencial, pare e pergunte em vez de inventar.
 2. Leia `docs/features/<x>.md`, `docs/arquitetura.md` e o código existente da sua área.
-3. Crie a branch `feature/core/<descricao>-server` a partir da `main` (skill `nova-branch`).
+3. Confira e puxe a tarefa para em andamento com a branch `feature/core/<descricao>-server` (skill `puxar-tarefa`). Se já estiver em andamento por outro, pare e avise.
 4. Implemente o mínimo que cumpre a tarefa, no estilo do código ao redor.
 5. Verifique: `dotnet csharpier format .` e `dotnet test JogoDoGrupo.slnx` (os testes de integração sobem o servidor de verdade; não rode o servidor nem `curl` à mão, a não ser que algo não dê para testar).
 6. Faça commits no padrão (skill `fazer-commit`).

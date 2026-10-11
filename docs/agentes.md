@@ -40,11 +40,12 @@ designer-docs ─► shared-contratos ─► merge ─┼─ server-funcionalida
 ```
 
 0. **Ficha da tarefa.** O coordenador escreve na issue o objetivo, o contrato, as regras e os testes esperados, e a pessoa aprova uma vez. É o que mais evita retrabalho.
-1. **Regra clara?** Se `docs/features/<x>.md` não diz o que implementar, o `designer-docs` detalha antes, ou a dúvida vai para o grupo. Tarefa pequena: as regras vão direto na ficha.
-2. **Contrato primeiro.** O `shared-contratos` define mensagens, IDs e eventos num PR pequeno, que é revisado e mergeado. Os outros agentes partem da `main`, então precisam do contrato lá.
-3. **Em paralelo.** `regras-do-jogo`, `server-funcionalidade` e `client-funcionalidade` trabalham ao mesmo tempo, cada um no seu **worktree** (uma cópia separada do repo) e na sua branch, e cada um abre o seu PR.
-4. **Revisão.** O CI confere formatação, padrão de commit e testes. O `revisor` só entra em PR de risco (veja a tabela de papéis). No resto, a verificação proporcional do autor basta.
-5. **Pessoas.** Montam no Unity o que os agentes de client listaram, testam, aprovam e fazem o merge.
+1. **Puxar para em andamento (trava de concorrência).** Antes de qualquer agente ou pessoa começar a codificar, a tarefa precisa ser puxada para em andamento com `npm run tarefa -- puxar <N> [branch] [--agente <papel>]`. Isso marca a issue com a label `em-andamento`, atualiza o GitHub Projects para `In Progress` e impede que outra pessoa ou agente trabalhe na mesma tarefa ao mesmo tempo. Em orquestrações com múltiplos agentes em paralelo, o coordenador cria subtarefas (`npm run tarefa -- subtarefa <pai> --titulo "..." --agente <papel>`) para que cada agente puxe e trave sua própria issue.
+2. **Regra clara?** Se `docs/features/<x>.md` não diz o que implementar, o `designer-docs` detalha antes, ou a dúvida vai para o grupo. Tarefa pequena: as regras vão direto na ficha.
+3. **Contrato primeiro.** O `shared-contratos` define mensagens, IDs e eventos num PR pequeno, que é revisado e mergeado. Os outros agentes partem da `main`, então precisam do contrato lá.
+4. **Em paralelo.** `regras-do-jogo`, `server-funcionalidade` e `client-funcionalidade` trabalham ao mesmo tempo, cada um no seu **worktree** (uma cópia separada do repo) e na sua branch, e cada um abre o seu PR.
+5. **Revisão.** O CI confere formatação, padrão de commit e testes. O `revisor` só entra em PR de risco (veja a tabela de papéis). No resto, a verificação proporcional do autor basta.
+6. **Pessoas.** Montam no Unity o que os agentes de client listaram, testam, aprovam e fazem o merge.
 
 Várias funcionalidades podem andar ao mesmo tempo, cada uma com o seu trio de agentes. O limite real é a capacidade de review das pessoas: prefira PRs pequenos.
 
@@ -54,6 +55,7 @@ Os artistas ([ADR 0014](decisoes/0014-conteudo-3d-e-agentes-artistas.md)) buscam
 
 ### Por que não conflita
 
+- **Lock de tarefa (em andamento):** ninguém trabalha em tarefa sem puxá-la (`npm run tarefa -- puxar <N>`). Se já estiver marcada com `em-andamento` ou `In Progress`, outros agentes e desenvolvedores são impedidos de iniciar a mesma tarefa. Em paralelo, cada agente opera na sua subtarefa própria.
 - **Pastas separadas:** cada agente só edita a sua área. No Claude Code, um hook bloqueia a edição fora dela.
 - **Worktrees:** cada agente trabalha numa cópia própria do repo, então um não vê os arquivos pela metade do outro.
 - **Contrato antes:** server e client implementam o mesmo contrato, já mergeado.
@@ -63,6 +65,7 @@ Os artistas ([ADR 0014](decisoes/0014-conteudo-3d-e-agentes-artistas.md)) buscam
 
 - **Consumo:** relatórios curtos (até 15 linhas; revisor até 20) e verificação proporcional à alteração (matriz da skill `preparar-pr`). Não repita o que o CI já confere. O `revisor` é uma passada só, e só em PR de risco: Core, segurança, concorrência, contrato ou regra que decide resultado. Arte, tela, conteúdo e ligar um botão não levam revisor. Sonnet é o padrão; Opus só nessas tarefas de risco.
 
+- **Lock de tarefa:** confira que a tarefa está livre e puxe-a para em andamento antes de alterar código (`npm run tarefa -- puxar <N>`). Se a tarefa já estiver em andamento, pare e avise. Se precisar interromper sem concluir, libere com `npm run tarefa -- liberar <N>`.
 - **Regra 0:** nunca apagar o que as pessoas criaram. No Claude Code, um hook do projeto bloqueia comandos de apagar ([scripts/agentes/bloquear-apagar.mjs](../scripts/agentes/bloquear-apagar.mjs)).
 - **Autorização:** quando uma pessoa pede uma orquestração, ela autoriza os agentes a commitar, enviar as próprias branches e abrir PRs. **Merge é sempre humano.**
 - **Fora da área:** se a tarefa exige mudar algo fora da área do agente (um contrato, o Core, outra funcionalidade), o agente para e descreve a mudança no relatório, para o agente certo fazer.

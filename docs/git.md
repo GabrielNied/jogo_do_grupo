@@ -30,6 +30,46 @@ npm install
 
 Isso instala o commitlint e ativa os hooks do husky (`git config core.hooksPath` passa a apontar para `.husky/_`). Sem esse passo os hooks locais não rodam, mas o CI confere tudo do mesmo jeito.
 
+## Ciclo de vida de uma tarefa
+
+Para evitar que mais de uma pessoa ou agente trabalhe na mesma tarefa ao mesmo tempo, toda tarefa segue o fluxo:
+
+```
+Issue aberta ──► npm run tarefa -- puxar <N> ──► branch criada + In Progress ──► commits ──► PR (Closes #N) ──► merge (Done)
+```
+
+1. **Listar tarefas disponíveis:**
+   ```
+   npm run tarefa -- listar
+   ```
+   Mostra quais estão livres (`DISPONÍVEIS`) e quais já estão sendo feitas (`EM ANDAMENTO`).
+
+2. **Puxar a tarefa (bloqueia concorrência e cria branch):**
+   ```
+   npm run tarefa -- puxar <numero> [nome-da-branch] [--agente <nome>]
+   ```
+   - Marca a issue com `em-andamento`;
+   - Move o status no GitHub Projects para `In Progress`;
+   - Atribui ao desenvolvedor (`@me`) ou anota o agente;
+   - Publica comentário com quem assumiu e em qual branch;
+   - Cria a branch a partir da `origin/main` atualizada.
+   - **Se outra pessoa ou agente já tiver puxado a tarefa, o comando bloqueia a ação.**
+
+3. **Subtarefas em orquestrações paralelas:**
+   Se uma tarefa envolve múltiplos agentes em paralelo (ex.: contrato, server e client), crie subtarefas para que cada agente trave a sua parte:
+   ```
+   npm run tarefa -- subtarefa <pai> --titulo "..." --agente <nome>
+   ```
+
+4. **Liberar a tarefa (se pausar ou transferir):**
+   ```
+   npm run tarefa -- liberar <numero> --motivo "Pausa para almoço"
+   ```
+   Devolve a tarefa para a fila de disponíveis.
+
+5. **Concluir via PR:**
+   No corpo do PR, inclua `Closes #<numero>`. O merge na `main` fecha a issue e move para `Done`.
+
 ## Branches
 
 Formato: **`<tipo>/<escopo>/<descricao>`**

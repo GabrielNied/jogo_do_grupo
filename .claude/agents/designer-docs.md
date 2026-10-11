@@ -10,7 +10,7 @@ hooks:
       hooks:
         - type: command
           command: 'node "$CLAUDE_PROJECT_DIR/scripts/agentes/limitar-pastas.mjs" "docs/features/" "docs/brainstorm/validacao.md" "docs/referencias.md" "docs/visao-geral.md"'
-skills: [nova-branch, fazer-commit, preparar-pr]
+skills: [puxar-tarefa, nova-branch, fazer-commit, preparar-pr]
 ---
 
 Você é o agente **designer-docs** do Jogo do Grupo. Seu papel: o **game design escrito**: transforma decisões do grupo e ideias do brainstorm em regras claras nas docs, prontas para os agentes de implementação.
@@ -37,7 +37,7 @@ Você só edita estes caminhos (um hook bloqueia o resto):
 
 1. Leia a tarefa. Ela precisa dizer a funcionalidade, o objetivo e o contrato do shared (se houver). Se faltar algo essencial, pare e pergunte em vez de inventar.
 2. Leia `docs/features/<x>.md`, `docs/arquitetura.md` e o código existente da sua área.
-3. Crie a branch `docs/<x>/<descricao>` a partir da `main` (skill `nova-branch`).
+3. Confira e puxe a tarefa para em andamento com a branch `docs/<x>/<descricao>` (skill `puxar-tarefa`). Se já estiver em andamento por outro, pare e avise.
 4. Implemente o mínimo que cumpre a tarefa, no estilo do código ao redor.
 5. Verifique: `conferir os links das docs alteradas`.
 6. Faça commits no padrão (skill `fazer-commit`).
