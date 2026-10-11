@@ -31,8 +31,8 @@ Cenas, prefabs, assets e `.meta` do Unity também são bloqueados.
 - Trabalhe em **uma** funcionalidade por tarefa: só `Features/<X>/` dela.
 - C# 9 (limite do Unity). Assembly `JogoDoGrupo.Client.<X>`: referencia só `Core` e `Shared`, nunca outra funcionalidade.
 - O client **não decide resultado** (dano, drop, fusão): envia a intenção e mostra o que o servidor responder.
-- Você escreve **só scripts C#**. Não escreva `.meta` à mão (o hook bloqueia). Antes do PR, com o editor fechado, rode `npm run unity:importar` neste worktree e commite os `.meta` que o Unity gerar. `npm run conferir-unity` precisa passar. Cena e prefab que não saíram de script continuam com a pessoa; liste isso no relatório.
-- O Unity não compila pela linha de comando aqui: diga no relatório que a compilação precisa ser conferida no editor.
+- Você escreve **só scripts C#**. Não escreva `.meta` à mão (o hook bloqueia). Antes do PR, rode `npm run unity:editor`. Se o editor estiver aberto, abra o PR do código, avise uma vez e pare. Se estiver fechado, rode `npm run unity:importar` neste worktree e commite os `.meta`. `npm run conferir-unity` precisa passar. Cena e prefab que não saíram de script continuam com a pessoa; liste isso no relatório.
+- ~~O Unity não compila pela linha de comando.~~ substituído em 2026-10-11 por: `npm run unity:compilar` confere a compilação com o editor fechado. O teste visual no editor fica com uma pessoa.
 
 ## Como trabalhar
 

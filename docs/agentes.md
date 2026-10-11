@@ -142,6 +142,6 @@ Worktrees que sobrarem depois do merge são removidos por uma **pessoa** (`git w
 
 ## Limitações atuais
 
-- **Unity:** `npm run unity:compilar` confere se o client compila, mas o comportamento visual só uma pessoa testa no editor.
+- **Unity:** um editor por vez. `npm run unity:editor` distingue o editor do Hub. `npm run unity:compilar` confere se o client compila; o visual só uma pessoa testa no editor. A primeira importação de um worktree novo é lenta: não abra outro só para repetir. Se o editor estiver aberto, o agente para uma vez. Quem gera o `.meta` depois é o coordenador, com `npm run unity:importar`, sem relançar o agente.
 - ~~**Testes:** o framework de testes ainda não foi decidido (ADR em aberto). Até lá, `regras-do-jogo` descreve os casos de teste no relatório.~~ Substituído em 2026-10-11 pelo [ADR 0013](decisoes/0013-testes-automatizados.md): todo PR de código traz testes, e o CI roda `dotnet test`.
 - **Fundação primeiro:** agentes de funcionalidade dependem da API do Core (rede, sessões, despacho de mensagens). Enquanto o marco M0 não terminar, os trabalhos que já podem andar em paralelo são: `server-core`, `client-core`, `regras-do-jogo` (fórmulas puras) e `designer-docs`.
