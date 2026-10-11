@@ -31,6 +31,12 @@ namespace JogoDoGrupo.Client.Core.Contas
         /// </summary>
         public static event Action Expirou;
 
+        /// <summary>
+        /// Disparado sempre que a sessão é encerrada (<see cref="Encerrar"/>, inclusive na
+        /// expiração). O Core usa para fechar a conexão de tempo real.
+        /// </summary>
+        internal static event Action Encerrada;
+
         /// <summary>Guarda o token recebido no login.</summary>
         public static void Iniciar(LoginResponse resposta)
         {
@@ -77,6 +83,7 @@ namespace JogoDoGrupo.Client.Core.Contas
             PlayerPrefs.DeleteKey(ChaveToken);
             PlayerPrefs.DeleteKey(ChaveExpira);
             PlayerPrefs.Save();
+            Encerrada?.Invoke();
         }
 
         /// <summary>Limpa só a memória. O login gravado continua, para o próximo Play.</summary>
@@ -112,6 +119,7 @@ namespace JogoDoGrupo.Client.Core.Contas
         {
             EsquecerMemoria();
             Expirou = null;
+            Encerrada = null;
         }
 
         private static void Gravar()

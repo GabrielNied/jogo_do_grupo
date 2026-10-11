@@ -3,6 +3,7 @@
   "rootNamespace": "JogoDoGrupo.Client.Core",
   "references": [
     "JogoDoGrupo.Shared",
+    "LiteNetLib",
     "Unity.InputSystem"
   ],
   "includePlatforms": [],
