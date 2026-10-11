@@ -21,10 +21,10 @@ permissions:
 concurrency:
   group: >-
     padrao-git-${{ github.ref }}${{
-      github.event_name == 'pull_request'
-      && github.event.action == 'edited'
-      && github.event.changes.title == null
-      && '-so-descricao' || ''
+    github.event_name == 'pull_request'
+    && github.event.action == 'edited'
+    && github.event.changes.title == null
+    && '-so-descricao' || ''
     }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
