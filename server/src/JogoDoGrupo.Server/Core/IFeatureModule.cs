@@ -1,3 +1,5 @@
+using JogoDoGrupo.Server.Core.TempoReal;
+
 namespace JogoDoGrupo.Server.Core;
 
 /// <summary>
@@ -6,7 +8,7 @@ namespace JogoDoGrupo.Server.Core;
 /// funcionalidade nova não exige editar nenhum arquivo central.
 /// Os métodos com corpo vazio são opcionais: o módulo só sobrescreve os que usa.
 /// Ordem de chamada: <see cref="ConfigurarServicos"/>, <see cref="MapearRotas"/>,
-/// <see cref="Inicializar"/>. Veja "Servidor: como uma funcionalidade se pluga" em
+/// <see cref="RegistrarMensagens"/>, <see cref="Inicializar"/>. Veja "Servidor: como uma funcionalidade se pluga" em
 /// docs/arquitetura.md.
 /// </summary>
 public interface IFeatureModule
@@ -24,6 +26,14 @@ public interface IFeatureModule
     /// (ex.: <c>rotas.MapGet("/api/x", ...).RequireAuthorization()</c>).
     /// </summary>
     void MapearRotas(IEndpointRouteBuilder rotas) { }
+
+    /// <summary>
+    /// Reserva a faixa de IDs da funcionalidade e registra os manipuladores das mensagens de
+    /// tempo real (UDP), ex.:
+    /// <c>mensagens.Faixa(MundoMessageIds.Faixa).Ao&lt;EntrarNaCidade&gt;(MundoMessageIds.EntrarNaCidade, AoEntrar)</c>.
+    /// Roda depois de <see cref="MapearRotas"/> e antes de <see cref="Inicializar"/>.
+    /// </summary>
+    void RegistrarMensagens(MensagensTempoReal mensagens) { }
 
     void Inicializar(ServerContext contexto);
 }

@@ -78,6 +78,8 @@ public class ConfiguracaoJwtTestes
         {
             builder.UseEnvironment(ambiente);
             builder.UseSetting("ConnectionStrings:Jogo", $"Data Source={banco}");
+            builder.UseSetting("TempoReal:Porta", "0");
+            builder.UseSetting("TempoReal:Endereco", "127.0.0.1");
             foreach (var (chave, valor) in configuracao)
             {
                 builder.UseSetting(chave, valor);

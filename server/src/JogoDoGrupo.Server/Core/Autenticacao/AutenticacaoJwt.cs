@@ -29,15 +29,7 @@ internal static class AutenticacaoJwt
             {
                 // Mantém "sub" com o nome original (sem mapear para ClaimTypes.NameIdentifier).
                 opcoes.MapInboundClaims = false;
-                opcoes.TokenValidationParameters = new TokenValidationParameters
-                {
-                    ValidIssuer = jwt.Emissor,
-                    ValidAudience = jwt.Audiencia,
-                    IssuerSigningKey = jwt.ChaveDeAssinatura(),
-                    ValidAlgorithms = [SecurityAlgorithms.HmacSha256],
-                    NameClaimType = JwtRegisteredClaimNames.Sub,
-                    ClockSkew = TimeSpan.FromSeconds(30),
-                };
+                opcoes.TokenValidationParameters = jwt.ParametrosDeValidacao();
                 opcoes.Events = new JwtBearerEvents
                 {
                     OnForbidden = contexto =>
