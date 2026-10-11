@@ -6,7 +6,8 @@ internal static class ErrosApi
 {
     /// <summary>
     /// Garante o corpo <see cref="ErroApi"/> nos erros gerados pelo próprio ASP.NET Core
-    /// (exceções, JSON malformado, Content-Type errado). Vai no começo do pipeline.
+    /// (exceções, JSON malformado, Content-Type errado, acesso negado, rota ou método
+    /// inexistente). Preserva respostas que já têm corpo. Vai no começo do pipeline.
     /// </summary>
     public static WebApplication UsarErrosApi(this WebApplication app)
     {
@@ -22,7 +23,18 @@ internal static class ErrosApi
                     CodigosErro.RequisicaoInvalida,
                     "Envie o corpo como application/json."
                 );
+                return;
             }
+
+            var codigo = http.Response.StatusCode switch
+            {
+                StatusCodes.Status403Forbidden => CodigosErro.AcessoNegado,
+                StatusCodes.Status404NotFound => CodigosErro.RotaNaoEncontrada,
+                StatusCodes.Status405MethodNotAllowed => CodigosErro.MetodoNaoPermitido,
+                _ => null,
+            };
+            if (codigo is not null)
+                await RespostasApi.EscreverErroAsync(http, http.Response.StatusCode, codigo);
         });
         app.UseMiddleware<TratamentoErrosMiddleware>();
         return app;

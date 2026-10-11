@@ -40,6 +40,12 @@ internal static class AutenticacaoJwt
                 };
                 opcoes.Events = new JwtBearerEvents
                 {
+                    OnForbidden = contexto =>
+                        RespostasApi.EscreverErroAsync(
+                            contexto.HttpContext,
+                            StatusCodes.Status403Forbidden,
+                            CodigosErro.AcessoNegado
+                        ),
                     // 401 sempre com corpo ErroApi, como o contrato pede.
                     OnChallenge = async contexto =>
                     {
