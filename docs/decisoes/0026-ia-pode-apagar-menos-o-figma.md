@@ -12,7 +12,8 @@ A regra 0 dizia "nunca apague o que as pessoas criaram", e o hook `bloquear-apag
 - A regra 0 passa a ser: **nunca apague nada do Figma** (arquivos, páginas, frames, nós, componentes, variáveis, comentários, nem por script).
 - O resto pode ser apagado quando for sujeira ou estiver obsoleto: arquivos, pastas, assets, trechos de docs, código morto, branches, worktrees. O commit explica o que saiu e por quê, e os links que apontavam para lá são atualizados.
 - **Olhar antes de apagar:** conferir o que é, quem usa (referências, guids do Unity) e se há mudança não commitada. Dúvida real sobre algo de outra pessoa em andamento: perguntar.
-- **Confirmar antes do que não volta ou afeta o grupo todo:** push forçado (nunca na `main`), apagar branch remota de PR aberto, fechar issue ou PR de outra pessoa, apagar repositório, release ou projeto no GitHub.
+- **Confirmar antes do que não volta ou afeta o grupo todo:** push forçado (nunca na `main`), apagar branch remota de PR aberto, apagar repositório, release ou projeto no GitHub.
+- **Atualização (2026-10-11):** fechar issue ou PR de outra pessoa deixa de pedir confirmação. A IA fecha o que a evidência mostra resolvido (ex.: pendência de Unity que o CI já confirmou) e comenta o motivo.
 - O hook `bloquear-apagar` fica só com o que a regra ainda protege: remoção no Figma por script (`use_figma` com `.remove()` ou `.delete()`), push forçado e `gh repo|release|project delete`. Os comandos de apagar arquivo e branch deixam de ser bloqueados.
 - Worktrees e branches temporários dos agentes seguem saindo por `npm run limpar-agentes`, que só remove o que já está na `main` (ADR 0018), porque apagar à mão perde commits feitos depois de um squash merge.
 
