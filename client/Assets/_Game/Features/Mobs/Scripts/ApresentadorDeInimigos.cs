@@ -20,6 +20,12 @@ namespace JogoDoGrupo.Client.Features.Mobs
         /// <summary>Gatilho do Animator tocado na morte (se o modelo tiver Animator).</summary>
         public const string GatilhoDeMorte = "Morrer";
 
+        /// <summary>Booleano do Animator: o modelo anda.</summary>
+        public const string ParametroAndando = "Andando";
+
+        /// <summary>Gatilho do Animator tocado uma vez por golpe.</summary>
+        public const string GatilhoDeAtaque = "Atacar";
+
         /// <summary>Quanto tempo o corpo fica no chão tocando a morte antes de sumir.</summary>
         public const float DuracaoDaMorteSegundos = 1.5f;
 
@@ -31,6 +37,7 @@ namespace JogoDoGrupo.Client.Features.Mobs
 
         private readonly RegistroDeInimigos _registro = new RegistroDeInimigos();
         private readonly Dictionary<long, GameObject> _visuais = new Dictionary<long, GameObject>();
+        private readonly Dictionary<long, Animator> _animadores = new Dictionary<long, Animator>();
         private readonly List<IDisposable> _assinaturas = new List<IDisposable>();
 
         private PainelDeInimigos _painel;
@@ -88,6 +95,7 @@ namespace JogoDoGrupo.Client.Features.Mobs
             }
 
             _visuais.Clear();
+            _animadores.Clear();
         }
 
         private void Update()
@@ -106,6 +114,14 @@ namespace JogoDoGrupo.Client.Features.Mobs
                         new Vector3(inimigo.X, inimigo.Y, inimigo.Z),
                         Quaternion.Euler(0f, inimigo.RotacaoY, 0f)
                     );
+                    if (_animadores.TryGetValue(inimigo.InimigoId, out var animador))
+                    {
+                        animador.SetBool(ParametroAndando, inimigo.Animacao.Andando);
+                        if (inimigo.Animacao.DisparouAtaque)
+                        {
+                            animador.SetTrigger(GatilhoDeAtaque);
+                        }
+                    }
                 }
             }
 
@@ -155,6 +171,7 @@ namespace JogoDoGrupo.Client.Features.Mobs
             }
 
             _visuais.Remove(inimigo.InimigoId);
+            _animadores.Remove(inimigo.InimigoId);
             if (visual == null)
             {
                 return;
@@ -174,6 +191,7 @@ namespace JogoDoGrupo.Client.Features.Mobs
             if (_visuais.TryGetValue(inimigoId, out var visual))
             {
                 _visuais.Remove(inimigoId);
+                _animadores.Remove(inimigoId);
                 if (visual != null)
                 {
                     Destroy(visual);
@@ -212,6 +230,11 @@ namespace JogoDoGrupo.Client.Features.Mobs
             }
 
             _visuais[inimigo.InimigoId] = visual;
+            var animador = visual.GetComponentInChildren<Animator>();
+            if (animador != null)
+            {
+                _animadores[inimigo.InimigoId] = animador;
+            }
         }
 
         /// <summary>Aura vermelha da variante fortalecida: uma luz que tinge o chão ao redor.</summary>

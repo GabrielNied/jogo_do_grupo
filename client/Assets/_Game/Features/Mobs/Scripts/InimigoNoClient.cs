@@ -75,6 +75,12 @@ namespace JogoDoGrupo.Client.Features.Mobs
 
         public AvisoDeGolpe Aviso { get; set; }
 
+        /// <summary>Quantos avisos de golpe já chegaram; cada um dispara a animação uma vez.</summary>
+        public int GolpesPreparados { get; set; }
+
+        /// <summary>Decide andar e atacar do modelo.</summary>
+        public AnimacaoDoInimigo Animacao { get; } = new AnimacaoDoInimigo();
+
         /// <summary>Vida de 0 a 1; máximo zero não estoura.</summary>
         public float FracaoDeVida
         {
@@ -106,10 +112,15 @@ namespace JogoDoGrupo.Client.Features.Mobs
         public void Atualizar(float segundos)
         {
             var fator = 1f - Mathf.Exp(-VelocidadeDeSuavizacao * segundos);
+            var antesX = X;
+            var antesZ = Z;
             X = Mathf.Lerp(X, AlvoX, fator);
             Y = Mathf.Lerp(Y, AlvoY, fator);
             Z = Mathf.Lerp(Z, AlvoZ, fator);
             RotacaoY = Mathf.LerpAngle(RotacaoY, AlvoRotacaoY, fator);
+            var dx = X - antesX;
+            var dz = Z - antesZ;
+            Animacao.Atualizar(Estado, Mathf.Sqrt(dx * dx + dz * dz), segundos, GolpesPreparados);
 
             if (Aviso != null)
             {

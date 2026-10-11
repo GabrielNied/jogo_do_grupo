@@ -100,6 +100,7 @@ namespace JogoDoGrupo.Client.Features.Mobs
                 return false;
             }
 
+            inimigo.GolpesPreparados++;
             inimigo.Aviso = new AvisoDeGolpe(
                 mensagem.CentroX,
                 mensagem.CentroZ,
