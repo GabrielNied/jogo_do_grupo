@@ -6,7 +6,7 @@ namespace JogoDoGrupo.Client.Core.Jogo
 {
     /// <summary>
     /// Menu do Esc no mundo: sobreposto ao jogo (sem abrir uma <see cref="Tela"/>), com
-    /// "Continuar" e "Voltar à seleção" (<see cref="EntradaNoJogo.Sair"/>).
+    /// "Continuar", "Voltar à seleção" (<see cref="EntradaNoJogo.Sair"/>) e "Sair da conta".
     /// </summary>
     internal sealed class MenuJogo
     {
@@ -55,6 +55,10 @@ namespace JogoDoGrupo.Client.Core.Jogo
             var voltar = new Button(EntradaNoJogo.Sair) { text = "Voltar à seleção" };
             voltar.AddToClassList(EstiloCore.Botao);
 
+            var sair = new Button(SairDaConta) { text = "Sair da conta" };
+            sair.AddToClassList(EstiloCore.Botao);
+            sair.style.marginTop = 8;
+
             var linha = new VisualElement();
             linha.AddToClassList(EstiloCore.LinhaBotoes);
             linha.Add(voltar);
@@ -62,8 +66,15 @@ namespace JogoDoGrupo.Client.Core.Jogo
 
             painel.Add(titulo);
             painel.Add(linha);
+            painel.Add(sair);
             _raiz.Add(painel);
             container.Add(_raiz);
+        }
+
+        private static void SairDaConta()
+        {
+            EntradaNoJogo.Desmontar();
+            Navegacao.VoltarParaLogin();
         }
 
         public void Fechar()

@@ -3,6 +3,7 @@
   "rootNamespace": "JogoDoGrupo.Client.Core.Tests",
   "references": [
     "JogoDoGrupo.Client.Core",
+    "JogoDoGrupo.Shared",
     "UnityEngine.TestRunner",
     "UnityEditor.TestRunner"
   ],

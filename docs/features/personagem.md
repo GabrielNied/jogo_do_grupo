@@ -76,7 +76,7 @@ Decidido pelo grupo em 2026-10-10. É **provisório**: serve para implementar a 
 
 ### Fluxo de entrada no jogo
 
-Ordem das telas: abertura/carregamento → login (ou registro) → seleção de personagem ⇄ criação de personagem.
+~~Ordem das telas: abertura/carregamento → login (ou registro) → seleção de personagem ⇄ criação de personagem.~~ substituído em 2026-10-11 por: abertura/carregamento → login (ou registro), ou direto para a seleção se a sessão gravada ainda valer → seleção de personagem ⇄ criação de personagem.
 
 | Tela | Dona |
 |---|---|
@@ -86,7 +86,7 @@ Ordem das telas: abertura/carregamento → login (ou registro) → seleção de 
 | Criação de personagem | Personagem |
 
 1. **Abertura/carregamento:** tela inicial do jogo (Core).
-2. **Login ou registro de conta:** nome de usuário + senha (Core). Ao logar, o client recebe o token (JWT) usado nas chamadas abaixo.
+2. **Login ou registro de conta:** nome de usuário + senha (Core). Ao logar, o client recebe o token (JWT) usado nas chamadas abaixo e o grava neste computador. Nas aberturas seguintes o login é pulado, até **Sair** (nesta tela ou no menu do Esc, "Sair da conta"), que apaga o token gravado.
 3. **Seleção de personagem:**
    - ao abrir, pede a lista de personagens da conta ao servidor (`GET`);
    - se o pedido falhar por **não autenticado** (401), volta para o login;

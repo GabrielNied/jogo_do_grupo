@@ -15,7 +15,14 @@ public sealed class ConfiguracaoJwt
     public string Chave { get; set; } = "";
     public string Emissor { get; set; } = "";
     public string Audiencia { get; set; } = "";
-    public int ValidadeHoras { get; set; } = 12;
+
+    /// <summary>
+    /// O JWT precisa de uma data de expiração. 100 anos: para quem joga, a sessão dura até
+    /// "Sair da conta", não uma janela curta de site.
+    /// </summary>
+    public const int ValidadePadraoHoras = 24 * 365 * 100;
+
+    public int ValidadeHoras { get; set; } = ValidadePadraoHoras;
 
     /// <summary>
     /// Início da chave de desenvolvimento do appsettings.Development.json. Uma chave com este
