@@ -9,9 +9,18 @@
 //   npm run tarefa -- liberar <numero> [--motivo "<motivo>"]
 //   npm run tarefa -- status <numero>
 //   npm run tarefa -- concluir <numero>
+//   npm run tarefa -- pendencia-unity <pr> --falta "<o que faltou>" [--falta "..."]
 
 import { execFileSync, spawnSync } from "node:child_process";
 import { escopos, tipos } from "../../commitlint.config.mjs";
+import {
+  LABEL_PENDENCIA,
+  branchDaPendencia,
+  corpoDoPrComPendencia,
+  corpoPendencia,
+  prDaPendencia,
+  tituloPendencia,
+} from "./pendencia-unity.mjs";
 
 const PROJECT_OWNER = "GabrielNied";
 const PROJECT_NUMBER = "1";
@@ -70,6 +79,7 @@ function normalizarIssue(bruta) {
     labels: (bruta.labels || []).map((l) => ({ name: typeof l === "string" ? l : l.name })),
     assignees: (bruta.assignees || []).map((a) => ({ login: a.login })),
     url: bruta.html_url,
+    body: bruta.body || "",
   };
 }
 
@@ -241,6 +251,7 @@ async function listarTarefas() {
   const emAndamento = [];
   const disponiveis = [];
   const bloqueadas = [];
+  const pendenciasUnity = [];
 
   for (const issue of issues) {
     const labels = (issue.labels || []).map((l) => (typeof l === "string" ? l : l.name));
@@ -255,6 +266,8 @@ async function listarTarefas() {
       bloqueadas.push({ issue, labels, itemProj });
     } else if (estaEmAndamento) {
       emAndamento.push({ issue, labels, itemProj });
+    } else if (labels.includes(LABEL_PENDENCIA)) {
+      pendenciasUnity.push({ issue, labels, itemProj });
     } else {
       disponiveis.push({ issue, labels, itemProj });
     }
@@ -284,6 +297,13 @@ async function listarTarefas() {
       const agentesTags = labels.filter((l) => l.startsWith("agente:")).join(", ") || "geral";
       console.log(`   #${issue.number} - ${issue.title}`);
       console.log(`     Recomendado para: [${agentesTags}]`);
+    }
+  }
+
+  if (pendenciasUnity.length > 0) {
+    console.log(`\n🧩 PENDÊNCIAS DE UNITY (${pendenciasUnity.length}) - só para quem tem Unity na máquina:`);
+    for (const { issue } of pendenciasUnity) {
+      console.log(`   #${issue.number} - ${issue.title}`);
     }
   }
 
@@ -353,6 +373,23 @@ async function puxarTarefa(args) {
     process.exit(1);
   }
 
+  // Pendência de Unity: com o PR ainda aberto, trabalha na branch dele em vez de criar outra.
+  // Com o PR já fechado, segue o fluxo normal numa branch nova a partir da main.
+  let branchExistente = null;
+  if (labels.includes(LABEL_PENDENCIA)) {
+    const pr = prDaPendencia(issue.body);
+    const dadosPr = pr ? apiGh(`${REPO}/pulls/${pr}`, { ignorarErro: true }) : null;
+    if (dadosPr && dadosPr.state === "open") {
+      branchExistente = dadosPr.head.ref;
+      nomeBranch = branchExistente;
+      console.log(`ℹ Pendência de Unity do PR #${pr}, ainda aberto: usando a branch dele (${nomeBranch}).`);
+    } else if (!nomeBranch) {
+      const escopoDoPr = (branchDaPendencia(issue.body) || "").split("/")[1];
+      nomeBranch = `chore/${escopos.includes(escopoDoPr) ? escopoDoPr : "core"}/unity-pendencia-${numero}`;
+      console.log(`ℹ O PR #${pr} já foi fechado: a pendência vai numa branch nova a partir da main.`);
+    }
+  }
+
   // Nome da branch
   if (!nomeBranch) {
     nomeBranch = sugerirNomeBranch(issue);
@@ -387,7 +424,17 @@ async function puxarTarefa(args) {
 
   // 5. Configura Git (Worktree ou Branch local)
   console.log(`🌿 Configurando branch "${nomeBranch}"...`);
-  if (worktreePath) {
+  if (branchExistente) {
+    // Branch do PR, que já existe no origin: o git cria a local acompanhando a remota.
+    executarGit(["fetch", "origin", branchExistente]);
+    if (worktreePath) {
+      executarGit(["worktree", "add", worktreePath, branchExistente]);
+      console.log(`✔ Worktree criado em: ${worktreePath}`);
+    } else {
+      executarGit(["switch", branchExistente]);
+      executarGit(["pull", "--ff-only", "origin", branchExistente]);
+    }
+  } else if (worktreePath) {
     executarGit(["fetch", "origin", "main"]);
     executarGit(["worktree", "add", worktreePath, "-b", nomeBranch, "origin/main"]);
     console.log(`✔ Worktree criado em: ${worktreePath}`);
@@ -413,7 +460,11 @@ async function puxarTarefa(args) {
   console.log(`\nPróximos passos:`);
   console.log(`1. Desenvolva as alterações e escreva os testes necessários.`);
   console.log(`2. Formate e confira com: npm run preparar-pr (ou verificação proporcional).`);
-  console.log(`3. Ao abrir o PR, inclua "Closes #${numero}" na descrição para fechar a tarefa automaticamente no merge.`);
+  if (branchExistente) {
+    console.log(`3. Dê push na mesma branch e comente no PR o que foi feito. Feche a pendência #${numero} com "Closes #${numero}" no corpo do PR.`);
+  } else {
+    console.log(`3. Ao abrir o PR, inclua "Closes #${numero}" na descrição para fechar a tarefa automaticamente no merge.`);
+  }
   console.log(`4. Se precisar interromper sem concluir, libere com: npm run tarefa -- liberar ${numero}\n`);
 }
 
@@ -570,6 +621,46 @@ async function criarSubtarefa(args) {
   }
 }
 
+async function criarPendenciaUnity(args) {
+  const pr = parseInt(args[0], 10);
+  const faltas = [];
+  for (let i = 1; i < args.length; i++) {
+    if (args[i] === "--falta" && args[i + 1]) {
+      faltas.push(args[i + 1]);
+      i++;
+    }
+  }
+  if (isNaN(pr) || faltas.length === 0) {
+    console.error('✖ Uso: npm run tarefa -- pendencia-unity <pr> --falta "<o que faltou>" [--falta "..."]');
+    process.exit(1);
+  }
+
+  const dadosPr = apiGh(`${REPO}/pulls/${pr}`);
+  const branch = dadosPr.head.ref;
+  const escopoDoPr = branch.split("/")[1];
+  const labels = [LABEL_PENDENCIA, ...(escopos.includes(escopoDoPr) ? [escopoDoPr] : [])];
+
+  console.log(`🧩 Registrando pendência de Unity do PR #${pr}...`);
+  const issue = apiGh(`${REPO}/issues`, {
+    metodo: "POST",
+    campos: { title: tituloPendencia(pr, faltas), body: corpoPendencia({ pr, branch, faltas }), labels },
+  });
+  sincronizarStatusProjeto(issue.number, issue.html_url, "Todo");
+
+  apiGh(`${REPO}/pulls/${pr}`, {
+    metodo: "PATCH",
+    campos: { body: corpoDoPrComPendencia(dadosPr.body, issue.number) },
+    ignorarErro: true,
+  });
+  comentar(
+    pr,
+    `🧩 Sem Unity neste ambiente. O que faltou ficou na pendência #${issue.number}, que continua aberta depois do merge até alguém com Unity resolver.`,
+  );
+
+  console.log(`✔ Pendência #${issue.number} criada: ${issue.html_url}`);
+  console.log("  O PR segue normal. Quem tiver Unity puxa com: npm run tarefa -- puxar " + issue.number);
+}
+
 function exibirAjuda() {
   console.log(`
 Uso: npm run tarefa -- <comando> [argumentos]
@@ -588,7 +679,9 @@ Comandos disponíveis:
                                     --escopo <escopo>   Escopo funcional (ex: core, personagem).
   status <numero>                 Exibe detalhes completos e o estado de bloqueio da tarefa.
   concluir <numero>               Atualiza o status no projeto para "Done".
-  ajuda                           Mostra esta mensagem de ajuda.
+  pendencia-unity <pr> --falta .. Registra o que ficou sem Unity num PR (issue "pendente-unity"),
+                                  para o próximo agente com Unity puxar. Repita --falta por item.
+  ajuda                          Mostra esta mensagem de ajuda.
 
 Exemplos:
   npm run tarefa -- listar
@@ -633,6 +726,9 @@ switch (comando) {
   case "concluir":
   case "done":
     await concluirTarefa(argumentos);
+    break;
+  case "pendencia-unity":
+    await criarPendenciaUnity(argumentos);
     break;
   case "ajuda":
   case "help":
