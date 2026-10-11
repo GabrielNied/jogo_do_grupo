@@ -12,6 +12,7 @@
 | [brainstorm/](brainstorm/) | Cópia em texto do board do FigJam (ideias não validadas) |
 | [features/](features/) | Um documento por funcionalidade do jogo |
 | [decisoes/](decisoes/) | Decisões técnicas registradas (ADRs) |
+| [licoes.md](licoes.md) | Problemas de processo já vistos e a regra para não repetir |
 
 O brainstorm de ideias fica no board do FigJam **"Jogo do Grupo - Definição de Features"** (time "Gabriel Nied's team", pasta "Team project"). Uma cópia em texto, para ler sem acessar o Figma, fica em [brainstorm/figjam.md](brainstorm/figjam.md) ([como atualizar](brainstorm/README.md)). Quando uma ideia for aprovada, ela entra no documento da funcionalidade.
 

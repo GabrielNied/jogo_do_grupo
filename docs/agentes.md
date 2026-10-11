@@ -54,6 +54,8 @@ Várias funcionalidades podem andar ao mesmo tempo, cada uma com o seu trio de a
 
 Os artistas ([ADR 0014](decisoes/0014-conteudo-3d-e-agentes-artistas.md)) buscam assets CC0 conforme a necessidade e montam o conteúdo **pelo Unity** (editor aberto via Unity CLI, ou scripts de editor em modo batch). Como o projeto Unity é um só, **os passos com Unity rodam um agente por vez, no checkout principal**; buscar assets e escrever código pode andar em paralelo. Enquanto um artista usa o Unity, ninguém troca a branch do checkout principal. Antes de abrir o PR, `npm run conferir-unity` confirma que `.meta` e materiais alterados pelo Unity entraram no commit. O CI repete a parte dos `.meta` que faltam.
 
+Lições de processo (Blender, commits em etapas, Unity aberto) estão em [licoes.md](licoes.md).
+
 ### Fechamento: o coordenador integra e limpa o que criou
 
 Vale para quem coordena agentes (IA ou pessoa). Aprendido na orquestração da [#319](https://github.com/GabrielNied/jogo_do_grupo/issues/319), onde quatro agentes pararam sem editar nada e o trabalho foi refeito.

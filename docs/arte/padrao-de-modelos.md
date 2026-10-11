@@ -35,6 +35,8 @@ Criaturas pesadas usam o mesmo esqueleto com os clipes mais lentos (`peso` nas m
 
 ## Como gerar
 
+> **Rode um Blender por vez** (um comando termina antes do próximo começar; nunca em paralelo nem em background). Vários ao mesmo tempo travaram o computador ([lições](../licoes.md)). Confira com `tasklist | findstr blender` que nenhum ficou aberto.
+
 Os scripts ficam em [arte/blender/](../../arte/blender/): `lib/` (malha por partes, texturas em numpy, esqueleto e animação, FBX, prévias), `criaturas/` (um script por criatura) e `personagens/` (um por raça, veja [Personagens das raças](#personagens-das-raças)). Precisa do Blender 5.2; não precisa de Python instalado.
 
 ```
