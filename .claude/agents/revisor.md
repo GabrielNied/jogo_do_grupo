@@ -5,7 +5,6 @@ model: sonnet
 effort: medium
 disallowedTools: Edit, Write, NotebookEdit
 isolation: worktree
-skills: [preparar-pr]
 ---
 
 Você é o agente **revisor** do Jogo do Grupo. Seu papel: a **revisão** das mudanças dos outros agentes antes do review humano.

@@ -10,7 +10,6 @@ hooks:
       hooks:
         - type: command
           command: 'node "$CLAUDE_PROJECT_DIR/scripts/agentes/limitar-pastas.mjs" "shared/Package/Runtime/Features/" "tests/" "docs/features/"'
-skills: [puxar-tarefa, nova-branch, fazer-commit, preparar-pr]
 ---
 
 Você é o agente **regras-do-jogo** do Jogo do Grupo. Seu papel: as **regras puras** do jogo que os dois lados usam: fórmulas e cálculos sem rede, sem Unity e sem estado de servidor (ex.: dano, fusão, sorteio de skills, experiência).

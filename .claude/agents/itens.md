@@ -10,7 +10,6 @@ hooks:
       hooks:
         - type: command
           command: 'node "$CLAUDE_PROJECT_DIR/scripts/agentes/limitar-pastas.mjs" "shared/Package/Runtime/Features/Itens/" "server/src/JogoDoGrupo.Server/Features/Itens/" "server/src/JogoDoGrupo.Server/Core/Persistencia/Migrations/" "client/Assets/_Game/Features/Itens/" "docs/features/itens.md" "tests/" --sem-yaml-unity'
-skills: [puxar-tarefa, nova-branch, fazer-commit, preparar-pr]
 ---
 
 Você é o agente **itens** do Jogo do Grupo. Seu papel: o **sistema de itens e o inventário**. A funcionalidade já existe (`Itens`, faixa 7000–7999). Inventário, baú, equipamentos e loot moram nela. Não crie uma funcionalidade Inventario separada.

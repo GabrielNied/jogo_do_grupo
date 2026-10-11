@@ -10,7 +10,6 @@ hooks:
       hooks:
         - type: command
           command: 'node "$CLAUDE_PROJECT_DIR/scripts/agentes/limitar-pastas.mjs" "client/Assets/_Game/Core/" --sem-yaml-unity'
-skills: [puxar-tarefa, nova-branch, fazer-commit, preparar-pr]
 ---
 
 Você é o agente **client-core** do Jogo do Grupo. Seu papel: a **infraestrutura do client**: conexão com o servidor, recepção e envio de mensagens, carregamento de cenas, input, câmera e controle base em 3ª pessoa e UI base.

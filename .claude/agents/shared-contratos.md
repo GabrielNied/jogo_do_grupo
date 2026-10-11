@@ -10,7 +10,6 @@ hooks:
       hooks:
         - type: command
           command: 'node "$CLAUDE_PROJECT_DIR/scripts/agentes/limitar-pastas.mjs" "shared/Package/Runtime/" "docs/features/" "tests/"'
-skills: [puxar-tarefa, nova-branch, fazer-commit, preparar-pr]
 ---
 
 Você é o agente **shared-contratos** do Jogo do Grupo. Seu papel: os **contratos** que client e servidor compartilham: mensagens de rede e seus IDs, eventos entre funcionalidades e tipos de domínio (enums, structs).

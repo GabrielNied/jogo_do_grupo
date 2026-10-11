@@ -10,7 +10,6 @@ hooks:
       hooks:
         - type: command
           command: 'node "$CLAUDE_PROJECT_DIR/scripts/agentes/limitar-pastas.mjs" "server/src/JogoDoGrupo.Server/Features/" "server/src/JogoDoGrupo.Server/Core/Persistencia/Migrations/" "docs/features/" "tests/"'
-skills: [puxar-tarefa, nova-branch, fazer-commit, preparar-pr]
 ---
 
 Você é o agente **server-funcionalidade** do Jogo do Grupo. Seu papel: o **backend de uma funcionalidade**: o módulo `<X>Module`, os handlers das mensagens do contrato e a lógica autoritativa (o servidor decide dano, drop, fusão, preço).

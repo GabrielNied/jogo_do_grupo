@@ -95,13 +95,13 @@ Quem decide: **servidor** (IA, alvo, dano, morte). Força **fixa**: o inimigo n�
 Quem decide: **servidor** (sorteio, dono, validação da coleta).
 
 - Ao morrer, o inimigo larga itens no chão da instância. O sorteio usa o catálogo e a regra de [itens.md](itens.md); raridade e skills seguem o que o grupo definir lá.
-- **Dono do loot** (**proposta**): quem causou **mais dano real** àquele inimigo; empate vai ao primeiro atacante; dano contínuo conta para quem o causou. Resolve-se uma vez, na morte.
+- ~~**Dono do loot** (**proposta**): quem causou **mais dano real** àquele inimigo; empate vai ao primeiro atacante; dano contínuo conta para quem o causou. Resolve-se uma vez, na morte.~~ Substituído em 2026-10-11: **loot individual também no inimigo comum**; cada jogador que participou (o servidor define "participou") sorteia o próprio loot, no chão só para ele.
 - **Loot do boss** (decidido em 2026-10-11): **individual**; cada jogador que participou da luta sorteia o próprio loot, no chão para ele (o servidor define "participou"). ~~Dono por maior dano~~ substituído em 2026-10-11 por loot individual, só para o boss; o inimigo comum segue a proposta acima.
 - Coleta pela tecla **F** (**proposta**: raio de 12 m). O servidor confere dono, disponibilidade e espaço no inventário.
 - Inventário cheio: o item continua no chão, sem perda, até expirar.
 - Reservado ao dono por **180 s**; ao expirar desaparece (**proposta**).
 - O client mostra o item no chão, o dono e o tempo restante.
-- **Testes esperados:** maior dano recebe o loot; empate vai ao primeiro atacante; coleta simultânea dá o item a um só; inventário cheio mantém o item; expiração remove.
+- **Testes esperados:** ~~maior dano recebe o loot; empate vai ao primeiro atacante;~~ cada participante recebe o próprio sorteio e só ele coleta; quem não participou não recebe; coleta simultânea dá o item a um só; inventário cheio mantém o item; expiração remove.
 
 ### 6. Experiência e nível
 
