@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using JogoDoGrupo.Server.Contratos.Mundo;
 using JogoDoGrupo.Server.Contratos.Personagem;
 using JogoDoGrupo.Server.Core;
 using JogoDoGrupo.Server.Core.TempoReal;
@@ -33,6 +34,7 @@ public sealed class SocialModule : IFeatureModule
     private ServidorTempoReal? _tempoReal;
     private ChatDoServidor? _chat;
     private LimitesDoChat? _limites;
+    private HistoricoDaCidadeDoChat? _historico;
     private ILogger<SocialModule>? _log;
 
     public string Nome => "Social";
@@ -41,6 +43,7 @@ public sealed class SocialModule : IFeatureModule
     {
         servicos.AddSingleton<LimitesDoChat>();
         servicos.AddSingleton<ChatDoServidor>();
+        servicos.AddSingleton<HistoricoDaCidadeDoChat>();
 
         // O módulo não recebe o provedor de serviços; o host cria este serviço antes de abrir a
         // porta UDP, então o diretório já está ligado quando a primeira mensagem chegar.
@@ -99,6 +102,8 @@ public sealed class SocialModule : IFeatureModule
         _tempoReal = contexto.TempoReal;
         _chat = _servicos!.GetRequiredService<ChatDoServidor>();
         _limites = _servicos!.GetRequiredService<LimitesDoChat>();
+        _historico = _servicos!.GetRequiredService<HistoricoDaCidadeDoChat>();
+        contexto.Eventos.Assinar<JogadorEntrouNaArea>(AoEntrarNaArea);
         _log = _servicos!.GetRequiredService<ILogger<SocialModule>>();
 
         contexto.TempoReal.SessaoAutenticada += sessao =>
@@ -126,6 +131,28 @@ public sealed class SocialModule : IFeatureModule
         }
     }
 
+    // Quem entra na cidade recebe o que foi dito há pouco no canal Cidade (se houver algo).
+    private void AoEntrarNaArea(JogadorEntrouNaArea evento)
+    {
+        if (
+            evento.Area != AreasDoMundo.Cidade
+            || !_online.TryGetValue(evento.PersonagemId, out var sessao)
+        )
+        {
+            return;
+        }
+
+        var mensagens = _historico!.Atual();
+        if (mensagens.Length > 0)
+        {
+            _tempoReal!.Enviar(
+                sessao,
+                SocialMessageIds.HistoricoDaCidade,
+                new HistoricoDaCidade { Mensagens = mensagens }
+            );
+        }
+    }
+
     private void AoEnviarMensagem(SessaoTempoReal sessao, EnviarMensagemDeChat pedido)
     {
         lock (_travaDaFila)
@@ -143,7 +170,12 @@ public sealed class SocialModule : IFeatureModule
     {
         try
         {
-            var resultado = _chat!.Processar(sessao.PersonagemId, pedido, _online.ContainsKey);
+            var resultado = _chat!.Processar(
+                sessao.PersonagemId,
+                pedido,
+                _online.ContainsKey,
+                _grupos!.ListaDe
+            );
             if (resultado.Recusa != null)
             {
                 _tempoReal!.Enviar(
@@ -162,6 +194,11 @@ public sealed class SocialModule : IFeatureModule
             }
 
             var mensagem = resultado.Mensagem!;
+            if (mensagem.Canal == CanalDeChat.Cidade)
+            {
+                _historico!.Guardar(mensagem);
+            }
+
             foreach (var personagemId in resultado.Destinatarios)
             {
                 if (_online.TryGetValue(personagemId, out var destino))
