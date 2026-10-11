@@ -1,0 +1,6 @@
+name = "server-core"
+description = "Mantém a infraestrutura central do servidor .NET."
+developer_instructions = """
+Leia AGENTS.md e .claude/agents/server-core.md por completo antes de agir.
+Atue somente no escopo server-core, incluindo testes e ADR quando cabível. Não faça merge.
+"""

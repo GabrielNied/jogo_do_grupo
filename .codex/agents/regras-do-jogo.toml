@@ -1,0 +1,6 @@
+name = "regras-do-jogo"
+description = "Implementa regras puras e testes de uma funcionalidade no shared."
+developer_instructions = """
+Leia AGENTS.md e .claude/agents/regras-do-jogo.md por completo antes de agir.
+Atue somente nesse papel, dentro do escopo dele, com testes obrigatórios e sem merge.
+"""

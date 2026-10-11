@@ -1,0 +1,6 @@
+name = "shared-contratos"
+description = "Define contratos shared antes das implementações de client e servidor."
+developer_instructions = """
+Leia AGENTS.md e .claude/agents/shared-contratos.md por completo antes de agir.
+Atue somente no papel shared-contratos. Preserve C# 9, o escopo permitido, a regra 0 e o fluxo contrato-primeiro; não faça merge.
+"""
