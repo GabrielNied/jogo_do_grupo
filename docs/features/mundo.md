@@ -69,3 +69,39 @@ Campos: `PersonagemId` (long), `X`, `Y`, `Z`, `RotacaoY` (float). Usado em `Esta
 | 1005 | `JogadorSaiu` | servidor → client | `PersonagemId` (long) |
 
 > **Proposta para o servidor (fora deste PR):** recusar `IntencaoDeMovimento` que implique deslocamento acima de 5,5 m/s (valor atual de `MovimentoTerceiraPessoa.VelocidadeCorrer` no client). Esta checagem não está implementada aqui.
+
+## Minimapa e mapa-múndi (propostas, issues #91 e #92)
+
+Tudo abaixo é **proposta** para o grupo validar; nada aqui é decisão ainda. Respeita o já decidido: a fatia tem **uma cidade e uma dungeon** ([fatia-jogavel.md](fatia-jogavel.md)), servidor autoritativo e presença na cidade (#77, mensagens 1000–1005 acima).
+
+**Base:** WoW e New World (minimapa no canto, mapa em tela cheia). **Igual:** minimapa circular/quadrado de cima; tecla M abre o mapa. **Diferente:** sem viagem rápida e sem névoa de exploração na fatia.
+
+### Minimapa
+
+- Fica no canto superior direito, visto de cima, centrado no jogador, com raio de **40 m** (**proposta**). Na cidade (40 × 40 m) cobre quase tudo.
+- Aparece: seta do jogador (posição e direção); jogadores da mesma área; a **entrada da dungeon** (portão norte); NPCs; inimigos próximos.
+- **Visibilidade:** o minimapa mostra só o que o client já recebe. Jogadores vêm da presença da cidade (`EstadoDaCidade`, `JogadorEntrou`, `PosicaoJogador`). Inimigos e NPCs entram quando as respectivas funcionalidades enviarem posições; até lá não aparecem. **O servidor não envia nada extra** por causa do minimapa e não revela quem está fora do alcance de visão que já usa.
+- Jogadores do grupo (party, [social.md](social.md)) com marcador de cor diferente dos demais; inimigos em vermelho só se vivos e dentro do raio.
+- Implementação no client: câmera ortográfica de cima para uma render texture, criada por script (sem cena/prefab à mão). Sem tecla própria na primeira versão (sempre visível); tamanho/ocultar fica para o HUD (#93).
+- **Fora da fatia:** zoom, ícones de recursos, rastro de caminho, marcador colocado pelo jogador.
+- **Testes esperados** (client, EditMode): conversão posição do mundo para posição no minimapa (centro, borda, fora do raio); filtro por raio de 40 m; seta gira com `RotacaoY`.
+
+### Mapa-múndi
+
+- Tecla **M** abre/fecha uma tela cheia; Esc também fecha. O jogo continua rodando por baixo.
+- Na fatia mostra **duas áreas**: a **cidade** (com desenho do hub e o portão norte) e a **dungeon** (esquema: entrada, três salões e salão do boss). Cada área com o **nome** escrito. A área onde o jogador está aparece destacada; as outras ficam como ícone.
+- Marcadores: o próprio jogador (seta) e os aliados da mesma área (mesma fonte do minimapa: presença); **marcadores de missão** só quando [missões](missoes.md) definir posições (fora da fatia por enquanto).
+- **Visibilidade:** o mapa só mostra posições que o client já tem. Aliados em **outra** área (ex.: o grupo na dungeon e você na cidade) não têm posição, só o ícone da área com a contagem de aliados, se o servidor já informar a instância do grupo. Isso é decisão do grupo (item em aberto).
+- O mapa da dungeon mostra os salões já visitados pelo grupo? **Em aberto.**
+- **Sem viagem rápida na fatia** (proposta): a cidade e a dungeon se ligam pelo portão. Viagem rápida segue em aberto acima ("Como funciona a viagem rápida?").
+- **Fora da fatia:** várias regiões, névoa de exploração, zoom e arrasto, anotações, viagem rápida.
+- **Quem decide:** nada do mapa é regra de jogo; o servidor só envia as posições da presença, o client desenha. Se algum dia houver viagem rápida, ela será validada pelo servidor.
+- **Testes esperados** (client, EditMode): tecla M alterna o painel; ícone da área atual destacado; sem posições de áreas diferentes no mesmo mapa.
+
+### Em aberto (dúvidas ao grupo)
+
+- [ ] Raio do minimapa (40 m) e se ele gira com a câmera ou fica fixo ao norte.
+- [ ] Mostrar inimigos no minimapa sempre ou só em combate? Pode tirar o susto do telegrafado.
+- [ ] Aliados em outra área aparecem no mapa-múndi (e o servidor envia a instância do grupo)?
+- [ ] O mapa da dungeon revela salões só depois de visitados?
+- [ ] Viagem rápida existe depois da fatia? Com custo, só a pontos descobertos?
