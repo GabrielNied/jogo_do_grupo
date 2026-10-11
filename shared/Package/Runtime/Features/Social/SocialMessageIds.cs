@@ -51,5 +51,39 @@ namespace JogoDoGrupo.Shared.Features.Social
 
         /// <summary>Servidor → quem entra na cidade: as últimas mensagens do canal Cidade.</summary>
         public const ushort HistoricoDaCidade = 13103;
+
+        // ── Amigos e ignorados: pedidos do client (13200 a 13209) ─────────────────
+
+        /// <summary>Client → servidor: pede amizade ao dono de um personagem, pelo nome.</summary>
+        public const ushort PedirAmizade = 13200;
+
+        /// <summary>Client → servidor: aceita ou recusa um pedido de amizade recebido.</summary>
+        public const ushort ResponderPedidoDeAmizade = 13201;
+
+        /// <summary>Client → servidor: desiste de um pedido de amizade enviado.</summary>
+        public const ushort CancelarPedidoDeAmizade = 13202;
+
+        /// <summary>Client → servidor: desfaz uma amizade.</summary>
+        public const ushort RemoverAmigo = 13203;
+
+        /// <summary>Client → servidor: passa a ignorar o dono de um personagem, pelo nome.</summary>
+        public const ushort IgnorarJogador = 13204;
+
+        /// <summary>Client → servidor: tira um jogador da lista de ignorados.</summary>
+        public const ushort DeixarDeIgnorar = 13205;
+
+        // ── Amigos e ignorados: respostas do servidor (13210 a 13219) ─────────────
+
+        /// <summary>Servidor → client: a lista completa de amigos e de pedidos pendentes.</summary>
+        public const ushort ListaDeAmigos = 13210;
+
+        /// <summary>Servidor → client: um amigo entrou, saiu ou trocou de personagem.</summary>
+        public const ushort AmigoMudouDeEstado = 13211;
+
+        /// <summary>Servidor → client: a lista completa de ignorados.</summary>
+        public const ushort ListaDeIgnorados = 13212;
+
+        /// <summary>Servidor → quem pediu: a operação de amigos ou ignorados foi recusada.</summary>
+        public const ushort OperacaoDeAmizadeRecusada = 13213;
     }
 }
