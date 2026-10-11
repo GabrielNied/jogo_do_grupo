@@ -3,9 +3,8 @@ using JogoDoGrupo.Server.Features.Mundo;
 namespace JogoDoGrupo.Server.Tests.Features.Mundo;
 
 /// <summary>
-/// O client é dono da própria posição (ADR 0024): o servidor valida com um orçamento de
-/// deslocamento, aceita excesso pequeno como suspeita e só força a posição no caso grave, com
-/// confirmação. Relógio controlado pelo teste.
+/// O client é dono da própria posição: o servidor grava o que ele informa e não manda
+/// posição forçada por causa da velocidade. Relógio controlado pelo teste.
 /// </summary>
 public class MovimentoSemVoltarNoTempoTestes
 {
@@ -68,33 +67,27 @@ public class MovimentoSemVoltarNoTempoTestes
     }
 
     [Fact]
-    public void Salto_impossivel_forca_a_posicao_e_ignora_o_movimento_ate_confirmar()
+    public void Salto_grande_vale_a_posicao_do_client_sem_forcar()
     {
         _agora += 1000;
         IrPara(2f);
 
-        Assert.Equal(ResultadoMovimento.Recusado, IrPara(80f));
-        Assert.Equal(2f, X());
-        var sequencia = _cidade.PosicaoForcadaPendente(1);
-        Assert.Equal(1, sequencia);
-
-        // Movimento ainda de antes do teleporte: ignorado, sem nova posição forçada.
-        _agora += 100;
-        Assert.Equal(ResultadoMovimento.AguardandoConfirmacao, IrPara(80.5f));
-        Assert.Equal(1, _cidade.PosicaoForcadaPendente(1));
-
-        Assert.False(_cidade.ConfirmarPosicaoForcada(1, _conexao, 99));
-        Assert.True(_cidade.ConfirmarPosicaoForcada(1, _conexao, 1));
+        Assert.Equal(ResultadoMovimento.AceitoComSuspeita, IrPara(80f));
+        Assert.Equal(80f, X());
         Assert.Null(_cidade.PosicaoForcadaPendente(1));
-        Assert.Equal(ResultadoMovimento.Aceito, IrPara(2.5f));
     }
 
     [Fact]
-    public void Posicao_fora_do_mundo_e_grave_mesmo_perto()
+    public void Posicao_fora_do_mundo_ainda_e_a_do_client()
     {
         var fora = new PosicaoNaCidade(ValidadorDeMovimento.LimiteHorizontal + 1f, 0f, 0f, 0f);
 
-        Assert.Equal(ResultadoMovimento.Recusado, _cidade.Mover(1, _conexao, fora).Resultado);
+        Assert.Equal(
+            ResultadoMovimento.AceitoComSuspeita,
+            _cidade.Mover(1, _conexao, fora).Resultado
+        );
+        Assert.Equal(fora.X, X());
+        Assert.Null(_cidade.PosicaoForcadaPendente(1));
     }
 
     [Fact]
@@ -116,8 +109,9 @@ public class MovimentoSemVoltarNoTempoTestes
             passos++;
         } while (resultado == ResultadoMovimento.AceitoComSuspeita && passos < 50);
 
-        Assert.Equal(ResultadoMovimento.Recusado, resultado);
-        Assert.Equal((int)ValidadorDeMovimento.LimiteDeSuspeitas + 1, passos);
+        Assert.Equal(ResultadoMovimento.AceitoComSuspeita, resultado);
+        Assert.Null(_cidade.PosicaoForcadaPendente(1));
+        Assert.True(passos > (int)ValidadorDeMovimento.LimiteDeSuspeitas);
     }
 
     [Fact]
@@ -164,7 +158,7 @@ public class MovimentoSemVoltarNoTempoTestes
     [Fact]
     public void Outra_sessao_nao_confirma_a_posicao_forcada()
     {
-        IrPara(80f);
+        Assert.Equal(1, _cidade.ForcarPosicao(1, Nascimento with { X = 30f }));
 
         Assert.False(_cidade.ConfirmarPosicaoForcada(1, new Conexao(), 1));
         Assert.Equal(1, _cidade.PosicaoForcadaPendente(1));
