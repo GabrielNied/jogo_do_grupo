@@ -18,7 +18,7 @@ A organização por funcionalidade ([arquitetura.md](arquitetura.md)) é o que t
 | `artista-mundo` | `Features/Mundo/`, `ThirdParty/`, `docs/arte/` | Hub, peças modulares, gerador de dungeon, ambientação | `feature/mundo/<descricao>-arte` | Sonnet |
 | `artista-personagens` | `Features/Personagem/`, `ThirdParty/`, `docs/arte/` | Modelos, animações, Animator, prefabs por raça, encaixes | `feature/personagem/<descricao>-arte` | Sonnet |
 | `artista-itens` | `Features/Itens/`, `ThirdParty/`, `docs/arte/` | Modelos de armas e equipamentos, ícones, encaixe | `feature/itens/<descricao>-arte` | Sonnet |
-| `revisor` | Nenhuma (somente leitura) | Revisar PRs de código contra as regras e a ficha, antes do review humano | — | Sonnet (Opus em Core, segurança, concorrência) |
+| `revisor` | Nenhuma (somente leitura) | Só PRs de risco: Core, segurança, concorrência, contrato ou regra que decide resultado (dano, drop, fusão, preço). O resto fica com o CI e a verificação do autor | — | Sonnet (Opus só nesses PRs de risco) |
 
 As definições completas (regras de cada papel, passo a passo e formato do relatório) estão em [.claude/agents/](../.claude/agents/). São arquivos markdown que **qualquer IA consegue ler**.
 
@@ -33,15 +33,16 @@ O que fica com as **pessoas**:
 
 ```
                        ┌─ regras-do-jogo ──────── PR ─┐
-designer-docs ─► shared-contratos ─► merge ─┼─ server-funcionalidade ── PR ─┼─► revisor ─► pessoa: Unity, review, merge
-(se precisar)        (PR pequeno)           └─ client-funcionalidade ── PR ─┘
+designer-docs ─► shared-contratos ─► merge ─┼─ server-funcionalidade ── PR ─┐
+(se precisar)        (PR pequeno)           └─ client-funcionalidade ── PR ─┴─► CI ─► pessoa: Unity e merge
+                                                                              (revisor só em PR de risco)
 ```
 
 0. **Ficha da tarefa.** O coordenador escreve na issue o objetivo, o contrato, as regras e os testes esperados, e a pessoa aprova uma vez. É o que mais evita retrabalho.
 1. **Regra clara?** Se `docs/features/<x>.md` não diz o que implementar, o `designer-docs` detalha antes, ou a dúvida vai para o grupo. Tarefa pequena: as regras vão direto na ficha.
 2. **Contrato primeiro.** O `shared-contratos` define mensagens, IDs e eventos num PR pequeno, que é revisado e mergeado. Os outros agentes partem da `main`, então precisam do contrato lá.
 3. **Em paralelo.** `regras-do-jogo`, `server-funcionalidade` e `client-funcionalidade` trabalham ao mesmo tempo, cada um no seu **worktree** (uma cópia separada do repo) e na sua branch, e cada um abre o seu PR.
-4. **Revisão.** O `revisor` confere cada PR e aponta o que bloqueia.
+4. **Revisão.** O CI confere formatação, padrão de commit e testes. O `revisor` só entra em PR de risco (veja a tabela de papéis). No resto, a verificação proporcional do autor basta.
 5. **Pessoas.** Montam no Unity o que os agentes de client listaram, testam, aprovam e fazem o merge.
 
 Várias funcionalidades podem andar ao mesmo tempo, cada uma com o seu trio de agentes. O limite real é a capacidade de review das pessoas: prefira PRs pequenos.
@@ -59,7 +60,7 @@ Os artistas ([ADR 0014](decisoes/0014-conteudo-3d-e-agentes-artistas.md)) buscam
 
 ## Regras para todos os agentes
 
-- **Consumo:** relatórios curtos (até 15 linhas; revisor até 20), verificação por comando proporcional à alteração (matriz da skill `preparar-pr`) em vez de testes à mão, revisor só em PRs de código e numa passada só. Cada agente tem `model` e `effort` no próprio arquivo; o coordenador sobe para Opus só em tarefas de risco.
+- **Consumo:** relatórios curtos (até 15 linhas; revisor até 20) e verificação proporcional à alteração (matriz da skill `preparar-pr`). Não repita o que o CI já confere. O `revisor` é uma passada só, e só em PR de risco: Core, segurança, concorrência, contrato ou regra que decide resultado. Arte, tela, conteúdo e ligar um botão não levam revisor. Sonnet é o padrão; Opus só nessas tarefas de risco.
 
 - **Regra 0:** nunca apagar o que as pessoas criaram. No Claude Code, um hook do projeto bloqueia comandos de apagar ([scripts/agentes/bloquear-apagar.mjs](../scripts/agentes/bloquear-apagar.mjs)).
 - **Autorização:** quando uma pessoa pede uma orquestração, ela autoriza os agentes a commitar, enviar as próprias branches e abrir PRs. **Merge é sempre humano.**

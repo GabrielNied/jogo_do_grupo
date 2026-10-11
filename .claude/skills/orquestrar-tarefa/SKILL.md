@@ -24,7 +24,7 @@ Quase todo retrabalho vem de decisão tomada tarde. Antes de lançar agentes, es
 - **Testes esperados:** lista dos casos (caminho feliz, cada erro, limites, concorrência).
 - **Fora do escopo** e **dúvidas em aberto**: o que precisa de decisão do grupo antes de começar.
 
-Com a ficha aprovada, os prompts dos agentes saem dela, e o revisor compara o PR com ela.
+Com a ficha aprovada, os prompts dos agentes saem dela. Se o PR for de risco e houver revisor, ele compara o PR com a ficha.
 
 ## 3. Montar o plano e pedir aprovação
 
@@ -35,9 +35,11 @@ Mostre à pessoa uma tabela e **espere o ok** antes de lançar qualquer agente:
 | 1 | shared-contratos | ... | — |
 | 2a | server-funcionalidade | ... | 1 mergeado |
 | 2b | client-funcionalidade | ... | 1 mergeado |
-| 3 | revisor | revisar os PRs de 2a e 2b | 2a, 2b |
+| 3 | revisor | só se o PR for de risco (veja abaixo) | 2a, 2b |
 
 Pergunte junto: os agentes podem commitar, enviar as branches e abrir PRs? (Merge é sempre humano.)
+
+A etapa 3 só entra no plano quando o PR mexe em Core, segurança, concorrência, contrato ou regra que decide resultado (dano, drop, fusão, preço). Arte, tela, conteúdo 3D e ligar um botão ficam de fora: o CI e a verificação do autor são a qualidade mínima.
 
 **Economize agentes:**
 - Tarefa pequena e clara não precisa de `designer-docs`: as regras vão na ficha.
@@ -74,18 +76,18 @@ Para cada relatório:
 
 - **"Para outros agentes"** vira uma nova subtarefa (outra rodada) ou um item para a pessoa (montar no Unity, decidir algo).
 - **Dúvidas** vão para a pessoa; não decida regras de design por conta própria.
-- Lance o `revisor` só para PRs de **código**, numa passada só. Suba o revisor para `opus` em PRs de Core, segurança, concorrência ou contrato.
+- Lance o `revisor` numa passada só, e só em PR de risco (Core, segurança, concorrência, contrato ou regra que decide resultado). Use `opus` nesses casos. No resto, não lance revisor: o CI e a skill `preparar-pr` bastam.
 - Achados do revisor que valem a pena viram **commits novos na mesma branch**, feitos pelo agente que abriu o PR (retome-o com a mensagem dos ajustes).
 
 ### Quando pedir o merge
 
-Só diga à pessoa que um PR está **pronto para merge** depois que: os checks passaram, o `revisor` aprovou e os ajustes escolhidos foram aplicados. Até lá, deixe claro: "em revisão, **não mergear ainda**".
+Só diga à pessoa que um PR está **pronto para merge** depois que os checks passaram e, se o PR for de risco, o `revisor` aprovou e os ajustes escolhidos foram aplicados. Sem revisor, o CI verde e a verificação proporcional do autor bastam. Enquanto o revisor de um PR de risco não terminar, deixe claro: "em revisão, **não mergear ainda**".
 
 Se um PR for mergeado antes dos ajustes, **não envie mais nada para a branch dele** (ela foi apagada no merge e o push a recriaria). Crie uma branch nova a partir da `origin/main`, traga os commits com `git cherry-pick` e abra um PR novo.
 
 ## 7. Resumo final para a pessoa
 
-- PRs abertos, com links, e o veredito do revisor de cada um.
+- PRs abertos, com links. O veredito do revisor só quando ele rodou.
 - O que montar no editor do Unity e como testar.
 - Decisões pendentes.
 - Worktrees que sobraram (a remoção é da pessoa; a IA não apaga).
