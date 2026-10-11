@@ -35,7 +35,7 @@ Criaturas pesadas usam o mesmo esqueleto com os clipes mais lentos (`peso` nas m
 
 ## Como gerar
 
-Os scripts ficam em [arte/blender/](../../arte/blender/): `lib/` (malha por partes, texturas em numpy, esqueleto e animação, FBX, prévias) e `criaturas/` (um script por criatura). Precisa do Blender 5.2; não precisa de Python instalado.
+Os scripts ficam em [arte/blender/](../../arte/blender/): `lib/` (malha por partes, texturas em numpy, esqueleto e animação, FBX, prévias), `criaturas/` (um script por criatura) e `personagens/` (um por raça, veja [Personagens das raças](#personagens-das-raças)). Precisa do Blender 5.2; não precisa de Python instalado.
 
 ```
 "C:\Program Files\Blender Foundation\Blender 5.2\blender.exe" --background --factory-startup --python arte/blender/criaturas/javali.py
@@ -53,3 +53,21 @@ Os scripts ficam em [arte/blender/](../../arte/blender/): `lib/` (malha por part
 2. Ajuste as constantes do topo (nome, altura, paleta) e as seções da malha; a pintura usa o nome da parte de cada pedaço.
 3. Gere com `--previa`, olhe as folhas e repita até ficar bom.
 4. Acrescente a receita no `GeradorDeCriaturas` e rode-o.
+
+## Personagens das raças
+
+Um modelo humanoide por raça, com o mesmo esqueleto, as mesmas animações e o mesmo padrão de textura, mudando só o **biotipo**, a **paleta**, os **adornos** e a **pintura extra** (marcas, fissuras, brilho). Aparência de cada uma em [personagem.md](../features/personagem.md#visual-do-jogador-arte).
+
+- **Polígonos:** ~1.800 a 2.100 triângulos por raça. **Textura:** 1024×1024 `<Raca>_Cor.png`; `<Raca>_Emissao.png` quando há brilho (Aurídeo, Graníticos e Cinéreos; Valdren e Silvano não têm).
+- **Escala:** 1,8 m do chão ao topo (`ALTURA_ALVO`), contando adornos (chifres, coroa, crista). Pés em Y = 0, frente +Z no Unity. Graníticos são os mais largos e de pernas mais curtas; Silvanos, os mais esguios e de pernas mais longas (`Biotipo` de cada script).
+- **Esqueleto** (pele rígida; E = esquerda do personagem, D = direita): `Raiz` > `Quadril` > `Tronco` > `Cabeca`; `Tronco` > `Costas` (encaixe das costas); `Tronco` > `Braco_E/D` > `Antebraco_E/D` > `Mao_E/D`; `Mao_D` > `Weapon.R` (encaixe da mão direita); `Quadril` > `Perna_E/D` > `Canela_E/D` > `Pe_E/D`.
+- **Clipes:** `Idle`, `Andar`, `Correr`, `Esquivar` (rolamento, sem deslocar o corpo), `Atacar` (golpe perto de 0,35 s), `Morrer` (cai de costas e fica) e `Dano`. Repetem: `Idle`, `Andar`, `Correr`. O blend tree usa andar a 2 m/s e correr a 5 m/s.
+- **Biblioteca:** `arte/blender/lib/humanoide.py` (biotipo, malha do corpo, esqueleto, clipes, pintura base: pele, rosto, tecido, couro, cabelo). Cada raça é um script em `arte/blender/personagens/` com `PALETA`, `BIOTIPO`, `adornos` e `extra`.
+
+### Gerar os personagens
+
+```
+"C:\Program Files\Blender Foundation\Blender 5.2\blender.exe" --background --factory-startup --python arte/blender/personagens/valdren.py
+```
+
+Troque `valdren.py` por `aurideo.py`, `granitico.py`, `cinereo.py` ou `silvano.py` (rode um de cada vez). Cada comando regrava o FBX e os PNG em `client/Assets/_Game/Features/Personagem/Art/Modelos/`; `-- --previa <pasta>` renderiza as folhas `_vistas`, `_rosto` e `_acoes`; `-- --saida <pasta>` grava em outro lugar. Depois, com o editor do Unity fechado: `npm run unity:importar` (só se surgiu arquivo novo) e `npm run unity:executar -- JogoDoGrupo.Client.Features.Personagem.Editor.GeradorJogadoresDasRacas.Gerar`, que monta material, controlador e prefab `Jogador_<Raca>` de cada raça.

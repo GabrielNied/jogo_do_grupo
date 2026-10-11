@@ -11,7 +11,7 @@ public class PersonagensRotasTestes(ServidorDeTeste servidor) : IClassFixture<Se
     private static Task<HttpResponseMessage> Criar(
         HttpClient cliente,
         string nome,
-        Raca raca = Raca.Humano
+        Raca raca = Raca.Valdren
     ) =>
         ServidorDeTeste.PostJsonAsync(
             cliente,
@@ -77,8 +77,26 @@ public class PersonagensRotasTestes(ServidorDeTeste servidor) : IClassFixture<Se
         var criado = await ServidorDeTeste.LerJsonAsync<PersonagemResumo>(resposta);
         Assert.True(criado.Id > 0);
         Assert.Equal(nome, criado.Nome);
-        Assert.Equal(Raca.Humano, criado.Raca);
+        Assert.Equal(Raca.Valdren, criado.Raca);
         Assert.Equal(1, criado.Nivel);
+    }
+
+    [Theory]
+    [InlineData(Raca.Valdren)]
+    [InlineData(Raca.Aurideo)]
+    [InlineData(Raca.Granitico)]
+    [InlineData(Raca.Cinereo)]
+    [InlineData(Raca.Silvano)]
+    public async Task Criar_aceita_cada_uma_das_cinco_racas(Raca raca)
+    {
+        var cliente = await servidor.CriarClienteLogadoAsync();
+
+        var resposta = await Criar(cliente, ServidorDeTeste.NomeUnico(), raca);
+
+        Assert.Equal(HttpStatusCode.Created, resposta.StatusCode);
+        var criado = await ServidorDeTeste.LerJsonAsync<PersonagemResumo>(resposta);
+        Assert.Equal(raca, criado.Raca);
+        Assert.Equal(raca, (await Listar(cliente)).Single().Raca);
     }
 
     [Fact]
@@ -139,6 +157,7 @@ public class PersonagensRotasTestes(ServidorDeTeste servidor) : IClassFixture<Se
 
     [Theory]
     [InlineData(0)]
+    [InlineData(6)]
     [InlineData(99)]
     [InlineData(-1)]
     public async Task Criar_com_raca_invalida_da_400(int raca)

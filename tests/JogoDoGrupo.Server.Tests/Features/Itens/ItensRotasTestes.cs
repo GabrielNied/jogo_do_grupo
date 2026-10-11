@@ -54,7 +54,7 @@ public class ItensRotasTestes(ServidoresDeItens servidores) : IClassFixture<Serv
         var resposta = await ServidorDeTeste.PostJsonAsync(
             cliente,
             RotasPersonagem.Personagens,
-            new CriarPersonagemRequest { Nome = ServidorDeTeste.NomeUnico(), Raca = Raca.Humano }
+            new CriarPersonagemRequest { Nome = ServidorDeTeste.NomeUnico(), Raca = Raca.Valdren }
         );
         Assert.Equal(HttpStatusCode.Created, resposta.StatusCode);
         return (await ServidorDeTeste.LerJsonAsync<PersonagemResumo>(resposta)).Id;

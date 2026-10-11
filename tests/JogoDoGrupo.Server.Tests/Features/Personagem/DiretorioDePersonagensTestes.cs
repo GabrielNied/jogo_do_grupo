@@ -19,7 +19,7 @@ public class DiretorioDePersonagensTestes(ServidorDeTeste servidor) : IClassFixt
         var resposta = await ServidorDeTeste.PostJsonAsync(
             cliente,
             RotasPersonagem.Personagens,
-            new CriarPersonagemRequest { Nome = nome, Raca = Raca.Humano }
+            new CriarPersonagemRequest { Nome = nome, Raca = Raca.Valdren }
         );
         resposta.EnsureSuccessStatusCode();
         return ((await ServidorDeTeste.LerJsonAsync<PersonagemResumo>(resposta)).Id, nome);

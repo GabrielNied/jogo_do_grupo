@@ -53,7 +53,11 @@ namespace JogoDoGrupo.Client.Features.Personagem
         {
             return raca switch
             {
-                Raca.Humano => "Humano",
+                Raca.Valdren => "Valdren",
+                Raca.Aurideo => "Aurídeos",
+                Raca.Granitico => "Graníticos",
+                Raca.Cinereo => "Cinéreos",
+                Raca.Silvano => "Silvanos",
                 // Raça nova no enum ainda sem tradução: mostra o nome do código.
                 _ => raca.ToString(),
             };

@@ -18,7 +18,15 @@ namespace JogoDoGrupo.Client.Features.Personagem
         private readonly List<Raca> _racas = new List<Raca>();
 
         private TextField _nome;
-        private RadioButtonGroup _raca;
+        private readonly List<Button> _botoesRaca = new List<Button>();
+        private VisualElement _escolhaDeRaca;
+        private Label _racaNome;
+        private Label _racaPovo;
+        private Label _racaAparencia;
+        private Label _racaTraco;
+        private Label _racaSkill;
+        private Label _racaTexto;
+        private int _indiceRaca;
         private Button _confirmar;
         private Button _voltar;
         private Label _mensagem;
@@ -30,6 +38,7 @@ namespace JogoDoGrupo.Client.Features.Personagem
 
             var painel = new VisualElement();
             painel.AddToClassList(EstiloCore.Painel);
+            painel.AddToClassList(EstiloPersonagem.PainelSelecao);
 
             var titulo = new Label("Novo personagem");
             titulo.AddToClassList(EstiloCore.Titulo);
@@ -42,7 +51,7 @@ namespace JogoDoGrupo.Client.Features.Personagem
             _nome.RegisterValueChangedCallback(AoMudarNome);
             _nome.RegisterCallback<KeyDownEvent>(AoTeclarNoNome, TrickleDown.TrickleDown);
 
-            _raca = MontarRacas();
+            _escolhaDeRaca = MontarRacas();
 
             _confirmar = new Button(AoClicarConfirmar) { text = "Confirmar" };
             _confirmar.AddToClassList(EstiloCore.Botao);
@@ -62,7 +71,7 @@ namespace JogoDoGrupo.Client.Features.Personagem
             painel.Add(titulo);
             painel.Add(subtitulo);
             painel.Add(_nome);
-            painel.Add(_raca);
+            painel.Add(_escolhaDeRaca);
             painel.Add(linha);
             painel.Add(_mensagem);
             raiz.Add(painel);
@@ -74,21 +83,85 @@ namespace JogoDoGrupo.Client.Features.Personagem
             _nome.schedule.Execute(() => _nome.Focus());
         }
 
-        /// <summary>Uma opção por valor do enum <see cref="Raca"/>; a primeira já vem escolhida.</summary>
-        private RadioButtonGroup MontarRacas()
+        /// <summary>
+        /// Uma opção por valor do enum <see cref="Raca"/> (na ordem do enum), com o cartão da
+        /// raça escolhida ao lado. A primeira já vem escolhida.
+        /// </summary>
+        private VisualElement MontarRacas()
         {
-            var nomes = new List<string>();
             foreach (Raca raca in Enum.GetValues(typeof(Raca)))
             {
                 _racas.Add(raca);
-                nomes.Add(TextosPersonagem.NomeDaRaca(raca));
             }
 
-            var grupo = new RadioButtonGroup("Raça", nomes);
-            grupo.AddToClassList(EstiloCore.Campo);
-            grupo.AddToClassList(EstiloPersonagem.Racas);
-            grupo.value = _racas.Count > 0 ? 0 : -1;
-            return grupo;
+            var linha = new VisualElement();
+            linha.AddToClassList(EstiloPersonagem.EscolhaDeRaca);
+
+            var coluna = new VisualElement();
+            coluna.AddToClassList(EstiloPersonagem.ListaDeRacas);
+            for (var i = 0; i < _racas.Count; i++)
+            {
+                var indice = i;
+                var botao = new Button(() => EscolherRaca(indice))
+                {
+                    text = TextosPersonagem.NomeDaRaca(_racas[i]),
+                };
+                botao.AddToClassList(EstiloPersonagem.Item);
+                botao.AddToClassList(EstiloPersonagem.RacaBotao);
+                _botoesRaca.Add(botao);
+                coluna.Add(botao);
+            }
+
+            var cartao = new VisualElement();
+            cartao.AddToClassList(EstiloPersonagem.CartaoDaRaca);
+            _racaNome = NovoRotulo(cartao, EstiloPersonagem.ItemNome);
+            _racaPovo = NovoRotulo(cartao, EstiloPersonagem.ItemDetalhes);
+            _racaAparencia = NovoRotulo(cartao, EstiloPersonagem.CartaoTexto);
+            _racaTraco = NovoRotulo(cartao, EstiloPersonagem.CartaoTexto);
+            _racaSkill = NovoRotulo(cartao, EstiloPersonagem.CartaoTexto);
+            _racaTexto = NovoRotulo(cartao, EstiloPersonagem.CartaoCitacao);
+
+            linha.Add(coluna);
+            linha.Add(cartao);
+            EscolherRaca(0);
+            return linha;
+        }
+
+        private static Label NovoRotulo(VisualElement pai, string classe)
+        {
+            var rotulo = new Label();
+            rotulo.AddToClassList(classe);
+            pai.Add(rotulo);
+            return rotulo;
+        }
+
+        private void EscolherRaca(int indice)
+        {
+            if (_esperando || indice < 0 || indice >= _racas.Count)
+            {
+                return;
+            }
+
+            _indiceRaca = indice;
+            for (var i = 0; i < _botoesRaca.Count; i++)
+            {
+                if (i == indice)
+                {
+                    _botoesRaca[i].AddToClassList(EstiloPersonagem.ItemSelecionado);
+                }
+                else
+                {
+                    _botoesRaca[i].RemoveFromClassList(EstiloPersonagem.ItemSelecionado);
+                }
+            }
+
+            var dados = DadosDasRacas.Procurar(_racas[indice]);
+            _racaNome.text = TextosPersonagem.NomeDaRaca(_racas[indice]);
+            _racaPovo.text = dados?.Povo ?? "";
+            _racaAparencia.text = dados?.Aparencia ?? "";
+            _racaTraco.text = dados?.Traco ?? "";
+            _racaSkill.text = dados?.SkillRacial ?? "";
+            _racaTexto.text = dados != null ? "“" + dados.Texto + "”" : "";
         }
 
         private void AoMudarNome(ChangeEvent<string> evt)
@@ -133,7 +206,7 @@ namespace JogoDoGrupo.Client.Features.Personagem
                 return;
             }
 
-            var indice = _raca.value;
+            var indice = _indiceRaca;
             if (indice < 0 || indice >= _racas.Count)
             {
                 MostrarMensagem("Escolha uma raça.", EstiloCore.MensagemErro);
@@ -209,7 +282,7 @@ namespace JogoDoGrupo.Client.Features.Personagem
         {
             _esperando = esperando;
             _nome.SetEnabled(!esperando);
-            _raca.SetEnabled(!esperando);
+            _escolhaDeRaca.SetEnabled(!esperando);
             _confirmar.SetEnabled(!esperando);
             _voltar.SetEnabled(!esperando);
         }

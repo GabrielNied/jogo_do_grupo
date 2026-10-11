@@ -54,7 +54,7 @@ namespace JogoDoGrupo.Client.Features.Personagem.Tests
             {
                 Id = 3,
                 Nome = "Ana",
-                Raca = Raca.Humano,
+                Raca = Raca.Valdren,
                 Nivel = 4,
             };
 
@@ -64,7 +64,7 @@ namespace JogoDoGrupo.Client.Features.Personagem.Tests
             Assert.AreEqual("Nome", linhas[0].Key);
             Assert.AreEqual("Ana", linhas[0].Value);
             Assert.AreEqual("Raça", linhas[1].Key);
-            Assert.AreEqual("Humano", linhas[1].Value);
+            Assert.AreEqual("Valdren", linhas[1].Value);
             Assert.AreEqual("Nível", linhas[2].Key);
             Assert.AreEqual("4", linhas[2].Value);
         }

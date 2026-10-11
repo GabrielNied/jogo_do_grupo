@@ -197,6 +197,7 @@ namespace JogoDoGrupo.Client.Features.Personagem
         private void MostrarLista(PersonagemResumo[] recebidos)
         {
             _personagens.Clear();
+            RegistroVisualJogador.LembrarRacas(recebidos);
             if (recebidos != null)
             {
                 foreach (var personagem in recebidos)

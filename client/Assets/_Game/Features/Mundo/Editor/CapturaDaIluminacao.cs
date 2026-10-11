@@ -67,7 +67,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
 
         private static void Colocar()
         {
-            var jogador = Resources.Load<GameObject>("Personagem/Jogador_Humano");
+            var jogador = Resources.Load<GameObject>("Personagem/Jogador_Valdren");
             if (jogador != null)
             {
                 var j = (GameObject)Object.Instantiate(jogador, Centro, Quaternion.identity);

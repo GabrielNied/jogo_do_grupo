@@ -23,7 +23,7 @@ Decidido pelo grupo em 2026-10-10. É **provisório**: serve para implementar a 
 - A seleção de personagem exige estar **logado** (nome de usuário + senha). Conta e login são infraestrutura do Core, não desta funcionalidade.
 - Até **4 personagens por conta**.
 - Nome do personagem: **3 a 16 letras**, só letras de A a Z, sem acento, espaço ou número; **único** no servidor sem diferenciar maiúsculas.
-- **Uma raça provisória: Humano**, até o grupo definir as raças definitivas.
+- ~~**Uma raça provisória: Humano**, até o grupo definir as raças definitivas.~~ substituído em 2026-10-11 por: **cinco raças jogáveis** (veja [Raças](#raças-propostas-no-board-2026-10-11) e [Raça](#raça)), a pedido do Gabriel; o antigo Humano (valor 1) virou **Valdren**.
 - O personagem começa no **nível 1**.
 - Fluxo de entrada: abertura → login (ou registro) → seleção de personagem → criação → volta para a seleção. ~~"Entrar" ainda não leva a um mundo.~~ substituído em 2026-10-11 por: "Entrar" leva ao mundo (veja [Fluxo de entrada no jogo](#fluxo-de-entrada-no-jogo)).
 - Comunicação pela API HTTP do [ADR 0009](../decisoes/0009-api-http-para-conta-e-personagens.md) (veja [Expõe](#expõe)).
@@ -39,7 +39,7 @@ Estas funções não concedem prêmios nem persistem dados. Integração com ser
 
 ## Raças propostas no board (2026-10-11)
 
-O "Livro de ideias de Asterra" do FigJam propõe **cinco povos jogáveis**. Cada raça dá um **traço** e uma **skill racial**; armas e equipamentos continuam livres para todos, e cada raça tem 1 ou 2 modelos iniciais. O board avisa que nomes e números novos **continuam propostas**: **ainda não implementado** e o servidor segue aceitando só Humano ([Raça](#raça)). Texto completo de cada raça (identidade, aparência, combinações): [figjam.md](../brainstorm/figjam.md#01--raças-de-asterra).
+O "Livro de ideias de Asterra" do FigJam propõe **cinco povos jogáveis**. Cada raça dá um **traço** e uma **skill racial**; armas e equipamentos continuam livres para todos, e cada raça tem 1 ou 2 modelos iniciais. O board avisa que nomes e números novos **continuam propostas**: **implementadas no servidor, na criação e no visual** desde 2026-10-11 (só o traço e a skill racial ainda não: [Skills](skills.md), #341) ([Raça](#raça)). Texto completo de cada raça (identidade, aparência, combinações): [figjam.md](../brainstorm/figjam.md#01--raças-de-asterra).
 
 | Raça | Traço | Skill racial (recarga) |
 |---|---|---|
@@ -49,7 +49,7 @@ O "Livro de ideias de Asterra" do FigJam propõe **cinco povos jogáveis**. Cada
 | Cinéreos (herdeiros da brasa) | Corpo de Fornalha: 15% menos dano de queimadura | Sopro de Cinzas: faixa de 25 m por 8 m por 8 s, inflamável (65 s) |
 | Silvanos (guardiões das trilhas) | Leitor de Rastros: pegadas de criaturas estudadas ficam mais visíveis | Chamado da Clareira: figura sonora e luminosa a até 60 m por 12 s atrai criaturas (60 s) |
 
-O Humano provisório provavelmente vira **Valdren** (ambos são humanos); isso precisa de confirmação do grupo. Quando a decisão sair, ela ainda precisa chegar em [Skills](skills.md) (as skills raciais) e no enum `Raca`.
+O Humano provisório virou **Valdren** (decisão do Gabriel, 2026-10-11; mesmo valor `1` no banco). Cada raça tem **um** modelo (o board fala em 1 ou 2; um basta por ora).
 
 ## Nível, atributos e rotina (proposta do board, 2026-10-11)
 
@@ -67,7 +67,7 @@ Do "Livro de ideias de Asterra" ([seções 10 e 09](../brainstorm/figjam.md#10--
 
 - [ ] Conflito livro x docs: o board pede **sem perda nenhuma na morte** (nem durabilidade) e esta doc já prevê isso só para a fatia; confirmar se vale para o jogo todo.
 - [ ] Conflito livro x docs: o board dá o **orçamento de skills de 12 pontos** com o nível (+1 a cada 5), mas ainda não diz se os atributos mudam o orçamento. Validar com o grupo.
-- [ ] Quais raças existem e qual a skill base de cada uma? (as raças definitivas substituem a raça provisória Humano) **Proposta no board: cinco raças, veja [Raças propostas](#raças-propostas-no-board-2026-10-11); falta o grupo validar.**
+- [ ] Quais raças existem e qual a skill base de cada uma? (as raças definitivas substituem a raça provisória Humano) **Cinco raças em uso desde 2026-10-11 ([Raças propostas](#raças-propostas-no-board-2026-10-11)); a skill base de cada uma segue em [Skills](skills.md) (#341).**
 - [ ] ~~Quais raças e classes existem?~~ classes não existem mais (D2)
 - [ ] O que o nível dá ao personagem (atributos, espaços de skill, acesso a itens)?
 - [ ] Nível máximo e curva de progressão
@@ -86,7 +86,7 @@ Do "Livro de ideias de Asterra" ([seções 10 e 09](../brainstorm/figjam.md#10--
 
 ## Regras
 
-**Base:** World of Warcraft (tela de seleção de personagem). **Igual:** a conta tem uma lista de personagens; a tela mostra a lista, um botão para criar e um para entrar; a criação pede nome e raça. **Diferente:** não se escolhe classe (D2); por enquanto só existe uma raça e não há customização de aparência; o limite é bem menor (4 por conta).
+**Base:** World of Warcraft (tela de seleção de personagem). **Igual:** a conta tem uma lista de personagens; a tela mostra a lista, um botão para criar e um para entrar; a criação pede nome e raça. **Diferente:** não se escolhe classe (D2); são cinco raças, cada uma com um modelo, e não há customização de aparência; o limite é bem menor (4 por conta).
 
 ### Nome do personagem
 
@@ -104,8 +104,8 @@ Do "Livro de ideias de Asterra" ([seções 10 e 09](../brainstorm/figjam.md#10--
 
 ### Raça
 
-- Única raça aceita por enquanto: **Humano**. Qualquer outro valor é recusado pelo servidor.
-- Na tela de criação, Humano já vem escolhido (é a única opção).
+- Aceitas: **Valdren, Aurídeos, Graníticos, Cinéreos e Silvanos** (enum `Raca`: 1 a 5). Qualquer outro valor é recusado pelo servidor. ~~Única raça aceita por enquanto: Humano.~~ substituído em 2026-10-11.
+- Na tela de criação, a primeira raça (Valdren) já vem escolhida; ao escolher outra, um cartão mostra o povo, a aparência, o traço, a skill racial e a frase de seleção (textos de `DadosDasRacas`, do board). O jogador entra no mundo com o modelo da raça do personagem.
 - A skill base da raça ainda não existe (depende de [Skills](skills.md) e das raças definitivas).
 
 ### Limite por conta
@@ -142,7 +142,7 @@ Do "Livro de ideias de Asterra" ([seções 10 e 09](../brainstorm/figjam.md#10--
    - botão **Sair**: encerra a sessão e volta para o login;
    - botão **Entrar**: só funciona com um personagem selecionado. ~~**Por enquanto não leva a um mundo** (ainda não existe): mostra a mensagem "O jogo ainda não foi implementado." e continua na seleção. Não chama o servidor.~~ substituído em 2026-10-11 por: chama `EntradaNoJogo.Entrar(id)` (Core, veja [Entrada no mundo](../arquitetura.md#entrada-no-mundo)) com o id do personagem selecionado e **deixa a seleção**: o jogador entra no mundo com o visual humano ([Visual do jogador](#visual-do-jogador-arte)). Não chama o servidor. Sem personagem selecionado, não faz nada.
 4. **Criação de personagem:**
-   - campo de **nome** e escolha de **raça** (só Humano);
+   - campo de **nome** e escolha de **raça** (lista das cinco raças com o cartão da escolhida);
    - enquanto a pessoa digita, o client confere o formato do nome com `RegrasPersonagem.ValidarNome` e avisa se estiver errado, sem chamar o servidor;
    - botão **Confirmar**: envia nome e raça ao servidor;
      - **deu certo:** volta para a seleção, com a lista atualizada e o personagem novo selecionado;
@@ -157,7 +157,7 @@ O servidor recusa e diz o motivo, para o client mostrar uma mensagem clara:
 |---|---|---|
 | Nome inválido | fora do formato (tamanho ou caracteres) | "O nome deve ter de 3 a 16 letras (A–Z, sem acento, espaço ou número)." |
 | Nome em uso | já existe personagem com esse nome, sem diferenciar maiúsculas | "Esse nome já está em uso." |
-| Raça inválida | raça diferente de Humano | "Raça inválida." |
+| Raça inválida | raça fora das cinco do enum | "Raça inválida." |
 | Limite atingido | a conta já tem 4 personagens | "Você já tem o máximo de 4 personagens." |
 | Não autenticado | sem token ou token inválido/expirado | volta para o login (Core) |
 
@@ -257,7 +257,7 @@ API HTTP para listar e criar personagens (por que HTTP: [ADR 0009](../decisoes/0
 
 - **`PersonagemResumo`:** o que a seleção mostra de cada personagem: Id, Nome, Raca e Nivel.
 - **`CriarPersonagemRequest`:** o que a criação envia: Nome e Raca.
-- **`Raca`:** enum do shared (hoje só `Humano`). No JSON trafega como **número**, não como texto.
+- **`Raca`:** enum do shared (`Valdren`=1, `Aurideo`=2, `Granitico`=3, `Cinereo`=4, `Silvano`=5). No JSON trafega como **número**, não como texto.
 - **`RegrasPersonagem.ValidarNome`:** validador do formato do nome, usado pelo client e pelo servidor.
 - **`ListaPersonagensResponse`:** a lista de personagens da conta (de 0 a 4).
 - **`CodigosErroPersonagem`:** os códigos dos motivos de recusa (`NomeInvalido`, `NomeJaExiste`, `LimitePersonagens`, `RacaInvalida`), que chegam no campo `Codigo` do `ErroApi` do Core. Erros genéricos (não autenticado, requisição inválida, erro interno) usam os códigos do Core (`CodigosErro`).
@@ -282,17 +282,19 @@ Regras na [fatia jogável, seção 6](fatia-jogavel.md#6-experiência-e-nível).
 
 ## Visual do jogador (arte)
 
-O visual do personagem humano é um modelo low-poly CC0 (Quaternius, ver [licenças](../arte/licencas.md)), já com esqueleto e animações. O client só **mostra**; quem decide posição e estado é o servidor.
+Cada raça tem **um modelo próprio** low-poly (humanoide de 1,8 m, gerado no Blender por script: [ADR 0025](../decisoes/0025-modelos-proprios-no-blender-por-script.md) e [padrão dos modelos](../arte/padrao-de-modelos.md#personagens-das-raças)), já com esqueleto e animações. O client só **mostra**; quem decide posição e estado é o servidor. O visual vem do identificador da raça (o valor do enum `Raca`).
 
-- **Registro no Core:** `RegistroVisualJogador` (`Features/Personagem/Scripts/`) chama `EntradaNoJogo.DefinirVisualDoJogador` antes da primeira cena (`BeforeSceneLoad`) e devolve o próprio prefab; o Core instancia. Por enquanto o id do personagem não muda o visual (só existe o humano).
-- **Prefab:** `client/Assets/_Game/Features/Personagem/Resources/Personagem/Jogador_Humano.prefab` (carregar com `Resources.Load<GameObject>("Personagem/Jogador_Humano")`). Altura de 1,8 m, pés em Y=0, frente em +Z. O `Animator` fica na raiz do prefab. Não tem `CharacterController`, câmera nem lógica: isso é do Core.
-- **Geração:** tudo (importação do FBX, material, controller e prefab) sai do script de editor `Features/Personagem/Editor/GeradorJogadorHumano.cs`, menu **Jogo do Grupo > Personagem > Gerar jogador humano**. Rodar de novo recria o mesmo resultado. Não edite o controller e o prefab à mão.
+- **Registro no Core:** `RegistroVisualJogador` (`Features/Personagem/Scripts/`) chama `EntradaNoJogo.DefinirVisualDoJogador` antes da primeira cena (`BeforeSceneLoad`) e devolve o prefab da raça do personagem (`Jogador_<Raca>`); o Core instancia. A seleção guarda a raça de cada personagem da lista (`LembrarRacas`); personagem fora da lista usa o Valdren.
+- **Prefabs:** `client/Assets/_Game/Features/Personagem/Resources/Personagem/Jogador_<Raca>.prefab` com `<Raca>` = `Valdren`, `Aurideo`, `Granitico`, `Cinereo` ou `Silvano` (nome do enum, sem acento; carregar com `Resources.Load<GameObject>("Personagem/Jogador_Valdren")`). Altura de 1,8 m, pés em Y=0, frente em +Z. O `Animator` fica na raiz do prefab. Não tem `CharacterController`, câmera nem lógica: isso é do Core.
+- **Aparência** (um acabamento por raça; texto das raças no [board](../brainstorm/figjam.md#01--raças-de-asterra)): Valdren, humano de pele morena, tecido grosso, couro e cachecol ocre; Aurídeos, esguios de pele dourada, olhos claros e marcas douradas que brilham, diadema de sol; Graníticos, os mais largos e baixos, pele de granito facetado com fissuras âmbar que brilham e ombros de pedra; Cinéreos, pele de cinza e carvão, olhos de brasa, fissuras vermelhas e placas de obsidiana; Silvanos, os mais esguios, orelhas alongadas, cabelo e coroa de folhas, saiote de folhas.
+- **Geração:** os FBX e PNG saem do Blender (`arte/blender/personagens/`, comandos em [padrao-de-modelos.md](../arte/padrao-de-modelos.md#gerar-os-personagens)); material, controller e prefab saem do script de editor `Features/Personagem/Editor/GeradorJogadoresDasRacas.cs`, menu **Jogo do Grupo > Personagem > Gerar jogadores das raças** (`npm run unity:executar -- JogoDoGrupo.Client.Features.Personagem.Editor.GeradorJogadoresDasRacas.Gerar`). Rodar de novo recria o mesmo resultado. Não edite o controller e o prefab à mão.
 - **Parâmetros do Animator** (usados pelo Core e, depois, pelo combate):
 
 | Parâmetro | Tipo | Significado |
 |---|---|---|
 | `Velocidade` | float | velocidade horizontal em m/s |
 | `NoChao` | bool | `true` quando está no chão (padrão `true`); ainda não muda nenhum estado |
+| `Esquiva` | trigger | dispara o rolamento |
 
-- **Estados:** um único estado `Movimento`, um blend tree 1D por `Velocidade`: parado (0 m/s), andar (2 m/s), correr (5 m/s). Entre os pontos o Animator mistura os clipes. Esquivar, ataques, skill, dano e morte entram nas próximas tarefas (o modelo já traz clipes de `Attack`, `Roll`, `RecieveHit` e `Death`).
-- **Encaixe de equipamento:** o nome **`EncaixeMaoDireita`** fica reservado para o ponto de encaixe da mão direita (uso do artista de itens). Ainda **não existe** no prefab; o osso do modelo onde ele vai ficar é `Weapon.R`.
+- **Estados:** `Movimento`, um blend tree 1D por `Velocidade`: parado (0 m/s), andar (2 m/s), correr (5 m/s), e `Esquiva` (estado qualquer, por `Esquiva`; volta a `Movimento` perto do fim). O FBX também traz os clipes `Atacar`, `Morrer` e `Dano` (ainda sem estado no controller: entram com o combate). Nomes dos clipes: `Idle`, `Andar`, `Correr`, `Esquivar`, `Atacar`, `Morrer`, `Dano`.
+- **Esqueleto e encaixes:** `Raiz` > `Quadril` > `Tronco` > `Cabeca`; `Tronco` > `Braco_E/D` > `Antebraco_E/D` > `Mao_E/D`; `Quadril` > `Perna_E/D` > `Canela_E/D` > `Pe_E/D` (E = esquerda do personagem). Os encaixes são objetos vazios criados pelo gerador, com esses nomes fixos (uso do artista de itens): **`EncaixeMaoDireita`**, filho do osso `Weapon.R` (que fica na palma da mão direita), e **`EncaixeCostas`**, filho do osso `Costas` (que fica nas costas, no alto do tronco). Os dois começam sem rotação e sem escala; o artista de itens ajusta a pose da arma no próprio encaixe.
