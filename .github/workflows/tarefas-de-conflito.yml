@@ -1,0 +1,36 @@
+name: Tarefa para conflito de PR
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: read
+  issues: write
+
+jobs:
+  criar-tarefa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Cria uma tarefa se a PR conflita com a base
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          NUMERO: ${{ github.event.pull_request.number }}
+          ORIGEM: ${{ github.event.pull_request.head.ref }}
+          BASE: ${{ github.event.pull_request.base.ref }}
+        run: |
+          for tentativa in 1 2 3 4 5; do
+            estado=$(gh api "repos/$REPO/pulls/$NUMERO" --jq '.mergeable_state')
+            [ "$estado" != "unknown" ] && break
+            sleep 5
+          done
+          [ "$estado" = "dirty" ] || exit 0
+
+          titulo="[Core] Resolver conflito da PR #$NUMERO"
+          existente=$(gh api "repos/$REPO/issues?state=open&per_page=100" --jq ".[] | select(.title == \"$titulo\") | .number" | head -n 1)
+          [ -n "$existente" ] && exit 0
+
+          gh issue create --repo "$REPO" --title "$titulo" --label core --body "## Conflito detectado\n\nA PR #$NUMERO (branch \`$ORIGEM\`) conflita com \`$BASE\`.\n\n## Como resolver\n\n1. Puxe esta tarefa normalmente.\n2. Na sua branch, una \`origin/$ORIGEM\` e depois \`origin/$BASE\` com merge normal.\n3. Resolva os conflitos e abra uma PR cuja base seja \`$ORIGEM\`.\n\nNão use rebase nem force-push."
