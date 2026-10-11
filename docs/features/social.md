@@ -8,7 +8,7 @@
 
 Party (time, chamado de **grupo** nas regras), guilda e chat.
 
-Esta página detalha o **grupo** (convite, lista, líder, sair e expulsar; issue #94). Chat (#95), guilda e divisão de loot ficam para outras tarefas.
+Esta página detalha o **grupo** (convite, lista, líder, sair e expulsar; issue #94). ~~Chat (#95),~~ guilda e divisão de loot ficam para outras tarefas. O chat tem regras em proposta em [Chat de texto](#chat-de-texto-issue-95) (acrescentado em 2026-10-11).
 
 ## Definido
 
@@ -27,6 +27,14 @@ Esta página detalha o **grupo** (convite, lista, líder, sair e expulsar; issue
 - [ ] Bloquear convites (modo "não aceitar grupo") e fila automática de grupo: ficam fora da primeira versão?
 - [ ] Raid de 10: é um grupo maior ou dois grupos de 5 juntos? (veja [instancias.md](instancias.md))
 - [ ] O grupo desfaz ao ficar com 1 pessoa? (proposta: sim)
+- [ ] Chat (#95), decisões do grupo:
+  - [ ] Aprovar os três canais (Cidade, Grupo, Sussurro) e os números da tabela de limites (proposta)
+  - [ ] O canal **Cidade** vale só para quem está na cidade (proposta) ou é um canal do servidor inteiro, que também chega dentro da dungeon?
+  - [ ] Filtro de palavrões: fica fora da primeira versão (proposta) ou entra uma lista simples?
+  - [ ] **Ignorar jogador** gravado neste computador (proposta) ou na conta, pelo servidor?
+  - [ ] O servidor guarda as mensagens em algum lugar para moderação? (proposta: não guarda; só o histórico curto da Cidade em memória)
+  - [ ] Denunciar jogador e silenciar por um moderador: ficam para depois?
+  - [ ] Sussurro para quem está em outra área (ex.: você na cidade e a pessoa na dungeon): pode? (proposta: sim)
 
 ## Regras
 
@@ -154,13 +162,104 @@ Concorrência:
 - Convite aceito enquanto o convidante cai: `ConvidanteOffline`, e nenhum grupo meio criado.
 - Duas expulsões simultâneas do mesmo alvo: uma vale, a outra recebe `AlvoNaoEstaNoGrupo`.
 
+### Chat de texto (issue #95)
+
+Tudo aqui é **proposta**; nada é decisão ainda. Base: chat do [World of Warcraft](../referencias.md) (canais com cor, sussurro por nome, comandos com barra). Igual: canal da área, canal do grupo, sussurro e abrir a caixa com Enter. Diferente: só três canais, sem canais criados por jogadores, sem canal de comércio e sem guilda por enquanto.
+
+Quem decide: **servidor**. O client envia o texto e o canal; o servidor valida, define quem recebe, carimba a hora e repassa. O nome de quem falou vem da **sessão autenticada**, nunca de um campo do client.
+
+#### Canais
+
+| Canal | Quem recebe | Quem pode falar | Comando | Cor |
+|---|---|---|---|---|
+| **Cidade** | todos os personagens que estão na cidade | quem está na cidade | `/c texto` | branco |
+| **Grupo** | todos os membros online do seu grupo, em qualquer área | quem está em um grupo | `/g texto` | azul |
+| **Sussurro** | só o personagem indicado (e você vê a sua própria mensagem) | qualquer personagem online | `/s Nome texto` | rosa |
+| **Sistema** | só você | ninguém (só leitura) | não tem | amarelo |
+
+- **Cidade** segue a presença na cidade ([mundo.md](mundo.md)): entra quem recebeu `EstadoDaCidade` e sai quem saiu da cidade. Dentro da dungeon o canal não existe: falar nele devolve `CanalIndisponivel`.
+- **Grupo** usa a lista do [grupo](#grupo-issue-94). Sem grupo: `NaoEstaEmGrupo`. Membro offline com a vaga guardada não recebe o que foi dito enquanto estava fora.
+- **Sussurro** indica a pessoa pelo **nome do personagem**, sem diferenciar maiúsculas de minúsculas (mesma regra do convite). Nome inexistente ou personagem offline: `AlvoNaoEncontrado` (a mesma resposta nos dois casos). Para si mesmo: `SussurroParaSiMesmo`. Funciona entre áreas.
+- **Sistema** não passa pelo servidor de chat: são as mensagens de sistema do HUD (issue #93, [interface.md](interface.md)) repetidas no histórico do chat do client.
+
+#### Limites da mensagem
+
+| Regra | Valor (proposta) | Recusa |
+|---|---|---|
+| Tamanho | 1 a **200** caracteres, depois de tirar os espaços do começo e do fim | `MensagemVazia`, `MensagemLongaDemais` |
+| Quebras de linha e caracteres de controle | não são aceitos; o servidor troca por espaço antes de medir | — |
+| Frequência | no máximo **5 mensagens em 10 s** por personagem, somando os canais | `MensagensRapidasDemais` |
+| Repetição | a mesma mensagem (ignorando maiúsculas e espaços) no mesmo canal em menos de **30 s** | `MensagemRepetida` |
+| Silêncio automático | estourar a frequência **3 vezes em 5 minutos** silencia o personagem por **60 s** em todos os canais | `Silenciado` (com os segundos que faltam) |
+
+- O texto é **texto puro**. O servidor não interpreta formatação e o client mostra o texto com as marcas de formatação desligadas (rich text desativado no rótulo), para ninguém mudar cor, tamanho ou criar link falso com o que digita.
+- Letras acentuadas, números e pontuação são aceitos (a restrição de A a Z vale só para o nome do personagem).
+- Mensagem recusada **não é entregue a ninguém** e só quem enviou recebe o código.
+- Mensagem aceita: o remetente recebe a própria mensagem de volta pelo servidor (é a confirmação), com a hora do servidor.
+
+#### Histórico curto
+
+- **Servidor:** guarda em memória as últimas **20** mensagens do canal Cidade, com no máximo **10 minutos**, e as envia a quem entra na cidade. Grupo e sussurro **não** têm histórico no servidor. Nada vai para o banco; reiniciar o servidor limpa tudo.
+- **Client:** guarda as últimas **100** linhas (todos os canais) enquanto o jogo está aberto. Fechar o jogo apaga.
+
+#### Moderação mínima
+
+- O que existe na primeira versão: os limites da tabela acima (frequência, repetição e silêncio automático) e **ignorar jogador**.
+- **Ignorar** (`/ignorar Nome`, `/designorar Nome`): o client esconde as mensagens daquele nome em todos os canais. A lista fica **neste computador** (até **50** nomes), junto com as opções. O servidor não participa; quem foi ignorado não fica sabendo.
+- Ficam fora: filtro de palavrões, denúncia, moderadores e punição manual (itens em "Em aberto").
+- O servidor **não escreve o texto das mensagens no log** (privacidade); registra só quem falou, em que canal e se foi recusada.
+
+#### Na tela (client)
+
+- Painel no canto inferior esquerdo, acima das barras do personagem, mostrando as últimas **8** linhas; cada linha com a hora, o canal e o nome. Sem atividade por **10 s**, o painel fica quase transparente.
+- **Enter** abre a caixa de texto; **Enter** de novo envia; **Esc** fecha sem enviar. Com a caixa aberta, as ações do jogo não disparam (mesma regra do menu, [interface.md](interface.md)).
+- A mensagem sem comando vai para o **último canal usado** (o primeiro é Cidade). `/r texto` responde ao último sussurro recebido.
+- Comando desconhecido não é enviado ao servidor: aparece uma linha de Sistema explicando.
+- A tecla Enter para abrir o chat entra na tabela de [teclas e atalhos](interface.md#teclas-e-atalhos) quando o chat for implementado.
+
+#### O que o servidor decide e valida
+
+- Quem falou (pela sessão), a hora, o canal e quem recebe.
+- Tamanho, frequência, repetição e silêncio; nada disso depende do client.
+- Que o remetente pode usar o canal (está na cidade, está em um grupo, o alvo do sussurro existe e está online).
+- A entrega é confiável e em ordem (`EntregaTempoReal.Confiavel`, veja [arquitetura](../arquitetura.md#servidor-tempo-real-udp)).
+
+#### Erros que o servidor devolve (**proposta** de nomes)
+
+| Código | Quando |
+|---|---|
+| `MensagemVazia` | texto vazio depois de tirar os espaços |
+| `MensagemLongaDemais` | mais de 200 caracteres |
+| `MensagensRapidasDemais` | mais de 5 mensagens em 10 s |
+| `MensagemRepetida` | mesma mensagem no mesmo canal em menos de 30 s |
+| `Silenciado` | personagem em silêncio automático |
+| `CanalIndisponivel` | falar em Cidade fora da cidade, ou canal que não existe |
+| `NaoEstaEmGrupo` | falar em Grupo sem estar em grupo (mesmo código do grupo) |
+| `AlvoNaoEncontrado` | sussurro para nome inexistente ou personagem offline (mesmo código do grupo) |
+| `SussurroParaSiMesmo` | sussurro para o próprio personagem |
+
+#### Testes esperados (servidor)
+
+Caminho feliz: mensagem na Cidade chega a todos que estão na cidade e ao remetente; mensagem no Grupo chega só aos membros online, inclusive em outra área; sussurro chega só ao alvo e ao remetente; quem entra na cidade recebe o histórico curto.
+
+Erros: um teste por código da tabela, conferindo que **ninguém recebe** a mensagem recusada.
+
+Limites: 200 caracteres é aceito e 201 é recusado; só espaços é `MensagemVazia`; quebra de linha vira espaço; a 5ª mensagem em 10 s passa e a 6ª é recusada; passados os 10 s volta a aceitar; repetição com 29 s é recusada e com 30 s passa; a 3ª vez que estoura silencia por 60 s e depois libera; histórico da Cidade nunca passa de 20 nem entrega mensagem com mais de 10 minutos; nome do sussurro com maiúsculas diferentes encontra o mesmo personagem.
+
+Concorrência: duas mensagens simultâneas do mesmo personagem contam as duas na frequência; sussurro enviado enquanto o alvo desconecta devolve `AlvoNaoEncontrado` ou entrega, nunca os dois; mensagem no Grupo enquanto um membro sai não chega a quem já saiu; o remetente nunca aparece com o nome de outro personagem, mesmo que o client envie um nome.
+
+Client (EditMode): interpretar os comandos (`/c`, `/g`, `/s Nome texto`, `/r`, `/ignorar`); mensagem sem comando vai para o último canal; limite de 100 linhas; nome ignorado não aparece; texto com marcas de formatação é mostrado como texto.
+
 ## Depende de
 
 - Tempo real ([#77](https://github.com/GabrielNied/jogo_do_grupo/issues/77) e [arquitetura](../arquitetura.md#servidor-tempo-real-udp)): sessão autenticada por personagem e aviso de desconexão.
 - Personagem ([personagem.md](personagem.md)): nome único do personagem.
 - Dungeons ([instancias.md](instancias.md), #66): entrada em dungeon com o grupo (só ponteiro aqui).
+- Mundo ([mundo.md](mundo.md)): presença na cidade, que define quem está no canal Cidade (por evento ou contrato do shared, sem referência direta entre funcionalidades).
+- Interface ([interface.md](interface.md)): mensagens de sistema do HUD e regra de teclas com painel aberto.
 
 ## Expõe
 
 - Contrato do grupo na faixa 13000–13999 (mensagens de convidar, aceitar, recusar, sair, expulsar, passar liderança e a lista do grupo), a definir pelo agente de contrato a partir das regras acima.
+- Contrato do chat na mesma faixa 13000–13999 (enviar mensagem, mensagem recebida, recusa e histórico da Cidade), a definir pelo agente de contrato a partir das regras do chat.
 - Consulta "quem é o grupo de um personagem" para outras funcionalidades (ex.: dungeons), por evento ou contrato do shared, sem referência direta entre funcionalidades.
