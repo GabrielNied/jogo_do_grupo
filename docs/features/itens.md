@@ -129,3 +129,10 @@ Valores em `RegrasLoot`, todos **proposta a calibrar**:
 - Dois pedidos do mesmo item ao mesmo tempo: um coleta, o outro recebe `LootNaoEncontrado`.
 - O item some até 1 s depois do prazo (`ConfigLootServidor.IntervaloDaVarreduraSegundos`); a coleta confere o prazo na hora.
 - Se o banco falhar na coleta, o item volta para o chão e o jogador não recebe resposta: basta apertar F de novo.
+
+**No client (#369):**
+
+- As mensagens de loot são assinadas desde o início do jogo (não só com o mundo montado), para não perder o `LootApareceu` que chega logo ao voltar.
+- Cada item do jogador no chão vira um marcador dourado girando, assentado no chão, que aparece a até 12 m (`RaioDeVisaoMetros`). O client tira o item quando o prazo vence, sem esperar o `LootSumiu`.
+- Com algum item a até 3 m, aparece a dica **"F: pegar"**; F manda `ColetarLoot` com "tudo por perto". Com janela ou menu do Esc aberto, nem dica nem coleta.
+- Avisos no HUD: "Você pegou <item>." ao coletar; inventário cheio (amarelo), longe demais e nada para pegar viram texto, sem mostrar o código.

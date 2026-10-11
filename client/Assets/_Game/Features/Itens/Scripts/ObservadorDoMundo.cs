@@ -1,6 +1,7 @@
 using JogoDoGrupo.Client.Core.Jogo;
 using JogoDoGrupo.Client.Core.Jogo.Controle;
 using JogoDoGrupo.Client.Core.UI;
+using JogoDoGrupo.Client.Features.Itens.Loot;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
@@ -8,7 +9,8 @@ using UnityEngine.UIElements;
 namespace JogoDoGrupo.Client.Features.Itens
 {
     /// <summary>
-    /// Percebe que o jogador entrou no mundo e monta ali o baú de teste e a dica do baú,
+    /// Percebe que o jogador entrou no mundo e monta ali o baú de teste, a dica do baú e o loot
+    /// no chão (#369),
     /// na mesma cena do jogador (o "Sair" descarrega tudo junto). Itens não toma o construtor de
     /// mundo, que é do Mundo: o <see cref="EntradaNoJogo"/> não avisa quando entra, então este
     /// objeto confere <see cref="EntradaNoJogo.NoJogo"/> a cada frame.
@@ -37,6 +39,9 @@ namespace JogoDoGrupo.Client.Features.Itens
             var objeto = new GameObject(NomeObservador);
             DontDestroyOnLoad(objeto);
             _instancia = objeto.AddComponent<ObservadorDoMundo>();
+
+            // O loot chega logo ao entrar, antes de o jogador existir: assina desde já.
+            ServicoDeLoot.Iniciar();
         }
 
         // Com "Enter Play Mode Options" sem recarregar o domínio, o campo estático sobrevive.
@@ -44,6 +49,7 @@ namespace JogoDoGrupo.Client.Features.Itens
         private static void Reiniciar()
         {
             _instancia = null;
+            ServicoDeLoot.Reiniciar();
         }
 
         private void Update()
@@ -103,6 +109,7 @@ namespace JogoDoGrupo.Client.Features.Itens
 
             var controle = raiz.AddComponent<ControleItens>();
             controle.Configurar(jogador, bau.transform, container, configuracao);
+            raiz.AddComponent<ControleLoot>().Configurar(jogador, container);
         }
 
         /// <summary>Baú à frente e à direita do jogador, com a base no chão (se achar).</summary>
