@@ -6,19 +6,29 @@
 import { readFileSync } from "node:fs";
 
 const entrada = JSON.parse(readFileSync(0, "utf8") || "{}");
-const comando = entrada.tool_input?.command ?? "";
+const comando = entrada.tool_input?.command ?? entrada.toolCall?.args?.CommandLine ?? "";
 const nomeFerramentaCodex = entrada.tool_name ?? "";
+const ehAntigravity = entrada.toolCall?.name === "run_command";
+
+function bloquear(mensagem) {
+  if (ehAntigravity) {
+    process.stdout.write(JSON.stringify({ decision: "deny", reason: mensagem }));
+    process.exit(0);
+  }
+
+  console.error(mensagem);
+  process.exit(2);
+}
 
 // No Codex, apply_patch chega ao hook como uma única string em `command`.
 // Detectamos somente a operação explícita de remover arquivo; remover linhas
 // dentro de um arquivo continua sendo uma edição permitida pela regra 0.
 if (nomeFerramentaCodex === "apply_patch" && /^\*\*\* Delete File:/m.test(comando)) {
-  console.error(
+  bloquear(
     "Bloqueado pela regra 0 do AGENTS.md (apagar arquivo): a IA nunca apaga o que " +
       "as pessoas criaram. Ajuste ou marque como obsoleto. Se algo precisar mesmo " +
       "ser apagado, explique à pessoa e deixe que ela rode o comando.",
   );
-  process.exit(2);
 }
 // Início de um comando: começo da linha ou depois de ; & | ( ou quebra de linha.
 const ini = String.raw`(?:^|[;&|(\n]\s*)`;
@@ -42,11 +52,10 @@ const proibidos = [
 
 for (const [padrao, nome] of proibidos) {
   if (padrao.test(comando)) {
-    console.error(
+    bloquear(
       `Bloqueado pela regra 0 do AGENTS.md (${nome}): a IA nunca apaga o que as pessoas criaram ` +
         "nem descarta trabalho. Ajuste ou marque como obsoleto. Se algo precisar mesmo ser apagado, " +
         "explique à pessoa e deixe que ela rode o comando.",
     );
-    process.exit(2);
   }
 }
