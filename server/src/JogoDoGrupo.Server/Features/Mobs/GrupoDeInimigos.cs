@@ -25,6 +25,7 @@ public sealed class PassoDosInimigos
     public List<InimigoPreparaAtaque> Preparos { get; } = [];
     public List<InimigoMorreu> Mortes { get; } = [];
     public List<InimigoApareceu> Aparicoes { get; } = [];
+    public List<InimigoExposto> Expostos { get; } = [];
     public List<GolpeDeInimigoAcertou> Golpes { get; } = [];
     public List<InimigoDerrotado> Derrotas { get; } = [];
 
@@ -34,6 +35,7 @@ public sealed class PassoDosInimigos
         && Preparos.Count == 0
         && Mortes.Count == 0
         && Aparicoes.Count == 0
+        && Expostos.Count == 0
         && Golpes.Count == 0
         && Derrotas.Count == 0;
 }
@@ -54,7 +56,7 @@ public sealed class PassoDosInimigos
 /// várias threads: o passo vem do laço de IA e o dano vem das tarefas do Combate.
 /// </para>
 /// </summary>
-public sealed class GrupoDeInimigos : IAlvosDeCombate
+public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
 {
     private static readonly long AlertaMs = EmMs(RegrasInimigo.AlertaSegundos);
     private static readonly long PreparoMs = EmMs(RegrasInimigo.PreparoDoAtaqueSegundos);
@@ -532,6 +534,16 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate
                 CentroZ = (float)centroZ,
                 Raio = (float)RegrasInimigo.RaioDoGolpeMetros,
                 DirecaoY = (float)inimigo.Rotacao,
+                Tipo = TipoDeAtaqueDeInimigo.Golpe,
+                Areas =
+                [
+                    new AreaDeAtaque
+                    {
+                        CentroX = (float)centroX,
+                        CentroZ = (float)centroZ,
+                        Raio = (float)RegrasInimigo.RaioDoGolpeMetros,
+                    },
+                ],
             }
         );
     }

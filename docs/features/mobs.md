@@ -115,6 +115,29 @@ O chefe raro no campo (issue #310; **proposta**, a confirmar no review):
 - **Como aparece:** o servidor sobe sem o chefe; o `AparicaoDeChefeRaro` faz o primeiro sorteio no primeiro passo e depois um por intervalo (1800 s, chance de 20%). Quando sorteia, ele chega como `InimigoApareceu`, com `Variante` normal, e fica até morrer, sem novo sorteio. A morte manda `InimigoMorreu` e `InimigoDerrotado` como a de qualquer inimigo e recomeça a espera; a volta é um inimigo novo (id novo), por sorteio, nunca por tempo fixo.
 - **IA:** a do inimigo comum, com vida (1500) e dano (80) da própria ficha. Quem entra na área recebe os inimigos vivos do campo, chefe incluído. Não há aviso de aparição (continua em aberto).
 
+### Boss da dungeon (#66)
+
+O Guardião do Reflexo (id 100), o boss da primeira dungeon ([fatia-jogavel.md](fatia-jogavel.md), seção 7). Tudo abaixo é **proposta a calibrar**, em `ConfigChefeDaDungeon` (servidor); vida, XP e nível vêm da ficha da tabela de criaturas.
+
+| Item | Valor |
+|---|---|
+| Força | **fixa**: 6000 de vida para 1 a 5 jogadores, nunca escala |
+| Luta | desperta com um jogador a até **30 m** da origem; sala sem ninguém: ele volta, cura tudo e esquece quem participou |
+| Ritmo | **0,5 s** de alerta, ataque, **2 s** de pausa, próximo ataque |
+| Aviso | **3 s** em todo ataque; as áreas ficam fixas desde o aviso e só leva o dano quem está dentro de uma delas **no momento do acerto** (esquivar ou sair a tempo evita) |
+| Ordem | investida, raios, pisada, e recomeça |
+| Investida | área de **3 m** de raio no ponto onde o alvo (o mais próximo) estava ao começar o aviso, até **25 m** de alcance; no acerto o boss vai até lá. Dano **150**, recuperação **2 s** |
+| Raios | **4** círculos de **2,5 m** de raio, um por jogador em rodízio; se faltam jogadores, os que sobram caem a **4 m** de um deles. Dano **80** por raio, recuperação **1,5 s** |
+| Pisada | círculo de **9 m** de raio centrado no boss. Dano **100**, recuperação **2,5 s** |
+| Janela exposta | abre no acerto da **investida** e da **pisada**, dura **5 s**, o dano que ele recebe é **x2** (raios não expõem) |
+| Corpo | raio de **2 m** como alvo dos golpes dos jogadores |
+
+- **Dano nos jogadores:** um `GolpeDeInimigoAcertou` por personagem atingido em cada ataque (mesmo em duas áreas), com o dano da tabela; o Combate é quem tira a vida.
+- **Estados:** repouso, alerta, perseguição (aqui só "em combate", entre ataques: ele não anda), ataque, retorno, morto. Os estados são os do inimigo comum.
+- **Morte:** publica `InimigoDerrotado` uma vez, com os participantes (quem causou dano desde que a luta começou; a lista zera se a sala esvazia) e `InimigoMorreu`. **Não volta sozinho**: só a instância nova cria outro boss (`IChefesDaDungeon.Criar`) ou `ChefeDaDungeon.Reiniciar`. Loot e XP são os de qualquer inimigo.
+- **Onde:** a instância cria o boss pelo contrato `IChefesDaDungeon` (`server/.../Contratos/Mobs/`), um por área. Enquanto ela não existe, o servidor sobe com um **boss de teste** na área `cidade`, em (-200, 0) (`ConfigChefeDaDungeon.CriarChefeDeTesteAoSubir`; desligue quando a instância o criar).
+- Fora desta tarefa: o desenho do salão, o client (aviso no chão e janela exposta) e loot próprio do boss.
+
 ### Livro de Asterra: bestiário (proposta do board, 2026-10-11)
 
 Do "Livro de ideias" do [FigJam](../brainstorm/figjam.md) (seções 05, 09 e 10). **Proposta do board, não validada pelo grupo**; não troca nenhuma ficha acima. Os números do livro são só referência.
@@ -148,9 +171,10 @@ Inimigo comum (tempo real; regras em "Inimigo comum da fatia"):
 |---|---|---|---|
 | 11000 | `InimigosDaArea` | servidor → quem entra na área | `Inimigos[]` (`InimigoNoMundo`: `InimigoId`, `CriaturaId`, `Variante`, `X`, `Y`, `Z`, `RotacaoY`, `Vida`, `VidaMaxima`, `Estado`, `AlvoId`); só os vivos |
 | 11001 | `InimigoMudou` | servidor → quem está na área | `InimigoId`, `X`, `Y`, `Z`, `RotacaoY`, `Estado`, `AlvoId`, `Vida`, `Sequencia` (o client descarta a que não for maior que a última) |
-| 11002 | `InimigoPreparaAtaque` | servidor → quem está na área | `InimigoId`, `PreparoMs`, `CentroX`, `CentroZ`, `Raio`, `DirecaoY` |
+| 11002 | `InimigoPreparaAtaque` | servidor → quem está na área | `InimigoId`, `PreparoMs`, `CentroX`, `CentroZ`, `Raio`, `DirecaoY`, `Tipo` (`TipoDeAtaqueDeInimigo`: `Golpe` 0, `Investida` 1, `Pisada` 2, `Raios` 3), `Areas[]` (`AreaDeAtaque`: `CentroX`, `CentroZ`, `Raio`; os campos soltos repetem a primeira) |
 | 11003 | `InimigoMorreu` | servidor → quem está na área | `InimigoId` |
 | 11004 | `InimigoApareceu` | servidor → quem está na área | `Inimigo` (`InimigoNoMundo`) |
+| 11005 | `InimigoExposto` | servidor → quem está na área | `InimigoId`, `DuracaoMs`, `Multiplicador` (boss exposto a mais dano; acaba sozinho depois da duração) |
 
 - `EstadoDeInimigo`: `Repouso` 0, `Alerta` 1, `Perseguicao` 2, `Ataque` 3, `Retorno` 4, `Morto` 5.
 - `InimigoId` é o mesmo `AlvoId` que o Combate manda em `AcertoDeAtaque`: o dano de um golpe do jogador chega por `AtaqueAcertou`, não por `InimigoMudou`. `AlvoId` 0 (`RegrasInimigo.SemAlvo`) é sem alvo.
@@ -160,6 +184,8 @@ Inimigo comum (tempo real; regras em "Inimigo comum da fatia"):
 No servidor (`server/.../Features/Mobs/`): `SorteadorDeCriaturas` (sorteia a variante e a aparição) e `AparicaoDeChefeRaro` (o controle de um ponto de chefe raro). ~~Ainda não estão ligados ao mundo.~~ Substituído em 2026-10-11 (issue #268): o sorteador já sorteia a variante dos inimigos do campo; o chefe raro ficou sem ligação com o mundo até a issue #310, que ligou a Presa-Velha ao campo (seção "O chefe raro no campo", abaixo).
 
 Inimigos do campo no servidor (issue #268): `GrupoDeInimigos` (a IA, sem rede, e o alvo dos golpes), `ServicoDeInimigos` (o laço de 10 passos por segundo, que envia as mensagens acima e publica os eventos) e `ConfigInimigosDoCampo` (ponto do grupo, espalhamento e id inicial).
+
+Boss da dungeon no servidor: `ChefeDaDungeon` (a IA, sem rede), `ChefesDaDungeon` (um por área, o alvo dos golpes) e `ConfigChefeDaDungeon`; o contrato `IChefesDaDungeon` (`Criar(areaId, x, z)` e `Remover(areaId)`) fica em `server/.../Contratos/Mobs/`.
 
 Eventos para as outras funcionalidades do servidor (`server/.../Contratos/Mobs/`, [ADR 0016](../decisoes/0016-eventos-entre-funcionalidades-do-servidor.md)). Saem do laço de IA, não do laço de rede: o assinante precisa ser seguro entre threads e não bloquear.
 

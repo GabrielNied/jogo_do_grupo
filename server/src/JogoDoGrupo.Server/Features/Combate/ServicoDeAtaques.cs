@@ -27,6 +27,7 @@ public sealed class ServicoDeAtaques : IHostedService, IDisposable
     private readonly ILogger<ServicoDeAtaques> _log;
     private readonly Func<long> _relogioMs;
     private readonly ControleDeAcoes _controle;
+    private readonly ServicoDeQueda? _queda;
     private readonly Dictionary<long, SessaoTempoReal> _sessoes = [];
     private readonly Lock _travaSessoes = new();
     private readonly CancellationTokenSource _parada = new();
@@ -39,9 +40,11 @@ public sealed class ServicoDeAtaques : IHostedService, IDisposable
         TimeProvider relogio,
         ILogger<ServicoDeAtaques> log,
         Func<long>? relogioMs = null,
-        ControleDeAcoes? controle = null
+        ControleDeAcoes? controle = null,
+        ServicoDeQueda? queda = null
     )
     {
+        _queda = queda;
         // O mesmo controle da esquiva, para ataque e esquiva não valerem ao mesmo tempo.
         _controle = controle ?? new ControleDeAcoes();
         _tempoReal = tempoReal;
@@ -97,6 +100,9 @@ public sealed class ServicoDeAtaques : IHostedService, IDisposable
         {
             return; // Fora do mundo (não entrou na cidade): não há de onde atacar.
         }
+
+        // Atacar interrompe quem levantava um aliado (quem está caído é recusado mais adiante).
+        _queda?.AoAgir(personagemId);
 
         lock (_travaSessoes)
         {
@@ -205,6 +211,7 @@ public sealed class ServicoDeAtaques : IHostedService, IDisposable
         var forca = await RecursosDoAtaque.ForcaAsync(_escopos, personagemId, _parada.Token);
         if (
             !_controle.EstaAtiva(personagemId, acao.Id)
+            || _queda?.EstaCaido(personagemId) == true // Caiu no meio do golpe: não acerta.
             || !_posicoes.TentarObter(personagemId, out var posicao)
         )
         {

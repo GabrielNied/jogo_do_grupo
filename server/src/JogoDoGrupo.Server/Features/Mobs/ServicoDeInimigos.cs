@@ -13,11 +13,12 @@ namespace JogoDoGrupo.Server.Features.Mobs;
 /// (<c>Contratos/Mobs/</c>). A decisão é toda do grupo; aqui só há rede e eventos.
 /// </summary>
 public sealed class ServicoDeInimigos(
-    IReadOnlyList<GrupoDeInimigos> grupos,
+    IReadOnlyList<IInimigosSimulados> grupos,
     ServidorTempoReal tempoReal,
     IPosicoesDoMundo posicoes,
     EventosDoServidor eventos,
-    ILogger<ServicoDeInimigos> log
+    ILogger<ServicoDeInimigos> log,
+    ChefesDaDungeon? chefes = null
 ) : BackgroundService, ISpawnDeTeste
 {
     protected override async Task ExecuteAsync(CancellationToken parada)
@@ -46,13 +47,17 @@ public sealed class ServicoDeInimigos(
     /// <summary>Um passo do laço: avança a IA, envia e publica. Os testes chamam direto.</summary>
     public void Avancar()
     {
-        foreach (var grupo in grupos)
+        foreach (var grupo in Simulados())
         {
             Avancar(grupo);
         }
     }
 
-    private void Avancar(GrupoDeInimigos grupo)
+    // Os grupos fixos e os bosses de dungeon que existem agora (a lista deles muda).
+    private IEnumerable<IInimigosSimulados> Simulados() =>
+        chefes == null ? grupos : grupos.Concat(chefes.Ativos());
+
+    private void Avancar(IInimigosSimulados grupo)
     {
         var jogadores = new List<JogadorNoCampo>();
         foreach (var personagemId in posicoes.PersonagensNaArea(grupo.Area))
@@ -97,6 +102,11 @@ public sealed class ServicoDeInimigos(
             {
                 tempoReal.Enviar(sessao, MobsMessageIds.InimigoApareceu, aparicao);
             }
+
+            foreach (var exposto in passo.Expostos)
+            {
+                tempoReal.Enviar(sessao, MobsMessageIds.InimigoExposto, exposto);
+            }
         }
 
         foreach (var golpe in passo.Golpes)
@@ -125,6 +135,7 @@ public sealed class ServicoDeInimigos(
         }
 
         var grupo = grupos
+            .OfType<GrupoDeInimigos>()
             .Where(g => g.Area == posicao.Area)
             .OrderByDescending(g => g.Tamanho)
             .FirstOrDefault();
@@ -155,7 +166,7 @@ public sealed class ServicoDeInimigos(
     /// <summary>Quem entra na área do grupo recebe os inimigos vivos (laço de rede).</summary>
     public void AoEntrarNaArea(JogadorEntrouNaArea evento)
     {
-        var daArea = grupos.Where(g => g.Area == evento.Area).ToArray();
+        var daArea = Simulados().Where(g => g.Area == evento.Area).ToArray();
         if (daArea.Length == 0)
         {
             return;

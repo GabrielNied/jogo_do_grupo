@@ -28,5 +28,23 @@ namespace JogoDoGrupo.Shared.Features.Combate
         /// Tempo real, em <see cref="AtaqueRecusado.Codigo"/>: o personagem está caído e não age.
         /// </summary>
         public const string VoceEstaCaido = "VoceEstaCaido";
+
+        /// <summary>
+        /// Tempo real, em <see cref="AcaoRecusada.Codigo"/>: pediu para levantar quem não está
+        /// caído (está vivo, já foi levantado ou já voltou à cidade).
+        /// </summary>
+        public const string AlvoNaoEstaCaido = "AlvoNaoEstaCaido";
+
+        /// <summary>Em <see cref="AcaoRecusada.Codigo"/>: o ajudante está a mais de 2 m do caído.</summary>
+        public const string LongeDemais = "LongeDemais";
+
+        /// <summary>Em <see cref="AcaoRecusada.Codigo"/>: outro aliado já está levantando esse caído.</summary>
+        public const string JaEstaSendoLevantado = "JaEstaSendoLevantado";
+
+        /// <summary>Em <see cref="AcaoRecusada.Codigo"/>: pediu para voltar à cidade sem estar caído.</summary>
+        public const string NaoEstaCaido = "NaoEstaCaido";
+
+        /// <summary>Em <see cref="AcaoRecusada.Codigo"/>: pediu para voltar antes de 5 s caído.</summary>
+        public const string AindaNaoPodeVoltar = "AindaNaoPodeVoltar";
     }
 }

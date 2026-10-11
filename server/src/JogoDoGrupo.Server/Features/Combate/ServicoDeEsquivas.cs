@@ -20,6 +20,7 @@ public sealed class ServicoDeEsquivas : IDisposable
     private readonly TimeProvider _relogio;
     private readonly ILogger<ServicoDeEsquivas> _log;
     private readonly Func<long> _relogioMs;
+    private readonly ServicoDeQueda? _queda;
 
     public ServicoDeEsquivas(
         ServidorTempoReal tempoReal,
@@ -29,9 +30,11 @@ public sealed class ServicoDeEsquivas : IDisposable
         IServiceScopeFactory escopos,
         TimeProvider relogio,
         ILogger<ServicoDeEsquivas> log,
-        Func<long>? relogioMs = null
+        Func<long>? relogioMs = null,
+        ServicoDeQueda? queda = null
     )
     {
+        _queda = queda;
         _tempoReal = tempoReal;
         _posicoes = posicoes;
         _deslocamentos = deslocamentos;
@@ -56,6 +59,9 @@ public sealed class ServicoDeEsquivas : IDisposable
         {
             return;
         }
+
+        // Esquivar interrompe quem levantava um aliado (quem está caído é recusado mais adiante).
+        _queda?.AoAgir(personagemId);
 
         var ocupou = _controle.TentarOcupar(
             personagemId,

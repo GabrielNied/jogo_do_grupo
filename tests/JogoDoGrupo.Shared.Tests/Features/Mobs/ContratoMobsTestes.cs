@@ -11,6 +11,7 @@ public class ContratoMobsTestes
         MobsMessageIds.InimigoPreparaAtaque,
         MobsMessageIds.InimigoMorreu,
         MobsMessageIds.InimigoApareceu,
+        MobsMessageIds.InimigoExposto,
     };
 
     [Theory]
@@ -19,6 +20,7 @@ public class ContratoMobsTestes
     [InlineData(MobsMessageIds.InimigoPreparaAtaque)]
     [InlineData(MobsMessageIds.InimigoMorreu)]
     [InlineData(MobsMessageIds.InimigoApareceu)]
+    [InlineData(MobsMessageIds.InimigoExposto)]
     public void Id_esta_dentro_da_faixa_de_mobs(ushort id) =>
         Assert.True(
             MobsMessageIds.Faixa.Contem(id),
@@ -36,6 +38,30 @@ public class ContratoMobsTestes
         Assert.Equal(11002, MobsMessageIds.InimigoPreparaAtaque);
         Assert.Equal(11003, MobsMessageIds.InimigoMorreu);
         Assert.Equal(11004, MobsMessageIds.InimigoApareceu);
+        Assert.Equal(11005, MobsMessageIds.InimigoExposto);
+    }
+
+    [Fact]
+    public void TipoDeAtaqueDeInimigo_tem_valores_estaveis()
+    {
+        Assert.Equal(0, (int)TipoDeAtaqueDeInimigo.Golpe);
+        Assert.Equal(1, (int)TipoDeAtaqueDeInimigo.Investida);
+        Assert.Equal(2, (int)TipoDeAtaqueDeInimigo.Pisada);
+        Assert.Equal(3, (int)TipoDeAtaqueDeInimigo.Raios);
+    }
+
+    [Fact]
+    public void InimigoExposto_e_AreaDeAtaque_campos_padrao()
+    {
+        var exposto = new InimigoExposto();
+        Assert.Equal(0L, exposto.InimigoId);
+        Assert.Equal(0, exposto.DuracaoMs);
+        Assert.Equal(1f, exposto.Multiplicador);
+
+        var area = new AreaDeAtaque();
+        Assert.Equal(0f, area.CentroX);
+        Assert.Equal(0f, area.CentroZ);
+        Assert.Equal(0f, area.Raio);
     }
 
     [Fact]
@@ -99,6 +125,9 @@ public class ContratoMobsTestes
         Assert.Equal(0f, msg.CentroZ);
         Assert.Equal(0f, msg.Raio);
         Assert.Equal(0f, msg.DirecaoY);
+        Assert.Equal(TipoDeAtaqueDeInimigo.Golpe, msg.Tipo);
+        Assert.NotNull(msg.Areas);
+        Assert.Empty(msg.Areas);
     }
 
     [Fact]
