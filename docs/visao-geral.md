@@ -52,6 +52,10 @@ Antes de expandir, o objetivo é uma versão pequena e completa. Revisada em 202
 
 Regras detalhadas de cada item (números em proposta): [features/fatia-jogavel.md](features/fatia-jogavel.md).
 
+### Escopo do MVP no Livro de ideias de Asterra
+
+O [Livro de ideias](brainstorm/figjam.md) (board, 2026-10-11) propõe um escopo de primeira versão **maior que a fatia**; é **proposta, não validada pelo grupo**: mundo persistente com instâncias de referência de 20 jogadores (a regra decidida segue party de 5 e raid de 10); uma cidade com subáreas de floresta, rios e caverna; cinco raças, quatro famílias de armas, cinco espécies de inimigos, um boss, uma dungeon e 25 skills; movimentação, combate, itens, progressão, grupo, inventário, cidade e mercado simples. Meteoros, invasões, fendas, PvP e construção livre (pontos de base "EM BREVE") ficam para depois. Direção coerente com os pilares; o nome Asterra é proposto para o universo, sem definir a marca final. Detalhes ficam em cada [funcionalidade](features/).
+
 ## Histórico de direção
 
 O que foi substituído fica registrado aqui, para entender de onde o projeto veio.

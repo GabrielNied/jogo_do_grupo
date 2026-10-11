@@ -29,6 +29,12 @@ Várias regiões, dezenas de jogadores na mesma área, cinco raças, 25 skills, 
 - [x] ~~Vida do boss e do inimigo comum para 1 a 5 jogadores (os números do plano eram para grupos maiores).~~ Decidido em 2026-10-11: valor fixo, igual para 1 a 5 jogadores, sem escalar por jogador (seções 4 e 7); os números seguem a calibrar.
 - [x] ~~Quem recebe o loot do boss: maior dano (plano) ou outra regra mais justa com tank e healer?~~ Decidido em 2026-10-11: loot individual, cada jogador que participou da luta sorteia o próprio (seção 5). ~~Maior dano~~ substituído em 2026-10-11 por loot individual no boss.
 - [ ] Troca de arma (S10) fica fora; a fatia tem uma arma equipada.
+- [ ] **Livro de Asterra (proposta do board, 2026-10-11, não validada pelo grupo; [figjam.md](../brainstorm/figjam.md), seções 10, 11 e 09).** Nada abaixo muda os números da fatia:
+  - **Coincide** com as seções 1, 2, 3, 6 e 7: 100 vigor e 100 energia, regeneração 10 e 5 por s após 2 s, esquiva sem invulnerabilidade, nível 1 a 30 com 5 pontos por nível, caído 45 s, levantar em 3 s com 20% de vida.
+  - **Conflito (loot):** o livro dá os itens a quem causou mais dano, com empate para o primeiro atacante; a seção 5 decidiu loot individual por participação. Vale a seção 5.
+  - **Conflito (escala):** o livro fala em instâncias de 20 jogadores; a seção 7 é para 1 a 5. Fica em "Fora desta fatia".
+  - **Novidade para depois da fatia:** botão de retorno antes dos 45 s e teleporte descoberto; bloqueio por defesa; pulo, natação e escalada; 12 pontos iniciais de orçamento de skills (+1 a cada 5 níveis); cinco raças, 25 skills, cinco espécies de inimigos; cidade com forja, banco e mercado.
+  - **Chegada ao mundo (seção 11):** prólogo jogável pulável (os quatro magos e o Pequeno Sol, sem loot nem morte) e a "primeira hora" (arma inicial, golpes leve e pesado, comer, banco, teleporte, primeiro ponto de coleta, Javalis Ferrugem, abrir Preparação, subir nível, infundir, resgate de um aliado caído). Fora da fatia: o prólogo e a primeira hora viram tarefa própria se o grupo aprovar.
 
 ## Regras
 
