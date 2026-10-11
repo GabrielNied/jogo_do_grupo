@@ -10,8 +10,8 @@ Telas e menus do client que não pertencem a uma funcionalidade do jogo. Por enq
 
 ## Definido
 
-- O menu abre com **Esc**, tem **continuar**, **opções**, **sair da conta** e **sair do jogo**. "Sair da conta" já existe (apaga o token gravado; veja [personagem.md](personagem.md)).
-- Opções iniciais (da issue #89): volume (geral, música, efeitos), qualidade gráfica, resolução e tela cheia, sensibilidade da câmera, idioma. Gravadas neste computador.
+- O menu abre com **Esc**, tem **continuar**, **opções**, **voltar à seleção**, **sair da conta** e **sair do jogo**. "Sair da conta" já existe (apaga o token gravado; veja [personagem.md](personagem.md)). "Voltar à seleção" volta à escolha de personagem sem sair da conta.
+- Opções iniciais (da issue #89, no client em 2026-10-11): volume (geral, música, efeitos), qualidade gráfica, resolução e tela cheia, sensibilidade da câmera, idioma. Gravadas neste computador. O volume geral, a qualidade, a tela e a resolução valem na hora; música e efeitos ficam gravados para o áudio (#123). Resolução 0 significa a do monitor. Idioma: só português. O jogo não pausa.
 - **Janelas do jogo por atalho** (#134, decidido por Gabriel em 2026-10-11; provisório, o grupo pode ajustar): **C** personagem, **I** inventário, **L** missões, **M** mapa. **Uma janela por vez**, e com janela aberta o personagem fica **parado**. Regras em [Janelas do jogo](#janelas-do-jogo).
 - Remapear teclas fica fora (tarefa própria, #90). Os atalhos padrão e as regras de troca estão em [Teclas e atalhos](#teclas-e-atalhos) (em proposta).
 

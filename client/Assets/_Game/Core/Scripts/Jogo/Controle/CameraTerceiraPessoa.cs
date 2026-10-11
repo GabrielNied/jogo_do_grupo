@@ -1,3 +1,4 @@
+using JogoDoGrupo.Client.Core.Jogo;
 using UnityEngine;
 
 namespace JogoDoGrupo.Client.Core.Jogo.Controle
@@ -61,7 +62,7 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
             if (InputAtivo && _acoes != null)
             {
                 var delta =
-                    _acoes.OlharMouse * _sensibilidadeMouse
+                    _acoes.OlharMouse * _sensibilidadeMouse * OpcoesLocais.Atual.Sensibilidade
                     + _acoes.OlharControle * (_velocidadeControle * Time.deltaTime);
                 _orbita.Girar(delta);
             }
