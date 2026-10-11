@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using JogoDoGrupo.Client.Core.Jogo;
 using JogoDoGrupo.Client.Features.Mundo;
+using JogoDoGrupo.Client.Features.Mundo.DiaENoite;
 using JogoDoGrupo.Client.Features.Mundo.Presenca;
 using JogoDoGrupo.Client.Features.Mundo.Terreno;
 using JogoDoGrupo.Shared.Features.Mundo;
@@ -334,7 +335,13 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
                 luz = objeto.AddComponent<Light>();
             }
 
-            luz.enabled = true;
+            // Acende à noite e apaga de dia, pela hora do mundo (#382).
+            luz.enabled = LuzDaLanterna.Acesa(AmbienteDosBiomas.Hora);
+            if (luz.GetComponent<LuzDaLanterna>() == null)
+            {
+                luz.gameObject.AddComponent<LuzDaLanterna>();
+            }
+
             luz.type = LightType.Point;
             luz.color = ConfigIluminacao.CorDaLanterna;
             luz.intensity = ConfigIluminacao.IntensidadeDaLanterna;
@@ -518,6 +525,8 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
             var objeto = new GameObject(NomeAmbiente);
             objeto.transform.SetParent(pai, false);
             objeto.AddComponent<AmbienteDosBiomas>().Configurar(sol, preenchimento);
+            // A hora do servidor (#163): escurece o ambiente, gira o sol e acende as lanternas.
+            objeto.AddComponent<CicloDoDia>();
         }
 
         private static GameObject Instanciar(

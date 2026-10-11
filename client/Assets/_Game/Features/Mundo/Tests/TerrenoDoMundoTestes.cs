@@ -544,7 +544,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
             var dia = AmbienteDosBiomas.ComHora(AmbienteDosBiomas.Padrao, 12f);
             var noite = AmbienteDosBiomas.ComHora(AmbienteDosBiomas.Padrao, 22f);
             Assert.Less(noite.Ceu.grayscale, dia.Ceu.grayscale);
-            Assert.AreEqual(dia.Nevoa, noite.Nevoa);
+            Assert.Less(noite.Nevoa.grayscale, dia.Nevoa.grayscale);
 
             AmbienteDosBiomas.Hora = 22f;
             try
