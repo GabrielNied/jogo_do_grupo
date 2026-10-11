@@ -48,6 +48,37 @@ namespace JogoDoGrupo.Server.Core.Persistencia.Migrations
                     b.ToTable("Contas", (string)null);
                 });
 
+            modelBuilder.Entity("JogoDoGrupo.Server.Features.Combate.RecursosPersonagem", b =>
+                {
+                    b.Property<long>("PersonagemId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Energia")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("EnergiaContadaAte")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("UltimoGastoEnergiaEm")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("UltimoGastoVigorEm")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Vida")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Vigor")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("VigorContadoAte")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("PersonagemId");
+
+                    b.ToTable("RecursosPersonagem", (string)null);
+                });
+
             modelBuilder.Entity("JogoDoGrupo.Server.Features.Itens.ItemInventario", b =>
                 {
                     b.Property<long>("Id")
@@ -103,6 +134,15 @@ namespace JogoDoGrupo.Server.Core.Persistencia.Migrations
                         .IsUnique();
 
                     b.ToTable("Personagens", (string)null);
+                });
+
+            modelBuilder.Entity("JogoDoGrupo.Server.Features.Combate.RecursosPersonagem", b =>
+                {
+                    b.HasOne("JogoDoGrupo.Server.Features.Personagem.Personagem", null)
+                        .WithMany()
+                        .HasForeignKey("PersonagemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("JogoDoGrupo.Server.Features.Itens.ItemInventario", b =>
