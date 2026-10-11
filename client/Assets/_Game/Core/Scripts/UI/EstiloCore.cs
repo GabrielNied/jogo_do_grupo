@@ -1,3 +1,5 @@
+using UnityEngine.UIElements;
+
 namespace JogoDoGrupo.Client.Core.UI
 {
     /// <summary>
@@ -77,5 +79,20 @@ namespace JogoDoGrupo.Client.Core.UI
 
         /// <summary>Texto de ação no pé da tela, por cima do jogo (ex.: "E: abrir o baú").</summary>
         public const string Dica = "dica";
+
+        /// <summary>
+        /// A raiz da interface não pode capturar o clique: vazia, ela fica na frente dos
+        /// painéis das funcionalidades e o botão Fechar não recebe o mouse. As telas
+        /// filhas continuam capturando.
+        /// </summary>
+        public static void NaoBloquearCliques(VisualElement elemento)
+        {
+            if (elemento == null)
+            {
+                return;
+            }
+
+            elemento.pickingMode = PickingMode.Ignore;
+        }
     }
 }

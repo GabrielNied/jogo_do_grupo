@@ -21,10 +21,13 @@
     margin-bottom: 8px;
     padding: 10px 16px;
     border-radius: 0;
-    border-width: 2px;
-    border-color: rgb(74, 56, 28);
+    border-width: 0;
     background-color: rgb(28, 22, 16);
-    background-image: none;
+    background-image: url("project://database/Assets/_Game/Core/UI/Resources/UI/slot.png");
+    -unity-slice-left: 6;
+    -unity-slice-right: 6;
+    -unity-slice-top: 6;
+    -unity-slice-bottom: 6;
     color: rgb(228, 214, 188);
 }
 
@@ -36,6 +39,7 @@
 .personagem-item-selecionado {
     border-color: rgb(212, 176, 96);
     background-color: rgb(58, 42, 22);
+    -unity-background-image-tint-color: rgb(255, 214, 140);
 }
 
 .personagem-item-selecionado:hover {
