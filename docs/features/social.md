@@ -162,6 +162,16 @@ Concorrência:
 - Convite aceito enquanto o convidante cai: `ConvidanteOffline`, e nenhum grupo meio criado.
 - Duas expulsões simultâneas do mesmo alvo: uma vale, a outra recebe `AlvoNaoEstaNoGrupo`.
 
+#### Servidor (issue #221)
+
+Código em `server/src/JogoDoGrupo.Server/Features/Social/`: as regras vivem em `GruposDoServidor` (estado em memória, uma trava só, relógio injetável), o tempo real liga as mensagens a elas (`SocialModule`, `SaidaTempoReal`) e `VarreduraDosGrupos` aplica os prazos a cada segundo. Escolhas que as regras acima deixavam abertas:
+
+- **Online** é ter uma sessão autenticada no tempo real (não precisa estar na cidade).
+- **Ordem das recusas ao convidar:** `NaoELider`, `ConvitesRapidosDemais`, nome (`AlvoNaoEncontrado`, `ConviteParaSiMesmo`, alvo offline), `AlvoJaEmGrupo`, `ReconviteBloqueado`, `ConviteJaPendente`, `GrupoCheio`, `AlvoComConvitesDemais`. Toda tentativa que passa de `NaoELider` conta no limite de 1 por segundo, mesmo se for recusada.
+- **Convite que acabou sem resposta** (expirou, o convidante caiu sem grupo ou o alvo entrou em outro grupo) fica lembrado por 60 s só para o alvo receber o código certo ao aceitar (`ConviteExpirado`, `ConvidanteOffline`, `AlvoJaEmGrupo`); depois disso vale `ConviteNaoEncontrado`. Convite cancelado por outro motivo (líder mudou, grupo desfeito, alvo caiu) some na hora.
+- **Líder offline:** a vaga guardada e a troca de liderança vencem juntas, passados os 120 s; ali ele sai do grupo como se tivesse saído.
+- **Reconvite bloqueado** vale para quem expulsou e para o grupo, e continua valendo se a expulsão desfez o grupo.
+
 ### Chat de texto (issue #95)
 
 Tudo aqui é **proposta**; nada é decisão ainda. Base: chat do [World of Warcraft](../referencias.md) (canais com cor, sussurro por nome, comandos com barra). Igual: canal da área, canal do grupo, sussurro e abrir a caixa com Enter. Diferente: só três canais, sem canais criados por jogadores, sem canal de comércio e sem guilda por enquanto.
