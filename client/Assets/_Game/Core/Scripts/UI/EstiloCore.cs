@@ -121,6 +121,45 @@ namespace JogoDoGrupo.Client.Core.UI
         /// <summary>O nome da janela dentro de um <see cref="Atalho"/>.</summary>
         public const string AtalhoNome = "atalho-nome";
 
+        /// <summary>Raiz do HUD do jogo: ocupa a tela inteira e não recebe clique.</summary>
+        public const string Hud = "hud";
+
+        /// <summary>Uma região do HUD (use junto com a classe da região).</summary>
+        public const string HudRegiao = "hud-regiao";
+
+        /// <summary>Região do canto inferior esquerdo (barras do personagem).</summary>
+        public const string HudInferiorEsquerda = "hud-inferior-esquerda";
+
+        /// <summary>Região da lateral esquerda, do meio para cima (lista do grupo).</summary>
+        public const string HudLateralEsquerda = "hud-lateral-esquerda";
+
+        /// <summary>Região do topo, centro (barra do boss e do alvo).</summary>
+        public const string HudTopoCentro = "hud-topo-centro";
+
+        /// <summary>Região do centro, abaixo da barra do boss (aviso de ataque).</summary>
+        public const string HudCentroAvisos = "hud-centro-avisos";
+
+        /// <summary>Região da parte de baixo, centro (mensagens de sistema).</summary>
+        public const string HudInferiorCentro = "hud-inferior-centro";
+
+        /// <summary>Região do canto superior direito (minimapa).</summary>
+        public const string HudSuperiorDireita = "hud-superior-direita";
+
+        /// <summary>Lista das mensagens de sistema do HUD.</summary>
+        public const string Avisos = "avisos";
+
+        /// <summary>Uma linha das mensagens de sistema (use junto com a classe do tipo).</summary>
+        public const string Aviso = "aviso";
+
+        /// <summary>Mensagem de sistema do tipo informação (branco).</summary>
+        public const string AvisoInformacao = "aviso-informacao";
+
+        /// <summary>Mensagem de sistema do tipo aviso (amarelo).</summary>
+        public const string AvisoAviso = "aviso-aviso";
+
+        /// <summary>Mensagem de sistema do tipo erro (vermelho).</summary>
+        public const string AvisoErro = "aviso-erro";
+
         /// <summary>
         /// A raiz da interface não pode capturar o clique: vazia, ela fica na frente dos
         /// painéis das funcionalidades e o botão Fechar não recebe o mouse. As telas

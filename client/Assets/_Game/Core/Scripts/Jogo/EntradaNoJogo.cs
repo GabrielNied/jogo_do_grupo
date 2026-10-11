@@ -79,7 +79,7 @@ namespace JogoDoGrupo.Client.Core.Jogo
         }
 
         /// <summary>
-        /// Esconde a interface, monta o mundo, cria o jogador local com o visual do personagem e
+        /// Esconde a interface, cria o <see cref="Hud"/>, monta o mundo, cria o jogador local com o visual do personagem e
         /// o posiciona no ponto de nascimento. Se já estiver no mundo, sai antes.
         /// </summary>
         public static void Entrar(long personagemId)
@@ -98,6 +98,8 @@ namespace JogoDoGrupo.Client.Core.Jogo
             SceneManager.SetActiveScene(_cenaMundo);
             NoJogo = true;
             PersonagemId = personagemId;
+            // Antes do mundo: quem monta o mundo ou o visual já encontra as regiões.
+            Hud.Montar(Navegacao.Container);
 
             try
             {
@@ -133,6 +135,7 @@ namespace JogoDoGrupo.Client.Core.Jogo
             }
 
             NoJogo = false;
+            Hud.Remover();
             // Fora do mundo não há presença: fecha o tempo real (no-op se já estava fechado).
             ConexaoTempoReal.Desconectar();
             PersonagemId = 0;

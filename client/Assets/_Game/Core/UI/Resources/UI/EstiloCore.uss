@@ -354,3 +354,89 @@
 .atalho-ativo > .atalho-nome {
     color: rgb(255, 220, 140);
 }
+
+/*
+ * HUD do jogo: uma região por parte da tela (docs/features/interface.md, "HUD do jogo").
+ * Nada aqui recebe clique. Cada funcionalidade põe o seu elemento na sua região, que já
+ * está posicionada: o elemento dela não precisa de position: absolute.
+ */
+
+.hud {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.hud-regiao {
+    position: absolute;
+}
+
+.hud-inferior-esquerda {
+    left: 24px;
+    bottom: 24px;
+    align-items: flex-start;
+}
+
+.hud-lateral-esquerda {
+    left: 24px;
+    bottom: 50%;
+    align-items: flex-start;
+    justify-content: flex-end;
+}
+
+.hud-topo-centro {
+    left: 0;
+    right: 0;
+    top: 24px;
+    align-items: center;
+}
+
+.hud-centro-avisos {
+    left: 0;
+    right: 0;
+    top: 140px;
+    align-items: center;
+}
+
+.hud-inferior-centro {
+    left: 0;
+    right: 0;
+    bottom: 180px;
+    align-items: center;
+}
+
+.hud-superior-direita {
+    right: 24px;
+    top: 24px;
+    align-items: flex-end;
+}
+
+/* Mensagens de sistema: a linha nova entra embaixo e empurra as outras para cima. */
+
+.avisos {
+    align-items: center;
+}
+
+.aviso {
+    margin-top: 4px;
+    padding: 2px 12px;
+    font-size: 18px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    background-color: rgba(0, 0, 0, 0.45);
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.9);
+}
+
+.aviso-informacao {
+    color: rgb(244, 238, 226);
+}
+
+.aviso-aviso {
+    color: rgb(240, 200, 90);
+}
+
+.aviso-erro {
+    color: rgb(228, 84, 64);
+}
