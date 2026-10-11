@@ -50,9 +50,9 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
     /// <summary>
     /// Árvores e pedras do mundo além do miolo de 1 km (o miolo continua com
     /// <see cref="LayoutDoHub.PropsFora"/>). Dados puros, espalhados por uma semente fixa: o
-    /// resultado é sempre o mesmo. Enquanto o pacote de peças novo não chega (cactos, pinheiros
-    /// com neve, rochas vulcânicas), os biomas de fora usam as árvores e pedras que já existem,
-    /// tingidas com <see cref="CoresDosBiomas.DasPecas"/>.
+    /// resultado é sempre o mesmo. Cacto, pinheiro, rocha vulcânica, árvore de pântano e arbusto
+    /// são malhas do próprio jogo (<see cref="VegetacaoProcedural"/>); campo, mata e colinas
+    /// continuam com as árvores do Kenney, tingidas com <see cref="CoresDosBiomas.DasPecas"/>.
     /// </summary>
     public static class PecasDosBiomas
     {
@@ -83,19 +83,19 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
         {
             "Arvore_Redonda",
             "Arvore",
-            "Arvore",
-            "Arvore_Alta",
+            "Arbusto",
+            "Arbusto",
             "Pedra_Pequena",
         };
 
         private static readonly string[] PecasDaMata =
         {
             "Arvore",
-            "Arvore",
             "Arvore_Alta",
             "Arvore_Alta",
             "Arvore_Torta",
             "Arvore_Redonda",
+            "Arbusto",
         };
 
         private static readonly string[] PecasDasColinas =
@@ -108,45 +108,43 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
             "Arvore",
         };
 
-        // Deserto: quase só pedra, e uma árvore seca de vez em quando.
+        // Deserto: pedra, cacto e árvore seca. Sem pinheiro.
         private static readonly string[] PecasDoDeserto =
         {
             "Pedra_Grande",
             "Pedra_Larga",
             "Pedra_Larga",
             "Pedra_Pequena",
-            "Pedra_Pequena",
-            "Arvore_Torta",
+            "Cacto",
+            "Arvore_Seca",
         };
 
-        // Neve: árvores altas (as mais parecidas com pinheiro) e pedra.
+        // Neve: pinheiro até o limite de altitude, e pedra. Sem cacto.
         private static readonly string[] PecasDaNeve =
         {
-            "Arvore_Alta",
-            "Arvore_Alta",
-            "Arvore_Alta",
+            "Pinheiro",
+            "Pinheiro",
+            "Pinheiro",
             "Pedra_Grande",
             "Pedra_Larga",
         };
 
-        // Lava: pedra escura e árvores queimadas.
+        // Lava: rocha vulcânica, sem árvore.
         private static readonly string[] PecasDaLava =
         {
-            "Pedra_Grande",
-            "Pedra_Grande",
-            "Pedra_Larga",
+            "Rocha_Vulcanica",
+            "Rocha_Vulcanica",
+            "Rocha_Vulcanica",
             "Pedra_Pequena",
-            "Arvore_Torta",
         };
 
-        // Pântano: árvores tortas nas ilhas.
+        // Pântano: árvore própria nas ilhas.
         private static readonly string[] PecasDoPantano =
         {
+            "Arvore_Pantano",
+            "Arvore_Pantano",
+            "Arvore_Pantano",
             "Arvore_Torta",
-            "Arvore_Torta",
-            "Arvore_Torta",
-            "Arvore_Redonda",
-            "Arvore",
             "Pedra_Pequena",
         };
 
@@ -166,10 +164,10 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
             }
         }
 
-        /// <summary>Se o prefab é uma pedra (o resto é árvore).</summary>
+        /// <summary>Se o prefab é uma pedra (o resto é planta).</summary>
         public static bool EhPedra(string prefab)
         {
-            return prefab.StartsWith("Pedra");
+            return prefab.StartsWith("Pedra") || prefab.StartsWith("Rocha");
         }
 
         /// <summary>

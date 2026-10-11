@@ -23,6 +23,8 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
         public const string NomeTerreno = "TerrenoFora";
         public const string NomePropsFora = "PropsFora";
         public const string NomePecasDosBiomas = "PecasDosBiomas";
+        public const string NomeEstruturas = "Estruturas";
+        public const string NomeCaverna = "Caverna";
         public const string NomeLuz = "Sol";
         public const string NomeAmbiente = "Ambiente";
         public const string NomePreenchimento = "Preenchimento";
@@ -78,6 +80,8 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
             CriarProps(raiz.transform);
             CriarPropsFora(raiz.transform);
             CriarPecasDosBiomas(raiz.transform);
+            CriarEstruturas(raiz.transform);
+            Caverna.Montar(raiz.transform);
             var sol = CriarLuz(raiz.transform);
             var preenchimento = CriarPreenchimento(raiz.transform);
             ConfigurarAmbiente(raiz.transform, sol, preenchimento);
@@ -361,6 +365,26 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
             }
         }
 
+        // Ruína, acampamento, passagem e marco: coordenadas fixas, cada peça na altura do chão.
+        private static void CriarEstruturas(Transform pai)
+        {
+            var raiz = new GameObject(NomeEstruturas).transform;
+            raiz.SetParent(pai, false);
+
+            foreach (var lugar in EstruturasDoMapa.Lugares)
+            {
+                foreach (var peca in lugar.Pecas)
+                {
+                    Instanciar(
+                        peca.Prefab,
+                        new Vector3(peca.X, peca.Altura, peca.Z),
+                        peca.Guinada,
+                        raiz
+                    );
+                }
+            }
+        }
+
         // Árvores e pedras além do miolo de 1 km, por bioma, na altura do chão e na cor do bioma.
         private static void CriarPecasDosBiomas(Transform pai)
         {
@@ -369,12 +393,10 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
 
             foreach (var peca in PecasDosBiomas.Todas)
             {
-                var instancia = Instanciar(
-                    peca.Prefab,
-                    new Vector3(peca.X, peca.Y, peca.Z),
-                    peca.Guinada,
-                    pecas
-                );
+                var posicao = new Vector3(peca.X, peca.Y, peca.Z);
+                var instancia = VegetacaoProcedural.ConsegueCriar(peca.Prefab)
+                    ? VegetacaoProcedural.Criar(peca.Prefab, posicao, peca.Guinada, pecas)
+                    : Instanciar(peca.Prefab, posicao, peca.Guinada, pecas);
                 if (instancia == null)
                 {
                     continue;

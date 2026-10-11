@@ -69,8 +69,33 @@ Decidido pelo Gabriel em 2026-10-11 (issue #135). Substitui o terreno plano de 1
 - **Fonte única do relevo:** `MapaDoMundo`, no shared (`BiomaEm`, `PesosEm`, `AlturaEm`). Usa sementes fixas: o mundo é sempre o mesmo. A altura oficial é a de uma grade de 10 m, em triângulos, igual à malha que o client desenha.
 - **Montagem no client:** o `ConstrutorDoTerreno` cria o chão em 225 blocos de 200 m (malha com colisor), pinta uma textura com a cor de cada ponto, e cria as malhas da água e da lava. Nada disso é cena ou asset: nasce ao entrar no mundo. O chão não existe sob a cidade (lá vale o chão dela).
 - **Peças:** o miolo de 1 km continua com `LayoutDoHub.PropsFora`, agora apoiadas no relevo. Fora dele, `PecasDosBiomas` espalha perto de 2.800 árvores e pedras por semente fixa: no máximo uma por célula de 12 m, em manchas mais cheias e mais vazias, fora da água e da lava e fora das encostas íngremes.
-- **Peças provisórias:** enquanto o pacote CC0 novo não entra (cactos, pinheiros com neve, rochas vulcânicas), os quatro biomas de fora usam as árvores e pedras do Kenney Fantasy Town Kit, com a cor multiplicada pela do bioma (seca no deserto, fria na neve, queimada na lava, musgosa no pântano).
-- **Ambiente:** o `AmbienteDosBiomas` troca a luz ambiente, a cor e a força do sol e a névoa conforme o bioma em que o jogador está, misturando perto das fronteiras: dia claro em volta da cidade, ar quente no deserto, branco frio na neve, vermelho escuro na lava e névoa verde e fechada no pântano. A névoa também esconde o fim do alcance da câmera (500 m, do Core). O fundo da câmera acompanha a cor da névoa.
+
+### Estruturas desta leva
+
+Quatro lugares fixos (issue #157), sempre nas mesmas coordenadas, montados pelo `ConstrutorHub` com peças do Kenney Fantasy Town Kit (CC0, já em [licencas.md](../arte/licencas.md)). Cada peça apoia a base na altura do `MapaDoMundo`. Ficam fora da cidade, da água, da lava e de encosta acima de 45 graus. Não há interior, loot, inimigo nem missão.
+
+| Lugar | Tipo | Bioma | Onde |
+|---|---|---|---|
+| Ruína do oeste | muros e pedra | Colinas | por volta de (-250, -100) |
+| Acampamento da mata | barraca, carroça e banco | Mata | por volta de (250, -100) |
+| Passagem das colinas | lajes entre duas pedras | Colinas | por volta de (-300, -200) |
+| Marco da estrada norte | pedra e lanterna à beira da estrada que sai da cidade | Campo | (14, 70) |
+
+- ~~**Peças provisórias:** enquanto o pacote CC0 novo não entra (cactos, pinheiros com neve, rochas vulcânicas), os quatro biomas de fora usam as árvores e pedras do Kenney Fantasy Town Kit, com a cor multiplicada pela do bioma (seca no deserto, fria na neve, queimada na lava, musgosa no pântano).~~ Substituído em 2026-10-11: cacto e árvore seca só no deserto, pinheiro só na neve (até 85 m), rocha vulcânica na lava, árvore de pântano nas ilhas, arbusto no campo e na mata. São malhas geradas no client (`VegetacaoProcedural`), apoiadas no chão, sem colisor. Campo, mata e colinas continuam com as árvores do Kenney. Um pacote CC0 pode trocar essas malhas depois, sem mudar a posição.
+- **Ambiente:** o `AmbienteDosBiomas` troca a luz ambiente, a cor e a força do sol e a névoa conforme o bioma em que o jogador está, misturando perto das fronteiras: dia claro em volta da cidade, ar quente no deserto, branco frio na neve, vermelho escuro na lava e névoa verde e fechada no pântano. A névoa também esconde o fim do alcance da câmera (500 m, do Core). O fundo da câmera é o céu do bioma; a névoa fica na frente dele.
+
+### Céu e clima visual
+
+De dia (issue #164). O ciclo de hora continua na #163; até lá a hora fica em meio-dia, e a noite (20h–5h) só entra quando alguém escrever `AmbienteDosBiomas.Hora`.
+
+- **Céu:** cor própria por bioma, mais escura à noite. A névoa não pinta o fundo.
+- **Névoa:** aberta no campo, um pouco mais densa e quente no deserto, curta na neve, fechada no pântano.
+- **Efeito leve,** poucas partículas em volta do jogador: poeira no deserto, neve caindo na montanha, brasa na lava, névoa rasteira no pântano, vaga-lume na mata só de noite. O efeito do deserto não aparece na neve. Chuva, tempestade e qualquer clima que mude regra ficam de fora.
+
+### Primeira caverna
+
+Uma boca nas colinas, por volta de (-220, -80), e um interior **à parte** (issue #158): o piso fica em Y = -40, na mesma coluna, sem furar o chão do mundo e sem ser a dungeon da issue #66. Atravessar a boca (2 m) leva 4 m corredor adentro; voltar à boca de dentro devolve ao mesmo ponto do lado de fora. O client informa a posição nova; o servidor guarda, sem posição forçada. Sem loot, inimigo ou segunda entrada.
+
 - **Luz de dia (2026-10-11, issue #162):** sem ciclo de dia e noite (continua em aberto). ~~Um sol direcional a 50° com sombra suave, luz ambiente suave e lanternas com a luz de ponto gravada no prefab (fraca, sem calibragem para o módulo de 4 m).~~ Substituído em 2026-10-11 por: o **sol** é a luz principal da cena, num ângulo de 42° que alonga a sombra de casas, torres e morros, com sombra suave que não chega a preto (chão claro sem estourar, mata sem ficar preta); uma **luz de preenchimento** direcional, sem sombra, do lado oposto ao sol e bem mais fraca que ele, mantém o lado do personagem fora do sol (e o rosto) visível; as **lanternas** da praça e do portão têm luz de ponto de cor quente, com alcance de 20 m (cinco módulos de 4 m) e força para clarear a base do poste. A cor e a força do sol e do preenchimento acompanham o bioma. Os valores moram em `ConfigIluminacao`. A distância das sombras vem do asset do URP (Core), não do Mundo.
 
 ## Depende de
@@ -79,7 +104,7 @@ Decidido pelo Gabriel em 2026-10-11 (issue #135). Substitui o terreno plano de 1
 
 ### Regras compartilhadas – `MapaDoMundo`
 
-No shared (`Features/Mundo/`), sem rede: `Bioma` (enum: `Cidade`, `Campo`, `Mata`, `Colinas`, `Deserto`, `Neve`, `Lava`, `Pantano`), `PesosDosBiomas` (quanto de cada bioma existe num ponto; somam 1) e `MapaDoMundo`, com `BiomaEm(x, z)`, `PesosEm(x, z)`, `AlturaEm(x, z)` e as medidas (`Lado`, `RaioPlano`, `NivelDaAgua`, `NivelDaLava`, `AlturaMinima`, `AlturaMaxima`). Qualquer funcionalidade pode perguntar a altura do chão ou o bioma de um ponto, no client e no servidor. As regras estão em "Biomas e relevo".
+No shared (`Features/Mundo/`), sem rede: `Bioma` (enum: `Cidade`, `Campo`, `Mata`, `Colinas`, `Deserto`, `Neve`, `Lava`, `Pantano`), `PesosDosBiomas` (quanto de cada bioma existe num ponto; somam 1) e `MapaDoMundo`, com `BiomaEm(x, z)`, `PesosEm(x, z)`, `AlturaEm(x, z)` e as medidas (`Lado`, `RaioPlano`, `NivelDaAgua`, `NivelDaLava`, `AlturaMinima`, `AlturaMaxima`). Qualquer funcionalidade pode perguntar a altura do chão ou o bioma de um ponto, no client e no servidor. As regras estão em "Biomas e relevo". `EstruturasDoMapa` lista os quatro lugares fixos desta leva; a tabela está em "Estruturas desta leva".
 
 ### Mensagens UDP – Core (faixa 0–999, `TempoRealIds`)
 

@@ -1,4 +1,5 @@
 using JogoDoGrupo.Server.Features.Mundo;
+using JogoDoGrupo.Shared.Features.Mundo;
 
 namespace JogoDoGrupo.Server.Tests.Features.Mundo;
 
@@ -57,6 +58,37 @@ public class CidadeDoMundoTestes
         var (aceito, andou) = cidade.Mover(1, a, new(40f, 0, -24f, 0));
         Assert.Equal(ResultadoMovimento.AceitoComSuspeita, aceito);
         Assert.Equal(40f, andou!.Posicao.X);
+        Assert.Null(cidade.PosicaoForcadaPendente(1));
+    }
+
+    [Fact]
+    public void Entrar_na_caverna_vale_a_posicao_nova_sem_forcar()
+    {
+        var cidade = Nova();
+        var a = new Conexao();
+        cidade.Entrar(1, a);
+        _agora += 1000;
+        cidade.Mover(
+            1,
+            a,
+            new(PrimeiraCaverna.EntradaX, PrimeiraCaverna.EntradaY, PrimeiraCaverna.EntradaZ, 0)
+        );
+
+        _agora += 1000;
+        var (resultado, avatar) = cidade.Mover(
+            1,
+            a,
+            new(
+                PrimeiraCaverna.InteriorX,
+                PrimeiraCaverna.InteriorY,
+                PrimeiraCaverna.NascimentoZ,
+                0
+            )
+        );
+
+        Assert.NotEqual(ResultadoMovimento.Recusado, resultado);
+        Assert.Equal(PrimeiraCaverna.NascimentoZ, avatar!.Posicao.Z);
+        Assert.Equal(PrimeiraCaverna.InteriorY, avatar.Posicao.Y);
         Assert.Null(cidade.PosicaoForcadaPendente(1));
     }
 

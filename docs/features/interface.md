@@ -10,8 +10,8 @@ Telas e menus do client que não pertencem a uma funcionalidade do jogo. Por enq
 
 ## Definido
 
-- O menu abre com **Esc**, tem **continuar**, **opções**, **sair da conta** e **sair do jogo**. "Sair da conta" já existe (apaga o token gravado; veja [personagem.md](personagem.md)).
-- Opções iniciais (da issue #89): volume (geral, música, efeitos), qualidade gráfica, resolução e tela cheia, sensibilidade da câmera, idioma. Gravadas neste computador.
+- O menu abre com **Esc**, tem **continuar**, **opções**, **voltar à seleção**, **sair da conta** e **sair do jogo**. "Sair da conta" já existe (apaga o token gravado; veja [personagem.md](personagem.md)). "Voltar à seleção" volta à escolha de personagem sem sair da conta.
+- Opções iniciais (da issue #89, no client em 2026-10-11): volume (geral, música, efeitos), qualidade gráfica, resolução e tela cheia, sensibilidade da câmera, idioma. Gravadas neste computador. O volume geral, a qualidade, a tela e a resolução valem na hora; música e efeitos ficam gravados para o áudio (#123). Resolução 0 significa a do monitor. Idioma: só português. O jogo não pausa.
 - **Janelas do jogo por atalho** (#134, decidido por Gabriel em 2026-10-11; provisório, o grupo pode ajustar): **C** personagem, **I** inventário, **L** missões, **M** mapa. **Uma janela por vez**, e com janela aberta o personagem fica **parado**. Regras em [Janelas do jogo](#janelas-do-jogo).
 - Remapear teclas fica fora (tarefa própria, #90). Os atalhos padrão e as regras de troca estão em [Teclas e atalhos](#teclas-e-atalhos) (em proposta).
 
@@ -27,7 +27,7 @@ Telas e menus do client que não pertencem a uma funcionalidade do jogo. Por enq
   - [ ] Outras janelas que o grupo quer com atalho (sugestões: **K** skills, **N** talentos, **O** social, **P** profissões)
   - [ ] A barra de atalhos fica sempre visível (como está) ou some depois que a pessoa aprende?
 - [ ] Teclas e atalhos (#90), decisões do grupo:
-  - [ ] Aprovar os atalhos padrão da tabela (proposta). Pontos de atenção: **ataque pesado no botão direito** (no New World o pesado é segurar o botão esquerdo e o bloqueio fica no direito; aqui o bloqueio vai para **Q**) e ~~**esquiva no Espaço** (no New World é Alt)~~ substituído em 2026-10-11: o Espaço já é o pulo no client; a proposta passa a ser **esquiva no Alt esquerdo**, como no New World
+  - [ ] Aprovar os atalhos padrão da tabela (proposta). Pontos de atenção: **ataque pesado no botão direito** (no New World o pesado é segurar o botão esquerdo e o bloqueio fica no direito; aqui o bloqueio vai para **Q**) e ~~**esquiva no Espaço** (no New World é Alt)~~ substituído em 2026-10-11: o Espaço já é o pulo no client; a proposta passa a ser **esquiva no Alt esquerdo**, como no New World. **Decidido pelo Gabriel em 2026-10-11: esquiva no Alt esquerdo.** O ataque pesado no botão direito segue em aberto
   - [ ] Tecla já usada: **trocar as duas ações** (proposta) ou deixar a outra sem tecla?
   - [ ] Tecla de **correr**: segurar (proposta) ou alternar?
   - [ ] Combate ([combate.md](combate.md)) ainda não decidiu se **bloqueio**, **stamina** e **troca de arma** entram na fatia jogável; as linhas dessas ações da tabela só valem se entrarem
@@ -117,7 +117,7 @@ A tela fica em **Opções > Teclas**, com uma linha por ação (nome, tecla atua
 | Correr | Shift (segurar) | sim |
 | Câmera | mover o mouse | não (sensibilidade fica em Opções) |
 | Pular (já existe no client) | Espaço | sim |
-| Esquiva | ~~Espaço~~ Alt esquerdo (substituído em 2026-10-11) | sim |
+| Esquiva | ~~Espaço~~ Alt esquerdo (substituído e decidido em 2026-10-11) | sim |
 | Ataque leve | botão esquerdo do mouse | sim |
 | Ataque pesado | botão direito do mouse | sim |
 | Bloqueio (se entrar no combate) | Q | sim |
@@ -203,7 +203,7 @@ Nada do HUD recebe clique, salvo o que uma funcionalidade pedir (ex.: aceitar co
 - Três tipos: **informação** (branco), **aviso** (amarelo) e **erro** (vermelho). Exemplos: "Ana entrou no grupo", "Inventário cheio", "Vigor insuficiente".
 - A mesma mensagem repetida em menos de **2 s** não cria linha nova: a linha existente ganha um contador ("x2") e o tempo dela recomeça.
 - As funcionalidades publicam a mensagem por um ponto do Core (nome sugerido: `AvisosDoJogo.Mostrar(texto, tipo)`), sem referenciar a interface de outra funcionalidade. O texto é o que a pessoa lê; códigos de erro do servidor são traduzidos por quem publica.
-- Quando o chat existir (#95), as mensagens de sistema **também** entram no histórico do chat (veja [social.md](social.md)); a lista do HUD continua.
+- ~~Quando o chat existir (#95), as mensagens de sistema **também** entram no histórico do chat (veja [social.md](social.md)); a lista do HUD continua.~~ Substituído em 2026-10-11: a Social assina `AvisosDoJogo.Mostrado` e copia a linha no canal Sistema; a lista do HUD continua. O Core não referencia a Social.
 
 #### Quem monta o quê
 

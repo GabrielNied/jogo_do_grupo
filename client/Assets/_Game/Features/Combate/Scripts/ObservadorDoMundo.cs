@@ -83,13 +83,20 @@ namespace JogoDoGrupo.Client.Features.Combate
             documento.rootVisualElement.Add(container);
 
             var painel = new PainelRecursos(container);
+            var prontidao = new ProntidaoLocal();
             var controle = raiz.AddComponent<ControleRecursos>();
-            controle.Configurar(personagemId, painel);
+            controle.Configurar(personagemId, painel, prontidao);
 
             var ataque = raiz.AddComponent<ControleAtaque>();
-            ataque.Configurar(personagemId, new PainelAtaque(container), painel, controle);
+            ataque.Configurar(
+                personagemId,
+                new PainelAtaque(container),
+                painel,
+                controle,
+                prontidao
+            );
 
-            raiz.AddComponent<ControleEsquiva>().Configurar(personagemId);
+            raiz.AddComponent<ControleEsquiva>().Configurar(personagemId, prontidao);
         }
 
         private static PanelSettings CriarConfiguracaoDoPainel()
