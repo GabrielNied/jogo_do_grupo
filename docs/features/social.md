@@ -284,3 +284,12 @@ Código em `shared/Package/Runtime/Features/Social/` (fonte dos nomes e tipos ex
 - `CodigosErroSocial`: os 16 códigos da tabela de erros.
 - `RegrasGrupo`: os números do grupo como constantes (5 membros, 60 s, 120 s, 30 s, 1 convite por segundo, 5 convites por alvo) e as contas puras (`VagasLivres`, `ConviteExpirou`, `VagaGuardadaVenceu`, `ReconviteBloqueado`, `DeveDesfazer`, `PosicaoDoHerdeiro`).
 - O grupo fica com os IDs 13000 a 13099; o chat começa em 13100 (#121).
+
+### Client do grupo (issue #222)
+
+Código em `client/Assets/_Game/Features/Social/`. O client só envia intenções e mostra o que o servidor manda: a lista, o líder e o offline vêm de `ListaDoGrupo`, na ordem dele.
+
+- **Janela do grupo** (tecla **O**, **proposta**: é a sugestão "**O** social" de [interface.md](interface.md), que ainda espera aprovação): convidar por nome, convites recebidos com **Aceitar** e **Recusar**, a lista com o líder e os offline marcados, **Sair do grupo** e, só para o líder, **Expulsar** e **Passar liderança** (esta só para quem está online). Membro comum não vê o campo de convidar. Os botões só evitam pedidos que o servidor recusaria; quem decide é ele.
+- **Convite recebido:** aparece uma linha por cima do jogo ("Fulano convidou você para o grupo. O: responder"); a resposta é dada na janela. A contagem de 60 s na tela é só para mostrar; vencido ou não, quem decide é o servidor.
+- **Avisos e recusas** (`AvisoDoGrupo`, `OperacaoDoGrupoRecusada`) viram uma mensagem por 6 s, na janela e por cima do jogo.
+- Trocar de personagem ou sair do mundo esquece o grupo na tela; o do próximo personagem chega pelo servidor.

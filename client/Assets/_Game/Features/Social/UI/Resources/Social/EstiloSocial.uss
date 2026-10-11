@@ -1,0 +1,71 @@
+/*
+ * Estilo da janela do grupo. Complementa o EstiloCore.uss.
+ * Os nomes das classes estao em EstiloSocial.cs.
+ * Mesma moldura do Core: cantos retos, borda dourada, texto quente.
+ */
+
+.social-convidar {
+    flex-direction: row;
+    align-items: flex-end;
+    margin-bottom: 8px;
+}
+
+.social-convidar > .campo {
+    flex-grow: 1;
+    margin-bottom: 0;
+    margin-right: 8px;
+}
+
+.social-convidar > .botao {
+    flex-grow: 0;
+    min-width: 140px;
+    margin-top: 0;
+}
+
+.social-secao {
+    margin-bottom: 12px;
+}
+
+.social-linha {
+    flex-direction: row;
+    align-items: center;
+}
+
+.social-nome {
+    flex-grow: 1;
+    flex-shrink: 1;
+}
+
+.social-lider {
+    color: rgb(236, 214, 160);
+    -unity-font-style: bold;
+}
+
+.social-offline {
+    opacity: 0.5;
+}
+
+.social-acoes {
+    flex-direction: row;
+    flex-shrink: 0;
+}
+
+.social-botao {
+    flex-grow: 0;
+    min-height: 36px;
+    min-width: 96px;
+    margin-top: 0;
+    margin-left: 6px;
+    font-size: 16px;
+}
+
+.social-rodape {
+    margin-top: 8px;
+}
+
+/* Aviso por cima do jogo (convite recebido, mensagens do grupo), acima da dica do bau. */
+
+.social-aviso-tela {
+    bottom: 190px;
+    font-size: 22px;
+}
