@@ -31,8 +31,13 @@ for (const issue of pendencias) {
   const dados = api(`repos/${repo}/pulls/${pr}`);
   if (!dados.merged_at || !dados.merge_commit_sha) continue;
   // O merge do PR precisa estar no commit testado (ancestral ou o próprio).
-  const comparacao = api(`repos/${repo}/compare/${dados.merge_commit_sha}...${sha}`);
-  if (!["ahead", "identical"].includes(comparacao.status)) continue;
+  // Só o status: o compare completo traz o diff e estoura o buffer do Node.
+  const status = execFileSync(
+    "gh",
+    ["api", "--jq", ".status", `repos/${repo}/compare/${dados.merge_commit_sha}...${sha}`],
+    { encoding: "utf8" },
+  ).trim();
+  if (!["ahead", "identical"].includes(status)) continue;
 
   api(
     `repos/${repo}/issues/${issue.number}/comments`,
