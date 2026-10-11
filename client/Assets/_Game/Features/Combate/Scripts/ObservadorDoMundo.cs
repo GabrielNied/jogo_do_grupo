@@ -85,6 +85,9 @@ namespace JogoDoGrupo.Client.Features.Combate
             var painel = new PainelRecursos(container);
             var controle = raiz.AddComponent<ControleRecursos>();
             controle.Configurar(personagemId, painel);
+
+            var ataque = raiz.AddComponent<ControleAtaque>();
+            ataque.Configurar(personagemId, new PainelAtaque(container), painel, controle);
         }
 
         private static PanelSettings CriarConfiguracaoDoPainel()

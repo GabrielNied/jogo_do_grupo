@@ -18,6 +18,16 @@ namespace JogoDoGrupo.Client.Features.Combate
         private long _personagemId;
         private float _proximaConsulta;
         private bool _consultando;
+        private int _versaoDoServidor;
+
+        /// <summary>
+        /// O servidor mandou os recursos por <c>RecursosMudaram</c>: uma consulta que ainda
+        /// estava a caminho é mais antiga e não deve sobrescrever o que acabou de chegar.
+        /// </summary>
+        public void RegistrarAtualizacaoDoServidor()
+        {
+            _versaoDoServidor++;
+        }
 
         public void Configurar(long personagemId, PainelRecursos painel)
         {
@@ -45,12 +55,13 @@ namespace JogoDoGrupo.Client.Features.Combate
         private async void Consultar()
         {
             _consultando = true;
+            var versao = _versaoDoServidor;
             try
             {
                 var resposta = await ClienteApi.Get<RecursosResponse>(
                     RotasCombate.RecursosDe(_personagemId)
                 );
-                if (this == null || !EntradaNoJogo.NoJogo)
+                if (this == null || !EntradaNoJogo.NoJogo || versao != _versaoDoServidor)
                 {
                     return;
                 }
