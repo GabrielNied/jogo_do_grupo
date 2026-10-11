@@ -162,6 +162,16 @@ Concorrência:
 - Convite aceito enquanto o convidante cai: `ConvidanteOffline`, e nenhum grupo meio criado.
 - Duas expulsões simultâneas do mesmo alvo: uma vale, a outra recebe `AlvoNaoEstaNoGrupo`.
 
+#### Servidor (issue #221)
+
+Código em `server/src/JogoDoGrupo.Server/Features/Social/`: as regras vivem em `GruposDoServidor` (estado em memória, uma trava só, relógio injetável), o tempo real liga as mensagens a elas (`SocialModule`, `SaidaTempoReal`) e `VarreduraDosGrupos` aplica os prazos a cada segundo. Escolhas que as regras acima deixavam abertas:
+
+- **Online** é ter uma sessão autenticada no tempo real (não precisa estar na cidade).
+- **Ordem das recusas ao convidar:** `NaoELider`, `ConvitesRapidosDemais`, nome (`AlvoNaoEncontrado`, `ConviteParaSiMesmo`, alvo offline), `AlvoJaEmGrupo`, `ReconviteBloqueado`, `ConviteJaPendente`, `GrupoCheio`, `AlvoComConvitesDemais`. Toda tentativa que passa de `NaoELider` conta no limite de 1 por segundo, mesmo se for recusada.
+- **Convite que acabou sem resposta** (expirou, o convidante caiu sem grupo ou o alvo entrou em outro grupo) fica lembrado por 60 s só para o alvo receber o código certo ao aceitar (`ConviteExpirado`, `ConvidanteOffline`, `AlvoJaEmGrupo`); depois disso vale `ConviteNaoEncontrado`. Convite cancelado por outro motivo (líder mudou, grupo desfeito, alvo caiu) some na hora.
+- **Líder offline:** a vaga guardada e a troca de liderança vencem juntas, passados os 120 s; ali ele sai do grupo como se tivesse saído.
+- **Reconvite bloqueado** vale para quem expulsou e para o grupo, e continua valendo se a expulsão desfez o grupo.
+
 ### Chat de texto (issue #95)
 
 Tudo aqui é **proposta**; nada é decisão ainda. Base: chat do [World of Warcraft](../referencias.md) (canais com cor, sussurro por nome, comandos com barra). Igual: canal da área, canal do grupo, sussurro e abrir a caixa com Enter. Diferente: só três canais, sem canais criados por jogadores, sem canal de comércio e sem guilda por enquanto.
@@ -286,6 +296,15 @@ Código em `shared/Package/Runtime/Features/Social/` (fonte dos nomes e tipos ex
 - `RegrasGrupo`: os números do grupo como constantes (5 membros, 60 s, 120 s, 30 s, 1 convite por segundo, 5 convites por alvo) e as contas puras (`VagasLivres`, `ConviteExpirou`, `VagaGuardadaVenceu`, `ReconviteBloqueado`, `DeveDesfazer`, `PosicaoDoHerdeiro`).
 - O grupo fica com os IDs 13000 a 13099; o chat começa em 13100 (#121).
 
+### Client do grupo (issue #222)
+
+Código em `client/Assets/_Game/Features/Social/`. O client só envia intenções e mostra o que o servidor manda: a lista, o líder e o offline vêm de `ListaDoGrupo`, na ordem dele.
+
+- **Janela do grupo** (tecla **O**, **proposta**: é a sugestão "**O** social" de [interface.md](interface.md), que ainda espera aprovação): convidar por nome, convites recebidos com **Aceitar** e **Recusar**, a lista com o líder e os offline marcados, **Sair do grupo** e, só para o líder, **Expulsar** e **Passar liderança** (esta só para quem está online). Membro comum não vê o campo de convidar. Os botões só evitam pedidos que o servidor recusaria; quem decide é ele.
+- **Convite recebido:** aparece uma linha por cima do jogo ("Fulano convidou você para o grupo. O: responder"); a resposta é dada na janela. A contagem de 60 s na tela é só para mostrar; vencido ou não, quem decide é o servidor.
+- **Avisos e recusas** (`AvisoDoGrupo`, `OperacaoDoGrupoRecusada`) viram uma mensagem por 6 s, na janela e por cima do jogo.
+- Trocar de personagem ou sair do mundo esquece o grupo na tela; o do próximo personagem chega pelo servidor.
+
 ### Contrato do chat
 
 Código em `shared/Package/Runtime/Features/Social/`. Tempo real, entrega confiável; quem falou vem sempre da sessão.
@@ -299,3 +318,4 @@ Código em `shared/Package/Runtime/Features/Social/`. Tempo real, entrega confi�
 
 - `CodigosErroSocial` ganhou os códigos do chat (`MensagemVazia`, `MensagemLongaDemais`, `MensagensRapidasDemais`, `MensagemRepetida`, `Silenciado`, `CanalIndisponivel`, `SussurroParaSiMesmo`); `NaoEstaEmGrupo` e `AlvoNaoEncontrado` são os mesmos do grupo.
 - `RegrasChat`: os números da tabela de limites como constantes e as contas puras (`Limpar`, `Validar`, `ChaveDeRepeticao`, `FrequenciaEstourou`, `Repetida`, `DeveSilenciar`, `SilencioRestanteSegundos`, `VelhaDemaisParaOHistorico`). Os limites só do client (100 linhas, 50 ignorados, 8 linhas no painel) ficam no client.
+- **Servidor do chat (2026-10-11, primeira fatia):** canais **Cidade** e **Sussurro** com os limites (tamanho, frequência, repetição e silêncio). O terceiro estouro de frequência já responde `Silenciado`. O canal **Grupo** responde `NaoEstaEmGrupo` para todos até o servidor do grupo existir, e o **histórico da Cidade** ainda não é enviado. Código em `server/src/JogoDoGrupo.Server/Features/Social/` (`ChatDoServidor`, `LimitesDoChat`).

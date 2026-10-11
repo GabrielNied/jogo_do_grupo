@@ -4,11 +4,31 @@ using JogoDoGrupo.Server.Core.Api;
 using JogoDoGrupo.Server.Core.Autenticacao;
 using JogoDoGrupo.Server.Core.Contas;
 using JogoDoGrupo.Server.Core.Eventos;
+using JogoDoGrupo.Server.Core.Observabilidade;
 using JogoDoGrupo.Server.Core.Persistencia;
 using JogoDoGrupo.Server.Core.TempoReal;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
+using Serilog.Formatting.Compact;
 
 var builder = WebApplication.CreateBuilder(args);
+
+var metricas = new MetricasDoServidor();
+builder.Services.AddSingleton(metricas);
+builder.Host.UseSerilog(
+    (_, configuracao) =>
+        configuracao
+            .MinimumLevel.Information()
+            .Filter.ByExcluding(FiltroDadosSensiveis.TemDadoSensivel)
+            .WriteTo.Console()
+            .WriteTo.File(
+                new CompactJsonFormatter(),
+                "logs/servidor-.ndjson",
+                rollingInterval: RollingInterval.Day,
+                retainedFileCountLimit: 14
+            )
+            .WriteTo.Sink(new ContadorDeErrosSink(metricas))
+);
 
 var modulos = Assembly
     .GetExecutingAssembly()
@@ -54,6 +74,13 @@ app.UsarErrosApi();
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.MapGet("/saude", () => Results.Ok(new { Estado = "ok" }));
+app.MapGet(
+        "/admin/metricas",
+        (MetricasDoServidor observabilidade) => Results.Ok(observabilidade.Obter())
+    )
+    .RequireAuthorization(policy => policy.RequireClaim("permissao", "administrar"));
+
 app.MapearContas();
 foreach (var modulo in modulos)
 {
@@ -61,6 +88,7 @@ foreach (var modulo in modulos)
 }
 
 var mensagens = app.Services.GetRequiredService<MensagensTempoReal>();
+metricas.Observar(app.Services.GetRequiredService<ServidorTempoReal>());
 var contexto = new ServerContext(
     app.Services.GetRequiredService<ServidorTempoReal>(),
     app.Services.GetRequiredService<EventosDoServidor>()

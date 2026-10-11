@@ -88,6 +88,8 @@ namespace JogoDoGrupo.Client.Features.Combate
 
             var ataque = raiz.AddComponent<ControleAtaque>();
             ataque.Configurar(personagemId, new PainelAtaque(container), painel, controle);
+
+            raiz.AddComponent<ControleEsquiva>().Configurar(personagemId);
         }
 
         private static PanelSettings CriarConfiguracaoDoPainel()
