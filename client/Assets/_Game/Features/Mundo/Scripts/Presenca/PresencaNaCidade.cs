@@ -32,6 +32,10 @@ namespace JogoDoGrupo.Client.Features.Mundo.Presenca
                 _conexao.Assinar<JogadorEntrou>(MundoMessageIds.JogadorEntrou, AoEntrar),
                 _conexao.Assinar<JogadorSaiu>(MundoMessageIds.JogadorSaiu, AoSair),
                 _conexao.Assinar<PosicaoJogador>(MundoMessageIds.PosicaoJogador, AoReceberPosicao),
+                _conexao.Assinar<VelocidadesDeMovimento>(
+                    MundoMessageIds.VelocidadesDeMovimento,
+                    AoReceberVelocidades
+                ),
             };
 
             // Já conectado ao criar: entra agora, sem esperar uma mudança de estado.
@@ -48,6 +52,26 @@ namespace JogoDoGrupo.Client.Features.Mundo.Presenca
         /// intenção). Quem move o jogador decide se a diferença justifica corrigir.
         /// </summary>
         public event Action<Vector3, float> PosicaoDoServidor;
+
+        /// <summary>
+        /// Andar e correr (m/s) que o servidor deu ao jogador local. Quem move o jogador aplica;
+        /// a confirmação ao servidor já é enviada aqui (modelo do WoW: aplicar e confirmar).
+        /// </summary>
+        public event Action<float, float> VelocidadesDoServidor;
+
+        /// <summary>
+        /// Pede ao servidor outras velocidades, para testar (só vale com o servidor em
+        /// desenvolvimento; se recusar, nada muda). Falso se não está conectado.
+        /// </summary>
+        public bool PedirVelocidadeDeTeste(float andar, float correr)
+        {
+            return _conexao.Conectado
+                && _conexao.Enviar(
+                    MundoMessageIds.PedirVelocidadeDeTeste,
+                    new PedirVelocidadeDeTeste { Andar = andar, Correr = correr },
+                    EntregaTempoReal.Confiavel
+                );
+        }
 
         /// <summary>Chame a cada quadro com a posição e a rotação do jogador local.</summary>
         public void Atualizar(float delta, Vector3 posicaoLocal, float rotacaoY)
@@ -140,6 +164,22 @@ namespace JogoDoGrupo.Client.Features.Mundo.Presenca
             {
                 Avatares.Saiu(mensagem.PersonagemId);
             }
+        }
+
+        private void AoReceberVelocidades(VelocidadesDeMovimento velocidades)
+        {
+            if (velocidades == null)
+            {
+                return;
+            }
+
+            // Aplica antes de confirmar: o servidor só aperta o limite depois do ACK.
+            VelocidadesDoServidor?.Invoke(velocidades.Andar, velocidades.Correr);
+            _conexao.Enviar(
+                MundoMessageIds.ConfirmarVelocidade,
+                new ConfirmarVelocidade { Sequencia = velocidades.Sequencia },
+                EntregaTempoReal.Confiavel
+            );
         }
 
         private void AoReceberPosicao(PosicaoJogador posicao)

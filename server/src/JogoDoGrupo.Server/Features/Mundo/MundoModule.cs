@@ -8,7 +8,14 @@ namespace JogoDoGrupo.Server.Features.Mundo;
 
 public sealed class MundoModule : IFeatureModule
 {
+    /// <summary>
+    /// Chave de configuração que libera o pedido de velocidade de teste (só em
+    /// appsettings.Development.json). Sem ela, o servidor ignora o pedido.
+    /// </summary>
+    public const string ChavePermitirVelocidadeDeTeste = "Mundo:PermitirVelocidadeDeTeste";
+
     private readonly CidadeDoMundo<SessaoTempoReal> _cidade = new();
+    private bool _permitirVelocidadeDeTeste;
     private ServidorTempoReal? _tempoReal;
     private EventosDoServidor? _eventos;
 
@@ -16,6 +23,7 @@ public sealed class MundoModule : IFeatureModule
 
     public void ConfigurarServicos(IServiceCollection servicos, IConfiguration configuracao)
     {
+        _permitirVelocidadeDeTeste = configuracao.GetValue<bool>(ChavePermitirVelocidadeDeTeste);
         servicos.AddSingleton<IPosicoesDoMundo>(new PosicoesDaCidade(_cidade));
         servicos.AddSingleton<IDeslocamentosDoMundo>(new DeslocamentosDaCidade(_cidade));
     }
@@ -24,7 +32,12 @@ public sealed class MundoModule : IFeatureModule
         mensagens
             .Faixa(MundoMessageIds.Faixa)
             .Ao<EntrarNaCidade>(MundoMessageIds.EntrarNaCidade, AoEntrar)
-            .Ao<IntencaoDeMovimento>(MundoMessageIds.IntencaoDeMovimento, AoMover);
+            .Ao<IntencaoDeMovimento>(MundoMessageIds.IntencaoDeMovimento, AoMover)
+            .Ao<ConfirmarVelocidade>(MundoMessageIds.ConfirmarVelocidade, AoConfirmarVelocidade)
+            .Ao<PedirVelocidadeDeTeste>(
+                MundoMessageIds.PedirVelocidadeDeTeste,
+                AoPedirVelocidadeDeTeste
+            );
 
     public void Inicializar(ServerContext contexto)
     {
@@ -41,6 +54,11 @@ public sealed class MundoModule : IFeatureModule
             MundoMessageIds.EstadoDaCidade,
             new EstadoDaCidade { Eu = Visivel(eu), Outros = outros.Select(Visivel).ToArray() }
         );
+        if (_cidade.Velocidades(sessao.PersonagemId) is { } velocidades)
+        {
+            EnviarVelocidades(sessao, velocidades);
+        }
+
         if (novo)
         {
             var aviso = new JogadorEntrou { Jogador = Visivel(eu) };
@@ -88,6 +106,41 @@ public sealed class MundoModule : IFeatureModule
             }
         }
     }
+
+    private void AoConfirmarVelocidade(SessaoTempoReal sessao, ConfirmarVelocidade confirmacao) =>
+        _cidade.ConfirmarVelocidades(sessao.PersonagemId, sessao, confirmacao.Sequencia);
+
+    // Equivalente ao .modify speed de GM do WoW: só com a configuração de desenvolvimento.
+    private void AoPedirVelocidadeDeTeste(SessaoTempoReal sessao, PedirVelocidadeDeTeste pedido)
+    {
+        if (
+            !_permitirVelocidadeDeTeste
+            || !RegrasVelocidade.TesteValido(pedido.Andar, pedido.Correr)
+        )
+        {
+            return;
+        }
+
+        if (
+            _cidade.MudarVelocidades(sessao.PersonagemId, sessao, pedido.Andar, pedido.Correr) is
+            { } novas
+        )
+        {
+            EnviarVelocidades(sessao, novas);
+        }
+    }
+
+    private void EnviarVelocidades(SessaoTempoReal sessao, VelocidadesNaCidade v) =>
+        _tempoReal!.Enviar(
+            sessao,
+            MundoMessageIds.VelocidadesDeMovimento,
+            new VelocidadesDeMovimento
+            {
+                Andar = v.Andar,
+                Correr = v.Correr,
+                Sequencia = v.Sequencia,
+            }
+        );
 
     private void AoEncerrar(SessaoTempoReal sessao)
     {
