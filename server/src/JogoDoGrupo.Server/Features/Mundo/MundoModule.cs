@@ -1,10 +1,114 @@
 using JogoDoGrupo.Server.Core;
+using JogoDoGrupo.Server.Core.TempoReal;
+using JogoDoGrupo.Shared.Features.Mundo;
 
 namespace JogoDoGrupo.Server.Features.Mundo;
 
 public sealed class MundoModule : IFeatureModule
 {
+    private readonly CidadeDoMundo<SessaoTempoReal> _cidade = new();
+    private ServidorTempoReal? _tempoReal;
+
     public string Nome => "Mundo";
 
-    public void Inicializar(ServerContext contexto) { }
+    public void RegistrarMensagens(MensagensTempoReal mensagens) =>
+        mensagens
+            .Faixa(MundoMessageIds.Faixa)
+            .Ao<EntrarNaCidade>(MundoMessageIds.EntrarNaCidade, AoEntrar)
+            .Ao<IntencaoDeMovimento>(MundoMessageIds.IntencaoDeMovimento, AoMover);
+
+    public void Inicializar(ServerContext contexto)
+    {
+        _tempoReal = contexto.TempoReal;
+        _tempoReal.SessaoEncerrada += AoEncerrar;
+    }
+
+    private void AoEntrar(SessaoTempoReal sessao, EntrarNaCidade _)
+    {
+        var (novo, eu, outros) = _cidade.Entrar(sessao.PersonagemId, sessao);
+        _tempoReal!.Enviar(
+            sessao,
+            MundoMessageIds.EstadoDaCidade,
+            new EstadoDaCidade { Eu = Visivel(eu), Outros = outros.Select(Visivel).ToArray() }
+        );
+        if (novo)
+        {
+            var aviso = new JogadorEntrou { Jogador = Visivel(eu) };
+            foreach (var outro in outros)
+            {
+                _tempoReal.Enviar(outro.Sessao, MundoMessageIds.JogadorEntrou, aviso);
+            }
+        }
+    }
+
+    private void AoMover(SessaoTempoReal sessao, IntencaoDeMovimento intencao)
+    {
+        var desejada = new PosicaoNaCidade(intencao.X, intencao.Y, intencao.Z, intencao.RotacaoY);
+        var (resultado, avatar) = _cidade.Mover(sessao.PersonagemId, sessao, desejada);
+        if (avatar == null)
+        {
+            return;
+        }
+
+        // O dono sempre recebe a posição autoritativa com a sequência (corrige a predição se recusada).
+        _tempoReal!.Enviar(
+            sessao,
+            MundoMessageIds.PosicaoJogador,
+            Posicao(avatar, intencao.Sequencia),
+            EntregaTempoReal.Sequenciada
+        );
+        if (resultado != ResultadoMovimento.Aceito)
+        {
+            return;
+        }
+
+        var replica = Posicao(avatar, 0);
+        foreach (var outro in _cidade.Presentes())
+        {
+            if (!ReferenceEquals(outro.Sessao, sessao))
+            {
+                _tempoReal.Enviar(
+                    outro.Sessao,
+                    MundoMessageIds.PosicaoJogador,
+                    replica,
+                    EntregaTempoReal.Sequenciada
+                );
+            }
+        }
+    }
+
+    private void AoEncerrar(SessaoTempoReal sessao)
+    {
+        if (!_cidade.Sair(sessao.PersonagemId, sessao))
+        {
+            return;
+        }
+
+        var aviso = new JogadorSaiu { PersonagemId = sessao.PersonagemId };
+        foreach (var outro in _cidade.Presentes())
+        {
+            _tempoReal!.Enviar(outro.Sessao, MundoMessageIds.JogadorSaiu, aviso);
+        }
+    }
+
+    private static JogadorVisivel Visivel(AvatarNaCidade<SessaoTempoReal> a) =>
+        new()
+        {
+            PersonagemId = a.PersonagemId,
+            X = a.Posicao.X,
+            Y = a.Posicao.Y,
+            Z = a.Posicao.Z,
+            RotacaoY = a.Posicao.RotacaoY,
+        };
+
+    private static PosicaoJogador Posicao(AvatarNaCidade<SessaoTempoReal> a, int sequencia) =>
+        new()
+        {
+            PersonagemId = a.PersonagemId,
+            X = a.Posicao.X,
+            Y = a.Posicao.Y,
+            Z = a.Posicao.Z,
+            RotacaoY = a.Posicao.RotacaoY,
+            Sequencia = sequencia,
+        };
 }
