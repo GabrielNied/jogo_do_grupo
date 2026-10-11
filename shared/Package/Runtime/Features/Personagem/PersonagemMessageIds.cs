@@ -6,5 +6,11 @@ namespace JogoDoGrupo.Shared.Features.Personagem
     public static class PersonagemMessageIds
     {
         public static readonly MessageIdRange Faixa = new MessageIdRange(3000, 3999);
+
+        /// <summary>Servidor → dono: o personagem ganhou experiência (e talvez subiu de nível).</summary>
+        public const ushort ExperienciaGanha = 3000;
+
+        /// <summary>Servidor → quem está na área: um personagem subiu de nível.</summary>
+        public const ushort SubiuDeNivel = 3001;
     }
 }
