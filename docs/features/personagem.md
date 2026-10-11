@@ -24,7 +24,7 @@ Decidido pelo grupo em 2026-10-10. É **provisório**: serve para implementar a 
 - Nome do personagem: **3 a 16 letras**, só letras de A a Z, sem acento, espaço ou número; **único** no servidor sem diferenciar maiúsculas.
 - **Uma raça provisória: Humano**, até o grupo definir as raças definitivas.
 - O personagem começa no **nível 1**.
-- Fluxo de entrada: abertura → login (ou registro) → seleção de personagem → criação → volta para a seleção. "Entrar" ainda não leva a um mundo.
+- Fluxo de entrada: abertura → login (ou registro) → seleção de personagem → criação → volta para a seleção. ~~"Entrar" ainda não leva a um mundo.~~ substituído em 2026-10-11 por: "Entrar" leva ao mundo (veja [Fluxo de entrada no jogo](#fluxo-de-entrada-no-jogo)).
 - Comunicação pela API HTTP do [ADR 0009](../decisoes/0009-api-http-para-conta-e-personagens.md) (veja [Expõe](#expõe)).
 - O **servidor decide**: valida o nome, a unicidade, a raça e o limite de 4. O client só confere o formato do nome para dar retorno rápido.
 
@@ -95,7 +95,7 @@ Ordem das telas: abertura/carregamento → login (ou registro) → seleção de 
    - ao abrir a tela, vem selecionado o **primeiro personagem da lista**; se a lista estiver vazia, nenhum fica selecionado e ~~só aparece o botão Criar~~ substituído em 2026-10-11 por: aparecem só os botões **Criar** e **Sair** (Sair para não prender a pessoa na tela);
    - botão **Criar**: abre a tela de criação; com **4 personagens** fica desabilitado e a tela mostra o aviso "Você já tem o máximo de 4 personagens." (quem garante o limite continua sendo o servidor);
    - botão **Sair**: encerra a sessão e volta para o login;
-   - botão **Entrar**: só funciona com um personagem selecionado. **Por enquanto não leva a um mundo** (ainda não existe): mostra a mensagem "O jogo ainda não foi implementado." e continua na seleção. Não chama o servidor.
+   - botão **Entrar**: só funciona com um personagem selecionado. ~~**Por enquanto não leva a um mundo** (ainda não existe): mostra a mensagem "O jogo ainda não foi implementado." e continua na seleção. Não chama o servidor.~~ substituído em 2026-10-11 por: chama `EntradaNoJogo.Entrar(id)` (Core, veja [Entrada no mundo](../arquitetura.md#entrada-no-mundo)) com o id do personagem selecionado e **deixa a seleção**: o jogador entra no mundo com o visual humano ([Visual do jogador](#visual-do-jogador-arte)). Não chama o servidor. Sem personagem selecionado, não faz nada.
 4. **Criação de personagem:**
    - campo de **nome** e escolha de **raça** (só Humano);
    - enquanto a pessoa digita, o client confere o formato do nome com `RegrasPersonagem.ValidarNome` e avisa se estiver errado, sem chamar o servidor;
@@ -146,6 +146,7 @@ API HTTP para listar e criar personagens (por que HTTP: [ADR 0009](../decisoes/0
 
 O visual do personagem humano é um modelo low-poly CC0 (Quaternius, ver [licenças](../arte/licencas.md)), já com esqueleto e animações. O client só **mostra**; quem decide posição e estado é o servidor.
 
+- **Registro no Core:** `RegistroVisualJogador` (`Features/Personagem/Scripts/`) chama `EntradaNoJogo.DefinirVisualDoJogador` antes da primeira cena (`BeforeSceneLoad`) e devolve o próprio prefab; o Core instancia. Por enquanto o id do personagem não muda o visual (só existe o humano).
 - **Prefab:** `client/Assets/_Game/Features/Personagem/Resources/Personagem/Jogador_Humano.prefab` (carregar com `Resources.Load<GameObject>("Personagem/Jogador_Humano")`). Altura de 1,8 m, pés em Y=0, frente em +Z. O `Animator` fica na raiz do prefab. Não tem `CharacterController`, câmera nem lógica: isso é do Core.
 - **Geração:** tudo (importação do FBX, material, controller e prefab) sai do script de editor `Features/Personagem/Editor/GeradorJogadorHumano.cs`, menu **Jogo do Grupo > Personagem > Gerar jogador humano**. Rodar de novo recria o mesmo resultado. Não edite o controller e o prefab à mão.
 - **Parâmetros do Animator** (usados pelo Core e, depois, pelo combate):

@@ -16,6 +16,7 @@ namespace JogoDoGrupo.Client.Features.Personagem
 
         public const string ErroAoCarregar = "Não foi possível carregar os personagens.";
 
+        // Sem uso desde 2026-10-11: o botão Entrar passou a chamar EntradaNoJogo.Entrar.
         public const string JogoNaoImplementado = "O jogo ainda não foi implementado.";
 
         public static readonly string NomeInvalido =

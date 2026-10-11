@@ -156,7 +156,7 @@ private static void Registrar()
 - **Menu:** Esc abre "Continuar" e "Voltar à seleção" (`Sair`).
 - **Sessão:** se a sessão expirar no mundo, o Core desmonta o mundo antes de abrir o login.
 
-O botão **Entrar** da seleção ainda não chama `Entrar` (fluxo atual em [personagem.md](features/personagem.md#fluxo-de-entrada-no-jogo)).
+~~O botão **Entrar** da seleção ainda não chama `Entrar`~~ substituído em 2026-10-11 por: o botão **Entrar** chama `EntradaNoJogo.Entrar` com o id selecionado (fluxo em [personagem.md](features/personagem.md#fluxo-de-entrada-no-jogo)).
 
 ## Faixas de IDs de mensagem
 

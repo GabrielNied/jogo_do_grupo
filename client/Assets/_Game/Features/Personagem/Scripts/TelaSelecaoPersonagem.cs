@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using JogoDoGrupo.Client.Core.Api;
+using JogoDoGrupo.Client.Core.Jogo;
 using JogoDoGrupo.Client.Core.UI;
 using JogoDoGrupo.Shared.Features.Personagem;
 using UnityEngine;
@@ -304,8 +305,8 @@ namespace JogoDoGrupo.Client.Features.Personagem
                 return;
             }
 
-            // Ainda não existe mundo: avisa e continua na seleção, sem chamar o servidor.
-            MostrarMensagem(TextosPersonagem.JogoNaoImplementado, EstiloCore.MensagemAviso);
+            // O Core monta o mundo, cria o jogador com o visual registrado e deixa esta tela.
+            EntradaNoJogo.Entrar(_idSelecionado.Value);
         }
 
         private void AoClicarSair()
