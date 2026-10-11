@@ -15,6 +15,9 @@ A organização por funcionalidade ([arquitetura.md](arquitetura.md)) é o que t
 | `server-funcionalidade` | `server/.../Features/`, migrações em `server/.../Core/Persistencia/Migrations/`, `docs/features/` | Backend de **uma** funcionalidade | `feature/<x>/<descricao>-server` | Sonnet (Opus em tarefas de risco) |
 | `client-core` | `client/Assets/_Game/Core/` (só scripts) | Infra do client: conexão, cenas, input, câmera e controle em 3ª pessoa, UI base | `feature/core/<descricao>-client` | Opus |
 | `client-funcionalidade` | `client/Assets/_Game/Features/` (só scripts) | Client de **uma** funcionalidade | `feature/<x>/<descricao>-client` | Sonnet (Opus em tarefas de risco) |
+| `artista-mundo` | `Features/Mundo/`, `ThirdParty/`, `docs/arte/` | Hub, peças modulares, gerador de dungeon, ambientação | `feature/mundo/<descricao>-arte` | Sonnet |
+| `artista-personagens` | `Features/Personagem/`, `ThirdParty/`, `docs/arte/` | Modelos, animações, Animator, prefabs por raça, encaixes | `feature/personagem/<descricao>-arte` | Sonnet |
+| `artista-itens` | `Features/Itens/`, `ThirdParty/`, `docs/arte/` | Modelos de armas e equipamentos, ícones, encaixe | `feature/itens/<descricao>-arte` | Sonnet |
 | `revisor` | Nenhuma (somente leitura) | Revisar PRs de código contra as regras e a ficha, antes do review humano | — | Sonnet (Opus em Core, segurança, concorrência) |
 
 As definições completas (regras de cada papel, passo a passo e formato do relatório) estão em [.claude/agents/](../.claude/agents/). São arquivos markdown que **qualquer IA consegue ler**.
@@ -42,6 +45,10 @@ designer-docs ─► shared-contratos ─► merge ─┼─ server-funcionalida
 5. **Pessoas.** Montam no Unity o que os agentes de client listaram, testam, aprovam e fazem o merge.
 
 Várias funcionalidades podem andar ao mesmo tempo, cada uma com o seu trio de agentes. O limite real é a capacidade de review das pessoas: prefira PRs pequenos.
+
+### Agentes artistas e o Unity
+
+Os artistas ([ADR 0014](decisoes/0014-conteudo-3d-e-agentes-artistas.md)) buscam assets CC0 conforme a necessidade e montam o conteúdo **pelo Unity** (editor aberto via Unity CLI, ou scripts de editor em modo batch). Como o projeto Unity é um só, **os passos com Unity rodam um agente por vez, no checkout principal**; buscar assets e escrever código pode andar em paralelo. Enquanto um artista usa o Unity, ninguém troca a branch do checkout principal.
 
 ### Por que não conflita
 
