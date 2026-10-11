@@ -1,6 +1,7 @@
 /*
- * Estilo das telas de Personagem (provisório: uma pessoa ajusta o visual depois).
- * Complementa o EstiloCore.uss; os nomes das classes estão em EstiloPersonagem.cs.
+ * Estilo das telas de Personagem. Complementa o EstiloCore.uss.
+ * Os nomes das classes estão em EstiloPersonagem.cs.
+ * Mesma moldura do Core: cantos retos, borda dourada, texto quente.
  */
 
 .personagem-painel-selecao {
@@ -19,47 +20,50 @@
     margin-right: 0;
     margin-bottom: 8px;
     padding: 10px 16px;
-    border-radius: 8px;
+    border-radius: 0;
     border-width: 2px;
-    border-color: rgba(0, 0, 0, 0);
-    background-color: rgb(44, 52, 68);
+    border-color: rgb(74, 56, 28);
+    background-color: rgb(28, 22, 16);
+    background-image: none;
+    color: rgb(228, 214, 188);
 }
 
 .personagem-item:hover {
-    background-color: rgb(56, 66, 86);
+    background-color: rgb(48, 36, 24);
+    border-top-color: rgb(168, 132, 68);
 }
 
 .personagem-item-selecionado {
-    border-color: rgb(80, 170, 110);
-    background-color: rgb(40, 70, 56);
+    border-color: rgb(212, 176, 96);
+    background-color: rgb(58, 42, 22);
 }
 
 .personagem-item-selecionado:hover {
-    background-color: rgb(46, 82, 64);
+    background-color: rgb(68, 50, 26);
 }
 
 /* Mantém a borda e o fundo da seleção quando o tema aplica :focus/:active ao botão. */
 .personagem-item.personagem-item-selecionado:focus,
 .personagem-item.personagem-item-selecionado:active {
-    border-color: rgb(80, 170, 110);
-    background-color: rgb(46, 82, 64);
+    border-color: rgb(212, 176, 96);
+    background-color: rgb(68, 50, 26);
 }
 
 .personagem-item-nome {
-    font-size: 26px;
+    font-size: 24px;
     -unity-font-style: bold;
     -unity-text-align: middle-left;
-    color: rgb(240, 240, 240);
+    color: rgb(236, 214, 160);
 }
 
 .personagem-item-detalhes {
-    font-size: 20px;
+    font-size: 18px;
     -unity-text-align: middle-left;
-    color: rgb(180, 188, 200);
+    color: rgb(176, 148, 104);
 }
 
 .personagem-racas .unity-radio-button {
-    font-size: 22px;
-    color: rgb(220, 224, 230);
+    font-size: 20px;
+    color: rgb(228, 214, 188);
     margin-bottom: 4px;
 }

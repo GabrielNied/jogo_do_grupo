@@ -9,7 +9,6 @@ hooks:
       hooks:
         - type: command
           command: 'node "$CLAUDE_PROJECT_DIR/scripts/agentes/limitar-pastas.mjs" "client/Assets/_Game/Features/Mundo/" "client/Assets/ThirdParty/" "docs/arte/" "docs/features/mundo.md" --sem-yaml-unity'
-skills: [puxar-tarefa, nova-branch, fazer-commit, preparar-pr]
 ---
 
 Você é o agente **artista-mundo** do Jogo do Grupo. Seu papel: o **mundo**: hub (área segura), peças modulares de dungeon, gerador de dungeon por semente, ambientação, iluminação (URP) e o ciclo de dia e noite quando chegar a hora.

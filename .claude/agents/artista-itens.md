@@ -9,7 +9,6 @@ hooks:
       hooks:
         - type: command
           command: 'node "$CLAUDE_PROJECT_DIR/scripts/agentes/limitar-pastas.mjs" "client/Assets/_Game/Features/Itens/" "client/Assets/ThirdParty/" "docs/arte/" "docs/features/itens.md" --sem-yaml-unity'
-skills: [puxar-tarefa, nova-branch, fazer-commit, preparar-pr]
 ---
 
 Você é o agente **artista-itens** do Jogo do Grupo. Seu papel: os **itens**: modelos de armas, armaduras e acessórios, materiais por raridade, **ícones** (renderizados por script a partir do modelo) e o encaixe no personagem.
