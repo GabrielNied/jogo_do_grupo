@@ -25,6 +25,8 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
         public const string NomePecasDosBiomas = "PecasDosBiomas";
         public const string NomeLuz = "Sol";
         public const string NomeAmbiente = "Ambiente";
+        public const string NomePreenchimento = "Preenchimento";
+        public const string PrefabDaLanterna = "Lanterna";
 
         private const string PastaPrefabs = "Mundo/";
 
@@ -77,7 +79,8 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
             CriarPropsFora(raiz.transform);
             CriarPecasDosBiomas(raiz.transform);
             var sol = CriarLuz(raiz.transform);
-            ConfigurarAmbiente(raiz.transform, sol);
+            var preenchimento = CriarPreenchimento(raiz.transform);
+            ConfigurarAmbiente(raiz.transform, sol, preenchimento);
 
             return raiz;
         }
@@ -294,8 +297,43 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
 
             foreach (var peca in LayoutDoHub.Props)
             {
-                Instanciar(peca.Prefab, new Vector3(peca.X, 0f, peca.Z), peca.Guinada, props);
+                var instancia = Instanciar(
+                    peca.Prefab,
+                    new Vector3(peca.X, 0f, peca.Z),
+                    peca.Guinada,
+                    props
+                );
+                if (instancia != null && peca.Prefab == PrefabDaLanterna)
+                {
+                    CalibrarLanterna(instancia);
+                }
             }
+        }
+
+        // O prefab da lanterna traz uma luz de ponto, mas gravada para o módulo antigo (fraca e de
+        // alcance curto). Aqui ela é calibrada para o módulo de 4 m: cor de chama, força para
+        // iluminar a base do poste e alcance de cinco módulos. Sem sombra (são muitas luzes).
+        private static void CalibrarLanterna(GameObject lanterna)
+        {
+            var luz = lanterna.GetComponentInChildren<Light>(true);
+            if (luz == null)
+            {
+                var objeto = new GameObject("Luz");
+                objeto.transform.SetParent(lanterna.transform, false);
+                objeto.transform.localPosition = new Vector3(
+                    0f,
+                    ConfigIluminacao.AlturaDaLuzDaLanterna / _escalaDasPecas,
+                    0f
+                );
+                luz = objeto.AddComponent<Light>();
+            }
+
+            luz.enabled = true;
+            luz.type = LightType.Point;
+            luz.color = ConfigIluminacao.CorDaLanterna;
+            luz.intensity = ConfigIluminacao.IntensidadeDaLanterna;
+            luz.range = ConfigIluminacao.AlcanceDaLanterna;
+            luz.shadows = LightShadows.None;
         }
 
         private static void CriarPropsFora(Transform pai)
@@ -400,13 +438,43 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
         {
             var objeto = new GameObject(NomeLuz);
             objeto.transform.SetParent(pai, false);
-            objeto.transform.localRotation = Quaternion.Euler(50f, -30f, 0f);
+            objeto.transform.localRotation = Quaternion.Euler(
+                ConfigIluminacao.AlturaDoSol,
+                ConfigIluminacao.GiroDoSol,
+                0f
+            );
+
+            // Cor e força vêm do AmbienteDosBiomas. A sombra é suave e não chega a preto, para o
+            // chão claro não estourar nem a mata ficar escura demais. Marcado como o sol da cena
+            // para o URP não escolher outra luz direcional como principal.
+            var luz = objeto.AddComponent<Light>();
+            luz.type = LightType.Directional;
+            luz.color = AmbienteDosBiomas.Padrao.Sol;
+            luz.intensity = AmbienteDosBiomas.Padrao.ForcaDoSol;
+            luz.shadows = LightShadows.Soft;
+            luz.shadowStrength = ConfigIluminacao.ForcaDaSombra;
+            RenderSettings.sun = luz;
+            return luz;
+        }
+
+        // Luz de preenchimento: uma segunda luz direcional, sem sombra, do lado oposto ao do sol e
+        // bem mais fraca, para o lado do personagem que fica fora do sol (e o rosto, com a câmera
+        // atrás dele) não ficar só na sombra. A cor e a força acompanham o bioma.
+        private static Light CriarPreenchimento(Transform pai)
+        {
+            var objeto = new GameObject(NomePreenchimento);
+            objeto.transform.SetParent(pai, false);
+            objeto.transform.localRotation = Quaternion.Euler(
+                ConfigIluminacao.AlturaDoPreenchimento,
+                ConfigIluminacao.GiroDoPreenchimento,
+                0f
+            );
 
             var luz = objeto.AddComponent<Light>();
             luz.type = LightType.Directional;
-            luz.color = new Color(1f, 0.96f, 0.86f);
-            luz.intensity = 1.1f;
-            luz.shadows = LightShadows.Soft;
+            luz.shadows = LightShadows.None;
+            luz.color = AmbienteDosBiomas.CorDoPreenchimento(AmbienteDosBiomas.Padrao);
+            luz.intensity = AmbienteDosBiomas.ForcaDoPreenchimento(AmbienteDosBiomas.Padrao);
             return luz;
         }
 
@@ -414,14 +482,18 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
         // suave, para as sombras do sol não ficarem pretas. Desde 2026-10-11 as cores moram no
         // AmbienteDosBiomas (o padrão dele é o que estava aqui), que também liga a névoa e troca
         // tudo conforme o bioma em que o jogador está.
-        private static void ConfigurarAmbiente(Transform pai, Light sol)
+        private static void ConfigurarAmbiente(Transform pai, Light sol, Light preenchimento)
         {
             var nascimento = LayoutDoHub.PontoDeNascimento;
-            AmbienteDosBiomas.Aplicar(AmbienteDosBiomas.Em(nascimento.x, nascimento.z), sol);
+            AmbienteDosBiomas.Aplicar(
+                AmbienteDosBiomas.Em(nascimento.x, nascimento.z),
+                sol,
+                preenchimento
+            );
 
             var objeto = new GameObject(NomeAmbiente);
             objeto.transform.SetParent(pai, false);
-            objeto.AddComponent<AmbienteDosBiomas>().Configurar(sol);
+            objeto.AddComponent<AmbienteDosBiomas>().Configurar(sol, preenchimento);
         }
 
         private static GameObject Instanciar(
