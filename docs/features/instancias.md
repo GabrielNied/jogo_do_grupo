@@ -10,6 +10,7 @@ Conteúdo instanciado para grupos pequenos: dungeons e raids, com foco em derrot
 
 ## Definido
 
+- Regras iniciais da primeira fatia jogável (números em proposta): [fatia-jogavel.md](fatia-jogavel.md)
 - Dungeons: grupo pequeno
 - **Derrotar bosses mais fortes em dungeons e raids é o foco do loop principal** (D5 da [validação de 2026-10-10](../brainstorm/validacao.md))
 - O jogo é feito para jogar em poucas pessoas (D1)

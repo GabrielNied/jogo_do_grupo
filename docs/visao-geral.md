@@ -50,6 +50,8 @@ Antes de expandir, o objetivo é uma versão pequena e completa. Revisada em 202
 - [ ] Loot no chão, coletado com uma tecla
 - [ ] Ganho de experiência e subida de nível
 
+Regras detalhadas de cada item (números em proposta): [features/fatia-jogavel.md](features/fatia-jogavel.md).
+
 ## Histórico de direção
 
 O que foi substituído fica registrado aqui, para entender de onde o projeto veio.
