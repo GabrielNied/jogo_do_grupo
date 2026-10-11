@@ -95,6 +95,12 @@ namespace JogoDoGrupo.Client.Core.Jogo
         /// <summary>Tira o HUD da tela, com tudo o que as funcionalidades puseram nas regiões.</summary>
         internal static void Remover()
         {
+            // Solta cada região: quem guardou a referência não continua preso ao HUD antigo.
+            foreach (var regiao in _regioes.Values)
+            {
+                regiao.RemoveFromHierarchy();
+            }
+
             _raiz?.RemoveFromHierarchy();
             _raiz = null;
             _avisos = null;
