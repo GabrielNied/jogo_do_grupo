@@ -284,7 +284,12 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate
         }
     }
 
-    public bool TentarAplicarDano(long alvoId, int dano, out ResultadoDeDano resultado)
+    public bool TentarAplicarDano(
+        long alvoId,
+        int dano,
+        long atacanteId,
+        out ResultadoDeDano resultado
+    )
     {
         resultado = default;
         if (dano <= 0)
@@ -302,6 +307,7 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate
 
             var aplicado = Math.Min(dano, inimigo.Vida);
             inimigo.Vida -= aplicado;
+            inimigo.Atacantes.Add(atacanteId);
             inimigo.VidaMudou = true;
             resultado = new ResultadoDeDano(
                 inimigo.Id,
@@ -566,6 +572,7 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate
     {
         inimigo.Alvo = RegrasInimigo.SemAlvo;
         inimigo.Preparando = false;
+        inimigo.Atacantes.Clear();
         if (inimigo.Vida != inimigo.Criatura.VidaMaxima)
         {
             inimigo.Vida = inimigo.Criatura.VidaMaxima;
@@ -595,7 +602,7 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate
                 Area,
                 inimigo.X,
                 inimigo.Z,
-                _vistos.Order().ToArray()
+                inimigo.Atacantes.Order().ToArray()
             )
         );
     }
@@ -724,6 +731,9 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate
 
         /// <summary>Morto: quando ele volta; nulo se não volta sozinho.</summary>
         public long? VoltaEmMs;
+
+        /// <summary>Quem causou dano desde que ele apareceu ou voltou da desistência.</summary>
+        public readonly HashSet<long> Atacantes = [];
 
         /// <summary>A vida mudou desde o último <see cref="InimigoMudou"/>.</summary>
         public bool VidaMudou;

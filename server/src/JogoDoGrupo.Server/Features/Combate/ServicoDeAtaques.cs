@@ -225,7 +225,10 @@ public sealed class ServicoDeAtaques : IHostedService, IDisposable
             foreach (var alvo in alvos)
             {
                 // O mesmo golpe não acerta o mesmo alvo duas vezes.
-                if (vistos.Add(alvo.Id) && fonte.TentarAplicarDano(alvo.Id, dano, out var r))
+                if (
+                    vistos.Add(alvo.Id)
+                    && fonte.TentarAplicarDano(alvo.Id, dano, personagemId, out var r)
+                )
                 {
                     acertos.Add(
                         new AcertoDeAtaque

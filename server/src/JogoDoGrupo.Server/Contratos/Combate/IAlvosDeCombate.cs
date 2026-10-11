@@ -44,9 +44,10 @@ public interface IAlvosDeCombate
     );
 
     /// <summary>
-    /// Tira vida do alvo. Falso se ele não é desta implementação ou já não está vivo (por
+    /// Tira vida do alvo. <paramref name="atacanteId"/> é o personagem que deu o golpe (quem
+    /// recebe o dano pode usá-lo para saber quem participou da morte). Falso se ele não é desta implementação ou já não está vivo (por
     /// exemplo, outro golpe o derrubou antes). O dano de <paramref name="resultado"/> é o que
     /// de fato foi tirado, nunca mais que a vida que ele tinha.
     /// </summary>
-    bool TentarAplicarDano(long alvoId, int dano, out ResultadoDeDano resultado);
+    bool TentarAplicarDano(long alvoId, int dano, long atacanteId, out ResultadoDeDano resultado);
 }
