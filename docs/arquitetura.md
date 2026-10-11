@@ -55,6 +55,49 @@ Assim, cada pessoa trabalha em pastas diferentes e os conflitos de merge ficam r
 
 Telas do client: UI Toolkit montada em código ([ADR 0011](decisoes/0011-telas-com-ui-toolkit-em-codigo.md)).
 
+## Servidor: como uma funcionalidade se pluga
+
+O servidor é um app ASP.NET Core em `http://localhost:5080` (desenvolvimento). O `Program.cs` encontra todos os `IFeatureModule` sozinho e chama, nesta ordem, `ConfigurarServicos`, `MapearRotas` e `Inicializar`. Os dois primeiros são opcionais ([ADR 0012](decisoes/0012-pontos-de-extensao-do-servidor.md)).
+
+```csharp
+public sealed class PersonagemModule : IFeatureModule
+{
+    public string Nome => "Personagem";
+
+    public void ConfigurarServicos(IServiceCollection servicos, IConfiguration configuracao) =>
+        servicos.AddScoped<ServicoPersonagens>();
+
+    public void MapearRotas(IEndpointRouteBuilder rotas)
+    {
+        var grupo = rotas.MapGroup("/api/personagens").RequireAuthorization();
+        grupo.MapGet("", ListarAsync);
+    }
+
+    public void Inicializar(ServerContext contexto) { }
+
+    private static async Task<IResult> ListarAsync(ClaimsPrincipal usuario, JogoDbContext db) { ... }
+}
+```
+
+- **Serviços:** registre em `ConfigurarServicos`. Prefira `AddScoped` para o que usa o banco.
+- **Rotas:** mapeie em `MapearRotas` usando as constantes de rota do shared. `RequireAuthorization()` exige login; sem token válido, o Core responde 401 `NaoAutenticado`.
+- **Conta logada:** `usuario.ObterContaId()` (`using JogoDoGrupo.Server.Core.Autenticacao;`) devolve o Id da conta (`long`) numa rota com `RequireAuthorization()`. Receba o `ClaimsPrincipal` como parâmetro da rota.
+- **Erros:** toda resposta 4xx/5xx sai como `ErroApi`. Use `RespostasApi.Erro(StatusCodes.Status409Conflict, CodigosErroX.Algo)` (`using JogoDoGrupo.Server.Core.Api;`). Corpo ausente ou JSON malformado (400 `RequisicaoInvalida`) e exceções (500 `ErroInterno`) o Core já trata.
+- **JSON:** campos públicos e nomes como no C# (compatível com o `JsonUtility` do Unity), enums como número. Os DTOs do shared funcionam direto como parâmetro e retorno (`Results.Ok(dto)`).
+- **Entidades:** crie a classe e uma `IEntityTypeConfiguration<T>` na pasta da funcionalidade; o `JogoDbContext` (`JogoDoGrupo.Server.Core.Persistencia`) as descobre sozinho. Acesse com `db.Set<T>()`. Para ligar à conta, guarde o `ContaId` (`long`) com índice.
+- **Unicidade:** cheque antes de salvar e, para a corrida entre duas requisições, capture `catch (DbUpdateException e) when (e.EhViolacaoDeUnicidade())` e responda 409.
+- **Migrações:** mudou entidade, gere a migração no mesmo PR. Ela vai para `Core/Persistencia/Migrations/` sozinha. Da raiz do repo:
+
+  ```
+  dotnet build JogoDoGrupo.slnx
+  dotnet dotnet-ef migrations add <NomeEmPascalCase> --project server/src/JogoDoGrupo.Server
+  dotnet csharpier format .
+  ```
+
+  Em desenvolvimento o servidor aplica as migrações ao iniciar (o banco é o arquivo `server/src/JogoDoGrupo.Server/jogodogrupo.db`, fora do git; para zerar, pare o servidor e apague o arquivo). Se outro PR com migração entrar antes, atualize a branch, rode `migrations remove` e gere de novo.
+
+**Configuração** (`server/src/JogoDoGrupo.Server/appsettings.json`): `ConnectionStrings:Jogo` e a seção `Jwt` (`Chave`, `Emissor`, `Audiencia`, `ValidadeHoras`). A URL `http://localhost:5080` e a chave de desenvolvimento estão em `appsettings.Development.json`. Em produção, defina as variáveis de ambiente `ASPNETCORE_ENVIRONMENT=Production`, `ASPNETCORE_URLS` (a URL em que o servidor escuta) e `Jwt__Chave` (pelo menos 32 bytes). O servidor não sobe com chave curta, com `Jwt:Emissor` ou `Jwt:Audiencia` vazios, nem com a chave de desenvolvimento fora do ambiente Development.
+
 ## Faixas de IDs de mensagem
 
 Cada funcionalidade recebe uma faixa de 1000 IDs, declarada em `shared/Package/Runtime/Features/<X>/<X>MessageIds.cs` com um `MessageIdRange`. A tabela com todas as faixas fica no [README da raiz](../README.md#funcionalidades). Uma funcionalidade nova pega a próxima faixa livre.
