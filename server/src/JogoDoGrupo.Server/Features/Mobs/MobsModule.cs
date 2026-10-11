@@ -1,4 +1,5 @@
 using JogoDoGrupo.Server.Contratos.Combate;
+using JogoDoGrupo.Server.Contratos.Mobs;
 using JogoDoGrupo.Server.Contratos.Mundo;
 using JogoDoGrupo.Server.Core;
 using JogoDoGrupo.Server.Core.Eventos;
@@ -44,6 +45,25 @@ public sealed class MobsModule : IFeatureModule
         servicos.AddSingleton<IAlvosDeCombate>(sp =>
             sp.GetRequiredKeyedService<GrupoDeInimigos>(ChaveDoChefeRaro)
         );
+
+        // Os bosses de dungeon: um por área, criados pela instância (IChefesDaDungeon). Enquanto
+        // a instância não existe, sobe um de teste fora da cidade.
+        servicos.AddSingleton(_ =>
+        {
+            var chefes = new ChefesDaDungeon();
+            if (ConfigChefeDaDungeon.CriarChefeDeTesteAoSubir)
+            {
+                chefes.Criar(
+                    ConfigChefeDaDungeon.AreaDeTeste,
+                    ConfigChefeDaDungeon.PontoDeTesteX,
+                    ConfigChefeDaDungeon.PontoDeTesteZ
+                );
+            }
+
+            return chefes;
+        });
+        servicos.AddSingleton<IChefesDaDungeon>(sp => sp.GetRequiredService<ChefesDaDungeon>());
+        servicos.AddSingleton<IAlvosDeCombate>(sp => sp.GetRequiredService<ChefesDaDungeon>());
         servicos.AddSingleton(sp =>
         {
             var servico = new ServicoDeInimigos(
@@ -54,7 +74,8 @@ public sealed class MobsModule : IFeatureModule
                 sp.GetRequiredService<ServidorTempoReal>(),
                 sp.GetRequiredService<IPosicoesDoMundo>(),
                 sp.GetRequiredService<EventosDoServidor>(),
-                sp.GetRequiredService<ILogger<ServicoDeInimigos>>()
+                sp.GetRequiredService<ILogger<ServicoDeInimigos>>(),
+                sp.GetRequiredService<ChefesDaDungeon>()
             );
             _inimigos = servico;
             return servico;

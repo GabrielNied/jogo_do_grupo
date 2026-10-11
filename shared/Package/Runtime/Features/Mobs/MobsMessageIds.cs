@@ -21,5 +21,8 @@ namespace JogoDoGrupo.Shared.Features.Mobs
 
         /// <summary>Servidor → quem está na área: um inimigo apareceu (respawn).</summary>
         public const ushort InimigoApareceu = 11004;
+
+        /// <summary>Servidor → quem está na área: um boss ficou exposto a mais dano.</summary>
+        public const ushort InimigoExposto = 11005;
     }
 }
