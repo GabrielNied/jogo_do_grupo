@@ -41,3 +41,40 @@
     -unity-text-align: middle-center;
     color: rgb(255, 240, 210);
 }
+
+.numeros-de-dano {
+    position: absolute;
+    left: 50%;
+    top: 38%;
+    width: 0;
+    height: 0;
+}
+
+.dano-numero {
+    position: absolute;
+    left: -60px;
+    top: 0;
+    width: 120px;
+    font-size: 28px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    color: rgb(255, 255, 255);
+    text-shadow: 1px 1px 2px rgb(0, 0, 0);
+}
+
+.dano-pesado {
+    font-size: 44px;
+}
+
+.aviso-de-ataque {
+    position: absolute;
+    left: 50%;
+    top: 58%;
+    width: 320px;
+    margin-left: -160px;
+    font-size: 18px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    color: rgb(230, 80, 64);
+    text-shadow: 1px 1px 2px rgb(0, 0, 0);
+}
