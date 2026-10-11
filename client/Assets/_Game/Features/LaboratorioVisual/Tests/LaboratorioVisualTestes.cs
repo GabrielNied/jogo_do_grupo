@@ -48,8 +48,7 @@ namespace JogoDoGrupo.Client.Features.LaboratorioVisual.Tests
         {
             var tela = new TelaLaboratorio();
             tela.Navegar(2);
-            var busca = tela.Raiz.Q<TextField>("buscar-item");
-            busca.value = "ESSÊNCIA";
+            tela.Buscar("ESSÊNCIA");
             Assert.AreEqual(
                 DisplayStyle.Flex,
                 tela.Raiz.Q<Button>("Essência azul").style.display.value
@@ -58,9 +57,9 @@ namespace JogoDoGrupo.Client.Features.LaboratorioVisual.Tests
                 DisplayStyle.None,
                 tela.Raiz.Q<Button>("Mapa do vale").style.display.value
             );
-            busca.value = "inexistente";
+            tela.Buscar("inexistente");
             Assert.AreEqual(DisplayStyle.Flex, tela.Raiz.Q("busca-vazia").style.display.value);
-            busca.value = "";
+            tela.Buscar("");
             Assert.AreEqual(DisplayStyle.None, tela.Raiz.Q("busca-vazia").style.display.value);
             Assert.AreEqual(
                 DisplayStyle.Flex,

@@ -134,6 +134,16 @@ namespace JogoDoGrupo.Client.Features.LaboratorioVisual.Editor
             Comparar(false);
         }
 
+        private Action<string> _buscar;
+
+        // Filtra a mochila. Sem painel o TextField não emite ChangeEvent, então os testes usam este caminho.
+        public void Buscar(string termo)
+        {
+            if (_buscar == null)
+                throw new InvalidOperationException("A seção Inventário não está aberta.");
+            _buscar(termo);
+        }
+
         public void Navegar(int indice)
         {
             if (indice < 0 || indice >= Secoes.Length)
@@ -354,20 +364,25 @@ namespace JogoDoGrupo.Client.Features.LaboratorioVisual.Editor
             vazio.name = "busca-vazia";
             vazio.style.display = DisplayStyle.None;
             painel.Add(vazio);
-            busca.RegisterValueChangedCallback(e =>
+            void Filtrar(string termo)
             {
                 var encontrados = 0;
                 foreach (var item in grade.Children())
                 {
                     var visivel =
-                        item.name.IndexOf(e.newValue ?? "", StringComparison.OrdinalIgnoreCase)
-                        >= 0;
+                        item.name.IndexOf(termo ?? "", StringComparison.OrdinalIgnoreCase) >= 0;
                     item.style.display = visivel ? DisplayStyle.Flex : DisplayStyle.None;
                     if (visivel)
                         encontrados++;
                 }
                 vazio.style.display = encontrados == 0 ? DisplayStyle.Flex : DisplayStyle.None;
-            });
+            }
+            _buscar = termo =>
+            {
+                busca.SetValueWithoutNotify(termo);
+                Filtrar(termo);
+            };
+            busca.RegisterValueChangedCallback(e => Filtrar(e.newValue));
             painel.Add(
                 Texto(
                     "Clique num item para testar a inspeção. Nomes longos devem quebrar sem cortar.",
