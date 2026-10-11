@@ -2,7 +2,8 @@
   "name": "JogoDoGrupo.Client.Core",
   "rootNamespace": "JogoDoGrupo.Client.Core",
   "references": [
-    "JogoDoGrupo.Shared"
+    "JogoDoGrupo.Shared",
+    "Unity.InputSystem"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

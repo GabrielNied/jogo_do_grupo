@@ -1,4 +1,5 @@
 using JogoDoGrupo.Client.Core.Contas;
+using JogoDoGrupo.Client.Core.Jogo;
 using JogoDoGrupo.Client.Core.UI;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -99,6 +100,8 @@ namespace JogoDoGrupo.Client.Core.Inicializacao
 
         private static void AoExpirarSessao()
         {
+            // Se estava no mundo, desmonta antes de mostrar o login.
+            EntradaNoJogo.Desmontar();
             Navegacao.VoltarParaLogin(AvisoSessaoExpirada);
         }
     }

@@ -204,6 +204,21 @@ namespace JogoDoGrupo.Client.Core.UI
             _container = container;
         }
 
+        /// <summary>
+        /// Elemento que recebe as telas, ou <c>null</c> antes da interface existir. Usado pelo Core
+        /// para sobrepor elementos ao jogo (ex.: o menu do Esc) sem abrir uma tela.
+        /// </summary>
+        internal static VisualElement Container => _container;
+
+        /// <summary>
+        /// Fecha a tela aberta sem abrir outra (ex.: ao entrar no mundo). A próxima chamada de
+        /// <see cref="Abrir"/> volta a mostrar uma tela normalmente.
+        /// </summary>
+        internal static void FecharTelaAtual()
+        {
+            FecharAtual();
+        }
+
         private static void FecharAtual()
         {
             var atual = _telaAtual;
