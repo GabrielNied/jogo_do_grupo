@@ -66,7 +66,7 @@ Os artistas ([ADR 0014](decisoes/0014-conteudo-3d-e-agentes-artistas.md)) buscam
 - **Consumo:** tarefa pequena (até ~50 linhas) o coordenador faz direto, sem agente; tarefas pequenas da mesma área vão num agente só; sessão do coordenador curta, com `/clear` por rodada. Relatórios curtos (até 15 linhas; revisor até 20) e verificação proporcional à alteração (matriz da skill `preparar-pr`). Não repita o que o CI já confere. O `revisor` é uma passada só, e só em PR de risco: Core, segurança, concorrência, contrato ou regra que decide resultado. Arte, tela, conteúdo e ligar um botão não levam revisor. Sonnet é o padrão; Opus só nessas tarefas de risco.
 
 - **Lock de tarefa:** confira que a tarefa está livre e puxe-a para em andamento antes de alterar código (`npm run tarefa -- puxar <N>`). Se a tarefa já estiver em andamento, pare e avise. Se precisar interromper sem concluir, libere com `npm run tarefa -- liberar <N>`.
-- **Regra 0:** nunca apagar o que as pessoas criaram. No Claude Code, um hook do projeto bloqueia comandos de apagar ([scripts/agentes/bloquear-apagar.mjs](../scripts/agentes/bloquear-apagar.mjs)).
+- **Regra 0:** nunca apagar o que as pessoas criaram. No Claude Code, um hook do projeto bloqueia comandos de apagar ([scripts/agentes/bloquear-apagar.mjs](../scripts/agentes/bloquear-apagar.mjs)). Worktrees e branches temporários dos agentes são a exceção: saem com `npm run limpar-agentes -- --aplicar` depois do merge ([ADR 0018](decisoes/0018-limpeza-do-que-os-agentes-criam.md)).
 - **Autorização:** quando uma pessoa pede uma orquestração, ela autoriza os agentes a commitar, enviar as próprias branches e abrir PRs. **Merge é sempre humano.**
 - **Fora da área:** se a tarefa exige mudar algo fora da área do agente (um contrato, o Core, outra funcionalidade), o agente para e descreve a mudança no relatório, para o agente certo fazer.
 - **Relatório:** todo agente termina com o que fez, a branch e o PR, as verificações, o que outros agentes ou pessoas precisam fazer e as dúvidas.
@@ -138,7 +138,7 @@ E comece a conversa com:
 
 Nessas ferramentas os hooks não rodam: o limite de pastas e a regra 0 dependem das instruções, do `revisor` e do review humano.
 
-Worktrees que sobrarem depois do merge são removidos por uma **pessoa** (`git worktree remove <pasta>`); a IA não apaga.
+~~Worktrees que sobrarem depois do merge são removidos por uma **pessoa** (`git worktree remove <pasta>`); a IA não apaga.~~ Substituído em 2026-10-11 pelo [ADR 0018](decisoes/0018-limpeza-do-que-os-agentes-criam.md): o coordenador (ou a pessoa) roda `npm run limpar-agentes -- --aplicar` depois dos merges. O script remove só worktrees e branches cujo conteúdo já está na `main` e explica o que ficou.
 
 ## Limitações atuais
 

@@ -100,4 +100,4 @@ Se um PR for mergeado antes dos ajustes, **não envie mais nada para a branch de
 - PRs abertos, com links. O veredito do revisor só quando ele rodou.
 - O que montar no editor do Unity e como testar.
 - Decisões pendentes.
-- Worktrees que sobraram (a remoção é da pessoa; a IA não apaga).
+- Limpeza: depois dos merges, rode `npm run limpar-agentes -- --aplicar` (e `-- --remotas --aplicar` se sobrou branch no GitHub) e diga o que ficou e por quê. Worktrees de PRs ainda abertos ficam até o merge.

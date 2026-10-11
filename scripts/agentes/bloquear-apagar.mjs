@@ -2,6 +2,8 @@
 // A IA nunca apaga o que as pessoas criaram; comandos que apagam arquivos, descartam
 // trabalho ou reescrevem histórico são bloqueados (código 2, a mensagem vai para a IA).
 // Se algo precisar mesmo sumir, a IA explica e a pessoa roda o comando.
+// Worktrees e branches temporários de agentes saem pelo `npm run limpar-agentes`, que só
+// remove o que já está na main (ADR 0018); por isso os comandos crus continuam bloqueados.
 
 import { readFileSync } from "node:fs";
 
@@ -50,12 +52,19 @@ const proibidos = [
   [/\bgh\s+(?:repo|release|project)\s+delete\b/, "apagar no GitHub"],
 ];
 
+const ehLimpezaDeAgente = new Set(["apagar branch remota", "apagar branch", "git worktree remove"]);
+
 for (const [padrao, nome] of proibidos) {
   if (padrao.test(comando)) {
+    const dica = ehLimpezaDeAgente.has(nome)
+      ? " Para worktrees e branches temporários de agentes, use `npm run limpar-agentes -- --aplicar`: " +
+        "ele só remove o que já entrou na main."
+      : "";
     bloquear(
       `Bloqueado pela regra 0 do AGENTS.md (${nome}): a IA nunca apaga o que as pessoas criaram ` +
         "nem descarta trabalho. Ajuste ou marque como obsoleto. Se algo precisar mesmo ser apagado, " +
-        "explique à pessoa e deixe que ela rode o comando.",
+        "explique à pessoa e deixe que ela rode o comando." +
+        dica,
     );
   }
 }
