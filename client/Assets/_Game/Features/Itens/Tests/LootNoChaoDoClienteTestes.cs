@@ -81,7 +81,11 @@ namespace JogoDoGrupo.Client.Features.Itens.Tests
         {
             var loot = new LootNoChaoDoCliente();
             var nome = loot.Receber(
-                new LootColetado { LootId = 99, Entrada = new EntradaInventario { Nome = "Poção" } }
+                new LootColetado
+                {
+                    LootId = 99,
+                    Entrada = new EntradaInventario { Nome = "Poção" },
+                }
             );
 
             Assert.AreEqual("Poção", nome);

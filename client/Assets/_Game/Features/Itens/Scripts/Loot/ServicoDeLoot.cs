@@ -37,10 +37,7 @@ namespace JogoDoGrupo.Client.Features.Itens.Loot
                     ItensMessageIds.LootSumiu,
                     m => Registro.Receber(m)
                 ),
-                ConexaoTempoReal.Assinar<ColetaRecusada>(
-                    ItensMessageIds.ColetaRecusada,
-                    AoRecusar
-                ),
+                ConexaoTempoReal.Assinar<ColetaRecusada>(ItensMessageIds.ColetaRecusada, AoRecusar),
             };
         }
 
