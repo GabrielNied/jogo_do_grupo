@@ -21,11 +21,11 @@ Telas e menus do client que não pertencem a uma funcionalidade do jogo. Por enq
 - [ ] Sair do jogo/da conta dentro de dungeon ou combate: sai na hora ou tem espera (proposta: espera de 10 s em combate)? Decisão do grupo.
 - [ ] ~~Remapear teclas (#90): só listado, não desenhado aqui.~~ substituído em 2026-10-11 por [Teclas e atalhos](#teclas-e-atalhos) (proposta de atalhos padrão e regras de troca)
 - [ ] Teclas e atalhos (#90), decisões do grupo:
-  - [ ] Aprovar os atalhos padrão da tabela (proposta). Pontos de atenção: **ataque pesado no botão direito** (no New World o pesado é segurar o botão esquerdo e o bloqueio fica no direito; aqui o bloqueio vai para **Q**) e **esquiva no Espaço** (no New World é Alt)
+  - [ ] Aprovar os atalhos padrão da tabela (proposta). Pontos de atenção: **ataque pesado no botão direito** (no New World o pesado é segurar o botão esquerdo e o bloqueio fica no direito; aqui o bloqueio vai para **Q**) e ~~**esquiva no Espaço** (no New World é Alt)~~ substituído em 2026-10-11: o Espaço já é o pulo no client; a proposta passa a ser **esquiva no Alt esquerdo**, como no New World
   - [ ] Tecla já usada: **trocar as duas ações** (proposta) ou deixar a outra sem tecla?
   - [ ] Tecla de **correr**: segurar (proposta) ou alternar?
   - [ ] Combate ([combate.md](combate.md)) ainda não decidiu se **bloqueio**, **stamina** e **troca de arma** entram na fatia jogável; as linhas dessas ações da tabela só valem se entrarem
-  - [ ] [personagem.md](personagem.md) só define andar e correr; **pular** não existe nas docs, então não tem atalho (se entrar, sugestão: Espaço vira pular e a esquiva vai para Alt)
+  - [ ] ~~[personagem.md](personagem.md) só define andar e correr; **pular** não existe nas docs, então não tem atalho (se entrar, sugestão: Espaço vira pular e a esquiva vai para Alt)~~ substituído em 2026-10-11: o pulo **já existe no client** (Espaço, só no chão, 1,25 m de altura; `MovimentoTerceiraPessoa`), então entrou na tabela e a esquiva foi para o Alt esquerdo. Falta o grupo confirmar: o pulo fica no jogo? Ele serve para alguma coisa no combate (sair de área marcada no chão) ou é só movimento? O servidor precisa validar a altura (hoje a presença aceita de -5 a 50 m, veja [mundo.md](mundo.md))
 - [ ] ~~HUD configurável (#93): só listado, não desenhado aqui.~~ substituído em 2026-10-11 por [HUD do jogo](#hud-do-jogo) (proposta de layout e regras)
 - [ ] ~~Áudio (#96): só listado; os sons em si não são desenhados aqui.~~ substituído em 2026-10-11 por [Áudio](#áudio) (proposta de áreas com música, sons e fontes)
 - [ ] HUD do jogo (#93), decisões do grupo:
@@ -74,16 +74,17 @@ Com o menu aberto, o cursor fica livre e a câmera e o movimento não recebem in
 
 ### Teclas e atalhos
 
-**Base:** New World (combate de ação em 3ª pessoa no PC, veja [referências](../referencias.md)) e MMOs de PC em geral. **Igual:** WASD para andar, mouse para câmera e ataque, menu no Esc, tecla fixa por ação com atalhos de painel em letras. **Diferente:** esquiva no Espaço (no New World é Alt) e ataque pesado no botão direito do mouse (no New World é segurar o esquerdo); ambos em **proposta**. Só teclado e mouse; gamepad fica fora.
+**Base:** New World (combate de ação em 3ª pessoa no PC, veja [referências](../referencias.md)) e MMOs de PC em geral. **Igual:** WASD para andar, mouse para câmera e ataque, menu no Esc, tecla fixa por ação com atalhos de painel em letras. **Diferente:** ~~esquiva no Espaço (no New World é Alt) e~~ ataque pesado no botão direito do mouse (no New World é segurar o esquerdo), em **proposta**. A esquiva fica no Alt esquerdo, igual ao New World (substituído em 2026-10-11: o Espaço já é o pulo). Só teclado e mouse; gamepad fica fora.
 
-A tela fica em **Opções > Teclas**, com uma linha por ação (nome, tecla atual, botão **Trocar**) e um botão **Restaurar padrão**. Os nomes das ações seguem [combate.md](combate.md) (esquiva, ataque leve, ataque pesado, bloqueio) e [personagem.md](personagem.md) (andar, correr).
+A tela fica em **Opções > Teclas**, com uma linha por ação (nome, tecla atual, botão **Trocar**) e um botão **Restaurar padrão**. Os nomes das ações seguem [combate.md](combate.md) (esquiva, ataque leve, ataque pesado, bloqueio) e [personagem.md](personagem.md) (andar, correr); o pulo vem do controle do Core (`AcoesJogador`).
 
 | Ação | Tecla padrão (proposta) | Troca? |
 |---|---|---|
 | Andar para frente / trás / esquerda / direita | W / S / A / D | sim, cada direção |
 | Correr | Shift (segurar) | sim |
 | Câmera | mover o mouse | não (sensibilidade fica em Opções) |
-| Esquiva | Espaço | sim |
+| Pular (já existe no client) | Espaço | sim |
+| Esquiva | ~~Espaço~~ Alt esquerdo (substituído em 2026-10-11) | sim |
 | Ataque leve | botão esquerdo do mouse | sim |
 | Ataque pesado | botão direito do mouse | sim |
 | Bloqueio (se entrar no combate) | Q | sim |
