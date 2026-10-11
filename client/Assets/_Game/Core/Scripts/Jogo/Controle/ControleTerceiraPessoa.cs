@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 namespace JogoDoGrupo.Client.Core.Jogo.Controle
@@ -9,6 +10,12 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
     /// também com o Play aberto. O cálculo fica em <see cref="MovimentoTerceiraPessoa"/>. Criado pela
     /// <see cref="EntradaNoJogo"/>; não precisa ser montado em cena.
     /// </summary>
+    /// <remarks>
+    /// Conectado, andar e correr são do servidor (modelo do WoW): quem cuida da conexão chama
+    /// <see cref="AplicarVelocidadesDoServidor"/>. Mudar andar ou correr no Inspector durante o
+    /// Play dispara <see cref="VelocidadesPedidasNoInspector"/> para virar um pedido ao servidor;
+    /// o valor só passa a valer quando o servidor responder. Offline, vale o Inspector.
+    /// </remarks>
     [RequireComponent(typeof(CharacterController))]
     public sealed class ControleTerceiraPessoa : MonoBehaviour
     {
@@ -17,10 +24,18 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
         private float _velocidadeVirar = 720f;
 
         [Header("Movimento (ajustável no Play)")]
-        [SerializeField, Min(0f), Tooltip("m/s")]
+        [
+            SerializeField,
+            Min(0f),
+            Tooltip("m/s. Conectado, vira pedido ao servidor (só em desenvolvimento).")
+        ]
         private float _velocidadeAndar = MovimentoTerceiraPessoa.VelocidadeAndarPadrao;
 
-        [SerializeField, Min(0f), Tooltip("m/s. Conectado, o servidor puxa de volta acima de 5,5.")]
+        [
+            SerializeField,
+            Min(0f),
+            Tooltip("m/s. Conectado, vira pedido ao servidor (só em desenvolvimento).")
+        ]
         private float _velocidadeCorrer = MovimentoTerceiraPessoa.VelocidadeCorrerPadrao;
 
         [SerializeField, Min(0f), Tooltip("m/s²")]
@@ -56,6 +71,18 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
         private float _velocidadeHorizontal;
         private float _velocidadeVertical;
 
+        // Velocidades do servidor (andar, correr); null enquanto offline: vale o Inspector.
+        private Vector2? _velocidadesDoServidor;
+
+        /// <summary>
+        /// Andar e correr (m/s) pedidos no Inspector durante o Play, quando diferem dos do
+        /// servidor. Quem cuida da conexão transforma em pedido.
+        /// </summary>
+        public event Action<float, float> VelocidadesPedidasNoInspector;
+
+        /// <summary>Se andar e correr vêm do servidor (conectado) em vez do Inspector.</summary>
+        public bool VelocidadesDoServidor => _velocidadesDoServidor.HasValue;
+
         /// <summary>Se lê o input (falso com o menu aberto: o jogador para).</summary>
         public bool InputAtivo { get; set; } = true;
 
@@ -89,16 +116,52 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
             AplicarCamposNoMovimento();
         }
 
+        /// <summary>
+        /// Aplica andar e correr que o servidor mandou (autoritativos). O Inspector passa a
+        /// mostrar esses valores.
+        /// </summary>
+        public void AplicarVelocidadesDoServidor(float andar, float correr)
+        {
+            _velocidadesDoServidor = new Vector2(andar, correr);
+            _velocidadeAndar = andar;
+            _velocidadeCorrer = correr;
+            AplicarCamposNoMovimento();
+        }
+
+        /// <summary>Volta a usar o Inspector (ao desconectar).</summary>
+        public void SoltarVelocidadesDoServidor()
+        {
+            _velocidadesDoServidor = null;
+            AplicarCamposNoMovimento();
+        }
+
         // Chamado pelo editor a cada mudança no Inspector, também durante o Play.
         private void OnValidate()
         {
+            if (
+                Application.isPlaying
+                && _velocidadesDoServidor is { } doServidor
+                && PedidoDiferente(doServidor, _velocidadeAndar, _velocidadeCorrer)
+            )
+            {
+                VelocidadesPedidasNoInspector?.Invoke(_velocidadeAndar, _velocidadeCorrer);
+            }
+
             AplicarCamposNoMovimento();
+        }
+
+        /// <summary>Se o Inspector pede algo diferente do que o servidor deu.</summary>
+        internal static bool PedidoDiferente(Vector2 doServidor, float andar, float correr)
+        {
+            return !Mathf.Approximately(doServidor.x, andar)
+                || !Mathf.Approximately(doServidor.y, correr);
         }
 
         private void AplicarCamposNoMovimento()
         {
-            _movimento.VelocidadeAndar = _velocidadeAndar;
-            _movimento.VelocidadeCorrer = _velocidadeCorrer;
+            // Conectado, o servidor manda; o Inspector só vira pedido (OnValidate).
+            _movimento.VelocidadeAndar = _velocidadesDoServidor?.x ?? _velocidadeAndar;
+            _movimento.VelocidadeCorrer = _velocidadesDoServidor?.y ?? _velocidadeCorrer;
             _movimento.Aceleracao = _aceleracao;
             _movimento.Gravidade = _gravidade;
             _movimento.VelocidadeMaximaQueda = _velocidadeMaximaQueda;

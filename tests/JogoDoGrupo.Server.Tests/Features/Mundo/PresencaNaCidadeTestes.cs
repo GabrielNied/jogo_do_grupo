@@ -166,4 +166,47 @@ public class PresencaNaCidadeTestes(TempoRealFixture f) : IClassFixture<TempoRea
         Assert.False(posicoes.TentarObter(idA, out _));
         Assert.DoesNotContain(idA, posicoes.PersonagensNaArea(AreasDoMundo.Cidade));
     }
+
+    [Fact]
+    public async Task Entrar_traz_a_velocidade_e_o_pedido_de_teste_muda_so_dentro_da_faixa()
+    {
+        var (a, _, _) = await f.EntrarAsync();
+        using var _a = a;
+        a.Enviar(MundoMessageIds.EntrarNaCidade, new EntrarNaCidade());
+        await a.ReceberAsync<EstadoDaCidade>(MundoMessageIds.EstadoDaCidade);
+
+        var inicial = await a.ReceberAsync<VelocidadesDeMovimento>(
+            MundoMessageIds.VelocidadesDeMovimento
+        );
+        Assert.Equal(RegrasVelocidade.CorrerPadrao, inicial.Correr);
+
+        // O servidor de teste roda em Development: o pedido de teste é aceito.
+        a.Enviar(
+            MundoMessageIds.PedirVelocidadeDeTeste,
+            new PedirVelocidadeDeTeste { Andar = 2f, Correr = 10f }
+        );
+        var primeira = await a.ReceberAsync<VelocidadesDeMovimento>(
+            MundoMessageIds.VelocidadesDeMovimento
+        );
+        Assert.Equal(10f, primeira.Correr);
+        a.Enviar(
+            MundoMessageIds.ConfirmarVelocidade,
+            new ConfirmarVelocidade { Sequencia = primeira.Sequencia }
+        );
+
+        // Fora da faixa é ignorado: a próxima resposta já é a do pedido válido seguinte.
+        a.Enviar(
+            MundoMessageIds.PedirVelocidadeDeTeste,
+            new PedirVelocidadeDeTeste { Andar = 2f, Correr = 500f }
+        );
+        a.Enviar(
+            MundoMessageIds.PedirVelocidadeDeTeste,
+            new PedirVelocidadeDeTeste { Andar = 2f, Correr = 7f }
+        );
+        var segunda = await a.ReceberAsync<VelocidadesDeMovimento>(
+            MundoMessageIds.VelocidadesDeMovimento
+        );
+        Assert.Equal(7f, segunda.Correr);
+        Assert.Equal(primeira.Sequencia + 1, segunda.Sequencia);
+    }
 }

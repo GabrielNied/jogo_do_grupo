@@ -81,6 +81,9 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
         /// </summary>
         public const float CentroDoAnel = 22f;
 
+        /// <summary>Ruas laterais que ligam a praça ao anel (uma célula de largura).</summary>
+        public const float CentroRuaLateral = 14f;
+
         /// <summary>Lado do terreno em volta da cidade, em metros (cidade no meio, cerca de 1 km).</summary>
         public const float LadoDoTerreno = 1000f;
 
@@ -188,7 +191,31 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
             var naPraca = ax < MetadePraca && az < MetadePraca;
             var naCruz = ax < MetadeEstrada || az < MetadeEstrada;
             var noAnel = Mathf.Abs(Mathf.Max(ax, az) - CentroDoAnel) < Modulo / 4f;
-            return naPraca || naCruz || noAnel;
+            var faixa = Modulo / 4f;
+            var ruaLateralX =
+                Mathf.Abs(ax - CentroRuaLateral) < faixa && az > MetadePraca && az < CentroDoAnel;
+            var ruaLateralMenosX =
+                Mathf.Abs(ax + CentroRuaLateral) < faixa && az > MetadePraca && az < CentroDoAnel;
+            var ruaLateralZ =
+                Mathf.Abs(az - CentroRuaLateral) < faixa && ax > MetadePraca && ax < CentroDoAnel;
+            var ruaLateralMenosZ =
+                Mathf.Abs(az + CentroRuaLateral) < faixa && ax > MetadePraca && ax < CentroDoAnel;
+            var mercado =
+                x > MetadePraca + 2f && x < CentroDoAnel - 2f && z > 2f && z < MetadePraca + 4f;
+            var mercadoEspelho =
+                x < -(MetadePraca + 2f)
+                && x > -(CentroDoAnel - 2f)
+                && z > 2f
+                && z < MetadePraca + 4f;
+            return naPraca
+                || naCruz
+                || noAnel
+                || ruaLateralX
+                || ruaLateralMenosX
+                || ruaLateralZ
+                || ruaLateralMenosZ
+                || mercado
+                || mercadoEspelho;
         }
 
         private static IReadOnlyList<PecaDoHub> MontarProps()
@@ -209,6 +236,9 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
                 // Lanternas do portão (as torres ficam em x = ±6, z = 38).
                 new PecaDoHub("Lanterna", -5.2f, 33.8f, 0f),
                 new PecaDoHub("Lanterna", 5.2f, 33.8f, 0f),
+                // Pilares que marcam o vão do portão.
+                new PecaDoHub("Pedra_Grande", -5.6f, 34.4f, 0f),
+                new PecaDoHub("Pedra_Grande", 5.6f, 34.4f, 0f),
             };
 
             // Um quadrante (x e z positivos) é desenhado e espelhado para os outros três.
@@ -232,6 +262,18 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
                     // Duas casas largas do outro lado da rua em anel, de porta para ela.
                     AdicionarCasa(lista, casaLarga, sx, sz, 28f, 12f, -1f, 0f);
                     AdicionarCasa(lista, casaLarga, sx, sz, 12f, 28f, 0f, -1f);
+
+                    // Quarteirão extra na rua lateral (casas de tamanhos diferentes).
+                    AdicionarCasa(lista, casaPequena, sx, sz, 18f, 22f, 0f, 1f);
+                    AdicionarCasa(lista, casaLarga, sx, sz, 22f, 18f, -1f, 0f);
+
+                    // Mercado leste/oeste da praça (barracas viradas para a rua).
+                    if (sx > 0)
+                    {
+                        lista.Add(new PecaDoHub("Barraca_Vermelha", sx * 18f, 8f, -90f));
+                        lista.Add(new PecaDoHub("Barraca_Verde", sx * 22f, 10f, -90f));
+                        lista.Add(new PecaDoHub("Carroca", sx * 20f, 14f, 0f));
+                    }
 
                     // Praça do canto: barraca virada para a fonte, árvores e uma carroça ou pedra.
                     var barraca = pedra ? "Barraca_Vermelha" : "Barraca_Verde";

@@ -2,6 +2,7 @@ using JogoDoGrupo.Client.Core.Jogo.Controle;
 using JogoDoGrupo.Client.Core.Jogo.Janelas;
 using JogoDoGrupo.Client.Core.UI;
 using UnityEngine;
+using VisualElement = UnityEngine.UIElements.VisualElement;
 
 namespace JogoDoGrupo.Client.Core.Jogo
 {
@@ -117,9 +118,36 @@ namespace JogoDoGrupo.Client.Core.Jogo
                 return;
             }
 
+            var hud = Navegacao.Container;
             if (_acoes.MenuApertado)
             {
+                if (EntradaDeTextoAtiva(hud))
+                {
+                    if (FocoEmCampoDeTexto.TemCampoComFoco(hud))
+                    {
+                        FocoEmCampoDeTexto.SoltarFoco(hud);
+                    }
+
+                    if (BloqueioDeEntradaPorTexto.EscConsumidoNesteFrame)
+                    {
+                        BloqueioDeEntradaPorTexto.EscConsumidoNesteFrame = false;
+                    }
+
+                    return;
+                }
+
+                if (BloqueioDeEntradaPorTexto.EscConsumidoNesteFrame)
+                {
+                    BloqueioDeEntradaPorTexto.EscConsumidoNesteFrame = false;
+                    return;
+                }
+
                 _janelas.ApertarEsc();
+                return;
+            }
+
+            if (EntradaDeTextoAtiva(hud))
+            {
                 return;
             }
 
@@ -129,6 +157,10 @@ namespace JogoDoGrupo.Client.Core.Jogo
                 _janelas.Alternar(chave);
             }
         }
+
+        private static bool EntradaDeTextoAtiva(VisualElement hud) =>
+            FocoEmCampoDeTexto.TemCampoComFoco(hud)
+            || BloqueioDeEntradaPorTexto.AtalhosDoJogoBloqueados();
 
         private void FecharMenu()
         {
