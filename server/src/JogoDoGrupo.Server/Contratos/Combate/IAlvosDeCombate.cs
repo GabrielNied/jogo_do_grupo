@@ -1,0 +1,52 @@
+namespace JogoDoGrupo.Server.Contratos.Combate;
+
+/// <summary>
+/// Algo que pode levar um golpe: o boneco de treino da cidade hoje, inimigos e bosses quando
+/// Mobs existir. <see cref="Id"/> é o <c>AlvoId</c> que o client vê em <c>AcertoDeAtaque</c>;
+/// os ids são únicos entre todas as implementações de <see cref="IAlvosDeCombate"/> (o boneco de
+/// treino usa um id negativo fixo). A posição é no plano do chão (a altura não conta).
+/// </summary>
+public readonly record struct AlvoDeCombate(
+    long Id,
+    double X,
+    double Z,
+    double Raio,
+    int VidaAtual,
+    int VidaMaxima
+);
+
+/// <summary>O que um golpe fez num alvo: o dano que ele realmente levou e a vida que sobrou.</summary>
+public readonly record struct ResultadoDeDano(
+    long AlvoId,
+    int Dano,
+    int VidaRestante,
+    int VidaMaxima
+);
+
+/// <summary>
+/// Consulta e dano de alvos de combate, oferecidos por quem é dono do alvo às outras
+/// funcionalidades (ADR 0016). Combate pede por <c>IEnumerable&lt;IAlvosDeCombate&gt;</c>: cada
+/// funcionalidade com alvos registra a sua implementação (<c>AddSingleton</c>). Pode ser chamada
+/// de qualquer thread.
+/// </summary>
+public interface IAlvosDeCombate
+{
+    /// <summary>
+    /// Os alvos <b>vivos</b> da área que estão no volume do golpe (cone à frente do atacante, de
+    /// <c>RegrasAtaque.EstaNoVolume</c> no shared; <paramref name="direcaoYGraus"/> segue a
+    /// convenção de <c>IntencaoDeAtaque.DirecaoY</c>). Vazio se a área não é desta implementação.
+    /// </summary>
+    IReadOnlyList<AlvoDeCombate> AlvosNoVolume(
+        string area,
+        double origemX,
+        double origemZ,
+        double direcaoYGraus
+    );
+
+    /// <summary>
+    /// Tira vida do alvo. Falso se ele não é desta implementação ou já não está vivo (por
+    /// exemplo, outro golpe o derrubou antes). O dano de <paramref name="resultado"/> é o que
+    /// de fato foi tirado, nunca mais que a vida que ele tinha.
+    /// </summary>
+    bool TentarAplicarDano(long alvoId, int dano, out ResultadoDeDano resultado);
+}
