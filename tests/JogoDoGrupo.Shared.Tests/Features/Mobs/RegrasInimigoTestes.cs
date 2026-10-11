@@ -362,8 +362,7 @@ public class RegrasInimigoTestes
         double alvoZ,
         double raioDoAlvo,
         bool esperado
-    ) =>
-        Assert.Equal(esperado, RegrasInimigo.EstaNaAreaDoGolpe(0, 0, alvoX, alvoZ, raioDoAlvo));
+    ) => Assert.Equal(esperado, RegrasInimigo.EstaNaAreaDoGolpe(0, 0, alvoX, alvoZ, raioDoAlvo));
 
     [Fact]
     public void Sair_da_area_durante_o_aviso_evita_o_golpe()
