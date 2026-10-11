@@ -14,7 +14,7 @@ hooks:
 
 Você é o agente **shared-contratos** do Jogo do Grupo. Seu papel: os **contratos** que client e servidor compartilham: mensagens de rede e seus IDs, eventos entre funcionalidades e tipos de domínio (enums, structs).
 
-O guia de todos os agentes está em `docs/agentes.md`, e as regras do repo, no `AGENTS.md` (já carregado). A **regra 0** vale acima de tudo: nunca apague o que as pessoas criaram.
+O guia de todos os agentes está em `docs/agentes.md`, e as regras do repo, no `AGENTS.md` (já carregado). A **regra 0** vale acima de tudo: nunca apague nada do Figma (o resto pode ser apagado quando for sujeira; veja o AGENTS.md).
 
 ## Sua área
 

@@ -1,15 +1,16 @@
-// Hook PreToolUse (Bash/PowerShell) do projeto: aplica a regra 0 do AGENTS.md.
-// A IA nunca apaga o que as pessoas criaram; comandos que apagam arquivos, descartam
-// trabalho ou reescrevem histórico são bloqueados (código 2, a mensagem vai para a IA).
-// Se algo precisar mesmo sumir, a IA explica e a pessoa roda o comando.
-// Worktrees e branches temporários de agentes saem pelo `npm run limpar-agentes`, que só
-// remove o que já está na main (ADR 0018); por isso os comandos crus continuam bloqueados.
+// Hook PreToolUse (Bash/PowerShell e Figma) do projeto: aplica a regra 0 do AGENTS.md.
+// A regra 0 hoje protege só o Figma (ADR 0026): a IA pode apagar arquivos, pastas, assets,
+// docs e branches. O hook barra apenas:
+//   - qualquer remoção no Figma feita por script (use_figma com .remove() ou .delete());
+//   - o que não volta e é do grupo todo: push forçado e apagar repositório, release ou projeto.
+// Código 2: a mensagem vai para a IA, que explica à pessoa e deixa ela rodar o comando.
+// Worktrees e branches temporários de agentes saem pelo `npm run limpar-agentes` (ADR 0018).
 
 import { readFileSync } from "node:fs";
 
 const entrada = JSON.parse(readFileSync(0, "utf8") || "{}");
 const comando = entrada.tool_input?.command ?? entrada.toolCall?.args?.CommandLine ?? "";
-const nomeFerramentaCodex = entrada.tool_name ?? "";
+const nomeFerramenta = entrada.tool_name ?? "";
 const ehAntigravity = entrada.toolCall?.name === "run_command";
 
 function bloquear(mensagem) {
@@ -22,49 +23,39 @@ function bloquear(mensagem) {
   process.exit(2);
 }
 
-// No Codex, apply_patch chega ao hook como uma única string em `command`.
-// Detectamos somente a operação explícita de remover arquivo; remover linhas
-// dentro de um arquivo continua sendo uma edição permitida pela regra 0.
-if (nomeFerramentaCodex === "apply_patch" && /^\*\*\* Delete File:/m.test(comando)) {
-  bloquear(
-    "Bloqueado pela regra 0 do AGENTS.md (apagar arquivo): a IA nunca apaga o que " +
-      "as pessoas criaram. Ajuste ou marque como obsoleto. Se algo precisar mesmo " +
-      "ser apagado, explique à pessoa e deixe que ela rode o comando.",
-  );
+// Figma: o script do use_figma roda a API de plugin do Figma; remover nó, página ou
+// componente é apagar o trabalho do grupo. Ler e criar continuam livres.
+if (/figma/i.test(nomeFerramenta)) {
+  const texto = JSON.stringify(entrada.tool_input ?? {});
+  if (/\.(?:remove|delete)\s*\(/.test(texto) || /\bdelete\w*Node|\bremoveChild\b/.test(texto)) {
+    bloquear(
+      "Bloqueado pela regra 0 do AGENTS.md (apagar no Figma): a IA nunca apaga nada do Figma. " +
+        "Crie ou edite o que a tarefa pede; se algo precisar sumir, explique à pessoa e deixe " +
+        "que ela apague no Figma.",
+    );
+  }
+  process.exit(0);
 }
+
 // Início de um comando: começo da linha ou depois de ; & | ( ou quebra de linha.
 const ini = String.raw`(?:^|[;&|(\n]\s*)`;
 
 const proibidos = [
-  [new RegExp(`${ini}(?:sudo\\s+)?rm(?:dir)?\\s`), "rm/rmdir"],
-  [new RegExp(`${ini}(?:del|erase|rd)\\s`, "i"), "del/rd"],
-  [/\bRemove-Item\b|\bri\s+-/i, "Remove-Item"],
-  [/\bgit\s+reset\s+.*--hard\b/, "git reset --hard"],
-  [/\bgit\s+clean\b/, "git clean"],
-  [/\bgit\s+checkout\s+(?:\S+\s+)?--\s/, "git checkout -- <arquivo>"],
-  [/\bgit\s+restore\b(?!.*--staged)/, "git restore (sem --staged)"],
-  [/\bgit\s+stash\s+(?:drop|clear)\b/, "git stash drop/clear"],
-  [/\bgit\s+push\b.*(?:\s--force(?:-with-lease)?\b|\s-f\b|\s\+\S)/, "git push --force"],
-  [/\bgit\s+push\b.*(?:\s--delete\b|\s-d\b|\s:\S)/, "apagar branch remota"],
-  [/\bgit\s+branch\s+.*(?:-D\b|-d\b|--delete\b)/, "apagar branch"],
-  [/\bgit\s+worktree\s+remove\b/, "git worktree remove"],
-  [/\bgh\s+(?:issue|pr)\s+(?:close|delete)\b/, "fechar/apagar issue ou PR"],
-  [/\bgh\s+(?:repo|release|project)\s+delete\b/, "apagar no GitHub"],
+  [
+    new RegExp(`${ini}git\\s+push\\b.*(?:\\s--force(?:-with-lease)?\\b|\\s-f\\b|\\s\\+\\S)`),
+    "push forçado",
+  ],
+  [
+    new RegExp(`${ini}gh\\s+(?:repo|release|project)\\s+delete\\b`),
+    "apagar repositório, release ou projeto",
+  ],
 ];
-
-const ehLimpezaDeAgente = new Set(["apagar branch remota", "apagar branch", "git worktree remove"]);
 
 for (const [padrao, nome] of proibidos) {
   if (padrao.test(comando)) {
-    const dica = ehLimpezaDeAgente.has(nome)
-      ? " Para worktrees e branches temporários de agentes, use `npm run limpar-agentes -- --aplicar`: " +
-        "ele só remove o que já entrou na main."
-      : "";
     bloquear(
-      `Bloqueado pela regra 0 do AGENTS.md (${nome}): a IA nunca apaga o que as pessoas criaram ` +
-        "nem descarta trabalho. Ajuste ou marque como obsoleto. Se algo precisar mesmo ser apagado, " +
-        "explique à pessoa e deixe que ela rode o comando." +
-        dica,
+      `Bloqueado pela regra 0 do AGENTS.md (${nome}): é uma ação que não volta e afeta o grupo todo. ` +
+        "Explique à pessoa o que quer fazer e por quê, e deixe que ela rode o comando.",
     );
   }
 }

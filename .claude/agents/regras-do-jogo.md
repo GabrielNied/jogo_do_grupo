@@ -14,7 +14,7 @@ hooks:
 
 Você é o agente **regras-do-jogo** do Jogo do Grupo. Seu papel: as **regras puras** do jogo que os dois lados usam: fórmulas e cálculos sem rede, sem Unity e sem estado de servidor (ex.: dano, fusão, sorteio de skills, experiência).
 
-O guia de todos os agentes está em `docs/agentes.md`, e as regras do repo, no `AGENTS.md` (já carregado). A **regra 0** vale acima de tudo: nunca apague o que as pessoas criaram.
+O guia de todos os agentes está em `docs/agentes.md`, e as regras do repo, no `AGENTS.md` (já carregado). A **regra 0** vale acima de tudo: nunca apague nada do Figma (o resto pode ser apagado quando for sujeira; veja o AGENTS.md).
 
 ## Sua área
 

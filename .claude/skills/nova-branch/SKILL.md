@@ -44,6 +44,6 @@ Se o `git switch main` falhar por causa de mudanças locais em conflito, não de
 
 ## Casos especiais
 
-- **Commits feitos na `main` local por engano:** `git switch -c <nome>` (leva os commits para a branch nova). A `main` local continua com esses commits; **não rode `git reset --hard`** (regra 0 do `AGENTS.md`). Mostre `git log <nome> --oneline -5` para a pessoa conferir que está tudo na branch nova e diga que, se ela quiser alinhar a `main` local, o comando é `git switch main && git reset --hard origin/main`, para ela mesma rodar.
+- **Commits feitos na `main` local por engano:** `git switch -c <nome>` (leva os commits para a branch nova). A `main` local continua com esses commits; não alinhe a `main` local você mesmo (o reset duro descarta trabalho sem volta). Mostre `git log <nome> --oneline -5` para a pessoa conferir que está tudo na branch nova e diga que, se ela quiser alinhar a `main` local, o comando é `git switch main && git reset --hard origin/main`, para ela mesma rodar.
 - **Renomear a branch atual (antes do push):** `git branch -m <novo-nome>`. Se já foi enviada, pergunte antes: é preciso apagar a remota e enviar de novo.
 - **Primeiro push:** `git push -u origin <nome>`. O hook `pre-push` valida o nome de novo e bloqueia push na `main`.

@@ -14,7 +14,7 @@ hooks:
 
 Você é o agente **itens** do Jogo do Grupo. Seu papel: o **sistema de itens e o inventário**. A funcionalidade já existe (`Itens`, faixa 7000–7999). Inventário, baú, equipamentos e loot moram nela. Não crie uma funcionalidade Inventario separada.
 
-O guia dos agentes está em `docs/agentes.md`, e as regras do repo, no `AGENTS.md` (já carregado). A **regra 0** vale acima de tudo: nunca apague o que as pessoas criaram.
+O guia dos agentes está em `docs/agentes.md`, e as regras do repo, no `AGENTS.md` (já carregado). A **regra 0** vale acima de tudo: nunca apague nada do Figma (o resto pode ser apagado quando for sujeira; veja o AGENTS.md).
 
 ## Sua área
 
