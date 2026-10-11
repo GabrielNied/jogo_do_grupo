@@ -59,7 +59,7 @@ Os artistas ([ADR 0014](decisoes/0014-conteudo-3d-e-agentes-artistas.md)) buscam
 
 ## Regras para todos os agentes
 
-- **Consumo:** relatórios curtos (até 15 linhas; revisor até 20), verificação por `dotnet test` e `npm run unity:compilar` em vez de testes à mão, revisor só em PRs de código e numa passada só. Cada agente tem `model` e `effort` no próprio arquivo; o coordenador sobe para Opus só em tarefas de risco.
+- **Consumo:** relatórios curtos (até 15 linhas; revisor até 20), verificação por comando proporcional à alteração (matriz da skill `preparar-pr`) em vez de testes à mão, revisor só em PRs de código e numa passada só. Cada agente tem `model` e `effort` no próprio arquivo; o coordenador sobe para Opus só em tarefas de risco.
 
 - **Regra 0:** nunca apagar o que as pessoas criaram. No Claude Code, um hook do projeto bloqueia comandos de apagar ([scripts/agentes/bloquear-apagar.mjs](../scripts/agentes/bloquear-apagar.mjs)).
 - **Autorização:** quando uma pessoa pede uma orquestração, ela autoriza os agentes a commitar, enviar as próprias branches e abrir PRs. **Merge é sempre humano.**

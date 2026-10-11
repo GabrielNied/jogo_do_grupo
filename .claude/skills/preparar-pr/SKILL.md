@@ -41,17 +41,22 @@ Nos arquivos alterados, confira:
 - Lógica que decide resultado (dano, drop, fusão, preço) no servidor, não no cliente.
 - Nomes conforme `docs/convencoes.md`.
 
-## 4. Formatação e build
+## 4. Verificação proporcional
 
-```
-dotnet csharpier format .
-dotnet csharpier check .
-dotnet build JogoDoGrupo.slnx -c Release
-dotnet test JogoDoGrupo.slnx -c Release --no-build
-npm run unity:compilar        # se mexeu em client ou shared
-```
+Sempre rode `git diff --check`. Depois aplique **só** as linhas que cobrem os arquivos alterados; não rode build, testes .NET ou Unity por ritual. O CI continua sendo a confirmação completa no PR.
 
-O `check` precisa passar e o build não pode ter erros (avisos novos devem ser explicados). Se o `format` mudou arquivos, inclua essas mudanças.
+| Alteração | Verificação local mínima |
+|---|---|
+| Só Markdown/documentação | `git diff --check`; confira links, comandos e referências alterados. Não rode CSharpier, build, testes ou Unity. |
+| Instruções/configuração de IA (`AGENTS.md`, `.claude/`, `.codex/`, `.agents/`) | `git diff --check` e valide diretamente o formato/comportamento alterado (ex.: `node --check` para hook, parse de JSON/TOML). |
+| Script Node ou ferramenta de automação | `node --check <arquivo>` e o teste/comando específico do script. Rode testes do projeto só se o script os altera ou dispara. |
+| C# de servidor ou shared | `dotnet csharpier format .`, `dotnet csharpier check .` e `dotnet test JogoDoGrupo.slnx -c Release`. Não rode `dotnet build` separado: o teste já compila. |
+| C# de client | `dotnet csharpier format .`, `dotnet csharpier check .`, `npm run unity:compilar` e `npm run unity:testes` quando houver testes EditMode afetados ou adicionados. |
+| Shared usado pelo client | Além da linha de server/shared, `npm run unity:compilar`. |
+| Conteúdo Unity gerado (cena, prefab, asset, animação) | O comando Unity que gerou/alterou o conteúdo e `npm run unity:recompilar` (editor aberto) ou `npm run unity:compilar` (fechado); `npm run unity:testes` se a lógica/teste EditMode mudou. |
+| Dependência, CI ou configuração de build | O comando que usa a configuração alterada e o teste/build especificamente afetado. |
+
+Se o risco extrapolar essa matriz (segurança, concorrência, migração, mudança ampla de Core), acrescente a verificação necessária e explique o motivo. Se o CSharpier alterar arquivos, inclua essas mudanças.
 
 ## 5. Documentação
 
