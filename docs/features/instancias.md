@@ -13,7 +13,7 @@ Conteúdo instanciado para grupos pequenos: dungeons e raids, com foco em derrot
 - Regras iniciais da primeira fatia jogável (números em proposta): [fatia-jogavel.md](fatia-jogavel.md)
 - Dungeons: grupo pequeno
 - **Derrotar bosses mais fortes em dungeons e raids é o foco do loop principal** (D5 da [validação de 2026-10-10](../brainstorm/validacao.md))
-- O jogo é feito para jogar em poucas pessoas (D1)
+- ~~O jogo é feito para jogar em poucas pessoas (D1)~~ Substituído em 2026-10-11: o mundo é persistente e compartilhado (D1 opção A da [validação](../brainstorm/validacao.md)). Dungeons (5) e raids (10) continuam conteúdo instanciado dentro desse mundo.
 - ~~Raids: grupos grandes, endgame~~ substituído em 2026-10-10: raids de 10 jogadores
 - **Dungeons de 5 jogadores e raids de 10** (decidido em 2026-10-10), com composição tank, healer e DPS no estilo de World of Warcraft (veja [combate.md](combate.md))
 - Base: dungeons e raids do [World of Warcraft](../referencias.md)

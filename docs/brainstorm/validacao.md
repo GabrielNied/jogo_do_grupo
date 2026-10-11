@@ -14,6 +14,8 @@ As **sugestões** marcadas com 💡 são só um ponto de partida para a conversa
 Status possíveis: 🟡 aberta · ✅ decidida · ❌ descartada · ⏸️ adiada (para depois da fatia jogável).
 
 > **2026-10-10:** o grupo decidiu as cinco decisões de base (D1 a D5). As decisões de sistemas (S1 a S9) serão tomadas conforme o jogo for sendo construído, usando [jogos de referência](../referencias.md) como base e modificando a partir deles.
+>
+> **2026-10-11:** a D1 foi revisada. ~~Sessões de grupo pequeno (opção B)~~ substituídas pelo mundo persistente (opção A).
 
 ## O que o board propõe, em resumo
 
@@ -35,9 +37,9 @@ Estas bloqueiam a definição da fatia jogável e da arquitetura do servidor.
 
 ### D1. Formato: mundo persistente (MMO) ou sessões com grupo limitado?
 
-**Status:** ✅ decidida em 2026-10-10
+**Status:** ✅ decidida em 2026-10-10 · revisada em 2026-10-11
 
-**Decisão:** por hora, **sessões de grupo pequeno** (opção B). O objetivo é jogar em poucas pessoas.
+**Decisão:** ~~por hora, **sessões de grupo pequeno** (opção B). O objetivo é jogar em poucas pessoas.~~ Substituído em 2026-10-11 por: **mundo persistente** (opção A). Um mundo único e contínuo, compartilhado por quem está nele. A cidade faz parte desse mundo.
 
 **O que o board diz:**
 - Fluxo de ideias: "Mapa (mundo aberto)", raids, guerra de guildas, mercado entre jogadores (tudo de MMO).
@@ -197,9 +199,11 @@ Isso **complementa** o que já está definido em [itens.md](../features/itens.md
 
 ### S4. PvPvE
 
-**Status:** 🟡 aberta · depende de D1 e D5
+**Status:** 🟡 aberta · depende de D5
 
 **O que o board diz:** "PVPVE". O fluxo de ideias já perguntava: "PvP no mundo aberto: áreas seguras, penalidades, consentimento ou livre?".
+
+Com a D1 opção A (2026-10-11), o PvP no mundo aberto volta ao formato do jogo. As perguntas abaixo continuam sem resposta.
 
 **Perguntas:** existem zonas onde jogadores podem atacar uns aos outros enquanto enfrentam monstros? Morrer para outro jogador faz perder itens? Como evitar que jogadores fortes só ataquem os novatos?
 
@@ -280,7 +284,7 @@ Ideias do board que não ficaram claras. Quem escreveu pode explicar e o item vo
 
 ## Impacto na fatia jogável
 
-A fatia jogável em [visao-geral.md](../visao-geral.md#primeiro-marco-fatia-jogável) foi escrita antes destas ideias ("uma raça e uma classe, algumas magias, um inimigo"). ✅ Com D1 a D5 decididas, ela foi revisada lá em 2026-10-10. O rascunho que serviu de base:
+A fatia jogável em [visao-geral.md](../visao-geral.md#primeiro-marco-fatia-jogável) foi escrita antes destas ideias ("uma raça e uma classe, algumas magias, um inimigo"). ✅ Com D1 a D5 decididas, ela foi revisada lá em 2026-10-10. Em 2026-10-11 a D1 passou a ser mundo persistente: a fatia continua uma área e uma dungeon, agora como pedaço desse mundo. O rascunho que serviu de base:
 
 - Uma área segura (hub) e uma região de combate instanciada para até 4 jogadores (atualizado por D6: dungeon de 5)
 - Uma raça, com a sua skill base

@@ -1,6 +1,6 @@
 # Jogo do Grupo
 
-RPG de ação online para PC, medieval, feito para jogar com poucas pessoas. Sem classes: as skills estão nos itens, e o grupo, com papéis de tank, healer e DPS, sobe de nível, junta loot e derrota bosses cada vez mais fortes em dungeons e raids. Veja a [visão geral](docs/visao-geral.md).
+RPG de ação online para PC, medieval, de mundo aberto. ~~feito para jogar com poucas pessoas.~~ Sem classes: as skills estão nos itens, e o grupo, com papéis de tank, healer e DPS, sobe de nível, junta loot e derrota bosses cada vez mais fortes em dungeons e raids. Veja a [visão geral](docs/visao-geral.md).
 
 | Parte | Tecnologia | Pasta |
 |---|---|---|
@@ -221,7 +221,7 @@ A regra principal: **cada funcionalidade vive na própria pasta, nas três parte
 | Funcionalidade | Pasta | IDs de mensagem | Descrição |
 |---|---|---|---|
 | Core | `Core` | 0–999 | Rede, autenticação, persistência, eventos |
-| Mundo | `Mundo` | 1000–1999 | Hub social e regiões jogadas em sessões de grupo pequeno; clima e ciclo de dia e noite. |
+| Mundo | `Mundo` | 1000–1999 | Cidade e regiões de um mundo persistente; clima e ciclo de dia e noite. ~~Regiões jogadas em sessões de grupo pequeno~~ substituído em 2026-10-11. |
 | NPCs | `Npcs` | 2000–2999 | Papel dos NPCs no mundo, comerciantes e reputação. |
 | Personagem | `Personagem` | 3000–3999 | Raças (com skill base), atributos e progressão de nível. Sem classes. |
 | Skills (magias) | `Skills` | 4000–4999 | Skills sorteadas nos itens e skill base da raça; custo e recarga. |
