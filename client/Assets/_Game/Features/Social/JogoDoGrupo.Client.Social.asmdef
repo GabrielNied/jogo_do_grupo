@@ -3,7 +3,8 @@
   "rootNamespace": "JogoDoGrupo.Client.Features.Social",
   "references": [
     "JogoDoGrupo.Client.Core",
-    "JogoDoGrupo.Shared"
+    "JogoDoGrupo.Shared",
+    "Unity.InputSystem"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],
