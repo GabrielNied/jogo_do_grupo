@@ -136,6 +136,28 @@ public sealed class TelaSelecao : Tela
 - **Sessão:** `Sessao` (`JogoDoGrupo.Client.Core.Contas`) guarda o token só em memória; o `ClienteApi` envia o token sozinho.
 - **Unity:** scripts novos geram `.meta` ao abrir o editor; commite os `.meta` no mesmo PR ou logo depois. O client chama o servidor por HTTP em desenvolvimento: em **Project Settings > Player > Other Settings**, **Allow downloads over HTTP** precisa estar em "Allowed in development builds".
 
+### Entrada no mundo
+
+Mundo e Personagem registram no Core quem monta o hub e quem cria o visual. O Core não referencia essas funcionalidades. Código em `JogoDoGrupo.Client.Core.Jogo` (`client/Assets/_Game/Core/Scripts/Jogo/`).
+
+```csharp
+[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+private static void Registrar()
+{
+    EntradaNoJogo.DefinirConstrutorDeMundo(ConstrutorHub.Construir);
+    EntradaNoJogo.DefinirVisualDoJogador(_ =>
+        Resources.Load<GameObject>("Personagem/Jogador_Humano"));
+}
+```
+
+- **Construtor de mundo:** `DefinirConstrutorDeMundo(Func<PosicaoInicial>)`. Cria os objetos do hub e devolve onde o jogador nasce (`PosicaoInicial`: posição dos pés e rotação; `PosicaoInicial.Origem` é a origem olhando para +Z). `null` tira o registro e o Core monta um chão.
+- **Visual:** `DefinirVisualDoJogador(Func<long, GameObject>)`. Recebe o id do personagem e devolve uma instância ou o próprio prefab (o Core instancia). Pés em Y=0, frente em +Z. O Core desliga os colisores do visual e o root motion: quem colide é o `CharacterController` (altura `AlturaJogador` 1,8 m, raio `RaioJogador` 0,35 m). `null` tira o registro e o Core usa uma cápsula. O prefab humano e os parâmetros do Animator (`Velocidade`, `NoChao`) estão em [personagem.md](features/personagem.md#visual-do-jogador-arte).
+- **Entrar e sair:** `Entrar(long personagemId)` esconde a interface, cria uma cena em código, monta o mundo, cria o jogador local (controle em 3ª pessoa, câmera que orbita com o mouse e menu do Esc) e o posiciona. Tudo criado em `Entrar`, inclusive pelo construtor e pelo visual, vai para essa cena. `Sair()` descarrega a cena e abre a tela após o login. `NoJogo`, `PersonagemId` e `Jogador` descrevem o estado. Se o construtor ou o visual falhar, o Core desmonta e volta para a seleção.
+- **Menu:** Esc abre "Continuar" e "Voltar à seleção" (`Sair`).
+- **Sessão:** se a sessão expirar no mundo, o Core desmonta o mundo antes de abrir o login.
+
+O botão **Entrar** da seleção ainda não chama `Entrar` (fluxo atual em [personagem.md](features/personagem.md#fluxo-de-entrada-no-jogo)).
+
 ## Faixas de IDs de mensagem
 
 Cada funcionalidade recebe uma faixa de 1000 IDs, declarada em `shared/Package/Runtime/Features/<X>/<X>MessageIds.cs` com um `MessageIdRange`. A tabela com todas as faixas fica no [README da raiz](../README.md#funcionalidades). Uma funcionalidade nova pega a próxima faixa livre.
