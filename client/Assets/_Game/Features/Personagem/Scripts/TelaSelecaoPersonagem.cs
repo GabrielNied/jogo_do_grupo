@@ -24,6 +24,7 @@ namespace JogoDoGrupo.Client.Features.Personagem
         private Label _vazio;
         private Button _criar;
         private Button _entrar;
+        private Label _avisoLimite;
         private Label _mensagem;
 
         private long? _idSelecionado;
@@ -70,6 +71,12 @@ namespace JogoDoGrupo.Client.Features.Personagem
             linha.Add(_entrar);
             linha.Add(sair);
 
+            // Aviso fixo enquanto a conta estiver cheia; separado de _mensagem para não sumir
+            // quando outra mensagem (ex.: Entrar) é mostrada ou limpa.
+            _avisoLimite = new Label(TextosPersonagem.LimiteAtingido);
+            _avisoLimite.AddToClassList(EstiloCore.Mensagem);
+            EstiloPersonagem.Mostrar(_avisoLimite, false);
+
             _mensagem = new Label();
             _mensagem.AddToClassList(EstiloCore.Mensagem);
 
@@ -80,6 +87,7 @@ namespace JogoDoGrupo.Client.Features.Personagem
             painel.Add(_lista);
             painel.Add(_vazio);
             painel.Add(linha);
+            painel.Add(_avisoLimite);
             painel.Add(_mensagem);
             raiz.Add(painel);
         }
@@ -168,6 +176,7 @@ namespace JogoDoGrupo.Client.Features.Personagem
             EstiloPersonagem.Mostrar(_vazio, false);
             EstiloPersonagem.Mostrar(_criar, false);
             EstiloPersonagem.Mostrar(_entrar, false);
+            EstiloPersonagem.Mostrar(_avisoLimite, false);
             MostrarMensagem(null);
         }
 
@@ -180,6 +189,7 @@ namespace JogoDoGrupo.Client.Features.Personagem
             EstiloPersonagem.Mostrar(_vazio, false);
             EstiloPersonagem.Mostrar(_criar, false);
             EstiloPersonagem.Mostrar(_entrar, false);
+            EstiloPersonagem.Mostrar(_avisoLimite, false);
             MostrarMensagem(null);
         }
 
@@ -219,7 +229,8 @@ namespace JogoDoGrupo.Client.Features.Personagem
             // O servidor garante o limite; aqui só evita um clique que seria recusado.
             var cheia = _personagens.Count >= RegrasPersonagem.MaximoPorConta;
             _criar.SetEnabled(!cheia);
-            MostrarMensagem(cheia ? TextosPersonagem.LimiteAtingido : null);
+            EstiloPersonagem.Mostrar(_avisoLimite, cheia);
+            MostrarMensagem(null);
 
             Selecionar(EscolherSelecaoInicial());
         }

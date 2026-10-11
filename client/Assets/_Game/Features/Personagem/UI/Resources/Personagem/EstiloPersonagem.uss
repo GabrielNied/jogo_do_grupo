@@ -38,6 +38,13 @@
     background-color: rgb(46, 82, 64);
 }
 
+/* Mantém a borda e o fundo da seleção quando o tema aplica :focus/:active ao botão. */
+.personagem-item.personagem-item-selecionado:focus,
+.personagem-item.personagem-item-selecionado:active {
+    border-color: rgb(80, 170, 110);
+    background-color: rgb(46, 82, 64);
+}
+
 .personagem-item-nome {
     font-size: 26px;
     -unity-font-style: bold;
