@@ -783,4 +783,27 @@ public class GrupoDeInimigosTestes
 
         Assert.Equal(new[] { 7L }, Assert.Single(campo.Passo().Derrotas).Participantes);
     }
+
+    [Fact]
+    public void ForcarAparicao_acrescenta_um_inimigo_e_para_no_limite()
+    {
+        var campo = new Campo();
+        var apareceu = campo.Grupo.ForcarAparicao(3, 4);
+
+        Assert.NotNull(apareceu);
+        Assert.Equal(2, campo.Grupo.Tamanho);
+        Assert.Equal(2, campo.Grupo.Vivos().Length);
+        Assert.Equal(3f, apareceu.X);
+        Assert.Equal(4f, apareceu.Z);
+        Assert.Null(campo.Grupo.ForcarAparicao(double.NaN, 0));
+        Assert.Equal(2, campo.Grupo.Tamanho);
+
+        for (var i = campo.Grupo.Tamanho; i < 1 + GrupoDeInimigos.AparicoesExtrasDeTeste; i++)
+        {
+            Assert.NotNull(campo.Grupo.ForcarAparicao(1, 1));
+        }
+
+        Assert.Null(campo.Grupo.ForcarAparicao(1, 1));
+        Assert.Equal(1 + GrupoDeInimigos.AparicoesExtrasDeTeste, campo.Grupo.Tamanho);
+    }
 }

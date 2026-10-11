@@ -13,7 +13,7 @@ namespace JogoDoGrupo.Server.Features.Personagem;
 /// Concede a experiência de uma morte e informa os pontos já distribuídos. A gravação roda
 /// fora do laço de IA de Mobs. A mesma morte (inimigo + sequência) não premia duas vezes.
 /// </summary>
-public sealed class ExperienciaDoPersonagem : IPontosDistribuidos
+public sealed class ExperienciaDoPersonagem : IPontosDistribuidos, IAjusteDeExperienciaDeTeste
 {
     private readonly IServiceScopeFactory _escopos;
     private readonly ServidorTempoReal _tempoReal;
@@ -158,6 +158,74 @@ public sealed class ExperienciaDoPersonagem : IPontosDistribuidos
             .AsNoTracking()
             .FirstOrDefaultAsync(p => p.Id == personagemId, cancelamento);
         return personagem?.ParaPontos() ?? new PontosDeAtributos();
+    }
+
+    /// <summary>
+    /// Ajuste do comando de teste. Não passa por <c>InimigoDerrotado</c>, então não dá loot
+    /// nem marca morte. Avisa o dono com o estado novo e, se o nível mudou e ele está numa
+    /// área, avisa a área.
+    /// </summary>
+    public async Task<(bool Aceito, string Texto)> AjustarAsync(
+        long personagemId,
+        long quantidade,
+        CancellationToken cancelamento
+    )
+    {
+        using var escopo = _escopos.CreateScope();
+        var db = escopo.ServiceProvider.GetRequiredService<JogoDbContext>();
+        var personagem = await db.Set<Personagem>()
+            .FirstOrDefaultAsync(p => p.Id == personagemId, cancelamento);
+        if (personagem == null)
+        {
+            return (false, "Personagem não encontrado.");
+        }
+
+        ResultadoAjusteDeExperiencia resultado;
+        try
+        {
+            resultado = RegrasExperiencia.AplicarAjuste(
+                personagem.Nivel,
+                personagem.XpAtual,
+                personagem.PontosLivres,
+                quantidade
+            );
+        }
+        catch (OverflowException)
+        {
+            return (false, "Quantidade grande demais.");
+        }
+
+        var nivelAntes = personagem.Nivel;
+        personagem.Nivel = resultado.Nivel;
+        personagem.XpAtual = resultado.Xp;
+        personagem.PontosLivres = resultado.PontosLivres;
+        await db.SaveChangesAsync(cancelamento);
+
+        EnviarAoDono(
+            personagemId,
+            PersonagemMessageIds.ExperienciaGanha,
+            new ExperienciaGanha
+            {
+                Quantidade = quantidade,
+                XpAtual = personagem.XpAtual,
+                XpDoNivel = RegrasExperiencia.XpParaOProximoNivel(personagem.Nivel),
+                Nivel = personagem.Nivel,
+                PontosLivres = personagem.PontosLivres,
+            }
+        );
+        if (resultado.Nivel != nivelAntes && _posicoes.TentarObter(personagemId, out var onde))
+        {
+            EnviarNaArea(
+                onde.Area,
+                PersonagemMessageIds.SubiuDeNivel,
+                new SubiuDeNivel { PersonagemId = personagemId, Nivel = resultado.Nivel }
+            );
+        }
+
+        return (
+            true,
+            $"Experiência ajustada: nível {resultado.Nivel}, {resultado.Xp} de experiência."
+        );
     }
 
     private void EnviarAoDono<T>(long personagemId, ushort id, T mensagem)

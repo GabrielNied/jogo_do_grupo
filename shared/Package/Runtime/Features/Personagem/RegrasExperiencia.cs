@@ -52,6 +52,55 @@ namespace JogoDoGrupo.Shared.Features.Personagem
             );
         }
 
+        /// <summary>
+        /// Soma ou tira experiência. Quantidade positiva segue <see cref="AplicarGanho"/>.
+        /// Negativa desce de nível: devolve a barra do nível anterior e tira
+        /// <see cref="PontosPorNivel"/> dos pontos livres por nível perdido, sem passar de zero
+        /// e sem desfazer pontos já gastos. Zero preserva o estado. Só o comando de teste usa.
+        /// </summary>
+        public static ResultadoAjusteDeExperiencia AplicarAjuste(
+            int nivel,
+            long xp,
+            int pontosLivres,
+            long delta
+        )
+        {
+            ValidarNivel(nivel);
+            if (xp < 0)
+                throw new ArgumentOutOfRangeException(nameof(xp));
+            if (pontosLivres < 0)
+                throw new ArgumentOutOfRangeException(nameof(pontosLivres));
+            if (delta == 0)
+                return new ResultadoAjusteDeExperiencia(nivel, xp, pontosLivres);
+
+            if (delta > 0)
+            {
+                var ganho = AplicarGanho(nivel, xp, delta);
+                return new ResultadoAjusteDeExperiencia(
+                    ganho.Nivel,
+                    ganho.Xp,
+                    checked(pontosLivres + ganho.PontosGanhos)
+                );
+            }
+
+            var restante = checked(xp + delta);
+            var nivelInicial = nivel;
+            while (restante < 0 && nivel > 1)
+            {
+                nivel--;
+                restante = checked(restante + XpParaOProximoNivel(nivel));
+            }
+
+            if (restante < 0)
+                restante = 0;
+
+            var pontos = pontosLivres - checked((nivelInicial - nivel) * PontosPorNivel);
+            if (pontos < 0)
+                pontos = 0;
+
+            return new ResultadoAjusteDeExperiencia(nivel, restante, pontos);
+        }
+
         private static void ValidarNivel(int nivel)
         {
             if (nivel < 1 || nivel > NivelMaximo)
@@ -70,6 +119,21 @@ namespace JogoDoGrupo.Shared.Features.Personagem
             Nivel = nivel;
             Xp = xp;
             PontosGanhos = pontosGanhos;
+        }
+    }
+
+    /// <summary>Nível, XP dentro do nível e pontos livres depois de <see cref="RegrasExperiencia.AplicarAjuste"/>.</summary>
+    public readonly struct ResultadoAjusteDeExperiencia
+    {
+        public int Nivel { get; }
+        public long Xp { get; }
+        public int PontosLivres { get; }
+
+        public ResultadoAjusteDeExperiencia(int nivel, long xp, int pontosLivres)
+        {
+            Nivel = nivel;
+            Xp = xp;
+            PontosLivres = pontosLivres;
         }
     }
 }

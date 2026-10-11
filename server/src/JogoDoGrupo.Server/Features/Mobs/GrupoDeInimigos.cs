@@ -66,7 +66,8 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
     private readonly DefinicaoDeCriatura _definicao;
     private readonly ISorteadorDeCriaturas _sorteador;
     private readonly Func<long> _relogioMs;
-    private readonly Inimigo[] _inimigos;
+    private readonly int _tetoDeTeste;
+    private Inimigo[] _inimigos;
 
     /// <summary>Só no chefe raro: decide quando ele aparece; nulo nas outras categorias.</summary>
     private readonly AparicaoDeChefeRaro? _aparicao;
@@ -127,13 +128,45 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
                 _inimigos[i].Estado = EstadoDeInimigo.Morto;
             }
         }
+
+        _tetoDeTeste = tamanho + AparicoesExtrasDeTeste;
     }
+
+    /// <summary>Quantos inimigos a mais o comando de teste pode acrescentar neste grupo.</summary>
+    public const int AparicoesExtrasDeTeste = 20;
 
     /// <summary>Área do mundo em que o grupo vive.</summary>
     public string Area { get; }
 
     /// <summary>Quantos inimigos o grupo tem, vivos ou mortos.</summary>
     public int Tamanho => _inimigos.Length;
+
+    /// <summary>
+    /// Acrescenta um inimigo vivo em (x, z), para o comando de teste. Nulo se a posição não é
+    /// finita ou se o grupo já ganhou <see cref="AparicoesExtrasDeTeste"/>.
+    /// </summary>
+    public InimigoNoMundo? ForcarAparicao(double x, double z)
+    {
+        if (!double.IsFinite(x) || !double.IsFinite(z))
+        {
+            return null;
+        }
+
+        lock (_trava)
+        {
+            if (_inimigos.Length >= _tetoDeTeste)
+            {
+                return null;
+            }
+
+            var novo = Criar(x, z);
+            var maior = new Inimigo[_inimigos.Length + 1];
+            Array.Copy(_inimigos, maior, _inimigos.Length);
+            maior[^1] = novo;
+            _inimigos = maior;
+            return Retrato(novo);
+        }
+    }
 
     /// <summary>Retrato dos inimigos vivos agora (o que vai em <see cref="InimigosDaArea"/>).</summary>
     public InimigoNoMundo[] Vivos()

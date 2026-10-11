@@ -81,6 +81,7 @@ public sealed class MobsModule : IFeatureModule
             return servico;
         });
         servicos.AddHostedService(sp => sp.GetRequiredService<ServicoDeInimigos>());
+        servicos.AddSingleton<ISpawnDeTeste>(sp => sp.GetRequiredService<ServicoDeInimigos>());
     }
 
     public void Inicializar(ServerContext contexto) =>

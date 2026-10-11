@@ -235,6 +235,7 @@ A regra principal: **cada funcionalidade vive na própria pasta, nas três parte
 | Dungeons e raids | `Instancias` | 12000–12999 | Dungeons (5 jogadores) e raids (10), com bosses cada vez mais fortes. |
 | Social | `Social` | 13000–13999 | Party (time), guilda e chat. |
 | PvP | `Pvp` | 14000–14999 | Arenas, PvP no mundo aberto e guerra de guildas. |
+| Desenvolvimento | `Desenvolvimento` | 15000–15999 | Comandos de teste no editor e no build de desenvolvimento (experiência, teleporte, spawn). |
 
 Responsáveis por cada uma: [docs/responsaveis.md](docs/responsaveis.md).
 

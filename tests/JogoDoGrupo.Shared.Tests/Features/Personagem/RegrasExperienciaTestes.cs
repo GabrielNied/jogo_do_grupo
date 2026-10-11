@@ -106,4 +106,47 @@ public class RegrasExperienciaTestes
         Assert.Throws<OverflowException>(() =>
             RegrasExperiencia.AplicarGanho(ConfigExperiencia.NivelMaximo, long.MaxValue, 1)
         );
+
+    [Fact]
+    public void Ajuste_positivo_sobe_nivel_como_o_ganho()
+    {
+        var custo = RegrasExperiencia.XpParaOProximoNivel(1);
+        var ajuste = RegrasExperiencia.AplicarAjuste(1, 0, 0, custo);
+        Assert.Equal(2, ajuste.Nivel);
+        Assert.Equal(0, ajuste.Xp);
+        Assert.Equal(RegrasExperiencia.PontosPorNivel, ajuste.PontosLivres);
+    }
+
+    [Fact]
+    public void Ajuste_negativo_desce_um_nivel_e_tira_so_os_pontos_daquele_nivel()
+    {
+        var custo = RegrasExperiencia.XpParaOProximoNivel(1);
+        var desceu = RegrasExperiencia.AplicarAjuste(
+            2,
+            0,
+            RegrasExperiencia.PontosPorNivel + 3,
+            -1
+        );
+        Assert.Equal(1, desceu.Nivel);
+        Assert.Equal(custo - 1, desceu.Xp);
+        Assert.Equal(3, desceu.PontosLivres);
+    }
+
+    [Fact]
+    public void Ajuste_negativo_no_nivel_1_zera_a_experiencia_e_nao_passa_de_zero_nos_pontos()
+    {
+        var ajuste = RegrasExperiencia.AplicarAjuste(1, 5, 0, -100);
+        Assert.Equal(1, ajuste.Nivel);
+        Assert.Equal(0, ajuste.Xp);
+        Assert.Equal(0, ajuste.PontosLivres);
+    }
+
+    [Fact]
+    public void Ajuste_zero_preserva_o_estado()
+    {
+        var ajuste = RegrasExperiencia.AplicarAjuste(4, 12, 7, 0);
+        Assert.Equal(4, ajuste.Nivel);
+        Assert.Equal(12, ajuste.Xp);
+        Assert.Equal(7, ajuste.PontosLivres);
+    }
 }

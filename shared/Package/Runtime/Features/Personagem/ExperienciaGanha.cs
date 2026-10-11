@@ -10,7 +10,10 @@ namespace JogoDoGrupo.Shared.Features.Personagem
     [System.Serializable]
     public class ExperienciaGanha
     {
-        /// <summary>Quanto de experiência entrou agora (sempre maior que zero).</summary>
+        /// <summary>
+        /// Quanto a experiência mudou agora. Positivo ao ganhar de um inimigo; no comando de
+        /// teste pode ser negativo. O client usa os campos de estado e não soma este valor.
+        /// </summary>
         public long Quantidade = 0;
 
         /// <summary>Experiência acumulada dentro do nível atual, depois do ganho.</summary>
