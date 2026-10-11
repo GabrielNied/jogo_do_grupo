@@ -15,8 +15,17 @@ permissions:
   pull-requests: read
 
 # Push novo no mesmo PR cancela a rodada antiga.
+# Editar só a descrição (ex.: `npm run tarefa -- pendencia-unity`, segundos depois de abrir o PR)
+# dispara uma rodada que o job pula; ela vai para outro grupo ("-so-descricao") para não cancelar
+# a rodada que está validando o título e a branch.
 concurrency:
-  group: padrao-git-${{ github.ref }}
+  group: >-
+    padrao-git-${{ github.ref }}${{
+      github.event_name == 'pull_request'
+      && github.event.action == 'edited'
+      && github.event.changes.title == null
+      && '-so-descricao' || ''
+    }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
