@@ -6,6 +6,8 @@
 //                                         roda o Unity em modo batch e executa um método de
 //                                         editor (ex.: um script que gera prefabs ou cenas).
 //                                         O editor precisa estar fechado.
+//   npm run unity:importar                abre o projeto em batch, gera os .meta que faltam
+//                                         e fecha. O editor precisa estar fechado.
 //
 // O CLI vem com o Unity Hub. Em outro lugar, defina UNITY_CLI com o caminho do executável.
 
@@ -36,6 +38,8 @@ const comandos = {
     }
     return ["run", CLIENT, "--", "-executeMethod", resto[0], "-quit"];
   },
+  // -quit vai depois de `--`: é argumento do editor, não do CLI. O import grava os .meta.
+  importar: ["run", CLIENT, "--", "-quit"],
 };
 
 const montar = comandos[acao];

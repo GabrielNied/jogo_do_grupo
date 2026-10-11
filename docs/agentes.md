@@ -50,7 +50,7 @@ Várias funcionalidades podem andar ao mesmo tempo, cada uma com o seu trio de a
 
 ### Agentes artistas e o Unity
 
-Os artistas ([ADR 0014](decisoes/0014-conteudo-3d-e-agentes-artistas.md)) buscam assets CC0 conforme a necessidade e montam o conteúdo **pelo Unity** (editor aberto via Unity CLI, ou scripts de editor em modo batch). Como o projeto Unity é um só, **os passos com Unity rodam um agente por vez, no checkout principal**; buscar assets e escrever código pode andar em paralelo. Enquanto um artista usa o Unity, ninguém troca a branch do checkout principal.
+Os artistas ([ADR 0014](decisoes/0014-conteudo-3d-e-agentes-artistas.md)) buscam assets CC0 conforme a necessidade e montam o conteúdo **pelo Unity** (editor aberto via Unity CLI, ou scripts de editor em modo batch). Como o projeto Unity é um só, **os passos com Unity rodam um agente por vez, no checkout principal**; buscar assets e escrever código pode andar em paralelo. Enquanto um artista usa o Unity, ninguém troca a branch do checkout principal. Antes de abrir o PR, `npm run conferir-unity` confirma que `.meta` e materiais alterados pelo Unity entraram no commit. O CI repete a parte dos `.meta` que faltam.
 
 ### Por que não conflita
 

@@ -22,6 +22,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           lfs: false
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: "24"
@@ -35,6 +36,12 @@ jobs:
         env:
           BRANCH: ${{ github.head_ref }}
         run: node scripts/git/validar-branch.mjs "$BRANCH"
+      - name: Arquivos do Unity no commit
+        env:
+          CI: "true"
+        run: |
+          git fetch --no-tags origin "${{ github.base_ref }}"
+          node scripts/git/conferir-arquivos-unity.mjs "origin/${{ github.base_ref }}" --so-commit
 
   main-via-pr:
     if: github.event_name == 'push'

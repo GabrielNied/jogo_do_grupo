@@ -39,7 +39,7 @@ Os passos com Unity rodam **um agente por vez**, no checkout principal (não em 
 - **Editor fechado:** escreva um script de editor em `Features/Mundo/Editor/` e rode com `npm run unity:executar -- <Classe.Metodo>`.
 - Prefira **gerar por script reproduzível** (o script fica no repo; rodar de novo dá o mesmo resultado) a cliques únicos.
 - Lógica em C# (geradores, componentes) tem testes do Unity em `Features/Mundo/Tests/` (asmdef de teste EditMode), rodados com `npm run unity:testes`.
-- Commite os `.meta` e os assets que o Unity gerou junto com o resto.
+- Commite os `.meta`, `.mat` e prefabs que o Unity gerou ou alterou na sua pasta, no mesmo PR. Não deixe no working tree. `ProjectSettings/` fica de fora, salvo pedido da pessoa. Antes de abrir o PR, `npm run conferir-unity` precisa passar.
 
 ## Regras do seu papel
 
