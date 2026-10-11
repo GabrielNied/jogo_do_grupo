@@ -147,19 +147,19 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
         {
             Construir();
 
-            // Linhas livres de props (a rua em anel, de pedra e sem colisor): z = -11 para os lados e
-            // x = -11 para frente e para trás.
+            // Linhas livres de props (a rua em anel, de pedra e sem colisor).
+            var anel = -LayoutDoHub.CentroDoAnel;
             var testes = new[]
             {
-                (new Vector3(0f, 1f, -11f), Vector3.left),
-                (new Vector3(0f, 1f, -11f), Vector3.right),
-                (new Vector3(-11f, 1f, 0f), Vector3.forward),
-                (new Vector3(-11f, 1f, 0f), Vector3.back),
+                (new Vector3(0f, 1f, anel), Vector3.left),
+                (new Vector3(0f, 1f, anel), Vector3.right),
+                (new Vector3(anel, 1f, 0f), Vector3.forward),
+                (new Vector3(anel, 1f, 0f), Vector3.back),
             };
 
             foreach (var (origem, direcao) in testes)
             {
-                var achou = Physics.Raycast(origem, direcao, out var batida, 60f);
+                var achou = Physics.Raycast(origem, direcao, out var batida, LayoutDoHub.Lado);
 
                 Assert.IsTrue(achou, $"Sem muro na direção {direcao}.");
                 // Só o eixo do raio importa: a batida tem de ser na face interna do muro.
@@ -215,7 +215,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
         {
             var inicio = Construir();
 
-            Assert.AreEqual(new Vector3(0f, 0f, -12f), inicio.Posicao);
+            Assert.AreEqual(new Vector3(0f, 0f, -24f), inicio.Posicao);
             Assert.Less(Mathf.Abs(inicio.Posicao.x), LayoutDoHub.MetadeAndavel);
             Assert.Less(Mathf.Abs(inicio.Posicao.z), LayoutDoHub.MetadeAndavel);
             Assert.AreEqual(Vector3.forward, inicio.Rotacao * Vector3.forward);
@@ -230,15 +230,16 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
 
             var chao = terreno.GetComponent<Collider>();
             Assert.IsNotNull(chao, "O terreno precisa de um colisor na raiz.");
-            Assert.GreaterOrEqual(chao.bounds.size.x, 119.99f);
-            Assert.GreaterOrEqual(chao.bounds.size.z, 119.99f);
+            Assert.GreaterOrEqual(chao.bounds.size.x, LayoutDoHub.LadoDoTerreno - 0.01f);
+            Assert.GreaterOrEqual(chao.bounds.size.z, LayoutDoHub.LadoDoTerreno - 0.01f);
             Assert.AreEqual(0f, chao.bounds.max.y, 0.01f);
 
-            // Pontos de uma grade em volta da cidade, sem árvore ou pedra por perto.
+            // Faixa livre logo fora dos muros (os props começam mais longe), em passo de 5 m.
             var testados = 0;
-            for (var x = -55f; x <= 55f; x += 10f)
+            var limite = LayoutDoHub.Metade + 20f;
+            for (var x = -limite; x <= limite; x += 5f)
             {
-                for (var z = -55f; z <= 55f; z += 10f)
+                for (var z = -limite; z <= limite; z += 5f)
                 {
                     var ponto = new Vector3(x, 0f, z);
                     var foraDoQuadradoDaCidade =
@@ -285,12 +286,13 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
         {
             Construir();
 
+            var pertoDaBorda = LayoutDoHub.MetadeDoTerreno - 5f;
             var testes = new[]
             {
-                (new Vector3(55f, 1f, 0f), Vector3.right),
-                (new Vector3(-55f, 1f, 0f), Vector3.left),
-                (new Vector3(0f, 1f, -55f), Vector3.back),
-                (new Vector3(30f, 1f, 55f), Vector3.forward),
+                (new Vector3(pertoDaBorda, 1f, 0f), Vector3.right),
+                (new Vector3(-pertoDaBorda, 1f, 0f), Vector3.left),
+                (new Vector3(0f, 1f, -pertoDaBorda), Vector3.back),
+                (new Vector3(30f, 1f, pertoDaBorda), Vector3.forward),
             };
 
             foreach (var (origem, direcao) in testes)
@@ -347,7 +349,11 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
             foreach (var x in new[] { -1.5f, 0f, 1.5f })
             {
                 Assert.IsTrue(
-                    JogadorPassa(new Vector3(x, 0f, 10f), Vector3.forward, 40f),
+                    JogadorPassa(
+                        new Vector3(x, 0f, 10f),
+                        Vector3.forward,
+                        LayoutDoHub.Metade + LayoutDoHub.ComprimentoDaEstradaFora - 10f
+                    ),
                     $"Algo bloqueia a saída em x = {x}."
                 );
             }
@@ -364,10 +370,15 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
                 .Where(p => Mathf.Abs(p.x) < LayoutDoHub.MetadeDoPortao)
                 .ToArray();
 
-            Assert.IsTrue(pontas.Any(p => Mathf.Abs(p.z - 19f) < 0.01f), "Sem estrada no portão.");
+            var zDoPortao = LayoutDoHub.CentroDaCelula(LayoutDoHub.CelulasPorLado - 1);
+            Assert.IsTrue(
+                pontas.Any(p => Mathf.Abs(p.z - zDoPortao) < 0.01f),
+                "Sem estrada no portão."
+            );
             Assert.IsTrue(
                 pontas.Any(p =>
-                    p.z > LayoutDoHub.Metade + LayoutDoHub.ComprimentoDaEstradaFora - 2f
+                    p.z
+                    > LayoutDoHub.Metade + LayoutDoHub.ComprimentoDaEstradaFora - LayoutDoHub.Modulo
                 ),
                 "A estrada de fora não chega ao fim."
             );
@@ -380,13 +391,13 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
         [Test]
         public void Cidade_tem_ruas_em_anel_ligadas_as_estradas_em_cruz()
         {
-            // O anel passa por ±11 e encontra a cruz.
-            Assert.IsTrue(LayoutDoHub.EhEstradaDaCidade(11f, 9f));
-            Assert.IsTrue(LayoutDoHub.EhEstradaDaCidade(-9f, -11f));
-            Assert.IsTrue(LayoutDoHub.EhEstradaDaCidade(11f, 1f));
+            // O anel passa por ±22 e encontra a cruz.
+            Assert.IsTrue(LayoutDoHub.EhEstradaDaCidade(22f, 18f));
+            Assert.IsTrue(LayoutDoHub.EhEstradaDaCidade(-18f, -22f));
+            Assert.IsTrue(LayoutDoHub.EhEstradaDaCidade(22f, 2f));
             // Quarteirão entre o anel e a praça, e fora do anel, não são rua.
-            Assert.IsFalse(LayoutDoHub.EhEstradaDaCidade(8f, 8f));
-            Assert.IsFalse(LayoutDoHub.EhEstradaDaCidade(15f, 7f));
+            Assert.IsFalse(LayoutDoHub.EhEstradaDaCidade(16f, 16f));
+            Assert.IsFalse(LayoutDoHub.EhEstradaDaCidade(30f, 14f));
         }
 
         [Test]
@@ -405,7 +416,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
                 Assert.LessOrEqual(Mathf.Abs(peca.X), LayoutDoHub.MetadeDoTerreno - 1f);
                 Assert.LessOrEqual(Mathf.Abs(peca.Z), LayoutDoHub.MetadeDoTerreno - 1f);
                 Assert.IsFalse(
-                    Mathf.Abs(peca.X) < 4f && peca.Z > 0f,
+                    Mathf.Abs(peca.X) < LayoutDoHub.MetadeDoPortao + 1f && peca.Z > 0f,
                     $"{peca.Prefab} em {posicao} está na estrada do portão."
                 );
             }
@@ -505,6 +516,54 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
             {
                 campo.SetValue(null, anterior);
             }
+        }
+
+        [Test]
+        public void Terreno_de_fora_separa_campo_mata_e_colinas()
+        {
+            Assert.AreEqual(AreaDoTerreno.Campo, LayoutDoHub.AreaEm(0f, LayoutDoHub.Metade + 30f));
+            Assert.AreEqual(AreaDoTerreno.Mata, LayoutDoHub.AreaEm(LayoutDoHub.Metade + 30f, 0f));
+            Assert.AreEqual(
+                AreaDoTerreno.Colinas,
+                LayoutDoHub.AreaEm(-LayoutDoHub.Metade - 30f, 0f)
+            );
+
+            var campo = 0;
+            var mata = 0;
+            var colinas = 0;
+            var pedrasNasColinas = 0;
+            foreach (var peca in LayoutDoHub.PropsFora)
+            {
+                switch (LayoutDoHub.AreaEm(peca.X, peca.Z))
+                {
+                    case AreaDoTerreno.Campo:
+                        campo++;
+                        break;
+                    case AreaDoTerreno.Mata:
+                        mata++;
+                        break;
+                    default:
+                        colinas++;
+                        if (peca.Prefab.StartsWith("Pedra"))
+                        {
+                            pedrasNasColinas++;
+                        }
+
+                        break;
+                }
+            }
+
+            Assert.GreaterOrEqual(campo, 40);
+            Assert.GreaterOrEqual(mata, 100);
+            Assert.Greater(mata, campo, "A mata fica mais cheia que o campo.");
+            Assert.GreaterOrEqual(colinas, 50);
+            Assert.Greater(pedrasNasColinas, colinas / 2, "As colinas têm mais pedra que árvore.");
+
+            Construir();
+            var terreno = _hub.transform.Find(ConstrutorHub.NomeTerreno);
+            Assert.IsNotNull(terreno.Find("Campo"));
+            Assert.GreaterOrEqual(terreno.Cast<Transform>().Count(t => t.name == "Mata"), 1);
+            Assert.GreaterOrEqual(terreno.Cast<Transform>().Count(t => t.name == "Colinas"), 1);
         }
     }
 }
