@@ -1,0 +1,43 @@
+.recursos {
+    position: absolute;
+    left: 24px;
+    top: 24px;
+    width: 320px;
+}
+
+.recurso-barra {
+    height: 22px;
+    margin-bottom: 6px;
+    background-color: rgb(10, 8, 6);
+    border-width: 1px;
+    border-color: rgb(120, 92, 48);
+    overflow: hidden;
+    justify-content: center;
+}
+
+.recurso-preenchimento {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 0;
+}
+
+.barra-vida {
+    background-color: rgb(176, 48, 40);
+}
+
+.barra-vigor {
+    background-color: rgb(196, 152, 64);
+}
+
+.barra-energia {
+    background-color: rgb(52, 104, 176);
+}
+
+.recurso-texto {
+    font-size: 14px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    color: rgb(255, 240, 210);
+}
