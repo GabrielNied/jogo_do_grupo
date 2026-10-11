@@ -22,10 +22,6 @@ internal static class ItensRotas
     // desta requisição muda, e volta ao valor anterior no fim.
     private const int EsperaTravaSegundos = 5;
 
-    // SQLITE_BUSY e SQLITE_LOCKED: outra transação segura o banco.
-    private const int SqliteOcupado = 5;
-    private const int SqliteBloqueado = 6;
-
     public static void Mapear(IEndpointRouteBuilder rotas)
     {
         rotas.MapGet(RotasItens.Inventario, InventarioAsync).RequireAuthorization();
@@ -81,15 +77,15 @@ internal static class ItensRotas
         {
             return await GravarEmTransacaoAsync(id, sorteados, db, cancelamento);
         }
-        catch (Exception e) when (EhBancoOcupado(e))
+        catch (Exception e) when (e.EhBancoOcupado())
         {
             log.LogWarning(
                 "Banco ocupado por mais de {Espera} s ao abrir baú.",
                 EsperaTravaSegundos
             );
             return RespostasApi.Erro(
-                StatusCodes.Status500InternalServerError,
-                CodigosErro.ErroInterno,
+                StatusCodes.Status503ServiceUnavailable,
+                CodigosErro.ServidorOcupado,
                 "Servidor ocupado. Tente de novo."
             );
         }
@@ -108,7 +104,7 @@ internal static class ItensRotas
     /// trava de escrita, então dois pedidos simultâneos rodam um depois do outro e o segundo
     /// conta o que o primeiro gravou. Assim o inventário nunca passa de
     /// <see cref="RegrasItens.EspacosInventario"/>. Isso vale só para o SQLite (no PostgreSQL
-    /// seria preciso tratar a falha de serialização, como em Personagem; issue #28).
+    /// o Core reconhece a falha de serialização e esta rota responde 503).
     /// </summary>
     private static async Task<IResult> GravarEmTransacaoAsync(
         long personagemId,
@@ -187,17 +183,4 @@ internal static class ItensRotas
 
     private static IResult PersonagemNaoEncontrado() =>
         RespostasApi.Erro(StatusCodes.Status404NotFound, CodigosErroItens.PersonagemNaoEncontrado);
-
-    private static bool EhBancoOcupado(Exception erro)
-    {
-        for (var atual = erro; atual != null; atual = atual.InnerException)
-        {
-            if (atual is SqliteException { SqliteErrorCode: SqliteOcupado or SqliteBloqueado })
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
 }

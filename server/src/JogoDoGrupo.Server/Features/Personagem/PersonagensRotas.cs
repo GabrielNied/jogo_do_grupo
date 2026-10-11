@@ -20,10 +20,6 @@ internal static class PersonagensRotas
     // conexão é 30 s; só a conexão desta requisição muda, e volta ao valor anterior no fim.
     private const int EsperaTravaSegundos = 5;
 
-    // SQLITE_BUSY e SQLITE_LOCKED: outra transação segura o banco.
-    private const int SqliteOcupado = 5;
-    private const int SqliteBloqueado = 6;
-
     public static void Mapear(IEndpointRouteBuilder rotas)
     {
         var grupo = rotas.MapGroup(RotasPersonagem.Personagens).RequireAuthorization();
@@ -91,17 +87,16 @@ internal static class PersonagensRotas
         {
             return await CriarEmTransacaoAsync(requisicao, contaId, db, relogio, cancelamento);
         }
-        catch (Exception e) when (EhBancoOcupado(e))
+        catch (Exception e) when (e.EhBancoOcupado())
         {
-            // Uma tentativa só: o banco continuou ocupado depois da espera. 500 como qualquer
-            // falha inesperada (código próprio para "ocupado" fica para a issue #28).
+            // Uma tentativa só: a transação já foi desfeita ao sair do método.
             log.LogWarning(
                 "Banco ocupado por mais de {Espera} s ao criar personagem.",
                 EsperaTravaSegundos
             );
             return RespostasApi.Erro(
-                StatusCodes.Status500InternalServerError,
-                CodigosErro.ErroInterno,
+                StatusCodes.Status503ServiceUnavailable,
+                CodigosErro.ServidorOcupado,
                 "Servidor ocupado. Tente de novo."
             );
         }
@@ -122,8 +117,8 @@ internal static class PersonagensRotas
     /// nunca passa de <see cref="RegrasPersonagem.MaximoPorConta"/>.
     /// Isso vale só para o SQLite. No PostgreSQL, Serializable não trava na entrada: uma das
     /// transações concorrentes falha no commit com erro de serialização (40001) e precisaria ser
-    /// tratada ou repetida. Isso fica para a issue #28, junto com mover
-    /// <see cref="EhBancoOcupado"/> para o Core (<c>ErrosBanco</c>).
+    /// tratada ou repetida. O Core reconhece essa falha em ErrosBanco.EhBancoOcupado,
+    /// e esta rota responde 503 para permitir uma nova tentativa.
     /// </summary>
     private static async Task<IResult> CriarEmTransacaoAsync(
         CriarPersonagemRequest requisicao,
@@ -183,21 +178,4 @@ internal static class PersonagensRotas
 
     private static IResult NomeJaExiste() =>
         RespostasApi.Erro(StatusCodes.Status409Conflict, CodigosErroPersonagem.NomeJaExiste);
-
-    /// <summary>
-    /// Indica se a falha foi o banco ocupado por outra transação depois do tempo de espera
-    /// (pode vir direto, no BEGIN ou no COMMIT, ou dentro de um <see cref="DbUpdateException"/>).
-    /// </summary>
-    private static bool EhBancoOcupado(Exception erro)
-    {
-        for (var atual = erro; atual != null; atual = atual.InnerException)
-        {
-            if (atual is SqliteException { SqliteErrorCode: SqliteOcupado or SqliteBloqueado })
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
 }
