@@ -147,6 +147,6 @@ Cada funcionalidade recebe uma faixa de 1000 IDs, declarada em `shared/Package/R
 - Como hospedar as sessões de grupo pequeno: um processo de servidor por sessão ou várias sessões por processo? Onde fica o hub social?
 - ~~Como dividir o mundo aberto entre servidores (por região?)~~ não se aplica mais: o jogo usa sessões de grupo pequeno (D1 da [validação](brainstorm/validacao.md)).
 - Sincronização do combate de ação: como o servidor autoritativo valida acertos com latência (D4).
-- Testes automatizados
+- ~~Testes automatizados~~ decidido: xUnit no shared e no servidor, com testes de integração da API ([ADR 0013](decisoes/0013-testes-automatizados.md)).
 
 Cada uma vira um ADR em [decisoes/](decisoes/) quando for decidida.

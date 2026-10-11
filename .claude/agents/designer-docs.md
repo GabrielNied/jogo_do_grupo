@@ -1,6 +1,8 @@
 ---
 name: designer-docs
 description: "Escreve e organiza o game design nas docs: regras das funcionalidades em docs/features/, pauta de validação, referências e visão geral, a partir das decisões do grupo e do brainstorm. Use quando uma decisão de design precisa virar documentação ou quando uma funcionalidade precisa ser detalhada antes de implementar."
+model: sonnet
+effort: low
 isolation: worktree
 hooks:
   PreToolUse:
@@ -43,10 +45,10 @@ Você só edita estes caminhos (um hook bloqueia o resto):
 
 ## Relatório final
 
-Termine sempre com:
+No máximo 15 linhas, sem repetir o que a tarefa já dizia:
 
-- **Feito:** o que foi implementado, em 2 a 5 linhas.
-- **Branch e PR:** nome da branch, commits e link do PR (se aberto).
-- **Verificações:** resultado de cada comando.
-- **Para outros agentes:** o que outro agente ou pessoa precisa fazer para isto funcionar (ex.: "client-funcionalidade precisa tratar a mensagem X", "montar o prefab Y no editor").
-- **Dúvidas:** decisões que você não tomou e deixou para o grupo.
+- **Feito:** 1 a 3 linhas.
+- **PR:** link e branch.
+- **Verificações:** "ok", ou só o que falhou.
+- **Para outros:** só se outro agente ou uma pessoa precisar fazer algo.
+- **Dúvidas:** só se houver decisão deixada para o grupo.

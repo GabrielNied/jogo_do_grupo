@@ -129,6 +129,8 @@ Mais detalhes, e quais configurações do projeto não devem ser alteradas: [cli
 |---|---|---|
 | Formatação | `dotnet csharpier check .` | `Checked N files` sem erros |
 | Build | `dotnet build JogoDoGrupo.slnx` | `0 Warning(s)`, `0 Error(s)` |
+| Testes | `dotnet test JogoDoGrupo.slnx` | `Passed!` nos dois projetos de teste |
+| Client compila | `npm run unity:compilar` | `✔ Client compila contra o Unity ...` |
 | Hooks ativos | `git config core.hooksPath` | `.husky/_` |
 | commitlint | `echo "feat(itens): testa commitlint" \| npx commitlint` | Nenhuma mensagem de erro |
 | Validador de branch | `npm run validar-branch -- feature/itens/teste` | `✔ Branch "feature/itens/teste" no padrão.` |
@@ -198,6 +200,7 @@ jogo_do_grupo/
 │   └── Package/Runtime/
 │       ├── Core/
 │       └── Features/<X>/
+├── tests/           Testes automatizados (xUnit) do shared e do servidor
 ├── docs/            Documentação (visão, arquitetura, features, decisões)
 ├── .claude/
 │   ├── agents/      Agentes especializados para trabalho em paralelo (ver docs/agentes.md)

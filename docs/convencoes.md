@@ -42,6 +42,21 @@ A formatação é automática e não se discute em review: quem decide é o [CSh
 - Largura máxima da linha: 100 caracteres (padrão do CSharpier, explícito no `.editorconfig`).
 - Para atualizar a versão do CSharpier: `dotnet tool update csharpier`, rode `dotnet csharpier format .` e faça um PR só com isso (`chore(core): atualiza CSharpier`).
 
+## Testes
+
+Decisão: [ADR 0013](decisoes/0013-testes-automatizados.md).
+
+| Comando | O que faz |
+|---|---|
+| `dotnet test JogoDoGrupo.slnx` | Roda todos os testes (shared e servidor). É o que o CI roda. |
+| `npm run unity:compilar` | Compila o client e o shared contra as DLLs do Unity, sem abrir o editor |
+
+- **Onde:** `tests/JogoDoGrupo.Shared.Tests/` e `tests/JogoDoGrupo.Server.Tests/`, com pastas que espelham o código (`Core/<Area>/`, `Features/<X>/`). Uma classe de teste por classe testada: `<Classe>Testes`.
+- **Nomes dos testes:** frases curtas em português com `_`, dizendo o comportamento: `Registrar_usuario_repetido_sem_diferenciar_maiusculas_da_409`.
+- **API do servidor:** use `IClassFixture<ServidorDeTeste>` (`Infra/ServidorDeTeste.cs`). Ele sobe o servidor de verdade com um banco SQLite temporário por classe; dentro da classe, use `ServidorDeTeste.NomeUnico()` para não depender da ordem dos testes. Exemplo: `Core/Contas/ContasRotasTestes.cs`.
+- **O que testar em todo PR de código:** o caminho feliz, cada código de erro que a mudança pode devolver, limites (mínimo e máximo) e, quando houver, pedidos simultâneos.
+- **Client:** por enquanto, só `npm run unity:compilar` e o teste no editor.
+
 ## .editorconfig
 
 O `.editorconfig` na raiz cuida do resto: charset UTF-8, fim de linha LF, indentação (4 espaços em C#, 2 em JSON/YAML/asmdef/csproj) e as regras de nomes. O CSharpier lê a indentação e a largura de linha dele.

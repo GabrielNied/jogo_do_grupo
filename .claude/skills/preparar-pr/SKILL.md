@@ -45,6 +45,8 @@ Nos arquivos alterados, confira:
 dotnet csharpier format .
 dotnet csharpier check .
 dotnet build JogoDoGrupo.slnx -c Release
+dotnet test JogoDoGrupo.slnx -c Release --no-build
+npm run unity:compilar        # se mexeu em client ou shared
 ```
 
 O `check` precisa passar e o build não pode ter erros (avisos novos devem ser explicados). Se o `format` mudou arquivos, inclua essas mudanças.
