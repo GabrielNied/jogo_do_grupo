@@ -27,9 +27,20 @@ Conteúdo instanciado para grupos pequenos: dungeons e raids, com foco em derrot
 - [x] ~~Raids divididas em etapas curtas (gates)?~~ Decidido em 2026-10-10: sim
 - [ ] Quanto cada nível de dificuldade aumenta vida e dano dos inimigos? (WoW Mythic+: cerca de 8% por nível)
 - [ ] Vai ter cronômetro e modificadores, como no Mythic+?
+- [ ] **Conflito com o livro (proposta do board, 2026-10-11):** o livro fala em "instâncias de 20 jogadores" (seção 10); aqui continua valendo dungeon de 5 e raid de 10 (decididos em 2026-10-10). O grupo decide se os 20 são o limite do mundo/grupo (veja [social](social.md)) e não da dungeon.
+- [ ] A Mina do Reflexo (três salões, chefe mineral) é a dungeon do MVP? Veja "Livro de Asterra: Mina do Reflexo".
 - [ ] Veja as [referências](../referencias.md) de dungeons, raids e bosses
 
 ## Regras
+
+### Livro de Asterra: Mina do Reflexo (proposta do board, 2026-10-11)
+
+Do "Livro de ideias" do [FigJam](../brainstorm/figjam.md) (seções 06 e 10). **Proposta do board, não validada pelo grupo.**
+
+- **Mina do Reflexo** seria a dungeon do MVP: entrada física na Serra do Vidro Frio (veja [mundo](mundo.md)), **três salões e um chefe mineral**, túneis que levam o grupo a arenas amplas com luz e travessias. Cena marcante: cristais apagados escondem mobs, orbes de luz revelam o enxame e uma ponte de gelo abre posição de ataque. Combina com o Guardião do Reflexo de [mobs](mobs.md).
+- **Fenda do Horizonte** (portal com ondas, âncoras e guardião): FUTURO, não exige sistema de eventos para jogar a dungeon.
+- **Recompensas:** equipamentos, essências e materiais; o dono do loot de chefe é quem causou mais dano. Insumos essenciais também vêm de exploração e mobs comuns.
+- **Expedição inicial:** a dungeon integra a primeira expedição (preparar na cidade, explorar, combater, voltar).
 
 ## Depende de
 
