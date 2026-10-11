@@ -86,6 +86,7 @@ public sealed class PersonagemModule : IFeatureModule
 - **JSON:** campos públicos e nomes como no C# (compatível com o `JsonUtility` do Unity), enums como número. Os DTOs do shared funcionam direto como parâmetro e retorno (`Results.Ok(dto)`).
 - **Entidades:** crie a classe e uma `IEntityTypeConfiguration<T>` na pasta da funcionalidade; o `JogoDbContext` (`JogoDoGrupo.Server.Core.Persistencia`) as descobre sozinho. Acesse com `db.Set<T>()`. Para ligar à conta, guarde o `ContaId` (`long`) com índice.
 - **Unicidade:** cheque antes de salvar e, para a corrida entre duas requisições, capture `catch (DbUpdateException e) when (e.EhViolacaoDeUnicidade())` e responda 409.
+- **Banco ocupado:** `ErrosBanco.EhBancoOcupado()` reconhece SQLite ocupado/bloqueado (5/6) e falha de serialização SQLSTATE `40001`, inclusive em exceções internas. Ao sair da transação sem commit, ela é desfeita; responda 503 com `CodigosErro.ServidorOcupado` para permitir nova tentativa. Outras falhas continuam como 500 `ErroInterno`. O reconhecimento de SQLSTATE prepara a classificação de erros para PostgreSQL; o provedor e a migração ainda não foram implementados.
 - **Migrações:** mudou entidade, gere a migração no mesmo PR. Ela vai para `Core/Persistencia/Migrations/` sozinha. Da raiz do repo:
 
   ```
