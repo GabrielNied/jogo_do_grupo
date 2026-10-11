@@ -40,7 +40,8 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
             SerializeField,
             Tooltip("Sem gravidade; Espaço sobe e Ctrl desce. Ignorado fora do editor.")
         ]
-        private bool _voar;
+        // Só o Inspector liga; o "= false" explícito evita o aviso CS0649 na compilação.
+        private bool _voar = false;
 
         [SerializeField, Min(0f), Tooltip("m/s")]
         private float _velocidadeVerticalVoo = MovimentoTerceiraPessoa.VelocidadeVerticalVooPadrao;
