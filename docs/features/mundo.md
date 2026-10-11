@@ -72,6 +72,19 @@ Campos: `PersonagemId` (long), `X`, `Y`, `Z`, `RotacaoY` (float). Usado em `Esta
 
 **Presença na cidade (servidor, #103):** em `Features/Mundo/`. Uma só cidade; `EntrarNaCidade` põe o jogador no nascimento ~~(0, 0, -12)~~ (0, 0, -24) (substituído em 2026-10-11: é o nascimento da cidade de 80 m) e devolve `EstadoDaCidade` (quem já estava recebe `JogadorEntrou`). `IntencaoDeMovimento` é validada no plano horizontal: no máximo 5,5 m/s mais 0,5 m de folga, com o tempo decorrido limitado a 1 s (parado não acumula), dentro de ~~±60 m~~ ±500 m em X e Z (substituído em 2026-10-11: o terreno passou a 1 km) e altura de -5 a 50 m; NaN ou infinito também é recusado. Aceita, o dono recebe `PosicaoJogador` com a `Sequencia` e os outros, a réplica (sequência 0); recusada, só o dono recebe a posição anterior com a `Sequencia`, para corrigir a predição. Sair ou cair (`SessaoEncerrada`) remove o avatar e avisa `JogadorSaiu`. Movimento sem ter entrado é ignorado.
 
+### Eventos e consulta para outras funcionalidades do servidor (#119)
+
+Em `server/src/JogoDoGrupo.Server/Contratos/Mundo/` ([ADR 0016](../decisoes/0016-eventos-entre-funcionalidades-do-servidor.md)); só o servidor usa, o client não vê.
+
+| Tipo | O que é |
+|---|---|
+| `JogadorEntrouNaArea` (`PersonagemId`, `Area`) | evento publicado quando o personagem passa a estar numa área. Pedir para entrar de novo, já estando nela, não repete |
+| `JogadorSaiuDaArea` (`PersonagemId`, `Area`) | evento publicado quando o personagem sai do jogo ou a conexão cai. Quando chega, a consulta já não encontra o personagem |
+| `IPosicoesDoMundo` | consulta pela injeção de dependência: `TentarObter(personagemId, out PosicaoNoMundo)` (área, X, Y, Z, rotação: a posição que o servidor aceitou) e `PersonagensNaArea(area)` |
+| `AreasDoMundo.Cidade` | o nome da única área de hoje (a cidade e o terreno em volta) |
+
+Os eventos saem depois das mensagens de rede da mesma mudança (`EstadoDaCidade`, `JogadorEntrou`, `JogadorSaiu`).
+
 ## Minimapa e mapa-múndi (propostas, issues #91 e #92)
 
 Tudo abaixo é **proposta** para o grupo validar; nada aqui é decisão ainda. Respeita o já decidido: a fatia tem **uma cidade e uma dungeon** ([fatia-jogavel.md](fatia-jogavel.md)), servidor autoritativo e presença na cidade (#77, mensagens 1000–1005 acima).

@@ -75,6 +75,23 @@ public class CidadeDoMundoTestes
     }
 
     [Fact]
+    public void Obter_devolve_o_avatar_so_de_quem_esta_na_cidade()
+    {
+        var cidade = Nova();
+        Assert.Null(cidade.Obter(1));
+
+        var a = new Conexao();
+        cidade.Entrar(1, a);
+        _agora += 1000;
+        cidade.Mover(1, a, new(2f, 0, -24f, 0));
+        Assert.Equal(2f, cidade.Obter(1)!.Posicao.X);
+        Assert.Null(cidade.Obter(2));
+
+        cidade.Sair(1, a);
+        Assert.Null(cidade.Obter(1));
+    }
+
+    [Fact]
     public void Sair_remove_uma_vez_so()
     {
         var cidade = Nova();
