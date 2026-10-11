@@ -261,7 +261,7 @@ Client (EditMode): interpretar os comandos (`/c`, `/g`, `/s Nome texto`, `/r`, `
 ## Expõe
 
 - Contrato do grupo na faixa 13000–13999 (mensagens de convidar, aceitar, recusar, sair, expulsar, passar liderança e a lista do grupo), ~~a definir pelo agente de contrato a partir das regras acima~~ definido em 2026-10-11, veja [Contrato do grupo](#contrato-do-grupo) abaixo.
-- Contrato do chat na mesma faixa 13000–13999 (enviar mensagem, mensagem recebida, recusa e histórico da Cidade), a definir pelo agente de contrato a partir das regras do chat.
+- Contrato do chat na mesma faixa 13000–13999 (enviar mensagem, mensagem recebida, recusa e histórico da Cidade), ~~a definir pelo agente de contrato a partir das regras do chat~~ definido em 2026-10-11, veja [Contrato do chat](#contrato-do-chat) abaixo.
 - Consulta "quem é o grupo de um personagem" para outras funcionalidades (ex.: dungeons), por evento ou contrato do shared, sem referência direta entre funcionalidades.
 
 ### Contrato do grupo
@@ -284,3 +284,17 @@ Código em `shared/Package/Runtime/Features/Social/` (fonte dos nomes e tipos ex
 - `CodigosErroSocial`: os 16 códigos da tabela de erros.
 - `RegrasGrupo`: os números do grupo como constantes (5 membros, 60 s, 120 s, 30 s, 1 convite por segundo, 5 convites por alvo) e as contas puras (`VagasLivres`, `ConviteExpirou`, `VagaGuardadaVenceu`, `ReconviteBloqueado`, `DeveDesfazer`, `PosicaoDoHerdeiro`).
 - O grupo fica com os IDs 13000 a 13099; o chat começa em 13100 (#121).
+
+### Contrato do chat
+
+Código em `shared/Package/Runtime/Features/Social/`. Tempo real, entrega confiável; quem falou vem sempre da sessão.
+
+| ID | Mensagem | Direção | Campos |
+|---|---|---|---|
+| 13100 | `EnviarMensagemDeChat` | client → servidor | `Canal` (`CanalDeChat`: Cidade 0, Grupo 1, Sussurro 2), `Texto`, `NomeDoAlvo` (só no sussurro) |
+| 13101 | `MensagemDeChat` | servidor → quem recebe e o remetente | `Canal`, `RemetenteId`, `NomeDoRemetente`, `NomeDoAlvo`, `Texto`, `HoraUnixMs` |
+| 13102 | `MensagemDeChatRecusada` | servidor → remetente | `Codigo` (`CodigosErroSocial`), `SegundosRestantes` (só em `Silenciado`) |
+| 13103 | `HistoricoDaCidade` | servidor → quem entra na cidade | `Mensagens[]` (`MensagemDeChat`, da mais antiga para a mais nova) |
+
+- `CodigosErroSocial` ganhou os códigos do chat (`MensagemVazia`, `MensagemLongaDemais`, `MensagensRapidasDemais`, `MensagemRepetida`, `Silenciado`, `CanalIndisponivel`, `SussurroParaSiMesmo`); `NaoEstaEmGrupo` e `AlvoNaoEncontrado` são os mesmos do grupo.
+- `RegrasChat`: os números da tabela de limites como constantes e as contas puras (`Limpar`, `Validar`, `ChaveDeRepeticao`, `FrequenciaEstourou`, `Repetida`, `DeveSilenciar`, `SilencioRestanteSegundos`, `VelhaDemaisParaOHistorico`). Os limites só do client (100 linhas, 50 ignorados, 8 linhas no painel) ficam no client.
