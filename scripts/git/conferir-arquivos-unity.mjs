@@ -57,6 +57,13 @@ function sobUnity(caminho) {
   return caminho.startsWith("client/Assets/") || caminho.startsWith("shared/Package/");
 }
 
+// O mesmo critério de scripts/unity/gerar-meta.mjs: o Unity não importa esses nomes
+// e portanto não cria .meta. .gitkeep entra aqui.
+function ignoradoPeloUnity(caminho) {
+  const nome = caminho.split("/").pop();
+  return nome.startsWith(".") || nome.endsWith("~") || nome === "cvs" || nome.endsWith(".tmp");
+}
+
 function extensao(caminho) {
   const ponto = caminho.lastIndexOf(".");
   return ponto === -1 ? "" : caminho.slice(ponto).toLowerCase();
@@ -85,7 +92,7 @@ try {
 
 const faltam = [];
 for (const arquivo of adicionados) {
-  if (!sobUnity(arquivo) || arquivo.endsWith(".meta")) continue;
+  if (!sobUnity(arquivo) || arquivo.endsWith(".meta") || ignoradoPeloUnity(arquivo)) continue;
   const meta = `${arquivo}.meta`;
   if (!existe("HEAD", meta)) faltam.push(meta);
   for (const pasta of pastas(arquivo)) {
