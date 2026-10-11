@@ -11,6 +11,7 @@ Ponto de entrada da identidade visual, referências de interface e materiais de 
 - [Logo horizontal aprovada](marca/logo-horizontal.png).
 - [Referência aprovada do símbolo](marca/simbolo-referencia.png): duas cascas de pedra envolvendo essência; o texto dessa composição antiga não é a matriz atual do lettering.
 - [Guia das aplicações](interface/LEIA-ME.md): usos, limitações e preparação para implementação.
+- [Laboratório de interfaces no Unity](laboratorio-unity/README.md): exemplos isolados em UI Toolkit para comparar com as pranchas; implementação ainda pendente de validação na engine.
 
 ## Organização
 
