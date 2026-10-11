@@ -10,6 +10,7 @@ Raças, atributos e progressão de nível. Sem classes: o estilo de jogo vem dos
 
 ## Definido
 
+- Atributos, vida/vigor/energia, XP e nível da primeira fatia jogável (números em proposta): [fatia-jogavel.md](fatia-jogavel.md)
 - Raças com características únicas; cada raça dá uma **skill base** própria
 - **Sem classes** (D2 da [validação de 2026-10-10](../brainstorm/validacao.md)): a combinação de itens define o estilo de jogo
 - Progressão por nível (leveling) faz parte do loop principal (D5)
