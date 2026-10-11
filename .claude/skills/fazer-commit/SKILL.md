@@ -22,6 +22,8 @@ Se nada estiver no stage, pergunte o que incluir ou adicione só os arquivos da 
 
 Se houver C# alterado, rode `dotnet csharpier format .` antes e inclua o resultado.
 
+Os testes vão **no mesmo commit** (ou no mesmo PR) do código que eles cobrem. Use o tipo `test` só para commits que mexem apenas em testes.
+
 ## 3. Escrever a mensagem
 
 ```

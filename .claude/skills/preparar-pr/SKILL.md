@@ -33,6 +33,8 @@ Avise se houver arquivos:
 
 Nos arquivos alterados, confira:
 
+- **Testes:** todo código novo ou alterado tem teste em `tests/` (caminho feliz, erros, limites, concorrência quando houver). Faltou? Escreva antes de abrir o PR. Mudança só de docs, `.meta` ou configuração não precisa.
+
 - Nenhuma referência direta entre funcionalidades (nem `using JogoDoGrupo.*.Features.<Outra>` nem referência entre `.asmdef` de features).
 - `shared/` sem `UnityEngine` e sem recursos acima de C# 9 (namespace de arquivo, `record struct`, `required`, etc.).
 - IDs de mensagem dentro de `<X>MessageIds.Faixa`.
