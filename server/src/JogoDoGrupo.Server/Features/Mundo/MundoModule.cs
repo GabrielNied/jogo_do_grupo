@@ -1,4 +1,6 @@
+using JogoDoGrupo.Server.Contratos.Mundo;
 using JogoDoGrupo.Server.Core;
+using JogoDoGrupo.Server.Core.Eventos;
 using JogoDoGrupo.Server.Core.TempoReal;
 using JogoDoGrupo.Shared.Features.Mundo;
 
@@ -8,8 +10,12 @@ public sealed class MundoModule : IFeatureModule
 {
     private readonly CidadeDoMundo<SessaoTempoReal> _cidade = new();
     private ServidorTempoReal? _tempoReal;
+    private EventosDoServidor? _eventos;
 
     public string Nome => "Mundo";
+
+    public void ConfigurarServicos(IServiceCollection servicos, IConfiguration configuracao) =>
+        servicos.AddSingleton<IPosicoesDoMundo>(new PosicoesDaCidade(_cidade));
 
     public void RegistrarMensagens(MensagensTempoReal mensagens) =>
         mensagens
@@ -20,6 +26,7 @@ public sealed class MundoModule : IFeatureModule
     public void Inicializar(ServerContext contexto)
     {
         _tempoReal = contexto.TempoReal;
+        _eventos = contexto.Eventos;
         _tempoReal.SessaoEncerrada += AoEncerrar;
     }
 
@@ -38,6 +45,8 @@ public sealed class MundoModule : IFeatureModule
             {
                 _tempoReal.Enviar(outro.Sessao, MundoMessageIds.JogadorEntrou, aviso);
             }
+
+            _eventos!.Publicar(new JogadorEntrouNaArea(sessao.PersonagemId, AreasDoMundo.Cidade));
         }
     }
 
@@ -89,6 +98,8 @@ public sealed class MundoModule : IFeatureModule
         {
             _tempoReal!.Enviar(outro.Sessao, MundoMessageIds.JogadorSaiu, aviso);
         }
+
+        _eventos!.Publicar(new JogadorSaiuDaArea(sessao.PersonagemId, AreasDoMundo.Cidade));
     }
 
     private static JogadorVisivel Visivel(AvatarNaCidade<SessaoTempoReal> a) =>

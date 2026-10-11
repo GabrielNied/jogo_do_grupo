@@ -3,6 +3,7 @@ using JogoDoGrupo.Server.Core;
 using JogoDoGrupo.Server.Core.Api;
 using JogoDoGrupo.Server.Core.Autenticacao;
 using JogoDoGrupo.Server.Core.Contas;
+using JogoDoGrupo.Server.Core.Eventos;
 using JogoDoGrupo.Server.Core.Persistencia;
 using JogoDoGrupo.Server.Core.TempoReal;
 using Microsoft.EntityFrameworkCore;
@@ -34,6 +35,7 @@ builder.Services.AddDbContext<JogoDbContext>(opcoes =>
 builder.Services.AdicionarAutenticacaoJwt(builder.Configuration, builder.Environment);
 builder.Services.AdicionarContas();
 builder.Services.AdicionarTempoReal(builder.Configuration);
+builder.Services.AddSingleton<EventosDoServidor>();
 
 foreach (var modulo in modulos)
 {
@@ -59,7 +61,10 @@ foreach (var modulo in modulos)
 }
 
 var mensagens = app.Services.GetRequiredService<MensagensTempoReal>();
-var contexto = new ServerContext(app.Services.GetRequiredService<ServidorTempoReal>());
+var contexto = new ServerContext(
+    app.Services.GetRequiredService<ServidorTempoReal>(),
+    app.Services.GetRequiredService<EventosDoServidor>()
+);
 
 foreach (var modulo in modulos)
 {

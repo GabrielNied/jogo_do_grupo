@@ -34,7 +34,7 @@ Assim, cada pessoa trabalha em pastas diferentes e os conflitos de merge ficam r
 
 1. Uma funcionalidade pode usar o **Core** e o **Shared**.
 2. Uma funcionalidade **não referencia outra diretamente**. Se Economia precisa saber que um item foi fundido, Itens publica um evento e Economia escuta. No Unity, os Assembly Definitions impedem referências diretas.
-3. Contratos entre funcionalidades (eventos, interfaces) ficam no `Shared/Features/<dono>/`, definidos por quem publica.
+3. Contratos entre funcionalidades (eventos, interfaces) são definidos por quem publica. ~~Ficam no `Shared/Features/<dono>/`.~~ Substituído em 2026-10-11 ([ADR 0016](decisoes/0016-eventos-entre-funcionalidades-do-servidor.md)): o que o **client usa** (mensagens de rede, DTOs, regras puras) fica em `shared/Package/Runtime/Features/<dono>/`; o que **só o servidor usa** (eventos e consultas entre funcionalidades) fica em `server/src/JogoDoGrupo.Server/Contratos/<Dono>/`. Uma funcionalidade pode referenciar `Contratos/` de outra, nunca `Features/` de outra.
 
 ### Pontos de conflito eliminados
 
@@ -99,7 +99,7 @@ public sealed class PersonagemModule : IFeatureModule
 
 ### Servidor: eventos entre funcionalidades
 
-Uma funcionalidade avisa as outras por `contexto.Eventos` (`EventosDoServidor`, em `Core/Eventos/`), sem referenciá-las ([ADR 0016](decisoes/0016-eventos-entre-funcionalidades-do-servidor.md), em proposta).
+Uma funcionalidade avisa as outras por `contexto.Eventos` (`EventosDoServidor`, em `Core/Eventos/`), sem referenciá-las ([ADR 0016](decisoes/0016-eventos-entre-funcionalidades-do-servidor.md)). Os tipos de evento e as interfaces de consulta ficam em `server/src/JogoDoGrupo.Server/Contratos/<Dono>/`, definidos por quem publica.
 
 ```csharp
 public void Inicializar(ServerContext contexto)
@@ -116,9 +116,9 @@ private void AoEntrar(SessaoTempoReal sessao, EntrarNaCidade _) =>
 - **Tipo exato:** quem assina `T` não recebe tipos derivados de `T`.
 - **Evento dentro de evento:** o que um manipulador publica só é entregue depois que o evento atual chegou a todos.
 - **Falha:** a exceção de um assinante não impede os outros; no fim, quem publicou recebe uma `AggregateException`.
-- **Perguntas** (ler o estado de outra funcionalidade) usam uma interface registrada na DI pelo dono, como o `IVerificadorPersonagem`, e não eventos.
+- **Perguntas** (ler o estado de outra funcionalidade) usam uma interface de `Contratos/<Dono>/` registrada na DI pelo dono, e não eventos. Peça a interface pelo `IServiceProvider` (rotas, serviços) ou guarde-a no módulo.
 
-Os eventos do exemplo ainda não existem; o primeiro par de verdade vem com o Mundo (issue #119).
+~~Os eventos do exemplo ainda não existem; o primeiro par de verdade vem com o Mundo (issue #119).~~ Substituído em 2026-10-11: os eventos do exemplo existem. O Mundo publica `JogadorEntrouNaArea` e `JogadorSaiuDaArea` e oferece a consulta `IPosicoesDoMundo` (`Contratos/Mundo/`, veja [mundo.md](features/mundo.md#expõe)).
 
 ### Servidor: tempo real (UDP)
 

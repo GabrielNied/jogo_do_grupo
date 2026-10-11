@@ -1,6 +1,10 @@
+using System.Collections.Concurrent;
+using JogoDoGrupo.Server.Contratos.Mundo;
+using JogoDoGrupo.Server.Core.Eventos;
 using JogoDoGrupo.Server.Features.Mundo;
 using JogoDoGrupo.Server.Tests.Core.TempoReal;
 using JogoDoGrupo.Shared.Features.Mundo;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace JogoDoGrupo.Server.Tests.Features.Mundo;
 
@@ -108,5 +112,58 @@ public class PresencaNaCidadeTestes(TempoRealFixture f) : IClassFixture<TempoRea
 
         var estado = await a.ReceberAsync<EstadoDaCidade>(MundoMessageIds.EstadoDaCidade);
         Assert.Equal(ValidadorDeMovimento.Nascimento.Z, estado.Eu.Z);
+    }
+
+    [Fact]
+    public async Task Entrar_e_sair_publicam_eventos_e_a_consulta_de_posicao_acompanha()
+    {
+        var eventos = f.Fabrica.Services.GetRequiredService<EventosDoServidor>();
+        var posicoes = f.Fabrica.Services.GetRequiredService<IPosicoesDoMundo>();
+        var entradas = new ConcurrentQueue<JogadorEntrouNaArea>();
+        var saidas = new ConcurrentQueue<JogadorSaiuDaArea>();
+        eventos.Assinar<JogadorEntrouNaArea>(entradas.Enqueue);
+        eventos.Assinar<JogadorSaiuDaArea>(saidas.Enqueue);
+
+        var (a, _, idA) = await f.EntrarAsync();
+        using var _a = a;
+        Assert.False(posicoes.TentarObter(idA, out _));
+
+        // Entrar duas vezes: o evento sai uma vez só.
+        a.Enviar(MundoMessageIds.EntrarNaCidade, new EntrarNaCidade());
+        await a.ReceberAsync<EstadoDaCidade>(MundoMessageIds.EstadoDaCidade);
+        a.Enviar(MundoMessageIds.EntrarNaCidade, new EntrarNaCidade());
+        await a.ReceberAsync<EstadoDaCidade>(MundoMessageIds.EstadoDaCidade);
+
+        var z = ValidadorDeMovimento.Nascimento.Z;
+        a.Enviar(
+            MundoMessageIds.IntencaoDeMovimento,
+            new IntencaoDeMovimento
+            {
+                X = 0.3f,
+                Z = z,
+                Sequencia = 1,
+            }
+        );
+        await a.ReceberAsync<PosicaoJogador>(MundoMessageIds.PosicaoJogador);
+
+        var entrada = Assert.Single(entradas, e => e.PersonagemId == idA);
+        Assert.Equal(AreasDoMundo.Cidade, entrada.Area);
+        Assert.True(posicoes.TentarObter(idA, out var posicao));
+        Assert.Equal(AreasDoMundo.Cidade, posicao.Area);
+        Assert.Equal(0.3f, posicao.X);
+        Assert.Equal(z, posicao.Z);
+        Assert.Contains(idA, posicoes.PersonagensNaArea(AreasDoMundo.Cidade));
+        Assert.Empty(posicoes.PersonagensNaArea("area-que-nao-existe"));
+        Assert.DoesNotContain(saidas, e => e.PersonagemId == idA);
+
+        a.Sair();
+        await TempoRealFixture.EsperarAsync(
+            () => saidas.Any(e => e.PersonagemId == idA),
+            "evento de saída da área"
+        );
+
+        Assert.Single(saidas, e => e.PersonagemId == idA);
+        Assert.False(posicoes.TentarObter(idA, out _));
+        Assert.DoesNotContain(idA, posicoes.PersonagensNaArea(AreasDoMundo.Cidade));
     }
 }

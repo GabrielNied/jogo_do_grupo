@@ -48,7 +48,7 @@ Testes em `tests/` (xUnit; [ADR 0013](docs/decisoes/0013-testes-automatizados.md
    - Algo ficou obsoleto, duplicado ou errado? **Marque** (ex.: "~~texto~~ substituído por ..." ou status `substituída` num ADR) ou mova para o lugar certo, e avise a pessoa.
    - Se algo realmente precisar sumir, diga à pessoa exatamente o que apagar e deixe que ela apague.
 1. **Fique nas pastas da funcionalidade da tarefa** (`Features/<X>/` em client, server e shared, e `docs/features/<x>.md`). Se precisar mexer em outra funcionalidade ou em `Core/`, pare e avise a pessoa: isso exige review do responsável.
-2. **Funcionalidades não se referenciam diretamente.** Comunicação por eventos e contratos definidos em `shared/Package/Runtime/Features/<dono>/`. Não adicione referência de um `.asmdef` de feature para outro.
+2. **Funcionalidades não se referenciam diretamente.** Comunicação por eventos e contratos definidos por quem publica: se o **client usa** (mensagens de rede, DTOs, regras puras), em `shared/Package/Runtime/Features/<dono>/`; se **só o servidor usa** (eventos e consultas entre funcionalidades), em `server/src/JogoDoGrupo.Server/Contratos/<Dono>/` ([ADR 0016](docs/decisoes/0016-eventos-entre-funcionalidades-do-servidor.md)). Não adicione referência de um `.asmdef` de feature para outro.
 3. **Servidor autoritativo:** regras que decidem resultado (dano, drop, fusão, preço) rodam no servidor. O cliente envia intenções e mostra resultados.
 4. **IDs de mensagem** só dentro da faixa da funcionalidade (`<X>MessageIds.Faixa`).
 5. **Shared:** nada de `UnityEngine`, nada acima de C# 9. Use `namespace X { }` com chaves (namespace de arquivo não compila no Unity).

@@ -124,6 +124,17 @@ public sealed class CidadeDoMundo<TSessao>(Func<long> relogioMs)
         }
     }
 
+    /// <summary>O avatar do personagem, ou <c>null</c> se ele não está na cidade.</summary>
+    public AvatarNaCidade<TSessao>? Obter(long personagemId)
+    {
+        lock (_trava)
+        {
+            return _avatares.TryGetValue(personagemId, out var entrada)
+                ? Converter(personagemId, entrada)
+                : null;
+        }
+    }
+
     /// <summary>Quem está na cidade agora.</summary>
     public AvatarNaCidade<TSessao>[] Presentes()
     {

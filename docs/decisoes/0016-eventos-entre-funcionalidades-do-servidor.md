@@ -1,7 +1,7 @@
 # 0016. Eventos síncronos entre funcionalidades do servidor
 
 **Data:** 2026-10-11
-**Status:** proposta
+**Status:** aceita (2026-10-11)
 
 ## Contexto
 
@@ -34,4 +34,9 @@ Opções avaliadas:
 
 ## Em aberto
 
-- Onde ficam os tipos de evento e as interfaces de consulta que só o servidor usa: em `shared/Package/Runtime/Features/<dono>/` (regra atual, mas o client passa a enxergar tipos que não usa, e cada arquivo novo precisa do `.meta` do Unity) ou numa pasta só do servidor, por exemplo `server/src/JogoDoGrupo.Server/Contratos/<Dono>/`. A decisão vem com o primeiro evento de verdade (Mundo, issue #119).
+- ~~Onde ficam os tipos de evento e as interfaces de consulta que só o servidor usa: em `shared/Package/Runtime/Features/<dono>/` (regra atual, mas o client passa a enxergar tipos que não usa, e cada arquivo novo precisa do `.meta` do Unity) ou numa pasta só do servidor, por exemplo `server/src/JogoDoGrupo.Server/Contratos/<Dono>/`. A decisão vem com o primeiro evento de verdade (Mundo, issue #119).~~ Decidido em 2026-10-11: numa pasta só do servidor, **`server/src/JogoDoGrupo.Server/Contratos/<Dono>/`** (namespace `JogoDoGrupo.Server.Contratos.<Dono>`).
+  - O `shared/` continua sendo só o que o client e o servidor precisam enxergar igual: mensagens de rede, DTOs e regras puras.
+  - Motivos: o client não carrega tipos internos do servidor; os contratos do servidor não ficam presos ao C# 9; arquivo novo não precisa do `.meta` do Unity, então qualquer agente consegue criar.
+  - Uma funcionalidade pode referenciar `Contratos/<Outra>/`, nunca `Features/<Outra>/`. A pasta tem só tipos (eventos, interfaces, valores), sem lógica.
+  - Custo: são dois lugares de contrato em vez de um. A regra para não errar: **se o client usa, é `shared/`; se só o servidor usa, é `Contratos/`**.
+  - Primeiro uso: `Contratos/Mundo/` (`JogadorEntrouNaArea`, `JogadorSaiuDaArea`, `IPosicoesDoMundo`).
