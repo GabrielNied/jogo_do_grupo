@@ -76,3 +76,28 @@ jobs:
           if [ -f TestResults/relatorio/SummaryGithub.md ]; then
             cat TestResults/relatorio/SummaryGithub.md >> "$GITHUB_STEP_SUMMARY"
           fi
+
+      # Build vermelho na main: uma issue core por quebra (mesmo molde do Client Unity, ADR 0019).
+      - name: Abre issue quando a main quebra
+        if: failure() && github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          LINK: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          aberta=$(gh api "repos/${{ github.repository }}/issues?state=open&labels=core&per_page=50" \
+            -q '[.[] | select(.title | startswith("[Core] Build falhou na main"))][0].number // empty')
+          if [ -n "$aberta" ]; then
+            gh api -X POST "repos/${{ github.repository }}/issues/$aberta/comments" \
+              -f body="Falhou de novo no commit ${GITHUB_SHA}: $LINK"
+            exit 0
+          fi
+          gh api -X POST "repos/${{ github.repository }}/issues" \
+            -f title="[Core] Build falhou na main (${GITHUB_SHA::7})" \
+            -f labels[]=core \
+            -f body="O workflow Server, Shared e testes falhou depois do merge do commit ${GITHUB_SHA}: $LINK
+
+          **Falta:**
+          - [ ] Corrigir o build ou os testes na \`main\` (ex.: \`dotnet build JogoDoGrupo.slnx -c Release\` e \`dotnet test JogoDoGrupo.slnx -c Release\`).
+          - [ ] PRs abertos: atualizar a branch com a \`main\` depois do conserto.
+
+          Puxe com \`npm run tarefa -- puxar <este número>\` para assumir o conserto."

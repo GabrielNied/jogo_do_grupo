@@ -181,10 +181,25 @@ Mudou o ruleset no GitHub? Exporte de novo (Rulesets > ... > Export) e atualize 
 
 Enquanto o `CODEOWNERS` estiver todo comentado, a exigência de review do responsável não tem efeito; vale só a aprovação de qualquer pessoa com acesso de escrita.
 
+## Main com build vermelho
+
+Dois PRs verdes podem entrar na `main` um após o outro sem ninguém atualizar a branch; juntos, quebram o `build` do servidor/shared. O CI do PR só enxerga a `main` do momento em que rodou.
+
+Quando o workflow [Server, Shared e testes](../.github/workflows/server.yml) falha num **push na `main`**, o GitHub abre (ou reabre com comentário) uma issue `[Core] Build falhou na main` com link para a rodada. Só existe **uma** issue aberta por quebra; pushes seguintes comentam nela.
+
+| Quem | O que fazer |
+|---|---|
+| Quem puder primeiro | `npm run tarefa -- puxar <N>` na issue, conserta na `main` (branch curta + PR ou hotfix acordado com o grupo). |
+| Autores de PR abertos | Depois que a `main` volta verde, **Update branch** no PR antes do merge. |
+| Todos | Não mergear PR verde se a `main` já estiver vermelha por outro motivo; conserte a `main` antes. |
+
+**Branch sempre atualizada antes do merge:** no plano gratuito com repo privado não exigimos "Require branches to be up to date" (custa CI extra a cada push na `main`). O aviso por issue substitui isso por enquanto; revisar quando o [ruleset da `main`](decisoes/0007-protecao-local-da-main.md) estiver ativo.
+
 ## Situações comuns
 
 | Situação | O que fazer |
 |---|---|
+| Issue `[Core] Build falhou na main` aberta | Siga [Main com build vermelho](#main-com-build-vermelho). |
 | O hook recusou a mensagem | Leia o erro, corrija e rode o `git commit` de novo. A mensagem anterior fica em `.git/COMMIT_EDITMSG`. |
 | Errei a mensagem do último commit | `git commit --amend` (antes do push) |
 | O CI recusou o título do PR | Edite o título no GitHub; o check roda de novo sozinho |
