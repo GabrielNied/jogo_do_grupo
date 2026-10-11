@@ -1,19 +1,10 @@
 name: Formatação
 
-# Só roda em PR que mexe em C# ou na configuração do CSharpier. Não roda de novo na main:
-# ela só recebe squash de PR, que já passou por aqui. O plano grátis de repo privado não tem
-# check obrigatório (ADR 0007), então o filtro não trava PR nenhum.
+# Roda em todo PR, mesmo sem C# (leva ~30 s): "csharpier" é check obrigatório da main
+# (ADR 0029), e um check obrigatório que não roda trava o PR. Não roda de novo na main: ela só
+# recebe squash de PR, que já passou por aqui.
 on:
   pull_request:
-    paths:
-      - "**/*.cs"
-      - "**/*.csproj"
-      - "dotnet-tools.json"
-      - ".config/**"
-      - ".csharpierrc*"
-      - ".csharpierignore"
-      - ".editorconfig"
-      - ".github/workflows/format.yml"
 
 concurrency:
   group: formatacao-${{ github.ref }}

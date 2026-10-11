@@ -8,7 +8,8 @@ name: Client (Unity)
 #   termina (cancelar a cada merge fazia quase nenhuma chegar ao fim); a fila guarda só a mais
 #   nova, então um lote de merges gera uma execução a mais, não uma por merge. Se passar, fecha
 #   as pendências que só pediam compilar e rodar os testes EditMode;
-# - num PR com a label "testar-unity", para validar antes do merge;
+# - em todo PR que mexe em client/ ou shared/Package/ (repo público: minutos grátis, ADR 0029),
+#   e num PR com a label "testar-unity" mesmo sem mexer nesses caminhos;
 # - à mão, em Actions > Client (Unity) > Run workflow.
 # Se falhar na main, abre uma pendência "pendente-unity" para o próximo agente com Unity.
 # Não é check obrigatório.
@@ -23,7 +24,7 @@ on:
       - "shared/Package/**"
       - ".github/workflows/client.yml"
   pull_request:
-    types: [labeled, synchronize]
+    types: [opened, synchronize, reopened, labeled]
   workflow_dispatch:
 
 permissions:
@@ -34,14 +35,42 @@ permissions:
   # fica vermelho mesmo quando a compilação e os testes EditMode passaram.
   pull-requests: read
 
-concurrency:
-  group: client-unity-${{ github.ref }}
-  # Em PR, um push novo substitui o anterior. Na main, a execução em andamento termina.
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
-
 jobs:
+  # Em PR: o Unity só roda se o PR mexe no client ou no shared (ou com a label testar-unity).
+  mudou:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    outputs:
+      client: ${{ steps.arquivos.outputs.client }}
+    steps:
+      - id: arquivos
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Lista primeiro e filtra depois: um pipe com grep -q quebraria o gh (pipefail).
+          arquivos=$(gh api --paginate "repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/files" -q '.[].filename')
+          if grep -qE '^(client/|shared/Package/|\.github/workflows/client\.yml$)' <<< "$arquivos"; then
+            echo "client=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "client=false" >> "$GITHUB_OUTPUT"
+          fi
+
   testes:
-    if: github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'testar-unity')
+    needs: mudou
+    # Fora de PR (main, à mão) sempre roda. Em PR: label testar-unity recém-posta, ou PR que
+    # mexe no client (pôr outra label não roda de novo).
+    if: >-
+      !cancelled() && (
+        github.event_name != 'pull_request'
+        || (github.event.action == 'labeled' && github.event.label.name == 'testar-unity')
+        || (github.event.action != 'labeled' && (needs.mudou.outputs.client == 'true'
+            || contains(github.event.pull_request.labels.*.name, 'testar-unity')))
+      )
+    # No job (não no workflow): um evento que não roda o Unity não cancela o que está rodando.
+    # Em PR, um push novo substitui o anterior. Na main, a execução em andamento termina.
+    concurrency:
+      group: client-unity-${{ github.ref }}
+      cancel-in-progress: ${{ github.event_name == 'pull_request' }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
     env:

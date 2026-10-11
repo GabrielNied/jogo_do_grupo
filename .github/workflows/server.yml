@@ -1,9 +1,7 @@
 name: Server, Shared e testes
 
-# Antes ficava sem filtro de paths porque "build" seria check obrigatório da main, e um check
-# obrigatório que não roda trava o PR. O plano grátis de repo privado não tem check
-# obrigatório (ADR 0007), então agora só roda quando o código .NET muda (PR só de docs ou só
-# de client não gasta minuto aqui). Se o repo ganhar proteção de branch, tire o filtro.
+# "build" é check obrigatório da main (ADR 0029): em PR roda sempre, porque um check
+# obrigatório que não roda trava o PR. Na main só roda quando o código .NET muda.
 on:
   push:
     branches: [main]
@@ -18,16 +16,11 @@ on:
       - "dotnet-tools.json"
       - ".github/workflows/server.yml"
   pull_request:
-    paths:
-      - "server/**"
-      - "shared/**"
-      - "tests/**"
-      - "*.slnx"
-      - "**/*.csproj"
-      - "Directory.*"
-      - "global.json"
-      - "dotnet-tools.json"
-      - ".github/workflows/server.yml"
+
+# issues: write para abrir a issue de main quebrada (passo no fim do job).
+permissions:
+  contents: read
+  issues: write
 
 # Push novo no mesmo PR cancela a rodada antiga (na main, todas rodam).
 concurrency:

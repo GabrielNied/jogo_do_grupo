@@ -6,17 +6,17 @@ Ninguém envia código direto para a `main`. Todo trabalho segue o caminho:
 main ──► branch da tarefa ──► commits ──► PR ──► CI + review ──► squash merge na main
 ```
 
-O repositório é **privado** no plano gratuito do GitHub, que não oferece proteção de branch para repo privado. Por isso a proteção é **local e por combinado** ([ADR 0007](decisoes/0007-protecao-local-da-main.md)):
+O repositório é **público**, e a `main` é protegida pelo GitHub com um ruleset ([ADR 0029](decisoes/0029-main-protegida-com-repo-publico.md)), além dos hooks locais:
 
 | Onde | O que confere | Arquivo |
 |---|---|---|
 | Na sua máquina, ao commitar | Mensagem do commit (commitlint) | `.husky/commit-msg` |
 | Na sua máquina, ao dar push | **Bloqueia push na `main`** e branch fora do padrão | `.husky/pre-push` |
 | No GitHub, no PR | Título do PR, nome da branch, formatação, build | `.github/workflows/` |
-| No GitHub, na `main` | **Avisa** (check vermelho) quando um commit entra na `main` sem PR | `.github/workflows/padrao-git.yml` |
-| ~~No GitHub, na `main`~~ | ~~PR obrigatório, aprovação, CODEOWNERS, CI verde~~ | `.github/rulesets/proteger-main.json`, **não ativo** enquanto o repo for privado no plano gratuito |
+| No GitHub, na `main` | PR obrigatório, só squash, checks `csharpier`, `build` e `padrao-git` verdes **com a branch atualizada** | `.github/rulesets/proteger-main.json` (ativo) |
+| No GitHub, no PR de client | Compila e roda os testes EditMode no Unity (~10 min; não obrigatório) | `.github/workflows/client.yml` |
 
-O GitHub não impede um merge sem aprovação nem um push com `--no-verify`. O que segura a `main` é o hook local, o aviso do CI e o combinado do grupo abaixo. **Nunca use `--no-verify`.**
+**Nunca use `--no-verify`.**
 
 Os tipos e escopos válidos ficam num lugar só: [commitlint.config.mjs](../commitlint.config.mjs).
 
@@ -149,21 +149,21 @@ Os commits dentro da branch podem ser pequenos e frequentes. Como o merge é por
 - **Título do PR = mensagem do commit final**, no mesmo padrão: `feat(itens): adiciona limite de fusões por raridade`. O CI confere.
 - Um PR = uma funcionalidade. Se precisar mexer em duas, separe em dois PRs.
 - Preencha o [template](../.github/pull_request_template.md).
-- **Combinado do grupo** para fazer o merge (o GitHub não bloqueia; cada um respeita):
-  - checks verdes: `csharpier`, `build` (que também roda os testes) e `padrao-git`;
+- **Para o merge** (o GitHub bloqueia o que estiver em negrito):
+  - **checks verdes: `csharpier`, `build` (que também roda os testes) e `padrao-git`**;
+  - **branch atualizada com a `main`** (botão "Update branch" no PR);
+  - **todas as conversas do review resolvidas**;
   - testes do que mudou, no próprio PR (PR de código sem teste não entra);
-  - 1 aprovação de outra pessoa, incluindo o responsável pela pasta (veja [docs/responsaveis.md](responsaveis.md));
-  - todas as conversas do review resolvidas;
-  - branch atualizada com a `main` (botão "Update branch" no PR);
-  - um novo push depois da aprovação pede uma nova aprovação.
-- **Peça o review manualmente** (Reviewers, no PR). Em repo privado no plano gratuito, o `CODEOWNERS` não pede review sozinho; ele continua servindo de mapa de quem cuida de cada pasta.
+  - PR de client: olhe o check "Testes EditMode (Unity)" antes de mesclar;
+  - aprovação não é obrigatória; PR que mexe em `Core/` ou na pasta de outra pessoa pede review ao responsável (veja [docs/responsaveis.md](responsaveis.md)).
+- **Auto-merge:** "Enable auto-merge" no PR mescla sozinho quando os checks passarem.
 - Merge sempre por **squash** (o repo só permite squash).
 
 ## Proteção da main (para o admin do repo)
 
-**Situação atual:** o repo é privado no plano gratuito, e o GitHub recusa rulesets nesse caso. As opções de merge (passo 2 abaixo) já estão aplicadas. O ruleset (passo 1) fica pronto no repo para o dia em que o repo ficar público ou a conta passar para o GitHub Pro. Veja o [ADR 0007](decisoes/0007-protecao-local-da-main.md).
+**Situação atual:** o ruleset está ativo desde 2026-10-11, quando o repo ficou público ([ADR 0029](decisoes/0029-main-protegida-com-repo-publico.md)). As opções de merge (passo 2) e o auto-merge estão ligados.
 
-A proteção completa é um **ruleset** do GitHub, versionado em [.github/rulesets/proteger-main.json](../.github/rulesets/proteger-main.json). Ele bloqueia push direto, force push e exclusão da `main`, exige PR com as regras acima e só permite squash merge. Ninguém tem bypass, nem os admins.
+A proteção é um **ruleset** do GitHub, versionado em [.github/rulesets/proteger-main.json](../.github/rulesets/proteger-main.json). Ele bloqueia push direto, force push e exclusão da `main`, exige PR com as regras acima e só permite squash merge. Admins só passam por cima pelo próprio PR, em emergência.
 
 Para aplicar (depois do primeiro push da `main`, porque o ruleset bloqueia até a criação da branch):
 
@@ -172,7 +172,7 @@ Para aplicar (depois do primeiro push da `main`, porque o ruleset bloqueia até 
    git commit -m "chore(core): cria estrutura inicial do projeto"
    git push --no-verify -u origin main
    ```
-1. *(Só com repo público ou GitHub Pro.)* **Settings > Rules > Rulesets > New ruleset > Import a ruleset** e escolha o arquivo `proteger-main.json`. Confira e salve. Pela linha de comando: `gh api -X POST repos/GabrielNied/jogo_do_grupo/rulesets --input .github/rulesets/proteger-main.json`.
+1. *(Só com repo público ou GitHub Pro.)* Já aplicado. **Settings > Rules > Rulesets > New ruleset > Import a ruleset** e escolha o arquivo `proteger-main.json`. Confira e salve. Pela linha de comando: `gh api -X POST repos/GabrielNied/jogo_do_grupo/rulesets --input .github/rulesets/proteger-main.json`.
 2. **Settings > General > Pull Requests:**
    - desmarque "Allow merge commits" e "Allow rebase merging"; deixe só **"Allow squash merging"**, com a mensagem padrão **"Default to pull request title and commit details"**;
    - marque **"Always suggest updating pull request branches"** e **"Automatically delete head branches"**.
@@ -193,7 +193,7 @@ Quando o workflow [Server, Shared e testes](../.github/workflows/server.yml) fal
 | Autores de PR abertos | Depois que a `main` volta verde, **Update branch** no PR antes do merge. |
 | Todos | Não mergear PR verde se a `main` já estiver vermelha por outro motivo; conserte a `main` antes. |
 
-**Branch sempre atualizada antes do merge:** no plano gratuito com repo privado não exigimos "Require branches to be up to date" (custa CI extra a cada push na `main`). O aviso por issue substitui isso por enquanto; revisar quando o [ruleset da `main`](decisoes/0007-protecao-local-da-main.md) estiver ativo.
+**Branch sempre atualizada antes do merge:** exigida pelo ruleset desde o [ADR 0029](decisoes/0029-main-protegida-com-repo-publico.md). A issue continua para o que escapar (ex.: bypass de admin).
 
 ## Situações comuns
 
