@@ -15,6 +15,7 @@ namespace JogoDoGrupo.Client.Features.Combate
         public const float IntervaloSegundos = 3f;
 
         private PainelRecursos _painel;
+        private ProntidaoLocal _prontidao;
         private long _personagemId;
         private float _proximaConsulta;
         private bool _consultando;
@@ -29,10 +30,11 @@ namespace JogoDoGrupo.Client.Features.Combate
             _versaoDoServidor++;
         }
 
-        public void Configurar(long personagemId, PainelRecursos painel)
+        public void Configurar(long personagemId, PainelRecursos painel, ProntidaoLocal prontidao)
         {
             _personagemId = personagemId;
             _painel = painel;
+            _prontidao = prontidao;
             _proximaConsulta = 0f;
         }
 
@@ -77,6 +79,7 @@ namespace JogoDoGrupo.Client.Features.Combate
                 )
                 {
                     _painel.Mostrar(vida, vigor, energia);
+                    _prontidao?.RegistrarVigor(vigor.Atual);
                 }
             }
             catch (System.Exception e)
