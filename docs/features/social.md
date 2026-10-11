@@ -283,4 +283,4 @@ Código em `shared/Package/Runtime/Features/Social/` (fonte dos nomes e tipos ex
 - `TipoDeAvisoDoGrupo`: os avisos da lista acima que não têm mensagem própria (`ConviteRecusado`, `ConviteExpirou`, `EntrouNoGrupo`, `SaiuDoGrupo`, `LiderMudou`, `ExpulsoDoGrupo`, `GrupoDesfeito`, `MembroOffline`, `MembroVoltou`). `ConviteRecebido` e `ListaDoGrupo` são mensagens.
 - `CodigosErroSocial`: os 16 códigos da tabela de erros.
 - `RegrasGrupo`: os números do grupo como constantes (5 membros, 60 s, 120 s, 30 s, 1 convite por segundo, 5 convites por alvo) e as contas puras (`VagasLivres`, `ConviteExpirou`, `VagaGuardadaVenceu`, `ReconviteBloqueado`, `DeveDesfazer`, `PosicaoDoHerdeiro`).
-- Os IDs 13005 a 13009 e 13014 a 13019 ficam livres para o grupo; o chat começa em 13020.
+- O grupo fica com os IDs 13000 a 13099; o chat começa em 13100 (#121).
