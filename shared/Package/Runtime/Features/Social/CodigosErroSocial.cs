@@ -79,5 +79,48 @@ namespace JogoDoGrupo.Shared.Features.Social
 
         /// <summary>Sussurro para o próprio personagem.</summary>
         public const string SussurroParaSiMesmo = "SussurroParaSiMesmo";
+
+        // ── Amigos e ignorados, em OperacaoDeAmizadeRecusada.Codigo ───────────────
+        // Também usam AlvoNaoEncontrado: nome que não existe, ou alvo que ignora quem pede (a
+        // mesma resposta para os dois).
+
+        /// <summary>Pedir amizade a um personagem da própria conta.</summary>
+        public const string AmizadeConsigoMesmo = "AmizadeConsigoMesmo";
+
+        /// <summary>Pedir amizade a quem está na sua lista de ignorados.</summary>
+        public const string AlvoIgnorado = "AlvoIgnorado";
+
+        /// <summary>Pedir amizade a quem já é amigo.</summary>
+        public const string JaSaoAmigos = "JaSaoAmigos";
+
+        /// <summary>Já existe um pedido seu, sem resposta, para o mesmo alvo.</summary>
+        public const string PedidoJaPendente = "PedidoJaPendente";
+
+        /// <summary>A conta passou do limite de frequência de pedidos de amizade.</summary>
+        public const string PedidosRapidosDemais = "PedidosRapidosDemais";
+
+        /// <summary>Amigos mais pedidos enviados já somam o máximo (ao pedir ou ao aceitar).</summary>
+        public const string ListaDeAmigosCheia = "ListaDeAmigosCheia";
+
+        /// <summary>O alvo já tem o máximo de pedidos de amizade sem resposta.</summary>
+        public const string AlvoComPedidosDemais = "AlvoComPedidosDemais";
+
+        /// <summary>Responder ou cancelar um pedido que não existe ou não é seu.</summary>
+        public const string PedidoNaoEncontrado = "PedidoNaoEncontrado";
+
+        /// <summary>Remover um amigo que não está na sua lista.</summary>
+        public const string AmigoNaoEncontrado = "AmigoNaoEncontrado";
+
+        /// <summary>Ignorar um personagem da própria conta.</summary>
+        public const string IgnorarASiMesmo = "IgnorarASiMesmo";
+
+        /// <summary>Ignorar quem já está na sua lista de ignorados.</summary>
+        public const string JaIgnorado = "JaIgnorado";
+
+        /// <summary>A lista de ignorados já tem o máximo de jogadores.</summary>
+        public const string ListaDeIgnoradosCheia = "ListaDeIgnoradosCheia";
+
+        /// <summary>Deixar de ignorar quem não está na sua lista de ignorados.</summary>
+        public const string IgnoradoNaoEncontrado = "IgnoradoNaoEncontrado";
     }
 }

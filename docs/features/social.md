@@ -8,7 +8,7 @@
 
 Party (time, chamado de **grupo** nas regras), guilda e chat.
 
-Esta página detalha o **grupo** (convite, lista, líder, sair e expulsar; issue #94). ~~Chat (#95),~~ guilda e divisão de loot ficam para outras tarefas. O chat tem regras em proposta em [Chat de texto](#chat-de-texto-issue-95) (acrescentado em 2026-10-11).
+Esta página detalha o **grupo** (convite, lista, líder, sair e expulsar; issue #94). ~~Chat (#95),~~ guilda e divisão de loot ficam para outras tarefas. O chat tem regras em proposta em [Chat de texto](#chat-de-texto-issue-95) (acrescentado em 2026-10-11). Amigos e ignorados têm regras em proposta em [Amigos e ignorar](#amigos-e-ignorar-issue-180) (acrescentado em 2026-10-11).
 
 ## Definido
 
@@ -39,6 +39,10 @@ Esta página detalha o **grupo** (convite, lista, líder, sair e expulsar; issue
   - [ ] O servidor guarda as mensagens em algum lugar para moderação? (proposta: não guarda; só o histórico curto da Cidade em memória)
   - [ ] Denunciar jogador e silenciar por um moderador: ficam para depois?
   - [ ] Sussurro para quem está em outra área (ex.: você na cidade e a pessoa na dungeon): pode? (proposta: sim)
+- [ ] Amigos e ignorar (#180), decisões do grupo:
+  - [ ] Aprovar amizade e ignorar **por conta** (proposta) em vez de por personagem, e os números da tabela de [Amigos e ignorar](#amigos-e-ignorar-issue-180)
+  - [ ] Quem foi ignorado recebe a mesma resposta de "não encontrado" (proposta) ou um aviso claro de que foi ignorado?
+  - [ ] O amigo vê **em que área** o outro está (cidade, dungeon)? (proposta: não na primeira versão; só online e o nome do personagem)
 
 ## Regras
 
@@ -265,6 +269,64 @@ Concorrência: duas mensagens simultâneas do mesmo personagem contam as duas na
 
 Client (EditMode): interpretar os comandos (`/c`, `/g`, `/s Nome texto`, `/r`, `/ignorar`); mensagem sem comando vai para o último canal; limite de 100 linhas; nome ignorado não aparece; texto com marcas de formatação é mostrado como texto.
 
+### Amigos e ignorar (issue #180)
+
+**Proposta**, a confirmar pelo grupo; os números são constantes de `RegrasAmigos` (shared). Nesta página estão as regras e o [contrato](#contrato-de-amigos-e-ignorar); o servidor e a tela são tarefas próprias (#394 e #395).
+
+**Base:** Battle.net e World of Warcraft (lista de amigos da conta, ignorar). **Igual:** pedido e aceite, amigo de conta vê qualquer personagem seu online, ignorar corta sussurro e convite. **Diferente:** não há amizade só de personagem nem nota no amigo; quem foi ignorado não recebe aviso.
+
+Quem decide: **servidor** (quem é amigo de quem, quem está online, o que o ignorar barra). O client envia intenções e mostra as listas.
+
+#### Limites
+
+| Regra | Valor (proposta) | Recusa |
+|---|---|---|
+| Amigos por conta, somando os pedidos enviados sem resposta | **100** | `ListaDeAmigosCheia` |
+| Pedidos sem resposta que uma conta pode ter recebido | **50** | `AlvoComPedidosDemais` |
+| Jogadores ignorados por conta | **50** | `ListaDeIgnoradosCheia` |
+| Tempo mínimo entre dois pedidos da mesma conta | **1 s** | `PedidosRapidosDemais` |
+
+#### Amizade
+
+- A amizade é entre **contas**: pedir amizade a um personagem torna amigo o dono dele, e os dois veem qualquer personagem do outro online.
+- **Pedir** é pelo nome de um personagem (sem diferenciar maiúsculas); o alvo não precisa estar online. O pedido não vence com o tempo e guarda uma vaga na lista de quem pediu.
+- **Aceitar** cria a amizade nos dois lados; **recusar** apaga o pedido sem avisar quem pediu. Quem pediu pode **cancelar** enquanto não houver resposta.
+- **Pedido cruzado:** pedir amizade a quem já tinha pedido a você vale como aceitar o pedido dele.
+- **Remover** acaba com a amizade para os dois; o outro só recebe a lista nova, sem aviso.
+- Cada linha da lista mostra o nome do personagem pelo qual a amizade foi feita, se a conta está online e, se estiver, com qual personagem.
+- O servidor envia a lista inteira ao entrar no jogo e a cada mudança de amigos ou pedidos. Entrar, sair e trocar de personagem de um amigo chegam num aviso curto, só daquela linha.
+
+#### Ignorar
+
+- Vale para a **conta** e fica no **servidor** (segue o jogador em qualquer computador). Só o dono vê a própria lista.
+- Ignorar alguém **desfaz a amizade** e apaga os pedidos entre os dois. Deixar de ignorar não traz a amizade de volta.
+- Enquanto um dos dois ignora o outro, **nos dois sentidos**: sussurro não é entregue, convite de grupo não chega e pedido de amizade não é criado. Quem foi ignorado recebe `AlvoNaoEncontrado`, a mesma resposta de um nome que não existe, e não fica sabendo. Quem ignora e tenta pedir amizade recebe `AlvoIgnorado` (precisa tirar da lista antes).
+- Mensagens do ignorado em **Cidade** e **Grupo** continuam sendo escondidas pelo client de quem ignora, agora a partir da lista do servidor.
+- Até o servidor de ignorados (#394) existir, vale a lista local do [chat](#moderação-mínima) (50 nomes, neste computador).
+
+#### Recusas do pedido de amizade (ordem em que o servidor confere)
+
+| # | Quando | Código |
+|---|---|---|
+| 1 | O alvo é da própria conta | `AmizadeConsigoMesmo` |
+| 2 | Quem pede ignora o alvo | `AlvoIgnorado` |
+| 3 | Já são amigos | `JaSaoAmigos` |
+| 4 | Já existe pedido seu para o alvo | `PedidoJaPendente` |
+| 5 | Menos de 1 s desde o último pedido | `PedidosRapidosDemais` |
+| 6 | Amigos mais pedidos enviados já somam 100 | `ListaDeAmigosCheia` |
+| 7 | O alvo ignora quem pede (ou o nome não existe) | `AlvoNaoEncontrado` |
+| 8 | O alvo já tem 50 pedidos sem resposta | `AlvoComPedidosDemais` |
+
+O pedido cruzado para em 6: depois disso é um aceite, e os itens 7 e 8 não se aplicam. O que depende só de quem pede (1 a 6) vem antes do que revelaria algo do alvo.
+
+Outras recusas: `PedidoNaoEncontrado` (responder ou cancelar pedido que não existe ou não é seu), `ListaDeAmigosCheia` (aceitar com a própria lista cheia), `AmigoNaoEncontrado` (remover quem não é amigo), `IgnorarASiMesmo`, `JaIgnorado`, `ListaDeIgnoradosCheia` e `IgnoradoNaoEncontrado`.
+
+#### Testes esperados
+
+Regras puras (shared, feitos em #392): limites de 100, 50 e 50 nas bordas; vaga guardada por pedido enviado; cada linha da tabela de recusas e a ordem entre elas; pedido cruzado vira aceite; ignorado recebe `AlvoNaoEncontrado`; contato barrado nos dois sentidos.
+
+Servidor (#394): pedido duplicado não cria outro; aceite cria a amizade nos dois lados; dois pedidos cruzados ao mesmo tempo viram uma amizade só; ignorado não consegue sussurrar, convidar nem pedir amizade; ignorar desfaz a amizade; o estado online muda ao entrar, sair e trocar de personagem; as listas sobrevivem a reiniciar o servidor.
+
 ## Depende de
 
 - Tempo real ([#77](https://github.com/GabrielNied/jogo_do_grupo/issues/77) e [arquitetura](../arquitetura.md#servidor-tempo-real-udp)): sessão autenticada por personagem e aviso de desconexão.
@@ -277,6 +339,7 @@ Client (EditMode): interpretar os comandos (`/c`, `/g`, `/s Nome texto`, `/r`, `
 
 - Contrato do grupo na faixa 13000–13999 (mensagens de convidar, aceitar, recusar, sair, expulsar, passar liderança e a lista do grupo), ~~a definir pelo agente de contrato a partir das regras acima~~ definido em 2026-10-11, veja [Contrato do grupo](#contrato-do-grupo) abaixo.
 - Contrato do chat na mesma faixa 13000–13999 (enviar mensagem, mensagem recebida, recusa e histórico da Cidade), ~~a definir pelo agente de contrato a partir das regras do chat~~ definido em 2026-10-11, veja [Contrato do chat](#contrato-do-chat) abaixo.
+- Contrato de amigos e ignorados na mesma faixa (IDs 13200 a 13299), definido em 2026-10-11, veja [Contrato de amigos e ignorar](#contrato-de-amigos-e-ignorar) abaixo.
 - Consulta "quem é o grupo de um personagem" para outras funcionalidades (ex.: dungeons), por evento ou contrato do shared, sem referência direta entre funcionalidades.
 
 ### Contrato do grupo
@@ -324,3 +387,24 @@ Código em `shared/Package/Runtime/Features/Social/`. Tempo real, entrega confi�
 - `RegrasChat`: os números da tabela de limites como constantes e as contas puras (`Limpar`, `Validar`, `ChaveDeRepeticao`, `FrequenciaEstourou`, `Repetida`, `DeveSilenciar`, `SilencioRestanteSegundos`, `VelhaDemaisParaOHistorico`). Os limites só do client (100 linhas, 50 ignorados, 8 linhas no painel) ficam no client.
 - **Servidor do chat (2026-10-11, primeira fatia):** canais **Cidade** e **Sussurro** com os limites (tamanho, frequência, repetição e silêncio). O terceiro estouro de frequência já responde `Silenciado`. O canal **Grupo** responde `NaoEstaEmGrupo` para todos até o servidor do grupo existir, e o **histórico da Cidade** ainda não é enviado. Código em `server/src/JogoDoGrupo.Server/Features/Social/` (`ChatDoServidor`, `LimitesDoChat`).
 - **Servidor do chat (2026-10-11, segunda fatia):** o **histórico da Cidade** (20 mensagens, 10 minutos) é enviado a quem entra na cidade, só quando há algo a mostrar, e o canal **Grupo** entrega aos membros online do grupo de quem falou (a lista vem do servidor do grupo). Com isso o trecho acima sobre o Grupo responder `NaoEstaEmGrupo` para todos e o histórico não ser enviado deixa de valer. Código: `HistoricoDaCidadeDoChat`.
+
+### Contrato de amigos e ignorar
+
+Código em `shared/Package/Runtime/Features/Social/`. Tempo real, entrega confiável; quem pede vem sempre da sessão, e o client nunca recebe o id da conta de outro jogador (`AmigoId`, `PedidoId` e `IgnoradoId` são gerados pelo servidor).
+
+| ID | Mensagem | Direção | Campos |
+|---|---|---|---|
+| 13200 | `PedirAmizade` | client → servidor | `Nome` |
+| 13201 | `ResponderPedidoDeAmizade` | client → servidor | `PedidoId`, `Aceitar` |
+| 13202 | `CancelarPedidoDeAmizade` | client → servidor | `PedidoId` |
+| 13203 | `RemoverAmigo` | client → servidor | `AmigoId` |
+| 13204 | `IgnorarJogador` | client → servidor | `Nome` |
+| 13205 | `DeixarDeIgnorar` | client → servidor | `IgnoradoId` |
+| 13210 | `ListaDeAmigos` | servidor → client | `Amigos[]` (`AmigoDaLista`: `AmigoId`, `Nome`, `Online`, `PersonagemOnline`), `PedidosRecebidos[]` e `PedidosEnviados[]` (`PedidoDeAmizade`: `PedidoId`, `Nome`) |
+| 13211 | `AmigoMudouDeEstado` | servidor → client | `AmigoId`, `Online`, `PersonagemOnline` |
+| 13212 | `ListaDeIgnorados` | servidor → client | `Ignorados[]` (`JogadorIgnorado`: `IgnoradoId`, `Nome`) |
+| 13213 | `OperacaoDeAmizadeRecusada` | servidor → quem pediu | `Codigo` (`CodigosErroSocial`) |
+
+- `CodigosErroSocial` ganhou os 13 códigos de amigos e ignorados da seção de recusas; `AlvoNaoEncontrado` é o mesmo do grupo.
+- `RegrasAmigos`: os números da tabela de limites como constantes e as decisões puras (`VagasLivres`, `TemVaga`, `AlvoComPedidosDemais`, `CabeMaisUmIgnorado`, `PedidoRapidoDemais`, `PedidoViraAceite`, `RecusaDoPedido`, `RecusaDoAceite`, `RecusaDeIgnorar`, `ContatoBarrado`). `RelacaoDeAmizade` é a entrada de `RecusaDoPedido`.
+- Amigos e ignorados ficam com os IDs 13200 a 13299.
