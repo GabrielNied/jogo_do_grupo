@@ -47,6 +47,44 @@ namespace JogoDoGrupo.Server.Core.Persistencia.Migrations
 
                     b.ToTable("Contas", (string)null);
                 });
+
+            modelBuilder.Entity("JogoDoGrupo.Server.Features.Personagem.Personagem", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("ContaId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CriadoEm")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Nivel")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Nome")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("NomeNormalizado")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Raca")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ContaId");
+
+                    b.HasIndex("NomeNormalizado")
+                        .IsUnique();
+
+                    b.ToTable("Personagens", (string)null);
+                });
 #pragma warning restore 612, 618
         }
     }
