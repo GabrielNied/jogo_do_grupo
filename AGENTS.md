@@ -23,7 +23,10 @@ dotnet run --project server/src/JogoDoGrupo.Server
 dotnet csharpier format .            # formata (rode antes de terminar qualquer mudança em C#)
 dotnet csharpier check .             # o que o CI confere
 dotnet test JogoDoGrupo.slnx         # todos os testes (o CI também roda)
-npm run unity:compilar               # compila o client contra as DLLs do Unity
+npm run unity:compilar               # compila o client contra as DLLs do Unity (editor fechado)
+npm run unity:recompilar             # compila no editor aberto (erros reais do Unity)
+npm run unity:testes                 # testes EditMode do client
+npm run unity:executar -- <Metodo>   # roda um script de editor em modo batch (editor fechado)
 npm run validar-branch -- <branch>   # confere nome de branch
 printf '%s
 ' "<msg>" | npx --no -- commitlint   # confere mensagem de commit
@@ -47,7 +50,7 @@ Testes em `tests/` (xUnit; [ADR 0013](docs/decisoes/0013-testes-automatizados.md
 6. **Server:** C# moderno com namespace de arquivo (`namespace X;`). Módulos implementam `IFeatureModule` e são descobertos sozinhos; não crie arquivo central de registro.
 7. **Nomes de domínio em português sem acento** (`Itens`, `Fusao`, `Profissoes`); termos técnicos em inglês são ok (`Module`, `Handler`). Campos privados `_camelCase`. Detalhes em [docs/convencoes.md](docs/convencoes.md).
 8. **Formatação é do CSharpier.** Não ajuste estilo à mão nem discuta formatação; rode `dotnet csharpier format .`.
-9. **Unity:** não edite cenas (`.unity`) nem `ProjectSettings/` sem pedido explícito. Prefira prefabs. Não crie nem apague `.meta` à mão.
+9. **Unity:** nunca escreva à mão cenas (`.unity`), prefabs, `.asset` ou `.meta`, nem mexa em `ProjectSettings/` sem pedido explícito. Conteúdo do Unity é **criado pelo próprio Unity**: por script de editor (`npm run unity:executar`) ou pelo editor aberto via Unity CLI ([ADR 0014](docs/decisoes/0014-conteudo-3d-e-agentes-artistas.md)). Assets de terceiros só CC0 (ou CC-BY com crédito), em `client/Assets/ThirdParty/`, registrados em [docs/arte/licencas.md](docs/arte/licencas.md).
 10. **Todo PR de código traz testes** do que mudou (caminho feliz, erros, limites, concorrência quando houver). Rode `dotnet test` antes de terminar; mexeu no client, rode `npm run unity:compilar`.
 11. **Mudou regra do jogo?** Atualize `docs/features/<x>.md` na mesma mudança. **Decisão técnica?** Crie um ADR.
 12. **Git:** nunca commite nem dê push na `main`; trabalhe numa branch `<tipo>/<escopo>/<descricao>`. Commits e títulos de PR no padrão `<tipo>(<escopo>): <descrição em português, minúscula>`, validados pelo commitlint (tipos e escopos em `commitlint.config.mjs`). Nunca use `--no-verify`. Só faça commit ou push quando a pessoa pedir (pedir uma orquestração de agentes conta como pedido para as branches dos agentes; merge é sempre humano). Detalhes em [docs/git.md](docs/git.md).

@@ -8,7 +8,10 @@
     "commitlint": "commitlint",
     "validar-branch": "node scripts/git/validar-branch.mjs",
     "figma:exportar": "node scripts/figma/exportar-brainstorm.mjs",
-    "unity:compilar": "node scripts/unity/compilar-client.mjs"
+    "unity:compilar": "node scripts/unity/compilar-client.mjs",
+    "unity:recompilar": "node scripts/unity/unity.mjs recompilar",
+    "unity:testes": "node scripts/unity/unity.mjs testes",
+    "unity:executar": "node scripts/unity/unity.mjs executar"
   },
   "engines": {
     "node": ">=20"

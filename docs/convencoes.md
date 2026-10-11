@@ -55,7 +55,7 @@ Decisão: [ADR 0013](decisoes/0013-testes-automatizados.md).
 - **Nomes dos testes:** frases curtas em português com `_`, dizendo o comportamento: `Registrar_usuario_repetido_sem_diferenciar_maiusculas_da_409`.
 - **API do servidor:** use `IClassFixture<ServidorDeTeste>` (`Infra/ServidorDeTeste.cs`). Ele sobe o servidor de verdade com um banco SQLite temporário por classe; dentro da classe, use `ServidorDeTeste.NomeUnico()` para não depender da ordem dos testes. Exemplo: `Core/Contas/ContasRotasTestes.cs`.
 - **O que testar em todo PR de código:** o caminho feliz, cada código de erro que a mudança pode devolver, limites (mínimo e máximo) e, quando houver, pedidos simultâneos.
-- **Client:** por enquanto, só `npm run unity:compilar` e o teste no editor.
+- **Client:** lógica testável (geradores, cálculos de apresentação) tem testes EditMode em `Features/<X>/Tests/` (asmdef de teste), rodados com `npm run unity:testes`. Compilação: `npm run unity:recompilar` com o editor aberto, ou `npm run unity:compilar` com ele fechado. O visual continua sendo conferido por uma pessoa no editor.
 
 ## .editorconfig
 
