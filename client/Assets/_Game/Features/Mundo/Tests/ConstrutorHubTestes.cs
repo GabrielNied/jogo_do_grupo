@@ -227,6 +227,16 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
         }
 
         [Test]
+        public void O_ambiente_tem_o_ciclo_do_dia()
+        {
+            Construir();
+
+            var ambiente = _hub.transform.Find(ConstrutorHub.NomeAmbiente);
+            Assert.IsNotNull(ambiente);
+            Assert.IsNotNull(ambiente.GetComponent<DiaENoite.CicloDoDia>());
+        }
+
+        [Test]
         public void Lanternas_da_praca_e_do_portao_tem_luz_de_ponto_com_alcance()
         {
             Construir();
@@ -254,7 +264,12 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
             {
                 var luz = lanterna.GetComponentInChildren<Light>();
                 Assert.IsNotNull(luz, $"Lanterna em {lanterna.position} sem luz.");
-                Assert.IsTrue(luz.enabled);
+                // Acende e apaga pela hora do mundo (#382); de dia, apagada.
+                Assert.IsNotNull(luz.GetComponent<DiaENoite.LuzDaLanterna>());
+                Assert.AreEqual(
+                    DiaENoite.LuzDaLanterna.Acesa(AmbienteDosBiomas.Hora),
+                    luz.enabled
+                );
                 Assert.AreEqual(LightType.Point, luz.type);
                 Assert.Greater(luz.range, 0f);
                 Assert.AreEqual(ConfigIluminacao.AlcanceDaLanterna, luz.range, 1e-4f);
