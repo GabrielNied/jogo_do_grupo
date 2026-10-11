@@ -54,6 +54,27 @@ Várias funcionalidades podem andar ao mesmo tempo, cada uma com o seu trio de a
 
 Os artistas ([ADR 0014](decisoes/0014-conteudo-3d-e-agentes-artistas.md)) buscam assets CC0 conforme a necessidade e montam o conteúdo **pelo Unity** (editor aberto via Unity CLI, ou scripts de editor em modo batch). Como o projeto Unity é um só, **os passos com Unity rodam um agente por vez, no checkout principal**; buscar assets e escrever código pode andar em paralelo. Enquanto um artista usa o Unity, ninguém troca a branch do checkout principal. Antes de abrir o PR, `npm run conferir-unity` confirma que `.meta` e materiais alterados pelo Unity entraram no commit. O CI repete a parte dos `.meta` que faltam.
 
+### Fechamento: o coordenador integra e limpa o que criou
+
+Vale para quem coordena agentes (IA ou pessoa). Aprendido na orquestração da [#319](https://github.com/GabrielNied/jogo_do_grupo/issues/319), onde quatro agentes pararam sem editar nada e o trabalho foi refeito.
+
+- **A base do worktree do agente pode estar atrás.** Um agente com `isolation: worktree` parte do commit do checkout principal quando é lançado. Edição não commitada do coordenador (ex.: um arquivo recém-gerado) **nunca chega** ao agente. Commite antes numa branch e ponha no prompt o passo 0: `git merge <branch>` (local, sem push) e conferir o arquivo que ele precisa. Sem isso o agente para sem editar nada e a rodada é paga duas vezes.
+- **Trabalhe num worktree seu.** O checkout principal é compartilhado e outra sessão pode trocar de branch nele, levando junto o que não foi commitado. O coordenador faz o trabalho do PR num worktree próprio (`npm run tarefa -- puxar <N> --worktree <pasta>`) e commita cedo.
+- **O agente commita local.** Na própria branch `worktree-agent-*`, sem push, e informa a branch e o hash no relatório. Sem commit, a mudança fica só no worktree dele, e um worktree sem mudança some quando o agente termina.
+- **Integrar com `git cherry-pick <hash>`, não com `git merge` da branch do agente.** A branch herda commits da base dele; o merge arrasta trabalho alheio para o PR. Antes de aceitar, `git show --stat <hash>` confere que só há arquivos da área do agente. Se o agente deixou edição sem commit, extraia com `git diff` e aplique com `git apply --3way`.
+- **Quem coordena limpa o que criou, depois do merge do PR:** `npm run limpar-agentes -- --aplicar` (`--horas 0` se os agentes já terminaram; `--remotas` para o GitHub). Integrar por cherry-pick faz o script **não reconhecer** o merge e manter o worktree ("N commit(s) sem PR mesclado"). Nesse caso, confira que o conteúdo já está na `main` (`git diff origin/main <branch> -- <arquivos>`) e remova só os **seus** com `git worktree remove` e `git branch -D`. Não toque em worktree de outra pessoa ou agente que apareça na mesma lista.
+- **Permissão para remover.** O modo automático do Claude Code pode negar `git worktree remove` e `git branch -D`, e a IA não edita a própria permissão. A pessoa libera uma vez em `.claude/settings.local.json` (já está no `.gitignore`):
+
+  ```json
+  { "permissions": { "allow": [
+    "Bash(git worktree unlock:*)",
+    "Bash(git worktree remove:*)",
+    "Bash(git branch -D worktree-agent-*)"
+  ] } }
+  ```
+
+  A regra cobre só worktrees e branches `worktree-agent-*`. Ou a pessoa roda os comandos pelo prompt com `!`.
+
 ### Por que não conflita
 
 - **Lock de tarefa (em andamento):** ninguém trabalha em tarefa sem puxá-la (`npm run tarefa -- puxar <N>`). Se já estiver marcada com `em-andamento` ou `In Progress`, outros agentes e desenvolvedores são impedidos de iniciar a mesma tarefa. Em paralelo, cada agente opera na sua subtarefa própria.

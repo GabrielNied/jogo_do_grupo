@@ -77,7 +77,10 @@ Puxar tarefa: rode `npm run tarefa -- puxar <N> <branch> --agente <papel> --work
 Fora do escopo: <o que NÃO fazer>
 Pronto quando: <critérios verificáveis> + testes da ficha passando em `dotnet test`
 Autorização: pode commitar, enviar a branch e abrir PR. Não faça merge.
+Base: <só se precisar de algo ainda não na main> passo 0: `git merge <branch>` (local) e conferir <arquivo>. Sem PR próprio? Commite local na sua branch e informe branch e hash.
 ```
+
+O worktree do agente parte do commit do checkout principal; o que o coordenador não commitou não chega a ele ([Fechamento](../../../docs/agentes.md#fechamento-o-coordenador-integra-e-limpa-o-que-criou)).
 
 Nunca lance dois agentes na mesma área ao mesmo tempo (ex.: dois `server-funcionalidade` na mesma funcionalidade).
 
@@ -89,6 +92,7 @@ Para cada relatório:
 - **Dúvidas** vão para a pessoa; não decida regras de design por conta própria.
 - Lance o `revisor` numa passada só, e só em PR de Core, segurança ou regra de dano, preço ou fusão ainda aberta. Não use o revisor para repetir um teste que o PR já trouxe. No resto, o CI e a skill `preparar-pr` bastam.
 - Achados do revisor que valem a pena viram **commits novos na mesma branch**, feitos pelo agente que abriu o PR (retome-o com a mensagem dos ajustes).
+- Agente que commitou só local: traga o commit com `git cherry-pick` (nunca `git merge` da branch dele) e confira `git show --stat`. Detalhes em [Fechamento](../../../docs/agentes.md#fechamento-o-coordenador-integra-e-limpa-o-que-criou).
 
 ### Quando pedir o merge
 
@@ -101,4 +105,4 @@ Se um PR for mergeado antes dos ajustes, **não envie mais nada para a branch de
 - PRs abertos, com links. O veredito do revisor só quando ele rodou.
 - O que montar no editor do Unity e como testar.
 - Decisões pendentes.
-- Limpeza: depois dos merges, rode `npm run limpar-agentes -- --aplicar` (e `-- --remotas --aplicar` se sobrou branch no GitHub) e diga o que ficou e por quê. Worktrees de PRs ainda abertos ficam até o merge.
+- Limpeza: depois dos merges, rode `npm run limpar-agentes -- --aplicar` (e `-- --remotas --aplicar` se sobrou branch no GitHub) e diga o que ficou e por quê. Worktrees de PRs ainda abertos ficam até o merge. **A limpeza é sua, não da pessoa:** o que o script não reconhece (cherry-pick) você confere e remove sozinho, só o que criou, e se a permissão for negada, peça a regra de [Fechamento](../../../docs/agentes.md#fechamento-o-coordenador-integra-e-limpa-o-que-criou).
