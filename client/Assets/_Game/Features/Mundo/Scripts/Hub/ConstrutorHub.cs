@@ -24,6 +24,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
         public const string NomePropsFora = "PropsFora";
         public const string NomePecasDosBiomas = "PecasDosBiomas";
         public const string NomeEstruturas = "Estruturas";
+        public const string NomeCaverna = "Caverna";
         public const string NomeLuz = "Sol";
         public const string NomeAmbiente = "Ambiente";
         public const string NomePreenchimento = "Preenchimento";
@@ -80,6 +81,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
             CriarPropsFora(raiz.transform);
             CriarPecasDosBiomas(raiz.transform);
             CriarEstruturas(raiz.transform);
+            Caverna.Montar(raiz.transform);
             var sol = CriarLuz(raiz.transform);
             var preenchimento = CriarPreenchimento(raiz.transform);
             ConfigurarAmbiente(raiz.transform, sol, preenchimento);
