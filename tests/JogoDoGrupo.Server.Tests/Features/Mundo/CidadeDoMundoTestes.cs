@@ -54,9 +54,10 @@ public class CidadeDoMundoTestes
         Assert.Equal(4f, av!.Posicao.X);
 
         _agora += 100;
-        var (recusado, mantido) = cidade.Mover(1, a, new(40f, 0, -24f, 0));
-        Assert.Equal(ResultadoMovimento.Recusado, recusado);
-        Assert.Equal(4f, mantido!.Posicao.X);
+        var (aceito, andou) = cidade.Mover(1, a, new(40f, 0, -24f, 0));
+        Assert.Equal(ResultadoMovimento.AceitoComSuspeita, aceito);
+        Assert.Equal(40f, andou!.Posicao.X);
+        Assert.Null(cidade.PosicaoForcadaPendente(1));
     }
 
     [Fact]

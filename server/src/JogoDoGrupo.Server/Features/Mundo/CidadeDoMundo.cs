@@ -108,8 +108,8 @@ public sealed class CidadeDoMundo<TSessao>(Func<long> relogioMs)
     }
 
     /// <summary>
-    /// Aplica a intenção de movimento. Devolve a posição autoritativa (a nova, se aceita; a
-    /// antiga, se recusada).
+    /// Aplica a posição que o client informou. Número não finito é ignorado e não move
+    /// ninguém. Não envia posição forçada: isso fica em <see cref="ForcarPosicao"/>.
     /// </summary>
     public (ResultadoMovimento Resultado, AvatarNaCidade<TSessao>? Avatar) Mover(
         long personagemId,
@@ -174,34 +174,21 @@ public sealed class CidadeDoMundo<TSessao>(Func<long> relogioMs)
                 return (ResultadoMovimento.Aceito, Converter(personagemId, entrada));
             }
 
-            var julgamento = ValidadorDeMovimento.Julgar(entrada.Posicao, desejada, orcamento);
-            if (julgamento == JulgamentoDoPasso.Suspeito)
+            // O jogador se move livremente e só informa. Número não finito é ignorado, sem
+            // puxar o client. PosicaoForcada fica para teleporte explícito (ForcarPosicao).
+            if (!PosicaoFinita(desejada))
             {
-                suspeitas += 1;
-                if (suspeitas > ValidadorDeMovimento.LimiteDeSuspeitas)
-                {
-                    julgamento = JulgamentoDoPasso.Grave;
-                }
-            }
-
-            if (julgamento == JulgamentoDoPasso.Grave)
-            {
-                // A posição do servidor fica e o client recebe PosicaoForcada (ADR 0024).
-                var sequencia = entrada.SequenciaForcada + 1;
-                entrada = entrada with
-                {
-                    UltimoMs = agora,
-                    Orcamento = orcamento,
-                    Suspeitas = 0,
-                    SequenciaForcada = sequencia,
-                    ForcadaPendente = sequencia,
-                };
-                _avatares[personagemId] = entrada;
                 return (ResultadoMovimento.Recusado, Converter(personagemId, entrada));
             }
 
+            var julgamento = ValidadorDeMovimento.Julgar(entrada.Posicao, desejada, orcamento);
+            if (julgamento != JulgamentoDoPasso.Normal)
+            {
+                suspeitas += 1;
+            }
+
             var andou = ValidadorDeMovimento.DistanciaHorizontal(entrada.Posicao, desejada);
-            var suspeito = julgamento == JulgamentoDoPasso.Suspeito;
+            var suspeito = julgamento != JulgamentoDoPasso.Normal;
             entrada = entrada with
             {
                 Posicao = desejada,
@@ -452,6 +439,12 @@ public sealed class CidadeDoMundo<TSessao>(Func<long> relogioMs)
         new(id, e.Sessao, e.Posicao);
 
     // Até o client confirmar, vale a maior entre a confirmada e a pendente.
+    private static bool PosicaoFinita(PosicaoNaCidade posicao) =>
+        float.IsFinite(posicao.X)
+        && float.IsFinite(posicao.Y)
+        && float.IsFinite(posicao.Z)
+        && float.IsFinite(posicao.RotacaoY);
+
     private static float LimiteDeVelocidade(Entrada e) =>
         e.Pendente is { } pendente
             ? Math.Max(e.Confirmadas.Maxima, pendente.Maxima)

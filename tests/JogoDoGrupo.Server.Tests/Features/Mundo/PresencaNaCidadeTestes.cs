@@ -34,7 +34,7 @@ public class PresencaNaCidadeTestes(TempoRealFixture f) : IClassFixture<TempoRea
     }
 
     [Fact]
-    public async Task Movimento_valido_so_vai_aos_outros_e_impossivel_vira_posicao_forcada()
+    public async Task Movimento_informado_vai_aos_outros_sem_posicao_forcada()
     {
         var (a, _, idA) = await f.EntrarAsync();
         using var _a = a;
@@ -70,36 +70,10 @@ public class PresencaNaCidadeTestes(TempoRealFixture f) : IClassFixture<TempoRea
                 Sequencia = 8,
             }
         );
-        // 40 m de uma vez passa do orçamento e da tolerância: o servidor força a posição dele.
-        var forcada = await a.ReceberAsync<PosicaoForcada>(MundoMessageIds.PosicaoForcada);
-        Assert.Equal(0.3f, forcada.X);
-        Assert.DoesNotContain(MundoMessageIds.PosicaoJogador, a.IdsRecebidos);
-
-        // Até confirmar, o movimento (ainda de antes do teleporte) é ignorado.
-        a.Enviar(
-            MundoMessageIds.IntencaoDeMovimento,
-            new IntencaoDeMovimento
-            {
-                X = 1f,
-                Z = z,
-                Sequencia = 9,
-            }
-        );
-        a.Enviar(
-            MundoMessageIds.ConfirmarPosicaoForcada,
-            new ConfirmarPosicaoForcada { Sequencia = forcada.Sequencia }
-        );
-        a.Enviar(
-            MundoMessageIds.IntencaoDeMovimento,
-            new IntencaoDeMovimento
-            {
-                X = 1.2f,
-                Z = z,
-                Sequencia = 10,
-            }
-        );
-        var depois = await b.ReceberAsync<PosicaoJogador>(MundoMessageIds.PosicaoJogador);
-        Assert.Equal(1.2f, depois.X);
+        // 40 m de uma vez: o dono não é puxado; os outros recebem a posição informada.
+        var replicaLonge = await b.ReceberAsync<PosicaoJogador>(MundoMessageIds.PosicaoJogador);
+        Assert.Equal(40f, replicaLonge.X);
+        Assert.DoesNotContain(MundoMessageIds.PosicaoForcada, a.IdsRecebidos);
     }
 
     [Fact]
