@@ -25,9 +25,9 @@ Tudo marcado **proposta** abaixo vem do plano de desenvolvimento do grupo, ou é
 
 ## Em aberto
 
-- [ ] Os cinco atributos (Força, Destreza, Intelecto, Vitalidade, Espírito) ficam todos na fatia ou só os que a primeira arma usa?
-- [ ] Vida do boss e do inimigo comum para 1 a 5 jogadores (os números do plano eram para grupos maiores).
-- [ ] Quem recebe o loot do boss: maior dano (plano) ou outra regra mais justa com tank e healer?
+- [x] ~~Os cinco atributos (Força, Destreza, Intelecto, Vitalidade, Espírito) ficam todos na fatia ou só os que a primeira arma usa?~~ Decidido em 2026-10-11: os cinco entram na fatia (seção 1), mesmo que Intelecto e Espírito ainda não tenham uso.
+- [x] ~~Vida do boss e do inimigo comum para 1 a 5 jogadores (os números do plano eram para grupos maiores).~~ Decidido em 2026-10-11: valor fixo, igual para 1 a 5 jogadores, sem escalar por jogador (seções 4 e 7); os números seguem a calibrar.
+- [x] ~~Quem recebe o loot do boss: maior dano (plano) ou outra regra mais justa com tank e healer?~~ Decidido em 2026-10-11: loot individual, cada jogador que participou da luta sorteia o próprio (seção 5). ~~Maior dano~~ substituído em 2026-10-11 por loot individual no boss.
 - [ ] Troca de arma (S10) fica fora; a fatia tem uma arma equipada.
 
 ## Regras
@@ -48,6 +48,7 @@ Quem decide: **servidor** (calcula, valida e envia o resultado; o client só mos
 | Cálculo | recalcular ao equipar, desequipar, ganhar ponto ou nível; nunca somar o mesmo bônus duas vezes | proposta |
 | Limites | valor atual nunca passa do máximo nem fica negativo; reduzir o máximo não cura | proposta |
 
+- Decidido em 2026-10-11: os **cinco atributos** já existem na fatia, mesmo que Intelecto e Espírito ainda não tenham uso.
 - Dano físico pesado escala com Força; a primeira arma usa Força (seção 2). Outros atributos entram quando houver itens que os usem.
 - O client mostra barras de vida, vigor e energia; o servidor envia valores atuais e máximos quando mudam.
 - **Testes esperados:** equipar/desequipar recalcula sem duplicar bônus; máximo reduzido limita o atual; regeneração só após 2 s; recurso nunca fica negativo.
@@ -82,6 +83,7 @@ Quem decide: **servidor** (IA, alvo, dano, morte). Força **fixa**: o inimigo n�
 - Um único tipo de inimigo comum, em **grupos de 3 a 5** nas salas da dungeon (**proposta**).
 - Estados: repouso, alerta, perseguição, ataque, retorno, morto (**proposta**). Persegue o alvo mais próximo que viu; se o alvo fugir longe, volta ao ponto de origem.
 - Ataque **telegrafado**: avisa (brilho ou animação) cerca de 1 s antes do golpe, dando para esquivar (valor a calibrar).
+- Decidido em 2026-10-11: a vida é **valor fixo**, igual para grupos de 1 a 5, sem escalar por jogador; o número segue a calibrar.
 - Exemplo de força fixa: inimigo de nível 3 com **180 de vida** diante de jogador de nível 1 ou 30 (**proposta**).
 - Sem respawn durante uma corrida de dungeon; o respawn de **120 s** do plano fica para o mundo (fora da fatia).
 - O client mostra barra de vida, aviso do ataque e morte; não decide dano.
@@ -94,6 +96,7 @@ Quem decide: **servidor** (sorteio, dono, validação da coleta).
 
 - Ao morrer, o inimigo larga itens no chão da instância. O sorteio usa o catálogo e a regra de [itens.md](itens.md); raridade e skills seguem o que o grupo definir lá.
 - **Dono do loot** (**proposta**): quem causou **mais dano real** àquele inimigo; empate vai ao primeiro atacante; dano contínuo conta para quem o causou. Resolve-se uma vez, na morte.
+- **Loot do boss** (decidido em 2026-10-11): **individual**; cada jogador que participou da luta sorteia o próprio loot, no chão para ele (o servidor define "participou"). ~~Dono por maior dano~~ substituído em 2026-10-11 por loot individual, só para o boss; o inimigo comum segue a proposta acima.
 - Coleta pela tecla **F** (**proposta**: raio de 12 m). O servidor confere dono, disponibilidade e espaço no inventário.
 - Inventário cheio: o item continua no chão, sem perda, até expirar.
 - Reservado ao dono por **180 s**; ao expirar desaparece (**proposta**).
@@ -118,7 +121,7 @@ Quem decide: **servidor** (instância, grupo, estado do boss, resultado).
 
 - Instância para **1 a 5** jogadores, criada ao entrar pelo hub e fechada ao fim (**proposta**; base: WoW).
 - Percurso (**proposta**, a partir da Mina do Reflexo do plano): entrada, três salões com grupos do inimigo comum e um salão do boss. O desenho físico é do [mundo](mundo.md).
-- Boss: **um**, de força fixa (não cresce com mais jogadores), com ataques telegrafados (investida, pisada e raios com **3 s de aviso**, **proposta**) e uma janela em que fica exposto a mais dano. A vida final está em aberto.
+- Boss: **um**, de força fixa (não cresce com mais jogadores), com ataques telegrafados (investida, pisada e raios com **3 s de aviso**, **proposta**) e uma janela em que fica exposto a mais dano. A vida é **valor fixo**, igual para 1 a 5 jogadores (decidido em 2026-10-11); o número final segue a calibrar.
 - Morrer não perde equipamento (**proposta**): o personagem fica **caído por 45 s**; um aliado o levanta interagindo por **3 s** (volta com **20%** de vida); dano no ajudante interrompe. Se o tempo acabar, retorna ao hub sem perdas. Dois ajudantes não duplicam a cura.
 - Vitória: o boss morto gera loot (seção 5) e XP; a instância libera a saída.
 - Derrota: todos caídos ou fora leva ao hub e a instância fecha.
