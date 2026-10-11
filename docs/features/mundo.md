@@ -81,7 +81,7 @@ Quatro lugares fixos (issue #157), sempre nas mesmas coordenadas, montados pelo 
 | Passagem das colinas | lajes entre duas pedras | Colinas | por volta de (-300, -200) |
 | Marco da estrada norte | pedra e lanterna à beira da estrada que sai da cidade | Campo | (14, 70) |
 
-- **Peças provisórias:** enquanto o pacote CC0 novo não entra (cactos, pinheiros com neve, rochas vulcânicas), os quatro biomas de fora usam as árvores e pedras do Kenney Fantasy Town Kit, com a cor multiplicada pela do bioma (seca no deserto, fria na neve, queimada na lava, musgosa no pântano).
+- ~~**Peças provisórias:** enquanto o pacote CC0 novo não entra (cactos, pinheiros com neve, rochas vulcânicas), os quatro biomas de fora usam as árvores e pedras do Kenney Fantasy Town Kit, com a cor multiplicada pela do bioma (seca no deserto, fria na neve, queimada na lava, musgosa no pântano).~~ Substituído em 2026-10-11: cacto e árvore seca só no deserto, pinheiro só na neve (até 85 m), rocha vulcânica na lava, árvore de pântano nas ilhas, arbusto no campo e na mata. São malhas geradas no client (`VegetacaoProcedural`), apoiadas no chão, sem colisor. Campo, mata e colinas continuam com as árvores do Kenney. Um pacote CC0 pode trocar essas malhas depois, sem mudar a posição.
 - **Ambiente:** o `AmbienteDosBiomas` troca a luz ambiente, a cor e a força do sol e a névoa conforme o bioma em que o jogador está, misturando perto das fronteiras: dia claro em volta da cidade, ar quente no deserto, branco frio na neve, vermelho escuro na lava e névoa verde e fechada no pântano. A névoa também esconde o fim do alcance da câmera (500 m, do Core). O fundo da câmera é o céu do bioma; a névoa fica na frente dele.
 
 ### Céu e clima visual

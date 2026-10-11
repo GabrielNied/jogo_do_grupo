@@ -352,6 +352,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
                 Assert.LessOrEqual(alcance, limite);
                 Assert.AreEqual(MapaDoMundo.AlturaEm(peca.X, peca.Z), peca.Y, 0.001f);
                 Assert.AreEqual(MapaDoMundo.BiomaEm(peca.X, peca.Z), peca.Bioma);
+                Assert.AreNotEqual(Bioma.Cidade, peca.Bioma);
                 Assert.GreaterOrEqual(peca.Y, MapaDoMundo.NivelDaAgua, "Peça dentro da água.");
                 Assert.That(peca.Escala, Is.InRange(0.9f, 2.6f));
 
@@ -385,6 +386,14 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
             Assert.Greater(
                 pecas.Count(p => p.Bioma == Bioma.Pantano),
                 pecas.Count(p => p.Bioma == Bioma.Deserto)
+            );
+
+            Assert.Greater(pecas.Count(p => p.Bioma == Bioma.Deserto && p.Prefab == "Cacto"), 0);
+            Assert.AreEqual(0, pecas.Count(p => p.Bioma == Bioma.Neve && p.Prefab == "Cacto"));
+            Assert.Greater(pecas.Count(p => p.Bioma == Bioma.Neve && p.Prefab == "Pinheiro"), 0);
+            Assert.AreEqual(
+                0,
+                pecas.Count(p => p.Bioma == Bioma.Deserto && p.Prefab == "Pinheiro")
             );
         }
 

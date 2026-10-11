@@ -391,12 +391,10 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
 
             foreach (var peca in PecasDosBiomas.Todas)
             {
-                var instancia = Instanciar(
-                    peca.Prefab,
-                    new Vector3(peca.X, peca.Y, peca.Z),
-                    peca.Guinada,
-                    pecas
-                );
+                var posicao = new Vector3(peca.X, peca.Y, peca.Z);
+                var instancia = VegetacaoProcedural.ConsegueCriar(peca.Prefab)
+                    ? VegetacaoProcedural.Criar(peca.Prefab, posicao, peca.Guinada, pecas)
+                    : Instanciar(peca.Prefab, posicao, peca.Guinada, pecas);
                 if (instancia == null)
                 {
                     continue;
