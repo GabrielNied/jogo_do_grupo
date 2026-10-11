@@ -260,4 +260,5 @@ Estrutura do repo, projeto Unity, CI (build, CSharpier, commitlint), hooks do gi
 2. Preencher [docs/responsaveis.md](docs/responsaveis.md) e o [.github/CODEOWNERS](.github/CODEOWNERS); convites de collaborator enviados (aguardando aceite).
 3. Decidir como integrar o Cursor ao Unity (o Unity não gera `.csproj` para ele).
 4. ~~Decidir a biblioteca de rede~~ decidido: LiteNetLib por UDP ([ADR 0015](docs/decisoes/0015-litenetlib-para-o-tempo-real.md)). Ainda em aberto: divisão do mundo entre servidores. ~~Banco de dados e testes~~ já foram decididos nos ADRs 0010 e 0013.
-5. Primeiro marco: a [fatia jogável](docs/visao-geral.md#primeiro-marco-fatia-jogável).
+5. Hospedagem gratuita para o grupo jogar junto: proposta no [ADR 0021](docs/decisoes/0021-hospedagem-gratuita.md), tarefas na issue #197.
+6. Primeiro marco: a [fatia jogável](docs/visao-geral.md#primeiro-marco-fatia-jogável).
