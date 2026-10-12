@@ -14,11 +14,13 @@ namespace JogoDoGrupo.Client.Features.Itens
     {
         public const long AtrasoMs = 300;
         private const float Deslocamento = 16f;
+        private const float EspacoEntre = 8f;
 
         private readonly VisualElement _raiz;
         private readonly Func<bool> _bloqueado;
         private readonly Func<VisualElement> _evitar;
         private readonly VisualElement _caixa;
+        private readonly VisualElement _caixaEquipado;
         private IVisualElementScheduledItem _agendado;
         private Vector2 _posicao;
 
@@ -38,7 +40,13 @@ namespace JogoDoGrupo.Client.Features.Itens
             _caixa.style.display = DisplayStyle.None;
             _caixa.pickingMode = PickingMode.Ignore;
             _caixa.RegisterCallback<GeometryChangedEvent>(_ => Ajustar());
+            _caixaEquipado = new VisualElement { name = "itens.tooltip-equipado" };
+            _caixaEquipado.AddToClassList(EstiloItens.Tooltip);
+            _caixaEquipado.style.display = DisplayStyle.None;
+            _caixaEquipado.pickingMode = PickingMode.Ignore;
+            _caixaEquipado.RegisterCallback<GeometryChangedEvent>(_ => Ajustar());
             _raiz.Add(_caixa);
+            _raiz.Add(_caixaEquipado);
         }
 
         public bool Visivel => _caixa.style.display == DisplayStyle.Flex;
@@ -78,6 +86,7 @@ namespace JogoDoGrupo.Client.Features.Itens
         {
             Esconder();
             _caixa.RemoveFromHierarchy();
+            _caixaEquipado.RemoveFromHierarchy();
         }
 
         public void Esconder()
@@ -85,40 +94,60 @@ namespace JogoDoGrupo.Client.Features.Itens
             _agendado?.Pause();
             _agendado = null;
             _caixa.style.display = DisplayStyle.None;
+            _caixaEquipado.style.display = DisplayStyle.None;
         }
 
         public void Mostrar(DadosTooltip dados)
         {
-            _caixa.Clear();
+            Preencher(_caixa, dados, true);
+            var lado = dados.Equipado != null;
+            if (lado)
+                Preencher(_caixaEquipado, dados.Equipado, false);
+            _caixa.style.display = DisplayStyle.Flex;
+            _caixaEquipado.style.display = lado ? DisplayStyle.Flex : DisplayStyle.None;
+            _caixaEquipado.BringToFront();
+            _caixa.BringToFront();
+            Ajustar();
+        }
+
+        private static void Preencher(VisualElement caixa, DadosTooltip dados, bool comComparacao)
+        {
+            caixa.Clear();
+            if (dados.Cabecalho != null)
+            {
+                caixa.Add(
+                    Linha(new LinhaTooltip { Texto = dados.Cabecalho, Estilo = EstiloLinha.Suave })
+                );
+            }
             var nome = new Label(dados.Nome);
             nome.AddToClassList(EstiloCore.Texto);
             nome.AddToClassList(EstiloItens.TooltipNome);
             if (dados.Raridade != null)
                 nome.AddToClassList(EstiloItens.NomeRaridade(dados.Raridade.Value));
-            _caixa.Add(nome);
+            caixa.Add(nome);
             foreach (var linha in dados.Linhas)
-                _caixa.Add(Linha(linha));
-            if (dados.TituloComparacao != null)
+                caixa.Add(Linha(linha));
+            if (comComparacao && dados.TituloComparacao != null)
             {
                 var comparacao = new VisualElement();
                 comparacao.AddToClassList(EstiloItens.TooltipComparacao);
-                comparacao.Add(
-                    Linha(
-                        new LinhaTooltip
-                        {
-                            Texto = dados.TituloComparacao,
-                            Estilo = EstiloLinha.Suave,
-                        }
-                    )
-                );
+                // Com a peça equipada ao lado, o título seria repetição.
+                if (dados.Equipado == null)
+                {
+                    comparacao.Add(
+                        Linha(
+                            new LinhaTooltip
+                            {
+                                Texto = dados.TituloComparacao,
+                                Estilo = EstiloLinha.Suave,
+                            }
+                        )
+                    );
+                }
                 foreach (var linha in dados.Comparacao)
                     comparacao.Add(Linha(linha));
-                _caixa.Add(comparacao);
+                caixa.Add(comparacao);
             }
-
-            _caixa.style.display = DisplayStyle.Flex;
-            _caixa.BringToFront();
-            Ajustar();
         }
 
         private static Label Linha(LinhaTooltip linha)
@@ -137,12 +166,14 @@ namespace JogoDoGrupo.Client.Features.Itens
         private void Ajustar()
         {
             var local = _raiz.WorldToLocal(_posicao);
-            var largura = _caixa.resolvedStyle.width;
-            var altura = _caixa.resolvedStyle.height;
-            if (float.IsNaN(largura))
-                largura = 0;
-            if (float.IsNaN(altura))
-                altura = 0;
+            var largura1 = Medida(_caixa.resolvedStyle.width);
+            var altura1 = Medida(_caixa.resolvedStyle.height);
+            var lado = _caixaEquipado.style.display == DisplayStyle.Flex;
+            var largura2 = lado ? Medida(_caixaEquipado.resolvedStyle.width) : 0;
+            var altura2 = lado ? Medida(_caixaEquipado.resolvedStyle.height) : 0;
+            // Os dois tooltips andam juntos como um bloco (item e, ao lado, a peça equipada).
+            var largura = largura1 + (lado ? EspacoEntre + largura2 : 0);
+            var altura = Mathf.Max(altura1, altura2);
             var limite = _raiz.layout;
             var evitar = _evitar?.Invoke();
             var evitando = evitar != null && !float.IsNaN(evitar.worldBound.width);
@@ -177,6 +208,13 @@ namespace JogoDoGrupo.Client.Features.Itens
 
             _caixa.style.left = escolhido.x;
             _caixa.style.top = escolhido.y;
+            _caixaEquipado.style.left = escolhido.x + largura1 + EspacoEntre;
+            _caixaEquipado.style.top = escolhido.y;
+        }
+
+        private static float Medida(float valor)
+        {
+            return float.IsNaN(valor) ? 0 : valor;
         }
 
         private static Vector2 Limitar(Vector2 posicao, float largura, float altura, Rect limite)

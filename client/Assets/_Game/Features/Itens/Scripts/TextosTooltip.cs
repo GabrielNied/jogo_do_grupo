@@ -35,6 +35,15 @@ namespace JogoDoGrupo.Client.Features.Itens
         public string TituloComparacao;
 
         public readonly List<LinhaTooltip> Comparacao = new List<LinhaTooltip>();
+
+        /// <summary>Linha suave acima do nome (ex.: "Equipado · Capacete"), ou <c>null</c>.</summary>
+        public string Cabecalho;
+
+        /// <summary>
+        /// A peça equipada no mesmo encaixe, para o segundo tooltip ao lado; <c>null</c> sem peça
+        /// equipada ou sem comparação.
+        /// </summary>
+        public DadosTooltip Equipado;
     }
 
     /// <summary>
@@ -51,6 +60,15 @@ namespace JogoDoGrupo.Client.Features.Itens
         /// Estado do inventário, para comparar. <c>null</c> (ou item equipado) não compara.
         /// </param>
         public static DadosTooltip Montar(EntradaInventario entrada, EquipamentosResponse estado)
+        {
+            var dados = Basico(entrada);
+            var item = RegrasEquipamentos.DadosDe(entrada);
+            if (item != null && estado != null && entrada.Posicao == PosicaoEquipamento.Inventario)
+                Comparar(dados, item, estado);
+            return dados;
+        }
+
+        private static DadosTooltip Basico(EntradaInventario entrada)
         {
             var dados = new DadosTooltip { Nome = entrada.Nome };
             var item = RegrasEquipamentos.DadosDe(entrada);
@@ -114,8 +132,6 @@ namespace JogoDoGrupo.Client.Features.Itens
                 EstiloLinha.Suave
             );
 
-            if (estado != null && entrada.Posicao == PosicaoEquipamento.Inventario)
-                Comparar(dados, item, estado);
             return dados;
         }
 
@@ -128,6 +144,11 @@ namespace JogoDoGrupo.Client.Features.Itens
             var encaixe = LogicaInventario.EncaixeAutomatico(item.Tipo, estado);
             var equipado = LogicaInventario.NoEncaixe(estado, encaixe);
             var atual = RegrasEquipamentos.DadosDe(equipado);
+            if (atual != null)
+            {
+                dados.Equipado = Basico(equipado);
+                dados.Equipado.Cabecalho = "Equipado · " + TextosEquipamento.NomePosicao(encaixe);
+            }
             dados.TituloComparacao =
                 atual == null
                     ? TextosEquipamento.NomePosicao(encaixe) + ": vazio"

@@ -112,6 +112,38 @@ namespace JogoDoGrupo.Client.Features.Itens.Tests
         }
 
         [Test]
+        public void PecaEquipadaVaiNoSegundoTooltipComCabecalhoEquipado()
+        {
+            var equipado = Peca("Elmo velho", TipoEquipamento.Capacete, 8, 4);
+            var estado = new EquipamentosResponse
+            {
+                Equipados = new[] { Entrada(equipado, PosicaoEquipamento.Capacete) },
+            };
+            var novo = Peca("Elmo novo", TipoEquipamento.Capacete, 6, 10);
+
+            var dados = TextosTooltip.Montar(Entrada(novo, PosicaoEquipamento.Inventario), estado);
+
+            Assert.IsNotNull(dados.Equipado);
+            Assert.AreEqual("Elmo velho", dados.Equipado.Nome);
+            StringAssert.StartsWith("Equipado", dados.Equipado.Cabecalho);
+            Assert.IsNull(dados.Equipado.Equipado);
+            Assert.IsEmpty(dados.Equipado.Comparacao);
+        }
+
+        [Test]
+        public void EncaixeVazioNaoTemSegundoTooltip()
+        {
+            var dados = TextosTooltip.Montar(
+                Entrada(
+                    Peca("Elmo", TipoEquipamento.Capacete, 6, 10),
+                    PosicaoEquipamento.Inventario
+                ),
+                new EquipamentosResponse()
+            );
+            Assert.IsNull(dados.Equipado);
+        }
+
+        [Test]
         public void EncaixeVazioTrataTudoComoGanho()
         {
             var dados = TextosTooltip.Montar(
