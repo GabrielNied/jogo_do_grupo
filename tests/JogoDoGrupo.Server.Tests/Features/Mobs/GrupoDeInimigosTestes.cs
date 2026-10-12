@@ -856,4 +856,68 @@ public class GrupoDeInimigosTestes
         Assert.Null(campo.Grupo.ForcarAparicao(1, 1));
         Assert.Equal(1 + GrupoDeInimigos.AparicoesExtrasDeTeste, campo.Grupo.Tamanho);
     }
+
+    [Fact]
+    public void Cinco_inimigos_no_mesmo_alvo_nunca_ficam_colados_um_no_outro()
+    {
+        var campo = new Campo(tamanho: 5);
+        campo.Por(Jogador, 0, 10);
+        var menor = double.MaxValue;
+        for (var passo = 0; passo < 300; passo++)
+        {
+            campo.Passo();
+            var vivos = campo.Grupo.Vivos();
+            for (var a = 0; a < vivos.Length; a++)
+            {
+                for (var b = a + 1; b < vivos.Length; b++)
+                {
+                    menor = Math.Min(
+                        menor,
+                        RegrasInimigo.Distancia(vivos[a].X, vivos[a].Z, vivos[b].X, vivos[b].Z)
+                    );
+                }
+            }
+        }
+
+        Assert.True(menor >= RegrasCerco.SeparacaoMinimaMetros - 0.01, $"menor distância: {menor}");
+    }
+
+    [Fact]
+    public void No_maximo_o_limite_de_inimigos_prepara_ataque_ao_mesmo_alvo_e_os_outros_rondam()
+    {
+        var campo = new Campo(tamanho: 5);
+        campo.Por(Jogador, 0, 10);
+        var maisAtacando = 0;
+        for (var passo = 0; passo < 300; passo++)
+        {
+            campo.Passo();
+            var vivos = campo.Grupo.Vivos();
+            maisAtacando = Math.Max(
+                maisAtacando,
+                vivos.Count(i => i.Estado == EstadoDeInimigo.Ataque)
+            );
+        }
+
+        var alvo = campo.Jogadores[0];
+        Assert.Equal(RegrasCerco.LimiteDeAtacantesPorAlvo, maisAtacando);
+        Assert.All(
+            campo.Grupo.Vivos(),
+            i =>
+                Assert.True(
+                    RegrasInimigo.Distancia(i.X, i.Z, alvo.X, alvo.Z)
+                        <= RegrasCerco.RaioDaRondaMetros + 0.01
+                )
+        );
+    }
+
+    [Fact]
+    public void Quem_espera_vaga_de_atacante_nao_desiste_por_kite()
+    {
+        var campo = new Campo(tamanho: 5);
+        campo.Por(Jogador, 0, 10);
+
+        campo.Avancar(ConfigInimigosDoCampo.LimiteSemAtacarSegundos + 4);
+
+        Assert.All(campo.Grupo.Vivos(), i => Assert.NotEqual(EstadoDeInimigo.Retorno, i.Estado));
+    }
 }

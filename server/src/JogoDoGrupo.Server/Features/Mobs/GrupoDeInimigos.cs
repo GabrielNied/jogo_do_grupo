@@ -566,7 +566,18 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
             return;
         }
 
-        inimigo.SegundosSemAtacar += segundos;
+        // Vaga de atacante: só RegrasCerco.LimiteDeAtacantesPorAlvo atacam o mesmo alvo ao mesmo
+        // tempo. Quem espera ronda no anel de fora, e isso não é kite (não conta no limite).
+        var podeAtacar = RegrasCerco.PodeAtacar(AtacantesContra(inimigo));
+        if (podeAtacar)
+        {
+            inimigo.SegundosSemAtacar += segundos;
+        }
+        else
+        {
+            inimigo.SegundosSemAtacar = 0.0;
+        }
+
         var daOrigem = RegrasInimigo.Distancia(
             inimigo.X,
             inimigo.Z,
@@ -593,37 +604,66 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
         }
 
         var alvo = presentes[inimigo.Alvo];
-        if (!NoAlcance(inimigo, alvo))
+        // Vai ao posto dele no anel em volta do alvo (o de atacante, ou o de ronda se não há
+        // vaga), em vez de em linha reta até o alvo, sem entrar no corpo dos outros.
+        RegrasCerco.Posto(
+            alvo.X,
+            alvo.Z,
+            Array.IndexOf(_inimigos, inimigo),
+            !podeAtacar,
+            out var postoX,
+            out var postoZ
+        );
+        RegrasInimigo.Avancar(
+            inimigo.X,
+            inimigo.Z,
+            postoX,
+            postoZ,
+            _comportamento.VelocidadeDePerseguicaoMetrosPorSegundo,
+            segundos,
+            0.0,
+            out var novoX,
+            out var novoZ
+        );
+        Afastar(inimigo, novoX, novoZ, out novoX, out novoZ);
+        if (NaZonaUrbana(novoX, novoZ))
         {
-            // Para um pouco antes do alcance, para o arredondamento não o deixar do lado de fora.
-            RegrasInimigo.Avancar(
-                inimigo.X,
-                inimigo.Z,
-                alvo.X,
-                alvo.Z,
-                _comportamento.VelocidadeDePerseguicaoMetrosPorSegundo,
-                segundos,
-                RegrasInimigo.AlcanceDeAtaqueMetros - ConfigInimigosDoCampo.FolgaDoAlcanceMetros,
-                out var novoX,
-                out var novoZ
-            );
-            if (NaZonaUrbana(novoX, novoZ))
-            {
-                // A borda da cidade: a manada não passa. Encerra a perseguição e volta.
-                perdidos.Add(inimigo.Alvo);
-                Retornar(inimigo);
-                return;
-            }
-
-            inimigo.X = novoX;
-            inimigo.Z = novoZ;
+            // A borda da cidade: a manada não passa. Encerra a perseguição e volta.
+            perdidos.Add(inimigo.Alvo);
+            Retornar(inimigo);
+            return;
         }
 
+        inimigo.X = novoX;
+        inimigo.Z = novoZ;
+
         OlharParaOAlvo(inimigo, presentes);
-        if (NoAlcance(inimigo, alvo))
+        if (podeAtacar && NoAlcance(inimigo, alvo))
         {
             ComecarAtaque(inimigo, agora, passo);
         }
+    }
+
+    // Quantos do grupo (fora ele) já atacam o alvo dele: preparando o golpe ou se recuperando.
+    private int AtacantesContra(Inimigo inimigo) =>
+        _inimigos.Count(i =>
+            i != inimigo && i.Estado == EstadoDeInimigo.Ataque && i.Alvo == inimigo.Alvo
+        );
+
+    // Empurra o ponto para fora dos corpos dos outros inimigos vivos do grupo.
+    private void Afastar(Inimigo inimigo, double x, double z, out double novoX, out double novoZ)
+    {
+        var vizinhos = _inimigos
+            .Where(i => i != inimigo && RegrasInimigo.EstaVivo(i.Estado))
+            .ToArray();
+        RegrasCerco.Afastar(
+            x,
+            z,
+            vizinhos.Select(i => i.X).ToArray(),
+            vizinhos.Select(i => i.Z).ToArray(),
+            out novoX,
+            out novoZ
+        );
     }
 
     private void ComecarAtaque(Inimigo inimigo, long agora, PassoDosInimigos passo)

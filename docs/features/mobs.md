@@ -88,7 +88,7 @@ As regras de base estão em [fatia-jogavel.md](fatia-jogavel.md), seção 4. O q
 | Onde | campo aberto, a uns 150 m do portão norte da cidade (decidido em 2026-10-11); a dungeon reaproveita o mesmo inimigo, sem volta |
 | Visão | vê o jogador a **12 m** |
 | Alerta | **0,5 s** entre ver e começar a perseguir; o grupo todo entra em alerta junto |
-| Perseguição | **4 m/s**, em linha reta (mais lento que o jogador correndo) |
+| Perseguição | **4 m/s**, até o posto dele no cerco (veja abaixo; mais lento que o jogador correndo) |
 | Ataque | começa a até **2 m** do alvo; **1 s** de aviso, depois o golpe e **1,5 s** de recuperação |
 | Área do golpe | círculo de **1,5 m** de raio no chão, com o centro **1,5 m** à frente do inimigo; fica fixa desde o aviso |
 | Desistência | a mais de **30 m** do ponto de origem ele volta (a **6 m/s**), com a vida cheia, sem escolher alvo até chegar |
@@ -99,6 +99,7 @@ As regras de base estão em [fatia-jogavel.md](fatia-jogavel.md), seção 4. O q
 - **Alvo:** o jogador mais próximo que ele viu. Enquanto esse alvo continuar valendo, ele **não troca**, mesmo com outro mais perto. No empate de distância fica o de menor id. Depois do primeiro dano, o alvo segue a tabela de ameaça adotada em 2026-10-12 ([combate.md](combate.md#ameaça-agro-169), #169).
 - **Golpe telegrafado:** quem estiver na área quando o aviso acaba leva o dano; quem saiu a tempo não leva (a esquiva de 5 m tira o jogador da área).
 - Sem desvio de obstáculos na fatia: o campo é aberto.
+- **Cerco em anel (issue #487; proposta, a calibrar):** o grupo cerca o alvo em vez de empilhar. Cada inimigo tem um posto fixo (pelo número dele no grupo) num anel de **1,9 m** em volta do alvo, com os postos igualmente espaçados; ninguém chega a menos de **1,2 m** (2x o raio do corpo) de outro, e quem chegaria é empurrado para fora. No máximo **2** inimigos atacam o mesmo alvo ao mesmo tempo (preparando o golpe ou se recuperando); os outros **rondam** num anel de **3,1 m**, fora do alcance, e quem ronda não conta no limite de 8 s sem atacar (esperar vaga não é kite). Quando uma vaga abre, o próximo a passar pelo passo da IA (por ordem no grupo) vai ao anel de dentro. Valores em `RegrasCerco` (shared). Fica de fora: desvio de obstáculo e escolha do posto mais perto do lado de onde o inimigo vem (o ângulo é fixo por inimigo, então caminhos podem se cruzar).
 
 O que o servidor acrescentou ao implementar (issue #268; **proposta**, decidido pelo loop autônomo em 2026-10-11, a confirmar no review):
 
@@ -213,6 +214,7 @@ Inimigo comum (tempo real; regras em "Inimigo comum da fatia"):
 - `EstadoDeInimigo`: `Repouso` 0, `Alerta` 1, `Perseguicao` 2, `Ataque` 3, `Retorno` 4, `Morto` 5.
 - `InimigoId` é o mesmo `AlvoId` que o Combate manda em `AcertoDeAtaque`: o dano de um golpe do jogador chega por `AtaqueAcertou`, não por `InimigoMudou`. `AlvoId` 0 (`RegrasInimigo.SemAlvo`) é sem alvo.
 - `CriaturaId` aponta para o `CatalogoCriaturas` (nome, nível, categoria); a ficha da issue chamava esse campo de `Tipo`.
+- `RegrasCerco`: o cerco em anel, a separação mínima e o limite de atacantes por alvo (issue #487).
 - `RegrasManada` e `TipoDePontoDeRota`: a zona urbana, o limite de perseguição e os tipos de ponto da rota das manadas (issue #321).
 - `RegrasInimigo`: constantes de balanceamento e fórmulas puras (`TransicaoValida`, `EstaVivo`, `ProcuraAlvo`, `TamanhoDoGrupo`, `Ve`, `NoAlcanceDeAtaque`, `DeveDesistir`, `EscolherAlvo`, `DirecaoPara`, `Avancar`, `CentroDoGolpe`, `EstaNaAreaDoGolpe`). O servidor decide; o client usa só para mostrar.
 

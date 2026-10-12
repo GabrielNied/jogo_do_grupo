@@ -1,5 +1,6 @@
 using JogoDoGrupo.Shared.Features.Itens;
 using NUnit.Framework;
+using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace JogoDoGrupo.Client.Features.Itens.Tests
@@ -45,7 +46,27 @@ namespace JogoDoGrupo.Client.Features.Itens.Tests
         [Test]
         public void TrocarEscolhaRemovePreviaEConfirmacaoESemSaldoDesabilitaConfirmar()
         {
-            var raiz = new VisualElement();
+            // Trocar a escolha dispara ChangeEvent, que só chega a elemento preso a um painel
+            // de verdade (sem painel, o callback não roda e a prévia nunca some).
+            var configuracao = ScriptableObject.CreateInstance<PanelSettings>();
+            var objeto = new GameObject("PainelInfusaoTestes");
+            try
+            {
+                var documento = objeto.AddComponent<UIDocument>();
+                documento.panelSettings = configuracao;
+                var raiz = new VisualElement();
+                documento.rootVisualElement.Add(raiz);
+                TrocarEscolha(raiz);
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(objeto);
+                UnityEngine.Object.DestroyImmediate(configuracao);
+            }
+        }
+
+        private static void TrocarEscolha(VisualElement raiz)
+        {
             var receptor = CatalogoEquipamentos.Obter(100);
             var doador = CatalogoEquipamentos.Obter(100);
             var pedidos = 0;
