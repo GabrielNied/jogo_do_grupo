@@ -125,7 +125,7 @@ Quem decide: **servidor** (sorteio, dono, validação da coleta).
 Quem decide: **servidor** (concede e confere; cada prêmio vale uma vez).
 
 - Nível inicial 1; nível máximo da fatia **30** (**proposta**).
-- XP para o próximo nível = arredondar(100 x nível^1,7) (**proposta**, tabela ajustável).
+- XP para o próximo nível = arredondar(50 x nível^1,2) (**proposta**, calibrada para a [meta de ritmo](personagem.md#ritmo-de-progressão-proposta-454); tabela ajustável).
 - XP vem de derrotar inimigos; quem **participou** (dano, cura, defesa) recebe, mesmo sem ser o dono do loot (**proposta**).
 - Cada nível dá **5 pontos** para distribuir nos atributos (**proposta**). O servidor valida: nunca gasta mais pontos do que ganhou.
 - No nível máximo o XP excedente é guardado e não sobe de nível.
