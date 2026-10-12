@@ -34,7 +34,7 @@ O token não entra em argumento, log, commit nem resposta. Apague o script tempo
 
 ## 2. Escolher as tarefas
 
-`npm run tarefa -- listar`. Para cada candidata livre, anote funcionalidade, camadas (docs, contrato, server, client) e dependências. Prefira, nesta ordem: o que está quebrado (CI, main), o que destrava outras tarefas, o que é independente das demais. O tamanho da leva segue a seção Uso restante. Duas tarefas na mesma funcionalidade ou em `Core/` não rodam em paralelo. Não entra: tarefa já em andamento, label `bloqueada` ou `decisao`. Essas ficam para o `/decida`.
+`npm run tarefa -- listar`. Para cada candidata livre, anote funcionalidade, camadas (docs, contrato, server, client) e dependências. Prefira, nesta ordem: o que está quebrado (CI, main), depois o rótulo `prio:*` (menor número primeiro, [Prioridade das tarefas](../../../docs/agentes.md#prioridade-das-tarefas)), depois o que destrava outras tarefas e o que é independente das demais. O tamanho da leva segue a seção Uso restante. Duas tarefas na mesma funcionalidade ou em `Core/` não rodam em paralelo. Não entra: tarefa já em andamento, label `bloqueada` ou `decisao`. Essas ficam para o `/decida`.
 
 A escolha é sua. Não devolva a lista para a pessoa decidir.
 

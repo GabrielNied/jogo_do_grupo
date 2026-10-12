@@ -36,6 +36,19 @@ Os agentes por camada (`shared-contratos`, `regras-do-jogo`, `server-funcionalid
 
 Cenas, prefabs e assets saem dos próprios agentes, pelo Unity (script de editor ou Unity CLI), nunca com YAML escrito à mão (regra 9).
 
+## Prioridade das tarefas
+
+Decidida pelo grupo em 2026-10-11. Cada issue aberta tem um rótulo `prio:*`; ao escolher, vá da menor para a maior, respeitando o [foco do marco](features/fatia-jogavel.md#foco-atual) e o limite de 3 funcionalidades:
+
+1. `prio:1-erros`: tratamento de erros e bugs (o que quebra, perde dado ou trava o jogador).
+2. `prio:2-core-loop`: o ciclo do jogo (mobs, combate, XP, loot, nível).
+3. `prio:3-experiencia`: experiência do usuário (UI, feedback, fluidez, desempenho percebido).
+4. `prio:4-docs-definicoes`: documentação e definições de design (issues `decisao`).
+5. `prio:5-features`: funcionalidades novas.
+6. `prio:6-seguranca`: segurança e afins (limites, anti-abuso, ferramentas de GM).
+
+Issue nova ganha o rótulo na criação. Quebrado na `main` (CI) continua acima de tudo.
+
 ## Fluxo de uma tarefa
 
 ```
