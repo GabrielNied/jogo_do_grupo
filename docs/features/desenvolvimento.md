@@ -12,7 +12,11 @@ Comandos para testar no editor do Unity e no build de desenvolvimento. O client 
 
 No editor e no build de desenvolvimento, F12 abre o console. Enter envia, Esc fecha. O personagem fica parado enquanto a caixa está aberta. Build de release não traz o console.
 
-O servidor só executa com `Desenvolvimento:PermitirComandos` em `appsettings.Development.json`. Sem a chave, ignora o pedido e não responde.
+O servidor só executa com `Desenvolvimento:PermitirComandos` ligado **e** ambiente Development (`PoliticaDeComandos`, mesmo padrão do `ConfiguracaoJwt`). Sem a chave, ignora o pedido e não responde. Com a chave ligada fora de Development, os comandos ficam desligados e o servidor avisa no log (não deixa de subir).
+
+`Desenvolvimento:Contas` é uma lista opcional de ids de conta autorizados. Vazia ou ausente, vale para qualquer conta (só em Development); com ids, a conta fora da lista é ignorada, com aviso no log. Cada comando executado é registrado no log com a conta, o personagem e o texto.
+
+`Mundo:PermitirVelocidadeDeTeste` mora em [Mundo](mundo.md) e segue a mesma proposta na [#552](https://github.com/GabrielNied/jogo_do_grupo/issues/552).
 
 | Comando | Efeito |
 |---|---|
