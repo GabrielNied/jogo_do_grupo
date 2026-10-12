@@ -441,15 +441,10 @@ async function puxarTarefa(args) {
     executarGit(["worktree", "add", worktreePath, "-b", nomeBranch, "origin/main"]);
     console.log(`✔ Worktree criado em: ${worktreePath}`);
   } else {
-    // Branch local no repositório atual
-    try {
-      executarGit(["switch", "main"]);
-      executarGit(["pull", "--rebase", "origin", "main"]);
-      executarGit(["switch", "-c", nomeBranch]);
-    } catch {
-      // Se switch main falhar (ex: worktree com main aberta ou uncommitted), tenta direto
-      executarGit(["switch", "-c", nomeBranch]);
-    }
+    // Branch local no repositório atual, sempre da origin/main: a main local pode estar
+    // velha ou presa (aberta em outro worktree, mudança não commitada barrando o pull).
+    executarGit(["fetch", "origin", "main"]);
+    executarGit(["switch", "--no-track", "-c", nomeBranch, "origin/main"]);
   }
 
   console.log(`\n=======================================================`);

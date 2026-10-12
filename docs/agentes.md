@@ -1,6 +1,6 @@
 # Desenvolvimento com vários agentes
 
-O projeto é feito para vários agentes de IA implementarem partes diferentes **ao mesmo tempo**, cada um com uma área fixa, sem pisar no trabalho do outro. Pessoas decidem, revisam, montam o que é visual no Unity e fazem o merge.
+O projeto é feito para vários agentes de IA implementarem partes diferentes **ao mesmo tempo**, cada um com uma área fixa, sem pisar no trabalho do outro. Pessoas decidem, olham a cena no jogo e fazem o merge.
 
 A organização por funcionalidade ([arquitetura.md](arquitetura.md)) é o que torna isso possível: cada agente mexe em pastas diferentes, então o trabalho em paralelo não gera conflito.
 
@@ -14,7 +14,7 @@ A organização por funcionalidade ([arquitetura.md](arquitetura.md)) é o que t
 | `server-core` | `server/.../Core/`, `Program.cs`, `.csproj` e configuração (`appsettings`, `Properties/`) do servidor, ADRs, arquitetura | Infra do servidor: rede, sessões de grupo, despacho de mensagens, eventos, persistência | `feature/core/<descricao>-server` | Opus |
 | `server-funcionalidade` | `server/.../Features/`, migrações em `server/.../Core/Persistencia/Migrations/`, `docs/features/` | Backend de **uma** funcionalidade | `feature/<x>/<descricao>-server` | Sonnet (Opus em tarefas de risco) |
 | `client-core` | `client/Assets/_Game/Core/` (só scripts) | Infra do client: conexão, cenas, input, câmera e controle em 3ª pessoa, UI base | `feature/core/<descricao>-client` | Opus |
-| `client-funcionalidade` | `client/Assets/_Game/Features/` (só scripts) | Client de **uma** funcionalidade | `feature/<x>/<descricao>-client` | Sonnet (Opus em tarefas de risco) |
+| `client-funcionalidade` | `client/Assets/_Game/Features/` (scripts; cena, prefab e asset pelo Unity) | Client de **uma** funcionalidade | `feature/<x>/<descricao>-client` | Sonnet (Opus em tarefas de risco) |
 | `artista-mundo` | `Features/Mundo/`, `ThirdParty/`, `docs/arte/` | Hub, peças modulares, gerador de dungeon, ambientação | `feature/mundo/<descricao>-arte` | Sonnet |
 | `artista-personagens` | `Features/Personagem/`, `ThirdParty/`, `docs/arte/` | Modelos, animações, Animator, prefabs por raça, encaixes | `feature/personagem/<descricao>-arte` | Sonnet |
 | `artista-itens` | `Features/Itens/`, `ThirdParty/`, `docs/arte/` | Modelos de armas e equipamentos, ícones, encaixe | `feature/itens/<descricao>-arte` | Sonnet |
@@ -27,26 +27,27 @@ As definições completas (regras de cada papel, passo a passo e formato do rela
 O que fica com as **pessoas**:
 
 - decidir regras de design e técnicas;
-- montar cenas, prefabs e assets no editor do Unity (agentes só escrevem scripts);
-- compilar e testar o client no Unity;
-- aprovar e fazer o merge dos PRs.
+- responder dúvida de regra levantada no plano da tarefa;
+- olhar a cena no jogo, aprovar e fazer o merge dos PRs.
+
+Cenas, prefabs e assets saem dos próprios agentes, pelo Unity (script de editor ou Unity CLI), nunca com YAML escrito à mão (regra 9).
 
 ## Fluxo de uma tarefa
 
 ```
                        ┌─ regras-do-jogo ──────── PR ─┐
 designer-docs ─► shared-contratos ─► merge ─┼─ server-funcionalidade ── PR ─┐
-(se precisar)        (PR pequeno)           └─ client-funcionalidade ── PR ─┴─► CI ─► pessoa: Unity e merge
+(se precisar)        (PR pequeno)           └─ client-funcionalidade ── PR ─┴─► CI ─► pessoa: cena e merge
                                                                               (revisor só em PR de risco)
 ```
 
-0. **Ficha da tarefa.** O coordenador escreve na issue o objetivo, a cena, o contrato, as regras e os testes esperados, e a pessoa aprova uma vez. A cena é o que a pessoa faz e o que o jogo mostra ([Entrega da funcionalidade](#entrega-da-funcionalidade)). É o que mais evita retrabalho.
+0. **Ficha da tarefa.** O coordenador escreve na issue o objetivo, o [plano](#plano-da-tarefa) (casos, estados, ponto de entrada e testes), o contrato e as regras, e a pessoa aprova uma vez. É o que mais evita retrabalho.
 1. **Puxar para em andamento (trava de concorrência).** Antes de qualquer agente ou pessoa começar a codificar, a tarefa precisa ser puxada para em andamento com `npm run tarefa -- puxar <N> [branch] [--agente <papel>]`. Isso marca a issue com a label `em-andamento`, atualiza o GitHub Projects para `In Progress` e impede que outra pessoa ou agente trabalhe na mesma tarefa ao mesmo tempo. Em orquestrações com múltiplos agentes em paralelo, o coordenador cria subtarefas (`npm run tarefa -- subtarefa <pai> --titulo "..." --agente <papel>`) para que cada agente puxe e trave sua própria issue.
 2. **Regra clara?** Se `docs/features/<x>.md` não diz o que implementar, o `designer-docs` detalha antes, ou a dúvida vai para o grupo. Tarefa pequena: as regras vão direto na ficha.
 3. **Contrato primeiro.** O `shared-contratos` define mensagens, IDs e eventos num PR pequeno, que é revisado e mergeado. Os outros agentes partem da `main`, então precisam do contrato lá.
 4. **Em paralelo.** `regras-do-jogo`, `server-funcionalidade` e `client-funcionalidade` trabalham ao mesmo tempo, cada um no seu **worktree** (uma cópia separada do repo) e na sua branch, e cada um abre o seu PR.
 5. **Revisão.** O CI confere formatação, padrão de commit e testes. O `revisor` só entra em PR de risco (veja a tabela de papéis). No resto, a verificação proporcional do autor basta.
-6. **Pessoas.** Olham a cena no jogo, aprovam e fazem o merge. Conteúdo de Unity que não sai de script (cena, prefab) continua com quem monta.
+6. **Pessoas.** Olham a cena no jogo, aprovam e fazem o merge.
 
 Várias funcionalidades podem andar ao mesmo tempo, cada uma com o seu trio de agentes. O limite real é a capacidade de review das pessoas: prefira PRs pequenos.
 
@@ -54,13 +55,28 @@ Várias funcionalidades podem andar ao mesmo tempo, cada uma com o seu trio de a
 
 A tarefa de jogo termina na cena que o jogador usa. Contrato, servidor e teste são o caminho até ela. A entrega é a cena pronta.
 
-A ficha traz a **cena**, em frases que uma pessoa reconhece no jogo:
+A cena é o que a pessoa faz e o que o jogo mostra, a partir do jogo aberto: não basta a tela existir, ela precisa ter **ponto de entrada** (tecla, botão do HUD, NPC, aproximar). Quem faz o client entrega a cena inteira, inclusive cena, prefab e asset gerados pelo Unity. Uma tela que só escreve o nome da mensagem não é a cena.
 
-- o que a pessoa faz (tecla, clique, aproximar);
-- o que o jogo mostra (tela, texto, modelo, barra), no padrão de [Lumora UI v1](../design/interface/GUIA-DE-ESTILO.md);
-- os cantos da própria regra: vazio, erro e o limite, em português.
+### Plano da tarefa
 
-Quem faz o client entrega essa cena nos scripts. Uma tela que só escreve o nome da mensagem não é a cena.
+Quem puxa uma tarefa de jogo escreve o plano na issue **antes de codar** (ou confirma o da ficha, se o coordenador já fez). Curto, em frases que uma pessoa reconhece no jogo:
+
+- **Casos de uso:** o que o jogador quer fazer, do ponto de entrada até o resultado.
+- **Estados:** os itens da checklist abaixo que se aplicam, e o que aparece em cada um. Os que não se aplicam ficam de fora, sem justificar.
+- **Testes:** cada caso e cada estado vira um teste (xUnit no servidor, EditMode no client). É o mesmo trabalho da regra 10, só que pensado antes.
+
+Siga em frente depois de escrever. Só pare e pergunte se houver **dúvida de regra** (o que o jogo deve fazer), não de implementação.
+
+**Checklist de experiência (MMORPG)**
+
+- **Vazio, erro e limite** da própria regra, com texto em português que diz o que fazer.
+- **Espera do servidor:** o que aparece enquanto a resposta não vem; o botão não envia duas vezes; recusa do servidor mostra o motivo.
+- **Outros jogadores:** membro do grupo entra ou sai, outro jogador mexe na mesma coisa, alguém desconecta.
+- **Conexão e sessão:** reconectar e relogar mostram o estado certo; o que persiste.
+- **Entrada:** tecla (rebind), ESC fecha, a tela não rouba o movimento nem o combate.
+- **Retorno:** aviso, som ou efeito quando algo acontece, inclusive com a tela fechada.
+- **Descoberta:** como o jogador encontra a funcionalidade da primeira vez.
+- **Visual:** [Lumora UI v1](../design/interface/GUIA-DE-ESTILO.md), sem texto provisório, sem corte em leitura aumentada.
 
 O PR de contrato ou de servidor não fecha a issue da funcionalidade. `Closes` vai no PR em que a cena está. Em "Como testar", a pessoa lê o que fazer e o que aparece.
 
