@@ -31,7 +31,7 @@ Tipos de mobs, comportamento por região e bosses com mecânicas marcantes.
 - [ ] O chefe raro some sozinho se ninguém o matar? Proposta atual: fica até morrer.
 - [ ] Dungeon tem chefe raro (um sorteio ao criar a instância)? As regras já servem; falta decidir.
 - [ ] Loot próprio do chefe raro (item que só ele larga): depende de [itens.md](itens.md).
-- [ ] As escolhas do servidor do inimigo comum (lista em "Inimigo comum da fatia"): o grupo perder o alvo de vista na desistência, o ataque ir até o fim, o golpe pegar todos no círculo e o inimigo levar dano na volta.
+- [ ] As escolhas do servidor do inimigo comum (lista em "Inimigo comum da fatia"): o grupo perder o alvo de vista na desistência, o ataque ir até o fim, o golpe pegar todos no círculo e o inimigo ser imune na volta.
 - [x] ~~O tamanho do grupo do campo é sorteado de novo a cada volta do grupo inteiro?~~ Sim (issue #452, proposta): veja "Mais mobs no campo".
 - [ ] Os pontos, níveis, tamanhos e as duas espécies novas (Lobo do Campo, Tatu Rochoso) de "Mais mobs no campo" são proposta do agente (issue #452): o dono confirma ou troca, alinhado ao bestiário ([#322](https://github.com/GabrielNied/jogo_do_grupo/issues/322)).
 
@@ -106,10 +106,10 @@ O que o servidor acrescentou ao implementar (issue #268; **proposta**, decidido 
 - **Desistência:** quando um inimigo passa dos 30 m e desiste, o grupo **perde o alvo dele de vista**; só volta a persegui-lo se alguém do grupo o vir de novo (a 12 m). Sem ninguém à vista, quem ainda perseguia também volta.
 - **O ataque vai até o fim:** depois do aviso, o inimigo dá o golpe e cumpre a recuperação mesmo que o alvo fuja ou saia da área. Só a morte interrompe.
 - **O golpe pega todos** os personagens que estão no círculo quando o aviso acaba, não só o alvo. Conta o centro do personagem (sem raio de corpo).
-- **Na volta ele ainda leva dano** (só o morto não leva), mas não reage até chegar ao ponto de origem.
+- **Na volta ele é imune** ("Evade": o dano é recusado; revisto na issue #488, antes levava dano e chegava ferido). Também desiste quando passa 8 s perseguindo sem conseguir atacar (kite na borda do alcance; `ConfigInimigosDoCampo.LimiteSemAtacarSegundos`).
 - **Onde:** o centro do grupo fica em (0, 190), 150 m ao norte do portão (que está em (0, 40)), com os pontos de origem num círculo de 4 m de raio. O campo faz parte da área `cidade`. Este é o primeiro de vários pontos: veja "Mais mobs no campo" (o tamanho do grupo é sorteado de novo a cada reaparição). O comando de teste `spawn` ([Desenvolvimento](desenvolvimento.md)) acrescenta um inimigo a mais no maior grupo da área, sem esperar a volta.
 - **Id do inimigo:** começa em 1.000.000.000.000 e soma 1; cada volta depois de morto é um inimigo novo, com id novo. Nunca coincide com id de personagem nem com o boneco de treino.
-- **Dano no jogador:** Mobs decide **quem** o golpe pegou e publica `GolpeDeInimigoAcertou`; tirar a vida é de quem é dono dela ([Combate](combate.md)), que ainda **não** assina o evento. Até lá o golpe é avisado e decidido, mas não tira vida.
+- **Dano no jogador:** Mobs decide **quem** o golpe pegou e publica `GolpeDeInimigoAcertou`; tirar a vida é de quem é dono dela ([Combate](combate.md)), que assina o evento e tira a vida.
 - **Quem participou da morte:** quem causou dano ao inimigo desde que ele apareceu, em ordem crescente de id (`InimigoDerrotado.Participantes`; o Combate informa o atacante em `IAlvosDeCombate.TentarAplicarDano`). A lista zera quando ele desiste e volta (a vida também volta ao máximo) e quando ele reaparece. Quem só foi alvo do inimigo, sem causar dano, não participa.
 
 O chefe raro no campo (issue #310; **proposta**, a confirmar no review):
