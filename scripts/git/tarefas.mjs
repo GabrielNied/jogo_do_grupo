@@ -5,7 +5,7 @@
 //
 // Uso:
 //   npm run tarefa -- listar
-//   npm run tarefa -- puxar <numero> [nome-da-branch] [--agente <nome>] [--worktree <caminho>]
+//   npm run tarefa -- puxar <numero> [nome-da-branch] [--agente <nome>] [--worktree <caminho>] [--base <branch>]
 //   npm run tarefa -- liberar <numero> [--motivo "<motivo>"]
 //   npm run tarefa -- soltar-travas
 //   npm run tarefa -- status <numero>
@@ -397,6 +397,8 @@ async function puxarTarefa(args) {
   let nomeBranch = null;
   let nomeAgente = null;
   let worktreePath = null;
+  // Branch de base de uma leva empilhada (ainda sem merge); o padrão é a main.
+  let base = "main";
 
   for (let i = 1; i < args.length; i++) {
     if (args[i] === "--agente" && args[i + 1]) {
@@ -404,6 +406,9 @@ async function puxarTarefa(args) {
       i++;
     } else if (args[i] === "--worktree" && args[i + 1]) {
       worktreePath = args[i + 1];
+      i++;
+    } else if (args[i] === "--base" && args[i + 1]) {
+      base = args[i + 1].replace(/^origin\//, "");
       i++;
     } else if (!args[i].startsWith("--") && !nomeBranch) {
       nomeBranch = args[i];
@@ -519,14 +524,14 @@ async function puxarTarefa(args) {
       executarGit(["pull", "--ff-only", "origin", branchExistente]);
     }
   } else if (worktreePath) {
-    executarGit(["fetch", "origin", "main"]);
-    executarGit(["worktree", "add", worktreePath, "-b", nomeBranch, "origin/main"]);
+    executarGit(["fetch", "origin", base]);
+    executarGit(["worktree", "add", worktreePath, "-b", nomeBranch, `origin/${base}`]);
     console.log(`✔ Worktree criado em: ${worktreePath}`);
   } else {
-    // Branch local no repositório atual, sempre da origin/main: a main local pode estar
-    // velha ou presa (aberta em outro worktree, mudança não commitada barrando o pull).
-    executarGit(["fetch", "origin", "main"]);
-    executarGit(["switch", "--no-track", "-c", nomeBranch, "origin/main"]);
+    // Branch local no repositório atual, sempre da origin (main ou --base): a main local pode
+    // estar velha ou presa (aberta em outro worktree, mudança não commitada barrando o pull).
+    executarGit(["fetch", "origin", base]);
+    executarGit(["switch", "--no-track", "-c", nomeBranch, `origin/${base}`]);
   }
   // Worktree novo nasce sem node_modules: sem isto o commitlint do hook recusa o 1º commit.
   if (worktreePath && ligarNodeModules(raizAtual, worktreePath)) {
@@ -758,6 +763,7 @@ Comandos disponíveis:
                                   Opções:
                                     --agente <nome>     Identifica o papel do agente (ex: server-core).
                                     --worktree <path>   Cria a branch em um worktree separado.
+                                    --base <branch>     Parte de outra branch do origin (leva empilhada).
   liberar <numero> [--motivo ...] Libera uma tarefa em andamento de volta para a fila de disponíveis.
   soltar-travas                  Libera em-andamento sem branch no origin e sem PR aberto há mais de 2 h.
   subtarefa <pai> [opts]          Cria uma subtarefa para um agente específico vinculada à tarefa pai.

@@ -79,7 +79,7 @@ Puxar tarefa: rode `npm run tarefa -- puxar <N> <branch> --agente <papel> --work
 Fora do escopo: <o que NÃO fazer>
 Pronto quando: contrato, servidor e client com a cena no mesmo PR, com ponto de entrada e os estados do plano testados ([Entrega da funcionalidade](../../../docs/agentes.md#entrega-da-funcionalidade))
 Autorização: pode commitar, enviar a branch e abrir PR. Não faça merge.
-Base: <só se precisar de algo ainda não na main> passo 0: `git merge <branch>` (local) e conferir <arquivo>. Sem PR próprio? Commite local na sua branch e informe branch e hash.
+Base: <só se precisar de algo ainda não na main> leva empilhada sobre um PR aberto: some `--base <branch-do-PR>` ao `puxar` (sem isso a branch nasce da `origin/main` e perde a base) e conferir <arquivo>; branch só local: passo 0 `git merge <branch>`. Sem PR próprio? Commite local na sua branch e informe branch e hash.
 ```
 
 O worktree do agente parte do commit do checkout principal; o que o coordenador não commitou não chega a ele ([Fechamento](../../../docs/agentes.md#fechamento-o-coordenador-integra-e-limpa-o-que-criou)).
