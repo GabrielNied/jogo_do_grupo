@@ -1,7 +1,7 @@
 # 0022. Serilog para observabilidade do servidor
 
 **Data:** 2026-10-11
-**Status:** aceita
+**Status:** substituída por [0033](0033-mascaramento-de-logs.md)
 
 ## Contexto
 
