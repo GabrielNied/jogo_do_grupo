@@ -125,7 +125,7 @@ Lições de processo (Blender, commits em etapas, Unity aberto) estão em [licoe
 
 ### Prints da tela
 
-Mudou tela ou HUD: com o editor do projeto fechado, grave o que o Game view mostraria em 1280×720, 1920×1080 e 2560×1440 e leia os PNG antes do PR. O script abre a cena, o painel, ou os dois (a cena fica atrás). Não sobe o servidor: a janela sai no estado em que monta sem resposta. Os arquivos caem em `prints/` na raiz do repositório (o git ignora a pasta). Cada caminho sai no log.
+Mudou tela ou HUD: com o editor do projeto fechado, grave o que o Game view mostraria em 1280×720, 1920×1080 e 2560×1440 e leia os PNG antes do PR. O script abre a cena, o painel, ou os dois (a cena fica atrás). Não sobe o servidor: a janela sai no estado em que monta sem resposta. Os arquivos caem em `prints/` na raiz do repositório (o git ignora a pasta). Cada execução apaga os PNG que já estavam nessa pasta, então ela guarda só a leva atual. `PRINT_SAIDA` em outra pasta não apaga nada. Cada caminho sai no log.
 
 No PowerShell, a variável vale só para aquele comando:
 
