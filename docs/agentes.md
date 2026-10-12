@@ -114,6 +114,7 @@ Vale para o dono da funcionalidade e para os agentes de client, no worktree dele
 - **Tela e HUD:** prefira UI Toolkit montada por código e registrada sozinha, como `JanelaMissoes` (`[RuntimeInitializeOnLoadMethod]` + `JanelasDoJogo.Registrar`). Não precisa de cena nem prefab.
 - **Cena, prefab, material ou asset:** script de editor em `Features/<X>/Editor/`, rodado com `npm run unity:executar -- <Classe.Metodo>` no próprio worktree (a primeira importação demora). Script reproduzível, não clique único. Com o editor aberto nesse worktree, o Unity CLI (`unity command`) também serve. YAML do Unity e `.meta` escritos à mão o hook barra (regra 9).
 - **Um Unity por vez na máquina, sozinho:** `unity:executar`, `unity:importar` e `unity:testes` pegam uma trava da máquina ([scripts/unity/trava.mjs](../scripts/unity/trava.mjs)) e esperam a vez enquanto outro comando ou o editor estiver aberto, até 30 min (`UNITY_ESPERA_MIN`). Trava de processo morto é retomada sozinha.
+- **Tela ou HUD:** antes do PR, grave o print nas três resoluções e leia os PNG ([Prints da tela](#prints-da-tela)). Sem Unity no ambiente, pule: não vira pendência.
 - Commite o que o Unity gerou na sua pasta no mesmo PR; `npm run conferir-unity` precisa passar. `ProjectSettings/` e cenas de `Core` ficam de fora: se o ponto de entrada exigir mexer nelas, pare e avise.
 
 ### Agentes artistas e o Unity
@@ -121,6 +122,20 @@ Vale para o dono da funcionalidade e para os agentes de client, no worktree dele
 Os artistas ([ADR 0014](decisoes/0014-conteudo-3d-e-agentes-artistas.md)) buscam assets CC0 conforme a necessidade e montam o conteúdo **pelo Unity** (editor aberto via Unity CLI, ou scripts de editor em modo batch). Cada artista trabalha no seu worktree, como os outros agentes, e a trava do Unity ([Usar o Unity](#usar-o-unity)) põe os passos com Unity em fila. O checkout principal fica com a pessoa. Antes de abrir o PR, `npm run conferir-unity` confirma que `.meta` e materiais alterados pelo Unity entraram no commit. O CI repete a parte dos `.meta` que faltam.
 
 Lições de processo (Blender, commits em etapas, Unity aberto) estão em [licoes.md](licoes.md).
+
+### Prints da tela
+
+Mudou tela ou HUD: com o editor do projeto fechado, grave o que o Game view mostraria em 1280×720, 1920×1080 e 2560×1440 e leia os PNG antes do PR. O script abre a cena, o painel, ou os dois (a cena fica atrás). Não sobe o servidor: a janela sai no estado em que monta sem resposta. Os arquivos caem em `prints/` na raiz do repositório (o git ignora a pasta). Cada caminho sai no log.
+
+No PowerShell, a variável vale só para aquele comando:
+
+```
+$env:PRINT_PAINEL="itens.inventario"; npm run unity:executar -- JogoDoGrupo.Client.Features.Desenvolvimento.Editor.CapturaDaTelaComando.Capturar
+```
+
+`PRINT_CENA` é o caminho da cena (`Assets/_Game/Core/Scenes/SampleScene.unity`). `PRINT_SAIDA` troca a pasta. Os dois podem vir juntos. A chave do painel é a da janela (`itens.inventario`, `personagem.ficha`) ou da tela (`core.login`, `personagem.selecao`).
+
+Editor aberto ou máquina sem Unity: não rode e não abra pendência. Quem faz o merge olha a cena pelo "Como testar".
 
 ### Fechamento: o coordenador integra e limpa o que criou
 
