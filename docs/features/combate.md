@@ -53,7 +53,7 @@ Vêm do [Livro de ideias](../brainstorm/figjam.md) (seção 10). São **proposta
 
 ### Ritmo do golpe (New World)
 
-Decidido em 2026-10-12. Os números e a cadeia moram na [seção 2 da fatia](fatia-jogavel.md#2-um-ataque-primeira-arma-leve-e-pesado). Aqui fica o que o New World sugere e **não** entra, para a implementação não copiar o jogo inteiro:
+Decidido em 2026-10-12. A cadência (leve, pesado, vigor) é a do New World. A sensação de contato, o corpo que avisa e a pausa no acerto são a do Elden Ring ([referências](../referencias.md#elden-ring-fromsoftware-2022)). Os números e a cadeia moram na [seção 2 da fatia](fatia-jogavel.md#2-um-ataque-primeira-arma-leve-e-pesado). Aqui fica o que essas referências sugerem e **não** entra:
 
 - **Esquiva com invulnerabilidade.** No New World o dano some numa janela curta. Aqui a esquiva só evita se a pessoa sair da área a tempo.
 - **Guarda segurada e guarda quebrada.** No New World segurar o bloqueio gasta vigor conforme o golpe. Aqui o bloqueio é a defesa do equipamento ([#344](https://github.com/GabrielNied/jogo_do_grupo/issues/344)): sem parry e sem janela de timing.
@@ -72,6 +72,7 @@ Decidido em 2026-10-12. A animação, o passo na tela e a resposta no instante d
 - O servidor não roda clipe nem esqueleto. O instante do contato é a duração do preparo, a mesma constante dos dois lados. O client só ajusta a velocidade do clipe para a pose cair nesse instante. Vale para o golpe do jogador e para o [contato do inimigo](mobs.md#contato-do-golpe).
 - A sensação de desviar e tomar dano mesmo assim, hoje, vem do volume não coincidir com o modelo. Com o contato, quem saiu do cone antes do fim do preparo não leva dano, no servidor e na tela.
 - O client começa a esquiva e o golpe na hora do botão, sem esperar a resposta. A vida só muda quando o servidor confirma o acerto.
+- **Pausa no acerto** (decidido em 2026-10-12): quando a confirmação chega, o client segura a pose de quem bateu e de quem levou por **70 ms** (`PausaVisualNoAcertoMs`). O relógio do servidor não para. Não é invulnerabilidade nem atordoamento.
 - Se a mensagem da esquiva chegar depois que o servidor já resolveu o golpe, o dano vale. Rebobinar o mundo até o instante do botão é a compensação de latência, fora desta fatia ([#172](https://github.com/GabrielNied/jogo_do_grupo/issues/172)).
 - O teste de cone nesse instante não aumenta a carga: o servidor já dá o passo da IA dez vezes por segundo, e a animação não entra nesse passo.
 

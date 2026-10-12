@@ -13,7 +13,7 @@ Ao definir um sistema novo, comece pela referência dele, descreva o que muda e 
 
 | Sistema | Base principal | Também olhar | Onde somos diferentes |
 |---|---|---|---|
-| Ritmo do combate | New World | Black Desert (o contrário: combos rápidos) | — |
+| Ritmo do combate | New World | Elden Ring (contato e leitura do corpo), Black Desert (o contrário: combos rápidos) | Esquiva sem invulnerabilidade; bloqueio pela defesa do equipamento |
 | Build sem classe | Throne and Liberty, Albion Online | New World, Guild Wars 2 | As skills dos itens são sorteadas; a combinação de itens e a fusão criam builds que não existem nesses jogos |
 | Troca de arma | New World, Throne and Liberty | Guild Wars 2 | A pensar (S10) |
 | Skills nos itens | Albion Online (skill por peça) | Path of Exile (gemas), Ragnarok (cartas), Destiny 2 (perks aleatórios) | Sorteio aleatório + fusão |
@@ -41,6 +41,12 @@ Ao definir um sistema novo, comece pela referência dele, descreva o que muda e 
   - **stamina** gasta em **esquiva** (com uma janela curta de invulnerabilidade) e **bloqueio** (o custo depende do dano recebido);
   - atributos que mudam como cada arma escala.
 - **Lição técnica:** no lançamento, um exploit de invencibilidade foi atribuído a decisões confiadas ao client, e houve duplicação de ouro quando o salvamento de personagens falhou durante transferências entre servidores. Para nós: **servidor autoritativo** em tudo que decide resultado, e **operações de economia atômicas** (o ouro sai e entra na mesma transação, ou nada acontece).
+
+### Elden Ring (FromSoftware, 2022)
+
+- **Famoso por:** cada golpe se lê no corpo (preparo, o instante em que encosta, recuperação) e o acerto segura a pose por um momento. Chefe se anuncia pela animação, não por um círculo solto.
+- **Pegar:** o dano no instante em que o modelo encosta; uma pausa visual curta nesse instante, só no client; o chefe conta o ataque com o corpo durante o aviso. Os números estão em [combate](features/combate.md#o-que-o-client-mostra-e-o-que-o-servidor-decide) e em [mobs](features/mobs.md#contato-do-golpe).
+- **Não pegar:** esquiva em que o dano some, quebra de postura do chefe, e o client decidir se o golpe acertou.
 
 ### Throne and Liberty (NCSoft / Amazon, 2024)
 
@@ -146,6 +152,7 @@ Para não começar do zero no Unity, vale avaliar pontos de partida oficiais e g
 Pesquisa de 2026-10-10. Números de balanceamento mudam a cada temporada; confira a fonte antes de copiar um valor.
 
 - New World: [Fextralife: Combat](https://newworld.wiki.fextralife.com/Combat), [Vulkk: como funciona o combate](https://vulkk.com/2021/09/28/how-combat-works-in-new-world-a-beginners-guide/), [exploit de invencibilidade](https://techraptor.net/gaming/news/game-breaking-new-world-invincibility-exploit-discovered), [duplicação de ouro](https://www.pcgamesn.com/new-world/gold-duping-bug)
+- Elden Ring: [Fextralife: Combat](https://eldenring.wiki.fextralife.com/Combat)
 - Throne and Liberty: [AlcastHQ: por que é sem classes](https://alcasthq.com/why-throne-and-liberty-is-a-classless-game-tl-mmo-insights/), [pares de armas e papéis](https://guildorder.com/ru/games/throne_and_liberty/wiki/weapon-pairs-and-role-composition)
 - Albion Online: [guia de equipamento](https://heaven-guardian.com/albion-online-gear-guide/), [Destiny Board](https://heaven-guardian.com/albion-online-destiny-board-guide/)
 - Guild Wars 2: [wiki oficial: Combat](https://wiki.guildwars2.com/wiki/Combat)
