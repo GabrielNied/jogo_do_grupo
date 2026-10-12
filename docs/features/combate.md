@@ -142,3 +142,12 @@ O client só reage ao que o servidor confirmou (`AtaqueAcertou`, vida menor em `
 - **Limites:** no máximo 8 flashes e 4 sons por janela de 0,12 s; hit-stop e tremor não se somam (vale o maior, com teto).
 - **Esquiva:** som ao esquivar. "Esquivou!" aparece quando o jogador estava no círculo de um golpe avisado, esquivou antes do golpe, estava fora quando o preparo acabou e o servidor não tirou vida. Hoje é inferido; uma mensagem do servidor para "esquivou" deixaria exato. Estar dentro de um círculo avisado mostra "Saia da área!" com um som de alerta.
 - **Sons:** gerados por código (`SintetizadorDeSons`), sem arquivos de terceiros. Entram no mixer de Core quando o #123 existir. Tremor, hit-stop e som têm chaves em `ConfiguracaoDeImpacto`, a ligar na tela de opções do Core.
+
+### Sem dano entre aliados (#346)
+
+Decisões de design (2026-10-11, do agente da funcionalidade; ajustáveis):
+
+- **Regra:** um golpe ou skill de área nunca acerta o **próprio atacante** nem **aliados**. Aliado = mesmo grupo ([social.md](social.md)). Boneco, inimigos, chefes e jogadores de fora do grupo continuam alvos válidos (PvP é futuro; hoje nenhum jogador é alvo).
+- **Onde:** `SelecaoDeAlvos.PodeAcertar` filtra os alvos do volume antes do dano em `ServicoDeAtaques`; vale para qualquer skill que use `IAlvosDeCombate`. `AlvoDeCombate.PersonagemId` (0 = não é jogador) diz que o alvo é um jogador.
+- **Sem referência a Social (ADR 0016):** Combate consulta `IAliadosDeCombate.SaoAliados` (`Contratos/Combate/`); sem implementação vale `NinguemEAliado`. **Pendência de Social:** implementar a interface sobre `GruposDoServidor` (consulta por demanda, sem evento nem cache: reflete o grupo na hora do acerto). Serve também ao TODO de levantar só aliado (queda).
+- **Fora do escopo:** cura e buffs em aliados.
