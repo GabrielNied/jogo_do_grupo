@@ -26,6 +26,11 @@ export function pastasDoPapel(papel, pasta) {
     case "shared-contratos":
     case "regras-do-jogo":
       return [shared, `tests/JogoDoGrupo.Shared.Tests/Features/${pasta}/`];
+    case "funcionalidade":
+    case "itens":
+    case "economia":
+      // Dono da fatia vertical (ADR 0030): as três partes, os testes e a doc.
+      return [shared, server, client, "tests/", `docs/features/${pasta.toLowerCase()}.md`];
     case "designer-docs":
       return [`docs/features/${pasta.toLowerCase()}.md`];
     case "client-core":

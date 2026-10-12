@@ -23,6 +23,10 @@
 - [ ] Descrevi abaixo como validei localmente a alteração
 - [ ] Se este PR é a entrega da funcionalidade, a cena está aqui e "Como testar" diz o que a pessoa faz e o que aparece
 
+## Decisões de design
+
+<!-- Só se este PR decidiu regra que a doc não fechava: uma linha cada, já registrada em docs/features/<x>.md. Apague a seção se não houver. -->
+
 ## Como testar
 
 <!-- Passos para o revisor testar -->

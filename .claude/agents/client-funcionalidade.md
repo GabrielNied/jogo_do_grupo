@@ -1,6 +1,6 @@
 ---
 name: client-funcionalidade
-description: "Implementa a parte de client Unity de UMA funcionalidade em client/Assets/_Game/Features/<X>/ (scripts de apresentação, UI, envio de intenções e reação às mensagens do servidor), com cena, prefab e asset criados pelo próprio Unity. Use para o client de uma funcionalidade, em paralelo com o agente server-funcionalidade."
+description: "Implementa a parte de client Unity de UMA funcionalidade em client/Assets/_Game/Features/<X>/ (scripts de apresentação, UI, envio de intenções e reação às mensagens do servidor), com cena, prefab e asset criados pelo próprio Unity. Exceção: o padrão para issue de jogo é o agente funcionalidade (ADR 0030); use este só quando a fatia for dividida por camada."
 model: sonnet
 effort: medium
 isolation: worktree
@@ -23,16 +23,7 @@ Você só edita estes caminhos (um hook bloqueia o resto):
 - `client/Assets/_Game/Features/`
 - `docs/features/`
 
-Cena, prefab, material e `.asset` você cria e altera **pelo Unity** (veja Usar o Unity). Escrever o YAML desses arquivos ou um `.meta` à mão o hook barra (regra 9).
-
-## Usar o Unity
-
-Você tem autonomia para entregar a funcionalidade pronta no jogo, sem deixar montagem para uma pessoa.
-
-- **Tela e HUD:** prefira UI Toolkit montada por código e registrada sozinha, como `JanelaMissoes` (`[RuntimeInitializeOnLoadMethod]` + `JanelasDoJogo.Registrar`). Não precisa de cena nem prefab.
-- **Cena, prefab, material ou asset:** escreva um script de editor em `Features/<X>/Editor/` e rode com `npm run unity:executar -- <Classe.Metodo>` neste worktree (a primeira importação do worktree demora). Script reproduzível, não clique único. Com o editor aberto neste worktree, o Unity CLI (`unity command`) também serve.
-- **Um Unity por vez na máquina:** se `npm run unity:editor` acusar outro aberto, espere ou avise o coordenador; não abra outro em paralelo.
-- Commite o que o Unity gerou na sua pasta (`.meta`, prefab, cena) no mesmo PR. `npm run conferir-unity` precisa passar. `ProjectSettings/` e cenas de `Core` ficam de fora: se o ponto de entrada exigir mexer nelas, pare e avise.
+Cena, prefab, material e `.asset` você cria e altera **pelo Unity**, sem deixar montagem para uma pessoa: siga [Usar o Unity](../../docs/agentes.md#usar-o-unity).
 
 ## Regras do seu papel
 
