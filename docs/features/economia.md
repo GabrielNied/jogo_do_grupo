@@ -21,9 +21,16 @@ Moedas, mercado, comércio entre jogadores, saídas de recursos e taxas.
 
 - [ ] Haverá moeda premium?
 - [ ] Lojas de jogadores?
-- [ ] Custo em coroas da infusão, do reparo e das taxas: a propor (agente economia).
+- [x] Carteira e custo inicial da infusão entregues na #174; valores e configuração em [Itens — Infusão](itens.md#infusão-de-equipamentos-174).
+- [ ] Custo em coroas do reparo e das taxas: a propor (agente economia).
 
 ## Regras
+
+### Carteira de coroas para infusão (#174)
+
+Saldo persistente inteiro por personagem, inicialmente zero. `Contratos/Economia/ICarteiraCoroas` publica consulta, crédito e débito; operações de escrita exigem a transação do chamador e valores positivos. Débito confere saldo no banco, sem permitir negativo; crédito verifica overflow. A exclusão do personagem remove sua carteira. A infusão usa esse contrato na mesma transação dos equipamentos, conforme o [ADR 0032](../decisoes/0032-infusao-e-cobranca-atomicas.md).
+
+O crédito de teste é acessível pela bancada de Itens somente em Development. Ganho normal de coroas, loja e demais saídas seguem na #173.
 
 ### Proposta do board (2026-10-11, não validada)
 

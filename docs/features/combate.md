@@ -30,7 +30,7 @@ Cálculo de dano, seleção de alvo e efeitos de status. Usado por PvE e PvP.
 - [x] ~~Bosses com ataques telegrafados?~~ Decidido em 2026-10-10: sim (veja "Definido")
 - [ ] Como o servidor valida acertos com a latência (lag compensation)? Decidido pelo Gabriel em 2026-10-11 **para a fatia**: sem compensação de lag (o cone é medido no momento do acerto, com a posição que o servidor tem). Depois da fatia a pergunta segue aberta (issue #172).
 - [ ] Quais efeitos de status existem?
-- [ ] Como funciona o agro (ameaça) para o tank segurar os inimigos?
+- [x] ~~Como funciona o agro (ameaça) para o tank segurar os inimigos?~~ Adotado em 2026-10-12 (/decida, #169), fácil de mudar: tabela de ameaça por inimigo, veja [Ameaça (agro)](#ameaça-agro-169).
 - [ ] Quais buffs cada papel traz? Eles acumulam?
 - [ ] Um jogador pode trocar de papel trocando de itens no meio da dungeon?
 
@@ -38,15 +38,16 @@ Cálculo de dano, seleção de alvo e efeitos de status. Usado por PvE e PvP.
 
 Vêm do [Livro de ideias](../brainstorm/figjam.md) (seção 10). São **proposta do board (2026-10-11), não validada pelo grupo**; nada aqui muda o que já está em "Definido" ou implementado.
 
-- [ ] **Bloqueio por defesa** (sem parry nem janela de timing): com defesa de pelo menos 1,5x a potência de bloqueio do golpe, anula o dano direto; abaixo disso reduz proporcionalmente, até 80%. Responde em parte à pergunta de bloqueio acima. Depende da defesa (equipamento, [itens.md](itens.md)); o dano recebido hoje não tem defesa (`ServicoDeDanoRecebido.DanoFinal`).
-- [ ] **Sem defesa de timing:** o livro rejeita parry e bloqueio perfeito. **Conflito leve** com a sugestão "defesa que abre oportunidade" (bloquear no timing certo desequilibra o inimigo), que está só em "Sugestões para discussão" do board.
+- [x] **Bloqueio por defesa, adotado em 2026-10-11 (/decida, #344), fácil de mudar:** sem parry nem janela de timing. Defesa >= 1,5x a potência de bloqueio do golpe anula o dano direto; abaixo disso reduz proporcionalmente, até 80%. Os dois números ficam em constantes nomeadas. O client avisa defesa insuficiente. Proposta original do livro: (sem parry nem janela de timing): com defesa de pelo menos 1,5x a potência de bloqueio do golpe, anula o dano direto; abaixo disso reduz proporcionalmente, até 80%. Responde em parte à pergunta de bloqueio acima. Depende da defesa (equipamento, [itens.md](itens.md)); o dano recebido hoje não tem defesa (`ServicoDeDanoRecebido.DanoFinal`).
+- [x] **Sem defesa de timing, adotado em 2026-10-11 (#344):** a "defesa que abre oportunidade" fica de fora. O livro rejeita parry e bloqueio perfeito. **Conflito leve** com a sugestão "defesa que abre oportunidade" (bloquear no timing certo desequilibra o inimigo), que está só em "Sugestões para discussão" do board.
 - [ ] **Esquiva sem invulnerabilidade:** coincide com o que já vale (seção 3 da [fatia](fatia-jogavel.md)); o livro só reforça.
 - [ ] **Ataques básicos por arma** (espada corta, martelo varre, arco com disparo ou tiro carregado, cajado com pulso ou projétil ampliado): hoje só a espada existe. Outras armas entram com [itens.md](itens.md).
 - [ ] **Mira e volumes de acerto:** mouse direciona golpes, projéteis e áreas, sem seleção automática obrigatória; a área visível da skill deve ser a área real de acerto; volumes generosos (cone, faixa, círculo). Coerente com o cone de 90° já implementado; vale como critério para as skills.
 - [ ] **Movimentos além de correr e esquivar:** pulo, natação e escalada (proposta de escalada em superfícies e bordas do mapa; rios cruzados a nado, com gelo como alternativa). Dono: [personagem.md](personagem.md) e [mundo.md](mundo.md).
 - [ ] **Recursos:** pools-base de 100 vigor e 100 energia e regeneração de 10 vigor/s e 5 energia/s após 2 s **já coincidem** com a [fatia](fatia-jogavel.md#1-atributos-e-recursos). Novidade: poções, refeições e descanso em locais seguros como fontes de recuperação, e equipamentos e comida que modificam a regeneração.
 - [ ] **Estado caído:** o livro propõe 45 s, levantar por 3 s, 20% de vida e retorno à cidade ou teleporte descoberto; coincide com a [fatia](fatia-jogavel.md#7-dungeon-de-até-5-com-um-boss) e com [personagem.md](personagem.md#morte-e-caído-issue-97). Novidade: o **botão de retorno antes dos 45 s** e o retorno a **teleporte descoberto**; sem perda de XP, moeda, equipamento, materiais nem durabilidade por morte na primeira versão.
-- [ ] **Combos e cast com compromisso** (sugestões do topo do board): uma skill prepara e outra finaliza; skills fortes com preparo visível e cancelável (perde parte do recurso). Ficam em [skills.md](skills.md).
+- [x] **Cast com compromisso, regra de custo adotada em 2026-10-11 (#345):** skill forte tem preparo visível e sonoro e pode ser cancelada; cancelar custa **50% do recurso** (constante nomeada) e o servidor cobra uma vez só (no cancelamento ou na conclusão, nunca nos dois).
+- [ ] **Combos** (sugestão do topo do board): uma skill prepara e outra finaliza; segue como proposta (e skills fortes, veja acima). Ficam em [skills.md](skills.md).
 
 ## Regras
 
@@ -141,3 +142,38 @@ O client só reage ao que o servidor confirmou (`AtaqueAcertou`, vida menor em `
 - **Limites:** no máximo 8 flashes e 4 sons por janela de 0,12 s; hit-stop e tremor não se somam (vale o maior, com teto).
 - **Esquiva:** som ao esquivar. "Esquivou!" aparece quando o jogador estava no círculo de um golpe avisado, esquivou antes do golpe, estava fora quando o preparo acabou e o servidor não tirou vida. Hoje é inferido; uma mensagem do servidor para "esquivou" deixaria exato. Estar dentro de um círculo avisado mostra "Saia da área!" com um som de alerta.
 - **Sons:** gerados por código (`SintetizadorDeSons`), sem arquivos de terceiros. Entram no mixer de Core quando o #123 existir. Tremor, hit-stop e som têm chaves em `ConfiguracaoDeImpacto`, a ligar na tela de opções do Core.
+
+### Sem dano entre aliados (#346)
+
+Decisões de design (2026-10-11, do agente da funcionalidade; ajustáveis):
+
+- **Regra:** um golpe ou skill de área nunca acerta o **próprio atacante** nem **aliados**. Aliado = mesmo grupo ([social.md](social.md)). Boneco, inimigos, chefes e jogadores de fora do grupo continuam alvos válidos (PvP é futuro; hoje nenhum jogador é alvo).
+- **Onde:** `SelecaoDeAlvos.PodeAcertar` filtra os alvos do volume antes do dano em `ServicoDeAtaques`; vale para qualquer skill que use `IAlvosDeCombate`. `AlvoDeCombate.PersonagemId` (0 = não é jogador) diz que o alvo é um jogador.
+- **Sem referência a Social (ADR 0016):** Combate consulta `IAliadosDeCombate.SaoAliados` (`Contratos/Combate/`); sem implementação vale `NinguemEAliado`. **Pendência de Social:** implementar a interface sobre `GruposDoServidor` (consulta por demanda, sem evento nem cache: reflete o grupo na hora do acerto). Serve também ao TODO de levantar só aliado (queda).
+- **Fora do escopo:** cura e buffs em aliados.
+
+### Ameaça (agro) (#169)
+
+Adotado em 2026-10-12 pelo loop autônomo (/decida), a partir da proposta da issue; **fácil de mudar**: todos os números são constantes nomeadas. Base: World of Warcraft (tabela de ameaça, margem de troca de alvo, provocar) e New World (provocar que força o alvo por alguns segundos). RYL (S3) fica para as manadas: puxar muitos inimigos continua possível, porque a tabela não limita quantos perseguem um jogador.
+
+Quem decide: **servidor**. O dono é [Mobs](mobs.md), que já escolhe o alvo; Combate só informa quem causou dano (já informa em `IAlvosDeCombate.TentarAplicarDano`) e, quando existir cura, quem curou. O client continua vendo só o `AlvoId`.
+
+| Regra | Valor (proposta) | Constante sugerida |
+|---|---|---|
+| Ameaça por ponto de dano real (sem o excedente da morte) | **1** | `AmeacaPorDano` |
+| Ameaça por ponto de cura real (sem curar além do máximo), dividida entre os inimigos em combate com o curado | **0,5** | `AmeacaPorCura` |
+| Multiplicador de ameaça de quem usa item de tank (escudo) | **3x** | `MultiplicadorDeAmeacaTank` |
+| Troca de alvo quando o outro está ao alcance de ataque do inimigo | passa de **110%** da ameaça do alvo atual | `MargemDeTrocaPerto` |
+| Troca de alvo quando o outro está fora do alcance | passa de **130%** | `MargemDeTrocaLonge` |
+| Provocar: alvo forçado | **4 s** | `DuracaoDaProvocacao` |
+
+- **Tabela por inimigo**, não por grupo de inimigos: cada um guarda a ameaça de cada jogador. O grupo de inimigos continua acordando junto (o "grupo divide o que vê" de [mobs.md](mobs.md)).
+- **Primeiro alvo:** como hoje, o jogador mais próximo que ele viu. Enquanto ninguém tem ameaça nele, vale a regra antiga de não trocar.
+- **Com ameaça:** o alvo é quem tem mais ameaça, mas o inimigo só troca quando outro passa da margem (110% perto, 130% longe). Empate fica com o alvo atual; entre outros, o de menor id. Isso evita que ele fique pulando de alvo.
+- **Provocar** (skill de item de tank, [skills.md](skills.md)): o inimigo vira para quem provocou na hora, e a ameaça dele passa a ser igual à maior da tabela. Durante os 4 s o alvo não troca, nem por margem.
+- **Sai da tabela** quem cai, sai da área ou desconecta. A tabela **zera** quando o inimigo desiste e volta para casa (junto com a vida e os participantes) e quando ele reaparece.
+- **Sem decaimento** com o tempo nesta versão.
+- **Chefe:** usa a mesma tabela no lugar do "mais próximo" (`ChefeDaDungeon`). Ataques de área do chefe (investida) continuam mirando como estão descritos em [mobs.md](mobs.md).
+- **Ainda sem efeito:** cura e item de tank não existem; o multiplicador e a ameaça de cura entram quando chegarem ([#170](https://github.com/GabrielNied/jogo_do_grupo/issues/170) e [itens.md](itens.md)). Até lá só o dano conta, o que já faz o jogador que mais bate segurar o inimigo.
+- **Implementação sugerida:** contas puras em `RegrasAmeaca` no shared de Mobs (somar ameaça, escolher alvo com margem, provocação), como já é `RegrasInimigo.EscolherAlvo`. Código próprio, sem biblioteca: é uma tabela pequena por inimigo.
+- **Testes esperados:** quem bate mais vira o alvo só depois de passar a margem (110% perto, 130% longe); empate não troca; tank com 3x segura o alvo contra quem dá o dobro de dano; provocar vira o alvo na hora e segura por 4 s; caído e quem saiu da área saem da tabela; desistir e reaparecer zeram a tabela; dano além da vida que restava não conta.

@@ -9,15 +9,18 @@ namespace JogoDoGrupo.Server.Core.TempoReal;
 /// </summary>
 public sealed class SessaoTempoReal
 {
-    internal SessaoTempoReal(NetPeer peer)
+    internal SessaoTempoReal(NetPeer peer, int mensagensPorSegundo, int rajadaMensagens)
     {
         Peer = peer;
         ConectadaEm = Environment.TickCount64;
+        Limite = new LimiteDeMensagens(mensagensPorSegundo, rajadaMensagens, ConectadaEm);
     }
 
     internal NetPeer Peer { get; }
 
     internal long ConectadaEm { get; }
+
+    internal LimiteDeMensagens Limite { get; }
 
     internal bool AutenticacaoEmAndamento { get; set; }
 

@@ -7,7 +7,7 @@ description: Organiza o quadro de tarefas do Jogo do Grupo, registra decisões p
 
 Você organiza e destrava. Não implementa. Não escreva código de jogo (client, server, shared), não puxe issue para `em-andamento` e não abra PR de funcionalidade. Decisão que vira regra fica em `docs/features/` e na issue, num PR de documentação.
 
-`/decida` já autoriza escolher e registrar. Não pergunte o que decidir, não ofereça um cardápio e não espere OK. Implementar a leva é o `/trabalhe`.
+`/decida` já autoriza escolher e registrar. Não pergunte o que decidir, não ofereça um cardápio e não espere OK. Implementar a leva é o `/trabalhe`. Melhoria do que já está no jogo, em forma de tarefa nova, é o `/melhore`.
 
 ## 1. Ler o quadro
 
@@ -29,18 +29,28 @@ Para cada travada, nesta ordem:
 
 Prefira o que é fácil de mudar (constante nomeada, [regra 17](../../../AGENTS.md)). Várias decisões da mesma leva vão num PR só de docs.
 
-## 3. Organizar
+## 3. Pesquisar como implementar (só se a escolha técnica muda o resultado)
+
+Para cada pronta ou recém-destravada cuja implementação tem uma escolha técnica real (biblioteca, algoritmo, padrão do Unity ou do .NET), deixe o caminho pesquisado, para o `/trabalhe` não refazer (regra 13). Pule quando o repo já resolve ou a tarefa é só regra e doc.
+
+1. **Repo primeiro:** procure ajudante, padrão ou ADR existente (`docs/decisoes/`, `shared/`, `Core/`). Reaproveitar vence qualquer biblioteca nova.
+2. **Depois a web** (WebSearch, modo padrão; `extended` só se vier raso), no máximo 2 buscas por tarefa. Procure biblioteca pronta, pacote do Unity (UPM) ou técnica consagrada, e compare no máximo 3 candidatas.
+3. **Filtros que eliminam:** licença permissiva (MIT, Apache-2.0, BSD; assets só CC0 ou CC-BY, regra 9); compatível com Unity 6000.6 e C# 9 se tocar `shared/` ou client, ou com .NET 10 se for só servidor; mantida (release recente); sem tornar o servidor menos autoritativo (regra 3); sem referência entre funcionalidades (regra 2). Descarte o que falha, sem discutir.
+4. **Escolha uma e registre:** comente na issue a recomendação (nome, versão, licença, por que, e o que fazer se não servir). Biblioteca ou ferramenta nova que entra no projeto vira ADR (skill [novo-adr](../novo-adr/SKILL.md)) no PR de docs. Se o melhor é escrever o próprio código, diga isso e por quê.
+5. **Não instale nem adicione dependência:** adicionar o pacote é implementação, do `/trabalhe`. Nada de protótipo para testar a biblioteca.
+
+## 4. Organizar
 
 - Duas issues descrevem a mesma cena: comente nas duas qual fica, e deixe a outra apontando para ela.
 - Issue de épico grande sem cena: não a parta em código. Se couber, comente o próximo recorte jogável para o `/trabalhe` puxar.
 - PR aberto que já cumpre a cena: não reimplemente. O relatório cita o link.
 
-## 4. Entregar
+## 5. Entregar
 
 Se mudou doc, abra um PR `docs` (skill [preparar-pr](../preparar-pr/SKILL.md)), com commit, push e sem esperar pedido (regra 12). Merge é humano: não peça para mergear.
 
 Relatório curto:
 
 - Prontas para `/trabalhe` (número e uma linha).
-- Decisões registradas (issue e doc).
+- Decisões registradas (issue e doc), com a biblioteca ou técnica recomendada quando houve pesquisa.
 - O que continua parado, e por quê.

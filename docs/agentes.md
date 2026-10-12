@@ -30,11 +30,24 @@ O que fica com as **pessoas**:
 - olhar a cena no jogo, aprovar e fazer o merge dos PRs;
 - rever, quando quiserem, uma decisão de design que um agente tomou (com um PR).
 
-Design se decide por quem implementa, pessoa ou agente, sem esperar ninguém ([Decisões de design](#decisões-de-design)). O `/decida` organiza o quadro e registra o que está pendente, sem implementar. O `/trabalhe` implementa.
+Design se decide por quem implementa, pessoa ou agente, sem esperar ninguém ([Decisões de design](#decisões-de-design)). O `/decida` organiza o quadro e registra o que está pendente, sem implementar. O `/melhore` abre tarefas de melhoria do que já está no jogo, sem implementar. O `/trabalhe` implementa.
 
 Os agentes por camada (`shared-contratos`, `regras-do-jogo`, `server-funcionalidade`, `client-funcionalidade`) ficam para Core e para a fatia grande demais para um PR.
 
 Cenas, prefabs e assets saem dos próprios agentes, pelo Unity (script de editor ou Unity CLI), nunca com YAML escrito à mão (regra 9).
+
+## Prioridade das tarefas
+
+Decidida pelo grupo em 2026-10-11. Cada issue aberta tem um rótulo `prio:*`; ao escolher, vá da menor para a maior, respeitando o [foco do marco](features/fatia-jogavel.md#foco-atual) e o limite de 3 funcionalidades:
+
+1. `prio:1-erros`: tratamento de erros e bugs (o que quebra, perde dado ou trava o jogador).
+2. `prio:2-core-loop`: o ciclo do jogo (mobs, combate, XP, loot, nível).
+3. `prio:3-experiencia`: experiência do usuário (UI, feedback, fluidez, desempenho percebido).
+4. `prio:4-docs-definicoes`: documentação e definições de design (issues `decisao`).
+5. `prio:5-features`: funcionalidades novas.
+6. `prio:6-seguranca`: segurança e afins (limites, anti-abuso, ferramentas de GM).
+
+Issue nova ganha o rótulo na criação. Quebrado na `main` (CI) continua acima de tudo.
 
 ## Fluxo de uma tarefa
 

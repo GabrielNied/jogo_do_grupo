@@ -25,6 +25,7 @@ public sealed class CombateModule : IFeatureModule
         servicos.AddSingleton<IBonusDeAtributos, BonusDeEquipamentos>();
         servicos.AddSingleton<IAlvosDeCombate>(new BonecoDeTreino());
         servicos.AddSingleton<ControleDeAcoes>();
+        servicos.TryAddSingleton<IAliadosDeCombate, NinguemEAliado>();
         servicos.TryAddSingleton<ConfigQueda>();
         servicos.AddSingleton(sp =>
         {
@@ -73,7 +74,8 @@ public sealed class CombateModule : IFeatureModule
                 sp.GetRequiredService<TimeProvider>(),
                 sp.GetRequiredService<ILogger<ServicoDeAtaques>>(),
                 controle: sp.GetRequiredService<ControleDeAcoes>(),
-                queda: sp.GetRequiredService<ServicoDeQueda>()
+                queda: sp.GetRequiredService<ServicoDeQueda>(),
+                aliados: sp.GetRequiredService<IAliadosDeCombate>()
             );
             _ataques = servico;
             _esquivas = sp.GetRequiredService<ServicoDeEsquivas>();

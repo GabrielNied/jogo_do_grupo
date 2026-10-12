@@ -72,6 +72,10 @@ namespace JogoDoGrupo.Client.Features.Mobs.Editor
                 TemEmissao = true,
             },
             new Receita { Id = CatalogoCriaturas.PresaVelha, Nome = "PresaVelha" },
+            // Provisorio: o Lobo e o Tatu (#463) ainda nao tem modelo proprio no Blender; usam o
+            // do Javali com material e controller proprios ate o artista-personagens fazer o deles.
+            new Receita { Id = CatalogoCriaturas.LoboDoCampo, Nome = "JavaliDoCampo" },
+            new Receita { Id = CatalogoCriaturas.TatuRochoso, Nome = "JavaliDoCampo" },
         };
 
         public static string CaminhoPrefab(int id) =>

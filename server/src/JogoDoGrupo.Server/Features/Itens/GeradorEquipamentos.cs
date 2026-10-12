@@ -55,6 +55,7 @@ public sealed class GeradorEquipamentos(ConfigEquipamentos config)
             atributo.Valor *= fator;
         item.Atributos = atributos.ToArray();
         item.IndiceInfusivel = aleatorio.Next(atributos.Count);
+        item.ValorBaseInfusivel = atributos[item.IndiceInfusivel].Valor;
         item.Raridade = raridade;
         item.Grau = grau;
         item.NivelPersonagemMinimo =

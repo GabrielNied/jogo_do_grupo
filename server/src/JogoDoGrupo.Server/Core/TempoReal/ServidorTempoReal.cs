@@ -60,7 +60,12 @@ public sealed class ServidorTempoReal : BackgroundService
 
         var ouvinte = new EventBasedNetListener();
         ouvinte.ConnectionRequestEvent += pedido => pedido.AcceptIfKey(_configuracao.ChaveConexao);
-        ouvinte.PeerConnectedEvent += peer => _conexoes[peer.Id] = new SessaoTempoReal(peer);
+        ouvinte.PeerConnectedEvent += peer =>
+            _conexoes[peer.Id] = new SessaoTempoReal(
+                peer,
+                _configuracao.MensagensPorSegundo,
+                _configuracao.RajadaMensagens
+            );
         ouvinte.PeerDisconnectedEvent += (peer, _) =>
         {
             if (_conexoes.TryGetValue(peer.Id, out var sessao) && sessao.Peer == peer)
@@ -196,6 +201,12 @@ public sealed class ServidorTempoReal : BackgroundService
 
     private void Receber(SessaoTempoReal sessao, byte[] pacote)
     {
+        if (!sessao.Limite.Consumir(Environment.TickCount64))
+        {
+            DerrubarPorExcesso(sessao, pacote);
+            return;
+        }
+
         if (!ProtocoloTempoReal.TentarLerId(pacote, out var id))
         {
             Recusar(sessao, 0, MotivoRecusa.PacoteInvalido);
@@ -235,6 +246,20 @@ public sealed class ServidorTempoReal : BackgroundService
         {
             Recusar(sessao, id, recusa);
         }
+    }
+
+    // Proteção contra trapaça (#211): quem inunda o servidor perde a conexão na hora.
+    private void DerrubarPorExcesso(SessaoTempoReal sessao, byte[] pacote)
+    {
+        ProtocoloTempoReal.TentarLerId(pacote, out var id);
+        _log.LogWarning(
+            "Tempo real: conexão {Conexao} (conta {Conta}) passou de {Limite} mensagens/s e foi derrubada.",
+            sessao.Id,
+            sessao.ContaId,
+            _configuracao.MensagensPorSegundo
+        );
+        Recusar(sessao, id, MotivoRecusa.LimiteExcedido);
+        Encerrar(sessao, desconectar: true);
     }
 
     private void ReceberAntesDeAutenticar(SessaoTempoReal sessao, ushort id, byte[] pacote)
