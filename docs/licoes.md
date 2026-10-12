@@ -50,3 +50,9 @@ Formato: `### AAAA-MM-DD · título` com **O que houve**, **Regra** e **Origem**
 - **O que houve:** o commit da #519 falhou com `/usr/bin/env: sh: No such file or directory`, apesar de o Git estar instalado.
 - **Regra:** se isso ocorrer no PowerShell, rode o commit pelo Git Bash, com `/usr/bin:/bin` no PATH da sessão. Apenas localizar `sh.exe` pelo PowerShell pode não resolver o PATH visto pelos hooks. Mantenha os hooks ativos, sem `--no-verify`.
 - **Origem:** issue #519.
+
+### 2026-10-12 · Unity do CI morto por outro job com a mesma licença (issue #529)
+
+- **O que houve:** três execuções seguidas do Client (Unity) na `main` (e uma de PR) morreram com `Killed` / exit 137 segundos depois de ativar a licença, sem compilar nada. Cada uma coincidiu com outro job do Unity rodando: a licença Personal é uma só. Uma pendência "Client falhou na main" chegou a ser corrigida com mudança de código enquanto a causa da falha seguinte era essa.
+- **Regra:** um Unity por vez no repositório (grupo de concorrência `client-unity-licenca` no `client.yml`, [ADR 0019](decisoes/0019-unity-no-ci.md)). Falha com `Killed`/137 logo após a licença não é erro de código: confira se havia outro job do Unity ao mesmo tempo antes de mexer no client.
+- **Origem:** issue #529.

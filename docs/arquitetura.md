@@ -91,11 +91,11 @@ public sealed class PersonagemModule : IFeatureModule
 - **Serviços:** registre em `ConfigurarServicos`. Prefira `AddScoped` para o que usa o banco.
 - **Rotas:** mapeie em `MapearRotas` usando as constantes de rota do shared. `RequireAuthorization()` exige login; sem token válido, o Core responde 401 `NaoAutenticado`.
 - **Conta logada:** `usuario.ObterContaId()` (`using JogoDoGrupo.Server.Core.Autenticacao;`) devolve o Id da conta (`long`) numa rota com `RequireAuthorization()`. Receba o `ClaimsPrincipal` como parâmetro da rota.
-- **Erros:** toda resposta 4xx/5xx sai como `ErroApi`. Use `RespostasApi.Erro(StatusCodes.Status409Conflict, CodigosErroX.Algo)` (`using JogoDoGrupo.Server.Core.Api;`). Corpo ausente ou JSON malformado (400 `RequisicaoInvalida`) e exceções (500 `ErroInterno`) o Core já trata.
+- **Erros:** toda resposta 4xx/5xx sai como `ErroApi`. Use `RespostasApi.Erro(StatusCodes.Status409Conflict, CodigosErroX.Algo)` (`using JogoDoGrupo.Server.Core.Api;`). Corpo ausente ou JSON malformado (400 `RequisicaoInvalida`) banco ocupado (503 `ServidorOcupado`) e exceções (500 `ErroInterno`) o Core já trata.
 - **JSON:** campos públicos e nomes como no C# (compatível com o `JsonUtility` do Unity), enums como número. Os DTOs do shared funcionam direto como parâmetro e retorno (`Results.Ok(dto)`).
 - **Entidades:** crie a classe e uma `IEntityTypeConfiguration<T>` na pasta da funcionalidade; o `JogoDbContext` (`JogoDoGrupo.Server.Core.Persistencia`) as descobre sozinho. Acesse com `db.Set<T>()`. Para ligar à conta, guarde o `ContaId` (`long`) com índice.
-- **Unicidade:** cheque antes de salvar e, para a corrida entre duas requisições, capture `catch (DbUpdateException e) when (e.EhViolacaoDeUnicidade())` e responda 409.
-- **Banco ocupado:** `ErrosBanco.EhBancoOcupado()` reconhece SQLite ocupado/bloqueado (5/6) e falha de serialização SQLSTATE `40001`, inclusive em exceções internas. Ao sair da transação sem commit, ela é desfeita; responda 503 com `CodigosErro.ServidorOcupado` para permitir nova tentativa. Outras falhas continuam como 500 `ErroInterno`. O reconhecimento de SQLSTATE prepara a classificação de erros para PostgreSQL; o provedor e a migração ainda não foram implementados.
+- **Unicidade:** cheque antes de salvar e, para a corrida entre duas requisições, capture `catch (DbUpdateException e) when (e.EhViolacaoDeUnicidade())` e responda 409 (reconhece SQLite e SQLSTATE `23505`).
+- **Banco ocupado:** `ErrosBanco.EhBancoOcupado()` reconhece SQLite ocupado/bloqueado (5/6) e falha de serialização SQLSTATE `40001`, inclusive em exceções internas. Ao sair da transação sem commit, ela é desfeita; deixe a exceção subir e o `TratamentoErrosMiddleware` responde 503 `CodigosErro.ServidorOcupado` para permitir nova tentativa (não precisa de catch na funcionalidade). Outras falhas continuam como 500 `ErroInterno`. O reconhecimento de SQLSTATE prepara a classificação de erros para PostgreSQL; o provedor e a migração ainda não foram implementados.
 - **Migrações:** mudou entidade, gere a migração no mesmo PR. Ela vai para `Core/Persistencia/Migrations/` sozinha. Da raiz do repo:
 
   ```
@@ -104,7 +104,7 @@ public sealed class PersonagemModule : IFeatureModule
   dotnet csharpier format .
   ```
 
-  Em desenvolvimento o servidor aplica as migrações ao iniciar (o banco é o arquivo `server/src/JogoDoGrupo.Server/jogodogrupo.db`, fora do git; para zerar, pare o servidor e apague o arquivo). Se outro PR com migração entrar antes, atualize a branch, rode `migrations remove` e gere de novo.
+  O servidor aplica as migrações ao iniciar quando `Banco:MigrarAoIniciar` é `true`; sem a chave, só em Development (o banco de desenvolvimento é o banco é o arquivo `server/src/JogoDoGrupo.Server/jogodogrupo.db`, fora do git; para zerar, pare o servidor e apague o arquivo). Se outro PR com migração entrar antes, atualize a branch, rode `migrations remove` e gere de novo.
 
 ### Servidor: eventos entre funcionalidades
 
@@ -157,7 +157,7 @@ private void AoEntrar(SessaoTempoReal sessao, EntrarNaCidade _) =>
 - **Laço único:** manipuladores e eventos rodam um de cada vez no laço de rede; não bloqueie nele. Trabalho com banco vai para uma `Task`, que responde com `Enviar` (pode ser chamado de qualquer thread).
 - **Personagem da conta:** o Core pergunta a um `IVerificadorPersonagem` registrado na DI. Sem ele, toda autenticação é recusada com `AcessoNegado`.
 
-**Configuração** (`server/src/JogoDoGrupo.Server/appsettings.json`): `ConnectionStrings:Jogo`, a seção `TempoReal` (`Endereco`, `Porta` 5081, `ChaveConexao`, `TempoParaAutenticarMs`, `TempoQuedaMs`, `MensagensPorSegundo`, `RajadaMensagens`) e a seção `Jwt` (`Chave`, `Emissor`, `Audiencia`, `ValidadeHoras`). A URL `http://localhost:5080` e a chave de desenvolvimento estão em `appsettings.Development.json`. Em produção, defina as variáveis de ambiente `ASPNETCORE_ENVIRONMENT=Production`, `ASPNETCORE_URLS` (a URL em que o servidor escuta) e `Jwt__Chave` (pelo menos 32 bytes). O servidor não sobe com chave curta, com `Jwt:Emissor` ou `Jwt:Audiencia` vazios, nem com a chave de desenvolvimento fora do ambiente Development.
+**Configuração** (`server/src/JogoDoGrupo.Server/appsettings.json`): `ConnectionStrings:Jogo`, a seção `TempoReal` (`Endereco`, `Porta` 5081, `ChaveConexao`, `TempoParaAutenticarMs`, `TempoQuedaMs`, `MensagensPorSegundo`, `RajadaMensagens`) a seção `Jwt` (`Chave`, `Emissor`, `Audiencia`, `ValidadeHoras`) e `Banco:MigrarAoIniciar` (opcional; veja Migrações). A URL `http://localhost:5080` e a chave de desenvolvimento estão em `appsettings.Development.json`. Em produção, defina as variáveis de ambiente `ASPNETCORE_ENVIRONMENT=Production`, `ASPNETCORE_URLS` (a URL em que o servidor escuta) e `Jwt__Chave` (pelo menos 32 bytes). O servidor não sobe com chave curta, com `Jwt:Emissor` ou `Jwt:Audiencia` vazios, nem com a chave de desenvolvimento fora do ambiente Development.
 
 ## Client: como uma funcionalidade se pluga
 
