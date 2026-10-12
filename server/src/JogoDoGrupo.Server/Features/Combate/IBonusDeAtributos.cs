@@ -6,7 +6,7 @@ namespace JogoDoGrupo.Server.Features.Combate;
 /// Fonte dos bônus de atributos que vêm de fora de Combate (equipamentos e efeitos). Quem
 /// calcula os bônus devolve o <b>total atual</b> de cada fonte, nunca um acréscimo: o servidor
 /// soma uma vez só, então o mesmo bônus não é contado duas vezes. Itens e efeitos trocam a
-/// implementação por esta interface quando existirem (hoje não há equipamento nem efeito).
+/// implementação por esta interface; equipamentos já consultam o contrato publicado por Itens.
 /// </summary>
 public interface IBonusDeAtributos
 {
@@ -17,11 +17,38 @@ public interface IBonusDeAtributos
     Task<AtributosCombate> EfeitosAsync(long personagemId, CancellationToken cancelamento);
 }
 
-/// <summary>Padrão enquanto não existem equipamentos nem efeitos: nenhum bônus.</summary>
-internal sealed class SemBonusDeAtributos : IBonusDeAtributos
+/// <summary>Adapta os totais atuais de Itens; efeitos continuam sem bônus até sua implementação.</summary>
+internal sealed class BonusDeEquipamentos(
+    JogoDoGrupo.Server.Contratos.Itens.IBonusEquipamentos equipamentos
+) : IBonusDeAtributos
 {
-    public Task<AtributosCombate> EquipamentosAsync(long personagemId, CancellationToken c) =>
-        Task.FromResult(new AtributosCombate());
+    public async Task<AtributosCombate> EquipamentosAsync(long personagemId, CancellationToken c)
+    {
+        var total = new AtributosCombate();
+        foreach (var atributo in await equipamentos.ObterAsync(personagemId, c))
+        {
+            var valor = checked((int)Math.Floor(atributo.Valor));
+            switch (atributo.Status)
+            {
+                case JogoDoGrupo.Shared.Features.Itens.StatusItem.Forca:
+                    total.Forca = valor;
+                    break;
+                case JogoDoGrupo.Shared.Features.Itens.StatusItem.Destreza:
+                    total.Destreza = valor;
+                    break;
+                case JogoDoGrupo.Shared.Features.Itens.StatusItem.Intelecto:
+                    total.Intelecto = valor;
+                    break;
+                case JogoDoGrupo.Shared.Features.Itens.StatusItem.Vitalidade:
+                    total.Vitalidade = valor;
+                    break;
+                case JogoDoGrupo.Shared.Features.Itens.StatusItem.Espirito:
+                    total.Espirito = valor;
+                    break;
+            }
+        }
+        return total;
+    }
 
     public Task<AtributosCombate> EfeitosAsync(long personagemId, CancellationToken c) =>
         Task.FromResult(new AtributosCombate());

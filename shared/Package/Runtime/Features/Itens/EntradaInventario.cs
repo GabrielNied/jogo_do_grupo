@@ -8,6 +8,10 @@ namespace JogoDoGrupo.Shared.Features.Itens
     [System.Serializable]
     public class EntradaInventario
     {
+        public long InstanciaId;
+        public PosicaoEquipamento Posicao;
+        public Equipamento Equipamento;
+
         /// <summary>Id do item em <see cref="CatalogoItens"/>.</summary>
         public int ItemId;
 
