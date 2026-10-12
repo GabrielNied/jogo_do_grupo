@@ -111,6 +111,25 @@ namespace JogoDoGrupo.Client.Features.Mobs
         }
 
         /// <summary>
+        /// Um acerto cancelou o golpe do inimigo comum: apaga o aviso e devolve o inimigo para o
+        /// visual reagir. Interrupção de jogador ou de inimigo desconhecido é ignorada.
+        /// </summary>
+        public InimigoNoClient Interromper(AcaoInterrompida mensagem)
+        {
+            if (
+                mensagem == null
+                || mensagem.Jogador
+                || !_inimigos.TryGetValue(mensagem.AlvoId, out var inimigo)
+            )
+            {
+                return null;
+            }
+
+            inimigo.Aviso = null;
+            return inimigo;
+        }
+
+        /// <summary>
         /// A barra segue o golpe do jogador: o servidor manda a vida que sobrou em cada acerto
         /// (<c>AlvoId</c> = <c>InimigoId</c>). Alvos que não são inimigos são ignorados.
         /// </summary>
