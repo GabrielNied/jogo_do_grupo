@@ -51,6 +51,12 @@ Formato: `### AAAA-MM-DD · título` com **O que houve**, **Regra** e **Origem**
 - **Regra:** se isso ocorrer no PowerShell, rode o commit pelo Git Bash, com `/usr/bin:/bin` no PATH da sessão. Apenas localizar `sh.exe` pelo PowerShell pode não resolver o PATH visto pelos hooks. Mantenha os hooks ativos, sem `--no-verify`.
 - **Origem:** issue #519.
 
+### 2026-10-12 · Worktree de agente sem node_modules
+
+- **O que houve:** o agente de Core da #518 trabalhou num worktree criado por `npm run tarefa -- puxar --worktree`; o primeiro commit foi recusado porque o commitlint do hook não existia ali, e ele teve de rodar `npm install` no meio da tarefa.
+- **Regra:** o `puxar --worktree` liga o `node_modules` do checkout principal no worktree ([worktree-npm.mjs](../scripts/git/worktree-npm.mjs)). Quem cria worktree à mão faz o mesmo ou roda `npm install` antes de commitar.
+- **Origem:** PR #533 (relato do agente).
+
 ### 2026-10-12 · Unity do CI morto por outro job com a mesma licença (issue #529)
 
 - **O que houve:** três execuções seguidas do Client (Unity) na `main` (e uma de PR) morreram com `Killed` / exit 137 segundos depois de ativar a licença, sem compilar nada. Cada uma coincidiu com outro job do Unity rodando: a licença Personal é uma só. Uma pendência "Client falhou na main" chegou a ser corrigida com mudança de código enquanto a causa da falha seguinte era essa.
