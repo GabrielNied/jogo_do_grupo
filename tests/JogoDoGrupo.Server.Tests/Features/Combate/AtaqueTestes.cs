@@ -52,6 +52,22 @@ public sealed class AlvoFalso(long id) : IAlvosDeCombate
     }
 }
 
+/// <summary>O Mundo de mentira que só anota os limites de velocidade que Combate pediu.</summary>
+public sealed class LimiteDeVelocidadeFalso : ILimiteDeVelocidadeDoMundo
+{
+    public ConcurrentQueue<(
+        long PersonagemId,
+        double Fator,
+        double DuracaoSegundos
+    )> Pedidos { get; } = new();
+
+    public bool LimitarVelocidade(long personagemId, double fator, double duracaoSegundos)
+    {
+        Pedidos.Enqueue((personagemId, fator, duracaoSegundos));
+        return true;
+    }
+}
+
 /// <summary>
 /// Servidor de teste do ataque: banco real, relógio de recursos e bônus falsos, um boneco de
 /// treino de relógio controlável e dois alvos extras (um com id novo, um com o id do boneco).
@@ -64,6 +80,7 @@ public sealed class ServidorDeAtaque : IDisposable
     public RelogioFalso Relogio { get; } = new();
     public BonusFalso Bonus { get; } = new();
     public BonecoDeTreino Boneco { get; }
+    public LimiteDeVelocidadeFalso Limite { get; } = new();
     public AlvoFalso Extra { get; } = new(-50);
     public AlvoFalso RepetidoDoBoneco { get; } = new(ConfigBonecoDeTreino.AlvoId);
     public WebApplicationFactory<Program> Falso { get; }
@@ -77,6 +94,7 @@ public sealed class ServidorDeAtaque : IDisposable
             {
                 s.AddSingleton<TimeProvider>(Relogio);
                 s.AddSingleton<IBonusDeAtributos>(Bonus);
+                s.AddSingleton<ILimiteDeVelocidadeDoMundo>(Limite);
                 s.RemoveAll<IAlvosDeCombate>();
                 s.AddSingleton<IAlvosDeCombate>(Boneco);
                 s.AddSingleton<IAlvosDeCombate>(Extra);
@@ -435,6 +453,77 @@ public class AtaqueTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDeA
 
         Assert.Equal(RegrasAtaque.Dano(TipoDeAtaque.Leve, 10), Assert.Single(acertou.Acertos).Dano);
         Assert.Equal(40, acertou.Acertos[0].Dano);
+    }
+
+    [Fact]
+    public async Task Tres_leves_encadeados_o_terceiro_tira_1_2x_e_o_preparo_prende_a_corrida_a_40()
+    {
+        using var ana = await NovoJogadorAsync();
+
+        // Cada pedido entra na fila nos últimos 0,3 s do golpe anterior (um leve dura 0,8 s).
+        Atacar(ana, sequencia: 1);
+        var primeiro = await ana.Cliente.ReceberAsync<AtaqueIniciado>(
+            CombateMessageIds.AtaqueIniciado
+        );
+        var danos = new List<int>();
+        var acertou1 = await ana.Cliente.ReceberAsync<AtaqueAcertou>(
+            CombateMessageIds.AtaqueAcertou
+        );
+        danos.Add(Assert.Single(acertou1.Acertos).Dano);
+        Atacar(ana, sequencia: 2); // 0,5 s a 0,8 s: entra na fila
+        var segundo = await ana.Cliente.ReceberAsync<AtaqueIniciado>(
+            CombateMessageIds.AtaqueIniciado
+        );
+        var acertou2 = await ana.Cliente.ReceberAsync<AtaqueAcertou>(
+            CombateMessageIds.AtaqueAcertou
+        );
+        danos.Add(Assert.Single(acertou2.Acertos).Dano);
+        Atacar(ana, sequencia: 3);
+        var terceiro = await ana.Cliente.ReceberAsync<AtaqueIniciado>(
+            CombateMessageIds.AtaqueIniciado
+        );
+        var acertou3 = await ana.Cliente.ReceberAsync<AtaqueAcertou>(
+            CombateMessageIds.AtaqueAcertou
+        );
+        danos.Add(Assert.Single(acertou3.Acertos).Dano);
+
+        Assert.Equal([0, 1, 2], [primeiro.Passo, segundo.Passo, terceiro.Passo]);
+        Assert.Equal(RegrasAtaque.Dano(TipoDeAtaque.Leve, 0, 2), danos[^1]);
+        Assert.True(danos[^1] > danos[0]);
+        Assert.Contains(
+            servidor.Limite.Pedidos,
+            p => p.PersonagemId == ana.Id && p.Fator == RegrasAtaque.VelocidadeDuranteGolpe
+        );
+    }
+
+    [Fact]
+    public async Task Pesado_cuja_mira_girou_180_graus_so_gira_60_e_erra_o_boneco_que_estava_na_frente()
+    {
+        using var ana = await NovoJogadorAsync();
+
+        Atacar(ana, TipoDeAtaque.Pesado, direcao: 0f); // do nascimento o boneco está na frente
+        await ana.Cliente.ReceberAsync<AtaqueIniciado>(CombateMessageIds.AtaqueIniciado);
+        ana.Cliente.Enviar(
+            MundoMessageIds.IntencaoDeMovimento,
+            new IntencaoDeMovimento
+            {
+                X = ValidadorDeMovimento.Nascimento.X,
+                Z = ValidadorDeMovimento.Nascimento.Z,
+                RotacaoY = 180f,
+                Sequencia = 1,
+            }
+        );
+        await PosicaoNoServidor.EsperarAsync(
+            servidor.Falso.Services,
+            ana.Id,
+            p => p.RotacaoY == 180f
+        );
+
+        await Task.Delay(RegrasAtaque.PreparoMs(TipoDeAtaque.Pesado) + Margem.Milliseconds);
+
+        // Limitado a 60° em 1 s, o cone (45° de cada lado) já não pega o boneco a 0°.
+        Assert.False(ana.Recebeu(CombateMessageIds.AtaqueAcertou));
+        Assert.Equal(ConfigBonecoDeTreino.Vida, servidor.Boneco.VidaAtual);
     }
 
     [Fact]

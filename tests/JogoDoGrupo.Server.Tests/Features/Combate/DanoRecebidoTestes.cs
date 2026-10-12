@@ -1,6 +1,7 @@
 using JogoDoGrupo.Server.Contratos.Mobs;
 using JogoDoGrupo.Server.Core.Eventos;
 using JogoDoGrupo.Server.Core.Persistencia;
+using JogoDoGrupo.Server.Core.TempoReal;
 using JogoDoGrupo.Server.Features.Combate;
 using JogoDoGrupo.Server.Tests.Core.TempoReal;
 using JogoDoGrupo.Server.Tests.Infra;
@@ -8,6 +9,7 @@ using JogoDoGrupo.Shared.Features.Combate;
 using JogoDoGrupo.Shared.Features.Personagem;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace JogoDoGrupo.Server.Tests.Features.Combate;
 
@@ -174,6 +176,39 @@ public class DanoRecebidoTestes(ServidorDeAtaque servidor) : IClassFixture<Servi
 
         Assert.Equal(antes.VidaAtual - 10, (await MudouAsync(ana)).VidaAtual);
         Assert.Equal(1, ana.Recebidas(CombateMessageIds.RecursosMudaram));
+    }
+
+    // Serviço próprio, com o controle de ações e o relógio nas mãos do teste: o instante do
+    // golpe é decidido por quem testa, sem depender de tempo real.
+    private ServicoDeDanoRecebido ServicoComRelogio(ControleDeAcoes acoes, Func<long> relogioMs) =>
+        new(
+            servidor.Falso.Services.GetRequiredService<ServidorTempoReal>(),
+            servidor.Falso.Services.GetRequiredService<IServiceScopeFactory>(),
+            servidor.Falso.Services.GetRequiredService<ILogger<ServicoDeDanoRecebido>>(),
+            acoes: acoes,
+            relogioMs: relogioMs
+        );
+
+    [Fact]
+    public async Task Golpe_nos_primeiros_0_3_s_da_esquiva_nao_tira_vida_e_depois_tira()
+    {
+        using var ana = await NovoJogadorAsync();
+        var antes = await RecursosAsync(ana);
+        var acoes = new ControleDeAcoes();
+        long agora = 10_000;
+        var servico = ServicoComRelogio(acoes, () => agora);
+        acoes.TentarOcupar(ana.Id, 10_000, RegrasEsquiva.DuracaoMs, out _);
+        var golpe = new GolpeDeInimigoAcertou(1, 1, ana.Id, 30, "cidade");
+
+        agora = 10_299; // ainda na janela: o dano some
+        servico.AoGolpeDeInimigo(golpe);
+        await Task.Delay(300);
+        Assert.False(ana.Recebeu(CombateMessageIds.RecursosMudaram));
+        Assert.Equal(antes.VidaAtual, (await RecursosAsync(ana)).VidaAtual);
+
+        agora = 10_300; // acabou a janela: o golpe, ainda no volume, tira vida
+        servico.AoGolpeDeInimigo(golpe);
+        Assert.Equal(antes.VidaAtual - 30, (await MudouAsync(ana)).VidaAtual);
     }
 
     [Fact]

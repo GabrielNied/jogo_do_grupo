@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using JogoDoGrupo.Client.Core.Jogo;
+using JogoDoGrupo.Client.Core.Jogo.Controle;
 using JogoDoGrupo.Client.Core.TempoReal;
 using JogoDoGrupo.Shared.Features.Combate;
 using UnityEngine;
@@ -32,6 +33,17 @@ namespace JogoDoGrupo.Client.Features.Combate
         private InputAction _leve;
         private InputAction _pesado;
         private TipoDeAtaque _ultimoTipoProprio = TipoDeAtaque.Leve;
+        private int _ultimoPassoProprio;
+
+        // Compromisso do golpe: corpo preso a 40% da corrida e girando só até o teto do ataque.
+        private TipoDeAtaque _tipoEmCurso = TipoDeAtaque.Leve;
+        private float _giroDoCorpo;
+        private ControleTerceiraPessoa _controle;
+        private float _andarOriginal;
+        private float _correrOriginal;
+        private float _andarLimitado;
+        private float _correrLimitado;
+        private bool _limitando;
 
         public void Configurar(
             long personagemId,
@@ -94,8 +106,86 @@ namespace JogoDoGrupo.Client.Features.Combate
 
         private void OnDisable()
         {
+            SoltarVelocidade();
             _leve?.Disable();
             _pesado?.Disable();
+        }
+
+        // Depois do Update do ControleTerceiraPessoa (que vira o corpo para onde anda): durante
+        // o preparo e o acerto o corpo acompanha a mira, só até o teto de giro do ataque.
+        private void LateUpdate()
+        {
+            var agora = Time.unscaledTime;
+            var jogador = EntradaNoJogo.Jogador;
+            var comprometido =
+                EntradaNoJogo.NoJogo
+                && jogador != null
+                && _prontidao != null
+                && _prontidao.Comprometido(agora);
+            if (!comprometido)
+            {
+                SoltarVelocidade();
+                return;
+            }
+
+            PrenderVelocidade(jogador);
+            _giroDoCorpo = ApresentacaoAtaque.GirarParaAMira(
+                _giroDoCorpo,
+                DirecaoDaMira(),
+                _tipoEmCurso,
+                Time.deltaTime
+            );
+            jogador.transform.rotation = Quaternion.Euler(0f, _giroDoCorpo, 0f);
+        }
+
+        private void PrenderVelocidade(GameObject jogador)
+        {
+            if (_limitando)
+            {
+                return;
+            }
+
+            _controle = jogador.GetComponent<ControleTerceiraPessoa>();
+            if (_controle == null)
+            {
+                return;
+            }
+
+            var movimento = _controle.Movimento;
+            _andarOriginal = movimento.VelocidadeAndar;
+            _correrOriginal = movimento.VelocidadeCorrer;
+            _andarLimitado = ApresentacaoAtaque.VelocidadeDuranteGolpe(_andarOriginal);
+            _correrLimitado = ApresentacaoAtaque.VelocidadeDuranteGolpe(_correrOriginal);
+            movimento.VelocidadeAndar = _andarLimitado;
+            movimento.VelocidadeCorrer = _correrLimitado;
+            _limitando = true;
+        }
+
+        // Só devolve o que ainda é o valor preso: se o servidor mandou outra velocidade no meio
+        // do golpe, vale a dele.
+        private void SoltarVelocidade()
+        {
+            if (!_limitando)
+            {
+                return;
+            }
+
+            _limitando = false;
+            if (_controle == null)
+            {
+                return;
+            }
+
+            var movimento = _controle.Movimento;
+            if (Mathf.Approximately(movimento.VelocidadeAndar, _andarLimitado))
+            {
+                movimento.VelocidadeAndar = _andarOriginal;
+            }
+
+            if (Mathf.Approximately(movimento.VelocidadeCorrer, _correrLimitado))
+            {
+                movimento.VelocidadeCorrer = _correrOriginal;
+            }
         }
 
         private void OnDestroy()
@@ -160,12 +250,16 @@ namespace JogoDoGrupo.Client.Features.Combate
             var intencao = _gerador.Criar(tipo, DirecaoDaMira());
             ConexaoTempoReal.Enviar(CombateMessageIds.IntencaoDeAtaque, intencao);
             _prontidao?.MarcarAtaque(tipo, agora);
+            _tipoEmCurso = tipo;
+            _giroDoCorpo = intencao.DirecaoY;
 
             // Anima na hora, sem esperar o servidor (ADR 0024). O acerto e o dano continuam
             // sendo dele: o número de dano só aparece com AtaqueAcertou.
             var jogador = EntradaNoJogo.Jogador;
             if (jogador != null)
             {
+                // O corpo começa virado para a mira; dali só gira até o teto do ataque.
+                jogador.transform.rotation = Quaternion.Euler(0f, _giroDoCorpo, 0f);
                 AnimadorDeAtaque.Tocar(jogador.GetComponentInChildren<Animator>(), tipo);
             }
         }
@@ -193,6 +287,7 @@ namespace JogoDoGrupo.Client.Features.Combate
 
             // A animação própria já tocou ao apertar (ADR 0024).
             _ultimoTipoProprio = ataque.Tipo;
+            _ultimoPassoProprio = ataque.Passo;
         }
 
         private void AoAcertarAtaque(AtaqueAcertou ataque)
@@ -205,7 +300,8 @@ namespace JogoDoGrupo.Client.Features.Combate
                 return;
             }
 
-            var pesado = _ultimoTipoProprio == TipoDeAtaque.Pesado;
+            // O pesado e o 3º leve da cadeia aparecem maiores.
+            var pesado = ApresentacaoAtaque.GolpeForte(_ultimoTipoProprio, _ultimoPassoProprio);
             var total = 0;
             foreach (var acerto in ataque.Acertos)
             {

@@ -14,6 +14,15 @@ namespace JogoDoGrupo.Client.Features.Combate
 
         public double LivreEm { get; private set; }
 
+        /// <summary>
+        /// Quando o golpe em curso acerta (fim do preparo). Até lá o personagem está
+        /// comprometido: anda devagar e não esquiva. Depois, na recuperação, a esquiva vale.
+        /// </summary>
+        public double AcertoEm { get; private set; }
+
+        /// <summary>Se o personagem está no preparo ou no momento de acerto de um golpe.</summary>
+        public bool Comprometido(double agora) => agora < AcertoEm;
+
         public void RegistrarVigor(int vigor) => Vigor = vigor < 0 ? 0 : vigor;
 
         public bool PodeAtacar(TipoDeAtaque tipo, double agora)
@@ -28,7 +37,8 @@ namespace JogoDoGrupo.Client.Features.Combate
 
         public bool PodeEsquivar(double agora)
         {
-            if (agora < LivreEm)
+            // No preparo e no acerto não esquiva; na recuperação ela corta o resto do golpe.
+            if (Comprometido(agora) || (agora < LivreEm && !EmRecuperacao(agora)))
             {
                 return false;
             }
@@ -36,8 +46,15 @@ namespace JogoDoGrupo.Client.Features.Combate
             return Vigor is not int vigor || RegrasEsquiva.TemVigor(vigor);
         }
 
+        // Dentro de uma ação de ataque, depois do acerto (a esquiva de antes ocupa até LivreEm).
+        private bool EmRecuperacao(double agora) => _ataqueEmCurso && agora >= AcertoEm;
+
+        private bool _ataqueEmCurso;
+
         public void MarcarAtaque(TipoDeAtaque tipo, double agora)
         {
+            _ataqueEmCurso = true;
+            AcertoEm = agora + RegrasAtaque.PreparoSegundos(tipo);
             LivreEm = agora + RegrasAtaque.DuracaoSegundos(tipo);
             if (Vigor is int vigor)
             {
@@ -47,6 +64,9 @@ namespace JogoDoGrupo.Client.Features.Combate
 
         public void MarcarEsquiva(double agora)
         {
+            // A esquiva corta o resto do golpe: a recuperação acaba aqui.
+            _ataqueEmCurso = false;
+            AcertoEm = 0;
             LivreEm = agora + RegrasEsquiva.DuracaoSegundos;
             if (Vigor is int vigor)
             {

@@ -202,4 +202,100 @@ public class ControleDeAcoesTestes
         Assert.Equal(1, resultados.Count(r => r == ResultadoDoPedido.Iniciado));
         Assert.Equal(49, resultados.Count(r => r == ResultadoDoPedido.Recusado));
     }
+
+    // ── Cadeia de três leves (fatia-jogavel.md, seção 2) ──────────────────────
+
+    private static AcaoDeAtaque Golpe(ControleDeAcoes controle, PedidoDeAtaque pedido, long agoraMs)
+    {
+        Assert.Equal(ResultadoDoPedido.Iniciado, controle.Pedir(Ana, pedido, agoraMs, out var a));
+        return a!;
+    }
+
+    [Fact]
+    public void Cadeia_sobe_do_1o_ao_3o_leve_e_o_4o_volta_ao_1o()
+    {
+        var controle = new ControleDeAcoes();
+
+        var primeiro = Golpe(controle, Leve(), 1_000);
+        var segundo = Golpe(controle, Leve(), primeiro.FimMs);
+        var terceiro = Golpe(controle, Leve(), segundo.FimMs);
+        var quarto = Golpe(controle, Leve(), terceiro.FimMs);
+
+        Assert.Equal([0, 1, 2, 0], [primeiro.Passo, segundo.Passo, terceiro.Passo, quarto.Passo]);
+        Assert.Equal(1.0, RegrasAtaque.Multiplicador(TipoDeAtaque.Leve, segundo.Passo));
+        Assert.Equal(1.2, RegrasAtaque.Multiplicador(TipoDeAtaque.Leve, terceiro.Passo));
+        Assert.Equal(1.0, RegrasAtaque.Multiplicador(TipoDeAtaque.Leve, quarto.Passo));
+    }
+
+    [Fact]
+    public void Pesado_no_meio_da_cadeia_volta_a_cadeia_ao_1o()
+    {
+        var controle = new ControleDeAcoes();
+        var primeiro = Golpe(controle, Leve(), 1_000);
+        var segundo = Golpe(controle, Leve(), primeiro.FimMs);
+
+        var pesado = Golpe(controle, Pesado(), segundo.FimMs);
+        var depois = Golpe(controle, Leve(), pesado.FimMs);
+
+        Assert.Equal(1, segundo.Passo);
+        Assert.Equal(0, pesado.Passo);
+        Assert.Equal(0, depois.Passo);
+    }
+
+    [Fact]
+    public void Cadeia_expira_se_o_golpe_nao_comecar_em_ate_0_8_s_depois_do_fim()
+    {
+        var controle = new ControleDeAcoes();
+        var primeiro = Golpe(controle, Leve(), 1_000);
+        var dentro = Golpe(controle, Leve(), primeiro.FimMs + 800);
+        var fora = Golpe(controle, Leve(), dentro.FimMs + 801);
+
+        Assert.Equal(1, dentro.Passo);
+        Assert.Equal(0, fora.Passo);
+    }
+
+    [Fact]
+    public void Errar_o_alvo_nao_quebra_a_cadeia_porque_o_passo_sobe_ao_comecar()
+    {
+        // O controle não sabe se o golpe acertou: o 2º leve é o passo 1 mesmo sem acerto.
+        var controle = new ControleDeAcoes();
+        var primeiro = Golpe(controle, Leve(), 1_000);
+
+        Assert.Equal(1, Golpe(controle, Leve(), primeiro.FimMs).Passo);
+    }
+
+    [Fact]
+    public void Pedido_da_fila_continua_a_cadeia()
+    {
+        var controle = new ControleDeAcoes();
+        var primeiro = Golpe(controle, Leve(), 1_000);
+        controle.Pedir(Ana, Leve(2), primeiro.FimMs - 100, out _);
+
+        var segundo = controle.AvancarFila(Ana, primeiro.Id, primeiro.FimMs);
+
+        Assert.Equal(1, segundo!.Passo);
+    }
+
+    [Fact]
+    public void Pesado_recusado_pelo_servidor_nao_quebra_a_cadeia()
+    {
+        var controle = new ControleDeAcoes();
+        var primeiro = Golpe(controle, Leve(), 1_000);
+        var pesado = Golpe(controle, Pesado(), primeiro.FimMs);
+
+        controle.Desistir(Ana, pesado.Id, primeiro.FimMs + 20); // sem vigor
+
+        Assert.Equal(1, Golpe(controle, Leve(), primeiro.FimMs + 30).Passo);
+    }
+
+    [Fact]
+    public void Esquiva_corta_a_recuperacao_e_a_cadeia_conta_do_corte()
+    {
+        var controle = new ControleDeAcoes();
+        var primeiro = Golpe(controle, Leve(), 1_000);
+        controle.TentarOcupar(Ana, primeiro.AcertoMs, 600, out _); // recuperação cortada
+
+        // 0,6 s de esquiva + 0,15 s: dentro da janela de 0,8 s contada do corte.
+        Assert.Equal(1, Golpe(controle, Leve(), primeiro.AcertoMs + 750).Passo);
+    }
 }

@@ -28,6 +28,7 @@ public sealed class ServicoDeAtaques : IHostedService, IDisposable
     private readonly ControleDeAcoes _controle;
     private readonly ServicoDeQueda? _queda;
     private readonly IAliadosDeCombate _aliados;
+    private readonly ILimiteDeVelocidadeDoMundo? _limiteDeVelocidade;
     private readonly Dictionary<long, SessaoTempoReal> _sessoes = [];
     private readonly Lock _travaSessoes = new();
     private readonly CancellationTokenSource _parada = new();
@@ -41,10 +42,12 @@ public sealed class ServicoDeAtaques : IHostedService, IDisposable
         Func<long>? relogioMs = null,
         ControleDeAcoes? controle = null,
         ServicoDeQueda? queda = null,
-        IAliadosDeCombate? aliados = null
+        IAliadosDeCombate? aliados = null,
+        ILimiteDeVelocidadeDoMundo? limiteDeVelocidade = null
     )
     {
         _aliados = aliados ?? new NinguemEAliado();
+        _limiteDeVelocidade = limiteDeVelocidade;
         _queda = queda;
         // O mesmo controle da esquiva, para ataque e esquiva não valerem ao mesmo tempo.
         _controle = controle ?? new ControleDeAcoes();
@@ -165,7 +168,16 @@ public sealed class ServicoDeAtaques : IHostedService, IDisposable
                     Tipo = acao.Pedido.Tipo,
                     DirecaoY = acao.Pedido.DirecaoY,
                     PreparoMs = RegrasAtaque.PreparoMs(acao.Pedido.Tipo),
+                    Passo = acao.Passo,
                 }
+            );
+
+            // Compromisso: no preparo e no momento de acerto a corrida fica em 40%. O client
+            // segura o próprio corpo; aqui o servidor pede ao Mundo o limite da validação.
+            _limiteDeVelocidade?.LimitarVelocidade(
+                personagemId,
+                RegrasAtaque.VelocidadeDuranteGolpe,
+                Math.Max(0, acao.AcertoMs - _relogioMs()) / 1000.0
             );
 
             // Um relógio só: o acerto sai em InicioMs + PreparoMs (a ida ao banco já correu
@@ -214,17 +226,19 @@ public sealed class ServicoDeAtaques : IHostedService, IDisposable
             return;
         }
 
-        var dano = RegrasAtaque.Dano(acao.Pedido.Tipo, forca);
+        var dano = RegrasAtaque.Dano(acao.Pedido.Tipo, forca, acao.Passo);
+        var direcao = (float)
+            RegrasAtaque.DirecaoDoGolpe(
+                acao.Pedido.Tipo,
+                acao.Pedido.DirecaoY,
+                posicao.RotacaoY,
+                acao.PreparoMs / 1000.0
+            );
         var vistos = new HashSet<long>();
         var acertos = new List<AcertoDeAtaque>();
         foreach (var fonte in _fontes)
         {
-            var alvos = fonte.AlvosNoVolume(
-                posicao.Area,
-                posicao.X,
-                posicao.Z,
-                acao.Pedido.DirecaoY
-            );
+            var alvos = fonte.AlvosNoVolume(posicao.Area, posicao.X, posicao.Z, direcao);
             foreach (var alvo in alvos)
             {
                 // O mesmo golpe não acerta o mesmo alvo duas vezes.

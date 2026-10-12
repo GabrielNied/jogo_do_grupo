@@ -19,16 +19,22 @@ public sealed class ServicoDeDanoRecebido : IHostedService
     private readonly IServiceScopeFactory _escopos;
     private readonly ILogger<ServicoDeDanoRecebido> _log;
     private readonly ServicoDeQueda? _queda;
+    private readonly ControleDeAcoes? _acoes;
+    private readonly Func<long> _relogioMs;
     private readonly CancellationTokenSource _parada = new();
 
     public ServicoDeDanoRecebido(
         ServidorTempoReal tempoReal,
         IServiceScopeFactory escopos,
         ILogger<ServicoDeDanoRecebido> log,
-        ServicoDeQueda? queda = null
+        ServicoDeQueda? queda = null,
+        ControleDeAcoes? acoes = null,
+        Func<long>? relogioMs = null
     )
     {
         _queda = queda;
+        _acoes = acoes;
+        _relogioMs = relogioMs ?? (() => Environment.TickCount64);
         _tempoReal = tempoReal;
         _escopos = escopos;
         _log = log;
@@ -62,6 +68,12 @@ public sealed class ServicoDeDanoRecebido : IHostedService
         {
             var dano = DanoFinal(golpe.Dano);
             if (dano <= 0)
+            {
+                return;
+            }
+
+            // Nos primeiros 0,3 s da esquiva o dano direto some (o servidor confere o instante).
+            if (_acoes?.EstaInvulneravel(golpe.PersonagemId, _relogioMs()) == true)
             {
                 return;
             }

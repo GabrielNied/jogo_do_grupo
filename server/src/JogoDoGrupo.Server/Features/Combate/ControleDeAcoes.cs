@@ -9,15 +9,25 @@ public readonly record struct PedidoDeAtaque(TipoDeAtaque Tipo, float DirecaoY, 
 /// Um ataque em andamento: preparo, momento de acerto e recuperação, medidos pelo relógio do
 /// servidor (ms). Tempos vêm de <see cref="RegrasAtaque"/>.
 /// </summary>
-public sealed record AcaoDeAtaque(long Id, PedidoDeAtaque Pedido, long InicioMs)
+public sealed record AcaoDeAtaque(
+    long Id,
+    PedidoDeAtaque Pedido,
+    long InicioMs,
+    int Passo = 0,
+    long? CortadaEmMs = null
+)
 {
     public long PreparoMs => Milissegundos(RegrasAtaque.PreparoSegundos(Pedido.Tipo));
 
     /// <summary>Quando o golpe acerta (fim do preparo), no mesmo relógio do começo.</summary>
     public long AcertoMs => InicioMs + PreparoMs;
 
-    /// <summary>Quando o personagem volta a poder agir.</summary>
-    public long FimMs => InicioMs + Milissegundos(RegrasAtaque.DuracaoSegundos(Pedido.Tipo));
+    /// <summary>
+    /// Quando o personagem volta a poder agir: o fim da recuperação, ou o instante em que uma
+    /// esquiva cortou o que faltava dela.
+    /// </summary>
+    public long FimMs =>
+        CortadaEmMs ?? InicioMs + Milissegundos(RegrasAtaque.DuracaoSegundos(Pedido.Tipo));
 
     private static long Milissegundos(double segundos) => (long)Math.Round(segundos * 1000.0);
 }
@@ -133,15 +143,30 @@ public sealed class ControleDeAcoes
                 _estados[personagemId] = estado;
             }
 
-            var emAtaque = estado.Atual != null && agoraMs < estado.Atual.FimMs;
-            if (emAtaque || agoraMs < estado.OcupadoAteMs)
+            var atual = estado.Atual;
+            var emAtaque = atual != null && agoraMs < atual.FimMs;
+
+            // Preparo e momento de acerto são compromisso: a esquiva só vale na recuperação.
+            if ((emAtaque && agoraMs < atual!.AcertoMs) || agoraMs < estado.OcupadoAteMs)
             {
                 ocupacaoId = 0;
                 return false;
             }
 
+            estado.AcaoCortada = null;
+            if (emAtaque)
+            {
+                // Na recuperação a esquiva corta o que falta dela (e o pedido da fila).
+                estado.AcaoCortada = atual;
+                estado.Atual = atual! with { CortadaEmMs = agoraMs };
+                estado.Fila = null;
+            }
+
             estado.OcupacaoId = ++_proximoId;
             estado.OcupadoAteMs = agoraMs + Math.Max(0, duracaoMs);
+            estado.InvulneravelAteMs =
+                agoraMs
+                + (long)Math.Round(RegrasEsquiva.JanelaDeInvulnerabilidadeSegundos * 1000.0);
             ocupacaoId = estado.OcupacaoId;
             return true;
         }
@@ -149,7 +174,8 @@ public sealed class ControleDeAcoes
 
     /// <summary>
     /// A reserva <paramref name="ocupacaoId"/> não valeu (sem vigor, caído): libera o personagem
-    /// na hora. Não faz nada se a reserva já é outra ou o personagem foi esquecido.
+    /// na hora, tira a invulnerabilidade e devolve a recuperação do ataque que ela havia cortado.
+    /// Não faz nada se a reserva já é outra ou o personagem foi esquecido.
     /// </summary>
     public void Desocupar(long personagemId, long ocupacaoId)
     {
@@ -161,7 +187,36 @@ public sealed class ControleDeAcoes
             )
             {
                 estado.OcupadoAteMs = 0;
+                estado.InvulneravelAteMs = 0;
+                if (estado.AcaoCortada is { } original && estado.Atual?.Id == original.Id)
+                {
+                    estado.Atual = original;
+                }
+
+                estado.AcaoCortada = null;
             }
+        }
+    }
+
+    /// <summary>
+    /// Se o dano direto some neste instante: nos primeiros
+    /// <see cref="RegrasEsquiva.JanelaDeInvulnerabilidadeSegundos"/> da esquiva em andamento.
+    /// </summary>
+    public bool EstaInvulneravel(long personagemId, long agoraMs)
+    {
+        lock (_trava)
+        {
+            return _estados.TryGetValue(personagemId, out var estado)
+                && agoraMs < estado.InvulneravelAteMs;
+        }
+    }
+
+    /// <summary>A ação em curso (ou a última, se já acabou); nulo se o personagem não tem nenhuma.</summary>
+    public AcaoDeAtaque? AcaoAtual(long personagemId)
+    {
+        lock (_trava)
+        {
+            return _estados.TryGetValue(personagemId, out var estado) ? estado.Atual : null;
         }
     }
 
@@ -198,6 +253,9 @@ public sealed class ControleDeAcoes
 
         if (liberar)
         {
+            // A ação não valeu: a cadeia fica como estava antes dela.
+            estado.ProximoPasso = estado.ProximoPassoAntes;
+            estado.UltimoFimMs = estado.UltimoFimAntesMs;
             estado.Atual = null;
         }
 
@@ -213,14 +271,33 @@ public sealed class ControleDeAcoes
     // Chamar com a trava.
     private AcaoDeAtaque Iniciar(Estado estado, PedidoDeAtaque pedido, long agoraMs)
     {
-        estado.Atual = new AcaoDeAtaque(++_proximoId, pedido, agoraMs);
+        // A cadeia de leves: o passo sobe quando a ação começa (errar o alvo não quebra) e volta
+        // ao primeiro se o golpe novo demorou mais que a janela depois do fim da ação anterior.
+        estado.ProximoPassoAntes = estado.ProximoPasso;
+        var fimAnteriorMs = estado.Atual?.FimMs ?? estado.UltimoFimMs;
+        var passo = RegrasAtaque.PassoDoGolpe(
+            pedido.Tipo,
+            estado.ProximoPasso,
+            (agoraMs - fimAnteriorMs) / 1000.0
+        );
+        estado.UltimoFimAntesMs = fimAnteriorMs;
+        estado.UltimoFimMs = fimAnteriorMs;
+        estado.ProximoPasso = RegrasAtaque.ProximoPasso(pedido.Tipo, passo);
+
+        estado.Atual = new AcaoDeAtaque(++_proximoId, pedido, agoraMs, passo);
         return estado.Atual;
     }
 
     private sealed class Estado
     {
         public AcaoDeAtaque? Atual;
+        public AcaoDeAtaque? AcaoCortada;
         public PedidoDeAtaque? Fila;
+        public int ProximoPasso;
+        public int ProximoPassoAntes;
+        public long UltimoFimMs = long.MinValue / 2;
+        public long UltimoFimAntesMs = long.MinValue / 2;
+        public long InvulneravelAteMs;
         public long OcupadoAteMs;
         public long OcupacaoId;
     }

@@ -224,5 +224,42 @@ namespace JogoDoGrupo.Client.Features.Combate.Tests
                 ApresentacaoCombate.TentarMontar((RecursosMudaram)null, out _, out _, out _)
             );
         }
+
+        [Test]
+        public void GirarParaAMira_NaoPassaDoTetoDoAtaque()
+        {
+            // Pesado: 60°/s. Em 0,5 s só 30° dos 180° pedidos.
+            Assert.AreEqual(
+                30f,
+                ApresentacaoAtaque.GirarParaAMira(0f, 180f, TipoDeAtaque.Pesado, 0.5f),
+                1e-3f
+            );
+            // Leve: 240°/s. Em 0,25 s chega aos 60° pedidos.
+            Assert.AreEqual(
+                60f,
+                ApresentacaoAtaque.GirarParaAMira(0f, 60f, TipoDeAtaque.Leve, 0.25f),
+                1e-3f
+            );
+            // Pelo menor caminho: de 350° para 10° é horário, e termina entre 0 e 360.
+            Assert.AreEqual(
+                0f,
+                ApresentacaoAtaque.GirarParaAMira(350f, 10f, TipoDeAtaque.Pesado, 10f / 60f),
+                1e-3f
+            );
+        }
+
+        [Test]
+        public void VelocidadeDuranteGolpe_E40PorCentoDaCorrida()
+        {
+            Assert.AreEqual(2.2f, ApresentacaoAtaque.VelocidadeDuranteGolpe(5.5f), 1e-4f);
+        }
+
+        [Test]
+        public void GolpeForte_PesadoOuTerceiroLeve()
+        {
+            Assert.IsTrue(ApresentacaoAtaque.GolpeForte(TipoDeAtaque.Pesado, 0));
+            Assert.IsTrue(ApresentacaoAtaque.GolpeForte(TipoDeAtaque.Leve, 2));
+            Assert.IsFalse(ApresentacaoAtaque.GolpeForte(TipoDeAtaque.Leve, 1));
+        }
     }
 }

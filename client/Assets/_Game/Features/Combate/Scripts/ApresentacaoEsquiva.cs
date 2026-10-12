@@ -35,21 +35,14 @@ namespace JogoDoGrupo.Client.Features.Combate
 
         /// <summary>
         /// Direção do pedido, em graus (0 = +Z, cresce para +X): a do movimento atual em relação
-        /// à câmera; parado, para onde o personagem está virado.
+        /// à câmera; parado, para trás da mira (<see cref="RegrasEsquiva.DirecaoDaEsquiva"/>).
         /// </summary>
-        public static float DirecaoDoPedido(
-            Vector2 entrada,
-            float anguloCamera,
-            float rotacaoDoJogador
-        )
+        public static float DirecaoDoPedido(Vector2 entrada, float anguloCamera)
         {
-            if (entrada.sqrMagnitude < 0.01f)
-            {
-                return GeradorDeIntencoes.NormalizarDirecao(rotacaoDoJogador);
-            }
-
-            var local = Mathf.Atan2(entrada.x, entrada.y) * Mathf.Rad2Deg;
-            return GeradorDeIntencoes.NormalizarDirecao(anguloCamera + local);
+            var andando = entrada.sqrMagnitude >= 0.01f;
+            var local = andando ? Mathf.Atan2(entrada.x, entrada.y) * Mathf.Rad2Deg : 0f;
+            return (float)
+                RegrasEsquiva.DirecaoDaEsquiva(andando, anguloCamera + local, anguloCamera);
         }
 
         /// <summary>Se o jogo está em condição de pedir a esquiva agora.</summary>

@@ -58,7 +58,8 @@ public sealed class CombateModule : IFeatureModule
                 sp.GetRequiredService<ServidorTempoReal>(),
                 sp.GetRequiredService<IServiceScopeFactory>(),
                 sp.GetRequiredService<ILogger<ServicoDeDanoRecebido>>(),
-                sp.GetRequiredService<ServicoDeQueda>()
+                sp.GetRequiredService<ServicoDeQueda>(),
+                sp.GetRequiredService<ControleDeAcoes>()
             );
             _danoRecebido = servico;
             return servico;
@@ -73,7 +74,8 @@ public sealed class CombateModule : IFeatureModule
                 sp.GetRequiredService<ILogger<ServicoDeAtaques>>(),
                 controle: sp.GetRequiredService<ControleDeAcoes>(),
                 queda: sp.GetRequiredService<ServicoDeQueda>(),
-                aliados: sp.GetRequiredService<IAliadosDeCombate>()
+                aliados: sp.GetRequiredService<IAliadosDeCombate>(),
+                limiteDeVelocidade: sp.GetService<ILimiteDeVelocidadeDoMundo>()
             );
             _ataques = servico;
             _esquivas = sp.GetRequiredService<ServicoDeEsquivas>();
