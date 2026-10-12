@@ -142,6 +142,17 @@ Regras:
 
 Para testar uma mensagem sem commitar: `echo "feat(itens): adiciona fusão" | npx commitlint`.
 
+### Entregar
+
+No PowerShell, `gh pr create --body` quebra na crase e um `-m` longo passa de 100 caracteres. Use:
+
+```
+git add <arquivos da tarefa>
+npm run entregar -- --titulo "tipo(escopo): descricao" --corpo .git/pr-corpo.md
+```
+
+O script commita o que já está no stage (`git commit -F`, corpo quebrado em linhas de 100), faz o push e abre o PR com `--body-file`. O arquivo do corpo não entra no commit. Se a branch já teve PR mergeado, os commits que o squash ainda não tem seguem numa branch `<nome>-segue` a partir de `origin/main`.
+
 Os commits dentro da branch podem ser pequenos e frequentes. Como o merge é por squash, o que entra na `main` é **o título do PR**.
 
 ## Pull requests

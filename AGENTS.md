@@ -39,6 +39,7 @@ npm run tarefa -- puxar <N>          # puxa a tarefa para em andamento e cria a 
 npm run tarefa -- liberar <N>        # libera a tarefa de volta se pausar/cancelar
 printf '%s
 ' "<msg>" | npx --no -- commitlint   # confere mensagem de commit
+npm run entregar -- --titulo "..." --corpo .git/pr-corpo.md   # commit, push e PR (docs/git.md#entregar)
 ```
 
 Testes em `tests/` (xUnit; [ADR 0013](docs/decisoes/0013-testes-automatizados.md), guia em [docs/convencoes.md](docs/convencoes.md#testes)). O editor do Unity não roda pela linha de comando, mas `npm run unity:compilar` confere se o client compila.

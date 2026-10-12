@@ -18,6 +18,7 @@
     "unity:meta": "node scripts/unity/gerar-meta.mjs",
     "testar-scripts": "node --test \"scripts/**/*.test.mjs\"",
     "conferir-unity": "node scripts/git/conferir-arquivos-unity.mjs",
+    "entregar": "node scripts/git/entregar.mjs",
     "tarefa": "node scripts/git/tarefas.mjs",
     "limpar-agentes": "node scripts/git/limpar-agentes.mjs",
     "nuvem:preparar": "node scripts/agentes/preparar-nuvem.mjs"

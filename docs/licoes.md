@@ -98,3 +98,9 @@ Formato: `### AAAA-MM-DD · título` com **O que houve**, **Regra** e **Origem**
 - **O que houve:** o corte de custo só entrava quando o retrabalho já tinha aparecido de novo. A pergunta "a próxima vez sai mais barata?" não era passo do fim da tarefa, então o primeiro tropeço ficava só na conversa.
 - **Regra:** antes do PR, a reflexão da [regra 16](../AGENTS.md). Sem corte, não escreva nada.
 - **Origem:** conversa de 2026-10-12.
+
+### 2026-10-12 · Commit e PR no PowerShell
+
+- **O que houve:** o corpo do commit passava de 100 caracteres, `gh pr create --body` quebrava na crase, e o push numa branch já mergeada deixava o commit de fora da `main`. Cada tentativa repetia a rodada.
+- **Regra:** `npm run entregar` commita por arquivo, abre o PR com `--body-file` e, se o PR da branch já foi mergeado, segue numa branch nova a partir de `origin/main`. O procedimento está em [Entregar](git.md#entregar).
+- **Origem:** conversa de 2026-10-12.
