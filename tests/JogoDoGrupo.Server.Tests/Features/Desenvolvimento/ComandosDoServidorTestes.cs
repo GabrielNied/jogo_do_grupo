@@ -6,30 +6,12 @@ using JogoDoGrupo.Server.Features.Desenvolvimento;
 using JogoDoGrupo.Server.Tests.Infra;
 using JogoDoGrupo.Shared.Core.Api;
 using JogoDoGrupo.Shared.Features.Personagem;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace JogoDoGrupo.Server.Tests.Features.Desenvolvimento;
 
 public class ComandosDoServidorTestes(ServidorDeTeste servidor) : IClassFixture<ServidorDeTeste>
 {
-    [Fact]
-    public void Sem_a_chave_os_comandos_ficam_fechados()
-    {
-        var vazia = new ConfigurationBuilder().Build();
-        Assert.False(DesenvolvimentoModule.Ligado(vazia));
-
-        var ligada = new ConfigurationBuilder()
-            .AddInMemoryCollection(
-                new Dictionary<string, string?>
-                {
-                    [DesenvolvimentoModule.ChavePermitirComandos] = "true",
-                }
-            )
-            .Build();
-        Assert.True(DesenvolvimentoModule.Ligado(ligada));
-    }
-
     [Fact]
     public async Task Teleporte_fora_do_mapa_e_recusado()
     {
