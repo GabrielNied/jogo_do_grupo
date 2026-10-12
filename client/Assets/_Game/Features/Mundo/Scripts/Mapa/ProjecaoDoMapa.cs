@@ -96,9 +96,9 @@ namespace JogoDoGrupo.Client.Features.Mundo
         public static bool DentroDaCidade(float x, float z) =>
             Math.Abs(x) <= MapaDoMundo.MetadeDaCidade && Math.Abs(z) <= MapaDoMundo.MetadeDaCidade;
 
-        /// <summary>Debaixo do relevo (a caverna): o minimapa não mostra o chão de cima.</summary>
+        /// <summary>Dentro do túnel da caverna: o minimapa não mostra o chão de cima.</summary>
         public static bool SobOChao(float x, float y, float z) =>
-            y < MapaDoMundo.AlturaEm(x, z) - 2f;
+            PrimeiraCaverna.DentroDoTunel(x, z, y);
 
         /// <summary>Centro da amostra (coluna, linha), em metros. Linha 0 é o sul.</summary>
         public static void MundoDaAmostra(int coluna, int linha, out float x, out float z)

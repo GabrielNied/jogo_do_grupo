@@ -28,6 +28,10 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
         public const string NomeBlocos = "Blocos";
         public const string NomeAgua = "Agua";
         public const string NomeLava = "Lava";
+        public const string NomeFuroDaCaverna = "FuroDaCaverna";
+
+        /// <summary>Lado dos quadrados do remendo que preenche o furo da caverna (m).</summary>
+        public const float PassoDoFuro = 1f;
 
         private const int PontosPorBloco = CelulasPorBloco + 1;
 
@@ -61,6 +65,15 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
                     var bloco = CriarObjetoComMalha($"Bloco_{bi}_{bj}", blocos, malha, chao);
                     bloco.AddComponent<MeshCollider>().sharedMesh = malha;
                 }
+            }
+
+            // As células que a boca da caverna atravessa saem dos blocos e voltam num remendo
+            // mais fino, com o túnel aberto (o mapa de alturas não tem como furar o chão).
+            var remendo = CriarMalhaDoFuro();
+            if (remendo != null)
+            {
+                var furo = CriarObjetoComMalha(NomeFuroDaCaverna, blocos, remendo, chao);
+                furo.AddComponent<MeshCollider>().sharedMesh = remendo;
             }
 
             var agua = CriarMaterial(modelo, CoresDosBiomas.Agua, 0.85f);
@@ -117,7 +130,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
                 {
                     var i = blocoI * CelulasPorBloco + li;
                     var j = blocoJ * CelulasPorBloco + lj;
-                    if (CelulaSobACidade(i, j))
+                    if (CelulaSobACidade(i, j) || CelulaComFuro(i, j))
                     {
                         continue;
                     }
@@ -239,6 +252,151 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
             var z = MapaDoMundo.CoordenadaDaGrade(j) + meio;
             return Mathf.Abs(x) < MapaDoMundo.MetadeDaCidade
                 && Mathf.Abs(z) < MapaDoMundo.MetadeDaCidade;
+        }
+
+        /// <summary>
+        /// Se a célula (<paramref name="i"/>, <paramref name="j"/>) da grade tem algum ponto onde
+        /// o terreno é furado pela caverna (<see cref="PrimeiraCaverna.FuraOTerreno"/>).
+        /// </summary>
+        public static bool CelulaComFuro(int i, int j)
+        {
+            var x0 = MapaDoMundo.CoordenadaDaGrade(i);
+            var z0 = MapaDoMundo.CoordenadaDaGrade(j);
+            PrimeiraCaverna.Limites(out var minX, out var minZ, out var maxX, out var maxZ);
+            var passo = MapaDoMundo.PassoDaGrade;
+            if (x0 + passo < minX || x0 > maxX || z0 + passo < minZ || z0 > maxZ)
+            {
+                return false;
+            }
+
+            var quadrados = Mathf.RoundToInt(passo / PassoDoFuro);
+            for (var qj = 0; qj < quadrados; qj++)
+            {
+                for (var qi = 0; qi < quadrados; qi++)
+                {
+                    if (
+                        PrimeiraCaverna.FuraOTerreno(
+                            x0 + (qi + 0.5f) * PassoDoFuro,
+                            z0 + (qj + 0.5f) * PassoDoFuro
+                        )
+                    )
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Remendo do chão nas células furadas pela caverna: a mesma superfície do mapa, em
+        /// quadrados de <see cref="PassoDoFuro"/>, sem os quadrados onde o túnel abre. Devolve
+        /// <c>null</c> se nenhuma célula é furada.
+        /// </summary>
+        public static Mesh CriarMalhaDoFuro()
+        {
+            PrimeiraCaverna.Limites(out var minX, out var minZ, out var maxX, out var maxZ);
+            var passo = MapaDoMundo.PassoDaGrade;
+            var primeiroI = Mathf.Max(0, Mathf.FloorToInt((minX + MapaDoMundo.Metade) / passo));
+            var ultimoI = Mathf.Min(
+                MapaDoMundo.CelulasPorLado - 1,
+                Mathf.FloorToInt((maxX + MapaDoMundo.Metade) / passo)
+            );
+            var primeiroJ = Mathf.Max(0, Mathf.FloorToInt((minZ + MapaDoMundo.Metade) / passo));
+            var ultimoJ = Mathf.Min(
+                MapaDoMundo.CelulasPorLado - 1,
+                Mathf.FloorToInt((maxZ + MapaDoMundo.Metade) / passo)
+            );
+
+            var quadrados = Mathf.RoundToInt(passo / PassoDoFuro);
+            var pontos = quadrados + 1;
+            var vertices = new List<Vector3>();
+            var normais = new List<Vector3>();
+            var uvs = new List<Vector2>();
+            var triangulos = new List<int>();
+            for (var j = primeiroJ; j <= ultimoJ; j++)
+            {
+                for (var i = primeiroI; i <= ultimoI; i++)
+                {
+                    if (!CelulaComFuro(i, j))
+                    {
+                        continue;
+                    }
+
+                    var x0 = MapaDoMundo.CoordenadaDaGrade(i);
+                    var z0 = MapaDoMundo.CoordenadaDaGrade(j);
+                    var primeiro = vertices.Count;
+                    for (var lj = 0; lj < pontos; lj++)
+                    {
+                        for (var li = 0; li < pontos; li++)
+                        {
+                            var x = x0 + li * PassoDoFuro;
+                            var z = z0 + lj * PassoDoFuro;
+                            vertices.Add(new Vector3(x, MapaDoMundo.AlturaEm(x, z), z));
+                            normais.Add(NormalDoRelevo(x, z));
+                            uvs.Add(
+                                new Vector2(
+                                    ((x + MapaDoMundo.Metade) / passo + 0.5f)
+                                        / MapaDoMundo.PontosPorLado,
+                                    ((z + MapaDoMundo.Metade) / passo + 0.5f)
+                                        / MapaDoMundo.PontosPorLado
+                                )
+                            );
+                        }
+                    }
+
+                    for (var qj = 0; qj < quadrados; qj++)
+                    {
+                        for (var qi = 0; qi < quadrados; qi++)
+                        {
+                            if (
+                                PrimeiraCaverna.FuraOTerreno(
+                                    x0 + (qi + 0.5f) * PassoDoFuro,
+                                    z0 + (qj + 0.5f) * PassoDoFuro
+                                )
+                            )
+                            {
+                                continue;
+                            }
+
+                            var origem = primeiro + qj * pontos + qi;
+                            var leste = origem + 1;
+                            var norte = origem + pontos;
+                            var oposto = norte + 1;
+                            triangulos.Add(origem);
+                            triangulos.Add(norte);
+                            triangulos.Add(leste);
+                            triangulos.Add(leste);
+                            triangulos.Add(norte);
+                            triangulos.Add(oposto);
+                        }
+                    }
+                }
+            }
+
+            if (vertices.Count == 0)
+            {
+                return null;
+            }
+
+            var malha = new Mesh { name = NomeFuroDaCaverna };
+            malha.indexFormat = IndexFormat.UInt32;
+            malha.SetVertices(vertices);
+            malha.SetNormals(normais);
+            malha.SetUVs(0, uvs);
+            malha.SetTriangles(triangulos, 0);
+            malha.RecalculateBounds();
+            return malha;
+        }
+
+        // Normal do relevo por diferenças finitas em volta do ponto.
+        private static Vector3 NormalDoRelevo(float x, float z)
+        {
+            var passo = PassoDoFuro;
+            var dx = MapaDoMundo.AlturaEm(x - passo, z) - MapaDoMundo.AlturaEm(x + passo, z);
+            var dz = MapaDoMundo.AlturaEm(x, z - passo) - MapaDoMundo.AlturaEm(x, z + passo);
+            return new Vector3(dx, 2f * passo, dz).normalized;
         }
 
         private static void CriarLiquido(string nome, Transform pai, Mesh malha, Material material)

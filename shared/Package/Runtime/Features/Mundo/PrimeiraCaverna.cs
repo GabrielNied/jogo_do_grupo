@@ -85,6 +85,7 @@ namespace JogoDoGrupo.Shared.Features.Mundo
         private static readonly float _entradaY = MapaDoMundo.AlturaEm(EntradaX, EntradaZ);
         private static readonly Curva _percurso = new Curva(NosDoPercurso);
         private static readonly Curva _beco = new Curva(NosDoBeco);
+        private static readonly float[] _limites = CalcularLimites();
 
         /// <summary>Altura do chão do mundo na boca.</summary>
         public static float EntradaY => _entradaY;
@@ -179,12 +180,21 @@ namespace JogoDoGrupo.Shared.Features.Mundo
         /// <summary>Retângulo (com folga) que contém o túnel inteiro, para varrer a malha.</summary>
         public static void Limites(out float minX, out float minZ, out float maxX, out float maxZ)
         {
-            minX = float.MaxValue;
-            minZ = float.MaxValue;
-            maxX = float.MinValue;
-            maxZ = float.MinValue;
+            minX = _limites[0];
+            minZ = _limites[1];
+            maxX = _limites[2];
+            maxZ = _limites[3];
+        }
+
+        private static float[] CalcularLimites()
+        {
+            var minX = float.MaxValue;
+            var minZ = float.MaxValue;
+            var maxX = float.MinValue;
+            var maxZ = float.MinValue;
             Alargar(_percurso, ref minX, ref minZ, ref maxX, ref maxZ);
             Alargar(_beco, ref minX, ref minZ, ref maxX, ref maxZ);
+            return new[] { minX, minZ, maxX, maxZ };
         }
 
         /// <summary>Distância horizontal entre dois pontos.</summary>

@@ -80,7 +80,20 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
             var meio = ProjecaoDoMapa.LadoDasAmostras / 2;
             ProjecaoDoMapa.MundoDaAmostra(meio, meio, out var x, out var z);
             Assert.AreEqual(Bioma.Cidade, MapaDoMundo.BiomaEm(x, z));
-            Assert.IsTrue(ProjecaoDoMapa.SobOChao(0f, -100f, 0f));
+        }
+
+        [Test]
+        public void SobOChao_so_vale_dentro_do_tunel_da_caverna()
+        {
+            PrimeiraCaverna.PontoDoPercurso(40f, out var x, out var z);
+            var piso = PrimeiraCaverna.PisoNoPlano(x, z).Value;
+
+            Assert.IsTrue(ProjecaoDoMapa.SobOChao(x, piso, z));
+            Assert.IsFalse(
+                ProjecaoDoMapa.SobOChao(x, MapaDoMundo.AlturaEm(x, z), z),
+                "em cima do morro"
+            );
+            Assert.IsFalse(ProjecaoDoMapa.SobOChao(0f, 0f, 0f));
             Assert.IsFalse(ProjecaoDoMapa.SobOChao(0f, 400f, 0f));
         }
 

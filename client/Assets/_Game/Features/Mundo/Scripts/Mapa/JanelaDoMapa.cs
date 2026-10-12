@@ -197,6 +197,16 @@ namespace JogoDoGrupo.Client.Features.Mundo
                 pincel.Stroke();
             }
 
+            // A boca da primeira caverna.
+            Ponto(
+                pincel,
+                ret,
+                PrimeiraCaverna.EntradaX,
+                PrimeiraCaverna.EntradaZ,
+                ConfigVisual.Dimensoes.MarcadorAliado,
+                EstiloVisual.Cor(ConfigVisual.Cores.Ouro)
+            );
+
             foreach (var outro in _outros)
             {
                 if (!ProjecaoDoMapa.NaAreaAtual(outro.Area, ProjecaoDoMapa.AreaDaCidade))
