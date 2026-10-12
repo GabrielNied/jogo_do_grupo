@@ -13,7 +13,7 @@ Ao definir um sistema novo, comece pela referência dele, descreva o que muda e 
 
 | Sistema | Base principal | Também olhar | Onde somos diferentes |
 |---|---|---|---|
-| Ritmo do combate | New World | Elden Ring (contato e leitura do corpo), Black Desert (o contrário: combos rápidos) | Esquiva sem invulnerabilidade; bloqueio pela defesa do equipamento |
+| Ritmo do combate | New World | Elden Ring (contato e leitura do corpo), Black Desert (o contrário: combos rápidos) | Uma arma nesta fatia; a reação ao acerto não renova |
 | Build sem classe | Throne and Liberty, Albion Online | New World, Guild Wars 2 | As skills dos itens são sorteadas; a combinação de itens e a fusão criam builds que não existem nesses jogos |
 | Troca de arma | New World, Throne and Liberty | Guild Wars 2 | A pensar (S10) |
 | Skills nos itens | Albion Online (skill por peça) | Path of Exile (gemas), Ragnarok (cartas), Destiny 2 (perks aleatórios) | Sorteio aleatório + fusão |
@@ -46,7 +46,7 @@ Ao definir um sistema novo, comece pela referência dele, descreva o que muda e 
 
 - **Famoso por:** cada golpe se lê no corpo (preparo, o instante em que encosta, recuperação) e o acerto segura a pose por um momento. Chefe se anuncia pela animação, não por um círculo solto.
 - **Pegar:** o dano no instante em que o modelo encosta; uma pausa visual curta nesse instante, só no client; o chefe conta o ataque com o corpo durante o aviso; o acerto interrompe o golpe de um inimigo comum e segura a próxima ação por um instante. Os números estão em [combate](features/combate.md#reação-ao-acerto) e em [mobs](features/mobs.md#contato-do-golpe).
-- **Não pegar:** esquiva em que o dano some, quebra de postura do chefe, combo que prende o alvo, e o client decidir se o golpe acertou. A reação ao acerto não renova ([combate](features/combate.md#reação-ao-acerto)).
+- **Não pegar:** quebra de postura do chefe, combo que prende o alvo, e o client decidir se o golpe acertou. A esquiva em que o dano some por um instante é a do New World, não esta. A reação ao acerto não renova ([combate](features/combate.md#reação-ao-acerto)).
 
 ### Throne and Liberty (NCSoft / Amazon, 2024)
 

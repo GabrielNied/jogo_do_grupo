@@ -76,7 +76,7 @@ Quem decide: **servidor** (acerto, dano, custo). O client envia a intenção (le
 - Primeira arma: **espada**, com ataque **leve** (corte rápido, sem custo) e **pesado** (corte lento, gasta vigor). Valores iniciais, **proposta a calibrar**: leve 0,5 s de preparo, dano 1,0x; pesado 1,0 s de preparo, dano 2,2x, custo 20 de vigor, recuperação maior.
 - **Cadeia de leves** (decidido em 2026-10-12, ritmo da espada do New World, fácil de mudar): três leves seguidos. O 1º e o 2º ficam em 1,0x; o 3º em **1,2x**. O pesado no lugar de qualquer passo usa o 2,2x e a cadeia volta ao 1º. A cadeia também volta ao 1º se o próximo golpe não começar em até **0,8 s** depois que a ação anterior acaba. Errar o alvo não quebra a cadeia: o passo sobe quando a ação começa. Cada leve é uma ação: no fim dela dá para esquivar, e o próximo leve só sai se a pessoa pedir. A cadeia não prende ninguém num combo. Constantes em `RegrasAtaque`: `PassosDaCadeiaLeve`, `MultiplicadorDoTerceiroLeve`, `JanelaDaCadeiaSegundos`.
 - Cada ataque tem preparo, momento de acerto e recuperação; o dano só vale no momento de acerto, dentro do volume do golpe (cone à frente, alcance curto).
-- **Compromisso** (decidido em 2026-10-12): durante preparo e recuperação o personagem anda a no máximo **40%** da corrida (`VelocidadeDuranteGolpe`). A esquiva **não cancela** o golpe; pedi-la no meio da ação é recusada.
+- **Compromisso** (decidido em 2026-10-12, como no New World): durante preparo e momento de acerto o personagem anda a no máximo **40%** da corrida (`VelocidadeDuranteGolpe`) e a esquiva é recusada. Na recuperação, a esquiva cancela o que falta dela e gasta o vigor da esquiva.
 - **Pesado firme** (decidido em 2026-10-12): dano tomado durante o pesado não interrompe a ação. O dano continua valendo. A reação dos outros golpes está em [combate](combate.md#reação-ao-acerto).
 - **Mira** (decidido em 2026-10-12): o cone usa a direção que o personagem olha no momento do acerto, limitada pelo giro desde o início do preparo. Leve até **240°/s**, pesado até **60°/s** (`GiroMaximoLeveGrausPorSegundo`, `GiroMaximoPesadoGrausPorSegundo`). Sem alvo fixo.
 - O mesmo golpe **não acerta o mesmo alvo duas vezes**; acerta vários alvos no volume.
@@ -84,18 +84,18 @@ Quem decide: **servidor** (acerto, dano, custo). O client envia a intenção (le
 - Sem vigor suficiente, o pesado é recusado (o leve sempre pode).
 - Valores que faltavam para implementar, **proposta a calibrar** (constantes em `RegrasAtaque`, no shared): recuperação de 0,3 s no leve e 0,6 s no pesado; dano do golpe = (dano da espada 20 + 2 por ponto de Força) x o multiplicador do ataque, arredondado; o volume é medido no plano do chão (a altura não conta, então por enquanto o pulo não tira ninguém do golpe).
 - As skills dos itens ficam fora desta seção (veja [skills.md](skills.md) e [itens.md](itens.md)).
-- Base: New World. Igual: cadeia de leves, pesado que pesa, vigor na esquiva e no pesado, sem parry. Diferente: esquiva sem invulnerabilidade, bloqueio pela defesa do equipamento (não segurando a guarda) e só uma arma na fatia. O que fica de fora está em [combate](combate.md#ritmo-do-golpe-new-world).
-- **Testes esperados:** acerto único por golpe e alvo; vários alvos no volume; pesado recusado sem vigor; fila de ataque; dano calculado só no servidor; o 3º leve usa 1,2x e o 4º volta a 1,0x; pesado no meio da cadeia volta a cadeia ao 1º; cadeia expira em 0,8 s; durante o golpe o deslocamento não passa de 40% da corrida e a esquiva é recusada; o giro do pesado não passa de 60° no 1 s de preparo.
+- Base: New World. Igual: cadeia de leves, pesado firme, vigor na esquiva e no pesado, esquiva com janela curta sem dano (seção 3) e guarda segurada ([combate](combate.md#guarda-segurada)). Sem parry. Nesta fatia ainda é uma espada só; duas armas e três skills por arma são o desenho, e entram depois (S10 e [skills](skills.md)).
+- **Testes esperados:** acerto único por golpe e alvo; vários alvos no volume; pesado recusado sem vigor; fila de ataque; dano calculado só no servidor; o 3º leve usa 1,2x e o 4º volta a 1,0x; pesado no meio da cadeia volta a cadeia ao 1º; cadeia expira em 0,8 s; durante o preparo o deslocamento não passa de 40% da corrida e a esquiva é recusada; na recuperação a esquiva corta o resto da ação; o giro do pesado não passa de 60° no 1 s de preparo.
 
 ### 3. Esquiva
 
 Quem decide: **servidor** (custo, deslocamento e posição final); o client antecipa o movimento.
 
-- Deslocamento de **5 m em 0,6 s**, custo **15 de vigor**, **sem invulnerabilidade** (**proposta**). Ela evita dano porque tira o personagem da **área** do ataque a tempo, não porque o dano some.
+- Deslocamento de **5 m em 0,6 s**, custo **15 de vigor**. Nos primeiros **0,3 s** (`JanelaDeInvulnerabilidadeSegundos`) o dano direto some; o servidor confere o instante, o client não avisa que desviou. Depois dessa janela, o golpe acerta se a pessoa ainda está no volume.
 - Sem vigor suficiente, a esquiva é recusada.
 - Não atravessa paredes nem sai do chão válido; o servidor valida a posição final.
 - Serve contra ataques telegrafados: o aviso dá tempo de esquivar ou sair da área.
-- **Testes esperados:** esquiva gasta 15 de vigor; recusada sem vigor; não atravessa parede; ataque que já pegou o alvo antes de sair da área causa dano.
+- **Testes esperados:** esquiva gasta 15 de vigor; recusada sem vigor; não atravessa parede; golpe no meio dos primeiros 0,3 s não tira vida; golpe depois desses 0,3 s, ainda no volume, tira vida.
 
 ### 4. Um inimigo comum, em grupo
 

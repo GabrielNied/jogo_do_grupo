@@ -25,8 +25,8 @@ Cálculo de dano, seleção de alvo e efeitos de status. Usado por PvE e PvP.
 ## Em aberto
 
 - [x] ~~Combate com alvo fixo (tab target) ou mira livre (action)?~~ Decidido: action (D4)
-- [x] ~~Ataque leve e pesado, bloqueio, stamina: quais entram na fatia jogável?~~ Decidido em 2026-10-12: entram a cadeia de três leves, o pesado e o vigor (esquiva e pesado). O bloqueio da fatia continua o da defesa do equipamento ([abaixo](#ritmo-do-golpe-new-world)), não a guarda segurada.
-- [ ] **Troca de arma** (duas armas, como New World e Throne and Liberty)? Veja S10 na [validação](../brainstorm/validacao.md)
+- [x] ~~Ataque leve e pesado, bloqueio, stamina: quais entram na fatia jogável?~~ Decidido em 2026-10-12, como no New World: entram a cadeia de três leves, o pesado, a esquiva com janela sem dano e a guarda segurada. Os dois gastam vigor.
+- [x] ~~**Troca de arma** (duas armas, como New World e Throne and Liberty)?~~ Decidido em 2026-10-12: sim, duas armas e três skills por arma, com recarga separada. A fatia atual ainda joga com uma espada. A troca entra na S10.
 - [x] ~~Bosses com ataques telegrafados?~~ Decidido em 2026-10-10: sim (veja "Definido")
 - [ ] Como o servidor valida acertos com a latência (lag compensation)? Decidido pelo Gabriel em 2026-10-11 **para a fatia**: sem compensação de lag (o cone é medido no momento do acerto, com a posição que o servidor tem). Depois da fatia a pergunta segue aberta (issue #172).
 - [x] ~~Quais efeitos de status existem?~~ Adotado em 2026-10-11 (/decida, #171), fácil de mudar: seis efeitos, veja [Efeitos de status](#efeitos-de-status-171).
@@ -38,9 +38,9 @@ Cálculo de dano, seleção de alvo e efeitos de status. Usado por PvE e PvP.
 
 Vêm do [Livro de ideias](../brainstorm/figjam.md) (seção 10). São **proposta do board (2026-10-11), não validada pelo grupo**; nada aqui muda o que já está em "Definido" ou implementado.
 
-- [x] **Bloqueio por defesa, adotado em 2026-10-11 (/decida, #344), fácil de mudar:** sem parry nem janela de timing. Defesa >= 1,5x a potência de bloqueio do golpe anula o dano direto; abaixo disso reduz proporcionalmente, até 80%. Os dois números ficam em constantes nomeadas. O client avisa defesa insuficiente. Proposta original do livro: (sem parry nem janela de timing): com defesa de pelo menos 1,5x a potência de bloqueio do golpe, anula o dano direto; abaixo disso reduz proporcionalmente, até 80%. Responde em parte à pergunta de bloqueio acima. Depende da defesa (equipamento, [itens.md](itens.md)); o dano recebido hoje não tem defesa (`ServicoDeDanoRecebido.DanoFinal`).
+- [x] **Bloqueio por defesa, adotado em 2026-10-11 (/decida, #344), fácil de mudar:** sem parry nem janela de timing. Desde 2026-10-12 a guarda segurada é o bloqueio ativo ([abaixo](#guarda-segurada)); esta fórmula só reduz o dano que a guarda não segurou. Defesa >= 1,5x a potência de bloqueio do golpe anula o dano direto; abaixo disso reduz proporcionalmente, até 80%. Os dois números ficam em constantes nomeadas. O client avisa defesa insuficiente. Proposta original do livro: (sem parry nem janela de timing): com defesa de pelo menos 1,5x a potência de bloqueio do golpe, anula o dano direto; abaixo disso reduz proporcionalmente, até 80%. Responde em parte à pergunta de bloqueio acima. Depende da defesa (equipamento, [itens.md](itens.md)); o dano recebido hoje não tem defesa (`ServicoDeDanoRecebido.DanoFinal`).
 - [x] **Sem defesa de timing, adotado em 2026-10-11 (#344):** a "defesa que abre oportunidade" fica de fora. O livro rejeita parry e bloqueio perfeito. **Conflito leve** com a sugestão "defesa que abre oportunidade" (bloquear no timing certo desequilibra o inimigo), que está só em "Sugestões para discussão" do board.
-- [x] ~~**Esquiva sem invulnerabilidade:**~~ Confirmado em 2026-10-12, junto com o ritmo do New World: continua sem invulnerabilidade (seção 3 da [fatia](fatia-jogavel.md)). A esquiva do New World, com janela em que o dano some, não entra.
+- [x] ~~**Esquiva sem invulnerabilidade:**~~ Revisto em 2026-10-12: a esquiva segue o New World. Nos primeiros 0,3 s o dano direto some (seção 3 da [fatia](fatia-jogavel.md)). Quem decide é o servidor.
 - [ ] **Ataques básicos por arma** (espada corta, martelo varre, arco com disparo ou tiro carregado, cajado com pulso ou projétil ampliado): hoje só a espada existe. Outras armas entram com [itens.md](itens.md).
 - [ ] **Mira e volumes de acerto:** mouse direciona golpes, projéteis e áreas, sem seleção automática obrigatória; a área visível da skill deve ser a área real de acerto; volumes generosos (cone, faixa, círculo). Coerente com o cone de 90° já implementado; vale como critério para as skills.
 - [ ] **Movimentos além de correr e esquivar:** pulo, natação e escalada (proposta de escalada em superfícies e bordas do mapa; rios cruzados a nado, com gelo como alternativa). Dono: [personagem.md](personagem.md) e [mundo.md](mundo.md).
@@ -53,17 +53,26 @@ Vêm do [Livro de ideias](../brainstorm/figjam.md) (seção 10). São **proposta
 
 ### Ritmo do golpe (New World)
 
-Decidido em 2026-10-12. A cadência (leve, pesado, vigor) é a do New World. A sensação de contato, o corpo que avisa e a pausa no acerto são a do Elden Ring ([referências](../referencias.md#elden-ring-fromsoftware-2022)). Os números e a cadeia moram na [seção 2 da fatia](fatia-jogavel.md#2-um-ataque-primeira-arma-leve-e-pesado). Aqui fica o que essas referências sugerem e **não** entra:
+Decidido em 2026-10-12 e revisto no mesmo dia: a luta segue o New World. A sensação de contato, o corpo que avisa e a pausa no acerto continuam as do Elden Ring ([referências](../referencias.md#elden-ring-fromsoftware-2022)). Os números da cadeia e da esquiva moram na [fatia](fatia-jogavel.md). O que não entra:
 
-- **Esquiva com invulnerabilidade.** No New World o dano some numa janela curta. Aqui a esquiva só evita se a pessoa sair da área a tempo.
-- **Guarda segurada e guarda quebrada.** No New World segurar o bloqueio gasta vigor conforme o golpe. Aqui o bloqueio é a defesa do equipamento ([#344](https://github.com/GabrielNied/jogo_do_grupo/issues/344)): sem parry e sem janela de timing.
-- **Duas armas e três skills por arma.** Ficam fora desta fatia (troca de arma ainda em aberto; skills nos itens).
+- **Parry.** Segurar a guarda não tem janela de timing. Acertar o instante certo não abre contra-ataque.
+- **Combo que prende.** A reação ao acerto não renova ([abaixo](#reação-ao-acerto)).
+- **Duas armas nesta fatia.** O desenho é o do New World; a espada sozinha vale até a S10.
 
 Para implementar sem refazer a leitura:
 
 - A cadeia, o multiplicador do 3º leve e o teto de giro são contas em `RegrasAtaque`. No acerto, a direção é a `RotacaoY` que o Mundo já guarda em `PosicaoNoMundo`, limitada pelo giro desde a direção do início do preparo. Sem mensagem nova e sem biblioteca.
 - Andar a 40% durante o golpe **não** usa `IDeslocamentosDoMundo.AbrirJanela`: essa janela libera um deslocamento mais rápido (é a esquiva). O teto menor é outra operação no contrato do Mundo (`Contratos/Mundo/`), chamada pelo Combate. Sem referência de assembly entre as funcionalidades.
-- O pesado não é interrompido por dano tomado; o dano continua valendo. Só importa quando existir atordoamento por dano (seção 2 da fatia).
+- O pesado não é interrompido por dano tomado; o dano continua valendo. A reação dos outros golpes está em [Reação ao acerto](#reação-ao-acerto).
+
+### Guarda segurada
+
+Decidido em 2026-10-12, como no New World, fácil de mudar. Sem parry. Quem decide é o servidor: o client só diz que a guarda está segurada.
+
+- Segurar a guarda anda a no máximo **40%** da corrida. Não vale durante o preparo nem no momento de acerto de um golpe seu. Na recuperação, segurar a guarda corta o que falta dela.
+- O golpe recebido custa **1 de vigor por ponto de dano** (`VigorPorDanoBloqueado`), antes da defesa do equipamento. Com vigor suficiente, o dano desse golpe é zero e o vigor desce esse tanto.
+- Sem vigor para o custo, a guarda quebra: o vigor vai a zero, o dano entra (a defesa do equipamento da [#344](https://github.com/GabrielNied/jogo_do_grupo/issues/344) vale nesse caso) e a [reação ao acerto](#reação-ao-acerto) começa.
+- A fórmula da #344 não substitui a guarda. Ela só reduz o que passou.
 
 ### O que o client mostra e o que o servidor decide
 
@@ -148,7 +157,7 @@ Esquiva (tempo real; regras e números em [fatia-jogavel.md](fatia-jogavel.md), 
 - O servidor recebe `IntencaoDeEsquiva`, confere e cobra **15 de vigor uma vez** (mesma transação do ataque) e só então pede ao Mundo a janela de deslocamento (`IDeslocamentosDoMundo`: 5 m em 0,6 s). Quem valida cada posição continua sendo o Mundo; fora da janela vale o limite de corrida.
 - Quem recebe: `EsquivaIniciada` vai a todos que estão na área (o dono também); `EsquivaRecusada` e `RecursosMudaram` só ao dono.
 - Recusas: `VigorInsuficiente` (nada é gasto), `VoceEstaCaido` e `AcaoEmAndamento`.
-- **Ataque e esquiva não valem ao mesmo tempo:** a esquiva é recusada durante um ataque (do começo ao fim da recuperação) e durante outra esquiva; o ataque pedido durante a esquiva é recusado com `AcaoEmAndamento`, sem entrar na fila. De dois pedidos no mesmo instante, um vale. A esquiva **não cancela** o preparo de um ataque (decidido em 2026-10-12; a #62 já está fechada).
+- **Ataque e esquiva:** a esquiva é recusada no preparo e no momento de acerto, e durante outra esquiva. Na recuperação, a esquiva corta o resto da ação. O ataque pedido durante a esquiva é recusado com `AcaoEmAndamento`, sem entrar na fila. De dois pedidos no mesmo instante, um vale. A #62 já está fechada.
 - Direção inválida ou esquiva de quem ainda não entrou no mundo: o pedido é descartado sem resposta, como no ataque.
 - Parede: o servidor ainda não conhece a geometria; valida distância, velocidade e os limites do mundo. Colisão com parede fica no client até o servidor ter o mapa.
 
