@@ -68,3 +68,9 @@ Formato: `### AAAA-MM-DD · título` com **O que houve**, **Regra** e **Origem**
 - **O que houve:** no `/trabalhe` das #489 e #493, o primeiro `dotnet test` do agente de Itens ficou parado tentando enviar telemetria do .NET, que o proxy da nuvem bloqueia, e estourou o tempo do comando; a rodada teve de ser refeita.
 - **Regra:** as sessões de agente rodam com `DOTNET_CLI_TELEMETRY_OPTOUT=1` e `DOTNET_NOLOGO=1` (bloco `env` do [.claude/settings.json](../.claude/settings.json)), como o CI já faz no `server.yml`. Em outra ferramenta de IA na nuvem, exporte as duas antes do primeiro `dotnet`.
 - **Origem:** relato do agente de Itens no PR #540.
+
+### 2026-10-12 · Agentes em worktree: comando composto recusado e teste que estoura o tempo
+
+- **O que houve:** na leva de 2026-10-12, os agentes de Combate (#478) e Mobs (#487), cada um no seu worktree fora da pasta principal, tiveram comandos com heredoc, variável ou `$(...)` recusados pela permissão da sessão e precisaram dividir as chamadas ou escrever scripts no rascunho. O `dotnet test JogoDoGrupo.slnx` leva cerca de 3 min e estourou o limite padrão de 2 min da ferramenta de shell, e a rodada teve de ser repetida.
+- **Regra:** no worktree, prefira comandos simples (um por chamada) e escreva arquivos com a ferramenta de escrita, não com heredoc. Rode `dotnet test JogoDoGrupo.slnx` com tempo limite de 10 min, ou filtre pelo que mudou (`--filter`) e deixe a suíte inteira para o fim.
+- **Origem:** PRs #545 e #548 (relato dos agentes).
