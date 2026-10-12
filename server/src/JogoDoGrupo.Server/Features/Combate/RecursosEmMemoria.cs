@@ -142,6 +142,42 @@ public sealed class RecursosEmMemoria : IHostedService, IDisposable
         }
     }
 
+    /// <summary>
+    /// O golpe de <paramref name="dano"/> contra a guarda segurada: se o vigor paga
+    /// <see cref="RegrasGuarda.CustoDoBloqueio"/>, ele é gasto e o golpe é bloqueado; senão o
+    /// vigor vai a zero e a guarda quebra (<c>Bloqueou</c> falso). Uma ida só, sob a trava.
+    /// </summary>
+    public async Task<(bool Bloqueou, int VigorGasto, RecursosMudaram Recursos)> BloquearAsync(
+        long personagemId,
+        int dano,
+        CancellationToken cancelamento
+    )
+    {
+        var entrada = await EntrarAsync(personagemId, cancelamento);
+        try
+        {
+            var atributos = await AtributosDaEntradaAsync(entrada, cancelamento);
+            var recursos = Regenerado(entrada, atributos);
+            var custo = RegrasGuarda.CustoDoBloqueio(dano);
+            var bloqueou = RegrasGuarda.Segura(recursos.Vigor, dano);
+            var gasto = bloqueou ? custo : recursos.Vigor;
+            if (gasto > 0)
+            {
+                var agora = Agora();
+                recursos.Vigor -= gasto;
+                recursos.UltimoGastoVigorEm = agora;
+                recursos.VigorContadoAte = agora;
+                entrada.Sujo = true;
+            }
+
+            return (bloqueou, gasto, Estado(recursos, atributos));
+        }
+        finally
+        {
+            entrada.Trava.Release();
+        }
+    }
+
     /// <summary>Tira vida (nunca abaixo de 0); golpes simultâneos somam.</summary>
     public async Task<RecursosMudaram> TirarVidaAsync(
         long personagemId,

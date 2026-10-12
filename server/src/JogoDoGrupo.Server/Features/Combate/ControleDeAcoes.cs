@@ -14,7 +14,8 @@ public sealed record AcaoDeAtaque(
     PedidoDeAtaque Pedido,
     long InicioMs,
     int Passo = 0,
-    long? CortadaEmMs = null
+    long? CortadaEmMs = null,
+    bool Interrompida = false
 )
 {
     public long PreparoMs => Milissegundos(RegrasAtaque.PreparoSegundos(Pedido.Tipo));
@@ -76,9 +77,9 @@ public sealed class ControleDeAcoes
                 _estados[personagemId] = estado;
             }
 
-            if (agoraMs < estado.OcupadoAteMs)
+            if (EstaOcupado(estado, agoraMs))
             {
-                // Em outra ação (ex.: esquiva): não ataca nem entra na fila.
+                // Em outra ação (esquiva, reação ao acerto, guarda): não ataca nem entra na fila.
                 acao = null;
                 return ResultadoDoPedido.Recusado;
             }
@@ -147,7 +148,7 @@ public sealed class ControleDeAcoes
             var emAtaque = atual != null && agoraMs < atual.FimMs;
 
             // Preparo e momento de acerto são compromisso: a esquiva só vale na recuperação.
-            if ((emAtaque && agoraMs < atual!.AcertoMs) || agoraMs < estado.OcupadoAteMs)
+            if ((emAtaque && agoraMs < atual!.AcertoMs) || EstaOcupado(estado, agoraMs))
             {
                 ocupacaoId = 0;
                 return false;
@@ -211,6 +212,134 @@ public sealed class ControleDeAcoes
         }
     }
 
+    /// <summary>
+    /// Um golpe confirmado acertou o personagem (dano que entrou). Se não está na folga de uma
+    /// reação anterior, nem no pesado em andamento, nem no meio da esquiva, ele é interrompido:
+    /// o golpe em curso para (no preparo, nunca chega ao contato), o pedido da fila some, a guarda
+    /// cai, e esquiva e ataque ficam recusados por
+    /// <see cref="RegrasReacao.AtordoamentoNoAcertoMs"/>. Outro acerto durante a reação ou os
+    /// <see cref="RegrasReacao.FolgaDepoisDoAcertoMs"/> seguintes não renova nem interrompe.
+    /// Verdadeiro se a reação começou.
+    /// </summary>
+    public bool TentarReagir(long personagemId, long agoraMs)
+    {
+        lock (_trava)
+        {
+            if (!_estados.TryGetValue(personagemId, out var estado))
+            {
+                estado = new Estado();
+                _estados[personagemId] = estado;
+            }
+
+            if (
+                !RegrasReacao.PodeReagir(agoraMs, estado.FolgaAteMs)
+                || agoraMs < estado.OcupadoAteMs // A esquiva em curso termina.
+            )
+            {
+                return false;
+            }
+
+            var atual = estado.Atual;
+            if (atual != null && agoraMs < atual.FimMs)
+            {
+                if (atual.Pedido.Tipo == TipoDeAtaque.Pesado)
+                {
+                    return false; // O pesado em andamento não é interrompido.
+                }
+
+                estado.Atual = atual with
+                {
+                    CortadaEmMs = agoraMs,
+                    Interrompida = agoraMs < atual.AcertoMs,
+                };
+            }
+
+            estado.Fila = null;
+            estado.Guardando = false;
+            estado.ReagindoAteMs = RegrasReacao.FimDoAtordoamentoMs(agoraMs);
+            estado.FolgaAteMs = RegrasReacao.FimDaFolgaMs(agoraMs);
+            return true;
+        }
+    }
+
+    /// <summary>Se o ataque <paramref name="acaoId"/> foi interrompido antes do contato.</summary>
+    public bool FoiInterrompida(long personagemId, long acaoId)
+    {
+        lock (_trava)
+        {
+            return _estados.TryGetValue(personagemId, out var estado)
+                && estado.Atual is { } atual
+                && atual.Id == acaoId
+                && atual.Interrompida;
+        }
+    }
+
+    /// <summary>
+    /// Sobe a guarda. Recusa no preparo e no momento de acerto de um golpe, durante a esquiva e
+    /// a reação ao acerto. Na recuperação do golpe, segurar a guarda corta o que falta dela (e o
+    /// pedido da fila). Falso se recusou; já segurando conta como verdadeiro.
+    /// </summary>
+    public bool TentarGuardar(long personagemId, long agoraMs)
+    {
+        lock (_trava)
+        {
+            if (!_estados.TryGetValue(personagemId, out var estado))
+            {
+                estado = new Estado();
+                _estados[personagemId] = estado;
+            }
+
+            if (estado.Guardando)
+            {
+                return true;
+            }
+
+            var atual = estado.Atual;
+            var emAtaque = atual != null && agoraMs < atual.FimMs;
+            if (
+                (emAtaque && agoraMs < atual!.AcertoMs)
+                || agoraMs < estado.OcupadoAteMs
+                || agoraMs < estado.ReagindoAteMs
+            )
+            {
+                return false;
+            }
+
+            if (emAtaque)
+            {
+                estado.Atual = atual! with { CortadaEmMs = agoraMs };
+                estado.Fila = null;
+            }
+
+            estado.Guardando = true;
+            return true;
+        }
+    }
+
+    /// <summary>Solta a guarda. Falso se ela já estava solta.</summary>
+    public bool SoltarGuarda(long personagemId)
+    {
+        lock (_trava)
+        {
+            if (_estados.TryGetValue(personagemId, out var estado) && estado.Guardando)
+            {
+                estado.Guardando = false;
+                return true;
+            }
+
+            return false;
+        }
+    }
+
+    /// <summary>Se a guarda está segurada.</summary>
+    public bool EstaGuardando(long personagemId)
+    {
+        lock (_trava)
+        {
+            return _estados.TryGetValue(personagemId, out var estado) && estado.Guardando;
+        }
+    }
+
     /// <summary>A ação em curso (ou a última, se já acabou); nulo se o personagem não tem nenhuma.</summary>
     public AcaoDeAtaque? AcaoAtual(long personagemId)
     {
@@ -237,6 +366,10 @@ public sealed class ControleDeAcoes
             _estados.Remove(personagemId);
         }
     }
+
+    // Chamar com a trava: esquiva, reação ao acerto ou guarda impedem ataque e esquiva.
+    private static bool EstaOcupado(Estado estado, long agoraMs) =>
+        agoraMs < estado.OcupadoAteMs || agoraMs < estado.ReagindoAteMs || estado.Guardando;
 
     // Chamar com a trava.
     private AcaoDeAtaque? ProximaDaFila(
@@ -300,5 +433,8 @@ public sealed class ControleDeAcoes
         public long InvulneravelAteMs;
         public long OcupadoAteMs;
         public long OcupacaoId;
+        public long ReagindoAteMs;
+        public long FolgaAteMs;
+        public bool Guardando;
     }
 }

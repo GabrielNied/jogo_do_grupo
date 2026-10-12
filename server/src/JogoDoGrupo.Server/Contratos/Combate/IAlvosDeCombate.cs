@@ -53,4 +53,14 @@ public interface IAlvosDeCombate
     /// de fato foi tirado, nunca mais que a vida que ele tinha.
     /// </summary>
     bool TentarAplicarDano(long alvoId, int dano, long atacanteId, out ResultadoDeDano resultado);
+
+    /// <summary>
+    /// Um acerto confirmado de Combate pede que o alvo pare o golpe comum que prepara (reação ao
+    /// acerto). O alvo cancela o preparo (o golpe não chega ao contato), não ataca de novo por
+    /// <paramref name="duracaoMs"/> e devolve verdadeiro. Falso, sem mudar nada, se não é desta
+    /// implementação, não está preparando um golpe ou não pode ser interrompido (o chefe de
+    /// dungeon nunca é). Quem não tem preparo a interromper usa o padrão, que sempre devolve
+    /// falso. Combate controla a folga entre reações e só chama quando uma vale.
+    /// </summary>
+    bool Interromper(long alvoId, int duracaoMs) => false;
 }

@@ -476,6 +476,27 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
         }
     }
 
+    /// <summary>
+    /// Reação ao acerto (Combate): um acerto no preparo cancela o golpe, que não chega ao
+    /// contato, e o inimigo fica sem atacar por <paramref name="duracaoMs"/> (a recuperação
+    /// dele passa a ser essa pausa). A recuperação de um golpe que já encostou continua.
+    /// </summary>
+    public bool Interromper(long alvoId, int duracaoMs)
+    {
+        lock (_trava)
+        {
+            var inimigo = Array.Find(_inimigos, i => i.Id == alvoId);
+            if (inimigo == null || inimigo.Estado != EstadoDeInimigo.Ataque || !inimigo.Preparando)
+            {
+                return false;
+            }
+
+            inimigo.Preparando = false;
+            inimigo.FaseAteMs = _relogioMs() + duracaoMs;
+            return true;
+        }
+    }
+
     // Tudo daqui para baixo é chamado com a trava.
 
     private void Atualizar(

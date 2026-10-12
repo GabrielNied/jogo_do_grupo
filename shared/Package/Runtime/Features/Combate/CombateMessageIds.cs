@@ -45,5 +45,17 @@ namespace JogoDoGrupo.Shared.Features.Combate
 
         /// <summary>Servidor → quem pediu: o pedido do estado caído foi recusado.</summary>
         public const ushort AcaoRecusada = 6024;
+
+        /// <summary>Client → servidor: a guarda foi segurada ou solta.</summary>
+        public const ushort IntencaoDeGuarda = 6030;
+
+        /// <summary>Servidor → quem está na área: a guarda de um personagem subiu, desceu ou quebrou.</summary>
+        public const ushort GuardaMudou = 6031;
+
+        /// <summary>Servidor → quem está na área: a guarda segurou um golpe.</summary>
+        public const ushort GolpeBloqueado = 6032;
+
+        /// <summary>Servidor → quem está na área: um acerto interrompeu uma ação.</summary>
+        public const ushort AcaoInterrompida = 6033;
     }
 }
