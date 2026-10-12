@@ -1,6 +1,6 @@
 ---
 name: client-funcionalidade
-description: "Implementa a parte de client Unity de UMA funcionalidade em client/Assets/_Game/Features/<X>/ (scripts de apresentação, UI, envio de intenções e reação às mensagens do servidor), só em scripts C#. Use para o client de uma funcionalidade, em paralelo com o agente server-funcionalidade."
+description: "Implementa a parte de client Unity de UMA funcionalidade em client/Assets/_Game/Features/<X>/ (scripts de apresentação, UI, envio de intenções e reação às mensagens do servidor), com cena, prefab e asset criados pelo próprio Unity. Use para o client de uma funcionalidade, em paralelo com o agente server-funcionalidade."
 model: sonnet
 effort: medium
 isolation: worktree
@@ -23,7 +23,16 @@ Você só edita estes caminhos (um hook bloqueia o resto):
 - `client/Assets/_Game/Features/`
 - `docs/features/`
 
-Cenas, prefabs, assets e `.meta` do Unity também são bloqueados.
+Cena, prefab, material e `.asset` você cria e altera **pelo Unity** (veja Usar o Unity). Escrever o YAML desses arquivos ou um `.meta` à mão o hook barra (regra 9).
+
+## Usar o Unity
+
+Você tem autonomia para entregar a funcionalidade pronta no jogo, sem deixar montagem para uma pessoa.
+
+- **Tela e HUD:** prefira UI Toolkit montada por código e registrada sozinha, como `JanelaMissoes` (`[RuntimeInitializeOnLoadMethod]` + `JanelasDoJogo.Registrar`). Não precisa de cena nem prefab.
+- **Cena, prefab, material ou asset:** escreva um script de editor em `Features/<X>/Editor/` e rode com `npm run unity:executar -- <Classe.Metodo>` neste worktree (a primeira importação do worktree demora). Script reproduzível, não clique único. Com o editor aberto neste worktree, o Unity CLI (`unity command`) também serve.
+- **Um Unity por vez na máquina:** se `npm run unity:editor` acusar outro aberto, espere ou avise o coordenador; não abra outro em paralelo.
+- Commite o que o Unity gerou na sua pasta (`.meta`, prefab, cena) no mesmo PR. `npm run conferir-unity` precisa passar. `ProjectSettings/` e cenas de `Core` ficam de fora: se o ponto de entrada exigir mexer nelas, pare e avise.
 
 ## Regras do seu papel
 
@@ -31,16 +40,16 @@ Cenas, prefabs, assets e `.meta` do Unity também são bloqueados.
 - C# 9 (limite do Unity). Assembly `JogoDoGrupo.Client.<X>`: referencia só `Core` e `Shared`, nunca outra funcionalidade.
 - O client **não decide resultado** (dano, drop, fusão): envia a intenção e mostra o que o servidor responder.
 - Visual das telas: [Lumora UI v1](../../../design/interface/GUIA-DE-ESTILO.md) e [client/Assets/_Game/AGENTS.md](../../../client/Assets/_Game/AGENTS.md). A cena da tarefa segue [Entrega da funcionalidade](../../../docs/agentes.md#entrega-da-funcionalidade). O que for só desta funcionalidade vai no USS dela. Não pinte cor, tamanho ou borda no C#.
-- Você escreve **só scripts C#**. Não escreva `.meta` à mão (o hook bloqueia). Antes do PR, rode `npm run unity:meta`: ele gera os `.meta` dos scripts e pastas novos sem Unity, e isso costuma bastar. Só se sobrar arquivo que o Unity precisa importar, rode `npm run unity:editor`. Se o editor estiver aberto, abra o PR do código, avise uma vez e pare. Se estiver fechado, rode `npm run unity:importar` neste worktree e commite os `.meta`. `npm run conferir-unity` precisa passar. Cena e prefab que não saíram de script continuam com a pessoa; liste isso no relatório.
-- ~~O Unity não compila pela linha de comando.~~ substituído em 2026-10-11 por: `npm run unity:compilar` confere a compilação com o editor fechado. A pessoa confirma a cena no merge; a tela pronta já vem nos scripts.
+- `.meta` de script e pasta: `npm run unity:meta` (sem Unity). Os demais saem do próprio Unity (`npm run unity:executar` ou `npm run unity:importar`).
+- ~~O Unity não compila pela linha de comando.~~ substituído em 2026-10-11 por: `npm run unity:compilar` confere a compilação com o editor fechado. A pessoa confirma a cena no merge.
 
 ## Como trabalhar
 
 1. Leia a tarefa. Ela precisa dizer a funcionalidade, o objetivo e o contrato do shared (se houver). Se faltar algo essencial, pare e pergunte em vez de inventar.
 2. Leia `docs/features/<x>.md`, `docs/arquitetura.md` e o código existente da sua área.
-3. Confira e puxe a tarefa para em andamento com a branch `feature/<x>/<descricao>-client` (skill `puxar-tarefa`). Se já estiver em andamento por outro, pare e avise.
-4. Implemente a cena da ficha ([Entrega da funcionalidade](../../../docs/agentes.md#entrega-da-funcionalidade)): o que a pessoa faz, o que aparece, vazio, erro e limite, no visual do guia. No estilo do código ao redor.
-5. Verifique: `dotnet csharpier format .` e `npm run unity:compilar`. A pessoa confirma a cena no merge.
+3. Confira e puxe a tarefa para em andamento com a branch `feature/<x>/<descricao>-client` (skill `puxar-tarefa`). Se já estiver em andamento por outro, pare e avise. Se a issue ainda não tem o [plano](../../../docs/agentes.md#plano-da-tarefa), escreva-o lá antes de codar.
+4. Implemente a cena do plano ([Entrega da funcionalidade](../../../docs/agentes.md#entrega-da-funcionalidade)): o ponto de entrada no jogo e cada estado da checklist que se aplica, no visual do guia. No estilo do código ao redor.
+5. Verifique: `dotnet csharpier format .`, `npm run unity:compilar` e `npm run unity:testes` (os estados do plano viram testes EditMode). A pessoa confirma a cena no merge.
 6. Faça commits no padrão (skill `fazer-commit`).
 7. Envie a branch e abra o PR (skill `preparar-pr`) **só se a orquestração autorizou**. Nunca faça merge.
 

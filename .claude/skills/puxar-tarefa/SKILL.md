@@ -37,6 +37,10 @@ O que o comando faz:
 6. Publica comentário na issue registrando o início e a branch.
 7. Atualiza com a `origin/main` e cria a branch (ou worktree) no padrão `<tipo>/<escopo>/<descricao>`.
 
+## 2.1. Plano antes de codar (tarefa de jogo)
+
+Logo depois de puxar, escreva o plano num comentário da issue (`gh issue comment <N>`), ou confirme o da ficha se o coordenador já fez: casos de uso, estados da checklist de experiência que se aplicam e os testes que saem deles. Formato e checklist em [Plano da tarefa](../../../docs/agentes.md#plano-da-tarefa). Siga em frente; só pare se houver dúvida de regra. Tarefa de processo, docs ou infra não precisa.
+
 ## 3. Subtarefas para vários agentes em paralelo
 
 Quando uma issue é um épico ou conjunto de tarefas para múltiplos agentes (ex.: contrato + server + client):

@@ -19,7 +19,7 @@ Você é o **coordenador**: não implementa; planeja, lança os agentes e junta 
 Quase todo retrabalho vem de decisão tomada tarde. Antes de lançar agentes, escreva na issue (ou numa issue nova) uma **ficha** curta e peça a aprovação da pessoa uma vez:
 
 - **Objetivo:** o que funciona ao final, em 2–3 linhas.
-- **Cena:** o que a pessoa faz, o que aparece e os cantos (vazio, erro, limite), no visual do guia. É a entrega da funcionalidade. Detalhe em [Entrega da funcionalidade](../../../docs/agentes.md#entrega-da-funcionalidade).
+- **Plano:** casos de uso a partir do ponto de entrada no jogo, os estados da checklist de experiência que se aplicam e o que aparece em cada um. É a entrega da funcionalidade. Detalhe em [Plano da tarefa](../../../docs/agentes.md#plano-da-tarefa).
 - **Contrato:** rotas/mensagens, DTOs com campos e tipos, códigos de erro e status (em que arquivo e pasta cada um fica).
 - **Regras:** números, limites e quem decide (servidor).
 - **Testes esperados:** lista dos casos (caminho feliz, cada erro, limites, concorrência).

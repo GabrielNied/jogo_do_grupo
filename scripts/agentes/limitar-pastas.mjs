@@ -24,7 +24,8 @@ if (caminho.startsWith("../") || isAbsolute(caminho)) process.exit(0);
 if (semYamlUnity && /\.(unity|prefab|asset|meta|mat|controller|anim|overrideController)$/i.test(caminho)) {
   console.error(
     `Bloqueado: "${caminho}" é um arquivo do editor do Unity (cena, prefab, asset ou .meta). ` +
-      "Agentes escrevem só scripts C#; diga no relatório o que a pessoa precisa montar no editor.",
+      "Não se escreve o YAML do Unity à mão: crie ou altere pelo próprio Unity, com um script de editor " +
+      "(npm run unity:executar -- <Classe.Metodo>) ou o Unity CLI no editor aberto.",
   );
   process.exit(2);
 }

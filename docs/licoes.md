@@ -9,6 +9,12 @@ Formato: `### AAAA-MM-DD · título` com **O que houve**, **Regra** e **Origem**
 - **Commite em etapas pequenas, mesmo em trabalho em andamento.** O que não está num commit pode sumir.
 - **Um problema novo vira lição no mesmo PR que o corrigiu** (ou num PR de docs logo depois), não só uma conversa.
 
+### 2026-10-11 · Branch velha e checkout dividido (issue #442)
+
+- **O que houve:** `npm run tarefa -- puxar` sem `--worktree` caiu no fallback e criou a branch a partir da `main` local velha (o `pull` falhou por um `.mat` modificado). Depois, outra sessão trocou o HEAD do checkout principal no meio da edição.
+- **Regra:** o `puxar` cria a branch sempre da `origin/main`. Sessão que não é a dona do checkout principal trabalha num worktree próprio (`--worktree`).
+- **Origem:** issue #442.
+
 ### 2026-10-11 · Entrega crua
 
 - **O que houve:** Funcionalidades chegaram com contrato, servidor e teste, e a parte que o jogador usa ficou pela metade (a aba de amigos não entrou no PR, a queda ficou sem tela). A issue parecia encaminhada e o resultado não dava para usar.
