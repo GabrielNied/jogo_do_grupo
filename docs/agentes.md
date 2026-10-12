@@ -100,12 +100,12 @@ Vale para o dono da funcionalidade e para os agentes de client, no worktree dele
 
 - **Tela e HUD:** prefira UI Toolkit montada por código e registrada sozinha, como `JanelaMissoes` (`[RuntimeInitializeOnLoadMethod]` + `JanelasDoJogo.Registrar`). Não precisa de cena nem prefab.
 - **Cena, prefab, material ou asset:** script de editor em `Features/<X>/Editor/`, rodado com `npm run unity:executar -- <Classe.Metodo>` no próprio worktree (a primeira importação demora). Script reproduzível, não clique único. Com o editor aberto nesse worktree, o Unity CLI (`unity command`) também serve. YAML do Unity e `.meta` escritos à mão o hook barra (regra 9).
-- **Um Unity por vez na máquina:** se `npm run unity:editor` acusar outro aberto, espere ou avise o coordenador.
+- **Um Unity por vez na máquina, sozinho:** `unity:executar`, `unity:importar` e `unity:testes` pegam uma trava da máquina ([scripts/unity/trava.mjs](../scripts/unity/trava.mjs)) e esperam a vez enquanto outro comando ou o editor estiver aberto, até 30 min (`UNITY_ESPERA_MIN`). Trava de processo morto é retomada sozinha.
 - Commite o que o Unity gerou na sua pasta no mesmo PR; `npm run conferir-unity` precisa passar. `ProjectSettings/` e cenas de `Core` ficam de fora: se o ponto de entrada exigir mexer nelas, pare e avise.
 
 ### Agentes artistas e o Unity
 
-Os artistas ([ADR 0014](decisoes/0014-conteudo-3d-e-agentes-artistas.md)) buscam assets CC0 conforme a necessidade e montam o conteúdo **pelo Unity** (editor aberto via Unity CLI, ou scripts de editor em modo batch). Como o projeto Unity é um só, **os passos com Unity rodam um agente por vez, no checkout principal**; buscar assets e escrever código pode andar em paralelo. Enquanto um artista usa o Unity, ninguém troca a branch do checkout principal. Antes de abrir o PR, `npm run conferir-unity` confirma que `.meta` e materiais alterados pelo Unity entraram no commit. O CI repete a parte dos `.meta` que faltam.
+Os artistas ([ADR 0014](decisoes/0014-conteudo-3d-e-agentes-artistas.md)) buscam assets CC0 conforme a necessidade e montam o conteúdo **pelo Unity** (editor aberto via Unity CLI, ou scripts de editor em modo batch). Cada artista trabalha no seu worktree, como os outros agentes, e a trava do Unity ([Usar o Unity](#usar-o-unity)) põe os passos com Unity em fila. O checkout principal fica com a pessoa. Antes de abrir o PR, `npm run conferir-unity` confirma que `.meta` e materiais alterados pelo Unity entraram no commit. O CI repete a parte dos `.meta` que faltam.
 
 Lições de processo (Blender, commits em etapas, Unity aberto) estão em [licoes.md](licoes.md).
 
@@ -219,6 +219,6 @@ Nessas ferramentas os hooks não rodam: o limite de pastas e a regra 0 dependem 
 
 ## Limitações atuais
 
-- **Unity:** um editor por vez. `npm run unity:editor` distingue o editor do Hub. `npm run unity:compilar` confere se o client compila; o visual a pessoa confere no merge. A primeira importação de um worktree novo é lenta: não abra outro só para repetir. Se o editor estiver aberto, o agente para uma vez. Quem gera o `.meta` depois é o coordenador, com `npm run unity:importar`, sem relançar o agente.
+- **Unity:** um por vez na máquina, em fila pela trava ([Usar o Unity](#usar-o-unity)). Editor da pessoa aberto por mais de 30 min faz o comando do agente desistir com aviso de quem ocupa. A primeira importação de um worktree novo é lenta: não abra outro só para repetir.
 - **Sem Unity (nuvem):** desde o [ADR 0019](decisoes/0019-unity-no-ci.md), os comandos `unity:*` pulam com aviso, `npm run unity:meta` gera os `.meta` de script, pasta, `.asmdef` e estilo, e o CI "Client (Unity)" compila e testa o client depois do merge. O agente abre o PR normal e registra o que só o Unity faz (menos compilar e rodar testes EditMode, que o CI faz) com `npm run tarefa -- pendencia-unity <PR> --falta "..."`. Numa máquina com Unity, o início da sessão avisa das pendências abertas, e quem puxa resolve na branch do PR (se ainda estiver aberto) ou numa branch nova.
 - ~~**Testes:** o framework de testes ainda não foi decidido (ADR em aberto). Até lá, `regras-do-jogo` descreve os casos de teste no relatório.~~ Substituído em 2026-10-11 pelo [ADR 0013](decisoes/0013-testes-automatizados.md): todo PR de código traz testes, e o CI roda `dotnet test`.

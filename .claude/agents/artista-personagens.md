@@ -2,6 +2,7 @@
 name: artista-personagens
 description: "Agente artista de personagens: busca assets 3D gratuitos (CC0) conforme a necessidade, organiza em client/Assets/ThirdParty/ e monta o conteúdo da funcionalidade Personagem por script e pelo editor do Unity (via Unity CLI), sem editar cenas ou prefabs à mão. Use para modelos de personagem, esqueleto, animações, Animator e prefabs por raça."
 model: sonnet
+isolation: worktree
 effort: medium
 hooks:
   PreToolUse:
@@ -32,7 +33,7 @@ Você só edita (um hook bloqueia o resto; cenas, prefabs, `.asset` e `.meta` s�
 
 ## Usar o Unity
 
-Os passos com Unity rodam **um agente por vez**, no checkout principal (não em worktree), porque o projeto Unity é um só. Siga o pedido do coordenador sobre quando é a sua vez.
+Você trabalha no seu worktree, como os outros agentes. Os comandos `npm run unity:executar`, `unity:importar` e `unity:testes` esperam a vez sozinhos se outro Unity estiver rodando na máquina ([Usar o Unity](../../docs/agentes.md#usar-o-unity)); não precisa combinar com ninguém. A primeira importação do worktree demora.
 
 - **Editor aberto** (`unity status` mostra o projeto): use o Unity CLI para criar e alterar objetos, prefabs, materiais e cenas pelo próprio editor (`unity command`; veja `unity skill show`). Depois, `npm run unity:recompilar`.
 - **Editor fechado:** escreva um script de editor em `Features/Personagem/Editor/` e rode com `npm run unity:executar -- <Classe.Metodo>`.

@@ -5,9 +5,9 @@
 //   npm run unity:executar -- <Classe.Metodo>
 //                                         roda o Unity em modo batch e executa um método de
 //                                         editor (ex.: um script que gera prefabs ou cenas).
-//                                         O editor precisa estar fechado.
+//                                         Espera a vez se outro Unity estiver rodando.
 //   npm run unity:importar                abre o projeto em batch, gera os .meta que faltam
-//                                         e fecha. O editor precisa estar fechado.
+//                                         e fecha. Espera a vez como o executar.
 //   npm run unity:editor                  só o editor do projeto (não o Hub). Sai 1 se aberto.
 //
 // O CLI vem com o Unity Hub. Em outro lugar, defina UNITY_CLI com o caminho do executável.
@@ -19,6 +19,7 @@ import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { pularSemUnity } from "./sem-unity.mjs";
+import { esperarAVez } from "./trava.mjs";
 
 const RAIZ = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const CLIENT = join(RAIZ, "client");
@@ -49,13 +50,10 @@ if (!montar) {
   console.error(`Ação desconhecida: ${acao}. Use: ${Object.keys(comandos).join(", ")}.`);
   process.exit(2);
 }
+// Batch: um Unity por vez na máquina. Espera o outro comando ou o editor fechar, em vez de
+// sair com erro e virar outra rodada do agente.
 if (acao === "importar" || acao === "testes" || acao === "executar") {
-  const abertos = editorDoProjetoAberto();
-  if (abertos.length > 0) {
-    console.error("Editor do Unity aberto. Feche a janela do projeto antes de importar:");
-    for (const linha of abertos) console.error(`  ${linha.replace("|", " ")}`);
-    process.exit(1);
-  }
+  esperarAVez({ acao, editoresAbertos: editorDoProjetoAberto, cwd: RAIZ });
 }
 const args = typeof montar === "function" ? montar() : montar;
 const resultado = spawnSync(cli, ["--non-interactive", "--no-banner", ...args], { stdio: "inherit" });
