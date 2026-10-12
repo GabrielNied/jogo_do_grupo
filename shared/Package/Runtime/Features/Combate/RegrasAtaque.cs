@@ -77,6 +77,12 @@ namespace JogoDoGrupo.Shared.Features.Combate
         /// </summary>
         public const double VelocidadeDuranteGolpe = 0.4;
 
+        /// <summary>
+        /// Quanto tempo o botão do ataque fica segurado para o golpe ser o pesado; soltar antes
+        /// disso é o leve. Só o client usa (o servidor recebe o tipo já decidido).
+        /// </summary>
+        public const double SegurarParaPesadoSegundos = 0.3;
+
         // ── Regras ────────────────────────────────────────────────────────────────
 
         /// <summary>Se o valor recebido da rede é um ataque que existe.</summary>

@@ -143,6 +143,7 @@ namespace JogoDoGrupo.Client.Features.Combate
                 return;
             }
 
+            ControleDefesa.LargarParaAgir(_prontidao); // Esquivar solta a guarda, antes do pedido.
             var intencao = _gerador.Criar(direcao);
             ConexaoTempoReal.Enviar(CombateMessageIds.IntencaoDeEsquiva, intencao);
             _prontidao?.MarcarEsquiva(agora);

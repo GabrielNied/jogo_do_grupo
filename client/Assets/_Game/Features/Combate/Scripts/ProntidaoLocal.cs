@@ -12,6 +12,9 @@ namespace JogoDoGrupo.Client.Features.Combate
     {
         public int? Vigor { get; private set; }
 
+        /// <summary>O teto de velocidade do corpo, dividido entre o golpe e a guarda.</summary>
+        public TetoDeVelocidade Teto { get; } = new TetoDeVelocidade();
+
         public double LivreEm { get; private set; }
 
         /// <summary>
@@ -35,6 +38,46 @@ namespace JogoDoGrupo.Client.Features.Combate
             return Vigor is not int vigor || RegrasAtaque.TemVigor(tipo, vigor);
         }
 
+        /// <summary>Se a guarda está segurada (o servidor confirmou ou o client antecipou).</summary>
+        public bool Guardando { get; private set; }
+
+        /// <summary>
+        /// Se a guarda pode subir: fora do preparo e do acerto de um golpe, da esquiva e da
+        /// reação ao acerto. Na recuperação do golpe ela vale e corta o que falta.
+        /// </summary>
+        public bool PodeGuardar(double agora)
+        {
+            if (Comprometido(agora) || (agora < LivreEm && !EmRecuperacao(agora)))
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public void MarcarGuarda(bool segurando, double agora)
+        {
+            Guardando = segurando;
+            if (segurando && EmRecuperacao(agora))
+            {
+                // Segurar a guarda corta o resto da recuperação do golpe.
+                _ataqueEmCurso = false;
+                LivreEm = agora;
+            }
+        }
+
+        /// <summary>
+        /// O servidor confirmou um acerto no próprio personagem que interrompeu a ação: o golpe
+        /// em curso para, a guarda cai e nada novo começa por <paramref name="duracaoSegundos"/>.
+        /// </summary>
+        public void MarcarReacao(double agora, double duracaoSegundos)
+        {
+            Guardando = false;
+            _ataqueEmCurso = false;
+            AcertoEm = 0;
+            LivreEm = agora + duracaoSegundos;
+        }
+
         public bool PodeEsquivar(double agora)
         {
             // No preparo e no acerto não esquiva; na recuperação ela corta o resto do golpe.
@@ -53,6 +96,7 @@ namespace JogoDoGrupo.Client.Features.Combate
 
         public void MarcarAtaque(TipoDeAtaque tipo, double agora)
         {
+            Guardando = false;
             _ataqueEmCurso = true;
             AcertoEm = agora + RegrasAtaque.PreparoSegundos(tipo);
             LivreEm = agora + RegrasAtaque.DuracaoSegundos(tipo);
@@ -65,6 +109,7 @@ namespace JogoDoGrupo.Client.Features.Combate
         public void MarcarEsquiva(double agora)
         {
             // A esquiva corta o resto do golpe: a recuperação acaba aqui.
+            Guardando = false;
             _ataqueEmCurso = false;
             AcertoEm = 0;
             LivreEm = agora + RegrasEsquiva.DuracaoSegundos;

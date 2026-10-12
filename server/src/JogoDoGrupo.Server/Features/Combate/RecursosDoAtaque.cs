@@ -53,6 +53,16 @@ internal static class RecursosDoAtaque
         CancellationToken cancelamento
     ) => Recursos(escopos).TirarVidaAsync(personagemId, dano, cancelamento);
 
+    /// <summary>
+    /// Cobra do vigor o golpe contra a guarda segurada (ou quebra a guarda se não há vigor).
+    /// </summary>
+    public static Task<(bool Bloqueou, int VigorGasto, RecursosMudaram Recursos)> BloquearAsync(
+        IServiceScopeFactory escopos,
+        long personagemId,
+        int dano,
+        CancellationToken cancelamento
+    ) => Recursos(escopos).BloquearAsync(personagemId, dano, cancelamento);
+
     // O dono dos recursos é um singleton: o escopo só serve para chegar nele.
     internal static RecursosEmMemoria Recursos(IServiceScopeFactory escopos)
     {
