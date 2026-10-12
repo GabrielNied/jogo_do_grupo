@@ -49,7 +49,6 @@ namespace JogoDoGrupo.Client.Features.Mobs
 
             switch (estado)
             {
-                case EstadoDeInimigo.Repouso:
                 case EstadoDeInimigo.Alerta:
                 case EstadoDeInimigo.Ataque:
                 case EstadoDeInimigo.Morto:
@@ -57,8 +56,8 @@ namespace JogoDoGrupo.Client.Features.Mobs
                     Andando = false;
                     break;
                 default:
-                    // Perseguição e retorno andam, mas não "andam no lugar" se algo os trava.
-                    // Qualquer outro estado que se mova de verdade também anda (histerese).
+                    // Perseguição, retorno e a caminhada da manada em repouso andam, mas não "andam no
+                    // lugar" se algo os trava: só conta o movimento de verdade (histerese).
                     Andando = Velocidade > (Andando ? VelocidadeParaParar : VelocidadeParaAndar);
                     break;
             }
