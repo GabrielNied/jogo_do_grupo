@@ -31,7 +31,7 @@ npm run tarefa -- subtarefa <N> --titulo "<titulo da subtarefa>" --agente <papel
 ```
 Isso gera uma issue filha com label do agente, vinculada ao Project, garantindo que cada agente trave a sua parte individualmente.
 
-## 3. Montar o plano e pedir aprovação
+## 3. Montar o plano e lançar
 
 Mostre à pessoa a tabela e lance (pedir a implementação já autoriza):
 
