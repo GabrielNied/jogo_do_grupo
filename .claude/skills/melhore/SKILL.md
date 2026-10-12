@@ -50,7 +50,7 @@ Corpo:
 - **Como melhorar:** a pré-pesquisa do passo 3 (onde está, o que falta, como fazer, o que não refazer).
 - **Pronto quando:** a cena está no jogo, com vazio, erro e limite.
 
-Use a label da funcionalidade se ela já existir. Não atribua e não marque `em-andamento`. Crie com `gh issue create`.
+Use a label da funcionalidade se ela já existir. Crie com um rótulo `prio:*` ([Prioridade das tarefas](../../../docs/agentes.md#prioridade-das-tarefas)): `prio:1-erros` se o fluxo quebra ou trava, `prio:2-core-loop` se o buraco está em mobs, combate, XP ou loot, `prio:3-experiencia` se é tela crua, sem estado ou sem feedback. Não atribua e não marque `em-andamento`. Crie com `gh issue create`.
 
 ## 5. Relatório
 
