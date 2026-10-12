@@ -1,6 +1,8 @@
-// Remove worktrees e branches locais que já cumpriram o papel (ADR 0018).
-// Só apaga o que está garantido na main: nada de mudança não commitada, nada de commit
-// que não tenha entrado por PR mesclado. O resto fica, com o motivo.
+// Remove worktrees e branches locais que já cumpriram o papel (ADR 0018 e 0031).
+// Só apaga o que não se perde: nada de mudança não commitada, e cada commit está na main,
+// num PR do GitHub (refs/pull/N/head) ou numa branch do origin. O resto fica, com o motivo.
+// Roda sozinho em segundo plano (--fundo) no início da sessão do Claude Code, no git pull
+// e no npm run tarefa -- puxar.
 //
 // Uso:
 //   npm run limpar-agentes                 # simula: mostra o que sairia e o que fica
@@ -8,13 +10,14 @@
 //   npm run limpar-agentes -- --todos      # inclui worktrees fora de .claude/worktrees/
 //   npm run limpar-agentes -- --sem-branches  # só worktrees, sem apagar branches soltas
 //   npm run limpar-agentes -- --remotas    # também apaga no GitHub branches mescladas que sobraram
-//   npm run limpar-agentes -- --horas 0    # ignora a espera mínima (padrão: 2 h parado)
+//   npm run limpar-agentes -- --horas 0    # ignora a espera mínima de quem não tem PR (padrão: 2 h)
+//   node scripts/git/limpar-agentes.mjs --fundo  # aplica em segundo plano e volta na hora
 //
 // Precisa do gh autenticado para conferir PRs mesclados (squash merge não deixa rastro no git).
 
-import { execFileSync } from "node:child_process";
-import { existsSync, statSync } from "node:fs";
-import { resolve, sep } from "node:path";
+import { execFileSync, spawn } from "node:child_process";
+import { closeSync, existsSync, openSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { join, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
 // ---------- Regras puras (testadas em limpar-agentes.test.mjs) ----------
@@ -39,25 +42,42 @@ export function lerWorktrees(saida) {
 // Decide se um worktree ou branch pode sair. Recebe fatos já coletados.
 //   sujo: tem mudança não commitada ou arquivo novo fora do .gitignore
 //   commitsProprios: commits que não estão na origin/main
-//   pr: { numero, mesclado, headContemLocal, extrasNaMain } do PR fechado da branch, ou null
+//   pr: { numero, estado: "aberto" | "mesclado" | "fechado", headContemLocal, extrasNaMain }, ou null
+//     headContemLocal: a ponta local está no PR (o GitHub guarda em refs/pull/N/head)
 //     extrasNaMain: os arquivos dos commits feitos depois do merge já estão iguais na main
+//   conteudoNaMain: os arquivos que a branch mudou já estão iguais na main (cherry-pick, squash)
+//   naOrigem: a ponta local está numa branch do origin
 //   erroPr: texto se não deu para consultar o GitHub
-//   recente: mexido há menos que a espera mínima (um agente pode estar começando agora)
-export function decidir({ sujo = false, commitsProprios = 0, pr = null, erroPr = null, recente = false }) {
-  if (recente) return { remover: false, motivo: "usado há pouco (pode ter agente trabalhando)" };
+//   recente: commit ou checkout há menos que a espera mínima (pelo reflog, não pelo index,
+//     que o VS Code atualiza sozinho). Só protege quem não tem PR fechado: um agente pode estar
+//     começando agora.
+export function decidir({
+  sujo = false,
+  commitsProprios = 0,
+  pr = null,
+  conteudoNaMain = false,
+  naOrigem = false,
+  erroPr = null,
+  recente = false,
+}) {
+  const fechado = pr && pr.estado !== "aberto";
   if (sujo) return { remover: false, motivo: "mudanças não commitadas" };
+  if (pr?.estado === "aberto") return { remover: false, motivo: `PR #${pr.numero} aberto` };
+  if (recente && !fechado) return { remover: false, motivo: "usado há pouco, sem PR (pode ter agente trabalhando)" };
   if (commitsProprios === 0) return { remover: true, motivo: "sem commits fora da main" };
-  if (erroPr) return { remover: false, motivo: `não deu para conferir o PR (${erroPr})` };
-  if (!pr) return { remover: false, motivo: `${commitsProprios} commit(s) sem PR mesclado` };
-  if (!pr.mesclado) return { remover: false, motivo: `PR #${pr.numero} fechado sem merge` };
-  if (!pr.headContemLocal && pr.extrasNaMain)
+  if (pr?.estado === "mesclado" && pr.headContemLocal) return { remover: true, motivo: `PR #${pr.numero} mesclado` };
+  if (pr?.estado === "mesclado" && pr.extrasNaMain)
     return { remover: true, motivo: `PR #${pr.numero} mesclado; o que veio depois já está na main` };
-  if (!pr.headContemLocal)
-    return {
-      remover: false,
-      motivo: `commits depois do merge do PR #${pr.numero} (traga com cherry-pick num PR novo)`,
-    };
-  return { remover: true, motivo: `PR #${pr.numero} mesclado` };
+  if (pr?.estado === "fechado" && pr.headContemLocal)
+    return { remover: true, motivo: `PR #${pr.numero} fechado sem merge; a ponta fica no GitHub (refs/pull/${pr.numero}/head)` };
+  if (conteudoNaMain) return { remover: true, motivo: "o conteúdo já está na main" };
+  if (naOrigem) return { remover: true, motivo: "a ponta está no GitHub (origin)" };
+  if (erroPr) return { remover: false, motivo: `não deu para conferir o PR (${erroPr})` };
+  if (pr?.estado === "mesclado")
+    return { remover: false, motivo: `commits depois do merge do PR #${pr.numero} (traga com cherry-pick num PR novo)` };
+  if (pr?.estado === "fechado")
+    return { remover: false, motivo: `commits depois do PR #${pr.numero}, fechado sem merge` };
+  return { remover: false, motivo: `${commitsProprios} commit(s) só nesta máquina, sem PR (envie ou abra o PR)` };
 }
 
 export function dentroDe(pasta, caminho) {
@@ -85,11 +105,13 @@ function prDaBranch(branch, headLocal, cwd) {
   donoDoRepo ??= gh(["api", "repos/{owner}/{repo}", "--jq", ".owner.login"]);
   const json = gh([
     "api",
-    `repos/{owner}/{repo}/pulls?state=closed&per_page=10&head=${donoDoRepo}:${branch}`,
+    `repos/{owner}/{repo}/pulls?state=all&per_page=10&head=${donoDoRepo}:${branch}`,
   ]);
   const prs = JSON.parse(json);
-  const pr = prs.find((p) => p.merged_at) ?? prs[0];
+  const pr = prs.find((p) => p.state === "open") ?? prs.find((p) => p.merged_at) ?? prs[0];
   if (!pr) return null;
+  const estado = pr.state === "open" ? "aberto" : pr.merged_at ? "mesclado" : "fechado";
+  if (estado === "aberto") return { numero: pr.number, estado };
   const headPr = pr.head.sha;
   let headContemLocal = headPr === headLocal;
   if (!headContemLocal) {
@@ -108,29 +130,45 @@ function prDaBranch(branch, headLocal, cwd) {
       arquivos.length > 0 &&
       git(["diff", "--quiet", "origin/main", headLocal, "--", ...arquivos], { cwd, ignorarErro: true }) !== null;
   }
-  return { numero: pr.number, mesclado: Boolean(pr.merged_at), headContemLocal, extrasNaMain };
+  return { numero: pr.number, estado, headContemLocal, extrasNaMain };
 }
 
-// Última atividade: mtime do index (worktree) ou do reflog da branch.
+// Última atividade: mtime do reflog (commit, checkout, reset). O index não serve: o VS Code o
+// atualiza sozinho em todo worktree aberto na pasta.
 function horasParado(cwd, caminhoGit) {
   const arquivo = git(["rev-parse", "--path-format=absolute", "--git-path", caminhoGit], { cwd, ignorarErro: true });
   if (!arquivo || !existsSync(arquivo)) return Infinity;
   return (Date.now() - statSync(arquivo).mtimeMs) / 3_600_000;
 }
 
-function avaliar({ head, branch, cwd, sujo, recente }) {
-  if (recente) return decidir({ recente });
+// Os arquivos que a branch mudou desde a base já estão iguais na main.
+function conteudoNaMain(head, cwd) {
+  const base = git(["merge-base", "origin/main", head], { cwd, ignorarErro: true });
+  if (!base) return false;
+  const arquivos = git(["diff", "--name-only", base, head], { cwd }).split(/\r?\n/).filter(Boolean);
+  if (arquivos.length === 0) return true;
+  return git(["diff", "--quiet", "origin/main", head, "--", ...arquivos], { cwd, ignorarErro: true }) !== null;
+}
+
+// remota: a branch do origin não conta como cópia de si mesma, e PR fechado sem merge fica.
+function avaliar({ head, branch, cwd, sujo, recente, remota = false }) {
+  if (sujo) return decidir({ sujo });
   const commitsProprios = Number(git(["rev-list", "--count", `origin/main..${head}`], { cwd }));
   let pr = null;
   let erroPr = null;
-  if (!sujo && commitsProprios > 0 && branch) {
+  if (branch) {
     try {
       pr = prDaBranch(branch, head, cwd);
     } catch (erro) {
       erroPr = erro.message.split("\n")[0].slice(0, 80);
     }
   }
-  return decidir({ sujo, commitsProprios, pr, erroPr });
+  if (remota && pr?.estado === "fechado") pr = null;
+  if (commitsProprios === 0 || pr?.estado === "aberto") return decidir({ commitsProprios, pr, erroPr, recente });
+  const naOrigem =
+    !remota &&
+    git(["for-each-ref", "--contains", head, "--count=1", "refs/remotes/origin"], { cwd }) !== "";
+  return decidir({ commitsProprios, pr, erroPr, recente, naOrigem, conteudoNaMain: conteudoNaMain(head, cwd) });
 }
 
 function principal() {
@@ -139,6 +177,7 @@ function principal() {
   const todos = args.includes("--todos");
   const comBranches = !args.includes("--sem-branches");
   const comRemotas = args.includes("--remotas");
+  const silencioso = args.includes("--silencioso");
   const iHoras = args.indexOf("--horas");
   const horasMinimas = iHoras >= 0 ? Number(args[iHoras + 1]) : 2;
 
@@ -164,8 +203,7 @@ function principal() {
       continue;
     }
     if (!existsSync(wt.caminho)) continue;
-    // Antes do status, que atualiza o index.
-    const recente = horasParado(wt.caminho, "index") < horasMinimas;
+    const recente = horasParado(wt.caminho, "logs/HEAD") < horasMinimas;
     const sujo = git(["status", "--porcelain"], { cwd: wt.caminho }) !== "";
     const decisao = avaliar({ head: wt.head, branch: wt.branch, cwd: raiz, sujo, recente });
     const nome = `${wt.caminho} (${wt.branch ?? "sem branch"})`;
@@ -228,7 +266,7 @@ function principal() {
       }
       const decisao = aberto
         ? { remover: false, motivo: "PR aberto (ou GitHub indisponível)" }
-        : avaliar({ head, branch, cwd: raiz, sujo: false, recente });
+        : avaliar({ head, branch, cwd: raiz, sujo: false, recente, remota: true });
       if (!decisao.remover) {
         mantidos.push(`origin/${branch}: ${decisao.motivo}`);
         continue;
@@ -239,13 +277,49 @@ function principal() {
   }
 
   const verbo = aplicar ? "Removido" : "Sairia (simulação; use --aplicar)";
-  console.log(removidos.length ? `${verbo}:\n  ${removidos.join("\n  ")}` : "Nada para remover.");
-  if (mantidos.length) console.log(`\nFica:\n  ${mantidos.join("\n  ")}`);
+  const relatorio = [removidos.length ? `${verbo}:\n  ${removidos.join("\n  ")}` : "Nada para remover."];
+  if (mantidos.length) relatorio.push(`\nFica:\n  ${mantidos.join("\n  ")}`);
+  if (!silencioso) console.log(relatorio.join("\n"));
+  // O último relatório fica em .git/limpar-agentes.log, para conferir o que a rodada automática fez.
+  writeFileSync(join(raiz, ".git", "limpar-agentes.log"), `${new Date().toISOString()}\n${relatorio.join("\n")}\n`);
+}
+
+// Trava de uma rodada por vez em .git/; trava com mais de 10 min é de rodada que morreu.
+function caminhoDaTrava() {
+  return join(git(["rev-parse", "--path-format=absolute", "--git-common-dir"]), "limpar-agentes.trava");
+}
+
+function travaViva(trava) {
+  return existsSync(trava) && Date.now() - statSync(trava).mtimeMs < 10 * 60_000;
+}
+
+// --fundo: sobe uma cópia desligada com --aplicar --silencioso e volta na hora, para os
+// gatilhos automáticos (início da sessão, git pull, tarefa puxar) não travarem ninguém.
+function emFundo() {
+  if (travaViva(caminhoDaTrava())) return;
+  spawn(process.execPath, [fileURLToPath(import.meta.url), "--aplicar", "--silencioso", "--com-trava"], {
+    detached: true,
+    stdio: "ignore",
+    windowsHide: true,
+  }).unref();
+}
+
+function comTrava(fazer) {
+  const trava = caminhoDaTrava();
+  if (travaViva(trava)) return;
+  closeSync(openSync(trava, "w"));
+  try {
+    fazer();
+  } finally {
+    rmSync(trava, { force: true });
+  }
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   try {
-    principal();
+    if (process.argv.includes("--fundo")) emFundo();
+    else if (process.argv.includes("--com-trava")) comTrava(principal);
+    else principal();
   } catch (erro) {
     console.error(`✖ ${erro.message}`);
     process.exit(1);

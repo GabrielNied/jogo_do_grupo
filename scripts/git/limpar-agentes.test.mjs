@@ -25,28 +25,65 @@ test("lê o porcelain do git worktree list, com e sem branch", () => {
   ]);
 });
 
+const mesclado = (extra = {}) => ({ numero: 7, estado: "mesclado", headContemLocal: true, ...extra });
+
 test("mudança não commitada sempre fica, mesmo com PR mesclado", () => {
-  const d = decidir({ sujo: true, commitsProprios: 3, pr: { numero: 1, mesclado: true, headContemLocal: true } });
-  assert.equal(d.remover, false);
+  assert.equal(decidir({ sujo: true, commitsProprios: 3, pr: mesclado() }).remover, false);
 });
 
 test("sem commits fora da main sai", () => {
   assert.equal(decidir({ commitsProprios: 0 }).remover, true);
 });
 
-test("PR mesclado com a ponta local contida sai", () => {
-  assert.equal(decidir({ commitsProprios: 2, pr: { numero: 7, mesclado: true, headContemLocal: true } }).remover, true);
+test("PR mesclado sai mesmo se mexido há pouco (o agente já terminou)", () => {
+  const d = decidir({ commitsProprios: 2, pr: mesclado(), recente: true });
+  assert.equal(d.remover, true);
+  assert.match(d.motivo, /PR #7 mesclado/);
+});
+
+test("PR aberto fica, mesmo com tudo no GitHub", () => {
+  const d = decidir({ commitsProprios: 2, pr: { numero: 8, estado: "aberto" }, naOrigem: true });
+  assert.equal(d.remover, false);
+  assert.match(d.motivo, /PR #8 aberto/);
+});
+
+test("sem PR e mexido há pouco fica, mesmo sem commits (agente começando)", () => {
+  const d = decidir({ commitsProprios: 0, recente: true });
+  assert.equal(d.remover, false);
+  assert.match(d.motivo, /usado há pouco/);
 });
 
 test("commit feito depois do merge fica, e o motivo avisa", () => {
-  const d = decidir({ commitsProprios: 3, pr: { numero: 44, mesclado: true, headContemLocal: false } });
+  const d = decidir({ commitsProprios: 3, pr: mesclado({ numero: 44, headContemLocal: false }) });
   assert.equal(d.remover, false);
   assert.match(d.motivo, /depois do merge do PR #44/);
 });
 
-test("sem PR, PR fechado sem merge ou GitHub fora do ar: fica", () => {
-  assert.equal(decidir({ commitsProprios: 1 }).remover, false);
-  assert.equal(decidir({ commitsProprios: 1, pr: { numero: 9, mesclado: false, headContemLocal: true } }).remover, false);
+test("commits depois do merge que já chegaram à main por outro PR: sai", () => {
+  const d = decidir({ commitsProprios: 3, pr: mesclado({ headContemLocal: false, extrasNaMain: true }) });
+  assert.equal(d.remover, true);
+});
+
+test("PR fechado sem merge sai do local: a ponta fica em refs/pull no GitHub", () => {
+  const d = decidir({ commitsProprios: 1, pr: { numero: 9, estado: "fechado", headContemLocal: true } });
+  assert.equal(d.remover, true);
+  assert.match(d.motivo, /refs\/pull\/9\/head/);
+});
+
+test("branch sem PR cujo conteúdo entrou por cherry-pick ou squash: sai", () => {
+  const d = decidir({ commitsProprios: 4, conteudoNaMain: true });
+  assert.equal(d.remover, true);
+  assert.match(d.motivo, /já está na main/);
+});
+
+test("branch sem PR já enviada ao origin: sai do local", () => {
+  assert.equal(decidir({ commitsProprios: 1, naOrigem: true }).remover, true);
+});
+
+test("commit só nesta máquina, ou GitHub fora do ar sem outra cópia: fica", () => {
+  const d = decidir({ commitsProprios: 1 });
+  assert.equal(d.remover, false);
+  assert.match(d.motivo, /só nesta máquina/);
   assert.equal(decidir({ commitsProprios: 1, erroPr: "gh sem login" }).remover, false);
 });
 
@@ -55,15 +92,4 @@ test("dentroDe compara pastas sem diferenciar maiúsculas e sem pegar prefixo pa
   assert.equal(dentroDe("/repo/.claude/worktrees", "/REPO/.claude/Worktrees/pulo"), true);
   assert.equal(dentroDe("/repo/.claude/worktrees", "/repo/.claude/worktrees-velhos/x"), false);
   assert.equal(dentroDe("/repo/.claude/worktrees", "/repo"), false);
-});
-
-test("usado há pouco fica, mesmo limpo e sem commits", () => {
-  const d = decidir({ commitsProprios: 0, recente: true });
-  assert.equal(d.remover, false);
-  assert.match(d.motivo, /usado há pouco/);
-});
-
-test("commits depois do merge que já chegaram à main por outro PR: sai", () => {
-  const d = decidir({ commitsProprios: 3, pr: { numero: 44, mesclado: true, headContemLocal: false, extrasNaMain: true } });
-  assert.equal(d.remover, true);
 });
