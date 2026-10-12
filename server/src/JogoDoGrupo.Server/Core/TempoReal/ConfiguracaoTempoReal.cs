@@ -22,6 +22,15 @@ public sealed class ConfiguracaoTempoReal
     /// <summary>Sem pacotes do client por este tempo, a conexão é considerada caída.</summary>
     public int TempoQuedaMs { get; set; } = 5_000;
 
+    /// <summary>
+    /// Pacotes por segundo que uma conexão pode mandar, em média (issue #211). Acima disso a
+    /// conexão é derrubada. O client manda 10 posições por segundo mais ataques e pedidos.
+    /// </summary>
+    public int MensagensPorSegundo { get; set; } = 60;
+
+    /// <summary>Pacotes que podem chegar de uma vez acima da média (rajada após um engasgo da rede).</summary>
+    public int RajadaMensagens { get; set; } = 120;
+
     /// <summary>Lê e valida a seção; configuração inválida impede o servidor de subir.</summary>
     public static ConfiguracaoTempoReal Ler(IConfiguration configuracao)
     {
@@ -55,6 +64,13 @@ public sealed class ConfiguracaoTempoReal
         {
             throw new InvalidOperationException(
                 "TempoReal:TempoParaAutenticarMs e TempoReal:TempoQuedaMs precisam ser maiores que zero."
+            );
+        }
+
+        if (tempoReal.MensagensPorSegundo <= 0 || tempoReal.RajadaMensagens <= 0)
+        {
+            throw new InvalidOperationException(
+                "TempoReal:MensagensPorSegundo e TempoReal:RajadaMensagens precisam ser maiores que zero."
             );
         }
 

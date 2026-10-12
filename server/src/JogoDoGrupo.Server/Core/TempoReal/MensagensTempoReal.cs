@@ -19,6 +19,9 @@ public enum MotivoRecusa
 
     /// <summary>O corpo não é um JSON válido para o tipo da mensagem.</summary>
     CorpoInvalido,
+
+    /// <summary>A conexão mandou pacotes acima do limite por segundo e foi derrubada.</summary>
+    LimiteExcedido,
 }
 
 /// <summary>
