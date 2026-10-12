@@ -28,8 +28,8 @@ O token está em `%APPDATA%\Cursor\User\globalStorage\state.vscdb` (no macOS e n
 
 O token não entra em argumento, log, commit nem resposta. Apague o script temporário. Fora do Cursor, ou se a consulta falhar: escolha no tamanho normal e diga no relatório que o uso não apareceu. Não invente o número.
 
-- Abaixo de 80%: leva normal, até N.
-- De 80% a 99%: uma tarefa só, e pequena (conserto curto, pendência de Unity, documentação). Não abra funcionalidade nova com contrato, servidor e client.
+- Abaixo de 90%: leva normal, até N.
+- De 90% a 99%: uma tarefa só, e pequena (conserto curto, pendência de Unity, documentação). Não abra funcionalidade nova com contrato, servidor e client.
 - 100%, ou a mensagem de que o limite estourou: não puxe funcionalidade. Só um ajuste que caiba neste turno (documentação, skill, texto). Se nem isso couber, pare e diga que o uso acabou.
 
 ## 2. Escolher as tarefas
