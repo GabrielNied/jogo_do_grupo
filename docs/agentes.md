@@ -40,15 +40,33 @@ designer-docs ─► shared-contratos ─► merge ─┼─ server-funcionalida
                                                                               (revisor só em PR de risco)
 ```
 
-0. **Ficha da tarefa.** O coordenador escreve na issue o objetivo, o contrato, as regras e os testes esperados, e a pessoa aprova uma vez. É o que mais evita retrabalho.
+0. **Ficha da tarefa.** O coordenador escreve na issue o objetivo, a cena, o contrato, as regras e os testes esperados, e a pessoa aprova uma vez. A cena é o que a pessoa faz e o que o jogo mostra ([Entrega da funcionalidade](#entrega-da-funcionalidade)). É o que mais evita retrabalho.
 1. **Puxar para em andamento (trava de concorrência).** Antes de qualquer agente ou pessoa começar a codificar, a tarefa precisa ser puxada para em andamento com `npm run tarefa -- puxar <N> [branch] [--agente <papel>]`. Isso marca a issue com a label `em-andamento`, atualiza o GitHub Projects para `In Progress` e impede que outra pessoa ou agente trabalhe na mesma tarefa ao mesmo tempo. Em orquestrações com múltiplos agentes em paralelo, o coordenador cria subtarefas (`npm run tarefa -- subtarefa <pai> --titulo "..." --agente <papel>`) para que cada agente puxe e trave sua própria issue.
 2. **Regra clara?** Se `docs/features/<x>.md` não diz o que implementar, o `designer-docs` detalha antes, ou a dúvida vai para o grupo. Tarefa pequena: as regras vão direto na ficha.
 3. **Contrato primeiro.** O `shared-contratos` define mensagens, IDs e eventos num PR pequeno, que é revisado e mergeado. Os outros agentes partem da `main`, então precisam do contrato lá.
 4. **Em paralelo.** `regras-do-jogo`, `server-funcionalidade` e `client-funcionalidade` trabalham ao mesmo tempo, cada um no seu **worktree** (uma cópia separada do repo) e na sua branch, e cada um abre o seu PR.
 5. **Revisão.** O CI confere formatação, padrão de commit e testes. O `revisor` só entra em PR de risco (veja a tabela de papéis). No resto, a verificação proporcional do autor basta.
-6. **Pessoas.** Montam no Unity o que os agentes de client listaram, testam, aprovam e fazem o merge.
+6. **Pessoas.** Olham a cena no jogo, aprovam e fazem o merge. Conteúdo de Unity que não sai de script (cena, prefab) continua com quem monta.
 
 Várias funcionalidades podem andar ao mesmo tempo, cada uma com o seu trio de agentes. O limite real é a capacidade de review das pessoas: prefira PRs pequenos.
+
+## Entrega da funcionalidade
+
+A tarefa de jogo termina na cena que o jogador usa. Contrato, servidor e teste são o caminho até ela. A entrega é a cena pronta.
+
+A ficha traz a **cena**, em frases que uma pessoa reconhece no jogo:
+
+- o que a pessoa faz (tecla, clique, aproximar);
+- o que o jogo mostra (tela, texto, modelo, barra), no padrão de [Lumora UI v1](../design/interface/GUIA-DE-ESTILO.md);
+- os cantos da própria regra: vazio, erro e o limite, em português.
+
+Quem faz o client entrega essa cena nos scripts. Uma tela que só escreve o nome da mensagem não é a cena.
+
+O PR de contrato ou de servidor não fecha a issue da funcionalidade. `Closes` vai no PR em que a cena está. Em "Como testar", a pessoa lê o que fazer e o que aparece.
+
+No merge, olhe a cena. Aba faltando, texto provisório ou tela fora do visual do jogo voltam para a branch.
+
+A [regra 16](../AGENTS.md) continua: polimento fora desta tarefa não ganha uma rodada extra. Acabar a cena desta tarefa é a entrega, não um extra.
 
 ### Agentes artistas e o Unity
 
@@ -89,6 +107,7 @@ Vale para quem coordena agentes (IA ou pessoa). Aprendido na orquestração da [
 
 - **Consumo:** tarefa pequena (até ~50 linhas) o coordenador faz direto, sem agente; tarefas pequenas da mesma área vão num agente só; sessão do coordenador curta, com `/clear` por rodada. Relatórios curtos (até 15 linhas; revisor até 20) e verificação proporcional à alteração (matriz da skill `preparar-pr`). Não repita o que o CI já confere. O `revisor` é uma passada só, e só em PR de risco: Core, segurança, concorrência, contrato ou regra que decide resultado. Arte, tela, conteúdo e ligar um botão não levam revisor. Sonnet é o padrão; Opus só nessas tarefas de risco.
 
+- **Entrega:** a tarefa de jogo termina na cena que o jogador usa ([Entrega da funcionalidade](#entrega-da-funcionalidade)). O PR de contrato ou de servidor não leva `Closes` dessa issue.
 - **Lock de tarefa:** confira que a tarefa está livre e puxe-a para em andamento antes de alterar código (`npm run tarefa -- puxar <N>`). Se a tarefa já estiver em andamento, pare e avise. Se precisar interromper sem concluir, libere com `npm run tarefa -- liberar <N>`.
 - **Regra 0:** nunca apagar nada do Figma; o resto a IA pode apagar ([ADR 0026](decisoes/0026-ia-pode-apagar-menos-o-figma.md)). No Claude Code, um hook do projeto ([scripts/agentes/bloquear-apagar.mjs](../scripts/agentes/bloquear-apagar.mjs)) barra a remoção no Figma, o push forçado e apagar repositório, release ou projeto. Worktrees e branches temporários dos agentes saem com `npm run limpar-agentes -- --aplicar` depois do merge ([ADR 0018](decisoes/0018-limpeza-do-que-os-agentes-criam.md)).
 - **Autorização:** quando uma pessoa pede uma orquestração, ela autoriza os agentes a commitar, enviar as próprias branches e abrir PRs. **Merge é sempre humano.**

@@ -76,10 +76,11 @@ Testes em `tests/` (xUnit; [ADR 0013](docs/decisoes/0013-testes-automatizados.md
     - O corte é de consumo: menos agentes, menos releitura, menos ida e volta. A qualidade mínima continua: teste do que mudou, servidor autoritativo, CI e a regra 0.
     - Não use isso para ampliar o jogo, trocar regra de design ou reescrever o que já funciona.
     - Agente de funcionalidade que esbarrar nisso descreve o corte no relatório. O coordenador implementa antes de encerrar, se couber numa mudança pequena de skill, script ou doc de processo.
-    - Uma curiosidade ou um polimento visual não é gargalo. Gargalo é a mesma espera acontecendo de novo.
+    - Uma curiosidade ou um polimento visual fora da tarefa não é gargalo. Gargalo é a mesma espera acontecendo de novo. Acabar a cena desta tarefa é a entrega ([Entrega da funcionalidade](docs/agentes.md#entrega-da-funcionalidade)).
     - Tropeço de processo (travou, sumiu, refeito, ferramenta enganou): registre a lição com a skill `registrar-licao` ([docs/licoes.md](docs/licoes.md)) no mesmo PR.
 
 17. **Balanceamento:** separe valores ajustáveis dos cálculos, em constantes nomeadas no topo da classe ou `Config<Assunto>` da funcionalidade. Siga [Valores de balanceamento](docs/convencoes.md#valores-de-balanceamento).
+18. **Entrega:** a tarefa de jogo termina na cena que o jogador usa. Siga [Entrega da funcionalidade](docs/agentes.md#entrega-da-funcionalidade). Contrato e servidor não fecham essa issue.
 
 ## Procedimentos (skills)
 

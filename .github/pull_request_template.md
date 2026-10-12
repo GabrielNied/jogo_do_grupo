@@ -21,6 +21,7 @@
 - [ ] Rodei as verificações locais proporcionais da skill `preparar-pr`
 - [ ] Escrevi ou atualizei testes e rodei a validação da camada alterada (se houver código)
 - [ ] Descrevi abaixo como validei localmente a alteração
+- [ ] Se este PR é a entrega da funcionalidade, a cena está aqui e "Como testar" diz o que a pessoa faz e o que aparece
 
 ## Como testar
 

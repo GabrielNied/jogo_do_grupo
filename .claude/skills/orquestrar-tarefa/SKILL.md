@@ -19,6 +19,7 @@ Você é o **coordenador**: não implementa; planeja, lança os agentes e junta 
 Quase todo retrabalho vem de decisão tomada tarde. Antes de lançar agentes, escreva na issue (ou numa issue nova) uma **ficha** curta e peça a aprovação da pessoa uma vez:
 
 - **Objetivo:** o que funciona ao final, em 2–3 linhas.
+- **Cena:** o que a pessoa faz, o que aparece e os cantos (vazio, erro, limite), no visual do guia. É a entrega da funcionalidade. Detalhe em [Entrega da funcionalidade](../../../docs/agentes.md#entrega-da-funcionalidade).
 - **Contrato:** rotas/mensagens, DTOs com campos e tipos, códigos de erro e status (em que arquivo e pasta cada um fica).
 - **Regras:** números, limites e quem decide (servidor).
 - **Testes esperados:** lista dos casos (caminho feliz, cada erro, limites, concorrência).
@@ -68,14 +69,14 @@ Lance os agentes independentes **na mesma mensagem, em segundo plano**, um por s
 
 ```
 Funcionalidade: <X> (pasta Features/<X>/, escopo de commit <x>)
-Objetivo: <o que deve funcionar ao final, em 2–4 linhas>
+Objetivo: <a cena, em 2–4 linhas: o que a pessoa faz e o que aparece>
 Contrato: <arquivos e IDs do shared já na main, ou "não se aplica">
 Regras de design: docs/features/<x>.md, seções <...>
-Ficha: issue #<N> (contrato, regras e testes esperados)
-Issue: #<N> (coloque "Closes #<N>" na descrição do PR)
+Ficha: issue #<N> (cena, contrato, regras e testes esperados)
+Issue: #<N> (Closes #<N>). Se esta subtarefa é a cena, também Closes #<pai>. Contrato e servidor não fecham a issue da funcionalidade.
 Puxar tarefa: rode `npm run tarefa -- puxar <N> <branch> --agente <papel> --worktree <caminho>` antes de codificar.
 Fora do escopo: <o que NÃO fazer>
-Pronto quando: <critérios verificáveis> + testes da ficha passando em `dotnet test`
+Pronto quando: <a cena está nos scripts, com vazio, erro e limite, no visual do guia> ([Entrega da funcionalidade](../../../docs/agentes.md#entrega-da-funcionalidade))
 Autorização: pode commitar, enviar a branch e abrir PR. Não faça merge.
 Base: <só se precisar de algo ainda não na main> passo 0: `git merge <branch>` (local) e conferir <arquivo>. Sem PR próprio? Commite local na sua branch e informe branch e hash.
 ```
@@ -96,7 +97,7 @@ Para cada relatório:
 
 ### Quando pedir o merge
 
-Só diga à pessoa que um PR está **pronto para merge** depois que os checks passaram e, se o PR for de risco, o `revisor` aprovou e os ajustes escolhidos foram aplicados. Sem revisor, o CI verde e a verificação proporcional do autor bastam. Enquanto o revisor de um PR de risco não terminar, deixe claro: "em revisão, **não mergear ainda**".
+Só diga à pessoa que um PR está **pronto para merge** depois que os checks passaram e, se o PR for de risco, o `revisor` aprovou e os ajustes escolhidos foram aplicados. Sem revisor, o CI verde e a verificação proporcional do autor bastam. Se o PR é a cena da funcionalidade, "Como testar" diz o que a pessoa faz e o que aparece, e o merge espera ela olhar essa cena. Enquanto o revisor de um PR de risco não terminar, deixe claro: "em revisão, **não mergear ainda**".
 
 Se um PR for mergeado antes dos ajustes, **não envie mais nada para a branch dele** (ela foi apagada no merge e o push a recriaria). Crie uma branch nova a partir da `origin/main`, traga os commits com `git cherry-pick` e abra um PR novo.
 

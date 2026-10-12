@@ -155,6 +155,7 @@ Os commits dentro da branch podem ser pequenos e frequentes. Como o merge é por
   - **todas as conversas do review resolvidas**;
   - testes do que mudou, no próprio PR (PR de código sem teste não entra);
   - PR de client: olhe o check "Testes EditMode (Unity)" antes de mesclar;
+  - PR que entrega uma funcionalidade de jogo: a cena está no PR e "Como testar" diz o que a pessoa faz e o que aparece ([Entrega da funcionalidade](agentes.md#entrega-da-funcionalidade));
   - aprovação não é obrigatória; PR que mexe em `Core/` ou na pasta de outra pessoa pede review ao responsável (veja [docs/responsaveis.md](responsaveis.md)).
 - **Auto-merge:** "Enable auto-merge" no PR mescla sozinho quando os checks passarem.
 - Merge sempre por **squash** (o repo só permite squash).

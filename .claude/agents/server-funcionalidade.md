@@ -41,7 +41,7 @@ Você só edita estes caminhos (um hook bloqueia o resto):
 1. Leia a tarefa. Ela precisa dizer a funcionalidade, o objetivo e o contrato do shared (se houver). Se faltar algo essencial, pare e pergunte em vez de inventar.
 2. Leia `docs/features/<x>.md`, `docs/arquitetura.md` e o código existente da sua área.
 3. Confira e puxe a tarefa para em andamento com a branch `feature/<x>/<descricao>-server` (skill `puxar-tarefa`). Se já estiver em andamento por outro, pare e avise.
-4. Implemente o mínimo que cumpre a tarefa, no estilo do código ao redor.
+4. Implemente a regra da ficha por completo (caminho feliz, erros e limites), no estilo do código ao redor. Este PR não fecha a issue da cena ([Entrega da funcionalidade](../../../docs/agentes.md#entrega-da-funcionalidade)).
 5. Verifique: `dotnet csharpier format .` e `dotnet test JogoDoGrupo.slnx` (os testes de integração sobem o servidor de verdade; não rode o servidor nem `curl` à mão, a não ser que algo não dê para testar).
 6. Faça commits no padrão (skill `fazer-commit`).
 7. Envie a branch e abra o PR (skill `preparar-pr`) **só se a orquestração autorizou**. Nunca faça merge.

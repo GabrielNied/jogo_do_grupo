@@ -9,6 +9,12 @@ Formato: `### AAAA-MM-DD · título` com **O que houve**, **Regra** e **Origem**
 - **Commite em etapas pequenas, mesmo em trabalho em andamento.** O que não está num commit pode sumir.
 - **Um problema novo vira lição no mesmo PR que o corrigiu** (ou num PR de docs logo depois), não só uma conversa.
 
+### 2026-10-11 · Entrega crua
+
+- **O que houve:** Funcionalidades chegaram com contrato, servidor e teste, e a parte que o jogador usa ficou pela metade (a aba de amigos não entrou no PR, a queda ficou sem tela). A issue parecia encaminhada e o resultado não dava para usar.
+- **Regra:** A issue de jogo só fecha no PR da cena pronta. A regra está em [Entrega da funcionalidade](agentes.md#entrega-da-funcionalidade).
+- **Origem:** conversa de 2026-10-11; exemplos nas issues #395 e #125. Registrada na #438.
+
 ### 2026-10-11 · Raças dos personagens (PR #383)
 
 - **Um Blender por vez.** Vários `blender.exe` ao mesmo tempo (agentes ou comandos em paralelo) travaram e reiniciaram o computador. O artista roda um modelo por vez, em primeiro plano, com limite de tempo, e confere com `tasklist` que nenhum ficou vivo antes do próximo. Prévia em baixa resolução, uma por modelo. Coordenador nenhum dispara Blender em paralelo nem por subagente.

@@ -77,3 +77,5 @@ Se o risco extrapolar essa matriz (segurança, concorrência, migração, mudan�
 **Título:** um cabeçalho de commit válido que resume o PR inteiro (ele vira o commit na `main` no squash merge). Valide com `printf '%s\n' "<título>" | npx --no -- commitlint`.
 
 **Descrição:** siga `.github/pull_request_template.md`: "O que muda" (1–3 frases), "Funcionalidade", checklist marcado conforme o que foi verificado acima e "Como testar" com passos concretos.
+
+Se o PR é a entrega de uma funcionalidade de jogo, "Como testar" descreve a cena (o que a pessoa faz e o que aparece) e o corpo leva `Closes` da issue dessa funcionalidade. PR de contrato ou de servidor não leva esse `Closes`. A regra está em [Entrega da funcionalidade](../../../docs/agentes.md#entrega-da-funcionalidade).
