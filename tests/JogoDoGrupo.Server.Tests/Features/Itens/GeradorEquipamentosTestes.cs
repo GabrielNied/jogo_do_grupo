@@ -5,6 +5,41 @@ namespace JogoDoGrupo.Server.Tests.Features.Itens;
 
 public class GeradorEquipamentosTestes
 {
+    [Theory]
+    [InlineData(GrauEquipamento.Inicial, 1, 1)]
+    [InlineData(GrauEquipamento.Medio, 2, 10)]
+    [InlineData(GrauEquipamento.Forte, 4, 20)]
+    public void TodosOsModelosAplicamGrauUmaVezSemAlterarBase(
+        GrauEquipamento grau,
+        int fator,
+        int requisito
+    )
+    {
+        var gerador = new GeradorEquipamentos(new ConfigEquipamentos());
+        foreach (var id in Enumerable.Range(101, 72))
+        {
+            var inicial = gerador.Gerar(id, new Random(7))!;
+            var item = gerador.Gerar(id, new Random(7), RaridadeItem.Lendario, grau)!;
+            Assert.Equal(
+                inicial.Atributos.Select(a => a.Valor * fator),
+                item.Atributos.Select(a => a.Valor)
+            );
+            Assert.Equal(
+                inicial.Atributos.Select(a => a.Status),
+                item.Atributos.Select(a => a.Status)
+            );
+            Assert.Equal(1, item.Nivel);
+            Assert.Equal(requisito, item.NivelPersonagemMinimo);
+            Assert.Equal(RaridadeItem.Lendario, item.Raridade);
+            Assert.Equal(inicial.Familia, item.Familia);
+            Assert.Equal(inicial.Variacao, item.Variacao);
+            Assert.Equal(
+                inicial.Atributos.Where(a => a.Fixo).Select(a => a.Valor),
+                CatalogoEquipamentos.Obter(id).Atributos.Select(a => a.Valor)
+            );
+        }
+    }
+
     [Fact]
     public void Gerar_NaoRepeteStatusEPreservaFixoDoModelo()
     {
