@@ -28,7 +28,7 @@ namespace JogoDoGrupo.Client.Features.Itens
         /// <summary>Descrição completa em texto corrido (usada no painel de infusão).</summary>
         public static string Descrever(EntradaInventario entrada)
         {
-            var item = entrada.Equipamento;
+            var item = RegrasEquipamentos.DadosDe(entrada);
             if (item == null)
                 return entrada.Nome;
             var texto =

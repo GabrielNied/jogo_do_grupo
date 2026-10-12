@@ -2,8 +2,8 @@
 
 /* A janela do Core é a "painel-largo" (720); a grade pede um pouco mais. */
 .janela.itens-painel-largo {
-    width: 860px;
-    max-width: 100%;
+    width: 92%;
+    max-width: 1280px;
 }
 
 .itens-corpo {
@@ -45,8 +45,8 @@
 /* ---- casa e encaixe ---- */
 
 .item-slot {
-    width: var(--lumora-dimensoes-alvo-minimo);
-    height: var(--lumora-dimensoes-alvo-minimo);
+    width: 64px;
+    height: 64px;
     margin: 2px;
     flex-shrink: 0;
     align-items: center;
@@ -84,14 +84,19 @@
 
 .item-icone {
     position: absolute;
-    left: 3px;
-    right: 3px;
-    top: 3px;
-    bottom: 3px;
+    left: 6px;
+    right: 6px;
+    top: 6px;
+    bottom: 6px;
     align-items: center;
     justify-content: center;
     -unity-background-scale-mode: scale-to-fit;
 }
+
+/* Ícone sem raridade (item sem dados de equipamento): marfim. */
+.item-slot .item-icone { -unity-background-image-tint-color: var(--lumora-cores-marfim); }
+
+.item-slot-vazio .item-icone { -unity-background-image-tint-color: var(--lumora-cores-borda-discreta); }
 
 .item-sigla {
     font-size: var(--lumora-tipografia-leitura);
@@ -148,10 +153,10 @@
     border-color: var(--lumora-cores-essencia);
 }
 
-/* 8 colunas de casas: 8 x (44 + 2 x 2) */
+/* 8 colunas de casas: 8 x (64 + 2 x 2) + barra de rolagem */
 .itens-grade {
-    width: 384px;
-    max-height: 296px;
+    width: 574px;
+    max-height: 420px;
     flex-direction: column;
 }
 
@@ -163,7 +168,7 @@
 /* ---- paperdoll ---- */
 
 .itens-paperdoll {
-    width: 184px;
+    width: 290px;
     align-items: center;
 }
 
@@ -172,8 +177,8 @@
 }
 
 .itens-paperdoll-vazio {
-    width: var(--lumora-dimensoes-alvo-minimo);
-    height: var(--lumora-dimensoes-alvo-minimo);
+    width: 64px;
+    height: 64px;
     margin: 2px;
 }
 
@@ -188,16 +193,21 @@
 }
 
 .itens-conjunto-rotulo {
-    width: 72px;
-    min-height: 32px;
+    min-width: 84px;
+    min-height: 40px;
     margin: 2px;
-    padding: 0;
+    padding: 0 var(--lumora-espacamento-pequeno);
+    flex-shrink: 0;
+    white-space: nowrap;
+    -unity-text-align: middle-center;
 }
 
 /* ---- resumo, avisos e confirmação ---- */
 
 .itens-resumo {
     margin-top: var(--lumora-espacamento-pequeno);
+    align-self: stretch;
+    min-width: 0;
     padding: var(--lumora-espacamento-pequeno) var(--lumora-espacamento-medio);
     background-color: var(--lumora-cores-campo);
     border-radius: var(--lumora-bordas-raio-campo);
@@ -216,6 +226,9 @@
 }
 
 .itens-resumo-bonus {
+    flex-grow: 1;
+    flex-basis: 150px;
+    max-width: 240px;
     margin-right: var(--lumora-espacamento-medio);
     white-space: normal;
 }
@@ -237,15 +250,15 @@
 
 .item-fantasma {
     position: absolute;
-    width: var(--lumora-dimensoes-alvo-minimo);
-    height: var(--lumora-dimensoes-alvo-minimo);
+    width: 64px;
+    height: 64px;
     opacity: 0.85;
     picking-mode: ignore;
 }
 
 .item-tooltip {
     position: absolute;
-    width: 300px;
+    width: 340px;
     padding: var(--lumora-espacamento-medio);
     background-color: var(--lumora-cores-topo);
     border-width: var(--lumora-bordas-fina);

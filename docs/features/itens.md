@@ -122,9 +122,10 @@ Decidido por Gabriel em 2026-10-12. Substitui a lista com dropdown e botões das
 - **Encaixe automático** com os dois encaixes do par ocupados substitui o 1. Equipar já vestido em outro encaixe do mesmo tipo (arrastar anel 1 para o encaixe do anel 2) reequipa.
 - **Esc durante o arraste:** o Esc é do Core e fecha a janela inteira, o que também cancela o arraste (o item não se move). Soltar sobre a janela fora de casas e encaixes cancela sem fechar.
 - **Selo "novo":** o client compara os itens com os da abertura anterior (mesmo personagem, na sessão) e com os ganhos do baú; o selo sai quando o mouse passa por cima. Na primeira abertura da sessão nada é "novo".
-- **Tooltip:** comparação só para peça da bolsa, contra o encaixe automático (com os dois encaixes de anel ou brinco cheios, contra o 1); encaixe vazio mostra tudo como ganho. Aparece depois de 0,3 s e some ao arrastar. ▲ e ▼ têm sinal e valor no texto, então a cor não é a única pista.
+- **Tooltip:** comparação só para peça da bolsa, contra o encaixe automático (com os dois encaixes de anel ou brinco cheios, contra o 1); encaixe vazio mostra tudo como ganho. Aparece depois de 0,3 s e some ao arrastar. Cabe na tela e não cobre o painel de bônus (testa direita/esquerda e embaixo/em cima). ▲ e ▼ têm sinal e valor no texto, então a cor não é a única pista.
 - **Descartar:** o descarte (solta fora da janela) pede a confirmação numa faixa da própria janela; só o **Confirmar descarte** envia.
-- **Ícone:** ponto único `PainelInventario.IconeDoTipo` (hoje sem sprite: sigla do tipo); os ícones da #567 entram só ali.
+- **Ícone:** ponto único `PainelInventario.IconeDoTipo` (`IconesEquipamento.Carregar`, silhueta branca tingida pela raridade no USS); sem sprite, a sigla do tipo.
+- **Dados de equipamento no client:** `JsonUtility` troca `"Equipamento": null` por um objeto vazio (tipo `Capacete`); use sempre `RegrasEquipamentos.DadosDe(entrada)`, nunca `entrada.Equipamento != null` (causa do 400 `PosicaoInvalida` da #585).
 - **Painel de infusão:** continua o atual, aberto por **Bancada**.
 - **Fora do ambiente de teste do agente:** a conferência visual da janela (capturas 1280x720 a 2560x1440, texto 20 e máximo) fica como pendência de Unity.
 

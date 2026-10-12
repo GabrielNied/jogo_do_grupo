@@ -84,7 +84,11 @@ namespace JogoDoGrupo.Client.Features.Itens
                 AoMudarArrasto,
                 AoMoverArrasto
             );
-            _tooltip = new TooltipDoInventario(_raizInterface, () => _arrasto.Arrastando);
+            _tooltip = new TooltipDoInventario(
+                _raizInterface,
+                () => _arrasto.Arrastando,
+                () => _resumo
+            );
         }
 
         public bool Arrastando => _arrasto.Arrastando;
@@ -148,7 +152,8 @@ namespace JogoDoGrupo.Client.Features.Itens
         )
         {
             _confirmacao.Clear();
-            var nome = item.Equipamento != null ? item.Equipamento.Nome : item.Nome;
+            var dadosItem = RegrasEquipamentos.DadosDe(item);
+            var nome = dadosItem != null ? dadosItem.Nome : item.Nome;
             _confirmacao.Add(Texto("Descartar " + nome + " destrói o item de vez. Confirmar?"));
             var linha = new VisualElement();
             linha.AddToClassList(EstiloCore.LinhaBotoes);
@@ -405,7 +410,7 @@ namespace JogoDoGrupo.Client.Features.Itens
             }
 
             var tipo = LogicaInventario.TipoDe(entrada);
-            if (entrada.Equipamento != null)
+            if (RegrasEquipamentos.DadosDe(entrada) != null)
                 slot.AddToClassList(EstiloItens.Raridade(entrada.Equipamento.Raridade));
             if (tipo != null)
                 PreencherIcone(icone, sigla, tipo.Value, entrada);
@@ -451,7 +456,7 @@ namespace JogoDoGrupo.Client.Features.Itens
         {
             var fantasma = new VisualElement();
             fantasma.AddToClassList(EstiloItens.Slot);
-            if (entrada.Equipamento != null)
+            if (RegrasEquipamentos.DadosDe(entrada) != null)
                 fantasma.AddToClassList(EstiloItens.Raridade(entrada.Equipamento.Raridade));
             var icone = new VisualElement { pickingMode = PickingMode.Ignore };
             icone.AddToClassList(EstiloItens.Icone);
@@ -468,8 +473,7 @@ namespace JogoDoGrupo.Client.Features.Itens
         }
 
         /// <summary>
-        /// Ponto único do ícone: pelo tipo. Sem sprite, mostra a sigla do tipo. Quando os ícones
-        /// da #567 entrarem, só <see cref="IconeDoTipo"/> muda.
+        /// Ponto único do ícone: pelo tipo. Sem sprite, mostra a sigla do tipo.
         /// </summary>
         private static void PreencherIcone(
             VisualElement icone,
@@ -490,14 +494,10 @@ namespace JogoDoGrupo.Client.Features.Itens
             }
         }
 
-        /// <summary>
-        /// Silhueta branca do tipo (tingida pela raridade no USS), ou <c>null</c> enquanto não
-        /// há ícone. Depois da #567 (<c>IconesEquipamento.Carregar</c>) é só devolver o sprite
-        /// dele aqui.
-        /// </summary>
+        /// <summary>Silhueta branca do tipo (tingida pela raridade no USS), ou <c>null</c> sem ícone.</summary>
         public static Sprite IconeDoTipo(TipoEquipamento tipo)
         {
-            return null;
+            return IconesEquipamento.Carregar(tipo);
         }
 
         private static string Abreviar(string nome)
