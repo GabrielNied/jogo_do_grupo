@@ -78,11 +78,12 @@ Decidido em 2026-10-12. A animação, o passo na tela e a resposta no instante d
 
 ### Reação ao acerto
 
-Decidido em 2026-10-12, no exemplo do Elden Ring, fácil de mudar. O dano continua valendo. Quem decide a interrupção é o servidor; o client só toca a pose.
+Decidido em 2026-10-12, no exemplo do Elden Ring, fácil de mudar. Vale igual para PvE e PvP: um combo não prende o alvo. O dano continua valendo. Quem decide a interrupção é o servidor; o client só toca a pose.
 
 - Um acerto interrompe a ação de um personagem ou de um inimigo comum, exceto o pesado do jogador já em andamento ([fatia](fatia-jogavel.md#2-um-ataque-primeira-arma-leve-e-pesado)) e qualquer ataque do chefe de dungeon.
 - Quem foi interrompido não começa esquiva nem ataque por **0,3 s** (`AtordoamentoNoAcertoMs`). A pausa visual de 70 ms cabe dentro dessa janela.
-- No inimigo comum, o preparo cancelado não chega ao contato. A recuperação de um golpe que já encostou continua. O alvo fugir não cancela ([mobs](mobs.md)).
+- Outro acerto nesse meio **não renova** nem soma o tempo. Quando os 0,3 s acabam, há **0,6 s** de folga (`FolgaDepoisDoAcertoMs`): o dano entra, mas não interrompe e não começa outra reação. A cadeia de leves não segura o jogador além do golpe que ele já começou.
+- No inimigo comum, o preparo cancelado não chega ao contato. A recuperação de um golpe que já encostou continua. O alvo fugir não cancela ([mobs](mobs.md)). Durante a folga, o preparo dele também não é cancelado.
 - O chefe não tomba por acerto. A punição dele continua a janela em que fica exposto.
 
 ## Depende de
