@@ -44,3 +44,9 @@ Formato: `### AAAA-MM-DD · título` com **O que houve**, **Regra** e **Origem**
 - **O que houve:** o hook de início de sessão dispara `nuvem:preparar` em segundo plano e manda o agente rodar `npm run nuvem:preparar` antes do primeiro `dotnet`. As duas rodavam juntas, e o `dotnet tool restore` da segunda falhava com "file is being used by another process": o agente tinha de rodar de novo.
 - **Regra:** a preparação do hook grava o pid em `~/.cache/jogo-do-grupo/preparar-nuvem.pid`, e o `npm run nuvem:preparar` espera ela terminar antes de começar. O comando está em [scripts/agentes/preparar-nuvem.mjs](../scripts/agentes/preparar-nuvem.mjs).
 - **Origem:** rodada do loop autônomo de 2026-10-12 (PR #525).
+
+### 2026-10-12 · Worktree de agente sem node_modules
+
+- **O que houve:** o agente de Core da #518 trabalhou num worktree criado por `npm run tarefa -- puxar --worktree`; o primeiro commit foi recusado porque o commitlint do hook não existia ali, e ele teve de rodar `npm install` no meio da tarefa.
+- **Regra:** o `puxar --worktree` liga o `node_modules` do checkout principal no worktree ([worktree-npm.mjs](../scripts/git/worktree-npm.mjs)). Quem cria worktree à mão faz o mesmo ou roda `npm install` antes de commitar.
+- **Origem:** PR #533 (relato do agente).
