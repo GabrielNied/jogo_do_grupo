@@ -8,6 +8,7 @@ using JogoDoGrupo.Shared.Features.Desenvolvimento;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UIElements;
+using Cursor = UnityEngine.Cursor;
 
 namespace JogoDoGrupo.Client.Features.Desenvolvimento
 {
