@@ -31,6 +31,10 @@ public sealed class ServicoDeAtaques : IHostedService, IDisposable
     private readonly ILimiteDeVelocidadeDoMundo? _limiteDeVelocidade;
     private readonly Dictionary<long, SessaoTempoReal> _sessoes = [];
     private readonly Lock _travaSessoes = new();
+
+    // Fim da folga (ms) da reação de cada inimigo interrompido; a de jogador fica no ControleDeAcoes.
+    private readonly Dictionary<long, long> _folgaDosAlvos = [];
+    private readonly Lock _travaReacoes = new();
     private readonly CancellationTokenSource _parada = new();
 
     public ServicoDeAtaques(
@@ -219,6 +223,7 @@ public sealed class ServicoDeAtaques : IHostedService, IDisposable
     {
         if (
             !_controle.EstaAtiva(personagemId, acao.Id)
+            || _controle.FoiInterrompida(personagemId, acao.Id) // Levou um acerto no preparo.
             || _queda?.EstaCaido(personagemId) == true // Caiu no meio do golpe: não acerta.
             || !_posicoes.TentarObter(personagemId, out var posicao)
         )
@@ -236,6 +241,7 @@ public sealed class ServicoDeAtaques : IHostedService, IDisposable
             );
         var vistos = new HashSet<long>();
         var acertos = new List<AcertoDeAtaque>();
+        var interrompidos = new List<long>();
         foreach (var fonte in _fontes)
         {
             var alvos = fonte.AlvosNoVolume(posicao.Area, posicao.X, posicao.Z, direcao);
@@ -258,6 +264,10 @@ public sealed class ServicoDeAtaques : IHostedService, IDisposable
                             VidaMaxima = r.VidaMaxima,
                         }
                     );
+                    if (alvo.PersonagemId == 0 && TentarInterromper(fonte, alvo.Id))
+                    {
+                        interrompidos.Add(alvo.Id);
+                    }
                 }
             }
         }
@@ -270,6 +280,46 @@ public sealed class ServicoDeAtaques : IHostedService, IDisposable
                 CombateMessageIds.AtaqueAcertou,
                 new AtaqueAcertou { AtacanteId = personagemId, Acertos = acertos.ToArray() }
             );
+        }
+
+        foreach (var alvoId in interrompidos)
+        {
+            EnviarParaArea(
+                posicao.Area,
+                personagemId,
+                CombateMessageIds.AcaoInterrompida,
+                new AcaoInterrompida
+                {
+                    AlvoId = alvoId,
+                    Jogador = false,
+                    DuracaoMs = RegrasReacao.AtordoamentoNoAcertoMs,
+                }
+            );
+        }
+    }
+
+    // Reação ao acerto de um inimigo comum: só interrompe fora da folga da reação anterior, e a
+    // folga só começa se a fonte do alvo de fato cancelou um preparo.
+    private bool TentarInterromper(IAlvosDeCombate fonte, long alvoId)
+    {
+        var agora = _relogioMs();
+        lock (_travaReacoes)
+        {
+            if (
+                _folgaDosAlvos.TryGetValue(alvoId, out var folgaAteMs)
+                && !RegrasReacao.PodeReagir(agora, folgaAteMs)
+            )
+            {
+                return false;
+            }
+
+            if (!fonte.Interromper(alvoId, RegrasReacao.AtordoamentoNoAcertoMs))
+            {
+                return false;
+            }
+
+            _folgaDosAlvos[alvoId] = RegrasReacao.FimDaFolgaMs(agora);
+            return true;
         }
     }
 

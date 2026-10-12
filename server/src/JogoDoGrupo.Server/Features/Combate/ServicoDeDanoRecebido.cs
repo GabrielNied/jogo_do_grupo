@@ -1,4 +1,5 @@
 using JogoDoGrupo.Server.Contratos.Mobs;
+using JogoDoGrupo.Server.Contratos.Mundo;
 using JogoDoGrupo.Server.Core.TempoReal;
 using JogoDoGrupo.Shared.Features.Combate;
 
@@ -21,6 +22,8 @@ public sealed class ServicoDeDanoRecebido : IHostedService
     private readonly ServicoDeQueda? _queda;
     private readonly ControleDeAcoes? _acoes;
     private readonly Func<long> _relogioMs;
+    private readonly ServicoDeGuarda? _guarda;
+    private readonly AvisosNaArea? _avisos;
     private readonly CancellationTokenSource _parada = new();
 
     public ServicoDeDanoRecebido(
@@ -29,9 +32,13 @@ public sealed class ServicoDeDanoRecebido : IHostedService
         ILogger<ServicoDeDanoRecebido> log,
         ServicoDeQueda? queda = null,
         ControleDeAcoes? acoes = null,
-        Func<long>? relogioMs = null
+        Func<long>? relogioMs = null,
+        ServicoDeGuarda? guarda = null,
+        IPosicoesDoMundo? posicoes = null
     )
     {
+        _guarda = guarda;
+        _avisos = posicoes == null ? null : new AvisosNaArea(tempoReal, posicoes);
         _queda = queda;
         _acoes = acoes;
         _relogioMs = relogioMs ?? (() => Environment.TickCount64);
@@ -84,6 +91,34 @@ public sealed class ServicoDeDanoRecebido : IHostedService
                 return;
             }
 
+            var sessao = _tempoReal.Sessoes.FirstOrDefault(s =>
+                s.PersonagemId == golpe.PersonagemId
+            );
+
+            // Guarda segurada: o golpe custa 1 de vigor por ponto de dano, antes da defesa do
+            // equipamento. Com vigor ele zera; sem vigor a guarda quebra e o dano entra.
+            if (_acoes?.EstaGuardando(golpe.PersonagemId) == true)
+            {
+                var (bloqueou, vigorGasto, estado) = await RecursosDoAtaque.BloquearAsync(
+                    _escopos,
+                    golpe.PersonagemId,
+                    dano,
+                    _parada.Token
+                );
+                if (sessao != null)
+                {
+                    _tempoReal.Enviar(sessao, CombateMessageIds.RecursosMudaram, estado);
+                }
+
+                if (bloqueou)
+                {
+                    _guarda?.AoBloquear(golpe.PersonagemId, golpe.Area, vigorGasto);
+                    return;
+                }
+
+                _guarda?.AoQuebrar(golpe.PersonagemId, golpe.Area);
+            }
+
             var recursos = await RecursosDoAtaque.TirarVidaAsync(
                 _escopos,
                 golpe.PersonagemId,
@@ -91,9 +126,6 @@ public sealed class ServicoDeDanoRecebido : IHostedService
                 _parada.Token
             );
 
-            var sessao = _tempoReal.Sessoes.FirstOrDefault(s =>
-                s.PersonagemId == golpe.PersonagemId
-            );
             if (sessao != null)
             {
                 _tempoReal.Enviar(sessao, CombateMessageIds.RecursosMudaram, recursos);
@@ -101,6 +133,25 @@ public sealed class ServicoDeDanoRecebido : IHostedService
 
             // Vida 0 leva a caído; vida acima de 0 interrompe quem este personagem levantava.
             _queda?.AoDano(golpe.PersonagemId, recursos.VidaAtual);
+
+            // O acerto interrompe a ação comum (reação ao acerto): o golpe do preparo para.
+            if (
+                recursos.VidaAtual > 0
+                && _acoes?.TentarReagir(golpe.PersonagemId, _relogioMs()) == true
+            )
+            {
+                _avisos?.Enviar(
+                    golpe.Area,
+                    golpe.PersonagemId,
+                    CombateMessageIds.AcaoInterrompida,
+                    new AcaoInterrompida
+                    {
+                        AlvoId = golpe.PersonagemId,
+                        Jogador = true,
+                        DuracaoMs = RegrasReacao.AtordoamentoNoAcertoMs,
+                    }
+                );
+            }
         }
         catch (OperationCanceledException) { }
         catch (Exception e)

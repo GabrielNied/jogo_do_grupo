@@ -15,6 +15,7 @@ public sealed class CombateModule : IFeatureModule
     // depois que uma sessão se autentica.
     private volatile ServicoDeAtaques? _ataques;
     private volatile ServicoDeEsquivas? _esquivas;
+    private volatile ServicoDeGuarda? _guarda;
     private volatile ServicoDeDanoRecebido? _danoRecebido;
     private volatile ServicoDeQueda? _queda;
 
@@ -54,12 +55,26 @@ public sealed class CombateModule : IFeatureModule
         ));
         servicos.AddSingleton(sp =>
         {
+            var servico = new ServicoDeGuarda(
+                sp.GetRequiredService<ServidorTempoReal>(),
+                sp.GetRequiredService<IPosicoesDoMundo>(),
+                sp.GetRequiredService<ControleDeAcoes>(),
+                sp.GetRequiredService<ServicoDeQueda>(),
+                sp.GetService<ILimiteDeVelocidadeDoMundo>()
+            );
+            _guarda = servico;
+            return servico;
+        });
+        servicos.AddSingleton(sp =>
+        {
             var servico = new ServicoDeDanoRecebido(
                 sp.GetRequiredService<ServidorTempoReal>(),
                 sp.GetRequiredService<IServiceScopeFactory>(),
                 sp.GetRequiredService<ILogger<ServicoDeDanoRecebido>>(),
                 sp.GetRequiredService<ServicoDeQueda>(),
-                sp.GetRequiredService<ControleDeAcoes>()
+                sp.GetRequiredService<ControleDeAcoes>(),
+                guarda: sp.GetRequiredService<ServicoDeGuarda>(),
+                posicoes: sp.GetRequiredService<IPosicoesDoMundo>()
             );
             _danoRecebido = servico;
             return servico;
@@ -79,6 +94,7 @@ public sealed class CombateModule : IFeatureModule
             );
             _ataques = servico;
             _esquivas = sp.GetRequiredService<ServicoDeEsquivas>();
+            _guarda = sp.GetRequiredService<ServicoDeGuarda>();
             return servico;
         });
         servicos.AddHostedService(sp => sp.GetRequiredService<ServicoDeAtaques>());
@@ -98,6 +114,10 @@ public sealed class CombateModule : IFeatureModule
             .Ao<IntencaoDeEsquiva>(
                 CombateMessageIds.IntencaoDeEsquiva,
                 (sessao, intencao) => _esquivas?.AoEsquivar(sessao, intencao)
+            )
+            .Ao<IntencaoDeGuarda>(
+                CombateMessageIds.IntencaoDeGuarda,
+                (sessao, intencao) => _guarda?.AoGuardar(sessao, intencao)
             )
             .Ao<ComecarALevantar>(
                 CombateMessageIds.ComecarALevantar,
