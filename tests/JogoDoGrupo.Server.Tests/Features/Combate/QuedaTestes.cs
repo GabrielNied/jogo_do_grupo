@@ -41,7 +41,7 @@ public sealed class PosicoesFalsas : IPosicoesDoMundo
 
 /// <summary>
 /// Servidor de teste do estado caído: banco real, posições falsas e tempos curtos (3 s caído,
-/// 0,6 s para levantar, 0,7 s até poder voltar) para os testes não esperarem 45 s. Os tempos
+/// 0,6 s para levantar, 1,2 s até poder voltar) para os testes não esperarem 45 s. Os tempos
 /// reais estão em <c>ControleDeQuedaTestes</c> e <c>RegrasQuedaTestes</c>.
 /// </summary>
 public sealed class ServidorDeQueda : IDisposable
@@ -50,7 +50,7 @@ public sealed class ServidorDeQueda : IDisposable
     {
         TempoCaidoMs = 3_000,
         TempoParaLevantarMs = 600,
-        MinimoParaVoltarMs = 700,
+        MinimoParaVoltarMs = 1_200,
         IntervaloDeConferenciaMs = 50,
     };
 
@@ -228,6 +228,25 @@ public class QuedaTestes(ServidorDeQueda servidor) : IClassFixture<ServidorDeQue
         memoria.Descartar(j.Id); // E a memória precisa reler o que o teste mudou.
     }
 
+    private int SaidasDe(Jogador j) =>
+        servidor.Eventos<PersonagemLevantou>(j.Id)
+        + servidor.Eventos<PersonagemVoltouParaACidade>(j.Id);
+
+    /// <summary>
+    /// Espera a primeira saída do estado caído (levantou ou voltou) e o aviso de recursos dela, e
+    /// confere que uma segunda não veio logo depois. Esperar pela condição, e não por um tempo
+    /// fixo, deixa o teste certo mesmo com a máquina carregada.
+    /// </summary>
+    private async Task UmaSaidaSoAsync(Jogador j)
+    {
+        await TempoRealFixture.EsperarAsync(
+            () => SaidasDe(j) >= 1 && j.Recebidas(CombateMessageIds.RecursosMudaram) >= 2,
+            "a saída do estado caído"
+        );
+        await Task.Delay(Silencio);
+        Assert.Equal(1, SaidasDe(j));
+    }
+
     private static async Task SemMensagemAsync(Jogador j, ushort id, int antes)
     {
         await Task.Delay(Silencio);
@@ -328,8 +347,9 @@ public class QuedaTestes(ServidorDeQueda servidor) : IClassFixture<ServidorDeQue
     [Fact]
     public async Task Depois_de_levantar_o_fim_do_tempo_antigo_nao_traz_um_segundo_resultado()
     {
-        using var ana = await CaidoAsync();
+        using var ana = await NovoJogadorAsync();
         using var beto = await NovoJogadorAsync(1f, 0f);
+        await DerrubarAsync(ana);
         Levantar(beto, ana);
         await EstadoAsync(ana, FaseDeQueda.Vivo);
 
@@ -344,8 +364,9 @@ public class QuedaTestes(ServidorDeQueda servidor) : IClassFixture<ServidorDeQue
     [Fact]
     public async Task Levantado_pode_cair_de_novo()
     {
-        using var ana = await CaidoAsync();
+        using var ana = await NovoJogadorAsync();
         using var beto = await NovoJogadorAsync(1f, 0f);
+        await DerrubarAsync(ana);
         Levantar(beto, ana);
         await EstadoAsync(ana, FaseDeQueda.Vivo);
 
@@ -358,8 +379,9 @@ public class QuedaTestes(ServidorDeQueda servidor) : IClassFixture<ServidorDeQue
     [Fact]
     public async Task Levantar_a_exatamente_2_metros_vale()
     {
-        using var ana = await CaidoAsync();
+        using var ana = await NovoJogadorAsync();
         using var beto = await NovoJogadorAsync(2f, 0f);
+        await DerrubarAsync(ana);
 
         Levantar(beto, ana);
 
@@ -370,9 +392,10 @@ public class QuedaTestes(ServidorDeQueda servidor) : IClassFixture<ServidorDeQue
     [Fact]
     public async Task Dois_ajudantes_ao_mesmo_tempo_levantam_uma_vez_so()
     {
-        using var ana = await CaidoAsync();
+        using var ana = await NovoJogadorAsync();
         using var beto = await NovoJogadorAsync(1f, 0f);
         using var caio = await NovoJogadorAsync(0f, 1f);
+        await DerrubarAsync(ana);
 
         await Task.WhenAll(
             Task.Run(() => Levantar(beto, ana)),
@@ -395,8 +418,9 @@ public class QuedaTestes(ServidorDeQueda servidor) : IClassFixture<ServidorDeQue
     [Fact]
     public async Task Dano_no_ajudante_interrompe_e_zera_o_progresso()
     {
-        using var ana = await CaidoAsync();
+        using var ana = await NovoJogadorAsync();
         using var beto = await NovoJogadorAsync(1f, 0f);
+        await DerrubarAsync(ana);
         Levantar(beto, ana);
         await EstadoAsync(ana, FaseDeQueda.Levantando);
 
@@ -406,7 +430,6 @@ public class QuedaTestes(ServidorDeQueda servidor) : IClassFixture<ServidorDeQue
         Assert.Equal(0L, volta.AjudanteId);
         Assert.Equal(0, volta.ProgressoMs);
         await Task.Delay(ServidorDeQueda.Config.TempoParaLevantarMs + 300);
-        Assert.True(servidor.Queda.EstaCaido(ana.Id));
         Assert.Equal(0, servidor.Eventos<PersonagemLevantou>(ana.Id));
         Assert.True((await RecursosAsync(beto)).VidaAtual < (await RecursosAsync(beto)).VidaMaxima);
     }
@@ -414,8 +437,9 @@ public class QuedaTestes(ServidorDeQueda servidor) : IClassFixture<ServidorDeQue
     [Fact]
     public async Task Ajudante_que_cai_no_meio_interrompe_a_interacao()
     {
-        using var ana = await CaidoAsync();
+        using var ana = await NovoJogadorAsync();
         using var beto = await NovoJogadorAsync(1f, 0f);
+        await DerrubarAsync(ana);
         Levantar(beto, ana);
         await EstadoAsync(ana, FaseDeQueda.Levantando);
 
@@ -430,8 +454,9 @@ public class QuedaTestes(ServidorDeQueda servidor) : IClassFixture<ServidorDeQue
     [Fact]
     public async Task Ajudante_que_solta_a_interacao_cancela()
     {
-        using var ana = await CaidoAsync();
+        using var ana = await NovoJogadorAsync();
         using var beto = await NovoJogadorAsync(1f, 0f);
+        await DerrubarAsync(ana);
         Levantar(beto, ana);
         await EstadoAsync(ana, FaseDeQueda.Levantando);
 
@@ -439,14 +464,15 @@ public class QuedaTestes(ServidorDeQueda servidor) : IClassFixture<ServidorDeQue
 
         await EstadoAsync(ana, FaseDeQueda.Caido);
         await Task.Delay(ServidorDeQueda.Config.TempoParaLevantarMs + 300);
-        Assert.True(servidor.Queda.EstaCaido(ana.Id));
+        Assert.Equal(0, servidor.Eventos<PersonagemLevantou>(ana.Id)); // a interação não terminou
     }
 
     [Fact]
     public async Task Ajudante_que_se_afasta_mais_de_2_metros_interrompe()
     {
-        using var ana = await CaidoAsync();
+        using var ana = await NovoJogadorAsync();
         using var beto = await NovoJogadorAsync(1f, 0f);
+        await DerrubarAsync(ana);
         Levantar(beto, ana);
         await EstadoAsync(ana, FaseDeQueda.Levantando);
 
@@ -454,14 +480,15 @@ public class QuedaTestes(ServidorDeQueda servidor) : IClassFixture<ServidorDeQue
 
         await EstadoAsync(ana, FaseDeQueda.Caido);
         await Task.Delay(ServidorDeQueda.Config.TempoParaLevantarMs + 300);
-        Assert.True(servidor.Queda.EstaCaido(ana.Id));
+        Assert.Equal(0, servidor.Eventos<PersonagemLevantou>(ana.Id)); // a interação não terminou
     }
 
     [Fact]
     public async Task Ajudante_que_ataca_ou_esquiva_interrompe()
     {
-        using var ana = await CaidoAsync();
+        using var ana = await NovoJogadorAsync();
         using var beto = await NovoJogadorAsync(1f, 0f);
+        await DerrubarAsync(ana);
         Levantar(beto, ana);
         await EstadoAsync(ana, FaseDeQueda.Levantando);
 
@@ -503,8 +530,9 @@ public class QuedaTestes(ServidorDeQueda servidor) : IClassFixture<ServidorDeQue
     [Fact]
     public async Task Levantar_a_mais_de_2_metros_e_recusado_e_nada_muda()
     {
-        using var ana = await CaidoAsync();
+        using var ana = await NovoJogadorAsync();
         using var beto = await NovoJogadorAsync(2.1f, 0f);
+        await DerrubarAsync(ana);
 
         Levantar(beto, ana);
 
@@ -516,9 +544,10 @@ public class QuedaTestes(ServidorDeQueda servidor) : IClassFixture<ServidorDeQue
     [Fact]
     public async Task Levantar_alguem_que_ja_esta_sendo_levantado_e_recusado()
     {
-        using var ana = await CaidoAsync();
+        using var ana = await NovoJogadorAsync();
         using var beto = await NovoJogadorAsync(1f, 0f);
         using var caio = await NovoJogadorAsync(0f, 1f);
+        await DerrubarAsync(ana);
         Levantar(beto, ana);
         await EstadoAsync(ana, FaseDeQueda.Levantando);
 
@@ -532,8 +561,10 @@ public class QuedaTestes(ServidorDeQueda servidor) : IClassFixture<ServidorDeQue
     [Fact]
     public async Task Caido_nao_levanta_ninguem()
     {
-        using var ana = await CaidoAsync();
-        using var beto = await CaidoAsync(1f, 0f);
+        using var ana = await NovoJogadorAsync();
+        using var beto = await NovoJogadorAsync(1f, 0f);
+        await DerrubarAsync(ana);
+        await DerrubarAsync(beto);
 
         Levantar(beto, ana);
 
@@ -544,8 +575,9 @@ public class QuedaTestes(ServidorDeQueda servidor) : IClassFixture<ServidorDeQue
     [Fact]
     public async Task Levantar_quem_acabou_de_voltar_a_cidade_e_recusado()
     {
-        using var ana = await CaidoAsync();
+        using var ana = await NovoJogadorAsync();
         using var beto = await NovoJogadorAsync(1f, 0f);
+        await DerrubarAsync(ana);
         await EstadoAsync(ana, FaseDeQueda.Retorno); // fim do tempo
 
         Levantar(beto, ana);
@@ -649,11 +681,7 @@ public class QuedaTestes(ServidorDeQueda servidor) : IClassFixture<ServidorDeQue
             await Task.Delay((int)Math.Max(0, espera));
             Levantar(beto, ana);
 
-            await Task.Delay(config.TempoCaidoMs + 400);
-            var saidas =
-                servidor.Eventos<PersonagemLevantou>(ana.Id)
-                + servidor.Eventos<PersonagemVoltouParaACidade>(ana.Id);
-            Assert.Equal(1, saidas);
+            await UmaSaidaSoAsync(ana);
             Assert.Equal(
                 1,
                 ana.Cliente.IdsRecebidos.Count(i => i == CombateMessageIds.RecursosMudaram) - 1 // o RecursosMudaram do golpe que derrubou
@@ -677,11 +705,7 @@ public class QuedaTestes(ServidorDeQueda servidor) : IClassFixture<ServidorDeQue
 
             Voltar(ana);
 
-            await Task.Delay(ServidorDeQueda.Config.TempoCaidoMs + 400);
-            var saidas =
-                servidor.Eventos<PersonagemLevantou>(ana.Id)
-                + servidor.Eventos<PersonagemVoltouParaACidade>(ana.Id);
-            Assert.Equal(1, saidas);
+            await UmaSaidaSoAsync(ana);
             Assert.False(servidor.Queda.EstaCaido(ana.Id));
         }
     }

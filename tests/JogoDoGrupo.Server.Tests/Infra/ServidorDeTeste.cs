@@ -3,7 +3,9 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using JogoDoGrupo.Shared.Core.Contas;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace JogoDoGrupo.Server.Tests.Infra;
 
@@ -34,6 +36,12 @@ public sealed class ServidorDeTeste : WebApplicationFactory<Program>
         // Cada servidor de teste escuta o UDP numa porta livre, só no loopback.
         builder.UseSetting("TempoReal:Porta", "0");
         builder.UseSetting("TempoReal:Endereco", "127.0.0.1");
+        // O hash de senha de produção (PBKDF2, 100 mil iterações) custa dezenas de ms de CPU por
+        // registro e login; com centenas de testes criando conta, essa carga atrasava os testes de
+        // tempo real que rodam ao lado. Nos testes, uma iteração basta (o formato não muda).
+        builder.ConfigureServices(s =>
+            s.Configure<PasswordHasherOptions>(o => o.IterationCount = 1)
+        );
     }
 
     /// <summary>Nome único só com letras (serve para usuário e para personagem).</summary>

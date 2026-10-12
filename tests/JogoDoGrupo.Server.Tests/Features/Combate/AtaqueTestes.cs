@@ -26,12 +26,22 @@ public sealed class AlvoFalso(long id) : IAlvosDeCombate
     public volatile bool Ativo;
     public int Aplicacoes => Volatile.Read(ref _aplicacoes);
 
+    /// <summary>
+    /// Quando (<see cref="Environment.TickCount64"/>) o servidor procurou alvos: o momento do
+    /// acerto, medido no próprio servidor (sem a rede nem o client no meio).
+    /// </summary>
+    public ConcurrentQueue<long> Consultas { get; } = new();
+
     public IReadOnlyList<AlvoDeCombate> AlvosNoVolume(
         string area,
         double origemX,
         double origemZ,
         double direcaoYGraus
-    ) => Ativo ? [new AlvoDeCombate(id, origemX, origemZ, 0.5, 100, 100)] : [];
+    )
+    {
+        Consultas.Enqueue(Environment.TickCount64);
+        return Ativo ? [new AlvoDeCombate(id, origemX, origemZ, 0.5, 100, 100)] : [];
+    }
 
     public bool TentarAplicarDano(
         long alvoId,
@@ -144,6 +154,16 @@ public sealed class Jogador(HttpClient http, ClienteTempoRealDeTeste cliente, lo
 public class AtaqueTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDeAtaque>
 {
     private static readonly TimeSpan Margem = TimeSpan.FromMilliseconds(500);
+
+    /// <summary>
+    /// Espera até <paramref name="ms"/> depois de <paramref name="desde"/>; se a máquina carregada já
+    /// passou desse ponto, segue na hora (um Delay negativo quebraria o teste).
+    /// </summary>
+    private static Task AteAsync(DateTime desde, int ms)
+    {
+        var falta = TimeSpan.FromMilliseconds(ms) - (DateTime.UtcNow - desde);
+        return falta > TimeSpan.Zero ? Task.Delay(falta) : Task.CompletedTask;
+    }
 
     private async Task<Jogador> NovoJogadorAsync(bool naCidade = true)
     {
@@ -658,7 +678,7 @@ public class AtaqueTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDeA
         var primeiro = DateTime.UtcNow;
         await ana.Cliente.ReceberAsync<AtaqueIniciado>(CombateMessageIds.AtaqueIniciado);
         // Leve: 0,5 s de preparo + 0,3 s de recuperação = 0,8 s. Em 0,6 s faltam 0,2 s.
-        await Task.Delay(TimeSpan.FromMilliseconds(600) - (DateTime.UtcNow - primeiro));
+        await AteAsync(primeiro, 600);
         Atacar(ana, sequencia: 2);
 
         await ana.Cliente.ReceberAsync<AtaqueAcertou>(CombateMessageIds.AtaqueAcertou);
@@ -684,21 +704,27 @@ public class AtaqueTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDeA
         // a ação atual e o acerto do primeiro era descartado.
         servidor.Bonus.AtrasoMs = 400;
         var leiturasAntes = servidor.Bonus.Leituras;
+        servidor.Bonus.InicioDasLeituras.Clear();
+        servidor.Extra.Consultas.Clear();
         try
         {
             Atacar(ana, sequencia: 1);
             var primeiro = DateTime.UtcNow;
             await ana.Cliente.ReceberAsync<AtaqueIniciado>(CombateMessageIds.AtaqueIniciado);
-            await Task.Delay(TimeSpan.FromMilliseconds(600) - (DateTime.UtcNow - primeiro));
+            await AteAsync(primeiro, 600); // o AtaqueIniciado só sai depois do banco
             Atacar(ana, sequencia: 2); // 0,2 s antes do fim: entra na fila
 
             var acerto1 = await ana.Cliente.ReceberAsync<AtaqueAcertou>(
                 CombateMessageIds.AtaqueAcertou
             );
-            var depoisDoPrimeiro = DateTime.UtcNow - primeiro;
+            // Medido no servidor (da ida ao banco até a procura de alvos), para a carga da máquina
+            // não somar a rede e o client: no preparo é ~500 ms; esperando o banco seriam ~900 ms.
+            Assert.True(servidor.Bonus.InicioDasLeituras.TryPeek(out var inicio));
+            Assert.True(servidor.Extra.Consultas.TryPeek(out var acerto));
+            var preparo = RegrasAtaque.PreparoMs(TipoDeAtaque.Leve);
             Assert.True(
-                depoisDoPrimeiro < TimeSpan.FromMilliseconds(500) + Margem,
-                $"O acerto saiu tarde ({depoisDoPrimeiro.TotalMilliseconds:0} ms)."
+                acerto - inicio < preparo + 300,
+                $"O acerto saiu tarde ({acerto - inicio} ms depois do pedido)."
             );
             Assert.Equal(
                 ConfigBonecoDeTreino.Vida - 20,
@@ -728,7 +754,7 @@ public class AtaqueTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDeA
         Atacar(ana, sequencia: 1);
         var primeiro = DateTime.UtcNow;
         await ana.Cliente.ReceberAsync<AtaqueIniciado>(CombateMessageIds.AtaqueIniciado);
-        await Task.Delay(TimeSpan.FromMilliseconds(600) - (DateTime.UtcNow - primeiro));
+        await AteAsync(primeiro, 600);
         Atacar(ana, sequencia: 2); // entra na fila
         await Task.Delay(50);
         Atacar(ana, sequencia: 3); // a fila está ocupada
@@ -755,7 +781,7 @@ public class AtaqueTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDeA
         Atacar(ana, TipoDeAtaque.Leve, sequencia: 7);
         var inicio = DateTime.UtcNow;
         await ana.Cliente.ReceberAsync<AtaqueIniciado>(CombateMessageIds.AtaqueIniciado);
-        await Task.Delay(TimeSpan.FromMilliseconds(600) - (DateTime.UtcNow - inicio));
+        await AteAsync(inicio, 600);
         Atacar(ana, TipoDeAtaque.Pesado, sequencia: 8); // entra na fila
 
         var primeiro = await ana.Cliente.ReceberAsync<AtaqueAcertou>(
@@ -782,7 +808,7 @@ public class AtaqueTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDeA
         Atacar(ana, TipoDeAtaque.Leve, sequencia: 1);
         var primeiro = DateTime.UtcNow;
         await ana.Cliente.ReceberAsync<AtaqueIniciado>(CombateMessageIds.AtaqueIniciado);
-        await Task.Delay(TimeSpan.FromMilliseconds(600) - (DateTime.UtcNow - primeiro));
+        await AteAsync(primeiro, 600);
         Atacar(ana, TipoDeAtaque.Pesado, sequencia: 2);
 
         var recusa = await ana.Cliente.ReceberAsync<AtaqueRecusado>(

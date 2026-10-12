@@ -13,7 +13,11 @@ namespace JogoDoGrupo.Server.Tests.Infra;
 /// </summary>
 public sealed class ClienteTempoRealDeTeste : IDisposable
 {
-    public static readonly TimeSpan Espera = TimeSpan.FromSeconds(5);
+    /// <summary>
+    /// Limite das esperas por mensagem ou condição. Folgado de propósito: só pesa quando o teste já
+    /// falhou, e evita falso erro com a máquina carregada (testes em paralelo, CI).
+    /// </summary>
+    public static readonly TimeSpan Espera = TimeSpan.FromSeconds(10);
 
     private readonly NetManager _rede;
     private readonly Channel<byte[]> _recebidos = Channel.CreateUnbounded<byte[]>();
