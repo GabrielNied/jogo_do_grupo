@@ -183,7 +183,7 @@ public sealed class RecursosEmMemoria : IHostedService, IDisposable
     /// (regras da fatia, seção 1). Regenera até agora antes de mudar, para não perder o que já
     /// era devido; ao soltar, a espera de 2 s recomeça.
     /// </summary>
-    public async Task DefinirGuardaAsync(
+    public async Task<RecursosMudaram> DefinirGuardaAsync(
         long personagemId,
         bool segurando,
         CancellationToken cancelamento
@@ -199,6 +199,7 @@ public sealed class RecursosEmMemoria : IHostedService, IDisposable
             recursos.UltimoGastoVigorEm = agora;
             recursos.VigorContadoAte = agora;
             entrada.Sujo = true;
+            return Estado(recursos, atributos);
         }
         finally
         {

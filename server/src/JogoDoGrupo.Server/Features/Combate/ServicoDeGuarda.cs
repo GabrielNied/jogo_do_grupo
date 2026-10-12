@@ -125,9 +125,16 @@ public sealed class ServicoDeGuarda
         {
             try
             {
-                await RecursosDoAtaque
+                var estado = await RecursosDoAtaque
                     .Recursos(_escopos)
                     .DefinirGuardaAsync(personagemId, segurando, CancellationToken.None);
+
+                // O client prevê a regeneração do vigor; saber que ela parou (ou recomeçou) corrige a previsão.
+                var dono = _tempoReal.Sessoes.FirstOrDefault(s => s.PersonagemId == personagemId);
+                if (dono != null)
+                {
+                    _tempoReal.Enviar(dono, CombateMessageIds.RecursosMudaram, estado);
+                }
             }
             catch (Exception e)
             {

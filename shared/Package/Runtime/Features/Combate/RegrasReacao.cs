@@ -22,6 +22,12 @@ namespace JogoDoGrupo.Shared.Features.Combate
         /// </summary>
         public const int FolgaDepoisDoAcertoMs = 600;
 
+        /// <summary>
+        /// Milissegundos em que o client segura a pose de quem bateu e de quem levou, quando o
+        /// servidor confirma o acerto. Só apresentação: o relógio do servidor não para.
+        /// </summary>
+        public const int PausaVisualNoAcertoMs = 70;
+
         // ── Regras ────────────────────────────────────────────────────────────────
 
         /// <summary>
