@@ -9,10 +9,10 @@ namespace JogoDoGrupo.Server.Features.Mundo;
 public sealed class MundoModule : IFeatureModule
 {
     /// <summary>
-    /// Chave de configuração que libera o pedido de velocidade de teste (só em
-    /// appsettings.Development.json). Sem ela, o servidor ignora o pedido.
+    /// Chave que libera o pedido de velocidade de teste. Sem ela, ou fora de Development, o
+    /// servidor ignora o pedido (<see cref="PoliticaDeVelocidadeDeTeste"/>).
     /// </summary>
-    public const string ChavePermitirVelocidadeDeTeste = "Mundo:PermitirVelocidadeDeTeste";
+    public const string ChavePermitirVelocidadeDeTeste = PoliticaDeVelocidadeDeTeste.ChavePermitir;
 
     private readonly CidadeDoMundo<SessaoTempoReal> _cidade = new();
     private bool _permitirVelocidadeDeTeste;
@@ -27,7 +27,6 @@ public sealed class MundoModule : IFeatureModule
 
     public void ConfigurarServicos(IServiceCollection servicos, IConfiguration configuracao)
     {
-        _permitirVelocidadeDeTeste = configuracao.GetValue<bool>(ChavePermitirVelocidadeDeTeste);
         servicos.AddSingleton<IPosicoesDoMundo>(new PosicoesDaCidade(_cidade));
         servicos.AddSingleton<ITeleporteDeTeste>(sp => new TeleporteDeTeste(
             _cidade,
@@ -47,6 +46,16 @@ public sealed class MundoModule : IFeatureModule
             return servico;
         });
         servicos.AddHostedService(sp => sp.GetRequiredService<ServicoDaHoraDoMundo>());
+    }
+
+    public void MapearRotas(IEndpointRouteBuilder rotas)
+    {
+        var servicos = rotas.ServiceProvider;
+        _permitirVelocidadeDeTeste = PoliticaDeVelocidadeDeTeste.Ligada(
+            servicos.GetRequiredService<IConfiguration>(),
+            servicos.GetRequiredService<IHostEnvironment>(),
+            servicos.GetRequiredService<ILogger<MundoModule>>()
+        );
     }
 
     public void RegistrarMensagens(MensagensTempoReal mensagens) =>
