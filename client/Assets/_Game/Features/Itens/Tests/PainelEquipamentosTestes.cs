@@ -109,5 +109,36 @@ namespace JogoDoGrupo.Client.Features.Itens.Tests
             StringAssert.Contains("Força +20 (fixo)", texto);
             StringAssert.Contains("Vida +30 (sorteado) · infusível", texto);
         }
+
+        [Test]
+        public void ItemDaBolsaTemDescartarEMostrarNaoEnviaNada()
+        {
+            var raiz = new VisualElement();
+            var enviou = false;
+            var painel = new PainelEquipamentos(raiz, (_, __) => enviou = true);
+            painel.Mostrar(
+                new EquipamentosResponse
+                {
+                    Inventario = new[]
+                    {
+                        new EntradaInventario
+                        {
+                            InstanciaId = 77,
+                            ItemId = 107,
+                            Equipamento = CatalogoEquipamentos.Obter(107),
+                        },
+                    },
+                }
+            );
+            Assert.AreEqual(
+                1,
+                raiz.Query<Button>().Where(b => b.text == "Descartar").ToList().Count
+            );
+            Assert.AreEqual(
+                0,
+                raiz.Query<Button>().Where(b => b.text == "Confirmar descarte").ToList().Count
+            );
+            Assert.IsFalse(enviou);
+        }
     }
 }

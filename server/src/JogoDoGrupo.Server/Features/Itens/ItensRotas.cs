@@ -27,6 +27,7 @@ internal static class ItensRotas
         EquipamentosRotas.Mapear(rotas);
         rotas.MapGet(RotasItens.Inventario, InventarioAsync).RequireAuthorization();
         rotas.MapPost(RotasItens.Bau, AbrirBauAsync).RequireAuthorization();
+        rotas.MapPost(RotasItens.Descartar, DescartarAsync).RequireAuthorization();
     }
 
     private static async Task<IResult> InventarioAsync(
@@ -45,6 +46,58 @@ internal static class ItensRotas
         var id = ParaId(personagemId);
         var entradas = await LerInventarioAsync(db, id, cancelamento);
         return Results.Ok(new InventarioResponse { Entradas = entradas });
+    }
+
+    /// <summary>
+    /// Destrói definitivamente um exemplar da bolsa (não vira loot no chão). Transação
+    /// Serializable, como o equipar: dois descartes do mesmo exemplar rodam em série e só o
+    /// primeiro apaga; o segundo não acha o exemplar (404 <c>ItemNaoEncontrado</c>, sem efeito).
+    /// Um descarte concorrente a um equipar vê o exemplar na bolsa ou já equipado (409), nunca
+    /// um meio-termo.
+    /// </summary>
+    private static async Task<IResult> DescartarAsync(
+        string personagemId,
+        PedidoDescartar pedido,
+        ClaimsPrincipal usuario,
+        JogoDbContext db,
+        CancellationToken cancelamento
+    )
+    {
+        await using var transacao = await db.Database.BeginTransactionAsync(
+            IsolationLevel.Serializable,
+            cancelamento
+        );
+        if (!await PersonagemDaContaAsync(personagemId, usuario.ObterContaId(), db, cancelamento))
+        {
+            return PersonagemNaoEncontrado();
+        }
+
+        var id = ParaId(personagemId);
+        var itens = await db.Set<ItemInventario>()
+            .Where(i => i.PersonagemId == id)
+            .OrderBy(i => i.Id)
+            .ToListAsync(cancelamento);
+        var alvo = itens.SingleOrDefault(i => i.Id == pedido.InstanciaId);
+        if (alvo == null)
+        {
+            return RespostasApi.Erro(
+                StatusCodes.Status404NotFound,
+                CodigosErroItens.ItemNaoEncontrado
+            );
+        }
+        if (alvo.Posicao != PosicaoEquipamento.Inventario)
+        {
+            return RespostasApi.Erro(StatusCodes.Status409Conflict, CodigosErroItens.ItemEquipado);
+        }
+
+        db.Remove(alvo);
+        itens.Remove(alvo);
+        await db.SaveChangesAsync(cancelamento);
+        var estado = await db.Set<EstadoEquipamentos>()
+            .FindAsync(new object[] { id }, cancelamento);
+        var resposta = EquipamentosRotas.Resposta(itens, estado?.ConjuntoAtivo ?? 1);
+        await transacao.CommitAsync(cancelamento);
+        return Results.Ok(resposta);
     }
 
     private static async Task<IResult> AbrirBauAsync(

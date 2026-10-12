@@ -3,6 +3,7 @@ using JogoDoGrupo.Server.Contratos.Itens;
 using JogoDoGrupo.Server.Core.Persistencia;
 using JogoDoGrupo.Server.Features.Itens;
 using JogoDoGrupo.Server.Tests.Infra;
+using JogoDoGrupo.Shared.Core.Api;
 using JogoDoGrupo.Shared.Features.Itens;
 using JogoDoGrupo.Shared.Features.Personagem;
 using Microsoft.EntityFrameworkCore;
@@ -255,5 +256,150 @@ public class EquipamentosRotasTestes(ServidorDeTeste servidor) : IClassFixture<S
             new[] { a, b },
             estado.Equipados.Concat(estado.Inventario).Select(i => i.InstanciaId).Order().ToArray()
         );
+    }
+
+    private static Task<HttpResponseMessage> Descartar(HttpClient cliente, long id, long item) =>
+        ServidorDeTeste.PostJsonAsync(
+            cliente,
+            RotasItens.DescartarDe(id),
+            new PedidoDescartar { InstanciaId = item }
+        );
+
+    private static async Task<string> Codigo(HttpResponseMessage resposta) =>
+        (await ServidorDeTeste.LerJsonAsync<ErroApi>(resposta)).Codigo;
+
+    [Fact]
+    public async Task Descartar_RemoveDaBolsaEDevolveEstadoAtualizado()
+    {
+        var (cliente, id) = await Personagem();
+        var a = await Item(id, 100);
+        var b = await Item(id, 107);
+        var resposta = await Descartar(cliente, id, a);
+        resposta.EnsureSuccessStatusCode();
+        var estado = await ServidorDeTeste.LerJsonAsync<EquipamentosResponse>(resposta);
+        Assert.Equal(b, Assert.Single(estado.Inventario).InstanciaId);
+        Assert.Equal(b, Assert.Single((await Ler(cliente, id)).Inventario).InstanciaId);
+    }
+
+    [Fact]
+    public async Task Descartar_LiberaEspacoDaBolsaCheia()
+    {
+        var (cliente, id) = await Personagem();
+        long ultimo = 0;
+        for (var n = 0; n < RegrasItens.EspacosInventario; n++)
+            ultimo = await Item(id, 107);
+        Assert.Equal(
+            HttpStatusCode.Conflict,
+            (
+                await ServidorDeTeste.PostJsonAsync(
+                    cliente,
+                    RegrasEquipamentos.RotaDe(id) + "/bau-teste",
+                    new { }
+                )
+            ).StatusCode
+        );
+        (await Descartar(cliente, id, ultimo)).EnsureSuccessStatusCode();
+        Assert.Equal(
+            HttpStatusCode.OK,
+            (
+                await ServidorDeTeste.PostJsonAsync(
+                    cliente,
+                    RegrasEquipamentos.RotaDe(id) + "/bau-teste",
+                    new { }
+                )
+            ).StatusCode
+        );
+    }
+
+    [Fact]
+    public async Task Descartar_RecusaOutraContaInexistenteEPersonagemAlheio()
+    {
+        var (cliente, id) = await Personagem();
+        var (outro, outroId) = await Personagem();
+        var item = await Item(id, 100);
+        // Conta alheia no personagem de outro, ou o exemplar alheio no personagem próprio.
+        var r1 = await Descartar(outro, id, item);
+        Assert.Equal(HttpStatusCode.NotFound, r1.StatusCode);
+        Assert.Equal(CodigosErroItens.PersonagemNaoEncontrado, await Codigo(r1));
+        var r2 = await Descartar(outro, outroId, item);
+        Assert.Equal(HttpStatusCode.NotFound, r2.StatusCode);
+        Assert.Equal(CodigosErroItens.ItemNaoEncontrado, await Codigo(r2));
+        var r3 = await Descartar(cliente, id, 999_999_999);
+        Assert.Equal(CodigosErroItens.ItemNaoEncontrado, await Codigo(r3));
+        Assert.Equal(
+            HttpStatusCode.Unauthorized,
+            (await Descartar(servidor.CreateClient(), id, item)).StatusCode
+        );
+        Assert.Single((await Ler(cliente, id)).Inventario);
+    }
+
+    [Fact]
+    public async Task Descartar_RecusaEquipadoENaoAltera()
+    {
+        var (cliente, id) = await Personagem();
+        var item = await Item(id, 100);
+        (await Equipar(cliente, id, item, PosicaoEquipamento.Arma1)).EnsureSuccessStatusCode();
+        var resposta = await Descartar(cliente, id, item);
+        Assert.Equal(HttpStatusCode.Conflict, resposta.StatusCode);
+        Assert.Equal(CodigosErroItens.ItemEquipado, await Codigo(resposta));
+        Assert.Equal(item, Assert.Single((await Ler(cliente, id)).Equipados).InstanciaId);
+    }
+
+    [Fact]
+    public async Task Descartar_RepetirNaoQuebraNada()
+    {
+        var (cliente, id) = await Personagem();
+        var item = await Item(id, 100);
+        var outro = await Item(id, 107);
+        (await Descartar(cliente, id, item)).EnsureSuccessStatusCode();
+        var repetido = await Descartar(cliente, id, item);
+        Assert.Equal(HttpStatusCode.NotFound, repetido.StatusCode);
+        Assert.Equal(CodigosErroItens.ItemNaoEncontrado, await Codigo(repetido));
+        Assert.Equal(outro, Assert.Single((await Ler(cliente, id)).Inventario).InstanciaId);
+    }
+
+    [Fact]
+    public async Task Descartar_SimultaneoDoMesmoExemplarValeUmaVez()
+    {
+        var (cliente, id) = await Personagem();
+        var item = await Item(id, 100);
+        var outro = await Item(id, 107);
+        var respostas = await Task.WhenAll(
+            Descartar(cliente, id, item),
+            Descartar(cliente, id, item),
+            Descartar(cliente, id, item)
+        );
+        Assert.Equal(1, respostas.Count(r => r.StatusCode == HttpStatusCode.OK));
+        Assert.Equal(2, respostas.Count(r => r.StatusCode == HttpStatusCode.NotFound));
+        Assert.Equal(outro, Assert.Single((await Ler(cliente, id)).Inventario).InstanciaId);
+    }
+
+    [Fact]
+    public async Task Descartar_DuranteEquiparDeixaEstadoConsistente()
+    {
+        var (cliente, id) = await Personagem();
+        var item = await Item(id, 107);
+        var respostas = await Task.WhenAll(
+            Equipar(cliente, id, item, PosicaoEquipamento.Anel1),
+            Descartar(cliente, id, item)
+        );
+        var estado = await Ler(cliente, id);
+        var equipar = respostas[0].StatusCode;
+        var descartar = respostas[1].StatusCode;
+        // Em série: ou equipou primeiro (descarte 409, peça equipada) ou descartou primeiro
+        // (equipar 404, peça sumiu). Nunca as duas coisas, nem peça duplicada.
+        if (descartar == HttpStatusCode.OK)
+        {
+            Assert.Equal(HttpStatusCode.NotFound, equipar);
+            Assert.Empty(estado.Inventario);
+            Assert.Empty(estado.Equipados);
+        }
+        else
+        {
+            Assert.Equal(HttpStatusCode.Conflict, descartar);
+            Assert.Equal(HttpStatusCode.OK, equipar);
+            Assert.Equal(item, Assert.Single(estado.Equipados).InstanciaId);
+            Assert.Empty(estado.Inventario);
+        }
     }
 }

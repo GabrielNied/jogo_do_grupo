@@ -53,6 +53,8 @@ public class ContratoItensTestes
     {
         Assert.Equal("InventarioCheio", CodigosErroItens.InventarioCheio);
         Assert.Equal("PersonagemNaoEncontrado", CodigosErroItens.PersonagemNaoEncontrado);
+        Assert.Equal("ItemNaoEncontrado", CodigosErroItens.ItemNaoEncontrado);
+        Assert.Equal("ItemEquipado", CodigosErroItens.ItemEquipado);
     }
 
     [Fact]
@@ -60,6 +62,8 @@ public class ContratoItensTestes
     {
         Assert.NotEqual(CodigosErro.NaoAutenticado, CodigosErroItens.InventarioCheio);
         Assert.NotEqual(CodigosErro.NaoAutenticado, CodigosErroItens.PersonagemNaoEncontrado);
+        Assert.NotEqual(CodigosErro.NaoAutenticado, CodigosErroItens.ItemNaoEncontrado);
+        Assert.NotEqual(CodigosErro.NaoAutenticado, CodigosErroItens.ItemEquipado);
     }
 
     [Fact]
