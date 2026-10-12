@@ -8,6 +8,12 @@ using JogoDoGrupo.Shared.Features.Mobs;
 
 namespace JogoDoGrupo.Server.Features.Mobs;
 
+/// <summary>Os grupos de inimigos comuns do campo (um por ponto de spawn) e o teto que dividem.</summary>
+public sealed record GruposDoCampo(
+    LimiteDeInimigosVivos Limite,
+    IReadOnlyList<GrupoDeInimigos> Grupos
+);
+
 public sealed class MobsModule : IFeatureModule
 {
     // Criado pelo contêiner quando o app sobe (hosted service); o evento de entrada na área só
@@ -22,12 +28,29 @@ public sealed class MobsModule : IFeatureModule
     public void ConfigurarServicos(IServiceCollection servicos, IConfiguration configuracao)
     {
         servicos.AddSingleton<ISorteadorDeCriaturas>(new SorteadorDeCriaturas());
-        servicos.AddSingleton(sp => new GrupoDeInimigos(
-            CatalogoCriaturas.Obter(RegrasInimigo.CriaturaDaFatia),
-            sp.GetRequiredService<ISorteadorDeCriaturas>(),
-            RegrasInimigo.TamanhoDoGrupo(Random.Shared.NextDouble())
-        ));
-        servicos.AddSingleton<IAlvosDeCombate>(sp => sp.GetRequiredService<GrupoDeInimigos>());
+
+        // Um grupo por ponto de spawn (dados em PontosDeSpawnDoCampo), todos sob o mesmo teto
+        // de inimigos vivos.
+        servicos.AddSingleton(sp =>
+        {
+            var limite = new LimiteDeInimigosVivos(PontosDeSpawnDoCampo.LimiteDeInimigosVivos);
+            var sorteador = sp.GetRequiredService<ISorteadorDeCriaturas>();
+            return new GruposDoCampo(
+                limite,
+                [
+                    .. PontosDeSpawnDoCampo.Todos.Select(ponto =>
+                        GrupoDeInimigos.DoPonto(ponto, sorteador, limite)
+                    ),
+                ]
+            );
+        });
+        for (var i = 0; i < PontosDeSpawnDoCampo.Todos.Count; i++)
+        {
+            var indice = i;
+            servicos.AddSingleton<IAlvosDeCombate>(sp =>
+                sp.GetRequiredService<GruposDoCampo>().Grupos[indice]
+            );
+        }
 
         // O chefe raro é um grupo de um, com chave para não se confundir com o grupo comum.
         servicos.AddKeyedSingleton(
@@ -68,7 +91,7 @@ public sealed class MobsModule : IFeatureModule
         {
             var servico = new ServicoDeInimigos(
                 [
-                    sp.GetRequiredService<GrupoDeInimigos>(),
+                    .. sp.GetRequiredService<GruposDoCampo>().Grupos,
                     sp.GetRequiredKeyedService<GrupoDeInimigos>(ChaveDoChefeRaro),
                 ],
                 sp.GetRequiredService<ServidorTempoReal>(),

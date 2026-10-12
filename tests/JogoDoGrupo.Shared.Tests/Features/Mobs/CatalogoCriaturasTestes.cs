@@ -10,7 +10,12 @@ public class CatalogoCriaturasTestes
         Assert.Equal(1, CatalogoCriaturas.JavaliDoCampo);
         Assert.Equal(100, CatalogoCriaturas.GuardiaoDoReflexo);
         Assert.Equal(200, CatalogoCriaturas.PresaVelha);
-        Assert.Equal(new[] { 1, 100, 200 }, CatalogoCriaturas.Todas.Select(c => c.Id).ToArray());
+        Assert.Equal(2, CatalogoCriaturas.LoboDoCampo);
+        Assert.Equal(3, CatalogoCriaturas.TatuRochoso);
+        Assert.Equal(
+            new[] { 1, 2, 3, 100, 200 },
+            CatalogoCriaturas.Todas.Select(c => c.Id).ToArray()
+        );
     }
 
     [Fact]
@@ -81,7 +86,7 @@ public class CatalogoCriaturasTestes
 
     [Theory]
     [InlineData(0)]
-    [InlineData(2)]
+    [InlineData(4)]
     [InlineData(-1)]
     public void Obter_devolve_null_fora_do_catalogo(int criaturaId) =>
         Assert.Null(CatalogoCriaturas.Obter(criaturaId));

@@ -32,7 +32,8 @@ Tipos de mobs, comportamento por região e bosses com mecânicas marcantes.
 - [ ] Dungeon tem chefe raro (um sorteio ao criar a instância)? As regras já servem; falta decidir.
 - [ ] Loot próprio do chefe raro (item que só ele larga): depende de [itens.md](itens.md).
 - [ ] As escolhas do servidor do inimigo comum (lista em "Inimigo comum da fatia"): o grupo perder o alvo de vista na desistência, o ataque ir até o fim, o golpe pegar todos no círculo e o inimigo levar dano na volta.
-- [ ] O tamanho do grupo do campo é sorteado de novo a cada volta do grupo inteiro, ou fica fixo como hoje?
+- [x] ~~O tamanho do grupo do campo é sorteado de novo a cada volta do grupo inteiro?~~ Sim (issue #452, proposta): veja "Mais mobs no campo".
+- [ ] Os pontos, níveis, tamanhos e as duas espécies novas (Lobo do Campo, Tatu Rochoso) de "Mais mobs no campo" são proposta do agente (issue #452): o dono confirma ou troca, alinhado ao bestiário ([#322](https://github.com/GabrielNied/jogo_do_grupo/issues/322)).
 
 ## Regras
 
@@ -69,6 +70,8 @@ Só a criatura **comum**. O sorteio acontece uma vez, quando ela aparece (inclus
 | Id | Nome | Categoria | Nível | Vida | Dano | XP | Aparece | Intervalo |
 |---|---|---|---|---|---|---|---|---|
 | 1 | Javali do Campo | comum | 3 | 180 | 40 | 20 | sempre | volta em 120 s |
+| 2 | Lobo do Campo | comum | 4 | 110 | 28 | 18 | sempre | volta em 120 s |
+| 3 | Tatu Rochoso | comum | 5 | 320 | 55 | 30 | sempre | volta em 150 s |
 | 100 | Guardião do Reflexo | chefe | 5 | 6000 | 120 | 500 | sempre | não volta (dungeon) |
 | 200 | Presa-Velha | chefe raro | 5 | 1500 | 80 | 200 | 20% por sorteio | sorteio a cada 30 min |
 
@@ -104,7 +107,7 @@ O que o servidor acrescentou ao implementar (issue #268; **proposta**, decidido 
 - **O ataque vai até o fim:** depois do aviso, o inimigo dá o golpe e cumpre a recuperação mesmo que o alvo fuja ou saia da área. Só a morte interrompe.
 - **O golpe pega todos** os personagens que estão no círculo quando o aviso acaba, não só o alvo. Conta o centro do personagem (sem raio de corpo).
 - **Na volta ele ainda leva dano** (só o morto não leva), mas não reage até chegar ao ponto de origem.
-- **Onde:** o centro do grupo fica em (0, 190), 150 m ao norte do portão (que está em (0, 40)), com os pontos de origem num círculo de 4 m de raio. O campo faz parte da área `cidade`. O tamanho do grupo (3 a 5) é sorteado quando o servidor sobe e não muda até ele reiniciar. O comando de teste `spawn` ([Desenvolvimento](desenvolvimento.md)) acrescenta um inimigo a mais no maior grupo da área, sem esperar a volta.
+- **Onde:** o centro do grupo fica em (0, 190), 150 m ao norte do portão (que está em (0, 40)), com os pontos de origem num círculo de 4 m de raio. O campo faz parte da área `cidade`. Este é o primeiro de vários pontos: veja "Mais mobs no campo" (o tamanho do grupo é sorteado de novo a cada reaparição). O comando de teste `spawn` ([Desenvolvimento](desenvolvimento.md)) acrescenta um inimigo a mais no maior grupo da área, sem esperar a volta.
 - **Id do inimigo:** começa em 1.000.000.000.000 e soma 1; cada volta depois de morto é um inimigo novo, com id novo. Nunca coincide com id de personagem nem com o boneco de treino.
 - **Dano no jogador:** Mobs decide **quem** o golpe pegou e publica `GolpeDeInimigoAcertou`; tirar a vida é de quem é dono dela ([Combate](combate.md)), que ainda **não** assina o evento. Até lá o golpe é avisado e decidido, mas não tira vida.
 - **Quem participou da morte:** quem causou dano ao inimigo desde que ele apareceu, em ordem crescente de id (`InimigoDerrotado.Participantes`; o Combate informa o atacante em `IAlvosDeCombate.TentarAplicarDano`). A lista zera quando ele desiste e volta (a vida também volta ao máximo) e quando ele reaparece. Quem só foi alvo do inimigo, sem causar dano, não participa.
@@ -114,6 +117,24 @@ O chefe raro no campo (issue #310; **proposta**, a confirmar no review):
 - **Onde:** a Presa-Velha tem um ponto próprio no campo, com centro em (-60, 230) na área `cidade` (ele nasce 4 m ao norte do centro, como o inimigo de um grupo de um; uns 60 m a oeste do grupo de javalis, fora da visão deles). Valores em `ConfigInimigosDoCampo`.
 - **Como aparece:** o servidor sobe sem o chefe; o `AparicaoDeChefeRaro` faz o primeiro sorteio no primeiro passo e depois um por intervalo (1800 s, chance de 20%). Quando sorteia, ele chega como `InimigoApareceu`, com `Variante` normal, e fica até morrer, sem novo sorteio. A morte manda `InimigoMorreu` e `InimigoDerrotado` como a de qualquer inimigo e recomeça a espera; a volta é um inimigo novo (id novo), por sorteio, nunca por tempo fixo.
 - **IA:** a do inimigo comum, com vida (1500) e dano (80) da própria ficha. Quem entra na área recebe os inimigos vivos do campo, chefe incluído. Não há aviso de aparição (continua em aberto).
+
+### Mais mobs no campo (#452)
+
+**Proposta** do agente, a calibrar. Dados em `PontosDeSpawnDoCampo` (um ponto por linha), números em `ConfigNivelDeMobs`, `ComportamentoDeCriatura` e `PontosDeSpawnDoCampo`.
+
+- **Espécies comuns** (comportamento distinto; o resto da IA, alcance, área do golpe e desistência, é igual para todas):
+
+| Espécie | Jeito | Visão | Perseguição | Aviso / recuperação do golpe |
+|---|---|---|---|---|
+| Javali do Campo | equilibrado (o da fatia) | 12 m | 4 m/s | 1 s / 1,5 s |
+| Lobo do Campo | rápido e frágil: vê longe, corre e golpeia depressa | 16 m | 5,5 m/s | 0,7 s / 1 s |
+| Tatu Rochoso | lento e duro: vê pouco, golpeia forte e demora a recuperar | 8 m | 2,5 m/s | 1,4 s / 2 s |
+
+- **Pontos de spawn** (área `cidade`; mais longe da cidade, mais forte): o campo norte (0, 190), o leste (130, 170) e o oeste (-150, 190) a uns 200 a 240 m, e os três "longe" (0, 330), (200, 300) e (-220, 280) a uns 330 a 360 m. Faixas de nível de 2 a 4 (perto) até 8 a 10 (longe); grupos de 3 a 5 (javali) e de 2 a 4 ou 2 a 3 (lobo, tatu). A tabela completa está no código.
+- **O grupo volta inteiro:** o grupo só reaparece quando o último morre e passa o intervalo da ficha contado dessa morte. Nessa hora o tamanho é sorteado de novo na faixa do ponto, e cada inimigo sorteia o nível dele na faixa do ponto (e a variante fortalecida). Matar um de cada vez não repõe ninguém até limpar o grupo.
+- **Nível conta** (só a criatura comum; chefes têm força fixa): em relação ao nível da ficha, cada nível acima soma **15%** de vida, **10%** de dano e **20%** de experiência (abaixo, tira; piso de 40%). A variante fortalecida multiplica por cima. O `InimigoNoMundo.Nivel` e o `InimigoDerrotado.Nivel` levam o nível; `InimigoDerrotado.Experiencia` já vem escalada (o ajuste por diferença de nível entre jogador e mob é de [Personagem](personagem.md)).
+- **Limite de vivos:** no máximo **30** inimigos comuns do campo vivos ao mesmo tempo, somando todos os pontos. Sem vaga, o grupo (ou a parte que couber) espera e tenta de novo a cada 5 s. O chefe raro e os inimigos do comando de teste não contam.
+- **Cuidados de experiência:** jogadores de qualquer número no mesmo grupo dividem o mesmo alvo (o grupo divide o que vê); quem cai ou desconecta deixa de ser alvo e o grupo volta ao repouso; o grupo reaparece nos pontos de origem, que são fixos (quem fica parado em cima de um ponto o vê reaparecer ao lado dele, como qualquer reaparição).
 
 ### Boss da dungeon (#66)
 
@@ -169,7 +190,7 @@ Inimigo comum (tempo real; regras em "Inimigo comum da fatia"):
 
 | ID | Mensagem | Direção | Campos |
 |---|---|---|---|
-| 11000 | `InimigosDaArea` | servidor → quem entra na área | `Inimigos[]` (`InimigoNoMundo`: `InimigoId`, `CriaturaId`, `Variante`, `X`, `Y`, `Z`, `RotacaoY`, `Vida`, `VidaMaxima`, `Estado`, `AlvoId`); só os vivos |
+| 11000 | `InimigosDaArea` | servidor → quem entra na área | `Inimigos[]` (`InimigoNoMundo`: `InimigoId`, `CriaturaId`, `Variante`, `Nivel`, `X`, `Y`, `Z`, `RotacaoY`, `Vida`, `VidaMaxima`, `Estado`, `AlvoId`); só os vivos |
 | 11001 | `InimigoMudou` | servidor → quem está na área | `InimigoId`, `X`, `Y`, `Z`, `RotacaoY`, `Estado`, `AlvoId`, `Vida`, `Sequencia` (o client descarta a que não for maior que a última) |
 | 11002 | `InimigoPreparaAtaque` | servidor → quem está na área | `InimigoId`, `PreparoMs`, `CentroX`, `CentroZ`, `Raio`, `DirecaoY`, `Tipo` (`TipoDeAtaqueDeInimigo`: `Golpe` 0, `Investida` 1, `Pisada` 2, `Raios` 3), `Areas[]` (`AreaDeAtaque`: `CentroX`, `CentroZ`, `Raio`; os campos soltos repetem a primeira) |
 | 11003 | `InimigoMorreu` | servidor → quem está na área | `InimigoId` |
@@ -192,4 +213,4 @@ Eventos para as outras funcionalidades do servidor (`server/.../Contratos/Mobs/`
 | Evento | Quando | Campos |
 |---|---|---|
 | `GolpeDeInimigoAcertou` | o golpe de um inimigo pegou um personagem (um evento por personagem) | `InimigoId`, `CriaturaId`, `PersonagemId`, `Dano` (já com a variante, antes de defesa), `Area` |
-| `InimigoDerrotado` | um inimigo morreu (uma vez por morte) | `InimigoId`, `CriaturaId`, `Variante`, `Experiencia`, `MultiplicadorDeRecompensa`, `Area`, `X`, `Z`, `Participantes` |
+| `InimigoDerrotado` | um inimigo morreu (uma vez por morte) | `InimigoId`, `CriaturaId`, `Variante`, `Experiencia`, `MultiplicadorDeRecompensa`, `Area`, `X`, `Z`, `Participantes`, `Nivel` |

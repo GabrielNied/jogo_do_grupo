@@ -18,6 +18,12 @@ namespace JogoDoGrupo.Shared.Features.Mobs
 
         public VarianteDeCriatura Variante = VarianteDeCriatura.Normal;
 
+        /// <summary>
+        /// Nível deste inimigo, sorteado na faixa do ponto onde ele nasce. Conta em vida, dano e
+        /// experiência (a ficha em <see cref="CatalogoCriaturas"/> tem o nível de referência).
+        /// </summary>
+        public int Nivel = 0;
+
         public float X = 0f;
         public float Y = 0f;
         public float Z = 0f;
