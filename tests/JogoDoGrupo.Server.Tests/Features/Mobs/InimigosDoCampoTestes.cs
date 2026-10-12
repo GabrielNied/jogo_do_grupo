@@ -24,10 +24,13 @@ public class InimigosDoCampoTestes(TempoRealFixture f) : IClassFixture<TempoReal
         var todos = await cliente.ReceberAsync<InimigosDaArea>(MobsMessageIds.InimigosDaArea);
         // O chefe raro pode estar no campo (sorteio); aqui só valem os grupos comuns.
         var comuns = todos
-            .Inimigos.Where(i => i.CriaturaId != CatalogoCriaturas.PresaVelha)
+            .Inimigos.Where(i =>
+                CatalogoCriaturas.Obter(i.CriaturaId).Categoria == CategoriaDeCriatura.Comum
+            )
             .ToArray();
 
         Assert.Equal(comuns.Length, comuns.Select(i => i.InimigoId).Distinct().Count());
+        Assert.InRange(comuns.Length, 1, PontosDeSpawnDoCampo.LimiteDeInimigosVivos);
         foreach (var ponto in PontosDeSpawnDoCampo.Todos)
         {
             var doPonto = comuns
@@ -38,7 +41,8 @@ public class InimigosDoCampoTestes(TempoRealFixture f) : IClassFixture<TempoReal
                 .ToArray();
             var ficha = CatalogoCriaturas.Obter(ponto.CriaturaId);
 
-            Assert.InRange(doPonto.Length, ponto.TamanhoMinimo, ponto.TamanhoMaximo);
+            // Com mais pontos do que vagas no teto, os últimos da fila podem esperar vaga.
+            Assert.InRange(doPonto.Length, 0, ponto.TamanhoMaximo);
             Assert.All(
                 doPonto,
                 i =>
