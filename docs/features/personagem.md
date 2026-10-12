@@ -84,7 +84,7 @@ Decidido em 2026-10-12. A curva já está em `ConfigExperiencia`; o teste `Ritmo
 
 **XP por diferença de nível** (decidido em 2026-10-12): a diferença é o nível do jogador menos o nível do mob. 0 ou negativa paga 100%. Cada nível acima tira 20 pontos percentuais. 5 ou mais acima paga 0. Quem participou recebe essa parcela, não o valor cheio. A meta de ritmo acima vale contra mob do mesmo nível ou mais forte. O Javali do Campo é nível 3: a partir do nível 8 do jogador ele não dá XP. Constantes nomeadas, fáceis de calibrar.
 
-O código ainda concede 5 pontos e para no nível 30 (`ConfigExperiencia`). A #454 alinha o teto, tira o ponto por nível e aplica a diferença. A rota de gastar pontos fica; com zero pontos livres, o gasto é recusado.
+O teto 100 e zero pontos por nível estão em `ConfigExperiencia`. A #454 ainda aplica o XP por diferença de nível. A rota de gastar pontos fica; com zero pontos livres, o gasto é recusado.
 
 ## Em aberto
 

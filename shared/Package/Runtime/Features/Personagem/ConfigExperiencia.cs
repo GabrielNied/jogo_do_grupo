@@ -1,17 +1,19 @@
 namespace JogoDoGrupo.Shared.Features.Personagem
 {
-    /// <summary>Valores provisórios de balanceamento. Altere aqui para calibrar a progressão.</summary>
+    /// <summary>
+    /// Teto e pontos por nível decididos em docs/features/personagem.md. A curva fica aqui para calibrar.
+    /// </summary>
     public static class ConfigExperiencia
     {
-        public const int NivelMaximo = 30;
-        public const int PontosPorNivel = 5;
+        public const int NivelMaximo = 100;
+        public const int PontosPorNivel = 0;
 
         // XP necessário = BaseXp * nivel ^ ExpoenteCurva.
         // Reduzir a base acelera toda a progressão; o expoente controla seu crescimento.
         public const double BaseXp = 50;
         public const double ExpoenteCurva = 1.2;
 
-        // Meta de ritmo (proposta; docs/features/personagem.md). O teste de simulação falha se a
+        // Meta de ritmo (docs/features/personagem.md). O teste de simulação falha se a
         // curva sair dela. Referência: um jogador solo matando mobs comuns de 20 XP.
         public const double MobsPorMinutoDeReferencia = 4;
         public const int XpPorMobDeReferencia = 20;

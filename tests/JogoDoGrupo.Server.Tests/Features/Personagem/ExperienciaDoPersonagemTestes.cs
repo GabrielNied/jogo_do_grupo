@@ -1,6 +1,7 @@
 using System.Net;
 using JogoDoGrupo.Server.Contratos.Mobs;
 using JogoDoGrupo.Server.Contratos.Mundo;
+using JogoDoGrupo.Server.Core.Persistencia;
 using JogoDoGrupo.Server.Core.TempoReal;
 using JogoDoGrupo.Server.Features.Personagem;
 using JogoDoGrupo.Server.Tests.Infra;
@@ -9,6 +10,7 @@ using JogoDoGrupo.Shared.Features.Combate;
 using JogoDoGrupo.Shared.Features.Mobs;
 using JogoDoGrupo.Shared.Features.Personagem;
 using Microsoft.Data.Sqlite;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -18,7 +20,7 @@ public class ExperienciaDoPersonagemTestes(ServidorDeTeste servidor)
     : IClassFixture<ServidorDeTeste>
 {
     [Fact]
-    public async Task Ganho_que_cruza_dois_niveis_sobe_os_dois_e_da_dez_pontos()
+    public async Task Ganho_que_cruza_dois_niveis_sobe_os_dois_sem_ponto()
     {
         var cliente = await servidor.CriarClienteLogadoAsync();
         var id = await CriarPersonagemAsync(cliente);
@@ -30,7 +32,7 @@ public class ExperienciaDoPersonagemTestes(ServidorDeTeste servidor)
         var progresso = await ProgressoAsync(cliente, id);
         Assert.Equal(3, progresso.Nivel);
         Assert.Equal(0, progresso.XpAtual);
-        Assert.Equal(10, progresso.PontosLivres);
+        Assert.Equal(0, progresso.PontosLivres);
     }
 
     [Fact]
@@ -82,7 +84,7 @@ public class ExperienciaDoPersonagemTestes(ServidorDeTeste servidor)
     {
         var cliente = await servidor.CriarClienteLogadoAsync();
         var id = await CriarPersonagemAsync(cliente);
-        await ConcederAsync(id, (int)RegrasExperiencia.XpParaOProximoNivel(1), sequencia: 1);
+        await DefinirPontosLivresAsync(id, 5);
 
         var gasto = await GastarAsync(cliente, id, new PontosDeAtributos { Forca = 5 });
         Assert.Equal(HttpStatusCode.OK, gasto.StatusCode);
@@ -104,7 +106,7 @@ public class ExperienciaDoPersonagemTestes(ServidorDeTeste servidor)
     {
         var cliente = await servidor.CriarClienteLogadoAsync();
         var id = await CriarPersonagemAsync(cliente);
-        await ConcederAsync(id, (int)RegrasExperiencia.XpParaOProximoNivel(1), sequencia: 1);
+        await DefinirPontosLivresAsync(id, 5);
         var pedido = new PontosDeAtributos { Vitalidade = 5 };
 
         var respostas = await Task.WhenAll(
@@ -124,7 +126,7 @@ public class ExperienciaDoPersonagemTestes(ServidorDeTeste servidor)
     {
         var dono = await servidor.CriarClienteLogadoAsync();
         var id = await CriarPersonagemAsync(dono);
-        await ConcederAsync(id, (int)RegrasExperiencia.XpParaOProximoNivel(1), sequencia: 1);
+        await DefinirPontosLivresAsync(id, 5);
 
         var negativo = await GastarAsync(dono, id, new PontosDeAtributos { Forca = -1 });
         Assert.Equal(HttpStatusCode.BadRequest, negativo.StatusCode);
@@ -144,7 +146,7 @@ public class ExperienciaDoPersonagemTestes(ServidorDeTeste servidor)
     {
         var cliente = await servidor.CriarClienteLogadoAsync();
         var id = await CriarPersonagemAsync(cliente);
-        await ConcederAsync(id, (int)RegrasExperiencia.XpParaOProximoNivel(1), sequencia: 1);
+        await DefinirPontosLivresAsync(id, 5);
         var gasto = await GastarAsync(cliente, id, new PontosDeAtributos { Vitalidade = 5 });
         Assert.Equal(HttpStatusCode.OK, gasto.StatusCode);
 
@@ -308,6 +310,16 @@ public class ExperienciaDoPersonagemTestes(ServidorDeTeste servidor)
         var resposta = await cliente.GetAsync(RotasPersonagem.ProgressoDe(id));
         Assert.Equal(HttpStatusCode.OK, resposta.StatusCode);
         return await ServidorDeTeste.LerJsonAsync<ProgressoResponse>(resposta);
+    }
+
+    private async Task DefinirPontosLivresAsync(long id, int pontos)
+    {
+        await using var escopo = servidor.Services.CreateAsyncScope();
+        var db = escopo.ServiceProvider.GetRequiredService<JogoDbContext>();
+        var personagem = await db.Set<JogoDoGrupo.Server.Features.Personagem.Personagem>()
+            .SingleAsync(p => p.Id == id);
+        personagem.PontosLivres = pontos;
+        await db.SaveChangesAsync();
     }
 
     private static Task<HttpResponseMessage> GastarAsync(
