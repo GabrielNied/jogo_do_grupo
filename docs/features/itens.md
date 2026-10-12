@@ -273,3 +273,7 @@ Valores em `RegrasLoot`, todos **proposta a calibrar**:
 - Cada item do jogador no chão vira um marcador dourado girando, assentado no chão, que aparece a até 12 m (`RaioDeVisaoMetros`). O client tira o item quando o prazo vence, sem esperar o `LootSumiu`.
 - Com algum item a até 3 m, aparece a dica **"F: pegar"**; F manda `ColetarLoot` com "tudo por perto". Com janela ou menu do Esc aberto, nem dica nem coleta.
 - Avisos no HUD: "Você pegou <item> (<raridade>)." ao coletar (ex.: "Você pegou Elmo do Vigia (Raro)."); inventário cheio (amarelo), longe demais e nada para pegar viram texto, sem mostrar o código.
+
+## Ícones de equipamento
+
+Silhuetas brancas com alpha (128 px), um por `TipoEquipamento`, para a UI tingir pela raridade. Para achar o ícone, use `IconesEquipamento.Carregar(tipo)` (`Resources/Itens/Icones/<TipoEquipamento>`). Origem e crédito em [licencas.md](../arte/licencas.md).

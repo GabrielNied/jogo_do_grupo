@@ -1,0 +1,16 @@
+{
+  "name": "JogoDoGrupo.Client.Itens.Editor",
+  "rootNamespace": "JogoDoGrupo.Client.Features.Itens.Editor",
+  "references": [],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": false,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}
