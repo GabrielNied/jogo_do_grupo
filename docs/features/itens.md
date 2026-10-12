@@ -36,7 +36,7 @@ Cada exemplar tem identidade própria, modelo, região, tipo, raridade, grau, n�
 
 As cinco raridades e a tabela do livro (níveis máximos, slots de skills e infusões) têm representação em `RegrasEquipamentos`. Graus inicial/médio/forte usam os fatores 1/2/4 já escritos. A estrutura confirmada é a da seção Anatomia do equipamento do [livro](../brainstorm/figjam.md). Skills utilizáveis, XP da peça, promoção e infusão são as tarefas #167, #331 e #174; esta entrega não executa essas operações.
 
-**Geração para teste:** `ConfigEquipamentos` mantém a quantidade e os valores dos atributos aleatórios fora do sorteio. O padrão provisório usa dois atributos distintos, sem repetir os fixos, dentre os cinco atributos básicos; valores de referência 6 (3 para Espírito), retirados dos exemplos de peças do livro. Não é uma tabela final de balanceamento, de chances ou de atributos elementais. É configurável em `Itens:Equipamentos`. Os modelos iniciais incluem o Martelo Ressonante e as nove categorias do Vigia, com os valores fixos do livro; o catálogo completo por família é #330. Espada e escudo de teste continuam compatíveis, sem inventar um bônus fixo para eles.
+**Geração para teste:** `ConfigEquipamentos` mantém a quantidade e os valores dos atributos aleatórios fora do sorteio. O padrão provisório usa dois atributos distintos, sem repetir os fixos, dentre os cinco atributos básicos; valores de referência 6 (3 para Espírito), retirados dos exemplos de peças do livro. Não é uma tabela final de balanceamento, de chances ou de atributos elementais. É configurável em `Itens:Equipamentos`. O catálogo confirmado da #330 contém as 72 peças do livro, além do Martelo Ressonante e dos dois equipamentos legados de teste; veja Catálogo abaixo. Espada e escudo de teste continuam compatíveis, sem inventar um bônus fixo para eles.
 
 **Troca autoritativa e persistente:** o servidor confere a conta dona, a identidade do exemplar, o tipo da posição e o nível exigido. A peça anterior volta ao inventário. Uma arma de duas mãos retira a mão secundária do mesmo conjunto; equipar escudo/foco com ela é recusado. Se todas as peças retiradas não couberem nos 40 espaços, nada muda. Peças equipadas não ocupam espaço do inventário. Transação e índice único por personagem/posição impedem duplicação em pedidos concorrentes.
 
@@ -56,6 +56,20 @@ API autenticada, sob `/api/personagens/{personagemId}/equipamentos`:
 
 Operações devolvem `EquipamentosResponse`; conta alheia e personagem ausente têm o mesmo 404. Erros de posição/tipo/conjunto são 400; nível, incompatibilidade de duas mãos e inventário cheio são 409. A migração preserva os itens existentes; legados sem metadados recebem um único sorteio no primeiro equipamento bem-sucedido.
 
+### Catálogo de modelos-base (#330, confirmado pelo usuário em 2026-10-11)
+
+As quatro famílias **Vigia/Bastião, Predador/Ruptor, Aurora/Tempestade e Batedor/Olho Longo** têm variantes A (atributo principal +6) e B (principal +4 e especialização), cada uma nas nove categorias de peça. São 72 modelos-base, sem contar armas. Os nomes, valores fixos e defesas por categoria vêm da seção 12 do [livro](../brainstorm/figjam.md#12--equipamentos-por-função-e-peça). As constantes/tabelas de balanceamento ficam em `CatalogoEquipamentos`.
+
+Bastião acrescenta +8 à defesa-base da peça, Ruptor e Olho Longo acrescentam +10 de Vigor, Tempestade acrescenta +3 de Espírito. Defesa e especialização de defesa são somadas em um único atributo fixo. As peças de adorno chamadas Foco continuam na posição Adorno: o nome não as transforma em arma secundária.
+
+Os IDs 101–109 do Vigia permanecem; Bastião usa 110–118, Predador 119–127, Ruptor 128–136, Aurora 137–145, Tempestade 146–154, Batedor 155–163 e Olho Longo 164–172. Cada faixa segue capacete, peito, luvas, calça, botas, cinto, anel, brinco e adorno. O catálogo devolve objetos novos; alterar um exemplar não altera modelos ou outros exemplares. Exemplares já persistidos conservam seus valores, sem regeneração nem migração.
+
+O gerador aplica o fator Inicial/Médio/Forte **1/2/4 uma única vez** aos valores-base fixos e aleatórios; requisitos de personagem são 1/10/20. Raridade e nível da peça permanecem independentes do grau. Família e variante são gravadas junto aos metadados e apresentadas no inventário; itens antigos sem esses campos continuam válidos.
+
+**No jogo:** I → Equipamentos → escolher o grau → Obter equipamento de teste (editor/build de desenvolvimento, servidor Development). O servidor sorteia uniformemente entre os 72 modelos e o martelo já existente, grava o exemplar e devolve a bolsa atualizada. O parâmetro opcional `?grau=0|1|2` da rota `/bau-teste` escolhe o grau; omitido mantém Inicial, inválido retorna 400 sem criar item. Bolsa cheia, autenticação, propriedade e transação seguem as regras anteriores. Peças médias/fortes exigem nível 10/20 para equipar.
+
+O catálogo inicial permanece na região Vale; variações regionais, pools de skills (#340/#167) e distribuição no loot não são definidos aqui. O baú original e os drops atuais dos mobs conservam suas tabelas.
+
 ### Inventário e baú de teste: definido (provisório, 2026-10-11)
 
 Ficha aprovada em 2026-10-11. É um **recorte de teste** para ter o fluxo inventário + baú de ponta a ponta; **não** substitui as decisões de [Definido](#definido) nem responde as de [Em aberto](#em-aberto) (raridades, skills nos itens e fusão continuam como estão e ficam fora deste recorte).
@@ -69,7 +83,7 @@ Ficha aprovada em 2026-10-11. É um **recorte de teste** para ter o fluxo invent
 
 ### Proposta do board (2026-10-11, não validada)
 
-Proposta do board em 2026-10-11, **não validada pelo grupo**: nomes e números do [Livro de ideias](../brainstorm/figjam.md#asterra--livro-de-ideias-do-jogo) (seções 03 e 12) são propostas e não substituem o [Definido](#definido). Resumo, sem copiar o texto:
+Proposta do board em 2026-10-11: as partes ainda **não validadas pelo grupo** do [Livro de ideias](../brainstorm/figjam.md#asterra--livro-de-ideias-do-jogo) não substituem o [Definido](#definido). As confirmações de equipamentos e catálogo acima prevalecem sobre as propostas originais. Resumo:
 
 - **Anatomia do equipamento:** nome, tipo, região de origem, raridade, nível, atributo fixo (tipo + região), atributos aleatórios (o tipo limita o conjunto), um atributo sorteado como **infusível**, skills sorteadas (gravadas no item) e infusões usadas.
 - **Cinco raridades** (responde "quantas raridades/skills" em Em aberto, se aprovado):

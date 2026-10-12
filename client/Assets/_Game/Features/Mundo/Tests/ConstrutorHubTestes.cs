@@ -350,7 +350,11 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
             // o laço abaixo confere a face de cima contra MapaDoMundo.AlturaEm.
             var blocos = terreno.Find(ConstrutorDoTerreno.NomeBlocos);
             Assert.IsNotNull(blocos, "O terreno precisa dos blocos do chão.");
-            var colisores = blocos.GetComponentsInChildren<MeshCollider>();
+            // O remendo da boca da caverna também mora em "blocos" e tem colisor, mas não é bloco.
+            var colisores = blocos
+                .GetComponentsInChildren<MeshCollider>()
+                .Where(c => c.name != ConstrutorDoTerreno.NomeFuroDaCaverna)
+                .ToArray();
             var total = ConstrutorDoTerreno.BlocosPorLado * ConstrutorDoTerreno.BlocosPorLado;
             Assert.AreEqual(total, colisores.Length);
             var chao = colisores[0].bounds;

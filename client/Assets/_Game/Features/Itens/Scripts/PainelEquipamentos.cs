@@ -129,7 +129,19 @@ namespace JogoDoGrupo.Client.Features.Itens
             }
             _raiz.Add(lista);
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-            _raiz.Add(Botao("Obter equipamento de teste", () => _enviar("bau-teste", null)));
+            var grauTeste = new DropdownField(
+                "Grau do equipamento de teste",
+                new List<string> { "Inicial", "Médio", "Forte" },
+                0
+            );
+            grauTeste.AddToClassList(EstiloCore.Campo);
+            _raiz.Add(grauTeste);
+            _raiz.Add(
+                Botao(
+                    "Obter equipamento de teste",
+                    () => _enviar("bau-teste?grau=" + grauTeste.index, null)
+                )
+            );
 #endif
         }
 
@@ -155,6 +167,8 @@ namespace JogoDoGrupo.Client.Features.Itens
                 "\nRequer personagem nível "
                 + item.NivelPersonagemMinimo
                 + (item.DuasMaos ? " · duas mãos" : "");
+            if (!string.IsNullOrEmpty(item.Familia))
+                texto += "\nFamília " + item.Familia + " · variante " + item.Variacao;
             for (var i = 0; i < item.Atributos.Length; i++)
             {
                 var atributo = item.Atributos[i];

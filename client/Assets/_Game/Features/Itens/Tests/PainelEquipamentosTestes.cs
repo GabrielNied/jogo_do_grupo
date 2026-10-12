@@ -8,6 +8,28 @@ namespace JogoDoGrupo.Client.Features.Itens.Tests
     public class PainelEquipamentosTestes
     {
         [Test]
+        public void CatalogoMostraFamiliaVarianteENomeAcentuado()
+        {
+            var item = CatalogoEquipamentos.Obter(172);
+            var volta = JsonUtility.FromJson<Equipamento>(JsonUtility.ToJson(item));
+            var texto = PainelEquipamentos.Descrever(new EntradaInventario { Equipamento = volta });
+            StringAssert.Contains("Talismã do Olho Longo", texto);
+            StringAssert.Contains("Família Batedor/Olho Longo · variante B", texto);
+            StringAssert.Contains("Vigor +10 (fixo)", texto);
+        }
+
+        [Test]
+        public void PainelOfereceTresGrausDeTeste()
+        {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            var raiz = new VisualElement();
+            new PainelEquipamentos(raiz, (_, __) => { }).Mostrar(new EquipamentosResponse());
+            var seletor = raiz.Q<DropdownField>();
+            CollectionAssert.AreEqual(new[] { "Inicial", "Médio", "Forte" }, seletor.choices);
+#endif
+        }
+
+        [Test]
         public void JsonPreservaStatusFracionarioEIdentidadeDoExemplar()
         {
             var entrada = new EntradaInventario

@@ -3,6 +3,7 @@ using System.Security.Claims;
 using JogoDoGrupo.Server.Core.Api;
 using JogoDoGrupo.Server.Core.Autenticacao;
 using JogoDoGrupo.Server.Core.Persistencia;
+using JogoDoGrupo.Shared.Core.Api;
 using JogoDoGrupo.Shared.Features.Itens;
 using Microsoft.EntityFrameworkCore;
 
@@ -167,12 +168,16 @@ internal static class EquipamentosRotas
 
     private static async Task<IResult> BauAsync(
         string personagemId,
+        int? grau,
         ClaimsPrincipal usuario,
         JogoDbContext db,
         GeradorEquipamentos gerador,
         CancellationToken c
     )
     {
+        var grauEscolhido = (GrauEquipamento)(grau ?? 0);
+        if (!Enum.IsDefined(grauEscolhido))
+            return Erro(CodigosErro.RequisicaoInvalida, 400);
         // Recorte de teste, como o baú já existente; não altera a tabela de loot de mobs.
         await using var transacao = await db.Database.BeginTransactionAsync(
             IsolationLevel.Serializable,
@@ -193,7 +198,7 @@ internal static class EquipamentosRotas
             PersonagemId = id,
             ItemId = modelos[Random.Shared.Next(modelos.Length)],
         };
-        novo.GravarEquipamento(gerador.Gerar(novo.ItemId, Random.Shared)!);
+        novo.GravarEquipamento(gerador.Gerar(novo.ItemId, Random.Shared, grau: grauEscolhido)!);
         db.Add(novo);
         itens.Add(novo);
         await db.SaveChangesAsync(c);
