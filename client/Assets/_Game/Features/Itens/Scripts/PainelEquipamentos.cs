@@ -27,6 +27,11 @@ namespace JogoDoGrupo.Client.Features.Itens
 
         public void Mostrar(EquipamentosResponse estado, string aviso = null)
         {
+            if (estado.ModoInfusao)
+            {
+                new PainelInfusao(_raiz, _enviar).Mostrar(estado, aviso);
+                return;
+            }
             _raiz.Clear();
             if (!string.IsNullOrEmpty(aviso))
                 _raiz.Add(Texto(aviso));
@@ -128,6 +133,7 @@ namespace JogoDoGrupo.Client.Features.Itens
                 lista.Add(linha);
             }
             _raiz.Add(lista);
+            _raiz.Add(Botao("Infundir equipamentos", () => _enviar("infusao/estado", null)));
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             var grauTeste = new DropdownField(
                 "Grau do equipamento de teste",
@@ -187,7 +193,7 @@ namespace JogoDoGrupo.Client.Features.Itens
                 + RegrasEquipamentos.LimiteInfusoes(item.Raridade);
         }
 
-        private static string NomeStatus(StatusItem status)
+        public static string NomeStatus(StatusItem status)
         {
             switch (status)
             {
