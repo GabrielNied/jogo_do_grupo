@@ -63,6 +63,7 @@ Para implementar sem refazer a leitura:
 
 - A cadeia, o multiplicador do 3º leve e o teto de giro são contas em `RegrasAtaque`. No acerto, a direção é a `RotacaoY` que o Mundo já guarda em `PosicaoNoMundo`, limitada pelo giro desde a direção do início do preparo. Sem mensagem nova e sem biblioteca.
 - Andar a 40% durante o golpe **não** usa `IDeslocamentosDoMundo.AbrirJanela`: essa janela libera um deslocamento mais rápido (é a esquiva). O teto menor é outra operação no contrato do Mundo (`Contratos/Mundo/`), chamada pelo Combate. Sem referência de assembly entre as funcionalidades.
+- O pesado não é interrompido por dano tomado; o dano continua valendo. Só importa quando existir atordoamento por dano (seção 2 da fatia).
 
 ## Depende de
 
