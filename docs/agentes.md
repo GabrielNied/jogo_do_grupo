@@ -125,7 +125,7 @@ Lições de processo (Blender, commits em etapas, Unity aberto) estão em [licoe
 
 ### Prints da tela
 
-Mudou tela ou HUD: com o editor do projeto fechado, grave o que o Game view mostraria em 1280×720, 1920×1080 e 2560×1440 e leia os PNG antes do PR. O script abre a cena, o painel, ou os dois (a cena fica atrás). Não sobe o servidor: a janela sai no estado em que monta sem resposta. Os arquivos caem em `prints/` na raiz do repositório (o git ignora a pasta). Cada caminho sai no log.
+Mudou tela ou HUD: com o editor do projeto fechado, grave o que o Game view mostraria em 1280×720, 1920×1080 e 2560×1440 e leia os PNG antes do PR. O script abre a cena, o painel, ou os dois (a cena fica atrás). Não sobe o servidor: a janela sai no estado em que monta sem resposta. Os arquivos caem em `prints/` na raiz do repositório (o git ignora a pasta). Cada execução apaga os PNG que já estavam nessa pasta, então ela guarda só a leva atual. `PRINT_SAIDA` em outra pasta não apaga nada. Cada caminho sai no log.
 
 No PowerShell, a variável vale só para aquele comando:
 
@@ -168,14 +168,14 @@ Vale para quem coordena agentes (IA ou pessoa). Aprendido na orquestração da [
 
 ## Regras para todos os agentes
 
-- **Consumo:** tarefa pequena (até ~50 linhas) o coordenador faz direto, sem agente; tarefas pequenas da mesma área vão num agente só; sessão do coordenador curta, com `/clear` por rodada. Relatórios curtos (até 15 linhas; revisor até 20) e verificação proporcional à alteração (matriz da skill `preparar-pr`). Não repita o que o CI já confere. O `revisor` é uma passada só, e só em PR de risco: Core, segurança, concorrência, contrato ou regra que decide resultado. Arte, tela, conteúdo e ligar um botão não levam revisor. Sonnet é o padrão; Opus só nessas tarefas de risco.
+- **Consumo:** tarefa pequena (até ~50 linhas) o coordenador faz direto, sem agente; tarefas pequenas da mesma área vão num agente só; sessão do coordenador curta, com `/clear` por rodada. Relatórios curtos (até 15 linhas; revisor até 20) e verificação proporcional à alteração (matriz da skill `preparar-pr`). Não repita o que o CI já confere. O `revisor` é uma passada só, e só em PR de risco: Core, segurança, concorrência, contrato ou regra que decide resultado. Arte, tela, conteúdo e ligar um botão não levam revisor. Sonnet é o padrão; Opus só nessas tarefas de risco. No fim da tarefa, a reflexão da [regra 16](../AGENTS.md), antes do PR.
 
 - **Entrega:** a tarefa de jogo termina na cena que o jogador usa ([Entrega da funcionalidade](#entrega-da-funcionalidade)).
 - **Lock de tarefa:** confira que a tarefa está livre e puxe-a para em andamento antes de alterar código (`npm run tarefa -- puxar <N>`). Se a tarefa já estiver em andamento, pare e avise. Se precisar interromper sem concluir, libere com `npm run tarefa -- liberar <N>`.
 - **Regra 0:** nunca apagar nada do Figma; o resto a IA pode apagar ([ADR 0026](decisoes/0026-ia-pode-apagar-menos-o-figma.md)). No Claude Code, um hook do projeto ([scripts/agentes/bloquear-apagar.mjs](../scripts/agentes/bloquear-apagar.mjs)) barra a remoção no Figma, o push forçado e apagar repositório, release ou projeto. Worktrees e branches temporários dos agentes saem sozinhos depois do merge ([ADR 0031](decisoes/0031-limpeza-automatica.md)).
 - **Autorização:** quando uma pessoa pede uma orquestração, ela autoriza os agentes a commitar, enviar as próprias branches e abrir PRs. **Merge é sempre humano.**
 - **Fora da área:** se a tarefa exige mudar algo fora da área do agente (um contrato, o Core, outra funcionalidade), o agente para e descreve a mudança no relatório, para o agente certo fazer.
-- **Relatório:** todo agente termina com o que fez, a branch e o PR, as verificações, o que outros agentes ou pessoas precisam fazer e as dúvidas.
+- **Relatório:** todo agente termina com o que fez, a branch e o PR, as verificações, o que outros agentes ou pessoas precisam fazer, as dúvidas e, quando houver, o corte da [regra 16](../AGENTS.md).
 
 ## Como rodar
 

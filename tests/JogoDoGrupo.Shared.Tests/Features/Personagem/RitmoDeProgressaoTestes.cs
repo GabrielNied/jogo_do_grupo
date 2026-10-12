@@ -77,7 +77,7 @@ public class RitmoDeProgressaoTestes
     }
 
     [Fact]
-    public void Nivel_concede_pontos_de_atributo_por_nivel_subido()
+    public void Nivel_nao_concede_ponto_de_atributo()
     {
         var r = RegrasExperiencia.AplicarGanho(1, 0, long.MaxValue / 4);
         Assert.Equal(ConfigExperiencia.NivelMaximo, r.Nivel);

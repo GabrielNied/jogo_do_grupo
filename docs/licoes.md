@@ -93,6 +93,12 @@ Formato: `### AAAA-MM-DD · título` com **O que houve**, **Regra** e **Origem**
 - **Regra:** mudança de tela ou HUD grava o print em 1280×720, 1920×1080 e 2560×1440, e o agente lê os PNG antes do PR. O comando está em [Prints da tela](agentes.md#prints-da-tela).
 - **Origem:** issue #593.
 
+### 2026-10-12 · A regra 16 esperava a espera se repetir
+
+- **O que houve:** o corte de custo só entrava quando o retrabalho já tinha aparecido de novo. A pergunta "a próxima vez sai mais barata?" não era passo do fim da tarefa, então o primeiro tropeço ficava só na conversa.
+- **Regra:** antes do PR, a reflexão da [regra 16](../AGENTS.md). Sem corte, não escreva nada.
+- **Origem:** conversa de 2026-10-12.
+
 ### 2026-10-12 · Commit e PR no PowerShell
 
 - **O que houve:** o corpo do commit passava de 100 caracteres, `gh pr create --body` quebrava na crase, e o push numa branch já mergeada deixava o commit de fora da `main`. Cada tentativa repetia a rodada.

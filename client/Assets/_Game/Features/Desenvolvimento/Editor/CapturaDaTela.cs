@@ -32,7 +32,8 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Editor
         /// <summary>
         /// Salva um PNG por resolução. <paramref name="temCena"/> usa as câmeras da cena já aberta.
         /// <paramref name="painel"/> é a chave de uma janela (<c>itens.inventario</c>) ou de uma tela
-        /// (<c>core.login</c>). A pasta vazia cai em <c>prints/</c> na raiz do repositório.
+        /// (<c>core.login</c>). A pasta vazia cai em <c>prints/</c> na raiz do repositório
+        /// e, nessa pasta, os PNG da execução anterior saem antes de gravar os novos.
         /// </summary>
         /// <returns>0 se gravou; 1 se a cena ou o painel não pôde ser fotografado.</returns>
         public static int Salvar(bool temCena, string cena, string painel, string pasta)
@@ -42,8 +43,12 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Editor
                 return 2;
             }
 
-            pasta = string.IsNullOrEmpty(pasta) ? PastaPadrao() : pasta;
+            pasta = string.IsNullOrEmpty(pasta) ? PastaPadrao() : Path.GetFullPath(pasta);
             Directory.CreateDirectory(pasta);
+            if (EhPastaPadrao(pasta))
+            {
+                LimparPngs(pasta);
+            }
 
             var nome = NomeBase(cena, painel);
             var falhou = false;
@@ -504,6 +509,34 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Editor
         private static string PastaPadrao()
         {
             return Path.GetFullPath(Path.Combine(Application.dataPath, "..", "..", "prints"));
+        }
+
+        private static bool EhPastaPadrao(string pasta)
+        {
+            return string.Equals(
+                Normalizar(pasta),
+                Normalizar(PastaPadrao()),
+                StringComparison.OrdinalIgnoreCase
+            );
+        }
+
+        private static string Normalizar(string pasta)
+        {
+            return Path.GetFullPath(pasta)
+                .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+        }
+
+        private static void LimparPngs(string pasta)
+        {
+            if (!Directory.Exists(pasta))
+            {
+                return;
+            }
+
+            foreach (var arquivo in Directory.GetFiles(pasta, "*.png"))
+            {
+                File.Delete(arquivo);
+            }
         }
 
         private static string NomeBase(string cena, string painel)

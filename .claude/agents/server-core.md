@@ -52,6 +52,7 @@ No máximo 15 linhas, sem repetir o que a tarefa já dizia:
 
 - **Feito:** 1 a 3 linhas.
 - **PR:** link e branch.
+- **Corte:** uma frase, quando a [regra 16](../../AGENTS.md) achar espera que a próxima tarefa vai pagar de novo. Sem isso, omita.
 - **Verificações:** "ok", ou só o que falhou.
 - **Para outros:** só se outro agente ou uma pessoa precisar fazer algo.
 - **Dúvidas:** só se houver decisão deixada para o grupo.
