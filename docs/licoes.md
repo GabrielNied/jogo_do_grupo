@@ -74,3 +74,9 @@ Formato: `### AAAA-MM-DD · título` com **O que houve**, **Regra** e **Origem**
 - **O que houve:** na leva de 2026-10-12, os agentes de Combate (#478) e Mobs (#487), cada um no seu worktree fora da pasta principal, tiveram comandos com heredoc, variável ou `$(...)` recusados pela permissão da sessão e precisaram dividir as chamadas ou escrever scripts no rascunho. O `dotnet test JogoDoGrupo.slnx` leva cerca de 3 min e estourou o limite padrão de 2 min da ferramenta de shell, e a rodada teve de ser repetida.
 - **Regra:** no worktree, prefira comandos simples (um por chamada) e escreva arquivos com a ferramenta de escrita, não com heredoc. Rode `dotnet test JogoDoGrupo.slnx` com tempo limite de 10 min, ou filtre pelo que mudou (`--filter`) e deixe a suíte inteira para o fim.
 - **Origem:** PRs #545 e #548 (relato dos agentes).
+
+### 2026-10-12 · Trava sem dono e branch que volta depois do merge
+
+- **O que houve:** nove issues ficaram com `em-andamento` sem branch no remoto, e seis branches voltaram porque um push chegou depois do squash. O quadro parecia cheio e o commit tardio ficava de fora da `main`.
+- **Regra:** o `puxar` não passa de 3 funcionalidades de jogo. Trava sem branch no `origin` e sem PR aberto sai depois de 2 h (`npm run tarefa -- listar` e a limpeza do `pull`). Push numa branch cujo PR já foi mergeado é recusado: parta de `origin/main` e abra um PR novo.
+- **Origem:** PR #559.

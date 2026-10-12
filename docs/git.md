@@ -11,7 +11,7 @@ O repositório é **público**, e a `main` é protegida pelo GitHub com um rules
 | Onde | O que confere | Arquivo |
 |---|---|---|
 | Na sua máquina, ao commitar | Mensagem do commit (commitlint) | `.husky/commit-msg` |
-| Na sua máquina, ao dar push | **Bloqueia push na `main`** e branch fora do padrão | `.husky/pre-push` |
+| Na sua máquina, ao dar push | **Bloqueia push na `main`**, branch fora do padrão e branch cujo PR já foi mergeado | `.husky/pre-push` |
 | No GitHub, no PR | Título do PR, nome da branch, formatação, build | `.github/workflows/` |
 | No GitHub, na `main` | PR obrigatório, só squash, checks `csharpier`, `build` e `padrao-git` verdes **com a branch atualizada** | `.github/rulesets/proteger-main.json` (ativo) |
 | No GitHub, no PR de client | Compila e roda os testes EditMode no Unity (~10 min; não obrigatório) | `.github/workflows/client.yml` |

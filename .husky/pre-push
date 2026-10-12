@@ -1,4 +1,5 @@
-# Bloqueia push direto na main e branches fora do padrão (regras em scripts/git/validar-branch.mjs).
+# Bloqueia push direto na main, branches fora do padrão (scripts/git/validar-branch.mjs)
+# e branch cujo PR já foi mergeado (scripts/git/recusar-push-mergeado.mjs).
 # A entrada (refs do push) é guardada para também ser repassada ao Git LFS no fim.
 entrada=$(cat)
 zero=0000000000000000000000000000000000000000
@@ -7,7 +8,10 @@ printf '%s\n' "$entrada" | while read -r local_ref local_sha remote_ref remote_s
   # Apagar uma branch remota não precisa de validação.
   [ "$local_sha" = "$zero" ] && continue
   case "$remote_ref" in
-    refs/heads/*) node scripts/git/validar-branch.mjs "${remote_ref#refs/heads/}" || exit 1 ;;
+    refs/heads/*)
+      node scripts/git/validar-branch.mjs "${remote_ref#refs/heads/}" || exit 1
+      node scripts/git/recusar-push-mergeado.mjs "${remote_ref#refs/heads/}" || exit 1
+      ;;
   esac
 done || exit 1
 
