@@ -77,6 +77,16 @@
     color: var(--lumora-cores-ouro);
 }
 
+.vinheta-de-dano {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    border-width: var(--lumora-espacamento-grande);
+    border-color: var(--lumora-cores-erro);
+}
+
 .aviso-de-ataque {
     position: absolute;
     left: 50%;

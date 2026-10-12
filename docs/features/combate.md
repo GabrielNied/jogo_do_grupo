@@ -130,3 +130,14 @@ Combate é o dono do estado caído (decidido em 2026-10-11). As regras e os caso
 - **Contagem não para** enquanto alguém levanta, e **não há** os 2 s sem dano depois de levantar (os dois seguem em aberto em [personagem.md](personagem.md#em-aberto)).
 - **Para outras funcionalidades (ADR 0016):** `IEstadoDeQueda.EstaCaido(id)` (Mobs deve ignorar quem está caído: não atacar nem contar como alvo) e os eventos `PersonagemCaiu`, `PersonagemLevantou` e `PersonagemVoltouParaACidade`, em `server/.../Contratos/Combate/`.
 - **Pendências de outras funcionalidades:** Social ainda não expõe o grupo em `Contratos/` (hoje qualquer jogador vivo a até 2 m levanta e o aviso vai a toda a área; TODO em `ServicoDeQueda`); Mundo ainda não assina `PersonagemVoltouParaACidade` para mover ao nascimento; Mobs ainda não consulta `IEstadoDeQueda`.
+
+### Sensação do acerto no client (#453)
+
+O client só reage ao que o servidor confirmou (`AtaqueAcertou`, vida menor em `RecursosMudaram`, `EsquivaIniciada`, `InimigoPreparaAtaque`); nada aparece por previsão de dano. Código em `Features/Combate/Scripts/` (`EscolhaDeEfeito`, `ControleImpacto`).
+
+- **Golpe leve:** flash curto e recuo pequeno no inimigo, som baixo. **Pesado:** flash e recuo maiores, hit-stop de 0,07 s e tremor de câmera leve.
+- **Golpe de outro jogador** no mesmo inimigo: só flash curto e som baixo (sem hit-stop, recuo nem tremor), para não poluir a tela.
+- **Golpe recebido** (vida que caiu): moldura vermelha, flash no personagem, tremor leve e som; se tirou 20% ou mais da vida máxima, também hit-stop e tremor maior.
+- **Limites:** no máximo 8 flashes e 4 sons por janela de 0,12 s; hit-stop e tremor não se somam (vale o maior, com teto).
+- **Esquiva:** som ao esquivar. "Esquivou!" aparece quando o jogador estava no círculo de um golpe avisado, esquivou antes do golpe, estava fora quando o preparo acabou e o servidor não tirou vida. Hoje é inferido; uma mensagem do servidor para "esquivou" deixaria exato. Estar dentro de um círculo avisado mostra "Saia da área!" com um som de alerta.
+- **Sons:** gerados por código (`SintetizadorDeSons`), sem arquivos de terceiros. Entram no mixer de Core quando o #123 existir. Tremor, hit-stop e som têm chaves em `ConfiguracaoDeImpacto`, a ligar na tela de opções do Core.
