@@ -20,14 +20,47 @@ namespace JogoDoGrupo.Client.Core.UI
                 ConfigVisual.Responsividade.ReferenciaAltura
             );
 
-        /// <summary>Preserva o mínimo de leitura; a geometria da raiz decide o layout.</summary>
+        /// <summary>Quanto a escala segue a altura (1) ou a largura (0) da tela.</summary>
+        public static float CorrespondenciaDaEscala =>
+            ConfigVisual.Responsividade.CorrespondenciaAlturaPercentual / 100f;
+
+        /// <summary>
+        /// A interface é desenhada em 1920×1080 e acompanha a resolução: em 1280×720 tudo fica
+        /// em 2/3 e em 2560×1440 em 4/3, com a mesma proporção. Seguir a altura mantém as
+        /// janelas inteiras na vertical em telas mais largas (21:9) ou mais estreitas (16:10).
+        /// </summary>
         public static void ConfigurarEscala(PanelSettings painel)
         {
             if (painel == null)
                 throw new ArgumentNullException(nameof(painel));
-            painel.scaleMode = PanelScaleMode.ConstantPixelSize;
+            painel.scaleMode = PanelScaleMode.ScaleWithScreenSize;
+            painel.screenMatchMode = PanelScreenMatchMode.MatchWidthOrHeight;
+            painel.match = CorrespondenciaDaEscala;
             painel.scale = ConfigVisual.Responsividade.EscalaBase;
             painel.referenceResolution = ResolucaoReferencia;
+        }
+
+        /// <summary>
+        /// Único ponto que cria o <see cref="PanelSettings"/> de uma interface: escala, tema e
+        /// <c>DontSave</c> (criado em código, não vai para cena nem asset). <paramref name="ordem"/>
+        /// é o <c>sortingOrder</c>: a interface do Core usa 0; maior fica por cima.
+        /// </summary>
+        public static PanelSettings CriarConfiguracaoDoPainel(string nome, float ordem)
+        {
+            if (string.IsNullOrWhiteSpace(nome))
+                throw new ArgumentException("O painel precisa de nome.", nameof(nome));
+            var painel = ScriptableObject.CreateInstance<PanelSettings>();
+            painel.name = nome;
+            painel.hideFlags = HideFlags.DontSave;
+            painel.sortingOrder = ordem;
+            ConfigurarEscala(painel);
+
+            var tema = Resources.Load<ThemeStyleSheet>(CaminhoTema);
+            if (tema != null)
+                painel.themeStyleSheet = tema;
+            else
+                Debug.LogError($"[{nome}] Tema não encontrado em Resources/{CaminhoTema}.tss.");
+            return painel;
         }
 
         /// <summary>Aplica a identidade também nos documentos independentes das funcionalidades.</summary>

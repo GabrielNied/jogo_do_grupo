@@ -1,0 +1,16 @@
+{
+  "name": "JogoDoGrupo.Client.Visual.Editor",
+  "rootNamespace": "JogoDoGrupo.Client.Core.Visual.Editor",
+  "references": ["JogoDoGrupo.Client.Visual"],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": false,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

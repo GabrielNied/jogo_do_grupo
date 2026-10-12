@@ -164,18 +164,7 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento
 
         private static PanelSettings CriarConfiguracaoDoPainel()
         {
-            var painel = ScriptableObject.CreateInstance<PanelSettings>();
-            painel.name = "PainelDesenvolvimento";
-            painel.hideFlags = HideFlags.DontSave;
-            EstiloCore.ConfigurarEscala(painel);
-            painel.sortingOrder = 1f;
-            var tema = Resources.Load<ThemeStyleSheet>(EstiloCore.CaminhoTema);
-            if (tema != null)
-            {
-                painel.themeStyleSheet = tema;
-            }
-
-            return painel;
+            return EstiloCore.CriarConfiguracaoDoPainel("PainelDesenvolvimento", 1f);
         }
     }
 }

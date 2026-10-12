@@ -97,27 +97,8 @@ namespace JogoDoGrupo.Client.Features.Combate
 
         private static PanelSettings CriarConfiguracaoDoPainel()
         {
-            var painel = ScriptableObject.CreateInstance<PanelSettings>();
-            painel.name = "PainelCombate";
-            painel.hideFlags = HideFlags.DontSave;
-            EstiloCore.ConfigurarEscala(painel);
-
             // Abaixo da interface do Core (ordem 0) e do painel de Itens.
-            painel.sortingOrder = -2f;
-
-            var tema = Resources.Load<ThemeStyleSheet>(EstiloCore.CaminhoTema);
-            if (tema != null)
-            {
-                painel.themeStyleSheet = tema;
-            }
-            else
-            {
-                Debug.LogError(
-                    $"[Combate] Tema nao encontrado em Resources/{EstiloCore.CaminhoTema}.tss."
-                );
-            }
-
-            return painel;
+            return EstiloCore.CriarConfiguracaoDoPainel("PainelCombate", -2f);
         }
     }
 }

@@ -59,7 +59,7 @@ export function gerar(config) {
     Controle: ".lumora-ui Button, .lumora-ui .unity-button",
   };
   for (const [papel, seletores] of Object.entries(papeis))
-    uss += `${seletores} { -unity-font-definition: url("Fontes/${config.Fontes[papel].split('/').at(-1)}.ttf"); -unity-font-style: normal; }\n`;
+    uss += `${seletores} { -unity-font-definition: url("Fontes/${config.Fontes[papel].split('/').at(-1)}.asset"); -unity-font-style: normal; }\n`;
   return { cs: cs + "    }\n}\n", uss };
 }
 

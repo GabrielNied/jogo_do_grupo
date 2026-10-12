@@ -22,10 +22,10 @@ test("uma mudança de cor se propaga a C# e USS sem edição independente", () =
 });
 test("arquivos gerados e fontes correspondem à configuração atual", () => executar(true));
 test("trocar a fonte central atualiza títulos novos e classes antigas, incluindo conteúdo dinâmico", () => {
-  const c = base(); c.Fontes.Titulo = "Lumora/Fontes/LumoraTeste-800";
+  const c = base(); c.Fontes.Titulo = "Lumora/Fontes/LumoraTeste-800-SDF";
   const { uss } = gerar(c);
-  assert(uss.includes('Fontes/LumoraTeste-800.ttf'));
-  assert.match(uss, /\.lumora-ui \.titulo[^{}]+\{ -unity-font-definition: url\("Fontes\/LumoraTeste-800.ttf"\)/);
+  assert(uss.includes('Fontes/LumoraTeste-800-SDF.asset'));
+  assert.match(uss, /\.lumora-ui \.titulo[^{}]+\{ -unity-font-definition: url\("Fontes\/LumoraTeste-800-SDF.asset"\)/);
   assert(uss.includes('.lumora-ui .unity-button'));
 });
 test("estilos rejeitam cores avulsas, tokens errados e imagens inexistentes", () => {

@@ -143,13 +143,14 @@ namespace JogoDoGrupo.Client.Core.Visual
             public const int ReferenciaLargura = 1920;
             public const int ReferenciaAltura = 1080;
             public const int EscalaBase = 1;
+            public const int CorrespondenciaAlturaPercentual = 100;
         }
 
         public static class Fontes
         {
-            public const string Leitura = "Lumora/Fontes/LumoraSource-500";
-            public const string Controle = "Lumora/Fontes/LumoraSource-700";
-            public const string Titulo = "Lumora/Fontes/LumoraNunito-800";
+            public const string Leitura = "Lumora/Fontes/LumoraSource-500-SDF";
+            public const string Controle = "Lumora/Fontes/LumoraSource-700-SDF";
+            public const string Titulo = "Lumora/Fontes/LumoraNunito-800-SDF";
         }
     }
 }
