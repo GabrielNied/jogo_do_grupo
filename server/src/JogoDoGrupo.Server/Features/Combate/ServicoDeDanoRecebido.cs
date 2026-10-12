@@ -17,7 +17,6 @@ public sealed class ServicoDeDanoRecebido : IHostedService
 {
     private readonly ServidorTempoReal _tempoReal;
     private readonly IServiceScopeFactory _escopos;
-    private readonly TimeProvider _relogio;
     private readonly ILogger<ServicoDeDanoRecebido> _log;
     private readonly ServicoDeQueda? _queda;
     private readonly CancellationTokenSource _parada = new();
@@ -25,7 +24,6 @@ public sealed class ServicoDeDanoRecebido : IHostedService
     public ServicoDeDanoRecebido(
         ServidorTempoReal tempoReal,
         IServiceScopeFactory escopos,
-        TimeProvider relogio,
         ILogger<ServicoDeDanoRecebido> log,
         ServicoDeQueda? queda = null
     )
@@ -33,7 +31,6 @@ public sealed class ServicoDeDanoRecebido : IHostedService
         _queda = queda;
         _tempoReal = tempoReal;
         _escopos = escopos;
-        _relogio = relogio;
         _log = log;
     }
 
@@ -77,7 +74,6 @@ public sealed class ServicoDeDanoRecebido : IHostedService
 
             var recursos = await RecursosDoAtaque.TirarVidaAsync(
                 _escopos,
-                _relogio,
                 golpe.PersonagemId,
                 dano,
                 _parada.Token

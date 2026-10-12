@@ -17,7 +17,6 @@ public sealed class ServicoDeEsquivas : IDisposable
     private readonly IDeslocamentosDoMundo _deslocamentos;
     private readonly ControleDeAcoes _controle;
     private readonly IServiceScopeFactory _escopos;
-    private readonly TimeProvider _relogio;
     private readonly ILogger<ServicoDeEsquivas> _log;
     private readonly Func<long> _relogioMs;
     private readonly ServicoDeQueda? _queda;
@@ -28,7 +27,6 @@ public sealed class ServicoDeEsquivas : IDisposable
         IDeslocamentosDoMundo deslocamentos,
         ControleDeAcoes controle,
         IServiceScopeFactory escopos,
-        TimeProvider relogio,
         ILogger<ServicoDeEsquivas> log,
         Func<long>? relogioMs = null,
         ServicoDeQueda? queda = null
@@ -40,7 +38,6 @@ public sealed class ServicoDeEsquivas : IDisposable
         _deslocamentos = deslocamentos;
         _controle = controle;
         _escopos = escopos;
-        _relogio = relogio;
         _log = log;
         _relogioMs = relogioMs ?? (() => Environment.TickCount64);
         _tempoReal.SessaoEncerrada += AoEncerrar;
@@ -90,7 +87,6 @@ public sealed class ServicoDeEsquivas : IDisposable
         {
             var inicio = await RecursosDoAtaque.TentarGastarVigorAsync(
                 _escopos,
-                _relogio,
                 personagemId,
                 RegrasEsquiva.CustoDeVigor,
                 CancellationToken.None

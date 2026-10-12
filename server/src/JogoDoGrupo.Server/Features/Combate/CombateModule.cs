@@ -23,6 +23,8 @@ public sealed class CombateModule : IFeatureModule
     public void ConfigurarServicos(IServiceCollection servicos, IConfiguration configuracao)
     {
         servicos.AddSingleton<IBonusDeAtributos, BonusDeEquipamentos>();
+        servicos.AddSingleton<RecursosEmMemoria>();
+        servicos.AddHostedService(sp => sp.GetRequiredService<RecursosEmMemoria>());
         servicos.AddSingleton<IAlvosDeCombate>(new BonecoDeTreino());
         servicos.AddSingleton<ControleDeAcoes>();
         servicos.TryAddSingleton<IAliadosDeCombate, NinguemEAliado>();
@@ -34,7 +36,6 @@ public sealed class CombateModule : IFeatureModule
                 sp.GetRequiredService<IPosicoesDoMundo>(),
                 sp.GetRequiredService<EventosDoServidor>(),
                 sp.GetRequiredService<IServiceScopeFactory>(),
-                sp.GetRequiredService<TimeProvider>(),
                 sp.GetRequiredService<ILogger<ServicoDeQueda>>(),
                 sp.GetRequiredService<ConfigQueda>()
             );
@@ -48,7 +49,6 @@ public sealed class CombateModule : IFeatureModule
             sp.GetRequiredService<IDeslocamentosDoMundo>(),
             sp.GetRequiredService<ControleDeAcoes>(),
             sp.GetRequiredService<IServiceScopeFactory>(),
-            sp.GetRequiredService<TimeProvider>(),
             sp.GetRequiredService<ILogger<ServicoDeEsquivas>>(),
             queda: sp.GetRequiredService<ServicoDeQueda>()
         ));
@@ -57,7 +57,6 @@ public sealed class CombateModule : IFeatureModule
             var servico = new ServicoDeDanoRecebido(
                 sp.GetRequiredService<ServidorTempoReal>(),
                 sp.GetRequiredService<IServiceScopeFactory>(),
-                sp.GetRequiredService<TimeProvider>(),
                 sp.GetRequiredService<ILogger<ServicoDeDanoRecebido>>(),
                 sp.GetRequiredService<ServicoDeQueda>()
             );
@@ -71,7 +70,6 @@ public sealed class CombateModule : IFeatureModule
                 sp.GetRequiredService<IPosicoesDoMundo>(),
                 sp.GetServices<IAlvosDeCombate>(),
                 sp.GetRequiredService<IServiceScopeFactory>(),
-                sp.GetRequiredService<TimeProvider>(),
                 sp.GetRequiredService<ILogger<ServicoDeAtaques>>(),
                 controle: sp.GetRequiredService<ControleDeAcoes>(),
                 queda: sp.GetRequiredService<ServicoDeQueda>(),

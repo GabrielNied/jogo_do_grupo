@@ -71,6 +71,8 @@ public class EsquivaTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDe
     private async Task DefinirRecursosAsync(Jogador j, int? vida = null, int? vigor = null)
     {
         await VigorAsync(j);
+        var memoria = servidor.Falso.Services.GetRequiredService<RecursosEmMemoria>();
+        await memoria.GravarAsync(j.Id); // O banco precisa ter o que a memória já mudou.
         using var escopo = servidor.Falso.Services.CreateScope();
         var db = escopo.ServiceProvider.GetRequiredService<JogoDbContext>();
         var r = await db.Set<RecursosPersonagem>().SingleAsync(x => x.PersonagemId == j.Id);
@@ -88,6 +90,7 @@ public class EsquivaTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDe
         }
 
         await db.SaveChangesAsync();
+        memoria.Descartar(j.Id); // E a memória precisa reler o que o teste mudou.
     }
 
     [Fact]

@@ -187,6 +187,8 @@ public class AtaqueTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDeA
     private async Task DefinirRecursosAsync(Jogador j, int? vida = null, int? vigor = null)
     {
         await RecursosAsync(j);
+        var memoria = servidor.Falso.Services.GetRequiredService<RecursosEmMemoria>();
+        await memoria.GravarAsync(j.Id); // O banco precisa ter o que a memória já mudou.
         using var escopo = servidor.Falso.Services.CreateScope();
         var db = escopo.ServiceProvider.GetRequiredService<JogoDbContext>();
         var r = await db.Set<RecursosPersonagem>().SingleAsync(x => x.PersonagemId == j.Id);
@@ -204,6 +206,7 @@ public class AtaqueTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDeA
         }
 
         await db.SaveChangesAsync();
+        memoria.Descartar(j.Id); // E a memória precisa reler o que o teste mudou.
     }
 
     private static Task EsperarRecusaAsync(Jogador j, int quantidade = 1) =>
@@ -366,6 +369,57 @@ public class AtaqueTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDeA
         Assert.Equal(CodigosErroCombate.VoceEstaCaido, recusa.Codigo);
         Assert.Equal(ConfigBonecoDeTreino.Vida, servidor.Boneco.VidaAtual);
         Assert.False(ana.Recebeu(CombateMessageIds.AtaqueIniciado));
+    }
+
+    [Fact]
+    public async Task Trocar_de_equipamento_atualiza_a_forca_no_golpe_seguinte()
+    {
+        using var ana = await NovoJogadorAsync();
+
+        Atacar(ana, sequencia: 1);
+        var primeiro = await ana.Cliente.ReceberAsync<AtaqueAcertou>(
+            CombateMessageIds.AtaqueAcertou
+        );
+        Assert.Equal(RegrasAtaque.Dano(TipoDeAtaque.Leve, 0), Assert.Single(primeiro.Acertos).Dano);
+
+        // Os atributos guardados valem por um tempo curto; passado ele, o golpe seguinte relê.
+        servidor.Bonus.Equipamentos = new AtributosCombate { Forca = 10 };
+        servidor.Relogio.Avancar(ConfigRecursos.ValidadeDosAtributosSegundos + 0.1);
+        await Task.Delay(TimeSpan.FromMilliseconds(500)); // Fim do golpe anterior.
+
+        Atacar(ana, sequencia: 2);
+        var segundo = await ana.Cliente.ReceberAsync<AtaqueAcertou>(
+            CombateMessageIds.AtaqueAcertou
+        );
+        Assert.Equal(RegrasAtaque.Dano(TipoDeAtaque.Leve, 10), Assert.Single(segundo.Acertos).Dano);
+    }
+
+    [Fact]
+    public async Task Recursos_gastos_chegam_ao_banco_quando_o_personagem_desconecta()
+    {
+        var ana = await NovoJogadorAsync();
+        Atacar(ana, TipoDeAtaque.Pesado);
+        await ana.Cliente.ReceberAsync<RecursosMudaram>(CombateMessageIds.RecursosMudaram);
+        await ana.Cliente.ReceberAsync<AtaqueAcertou>(CombateMessageIds.AtaqueAcertou);
+
+        // Em memória o vigor já baixou; o banco ainda não viu (a gravação periódica é de 5 s).
+        ana.Dispose();
+
+        var esperado = RegrasRecursos.VigorMaximo() - RegrasAtaque.CustoDeVigorPesado;
+        await TempoRealFixture.EsperarAsync(
+            () => VigorGravado(ana.Id) == esperado,
+            "o vigor gasto gravado no banco"
+        );
+    }
+
+    private int VigorGravado(long personagemId)
+    {
+        using var escopo = servidor.Falso.Services.CreateScope();
+        var db = escopo.ServiceProvider.GetRequiredService<JogoDbContext>();
+        return db.Set<RecursosPersonagem>()
+            .AsNoTracking()
+            .Single(x => x.PersonagemId == personagemId)
+            .Vigor;
     }
 
     [Fact]
@@ -568,8 +622,8 @@ public class AtaqueTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDeA
             );
             Assert.Equal(2, ana.Recebidas(CombateMessageIds.AtaqueIniciado));
             Assert.False(ana.Recebeu(CombateMessageIds.AtaqueRecusado));
-            // Uma só ida ao banco por golpe.
-            Assert.Equal(2, servidor.Bonus.Leituras - leiturasAntes);
+            // Os atributos ficam em memória: só o primeiro golpe foi ao banco.
+            Assert.Equal(1, servidor.Bonus.Leituras - leiturasAntes);
         }
         finally
         {
