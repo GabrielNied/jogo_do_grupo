@@ -20,13 +20,41 @@ Inventário, equipamentos, raridades e sistema de fusão.
 
 ## Em aberto
 
-- [ ] Quantas raridades/tiers?
+- [x] Cinco raridades confirmadas para #166: comum, incomum, raro, épico e lendário. Grau continua um eixo separado (veja Equipamentos abaixo).
 - [ ] Quantas skills um item pode ter? A raridade muda isso?
 - [ ] Herança de atributos na fusão: porcentagem ou escolha do jogador?
 - [ ] Custo exato em coroas da infusão: a propor (agente economia).
 - [ ] Ajustes à tabela de raridades: pendente de Gabriel (a tabela do board foi adotada "com ajustes" ainda não informados; segue como proposta).
 
 ## Regras
+
+### Equipamentos (#166, confirmação do usuário em 2026-10-11)
+
+Modelo completo do livro: **11 posições** (capacete, peito, luvas, calça, botas, cinto, dois anéis, dois brincos e adorno), mais **dois conjuntos de armas**, cada um com mão principal e secundária. Só o conjunto ativo concede atributos. Armaduras e acessórios dos dois lados somam; misturar famílias é livre.
+
+Cada exemplar tem identidade própria, modelo, região, tipo, raridade, grau, nível da peça, requisito de nível do personagem, atributos fixos, atributos sorteados e índice do atributo infusível. O servidor sorteia e grava uma vez; vestir, tirar, trocar conjunto e reconectar não sorteiam novamente. O nível da peça não é o requisito de nível do personagem.
+
+As cinco raridades e a tabela do livro (níveis máximos, slots de skills e infusões) têm representação em `RegrasEquipamentos`. Graus inicial/médio/forte usam os fatores 1/2/4 já escritos. A estrutura confirmada é a da seção Anatomia do equipamento do [livro](../brainstorm/figjam.md). Skills utilizáveis, XP da peça, promoção e infusão são as tarefas #167, #331 e #174; esta entrega não executa essas operações.
+
+**Geração para teste:** `ConfigEquipamentos` mantém a quantidade e os valores dos atributos aleatórios fora do sorteio. O padrão provisório usa dois atributos distintos, sem repetir os fixos, dentre os cinco atributos básicos; valores de referência 6 (3 para Espírito), retirados dos exemplos de peças do livro. Não é uma tabela final de balanceamento, de chances ou de atributos elementais. É configurável em `Itens:Equipamentos`. Os modelos iniciais incluem o Martelo Ressonante e as nove categorias do Vigia, com os valores fixos do livro; o catálogo completo por família é #330. Espada e escudo de teste continuam compatíveis, sem inventar um bônus fixo para eles.
+
+**Troca autoritativa e persistente:** o servidor confere a conta dona, a identidade do exemplar, o tipo da posição e o nível exigido. A peça anterior volta ao inventário. Uma arma de duas mãos retira a mão secundária do mesmo conjunto; equipar escudo/foco com ela é recusado. Se todas as peças retiradas não couberem nos 40 espaços, nada muda. Peças equipadas não ocupam espaço do inventário. Transação e índice único por personagem/posição impedem duplicação em pedidos concorrentes.
+
+**Bônus:** Combate consulta o total atual através de `Contratos/Itens/IBonusEquipamentos`; não referencia a implementação de Itens. Força, Destreza, Intelecto, Vitalidade e Espírito entram nos cálculos já existentes de dano e recursos, sem acumular o mesmo bônus a cada troca. Defesa e demais status têm representação e apresentação, mas não criam fórmulas novas de mitigação, bloqueio ou efeitos nesta tarefa.
+
+**No jogo:** abrir o inventário com I e escolher a aba **Equipamentos**. A aba mostra posições, conjunto ativo, atributos fixos/sorteados, atributo infusível, raridade, nível e requisito; permite equipar, desequipar e trocar conjuntos. Em editor/build de desenvolvimento, **Obter equipamento de teste** pede uma peça ao servidor. Essa rota só existe em ambiente `Development`; não altera o loot dos mobs nem o baú original.
+
+API autenticada, sob `/api/personagens/{personagemId}/equipamentos`:
+
+| Método/sufixo | Intenção |
+|---|---|
+| GET | Consultar inventário, peças vestidas, conjunto ativo e totais |
+| POST `/equipar` | `PedidoEquipar`: identidade do exemplar e posição |
+| POST `/desequipar` | `PedidoDesequipar`: posição |
+| POST `/conjunto` | `PedidoConjunto`: conjunto 1 ou 2 |
+| POST `/bau-teste` | Uma peça do catálogo de equipamentos de teste, só Development |
+
+Operações devolvem `EquipamentosResponse`; conta alheia e personagem ausente têm o mesmo 404. Erros de posição/tipo/conjunto são 400; nível, incompatibilidade de duas mãos e inventário cheio são 409. A migração preserva os itens existentes; legados sem metadados recebem um único sorteio no primeiro equipamento bem-sucedido.
 
 ### Inventário e baú de teste: definido (provisório, 2026-10-11)
 

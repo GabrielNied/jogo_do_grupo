@@ -11,10 +11,28 @@ internal sealed class ItemInventarioConfiguracao : IEntityTypeConfiguration<Item
         item.ToTable("ItensInventario");
         item.HasKey(i => i.Id);
         item.HasIndex(i => i.PersonagemId);
+        item.HasIndex(i => new { i.PersonagemId, i.Posicao })
+            .IsUnique()
+            .HasFilter("\"Posicao\" <> 0");
         item.Property(i => i.ItemId).IsRequired();
         item.HasOne<PersonagemEntidade>()
             .WithMany()
             .HasForeignKey(i => i.PersonagemId)
+            .OnDelete(DeleteBehavior.Cascade);
+    }
+}
+
+internal sealed class EstadoEquipamentosConfiguracao : IEntityTypeConfiguration<EstadoEquipamentos>
+{
+    public void Configure(EntityTypeBuilder<EstadoEquipamentos> estado)
+    {
+        estado.ToTable("EstadoEquipamentos");
+        estado.HasKey(e => e.PersonagemId);
+        estado.Property(e => e.PersonagemId).ValueGeneratedNever();
+        estado
+            .HasOne<PersonagemEntidade>()
+            .WithMany()
+            .HasForeignKey(e => e.PersonagemId)
             .OnDelete(DeleteBehavior.Cascade);
     }
 }

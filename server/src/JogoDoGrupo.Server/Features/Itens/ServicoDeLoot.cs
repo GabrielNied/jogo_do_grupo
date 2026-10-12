@@ -221,7 +221,9 @@ public sealed class ServicoDeLoot(
         );
 
         var ocupados = await db.Set<ItemInventario>()
-            .CountAsync(i => i.PersonagemId == personagemId);
+            .CountAsync(i =>
+                i.PersonagemId == personagemId && i.Posicao == PosicaoEquipamento.Inventario
+            );
         var livres = Math.Max(0, RegrasItens.EspacosInventario - ocupados);
         var novos = separados
             .Take(livres)
@@ -230,6 +232,14 @@ public sealed class ServicoDeLoot(
         if (novos.Count == 0)
         {
             return novos;
+        }
+
+        var gerador = escopo.ServiceProvider.GetRequiredService<GeradorEquipamentos>();
+        foreach (var novo in novos)
+        {
+            var equipamento = gerador.Gerar(novo.ItemId, Random.Shared);
+            if (equipamento != null)
+                novo.GravarEquipamento(equipamento);
         }
 
         db.Set<ItemInventario>().AddRange(novos);

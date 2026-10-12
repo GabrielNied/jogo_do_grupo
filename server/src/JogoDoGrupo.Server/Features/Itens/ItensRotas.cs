@@ -24,6 +24,7 @@ internal static class ItensRotas
 
     public static void Mapear(IEndpointRouteBuilder rotas)
     {
+        EquipamentosRotas.Mapear(rotas);
         rotas.MapGet(RotasItens.Inventario, InventarioAsync).RequireAuthorization();
         rotas.MapPost(RotasItens.Bau, AbrirBauAsync).RequireAuthorization();
     }
@@ -51,6 +52,7 @@ internal static class ItensRotas
         ClaimsPrincipal usuario,
         JogoDbContext db,
         ISorteadorBau sorteador,
+        GeradorEquipamentos gerador,
         ILogger<ItensModule> log,
         CancellationToken cancelamento
     )
@@ -75,7 +77,7 @@ internal static class ItensRotas
 
         try
         {
-            return await GravarEmTransacaoAsync(id, sorteados, db, cancelamento);
+            return await GravarEmTransacaoAsync(id, sorteados, db, gerador, cancelamento);
         }
         catch (Exception e) when (e.EhBancoOcupado())
         {
@@ -110,6 +112,7 @@ internal static class ItensRotas
         long personagemId,
         int[] sorteados,
         JogoDbContext db,
+        GeradorEquipamentos gerador,
         CancellationToken cancelamento
     )
     {
@@ -119,7 +122,10 @@ internal static class ItensRotas
         );
 
         var ocupados = await db.Set<ItemInventario>()
-            .CountAsync(i => i.PersonagemId == personagemId, cancelamento);
+            .CountAsync(
+                i => i.PersonagemId == personagemId && i.Posicao == PosicaoEquipamento.Inventario,
+                cancelamento
+            );
         if (ocupados + sorteados.Length > RegrasItens.EspacosInventario)
         {
             return RespostasApi.Erro(
@@ -131,6 +137,12 @@ internal static class ItensRotas
         var novos = sorteados
             .Select(itemId => new ItemInventario { PersonagemId = personagemId, ItemId = itemId })
             .ToList();
+        foreach (var novo in novos)
+        {
+            var equipamento = gerador.Gerar(novo.ItemId, Random.Shared);
+            if (equipamento != null)
+                novo.GravarEquipamento(equipamento);
+        }
         db.Set<ItemInventario>().AddRange(novos);
         await db.SaveChangesAsync(cancelamento);
 
@@ -154,7 +166,9 @@ internal static class ItensRotas
     {
         var itens = await db.Set<ItemInventario>()
             .AsNoTracking()
-            .Where(i => i.PersonagemId == personagemId)
+            .Where(i =>
+                i.PersonagemId == personagemId && i.Posicao == PosicaoEquipamento.Inventario
+            )
             .OrderBy(i => i.Id)
             .ToListAsync(cancelamento);
         return itens.Select(i => i.ParaEntrada()).ToArray();
@@ -163,7 +177,7 @@ internal static class ItensRotas
     /// <summary>
     /// O personagem existe e é da conta? Id que não é número também não existe (mesmo 404).
     /// </summary>
-    private static async Task<bool> PersonagemDaContaAsync(
+    internal static async Task<bool> PersonagemDaContaAsync(
         string personagemId,
         long contaId,
         JogoDbContext db,
@@ -180,6 +194,9 @@ internal static class ItensRotas
         long.TryParse(personagemId, NumberStyles.None, CultureInfo.InvariantCulture, out var id)
             ? id
             : 0;
+
+    internal static Task<int> NivelAsync(long id, JogoDbContext db, CancellationToken c) =>
+        db.Set<PersonagemEntidade>().Where(p => p.Id == id).Select(p => p.Nivel).SingleAsync(c);
 
     private static IResult PersonagemNaoEncontrado() =>
         RespostasApi.Erro(StatusCodes.Status404NotFound, CodigosErroItens.PersonagemNaoEncontrado);

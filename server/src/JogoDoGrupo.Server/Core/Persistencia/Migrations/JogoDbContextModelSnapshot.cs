@@ -79,11 +79,27 @@ namespace JogoDoGrupo.Server.Core.Persistencia.Migrations
                     b.ToTable("RecursosPersonagem", (string)null);
                 });
 
+            modelBuilder.Entity("JogoDoGrupo.Server.Features.Itens.EstadoEquipamentos", b =>
+                {
+                    b.Property<long>("PersonagemId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ConjuntoAtivo")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("PersonagemId");
+
+                    b.ToTable("EstadoEquipamentos", (string)null);
+                });
+
             modelBuilder.Entity("JogoDoGrupo.Server.Features.Itens.ItemInventario", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
+
+                    b.Property<string>("EquipamentoJson")
+                        .HasColumnType("TEXT");
 
                     b.Property<int>("ItemId")
                         .HasColumnType("INTEGER");
@@ -91,9 +107,16 @@ namespace JogoDoGrupo.Server.Core.Persistencia.Migrations
                     b.Property<long>("PersonagemId")
                         .HasColumnType("INTEGER");
 
+                    b.Property<int>("Posicao")
+                        .HasColumnType("INTEGER");
+
                     b.HasKey("Id");
 
                     b.HasIndex("PersonagemId");
+
+                    b.HasIndex("PersonagemId", "Posicao")
+                        .IsUnique()
+                        .HasFilter("\"Posicao\" <> 0");
 
                     b.ToTable("ItensInventario", (string)null);
                 });
@@ -253,6 +276,15 @@ namespace JogoDoGrupo.Server.Core.Persistencia.Migrations
                 });
 
             modelBuilder.Entity("JogoDoGrupo.Server.Features.Combate.RecursosPersonagem", b =>
+                {
+                    b.HasOne("JogoDoGrupo.Server.Features.Personagem.Personagem", null)
+                        .WithMany()
+                        .HasForeignKey("PersonagemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("JogoDoGrupo.Server.Features.Itens.EstadoEquipamentos", b =>
                 {
                     b.HasOne("JogoDoGrupo.Server.Features.Personagem.Personagem", null)
                         .WithMany()
