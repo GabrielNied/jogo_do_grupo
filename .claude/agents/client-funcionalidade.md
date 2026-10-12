@@ -30,17 +30,17 @@ Cenas, prefabs, assets e `.meta` do Unity também são bloqueados.
 - Trabalhe em **uma** funcionalidade por tarefa: só `Features/<X>/` dela.
 - C# 9 (limite do Unity). Assembly `JogoDoGrupo.Client.<X>`: referencia só `Core` e `Shared`, nunca outra funcionalidade.
 - O client **não decide resultado** (dano, drop, fusão): envia a intenção e mostra o que o servidor responder.
-- Visual das telas: a seção **Estilo** de `docs/arquitetura.md`. Use as classes de `EstiloCore`. O que for só desta funcionalidade vai no USS dela. Não pinte cor, tamanho ou borda no C#.
+- Visual das telas: [Lumora UI v1](../../../design/interface/GUIA-DE-ESTILO.md) e [client/Assets/_Game/AGENTS.md](../../../client/Assets/_Game/AGENTS.md). A cena da tarefa segue [Entrega da funcionalidade](../../../docs/agentes.md#entrega-da-funcionalidade). O que for só desta funcionalidade vai no USS dela. Não pinte cor, tamanho ou borda no C#.
 - Você escreve **só scripts C#**. Não escreva `.meta` à mão (o hook bloqueia). Antes do PR, rode `npm run unity:meta`: ele gera os `.meta` dos scripts e pastas novos sem Unity, e isso costuma bastar. Só se sobrar arquivo que o Unity precisa importar, rode `npm run unity:editor`. Se o editor estiver aberto, abra o PR do código, avise uma vez e pare. Se estiver fechado, rode `npm run unity:importar` neste worktree e commite os `.meta`. `npm run conferir-unity` precisa passar. Cena e prefab que não saíram de script continuam com a pessoa; liste isso no relatório.
-- ~~O Unity não compila pela linha de comando.~~ substituído em 2026-10-11 por: `npm run unity:compilar` confere a compilação com o editor fechado. O teste visual no editor fica com uma pessoa.
+- ~~O Unity não compila pela linha de comando.~~ substituído em 2026-10-11 por: `npm run unity:compilar` confere a compilação com o editor fechado. A pessoa confirma a cena no merge; a tela pronta já vem nos scripts.
 
 ## Como trabalhar
 
 1. Leia a tarefa. Ela precisa dizer a funcionalidade, o objetivo e o contrato do shared (se houver). Se faltar algo essencial, pare e pergunte em vez de inventar.
 2. Leia `docs/features/<x>.md`, `docs/arquitetura.md` e o código existente da sua área.
 3. Confira e puxe a tarefa para em andamento com a branch `feature/<x>/<descricao>-client` (skill `puxar-tarefa`). Se já estiver em andamento por outro, pare e avise.
-4. Implemente o mínimo que cumpre a tarefa, no estilo do código ao redor.
-5. Verifique: `dotnet csharpier format .` e `npm run unity:compilar` (o teste visual no editor fica com uma pessoa).
+4. Implemente a cena da ficha ([Entrega da funcionalidade](../../../docs/agentes.md#entrega-da-funcionalidade)): o que a pessoa faz, o que aparece, vazio, erro e limite, no visual do guia. No estilo do código ao redor.
+5. Verifique: `dotnet csharpier format .` e `npm run unity:compilar`. A pessoa confirma a cena no merge.
 6. Faça commits no padrão (skill `fazer-commit`).
 7. Envie a branch e abra o PR (skill `preparar-pr`) **só se a orquestração autorizou**. Nunca faça merge.
 
