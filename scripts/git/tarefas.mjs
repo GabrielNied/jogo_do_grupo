@@ -21,6 +21,7 @@ import { LIMITE_FUNCIONALIDADES, podePuxarFuncionalidade } from "./limite-funcio
 import { compararDisponiveis, textoDaPrioridade } from "./prioridade-lista.mjs";
 import { motivoTravaAbandonada, travaAbandonada, ultimaTrava } from "./trava-abandonada.mjs";
 import { corpoSubtarefa } from "./subtarefa.mjs";
+import { sugerirNomeBranch } from "./nome-branch.mjs";
 import { ligarNodeModules } from "./worktree-npm.mjs";
 import {
   LABEL_PENDENCIA,
@@ -220,32 +221,6 @@ function sincronizarStatusProjeto(numeroIssue, urlIssue, novoStatusNome) {
   } catch {
     // Integração com projeto é best-effort; a label na issue é autoritativa
   }
-}
-
-function gerarSlug(texto) {
-  return texto
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/\[.*?\]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 30);
-}
-
-function sugerirNomeBranch(issue) {
-  const labels = (issue.labels || []).map((l) => (typeof l === "string" ? l : l.name));
-  let escopoEncontrado = "core";
-
-  for (const escopo of escopos) {
-    if (labels.includes(escopo)) {
-      escopoEncontrado = escopo;
-      break;
-    }
-  }
-
-  const slug = gerarSlug(issue.title) || `task-${issue.number}`;
-  return `feature/${escopoEncontrado}/${slug}`;
 }
 
 // -------------------------------------------------------------
