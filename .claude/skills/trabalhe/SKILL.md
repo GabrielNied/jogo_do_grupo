@@ -54,4 +54,4 @@ Cada tarefa vira um PR próprio, pela skill [preparar-pr](../preparar-pr/SKILL.m
 
 ## 6. Fechar a leva
 
-Você integra e limpa o que criou: `npm run limpar-agentes -- --aplicar`. Gargalo de processo que apareceu: corrija em PR pequeno ou registre com [registrar-licao](../registrar-licao/SKILL.md) (regra 16). Relatório final curto: PRs abertos (links), o que ficou de fora e por quê, o que um `/decida` ainda precisa destravar. Merge continua humano: não peça para mergear.
+Você integra e limpa o que criou: `npm run limpar-agentes -- --aplicar`. Antes do relatório, a reflexão da regra 16 (skill `preparar-pr`): corte que cabe, no PR; sem corte, silêncio. Relatório final curto: PRs abertos (links), o que ficou de fora e por quê, o que um `/decida` ainda precisa destravar. Merge continua humano: não peça para mergear.
