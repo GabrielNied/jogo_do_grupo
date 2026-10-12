@@ -12,6 +12,51 @@ namespace JogoDoGrupo.Server.Tests.Features.Itens;
 
 public class EquipamentosRotasTestes(ServidorDeTeste servidor) : IClassFixture<ServidorDeTeste>
 {
+    [Theory]
+    [InlineData(0, 1)]
+    [InlineData(1, 10)]
+    [InlineData(2, 20)]
+    public async Task BauDeTesteGeraGrauEscolhidoEPreservaAoReabrir(int grau, int requisito)
+    {
+        var (cliente, id) = await Personagem();
+        var resposta = await ServidorDeTeste.PostJsonAsync(
+            cliente,
+            RegrasEquipamentos.RotaDe(id) + "/bau-teste?grau=" + grau,
+            new { }
+        );
+        resposta.EnsureSuccessStatusCode();
+        var estado = await ServidorDeTeste.LerJsonAsync<EquipamentosResponse>(resposta);
+        var entrada = Assert.Single(estado.Inventario);
+        Assert.Contains(entrada.ItemId, CatalogoEquipamentos.ModelosDeTeste);
+        Assert.Equal((GrauEquipamento)grau, entrada.Equipamento.Grau);
+        Assert.Equal(requisito, entrada.Equipamento.NivelPersonagemMinimo);
+        var volta = Assert.Single((await Ler(cliente, id)).Inventario);
+        Assert.Equal(entrada.InstanciaId, volta.InstanciaId);
+        Assert.Equal(
+            entrada.Equipamento.Atributos.Select(a => a.Valor),
+            volta.Equipamento.Atributos.Select(a => a.Valor)
+        );
+        Assert.Equal(entrada.Equipamento.Familia, volta.Equipamento.Familia);
+    }
+
+    [Fact]
+    public async Task BauDeTesteRecusaGrauInvalidoSemCriarItem()
+    {
+        var (cliente, id) = await Personagem();
+        foreach (var grau in new[] { -1, 3, 99 })
+            Assert.Equal(
+                HttpStatusCode.BadRequest,
+                (
+                    await ServidorDeTeste.PostJsonAsync(
+                        cliente,
+                        RegrasEquipamentos.RotaDe(id) + "/bau-teste?grau=" + grau,
+                        new { }
+                    )
+                ).StatusCode
+            );
+        Assert.Empty((await Ler(cliente, id)).Inventario);
+    }
+
     private async Task<(HttpClient Cliente, long Id)> Personagem()
     {
         var cliente = await servidor.CriarClienteLogadoAsync();

@@ -90,6 +90,8 @@ namespace JogoDoGrupo.Shared.Features.Itens
         public int ModeloId;
         public string Nome = "";
         public string Regiao = "";
+        public string Familia = "";
+        public string Variacao = "";
         public TipoEquipamento Tipo;
         public RaridadeItem Raridade;
         public GrauEquipamento Grau;
