@@ -54,6 +54,7 @@ No máximo 15 linhas:
 
 - **Feito:** 1 a 3 linhas.
 - **PR:** link e branch.
+- **Corte:** uma frase, quando a [regra 16](../../AGENTS.md) achar espera que a próxima tarefa vai pagar de novo. Sem isso, omita.
 - **Verificações:** "ok", ou só o que falhou.
 - **Para outros:** só se outra camada ou uma pessoa precisar fazer algo.
 - **Decisões de design:** as que tomou, em uma linha cada.

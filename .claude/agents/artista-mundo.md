@@ -64,5 +64,6 @@ No máximo 15 linhas, sem repetir a tarefa:
 - **Feito:** 1 a 3 linhas.
 - **Assets:** pacotes trazidos (fonte e licença) e tamanho total.
 - **PR:** link e branch.
+- **Corte:** uma frase, quando a [regra 16](../../AGENTS.md) achar espera que a próxima tarefa vai pagar de novo. Sem isso, omita.
 - **Para a pessoa conferir no editor:** o que abrir e o que olhar.
 - **Dúvidas:** só se houver.
