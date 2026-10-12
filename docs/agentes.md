@@ -30,7 +30,7 @@ O que fica com as **pessoas**:
 - olhar a cena no jogo, aprovar e fazer o merge dos PRs;
 - rever, quando quiserem, uma decisão de design que um agente tomou (com um PR).
 
-Design se decide por quem implementa, pessoa ou agente, sem esperar ninguém ([Decisões de design](#decisões-de-design)).
+Design se decide por quem implementa, pessoa ou agente, sem esperar ninguém ([Decisões de design](#decisões-de-design)). O `/decida` organiza o quadro e registra o que está pendente, sem implementar. O `/trabalhe` implementa.
 
 Os agentes por camada (`shared-contratos`, `regras-do-jogo`, `server-funcionalidade`, `client-funcionalidade`) ficam para Core e para a fatia grande demais para um PR.
 

@@ -97,6 +97,7 @@ Para as tarefas abaixo, **leia o arquivo indicado e siga os passos**. Algumas fe
 | Deixar uma mudança pronta para PR | [.claude/skills/preparar-pr/SKILL.md](.claude/skills/preparar-pr/SKILL.md) |
 | Dividir uma tarefa entre vários agentes e coordenar | [.claude/skills/orquestrar-tarefa/SKILL.md](.claude/skills/orquestrar-tarefa/SKILL.md) |
 | Iniciar uma leva de tarefas do começo ao PR (`/trabalhe`) | [.claude/skills/trabalhe/SKILL.md](.claude/skills/trabalhe/SKILL.md) |
+| Organizar o quadro e destravar decisões, sem implementar (`/decida`) | [.claude/skills/decida/SKILL.md](.claude/skills/decida/SKILL.md) |
 
 ## Vários agentes em paralelo
 
