@@ -153,6 +153,23 @@ namespace JogoDoGrupo.Shared.Features.Itens
 
         public static int Fator(GrauEquipamento grau) => 1 << (int)grau;
 
+        public static string NomeDaRaridade(RaridadeItem raridade)
+        {
+            switch (raridade)
+            {
+                case RaridadeItem.Incomum:
+                    return "Incomum";
+                case RaridadeItem.Raro:
+                    return "Raro";
+                case RaridadeItem.Epico:
+                    return "Épico";
+                case RaridadeItem.Lendario:
+                    return "Lendário";
+                default:
+                    return "Comum";
+            }
+        }
+
         public static int Conjunto(PosicaoEquipamento posicao) =>
             posicao == PosicaoEquipamento.Arma1 || posicao == PosicaoEquipamento.Secundaria1 ? 1
             : posicao == PosicaoEquipamento.Arma2 || posicao == PosicaoEquipamento.Secundaria2 ? 2

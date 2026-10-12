@@ -21,7 +21,18 @@ public sealed class SorteadorDeLootFalso : ISorteadorDeLoot
 {
     public volatile int[] Resultado = [];
 
-    public int[] Sortear() => Resultado;
+    /// <summary>Se definido, vale no lugar de <see cref="Resultado"/> (com raridade e grau).</summary>
+    public volatile QuedaDeLoot[]? Quedas;
+
+    public volatile OrigemDoLoot UltimaOrigem;
+    public volatile int UltimoNivel;
+
+    public QuedaDeLoot[] Sortear(OrigemDoLoot origem, int nivelDoInimigo)
+    {
+        UltimaOrigem = origem;
+        UltimoNivel = nivelDoInimigo;
+        return Quedas ?? Resultado.Select(id => new QuedaDeLoot { ModeloId = id }).ToArray();
+    }
 }
 
 /// <summary>
@@ -77,6 +88,7 @@ public class LootNoChaoTestes(ServidorDeLoot servidor) : IClassFixture<ServidorD
     private async Task<Jogador> NovoJogadorAsync()
     {
         servidor.Relogio.Reiniciar();
+        servidor.Sorteador.Quedas = null;
         var http = await ServidorDeTeste.CriarClienteLogadoEmAsync(servidor.Falso);
         var resposta = await ServidorDeTeste.PostJsonAsync(
             http,
@@ -109,20 +121,38 @@ public class LootNoChaoTestes(ServidorDeLoot servidor) : IClassFixture<ServidorD
     }
 
     /// <summary>Publica a morte de um inimigo a <paramref name="distancia"/> metros do jogador.</summary>
-    private void DerrotarInimigoPertoDe(Jogador perto, double distancia, params Jogador[] quem)
+    private void DerrotarInimigoPertoDe(Jogador perto, double distancia, params Jogador[] quem) =>
+        DerrotarInimigoPertoDe(
+            perto,
+            distancia,
+            RegrasInimigo.CriaturaDaFatia,
+            VarianteDeCriatura.Normal,
+            0,
+            quem
+        );
+
+    private void DerrotarInimigoPertoDe(
+        Jogador perto,
+        double distancia,
+        int criaturaId,
+        VarianteDeCriatura variante,
+        int nivel,
+        params Jogador[] quem
+    )
     {
         var posicao = PosicaoDe(perto);
         var derrota = new InimigoDerrotado(
             1,
-            RegrasInimigo.CriaturaDaFatia,
-            VarianteDeCriatura.Normal,
+            criaturaId,
+            variante,
             40,
             1.0,
             posicao.Area,
             posicao.X + distancia,
             posicao.Z,
             quem.Select(j => j.Id).Order().ToArray(),
-            Interlocked.Increment(ref _mortes)
+            Interlocked.Increment(ref _mortes),
+            nivel
         );
         servidor.Servico<EventosDoServidor>().Publicar(derrota);
     }
@@ -436,5 +466,83 @@ public class LootNoChaoTestes(ServidorDeLoot servidor) : IClassFixture<ServidorD
         using var deVolta = await ConectarNaCidadeAsync(beto.Http, beto.Id);
         var visto = await deVolta.ReceberAsync<LootApareceu>(ItensMessageIds.LootApareceu);
         Assert.Equal(Pocao, visto.Loot.ItemId);
+    }
+
+    [Fact]
+    public async Task Servico_repassa_variante_categoria_e_nivel_ao_sorteio()
+    {
+        using var ana = await NovoJogadorAsync();
+        servidor.Sorteador.Quedas = [];
+
+        DerrotarInimigoPertoDe(
+            ana,
+            0,
+            CatalogoCriaturas.LoboDoCampo,
+            VarianteDeCriatura.Fortalecida,
+            12,
+            ana
+        );
+        await EsperarAsync(() => servidor.Sorteador.UltimoNivel == 12);
+        Assert.Equal(OrigemDoLoot.Fortalecida, servidor.Sorteador.UltimaOrigem);
+
+        DerrotarInimigoPertoDe(
+            ana,
+            0,
+            CatalogoCriaturas.PresaVelha,
+            VarianteDeCriatura.Normal,
+            0,
+            ana
+        );
+        await EsperarAsync(() => servidor.Sorteador.UltimaOrigem == OrigemDoLoot.ChefeRaro);
+        Assert.Equal(5, servidor.Sorteador.UltimoNivel); // Nível 0: vale o da ficha.
+
+        DerrotarInimigoPertoDe(
+            ana,
+            0,
+            CatalogoCriaturas.GuardiaoDoReflexo,
+            VarianteDeCriatura.Normal,
+            5,
+            ana
+        );
+        await EsperarAsync(() => servidor.Sorteador.UltimaOrigem == OrigemDoLoot.Chefe);
+    }
+
+    [Fact]
+    public async Task Peca_larga_pelo_mob_entra_no_inventario_com_a_raridade_e_o_grau_sorteados()
+    {
+        using var ana = await NovoJogadorAsync();
+        servidor.Sorteador.Quedas =
+        [
+            new QuedaDeLoot
+            {
+                ModeloId = CatalogoEquipamentos.PrimeiroModelo,
+                Raridade = RaridadeItem.Raro,
+                Grau = GrauEquipamento.Medio,
+            },
+        ];
+        DerrotarInimigoPertoDe(ana, 0, ana);
+
+        var loot = (await ApareceuAsync(ana)).Loot;
+        Assert.Equal(CatalogoEquipamentos.PrimeiroModelo, loot.ItemId);
+        Assert.Equal("Elmo do Vigia", loot.Nome);
+        Assert.Equal(RaridadeItem.Raro, loot.Raridade);
+        Assert.Equal(GrauEquipamento.Medio, loot.Grau);
+
+        Coletar(ana, loot.LootId);
+        var coletado = await ColetadoAsync(ana);
+        Assert.Equal("Elmo do Vigia", coletado.Entrada.Nome);
+        Assert.Equal(RaridadeItem.Raro, coletado.Entrada.Equipamento!.Raridade);
+        Assert.Equal(GrauEquipamento.Medio, coletado.Entrada.Equipamento.Grau);
+        Assert.Equal(10, coletado.Entrada.Equipamento.NivelPersonagemMinimo);
+    }
+
+    private static async Task EsperarAsync(Func<bool> condicao)
+    {
+        for (var i = 0; i < 200 && !condicao(); i++)
+        {
+            await Task.Delay(25);
+        }
+
+        Assert.True(condicao());
     }
 }

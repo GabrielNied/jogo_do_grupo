@@ -65,7 +65,10 @@ namespace JogoDoGrupo.Client.Features.Itens.Loot
 
         private static void AoColetar(LootColetado mensagem)
         {
-            AvisosDoJogo.Mostrar(TextosDoLoot.Coletado(Registro.Receber(mensagem)));
+            var nome = Registro.Receber(mensagem);
+            AvisosDoJogo.Mostrar(
+                TextosDoLoot.Coletado(nome, mensagem?.Entrada?.Equipamento?.Raridade)
+            );
         }
 
         private static void AoRecusar(ColetaRecusada mensagem)

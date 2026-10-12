@@ -4,6 +4,7 @@ using JogoDoGrupo.Server.Contratos.Mundo;
 using JogoDoGrupo.Server.Core.Persistencia;
 using JogoDoGrupo.Server.Core.TempoReal;
 using JogoDoGrupo.Shared.Features.Itens;
+using JogoDoGrupo.Shared.Features.Mobs;
 using Microsoft.EntityFrameworkCore;
 
 namespace JogoDoGrupo.Server.Features.Itens;
@@ -60,15 +61,22 @@ public sealed class ServicoDeLoot(
     public void AoInimigoDerrotado(InimigoDerrotado derrota)
     {
         var agora = relogio.GetUtcNow();
+        var ficha = CatalogoCriaturas.Obter(derrota.CriaturaId);
+        var origem = TabelaDeLoot.OrigemDe(
+            ficha?.Categoria ?? CategoriaDeCriatura.Comum,
+            derrota.Variante
+        );
+        // Nível 0: quem publicou não informou; vale o da ficha (ou 1, se a criatura é desconhecida).
+        var nivel = derrota.Nivel > 0 ? derrota.Nivel : ficha?.Nivel ?? 1;
         foreach (var donoId in derrota.Participantes.Distinct())
         {
-            var itens = sorteador.Sortear();
-            if (itens.Length == 0)
+            var quedas = sorteador.Sortear(origem, nivel);
+            if (quedas.Length == 0)
             {
                 continue;
             }
 
-            var novos = chao.Largar(donoId, itens, derrota.Area, derrota.X, derrota.Z, agora);
+            var novos = chao.Largar(donoId, quedas, derrota.Area, derrota.X, derrota.Z, agora);
             var sessao = SessaoDe(donoId);
             if (sessao != null)
             {
@@ -225,8 +233,8 @@ public sealed class ServicoDeLoot(
                 i.PersonagemId == personagemId && i.Posicao == PosicaoEquipamento.Inventario
             );
         var livres = Math.Max(0, RegrasItens.EspacosInventario - ocupados);
-        var novos = separados
-            .Take(livres)
+        var levados = separados.Take(livres).ToList();
+        var novos = levados
             .Select(l => new ItemInventario { PersonagemId = personagemId, ItemId = l.ItemId })
             .ToList();
         if (novos.Count == 0)
@@ -234,12 +242,18 @@ public sealed class ServicoDeLoot(
             return novos;
         }
 
+        // A raridade e o grau sorteados na queda valem para a peça que entra no inventário.
         var gerador = escopo.ServiceProvider.GetRequiredService<GeradorEquipamentos>();
-        foreach (var novo in novos)
+        for (var i = 0; i < novos.Count; i++)
         {
-            var equipamento = gerador.Gerar(novo.ItemId, Random.Shared);
+            var equipamento = gerador.Gerar(
+                novos[i].ItemId,
+                Random.Shared,
+                levados[i].Raridade,
+                levados[i].Grau
+            );
             if (equipamento != null)
-                novo.GravarEquipamento(equipamento);
+                novos[i].GravarEquipamento(equipamento);
         }
 
         db.Set<ItemInventario>().AddRange(novos);

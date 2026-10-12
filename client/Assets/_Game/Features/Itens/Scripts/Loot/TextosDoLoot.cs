@@ -8,9 +8,21 @@ namespace JogoDoGrupo.Client.Features.Itens.Loot
         /// <summary>Dica embaixo da tela quando há item ao alcance.</summary>
         public const string Dica = "F: pegar";
 
-        /// <summary>Aviso de item que entrou no inventário.</summary>
-        public static string Coletado(string nome) =>
-            string.IsNullOrWhiteSpace(nome) ? "Você pegou um item." : $"Você pegou {nome}.";
+        /// <summary>
+        /// Aviso de item que entrou no inventário. Com raridade (peça de equipamento), o aviso a
+        /// mostra entre parênteses: "Você pegou Elmo do Vigia (Raro)."
+        /// </summary>
+        public static string Coletado(string nome, RaridadeItem? raridade = null)
+        {
+            if (string.IsNullOrWhiteSpace(nome))
+            {
+                return "Você pegou um item.";
+            }
+
+            return raridade.HasValue
+                ? $"Você pegou {nome} ({RegrasEquipamentos.NomeDaRaridade(raridade.Value)})."
+                : $"Você pegou {nome}.";
+        }
 
         /// <summary>Aviso de coleta recusada, a partir do código do servidor.</summary>
         public static string Recusa(string codigo)

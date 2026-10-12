@@ -19,6 +19,12 @@ namespace JogoDoGrupo.Shared.Features.Itens
         /// <summary>Nome exibido, o mesmo de <see cref="CatalogoItens.ObterNome"/>.</summary>
         public string Nome = "";
 
+        /// <summary>Raridade da peça (<see cref="Equipamento.Raridade"/>), para destacar no chão.</summary>
+        public RaridadeItem Raridade = RaridadeItem.Comum;
+
+        /// <summary>Grau da peça.</summary>
+        public GrauEquipamento Grau = GrauEquipamento.Inicial;
+
         /// <summary>
         /// Posição no plano do chão, onde o inimigo caiu. O servidor não conhece a altura do
         /// terreno: o client assenta o item no chão.
