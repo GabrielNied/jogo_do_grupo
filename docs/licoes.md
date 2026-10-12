@@ -38,3 +38,9 @@ Formato: `### AAAA-MM-DD · título` com **O que houve**, **Regra** e **Origem**
 
 - **Sem .NET na nuvem, cada erro de formatação custava uma rodada de CI** e, no PR de client, reiniciava os 10 min do Unity. A rede do ambiente já deixa baixar o .NET, e o npm só funciona pelo proxy (o `registry.npmjs.org` vem na lista "sem proxy" sem ter saída direta). `npm run nuvem:preparar` instala npm, .NET 10 e CSharpier; um hook de início de sessão já dispara isso em segundo plano na nuvem. Formate e rode `dotnet test` antes do push.
 - **Subtarefa só com "Subtarefa de #N" obrigava a reler a issue pai, a doc e o contrato.** `npm run tarefa -- subtarefa` agora escreve onde ler e onde mexer, e o coordenador passa `--contexto` com o que fazer.
+
+### 2026-10-12 · Preparação da nuvem rodando duas vezes ao mesmo tempo
+
+- **O que houve:** o hook de início de sessão dispara `nuvem:preparar` em segundo plano e manda o agente rodar `npm run nuvem:preparar` antes do primeiro `dotnet`. As duas rodavam juntas, e o `dotnet tool restore` da segunda falhava com "file is being used by another process": o agente tinha de rodar de novo.
+- **Regra:** a preparação do hook grava o pid em `~/.cache/jogo-do-grupo/preparar-nuvem.pid`, e o `npm run nuvem:preparar` espera ela terminar antes de começar. O comando está em [scripts/agentes/preparar-nuvem.mjs](../scripts/agentes/preparar-nuvem.mjs).
+- **Origem:** rodada do loop autônomo de 2026-10-12 (PR #524).

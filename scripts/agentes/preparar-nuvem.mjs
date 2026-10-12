@@ -7,11 +7,23 @@
 //        (hook de início de sessão: fora da nuvem não faz nada; na nuvem dispara em segundo
 //         plano, sai na hora e escreve o log em ~/.cache/jogo-do-grupo/preparar-nuvem.log)
 //
+// As duas formas não rodam ao mesmo tempo: a do hook grava o pid em preparar-nuvem.pid, e o
+// `npm run nuvem:preparar` espera ela terminar antes de começar (antes, as duas rodavam juntas
+// e o `dotnet tool restore` falhava com "file is being used by another process").
+//
 // Na nuvem do Claude Code, registry.npmjs.org vem na lista de "sem proxy", mas não há saída
 // direta: o npm só funciona pelo proxy. Por isso o npm roda com a lista de "sem proxy" trocada.
 
 import { execFileSync, spawn } from "node:child_process";
-import { existsSync, mkdirSync, openSync, symlinkSync, unlinkSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  openSync,
+  readFileSync,
+  symlinkSync,
+  unlinkSync,
+  writeFileSync,
+} from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -19,6 +31,9 @@ import { fileURLToPath } from "node:url";
 const RAIZ = fileURLToPath(new URL("../..", import.meta.url));
 const DOTNET_DIR = join(homedir(), ".dotnet");
 const INSTALADOR = "https://builds.dotnet.microsoft.com/dotnet/scripts/v1/dotnet-install.sh";
+const PASTA_CACHE = join(homedir(), ".cache", "jogo-do-grupo");
+const ARQUIVO_PID = join(PASTA_CACHE, "preparar-nuvem.pid");
+const ESPERA_MAXIMA_MS = 15 * 60 * 1000;
 
 /** Esta sessão roda na nuvem do Claude Code? */
 export function ehNuvem(env = process.env) {
@@ -37,6 +52,50 @@ export function ambienteDoNpm(env = process.env) {
   }
   resultado.npm_config_noproxy = "localhost,127.0.0.1";
   return resultado;
+}
+
+function processoVivo(pid) {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch (erro) {
+    return erro.code === "EPERM";
+  }
+}
+
+/**
+ * Pid de outra preparação ainda rodando, ou null. `conteudo` é o que está no arquivo de pid
+ * (null se não existe); o pid do próprio processo não conta.
+ */
+export function outraPreparacaoAtiva(conteudo, meuPid, vivo = processoVivo) {
+  const pid = Number.parseInt(conteudo ?? "", 10);
+  if (!Number.isInteger(pid) || pid <= 0 || pid === meuPid) return null;
+  return vivo(pid) ? pid : null;
+}
+
+function lerPid() {
+  try {
+    return readFileSync(ARQUIVO_PID, "utf8");
+  } catch {
+    return null;
+  }
+}
+
+/** Espera a preparação do hook (em segundo plano) acabar, para não rodar duas ao mesmo tempo. */
+function esperarOutraPreparacao() {
+  const limite = Date.now() + ESPERA_MAXIMA_MS;
+  let avisou = false;
+  for (let pid; (pid = outraPreparacaoAtiva(lerPid(), process.pid)); ) {
+    if (Date.now() > limite) {
+      console.log(`A preparação ${pid} passou de 15 min; seguindo sem esperar.`);
+      return;
+    }
+    if (!avisou) {
+      console.log(`Esperando a preparação em segundo plano (pid ${pid}) terminar...`);
+      avisou = true;
+    }
+    execFileSync("sleep", ["1"]);
+  }
 }
 
 function rodar(comando, args, opcoes = {}) {
@@ -79,6 +138,17 @@ function prepararDotnet() {
 }
 
 function preparar() {
+  esperarOutraPreparacao();
+  mkdirSync(PASTA_CACHE, { recursive: true });
+  writeFileSync(ARQUIVO_PID, String(process.pid));
+  try {
+    return prepararTudo();
+  } finally {
+    if (lerPid() === String(process.pid)) unlinkSync(ARQUIVO_PID);
+  }
+}
+
+function prepararTudo() {
   let ok = true;
   for (const passo of [prepararNpm, prepararDotnet]) {
     try {
@@ -96,15 +166,17 @@ const direto = process.argv[1] && fileURLToPath(import.meta.url) === process.arg
 if (direto) {
   if (process.argv.includes("--hook")) {
     if (!ehNuvem()) process.exit(0);
-    const pasta = join(homedir(), ".cache", "jogo-do-grupo");
-    mkdirSync(pasta, { recursive: true });
-    const log = join(pasta, "preparar-nuvem.log");
+    mkdirSync(PASTA_CACHE, { recursive: true });
+    const log = join(PASTA_CACHE, "preparar-nuvem.log");
     const saida = openSync(log, "a");
-    spawn(process.execPath, [fileURLToPath(import.meta.url)], {
+    const filho = spawn(process.execPath, [fileURLToPath(import.meta.url)], {
       cwd: RAIZ,
       detached: true,
       stdio: ["ignore", saida, saida],
-    }).unref();
+    });
+    // Grava o pid já aqui: um `npm run nuvem:preparar` logo em seguida precisa vê-lo.
+    writeFileSync(ARQUIVO_PID, String(filho.pid));
+    filho.unref();
     console.log(
       `Sessão na nuvem: npm, .NET 10 e CSharpier estão sendo instalados em segundo plano (log em ${log}). Antes do primeiro commit ou de \`dotnet\`, rode \`npm run nuvem:preparar\` (espera terminar).`,
     );
