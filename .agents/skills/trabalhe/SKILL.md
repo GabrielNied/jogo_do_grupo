@@ -1,6 +1,6 @@
 ---
 name: trabalhe
-description: Inicia uma leva de tarefas do projeto, do planejamento ao PR.
+description: Inicia uma leva de tarefas do projeto, do começo ao PR, sem pedir o que puxar. Organizar o quadro é o /decida.
 ---
 
 # trabalhe

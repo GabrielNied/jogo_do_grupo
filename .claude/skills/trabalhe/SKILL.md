@@ -1,11 +1,11 @@
 ---
 name: trabalhe
-description: Inicia uma leva de tarefas do Jogo do Grupo do começo ao PR (escolhe as tarefas livres, puxa, orquestra os agentes, abre os PRs e limpa). Use quando pedirem "/trabalhe", "começar uma leva", "pegar as próximas tarefas" ou "trabalhe nas tarefas X". Não pergunta qual tarefa puxar. No Cursor, olha o uso restante e encolhe a leva quando o plano está no fim.
+description: Inicia uma leva de tarefas do Jogo do Grupo do começo ao PR (escolhe as tarefas livres, decide o que a doc deixa em aberto, puxa, orquestra os agentes, abre os PRs e limpa). Use quando pedirem "/trabalhe", "começar uma leva", "pegar as próximas tarefas" ou "trabalhe nas tarefas X". Não pede input humano. No Cursor, olha o uso restante e encolhe a leva quando o plano está no fim. Organizar o quadro é o /decida.
 ---
 
 # Trabalhe (leva de tarefas)
 
-Você é o **coordenador** da leva. `/trabalhe` já autoriza escolher, puxar e implementar. Não pergunte o que puxar, não ofereça alternativas e não espere OK.
+Você é o **coordenador** da leva. `/trabalhe` já autoriza escolher, puxar, decidir o que a doc deixa em aberto e implementar. Não pergunte o que puxar, não peça regra, contrato nem confirmação, não ofereça alternativas e não espere OK. Organizar o quadro e destravar sem implementar é o `/decida`.
 
 Argumentos opcionais após `/trabalhe` (todos podem faltar):
 
@@ -34,19 +34,19 @@ O token não entra em argumento, log, commit nem resposta. Apague o script tempo
 
 ## 2. Escolher as tarefas
 
-`npm run tarefa -- listar`. Para cada candidata livre, anote funcionalidade, camadas (docs, contrato, server, client) e dependências. Prefira, nesta ordem: o que está quebrado (CI, main), o que destrava outras tarefas, o que é independente das demais. O tamanho da leva segue a seção Uso restante. Duas tarefas na mesma funcionalidade ou em `Core/` não rodam em paralelo. Tarefa já em andamento: não entra.
+`npm run tarefa -- listar`. Para cada candidata livre, anote funcionalidade, camadas (docs, contrato, server, client) e dependências. Prefira, nesta ordem: o que está quebrado (CI, main), o que destrava outras tarefas, o que é independente das demais. O tamanho da leva segue a seção Uso restante. Duas tarefas na mesma funcionalidade ou em `Core/` não rodam em paralelo. Não entra: tarefa já em andamento, label `bloqueada` ou `decisao`. Essas ficam para o `/decida`.
 
 A escolha é sua. Não devolva a lista para a pessoa decidir.
 
 ## 3. Começar no mesmo turno
 
-Decida a leva com os critérios do passo 2 e siga para o passo 4 na mesma resposta. A tabela (tarefa, funcionalidade, camadas, por que entrou, o que ficou de fora) sai junto com o início do trabalho. É informe, não pedido de confirmação.
+Decida a leva com os critérios do passo 2 e siga para o passo 4 na mesma resposta. A tabela (tarefa, funcionalidade, camadas, por que entrou, o que ficou de fora) sai junto com o início do trabalho. É informe. A resposta não termina na tabela.
 
-Dúvida de regra ou contrato que impeça implementar: pergunte só essa dúvida (regra 13). Escolha de tarefa não é dúvida.
+O que a doc e a proposta da issue já dizem, siga. O que estiver em aberto, decida e registre ([Decisões de design](../../../docs/agentes.md#decisões-de-design)). Se a decisão mudaria algo marcado como Definido, pule a tarefa, comente na issue e escolha outra. Isso vai para um `/decida`, e a leva continua.
 
 ## 4. Executar
 
-Para cada tarefa da leva, siga a skill [orquestrar-tarefa](../orquestrar-tarefa/SKILL.md) (ficha, contrato primeiro, server e client em paralelo, revisor). O título "pedir aprovação" dessa skill não para esta leva: `/trabalhe` já decidiu. Antes de qualquer agente, puxe com `npm run tarefa -- puxar <N>` (skill [puxar-tarefa](../puxar-tarefa/SKILL.md)); tarefa já em andamento de outra pessoa: pule e avise (regra 15). Agentes só nas pastas da funcionalidade (regra 1); se precisar de `Core/` ou de outra funcionalidade, pare e avise.
+Para cada tarefa da leva, siga a skill [orquestrar-tarefa](../orquestrar-tarefa/SKILL.md) (ficha, contrato primeiro, server e client em paralelo, revisor). Essa skill não pede aprovação nesta leva: `/trabalhe` já decidiu. Antes de qualquer agente, puxe com `npm run tarefa -- puxar <N>` (skill [puxar-tarefa](../puxar-tarefa/SKILL.md)); tarefa já em andamento por outra pessoa: pule e registre no relatório (regra 15). A tarefa de Core fica com o agente de Core. Se uma funcionalidade exigir a pasta de outra, ou Core que a issue não pediu, comente na issue, deixe essa parte de fora e termine o que cabe na pasta dela.
 
 ## 5. Entregar
 
@@ -54,4 +54,4 @@ Cada tarefa vira um PR próprio, pela skill [preparar-pr](../preparar-pr/SKILL.m
 
 ## 6. Fechar a leva
 
-Você integra e limpa o que criou: `npm run limpar-agentes -- --aplicar`. Gargalo de processo que apareceu: corrija em PR pequeno ou registre com [registrar-licao](../registrar-licao/SKILL.md) (regra 16). Relatório final curto: PRs abertos (links), o que ficou de fora e por quê, pendências.
+Você integra e limpa o que criou: `npm run limpar-agentes -- --aplicar`. Gargalo de processo que apareceu: corrija em PR pequeno ou registre com [registrar-licao](../registrar-licao/SKILL.md) (regra 16). Relatório final curto: PRs abertos (links), o que ficou de fora e por quê, o que um `/decida` ainda precisa destravar. Merge continua humano: não peça para mergear.
