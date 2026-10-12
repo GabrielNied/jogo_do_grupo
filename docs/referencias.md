@@ -45,7 +45,7 @@ Ao definir um sistema novo, comece pela referência dele, descreva o que muda e 
 ### Elden Ring (FromSoftware, 2022)
 
 - **Famoso por:** cada golpe se lê no corpo (preparo, o instante em que encosta, recuperação) e o acerto segura a pose por um momento. Chefe se anuncia pela animação, não por um círculo solto.
-- **Pegar:** o dano no instante em que o modelo encosta; uma pausa visual curta nesse instante, só no client; o chefe conta o ataque com o corpo durante o aviso. Os números estão em [combate](features/combate.md#o-que-o-client-mostra-e-o-que-o-servidor-decide) e em [mobs](features/mobs.md#contato-do-golpe).
+- **Pegar:** o dano no instante em que o modelo encosta; uma pausa visual curta nesse instante, só no client; o chefe conta o ataque com o corpo durante o aviso; o acerto interrompe o golpe de um inimigo comum e segura a próxima ação por um instante. Os números estão em [combate](features/combate.md#reação-ao-acerto) e em [mobs](features/mobs.md#contato-do-golpe).
 - **Não pegar:** esquiva em que o dano some, quebra de postura do chefe, e o client decidir se o golpe acertou.
 
 ### Throne and Liberty (NCSoft / Amazon, 2024)

@@ -31,7 +31,7 @@ Tipos de mobs, comportamento por região e bosses com mecânicas marcantes.
 - [ ] O chefe raro some sozinho se ninguém o matar? Proposta atual: fica até morrer.
 - [ ] Dungeon tem chefe raro (um sorteio ao criar a instância)? As regras já servem; falta decidir.
 - [ ] Loot próprio do chefe raro (item que só ele larga): depende de [itens.md](itens.md).
-- [ ] As escolhas do servidor do inimigo comum (lista em "Inimigo comum da fatia"): o grupo perder o alvo de vista na desistência, o ataque ir até o fim, o golpe pegar todos no volume de contato e o inimigo ser imune na volta.
+- [ ] As escolhas do servidor do inimigo comum (lista em "Inimigo comum da fatia"): o grupo perder o alvo de vista na desistência, o golpe pegar todos no volume de contato e o inimigo ser imune na volta. O ataque ir até o fim quando o alvo foge, e ser cancelado por um acerto no preparo, ficou decidido em 2026-10-12.
 - [x] ~~O tamanho do grupo do campo é sorteado de novo a cada volta do grupo inteiro?~~ Sim (issue #452, proposta): veja "Mais mobs no campo".
 - [ ] Os pontos, níveis, tamanhos e as duas espécies novas (Lobo do Campo, Tatu Rochoso) de "Mais mobs no campo" são proposta do agente (issue #452): o dono confirma ou troca, alinhado ao bestiário ([#322](https://github.com/GabrielNied/jogo_do_grupo/issues/322)).
 
@@ -105,7 +105,7 @@ O que o servidor acrescentou ao implementar (issue #268; **proposta**, decidido 
 
 - **O grupo divide o que vê:** o jogador que um inimigo viu vale para todos, e é assim que o grupo acorda junto. Quem sai da área deixa de ser visto, e quando ninguém do grupo está em alerta, perseguindo ou atacando, o grupo esquece todos (quem voltou para longe não é perseguido pelo inimigo que reaparece).
 - **Desistência:** quando um inimigo passa dos 30 m e desiste, o grupo **perde o alvo dele de vista**; só volta a persegui-lo se alguém do grupo o vir de novo (a 12 m). Sem ninguém à vista, quem ainda perseguia também volta.
-- **O ataque vai até o fim:** depois do aviso, o inimigo dá o golpe e cumpre a recuperação mesmo que o alvo fuja ou saia da área. Só a morte interrompe.
+- **O ataque vai até o fim** se o alvo fugir: depois do aviso, o inimigo dá o golpe e cumpre a recuperação mesmo que o alvo saia da área. Um acerto de jogador no preparo cancela o golpe do inimigo comum; o chefe não é cancelado. A duração da reação está em [combate](combate.md#reação-ao-acerto).
 - **O golpe pega todos** os personagens que estão no volume de contato quando o preparo acaba, não só o alvo. Conta o centro do personagem (sem raio de corpo).
 - **Na volta ele é imune** ("Evade": o dano é recusado; revisto na issue #488, antes levava dano e chegava ferido). Também desiste quando passa 8 s perseguindo sem conseguir atacar (kite na borda do alcance; `ConfigInimigosDoCampo.LimiteSemAtacarSegundos`).
 - **Onde:** o centro do grupo fica em (0, 190), 150 m ao norte do portão (que está em (0, 40)), com os pontos de origem num círculo de 4 m de raio. O campo faz parte da área `cidade`. Este é o primeiro de vários pontos: veja "Mais mobs no campo" (o tamanho do grupo é sorteado de novo a cada reaparição). O comando de teste `spawn` ([Desenvolvimento](desenvolvimento.md)) acrescenta um inimigo a mais no maior grupo da área, sem esperar a volta.
