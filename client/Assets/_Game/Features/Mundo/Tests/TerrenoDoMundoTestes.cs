@@ -608,11 +608,17 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
                     Assert.AreEqual(MapaDoMundo.AlturaEm(v.x, v.z), v.y, 0.001f);
                 }
 
-                for (var t = 0; t < indices.Length; t += 3)
+                // Cada quadrado do remendo são dois triângulos (seis índices) e o centro do quadrado
+                // é que decide se ele abre o túnel: o centro de um triângulo solto não conta.
+                for (var t = 0; t < indices.Length; t += 6)
                 {
-                    var centro =
-                        (vertices[indices[t]] + vertices[indices[t + 1]] + vertices[indices[t + 2]])
-                        / 3f;
+                    var centro = Vector3.zero;
+                    for (var k = 0; k < 6; k++)
+                    {
+                        centro += vertices[indices[t + k]];
+                    }
+
+                    centro /= 6f;
                     Assert.IsFalse(
                         PrimeiraCaverna.FuraOTerreno(centro.x, centro.z),
                         "triângulo sobre o túnel"
