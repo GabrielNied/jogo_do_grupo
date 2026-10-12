@@ -193,7 +193,7 @@ Isso **complementa** o que já está definido em [itens.md](../features/itens.md
 
 **O que o board diz:** inimigos não escalam (o nível é fixo por região); aparecem em grupos grandes, com agro longo como no RYL (Risk Your Life: Path of the Emperor, MMORPG antigo); conhecimento acumulado ("quanto mais mata, mais fácil fica", pontos fracos); coleção de conhecimentos que pode liberar captura de pets.
 
-**Perguntas:** o conhecimento é por jogador ou da guilda? Pets lutam junto ou são só cosméticos? Quantos inimigos na tela ao mesmo tempo? (Isso mexe com o desempenho do servidor e do cliente.)
+**Perguntas:** o conhecimento é por jogador ou da guilda? Quantos inimigos na tela ao mesmo tempo? (Isso mexe com o desempenho do servidor e do cliente.) ~~Pets lutam junto ou são só cosméticos?~~ Decidido em 2026-10-12: o primeiro pet segue e não luta ([pets](../features/pets.md)).
 
 **Afeta:** Mobs, Combate, Personagem (pets).
 

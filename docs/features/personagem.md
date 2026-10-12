@@ -31,7 +31,7 @@ Decidido pelo grupo em 2026-10-10. É **provisório**: serve para implementar a 
 
 ## Regras puras de experiência (#136)
 
-`RegrasExperiencia` implementa a curva provisória da [fatia jogável, seção 6](fatia-jogavel.md#6-experiência-e-nível). Os ajustes ficam em [ConfigExperiencia](../../shared/Package/Runtime/Features/Personagem/ConfigExperiencia.cs): nível máximo, pontos por nível, base de XP e expoente da curva. Reduzir a base acelera a progressão; o expoente controla o crescimento do custo entre níveis.
+`RegrasExperiencia` implementa a curva decidida da [fatia jogável, seção 6](fatia-jogavel.md#6-experiência-e-nível). Os ajustes ficam em [ConfigExperiencia](../../shared/Package/Runtime/Features/Personagem/ConfigExperiencia.cs): nível máximo, pontos por nível, base de XP e expoente da curva. Reduzir a base acelera a progressão; o expoente controla o crescimento do custo entre níveis.
 
 `XpParaOProximoNivel` arredonda para o inteiro mais próximo (empates para longe de zero), inclusive ao consultar o nível máximo; nesse nível, o custo é apenas informativo. `AplicarGanho` recebe nível, XP dentro do nível e ganho; devolve nível, XP restante e pontos ganhos nessa aplicação. Pode subir vários níveis e guarda o excedente no teto. Ganho zero ou negativo preserva o estado; nível fora da faixa e XP acumulado negativo são recusados. XP usa `long`; soma acima da capacidade é recusada, sem truncamento.
 
@@ -57,7 +57,7 @@ O Humano provisório virou **Valdren** (decisão do Gabriel, 2026-10-11; mesmo v
 
 ## Nível, atributos e rotina (proposta do board, 2026-10-11)
 
-Do "Livro de ideias de Asterra" ([seções 10 e 09](../brainstorm/figjam.md#10--regras-da-primeira-versão)). **Proposta do board (2026-10-11), não validada pelo grupo**; nada disto está implementado e a curva provisória continua a da [fatia](fatia-jogavel.md#6-experiência-e-nível).
+Do "Livro de ideias de Asterra" ([seções 10 e 09](../brainstorm/figjam.md#10--regras-da-primeira-versão)). **Proposta do board (2026-10-11), não validada pelo grupo**, salvo o que a [fatia](fatia-jogavel.md#6-experiência-e-nível) e o [ritmo de progressão](#ritmo-de-progressão) já decidiram (nível 1 a 30 e 5 pontos por nível).
 
 - **Nível do personagem** é separado do nível e da raridade dos itens. Proposta: níveis 1 a 30 no MVP (igual à fatia), **5 pontos de atributo por nível**.
 - **Cinco atributos:** Força (golpes físicos pesados), Destreza (ataques ágeis e arco), Intelecto (magia), Vitalidade (vida e defesa), Espírito (cura, energia e apoio). Os efeitos numéricos ficam para [combate.md](combate.md) e [itens](itens.md).
@@ -67,31 +67,33 @@ Do "Livro de ideias de Asterra" ([seções 10 e 09](../brainstorm/figjam.md#10--
 - **Ataques, defesa e recursos** (golpe leve e pesado por arma, sem parry, bloqueio por defesa contra potência, 100 de vigor e de energia): pertencem a [combate.md](combate.md); o board repete os valores da fatia.
 - **Morte:** o board propõe 45 s caído, 3 s para levantar e 20% de vida, **iguais** à seção [Morte e caído](#morte-e-caído-issue-97). Novo: caído também pode ser levantado pela skill Hino do Recomeço ([skills.md](skills.md)).
 
-## Ritmo de progressão (proposta, #454)
+## Ritmo de progressão
 
-**Proposta, não validada pelo grupo.** Parte A da #454; o XP por diferença de nível do mob (depende da #452) e o client ficam para a parte B.
+Decidido em 2026-10-12. A curva já está em `ConfigExperiencia`; o teste `RitmoDeProgressaoTestes` falha se a curva, o XP do mob de referência ou o ritmo saírem da meta.
 
 **Meta de ritmo** (referência: jogador solo, 4 mobs comuns por minuto, 20 XP por mob como o Javali do Campo):
 
-- Nível 1 para 2 em até 1,5 minuto (hoje ~0,6).
-- Cada nível dos 10 primeiros demora mais que o anterior e no máximo 10 minutos (hoje de 0,6 a ~8,7).
-- Chegar ao nível 10 em 30 a 50 minutos (hoje ~40).
-- Nível 30 sai de ~37 minutos por nível; o jogo todo pede dezenas de horas.
+- Nível 1 para 2 em até 1,5 minuto.
+- Cada nível dos 10 primeiros demora mais que o anterior e no máximo 10 minutos.
+- Chegar ao nível 10 em 30 a 50 minutos.
+- O nível 30 pede dezenas de horas no total.
 
-**Curva calibrada:** XP do nível = arredondar(50 x nível^1,2) (era 100 x nível^1,7, lenta demais: nível 10 em mais de 5 horas de mobs). Os valores e a meta estão em `ConfigExperiencia`; o teste `RitmoDeProgressaoTestes` falha se a curva, o XP do mob de referência ou o ritmo saírem da meta. Mexeu na curva ou no XP do mob? Reconfira o teste.
+**Curva:** XP do nível = arredondar(50 × nível^1,2). Nível máximo da fatia: 30. Era 100 × nível^1,7, e o nível 10 passava de 5 horas só de mobs.
 
-**O que o nível dá (proposta):** 5 pontos de atributo por nível (já implementado). Vida, vigor e energia crescem só pelos pontos gastos (Vitalidade, Espírito) e pelos itens: o nível em si não dá bônus automático, para o poder vir da escolha e do item. Subir de nível também libera o orçamento de preparação de skills (+1 a cada 5 níveis, [skills.md](skills.md)).
+**O que o nível dá:** 5 pontos de atributo. Vida, vigor e energia crescem só pelos pontos gastos (Vitalidade, Espírito) e pelos itens. O nível em si não dá bônus. Os atributos não mudam o orçamento de preparação de skills; esse orçamento continua fora desta fatia ([skills.md](skills.md#preparação-de-skills-proposta-do-board-2026-10-11)).
 
-**Destreza e Intelecto:** ainda sem efeito (Combate só usa Força, Vitalidade e Espírito). Seguem na distribuição para não quebrar contrato e client; o jogador pode gastar neles sem ganho até Combate e Itens (#166) dar uso. **Decisão pendente do grupo:** manter assim ou recusar esses dois atributos até terem uso.
+**Destreza e Intelecto:** entram na distribuição e ainda não mudam o combate. O jogador pode gastar pontos neles. Recusar o gasto quebraria o contrato que já existe. O efeito chega quando Combate e Itens derem uso a esses atributos.
+
+**XP por diferença de nível (depois desta fatia):** nesta fatia o único mob comum é nível 3, então cada participante recebe o XP inteiro. Quando o mapa tiver mobs de vários níveis, a diferença é o nível do jogador menos o nível do mob: 0 ou negativa paga 100%; cada nível acima tira 20 pontos percentuais; 5 ou mais acima paga 0. Constantes nomeadas, fáceis de calibrar.
 
 ## Em aberto
 
 - [ ] Conflito livro x docs: o board pede **sem perda nenhuma na morte** (nem durabilidade) e esta doc já prevê isso só para a fatia; confirmar se vale para o jogo todo.
-- [ ] Conflito livro x docs: o board dá o **orçamento de skills de 12 pontos** com o nível (+1 a cada 5), mas ainda não diz se os atributos mudam o orçamento. Validar com o grupo.
+- [x] ~~O orçamento de skills muda com os atributos?~~ Decidido em 2026-10-12: não muda. O orçamento em si continua fora desta fatia.
 - [ ] Quais raças existem e qual a skill base de cada uma? (as raças definitivas substituem a raça provisória Humano) **Cinco raças em uso desde 2026-10-11 ([Raças propostas](#raças-propostas-no-board-2026-10-11)); a skill base de cada uma segue em [Skills](skills.md) (#341).**
 - [ ] ~~Quais raças e classes existem?~~ classes não existem mais (D2)
-- [ ] O que o nível dá ao personagem (atributos, espaços de skill, acesso a itens)? Proposta em [Ritmo de progressão](#ritmo-de-progressão-proposta-454).
-- [ ] Nível máximo e curva de progressão (proposta calibrada em [Ritmo de progressão](#ritmo-de-progressão-proposta-454))
+- [x] ~~O que o nível dá ao personagem?~~ Decidido em 2026-10-12: 5 pontos de atributo; ver [Ritmo de progressão](#ritmo-de-progressão).
+- [x] ~~Nível máximo e curva de progressão~~ Decidido em 2026-10-12: 30, e arredondar(50 × nível^1,2). Ver [Ritmo de progressão](#ritmo-de-progressão).
 - [ ] Aparência e customização na criação (rosto, corpo, cores...)?
 - [ ] Excluir personagem: pode? Tem confirmação (ex.: digitar o nome) ou tempo de espera antes de apagar de vez?
 - [ ] Renomear personagem: pode? Tem custo ou limite?

@@ -128,10 +128,10 @@ Quem decide: **servidor** (sorteio, dono, validação da coleta).
 
 Quem decide: **servidor** (concede e confere; cada prêmio vale uma vez).
 
-- Nível inicial 1; nível máximo da fatia **30** (**proposta**).
-- XP para o próximo nível = arredondar(50 x nível^1,2) (**proposta**, calibrada para a [meta de ritmo](personagem.md#ritmo-de-progressão-proposta-454); tabela ajustável).
-- XP vem de derrotar inimigos; quem **participou** (dano, cura, defesa) recebe, mesmo sem ser o dono do loot (**proposta**).
-- Cada nível dá **5 pontos** para distribuir nos atributos (**proposta**). O servidor valida: nunca gasta mais pontos do que ganhou.
+- Nível inicial 1; nível máximo da fatia **30** (decidido em 2026-10-12).
+- XP para o próximo nível = arredondar(50 × nível^1,2) (decidido em 2026-10-12; meta em [personagem](personagem.md#ritmo-de-progressão)).
+- XP vem de derrotar inimigos; quem **participou** (dano, cura, defesa) recebe o XP inteiro do mob, mesmo sem ser o dono do loot (decidido em 2026-10-12). A redução quando o jogador está vários níveis acima do mob espera o mapa ter mobs de vários níveis ([personagem](personagem.md#ritmo-de-progressão)).
+- Cada nível dá **5 pontos** para distribuir nos cinco atributos (decidido em 2026-10-12). O nível não aumenta vida, vigor nem energia sozinho. O servidor valida: nunca gasta mais pontos do que ganhou. Destreza e Intelecto aceitam pontos já; ainda não mudam o combate.
 - No nível máximo o XP excedente é guardado e não sobe de nível.
 - O client mostra barra de XP, nível e pontos a gastar.
 - **Testes esperados:** XP certo por nível; subir de nível dá os pontos; não gastar ponto inexistente; mesmo prêmio não concede XP duas vezes; teto de nível.
