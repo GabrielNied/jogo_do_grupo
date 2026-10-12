@@ -73,11 +73,21 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
         /// <summary>Quanto do caminho até o ambiente do lugar é percorrido por segundo.</summary>
         public const float Rapidez = 1.2f;
 
+        /// <summary>Distância do anel de clima até o jogador. A casca fica fora do corpo.</summary>
+        private const float RaioDoClimaMetros = 8f;
+
+        /// <summary>Tamanho de cada partícula, em metros.</summary>
+        private const float TamanhoDaParticulaMetros = 0.12f;
+
+        /// <summary>Teto do tamanho na tela, em fração da altura. O padrão do Unity chega a meia tela.</summary>
+        private const float TamanhoMaximoNaTela = 0.02f;
+
         private Light _sol;
         private Light _preenchimento;
         private Ambiente _atual;
         private bool _aplicado;
         private ParticleSystem _particulas;
+        private Material _materialDoClima;
         private EfeitoDoClima _efeitoAtual = EfeitoDoClima.Nenhum;
 
         /// <summary>Ambiente em volta da cidade (campo, mata e colinas): o que o jogo já tinha.</summary>
@@ -361,26 +371,23 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
             }
         }
 
+        private void OnDestroy()
+        {
+            if (_materialDoClima != null)
+            {
+                Destroy(_materialDoClima);
+            }
+        }
+
         private void AplicarEfeito(EfeitoDoClima efeito, Vector3 posicao)
         {
             if (_particulas == null)
             {
-                var objeto = new GameObject("EfeitoDoClima");
-                objeto.transform.SetParent(transform, false);
-                _particulas = objeto.AddComponent<ParticleSystem>();
-                var principal = _particulas.main;
-                principal.loop = true;
-                principal.playOnAwake = false;
-                principal.maxParticles = 40;
-                principal.simulationSpace = ParticleSystemSimulationSpace.World;
-                principal.startLifetime = 3f;
-                var emissao = _particulas.emission;
-                emissao.rateOverTime = 8f;
-                var forma = _particulas.shape;
-                forma.shapeType = ParticleSystemShapeType.Sphere;
-                forma.radius = 8f;
+                CriarParticulas();
             }
 
+            // O anel acompanha o lugar, para o clima aparecer onde a pessoa está.
+            // As partículas já soltas ficam no mundo (simulationSpace World).
             _particulas.transform.position = posicao + Vector3.up * 2f;
             if (efeito == _efeitoAtual)
             {
@@ -401,6 +408,40 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
             modulo.startSpeed = efeito == EfeitoDoClima.NeveCaindo ? 1.5f : 0.4f;
             modulo.gravityModifier = efeito == EfeitoDoClima.Brasa ? -0.3f : 0.2f;
             _particulas.Play();
+        }
+
+        private void CriarParticulas()
+        {
+            var objeto = new GameObject("EfeitoDoClima");
+            objeto.transform.SetParent(transform, false);
+            _particulas = objeto.AddComponent<ParticleSystem>();
+            var principal = _particulas.main;
+            principal.loop = true;
+            principal.playOnAwake = false;
+            principal.maxParticles = 40;
+            principal.simulationSpace = ParticleSystemSimulationSpace.World;
+            principal.startLifetime = 3f;
+            principal.startSize = TamanhoDaParticulaMetros;
+            var emissao = _particulas.emission;
+            emissao.rateOverTime = 8f;
+            var forma = _particulas.shape;
+            forma.shapeType = ParticleSystemShapeType.Sphere;
+            forma.radius = RaioDoClimaMetros;
+            // 0 emite só na casca. O volume inteiro nascia dentro do corpo.
+            forma.radiusThickness = 0f;
+
+            var renderizador = _particulas.GetComponent<ParticleSystemRenderer>();
+            renderizador.maxParticleSize = TamanhoMaximoNaTela;
+            var shader = Shader.Find("Universal Render Pipeline/Particles/Unlit");
+            if (shader != null)
+            {
+                _materialDoClima = new Material(shader);
+                renderizador.material = _materialDoClima;
+            }
+
+            // AddComponent já dispara o playOnAwake padrão, antes da linha que o desliga.
+            // Na cidade o efeito já é Nenhum, então o desligamento de baixo não rodaria.
+            _particulas.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
         }
 
         private static Color CorDoEfeito(EfeitoDoClima efeito)
