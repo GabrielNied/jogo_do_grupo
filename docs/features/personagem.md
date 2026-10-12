@@ -57,12 +57,12 @@ O Humano provisório virou **Valdren** (decisão do Gabriel, 2026-10-11; mesmo v
 
 ## Nível, atributos e rotina (proposta do board, 2026-10-11)
 
-Do "Livro de ideias de Asterra" ([seções 10 e 09](../brainstorm/figjam.md#10--regras-da-primeira-versão)). **Proposta do board (2026-10-11), não validada pelo grupo**, salvo o que a [fatia](fatia-jogavel.md#6-experiência-e-nível) e o [ritmo de progressão](#ritmo-de-progressão) já decidiram (nível 1 a 30 e 5 pontos por nível).
+Do "Livro de ideias de Asterra" ([seções 10 e 09](../brainstorm/figjam.md#10--regras-da-primeira-versão)). **Proposta do board (2026-10-11), não validada pelo grupo**, salvo o nível máximo e a origem dos atributos, decididos na [fatia](fatia-jogavel.md#6-experiência-e-nível).
 
-- **Nível do personagem** é separado do nível e da raridade dos itens. Proposta: níveis 1 a 30 no MVP (igual à fatia), **5 pontos de atributo por nível**.
-- **Cinco atributos:** Força (golpes físicos pesados), Destreza (ataques ágeis e arco), Intelecto (magia), Vitalidade (vida e defesa), Espírito (cura, energia e apoio). Os efeitos numéricos ficam para [combate.md](combate.md) e [itens](itens.md).
+- **Nível do personagem** é separado do nível e da raridade dos itens. O teto é **100**. Subir de nível não dá ponto de atributo.
+- **Cinco atributos**, só nos itens: Força (dano físico), Destreza (vigor e regeneração de vigor), Intelecto (dano mágico), Vitalidade (vida), Espírito (energia e regeneração de energia). Os números estão na [fatia, seção 1](fatia-jogavel.md#1-atributos-e-recursos).
 - **Fontes de XP:** derrotar inimigos, explorar pontos novos, coletar, produzir receitas e concluir objetivos.
-- **Skills não são aprendidas:** subir de nível mexe em atributos e no **orçamento de preparação** (12 pontos iniciais, +1 a cada 5 níveis); as skills continuam dos itens ([skills.md](skills.md#preparação-de-skills-proposta-do-board-2026-10-11)).
+- **Skills não são aprendidas:** continuar dos itens. O orçamento de preparação segue fora desta fatia ([skills.md](skills.md#preparação-de-skills-proposta-do-board-2026-10-11)). Os atributos não mudam esse orçamento.
 - **Rotina:** "três builds" de exemplo, bestiário (registro por observação, cervo jovem como primeiro companheiro) e o ciclo preparar, explorar, voltar: veja a [seção 09](../brainstorm/figjam.md#09--personagem-cooperação-e-rotina). O bestiário e a captura não têm funcionalidade dona ainda.
 - **Ataques, defesa e recursos** (golpe leve e pesado por arma, sem parry, bloqueio por defesa contra potência, 100 de vigor e de energia): pertencem a [combate.md](combate.md); o board repete os valores da fatia.
 - **Morte:** o board propõe 45 s caído, 3 s para levantar e 20% de vida, **iguais** à seção [Morte e caído](#morte-e-caído-issue-97). Novo: caído também pode ser levantado pela skill Hino do Recomeço ([skills.md](skills.md)).
@@ -71,20 +71,20 @@ Do "Livro de ideias de Asterra" ([seções 10 e 09](../brainstorm/figjam.md#10--
 
 Decidido em 2026-10-12. A curva já está em `ConfigExperiencia`; o teste `RitmoDeProgressaoTestes` falha se a curva, o XP do mob de referência ou o ritmo saírem da meta.
 
-**Meta de ritmo** (referência: jogador solo, 4 mobs comuns por minuto, 20 XP por mob como o Javali do Campo):
+**Meta de ritmo** (referência: jogador solo, 4 mobs por minuto, 20 XP cheios, mob do mesmo nível ou mais forte):
 
 - Nível 1 para 2 em até 1,5 minuto.
 - Cada nível dos 10 primeiros demora mais que o anterior e no máximo 10 minutos.
 - Chegar ao nível 10 em 30 a 50 minutos.
-- O nível 30 pede dezenas de horas no total.
+- O teto 100 usa a mesma curva. Não há meta de minutos para o nível 100.
 
-**Curva:** XP do nível = arredondar(50 × nível^1,2). Nível máximo da fatia: 30. Era 100 × nível^1,7, e o nível 10 passava de 5 horas só de mobs.
+**Curva:** XP do nível = arredondar(50 × nível^1,2). Nível máximo: **100**. A curva dos primeiros níveis não muda. Era 100 × nível^1,7, e o nível 10 passava de 5 horas só de mobs do mesmo nível.
 
-**O que o nível dá:** 5 pontos de atributo. Vida, vigor e energia crescem só pelos pontos gastos (Vitalidade, Espírito) e pelos itens. O nível em si não dá bônus. Os atributos não mudam o orçamento de preparação de skills; esse orçamento continua fora desta fatia ([skills.md](skills.md#preparação-de-skills-proposta-do-board-2026-10-11)).
+**O que o nível dá:** nada de atributo. Vida, vigor, energia e dano crescem pelos itens. O nível em si não dá bônus. Os atributos não mudam o orçamento de preparação de skills; esse orçamento continua fora desta fatia ([skills.md](skills.md#preparação-de-skills-proposta-do-board-2026-10-11)).
 
-**Destreza e Intelecto:** entram na distribuição e ainda não mudam o combate. O jogador pode gastar pontos neles. Recusar o gasto quebraria o contrato que já existe. O efeito chega quando Combate e Itens derem uso a esses atributos.
+**XP por diferença de nível** (decidido em 2026-10-12): a diferença é o nível do jogador menos o nível do mob. 0 ou negativa paga 100%. Cada nível acima tira 20 pontos percentuais. 5 ou mais acima paga 0. Quem participou recebe essa parcela, não o valor cheio. A meta de ritmo acima vale contra mob do mesmo nível ou mais forte. O Javali do Campo é nível 3: a partir do nível 8 do jogador ele não dá XP. Constantes nomeadas, fáceis de calibrar.
 
-**XP por diferença de nível (depois desta fatia):** nesta fatia o único mob comum é nível 3, então cada participante recebe o XP inteiro. Quando o mapa tiver mobs de vários níveis, a diferença é o nível do jogador menos o nível do mob: 0 ou negativa paga 100%; cada nível acima tira 20 pontos percentuais; 5 ou mais acima paga 0. Constantes nomeadas, fáceis de calibrar.
+O código ainda concede 5 pontos e para no nível 30 (`ConfigExperiencia`). A #454 alinha o teto, tira o ponto por nível e aplica a diferença. A rota de gastar pontos fica; com zero pontos livres, o gasto é recusado.
 
 ## Em aberto
 
@@ -92,8 +92,8 @@ Decidido em 2026-10-12. A curva já está em `ConfigExperiencia`; o teste `Ritmo
 - [x] ~~O orçamento de skills muda com os atributos?~~ Decidido em 2026-10-12: não muda. O orçamento em si continua fora desta fatia.
 - [ ] Quais raças existem e qual a skill base de cada uma? (as raças definitivas substituem a raça provisória Humano) **Cinco raças em uso desde 2026-10-11 ([Raças propostas](#raças-propostas-no-board-2026-10-11)); a skill base de cada uma segue em [Skills](skills.md) (#341).**
 - [ ] ~~Quais raças e classes existem?~~ classes não existem mais (D2)
-- [x] ~~O que o nível dá ao personagem?~~ Decidido em 2026-10-12: 5 pontos de atributo; ver [Ritmo de progressão](#ritmo-de-progressão).
-- [x] ~~Nível máximo e curva de progressão~~ Decidido em 2026-10-12: 30, e arredondar(50 × nível^1,2). Ver [Ritmo de progressão](#ritmo-de-progressão).
+- [x] ~~O que o nível dá ao personagem?~~ Decidido em 2026-10-12: nenhum ponto de atributo; os atributos vêm dos itens. Ver [Ritmo de progressão](#ritmo-de-progressão).
+- [x] ~~Nível máximo e curva de progressão~~ Decidido em 2026-10-12: 100, e arredondar(50 × nível^1,2). Ver [Ritmo de progressão](#ritmo-de-progressão).
 - [ ] Aparência e customização na criação (rosto, corpo, cores...)?
 - [ ] Excluir personagem: pode? Tem confirmação (ex.: digitar o nome) ou tempo de espera antes de apagar de vez?
 - [ ] Renomear personagem: pode? Tem custo ou limite?
@@ -289,7 +289,7 @@ API HTTP para listar e criar personagens (por que HTTP: [ADR 0009](../decisoes/0
 
 ### Experiência, nível e pontos de atributo (#65, contrato da #299)
 
-Regras na [fatia jogável, seção 6](fatia-jogavel.md#6-experiência-e-nível). O servidor concede a experiência, sobe o nível e gasta os pontos; o client só mostra e pede. ~~Este é o contrato; o servidor (#356) e o client (#357) vêm depois.~~ O servidor (#356, 11/10/2026) concede a experiência de `InimigoDerrotado` e gasta os pontos. O client (#357) mostra a barra e a tela de atributos (tecla C) e só envia o gasto.
+Regras na [fatia jogável, seção 6](fatia-jogavel.md#6-experiência-e-nível). O servidor concede a experiência e sobe o nível; o client só mostra. Subir de nível não dá ponto de atributo (decidido em 2026-10-12). O contrato abaixo ainda descreve o gasto de pontos, que a #454 deixa sem pontos livres. ~~Este é o contrato; o servidor (#356) e o client (#357) vêm depois.~~ O servidor (#356, 11/10/2026) concede a experiência de `InimigoDerrotado` e gasta os pontos. O client (#357) mostra a barra e a tela de atributos (tecla C) e só envia o gasto.
 
 | ID ou rota | Nome | Direção | Campos |
 |---|---|---|---|

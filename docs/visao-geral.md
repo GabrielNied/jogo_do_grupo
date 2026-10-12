@@ -30,7 +30,7 @@ Candidatos que aparecem no brainstorm, ainda a validar:
 
 ## Ideias ainda não confirmadas
 
-Sugestões que ainda não entraram no board: progressão de endgame, lore, eventos (world bosses, sazonais), monetização, customização de aparência, moradia (housing), facções. ~~Montarias e pets~~ saíram desta lista em 2026-10-12: a primeira montaria está em [montarias](features/montarias.md) e o primeiro pet em [pets](features/pets.md). O nível máximo da fatia (30) está em [personagem](features/personagem.md#ritmo-de-progressão).
+Sugestões que ainda não entraram no board: progressão de endgame, lore, eventos (world bosses, sazonais), monetização, customização de aparência, moradia (housing), facções. ~~Montarias e pets~~ saíram desta lista em 2026-10-12: a primeira montaria está em [montarias](features/montarias.md) e o primeiro pet em [pets](features/pets.md). O nível máximo (100) está em [personagem](features/personagem.md#ritmo-de-progressão).
 
 ## Plataforma
 

@@ -12,8 +12,8 @@ A pessoa chama uma montaria, anda mais rápido e desce. O servidor decide a posi
 
 Decidido em 2026-10-12, a partir da proposta da #160:
 
-- Uma montaria nesta primeira versão. Montar e desmontar no mundo aberto e na cidade.
-- Em combate a montaria vai embora. Não se ataca de cima dela.
+- Uma montaria nesta primeira versão. Montar e desmontar no mundo aberto e na cidade, no estilo do World of Warcraft: ela aumenta a velocidade e não luta.
+- Entrar em combate ou levar dano não desmonta. Começar um ataque ou uma skill desmonta. Não se ataca de cima dela.
 - A velocidade é **9 m/s** (`VelocidadeDaMontariaMetrosPorSegundo`), acima da corrida de 5,5 m/s. Desmontar volta à corrida. O servidor só aceita esse teto enquanto a pessoa está montada.
 - Desconectar desmonta. Quem está na cidade vê o outro montado.
 - Fora desta versão: estábulo, várias montarias, personalização, montaria que luta e voo.

@@ -12,18 +12,18 @@ Craft e coleta, conectados à economia.
 
 - Profissões separadas de talentos.
 - Cada profissão se conecta à economia.
-- Decidido em 2026-10-12, a partir da proposta do board: seis profissões. Coleta: Lenhador, Minerador e Curtidor. Produção: Ferreiro, Alquimista e Cozinheiro. Um personagem pode aprender as três de coleta e duas das três de produção. Trocar qual produção está aprendida fica para outra tarefa. Fora da [fatia jogável](fatia-jogavel.md#fora-desta-fatia).
+- Decidido em 2026-10-12: seis profissões, no estilo do World of Warcraft (coleta separada de produção) e sem limite por personagem, como no New World. Coleta: Lenhador, Minerador e Curtidor. Produção: Ferreiro, Alquimista e Cozinheiro. Um personagem pode aprender as seis. Fora da [fatia jogável](fatia-jogavel.md#fora-desta-fatia).
 
 ## Em aberto
 
-- [x] ~~Quais profissões existem, e quantas por personagem?~~ Decidido em 2026-10-12: seis, com o limite acima.
+- [x] ~~Quais profissões existem, e quantas por personagem?~~ Decidido em 2026-10-12: as seis, todas no mesmo personagem.
 - [ ] Saciedade, receitas e a forja da cidade continuam proposta do board (abaixo). A fome fica fora da fatia.
 
 ## Regras
 
 ### Proposta do board (2026-10-11)
 
-Os seis nomes e o limite por personagem estão em Definido. O resto desta seção (materiais, saciedade, receitas e forja) continua **não validado** (seção 08 do [Livro de ideias](../brainstorm/figjam.md#asterra--livro-de-ideias-do-jogo)):
+Os seis nomes estão em Definido, e o personagem pode aprender todos. O resto desta seção (materiais, saciedade, receitas e forja) continua **não validado** (seção 08 do [Livro de ideias](../brainstorm/figjam.md#asterra--livro-de-ideias-do-jogo)):
 
 | Profissão | Papel proposto |
 |---|---|
