@@ -62,3 +62,9 @@ Formato: `### AAAA-MM-DD · título` com **O que houve**, **Regra** e **Origem**
 - **O que houve:** três execuções seguidas do Client (Unity) na `main` (e uma de PR) morreram com `Killed` / exit 137 segundos depois de ativar a licença, sem compilar nada. Cada uma coincidiu com outro job do Unity rodando: a licença Personal é uma só. Uma pendência "Client falhou na main" chegou a ser corrigida com mudança de código enquanto a causa da falha seguinte era essa.
 - **Regra:** um Unity por vez no repositório (grupo de concorrência `client-unity-licenca` no `client.yml`, [ADR 0019](decisoes/0019-unity-no-ci.md)). Falha com `Killed`/137 logo após a licença não é erro de código: confira se havia outro job do Unity ao mesmo tempo antes de mexer no client.
 - **Origem:** issue #529.
+
+### 2026-10-12 · `dotnet test` preso na telemetria na nuvem
+
+- **O que houve:** no `/trabalhe` das #489 e #493, o primeiro `dotnet test` do agente de Itens ficou parado tentando enviar telemetria do .NET, que o proxy da nuvem bloqueia, e estourou o tempo do comando; a rodada teve de ser refeita.
+- **Regra:** as sessões de agente rodam com `DOTNET_CLI_TELEMETRY_OPTOUT=1` e `DOTNET_NOLOGO=1` (bloco `env` do [.claude/settings.json](../.claude/settings.json)), como o CI já faz no `server.yml`. Em outra ferramenta de IA na nuvem, exporte as duas antes do primeiro `dotnet`.
+- **Origem:** relato do agente de Itens no PR #540.
