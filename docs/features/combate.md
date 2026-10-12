@@ -25,7 +25,7 @@ Cálculo de dano, seleção de alvo e efeitos de status. Usado por PvE e PvP.
 ## Em aberto
 
 - [x] ~~Combate com alvo fixo (tab target) ou mira livre (action)?~~ Decidido: action (D4)
-- [ ] Ataque leve e pesado, bloqueio, stamina: quais entram na fatia jogável?
+- [x] ~~Ataque leve e pesado, bloqueio, stamina: quais entram na fatia jogável?~~ Decidido em 2026-10-12: entram a cadeia de três leves, o pesado e o vigor (esquiva e pesado). O bloqueio da fatia continua o da defesa do equipamento ([abaixo](#ritmo-do-golpe-new-world)), não a guarda segurada.
 - [ ] **Troca de arma** (duas armas, como New World e Throne and Liberty)? Veja S10 na [validação](../brainstorm/validacao.md)
 - [x] ~~Bosses com ataques telegrafados?~~ Decidido em 2026-10-10: sim (veja "Definido")
 - [ ] Como o servidor valida acertos com a latência (lag compensation)? Decidido pelo Gabriel em 2026-10-11 **para a fatia**: sem compensação de lag (o cone é medido no momento do acerto, com a posição que o servidor tem). Depois da fatia a pergunta segue aberta (issue #172).
@@ -40,7 +40,7 @@ Vêm do [Livro de ideias](../brainstorm/figjam.md) (seção 10). São **proposta
 
 - [x] **Bloqueio por defesa, adotado em 2026-10-11 (/decida, #344), fácil de mudar:** sem parry nem janela de timing. Defesa >= 1,5x a potência de bloqueio do golpe anula o dano direto; abaixo disso reduz proporcionalmente, até 80%. Os dois números ficam em constantes nomeadas. O client avisa defesa insuficiente. Proposta original do livro: (sem parry nem janela de timing): com defesa de pelo menos 1,5x a potência de bloqueio do golpe, anula o dano direto; abaixo disso reduz proporcionalmente, até 80%. Responde em parte à pergunta de bloqueio acima. Depende da defesa (equipamento, [itens.md](itens.md)); o dano recebido hoje não tem defesa (`ServicoDeDanoRecebido.DanoFinal`).
 - [x] **Sem defesa de timing, adotado em 2026-10-11 (#344):** a "defesa que abre oportunidade" fica de fora. O livro rejeita parry e bloqueio perfeito. **Conflito leve** com a sugestão "defesa que abre oportunidade" (bloquear no timing certo desequilibra o inimigo), que está só em "Sugestões para discussão" do board.
-- [ ] **Esquiva sem invulnerabilidade:** coincide com o que já vale (seção 3 da [fatia](fatia-jogavel.md)); o livro só reforça.
+- [x] ~~**Esquiva sem invulnerabilidade:**~~ Confirmado em 2026-10-12, junto com o ritmo do New World: continua sem invulnerabilidade (seção 3 da [fatia](fatia-jogavel.md)). A esquiva do New World, com janela em que o dano some, não entra.
 - [ ] **Ataques básicos por arma** (espada corta, martelo varre, arco com disparo ou tiro carregado, cajado com pulso ou projétil ampliado): hoje só a espada existe. Outras armas entram com [itens.md](itens.md).
 - [ ] **Mira e volumes de acerto:** mouse direciona golpes, projéteis e áreas, sem seleção automática obrigatória; a área visível da skill deve ser a área real de acerto; volumes generosos (cone, faixa, círculo). Coerente com o cone de 90° já implementado; vale como critério para as skills.
 - [ ] **Movimentos além de correr e esquivar:** pulo, natação e escalada (proposta de escalada em superfícies e bordas do mapa; rios cruzados a nado, com gelo como alternativa). Dono: [personagem.md](personagem.md) e [mundo.md](mundo.md).
@@ -50,6 +50,19 @@ Vêm do [Livro de ideias](../brainstorm/figjam.md) (seção 10). São **proposta
 - [ ] **Combos** (sugestão do topo do board): uma skill prepara e outra finaliza; segue como proposta (e skills fortes, veja acima). Ficam em [skills.md](skills.md).
 
 ## Regras
+
+### Ritmo do golpe (New World)
+
+Decidido em 2026-10-12. Os números e a cadeia moram na [seção 2 da fatia](fatia-jogavel.md#2-um-ataque-primeira-arma-leve-e-pesado). Aqui fica o que o New World sugere e **não** entra, para a implementação não copiar o jogo inteiro:
+
+- **Esquiva com invulnerabilidade.** No New World o dano some numa janela curta. Aqui a esquiva só evita se a pessoa sair da área a tempo.
+- **Guarda segurada e guarda quebrada.** No New World segurar o bloqueio gasta vigor conforme o golpe. Aqui o bloqueio é a defesa do equipamento ([#344](https://github.com/GabrielNied/jogo_do_grupo/issues/344)): sem parry e sem janela de timing.
+- **Duas armas e três skills por arma.** Ficam fora desta fatia (troca de arma ainda em aberto; skills nos itens).
+
+Para implementar sem refazer a leitura:
+
+- A cadeia, o multiplicador do 3º leve e o teto de giro são contas em `RegrasAtaque`. No acerto, a direção é a `RotacaoY` que o Mundo já guarda em `PosicaoNoMundo`, limitada pelo giro desde a direção do início do preparo. Sem mensagem nova e sem biblioteca.
+- Andar a 40% durante o golpe **não** usa `IDeslocamentosDoMundo.AbrirJanela`: essa janela libera um deslocamento mais rápido (é a esquiva). O teto menor é outra operação no contrato do Mundo (`Contratos/Mundo/`), chamada pelo Combate. Sem referência de assembly entre as funcionalidades.
 
 ## Depende de
 
@@ -113,7 +126,7 @@ Esquiva (tempo real; regras e números em [fatia-jogavel.md](fatia-jogavel.md), 
 - O servidor recebe `IntencaoDeEsquiva`, confere e cobra **15 de vigor uma vez** (mesma transação do ataque) e só então pede ao Mundo a janela de deslocamento (`IDeslocamentosDoMundo`: 5 m em 0,6 s). Quem valida cada posição continua sendo o Mundo; fora da janela vale o limite de corrida.
 - Quem recebe: `EsquivaIniciada` vai a todos que estão na área (o dono também); `EsquivaRecusada` e `RecursosMudaram` só ao dono.
 - Recusas: `VigorInsuficiente` (nada é gasto), `VoceEstaCaido` e `AcaoEmAndamento`.
-- **Ataque e esquiva não valem ao mesmo tempo:** a esquiva é recusada durante um ataque (do começo ao fim da recuperação) e durante outra esquiva; o ataque pedido durante a esquiva é recusado com `AcaoEmAndamento`, sem entrar na fila. De dois pedidos no mesmo instante, um vale. A esquiva **não cancela** o preparo de um ataque (proposta; a pergunta segue aberta na #62).
+- **Ataque e esquiva não valem ao mesmo tempo:** a esquiva é recusada durante um ataque (do começo ao fim da recuperação) e durante outra esquiva; o ataque pedido durante a esquiva é recusado com `AcaoEmAndamento`, sem entrar na fila. De dois pedidos no mesmo instante, um vale. A esquiva **não cancela** o preparo de um ataque (decidido em 2026-10-12; a #62 já está fechada).
 - Direção inválida ou esquiva de quem ainda não entrou no mundo: o pedido é descartado sem resposta, como no ataque.
 - Parede: o servidor ainda não conhece a geometria; valida distância, velocidade e os limites do mundo. Colisão com parede fica no client até o servidor ter o mapa.
 

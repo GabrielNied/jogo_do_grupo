@@ -13,7 +13,7 @@ Regras mínimas para jogar o [primeiro marco](../visao-geral.md#primeiro-marco-f
 Decidido pelo grupo em 2026-10-11 ([ADR 0030](../decisoes/0030-processo-v2-dono-da-funcionalidade.md)). Tarefa de jogo nova sai daqui, com no máximo 3 funcionalidades em andamento:
 
 1. **Mais mobs no mapa:** grupos de inimigos espalhados pela área, com respawn, para o jogador sempre ter o que enfrentar (seção 4 abaixo e [mobs](mobs.md)).
-2. **Combate mais refinado:** ataque leve e pesado, esquiva, telegrafia e resposta visual de acerto com sensação boa (seções 2 e 3 abaixo e [combate](combate.md)).
+2. **Combate mais refinado:** cadeia de leves e pesado no ritmo do New World, esquiva, telegrafia e resposta visual de acerto (seções 2 e 3 abaixo e [combate](combate.md)).
 3. **Progressão balanceada:** XP por mob e por nível que faça subir de nível num ritmo bom, e itens que melhoram de fato (seções 5 e 6 abaixo, [personagem](personagem.md) e [itens](itens.md)).
 
 O ciclo que o marco precisa fechar: sair do hub, enfrentar mobs, ganhar XP e loot, subir de nível e sentir o personagem mais forte.
@@ -74,14 +74,17 @@ Quem decide: **servidor** (calcula, valida e envia o resultado; o client só mos
 Quem decide: **servidor** (acerto, dano, custo). O client envia a intenção (leve ou pesado, com a direção da mira) e toca a animação.
 
 - Primeira arma: **espada**, com ataque **leve** (corte rápido, sem custo) e **pesado** (corte lento, gasta vigor). Valores iniciais, **proposta a calibrar**: leve 0,5 s de preparo, dano 1,0x; pesado 1,0 s de preparo, dano 2,2x, custo 20 de vigor, recuperação maior.
+- **Cadeia de leves** (decidido em 2026-10-12, ritmo da espada do New World, fácil de mudar): três leves seguidos. O 1º e o 2º ficam em 1,0x; o 3º em **1,2x**. O pesado no lugar de qualquer passo usa o 2,2x e a cadeia volta ao 1º. A cadeia também volta ao 1º se o próximo golpe não começar em até **0,8 s** depois que a ação anterior acaba. Errar o alvo não quebra a cadeia: o passo sobe quando a ação começa. Constantes em `RegrasAtaque`: `PassosDaCadeiaLeve`, `MultiplicadorDoTerceiroLeve`, `JanelaDaCadeiaSegundos`.
 - Cada ataque tem preparo, momento de acerto e recuperação; o dano só vale no momento de acerto, dentro do volume do golpe (cone à frente, alcance curto).
+- **Compromisso** (decidido em 2026-10-12): durante preparo e recuperação o personagem anda a no máximo **40%** da corrida (`VelocidadeDuranteGolpe`). A esquiva **não cancela** o golpe; pedi-la no meio da ação é recusada.
+- **Mira** (decidido em 2026-10-12): o cone usa a direção que o personagem olha no momento do acerto, limitada pelo giro desde o início do preparo. Leve até **240°/s**, pesado até **60°/s** (`GiroMaximoLeveGrausPorSegundo`, `GiroMaximoPesadoGrausPorSegundo`). Sem alvo fixo.
 - O mesmo golpe **não acerta o mesmo alvo duas vezes**; acerta vários alvos no volume.
 - Pedir novo ataque durante a ação espera o fim dela (fila de 1 pedido, descartado se passar de 0,3 s, **proposta**).
 - Sem vigor suficiente, o pesado é recusado (o leve sempre pode).
 - Valores que faltavam para implementar, **proposta a calibrar** (constantes em `RegrasAtaque`, no shared): recuperação de 0,3 s no leve e 0,6 s no pesado; dano do golpe = (dano da espada 20 + 2 por ponto de Força) x o multiplicador do ataque, arredondado; o volume é medido no plano do chão (a altura não conta, então por enquanto o pulo não tira ninguém do golpe).
 - As skills dos itens ficam fora desta seção (veja [skills.md](skills.md) e [itens.md](itens.md)).
-- Base: New World. Igual: leve e pesado, sem parry. Diferente: só uma arma na fatia.
-- **Testes esperados:** acerto único por golpe e alvo; vários alvos no volume; pesado recusado sem vigor; fila de ataque; dano calculado só no servidor.
+- Base: New World. Igual: cadeia de leves, pesado que pesa, vigor na esquiva e no pesado, sem parry. Diferente: esquiva sem invulnerabilidade, bloqueio pela defesa do equipamento (não segurando a guarda) e só uma arma na fatia. O que fica de fora está em [combate](combate.md#ritmo-do-golpe-new-world).
+- **Testes esperados:** acerto único por golpe e alvo; vários alvos no volume; pesado recusado sem vigor; fila de ataque; dano calculado só no servidor; o 3º leve usa 1,2x e o 4º volta a 1,0x; pesado no meio da cadeia volta a cadeia ao 1º; cadeia expira em 0,8 s; durante o golpe o deslocamento não passa de 40% da corrida e a esquiva é recusada; o giro do pesado não passa de 60° no 1 s de preparo.
 
 ### 3. Esquiva
 
