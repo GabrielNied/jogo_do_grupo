@@ -40,6 +40,16 @@ namespace JogoDoGrupo.Client.Features.Combate
             meuPersonagemId != 0 && atacanteId == meuPersonagemId;
 
         /// <summary>
+        /// Onde o número de dano está no mundo: sobe de <paramref name="origem"/> (sobre a cabeça do
+        /// alvo) até <paramref name="subidaMetros"/> acima, conforme o <paramref name="progresso"/> (0 a 1).
+        /// </summary>
+        public static UnityEngine.Vector3 PosicaoDoNumero(
+            UnityEngine.Vector3 origem,
+            float progresso,
+            float subidaMetros
+        ) => origem + UnityEngine.Vector3.up * (subidaMetros * progresso);
+
+        /// <summary>
         /// Gira o corpo de <paramref name="atual"/> em direção à mira sem passar do teto do
         /// ataque (<see cref="RegrasAtaque.GiroMaximoGrausPorSegundo"/>), como o servidor mede o
         /// cone no acerto. O resultado fica entre 0 e 360 graus.

@@ -38,11 +38,17 @@ namespace JogoDoGrupo.Client.Features.Combate
         public const float IntervaloDoAlertaSegundos = 1.2f;
         public const string TextoEsquivou = "Esquivou!";
         public const string TextoSaiaDaArea = "Saia da área!";
-        public const string NomeDoInimigo = "Inimigo ";
 
         private static readonly int CorBase = Shader.PropertyToID("_BaseColor");
         private static readonly int CorSimples = Shader.PropertyToID("_Color");
         private static readonly Color CorDoFlash = new Color(2f, 2f, 2f, 1f);
+
+        private sealed class PausaDePose
+        {
+            public Animator Animator;
+            public float Restante;
+            public float Velocidade;
+        }
 
         private sealed class Reacao
         {
@@ -57,6 +63,7 @@ namespace JogoDoGrupo.Client.Features.Combate
         private readonly DetectorDeEsquiva _detector = new DetectorDeEsquiva();
         private readonly List<IDisposable> _assinaturas = new List<IDisposable>();
         private readonly List<Reacao> _reacoes = new List<Reacao>();
+        private readonly List<PausaDePose> _pausas = new List<PausaDePose>();
         private readonly Dictionary<SomDeCombate, AudioClip> _clipes =
             new Dictionary<SomDeCombate, AudioClip>();
         private MaterialPropertyBlock _bloco;
@@ -64,7 +71,6 @@ namespace JogoDoGrupo.Client.Features.Combate
         private long _personagemId;
         private PainelImpacto _painel;
         private AudioSource _fonte;
-        private TipoDeAtaque _tipoProprio = TipoDeAtaque.Leve;
         private int? _vidaAnterior;
         private float _vinheta;
         private float _proximoAlerta;
@@ -116,7 +122,11 @@ namespace JogoDoGrupo.Client.Features.Combate
             );
         }
 
-        private void OnDisable() => Descongelar();
+        private void OnDisable()
+        {
+            Descongelar();
+            SoltarPoses(true);
+        }
 
         private void OnDestroy()
         {
@@ -146,6 +156,7 @@ namespace JogoDoGrupo.Client.Features.Combate
         {
             var dt = Time.unscaledDeltaTime;
             _limite.Atualizar(dt);
+            SoltarPoses(false);
 
             var congelar = ConfiguracaoDeImpacto.HitStopLigado && _limite.HitStopRestante > 0f;
             if (congelar && !_congelado)
@@ -215,6 +226,71 @@ namespace JogoDoGrupo.Client.Features.Combate
             }
         }
 
+        /// <summary>
+        /// Retorno do golpe do próprio jogador que o servidor não confirmou (errou o alvo): o rastro
+        /// no chão, no volume do golpe, e o som de ar cortado.
+        /// </summary>
+        public void GolpeNoVazio(Vector3 pes, float direcaoYGraus)
+        {
+            RastroDoGolpe.Criar(pes, direcaoYGraus);
+            Tocar(SomDeCombate.GolpeNoVazio, 0.5f);
+        }
+
+        // Segura a pose de quem tem Animator por RegrasReacao.PausaVisualNoAcertoMs. O relógio do
+        // servidor não para: é só a sensação de contato.
+        private void SegurarPose(GameObject objeto)
+        {
+            if (objeto == null || !ConfiguracaoDeImpacto.HitStopLigado)
+            {
+                return;
+            }
+
+            var animator = objeto.GetComponentInChildren<Animator>();
+            if (animator == null)
+            {
+                return;
+            }
+
+            var duracao = RegrasReacao.PausaVisualNoAcertoMs / 1000f;
+            foreach (var pausa in _pausas)
+            {
+                if (pausa.Animator == animator)
+                {
+                    pausa.Restante = duracao;
+                    return;
+                }
+            }
+
+            _pausas.Add(
+                new PausaDePose
+                {
+                    Animator = animator,
+                    Restante = duracao,
+                    Velocidade = animator.speed,
+                }
+            );
+            animator.speed = 0f;
+        }
+
+        private void SoltarPoses(bool todas)
+        {
+            var dt = Time.unscaledDeltaTime;
+            for (var i = _pausas.Count - 1; i >= 0; i--)
+            {
+                var pausa = _pausas[i];
+                pausa.Restante -= dt;
+                if (todas || pausa.Restante <= 0f || pausa.Animator == null)
+                {
+                    if (pausa.Animator != null)
+                    {
+                        pausa.Animator.speed = pausa.Velocidade;
+                    }
+
+                    _pausas.RemoveAt(i);
+                }
+            }
+        }
+
         private void AoIniciarAtaque(AtaqueIniciado ataque)
         {
             if (ataque.AtacanteId != _personagemId)
@@ -222,7 +298,6 @@ namespace JogoDoGrupo.Client.Features.Combate
                 return;
             }
 
-            _tipoProprio = ataque.Tipo;
             Tocar(SomDeCombate.Golpe, ataque.Tipo == TipoDeAtaque.Pesado ? 0.8f : 0.5f);
         }
 
@@ -244,16 +319,20 @@ namespace JogoDoGrupo.Client.Features.Combate
 
                 EfeitoDeImpacto efeito;
                 var vale = meu
-                    ? EscolhaDeEfeito.DoGolpeProprio(_tipoProprio, acerto.Dano, out efeito)
+                    ? EscolhaDeEfeito.DoGolpeProprio(ataque.Tipo, acerto.Dano, out efeito)
                     : EscolhaDeEfeito.DoGolpeDeOutro(acerto.Dano, out efeito);
                 if (!vale)
                 {
                     continue;
                 }
 
-                var alvo = GameObject.Find(NomeDoInimigo + acerto.AlvoId);
+                var alvo = RegistroDeAlvos.Achar(acerto.AlvoId);
                 var origem = jogador != null ? jogador.transform.position : Vector3.zero;
                 Aplicar(efeito, alvo, origem);
+
+                // A pose de quem bateu e de quem levou fica parada por um instante (70 ms).
+                SegurarPose(meu ? jogador : null);
+                SegurarPose(alvo);
             }
         }
 
@@ -277,6 +356,7 @@ namespace JogoDoGrupo.Client.Features.Combate
             {
                 _detector.AoPerderVida(Time.unscaledTime);
                 Aplicar(efeito, EntradaNoJogo.Jogador, Vector3.zero);
+                SegurarPose(EntradaNoJogo.Jogador);
             }
         }
 

@@ -106,6 +106,12 @@ namespace JogoDoGrupo.Client.Features.Combate
                 return;
             }
 
+            if (_prontidao != null && _prontidao.LiberarEsquivaGuardada(Time.unscaledTimeAsDouble))
+            {
+                Pedir(jogador); // O clique guardado durante o golpe ou a esquiva anterior.
+                return;
+            }
+
             if (
                 _esquiva != null
                 && _esquiva.WasPressedThisFrame()
@@ -130,17 +136,27 @@ namespace JogoDoGrupo.Client.Features.Combate
                 anguloCamera
             );
 
-            var agora = Time.unscaledTime;
-            if (_prontidao != null && !_prontidao.PodeEsquivar(agora))
+            var agora = Time.unscaledTimeAsDouble;
+            if (_prontidao != null)
             {
-                var semVigor = _prontidao.Vigor is int vigor && !RegrasEsquiva.TemVigor(vigor);
-                AvisosDoJogo.Mostrar(
-                    semVigor
-                        ? ApresentacaoEsquiva.TextoVigorInsuficiente
-                        : ApresentacaoEsquiva.TextoAcaoEmAndamento,
-                    TipoDeAviso.Aviso
-                );
-                return;
+                var resultado = _prontidao.ClicarEsquiva(agora);
+                if (resultado == ResultadoDoClique.Guardado)
+                {
+                    return; // Sai quando a esquiva puder começar.
+                }
+
+                if (resultado != ResultadoDoClique.EnviarAgora)
+                {
+                    var semVigor =
+                        _prontidao.VigorEm(agora) is int vigor && !RegrasEsquiva.TemVigor(vigor);
+                    AvisosDoJogo.Mostrar(
+                        semVigor
+                            ? ApresentacaoEsquiva.TextoVigorInsuficiente
+                            : ApresentacaoEsquiva.TextoAcaoEmAndamento,
+                        TipoDeAviso.Aviso
+                    );
+                    return;
+                }
             }
 
             ControleDefesa.LargarParaAgir(_prontidao); // Esquivar solta a guarda, antes do pedido.
