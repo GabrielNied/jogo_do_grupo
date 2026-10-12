@@ -161,7 +161,7 @@ Valores em `RegrasLoot`, todos **proposta a calibrar**:
 - **Inventário cheio:** o item fica no chão até expirar; os que couberem entram.
 - **Posição:** `X` e `Z` de onde o inimigo caiu. O servidor não conhece a altura do terreno; o client assenta o item no chão.
 - **Quem volta ao jogo** recebe de novo `LootApareceu` dos itens que ainda estão no prazo, com o tempo que falta.
-- A proposta do livro para o dono do loot (maior dano, #332) continua em aberto e não muda este contrato: ele só fala de "o dono".
+- **Dono do loot (#332), decidido em 2026-10-11 (/decida):** vale a [fatia](fatia-jogavel.md#5-loot-no-chão) (loot individual para quem participou); a proposta do livro (maior dano) **não** é adotada agora e fica registrada em [social.md](social.md). Deste contrato só vale "o dono". Coleta com F e recurso garantido ao primeiro golpe seguem como melhoria separada, sem mexer no dono.
 
 **No servidor (#368):**
 
