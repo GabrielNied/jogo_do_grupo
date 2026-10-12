@@ -177,6 +177,7 @@ O Guardião do Reflexo (id 100), o boss da primeira dungeon ([fatia-jogavel.md](
 | Janela exposta | abre no acerto da **investida** e da **pisada**, dura **5 s**, o dano que ele recebe é **x2** (raios não expõem) |
 | Corpo | raio de **2 m** como alvo dos golpes dos jogadores |
 
+- **Corpo no mesmo tempo da marca** (decidido em 2026-10-12): durante o aviso de 3 s o modelo faz o preparo daquele ataque, e o dano sai no fim dessa pose. A marca no chão continua. Até existir um clipe por ataque, o `Atacar` que já existe é alongado para durar o aviso. O dono de Mobs liga o tempo; clipe novo, quando faltar, fica com o `artista-personagens`.
 - **Dano nos jogadores:** um `GolpeDeInimigoAcertou` por personagem atingido em cada ataque (mesmo em duas áreas), com o dano da tabela; o Combate é quem tira a vida.
 - **Estados:** repouso, alerta, perseguição (aqui só "em combate", entre ataques: ele não anda), ataque, retorno, morto. Os estados são os do inimigo comum.
 - **Morte:** publica `InimigoDerrotado` uma vez, com os participantes (quem causou dano desde que a luta começou; a lista zera se a sala esvazia) e `InimigoMorreu`. **Não volta sozinho**: só a instância nova cria outro boss (`IChefesDaDungeon.Criar`) ou `ChefeDaDungeon.Reiniciar`. Loot e XP são os de qualquer inimigo.
