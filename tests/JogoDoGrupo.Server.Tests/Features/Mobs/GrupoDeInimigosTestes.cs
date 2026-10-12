@@ -40,6 +40,9 @@ public class GrupoDeInimigosTestes
         }
 
         public bool Aparece(DefinicaoDeCriatura definicao) => true;
+
+        // Sem folga sorteada no intervalo de volta: os testes contam o intervalo exato da ficha.
+        public double Proximo() => 0.0;
     }
 
     /// <summary>Um grupo no ponto (0, 0), com relógio e jogadores controlados pelo teste.</summary>

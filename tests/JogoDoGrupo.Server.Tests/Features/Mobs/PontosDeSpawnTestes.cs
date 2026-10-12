@@ -414,7 +414,7 @@ public class PontosDeSpawnTestes
     }
 
     [Fact]
-    public void O_grupo_so_volta_depois_que_o_ultimo_morre_e_passa_o_intervalo()
+    public void Sem_sobrevivente_o_grupo_so_volta_inteiro_depois_do_intervalo_da_ultima_morte()
     {
         var sorteador = new Sorteador();
         var relogio = new Relogio();
@@ -424,10 +424,6 @@ public class PontosDeSpawnTestes
 
         Assert.True(grupo.TentarAplicarDano(ids[0], 1_000_000, Jogador, out _));
         Assert.True(grupo.TentarAplicarDano(ids[1], 1_000_000, Jogador, out _));
-        relogio.Ms += intervalo * 2;
-        Assert.Empty(grupo.Passo([]).Aparicoes); // ainda há um vivo: ninguém volta
-        Assert.Single(grupo.Vivos());
-
         Assert.True(grupo.TentarAplicarDano(ids[2], 1_000_000, Jogador, out _));
         relogio.Ms += intervalo - 1;
         Assert.Empty(grupo.Passo([]).Aparicoes);
@@ -565,8 +561,8 @@ public class PontosDeSpawnTestes
 
         var vivos = grupos.Sum(g => g.Vivos().Length);
 
-        Assert.Equal(PontosDeSpawnDoCampo.Todos.Sum(p => p.TamanhoMaximo), vivos);
-        Assert.True(vivos <= PontosDeSpawnDoCampo.LimiteDeInimigosVivos);
+        Assert.True(PontosDeSpawnDoCampo.Todos.Sum(p => p.TamanhoMaximo) > limite.Maximo);
+        Assert.Equal(limite.Maximo, vivos); // o teto age: os últimos da fila esperam vaga
         Assert.Equal(vivos, limite.Vivos);
         // Cada grupo nasce no próprio ponto, com a espécie e o nível dele.
         for (var i = 0; i < grupos.Length; i++)

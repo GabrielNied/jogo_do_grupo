@@ -235,6 +235,7 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
 
             var novo = Criar(x, z, false);
             novo.Segue = false; // o de teste fica onde nasceu: não acompanha a rota
+            novo.Reponivel = false; // nem volta depois de morto
             var maior = new Inimigo[_inimigos.Length + 1];
             Array.Copy(_inimigos, maior, _inimigos.Length);
             maior[^1] = novo;
@@ -294,6 +295,10 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
             {
                 // O grupo todo reaparece de uma vez, com tamanho e níveis sorteados de novo.
                 MontarGrupo(agora, passo.Aparicoes);
+            }
+            else
+            {
+                ReporMortos(agora, passo.Aparicoes);
             }
 
             AtualizarRota(agora);
@@ -785,11 +790,27 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
                 _limite?.Liberar();
             }
 
-            // O grupo todo volta junto, depois do intervalo da ficha contado da última morte.
+            // Depois do intervalo da ficha (com uma folga sorteada, para os grupos não voltarem
+            // juntos): sem sobrevivente o grupo todo volta contado da última morte; com
+            // sobrevivente, o próprio inimigo volta (veja ReporMortos).
             var intervalo = inimigo.Criatura.Definicao.IntervaloDeAparicaoSegundos;
-            if (intervalo > 0 && _inimigos.All(i => i.Estado == EstadoDeInimigo.Morto))
+            if (intervalo > 0)
             {
-                _ondaEmMs = _relogioMs() + (intervalo * 1000L);
+                var espera = EmMs(
+                    intervalo
+                        * (
+                            1.0
+                            + (ConfigReposicaoDeInimigos.VariacaoDoIntervalo * _sorteador.Proximo())
+                        )
+                );
+                if (_inimigos.All(i => i.Estado == EstadoDeInimigo.Morto))
+                {
+                    _ondaEmMs = _relogioMs() + espera;
+                }
+                else if (inimigo.Reponivel)
+                {
+                    inimigo.ReporEmMs = _relogioMs() + espera;
+                }
             }
         }
 
@@ -809,6 +830,52 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
                 inimigo.Criatura.Nivel
             )
         );
+    }
+
+    // Reposição individual: com ao menos um sobrevivente e o grupo todo fora de luta, o morto
+    // cujo intervalo passou volta no lugar dele, se houver vaga no teto de vivos. Em luta ou sem
+    // vaga ele espera (sem vaga, tenta de novo daqui a pouco).
+    private void ReporMortos(long agora, List<InimigoApareceu> aparicoes)
+    {
+        if (
+            _ondaEmMs != null
+            || !_inimigos.Any(i => i.ReporEmMs is { } quando && agora >= quando)
+            || !_inimigos.Any(i => RegrasInimigo.EstaVivo(i.Estado))
+            || !_inimigos.All(ForaDeLuta)
+        )
+        {
+            return;
+        }
+
+        for (var i = 0; i < _inimigos.Length; i++)
+        {
+            var morto = _inimigos[i];
+            if (morto.ReporEmMs is not { } quando || agora < quando)
+            {
+                continue;
+            }
+
+            if (_limite != null && _limite.Reservar(1) == 0)
+            {
+                morto.ReporEmMs = agora + EmMs(ConfigInimigosDoCampo.TentativaDeVagaSegundos);
+                continue;
+            }
+
+            // Uma manada em marcha repõe o membro no ponto da rota para onde ela vai.
+            var lugarX = morto.OrigemX;
+            var lugarZ = morto.OrigemZ;
+            if (_rota != null)
+            {
+                lugarX = _rota.Pontos[_pontoDaRota].X + morto.DesvioX;
+                lugarZ = _rota.Pontos[_pontoDaRota].Z + morto.DesvioZ;
+            }
+
+            var novo = Criar(lugarX, lugarZ, _limite != null);
+            novo.DesvioX = morto.DesvioX;
+            novo.DesvioZ = morto.DesvioZ;
+            _inimigos[i] = novo;
+            aparicoes.Add(new InimigoApareceu { Inimigo = Retrato(novo) });
+        }
     }
 
     // Sorteia o tamanho do grupo e o põe no mundo, respeitando o teto de vivos. Sem vaga, tenta
@@ -1070,8 +1137,17 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
         public double OrigemZ { get; set; } = origemZ;
 
         /// <summary>Onde ele fica em relação ao centro da manada, para andar em bando.</summary>
-        public double DesvioX { get; init; }
-        public double DesvioZ { get; init; }
+        public double DesvioX { get; set; }
+        public double DesvioZ { get; set; }
+
+        /// <summary>Se volta depois de morto (os de teste, não).</summary>
+        public bool Reponivel { get; set; } = true;
+
+        /// <summary>
+        /// Quando este morto volta no lugar dele, com o grupo vivo; nulo se não há reposição
+        /// marcada (o grupo todo morto volta pela onda).
+        /// </summary>
+        public long? ReporEmMs { get; set; }
 
         /// <summary>Se acompanha a rota (os de teste ficam onde nasceram).</summary>
         public bool Segue { get; set; } = true;
