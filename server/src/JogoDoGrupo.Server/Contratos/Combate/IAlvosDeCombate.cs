@@ -4,7 +4,9 @@ namespace JogoDoGrupo.Server.Contratos.Combate;
 /// Algo que pode levar um golpe: o boneco de treino da cidade hoje, inimigos e bosses quando
 /// Mobs existir. <see cref="Id"/> é o <c>AlvoId</c> que o client vê em <c>AcertoDeAtaque</c>;
 /// os ids são únicos entre todas as implementações de <see cref="IAlvosDeCombate"/> (o boneco de
-/// treino usa um id negativo fixo). A posição é no plano do chão (a altura não conta).
+/// treino usa um id negativo fixo). <see cref="PersonagemId"/> é o personagem que o alvo
+/// representa quando é um jogador (0 para boneco, inimigo e chefe); é por ele que o golpe poupa
+/// o próprio atacante e os aliados. A posição é no plano do chão (a altura não conta).
 /// </summary>
 public readonly record struct AlvoDeCombate(
     long Id,
@@ -12,7 +14,8 @@ public readonly record struct AlvoDeCombate(
     double Z,
     double Raio,
     int VidaAtual,
-    int VidaMaxima
+    int VidaMaxima,
+    long PersonagemId = 0
 );
 
 /// <summary>O que um golpe fez num alvo: o dano que ele realmente levou e a vida que sobrou.</summary>

@@ -28,6 +28,7 @@ public sealed class ServicoDeAtaques : IHostedService, IDisposable
     private readonly Func<long> _relogioMs;
     private readonly ControleDeAcoes _controle;
     private readonly ServicoDeQueda? _queda;
+    private readonly IAliadosDeCombate _aliados;
     private readonly Dictionary<long, SessaoTempoReal> _sessoes = [];
     private readonly Lock _travaSessoes = new();
     private readonly CancellationTokenSource _parada = new();
@@ -41,9 +42,11 @@ public sealed class ServicoDeAtaques : IHostedService, IDisposable
         ILogger<ServicoDeAtaques> log,
         Func<long>? relogioMs = null,
         ControleDeAcoes? controle = null,
-        ServicoDeQueda? queda = null
+        ServicoDeQueda? queda = null,
+        IAliadosDeCombate? aliados = null
     )
     {
+        _aliados = aliados ?? new NinguemEAliado();
         _queda = queda;
         // O mesmo controle da esquiva, para ataque e esquiva não valerem ao mesmo tempo.
         _controle = controle ?? new ControleDeAcoes();
@@ -232,8 +235,10 @@ public sealed class ServicoDeAtaques : IHostedService, IDisposable
             foreach (var alvo in alvos)
             {
                 // O mesmo golpe não acerta o mesmo alvo duas vezes.
+                // Aliados do grupo (e o próprio atacante) não levam o golpe.
                 if (
-                    vistos.Add(alvo.Id)
+                    SelecaoDeAlvos.PodeAcertar(personagemId, alvo, _aliados)
+                    && vistos.Add(alvo.Id)
                     && fonte.TentarAplicarDano(alvo.Id, dano, personagemId, out var r)
                 )
                 {
