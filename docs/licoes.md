@@ -79,7 +79,7 @@ Formato: `### AAAA-MM-DD · título` com **O que houve**, **Regra** e **Origem**
 
 - **O que houve:** depois do squash, o worktree `C:/Dev/jdg-custo` e a branch `chore/core/reduz-verificacoes` (PR #581) continuaram no Git. A limpeza automática só olhava `.claude/worktrees/`; o worktree de fora segura a branch, então ela nunca entra na lista de branches soltas.
 - **Regra:** worktree limpo cujo PR já foi mesclado, foi fechado com a ponta no GitHub, ou cujo conteúdo já está na `main`, sai na limpeza automática mesmo fora de `.claude/worktrees/`. Checkout da `main` ou de branch que só está no `origin` fica, a menos que se passe `--todos`.
-- **Origem:** PR desta correção.
+- **Origem:** PR #583.
 
 ### 2026-10-12 · Trava sem dono e branch que volta depois do merge
 
