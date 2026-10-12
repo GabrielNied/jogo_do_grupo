@@ -50,5 +50,37 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
 
         /// <summary>Altura da luz acima do chão quando o prefab da lanterna não traz uma.</summary>
         public const float AlturaDaLuzDaLanterna = 5.8f;
+
+        // ----- Caverna (sem sol: só ambiente fraco e lanternas) -----
+
+        /// <summary>Luz ambiente de cima dentro da caverna: quase preta.</summary>
+        public static readonly Color CeuDaCaverna = new Color(0.07f, 0.065f, 0.07f);
+
+        /// <summary>Luz ambiente dos lados dentro da caverna.</summary>
+        public static readonly Color HorizonteDaCaverna = new Color(0.06f, 0.055f, 0.055f);
+
+        /// <summary>Luz ambiente de baixo dentro da caverna.</summary>
+        public static readonly Color SoloDaCaverna = new Color(0.04f, 0.035f, 0.035f);
+
+        /// <summary>Cor da névoa dentro da caverna (escura, para o fundo do túnel sumir).</summary>
+        public static readonly Color NevoaDaCaverna = new Color(0.03f, 0.028f, 0.03f);
+
+        /// <summary>Densidade da névoa dentro da caverna (exponencial ao quadrado).</summary>
+        public const float DensidadeDaNevoaDaCaverna = 0.018f;
+
+        /// <summary>Cor das lanternas da caverna, mais quente que as da cidade.</summary>
+        public static readonly Color CorDaLuzDaCaverna = new Color(1f, 0.62f, 0.32f);
+
+        /// <summary>Força de cada luz de ponto da caverna.</summary>
+        public const float IntensidadeDaLuzDaCaverna = 12f;
+
+        /// <summary>Alcance de cada luz da caverna, em metros.</summary>
+        public const float AlcanceDaLuzDaCaverna = 13f;
+
+        /// <summary>Altura da luz da caverna acima do piso, em metros.</summary>
+        public const float AlturaDaLuzDaCaverna = 2.4f;
+
+        /// <summary>Distância entre luzes ao longo do percurso da caverna, em metros.</summary>
+        public const float DistanciaEntreLuzesDaCaverna = 11f;
     }
 }

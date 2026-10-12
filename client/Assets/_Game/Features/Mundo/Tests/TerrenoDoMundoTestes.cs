@@ -558,5 +558,87 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
 
             Assert.AreNotEqual(EfeitoDoClima.Vagalume, AmbienteDosBiomas.Em(250f, -100f).Efeito);
         }
+
+        [Test]
+        public void Boca_da_caverna_fura_a_malha_do_bloco_e_o_remendo_preenche()
+        {
+            var passo = MapaDoMundo.PassoDaGrade;
+            var i = Mathf.FloorToInt((PrimeiraCaverna.EntradaX + MapaDoMundo.Metade) / passo);
+            var j = Mathf.FloorToInt((PrimeiraCaverna.EntradaZ + MapaDoMundo.Metade) / passo);
+            Assert.IsTrue(ConstrutorDoTerreno.CelulaComFuro(i, j), "a célula da boca é furada");
+            Assert.IsFalse(
+                ConstrutorDoTerreno.CelulaComFuro(150, 150),
+                "longe da caverna não há furo"
+            );
+
+            var porBloco = ConstrutorDoTerreno.CelulasPorBloco;
+            var bi = i / porBloco;
+            var bj = j / porBloco;
+            var malha = ConstrutorDoTerreno.CriarMalhaDoBloco(Amostras, bi, bj);
+            var remendo = ConstrutorDoTerreno.CriarMalhaDoFuro();
+            try
+            {
+                var furadas = 0;
+                for (var lj = 0; lj < porBloco; lj++)
+                {
+                    for (var li = 0; li < porBloco; li++)
+                    {
+                        if (
+                            ConstrutorDoTerreno.CelulaComFuro(
+                                bi * porBloco + li,
+                                bj * porBloco + lj
+                            )
+                        )
+                        {
+                            furadas++;
+                        }
+                    }
+                }
+
+                Assert.Greater(furadas, 0);
+                Assert.AreEqual((porBloco * porBloco - furadas) * 6, malha.triangles.Length);
+                Assert.IsNotNull(remendo);
+                Assert.Greater(remendo.triangles.Length, 0);
+
+                // O remendo segue o relevo e nenhum triângulo dele fica sobre o túnel.
+                var vertices = remendo.vertices;
+                var indices = remendo.triangles;
+                foreach (var v in vertices)
+                {
+                    Assert.AreEqual(MapaDoMundo.AlturaEm(v.x, v.z), v.y, 0.001f);
+                }
+
+                for (var t = 0; t < indices.Length; t += 3)
+                {
+                    var centro =
+                        (vertices[indices[t]] + vertices[indices[t + 1]] + vertices[indices[t + 2]])
+                        / 3f;
+                    Assert.IsFalse(
+                        PrimeiraCaverna.FuraOTerreno(centro.x, centro.z),
+                        "triângulo sobre o túnel"
+                    );
+                }
+            }
+            finally
+            {
+                Object.DestroyImmediate(malha);
+                if (remendo != null)
+                {
+                    Object.DestroyImmediate(remendo);
+                }
+            }
+        }
+
+        [Test]
+        public void Ambiente_da_caverna_nao_tem_sol_nem_clima()
+        {
+            var fora = AmbienteDosBiomas.Em(250f, -100f);
+            var dentro = AmbienteDosBiomas.NaCaverna(fora);
+
+            Assert.AreEqual(0f, dentro.ForcaDoSol);
+            Assert.AreEqual(EfeitoDoClima.Nenhum, dentro.Efeito);
+            Assert.Less(dentro.Ceu.grayscale, fora.Ceu.grayscale);
+            Assert.Greater(dentro.Densidade, 0f);
+        }
     }
 }

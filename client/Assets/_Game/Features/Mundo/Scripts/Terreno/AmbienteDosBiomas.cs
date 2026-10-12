@@ -240,6 +240,22 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
             }
         }
 
+        /// <summary>
+        /// O ambiente dentro da caverna: sem sol, luz ambiente fraca, névoa escura e sem clima.
+        /// As lanternas do túnel fazem o resto.
+        /// </summary>
+        public static Ambiente NaCaverna(Ambiente fora)
+        {
+            fora.Ceu = ConfigIluminacao.CeuDaCaverna;
+            fora.Horizonte = ConfigIluminacao.HorizonteDaCaverna;
+            fora.Solo = ConfigIluminacao.SoloDaCaverna;
+            fora.Nevoa = ConfigIluminacao.NevoaDaCaverna;
+            fora.Densidade = ConfigIluminacao.DensidadeDaNevoaDaCaverna;
+            fora.ForcaDoSol = 0f;
+            fora.Efeito = EfeitoDoClima.Nenhum;
+            return fora;
+        }
+
         /// <summary>Ambiente em (<paramref name="x"/>, <paramref name="z"/>), na <see cref="Hora"/> atual.</summary>
         public static Ambiente Em(float x, float z)
         {
@@ -323,6 +339,10 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
 
             var posicao = jogador.transform.position;
             var destino = Em(posicao.x, posicao.z);
+            if (PrimeiraCaverna.DentroDoTunel(posicao.x, posicao.z, posicao.y))
+            {
+                destino = NaCaverna(destino);
+            }
 
             // Na primeira vez o ambiente entra de uma vez; depois muda aos poucos.
             _atual = _aplicado

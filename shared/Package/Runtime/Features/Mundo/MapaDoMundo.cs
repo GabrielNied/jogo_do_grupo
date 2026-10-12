@@ -285,7 +285,8 @@ namespace JogoDoGrupo.Shared.Features.Mundo
             var puro = deserto * deserto + neve * neve + lava * lava + pantano * pantano;
             var fronteira = 20f * fora * dentro + 18f * fora * (1f - puro);
 
-            return mascara * (altura + fronteira);
+            // O morro da primeira caverna fica nas colinas do oeste e soma seu relevo ao fim.
+            return (mascara * (altura + fronteira)) + PrimeiraCaverna.AlturaDoMorro(x, z);
         }
 
         /// <summary>

@@ -206,12 +206,20 @@ public static class ValidadorDeMovimento
             return false;
         }
 
-        if (
-            Math.Abs(desejada.X) > LimiteHorizontal
-            || Math.Abs(desejada.Z) > LimiteHorizontal
-            || desejada.Y < AlturaMinima
-            || desejada.Y > AlturaMaxima
-        )
+        if (Math.Abs(desejada.X) > LimiteHorizontal || Math.Abs(desejada.Z) > LimiteHorizontal)
+        {
+            return false;
+        }
+
+        // Dentro do túnel da primeira caverna o chão é o piso dele (abaixo do relevo): vale entre
+        // o piso e o teto. Em cima do morro ou dentro da rocha o ponto não é do túnel e cai nas
+        // regras do terreno, abaixo.
+        if (PrimeiraCaverna.DentroDoTunel(desejada.X, desejada.Z, desejada.Y))
+        {
+            return true;
+        }
+
+        if (desejada.Y < AlturaMinima || desejada.Y > AlturaMaxima)
         {
             return false;
         }

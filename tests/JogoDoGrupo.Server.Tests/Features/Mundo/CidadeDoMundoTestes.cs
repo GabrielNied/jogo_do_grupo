@@ -62,7 +62,7 @@ public class CidadeDoMundoTestes
     }
 
     [Fact]
-    public void Entrar_na_caverna_vale_a_posicao_nova_sem_forcar()
+    public void Andar_pelo_tunel_da_caverna_nao_forca_a_posicao()
     {
         var cidade = Nova();
         var a = new Conexao();
@@ -74,21 +74,21 @@ public class CidadeDoMundoTestes
             new(PrimeiraCaverna.EntradaX, PrimeiraCaverna.EntradaY, PrimeiraCaverna.EntradaZ, 0)
         );
 
-        _agora += 1000;
-        var (resultado, avatar) = cidade.Mover(
-            1,
-            a,
-            new(
-                PrimeiraCaverna.InteriorX,
-                PrimeiraCaverna.InteriorY,
-                PrimeiraCaverna.NascimentoZ,
-                0
-            )
-        );
+        var comprimento = PrimeiraCaverna.ComprimentoDoPercurso;
+        for (var d = 3f; d <= comprimento; d += 3f)
+        {
+            PrimeiraCaverna.PontoDoPercurso(d, out var x, out var z);
+            _agora += 1000;
+            var (resultado, avatar) = cidade.Mover(
+                1,
+                a,
+                new(x, PrimeiraCaverna.PisoNoPlano(x, z)!.Value, z, 0)
+            );
 
-        Assert.NotEqual(ResultadoMovimento.Recusado, resultado);
-        Assert.Equal(PrimeiraCaverna.NascimentoZ, avatar!.Posicao.Z);
-        Assert.Equal(PrimeiraCaverna.InteriorY, avatar.Posicao.Y);
+            Assert.NotEqual(ResultadoMovimento.Recusado, resultado);
+            Assert.Equal(z, avatar!.Posicao.Z);
+        }
+
         Assert.Null(cidade.PosicaoForcadaPendente(1));
     }
 

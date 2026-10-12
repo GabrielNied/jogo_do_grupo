@@ -1,144 +1,152 @@
-using JogoDoGrupo.Client.Core.Jogo;
 using JogoDoGrupo.Shared.Features.Mundo;
 using UnityEngine;
 
 namespace JogoDoGrupo.Client.Features.Mundo.Hub
 {
     /// <summary>
-    /// Boca nas colinas e interior à parte (piso em <see cref="PrimeiraCaverna.InteriorY"/>).
-    /// Atravessar a boca leva para dentro; a saída devolve à mesma boca. O client informa a
-    /// nova posição no movimento de sempre: o servidor guarda, sem puxar de volta.
+    /// A primeira caverna: um túnel escavado no morro das colinas, contínuo com o terreno (o
+    /// furo na boca é do <c>ConstrutorDoTerreno</c>). Cria a malha de rocha com colisão, as
+    /// luzes de dentro e as pedras da moldura da boca. Não teleporta ninguém: o jogador entra
+    /// andando e o client informa a posição de sempre.
     /// </summary>
-    internal sealed class Caverna : MonoBehaviour
+    internal static class Caverna
     {
-        private bool _dentro;
-        private float _liberaEm;
+        public const string NomeTunel = "Tunel";
+        public const string NomeLuzes = "Luzes";
+        public const string NomePedras = "Pedras";
+
+        private static readonly Color CorDaRocha = new Color(0.34f, 0.3f, 0.27f);
+
+        // Pedras da moldura: (deslocamento ao longo da boca, Z à frente da boca, tamanho),
+        // dos dois lados da entrada.
+        private static readonly float[][] PedrasDaMoldura =
+        {
+            new[] { -3.6f, 0.5f, 1.6f },
+            new[] { 3.5f, 0.8f, 1.8f },
+            new[] { -4.8f, 2.6f, 1.3f },
+            new[] { 4.7f, 3.1f, 1.4f },
+            new[] { -3.9f, -1.2f, 1.1f },
+            new[] { 4.1f, -1.0f, 1.2f },
+        };
 
         public static void Montar(Transform pai)
         {
             var raiz = new GameObject(ConstrutorHub.NomeCaverna);
             raiz.transform.SetParent(pai, false);
-            raiz.AddComponent<Caverna>();
 
-            var y = PrimeiraCaverna.EntradaY;
-            Pilar(raiz.transform, PrimeiraCaverna.EntradaX - 1.6f, y, PrimeiraCaverna.EntradaZ);
-            Pilar(raiz.transform, PrimeiraCaverna.EntradaX + 1.6f, y, PrimeiraCaverna.EntradaZ);
-            Bloco(
-                raiz.transform,
-                new Vector3(PrimeiraCaverna.EntradaX, y + 2.4f, PrimeiraCaverna.EntradaZ),
-                new Vector3(4f, 0.4f, 0.6f),
-                false
-            );
-
-            var piso = PrimeiraCaverna.InteriorY;
-            Bloco(
-                raiz.transform,
-                new Vector3(
-                    PrimeiraCaverna.InteriorX,
-                    piso - 0.25f,
-                    PrimeiraCaverna.InteriorZ + 8f
-                ),
-                new Vector3(8f, 0.5f, 20f),
-                true
-            );
-            Bloco(
-                raiz.transform,
-                new Vector3(
-                    PrimeiraCaverna.InteriorX - PrimeiraCaverna.MeiaLargura,
-                    piso + 1.5f,
-                    PrimeiraCaverna.InteriorZ + 8f
-                ),
-                new Vector3(0.4f, 3f, 20f),
-                true
-            );
-            Bloco(
-                raiz.transform,
-                new Vector3(
-                    PrimeiraCaverna.InteriorX + PrimeiraCaverna.MeiaLargura,
-                    piso + 1.5f,
-                    PrimeiraCaverna.InteriorZ + 8f
-                ),
-                new Vector3(0.4f, 3f, 20f),
-                true
-            );
-            Bloco(
-                raiz.transform,
-                new Vector3(PrimeiraCaverna.InteriorX, piso + 3f, PrimeiraCaverna.InteriorZ + 8f),
-                new Vector3(6f, 0.3f, 20f),
-                true
-            );
+            CriarTunel(raiz.transform);
+            CriarLuzes(raiz.transform);
+            CriarPedras(raiz.transform);
         }
 
-        private void Update()
+        private static void CriarTunel(Transform pai)
         {
-            var jogador = EntradaNoJogo.Jogador;
-            if (jogador == null || Time.unscaledTime < _liberaEm)
+            var malha = GeometriaDaCaverna.CriarMalha();
+            var tunel = new GameObject(NomeTunel);
+            tunel.transform.SetParent(pai, false);
+            tunel.AddComponent<MeshFilter>().sharedMesh = malha;
+            var renderizador = tunel.AddComponent<MeshRenderer>();
+            var material = CriarMaterial(CorDaRocha);
+            if (material != null)
             {
-                return;
+                renderizador.sharedMaterial = material;
             }
 
-            var posicao = jogador.transform.position;
-            if (!_dentro && PrimeiraCaverna.NaBoca(posicao.x, posicao.z))
+            tunel.AddComponent<MeshCollider>().sharedMesh = malha;
+        }
+
+        // Uma luz de ponto de tempos em tempos ao longo do percurso, uma no meio de cada câmara
+        // e uma na ponta do beco. Sem sombra (barato) e sem depender do sol.
+        private static void CriarLuzes(Transform pai)
+        {
+            var luzes = new GameObject(NomeLuzes).transform;
+            luzes.SetParent(pai, false);
+
+            var comprimento = PrimeiraCaverna.ComprimentoDoPercurso;
+            for (
+                var d = ConfigIluminacao.DistanciaEntreLuzesDaCaverna * 0.5f;
+                d < comprimento;
+                d += ConfigIluminacao.DistanciaEntreLuzesDaCaverna
+            )
             {
-                Levar(
-                    jogador,
-                    new Vector3(
-                        PrimeiraCaverna.NascimentoX,
-                        PrimeiraCaverna.InteriorY,
-                        PrimeiraCaverna.NascimentoZ
-                    )
+                PrimeiraCaverna.PontoDoPercurso(d, out var x, out var z);
+                CriarLuz(luzes, x, z);
+            }
+
+            CriarLuz(luzes, PrimeiraCaverna.CamaraFinalX, PrimeiraCaverna.CamaraFinalZ);
+            CriarLuz(luzes, PrimeiraCaverna.PontaDoBecoX, PrimeiraCaverna.PontaDoBecoZ);
+        }
+
+        private static void CriarLuz(Transform pai, float x, float z)
+        {
+            var piso = PrimeiraCaverna.PisoNoPlano(x, z) ?? PrimeiraCaverna.PisoProximo(x, z);
+            var objeto = new GameObject("Luz");
+            objeto.transform.SetParent(pai, false);
+            objeto.transform.position = new Vector3(
+                x,
+                piso + ConfigIluminacao.AlturaDaLuzDaCaverna,
+                z
+            );
+            var luz = objeto.AddComponent<Light>();
+            luz.type = LightType.Point;
+            luz.color = ConfigIluminacao.CorDaLuzDaCaverna;
+            luz.intensity = ConfigIluminacao.IntensidadeDaLuzDaCaverna;
+            luz.range = ConfigIluminacao.AlcanceDaLuzDaCaverna;
+            luz.shadows = LightShadows.None;
+        }
+
+        // Pedras soltas dos dois lados da boca, apoiadas no chão e sem colisão (não fecham a
+        // passagem nem atrapalham o corte do terreno). Posição fixa: o mundo é o mesmo para todos.
+        private static void CriarPedras(Transform pai)
+        {
+            var pedras = new GameObject(NomePedras).transform;
+            pedras.SetParent(pai, false);
+
+            var material = CriarMaterial(CorDaRocha * 0.85f);
+            for (var k = 0; k < PedrasDaMoldura.Length; k++)
+            {
+                var dados = PedrasDaMoldura[k];
+                var x = PrimeiraCaverna.EntradaX + dados[0];
+                var z = PrimeiraCaverna.EntradaZ + dados[1];
+                var tamanho = dados[2];
+                var pedra = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                pedra.name = "Pedra";
+                pedra.transform.SetParent(pedras, false);
+                pedra.transform.position = new Vector3(
+                    x,
+                    MapaDoMundo.AlturaEm(x, z) + (tamanho * 0.3f),
+                    z
                 );
-                _dentro = true;
-                _liberaEm = Time.unscaledTime + 0.4f;
-                return;
-            }
-
-            if (_dentro && PrimeiraCaverna.NaSaida(posicao.x, posicao.z))
-            {
-                Levar(
-                    jogador,
-                    new Vector3(
-                        PrimeiraCaverna.EntradaX,
-                        PrimeiraCaverna.EntradaY,
-                        PrimeiraCaverna.EntradaZ
-                    )
-                );
-                _dentro = false;
-                _liberaEm = Time.unscaledTime + 1.2f;
+                pedra.transform.rotation = Quaternion.Euler(8f * k, 37f * k, 5f * k);
+                pedra.transform.localScale = new Vector3(tamanho, tamanho * 0.7f, tamanho * 0.9f);
+                Object.DestroyImmediate(pedra.GetComponent<Collider>());
+                if (material != null)
+                {
+                    pedra.GetComponent<MeshRenderer>().sharedMaterial = material;
+                }
             }
         }
 
-        private static void Levar(GameObject jogador, Vector3 destino)
+        private static Material CriarMaterial(Color cor)
         {
-            var corpo = jogador.GetComponent<CharacterController>();
-            if (corpo != null)
+            var shader = Shader.Find("Universal Render Pipeline/Lit");
+            if (shader == null)
             {
-                corpo.enabled = false;
+                return null;
             }
 
-            jogador.transform.position = destino;
-            if (corpo != null)
+            var material = new Material(shader) { color = cor };
+            if (material.HasProperty("_BaseColor"))
             {
-                corpo.enabled = true;
+                material.SetColor("_BaseColor", cor);
             }
-        }
 
-        private static void Pilar(Transform pai, float x, float y, float z)
-        {
-            Bloco(pai, new Vector3(x, y + 1.2f, z), new Vector3(0.6f, 2.4f, 0.6f), false);
-        }
-
-        private static void Bloco(Transform pai, Vector3 centro, Vector3 escala, bool solido)
-        {
-            var bloco = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            bloco.name = "Bloco";
-            bloco.transform.SetParent(pai, false);
-            bloco.transform.localPosition = centro;
-            bloco.transform.localScale = escala;
-            if (!solido)
+            if (material.HasProperty("_Smoothness"))
             {
-                Object.DestroyImmediate(bloco.GetComponent<Collider>());
+                material.SetFloat("_Smoothness", 0.08f);
             }
+
+            return material;
         }
     }
 }
