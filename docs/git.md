@@ -153,6 +153,16 @@ npm run entregar -- --titulo "tipo(escopo): descricao" --corpo .git/pr-corpo.md
 
 O script commita o que já está no stage (`git commit -F`, corpo quebrado em linhas de 100), faz o push e abre o PR com `--body-file`. O arquivo do corpo não entra no commit. Se a branch já teve PR mergeado, os commits que o squash ainda não tem seguem numa branch `<nome>-segue` a partir de `origin/main`.
 
+### Leva empilhada
+
+Um PR que parte de outro ainda aberto nasce com `npm run tarefa -- puxar <N> <branch> --base <branch-do-PR-de-baixo>` e diz no topo do corpo `Depende de #<PR de baixo> (mergear antes)`. Quando o de baixo entra por squash, o de cima conflita consigo mesmo: ainda carrega os commits originais, que na `main` viraram outro hash. Não resolva os conflitos à mão nem force o push:
+
+```
+npm run reempilhar -- <PR de cima>
+```
+
+O script lê a linha `Depende de`, leva só os commits próprios do PR (cherry-pick) para uma branch `<nome>-segue` a partir de `origin/main`, abre o PR novo com o mesmo título e corpo e fecha o antigo.
+
 Os commits dentro da branch podem ser pequenos e frequentes. Como o merge é por squash, o que entra na `main` é **o título do PR**.
 
 ## Pull requests

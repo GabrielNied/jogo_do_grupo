@@ -104,3 +104,9 @@ Formato: `### AAAA-MM-DD · título` com **O que houve**, **Regra** e **Origem**
 - **O que houve:** o corpo do commit passava de 100 caracteres, `gh pr create --body` quebrava na crase, e o push numa branch já mergeada deixava o commit de fora da `main`. Cada tentativa repetia a rodada.
 - **Regra:** `npm run entregar` commita por arquivo, abre o PR com `--body-file` e, se o PR da branch já foi mergeado, segue numa branch nova a partir de `origin/main`. O procedimento está em [Entregar](git.md#entregar).
 - **Origem:** conversa de 2026-10-12.
+
+### 2026-10-12 · Leva empilhada conflita depois do squash
+
+- **O que houve:** a leva 2 de Combate (#602) partiu da branch da leva 1 (#597). O squash do #597 deu outro hash ao mesmo conteúdo, e o #602 passou a conflitar em 9 arquivos consigo mesmo. O push forçado para refazê-lo é barrado pela regra 0.
+- **Regra:** leva empilhada nasce com `puxar --base` e cita `Depende de #<N>` no corpo; depois do squash da leva de baixo, `npm run reempilhar -- <PR>` refaz o PR de cima sobre a `main` num PR novo ([Leva empilhada](git.md#leva-empilhada)).
+- **Origem:** PR #607.
