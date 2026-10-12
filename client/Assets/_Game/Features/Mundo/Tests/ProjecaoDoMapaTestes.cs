@@ -7,6 +7,21 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
     public class ProjecaoDoMapaTestes
     {
         [Test]
+        public void DoMapa_EInversoDoNoMapa_ECoordenadasArredondam()
+        {
+            ProjecaoDoMapa.NoMapa(-220f, -80f, out var u, out var v);
+            ProjecaoDoMapa.DoMapa(u, v, out var x, out var z);
+            Assert.AreEqual(-220f, x, 0.01f);
+            Assert.AreEqual(-80f, z, 0.01f);
+
+            ProjecaoDoMapa.DoMapa(0.5f, 0.5f, out x, out z);
+            Assert.AreEqual(0f, x, 0.01f);
+            Assert.AreEqual(0f, z, 0.01f);
+
+            Assert.AreEqual("X -220  Z -80", ProjecaoDoMapa.Coordenadas(-219.6f, -80.2f));
+        }
+
+        [Test]
         public void Minimapa_CentroBordaEForaDoRaio()
         {
             Assert.IsTrue(ProjecaoDoMapa.NoMinimapa(0f, 0f, out var x, out var y));

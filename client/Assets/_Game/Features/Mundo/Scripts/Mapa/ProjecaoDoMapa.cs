@@ -70,6 +70,17 @@ namespace JogoDoGrupo.Client.Features.Mundo
             v = (mundoZ + MapaDoMundo.Metade) / MapaDoMundo.Lado;
         }
 
+        /// <summary>Inverso de <see cref="NoMapa"/>: do ponto 0..1 do mapa ao mundo, em metros.</summary>
+        public static void DoMapa(float u, float v, out float mundoX, out float mundoZ)
+        {
+            mundoX = u * MapaDoMundo.Lado - MapaDoMundo.Metade;
+            mundoZ = v * MapaDoMundo.Lado - MapaDoMundo.Metade;
+        }
+
+        /// <summary>Texto das coordenadas, em metros inteiros. X é leste e Z é norte.</summary>
+        public static string Coordenadas(float x, float z) =>
+            "X " + Math.Round(x).ToString("0") + "  Z " + Math.Round(z).ToString("0");
+
         /// <summary>Marcador de outra área não entra no mapa da área atual.</summary>
         public static bool NaAreaAtual(string areaDoMarcador, string areaAtual) =>
             areaDoMarcador == areaAtual;
