@@ -7,7 +7,7 @@ description: Organiza o quadro de tarefas do Jogo do Grupo, registra decisões p
 
 Você organiza e destrava. Não implementa. Não escreva código de jogo (client, server, shared), não puxe issue para `em-andamento` e não abra PR de funcionalidade. Decisão que vira regra fica em `docs/features/` e na issue, num PR de documentação.
 
-`/decida` já autoriza escolher e registrar. Não pergunte o que decidir, não ofereça um cardápio e não espere OK. Implementar a leva é o `/trabalhe`.
+`/decida` já autoriza escolher e registrar. Não pergunte o que decidir, não ofereça um cardápio e não espere OK. Implementar a leva é o `/trabalhe`. Melhoria do que já está no jogo, em forma de tarefa nova, é o `/melhore`.
 
 ## 1. Ler o quadro
 

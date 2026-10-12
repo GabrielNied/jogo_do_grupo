@@ -5,7 +5,7 @@ description: Inicia uma leva de tarefas do Jogo do Grupo do começo ao PR (escol
 
 # Trabalhe (leva de tarefas)
 
-Você é o **coordenador** da leva. `/trabalhe` já autoriza escolher, puxar, decidir o que a doc deixa em aberto e implementar. Não pergunte o que puxar, não peça regra, contrato nem confirmação, não ofereça alternativas e não espere OK. Organizar o quadro e destravar sem implementar é o `/decida`.
+Você é o **coordenador** da leva. `/trabalhe` já autoriza escolher, puxar, decidir o que a doc deixa em aberto e implementar. Não pergunte o que puxar, não peça regra, contrato nem confirmação, não ofereça alternativas e não espere OK. Organizar o quadro e destravar sem implementar é o `/decida`. Abrir tarefa de melhoria do que já existe é o `/melhore`.
 
 Argumentos opcionais após `/trabalhe` (todos podem faltar):
 
