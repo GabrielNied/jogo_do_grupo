@@ -37,6 +37,12 @@ public static class ConfigInimigosDoCampo
     /// </summary>
     public const double RaioDoEspalhamentoMetros = 4.0;
 
+    /// <summary>
+    /// De quanto em quanto tempo, em segundos, um grupo sem vaga no teto de vivos tenta
+    /// reaparecer de novo.
+    /// </summary>
+    public const double TentativaDeVagaSegundos = 5.0;
+
     /// <summary>Para onde o inimigo olha em repouso, em graus (180 = para a cidade, ao sul).</summary>
     public const double DirecaoDeRepousoGraus = 180.0;
 

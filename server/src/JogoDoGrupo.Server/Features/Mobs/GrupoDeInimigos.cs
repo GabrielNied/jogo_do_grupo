@@ -59,15 +59,26 @@ public sealed class PassoDosInimigos
 public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
 {
     private static readonly long AlertaMs = EmMs(RegrasInimigo.AlertaSegundos);
-    private static readonly long PreparoMs = EmMs(RegrasInimigo.PreparoDoAtaqueSegundos);
-    private static readonly long RecuperacaoMs = EmMs(RegrasInimigo.RecuperacaoDoAtaqueSegundos);
 
     private readonly Lock _trava = new();
     private readonly DefinicaoDeCriatura _definicao;
     private readonly ISorteadorDeCriaturas _sorteador;
     private readonly Func<long> _relogioMs;
     private readonly int _tetoDeTeste;
+    private readonly ComportamentoDeCriatura _comportamento;
+    private readonly int _tamanhoMinimo;
+    private readonly int _nivelMinimo;
+    private readonly int _nivelMaximo;
+    private readonly double _pontoX;
+    private readonly double _pontoZ;
+    private readonly LimiteDeInimigosVivos? _limite;
     private Inimigo[] _inimigos;
+
+    /// <summary>
+    /// Quando o grupo todo reaparece (só quando não há nenhum vivo e a criatura volta sozinha);
+    /// nulo se não há reaparição marcada.
+    /// </summary>
+    private long? _ondaEmMs;
 
     /// <summary>Só no chefe raro: decide quando ele aparece; nulo nas outras categorias.</summary>
     private readonly AparicaoDeChefeRaro? _aparicao;
@@ -81,12 +92,23 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
 
     /// <param name="definicao">Ficha da criatura do grupo.</param>
     /// <param name="sorteador">Sorteia a variante de cada inimigo que aparece.</param>
-    /// <param name="tamanho">Quantos inimigos o grupo tem (pelo menos 1).</param>
+    /// <param name="tamanho">Quantos inimigos o grupo tem, no máximo (pelo menos 1).</param>
     /// <param name="relogioMs">Relógio em milissegundos; os testes trocam por um controlado.</param>
     /// <param name="area">Área do mundo em que o grupo vive.</param>
     /// <param name="pontoX">Centro do grupo, no plano do chão.</param>
     /// <param name="pontoZ">Centro do grupo, no plano do chão.</param>
     /// <param name="primeiroId">Id do primeiro inimigo; os seguintes somam 1.</param>
+    /// <param name="tamanhoMinimo">
+    /// Menor tamanho do grupo; o tamanho é sorteado de <paramref name="tamanhoMinimo"/> a
+    /// <paramref name="tamanho"/> cada vez que o grupo aparece. Nulo: o tamanho é sempre
+    /// <paramref name="tamanho"/>.
+    /// </param>
+    /// <param name="nivelMinimo">
+    /// Faixa de nível de cada inimigo da criatura comum, sorteado quando ele aparece. Zero nos
+    /// dois: o nível da ficha.
+    /// </param>
+    /// <param name="nivelMaximo">Veja <paramref name="nivelMinimo"/>.</param>
+    /// <param name="limite">Teto de vivos dividido com os outros grupos; nulo: sem teto.</param>
     public GrupoDeInimigos(
         DefinicaoDeCriatura definicao,
         ISorteadorDeCriaturas sorteador,
@@ -95,42 +117,77 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
         string area = ConfigInimigosDoCampo.Area,
         double pontoX = ConfigInimigosDoCampo.PontoX,
         double pontoZ = ConfigInimigosDoCampo.PontoZ,
-        long primeiroId = ConfigInimigosDoCampo.PrimeiroInimigoId
+        long primeiroId = ConfigInimigosDoCampo.PrimeiroInimigoId,
+        int? tamanhoMinimo = null,
+        int nivelMinimo = 0,
+        int nivelMaximo = 0,
+        LimiteDeInimigosVivos? limite = null
     )
     {
         ArgumentNullException.ThrowIfNull(definicao);
         ArgumentNullException.ThrowIfNull(sorteador);
         ArgumentOutOfRangeException.ThrowIfLessThan(tamanho, 1);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(tamanhoMinimo ?? tamanho, tamanho);
+        ArgumentOutOfRangeException.ThrowIfLessThan(tamanhoMinimo ?? tamanho, 1);
 
         _definicao = definicao;
         _sorteador = sorteador;
         _relogioMs = relogioMs ?? (() => Environment.TickCount64);
         _proximoId = primeiroId;
+        _comportamento = ComportamentoDeCriatura.Obter(definicao.Id);
+        _tamanhoMinimo = tamanhoMinimo ?? tamanho;
+        _nivelMinimo = nivelMinimo > 0 ? nivelMinimo : definicao.Nivel;
+        _nivelMaximo = nivelMaximo > 0 ? nivelMaximo : _nivelMinimo;
+        ArgumentOutOfRangeException.ThrowIfLessThan(_nivelMaximo, _nivelMinimo);
+        _pontoX = pontoX;
+        _pontoZ = pontoZ;
+        _limite = limite;
         Area = area;
+        Capacidade = tamanho;
 
         if (definicao.Categoria == CategoriaDeCriatura.ChefeRaro)
         {
             // Um chefe raro é um só e começa fora do mundo: quem o traz é o sorteio.
             ArgumentOutOfRangeException.ThrowIfNotEqual(tamanho, 1);
             _aparicao = new AparicaoDeChefeRaro(definicao, sorteador, Instante(_relogioMs()));
+            _inimigos = [CriarNoCirculo(0, 1, false)];
+            _inimigos[0].Estado = EstadoDeInimigo.Morto;
         }
-
-        _inimigos = new Inimigo[tamanho];
-        for (var i = 0; i < tamanho; i++)
+        else
         {
-            var angulo = 2.0 * Math.PI * i / tamanho;
-            _inimigos[i] = Criar(
-                pontoX + (Math.Sin(angulo) * ConfigInimigosDoCampo.RaioDoEspalhamentoMetros),
-                pontoZ + (Math.Cos(angulo) * ConfigInimigosDoCampo.RaioDoEspalhamentoMetros)
-            );
-            if (_aparicao != null)
-            {
-                _inimigos[i].Estado = EstadoDeInimigo.Morto;
-            }
+            _inimigos = [];
+            MontarGrupo(_relogioMs(), null);
         }
 
         _tetoDeTeste = tamanho + AparicoesExtrasDeTeste;
     }
+
+    /// <summary>
+    /// Um grupo para o ponto de spawn, com o tamanho e o nível sorteados nas faixas dele.
+    /// </summary>
+    public static GrupoDeInimigos DoPonto(
+        PontoDeSpawn ponto,
+        ISorteadorDeCriaturas sorteador,
+        LimiteDeInimigosVivos? limite = null,
+        Func<long>? relogioMs = null
+    ) =>
+        new(
+            CatalogoCriaturas.Obter(ponto.CriaturaId)
+                ?? throw new ArgumentException(
+                    $"Criatura {ponto.CriaturaId} não existe no catálogo."
+                ),
+            sorteador,
+            ponto.TamanhoMaximo,
+            relogioMs,
+            ponto.Area,
+            ponto.X,
+            ponto.Z,
+            ponto.PrimeiroId,
+            ponto.TamanhoMinimo,
+            ponto.NivelMinimo,
+            ponto.NivelMaximo,
+            limite
+        );
 
     /// <summary>Quantos inimigos a mais o comando de teste pode acrescentar neste grupo.</summary>
     public const int AparicoesExtrasDeTeste = 20;
@@ -138,7 +195,10 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
     /// <summary>Área do mundo em que o grupo vive.</summary>
     public string Area { get; }
 
-    /// <summary>Quantos inimigos o grupo tem, vivos ou mortos.</summary>
+    /// <summary>O maior número de inimigos que o grupo pode ter de uma vez.</summary>
+    public int Capacidade { get; }
+
+    /// <summary>Quantos inimigos o grupo tem agora, vivos ou mortos.</summary>
     public int Tamanho => _inimigos.Length;
 
     /// <summary>
@@ -159,7 +219,7 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
                 return null;
             }
 
-            var novo = Criar(x, z);
+            var novo = Criar(x, z, false);
             var maior = new Inimigo[_inimigos.Length + 1];
             Array.Copy(_inimigos, maior, _inimigos.Length);
             maior[^1] = novo;
@@ -199,31 +259,26 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
                 : 0.0;
             _ultimoPassoMs = agora;
 
-            for (var i = 0; i < _inimigos.Length; i++)
+            if (_aparicao != null)
             {
-                var morto = _inimigos[i];
-                if (
-                    _aparicao != null
-                    && morto.Estado == EstadoDeInimigo.Morto
-                    && _aparicao.Atualizar(Instante(agora))
-                )
+                for (var i = 0; i < _inimigos.Length; i++)
                 {
-                    var chefe = Criar(morto.OrigemX, morto.OrigemZ);
-                    _inimigos[i] = chefe;
-                    passo.Aparicoes.Add(new InimigoApareceu { Inimigo = Retrato(chefe) });
-                    continue;
+                    var morto = _inimigos[i];
+                    if (
+                        morto.Estado == EstadoDeInimigo.Morto
+                        && _aparicao.Atualizar(Instante(agora))
+                    )
+                    {
+                        var chefe = Criar(morto.OrigemX, morto.OrigemZ, false);
+                        _inimigos[i] = chefe;
+                        passo.Aparicoes.Add(new InimigoApareceu { Inimigo = Retrato(chefe) });
+                    }
                 }
-
-                if (
-                    morto.Estado == EstadoDeInimigo.Morto
-                    && morto.VoltaEmMs is { } volta
-                    && agora >= volta
-                )
-                {
-                    var novo = Criar(morto.OrigemX, morto.OrigemZ);
-                    _inimigos[i] = novo;
-                    passo.Aparicoes.Add(new InimigoApareceu { Inimigo = Retrato(novo) });
-                }
+            }
+            else if (_ondaEmMs is { } onda && agora >= onda)
+            {
+                // O grupo todo reaparece de uma vez, com tamanho e níveis sorteados de novo.
+                MontarGrupo(agora, passo.Aparicoes);
             }
 
             var presentes = new Dictionary<long, JogadorNoCampo>();
@@ -264,7 +319,7 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
                         jogador.X,
                         jogador.Z
                     );
-                    if (RegrasInimigo.Ve(distancia))
+                    if (_comportamento.Ve(distancia))
                     {
                         _vistos.Add(jogador.PersonagemId);
                     }
@@ -494,7 +549,7 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
                 inimigo.Z,
                 alvo.X,
                 alvo.Z,
-                RegrasInimigo.VelocidadeDePerseguicaoMetrosPorSegundo,
+                _comportamento.VelocidadeDePerseguicaoMetrosPorSegundo,
                 segundos,
                 RegrasInimigo.AlcanceDeAtaqueMetros - ConfigInimigosDoCampo.FolgaDoAlcanceMetros,
                 out var novoX,
@@ -523,13 +578,13 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
         inimigo.GolpeX = centroX;
         inimigo.GolpeZ = centroZ;
         inimigo.Preparando = true;
-        inimigo.FaseAteMs = agora + PreparoMs;
+        inimigo.FaseAteMs = agora + _comportamento.PreparoMs;
         Mudar(inimigo, EstadoDeInimigo.Ataque);
         passo.Preparos.Add(
             new InimigoPreparaAtaque
             {
                 InimigoId = inimigo.Id,
-                PreparoMs = RegrasInimigo.PreparoDoAtaqueMs,
+                PreparoMs = (int)_comportamento.PreparoMs,
                 CentroX = (float)centroX,
                 CentroZ = (float)centroZ,
                 Raio = (float)RegrasInimigo.RaioDoGolpeMetros,
@@ -590,7 +645,7 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
             }
 
             inimigo.Preparando = false;
-            inimigo.FaseAteMs = agora + RecuperacaoMs;
+            inimigo.FaseAteMs = agora + _comportamento.RecuperacaoMs;
             return;
         }
 
@@ -667,8 +722,17 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
         }
         else
         {
+            if (inimigo.ContaNoLimite)
+            {
+                _limite?.Liberar();
+            }
+
+            // O grupo todo volta junto, depois do intervalo da ficha contado da última morte.
             var intervalo = inimigo.Criatura.Definicao.IntervaloDeAparicaoSegundos;
-            inimigo.VoltaEmMs = intervalo > 0 ? _relogioMs() + (intervalo * 1000L) : null;
+            if (intervalo > 0 && _inimigos.All(i => i.Estado == EstadoDeInimigo.Morto))
+            {
+                _ondaEmMs = _relogioMs() + (intervalo * 1000L);
+            }
         }
 
         _pendente.Mortes.Add(new InimigoMorreu { InimigoId = inimigo.Id });
@@ -683,13 +747,59 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
                 inimigo.X,
                 inimigo.Z,
                 inimigo.Atacantes.Order().ToArray(),
-                _proximaMorte++
+                _proximaMorte++,
+                inimigo.Criatura.Nivel
             )
         );
     }
 
-    private Inimigo Criar(double origemX, double origemZ) =>
-        new(_proximoId++, _sorteador.Sortear(_definicao), origemX, origemZ);
+    // Sorteia o tamanho do grupo e o põe no mundo, respeitando o teto de vivos. Sem vaga, tenta
+    // de novo daqui a pouco.
+    private void MontarGrupo(long agora, List<InimigoApareceu>? aparicoes)
+    {
+        var desejado =
+            _tamanhoMinimo == Capacidade
+                ? Capacidade
+                : EscalaPorNivel.Sortear(_tamanhoMinimo, Capacidade, _sorteador.Proximo());
+        var vagas = _limite?.Reservar(desejado) ?? desejado;
+        if (vagas == 0)
+        {
+            _inimigos = [];
+            _ondaEmMs = agora + EmMs(ConfigInimigosDoCampo.TentativaDeVagaSegundos);
+            return;
+        }
+
+        var novos = new Inimigo[vagas];
+        for (var i = 0; i < vagas; i++)
+        {
+            novos[i] = CriarNoCirculo(i, vagas, _limite != null);
+        }
+
+        _inimigos = novos;
+        _ondaEmMs = null;
+        aparicoes?.AddRange(novos.Select(n => new InimigoApareceu { Inimigo = Retrato(n) }));
+    }
+
+    // Os pontos de origem ficam num círculo em volta do centro, a distâncias iguais.
+    private Inimigo CriarNoCirculo(int indice, int total, bool contaNoLimite)
+    {
+        var angulo = 2.0 * Math.PI * indice / total;
+        return Criar(
+            _pontoX + (Math.Sin(angulo) * ConfigInimigosDoCampo.RaioDoEspalhamentoMetros),
+            _pontoZ + (Math.Cos(angulo) * ConfigInimigosDoCampo.RaioDoEspalhamentoMetros),
+            contaNoLimite
+        );
+    }
+
+    private Inimigo Criar(double origemX, double origemZ, bool contaNoLimite)
+    {
+        var nivel =
+            _nivelMinimo == _nivelMaximo
+                ? _nivelMinimo
+                : EscalaPorNivel.Sortear(_nivelMinimo, _nivelMaximo, _sorteador.Proximo());
+        var criatura = EscalaPorNivel.Aplicar(_sorteador.Sortear(_definicao), nivel);
+        return new Inimigo(_proximoId++, criatura, origemX, origemZ, contaNoLimite);
+    }
 
     private static void Mudar(Inimigo inimigo, EstadoDeInimigo para)
     {
@@ -753,6 +863,7 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
             InimigoId = inimigo.Id,
             CriaturaId = inimigo.Criatura.Definicao.Id,
             Variante = inimigo.Criatura.Variante,
+            Nivel = inimigo.Criatura.Nivel,
             X = (float)inimigo.X,
             Y = Altura(inimigo),
             Z = (float)inimigo.Z,
@@ -787,9 +898,18 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
 
     private static long EmMs(double segundos) => (long)Math.Round(segundos * 1000.0);
 
-    private sealed class Inimigo(long id, CriaturaSorteada criatura, double origemX, double origemZ)
+    private sealed class Inimigo(
+        long id,
+        CriaturaSorteada criatura,
+        double origemX,
+        double origemZ,
+        bool contaNoLimite
+    )
     {
         public long Id { get; } = id;
+
+        /// <summary>Se ocupa uma vaga do teto de vivos (os de teste e o chefe raro não).</summary>
+        public bool ContaNoLimite { get; } = contaNoLimite;
         public CriaturaSorteada Criatura { get; } = criatura;
         public double OrigemX { get; } = origemX;
         public double OrigemZ { get; } = origemZ;
@@ -813,9 +933,6 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
 
         public double GolpeX;
         public double GolpeZ;
-
-        /// <summary>Morto: quando ele volta; nulo se não volta sozinho.</summary>
-        public long? VoltaEmMs;
 
         /// <summary>Quem causou dano desde que ele apareceu ou voltou da desistência.</summary>
         public readonly HashSet<long> Atacantes = [];

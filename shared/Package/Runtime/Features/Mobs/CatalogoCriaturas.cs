@@ -8,6 +8,8 @@ namespace JogoDoGrupo.Shared.Features.Mobs
     public static class CatalogoCriaturas
     {
         public const int JavaliDoCampo = 1;
+        public const int LoboDoCampo = 2;
+        public const int TatuRochoso = 3;
         public const int GuardiaoDoReflexo = 100;
         public const int PresaVelha = 200;
 
@@ -24,6 +26,28 @@ namespace JogoDoGrupo.Shared.Features.Mobs
                 experienciaBase: 20,
                 chanceDeAparecer: 1.0,
                 intervaloDeAparicaoSegundos: 120
+            ),
+            new DefinicaoDeCriatura(
+                id: LoboDoCampo,
+                nome: "Lobo do Campo",
+                categoria: CategoriaDeCriatura.Comum,
+                nivel: 4,
+                vidaBase: 110,
+                danoBase: 28,
+                experienciaBase: 18,
+                chanceDeAparecer: 1.0,
+                intervaloDeAparicaoSegundos: 120
+            ),
+            new DefinicaoDeCriatura(
+                id: TatuRochoso,
+                nome: "Tatu Rochoso",
+                categoria: CategoriaDeCriatura.Comum,
+                nivel: 5,
+                vidaBase: 320,
+                danoBase: 55,
+                experienciaBase: 30,
+                chanceDeAparecer: 1.0,
+                intervaloDeAparicaoSegundos: 150
             ),
             new DefinicaoDeCriatura(
                 id: GuardiaoDoReflexo,

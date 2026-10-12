@@ -12,7 +12,8 @@ public sealed record CriaturaSorteada(
     int Dano,
     int Experiencia,
     double MultiplicadorDeRecompensa,
-    float Escala
+    float Escala,
+    int Nivel = 0
 );
 
 /// <summary>
@@ -32,6 +33,12 @@ public interface ISorteadorDeCriaturas
     /// <see cref="DefinicaoDeCriatura.ChanceDeAparecer"/>.
     /// </summary>
     bool Aparece(DefinicaoDeCriatura definicao);
+
+    /// <summary>
+    /// Número de 0 (inclusive) a 1 (exclusive) para os outros sorteios do grupo (nível e
+    /// tamanho). Os testes trocam por um valor conhecido.
+    /// </summary>
+    double Proximo() => Random.Shared.NextDouble();
 }
 
 /// <summary>Sorteio de verdade, com as regras de <see cref="RegrasCriaturas"/>.</summary>
@@ -57,12 +64,15 @@ public sealed class SorteadorDeCriaturas(Random aleatorio) : ISorteadorDeCriatur
             RegrasCriaturas.Dano(definicao.DanoBase, variante),
             RegrasCriaturas.Experiencia(definicao.ExperienciaBase, variante),
             RegrasCriaturas.MultiplicadorDeRecompensa(variante),
-            RegrasCriaturas.Escala(variante)
+            RegrasCriaturas.Escala(variante),
+            definicao.Nivel
         );
     }
 
     public bool Aparece(DefinicaoDeCriatura definicao) =>
         RegrasCriaturas.Aparece(definicao.ChanceDeAparecer, ProximoSorteio());
+
+    public double Proximo() => ProximoSorteio();
 
     private double ProximoSorteio()
     {

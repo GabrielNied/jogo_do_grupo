@@ -5,7 +5,8 @@ namespace JogoDoGrupo.Server.Contratos.Mobs;
 /// <summary>
 /// Publicado por Mobs quando um inimigo morre, uma vez por morte, para quem dá a recompensa
 /// (loot e experiência). <see cref="Experiencia"/> e <see cref="MultiplicadorDeRecompensa"/> já
-/// contam a variante. A posição é no plano do chão, onde ele caiu.
+/// contam a variante e o <see cref="Nivel"/> do inimigo (0: quem publicou não informou o
+/// nível). A posição é no plano do chão, onde ele caiu.
 /// <para>
 /// <see cref="Participantes"/> são os personagens que causaram dano ao inimigo desde que ele
 /// apareceu (a lista zera quando ele desiste e volta), em ordem crescente de id. Quem só foi
@@ -28,5 +29,6 @@ public sealed record InimigoDerrotado(
     double X,
     double Z,
     IReadOnlyList<long> Participantes,
-    long Sequencia
+    long Sequencia,
+    int Nivel = 0
 );

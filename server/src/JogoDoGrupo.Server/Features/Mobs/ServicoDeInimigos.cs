@@ -137,7 +137,7 @@ public sealed class ServicoDeInimigos(
         var grupo = grupos
             .OfType<GrupoDeInimigos>()
             .Where(g => g.Area == posicao.Area)
-            .OrderByDescending(g => g.Tamanho)
+            .OrderByDescending(g => g.Capacidade)
             .FirstOrDefault();
         if (grupo == null)
         {
