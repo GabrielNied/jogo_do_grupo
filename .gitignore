@@ -61,6 +61,9 @@ AGENTS.local.md
 # ---------- Logs soltos de verificação (ex.: verificacao.log de agentes) ----------
 /*.log
 
+# Prints locais da tela (script de editor; o agente lê e não versiona).
+/prints/
+
 # ---------- Sistema ----------
 .DS_Store
 Thumbs.db

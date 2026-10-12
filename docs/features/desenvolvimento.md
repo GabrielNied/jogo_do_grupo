@@ -40,6 +40,10 @@ Números usam ponto decimal. O texto tem no máximo 80 caracteres.
 
 `spawn` acrescenta um inimigo no maior grupo da área ([Mobs](mobs.md)), a `DistanciaDoSpawnDeTeste` no eixo X, e avisa com `InimigoApareceu`. Não é a volta depois da morte. Passando de `AparicoesExtrasDeTeste`, o comando recusa.
 
+## Prints da tela
+
+Script de editor que grava a cena ou um painel em três resoluções para o agente ler antes do PR. O comando está em [Prints da tela](../agentes.md#prints-da-tela).
+
 ## Depende de
 
 - [Personagem](personagem.md): `IAjusteDeExperienciaDeTeste`
