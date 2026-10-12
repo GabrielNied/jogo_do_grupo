@@ -36,6 +36,7 @@ obj/
 *.user
 *.suo
 TestResults/
+logs/
 
 # ---------- Node (só ferramentas do git: commitlint, husky) ----------
 node_modules

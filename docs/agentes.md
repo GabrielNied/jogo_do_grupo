@@ -168,7 +168,7 @@ Vale para quem coordena agentes (IA ou pessoa). Aprendido na orquestração da [
 
 Os agentes estão em [.claude/agents/](../.claude/agents/). Cada um roda num git worktree isolado (`isolation: worktree`) e tem um hook que limita as pastas.
 
-- **Orquestrado (recomendado):** na sessão principal, peça a tarefa e a IA segue a skill [orquestrar-tarefa](../.claude/skills/orquestrar-tarefa/SKILL.md). Ela monta o plano, pede a sua aprovação, roda o contrato e depois lança os agentes em paralelo, em segundo plano.
+- **Orquestrado (recomendado):** na sessão principal, peça a tarefa e a IA segue a skill [orquestrar-tarefa](../.claude/skills/orquestrar-tarefa/SKILL.md). Ela monta o plano, registra as decisões e lança os agentes em paralelo, em segundo plano, sem esperar aprovação. Merge continua humano.
 - **Manual:** peça diretamente "use o agente server-funcionalidade para ..." ou abra um terminal por agente com `claude --agent <nome>`.
 - `/agents` lista os agentes disponíveis.
 
