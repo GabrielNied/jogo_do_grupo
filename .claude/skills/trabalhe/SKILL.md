@@ -1,6 +1,6 @@
 ---
 name: trabalhe
-description: Inicia uma leva de tarefas do Jogo do Grupo do começo ao PR (escolhe as tarefas livres, puxa, orquestra os agentes, abre os PRs e limpa). Use quando pedirem "/trabalhe", "começar uma leva", "pegar as próximas tarefas" ou "trabalhe nas tarefas X". Não pergunta qual tarefa puxar.
+description: Inicia uma leva de tarefas do Jogo do Grupo do começo ao PR (escolhe as tarefas livres, puxa, orquestra os agentes, abre os PRs e limpa). Use quando pedirem "/trabalhe", "começar uma leva", "pegar as próximas tarefas" ou "trabalhe nas tarefas X". Não pergunta qual tarefa puxar. No Cursor, olha o uso restante e encolhe a leva quando o plano está no fim.
 ---
 
 # Trabalhe (leva de tarefas)
@@ -20,9 +20,21 @@ Argumentos opcionais após `/trabalhe` (todos podem faltar):
 - A leva sai de branches novas a partir da `main` atualizada (skill `nova-branch`), cada uma no seu worktree.
 - Prepare o ambiente se precisar (`npm run nuvem:preparar` na nuvem). O hook de início de sessão lista pendências de Unity: considere-as candidatas se houver Unity na máquina.
 
+## Uso restante
+
+No Cursor, antes de escolher, leia o uso do plano. Não grave isso no repo.
+
+O token está em `%APPDATA%\Cursor\User\globalStorage\state.vscdb` (no macOS e no Linux, o `state.vscdb` do Cursor), chave `cursorAuth/accessToken`. Com Node 22 ou mais, abra o banco só para leitura (`node:sqlite`) e faça `POST https://api2.cursor.sh/aiserver.v1.DashboardService/GetCurrentPeriodUsage` com os cabeçalhos `Authorization: Bearer`, `Content-Type: application/json` e `Connect-Protocol-Version: 1`, corpo `{}`. Vale `planUsage.totalPercentUsed` e `displayMessage`.
+
+O token não entra em argumento, log, commit nem resposta. Apague o script temporário. Fora do Cursor, ou se a consulta falhar: escolha no tamanho normal e diga no relatório que o uso não apareceu. Não invente o número.
+
+- Abaixo de 80%: leva normal, até N.
+- De 80% a 99%: uma tarefa só, e pequena (conserto curto, pendência de Unity, documentação). Não abra funcionalidade nova com contrato, servidor e client.
+- 100%, ou a mensagem de que o limite estourou: não puxe funcionalidade. Só um ajuste que caiba neste turno (documentação, skill, texto). Se nem isso couber, pare e diga que o uso acabou.
+
 ## 2. Escolher as tarefas
 
-`npm run tarefa -- listar`. Para cada candidata livre, anote funcionalidade, camadas (docs, contrato, server, client) e dependências. Prefira, nesta ordem: o que está quebrado (CI, main), o que destrava outras tarefas, o que é independente das demais. Duas tarefas na mesma funcionalidade ou em `Core/` não rodam em paralelo. Tarefa já em andamento: não entra.
+`npm run tarefa -- listar`. Para cada candidata livre, anote funcionalidade, camadas (docs, contrato, server, client) e dependências. Prefira, nesta ordem: o que está quebrado (CI, main), o que destrava outras tarefas, o que é independente das demais. O tamanho da leva segue a seção Uso restante. Duas tarefas na mesma funcionalidade ou em `Core/` não rodam em paralelo. Tarefa já em andamento: não entra.
 
 A escolha é sua. Não devolva a lista para a pessoa decidir.
 
