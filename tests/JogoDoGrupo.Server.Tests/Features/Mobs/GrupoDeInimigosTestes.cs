@@ -778,10 +778,57 @@ public class GrupoDeInimigosTestes
         campo.Por(Jogador, 0, 200);
         campo.Avancar(6);
         campo.AteOEstado(EstadoDeInimigo.Retorno, 4);
+        for (var i = 0; i < 100 && campo.Unico.Estado == EstadoDeInimigo.Retorno; i++)
+        {
+            campo.Passo();
+        }
 
         Assert.True(campo.Grupo.TentarAplicarDano(PrimeiroId, 1000, 7, out _));
 
         Assert.Equal(new[] { 7L }, Assert.Single(campo.Passo().Derrotas).Participantes);
+    }
+
+    [Fact]
+    public void Na_volta_o_inimigo_e_imune_e_chega_em_casa_com_vida_cheia()
+    {
+        var campo = new Campo();
+        campo.Por(Jogador, 0, 14);
+        campo.AteOEstado(EstadoDeInimigo.Perseguicao, 2);
+        Assert.True(campo.Grupo.TentarAplicarDano(campo.Unico.InimigoId, 50, Jogador, out _));
+        campo.Por(Jogador, 0, 200);
+        campo.Avancar(6);
+        campo.AteOEstado(EstadoDeInimigo.Retorno, 4);
+
+        Assert.False(campo.Grupo.TentarAplicarDano(PrimeiroId, 1000, 7, out _));
+        Assert.Equal(Javali.VidaBase, campo.Unico.Vida);
+
+        for (var i = 0; i < 100 && campo.Unico.Estado == EstadoDeInimigo.Retorno; i++)
+        {
+            campo.Passo();
+        }
+
+        Assert.Equal(EstadoDeInimigo.Repouso, campo.Unico.Estado);
+        Assert.Equal(Javali.VidaBase, campo.Unico.Vida);
+    }
+
+    [Fact]
+    public void Kite_sem_conseguir_atacar_por_muito_tempo_faz_o_inimigo_desistir()
+    {
+        var campo = new Campo();
+        campo.Por(Jogador, 0, 14);
+        campo.AteOEstado(EstadoDeInimigo.Perseguicao, 2);
+
+        // O jogador recua na frente do inimigo: nunca entra no alcance.
+        var passos = (int)(
+            (ConfigInimigosDoCampo.LimiteSemAtacarSegundos + 2) / RegrasInimigo.PassoSegundos
+        );
+        for (var i = 0; i < passos && campo.Unico.Estado != EstadoDeInimigo.Retorno; i++)
+        {
+            campo.Por(Jogador, 0, campo.Unico.Z + 6.0);
+            campo.Passo();
+        }
+
+        Assert.Equal(EstadoDeInimigo.Retorno, campo.Unico.Estado);
     }
 
     [Fact]

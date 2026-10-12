@@ -534,6 +534,50 @@ public class AtaqueTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDeA
     }
 
     [Fact]
+    public async Task Banco_lento_nao_perde_o_acerto_nem_o_da_fila_e_o_acerto_sai_no_preparo()
+    {
+        using var ana = await NovoJogadorAsync();
+        // O banco demora mais que a recuperação do leve (0,3 s): antes, o golpe da fila virava
+        // a ação atual e o acerto do primeiro era descartado.
+        servidor.Bonus.AtrasoMs = 400;
+        var leiturasAntes = servidor.Bonus.Leituras;
+        try
+        {
+            Atacar(ana, sequencia: 1);
+            var primeiro = DateTime.UtcNow;
+            await ana.Cliente.ReceberAsync<AtaqueIniciado>(CombateMessageIds.AtaqueIniciado);
+            await Task.Delay(TimeSpan.FromMilliseconds(600) - (DateTime.UtcNow - primeiro));
+            Atacar(ana, sequencia: 2); // 0,2 s antes do fim: entra na fila
+
+            var acerto1 = await ana.Cliente.ReceberAsync<AtaqueAcertou>(
+                CombateMessageIds.AtaqueAcertou
+            );
+            var depoisDoPrimeiro = DateTime.UtcNow - primeiro;
+            Assert.True(
+                depoisDoPrimeiro < TimeSpan.FromMilliseconds(500) + Margem,
+                $"O acerto saiu tarde ({depoisDoPrimeiro.TotalMilliseconds:0} ms)."
+            );
+            Assert.Equal(
+                ConfigBonecoDeTreino.Vida - 20,
+                Assert.Single(acerto1.Acertos).VidaRestante
+            );
+
+            await TempoRealFixture.EsperarAsync(
+                () => ana.Recebidas(CombateMessageIds.AtaqueAcertou) >= 2,
+                "o acerto do golpe da fila"
+            );
+            Assert.Equal(2, ana.Recebidas(CombateMessageIds.AtaqueIniciado));
+            Assert.False(ana.Recebeu(CombateMessageIds.AtaqueRecusado));
+            // Uma só ida ao banco por golpe.
+            Assert.Equal(2, servidor.Bonus.Leituras - leiturasAntes);
+        }
+        finally
+        {
+            servidor.Bonus.AtrasoMs = 0;
+        }
+    }
+
+    [Fact]
     public async Task Fila_de_um_pedido_so_o_terceiro_e_recusado()
     {
         using var ana = await NovoJogadorAsync();

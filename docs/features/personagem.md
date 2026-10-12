@@ -37,6 +37,8 @@ Decidido pelo grupo em 2026-10-10. É **provisório**: serve para implementar a 
 
 `AplicarAjuste` existe só para o comando de teste `xp` ([Desenvolvimento](desenvolvimento.md)). A quantidade pode ser negativa: desce de nível, devolve a barra do nível anterior e tira `PontosPorNivel` dos pontos livres por nível perdido, sem passar de zero e sem desfazer pontos já gastos.
 
+**Prêmio duplicado (#491):** o servidor trava o mesmo evento de morte (inimigo + sequência) com uma lista em memória que esquece o par depois de 10 minutos (`PrazoDaTravaDeMorte`). Nada é gravado: o par se repete após reiniciar o servidor, e a morte tem de premiar de novo. Com banco ocupado ou falha de serialização a gravação é tentada até 5 vezes (`TentativasDeGravacao`); se todas falharem, a trava da morte é solta.
+
 Estas funções não concedem prêmios nem persistem dados. Integração com servidor, mensagens, barra de XP e prevenção de prêmio duplicado continuam na #65. O padrão para outros valores ajustáveis está nas [convenções](../convencoes.md#valores-de-balanceamento).
 
 ## Raças propostas no board (2026-10-11)

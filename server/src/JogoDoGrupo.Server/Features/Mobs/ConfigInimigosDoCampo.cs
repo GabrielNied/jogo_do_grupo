@@ -9,6 +9,12 @@ namespace JogoDoGrupo.Server.Features.Mobs;
 /// </summary>
 public static class ConfigInimigosDoCampo
 {
+    /// <summary>
+    /// Segundos perseguindo sem conseguir começar um ataque até o inimigo desistir (contra
+    /// kite na borda do alcance; proposta, a calibrar).
+    /// </summary>
+    public const double LimiteSemAtacarSegundos = 8.0;
+
     /// <summary>Área do mundo em que o grupo vive (o campo faz parte da área da cidade).</summary>
     public const string Area = AreasDoMundo.Cidade;
 

@@ -172,9 +172,12 @@ public sealed class ServicoDeAtaques : IHostedService, IDisposable
                 }
             );
 
-            _ = EsperarFimAsync(personagemId, acao);
-            await Task.Delay(TimeSpan.FromMilliseconds(acao.PreparoMs), _parada.Token);
-            await AcertarAsync(personagemId, acao);
+            // Um relógio só: o acerto sai em InicioMs + PreparoMs (a ida ao banco já correu
+            // dentro desse tempo) e a fila só avança depois que o acerto foi resolvido.
+            await EsperarAteAsync(acao.AcertoMs);
+            Acertar(personagemId, acao, inicio.Forca);
+            await EsperarAteAsync(acao.FimMs);
+            AvancarFila(personagemId, acao);
         }
         catch (OperationCanceledException) { }
         catch (Exception e)
@@ -184,34 +187,28 @@ public sealed class ServicoDeAtaques : IHostedService, IDisposable
         }
     }
 
-    // No fim da ação, o pedido da fila (se houver) começa.
-    private async Task EsperarFimAsync(long personagemId, AcaoDeAtaque acao)
+    private async Task EsperarAteAsync(long instanteMs)
     {
-        try
+        var falta = instanteMs - _relogioMs();
+        if (falta > 0)
         {
-            var falta = acao.FimMs - _relogioMs();
-            if (falta > 0)
-            {
-                await Task.Delay(TimeSpan.FromMilliseconds(falta), _parada.Token);
-            }
-
-            var proxima = _controle.AvancarFila(personagemId, acao.Id, _relogioMs());
-            if (proxima != null)
-            {
-                _ = ExecutarAsync(personagemId, proxima);
-            }
+            await Task.Delay(TimeSpan.FromMilliseconds(falta), _parada.Token);
         }
-        catch (OperationCanceledException) { }
-        catch (Exception e)
+    }
+
+    // No fim da ação, o pedido da fila (se houver) começa.
+    private void AvancarFila(long personagemId, AcaoDeAtaque acao)
+    {
+        var proxima = _controle.AvancarFila(personagemId, acao.Id, _relogioMs());
+        if (proxima != null)
         {
-            _log.LogError(e, "Erro ao passar a fila de ataques de {Personagem}.", personagemId);
+            _ = ExecutarAsync(personagemId, proxima);
         }
     }
 
     // O momento de acerto: o volume é medido agora, pela posição que o servidor tem.
-    private async Task AcertarAsync(long personagemId, AcaoDeAtaque acao)
+    private void Acertar(long personagemId, AcaoDeAtaque acao, int forca)
     {
-        var forca = await RecursosDoAtaque.ForcaAsync(_escopos, personagemId, _parada.Token);
         if (
             !_controle.EstaAtiva(personagemId, acao.Id)
             || _queda?.EstaCaido(personagemId) == true // Caiu no meio do golpe: não acerta.

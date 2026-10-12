@@ -1,12 +1,16 @@
 using System.Net;
 using JogoDoGrupo.Server.Contratos.Mobs;
+using JogoDoGrupo.Server.Contratos.Mundo;
+using JogoDoGrupo.Server.Core.TempoReal;
 using JogoDoGrupo.Server.Features.Personagem;
 using JogoDoGrupo.Server.Tests.Infra;
 using JogoDoGrupo.Shared.Core.Api;
 using JogoDoGrupo.Shared.Features.Combate;
 using JogoDoGrupo.Shared.Features.Mobs;
 using JogoDoGrupo.Shared.Features.Personagem;
+using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace JogoDoGrupo.Server.Tests.Features.Personagem;
 
@@ -150,20 +154,113 @@ public class ExperienciaDoPersonagemTestes(ServidorDeTeste servidor)
         Assert.Equal(RegrasRecursos.VidaMaxima(5), corpo.VidaMaxima);
     }
 
+    [Fact]
+    public async Task Depois_de_reiniciar_a_mesma_sequencia_de_mortes_volta_a_dar_experiencia()
+    {
+        var cliente = await servidor.CriarClienteLogadoAsync();
+        var id = await CriarPersonagemAsync(cliente);
+        await ConcederAsync(id, 20, sequencia: 1, inimigoId: 4);
+        Assert.Equal(20, (await ProgressoAsync(cliente, id)).XpAtual);
+
+        // Reinício: serviço novo (trava vazia), mesmo banco, mesmo par inimigo + sequência.
+        var reiniciado = NovoServico(servidor.Services.GetRequiredService<IServiceScopeFactory>());
+        await reiniciado.ConcederAsync(Derrota(id, 20, 1, 4), CancellationToken.None);
+
+        Assert.Equal(40, (await ProgressoAsync(cliente, id)).XpAtual);
+    }
+
+    [Fact]
+    public async Task Banco_ocupado_na_primeira_tentativa_concede_na_segunda_uma_vez_so()
+    {
+        var cliente = await servidor.CriarClienteLogadoAsync();
+        var id = await CriarPersonagemAsync(cliente);
+        var escopos = new EscoposQueFalham(
+            servidor.Services.GetRequiredService<IServiceScopeFactory>(),
+            falhas: 1
+        );
+        var servico = NovoServico(escopos);
+        var derrota = Derrota(id, 20, 1, 5);
+
+        await servico.ConcederAsync(derrota, CancellationToken.None);
+        await servico.ConcederAsync(derrota, CancellationToken.None);
+
+        Assert.Equal(20, (await ProgressoAsync(cliente, id)).XpAtual);
+    }
+
+    [Fact]
+    public async Task Sem_conseguir_gravar_a_morte_nao_fica_travada()
+    {
+        var cliente = await servidor.CriarClienteLogadoAsync();
+        var id = await CriarPersonagemAsync(cliente);
+        var escopos = new EscoposQueFalham(
+            servidor.Services.GetRequiredService<IServiceScopeFactory>(),
+            falhas: ExperienciaDoPersonagem.TentativasDeGravacao
+        );
+        var servico = NovoServico(escopos);
+        var derrota = Derrota(id, 20, 1, 6);
+
+        await Assert.ThrowsAsync<SqliteException>(() =>
+            servico.ConcederAsync(derrota, CancellationToken.None)
+        );
+        Assert.Equal(0, (await ProgressoAsync(cliente, id)).XpAtual);
+
+        await servico.ConcederAsync(derrota, CancellationToken.None);
+        Assert.Equal(20, (await ProgressoAsync(cliente, id)).XpAtual);
+    }
+
+    [Fact]
+    public async Task Duas_mortes_ao_mesmo_tempo_somam_as_duas()
+    {
+        var cliente = await servidor.CriarClienteLogadoAsync();
+        var id = await CriarPersonagemAsync(cliente);
+
+        await Task.WhenAll(
+            ConcederAsync(id, 15, sequencia: 1),
+            ConcederAsync(id, 15, sequencia: 2),
+            ConcederAsync(id, 15, sequencia: 3)
+        );
+
+        Assert.Equal(45, (await ProgressoAsync(cliente, id)).XpAtual);
+    }
+
     private static long _proximoInimigo = 1000;
 
     private ExperienciaDoPersonagem Experiencia =>
         servidor.Services.GetRequiredService<ExperienciaDoPersonagem>();
 
-    private Task ConcederAsync(
+    private ExperienciaDoPersonagem NovoServico(IServiceScopeFactory escopos) =>
+        new(
+            escopos,
+            servidor.Services.GetRequiredService<ServidorTempoReal>(),
+            servidor.Services.GetRequiredService<IPosicoesDoMundo>(),
+            NullLogger<ExperienciaDoPersonagem>.Instance
+        );
+
+    /// <summary>Simula banco ocupado nas primeiras criações de escopo.</summary>
+    private sealed class EscoposQueFalham(IServiceScopeFactory real, int falhas)
+        : IServiceScopeFactory
+    {
+        private int _restantes = falhas;
+
+        public IServiceScope CreateScope()
+        {
+            if (Interlocked.Decrement(ref _restantes) >= 0)
+            {
+                throw new SqliteException("database is locked", 5);
+            }
+
+            return real.CreateScope();
+        }
+    }
+
+    private static InimigoDerrotado Derrota(
         long personagemId,
         int experiencia,
         long sequencia,
-        long? inimigoId = null
-    )
-    {
-        var derrota = new InimigoDerrotado(
-            inimigoId ?? Interlocked.Increment(ref _proximoInimigo),
+        long inimigoId
+    ) =>
+        new(
+            inimigoId,
             1,
             VarianteDeCriatura.Normal,
             experiencia,
@@ -174,8 +271,22 @@ public class ExperienciaDoPersonagemTestes(ServidorDeTeste servidor)
             [personagemId],
             sequencia
         );
-        return Experiencia.ConcederAsync(derrota, CancellationToken.None);
-    }
+
+    private Task ConcederAsync(
+        long personagemId,
+        int experiencia,
+        long sequencia,
+        long? inimigoId = null
+    ) =>
+        Experiencia.ConcederAsync(
+            Derrota(
+                personagemId,
+                experiencia,
+                sequencia,
+                inimigoId ?? Interlocked.Increment(ref _proximoInimigo)
+            ),
+            CancellationToken.None
+        );
 
     private static async Task<long> CriarPersonagemAsync(HttpClient cliente)
     {

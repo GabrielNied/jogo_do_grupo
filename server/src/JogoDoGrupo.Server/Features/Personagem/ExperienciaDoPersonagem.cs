@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Data;
 using JogoDoGrupo.Server.Contratos.Mobs;
 using JogoDoGrupo.Server.Contratos.Mundo;
@@ -11,10 +12,23 @@ namespace JogoDoGrupo.Server.Features.Personagem;
 
 /// <summary>
 /// Concede a experiência de uma morte e informa os pontos já distribuídos. A gravação roda
-/// fora do laço de IA de Mobs. A mesma morte (inimigo + sequência) não premia duas vezes.
+/// fora do laço de IA de Mobs. A mesma morte (inimigo + sequência) não premia duas vezes enquanto a trava em memória a lembra; reiniciar o servidor zera a trava.
 /// </summary>
 public sealed class ExperienciaDoPersonagem : IPontosDistribuidos, IAjusteDeExperienciaDeTeste
 {
+    /// <summary>Quanto tempo a trava em memória lembra de uma morte já premiada.</summary>
+    public static readonly TimeSpan PrazoDaTravaDeMorte = TimeSpan.FromMinutes(10);
+
+    /// <summary>Tentativas de gravar o prêmio com banco ocupado ou falha de serialização.</summary>
+    public const int TentativasDeGravacao = 5;
+
+    /// <summary>Espera base entre tentativas (multiplicada pelo número da tentativa).</summary>
+    public static readonly TimeSpan EsperaEntreTentativas = TimeSpan.FromMilliseconds(50);
+
+    private readonly ConcurrentDictionary<
+        (long InimigoId, long Sequencia),
+        DateTime
+    > _mortasPremiadas = new();
     private readonly IServiceScopeFactory _escopos;
     private readonly ServidorTempoReal _tempoReal;
     private readonly IPosicoesDoMundo _posicoes;
@@ -62,25 +76,84 @@ public sealed class ExperienciaDoPersonagem : IPontosDistribuidos, IAjusteDeExpe
             return;
         }
 
+        if (!MarcarComoPremiada(derrota))
+        {
+            return;
+        }
+
+        List<(long PersonagemId, ExperienciaGanha Ganho, bool Subiu)>? avisos = null;
+        try
+        {
+            for (var tentativa = 1; avisos == null; tentativa++)
+            {
+                try
+                {
+                    avisos = await GravarAsync(derrota, cancelamento);
+                }
+                catch (Exception e) when (e.EhBancoOcupado() && tentativa < TentativasDeGravacao)
+                {
+                    _log.LogWarning(
+                        e,
+                        "Banco ocupado ao conceder a experiência da morte {Inimigo}/{Sequencia} (tentativa {Tentativa}).",
+                        derrota.InimigoId,
+                        derrota.Sequencia,
+                        tentativa
+                    );
+                    await Task.Delay(EsperaEntreTentativas * tentativa, cancelamento);
+                }
+            }
+        }
+        catch
+        {
+            // Não gravou: a morte volta a poder premiar.
+            _mortasPremiadas.TryRemove((derrota.InimigoId, derrota.Sequencia), out _);
+            throw;
+        }
+
+        foreach (var (personagemId, ganho, subiu) in avisos)
+        {
+            EnviarAoDono(personagemId, PersonagemMessageIds.ExperienciaGanha, ganho);
+            if (subiu)
+            {
+                EnviarNaArea(
+                    derrota.Area,
+                    PersonagemMessageIds.SubiuDeNivel,
+                    new SubiuDeNivel { PersonagemId = personagemId, Nivel = ganho.Nivel }
+                );
+            }
+        }
+    }
+
+    /// <summary>
+    /// Trava em memória contra o mesmo evento premiar duas vezes. Vale só por
+    /// <see cref="PrazoDaTravaDeMorte"/>: o par inimigo + sequência volta a existir depois
+    /// que o servidor reinicia, então não pode ser gravado para sempre.
+    /// </summary>
+    private bool MarcarComoPremiada(InimigoDerrotado derrota)
+    {
+        var agora = DateTime.UtcNow;
+        foreach (var (chave, quando) in _mortasPremiadas)
+        {
+            if (agora - quando > PrazoDaTravaDeMorte)
+            {
+                _mortasPremiadas.TryRemove(chave, out _);
+            }
+        }
+
+        return _mortasPremiadas.TryAdd((derrota.InimigoId, derrota.Sequencia), agora);
+    }
+
+    private async Task<List<(long PersonagemId, ExperienciaGanha Ganho, bool Subiu)>> GravarAsync(
+        InimigoDerrotado derrota,
+        CancellationToken cancelamento
+    )
+    {
         using var escopo = _escopos.CreateScope();
         var db = escopo.ServiceProvider.GetRequiredService<JogoDbContext>();
         await using var transacao = await db.Database.BeginTransactionAsync(
             IsolationLevel.Serializable,
             cancelamento
         );
-
-        db.Set<MortePremiada>()
-            .Add(
-                new MortePremiada { InimigoId = derrota.InimigoId, Sequencia = derrota.Sequencia }
-            );
-        try
-        {
-            await db.SaveChangesAsync(cancelamento);
-        }
-        catch (DbUpdateException e) when (e.EhViolacaoDeUnicidade())
-        {
-            return;
-        }
 
         var avisos = new List<(long PersonagemId, ExperienciaGanha Ganho, bool Subiu)>();
         foreach (var personagemId in derrota.Participantes.Distinct())
@@ -117,34 +190,9 @@ public sealed class ExperienciaDoPersonagem : IPontosDistribuidos, IAjusteDeExpe
             );
         }
 
-        try
-        {
-            await db.SaveChangesAsync(cancelamento);
-            await transacao.CommitAsync(cancelamento);
-        }
-        catch (Exception e) when (e.EhBancoOcupado())
-        {
-            _log.LogWarning(
-                e,
-                "Banco ocupado ao conceder a experiência da morte {Inimigo}/{Sequencia}.",
-                derrota.InimigoId,
-                derrota.Sequencia
-            );
-            return;
-        }
-
-        foreach (var (personagemId, ganho, subiu) in avisos)
-        {
-            EnviarAoDono(personagemId, PersonagemMessageIds.ExperienciaGanha, ganho);
-            if (subiu)
-            {
-                EnviarNaArea(
-                    derrota.Area,
-                    PersonagemMessageIds.SubiuDeNivel,
-                    new SubiuDeNivel { PersonagemId = personagemId, Nivel = ganho.Nivel }
-                );
-            }
-        }
+        await db.SaveChangesAsync(cancelamento);
+        await transacao.CommitAsync(cancelamento);
+        return avisos;
     }
 
     public async Task<PontosDeAtributos> ObterAsync(

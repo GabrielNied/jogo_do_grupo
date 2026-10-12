@@ -56,3 +56,9 @@ Formato: `### AAAA-MM-DD · título` com **O que houve**, **Regra** e **Origem**
 - **O que houve:** o agente de Core da #518 trabalhou num worktree criado por `npm run tarefa -- puxar --worktree`; o primeiro commit foi recusado porque o commitlint do hook não existia ali, e ele teve de rodar `npm install` no meio da tarefa.
 - **Regra:** o `puxar --worktree` liga o `node_modules` do checkout principal no worktree ([worktree-npm.mjs](../scripts/git/worktree-npm.mjs)). Quem cria worktree à mão faz o mesmo ou roda `npm install` antes de commitar.
 - **Origem:** PR #533 (relato do agente).
+
+### 2026-10-12 · Unity do CI morto por outro job com a mesma licença (issue #529)
+
+- **O que houve:** três execuções seguidas do Client (Unity) na `main` (e uma de PR) morreram com `Killed` / exit 137 segundos depois de ativar a licença, sem compilar nada. Cada uma coincidiu com outro job do Unity rodando: a licença Personal é uma só. Uma pendência "Client falhou na main" chegou a ser corrigida com mudança de código enquanto a causa da falha seguinte era essa.
+- **Regra:** um Unity por vez no repositório (grupo de concorrência `client-unity-licenca` no `client.yml`, [ADR 0019](decisoes/0019-unity-no-ci.md)). Falha com `Killed`/137 logo após a licença não é erro de código: confira se havia outro job do Unity ao mesmo tempo antes de mexer no client.
+- **Origem:** issue #529.
