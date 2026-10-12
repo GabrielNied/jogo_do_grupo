@@ -1,0 +1,81 @@
+using JogoDoGrupo.Shared.Features.Mobs;
+
+namespace JogoDoGrupo.Shared.Tests.Features.Mobs;
+
+public class RegrasCercoTestes
+{
+    [Fact]
+    public void Numeros_sao_os_da_proposta()
+    {
+        Assert.Equal(2, RegrasCerco.LimiteDeAtacantesPorAlvo);
+        Assert.Equal(2.0 * RegrasInimigo.RaioDoCorpoMetros, RegrasCerco.SeparacaoMinimaMetros);
+        Assert.True(RegrasCerco.RaioDoAnelMetros < RegrasInimigo.AlcanceDeAtaqueMetros);
+        Assert.True(RegrasCerco.RaioDaRondaMetros > RegrasInimigo.AlcanceDeAtaqueMetros);
+    }
+
+    [Theory]
+    [InlineData(0, true)]
+    [InlineData(1, true)]
+    [InlineData(2, false)]
+    [InlineData(5, false)]
+    public void Pode_atacar_so_enquanto_ha_vaga(int atacantes, bool esperado) =>
+        Assert.Equal(esperado, RegrasCerco.PodeAtacar(atacantes));
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Postos_de_um_grupo_inteiro_ficam_separados_e_no_raio_do_anel(bool ronda)
+    {
+        var raio = ronda ? RegrasCerco.RaioDaRondaMetros : RegrasCerco.RaioDoAnelMetros;
+        var xs = new double[12];
+        var zs = new double[12];
+        for (var i = 0; i < xs.Length; i++)
+        {
+            RegrasCerco.Posto(3.0, -2.0, i, ronda, out xs[i], out zs[i]);
+            var distanciaAoAlvo = RegrasInimigo.Distancia(xs[i], zs[i], 3.0, -2.0);
+            Assert.True(distanciaAoAlvo >= raio - 1e-9);
+        }
+
+        // O primeiro anel (o maior grupo comum) fica a pelo menos a separação mínima.
+        for (var a = 0; a < RegrasCerco.PostosPorAnel; a++)
+        {
+            for (var b = a + 1; b < RegrasCerco.PostosPorAnel; b++)
+            {
+                Assert.True(
+                    RegrasInimigo.Distancia(xs[a], zs[a], xs[b], zs[b])
+                        >= RegrasCerco.SeparacaoMinimaMetros
+                );
+            }
+        }
+    }
+
+    [Fact]
+    public void Posto_do_atacante_fica_no_alcance_e_o_da_ronda_fora_dele()
+    {
+        RegrasCerco.Posto(0, 0, 0, false, out var ax, out var az);
+        RegrasCerco.Posto(0, 0, 0, true, out var rx, out var rz);
+
+        Assert.True(RegrasInimigo.NoAlcanceDeAtaque(RegrasInimigo.Distancia(0, 0, ax, az)));
+        Assert.False(RegrasInimigo.NoAlcanceDeAtaque(RegrasInimigo.Distancia(0, 0, rx, rz)));
+    }
+
+    [Fact]
+    public void Afastar_empurra_so_quem_esta_perto_demais()
+    {
+        RegrasCerco.Afastar(0, 0, new[] { 0.5, 5.0 }, new[] { 0.0, 0.0 }, out var x, out var z);
+
+        Assert.Equal(-RegrasCerco.SeparacaoMinimaMetros + 0.5, x, 9);
+        Assert.Equal(0.0, z, 9);
+    }
+
+    [Fact]
+    public void Afastar_no_mesmo_ponto_vai_ao_longo_de_x_e_sem_vizinhos_nao_mexe()
+    {
+        RegrasCerco.Afastar(1, 1, new[] { 1.0 }, new[] { 1.0 }, out var x, out var z);
+        Assert.Equal(1 + RegrasCerco.SeparacaoMinimaMetros, x, 9);
+        Assert.Equal(1.0, z, 9);
+
+        RegrasCerco.Afastar(1, 1, null, null, out x, out z);
+        Assert.Equal((1.0, 1.0), (x, z));
+    }
+}
