@@ -52,19 +52,14 @@ chore(core): atualiza CSharpier para 1.4.0
 
 ## 4. Validar e commitar
 
-Valide antes, para não depender do hook:
+Coloque os arquivos no stage e entregue pelo script ([docs/git.md#entregar](../../../docs/git.md#entregar)):
 
 ```
-printf '%s\n' "<mensagem>" | npx --no -- commitlint
+git add <arquivos da tarefa>
+npm run entregar -- --titulo "tipo(escopo): descricao" --corpo .git/pr-corpo.md
 ```
 
-Depois commite. Para mensagem com corpo, use um arquivo temporário ou vários `-m`:
-
-```
-git commit -m "feat(itens): adiciona limite de fusões por raridade" -m "O limite evita que um item comum supere um lendário."
-```
-
-O hook `commit-msg` valida de novo. Se recusar, leia o erro, corrija a mensagem e tente de novo. **Nunca use `--no-verify`** para passar por cima do hook.
+O corpo do commit e o do PR saem do arquivo. Não use `gh pr create --body` no PowerShell: a crase parte o comando. O hook `commit-msg` valida de novo. Se recusar, leia o erro, corrija e tente de novo. **Nunca use `--no-verify`** para passar por cima do hook.
 
 ## Título do PR
 

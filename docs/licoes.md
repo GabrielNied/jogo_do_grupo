@@ -92,3 +92,9 @@ Formato: `### AAAA-MM-DD · título` com **O que houve**, **Regra** e **Origem**
 - **O que houve:** o inventário passou por três PRs (#575, #586, #591) porque o agente compilava e quem via a tela era a pessoa, que mandava o print de volta.
 - **Regra:** mudança de tela ou HUD grava o print em 1280×720, 1920×1080 e 2560×1440, e o agente lê os PNG antes do PR. O comando está em [Prints da tela](agentes.md#prints-da-tela).
 - **Origem:** issue #593.
+
+### 2026-10-12 · Commit e PR no PowerShell
+
+- **O que houve:** o corpo do commit passava de 100 caracteres, `gh pr create --body` quebrava na crase, e o push numa branch já mergeada deixava o commit de fora da `main`. Cada tentativa repetia a rodada.
+- **Regra:** `npm run entregar` commita por arquivo, abre o PR com `--body-file` e, se o PR da branch já foi mergeado, segue numa branch nova a partir de `origin/main`. O procedimento está em [Entregar](git.md#entregar).
+- **Origem:** conversa de 2026-10-12.
