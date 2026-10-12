@@ -84,10 +84,10 @@
 
 .item-icone {
     position: absolute;
-    left: 6px;
-    right: 6px;
-    top: 6px;
-    bottom: 6px;
+    left: 10%;
+    right: 10%;
+    top: 10%;
+    bottom: 10%;
     align-items: center;
     justify-content: center;
     -unity-background-scale-mode: scale-to-fit;
@@ -153,10 +153,10 @@
     border-color: var(--lumora-cores-essencia);
 }
 
-/* 8 colunas de casas: 8 x (64 + 2 x 2) + barra de rolagem */
+/* Largura e altura da grade vêm do PainelInventario (casa calculada pelo espaço da tela). */
 .itens-grade {
-    width: 574px;
-    max-height: 420px;
+    width: 292px;
+    max-height: 200px;
     flex-direction: column;
 }
 
@@ -168,7 +168,7 @@
 /* ---- paperdoll ---- */
 
 .itens-paperdoll {
-    width: 290px;
+    min-width: 0;
     align-items: center;
 }
 
@@ -194,7 +194,7 @@
 
 .itens-conjunto-rotulo {
     min-width: 84px;
-    min-height: 40px;
+    min-height: 32px;
     margin: 2px;
     padding: 0 var(--lumora-espacamento-pequeno);
     flex-shrink: 0;
@@ -242,8 +242,21 @@
     background-color: var(--lumora-cores-perigo-preenchimento);
 }
 
+/* Rodapé compacto: botões com altura de botão normal, sem crescer para preencher a linha. */
 .itens-rodape-botoes {
     margin-top: var(--lumora-espacamento-pequeno);
+    align-items: center;
+}
+
+.lumora-ui .itens-rodape-botoes .botao {
+    flex-grow: 0;
+    min-height: 32px;
+    padding: var(--lumora-espacamento-minimo) var(--lumora-espacamento-medio);
+}
+
+.itens-rodape-botoes .unity-base-field {
+    margin: var(--lumora-espacamento-minimo);
+    flex-grow: 0;
 }
 
 /* ---- arraste e tooltip (filhos da raiz da interface) ---- */

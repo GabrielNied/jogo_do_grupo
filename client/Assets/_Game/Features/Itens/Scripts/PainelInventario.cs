@@ -17,6 +17,15 @@ namespace JogoDoGrupo.Client.Features.Itens
     {
         public const int Colunas = 8;
 
+        // Espaços do USS do Core e deste painel que entram na conta da altura (unidades do painel).
+        private const float MargemTelaPx = 16f; // padding da tela
+        private const float PercentualAlturaJanela = 0.9f; // max-height do painel (Core)
+        private const float FolgaAlturaPx = 8f;
+        private const float MargemColunaPx = 8f; // espacamento-pequeno em cima e embaixo
+        private const float AlturaMolduraPadraoPx = 170f; // até a janela existir
+
+        private int _casa = MedidasInventario.CasaMinima + 8;
+
         private readonly VisualElement _conteudo;
         private readonly Label _aviso;
         private readonly VisualElement _corpo;
@@ -89,6 +98,107 @@ namespace JogoDoGrupo.Client.Features.Itens
                 () => _arrasto.Arrastando,
                 () => _resumo
             );
+            _raizInterface.RegisterCallback<GeometryChangedEvent>(_ => AjustarTamanho());
+            _conteudo.RegisterCallback<GeometryChangedEvent>(_ => AjustarTamanho());
+        }
+
+        // ---- tamanho pela tela ----
+
+        // A janela tem de caber na tela sem rolar: a casa é o maior tamanho que deixa o corpo
+        // (paperdoll e bolsa) caber no que sobra da janela. Mede a moldura e o resto do conteúdo
+        // em vez de supor, então acompanha mudança de resolução, de escala e de rodapé.
+        private void AjustarTamanho()
+        {
+            var paperdoll = _corpo.Q("itens.paperdoll");
+            if (paperdoll == null || float.IsNaN(_raizInterface.layout.height))
+                return;
+
+            var alturaTela = _raizInterface.layout.height;
+            var maximaJanela =
+                (alturaTela - 2 * MargemTelaPx) * PercentualAlturaJanela - FolgaAlturaPx;
+            var ocupado = MolduraDaJanela() + RestoDoConteudo();
+            var alturaCorpo = maximaJanela - ocupado;
+            var fixaPaperdoll =
+                paperdoll.layout.height
+                - MedidasInventario.LinhasPaperdoll * (_casa + MedidasInventario.MargemCasa)
+                + 2 * MargemColunaPx;
+            var largura = _conteudo.layout.width;
+            if (float.IsNaN(largura) || float.IsNaN(fixaPaperdoll) || largura <= 0)
+                return;
+
+            var nova = MedidasInventario.TamanhoDaCasa(largura, alturaCorpo, fixaPaperdoll);
+            if (nova == _casa)
+                return;
+            _casa = nova;
+            AplicarTamanho();
+        }
+
+        // Altura do que a janela do Core põe em volta do conteúdo (padding, borda, título, dica).
+        private float MolduraDaJanela()
+        {
+            if (_janela == null)
+                return AlturaMolduraPadraoPx;
+            var estilo = _janela.resolvedStyle;
+            var total =
+                estilo.paddingTop
+                + estilo.paddingBottom
+                + estilo.borderTopWidth
+                + estilo.borderBottomWidth;
+            foreach (var filho in _janela.Children())
+            {
+                if (filho.Contains(_conteudo))
+                    continue;
+                total += AlturaComMargens(filho);
+            }
+            return total;
+        }
+
+        private float RestoDoConteudo()
+        {
+            var total = 0f;
+            foreach (var filho in _conteudo.Children())
+            {
+                if (filho == _corpo)
+                    continue;
+                total += AlturaComMargens(filho);
+            }
+            return total;
+        }
+
+        private static float AlturaComMargens(VisualElement elemento)
+        {
+            if (elemento.resolvedStyle.display == DisplayStyle.None)
+                return 0f;
+            var altura = elemento.layout.height;
+            if (float.IsNaN(altura))
+                return 0f;
+            return altura + elemento.resolvedStyle.marginTop + elemento.resolvedStyle.marginBottom;
+        }
+
+        // O tamanho da casa é do layout calculado agora, então vai inline; o resto fica no USS.
+        private void AplicarTamanho()
+        {
+            foreach (var slot in _corpo.Query(className: EstiloItens.Slot).ToList())
+                DimensionarCasa(slot);
+            foreach (var vazio in _corpo.Query(className: EstiloItens.PaperdollVazio).ToList())
+                DimensionarCasa(vazio);
+            DimensionarGrade();
+        }
+
+        private void DimensionarCasa(VisualElement casa)
+        {
+            casa.style.width = _casa;
+            casa.style.height = _casa;
+        }
+
+        private void DimensionarGrade()
+        {
+            if (_grade == null || _estado == null)
+                return;
+            var linhas = (_estado.Capacidade.CasasPorAba + Colunas - 1) / Colunas;
+            var rola = linhas > MedidasInventario.LinhasVisiveisBolsa;
+            _grade.style.width = MedidasInventario.LarguraDaGrade(_casa, Colunas, rola);
+            _grade.style.maxHeight = MedidasInventario.AlturaDaGrade(_casa, linhas);
         }
 
         public bool Arrastando => _arrasto.Arrastando;
@@ -142,6 +252,7 @@ namespace JogoDoGrupo.Client.Features.Itens
             _corpo.Add(MontarBolsa());
             MontarResumo();
             MontarRodape();
+            AplicarTamanho();
         }
 
         /// <summary>Pede a confirmação de descarte (o item só sai depois do "Confirmar").</summary>
@@ -456,6 +567,7 @@ namespace JogoDoGrupo.Client.Features.Itens
         {
             var fantasma = new VisualElement();
             fantasma.AddToClassList(EstiloItens.Slot);
+            DimensionarCasa(fantasma);
             if (RegrasEquipamentos.DadosDe(entrada) != null)
                 fantasma.AddToClassList(EstiloItens.Raridade(entrada.Equipamento.Raridade));
             var icone = new VisualElement { pickingMode = PickingMode.Ignore };
