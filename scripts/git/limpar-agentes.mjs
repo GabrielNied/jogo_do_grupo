@@ -276,6 +276,19 @@ function principal() {
     }
   }
 
+  if (aplicar) {
+    try {
+      const saida = execFileSync(
+        process.execPath,
+        [fileURLToPath(new URL("./tarefas.mjs", import.meta.url)), "soltar-travas"],
+        { cwd: raiz, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], windowsHide: true },
+      ).trim();
+      if (saida) removidos.push(saida);
+    } catch {
+      mantidos.push("travas abandonadas: não deu para consultar o GitHub");
+    }
+  }
+
   const verbo = aplicar ? "Removido" : "Sairia (simulação; use --aplicar)";
   const relatorio = [removidos.length ? `${verbo}:\n  ${removidos.join("\n  ")}` : "Nada para remover."];
   if (mantidos.length) relatorio.push(`\nFica:\n  ${mantidos.join("\n  ")}`);

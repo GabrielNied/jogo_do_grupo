@@ -56,7 +56,7 @@ issue de jogo ─► funcionalidade (worktree): plano ─► contrato ─► ser
                                                                                      (revisor só em PR de risco)
 ```
 
-0. **Escolher pelo foco.** A tarefa sai do [foco atual do marco](features/fatia-jogavel.md#foco-atual). No máximo **3 funcionalidades de jogo em andamento** ao mesmo tempo; a quarta espera uma fechar.
+0. **Escolher pelo foco.** A tarefa sai do [foco atual do marco](features/fatia-jogavel.md#foco-atual). No máximo **3 funcionalidades de jogo em andamento** ao mesmo tempo; a quarta espera uma fechar. O `puxar` recusa essa quarta. Trava sem branch no `origin` e sem PR aberto sai sozinha ([lições](licoes.md)).
 1. **Puxar para em andamento (trava de concorrência).** `npm run tarefa -- puxar <N> [branch] [--agente <papel>] --worktree <caminho>` marca a issue com `em-andamento`, move o Project para `In Progress` e cria a branch a partir da `origin/main`. Sessão que não é dona do checkout principal sempre usa `--worktree`.
 2. **Plano na issue.** O dono escreve o [plano](#plano-da-tarefa), com as decisões de design que tomou, e segue sem esperar.
 3. **Implementar a fatia.** No mesmo worktree e PR: contrato no shared, servidor com testes, client com a cena e o ponto de entrada. Funcionalidades diferentes andam em paralelo, cada uma com o seu dono.
