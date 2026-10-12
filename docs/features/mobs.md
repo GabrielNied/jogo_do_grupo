@@ -107,6 +107,11 @@ O que o servidor acrescentou ao implementar (issue #268; **proposta**, decidido 
 - **Desistência:** quando um inimigo passa dos 30 m e desiste, o grupo **perde o alvo dele de vista**; só volta a persegui-lo se alguém do grupo o vir de novo (a 12 m). Sem ninguém à vista, quem ainda perseguia também volta.
 - **O ataque vai até o fim:** depois do aviso, o inimigo dá o golpe e cumpre a recuperação mesmo que o alvo fuja ou saia da área. Só a morte interrompe.
 - **O golpe pega todos** os personagens que estão no volume de contato quando o preparo acaba, não só o alvo. Conta o centro do personagem (sem raio de corpo).
+- **Na volta ele é imune** ("Evade": o dano é recusado; revisto na issue #488, antes levava dano e chegava ferido). Também desiste quando passa 8 s perseguindo sem conseguir atacar (kite na borda do alcance; `ConfigInimigosDoCampo.LimiteSemAtacarSegundos`).
+- **Onde:** o centro do grupo fica em (0, 190), 150 m ao norte do portão (que está em (0, 40)), com os pontos de origem num círculo de 4 m de raio. O campo faz parte da área `cidade`. Este é o primeiro de vários pontos: veja "Mais mobs no campo" (o tamanho do grupo é sorteado de novo a cada reaparição). O comando de teste `spawn` ([Desenvolvimento](desenvolvimento.md)) acrescenta um inimigo a mais no maior grupo da área, sem esperar a volta.
+- **Id do inimigo:** começa em 1.000.000.000.000 e soma 1; cada volta depois de morto é um inimigo novo, com id novo. Nunca coincide com id de personagem nem com o boneco de treino.
+- **Dano no jogador:** Mobs decide **quem** o golpe pegou e publica `GolpeDeInimigoAcertou`; tirar a vida é de quem é dono dela ([Combate](combate.md)), que assina o evento e tira a vida.
+- **Quem participou da morte:** quem causou dano ao inimigo desde que ele apareceu, em ordem crescente de id (`InimigoDerrotado.Participantes`; o Combate informa o atacante em `IAlvosDeCombate.TentarAplicarDano`). A lista zera quando ele desiste e volta (a vida também volta ao máximo) e quando ele reaparece. Quem só foi alvo do inimigo, sem causar dano, não participa.
 
 ### Contato do golpe
 
@@ -116,12 +121,7 @@ Decidido em 2026-10-12. O golpe comum (javali, lobo, tatu e quem usa a mesma IA,
 - No fim do preparo o volume é um cone à frente do corpo: **1,2 m** a partir do centro e **90°** (`AlcanceDoGolpeMetros`, `AberturaDoGolpeGraus`), na direção travada. Não fica desenhado no chão e não fica preso na posição do início do aviso.
 - O client toca o clipe `Atacar` na velocidade que faz a pose de contato cair nesse mesmo instante. O aviso visível é o preparo do modelo, não um decalque.
 - Investida, pisada e raios do chefe de dungeon continuam com a área marcada no chão, fixa desde o aviso.
-- Para implementar: a conta do cone reaproveita `RegrasAtaque.EstaNoVolume`, no instante do contato. Sem colisor de malha e sem física no servidor. O círculo antigo não volta.
-- **Na volta ele é imune** ("Evade": o dano é recusado; revisto na issue #488, antes levava dano e chegava ferido). Também desiste quando passa 8 s perseguindo sem conseguir atacar (kite na borda do alcance; `ConfigInimigosDoCampo.LimiteSemAtacarSegundos`).
-- **Onde:** o centro do grupo fica em (0, 190), 150 m ao norte do portão (que está em (0, 40)), com os pontos de origem num círculo de 4 m de raio. O campo faz parte da área `cidade`. Este é o primeiro de vários pontos: veja "Mais mobs no campo" (o tamanho do grupo é sorteado de novo a cada reaparição). O comando de teste `spawn` ([Desenvolvimento](desenvolvimento.md)) acrescenta um inimigo a mais no maior grupo da área, sem esperar a volta.
-- **Id do inimigo:** começa em 1.000.000.000.000 e soma 1; cada volta depois de morto é um inimigo novo, com id novo. Nunca coincide com id de personagem nem com o boneco de treino.
-- **Dano no jogador:** Mobs decide **quem** o golpe pegou e publica `GolpeDeInimigoAcertou`; tirar a vida é de quem é dono dela ([Combate](combate.md)), que assina o evento e tira a vida.
-- **Quem participou da morte:** quem causou dano ao inimigo desde que ele apareceu, em ordem crescente de id (`InimigoDerrotado.Participantes`; o Combate informa o atacante em `IAlvosDeCombate.TentarAplicarDano`). A lista zera quando ele desiste e volta (a vida também volta ao máximo) e quando ele reaparece. Quem só foi alvo do inimigo, sem causar dano, não participa.
+- Para implementar: a conta do cone reaproveita `RegrasAtaque.EstaNoVolume`, no instante do contato. Sem colisor de malha e sem física no servidor. O círculo antigo não volta. O client não manda "acertou" nem "errou"; quem decide o contato é o servidor. O corte entre animação e resultado está em [combate](combate.md#o-que-o-client-mostra-e-o-que-o-servidor-decide).
 
 O chefe raro no campo (issue #310; **proposta**, a confirmar no review):
 

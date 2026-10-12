@@ -65,6 +65,16 @@ Para implementar sem refazer a leitura:
 - Andar a 40% durante o golpe **não** usa `IDeslocamentosDoMundo.AbrirJanela`: essa janela libera um deslocamento mais rápido (é a esquiva). O teto menor é outra operação no contrato do Mundo (`Contratos/Mundo/`), chamada pelo Combate. Sem referência de assembly entre as funcionalidades.
 - O pesado não é interrompido por dano tomado; o dano continua valendo. Só importa quando existir atordoamento por dano (seção 2 da fatia).
 
+### O que o client mostra e o que o servidor decide
+
+Decidido em 2026-10-12. A animação, o passo na tela e a resposta no instante do botão são do client. Quem acertou continua sendo o servidor ([arquitetura](../arquitetura.md)). O client manda intenção (ataque, esquiva, mira) e mostra o resultado. Não informa acerto nem erro.
+
+- O servidor não roda clipe nem esqueleto. O instante do contato é a duração do preparo, a mesma constante dos dois lados. O client só ajusta a velocidade do clipe para a pose cair nesse instante. Vale para o golpe do jogador e para o [contato do inimigo](mobs.md#contato-do-golpe).
+- A sensação de desviar e tomar dano mesmo assim, hoje, vem do volume não coincidir com o modelo. Com o contato, quem saiu do cone antes do fim do preparo não leva dano, no servidor e na tela.
+- O client começa a esquiva e o golpe na hora do botão, sem esperar a resposta. A vida só muda quando o servidor confirma o acerto.
+- Se a mensagem da esquiva chegar depois que o servidor já resolveu o golpe, o dano vale. Rebobinar o mundo até o instante do botão é a compensação de latência, fora desta fatia ([#172](https://github.com/GabrielNied/jogo_do_grupo/issues/172)).
+- O teste de cone nesse instante não aumenta a carga: o servidor já dá o passo da IA dez vezes por segundo, e a animação não entra nesse passo.
+
 ## Depende de
 
 ## Expõe
