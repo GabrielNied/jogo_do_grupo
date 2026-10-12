@@ -40,7 +40,7 @@ Várias regiões, dezenas de jogadores na mesma área, cinco raças, 25 skills, 
 - [x] ~~Quem recebe o loot do boss: maior dano (plano) ou outra regra mais justa com tank e healer?~~ Decidido em 2026-10-11: loot individual, cada jogador que participou da luta sorteia o próprio (seção 5). ~~Maior dano~~ substituído em 2026-10-11 por loot individual no boss.
 - [x] ~~Troca de arma (S10) fica fora; a fatia tem uma arma equipada.~~ Decidido em 2026-10-12: duas armas, como o New World ([combate](combate.md#duas-armas-depois-desta-fatia)). Esta fatia ainda joga com uma espada.
 - [ ] **Livro de Asterra (proposta do board, 2026-10-11, não validada pelo grupo; [figjam.md](../brainstorm/figjam.md), seções 10, 11 e 09).** Nada abaixo muda os números da fatia:
-  - **Coincide** com as seções 1, 2, 3, 6 e 7: 100 vigor e 100 energia, regeneração 10 e 5 por s após 2 s, nível 1 a 30 com 5 pontos por nível, caído 45 s, levantar em 3 s com 20% de vida. **Conflito (esquiva):** o livro pedia esquiva sem invulnerabilidade; a seção 3, em 2026-10-12, adotou a janela curta do New World. Vale a seção 3.
+  - **Coincide** com as seções 1, 2, 3 e 7: 100 vigor e 100 energia, regeneração 10 e 5 por s após 2 s, caído 45 s, levantar em 3 s com 20% de vida. **Conflito (nível):** o livro pedia nível 1 a 30 com 5 pontos por nível; a seção 6, em 2026-10-12, adotou teto 100 e nenhum ponto de atributo por nível. Vale a seção 6. **Conflito (esquiva):** o livro pedia esquiva sem invulnerabilidade; a seção 3, em 2026-10-12, adotou a janela curta do New World. Vale a seção 3.
   - **Conflito (loot):** o livro dá os itens a quem causou mais dano, com empate para o primeiro atacante; a seção 5 decidiu loot individual por participação. Vale a seção 5.
   - **Conflito (escala):** o livro fala em instâncias de 20 jogadores; a seção 7 é para 1 a 5. Fica em "Fora desta fatia".
   - **Novidade para depois da fatia:** botão de retorno antes dos 45 s e teleporte descoberto; bloqueio por defesa; pulo, natação e escalada; 12 pontos iniciais de orçamento de skills (+1 a cada 5 níveis); cinco raças, 25 skills, cinco espécies de inimigos; cidade com forja, banco e mercado.
@@ -56,16 +56,16 @@ Quem decide: **servidor** (calcula, valida e envia o resultado; o client só mos
 
 | Item | Regra | Origem |
 |---|---|---|
-| Atributos | Força, Destreza, Intelecto, Vitalidade, Espírito. Valor final = base + pontos distribuídos + equipamentos + efeitos | proposta |
+| Atributos | Força, Destreza, Intelecto, Vitalidade, Espírito. Valor final = equipamentos + efeitos. Não há ponto por nível | decidido em 2026-10-12 |
 | Vida | base 500, +10 por ponto de Vitalidade. Chegar a 0 leva ao estado caído (seção 7) | proposta |
-| Vigor | base 100. Paga esquiva, ataque pesado e guarda | proposta |
-| Energia | base 100, +2 por ponto de Espírito. Paga as skills dos itens | proposta |
-| Regeneração | após 2 s sem atacar, esquivar ou segurar a guarda: +10 vigor/s e +5 energia/s. Segurar a guarda pausa a espera mesmo antes de um golpe gastar vigor. Vida não regenera sozinha na fatia | decidido em 2026-10-12 |
-| Cálculo | recalcular ao equipar, desequipar, ganhar ponto ou nível; nunca somar o mesmo bônus duas vezes | proposta |
+| Vigor | base 100, +2 por ponto de Destreza. Paga esquiva, ataque pesado e guarda | decidido em 2026-10-12 |
+| Energia | base 100, +2 por ponto de Espírito. Paga as skills dos itens. É a mana | decidido em 2026-10-12 |
+| Regeneração | após 2 s sem atacar, esquivar ou segurar a guarda: +10 vigor/s e +5 energia/s, mais 0,2 vigor/s por Destreza e 0,1 energia/s por Espírito. Segurar a guarda pausa a espera mesmo antes de um golpe gastar vigor. Vida não regenera sozinha na fatia | decidido em 2026-10-12 |
+| Cálculo | recalcular ao equipar ou desequipar; nunca somar o mesmo bônus duas vezes | proposta |
 | Limites | valor atual nunca passa do máximo nem fica negativo; reduzir o máximo não cura | proposta |
 
-- Decidido em 2026-10-11: os **cinco atributos** já existem na fatia, mesmo que Intelecto e Espírito ainda não tenham uso.
-- Dano físico pesado escala com Força; a primeira arma usa Força (seção 2). Outros atributos entram quando houver itens que os usem.
+- Decidido em 2026-10-12: os cinco atributos só vêm dos itens. Força aumenta o dano físico (seção 2). Destreza aumenta o vigor máximo e a regeneração de vigor. Vitalidade aumenta a vida. Intelecto aumenta o dano mágico em **2%** por ponto. Espírito aumenta a energia máxima e a regeneração de energia.
+- Dano físico pesado escala com Força; a primeira arma usa Força (seção 2).
 - O client mostra barras de vida, vigor e energia; o servidor envia valores atuais e máximos quando mudam.
 - **Testes esperados:** equipar/desequipar recalcula sem duplicar bônus; máximo reduzido limita o atual; regeneração só após 2 s sem atacar, esquivar ou segurar a guarda; recurso nunca fica negativo.
 
@@ -128,13 +128,13 @@ Quem decide: **servidor** (sorteio, dono, validação da coleta).
 
 Quem decide: **servidor** (concede e confere; cada prêmio vale uma vez).
 
-- Nível inicial 1; nível máximo da fatia **30** (**proposta**).
-- XP para o próximo nível = arredondar(50 x nível^1,2) (**proposta**, calibrada para a [meta de ritmo](personagem.md#ritmo-de-progressão-proposta-454); tabela ajustável).
-- XP vem de derrotar inimigos; quem **participou** (dano, cura, defesa) recebe, mesmo sem ser o dono do loot (**proposta**).
-- Cada nível dá **5 pontos** para distribuir nos atributos (**proposta**). O servidor valida: nunca gasta mais pontos do que ganhou.
+- Nível inicial 1; nível máximo **100** (decidido em 2026-10-12).
+- XP para o próximo nível = arredondar(50 × nível^1,2) (decidido em 2026-10-12; meta em [personagem](personagem.md#ritmo-de-progressão)).
+- XP vem de derrotar inimigos; quem **participou** (dano, cura, defesa) recebe, mesmo sem ser o dono do loot. O valor cai pela diferença de nível ([personagem](personagem.md#ritmo-de-progressão)).
+- Subir de nível não dá ponto de atributo. Força, Destreza, Intelecto, Vitalidade e Espírito vêm só dos itens.
 - No nível máximo o XP excedente é guardado e não sobe de nível.
-- O client mostra barra de XP, nível e pontos a gastar.
-- **Testes esperados:** XP certo por nível; subir de nível dá os pontos; não gastar ponto inexistente; mesmo prêmio não concede XP duas vezes; teto de nível.
+- O client mostra barra de XP e nível.
+- **Testes esperados:** XP certo por nível; mob 5 níveis abaixo não dá XP; mob do mesmo nível dá o valor inteiro; subir de nível não cria ponto de atributo; mesmo prêmio não concede XP duas vezes; teto de nível.
 
 ### 7. Dungeon de até 5 com um boss
 
