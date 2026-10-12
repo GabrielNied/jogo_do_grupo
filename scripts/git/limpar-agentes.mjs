@@ -89,7 +89,7 @@ export function dentroDe(pasta, caminho) {
 
 function git(args, { cwd, ignorarErro = false } = {}) {
   try {
-    return execFileSync("git", args, { cwd, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }).trim();
+    return execFileSync("git", args, { cwd, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], windowsHide: true }).trim();
   } catch (erro) {
     if (ignorarErro) return null;
     throw new Error(`git ${args.join(" ")}: ${erro.stderr?.toString().trim() || erro.message}`);
@@ -97,7 +97,7 @@ function git(args, { cwd, ignorarErro = false } = {}) {
 }
 
 function gh(args) {
-  return execFileSync("gh", args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }).trim();
+  return execFileSync("gh", args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], windowsHide: true }).trim();
 }
 
 let donoDoRepo = null;

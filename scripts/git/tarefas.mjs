@@ -457,6 +457,7 @@ async function puxarTarefa(args) {
   // Em segundo plano: não atrasa o puxar, e erro na limpeza não afeta a tarefa.
   spawnSync(process.execPath, [fileURLToPath(new URL("./limpar-agentes.mjs", import.meta.url)), "--fundo"], {
     stdio: "ignore",
+    windowsHide: true,
   });
 
   console.log(`\n=======================================================`);
