@@ -100,6 +100,8 @@ Para cada relatório:
 
 Só diga à pessoa que um PR está **pronto para merge** depois que os checks passaram e, se o PR for de risco, o `revisor` aprovou e os ajustes escolhidos foram aplicados. Sem revisor, o CI verde e a verificação proporcional do autor bastam. Se o PR é a cena da funcionalidade, "Como testar" diz o que a pessoa faz e o que aparece, e o merge espera ela olhar essa cena. Enquanto o revisor de um PR de risco não terminar, deixe claro: "em revisão, **não mergear ainda**".
 
+Leva empilhada (PR que depende de outro ainda aberto): depois do squash do de baixo, rode `npm run reempilhar -- <PR de cima>` antes de pedir o merge; ele refaz o PR de cima sobre a `main` sem conflito ([Leva empilhada](../../../docs/git.md#leva-empilhada)).
+
 Se um PR for mergeado antes dos ajustes, **não envie mais nada para a branch dele** (ela foi apagada no merge e o push a recriaria). Crie uma branch nova a partir da `origin/main`, traga os commits com `git cherry-pick` e abra um PR novo.
 
 ## 7. Resumo final para a pessoa
