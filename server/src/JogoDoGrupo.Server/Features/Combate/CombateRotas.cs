@@ -21,8 +21,6 @@ internal static class CombateRotas
 {
     // Mesma espera pela trava do banco de Itens (o client desiste em 10 s).
     private const int EsperaTravaSegundos = 5;
-    private const int SqliteOcupado = 5;
-    private const int SqliteBloqueado = 6;
 
     public static void Mapear(IEndpointRouteBuilder rotas) =>
         rotas.MapGet(RotasCombate.Recursos, RecursosAsync).RequireAuthorization();
@@ -34,7 +32,6 @@ internal static class CombateRotas
         IBonusDeAtributos bonus,
         IPontosDistribuidos pontos,
         TimeProvider relogio,
-        ILogger<CombateModule> log,
         CancellationToken cancelamento
     )
     {
@@ -74,6 +71,7 @@ internal static class CombateRotas
             sqlite.DefaultTimeout = EsperaTravaSegundos;
         }
 
+        // Banco ocupado sobe como exceção: o Core responde 503 ServidorOcupado.
         try
         {
             var resposta = await AtualizarEmTransacaoAsync(
@@ -84,18 +82,6 @@ internal static class CombateRotas
                 cancelamento
             );
             return Results.Ok(resposta);
-        }
-        catch (Exception e) when (EhBancoOcupado(e))
-        {
-            log.LogWarning(
-                "Banco ocupado por mais de {Espera} s ao ler recursos.",
-                EsperaTravaSegundos
-            );
-            return RespostasApi.Erro(
-                StatusCodes.Status500InternalServerError,
-                CodigosErro.ErroInterno,
-                "Servidor ocupado. Tente de novo."
-            );
         }
         finally
         {
@@ -149,18 +135,5 @@ internal static class CombateRotas
             EnergiaMaxima = RegrasRecursos.EnergiaMaxima(atributos.Espirito),
             Atributos = atributos,
         };
-    }
-
-    private static bool EhBancoOcupado(Exception erro)
-    {
-        for (var atual = erro; atual != null; atual = atual.InnerException)
-        {
-            if (atual is SqliteException { SqliteErrorCode: SqliteOcupado or SqliteBloqueado })
-            {
-                return true;
-            }
-        }
-
-        return false;
     }
 }
