@@ -31,8 +31,8 @@ npm run unity:executar -- <Metodo>   # roda um script de editor em modo batch (e
 npm run unity:editor                 # sai 1 se o editor do projeto está aberto (ignora o Hub)
 npm run unity:meta                   # gera os .meta de scripts, pastas, .asmdef, .uss/.tss e textos, sem Unity
 npm run unity:importar               # gera os outros .meta (prefab, asset...) e fecha (editor fechado)
-npm run limpar-agentes               # simula a limpeza de worktrees e branches já mescladas
-npm run limpar-agentes -- --aplicar  # remove (só o que já está na main; --remotas inclui o GitHub)
+npm run limpar-agentes               # simula a limpeza (ela já roda sozinha: sessão, git pull, puxar)
+npm run limpar-agentes -- --aplicar  # remove na hora (só o que não se perde; --remotas inclui o GitHub)
 npm run validar-branch -- <branch>   # confere nome de branch
 npm run tarefa -- listar             # lista tarefas livres e em andamento
 npm run tarefa -- puxar <N>          # puxa a tarefa para em andamento e cria a branch
@@ -50,7 +50,7 @@ Testes em `tests/` (xUnit; [ADR 0013](docs/decisoes/0013-testes-automatizados.md
    - **O resto pode sair:** arquivos, pastas, assets, trechos de docs, código morto, branches, worktrees e `.meta` órfãos. Apagou? Deixe o commit dizer o quê e por quê, e atualize os links que apontavam para lá.
    - **Olhe antes de apagar:** confira o que é, quem usa (referências, guids de assets do Unity) e se há mudança sua não commitada. Dúvida real sobre o que é, ou sobre algo de outra pessoa em andamento: pergunte.
    - **Confirme antes do que não volta ou é do grupo todo:** push forçado (nunca na `main`), apagar branch remota de PR aberto, apagar repositório, release ou projeto no GitHub. O hook `bloquear-apagar` barra o push forçado e o apagar repositório, release ou projeto; peça a quem decide.
-   - **Worktrees e branches de agentes** continuam saindo com `npm run limpar-agentes -- --aplicar` ([ADR 0018](docs/decisoes/0018-limpeza-do-que-os-agentes-criam.md)), que só remove o que já está na `main`.
+   - **Worktrees e branches de agentes** saem sozinhos depois do merge ([ADR 0031](docs/decisoes/0031-limpeza-automatica.md)): a limpeza roda em segundo plano no início da sessão, no `git pull` e no `puxar`, e só remove o que não se perde (na `main`, num PR ou no `origin`). Relatório em `.git/limpar-agentes.log`.
 1. **Fique nas pastas da funcionalidade da tarefa** (`Features/<X>/` em client, server e shared, e `docs/features/<x>.md`). Se precisar mexer em outra funcionalidade ou em `Core/`, pare e avise a pessoa: isso exige review do responsável.
 2. **Funcionalidades não se referenciam diretamente.** Comunicação por eventos e contratos definidos por quem publica: se o **client usa** (mensagens de rede, DTOs, regras puras), em `shared/Package/Runtime/Features/<dono>/`; se **só o servidor usa** (eventos e consultas entre funcionalidades), em `server/src/JogoDoGrupo.Server/Contratos/<Dono>/` ([ADR 0016](docs/decisoes/0016-eventos-entre-funcionalidades-do-servidor.md)). Não adicione referência de um `.asmdef` de feature para outro.
 3. **Servidor autoritativo:** regras que decidem resultado (dano, drop, fusão, preço) rodam no servidor. O cliente envia intenções e mostra resultados.

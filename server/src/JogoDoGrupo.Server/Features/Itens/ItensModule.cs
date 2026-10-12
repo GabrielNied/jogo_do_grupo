@@ -16,6 +16,14 @@ public sealed class ItensModule : IFeatureModule
 
     public void ConfigurarServicos(IServiceCollection servicos, IConfiguration configuracao)
     {
+        var configEquipamentos = new ConfigEquipamentos();
+        configuracao.GetSection("Itens:Equipamentos").Bind(configEquipamentos);
+        servicos.AddSingleton(configEquipamentos);
+        servicos.AddSingleton<GeradorEquipamentos>();
+        servicos.AddSingleton<
+            JogoDoGrupo.Server.Contratos.Itens.IBonusEquipamentos,
+            BonusEquipamentos
+        >();
         servicos.AddSingleton<ISorteadorBau>(new SorteadorBau());
         servicos.AddSingleton<ISorteadorDeLoot>(new SorteadorDeLoot());
         servicos.AddSingleton<ChaoDeLoot>();

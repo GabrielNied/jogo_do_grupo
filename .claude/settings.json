@@ -13,6 +13,11 @@
             "type": "command",
             "command": "node \"$CLAUDE_PROJECT_DIR/scripts/agentes/preparar-nuvem.mjs\" --hook",
             "timeout": 15
+          },
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/scripts/git/limpar-agentes.mjs\" --fundo",
+            "timeout": 10
           }
         ]
       }

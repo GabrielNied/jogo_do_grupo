@@ -1,7 +1,7 @@
 # 0018. Limpeza do que os agentes criam
 
 **Data:** 2026-10-11
-**Status:** aceita (ajusta a regra 0 do [AGENTS.md](../../AGENTS.md) e o fim do fluxo do [ADR 0008](0008-desenvolvimento-multiagente.md))
+**Status:** aceita, com critérios e disparo ajustados pelo [ADR 0031](0031-limpeza-automatica.md) (ajusta a regra 0 do [AGENTS.md](../../AGENTS.md) e o fim do fluxo do [ADR 0008](0008-desenvolvimento-multiagente.md))
 
 ## Contexto
 

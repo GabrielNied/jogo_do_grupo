@@ -31,6 +31,11 @@ namespace JogoDoGrupo.Client.Features.Itens
         private static long _personagemDoUltimo;
 
         private PainelItens _painel;
+        private VisualElement _areaItens;
+        private VisualElement _areaEquipamentos;
+        private PainelEquipamentos _equipamentos;
+        private EquipamentosResponse _estadoEquipamentos;
+        private bool _ocupadoEquipamentos;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void Registrar()
@@ -68,7 +73,103 @@ namespace JogoDoGrupo.Client.Features.Itens
 
         protected override void Montar(VisualElement conteudo)
         {
-            _painel = new PainelItens(conteudo, DefinirTitulo);
+            var abas = new VisualElement();
+            abas.AddToClassList(JogoDoGrupo.Client.Core.UI.EstiloCore.LinhaBotoes);
+            var itens = new Button(() =>
+            {
+                _areaEquipamentos.style.display = DisplayStyle.None;
+                _areaItens.style.display = DisplayStyle.Flex;
+                Carregar(false);
+            })
+            {
+                text = "Itens",
+            };
+            itens.AddToClassList(JogoDoGrupo.Client.Core.UI.EstiloCore.Botao);
+            var equipamentos = new Button(() => CarregarEquipamentos(null, null))
+            {
+                text = "Equipamentos",
+            };
+            equipamentos.AddToClassList(JogoDoGrupo.Client.Core.UI.EstiloCore.Botao);
+            abas.Add(itens);
+            abas.Add(equipamentos);
+            conteudo.Add(abas);
+            _areaItens = new VisualElement();
+            _areaItens.style.flexGrow = 1;
+            _areaItens.style.minHeight = 0;
+            _areaEquipamentos = new VisualElement();
+            _areaEquipamentos.style.display = DisplayStyle.None;
+            _areaEquipamentos.style.flexGrow = 1;
+            _areaEquipamentos.style.minHeight = 0;
+            conteudo.Add(_areaItens);
+            conteudo.Add(_areaEquipamentos);
+            _painel = new PainelItens(_areaItens, DefinirTitulo);
+            _equipamentos = new PainelEquipamentos(_areaEquipamentos, CarregarEquipamentos);
+        }
+
+        private async void CarregarEquipamentos(string acao, object pedido)
+        {
+            if (_ocupadoEquipamentos)
+                return;
+            var personagemId = EntradaNoJogo.PersonagemId;
+            _ocupadoEquipamentos = true;
+            _areaItens.style.display = DisplayStyle.None;
+            _areaEquipamentos.style.display = DisplayStyle.Flex;
+            DefinirTitulo("Equipamentos");
+            _equipamentos.Avisar("Carregando...");
+            try
+            {
+                var rota = RegrasEquipamentos.RotaDe(personagemId);
+                var resposta =
+                    acao == null
+                        ? await ClienteApi.Get<EquipamentosResponse>(rota)
+                        : await ClienteApi.Post<EquipamentosResponse>(rota + "/" + acao, pedido);
+                if (!AindaVale(personagemId))
+                    return;
+                if (resposta.Sucesso && resposta.Corpo != null)
+                {
+                    _estadoEquipamentos = resposta.Corpo;
+                    _equipamentos.Mostrar(_estadoEquipamentos);
+                }
+                else
+                {
+                    var aviso = MensagemEquipamento(resposta.CodigoErro);
+                    if (_estadoEquipamentos != null)
+                        _equipamentos.Mostrar(_estadoEquipamentos, aviso);
+                    else
+                        _equipamentos.Avisar(aviso);
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+                if (AindaVale(personagemId))
+                    _equipamentos.Avisar(
+                        "Não foi possível atualizar os equipamentos. Abra a aba para tentar novamente."
+                    );
+            }
+            finally
+            {
+                _ocupadoEquipamentos = false;
+            }
+        }
+
+        private static string MensagemEquipamento(string codigo)
+        {
+            switch (codigo)
+            {
+                case "InventarioCheio":
+                    return "Não há espaço no inventário para guardar as peças retiradas.";
+                case "NivelInsuficiente":
+                    return "Seu personagem ainda não tem o nível exigido pela peça.";
+                case "ArmaDeDuasMaos":
+                    return "Retire a arma de duas mãos antes de equipar a mão secundária.";
+                case "ItemNaoEncontrado":
+                    return "Esse item não está mais disponível. Reabra a aba para atualizar.";
+                case "PosicaoInvalida":
+                    return "Essa peça não pode ser equipada nessa posição.";
+                default:
+                    return "Não foi possível alterar os equipamentos. Tente novamente.";
+            }
         }
 
         protected override void AoAbrir()

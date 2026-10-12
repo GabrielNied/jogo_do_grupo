@@ -14,6 +14,8 @@
 import { execFileSync, spawnSync } from "node:child_process";
 import { escopos, tipos } from "../../commitlint.config.mjs";
 import { readdirSync } from "node:fs";
+import { resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { corpoSubtarefa } from "./subtarefa.mjs";
 import {
   LABEL_PENDENCIA,
@@ -425,6 +427,10 @@ async function puxarTarefa(args) {
   comentar(numero, comentario);
 
   // 5. Configura Git (Worktree ou Branch local)
+  // Agente que já nasceu num worktree e passa o próprio caminho: cria a branch ali mesmo
+  // (o git worktree add falharia depois de a issue já estar marcada).
+  const raizAtual = executarGit(["rev-parse", "--show-toplevel"], { silencioso: true });
+  if (worktreePath && resolve(worktreePath).toLowerCase() === resolve(raizAtual).toLowerCase()) worktreePath = null;
   console.log(`🌿 Configurando branch "${nomeBranch}"...`);
   if (branchExistente) {
     // Branch do PR, que já existe no origin: o git cria a local acompanhando a remota.
@@ -446,6 +452,12 @@ async function puxarTarefa(args) {
     executarGit(["fetch", "origin", "main"]);
     executarGit(["switch", "--no-track", "-c", nomeBranch, "origin/main"]);
   }
+
+  // Começo de tarefa é um bom momento para limpar o que já entrou na main (ADR 0031).
+  // Em segundo plano: não atrasa o puxar, e erro na limpeza não afeta a tarefa.
+  spawnSync(process.execPath, [fileURLToPath(new URL("./limpar-agentes.mjs", import.meta.url)), "--fundo"], {
+    stdio: "ignore",
+  });
 
   console.log(`\n=======================================================`);
   console.log(`✔ TAREFA #${numero} PUXADA COM SUCESSO!`);
