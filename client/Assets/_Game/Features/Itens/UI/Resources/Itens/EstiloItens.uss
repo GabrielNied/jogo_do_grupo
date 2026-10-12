@@ -1,0 +1,285 @@
+/* Inventário em grade (Lumora UI v1). Cores e tamanhos vêm dos tokens --lumora-*; aqui só layout. */
+
+/* A janela do Core é a "painel-largo" (720); a grade pede um pouco mais. */
+.janela.itens-painel-largo {
+    width: 860px;
+    max-width: 100%;
+}
+
+.itens-corpo {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: center;
+    min-width: 0;
+}
+
+.itens-coluna {
+    margin: var(--lumora-espacamento-pequeno);
+    min-width: 0;
+    flex-shrink: 0;
+}
+
+.itens-cabecalho-secao {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--lumora-espacamento-pequeno);
+}
+
+.itens-titulo-secao {
+    color: var(--lumora-cores-ouro);
+    font-size: var(--lumora-tipografia-subtitulo);
+    white-space: normal;
+}
+
+.itens-contador {
+    color: var(--lumora-cores-texto-secundario);
+}
+
+.itens-contador-cheio {
+    color: var(--lumora-cores-ouro);
+    -unity-font-style: bold;
+}
+
+/* ---- casa e encaixe ---- */
+
+.item-slot {
+    width: var(--lumora-dimensoes-alvo-minimo);
+    height: var(--lumora-dimensoes-alvo-minimo);
+    margin: 2px;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--lumora-cores-campo);
+    border-width: var(--lumora-bordas-fina);
+    border-color: var(--lumora-cores-borda-discreta);
+    border-radius: var(--lumora-bordas-raio-campo);
+}
+
+.item-slot:hover {
+    border-color: var(--lumora-cores-essencia);
+}
+
+.item-slot.item-slot-valido {
+    border-color: var(--lumora-cores-essencia);
+    border-width: var(--lumora-bordas-destaque);
+    background-color: var(--lumora-cores-selecionado);
+}
+
+.item-slot.item-slot-invalido {
+    border-color: var(--lumora-cores-erro);
+    border-width: var(--lumora-bordas-destaque);
+    background-color: var(--lumora-cores-perigo-preenchimento);
+}
+
+.item-slot.item-slot-alvo {
+    border-color: var(--lumora-cores-ouro);
+    border-width: var(--lumora-bordas-destaque);
+}
+
+.item-slot.item-slot-pendente {
+    opacity: 0.45;
+}
+
+.item-icone {
+    position: absolute;
+    left: 3px;
+    right: 3px;
+    top: 3px;
+    bottom: 3px;
+    align-items: center;
+    justify-content: center;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.item-sigla {
+    font-size: var(--lumora-tipografia-leitura);
+    color: var(--lumora-cores-marfim);
+    -unity-text-align: middle-center;
+    white-space: nowrap;
+}
+
+/* Encaixe vazio: a silhueta (sigla do tipo) fica apagada. */
+.item-slot-vazio .item-sigla {
+    color: var(--lumora-cores-borda-discreta);
+}
+
+/* Raridade: a cor da borda e da sigla (e do ícone, quando houver). */
+.item-raridade-0 { border-color: var(--lumora-cores-texto-secundario); }
+.item-raridade-1 { border-color: var(--lumora-cores-ganho); }
+.item-raridade-2 { border-color: var(--lumora-cores-essencia); }
+.item-raridade-3 { border-color: var(--lumora-cores-sussurro); }
+.item-raridade-4 { border-color: var(--lumora-cores-ouro); }
+
+.item-raridade-0 .item-icone { -unity-background-image-tint-color: var(--lumora-cores-texto-secundario); }
+.item-raridade-1 .item-icone { -unity-background-image-tint-color: var(--lumora-cores-ganho); }
+.item-raridade-2 .item-icone { -unity-background-image-tint-color: var(--lumora-cores-essencia); }
+.item-raridade-3 .item-icone { -unity-background-image-tint-color: var(--lumora-cores-sussurro); }
+.item-raridade-4 .item-icone { -unity-background-image-tint-color: var(--lumora-cores-ouro); }
+
+.item-selo-novo {
+    position: absolute;
+    right: 0;
+    top: 0;
+    padding: 0 3px;
+    font-size: 11px;
+    color: var(--lumora-cores-petroleo);
+    background-color: var(--lumora-cores-ouro);
+    border-radius: var(--lumora-bordas-raio-campo);
+}
+
+/* ---- bolsa ---- */
+
+.itens-abas {
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin-bottom: var(--lumora-espacamento-minimo);
+}
+
+.itens-aba {
+    min-height: 32px;
+    margin: 0 var(--lumora-espacamento-minimo) 0 0;
+    padding: 0 var(--lumora-espacamento-medio);
+}
+
+.itens-aba-ativa {
+    background-color: var(--lumora-cores-selecionado);
+    border-color: var(--lumora-cores-essencia);
+}
+
+/* 8 colunas de casas: 8 x (44 + 2 x 2) */
+.itens-grade {
+    width: 384px;
+    max-height: 296px;
+    flex-direction: column;
+}
+
+.itens-grade .unity-scroll-view__content-container {
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+/* ---- paperdoll ---- */
+
+.itens-paperdoll {
+    width: 184px;
+    align-items: center;
+}
+
+.itens-paperdoll-linha {
+    flex-direction: row;
+}
+
+.itens-paperdoll-vazio {
+    width: var(--lumora-dimensoes-alvo-minimo);
+    height: var(--lumora-dimensoes-alvo-minimo);
+    margin: 2px;
+}
+
+.itens-conjuntos {
+    margin-top: var(--lumora-espacamento-pequeno);
+    align-items: flex-start;
+}
+
+.itens-conjunto {
+    flex-direction: row;
+    align-items: center;
+}
+
+.itens-conjunto-rotulo {
+    width: 72px;
+    min-height: 32px;
+    margin: 2px;
+    padding: 0;
+}
+
+/* ---- resumo, avisos e confirmação ---- */
+
+.itens-resumo {
+    margin-top: var(--lumora-espacamento-pequeno);
+    padding: var(--lumora-espacamento-pequeno) var(--lumora-espacamento-medio);
+    background-color: var(--lumora-cores-campo);
+    border-radius: var(--lumora-bordas-raio-campo);
+    border-width: var(--lumora-bordas-fina);
+    border-color: var(--lumora-cores-borda-discreta);
+}
+
+.itens-resumo-titulo {
+    color: var(--lumora-cores-texto-secundario);
+    white-space: normal;
+}
+
+.itens-resumo-linha {
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+.itens-resumo-bonus {
+    margin-right: var(--lumora-espacamento-medio);
+    white-space: normal;
+}
+
+.itens-confirmacao {
+    margin-top: var(--lumora-espacamento-pequeno);
+    padding: var(--lumora-espacamento-pequeno);
+    border-width: var(--lumora-bordas-fina);
+    border-color: var(--lumora-cores-erro);
+    border-radius: var(--lumora-bordas-raio-campo);
+    background-color: var(--lumora-cores-perigo-preenchimento);
+}
+
+.itens-rodape-botoes {
+    margin-top: var(--lumora-espacamento-pequeno);
+}
+
+/* ---- arraste e tooltip (filhos da raiz da interface) ---- */
+
+.item-fantasma {
+    position: absolute;
+    width: var(--lumora-dimensoes-alvo-minimo);
+    height: var(--lumora-dimensoes-alvo-minimo);
+    opacity: 0.85;
+    picking-mode: ignore;
+}
+
+.item-tooltip {
+    position: absolute;
+    width: 300px;
+    padding: var(--lumora-espacamento-medio);
+    background-color: var(--lumora-cores-topo);
+    border-width: var(--lumora-bordas-fina);
+    border-color: var(--lumora-cores-ouro);
+    border-radius: var(--lumora-bordas-raio-painel);
+    picking-mode: ignore;
+}
+
+.item-tooltip-nome {
+    font-size: var(--lumora-tipografia-controle);
+    white-space: normal;
+}
+
+.item-nome-raridade-0 { color: var(--lumora-cores-texto-secundario); }
+.item-nome-raridade-1 { color: var(--lumora-cores-ganho); }
+.item-nome-raridade-2 { color: var(--lumora-cores-essencia); }
+.item-nome-raridade-3 { color: var(--lumora-cores-sussurro); }
+.item-nome-raridade-4 { color: var(--lumora-cores-ouro); }
+
+.item-tooltip-linha {
+    white-space: normal;
+    color: var(--lumora-cores-marfim);
+}
+
+.item-tooltip-suave { color: var(--lumora-cores-texto-secundario); }
+.item-tooltip-fixo { color: var(--lumora-cores-marfim); }
+.item-tooltip-sorteado { color: var(--lumora-cores-essencia); }
+.item-tooltip-infusivel { color: var(--lumora-cores-ouro); }
+.item-tooltip-ganho { color: var(--lumora-cores-ganho); }
+.item-tooltip-perda { color: var(--lumora-cores-erro); }
+
+.item-tooltip-comparacao {
+    margin-top: var(--lumora-espacamento-pequeno);
+    padding-top: var(--lumora-espacamento-pequeno);
+    border-top-width: var(--lumora-bordas-fina);
+    border-top-color: var(--lumora-cores-borda-discreta);
+}

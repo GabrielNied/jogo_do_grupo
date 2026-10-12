@@ -114,7 +114,10 @@ public class ItensRotasTestes(ServidoresDeItens servidores) : IClassFixture<Serv
         var resposta = await cliente.GetAsync(RotasItens.InventarioDe(id));
 
         Assert.Equal(HttpStatusCode.OK, resposta.StatusCode);
-        Assert.Equal("{\"Entradas\":[]}", await resposta.Content.ReadAsStringAsync());
+        var corpo = await ServidorDeTeste.LerJsonAsync<InventarioResponse>(resposta);
+        Assert.Empty(corpo.Entradas);
+        Assert.Equal(RegrasItens.AbasBolsaInicial, corpo.Capacidade.Abas);
+        Assert.Equal(RegrasItens.CasasPorAbaBolsa, corpo.Capacidade.CasasPorAba);
     }
 
     [Fact]

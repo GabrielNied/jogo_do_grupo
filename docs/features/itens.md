@@ -17,6 +17,7 @@ Inventário, equipamentos, raridades e sistema de fusão.
 - ~~Sistema de fusão: limite de fusões por raridade, item sacrificado é destruído, só funde itens do mesmo tipo ou tier, herança parcial de atributos, retorno decrescente, custo crescente em ouro (tira moeda do jogo), teto de atributo por tier~~ (substituído em 2026-10-11 pela decisão abaixo)
 - **Fusão/infusão** (decidido por Gabriel em 2026-10-11, a validar pelo grupo): só doadores do mesmo tipo **e** raridade, +2% fixo do valor-base por doador, sem retorno decrescente, **com custo em coroas**. O item sacrificado é destruído. Valores iniciais e fluxo entregues na [Infusão de equipamentos](#infusão-de-equipamentos-174); carteira em [economia.md](economia.md).
 - Itens negociáveis, inclusive os fundidos (fomentar a economia)
+- **Inventário de jogo, não de formulário** (decidido por Gabriel em 2026-10-12): bolsa em grade de casas **1×1** para todos os tipos, paperdoll, tooltip, clique direito e arrastar e soltar, com a base pronta para inventário grande. Veja [Interface do inventário](#interface-do-inventário-560).
 
 ## Em aberto
 
@@ -54,11 +55,11 @@ As cinco raridades e a tabela do livro (níveis máximos, slots de skills e infu
 
 **Geração para teste:** `ConfigEquipamentos` mantém a quantidade e os valores dos atributos aleatórios fora do sorteio. O padrão provisório usa dois atributos distintos, sem repetir os fixos, dentre os cinco atributos básicos; valores de referência 6 (3 para Espírito), retirados dos exemplos de peças do livro. Não é uma tabela final de balanceamento, de chances ou de atributos elementais. É configurável em `Itens:Equipamentos`. O catálogo confirmado da #330 contém as 72 peças do livro, além do Martelo Ressonante e dos dois equipamentos legados de teste; veja Catálogo abaixo. Espada e escudo de teste continuam compatíveis, sem inventar um bônus fixo para eles.
 
-**Troca autoritativa e persistente:** o servidor confere a conta dona, a identidade do exemplar, o tipo da posição e o nível exigido. A peça anterior volta ao inventário. Uma arma de duas mãos retira a mão secundária do mesmo conjunto; equipar escudo/foco com ela é recusado. Se todas as peças retiradas não couberem nos 40 espaços, nada muda. Peças equipadas não ocupam espaço do inventário. Transação e índice único por personagem/posição impedem duplicação em pedidos concorrentes.
+**Troca autoritativa e persistente:** o servidor confere a conta dona, a identidade do exemplar, o tipo da posição e o nível exigido. A peça anterior volta ao inventário. Uma arma de duas mãos retira a mão secundária do mesmo conjunto; equipar escudo/foco com ela é recusado. Se todas as peças retiradas não couberem na bolsa, nada muda (a primeira peça deslocada ocupa a casa que o item novo deixou; as outras, a primeira casa livre). Peças equipadas não ocupam espaço do inventário. Transação e índice único por personagem/posição impedem duplicação em pedidos concorrentes.
 
 **Bônus:** Combate consulta o total atual através de `Contratos/Itens/IBonusEquipamentos`; não referencia a implementação de Itens. Força, Destreza, Intelecto, Vitalidade e Espírito entram nos cálculos já existentes de dano e recursos, sem acumular o mesmo bônus a cada troca. Defesa e demais status têm representação e apresentação, mas não criam fórmulas novas de mitigação, bloqueio ou efeitos nesta tarefa.
 
-**No jogo:** abrir o inventário com I e escolher a aba **Equipamentos**. A aba mostra posições, conjunto ativo, atributos fixos/sorteados, atributo infusível, raridade, nível e requisito; permite equipar, desequipar e trocar conjuntos. Em editor/build de desenvolvimento, **Obter equipamento de teste** pede uma peça ao servidor. Essa rota só existe em ambiente `Development`; não altera o baú original; o loot dos mobs tem tabela própria ([Loot dos inimigos](#loot-dos-inimigos-493)).
+**No jogo:** abrir o inventário com **I** ([Interface do inventário](#interface-do-inventário-560)). O paperdoll mostra os encaixes e o conjunto ativo; o tooltip de cada item mostra atributos fixos/sorteados, atributo infusível, raridade, nível e requisito; clique direito e arrastar e soltar equipam e desequipam; os botões **Conj. 1** e **Conj. 2** trocam o conjunto de armas. Em editor/build de desenvolvimento, **Obter equipamento de teste** pede uma peça ao servidor. Essa rota só existe em ambiente `Development`; não altera o baú original; o loot dos mobs tem tabela própria ([Loot dos inimigos](#loot-dos-inimigos-493)).
 
 API autenticada, sob `/api/personagens/{personagemId}/equipamentos`:
 
@@ -66,7 +67,7 @@ API autenticada, sob `/api/personagens/{personagemId}/equipamentos`:
 |---|---|
 | GET | Consultar inventário, peças vestidas, conjunto ativo e totais |
 | POST `/equipar` | `PedidoEquipar`: identidade do exemplar e posição |
-| POST `/desequipar` | `PedidoDesequipar`: posição |
+| POST `/desequipar` | `PedidoDesequipar`: posição e, opcionalmente (`TemDestino`), a aba e a casa onde guardar; sem destino vai para a primeira casa livre |
 | POST `/conjunto` | `PedidoConjunto`: conjunto 1 ou 2 |
 | POST `/bau-teste` | Uma peça do catálogo de equipamentos de teste, só Development |
 
@@ -74,7 +75,7 @@ Operações devolvem `EquipamentosResponse`; conta alheia e personagem ausente t
 
 ### Descartar item (#495)
 
-Na aba **Equipamentos** do inventário, cada item da bolsa tem **Descartar**; o primeiro clique pede confirmação na própria linha (**Confirmar descarte** / **Cancelar**) e só a confirmação envia o pedido. O item some e o contador x/40 cai.
+Soltar um item da bolsa fora da janela do inventário pede confirmação (**Confirmar descarte** / **Cancelar**) e só a confirmação envia o pedido ([Interface do inventário](#interface-do-inventário-560); antes da #560 era o botão **Descartar** na linha do item). O item some e o contador x/capacidade cai.
 
 `POST /api/personagens/{personagemId}/inventario/descartar` (`RotasItens.Descartar`), corpo `PedidoDescartar` (`InstanciaId`); responde 200 `EquipamentosResponse` com o estado atualizado.
 
@@ -82,6 +83,52 @@ Na aba **Equipamentos** do inventário, cada item da bolsa tem **Descartar**; o 
 - **Erros:** personagem ausente ou de outra conta é 404 `PersonagemNaoEncontrado`; exemplar inexistente, de outra conta ou já descartado é 404 `ItemNaoEncontrado`; exemplar equipado é 409 `ItemEquipado` (desequipar antes). Sem token é 401.
 - **Idempotência:** repetir o descarte de um exemplar já descartado devolve 404 `ItemNaoEncontrado` e não altera nada (decisão assumida: não dá para distinguir "já descartado" de "alheio" sem vazar a existência de itens de outras contas).
 - **Concorrência:** a rota roda em transação Serializable, como equipar. Dois descartes do mesmo exemplar: um vale (200), o outro recebe 404. Descartar junto com equipar: um dos dois vence em série (equipou antes: descarte 409; descartou antes: equipar 404); nunca há peça duplicada nem equipada e apagada.
+
+### Interface do inventário (#560)
+
+Decidido por Gabriel em 2026-10-12. Substitui a lista com dropdown e botões das abas "Itens" e "Equipamentos".
+
+**Por que 1×1:** inventários com tamanho por tipo (Diablo II, Path of Exile) freiam o acúmulo pela falta de espaço. Aqui o centro do jogo é juntar doadores do mesmo tipo e raridade para infundir, e cada peça é única (não empilha). Tamanho por tipo puniria justamente esse comportamento e dificultaria ordenar, filtrar e mover em lote. A bolsa guarda os itens valiosos do jogador; o conforto vem das ferramentas (abaixo), não da escassez de espaço.
+
+**Janela (tecla I):** uma janela só. À esquerda o **paperdoll**: as posições de `PosicaoEquipamento` em volta da silhueta, as armas dos dois conjuntos embaixo e o botão de trocar conjunto. À direita a **bolsa**: grade de 8 colunas, abas no topo e contador x/capacidade. Embaixo, o resumo dos bônus. O painel de infusão continua o atual, aberto pelo botão **Bancada**; vira arrastar numa tarefa própria.
+
+**Casa:** ícone de silhueta por `TipoEquipamento`, tingido e com borda na cor da raridade (sem ícone ainda, a sigla do tipo). Item recém-chegado (baú, loot) tem selo **novo** até o mouse passar por cima. Encaixe vazio mostra a silhueta apagada do tipo.
+
+| Ação | Na bolsa | No paperdoll |
+|---|---|---|
+| Mouse em cima (~0,3 s) | Tooltip completo e comparação com a peça equipada no mesmo encaixe (▲ verde / ▼ vermelho) | Tooltip completo |
+| Clique direito | Equipa no encaixe automático | Desequipa para a primeira casa livre |
+| Arrastar até um encaixe | Equipa; encaixes válidos acendem, inválidos ficam vermelhos | Troca entre os pares (anel 1 ↔ 2, brinco 1 ↔ 2) |
+| Arrastar até uma casa | Move; casa ocupada troca os dois | Desequipa para aquela casa; se ocupada, troca quando o item da casa serve no encaixe, senão recusa |
+| Soltar fora da janela | Confirmação de descarte ([Descartar item](#descartar-item-495)) | Nada (peça equipada não é descartada; desequipe antes) |
+| Esc durante o arraste | Cancela | Cancela |
+
+**Encaixe automático** (`RegrasEquipamentos`, no shared): anel e brinco vão para o primeiro encaixe livre do par (ambos ocupados: substitui o 1); arma vai para a arma do conjunto ativo; escudo e foco, para a secundária do conjunto ativo. As demais validações (nível, duas mãos, espaço) continuam no servidor.
+
+**Esperando o servidor:** o item fica semitransparente e travado. Recusa devolve o item ao lugar e mostra a mensagem no HUD; sucesso aplica o estado devolvido pelo servidor.
+
+**Modelo preparado para inventário grande:**
+
+- Cada item fora do corpo tem **contêiner, aba e casa** (equipado: nulos). Por ora só existe o contêiner **Bolsa**, com 1 aba de 40 casas; o banco (#177) e o baú de grupo usam o mesmo modelo e a mesma grade.
+- A **capacidade vem do servidor** (abas e casas por aba, em configuração), não fica fixa no client nem espalhada nas regras. Expandir a bolsa é liberar abas (#564).
+- A **ordem é salva no servidor**: mover para uma casa ocupada troca os dois na mesma transação, com índice único por personagem, contêiner, aba e casa. Tudo que entra na bolsa (baú, loot, desequipar, peça deslocada) vai para a primeira casa livre. A migração numera os itens existentes pela ordem atual.
+
+**Entregue na #560 (decisões do dono, 2026-10-12):**
+
+- **Contrato:** `EntradaInventario` ganha `Conteiner` (`ConteinerItem`: Bolsa; Banco e BauDoGrupo reservados, o servidor só aceita Bolsa), `Aba` e `Casa` (`-1` com o item equipado). `CapacidadeBolsa` (`Abas`, `CasasPorAba`, `Total`, `Contem`) vem em `EquipamentosResponse`, `InventarioResponse` e `AbrirBauResponse`; o servidor a decide em `Bolsa.CapacidadeDe` (hoje 1 aba x 40 casas, constantes em `RegrasItens`). O client desenha o que receber.
+- **Mover:** `POST /api/personagens/{id}/inventario/mover` (`RotasItens.Mover`), corpo `PedidoMover` (`InstanciaId`, `Aba`, `Casa`), responde 200 `EquipamentosResponse`. Casa ocupada: os dois trocam na mesma transação Serializable. Aba ou casa fora da capacidade: 400 `CasaInvalida`; exemplar inexistente ou alheio: 404 `ItemNaoEncontrado`; equipado: 409 `ItemEquipado`. Mover para a própria casa é um 200 sem efeito.
+- **Desequipar para casa ocupada** é o mesmo que equipar o ocupante naquele encaixe: troca se ele servir (tipo, nível, duas mãos, espaço), senão a recusa do equipar (400 `PosicaoInvalida`, 409 `NivelInsuficiente`, `ArmaDeDuasMaos`, `InventarioCheio`) e nada muda.
+- **Migração:** a migração só cria as colunas e o índice único (`Personagem, Conteiner, Aba, Casa`, filtrado em casa não nula). Linhas antigas sem casa são numeradas pelo servidor na primeira leitura ou operação, pela ordem do `Id` e na primeira casa livre (`Bolsa.Normalizar`), e a numeração é gravada na primeira operação que grava. Evita SQL à mão na migração e cobre também linhas criadas por outro caminho.
+- **Encaixe automático** com os dois encaixes do par ocupados substitui o 1. Equipar já vestido em outro encaixe do mesmo tipo (arrastar anel 1 para o encaixe do anel 2) reequipa.
+- **Esc durante o arraste:** o Esc é do Core e fecha a janela inteira, o que também cancela o arraste (o item não se move). Soltar sobre a janela fora de casas e encaixes cancela sem fechar.
+- **Selo "novo":** o client compara os itens com os da abertura anterior (mesmo personagem, na sessão) e com os ganhos do baú; o selo sai quando o mouse passa por cima. Na primeira abertura da sessão nada é "novo".
+- **Tooltip:** comparação só para peça da bolsa, contra o encaixe automático (com os dois encaixes de anel ou brinco cheios, contra o 1); encaixe vazio mostra tudo como ganho. Aparece depois de 0,3 s e some ao arrastar. ▲ e ▼ têm sinal e valor no texto, então a cor não é a única pista.
+- **Descartar:** o descarte (solta fora da janela) pede a confirmação numa faixa da própria janela; só o **Confirmar descarte** envia.
+- **Ícone:** ponto único `PainelInventario.IconeDoTipo` (hoje sem sprite: sigla do tipo); os ícones da #567 entram só ali.
+- **Painel de infusão:** continua o atual, aberto por **Bancada**.
+- **Fora do ambiente de teste do agente:** a conferência visual da janela (capturas 1280x720 a 2560x1440, texto 20 e máximo) fica como pendência de Unity.
+
+**Na sequência:** destacar doadores compatíveis (#561), ordenar (#562), favoritar, lixo e ações em lote (#563), busca e filtros (#334), expansão em abas (#564), filtro de loot (#565), Ctrl+clique entre contêineres (#566).
 
 ### Catálogo de modelos-base (#330, confirmado pelo usuário em 2026-10-11)
 
