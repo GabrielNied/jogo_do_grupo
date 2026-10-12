@@ -71,6 +71,12 @@ namespace JogoDoGrupo.Client.Features.Combate
                     AoInterromper
                 )
             );
+            _assinaturas.Add(
+                ConexaoTempoReal.Assinar<EstadoDeQueda>(
+                    CombateMessageIds.EstadoDeQueda,
+                    AoMudarQueda
+                )
+            );
         }
 
         private void OnEnable() => _guarda?.Enable();
@@ -227,6 +233,31 @@ namespace JogoDoGrupo.Client.Features.Combate
             {
                 AvisosDoJogo.Mostrar(TextoGolpeBloqueado, TipoDeAviso.Aviso);
             }
+        }
+
+        // Caído deita o personagem; levantado (ou de volta à cidade) o põe de pé. A tela do caído
+        // é de Personagem; aqui só a pose.
+        private void AoMudarQueda(EstadoDeQueda queda)
+        {
+            if (queda.PersonagemId != _personagemId)
+            {
+                return;
+            }
+
+            var jogador = EntradaNoJogo.Jogador;
+            if (jogador == null)
+            {
+                return;
+            }
+
+            var animator = jogador.GetComponentInChildren<Animator>();
+            var caido = queda.Estado == FaseDeQueda.Caido || queda.Estado == FaseDeQueda.Levantando;
+            if (caido)
+            {
+                AnimadorDeDefesa.DefinirGuarda(animator, false);
+            }
+
+            AnimadorDeDefesa.DefinirCaido(animator, caido);
         }
 
         private void AoInterromper(AcaoInterrompida interrupcao)

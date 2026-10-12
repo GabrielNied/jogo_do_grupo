@@ -28,6 +28,8 @@ namespace JogoDoGrupo.Client.Features.Combate
                     return Tom(0.22f, 880f, 1320f, 0.4f);
                 case SomDeCombate.GolpeRecebido:
                     return Impacto(0.26f, 70f, 0.8f, 0.7f);
+                case SomDeCombate.GolpeNoVazio:
+                    return Ruido(0.24f, 3.5f, 0.45f, 500f, 250f);
                 case SomDeCombate.AlertaDeArea:
                     return Tom(0.14f, 440f, 440f, 0.3f);
                 default:

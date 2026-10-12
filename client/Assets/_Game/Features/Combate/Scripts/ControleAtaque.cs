@@ -11,9 +11,11 @@ namespace JogoDoGrupo.Client.Features.Combate
 {
     /// <summary>
     /// Ataque da primeira arma no client: o clique no botão esquerdo envia o ataque leve e
-    /// segurá-lo por 0,3 s, o pesado, com a direção da mira; mostra o que o servidor responde (animação no início do
-    /// ataque, número de dano no acerto, aviso de recusa e barras de recursos). Nada de dano,
-    /// custo ou acerto é decidido aqui.
+    /// segurá-lo por 0,3 s, o pesado, com a direção da mira; mostra o que o servidor responde (animação
+    /// no início do ataque, número de dano sobre o alvo no acerto, aviso de recusa e barras de
+    /// recursos). Um clique durante outra ação entra na fila do servidor ou fica guardado
+    /// (<see cref="ProntidaoLocal.ClicarAtaque"/>); um golpe que o servidor recusa é desfeito. Nada
+    /// de dano, custo ou acerto é decidido aqui.
     /// </summary>
     internal sealed class ControleAtaque : MonoBehaviour
     {
@@ -23,16 +25,26 @@ namespace JogoDoGrupo.Client.Features.Combate
         private readonly GeradorDeIntencoes _gerador = new GeradorDeIntencoes();
         private readonly FilaDeNumeros _numeros = new FilaDeNumeros();
         private readonly AvisoTemporario _aviso = new AvisoTemporario();
+        private readonly GolpesEmAberto _golpes = new GolpesEmAberto();
         private readonly List<IDisposable> _assinaturas = new List<IDisposable>();
 
         private long _personagemId;
         private PainelAtaque _painelAtaque;
-        private PainelRecursos _painelRecursos;
         private ControleRecursos _recursos;
+        private ControleImpacto _impacto;
         private ProntidaoLocal _prontidao;
         private InputAction _leve;
-        private TipoDeAtaque _ultimoTipoProprio = TipoDeAtaque.Leve;
-        private int _ultimoPassoProprio;
+
+        // A cadeia de leves como o servidor a conta (RegrasAtaque.PassoDoGolpe), para escolher a
+        // animação sem esperar a resposta; o AtaqueIniciado do servidor corrige.
+        private int _proximoPasso;
+        private int _proximoPassoAntes;
+
+        // O golpe em curso e o que espera na fila do servidor, para a recusa desfazer o certo.
+        private int _sequenciaEmCurso;
+        private int _sequenciaNaFila;
+        private float _direcaoNaFila;
+        private double _reacaoVista = double.NegativeInfinity;
 
         // Compromisso do golpe: corpo preso a 40% da corrida e girando só até o teto do ataque.
         private TipoDeAtaque _tipoEmCurso = TipoDeAtaque.Leve;
@@ -47,15 +59,15 @@ namespace JogoDoGrupo.Client.Features.Combate
         public void Configurar(
             long personagemId,
             PainelAtaque painelAtaque,
-            PainelRecursos painelRecursos,
             ControleRecursos recursos,
+            ControleImpacto impacto,
             ProntidaoLocal prontidao
         )
         {
             _personagemId = personagemId;
             _painelAtaque = painelAtaque;
-            _painelRecursos = painelRecursos;
             _recursos = recursos;
+            _impacto = impacto;
             _prontidao = prontidao;
 
             // Botão esquerdo, como em docs/features/interface.md (Teclas e atalhos): o clique é
@@ -107,7 +119,7 @@ namespace JogoDoGrupo.Client.Features.Combate
         // o preparo e o acerto o corpo acompanha a mira, só até o teto de giro do ataque.
         private void LateUpdate()
         {
-            var agora = Time.unscaledTime;
+            var agora = Time.unscaledTimeAsDouble;
             var jogador = EntradaNoJogo.Jogador;
             var comprometido =
                 EntradaNoJogo.NoJogo
@@ -159,12 +171,15 @@ namespace JogoDoGrupo.Client.Features.Combate
             _aviso.Atualizar(Time.deltaTime);
             _painelAtaque?.Mostrar(_numeros, _aviso);
 
+            var agora = Time.unscaledTimeAsDouble;
+            AvancarFilaEBuffer(agora);
+            ConferirGolpesSemResposta(agora);
+
             if (_leve == null)
             {
                 return;
             }
 
-            var agora = Time.unscaledTime;
             if (_leve.WasPressedThisFrame() && PodeAtacar())
             {
                 _segurandoDesde = agora;
@@ -189,14 +204,14 @@ namespace JogoDoGrupo.Client.Features.Combate
             )
             {
                 _pesadoDoClique = true;
-                Enviar(TipoDeAtaque.Pesado);
+                Pedir(TipoDeAtaque.Pesado, agora);
             }
             else if (!_leve.IsPressed())
             {
                 // Soltou: antes dos 0,3 s é o leve; o pesado já saiu enquanto segurava.
                 if (!_pesadoDoClique)
                 {
-                    Enviar(TipoDeAtaque.Leve);
+                    Pedir(TipoDeAtaque.Leve, agora);
                 }
 
                 _segurandoDesde = -1d;
@@ -210,35 +225,117 @@ namespace JogoDoGrupo.Client.Features.Combate
         private static bool PodeAtacar() =>
             ConexaoTempoReal.Conectado && Cursor.lockState == CursorLockMode.Locked;
 
-        private void Enviar(TipoDeAtaque tipo)
+        // O que a fila e o buffer pedem a cada quadro: o golpe da fila começa quando a ação em
+        // curso acaba, e o clique guardado sai quando cabe na fila do servidor.
+        private void AvancarFilaEBuffer(double agora)
         {
-            var agora = Time.unscaledTime;
-            if (_prontidao != null && !_prontidao.PodeAtacar(tipo, agora))
+            if (_prontidao == null)
             {
-                var semVigor = _prontidao.Vigor is int vigor && !RegrasAtaque.TemVigor(tipo, vigor);
-                _aviso.Mostrar(
-                    semVigor
-                        ? ApresentacaoAtaque.TextoVigorInsuficiente
-                        : ApresentacaoAtaque.TextoAcaoEmAndamento
-                );
                 return;
             }
 
+            if (_prontidao.IniciarDaFila(agora, out var daFila))
+            {
+                IniciarGolpe(daFila, _direcaoNaFila, _sequenciaNaFila, agora);
+            }
+
+            if (_prontidao.LiberarAtaqueGuardado(agora, out var guardado))
+            {
+                Pedir(guardado, agora);
+            }
+        }
+
+        private void Pedir(TipoDeAtaque tipo, double agora)
+        {
+            if (_prontidao == null)
+            {
+                EnviarEIniciar(tipo, agora);
+                return;
+            }
+
+            switch (_prontidao.ClicarAtaque(tipo, agora))
+            {
+                case ResultadoDoClique.EnviarAgora:
+                    EnviarEIniciar(tipo, agora);
+                    break;
+                case ResultadoDoClique.EnviarNaFila:
+                    EnviarNaFila(tipo);
+                    break;
+                case ResultadoDoClique.SemVigor:
+                    _aviso.Mostrar(ApresentacaoAtaque.TextoVigorInsuficiente);
+                    break;
+                case ResultadoDoClique.Descartado:
+                    _aviso.Mostrar(ApresentacaoAtaque.TextoAcaoEmAndamento);
+                    break;
+            }
+        }
+
+        private void EnviarEIniciar(TipoDeAtaque tipo, double agora)
+        {
+            var intencao = Enviar(tipo);
+            IniciarGolpe(tipo, intencao.DirecaoY, intencao.Sequencia, agora);
+        }
+
+        private void EnviarNaFila(TipoDeAtaque tipo)
+        {
+            // Entra na fila do servidor agora; a animação começa quando a ação em curso acabar.
+            var intencao = Enviar(tipo);
+            _sequenciaNaFila = intencao.Sequencia;
+            _direcaoNaFila = intencao.DirecaoY;
+        }
+
+        private IntencaoDeAtaque Enviar(TipoDeAtaque tipo)
+        {
             ControleDefesa.LargarParaAgir(_prontidao); // Atacar solta a guarda, antes do pedido.
             var intencao = _gerador.Criar(tipo, DirecaoDaMira());
             ConexaoTempoReal.Enviar(CombateMessageIds.IntencaoDeAtaque, intencao);
+            return intencao;
+        }
+
+        // O golpe começa na tela. Anima na hora, sem esperar o servidor (ADR 0024). O acerto e o
+        // dano continuam sendo dele: o número de dano só aparece com AtaqueAcertou.
+        private void IniciarGolpe(TipoDeAtaque tipo, float direcao, int sequencia, double agora)
+        {
+            var passo = RegrasAtaque.PassoDoGolpe(
+                tipo,
+                _proximoPasso,
+                _prontidao != null ? agora - _prontidao.LivreEm : double.MaxValue
+            );
+            _proximoPassoAntes = _proximoPasso;
+            _proximoPasso = RegrasAtaque.ProximoPasso(tipo, passo);
+
             _prontidao?.MarcarAtaque(tipo, agora);
             _tipoEmCurso = tipo;
-            _giroDoCorpo = intencao.DirecaoY;
+            _giroDoCorpo = direcao;
+            _sequenciaEmCurso = sequencia;
+            _golpes.Registrar(sequencia, tipo, direcao, agora);
 
-            // Anima na hora, sem esperar o servidor (ADR 0024). O acerto e o dano continuam
-            // sendo dele: o número de dano só aparece com AtaqueAcertou.
             var jogador = EntradaNoJogo.Jogador;
             if (jogador != null)
             {
                 // O corpo começa virado para a mira; dali só gira até o teto do ataque.
                 jogador.transform.rotation = Quaternion.Euler(0f, _giroDoCorpo, 0f);
-                AnimadorDeAtaque.Tocar(jogador.GetComponentInChildren<Animator>(), tipo);
+                AnimadorDeAtaque.Tocar(jogador.GetComponentInChildren<Animator>(), tipo, passo);
+            }
+        }
+
+        // Golpe que o servidor não confirmou no prazo errou o alvo: rastro e som no vazio.
+        private void ConferirGolpesSemResposta(double agora)
+        {
+            if (_prontidao != null && _prontidao.UltimaReacaoEm > _reacaoVista)
+            {
+                // Levou um acerto que interrompeu a ação: o golpe cancelado não chega ao contato.
+                _reacaoVista = _prontidao.UltimaReacaoEm;
+                _golpes.Limpar();
+            }
+
+            while (_golpes.TirarVencido(agora, out var golpe))
+            {
+                var jogador = EntradaNoJogo.Jogador;
+                if (jogador != null)
+                {
+                    _impacto?.GolpeNoVazio(jogador.transform.position, golpe.DirecaoY);
+                }
             }
         }
 
@@ -263,9 +360,9 @@ namespace JogoDoGrupo.Client.Features.Combate
                 return;
             }
 
-            // A animação própria já tocou ao apertar (ADR 0024).
-            _ultimoTipoProprio = ataque.Tipo;
-            _ultimoPassoProprio = ataque.Passo;
+            // A animação própria já tocou ao apertar (ADR 0024); o passo do servidor corrige a
+            // cadeia daqui em diante.
+            _proximoPasso = RegrasAtaque.ProximoPasso(ataque.Tipo, ataque.Passo);
         }
 
         private void AoAcertarAtaque(AtaqueAcertou ataque)
@@ -278,18 +375,10 @@ namespace JogoDoGrupo.Client.Features.Combate
                 return;
             }
 
-            // O pesado e o 3º leve da cadeia aparecem maiores.
-            var pesado = ApresentacaoAtaque.GolpeForte(_ultimoTipoProprio, _ultimoPassoProprio);
-            var total = 0;
-            foreach (var acerto in ataque.Acertos)
-            {
-                if (acerto != null)
-                {
-                    total++;
-                }
-            }
+            _golpes.Confirmar(ataque.Sequencia, out _);
 
-            var posicao = 0;
+            // O pesado e o 3º leve da cadeia aparecem maiores: o tipo e o passo vêm no acerto.
+            var forte = ApresentacaoAtaque.GolpeForte(ataque.Tipo, ataque.Passo);
             foreach (var acerto in ataque.Acertos)
             {
                 if (acerto == null)
@@ -297,38 +386,44 @@ namespace JogoDoGrupo.Client.Features.Combate
                     continue;
                 }
 
-                // Um número por alvo, lado a lado em torno do centro da mira.
-                var deslocamento = (posicao - (total - 1) / 2f) * EspacoEntreNumeros;
-                _numeros.Adicionar(
-                    ApresentacaoAtaque.TextoDoDano(acerto.Dano),
-                    pesado,
-                    deslocamento
-                );
-                posicao++;
+                // Um número por alvo, sobre a cabeça dele; sem o alvo na cena, em torno da mira.
+                var alvo = RegistroDeAlvos.Achar(acerto.AlvoId);
+                Vector3? origem = alvo != null ? RegistroDeAlvos.AcimaDaCabeca(alvo) : null;
+                _numeros.Adicionar(ApresentacaoAtaque.TextoDoDano(acerto.Dano), forte, 0f, origem);
             }
         }
 
         private void AoRecusarAtaque(AtaqueRecusado recusa)
         {
             _aviso.Mostrar(ApresentacaoAtaque.TextoDaRecusa(recusa.Codigo));
-        }
+            var agora = Time.unscaledTimeAsDouble;
 
-        private void AoMudarRecursos(RecursosMudaram recursos)
-        {
-            if (
-                _painelRecursos != null
-                && ApresentacaoCombate.TentarMontar(
-                    recursos,
-                    out var vida,
-                    out var vigor,
-                    out var energia
-                )
-            )
+            if (recusa.Sequencia == _sequenciaNaFila && _prontidao?.NaFila != null)
             {
-                _painelRecursos.Mostrar(vida, vigor, energia);
-                _prontidao?.RegistrarVigor(vigor.Atual);
-                _recursos?.RegistrarAtualizacaoDoServidor();
+                // Ainda nem começou: nada a desfazer na tela.
+                _prontidao.CancelarFila();
+                _sequenciaNaFila = 0;
+                return;
+            }
+
+            if (recusa.Sequencia != _sequenciaEmCurso || _sequenciaEmCurso == 0)
+            {
+                return; // Pedido de outro momento (o servidor recusou o 3º da fila, por exemplo).
+            }
+
+            // O golpe já tocou e gastou vigor previsto (ADR 0024): desfaz os dois.
+            _golpes.Confirmar(recusa.Sequencia, out _);
+            _prontidao?.DesfazerAtaque(agora);
+            _proximoPasso = _proximoPassoAntes;
+            _sequenciaEmCurso = 0;
+            var jogador = EntradaNoJogo.Jogador;
+            if (jogador != null)
+            {
+                AnimadorDeAtaque.Cancelar(jogador.GetComponentInChildren<Animator>());
             }
         }
+
+        private void AoMudarRecursos(RecursosMudaram recursos) =>
+            _recursos?.AplicarDoServidor(recursos);
     }
 }

@@ -128,6 +128,8 @@ public class ReacaoEGuardaRedeTestes(ServidorDeAtaque servidor) : IClassFixture<
         var sobe = await GuardaAsync(beto); // Quem está na área também vê a postura.
         Assert.Equal(ana.Id, sobe.PersonagemId);
         Assert.True(sobe.Segurando);
+        var aoGuardar = await RecursosAsync(ana); // A previsão do client precisa saber da guarda.
+        Assert.Equal(100, aoGuardar.VigorAtual);
 
         Golpear(ana.Id, 30);
 
@@ -206,5 +208,21 @@ public class ReacaoEGuardaRedeTestes(ServidorDeAtaque servidor) : IClassFixture<
         Assert.False((await GuardaAsync(beto)).Segurando);
         Assert.Equal(1, ana.Recebidas(CombateMessageIds.GuardaMudou));
         Assert.Contains(servidor.Limite.Pedidos, p => p.PersonagemId == ana.Id && p.Fator == 1.0);
+    }
+
+    [Fact]
+    public async Task Segurar_e_soltar_a_guarda_mandam_os_recursos_ao_dono()
+    {
+        using var ana = await NovoJogadorAsync();
+        await DefinirVigorAsync(ana, 60);
+
+        Guardar(ana, true);
+        var segurando = await RecursosAsync(ana);
+        Guardar(ana, false);
+        var solto = await RecursosAsync(ana);
+
+        Assert.Equal(60, segurando.VigorAtual);
+        Assert.Equal(60, solto.VigorAtual); // A espera de 2 s recomeçou: nada regenerou.
+        Assert.Equal(RegrasRecursos.VigorMaximo(), solto.VigorMaximo);
     }
 }

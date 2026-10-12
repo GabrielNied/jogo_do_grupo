@@ -81,20 +81,25 @@ namespace JogoDoGrupo.Client.Features.Combate
             var controle = raiz.AddComponent<ControleRecursos>();
             controle.Configurar(personagemId, painel, prontidao);
 
+            var impacto = raiz.AddComponent<ControleImpacto>();
+            impacto.Configurar(personagemId, new PainelImpacto(container));
+
             var ataque = raiz.AddComponent<ControleAtaque>();
             ataque.Configurar(
                 personagemId,
                 new PainelAtaque(container),
-                painel,
                 controle,
+                impacto,
                 prontidao
             );
 
             raiz.AddComponent<ControleEsquiva>().Configurar(personagemId, prontidao);
             raiz.AddComponent<ControleDefesa>()
                 .Configurar(personagemId, prontidao, new PainelDefesa(container));
-            raiz.AddComponent<ControleImpacto>()
-                .Configurar(personagemId, new PainelImpacto(container));
+
+            // O boneco de treino da cidade (o servidor o trata como alvo fixo, id negativo).
+            var boneco = BonecoDeTreinoVisual.Criar();
+            SceneManager.MoveGameObjectToScene(boneco.gameObject, jogador.scene);
         }
 
         private static PanelSettings CriarConfiguracaoDoPainel()

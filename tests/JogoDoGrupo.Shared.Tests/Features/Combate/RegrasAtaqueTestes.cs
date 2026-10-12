@@ -277,4 +277,33 @@ public class RegrasAtaqueTestes
 
         Assert.Equal(20.0, RegrasAtaque.DiferencaDeAngulo(direcao, 350.0), 9);
     }
+
+    [Theory]
+    [InlineData(TipoDeAtaque.Leve, 0.5)]
+    [InlineData(TipoDeAtaque.Pesado, 1.0)]
+    public void Velocidade_do_clipe_faz_o_contato_cair_no_fim_do_preparo(
+        TipoDeAtaque tipo,
+        double preparo
+    )
+    {
+        var velocidade = RegrasAtaque.VelocidadeDoClipe(tipo);
+
+        Assert.Equal(preparo, RegrasAtaque.ContatoNoClipeSegundos / velocidade, 9);
+    }
+
+    [Fact]
+    public void Clique_guardado_envia_ja_na_janela_da_fila_e_espera_ate_o_limite_do_buffer()
+    {
+        // Na janela da fila (0,3 s): vale já.
+        Assert.Equal(0.0, RegrasAtaque.QuandoEnviarOCliqueGuardado(0.2));
+
+        // Entre 0,3 s e 0,5 s: guardado, sai um pouco antes de a fila do servidor abrir.
+        var espera = RegrasAtaque.QuandoEnviarOCliqueGuardado(0.5);
+        Assert.NotNull(espera);
+        Assert.True(RegrasAtaque.EntraNaFila(0.5 - espera!.Value + 0.0));
+        Assert.Equal(0.5 - 0.25, espera.Value, 9);
+
+        // Mais cedo que isso o clique é descartado.
+        Assert.Null(RegrasAtaque.QuandoEnviarOCliqueGuardado(0.51));
+    }
 }

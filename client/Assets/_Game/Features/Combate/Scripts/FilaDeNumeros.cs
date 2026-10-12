@@ -1,15 +1,22 @@
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace JogoDoGrupo.Client.Features.Combate
 {
     /// <summary>Um número de dano subindo na tela.</summary>
     internal sealed class NumeroFlutuante
     {
-        public NumeroFlutuante(string texto, bool pesado, float deslocamento)
+        public NumeroFlutuante(
+            string texto,
+            bool pesado,
+            float deslocamento,
+            Vector3? origem = null
+        )
         {
             Texto = texto;
             Pesado = pesado;
             Deslocamento = deslocamento;
+            Origem = origem;
         }
 
         public string Texto { get; }
@@ -19,6 +26,12 @@ namespace JogoDoGrupo.Client.Features.Combate
 
         /// <summary>Deslocamento horizontal, em pixels de referência, para não empilhar números.</summary>
         public float Deslocamento { get; }
+
+        /// <summary>
+        /// Onde o golpe pegou, no mundo (sobre o alvo). Sem origem, o número aparece em torno da
+        /// mira, no centro da tela.
+        /// </summary>
+        public Vector3? Origem { get; }
 
         public float Idade { get; set; }
 
@@ -40,14 +53,14 @@ namespace JogoDoGrupo.Client.Features.Combate
 
         public IReadOnlyList<NumeroFlutuante> Itens => _numeros;
 
-        public void Adicionar(string texto, bool pesado, float deslocamento)
+        public void Adicionar(string texto, bool pesado, float deslocamento, Vector3? origem = null)
         {
             if (_numeros.Count >= Maximo)
             {
                 _numeros.RemoveAt(0);
             }
 
-            _numeros.Add(new NumeroFlutuante(texto, pesado, deslocamento));
+            _numeros.Add(new NumeroFlutuante(texto, pesado, deslocamento, origem));
         }
 
         public void Atualizar(float segundos)

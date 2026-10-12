@@ -80,6 +80,40 @@ public class ContratoCombateTestes
     }
 
     [Fact]
+    public void AtaqueAcertou_traz_tipo_sequencia_e_passo_do_golpe()
+    {
+        var msg = new AtaqueAcertou
+        {
+            Tipo = TipoDeAtaque.Pesado,
+            Sequencia = 8,
+            Passo = 2,
+        };
+
+        Assert.Equal(TipoDeAtaque.Pesado, msg.Tipo);
+        Assert.Equal(8, msg.Sequencia);
+        Assert.Equal(2, msg.Passo);
+        Assert.Equal(TipoDeAtaque.Leve, new AtaqueAcertou().Tipo);
+    }
+
+    [Fact]
+    public void Boneco_de_treino_tem_um_alvo_negativo_na_cidade()
+    {
+        // Id negativo: nunca colide com personagem nem inimigo.
+        Assert.True(RegrasBonecoDeTreino.AlvoId < 0);
+        Assert.True(RegrasBonecoDeTreino.Vida > 0);
+        Assert.True(
+            RegrasAtaque.EstaNoVolume(
+                RegrasBonecoDeTreino.X,
+                RegrasBonecoDeTreino.Z - RegrasAtaque.AlcanceMetros,
+                0.0,
+                RegrasBonecoDeTreino.X,
+                RegrasBonecoDeTreino.Z,
+                RegrasBonecoDeTreino.Raio
+            )
+        );
+    }
+
+    [Fact]
     public void AcertoDeAtaque_campos_padrao()
     {
         var acerto = new AcertoDeAtaque();

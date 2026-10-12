@@ -121,7 +121,7 @@ Ataque da primeira arma (tempo real; regras e números em [fatia-jogavel.md](fat
 |---|---|---|---|
 | 6000 | `IntencaoDeAtaque` | client → servidor | `Tipo` (`TipoDeAtaque`: Leve 0, Pesado 1), `DirecaoY` (graus, mesma convenção de `IntencaoDeMovimento.RotacaoY`), `Sequencia` |
 | 6001 | `AtaqueIniciado` | servidor → quem está na área | `AtacanteId`, `Tipo`, `DirecaoY`, `PreparoMs`, `Passo` (0 a 2, da cadeia de leves) |
-| 6002 | `AtaqueAcertou` | servidor → quem está na área | `AtacanteId`, `Acertos[]` (`AcertoDeAtaque`: `AlvoId`, `Dano`, `VidaRestante`, `VidaMaxima`) |
+| 6002 | `AtaqueAcertou` | servidor → quem está na área | `AtacanteId`, `Acertos[]` (`AcertoDeAtaque`: `AlvoId`, `Dano`, `VidaRestante`, `VidaMaxima`), `Tipo`, `Sequencia` (a da `IntencaoDeAtaque`), `Passo` |
 | 6003 | `AtaqueRecusado` | servidor → atacante | `Sequencia`, `Codigo` (`CodigosErroCombate.VigorInsuficiente`, `AcaoEmAndamento` ou `VoceEstaCaido`) |
 | 6004 | `RecursosMudaram` | servidor → dono | vida, vigor e energia atuais e máximos |
 
@@ -148,7 +148,7 @@ Esquiva (tempo real; regras e números em [fatia-jogavel.md](fatia-jogavel.md), 
 - `Tipo` fora do enum, direção inválida, ou ataque de quem ainda não entrou no mundo: o pedido é **descartado sem resposta** (o contrato não tem código para isso; um client correto nunca manda).
 - O dano é `RegrasAtaque.Dano(tipo, Força final, passo)`; cada alvo leva o mesmo golpe uma vez, e o `Dano` de `AcertoDeAtaque` é o que o alvo realmente perdeu (nunca mais que a vida que ele tinha).
 - **Alvos:** `IAlvosDeCombate` (`server/.../Contratos/Combate/`, ADR 0016) é implementado por quem é dono de alvos; Combate junta todas as implementações. Hoje só há o **boneco de treino** (id de alvo `-1`), em `ConfigBonecoDeTreino`: 180 de vida, posição fixa na cidade (x 0, z -22, 2 m à frente do nascimento), volta à vida cheia 5 s depois do último golpe que levou. Com 0 de vida ele sai de combate (não é mais alvo) até voltar. O servidor **não avisa** a volta: o client deduz pelos 5 s sem golpes.
-- **Onde o boneco está (provisório):** o contrato não tem mensagem para isso, então o client coloca o modelo na mesma posição fixa (x 0, z -22) até o shared ganhar uma mensagem ou constante para os alvos fixos (pendente com o responsável pelo contrato).
+- **Onde o boneco está:** `RegrasBonecoDeTreino` no shared (posição, raio, vida e recuperação), usado pelo servidor e pelo client; ver [Resposta visual](#resposta-visual-do-combate-no-client-475-476-479-480-482).
 
 ### Recursos em memória (#478)
 
@@ -184,7 +184,7 @@ Implementado em 2026-10-12, a partir do ritmo do golpe. Mensagens (faixa de Comb
 - **Ordem do golpe de inimigo:** esquiva (dano some) → caído → guarda (custo 1 de vigor por ponto de dano, antes da defesa da #344) → vida → reação.
 - **Guarda:** `ControleDeAcoes` recusa subir no preparo e no momento de acerto, durante a esquiva e a reação; na recuperação corta o resto do golpe. Com a guarda segurada, ataque e esquiva são recusados (o client solta a guarda antes de pedir). O teto de 40% vai ao Mundo por `ILimiteDeVelocidadeDoMundo` (30 s por vez, `RegrasGuarda.LimiteDeVelocidadeSegundos`; ao soltar, fator 1); o Mundo ainda não o implementa (#598).
 - **Regeneração:** com a guarda segurada a espera de 2 s do vigor não corre; ao soltar ou quebrar ela recomeça (`RecursosEmMemoria.DefinirGuardaAsync`).
-- **Client:** o clique no botão esquerdo é o leve e segurá-lo por 0,3 s (`SegurarParaPesadoSegundos`) é o pesado, para o botão direito ser a guarda ([interface.md](interface.md#teclas-e-atalhos)). Segurar o direito sobe a guarda (corpo olhando a mira, 40%, indicador "Guarda"); atacar ou esquivar a solta antes do pedido. `AcaoInterrompida` do próprio personagem para o golpe, segura a próxima ação por 0,3 s e inclina o corpo; os Triggers/Bool `Guarda` e `Interrompido` do Animator esperam os clipes da [#475](https://github.com/GabrielNied/jogo_do_grupo/issues/475). O visual do inimigo interrompido é de Mobs (hoje ele só deixa de dar o golpe).
+- **Client:** o clique no botão esquerdo é o leve e segurá-lo por 0,3 s (`SegurarParaPesadoSegundos`) é o pesado, para o botão direito ser a guarda ([interface.md](interface.md#teclas-e-atalhos)). Segurar o direito sobe a guarda (corpo olhando a mira, 40%, indicador "Guarda"); atacar ou esquivar a solta antes do pedido. `AcaoInterrompida` do próprio personagem para o golpe, segura a próxima ação por 0,3 s e inclina o corpo; os parâmetros `Guarda` e `Interrompido` do Animator tocam a pose de guarda e a de dano (ver [Resposta visual](#resposta-visual-do-combate-no-client-475-476-479-480-482)). O visual do inimigo interrompido é de Mobs (hoje ele só deixa de dar o golpe).
 
 ### Esquiva no servidor (#233)
 
@@ -226,6 +226,22 @@ O client só reage ao que o servidor confirmou (`AtaqueAcertou`, vida menor em `
 - **Limites:** no máximo 8 flashes e 4 sons por janela de 0,12 s; hit-stop e tremor não se somam (vale o maior, com teto).
 - **Esquiva:** som ao esquivar. "Esquivou!" aparece quando o jogador estava no círculo de um golpe avisado, esquivou antes do golpe, estava fora quando o preparo acabou e o servidor não tirou vida. Hoje é inferido; uma mensagem do servidor para "esquivou" deixaria exato. Estar dentro de um círculo avisado mostra "Saia da área!" com um som de alerta.
 - **Sons:** gerados por código (`SintetizadorDeSons`), sem arquivos de terceiros. Entram no mixer de Core quando o #123 existir. Tremor, hit-stop e som têm chaves em `ConfiguracaoDeImpacto`, a ligar na tela de opções do Core.
+
+### Resposta visual do combate no client (#475, #476, #479, #480, #482)
+
+Decidido em 2026-10-12 pelo dono de Combate, fácil de mudar (constantes nomeadas em `RegrasAtaque`, `RegrasReacao`, `ProntidaoLocal` e `RastroDoGolpe`). Código em `Features/Combate/Scripts/`. O client só mostra; nada aqui muda dano, custo ou acerto.
+
+- **Contrato novo:** `AtaqueAcertou` ganhou `Tipo`, `Sequencia` e `Passo` no fim (o acerto é do golpe certo mesmo com leve e pesado na fila). `RegrasBonecoDeTreino` (shared) guarda posição, raio, vida e tempo de recuperação do boneco; `ConfigBonecoDeTreino` só repete os nomes. `RegrasAtaque` ganhou `JanelaDoBufferSegundos`, `MargemDoEnvioSegundos`, `VelocidadeDoClipe` e `QuandoEnviarOCliqueGuardado`; `RegrasReacao`, `PausaVisualNoAcertoMs` (70).
+- **Animações (#475):** golpe, guarda e dano tocam numa **camada de tronco** (`Golpe`) do controller; as pernas seguem o movimento. Três leves (um por `Passo` da cadeia, o 2º espelhado), um pesado, a guarda enquanto segurada, o dano no `Interrompido` e o caído (`Caido`). O contato do clipe `Atacar` (quadro 11 de 26 a 30 por segundo) cai em `RegrasAtaque.PreparoSegundos` pela velocidade do clipe (`VelocidadeDoGolpe`). O passo local segue `RegrasAtaque.PassoDoGolpe` e o `AtaqueIniciado` do servidor corrige. O blend tree corre a 5,5 m/s (o do Core), com o clipe a 1,1x. Tabela dos parâmetros em [personagem.md](personagem.md#parâmetros-do-animator).
+- **Clipes que faltam (fica com o `artista-personagens`):** a guarda usa o quadro de preparo do `Atacar` parado, e o 2º leve é o `Atacar` espelhado. Trocar por clipes de verdade é só apontar o estado do controller no gerador; o tempo já está ligado.
+- **Pausa no acerto (70 ms):** no acerto confirmado o `Animator` de quem bateu e de quem levou fica parado por `PausaVisualNoAcertoMs`, junto do hit-stop que já existia. O relógio do servidor não para.
+- **Boneco (#476):** `BonecoDeTreinoVisual` monta em código um poste com tronco e cabeça de palha na posição do shared, sobre o chão, com barra de vida que olha para a câmera. A vida vem de `AtaqueAcertou` e a volta à vida cheia (`SegundosParaRecuperar`) é a mesma conta do servidor. Flash e recuo são do `ControleImpacto`, que acha o alvo pelo `RegistroDeAlvos` (o boneco se registra; os inimigos de Mobs são achados uma vez por nome e guardados).
+- **Número de dano (#482):** nasce sobre a cabeça do alvo, no mundo, e sobe 0,9 m; o pesado e o 3º leve aparecem maiores. Sem o alvo na cena, volta a subir em torno da mira.
+- **Golpe no vazio:** o golpe do próprio jogador que o servidor não confirmou até o contato mais 0,25 s (`GolpesEmAberto`) mostra o leque do volume do golpe no chão por 0,22 s e um som de ar cortado. Um acerto sofrido no meio cancela o aviso.
+- **Vigor sem polling (#479):** uma consulta ao entrar traz o retrato; depois o servidor manda `RecursosMudaram` a cada gasto, dano e **ao subir ou soltar a guarda**, e a barra e a `ProntidaoLocal` preveem a regeneração de `RegrasRecursos.RegenerarVigor` (espera de 2 s depois do último gasto, parada com a guarda segurada). Um retrato do servidor abaixo da previsão por mais de 2 pontos conta como gasto. Nenhum "Vigor insuficiente" local quando a previsão paga.
+- **Buffer de entrada (#480):** um clique de ataque (ou esquiva) durante outra ação: nos últimos 0,3 s vai já ao servidor (entra na fila dele) e a animação começa quando a ação em curso acaba; entre 0,3 s e 0,5 s fica guardado (**1 pedido**) e sai 0,25 s antes do fim, para a latência não fazer o servidor vê-lo cedo; antes disso é descartado ("Aguarde o golpe terminar"). Um pedido guardado vence 0,25 s depois da hora de sair. A esquiva guardada sai quando pode começar (no fim do preparo do golpe ou da esquiva anterior).
+- **Golpe recusado desfeito:** `AtaqueRecusado` com a `Sequencia` do golpe em curso tira a pose (trigger `Cancelar`), devolve o vigor previsto e a cadeia de leves; a recusa do pedido que ainda estava na fila só o tira da fila.
+- **Fora desta entrega:** golpes de outros jogadores visíveis ([#481](https://github.com/GabrielNied/jogo_do_grupo/issues/481)), compensação de lag ([#172](https://github.com/GabrielNied/jogo_do_grupo/issues/172)), o teto de velocidade no servidor ([#598](https://github.com/GabrielNied/jogo_do_grupo/issues/598)) e o mob reagindo à interrupção (Mobs).
 
 ### Sem dano entre aliados (#346)
 

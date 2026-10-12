@@ -319,6 +319,14 @@ Cada raça tem **um modelo próprio** low-poly (humanoide de 1,8 m, gerado no Bl
 | `Velocidade` | float | velocidade horizontal em m/s |
 | `NoChao` | bool | `true` quando está no chão (padrão `true`); ainda não muda nenhum estado |
 | `Esquiva` | trigger | dispara o rolamento |
+| `AtaqueLeve` | trigger | começa um golpe leve (camada `Golpe`); `Passo` escolhe qual dos três |
+| `AtaquePesado` | trigger | começa o golpe pesado |
+| `Passo` | int | passo da cadeia de leves (0 a 2); o segundo leve é espelhado |
+| `VelocidadeDoGolpe` | float | velocidade do clipe `Atacar` (1 = a do clipe); Combate a calcula para o contato cair no fim do preparo |
+| `Guarda` | bool | segura a pose de guarda |
+| `Interrompido` | trigger | pose de dano (um acerto interrompeu a ação) |
+| `Cancelar` | trigger | sai da pose do golpe sem dano (o servidor recusou o golpe) |
+| `Caido` | bool | deita (`Morrer`, que fica no chão) e levanta ao voltar a `false` |
 
-- **Estados:** `Movimento`, um blend tree 1D por `Velocidade`: parado (0 m/s), andar (2 m/s), correr (5 m/s), e `Esquiva` (estado qualquer, por `Esquiva`; volta a `Movimento` perto do fim). O FBX também traz os clipes `Atacar`, `Morrer` e `Dano` (ainda sem estado no controller: entram com o combate). Nomes dos clipes: `Idle`, `Andar`, `Correr`, `Esquivar`, `Atacar`, `Morrer`, `Dano`.
+- **Estados:** na camada base, `Movimento` (blend tree 1D por `Velocidade`: parado 0 m/s, andar 2 m/s, correr 5,5 m/s, a velocidade de corrida do Core, com o clipe de correr a 1,1x), `Esquiva` (estado qualquer, por `Esquiva`; volta a `Movimento` perto do fim) e `Caido` (estado qualquer, por `Caido`). A camada `Golpe`, com a máscara `Jogador_<Raca>_Tronco.mask` (o osso `Tronco` e tudo abaixo dele: as pernas seguem o movimento), tem `Vazio` (padrão), `Leve1`, `Leve2` (espelhado), `Leve3` e `Pesado` (o clipe `Atacar`, na velocidade de `VelocidadeDoGolpe`), `Guarda` (pose do quadro de preparo do `Atacar`, parada, até existir o clipe de guarda) e `Dano` (o clipe `Dano`, a 1,56x para caber nos 0,3 s do atordoamento). O contato do `Atacar` é o quadro 11 de 26, a 30 por segundo. Nomes dos clipes: `Idle`, `Andar`, `Correr`, `Esquivar`, `Atacar`, `Morrer`, `Dano`. Os nomes dos parâmetros são o contrato com `Features/Combate/Scripts/AnimadorDeAtaque.cs` e `AnimadorDeDefesa.cs`; um teste EditMode de Combate confere que os cinco controllers os têm.
 - **Esqueleto e encaixes:** `Raiz` > `Quadril` > `Tronco` > `Cabeca`; `Tronco` > `Braco_E/D` > `Antebraco_E/D` > `Mao_E/D`; `Quadril` > `Perna_E/D` > `Canela_E/D` > `Pe_E/D` (E = esquerda do personagem). Os encaixes são objetos vazios criados pelo gerador, com esses nomes fixos (uso do artista de itens): **`EncaixeMaoDireita`**, filho do osso `Weapon.R` (que fica na palma da mão direita), e **`EncaixeCostas`**, filho do osso `Costas` (que fica nas costas, no alto do tronco). Os dois começam sem rotação e sem escala; o artista de itens ajusta a pose da arma no próprio encaixe.

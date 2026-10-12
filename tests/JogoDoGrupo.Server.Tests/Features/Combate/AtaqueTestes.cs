@@ -748,6 +748,32 @@ public class AtaqueTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDeA
     }
 
     [Fact]
+    public async Task Acerto_leva_tipo_sequencia_e_passo_do_golpe_mesmo_com_o_pesado_na_fila()
+    {
+        using var ana = await NovoJogadorAsync();
+
+        Atacar(ana, TipoDeAtaque.Leve, sequencia: 7);
+        var inicio = DateTime.UtcNow;
+        await ana.Cliente.ReceberAsync<AtaqueIniciado>(CombateMessageIds.AtaqueIniciado);
+        await Task.Delay(TimeSpan.FromMilliseconds(600) - (DateTime.UtcNow - inicio));
+        Atacar(ana, TipoDeAtaque.Pesado, sequencia: 8); // entra na fila
+
+        var primeiro = await ana.Cliente.ReceberAsync<AtaqueAcertou>(
+            CombateMessageIds.AtaqueAcertou
+        );
+        var segundo = await ana.Cliente.ReceberAsync<AtaqueAcertou>(
+            CombateMessageIds.AtaqueAcertou
+        );
+
+        Assert.Equal(TipoDeAtaque.Leve, primeiro.Tipo);
+        Assert.Equal(7, primeiro.Sequencia);
+        Assert.Equal(0, primeiro.Passo);
+        Assert.Equal(TipoDeAtaque.Pesado, segundo.Tipo);
+        Assert.Equal(8, segundo.Sequencia);
+        Assert.Equal(0, segundo.Passo);
+    }
+
+    [Fact]
     public async Task Pedido_da_fila_sem_vigor_e_recusado_quando_chega_a_vez_dele()
     {
         using var ana = await NovoJogadorAsync();

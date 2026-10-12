@@ -13,6 +13,7 @@ namespace JogoDoGrupo.Client.Features.Combate
         EsquivaBemSucedida,
         GolpeRecebido,
         AlertaDeArea,
+        GolpeNoVazio,
     }
 
     /// <summary>De onde vem o impacto (decide só a intensidade).</summary>

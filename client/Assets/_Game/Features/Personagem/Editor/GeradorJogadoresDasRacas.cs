@@ -25,6 +25,23 @@ namespace JogoDoGrupo.Client.Features.Personagem.Editor
         public const string ParametroNoChao = "NoChao";
         public const string ParametroEsquiva = "Esquiva";
 
+        // Parametros do combate (tabela em docs/features/personagem.md). Os nomes sao o contrato com
+        // Combate (Features/Combate/Scripts/AnimadorDeAtaque.cs e AnimadorDeDefesa.cs).
+        public const string ParametroAtaqueLeve = "AtaqueLeve";
+        public const string ParametroAtaquePesado = "AtaquePesado";
+        public const string ParametroPasso = "Passo";
+        public const string ParametroVelocidadeDoGolpe = "VelocidadeDoGolpe";
+        public const string ParametroGuarda = "Guarda";
+        public const string ParametroInterrompido = "Interrompido";
+        public const string ParametroCancelar = "Cancelar";
+        public const string ParametroCaido = "Caido";
+
+        /// <summary>Camada do tronco: golpe, guarda e dano tocam sem travar as pernas.</summary>
+        public const string CamadaGolpe = "Golpe";
+
+        /// <summary>Osso da raiz da mascara da camada do golpe (o tronco e tudo abaixo dele).</summary>
+        public const string OssoTronco = "Tronco";
+
         /// <summary>Nomes dos encaixes (filhos dos ossos) para o artista de itens.</summary>
         public const string EncaixeMaoDireita = "EncaixeMaoDireita";
         public const string EncaixeCostas = "EncaixeCostas";
@@ -63,7 +80,25 @@ namespace JogoDoGrupo.Client.Features.Personagem.Editor
 
         // Valores ajustaveis (balanceamento visual).
         public const float VelocidadeAndar = 2f;
-        public const float VelocidadeCorrer = 5f;
+        public const float VelocidadeCorrer = 5.5f; // A do movimento do Core (5,5 m/s).
+        const float TempoDoClipeCorrer = 5f; // O clipe Correr foi animado para 5 m/s.
+
+        // O clipe Atacar: 26 quadros a 30 por segundo, contato no quadro 11 (mesmos numeros de
+        // RegrasAtaque.ContatoNoClipeSegundos; Personagem nao enxerga o shared).
+        const float QuadrosDoClipeAtacar = 26f;
+        const float QuadroDeContato = 11f;
+        const float QuadroDeGuarda = 7f;
+        const float QuadrosDoClipeDano = 14f;
+        const float QuadrosPorSegundo = 30f;
+
+        // Fim do golpe no clipe, normalizado: (preparo + recuperacao) / preparo * contato / clipe.
+        const float SaidaDoGolpe = 0.68f;
+        const float TransicaoGolpe = 0.05f;
+        const float VoltaDoGolpe = 0.1f;
+
+        // O dano cabe no atordoamento de 0,3 s (RegrasReacao.AtordoamentoNoAcertoMs).
+        const float DuracaoDoDano = 0.3f;
+        const float TransicaoCaido = 0.1f;
         const float LisuraPele = 0.12f;
         const float IntensidadeEmissao = 2.0f;
         const int TamanhoMaximoTextura = 1024;
@@ -233,11 +268,25 @@ namespace JogoDoGrupo.Client.Features.Personagem.Editor
             controller.AddParameter(ParametroVelocidade, AnimatorControllerParameterType.Float);
             controller.AddParameter(ParametroNoChao, AnimatorControllerParameterType.Bool);
             controller.AddParameter(ParametroEsquiva, AnimatorControllerParameterType.Trigger);
+            controller.AddParameter(ParametroAtaqueLeve, AnimatorControllerParameterType.Trigger);
+            controller.AddParameter(ParametroAtaquePesado, AnimatorControllerParameterType.Trigger);
+            controller.AddParameter(ParametroPasso, AnimatorControllerParameterType.Int);
+            controller.AddParameter(
+                ParametroVelocidadeDoGolpe,
+                AnimatorControllerParameterType.Float
+            );
+            controller.AddParameter(ParametroGuarda, AnimatorControllerParameterType.Bool);
+            controller.AddParameter(ParametroInterrompido, AnimatorControllerParameterType.Trigger);
+            controller.AddParameter(ParametroCancelar, AnimatorControllerParameterType.Trigger);
+            controller.AddParameter(ParametroCaido, AnimatorControllerParameterType.Bool);
 
             var parametros = controller.parameters;
             foreach (var p in parametros)
                 if (p.name == ParametroNoChao)
                     p.defaultBool = true;
+            foreach (var p in parametros)
+                if (p.name == ParametroVelocidadeDoGolpe)
+                    p.defaultFloat = 1f;
             controller.parameters = parametros;
 
             var maquina = controller.layers[0].stateMachine;
@@ -247,6 +296,11 @@ namespace JogoDoGrupo.Client.Features.Personagem.Editor
             arvore.AddChild(ObterClipe(modelo, ClipeParado), 0f);
             arvore.AddChild(ObterClipe(modelo, ClipeAndar), VelocidadeAndar);
             arvore.AddChild(ObterClipe(modelo, ClipeCorrer), VelocidadeCorrer);
+            // O clipe de correr foi animado para 5 m/s: a 5,5 m/s ele toca um pouco mais rapido e o pe
+            // nao desliza.
+            var filhos = arvore.children;
+            filhos[2].timeScale = VelocidadeCorrer / TempoDoClipeCorrer;
+            arvore.children = filhos;
             var movimento = BuscarEstado(maquina, "Movimento");
             maquina.defaultState = movimento;
 
@@ -263,9 +317,195 @@ namespace JogoDoGrupo.Client.Features.Personagem.Editor
             esquivaParaMovimento.exitTime = SaidaDaEsquiva;
             esquivaParaMovimento.duration = VoltaDaEsquiva;
 
+            AdicionarCaido(maquina, movimento, modelo);
+            AdicionarCamadaDoGolpe(controller, modelo, raca);
+
             EditorUtility.SetDirty(controller);
             return controller;
         }
+
+        // Caido: deita (Morrer, que fica no chao) e volta ao movimento quando levantado.
+        static void AdicionarCaido(
+            AnimatorStateMachine maquina,
+            AnimatorState movimento,
+            string modelo
+        )
+        {
+            var caido = maquina.AddState("Caido", new Vector3(300f, 120f, 0f));
+            caido.motion = ObterClipe(modelo, ClipeMorrer);
+
+            var deita = maquina.AddAnyStateTransition(caido);
+            deita.AddCondition(AnimatorConditionMode.If, 0, ParametroCaido);
+            deita.duration = TransicaoCaido;
+            deita.canTransitionToSelf = false;
+
+            var levanta = caido.AddTransition(movimento);
+            levanta.hasExitTime = false;
+            levanta.AddCondition(AnimatorConditionMode.IfNot, 0, ParametroCaido);
+            levanta.duration = VoltaDaEsquiva;
+        }
+
+        // Golpe, guarda e dano numa camada que so mexe do tronco para cima: as pernas seguem o
+        // movimento. Clipe que ainda nao existe (guarda) usa uma pose do Atacar parada, no lugar do
+        // clipe do artista.
+        static void AdicionarCamadaDoGolpe(
+            AnimatorController controller,
+            string modelo,
+            string raca
+        )
+        {
+            var mascara = CriarMascaraDoTronco(modelo, raca);
+            controller.AddLayer(CamadaGolpe);
+            var camadas = controller.layers;
+            var camada = camadas[camadas.Length - 1];
+            camada.avatarMask = mascara;
+            camada.defaultWeight = 1f;
+            camada.blendingMode = AnimatorLayerBlendingMode.Override;
+            camadas[camadas.Length - 1] = camada;
+            controller.layers = camadas;
+            var maquina = camada.stateMachine;
+
+            var atacar = ObterClipe(modelo, ClipeAtacar);
+            var vazio = maquina.AddState("Vazio", new Vector3(300f, 0f, 0f));
+            maquina.defaultState = vazio;
+
+            var leves = new AnimatorState[3];
+            for (var passo = 0; passo < leves.Length; passo++)
+            {
+                leves[passo] = EstadoDoGolpe(
+                    maquina,
+                    "Leve" + (passo + 1),
+                    atacar,
+                    new Vector3(600f, 60f * passo, 0f),
+                    passo == 1 // O segundo leve vem do outro lado.
+                );
+                var entra = maquina.AddAnyStateTransition(leves[passo]);
+                entra.AddCondition(AnimatorConditionMode.If, 0, ParametroAtaqueLeve);
+                entra.AddCondition(AnimatorConditionMode.Equals, passo, ParametroPasso);
+                entra.duration = TransicaoGolpe;
+                entra.canTransitionToSelf = true;
+                VoltaParaOVazio(leves[passo], vazio);
+            }
+
+            var pesado = EstadoDoGolpe(
+                maquina,
+                "Pesado",
+                atacar,
+                new Vector3(600f, 200f, 0f),
+                false
+            );
+            var entraPesado = maquina.AddAnyStateTransition(pesado);
+            entraPesado.AddCondition(AnimatorConditionMode.If, 0, ParametroAtaquePesado);
+            entraPesado.duration = TransicaoGolpe;
+            entraPesado.canTransitionToSelf = true;
+            VoltaParaOVazio(pesado, vazio);
+
+            // Guarda: pose parada (o braco no alto, do quadro de preparo do Atacar) enquanto segura.
+            var guarda = maquina.AddState("Guarda", new Vector3(600f, 280f, 0f));
+            guarda.motion = atacar;
+            guarda.speed = 0f;
+            guarda.cycleOffset = QuadroDeGuarda / QuadrosDoClipeAtacar;
+            var entraGuarda = maquina.AddAnyStateTransition(guarda);
+            entraGuarda.AddCondition(AnimatorConditionMode.If, 0, ParametroGuarda);
+            entraGuarda.duration = TransicaoGolpe;
+            entraGuarda.canTransitionToSelf = false;
+            var saiDaGuarda = guarda.AddTransition(vazio);
+            saiDaGuarda.hasExitTime = false;
+            saiDaGuarda.AddCondition(AnimatorConditionMode.IfNot, 0, ParametroGuarda);
+            saiDaGuarda.duration = VoltaDoGolpe;
+
+            // Dano: um acerto interrompe o golpe e toca o clipe Dano, dentro dos 0,3 s do atordoamento.
+            var dano = maquina.AddState("Dano", new Vector3(600f, 360f, 0f));
+            dano.motion = ObterClipe(modelo, ClipeDano);
+            dano.speed = (QuadrosDoClipeDano / QuadrosPorSegundo) / DuracaoDoDano;
+            var entraDano = maquina.AddAnyStateTransition(dano);
+            entraDano.AddCondition(AnimatorConditionMode.If, 0, ParametroInterrompido);
+            entraDano.AddCondition(AnimatorConditionMode.IfNot, 0, ParametroCaido);
+            entraDano.duration = TransicaoGolpe;
+            entraDano.canTransitionToSelf = true;
+            VoltaParaOVazio(dano, vazio, 0.95f);
+
+            // O servidor recusou o golpe que ja tocou: sai da pose sem a reacao de dano.
+            var cancela = maquina.AddAnyStateTransition(vazio);
+            cancela.AddCondition(AnimatorConditionMode.If, 0, ParametroCancelar);
+            cancela.duration = TransicaoGolpe;
+            cancela.canTransitionToSelf = false;
+        }
+
+        static AnimatorState EstadoDoGolpe(
+            AnimatorStateMachine maquina,
+            string nome,
+            AnimationClip clipe,
+            Vector3 posicao,
+            bool espelhado
+        )
+        {
+            var estado = maquina.AddState(nome, posicao);
+            estado.motion = clipe;
+            estado.mirror = espelhado;
+            // A velocidade vem do client: o contato (quadro 11) cai no fim do preparo.
+            estado.speedParameterActive = true;
+            estado.speedParameter = ParametroVelocidadeDoGolpe;
+            return estado;
+        }
+
+        static void VoltaParaOVazio(
+            AnimatorState de,
+            AnimatorState vazio,
+            float saida = SaidaDoGolpe
+        )
+        {
+            var volta = de.AddTransition(vazio);
+            volta.hasExitTime = true;
+            volta.exitTime = saida;
+            volta.duration = VoltaDoGolpe;
+        }
+
+        // So o tronco e o que esta abaixo dele (bracos, cabeca, encaixes) recebem a camada do golpe.
+        static AvatarMask CriarMascaraDoTronco(string modelo, string raca)
+        {
+            var caminho = CaminhoMascara(raca);
+            var mascara = AssetDatabase.LoadAssetAtPath<AvatarMask>(caminho);
+            if (mascara == null)
+            {
+                mascara = new AvatarMask();
+                AssetDatabase.CreateAsset(mascara, caminho);
+            }
+
+            // Generic: a mascara fala em caminhos de transform, nao em partes do corpo.
+            for (var parte = 0; parte < (int)AvatarMaskBodyPart.LastBodyPart; parte++)
+                mascara.SetHumanoidBodyPartActive((AvatarMaskBodyPart)parte, false);
+
+            var raiz = (GameObject)
+                PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(modelo));
+            try
+            {
+                mascara.transformCount = 0;
+                mascara.AddTransformPath(raiz.transform, true);
+                var achou = false;
+                for (var i = 0; i < mascara.transformCount; i++)
+                {
+                    var caminhoOsso = mascara.GetTransformPath(i);
+                    var abaixoDoTronco = Array.IndexOf(caminhoOsso.Split('/'), OssoTronco) >= 0;
+                    mascara.SetTransformActive(i, abaixoDoTronco);
+                    achou |= abaixoDoTronco;
+                }
+                if (!achou)
+                    throw new InvalidOperationException(
+                        "Osso " + OssoTronco + " nao encontrado na mascara de " + modelo
+                    );
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(raiz);
+            }
+
+            EditorUtility.SetDirty(mascara);
+            return mascara;
+        }
+
+        public static string CaminhoMascara(string raca) =>
+            PastaArte + "/Jogador_" + raca + "_Tronco.mask";
 
         static AnimatorState BuscarEstado(AnimatorStateMachine maquina, string nome)
         {

@@ -83,7 +83,53 @@ namespace JogoDoGrupo.Shared.Features.Combate
         /// </summary>
         public const double SegurarParaPesadoSegundos = 0.3;
 
+        /// <summary>
+        /// Quanto antes do fim da ação o client guarda um clique (1 pedido), em segundos. Acima da
+        /// <see cref="JanelaDaFilaSegundos"/>: o clique guardado sai para o servidor assim que
+        /// couber na fila dele. Mais cedo que isto o clique é descartado. Só o client usa.
+        /// </summary>
+        public const double JanelaDoBufferSegundos = 0.5;
+
+        /// <summary>
+        /// Folga, em segundos, antes do limite da fila em que o client envia o clique guardado,
+        /// para a latência não fazer o servidor ver o pedido cedo demais.
+        /// </summary>
+        public const double MargemDoEnvioSegundos = 0.05;
+
+        /// <summary>Duração do clipe <c>Atacar</c> do personagem, em segundos (26 quadros a 30 por segundo).</summary>
+        public const double DuracaoDoClipeSegundos = 26.0 / 30.0;
+
+        /// <summary>Instante do contato dentro do clipe <c>Atacar</c>, em segundos (quadro 11).</summary>
+        public const double ContatoNoClipeSegundos = 11.0 / 30.0;
+
         // ── Regras ────────────────────────────────────────────────────────────────
+
+        /// <summary>
+        /// Velocidade do clipe <c>Atacar</c> para o contato cair no fim do preparo
+        /// (<see cref="PreparoSegundos"/>): 1 toca na velocidade do clipe, 0,5 na metade.
+        /// </summary>
+        public static double VelocidadeDoClipe(TipoDeAtaque tipo) =>
+            ContatoNoClipeSegundos / PreparoSegundos(tipo);
+
+        /// <summary>
+        /// Em segundos, o momento em que o client envia um clique feito durante outra ação, ou
+        /// <c>null</c> se o clique é descartado (faltava mais que a <see cref="JanelaDoBufferSegundos"/>).
+        /// Dentro da janela da fila (<see cref="EntraNaFila"/>) vale já.
+        /// </summary>
+        public static double? QuandoEnviarOCliqueGuardado(double segundosAteOFimDaAcao)
+        {
+            if (segundosAteOFimDaAcao <= JanelaDaFilaSegundos)
+            {
+                return 0.0;
+            }
+
+            if (segundosAteOFimDaAcao > JanelaDoBufferSegundos)
+            {
+                return null;
+            }
+
+            return segundosAteOFimDaAcao - (JanelaDaFilaSegundos - MargemDoEnvioSegundos);
+        }
 
         /// <summary>Se o valor recebido da rede é um ataque que existe.</summary>
         public static bool TipoValido(TipoDeAtaque tipo) =>

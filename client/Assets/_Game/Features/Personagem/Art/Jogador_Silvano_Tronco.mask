@@ -1,0 +1,53 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!319 &31900000
+AvatarMask:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Jogador_Silvano_Tronco
+  m_Mask: 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000u
+  m_Elements:
+  - m_Path: 
+    m_Weight: 0
+  - m_Path: Silvano
+    m_Weight: 0
+  - m_Path: Silvano/Raiz
+    m_Weight: 0
+  - m_Path: Silvano/Raiz/Quadril
+    m_Weight: 0
+  - m_Path: Silvano/Raiz/Quadril/Perna_D
+    m_Weight: 0
+  - m_Path: Silvano/Raiz/Quadril/Perna_D/Canela_D
+    m_Weight: 0
+  - m_Path: Silvano/Raiz/Quadril/Perna_D/Canela_D/Pe_D
+    m_Weight: 0
+  - m_Path: Silvano/Raiz/Quadril/Perna_E
+    m_Weight: 0
+  - m_Path: Silvano/Raiz/Quadril/Perna_E/Canela_E
+    m_Weight: 0
+  - m_Path: Silvano/Raiz/Quadril/Perna_E/Canela_E/Pe_E
+    m_Weight: 0
+  - m_Path: Silvano/Raiz/Quadril/Tronco
+    m_Weight: 1
+  - m_Path: Silvano/Raiz/Quadril/Tronco/Braco_D
+    m_Weight: 1
+  - m_Path: Silvano/Raiz/Quadril/Tronco/Braco_D/Antebraco_D
+    m_Weight: 1
+  - m_Path: Silvano/Raiz/Quadril/Tronco/Braco_D/Antebraco_D/Mao_D
+    m_Weight: 1
+  - m_Path: Silvano/Raiz/Quadril/Tronco/Braco_D/Antebraco_D/Mao_D/Weapon.R
+    m_Weight: 1
+  - m_Path: Silvano/Raiz/Quadril/Tronco/Braco_E
+    m_Weight: 1
+  - m_Path: Silvano/Raiz/Quadril/Tronco/Braco_E/Antebraco_E
+    m_Weight: 1
+  - m_Path: Silvano/Raiz/Quadril/Tronco/Braco_E/Antebraco_E/Mao_E
+    m_Weight: 1
+  - m_Path: Silvano/Raiz/Quadril/Tronco/Cabeca
+    m_Weight: 1
+  - m_Path: Silvano/Raiz/Quadril/Tronco/Costas
+    m_Weight: 1
+  - m_Path: Silvano_Malha
+    m_Weight: 0

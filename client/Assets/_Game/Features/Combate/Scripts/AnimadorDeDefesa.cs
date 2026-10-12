@@ -13,6 +13,12 @@ namespace JogoDoGrupo.Client.Features.Combate
         public const string ParametroGuarda = "Guarda";
         public const string ParametroInterrompido = "Interrompido";
 
+        public const string ParametroCaido = "Caido";
+
+        /// <summary>Deita o personagem (ou o levanta); <c>false</c> se não havia onde tocar.</summary>
+        public static bool DefinirCaido(Animator animator, bool caido) =>
+            Definir(animator, ParametroCaido, AnimatorControllerParameterType.Bool, caido);
+
         /// <summary>Liga ou desliga a postura de guarda; <c>false</c> se não havia onde tocar.</summary>
         public static bool DefinirGuarda(Animator animator, bool segurando) =>
             Definir(animator, ParametroGuarda, AnimatorControllerParameterType.Bool, segurando);

@@ -278,7 +278,14 @@ public sealed class ServicoDeAtaques : IHostedService, IDisposable
                 posicao.Area,
                 personagemId,
                 CombateMessageIds.AtaqueAcertou,
-                new AtaqueAcertou { AtacanteId = personagemId, Acertos = acertos.ToArray() }
+                new AtaqueAcertou
+                {
+                    AtacanteId = personagemId,
+                    Acertos = acertos.ToArray(),
+                    Tipo = acao.Pedido.Tipo,
+                    Sequencia = acao.Pedido.Sequencia,
+                    Passo = acao.Passo,
+                }
             );
         }
 
