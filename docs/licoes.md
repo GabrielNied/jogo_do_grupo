@@ -79,4 +79,4 @@ Formato: `### AAAA-MM-DD · título` com **O que houve**, **Regra** e **Origem**
 
 - **O que houve:** nove issues ficaram com `em-andamento` sem branch no remoto, e seis branches voltaram porque um push chegou depois do squash. O quadro parecia cheio e o commit tardio ficava de fora da `main`.
 - **Regra:** o `puxar` não passa de 3 funcionalidades de jogo. Trava sem branch no `origin` e sem PR aberto sai depois de 2 h (`npm run tarefa -- listar` e a limpeza do `pull`). Push numa branch cujo PR já foi mergeado é recusado: parta de `origin/main` e abra um PR novo.
-- **Origem:** quadro de 2026-10-12.
+- **Origem:** PR #559.
