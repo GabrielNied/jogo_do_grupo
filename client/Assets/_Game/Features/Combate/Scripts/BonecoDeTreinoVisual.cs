@@ -28,6 +28,7 @@ namespace JogoDoGrupo.Client.Features.Combate
         private static readonly Color CorDaVidaZerada = new Color(0.3f, 0.3f, 0.3f);
 
         private readonly List<IDisposable> _assinaturas = new List<IDisposable>();
+        private readonly List<Material> _materiais = new List<Material>();
         private Vector3 _posicao;
         private Transform _barra;
         private Transform _preenchimento;
@@ -86,7 +87,8 @@ namespace JogoDoGrupo.Client.Features.Combate
                     0f,
                     -0.001f
                 );
-                _renderPreenchimento.material.color = fracao <= 0f ? CorDaVidaZerada : CorDaVida;
+                _renderPreenchimento.sharedMaterial.color =
+                    fracao <= 0f ? CorDaVidaZerada : CorDaVida;
             }
         }
 
@@ -99,6 +101,7 @@ namespace JogoDoGrupo.Client.Features.Combate
             );
             transform.position = _posicao;
 
+            RegistroDeAlvos.Registrar(RegrasBonecoDeTreino.AlvoId, gameObject);
             Parte(
                 PrimitiveType.Cylinder,
                 "Base",
@@ -149,16 +152,15 @@ namespace JogoDoGrupo.Client.Features.Combate
         {
             var parte = GameObject.CreatePrimitive(forma);
             parte.name = nome;
-            var colisor = parte.GetComponent<Collider>();
-            if (colisor != null)
-            {
-                Destroy(colisor);
-            }
+            RemoverColisor(parte);
 
             parte.transform.SetParent(transform, false);
             parte.transform.localPosition = local;
             parte.transform.localScale = escala;
-            parte.GetComponent<Renderer>().material.color = cor;
+            parte.GetComponent<Renderer>().sharedMaterial = NovoMaterial(
+                "Universal Render Pipeline/Lit",
+                cor
+            );
             return parte.transform;
         }
 
@@ -183,19 +185,45 @@ namespace JogoDoGrupo.Client.Features.Combate
         {
             var quadro = GameObject.CreatePrimitive(PrimitiveType.Quad);
             quadro.name = nome;
-            var colisor = quadro.GetComponent<Collider>();
-            if (colisor != null)
-            {
-                Destroy(colisor);
-            }
+            RemoverColisor(quadro);
 
             quadro.transform.SetParent(_barra, false);
             var render = quadro.GetComponent<Renderer>();
             // Sem iluminação e sem sombra: a barra se lê de longe, de qualquer lado.
-            render.material = new Material(Shader.Find("Sprites/Default")) { color = cor };
+            render.sharedMaterial = NovoMaterial("Sprites/Default", cor);
             render.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
             render.receiveShadows = false;
             return quadro.transform;
+        }
+
+        // O boneco nao bloqueia ninguem: o servidor nao o conhece como obstaculo. Nos testes de edicao
+        // o Destroy comum nao vale.
+        private static void RemoverColisor(GameObject objeto)
+        {
+            var colisor = objeto.GetComponent<Collider>();
+            if (colisor == null)
+            {
+                return;
+            }
+
+            if (Application.isPlaying)
+            {
+                Destroy(colisor);
+            }
+            else
+            {
+                DestroyImmediate(colisor);
+            }
+        }
+
+        private Material NovoMaterial(string shader, Color cor)
+        {
+            var material = new Material(Shader.Find(shader) ?? Shader.Find("Sprites/Default"))
+            {
+                color = cor,
+            };
+            _materiais.Add(material);
+            return material;
         }
 
         private static float ChaoEm(float x, float z)
@@ -216,7 +244,29 @@ namespace JogoDoGrupo.Client.Features.Combate
                     AoAcertarAtaque
                 )
             );
-            RegistroDeAlvos.Registrar(RegrasBonecoDeTreino.AlvoId, gameObject);
+        }
+
+        private void OnDestroy()
+        {
+            RegistroDeAlvos.Remover(RegrasBonecoDeTreino.AlvoId, gameObject);
+            foreach (var material in _materiais)
+            {
+                if (material == null)
+                {
+                    continue;
+                }
+
+                if (Application.isPlaying)
+                {
+                    Destroy(material);
+                }
+                else
+                {
+                    DestroyImmediate(material);
+                }
+            }
+
+            _materiais.Clear();
         }
 
         private void OnDisable()
@@ -227,7 +277,6 @@ namespace JogoDoGrupo.Client.Features.Combate
             }
 
             _assinaturas.Clear();
-            RegistroDeAlvos.Remover(RegrasBonecoDeTreino.AlvoId, gameObject);
         }
 
         private void AoAcertarAtaque(AtaqueAcertou ataque)
