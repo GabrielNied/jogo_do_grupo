@@ -26,6 +26,21 @@ namespace JogoDoGrupo.Client.Features.Mobs
         /// <summary>Gatilho do Animator tocado uma vez por golpe.</summary>
         public const string GatilhoDeAtaque = "Atacar";
 
+        /// <summary>Parâmetro opcional do Animator: reação ao acerto (se o modelo tiver o clipe).</summary>
+        public const string ParametroInterrompido = "Interrompido";
+
+        /// <summary>Estado parado do Animator, para onde o golpe cortado volta.</summary>
+        public const string EstadoParado = "Idle";
+
+        /// <summary>Duração mínima do tranco visual ao ser interrompido.</summary>
+        public const float DuracaoDaReacaoSegundos = 0.35f;
+
+        /// <summary>Fusão do corte do golpe para o parado.</summary>
+        public const float CorteDoGolpeSegundos = 0.05f;
+
+        /// <summary>O quanto o corpo achata no tranco (fração da altura).</summary>
+        public const float AchatamentoDaReacao = 0.18f;
+
         /// <summary>Quanto tempo o corpo fica no chão tocando a morte antes de sumir.</summary>
         public const float DuracaoDaMorteSegundos = 1.5f;
 
@@ -39,6 +54,8 @@ namespace JogoDoGrupo.Client.Features.Mobs
         private readonly Dictionary<long, GameObject> _visuais = new Dictionary<long, GameObject>();
         private readonly Dictionary<long, Animator> _animadores = new Dictionary<long, Animator>();
         private readonly List<IDisposable> _assinaturas = new List<IDisposable>();
+
+        private readonly Dictionary<long, float> _reacoes = new Dictionary<long, float>();
 
         private PainelDeInimigos _painel;
 
@@ -69,6 +86,12 @@ namespace JogoDoGrupo.Client.Features.Mobs
             );
             _assinaturas.Add(
                 ConexaoTempoReal.Assinar<InimigoMorreu>(MobsMessageIds.InimigoMorreu, AoMorrer)
+            );
+            _assinaturas.Add(
+                ConexaoTempoReal.Assinar<AcaoInterrompida>(
+                    CombateMessageIds.AcaoInterrompida,
+                    AoInterromper
+                )
             );
             _assinaturas.Add(
                 ConexaoTempoReal.Assinar<AtaqueAcertou>(
@@ -113,6 +136,11 @@ namespace JogoDoGrupo.Client.Features.Mobs
                     visual.transform.SetPositionAndRotation(
                         new Vector3(inimigo.X, inimigo.Y, inimigo.Z),
                         Quaternion.Euler(0f, inimigo.RotacaoY, 0f)
+                    );
+                    visual.transform.localScale = new Vector3(
+                        inimigo.Escala,
+                        EscalaDaReacao(inimigo.InimigoId, inimigo.Escala),
+                        inimigo.Escala
                     );
                     if (_animadores.TryGetValue(inimigo.InimigoId, out var animador))
                     {
@@ -162,6 +190,68 @@ namespace JogoDoGrupo.Client.Features.Mobs
         private void AoPrepararAtaque(InimigoPreparaAtaque mensagem) =>
             _registro.PrepararAtaque(mensagem);
 
+        /// <summary>
+        /// O golpe do inimigo foi cancelado: corta o clipe, apaga o aviso (no registro) e mostra
+        /// a reação ao acerto. O dano já não sai no servidor.
+        /// </summary>
+        private void AoInterromper(AcaoInterrompida mensagem)
+        {
+            var inimigo = _registro.Interromper(mensagem);
+            if (inimigo == null)
+            {
+                return;
+            }
+
+            if (_animadores.TryGetValue(inimigo.InimigoId, out var animador) && animador != null)
+            {
+                animador.ResetTrigger(GatilhoDeAtaque);
+                if (TemParametro(animador, ParametroInterrompido))
+                {
+                    animador.SetTrigger(ParametroInterrompido);
+                }
+                else
+                {
+                    // Sem clipe de reação no modelo: volta ao parado, o que corta o golpe.
+                    animador.CrossFadeInFixedTime(EstadoParado, CorteDoGolpeSegundos);
+                }
+            }
+
+            _reacoes[inimigo.InimigoId] = DuracaoDaReacaoSegundos;
+        }
+
+        private static bool TemParametro(Animator animador, string nome)
+        {
+            foreach (var parametro in animador.parameters)
+            {
+                if (parametro.name == nome)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>Tranco do corpo enquanto a reação dura: achata e volta (0 a 1 e de volta).</summary>
+        private float EscalaDaReacao(long inimigoId, float escalaBase)
+        {
+            if (!_reacoes.TryGetValue(inimigoId, out var restante))
+            {
+                return escalaBase;
+            }
+
+            restante -= Time.deltaTime;
+            if (restante <= 0f)
+            {
+                _reacoes.Remove(inimigoId);
+                return escalaBase;
+            }
+
+            _reacoes[inimigoId] = restante;
+            var onda = Mathf.Sin(Mathf.Clamp01(restante / DuracaoDaReacaoSegundos) * Mathf.PI);
+            return escalaBase * (1f - AchatamentoDaReacao * onda);
+        }
+
         private void AoMorrer(InimigoMorreu mensagem)
         {
             var inimigo = _registro.Morrer(mensagem);
@@ -172,6 +262,7 @@ namespace JogoDoGrupo.Client.Features.Mobs
 
             _visuais.Remove(inimigo.InimigoId);
             _animadores.Remove(inimigo.InimigoId);
+            _reacoes.Remove(inimigo.InimigoId);
             if (visual == null)
             {
                 return;
@@ -192,6 +283,7 @@ namespace JogoDoGrupo.Client.Features.Mobs
             {
                 _visuais.Remove(inimigoId);
                 _animadores.Remove(inimigoId);
+                _reacoes.Remove(inimigoId);
                 if (visual != null)
                 {
                     Destroy(visual);
