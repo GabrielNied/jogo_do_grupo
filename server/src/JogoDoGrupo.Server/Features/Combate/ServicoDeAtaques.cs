@@ -23,7 +23,6 @@ public sealed class ServicoDeAtaques : IHostedService, IDisposable
     private readonly IPosicoesDoMundo _posicoes;
     private readonly IReadOnlyList<IAlvosDeCombate> _fontes;
     private readonly IServiceScopeFactory _escopos;
-    private readonly TimeProvider _relogio;
     private readonly ILogger<ServicoDeAtaques> _log;
     private readonly Func<long> _relogioMs;
     private readonly ControleDeAcoes _controle;
@@ -38,7 +37,6 @@ public sealed class ServicoDeAtaques : IHostedService, IDisposable
         IPosicoesDoMundo posicoes,
         IEnumerable<IAlvosDeCombate> fontes,
         IServiceScopeFactory escopos,
-        TimeProvider relogio,
         ILogger<ServicoDeAtaques> log,
         Func<long>? relogioMs = null,
         ControleDeAcoes? controle = null,
@@ -54,7 +52,6 @@ public sealed class ServicoDeAtaques : IHostedService, IDisposable
         _posicoes = posicoes;
         _fontes = fontes.ToArray();
         _escopos = escopos;
-        _relogio = relogio;
         _log = log;
         _relogioMs = relogioMs ?? (() => Environment.TickCount64);
         _tempoReal.SessaoEncerrada += AoEncerrar;
@@ -133,7 +130,6 @@ public sealed class ServicoDeAtaques : IHostedService, IDisposable
         {
             var inicio = await RecursosDoAtaque.TentarIniciarAsync(
                 _escopos,
-                _relogio,
                 personagemId,
                 acao.Pedido.Tipo,
                 _parada.Token

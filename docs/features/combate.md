@@ -89,19 +89,24 @@ Esquiva (tempo real; regras e números em [fatia-jogavel.md](fatia-jogavel.md), 
 
 - Quem recebe: `AtaqueIniciado` e `AtaqueAcertou` vão a todos que o Mundo diz estarem na área do atacante (`IPosicoesDoMundo`); `AtaqueRecusado` só ao atacante; `RecursosMudaram` só ao dono, e só quando o ataque gasta vigor (o pesado; o leve não gasta nada).
 - O servidor mede o cone no **momento do acerto** (preparo depois do pedido) com a posição que o Mundo tem então; não há compensação de lag. A direção vem do pedido.
-- **Um relógio só (#477):** a ação nasce no pedido; o acerto sai em `InicioMs + PreparoMs` e o fim da ação vem depois do acerto, mesmo que o banco demore. A cobrança do vigor e a leitura da Força são uma ida só ao banco por golpe, feita dentro do preparo (o acerto não volta ao banco), e a fila só avança depois do acerto resolvido. Banco mais lento que o preparo atrasa o acerto, mas não o perde.
+- **Um relógio só (#477):** a ação nasce no pedido; o acerto sai em `InicioMs + PreparoMs` e o fim da ação vem depois do acerto, mesmo que o banco demore. A cobrança do vigor e a leitura da Força acontecem dentro do preparo (o acerto não volta ao banco; veja [Recursos em memória](#recursos-em-memória-478)), e a fila só avança depois do acerto resolvido. Banco mais lento que o preparo atrasa o acerto, mas não o perde.
 - Fila: um pedido feito nos últimos 0,3 s da ação espera e começa no fim dela (vigor e queda são conferidos nessa hora, e a recusa sai com a `Sequencia` dele). Pedido durante a ação fora da janela, ou com a fila ocupada, é recusado com `AcaoEmAndamento`.
-- Caído (vida 0) é recusado com `VoceEstaCaido`; o pesado gasta 20 de vigor uma vez só (transação no banco) e é recusado sem vigor.
+- Caído (vida 0) é recusado com `VoceEstaCaido`; o pesado gasta 20 de vigor uma vez só (trava do personagem em memória) e é recusado sem vigor.
 - `Tipo` fora do enum, direção inválida, ou ataque de quem ainda não entrou no mundo: o pedido é **descartado sem resposta** (o contrato não tem código para isso; um client correto nunca manda).
 - O dano é `RegrasAtaque.Dano(tipo, Força final)`; cada alvo leva o mesmo golpe uma vez, e o `Dano` de `AcertoDeAtaque` é o que o alvo realmente perdeu (nunca mais que a vida que ele tinha).
 - **Alvos:** `IAlvosDeCombate` (`server/.../Contratos/Combate/`, ADR 0016) é implementado por quem é dono de alvos; Combate junta todas as implementações. Hoje só há o **boneco de treino** (id de alvo `-1`), em `ConfigBonecoDeTreino`: 180 de vida, posição fixa na cidade (x 0, z -22, 2 m à frente do nascimento), volta à vida cheia 5 s depois do último golpe que levou. Com 0 de vida ele sai de combate (não é mais alvo) até voltar. O servidor **não avisa** a volta: o client deduz pelos 5 s sem golpes.
 - **Onde o boneco está (provisório):** o contrato não tem mensagem para isso, então o client coloca o modelo na mesma posição fixa (x 0, z -22) até o shared ganhar uma mensagem ou constante para os alvos fixos (pendente com o responsável pelo contrato).
 
+### Recursos em memória (#478)
+
+- Vida, vigor e energia de quem está em uso ficam em memória (`RecursosEmMemoria`, o único que escreve em `RecursosPersonagem`). O banco é lido uma vez por personagem (na primeira consulta) e recebe o que mudou a cada 5 s, quando o personagem desconecta e quando o servidor para; um crash perde no máximo ~5 s de gasto. O golpe leve (custo 0) não toca no banco; golpe, esquiva, dano, queda e a rota de recursos passam pela mesma trava por personagem.
+- Os atributos finais (Itens + efeitos + pontos) ficam em memória por 2 s e depois são relidos. Itens ainda não publica um evento de troca de equipamento; por isso trocar de peça aparece no golpe seguinte depois de até 2 s (a rota de recursos sempre relê). Quando o evento existir, ele invalida a entrada na hora. Valores em `ConfigRecursos`.
+
 ### Golpe de inimigo tira vida (#278)
 
 - Combate, dono da vida, assina `GolpeDeInimigoAcertou` (`Contratos/Mobs/`, ADR 0016). Mobs decide quem estava no círculo; um evento por personagem atingido.
 - A vida cai em `Dano` (sem defesa por enquanto; a conta fica em `ServicoDeDanoRecebido.DanoFinal`, onde a defesa entra depois), **nunca abaixo de 0**, e o dono recebe `RecursosMudaram` (só ele). Vida 0 leva ao estado caído ([abaixo](#estado-caído-no-servidor-125)); quem já está caído não recebe dano (o golpe é ignorado).
-- O assinante não bloqueia (o evento sai do laço de IA de Mobs): o banco roda numa tarefa, na mesma transação dos outros recursos, então golpes simultâneos no mesmo personagem somam. Personagem sem recursos criados começa da vida cheia; um que não existe só registra erro no log.
+- O assinante não bloqueia (o evento sai do laço de IA de Mobs): a conta roda numa tarefa, sob a mesma trava dos outros recursos, então golpes simultâneos no mesmo personagem somam. Personagem sem recursos criados começa da vida cheia; um que não existe só registra erro no log.
 
 ### Esquiva no servidor (#233)
 

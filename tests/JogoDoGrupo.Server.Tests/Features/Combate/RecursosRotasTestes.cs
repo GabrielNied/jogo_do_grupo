@@ -124,6 +124,8 @@ public class RecursosRotasTestes(ServidorDeCombate servidor) : IClassFixture<Ser
     /// <summary>Muda o que está guardado, como um gasto de recurso faria.</summary>
     private async Task Gastar(long id, int? vida = null, int? vigor = null, int? energia = null)
     {
+        var memoria = servidor.Falso.Services.GetRequiredService<RecursosEmMemoria>();
+        await memoria.GravarAsync(id); // O banco precisa ter o que a memória já mudou.
         using var escopo = servidor.Falso.Services.CreateScope();
         var db = escopo.ServiceProvider.GetRequiredService<JogoDbContext>();
         var r = await db.Set<RecursosPersonagem>().SingleAsync(x => x.PersonagemId == id);
@@ -145,6 +147,7 @@ public class RecursosRotasTestes(ServidorDeCombate servidor) : IClassFixture<Ser
             r.EnergiaContadaAte = agora;
         }
         await db.SaveChangesAsync();
+        memoria.Descartar(id); // E a memória precisa reler o que o teste mudou.
     }
 
     [Fact]

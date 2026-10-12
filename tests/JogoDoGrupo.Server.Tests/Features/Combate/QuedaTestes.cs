@@ -212,6 +212,8 @@ public class QuedaTestes(ServidorDeQueda servidor) : IClassFixture<ServidorDeQue
     private async Task GastarVigorEEnergiaAsync(Jogador j)
     {
         await RecursosAsync(j); // Cria a linha.
+        var memoria = servidor.Falso.Services.GetRequiredService<RecursosEmMemoria>();
+        await memoria.GravarAsync(j.Id); // O banco precisa ter o que a memória já mudou.
         using var escopo = servidor.Falso.Services.CreateScope();
         var db = escopo.ServiceProvider.GetRequiredService<JogoDbContext>();
         var r = await db.Set<RecursosPersonagem>().SingleAsync(x => x.PersonagemId == j.Id);
@@ -223,6 +225,7 @@ public class QuedaTestes(ServidorDeQueda servidor) : IClassFixture<ServidorDeQue
         r.VigorContadoAte = agora;
         r.EnergiaContadaAte = agora;
         await db.SaveChangesAsync();
+        memoria.Descartar(j.Id); // E a memória precisa reler o que o teste mudou.
     }
 
     private static async Task SemMensagemAsync(Jogador j, ushort id, int antes)

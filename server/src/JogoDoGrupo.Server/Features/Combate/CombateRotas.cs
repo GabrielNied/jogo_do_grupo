@@ -1,13 +1,10 @@
-using System.Data;
 using System.Globalization;
 using System.Security.Claims;
-using JogoDoGrupo.Server.Contratos.Personagem;
 using JogoDoGrupo.Server.Core.Api;
 using JogoDoGrupo.Server.Core.Autenticacao;
 using JogoDoGrupo.Server.Core.Persistencia;
 using JogoDoGrupo.Shared.Core.Api;
 using JogoDoGrupo.Shared.Features.Combate;
-using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using PersonagemEntidade = JogoDoGrupo.Server.Features.Personagem.Personagem;
 
@@ -19,9 +16,6 @@ namespace JogoDoGrupo.Server.Features.Combate;
 /// </summary>
 internal static class CombateRotas
 {
-    // Mesma espera pela trava do banco de Itens (o client desiste em 10 s).
-    private const int EsperaTravaSegundos = 5;
-
     public static void Mapear(IEndpointRouteBuilder rotas) =>
         rotas.MapGet(RotasCombate.Recursos, RecursosAsync).RequireAuthorization();
 
@@ -29,9 +23,7 @@ internal static class CombateRotas
         string personagemId,
         ClaimsPrincipal usuario,
         JogoDbContext db,
-        IBonusDeAtributos bonus,
-        IPontosDistribuidos pontos,
-        TimeProvider relogio,
+        RecursosEmMemoria recursos,
         CancellationToken cancelamento
     )
     {
@@ -58,82 +50,8 @@ internal static class CombateRotas
             );
         }
 
-        var atributos = CalculadoraRecursos.AtributosFinais(
-            await bonus.EquipamentosAsync(id, cancelamento),
-            await bonus.EfeitosAsync(id, cancelamento),
-            await pontos.ObterAsync(id, cancelamento)
-        );
-
-        var sqlite = db.Database.GetDbConnection() as SqliteConnection;
-        var esperaAnterior = sqlite?.DefaultTimeout;
-        if (sqlite != null)
-        {
-            sqlite.DefaultTimeout = EsperaTravaSegundos;
-        }
-
-        // Banco ocupado sobe como exceção: o Core responde 503 ServidorOcupado.
-        try
-        {
-            var resposta = await AtualizarEmTransacaoAsync(
-                id,
-                atributos,
-                db,
-                relogio.GetUtcNow().UtcDateTime,
-                cancelamento
-            );
-            return Results.Ok(resposta);
-        }
-        finally
-        {
-            if (sqlite != null && esperaAnterior != null)
-            {
-                sqlite.DefaultTimeout = esperaAnterior.Value;
-            }
-        }
-    }
-
-    /// <summary>
-    /// Lê, regenera e grava numa transação só. No SQLite, Serializable abre com
-    /// <c>BEGIN IMMEDIATE</c>: consultas simultâneas rodam uma depois da outra e a regeneração
-    /// nunca é paga duas vezes (mesmo cuidado de Itens; no PostgreSQL seria outro, issue #28).
-    /// </summary>
-    private static async Task<RecursosResponse> AtualizarEmTransacaoAsync(
-        long personagemId,
-        AtributosCombate atributos,
-        JogoDbContext db,
-        DateTime agora,
-        CancellationToken cancelamento
-    )
-    {
-        await using var transacao = await db.Database.BeginTransactionAsync(
-            IsolationLevel.Serializable,
-            cancelamento
-        );
-
-        var recursos = await db.Set<RecursosPersonagem>()
-            .FirstOrDefaultAsync(r => r.PersonagemId == personagemId, cancelamento);
-        if (recursos == null)
-        {
-            recursos = CalculadoraRecursos.Novo(personagemId, atributos, agora);
-            db.Set<RecursosPersonagem>().Add(recursos);
-        }
-        else
-        {
-            CalculadoraRecursos.Atualizar(recursos, atributos, agora);
-        }
-
-        await db.SaveChangesAsync(cancelamento);
-        await transacao.CommitAsync(cancelamento);
-
-        return new RecursosResponse
-        {
-            VidaAtual = recursos.Vida,
-            VidaMaxima = RegrasRecursos.VidaMaxima(atributos.Vitalidade),
-            VigorAtual = recursos.Vigor,
-            VigorMaximo = RegrasRecursos.VigorMaximo(),
-            EnergiaAtual = recursos.Energia,
-            EnergiaMaxima = RegrasRecursos.EnergiaMaxima(atributos.Espirito),
-            Atributos = atributos,
-        };
+        // Banco ocupado (ao ler o personagem pela primeira vez) sobe como exceção: o Core responde
+        // 503 ServidorOcupado.
+        return Results.Ok(await recursos.ConsultarAsync(id, cancelamento));
     }
 }

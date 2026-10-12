@@ -30,7 +30,6 @@ public sealed class ServicoDeQueda : IEstadoDeQueda, IHostedService, IDisposable
     private readonly IPosicoesDoMundo _posicoes;
     private readonly EventosDoServidor _eventos;
     private readonly IServiceScopeFactory _escopos;
-    private readonly TimeProvider _relogio;
     private readonly ILogger<ServicoDeQueda> _log;
     private readonly Func<long> _relogioMs;
     private readonly ConfigQueda _config;
@@ -43,7 +42,6 @@ public sealed class ServicoDeQueda : IEstadoDeQueda, IHostedService, IDisposable
         IPosicoesDoMundo posicoes,
         EventosDoServidor eventos,
         IServiceScopeFactory escopos,
-        TimeProvider relogio,
         ILogger<ServicoDeQueda> log,
         ConfigQueda? config = null,
         Func<long>? relogioMs = null
@@ -53,7 +51,6 @@ public sealed class ServicoDeQueda : IEstadoDeQueda, IHostedService, IDisposable
         _posicoes = posicoes;
         _eventos = eventos;
         _escopos = escopos;
-        _relogio = relogio;
         _log = log;
         _config = config ?? new ConfigQueda();
         _controle = new ControleDeQueda(_config, id => _gravando[id] = 0);
@@ -267,18 +264,8 @@ public sealed class ServicoDeQueda : IEstadoDeQueda, IHostedService, IDisposable
         {
             var levantou = saida.Tipo == TipoDeSaida.Levantou;
             var recursos = levantou
-                ? await RecursosDaQueda.LevantarAsync(
-                    _escopos,
-                    _relogio,
-                    id,
-                    CancellationToken.None
-                )
-                : await RecursosDaQueda.EncherTudoAsync(
-                    _escopos,
-                    _relogio,
-                    id,
-                    CancellationToken.None
-                );
+                ? await RecursosDaQueda.LevantarAsync(_escopos, id, CancellationToken.None)
+                : await RecursosDaQueda.EncherTudoAsync(_escopos, id, CancellationToken.None);
 
             _gravando.TryRemove(id, out _);
             if (SessaoDe(id) is { } dono)

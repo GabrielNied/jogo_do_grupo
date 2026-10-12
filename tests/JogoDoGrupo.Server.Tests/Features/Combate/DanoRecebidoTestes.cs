@@ -58,11 +58,14 @@ public class DanoRecebidoTestes(ServidorDeAtaque servidor) : IClassFixture<Servi
     private async Task DefinirVidaAsync(Jogador j, int vida)
     {
         await RecursosAsync(j); // Cria a linha.
+        var memoria = servidor.Falso.Services.GetRequiredService<RecursosEmMemoria>();
+        await memoria.GravarAsync(j.Id); // O banco precisa ter o que a memória já mudou.
         using var escopo = servidor.Falso.Services.CreateScope();
         var db = escopo.ServiceProvider.GetRequiredService<JogoDbContext>();
         var r = await db.Set<RecursosPersonagem>().SingleAsync(x => x.PersonagemId == j.Id);
         r.Vida = vida;
         await db.SaveChangesAsync();
+        memoria.Descartar(j.Id); // E a memória precisa reler o que o teste mudou.
     }
 
     [Fact]
