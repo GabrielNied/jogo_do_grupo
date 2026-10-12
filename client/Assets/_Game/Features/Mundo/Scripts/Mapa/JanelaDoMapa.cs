@@ -19,6 +19,8 @@ namespace JogoDoGrupo.Client.Features.Mundo
     {
         private VisualElement _mapa;
         private VisualElement _marcadores;
+        private Label _posicao;
+        private Vector2? _sobMouse;
         private IVisualElementScheduledItem _agenda;
         private readonly List<MarcadorDoMapa> _outros = new List<MarcadorDoMapa>();
         private readonly Color32[] _amostras = new Color32[
@@ -32,6 +34,10 @@ namespace JogoDoGrupo.Client.Features.Mundo
             legenda.AddToClassList(EstiloCore.Texto);
             conteudo.Add(legenda);
 
+            _posicao = new Label();
+            _posicao.AddToClassList(EstiloCore.Texto);
+            conteudo.Add(_posicao);
+
             _mapa = new VisualElement { name = "mundo.mapa-mundi" };
             _mapa.AddToClassList("mundo-mapa");
             _mapa.RegisterCallback<GeometryChangedEvent>(e =>
@@ -40,6 +46,10 @@ namespace JogoDoGrupo.Client.Features.Mundo
                 if (e.newRect.width > 0 && e.newRect.height != e.newRect.width)
                     _mapa.style.height = e.newRect.width;
             });
+            _mapa.RegisterCallback<PointerMoveEvent>(e =>
+                _sobMouse = PontoDoMouse(e.localPosition)
+            );
+            _mapa.RegisterCallback<PointerLeaveEvent>(e => _sobMouse = null);
             _mapa.generateVisualContent += DesenharFundo;
             conteudo.Add(_mapa);
 
@@ -88,6 +98,45 @@ namespace JogoDoGrupo.Client.Features.Mundo
 
             PresencaNoMundo.Atual?.CopiarOutros(_outros);
             _marcadores?.MarkDirtyRepaint();
+            AtualizarPosicao();
+        }
+
+        private Vector2? PontoDoMouse(Vector2 local)
+        {
+            var ret = _mapa.contentRect;
+            if (ret.width < 1f || ret.height < 1f)
+            {
+                return null;
+            }
+
+            ProjecaoDoMapa.DoMapa(
+                local.x / ret.width,
+                1f - local.y / ret.height,
+                out var x,
+                out var z
+            );
+            return new Vector2(x, z);
+        }
+
+        private void AtualizarPosicao()
+        {
+            var texto = "";
+            var jogador = EntradaNoJogo.Jogador;
+            if (jogador != null)
+            {
+                var p = jogador.transform.position;
+                texto = "Você: " + ProjecaoDoMapa.Coordenadas(p.x, p.z);
+            }
+
+            if (_sobMouse.HasValue)
+            {
+                texto +=
+                    (texto.Length > 0 ? "   |   " : "")
+                    + "Mouse: "
+                    + ProjecaoDoMapa.Coordenadas(_sobMouse.Value.x, _sobMouse.Value.y);
+            }
+
+            _posicao.text = texto;
         }
 
         private void DesenharFundo(MeshGenerationContext contexto)

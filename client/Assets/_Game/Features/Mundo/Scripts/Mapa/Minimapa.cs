@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using JogoDoGrupo.Client.Core.Jogo;
+using JogoDoGrupo.Client.Core.UI;
 using JogoDoGrupo.Client.Core.Visual;
 using JogoDoGrupo.Client.Features.Mundo.Presenca;
 using UnityEngine;
@@ -20,6 +21,7 @@ namespace JogoDoGrupo.Client.Features.Mundo
         private VisualElement _raiz;
         private VisualElement _vista;
         private VisualElement _marcadores;
+        private Label _coordenadas;
         private readonly List<MarcadorDoMapa> _outros = new List<MarcadorDoMapa>();
         private float _rotacao;
         private bool _sobOChao;
@@ -79,6 +81,16 @@ namespace JogoDoGrupo.Client.Features.Mundo
             norte.AddToClassList("mundo-minimapa-norte");
             _raiz.Add(norte);
 
+            _coordenadas = new Label();
+            _coordenadas.pickingMode = PickingMode.Ignore;
+            _coordenadas.AddToClassList(EstiloCore.Texto);
+            _coordenadas.style.position = Position.Absolute;
+            _coordenadas.style.left = 0;
+            _coordenadas.style.right = 0;
+            _coordenadas.style.bottom = 2;
+            _coordenadas.style.unityTextAlign = TextAnchor.LowerCenter;
+            _raiz.Add(_coordenadas);
+
             regiao.Add(_raiz);
         }
 
@@ -94,6 +106,11 @@ namespace JogoDoGrupo.Client.Features.Mundo
             _rotacao = jogador.transform.eulerAngles.y;
             _sobOChao = ProjecaoDoMapa.SobOChao(posicao.x, posicao.y, posicao.z);
             _camera.enabled = !_sobOChao;
+            if (_coordenadas != null)
+            {
+                _coordenadas.text = ProjecaoDoMapa.Coordenadas(posicao.x, posicao.z);
+            }
+
             if (_vista != null)
             {
                 _vista.style.display = _sobOChao ? DisplayStyle.None : DisplayStyle.Flex;
