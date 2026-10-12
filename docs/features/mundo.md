@@ -26,7 +26,7 @@
 - [ ] Como funciona a viagem rápida?
 - [ ] Clima dinâmico afeta gameplay?
 - [ ] Luz e som como mecânica (noite escura, skills que iluminam)? Veja S8 na validação.
-- [ ] **Livro de Asterra (proposta do board, 2026-10-11, não validada):** o grupo adota os nomes de região e de lugar (Vale das Fogueiras, Mata do Eco, Serra do Vidro Frio, Caldeira Rubra, Planalto Astral, Brasa Mansa...)? Como encaixam nos sete biomas de 3 km já decididos (o livro não tem deserto nem pântano e tem o Planalto Astral)? Veja "Livro de Asterra: regiões e cidade".
+- [x] **Livro de Asterra, decidido em 2026-10-11 (/decida, #326):** os nomes entram como **rótulos** sobre os biomas atuais, sem criar bioma: Vale das Fogueiras = campo e arredores, Mata do Eco = mata, Serra do Vidro Frio = montanhas de neve, Caldeira Rubra = montanhas de lava. Deserto e pântano ficam sem nome do livro por ora; Planalto Astral é FUTURO, sem bioma. Estruturas nomeadas entram em tarefas próprias. Pergunta original: o grupo adota os nomes de região e de lugar (Vale das Fogueiras, Mata do Eco, Serra do Vidro Frio, Caldeira Rubra, Planalto Astral, Brasa Mansa...)? Como encaixam nos sete biomas de 3 km já decididos (o livro não tem deserto nem pântano e tem o Planalto Astral)? Veja "Livro de Asterra: regiões e cidade".
 - [ ] Ciclo de 40 min de dia e 20 min de noite (proposta do livro): vale? Liga com a #163.
 - [ ] Bases e construção em pontos marcados: FUTURO, fora do MVP.
 
