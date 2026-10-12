@@ -17,6 +17,7 @@ import { readdirSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { corpoSubtarefa } from "./subtarefa.mjs";
+import { ligarNodeModules } from "./worktree-npm.mjs";
 import {
   LABEL_PENDENCIA,
   branchDaPendencia,
@@ -451,6 +452,10 @@ async function puxarTarefa(args) {
     // velha ou presa (aberta em outro worktree, mudança não commitada barrando o pull).
     executarGit(["fetch", "origin", "main"]);
     executarGit(["switch", "--no-track", "-c", nomeBranch, "origin/main"]);
+  }
+  // Worktree novo nasce sem node_modules: sem isto o commitlint do hook recusa o 1º commit.
+  if (worktreePath && ligarNodeModules(raizAtual, worktreePath)) {
+    console.log("✔ node_modules do checkout principal ligado no worktree (commitlint e hooks).");
   }
 
   // Começo de tarefa é um bom momento para limpar o que já entrou na main (ADR 0031).
