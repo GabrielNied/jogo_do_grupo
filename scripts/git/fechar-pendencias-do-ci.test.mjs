@@ -14,7 +14,7 @@ test("o workflow lê pull requests para fechar pendências sem marcar o client c
   assert.match(workflow, /id: testes-editmode/);
   assert.match(
     workflow,
-    /failure\(\) && github\.event_name == 'push' && steps\.testes-editmode\.outcome == 'failure'/,
+    /failure\(\) && \(github\.event_name == 'push' \|\| github\.event_name == 'schedule'\) && steps\.testes-editmode\.outcome == 'failure'/,
   );
 });
 

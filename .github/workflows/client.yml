@@ -85,8 +85,8 @@ jobs:
 
   testes:
     needs: [mudou, main-sem-validar]
-    # Main e à mão sempre rodam; o agendamento, só se a main ainda não foi validada. Em PR: label testar-unity recém-posta, ou PR que
-    # mexe no client (pôr outra label não roda de novo).
+    # Main e à mão sempre rodam; o agendamento, só se a main ainda não foi validada. Em PR:
+    # label testar-unity recém-posta, ou PR que mexe no client (pôr outra label não roda de novo).
     if: >-
       !cancelled() && (
         github.event_name == 'push' || github.event_name == 'workflow_dispatch'
