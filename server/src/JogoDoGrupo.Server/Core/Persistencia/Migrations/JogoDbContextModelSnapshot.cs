@@ -137,26 +137,6 @@ namespace JogoDoGrupo.Server.Core.Persistencia.Migrations
                     b.ToTable("ItensInventario", (string)null);
                 });
 
-            modelBuilder.Entity("JogoDoGrupo.Server.Features.Personagem.MortePremiada", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<long>("InimigoId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<long>("Sequencia")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("InimigoId", "Sequencia")
-                        .IsUnique();
-
-                    b.ToTable("MortesPremiadas", (string)null);
-                });
-
             modelBuilder.Entity("JogoDoGrupo.Server.Features.Personagem.Personagem", b =>
                 {
                     b.Property<long>("Id")

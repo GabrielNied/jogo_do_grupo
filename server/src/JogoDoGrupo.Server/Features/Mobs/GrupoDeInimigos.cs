@@ -441,7 +441,13 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
         lock (_trava)
         {
             var inimigo = Array.Find(_inimigos, i => i.Id == alvoId);
-            if (inimigo == null || !RegrasInimigo.EstaVivo(inimigo.Estado))
+            // Na volta ele fica imune (Evade): sem isso o jogador bate de graça num inimigo
+            // que não revida e que depois sobe de vida cheia (issue #488).
+            if (
+                inimigo == null
+                || !RegrasInimigo.EstaVivo(inimigo.Estado)
+                || inimigo.Estado == EstadoDeInimigo.Retorno
+            )
             {
                 return false;
             }
@@ -555,12 +561,21 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
             return;
         }
 
+        inimigo.SegundosSemAtacar += segundos;
         var daOrigem = RegrasInimigo.Distancia(
             inimigo.X,
             inimigo.Z,
             inimigo.OrigemX,
             inimigo.OrigemZ
         );
+        if (inimigo.SegundosSemAtacar >= ConfigInimigosDoCampo.LimiteSemAtacarSegundos)
+        {
+            // Kite na borda: o alvo nunca fica ao alcance. Desiste como no limite de distância.
+            perdidos.Add(inimigo.Alvo);
+            Retornar(inimigo);
+            return;
+        }
+
         if (
             _rota == null
                 ? RegrasInimigo.DeveDesistir(daOrigem)
@@ -608,6 +623,7 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
 
     private void ComecarAtaque(Inimigo inimigo, long agora, PassoDosInimigos passo)
     {
+        inimigo.SegundosSemAtacar = 0.0;
         RegrasInimigo.CentroDoGolpe(
             inimigo.X,
             inimigo.Z,
@@ -740,6 +756,7 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
     {
         inimigo.Alvo = RegrasInimigo.SemAlvo;
         inimigo.Preparando = false;
+        inimigo.SegundosSemAtacar = 0.0;
         inimigo.Atacantes.Clear();
         if (inimigo.Vida != inimigo.Criatura.VidaMaxima)
         {
@@ -1075,6 +1092,7 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
 
         /// <summary>No ataque: quando a fase atual (aviso ou recuperação) acaba.</summary>
         public long FaseAteMs;
+        public double SegundosSemAtacar;
 
         public double GolpeX;
         public double GolpeZ;
