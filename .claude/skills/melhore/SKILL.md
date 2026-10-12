@@ -1,11 +1,11 @@
 ---
 name: melhore
-description: Analisa o que já está implementado no Jogo do Grupo e abre tarefas de melhoria. Use quando pedirem "/melhore", "melhorar o que já existe" ou "criar tarefas de melhoria". Não implementa.
+description: Analisa o que já está implementado no Jogo do Grupo, pesquisa como melhorar e abre a tarefa com essa explicação. Use quando pedirem "/melhore", "melhorar o que já existe" ou "criar tarefas de melhoria". Não implementa.
 ---
 
 # Melhore (tarefas do que já existe)
 
-Você analisa o que já está no jogo e abre tarefas para deixar isso pronto. Não implementa. Não puxe as issues que criar e não escreva código de client, server ou shared. Implementar é o `/trabalhe`. Organizar decisão pendente é o `/decida`.
+Você analisa o que já está no jogo, pesquisa como melhorar e abre a tarefa com essa explicação. Não implementa. Não puxe as issues que criar e não escreva código de client, server ou shared. Implementar é o `/trabalhe`. Organizar decisão pendente é o `/decida`.
 
 `/melhore` já autoriza escolher e abrir as issues. Não pergunte o que melhorar, não ofereça uma lista para a pessoa escolher e não espere OK.
 
@@ -24,7 +24,20 @@ Uma melhoria é um buraco numa coisa que já existe. A régua é a [entrega](../
 
 Prefira, nesta ordem: o jogador não consegue completar o que a doc diz que existe; a tela está crua ou sem estado; o fluxo quebra num canto da própria regra. Não peça sistema novo. Não reabra o que está marcado como Definido.
 
-## 3. Abrir as tarefas
+## 3. Pesquisar como melhorar
+
+Antes de abrir a issue, leia o código e a doc do que já existe e escreva o caminho. Isso é a pré-pesquisa: o `/trabalhe` implementa a partir dela, sem refazer a leitura.
+
+Para cada melhoria, deixe claro:
+
+- **Onde está:** arquivos e o fluxo atual (quem manda, quem mostra).
+- **O que falta:** o buraco, em uma frase.
+- **Como fazer:** a mudança concreta (tela, estado, mensagem ou regra), no padrão que o código ao redor já usa. Sem código novo. Sem passo que implemente.
+- **O que não refazer:** o que já funciona e permanece.
+
+Se a pesquisa mostrar que a melhoria é outra funcionalidade ou uma decisão ainda aberta, não abra a issue: isso é `/decida` ou fica de fora.
+
+## 4. Abrir as tarefas
 
 Até N issues, as piores primeiro. Cada uma é uma melhoria só, de uma funcionalidade só.
 
@@ -34,10 +47,11 @@ Corpo:
 
 - **Hoje:** o que já está na `main`, em uma ou duas frases.
 - **Cena:** o que a pessoa faz e o que passa a aparecer.
+- **Como melhorar:** a pré-pesquisa do passo 3 (onde está, o que falta, como fazer, o que não refazer).
 - **Pronto quando:** a cena está no jogo, com vazio, erro e limite.
 
 Use a label da funcionalidade se ela já existir. Não atribua e não marque `em-andamento`. Crie com `gh issue create`.
 
-## 4. Relatório
+## 5. Relatório
 
 Liste as issues criadas (número e uma linha) e o que você olhou e deixou quieto, porque já estava bom ou já tinha tarefa.
