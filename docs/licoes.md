@@ -44,3 +44,9 @@ Formato: `### AAAA-MM-DD · título` com **O que houve**, **Regra** e **Origem**
 - **O que houve:** o hook de início de sessão dispara `nuvem:preparar` em segundo plano e manda o agente rodar `npm run nuvem:preparar` antes do primeiro `dotnet`. As duas rodavam juntas, e o `dotnet tool restore` da segunda falhava com "file is being used by another process": o agente tinha de rodar de novo.
 - **Regra:** a preparação do hook grava o pid em `~/.cache/jogo-do-grupo/preparar-nuvem.pid`, e o `npm run nuvem:preparar` espera ela terminar antes de começar. O comando está em [scripts/agentes/preparar-nuvem.mjs](../scripts/agentes/preparar-nuvem.mjs).
 - **Origem:** rodada do loop autônomo de 2026-10-12 (PR #525).
+
+### 2026-10-12 · Unity do CI morto por outro job com a mesma licença (issue #529)
+
+- **O que houve:** três execuções seguidas do Client (Unity) na `main` (e uma de PR) morreram com `Killed` / exit 137 segundos depois de ativar a licença, sem compilar nada. Cada uma coincidiu com outro job do Unity rodando: a licença Personal é uma só. Uma pendência "Client falhou na main" chegou a ser corrigida com mudança de código enquanto a causa da falha seguinte era essa.
+- **Regra:** um Unity por vez no repositório (grupo de concorrência `client-unity-licenca` no `client.yml`, [ADR 0019](decisoes/0019-unity-no-ci.md)). Falha com `Killed`/137 logo após a licença não é erro de código: confira se havia outro job do Unity ao mesmo tempo antes de mexer no client.
+- **Origem:** issue #529.

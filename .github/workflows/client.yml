@@ -4,10 +4,11 @@ name: Client (Unity)
 # tem Unity na máquina, como um agente na nuvem, não precise fazer isso localmente (ADR 0019).
 #
 # Leva uns 10 minutos, então não roda em cada PR (não atrasa ninguém nem gasta a cota à toa):
-# - depois do merge na main, se mexeu no client ou no shared. A execução em andamento na main
-#   termina (cancelar a cada merge fazia quase nenhuma chegar ao fim); a fila guarda só a mais
-#   nova, então um lote de merges gera uma execução a mais, não uma por merge. Se passar, fecha
-#   as pendências que só pediam compilar e rodar os testes EditMode;
+# - depois do merge na main, se mexeu no client ou no shared. A execução em andamento termina
+#   (cancelar a cada merge fazia quase nenhuma chegar ao fim). Main e PRs dividem uma fila só,
+#   porque a licença Personal não aguenta dois Unity ao mesmo tempo; a fila guarda só o pedido
+#   mais novo, então um lote de merges gera uma execução a mais, não uma por merge. Se passar,
+#   fecha as pendências que só pediam compilar e rodar os testes EditMode;
 # - em todo PR que mexe em client/ ou shared/Package/ (repo público: minutos grátis, ADR 0029),
 #   e num PR com a label "testar-unity" mesmo sem mexer nesses caminhos;
 # - à mão, em Actions > Client (Unity) > Run workflow.
@@ -66,11 +67,13 @@ jobs:
         || (github.event.action != 'labeled' && (needs.mudou.outputs.client == 'true'
             || contains(github.event.pull_request.labels.*.name, 'testar-unity')))
       )
-    # No job (não no workflow): um evento que não roda o Unity não cancela o que está rodando.
-    # Em PR, um push novo substitui o anterior. Na main, a execução em andamento termina.
+    # Um Unity por vez no repositório inteiro (main e todos os PRs): a licença Personal é uma
+    # só, e ativá-la num runner mata com "Killed" (exit 137) o editor que já roda em outro
+    # (issue #529). Nada em andamento é cancelado; quem chega espera, e a fila guarda só o
+    # mais novo. No job (não no workflow): um evento que não roda o Unity não entra na fila.
     concurrency:
-      group: client-unity-${{ github.ref }}
-      cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+      group: client-unity-licenca
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     timeout-minutes: 45
     env:
