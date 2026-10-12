@@ -7,10 +7,13 @@
 
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const PASTA_DO_SCRIPT = dirname(fileURLToPath(import.meta.url));
 
 function git(args) {
-  return execFileSync("git", args, { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], timeout: 5000 }).trim();
+  return execFileSync("git", args, { cwd: PASTA_DO_SCRIPT, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], timeout: 5000 }).trim();
 }
 
 // Mesmo arquivo em qualquer worktree: o bilhete é da pasta principal do repositório.
@@ -40,6 +43,11 @@ try {
     console.log(texto);
     console.log(`Branch atual: ${branch}; ${mudancas} arquivo(s) com mudança não commitada.`);
   }
-} catch {
+} catch (erro) {
+  // No hook, nunca atrapalha a sessão; ao gravar, a IA precisa saber que falhou.
+  if (comando === "gravar") {
+    console.error(`Não gravei o bilhete: ${erro.message}`);
+    process.exit(1);
+  }
   process.exit(0);
 }
