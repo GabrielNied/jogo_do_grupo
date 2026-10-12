@@ -98,7 +98,7 @@ Vale para quem coordena agentes (IA ou pessoa). Aprendido na orquestração da [
 - **Trabalhe num worktree seu.** O checkout principal é compartilhado e outra sessão pode trocar de branch nele, levando junto o que não foi commitado. O coordenador faz o trabalho do PR num worktree próprio (`npm run tarefa -- puxar <N> --worktree <pasta>`) e commita cedo.
 - **O agente commita local.** Na própria branch `worktree-agent-*`, sem push, e informa a branch e o hash no relatório. Sem commit, a mudança fica só no worktree dele, e um worktree sem mudança some quando o agente termina.
 - **Integrar com `git cherry-pick <hash>`, não com `git merge` da branch do agente.** A branch herda commits da base dele; o merge arrasta trabalho alheio para o PR. Antes de aceitar, `git show --stat <hash>` confere que só há arquivos da área do agente. Se o agente deixou edição sem commit, extraia com `git diff` e aplique com `git apply --3way`.
-- **Quem coordena limpa o que criou, depois do merge do PR:** `npm run limpar-agentes -- --aplicar` (`--horas 0` se os agentes já terminaram; `--remotas` para o GitHub). Integrar por cherry-pick faz o script **não reconhecer** o merge e manter o worktree ("N commit(s) sem PR mesclado"). Nesse caso, confira que o conteúdo já está na `main` (`git diff origin/main <branch> -- <arquivos>`) e remova só os **seus** com `git worktree remove` e `git branch -D`. Não toque em worktree de outra pessoa ou agente que apareça na mesma lista.
+- **A limpeza é automática ([ADR 0031](decisoes/0031-limpeza-automatica.md)):** depois do merge, worktrees e branches saem sozinhos na próxima sessão, `git pull` ou `puxar`, inclusive os integrados por cherry-pick (o script compara o conteúdo com a `main`). Não é preciso remover nada à mão. Para ver o que ficou e por quê: `.git/limpar-agentes.log`, ou `npm run limpar-agentes` para simular agora.
 - **Permissão para remover.** O modo automático do Claude Code pode negar `git worktree remove` e `git branch -D`, e a IA não edita a própria permissão. A pessoa libera uma vez em `.claude/settings.local.json` (já está no `.gitignore`):
 
   ```json
@@ -125,7 +125,7 @@ Vale para quem coordena agentes (IA ou pessoa). Aprendido na orquestração da [
 
 - **Entrega:** a tarefa de jogo termina na cena que o jogador usa ([Entrega da funcionalidade](#entrega-da-funcionalidade)). O PR de contrato ou de servidor não leva `Closes` dessa issue.
 - **Lock de tarefa:** confira que a tarefa está livre e puxe-a para em andamento antes de alterar código (`npm run tarefa -- puxar <N>`). Se a tarefa já estiver em andamento, pare e avise. Se precisar interromper sem concluir, libere com `npm run tarefa -- liberar <N>`.
-- **Regra 0:** nunca apagar nada do Figma; o resto a IA pode apagar ([ADR 0026](decisoes/0026-ia-pode-apagar-menos-o-figma.md)). No Claude Code, um hook do projeto ([scripts/agentes/bloquear-apagar.mjs](../scripts/agentes/bloquear-apagar.mjs)) barra a remoção no Figma, o push forçado e apagar repositório, release ou projeto. Worktrees e branches temporários dos agentes saem com `npm run limpar-agentes -- --aplicar` depois do merge ([ADR 0018](decisoes/0018-limpeza-do-que-os-agentes-criam.md)).
+- **Regra 0:** nunca apagar nada do Figma; o resto a IA pode apagar ([ADR 0026](decisoes/0026-ia-pode-apagar-menos-o-figma.md)). No Claude Code, um hook do projeto ([scripts/agentes/bloquear-apagar.mjs](../scripts/agentes/bloquear-apagar.mjs)) barra a remoção no Figma, o push forçado e apagar repositório, release ou projeto. Worktrees e branches temporários dos agentes saem sozinhos depois do merge ([ADR 0031](decisoes/0031-limpeza-automatica.md)).
 - **Autorização:** quando uma pessoa pede uma orquestração, ela autoriza os agentes a commitar, enviar as próprias branches e abrir PRs. **Merge é sempre humano.**
 - **Fora da área:** se a tarefa exige mudar algo fora da área do agente (um contrato, o Core, outra funcionalidade), o agente para e descreve a mudança no relatório, para o agente certo fazer.
 - **Relatório:** todo agente termina com o que fez, a branch e o PR, as verificações, o que outros agentes ou pessoas precisam fazer e as dúvidas.
@@ -196,7 +196,7 @@ E comece a conversa com:
 
 Nessas ferramentas os hooks não rodam: o limite de pastas e a regra 0 dependem das instruções, do `revisor` e do review humano.
 
-~~Worktrees que sobrarem depois do merge são removidos por uma **pessoa** (`git worktree remove <pasta>`); a IA não apaga.~~ Substituído em 2026-10-11 pelo [ADR 0018](decisoes/0018-limpeza-do-que-os-agentes-criam.md): o coordenador (ou a pessoa) roda `npm run limpar-agentes -- --aplicar` depois dos merges. O script remove só worktrees e branches cujo conteúdo já está na `main` e explica o que ficou.
+~~Worktrees que sobrarem depois do merge são removidos por uma **pessoa** (`git worktree remove <pasta>`); a IA não apaga.~~ Substituído em 2026-10-11 pelo [ADR 0018](decisoes/0018-limpeza-do-que-os-agentes-criam.md): o coordenador (ou a pessoa) roda `npm run limpar-agentes -- --aplicar` depois dos merges. ~~O script remove só worktrees e branches cujo conteúdo já está na `main`~~ Substituído em 2026-10-11 pelo [ADR 0031](decisoes/0031-limpeza-automatica.md): a limpeza roda sozinha e remove o que não se perde.
 
 ## Limitações atuais
 

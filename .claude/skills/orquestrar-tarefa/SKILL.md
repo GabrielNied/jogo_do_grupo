@@ -106,4 +106,4 @@ Se um PR for mergeado antes dos ajustes, **não envie mais nada para a branch de
 - PRs abertos, com links. O veredito do revisor só quando ele rodou.
 - O que montar no editor do Unity e como testar.
 - Decisões pendentes.
-- Limpeza: depois dos merges, rode `npm run limpar-agentes -- --aplicar` (e `-- --remotas --aplicar` se sobrou branch no GitHub) e diga o que ficou e por quê. Worktrees de PRs ainda abertos ficam até o merge. **A limpeza é sua, não da pessoa:** o que o script não reconhece (cherry-pick) você confere e remove sozinho, só o que criou, e se a permissão for negada, peça a regra de [Fechamento](../../../docs/agentes.md#fechamento-o-coordenador-integra-e-limpa-o-que-criou).
+- Limpeza: é automática depois dos merges ([ADR 0031](../../../docs/decisoes/0031-limpeza-automatica.md)); não peça nada à pessoa. Se algo ficou, `.git/limpar-agentes.log` diz o motivo.
