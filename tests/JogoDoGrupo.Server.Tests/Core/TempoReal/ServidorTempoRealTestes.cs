@@ -419,6 +419,76 @@ public class ServidorTempoRealTestes(TempoRealFixture f) : IClassFixture<TempoRe
     /// Manda o pacote inválido e depois um eco válido: o eco volta (a conexão continua) e o
     /// inválido foi recusado com o motivo esperado, sem chegar ao manipulador.
     /// </summary>
+    // ── Limite de mensagens (#211) ──────────────────────────────────────────
+
+    [Fact]
+    public async Task Inundar_o_servidor_derruba_a_conexao()
+    {
+        var (cliente, contaId, _) = await f.EntrarAsync();
+        using var _ = cliente;
+        var sessao = f.SessaoDaConta(contaId)!;
+
+        // Bem acima da rajada padrão (120) num instante.
+        for (var i = 0; i < 400; i++)
+        {
+            cliente.Enviar(TempoRealFixture.IdEco, new MensagemTeste { Numero = i });
+        }
+
+        await cliente.Desconectado.WaitAsync(ClienteTempoRealDeTeste.Espera);
+        await TempoRealFixture.EsperarAsync(
+            () => f.SessaoDaConta(contaId) == null,
+            "sessão removida"
+        );
+        Assert.Contains(
+            f.Recusadas,
+            r => r.Sessao == sessao && r.Motivo == MotivoRecusa.LimiteExcedido
+        );
+        Assert.True(
+            f.Recebidas.Count(r => r.Sessao == sessao) <= 130,
+            "o servidor não deveria tratar muito além da rajada"
+        );
+    }
+
+    [Fact]
+    public async Task Inundar_antes_de_autenticar_tambem_derruba()
+    {
+        using var cliente = await ClienteTempoRealDeTeste.ConectarAsync(f.Porta);
+
+        for (var i = 0; i < 400; i++)
+        {
+            cliente.EnviarBruto(Pacote(TempoRealFixture.IdEco, "{}"));
+        }
+
+        var info = await cliente.Desconectado.WaitAsync(
+            TimeSpan.FromMilliseconds(TempoRealFixture.TempoParaAutenticarMs - 500)
+        );
+        Assert.Equal(DisconnectReason.RemoteConnectionClose, info.Reason);
+        Assert.Contains(
+            f.Recusadas,
+            r => r.Motivo == MotivoRecusa.LimiteExcedido && !r.Sessao.Autenticada
+        );
+    }
+
+    [Fact]
+    public async Task Ritmo_normal_do_client_nao_e_derrubado()
+    {
+        var (cliente, contaId, _) = await f.EntrarAsync();
+        using var _ = cliente;
+
+        // 2 s a 30 mensagens por segundo (o client manda 10 posições por segundo).
+        for (var i = 0; i < 60; i++)
+        {
+            cliente.Enviar(TempoRealFixture.IdEco, new MensagemTeste { Numero = i });
+            await Task.Delay(33);
+        }
+
+        var texto = Guid.NewGuid().ToString();
+        cliente.Enviar(TempoRealFixture.IdEco, new MensagemTeste { Texto = texto });
+        await cliente.ReceberAsync<MensagemTeste>(TempoRealFixture.IdEco);
+        Assert.NotNull(f.SessaoDaConta(contaId));
+        Assert.False(cliente.Desconectado.IsCompleted);
+    }
+
     private async Task AssertRecusadaSemDerrubar(
         ClienteTempoRealDeTeste cliente,
         byte[] pacote,
