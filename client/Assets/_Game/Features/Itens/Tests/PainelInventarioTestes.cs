@@ -106,12 +106,13 @@ namespace JogoDoGrupo.Client.Features.Itens.Tests
         }
 
         [Test]
-        public void MostraAbaDoEstadoEMostraSiglaQuandoNaoHaIcone()
+        public void MostraAbaDoEstadoComOIconeDoTipo()
         {
             var raiz = NovaRaiz();
             Montar(raiz, new EquipamentosResponse { Inventario = new[] { Entrada(1, 107, 3) } });
             var casa = raiz.Q<VisualElement>("casa-0-3");
-            Assert.AreEqual("Ane", casa.Q<Label>().text);
+            Assert.AreEqual("", casa.Q<Label>().text);
+            Assert.IsNotNull(IconeDe(casa));
             Assert.IsTrue(casa.ClassListContains(EstiloItens.Raridade(RaridadeItem.Comum)));
         }
 
@@ -122,7 +123,7 @@ namespace JogoDoGrupo.Client.Features.Itens.Tests
             Montar(raiz, new EquipamentosResponse());
             var capacete = raiz.Q<VisualElement>("encaixe-Capacete");
             Assert.IsTrue(capacete.ClassListContains(EstiloItens.SlotVazio));
-            Assert.AreEqual("Cap", capacete.Q<Label>().text);
+            Assert.IsNotNull(IconeDe(capacete));
             Assert.NotNull(raiz.Q<VisualElement>("encaixe-Secundaria2"));
         }
 
@@ -254,12 +255,8 @@ namespace JogoDoGrupo.Client.Features.Itens.Tests
             );
         }
 
-        [Test]
-        public void PontoUnicoDeIconeDevolveNuloAteOsIconesChegarem()
-        {
-            foreach (TipoEquipamento tipo in System.Enum.GetValues(typeof(TipoEquipamento)))
-                Assert.IsNull(PainelInventario.IconeDoTipo(tipo));
-        }
+        private static Sprite IconeDe(VisualElement slot) =>
+            slot.Q<VisualElement>(className: EstiloItens.Icone).style.backgroundImage.value.sprite;
 
         private static void Click(Button botao)
         {

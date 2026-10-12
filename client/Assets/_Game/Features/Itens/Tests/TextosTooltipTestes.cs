@@ -14,6 +14,7 @@ namespace JogoDoGrupo.Client.Features.Itens.Tests
         {
             return new Equipamento
             {
+                ModeloId = 1,
                 Nome = nome,
                 Tipo = tipo,
                 Raridade = RaridadeItem.Raro,

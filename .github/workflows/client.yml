@@ -33,8 +33,9 @@ on:
   workflow_dispatch:
 
 permissions:
-  # Listar as execuções deste workflow (agendamento que confere se a main já foi validada).
-  actions: read
+  # Listar as execuções deste workflow (agendamento que confere se a main já foi validada) e
+  # apagar o cache da Library quando o editor morre.
+  actions: write
   contents: read
   checks: write
   issues: write
@@ -122,16 +123,17 @@ jobs:
         if: env.TEM_LICENCA == 'true'
         run: git lfs pull
 
-      # v2 (#529): os jobs que morriam com "Killed" sozinhos restauravam todos o mesmo cache
-      # antigo da Library; o prefixo novo descarta os caches anteriores.
+      # v3 (#600), como o v2 (#529): os jobs que morriam com "Killed" restauravam todos o mesmo
+      # cache da Library; o prefixo novo descarta os anteriores. Se voltar a acontecer, o passo
+      # "Descarta a Library" abaixo apaga o cache sozinho.
       - uses: actions/cache@v4
         if: env.TEM_LICENCA == 'true'
         with:
           path: client/Library
-          key: Library-v2-${{ hashFiles('client/Packages/packages-lock.json', 'client/ProjectSettings/ProjectVersion.txt') }}-${{ hashFiles('client/Assets/**', 'shared/Package/**') }}
+          key: Library-v3-${{ hashFiles('client/Packages/packages-lock.json', 'client/ProjectSettings/ProjectVersion.txt') }}-${{ hashFiles('client/Assets/**', 'shared/Package/**') }}
           restore-keys: |
-            Library-v2-${{ hashFiles('client/Packages/packages-lock.json', 'client/ProjectSettings/ProjectVersion.txt') }}-
-            Library-v2-
+            Library-v3-${{ hashFiles('client/Packages/packages-lock.json', 'client/ProjectSettings/ProjectVersion.txt') }}-
+            Library-v3-
 
       # Compila todos os assemblies (erro de compilação reprova) e roda os testes EditMode.
       - uses: game-ci/unity-test-runner@v4
@@ -155,6 +157,18 @@ jobs:
         with:
           name: resultados-unity
           path: artifacts
+
+      # O editor morreu antes de gravar os resultados (ex.: "Killed", exit 137): a Library
+      # restaurada pode estar envenenada e mataria todas as execuções seguintes (#529, #600).
+      # Apaga os caches dela; a próxima importa do zero. Falha de teste comum mantém o cache.
+      - name: Descarta a Library se o editor morreu
+        if: failure() && steps.testes-editmode.outcome == 'failure' && hashFiles('artifacts/editmode-results.xml') == ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for chave in $(gh cache list --repo "${{ github.repository }}" --key Library- --limit 100 --json key -q '.[].key'); do
+            gh cache delete "$chave" --repo "${{ github.repository }}" || true
+          done
 
       # Passou na main: fecha as pendências que só pediam o que este job acabou de fazer.
       - name: Fecha pendências resolvidas pelo CI
