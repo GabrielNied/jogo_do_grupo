@@ -54,7 +54,7 @@ Regras:
 - Skill nova: crie `.claude/skills/<nome>/SKILL.md` (nome em minúsculas com hífen, igual ao da pasta, e `description` dizendo quando usar) e adicione na tabela de procedimentos do `AGENTS.md`.
 - Configurações pessoais ficam fora do git (`.claude/settings.local.json`, `CLAUDE.local.md`, `AGENTS.local.md`).
 - O código gerado por IA é responsabilidade de quem abre o PR: revise, rode o build e o CSharpier.
-- **Vários agentes em paralelo:** cada agente tem uma área fixa e trabalha no seu worktree; as pessoas decidem e fazem o merge. A funcionalidade de jogo fecha na [cena pronta](docs/agentes.md#entrega-da-funcionalidade); conteúdo de Unity que não sai de script continua com quem monta. Veja [docs/agentes.md](docs/agentes.md).
+- **Vários agentes em paralelo:** cada agente tem uma área fixa e trabalha no seu worktree; as pessoas decidem e fazem o merge. A funcionalidade de jogo fecha na [cena pronta](docs/agentes.md#entrega-da-funcionalidade), montada pelos próprios agentes pelo Unity. Veja [docs/agentes.md](docs/agentes.md).
 
 ## Documentação
 

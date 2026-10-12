@@ -80,7 +80,7 @@ Testes em `tests/` (xUnit; [ADR 0013](docs/decisoes/0013-testes-automatizados.md
     - Tropeço de processo (travou, sumiu, refeito, ferramenta enganou): registre a lição com a skill `registrar-licao` ([docs/licoes.md](docs/licoes.md)) no mesmo PR.
 
 17. **Balanceamento:** separe valores ajustáveis dos cálculos, em constantes nomeadas no topo da classe ou `Config<Assunto>` da funcionalidade. Siga [Valores de balanceamento](docs/convencoes.md#valores-de-balanceamento).
-18. **Entrega:** a tarefa de jogo termina na cena que o jogador usa. Siga [Entrega da funcionalidade](docs/agentes.md#entrega-da-funcionalidade). Contrato e servidor não fecham essa issue.
+18. **Entrega:** a tarefa de jogo termina na cena que o jogador usa. Ao puxá-la, escreva na issue o [plano](docs/agentes.md#plano-da-tarefa) (casos, estados da checklist de experiência e testes) antes de codar, e só pare se houver dúvida de regra. Siga [Entrega da funcionalidade](docs/agentes.md#entrega-da-funcionalidade). Contrato e servidor não fecham essa issue.
 
 ## Procedimentos (skills)
 
