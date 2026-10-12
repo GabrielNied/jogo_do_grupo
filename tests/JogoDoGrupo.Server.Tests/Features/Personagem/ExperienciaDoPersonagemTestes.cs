@@ -35,12 +35,12 @@ public class ExperienciaDoPersonagemTestes(ServidorDeTeste servidor)
         var cliente = await servidor.CriarClienteLogadoAsync();
         var id = await CriarPersonagemAsync(cliente);
 
-        await ConcederAsync(id, 40, sequencia: 7, inimigoId: 3);
-        await ConcederAsync(id, 40, sequencia: 7, inimigoId: 3);
-        Assert.Equal(40, (await ProgressoAsync(cliente, id)).XpAtual);
+        await ConcederAsync(id, 20, sequencia: 7, inimigoId: 3);
+        await ConcederAsync(id, 20, sequencia: 7, inimigoId: 3);
+        Assert.Equal(20, (await ProgressoAsync(cliente, id)).XpAtual);
 
-        await ConcederAsync(id, 40, sequencia: 8, inimigoId: 3);
-        Assert.Equal(80, (await ProgressoAsync(cliente, id)).XpAtual);
+        await ConcederAsync(id, 20, sequencia: 8, inimigoId: 3);
+        Assert.Equal(40, (await ProgressoAsync(cliente, id)).XpAtual);
     }
 
     [Fact]

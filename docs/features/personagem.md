@@ -65,14 +65,31 @@ Do "Livro de ideias de Asterra" ([seções 10 e 09](../brainstorm/figjam.md#10--
 - **Ataques, defesa e recursos** (golpe leve e pesado por arma, sem parry, bloqueio por defesa contra potência, 100 de vigor e de energia): pertencem a [combate.md](combate.md); o board repete os valores da fatia.
 - **Morte:** o board propõe 45 s caído, 3 s para levantar e 20% de vida, **iguais** à seção [Morte e caído](#morte-e-caído-issue-97). Novo: caído também pode ser levantado pela skill Hino do Recomeço ([skills.md](skills.md)).
 
+## Ritmo de progressão (proposta, #454)
+
+**Proposta, não validada pelo grupo.** Parte A da #454; o XP por diferença de nível do mob (depende da #452) e o client ficam para a parte B.
+
+**Meta de ritmo** (referência: jogador solo, 4 mobs comuns por minuto, 20 XP por mob como o Javali do Campo):
+
+- Nível 1 para 2 em até 1,5 minuto (hoje ~0,6).
+- Cada nível dos 10 primeiros demora mais que o anterior e no máximo 10 minutos (hoje de 0,6 a ~8,7).
+- Chegar ao nível 10 em 30 a 50 minutos (hoje ~40).
+- Nível 30 sai de ~37 minutos por nível; o jogo todo pede dezenas de horas.
+
+**Curva calibrada:** XP do nível = arredondar(50 x nível^1,2) (era 100 x nível^1,7, lenta demais: nível 10 em mais de 5 horas de mobs). Os valores e a meta estão em `ConfigExperiencia`; o teste `RitmoDeProgressaoTestes` falha se a curva, o XP do mob de referência ou o ritmo saírem da meta. Mexeu na curva ou no XP do mob? Reconfira o teste.
+
+**O que o nível dá (proposta):** 5 pontos de atributo por nível (já implementado). Vida, vigor e energia crescem só pelos pontos gastos (Vitalidade, Espírito) e pelos itens: o nível em si não dá bônus automático, para o poder vir da escolha e do item. Subir de nível também libera o orçamento de preparação de skills (+1 a cada 5 níveis, [skills.md](skills.md)).
+
+**Destreza e Intelecto:** ainda sem efeito (Combate só usa Força, Vitalidade e Espírito). Seguem na distribuição para não quebrar contrato e client; o jogador pode gastar neles sem ganho até Combate e Itens (#166) dar uso. **Decisão pendente do grupo:** manter assim ou recusar esses dois atributos até terem uso.
+
 ## Em aberto
 
 - [ ] Conflito livro x docs: o board pede **sem perda nenhuma na morte** (nem durabilidade) e esta doc já prevê isso só para a fatia; confirmar se vale para o jogo todo.
 - [ ] Conflito livro x docs: o board dá o **orçamento de skills de 12 pontos** com o nível (+1 a cada 5), mas ainda não diz se os atributos mudam o orçamento. Validar com o grupo.
 - [ ] Quais raças existem e qual a skill base de cada uma? (as raças definitivas substituem a raça provisória Humano) **Cinco raças em uso desde 2026-10-11 ([Raças propostas](#raças-propostas-no-board-2026-10-11)); a skill base de cada uma segue em [Skills](skills.md) (#341).**
 - [ ] ~~Quais raças e classes existem?~~ classes não existem mais (D2)
-- [ ] O que o nível dá ao personagem (atributos, espaços de skill, acesso a itens)?
-- [ ] Nível máximo e curva de progressão
+- [ ] O que o nível dá ao personagem (atributos, espaços de skill, acesso a itens)? Proposta em [Ritmo de progressão](#ritmo-de-progressão-proposta-454).
+- [ ] Nível máximo e curva de progressão (proposta calibrada em [Ritmo de progressão](#ritmo-de-progressão-proposta-454))
 - [ ] Aparência e customização na criação (rosto, corpo, cores...)?
 - [ ] Excluir personagem: pode? Tem confirmação (ex.: digitar o nome) ou tempo de espera antes de apagar de vez?
 - [ ] Renomear personagem: pode? Tem custo ou limite?

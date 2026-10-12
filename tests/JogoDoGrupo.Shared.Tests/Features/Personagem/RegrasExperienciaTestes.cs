@@ -5,27 +5,27 @@ namespace JogoDoGrupo.Shared.Tests.Features.Personagem;
 public class RegrasExperienciaTestes
 {
     [Theory]
-    [InlineData(1, 100)]
-    [InlineData(2, 325)]
-    [InlineData(10, 5012)]
-    [InlineData(29, 30625)]
-    [InlineData(30, 32442)]
+    [InlineData(1, 50)]
+    [InlineData(2, 115)]
+    [InlineData(10, 792)]
+    [InlineData(29, 2843)]
+    [InlineData(30, 2962)]
     public void Curva_confere_tabela_provisoria(int nivel, long esperado) =>
         Assert.Equal(esperado, RegrasExperiencia.XpParaOProximoNivel(nivel));
 
     [Fact]
     public void Ganho_sobe_dois_niveis_e_preserva_resto()
     {
-        var resultado = RegrasExperiencia.AplicarGanho(1, 25, 450);
+        var resultado = RegrasExperiencia.AplicarGanho(1, 25, 190);
         Assert.Equal(3, resultado.Nivel);
         Assert.Equal(50, resultado.Xp);
         Assert.Equal(10, resultado.PontosGanhos);
     }
 
     [Theory]
-    [InlineData(99, 1, 99, 0)]
-    [InlineData(100, 2, 0, 5)]
-    [InlineData(101, 2, 1, 5)]
+    [InlineData(49, 1, 49, 0)]
+    [InlineData(50, 2, 0, 5)]
+    [InlineData(51, 2, 1, 5)]
     public void Ganho_respeita_limiar_exato(long ganho, int nivel, long xp, int pontos)
     {
         var resultado = RegrasExperiencia.AplicarGanho(1, 0, ganho);
