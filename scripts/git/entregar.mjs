@@ -2,10 +2,11 @@
 // O corpo vem de um arquivo: no PowerShell a crase parte um --body na linha de comando,
 // e o commitlint recusa linha de corpo com mais de 100 caracteres.
 //
-// Uso: npm run entregar -- --titulo "tipo(escopo): descricao" --corpo .git/pr-corpo.md
+// Uso: npm run entregar -- --titulo "tipo(escopo): descricao" --corpo <arquivo fora do commit, ex.: .git/pr-corpo.md>
 
 import { execFileSync } from "node:child_process";
 import { readFileSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 
 export const LIMITE_LINHA = 100;
@@ -137,8 +138,10 @@ function principal() {
   }
 
   if (gitOut(["diff", "--cached", "--name-only"])) {
-    writeFileSync(".git/MENSAGEM_COMMIT", mensagem);
-    gitRun(["commit", "-F", ".git/MENSAGEM_COMMIT"]);
+    // Num worktree, .git é um arquivo: a pasta certa vem do próprio git.
+    const arquivoMensagem = join(gitOut(["rev-parse", "--git-dir"]), "MENSAGEM_COMMIT");
+    writeFileSync(arquivoMensagem, mensagem);
+    gitRun(["commit", "-F", arquivoMensagem]);
   }
 
   gitRun(["fetch", "origin", "main"]);
