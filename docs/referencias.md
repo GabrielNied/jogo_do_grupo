@@ -7,15 +7,15 @@ Ao definir um sistema novo, comece pela referência dele, descreva o que muda e 
 ## Preferências do grupo
 
 - **Combate (2026-10-10):** o grupo gosta do equilíbrio do **New World**: ação, mas **não frenético e sem spam de skills**. Poucas skills, com recarga que pesa, e o resto do tempo ataques básicos, esquiva e posicionamento.
-- **Troca de arma:** interessante, a pensar (veja S10 na [validação](brainstorm/validacao.md)).
+- **Troca de arma:** decidida em 2026-10-12, duas armas como o New World. A fatia atual joga com uma espada ([combate](features/combate.md#duas-armas-depois-desta-fatia)).
 
 ## Referência por sistema
 
 | Sistema | Base principal | Também olhar | Onde somos diferentes |
 |---|---|---|---|
-| Ritmo do combate | New World | Black Desert (o contrário: combos rápidos) | — |
+| Ritmo do combate | New World | Elden Ring (contato e leitura do corpo), Black Desert (o contrário: combos rápidos) | Uma arma nesta fatia; a reação ao acerto não renova |
 | Build sem classe | Throne and Liberty, Albion Online | New World, Guild Wars 2 | As skills dos itens são sorteadas; a combinação de itens e a fusão criam builds que não existem nesses jogos |
-| Troca de arma | New World, Throne and Liberty | Guild Wars 2 | A pensar (S10) |
+| Troca de arma | New World | Throne and Liberty, Guild Wars 2 | Duas armas decididas; a fatia joga com uma espada |
 | Skills nos itens | Albion Online (skill por peça) | Path of Exile (gemas), Ragnarok (cartas), Destiny 2 (perks aleatórios) | Sorteio aleatório + fusão |
 | Itens e loot | Diablo IV, Path of Exile | Destiny 2 | Skills fazem parte do sorteio do item |
 | Papéis e buffs | World of Warcraft | Throne and Liberty (papel pela arma), Guild Wars 2 (combos) | O papel vem dos itens; os buffs vêm das skills dos itens |
@@ -41,6 +41,12 @@ Ao definir um sistema novo, comece pela referência dele, descreva o que muda e 
   - **stamina** gasta em **esquiva** (com uma janela curta de invulnerabilidade) e **bloqueio** (o custo depende do dano recebido);
   - atributos que mudam como cada arma escala.
 - **Lição técnica:** no lançamento, um exploit de invencibilidade foi atribuído a decisões confiadas ao client, e houve duplicação de ouro quando o salvamento de personagens falhou durante transferências entre servidores. Para nós: **servidor autoritativo** em tudo que decide resultado, e **operações de economia atômicas** (o ouro sai e entra na mesma transação, ou nada acontece).
+
+### Elden Ring (FromSoftware, 2022)
+
+- **Famoso por:** cada golpe se lê no corpo (preparo, o instante em que encosta, recuperação) e o acerto segura a pose por um momento. Chefe se anuncia pela animação, não por um círculo solto.
+- **Pegar:** o dano no instante em que o modelo encosta; uma pausa visual curta nesse instante, só no client; o chefe conta o ataque com o corpo durante o aviso; o acerto interrompe o golpe de um inimigo comum e segura a próxima ação por um instante. Os números estão em [combate](features/combate.md#reação-ao-acerto) e em [mobs](features/mobs.md#contato-do-golpe).
+- **Não pegar:** quebra de postura do chefe, combo que prende o alvo, e o client decidir se o golpe acertou. A esquiva em que o dano some por um instante é a do New World, não esta. A reação ao acerto não renova ([combate](features/combate.md#reação-ao-acerto)).
 
 ### Throne and Liberty (NCSoft / Amazon, 2024)
 
@@ -146,6 +152,7 @@ Para não começar do zero no Unity, vale avaliar pontos de partida oficiais e g
 Pesquisa de 2026-10-10. Números de balanceamento mudam a cada temporada; confira a fonte antes de copiar um valor.
 
 - New World: [Fextralife: Combat](https://newworld.wiki.fextralife.com/Combat), [Vulkk: como funciona o combate](https://vulkk.com/2021/09/28/how-combat-works-in-new-world-a-beginners-guide/), [exploit de invencibilidade](https://techraptor.net/gaming/news/game-breaking-new-world-invincibility-exploit-discovered), [duplicação de ouro](https://www.pcgamesn.com/new-world/gold-duping-bug)
+- Elden Ring: [Fextralife: Combat](https://eldenring.wiki.fextralife.com/Combat)
 - Throne and Liberty: [AlcastHQ: por que é sem classes](https://alcasthq.com/why-throne-and-liberty-is-a-classless-game-tl-mmo-insights/), [pares de armas e papéis](https://guildorder.com/ru/games/throne_and_liberty/wiki/weapon-pairs-and-role-composition)
 - Albion Online: [guia de equipamento](https://heaven-guardian.com/albion-online-gear-guide/), [Destiny Board](https://heaven-guardian.com/albion-online-destiny-board-guide/)
 - Guild Wars 2: [wiki oficial: Combat](https://wiki.guildwars2.com/wiki/Combat)

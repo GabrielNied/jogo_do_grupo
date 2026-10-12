@@ -27,10 +27,10 @@ Telas e menus do client que não pertencem a uma funcionalidade do jogo. Por enq
   - [ ] Outras janelas que o grupo quer com atalho (sugestões: **K** skills, **N** talentos, **O** social, **P** profissões)
   - [ ] A barra de atalhos fica sempre visível (como está) ou some depois que a pessoa aprende?
 - [ ] Teclas e atalhos (#90), decisões do grupo:
-  - [ ] Aprovar os atalhos padrão da tabela (proposta). Pontos de atenção: **ataque pesado no botão direito** (no New World o pesado é segurar o botão esquerdo e o bloqueio fica no direito; aqui o bloqueio vai para **Q**) e ~~**esquiva no Espaço** (no New World é Alt)~~ substituído em 2026-10-11: o Espaço já é o pulo no client; a proposta passa a ser **esquiva no Alt esquerdo**, como no New World. **Decidido pelo Gabriel em 2026-10-11: esquiva no Alt esquerdo.** O ataque pesado no botão direito segue em aberto
+  - [x] ~~Aprovar os atalhos padrão da tabela (proposta).~~ Decidido em 2026-10-12, como no New World: leve no clique esquerdo, pesado ao segurar o esquerdo por 0,3 s, guarda no botão direito, esquiva no Alt esquerdo (esta última desde 2026-10-11). A troca de arma (R) e as skills 1, 2 e 3 valem quando a S10 entrar.
   - [ ] Tecla já usada: **trocar as duas ações** (proposta) ou deixar a outra sem tecla?
   - [ ] Tecla de **correr**: segurar (proposta) ou alternar?
-  - [ ] Combate ([combate.md](combate.md)) ainda não decidiu se **bloqueio**, **stamina** e **troca de arma** entram na fatia jogável; as linhas dessas ações da tabela só valem se entrarem
+  - [x] ~~Combate ainda não decidiu se **bloqueio**, **stamina** e **troca de arma** entram na fatia jogável~~ Decidido em 2026-10-12: guarda e vigor entram nesta fatia. A troca de arma está decidida e fica para a S10; a tecla R vale nessa hora.
   - [ ] ~~[personagem.md](personagem.md) só define andar e correr; **pular** não existe nas docs, então não tem atalho (se entrar, sugestão: Espaço vira pular e a esquiva vai para Alt)~~ substituído em 2026-10-11: o pulo **já existe no client** (Espaço, só no chão, 1,25 m de altura; `MovimentoTerceiraPessoa`), então entrou na tabela e a esquiva foi para o Alt esquerdo. Falta o grupo confirmar: o pulo fica no jogo? Ele serve para alguma coisa no combate (sair de área marcada no chão) ou é só movimento? O servidor precisa validar a altura (hoje a presença aceita de -5 a 50 m, veja [mundo.md](mundo.md))
 - [ ] **Textos de interface do livro de Asterra** (proposta do board, 2026-10-11, não validada; [figjam.md](../brainstorm/figjam.md) seção 10, 11 e 09): sugestões de texto para os cartões, a adotar na tela quando o grupo aprovar a regra por trás. Caído: "Você caiu. Aguarde ajuda ou retorne a um ponto seguro." e "Levantado: recupere a vida antes de voltar à linha de frente." Ajuda de mira: "Mire na direção do perigo. Mova-se para fora da área de ataque." Defesa: "Defesa insuficiente para bloquear completamente este impacto." Loot: "Maior dano: você. Recompensa disponível para coleta." (**conflito** com o loot individual da [fatia](fatia-jogavel.md#5-loot-no-chão); o texto precisaria mudar). Tela de atributos: "Distribua seus pontos. Sua raça dá identidade; seus equipamentos dão possibilidades." Mundo: "Entre, encontre seus amigos e continue de onde parou." Diário: "Cada saída pode render uma peça melhor, uma combinação nova ou uma história para contar." Também pede botão de **retorno** na tela de caído e aba **Preparação** de skills (dono: [skills.md](skills.md)).
 - [ ] ~~HUD configurável (#93): só listado, não desenhado aqui.~~ substituído em 2026-10-11 por [HUD do jogo](#hud-do-jogo) (proposta de layout e regras)
@@ -108,7 +108,7 @@ Decidido por Gabriel em 2026-10-11 (#134); é **provisório** e o grupo pode aju
 
 ### Teclas e atalhos
 
-**Base:** New World (combate de ação em 3ª pessoa no PC, veja [referências](../referencias.md)) e MMOs de PC em geral. **Igual:** WASD para andar, mouse para câmera e ataque, menu no Esc, tecla fixa por ação com atalhos de painel em letras. **Diferente:** ~~esquiva no Espaço (no New World é Alt) e~~ ataque pesado no botão direito do mouse (no New World é segurar o esquerdo), em **proposta**. A esquiva fica no Alt esquerdo, igual ao New World (substituído em 2026-10-11: o Espaço já é o pulo). Só teclado e mouse; gamepad fica fora.
+**Base:** New World (combate de ação em 3ª pessoa no PC, veja [referências](../referencias.md)) e MMOs de PC em geral. **Igual:** WASD para andar, mouse para câmera e ataque, menu no Esc, tecla fixa por ação com atalhos de painel em letras. **Igual ao New World nas teclas de luta** (decidido em 2026-10-12): leve no clique esquerdo, pesado ao segurar o esquerdo, guarda no direito, esquiva no Alt esquerdo. O Espaço continua o pulo. Só teclado e mouse; gamepad fica fora.
 
 A tela fica em **Opções > Teclas**, com uma linha por ação (nome, tecla atual, botão **Trocar**) e um botão **Restaurar padrão**. Os nomes das ações seguem [combate.md](combate.md) (esquiva, ataque leve, ataque pesado, bloqueio) e [personagem.md](personagem.md) (andar, correr); o pulo vem do controle do Core (`AcoesJogador`).
 
@@ -119,11 +119,11 @@ A tela fica em **Opções > Teclas**, com uma linha por ação (nome, tecla atua
 | Câmera | mover o mouse | não (sensibilidade fica em Opções) |
 | Pular (já existe no client) | Espaço | sim |
 | Esquiva | ~~Espaço~~ Alt esquerdo (substituído e decidido em 2026-10-11) | sim |
-| Ataque leve | botão esquerdo do mouse | sim |
-| Ataque pesado | botão direito do mouse | sim |
-| Bloqueio (se entrar no combate) | Q | sim |
-| Skills 1, 2 e 3 (se entrarem, ver combate.md) | 1, 2, 3 | sim |
-| Trocar de arma (se entrar, S10) | R | sim |
+| Ataque leve | clique no botão esquerdo do mouse | sim |
+| Ataque pesado | segurar o botão esquerdo por 0,3 s | sim |
+| Bloqueio | botão direito do mouse | sim |
+| Skills 1, 2 e 3 (quando a S10 entrar) | 1, 2, 3 | sim |
+| Trocar de arma (quando a S10 entrar) | R | sim |
 | Interagir | E | sim |
 | Personagem | C | sim |
 | Inventário | I | sim |

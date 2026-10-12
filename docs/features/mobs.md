@@ -31,7 +31,7 @@ Tipos de mobs, comportamento por região e bosses com mecânicas marcantes.
 - [ ] O chefe raro some sozinho se ninguém o matar? Proposta atual: fica até morrer.
 - [ ] Dungeon tem chefe raro (um sorteio ao criar a instância)? As regras já servem; falta decidir.
 - [ ] Loot próprio do chefe raro (item que só ele larga): depende de [itens.md](itens.md).
-- [ ] As escolhas do servidor do inimigo comum (lista em "Inimigo comum da fatia"): o grupo perder o alvo de vista na desistência, o ataque ir até o fim, o golpe pegar todos no círculo e o inimigo ser imune na volta.
+- [ ] As escolhas do servidor do inimigo comum (lista em "Inimigo comum da fatia"): o grupo perder o alvo de vista na desistência, o golpe pegar todos no volume de contato e o inimigo ser imune na volta. O ataque ir até o fim quando o alvo foge, e ser cancelado por um acerto no preparo, ficou decidido em 2026-10-12.
 - [x] ~~O tamanho do grupo do campo é sorteado de novo a cada volta do grupo inteiro?~~ Sim (issue #452, proposta): veja "Mais mobs no campo".
 - [ ] Os pontos, níveis, tamanhos e as duas espécies novas (Lobo do Campo, Tatu Rochoso) de "Mais mobs no campo" são proposta do agente (issue #452): o dono confirma ou troca, alinhado ao bestiário ([#322](https://github.com/GabrielNied/jogo_do_grupo/issues/322)).
 
@@ -89,15 +89,15 @@ As regras de base estão em [fatia-jogavel.md](fatia-jogavel.md), seção 4. O q
 | Visão | vê o jogador a **12 m** |
 | Alerta | **0,5 s** entre ver e começar a perseguir; o grupo todo entra em alerta junto |
 | Perseguição | **4 m/s**, até o posto dele no cerco (veja abaixo; mais lento que o jogador correndo) |
-| Ataque | começa a até **2 m** do alvo; **1 s** de aviso, depois o golpe e **1,5 s** de recuperação |
-| Área do golpe | círculo de **1,5 m** de raio no chão, com o centro **1,5 m** à frente do inimigo; fica fixa desde o aviso |
+| Ataque | começa a até **2 m** do alvo; **1 s** de preparo (a animação), o contato no fim dele, e **1,5 s** de recuperação |
+| Contato do golpe | ver [abaixo](#contato-do-golpe); o círculo de 1,5 m no chão, travado no início do aviso, saiu em 2026-10-12 |
 | Desistência | a mais de **30 m** do ponto de origem ele volta (a **6 m/s**), com a vida cheia, sem escolher alvo até chegar |
 | Corpo | raio de **0,6 m** como alvo dos golpes dos jogadores |
 | Atualização da IA | passo fixo, **10 vezes por segundo** |
 
 - **Estados:** repouso → alerta → perseguição ⇄ ataque; alerta, perseguição e ataque → retorno → repouso; qualquer estado vivo → morto. Morto não muda mais: a volta é um inimigo novo (`InimigoApareceu`), com a variante sorteada de novo.
 - **Alvo:** o jogador mais próximo que ele viu. Enquanto esse alvo continuar valendo, ele **não troca**, mesmo com outro mais perto. No empate de distância fica o de menor id. Depois do primeiro dano, o alvo segue a tabela de ameaça adotada em 2026-10-12 ([combate.md](combate.md#ameaça-agro-169), #169).
-- **Golpe telegrafado:** quem estiver na área quando o aviso acaba leva o dano; quem saiu a tempo não leva (a esquiva de 5 m tira o jogador da área).
+- **Golpe telegrafado:** quem estiver no volume de contato quando o preparo acaba leva o dano; quem saiu a tempo não leva (a esquiva de 5 m tira o jogador da frente do modelo).
 - Sem desvio de obstáculos na fatia: o campo é aberto.
 - **Cerco em anel (issue #487; proposta, a calibrar):** o grupo cerca o alvo em vez de empilhar. Cada inimigo tem um posto fixo (pelo número dele no grupo) num anel de **1,9 m** em volta do alvo, com os postos igualmente espaçados; ninguém chega a menos de **1,2 m** (2x o raio do corpo) de outro, e quem chegaria é empurrado para fora. No máximo **2** inimigos atacam o mesmo alvo ao mesmo tempo (preparando o golpe ou se recuperando); os outros **rondam** num anel de **3,1 m**, fora do alcance, e quem ronda não conta no limite de 8 s sem atacar (esperar vaga não é kite). Quando uma vaga abre, o próximo a passar pelo passo da IA (por ordem no grupo) vai ao anel de dentro. Valores em `RegrasCerco` (shared). Fica de fora: desvio de obstáculo e escolha do posto mais perto do lado de onde o inimigo vem (o ângulo é fixo por inimigo, então caminhos podem se cruzar).
 
@@ -105,13 +105,23 @@ O que o servidor acrescentou ao implementar (issue #268; **proposta**, decidido 
 
 - **O grupo divide o que vê:** o jogador que um inimigo viu vale para todos, e é assim que o grupo acorda junto. Quem sai da área deixa de ser visto, e quando ninguém do grupo está em alerta, perseguindo ou atacando, o grupo esquece todos (quem voltou para longe não é perseguido pelo inimigo que reaparece).
 - **Desistência:** quando um inimigo passa dos 30 m e desiste, o grupo **perde o alvo dele de vista**; só volta a persegui-lo se alguém do grupo o vir de novo (a 12 m). Sem ninguém à vista, quem ainda perseguia também volta.
-- **O ataque vai até o fim:** depois do aviso, o inimigo dá o golpe e cumpre a recuperação mesmo que o alvo fuja ou saia da área. Só a morte interrompe.
-- **O golpe pega todos** os personagens que estão no círculo quando o aviso acaba, não só o alvo. Conta o centro do personagem (sem raio de corpo).
+- **O ataque vai até o fim** se o alvo fugir: depois do aviso, o inimigo dá o golpe e cumpre a recuperação mesmo que o alvo saia da área. Um acerto de jogador no preparo cancela o golpe do inimigo comum; o chefe não é cancelado. A duração da reação está em [combate](combate.md#reação-ao-acerto).
+- **O golpe pega todos** os personagens que estão no volume de contato quando o preparo acaba, não só o alvo. Conta o centro do personagem (sem raio de corpo).
 - **Na volta ele é imune** ("Evade": o dano é recusado; revisto na issue #488, antes levava dano e chegava ferido). Também desiste quando passa 8 s perseguindo sem conseguir atacar (kite na borda do alcance; `ConfigInimigosDoCampo.LimiteSemAtacarSegundos`).
 - **Onde:** o centro do grupo fica em (0, 190), 150 m ao norte do portão (que está em (0, 40)), com os pontos de origem num círculo de 4 m de raio. O campo faz parte da área `cidade`. Este é o primeiro de vários pontos: veja "Mais mobs no campo" (o tamanho do grupo é sorteado de novo a cada reaparição). O comando de teste `spawn` ([Desenvolvimento](desenvolvimento.md)) acrescenta um inimigo a mais no maior grupo da área, sem esperar a volta.
 - **Id do inimigo:** começa em 1.000.000.000.000 e soma 1; cada volta depois de morto é um inimigo novo, com id novo. Nunca coincide com id de personagem nem com o boneco de treino.
 - **Dano no jogador:** Mobs decide **quem** o golpe pegou e publica `GolpeDeInimigoAcertou`; tirar a vida é de quem é dono dela ([Combate](combate.md)), que assina o evento e tira a vida.
 - **Quem participou da morte:** quem causou dano ao inimigo desde que ele apareceu, em ordem crescente de id (`InimigoDerrotado.Participantes`; o Combate informa o atacante em `IAlvosDeCombate.TentarAplicarDano`). A lista zera quando ele desiste e volta (a vida também volta ao máximo) e quando ele reaparece. Quem só foi alvo do inimigo, sem causar dano, não participa.
+
+### Contato do golpe
+
+Decidido em 2026-10-12. O golpe comum (javali, lobo, tatu e quem usa a mesma IA, inclusive o chefe raro) deixa de ser um círculo no chão separado do modelo. O dano sai no fim do preparo, no instante em que a animação encosta.
+
+- No começo do preparo a direção trava. Durante o preparo o inimigo dá um passo de até **1,0 m** nessa direção (`PassoDoGolpeMetros`), sem atravessar parede nem chegar a menos de 1,2 m de outro inimigo. Se o passo para antes, o contato é medido de onde ele parou.
+- No fim do preparo o volume é um cone à frente do corpo: **1,2 m** a partir do centro e **90°** (`AlcanceDoGolpeMetros`, `AberturaDoGolpeGraus`), na direção travada. Não fica desenhado no chão e não fica preso na posição do início do aviso.
+- O client toca o clipe `Atacar` na velocidade que faz a pose de contato cair nesse mesmo instante. O aviso visível é o preparo do modelo, não um decalque.
+- Investida, pisada e raios do chefe de dungeon continuam com a área marcada no chão, fixa desde o aviso.
+- Para implementar: a conta do cone reaproveita `RegrasAtaque.EstaNoVolume`, no instante do contato. Sem colisor de malha e sem física no servidor. O círculo antigo não volta. O client não manda "acertou" nem "errou"; quem decide o contato é o servidor. O corte entre animação e resultado está em [combate](combate.md#o-que-o-client-mostra-e-o-que-o-servidor-decide).
 
 O chefe raro no campo (issue #310; **proposta**, a confirmar no review):
 
@@ -123,7 +133,7 @@ O chefe raro no campo (issue #310; **proposta**, a confirmar no review):
 
 **Proposta** do agente, a calibrar. Dados em `PontosDeSpawnDoCampo` (um ponto por linha), números em `ConfigNivelDeMobs`, `ComportamentoDeCriatura` e `PontosDeSpawnDoCampo`.
 
-- **Espécies comuns** (comportamento distinto; o resto da IA, alcance, área do golpe e desistência, é igual para todas):
+- **Espécies comuns** (comportamento distinto; o resto da IA, alcance, volume do contato e desistência, é igual para todas):
 
 | Espécie | Jeito | Visão | Perseguição | Aviso / recuperação do golpe |
 |---|---|---|---|---|
@@ -167,6 +177,7 @@ O Guardião do Reflexo (id 100), o boss da primeira dungeon ([fatia-jogavel.md](
 | Janela exposta | abre no acerto da **investida** e da **pisada**, dura **5 s**, o dano que ele recebe é **x2** (raios não expõem) |
 | Corpo | raio de **2 m** como alvo dos golpes dos jogadores |
 
+- **Corpo no mesmo tempo da marca** (decidido em 2026-10-12): durante o aviso de 3 s o modelo faz o preparo daquele ataque, e o dano sai no fim dessa pose. A marca no chão continua. Até existir um clipe por ataque, o `Atacar` que já existe é alongado para durar o aviso. O dono de Mobs liga o tempo; clipe novo, quando faltar, fica com o `artista-personagens`.
 - **Dano nos jogadores:** um `GolpeDeInimigoAcertou` por personagem atingido em cada ataque (mesmo em duas áreas), com o dano da tabela; o Combate é quem tira a vida.
 - **Estados:** repouso, alerta, perseguição (aqui só "em combate", entre ataques: ele não anda), ataque, retorno, morto. Os estados são os do inimigo comum.
 - **Morte:** publica `InimigoDerrotado` uma vez, com os participantes (quem causou dano desde que a luta começou; a lista zera se a sala esvazia) e `InimigoMorreu`. **Não volta sozinho**: só a instância nova cria outro boss (`IChefesDaDungeon.Criar`) ou `ChefeDaDungeon.Reiniciar`. Loot e XP são os de qualquer inimigo.
