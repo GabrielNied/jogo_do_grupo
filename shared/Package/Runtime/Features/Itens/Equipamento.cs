@@ -112,6 +112,13 @@ namespace JogoDoGrupo.Shared.Features.Itens
         public PosicaoEquipamento Posicao;
     }
 
+    /// <summary>Descarta (destrói) um exemplar da bolsa. Rota: <see cref="RotasItens.Descartar"/>.</summary>
+    [Serializable]
+    public class PedidoDescartar
+    {
+        public long InstanciaId;
+    }
+
     [Serializable]
     public class PedidoDesequipar
     {

@@ -122,7 +122,12 @@ namespace JogoDoGrupo.Client.Features.Itens
                 var resposta =
                     acao == null
                         ? await ClienteApi.Get<EquipamentosResponse>(rota)
-                        : await ClienteApi.Post<EquipamentosResponse>(rota + "/" + acao, pedido);
+                        : await ClienteApi.Post<EquipamentosResponse>(
+                            acao == "descartar"
+                                ? RotasItens.DescartarDe(personagemId)
+                                : rota + "/" + acao,
+                            pedido
+                        );
                 if (!AindaVale(personagemId))
                     return;
                 if (resposta.Sucesso && resposta.Corpo != null)
@@ -163,6 +168,8 @@ namespace JogoDoGrupo.Client.Features.Itens
                     return "Seu personagem ainda não tem o nível exigido pela peça.";
                 case "ArmaDeDuasMaos":
                     return "Retire a arma de duas mãos antes de equipar a mão secundária.";
+                case "ItemEquipado":
+                    return "Desequipe a peça antes de descartá-la.";
                 case "ItemNaoEncontrado":
                     return "Esse item não está mais disponível. Reabra a aba para atualizar.";
                 case "MesmoItem":

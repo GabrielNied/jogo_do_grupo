@@ -130,6 +130,7 @@ namespace JogoDoGrupo.Client.Features.Itens
                         )
                     );
                 }
+                linha.Add(LinhaDescartar(item.InstanciaId));
                 lista.Add(linha);
             }
             _raiz.Add(lista);
@@ -149,6 +150,48 @@ namespace JogoDoGrupo.Client.Features.Itens
                 )
             );
 #endif
+        }
+
+        /// <summary>
+        /// "Descartar" pede confirmação na própria linha: o primeiro clique troca o botão por
+        /// "Confirmar descarte" e "Cancelar". Só a confirmação envia a intenção; o servidor
+        /// decide (equipado e exemplar alheio ou já descartado são recusados).
+        /// </summary>
+        private VisualElement LinhaDescartar(long instancia)
+        {
+            var linha = new VisualElement();
+            linha.AddToClassList(EstiloCore.LinhaBotoes);
+            Button descartar = null;
+            descartar = Botao(
+                "Descartar",
+                () =>
+                {
+                    linha.Clear();
+                    linha.Add(Texto("Descartar destrói o item de vez. Confirmar?"));
+                    linha.Add(
+                        Botao(
+                            "Confirmar descarte",
+                            () =>
+                                _enviar(
+                                    "descartar",
+                                    new PedidoDescartar { InstanciaId = instancia }
+                                )
+                        )
+                    );
+                    linha.Add(
+                        Botao(
+                            "Cancelar",
+                            () =>
+                            {
+                                linha.Clear();
+                                linha.Add(descartar);
+                            }
+                        )
+                    );
+                }
+            );
+            linha.Add(descartar);
+            return linha;
         }
 
         public static string Descrever(EntradaInventario entrada)

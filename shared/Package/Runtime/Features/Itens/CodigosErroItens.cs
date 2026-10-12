@@ -20,6 +20,18 @@ namespace JogoDoGrupo.Shared.Features.Itens
         public const string PersonagemNaoEncontrado = "PersonagemNaoEncontrado";
 
         /// <summary>
+        /// 404: o personagem não tem um exemplar com essa identidade. Vale para identidade que
+        /// nunca existiu, de outra conta ou já descartada/consumida (repetir um descarte devolve
+        /// este código e não altera nada).
+        /// </summary>
+        public const string ItemNaoEncontrado = "ItemNaoEncontrado";
+
+        /// <summary>
+        /// 409: o exemplar está equipado e não pode ser descartado. Desequipe antes.
+        /// </summary>
+        public const string ItemEquipado = "ItemEquipado";
+
+        /// <summary>
         /// Tempo real, em <see cref="ColetaRecusada.Codigo"/>: não há item no chão com esse id
         /// para este personagem (nunca existiu, já foi coletado, expirou ou é de outro), ou o
         /// pedido de "tudo por perto" não achou nada ao alcance.

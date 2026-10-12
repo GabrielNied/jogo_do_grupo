@@ -72,6 +72,17 @@ API autenticada, sob `/api/personagens/{personagemId}/equipamentos`:
 
 Operações devolvem `EquipamentosResponse`; conta alheia e personagem ausente têm o mesmo 404. Erros de posição/tipo/conjunto são 400; nível, incompatibilidade de duas mãos e inventário cheio são 409. A migração preserva os itens existentes; legados sem metadados recebem um único sorteio no primeiro equipamento bem-sucedido.
 
+### Descartar item (#495)
+
+Na aba **Equipamentos** do inventário, cada item da bolsa tem **Descartar**; o primeiro clique pede confirmação na própria linha (**Confirmar descarte** / **Cancelar**) e só a confirmação envia o pedido. O item some e o contador x/40 cai.
+
+`POST /api/personagens/{personagemId}/inventario/descartar` (`RotasItens.Descartar`), corpo `PedidoDescartar` (`InstanciaId`); responde 200 `EquipamentosResponse` com o estado atualizado.
+
+- **Destruição definitiva:** o exemplar é apagado; não vira loot no chão nem vai para recompra (decisão assumida em 2026-10-12; venda é a #173).
+- **Erros:** personagem ausente ou de outra conta é 404 `PersonagemNaoEncontrado`; exemplar inexistente, de outra conta ou já descartado é 404 `ItemNaoEncontrado`; exemplar equipado é 409 `ItemEquipado` (desequipar antes). Sem token é 401.
+- **Idempotência:** repetir o descarte de um exemplar já descartado devolve 404 `ItemNaoEncontrado` e não altera nada (decisão assumida: não dá para distinguir "já descartado" de "alheio" sem vazar a existência de itens de outras contas).
+- **Concorrência:** a rota roda em transação Serializable, como equipar. Dois descartes do mesmo exemplar: um vale (200), o outro recebe 404. Descartar junto com equipar: um dos dois vence em série (equipou antes: descarte 409; descartou antes: equipar 404); nunca há peça duplicada nem equipada e apagada.
+
 ### Catálogo de modelos-base (#330, confirmado pelo usuário em 2026-10-11)
 
 As quatro famílias **Vigia/Bastião, Predador/Ruptor, Aurora/Tempestade e Batedor/Olho Longo** têm variantes A (atributo principal +6) e B (principal +4 e especialização), cada uma nas nove categorias de peça. São 72 modelos-base, sem contar armas. Os nomes, valores fixos e defesas por categoria vêm da seção 12 do [livro](../brainstorm/figjam.md#12--equipamentos-por-função-e-peça). As constantes/tabelas de balanceamento ficam em `CatalogoEquipamentos`.
