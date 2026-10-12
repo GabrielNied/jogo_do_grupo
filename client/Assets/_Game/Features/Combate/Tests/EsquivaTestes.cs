@@ -28,13 +28,9 @@ namespace JogoDoGrupo.Client.Features.Combate.Tests
         }
 
         [Test]
-        public void Direcao_ParadoUsaARotacaoDoJogador()
+        public void Direcao_ParadoSaiParaTrasDaMira()
         {
-            Assert.AreEqual(
-                135f,
-                ApresentacaoEsquiva.DirecaoDoPedido(Vector2.zero, 30f, 135f),
-                0.001f
-            );
+            Assert.AreEqual(210f, ApresentacaoEsquiva.DirecaoDoPedido(Vector2.zero, 30f), 0.001f);
         }
 
         [TestCase(0f, 1f, 0f, 0f)]
@@ -51,7 +47,7 @@ namespace JogoDoGrupo.Client.Features.Combate.Tests
         {
             Assert.AreEqual(
                 esperado,
-                ApresentacaoEsquiva.DirecaoDoPedido(new Vector2(x, y), camera, 10f),
+                ApresentacaoEsquiva.DirecaoDoPedido(new Vector2(x, y), camera),
                 0.001f
             );
         }

@@ -4,8 +4,8 @@ namespace JogoDoGrupo.Shared.Features.Combate
 {
     /// <summary>
     /// Fórmulas puras da esquiva: custo, duração e deslocamento. Valores da proposta em
-    /// docs/features/fatia-jogavel.md, seção 3. Não há invulnerabilidade: a esquiva evita dano
-    /// porque tira o personagem da área do golpe. O servidor é quem decide; o client usa para
+    /// docs/features/fatia-jogavel.md, seção 3. Nos primeiros 0,3 s o dano direto some;
+    /// depois, a esquiva evita dano por tirar o personagem da área do golpe. O servidor é quem decide; o client usa para
     /// antecipar o movimento.
     /// </summary>
     public static class RegrasEsquiva
@@ -21,7 +21,35 @@ namespace JogoDoGrupo.Shared.Features.Combate
         /// <summary>Vigor gasto por esquiva; sem esse vigor ela é recusada.</summary>
         public const int CustoDeVigor = 15;
 
+        /// <summary>
+        /// Segundos, desde o começo da esquiva, em que o dano direto some. Depois disso o golpe
+        /// acerta se a pessoa ainda está no volume.
+        /// </summary>
+        public const double JanelaDeInvulnerabilidadeSegundos = 0.3;
+
         // ── Regras ────────────────────────────────────────────────────────────────
+
+        /// <summary>
+        /// Para onde a esquiva sai, em graus (0 aponta para +Z e cresce para +X): andando, na
+        /// direção do movimento; parado, para trás da mira. O resultado fica entre 0 e 360.
+        /// </summary>
+        public static double DirecaoDaEsquiva(
+            bool andando,
+            double direcaoDoMovimentoGraus,
+            double miraGraus
+        )
+        {
+            double graus = (andando ? direcaoDoMovimentoGraus : miraGraus + 180.0) % 360.0;
+            return graus < 0.0 ? graus + 360.0 : graus;
+        }
+
+        /// <summary>
+        /// Se o dano some neste instante: nos primeiros
+        /// <see cref="JanelaDeInvulnerabilidadeSegundos"/> da esquiva (o instante final da
+        /// janela já leva dano).
+        /// </summary>
+        public static bool EstaInvulneravel(double segundosDesdeOInicio) =>
+            segundosDesdeOInicio >= 0.0 && segundosDesdeOInicio < JanelaDeInvulnerabilidadeSegundos;
 
         /// <summary>Duração em milissegundos, como vai em <see cref="EsquivaIniciada.DuracaoMs"/>.</summary>
         public static int DuracaoMs => (int)Math.Round(DuracaoSegundos * 1000.0);

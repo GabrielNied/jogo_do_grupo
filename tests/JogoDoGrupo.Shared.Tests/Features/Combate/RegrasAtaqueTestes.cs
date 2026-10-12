@@ -205,4 +205,76 @@ public class RegrasAtaqueTestes
     [InlineData(90.0, 0.0, 90.0)]
     public void DiferencaDeAngulo_devolve_o_menor_caminho(double a, double b, double esperado) =>
         Assert.Equal(esperado, RegrasAtaque.DiferencaDeAngulo(a, b), 9);
+
+    // ── Cadeia de leves, giro e compromisso (fatia-jogavel.md, seção 2) ───────
+
+    [Fact]
+    public void Valores_padrao_da_cadeia_do_giro_e_do_compromisso()
+    {
+        Assert.Equal(3, RegrasAtaque.PassosDaCadeiaLeve);
+        Assert.Equal(1.2, RegrasAtaque.MultiplicadorDoTerceiroLeve);
+        Assert.Equal(0.8, RegrasAtaque.JanelaDaCadeiaSegundos);
+        Assert.Equal(240.0, RegrasAtaque.GiroMaximoLeveGrausPorSegundo);
+        Assert.Equal(60.0, RegrasAtaque.GiroMaximoPesadoGrausPorSegundo);
+        Assert.Equal(0.4, RegrasAtaque.VelocidadeDuranteGolpe);
+    }
+
+    [Fact]
+    public void Terceiro_leve_usa_1_2x_e_o_pesado_ignora_o_passo()
+    {
+        // Força 0: dano da espada 20.
+        Assert.Equal(20, RegrasAtaque.Dano(TipoDeAtaque.Leve, 0, 0));
+        Assert.Equal(20, RegrasAtaque.Dano(TipoDeAtaque.Leve, 0, 1));
+        Assert.Equal(24, RegrasAtaque.Dano(TipoDeAtaque.Leve, 0, 2));
+        Assert.Equal(44, RegrasAtaque.Dano(TipoDeAtaque.Pesado, 0, 2));
+        Assert.Equal(
+            RegrasAtaque.Dano(TipoDeAtaque.Leve, 5),
+            RegrasAtaque.Dano(TipoDeAtaque.Leve, 5, 0)
+        );
+    }
+
+    [Theory]
+    [InlineData(TipoDeAtaque.Leve, 0, 0, 1)]
+    [InlineData(TipoDeAtaque.Leve, 1, 1, 2)]
+    [InlineData(TipoDeAtaque.Leve, 2, 2, 0)] // o 4º leve volta ao 1º
+    [InlineData(TipoDeAtaque.Pesado, 1, 0, 0)] // o pesado reinicia a cadeia
+    public void ProximoPasso_sobe_e_o_pesado_reinicia(
+        TipoDeAtaque tipo,
+        int proximoPasso,
+        int passoDoGolpe,
+        int esperado
+    )
+    {
+        Assert.Equal(passoDoGolpe, RegrasAtaque.PassoDoGolpe(tipo, proximoPasso, 0.0));
+        Assert.Equal(esperado, RegrasAtaque.ProximoPasso(tipo, passoDoGolpe));
+    }
+
+    [Fact]
+    public void Cadeia_expira_so_depois_de_0_8_s()
+    {
+        Assert.Equal(1, RegrasAtaque.PassoDoGolpe(TipoDeAtaque.Leve, 1, 0.8));
+        Assert.Equal(0, RegrasAtaque.PassoDoGolpe(TipoDeAtaque.Leve, 1, 0.81));
+    }
+
+    [Theory]
+    [InlineData(TipoDeAtaque.Pesado, 1.0, 180.0, 60.0)] // o pesado gira 60° no 1 s de preparo
+    [InlineData(TipoDeAtaque.Pesado, 1.0, -170.0, -60.0)]
+    [InlineData(TipoDeAtaque.Pesado, 1.0, 30.0, 30.0)] // dentro do teto, vai até onde olha
+    [InlineData(TipoDeAtaque.Leve, 0.5, 170.0, 120.0)] // o leve gira até 240°/s
+    [InlineData(TipoDeAtaque.Leve, 0.5, 90.0, 90.0)]
+    public void Direcao_do_golpe_nao_gira_mais_que_o_teto_do_preparo(
+        TipoDeAtaque tipo,
+        double segundos,
+        double desejada,
+        double esperado
+    ) => Assert.Equal(esperado, RegrasAtaque.DirecaoDoGolpe(tipo, 0.0, desejada, segundos), 9);
+
+    [Fact]
+    public void Direcao_do_golpe_gira_pelo_menor_caminho_a_partir_da_direcao_inicial()
+    {
+        // De 350° para 10° são 20° no sentido positivo, não 340° no negativo.
+        var direcao = RegrasAtaque.DirecaoDoGolpe(TipoDeAtaque.Pesado, 350.0, 10.0, 1.0);
+
+        Assert.Equal(20.0, RegrasAtaque.DiferencaDeAngulo(direcao, 350.0), 9);
+    }
 }

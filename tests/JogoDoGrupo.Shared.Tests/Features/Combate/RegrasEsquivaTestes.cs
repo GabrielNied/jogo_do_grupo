@@ -141,4 +141,27 @@ public class RegrasEsquivaTestes
         Assert.Equal(5.0, Math.Sqrt(destinoX * destinoX + destinoZ * destinoZ), 9);
         Assert.True(RegrasEsquiva.DeslocamentoCabe(5.0));
     }
+
+    [Theory]
+    [InlineData(true, 90.0, 30.0, 90.0)] // andando: a direção do movimento
+    [InlineData(false, 90.0, 30.0, 210.0)] // parado: para trás da mira
+    [InlineData(false, 0.0, 200.0, 20.0)]
+    [InlineData(true, -90.0, 0.0, 270.0)]
+    public void DirecaoDaEsquiva_anda_com_o_movimento_e_parado_sai_para_tras_da_mira(
+        bool andando,
+        double movimento,
+        double mira,
+        double esperado
+    ) => Assert.Equal(esperado, RegrasEsquiva.DirecaoDaEsquiva(andando, movimento, mira), 9);
+
+    [Fact]
+    public void Dano_some_nos_primeiros_0_3_s_e_o_instante_final_ja_leva_dano()
+    {
+        Assert.Equal(0.3, RegrasEsquiva.JanelaDeInvulnerabilidadeSegundos);
+        Assert.True(RegrasEsquiva.EstaInvulneravel(0.0));
+        Assert.True(RegrasEsquiva.EstaInvulneravel(0.29));
+        Assert.False(RegrasEsquiva.EstaInvulneravel(0.3));
+        Assert.False(RegrasEsquiva.EstaInvulneravel(0.5));
+        Assert.False(RegrasEsquiva.EstaInvulneravel(-0.1));
+    }
 }

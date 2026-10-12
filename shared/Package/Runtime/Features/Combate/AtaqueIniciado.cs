@@ -17,5 +17,11 @@ namespace JogoDoGrupo.Shared.Features.Combate
 
         /// <summary>Milissegundos entre o começo do ataque e o momento de acerto.</summary>
         public int PreparoMs = 0;
+
+        /// <summary>
+        /// Passo da cadeia de leves (0 é o primeiro; o pesado é sempre 0). O client usa para
+        /// escolher a animação e destacar o golpe mais forte.
+        /// </summary>
+        public int Passo = 0;
     }
 }

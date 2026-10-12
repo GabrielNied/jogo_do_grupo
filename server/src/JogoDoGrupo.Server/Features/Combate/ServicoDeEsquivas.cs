@@ -8,7 +8,7 @@ namespace JogoDoGrupo.Server.Features.Combate;
 /// A esquiva no servidor (docs/features/fatia-jogavel.md, seção 3). O client manda a intenção;
 /// aqui se decide se ela vale (não está em outra ação, não está caído, tem vigor), cobra-se o
 /// vigor uma vez e pede-se ao Mundo a janela de deslocamento. Quem valida cada posição continua
-/// sendo o Mundo. Não há invulnerabilidade: a esquiva evita dano por tirar o personagem da área.
+/// sendo o Mundo. Os primeiros 0,3 s da esquiva não levam dano direto (ControleDeAcoes); depois, ela evita dano por tirar o personagem da área. Na recuperação de um golpe, corta o que falta dela.
 /// </summary>
 public sealed class ServicoDeEsquivas : IDisposable
 {

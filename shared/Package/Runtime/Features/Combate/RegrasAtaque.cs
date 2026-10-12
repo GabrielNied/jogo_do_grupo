@@ -53,6 +53,30 @@ namespace JogoDoGrupo.Shared.Features.Combate
         /// </summary>
         public const double JanelaDaFilaSegundos = 0.3;
 
+        /// <summary>Quantos leves seguidos formam a cadeia da espada.</summary>
+        public const int PassosDaCadeiaLeve = 3;
+
+        /// <summary>Multiplicador do último leve da cadeia (os anteriores usam <see cref="MultiplicadorLeve"/>).</summary>
+        public const double MultiplicadorDoTerceiroLeve = 1.2;
+
+        /// <summary>
+        /// Se o próximo golpe não começar em até estes segundos depois que a ação anterior acaba,
+        /// a cadeia volta ao primeiro leve.
+        /// </summary>
+        public const double JanelaDaCadeiaSegundos = 0.8;
+
+        /// <summary>Quanto o corpo pode girar por segundo durante o preparo do leve, em graus.</summary>
+        public const double GiroMaximoLeveGrausPorSegundo = 240.0;
+
+        /// <summary>Quanto o corpo pode girar por segundo durante o preparo do pesado, em graus.</summary>
+        public const double GiroMaximoPesadoGrausPorSegundo = 60.0;
+
+        /// <summary>
+        /// Fração da velocidade de corrida permitida durante o preparo e o momento de acerto
+        /// (0,4 = 40%). Na recuperação a velocidade volta ao normal.
+        /// </summary>
+        public const double VelocidadeDuranteGolpe = 0.4;
+
         // ── Regras ────────────────────────────────────────────────────────────────
 
         /// <summary>Se o valor recebido da rede é um ataque que existe.</summary>
@@ -76,6 +100,83 @@ namespace JogoDoGrupo.Shared.Features.Combate
         public static double Multiplicador(TipoDeAtaque tipo) =>
             tipo == TipoDeAtaque.Pesado ? MultiplicadorPesado : MultiplicadorLeve;
 
+        /// <summary>
+        /// Multiplicador do golpe no passo da cadeia (0 é o primeiro leve). O último leve da
+        /// cadeia é mais forte; o pesado não depende do passo.
+        /// </summary>
+        public static double Multiplicador(TipoDeAtaque tipo, int passo)
+        {
+            if (tipo == TipoDeAtaque.Pesado)
+            {
+                return MultiplicadorPesado;
+            }
+
+            return passo == PassosDaCadeiaLeve - 1
+                ? MultiplicadorDoTerceiroLeve
+                : MultiplicadorLeve;
+        }
+
+        /// <summary>
+        /// O passo da cadeia (0 é o primeiro leve) de um golpe que começa agora. O pesado é
+        /// sempre o passo 0. O leve segue de <paramref name="proximoPasso"/> se começar em até
+        /// <see cref="JanelaDaCadeiaSegundos"/> depois do fim da ação anterior; senão, volta ao 0.
+        /// </summary>
+        public static int PassoDoGolpe(
+            TipoDeAtaque tipo,
+            int proximoPasso,
+            double segundosDesdeOFimDaAnterior
+        )
+        {
+            if (tipo == TipoDeAtaque.Pesado)
+            {
+                return 0;
+            }
+
+            bool dentroDaJanela =
+                segundosDesdeOFimDaAnterior <= JanelaDaCadeiaSegundos
+                && proximoPasso > 0
+                && proximoPasso < PassosDaCadeiaLeve;
+            return dentroDaJanela ? proximoPasso : 0;
+        }
+
+        /// <summary>
+        /// O passo a que o golpe seguinte tem direito depois de um golpe de
+        /// <paramref name="tipo"/> no <paramref name="passo"/>: o pesado reinicia a cadeia, e o
+        /// 4º leve volta ao primeiro.
+        /// </summary>
+        public static int ProximoPasso(TipoDeAtaque tipo, int passo)
+        {
+            if (tipo == TipoDeAtaque.Pesado)
+            {
+                return 0;
+            }
+
+            return (passo + 1) % PassosDaCadeiaLeve;
+        }
+
+        public static double GiroMaximoGrausPorSegundo(TipoDeAtaque tipo) =>
+            tipo == TipoDeAtaque.Pesado
+                ? GiroMaximoPesadoGrausPorSegundo
+                : GiroMaximoLeveGrausPorSegundo;
+
+        /// <summary>
+        /// A direção do golpe no momento do acerto: a que o personagem olha
+        /// (<paramref name="desejadaGraus"/>), mas sem girar mais que o teto do ataque desde a
+        /// direção do início do preparo (<paramref name="inicialGraus"/>) em
+        /// <paramref name="segundosDePreparo"/>. Sem alvo fixo.
+        /// </summary>
+        public static double DirecaoDoGolpe(
+            TipoDeAtaque tipo,
+            double inicialGraus,
+            double desejadaGraus,
+            double segundosDePreparo
+        )
+        {
+            double teto = GiroMaximoGrausPorSegundo(tipo) * Math.Max(0.0, segundosDePreparo);
+            double giro = DiferencaDeAngulo(desejadaGraus, inicialGraus);
+            return inicialGraus + Math.Max(-teto, Math.Min(teto, giro));
+        }
+
         public static int CustoDeVigor(TipoDeAtaque tipo) =>
             tipo == TipoDeAtaque.Pesado ? CustoDeVigorPesado : CustoDeVigorLeve;
 
@@ -87,11 +188,11 @@ namespace JogoDoGrupo.Shared.Features.Combate
         /// Dano do golpe em um alvo: (dano da espada + Força) vezes o multiplicador do ataque,
         /// arredondado. Força negativa conta como zero e o dano nunca é menor que 1.
         /// </summary>
-        public static int Dano(TipoDeAtaque tipo, int forca)
+        public static int Dano(TipoDeAtaque tipo, int forca, int passo = 0)
         {
             double danoDaArma = DanoBaseDaEspada + DanoPorForca * Math.Max(0, forca);
             double dano = Math.Round(
-                danoDaArma * Multiplicador(tipo),
+                danoDaArma * Multiplicador(tipo, passo),
                 MidpointRounding.AwayFromZero
             );
             return (int)Math.Max(1.0, Math.Min(dano, int.MaxValue));

@@ -44,14 +44,63 @@ public class ControleDeOcupacaoTestes
     }
 
     [Fact]
-    public void Nao_ocupa_no_meio_de_um_ataque_e_ocupa_quando_ele_acaba()
+    public void Nao_ocupa_no_preparo_e_ocupa_na_recuperacao_cortando_o_resto_da_acao()
     {
         var controle = new ControleDeAcoes();
         controle.Pedir(Ana, Leve(), 1_000, out var ataque);
 
         Assert.False(controle.TentarOcupar(Ana, 1_000, Esquiva, out _));
-        Assert.False(controle.TentarOcupar(Ana, ataque!.FimMs - 1, Esquiva, out _));
-        Assert.True(controle.TentarOcupar(Ana, ataque.FimMs, Esquiva, out _));
+        Assert.False(controle.TentarOcupar(Ana, ataque!.AcertoMs - 1, Esquiva, out _));
+
+        Assert.True(controle.TentarOcupar(Ana, ataque.AcertoMs, Esquiva, out _));
+        // A ação acabou ali: o resto da recuperação foi cortado.
+        Assert.Equal(ataque.AcertoMs, controle.AcaoAtual(Ana)!.FimMs);
+        Assert.True(ataque.FimMs > ataque.AcertoMs);
+    }
+
+    [Fact]
+    public void Esquiva_na_recuperacao_limpa_a_fila_e_o_ataque_so_comeca_depois_dela()
+    {
+        var controle = new ControleDeAcoes();
+        controle.Pedir(Ana, Leve(), 1_000, out var ataque);
+        controle.Pedir(Ana, Leve(2), ataque!.FimMs - 100, out _); // entra na fila
+
+        controle.TentarOcupar(Ana, ataque.AcertoMs + 50, Esquiva, out _);
+
+        Assert.Null(controle.AvancarFila(Ana, ataque.Id, ataque.FimMs));
+        Assert.Equal(
+            ResultadoDoPedido.Recusado,
+            controle.Pedir(Ana, Leve(3), ataque.AcertoMs + 60, out _)
+        );
+        Assert.Equal(
+            ResultadoDoPedido.Iniciado,
+            controle.Pedir(Ana, Leve(3), ataque.AcertoMs + 50 + Esquiva, out _)
+        );
+    }
+
+    [Fact]
+    public void Esquiva_recusada_depois_de_cortar_devolve_a_recuperacao()
+    {
+        var controle = new ControleDeAcoes();
+        controle.Pedir(Ana, Leve(), 1_000, out var ataque);
+        controle.TentarOcupar(Ana, ataque!.AcertoMs, Esquiva, out var ocupacao);
+
+        controle.Desocupar(Ana, ocupacao); // sem vigor
+
+        Assert.Equal(ataque.FimMs, controle.AcaoAtual(Ana)!.FimMs);
+        Assert.False(controle.EstaInvulneravel(Ana, ataque.AcertoMs + 10));
+    }
+
+    [Fact]
+    public void Dano_some_nos_primeiros_0_3_s_da_esquiva_e_volta_depois()
+    {
+        var controle = new ControleDeAcoes();
+        controle.TentarOcupar(Ana, 1_000, Esquiva, out _);
+
+        Assert.True(controle.EstaInvulneravel(Ana, 1_000));
+        Assert.True(controle.EstaInvulneravel(Ana, 1_299));
+        Assert.False(controle.EstaInvulneravel(Ana, 1_300));
+        Assert.False(controle.EstaInvulneravel(Beto, 1_100));
     }
 
     [Fact]

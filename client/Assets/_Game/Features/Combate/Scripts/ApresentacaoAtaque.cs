@@ -38,6 +38,32 @@ namespace JogoDoGrupo.Client.Features.Combate
         /// </summary>
         public static bool MostraODano(long atacanteId, long meuPersonagemId) =>
             meuPersonagemId != 0 && atacanteId == meuPersonagemId;
+
+        /// <summary>
+        /// Gira o corpo de <paramref name="atual"/> em direção à mira sem passar do teto do
+        /// ataque (<see cref="RegrasAtaque.GiroMaximoGrausPorSegundo"/>), como o servidor mede o
+        /// cone no acerto. O resultado fica entre 0 e 360 graus.
+        /// </summary>
+        public static float GirarParaAMira(
+            float atual,
+            float mira,
+            TipoDeAtaque tipo,
+            float segundos
+        )
+        {
+            var teto = (float)(RegrasAtaque.GiroMaximoGrausPorSegundo(tipo) * segundos);
+            var diferenca = (float)RegrasAtaque.DiferencaDeAngulo(mira, atual);
+            var passo = diferenca < -teto ? -teto : (diferenca > teto ? teto : diferenca);
+            return GeradorDeIntencoes.NormalizarDirecao(atual + passo);
+        }
+
+        /// <summary>A velocidade com o compromisso do golpe (40% da corrida, por exemplo).</summary>
+        public static float VelocidadeDuranteGolpe(float velocidade) =>
+            velocidade * (float)RegrasAtaque.VelocidadeDuranteGolpe;
+
+        /// <summary>Se o número do dano é do golpe mais forte da cadeia ou do pesado (aparece maior).</summary>
+        public static bool GolpeForte(TipoDeAtaque tipo, int passo) =>
+            tipo == TipoDeAtaque.Pesado || passo == RegrasAtaque.PassosDaCadeiaLeve - 1;
     }
 
     /// <summary>

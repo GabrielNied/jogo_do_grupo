@@ -120,7 +120,7 @@ Ataque da primeira arma (tempo real; regras e números em [fatia-jogavel.md](fat
 | ID | Mensagem | Direção | Campos |
 |---|---|---|---|
 | 6000 | `IntencaoDeAtaque` | client → servidor | `Tipo` (`TipoDeAtaque`: Leve 0, Pesado 1), `DirecaoY` (graus, mesma convenção de `IntencaoDeMovimento.RotacaoY`), `Sequencia` |
-| 6001 | `AtaqueIniciado` | servidor → quem está na área | `AtacanteId`, `Tipo`, `DirecaoY`, `PreparoMs` |
+| 6001 | `AtaqueIniciado` | servidor → quem está na área | `AtacanteId`, `Tipo`, `DirecaoY`, `PreparoMs`, `Passo` (0 a 2, da cadeia de leves) |
 | 6002 | `AtaqueAcertou` | servidor → quem está na área | `AtacanteId`, `Acertos[]` (`AcertoDeAtaque`: `AlvoId`, `Dano`, `VidaRestante`, `VidaMaxima`) |
 | 6003 | `AtaqueRecusado` | servidor → atacante | `Sequencia`, `Codigo` (`CodigosErroCombate.VigorInsuficiente`, `AcaoEmAndamento` ou `VoceEstaCaido`) |
 | 6004 | `RecursosMudaram` | servidor → dono | vida, vigor e energia atuais e máximos |
@@ -141,12 +141,12 @@ Esquiva (tempo real; regras e números em [fatia-jogavel.md](fatia-jogavel.md), 
 ### Ataque no servidor (#215)
 
 - Quem recebe: `AtaqueIniciado` e `AtaqueAcertou` vão a todos que o Mundo diz estarem na área do atacante (`IPosicoesDoMundo`); `AtaqueRecusado` só ao atacante; `RecursosMudaram` só ao dono, e só quando o ataque gasta vigor (o pesado; o leve não gasta nada).
-- O servidor mede o cone no **momento do acerto** (preparo depois do pedido) com a posição que o Mundo tem então; não há compensação de lag. A direção vem do pedido.
+- O servidor mede o cone no **momento do acerto** (preparo depois do pedido) com a posição que o Mundo tem então; não há compensação de lag. A direção é a `RotacaoY` que o Mundo tem do personagem naquele instante, limitada pelo giro desde a direção do pedido (`RegrasAtaque.DirecaoDoGolpe`: leve 240°/s, pesado 60°/s, pelo menor caminho). O client vira o corpo para a mira dentro do mesmo teto (#571).
 - **Um relógio só (#477):** a ação nasce no pedido; o acerto sai em `InicioMs + PreparoMs` e o fim da ação vem depois do acerto, mesmo que o banco demore. A cobrança do vigor e a leitura da Força acontecem dentro do preparo (o acerto não volta ao banco; veja [Recursos em memória](#recursos-em-memória-478)), e a fila só avança depois do acerto resolvido. Banco mais lento que o preparo atrasa o acerto, mas não o perde.
 - Fila: um pedido feito nos últimos 0,3 s da ação espera e começa no fim dela (vigor e queda são conferidos nessa hora, e a recusa sai com a `Sequencia` dele). Pedido durante a ação fora da janela, ou com a fila ocupada, é recusado com `AcaoEmAndamento`.
 - Caído (vida 0) é recusado com `VoceEstaCaido`; o pesado gasta 20 de vigor uma vez só (trava do personagem em memória) e é recusado sem vigor.
 - `Tipo` fora do enum, direção inválida, ou ataque de quem ainda não entrou no mundo: o pedido é **descartado sem resposta** (o contrato não tem código para isso; um client correto nunca manda).
-- O dano é `RegrasAtaque.Dano(tipo, Força final)`; cada alvo leva o mesmo golpe uma vez, e o `Dano` de `AcertoDeAtaque` é o que o alvo realmente perdeu (nunca mais que a vida que ele tinha).
+- O dano é `RegrasAtaque.Dano(tipo, Força final, passo)`; cada alvo leva o mesmo golpe uma vez, e o `Dano` de `AcertoDeAtaque` é o que o alvo realmente perdeu (nunca mais que a vida que ele tinha).
 - **Alvos:** `IAlvosDeCombate` (`server/.../Contratos/Combate/`, ADR 0016) é implementado por quem é dono de alvos; Combate junta todas as implementações. Hoje só há o **boneco de treino** (id de alvo `-1`), em `ConfigBonecoDeTreino`: 180 de vida, posição fixa na cidade (x 0, z -22, 2 m à frente do nascimento), volta à vida cheia 5 s depois do último golpe que levou. Com 0 de vida ele sai de combate (não é mais alvo) até voltar. O servidor **não avisa** a volta: o client deduz pelos 5 s sem golpes.
 - **Onde o boneco está (provisório):** o contrato não tem mensagem para isso, então o client coloca o modelo na mesma posição fixa (x 0, z -22) até o shared ganhar uma mensagem ou constante para os alvos fixos (pendente com o responsável pelo contrato).
 
@@ -160,6 +160,18 @@ Esquiva (tempo real; regras e números em [fatia-jogavel.md](fatia-jogavel.md), 
 - Combate, dono da vida, assina `GolpeDeInimigoAcertou` (`Contratos/Mobs/`, ADR 0016). Mobs decide quem estava no círculo; um evento por personagem atingido.
 - A vida cai em `Dano` (sem defesa por enquanto; a conta fica em `ServicoDeDanoRecebido.DanoFinal`, onde a defesa entra depois), **nunca abaixo de 0**, e o dono recebe `RecursosMudaram` (só ele). Vida 0 leva ao estado caído ([abaixo](#estado-caído-no-servidor-125)); quem já está caído não recebe dano (o golpe é ignorado).
 - O assinante não bloqueia (o evento sai do laço de IA de Mobs): a conta roda numa tarefa, sob a mesma trava dos outros recursos, então golpes simultâneos no mesmo personagem somam. Personagem sem recursos criados começa da vida cheia; um que não existe só registra erro no log.
+
+### Ritmo do golpe no servidor (#569, #571, #570, #578)
+
+Implementado em 2026-10-12. As decisões que a doc não fechava:
+
+- **Cadeia (#569):** o `ControleDeAcoes` guarda, por personagem, o próximo passo e o fim da ação anterior. O passo sobe quando a ação **começa** (errar o alvo não quebra); o pesado vale o passo 0 e reinicia a cadeia; o 4º leve volta ao 1º. Pedido da fila continua a cadeia. Pesado recusado por falta de vigor não quebra a cadeia. `AtaqueIniciado.Passo` (0 a 2) vai ao client; o 3º leve e o pesado mostram o número de dano maior. As animações por passo continuam em [#475](https://github.com/GabrielNied/jogo_do_grupo/issues/475).
+- **Janela da cadeia:** conta do fim **real** da ação. Se a esquiva cortou a recuperação, o fim é o instante do corte, então o golpe depois de uma esquiva (0,6 s) ainda continua a cadeia.
+- **Giro (#571):** o corpo do client começa virado para a mira no clique e, até o acerto, gira para a mira dentro do teto. O servidor repete a conta com a `RotacaoY` que o Mundo recebeu. A direção do pedido continua sendo o ponto de partida.
+- **Compromisso (#570):** a esquiva é recusada antes do `AcertoMs` (preparo e momento de acerto) e vale depois dele; ao valer, a ação ganha `CortadaEmMs`, o pedido da fila some e o fim da ação passa a ser o corte. Se a esquiva for recusada por falta de vigor, a recuperação volta como era. O client anda a 40% da corrida (`VelocidadeDuranteGolpe`) do clique ao acerto, mexendo só no `Movimento` do próprio jogador e devolvendo o valor depois.
+- **Teto de velocidade no servidor:** o contrato `ILimiteDeVelocidadeDoMundo` (`Contratos/Mundo/`) existe e o Combate o chama no começo do preparo, mas o **Mundo ainda não o implementa**. Sem implementação, o servidor não corta a velocidade de um client que ignore os 40%. Pendente no responsável pelo Mundo (`ValidadorDeMovimento`/`CidadeDoMundo`).
+- **Esquiva sem dano (#578):** no `TentarOcupar` o `ControleDeAcoes` marca a invulnerabilidade até `JanelaDeInvulnerabilidadeSegundos` (0,3 s). O `ServicoDeDanoRecebido` ignora o `GolpeDeInimigoAcertou` que chegar nesse intervalo, pelo relógio do servidor. Recusa por vigor desfaz a janela. Golpe de dano em alvos não-jogador não muda.
+- **Direção da esquiva (#578):** andando, a do movimento; parado, para trás da mira (`RegrasEsquiva.DirecaoDaEsquiva`). Antes o client saía para onde o corpo olhava quando parado.
 
 ### Esquiva no servidor (#233)
 

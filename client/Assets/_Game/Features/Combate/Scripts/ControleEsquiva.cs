@@ -127,8 +127,7 @@ namespace JogoDoGrupo.Client.Features.Combate
                 camera != null ? camera.transform.eulerAngles.y : jogador.transform.eulerAngles.y;
             var direcao = ApresentacaoEsquiva.DirecaoDoPedido(
                 _mover.ReadValue<Vector2>(),
-                anguloCamera,
-                jogador.transform.eulerAngles.y
+                anguloCamera
             );
 
             var agora = Time.unscaledTime;
