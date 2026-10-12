@@ -28,7 +28,7 @@ Você só edita estes caminhos (um hook bloqueia o resto):
 
 - C# 9, `namespace X { }` com chaves, nada de `UnityEngine`.
 - Funções determinísticas: aleatoriedade entra como parâmetro (semente ou gerador), para o servidor controlar e os testes reproduzirem.
-- **Testes obrigatórios:** escreva em `tests/` os testes do que você mudou (caminho feliz, cada código de erro, limites e, quando houver, pedidos simultâneos), seguindo `docs/convencoes.md#testes`. PR de código sem teste é recusado pelo revisor.
+- **Testes:** escreva em `tests/` os testes do contrato que mudou e das regras que decidem resultado (regra 10 do `AGENTS.md`, `docs/convencoes.md#testes`). Sem lista exaustiva de limites.
 - Números e limites das regras vão para a seção **Regras** de `docs/features/<x>.md`.
 
 ## Como trabalhar

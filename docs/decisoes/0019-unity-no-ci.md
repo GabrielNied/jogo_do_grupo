@@ -1,7 +1,7 @@
 # 0019. Unity no CI e agentes sem Unity
 
 **Data:** 2026-10-11
-**Status:** proposta
+**Status:** proposta; o gatilho em PR e as pendências de conferência visual foram alterados pelo [ADR 0034](0034-menos-verificacao-repetida.md)
 
 ## Contexto
 

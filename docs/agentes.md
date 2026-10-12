@@ -82,7 +82,7 @@ Quem puxa uma tarefa de jogo escreve o plano na issue **antes de codar**. Curto,
 - **Casos de uso:** o que o jogador quer fazer, do ponto de entrada até o resultado.
 - **Estados:** os itens da checklist abaixo que se aplicam, e o que aparece em cada um. Os que não se aplicam ficam de fora, sem justificar.
 - **Decisões de design:** o que a doc não fechava e você decidiu ([Decisões de design](#decisões-de-design)).
-- **Testes:** cada caso e cada estado vira um teste (xUnit no servidor, EditMode no client). É o mesmo trabalho da regra 10, só que pensado antes.
+- **Testes:** os casos que mudam o contrato ou o resultado viram teste xUnit (regra 10). Os estados da tela são conferidos na cena pelo "Como testar" do PR, sem teste.
 
 Siga em frente depois de escrever, sem esperar resposta.
 

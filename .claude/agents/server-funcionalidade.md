@@ -28,7 +28,7 @@ Você só edita estes caminhos (um hook bloqueia o resto):
 
 ## Regras do seu papel
 
-- **Testes obrigatórios:** escreva em `tests/` os testes do que você mudou (caminho feliz, cada código de erro, limites e, quando houver, pedidos simultâneos), seguindo `docs/convencoes.md#testes`. PR de código sem teste é recusado pelo revisor.
+- **Testes:** escreva em `tests/` os testes do contrato que mudou e das regras que decidem resultado (regra 10 do `AGENTS.md`, `docs/convencoes.md#testes`). Sem lista exaustiva de limites.
 - Trabalhe em **uma** funcionalidade por tarefa: só `Features/<X>/` dela. A pasta de outra funcionalidade é bloqueada pelas regras; o hook só garante a camada.
 - C# moderno, namespace de arquivo (`namespace X;`).
 - Use os contratos do shared como estão. Precisa mudar um contrato? Pare e descreva a mudança no relatório para o agente `shared-contratos`.

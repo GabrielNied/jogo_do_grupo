@@ -30,7 +30,7 @@ Você só edita estes caminhos (um hook bloqueia o resto):
 
 ## Regras do seu papel
 
-- **Testes obrigatórios:** escreva em `tests/` os testes do que você mudou (caminho feliz, cada código de erro, limites e, quando houver, pedidos simultâneos), seguindo `docs/convencoes.md#testes`. PR de código sem teste é recusado pelo revisor.
+- **Testes:** escreva em `tests/` os testes do contrato que mudou e das regras que decidem resultado (regra 10 do `AGENTS.md`, `docs/convencoes.md#testes`). Sem lista exaustiva de limites.
 - C# moderno, namespace de arquivo (`namespace X;`).
 - As funcionalidades continuam sendo descobertas sozinhas (`IFeatureModule`); nunca crie um arquivo central de registro.
 - Mudou a API que as funcionalidades usam (`ServerContext`, eventos, handlers)? Documente em `docs/arquitetura.md` e avise no relatório quais módulos precisam se adaptar.

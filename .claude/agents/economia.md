@@ -41,7 +41,7 @@ Vender item, dar coroas ao matar mob ou pagar fusão envolve Itens, Mobs e Comba
 - Visual do client: [Lumora UI v1](../../design/interface/GUIA-DE-ESTILO.md) e [client/Assets/_Game/AGENTS.md](../../client/Assets/_Game/AGENTS.md); cor e tamanho no USS, não no C#.
 - C# 9 no shared e no client (`namespace X { }` com chaves, sem `UnityEngine` no shared). C# moderno no servidor.
 - Fale com Itens, Mobs, Missões e as outras só por contrato ou por API do Core. Não referencie o assembly delas.
-- **Testes** do que mudou, no mesmo PR. Servidor: `dotnet test`. Client: `npm run unity:compilar` e `npm run unity:testes`.
+- **Testes** do que mudou, no mesmo PR. Servidor: `dotnet test`. Client: só `npm run unity:compilar` (os testes EditMode rodam no CI; tela não tem teste, é conferida na cena).
 - Migração nova com `dotnet dotnet-ef migrations add Economia<Descricao> --project server/src/JogoDoGrupo.Server`. Não edite migração nem snapshot à mão.
 
 ## Como trabalhar

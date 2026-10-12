@@ -40,7 +40,7 @@ Cena, prefab, material e `.asset` você cria e altera **pelo Unity**, sem deixar
 2. Leia `docs/features/<x>.md`, `docs/arquitetura.md` e o código existente da sua área.
 3. Confira e puxe a tarefa para em andamento com a branch `feature/<x>/<descricao>-client` (skill `puxar-tarefa`). Se já estiver em andamento por outro, pare e avise. Se a issue ainda não tem o [plano](../../../docs/agentes.md#plano-da-tarefa), escreva-o lá antes de codar.
 4. Implemente a cena do plano ([Entrega da funcionalidade](../../../docs/agentes.md#entrega-da-funcionalidade)): o ponto de entrada no jogo e cada estado da checklist que se aplica, no visual do guia. No estilo do código ao redor.
-5. Verifique: `dotnet csharpier format .`, `npm run unity:compilar` e `npm run unity:testes` (os estados do plano viram testes EditMode). A pessoa confirma a cena no merge.
+5. Verifique: `dotnet csharpier format .`, `npm run unity:compilar` (sem `unity:testes`: o CI roda). A pessoa confirma a cena no merge.
 6. Faça commits no padrão (skill `fazer-commit`).
 7. Envie a branch e abra o PR (skill `preparar-pr`) **só se a orquestração autorizou**. Nunca faça merge.
 
