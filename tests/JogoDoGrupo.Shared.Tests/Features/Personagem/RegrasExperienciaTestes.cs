@@ -10,7 +10,7 @@ public class RegrasExperienciaTestes
     [InlineData(10, 792)]
     [InlineData(29, 2843)]
     [InlineData(30, 2962)]
-    public void Curva_confere_tabela_provisoria(int nivel, long esperado) =>
+    public void Curva_confere_a_tabela(int nivel, long esperado) =>
         Assert.Equal(esperado, RegrasExperiencia.XpParaOProximoNivel(nivel));
 
     [Fact]
@@ -19,13 +19,13 @@ public class RegrasExperienciaTestes
         var resultado = RegrasExperiencia.AplicarGanho(1, 25, 190);
         Assert.Equal(3, resultado.Nivel);
         Assert.Equal(50, resultado.Xp);
-        Assert.Equal(10, resultado.PontosGanhos);
+        Assert.Equal(0, resultado.PontosGanhos);
     }
 
     [Theory]
     [InlineData(49, 1, 49, 0)]
-    [InlineData(50, 2, 0, 5)]
-    [InlineData(51, 2, 1, 5)]
+    [InlineData(50, 2, 0, 0)]
+    [InlineData(51, 2, 1, 0)]
     public void Ganho_respeita_limiar_exato(long ganho, int nivel, long xp, int pontos)
     {
         var resultado = RegrasExperiencia.AplicarGanho(1, 0, ganho);

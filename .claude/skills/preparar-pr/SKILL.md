@@ -67,6 +67,7 @@ Se o risco extrapolar essa matriz (segurança, concorrência, migração, mudan�
 
 ## 6. Branch e commit
 
+- Antes de commitar: a reflexão da [regra 16](../../../AGENTS.md). Corte pequeno entra neste commit. Sem corte, siga, e não escreva "sem corte" no PR.
 - Branch: confira com `npm run validar-branch -- "$(git branch --show-current)"`. Se estiver na `main` ou fora do padrão, siga a skill `nova-branch`. Nunca faça push na `main`.
 - Commits: siga a skill `fazer-commit`. Confira as mensagens da branch com `npx --no -- commitlint --from origin/main --to HEAD`.
 - Se a branch mexe em `client/Assets/` ou `shared/Package/`, rode `npm run conferir-unity` **antes** de abrir o PR. Se falhar, não abra: faltam `.meta` ou o Unity alterou `.mat`/prefab que ficou fora do commit. Para script C#, pasta, `.asmdef`, `.uss`/`.tss` e texto, gere com `npm run unity:meta` (não precisa do Unity nem de editor fechado). Para o resto, gere com `npm run unity:importar` (editor fechado, neste worktree). Sem Unity no ambiente, abra o PR assim mesmo e registre o que falta com `npm run tarefa -- pendencia-unity <PR> --falta "<o quê>"`; `npm run conferir-unity` falhando por esses arquivos não impede o PR nesse caso. Inclua no commit. Não escreva esses arquivos à mão. `ProjectSettings/` continua de fora, salvo pedido da pessoa.

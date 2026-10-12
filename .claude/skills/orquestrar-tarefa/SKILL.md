@@ -48,7 +48,7 @@ Agente dono: `itens` para Itens, `economia` para Economia, `funcionalidade` para
 
 O revisor só entra quando o PR mexe em Core, segurança ou numa regra de dano, preço ou fusão que a doc ainda não fechou. ~~concorrência, contrato ou regra que decide resultado (dano, drop, fusão, preço)~~ substituído em 2026-10-11 por: recorte com os números já no contrato e com teste no próprio PR (mesmo um baú que sorteia item, mesmo corrida coberta por teste) não leva revisor. Arte, tela, conteúdo 3D e ligar um botão também não. O CI e a verificação do autor são a qualidade mínima.
 
-**Economize agentes:** a regra 16 do `AGENTS.md` manda implementar o corte na hora, não só relatar.
+**Economize agentes:** a regra 16 do `AGENTS.md` manda implementar o corte na hora, não só relatar. No fim de cada tarefa, a mesma pergunta, antes do PR.
 - **Custo fixo de um agente: 50–80 mil tokens** (regras, worktree, puxar tarefa, verificações). Tarefa pequena (até ~50 linhas numa área: constantes, docs curtas, config) o coordenador faz direto, sem agente, sem ficha e sem tabela de aprovação.
 - Várias tarefas pequenas da mesma área: **um agente só** para todas.
 - Coordenador em **Sonnet** por padrão (Opus só para planejar marcos); **sessão nova por rodada ou marco** (`/clear`): o estado mora nas issues, fichas e docs.
