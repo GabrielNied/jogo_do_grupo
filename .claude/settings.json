@@ -24,6 +24,16 @@
             "timeout": 10
           }
         ]
+      },
+      {
+        "matcher": "startup|clear",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/scripts/agentes/retomar.mjs\" --hook",
+            "timeout": 10
+          }
+        ]
       }
     ],
     "PreToolUse": [

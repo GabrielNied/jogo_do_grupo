@@ -172,6 +172,17 @@ Os agentes estão em [.claude/agents/](../.claude/agents/). Cada um roda num git
 - **Manual:** peça diretamente "use o agente server-funcionalidade para ..." ou abra um terminal por agente com `claude --agent <nome>`.
 - `/agents` lista os agentes disponíveis.
 
+#### Trocar de assunto sem perder o fio
+
+Cada mensagem reenvia o histórico inteiro da conversa, então uma sessão longa encarece até as mensagens curtas. Ao fechar um assunto, dê `/clear` no mesmo painel; não precisa abrir chat novo.
+
+O que só existia na conversa se perde no `/clear`. Por isso, antes de sugeri-lo, a IA registra o que ficou pendente:
+
+- trabalho que vai virar PR: numa issue;
+- a próxima pergunta ou proposta ("faço o script?"): no bilhete de retomada, com `node scripts/agentes/retomar.mjs gravar "<texto>"`.
+
+O bilhete fica em `.git/claude-retomar.md`, fora do commit. Na sessão seguinte, o hook `SessionStart` mostra o bilhete junto com a branch e as mudanças não commitadas, e depois o apaga. Basta responder "sim" ou "continue".
+
 ### Codex
 
 O Codex lê automaticamente o `AGENTS.md` da raiz. Os perfis equivalentes aos
