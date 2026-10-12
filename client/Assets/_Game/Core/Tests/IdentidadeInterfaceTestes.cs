@@ -18,7 +18,9 @@ namespace JogoDoGrupo.Client.Core.Tests
             var objeto = new GameObject("Teste de identidade");
             objeto.SetActive(false);
             var configuracao = ScriptableObject.CreateInstance<PanelSettings>();
-            EstiloCore.ConfigurarEscala(configuracao);
+            // Sem tela no modo batch, a escala pela resolução não dá largura à raiz; aqui só
+            // importam as fontes e a raiz estreita (a escala tem teste próprio abaixo).
+            configuracao.scaleMode = PanelScaleMode.ConstantPixelSize;
             configuracao.themeStyleSheet = Resources.Load<ThemeStyleSheet>(EstiloCore.CaminhoTema);
             var documento = objeto.AddComponent<UIDocument>();
             documento.panelSettings = configuracao;
