@@ -24,6 +24,7 @@ O `npm run limpar-agentes` do ADR 0018 quase nunca removia nada. Em 2026-10-11 h
   - num PR do GitHub, mesclado ou fechado (o GitHub guarda a ponta em `refs/pull/N/head`);
   - numa branch do `origin`.
 - **PR aberto sempre fica.** Branch sem PR mexida nas últimas 2 h também fica, porque pode ser um agente começando. A recência vem do reflog (commit, checkout), não do `index`. PR mesclado sai mesmo se recente: o trabalho acabou.
+- **Worktree fora de `.claude/worktrees/` sai na rodada automática** quando o PR foi mesclado, foi fechado com a ponta ainda no GitHub, ou o conteúdo já está na `main`. Checkout pessoal da `main`, ou de uma branch que só está no `origin`, continua de fora; `--todos` inclui esses.
 - No GitHub (`--remotas`), a branch do `origin` não conta como cópia de si mesma, e PR fechado sem merge fica.
 
 ## Consequências
