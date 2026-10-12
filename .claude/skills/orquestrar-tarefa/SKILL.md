@@ -67,7 +67,7 @@ Se a funcionalidade precisa de algo novo em Core (API, rede, HUD base), lance `s
 
 ## 5. Donos em paralelo
 
-Lance os donos de funcionalidades diferentes **na mesma mensagem, em segundo plano**, um por issue. Cada agente deve começar puxando sua subtarefa (`npm run tarefa -- puxar <N> [branch] --agente <papel> --worktree <caminho>`) para registrá-la em andamento e evitar qualquer concorrência. Cada prompt precisa ser completo, porque o agente não vê esta conversa:
+Lance os donos de funcionalidades diferentes **na mesma mensagem, em segundo plano**, um por issue. Cada agente deve começar puxando sua subtarefa (`npm run tarefa -- puxar <N> [branch] --agente <papel> --worktree .`, no worktree do próprio agente) para registrá-la em andamento e evitar qualquer concorrência. Cada prompt precisa ser completo, porque o agente não vê esta conversa:
 
 ```
 Funcionalidade: <X> (pasta Features/<X>/, escopo de commit <x>)
@@ -75,7 +75,7 @@ Objetivo: <a cena, em 2–4 linhas: o que a pessoa faz e o que aparece>
 Regras de design: docs/features/<x>.md, seções <...>. O que não estiver fechado, você decide e registra.
 Ficha: issue #<N>. Escreva o plano nela antes de codar e siga sem esperar.
 Issue: #<N> (Closes #<N>).
-Puxar tarefa: rode `npm run tarefa -- puxar <N> <branch> --agente <papel> --worktree <caminho>` antes de codificar.
+Puxar tarefa: rode `npm run tarefa -- puxar <N> <branch> --agente <papel> --worktree .` dentro do seu worktree (o agente já nasce em `.claude/worktrees/agent-*`; um caminho fora dele é barrado pela permissão e vira worktree órfão) antes de codificar.
 Fora do escopo: <o que NÃO fazer>
 Pronto quando: contrato, servidor e client com a cena no mesmo PR, com ponto de entrada e os estados do plano testados ([Entrega da funcionalidade](../../../docs/agentes.md#entrega-da-funcionalidade))
 Autorização: pode commitar, enviar a branch e abrir PR. Não faça merge.
