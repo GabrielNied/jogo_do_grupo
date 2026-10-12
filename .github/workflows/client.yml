@@ -11,6 +11,8 @@ name: Client (Unity)
 #   fecha as pendências que só pediam compilar e rodar os testes EditMode;
 # - em todo PR que mexe em client/ ou shared/Package/ (repo público: minutos grátis, ADR 0029),
 #   e num PR com a label "testar-unity" mesmo sem mexer nesses caminhos;
+# - de 2 em 2 horas, só se o commit atual da main ainda não terminou uma execução (a dele pode
+#   ter sido trocada na fila por um PR, já que a fila guarda só o mais novo);
 # - à mão, em Actions > Client (Unity) > Run workflow.
 # Se falhar na main, abre uma pendência "pendente-unity" para o próximo agente com Unity.
 # Não é check obrigatório.
@@ -26,9 +28,13 @@ on:
       - ".github/workflows/client.yml"
   pull_request:
     types: [opened, synchronize, reopened, labeled]
+  schedule:
+    - cron: "17 */2 * * *"
   workflow_dispatch:
 
 permissions:
+  # Listar as execuções deste workflow (agendamento que confere se a main já foi validada).
+  actions: read
   contents: read
   checks: write
   issues: write
@@ -56,13 +62,35 @@ jobs:
             echo "client=false" >> "$GITHUB_OUTPUT"
           fi
 
+  # No agendamento: só roda se o commit atual da main não tem execução terminada (passou ou
+  # falhou) deste workflow. Cancelada não conta: é a que a fila trocou por um PR.
+  main-sem-validar:
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    outputs:
+      rodar: ${{ steps.conferir.outputs.rodar }}
+    steps:
+      - id: conferir
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          terminadas=$(gh api "repos/${{ github.repository }}/actions/workflows/client.yml/runs?head_sha=${{ github.sha }}&status=completed&per_page=50" \
+            -q '[.workflow_runs[] | select(.event != "pull_request") | select(.conclusion == "success" or .conclusion == "failure")] | length')
+          if [ "$terminadas" = "0" ]; then
+            echo "rodar=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "A main em ${GITHUB_SHA::7} já foi validada; nada a fazer."
+            echo "rodar=false" >> "$GITHUB_OUTPUT"
+          fi
+
   testes:
-    needs: mudou
-    # Fora de PR (main, à mão) sempre roda. Em PR: label testar-unity recém-posta, ou PR que
-    # mexe no client (pôr outra label não roda de novo).
+    needs: [mudou, main-sem-validar]
+    # Main e à mão sempre rodam; o agendamento, só se a main ainda não foi validada. Em PR:
+    # label testar-unity recém-posta, ou PR que mexe no client (pôr outra label não roda de novo).
     if: >-
       !cancelled() && (
-        github.event_name != 'pull_request'
+        github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+        || (github.event_name == 'schedule' && needs.main-sem-validar.outputs.rodar == 'true')
         || (github.event.action == 'labeled' && github.event.label.name == 'testar-unity')
         || (github.event.action != 'labeled' && (needs.mudou.outputs.client == 'true'
             || contains(github.event.pull_request.labels.*.name, 'testar-unity')))
@@ -151,7 +179,7 @@ jobs:
 
       # Passou na main: fecha as pendências que só pediam o que este job acabou de fazer.
       - name: Fecha pendências resolvidas pelo CI
-        if: success() && github.event_name == 'push' && env.TEM_LICENCA == 'true'
+        if: success() && (github.event_name == 'push' || github.event_name == 'schedule') && env.TEM_LICENCA == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: node scripts/git/fechar-pendencias-do-ci.mjs "$GITHUB_SHA" "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
@@ -159,7 +187,7 @@ jobs:
       # Quebrou na main: vira pendência para o próximo agente com Unity (ADR 0019).
       - name: Abre pendência de Unity
         # Só quando os testes EditMode falharam. Uma falha ao fechar pendências não é client quebrado.
-        if: failure() && github.event_name == 'push' && steps.testes-editmode.outcome == 'failure'
+        if: failure() && (github.event_name == 'push' || github.event_name == 'schedule') && steps.testes-editmode.outcome == 'failure'
         env:
           GH_TOKEN: ${{ github.token }}
           LINK: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
