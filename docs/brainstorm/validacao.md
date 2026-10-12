@@ -259,7 +259,7 @@ Combina com "skills e efeitos giga". É uma **identidade forte e um bom diferenc
 
 ### S10. Troca de arma
 
-**Status:** 🟡 aberta (o grupo achou interessante, a pensar)
+**Status:** decidida em 2026-10-12, opção B. A regra está em [combate](../features/combate.md#duas-armas-depois-desta-fatia). A fatia da espada não inclui a troca.
 
 **De onde veio:** conversa do grupo em 2026-10-10, a partir das [referências](../referencias.md) (New World, Throne and Liberty, Guild Wars 2).
 

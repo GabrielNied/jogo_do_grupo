@@ -38,9 +38,9 @@ Várias regiões, dezenas de jogadores na mesma área, cinco raças, 25 skills, 
 - [x] ~~Os cinco atributos (Força, Destreza, Intelecto, Vitalidade, Espírito) ficam todos na fatia ou só os que a primeira arma usa?~~ Decidido em 2026-10-11: os cinco entram na fatia (seção 1), mesmo que Intelecto e Espírito ainda não tenham uso.
 - [x] ~~Vida do boss e do inimigo comum para 1 a 5 jogadores (os números do plano eram para grupos maiores).~~ Decidido em 2026-10-11: valor fixo, igual para 1 a 5 jogadores, sem escalar por jogador (seções 4 e 7); os números seguem a calibrar.
 - [x] ~~Quem recebe o loot do boss: maior dano (plano) ou outra regra mais justa com tank e healer?~~ Decidido em 2026-10-11: loot individual, cada jogador que participou da luta sorteia o próprio (seção 5). ~~Maior dano~~ substituído em 2026-10-11 por loot individual no boss.
-- [ ] Troca de arma (S10) fica fora; a fatia tem uma arma equipada.
+- [x] ~~Troca de arma (S10) fica fora; a fatia tem uma arma equipada.~~ Decidido em 2026-10-12: duas armas, como o New World ([combate](combate.md#duas-armas-depois-desta-fatia)). Esta fatia ainda joga com uma espada.
 - [ ] **Livro de Asterra (proposta do board, 2026-10-11, não validada pelo grupo; [figjam.md](../brainstorm/figjam.md), seções 10, 11 e 09).** Nada abaixo muda os números da fatia:
-  - **Coincide** com as seções 1, 2, 3, 6 e 7: 100 vigor e 100 energia, regeneração 10 e 5 por s após 2 s, esquiva sem invulnerabilidade, nível 1 a 30 com 5 pontos por nível, caído 45 s, levantar em 3 s com 20% de vida.
+  - **Coincide** com as seções 1, 2, 3, 6 e 7: 100 vigor e 100 energia, regeneração 10 e 5 por s após 2 s, nível 1 a 30 com 5 pontos por nível, caído 45 s, levantar em 3 s com 20% de vida. **Conflito (esquiva):** o livro pedia esquiva sem invulnerabilidade; a seção 3, em 2026-10-12, adotou a janela curta do New World. Vale a seção 3.
   - **Conflito (loot):** o livro dá os itens a quem causou mais dano, com empate para o primeiro atacante; a seção 5 decidiu loot individual por participação. Vale a seção 5.
   - **Conflito (escala):** o livro fala em instâncias de 20 jogadores; a seção 7 é para 1 a 5. Fica em "Fora desta fatia".
   - **Novidade para depois da fatia:** botão de retorno antes dos 45 s e teleporte descoberto; bloqueio por defesa; pulo, natação e escalada; 12 pontos iniciais de orçamento de skills (+1 a cada 5 níveis); cinco raças, 25 skills, cinco espécies de inimigos; cidade com forja, banco e mercado.
@@ -58,22 +58,22 @@ Quem decide: **servidor** (calcula, valida e envia o resultado; o client só mos
 |---|---|---|
 | Atributos | Força, Destreza, Intelecto, Vitalidade, Espírito. Valor final = base + pontos distribuídos + equipamentos + efeitos | proposta |
 | Vida | base 500, +10 por ponto de Vitalidade. Chegar a 0 leva ao estado caído (seção 7) | proposta |
-| Vigor | base 100. Paga esquiva e ataque pesado | proposta |
+| Vigor | base 100. Paga esquiva, ataque pesado e guarda | proposta |
 | Energia | base 100, +2 por ponto de Espírito. Paga as skills dos itens | proposta |
-| Regeneração | após 2 s sem ação que gaste o recurso: +10 vigor/s e +5 energia/s; vida não regenera sozinha na fatia | proposta |
+| Regeneração | após 2 s sem atacar, esquivar ou segurar a guarda: +10 vigor/s e +5 energia/s. Segurar a guarda pausa a espera mesmo antes de um golpe gastar vigor. Vida não regenera sozinha na fatia | decidido em 2026-10-12 |
 | Cálculo | recalcular ao equipar, desequipar, ganhar ponto ou nível; nunca somar o mesmo bônus duas vezes | proposta |
 | Limites | valor atual nunca passa do máximo nem fica negativo; reduzir o máximo não cura | proposta |
 
 - Decidido em 2026-10-11: os **cinco atributos** já existem na fatia, mesmo que Intelecto e Espírito ainda não tenham uso.
 - Dano físico pesado escala com Força; a primeira arma usa Força (seção 2). Outros atributos entram quando houver itens que os usem.
 - O client mostra barras de vida, vigor e energia; o servidor envia valores atuais e máximos quando mudam.
-- **Testes esperados:** equipar/desequipar recalcula sem duplicar bônus; máximo reduzido limita o atual; regeneração só após 2 s; recurso nunca fica negativo.
+- **Testes esperados:** equipar/desequipar recalcula sem duplicar bônus; máximo reduzido limita o atual; regeneração só após 2 s sem atacar, esquivar ou segurar a guarda; recurso nunca fica negativo.
 
 ### 2. Um ataque: primeira arma, leve e pesado
 
 Quem decide: **servidor** (acerto, dano, custo). O client envia a intenção (leve ou pesado, com a direção da mira) e toca a animação.
 
-- Primeira arma: **espada**, com ataque **leve** (corte rápido, sem custo) e **pesado** (corte lento, gasta vigor). Valores iniciais, **proposta a calibrar**: leve 0,5 s de preparo, dano 1,0x; pesado 1,0 s de preparo, dano 2,2x, custo 20 de vigor, recuperação maior.
+- Primeira arma: **espada**, com ataque **leve** (corte rápido, sem custo) e **pesado** (corte lento, gasta vigor). O clique no botão do leve é o leve; segurar o mesmo botão por **0,3 s** (`SegurarParaPesadoSegundos`) começa o pesado. As teclas estão em [interface](interface.md#teclas-e-atalhos). Valores iniciais, **proposta a calibrar**: leve 0,5 s de preparo, dano 1,0x; pesado 1,0 s de preparo, dano 2,2x, custo 20 de vigor, recuperação maior.
 - **Cadeia de leves** (decidido em 2026-10-12, ritmo da espada do New World, fácil de mudar): três leves seguidos. O 1º e o 2º ficam em 1,0x; o 3º em **1,2x**. O pesado no lugar de qualquer passo usa o 2,2x e a cadeia volta ao 1º. A cadeia também volta ao 1º se o próximo golpe não começar em até **0,8 s** depois que a ação anterior acaba. Errar o alvo não quebra a cadeia: o passo sobe quando a ação começa. Cada leve é uma ação: no fim dela dá para esquivar, e o próximo leve só sai se a pessoa pedir. A cadeia não prende ninguém num combo. Constantes em `RegrasAtaque`: `PassosDaCadeiaLeve`, `MultiplicadorDoTerceiroLeve`, `JanelaDaCadeiaSegundos`.
 - Cada ataque tem preparo, momento de acerto e recuperação; o dano só vale no momento de acerto, dentro do volume do golpe (cone à frente, alcance curto).
 - **Compromisso** (decidido em 2026-10-12, como no New World): durante preparo e momento de acerto o personagem anda a no máximo **40%** da corrida (`VelocidadeDuranteGolpe`) e a esquiva é recusada. Na recuperação, a esquiva cancela o que falta dela e gasta o vigor da esquiva.
@@ -91,11 +91,11 @@ Quem decide: **servidor** (acerto, dano, custo). O client envia a intenção (le
 
 Quem decide: **servidor** (custo, deslocamento e posição final); o client antecipa o movimento.
 
-- Deslocamento de **5 m em 0,6 s**, custo **15 de vigor**. Nos primeiros **0,3 s** (`JanelaDeInvulnerabilidadeSegundos`) o dano direto some; o servidor confere o instante, o client não avisa que desviou. Depois dessa janela, o golpe acerta se a pessoa ainda está no volume.
+- Deslocamento de **5 m em 0,6 s**, custo **15 de vigor**. A direção é a do movimento nesse instante; parado, é para trás da mira (`DirecaoDaEsquiva`). Nos primeiros **0,3 s** (`JanelaDeInvulnerabilidadeSegundos`) o dano direto some; o servidor confere o instante, o client não avisa que desviou. Depois dessa janela, o golpe acerta se a pessoa ainda está no volume.
 - Sem vigor suficiente, a esquiva é recusada.
 - Não atravessa paredes nem sai do chão válido; o servidor valida a posição final.
 - Serve contra ataques telegrafados: o aviso dá tempo de esquivar ou sair da área.
-- **Testes esperados:** esquiva gasta 15 de vigor; recusada sem vigor; não atravessa parede; golpe no meio dos primeiros 0,3 s não tira vida; golpe depois desses 0,3 s, ainda no volume, tira vida.
+- **Testes esperados:** esquiva gasta 15 de vigor; recusada sem vigor; não atravessa parede; andando, sai na direção do movimento; parado, sai para trás da mira; golpe no meio dos primeiros 0,3 s não tira vida; golpe depois desses 0,3 s, ainda no volume, tira vida.
 
 ### 4. Um inimigo comum, em grupo
 

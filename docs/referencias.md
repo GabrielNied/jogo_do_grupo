@@ -7,7 +7,7 @@ Ao definir um sistema novo, comece pela referência dele, descreva o que muda e 
 ## Preferências do grupo
 
 - **Combate (2026-10-10):** o grupo gosta do equilíbrio do **New World**: ação, mas **não frenético e sem spam de skills**. Poucas skills, com recarga que pesa, e o resto do tempo ataques básicos, esquiva e posicionamento.
-- **Troca de arma:** interessante, a pensar (veja S10 na [validação](brainstorm/validacao.md)).
+- **Troca de arma:** decidida em 2026-10-12, duas armas como o New World. A fatia atual joga com uma espada ([combate](features/combate.md#duas-armas-depois-desta-fatia)).
 
 ## Referência por sistema
 
@@ -15,7 +15,7 @@ Ao definir um sistema novo, comece pela referência dele, descreva o que muda e 
 |---|---|---|---|
 | Ritmo do combate | New World | Elden Ring (contato e leitura do corpo), Black Desert (o contrário: combos rápidos) | Uma arma nesta fatia; a reação ao acerto não renova |
 | Build sem classe | Throne and Liberty, Albion Online | New World, Guild Wars 2 | As skills dos itens são sorteadas; a combinação de itens e a fusão criam builds que não existem nesses jogos |
-| Troca de arma | New World, Throne and Liberty | Guild Wars 2 | A pensar (S10) |
+| Troca de arma | New World | Throne and Liberty, Guild Wars 2 | Duas armas decididas; a fatia joga com uma espada |
 | Skills nos itens | Albion Online (skill por peça) | Path of Exile (gemas), Ragnarok (cartas), Destiny 2 (perks aleatórios) | Sorteio aleatório + fusão |
 | Itens e loot | Diablo IV, Path of Exile | Destiny 2 | Skills fazem parte do sorteio do item |
 | Papéis e buffs | World of Warcraft | Throne and Liberty (papel pela arma), Guild Wars 2 (combos) | O papel vem dos itens; os buffs vêm das skills dos itens |

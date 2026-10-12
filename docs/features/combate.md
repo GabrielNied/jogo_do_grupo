@@ -41,7 +41,7 @@ Vêm do [Livro de ideias](../brainstorm/figjam.md) (seção 10). São **proposta
 - [x] **Bloqueio por defesa, adotado em 2026-10-11 (/decida, #344), fácil de mudar:** sem parry nem janela de timing. Desde 2026-10-12 a guarda segurada é o bloqueio ativo ([abaixo](#guarda-segurada)); esta fórmula só reduz o dano que a guarda não segurou. Defesa >= 1,5x a potência de bloqueio do golpe anula o dano direto; abaixo disso reduz proporcionalmente, até 80%. Os dois números ficam em constantes nomeadas. O client avisa defesa insuficiente. Proposta original do livro: (sem parry nem janela de timing): com defesa de pelo menos 1,5x a potência de bloqueio do golpe, anula o dano direto; abaixo disso reduz proporcionalmente, até 80%. Responde em parte à pergunta de bloqueio acima. Depende da defesa (equipamento, [itens.md](itens.md)); o dano recebido hoje não tem defesa (`ServicoDeDanoRecebido.DanoFinal`).
 - [x] **Sem defesa de timing, adotado em 2026-10-11 (#344):** a "defesa que abre oportunidade" fica de fora. O livro rejeita parry e bloqueio perfeito. **Conflito leve** com a sugestão "defesa que abre oportunidade" (bloquear no timing certo desequilibra o inimigo), que está só em "Sugestões para discussão" do board.
 - [x] ~~**Esquiva sem invulnerabilidade:**~~ Revisto em 2026-10-12: a esquiva segue o New World. Nos primeiros 0,3 s o dano direto some (seção 3 da [fatia](fatia-jogavel.md)). Quem decide é o servidor.
-- [ ] **Ataques básicos por arma** (espada corta, martelo varre, arco com disparo ou tiro carregado, cajado com pulso ou projétil ampliado): hoje só a espada existe. Outras armas entram com [itens.md](itens.md).
+- [x] ~~**Ataques básicos por arma**~~ Decidido em 2026-10-12: a espada está na fatia. Martelo, arco e cajado, quando entrarem, usam a mesma cadeia, o mesmo pesado, a mesma esquiva e a mesma guarda. O volume de cada uma fica na tarefa dessa arma. Sem inventar o formato agora.
 - [ ] **Mira e volumes de acerto:** mouse direciona golpes, projéteis e áreas, sem seleção automática obrigatória; a área visível da skill deve ser a área real de acerto; volumes generosos (cone, faixa, círculo). Coerente com o cone de 90° já implementado; vale como critério para as skills.
 - [ ] **Movimentos além de correr e esquivar:** pulo, natação e escalada (proposta de escalada em superfícies e bordas do mapa; rios cruzados a nado, com gelo como alternativa). Dono: [personagem.md](personagem.md) e [mundo.md](mundo.md).
 - [ ] **Recursos:** pools-base de 100 vigor e 100 energia e regeneração de 10 vigor/s e 5 energia/s após 2 s **já coincidem** com a [fatia](fatia-jogavel.md#1-atributos-e-recursos). Novidade: poções, refeições e descanso em locais seguros como fontes de recuperação, e equipamentos e comida que modificam a regeneração.
@@ -57,7 +57,7 @@ Decidido em 2026-10-12 e revisto no mesmo dia: a luta segue o New World. A sensa
 
 - **Parry.** Segurar a guarda não tem janela de timing. Acertar o instante certo não abre contra-ataque.
 - **Combo que prende.** A reação ao acerto não renova ([abaixo](#reação-ao-acerto)).
-- **Duas armas nesta fatia.** O desenho é o do New World; a espada sozinha vale até a S10.
+- **Duas armas nesta fatia.** O desenho está [abaixo](#duas-armas-depois-desta-fatia); a espada sozinha vale até lá.
 
 Para implementar sem refazer a leitura:
 
@@ -69,10 +69,18 @@ Para implementar sem refazer a leitura:
 
 Decidido em 2026-10-12, como no New World, fácil de mudar. Sem parry. Quem decide é o servidor: o client só diz que a guarda está segurada.
 
-- Segurar a guarda anda a no máximo **40%** da corrida. Não vale durante o preparo nem no momento de acerto de um golpe seu. Na recuperação, segurar a guarda corta o que falta dela.
+- Segurar a guarda anda a no máximo **40%** da corrida e pausa a regeneração do vigor ([fatia](fatia-jogavel.md#1-atributos-e-recursos)). Não vale durante o preparo nem no momento de acerto de um golpe seu. Na recuperação, segurar a guarda corta o que falta dela.
 - O golpe recebido custa **1 de vigor por ponto de dano** (`VigorPorDanoBloqueado`), antes da defesa do equipamento. Com vigor suficiente, o dano desse golpe é zero e o vigor desce esse tanto.
 - Sem vigor para o custo, a guarda quebra: o vigor vai a zero, o dano entra (a defesa do equipamento da [#344](https://github.com/GabrielNied/jogo_do_grupo/issues/344) vale nesse caso) e a [reação ao acerto](#reação-ao-acerto) começa.
 - A fórmula da #344 não substitui a guarda. Ela só reduz o que passou.
+
+### Duas armas (depois desta fatia)
+
+Decidido em 2026-10-12, opção B da [S10](../brainstorm/validacao.md#s10-troca-de-arma). Não entra na luta da espada.
+
+- Duas armas equipadas. Cada uma tem até **3** skills ativas: as skills sorteadas naquela arma, não uma árvore à parte. A recarga é da arma. Trocar não zera nem avança a recarga da outra.
+- A troca não tem recarga própria. Dura **0,4 s** (`DuracaoDaTrocaSegundos`). Nesse tempo não sai golpe, esquiva nem guarda.
+- Martelo, arco e cajado reaproveitam cadeia, pesado, esquiva e guarda. O volume do golpe de cada uma espera a tarefa dela.
 
 ### O que o client mostra e o que o servidor decide
 
@@ -82,6 +90,7 @@ Decidido em 2026-10-12. A animação, o passo na tela e a resposta no instante d
 - A sensação de desviar e tomar dano mesmo assim, hoje, vem do volume não coincidir com o modelo. Com o contato, quem saiu do cone antes do fim do preparo não leva dano, no servidor e na tela.
 - O client começa a esquiva e o golpe na hora do botão, sem esperar a resposta. A vida só muda quando o servidor confirma o acerto.
 - **Pausa no acerto** (decidido em 2026-10-12): quando a confirmação chega, o client segura a pose de quem bateu e de quem levou por **70 ms** (`PausaVisualNoAcertoMs`). O relógio do servidor não para. Não é invulnerabilidade nem atordoamento.
+- **Clipes da espada** (decidido em 2026-10-12): três poses de leve (uma por passo da cadeia), uma de pesado, uma de esquiva, uma de guarda e uma de dano. A pose de contato do leve e do pesado cai no fim do preparo. A pausa de 70 ms segura essas poses. Clipe que faltar fica com o `artista-personagens`; o dono de Combate liga o tempo.
 - Se a mensagem da esquiva chegar depois que o servidor já resolveu o golpe, o dano vale. Rebobinar o mundo até o instante do botão é a compensação de latência, fora desta fatia ([#172](https://github.com/GabrielNied/jogo_do_grupo/issues/172)).
 - O teste de cone nesse instante não aumenta a carga: o servidor já dá o passo da IA dez vezes por segundo, e a animação não entra nesse passo.
 
