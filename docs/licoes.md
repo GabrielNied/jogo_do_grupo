@@ -48,5 +48,5 @@ Formato: `### AAAA-MM-DD · título` com **O que houve**, **Regra** e **Origem**
 ### 2026-10-11 · Hooks no PowerShell sem sh no PATH
 
 - **O que houve:** o commit da #519 falhou com `/usr/bin/env: sh: No such file or directory`, apesar de o Git estar instalado.
-- **Regra:** no PowerShell, confira `Get-Command sh` antes do commit; se necessário, acrescente a pasta `bin` da instalação do Git ao PATH apenas da sessão. Rode novamente com os hooks ativos, sem `--no-verify`.
+- **Regra:** se isso ocorrer no PowerShell, rode o commit pelo Git Bash, com `/usr/bin:/bin` no PATH da sessão. Apenas localizar `sh.exe` pelo PowerShell pode não resolver o PATH visto pelos hooks. Mantenha os hooks ativos, sem `--no-verify`.
 - **Origem:** issue #519.
