@@ -9,9 +9,25 @@ namespace JogoDoGrupo.Server.Features.Combate;
 /// </summary>
 public sealed class AvisosNaArea(ServidorTempoReal tempoReal, IPosicoesDoMundo posicoes)
 {
-    public void Enviar<T>(string area, long personagemId, ushort id, T mensagem)
+    /// <param name="incluirDono">Falso quando o dono já sabe (ex.: soltou a guarda ele mesmo).</param>
+    public void Enviar<T>(
+        string area,
+        long personagemId,
+        ushort id,
+        T mensagem,
+        bool incluirDono = true
+    )
     {
-        var presentes = new HashSet<long>(posicoes.PersonagensNaArea(area)) { personagemId };
+        var presentes = new HashSet<long>(posicoes.PersonagensNaArea(area));
+        if (incluirDono)
+        {
+            presentes.Add(personagemId);
+        }
+        else
+        {
+            presentes.Remove(personagemId);
+        }
+
         foreach (var sessao in tempoReal.Sessoes)
         {
             if (presentes.Contains(sessao.PersonagemId))

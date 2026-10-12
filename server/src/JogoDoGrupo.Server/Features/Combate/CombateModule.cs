@@ -60,7 +60,9 @@ public sealed class CombateModule : IFeatureModule
                 sp.GetRequiredService<IPosicoesDoMundo>(),
                 sp.GetRequiredService<ControleDeAcoes>(),
                 sp.GetRequiredService<ServicoDeQueda>(),
-                sp.GetService<ILimiteDeVelocidadeDoMundo>()
+                sp.GetService<ILimiteDeVelocidadeDoMundo>(),
+                escopos: sp.GetRequiredService<IServiceScopeFactory>(),
+                log: sp.GetRequiredService<ILogger<ServicoDeGuarda>>()
             );
             _guarda = servico;
             return servico;

@@ -191,16 +191,20 @@ public class ReacaoEGuardaRedeTestes(ServidorDeAtaque servidor) : IClassFixture<
     public async Task Guarda_pede_ao_mundo_o_teto_de_40_por_cento_e_solta_ao_largar()
     {
         using var ana = await NovoJogadorAsync();
+        using var beto = await NovoJogadorAsync();
 
         Guardar(ana, true);
         Assert.True((await GuardaAsync(ana)).Segurando);
+        Assert.True((await GuardaAsync(beto)).Segurando);
         Assert.Contains(
             servidor.Limite.Pedidos,
             p => p.PersonagemId == ana.Id && p.Fator == RegrasGuarda.VelocidadeComGuarda
         );
 
+        // Quem soltou não recebe o próprio eco; quem está na área vê a guarda descer.
         Guardar(ana, false);
-        Assert.False((await GuardaAsync(ana)).Segurando);
+        Assert.False((await GuardaAsync(beto)).Segurando);
+        Assert.Equal(1, ana.Recebidas(CombateMessageIds.GuardaMudou));
         Assert.Contains(servidor.Limite.Pedidos, p => p.PersonagemId == ana.Id && p.Fator == 1.0);
     }
 }

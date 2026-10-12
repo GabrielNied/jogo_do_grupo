@@ -10,8 +10,8 @@ using UnityEngine.InputSystem;
 namespace JogoDoGrupo.Client.Features.Combate
 {
     /// <summary>
-    /// Ataque da primeira arma no client: botão esquerdo envia o ataque leve e o direito, o
-    /// pesado, com a direção da mira; mostra o que o servidor responde (animação no início do
+    /// Ataque da primeira arma no client: o clique no botão esquerdo envia o ataque leve e
+    /// segurá-lo por 0,3 s, o pesado, com a direção da mira; mostra o que o servidor responde (animação no início do
     /// ataque, número de dano no acerto, aviso de recusa e barras de recursos). Nada de dano,
     /// custo ou acerto é decidido aqui.
     /// </summary>
@@ -31,19 +31,18 @@ namespace JogoDoGrupo.Client.Features.Combate
         private ControleRecursos _recursos;
         private ProntidaoLocal _prontidao;
         private InputAction _leve;
-        private InputAction _pesado;
         private TipoDeAtaque _ultimoTipoProprio = TipoDeAtaque.Leve;
         private int _ultimoPassoProprio;
 
         // Compromisso do golpe: corpo preso a 40% da corrida e girando só até o teto do ataque.
         private TipoDeAtaque _tipoEmCurso = TipoDeAtaque.Leve;
         private float _giroDoCorpo;
-        private ControleTerceiraPessoa _controle;
-        private float _andarOriginal;
-        private float _correrOriginal;
-        private float _andarLimitado;
-        private float _correrLimitado;
-        private bool _limitando;
+        private const string FonteDoTeto = "golpe";
+
+        // Botão do ataque: soltar antes de SegurarParaPesadoSegundos é o leve; segurar até lá
+        // começa o pesado (docs/features/interface.md, Teclas e atalhos).
+        private double _segurandoDesde = -1d;
+        private bool _pesadoDoClique;
 
         public void Configurar(
             long personagemId,
@@ -59,17 +58,12 @@ namespace JogoDoGrupo.Client.Features.Combate
             _recursos = recursos;
             _prontidao = prontidao;
 
-            // Botões do mouse, como em docs/features/interface.md (Teclas e atalhos).
+            // Botão esquerdo, como em docs/features/interface.md (Teclas e atalhos): o clique é
+            // o leve e segurar por 0,3 s é o pesado. O direito é a guarda (ControleDefesa).
             _leve = new InputAction("AtaqueLeve", InputActionType.Button, "<Mouse>/leftButton");
-            _pesado = new InputAction(
-                "AtaquePesado",
-                InputActionType.Button,
-                "<Mouse>/rightButton"
-            );
             if (isActiveAndEnabled)
             {
                 _leve.Enable();
-                _pesado.Enable();
             }
 
             _assinaturas.Add(
@@ -101,14 +95,12 @@ namespace JogoDoGrupo.Client.Features.Combate
         private void OnEnable()
         {
             _leve?.Enable();
-            _pesado?.Enable();
         }
 
         private void OnDisable()
         {
             SoltarVelocidade();
             _leve?.Disable();
-            _pesado?.Disable();
         }
 
         // Depois do Update do ControleTerceiraPessoa (que vira o corpo para onde anda): durante
@@ -138,55 +130,12 @@ namespace JogoDoGrupo.Client.Features.Combate
             jogador.transform.rotation = Quaternion.Euler(0f, _giroDoCorpo, 0f);
         }
 
-        private void PrenderVelocidade(GameObject jogador)
-        {
-            if (_limitando)
-            {
-                return;
-            }
-
-            _controle = jogador.GetComponent<ControleTerceiraPessoa>();
-            if (_controle == null)
-            {
-                return;
-            }
-
-            var movimento = _controle.Movimento;
-            _andarOriginal = movimento.VelocidadeAndar;
-            _correrOriginal = movimento.VelocidadeCorrer;
-            _andarLimitado = ApresentacaoAtaque.VelocidadeDuranteGolpe(_andarOriginal);
-            _correrLimitado = ApresentacaoAtaque.VelocidadeDuranteGolpe(_correrOriginal);
-            movimento.VelocidadeAndar = _andarLimitado;
-            movimento.VelocidadeCorrer = _correrLimitado;
-            _limitando = true;
-        }
+        private void PrenderVelocidade(GameObject jogador) =>
+            _prontidao.Teto.Prender(FonteDoTeto, jogador, ApresentacaoAtaque.FatorDoGolpe);
 
         // Só devolve o que ainda é o valor preso: se o servidor mandou outra velocidade no meio
         // do golpe, vale a dele.
-        private void SoltarVelocidade()
-        {
-            if (!_limitando)
-            {
-                return;
-            }
-
-            _limitando = false;
-            if (_controle == null)
-            {
-                return;
-            }
-
-            var movimento = _controle.Movimento;
-            if (Mathf.Approximately(movimento.VelocidadeAndar, _andarLimitado))
-            {
-                movimento.VelocidadeAndar = _andarOriginal;
-            }
-
-            if (Mathf.Approximately(movimento.VelocidadeCorrer, _correrLimitado))
-            {
-                movimento.VelocidadeCorrer = _correrOriginal;
-            }
-        }
+        private void SoltarVelocidade() => _prontidao?.Teto.Soltar(FonteDoTeto);
 
         private void OnDestroy()
         {
@@ -197,7 +146,6 @@ namespace JogoDoGrupo.Client.Features.Combate
 
             _assinaturas.Clear();
             _leve?.Dispose();
-            _pesado?.Dispose();
         }
 
         private void Update()
@@ -211,18 +159,47 @@ namespace JogoDoGrupo.Client.Features.Combate
             _aviso.Atualizar(Time.deltaTime);
             _painelAtaque?.Mostrar(_numeros, _aviso);
 
-            if (!PodeAtacar())
+            if (_leve == null)
             {
                 return;
             }
 
-            if (_leve != null && _leve.WasPressedThisFrame())
+            var agora = Time.unscaledTime;
+            if (_leve.WasPressedThisFrame() && PodeAtacar())
             {
-                Enviar(TipoDeAtaque.Leve);
+                _segurandoDesde = agora;
+                _pesadoDoClique = false;
             }
-            else if (_pesado != null && _pesado.WasPressedThisFrame())
+
+            if (_segurandoDesde < 0d)
             {
+                return;
+            }
+
+            if (!PodeAtacar())
+            {
+                _segurandoDesde = -1d; // Abriu um menu no meio do clique: o clique é descartado.
+                return;
+            }
+
+            if (
+                !_pesadoDoClique
+                && _leve.IsPressed()
+                && agora - _segurandoDesde >= RegrasAtaque.SegurarParaPesadoSegundos
+            )
+            {
+                _pesadoDoClique = true;
                 Enviar(TipoDeAtaque.Pesado);
+            }
+            else if (!_leve.IsPressed())
+            {
+                // Soltou: antes dos 0,3 s é o leve; o pesado já saiu enquanto segurava.
+                if (!_pesadoDoClique)
+                {
+                    Enviar(TipoDeAtaque.Leve);
+                }
+
+                _segurandoDesde = -1d;
             }
         }
 
@@ -247,6 +224,7 @@ namespace JogoDoGrupo.Client.Features.Combate
                 return;
             }
 
+            ControleDefesa.LargarParaAgir(_prontidao); // Atacar solta a guarda, antes do pedido.
             var intencao = _gerador.Criar(tipo, DirecaoDaMira());
             ConexaoTempoReal.Enviar(CombateMessageIds.IntencaoDeAtaque, intencao);
             _prontidao?.MarcarAtaque(tipo, agora);
