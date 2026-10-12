@@ -41,6 +41,7 @@ Para cada pronta ou recém-destravada cuja implementação tem uma escolha técn
 
 ## 4. Organizar
 
+- **Prioridade:** toda issue que você criar, dividir ou recortar sai com um rótulo `prio:*` ([Prioridade das tarefas](../../../docs/agentes.md#prioridade-das-tarefas)). Confira também as abertas sem rótulo (o `listar` marca com ⚠) e classifique-as. Mudou a prioridade pela decisão? Troque o rótulo e diga na issue.
 - Duas issues descrevem a mesma cena: comente nas duas qual fica, e deixe a outra apontando para ela.
 - Issue de épico grande sem cena: não a parta em código. Se couber, comente o próximo recorte jogável para o `/trabalhe` puxar.
 - PR aberto que já cumpre a cena: não reimplemente. O relatório cita o link.

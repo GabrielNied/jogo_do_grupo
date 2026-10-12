@@ -16,6 +16,7 @@ import { escopos, tipos } from "../../commitlint.config.mjs";
 import { readdirSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { compararDisponiveis, textoDaPrioridade } from "./prioridade-lista.mjs";
 import { corpoSubtarefa } from "./subtarefa.mjs";
 import { ligarNodeModules } from "./worktree-npm.mjs";
 import {
@@ -298,10 +299,11 @@ async function listarTarefas() {
   if (disponiveis.length === 0) {
     console.log("   (Nenhuma tarefa livre no momento)");
   } else {
+    disponiveis.sort(compararDisponiveis);
     for (const { issue, labels } of disponiveis) {
       const agentesTags = labels.filter((l) => l.startsWith("agente:")).join(", ") || "geral";
       console.log(`   #${issue.number} - ${issue.title}`);
-      console.log(`     Recomendado para: [${agentesTags}]`);
+      console.log(`     ${textoDaPrioridade(labels)} | Recomendado para: [${agentesTags}]`);
     }
   }
 
