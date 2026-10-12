@@ -36,10 +36,10 @@ namespace JogoDoGrupo.Client.Features.Itens
             lista.Add(Botao("Voltar aos equipamentos", () => _enviar(null, null)));
             var receptores = new List<EntradaInventario>();
             foreach (var item in estado.Equipados)
-                if (item.Equipamento != null)
+                if (RegrasEquipamentos.DadosDe(item) != null)
                     receptores.Add(item);
             foreach (var item in estado.Inventario)
-                if (item.Equipamento != null)
+                if (RegrasEquipamentos.DadosDe(item) != null)
                     receptores.Add(item);
             if (receptores.Count == 0)
             {
@@ -115,7 +115,7 @@ namespace JogoDoGrupo.Client.Features.Itens
                     foreach (var item in estado.Inventario)
                         if (
                             item.InstanciaId != recebe.InstanciaId
-                            && item.Equipamento != null
+                            && RegrasEquipamentos.DadosDe(item) != null
                             && RegrasInfusao.Validar(recebe.Equipamento, item.Equipamento) == null
                         )
                         {

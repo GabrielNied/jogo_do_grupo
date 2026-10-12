@@ -17,16 +17,22 @@ namespace JogoDoGrupo.Client.Features.Itens
 
         private readonly VisualElement _raiz;
         private readonly Func<bool> _bloqueado;
+        private readonly Func<VisualElement> _evitar;
         private readonly VisualElement _caixa;
         private IVisualElementScheduledItem _agendado;
         private Vector2 _posicao;
 
         /// <param name="raiz">Raiz da interface.</param>
         /// <param name="bloqueado">Verdadeiro enquanto não pode mostrar (arrastando).</param>
-        public TooltipDoInventario(VisualElement raiz, Func<bool> bloqueado)
+        public TooltipDoInventario(
+            VisualElement raiz,
+            Func<bool> bloqueado,
+            Func<VisualElement> evitar = null
+        )
         {
             _raiz = raiz;
             _bloqueado = bloqueado;
+            _evitar = evitar;
             _caixa = new VisualElement { name = "itens.tooltip" };
             _caixa.AddToClassList(EstiloItens.Tooltip);
             _caixa.style.display = DisplayStyle.None;
@@ -126,7 +132,8 @@ namespace JogoDoGrupo.Client.Features.Itens
             return label;
         }
 
-        // Ao lado do ponteiro, sem sair da tela: vira para a esquerda/para cima se faltar espaço.
+        // Ao lado do ponteiro, sem sair da tela e sem cobrir o elemento a evitar (o painel de
+        // bônus): testa direita/esquerda, embaixo/em cima, e fica com o primeiro que serve.
         private void Ajustar()
         {
             var local = _raiz.WorldToLocal(_posicao);
@@ -137,14 +144,46 @@ namespace JogoDoGrupo.Client.Features.Itens
             if (float.IsNaN(altura))
                 altura = 0;
             var limite = _raiz.layout;
-            var x = local.x + Deslocamento;
-            var y = local.y + Deslocamento;
-            if (x + largura > limite.width)
-                x = Mathf.Max(0, local.x - Deslocamento - largura);
-            if (y + altura > limite.height)
-                y = Mathf.Max(0, limite.height - altura);
-            _caixa.style.left = x;
-            _caixa.style.top = y;
+            var evitar = _evitar?.Invoke();
+            var evitando = evitar != null && !float.IsNaN(evitar.worldBound.width);
+            var proibido = evitando
+                ? new Rect(_raiz.WorldToLocal(evitar.worldBound.position), evitar.worldBound.size)
+                : default;
+
+            var direita = local.x + Deslocamento;
+            var esquerda = local.x - Deslocamento - largura;
+            var embaixo = local.y + Deslocamento;
+            var emCima = local.y - Deslocamento - altura;
+            var candidatos = new[]
+            {
+                new Vector2(direita, embaixo),
+                new Vector2(esquerda, embaixo),
+                new Vector2(direita, emCima),
+                new Vector2(esquerda, emCima),
+            };
+            var escolhido = Limitar(candidatos[0], largura, altura, limite);
+            foreach (var candidato in candidatos)
+            {
+                var posicao = Limitar(candidato, largura, altura, limite);
+                var cabe = posicao == candidato;
+                var cobre =
+                    evitando && proibido.Overlaps(new Rect(posicao, new Vector2(largura, altura)));
+                if (cabe && !cobre)
+                {
+                    escolhido = posicao;
+                    break;
+                }
+            }
+
+            _caixa.style.left = escolhido.x;
+            _caixa.style.top = escolhido.y;
+        }
+
+        private static Vector2 Limitar(Vector2 posicao, float largura, float altura, Rect limite)
+        {
+            var x = Mathf.Clamp(posicao.x, 0, Mathf.Max(0, limite.width - largura));
+            var y = Mathf.Clamp(posicao.y, 0, Mathf.Max(0, limite.height - altura));
+            return new Vector2(x, y);
         }
     }
 }

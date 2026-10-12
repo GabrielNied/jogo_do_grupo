@@ -210,6 +210,17 @@ namespace JogoDoGrupo.Shared.Features.Itens
         public static PosicaoEquipamento Secundaria(int conjunto) =>
             conjunto == 1 ? PosicaoEquipamento.Secundaria1 : PosicaoEquipamento.Secundaria2;
 
+        /// <summary>
+        /// Os dados de equipamento da entrada, ou <c>null</c> se o item não tem. O client lê JSON
+        /// com <c>JsonUtility</c>, que troca <c>"Equipamento": null</c> por um objeto vazio (tipo
+        /// <c>Capacete</c>, modelo 0); só um modelo real conta como equipamento.
+        /// </summary>
+        public static Equipamento DadosDe(EntradaInventario entrada)
+        {
+            var dados = entrada?.Equipamento;
+            return dados != null && dados.ModeloId != 0 ? dados : null;
+        }
+
         public static bool Aceita(TipoEquipamento tipo, PosicaoEquipamento posicao)
         {
             if (posicao >= PosicaoEquipamento.Capacete && posicao <= PosicaoEquipamento.Cinto)

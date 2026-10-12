@@ -53,7 +53,7 @@ namespace JogoDoGrupo.Client.Features.Itens
         public static DadosTooltip Montar(EntradaInventario entrada, EquipamentosResponse estado)
         {
             var dados = new DadosTooltip { Nome = entrada.Nome };
-            var item = entrada.Equipamento;
+            var item = RegrasEquipamentos.DadosDe(entrada);
             if (item == null)
                 return dados;
 
@@ -127,7 +127,7 @@ namespace JogoDoGrupo.Client.Features.Itens
         {
             var encaixe = LogicaInventario.EncaixeAutomatico(item.Tipo, estado);
             var equipado = LogicaInventario.NoEncaixe(estado, encaixe);
-            var atual = equipado?.Equipamento;
+            var atual = RegrasEquipamentos.DadosDe(equipado);
             dados.TituloComparacao =
                 atual == null
                     ? TextosEquipamento.NomePosicao(encaixe) + ": vazio"

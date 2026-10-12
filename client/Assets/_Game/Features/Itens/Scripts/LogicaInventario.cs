@@ -95,7 +95,8 @@ namespace JogoDoGrupo.Client.Features.Itens
         /// <summary>Tipo da peça, vindo do exemplar ou, nos itens antigos, do catálogo.</summary>
         public static TipoEquipamento? TipoDe(EntradaInventario entrada)
         {
-            var dados = entrada.Equipamento ?? CatalogoEquipamentos.Obter(entrada.ItemId);
+            var dados =
+                RegrasEquipamentos.DadosDe(entrada) ?? CatalogoEquipamentos.Obter(entrada.ItemId);
             if (dados == null)
                 return null;
             return dados.Tipo;
