@@ -29,7 +29,7 @@ Cálculo de dano, seleção de alvo e efeitos de status. Usado por PvE e PvP.
 - [ ] **Troca de arma** (duas armas, como New World e Throne and Liberty)? Veja S10 na [validação](../brainstorm/validacao.md)
 - [x] ~~Bosses com ataques telegrafados?~~ Decidido em 2026-10-10: sim (veja "Definido")
 - [ ] Como o servidor valida acertos com a latência (lag compensation)? Decidido pelo Gabriel em 2026-10-11 **para a fatia**: sem compensação de lag (o cone é medido no momento do acerto, com a posição que o servidor tem). Depois da fatia a pergunta segue aberta (issue #172).
-- [ ] Quais efeitos de status existem?
+- [x] ~~Quais efeitos de status existem?~~ Adotado em 2026-10-11 (/decida, #171), fácil de mudar: seis efeitos, veja [Efeitos de status](#efeitos-de-status-171).
 - [x] ~~Como funciona o agro (ameaça) para o tank segurar os inimigos?~~ Adotado em 2026-10-12 (/decida, #169), fácil de mudar: tabela de ameaça por inimigo, veja [Ameaça (agro)](#ameaça-agro-169).
 - [ ] Quais buffs cada papel traz? Eles acumulam?
 - [ ] Um jogador pode trocar de papel trocando de itens no meio da dungeon?
@@ -177,3 +177,20 @@ Quem decide: **servidor**. O dono é [Mobs](mobs.md), que já escolhe o alvo; Co
 - **Ainda sem efeito:** cura e item de tank não existem; o multiplicador e a ameaça de cura entram quando chegarem ([#170](https://github.com/GabrielNied/jogo_do_grupo/issues/170) e [itens.md](itens.md)). Até lá só o dano conta, o que já faz o jogador que mais bate segurar o inimigo.
 - **Implementação sugerida:** contas puras em `RegrasAmeaca` no shared de Mobs (somar ameaça, escolher alvo com margem, provocação), como já é `RegrasInimigo.EscolherAlvo`. Código próprio, sem biblioteca: é uma tabela pequena por inimigo.
 - **Testes esperados:** quem bate mais vira o alvo só depois de passar a margem (110% perto, 130% longe); empate não troca; tank com 3x segura o alvo contra quem dá o dobro de dano; provocar vira o alvo na hora e segura por 4 s; caído e quem saiu da área saem da tabela; desistir e reaparecer zeram a tabela; dano além da vida que restava não conta.
+
+### Efeitos de status (#171)
+
+Adotado em 2026-10-11 (/decida), a partir da proposta da issue; é valor inicial, calibrável em constantes nomeadas ([valores de balanceamento](../convencoes.md#valores-de-balanceamento)). O servidor aplica, acumula e expira; o client só mostra o ícone e o tempo restante.
+
+| Efeito | Regra | Acúmulo |
+|---|---|---|
+| Lentidão | −30% de velocidade | não acumula; reaplicar renova a duração |
+| Atordoado | não age; no máximo 2 s; depois **6 s de imunidade** a atordoar | não acumula |
+| Sangramento | dano por segundo | até 3 acúmulos |
+| Queimadura | dano por segundo | até 3 acúmulos |
+| Vulnerável | +15% de dano recebido | não acumula |
+| Fortalecido | +15% de dano causado | não acumula |
+
+- Cada efeito tem duração própria, em constante nomeada.
+- **Bosses são imunes a atordoado:** em vez disso acumulam uma barra de **quebra**; ao encher, abre a janela de vulnerabilidade da [fatia jogável](fatia-jogavel.md).
+- Testes esperados: duração e acúmulo de cada efeito, imunidade após o atordoado, boss não atordoa e enche a barra de quebra.

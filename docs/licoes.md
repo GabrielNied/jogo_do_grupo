@@ -45,6 +45,12 @@ Formato: `### AAAA-MM-DD · título` com **O que houve**, **Regra** e **Origem**
 - **Regra:** a preparação do hook grava o pid em `~/.cache/jogo-do-grupo/preparar-nuvem.pid`, e o `npm run nuvem:preparar` espera ela terminar antes de começar. O comando está em [scripts/agentes/preparar-nuvem.mjs](../scripts/agentes/preparar-nuvem.mjs).
 - **Origem:** rodada do loop autônomo de 2026-10-12 (PR #525).
 
+### 2026-10-11 · Hooks no PowerShell sem sh no PATH
+
+- **O que houve:** o commit da #519 falhou com `/usr/bin/env: sh: No such file or directory`, apesar de o Git estar instalado.
+- **Regra:** se isso ocorrer no PowerShell, rode o commit pelo Git Bash, com `/usr/bin:/bin` no PATH da sessão. Apenas localizar `sh.exe` pelo PowerShell pode não resolver o PATH visto pelos hooks. Mantenha os hooks ativos, sem `--no-verify`.
+- **Origem:** issue #519.
+
 ### 2026-10-12 · Unity do CI morto por outro job com a mesma licença (issue #529)
 
 - **O que houve:** três execuções seguidas do Client (Unity) na `main` (e uma de PR) morreram com `Killed` / exit 137 segundos depois de ativar a licença, sem compilar nada. Cada uma coincidiu com outro job do Unity rodando: a licença Personal é uma só. Uma pendência "Client falhou na main" chegou a ser corrigida com mudança de código enquanto a causa da falha seguinte era essa.
