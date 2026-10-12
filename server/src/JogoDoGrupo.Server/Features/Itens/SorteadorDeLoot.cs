@@ -3,21 +3,23 @@ using JogoDoGrupo.Shared.Features.Itens;
 namespace JogoDoGrupo.Server.Features.Itens;
 
 /// <summary>
-/// Decide o que um inimigo comum derrotado dá a <b>um</b> participante. É uma interface para os
+/// Decide o que um inimigo derrotado dá a <b>um</b> participante. É uma interface para os
 /// testes trocarem o sorteio por um resultado conhecido.
 /// </summary>
 public interface ISorteadorDeLoot
 {
     /// <summary>
-    /// Ids do catálogo sorteados para um participante: de zero a
-    /// <see cref="RegrasLoot.MaximoPorInimigo"/> itens. Cada chamada é um sorteio novo.
+    /// Peças sorteadas para um participante: de zero a <see cref="RegrasLoot.MaximoPorInimigo"/>.
+    /// A raridade pesa pela <paramref name="origem"/> e o grau vem do nível do inimigo. Cada
+    /// chamada é um sorteio novo.
     /// </summary>
-    int[] Sortear();
+    QuedaDeLoot[] Sortear(OrigemDoLoot origem, int nivelDoInimigo);
 }
 
 /// <summary>
-/// Sorteio de verdade: a quantidade vem de <see cref="RegrasLoot.QuantidadeSorteada"/> e cada
-/// item é uniforme entre os ids de <see cref="CatalogoItens.Todos"/>, com reposição.
+/// Sorteio de verdade: a quantidade vem de <see cref="RegrasLoot.QuantidadeSorteada"/>, cada
+/// item vira equipamento com <see cref="ConfigLoot.ChanceDeEquipamento"/> e a peça sai de
+/// <see cref="TabelaDeLoot.Sortear"/> (as 72 do catálogo; poção e moeda de teste não caem).
 /// </summary>
 public sealed class SorteadorDeLoot(Random aleatorio) : ISorteadorDeLoot
 {
@@ -27,17 +29,21 @@ public sealed class SorteadorDeLoot(Random aleatorio) : ISorteadorDeLoot
     public SorteadorDeLoot()
         : this(Random.Shared) { }
 
-    public int[] Sortear()
+    public QuedaDeLoot[] Sortear(OrigemDoLoot origem, int nivelDoInimigo)
     {
         lock (_trava)
         {
-            var itens = new int[RegrasLoot.QuantidadeSorteada(aleatorio.NextDouble())];
-            for (var i = 0; i < itens.Length; i++)
+            var quedas = new List<QuedaDeLoot>(RegrasLoot.MaximoPorInimigo);
+            var quantidade = RegrasLoot.QuantidadeSorteada(aleatorio.NextDouble());
+            for (var i = 0; i < quantidade; i++)
             {
-                itens[i] = CatalogoItens.Todos[aleatorio.Next(CatalogoItens.Todos.Length)];
+                if (aleatorio.NextDouble() < ConfigLoot.ChanceDeEquipamento)
+                {
+                    quedas.Add(TabelaDeLoot.Sortear(aleatorio, origem, nivelDoInimigo));
+                }
             }
 
-            return itens;
+            return quedas.ToArray();
         }
     }
 }

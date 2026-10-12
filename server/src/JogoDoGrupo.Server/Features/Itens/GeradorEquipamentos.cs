@@ -58,10 +58,7 @@ public sealed class GeradorEquipamentos(ConfigEquipamentos config)
         item.ValorBaseInfusivel = atributos[item.IndiceInfusivel].Valor;
         item.Raridade = raridade;
         item.Grau = grau;
-        item.NivelPersonagemMinimo =
-            grau == GrauEquipamento.Forte ? 20
-            : grau == GrauEquipamento.Medio ? 10
-            : 1;
+        item.NivelPersonagemMinimo = TabelaDeLoot.NivelMinimoDoGrau(grau);
         return item;
     }
 }

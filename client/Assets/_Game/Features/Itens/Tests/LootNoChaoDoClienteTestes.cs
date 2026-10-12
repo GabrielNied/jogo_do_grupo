@@ -147,6 +147,15 @@ namespace JogoDoGrupo.Client.Features.Itens.Tests
         {
             Assert.AreEqual("Você pegou Espada.", TextosDoLoot.Coletado("Espada"));
             Assert.AreEqual("Você pegou um item.", TextosDoLoot.Coletado(""));
+            Assert.AreEqual(
+                "Você pegou Elmo do Vigia (Raro).",
+                TextosDoLoot.Coletado("Elmo do Vigia", RaridadeItem.Raro)
+            );
+            Assert.AreEqual(
+                "Você pegou Anel (Épico).",
+                TextosDoLoot.Coletado("Anel", RaridadeItem.Epico)
+            );
+            Assert.AreEqual("Você pegou um item.", TextosDoLoot.Coletado(null, RaridadeItem.Raro));
             StringAssert.Contains(
                 "Inventário cheio",
                 TextosDoLoot.Recusa(CodigosErroItens.InventarioCheio)

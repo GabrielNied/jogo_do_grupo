@@ -10,7 +10,9 @@ public sealed record LootReservado(
     string Area,
     double X,
     double Z,
-    DateTimeOffset ApareceuEm
+    DateTimeOffset ApareceuEm,
+    RaridadeItem Raridade = RaridadeItem.Comum,
+    GrauEquipamento Grau = GrauEquipamento.Inicial
 )
 {
     /// <summary>Segundos desde que o item apareceu.</summary>
@@ -21,7 +23,10 @@ public sealed record LootReservado(
         {
             LootId = LootId,
             ItemId = ItemId,
-            Nome = CatalogoItens.ObterNome(ItemId) ?? "",
+            Nome =
+                CatalogoItens.ObterNome(ItemId) ?? CatalogoEquipamentos.Obter(ItemId)?.Nome ?? "",
+            Raridade = Raridade,
+            Grau = Grau,
             X = (float)X,
             Z = (float)Z,
             ExpiraEmSegundos = RegrasLoot.SegundosRestantes(Idade(agora)),
@@ -63,7 +68,7 @@ public sealed class ChaoDeLoot
         }
     }
 
-    /// <summary>Põe no chão um item por id de <paramref name="itens"/>, todos do mesmo dono.</summary>
+    /// <summary>Põe no chão um item por id de <paramref name="itens"/> (Comum, Inicial), do mesmo dono.</summary>
     public IReadOnlyList<LootReservado> Largar(
         long donoId,
         IReadOnlyList<int> itens,
@@ -71,14 +76,42 @@ public sealed class ChaoDeLoot
         double x,
         double z,
         DateTimeOffset agora
+    ) =>
+        Largar(
+            donoId,
+            itens.Select(id => new QuedaDeLoot { ModeloId = id }).ToArray(),
+            area,
+            x,
+            z,
+            agora
+        );
+
+    /// <summary>Põe no chão uma peça por queda de <paramref name="quedas"/>, todas do mesmo dono.</summary>
+    public IReadOnlyList<LootReservado> Largar(
+        long donoId,
+        IReadOnlyList<QuedaDeLoot> quedas,
+        string area,
+        double x,
+        double z,
+        DateTimeOffset agora
     )
     {
-        var novos = new List<LootReservado>(itens.Count);
+        var novos = new List<LootReservado>(quedas.Count);
         lock (_trava)
         {
-            foreach (var itemId in itens)
+            foreach (var queda in quedas)
             {
-                var loot = new LootReservado(++_ultimoId, donoId, itemId, area, x, z, agora);
+                var loot = new LootReservado(
+                    ++_ultimoId,
+                    donoId,
+                    queda.ModeloId,
+                    area,
+                    x,
+                    z,
+                    agora,
+                    queda.Raridade,
+                    queda.Grau
+                );
                 _itens[loot.LootId] = new Entrada(loot);
                 novos.Add(loot);
             }

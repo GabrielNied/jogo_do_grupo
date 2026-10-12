@@ -58,7 +58,7 @@ As cinco raridades e a tabela do livro (níveis máximos, slots de skills e infu
 
 **Bônus:** Combate consulta o total atual através de `Contratos/Itens/IBonusEquipamentos`; não referencia a implementação de Itens. Força, Destreza, Intelecto, Vitalidade e Espírito entram nos cálculos já existentes de dano e recursos, sem acumular o mesmo bônus a cada troca. Defesa e demais status têm representação e apresentação, mas não criam fórmulas novas de mitigação, bloqueio ou efeitos nesta tarefa.
 
-**No jogo:** abrir o inventário com I e escolher a aba **Equipamentos**. A aba mostra posições, conjunto ativo, atributos fixos/sorteados, atributo infusível, raridade, nível e requisito; permite equipar, desequipar e trocar conjuntos. Em editor/build de desenvolvimento, **Obter equipamento de teste** pede uma peça ao servidor. Essa rota só existe em ambiente `Development`; não altera o loot dos mobs nem o baú original.
+**No jogo:** abrir o inventário com I e escolher a aba **Equipamentos**. A aba mostra posições, conjunto ativo, atributos fixos/sorteados, atributo infusível, raridade, nível e requisito; permite equipar, desequipar e trocar conjuntos. Em editor/build de desenvolvimento, **Obter equipamento de teste** pede uma peça ao servidor. Essa rota só existe em ambiente `Development`; não altera o baú original; o loot dos mobs tem tabela própria ([Loot dos inimigos](#loot-dos-inimigos-493)).
 
 API autenticada, sob `/api/personagens/{personagemId}/equipamentos`:
 
@@ -84,7 +84,7 @@ O gerador aplica o fator Inicial/Médio/Forte **1/2/4 uma única vez** aos valor
 
 **No jogo:** I → Equipamentos → escolher o grau → Obter equipamento de teste (editor/build de desenvolvimento, servidor Development). O servidor sorteia uniformemente entre os 72 modelos e o martelo já existente, grava o exemplar e devolve a bolsa atualizada. O parâmetro opcional `?grau=0|1|2` da rota `/bau-teste` escolhe o grau; omitido mantém Inicial, inválido retorna 400 sem criar item. Bolsa cheia, autenticação, propriedade e transação seguem as regras anteriores. Peças médias/fortes exigem nível 10/20 para equipar.
 
-O catálogo inicial permanece na região Vale; variações regionais, pools de skills (#340/#167) e distribuição no loot não são definidos aqui. O baú original e os drops atuais dos mobs conservam suas tabelas.
+O catálogo inicial permanece na região Vale; variações regionais, pools de skills (#340/#167) não são definidos aqui; a distribuição no loot dos mobs é a de [Loot dos inimigos](#loot-dos-inimigos-493). O baú original conserva a tabela dele.
 
 ### Inventário e baú de teste: definido (provisório, 2026-10-11)
 
@@ -151,13 +151,34 @@ Nem o Core nem Personagem tinham um código para personagem inexistente em 2026-
 
 - Por serem HTTP, essas rotas não usam IDs da faixa 7000–7999.
 
+### Loot dos inimigos (#493)
+
+Matar um inimigo dá **peças reais** do catálogo de 72 (armaduras e acessórios), não mais os itens de teste. Os valores são **proposta a calibrar**, todos em `ConfigLoot` (shared); as contas puras ficam em `TabelaDeLoot`.
+
+- **Quantidade:** continua a de `RegrasLoot` (50% nenhum, 40% um, 10% dois por participante). Cada item vira peça com `ConfigLoot.ChanceDeEquipamento` (hoje 100%); poção e moeda de teste **saíram da tabela** (seguem no baú de teste).
+- **Qual peça:** uniforme entre as 72, sem armas (martelo e itens legados não caem).
+- **Raridade pela origem do inimigo** (pesos relativos, Comum/Incomum/Raro/Épico/Lendário):
+
+| Origem | Quando | Pesos |
+|---|---|---|
+| Comum | comum sem variante | 700 / 250 / 45 / 5 / 0 |
+| Fortalecida (elite) | comum fortalecida | 400 / 400 / 170 / 28 / 2 |
+| Chefe raro | categoria chefe raro | 100 / 400 / 380 / 100 / 20 |
+| Chefe | categoria chefe (dungeon) | 0 / 300 / 450 / 200 / 50 |
+
+- **Grau e requisito pelo nível do inimigo** (`InimigoDerrotado.Nivel`; 0 vale o da ficha da criatura): 1-9 Inicial (equipa no nível 1), 10-19 Médio (nível 10), 20+ Forte (nível 20). Os fatores 1/2/4 de atributos são os de [Equipamentos](#equipamentos-166-confirmação-do-usuário-em-2026-10-11).
+- **Individual:** cada participante faz o próprio sorteio (peça, raridade e grau); a queda guarda a raridade e o grau até a coleta, e o exemplar é gerado ao entrar no inventário.
+- **Aviso e chão:** `LootNoChao` traz `Raridade` e `Grau`, e o nome vem do catálogo de equipamentos. O aviso do HUD mostra nome e raridade (veja abaixo).
+- **Meta de ritmo (X = 3 min):** jogador solo, 4 mobs/min, níveis 1 a 10: em média uma peça **melhor** que a equipada a cada 3 minutos, e no máximo 20 minutos sem nenhuma. "Melhor" é maior `TabelaDeLoot.Pontuacao` (soma dos atributos, +10% por degrau de raridade) na posição onde a peça cabe. Hoje a simulação mede ~1,4 min de média e ~15 min na pior espera (posições quase cheias perto do nível 10). O teste `RitmoDeLootTestes` falha se a tabela, a quantidade ou o ritmo saírem da meta.
+- **Fora desta entrega:** `MultiplicadorDeRecompensa` não muda a quantidade (a variante já pesa na raridade); loot de chefe usa a mesma quantidade do comum, até o grupo definir a tabela do boss; skills nas peças (#340/#167); atributos elementais.
+
 ### Loot no chão (#64, contrato da #367)
 
 Regras na [fatia jogável, seção 5](fatia-jogavel.md#5-loot-no-chão): loot **individual**, cada participante sorteia o próprio e só ele o vê. O servidor sorteia, guarda o dono e valida a coleta. Este é o contrato; o servidor (#368) e o client (#369) vêm depois. Tempo real, faixa 7000–7999:
 
 | ID | Mensagem | Direção | Campos |
 |---|---|---|---|
-| 7000 | `LootApareceu` | servidor → o dono | `Loot` (`LootNoChao`: `LootId`, `ItemId`, `Nome`, `X`, `Z`, `ExpiraEmSegundos`) |
+| 7000 | `LootApareceu` | servidor → o dono | `Loot` (`LootNoChao`: `LootId`, `ItemId`, `Nome`, `Raridade`, `Grau`, `X`, `Z`, `ExpiraEmSegundos`) |
 | 7001 | `ColetarLoot` | client → servidor | `LootId` (0 = tudo o que é meu por perto) |
 | 7002 | `LootColetado` | servidor → o dono | `LootId`, `Entrada` (`EntradaInventario`) |
 | 7003 | `ColetaRecusada` | servidor → o dono | `LootId`, `Codigo` (`LootNaoEncontrado`, `LongeDemais`, `InventarioCheio`) |
@@ -173,7 +194,7 @@ Valores em `RegrasLoot`, todos **proposta a calibrar**:
 | Distância em que o client mostra o item | `RaioDeVisaoMetros` | 12 m (não é regra do servidor) |
 
 - **Tecla F:** o client envia `ColetarLoot` com `LootId` 0 e o servidor coleta tudo o que é do personagem dentro de 3 m; os "12 m" da fatia viram a distância em que o item aparece na tela. Com um `LootId`, coleta só aquele item.
-- **Qual item cai:** uniforme no catálogo de teste, com reposição (igual ao baú). Sem raridade nem skills.
+- **Qual item cai:** peças do catálogo de equipamentos, com raridade e grau (veja [Loot dos inimigos](#loot-dos-inimigos-493)). Sem skills.
 - **Inventário cheio:** o item fica no chão até expirar; os que couberem entram.
 - **Posição:** `X` e `Z` de onde o inimigo caiu. O servidor não conhece a altura do terreno; o client assenta o item no chão.
 - **Quem volta ao jogo** recebe de novo `LootApareceu` dos itens que ainda estão no prazo, com o tempo que falta.
@@ -181,7 +202,7 @@ Valores em `RegrasLoot`, todos **proposta a calibrar**:
 
 **No servidor (#368):**
 
-- Quem **participou** é quem o evento de morte de Mobs lista (`InimigoDerrotado.Participantes`: causou dano ao inimigo). Cada um tem um sorteio próprio; a variante do inimigo ainda não muda o loot.
+- Quem **participou** é quem o evento de morte de Mobs lista (`InimigoDerrotado.Participantes`: causou dano ao inimigo). Cada um tem um sorteio próprio; a variante e o nível do inimigo mudam a raridade e o grau (veja [Loot dos inimigos](#loot-dos-inimigos-493)).
 - O chão fica **em memória**: se o servidor reinicia, o que estava no chão some (o inventário não, ele é do banco).
 - A coleta confere, nesta ordem: o item existe e é do jogador (senão `LootNaoEncontrado`), está ao alcance com a posição que o Mundo aceitou (senão `LongeDemais`) e cabe no inventário (senão `InventarioCheio`). O item só sai do chão depois de gravado.
 - Dois pedidos do mesmo item ao mesmo tempo: um coleta, o outro recebe `LootNaoEncontrado`.
@@ -193,4 +214,4 @@ Valores em `RegrasLoot`, todos **proposta a calibrar**:
 - As mensagens de loot são assinadas desde o início do jogo (não só com o mundo montado), para não perder o `LootApareceu` que chega logo ao voltar.
 - Cada item do jogador no chão vira um marcador dourado girando, assentado no chão, que aparece a até 12 m (`RaioDeVisaoMetros`). O client tira o item quando o prazo vence, sem esperar o `LootSumiu`.
 - Com algum item a até 3 m, aparece a dica **"F: pegar"**; F manda `ColetarLoot` com "tudo por perto". Com janela ou menu do Esc aberto, nem dica nem coleta.
-- Avisos no HUD: "Você pegou <item>." ao coletar; inventário cheio (amarelo), longe demais e nada para pegar viram texto, sem mostrar o código.
+- Avisos no HUD: "Você pegou <item> (<raridade>)." ao coletar (ex.: "Você pegou Elmo do Vigia (Raro)."); inventário cheio (amarelo), longe demais e nada para pegar viram texto, sem mostrar o código.
