@@ -26,7 +26,7 @@ Tipos de mobs, comportamento por região e bosses com mecânicas marcantes.
 - [ ] O nome "fortalecida" fica, ou o grupo prefere outro (elite, enfurecida)?
 - [ ] Os números da criatura fortalecida e do chefe raro (tabelas em "Regras").
 - [ ] As três primeiras criaturas (Javali do Campo, Guardião do Reflexo, Presa-Velha) são só um ponto de partida: nomes, espécies e onde ficam.
-- [ ] **Livro de Asterra (proposta do board, 2026-10-11, não validada):** o Javali do Campo vira o Javali Ferrugem (dano 18, grupo de 8 a 15) ou os dois convivem? As cinco espécies, o bestiário com conhecimento e a captura do cervo entram no MVP? As manadas que nunca entram na cidade e seguem rotas? Veja "Livro de Asterra: bestiário".
+- [ ] **Livro de Asterra (proposta do board, 2026-10-11, não validada):** o Javali do Campo vira o Javali Ferrugem (dano 18, grupo de 8 a 15) ou os dois convivem? As cinco espécies, o bestiário com conhecimento e a captura do cervo entram no MVP? (As manadas com rota e limite urbano estão feitas, issue #321: veja "Manadas com rota (#321)".) Veja "Livro de Asterra: bestiário".
 - [ ] O chefe raro avisa quando aparece (mensagem na área, marca no mapa) ou o jogador tem que achar?
 - [ ] O chefe raro some sozinho se ninguém o matar? Proposta atual: fica até morrer.
 - [ ] Dungeon tem chefe raro (um sorteio ao criar a instância)? As regras já servem; falta decidir.
@@ -133,8 +133,19 @@ O chefe raro no campo (issue #310; **proposta**, a confirmar no review):
 - **Pontos de spawn** (área `cidade`; mais longe da cidade, mais forte): o campo norte (0, 190), o leste (130, 170) e o oeste (-150, 190) a uns 200 a 240 m, e os três "longe" (0, 330), (200, 300) e (-220, 280) a uns 330 a 360 m. Faixas de nível de 2 a 4 (perto) até 8 a 10 (longe); grupos de 3 a 5 (javali) e de 2 a 4 ou 2 a 3 (lobo, tatu). A tabela completa está no código.
 - **O grupo volta inteiro:** o grupo só reaparece quando o último morre e passa o intervalo da ficha contado dessa morte. Nessa hora o tamanho é sorteado de novo na faixa do ponto, e cada inimigo sorteia o nível dele na faixa do ponto (e a variante fortalecida). Matar um de cada vez não repõe ninguém até limpar o grupo.
 - **Nível conta** (só a criatura comum; chefes têm força fixa): em relação ao nível da ficha, cada nível acima soma **15%** de vida, **10%** de dano e **20%** de experiência (abaixo, tira; piso de 40%). A variante fortalecida multiplica por cima. O `InimigoNoMundo.Nivel` e o `InimigoDerrotado.Nivel` levam o nível; `InimigoDerrotado.Experiencia` já vem escalada (o ajuste por diferença de nível entre jogador e mob é de [Personagem](personagem.md)).
-- **Limite de vivos:** no máximo **30** inimigos comuns do campo vivos ao mesmo tempo, somando todos os pontos. Sem vaga, o grupo (ou a parte que couber) espera e tenta de novo a cada 5 s. O chefe raro e os inimigos do comando de teste não contam.
+- **Limite de vivos:** no máximo **40** inimigos comuns do campo vivos ao mesmo tempo, somando todos os pontos. Sem vaga, o grupo (ou a parte que couber) espera e tenta de novo a cada 5 s. O chefe raro e os inimigos do comando de teste não contam.
 - **Cuidados de experiência:** jogadores de qualquer número no mesmo grupo dividem o mesmo alvo (o grupo divide o que vê); quem cai ou desconecta deixa de ser alvo e o grupo volta ao repouso; o grupo reaparece nos pontos de origem, que são fixos (quem fica parado em cima de um ponto o vê reaparecer ao lado dele, como qualquer reaparição).
+
+### Manadas com rota (#321)
+
+**Proposta** do agente, a calibrar; números em `RegrasManada` (shared) e dados em `PontosDeSpawnDoCampo` e `RotaDaManada` (servidor). Faz a parte "manadas com rota" do Livro de Asterra para a criatura comum do campo.
+
+- **Rota:** uma volta fechada de pontos (`TipoDePontoDeRota`: pasto, rio, repouso, retorno). Em repouso a manada espera em cada ponto (20 s; 10 s no retorno) e então anda para o próximo a **1,5 m/s**, cada javali no seu lugar do bando. Ela só parte quando todos estão em repouso: se uma luta atrasa alguém, os outros esperam. Não há estado novo: andar pela rota é `Repouso` com a posição mudando (o client anima a caminhada).
+- **A manada do pasto:** 5 a 8 javalis de nível 1 a 2 entre a cidade e o campo: pasto (-40, 110), rio (40, 125), repouso (55, 90) e retorno (0, 85). Entra no teto de vivos do campo, que subiu de 30 para **40**.
+- **Limite urbano:** a **zona urbana** é o quadrado da cidade (80 m) mais **10 m** de margem (|x| e |z| até 50 m). A manada nunca entra nela: quem está lá não é visto nem atacado (moradores, comerciantes e jogadores na cidade ficam a salvo). Se o alvo entra na zona, a perseguição **acaba na borda** e a manada volta; se o passo da perseguição cairia dentro dela, ela para e volta. Ponto de rota dentro da zona é recusado (`RotaDaManada.Validada`).
+- **Limite de perseguição:** a mais de **80 m** do ponto de origem (o lugar dela no ponto da rota onde está), a manada desiste, volta e recupera a vida; o grupo perde o alvo de vista (a regra do inimigo comum, com 80 m em vez de 30 m).
+- **Só a manada** tem rota e zona urbana: os outros grupos do campo seguem como antes. Os inimigos do comando de teste (`spawn`) não acompanham a rota.
+- Fora desta tarefa: reação a luz e som, ponte de gelo, bestiário e captura (continuam proposta do livro).
 
 ### Boss da dungeon (#66)
 
@@ -200,6 +211,7 @@ Inimigo comum (tempo real; regras em "Inimigo comum da fatia"):
 - `EstadoDeInimigo`: `Repouso` 0, `Alerta` 1, `Perseguicao` 2, `Ataque` 3, `Retorno` 4, `Morto` 5.
 - `InimigoId` é o mesmo `AlvoId` que o Combate manda em `AcertoDeAtaque`: o dano de um golpe do jogador chega por `AtaqueAcertou`, não por `InimigoMudou`. `AlvoId` 0 (`RegrasInimigo.SemAlvo`) é sem alvo.
 - `CriaturaId` aponta para o `CatalogoCriaturas` (nome, nível, categoria); a ficha da issue chamava esse campo de `Tipo`.
+- `RegrasManada` e `TipoDePontoDeRota`: a zona urbana, o limite de perseguição e os tipos de ponto da rota das manadas (issue #321).
 - `RegrasInimigo`: constantes de balanceamento e fórmulas puras (`TransicaoValida`, `EstaVivo`, `ProcuraAlvo`, `TamanhoDoGrupo`, `Ve`, `NoAlcanceDeAtaque`, `DeveDesistir`, `EscolherAlvo`, `DirecaoPara`, `Avancar`, `CentroDoGolpe`, `EstaNaAreaDoGolpe`). O servidor decide; o client usa só para mostrar.
 
 No servidor (`server/.../Features/Mobs/`): `SorteadorDeCriaturas` (sorteia a variante e a aparição) e `AparicaoDeChefeRaro` (o controle de um ponto de chefe raro). ~~Ainda não estão ligados ao mundo.~~ Substituído em 2026-10-11 (issue #268): o sorteador já sorteia a variante dos inimigos do campo; o chefe raro ficou sem ligação com o mundo até a issue #310, que ligou a Presa-Velha ao campo (seção "O chefe raro no campo", abaixo).

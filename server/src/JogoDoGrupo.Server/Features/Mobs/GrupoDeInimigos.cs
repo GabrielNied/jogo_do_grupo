@@ -74,6 +74,13 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
     private readonly LimiteDeInimigosVivos? _limite;
     private Inimigo[] _inimigos;
 
+    /// <summary>Só nas manadas: a rota que o grupo segue em repouso; nulo nos outros grupos.</summary>
+    private readonly RotaDaManada? _rota;
+
+    private int _pontoDaRota;
+    private bool _andando;
+    private long _esperaAteMs;
+
     /// <summary>
     /// Quando o grupo todo reaparece (só quando não há nenhum vivo e a criatura volta sozinha);
     /// nulo se não há reaparição marcada.
@@ -109,6 +116,10 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
     /// </param>
     /// <param name="nivelMaximo">Veja <paramref name="nivelMinimo"/>.</param>
     /// <param name="limite">Teto de vivos dividido com os outros grupos; nulo: sem teto.</param>
+    /// <param name="rota">
+    /// Rota de uma manada: em repouso o grupo anda de ponto em ponto, nunca entra na zona
+    /// urbana e desiste mais longe que o limite da rota. Nulo: um grupo parado no ponto.
+    /// </param>
     public GrupoDeInimigos(
         DefinicaoDeCriatura definicao,
         ISorteadorDeCriaturas sorteador,
@@ -121,7 +132,8 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
         int? tamanhoMinimo = null,
         int nivelMinimo = 0,
         int nivelMaximo = 0,
-        LimiteDeInimigosVivos? limite = null
+        LimiteDeInimigosVivos? limite = null,
+        RotaDaManada? rota = null
     )
     {
         ArgumentNullException.ThrowIfNull(definicao);
@@ -142,6 +154,7 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
         _pontoX = pontoX;
         _pontoZ = pontoZ;
         _limite = limite;
+        _rota = rota;
         Area = area;
         Capacidade = tamanho;
 
@@ -186,7 +199,8 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
             ponto.TamanhoMinimo,
             ponto.NivelMinimo,
             ponto.NivelMaximo,
-            limite
+            limite,
+            ponto.Rota
         );
 
     /// <summary>Quantos inimigos a mais o comando de teste pode acrescentar neste grupo.</summary>
@@ -220,6 +234,7 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
             }
 
             var novo = Criar(x, z, false);
+            novo.Segue = false; // o de teste fica onde nasceu: não acompanha a rota
             var maior = new Inimigo[_inimigos.Length + 1];
             Array.Copy(_inimigos, maior, _inimigos.Length);
             maior[^1] = novo;
@@ -281,6 +296,8 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
                 MontarGrupo(agora, passo.Aparicoes);
             }
 
+            AtualizarRota(agora);
+
             var presentes = new Dictionary<long, JogadorNoCampo>();
             foreach (var jogador in jogadores)
             {
@@ -290,7 +307,9 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
                 }
             }
 
-            _vistos.RemoveWhere(id => !presentes.ContainsKey(id));
+            _vistos.RemoveWhere(id =>
+                !presentes.TryGetValue(id, out var visto) || NaZonaUrbana(visto.X, visto.Z)
+            );
             if (_inimigos.All(ForaDeLuta))
             {
                 // Ninguém em alerta, perseguindo ou atacando: o grupo esquece quem viu. Quem
@@ -298,7 +317,7 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
                 _vistos.Clear();
             }
 
-            if (presentes.Count == 0 && _inimigos.All(EmRepousoOuMorto))
+            if (_rota == null && presentes.Count == 0 && _inimigos.All(EmRepousoOuMorto))
             {
                 return passo; // Ninguém por perto e ninguém fora do lugar: nada a decidir.
             }
@@ -313,6 +332,11 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
 
                 foreach (var jogador in emOrdem)
                 {
+                    if (NaZonaUrbana(jogador.X, jogador.Z))
+                    {
+                        continue; // moradores e visitantes da cidade ficam a salvo da manada
+                    }
+
                     var distancia = RegrasInimigo.Distancia(
                         inimigo.X,
                         inimigo.Z,
@@ -466,6 +490,10 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
                     Mudar(inimigo, EstadoDeInimigo.Alerta);
                     OlharParaOAlvo(inimigo, presentes);
                 }
+                else if (_rota != null && inimigo.Segue)
+                {
+                    SeguirRota(inimigo, segundos);
+                }
 
                 break;
 
@@ -533,7 +561,11 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
             inimigo.OrigemX,
             inimigo.OrigemZ
         );
-        if (RegrasInimigo.DeveDesistir(daOrigem))
+        if (
+            _rota == null
+                ? RegrasInimigo.DeveDesistir(daOrigem)
+                : RegrasManada.DeveDesistir(daOrigem, _rota.LimiteDePerseguicaoMetros)
+        )
         {
             perdidos.Add(inimigo.Alvo);
             Retornar(inimigo);
@@ -555,6 +587,14 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
                 out var novoX,
                 out var novoZ
             );
+            if (NaZonaUrbana(novoX, novoZ))
+            {
+                // A borda da cidade: a manada não passa. Encerra a perseguição e volta.
+                perdidos.Add(inimigo.Alvo);
+                Retornar(inimigo);
+                return;
+            }
+
             inimigo.X = novoX;
             inimigo.Z = novoZ;
         }
@@ -624,7 +664,8 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
             foreach (var jogador in emOrdem)
             {
                 if (
-                    RegrasInimigo.EstaNaAreaDoGolpe(
+                    !NaZonaUrbana(jogador.X, jogador.Z)
+                    && RegrasInimigo.EstaNaAreaDoGolpe(
                         inimigo.GolpeX,
                         inimigo.GolpeZ,
                         jogador.X,
@@ -777,6 +818,9 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
 
         _inimigos = novos;
         _ondaEmMs = null;
+        _pontoDaRota = 0;
+        _andando = false;
+        _esperaAteMs = agora + EmMs(_rota?.Pontos[0].EsperaSegundos ?? 0.0);
         aparicoes?.AddRange(novos.Select(n => new InimigoApareceu { Inimigo = Retrato(n) }));
     }
 
@@ -791,6 +835,94 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
         );
     }
 
+    // A manada segue a rota: espera no ponto e, quando todos estão em repouso, parte para o
+    // próximo, cada um para o seu lugar (o mesmo desvio em relação ao ponto de antes).
+    private void AtualizarRota(long agora)
+    {
+        if (_rota == null)
+        {
+            return;
+        }
+
+        var seguidores = _inimigos
+            .Where(i => i.Segue && RegrasInimigo.EstaVivo(i.Estado))
+            .ToArray();
+        if (seguidores.Length == 0)
+        {
+            return;
+        }
+
+        var todosParados = seguidores.All(i => i.Estado == EstadoDeInimigo.Repouso);
+        if (_andando)
+        {
+            if (todosParados && seguidores.All(ChegouAoLugar))
+            {
+                _andando = false;
+                _esperaAteMs = agora + EmMs(_rota.Pontos[_pontoDaRota].EsperaSegundos);
+            }
+
+            return;
+        }
+
+        if (agora < _esperaAteMs || !todosParados)
+        {
+            return;
+        }
+
+        _pontoDaRota = (_pontoDaRota + 1) % _rota.Pontos.Count;
+        var ponto = _rota.Pontos[_pontoDaRota];
+        foreach (var inimigo in seguidores)
+        {
+            inimigo.OrigemX = ponto.X + inimigo.DesvioX;
+            inimigo.OrigemZ = ponto.Z + inimigo.DesvioZ;
+        }
+
+        _andando = true;
+    }
+
+    private static bool ChegouAoLugar(Inimigo inimigo) =>
+        RegrasInimigo.Distancia(inimigo.X, inimigo.Z, inimigo.OrigemX, inimigo.OrigemZ)
+        <= ConfigInimigosDoCampo.ToleranciaDeChegadaMetros;
+
+    // Anda em direção ao lugar na rota, devagar, sem olhar para os jogadores.
+    private void SeguirRota(Inimigo inimigo, double segundos)
+    {
+        if (ChegouAoLugar(inimigo))
+        {
+            return;
+        }
+
+        inimigo.Rotacao = RegrasInimigo.DirecaoPara(
+            inimigo.X,
+            inimigo.Z,
+            inimigo.OrigemX,
+            inimigo.OrigemZ,
+            inimigo.Rotacao
+        );
+        RegrasInimigo.Avancar(
+            inimigo.X,
+            inimigo.Z,
+            inimigo.OrigemX,
+            inimigo.OrigemZ,
+            _rota!.VelocidadeMetrosPorSegundo,
+            segundos,
+            0.0,
+            out var novoX,
+            out var novoZ
+        );
+        inimigo.X = novoX;
+        inimigo.Z = novoZ;
+        if (ChegouAoLugar(inimigo))
+        {
+            inimigo.X = inimigo.OrigemX;
+            inimigo.Z = inimigo.OrigemZ;
+        }
+    }
+
+    // Só a manada tem zona urbana; os outros grupos ignoram a cidade como sempre.
+    private bool NaZonaUrbana(double x, double z) =>
+        _rota != null && RegrasManada.EstaNaZonaUrbana(x, z);
+
     private Inimigo Criar(double origemX, double origemZ, bool contaNoLimite)
     {
         var nivel =
@@ -798,7 +930,11 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
                 ? _nivelMinimo
                 : EscalaPorNivel.Sortear(_nivelMinimo, _nivelMaximo, _sorteador.Proximo());
         var criatura = EscalaPorNivel.Aplicar(_sorteador.Sortear(_definicao), nivel);
-        return new Inimigo(_proximoId++, criatura, origemX, origemZ, contaNoLimite);
+        return new Inimigo(_proximoId++, criatura, origemX, origemZ, contaNoLimite)
+        {
+            DesvioX = origemX - _pontoX,
+            DesvioZ = origemZ - _pontoZ,
+        };
     }
 
     private static void Mudar(Inimigo inimigo, EstadoDeInimigo para)
@@ -911,8 +1047,17 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
         /// <summary>Se ocupa uma vaga do teto de vivos (os de teste e o chefe raro não).</summary>
         public bool ContaNoLimite { get; } = contaNoLimite;
         public CriaturaSorteada Criatura { get; } = criatura;
-        public double OrigemX { get; } = origemX;
-        public double OrigemZ { get; } = origemZ;
+
+        /// <summary>Ponto de origem: o lugar dele no ponto da rota onde a manada está.</summary>
+        public double OrigemX { get; set; } = origemX;
+        public double OrigemZ { get; set; } = origemZ;
+
+        /// <summary>Onde ele fica em relação ao centro da manada, para andar em bando.</summary>
+        public double DesvioX { get; init; }
+        public double DesvioZ { get; init; }
+
+        /// <summary>Se acompanha a rota (os de teste ficam onde nasceram).</summary>
+        public bool Segue { get; set; } = true;
 
         public double X = origemX;
         public double Z = origemZ;

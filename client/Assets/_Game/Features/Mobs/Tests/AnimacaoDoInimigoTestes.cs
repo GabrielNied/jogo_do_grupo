@@ -33,7 +33,6 @@ namespace JogoDoGrupo.Client.Features.Mobs.Tests
             Assert.IsTrue(animacao.Andando);
         }
 
-        [TestCase(EstadoDeInimigo.Repouso)]
         [TestCase(EstadoDeInimigo.Alerta)]
         [TestCase(EstadoDeInimigo.Ataque)]
         [TestCase(EstadoDeInimigo.Morto)]
@@ -43,6 +42,26 @@ namespace JogoDoGrupo.Client.Features.Mobs.Tests
             Rodar(animacao, EstadoDeInimigo.Perseguicao, 3f, 30);
 
             Rodar(animacao, estado, 3f, 1);
+
+            Assert.IsFalse(animacao.Andando);
+        }
+
+        [Test]
+        public void Andando_ManadaEmRepousoSeguindoARota_Anda()
+        {
+            var animacao = new AnimacaoDoInimigo();
+
+            Rodar(animacao, EstadoDeInimigo.Repouso, 1.5f, 30);
+
+            Assert.IsTrue(animacao.Andando);
+        }
+
+        [Test]
+        public void Andando_EmRepousoParado_NaoAnda()
+        {
+            var animacao = new AnimacaoDoInimigo();
+
+            Rodar(animacao, EstadoDeInimigo.Repouso, 0f, 30);
 
             Assert.IsFalse(animacao.Andando);
         }
