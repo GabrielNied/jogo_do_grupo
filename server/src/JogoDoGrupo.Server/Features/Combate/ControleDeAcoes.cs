@@ -13,6 +13,9 @@ public sealed record AcaoDeAtaque(long Id, PedidoDeAtaque Pedido, long InicioMs)
 {
     public long PreparoMs => Milissegundos(RegrasAtaque.PreparoSegundos(Pedido.Tipo));
 
+    /// <summary>Quando o golpe acerta (fim do preparo), no mesmo relógio do começo.</summary>
+    public long AcertoMs => InicioMs + PreparoMs;
+
     /// <summary>Quando o personagem volta a poder agir.</summary>
     public long FimMs => InicioMs + Milissegundos(RegrasAtaque.DuracaoSegundos(Pedido.Tipo));
 

@@ -32,8 +32,24 @@ public sealed class BonusFalso : IBonusDeAtributos
     public volatile AtributosCombate Equipamentos = new();
     public volatile AtributosCombate Efeitos = new();
 
-    public Task<AtributosCombate> EquipamentosAsync(long personagemId, CancellationToken c) =>
-        Task.FromResult(Equipamentos);
+    /// <summary>Atraso de cada leitura de equipamentos: simula um banco lento.</summary>
+    public volatile int AtrasoMs;
+
+    private int _leituras;
+
+    /// <summary>Quantas vezes os equipamentos foram lidos (uma ida ao banco por golpe).</summary>
+    public int Leituras => Volatile.Read(ref _leituras);
+
+    public async Task<AtributosCombate> EquipamentosAsync(long personagemId, CancellationToken c)
+    {
+        Interlocked.Increment(ref _leituras);
+        if (AtrasoMs > 0)
+        {
+            await Task.Delay(AtrasoMs, c);
+        }
+
+        return Equipamentos;
+    }
 
     public Task<AtributosCombate> EfeitosAsync(long personagemId, CancellationToken c) =>
         Task.FromResult(Efeitos);
