@@ -16,14 +16,17 @@ var builder = WebApplication.CreateBuilder(args);
 var metricas = new MetricasDoServidor();
 builder.Services.AddSingleton(metricas);
 builder.Host.UseSerilog(
-    (_, configuracao) =>
+    (contexto, configuracao) =>
         configuracao
             .MinimumLevel.Information()
-            .Filter.ByExcluding(FiltroDadosSensiveis.TemDadoSensivel)
+            .Enrich.With(new FiltroDadosSensiveis())
             .WriteTo.Console()
             .WriteTo.File(
                 new CompactJsonFormatter(),
-                "logs/servidor-.ndjson",
+                Path.GetFullPath(
+                    contexto.Configuration["Observabilidade:CaminhoLog"] ?? "logs/servidor-.ndjson",
+                    contexto.HostingEnvironment.ContentRootPath
+                ),
                 rollingInterval: RollingInterval.Day,
                 retainedFileCountLimit: 14
             )
