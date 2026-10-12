@@ -11,9 +11,10 @@ namespace JogoDoGrupo.Server.Features.Combate;
 /// <summary>
 /// Resultado de conferir os recursos no começo de um ataque: <see cref="Recusa"/> é um código
 /// de <see cref="CodigosErroCombate"/> (nada foi gasto) ou nulo se o ataque vale;
-/// <see cref="Recursos"/> é o novo estado, só quando o ataque gastou vigor.
+/// <see cref="Recursos"/> é o novo estado, só quando o ataque gastou vigor. <see cref="Forca"/>
+/// é a Força final lida na mesma ida ao banco (o acerto não volta lá).
 /// </summary>
-public sealed record InicioDoAtaque(string? Recusa, RecursosMudaram? Recursos);
+public sealed record InicioDoAtaque(string? Recusa, RecursosMudaram? Recursos, int Forca = 0);
 
 /// <summary>
 /// A parte do ataque que mexe nos recursos guardados: recusa quem está caído ou sem vigor e
@@ -105,7 +106,7 @@ internal static class RecursosDoAtaque
 
             if (recusa != null)
             {
-                return new InicioDoAtaque(recusa, null);
+                return new InicioDoAtaque(recusa, null, atributos.Forca);
             }
 
             return new InicioDoAtaque(
@@ -120,7 +121,8 @@ internal static class RecursosDoAtaque
                         EnergiaAtual = recursos.Energia,
                         EnergiaMaxima = RegrasRecursos.EnergiaMaxima(atributos.Espirito),
                     }
-                    : null
+                    : null,
+                atributos.Forca
             );
         }
         finally
@@ -198,17 +200,6 @@ internal static class RecursosDoAtaque
                 sqlite.DefaultTimeout = esperaAnterior.Value;
             }
         }
-    }
-
-    /// <summary>A Força final do personagem agora (pontos, equipamentos e efeitos).</summary>
-    public static async Task<int> ForcaAsync(
-        IServiceScopeFactory escopos,
-        long personagemId,
-        CancellationToken cancelamento
-    )
-    {
-        using var escopo = escopos.CreateScope();
-        return (await AtributosAsync(escopo.ServiceProvider, personagemId, cancelamento)).Forca;
     }
 
     internal static async Task<AtributosCombate> AtributosAsync(

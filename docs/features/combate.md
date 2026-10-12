@@ -89,6 +89,7 @@ Esquiva (tempo real; regras e números em [fatia-jogavel.md](fatia-jogavel.md), 
 
 - Quem recebe: `AtaqueIniciado` e `AtaqueAcertou` vão a todos que o Mundo diz estarem na área do atacante (`IPosicoesDoMundo`); `AtaqueRecusado` só ao atacante; `RecursosMudaram` só ao dono, e só quando o ataque gasta vigor (o pesado; o leve não gasta nada).
 - O servidor mede o cone no **momento do acerto** (preparo depois do pedido) com a posição que o Mundo tem então; não há compensação de lag. A direção vem do pedido.
+- **Um relógio só (#477):** a ação nasce no pedido; o acerto sai em `InicioMs + PreparoMs` e o fim da ação vem depois do acerto, mesmo que o banco demore. A cobrança do vigor e a leitura da Força são uma ida só ao banco por golpe, feita dentro do preparo (o acerto não volta ao banco), e a fila só avança depois do acerto resolvido. Banco mais lento que o preparo atrasa o acerto, mas não o perde.
 - Fila: um pedido feito nos últimos 0,3 s da ação espera e começa no fim dela (vigor e queda são conferidos nessa hora, e a recusa sai com a `Sequencia` dele). Pedido durante a ação fora da janela, ou com a fila ocupada, é recusado com `AcaoEmAndamento`.
 - Caído (vida 0) é recusado com `VoceEstaCaido`; o pesado gasta 20 de vigor uma vez só (transação no banco) e é recusado sem vigor.
 - `Tipo` fora do enum, direção inválida, ou ataque de quem ainda não entrou no mundo: o pedido é **descartado sem resposta** (o contrato não tem código para isso; um client correto nunca manda).
