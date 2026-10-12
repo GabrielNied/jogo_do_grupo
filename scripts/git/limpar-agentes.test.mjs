@@ -87,6 +87,31 @@ test("commit só nesta máquina, ou GitHub fora do ar sem outra cópia: fica", (
   assert.equal(decidir({ commitsProprios: 1, erroPr: "gh sem login" }).remover, false);
 });
 
+test("PR mesclado conta como entregue, para worktree fora da pasta de agentes", () => {
+  const d = decidir({ commitsProprios: 2, pr: mesclado() });
+  assert.equal(d.remover, true);
+  assert.equal(d.entregue, true);
+});
+
+test("conteúdo já na main conta como entregue (squash ou cherry-pick)", () => {
+  const d = decidir({ commitsProprios: 4, conteudoNaMain: true });
+  assert.equal(d.entregue, true);
+});
+
+test("sem commits fora da main não é entrega: pode ser um checkout pessoal", () => {
+  assert.equal(decidir({ commitsProprios: 0 }).entregue, false);
+});
+
+test("ponta no origin não é entrega: a pessoa pode estar trabalhando nessa pasta", () => {
+  assert.equal(decidir({ commitsProprios: 1, naOrigem: true }).entregue, false);
+});
+
+test("commit depois do merge não é entrega", () => {
+  const d = decidir({ commitsProprios: 3, pr: mesclado({ numero: 44, headContemLocal: false }) });
+  assert.equal(d.remover, false);
+  assert.equal(d.entregue, false);
+});
+
 test("dentroDe compara pastas sem diferenciar maiúsculas e sem pegar prefixo parecido", () => {
   assert.equal(dentroDe("/repo/.claude/worktrees", "/repo/.claude/worktrees/pulo"), true);
   assert.equal(dentroDe("/repo/.claude/worktrees", "/REPO/.claude/Worktrees/pulo"), true);

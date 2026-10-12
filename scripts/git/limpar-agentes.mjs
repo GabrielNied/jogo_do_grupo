@@ -7,11 +7,14 @@
 // Uso:
 //   npm run limpar-agentes                 # simula: mostra o que sairia e o que fica
 //   npm run limpar-agentes -- --aplicar    # remove de verdade
-//   npm run limpar-agentes -- --todos      # inclui worktrees fora de .claude/worktrees/
+//   npm run limpar-agentes -- --todos      # inclui também worktree pessoal (checkout da main ou branch só no origin)
 //   npm run limpar-agentes -- --sem-branches  # só worktrees, sem apagar branches soltas
 //   npm run limpar-agentes -- --remotas    # também apaga no GitHub branches mescladas que sobraram
 //   npm run limpar-agentes -- --horas 0    # ignora a espera mínima de quem não tem PR (padrão: 2 h)
 //   node scripts/git/limpar-agentes.mjs --fundo  # aplica em segundo plano e volta na hora
+//
+// A rodada automática já remove worktree fora de .claude/worktrees/ quando o PR foi
+// mesclado ou o conteúdo já está na main. O resto de fora continua exigindo --todos.
 //
 // Precisa do gh autenticado para conferir PRs mesclados (squash merge não deixa rastro no git).
 
@@ -61,23 +64,36 @@ export function decidir({
   recente = false,
 }) {
   const fechado = pr && pr.estado !== "aberto";
-  if (sujo) return { remover: false, motivo: "mudanças não commitadas" };
-  if (pr?.estado === "aberto") return { remover: false, motivo: `PR #${pr.numero} aberto` };
-  if (recente && !fechado) return { remover: false, motivo: "usado há pouco, sem PR (pode ter agente trabalhando)" };
-  if (commitsProprios === 0) return { remover: true, motivo: "sem commits fora da main" };
-  if (pr?.estado === "mesclado" && pr.headContemLocal) return { remover: true, motivo: `PR #${pr.numero} mesclado` };
+  if (sujo) return fica("mudanças não commitadas");
+  if (pr?.estado === "aberto") return fica(`PR #${pr.numero} aberto`);
+  if (recente && !fechado) return fica("usado há pouco, sem PR (pode ter agente trabalhando)");
+  if (commitsProprios === 0) return sai("sem commits fora da main", false);
+  if (pr?.estado === "mesclado" && pr.headContemLocal) return sai(`PR #${pr.numero} mesclado`, true);
   if (pr?.estado === "mesclado" && pr.extrasNaMain)
-    return { remover: true, motivo: `PR #${pr.numero} mesclado; o que veio depois já está na main` };
+    return sai(`PR #${pr.numero} mesclado; o que veio depois já está na main`, true);
   if (pr?.estado === "fechado" && pr.headContemLocal)
-    return { remover: true, motivo: `PR #${pr.numero} fechado sem merge; a ponta fica no GitHub (refs/pull/${pr.numero}/head)` };
-  if (conteudoNaMain) return { remover: true, motivo: "o conteúdo já está na main" };
-  if (naOrigem) return { remover: true, motivo: "a ponta está no GitHub (origin)" };
-  if (erroPr) return { remover: false, motivo: `não deu para conferir o PR (${erroPr})` };
+    return sai(
+      `PR #${pr.numero} fechado sem merge; a ponta fica no GitHub (refs/pull/${pr.numero}/head)`,
+      true,
+    );
+  if (conteudoNaMain) return sai("o conteúdo já está na main", true);
+  if (naOrigem) return sai("a ponta está no GitHub (origin)", false);
+  if (erroPr) return fica(`não deu para conferir o PR (${erroPr})`);
   if (pr?.estado === "mesclado")
-    return { remover: false, motivo: `commits depois do merge do PR #${pr.numero} (traga com cherry-pick num PR novo)` };
-  if (pr?.estado === "fechado")
-    return { remover: false, motivo: `commits depois do PR #${pr.numero}, fechado sem merge` };
-  return { remover: false, motivo: `${commitsProprios} commit(s) só nesta máquina, sem PR (envie ou abra o PR)` };
+    return fica(`commits depois do merge do PR #${pr.numero} (traga com cherry-pick num PR novo)`);
+  if (pr?.estado === "fechado") return fica(`commits depois do PR #${pr.numero}, fechado sem merge`);
+  return fica(`${commitsProprios} commit(s) só nesta máquina, sem PR (envie ou abra o PR)`);
+}
+
+function fica(motivo) {
+  return { remover: false, entregue: false, motivo };
+}
+
+// entregue: o trabalho já entrou (PR mesclado, fechado com a ponta no GitHub, ou conteúdo na main).
+// Worktree fora de .claude/worktrees/ só sai sozinho nesse caso. Checkout da main ou branch
+// que só está no origin não conta: pode ser a pasta de trabalho da pessoa.
+function sai(motivo, entregue) {
+  return { remover: true, entregue, motivo };
 }
 
 export function dentroDe(pasta, caminho) {
@@ -198,17 +214,18 @@ function principal() {
       if (wt.branch) emUso.add(wt.branch);
       continue;
     }
-    if (!todos && !dentroDe(pastaAgentes, wt.caminho)) {
-      if (wt.branch) emUso.add(wt.branch);
-      continue;
-    }
     if (!existsSync(wt.caminho)) continue;
+    const naPastaDeAgentes = dentroDe(pastaAgentes, wt.caminho);
     const recente = horasParado(wt.caminho, "logs/HEAD") < horasMinimas;
     const sujo = git(["status", "--porcelain"], { cwd: wt.caminho }) !== "";
     const decisao = avaliar({ head: wt.head, branch: wt.branch, cwd: raiz, sujo, recente });
     const nome = `${wt.caminho} (${wt.branch ?? "sem branch"})`;
-    if (!decisao.remover) {
-      mantidos.push(`${nome}: ${decisao.motivo}`);
+    const pessoal = !todos && !naPastaDeAgentes && decisao.remover && !decisao.entregue;
+    if (!decisao.remover || pessoal) {
+      const motivo = pessoal
+        ? `${decisao.motivo}; worktree fora de .claude/worktrees (use --todos)`
+        : decisao.motivo;
+      mantidos.push(`${nome}: ${motivo}`);
       if (wt.branch) emUso.add(wt.branch);
       continue;
     }
