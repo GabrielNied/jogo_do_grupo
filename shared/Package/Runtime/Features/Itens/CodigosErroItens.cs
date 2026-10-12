@@ -32,6 +32,11 @@ namespace JogoDoGrupo.Shared.Features.Itens
         public const string ItemEquipado = "ItemEquipado";
 
         /// <summary>
+        /// 400: aba ou casa fora da capacidade da bolsa, ou contêiner sem suporte ainda.
+        /// </summary>
+        public const string CasaInvalida = "CasaInvalida";
+
+        /// <summary>
         /// Tempo real, em <see cref="ColetaRecusada.Codigo"/>: não há item no chão com esse id
         /// para este personagem (nunca existiu, já foi coletado, expirou ou é de outro), ou o
         /// pedido de "tudo por perto" não achou nada ao alcance.

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using JogoDoGrupo.Client.Core.Api;
 using JogoDoGrupo.Client.Core.Jogo;
 using JogoDoGrupo.Client.Core.Jogo.Janelas;
@@ -9,11 +10,11 @@ using UnityEngine.UIElements;
 namespace JogoDoGrupo.Client.Features.Itens
 {
     /// <summary>
-    /// Janela do inventário (tecla I), registrada nas <see cref="JanelasDoJogo"/>: pede o
-    /// inventário do personagem logado (<c>GET</c>) ou, quando aberta pelo baú, abre o baú
-    /// (<c>POST</c>) e mostra os ganhos e o inventário resultante. Só envia a intenção e mostra
-    /// a resposta: o sorteio e a gravação são do servidor. A moldura, o atalho, o Esc e o
-    /// cursor são do Core.
+    /// Janela do inventário (tecla I), registrada nas <see cref="JanelasDoJogo"/>: paperdoll,
+    /// bolsa em grade e resumo de bônus numa janela só. Pede o estado ao servidor, desenha o que
+    /// ele devolve (<see cref="PainelInventario"/>) e transforma o que a pessoa faz (clique
+    /// direito, arrastar e soltar) em intenções. O servidor decide e responde com o estado novo.
+    /// A moldura, o atalho, o Esc e o cursor são do Core.
     /// </summary>
     internal sealed class JanelaInventario : JanelaDoJogo
     {
@@ -26,16 +27,23 @@ namespace JogoDoGrupo.Client.Features.Itens
         // A janela não recebe parâmetros: o baú marca aqui que a próxima abertura é dele.
         private static bool _abrirBau;
 
-        // Última lista que o servidor mandou, para manter na tela se a próxima chamada falhar.
-        private static ResultadoItens _ultimo;
+        // Itens que a pessoa já viu, para marcar como "novo" o que chegou desde a última vez
+        // (baú, loot). Só vale para o mesmo personagem.
+        private static HashSet<long> _conhecidos;
+        private static long _personagemDosConhecidos;
+
+        // Último estado que o servidor mandou, para manter na tela se uma chamada falhar.
+        private static EquipamentosResponse _ultimo;
         private static long _personagemDoUltimo;
 
-        private PainelItens _painel;
-        private VisualElement _areaItens;
-        private VisualElement _areaEquipamentos;
-        private PainelEquipamentos _equipamentos;
-        private EquipamentosResponse _estadoEquipamentos;
-        private bool _ocupadoEquipamentos;
+        private PainelInventario _painel;
+        private VisualElement _areaPrincipal;
+        private VisualElement _areaInfusao;
+        private PainelInfusao _infusao;
+        private EquipamentosResponse _estado;
+        private HashSet<long> _novos = new HashSet<long>();
+        private HashSet<long> _pendentes = new HashSet<long>();
+        private bool _ocupado;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void Registrar()
@@ -51,6 +59,8 @@ namespace JogoDoGrupo.Client.Features.Itens
         private static void Reiniciar()
         {
             _abrirBau = false;
+            _conhecidos = null;
+            _personagemDosConhecidos = 0;
             _ultimo = null;
             _personagemDoUltimo = 0;
         }
@@ -73,192 +83,44 @@ namespace JogoDoGrupo.Client.Features.Itens
 
         protected override void Montar(VisualElement conteudo)
         {
-            var abas = new VisualElement();
-            abas.AddToClassList(JogoDoGrupo.Client.Core.UI.EstiloCore.LinhaBotoes);
-            var itens = new Button(() =>
-            {
-                _areaEquipamentos.style.display = DisplayStyle.None;
-                _areaItens.style.display = DisplayStyle.Flex;
-                Carregar(false);
-            })
-            {
-                text = "Itens",
-            };
-            itens.AddToClassList(JogoDoGrupo.Client.Core.UI.EstiloCore.Botao);
-            var equipamentos = new Button(() => CarregarEquipamentos(null, null))
-            {
-                text = "Equipamentos",
-            };
-            equipamentos.AddToClassList(JogoDoGrupo.Client.Core.UI.EstiloCore.Botao);
-            abas.Add(itens);
-            abas.Add(equipamentos);
-            conteudo.Add(abas);
-            _areaItens = new VisualElement();
-            _areaItens.style.flexGrow = 1;
-            _areaItens.style.minHeight = 0;
-            _areaEquipamentos = new VisualElement();
-            _areaEquipamentos.style.display = DisplayStyle.None;
-            _areaEquipamentos.style.flexGrow = 1;
-            _areaEquipamentos.style.minHeight = 0;
-            conteudo.Add(_areaItens);
-            conteudo.Add(_areaEquipamentos);
-            _painel = new PainelItens(_areaItens, DefinirTitulo);
-            _equipamentos = new PainelEquipamentos(_areaEquipamentos, CarregarEquipamentos);
-        }
+            _areaPrincipal = new VisualElement();
+            _areaInfusao = new VisualElement();
+            _areaInfusao.style.display = DisplayStyle.None;
+            conteudo.Add(_areaPrincipal);
+            conteudo.Add(_areaInfusao);
 
-        private async void CarregarEquipamentos(string acao, object pedido)
-        {
-            if (_ocupadoEquipamentos)
-                return;
-            var personagemId = EntradaNoJogo.PersonagemId;
-            _ocupadoEquipamentos = true;
-            _areaItens.style.display = DisplayStyle.None;
-            _areaEquipamentos.style.display = DisplayStyle.Flex;
-            DefinirTitulo("Equipamentos");
-            _equipamentos.Avisar("Carregando...");
-            try
-            {
-                var rota = RegrasEquipamentos.RotaDe(personagemId);
-                var resposta =
-                    acao == null
-                        ? await ClienteApi.Get<EquipamentosResponse>(rota)
-                        : await ClienteApi.Post<EquipamentosResponse>(
-                            acao == "descartar"
-                                ? RotasItens.DescartarDe(personagemId)
-                                : rota + "/" + acao,
-                            pedido
-                        );
-                if (!AindaVale(personagemId))
-                    return;
-                if (resposta.Sucesso && resposta.Corpo != null)
-                {
-                    _estadoEquipamentos = resposta.Corpo;
-                    _equipamentos.Mostrar(_estadoEquipamentos);
-                }
-                else
-                {
-                    var aviso = MensagemEquipamento(resposta.CodigoErro);
-                    if (_estadoEquipamentos != null)
-                        _equipamentos.Mostrar(_estadoEquipamentos, aviso);
-                    else
-                        _equipamentos.Avisar(aviso);
-                }
-            }
-            catch (Exception e)
-            {
-                Debug.LogException(e);
-                if (AindaVale(personagemId))
-                    _equipamentos.Avisar(
-                        "Não foi possível atualizar os equipamentos. Abra a aba para tentar novamente."
-                    );
-            }
-            finally
-            {
-                _ocupadoEquipamentos = false;
-            }
-        }
-
-        private static string MensagemEquipamento(string codigo)
-        {
-            switch (codigo)
-            {
-                case "InventarioCheio":
-                    return "Não há espaço no inventário para guardar as peças retiradas.";
-                case "NivelInsuficiente":
-                    return "Seu personagem ainda não tem o nível exigido pela peça.";
-                case "ArmaDeDuasMaos":
-                    return "Retire a arma de duas mãos antes de equipar a mão secundária.";
-                case "ItemEquipado":
-                    return "Desequipe a peça antes de descartá-la.";
-                case "ItemNaoEncontrado":
-                    return "Esse item não está mais disponível. Reabra a aba para atualizar.";
-                case "MesmoItem":
-                    return "Escolha uma peça diferente como doador.";
-                case "DoadorIncompativel":
-                    return "O doador precisa ter o mesmo tipo e raridade do receptor.";
-                case "DoadorEquipado":
-                    return "Desequipe o doador antes de consumi-lo.";
-                case "ItemFavorito":
-                    return "Desmarque o favorito do doador para permitir seu consumo.";
-                case "LimiteInfusoes":
-                    return "Esta peça atingiu o limite de infusões da raridade.";
-                case "CoroasInsuficientes":
-                    return "Você não tem coroas suficientes. Consulte uma nova prévia após obter mais coroas.";
-                case "PreviaDesatualizada":
-                    return "As peças ou o custo mudaram. Consulte uma nova prévia antes de confirmar.";
-                case "ItemInvalido":
-                    return "Esta peça não possui um atributo válido para infusão.";
-                case "PosicaoInvalida":
-                    return "Essa peça não pode ser equipada nessa posição.";
-                default:
-                    return "Não foi possível alterar os equipamentos. Tente novamente.";
-            }
+            _painel = new PainelInventario(_areaPrincipal);
+            _painel.AcaoPedida += AoPedirAcao;
+            _painel.ConjuntoPedido += numero =>
+                _ = Postar(
+                    RegrasEquipamentos.RotaDe(EntradaNoJogo.PersonagemId) + "/conjunto",
+                    new PedidoConjunto { Conjunto = numero },
+                    null
+                );
+            _painel.BancadaPedida += () => EnviarInfusao("infusao/estado", null);
+            _painel.ItemDeTestePedido += grau =>
+                _ = Postar(
+                    RegrasEquipamentos.RotaDe(EntradaNoJogo.PersonagemId)
+                        + "/bau-teste?grau="
+                        + grau,
+                    null,
+                    null
+                );
+            _painel.ItemVisto += id => _novos.Remove(id);
+            _infusao = new PainelInfusao(_areaInfusao, EnviarInfusao);
         }
 
         protected override void AoAbrir()
         {
             var abrindoBau = _abrirBau;
             _abrirBau = false;
-            Carregar(abrindoBau);
+            DefinirTitulo(abrindoBau ? TituloBau : Titulo);
+            _ = Carregar(abrindoBau);
         }
 
-        private async void Carregar(bool abrindoBau)
+        protected override void AoFechar()
         {
-            var personagemId = EntradaNoJogo.PersonagemId;
-            _painel.MostrarCarregando(abrindoBau ? TituloBau : Titulo);
-
-            ResultadoItens resultado;
-            try
-            {
-                if (abrindoBau)
-                {
-                    var resposta = await ClienteApi.Post<AbrirBauResponse>(
-                        RotasItens.BauDe(personagemId),
-                        null
-                    );
-                    if (!AindaVale(personagemId))
-                    {
-                        return;
-                    }
-
-                    resultado = ApresentacaoItens.InterpretarBau(
-                        resposta.Sucesso,
-                        resposta.CodigoErro,
-                        resposta.Corpo
-                    );
-                }
-                else
-                {
-                    var resposta = await ClienteApi.Get<InventarioResponse>(
-                        RotasItens.InventarioDe(personagemId)
-                    );
-                    if (!AindaVale(personagemId))
-                    {
-                        return;
-                    }
-
-                    resultado = ApresentacaoItens.InterpretarInventario(
-                        resposta.Sucesso,
-                        resposta.CodigoErro,
-                        resposta.Corpo
-                    );
-                }
-            }
-            catch (Exception e)
-            {
-                Debug.LogException(e);
-                if (!AindaVale(personagemId))
-                {
-                    return;
-                }
-
-                resultado = ResultadoItens.Falha(
-                    ApresentacaoItens.MensagemDeErro(null, abrindoBau),
-                    null
-                );
-            }
-
-            MostrarResultado(resultado, abrindoBau, personagemId);
+            _painel?.Encerrar();
         }
 
         // Depois do await a janela pode ter sido fechada, o jogador pode ter saído do mundo ou o
@@ -268,33 +130,382 @@ namespace JogoDoGrupo.Client.Features.Itens
             return Aberta && EntradaNoJogo.NoJogo && EntradaNoJogo.PersonagemId == personagemId;
         }
 
-        private void MostrarResultado(ResultadoItens resultado, bool abrindoBau, long personagemId)
+        // ---- carregar ----
+
+        private async System.Threading.Tasks.Task Carregar(bool abrindoBau)
         {
-            if (resultado.Deu)
+            var personagemId = EntradaNoJogo.PersonagemId;
+            _painel.MostrarAviso(null, false);
+            _painel.MostrarCarregando();
+            var ganhos = new HashSet<long>();
+            string aviso = null;
+            try
             {
-                _ultimo = resultado;
-                _personagemDoUltimo = personagemId;
-                var titulo = ApresentacaoItens.TituloDoInventario(resultado.Inventario.Count);
-                var aviso =
-                    abrindoBau && resultado.Ganhos.Count == 0 ? "O baú estava vazio." : null;
-                _painel.Mostrar(titulo, aviso, false, resultado.Ganhos, resultado.Inventario);
+                if (abrindoBau)
+                {
+                    var bau = await ClienteApi.Post<AbrirBauResponse>(
+                        RotasItens.BauDe(personagemId),
+                        null
+                    );
+                    if (!AindaVale(personagemId))
+                    {
+                        return;
+                    }
+
+                    if (bau.Sucesso && bau.Corpo != null)
+                    {
+                        foreach (var ganho in bau.Corpo.Ganhos)
+                        {
+                            ganhos.Add(ganho.InstanciaId);
+                        }
+
+                        aviso = bau.Corpo.Ganhos.Length == 0 ? "O baú estava vazio." : null;
+                    }
+                    else if (bau.CodigoErro == CodigosErroCliente.Cancelada)
+                    {
+                        JanelasDoJogo.Fechar();
+                        return;
+                    }
+                    else
+                    {
+                        aviso = ApresentacaoItens.MensagemDeErro(bau.CodigoErro, true);
+                    }
+                }
+
+                var resposta = await ClienteApi.Get<EquipamentosResponse>(
+                    RegrasEquipamentos.RotaDe(personagemId)
+                );
+                if (!AindaVale(personagemId))
+                {
+                    return;
+                }
+
+                if (resposta.Sucesso && resposta.Corpo != null)
+                {
+                    Aplicar(
+                        resposta.Corpo,
+                        personagemId,
+                        ganhos,
+                        aviso,
+                        aviso != null && ganhos.Count == 0
+                    );
+                    return;
+                }
+
+                if (resposta.CodigoErro == CodigosErroCliente.Cancelada)
+                {
+                    JanelasDoJogo.Fechar();
+                    return;
+                }
+
+                MostrarFalha(
+                    personagemId,
+                    ApresentacaoItens.MensagemDeErro(resposta.CodigoErro, abrindoBau)
+                );
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+                if (AindaVale(personagemId))
+                {
+                    MostrarFalha(personagemId, ApresentacaoItens.MensagemDeErro(null, abrindoBau));
+                }
+            }
+        }
+
+        // Falha: mostra o aviso e mantém o último estado que o servidor mandou (nunca inventa).
+        private void MostrarFalha(long personagemId, string aviso)
+        {
+            if (_ultimo != null && _personagemDoUltimo == personagemId)
+            {
+                _estado = _ultimo;
+                _painel.Mostrar(_estado, _novos, _pendentes, false);
+            }
+            else
+            {
+                _painel.MostrarCarregando();
+            }
+
+            _painel.MostrarAviso(aviso, true);
+        }
+
+        private void Aplicar(
+            EquipamentosResponse estado,
+            long personagemId,
+            HashSet<long> ganhos,
+            string aviso,
+            bool avisoEhErro
+        )
+        {
+            MarcarNovos(estado, personagemId, ganhos);
+            _ultimo = estado;
+            _personagemDoUltimo = personagemId;
+            Mostrar(estado, aviso, avisoEhErro);
+        }
+
+        private void Mostrar(EquipamentosResponse estado, string aviso, bool erro)
+        {
+            _estado = estado;
+            if (estado.ModoInfusao)
+            {
+                _areaPrincipal.style.display = DisplayStyle.None;
+                _areaInfusao.style.display = DisplayStyle.Flex;
+                _infusao.Mostrar(estado, aviso);
                 return;
             }
 
-            if (resultado.CodigoErro == CodigosErroCliente.Cancelada)
+            _areaInfusao.style.display = DisplayStyle.None;
+            _areaPrincipal.style.display = DisplayStyle.Flex;
+            _painel.Mostrar(estado, _novos, _pendentes, _ocupado);
+            _painel.MostrarAviso(aviso, erro);
+        }
+
+        private void MarcarNovos(
+            EquipamentosResponse estado,
+            long personagemId,
+            HashSet<long> ganhos
+        )
+        {
+            var todos = new HashSet<long>();
+            foreach (var item in estado.Inventario)
             {
-                JanelasDoJogo.Fechar();
+                todos.Add(item.InstanciaId);
+            }
+
+            foreach (var item in estado.Equipados)
+            {
+                todos.Add(item.InstanciaId);
+            }
+
+            if (_conhecidos != null && _personagemDosConhecidos == personagemId)
+            {
+                foreach (var item in estado.Inventario)
+                {
+                    if (!_conhecidos.Contains(item.InstanciaId))
+                    {
+                        _novos.Add(item.InstanciaId);
+                    }
+                }
+            }
+
+            _novos.UnionWith(ganhos);
+            _novos.IntersectWith(todos);
+            _conhecidos = todos;
+            _personagemDosConhecidos = personagemId;
+        }
+
+        // ---- intenções ----
+
+        private void AoPedirAcao(AcaoDoInventario acao)
+        {
+            if (_ocupado || _estado == null)
+            {
                 return;
             }
 
-            // Falha: mostra o aviso e mantém a última lista que o servidor mandou (nunca inventa).
-            var anterior =
-                _ultimo != null && _personagemDoUltimo == personagemId ? _ultimo.Inventario : null;
-            var tituloAnterior =
-                anterior != null ? ApresentacaoItens.TituloDoInventario(anterior.Count)
-                : abrindoBau ? TituloBau
-                : Titulo;
-            _painel.Mostrar(tituloAnterior, resultado.Aviso, true, null, anterior);
+            switch (acao.Tipo)
+            {
+                case TipoAcao.Nada:
+                    return;
+                case TipoAcao.Recusada:
+                    _painel.MostrarAviso(acao.Aviso, true);
+                    return;
+                case TipoAcao.Descartar:
+                    var item = ProcurarNaBolsa(acao.InstanciaId);
+                    if (item == null)
+                    {
+                        return;
+                    }
+
+                    _painel.MostrarAviso(null, false);
+                    _painel.PedirConfirmacaoDescarte(item, () => Executar(acao), null);
+                    return;
+                default:
+                    Executar(acao);
+                    return;
+            }
+        }
+
+        private EntradaInventario ProcurarNaBolsa(long instanciaId)
+        {
+            foreach (var item in _estado.Inventario)
+            {
+                if (item.InstanciaId == instanciaId)
+                {
+                    return item;
+                }
+            }
+
+            return null;
+        }
+
+        private void Executar(AcaoDoInventario acao)
+        {
+            if (_ocupado || _estado == null)
+            {
+                return;
+            }
+
+            var personagemId = EntradaNoJogo.PersonagemId;
+            var rota = RegrasEquipamentos.RotaDe(personagemId);
+            var pendentes = new HashSet<long>(LogicaInventario.InstanciasEnvolvidas(acao, _estado));
+            switch (acao.Tipo)
+            {
+                case TipoAcao.Mover:
+                    _ = Postar(
+                        RotasItens.MoverDe(personagemId),
+                        new PedidoMover
+                        {
+                            InstanciaId = acao.InstanciaId,
+                            Aba = acao.Aba,
+                            Casa = acao.Casa,
+                        },
+                        pendentes
+                    );
+                    break;
+                case TipoAcao.Equipar:
+                    _ = Postar(
+                        rota + "/equipar",
+                        new PedidoEquipar
+                        {
+                            InstanciaId = acao.InstanciaId,
+                            Posicao = acao.Posicao,
+                        },
+                        pendentes
+                    );
+                    break;
+                case TipoAcao.Desequipar:
+                    _ = Postar(
+                        rota + "/desequipar",
+                        new PedidoDesequipar
+                        {
+                            Posicao = acao.Posicao,
+                            TemDestino = acao.TemDestino,
+                            Aba = acao.Aba,
+                            Casa = acao.Casa,
+                        },
+                        pendentes
+                    );
+                    break;
+                case TipoAcao.Descartar:
+                    _ = Postar(
+                        RotasItens.DescartarDe(personagemId),
+                        new PedidoDescartar { InstanciaId = acao.InstanciaId },
+                        pendentes
+                    );
+                    break;
+            }
+        }
+
+        // O painel de infusão usa as ações do servidor por nome; null volta ao inventário.
+        private void EnviarInfusao(string acao, object pedido)
+        {
+            var personagemId = EntradaNoJogo.PersonagemId;
+            if (acao == null)
+            {
+                _ = Recarregar(personagemId);
+                return;
+            }
+
+            _ = Postar(RegrasEquipamentos.RotaDe(personagemId) + "/" + acao, pedido, null);
+        }
+
+        private async System.Threading.Tasks.Task Recarregar(long personagemId)
+        {
+            if (_ocupado)
+            {
+                return;
+            }
+
+            _ocupado = true;
+            try
+            {
+                var resposta = await ClienteApi.Get<EquipamentosResponse>(
+                    RegrasEquipamentos.RotaDe(personagemId)
+                );
+                if (!AindaVale(personagemId))
+                {
+                    return;
+                }
+
+                if (resposta.Sucesso && resposta.Corpo != null)
+                {
+                    _ocupado = false;
+                    Aplicar(resposta.Corpo, personagemId, new HashSet<long>(), null, false);
+                }
+                else if (resposta.CodigoErro != CodigosErroCliente.Cancelada)
+                {
+                    _ocupado = false;
+                    MostrarFalha(
+                        personagemId,
+                        TextosEquipamento.MensagemDeErro(resposta.CodigoErro)
+                    );
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+            }
+            finally
+            {
+                _ocupado = false;
+            }
+        }
+
+        // Um pedido por vez. Os exemplares envolvidos ficam semitransparentes e travados até o
+        // servidor responder; recusa devolve o estado de antes com a mensagem.
+        private async System.Threading.Tasks.Task Postar(
+            string caminho,
+            object pedido,
+            HashSet<long> pendentes
+        )
+        {
+            if (_ocupado)
+            {
+                return;
+            }
+
+            var personagemId = EntradaNoJogo.PersonagemId;
+            _ocupado = true;
+            _pendentes = pendentes ?? new HashSet<long>();
+            if (_estado != null && !_estado.ModoInfusao)
+            {
+                Mostrar(_estado, null, false);
+            }
+
+            try
+            {
+                var resposta = await ClienteApi.Post<EquipamentosResponse>(caminho, pedido);
+                if (!AindaVale(personagemId))
+                {
+                    return;
+                }
+
+                _pendentes = new HashSet<long>();
+                _ocupado = false;
+                if (resposta.Sucesso && resposta.Corpo != null)
+                {
+                    Aplicar(resposta.Corpo, personagemId, new HashSet<long>(), null, false);
+                }
+                else if (resposta.CodigoErro != CodigosErroCliente.Cancelada && _estado != null)
+                {
+                    Mostrar(_estado, TextosEquipamento.MensagemDeErro(resposta.CodigoErro), true);
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+                _pendentes = new HashSet<long>();
+                _ocupado = false;
+                if (AindaVale(personagemId) && _estado != null)
+                {
+                    Mostrar(_estado, "Não foi possível concluir. Tente novamente.", true);
+                }
+            }
+            finally
+            {
+                _ocupado = false;
+            }
         }
     }
 }

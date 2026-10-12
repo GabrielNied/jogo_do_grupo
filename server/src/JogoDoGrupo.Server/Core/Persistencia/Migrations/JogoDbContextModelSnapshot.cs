@@ -114,6 +114,15 @@ namespace JogoDoGrupo.Server.Core.Persistencia.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<int?>("Aba")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("Casa")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Conteiner")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("EquipamentoJson")
                         .HasColumnType("TEXT");
 
@@ -133,6 +142,10 @@ namespace JogoDoGrupo.Server.Core.Persistencia.Migrations
                     b.HasIndex("PersonagemId", "Posicao")
                         .IsUnique()
                         .HasFilter("\"Posicao\" <> 0");
+
+                    b.HasIndex("PersonagemId", "Conteiner", "Aba", "Casa")
+                        .IsUnique()
+                        .HasFilter("\"Casa\" IS NOT NULL");
 
                     b.ToTable("ItensInventario", (string)null);
                 });

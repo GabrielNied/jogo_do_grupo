@@ -18,6 +18,16 @@ public sealed class ItemInventario
     public int ItemId { get; set; }
 
     public PosicaoEquipamento Posicao { get; set; }
+
+    /// <summary>Contêiner onde o item está guardado (só a bolsa funciona por enquanto).</summary>
+    public ConteinerItem Conteiner { get; set; } = ConteinerItem.Bolsa;
+
+    /// <summary>Aba do contêiner; nula com o item equipado.</summary>
+    public int? Aba { get; set; }
+
+    /// <summary>Casa da aba; nula com o item equipado.</summary>
+    public int? Casa { get; set; }
+
     public string? EquipamentoJson { get; set; }
 
     public Equipamento? LerEquipamento() =>
@@ -35,6 +45,9 @@ public sealed class ItemInventario
         {
             InstanciaId = Id,
             Posicao = Posicao,
+            Conteiner = Conteiner,
+            Aba = Aba ?? RegrasItens.SemCasa,
+            Casa = Casa ?? RegrasItens.SemCasa,
             Equipamento = LerEquipamento(),
             ItemId = ItemId,
             Nome =

@@ -84,7 +84,7 @@ namespace JogoDoGrupo.Client.Features.Itens
                     detalhesDoador.text =
                         doador.index >= 0 && doador.index < doadores.Count
                             ? "Doador que será consumido:\n"
-                                + PainelEquipamentos.Descrever(doadores[doador.index])
+                                + TextosEquipamento.Descrever(doadores[doador.index])
                             : "";
                 var areaPrevia = new VisualElement();
                 PreviaInfusao previa = estado.Previa;
@@ -111,7 +111,7 @@ namespace JogoDoGrupo.Client.Features.Itens
                     doadores.Clear();
                     var opcoes = new List<string>();
                     var recebe = receptores[receptor.index];
-                    detalhes.text = PainelEquipamentos.Descrever(recebe);
+                    detalhes.text = TextosEquipamento.Descrever(recebe);
                     foreach (var item in estado.Inventario)
                         if (
                             item.InstanciaId != recebe.InstanciaId
@@ -202,7 +202,7 @@ namespace JogoDoGrupo.Client.Features.Itens
         public static string DescreverPrevia(PreviaInfusao previa) =>
             previa.Receptor
             + "\n"
-            + PainelEquipamentos.NomeStatus(previa.Status)
+            + TextosEquipamento.NomeStatus(previa.Status)
             + ": "
             + previa.Antes.ToString("0.######", CultureInfo.CurrentCulture)
             + " → "

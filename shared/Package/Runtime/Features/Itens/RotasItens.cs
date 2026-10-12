@@ -25,6 +25,16 @@ namespace JogoDoGrupo.Shared.Features.Itens
         /// </summary>
         public const string Descartar = "/api/personagens/{personagemId}/inventario/descartar";
 
+        /// <summary>
+        /// Modelo da rota. <c>POST</c> com <see cref="PedidoMover"/> move o exemplar para uma casa
+        /// da bolsa (casa ocupada: troca) e responde 200 <see cref="EquipamentosResponse"/>.
+        /// </summary>
+        public const string Mover = "/api/personagens/{personagemId}/inventario/mover";
+
+        /// <summary>Caminho de <see cref="Mover"/> para um personagem (uso do client).</summary>
+        public static string MoverDe(long personagemId) =>
+            "/api/personagens/" + personagemId + "/inventario/mover";
+
         /// <summary>Caminho de <see cref="Descartar"/> para um personagem (uso do client).</summary>
         public static string DescartarDe(long personagemId) =>
             "/api/personagens/" + personagemId + "/inventario/descartar";

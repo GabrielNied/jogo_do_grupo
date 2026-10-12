@@ -9,5 +9,8 @@ namespace JogoDoGrupo.Shared.Features.Itens
     public class InventarioResponse
     {
         public EntradaInventario[] Entradas = System.Array.Empty<EntradaInventario>();
+
+        /// <summary>Capacidade da bolsa (abas e casas por aba), decidida pelo servidor.</summary>
+        public CapacidadeBolsa Capacidade = RegrasItens.CapacidadeInicial();
     }
 }

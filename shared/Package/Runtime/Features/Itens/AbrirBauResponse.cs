@@ -15,5 +15,8 @@ namespace JogoDoGrupo.Shared.Features.Itens
 
         /// <summary>O inventário inteiro depois de gravar os ganhos, no mesmo formato do GET.</summary>
         public EntradaInventario[] Inventario = System.Array.Empty<EntradaInventario>();
+
+        /// <summary>Capacidade da bolsa depois da abertura.</summary>
+        public CapacidadeBolsa Capacidade = RegrasItens.CapacidadeInicial();
     }
 }

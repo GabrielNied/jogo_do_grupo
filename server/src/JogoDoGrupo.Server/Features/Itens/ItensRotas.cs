@@ -28,6 +28,7 @@ internal static class ItensRotas
         rotas.MapGet(RotasItens.Inventario, InventarioAsync).RequireAuthorization();
         rotas.MapPost(RotasItens.Bau, AbrirBauAsync).RequireAuthorization();
         rotas.MapPost(RotasItens.Descartar, DescartarAsync).RequireAuthorization();
+        rotas.MapPost(RotasItens.Mover, MoverAsync).RequireAuthorization();
     }
 
     private static async Task<IResult> InventarioAsync(
@@ -45,7 +46,9 @@ internal static class ItensRotas
 
         var id = ParaId(personagemId);
         var entradas = await LerInventarioAsync(db, id, cancelamento);
-        return Results.Ok(new InventarioResponse { Entradas = entradas });
+        return Results.Ok(
+            new InventarioResponse { Entradas = entradas, Capacidade = Bolsa.CapacidadeDe(id) }
+        );
     }
 
     /// <summary>
@@ -77,6 +80,7 @@ internal static class ItensRotas
             .Where(i => i.PersonagemId == id)
             .OrderBy(i => i.Id)
             .ToListAsync(cancelamento);
+        Bolsa.Normalizar(itens, Bolsa.CapacidadeDe(id));
         var alvo = itens.SingleOrDefault(i => i.Id == pedido.InstanciaId);
         if (alvo == null)
         {
@@ -93,6 +97,85 @@ internal static class ItensRotas
         db.Remove(alvo);
         itens.Remove(alvo);
         await db.SaveChangesAsync(cancelamento);
+        var estado = await db.Set<EstadoEquipamentos>()
+            .FindAsync(new object[] { id }, cancelamento);
+        var resposta = EquipamentosRotas.Resposta(itens, estado?.ConjuntoAtivo ?? 1);
+        await transacao.CommitAsync(cancelamento);
+        return Results.Ok(resposta);
+    }
+
+    /// <summary>
+    /// Move um item da bolsa para uma casa. Casa ocupada: os dois trocam de lugar na mesma
+    /// transação (Serializable, como o equipar), então dois pedidos para a mesma casa rodam em
+    /// série e nunca deixam duas peças nela. Item equipado é 409 (desequipe pelo encaixe).
+    /// </summary>
+    private static async Task<IResult> MoverAsync(
+        string personagemId,
+        PedidoMover pedido,
+        ClaimsPrincipal usuario,
+        JogoDbContext db,
+        CancellationToken cancelamento
+    )
+    {
+        await using var transacao = await db.Database.BeginTransactionAsync(
+            IsolationLevel.Serializable,
+            cancelamento
+        );
+        if (!await PersonagemDaContaAsync(personagemId, usuario.ObterContaId(), db, cancelamento))
+        {
+            return PersonagemNaoEncontrado();
+        }
+
+        var id = ParaId(personagemId);
+        var capacidade = Bolsa.CapacidadeDe(id);
+        if (!capacidade.Contem(pedido.Aba, pedido.Casa))
+        {
+            return RespostasApi.Erro(
+                StatusCodes.Status400BadRequest,
+                CodigosErroItens.CasaInvalida
+            );
+        }
+
+        var itens = await db.Set<ItemInventario>()
+            .Where(i => i.PersonagemId == id)
+            .OrderBy(i => i.Id)
+            .ToListAsync(cancelamento);
+        var alvo = itens.SingleOrDefault(i => i.Id == pedido.InstanciaId);
+        if (alvo == null)
+        {
+            return RespostasApi.Erro(
+                StatusCodes.Status404NotFound,
+                CodigosErroItens.ItemNaoEncontrado
+            );
+        }
+        if (!Bolsa.EstaNaBolsa(alvo))
+        {
+            return RespostasApi.Erro(StatusCodes.Status409Conflict, CodigosErroItens.ItemEquipado);
+        }
+
+        Bolsa.Normalizar(itens, capacidade);
+        var ocupante = Bolsa.Em(itens, pedido.Aba, pedido.Casa);
+        if (ocupante?.Id != alvo.Id)
+        {
+            var abaOrigem = alvo.Aba;
+            var casaOrigem = alvo.Casa;
+            // Um passo por vez: o índice único não aceita duas peças na mesma casa nem
+            // por um instante.
+            Bolsa.Limpar(alvo);
+            await db.SaveChangesAsync(cancelamento);
+            if (ocupante != null && abaOrigem is int aba && casaOrigem is int casa)
+            {
+                Bolsa.Colocar(ocupante, aba, casa);
+                await db.SaveChangesAsync(cancelamento);
+            }
+            Bolsa.Colocar(alvo, pedido.Aba, pedido.Casa);
+            await db.SaveChangesAsync(cancelamento);
+        }
+        else
+        {
+            await db.SaveChangesAsync(cancelamento);
+        }
+
         var estado = await db.Set<EstadoEquipamentos>()
             .FindAsync(new object[] { id }, cancelamento);
         var resposta = EquipamentosRotas.Resposta(itens, estado?.ConjuntoAtivo ?? 1);
@@ -174,12 +257,18 @@ internal static class ItensRotas
             cancelamento
         );
 
-        var ocupados = await db.Set<ItemInventario>()
-            .CountAsync(
-                i => i.PersonagemId == personagemId && i.Posicao == PosicaoEquipamento.Inventario,
-                cancelamento
-            );
-        if (ocupados + sorteados.Length > RegrasItens.EspacosInventario)
+        var capacidade = Bolsa.CapacidadeDe(personagemId);
+        var existentes = await db.Set<ItemInventario>()
+            .Where(i =>
+                i.PersonagemId == personagemId && i.Posicao == PosicaoEquipamento.Inventario
+            )
+            .OrderBy(i => i.Id)
+            .ToListAsync(cancelamento);
+        Bolsa.Normalizar(existentes, capacidade);
+        var novos = sorteados
+            .Select(itemId => new ItemInventario { PersonagemId = personagemId, ItemId = itemId })
+            .ToList();
+        if (!Bolsa.Guardar(existentes, novos, capacidade))
         {
             return RespostasApi.Erro(
                 StatusCodes.Status409Conflict,
@@ -187,9 +276,6 @@ internal static class ItensRotas
             );
         }
 
-        var novos = sorteados
-            .Select(itemId => new ItemInventario { PersonagemId = personagemId, ItemId = itemId })
-            .ToList();
         foreach (var novo in novos)
         {
             var equipamento = gerador.Gerar(novo.ItemId, Random.Shared);
@@ -207,6 +293,7 @@ internal static class ItensRotas
             {
                 Ganhos = novos.Select(i => i.ParaEntrada()).ToArray(),
                 Inventario = inventario,
+                Capacidade = capacidade,
             }
         );
     }
@@ -224,6 +311,7 @@ internal static class ItensRotas
             )
             .OrderBy(i => i.Id)
             .ToListAsync(cancelamento);
+        Bolsa.Normalizar(itens, Bolsa.CapacidadeDe(personagemId));
         return itens.Select(i => i.ParaEntrada()).ToArray();
     }
 

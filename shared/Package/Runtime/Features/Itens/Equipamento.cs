@@ -123,6 +123,27 @@ namespace JogoDoGrupo.Shared.Features.Itens
     public class PedidoDesequipar
     {
         public PosicaoEquipamento Posicao;
+
+        /// <summary>
+        /// Quando verdadeiro, <see cref="Aba"/> e <see cref="Casa"/> dizem onde guardar a peça;
+        /// falso: a primeira casa livre.
+        /// </summary>
+        public bool TemDestino;
+
+        public int Aba;
+        public int Casa;
+    }
+
+    /// <summary>
+    /// Move um item da bolsa para uma casa. Casa ocupada: os dois trocam de lugar. Rota:
+    /// <see cref="RotasItens.Mover"/>.
+    /// </summary>
+    [Serializable]
+    public class PedidoMover
+    {
+        public long InstanciaId;
+        public int Aba;
+        public int Casa;
     }
 
     [Serializable]
@@ -136,6 +157,7 @@ namespace JogoDoGrupo.Shared.Features.Itens
     {
         public EntradaInventario[] Inventario = Array.Empty<EntradaInventario>();
         public EntradaInventario[] Equipados = Array.Empty<EntradaInventario>();
+        public CapacidadeBolsa Capacidade = RegrasItens.CapacidadeInicial();
         public int ConjuntoAtivo = 1;
         public AtributoItem[] Bonus = Array.Empty<AtributoItem>();
         public long Coroas;
@@ -206,6 +228,50 @@ namespace JogoDoGrupo.Shared.Features.Itens
             )
                 return tipo == TipoEquipamento.Escudo || tipo == TipoEquipamento.Foco;
             return false;
+        }
+
+        /// <summary>
+        /// Encaixe onde o clique direito equipa uma peça do <paramref name="tipo"/>: anel e brinco
+        /// vão para o primeiro encaixe livre (os dois cheios: o primeiro, que troca); arma vai
+        /// para o conjunto ativo; escudo e foco, para a mão secundária do conjunto ativo. O
+        /// servidor continua conferindo tudo (nível, duas mãos, espaço).
+        /// </summary>
+        /// <param name="ocupados">Encaixes que já têm peça.</param>
+        public static PosicaoEquipamento EncaixeAutomatico(
+            TipoEquipamento tipo,
+            IEnumerable<PosicaoEquipamento> ocupados,
+            int conjuntoAtivo
+        )
+        {
+            var usados = new HashSet<PosicaoEquipamento>(ocupados ?? new PosicaoEquipamento[0]);
+            switch (tipo)
+            {
+                case TipoEquipamento.Anel:
+                    return
+                        usados.Contains(PosicaoEquipamento.Anel1)
+                        && !usados.Contains(PosicaoEquipamento.Anel2)
+                        ? PosicaoEquipamento.Anel2
+                        : PosicaoEquipamento.Anel1;
+                case TipoEquipamento.Brinco:
+                    return
+                        usados.Contains(PosicaoEquipamento.Brinco1)
+                        && !usados.Contains(PosicaoEquipamento.Brinco2)
+                        ? PosicaoEquipamento.Brinco2
+                        : PosicaoEquipamento.Brinco1;
+                case TipoEquipamento.Espada:
+                case TipoEquipamento.Martelo:
+                case TipoEquipamento.Arco:
+                case TipoEquipamento.Cajado:
+                    return Principal(conjuntoAtivo == 2 ? 2 : 1);
+                case TipoEquipamento.Escudo:
+                case TipoEquipamento.Foco:
+                    return Secundaria(conjuntoAtivo == 2 ? 2 : 1);
+                case TipoEquipamento.Adorno:
+                    return PosicaoEquipamento.Adorno;
+                default:
+                    // Capacete..Cinto seguem a ordem do enum (Aceita usa a mesma conta).
+                    return (PosicaoEquipamento)((int)tipo + 1);
+            }
         }
 
         public static AtributoItem[] Somar(IEnumerable<EntradaInventario> entradas, int conjunto)

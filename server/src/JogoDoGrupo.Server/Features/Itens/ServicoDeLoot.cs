@@ -228,12 +228,15 @@ public sealed class ServicoDeLoot(
             IsolationLevel.Serializable
         );
 
-        var ocupados = await db.Set<ItemInventario>()
-            .CountAsync(i =>
+        var capacidade = Bolsa.CapacidadeDe(personagemId);
+        var existentes = await db.Set<ItemInventario>()
+            .Where(i =>
                 i.PersonagemId == personagemId && i.Posicao == PosicaoEquipamento.Inventario
-            );
-        var livres = Math.Max(0, RegrasItens.EspacosInventario - ocupados);
-        var levados = separados.Take(livres).ToList();
+            )
+            .OrderBy(i => i.Id)
+            .ToListAsync();
+        Bolsa.Normalizar(existentes, capacidade);
+        var levados = separados.Take(Bolsa.Livres(existentes, capacidade)).ToList();
         var novos = levados
             .Select(l => new ItemInventario { PersonagemId = personagemId, ItemId = l.ItemId })
             .ToList();
@@ -241,6 +244,9 @@ public sealed class ServicoDeLoot(
         {
             return novos;
         }
+
+        // Cada item vai para a primeira casa livre.
+        Bolsa.Guardar(existentes, novos, capacidade);
 
         // A raridade e o grau sorteados na queda valem para a peça que entra no inventário.
         var gerador = escopo.ServiceProvider.GetRequiredService<GeradorEquipamentos>();

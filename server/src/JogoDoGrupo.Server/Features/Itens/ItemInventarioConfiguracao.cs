@@ -14,6 +14,16 @@ internal sealed class ItemInventarioConfiguracao : IEntityTypeConfiguration<Item
         item.HasIndex(i => new { i.PersonagemId, i.Posicao })
             .IsUnique()
             .HasFilter("\"Posicao\" <> 0");
+        // Uma casa guarda um item só. Equipado tem casa nula, que não entra no índice.
+        item.HasIndex(i => new
+            {
+                i.PersonagemId,
+                i.Conteiner,
+                i.Aba,
+                i.Casa,
+            })
+            .IsUnique()
+            .HasFilter("\"Casa\" IS NOT NULL");
         item.Property(i => i.ItemId).IsRequired();
         item.HasOne<PersonagemEntidade>()
             .WithMany()
