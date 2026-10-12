@@ -91,6 +91,8 @@ namespace JogoDoGrupo.Client.Features.Combate
             );
 
             raiz.AddComponent<ControleEsquiva>().Configurar(personagemId, prontidao);
+            raiz.AddComponent<ControleDefesa>()
+                .Configurar(personagemId, prontidao, new PainelDefesa(container));
             raiz.AddComponent<ControleImpacto>()
                 .Configurar(personagemId, new PainelImpacto(container));
         }

@@ -105,3 +105,19 @@
     top: var(--lumora-espacamento-pequeno);
     width: var(--lumora-dimensoes-ferramentas);
 }
+
+.guarda-indicador {
+    position: absolute;
+    left: 50%;
+    top: 52%;
+    width: var(--lumora-dimensoes-recursos-largura);
+    translate: -50% 0;
+    font-size: var(--lumora-tipografia-controle);
+    -unity-text-align: middle-center;
+    color: var(--lumora-cores-ouro);
+    background-color: var(--lumora-cores-painel);
+}
+
+.guarda-fraca {
+    color: var(--lumora-cores-erro);
+}

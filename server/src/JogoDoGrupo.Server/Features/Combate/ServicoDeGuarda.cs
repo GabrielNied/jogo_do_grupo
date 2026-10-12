@@ -20,6 +20,8 @@ public sealed class ServicoDeGuarda
     private readonly ServicoDeQueda? _queda;
     private readonly ILimiteDeVelocidadeDoMundo? _limite;
     private readonly Func<long> _relogioMs;
+    private readonly IServiceScopeFactory? _escopos;
+    private readonly ILogger<ServicoDeGuarda>? _log;
 
     public ServicoDeGuarda(
         ServidorTempoReal tempoReal,
@@ -27,9 +29,13 @@ public sealed class ServicoDeGuarda
         ControleDeAcoes controle,
         ServicoDeQueda? queda = null,
         ILimiteDeVelocidadeDoMundo? limite = null,
-        Func<long>? relogioMs = null
+        Func<long>? relogioMs = null,
+        IServiceScopeFactory? escopos = null,
+        ILogger<ServicoDeGuarda>? log = null
     )
     {
+        _escopos = escopos;
+        _log = log;
         _tempoReal = tempoReal;
         _posicoes = posicoes;
         _controle = controle;
@@ -54,6 +60,7 @@ public sealed class ServicoDeGuarda
             if (_controle.SoltarGuarda(personagemId))
             {
                 LiberarVelocidade(personagemId);
+                PausarRegeneracao(personagemId, segurando: false);
                 Avisar(posicao.Area, personagemId, segurando: false, quebrou: false);
             }
 
@@ -80,6 +87,7 @@ public sealed class ServicoDeGuarda
             RegrasGuarda.VelocidadeComGuarda,
             RegrasGuarda.LimiteDeVelocidadeSegundos
         );
+        PausarRegeneracao(personagemId, segurando: true);
         Avisar(posicao.Area, personagemId, segurando: true, quebrou: false);
     }
 
@@ -97,11 +105,40 @@ public sealed class ServicoDeGuarda
     {
         _controle.SoltarGuarda(personagemId);
         LiberarVelocidade(personagemId);
+        PausarRegeneracao(personagemId, segurando: false);
         Avisar(area, personagemId, segurando: false, quebrou: true);
     }
 
     private void LiberarVelocidade(long personagemId) =>
         _limite?.LimitarVelocidade(personagemId, 1.0, 0.1);
+
+    // Guarda segurada pausa a espera da regeneração do vigor. Roda numa tarefa: o laço de rede
+    // não espera o banco.
+    private void PausarRegeneracao(long personagemId, bool segurando)
+    {
+        if (_escopos == null)
+        {
+            return;
+        }
+
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await RecursosDoAtaque
+                    .Recursos(_escopos)
+                    .DefinirGuardaAsync(personagemId, segurando, CancellationToken.None);
+            }
+            catch (Exception e)
+            {
+                _log?.LogError(
+                    e,
+                    "Erro ao marcar a guarda do personagem {Personagem}.",
+                    personagemId
+                );
+            }
+        });
+    }
 
     private void Avisar(string area, long personagemId, bool segurando, bool quebrou) =>
         _avisos.Enviar(
@@ -113,7 +150,9 @@ public sealed class ServicoDeGuarda
                 PersonagemId = personagemId,
                 Segurando = segurando,
                 Quebrou = quebrou,
-            }
+            },
+            // Quem soltou a guarda já sabe; o dono só ouve quando ela sobe ou quebra.
+            incluirDono: segurando || quebrou
         );
 
     // Saiu do jogo de vez: a guarda não fica presa. Trocar de sessão não conta.

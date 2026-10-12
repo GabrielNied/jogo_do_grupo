@@ -57,9 +57,11 @@ namespace JogoDoGrupo.Client.Features.Combate
             return GeradorDeIntencoes.NormalizarDirecao(atual + passo);
         }
 
+        /// <summary>A fração da corrida permitida com o compromisso do golpe (0,4).</summary>
+        public static float FatorDoGolpe => (float)RegrasAtaque.VelocidadeDuranteGolpe;
+
         /// <summary>A velocidade com o compromisso do golpe (40% da corrida, por exemplo).</summary>
-        public static float VelocidadeDuranteGolpe(float velocidade) =>
-            velocidade * (float)RegrasAtaque.VelocidadeDuranteGolpe;
+        public static float VelocidadeDuranteGolpe(float velocidade) => velocidade * FatorDoGolpe;
 
         /// <summary>Se o número do dano é do golpe mais forte da cadeia ou do pesado (aparece maior).</summary>
         public static bool GolpeForte(TipoDeAtaque tipo, int passo) =>
