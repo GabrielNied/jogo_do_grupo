@@ -115,14 +115,16 @@ jobs:
         if: env.TEM_LICENCA == 'true'
         run: git lfs pull
 
+      # v2 (#529): os jobs que morriam com "Killed" sozinhos restauravam todos o mesmo cache
+      # antigo da Library; o prefixo novo descarta os caches anteriores.
       - uses: actions/cache@v4
         if: env.TEM_LICENCA == 'true'
         with:
           path: client/Library
-          key: Library-${{ hashFiles('client/Packages/packages-lock.json', 'client/ProjectSettings/ProjectVersion.txt') }}-${{ hashFiles('client/Assets/**', 'shared/Package/**') }}
+          key: Library-v2-${{ hashFiles('client/Packages/packages-lock.json', 'client/ProjectSettings/ProjectVersion.txt') }}-${{ hashFiles('client/Assets/**', 'shared/Package/**') }}
           restore-keys: |
-            Library-${{ hashFiles('client/Packages/packages-lock.json', 'client/ProjectSettings/ProjectVersion.txt') }}-
-            Library-
+            Library-v2-${{ hashFiles('client/Packages/packages-lock.json', 'client/ProjectSettings/ProjectVersion.txt') }}-
+            Library-v2-
 
       # Compila todos os assemblies (erro de compilação reprova) e roda os testes EditMode.
       - uses: game-ci/unity-test-runner@v4
