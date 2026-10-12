@@ -67,7 +67,7 @@ Testes em `tests/` (xUnit; [ADR 0013](docs/decisoes/0013-testes-automatizados.md
     - Leia só o que a tarefa precisa (AGENTS.md, a doc da funcionalidade, o código que vai mudar); não varra o repo inteiro.
     - Verifique por comando adequado à alteração (matriz da skill `preparar-pr`), não à mão: nada de subir servidor, `curl` ou projetos temporários se um teste resolve. Se faltar teste de código, escreva-o em vez de testar à mão.
     - Não repita o que o CI já confere, nem reverifique o que já passou.
-    - Dúvida de regra ou contrato: pergunte antes de implementar, para não refazer.
+    - Regra de design em aberto: decida, registre na doc e no PR e siga ([Decisões de design](docs/agentes.md#decisões-de-design)); não espere resposta.
     - Respostas e relatórios curtos: o que mudou, links e pendências. Nada de repetir o pedido ou listar verificações que passaram.
     - Reaproveite padrões e ajudantes que já existem (ex.: `ServidorDeTeste`) em vez de criar outros.
 14. Cada informação mora em um documento só (tabela em [docs/README.md](docs/README.md#onde-cada-coisa-fica-fonte-única)). Não copie conteúdo entre docs; aponte com link.
@@ -80,7 +80,7 @@ Testes em `tests/` (xUnit; [ADR 0013](docs/decisoes/0013-testes-automatizados.md
     - Tropeço de processo (travou, sumiu, refeito, ferramenta enganou): registre a lição com a skill `registrar-licao` ([docs/licoes.md](docs/licoes.md)) no mesmo PR.
 
 17. **Balanceamento:** separe valores ajustáveis dos cálculos, em constantes nomeadas no topo da classe ou `Config<Assunto>` da funcionalidade. Siga [Valores de balanceamento](docs/convencoes.md#valores-de-balanceamento).
-18. **Entrega:** a tarefa de jogo termina na cena que o jogador usa. Ao puxá-la, escreva na issue o [plano](docs/agentes.md#plano-da-tarefa) (casos, estados da checklist de experiência e testes) antes de codar, e só pare se houver dúvida de regra. Siga [Entrega da funcionalidade](docs/agentes.md#entrega-da-funcionalidade). Contrato e servidor não fecham essa issue.
+18. **Entrega:** uma issue de jogo tem **um dono** que faz contrato, servidor, client e cena no mesmo PR ([ADR 0030](docs/decisoes/0030-processo-v2-dono-da-funcionalidade.md)), e termina na cena que o jogador usa. Ao puxá-la, escreva na issue o [plano](docs/agentes.md#plano-da-tarefa) (casos, estados da checklist de experiência, decisões de design e testes) e siga sem esperar. No máximo 3 funcionalidades de jogo em andamento, dentro do [foco do marco](docs/features/fatia-jogavel.md#foco-atual).
 
 ## Procedimentos (skills)
 
@@ -99,7 +99,7 @@ Para as tarefas abaixo, **leia o arquivo indicado e siga os passos**. Algumas fe
 
 ## Vários agentes em paralelo
 
-O trabalho é dividido entre agentes especializados, cada um com uma área fixa (ex.: `server-funcionalidade` só edita `server/.../Features/`). Se você foi chamado como um desses agentes, siga a definição em [.claude/agents/](.claude/agents/) e fique na sua área. O fluxo (contrato primeiro, depois server e client em paralelo, cada um no seu worktree) está em [docs/agentes.md](docs/agentes.md).
+Cada funcionalidade de jogo tem um agente dono (`funcionalidade`, ou `itens` e `economia`) que a faz de ponta a ponta no seu worktree; o paralelismo é entre funcionalidades. Core e arte têm agentes próprios. Se você foi chamado como um desses agentes, siga a definição em [.claude/agents/](.claude/agents/) e fique na sua área. O fluxo está em [docs/agentes.md](docs/agentes.md).
 
 ## Onde ler mais
 

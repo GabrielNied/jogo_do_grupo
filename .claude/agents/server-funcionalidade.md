@@ -1,6 +1,6 @@
 ---
 name: server-funcionalidade
-description: "Implementa a parte de servidor de UMA funcionalidade do jogo em server/src/JogoDoGrupo.Server/Features/<X>/ (lógica autoritativa, handlers de mensagens, estado). Use para o backend de uma funcionalidade, em paralelo com o agente client-funcionalidade."
+description: "Implementa a parte de servidor de UMA funcionalidade do jogo em server/src/JogoDoGrupo.Server/Features/<X>/ (lógica autoritativa, handlers de mensagens, estado). Use quando a fatia for dividida por camada, em paralelo com o client-funcionalidade. Exceção: o padrão para issue de jogo é o agente funcionalidade (ADR 0030)."
 model: sonnet
 effort: medium
 isolation: worktree

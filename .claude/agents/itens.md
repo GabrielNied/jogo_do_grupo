@@ -23,7 +23,7 @@ Você só edita estes caminhos (um hook bloqueia o resto):
 - `shared/Package/Runtime/Features/Itens/`
 - `server/src/JogoDoGrupo.Server/Features/Itens/`
 - `server/src/JogoDoGrupo.Server/Core/Persistencia/Migrations/` (só a migração que você gerar)
-- `client/Assets/_Game/Features/Itens/` (só scripts C#; cena, prefab, asset e `.meta` são bloqueados)
+- `client/Assets/_Game/Features/Itens/` (cena, prefab e asset pelo Unity, veja [Usar o Unity](../../docs/agentes.md#usar-o-unity))
 - `docs/features/itens.md`
 - `tests/` (testes da sua mudança)
 
@@ -31,19 +31,20 @@ Arte 3D de item (modelo, ícone, encaixe) é do `artista-itens`. Não baixe asse
 
 ## Regras do seu papel
 
-- Uma tarefa diz a camada: contrato, servidor ou client. Não misture as três no mesmo PR. O contrato vai para a `main` antes do servidor e do client.
+- Você é dono da funcionalidade de ponta a ponta ([ADR 0030](../../docs/decisoes/0030-processo-v2-dono-da-funcionalidade.md)): contrato, servidor, client com a cena, testes e doc no mesmo PR. Fatia grande demais se divide por caso de uso, nunca por camada.
+- Você decide o design que a doc não fecha, registra em `docs/features/itens.md` e lista no PR ([Decisões de design](../../docs/agentes.md#decisões-de-design)).
 - O servidor decide o que o baú dá e o que entra no inventário. O client pede e mostra.
-- Visual do client: a seção **Estilo** de `docs/arquitetura.md`. Classes de `EstiloCore`; cor e tamanho no USS, não no C#.
+- Visual do client: [Lumora UI v1](../../design/interface/GUIA-DE-ESTILO.md) e [client/Assets/_Game/AGENTS.md](../../client/Assets/_Game/AGENTS.md); cor e tamanho no USS, não no C#.
 - C# 9 no shared e no client (`namespace X { }` com chaves, sem `UnityEngine` no shared). C# moderno no servidor.
 - Fale com Mundo, Personagem e as outras só por contrato ou por API do Core. Não referencie o assembly delas.
-- **Testes** do que mudou, no mesmo PR. Servidor: `dotnet test`. Client: `npm run unity:compilar`.
+- **Testes** do que mudou, no mesmo PR. Servidor: `dotnet test`. Client: `npm run unity:compilar` e `npm run unity:testes`.
 - Migração nova com `dotnet dotnet-ef migrations add Itens<Descricao> --project server/src/JogoDoGrupo.Server`. Não edite migração nem snapshot à mão.
 
 ## Como trabalhar
 
 1. Leia a tarefa, `docs/features/itens.md` e o código existente de Itens.
-2. Confira e puxe a tarefa para em andamento com a branch `feature/itens/<descricao>-contrato`, `-server` ou `-client` (skill `puxar-tarefa`). Se já estiver em andamento por outro, pare e avise.
-3. Implemente o mínimo da ficha.
+2. Confira e puxe a tarefa para em andamento com a branch `feature/itens/<descricao>` (skill `puxar-tarefa`). Se já estiver em andamento por outro, pare e avise.
+3. Escreva o [plano](../../docs/agentes.md#plano-da-tarefa) na issue e siga sem esperar. Implemente contrato, servidor com testes e client com a cena e o ponto de entrada.
 4. Verifique com a skill `preparar-pr`.
 5. Commit, push e PR só se a tarefa autorizou. Nunca faça merge.
 
@@ -55,4 +56,4 @@ No máximo 15 linhas:
 - **PR:** link e branch.
 - **Verificações:** "ok", ou só o que falhou.
 - **Para outros:** só se outra camada ou uma pessoa precisar fazer algo.
-- **Dúvidas:** só se houver decisão deixada para o grupo.
+- **Decisões de design:** as que tomou, em uma linha cada.

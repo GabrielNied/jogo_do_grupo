@@ -8,6 +8,16 @@
 
 Regras mínimas para jogar o [primeiro marco](../visao-geral.md#primeiro-marco-fatia-jogável): atributos e recursos, um ataque (primeira arma), esquiva, um inimigo comum em grupo, loot no chão, experiência e nível, e uma dungeon de até 5 com um boss. Esta página é a **fonte** dessas regras; as páginas de cada funcionalidade apontam para cá.
 
+## Foco atual
+
+Decidido pelo grupo em 2026-10-11 ([ADR 0030](../decisoes/0030-processo-v2-dono-da-funcionalidade.md)). Tarefa de jogo nova sai daqui, com no máximo 3 funcionalidades em andamento:
+
+1. **Mais mobs no mapa:** grupos de inimigos espalhados pela área, com respawn, para o jogador sempre ter o que enfrentar (seção 4 abaixo e [mobs](mobs.md)).
+2. **Combate mais refinado:** ataque leve e pesado, esquiva, telegrafia e resposta visual de acerto com sensação boa (seções 2 e 3 abaixo e [combate](combate.md)).
+3. **Progressão balanceada:** XP por mob e por nível que faça subir de nível num ritmo bom, e itens que melhoram de fato (seções 5 e 6 abaixo, [personagem](personagem.md) e [itens](itens.md)).
+
+O ciclo que o marco precisa fechar: sair do hub, enfrentar mobs, ganhar XP e loot, subir de nível e sentir o personagem mais forte.
+
 ## Definido
 
 Já decidido pelo grupo e que esta fatia respeita (não é reaberto aqui):
@@ -17,7 +27,7 @@ Já decidido pelo grupo e que esta fatia respeita (não é reaberto aqui):
 
 ## Proposta
 
-Tudo marcado **proposta** abaixo vem do plano de desenvolvimento do grupo, ou é um valor inicial para o grupo calibrar. **Não é decisão** até o grupo aprovar; serve para implementar a primeira versão e ajustar depois.
+Tudo marcado **proposta** abaixo vem do plano de desenvolvimento do grupo, ou é um valor inicial. Quem implementa pode calibrar e decidir ([Decisões de design](../agentes.md#decisões-de-design)), registrando aqui o valor novo.
 
 ## Fora desta fatia
 

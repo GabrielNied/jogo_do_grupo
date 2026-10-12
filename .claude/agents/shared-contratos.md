@@ -1,6 +1,6 @@
 ---
 name: shared-contratos
-description: "Define os contratos entre client e servidor no shared: mensagens de rede, IDs, eventos entre funcionalidades e tipos de domínio, em shared/Package/Runtime/. Use PRIMEIRO em qualquer tarefa que envolva client e servidor, antes dos agentes server-* e client-*."
+description: "Define os contratos entre client e servidor no shared: mensagens de rede, IDs, eventos entre funcionalidades e tipos de domínio, em shared/Package/Runtime/. Use para contratos de Core ou quando a fatia for dividida por camada (antes dos agentes server-* e client-*). Exceção: o padrão para issue de jogo é o agente funcionalidade (ADR 0030)."
 model: sonnet
 effort: medium
 isolation: worktree

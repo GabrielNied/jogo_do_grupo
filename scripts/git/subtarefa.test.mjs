@@ -18,6 +18,15 @@ test("cada papel mexe na sua pasta", () => {
   assert.equal(pastasDoPapel("outro", "Itens").length, 3);
 });
 
+test("o dono da funcionalidade mexe nas três partes, nos testes e na doc", () => {
+  const pastas = pastasDoPapel("funcionalidade", "Mobs");
+  assert.ok(pastas.includes("shared/Package/Runtime/Features/Mobs/"));
+  assert.ok(pastas.includes("server/src/JogoDoGrupo.Server/Features/Mobs/"));
+  assert.ok(pastas.includes("client/Assets/_Game/Features/Mobs/"));
+  assert.ok(pastas.includes("docs/features/mobs.md"));
+  assert.deepEqual(pastasDoPapel("itens", "Itens"), pastasDoPapel("funcionalidade", "Itens"));
+});
+
 test("o corpo aponta onde ler e onde mexer e mantém o Parent", () => {
   const corpo = corpoSubtarefa({
     pai: 64,
