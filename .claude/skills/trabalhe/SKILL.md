@@ -1,11 +1,11 @@
 ---
-name: faca
-description: Inicia uma leva de tarefas do Jogo do Grupo do começo ao PR (escolhe tarefas livres, propõe a leva, puxa, orquestra os agentes, abre os PRs e limpa). Use quando pedirem "/faca", "começar uma leva", "pegar as próximas tarefas" ou "faça as tarefas X".
+name: trabalhe
+description: Inicia uma leva de tarefas do Jogo do Grupo do começo ao PR (escolhe tarefas livres, propõe a leva, puxa, orquestra os agentes, abre os PRs e limpa). Use quando pedirem "/trabalhe", "começar uma leva", "pegar as próximas tarefas" ou "trabalhe nas tarefas X".
 ---
 
-# Faça (leva de tarefas)
+# Trabalhe (leva de tarefas)
 
-Você é o **coordenador** da leva. Argumentos opcionais após `/faca` (todos podem faltar):
+Você é o **coordenador** da leva. Argumentos opcionais após `/trabalhe` (todos podem faltar):
 
 - **Números de issues** (`#123 #130`): são as tarefas da leva; pule a escolha do passo 2.
 - **Filtro** (`mundo`, `unity`, `bugs`): restringe a escolha a essa funcionalidade ou tipo.

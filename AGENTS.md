@@ -96,7 +96,7 @@ Para as tarefas abaixo, **leia o arquivo indicado e siga os passos**. Algumas fe
 | Escrever mensagem de commit ou título de PR, commitar | [.claude/skills/fazer-commit/SKILL.md](.claude/skills/fazer-commit/SKILL.md) |
 | Deixar uma mudança pronta para PR | [.claude/skills/preparar-pr/SKILL.md](.claude/skills/preparar-pr/SKILL.md) |
 | Dividir uma tarefa entre vários agentes e coordenar | [.claude/skills/orquestrar-tarefa/SKILL.md](.claude/skills/orquestrar-tarefa/SKILL.md) |
-| Iniciar uma leva de tarefas do começo ao PR (`/faca`) | [.claude/skills/faca/SKILL.md](.claude/skills/faca/SKILL.md) |
+| Iniciar uma leva de tarefas do começo ao PR (`/trabalhe`) | [.claude/skills/trabalhe/SKILL.md](.claude/skills/trabalhe/SKILL.md) |
 
 ## Vários agentes em paralelo
 
