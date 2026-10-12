@@ -79,6 +79,22 @@ namespace JogoDoGrupo.Server.Core.Persistencia.Migrations
                     b.ToTable("RecursosPersonagem", (string)null);
                 });
 
+            modelBuilder.Entity("JogoDoGrupo.Server.Features.Economia.SaldoCoroas", b =>
+                {
+                    b.Property<long>("PersonagemId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("Saldo")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("PersonagemId");
+
+                    b.ToTable("SaldosCoroas", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_SaldosCoroas_Saldo", "\"Saldo\" >= 0");
+                        });
+                });
+
             modelBuilder.Entity("JogoDoGrupo.Server.Features.Itens.EstadoEquipamentos", b =>
                 {
                     b.Property<long>("PersonagemId")
@@ -276,6 +292,15 @@ namespace JogoDoGrupo.Server.Core.Persistencia.Migrations
                 });
 
             modelBuilder.Entity("JogoDoGrupo.Server.Features.Combate.RecursosPersonagem", b =>
+                {
+                    b.HasOne("JogoDoGrupo.Server.Features.Personagem.Personagem", null)
+                        .WithMany()
+                        .HasForeignKey("PersonagemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("JogoDoGrupo.Server.Features.Economia.SaldoCoroas", b =>
                 {
                     b.HasOne("JogoDoGrupo.Server.Features.Personagem.Personagem", null)
                         .WithMany()

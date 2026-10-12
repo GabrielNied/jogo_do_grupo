@@ -15,18 +15,34 @@ Inventário, equipamentos, raridades e sistema de fusão.
 - Estilo looter: muito loot é parte do loop principal (D5)
 - Os itens equipados definem o papel no grupo: tank, healer ou DPS (veja [combate.md](combate.md))
 - ~~Sistema de fusão: limite de fusões por raridade, item sacrificado é destruído, só funde itens do mesmo tipo ou tier, herança parcial de atributos, retorno decrescente, custo crescente em ouro (tira moeda do jogo), teto de atributo por tier~~ (substituído em 2026-10-11 pela decisão abaixo)
-- **Fusão/infusão** (decidido por Gabriel em 2026-10-11, a validar pelo grupo): vale a infusão do board ([Proposta do board](#proposta-do-board-2026-10-11-não-validada)): só doadores do mesmo tipo **e** raridade, +2% fixo do valor-base por doador, sem retorno decrescente, **com custo em coroas** (mantém a saída de moeda). O item sacrificado continua destruído. O custo exato em coroas é valor a propor (dono: agente economia, PR #360); veja [economia.md](economia.md).
+- **Fusão/infusão** (decidido por Gabriel em 2026-10-11, a validar pelo grupo): só doadores do mesmo tipo **e** raridade, +2% fixo do valor-base por doador, sem retorno decrescente, **com custo em coroas**. O item sacrificado é destruído. Valores iniciais e fluxo entregues na [Infusão de equipamentos](#infusão-de-equipamentos-174); carteira em [economia.md](economia.md).
 - Itens negociáveis, inclusive os fundidos (fomentar a economia)
 
 ## Em aberto
 
 - [x] Cinco raridades confirmadas para #166: comum, incomum, raro, épico e lendário. Grau continua um eixo separado (veja Equipamentos abaixo).
 - [ ] Quantas skills um item pode ter? A raridade muda isso?
-- [ ] Herança de atributos na fusão: porcentagem ou escolha do jogador?
-- [ ] Custo exato em coroas da infusão: a propor (agente economia).
+- [x] Infusão usa o atributo marcado e +2% do valor-base; substitui a proposta antiga de herança e retorno decrescente (#174).
+- [x] Custo inicial configurável por raridade na #174, sujeito a balanceamento (veja Infusão abaixo).
 - [ ] Ajustes à tabela de raridades: pendente de Gabriel (a tabela do board foi adotada "com ajustes" ainda não informados; segue como proposta).
 
 ## Regras
+
+### Infusão de equipamentos (#174)
+
+I → Equipamentos → **Infundir equipamentos** abre a bancada na janela do inventário. Escolher um receptor (pode estar equipado) e um doador da bolsa; **Ver prévia** mostra nomes/identidades, atributo antes/depois, slots e custo. Só **Confirmar infusão e consumir doador** executa a operação. Cancelar ou trocar a seleção não consome nada. A prévia mostra o resultado mesmo sem saldo; nesse caso a confirmação fica desabilitada.
+
+O doador precisa ter o mesmo tipo **e** raridade, mas pode ter outro grau, região ou família. Uma confirmação consome um doador e um slot. O atributo escolhido na geração recebe **2% do seu valor-base**, preservando frações, sem juros compostos: base 20 recebe +0,4 por doador e chega a 24 após dez infusões. Os demais atributos, nível, raridade e sorteios permanecem. O limite segue `RegrasEquipamentos.LimiteInfusoes`.
+
+O valor-base infusível é gravado na geração. Para exemplar anterior sem esse campo e sem infusões, usa-se o atributo atual na primeira confirmação; exemplar já infundido sem base válida é recusado. Peças sem metadados precisam ser equipadas uma vez pelo fluxo legado antes de aparecerem na bancada. A ação de favorito grava a proteção no exemplar; doador favorito ou equipado não pode ser consumido. O receptor pode continuar favorito.
+
+**Coroas:** custo inicial por doador Comum/Incomum/Raro/Épico/Lendário: **10/20/40/80/160**, configurável em `Itens:Infusao:CustosPorRaridade` (`ConfigInfusao`). São valores iniciais de balanceamento, não custo derivado dos atributos do doador. A carteira começa em zero por personagem. Em editor/build de desenvolvimento contra servidor Development, **Receber coroas de teste** acrescenta 1000 coroas; essa rota não é registrada em produção.
+
+**Autoridade e persistência:** conta dona, exemplares, posição, proteção, limite e saldo são conferidos pelo servidor. A prévia não altera o estado. A confirmação compara a assinatura da prévia com o estado atual e grava cobrança, consumo e ganho na mesma transação; falha não cobra nem perde item. Doador usado por outra requisição desaparece uma única vez. Alterações relevantes nas peças/custo ou reinício do servidor exigem nova prévia. Após erro de conexão, reabrir a bancada consulta o resultado persistido. Bônus de receptor equipado são obtidos pelo contrato já existente, sem soma cumulativa. Detalhes técnicos no [ADR 0032](../decisoes/0032-infusao-e-cobranca-atomicas.md).
+
+API autenticada sob `/api/personagens/{personagemId}/equipamentos/infusao`, sempre POST: `/estado`, `/previa` e `/confirmar` (`PedidoInfusao`: receptor, doador e confirmação na última), `/favorito` (`PedidoFavorito`) e `/coroas-teste` (só Development). As respostas são `EquipamentosResponse` com saldo, modo da bancada e prévia opcional. Identidade igual é 400; personagem/exemplar alheio ou ausente é 404; incompatibilidade, favorito, doador equipado, teto, saldo insuficiente e prévia desatualizada são 409. A UI traduz os motivos e bloqueia pedidos durante a espera.
+
+Transferência de skills, promoção de raridade e obtenção normal de coroas continuam nas tarefas específicas; a #174 entrega reforço de atributo.
 
 ### Equipamentos (#166, confirmação do usuário em 2026-10-11)
 

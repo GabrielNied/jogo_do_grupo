@@ -101,6 +101,8 @@ namespace JogoDoGrupo.Shared.Features.Itens
         public AtributoItem[] Atributos = Array.Empty<AtributoItem>();
         public int IndiceInfusivel;
         public int InfusoesUsadas;
+        public double ValorBaseInfusivel;
+        public bool Favorito;
     }
 
     [Serializable]
@@ -129,6 +131,10 @@ namespace JogoDoGrupo.Shared.Features.Itens
         public EntradaInventario[] Equipados = Array.Empty<EntradaInventario>();
         public int ConjuntoAtivo = 1;
         public AtributoItem[] Bonus = Array.Empty<AtributoItem>();
+        public long Coroas;
+        public bool ModoInfusao;
+        public PreviaInfusao Previa;
+        public string Aviso = "";
     }
 
     public static class RegrasEquipamentos

@@ -20,6 +20,10 @@ public sealed class ItensModule : IFeatureModule
         configuracao.GetSection("Itens:Equipamentos").Bind(configEquipamentos);
         servicos.AddSingleton(configEquipamentos);
         servicos.AddSingleton<GeradorEquipamentos>();
+        var configInfusao = new ConfigInfusao();
+        configuracao.GetSection("Itens:Infusao").Bind(configInfusao);
+        servicos.AddSingleton(configInfusao);
+        servicos.AddSingleton<AssinadorInfusao>();
         servicos.AddSingleton<
             JogoDoGrupo.Server.Contratos.Itens.IBonusEquipamentos,
             BonusEquipamentos

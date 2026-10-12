@@ -165,6 +165,22 @@ namespace JogoDoGrupo.Client.Features.Itens
                     return "Retire a arma de duas mãos antes de equipar a mão secundária.";
                 case "ItemNaoEncontrado":
                     return "Esse item não está mais disponível. Reabra a aba para atualizar.";
+                case "MesmoItem":
+                    return "Escolha uma peça diferente como doador.";
+                case "DoadorIncompativel":
+                    return "O doador precisa ter o mesmo tipo e raridade do receptor.";
+                case "DoadorEquipado":
+                    return "Desequipe o doador antes de consumi-lo.";
+                case "ItemFavorito":
+                    return "Desmarque o favorito do doador para permitir seu consumo.";
+                case "LimiteInfusoes":
+                    return "Esta peça atingiu o limite de infusões da raridade.";
+                case "CoroasInsuficientes":
+                    return "Você não tem coroas suficientes. Consulte uma nova prévia após obter mais coroas.";
+                case "PreviaDesatualizada":
+                    return "As peças ou o custo mudaram. Consulte uma nova prévia antes de confirmar.";
+                case "ItemInvalido":
+                    return "Esta peça não possui um atributo válido para infusão.";
                 case "PosicaoInvalida":
                     return "Essa peça não pode ser equipada nessa posição.";
                 default:
