@@ -96,7 +96,7 @@ As regras de base estão em [fatia-jogavel.md](fatia-jogavel.md), seção 4. O q
 | Atualização da IA | passo fixo, **10 vezes por segundo** |
 
 - **Estados:** repouso → alerta → perseguição ⇄ ataque; alerta, perseguição e ataque → retorno → repouso; qualquer estado vivo → morto. Morto não muda mais: a volta é um inimigo novo (`InimigoApareceu`), com a variante sorteada de novo.
-- **Alvo:** o jogador mais próximo que ele viu. Enquanto esse alvo continuar valendo, ele **não troca**, mesmo com outro mais perto. No empate de distância fica o de menor id.
+- **Alvo:** o jogador mais próximo que ele viu. Enquanto esse alvo continuar valendo, ele **não troca**, mesmo com outro mais perto. No empate de distância fica o de menor id. Depois do primeiro dano, o alvo segue a tabela de ameaça adotada em 2026-10-12 ([combate.md](combate.md#ameaça-agro-169), #169).
 - **Golpe telegrafado:** quem estiver na área quando o aviso acaba leva o dano; quem saiu a tempo não leva (a esquiva de 5 m tira o jogador da área).
 - Sem desvio de obstáculos na fatia: o campo é aberto.
 

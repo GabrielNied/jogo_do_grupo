@@ -30,7 +30,7 @@ Cálculo de dano, seleção de alvo e efeitos de status. Usado por PvE e PvP.
 - [x] ~~Bosses com ataques telegrafados?~~ Decidido em 2026-10-10: sim (veja "Definido")
 - [ ] Como o servidor valida acertos com a latência (lag compensation)? Decidido pelo Gabriel em 2026-10-11 **para a fatia**: sem compensação de lag (o cone é medido no momento do acerto, com a posição que o servidor tem). Depois da fatia a pergunta segue aberta (issue #172).
 - [ ] Quais efeitos de status existem?
-- [ ] Como funciona o agro (ameaça) para o tank segurar os inimigos?
+- [x] ~~Como funciona o agro (ameaça) para o tank segurar os inimigos?~~ Adotado em 2026-10-12 (/decida, #169), fácil de mudar: tabela de ameaça por inimigo, veja [Ameaça (agro)](#ameaça-agro-169).
 - [ ] Quais buffs cada papel traz? Eles acumulam?
 - [ ] Um jogador pode trocar de papel trocando de itens no meio da dungeon?
 
@@ -151,3 +151,29 @@ Decisões de design (2026-10-11, do agente da funcionalidade; ajustáveis):
 - **Onde:** `SelecaoDeAlvos.PodeAcertar` filtra os alvos do volume antes do dano em `ServicoDeAtaques`; vale para qualquer skill que use `IAlvosDeCombate`. `AlvoDeCombate.PersonagemId` (0 = não é jogador) diz que o alvo é um jogador.
 - **Sem referência a Social (ADR 0016):** Combate consulta `IAliadosDeCombate.SaoAliados` (`Contratos/Combate/`); sem implementação vale `NinguemEAliado`. **Pendência de Social:** implementar a interface sobre `GruposDoServidor` (consulta por demanda, sem evento nem cache: reflete o grupo na hora do acerto). Serve também ao TODO de levantar só aliado (queda).
 - **Fora do escopo:** cura e buffs em aliados.
+
+### Ameaça (agro) (#169)
+
+Adotado em 2026-10-12 pelo loop autônomo (/decida), a partir da proposta da issue; **fácil de mudar**: todos os números são constantes nomeadas. Base: World of Warcraft (tabela de ameaça, margem de troca de alvo, provocar) e New World (provocar que força o alvo por alguns segundos). RYL (S3) fica para as manadas: puxar muitos inimigos continua possível, porque a tabela não limita quantos perseguem um jogador.
+
+Quem decide: **servidor**. O dono é [Mobs](mobs.md), que já escolhe o alvo; Combate só informa quem causou dano (já informa em `IAlvosDeCombate.TentarAplicarDano`) e, quando existir cura, quem curou. O client continua vendo só o `AlvoId`.
+
+| Regra | Valor (proposta) | Constante sugerida |
+|---|---|---|
+| Ameaça por ponto de dano real (sem o excedente da morte) | **1** | `AmeacaPorDano` |
+| Ameaça por ponto de cura real (sem curar além do máximo), dividida entre os inimigos em combate com o curado | **0,5** | `AmeacaPorCura` |
+| Multiplicador de ameaça de quem usa item de tank (escudo) | **3x** | `MultiplicadorDeAmeacaTank` |
+| Troca de alvo quando o outro está ao alcance de ataque do inimigo | passa de **110%** da ameaça do alvo atual | `MargemDeTrocaPerto` |
+| Troca de alvo quando o outro está fora do alcance | passa de **130%** | `MargemDeTrocaLonge` |
+| Provocar: alvo forçado | **4 s** | `DuracaoDaProvocacao` |
+
+- **Tabela por inimigo**, não por grupo de inimigos: cada um guarda a ameaça de cada jogador. O grupo de inimigos continua acordando junto (o "grupo divide o que vê" de [mobs.md](mobs.md)).
+- **Primeiro alvo:** como hoje, o jogador mais próximo que ele viu. Enquanto ninguém tem ameaça nele, vale a regra antiga de não trocar.
+- **Com ameaça:** o alvo é quem tem mais ameaça, mas o inimigo só troca quando outro passa da margem (110% perto, 130% longe). Empate fica com o alvo atual; entre outros, o de menor id. Isso evita que ele fique pulando de alvo.
+- **Provocar** (skill de item de tank, [skills.md](skills.md)): o inimigo vira para quem provocou na hora, e a ameaça dele passa a ser igual à maior da tabela. Durante os 4 s o alvo não troca, nem por margem.
+- **Sai da tabela** quem cai, sai da área ou desconecta. A tabela **zera** quando o inimigo desiste e volta para casa (junto com a vida e os participantes) e quando ele reaparece.
+- **Sem decaimento** com o tempo nesta versão.
+- **Chefe:** usa a mesma tabela no lugar do "mais próximo" (`ChefeDaDungeon`). Ataques de área do chefe (investida) continuam mirando como estão descritos em [mobs.md](mobs.md).
+- **Ainda sem efeito:** cura e item de tank não existem; o multiplicador e a ameaça de cura entram quando chegarem ([#170](https://github.com/GabrielNied/jogo_do_grupo/issues/170) e [itens.md](itens.md)). Até lá só o dano conta, o que já faz o jogador que mais bate segurar o inimigo.
+- **Implementação sugerida:** contas puras em `RegrasAmeaca` no shared de Mobs (somar ameaça, escolher alvo com margem, provocação), como já é `RegrasInimigo.EscolherAlvo`. Código próprio, sem biblioteca: é uma tabela pequena por inimigo.
+- **Testes esperados:** quem bate mais vira o alvo só depois de passar a margem (110% perto, 130% longe); empate não troca; tank com 3x segura o alvo contra quem dá o dobro de dano; provocar vira o alvo na hora e segura por 4 s; caído e quem saiu da área saem da tabela; desistir e reaparecer zeram a tabela; dano além da vida que restava não conta.
