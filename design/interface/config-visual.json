@@ -126,11 +126,12 @@
     "EstreitoAte": 720,
     "ReferenciaLargura": 1920,
     "ReferenciaAltura": 1080,
-    "EscalaBase": 1
+    "EscalaBase": 1,
+    "CorrespondenciaAlturaPercentual": 100
   },
   "Fontes": {
-    "Leitura": "Lumora/Fontes/LumoraSource-500",
-    "Controle": "Lumora/Fontes/LumoraSource-700",
-    "Titulo": "Lumora/Fontes/LumoraNunito-800"
+    "Leitura": "Lumora/Fontes/LumoraSource-500-SDF",
+    "Controle": "Lumora/Fontes/LumoraSource-700-SDF",
+    "Titulo": "Lumora/Fontes/LumoraNunito-800-SDF"
   }
 }

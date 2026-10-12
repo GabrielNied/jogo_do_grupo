@@ -52,11 +52,11 @@ namespace JogoDoGrupo.Client.Core.Tests
                 yield return null;
                 Assert.AreSame(
                     EstiloVisual.CarregarFonte(ConfigVisual.Fontes.Titulo),
-                    titulo.resolvedStyle.unityFontDefinition.font
+                    titulo.resolvedStyle.unityFontDefinition.fontAsset
                 );
                 Assert.AreSame(
                     EstiloVisual.CarregarFonte(ConfigVisual.Fontes.Controle),
-                    botao.resolvedStyle.unityFontDefinition.font
+                    botao.resolvedStyle.unityFontDefinition.fontAsset
                 );
                 Assert.IsTrue(raiz.ClassListContains("lumora-estreito"));
                 Assert.LessOrEqual(painel.layout.width, raiz.layout.width);
@@ -88,15 +88,38 @@ namespace JogoDoGrupo.Client.Core.Tests
         }
 
         [Test]
-        public void Escala_NaoReduzTextoEmMonitoresMenores()
+        public void Escala_AcompanhaAResolucaoPelaAlturaDeReferencia()
         {
             var painel = ScriptableObject.CreateInstance<PanelSettings>();
             try
             {
                 EstiloCore.ConfigurarEscala(painel);
-                Assert.AreEqual(PanelScaleMode.ConstantPixelSize, painel.scaleMode);
-                Assert.GreaterOrEqual(painel.scale, 1);
+                Assert.AreEqual(PanelScaleMode.ScaleWithScreenSize, painel.scaleMode);
+                Assert.AreEqual(PanelScreenMatchMode.MatchWidthOrHeight, painel.screenMatchMode);
+                Assert.AreEqual(new Vector2Int(1920, 1080), painel.referenceResolution);
+                Assert.AreEqual(1f, painel.match, "Segue a altura: a janela cabe em 21:9 e 16:10.");
                 Assert.Throws<ArgumentNullException>(() => EstiloCore.ConfigurarEscala(null));
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(painel);
+            }
+        }
+
+        [Test]
+        public void ConfiguracaoDoPainel_SaiPronta_ComEscalaTemaEOrdem()
+        {
+            var painel = EstiloCore.CriarConfiguracaoDoPainel("PainelTeste", -2f);
+            try
+            {
+                Assert.AreEqual("PainelTeste", painel.name);
+                Assert.AreEqual(-2f, painel.sortingOrder);
+                Assert.AreEqual(HideFlags.DontSave, painel.hideFlags);
+                Assert.AreEqual(PanelScaleMode.ScaleWithScreenSize, painel.scaleMode);
+                Assert.IsNotNull(painel.themeStyleSheet);
+                Assert.Throws<ArgumentException>(() =>
+                    EstiloCore.CriarConfiguracaoDoPainel(" ", 0f)
+                );
             }
             finally
             {

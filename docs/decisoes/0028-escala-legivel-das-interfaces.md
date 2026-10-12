@@ -1,7 +1,7 @@
 # 0028. Escala legível das interfaces Lumora
 
 **Data:** 2026-10-11
-**Status:** proposta (implementada para revisão do Core)
+**Status:** substituída por [0035](0035-fonte-sdf-e-escala-pela-resolucao.md)
 
 ## Contexto
 

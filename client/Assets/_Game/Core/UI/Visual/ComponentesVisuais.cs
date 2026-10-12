@@ -39,7 +39,7 @@ namespace JogoDoGrupo.Client.Core.Visual
                 : subtitulo ? "ui-subtitulo"
                 : "ui-texto"
             );
-            elemento.style.unityFontDefinition = FontDefinition.FromFont(
+            elemento.style.unityFontDefinition = FontDefinition.FromSDFFont(
                 EstiloVisual.CarregarFonte(
                     titulo || subtitulo ? ConfigVisual.Fontes.Titulo : ConfigVisual.Fontes.Leitura
                 )
@@ -53,7 +53,7 @@ namespace JogoDoGrupo.Client.Core.Visual
             elemento.AddToClassList("ui-botao");
             if (principal)
                 elemento.AddToClassList("ui-primario");
-            elemento.style.unityFontDefinition = FontDefinition.FromFont(
+            elemento.style.unityFontDefinition = FontDefinition.FromSDFFont(
                 EstiloVisual.CarregarFonte(ConfigVisual.Fontes.Controle)
             );
             return elemento;

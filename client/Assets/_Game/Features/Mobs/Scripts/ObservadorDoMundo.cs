@@ -80,27 +80,8 @@ namespace JogoDoGrupo.Client.Features.Mobs
 
         private static PanelSettings CriarConfiguracaoDoPainel()
         {
-            var painel = ScriptableObject.CreateInstance<PanelSettings>();
-            painel.name = "PainelMobs";
-            painel.hideFlags = HideFlags.DontSave;
-            EstiloCore.ConfigurarEscala(painel);
-
             // Abaixo das barras do Combate (-2), do painel de Itens e da interface do Core (0).
-            painel.sortingOrder = -3f;
-
-            var tema = Resources.Load<ThemeStyleSheet>(EstiloCore.CaminhoTema);
-            if (tema != null)
-            {
-                painel.themeStyleSheet = tema;
-            }
-            else
-            {
-                Debug.LogError(
-                    $"[Mobs] Tema nao encontrado em Resources/{EstiloCore.CaminhoTema}.tss."
-                );
-            }
-
-            return painel;
+            return EstiloCore.CriarConfiguracaoDoPainel("PainelMobs", -3f);
         }
     }
 }

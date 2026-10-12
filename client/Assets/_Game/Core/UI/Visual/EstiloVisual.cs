@@ -2,6 +2,7 @@ using System;
 using System.Globalization;
 using UnityEngine;
 using UnityEngine.UIElements;
+using FontAsset = UnityEngine.TextCore.Text.FontAsset;
 
 namespace JogoDoGrupo.Client.Core.Visual
 {
@@ -23,15 +24,16 @@ namespace JogoDoGrupo.Client.Core.Visual
             raiz.AddToClassList("lumora-ui");
             raiz.styleSheets.Add(tokens);
             raiz.styleSheets.Add(componentes);
-            raiz.style.unityFontDefinition = FontDefinition.FromFont(fonte);
+            raiz.style.unityFontDefinition = FontDefinition.FromSDFFont(fonte);
             raiz.RegisterCallback<GeometryChangedEvent>(e =>
                 AtualizarResponsividade(raiz, e.newRect.width)
             );
         }
 
-        public static Font CarregarFonte(string recurso)
+        /// <summary>Font Asset SDF de um papel de <see cref="ConfigVisual.Fontes"/>.</summary>
+        public static FontAsset CarregarFonte(string recurso)
         {
-            return Resources.Load<Font>(recurso)
+            return Resources.Load<FontAsset>(recurso)
                 ?? throw new InvalidOperationException("Fonte aprovada não importada: " + recurso);
         }
 

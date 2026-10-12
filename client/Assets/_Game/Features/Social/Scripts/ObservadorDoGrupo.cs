@@ -99,28 +99,8 @@ namespace JogoDoGrupo.Client.Features.Social
 
         private static PanelSettings CriarConfiguracaoDoPainel()
         {
-            // Criado em código, como o do Core: DontSave para não ir para cena nem asset.
-            var painel = ScriptableObject.CreateInstance<PanelSettings>();
-            painel.name = "PainelSocial";
-            painel.hideFlags = HideFlags.DontSave;
-            EstiloCore.ConfigurarEscala(painel);
-
             // Abaixo da interface do Core (ordem 0), para o menu do Esc ficar por cima.
-            painel.sortingOrder = -1f;
-
-            var tema = Resources.Load<ThemeStyleSheet>(EstiloCore.CaminhoTema);
-            if (tema != null)
-            {
-                painel.themeStyleSheet = tema;
-            }
-            else
-            {
-                Debug.LogError(
-                    $"[Social] Tema nao encontrado em Resources/{EstiloCore.CaminhoTema}.tss."
-                );
-            }
-
-            return painel;
+            return EstiloCore.CriarConfiguracaoDoPainel("PainelSocial", -1f);
         }
     }
 }

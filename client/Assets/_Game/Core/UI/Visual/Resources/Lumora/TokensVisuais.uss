@@ -110,6 +110,6 @@
     --lumora-ornamentos-fatia-vertical: 160;
     --lumora-ornamentos-deslocamento: -4px;
 }
-.lumora-ui, .lumora-ui TextElement, .lumora-ui .unity-text-element { -unity-font-definition: url("Fontes/LumoraSource-500.ttf"); -unity-font-style: normal; }
-.lumora-ui .ui-titulo, .lumora-ui .titulo, .lumora-ui .ui-subtitulo, .lumora-ui .subtitulo, .lumora-ui .personagem-item-nome { -unity-font-definition: url("Fontes/LumoraNunito-800.ttf"); -unity-font-style: normal; }
-.lumora-ui Button, .lumora-ui .unity-button { -unity-font-definition: url("Fontes/LumoraSource-700.ttf"); -unity-font-style: normal; }
+.lumora-ui, .lumora-ui TextElement, .lumora-ui .unity-text-element { -unity-font-definition: url("Fontes/LumoraSource-500-SDF.asset"); -unity-font-style: normal; }
+.lumora-ui .ui-titulo, .lumora-ui .titulo, .lumora-ui .ui-subtitulo, .lumora-ui .subtitulo, .lumora-ui .personagem-item-nome { -unity-font-definition: url("Fontes/LumoraNunito-800-SDF.asset"); -unity-font-style: normal; }
+.lumora-ui Button, .lumora-ui .unity-button { -unity-font-definition: url("Fontes/LumoraSource-700-SDF.asset"); -unity-font-style: normal; }

@@ -39,24 +39,9 @@ namespace JogoDoGrupo.Client.Core.Inicializacao
         {
             // Criado em código: DontSave para não ir para cena/asset, e destruído ao sair do Play
             // para não acumular instâncias órfãs no editor com o domain reload desligado.
-            var painel = ScriptableObject.CreateInstance<PanelSettings>();
-            painel.name = "PainelInterface";
-            painel.hideFlags = HideFlags.DontSave;
+            var painel = EstiloCore.CriarConfiguracaoDoPainel("PainelInterface", 0f);
             _painel = painel;
             Application.quitting += AoSair;
-            EstiloCore.ConfigurarEscala(painel);
-
-            var tema = Resources.Load<ThemeStyleSheet>(EstiloCore.CaminhoTema);
-            if (tema != null)
-            {
-                painel.themeStyleSheet = tema;
-            }
-            else
-            {
-                Debug.LogError(
-                    $"[InicializadorClient] Tema não encontrado em Resources/{EstiloCore.CaminhoTema}.tss."
-                );
-            }
 
             // Inativo enquanto configura, para o UIDocument já ativar com o painel definido.
             var objeto = new GameObject(NomeObjeto);
