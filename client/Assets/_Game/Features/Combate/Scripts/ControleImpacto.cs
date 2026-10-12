@@ -59,7 +59,7 @@ namespace JogoDoGrupo.Client.Features.Combate
         private readonly List<Reacao> _reacoes = new List<Reacao>();
         private readonly Dictionary<SomDeCombate, AudioClip> _clipes =
             new Dictionary<SomDeCombate, AudioClip>();
-        private readonly MaterialPropertyBlock _bloco = new MaterialPropertyBlock();
+        private MaterialPropertyBlock _bloco;
 
         private long _personagemId;
         private PainelImpacto _painel;
@@ -69,6 +69,12 @@ namespace JogoDoGrupo.Client.Features.Combate
         private float _vinheta;
         private float _proximoAlerta;
         private bool _congelado;
+
+        private void Awake()
+        {
+            // O Unity recusa MaterialPropertyBlock no construtor e no inicializador de campo.
+            _bloco = new MaterialPropertyBlock();
+        }
 
         public void Configurar(long personagemId, PainelImpacto painel)
         {
