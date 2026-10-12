@@ -36,13 +36,18 @@ public static class ErrosBanco
     private const int SqliteUnico = 2067;
     private const int SqliteChavePrimaria = 1555;
 
+    // unique_violation no padrão SQL (PostgreSQL e outros).
+    private const string SqlStateUnicidade = "23505";
+
     /// <summary>
     /// Indica se o <c>SaveChanges</c> falhou porque um índice único recusou o registro
     /// (ex.: duas requisições criando o mesmo nome ao mesmo tempo). Use depois de checar a
     /// duplicidade antes de salvar, para responder 409 também na corrida.
-    /// Quando o banco mudar para PostgreSQL, só este método muda.
+    /// Reconhece o SQLite e, pelo SQLSTATE 23505 de <see cref="DbException"/>, provedores como
+    /// PostgreSQL (sem depender do pacote do provedor).
     /// </summary>
     public static bool EhViolacaoDeUnicidade(this DbUpdateException erro) =>
         erro.InnerException
-            is SqliteException { SqliteExtendedErrorCode: SqliteUnico or SqliteChavePrimaria };
+            is SqliteException { SqliteExtendedErrorCode: SqliteUnico or SqliteChavePrimaria }
+                or DbException { SqlState: SqlStateUnicidade };
 }

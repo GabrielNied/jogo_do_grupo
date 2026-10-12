@@ -64,7 +64,8 @@ foreach (var modulo in modulos)
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
+// Banco:MigrarAoIniciar decide; sem a chave, migra só em Development.
+if (app.Configuration.GetValue<bool?>("Banco:MigrarAoIniciar") ?? app.Environment.IsDevelopment())
 {
     using var escopo = app.Services.CreateScope();
     escopo.ServiceProvider.GetRequiredService<JogoDbContext>().Database.Migrate();

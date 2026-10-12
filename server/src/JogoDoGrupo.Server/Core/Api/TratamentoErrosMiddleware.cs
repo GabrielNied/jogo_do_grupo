@@ -1,10 +1,13 @@
+using JogoDoGrupo.Server.Core.Persistencia;
 using JogoDoGrupo.Shared.Core.Api;
 
 namespace JogoDoGrupo.Server.Core.Api;
 
 /// <summary>
 /// Converte exceções em <see cref="ErroApi"/>: corpo ausente ou JSON malformado viram
-/// 400 <see cref="CodigosErro.RequisicaoInvalida"/>; qualquer outra exceção vira
+/// 400 <see cref="CodigosErro.RequisicaoInvalida"/>; banco ocupado
+/// (<see cref="ErrosBanco.EhBancoOcupado"/>) vira 503 <see cref="CodigosErro.ServidorOcupado"/>,
+/// para o client tentar de novo; qualquer outra exceção vira
 /// 500 <see cref="CodigosErro.ErroInterno"/>, sem detalhes na resposta (só no log).
 /// </summary>
 internal sealed class TratamentoErrosMiddleware(
@@ -32,6 +35,27 @@ internal sealed class TratamentoErrosMiddleware(
                 StatusCodes.Status400BadRequest,
                 CodigosErro.RequisicaoInvalida,
                 "Corpo ausente ou JSON malformado."
+            );
+        }
+        catch (Exception erro)
+            when (!contexto.Response.HasStarted
+                && !contexto.RequestAborted.IsCancellationRequested
+                && erro.EhBancoOcupado()
+            )
+        {
+            // A transação aberta já foi desfeita ao sair do using; nada foi gravado.
+            log.LogWarning(
+                "Banco ocupado em {Metodo} {Rota}: {Mensagem}",
+                contexto.Request.Method,
+                contexto.Request.Path,
+                erro.Message
+            );
+            contexto.Response.Clear();
+            await RespostasApi.EscreverErroAsync(
+                contexto,
+                StatusCodes.Status503ServiceUnavailable,
+                CodigosErro.ServidorOcupado,
+                "Servidor ocupado. Tente de novo."
             );
         }
         catch (Exception erro)
