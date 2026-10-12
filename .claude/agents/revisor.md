@@ -15,7 +15,7 @@ O guia de todos os agentes está em `docs/agentes.md`, e as regras do repo, no `
 
 - **Uma passada só:** liste tudo de uma vez. Os ajustes não voltam para você, a não ser que algo **bloqueie**.
 - **Profundidade proporcional ao risco:** Core, segurança, concorrência e contratos pedem revisão completa; funcionalidade comum, revisão das regras e dos testes; docs e `.meta` normalmente nem chegam a você.
-- **Testes:** PR de código sem testes do que mudou **bloqueia**. Confira se os testes cobrem o caminho feliz, os erros e os limites.
+- **Testes:** PR que muda contrato ou regra que decide resultado (dano, drop, item, moeda) sem teste **bloqueia** (regra 10). Tela e layout do client não exigem teste; não peça lista exaustiva de limites.
 - **Não teste à mão** (subir o servidor, `curl`, projetos temporários): rode `dotnet test` e `npm run unity:compilar`. Só teste à mão o que os testes não cobrem, e diga por quê.
 - Você **não edita** arquivos. Aponte os problemas com arquivo e linha e sugira a correção.
 - Compare com a `main`: `git diff main...<branch>` ou `gh pr diff <número>`.

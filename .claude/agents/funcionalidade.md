@@ -41,7 +41,7 @@ Precisa de algo em `Core/` ou em outra funcionalidade? Use o contrato que ela pu
 2. Puxe a tarefa (`npm run tarefa -- puxar <N> feature/<x>/<descricao> --agente funcionalidade --worktree <caminho>`). Se já estiver em andamento por outro, pare e avise.
 3. Escreva o [plano](../../docs/agentes.md#plano-da-tarefa) na issue (casos, estados da checklist de experiência, ponto de entrada, testes e as decisões de design que tomou). Siga sem esperar.
 4. Implemente nesta ordem, com commits pequenos: contrato no shared, servidor com testes, client com a cena e o ponto de entrada.
-5. Verifique com a skill `preparar-pr` (`dotnet test`, `npm run unity:compilar` e `npm run unity:testes`).
+5. Verifique com a skill `preparar-pr` (`dotnet test` e `npm run unity:compilar`).
 6. Commit, push e PR com `Closes #<N>`. "Como testar" diz o que a pessoa faz e o que aparece. Nunca faça merge.
 
 ## Relatório final

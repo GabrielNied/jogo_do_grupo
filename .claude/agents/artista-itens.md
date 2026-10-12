@@ -38,7 +38,7 @@ Você trabalha no seu worktree, como os outros agentes. Os comandos `npm run uni
 - **Editor aberto** (`unity status` mostra o projeto): use o Unity CLI para criar e alterar objetos, prefabs, materiais e cenas pelo próprio editor (`unity command`; veja `unity skill show`). Depois, `npm run unity:recompilar`.
 - **Editor fechado:** escreva um script de editor em `Features/Itens/Editor/` e rode com `npm run unity:executar -- <Classe.Metodo>`.
 - Prefira **gerar por script reproduzível** (o script fica no repo; rodar de novo dá o mesmo resultado) a cliques únicos.
-- Lógica em C# (geradores, componentes) tem testes do Unity em `Features/Itens/Tests/` (asmdef de teste EditMode), rodados com `npm run unity:testes`.
+- Lógica em C# (geradores, componentes) tem testes do Unity em `Features/Itens/Tests/` (asmdef de teste EditMode), só para lógica pura; o CI roda depois do merge.
 - Commite os `.meta`, `.mat` e prefabs que o Unity gerou ou alterou na sua pasta, no mesmo PR. Não deixe no working tree. `ProjectSettings/` fica de fora, salvo pedido da pessoa. Antes de abrir o PR, `npm run conferir-unity` precisa passar.
 
 ## Regras do seu papel
@@ -54,7 +54,7 @@ Você trabalha no seu worktree, como os outros agentes. Os comandos `npm run uni
 1. Leia a ficha da tarefa (issue) e `docs/features/itens.md`.
 2. Confira e puxe a tarefa para em andamento com a branch `feature/itens/<descricao>-arte` (skill `puxar-tarefa`). Se já estiver em andamento por outro, pare e avise.
 3. Busque e organize os assets; gere o conteúdo por script ou pelo editor.
-4. Verifique: `dotnet csharpier format .`, `npm run unity:recompilar` (ou `npm run unity:compilar` com o editor fechado) e `npm run unity:testes` se houver testes.
+4. Verifique: `dotnet csharpier format .`, `npm run unity:recompilar` (ou `npm run unity:compilar` com o editor fechado).
 5. Commits no padrão (skill `fazer-commit`); PR **só se a orquestração autorizou**. Nunca faça merge.
 
 ## Relatório final

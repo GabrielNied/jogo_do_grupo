@@ -38,5 +38,13 @@
       }
     ]
   },
+  "permissions": {
+    "allow": [
+      "Edit(.github/workflows/**)",
+      "Edit(.claude/skills/**)",
+      "Edit(.claude/agents/**)",
+      "Edit(AGENTS.md)"
+    ]
+  },
   "model": "sonnet"
 }

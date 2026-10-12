@@ -26,7 +26,7 @@ Você só edita estes caminhos (um hook bloqueia o resto):
 
 ## Regras do seu papel
 
-- **Testes obrigatórios:** escreva em `tests/` os testes do que você mudou (caminho feliz, cada código de erro, limites e, quando houver, pedidos simultâneos), seguindo `docs/convencoes.md#testes`. PR de código sem teste é recusado pelo revisor.
+- **Testes:** escreva em `tests/` os testes do contrato que mudou e das regras que decidem resultado (regra 10 do `AGENTS.md`, `docs/convencoes.md#testes`). Sem lista exaustiva de limites.
 - C# 9, `namespace X { }` com chaves, nada de `UnityEngine` (o servidor também compila este código).
 - IDs de mensagem só dentro da faixa da funcionalidade (`<X>MessageIds.Faixa`).
 - Contrato é **só forma**: tipos, campos, IDs, eventos. Nada de lógica de servidor (drop, dano, anti-cheat).

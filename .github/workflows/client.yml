@@ -9,8 +9,8 @@ name: Client (Unity)
 #   porque a licença Personal não aguenta dois Unity ao mesmo tempo; a fila guarda só o pedido
 #   mais novo, então um lote de merges gera uma execução a mais, não uma por merge. Se passar,
 #   fecha as pendências que só pediam compilar e rodar os testes EditMode;
-# - em todo PR que mexe em client/ ou shared/Package/ (repo público: minutos grátis, ADR 0029),
-#   e num PR com a label "testar-unity" mesmo sem mexer nesses caminhos;
+# - num PR, só quando alguém põe a label "testar-unity" (ADR 0034): quem abre o PR já rodou o
+#   unity:compilar, e o Unity em todo PR dobrava o custo e disputava a licença com o Unity local;
 # - de 2 em 2 horas, só se o commit atual da main ainda não terminou uma execução (a dele pode
 #   ter sido trocada na fila por um PR, já que a fila guarda só o mais novo);
 # - à mão, em Actions > Client (Unity) > Run workflow.
@@ -27,7 +27,7 @@ on:
       - "shared/Package/**"
       - ".github/workflows/client.yml"
   pull_request:
-    types: [opened, synchronize, reopened, labeled]
+    types: [labeled]
   schedule:
     - cron: "17 */2 * * *"
   workflow_dispatch:
@@ -43,25 +43,6 @@ permissions:
   pull-requests: read
 
 jobs:
-  # Em PR: o Unity só roda se o PR mexe no client ou no shared (ou com a label testar-unity).
-  mudou:
-    if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
-    outputs:
-      client: ${{ steps.arquivos.outputs.client }}
-    steps:
-      - id: arquivos
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          # Lista primeiro e filtra depois: um pipe com grep -q quebraria o gh (pipefail).
-          arquivos=$(gh api --paginate "repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/files" -q '.[].filename')
-          if grep -qE '^(client/|shared/Package/|\.github/workflows/client\.yml$)' <<< "$arquivos"; then
-            echo "client=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "client=false" >> "$GITHUB_OUTPUT"
-          fi
-
   # No agendamento: só roda se o commit atual da main não tem execução terminada (passou ou
   # falhou) deste workflow. Cancelada não conta: é a que a fila trocou por um PR.
   main-sem-validar:
@@ -84,16 +65,14 @@ jobs:
           fi
 
   testes:
-    needs: [mudou, main-sem-validar]
+    needs: [main-sem-validar]
     # Main e à mão sempre rodam; o agendamento, só se a main ainda não foi validada. Em PR:
-    # label testar-unity recém-posta, ou PR que mexe no client (pôr outra label não roda de novo).
+    # só quando a label testar-unity acabou de ser posta.
     if: >-
       !cancelled() && (
         github.event_name == 'push' || github.event_name == 'workflow_dispatch'
         || (github.event_name == 'schedule' && needs.main-sem-validar.outputs.rodar == 'true')
         || (github.event.action == 'labeled' && github.event.label.name == 'testar-unity')
-        || (github.event.action != 'labeled' && (needs.mudou.outputs.client == 'true'
-            || contains(github.event.pull_request.labels.*.name, 'testar-unity')))
       )
     # Um Unity por vez no repositório inteiro (main e todos os PRs): a licença Personal é uma
     # só, e ativá-la num runner mata com "Killed" (exit 137) o editor que já roda em outro

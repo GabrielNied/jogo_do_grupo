@@ -66,10 +66,10 @@ O que o comando faz:
 
 ## 5. Pendências de Unity
 
-Sem Unity no ambiente (ex.: nuvem), o agente abre o PR normal e registra o que não conseguiu fazer ou validar:
+Sem Unity no ambiente (ex.: nuvem), o agente abre o PR normal e registra só o que precisa do Unity para existir e não foi feito (conferir a tela não entra: quem faz o merge olha a cena; compilar e testar também não: o CI faz; [ADR 0034](../../../docs/decisoes/0034-menos-verificacao-repetida.md)):
 
 ```
-npm run tarefa -- pendencia-unity <pr> --falta "compilar e rodar os testes EditMode" --falta ".meta das texturas novas"
+npm run tarefa -- pendencia-unity <pr> --falta ".meta das texturas novas"
 ```
 
 Isso cria uma issue `pendente-unity` com a branch e os passos. O PR só menciona a pendência (sem `Closes`), então ela continua aberta depois do merge. O `listar` mostra as pendências numa seção própria, e numa máquina com Unity o início da sessão do Claude Code avisa delas. Quem tem Unity puxa com `npm run tarefa -- puxar <N>`: com o PR aberto, o comando abre a branch dele; com o PR já na `main`, cria `chore/<escopo>/unity-pendencia-<N>`.

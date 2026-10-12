@@ -22,7 +22,7 @@ Quase todo retrabalho vem de decisão tomada tarde. Se a issue não tem, escreva
 - **Plano:** casos de uso a partir do ponto de entrada no jogo, os estados da checklist de experiência que se aplicam e o que aparece em cada um. É a entrega da funcionalidade. Detalhe em [Plano da tarefa](../../../docs/agentes.md#plano-da-tarefa).
 - **Contrato:** mensagens, DTOs e erros, se já souber; senão o dono define.
 - **Regras:** números, limites e quem decide (servidor).
-- **Testes esperados:** lista dos casos (caminho feliz, cada erro, limites, concorrência).
+- **Testes esperados:** os casos que mudam o contrato ou o resultado (concorrência só se item ou moeda puder duplicar). Tela não tem teste.
 - **Fora do escopo.**
 
 Os prompts dos agentes saem da ficha. Issue de jogo vai inteira para **um** dono; subtarefa só para fatia grande demais (dividida por caso de uso) ou para Core:
