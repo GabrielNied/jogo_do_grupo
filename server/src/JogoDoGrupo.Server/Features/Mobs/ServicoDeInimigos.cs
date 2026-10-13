@@ -23,6 +23,8 @@ public sealed class ServicoDeInimigos(
     ChefesDaDungeon? chefes = null
 ) : BackgroundService, ISpawnDeTeste
 {
+    private readonly ControleInteresseDeInimigos _interesse = new();
+
     protected override async Task ExecuteAsync(CancellationToken parada)
     {
         using var relogio = new PeriodicTimer(TimeSpan.FromSeconds(RegrasInimigo.PassoSegundos));
@@ -30,14 +32,7 @@ public sealed class ServicoDeInimigos(
         {
             while (await relogio.WaitForNextTickAsync(parada))
             {
-                try
-                {
-                    Avancar();
-                }
-                catch (Exception erro)
-                {
-                    log.LogError(erro, "Erro no passo da IA dos inimigos.");
-                }
+                Avancar();
             }
         }
         catch (OperationCanceledException)
@@ -51,7 +46,14 @@ public sealed class ServicoDeInimigos(
     {
         foreach (var grupo in Simulados())
         {
-            Avancar(grupo);
+            try
+            {
+                Avancar(grupo);
+            }
+            catch (Exception erro)
+            {
+                log.LogError(erro, "Erro no passo da IA do grupo na área {Area}.", grupo.Area);
+            }
         }
     }
 
@@ -82,44 +84,20 @@ public sealed class ServicoDeInimigos(
             return;
         }
 
-        var presentes = jogadores.Select(j => j.PersonagemId).ToHashSet();
-        var sessoes = tempoReal.Sessoes.Where(s => presentes.Contains(s.PersonagemId)).ToArray();
-        foreach (var sessao in sessoes)
+        var posicoesInimigos = PosicoesAtuais(grupo, passo);
+
+        foreach (var sessao in tempoReal.Sessoes)
         {
-            foreach (var mudanca in passo.Mudancas)
+            if (
+                !posicoes.TentarObter(sessao.PersonagemId, out var posicaoJogador)
+                || posicaoJogador.Area != grupo.Area
+                || queda.EstaCaido(sessao.PersonagemId)
+            )
             {
-                tempoReal.Enviar(
-                    sessao,
-                    MobsMessageIds.InimigoMudou,
-                    mudanca.Mensagem,
-                    mudanca.SoPosicao ? EntregaTempoReal.Sequenciada : EntregaTempoReal.Confiavel
-                );
+                continue;
             }
 
-            foreach (var preparo in passo.Preparos)
-            {
-                tempoReal.Enviar(sessao, MobsMessageIds.InimigoPreparaAtaque, preparo);
-            }
-
-            foreach (var acerto in passo.Acertos)
-            {
-                tempoReal.Enviar(sessao, MobsMessageIds.InimigoAcertou, acerto);
-            }
-
-            foreach (var morte in passo.Mortes)
-            {
-                tempoReal.Enviar(sessao, MobsMessageIds.InimigoMorreu, morte);
-            }
-
-            foreach (var aparicao in passo.Aparicoes)
-            {
-                tempoReal.Enviar(sessao, MobsMessageIds.InimigoApareceu, aparicao);
-            }
-
-            foreach (var exposto in passo.Expostos)
-            {
-                tempoReal.Enviar(sessao, MobsMessageIds.InimigoExposto, exposto);
-            }
+            EnviarPasso(sessao, passo, posicoesInimigos, posicaoJogador.X, posicaoJogador.Z);
         }
 
         foreach (var golpe in passo.Golpes)
@@ -131,6 +109,213 @@ public sealed class ServicoDeInimigos(
         {
             Publicar(derrota);
         }
+    }
+
+    private static Dictionary<long, (float X, float Z)> PosicoesAtuais(
+        IInimigosSimulados grupo,
+        PassoDosInimigos passo
+    )
+    {
+        var map = grupo.Vivos().ToDictionary(i => i.InimigoId, i => (i.X, i.Z));
+        foreach (var mudanca in passo.Mudancas)
+        {
+            map[mudanca.Mensagem.InimigoId] = (mudanca.Mensagem.X, mudanca.Mensagem.Z);
+        }
+
+        return map;
+    }
+
+    private void EnviarPasso(
+        SessaoTempoReal sessao,
+        PassoDosInimigos passo,
+        Dictionary<long, (float X, float Z)> posicoesInimigos,
+        double jogadorX,
+        double jogadorZ
+    )
+    {
+        foreach (var mudanca in passo.Mudancas)
+        {
+            var id = mudanca.Mensagem.InimigoId;
+            if (
+                !Filtrar(
+                    sessao.PersonagemId,
+                    id,
+                    mudanca.Mensagem.X,
+                    mudanca.Mensagem.Z,
+                    jogadorX,
+                    jogadorZ,
+                    sessao
+                )
+            )
+            {
+                continue;
+            }
+
+            tempoReal.Enviar(
+                sessao,
+                MobsMessageIds.InimigoMudou,
+                mudanca.Mensagem,
+                mudanca.SoPosicao ? EntregaTempoReal.Sequenciada : EntregaTempoReal.Confiavel
+            );
+        }
+
+        foreach (var preparo in passo.Preparos)
+        {
+            if (
+                !PosicaoDoInimigo(
+                    preparo.InimigoId,
+                    posicoesInimigos,
+                    preparo.CentroX,
+                    preparo.CentroZ,
+                    out var ix,
+                    out var iz
+                )
+            )
+            {
+                continue;
+            }
+
+            if (
+                !Filtrar(sessao.PersonagemId, preparo.InimigoId, ix, iz, jogadorX, jogadorZ, sessao)
+            )
+            {
+                continue;
+            }
+
+            tempoReal.Enviar(sessao, MobsMessageIds.InimigoPreparaAtaque, preparo);
+        }
+
+        foreach (var acerto in passo.Acertos)
+        {
+            if (!PosicaoDoInimigo(acerto.InimigoId, posicoesInimigos, 0, 0, out var ix, out var iz))
+            {
+                continue;
+            }
+
+            if (!Filtrar(sessao.PersonagemId, acerto.InimigoId, ix, iz, jogadorX, jogadorZ, sessao))
+            {
+                continue;
+            }
+
+            tempoReal.Enviar(sessao, MobsMessageIds.InimigoAcertou, acerto);
+        }
+
+        foreach (var morte in passo.Mortes)
+        {
+            if (!PosicaoDoInimigo(morte.InimigoId, posicoesInimigos, 0, 0, out var ix, out var iz))
+            {
+                continue;
+            }
+
+            if (!Filtrar(sessao.PersonagemId, morte.InimigoId, ix, iz, jogadorX, jogadorZ, sessao))
+            {
+                continue;
+            }
+
+            tempoReal.Enviar(sessao, MobsMessageIds.InimigoMorreu, morte);
+        }
+
+        foreach (var aparicao in passo.Aparicoes)
+        {
+            var dados = aparicao.Inimigo;
+            if (
+                !Filtrar(
+                    sessao.PersonagemId,
+                    dados.InimigoId,
+                    dados.X,
+                    dados.Z,
+                    jogadorX,
+                    jogadorZ,
+                    sessao
+                )
+            )
+            {
+                continue;
+            }
+
+            tempoReal.Enviar(sessao, MobsMessageIds.InimigoApareceu, aparicao);
+        }
+
+        foreach (var exposto in passo.Expostos)
+        {
+            if (
+                !PosicaoDoInimigo(exposto.InimigoId, posicoesInimigos, 0, 0, out var ix, out var iz)
+            )
+            {
+                continue;
+            }
+
+            if (
+                !Filtrar(sessao.PersonagemId, exposto.InimigoId, ix, iz, jogadorX, jogadorZ, sessao)
+            )
+            {
+                continue;
+            }
+
+            tempoReal.Enviar(sessao, MobsMessageIds.InimigoExposto, exposto);
+        }
+    }
+
+    private bool Filtrar(
+        long personagemId,
+        long inimigoId,
+        float inimigoX,
+        float inimigoZ,
+        double jogadorX,
+        double jogadorZ,
+        SessaoTempoReal sessao
+    )
+    {
+        var acao = _interesse.Avaliar(
+            personagemId,
+            inimigoId,
+            inimigoX,
+            inimigoZ,
+            jogadorX,
+            jogadorZ
+        );
+        switch (acao)
+        {
+            case ControleInteresseDeInimigos.AcaoInteresse.Enviar:
+                return true;
+            case ControleInteresseDeInimigos.AcaoInteresse.EnviarSaida:
+                tempoReal.Enviar(
+                    sessao,
+                    MobsMessageIds.InimigoSaiuDoInteresse,
+                    new InimigoSaiuDoInteresse { InimigoId = inimigoId }
+                );
+                return false;
+            default:
+                return false;
+        }
+    }
+
+    private static bool PosicaoDoInimigo(
+        long inimigoId,
+        Dictionary<long, (float X, float Z)> mapa,
+        float fallbackX,
+        float fallbackZ,
+        out float x,
+        out float z
+    )
+    {
+        if (mapa.TryGetValue(inimigoId, out var pos))
+        {
+            x = pos.X;
+            z = pos.Z;
+            return true;
+        }
+
+        if (fallbackX != 0 || fallbackZ != 0)
+        {
+            x = fallbackX;
+            z = fallbackZ;
+            return true;
+        }
+
+        x = 0;
+        z = 0;
+        return false;
     }
 
     /// <summary>A que distância, no eixo X, o spawn de teste nasce do personagem.</summary>
@@ -164,10 +349,27 @@ public sealed class ServicoDeInimigos(
         }
 
         var mensagem = new InimigoApareceu { Inimigo = inimigo };
-        var presentes = posicoes.PersonagensNaArea(posicao.Area).ToHashSet();
         foreach (var sessao in tempoReal.Sessoes)
         {
-            if (presentes.Contains(sessao.PersonagemId))
+            if (
+                !posicoes.TentarObter(sessao.PersonagemId, out var posicaoJogador)
+                || posicaoJogador.Area != posicao.Area
+            )
+            {
+                continue;
+            }
+
+            if (
+                Filtrar(
+                    sessao.PersonagemId,
+                    inimigo.InimigoId,
+                    inimigo.X,
+                    inimigo.Z,
+                    posicaoJogador.X,
+                    posicaoJogador.Z,
+                    sessao
+                )
+            )
             {
                 tempoReal.Enviar(sessao, MobsMessageIds.InimigoApareceu, mensagem);
             }
@@ -176,7 +378,7 @@ public sealed class ServicoDeInimigos(
         return (true, "Inimigo spawnado.");
     }
 
-    /// <summary>Quem entra na área do grupo recebe os inimigos vivos (laço de rede).</summary>
+    /// <summary>Quem entra na área do grupo recebe os inimigos vivos no raio de interesse.</summary>
     public void AoEntrarNaArea(JogadorEntrouNaArea evento)
     {
         var daArea = Simulados().Where(g => g.Area == evento.Area).ToArray();
@@ -186,14 +388,23 @@ public sealed class ServicoDeInimigos(
         }
 
         var sessao = tempoReal.Sessoes.FirstOrDefault(s => s.PersonagemId == evento.PersonagemId);
-        if (sessao != null)
+        if (sessao == null)
         {
-            tempoReal.Enviar(
-                sessao,
-                MobsMessageIds.InimigosDaArea,
-                new InimigosDaArea { Inimigos = daArea.SelectMany(g => g.Vivos()).ToArray() }
-            );
+            return;
         }
+
+        if (!posicoes.TentarObter(evento.PersonagemId, out var posicao))
+        {
+            return;
+        }
+
+        var vivos = daArea.SelectMany(g => g.Vivos());
+        var filtrados = _interesse.FiltrarEntrada(evento.PersonagemId, posicao.X, posicao.Z, vivos);
+        tempoReal.Enviar(
+            sessao,
+            MobsMessageIds.InimigosDaArea,
+            new InimigosDaArea { Inimigos = filtrados }
+        );
     }
 
     // A falha de um assinante não pode parar a IA nem os outros eventos do passo.

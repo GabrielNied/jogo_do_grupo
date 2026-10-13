@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using JogoDoGrupo.Client.Core.Visual;
+using JogoDoGrupo.Shared.Features.Mobs;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -46,12 +46,22 @@ namespace JogoDoGrupo.Client.Features.Mobs
         /// Atualiza etiquetas e avisos para este quadro. <paramref name="camera"/> nula esconde
         /// tudo (sem câmera não há onde projetar).
         /// </summary>
-        public void Mostrar(IReadOnlyCollection<InimigoNoClient> inimigos, Camera camera)
+        public void Mostrar(
+            IReadOnlyCollection<InimigoNoClient> inimigos,
+            Camera camera,
+            (float X, float Z)? jogadorNoChao = null
+        )
         {
+            var ids = new HashSet<long>();
+            foreach (var inimigo in inimigos)
+            {
+                ids.Add(inimigo.InimigoId);
+            }
+
             _paraRemover.Clear();
             foreach (var par in _etiquetas)
             {
-                if (!Contem(inimigos, par.Key))
+                if (!ids.Contains(par.Key))
                 {
                     _paraRemover.Add(par.Key);
                 }
@@ -65,6 +75,24 @@ namespace JogoDoGrupo.Client.Features.Mobs
 
             foreach (var inimigo in inimigos)
             {
+                if (
+                    jogadorNoChao.HasValue
+                    && RegrasInteresseDeInimigos.DistanciaAoJogador(
+                        jogadorNoChao.Value.X,
+                        jogadorNoChao.Value.Z,
+                        inimigo.X,
+                        inimigo.Z
+                    ) > RegrasInteresseDeInimigos.EtiquetaMetros
+                )
+                {
+                    if (_etiquetas.TryGetValue(inimigo.InimigoId, out var escondida))
+                    {
+                        escondida.Raiz.style.display = DisplayStyle.None;
+                    }
+
+                    continue;
+                }
+
                 if (!_etiquetas.TryGetValue(inimigo.InimigoId, out var etiqueta))
                 {
                     etiqueta = new Etiqueta(inimigo);
@@ -74,19 +102,6 @@ namespace JogoDoGrupo.Client.Features.Mobs
 
                 etiqueta.Mostrar(inimigo, camera);
             }
-        }
-
-        private static bool Contem(IReadOnlyCollection<InimigoNoClient> inimigos, long id)
-        {
-            foreach (var inimigo in inimigos)
-            {
-                if (inimigo.InimigoId == id)
-                {
-                    return true;
-                }
-            }
-
-            return false;
         }
 
         private sealed class Etiqueta
