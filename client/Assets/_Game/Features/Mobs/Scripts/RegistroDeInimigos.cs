@@ -68,10 +68,13 @@ namespace JogoDoGrupo.Client.Features.Mobs
             }
 
             inimigo.UltimaSequencia = mensagem.Sequencia;
-            inimigo.AlvoX = mensagem.X;
-            inimigo.AlvoY = mensagem.Y;
-            inimigo.AlvoZ = mensagem.Z;
-            inimigo.AlvoRotacaoY = mensagem.RotacaoY;
+            inimigo.ReceberPose(
+                mensagem.X,
+                mensagem.Y,
+                mensagem.Z,
+                mensagem.RotacaoY,
+                mensagem.Estado
+            );
             inimigo.Estado = mensagem.Estado;
             inimigo.AlvoId = mensagem.AlvoId;
             inimigo.Vida = mensagem.Vida;

@@ -131,7 +131,7 @@ namespace JogoDoGrupo.Client.Features.Mobs.Tests
             );
 
             registro.PrepararAtaque(new InimigoPreparaAtaque { InimigoId = 7, PreparoMs = 500 });
-            registro.Atualizar(Quadro);
+            registro.Atualizar(ConfigMovimentoDoInimigo.AtrasoDeRenderSegundos + Quadro);
 
             Assert.AreEqual(1, registro.Obter(7).GolpesPreparados);
             Assert.IsTrue(registro.Obter(7).Animacao.DisparouAtaque);

@@ -344,7 +344,7 @@ namespace JogoDoGrupo.Client.Features.Mobs.Tests
 
             Assert.AreEqual(3f, inimigo.PreparoDoGolpeSegundos, 0.001f);
             Assert.IsNotNull(inimigo.Aviso);
-            Assert.AreEqual(8f, inimigo.Aviso.CentroX);
+            Assert.AreEqual(8f, inimigo.Aviso.Areas[0].CentroX);
             Assert.AreEqual(1f / 3f, inimigo.Aviso.Progresso, 0.001f);
         }
 
@@ -366,7 +366,7 @@ namespace JogoDoGrupo.Client.Features.Mobs.Tests
                 {
                     InimigoId = 1,
                     Sequencia = 1,
-                    X = 11f,
+                    X = 3f,
                     Z = 2f,
                 }
             );
@@ -379,8 +379,14 @@ namespace JogoDoGrupo.Client.Features.Mobs.Tests
             }
 
             Assert.Greater(meio, 1f);
-            Assert.Less(meio, 11f);
-            Assert.AreEqual(11f, registro.Obter(1).X, 0.01f);
+            Assert.Less(meio, 3f);
+            // Com um pacote só, segue na velocidade do trecho até o limite da extrapolação e para.
+            var limite =
+                3f
+                + 2f
+                    / ConfigMovimentoDoInimigo.AtrasoDeRenderSegundos
+                    * ConfigMovimentoDoInimigo.ExtrapolacaoMaximaSegundos;
+            Assert.AreEqual(limite, registro.Obter(1).X, 0.01f);
         }
 
         [Test]

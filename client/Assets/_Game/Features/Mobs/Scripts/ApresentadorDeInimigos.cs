@@ -167,7 +167,7 @@ namespace JogoDoGrupo.Client.Features.Mobs
                             _velocidadesDoGolpe[inimigo.InimigoId] =
                                 AnimacaoDoInimigo.VelocidadeDoClipe(
                                     DuracaoDoClipeDeAtaque(animador),
-                                    inimigo.PreparoDoGolpeSegundos
+                                    inimigo.PreparoParaOClipeSegundos
                                 );
                         }
 
