@@ -29,6 +29,37 @@ namespace JogoDoGrupo.Client.Features.Itens.Tests
             };
 
         [Test]
+        public void Filtro_de_tier_esconde_a_peca_abaixo_e_nao_conta_para_a_dica()
+        {
+            var loot = new LootNoChaoDoCliente();
+            var mensagem = Apareceu(1);
+            mensagem.Loot.TemTier = true;
+            mensagem.Loot.Tier = TierItem.C;
+            loot.Receber(mensagem);
+
+            Assert.IsTrue(loot.AlgumAoAlcance(0f, 0f), "Sem filtro, tudo aparece.");
+            Assert.IsTrue(loot.AlgumAoAlcance(0f, 0f, TierItem.C), "Tier igual passa.");
+            Assert.IsFalse(loot.AlgumAoAlcance(0f, 0f, TierItem.B), "Abaixo do mínimo some.");
+            Assert.IsFalse(loot.Itens.Single().Passa(TierItem.SMais));
+        }
+
+        [Test]
+        public void Filtro_de_tier_nao_barra_item_sem_tier_e_valor_invalido_volta_a_tudo()
+        {
+            var loot = new LootNoChaoDoCliente();
+            loot.Receber(Apareceu(2));
+
+            Assert.IsTrue(loot.AlgumAoAlcance(0f, 0f, TierItem.SMais), "Sem tier sempre passa.");
+            Assert.AreEqual(TierItem.D, FiltroDeLoot.Normalizar(-1));
+            Assert.AreEqual(TierItem.D, FiltroDeLoot.Normalizar(99));
+            Assert.AreEqual(TierItem.A, FiltroDeLoot.Normalizar((int)TierItem.A));
+            Assert.AreEqual(
+                System.Enum.GetValues(typeof(TierItem)).Length,
+                FiltroDeLoot.Rotulos.Length
+            );
+        }
+
+        [Test]
         public void Item_que_aparece_entra_e_o_mesmo_id_troca_sem_duplicar()
         {
             var loot = new LootNoChaoDoCliente();

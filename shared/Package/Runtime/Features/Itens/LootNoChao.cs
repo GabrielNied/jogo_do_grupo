@@ -34,5 +34,14 @@ namespace JogoDoGrupo.Shared.Features.Itens
         /// começa em <see cref="RegrasLoot.ReservaSegundos"/>).
         /// </summary>
         public int ExpiraEmSegundos = 0;
+
+        /// <summary>
+        /// Se o item é equipamento e, portanto, tem <see cref="Tier"/>. O servidor sorteia os
+        /// valores da peça quando ela cai (e não mais ao ser coletada), então já sabe o tier.
+        /// </summary>
+        public bool TemTier = false;
+
+        /// <summary>Tier da peça no chão (só vale com <see cref="TemTier"/>); base do filtro de loot (#565).</summary>
+        public TierItem Tier = TierItem.D;
     }
 }

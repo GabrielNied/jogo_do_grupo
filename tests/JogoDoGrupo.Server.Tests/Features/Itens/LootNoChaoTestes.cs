@@ -539,6 +539,77 @@ public class LootNoChaoTestes(ServidorDeLoot servidor) : IClassFixture<ServidorD
         Assert.Equal(10, coletado.Entrada.Equipamento.NivelPersonagemMinimo);
     }
 
+    [Fact]
+    public async Task Peca_no_chao_ja_traz_o_tier_e_e_a_mesma_que_entra_no_inventario()
+    {
+        using var ana = await NovoJogadorAsync();
+        servidor.Sorteador.Quedas =
+        [
+            new QuedaDeLoot
+            {
+                ModeloId = CatalogoEquipamentos.PrimeiroModelo,
+                Origem = OrigemDoLoot.Chefe,
+                Grau = GrauEquipamento.Forte,
+            },
+        ];
+        DerrotarInimigoPertoDe(ana, 0, ana);
+        var loot = (await ApareceuAsync(ana)).Loot;
+        Assert.True(loot.TemTier);
+
+        Coletar(ana, loot.LootId);
+        var coletado = await ColetadoAsync(ana);
+
+        Assert.Equal(loot.Tier, RegrasTier.TierDe(coletado.Entrada.Equipamento!));
+        servidor.Sorteador.Quedas = null;
+    }
+
+    [Fact]
+    public async Task Filtro_de_tier_deixa_no_chao_a_peca_abaixo_e_coleta_a_igual_ou_acima()
+    {
+        using var ana = await NovoJogadorAsync();
+        servidor.Sorteador.Quedas =
+        [
+            new QuedaDeLoot
+            {
+                ModeloId = CatalogoEquipamentos.PrimeiroModelo,
+                Origem = OrigemDoLoot.Comum,
+                Grau = GrauEquipamento.Inicial,
+            },
+        ];
+        DerrotarInimigoPertoDe(ana, 0, ana);
+        var loot = (await ApareceuAsync(ana)).Loot;
+        servidor.Sorteador.Quedas = null;
+
+        // Exigir S+ (a peça não tem): fica no chão e o pedido não acha nada.
+        ana.Cliente.Enviar(
+            ItensMessageIds.ColetarLoot,
+            new ColetarLoot { TierMinimo = TierItem.SMais }
+        );
+        Assert.Equal(CodigosErroItens.LootNaoEncontrado, (await RecusadaAsync(ana)).Codigo);
+        Assert.Equal(1, NoChaoDe(ana));
+        Assert.Empty(await InventarioAsync(ana));
+
+        // Exigir exatamente o tier da peça: coleta.
+        ana.Cliente.Enviar(ItensMessageIds.ColetarLoot, new ColetarLoot { TierMinimo = loot.Tier });
+        Assert.Equal(loot.LootId, (await ColetadoAsync(ana)).LootId);
+        Assert.Equal(0, NoChaoDe(ana));
+    }
+
+    [Fact]
+    public async Task Filtro_de_tier_nao_barra_item_sem_tier_nem_o_pedido_de_um_item_so()
+    {
+        using var ana = await NovoJogadorAsync();
+        var loot = await LargarParaAsync(ana, Pocao);
+        Assert.False(loot[0].TemTier);
+
+        ana.Cliente.Enviar(
+            ItensMessageIds.ColetarLoot,
+            new ColetarLoot { TierMinimo = TierItem.SMais }
+        );
+
+        Assert.Equal(loot[0].LootId, (await ColetadoAsync(ana)).LootId);
+    }
+
     private static async Task EsperarAsync(Func<bool> condicao)
     {
         for (var i = 0; i < 200 && !condicao(); i++)
