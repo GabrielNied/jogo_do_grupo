@@ -305,6 +305,19 @@ Quem decide: **servidor** (quando cai, a contagem, quem está levantando, a vida
 
 A música baixa enquanto a pessoa está caída (regra do áudio, em [interface.md](interface.md)).
 
+#### Client da queda (#125)
+
+O client de Personagem ouve `EstadoDeQueda` do contrato de Combate. Para o próprio personagem,
+mostra a contagem recebida, o estado de espera ou de levantamento e o progresso informado pelo
+servidor. A contagem local só interpola a exibição; o servidor decide quando a queda termina.
+Depois de 5 s, a pessoa pode segurar o botão de retorno por 1 s; o client envia
+`VoltarParaACidade`, e o servidor valida a ação. A tela desaparece quando chega `Vivo` ou `Retorno`.
+
+O client atual não inicia o levantamento de outro personagem: o contrato aceita o id do alvo, mas
+Personagem não recebe a seleção de alvo nem a presença espacial necessária para escolher um aliado.
+Essa interação depende da integração de Mundo e deve ser ligada quando essa API existir. O estado
+recebido ainda permite mostrar o progresso do aliado que está levantando o personagem local.
+
 #### Erros que o servidor devolve (**proposta** de nomes)
 
 | Código | Quando |
