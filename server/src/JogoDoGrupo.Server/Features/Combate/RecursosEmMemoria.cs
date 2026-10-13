@@ -38,6 +38,11 @@ public sealed class RecursosEmMemoria : IHostedService, IDisposable
     private readonly TimeProvider _relogio;
     private readonly ILogger<RecursosEmMemoria> _log;
     private readonly ConcurrentDictionary<long, Entrada> _entradas = new();
+
+    // Personagens cujos atributos do equipamento mudaram e precisam ser relidos. A flag é
+    // setada pelo manipulador de EquipamentoMudou (sem trava, thread-safe) e consumida na
+    // próxima leitura de AtributosDaEntradaAsync.
+    private readonly ConcurrentDictionary<long, byte> _equipamentosInvalidados = new();
     private readonly SemaphoreSlim _gravacao = new(1, 1);
     private readonly CancellationTokenSource _parada = new();
     private Task _laco = Task.CompletedTask;
@@ -403,6 +408,13 @@ public sealed class RecursosEmMemoria : IHostedService, IDisposable
         }
     }
 
+    /// <summary>
+    /// Sinaliza que o equipamento do personagem mudou: o próximo acesso relê os atributos do
+    /// equipamento em vez de usar o cache. Não bloqueia — seguro para chamar do manipulador de
+    /// <see cref="EquipamentoMudou"/> (ADR 0016).
+    /// </summary>
+    public void AoEquipamentoMudar(long personagemId) => _equipamentosInvalidados[personagemId] = 0;
+
     private DateTime Agora() => _relogio.GetUtcNow().UtcDateTime;
 
     private RecursosPersonagem Regenerado(Entrada entrada)
@@ -440,8 +452,8 @@ public sealed class RecursosEmMemoria : IHostedService, IDisposable
             RegeneracaoStamina = secundarios.RegeneracaoStamina,
         };
 
-    // Com a trava da entrada na mão: atributos guardados, ou lidos de novo se venceram. Na
-    // primeira vez do personagem, lê (ou cria) a linha do banco.
+    // Com a trava da entrada na mão: atributos guardados, ou lidos de novo se venceram ou se
+    // EquipamentoMudou foi sinalizado. Na primeira vez do personagem, lê (ou cria) a linha do banco.
     private async Task<AtributosCombate> AtributosDaEntradaAsync(
         Entrada entrada,
         CancellationToken cancelamento
@@ -449,8 +461,10 @@ public sealed class RecursosEmMemoria : IHostedService, IDisposable
     {
         var agora = _relogio.GetUtcNow();
         entrada.UltimoUso = agora;
+        var equipamentoMudou = _equipamentosInvalidados.TryRemove(entrada.PersonagemId, out _);
         if (
-            entrada.Recursos != null
+            !equipamentoMudou
+            && entrada.Recursos != null
             && entrada.Atributos != null
             && entrada.AtributosEm is { } em
             && (agora - em).TotalSeconds < ConfigRecursos.ValidadeDosAtributosSegundos
