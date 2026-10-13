@@ -1,4 +1,3 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using JogoDoGrupo.Client.Core.Jogo.Chat;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -20,7 +19,7 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void Iniciar()
         {
-            if (_instancia != null)
+            if (!ComandosDeTesteNoClient.Permite || _instancia != null)
             {
                 return;
             }
@@ -56,4 +55,3 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento
         }
     }
 }
-#endif
