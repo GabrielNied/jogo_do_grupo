@@ -36,6 +36,44 @@
     width: var(--lumora-dimensoes-painel-largo);
 }
 
+.login-composicao {
+    width: var(--lumora-dimensoes-painel-entrada);
+    max-width: 100%;
+    max-height: 100%;
+    min-height: 0;
+    align-items: center;
+    flex-shrink: 1;
+}
+
+.login-marca {
+    margin-bottom: var(--lumora-espacamento-padrao);
+}
+
+.login-painel {
+    width: 100%;
+    max-height: 100%;
+    min-height: 0;
+}
+
+.login-mensagem {
+    margin-top: 0;
+    margin-bottom: var(--lumora-espacamento-medio);
+}
+
+.login-acoes {
+    min-width: 0;
+    flex-shrink: 0;
+}
+
+.login-acoes > .botao {
+    flex-grow: 0;
+    margin: 0 0 var(--lumora-espacamento-pequeno);
+}
+
+.login-acoes > .login-acao-secundaria {
+    margin-bottom: 0;
+}
+
 .titulo {
     -unity-text-align: middle-center;
     margin-bottom: var(--lumora-espacamento-pequeno);
