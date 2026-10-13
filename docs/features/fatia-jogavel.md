@@ -12,7 +12,9 @@ Regras mínimas para jogar o [primeiro marco](../visao-geral.md#primeiro-marco-f
 
 Decidido pelo grupo em 2026-10-11 ([ADR 0030](../decisoes/0030-processo-v2-dono-da-funcionalidade.md)). Tarefa de jogo nova sai daqui, com no máximo 3 funcionalidades em andamento:
 
-0. **Prioridade alta: modelo de itens v2** (decidido por Gabriel em 2026-10-12): tier pelos atributos e fusão determinística até +10, nesta ordem: [#615](https://github.com/GabrielNied/jogo_do_grupo/issues/615) tier, [#616](https://github.com/GabrielNied/jogo_do_grupo/issues/616) fusão, [#617](https://github.com/GabrielNied/jogo_do_grupo/issues/617) materiais (épico [#619](https://github.com/GabrielNied/jogo_do_grupo/issues/619); regras em [itens](itens.md#modelo-de-itens-v2-documento-mestre-2026-10-12)). É o próximo trabalho de Itens, antes dos outros itens deste foco.
+0. **Prioridade alta** (decidido por Gabriel em 2026-10-12), antes dos outros itens deste foco:
+   - **Modelo de itens v2:** tier pelos atributos e fusão determinística até +10, nesta ordem: [#615](https://github.com/GabrielNied/jogo_do_grupo/issues/615) tier, [#616](https://github.com/GabrielNied/jogo_do_grupo/issues/616) fusão, [#617](https://github.com/GabrielNied/jogo_do_grupo/issues/617) materiais (épico [#619](https://github.com/GabrielNied/jogo_do_grupo/issues/619); regras em [itens](itens.md#modelo-de-itens-v2-documento-mestre-2026-10-12)). É o próximo trabalho de Itens.
+   - **Atributos do personagem e árvore de atributos:** Força, Vigor, Agilidade, Intelecto e Espírito vêm da árvore, não dos itens, e os itens têm atributos próprios (DEC-001). Ordem: [#622](https://github.com/GabrielNied/jogo_do_grupo/issues/622) nomes novos; [#624](https://github.com/GabrielNied/jogo_do_grupo/issues/624) secundários; [#623](https://github.com/GabrielNied/jogo_do_grupo/issues/623) atributos próprios dos itens, depois da #615 e da #616 (tier e fusão ficam genéricos sobre `StatusItem`, e a #623 só troca a lista e migra); [#625](https://github.com/GabrielNied/jogo_do_grupo/issues/625) árvore; [#626](https://github.com/GabrielNied/jogo_do_grupo/issues/626) redistribuição e perfis (épico [#621](https://github.com/GabrielNied/jogo_do_grupo/issues/621); regras em [personagem](personagem.md#atributos-do-personagem) e [talentos](talentos.md)). Os números ficam na [#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627).
 1. **Mais mobs no mapa:** grupos de inimigos espalhados pela área, com respawn, para o jogador sempre ter o que enfrentar (seção 4 abaixo e [mobs](mobs.md)).
 2. **Combate mais refinado:** cadeia de leves e pesado no ritmo do New World, esquiva, telegrafia e resposta visual de acerto (seções 2 e 3 abaixo e [combate](combate.md)).
 3. **Progressão balanceada:** XP por mob e por nível que faça subir de nível num ritmo bom, e itens que melhoram de fato (seções 5 e 6 abaixo, [personagem](personagem.md) e [itens](itens.md)).
@@ -36,7 +38,7 @@ Várias regiões, dezenas de jogadores na mesma área, cinco raças, 25 skills, 
 
 ## Em aberto
 
-- [x] ~~Os cinco atributos (Força, Destreza, Intelecto, Vitalidade, Espírito) ficam todos na fatia ou só os que a primeira arma usa?~~ Decidido em 2026-10-11: os cinco entram na fatia (seção 1), mesmo que Intelecto e Espírito ainda não tenham uso.
+- [x] ~~Os cinco atributos (Força, Destreza, Intelecto, Vitalidade, Espírito) ficam todos na fatia ou só os que a primeira arma usa?~~ Decidido em 2026-10-11: os cinco entram na fatia (seção 1), mesmo que Intelecto e Espírito ainda não tenham uso. Desde 2026-10-12 os cinco são Força, Vigor, Agilidade, Intelecto e Espírito ([personagem](personagem.md#atributos-do-personagem)).
 - [x] ~~Vida do boss e do inimigo comum para 1 a 5 jogadores (os números do plano eram para grupos maiores).~~ Decidido em 2026-10-11: valor fixo, igual para 1 a 5 jogadores, sem escalar por jogador (seções 4 e 7); os números seguem a calibrar.
 - [x] ~~Quem recebe o loot do boss: maior dano (plano) ou outra regra mais justa com tank e healer?~~ Decidido em 2026-10-11: loot individual, cada jogador que participou da luta sorteia o próprio (seção 5). ~~Maior dano~~ substituído em 2026-10-11 por loot individual no boss.
 - [x] ~~Troca de arma (S10) fica fora; a fatia tem uma arma equipada.~~ Decidido em 2026-10-12: duas armas, como o New World ([combate](combate.md#duas-armas-depois-desta-fatia)). Esta fatia ainda joga com uma espada.
@@ -57,17 +59,17 @@ Quem decide: **servidor** (calcula, valida e envia o resultado; o client só mos
 
 | Item | Regra | Origem |
 |---|---|---|
-| Atributos | Força, Destreza, Intelecto, Vitalidade, Espírito. Valor final = equipamentos + efeitos. Não há ponto por nível | decidido em 2026-10-12 |
-| Vida | base 500, +10 por ponto de Vitalidade. Chegar a 0 leva ao estado caído (seção 7) | proposta |
-| Vigor | base 100, +2 por ponto de Destreza. Paga esquiva, ataque pesado e guarda | decidido em 2026-10-12 |
-| Energia | base 100, +2 por ponto de Espírito. Paga as skills dos itens. É a mana | decidido em 2026-10-12 |
-| Regeneração | após 2 s sem atacar, esquivar ou segurar a guarda: +10 vigor/s e +5 energia/s, mais 0,2 vigor/s por Destreza e 0,1 energia/s por Espírito. Segurar a guarda pausa a espera mesmo antes de um golpe gastar vigor. Vida não regenera sozinha na fatia | decidido em 2026-10-12 |
+| Atributos | Força, Vigor, Agilidade, Intelecto, Espírito, do personagem ([personagem](personagem.md#atributos-do-personagem)). Valor final = pontos da [árvore](talentos.md) + efeitos. Atributo de equipamento não soma aqui (DEC-001). Pontos da árvore só por nível; quantos, pendente (no código, zero até a [#625](https://github.com/GabrielNied/jogo_do_grupo/issues/625)) | decidido em 2026-10-12 (estrutura); números são valores de teste |
+| Vida | base 500, +10 por ponto de Vigor. Chegar a 0 leva ao estado caído (seção 7) | valor de teste |
+| Stamina | base 100, +2 por ponto de Agilidade. Paga esquiva, ataque pesado e guarda. No código ainda se chama vigor ([#622](https://github.com/GabrielNied/jogo_do_grupo/issues/622)) | valor de teste |
+| Mana | base 100, +2 por ponto de Espírito. Paga as skills dos itens. No código ainda se chama energia ([#622](https://github.com/GabrielNied/jogo_do_grupo/issues/622)) | valor de teste |
+| Regeneração | após 2 s sem atacar, esquivar ou segurar a guarda: +10 stamina/s e +5 mana/s. Segurar a guarda pausa a espera mesmo antes de um golpe gastar stamina. Vida não regenera sozinha na fatia. Regeneração é atributo secundário próprio de cada recurso ([personagem](personagem.md#atributos-secundários)); Agilidade e Espírito não a aumentam sem decisão | valor de teste |
 | Cálculo | recalcular ao equipar ou desequipar; nunca somar o mesmo bônus duas vezes | proposta |
 | Limites | valor atual nunca passa do máximo nem fica negativo; reduzir o máximo não cura | proposta |
 
-- Decidido em 2026-10-12: os cinco atributos só vêm dos itens. Força aumenta o dano físico (seção 2). Destreza aumenta o vigor máximo e a regeneração de vigor. Vitalidade aumenta a vida. Intelecto aumenta o dano mágico em **2%** por ponto. Espírito aumenta a energia máxima e a regeneração de energia.
+- ~~Decidido em 2026-10-12: os cinco atributos só vêm dos itens.~~ Substituído em 2026-10-12 pela [especificação de atributos](personagem.md#atributos-do-personagem): os atributos vêm da árvore, e os itens têm atributos próprios. Força aumenta o dano físico (seção 2). Vigor aumenta a vida. Agilidade aumenta a stamina máxima. Intelecto aumenta o dano mágico (valor de teste: **2%** por ponto). Espírito aumenta a mana máxima. Até a [#622](https://github.com/GabrielNied/jogo_do_grupo/issues/622) e a [#623](https://github.com/GabrielNied/jogo_do_grupo/issues/623), o código mantém os nomes antigos e soma os atributos das peças.
 - Dano físico pesado escala com Força; a primeira arma usa Força (seção 2).
-- O client mostra barras de vida, vigor e energia; o servidor envia valores atuais e máximos quando mudam.
+- O client mostra barras de vida, stamina e mana; o servidor envia valores atuais e máximos quando mudam.
 - **Testes esperados:** equipar/desequipar recalcula sem duplicar bônus; máximo reduzido limita o atual; regeneração só após 2 s sem atacar, esquivar ou segurar a guarda; recurso nunca fica negativo.
 
 ### 2. Um ataque: primeira arma, leve e pesado
