@@ -65,10 +65,12 @@ namespace JogoDoGrupo.Client.Features.Mobs
             new Dictionary<long, float>();
 
         private PainelDeInimigos _painel;
+        private AvisosNoChao _avisos;
 
         public void Configurar(PainelDeInimigos painel)
         {
             _painel = painel;
+            _avisos = new AvisosNoChao(transform);
 
             _assinaturas.Add(
                 ConexaoTempoReal.Assinar<InimigosDaArea>(
@@ -90,6 +92,9 @@ namespace JogoDoGrupo.Client.Features.Mobs
                     MobsMessageIds.InimigoPreparaAtaque,
                     AoPrepararAtaque
                 )
+            );
+            _assinaturas.Add(
+                ConexaoTempoReal.Assinar<InimigoExposto>(MobsMessageIds.InimigoExposto, AoExpor)
             );
             _assinaturas.Add(
                 ConexaoTempoReal.Assinar<InimigoAcertou>(MobsMessageIds.InimigoAcertou, AoAcertar)
@@ -119,6 +124,7 @@ namespace JogoDoGrupo.Client.Features.Mobs
             }
 
             _assinaturas.Clear();
+            _avisos?.Destruir();
             foreach (var visual in _visuais.Values)
             {
                 if (visual != null)
@@ -170,6 +176,7 @@ namespace JogoDoGrupo.Client.Features.Mobs
                 }
             }
 
+            _avisos?.Mostrar(_registro.Todos);
             _painel?.Mostrar(_registro.Todos, Camera.main);
         }
 
@@ -262,6 +269,8 @@ namespace JogoDoGrupo.Client.Features.Mobs
 
             return 0f;
         }
+
+        private void AoExpor(InimigoExposto mensagem) => _registro.Expor(mensagem);
 
         private void AoPrepararAtaque(InimigoPreparaAtaque mensagem) =>
             _registro.PrepararAtaque(mensagem);

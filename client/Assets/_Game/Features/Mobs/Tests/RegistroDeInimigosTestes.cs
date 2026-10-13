@@ -223,11 +223,88 @@ namespace JogoDoGrupo.Client.Features.Mobs.Tests
             Assert.IsTrue(ok);
             Assert.IsNotNull(inimigo.Aviso);
             Assert.AreEqual(0.5f, inimigo.Aviso.Progresso, 0.001f);
-            Assert.AreEqual(1.5f, inimigo.Aviso.Raio);
+            Assert.AreEqual(1.5f, inimigo.Aviso.Areas[0].Raio);
+            Assert.AreEqual(TipoDeAtaqueDeInimigo.Pisada, inimigo.Aviso.Tipo);
 
             registro.Atualizar(0.6f);
 
             Assert.IsNull(inimigo.Aviso);
+        }
+
+        [Test]
+        public void Raios_GuardaTodasAsAreas()
+        {
+            var registro = ComInimigos(1);
+
+            registro.PrepararAtaque(
+                new InimigoPreparaAtaque
+                {
+                    InimigoId = 1,
+                    PreparoMs = 3000,
+                    Tipo = TipoDeAtaqueDeInimigo.Raios,
+                    CentroX = 1f,
+                    CentroZ = 2f,
+                    Raio = 2f,
+                    Areas = new[]
+                    {
+                        new AreaDeAtaque
+                        {
+                            CentroX = 1f,
+                            CentroZ = 2f,
+                            Raio = 2f,
+                        },
+                        new AreaDeAtaque
+                        {
+                            CentroX = 5f,
+                            CentroZ = 6f,
+                            Raio = 2f,
+                        },
+                        new AreaDeAtaque
+                        {
+                            CentroX = -3f,
+                            CentroZ = 0f,
+                            Raio = 2f,
+                        },
+                        new AreaDeAtaque
+                        {
+                            CentroX = 0f,
+                            CentroZ = -9f,
+                            Raio = 2f,
+                        },
+                    },
+                }
+            );
+
+            var areas = registro.Obter(1).Aviso.Areas;
+            Assert.AreEqual(4, areas.Length);
+            Assert.AreEqual(-9f, areas[3].CentroZ);
+        }
+
+        [Test]
+        public void Exposto_MarcaEExpira()
+        {
+            var registro = ComInimigos(1);
+            var inimigo = registro.Obter(1);
+
+            var ok = registro.Expor(
+                new InimigoExposto
+                {
+                    InimigoId = 1,
+                    DuracaoMs = 2000,
+                    Multiplicador = 2f,
+                }
+            );
+            registro.Atualizar(1f);
+
+            Assert.IsTrue(ok);
+            Assert.IsTrue(inimigo.Exposto);
+            Assert.AreEqual(2f, inimigo.ExpostoMultiplicador);
+
+            registro.Atualizar(1.1f);
+
+            Assert.IsFalse(inimigo.Exposto);
+            Assert.AreEqual(1f, inimigo.ExpostoMultiplicador);
+            Assert.IsFalse(registro.Expor(new InimigoExposto { InimigoId = 99 }));
         }
 
         [Test]
