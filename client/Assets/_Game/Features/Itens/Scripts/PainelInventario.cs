@@ -525,7 +525,7 @@ namespace JogoDoGrupo.Client.Features.Itens
             bancada.tooltip = "Fundir equipamentos";
             bancada.SetEnabled(!_ocupado);
             _rodape.Add(bancada);
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
+#if DEBUG
             var grau = new DropdownField(
                 "Grau de teste",
                 new List<string> { "Inicial", "Médio", "Forte" },

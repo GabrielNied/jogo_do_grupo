@@ -49,7 +49,7 @@
     font-size: var(--lumora-tipografia-leitura);
     -unity-text-align: middle-center;
     color: var(--lumora-cores-marfim);
-    text-shadow: var(--lumora-bordas-fina) var(--lumora-bordas-fina) var(--lumora-bordas-destaque) var(--lumora-cores-sombra);
+    text-shadow: var(--lumora-bordas-fina) var(--lumora-bordas-fina) var(--lumora-cores-sombra);
 }
 
 .numeros-de-dano {
@@ -69,7 +69,7 @@
     font-size: var(--lumora-tipografia-titulo);
     -unity-text-align: middle-center;
     color: var(--lumora-cores-marfim);
-    text-shadow: var(--lumora-bordas-fina) var(--lumora-bordas-fina) var(--lumora-bordas-destaque) var(--lumora-cores-sombra);
+    text-shadow: var(--lumora-bordas-fina) var(--lumora-bordas-fina) var(--lumora-cores-sombra);
 }
 
 .dano-pesado {

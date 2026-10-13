@@ -134,7 +134,7 @@ namespace JogoDoGrupo.Client.Features.LaboratorioVisual.Editor
                     else if (e.keyCode == KeyCode.Tab)
                     {
                         _modal.Q<Button>("fechar-modal")?.Focus();
-                        e.PreventDefault();
+                        Raiz.focusController?.IgnoreEvent(e);
                         e.StopPropagation();
                     }
                 },
