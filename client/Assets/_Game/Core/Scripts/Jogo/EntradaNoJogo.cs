@@ -91,7 +91,6 @@ namespace JogoDoGrupo.Client.Core.Jogo
             }
 
             Navegacao.FecharTelaAtual();
-            OpcoesGravadas.Carregar();
 
             _cenaAnterior = SceneManager.GetActiveScene();
             _contadorCenas++;

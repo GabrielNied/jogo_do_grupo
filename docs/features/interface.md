@@ -105,7 +105,8 @@ Decidido por Gabriel em 2026-10-11 (#134); é **provisório** e o grupo pode aju
 | Sensibilidade da câmera | 0,5x a 2,0x, passo 0,1 | 1,0x |
 | Idioma | Português | Português |
 
-- Gravadas neste computador (arquivo local do client, não na conta); valor inválido ou ausente volta ao padrão. Aplicam na hora, sem botão "Aplicar" (proposta).
+- Gravadas neste computador (arquivo local do client, não na conta); valor inválido ou ausente volta ao padrão. Carregam antes da abertura/login. Áudio, qualidade gráfica e sensibilidade mudam sem reconstruir o painel; resolução e tela cheia só mudam após **Aplicar vídeo**. A lista de resoluções mostra cada tamanho uma vez, sem repetir taxas de atualização.
+- Opções usa as abas **Áudio**, **Vídeo** e **Jogo**. Esc em Opções volta ao menu principal. O idioma aparece como Português, único disponível nesta versão.
 - Servidor autoritativo não se aplica: nada aqui afeta regra de jogo.
 - **Testes esperados** (client, EditMode): salvar e ler as opções; valor fora da faixa é limitado; arquivo corrompido volta aos padrões.
 

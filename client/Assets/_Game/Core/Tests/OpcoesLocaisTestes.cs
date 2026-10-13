@@ -1,5 +1,6 @@
 using JogoDoGrupo.Client.Core.Jogo;
 using NUnit.Framework;
+using UnityEngine;
 
 namespace JogoDoGrupo.Client.Core.Tests
 {
@@ -69,6 +70,51 @@ namespace JogoDoGrupo.Client.Core.Tests
             Assert.AreEqual("Média", lido.Qualidade);
             Assert.IsTrue(lido.TelaCheia);
             Assert.AreEqual(OpcoesLocais.SensibilidadePadrao, lido.Sensibilidade, 0.001f);
+        }
+
+        [Test]
+        public void Qualidade_gravada_em_texto_continua_compativel_com_enum()
+        {
+            var opcoes = OpcoesLocais.Ler("geral=80\nqualidade=Alta");
+            Assert.AreEqual(QualidadeGrafica.Alta, opcoes.NivelQualidade);
+            opcoes.DefinirQualidade(QualidadeGrafica.Baixa);
+            Assert.That(opcoes.Gravar(), Does.Contain("qualidade=Baixa"));
+        }
+
+        [Test]
+        public void Alterar_audio_ou_jogo_nao_reaplica_tela_e_qualidade()
+        {
+            Assert.AreEqual(
+                AplicacaoDeOpcoes.Audio,
+                OpcoesGravadas.PlanejarAplicacao(GrupoDeOpcoes.Audio)
+            );
+            Assert.AreEqual(
+                AplicacaoDeOpcoes.Nenhuma,
+                OpcoesGravadas.PlanejarAplicacao(GrupoDeOpcoes.Jogo)
+            );
+            Assert.AreEqual(
+                AplicacaoDeOpcoes.Tela,
+                OpcoesGravadas.PlanejarAplicacao(GrupoDeOpcoes.Tela)
+            );
+        }
+
+        [Test]
+        public void Resolucao_aparece_uma_vez_por_tamanho_mesmo_com_taxas_repetidas()
+        {
+            var resolucoes = MenuJogo.ResolucoesSemDuplicata(
+                new[]
+                {
+                    new Vector2Int(1920, 1080),
+                    new Vector2Int(1920, 1080),
+                    new Vector2Int(1280, 720),
+                    new Vector2Int(0, 0),
+                }
+            );
+
+            CollectionAssert.AreEqual(
+                new[] { new Vector2Int(1920, 1080), new Vector2Int(1280, 720) },
+                resolucoes
+            );
         }
     }
 }
