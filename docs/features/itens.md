@@ -453,6 +453,17 @@ Proposta do board em 2026-10-11: as partes ainda **não validadas pelo grupo** d
 - **[Mobs](mobs.md):** o evento de morte do inimigo, com quem participou e onde ele caiu (loot no chão).
 - **[Mundo](mundo.md):** a posição do personagem, para conferir a distância da coleta, e o aviso de quem entrou na área.
 
+### Arma equipada no personagem (#497)
+
+A arma que o personagem veste aparece no corpo dele, para ele e para quem está na mesma área: a do conjunto **ativo** na mão direita, a do conjunto **inativo** nas costas. Trocar de conjunto, equipar e desequipar mudam o que se vê.
+
+- **Contrato:** `VisualEquipado` (`ItensMessageIds.VisualEquipado`, 7005), servidor → área, sempre o **estado inteiro** do personagem (`PersonagemId`, `ConjuntoAtivo` e as `Armas`, cada uma com posição, tipo e modelo-base); o client troca o que tinha. Lista vazia = sem arma. Regras puras em `RegrasVisualEquipado` (shared): qual encaixe (`EncaixeDoVisual`: `MaoDireita` ou `Costas`) e o nome do objeto (`EncaixeMaoDireita`, `EncaixeCostas`, criados pelo gerador do Personagem).
+- **Quando sai:** depois de gravar um equipar, desequipar ou troca de conjunto (uma mensagem por mudança aceita, nada se a rota recusa), para os presentes na área do personagem, ele incluído; e ao entrar na área, o recém-chegado recebe o próprio visual e o de quem já estava com arma, e a área recebe o dele. `VisualEquipadoServico` (servidor).
+- **Client:** `VisualEquipadoDoCliente` guarda o estado por personagem (a mensagem pode chegar antes do avatar); `ControleDoVisualEquipado` confere 4 vezes por segundo, acha o avatar (o jogador local, ou `Jogador_<id>` do Mundo) e `ApresentadorDoVisual` tira os modelos antigos e põe os novos no encaixe, achado pelo nome em qualquer profundidade do visual.
+- **Decisões de design (2026-10-13):** (1) só a **arma principal** de cada conjunto tem modelo; mão secundária (escudo, foco) e armaduras não aparecem ainda (não há encaixe de mão esquerda no gerador). (2) Modelos **de primitivas em código**, um por tipo (espada, martelo, arco, cajado; `ModelosDeArma`), sem asset: o cabo na origem, apontando para +Y; o artista de itens os troca por modelo de verdade no mesmo ponto. (3) **Avatar remoto sem encaixe** (a cápsula do Mundo hoje): a Itens cria o `EncaixeMaoDireita`/`EncaixeCostas` no objeto raiz do avatar (`ApresentadorDoVisual.MaoDireitaNaRaiz`, `CostasNaRaiz`); quando o Mundo trocar a cápsula pelo modelo animado ([#498](https://github.com/GabrielNied/jogo_do_grupo/issues/498)) e ele tiver os encaixes do gerador, passam a valer sem mudar nada aqui. (4) Nas costas o modelo gira 40° e o meio da arma fica no encaixe. (5) O visual mostra o que o servidor aceitou; nada de previsão no client.
+- **Conferir sem rodar o jogo:** `npm run unity:executar -- JogoDoGrupo.Client.Features.Itens.Editor.CapturaDoVisualEquipado.Capturar` grava o Valdren de frente, de lado e de costas em `client/prints/`.
+- **Pendente:** ajuste fino da pose da arma na mão (o osso `Weapon.R` define a orientação; hoje o cabo está na palma e a lâmina sobe), clipes de guarda e modelo animado dos outros jogadores (#498).
+
 ## Expõe
 
 API HTTP do recorte de teste (mesmo estilo de [Personagem](personagem.md#expõe); [ADR 0009](../decisoes/0009-api-http-para-conta-e-personagens.md)). Todas as chamadas exigem o token (JWT) do login. Os tipos ficam em [shared/Package/Runtime/Features/Itens/](../../shared/Package/Runtime/Features/Itens/); o código do contrato é a fonte dos nomes e tipos exatos. Contrato definido em 2026-10-11.

@@ -11,6 +11,7 @@ public sealed class ItensModule : IFeatureModule
     // Criado pelo contêiner quando o app sobe (hosted service); os manipuladores de rede e de
     // eventos só o usam depois que uma sessão se autentica.
     private volatile ServicoDeLoot? _loot;
+    private volatile VisualEquipadoServico? _visual;
 
     public string Nome => "Itens";
 
@@ -29,6 +30,14 @@ public sealed class ItensModule : IFeatureModule
             sp.GetRequiredService<EquipamentosParaCombate>()
         );
         servicos.AddHostedService<MigradorDeEquipamentos>();
+        servicos.AddSingleton(sp =>
+        {
+            var servico = ActivatorUtilities.CreateInstance<VisualEquipadoServico>(sp);
+            _visual = servico;
+            return servico;
+        });
+        // Hosted service só para o contêiner criá-lo ao subir (como o loot): ele escuta eventos.
+        servicos.AddHostedService(sp => sp.GetRequiredService<VisualEquipadoServico>());
         servicos.AddSingleton<ISorteadorBau>(new SorteadorBau());
         servicos.AddSingleton<ISorteadorDeLoot>(new SorteadorDeLoot());
         servicos.AddSingleton<ChaoDeLoot>();
@@ -63,5 +72,6 @@ public sealed class ItensModule : IFeatureModule
     {
         contexto.Eventos.Assinar<InimigoDerrotado>(evento => _loot?.AoInimigoDerrotado(evento));
         contexto.Eventos.Assinar<JogadorEntrouNaArea>(evento => _loot?.AoEntrarNaArea(evento));
+        contexto.Eventos.Assinar<JogadorEntrouNaArea>(evento => _visual?.AoEntrarNaArea(evento));
     }
 }
