@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Net;
 using JogoDoGrupo.Server.Core.Persistencia;
 using JogoDoGrupo.Server.Features.Combate;
@@ -40,9 +41,13 @@ public sealed class BonusFalso : IBonusDeAtributos
     /// <summary>Quantas vezes os equipamentos foram lidos (uma ida ao banco por golpe).</summary>
     public int Leituras => Volatile.Read(ref _leituras);
 
+    /// <summary>Quando (<see cref="Environment.TickCount64"/>) começou cada leitura de equipamentos.</summary>
+    public ConcurrentQueue<long> InicioDasLeituras { get; } = new();
+
     public async Task<AtributosCombate> EquipamentosAsync(long personagemId, CancellationToken c)
     {
         Interlocked.Increment(ref _leituras);
+        InicioDasLeituras.Enqueue(Environment.TickCount64);
         if (AtrasoMs > 0)
         {
             await Task.Delay(AtrasoMs, c);

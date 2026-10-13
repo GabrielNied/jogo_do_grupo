@@ -43,6 +43,14 @@ public class InimigosDoCampoTestes(TempoRealFixture f) : IClassFixture<TempoReal
 
             // Com mais pontos do que vagas no teto, os últimos da fila podem esperar vaga.
             Assert.InRange(doPonto.Length, 0, ponto.TamanhoMaximo);
+            // A manada com rota sai andando depois da espera no primeiro ponto (e a máquina carregada
+            // pode atrasar o teste até lá): todos andam juntos, então o círculo vale em volta do
+            // centro do grupo, não do ponto de spawn.
+            var (centroX, centroZ) =
+                ponto.Rota == null
+                    ? (ponto.X, ponto.Z)
+                    : (doPonto.Average(i => i.X), doPonto.Average(i => i.Z));
+            var confereRaio = ponto.Rota == null || doPonto.Length >= 2;
             Assert.All(
                 doPonto,
                 i =>
@@ -59,8 +67,11 @@ public class InimigosDoCampoTestes(TempoRealFixture f) : IClassFixture<TempoReal
                         ),
                         i.VidaMaxima
                     );
-                    var doCentro = RegrasInimigo.Distancia(ponto.X, ponto.Z, i.X, i.Z);
-                    Assert.Equal(ConfigInimigosDoCampo.RaioDoEspalhamentoMetros, doCentro, 2);
+                    if (confereRaio)
+                    {
+                        var doCentro = RegrasInimigo.Distancia(centroX, centroZ, i.X, i.Z);
+                        Assert.Equal(ConfigInimigosDoCampo.RaioDoEspalhamentoMetros, doCentro, 2);
+                    }
                 }
             );
         }
