@@ -26,6 +26,12 @@ namespace JogoDoGrupo.Shared.Features.Mundo
         /// </summary>
         public const float RaioPlano = 130f;
 
+        /// <summary>Raio da primeira transição ao sair dos muros (40 m a 60 m: 20 m de faixa).</summary>
+        public const float RaioTransicao1 = 60f;
+
+        /// <summary>Raio da segunda transição intermediária mais suave (60 m a 120 m).</summary>
+        public const float RaioTransicao2 = 120f;
+
         /// <summary>Subida máxima na faixa entre os muros e <see cref="RaioPlano"/>, em metros.</summary>
         public const float SubidaMaximaDaFaixaInicial = 5f;
 
@@ -230,16 +236,11 @@ namespace JogoDoGrupo.Shared.Features.Mundo
                 return 0f;
             }
 
-            if (alcance <= RaioPlano)
-            {
-                return AlturaDaFaixaInicial(x, z, alcance);
-            }
+            // Transição 1 (grudada no muro: 40 m a 60 m) e Transição 2 (intermediária: 60 m a 120 m).
+            var alturaFaixa = AlturaDasTransicoes(x, z, alcance);
 
-            var mascara = Suave(RaioPlano, 230f, alcance);
-            if (mascara <= 0f)
-            {
-                return 0f;
-            }
+            // A partir de 60 m o relevo do bioma começa a se misturar, atingindo 100% em 120 m.
+            var mascara = Suave(RaioTransicao1, RaioTransicao2, alcance);
 
             // As montanhas crescem aos poucos a partir da fronteira com o miolo.
             var longe = Suave(520f, 1050f, alcance);
@@ -285,21 +286,36 @@ namespace JogoDoGrupo.Shared.Features.Mundo
             var puro = deserto * deserto + neve * neve + lava * lava + pantano * pantano;
             var fronteira = 20f * fora * dentro + 18f * fora * (1f - puro);
 
-            // O morro da primeira caverna fica nas colinas do oeste e soma seu relevo ao fim.
-            return (mascara * (altura + fronteira)) + PrimeiraCaverna.AlturaDoMorro(x, z);
+            // O relevo base une a transição das bordas da cidade com o bioma natural.
+            var alturaBase = (1f - mascara) * alturaFaixa + mascara * (altura + fronteira);
+            var comCaverna = alturaBase + PrimeiraCaverna.AlturaDoMorro(x, z);
+
+            // Modificadores de relevo (monumentos do mundo e terraplanagens em tempo de execução)
+            return ModificadoresDoMapa.Aplicar(x, z, comCaverna);
         }
 
         /// <summary>
-        /// Relevo entre os muros e <see cref="RaioPlano"/>: sobe aos poucos, mais forte na estrada
-        /// do portão (norte) e mais suave nas laterais.
+        /// Duas transições do relevo ao redor da cidade:
+        /// 1) Grudada no muro (40 a 60 m): acomodação imediata com subida na estrada norte.
+        /// 2) Intermediária suave (60 a 120 m): fusão suave antes de entrar no relevo pleno dos biomas.
         /// </summary>
-        private static float AlturaDaFaixaInicial(float x, float z, float alcance)
+        private static float AlturaDasTransicoes(float x, float z, float alcance)
         {
-            var t = Suave(MetadeDaCidade, RaioPlano, alcance);
             var corredor = 1f - Suave(6f, 10f, Math.Abs(x));
-            var norte = Suave(MetadeDaCidade - 4f, RaioPlano, z);
-            var peso = 0.2f + 0.8f * corredor * Math.Max(norte, 0.12f);
-            return SubidaMaximaDaFaixaInicial * t * peso;
+            var norte = Suave(MetadeDaCidade - 4f, RaioTransicao2, z);
+            var pesoNorte = 0.2f + 0.8f * corredor * Math.Max(norte, 0.12f);
+
+            if (alcance <= RaioTransicao1)
+            {
+                // Transição 1 (40 m a 60 m - primeiros 20 m fora dos muros)
+                var t1 = Suave(MetadeDaCidade, RaioTransicao1, alcance);
+                return SubidaMaximaDaFaixaInicial * 0.5f * t1 * pesoNorte;
+            }
+
+            // Transição 2 (60 m a 120 m)
+            var baseT1 = SubidaMaximaDaFaixaInicial * 0.5f * pesoNorte;
+            var t2 = Suave(RaioTransicao1, RaioTransicao2, alcance);
+            return baseT1 + (SubidaMaximaDaFaixaInicial * 0.5f * t2 * pesoNorte);
         }
 
         // Campo: quase plano, até 1,5 m.
@@ -314,34 +330,34 @@ namespace JogoDoGrupo.Shared.Features.Mundo
             return 3.5f * Fbm(x / 70f, z / 70f, SementeMata, 3);
         }
 
-        // Colinas: morros de até 14 m.
+        // Colinas: morros suaves de até 14 m.
         private static float AlturaDasColinas(float x, float z)
         {
             return 14f * Potencia(Fbm(x / 110f, z / 110f, SementeColinas, 4), 1.3);
         }
 
-        // Deserto: dunas alongadas de 3 a 17 m, mais altas em algumas regiões.
+        // Deserto: dunas alongadas e orgânicas de 3 a 17 m.
         private static float AlturaDoDeserto(float x, float z)
         {
-            var dunas = Crista(x / 150f, z / 90f, SementeDunas, 2);
+            var dunas = Fbm(x / 140f, z / 90f, SementeDunas, 3);
             var regiao = 0.35f + 0.65f * Fbm(x / 350f, z / 350f, SementeAreia, 2);
             return 3f + 14f * dunas * regiao;
         }
 
-        // Neve: cristas de até uns 155 m, com vales entre elas por onde se passa.
+        // Neve: montanhas imponentes com cumes arredondados e orgânicos (sem picos pontudos em V).
         private static float AlturaDaNeve(float x, float z, float longe)
         {
-            var picos = 150f * Potencia(Crista(x / 420f, z / 420f, SementePicosDeNeve, 4), 1.6);
-            var encosta = 25f * Fbm(x / 90f, z / 90f, SementeEncostaDeNeve, 3);
+            var cumes = 145f * Potencia(Fbm(x / 380f, z / 380f, SementePicosDeNeve, 4), 1.9);
+            var encosta = 25f * Fbm(x / 110f, z / 110f, SementeEncostaDeNeve, 3);
             var chao = 5f * Fbm(x / 60f, z / 60f, SementeChaoDeNeve, 2);
-            return 8f + longe * (picos + encosta) + chao;
+            return 8f + longe * (cumes + encosta) + chao;
         }
 
-        // Lava: montanhas de até uns 100 m, cortadas por trechos de rio de lava.
+        // Lava: montanhas esculturais de até 95 m com cumes suaves, cortadas por trechos de rio de lava.
         private static float AlturaDaLava(float x, float z, float longe)
         {
-            var picos = 90f * Potencia(Crista(x / 360f, z / 360f, SementePicosDeLava, 4), 1.5);
-            var encosta = 14f * Fbm(x / 80f, z / 80f, SementeEncostaDeLava, 3);
+            var picos = 85f * Potencia(Fbm(x / 350f, z / 350f, SementePicosDeLava, 4), 1.8);
+            var encosta = 16f * Fbm(x / 90f, z / 90f, SementeEncostaDeLava, 3);
             var chao = 4f * Fbm(x / 50f, z / 50f, SementeChaoDeLava, 2);
             var altura = 6f + longe * (picos + encosta) + chao;
 

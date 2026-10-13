@@ -17,8 +17,17 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
         public static readonly Color Lava = new Color(0.2f, 0.16f, 0.16f);
         public static readonly Color Pantano = new Color(0.27f, 0.33f, 0.2f);
 
-        /// <summary>Pedra exposta nas encostas íngremes.</summary>
+        /// <summary>Pedra exposta nas encostas íngremes e paredões rochosos.</summary>
         public static readonly Color Rocha = new Color(0.42f, 0.42f, 0.45f);
+
+        /// <summary>Areia dourada das praias e margens calmas.</summary>
+        public static readonly Color Praia = new Color(0.86f, 0.78f, 0.56f);
+
+        /// <summary>Cascalho e seixos das margens de rio.</summary>
+        public static readonly Color MargemDeRio = new Color(0.44f, 0.46f, 0.43f);
+
+        /// <summary>Terra batida e cascalho da estrada conectando a cidade ao mundo.</summary>
+        public static readonly Color Estrada = new Color(0.66f, 0.58f, 0.44f);
 
         /// <summary>Lama do fundo das poças do pântano.</summary>
         public static readonly Color Lodo = new Color(0.16f, 0.2f, 0.13f);
@@ -62,12 +71,20 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
 
         /// <summary>
         /// Cor do chão num ponto: a mistura das cores dos biomas pelos pesos, com lodo no fundo
-        /// das poças, brasa na beira da lava e pedra nas encostas.
+        /// das poças, brasa na beira da lava, pedra nas encostas, praias e conexão com a estrada.
         /// </summary>
         /// <param name="pesos">Quanto de cada bioma existe no ponto.</param>
         /// <param name="altura">Altura do chão, em metros.</param>
         /// <param name="declive">Inclinação, em metros de subida por metro andado.</param>
-        public static Color DoChao(PesosDosBiomas pesos, float altura, float declive)
+        /// <param name="x">Coordenada X do mundo (opcional).</param>
+        /// <param name="z">Coordenada Z do mundo (opcional).</param>
+        public static Color DoChao(
+            PesosDosBiomas pesos,
+            float altura,
+            float declive,
+            float x = 0f,
+            float z = 0f
+        )
         {
             var cor =
                 Campo * pesos.Campo
@@ -77,6 +94,28 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
                 + Neve * pesos.Neve
                 + Lava * pesos.Lava
                 + Pantano * pesos.Pantano;
+
+            // Variação micro-tonal sutil para profundidade orgânica
+            if (x != 0f || z != 0f)
+            {
+                var micro =
+                    (Mathf.Sin(x * 0.35f + z * 0.17f) + Mathf.Cos(x * 0.21f - z * 0.43f)) * 0.025f;
+                cor = new Color(
+                    Mathf.Clamp01(cor.r + micro),
+                    Mathf.Clamp01(cor.g + micro * 0.8f),
+                    Mathf.Clamp01(cor.b + micro * 0.5f),
+                    1f
+                );
+            }
+
+            // Praia nas margens de águas calmas (pântano entre nível da água e +1.2 m com declive suave)
+            var praia =
+                Mathf.InverseLerp(
+                    MapaDoMundo.NivelDaAgua + 1.2f,
+                    MapaDoMundo.NivelDaAgua + 0.1f,
+                    altura
+                ) * Mathf.InverseLerp(0.7f, 0.25f, declive);
+            cor = Color.Lerp(cor, Praia, praia * pesos.Pantano * 0.85f);
 
             // Fundo das poças: escurece de 30 cm acima da água até 20 cm abaixo.
             var molhado = Mathf.InverseLerp(
@@ -94,9 +133,24 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
             );
             cor = Color.Lerp(cor, Brasa, quente * pesos.Lava);
 
-            // Encostas: a pedra aparece. Na lava o chão já é pedra escura, então fica como está.
+            // Encostas e paredões rochosos: a pedra aparece. Na lava o chão já é pedra escura.
             var pedra = Mathf.InverseLerp(DecliveComPedra, DecliveSoDePedra, declive);
             cor = Color.Lerp(cor, Rocha, pedra * (1f - pesos.Lava));
+
+            // Estrada norte que sai do portão da cidade pelas transições 1 e 2
+            if (
+                Mathf.Abs(x) <= 8f
+                && z >= MapaDoMundo.MetadeDaCidade
+                && z <= MapaDoMundo.RaioTransicao2
+            )
+            {
+                var lateral = 1f - Mathf.InverseLerp(4f, 8f, Mathf.Abs(x));
+                var longitudinal =
+                    1f
+                    - Mathf.InverseLerp(MapaDoMundo.MetadeDaCidade, MapaDoMundo.RaioTransicao2, z)
+                        * 0.4f;
+                cor = Color.Lerp(cor, Estrada, lateral * longitudinal * 0.7f);
+            }
 
             cor.a = 1f;
             return cor;

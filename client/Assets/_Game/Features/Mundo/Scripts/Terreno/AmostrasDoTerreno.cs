@@ -46,13 +46,17 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
             var amostras = new AmostrasDoTerreno(alturas, new Color32[lado * lado]);
             for (var j = 0; j < lado; j++)
             {
+                var z = MapaDoMundo.CoordenadaDaGrade(j);
                 for (var i = 0; i < lado; i++)
                 {
+                    var x = MapaDoMundo.CoordenadaDaGrade(i);
                     var indice = j * lado + i;
                     amostras._cores[indice] = CoresDosBiomas.DoChao(
                         pesos[indice],
                         alturas[indice],
-                        amostras.Declive(i, j)
+                        amostras.Declive(i, j),
+                        x,
+                        z
                     );
                 }
             }

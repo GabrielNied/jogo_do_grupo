@@ -66,7 +66,13 @@ Decidido pelo Gabriel em 2026-10-11 (issue #135). Substitui o terreno plano de 1
   | **Pântano** | leste do mundo | lama | ilhas baixas e poças rasas (cerca de um terço alagado) | árvores tortas nas ilhas |
 
 - **Fronteiras:** os biomas de fora começam a uns 500 m do centro e se dividem pelas diagonais do mapa. As fronteiras ondulam (não são retas) e os biomas se misturam numa faixa de dezenas de metros: a cor, a altura e a luz mudam aos poucos. Um morro baixo acompanha cada fronteira; é ele que impede a água do pântano de encontrar a lava.
-- **Faixa plana:** até **130 m** do centro (medidos no eixo mais distante) o chão fica em **Y = 0**: a cidade, a estrada do portão e uma faixa em volta dos muros. O relevo cresce aos poucos dali até 230 m.
+- **Transições e relevo da cidade (2026-10-13):**
+  - **Dentro dos muros (até 40 m do centro):** Chão rigorosamente plano em **Y = 0**.
+  - **Transição 1 (40 a 60 m - faixa de 20 m fora dos muros):** Acomodação imediata ao sair da cidade com subida gradual da estrada norte.
+  - **Transição 2 (60 a 120 m):** Conexão intermediária suave ligando as imediações da cidade ao relevo pleno dos biomas.
+- **Curvas e cumes das montanhas:** Montanhas imponentes e orgânicas com curvas multifractais suaves e arredondadas (sem cristas pontudas ou picos em V artificiais).
+- **Classificação de superfícies e texturas (`ClassificacaoTerreno`, `CoresDosBiomas`):** Diferenciação entre chão padrão do bioma, **praias** (areia dourada suave em cotas de água calma com declive suave), **margens de rios** (seixos e cascalho em leitos com bordas cortadas), **paredões de rocha** (declive >= 42°) e o **caminho da estrada norte**.
+- **Modificadores de terreno (`ModificadorDeTerreno`, `ModificadoresDoMapa`):** Sistema modular e determinístico no shared que permite assentar monumentos e estruturas no relevo, além de suportar terraplanagens e estradas de jogadores em tempo de execução com transições suaves (Hermite smoothstep).
 - **Altura do chão:** de **-2 a 220 m** em qualquer ponto do mundo. A água do pântano fica em **Y = -0,5** (poças de até 40 cm) e a lava em **Y = -1** (rios de até 60 cm). As duas são só visuais por enquanto: não têm colisor e **não causam dano nem deixam mais lento** (em aberto, acima).
 - **Encostas:** o personagem sobe até 45 graus (regra do Core). Campo, mata e colinas são andáveis por inteiro. Nas montanhas, até um décimo do chão é íngreme demais: são os paredões, e o caminho é pelos vales.
 - **Fonte única do relevo:** `MapaDoMundo`, no shared (`BiomaEm`, `PesosEm`, `AlturaEm`). Usa sementes fixas: o mundo é sempre o mesmo. A altura oficial é a de uma grade de 10 m, em triângulos, igual à malha que o client desenha.
