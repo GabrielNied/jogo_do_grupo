@@ -15,5 +15,13 @@ namespace JogoDoGrupo.Shared.Features.Itens
         /// do personagem dentro do raio de coleta.
         /// </summary>
         public long LootId = RegrasLoot.TudoPorPerto;
+
+        /// <summary>
+        /// Só vale em "tudo por perto": peças de tier abaixo disto ficam no chão (filtro de loot
+        /// do jogador, #565). <see cref="TierItem.D"/> (o padrão) coleta tudo. Itens que não são
+        /// equipamento não têm tier e sempre passam. Pedir um item pelo <see cref="LootId"/> ignora
+        /// o filtro: é uma escolha explícita.
+        /// </summary>
+        public TierItem TierMinimo = TierItem.D;
     }
 }

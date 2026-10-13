@@ -103,11 +103,11 @@ namespace JogoDoGrupo.Client.Features.Itens.Loot
         /// Algum item ao alcance da tecla F (<see cref="RegrasLoot.DentroDoRaioDeColeta"/>)? Só
         /// para mostrar a dica e não mandar pedido à toa; o servidor confere de novo.
         /// </summary>
-        public bool AlgumAoAlcance(float x, float z)
+        public bool AlgumAoAlcance(float x, float z, TierItem tierMinimo = TierItem.D)
         {
             foreach (var item in _itens.Values)
             {
-                if (RegrasLoot.DentroDoRaioDeColeta(x, z, item.X, item.Z))
+                if (item.Passa(tierMinimo) && RegrasLoot.DentroDoRaioDeColeta(x, z, item.X, item.Z))
                 {
                     return true;
                 }
@@ -151,6 +151,8 @@ namespace JogoDoGrupo.Client.Features.Itens.Loot
             LootId = loot.LootId;
             ItemId = loot.ItemId;
             Nome = loot.Nome ?? "";
+            TemTier = loot.TemTier;
+            Tier = loot.Tier;
             X = loot.X;
             Z = loot.Z;
             SegundosRestantes = segundosRestantes;
@@ -159,6 +161,15 @@ namespace JogoDoGrupo.Client.Features.Itens.Loot
         public long LootId { get; }
         public int ItemId { get; }
         public string Nome { get; }
+
+        /// <summary>Se é equipamento e, portanto, tem <see cref="Tier"/>.</summary>
+        public bool TemTier { get; }
+
+        public TierItem Tier { get; }
+
+        /// <summary>Se o item passa no filtro de loot do jogador (#565).</summary>
+        public bool Passa(TierItem tierMinimo) => FiltroDeLoot.Passa(TemTier, Tier, tierMinimo);
+
         public float X { get; }
         public float Z { get; }
 

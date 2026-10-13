@@ -25,6 +25,7 @@ public sealed class ServicoDeLoot(
     ServidorTempoReal tempoReal,
     IPosicoesDoMundo posicoes,
     IServiceScopeFactory escopos,
+    GeradorEquipamentos gerador,
     TimeProvider relogio,
     ILogger<ServicoDeLoot> log
 ) : BackgroundService
@@ -76,7 +77,17 @@ public sealed class ServicoDeLoot(
                 continue;
             }
 
-            var novos = chao.Largar(donoId, quedas, derrota.Area, derrota.X, derrota.Z, agora);
+            // Os valores saem sorteados já na queda: o tier da peça aparece no chão (filtro de
+            // loot, #565) e é esse mesmo exemplar que entra no inventário.
+            var novos = chao.Largar(
+                donoId,
+                quedas,
+                derrota.Area,
+                derrota.X,
+                derrota.Z,
+                agora,
+                queda => gerador.Gerar(queda.ModeloId, Random.Shared, queda.Origem, queda.Grau)
+            );
             var sessao = SessaoDe(donoId);
             if (sessao != null)
             {
@@ -110,7 +121,9 @@ public sealed class ServicoDeLoot(
 
         if (pedido.LootId == RegrasLoot.TudoPorPerto)
         {
-            var separados = noMundo ? SepararOQueAlcanca(donoId, posicao, agora) : [];
+            var separados = noMundo
+                ? SepararOQueAlcanca(donoId, posicao, agora, pedido.TierMinimo)
+                : [];
             if (separados.Count == 0)
             {
                 Recusar(sessao, pedido.LootId, CodigosErroItens.LootNaoEncontrado);
@@ -250,15 +263,17 @@ public sealed class ServicoDeLoot(
 
         // A origem e o grau da queda valem para a peça que entra no inventário: é aqui que os
         // valores dos atributos são sorteados e o tier de origem é gravado.
-        var gerador = escopo.ServiceProvider.GetRequiredService<GeradorEquipamentos>();
         for (var i = 0; i < novos.Count; i++)
         {
-            var equipamento = gerador.Gerar(
-                novos[i].ItemId,
-                Random.Shared,
-                levados[i].Origem,
-                levados[i].Grau
-            );
+            // A peça que caiu já tem os valores sorteados; sem ela (queda sem gerador), gera aqui.
+            var equipamento =
+                levados[i].Equipamento
+                ?? gerador.Gerar(
+                    novos[i].ItemId,
+                    Random.Shared,
+                    levados[i].Origem,
+                    levados[i].Grau
+                );
             if (equipamento != null)
                 novos[i].GravarEquipamento(equipamento);
         }
@@ -269,17 +284,23 @@ public sealed class ServicoDeLoot(
         return novos;
     }
 
-    // Separa, para a coleta, todos os itens livres do dono que ele alcança de onde está.
+    // Separa, para a coleta, todos os itens livres do dono que ele alcança de onde está. Peça de
+    // tier abaixo de tierMinimo (filtro do jogador, #565) fica no chão; item sem tier passa.
     private List<LootReservado> SepararOQueAlcanca(
         long donoId,
         PosicaoNoMundo posicao,
-        DateTimeOffset agora
+        DateTimeOffset agora,
+        TierItem tierMinimo = TierItem.D
     )
     {
         var separados = new List<LootReservado>();
         foreach (var loot in chao.DoDono(donoId, agora))
         {
-            if (Alcanca(posicao, loot) && chao.TentarSeparar(donoId, loot.LootId, agora))
+            if (
+                Alcanca(posicao, loot)
+                && PassaNoFiltro(loot, tierMinimo)
+                && chao.TentarSeparar(donoId, loot.LootId, agora)
+            )
             {
                 separados.Add(loot);
             }
@@ -287,6 +308,9 @@ public sealed class ServicoDeLoot(
 
         return separados;
     }
+
+    private static bool PassaNoFiltro(LootReservado loot, TierItem tierMinimo) =>
+        loot.Equipamento == null || RegrasTier.TierDe(loot.Equipamento) >= tierMinimo;
 
     private static bool Alcanca(PosicaoNoMundo posicao, LootReservado loot) =>
         posicao.Area == loot.Area

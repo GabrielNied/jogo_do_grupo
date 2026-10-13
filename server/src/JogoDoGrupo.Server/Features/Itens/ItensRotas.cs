@@ -30,6 +30,7 @@ internal static class ItensRotas
         rotas.MapPost(RotasItens.Bau, AbrirBauAsync).RequireAuthorization();
         rotas.MapPost(RotasItens.Descartar, DescartarAsync).RequireAuthorization();
         rotas.MapPost(RotasItens.Mover, MoverAsync).RequireAuthorization();
+        rotas.MapPost(RotasItens.Ordenar, OrdenarAsync).RequireAuthorization();
     }
 
     private static async Task<IResult> InventarioAsync(
@@ -180,6 +181,68 @@ internal static class ItensRotas
         {
             await db.SaveChangesAsync(cancelamento);
         }
+
+        var estado = await db.Set<EstadoEquipamentos>()
+            .FindAsync(new object[] { id }, cancelamento);
+        var resposta = EquipamentosRotas.Resposta(
+            itens,
+            estado?.ConjuntoAtivo ?? 1,
+            await NivelAsync(id, db, cancelamento)
+        );
+        await transacao.CommitAsync(cancelamento);
+        return Results.Ok(resposta);
+    }
+
+    /// <summary>
+    /// Ordena uma aba da bolsa (tipo, tier, nível; favoritos ficam onde estão, ver
+    /// <see cref="Bolsa.PlanoDeOrdenacao"/>). Transação Serializable, como o mover: uma ordenação
+    /// concorrente a um mover/equipar roda antes ou depois, nunca no meio, e as casas nunca ficam
+    /// com duas peças. Ordenar de novo uma aba já ordenada não muda nada.
+    /// </summary>
+    private static async Task<IResult> OrdenarAsync(
+        string personagemId,
+        PedidoOrdenar pedido,
+        ClaimsPrincipal usuario,
+        JogoDbContext db,
+        CancellationToken cancelamento
+    )
+    {
+        await using var transacao = await db.Database.BeginTransactionAsync(
+            IsolationLevel.Serializable,
+            cancelamento
+        );
+        if (!await PersonagemDaContaAsync(personagemId, usuario.ObterContaId(), db, cancelamento))
+        {
+            return PersonagemNaoEncontrado();
+        }
+
+        var id = ParaId(personagemId);
+        var capacidade = Bolsa.CapacidadeDe(id);
+        if (!capacidade.Contem(pedido.Aba, 0))
+        {
+            return RespostasApi.Erro(
+                StatusCodes.Status400BadRequest,
+                CodigosErroItens.CasaInvalida
+            );
+        }
+
+        var itens = await db.Set<ItemInventario>()
+            .Where(i => i.PersonagemId == id)
+            .OrderBy(i => i.Id)
+            .ToListAsync(cancelamento);
+        Bolsa.Normalizar(itens, capacidade);
+        var plano = Bolsa.PlanoDeOrdenacao(itens, pedido.Aba, capacidade);
+        // Em dois passos: o índice único não aceita duas peças na mesma casa nem por um instante.
+        foreach (var (item, _) in plano)
+        {
+            Bolsa.Limpar(item);
+        }
+        await db.SaveChangesAsync(cancelamento);
+        foreach (var (item, casa) in plano)
+        {
+            Bolsa.Colocar(item, pedido.Aba, casa);
+        }
+        await db.SaveChangesAsync(cancelamento);
 
         var estado = await db.Set<EstadoEquipamentos>()
             .FindAsync(new object[] { id }, cancelamento);

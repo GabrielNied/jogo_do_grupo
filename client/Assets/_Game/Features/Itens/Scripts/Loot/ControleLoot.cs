@@ -107,11 +107,14 @@ namespace JogoDoGrupo.Client.Features.Itens.Loot
             }
 
             var posicao = _jogador.transform.position;
+            var tierMinimo = FiltroDeLoot.TierMinimo;
             foreach (var item in _registro.Itens)
             {
                 if (_marcadores.TryGetValue(item.LootId, out var marcador) && marcador != null)
                 {
-                    var visivel = LootNoChaoDoCliente.Visivel(item, posicao.x, posicao.z);
+                    var visivel =
+                        item.Passa(tierMinimo)
+                        && LootNoChaoDoCliente.Visivel(item, posicao.x, posicao.z);
                     if (marcador.activeSelf != visivel)
                     {
                         marcador.SetActive(visivel);
@@ -123,7 +126,8 @@ namespace JogoDoGrupo.Client.Features.Itens.Loot
 
             // Com janela ou menu do Esc aberto, nem dica nem coleta por baixo.
             var aoAlcance =
-                !JanelasDoJogo.AlgoAberto && _registro.AlgumAoAlcance(posicao.x, posicao.z);
+                !JanelasDoJogo.AlgoAberto
+                && _registro.AlgumAoAlcance(posicao.x, posicao.z, tierMinimo);
             _dica.style.display = aoAlcance ? DisplayStyle.Flex : DisplayStyle.None;
             if (aoAlcance && _coletar.WasPressedThisFrame())
             {
