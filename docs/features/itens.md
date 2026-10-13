@@ -43,7 +43,7 @@ Não mudam por decisão de quem implementa: mudar exige aprovação do Gabriel e
 
 - **DEC-001:** atributos de equipamento não concedem pontos de árvore nem são convertidos nos atributos do personagem; a interação é só pelas fórmulas de combate e pelas skills. **Pendente:** conflita com a [fatia, seção 1](fatia-jogavel.md#1-atributos-e-recursos) (atributos só vêm dos itens e somam aos do personagem); decisão na [#618](https://github.com/GabrielNied/jogo_do_grupo/issues/618). Até lá vale o que está no código.
 - **DEC-002:** a fusão não tem chance de falha. O equilíbrio vem de custo, materiais e limites.
-- **DEC-003:** uma fusão altera um único atributo, escolhido pelo jogador; o resto do item principal, inclusive as skills, fica igual.
+- **DEC-003:** uma fusão altera um único atributo, escolhido pelo jogador; o resto do item principal, inclusive as skills e os poderes, fica igual.
 - **DEC-004:** o tier atual vem só dos valores dos atributos e é recalculado quando eles mudam.
 - **DEC-005:** sem desmontagem. Destinos do item: equipado, vendido, consumido como material de fusão ou descartado (sem recompensa nem material; incluído por Gabriel em 2026-10-12).
 - A fórmula da fusão (metade da diferença), o limite **+10**, a estrutura de custo (coroas; dungeon até +8; raid em +9 e +10), a operação atômica e o servidor como autoridade.
@@ -148,6 +148,45 @@ Implementação na [#616](https://github.com/GabrielNied/jogo_do_grupo/issues/61
 
 - **Migração:** `InfusoesUsadas` vira `NivelFusao` (no máximo 10); valores fracionários são arredondados; os textos "infusão" passam a "fusão".
 
+#### Poderes e sets
+
+Decidido por Gabriel em 2026-10-12 ([especificação de poderes e sets](../brainstorm/poderes-e-sets.md)). Implementação: poderes [#629](https://github.com/GabrielNied/jogo_do_grupo/issues/629) e sets [#630](https://github.com/GabrielNied/jogo_do_grupo/issues/630), as duas bloqueadas pelas skills nas armas ([#167](https://github.com/GabrielNied/jogo_do_grupo/issues/167), [#580](https://github.com/GabrielNied/jogo_do_grupo/issues/580)).
+
+**Princípio:** os equipamentos modificam as skills e o estilo de combate, não só os números. A **arma** define as skills-base; as **outras peças** fortalecem, modificam ou conectam essas skills; os **poderes lendários** criam mecânicas de build; os **sets** dão sinergias pela combinação de peças; a **árvore** especializa o personagem pelas categorias e propriedades das skills ([talentos](talentos.md)). Duas builds com a mesma arma devem jogar de jeitos bem diferentes por causa do equipamento.
+
+**Definido:**
+
+- **PODER-001:** um equipamento lendário pode ter um poder que modifica o comportamento de uma ou mais skills da arma.
+- **PODER-002:** categorias de poder: amplificação, transformação, gatilho, preparação e consumo, conversão, recarga e recursos, mobilidade, defesa reativa e sinergia de grupo. Preferir poderes que mudem decisões de combate a bônus só numéricos.
+- **PODER-003:** o poder declara de forma explícita o que afeta. Não vale "afeta tudo da mesma arma ou categoria".
+- **PODER-004:** a definição do poder traz: skills, categorias ou propriedades compatíveis; condição de ativação; efeito; alvos; duração e limites; interação com outros poderes; regra de acumulação; condição de encerramento; restrições.
+- **PODER-005:** poderes e bônus de set **não entram no tier** (DEC-004); a fusão preserva os poderes do item principal (DEC-003).
+- **SET-001:** set é um grupo de peças relacionadas com bônus pela quantidade **equipada** (marcos de exemplo: 2 peças aprimoram uma mecânica, 4 criam sinergia entre skills, 6 transformam a build; nem todo set precisa ter os três).
+- **SET-002:** cada peça mantém seus atributos e poderes; o bônus de set independe do tier; misturar peças de sets diferentes é livre; nenhum set é obrigatório nem superior para qualquer build.
+- **SET-003:** os bônus são recalculados quando o equipamento muda.
+- **Técnico:** definição de poder e de set separada do exemplar, em dados; condições e efeitos explícitos, sem regra espalhada pelo código; o servidor valida e aplica (autoridade); sem ciclo infinito de ativação; acumulação, duração e remoção controladas; efeitos atualizados ao equipar e desequipar. Sem arquitetura de plugins, scripts ou eventos complexos antes de a necessidade aparecer.
+
+**Foco de cada peça** (diretriz de design, não restrição: um poder fora do foco vale se a mecânica fizer sentido):
+
+| Peça | Foco | Exemplos do que pode fazer |
+|---|---|---|
+| Capacete | especialização de skills | alcance, duração, número de alvos, interação com estados do inimigo |
+| Peito | transformação e combos | ligar skills, uma prepara e outra consome, distribuição do dano |
+| Luvas | ofensiva e sequências | combos, golpes seguidos ou carregados, críticos |
+| Calça | sobrevivência e sustentação | mitigação, escudos, contra-ataque, luta longa |
+| Botas | mobilidade e posicionamento | esquiva, investida, efeito ao atravessar inimigos |
+| Adorno (o "amuleto" da especificação, proposta) | modificadores amplos de build | categorias e elementos, geração e consumo de recurso |
+| Anel | gatilhos e condições | inimigo marcado ou debilitado, recarga sob condição |
+| Cinto, Brinco | **Pendente** (a especificação não cobre) | |
+
+**Exemplo** (ilustrativo, não é regra de balanceamento): arma com Investida Trovejante, Corte Relâmpago e Explosão Elétrica; o peito faz a investida marcar, as luvas fazem golpes seguidos fortalecerem a próxima skill, as botas fazem a esquiva fortalecer a investida e o anel faz acerto em marcado reduzir uma recarga. O jogador prepara, encadeia e fecha com a área.
+
+**Proposta** (até decidir):
+
+- "Lendário" não é raridade sorteada (a raridade saiu): é o item cujo **modelo-base declara um poder**. O poder do exemplar é gravado na geração.
+- No máximo um poder por peça.
+- As famílias do catálogo (Vigia, Bastião, Predador, Ruptor, Aurora, Tempestade, Batedor, Olho Longo), cada uma com nove peças, são os primeiros sets.
+
 #### Pendente
 
 Precisa de decisão do Gabriel. Até lá, vale a proposta indicada.
@@ -158,6 +197,7 @@ Precisa de decisão do Gabriel. Até lá, vale a proposta indicada.
 - ~~**Nível da peça e XP da peça**~~ decidido em 2026-10-12: fixo em 1 até existir progressão própria; não é regra central.
 - ~~**Descarte**~~ decidido em 2026-10-12: destino válido (ITEM-002 e ITEM-004).
 - **Atributos de cada categoria de peça** e a conversão de cada um para o combate: [#623](https://github.com/GabrielNied/jogo_do_grupo/issues/623).
+- **Poderes e sets:** o que torna um item "lendário"; se o poder é fixo do modelo-base ou sorteado de um catálogo compatível com a peça; quantos poderes por peça; foco do Cinto e do Brinco; se o Adorno é o amuleto; quais sets existem e os bônus de cada um ([#629](https://github.com/GabrielNied/jogo_do_grupo/issues/629), [#630](https://github.com/GabrielNied/jogo_do_grupo/issues/630)). Até lá vale a proposta de [Poderes e sets](#poderes-e-sets).
 - **Materiais:** nomes, quantidades e fontes ([#617](https://github.com/GabrielNied/jogo_do_grupo/issues/617)); a raid ainda não tem issue.
 - **Venda, negociação e vinculação**, e fontes de coroas ([#173](https://github.com/GabrielNied/jogo_do_grupo/issues/173)).
 
