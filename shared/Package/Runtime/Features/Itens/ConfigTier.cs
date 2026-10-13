@@ -34,19 +34,26 @@ namespace JogoDoGrupo.Shared.Features.Itens
         public const double Tolerancia = 1e-9;
 
         /// <summary>
-        /// Faixa de cada atributo por categoria de peça. Hoje todos os atributos da lista são
-        /// elegíveis em toda categoria, de 0 a 100: a #623 troca a lista e a #627 diferencia as
-        /// categorias (ex.: <c>.Categoria(TipoEquipamento.Anel, StatusItem.X, 10, 60)</c> ou
-        /// <c>.Inelegivel(...)</c>).
+        /// Faixa de cada atributo por categoria de peça. Elegível = estar na matriz de
+        /// <see cref="ConfigAtributosItem"/> (ATRIB-001); todos de 0 a 100 por enquanto, e a #627
+        /// diferencia as faixas (ex.: <c>.Categoria(TipoEquipamento.Anel, StatusItem.X, 10, 60)</c>).
+        /// Atributo fora da matriz (e os legados) não tem faixa: não entra no tier.
         /// </summary>
-        public static readonly TabelaDeFaixas Faixas = new TabelaDeFaixas()
-            .Padrao(StatusItem.Forca, EscalaMinima, EscalaMaxima)
-            .Padrao(StatusItem.Destreza, EscalaMinima, EscalaMaxima)
-            .Padrao(StatusItem.Intelecto, EscalaMinima, EscalaMaxima)
-            .Padrao(StatusItem.Vitalidade, EscalaMinima, EscalaMaxima)
-            .Padrao(StatusItem.Espirito, EscalaMinima, EscalaMaxima)
-            .Padrao(StatusItem.Vigor, EscalaMinima, EscalaMaxima)
-            .Padrao(StatusItem.Defesa, EscalaMinima, EscalaMaxima);
+        public static readonly TabelaDeFaixas Faixas = CriarFaixas();
+
+        private static TabelaDeFaixas CriarFaixas()
+        {
+            var tabela = new TabelaDeFaixas();
+            foreach (TipoEquipamento tipo in System.Enum.GetValues(typeof(TipoEquipamento)))
+            {
+                foreach (var status in ConfigAtributosItem.Elegiveis(tipo))
+                {
+                    tabela.Categoria(tipo, status, EscalaMinima, EscalaMaxima);
+                }
+            }
+
+            return tabela;
+        }
 
         /// <summary>
         /// Onde a geração sorteia dentro da faixa, por grau (proposta de TIER-006): o grau não muda

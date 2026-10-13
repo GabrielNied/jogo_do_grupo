@@ -3,11 +3,13 @@ using System;
 namespace JogoDoGrupo.Shared.Features.Itens
 {
     /// <summary>
-    /// Converte um exemplar da escala antiga do catálogo (valores fracionários com fator de grau)
-    /// para a escala inteira de 0 a 100 (issue #615). A regra: <c>novo = round(legado x 100 /
-    /// referência)</c>, limitado à faixa do atributo na categoria; <see cref="ConfigTier.ReferenciaLegada"/>
-    /// é a referência do atributo. O <see cref="Equipamento.TierOrigem"/> do exemplar migrado é o
-    /// tier calculado na hora da conversão. A conversão é determinística e só roda uma vez por
+    /// Migra o exemplar até a versão atual: da escala antiga do catálogo (valores fracionários com
+    /// fator de grau) para a escala inteira de 0 a 100 (issue #615) e dos atributos do modelo
+    /// anterior para os atributos próprios (#623, <see cref="MigracaoDeAtributos"/>). A regra da
+    /// escala: <c>novo = round(legado x 100 /
+    /// referência)</c>, limitado a 0 a 100; <see cref="ConfigTier.ReferenciaLegada"/> é a referência do
+    /// atributo antigo. O <see cref="Equipamento.TierOrigem"/> do exemplar da escala antiga é o
+    /// tier calculado com os atributos novos; o de quem já tinha um nunca muda (TIER-004). A conversão é determinística e só roda uma vez por
     /// exemplar (<see cref="Equipamento.VersaoDosAtributos"/>).
     /// </summary>
     public static class MigracaoDeTier
@@ -19,10 +21,40 @@ namespace JogoDoGrupo.Shared.Features.Itens
         /// </summary>
         public static bool Migrar(Equipamento item)
         {
-            var escala = MigrarEscala(item);
-            var fusao = MigrarInfusaoParaFusao(item);
-            return escala || fusao;
+            if (item == null)
+            {
+                return false;
+            }
+
+            var mudou = false;
+            var eraLegado = item.VersaoDosAtributos < VersaoDaEscala;
+            if (eraLegado)
+            {
+                MigrarEscala(item);
+                mudou = true;
+            }
+
+            mudou |= MigrarInfusaoParaFusao(item);
+            if (item.VersaoDosAtributos < RegrasTier.VersaoAtual)
+            {
+                // Atributos do modelo anterior viram os da #623 (mapa em MigracaoDeAtributos). O
+                // tier de origem só é gravado aqui quando o exemplar nunca teve um (escala antiga):
+                // o dos exemplares da #615 é preservado (TIER-004).
+                MigracaoDeAtributos.Aplicar(item);
+                item.VersaoDosAtributos = RegrasTier.VersaoAtual;
+                if (eraLegado)
+                {
+                    item.TierOrigem = RegrasTier.TierDe(item);
+                }
+
+                mudou = true;
+            }
+
+            return mudou;
         }
+
+        /// <summary>Versão do exemplar na escala de 0 a 100 dos atributos do modelo anterior (#615).</summary>
+        public const int VersaoDaEscala = 1;
 
         /// <summary>
         /// A infusão vira fusão (issue #616): <c>InfusoesUsadas</c> passa a ser o nível de fusão,
@@ -57,26 +89,18 @@ namespace JogoDoGrupo.Shared.Features.Itens
             return true;
         }
 
-        private static bool MigrarEscala(Equipamento item)
+        // Escala antiga do catálogo -> inteiro de 0 a 100, atributo por atributo, pela referência do
+        // atributo antigo. O tier de origem só sai depois, com os atributos novos.
+        private static void MigrarEscala(Equipamento item)
         {
-            if (item == null || item.VersaoDosAtributos >= RegrasTier.VersaoAtual)
-            {
-                return false;
-            }
-
             var atributos = item.Atributos ?? Array.Empty<AtributoItem>();
             for (var i = 0; i < atributos.Length; i++)
             {
-                var atributo = atributos[i];
-                var faixa = ConfigTier.Faixa(item.Tipo, atributo.Status);
-                var inteiro = ParaEscalaInteira(atributo.Status, atributo.Valor);
-                atributo.Valor = faixa != null ? faixa.Value.Limitar(inteiro) : inteiro;
+                atributos[i].Valor = ParaEscalaInteira(atributos[i].Status, atributos[i].Valor);
             }
 
             item.Atributos = atributos;
-            item.VersaoDosAtributos = RegrasTier.VersaoAtual;
-            item.TierOrigem = RegrasTier.TierDe(item);
-            return true;
+            item.VersaoDosAtributos = VersaoDaEscala;
         }
 
         /// <summary>
@@ -90,16 +114,6 @@ namespace JogoDoGrupo.Shared.Features.Itens
             );
             return (int)Math.Round(limitado, MidpointRounding.AwayFromZero);
         }
-
-        /// <summary>
-        /// O inverso de <see cref="ParaEscalaInteira"/>: o valor da escala antiga que corresponde a
-        /// um valor de 0 a 100. <b>Provisório:</b> até a #623, o bônus das peças ainda soma nos
-        /// atributos do personagem (DEC-001), e a conversão de volta mantém o combate na mesma
-        /// ordem de grandeza de antes. Sai quando cada atributo tiver a conversão própria
-        /// (ATRIB-003).
-        /// </summary>
-        public static double ParaEscalaLegada(StatusItem status, double valor) =>
-            Math.Round(valor * ConfigTier.ReferenciaLegada(status) / ConfigTier.EscalaMaxima, 6);
 
         // Mesma conta sem arredondar nem limitar; a divisão vem por último para ser exata.
         private static double Converter(StatusItem status, double valorLegado) =>

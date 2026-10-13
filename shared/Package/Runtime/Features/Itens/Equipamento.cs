@@ -63,21 +63,63 @@ namespace JogoDoGrupo.Shared.Features.Itens
         Secundaria2,
     }
 
+    /// <summary>
+    /// Atributos do item (ATRIB-001). Força, Vigor, Agilidade, Intelecto e Espírito são <b>do
+    /// item</b>: nunca somam nos atributos do personagem (DEC-001). Os números de ordem não mudam
+    /// (o exemplar grava o número no JSON): os valores marcados como legado são os do modelo
+    /// anterior, que a migração para a versão 2 (<see cref="MigracaoDeAtributos"/>) troca pelos
+    /// novos, e <see cref="Vigor"/> mudou de sentido (era o recurso, agora é o atributo).
+    /// </summary>
     public enum StatusItem
     {
         Forca,
+
+        /// <summary>Legado: vira <see cref="Agilidade"/> na migração.</summary>
         Destreza,
         Intelecto,
+
+        /// <summary>Legado: vira <see cref="Vigor"/> na migração.</summary>
         Vitalidade,
         Espirito,
+
+        /// <summary>Legado: vira <see cref="Vigor"/> na migração.</summary>
         Vida,
+
+        /// <summary>Atributo Vigor do item. No legado era o recurso, que virou <see cref="Agilidade"/>.</summary>
         Vigor,
+
+        /// <summary>Legado: vira <see cref="Espirito"/> na migração.</summary>
         Energia,
+
+        /// <summary>Legado: vira <see cref="DefesaFisica"/> na migração.</summary>
         Defesa,
+
+        /// <summary>Legado sem efeito até existirem elementos.</summary>
         PotenciaFogo,
+
+        /// <summary>Legado sem efeito até existirem elementos.</summary>
         PotenciaGelo,
+
+        /// <summary>Legado sem efeito até existir alcance.</summary>
         Alcance,
+
+        /// <summary>Legado: vira <see cref="RegeneracaoStamina"/> na migração.</summary>
         RecuperacaoVigor,
+        Agilidade,
+
+        /// <summary>Dano da arma, físico ou mágico pela categoria (cajado é mágico). Só em arma.</summary>
+        DanoDaArma,
+        DefesaFisica,
+        DefesaMagica,
+        RegeneracaoVida,
+        RegeneracaoStamina,
+        RegeneracaoMana,
+        ChanceCritica,
+        DanoCritico,
+        VelocidadeAtaqueFisico,
+        VelocidadeAtaqueMagico,
+        PenetracaoFisica,
+        PenetracaoMagica,
     }
 
     [Serializable]
@@ -187,7 +229,12 @@ namespace JogoDoGrupo.Shared.Features.Itens
         public EntradaInventario[] Equipados = Array.Empty<EntradaInventario>();
         public CapacidadeBolsa Capacidade = RegrasItens.CapacidadeInicial();
         public int ConjuntoAtivo = 1;
-        public AtributoItem[] Bonus = Array.Empty<AtributoItem>();
+
+        /// <summary>
+        /// O que as peças ativas dão ao combate, já convertido (ATRIB-003) e separado do
+        /// personagem: nada aqui soma em Força, Vigor, Agilidade, Intelecto ou Espírito.
+        /// </summary>
+        public AtributosDosEquipamentos Atributos = new AtributosDosEquipamentos();
         public long Coroas;
         public bool ModoFusao;
         public PreviaFusao Previa;
@@ -232,6 +279,18 @@ namespace JogoDoGrupo.Shared.Features.Itens
 
         public static PosicaoEquipamento Principal(int conjunto) =>
             conjunto == 1 ? PosicaoEquipamento.Arma1 : PosicaoEquipamento.Arma2;
+
+        /// <summary>
+        /// Se a peça conta no combate: vestida (fora da bolsa) e, no caso de arma e mão
+        /// secundária, do <paramref name="conjunto"/> ativo.
+        /// </summary>
+        public static bool EstaAtiva(EntradaInventario entrada, int conjunto)
+        {
+            if (entrada?.Equipamento == null || entrada.Posicao == PosicaoEquipamento.Inventario)
+                return false;
+            var origem = Conjunto(entrada.Posicao);
+            return origem == 0 || origem == conjunto;
+        }
 
         public static PosicaoEquipamento Secundaria(int conjunto) =>
             conjunto == 1 ? PosicaoEquipamento.Secundaria1 : PosicaoEquipamento.Secundaria2;
@@ -309,34 +368,6 @@ namespace JogoDoGrupo.Shared.Features.Itens
                     // Capacete..Cinto seguem a ordem do enum (Aceita usa a mesma conta).
                     return (PosicaoEquipamento)((int)tipo + 1);
             }
-        }
-
-        /// <summary>
-        /// Soma dos atributos das peças ativas, já na escala de combate de antes da #615
-        /// (<see cref="MigracaoDeTier.ParaEscalaLegada"/>): até a #623 o bônus ainda soma nos
-        /// atributos do personagem, e o valor 0 a 100 do item não pode virar +100 de Força.
-        /// </summary>
-        public static AtributoItem[] Somar(IEnumerable<EntradaInventario> entradas, int conjunto)
-        {
-            var totais = new SortedDictionary<StatusItem, double>();
-            foreach (var entrada in entradas)
-            {
-                if (entrada.Equipamento == null || entrada.Posicao == PosicaoEquipamento.Inventario)
-                    continue;
-                var origem = Conjunto(entrada.Posicao);
-                if (origem != 0 && origem != conjunto)
-                    continue;
-                foreach (var atributo in entrada.Equipamento.Atributos)
-                {
-                    totais.TryGetValue(atributo.Status, out var atual);
-                    totais[atributo.Status] =
-                        atual + MigracaoDeTier.ParaEscalaLegada(atributo.Status, atributo.Valor);
-                }
-            }
-            var resultado = new List<AtributoItem>();
-            foreach (var total in totais)
-                resultado.Add(new AtributoItem { Status = total.Key, Valor = total.Value });
-            return resultado.ToArray();
         }
     }
 }

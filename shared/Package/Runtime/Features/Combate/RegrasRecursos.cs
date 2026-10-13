@@ -29,20 +29,31 @@ namespace JogoDoGrupo.Shared.Features.Combate
         public const double RegeneracaoStaminaPorSegundo = 10.0;
         public const double RegeneracaoManaPorSegundo = 5.0;
 
-        /// <summary>Valor final de um atributo: base + pontos distribuídos + equipamentos + efeitos.</summary>
-        public static int ValorFinal(
-            int basePersonagem,
-            int pontosDistribuidos,
-            int equipamentos,
-            int efeitos
-        ) => basePersonagem + pontosDistribuidos + equipamentos + efeitos;
+        /// <summary>
+        /// Valor final de um atributo do personagem: base + pontos distribuídos + efeitos. O
+        /// equipamento não entra (DEC-001): os atributos dos itens são uma fonte à parte.
+        /// </summary>
+        public static int ValorFinal(int basePersonagem, int pontosDistribuidos, int efeitos) =>
+            basePersonagem + pontosDistribuidos + efeitos;
 
         public static int VidaMaxima(int vigor) => VidaBase + VidaPorVigor * vigor;
+
+        /// <summary>Vida máxima com o que o Vigor dos itens dá direto (já convertido).</summary>
+        public static int VidaMaxima(int vigor, int deEquipamentos) =>
+            VidaMaxima(vigor) + deEquipamentos;
 
         public static int StaminaMaxima(int agilidade) =>
             StaminaBase + StaminaPorAgilidade * agilidade;
 
+        /// <summary>Stamina máxima com o que a Agilidade dos itens dá direto (já convertida).</summary>
+        public static int StaminaMaxima(int agilidade, int deEquipamentos) =>
+            StaminaMaxima(agilidade) + deEquipamentos;
+
         public static int ManaMaxima(int espirito) => ManaBase + ManaPorEspirito * espirito;
+
+        /// <summary>Mana máxima com o que o Espírito dos itens dá direto (já convertido).</summary>
+        public static int ManaMaxima(int espirito, int deEquipamentos) =>
+            ManaMaxima(espirito) + deEquipamentos;
 
         /// <summary>
         /// Mantém o valor atual entre 0 e o máximo. Reduzir o máximo não cura: o atual só

@@ -35,9 +35,10 @@ namespace JogoDoGrupo.Shared.Features.Itens
         /// <summary>
         /// Versão da escala dos atributos gravada no exemplar (<see cref="Equipamento.VersaoDosAtributos"/>):
         /// 0 é o legado (escala do catálogo, fracionária); 1 é a escala inteira de 0 a 100 com
-        /// <see cref="Equipamento.TierOrigem"/> gravado.
+        /// <see cref="Equipamento.TierOrigem"/> gravado (#615); 2 são os atributos próprios dos
+        /// equipamentos (#623, <see cref="MigracaoDeAtributos"/>).
         /// </summary>
-        public const int VersaoAtual = 1;
+        public const int VersaoAtual = 2;
 
         /// <summary>O tier atual do exemplar: só os valores dos atributos mandam (TIER-002).</summary>
         public static TierItem TierDe(Equipamento item) => Calcular(item).Tier;
