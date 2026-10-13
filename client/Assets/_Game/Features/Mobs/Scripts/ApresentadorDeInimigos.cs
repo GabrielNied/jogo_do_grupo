@@ -51,6 +51,7 @@ namespace JogoDoGrupo.Client.Features.Mobs
         private const float AuraIntensidade = 3f;
 
         private readonly RegistroDeInimigos _registro = new RegistroDeInimigos();
+        private readonly RastreadorDeAlvoDoHud _rastreadorDeAlvo = new RastreadorDeAlvoDoHud();
         private readonly Dictionary<long, GameObject> _visuais = new Dictionary<long, GameObject>();
         private readonly Dictionary<long, Animator> _animadores = new Dictionary<long, Animator>();
         private readonly List<IDisposable> _assinaturas = new List<IDisposable>();
@@ -117,9 +118,15 @@ namespace JogoDoGrupo.Client.Features.Mobs
             _assinaturas.Add(
                 ConexaoTempoReal.Assinar<AtaqueAcertou>(
                     CombateMessageIds.AtaqueAcertou,
-                    _registro.AplicarAcertos
+                    AoAcertarAtaque
                 )
             );
+        }
+
+        private void AoAcertarAtaque(AtaqueAcertou mensagem)
+        {
+            _registro.AplicarAcertos(mensagem);
+            _rastreadorDeAlvo.RegistrarAcertoDoJogador(mensagem, EntradaNoJogo.PersonagemId);
         }
 
         private void OnDestroy()
@@ -130,6 +137,8 @@ namespace JogoDoGrupo.Client.Features.Mobs
             }
 
             _assinaturas.Clear();
+            ObservadorDaBarraAlvoTopo.Descartar();
+            _rastreadorDeAlvo.Limpar();
             _avisos?.Destruir();
             foreach (var visual in _visuais.Values)
             {
@@ -184,6 +193,18 @@ namespace JogoDoGrupo.Client.Features.Mobs
 
             _avisos?.Mostrar(_registro.Todos);
             _painel?.Mostrar(_registro.Todos, Camera.main, PosicaoDoJogadorNoChao());
+
+            var jogador = EntradaNoJogo.Jogador;
+            if (jogador != null)
+            {
+                ObservadorDaBarraAlvoTopo.Atualizar(
+                    _registro.Todos,
+                    _rastreadorDeAlvo,
+                    Camera.main,
+                    jogador.transform.position,
+                    EntradaNoJogo.PersonagemId
+                );
+            }
         }
 
         private static (float X, float Z)? PosicaoDoJogadorNoChao()
@@ -200,6 +221,7 @@ namespace JogoDoGrupo.Client.Features.Mobs
 
         private void AoReceberArea(InimigosDaArea mensagem)
         {
+            _rastreadorDeAlvo.Limpar();
             foreach (var removido in _registro.SubstituirArea(mensagem))
             {
                 RemoverVisualSemAnimacao(removido.InimigoId);
@@ -235,6 +257,7 @@ namespace JogoDoGrupo.Client.Features.Mobs
         /// </summary>
         private void AoAcertar(InimigoAcertou mensagem)
         {
+            _rastreadorDeAlvo.RegistrarGolpeDoInimigo(mensagem, EntradaNoJogo.PersonagemId);
             if (mensagem != null && _animadores.ContainsKey(mensagem.InimigoId))
             {
                 _poses[mensagem.InimigoId] = RegrasReacao.PausaVisualNoAcertoMs / 1000f;

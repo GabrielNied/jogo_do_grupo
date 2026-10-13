@@ -204,6 +204,10 @@ O Guardião do Reflexo (id 100), o boss da primeira dungeon ([fatia-jogavel.md](
 - **Onde:** a instância cria o boss pelo contrato `IChefesDaDungeon` (`server/.../Contratos/Mobs/`), um por área. Enquanto ela não existe, o servidor sobe com um **boss de teste** na área `cidade`, em (-200, 0) (`ConfigChefeDaDungeon.CriarChefeDeTesteAoSubir`; desligue quando a instância o criar).
 - Fora desta tarefa: o desenho do salão, o client (aviso no chão e janela exposta) e loot próprio do boss.
 
+### Barra do alvo e do boss no HUD (#660)
+
+Além das etiquetas no mundo (`PainelDeInimigos`), o client monta barras na região `TopoCentro` do HUD (`PainelBarraAlvoTopo`, Lumora em `EstiloMobs.uss`). A escolha do alvo comum segue a proposta de [interface.md](interface.md): inimigo comum vivo a até **30 m**, primeiro sob a mira (centro da tela), senão o último que você acertou ou que acertou você nos últimos **5 s** (`RegrasAlvoDoHud` no shared). Chefe ou chefe raro vivo em luta (perto, perseguindo você ou contato recente) usa a barra larga de boss; um alvo comum diferente pode aparecer abaixo, menor. Vida 0 ou sem alvo: a região fica vazia. Não muda o cone de acerto do servidor.
+
 ### Livro de Asterra: bestiário (proposta do board, 2026-10-11)
 
 Do "Livro de ideias" do [FigJam](../brainstorm/figjam.md) (seções 05, 09 e 10). **Proposta do board, não validada pelo grupo**; não troca nenhuma ficha acima. Os números do livro são só referência.
