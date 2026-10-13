@@ -175,7 +175,6 @@ namespace JogoDoGrupo.Client.Features.Combate.Tests
                 var controle = objeto.AddComponent<ControleRecursos>();
                 var prontidao = new ProntidaoLocal();
                 controle.Configurar(1, new PainelRecursos(new VisualElement()), prontidao);
-                var agora = Time.unscaledTimeAsDouble;
 
                 controle.AplicarDoServidor(
                     new RecursosMudaram
@@ -186,9 +185,9 @@ namespace JogoDoGrupo.Client.Features.Combate.Tests
                     }
                 );
 
-                Assert.AreEqual(65, prontidao.StaminaEm(agora + 3));
+                var primeiroRetratoEm = Time.unscaledTimeAsDouble;
+                Assert.AreEqual(65, prontidao.StaminaEm(primeiroRetratoEm + 3));
 
-                var segundoRetratoEm = Time.unscaledTimeAsDouble;
                 controle.AplicarDoServidor(
                     new RecursosMudaram
                     {
@@ -198,6 +197,7 @@ namespace JogoDoGrupo.Client.Features.Combate.Tests
                     }
                 );
 
+                var segundoRetratoEm = Time.unscaledTimeAsDouble;
                 Assert.AreEqual(100, prontidao.StaminaEm(segundoRetratoEm + 5));
             }
             finally
