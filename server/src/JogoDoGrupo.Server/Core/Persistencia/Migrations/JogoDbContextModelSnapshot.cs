@@ -156,23 +156,11 @@ namespace JogoDoGrupo.Server.Core.Persistencia.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("Agilidade")
-                        .HasColumnType("INTEGER");
-
                     b.Property<long>("ContaId")
                         .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("CriadoEm")
                         .HasColumnType("TEXT");
-
-                    b.Property<int>("Espirito")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("Forca")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("Intelecto")
-                        .HasColumnType("INTEGER");
 
                     b.Property<int>("Nivel")
                         .HasColumnType("INTEGER");
@@ -191,9 +179,6 @@ namespace JogoDoGrupo.Server.Core.Persistencia.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("Raca")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("Vigor")
                         .HasColumnType("INTEGER");
 
                     b.Property<long>("XpAtual")
@@ -282,6 +267,39 @@ namespace JogoDoGrupo.Server.Core.Persistencia.Migrations
                         .IsUnique();
 
                     b.ToTable("SocialPedidosAmizade", (string)null);
+                });
+
+            modelBuilder.Entity("JogoDoGrupo.Server.Features.Talentos.ArvoreDoPersonagem", b =>
+                {
+                    b.Property<long>("PersonagemId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("PontosGastos")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Versao")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("PersonagemId");
+
+                    b.ToTable("TalentosArvores", (string)null);
+                });
+
+            modelBuilder.Entity("JogoDoGrupo.Server.Features.Talentos.NoComprado", b =>
+                {
+                    b.Property<long>("PersonagemId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("NoId")
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Rank")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("PersonagemId", "NoId");
+
+                    b.ToTable("TalentosNos", (string)null);
                 });
 
             modelBuilder.Entity("JogoDoGrupo.Server.Features.Combate.RecursosPersonagem", b =>

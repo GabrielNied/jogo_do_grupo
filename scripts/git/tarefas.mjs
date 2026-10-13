@@ -9,18 +9,20 @@
 //   npm run tarefa -- liberar <numero> [--motivo "<motivo>"]
 //   npm run tarefa -- soltar-travas
 //   npm run tarefa -- status <numero>
+//   npm run tarefa -- relevancia [numero...] [--conferida "<nota>"]
 //   npm run tarefa -- concluir <numero>
 //   npm run tarefa -- pendencia-unity <pr> --falta "<o que faltou>" [--falta "..."]
 
 import { execFileSync, spawnSync } from "node:child_process";
 import { escopos, tipos } from "../../commitlint.config.mjs";
-import { readdirSync } from "node:fs";
+import { existsSync, readdirSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { LIMITE_FUNCIONALIDADES, podePuxarFuncionalidade } from "./limite-funcionalidades.mjs";
 import { compararDisponiveis, textoDaPrioridade } from "./prioridade-lista.mjs";
 import { motivoTravaAbandonada, travaAbandonada, ultimaTrava } from "./trava-abandonada.mjs";
 import { corpoSubtarefa } from "./subtarefa.mjs";
+import { baseDaConferencia, comentarioConferida, docsDaIssue } from "./relevancia.mjs";
 import { sugerirNomeBranch } from "./nome-branch.mjs";
 import { ligarNodeModules } from "./worktree-npm.mjs";
 import {
@@ -90,16 +92,47 @@ function normalizarIssue(bruta) {
     assignees: (bruta.assignees || []).map((a) => ({ login: a.login })),
     url: bruta.html_url,
     body: bruta.body || "",
+    criadaEm: bruta.created_at,
+    totalComentarios: bruta.comments || 0,
   };
 }
 
 function obterIssue(numero, { comComentarios = false } = {}) {
   const issue = normalizarIssue(apiGh(`${REPO}/issues/${numero}`));
-  if (comComentarios) {
-    const comentarios = apiGh(`${REPO}/issues/${numero}/comments?per_page=100`) || [];
-    issue.comments = comentarios.map((c) => ({ author: { login: c.user.login }, body: c.body }));
-  }
+  if (comComentarios) issue.comments = comentariosDa(numero);
   return issue;
+}
+
+function comentariosDa(numero) {
+  const comentarios = apiGh(`${REPO}/issues/${numero}/comments?per_page=100`) || [];
+  return comentarios.map((c) => ({ author: { login: c.user.login }, body: c.body, createdAt: c.created_at }));
+}
+
+// Commits da origin/main que mexeram nas docs da issue depois que ela foi escrita ou conferida.
+function mudancasNasDocs(issue) {
+  const docs = docsDaIssue(nomesDasLabels(issue), issue.body, (doc) => existsSync(doc));
+  if (docs.length === 0) return { docs, desde: issue.criadaEm, commits: [] };
+  const comentarios = issue.comments || (issue.totalComentarios > 0 ? comentariosDa(issue.number) : []);
+  const desde = baseDaConferencia(issue.criadaEm, comentarios);
+  const log = executarGit(["log", "origin/main", `--since=${desde}`, "--format=%h %as %s", "--", ...docs], {
+    silencioso: true,
+  });
+  return { docs, desde, commits: log ? log.split("\n") : [] };
+}
+
+const COMMITS_NO_AVISO = 5;
+const LIMITE_VARREDURA = 10;
+
+function avisarRelevancia(issue, mudancas) {
+  const { docs, desde, commits } = mudancas;
+  console.log(`\n⚠ REVISAR RELEVÂNCIA da #${issue.number} ("${issue.title}")`);
+  console.log(`  ${commits.length} commit(s) mudaram a regra que ela segue depois de ${desde.slice(0, 10)}:`);
+  for (const commit of commits.slice(0, COMMITS_NO_AVISO)) console.log(`    ${commit}`);
+  if (commits.length > COMMITS_NO_AVISO) console.log(`    ... e mais ${commits.length - COMMITS_NO_AVISO}`);
+  // Ler só o que mudou sai mais barato que reler a doc inteira contra a issue.
+  const antes = executarGit(["rev-list", "-1", `--before=${desde}`, "origin/main"], { silencioso: true });
+  console.log(`  O que mudou: git diff ${antes ? antes.slice(0, 7) : "<base>"} origin/main -- ${docs.join(" ")}`);
+  console.log(`  Compare antes de implementar (skill puxar-tarefa, "Conferir a relevância").`);
 }
 
 function listarIssuesAbertas() {
@@ -458,6 +491,15 @@ async function puxarTarefa(args) {
     process.exit(1);
   }
 
+  // Tarefa antiga pode pedir regra que a doc já mudou: só avisa, quem decide é o agente.
+  let docMudou = false;
+  if (!labels.includes(LABEL_PENDENCIA)) {
+    executarGit(["fetch", "origin", "main"], { silencioso: true });
+    const mudancas = mudancasNasDocs(issue);
+    docMudou = mudancas.commits.length > 0;
+    if (docMudou) avisarRelevancia(issue, mudancas);
+  }
+
   // Pendência de Unity: com o PR ainda aberto, trabalha na branch dele em vez de criar outra.
   // Com o PR já fechado, segue o fluxo normal numa branch nova a partir da main.
   let branchExistente = null;
@@ -553,6 +595,9 @@ async function puxarTarefa(args) {
   console.log(`Branch:     ${nomeBranch}`);
   console.log(`Status:     Em andamento (bloqueada contra concorrência)`);
   console.log(`\nPróximos passos:`);
+  if (docMudou) {
+    console.log(`0. A doc mudou depois da issue (aviso acima): confira a relevância antes de codar.`);
+  }
   console.log(`1. Desenvolva as alterações e escreva os testes necessários.`);
   console.log(`2. Formate e confira com: npm run preparar-pr (ou verificação proporcional).`);
   if (branchExistente) {
@@ -616,6 +661,54 @@ async function verStatus(args) {
     console.log(ultimoComentario.body.slice(0, 300) + (ultimoComentario.body.length > 300 ? "..." : ""));
   }
   console.log("=======================================================\n");
+}
+
+// Sem número: varre as livres e mostra só as que a doc deixou para trás (para o /decida).
+// Com --conferida: registra na issue que ela foi comparada com a doc atual e o aviso some.
+async function conferirRelevancia(args) {
+  const numeros = args.filter((a) => /^\d+$/.test(a)).map(Number);
+  const iNota = args.indexOf("--conferida");
+  if (iNota >= 0) {
+    const nota = args[iNota + 1];
+    if (numeros.length !== 1 || !nota) {
+      console.error('✖ Uso: npm run tarefa -- relevancia <numero> --conferida "o que foi conferido ou ajustado"');
+      process.exit(1);
+    }
+    comentar(numeros[0], comentarioConferida(nota));
+    console.log(`✔ Relevância da #${numeros[0]} registrada.`);
+    return;
+  }
+
+  executarGit(["fetch", "origin", "main"], { silencioso: true });
+  if (numeros.length > 0) {
+    for (const numero of numeros) {
+      const issue = obterIssue(numero, { comComentarios: true });
+      const mudancas = mudancasNasDocs(issue);
+      if (mudancas.commits.length > 0) avisarRelevancia(issue, mudancas);
+      else console.log(`✔ #${numero}: a regra que ela segue não mudou depois dela.`);
+    }
+    return;
+  }
+
+  // Varredura: as mais defasadas primeiro, uma linha cada, para o /decida revisar só o topo.
+  const defasadas = listarIssuesAbertas()
+    .filter((issue) => {
+      const labels = nomesDasLabels(issue);
+      return !labels.includes("em-andamento") && !labels.includes(LABEL_PENDENCIA);
+    })
+    .map((issue) => ({ issue, mudancas: mudancasNasDocs(issue) }))
+    .filter(({ mudancas }) => mudancas.commits.length > 0)
+    .sort((a, b) => b.mudancas.commits.length - a.mudancas.commits.length);
+  if (defasadas.length === 0) {
+    console.log("✔ Nenhuma tarefa livre com regra mudada depois dela.");
+    return;
+  }
+  console.log(`\nTarefas livres cuja regra mudou depois delas (${defasadas.length}; as ${LIMITE_VARREDURA} mais defasadas):`);
+  for (const { issue, mudancas } of defasadas.slice(0, LIMITE_VARREDURA)) {
+    const docs = mudancas.docs.map((doc) => doc.replace(/^docs\//, "")).join(", ");
+    console.log(`  #${issue.number}  ${mudancas.commits.length} commit(s) desde ${mudancas.desde.slice(0, 10)} em ${docs}  ${issue.title}`);
+  }
+  console.log(`\nDetalhe de uma: npm run tarefa -- relevancia <numero>`);
 }
 
 async function concluirTarefa(args) {
@@ -773,6 +866,8 @@ Comandos disponíveis:
                                     --escopo <escopo>   Escopo funcional (ex: core, personagem).
                                     --contexto "..."    O que o agente precisa fazer (vai no corpo).
   status <numero>                 Exibe detalhes completos e o estado de bloqueio da tarefa.
+  relevancia [numero...]          Aponta as tarefas livres cuja doc mudou depois delas (o puxar também avisa).
+                                    --conferida "..."   Registra na issue que ela foi conferida com a doc atual.
   concluir <numero>               Atualiza o status no projeto para "Done".
   pendencia-unity <pr> --falta .. Registra o que ficou sem Unity num PR (issue "pendente-unity"),
                                   para o próximo agente com Unity puxar. Repita --falta por item.
@@ -824,6 +919,9 @@ switch (comando) {
     break;
   case "status":
     await verStatus(argumentos);
+    break;
+  case "relevancia":
+    await conferirRelevancia(argumentos);
     break;
   case "concluir":
   case "done":

@@ -21,14 +21,5 @@ namespace JogoDoGrupo.Shared.Features.Personagem
 
         /// <summary>404: o personagem não existe ou não é da conta do token.</summary>
         public const string PersonagemNaoEncontrado = "PersonagemNaoEncontrado";
-
-        /// <summary>
-        /// 400: pedido de gasto de pontos com valor negativo ou sem ponto nenhum
-        /// (<see cref="RegrasAtributos.ValidarDistribuicao"/>).
-        /// </summary>
-        public const string AtributoInvalido = "AtributoInvalido";
-
-        /// <summary>409: o pedido gasta mais pontos de atributo do que o personagem tem livres.</summary>
-        public const string PontosInsuficientes = "PontosInsuficientes";
     }
 }

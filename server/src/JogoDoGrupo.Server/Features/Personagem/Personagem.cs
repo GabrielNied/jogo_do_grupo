@@ -25,19 +25,8 @@ public sealed class Personagem
     /// <summary>Experiência acumulada dentro do nível atual. No teto, passa do custo do nível.</summary>
     public long XpAtual { get; set; }
 
-    /// <summary>Pontos de atributo ganhos ao subir de nível e ainda não gastos.</summary>
+    /// <summary>Pontos da árvore de atributos ganhos ao subir de nível e ainda não gastos (Talentos gasta).</summary>
     public int PontosLivres { get; set; }
-
-    /// <summary>Pontos que o jogador já distribuiu. Sem base, equipamento nem efeito.</summary>
-    public int Forca { get; set; }
-
-    public int Agilidade { get; set; }
-
-    public int Intelecto { get; set; }
-
-    public int Vigor { get; set; }
-
-    public int Espirito { get; set; }
 
     public DateTime CriadoEm { get; set; }
 
@@ -59,16 +48,5 @@ public sealed class Personagem
             XpAtual = XpAtual,
             XpDoNivel = RegrasExperiencia.XpParaOProximoNivel(Nivel),
             PontosLivres = PontosLivres,
-            Distribuidos = ParaPontos(),
-        };
-
-    public PontosDeAtributos ParaPontos() =>
-        new()
-        {
-            Forca = Forca,
-            Agilidade = Agilidade,
-            Intelecto = Intelecto,
-            Vigor = Vigor,
-            Espirito = Espirito,
         };
 }

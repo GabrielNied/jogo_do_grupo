@@ -11,10 +11,10 @@ using Microsoft.EntityFrameworkCore;
 namespace JogoDoGrupo.Server.Features.Personagem;
 
 /// <summary>
-/// Concede a experiência de uma morte e informa os pontos já distribuídos. A gravação roda
+/// Concede a experiência de uma morte. A gravação roda
 /// fora do laço de IA de Mobs. A mesma morte (inimigo + sequência) não premia duas vezes enquanto a trava em memória a lembra; reiniciar o servidor zera a trava.
 /// </summary>
-public sealed class ExperienciaDoPersonagem : IPontosDistribuidos, IAjusteDeExperienciaDeTeste
+public sealed class ExperienciaDoPersonagem : IAjusteDeExperienciaDeTeste
 {
     /// <summary>Quanto tempo a trava em memória lembra de uma morte já premiada.</summary>
     public static readonly TimeSpan PrazoDaTravaDeMorte = TimeSpan.FromMinutes(10);
@@ -193,19 +193,6 @@ public sealed class ExperienciaDoPersonagem : IPontosDistribuidos, IAjusteDeExpe
         await db.SaveChangesAsync(cancelamento);
         await transacao.CommitAsync(cancelamento);
         return avisos;
-    }
-
-    public async Task<PontosDeAtributos> ObterAsync(
-        long personagemId,
-        CancellationToken cancelamento
-    )
-    {
-        using var escopo = _escopos.CreateScope();
-        var db = escopo.ServiceProvider.GetRequiredService<JogoDbContext>();
-        var personagem = await db.Set<Personagem>()
-            .AsNoTracking()
-            .FirstOrDefaultAsync(p => p.Id == personagemId, cancelamento);
-        return personagem?.ParaPontos() ?? new PontosDeAtributos();
     }
 
     /// <summary>

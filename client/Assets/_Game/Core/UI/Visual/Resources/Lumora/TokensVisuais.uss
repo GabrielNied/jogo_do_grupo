@@ -96,6 +96,8 @@
     --lumora-dimensoes-marcador-aliado: 4px;
     --lumora-dimensoes-marcador-jogador: 9px;
     --lumora-dimensoes-marcador-minimapa: 8px;
+    --lumora-dimensoes-arvore: 440px;
+    --lumora-dimensoes-no-grande: 56px;
     --lumora-bordas-fina: 1px;
     --lumora-bordas-destaque: 2px;
     --lumora-bordas-selecao: 4px;

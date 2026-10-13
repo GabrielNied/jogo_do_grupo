@@ -356,7 +356,8 @@ namespace JogoDoGrupo.Client.Features.Combate
         {
             if (!ApresentacaoAtaque.MostraODano(ataque.AtacanteId, _personagemId))
             {
-                // Animação dos outros jogadores é do visual deles (Mundo/Personagem).
+                // Os outros jogadores: golpe no avatar deles (#481).
+                AnimacaoDeOutros.TocarGolpe(ataque, _personagemId);
                 return;
             }
 

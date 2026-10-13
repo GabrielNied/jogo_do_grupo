@@ -22,15 +22,5 @@ namespace JogoDoGrupo.Shared.Features.Personagem
         /// <summary>Caminho de <see cref="Progresso"/> para um personagem (uso do client).</summary>
         public static string ProgressoDe(long personagemId) =>
             "/api/personagens/" + personagemId + "/progresso";
-
-        /// <summary>
-        /// Modelo da rota. <c>POST</c>: corpo <see cref="DistribuirAtributosRequest"/>, gasta pontos
-        /// livres nos atributos (200 <see cref="ProgressoResponse"/>).
-        /// </summary>
-        public const string Atributos = "/api/personagens/{personagemId}/atributos";
-
-        /// <summary>Caminho de <see cref="Atributos"/> para um personagem (uso do client).</summary>
-        public static string AtributosDe(long personagemId) =>
-            "/api/personagens/" + personagemId + "/atributos";
     }
 }

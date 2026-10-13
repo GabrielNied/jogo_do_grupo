@@ -19,19 +19,19 @@ public class RegrasExperienciaTestes
         var resultado = RegrasExperiencia.AplicarGanho(1, 25, 190);
         Assert.Equal(3, resultado.Nivel);
         Assert.Equal(50, resultado.Xp);
-        Assert.Equal(0, resultado.PontosGanhos);
+        Assert.Equal(2 * ConfigExperiencia.PontosPorNivel, resultado.PontosGanhos);
     }
 
     [Theory]
     [InlineData(49, 1, 49, 0)]
-    [InlineData(50, 2, 0, 0)]
-    [InlineData(51, 2, 1, 0)]
-    public void Ganho_respeita_limiar_exato(long ganho, int nivel, long xp, int pontos)
+    [InlineData(50, 2, 0, 1)]
+    [InlineData(51, 2, 1, 1)]
+    public void Ganho_respeita_limiar_exato(long ganho, int nivel, long xp, int niveisSubidos)
     {
         var resultado = RegrasExperiencia.AplicarGanho(1, 0, ganho);
         Assert.Equal(nivel, resultado.Nivel);
         Assert.Equal(xp, resultado.Xp);
-        Assert.Equal(pontos, resultado.PontosGanhos);
+        Assert.Equal(niveisSubidos * ConfigExperiencia.PontosPorNivel, resultado.PontosGanhos);
     }
 
     [Theory]

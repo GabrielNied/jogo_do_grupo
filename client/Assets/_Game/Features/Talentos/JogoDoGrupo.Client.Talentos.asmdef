@@ -3,7 +3,8 @@
   "rootNamespace": "JogoDoGrupo.Client.Features.Talentos",
   "references": [
     "JogoDoGrupo.Client.Core",
-    "JogoDoGrupo.Shared"
+    "JogoDoGrupo.Shared",
+    "JogoDoGrupo.Client.Visual"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

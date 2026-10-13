@@ -46,7 +46,7 @@ O que a doc e a proposta da issue já dizem, siga. O que estiver em aberto, deci
 
 ## 4. Executar
 
-Para cada tarefa da leva, siga a skill [orquestrar-tarefa](../orquestrar-tarefa/SKILL.md) (ficha, contrato primeiro, server e client em paralelo, revisor). Essa skill não pede aprovação nesta leva: `/trabalhe` já decidiu. Antes de qualquer agente, puxe com `npm run tarefa -- puxar <N>` (skill [puxar-tarefa](../puxar-tarefa/SKILL.md)); tarefa já em andamento por outra pessoa: pule e registre no relatório (regra 15). A tarefa de Core fica com o agente de Core. Se uma funcionalidade exigir a pasta de outra, ou Core que a issue não pediu, comente na issue, deixe essa parte de fora e termine o que cabe na pasta dela.
+Para cada tarefa da leva, siga a skill [orquestrar-tarefa](../orquestrar-tarefa/SKILL.md) (ficha, contrato primeiro, server e client em paralelo, revisor). Essa skill não pede aprovação nesta leva: `/trabalhe` já decidiu. Antes de qualquer agente, puxe com `npm run tarefa -- puxar <N>` (skill [puxar-tarefa](../puxar-tarefa/SKILL.md)); tarefa já em andamento por outra pessoa: pule e registre no relatório (regra 15). Se o `puxar` avisar **REVISAR RELEVÂNCIA**, você confere antes de passar para o agente ([Conferir a relevância](../puxar-tarefa/SKILL.md#21-conferir-a-relevância)) e manda na ficha a issue já ajustada. Se ela estiver feita ou obsoleta, troque por outra tarefa. A tarefa de Core fica com o agente de Core. Se uma funcionalidade exigir a pasta de outra, ou Core que a issue não pediu, comente na issue, deixe essa parte de fora e termine o que cabe na pasta dela.
 
 ## 5. Entregar
 

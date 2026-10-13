@@ -6,7 +6,12 @@ namespace JogoDoGrupo.Shared.Features.Personagem
     public static class ConfigExperiencia
     {
         public const int NivelMaximo = 100;
-        public const int PontosPorNivel = 0;
+
+        /// <summary>
+        /// Pontos da árvore de atributos por nível ganho. Valor de TESTE: o número final é da
+        /// issue #627 (docs/features/talentos.md, Pendente).
+        /// </summary>
+        public const int PontosPorNivel = 1;
 
         // XP necessário = BaseXp * nivel ^ ExpoenteCurva.
         // Reduzir a base acelera toda a progressão; o expoente controla seu crescimento.

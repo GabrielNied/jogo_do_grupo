@@ -146,7 +146,7 @@ Decidido em 2026-10-12. A curva já está em `ConfigExperiencia`; o teste `Ritmo
 
 **XP por diferença de nível** (decidido em 2026-10-12): a diferença é o nível do jogador menos o nível do mob. 0 ou negativa paga 100%. Cada nível acima tira 20 pontos percentuais. 5 ou mais acima paga 0. Quem participou recebe essa parcela, não o valor cheio. A meta de ritmo acima vale contra mob do mesmo nível ou mais forte. O Javali do Campo é nível 3: a partir do nível 8 do jogador ele não dá XP. Constantes nomeadas, fáceis de calibrar.
 
-O teto 100 e zero pontos por nível estão em `ConfigExperiencia`. A #454 ainda aplica o XP por diferença de nível. A rota de gastar pontos fica; com zero pontos livres, o gasto é recusado.
+O teto 100 e os pontos da árvore por nível (valor de teste: 1) estão em `ConfigExperiencia`. A #454 ainda aplica o XP por diferença de nível. Os pontos gastam na [árvore de atributos](talentos.md); a rota antiga de gastar pontos nos atributos saiu na #625.
 
 ## Em aberto
 
@@ -351,18 +351,16 @@ API HTTP para listar e criar personagens (por que HTTP: [ADR 0009](../decisoes/0
 
 ### Experiência, nível e pontos de atributo (#65, contrato da #299)
 
-Regras na [fatia jogável, seção 6](fatia-jogavel.md#6-experiência-e-nível). O servidor concede a experiência e sobe o nível; o client só mostra. Subir de nível vai dar pontos da árvore (decidido em 2026-10-12; quantos, na [#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627)); por enquanto o código dá zero. O contrato abaixo ainda descreve o gasto livre de pontos: a [#625](https://github.com/GabrielNied/jogo_do_grupo/issues/625) troca esse gasto pela compra de nós da [árvore](talentos.md). ~~Este é o contrato; o servidor (#356) e o client (#357) vêm depois.~~ O servidor (#356, 11/10/2026) concede a experiência de `InimigoDerrotado` e gasta os pontos. O client (#357) mostra a barra e a tela de atributos (tecla C) e só envia o gasto.
+Regras na [fatia jogável, seção 6](fatia-jogavel.md#6-experiência-e-nível). O servidor concede a experiência e sobe o nível; o client só mostra. Subir de nível dá pontos da árvore (decidido em 2026-10-12): `PontosPorNivel` em `ConfigExperiencia`, hoje **1 por nível, valor de teste** (o número final é da [#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627)). O saldo (`PontosLivres`) fica no personagem e gasta na compra de nós da [árvore](talentos.md) (#625, 13/10/2026), que substituiu a distribuição livre nos atributos. O servidor concede a experiência de `InimigoDerrotado`; o client mostra a barra e o saldo na janela do personagem (tecla C).
 
 | ID ou rota | Nome | Direção | Campos |
 |---|---|---|---|
 | 3000 | `ExperienciaGanha` | servidor → dono | `Quantidade`, `XpAtual`, `XpDoNivel`, `Nivel`, `PontosLivres` (o estado inteiro depois do ganho) |
 | 3001 | `SubiuDeNivel` | servidor → quem está na área | `PersonagemId`, `Nivel` (uma mensagem só, mesmo subindo vários níveis) |
-| `GET /api/personagens/{personagemId}/progresso` | `RotasPersonagem.Progresso` | client → servidor | recebe `ProgressoResponse`: `Nivel`, `XpAtual`, `XpDoNivel`, `PontosLivres`, `Distribuidos` |
-| `POST /api/personagens/{personagemId}/atributos` | `RotasPersonagem.Atributos` | client → servidor | envia `DistribuirAtributosRequest` (`Pontos`); recebe `ProgressoResponse` |
+| `GET /api/personagens/{personagemId}/progresso` | `RotasPersonagem.Progresso` | client → servidor | recebe `ProgressoResponse`: `Nivel`, `XpAtual`, `XpDoNivel`, `PontosLivres` (pontos da árvore ainda não gastos) |
 
-- **`PontosDeAtributos`:** os cinco atributos (Forca, Vigor, Agilidade, Intelecto, Espirito). No pedido é quanto gastar agora; em `Distribuidos` é o total que o jogador já distribuiu, sem base, equipamentos nem efeitos (o valor final é de [Combate](combate.md)).
-- **Gasto de pontos:** o pedido vale inteiro ou não vale; recusado, nenhum ponto é gasto. Gastar não tem volta na fatia. `RegrasAtributos.ValidarDistribuicao` é o validador comum a client e servidor: valor negativo ou pedido sem ponto nenhum é `AtributoInvalido` (400); pedir mais do que há livre é `PontosInsuficientes` (409). Um negativo nunca "devolve" ponto para outro atributo.
-- **Códigos novos em `CodigosErroPersonagem`:** `AtributoInvalido`, `PontosInsuficientes` e `PersonagemNaoEncontrado` (404: não existe ou não é da conta do token).
+- **Pontos da árvore (`IPontosDeNivel`, só no servidor, em `Contratos/Personagem/`):** Personagem guarda o saldo e oferece a Talentos ler (`ObterAsync`) e gastar (`TentarGastarAsync`, um `UPDATE` condicional que entra na transação do chamador). Quem muda `PontosLivres` para baixo é só Talentos, na compra de um nó. Código novo em `CodigosErroPersonagem`: `PersonagemNaoEncontrado` (404: não existe ou não é da conta do token).
+- **Saiu na #625:** a rota `POST .../atributos`, `DistribuirAtributosRequest`, `PontosDeAtributos`, `RegrasAtributos`, os códigos `AtributoInvalido` e `PontosInsuficientes` e o campo `Distribuidos`. Quem já tinha pontos distribuídos nos cinco atributos (colunas `Forca`..`Espirito` do personagem) tem esses pontos **devolvidos como pontos livres** pela migração `TalentosArvoreDeAtributos` e recompra na árvore; nenhum ponto some. Não há pontos retroativos pelos níveis já ganhos.
 - O client pede o `ProgressoResponse` ao entrar no mundo; depois disso a experiência chega por `ExperienciaGanha`.
 - **`IDiretorioDePersonagens`** (só no servidor, em `server/src/JogoDoGrupo.Server/Contratos/Personagem/`, [ADR 0016](../decisoes/0016-eventos-entre-funcionalidades-do-servidor.md)): consulta de nome ↔ id para as outras funcionalidades. `TentarObterPorNome` não diferencia maiúsculas; `TentarObterNome` devolve o nome como foi digitado. Diz se o personagem **existe**; se está online quem sabe é o Mundo (`IPosicoesDoMundo`).
 

@@ -113,6 +113,8 @@ namespace JogoDoGrupo.Client.Core.Visual
             public const int MarcadorAliado = 4;
             public const int MarcadorJogador = 9;
             public const int MarcadorMinimapa = 8;
+            public const int Arvore = 440;
+            public const int NoGrande = 56;
         }
 
         public static class Bordas

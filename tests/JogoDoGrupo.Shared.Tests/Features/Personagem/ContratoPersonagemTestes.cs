@@ -47,28 +47,14 @@ public class ContratoPersonagemTestes
         Assert.Equal(0L, resposta.XpAtual);
         Assert.Equal(0L, resposta.XpDoNivel);
         Assert.Equal(0, resposta.PontosLivres);
-        Assert.NotNull(resposta.Distribuidos);
-        Assert.Equal(0L, RegrasAtributos.Total(resposta.Distribuidos));
     }
 
     [Fact]
-    public void DistribuirAtributosRequest_comeca_sem_pontos_e_nao_nulo()
-    {
-        var pedido = new DistribuirAtributosRequest();
-        Assert.NotNull(pedido.Pontos);
-        Assert.Equal(0L, RegrasAtributos.Total(pedido.Pontos));
-    }
-
-    [Fact]
-    public void Rotas_de_progresso_e_atributos_trocam_o_id_do_modelo()
+    public void Rota_de_progresso_troca_o_id_do_modelo()
     {
         Assert.Equal(
             RotasPersonagem.Progresso.Replace("{personagemId}", "42"),
             RotasPersonagem.ProgressoDe(42)
-        );
-        Assert.Equal(
-            RotasPersonagem.Atributos.Replace("{personagemId}", "42"),
-            RotasPersonagem.AtributosDe(42)
         );
         Assert.StartsWith(RotasPersonagem.Personagens + "/", RotasPersonagem.ProgressoDe(42));
     }
@@ -77,7 +63,5 @@ public class ContratoPersonagemTestes
     public void Codigos_de_erro_novos_tem_o_texto_do_contrato()
     {
         Assert.Equal("PersonagemNaoEncontrado", CodigosErroPersonagem.PersonagemNaoEncontrado);
-        Assert.Equal("AtributoInvalido", CodigosErroPersonagem.AtributoInvalido);
-        Assert.Equal("PontosInsuficientes", CodigosErroPersonagem.PontosInsuficientes);
     }
 }
