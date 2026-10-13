@@ -47,8 +47,6 @@ Números e políticas que precisam de aprovação ([#627](https://github.com/Gab
 - Limite, custo e restrições de uso dos perfis.
 - O que fazer quando a árvore mudar e uma distribuição salva deixar de valer: migrar, reembolsar, zerar ou bloquear para revisão.
 
-- [ ] **Documento mestre (2026-10-12):** o [documento mestre](../brainstorm/documento-mestre.md#6-sistema-de-personagem-e-árvore-de-atributos) traz uma árvore com cinco caminhos (Força = dano físico, Vigor = vida, Agilidade = stamina, Intelecto = dano mágico, Espírito = mana), nós pequenos, grandes e avançados, redistribuição com custo e perfis de build, e separa esses atributos dos atributos dos equipamentos (DEC-001). Conflita com a adiada acima e com a [fatia, seção 1](fatia-jogavel.md#1-atributos-e-recursos). A adiada continua até Gabriel decidir na [#618](https://github.com/GabrielNied/jogo_do_grupo/issues/618) (e na [#194](https://github.com/GabrielNied/jogo_do_grupo/issues/194), se a árvore voltar).
-
 ## Regras
 
 Quem decide: **servidor**. O client envia a intenção (comprar, redistribuir, carregar perfil) e mostra o resultado.
