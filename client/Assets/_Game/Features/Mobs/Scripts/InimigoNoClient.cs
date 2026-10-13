@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using JogoDoGrupo.Shared.Features.Mobs;
 using UnityEngine;
 
@@ -48,8 +49,10 @@ namespace JogoDoGrupo.Client.Features.Mobs
     /// </summary>
     internal sealed class InimigoNoClient
     {
-        /// <summary>Velocidade da suavização da pose (maior = acompanha o servidor mais de perto).</summary>
-        public const float VelocidadeDeSuavizacao = 15f;
+        private readonly InterpoladorDeSnapshots _interpolador = new InterpoladorDeSnapshots();
+        private readonly Queue<double> _golpesPendentes = new Queue<double>();
+        private int _golpesPreparados;
+        private int _golpesParaAnimar;
 
         public InimigoNoClient(InimigoNoMundo dados)
         {
@@ -64,7 +67,32 @@ namespace JogoDoGrupo.Client.Features.Mobs
             AlvoY = Y = dados.Y;
             AlvoZ = Z = dados.Z;
             AlvoRotacaoY = RotacaoY = dados.RotacaoY;
+            EstadoMostrado = dados.Estado;
+            // Pose inicial no instante que o render pede ao nascer (relógio 0).
+            _interpolador.Adicionar(
+                new SnapshotDePose(
+                    -ConfigMovimentoDoInimigo.AtrasoDeRenderSegundos,
+                    X,
+                    Y,
+                    Z,
+                    RotacaoY,
+                    (int)dados.Estado
+                )
+            );
         }
+
+        /// <summary>
+        /// Relógio local do inimigo (soma do que <see cref="Atualizar"/> recebeu). Carimba os
+        /// pacotes e define o instante de render, atrás dele pelo
+        /// <see cref="ConfigMovimentoDoInimigo.AtrasoDeRenderSegundos"/>.
+        /// </summary>
+        public double Relogio { get; private set; }
+
+        /// <summary>
+        /// Estado que o modelo mostra: o do pacote da pose que se vê, não o mais novo (o modelo
+        /// só para e golpeia quando a pose atrasada chega ao ponto onde o servidor parou).
+        /// </summary>
+        public EstadoDeInimigo EstadoMostrado { get; private set; }
 
         public long InimigoId { get; }
         public int CriaturaId { get; }
@@ -84,10 +112,25 @@ namespace JogoDoGrupo.Client.Features.Mobs
         public float RotacaoY { get; private set; }
 
         /// <summary>Pose mais recente do servidor.</summary>
-        public float AlvoX { get; set; }
-        public float AlvoY { get; set; }
-        public float AlvoZ { get; set; }
-        public float AlvoRotacaoY { get; set; }
+        public float AlvoX { get; private set; }
+        public float AlvoY { get; private set; }
+        public float AlvoZ { get; private set; }
+        public float AlvoRotacaoY { get; private set; }
+
+        /// <summary>
+        /// Guarda a pose e o estado de um pacote do servidor no buffer, carimbados com o
+        /// <see cref="Relogio"/>. Devolve falso se o interpolador a descartou.
+        /// </summary>
+        public bool ReceberPose(float x, float y, float z, float rotacaoY, EstadoDeInimigo estado)
+        {
+            AlvoX = x;
+            AlvoY = y;
+            AlvoZ = z;
+            AlvoRotacaoY = rotacaoY;
+            return _interpolador.Adicionar(
+                new SnapshotDePose(Relogio, x, y, z, rotacaoY, (int)estado)
+            );
+        }
 
         public AvisoDeGolpe Aviso { get; set; }
 
@@ -100,7 +143,33 @@ namespace JogoDoGrupo.Client.Features.Mobs
         public bool Exposto => ExpostoRestanteSegundos > 0f;
 
         /// <summary>Quantos avisos de golpe já chegaram; cada um dispara a animação uma vez.</summary>
-        public int GolpesPreparados { get; set; }
+        public int GolpesPreparados
+        {
+            get => _golpesPreparados;
+            set
+            {
+                // O modelo só golpeia depois do atraso de render: o servidor já parou o inimigo
+                // e a pose atrasada ainda está chegando ao ponto do golpe.
+                for (var i = _golpesPreparados; i < value; i++)
+                {
+                    _golpesPendentes.Enqueue(
+                        Relogio + ConfigMovimentoDoInimigo.AtrasoDeRenderSegundos
+                    );
+                }
+
+                _golpesPreparados = value;
+            }
+        }
+
+        /// <summary>
+        /// Duração do preparo para ajustar o clipe: a do servidor menos o atraso de render, para a
+        /// pose de contato cair perto do golpe do servidor (nunca menos da metade).
+        /// </summary>
+        public float PreparoParaOClipeSegundos =>
+            Mathf.Max(
+                PreparoDoGolpeSegundos - ConfigMovimentoDoInimigo.AtrasoDeRenderSegundos,
+                PreparoDoGolpeSegundos * 0.5f
+            );
 
         /// <summary>Duração do preparo do último golpe, em segundos (zero antes do primeiro).</summary>
         public float PreparoDoGolpeSegundos { get; set; }
@@ -138,16 +207,28 @@ namespace JogoDoGrupo.Client.Features.Mobs
 
         public void Atualizar(float segundos)
         {
-            var fator = 1f - Mathf.Exp(-VelocidadeDeSuavizacao * segundos);
-            var antesX = X;
-            var antesZ = Z;
-            X = Mathf.Lerp(X, AlvoX, fator);
-            Y = Mathf.Lerp(Y, AlvoY, fator);
-            Z = Mathf.Lerp(Z, AlvoZ, fator);
-            RotacaoY = Mathf.LerpAngle(RotacaoY, AlvoRotacaoY, fator);
-            var dx = X - antesX;
-            var dz = Z - antesZ;
-            Animacao.Atualizar(Estado, Mathf.Sqrt(dx * dx + dz * dz), segundos, GolpesPreparados);
+            Relogio += segundos;
+            while (_golpesPendentes.Count > 0 && _golpesPendentes.Peek() <= Relogio)
+            {
+                _golpesPendentes.Dequeue();
+                _golpesParaAnimar++;
+            }
+
+            var pose = _interpolador.Amostrar(
+                Relogio - ConfigMovimentoDoInimigo.AtrasoDeRenderSegundos
+            );
+            X = pose.X;
+            Y = pose.Y;
+            Z = pose.Z;
+            RotacaoY = pose.RotacaoY;
+            EstadoMostrado = (EstadoDeInimigo)pose.Etiqueta;
+            // A velocidade vem dos pacotes, não da pose mostrada: constante no servidor, constante aqui.
+            Animacao.Atualizar(
+                EstadoMostrado,
+                pose.Velocidade * segundos,
+                segundos,
+                _golpesParaAnimar
+            );
 
             if (ExpostoRestanteSegundos > 0f)
             {

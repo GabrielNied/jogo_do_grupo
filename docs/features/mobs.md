@@ -136,6 +136,17 @@ O chefe raro no campo (issue #310; **proposta**, a confirmar no review):
 - **Como aparece:** o servidor sobe sem o chefe; o `AparicaoDeChefeRaro` faz o primeiro sorteio no primeiro passo e depois um por intervalo (1800 s, chance de 20%). Quando sorteia, ele chega como `InimigoApareceu`, com `Variante` normal, e fica até morrer, sem novo sorteio. A morte manda `InimigoMorreu` e `InimigoDerrotado` como a de qualquer inimigo e recomeça a espera; a volta é um inimigo novo (id novo), por sorteio, nunca por tempo fixo.
 - **IA:** a do inimigo comum, com vida (1500) e dano (80) da própria ficha. Quem entra na área recebe os inimigos vivos do campo, chefe incluído. Não há aviso de aparição (continua em aberto).
 
+### Movimento suave no client (#486)
+
+O servidor manda a posição a cerca de 10 Hz (`InimigoMudou`, com perda). O client mostra o inimigo por **interpolação de snapshots**, decisões do agente, a calibrar em `ConfigMovimentoDoInimigo`:
+
+- **Atraso de render:** 150 ms (`AtrasoDeRenderSegundos`). A pose mostrada é a do instante "agora menos 150 ms", entre os dois pacotes que o cercam. O carimbo do pacote é o relógio local de chegada (a mensagem não leva carimbo do servidor; se a variação de rede incomodar, o carimbo entra na mensagem depois).
+- **Extrapolação:** se falta o pacote seguinte (perda), a pose segue na velocidade do último trecho por no máximo 100 ms (`ExtrapolacaoMaximaSegundos`) e então espera. Pacote fora de ordem ou repetido é descartado.
+- **Teletransporte:** pulo de mais de 5 m entre dois pacotes (volta ao ponto de origem) não desliza: a pose pula no instante do pacote e não conta como velocidade.
+- **Animação:** a velocidade de andar vem dos pacotes (distância sobre tempo do trecho), não da pose suavizada: velocidade constante no servidor dá `Andando` constante, sem deslize de pé.
+- **Estado e golpe seguem a pose:** o modelo usa o estado do pacote da pose que se vê (`EstadoMostrado`), e o gatilho do clipe `Atacar` espera o mesmo atraso. Assim o golpe começa com o modelo já parado no ponto onde o servidor parou, e o passo de até 1 m do preparo chega interpolado. O clipe é acelerado para o contato cair perto do instante do dano (preparo menos o atraso, nunca menos da metade). A pausa de 70 ms do acerto é só o Animator parado e não mexe na pose.
+- **Reuso:** `InterpoladorDeSnapshots` é lógica pura (sem Unity); o Mundo pode usar a mesma técnica para os outros jogadores (#499).
+
 ### Mais mobs no campo (#452)
 
 **Proposta** do agente, a calibrar. Dados em `PontosDeSpawnDoCampo` (um ponto por linha), números em `ConfigNivelDeMobs`, `ComportamentoDeCriatura` e `PontosDeSpawnDoCampo`.
