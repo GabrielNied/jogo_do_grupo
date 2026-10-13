@@ -16,6 +16,11 @@ namespace JogoDoGrupo.Server.Features.Personagem;
 /// </summary>
 public sealed class ExperienciaDoPersonagem : IAjusteDeExperienciaDeTeste
 {
+    private const int DiferencaDeNivelPorReducao = 1;
+    private const int ReducaoXpPorNivelPercentual = 20;
+    private const int PercentualXpMinimo = 0;
+    private const int PercentualXpMaximo = 100;
+
     /// <summary>Quanto tempo a trava em memória lembra de uma morte já premiada.</summary>
     public static readonly TimeSpan PrazoDaTravaDeMorte = TimeSpan.FromMinutes(10);
 
@@ -68,7 +73,7 @@ public sealed class ExperienciaDoPersonagem : IAjusteDeExperienciaDeTeste
         });
     }
 
-    /// <summary>Cada participante recebe <see cref="InimigoDerrotado.Experiencia"/> inteira.</summary>
+    /// <summary>Cada participante recebe XP conforme sua diferença de nível para o inimigo.</summary>
     public async Task ConcederAsync(InimigoDerrotado derrota, CancellationToken cancelamento)
     {
         if (derrota.Participantes.Count == 0 || derrota.Experiencia <= 0)
@@ -165,11 +170,17 @@ public sealed class ExperienciaDoPersonagem : IAjusteDeExperienciaDeTeste
                 continue;
             }
 
+            var xp = CalcularXp(derrota.Experiencia, personagem.Nivel, derrota.Nivel);
+            if (xp == 0)
+            {
+                continue;
+            }
+
             var nivelAntes = personagem.Nivel;
             var resultado = RegrasExperiencia.AplicarGanho(
                 personagem.Nivel,
                 personagem.XpAtual,
-                derrota.Experiencia
+                xp
             );
             personagem.Nivel = resultado.Nivel;
             personagem.XpAtual = resultado.Xp;
@@ -179,7 +190,7 @@ public sealed class ExperienciaDoPersonagem : IAjusteDeExperienciaDeTeste
                     personagemId,
                     new ExperienciaGanha
                     {
-                        Quantidade = derrota.Experiencia,
+                        Quantidade = xp,
                         XpAtual = personagem.XpAtual,
                         XpDoNivel = RegrasExperiencia.XpParaOProximoNivel(personagem.Nivel),
                         Nivel = personagem.Nivel,
@@ -193,6 +204,23 @@ public sealed class ExperienciaDoPersonagem : IAjusteDeExperienciaDeTeste
         await db.SaveChangesAsync(cancelamento);
         await transacao.CommitAsync(cancelamento);
         return avisos;
+    }
+
+    private static int CalcularXp(int experiencia, int nivelPersonagem, int nivelInimigo)
+    {
+        if (nivelInimigo <= 0)
+        {
+            return experiencia;
+        }
+
+        var diferenca = nivelPersonagem - nivelInimigo;
+        var reducoes = Math.Max(0, diferenca / DiferencaDeNivelPorReducao);
+        var percentual = Math.Clamp(
+            PercentualXpMaximo - reducoes * ReducaoXpPorNivelPercentual,
+            PercentualXpMinimo,
+            PercentualXpMaximo
+        );
+        return checked((int)((long)experiencia * percentual / PercentualXpMaximo));
     }
 
     /// <summary>
