@@ -208,6 +208,8 @@ namespace JogoDoGrupo.Client.Features.Itens
         {
             switch (codigo)
             {
+                case "ComandoDeTesteDesligado":
+                    return "A limpeza do inventário de teste não está liberada para esta conta.";
                 case CodigosErroItens.InventarioCheio:
                     return "Não há espaço na bolsa para guardar as peças retiradas.";
                 case "NivelInsuficiente":
