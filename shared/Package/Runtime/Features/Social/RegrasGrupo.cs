@@ -21,7 +21,7 @@ namespace JogoDoGrupo.Shared.Features.Social
         public const int ValidadeDoConviteSegundos = 60;
 
         /// <summary>Segundos que a vaga de quem desconectou fica guardada.</summary>
-        public const int VagaGuardadaSegundos = 120;
+        public const int VagaGuardadaSegundos = 60;
 
         /// <summary>Segundos em que o grupo não pode reconvidar quem foi expulso.</summary>
         public const int BloqueioDeReconviteSegundos = 30;
@@ -72,7 +72,7 @@ namespace JogoDoGrupo.Shared.Features.Social
             return (int)Math.Max(0.0, Math.Min(ValidadeDoConviteSegundos, restante));
         }
 
-        /// <summary>Voltar com até 120 s mantém a vaga; passando disso, o membro é removido.</summary>
+        /// <summary>Voltar com até 60 s mantém a vaga; passando disso, o membro é removido.</summary>
         public static bool VagaGuardadaVenceu(double segundosOffline) =>
             segundosOffline > VagaGuardadaSegundos;
 

@@ -13,7 +13,7 @@ namespace JogoDoGrupo.Server.Features.Social;
 /// Thread-safe: uma trava só protege todo o estado, então as operações (de qualquer grupo) são
 /// processadas uma de cada vez, na ordem em que pegam a trava. Só a consulta de nome ao banco
 /// (<see cref="Convidar"/>) acontece fora dela. O tempo vem do relógio injetado, e
-/// <see cref="Varrer"/> aplica o que o tempo venceu (convites de 60 s, vagas guardadas de 120 s);
+/// <see cref="Varrer"/> aplica o que o tempo venceu (convites e vagas guardadas de 60 s);
 /// toda operação também aplica isso antes de decidir.
 /// </para>
 /// </summary>
@@ -159,8 +159,8 @@ public sealed class GruposDoServidor(
     }
 
     /// <summary>
-    /// Aplica o que o tempo venceu: convites que passaram de 60 s e vagas guardadas que passaram
-    /// de 120 s. O servidor chama de tempos em tempos; as operações também chamam.
+    /// Aplica o que o tempo venceu: convites e vagas guardadas que passaram de 60 s. O servidor
+    /// chama de tempos em tempos; as operações também chamam.
     /// </summary>
     public void Varrer()
     {
