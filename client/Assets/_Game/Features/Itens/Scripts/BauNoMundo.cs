@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using JogoDoGrupo.Shared.Features.Itens;
 using UnityEngine;
 
 namespace JogoDoGrupo.Client.Features.Itens
@@ -10,12 +11,6 @@ namespace JogoDoGrupo.Client.Features.Itens
     /// </summary>
     public static class BauNoMundo
     {
-        /// <summary>Quanto à frente do jogador (ao nascer) o baú fica, em metros.</summary>
-        public const float DistanciaFrente = 3.5f;
-
-        /// <summary>Quanto à direita do jogador (ao nascer) o baú fica, em metros.</summary>
-        public const float DistanciaLado = 2.5f;
-
         /// <summary>Distância horizontal máxima do centro do baú para poder abri-lo, em metros.</summary>
         public const float DistanciaParaAbrir = 3f;
 
@@ -25,17 +20,11 @@ namespace JogoDoGrupo.Client.Features.Itens
         private const string NomeObjeto = "BauDeTeste";
 
         /// <summary>
-        /// Onde pôr o baú: à frente e um pouco à direita do ponto de nascimento, para ficar
-        /// visível e fora do caminho do jogador. A altura é a de <paramref name="origem"/>.
+        /// Onde pôr o baú: o ponto fixo que o servidor confere (<see cref="ConfigBau"/>), perto do
+        /// nascimento da cidade. A altura é a de <paramref name="altura"/> (o raio ao chão ajusta).
         /// </summary>
-        public static Vector3 PosicaoPerto(Vector3 origem, Vector3 frente, Vector3 direita)
-        {
-            frente.y = 0f;
-            direita.y = 0f;
-            return origem
-                + frente.normalized * DistanciaFrente
-                + direita.normalized * DistanciaLado;
-        }
+        public static Vector3 Posicao(float altura) =>
+            new Vector3(ConfigBau.X, altura, ConfigBau.Z);
 
         /// <summary>Se o jogador está perto o bastante (no plano horizontal) para abrir o baú.</summary>
         public static bool EstaPerto(Vector3 jogador, Vector3 bau)

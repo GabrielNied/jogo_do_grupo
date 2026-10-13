@@ -87,7 +87,17 @@ namespace JogoDoGrupo.Client.Features.Itens
                 && BauNoMundo.EstaPerto(_jogador.transform.position, _bau.position);
             MostrarDica(perto);
 
-            if (perto && _interagir.WasPressedThisFrame())
+            // Em recarga a dica mostra a espera e o E não pede nada (o servidor recusaria).
+            var espera = JanelaInventario.BauLivreEm - Time.unscaledTime;
+            var recarregando = espera > 0f;
+            if (perto)
+            {
+                _dica.text = recarregando
+                    ? "Baú recarregando (" + Mathf.CeilToInt(espera) + " s)"
+                    : TextoDicaBau;
+            }
+
+            if (perto && !recarregando && _interagir.WasPressedThisFrame())
             {
                 JanelaInventario.AbrirComBau();
             }

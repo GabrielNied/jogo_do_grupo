@@ -1,6 +1,7 @@
 using System.Data;
 using System.Globalization;
 using System.Security.Claims;
+using JogoDoGrupo.Server.Contratos.Mundo;
 using JogoDoGrupo.Server.Core.Api;
 using JogoDoGrupo.Server.Core.Autenticacao;
 using JogoDoGrupo.Server.Core.Persistencia;
@@ -183,12 +184,18 @@ internal static class ItensRotas
         return Results.Ok(resposta);
     }
 
+    private static bool PertoDoBau(PosicaoNoMundo posicao) =>
+        posicao.Area == ConfigBau.Area && ConfigBau.DentroDoRaio(posicao.X, posicao.Z);
+
     private static async Task<IResult> AbrirBauAsync(
         string personagemId,
         ClaimsPrincipal usuario,
         JogoDbContext db,
         ISorteadorBau sorteador,
         GeradorEquipamentos gerador,
+        IPosicoesDoMundo posicoes,
+        OpcoesBau opcoesBau,
+        RecargaDoBau recarga,
         ILogger<ItensModule> log,
         CancellationToken cancelamento
     )
@@ -200,6 +207,31 @@ internal static class ItensRotas
         }
 
         var id = ParaId(personagemId);
+
+        // O servidor decide: a posição é a que o Mundo aceitou, nunca a que o client diz.
+        if (
+            opcoesBau.ExigirPosicao
+            && !(posicoes.TentarObter(id, out var posicao) && PertoDoBau(posicao))
+        )
+        {
+            return RespostasApi.Erro(
+                StatusCodes.Status409Conflict,
+                CodigosErroItens.BauLongeDemais,
+                "Chegue mais perto do baú."
+            );
+        }
+
+        // Reserva atômica: dois pedidos simultâneos nunca passam os dois. Devolvida se nada
+        // foi aberto (bolsa cheia, banco ocupado).
+        if (!recarga.TentarReservar(id))
+        {
+            return RespostasApi.Erro(
+                StatusCodes.Status429TooManyRequests,
+                CodigosErroItens.BauEmRecarga,
+                "O baú ainda está recarregando."
+            );
+        }
+
         var sorteados = sorteador.Sortear();
 
         // O Microsoft.Data.Sqlite espera a trava pelo tempo do comando, que vem do
@@ -211,9 +243,12 @@ internal static class ItensRotas
             sqlite.DefaultTimeout = EsperaTravaSegundos;
         }
 
+        var abriu = false;
         try
         {
-            return await GravarEmTransacaoAsync(id, sorteados, db, gerador, cancelamento);
+            var resultado = await GravarEmTransacaoAsync(id, sorteados, db, gerador, cancelamento);
+            abriu = resultado is IStatusCodeHttpResult { StatusCode: StatusCodes.Status200OK };
+            return resultado;
         }
         catch (Exception e) when (e.EhBancoOcupado())
         {
@@ -229,6 +264,11 @@ internal static class ItensRotas
         }
         finally
         {
+            if (!abriu)
+            {
+                recarga.Liberar(id);
+            }
+
             if (sqlite != null && esperaAnterior != null)
             {
                 sqlite.DefaultTimeout = esperaAnterior.Value;
