@@ -4,6 +4,7 @@ using JogoDoGrupo.Server.Core.Persistencia;
 using JogoDoGrupo.Server.Features.Itens;
 using JogoDoGrupo.Server.Tests.Infra;
 using JogoDoGrupo.Shared.Core.Api;
+using JogoDoGrupo.Shared.Features.Combate;
 using JogoDoGrupo.Shared.Features.Itens;
 using JogoDoGrupo.Shared.Features.Personagem;
 using Microsoft.EntityFrameworkCore;
@@ -90,7 +91,7 @@ public class EquipamentosRotasTestes(ServidorDeTeste servidor) : IClassFixture<S
         ).Gerar(modelo, new Random(1), grau: grau);
         if (dados != null)
         {
-            // Valor conhecido (escala 0 a 100): 50 vira +15 de Força/+15 de Vitalidade no combate.
+            // Valor conhecido na escala de 0 a 100: 50 fica no meio da conversão linear de cada atributo.
             foreach (var atributo in dados.Atributos)
                 atributo.Valor = 50;
             item.GravarEquipamento(dados);
@@ -118,7 +119,7 @@ public class EquipamentosRotasTestes(ServidorDeTeste servidor) : IClassFixture<S
         );
 
     [Fact]
-    public async Task Equipar_ReabrirEDesequiparNaoRerrolaNemDuplicaBonus()
+    public async Task Equipar_ReabrirEDesequiparNaoRerrolaNemDuplicaOQueDaAoCombate()
     {
         var (cliente, id) = await Personagem();
         var item = await Item(id, 100);
@@ -127,35 +128,76 @@ public class EquipamentosRotasTestes(ServidorDeTeste servidor) : IClassFixture<S
         var estado = await Ler(cliente, id);
         Assert.Empty(estado.Inventario);
         Assert.Equal(item, Assert.Single(estado.Equipados).InstanciaId);
-        Assert.Equal(15, Assert.Single(estado.Bonus).Valor);
-        var bonus = await servidor
-            .Services.GetRequiredService<IBonusEquipamentos>()
+        // Martelo: dano da arma de 14 a 44 e Força do item de 0 a 25% de dano; 50 é o meio.
+        Assert.True(estado.Atributos.TemArma);
+        Assert.Equal(29, estado.Atributos.DanoDaArma, 6);
+        Assert.Equal(0.125, estado.Atributos.PercentualForca, 6);
+        var contrato = await servidor
+            .Services.GetRequiredService<IAtributosDosEquipamentos>()
             .ObterAsync(id, default);
-        Assert.Equal(15, Assert.Single(bonus).Valor);
-        var recursos =
-            await ServidorDeTeste.LerJsonAsync<JogoDoGrupo.Shared.Features.Combate.RecursosResponse>(
-                await cliente.GetAsync(
-                    JogoDoGrupo.Shared.Features.Combate.RotasCombate.RecursosDe(id)
-                )
-            );
-        Assert.Equal(15, recursos.Atributos.Forca);
-        var tirar = await ServidorDeTeste.PostJsonAsync(
-            cliente,
-            RegrasEquipamentos.RotaDe(id) + "/desequipar",
-            new PedidoDesequipar { Posicao = PosicaoEquipamento.Arma1 }
-        );
-        tirar.EnsureSuccessStatusCode();
+        Assert.Equal(29, contrato.DanoDaArma, 6);
+        Assert.Equal(0.125, contrato.PercentualForca, 6);
+        // A Força do martelo é do item: a Força do personagem continua em 0.
+        var recursos = await Recursos(cliente, id);
+        Assert.Equal(0, recursos.Atributos.Forca);
+        (
+            await ServidorDeTeste.PostJsonAsync(
+                cliente,
+                RegrasEquipamentos.RotaDe(id) + "/desequipar",
+                new PedidoDesequipar { Posicao = PosicaoEquipamento.Arma1 }
+            )
+        ).EnsureSuccessStatusCode();
         estado = await Ler(cliente, id);
         Assert.Empty(estado.Equipados);
-        Assert.Empty(estado.Bonus);
+        Assert.False(estado.Atributos.TemArma);
+        Assert.Empty(estado.Atributos.Linhas);
         Assert.Equal(50, Assert.Single(estado.Inventario).Equipamento.Atributos[0].Valor);
-        recursos =
-            await ServidorDeTeste.LerJsonAsync<JogoDoGrupo.Shared.Features.Combate.RecursosResponse>(
-                await cliente.GetAsync(
-                    JogoDoGrupo.Shared.Features.Combate.RotasCombate.RecursosDe(id)
+        Assert.Equal(0, (await Recursos(cliente, id)).Atributos.Forca);
+    }
+
+    [Fact]
+    public async Task EquiparEDesequiparNaoMudaOsAtributosNemOsPontosDoPersonagem()
+    {
+        var (cliente, id) = await Personagem();
+        var antesProgresso = await Progresso(cliente, id);
+        var antesRecursos = await Recursos(cliente, id);
+        // Cinto: Vigor, Agilidade e Espírito do item. Peito: Força, Vigor, Intelecto, Agilidade
+        // (o principal da família) e defesas. Nenhum deles pode somar nos cinco do personagem.
+        var cinto = await Item(id, 106); // Cinto do Vigia
+        var peito = await Item(id, 102); // Peitoral do Vigia
+        var arma = await Item(id, 100);
+        (await Equipar(cliente, id, cinto, PosicaoEquipamento.Cinto)).EnsureSuccessStatusCode();
+        (await Equipar(cliente, id, peito, PosicaoEquipamento.Peito)).EnsureSuccessStatusCode();
+        (await Equipar(cliente, id, arma, PosicaoEquipamento.Arma1)).EnsureSuccessStatusCode();
+
+        var equipado = await Recursos(cliente, id);
+        Assert.Equivalent(antesRecursos.Atributos, equipado.Atributos);
+        // O que o item dá vem por fora dos cinco: a vida máxima sobe pelo Vigor do item.
+        Assert.True(equipado.VidaMaxima > antesRecursos.VidaMaxima);
+        Assert.NotEmpty(equipado.DoEquipamento);
+        var progressoEquipado = await Progresso(cliente, id);
+        Assert.Equivalent(antesProgresso, progressoEquipado);
+
+        foreach (
+            var posicao in new[]
+            {
+                PosicaoEquipamento.Cinto,
+                PosicaoEquipamento.Peito,
+                PosicaoEquipamento.Arma1,
+            }
+        )
+            (
+                await ServidorDeTeste.PostJsonAsync(
+                    cliente,
+                    RegrasEquipamentos.RotaDe(id) + "/desequipar",
+                    new PedidoDesequipar { Posicao = posicao }
                 )
-            );
-        Assert.Equal(0, recursos.Atributos.Forca);
+            ).EnsureSuccessStatusCode();
+        var depois = await Recursos(cliente, id);
+        Assert.Equivalent(antesRecursos.Atributos, depois.Atributos);
+        Assert.Equal(antesRecursos.VidaMaxima, depois.VidaMaxima);
+        Assert.Empty(depois.DoEquipamento);
+        Assert.Equivalent(antesProgresso, await Progresso(cliente, id));
     }
 
     [Fact]
@@ -178,9 +220,22 @@ public class EquipamentosRotasTestes(ServidorDeTeste servidor) : IClassFixture<S
         troca.EnsureSuccessStatusCode();
         var estado = await Ler(cliente, id);
         Assert.Equal(2, estado.ConjuntoAtivo);
-        Assert.Equal(15, estado.Bonus.Single(a => a.Status == StatusItem.Forca).Valor);
-        Assert.Equal(30, estado.Bonus.Single(a => a.Status == StatusItem.Vitalidade).Valor);
+        // Só a arma do conjunto ativo dá o dano-base e a Força do item (29 e 12,5%, uma vez).
+        Assert.Equal(29, estado.Atributos.DanoDaArma, 6);
+        Assert.Equal(0.125, estado.Atributos.PercentualForca, 6);
+        // Os dois anéis contam: Vigor do anel de 0 a 150 de vida máxima; 50 vale 75 cada.
+        Assert.Equal(150, estado.Atributos.VidaMaxima);
     }
+
+    private static async Task<RecursosResponse> Recursos(HttpClient cliente, long id) =>
+        await ServidorDeTeste.LerJsonAsync<RecursosResponse>(
+            await cliente.GetAsync(RotasCombate.RecursosDe(id))
+        );
+
+    private static async Task<ProgressoResponse> Progresso(HttpClient cliente, long id) =>
+        await ServidorDeTeste.LerJsonAsync<ProgressoResponse>(
+            await cliente.GetAsync(RotasPersonagem.ProgressoDe(id))
+        );
 
     [Fact]
     public async Task RecusaItemDeOutraContaPosicaoInvalidaNivelEConsumivel()

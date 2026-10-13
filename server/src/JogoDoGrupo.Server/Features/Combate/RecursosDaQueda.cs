@@ -18,10 +18,7 @@ internal static class RecursosDaQueda
         AtualizarAsync(
             escopos,
             personagemId,
-            (recursos, atributos) =>
-                recursos.Vida = RegrasQueda.VidaAoLevantar(
-                    RegrasRecursos.VidaMaxima(atributos.Vigor)
-                ),
+            (recursos, maximos) => recursos.Vida = RegrasQueda.VidaAoLevantar(maximos.Vida),
             cancelamento
         );
 
@@ -34,11 +31,11 @@ internal static class RecursosDaQueda
         AtualizarAsync(
             escopos,
             personagemId,
-            (recursos, atributos) =>
+            (recursos, maximos) =>
             {
-                recursos.Vida = RegrasRecursos.VidaMaxima(atributos.Vigor);
-                recursos.Stamina = RegrasRecursos.StaminaMaxima(atributos.Agilidade);
-                recursos.Mana = RegrasRecursos.ManaMaxima(atributos.Espirito);
+                recursos.Vida = maximos.Vida;
+                recursos.Stamina = maximos.Stamina;
+                recursos.Mana = maximos.Mana;
             },
             cancelamento
         );
@@ -46,7 +43,7 @@ internal static class RecursosDaQueda
     private static Task<RecursosMudaram> AtualizarAsync(
         IServiceScopeFactory escopos,
         long personagemId,
-        Action<RecursosPersonagem, AtributosCombate> mudar,
+        Action<RecursosPersonagem, MaximosDeRecursos> mudar,
         CancellationToken cancelamento
     ) => RecursosDoAtaque.Recursos(escopos).AtualizarAsync(personagemId, mudar, cancelamento);
 }

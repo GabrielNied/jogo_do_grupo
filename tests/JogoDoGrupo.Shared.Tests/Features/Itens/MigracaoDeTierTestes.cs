@@ -118,22 +118,82 @@ public class MigracaoDeTierTestes
     }
 
     [Fact]
-    public void Escala_legada_e_o_inverso_da_migracao_nos_valores_do_catalogo()
+    public void Atributos_do_modelo_anterior_viram_os_novos_e_os_que_caem_no_mesmo_somam()
     {
-        foreach (
-            var (status, legado) in new[]
+        // Destreza e o Vigor-recurso caem na Agilidade; Vitalidade e Vida, no Vigor; Defesa vira
+        // defesa física; Energia, Espírito; RecuperacaoVigor, regeneração de stamina.
+        var item = Atual(
+            0,
+            (StatusItem.Destreza, 40),
+            (StatusItem.Vigor, 30),
+            (StatusItem.Vitalidade, 20),
+            (StatusItem.Vida, 25),
+            (StatusItem.Defesa, 50),
+            (StatusItem.Energia, 10),
+            (StatusItem.RecuperacaoVigor, 15),
+            (StatusItem.PotenciaFogo, 5)
+        );
+        item.Tipo = TipoEquipamento.Cinto;
+        item.VersaoDosAtributos = 1;
+        item.TierOrigem = TierItem.B;
+
+        Assert.True(MigracaoDeTier.Migrar(item));
+
+        Assert.Equal(
+            new[]
             {
-                (StatusItem.Forca, 6.0),
-                (StatusItem.Forca, 12.0),
-                (StatusItem.Forca, 24.0),
-                (StatusItem.Espirito, 3.0),
-                (StatusItem.Espirito, 12.0),
-            }
-        )
-        {
-            var novo = MigracaoDeTier.ParaEscalaInteira(status, legado);
-            Assert.Equal(legado, MigracaoDeTier.ParaEscalaLegada(status, novo), 6);
-        }
+                StatusItem.Agilidade,
+                StatusItem.Vigor,
+                StatusItem.DefesaFisica,
+                StatusItem.Espirito,
+                StatusItem.RegeneracaoStamina,
+                StatusItem.PotenciaFogo,
+            },
+            item.Atributos.Select(a => a.Status)
+        );
+        // Cinto não tem defesa física (a matriz): o valor fica no exemplar, limitado a 0 a 100.
+        Assert.Equal(new double[] { 70, 45, 50, 10, 15, 5 }, item.Atributos.Select(a => a.Valor));
+        Assert.Equal(RegrasTier.VersaoAtual, item.VersaoDosAtributos);
+        Assert.False(MigracaoDeTier.Migrar(item));
+    }
+
+    [Fact]
+    public void Soma_dos_que_caem_no_mesmo_novo_e_limitada_a_100()
+    {
+        var item = Atual(0, (StatusItem.Destreza, 70), (StatusItem.Vigor, 60));
+        item.VersaoDosAtributos = 1;
+
+        MigracaoDeTier.Migrar(item);
+
+        Assert.Equal(100, Assert.Single(item.Atributos).Valor);
+    }
+
+    [Fact]
+    public void Exemplar_da_versao_1_preserva_o_tier_de_origem_e_recalcula_o_atual()
+    {
+        var item = Atual(0, (StatusItem.Destreza, 90), (StatusItem.Defesa, 90));
+        item.VersaoDosAtributos = 1;
+        item.TierOrigem = TierItem.D;
+
+        MigracaoDeTier.Migrar(item);
+
+        Assert.Equal(TierItem.D, item.TierOrigem); // TIER-004
+        Assert.Equal(TierItem.S, RegrasTier.TierDe(item));
+    }
+
+    [Fact]
+    public void Exemplar_da_escala_antiga_ganha_o_tier_de_origem_com_os_atributos_novos()
+    {
+        var item = Legado(
+            TipoEquipamento.Peito,
+            (StatusItem.Destreza, 24),
+            (StatusItem.Defesa, 152)
+        );
+
+        MigracaoDeTier.Migrar(item);
+
+        Assert.Equal(new double[] { 80, 80 }, item.Atributos.Select(a => a.Valor));
+        Assert.Equal(TierItem.S, item.TierOrigem);
     }
 
     [Theory]

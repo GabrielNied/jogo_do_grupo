@@ -61,8 +61,8 @@ namespace JogoDoGrupo.Client.Features.Itens.Tests
             StringAssert.Contains("nível 1/10", texto);
             StringAssert.Contains("personagem nível 20", texto);
             StringAssert.Contains("Tier D", texto);
-            // Valor/máximo da faixa e o bônus provisório de combate (20 x 30 / 100 = 6).
-            StringAssert.Contains("Força 20/100 · bônus +6", texto);
+            // Valor/máximo da faixa e o efeito convertido (martelo: Força 0 a 25% de dano; 20 vale 5%).
+            StringAssert.Contains("Força 20/100 · +5% de dano físico", texto);
             // Vida não tem faixa (legado): só o valor.
             StringAssert.Contains("Vida +30", texto);
             StringAssert.Contains("Fusão +3/10", texto);

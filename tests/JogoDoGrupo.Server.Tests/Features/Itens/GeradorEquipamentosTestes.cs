@@ -108,9 +108,17 @@ public class GeradorEquipamentosTestes
     {
         var gerador = new GeradorEquipamentos(new ConfigEquipamentos());
         var item = gerador.Gerar(100, new Random(7))!;
-        Assert.Equal(StatusItem.Forca, item.Atributos.Single(a => a.Fixo).Status);
-        Assert.Equal(3, item.Atributos.Length);
-        Assert.Equal(3, item.Atributos.Select(a => a.Status).Distinct().Count());
+        var modelo = CatalogoEquipamentos.Obter(100)!.Atributos;
+        Assert.Equal(
+            modelo.Select(a => a.Status),
+            item.Atributos.Take(modelo.Length).Select(a => a.Status)
+        );
+        Assert.All(item.Atributos.Take(modelo.Length), a => Assert.True(a.Fixo));
+        Assert.Contains(item.Atributos, a => a.Fixo && a.Status == StatusItem.Forca);
+        Assert.Equal(
+            item.Atributos.Length,
+            item.Atributos.Select(a => a.Status).Distinct().Count()
+        );
         Assert.Equal(0, item.NivelFusao);
         var igual = gerador.Gerar(100, new Random(7))!;
         Assert.Equal(item.Atributos.Select(a => a.Status), igual.Atributos.Select(a => a.Status));
@@ -134,23 +142,21 @@ public class GeradorEquipamentosTestes
             Assert.DoesNotContain(item.Atributos, a => a.Status == StatusItem.PotenciaFogo);
         }
 
-        Assert.Throws<InvalidOperationException>(() =>
-            new GeradorEquipamentos(
-                new ConfigEquipamentos
-                {
-                    StatusAleatorios = [StatusItem.PotenciaFogo],
-                    QuantidadeAleatorios = 1,
-                }
-            ).Gerar(101, new Random(1))
-        );
+        // Sem candidato elegível na categoria, o item sai só com os atributos do modelo.
+        var semCandidatos = new GeradorEquipamentos(
+            new ConfigEquipamentos
+            {
+                StatusAleatorios = [StatusItem.PotenciaFogo],
+                QuantidadeAleatorios = 1,
+            }
+        ).Gerar(101, new Random(1))!;
+        Assert.DoesNotContain(semCandidatos.Atributos, a => a.Status == StatusItem.PotenciaFogo);
     }
 
     [Fact]
     public void PoolInvalidoRecusaSemSortearENaoEquipamentoNaoGera()
     {
-        var gerador = new GeradorEquipamentos(
-            new ConfigEquipamentos { QuantidadeAleatorios = 100 }
-        );
+        var gerador = new GeradorEquipamentos(new ConfigEquipamentos { QuantidadeAleatorios = -1 });
         Assert.Throws<InvalidOperationException>(() => gerador.Gerar(100, new Random(7)));
         Assert.Null(gerador.Gerar(CatalogoItens.PocaoDeTeste, new Random(7)));
         Assert.Throws<ArgumentOutOfRangeException>(() =>

@@ -5,10 +5,11 @@ namespace JogoDoGrupo.Server.Features.Combate;
 /// <summary>
 /// Resultado de conferir os recursos no começo de um ataque: <see cref="Recusa"/> é um código
 /// de <see cref="CodigosErroCombate"/> (nada foi gasto) ou nulo se o ataque vale;
-/// <see cref="Recursos"/> é o novo estado, só quando o ataque gastou stamina. <see cref="Forca"/>
-/// é a Força final lida na mesma ida ao banco (o acerto não volta lá).
+/// <see cref="Recursos"/> é o novo estado, só quando o ataque gastou stamina. <see cref="Dano"/>
+/// são as parcelas do dano lidas na mesma ida (o acerto não volta lá): dano-base da arma e bônus
+/// do personagem e do equipamento, cada um na sua parcela.
 /// </summary>
-public sealed record InicioDoAtaque(string? Recusa, RecursosMudaram? Recursos, int Forca = 0);
+public sealed record InicioDoAtaque(string? Recusa, RecursosMudaram? Recursos, ParcelasDeDano Dano);
 
 /// <summary>
 /// A parte do ataque que mexe nos recursos: recusa quem está caído ou sem stamina e cobra a stamina

@@ -154,6 +154,17 @@ namespace JogoDoGrupo.Client.Features.Combate.Tests
         }
 
         [Test]
+        public void Regeneracao_UsaOSecundarioDoServidorEmVezDaBaseFixa()
+        {
+            var prontidao = new ProntidaoLocal();
+            prontidao.RegistrarStamina(50, 0);
+            prontidao.RegistrarRegeneracaoDeStamina(15, 0); // base 10 + 5 do equipamento
+
+            // Sem gasto recente a espera de 2 s já passou; a 15 por segundo, 2 s dão 30.
+            Assert.AreEqual(80, prontidao.StaminaEm(2));
+        }
+
+        [Test]
         public void Retrato_ComStaminaAbaixoDoPrevisto_ContaComoGasto()
         {
             var prontidao = new ProntidaoLocal();

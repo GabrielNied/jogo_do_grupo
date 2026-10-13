@@ -306,4 +306,52 @@ public class RegrasAtaqueTestes
         // Mais cedo que isso o clique é descartado.
         Assert.Null(RegrasAtaque.QuandoEnviarOCliqueGuardado(0.51));
     }
+
+    [Fact]
+    public void Dano_com_arma_usa_o_dano_da_arma_como_base_e_as_duas_forcas_em_parcelas_separadas()
+    {
+        // Espada de 29 de dano, Força 2 do personagem (+20%) e Força do item (+12,5%).
+        var parcelas = new ParcelasDeDano
+        {
+            DanoBase = 29,
+            PercentualPersonagem = RegrasAtaque.PercentualDeDanoPorPonto * 2,
+            PercentualEquipamento = 0.125,
+        };
+
+        // 29 x (1 + 0,20 + 0,125) = 38,425; o pesado multiplica por 2,2 (84,535).
+        Assert.Equal(38, RegrasAtaque.Dano(TipoDeAtaque.Leve, parcelas));
+        Assert.Equal(85, RegrasAtaque.Dano(TipoDeAtaque.Pesado, parcelas));
+    }
+
+    [Fact]
+    public void Dano_da_arma_substitui_o_20_fixo_e_a_forca_do_item_nao_vira_ponto_do_personagem()
+    {
+        var semItem = ParcelasDeDano.SemArma(3);
+        var comArma = new ParcelasDeDano
+        {
+            DanoBase = 30,
+            PercentualPersonagem = semItem.PercentualPersonagem,
+        };
+
+        Assert.Equal(20, ParcelasDeDano.DanoSemArma);
+        Assert.Equal(26, RegrasAtaque.Dano(TipoDeAtaque.Leve, semItem)); // 20 x 1,3
+        Assert.Equal(39, RegrasAtaque.Dano(TipoDeAtaque.Leve, comArma)); // 30 x 1,3
+        // O mesmo item com Força de equipamento soma só a parcela dele, não pontos no personagem.
+        comArma.PercentualEquipamento = 0.5;
+        Assert.Equal(54, RegrasAtaque.Dano(TipoDeAtaque.Leve, comArma)); // 30 x 1,8
+        Assert.Equal(semItem.PercentualPersonagem, comArma.PercentualPersonagem);
+    }
+
+    [Fact]
+    public void Dano_nunca_e_menor_que_1_e_bonus_negativo_nao_reduz()
+    {
+        Assert.Equal(1, RegrasAtaque.Dano(TipoDeAtaque.Leve, new ParcelasDeDano { DanoBase = 0 }));
+        Assert.Equal(
+            20,
+            RegrasAtaque.Dano(
+                TipoDeAtaque.Leve,
+                new ParcelasDeDano { DanoBase = 20, PercentualEquipamento = -0.5 }
+            )
+        );
+    }
 }

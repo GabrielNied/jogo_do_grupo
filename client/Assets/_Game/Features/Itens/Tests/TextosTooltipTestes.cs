@@ -30,7 +30,7 @@ namespace JogoDoGrupo.Client.Features.Itens.Tests
                         Valor = forcaEDefesa[0],
                         Fixo = true,
                     },
-                    new AtributoItem { Status = StatusItem.Defesa, Valor = forcaEDefesa[1] },
+                    new AtributoItem { Status = StatusItem.DefesaFisica, Valor = forcaEDefesa[1] },
                 },
             };
         }
@@ -64,7 +64,7 @@ namespace JogoDoGrupo.Client.Features.Itens.Tests
             StringAssert.Contains("Família Vigia/Bastião · variante A", texto);
             StringAssert.Contains("Requer personagem nível 10", texto);
             StringAssert.Contains("Força 6/100", texto);
-            StringAssert.Contains("Defesa 10/100", texto);
+            StringAssert.Contains("Defesa física 10/100", texto);
             StringAssert.Contains("Fusão +0/10", texto);
             Assert.IsNull(dados.TituloComparacao);
         }
@@ -118,7 +118,7 @@ namespace JogoDoGrupo.Client.Features.Itens.Tests
             var ganho = dados.Comparacao.Single(l => l.Estilo == EstiloLinha.Ganho);
             var perda = dados.Comparacao.Single(l => l.Estilo == EstiloLinha.Perda);
             Assert.AreEqual(
-                TextosTooltip.SetaGanho + " Defesa +" + TextosEquipamento.Numero(6),
+                TextosTooltip.SetaGanho + " Defesa física +" + TextosEquipamento.Numero(6),
                 ganho.Texto
             );
             Assert.AreEqual(

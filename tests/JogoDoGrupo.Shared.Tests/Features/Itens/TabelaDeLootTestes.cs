@@ -84,7 +84,7 @@ public class TabelaDeLootTestes
             Atributos = new[]
             {
                 new AtributoItem { Status = StatusItem.Forca, Valor = 90 },
-                new AtributoItem { Status = StatusItem.Vitalidade, Valor = 70 },
+                new AtributoItem { Status = StatusItem.Vigor, Valor = 70 },
             },
         };
         Assert.Equal(TierItem.S, RegrasTier.TierDe(peca));

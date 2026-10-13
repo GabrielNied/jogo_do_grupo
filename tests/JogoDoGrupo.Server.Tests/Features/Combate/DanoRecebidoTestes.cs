@@ -6,6 +6,7 @@ using JogoDoGrupo.Server.Features.Combate;
 using JogoDoGrupo.Server.Tests.Core.TempoReal;
 using JogoDoGrupo.Server.Tests.Infra;
 using JogoDoGrupo.Shared.Features.Combate;
+using JogoDoGrupo.Shared.Features.Itens;
 using JogoDoGrupo.Shared.Features.Personagem;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -21,7 +22,7 @@ public class DanoRecebidoTestes(ServidorDeAtaque servidor) : IClassFixture<Servi
 {
     private async Task<Jogador> NovoJogadorAsync()
     {
-        servidor.Bonus.Equipamentos = new AtributosCombate();
+        servidor.Bonus.Equipamentos = new AtributosDosEquipamentos();
         servidor.Bonus.Efeitos = new AtributosCombate();
 
         var http = await ServidorDeTeste.CriarClienteLogadoEmAsync(servidor.Falso);

@@ -94,7 +94,7 @@ public class MigracaoDeEquipamentosTestes(ServidorDeTeste servidor) : IClassFixt
     }
 
     [Fact]
-    public async Task Exemplar_legado_equipa_e_mantem_o_bonus_de_combate_de_antes()
+    public async Task Exemplar_legado_equipa_com_os_atributos_migrados_e_sem_somar_no_personagem()
     {
         var (cliente, id) = await Personagem();
         var peca = await Legado(id, JsonLegado(0, 1, 1), 0);
@@ -107,11 +107,44 @@ public class MigracaoDeEquipamentosTestes(ServidorDeTeste servidor) : IClassFixt
 
         Assert.Equal(HttpStatusCode.OK, resposta.StatusCode);
         var estado = await ServidorDeTeste.LerJsonAsync<EquipamentosResponse>(resposta);
-        Assert.Equal(6, estado.Bonus.Single(a => a.Status == StatusItem.Vitalidade).Valor);
-        Assert.Equal(6, estado.Bonus.Single(a => a.Status == StatusItem.Forca).Valor);
-        Assert.Equal(3, estado.Bonus.Single(a => a.Status == StatusItem.Espirito).Valor);
-        // Equipar grava o exemplar na escala nova.
-        Assert.Contains("\"VersaoDosAtributos\":1", await JsonGravado(peca));
+        // Vitalidade 20 vira Vigor do item: 20 no peito vale 50 de vida máxima (0 a 250). A
+        // Força 20 vira 2% de dano (0 a 10%). A defesa 16 vira 9,6 (0 a 60). O Espírito antigo não
+        // existe no peito: fica no exemplar, sem efeito.
+        Assert.Equal(50, estado.Atributos.VidaMaxima);
+        Assert.Equal(0.02, estado.Atributos.PercentualForca, 6);
+        Assert.Equal(9.6, estado.Atributos.DefesaFisica, 6);
+        Assert.Equal(0, estado.Atributos.ManaMaxima);
+        // Equipar grava o exemplar na versão atual.
+        Assert.Contains("\"VersaoDosAtributos\":2", await JsonGravado(peca));
+    }
+
+    [Fact]
+    public async Task Exemplar_da_versao_1_troca_os_atributos_sem_mexer_no_tier_de_origem()
+    {
+        // Exemplar da #615 (escala de 0 a 100, versão 1) com os atributos do modelo anterior:
+        // Destreza 40 e o Vigor-recurso 30 caem na mesma Agilidade e somam; Vitalidade vira Vigor.
+        var (cliente, id) = await Personagem();
+        var json =
+            "{\"ModeloId\":102,\"Nome\":\"Peitoral\",\"Tipo\":1,\"Atributos\":["
+            + "{\"Status\":1,\"Valor\":40,\"Fixo\":false},"
+            + "{\"Status\":6,\"Valor\":30,\"Fixo\":false},"
+            + "{\"Status\":3,\"Valor\":60,\"Fixo\":true}],"
+            + "\"TierOrigem\":4,\"VersaoDosAtributos\":1,\"NivelFusao\":2,\"Favorito\":false}";
+        var peca = await Legado(id, json, 0);
+
+        var lida = (await Ler(cliente, id)).Inventario.Single(e => e.InstanciaId == peca);
+
+        var atributos = lida.Equipamento.Atributos;
+        Assert.Equal(
+            new[] { StatusItem.Agilidade, StatusItem.Vigor },
+            atributos.Select(a => a.Status)
+        );
+        Assert.Equal(new double[] { 70, 60 }, atributos.Select(a => a.Valor));
+        Assert.Equal(RegrasTier.VersaoAtual, lida.Equipamento.VersaoDosAtributos);
+        Assert.Equal(TierItem.S, lida.Equipamento.TierOrigem);
+        // O tier atual é recalculado pelos valores novos: (70 + 60) / 2 = 65%, tier A.
+        Assert.Equal(TierItem.A, RegrasTier.TierDe(lida.Equipamento));
+        Assert.Equal(2, lida.Equipamento.NivelFusao);
     }
 
     [Fact]
@@ -127,7 +160,7 @@ public class MigracaoDeEquipamentosTestes(ServidorDeTeste servidor) : IClassFixt
         Assert.True(await migrador.MigrarAsync(default) >= 1);
 
         var json = await JsonGravado(peca);
-        Assert.Contains("\"VersaoDosAtributos\":1", json);
+        Assert.Contains("\"VersaoDosAtributos\":2", json);
         Assert.Contains($"\"TierOrigem\":{(int)TierItem.A}", json);
         Assert.Equal(0, await migrador.MigrarAsync(default));
         Assert.Equal(json, await JsonGravado(peca));

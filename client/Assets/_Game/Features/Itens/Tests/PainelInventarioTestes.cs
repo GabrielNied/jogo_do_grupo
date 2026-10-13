@@ -172,22 +172,29 @@ namespace JogoDoGrupo.Client.Features.Itens.Tests
         }
 
         [Test]
-        public void ResumoListaOsBonusDoEstado()
+        public void ResumoListaOsAtributosDosEquipamentos()
         {
             var raiz = NovaRaiz();
             Montar(
                 raiz,
                 new EquipamentosResponse
                 {
-                    Bonus = new[]
+                    Atributos = new AtributosDosEquipamentos
                     {
-                        new AtributoItem { Status = StatusItem.Forca, Valor = 12 },
+                        Linhas = new[]
+                        {
+                            new LinhaDeEquipamento
+                            {
+                                Status = StatusItem.Forca,
+                                Texto = "Força: +12% de dano físico",
+                            },
+                        },
                     },
                 }
             );
             var textos = raiz.Query<Label>(className: EstiloItens.ResumoBonus).ToList();
             Assert.AreEqual(1, textos.Count);
-            StringAssert.Contains("Força +12", textos[0].text);
+            StringAssert.Contains("Força: +12% de dano físico", textos[0].text);
         }
 
         [Test]

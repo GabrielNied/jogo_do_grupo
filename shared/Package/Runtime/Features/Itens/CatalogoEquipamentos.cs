@@ -9,11 +9,13 @@ namespace JogoDoGrupo.Shared.Features.Itens
         public const int PrimeiroModelo = 101;
         public const int QuantidadeModelos = 72;
         private const int Categorias = 9;
-        private const double AtributoPrincipalA = 6;
-        private const double AtributoPrincipalB = 4;
-        private const double DefesaBastiao = 8;
-        private const double VigorEspecializado = 10;
-        private const double EspiritoTempestade = 3;
+
+        /// <summary>Primeiro modelo de arma ou mão secundária de teste (depois dos 72 modelos).</summary>
+        public const int PrimeiroModeloDeArma = PrimeiroModelo + QuantidadeModelos;
+
+        /// <summary>Espada, Arco, Cajado, Escudo e Foco de teste, só para o botão de equipamento de teste.</summary>
+        public const int QuantidadeModelosDeArma = 5;
+
         private static readonly string[] Familias =
         {
             "Vigia/Bastião",
@@ -32,12 +34,40 @@ namespace JogoDoGrupo.Shared.Features.Itens
             "do Batedor",
             "do Olho Longo",
         };
+
+        // Principal de cada família: Vigia/Bastião, Predador/Ruptor, Aurora/Tempestade e
+        // Batedor/Olho Longo (itens.md, Atributos dos equipamentos).
         private static readonly StatusItem[] Principais =
         {
-            StatusItem.Vitalidade,
+            StatusItem.Vigor,
             StatusItem.Forca,
             StatusItem.Intelecto,
-            StatusItem.Destreza,
+            StatusItem.Agilidade,
+        };
+
+        // Especialização da variante B de cada família: defesa (Bastião), Agilidade (Ruptor e
+        // Olho Longo) ou Espírito (Tempestade). Quando já é o principal, não repete.
+        private static readonly StatusItem[] Especializacoes =
+        {
+            StatusItem.DefesaMagica,
+            StatusItem.Agilidade,
+            StatusItem.Espirito,
+            StatusItem.Agilidade,
+        };
+
+        // O atributo próprio de cada categoria (capacete, peito, luvas, calça, botas, cinto,
+        // anel, brinco, adorno): o que o modelo traz além do principal da família.
+        private static readonly StatusItem[] Nucleos =
+        {
+            StatusItem.DefesaFisica,
+            StatusItem.DefesaFisica,
+            StatusItem.DefesaFisica,
+            StatusItem.DefesaFisica,
+            StatusItem.DefesaFisica,
+            StatusItem.Vigor,
+            StatusItem.ChanceCritica,
+            StatusItem.DanoCritico,
+            StatusItem.DefesaMagica,
         };
 
         // Capacete, peito, luvas, calça, botas, cinto, anel, brinco, adorno.
@@ -92,29 +122,25 @@ namespace JogoDoGrupo.Shared.Features.Itens
                 "Talismã",
             },
         };
-        private static readonly int[][] Defesas =
-        {
-            new[] { 16, 30, 10, 20, 10, 8, 0, 0, 0 },
-            new[] { 10, 20, 7, 13, 7, 5, 0, 0, 0 },
-            new[] { 5, 9, 3, 6, 3, 2, 0, 0, 0 },
-            new[] { 6, 12, 4, 8, 4, 3, 0, 0, 0 },
-        };
 
+        /// <summary>
+        /// O modelo-base: só diz <b>quais</b> atributos o item tem (todos elegíveis na categoria,
+        /// TIER-007); os valores de 0 a 100 saem do sorteio do gerador. Atributo do modelo vem
+        /// marcado como fixo (<see cref="AtributoItem.Fixo"/>).
+        /// </summary>
         public static Equipamento Obter(int id)
         {
-            if (id == CatalogoItens.EspadaDeTeste || id == CatalogoItens.EscudoDeTeste || id == 100)
-                return new Equipamento
-                {
-                    ModeloId = id,
-                    Nome = id == 100 ? "Martelo Ressonante" : CatalogoItens.ObterNome(id),
-                    Regiao = "Vale",
-                    Tipo =
-                        id == 100 ? TipoEquipamento.Martelo
-                        : id == CatalogoItens.EspadaDeTeste ? TipoEquipamento.Espada
-                        : TipoEquipamento.Escudo,
-                    DuasMaos = id == 100,
-                    Atributos = new[] { Fixo(StatusItem.Forca, id == 100 ? 20 : 0) },
-                };
+            if (id == CatalogoItens.EspadaDeTeste)
+                return Arma(id, CatalogoItens.ObterNome(id), TipoEquipamento.Espada);
+            if (id == CatalogoItens.EscudoDeTeste)
+                return Arma(id, CatalogoItens.ObterNome(id), TipoEquipamento.Escudo);
+            if (id == 100)
+                return Arma(id, "Martelo Ressonante", TipoEquipamento.Martelo);
+            if (id >= PrimeiroModeloDeArma && id < PrimeiroModeloDeArma + QuantidadeModelosDeArma)
+            {
+                var tipo = ArmasDeTeste[id - PrimeiroModeloDeArma];
+                return Arma(id, TextoDoTipo(tipo) + " Ressonante", tipo);
+            }
             if (id < PrimeiroModelo || id >= PrimeiroModelo + QuantidadeModelos)
                 return null;
             var indice = id - PrimeiroModelo;
@@ -122,21 +148,12 @@ namespace JogoDoGrupo.Shared.Features.Itens
             var variante = indice / Categorias;
             var familia = variante / 2;
             var especializada = variante % 2 == 1;
-            var atributos = new List<AtributoItem>
-            {
-                Fixo(Principais[familia], especializada ? AtributoPrincipalB : AtributoPrincipalA),
-            };
-            var defesa =
-                Defesas[familia][categoria] + (especializada && familia == 0 ? DefesaBastiao : 0);
-            if (defesa > 0)
-                atributos.Add(Fixo(StatusItem.Defesa, defesa));
-            if (especializada && familia != 0)
-                atributos.Add(
-                    Fixo(
-                        familia == 2 ? StatusItem.Espirito : StatusItem.Vigor,
-                        familia == 2 ? EspiritoTempestade : VigorEspecializado
-                    )
-                );
+            var tipoDaPeca = (TipoEquipamento)categoria;
+            var atributos = new List<AtributoItem>();
+            Acrescentar(atributos, tipoDaPeca, Principais[familia]);
+            Acrescentar(atributos, tipoDaPeca, Nucleos[categoria]);
+            if (especializada)
+                Acrescentar(atributos, tipoDaPeca, Especializacoes[familia]);
             return new Equipamento
             {
                 ModeloId = id,
@@ -144,17 +161,72 @@ namespace JogoDoGrupo.Shared.Features.Itens
                 Familia = Familias[familia],
                 Variacao = especializada ? "B" : "A",
                 Regiao = "Vale",
-                Tipo = (TipoEquipamento)categoria,
+                Tipo = tipoDaPeca,
                 Atributos = atributos.ToArray(),
             };
         }
 
-        // A arma existente e os 72 modelos; IDs antigos permanecem estáveis.
+        private static readonly TipoEquipamento[] ArmasDeTeste =
+        {
+            TipoEquipamento.Espada,
+            TipoEquipamento.Arco,
+            TipoEquipamento.Cajado,
+            TipoEquipamento.Escudo,
+            TipoEquipamento.Foco,
+        };
+
+        // Arma ou mão secundária de teste: os atributos do modelo são os da matriz que dão o golpe
+        // (dano da arma e o principal) ou a defesa.
+        private static Equipamento Arma(int id, string nome, TipoEquipamento tipo)
+        {
+            var atributos = new List<AtributoItem>();
+            foreach (var status in ConfigAtributosItem.Elegiveis(tipo))
+            {
+                if (EhDoModeloDeArma(status))
+                    atributos.Add(Fixo(status, 0));
+            }
+            return new Equipamento
+            {
+                ModeloId = id,
+                Nome = nome,
+                Regiao = "Vale",
+                Tipo = tipo,
+                DuasMaos = tipo == TipoEquipamento.Martelo,
+                Atributos = atributos.ToArray(),
+            };
+        }
+
+        // Dano da arma, Força, Intelecto, Vigor e defesas; o resto da matriz vem do sorteio.
+        private static bool EhDoModeloDeArma(StatusItem status) =>
+            status == StatusItem.DanoDaArma
+            || status == StatusItem.Forca
+            || status == StatusItem.Intelecto
+            || status == StatusItem.Vigor
+            || status == StatusItem.DefesaFisica;
+
+        private static string TextoDoTipo(TipoEquipamento tipo) => tipo.ToString();
+
+        // Só entra o atributo elegível na categoria e que o modelo ainda não tem.
+        private static void Acrescentar(
+            List<AtributoItem> atributos,
+            TipoEquipamento tipo,
+            StatusItem status
+        )
+        {
+            if (
+                ConfigAtributosItem.Elegivel(tipo, status)
+                && !atributos.Exists(a => a.Status == status)
+            )
+                atributos.Add(Fixo(status, 0));
+        }
+
+        // A arma existente, os 72 modelos e as cinco armas de teste; IDs antigos permanecem estáveis.
         public static readonly int[] ModelosDeTeste = CriarIds();
 
         private static int[] CriarIds()
         {
-            var ids = new int[QuantidadeModelos + 1];
+            var total = QuantidadeModelos + 1 + QuantidadeModelosDeArma;
+            var ids = new int[total];
             for (var i = 0; i < ids.Length; i++)
                 ids[i] = 100 + i;
             return ids;

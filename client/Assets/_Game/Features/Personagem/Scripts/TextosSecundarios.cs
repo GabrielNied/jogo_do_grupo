@@ -14,6 +14,9 @@ namespace JogoDoGrupo.Client.Features.Personagem
         public const string Carregando = "Carregando atributos secundários...";
         public const string Erro = "Não foi possível carregar os atributos secundários.";
 
+        public const string TituloEquipamento = "Do equipamento (não soma nos atributos acima)";
+        public const string SemEquipamento = "Nenhum atributo de equipamento ativo.";
+
         public static string Rotulo(AtributoSecundario atributo)
         {
             switch (atributo)

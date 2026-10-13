@@ -5,8 +5,16 @@ namespace JogoDoGrupo.Shared.Tests.Features.Combate;
 public class RegrasRecursosTestes
 {
     [Fact]
-    public void ValorFinal_soma_as_quatro_fontes() =>
-        Assert.Equal(10, RegrasRecursos.ValorFinal(5, 0, 3, 2));
+    public void ValorFinal_soma_base_pontos_e_efeitos_sem_o_equipamento() =>
+        Assert.Equal(7, RegrasRecursos.ValorFinal(5, 0, 2));
+
+    [Fact]
+    public void Maximos_somam_o_que_o_equipamento_da_direto_depois_da_conta_do_atributo()
+    {
+        Assert.Equal(650, RegrasRecursos.VidaMaxima(10, 50));
+        Assert.Equal(125, RegrasRecursos.StaminaMaxima(10, 5));
+        Assert.Equal(130, RegrasRecursos.ManaMaxima(10, 10));
+    }
 
     [Theory]
     [InlineData(0, 500)]

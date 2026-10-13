@@ -66,8 +66,8 @@ public class FusaoRotasTestes(ServidorDeTeste servidor) : IClassFixture<Servidor
                 Valor = forca,
                 Fixo = true,
             },
-            new AtributoItem { Status = StatusItem.Vitalidade, Valor = 30 },
-            new AtributoItem { Status = StatusItem.Espirito, Valor = 10 },
+            new AtributoItem { Status = StatusItem.DanoDaArma, Valor = 30 },
+            new AtributoItem { Status = StatusItem.ChanceCritica, Valor = 10 },
         };
         configurar?.Invoke(dados);
         // Exemplar já na escala 0 a 100 (o de escala antiga é coberto pelos testes de migração).
@@ -231,12 +231,12 @@ public class FusaoRotasTestes(ServidorDeTeste servidor) : IClassFixture<Servidor
         Assert.Equal(10, item.Atributos[2].Valor);
         Assert.Equal(SemOQueMuda(antes, StatusItem.Forca), SemOQueMuda(item, StatusItem.Forca));
         using var escopo = servidor.Services.CreateScope();
-        // 30 na escala 0 a 100 é +9 de Força no combate (referência 30): o bônus do equipado
-        // acompanha o novo valor, sem somar duas vezes.
-        var bonus = await escopo
-            .ServiceProvider.GetRequiredService<IBonusEquipamentos>()
+        // 30 na escala 0 a 100 vale 7,5% de dano no martelo (Força do item de 0 a 25%): o que o
+        // equipado dá ao combate acompanha o novo valor, sem somar duas vezes.
+        var atributos = await escopo
+            .ServiceProvider.GetRequiredService<IAtributosDosEquipamentos>()
             .ObterAsync(id, default);
-        Assert.Equal(9, bonus.Single(b => b.Status == StatusItem.Forca).Valor);
+        Assert.Equal(0.075, atributos.PercentualForca, 6);
     }
 
     [Theory]
@@ -343,12 +343,12 @@ public class FusaoRotasTestes(ServidorDeTeste servidor) : IClassFixture<Servidor
         var principal = await Item(id, 20);
         var material = await Item(id, 90);
 
-        var previa = await Previa(cliente, id, principal, material, StatusItem.Vitalidade);
+        var previa = await Previa(cliente, id, principal, material, StatusItem.DanoDaArma);
         (await Confirmar(cliente, id, previa)).EnsureSuccessStatusCode();
 
         var item = Dados(await Estado(cliente, id), principal);
         Assert.Equal(20, item.Atributos[0].Valor); // Força intacta, mesmo com material melhor
-        Assert.Equal(30, item.Atributos[1].Valor); // Vitalidade 30 e 30: igual
+        Assert.Equal(30, item.Atributos[1].Valor); // Dano da arma 30 e 30: igual
         Assert.Equal(1, item.NivelFusao);
     }
 
@@ -515,7 +515,7 @@ public class FusaoRotasTestes(ServidorDeTeste servidor) : IClassFixture<Servidor
         Assert.Equal(HttpStatusCode.Conflict, (await Confirmar(cliente, id, previa)).StatusCode);
         // Trocar o atributo da prévia não aproveita a assinatura de outro.
         previa.Confirmacao = assinatura;
-        previa.Status = StatusItem.Vitalidade;
+        previa.Status = StatusItem.DanoDaArma;
         var outroAtributo = await Confirmar(cliente, id, previa);
         Assert.Equal(CodigosErroItens.PreviaDesatualizada, await Codigo(outroAtributo));
         previa.Status = StatusItem.Forca;

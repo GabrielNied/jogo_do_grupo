@@ -25,33 +25,4 @@ public class RegrasEquipamentosTestes
         Assert.Equal(limite, RegrasEquipamentos.NivelMaximo(raridade));
         Assert.Equal(skills, RegrasEquipamentos.SlotsSkills(raridade));
     }
-
-    [Fact]
-    public void Totais_SomamOsDoisAneisMasSomenteAArmaAtiva()
-    {
-        EntradaInventario Item(PosicaoEquipamento p, double valor) =>
-            new()
-            {
-                Posicao = p,
-                Equipamento = new Equipamento
-                {
-                    Atributos = new[]
-                    {
-                        new AtributoItem { Status = StatusItem.Forca, Valor = valor },
-                    },
-                },
-            };
-        var itens = new[]
-        {
-            Item(PosicaoEquipamento.Anel1, 10),
-            Item(PosicaoEquipamento.Anel2, 20),
-            Item(PosicaoEquipamento.Arma1, 50),
-            Item(PosicaoEquipamento.Arma2, 100),
-            Item(PosicaoEquipamento.Inventario, 99),
-        };
-        // Valores de 0 a 100 voltam para a escala de combate de antes (Força: referência 30).
-        Assert.Equal(24, Assert.Single(RegrasEquipamentos.Somar(itens, 1)).Valor);
-        Assert.Equal(39, Assert.Single(RegrasEquipamentos.Somar(itens, 2)).Valor);
-        Assert.Equal(24, Assert.Single(RegrasEquipamentos.Somar(itens, 1)).Valor);
-    }
 }

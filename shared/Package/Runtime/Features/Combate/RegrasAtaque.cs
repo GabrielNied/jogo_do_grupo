@@ -35,11 +35,13 @@ namespace JogoDoGrupo.Shared.Features.Combate
         /// <summary>Stamina gasta pelo ataque pesado; sem essa stamina o pesado é recusado.</summary>
         public const int CustoDeStaminaPesado = 20;
 
-        /// <summary>Dano da espada com Força 0, antes do multiplicador do ataque.</summary>
-        public const int DanoBaseDaEspada = 20;
-
-        /// <summary>Dano a mais por ponto de Força, antes do multiplicador do ataque.</summary>
-        public const double DanoPorForca = 2.0;
+        /// <summary>
+        /// Bônus de dano por ponto de Força (arma física) ou de Intelecto (arma mágica) do
+        /// personagem, em fração do dano-base: 0,10 = +10% por ponto. Valor de teste até a #627;
+        /// com o dano de 20 de antes dá os mesmos +2 por ponto. O item tem a sua própria conversão
+        /// (<c>ConfigAtributosItem</c>) e nunca soma nos pontos do personagem.
+        /// </summary>
+        public const double PercentualDeDanoPorPonto = 0.10;
 
         /// <summary>Alcance do golpe, em metros, a partir do atacante.</summary>
         public const double AlcanceMetros = 2.5;
@@ -237,14 +239,27 @@ namespace JogoDoGrupo.Shared.Features.Combate
             staminaAtual >= CustoDeStamina(tipo);
 
         /// <summary>
-        /// Dano do golpe em um alvo: (dano da espada + Força) vezes o multiplicador do ataque,
-        /// arredondado. Força negativa conta como zero e o dano nunca é menor que 1.
+        /// Dano do golpe sem arma equipada, com os pontos de Força do personagem. Atalho de
+        /// <see cref="Dano(TipoDeAtaque, ParcelasDeDano, int)"/> com
+        /// <see cref="ParcelasDeDano.SemArma"/>.
         /// </summary>
-        public static int Dano(TipoDeAtaque tipo, int forca, int passo = 0)
+        public static int Dano(TipoDeAtaque tipo, int forca, int passo = 0) =>
+            Dano(tipo, ParcelasDeDano.SemArma(forca), passo);
+
+        /// <summary>
+        /// Dano do golpe em um alvo (combate.md, estrutura do dano com arma):
+        /// <c>dano-base da arma x (1 + % do personagem + % do equipamento) x multiplicador do
+        /// golpe</c>, arredondado. A Força do item e a do personagem são parcelas separadas. O dano
+        /// nunca é menor que 1.
+        /// </summary>
+        public static int Dano(TipoDeAtaque tipo, ParcelasDeDano parcelas, int passo = 0)
         {
-            double danoDaArma = DanoBaseDaEspada + DanoPorForca * Math.Max(0, forca);
+            double bonus =
+                1.0
+                + Math.Max(0.0, parcelas.PercentualPersonagem)
+                + Math.Max(0.0, parcelas.PercentualEquipamento);
             double dano = Math.Round(
-                danoDaArma * Multiplicador(tipo, passo),
+                Math.Max(0.0, parcelas.DanoBase) * bonus * Multiplicador(tipo, passo),
                 MidpointRounding.AwayFromZero
             );
             return (int)Math.Max(1.0, Math.Min(dano, int.MaxValue));

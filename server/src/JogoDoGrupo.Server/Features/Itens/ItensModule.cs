@@ -21,10 +21,13 @@ public sealed class ItensModule : IFeatureModule
         servicos.AddSingleton(configEquipamentos);
         servicos.AddSingleton<GeradorEquipamentos>();
         servicos.AddSingleton<AssinadorFusao>();
-        servicos.AddSingleton<
-            JogoDoGrupo.Server.Contratos.Itens.IBonusEquipamentos,
-            BonusEquipamentos
-        >();
+        servicos.AddSingleton<EquipamentosParaCombate>();
+        servicos.AddSingleton<JogoDoGrupo.Server.Contratos.Itens.IAtributosDosEquipamentos>(sp =>
+            sp.GetRequiredService<EquipamentosParaCombate>()
+        );
+        servicos.AddSingleton<JogoDoGrupo.Server.Contratos.Combate.IFonteDeModificadores>(sp =>
+            sp.GetRequiredService<EquipamentosParaCombate>()
+        );
         servicos.AddHostedService<MigradorDeEquipamentos>();
         servicos.AddSingleton<ISorteadorBau>(new SorteadorBau());
         servicos.AddSingleton<ISorteadorDeLoot>(new SorteadorDeLoot());
