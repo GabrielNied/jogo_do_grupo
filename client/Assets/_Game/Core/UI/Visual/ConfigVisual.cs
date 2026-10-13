@@ -91,6 +91,7 @@ namespace JogoDoGrupo.Client.Core.Visual
             public const int MenuEstreitoAltura = 180;
             public const int PainelEntrada = 560;
             public const int PainelLargo = 720;
+            public const int PainelSelecaoPersonagem = 1100;
             public const int Lista = 320;
             public const int Mensagem = 32;
             public const int Carregamento = 14;

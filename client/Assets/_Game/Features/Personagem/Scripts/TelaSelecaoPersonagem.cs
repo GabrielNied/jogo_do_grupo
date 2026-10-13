@@ -21,8 +21,14 @@ namespace JogoDoGrupo.Client.Features.Personagem
         private Label _subtitulo;
         private Label _carregando;
         private VisualElement _erro;
+        private VisualElement _corpo;
         private VisualElement _lista;
         private Label _vazio;
+        private Label _resumoNome;
+        private Label _resumoDetalhes;
+        private Image _imagem;
+        private Label _previsaoIndisponivel;
+        private PreviaVisualPersonagem _previsao;
         private Button _criar;
         private Button _entrar;
         private Label _avisoLimite;
@@ -37,6 +43,7 @@ namespace JogoDoGrupo.Client.Features.Personagem
 
             var painel = EstiloCore.CriarPainel(social: true);
             painel.AddToClassList(EstiloPersonagem.PainelSelecao);
+            painel.AddToClassList("personagem-painel-selecao-visual");
 
             var titulo = new Label("Personagens");
             titulo.AddToClassList(EstiloCore.Titulo);
@@ -52,7 +59,7 @@ namespace JogoDoGrupo.Client.Features.Personagem
             _lista = new VisualElement();
             _lista.AddToClassList(EstiloPersonagem.Lista);
 
-            _vazio = new Label("Você ainda não tem personagens. Crie o primeiro!");
+            _vazio = new Label("Sua jornada começa com um personagem. Crie o primeiro.");
             _vazio.AddToClassList(EstiloCore.Texto);
 
             _criar = new Button(AoClicarCriar) { text = "Criar" };
@@ -65,12 +72,6 @@ namespace JogoDoGrupo.Client.Features.Personagem
             var sair = new Button(AoClicarSair) { text = "Sair" };
             sair.AddToClassList(EstiloCore.Botao);
 
-            var linha = new VisualElement();
-            linha.AddToClassList(EstiloCore.LinhaBotoes);
-            linha.Add(_criar);
-            linha.Add(_entrar);
-            linha.Add(sair);
-
             // Aviso fixo enquanto a conta estiver cheia; separado de _mensagem para não sumir
             // quando outra mensagem (ex.: Entrar) é mostrada ou limpa.
             _avisoLimite = new Label(TextosPersonagem.LimiteAtingido);
@@ -80,21 +81,71 @@ namespace JogoDoGrupo.Client.Features.Personagem
             _mensagem = new Label();
             _mensagem.AddToClassList(EstiloCore.Mensagem);
 
+            var vagas = new VisualElement();
+            vagas.AddToClassList("personagem-selecao-vagas");
+            var tituloVagas = new Label("Seus personagens");
+            tituloVagas.AddToClassList(EstiloCore.Subtitulo);
+            vagas.Add(tituloVagas);
+            vagas.Add(_lista);
+            vagas.Add(_criar);
+            vagas.Add(_avisoLimite);
+
+            var centro = new VisualElement();
+            centro.AddToClassList("personagem-selecao-centro");
+            var tituloPrevia = new Label("Visual do personagem");
+            tituloPrevia.AddToClassList(EstiloCore.Subtitulo);
+            centro.Add(tituloPrevia);
+            _imagem = new Image { scaleMode = ScaleMode.ScaleToFit };
+            _imagem.AddToClassList("personagem-selecao-imagem");
+            centro.Add(_imagem);
+            _previsaoIndisponivel = new Label("Escolha um personagem");
+            _previsaoIndisponivel.AddToClassList(EstiloCore.Mensagem);
+            centro.Add(_previsaoIndisponivel);
+
+            var resumo = new VisualElement();
+            resumo.AddToClassList("personagem-selecao-resumo");
+            var tituloResumo = new Label("Sua jornada");
+            tituloResumo.AddToClassList(EstiloCore.Subtitulo);
+            resumo.Add(tituloResumo);
+            _resumoNome = new Label();
+            _resumoNome.AddToClassList(EstiloPersonagem.ItemNome);
+            resumo.Add(_resumoNome);
+            _resumoDetalhes = new Label();
+            _resumoDetalhes.AddToClassList(EstiloPersonagem.ItemDetalhes);
+            resumo.Add(_resumoDetalhes);
+            resumo.Add(_vazio);
+            resumo.Add(_entrar);
+            resumo.Add(_mensagem);
+
+            _corpo = new VisualElement();
+            _corpo.AddToClassList("personagem-selecao-corpo");
+            _corpo.Add(vagas);
+            _corpo.Add(centro);
+            _corpo.Add(resumo);
+
+            var rodape = new VisualElement();
+            rodape.AddToClassList("personagem-selecao-rodape");
+            rodape.Add(sair);
+
             painel.Add(titulo);
             painel.Add(_subtitulo);
             painel.Add(_carregando);
             painel.Add(_erro);
-            painel.Add(_lista);
-            painel.Add(_vazio);
-            painel.Add(linha);
-            painel.Add(_avisoLimite);
-            painel.Add(_mensagem);
+            painel.Add(_corpo);
+            painel.Add(rodape);
             raiz.Add(painel);
         }
 
         protected override void AoAbrir()
         {
             Carregar();
+        }
+
+        protected override void AoFechar()
+        {
+            _imagem.image = null;
+            _previsao?.Dispose();
+            _previsao = null;
         }
 
         private VisualElement MontarErro()
@@ -172,11 +223,7 @@ namespace JogoDoGrupo.Client.Features.Personagem
             _subtitulo.text = "";
             EstiloPersonagem.Mostrar(_carregando, true);
             EstiloPersonagem.Mostrar(_erro, false);
-            EstiloPersonagem.Mostrar(_lista, false);
-            EstiloPersonagem.Mostrar(_vazio, false);
-            EstiloPersonagem.Mostrar(_criar, false);
-            EstiloPersonagem.Mostrar(_entrar, false);
-            EstiloPersonagem.Mostrar(_avisoLimite, false);
+            EstiloPersonagem.Mostrar(_corpo, false);
             MostrarMensagem(null);
         }
 
@@ -185,11 +232,7 @@ namespace JogoDoGrupo.Client.Features.Personagem
             _subtitulo.text = "";
             EstiloPersonagem.Mostrar(_carregando, false);
             EstiloPersonagem.Mostrar(_erro, true);
-            EstiloPersonagem.Mostrar(_lista, false);
-            EstiloPersonagem.Mostrar(_vazio, false);
-            EstiloPersonagem.Mostrar(_criar, false);
-            EstiloPersonagem.Mostrar(_entrar, false);
-            EstiloPersonagem.Mostrar(_avisoLimite, false);
+            EstiloPersonagem.Mostrar(_corpo, false);
             MostrarMensagem(null);
         }
 
@@ -218,13 +261,25 @@ namespace JogoDoGrupo.Client.Features.Personagem
                 _lista.Add(item);
             }
 
+            for (
+                var indice = _personagens.Count;
+                indice < RegrasPersonagem.MaximoPorConta;
+                indice++
+            )
+            {
+                var vaga = new Label($"Vaga {indice + 1} · Livre");
+                vaga.AddToClassList("personagem-vaga-livre");
+                _lista.Add(vaga);
+            }
+
             var vazia = _personagens.Count == 0;
-            _subtitulo.text = vazia ? "" : "Escolha um personagem";
+            _subtitulo.text = vazia
+                ? "Crie seu primeiro personagem"
+                : "Escolha quem vai entrar no mundo";
             EstiloPersonagem.Mostrar(_carregando, false);
             EstiloPersonagem.Mostrar(_erro, false);
-            EstiloPersonagem.Mostrar(_lista, !vazia);
+            EstiloPersonagem.Mostrar(_corpo, true);
             EstiloPersonagem.Mostrar(_vazio, vazia);
-            EstiloPersonagem.Mostrar(_criar, true);
             EstiloPersonagem.Mostrar(_entrar, !vazia);
 
             // O servidor garante o limite; aqui só evita um clique que seria recusado.
@@ -291,6 +346,34 @@ namespace JogoDoGrupo.Client.Features.Personagem
             }
 
             _entrar.SetEnabled(id.HasValue);
+            PersonagemResumo escolhido = null;
+            foreach (var personagem in _personagens)
+            {
+                if (personagem.Id == id)
+                {
+                    escolhido = personagem;
+                    break;
+                }
+            }
+
+            _resumoNome.text = escolhido?.Nome ?? "Nenhum personagem";
+            _resumoDetalhes.text =
+                escolhido == null
+                    ? ""
+                    : $"{TextosPersonagem.NomeDaRaca(escolhido.Raca)} · Nível {escolhido.Nivel}";
+            if (escolhido == null)
+            {
+                _imagem.image = null;
+                _previsaoIndisponivel.text = "Crie um personagem para ver seu visual";
+                EstiloPersonagem.Mostrar(_previsaoIndisponivel, true);
+                return;
+            }
+
+            _previsao ??= new PreviaVisualPersonagem();
+            var disponivel = _previsao.Mostrar(escolhido.Raca);
+            _imagem.image = disponivel ? _previsao.Textura : null;
+            _previsaoIndisponivel.text = disponivel ? "" : "Visual indisponível neste momento";
+            EstiloPersonagem.Mostrar(_previsaoIndisponivel, !disponivel);
         }
 
         private void AoClicarCriar()

@@ -74,6 +74,7 @@
     --lumora-dimensoes-menu-estreito-altura: 180px;
     --lumora-dimensoes-painel-entrada: 560px;
     --lumora-dimensoes-painel-largo: 720px;
+    --lumora-dimensoes-painel-selecao-personagem: 1100px;
     --lumora-dimensoes-lista: 320px;
     --lumora-dimensoes-mensagem: 32px;
     --lumora-dimensoes-carregamento: 14px;

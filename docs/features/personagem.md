@@ -27,6 +27,7 @@ Decidido pelo grupo em 2026-10-10. É **provisório**: serve para implementar a 
 - ~~**Uma raça provisória: Humano**, até o grupo definir as raças definitivas.~~ substituído em 2026-10-11 por: **cinco raças jogáveis** (veja [Raças](#raças-propostas-no-board-2026-10-11) e [Raça](#raça)), a pedido do Gabriel; o antigo Humano (valor 1) virou **Valdren**.
 - O personagem começa no **nível 1**.
 - Fluxo de entrada: abertura → login (ou registro) → seleção de personagem → criação → volta para a seleção. ~~"Entrar" ainda não leva a um mundo.~~ substituído em 2026-10-11 por: "Entrar" leva ao mundo (veja [Fluxo de entrada no jogo](#fluxo-de-entrada-no-jogo)).
+- A seleção mostra quatro vagas na ordem recebida, destaca a escolhida e usa o prefab real da raça como prévia 3D. O nome, a raça e o nível aparecem no resumo ao lado de **Entrar**; vaga livre não imita um personagem. Em largura compacta, lista, prévia e resumo se empilham no painel rolável. A prévia representa a raça, pois ainda não existe personalização de aparência.
 - Comunicação pela API HTTP do [ADR 0009](../decisoes/0009-api-http-para-conta-e-personagens.md) (veja [Expõe](#expõe)).
 - O **servidor decide**: valida o nome, a unicidade, a raça e o limite de 4. O client só confere o formato do nome para dar retorno rápido.
 
