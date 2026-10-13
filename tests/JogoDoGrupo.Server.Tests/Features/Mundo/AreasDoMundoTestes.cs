@@ -88,8 +88,8 @@ public class AreasDoMundoTestes(TempoRealFixture f) : IClassFixture<TempoRealFix
         Assert.DoesNotContain(MundoMessageIds.PosicaoJogador, c.IdsRecebidos);
 
         Assert.True(transicoes.TentarMoverParaArea(idA, Destino(AreasDoMundo.Cidade)));
-        var volta = await a.ReceberAsync<EstadoDaArea>(MundoMessageIds.EstadoDaArea);
-        Assert.Equal(AreasDoMundo.Cidade, volta.Area);
+        var volta = await a.ReceberAsync<EstadoDaCidade>(MundoMessageIds.EstadoDaCidade);
+        Assert.Equal(idA, volta.Eu.PersonagemId);
         Assert.Equal(
             idA,
             (await b.ReceberAsync<JogadorSaiu>(MundoMessageIds.JogadorSaiu)).PersonagemId
