@@ -153,6 +153,57 @@
     min-width: 0;
 }
 
+.personagem-painel-criacao-visual {
+    width: var(--lumora-dimensoes-painel-selecao-personagem);
+}
+
+.personagem-criacao-corpo .personagem-criacao-escolhas {
+    width: 29%;
+    min-width: 0;
+    margin-right: 0;
+    padding-right: var(--lumora-espacamento-medio);
+}
+
+.personagem-criacao-centro {
+    width: 40%;
+    min-width: 0;
+    padding-right: var(--lumora-espacamento-medio);
+}
+
+.personagem-criacao-corpo .personagem-criacao-informacoes {
+    width: 31%;
+    min-width: 0;
+    flex-grow: 0;
+}
+
+.personagem-criacao-corpo .subtitulo {
+    -unity-text-align: middle-left;
+    margin-bottom: var(--lumora-espacamento-medio);
+}
+
+.personagem-criacao-informacoes > .botao {
+    margin: var(--lumora-espacamento-pequeno) 0 0;
+}
+
+.personagem-criacao-erro-nome {
+    -unity-text-align: middle-left;
+    margin-top: 0;
+    margin-bottom: var(--lumora-espacamento-medio);
+}
+
+.lumora-compacto .personagem-criacao-corpo {
+    flex-direction: column;
+}
+
+.lumora-compacto .personagem-criacao-escolhas,
+.lumora-compacto .personagem-criacao-centro,
+.lumora-compacto .personagem-criacao-informacoes {
+    width: 100%;
+    margin-right: 0;
+    padding-right: 0;
+    margin-bottom: var(--lumora-espacamento-padrao);
+}
+
 .personagem-lista-racas {
     width: var(--lumora-dimensoes-item);
     margin-right: var(--lumora-espacamento-medio);
