@@ -159,7 +159,7 @@ public sealed class RecursosEmMemoria : IHostedService, IDisposable
 
             return new InicioDoAtaque(
                 null,
-                custo > 0 ? Estado(recursos, entrada.Maximos) : null,
+                custo > 0 ? Estado(recursos, entrada.Maximos, entrada.Valores!) : null,
                 entrada.Dano!
             );
         }
@@ -197,7 +197,7 @@ public sealed class RecursosEmMemoria : IHostedService, IDisposable
                 entrada.Sujo = true;
             }
 
-            return (bloqueou, gasto, Estado(recursos, entrada.Maximos));
+            return (bloqueou, gasto, Estado(recursos, entrada.Maximos, entrada.Valores!));
         }
         finally
         {
@@ -226,7 +226,7 @@ public sealed class RecursosEmMemoria : IHostedService, IDisposable
             recursos.UltimoGastoStaminaEm = agora;
             recursos.StaminaContadaAte = agora;
             entrada.Sujo = true;
-            return Estado(recursos, entrada.Maximos);
+            return Estado(recursos, entrada.Maximos, entrada.Valores!);
         }
         finally
         {
@@ -248,7 +248,7 @@ public sealed class RecursosEmMemoria : IHostedService, IDisposable
             var recursos = Regenerado(entrada);
             recursos.Vida = Math.Max(0, recursos.Vida - dano);
             entrada.Sujo = true;
-            return Estado(recursos, entrada.Maximos);
+            return Estado(recursos, entrada.Maximos, entrada.Valores!);
         }
         finally
         {
@@ -274,7 +274,7 @@ public sealed class RecursosEmMemoria : IHostedService, IDisposable
             recursos.ManaContadaAte = agora;
             entrada.VidaContadaAte = agora;
             entrada.Sujo = true;
-            return Estado(recursos, entrada.Maximos);
+            return Estado(recursos, entrada.Maximos, entrada.Valores!);
         }
         finally
         {
@@ -297,7 +297,7 @@ public sealed class RecursosEmMemoria : IHostedService, IDisposable
             entrada.AtributosEm = null;
             var atributos = await AtributosDaEntradaAsync(entrada, cancelamento);
             var recursos = Regenerado(entrada);
-            var estado = Estado(recursos, entrada.Maximos);
+            var estado = Estado(recursos, entrada.Maximos, entrada.Valores!);
             return new RecursosResponse
             {
                 VidaAtual = estado.VidaAtual,
@@ -424,7 +424,11 @@ public sealed class RecursosEmMemoria : IHostedService, IDisposable
         return recursos;
     }
 
-    private static RecursosMudaram Estado(RecursosPersonagem r, MaximosDeRecursos maximos) =>
+    private static RecursosMudaram Estado(
+        RecursosPersonagem r,
+        MaximosDeRecursos maximos,
+        AtributosSecundarios secundarios
+    ) =>
         new()
         {
             VidaAtual = r.Vida,
@@ -433,6 +437,7 @@ public sealed class RecursosEmMemoria : IHostedService, IDisposable
             StaminaMaxima = maximos.Stamina,
             ManaAtual = r.Mana,
             ManaMaxima = maximos.Mana,
+            RegeneracaoStamina = secundarios.RegeneracaoStamina,
         };
 
     // Com a trava da entrada na mão: atributos guardados, ou lidos de novo se venceram. Na

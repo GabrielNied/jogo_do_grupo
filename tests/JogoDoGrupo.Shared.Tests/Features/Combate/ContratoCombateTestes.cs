@@ -141,5 +141,6 @@ public class ContratoCombateTestes
         Assert.Equal(0, msg.StaminaMaxima);
         Assert.Equal(0, msg.ManaAtual);
         Assert.Equal(0, msg.ManaMaxima);
+        Assert.Equal(0, msg.RegeneracaoStamina);
     }
 }
