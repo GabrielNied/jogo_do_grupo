@@ -144,5 +144,24 @@ namespace JogoDoGrupo.Client.Features.Personagem
                 + progresso.XpDoNivel
                 + " XP";
         }
+
+        public static string TextoDaBarraNoHud(EstadoDeProgresso progresso, bool noMaximo)
+        {
+            if (noMaximo)
+            {
+                return "Nível " + progresso.Nivel + "  ·  " + NivelMaximo;
+            }
+
+            return "Nível "
+                + progresso.Nivel
+                + "  ·  "
+                + progresso.XpAtual
+                + " / "
+                + progresso.XpDoNivel;
+        }
+
+        public static string AvisoSubiuDeNivel(int nivel) => "Subiu para o nível " + nivel + ".";
+
+        public const string NivelMaximo = "Nível máximo";
     }
 }

@@ -111,3 +111,34 @@
     width: 100%;
     margin-right: 0;
 }
+
+.personagem-hud-barra-xp {
+    width: var(--lumora-dimensoes-recursos-largura);
+    max-width: var(--lumora-dimensoes-dialogo-percentual);
+    margin-bottom: var(--lumora-espacamento-pequeno);
+}
+
+.personagem-hud-barra-xp-rotulo {
+    margin-bottom: var(--lumora-espacamento-curto);
+    font-size: var(--lumora-tipografia-leitura);
+    color: var(--lumora-cores-marfim);
+    -unity-text-align: middle-left;
+}
+
+.personagem-hud-barra-xp-trilho {
+    min-height: var(--lumora-dimensoes-barra);
+    background-color: var(--lumora-cores-trilho);
+    border-width: var(--lumora-bordas-fina);
+    border-color: var(--lumora-cores-borda-discreta);
+    border-radius: var(--lumora-bordas-raio-campo);
+    overflow: hidden;
+}
+
+.personagem-hud-barra-xp-preenchimento {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 0;
+    background-color: var(--lumora-cores-essencia);
+}
