@@ -93,6 +93,11 @@ public sealed class ServicoDeInimigos(
                 tempoReal.Enviar(sessao, MobsMessageIds.InimigoPreparaAtaque, preparo);
             }
 
+            foreach (var acerto in passo.Acertos)
+            {
+                tempoReal.Enviar(sessao, MobsMessageIds.InimigoAcertou, acerto);
+            }
+
             foreach (var morte in passo.Mortes)
             {
                 tempoReal.Enviar(sessao, MobsMessageIds.InimigoMorreu, morte);

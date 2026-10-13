@@ -24,5 +24,8 @@ namespace JogoDoGrupo.Shared.Features.Mobs
 
         /// <summary>Servidor → quem está na área: um boss ficou exposto a mais dano.</summary>
         public const ushort InimigoExposto = 11005;
+
+        /// <summary>Servidor → quem está na área: o golpe de um inimigo comum encostou em alguém.</summary>
+        public const ushort InimigoAcertou = 11006;
     }
 }

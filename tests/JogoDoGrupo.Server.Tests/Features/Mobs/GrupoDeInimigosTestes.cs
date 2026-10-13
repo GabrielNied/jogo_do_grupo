@@ -265,16 +265,13 @@ public class GrupoDeInimigosTestes
         Assert.Equal(EstadoDeInimigo.Ataque, inimigo.Estado);
         Assert.Equal(inimigo.InimigoId, aviso.InimigoId);
         Assert.Equal(RegrasInimigo.PreparoDoAtaqueMs, aviso.PreparoMs);
-        Assert.Equal(RegrasInimigo.RaioDoGolpeMetros, aviso.Raio, 3);
         Assert.Equal(0.0, aviso.DirecaoY, 3);
-        Assert.Equal(0.0, aviso.CentroX, 3);
-        Assert.Equal(inimigo.Z + RegrasInimigo.DistanciaDoGolpeMetros, aviso.CentroZ, 3);
         Assert.True(RegrasInimigo.NoAlcanceDeAtaque(14 - inimigo.Z));
         Assert.Equal(TipoDeAtaqueDeInimigo.Golpe, aviso.Tipo);
-        var area = Assert.Single(aviso.Areas);
-        Assert.Equal(aviso.CentroX, area.CentroX);
-        Assert.Equal(aviso.CentroZ, area.CentroZ);
-        Assert.Equal(aviso.Raio, area.Raio);
+
+        // O golpe comum não manda área no chão.
+        Assert.Empty(aviso.Areas);
+        Assert.Equal(0f, aviso.Raio);
 
         // Durante o aviso ainda não há dano.
         var durante = campo.Avancar(RegrasInimigo.PreparoDoAtaqueSegundos - 0.1);
@@ -291,6 +288,88 @@ public class GrupoDeInimigosTestes
         Assert.All(depois, p => Assert.Empty(p.Golpes));
         Assert.All(depois, p => Assert.Empty(p.Preparos));
         Assert.Equal(EstadoDeInimigo.Ataque, campo.Unico.Estado);
+    }
+
+    [Fact]
+    public void O_inimigo_da_um_passo_durante_o_preparo_e_acerta_de_onde_parou()
+    {
+        var campo = new Campo();
+        campo.Por(Jogador, 0, 14);
+        campo.Ate(p => p.Preparos.Count > 0, 6);
+        var zAntes = campo.Unico.Z;
+
+        campo.Avancar(RegrasInimigo.PreparoDoAtaqueSegundos - 0.1);
+        var meio = campo.Unico.Z;
+        Assert.InRange(meio - zAntes, 0.1, RegrasInimigo.PassoDoGolpeMetros);
+
+        var golpe = Assert.Single(campo.Passo().Golpes);
+        Assert.Equal(Jogador, golpe.PersonagemId);
+        Assert.InRange(
+            campo.Unico.Z - zAntes,
+            RegrasInimigo.PassoDoGolpeMetros - 0.01,
+            RegrasInimigo.PassoDoGolpeMetros + 0.01
+        );
+    }
+
+    [Fact]
+    public void Quem_saiu_da_frente_do_corpo_no_fim_do_preparo_nao_leva()
+    {
+        var campo = new Campo();
+        campo.Por(Jogador, 0, 14);
+        campo.Ate(p => p.Preparos.Count > 0, 6);
+
+        // Passa para as costas dele: perto, mas fora do cone travado.
+        campo.Por(Jogador, 0, campo.Unico.Z - 0.5);
+
+        var passos = campo.Avancar(RegrasInimigo.PreparoDoAtaqueSegundos + 0.3);
+        Assert.All(passos, p => Assert.Empty(p.Golpes));
+        Assert.All(passos, p => Assert.Empty(p.Acertos));
+    }
+
+    [Fact]
+    public void Quem_fica_a_frente_leva_e_o_servidor_avisa_o_acerto_para_a_pose()
+    {
+        var campo = new Campo();
+        campo.Por(Jogador, 0, 14);
+        campo.Ate(p => p.Preparos.Count > 0, 6);
+
+        var passo = campo.Avancar(RegrasInimigo.PreparoDoAtaqueSegundos + 0.2);
+        var acerto = Assert.Single(passo.SelectMany(p => p.Acertos));
+        Assert.Equal(campo.Unico.InimigoId, acerto.InimigoId);
+        Assert.Equal(Jogador, acerto.AlvoId);
+    }
+
+    [Fact]
+    public void O_passo_para_antes_de_chegar_perto_demais_de_outro_inimigo()
+    {
+        // Um vizinho a 1,3 m à frente: só cabem 0,1 m antes dos 1,2 m de separação.
+        var livre = PassoDoGolpe.Livre(
+            0,
+            0,
+            0.0,
+            (deX, deZ, x, z) => PassoDoGolpe.RespeitaVizinho(deX, deZ, x, z, 0, 1.3)
+        );
+        Assert.Equal(0.1, livre, 3);
+
+        // Sem ninguém, o passo inteiro.
+        Assert.Equal(
+            RegrasInimigo.PassoDoGolpeMetros,
+            PassoDoGolpe.Livre(0, 0, 0.0, (_, _, _, _) => true),
+            3
+        );
+        // Quem já está perto demais pode se afastar, mas não se aproximar.
+        Assert.True(PassoDoGolpe.RespeitaVizinho(0, 0, 0, -0.1, 0, 0.5));
+        Assert.False(PassoDoGolpe.RespeitaVizinho(0, 0, 0, 0.1, 0, 0.5));
+    }
+
+    [Fact]
+    public void O_passo_para_antes_da_parede()
+    {
+        // Parede em z = 0,45 (a borda da cidade): o passo para antes dela.
+        var livre = PassoDoGolpe.Livre(0, 0, 0.0, (_, _, _, z) => z < 0.45);
+        Assert.Equal(0.4, livre, 3);
+        // Parede colada: nenhum passo.
+        Assert.Equal(0.0, PassoDoGolpe.Livre(0, 0, 0.0, (_, _, _, _) => false), 3);
     }
 
     [Fact]
@@ -321,16 +400,17 @@ public class GrupoDeInimigosTestes
     }
 
     [Fact]
-    public void O_golpe_pega_todos_que_estao_na_area_e_a_area_nao_segue_o_alvo()
+    public void O_golpe_pega_todos_que_estao_no_cone_e_a_direcao_nao_segue_o_alvo()
     {
         var campo = new Campo();
         campo.Por(Jogador, 0, 14);
-        var aviso = Assert.Single(campo.Ate(p => p.Preparos.Count > 0, 6).Preparos);
+        campo.Ate(p => p.Preparos.Count > 0, 6);
+        var inimigo = campo.Unico;
 
-        // O alvo sai; outros dois entram no círculo que foi avisado.
+        // O alvo sai; outros dois ficam à frente do corpo, na direção que foi travada (+Z).
         campo.Por(Jogador, 5, 14);
-        campo.Por(20, aviso.CentroX, aviso.CentroZ);
-        campo.Por(10, aviso.CentroX + 1.0, aviso.CentroZ);
+        campo.Por(20, inimigo.X, inimigo.Z + 1.5);
+        campo.Por(10, inimigo.X + 0.3, inimigo.Z + 1.5);
 
         var golpes = campo.Ate(p => p.Golpes.Count > 0, 2).Golpes;
 

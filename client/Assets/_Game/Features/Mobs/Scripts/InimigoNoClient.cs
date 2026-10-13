@@ -78,6 +78,9 @@ namespace JogoDoGrupo.Client.Features.Mobs
         /// <summary>Quantos avisos de golpe já chegaram; cada um dispara a animação uma vez.</summary>
         public int GolpesPreparados { get; set; }
 
+        /// <summary>Duração do preparo do último golpe, em segundos (zero antes do primeiro).</summary>
+        public float PreparoDoGolpeSegundos { get; set; }
+
         /// <summary>Decide andar e atacar do modelo.</summary>
         public AnimacaoDoInimigo Animacao { get; } = new AnimacaoDoInimigo();
 

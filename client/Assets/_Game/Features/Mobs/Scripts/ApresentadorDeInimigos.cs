@@ -57,6 +57,13 @@ namespace JogoDoGrupo.Client.Features.Mobs
 
         private readonly Dictionary<long, float> _reacoes = new Dictionary<long, float>();
 
+        // Pose segurada no acerto: quanto falta (s) para soltar o inimigo que bateu.
+        private readonly Dictionary<long, float> _poses = new Dictionary<long, float>();
+
+        // Velocidade do clipe de ataque de cada inimigo, para o contato cair no fim do preparo.
+        private readonly Dictionary<long, float> _velocidadesDoGolpe =
+            new Dictionary<long, float>();
+
         private PainelDeInimigos _painel;
 
         public void Configurar(PainelDeInimigos painel)
@@ -83,6 +90,9 @@ namespace JogoDoGrupo.Client.Features.Mobs
                     MobsMessageIds.InimigoPreparaAtaque,
                     AoPrepararAtaque
                 )
+            );
+            _assinaturas.Add(
+                ConexaoTempoReal.Assinar<InimigoAcertou>(MobsMessageIds.InimigoAcertou, AoAcertar)
             );
             _assinaturas.Add(
                 ConexaoTempoReal.Assinar<InimigoMorreu>(MobsMessageIds.InimigoMorreu, AoMorrer)
@@ -148,7 +158,14 @@ namespace JogoDoGrupo.Client.Features.Mobs
                         if (inimigo.Animacao.DisparouAtaque)
                         {
                             animador.SetTrigger(GatilhoDeAtaque);
+                            _velocidadesDoGolpe[inimigo.InimigoId] =
+                                AnimacaoDoInimigo.VelocidadeDoClipe(
+                                    DuracaoDoClipeDeAtaque(animador),
+                                    inimigo.PreparoDoGolpeSegundos
+                                );
                         }
+
+                        animador.speed = VelocidadeDoAnimator(inimigo);
                     }
                 }
             }
@@ -186,6 +203,65 @@ namespace JogoDoGrupo.Client.Features.Mobs
         }
 
         private void AoMudar(InimigoMudou mensagem) => _registro.Mudar(mensagem);
+
+        /// <summary>
+        /// O golpe encostou: o inimigo que bateu segura a pose por um instante (a sensação de
+        /// contato). Só visual; o relógio do servidor não para. A pose de quem levou é do Combate.
+        /// </summary>
+        private void AoAcertar(InimigoAcertou mensagem)
+        {
+            if (mensagem != null && _animadores.ContainsKey(mensagem.InimigoId))
+            {
+                _poses[mensagem.InimigoId] = RegrasReacao.PausaVisualNoAcertoMs / 1000f;
+            }
+        }
+
+        // 0 enquanto a pose está segurada; no golpe, a do clipe; fora dele, a normal.
+        private float VelocidadeDoAnimator(InimigoNoClient inimigo)
+        {
+            if (_poses.TryGetValue(inimigo.InimigoId, out var restante))
+            {
+                restante -= Time.unscaledDeltaTime;
+                if (restante > 0f)
+                {
+                    _poses[inimigo.InimigoId] = restante;
+                    return 0f;
+                }
+
+                _poses.Remove(inimigo.InimigoId);
+            }
+
+            if (
+                inimigo.Estado == EstadoDeInimigo.Ataque
+                && _velocidadesDoGolpe.TryGetValue(inimigo.InimigoId, out var velocidade)
+            )
+            {
+                return velocidade;
+            }
+
+            return 1f;
+        }
+
+        // Duração do clipe de ataque do modelo; zero se o controlador não tem um (velocidade 1).
+        private static float DuracaoDoClipeDeAtaque(Animator animador)
+        {
+            var controlador = animador.runtimeAnimatorController;
+            if (controlador == null)
+            {
+                return 0f;
+            }
+
+            foreach (var clipe in controlador.animationClips)
+            {
+                var nome = clipe.name.ToLowerInvariant();
+                if (nome.Contains("atacar") || nome.Contains("attack"))
+                {
+                    return clipe.length;
+                }
+            }
+
+            return 0f;
+        }
 
         private void AoPrepararAtaque(InimigoPreparaAtaque mensagem) =>
             _registro.PrepararAtaque(mensagem);
@@ -244,6 +320,8 @@ namespace JogoDoGrupo.Client.Features.Mobs
             if (restante <= 0f)
             {
                 _reacoes.Remove(inimigoId);
+                _poses.Remove(inimigoId);
+                _velocidadesDoGolpe.Remove(inimigoId);
                 return escalaBase;
             }
 
@@ -263,6 +341,8 @@ namespace JogoDoGrupo.Client.Features.Mobs
             _visuais.Remove(inimigo.InimigoId);
             _animadores.Remove(inimigo.InimigoId);
             _reacoes.Remove(inimigo.InimigoId);
+            _poses.Remove(inimigo.InimigoId);
+            _velocidadesDoGolpe.Remove(inimigo.InimigoId);
             if (visual == null)
             {
                 return;
@@ -284,6 +364,8 @@ namespace JogoDoGrupo.Client.Features.Mobs
                 _visuais.Remove(inimigoId);
                 _animadores.Remove(inimigoId);
                 _reacoes.Remove(inimigoId);
+                _poses.Remove(inimigoId);
+                _velocidadesDoGolpe.Remove(inimigoId);
                 if (visual != null)
                 {
                     Destroy(visual);
