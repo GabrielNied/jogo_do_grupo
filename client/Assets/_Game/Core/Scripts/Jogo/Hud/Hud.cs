@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using JogoDoGrupo.Client.Core.UI;
+using JogoDoGrupo.Client.Core.Visual;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -84,6 +85,10 @@ namespace JogoDoGrupo.Client.Core.Jogo
                 _raiz.Add(elemento);
             }
 
+            // Chat acompanha a altura real das barras e da XP, inclusive com texto ampliado.
+            _regioes[RegiaoDoHud.InferiorEsquerda]
+                .RegisterCallback<GeometryChangedEvent>(AoMudarAlturaDoStatus);
+
             var lista = new ListaDeAvisos(relogio ?? (() => Time.realtimeSinceStartupAsDouble));
             _avisos = new PainelDeAvisos(_regioes[RegiaoDoHud.InferiorCentro], lista);
             _raiz.schedule.Execute(_avisos.Atualizar).Every(IntervaloAtualizacaoMs);
@@ -112,12 +117,25 @@ namespace JogoDoGrupo.Client.Core.Jogo
             return $"core.hud.{regiao}";
         }
 
+        private static void AoMudarAlturaDoStatus(GeometryChangedEvent evento)
+        {
+            if (_regioes.TryGetValue(RegiaoDoHud.Chat, out var chat))
+            {
+                chat.style.bottom =
+                    ConfigVisual.Dimensoes.Status
+                    + evento.newRect.height
+                    + ConfigVisual.Espacamento.Medio;
+            }
+        }
+
         internal static string ClasseDaRegiao(RegiaoDoHud regiao)
         {
             switch (regiao)
             {
                 case RegiaoDoHud.InferiorEsquerda:
                     return EstiloCore.HudInferiorEsquerda;
+                case RegiaoDoHud.Chat:
+                    return EstiloCore.HudChat;
                 case RegiaoDoHud.LateralEsquerda:
                     return EstiloCore.HudLateralEsquerda;
                 case RegiaoDoHud.TopoCentro:

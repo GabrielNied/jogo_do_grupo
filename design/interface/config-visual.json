@@ -74,6 +74,7 @@
     "LogoLargura": 210,
     "LogoAltura": 72,
     "ChatAltura": 160,
+    "HudChatBase": 246,
     "PranchaPercentual": 45,
     "DialogoPercentual": 90,
     "ComparacaoAltura": 300,

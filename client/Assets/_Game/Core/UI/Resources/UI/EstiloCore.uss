@@ -248,6 +248,16 @@
 .hud-inferior-esquerda {
     left: var(--lumora-espacamento-grande);
     bottom: var(--lumora-dimensoes-status);
+    width: var(--lumora-dimensoes-recursos-largura);
+    max-width: 42%;
+    align-items: flex-start;
+}
+
+.hud-chat {
+    left: var(--lumora-espacamento-grande);
+    bottom: var(--lumora-dimensoes-hud-chat-base);
+    width: var(--lumora-dimensoes-chat-largura);
+    max-width: 42%;
     align-items: flex-start;
 }
 
@@ -259,16 +269,18 @@
 }
 
 .hud-topo-centro {
-    left: 0;
-    right: 0;
+    left: calc(var(--lumora-dimensoes-minimapa) + var(--lumora-espacamento-grande));
+    right: calc(var(--lumora-dimensoes-minimapa) + var(--lumora-espacamento-grande));
     top: var(--lumora-espacamento-grande);
+    max-width: none;
     align-items: center;
 }
 
 .hud-centro-avisos {
-    left: 0;
-    right: 0;
+    left: calc(var(--lumora-dimensoes-minimapa) + var(--lumora-espacamento-grande));
+    right: calc(var(--lumora-dimensoes-minimapa) + var(--lumora-espacamento-grande));
     top: var(--lumora-dimensoes-avisos-topo);
+    max-width: none;
     align-items: center;
 }
 
@@ -325,7 +337,14 @@
 
 .lumora-estreito .hud-inferior-esquerda {
     left: var(--lumora-espacamento-pequeno);
-    right: var(--lumora-espacamento-pequeno);
+    width: var(--lumora-dimensoes-ferramentas);
+    max-width: 55%;
+}
+
+.lumora-estreito .hud-chat {
+    left: var(--lumora-espacamento-pequeno);
+    width: var(--lumora-dimensoes-ferramentas);
+    max-width: 55%;
 }
 
 .lumora-estreito .hud-superior-direita {
