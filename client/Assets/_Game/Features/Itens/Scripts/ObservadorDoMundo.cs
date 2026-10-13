@@ -2,6 +2,7 @@ using JogoDoGrupo.Client.Core.Jogo;
 using JogoDoGrupo.Client.Core.Jogo.Controle;
 using JogoDoGrupo.Client.Core.UI;
 using JogoDoGrupo.Client.Features.Itens.Loot;
+using JogoDoGrupo.Client.Features.Itens.Visual;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
@@ -37,6 +38,8 @@ namespace JogoDoGrupo.Client.Features.Itens
             var objeto = new GameObject(NomeObservador);
             DontDestroyOnLoad(objeto);
             _instancia = objeto.AddComponent<ObservadorDoMundo>();
+            objeto.AddComponent<ControleDoVisualEquipado>();
+            VisualEquipadoDoCliente.Iniciar();
 
             // O loot chega logo ao entrar, antes de o jogador existir: assina desde já.
             ServicoDeLoot.Iniciar();
@@ -48,6 +51,7 @@ namespace JogoDoGrupo.Client.Features.Itens
         {
             _instancia = null;
             ServicoDeLoot.Reiniciar();
+            VisualEquipadoDoCliente.Reiniciar();
         }
 
         private void Update()

@@ -21,5 +21,11 @@ namespace JogoDoGrupo.Shared.Features.Itens
 
         /// <summary>Servidor → o dono: o item expirou e saiu do chão.</summary>
         public const ushort LootSumiu = 7004;
+
+        /// <summary>
+        /// Servidor → a área: o visual equipado de um personagem (as armas e onde ficam). Vale o
+        /// estado inteiro; o client troca o que tinha.
+        /// </summary>
+        public const ushort VisualEquipado = 7005;
     }
 }
