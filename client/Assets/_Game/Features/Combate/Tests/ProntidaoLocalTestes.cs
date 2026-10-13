@@ -186,8 +186,9 @@ namespace JogoDoGrupo.Client.Features.Combate.Tests
                     }
                 );
 
-                Assert.AreEqual(65, prontidao.StaminaEm(agora + 1));
+                Assert.AreEqual(65, prontidao.StaminaEm(agora + 3));
 
+                var segundoRetratoEm = Time.unscaledTimeAsDouble;
                 controle.AplicarDoServidor(
                     new RecursosMudaram
                     {
@@ -197,7 +198,7 @@ namespace JogoDoGrupo.Client.Features.Combate.Tests
                     }
                 );
 
-                Assert.AreEqual(100, prontidao.StaminaEm(agora + 2));
+                Assert.AreEqual(100, prontidao.StaminaEm(segundoRetratoEm + 5));
             }
             finally
             {
