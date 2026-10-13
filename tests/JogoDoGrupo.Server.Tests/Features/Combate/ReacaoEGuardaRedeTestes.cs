@@ -131,6 +131,7 @@ public class ReacaoEGuardaRedeTestes(ServidorDeAtaque servidor) : IClassFixture<
         Assert.True(sobe.Segurando);
         var aoGuardar = await RecursosAsync(ana); // A previsão do client precisa saber da guarda.
         Assert.Equal(100, aoGuardar.StaminaAtual);
+        Assert.Equal(RegrasRecursos.RegeneracaoStaminaPorSegundo, aoGuardar.RegeneracaoStamina);
 
         Golpear(ana.Id, 30);
 

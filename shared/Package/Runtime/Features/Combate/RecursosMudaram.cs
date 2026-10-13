@@ -15,5 +15,6 @@ namespace JogoDoGrupo.Shared.Features.Combate
         public int StaminaMaxima = 0;
         public int ManaAtual = 0;
         public int ManaMaxima = 0;
+        public double RegeneracaoStamina = 0;
     }
 }
