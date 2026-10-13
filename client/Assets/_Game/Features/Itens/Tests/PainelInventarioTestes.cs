@@ -264,6 +264,53 @@ namespace JogoDoGrupo.Client.Features.Itens.Tests
             );
         }
 
+        [Test]
+        public void ComUmaAbaNaoMostraFaixaDeAbasETemTooltipNoCabecalho()
+        {
+            var raiz = NovaRaiz();
+            Montar(
+                raiz,
+                new EquipamentosResponse
+                {
+                    Capacidade = new CapacidadeBolsa { Abas = 1, CasasPorAba = 24 },
+                }
+            );
+
+            Assert.IsNull(raiz.Q<VisualElement>(className: EstiloItens.Abas));
+            Assert.AreEqual(
+                0,
+                raiz.Query<VisualElement>(className: EstiloItens.Aba).ToList().Count
+            );
+            var cabecalho = raiz.Q<VisualElement>("itens.bolsa")
+                .Q<VisualElement>(className: EstiloItens.CabecalhoSecao);
+            Assert.IsNotNull(cabecalho);
+            Assert.AreEqual("Itens que não estão equipados", cabecalho.tooltip);
+        }
+
+        [Test]
+        public void ComMaisDeUmaAbaMostraFaixaDeAbasComPrimeiraBolsaESeguintesAbaN()
+        {
+            var raiz = NovaRaiz();
+            Montar(
+                raiz,
+                new EquipamentosResponse
+                {
+                    Capacidade = new CapacidadeBolsa { Abas = 3, CasasPorAba = 24 },
+                }
+            );
+
+            var faixa = raiz.Q<VisualElement>(className: EstiloItens.Abas);
+            Assert.IsNotNull(faixa);
+            var botoes = raiz.Query<Button>(className: EstiloItens.Aba).ToList();
+            Assert.AreEqual(3, botoes.Count);
+            Assert.AreEqual("Bolsa", botoes[0].text);
+            Assert.AreEqual("Aba 2", botoes[1].text);
+            Assert.AreEqual("Aba 3", botoes[2].text);
+            Assert.IsTrue(botoes[0].ClassListContains(EstiloItens.AbaAtiva));
+            Assert.IsFalse(botoes[1].ClassListContains(EstiloItens.AbaAtiva));
+            Assert.IsFalse(botoes[2].ClassListContains(EstiloItens.AbaAtiva));
+        }
+
         private static Sprite IconeDe(VisualElement slot) =>
             slot.Q<VisualElement>(className: EstiloItens.Icone).style.backgroundImage.value.sprite;
 
