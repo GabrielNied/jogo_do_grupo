@@ -30,14 +30,14 @@ Os seis nomes estão em Definido, e o personagem pode aprender todos. O resto de
 | Lenhador | madeira comum e de eco, resina |
 | Minerador | ferro, quartzo, ferro estelar (veio raro atrai criaturas) |
 | Curtidor | couro cru, tiras, couro reforçado |
-| Ferreiro | lingotes em armas, escudos; peças comuns servem de doador de infusão |
-| Alquimista | energia arcana, óleo, essência de promoção |
+| Ferreiro | lingotes em armas, escudos; peças comuns servem de material de fusão |
+| Alquimista | energia arcana, óleo, ~~essência de promoção~~ (a promoção saiu em 2026-10-12) |
 | Cozinheiro | refeições que restauram saciedade e dão benefícios |
 
 - **Princípio:** materiais básicos continuam na cadeia de receitas; jogador novo e avançado contribuem para as mesmas metas.
-- **Receitas que atravessam níveis** (exemplos): couro reforçado, chapéu da aurora, poção de energia, essência de promoção (consumida ao promover raridade; veja [itens.md](itens.md#proposta-do-board-2026-10-11-não-validada)). Craft cria itens no nível 1.
+- **Receitas que atravessam níveis** (exemplos): couro reforçado, chapéu da aurora, poção de energia, ~~essência de promoção (consumida ao promover raridade)~~ (a promoção saiu em 2026-10-12; [itens](itens.md#modelo-de-itens-v2-documento-mestre-2026-10-12)). Craft cria itens no nível 1.
 - **Alimentação:** saciedade de 0 a 100; dano de 60% (vazia) a 100% (cheia), linear; perde 1/min fora de cidade (+1/min em combate), metade em área segura, nada desconectado. Três receitas de expedição (Caldo dos Errantes, Assado de Galhada, Ensopado da Fornalha) com buffs de 15 a 20 min. Valores do board.
-- **Forja (na cidade):** infundir, promover raridade, transferir skills e produzir equipamentos, conforme os requisitos da peça.
+- **Forja (na cidade):** ~~infundir, promover raridade, transferir skills~~ fundir (desde 2026-10-12, [fusão v2](itens.md#fusão); promoção e transferência de skill saíram) e produzir equipamentos, conforme os requisitos da peça. Desmontar não existe (DEC-005).
 
 ## Depende de
 

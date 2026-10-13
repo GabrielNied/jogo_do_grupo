@@ -8,6 +8,8 @@ FigJam (ideias livres) ──export──► figjam.md ──pauta──► vali
 
 - [figjam.md](figjam.md): cópia do board (gerada).
 - [validacao.md](validacao.md): pauta de validação, com as perguntas que o grupo precisa decidir a partir das ideias do board.
+- [documento-mestre.md](documento-mestre.md): documento mestre trazido por Gabriel em 2026-10-12 (base do modelo de itens v2). Escrito à mão, não é gerado; a tabela no topo diz onde cada parte vale.
+- [poderes-e-sets.md](poderes-e-sets.md): especificação de poderes lendários e sets, de Gabriel (2026-10-12). Também escrita à mão; a regra vale em [itens.md](../features/itens.md#poderes-e-sets).
 
 - **`figjam.md` é gerado:** não edite à mão. Para mudar uma ideia, mude no FigJam e exporte de novo.
 - **Ideias do brainstorm não são decisões.** Só viram regra quando o grupo valida e alguém leva para o `docs/features/<x>.md` da funcionalidade (em "Definido" ou "Em aberto").

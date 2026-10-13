@@ -31,6 +31,8 @@ Cada informação mora em um lugar só. Os outros documentos apontam para ele em
 | Responsabilidades, Unity sem conflito, uso de IA | [CONTRIBUTING.md](../CONTRIBUTING.md) |
 | Ideias do brainstorm (não validadas) | [brainstorm/figjam.md](brainstorm/figjam.md), gerado do FigJam |
 | Decisões de design em aberto (validação das ideias) | [brainstorm/validacao.md](brainstorm/validacao.md) |
+| Documento mestre de 2026-10-12 (entrada; as regras valem onde a tabela dele aponta) | [brainstorm/documento-mestre.md](brainstorm/documento-mestre.md) |
+| Especificação de poderes e sets de 2026-10-12 (entrada; a regra vale em itens.md) | [brainstorm/poderes-e-sets.md](brainstorm/poderes-e-sets.md) |
 | Regras de cada funcionalidade | [features/](features/) |
 | Padrão dos modelos 3D próprios e como gerá-los | [arte/padrao-de-modelos.md](arte/padrao-de-modelos.md) |
 | Jogar com o grupo com o servidor no PC de alguém | [hospedagem.md](hospedagem.md) |

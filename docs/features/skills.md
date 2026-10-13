@@ -12,6 +12,7 @@ Skills que vêm dos itens (sorteadas) e da raça, com custo e recarga.
 
 - Skills são as magias e habilidades ativas do personagem
 - **As skills estão nos itens, geradas aleatoriamente** (D3 da [validação de 2026-10-10](../brainstorm/validacao.md))
+- **A arma define as skills-base; as outras peças modificam essas skills** com poderes lendários e sets (decidido por Gabriel em 2026-10-12). Regras dos poderes e sets em [itens](itens.md#poderes-e-sets); a skill precisa ter categorias e propriedades explícitas para os poderes e a árvore de talentos se ligarem a ela.
 - A raça dá uma skill base
 - **A skill do item é a magia que o jogador usa** enquanto está com o item (decidido em 2026-10-10). Três tipos:
   - **ativa** (ativável): o jogador aperta para usar, tem custo e recarga;
@@ -27,7 +28,7 @@ Do "Livro de ideias de Asterra" ([seções 04 e 13](../brainstorm/figjam.md#04--
 
 ### Preparação de skills (proposta do board, 2026-10-11)
 
-- A skill continua **fixa no item** (sorteada na geração ou ajustada por fusão); o personagem não aprende a skill ao usar a arma. Sem o item equipado (inclusive no inventário, banco ou baú), a skill fica indisponível.
+- A skill continua **fixa no item** (sorteada na geração; ~~ou ajustada por fusão~~ desde 2026-10-12 a fusão preserva as skills do item principal, [itens](itens.md#invariantes)); o personagem não aprende a skill ao usar a arma. Sem o item equipado (inclusive no inventário, banco ou baú), a skill fica indisponível.
 - **Biblioteca** com todas as skills dos itens equipados (filtro por origem, elemento e função); o jogador arrasta para a barra.
 - **Orçamento de preparação:** 12 pontos iniciais, **+1 a cada 5 níveis** ([personagem.md](personagem.md#nível-atributos-e-rotina-proposta-do-board-2026-10-11)). Cada skill custa de **1 a 4 pontos**; reservado ao pôr na barra, devolvido ao tirar. É um custo diferente do vigor ou da energia gasto ao usar.
 - **Três abas de 8 posições**, todas dividindo o mesmo orçamento. Repetir a mesma skill em duas posições não duplica custo e **compartilha a recarga**.
@@ -74,9 +75,9 @@ Skills de utilidade que continuam no catálogo anterior (não fazem parte das 25
 - [ ] A skill pertence ao item equipado (trocou o item, perdeu a skill) ou o jogador aprende a skill do item?
 - [ ] Quantas skills ativas ao mesmo tempo? (New World: 3 por arma, com 2 armas)
 - [x] ~~Modelo da skill no item: sorteada e fixa, peça por peça ou encaixável?~~ Respondido em 2026-10-10: a skill do item é a magia que o jogador usa, e pode ser ativa, passiva ou buff (veja "Definido")
-- [ ] Quantas skills de cada tipo um item pode ter? Toda peça de equipamento pode ter skill, ou só algumas (arma, acessórios)?
-- [ ] Como funciona o sorteio: lista de skills por tipo de item, por região, por raridade?
-- [ ] A fusão mistura as skills dos itens?
+- [ ] Quantas skills de cada tipo um item pode ter? Toda peça de equipamento pode ter skill, ou só algumas (arma, acessórios)? **Em parte decidido por Gabriel em 2026-10-12:** a quantidade vem do **modelo-base** do item, não da raridade. Armas têm seus conjuntos de skills; armaduras e acessórios **modificam** essas skills com poderes próprios; item especial pode ter exceção declarada nos dados ([itens](itens.md#poderes-e-sets)). Os números por modelo continuam em aberto.
+- [ ] Como funciona o sorteio: lista de skills por tipo de item, por região? ~~Por raridade?~~ A raridade saiu em 2026-10-12 (tier pelos atributos, que não depende das skills; [itens](itens.md#tier)).
+- [x] ~~A fusão mistura as skills dos itens?~~ Decidido em 2026-10-12: não. A fusão muda um atributo e preserva as skills do item principal ([itens](itens.md#fusão)).
 - [ ] ~~Quantas magias por classe?~~ não há classes (D2)
 - [ ] Recurso usado (mana, energia, outro)?
 

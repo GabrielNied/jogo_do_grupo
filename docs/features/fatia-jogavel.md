@@ -12,6 +12,7 @@ Regras mínimas para jogar o [primeiro marco](../visao-geral.md#primeiro-marco-f
 
 Decidido pelo grupo em 2026-10-11 ([ADR 0030](../decisoes/0030-processo-v2-dono-da-funcionalidade.md)). Tarefa de jogo nova sai daqui, com no máximo 3 funcionalidades em andamento:
 
+0. **Prioridade alta: modelo de itens v2** (decidido por Gabriel em 2026-10-12): tier pelos atributos e fusão determinística até +10, nesta ordem: [#615](https://github.com/GabrielNied/jogo_do_grupo/issues/615) tier, [#616](https://github.com/GabrielNied/jogo_do_grupo/issues/616) fusão, [#617](https://github.com/GabrielNied/jogo_do_grupo/issues/617) materiais (épico [#619](https://github.com/GabrielNied/jogo_do_grupo/issues/619); regras em [itens](itens.md#modelo-de-itens-v2-documento-mestre-2026-10-12)). É o próximo trabalho de Itens, antes dos outros itens deste foco.
 1. **Mais mobs no mapa:** grupos de inimigos espalhados pela área, com respawn, para o jogador sempre ter o que enfrentar (seção 4 abaixo e [mobs](mobs.md)).
 2. **Combate mais refinado:** cadeia de leves e pesado no ritmo do New World, esquiva, telegrafia e resposta visual de acerto (seções 2 e 3 abaixo e [combate](combate.md)).
 3. **Progressão balanceada:** XP por mob e por nível que faça subir de nível num ritmo bom, e itens que melhoram de fato (seções 5 e 6 abaixo, [personagem](personagem.md) e [itens](itens.md)).
@@ -115,7 +116,7 @@ Quem decide: **servidor** (IA, alvo, dano, morte). Força **fixa**: o inimigo n�
 
 Quem decide: **servidor** (sorteio, dono, validação da coleta).
 
-- Ao morrer, o inimigo larga itens no chão da instância. São peças reais do catálogo de equipamentos: a raridade pesa pela origem do inimigo (comum, fortalecido, chefe raro, chefe) e o grau e o requisito vêm do nível dele. Tabela e meta de ritmo em [itens.md](itens.md#loot-dos-inimigos-493). O aviso de coleta mostra nome e raridade.
+- Ao morrer, o inimigo larga itens no chão da instância. São peças reais do catálogo de equipamentos: a raridade pesa pela origem do inimigo (comum, fortalecido, chefe raro, chefe) e o grau e o requisito vêm do nível dele. Tabela e meta de ritmo em [itens.md](itens.md#loot-dos-inimigos-493). O aviso de coleta mostra nome e raridade. A raridade vira tier calculado pelos atributos na [#615](https://github.com/GabrielNied/jogo_do_grupo/issues/615) ([itens](itens.md#tier)).
 - ~~**Dono do loot** (**proposta**): quem causou **mais dano real** àquele inimigo; empate vai ao primeiro atacante; dano contínuo conta para quem o causou. Resolve-se uma vez, na morte.~~ Substituído em 2026-10-11: **loot individual também no inimigo comum**; cada jogador que participou (o servidor define "participou") sorteia o próprio loot, no chão só para ele.
 - **Loot do boss** (decidido em 2026-10-11): **individual**; cada jogador que participou da luta sorteia o próprio loot, no chão para ele (o servidor define "participou"). ~~Dono por maior dano~~ substituído em 2026-10-11 por loot individual, só para o boss; o inimigo comum segue a proposta acima.
 - Coleta pela tecla **F** (**proposta**: raio de 12 m). O servidor confere dono, disponibilidade e espaço no inventário.
