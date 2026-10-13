@@ -148,10 +148,10 @@ No PowerShell, `gh pr create --body` quebra na crase e um `-m` longo passa de 10
 
 ```
 git add <arquivos da tarefa>
-npm run entregar -- --titulo "tipo(escopo): descricao" --corpo .git/pr-corpo.md
+npm run entregar -- --titulo "tipo(escopo): descricao" --corpo pr-corpo.md
 ```
 
-O script commita o que já está no stage (`git commit -F`, corpo quebrado em linhas de 100), faz o push e abre o PR com `--body-file`. O arquivo do corpo não entra no commit. Se a branch já teve PR mergeado, os commits que o squash ainda não tem seguem numa branch `<nome>-segue` a partir de `origin/main`.
+O script commita o que já está no stage (`git commit -F`, corpo quebrado em linhas de 100), faz o push e abre o PR com `--body-file`. O arquivo do corpo não entra no commit: `pr-corpo.md` na raiz está no `.gitignore` e funciona também em worktree (onde `.git` é um arquivo, não uma pasta). Se a branch já teve PR mergeado, os commits que o squash ainda não tem seguem numa branch `<nome>-segue` a partir de `origin/main`.
 
 ### Leva empilhada
 
