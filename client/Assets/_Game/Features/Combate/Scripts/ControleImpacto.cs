@@ -295,6 +295,11 @@ namespace JogoDoGrupo.Client.Features.Combate
         {
             if (ataque.AtacanteId != _personagemId)
             {
+                if (AnimacaoDeOutros.EhDeOutro(ataque.AtacanteId, _personagemId))
+                {
+                    Tocar(SomDeCombate.Golpe, AnimacaoDeOutros.VolumeDeOutros);
+                }
+
                 return;
             }
 
@@ -364,6 +369,11 @@ namespace JogoDoGrupo.Client.Features.Combate
         {
             if (esquiva.PersonagemId != _personagemId)
             {
+                if (AnimacaoDeOutros.EhDeOutro(esquiva.PersonagemId, _personagemId))
+                {
+                    Tocar(SomDeCombate.Esquiva, AnimacaoDeOutros.VolumeDeOutros);
+                }
+
                 return;
             }
 

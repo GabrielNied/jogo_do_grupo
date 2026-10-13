@@ -206,8 +206,9 @@ namespace JogoDoGrupo.Client.Features.Combate
 
         private void AoIniciarEsquiva(EsquivaIniciada esquiva)
         {
-            // A própria esquiva já animou ao apertar (ADR 0024); a dos outros jogadores é do
-            // visual deles (Mundo/Personagem).
+            // A própria esquiva já animou ao apertar (ADR 0024); a dos outros jogadores toca
+            // no avatar deles (#481).
+            AnimacaoDeOutros.TocarEsquiva(esquiva, _personagemId);
         }
 
         private void AoRecusarEsquiva(EsquivaRecusada recusa)
