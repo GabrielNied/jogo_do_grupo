@@ -177,7 +177,26 @@ Decisões de quem implementou (propostas, ajustáveis em `ConfigTier` e `ConfigL
 - **Combate (desde a #623):** o bônus das peças não soma mais nos atributos do personagem. `RegrasEquipamentos.Somar` e a conversão provisória `ParaEscalaLegada` saíram; a conversão linear por atributo e categoria (ATRIB-003) está em `ConfigAtributosItem`.
 - **`RaridadeItem` é legado:** `Equipamento.Raridade` continua no exemplar só como histórico (a fusão da #616 também não a lê); peças novas nascem `Comum` e nada decide por ela. Saíram `LootNoChao.Raridade`, os pesos de raridade e a promoção por sorteio.
 - **Pontuação do loot** (`TabelaDeLoot.Pontuacao`, só para dizer qual peça é "melhor"): soma dos valores × (1 + `BonusDePontuacaoPorTier` × degrau do tier atual), com 10% por degrau de D a S+. Antes o degrau era o da raridade.
-- **Na tela:** a casa da bolsa e do paperdoll mostram a **letra do tier** no canto e a cor dele na borda e no ícone (D cinza, C verde, B turquesa, A rosa, S ouro, S+ ouro claro com borda grossa). O tooltip traz "Tier A" (e "Tier B (origem D)" quando o tier atual difere do de origem), o nome na cor do tier e cada atributo como `valor/máximo` com o efeito convertido ("Força 72/100 · +14,4% de dano físico"). O aviso diz "Você pegou Elmo do Vigia (tier B)."; a **cor** no aviso depende do HUD do Core (os avisos só têm as cores de informação, aviso e erro e não aceitam texto colorido).
+- **Na tela:** bolsa, paperdoll, tooltip e avisos de loot seguem [Visual de tier](#visual-de-tier) (UI implementada; aura no mundo ainda não).
+
+##### Visual de tier
+
+Decidido por Gabriel em 2026-10-13 ([#670](https://github.com/GabrielNied/jogo_do_grupo/issues/670)). A leitura visual reforça a ordem **S+ > S > A > B > C > D** sem mudar o cálculo (TIER-001 a TIER-008). São **duas camadas**: cores Lumora na interface e aura/shader no mundo 3D quando existir mesh da peça.
+
+**Interface (implementado):** a casa da bolsa e do paperdoll mostram a **letra do tier** no canto e a cor dele na borda e no ícone, via tokens Lumora em `EstiloItens.uss` (D cinza, C verde, B turquesa, A rosa, S ouro, S+ ouro claro com borda grossa). O tooltip traz "Tier A" (e "Tier B (origem D)" quando o tier atual difere do de origem), o nome na cor do tier e cada atributo como `valor/máximo` com o efeito convertido ("Força 72/100 · +14,4% de dano físico"). O aviso diz "Você pegou Elmo do Vigia (tier B)."; a **cor** no aviso depende do HUD do Core (os avisos só têm as cores de informação, aviso e erro e não aceitam texto colorido).
+
+**Mundo 3D (pendente):** brilho ao redor da peça no chão e, depois, no personagem equipado — no estilo de drops raros em MMORPGs clássicos (outline, glow ou rim light pulsante em URP). **Complementa** a letra na UI; não a substitui. A paleta da aura **pode divergir** das cores da bolsa, desde que a ordem B < A < S < S+ seja óbvia à distância.
+
+| Tier | Aura no mundo | Intensidade (referência) |
+|---|---|---|
+| D | nenhuma | — |
+| C | nenhuma | — |
+| B | azul | entrada no efeito “raro” |
+| A | roxo | mais forte que B |
+| S | laranja | mais forte que A |
+| S+ | vermelho escuro | máximo; leitura de peça perfeita |
+
+**Estado atual no client:** ainda não há modelo 3D por equipamento; o loot no chão usa um marcador genérico com cor única (`ControleLoot`, [#369](https://github.com/GabrielNied/jogo_do_grupo/issues/369)). A aura entra quando houver visual de item no mundo (encaixe e pose no avatar: [#664](https://github.com/GabrielNied/jogo_do_grupo/issues/664) e arte). Cores e intensidade da aura ficam em constantes ou config de balanceamento visual no client, não no shared.
 
 #### Fusão
 
