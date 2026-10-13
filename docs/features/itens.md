@@ -357,6 +357,8 @@ As cinco raridades e a tabela do livro (níveis máximos e slots de skills; as i
 
 **Bônus:** Combate consulta o que as peças ativas dão através de `Contratos/Itens/IAtributosDosEquipamentos` (dano da arma, % de Força e Intelecto, vida, stamina e mana máximas, defesas e as linhas para a tela, já convertidos) e da pipeline, como `IFonteDeModificadores` com `Fonte = Equipamento` (os nove secundários). Nada disso soma nos cinco atributos do personagem (DEC-001). Detalhes em [Entregue na #623](#entregue-na-623-atributos-próprios-dos-equipamentos).
 
+**Aviso de mudança (#547):** Itens publica `Contratos/Itens/EquipamentoMudou(PersonagemId)` depois de gravar, ao equipar, desequipar (inclusive a troca numa casa ocupada), trocar o conjunto de armas, fundir uma peça vestida e limpar o inventário de teste. O evento não carrega valores: quem guarda atributos finais invalida a entrada e relê por `IAtributosDosEquipamentos`. Mover ou descartar item da bolsa não publica.
+
 **No jogo:** abrir o inventário com **I** ([Interface do inventário](#interface-do-inventário-560)). O paperdoll mostra os encaixes e o conjunto ativo; o tooltip de cada item mostra o tier, os atributos com valor e máximo, o nível de fusão, nível e requisito; clique direito e arrastar e soltar equipam e desequipam; os botões **Conj. 1** e **Conj. 2** trocam o conjunto de armas. Em editor/build de desenvolvimento, **Obter equipamento de teste** pede uma peça ao servidor. Essa rota só existe em ambiente `Development`; não altera o baú original; o loot dos mobs tem tabela própria ([Loot dos inimigos](#loot-dos-inimigos-493)).
 
 API autenticada, sob `/api/personagens/{personagemId}/equipamentos`:

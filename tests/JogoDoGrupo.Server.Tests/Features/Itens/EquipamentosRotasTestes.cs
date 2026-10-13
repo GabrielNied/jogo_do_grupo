@@ -199,6 +199,46 @@ public class EquipamentosRotasTestes(ServidorDeTeste servidor) : IClassFixture<S
         );
 
     [Fact]
+    public async Task EquipamentoMudou_SaiAoEquiparDesequiparETrocarOConjunto_ENaoNasRecusas()
+    {
+        var (cliente, id) = await Personagem();
+        var item = await Item(id, 100);
+        var avisados = new System.Collections.Concurrent.ConcurrentQueue<long>();
+        servidor
+            .Services.GetRequiredService<JogoDoGrupo.Server.Core.Eventos.EventosDoServidor>()
+            .Assinar<EquipamentoMudou>(e => avisados.Enqueue(e.PersonagemId));
+        int Meus() => avisados.Count(p => p == id);
+
+        (await Equipar(cliente, id, item, PosicaoEquipamento.Arma1)).EnsureSuccessStatusCode();
+        Assert.Equal(1, Meus());
+
+        // Recusa (peça que não existe): nada mudou, nada é avisado.
+        Assert.Equal(
+            HttpStatusCode.NotFound,
+            (await Equipar(cliente, id, item + 999, PosicaoEquipamento.Arma1)).StatusCode
+        );
+        Assert.Equal(1, Meus());
+
+        (
+            await ServidorDeTeste.PostJsonAsync(
+                cliente,
+                RegrasEquipamentos.RotaDe(id) + "/conjunto",
+                new PedidoConjunto { Conjunto = 2 }
+            )
+        ).EnsureSuccessStatusCode();
+        Assert.Equal(2, Meus());
+
+        (
+            await ServidorDeTeste.PostJsonAsync(
+                cliente,
+                RegrasEquipamentos.RotaDe(id) + "/desequipar",
+                new PedidoDesequipar { Posicao = PosicaoEquipamento.Arma1 }
+            )
+        ).EnsureSuccessStatusCode();
+        Assert.Equal(3, Meus());
+    }
+
+    [Fact]
     public async Task Equipar_ReabrirEDesequiparNaoRerrolaNemDuplicaOQueDaAoCombate()
     {
         var (cliente, id) = await Personagem();

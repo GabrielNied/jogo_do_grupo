@@ -4,8 +4,10 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using JogoDoGrupo.Server.Contratos.Economia;
+using JogoDoGrupo.Server.Contratos.Itens;
 using JogoDoGrupo.Server.Core.Api;
 using JogoDoGrupo.Server.Core.Autenticacao;
+using JogoDoGrupo.Server.Core.Eventos;
 using JogoDoGrupo.Server.Core.Persistencia;
 using JogoDoGrupo.Shared.Features.Itens;
 using Microsoft.EntityFrameworkCore;
@@ -79,8 +81,20 @@ internal static class FusaoRotas
                     JogoDbContext db,
                     ICarteiraCoroas carteira,
                     AssinadorFusao assinador,
+                    EventosDoServidor eventos,
                     CancellationToken c
-                ) => Executar(personagemId, usuario, db, carteira, c, pedido, assinador, true)
+                ) =>
+                    Executar(
+                        personagemId,
+                        usuario,
+                        db,
+                        carteira,
+                        c,
+                        pedido,
+                        assinador,
+                        true,
+                        eventos: eventos
+                    )
             )
             .RequireAuthorization();
         rotas
@@ -124,7 +138,8 @@ internal static class FusaoRotas
         AssinadorFusao? assinador = null,
         bool confirmar = false,
         PedidoFavorito? favorito = null,
-        bool credito = false
+        bool credito = false,
+        EventosDoServidor? eventos = null
     )
     {
         await using var transacao = await db.Database.BeginTransactionAsync(
@@ -140,6 +155,7 @@ internal static class FusaoRotas
             .ToListAsync(c);
         PreviaFusao? previa = null;
         var aviso = "";
+        var mudouOVestido = false;
         if (favorito != null)
         {
             var entrada = itens.SingleOrDefault(i => i.Id == favorito.InstanciaId);
@@ -174,6 +190,8 @@ internal static class FusaoRotas
                 calculo.Atributo.Valor = previa.ValorDepois;
                 calculo.Dados.NivelFusao = previa.NivelDepois;
                 calculo.Principal.GravarEquipamento(calculo.Dados);
+                // Fundir uma peça vestida muda o que o combate soma.
+                mudouOVestido = calculo.Principal.Posicao != PosicaoEquipamento.Inventario;
                 db.Remove(calculo.Material);
                 itens.Remove(calculo.Material);
                 previa = null;
@@ -188,6 +206,8 @@ internal static class FusaoRotas
         resposta.Previa = previa!;
         resposta.Aviso = aviso;
         await transacao.CommitAsync(c);
+        if (mudouOVestido)
+            eventos?.Publicar(new EquipamentoMudou(id));
         return Results.Ok(resposta);
     }
 

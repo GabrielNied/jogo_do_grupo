@@ -1,7 +1,9 @@
 using System.Data;
 using System.Security.Claims;
+using JogoDoGrupo.Server.Contratos.Itens;
 using JogoDoGrupo.Server.Core.Api;
 using JogoDoGrupo.Server.Core.Autenticacao;
+using JogoDoGrupo.Server.Core.Eventos;
 using JogoDoGrupo.Server.Core.Persistencia;
 using JogoDoGrupo.Shared.Core.Api;
 using JogoDoGrupo.Shared.Features.Itens;
@@ -22,7 +24,7 @@ internal static class EquipamentosRotas
                     ClaimsPrincipal usuario,
                     JogoDbContext db,
                     CancellationToken c
-                ) => Executar(personagemId, usuario, db, null, null, null, null, null, c)
+                ) => Executar(personagemId, usuario, db, null, null, null, null, null, null, c)
             )
             .RequireAuthorization();
         rotas
@@ -35,8 +37,21 @@ internal static class EquipamentosRotas
                     JogoDbContext db,
                     GeradorEquipamentos gerador,
                     VisualEquipadoServico visual,
+                    EventosDoServidor eventos,
                     CancellationToken c
-                ) => Executar(personagemId, usuario, db, pedido, null, null, gerador, visual, c)
+                ) =>
+                    Executar(
+                        personagemId,
+                        usuario,
+                        db,
+                        pedido,
+                        null,
+                        null,
+                        gerador,
+                        visual,
+                        eventos,
+                        c
+                    )
             )
             .RequireAuthorization();
         rotas
@@ -49,8 +64,21 @@ internal static class EquipamentosRotas
                     JogoDbContext db,
                     GeradorEquipamentos gerador,
                     VisualEquipadoServico visual,
+                    EventosDoServidor eventos,
                     CancellationToken c
-                ) => Executar(personagemId, usuario, db, null, pedido, null, gerador, visual, c)
+                ) =>
+                    Executar(
+                        personagemId,
+                        usuario,
+                        db,
+                        null,
+                        pedido,
+                        null,
+                        gerador,
+                        visual,
+                        eventos,
+                        c
+                    )
             )
             .RequireAuthorization();
         rotas
@@ -62,8 +90,21 @@ internal static class EquipamentosRotas
                     ClaimsPrincipal usuario,
                     JogoDbContext db,
                     VisualEquipadoServico visual,
+                    EventosDoServidor eventos,
                     CancellationToken c
-                ) => Executar(personagemId, usuario, db, null, null, pedido, null, visual, c)
+                ) =>
+                    Executar(
+                        personagemId,
+                        usuario,
+                        db,
+                        null,
+                        null,
+                        pedido,
+                        null,
+                        visual,
+                        eventos,
+                        c
+                    )
             )
             .RequireAuthorization();
         if (rotas.ServiceProvider.GetRequiredService<IHostEnvironment>().IsDevelopment())
@@ -87,6 +128,7 @@ internal static class EquipamentosRotas
         PedidoConjunto? conjunto,
         GeradorEquipamentos? gerador,
         VisualEquipadoServico? visual,
+        EventosDoServidor? eventos,
         CancellationToken c
     )
     {
@@ -182,7 +224,10 @@ internal static class EquipamentosRotas
         await transacao.CommitAsync(c);
         // Só depois de gravado: a área vê o estado inteiro do que o servidor aceitou.
         if (visual != null && (equipar != null || desequipar != null || conjunto != null))
+        {
             visual.Publicar(RegrasVisualEquipado.Montar(id, ativos, resposta.Equipados));
+            eventos?.Publicar(new EquipamentoMudou(id));
+        }
         return Results.Ok(resposta);
     }
 
@@ -306,6 +351,7 @@ internal static class EquipamentosRotas
         IConfiguration configuracao,
         IHostEnvironment ambiente,
         VisualEquipadoServico visual,
+        EventosDoServidor eventos,
         CancellationToken c
     )
     {
@@ -339,6 +385,7 @@ internal static class EquipamentosRotas
         visual.Publicar(
             RegrasVisualEquipado.Montar(id, conjunto, Array.Empty<EntradaInventario>())
         );
+        eventos.Publicar(new EquipamentoMudou(id));
         return Results.Ok(
             new EquipamentosResponse
             {
