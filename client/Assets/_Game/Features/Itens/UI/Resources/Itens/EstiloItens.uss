@@ -93,7 +93,7 @@
     -unity-background-scale-mode: scale-to-fit;
 }
 
-/* Ícone sem raridade (item sem dados de equipamento): marfim. */
+/* Ícone sem tier (item sem dados de equipamento): marfim. */
 .item-slot .item-icone { -unity-background-image-tint-color: var(--lumora-cores-marfim); }
 
 .item-slot-vazio .item-icone { -unity-background-image-tint-color: var(--lumora-cores-borda-discreta); }
@@ -110,18 +110,36 @@
     color: var(--lumora-cores-borda-discreta);
 }
 
-/* Raridade: a cor da borda e da sigla (e do ícone, quando houver). */
-.item-raridade-0 { border-color: var(--lumora-cores-texto-secundario); }
-.item-raridade-1 { border-color: var(--lumora-cores-ganho); }
-.item-raridade-2 { border-color: var(--lumora-cores-essencia); }
-.item-raridade-3 { border-color: var(--lumora-cores-sussurro); }
-.item-raridade-4 { border-color: var(--lumora-cores-ouro); }
+/* Tier (D, C, B, A, S, S+): a cor da borda, do ícone e da letra do canto da casa. */
+.item-tier-0 { border-color: var(--lumora-cores-texto-secundario); }
+.item-tier-1 { border-color: var(--lumora-cores-ganho); }
+.item-tier-2 { border-color: var(--lumora-cores-essencia); }
+.item-tier-3 { border-color: var(--lumora-cores-sussurro); }
+.item-tier-4 { border-color: var(--lumora-cores-ouro); }
+.item-tier-5 { border-color: var(--lumora-cores-hover-primario); border-width: var(--lumora-bordas-destaque); }
 
-.item-raridade-0 .item-icone { -unity-background-image-tint-color: var(--lumora-cores-texto-secundario); }
-.item-raridade-1 .item-icone { -unity-background-image-tint-color: var(--lumora-cores-ganho); }
-.item-raridade-2 .item-icone { -unity-background-image-tint-color: var(--lumora-cores-essencia); }
-.item-raridade-3 .item-icone { -unity-background-image-tint-color: var(--lumora-cores-sussurro); }
-.item-raridade-4 .item-icone { -unity-background-image-tint-color: var(--lumora-cores-ouro); }
+.item-tier-0 .item-icone { -unity-background-image-tint-color: var(--lumora-cores-texto-secundario); }
+.item-tier-1 .item-icone { -unity-background-image-tint-color: var(--lumora-cores-ganho); }
+.item-tier-2 .item-icone { -unity-background-image-tint-color: var(--lumora-cores-essencia); }
+.item-tier-3 .item-icone { -unity-background-image-tint-color: var(--lumora-cores-sussurro); }
+.item-tier-4 .item-icone { -unity-background-image-tint-color: var(--lumora-cores-ouro); }
+.item-tier-5 .item-icone { -unity-background-image-tint-color: var(--lumora-cores-hover-primario); }
+
+.item-tier-letra {
+    position: absolute;
+    right: 2px;
+    bottom: 0;
+    font-size: 12px;
+    -unity-font-style: bold;
+    white-space: nowrap;
+}
+
+.item-tier-0 .item-tier-letra { color: var(--lumora-cores-texto-secundario); }
+.item-tier-1 .item-tier-letra { color: var(--lumora-cores-ganho); }
+.item-tier-2 .item-tier-letra { color: var(--lumora-cores-essencia); }
+.item-tier-3 .item-tier-letra { color: var(--lumora-cores-sussurro); }
+.item-tier-4 .item-tier-letra { color: var(--lumora-cores-ouro); }
+.item-tier-5 .item-tier-letra { color: var(--lumora-cores-hover-primario); }
 
 .item-selo-novo {
     position: absolute;
@@ -285,11 +303,12 @@
     white-space: normal;
 }
 
-.item-nome-raridade-0 { color: var(--lumora-cores-texto-secundario); }
-.item-nome-raridade-1 { color: var(--lumora-cores-ganho); }
-.item-nome-raridade-2 { color: var(--lumora-cores-essencia); }
-.item-nome-raridade-3 { color: var(--lumora-cores-sussurro); }
-.item-nome-raridade-4 { color: var(--lumora-cores-ouro); }
+.item-nome-tier-0 { color: var(--lumora-cores-texto-secundario); }
+.item-nome-tier-1 { color: var(--lumora-cores-ganho); }
+.item-nome-tier-2 { color: var(--lumora-cores-essencia); }
+.item-nome-tier-3 { color: var(--lumora-cores-sussurro); }
+.item-nome-tier-4 { color: var(--lumora-cores-ouro); }
+.item-nome-tier-5 { color: var(--lumora-cores-hover-primario); }
 
 .item-tooltip-linha {
     white-space: normal;

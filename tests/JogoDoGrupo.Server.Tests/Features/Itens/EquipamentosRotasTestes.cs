@@ -89,7 +89,12 @@ public class EquipamentosRotasTestes(ServidorDeTeste servidor) : IClassFixture<S
             new ConfigEquipamentos { QuantidadeAleatorios = 0 }
         ).Gerar(modelo, new Random(1), grau: grau);
         if (dados != null)
+        {
+            // Valor conhecido (escala 0 a 100): 50 vira +15 de Força/+15 de Vitalidade no combate.
+            foreach (var atributo in dados.Atributos)
+                atributo.Valor = 50;
             item.GravarEquipamento(dados);
+        }
         db.Add(item);
         await db.SaveChangesAsync();
         return item.Id;
@@ -122,18 +127,18 @@ public class EquipamentosRotasTestes(ServidorDeTeste servidor) : IClassFixture<S
         var estado = await Ler(cliente, id);
         Assert.Empty(estado.Inventario);
         Assert.Equal(item, Assert.Single(estado.Equipados).InstanciaId);
-        Assert.Equal(20, Assert.Single(estado.Bonus).Valor);
+        Assert.Equal(15, Assert.Single(estado.Bonus).Valor);
         var bonus = await servidor
             .Services.GetRequiredService<IBonusEquipamentos>()
             .ObterAsync(id, default);
-        Assert.Equal(20, Assert.Single(bonus).Valor);
+        Assert.Equal(15, Assert.Single(bonus).Valor);
         var recursos =
             await ServidorDeTeste.LerJsonAsync<JogoDoGrupo.Shared.Features.Combate.RecursosResponse>(
                 await cliente.GetAsync(
                     JogoDoGrupo.Shared.Features.Combate.RotasCombate.RecursosDe(id)
                 )
             );
-        Assert.Equal(20, recursos.Atributos.Forca);
+        Assert.Equal(15, recursos.Atributos.Forca);
         var tirar = await ServidorDeTeste.PostJsonAsync(
             cliente,
             RegrasEquipamentos.RotaDe(id) + "/desequipar",
@@ -143,7 +148,7 @@ public class EquipamentosRotasTestes(ServidorDeTeste servidor) : IClassFixture<S
         estado = await Ler(cliente, id);
         Assert.Empty(estado.Equipados);
         Assert.Empty(estado.Bonus);
-        Assert.Equal(20, Assert.Single(estado.Inventario).Equipamento.Atributos[0].Valor);
+        Assert.Equal(50, Assert.Single(estado.Inventario).Equipamento.Atributos[0].Valor);
         recursos =
             await ServidorDeTeste.LerJsonAsync<JogoDoGrupo.Shared.Features.Combate.RecursosResponse>(
                 await cliente.GetAsync(
@@ -173,8 +178,8 @@ public class EquipamentosRotasTestes(ServidorDeTeste servidor) : IClassFixture<S
         troca.EnsureSuccessStatusCode();
         var estado = await Ler(cliente, id);
         Assert.Equal(2, estado.ConjuntoAtivo);
-        Assert.Equal(20, estado.Bonus.Single(a => a.Status == StatusItem.Forca).Valor);
-        Assert.Equal(12, estado.Bonus.Single(a => a.Status == StatusItem.Vitalidade).Valor);
+        Assert.Equal(15, estado.Bonus.Single(a => a.Status == StatusItem.Forca).Valor);
+        Assert.Equal(30, estado.Bonus.Single(a => a.Status == StatusItem.Vitalidade).Valor);
     }
 
     [Fact]

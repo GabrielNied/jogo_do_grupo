@@ -5,7 +5,7 @@ namespace JogoDoGrupo.Client.Features.Itens
 {
     /// <summary>
     /// Ícones de silhueta branca por tipo de equipamento, em
-    /// <c>Resources/Itens/Icones/&lt;TipoEquipamento&gt;</c>. A UI tinge pela raridade.
+    /// <c>Resources/Itens/Icones/&lt;TipoEquipamento&gt;</c>. A UI tinge pelo tier.
     /// </summary>
     public static class IconesEquipamento
     {

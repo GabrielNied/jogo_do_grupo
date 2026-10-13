@@ -3,7 +3,7 @@ using JogoDoGrupo.Shared.Features.Mobs;
 
 namespace JogoDoGrupo.Shared.Features.Itens
 {
-    /// <summary>De onde vem o loot: decide o peso das raridades (<see cref="ConfigLoot"/>).</summary>
+    /// <summary>De onde vem o loot: decide quantas rolagens cada atributo ganha (<see cref="ConfigLoot"/>).</summary>
     public enum OrigemDoLoot
     {
         Comum = 0,
@@ -12,18 +12,21 @@ namespace JogoDoGrupo.Shared.Features.Itens
         Chefe = 3,
     }
 
-    /// <summary>Uma peça que um inimigo deixou cair: modelo do catálogo, raridade e grau.</summary>
+    /// <summary>
+    /// Uma peça que um inimigo deixou cair: modelo do catálogo, origem e grau. Os valores dos
+    /// atributos (e com eles o tier) só são sorteados quando a peça entra no inventário.
+    /// </summary>
     [Serializable]
     public class QuedaDeLoot
     {
         public int ModeloId;
-        public RaridadeItem Raridade;
+        public OrigemDoLoot Origem;
         public GrauEquipamento Grau;
     }
 
     /// <summary>
-    /// A tabela de loot dos inimigos (issue #493): modelo uniforme entre as 72 peças, raridade
-    /// pela origem e grau pelo nível do inimigo. Funções puras; o sorteio de verdade (e a
+    /// A tabela de loot dos inimigos (issues #493 e #615): modelo uniforme entre as 72 peças, grau
+    /// pelo nível do inimigo e origem guardada para melhorar o sorteio dos valores dos atributos. Funções puras; o sorteio de verdade (e a
     /// quantidade por participante) é do servidor. Valores em <see cref="ConfigLoot"/>.
     /// </summary>
     public static class TabelaDeLoot
@@ -73,51 +76,28 @@ namespace JogoDoGrupo.Shared.Features.Itens
             return grau == GrauEquipamento.Medio ? ConfigLoot.NivelDoInimigoParaGrauMedio : 1;
         }
 
-        /// <summary>Pesos de raridade da origem, na ordem de <see cref="RaridadeItem"/>.</summary>
-        public static int[] PesosDe(OrigemDoLoot origem)
+        /// <summary>
+        /// Quantas rolagens cada atributo ganha na origem: o valor é o melhor delas
+        /// (<see cref="RegrasTier.SortearValor"/>).
+        /// </summary>
+        public static int RolagensDe(OrigemDoLoot origem)
         {
             switch (origem)
             {
                 case OrigemDoLoot.Fortalecida:
-                    return ConfigLoot.PesosDoInimigoFortalecido;
+                    return ConfigLoot.RolagensDoInimigoFortalecido;
                 case OrigemDoLoot.ChefeRaro:
-                    return ConfigLoot.PesosDoChefeRaro;
+                    return ConfigLoot.RolagensDoChefeRaro;
                 case OrigemDoLoot.Chefe:
-                    return ConfigLoot.PesosDoChefe;
+                    return ConfigLoot.RolagensDoChefe;
                 default:
-                    return ConfigLoot.PesosDoInimigoComum;
+                    return ConfigLoot.RolagensDoInimigoComum;
             }
         }
 
         /// <summary>
-        /// Raridade para um número sorteado em [0, 1) (fora da faixa vale a ponta mais próxima).
-        /// </summary>
-        public static RaridadeItem RaridadeSorteada(OrigemDoLoot origem, double sorteio)
-        {
-            var pesos = PesosDe(origem);
-            double total = 0;
-            for (var i = 0; i < pesos.Length; i++)
-            {
-                total += pesos[i];
-            }
-
-            var alvo = Math.Min(Math.Max(sorteio, 0.0), 0.999999999) * total;
-            double acumulado = 0;
-            for (var i = 0; i < pesos.Length; i++)
-            {
-                acumulado += pesos[i];
-                if (pesos[i] > 0 && alvo < acumulado)
-                {
-                    return (RaridadeItem)i;
-                }
-            }
-
-            return RaridadeItem.Comum;
-        }
-
-        /// <summary>
-        /// Sorteia uma peça: modelo uniforme entre os 72 do catálogo, raridade pela origem, grau
-        /// pelo nível do inimigo. Cada chamada gasta três números de <paramref name="aleatorio"/>.
+        /// Sorteia uma peça: modelo uniforme entre os 72 do catálogo, grau pelo nível do inimigo e
+        /// a origem guardada. Cada chamada gasta um número de <paramref name="aleatorio"/>.
         /// </summary>
         public static QuedaDeLoot Sortear(Random aleatorio, OrigemDoLoot origem, int nivelDoInimigo)
         {
@@ -127,14 +107,14 @@ namespace JogoDoGrupo.Shared.Features.Itens
             return new QuedaDeLoot
             {
                 ModeloId = modelo,
-                Raridade = RaridadeSorteada(origem, aleatorio.NextDouble()),
+                Origem = origem,
                 Grau = GrauDoNivel(nivelDoInimigo),
             };
         }
 
         /// <summary>
-        /// Pontuação para comparar peças: soma dos atributos (o grau já está neles) mais
-        /// <see cref="ConfigLoot.BonusDePontuacaoPorRaridade"/> por degrau de raridade.
+        /// Pontuação para comparar peças: soma dos valores dos atributos mais
+        /// <see cref="ConfigLoot.BonusDePontuacaoPorTier"/> por degrau do tier atual.
         /// </summary>
         public static double Pontuacao(Equipamento peca)
         {
@@ -149,7 +129,7 @@ namespace JogoDoGrupo.Shared.Features.Itens
                 soma += peca.Atributos[i].Valor;
             }
 
-            return soma * (1 + ConfigLoot.BonusDePontuacaoPorRaridade * (int)peca.Raridade);
+            return soma * (1 + ConfigLoot.BonusDePontuacaoPorTier * (int)RegrasTier.TierDe(peca));
         }
     }
 }

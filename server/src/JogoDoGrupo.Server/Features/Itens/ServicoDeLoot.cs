@@ -248,14 +248,15 @@ public sealed class ServicoDeLoot(
         // Cada item vai para a primeira casa livre.
         Bolsa.Guardar(existentes, novos, capacidade);
 
-        // A raridade e o grau sorteados na queda valem para a peça que entra no inventário.
+        // A origem e o grau da queda valem para a peça que entra no inventário: é aqui que os
+        // valores dos atributos são sorteados e o tier de origem é gravado.
         var gerador = escopo.ServiceProvider.GetRequiredService<GeradorEquipamentos>();
         for (var i = 0; i < novos.Count; i++)
         {
             var equipamento = gerador.Gerar(
                 novos[i].ItemId,
                 Random.Shared,
-                levados[i].Raridade,
+                levados[i].Origem,
                 levados[i].Grau
             );
             if (equipamento != null)

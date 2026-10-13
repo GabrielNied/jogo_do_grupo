@@ -521,12 +521,11 @@ namespace JogoDoGrupo.Client.Features.Itens
             }
 
             var tipo = LogicaInventario.TipoDe(entrada);
-            if (RegrasEquipamentos.DadosDe(entrada) != null)
-                slot.AddToClassList(EstiloItens.Raridade(entrada.Equipamento.Raridade));
             if (tipo != null)
                 PreencherIcone(icone, sigla, tipo.Value, entrada);
             else
                 sigla.text = Abreviar(entrada.Nome);
+            AdicionarTier(slot, entrada);
 
             var pendente = _pendentes.Contains(entrada.InstanciaId);
             slot.EnableInClassList(EstiloItens.SlotPendente, pendente);
@@ -568,8 +567,6 @@ namespace JogoDoGrupo.Client.Features.Itens
             var fantasma = new VisualElement();
             fantasma.AddToClassList(EstiloItens.Slot);
             DimensionarCasa(fantasma);
-            if (RegrasEquipamentos.DadosDe(entrada) != null)
-                fantasma.AddToClassList(EstiloItens.Raridade(entrada.Equipamento.Raridade));
             var icone = new VisualElement { pickingMode = PickingMode.Ignore };
             icone.AddToClassList(EstiloItens.Icone);
             var sigla = new Label { pickingMode = PickingMode.Ignore };
@@ -581,7 +578,25 @@ namespace JogoDoGrupo.Client.Features.Itens
                 PreencherIcone(icone, sigla, tipo.Value, entrada);
             else
                 sigla.text = Abreviar(entrada.Nome);
+            AdicionarTier(fantasma, entrada);
             return fantasma;
+        }
+
+        /// <summary>
+        /// Tier calculado da peça: a cor da borda e do ícone (classe da casa) e a letra no canto.
+        /// Item sem dados de equipamento não tem tier.
+        /// </summary>
+        private static void AdicionarTier(VisualElement casa, EntradaInventario entrada)
+        {
+            var dados = RegrasEquipamentos.DadosDe(entrada);
+            if (dados == null)
+                return;
+            var tier = RegrasTier.TierDe(dados);
+            casa.AddToClassList(EstiloItens.Tier(tier));
+            var letra = new Label(RegrasTier.Letra(tier)) { pickingMode = PickingMode.Ignore };
+            letra.AddToClassList(EstiloCore.Texto);
+            letra.AddToClassList(EstiloItens.LetraTier);
+            casa.Add(letra);
         }
 
         /// <summary>
@@ -606,7 +621,7 @@ namespace JogoDoGrupo.Client.Features.Itens
             }
         }
 
-        /// <summary>Silhueta branca do tipo (tingida pela raridade no USS), ou <c>null</c> sem ícone.</summary>
+        /// <summary>Silhueta branca do tipo (tingida pelo tier no USS), ou <c>null</c> sem ícone.</summary>
         public static Sprite IconeDoTipo(TipoEquipamento tipo)
         {
             return IconesEquipamento.Carregar(tipo);

@@ -38,7 +38,7 @@ public class RitmoDeLootTestes
             var origem = TabelaDeLoot.OrigemDe(mob.Categoria, variante);
             foreach (var queda in sorteador.Sortear(origem, mob.Nivel))
             {
-                var peca = gerador.Gerar(queda.ModeloId, aleatorio, queda.Raridade, queda.Grau)!;
+                var peca = gerador.Gerar(queda.ModeloId, aleatorio, queda.Origem, queda.Grau)!;
                 if (peca.NivelPersonagemMinimo <= nivel && TentarEquipar(equipado, peca))
                 {
                     upgrades.Add(minuto);

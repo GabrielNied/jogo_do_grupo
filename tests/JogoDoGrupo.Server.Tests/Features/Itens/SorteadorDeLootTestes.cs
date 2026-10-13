@@ -78,37 +78,17 @@ public class SorteadorDeLootTestes
         Assert.All(quedas, q => Assert.Equal(grau, q.Grau));
     }
 
-    [Fact]
-    public void A_variante_aumenta_a_raridade_media_das_pecas()
+    [Theory]
+    [InlineData(OrigemDoLoot.Comum)]
+    [InlineData(OrigemDoLoot.Fortalecida)]
+    [InlineData(OrigemDoLoot.ChefeRaro)]
+    [InlineData(OrigemDoLoot.Chefe)]
+    public void A_queda_guarda_a_origem_do_inimigo(OrigemDoLoot origem)
     {
-        double Media(OrigemDoLoot origem) =>
-            Sortear(20000, semente: 5, origem).SelectMany(q => q).Average(q => (int)q.Raridade);
+        var quedas = Sortear(500, semente: 5, origem).SelectMany(q => q).ToList();
 
-        var comum = Media(OrigemDoLoot.Comum);
-        var fortalecida = Media(OrigemDoLoot.Fortalecida);
-        var chefeRaro = Media(OrigemDoLoot.ChefeRaro);
-        var chefe = Media(OrigemDoLoot.Chefe);
-
-        Assert.True(comum < fortalecida, $"{comum} < {fortalecida}");
-        Assert.True(fortalecida < chefeRaro, $"{fortalecida} < {chefeRaro}");
-        Assert.True(chefeRaro < chefe, $"{chefeRaro} < {chefe}");
-    }
-
-    [Fact]
-    public void Inimigo_comum_quase_so_larga_comum_e_incomum_e_o_fortalecido_larga_mais_raro()
-    {
-        double Fracao(OrigemDoLoot origem, Func<RaridadeItem, bool> filtro)
-        {
-            var pecas = Sortear(20000, semente: 6, origem).SelectMany(q => q).ToList();
-            return pecas.Count(q => filtro(q.Raridade)) / (double)pecas.Count;
-        }
-
-        Assert.True(Fracao(OrigemDoLoot.Comum, r => r <= RaridadeItem.Incomum) > 0.9);
-        Assert.True(
-            Fracao(OrigemDoLoot.Fortalecida, r => r >= RaridadeItem.Raro)
-                > 2 * Fracao(OrigemDoLoot.Comum, r => r >= RaridadeItem.Raro)
-        );
-        Assert.Equal(0, Fracao(OrigemDoLoot.Chefe, r => r == RaridadeItem.Comum));
+        Assert.NotEmpty(quedas);
+        Assert.All(quedas, q => Assert.Equal(origem, q.Origem));
     }
 
     [Fact]
@@ -117,9 +97,7 @@ public class SorteadorDeLootTestes
         static string Resumo(List<QuedaDeLoot[]> s) =>
             string.Join(
                 ";",
-                s.Select(q =>
-                    string.Join(",", q.Select(x => $"{x.ModeloId}/{x.Raridade}/{x.Grau}"))
-                )
+                s.Select(q => string.Join(",", q.Select(x => $"{x.ModeloId}/{x.Origem}/{x.Grau}")))
             );
 
         Assert.Equal(Resumo(Sortear(50, semente: 7)), Resumo(Sortear(50, semente: 7)));

@@ -122,8 +122,8 @@ namespace JogoDoGrupo.Client.Features.Itens
             var nome = new Label(dados.Nome);
             nome.AddToClassList(EstiloCore.Texto);
             nome.AddToClassList(EstiloItens.TooltipNome);
-            if (dados.Raridade != null)
-                nome.AddToClassList(EstiloItens.NomeRaridade(dados.Raridade.Value));
+            if (dados.Tier != null)
+                nome.AddToClassList(EstiloItens.NomeTier(dados.Tier.Value));
             caixa.Add(nome);
             foreach (var linha in dados.Linhas)
                 caixa.Add(Linha(linha));

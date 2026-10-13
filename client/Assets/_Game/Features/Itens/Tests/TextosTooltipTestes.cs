@@ -17,7 +17,6 @@ namespace JogoDoGrupo.Client.Features.Itens.Tests
                 ModeloId = 1,
                 Nome = nome,
                 Tipo = tipo,
-                Raridade = RaridadeItem.Raro,
                 Grau = GrauEquipamento.Medio,
                 Nivel = 3,
                 NivelPersonagemMinimo = 10,
@@ -48,7 +47,7 @@ namespace JogoDoGrupo.Client.Features.Itens.Tests
             };
 
         [Test]
-        public void MostraNomeRaridadeGrauFamiliaNivelERequisito()
+        public void MostraNomeTierGrauFamiliaNivelERequisito()
         {
             var dados = TextosTooltip.Montar(
                 Entrada(
@@ -59,15 +58,33 @@ namespace JogoDoGrupo.Client.Features.Itens.Tests
             );
             var texto = string.Join("\n", dados.Linhas.Select(l => l.Texto));
             Assert.AreEqual("Elmo", dados.Nome);
-            Assert.AreEqual(RaridadeItem.Raro, dados.Raridade);
-            StringAssert.Contains("Raro · Capacete", texto);
-            StringAssert.Contains("Grau Medio · nível 3/20", texto);
+            // Força 6 e Defesa 10 na faixa de 0 a 100: qualidade média 8%, tier D.
+            Assert.AreEqual(TierItem.D, dados.Tier);
+            StringAssert.Contains("Tier D · Capacete", texto);
+            StringAssert.Contains("Grau Medio · nível 3/10", texto);
             StringAssert.Contains("Família Vigia/Bastião · variante A", texto);
             StringAssert.Contains("Requer personagem nível 10", texto);
-            StringAssert.Contains("(fixo)", texto);
-            StringAssert.Contains("(sorteado) · infusível", texto);
-            StringAssert.Contains("Infusões: 0/20", texto);
+            StringAssert.Contains("Força 6/100", texto);
+            StringAssert.Contains("Defesa 10/100", texto);
+            StringAssert.Contains(" · infusível", texto);
+            StringAssert.Contains("Infusões: 0/10", texto);
             Assert.IsNull(dados.TituloComparacao);
+        }
+
+        [Test]
+        public void TierAtualSeguePelosValoresEMostraAOrigemQuandoDifere()
+        {
+            var peca = Peca("Elmo", TipoEquipamento.Capacete, 90, 85);
+            peca.VersaoDosAtributos = RegrasTier.VersaoAtual;
+            peca.TierOrigem = TierItem.C;
+
+            var dados = TextosTooltip.Montar(Entrada(peca, PosicaoEquipamento.Inventario), null);
+
+            Assert.AreEqual(TierItem.S, dados.Tier);
+            StringAssert.Contains(
+                "Tier S (origem C) · Capacete",
+                string.Join("\n", dados.Linhas.Select(l => l.Texto))
+            );
         }
 
         [Test]
@@ -82,7 +99,7 @@ namespace JogoDoGrupo.Client.Features.Itens.Tests
                 new EquipamentosResponse()
             );
             Assert.AreEqual("Poção de teste", dados.Nome);
-            Assert.IsNull(dados.Raridade);
+            Assert.IsNull(dados.Tier);
             Assert.IsEmpty(dados.Linhas);
             Assert.IsNull(dados.TituloComparacao);
         }

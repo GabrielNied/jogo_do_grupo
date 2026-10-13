@@ -258,6 +258,9 @@ internal static class InfusaoRotas
             {
                 return Erro("ItemInvalido");
             }
+            // A fusão (#616) vai limitar pela faixa; enquanto a infusão existe, também não passa do máximo.
+            if (ConfigTier.Maximo(recebe.Tipo, atributo.Status) is { } maximo)
+                depois = Math.Min(depois, maximo);
             var custo = config!.Custo(recebe.Raridade);
             var assinatura = assinador!.Assinar(
                 string.Join(

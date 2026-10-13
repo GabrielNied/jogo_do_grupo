@@ -30,10 +30,20 @@ public sealed class ItemInventario
 
     public string? EquipamentoJson { get; set; }
 
-    public Equipamento? LerEquipamento() =>
-        EquipamentoJson == null
-            ? null
-            : JsonSerializer.Deserialize<Equipamento>(EquipamentoJson, Json);
+    /// <summary>
+    /// O exemplar gravado. Um exemplar na escala antiga sai já convertido para a escala de 0 a 100
+    /// (<see cref="MigracaoDeTier"/>; a conta é determinística, então ler de novo dá o mesmo
+    /// resultado). A gravação definitiva é do <see cref="MigradorDeEquipamentos"/>, na subida do
+    /// servidor, ou da próxima vez que o exemplar for gravado.
+    /// </summary>
+    public Equipamento? LerEquipamento()
+    {
+        if (EquipamentoJson == null)
+            return null;
+        var item = JsonSerializer.Deserialize<Equipamento>(EquipamentoJson, Json);
+        MigracaoDeTier.Migrar(item);
+        return item;
+    }
 
     public void GravarEquipamento(Equipamento item) =>
         EquipamentoJson = JsonSerializer.Serialize(item, Json);

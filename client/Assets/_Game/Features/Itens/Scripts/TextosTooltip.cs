@@ -26,8 +26,8 @@ namespace JogoDoGrupo.Client.Features.Itens
     {
         public string Nome = "";
 
-        /// <summary>Só os itens que são equipamento têm raridade.</summary>
-        public RaridadeItem? Raridade;
+        /// <summary>Só os itens que são equipamento têm tier.</summary>
+        public TierItem? Tier;
 
         public readonly List<LinhaTooltip> Linhas = new List<LinhaTooltip>();
 
@@ -47,7 +47,7 @@ namespace JogoDoGrupo.Client.Features.Itens
     }
 
     /// <summary>
-    /// Monta o tooltip: nome, raridade, grau, família, nível/máximo, requisito, atributos
+    /// Monta o tooltip: nome, tier, grau, família, nível/máximo, requisito, atributos
     /// (fixos, sorteados, infusível) e infusões. Para peça da bolsa, compara com a equipada no
     /// encaixe automático (▲ ganho, ▼ perda).
     /// </summary>
@@ -76,12 +76,12 @@ namespace JogoDoGrupo.Client.Features.Itens
                 return dados;
 
             dados.Nome = item.Nome;
-            dados.Raridade = item.Raridade;
+            dados.Tier = RegrasTier.TierDe(item);
             var tipo =
                 TextosEquipamento.NomeDoTipo(item.Tipo) + (item.DuasMaos ? " · duas mãos" : "");
             Adicionar(
                 dados.Linhas,
-                TextosEquipamento.NomeDaRaridade(item.Raridade) + " · " + tipo,
+                TextosEquipamento.NomeDoTier(item) + " · " + tipo,
                 EstiloLinha.Suave
             );
             Adicionar(
@@ -113,11 +113,7 @@ namespace JogoDoGrupo.Client.Features.Itens
                 var infusivel = i == item.IndiceInfusivel;
                 Adicionar(
                     dados.Linhas,
-                    TextosEquipamento.NomeStatus(atributo.Status)
-                        + " +"
-                        + TextosEquipamento.Numero(atributo.Valor)
-                        + (atributo.Fixo ? " (fixo)" : " (sorteado)")
-                        + (infusivel ? " · infusível" : ""),
+                    TextosEquipamento.LinhaDoAtributo(item, i) + (infusivel ? " · infusível" : ""),
                     infusivel ? EstiloLinha.Infusivel
                         : atributo.Fixo ? EstiloLinha.Fixo
                         : EstiloLinha.Sorteado

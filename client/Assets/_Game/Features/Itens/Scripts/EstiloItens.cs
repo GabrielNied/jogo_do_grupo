@@ -50,10 +50,14 @@ namespace JogoDoGrupo.Client.Features.Itens
         public const string TooltipLinha = "item-tooltip-linha";
         public const string TooltipComparacao = "item-tooltip-comparacao";
 
-        public static string Raridade(RaridadeItem raridade) => "item-raridade-" + (int)raridade;
+        /// <summary>Letra do tier no canto da casa.</summary>
+        public const string LetraTier = "item-tier-letra";
 
-        public static string NomeRaridade(RaridadeItem raridade) =>
-            "item-nome-raridade-" + (int)raridade;
+        /// <summary>Classe da casa por tier: cor da borda, do ícone e da letra.</summary>
+        public static string Tier(TierItem tier) => "item-tier-" + (int)tier;
+
+        /// <summary>Classe do nome do item no tooltip, na cor do tier.</summary>
+        public static string NomeTier(TierItem tier) => "item-nome-tier-" + (int)tier;
 
         public static string DoEstilo(EstiloLinha estilo)
         {

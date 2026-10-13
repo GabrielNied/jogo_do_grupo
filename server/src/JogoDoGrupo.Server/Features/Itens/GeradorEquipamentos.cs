@@ -5,60 +5,77 @@ namespace JogoDoGrupo.Server.Features.Itens;
 /// <summary>Valores iniciais de teste; ajuste de balanceamento sem mudar o sorteio.</summary>
 public sealed class ConfigEquipamentos
 {
+    /// <summary>Quantos atributos extras, além dos do modelo-base, cada exemplar sorteia.</summary>
     public int QuantidadeAleatorios { get; set; } = 2;
-    public Dictionary<StatusItem, double> ValoresAleatorios { get; set; } =
-        new()
-        {
-            [StatusItem.Forca] = 6,
-            [StatusItem.Destreza] = 6,
-            [StatusItem.Intelecto] = 6,
-            [StatusItem.Vitalidade] = 6,
-            [StatusItem.Espirito] = 3,
-        };
+
+    /// <summary>
+    /// De onde saem os atributos extras. Só entram os que o modelo ainda não tem e que são
+    /// elegíveis na categoria (<see cref="ConfigTier"/>); os valores saem da faixa, não daqui.
+    /// </summary>
+    public StatusItem[] StatusAleatorios { get; set; } =
+    [
+        StatusItem.Forca,
+        StatusItem.Destreza,
+        StatusItem.Intelecto,
+        StatusItem.Vitalidade,
+        StatusItem.Espirito,
+    ];
 }
 
+/// <summary>
+/// Gera o exemplar (issue #615): os atributos do modelo-base mais alguns extras sorteados, cada
+/// um com um inteiro dentro da faixa da categoria (<see cref="ConfigTier.Faixas"/>). O grau
+/// escolhe a janela da faixa e a origem do inimigo dá mais rolagens (valor melhor); o tier é
+/// consequência dos valores e fica gravado como <see cref="Equipamento.TierOrigem"/>.
+/// </summary>
 public sealed class GeradorEquipamentos(ConfigEquipamentos config)
 {
     public Equipamento? Gerar(
         int modeloId,
         Random aleatorio,
-        RaridadeItem raridade = RaridadeItem.Comum,
+        OrigemDoLoot origem = OrigemDoLoot.Comum,
         GrauEquipamento grau = GrauEquipamento.Inicial
     )
     {
-        if (!Enum.IsDefined(raridade) || !Enum.IsDefined(grau))
-            throw new ArgumentOutOfRangeException(nameof(raridade));
+        if (!Enum.IsDefined(origem) || !Enum.IsDefined(grau))
+            throw new ArgumentOutOfRangeException(nameof(origem));
         var item = CatalogoEquipamentos.Obter(modeloId);
         if (item == null)
             return null;
         var atributos = item.Atributos.ToList();
         var candidatos = config
-            .ValoresAleatorios.Where(p => atributos.All(a => a.Status != p.Key))
+            .StatusAleatorios.Where(s =>
+                atributos.All(a => a.Status != s) && ConfigTier.Faixa(item.Tipo, s) != null
+            )
+            .Distinct()
             .ToList();
         if (
             config.QuantidadeAleatorios < 0
             || config.QuantidadeAleatorios > candidatos.Count
-            || candidatos.Any(c =>
-                c.Value < 0 || !double.IsFinite(c.Value) || !Enum.IsDefined(c.Key)
-            )
+            || candidatos.Any(c => !Enum.IsDefined(c))
         )
             throw new InvalidOperationException("Pool de atributos aleatórios inválido.");
         for (var i = 0; i < config.QuantidadeAleatorios; i++)
         {
             var indice = aleatorio.Next(candidatos.Count);
-            var escolhido = candidatos[indice];
+            atributos.Add(new AtributoItem { Status = candidatos[indice] });
             candidatos.RemoveAt(indice);
-            atributos.Add(new AtributoItem { Status = escolhido.Key, Valor = escolhido.Value });
         }
-        var fator = RegrasEquipamentos.Fator(grau);
+        var rolagens = TabelaDeLoot.RolagensDe(origem);
         foreach (var atributo in atributos)
-            atributo.Valor *= fator;
+        {
+            // O catálogo diz quais atributos o modelo tem; o valor é sorteado na faixa. Atributo
+            // sem faixa na categoria (legado sem efeito no tier) fica como o catálogo o definiu.
+            if (ConfigTier.Faixa(item.Tipo, atributo.Status) is { } faixa)
+                atributo.Valor = RegrasTier.SortearValor(aleatorio, faixa, grau, rolagens);
+        }
         item.Atributos = atributos.ToArray();
         item.IndiceInfusivel = aleatorio.Next(atributos.Count);
         item.ValorBaseInfusivel = atributos[item.IndiceInfusivel].Valor;
-        item.Raridade = raridade;
         item.Grau = grau;
         item.NivelPersonagemMinimo = TabelaDeLoot.NivelMinimoDoGrau(grau);
+        item.VersaoDosAtributos = RegrasTier.VersaoAtual;
+        item.TierOrigem = RegrasTier.TierDe(item);
         return item;
     }
 }

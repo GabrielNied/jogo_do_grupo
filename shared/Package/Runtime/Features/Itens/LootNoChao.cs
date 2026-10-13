@@ -19,9 +19,6 @@ namespace JogoDoGrupo.Shared.Features.Itens
         /// <summary>Nome exibido, o mesmo de <see cref="CatalogoItens.ObterNome"/>.</summary>
         public string Nome = "";
 
-        /// <summary>Raridade da peça (<see cref="Equipamento.Raridade"/>), para destacar no chão.</summary>
-        public RaridadeItem Raridade = RaridadeItem.Comum;
-
         /// <summary>Grau da peça.</summary>
         public GrauEquipamento Grau = GrauEquipamento.Inicial;
 
