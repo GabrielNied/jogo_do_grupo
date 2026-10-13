@@ -1,6 +1,6 @@
 using System.Collections.Concurrent;
 using System.Data;
-using JogoDoGrupo.Server.Contratos.Personagem;
+using JogoDoGrupo.Server.Contratos.Talentos;
 using JogoDoGrupo.Server.Core.Persistencia;
 using JogoDoGrupo.Server.Core.TempoReal;
 using JogoDoGrupo.Shared.Features.Combate;
@@ -28,7 +28,7 @@ public sealed class RecursosEmMemoria : IHostedService, IDisposable
 
     private readonly IServiceScopeFactory _escopos;
     private readonly IBonusDeAtributos _bonus;
-    private readonly IPontosDistribuidos _pontos;
+    private readonly IAtributosDaArvore _pontos;
     private readonly ServidorTempoReal _tempoReal;
     private readonly TimeProvider _relogio;
     private readonly ILogger<RecursosEmMemoria> _log;
@@ -40,7 +40,7 @@ public sealed class RecursosEmMemoria : IHostedService, IDisposable
     public RecursosEmMemoria(
         IServiceScopeFactory escopos,
         IBonusDeAtributos bonus,
-        IPontosDistribuidos pontos,
+        IAtributosDaArvore pontos,
         ServidorTempoReal tempoReal,
         TimeProvider relogio,
         ILogger<RecursosEmMemoria> log

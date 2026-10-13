@@ -16,6 +16,7 @@ public sealed class PersonagemModule : IFeatureModule
     public void ConfigurarServicos(IServiceCollection servicos, IConfiguration configuracao)
     {
         servicos.AddScoped<IVerificadorPersonagem, VerificadorPersonagem>();
+        servicos.AddScoped<IPontosDeNivel, PontosDeNivel>();
         servicos.AddSingleton<IDiretorioDePersonagens, DiretorioDePersonagens>();
         servicos.AddSingleton(sp =>
         {
@@ -28,9 +29,6 @@ public sealed class PersonagemModule : IFeatureModule
             _experiencia = servico;
             return servico;
         });
-        servicos.AddSingleton<IPontosDistribuidos>(sp =>
-            sp.GetRequiredService<ExperienciaDoPersonagem>()
-        );
         servicos.AddSingleton<IAjusteDeExperienciaDeTeste>(sp =>
             sp.GetRequiredService<ExperienciaDoPersonagem>()
         );

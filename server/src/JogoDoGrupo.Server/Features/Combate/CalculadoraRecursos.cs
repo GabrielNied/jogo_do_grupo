@@ -1,5 +1,5 @@
 using JogoDoGrupo.Shared.Features.Combate;
-using JogoDoGrupo.Shared.Features.Personagem;
+using JogoDoGrupo.Shared.Features.Talentos;
 
 namespace JogoDoGrupo.Server.Features.Combate;
 
@@ -14,7 +14,7 @@ internal static class CalculadoraRecursos
 
     /// <summary>
     /// Zero usado por <see cref="AtributosFinais(AtributosCombate, AtributosCombate)"/>.
-    /// A rota, o ataque e o dano leem os pontos de <c>IPontosDistribuidos</c>.
+    /// A rota, o ataque e o dano leem os pontos de <c>IAtributosDaArvore</c>.
     /// </summary>
     public const int PontosDistribuidos = 0;
 
@@ -25,7 +25,7 @@ internal static class CalculadoraRecursos
         AtributosFinais(
             equipamentos,
             efeitos,
-            new PontosDeAtributos
+            new AtributosDaArvore
             {
                 Forca = PontosDistribuidos,
                 Agilidade = PontosDistribuidos,
@@ -38,7 +38,7 @@ internal static class CalculadoraRecursos
     public static AtributosCombate AtributosFinais(
         AtributosCombate equipamentos,
         AtributosCombate efeitos,
-        PontosDeAtributos pontos
+        AtributosDaArvore pontos
     ) =>
         new()
         {
