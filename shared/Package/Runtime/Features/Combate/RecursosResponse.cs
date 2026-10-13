@@ -14,5 +14,8 @@ namespace JogoDoGrupo.Shared.Features.Combate
         public int ManaAtual;
         public int ManaMaxima;
         public AtributosCombate Atributos = new AtributosCombate();
+
+        /// <summary>Os nove secundários, na ordem de <see cref="RegrasSecundarios.Todos"/>, com a origem de cada parcela.</summary>
+        public SecundarioCalculado[] Secundarios = new SecundarioCalculado[0];
     }
 }
