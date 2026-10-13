@@ -7,7 +7,7 @@ using JogoDoGrupo.Shared.Features.Mundo;
 
 namespace JogoDoGrupo.Server.Features.Mundo;
 
-public sealed class MundoModule : IFeatureModule
+public sealed class MundoModule : IFeatureModule, ITransicoesDeAreaDoMundo
 {
     /// <summary>
     /// Chave que libera o pedido de velocidade de teste. Sem ela, ou fora de Development, o
@@ -15,7 +15,9 @@ public sealed class MundoModule : IFeatureModule
     /// </summary>
     public const string ChavePermitirVelocidadeDeTeste = PoliticaDeVelocidadeDeTeste.ChavePermitir;
 
-    private readonly CidadeDoMundo<SessaoTempoReal> _cidade = new();
+    private readonly EstadoDasAreasDoMundo<SessaoTempoReal> _areas = new(() =>
+        Environment.TickCount64
+    );
     private bool _permitirVelocidadeDeTeste;
     private ServidorTempoReal? _tempoReal;
     private EventosDoServidor? _eventos;
@@ -28,20 +30,21 @@ public sealed class MundoModule : IFeatureModule
 
     public void ConfigurarServicos(IServiceCollection servicos, IConfiguration configuracao)
     {
-        servicos.AddSingleton<IPosicoesDoMundo>(new PosicoesDaCidade(_cidade));
+        servicos.AddSingleton<IPosicoesDoMundo>(new PosicoesDoMundo<SessaoTempoReal>(_areas));
+        servicos.AddSingleton<ITransicoesDeAreaDoMundo>(this);
         servicos.AddSingleton<ITeleporteDeTeste>(sp => new TeleporteDeTeste(
-            _cidade,
+            _areas,
             sp.GetRequiredService<ServidorTempoReal>()
         ));
-        servicos.AddSingleton<IDeslocamentosDoMundo>(new DeslocamentosDaCidade(_cidade));
-        servicos.AddSingleton<ILimiteDeVelocidadeDoMundo>(new LimiteDeVelocidadeDaCidade(_cidade));
+        servicos.AddSingleton<IDeslocamentosDoMundo>(new DeslocamentosDaCidade(_areas));
+        servicos.AddSingleton<ILimiteDeVelocidadeDoMundo>(new LimiteDeVelocidadeDaCidade(_areas));
         servicos.AddSingleton(sp => new RelogioDoMundo(sp.GetRequiredService<TimeProvider>()));
         servicos.AddSingleton(sp =>
         {
             var servico = new ServicoDaHoraDoMundo(
                 sp.GetRequiredService<RelogioDoMundo>(),
                 sp.GetRequiredService<ServidorTempoReal>(),
-                () => _cidade.Presentes().Select(a => a.Sessao).ToArray(),
+                () => _areas.Cidade.Presentes().Select(a => a.Sessao).ToArray(),
                 sp.GetRequiredService<ILogger<ServicoDaHoraDoMundo>>()
             );
             _hora = servico;
@@ -89,35 +92,68 @@ public sealed class MundoModule : IFeatureModule
     /// </summary>
     private void AoVoltarDaQueda(PersonagemVoltouParaACidade evento)
     {
+        var nascimento = ValidadorDeMovimento.Nascimento;
         if (evento.Area != AreasDoMundo.Cidade)
         {
+            TentarMoverParaArea(
+                evento.PersonagemId,
+                new PosicaoNoMundo(
+                    AreasDoMundo.Cidade,
+                    nascimento.X,
+                    nascimento.Y,
+                    nascimento.Z,
+                    nascimento.RotacaoY
+                )
+            );
             return;
         }
 
-        var nascimento = ValidadorDeMovimento.Nascimento;
-        if (_cidade.ForcarPosicao(evento.PersonagemId, nascimento) is not { } sequencia)
+        if (_areas.Cidade.ForcarPosicao(evento.PersonagemId, nascimento) is not { } sequencia)
         {
             return;
         }
 
-        if (_cidade.Obter(evento.PersonagemId) is not { } avatar)
+        if (_areas.Cidade.Obter(evento.PersonagemId) is not { } avatar)
         {
             return;
         }
 
         EnviarPosicaoForcada(avatar.Sessao, avatar, sequencia);
-        Replicar(avatar.Sessao, avatar);
+        Replicar(AreasDoMundo.Cidade, avatar.Sessao, avatar);
     }
 
     private void AoEntrar(SessaoTempoReal sessao, EntrarNaCidade _)
     {
-        var (novo, eu, outros) = _cidade.Entrar(sessao.PersonagemId, sessao);
+        if (_areas.Obter(sessao.PersonagemId) is { } atual && atual.Area != AreasDoMundo.Cidade)
+        {
+            // A reconexão pode trocar a sessão antes do pedido de entrada na cidade. Atualiza a
+            // sessão mantendo a posição da área atual; a transição abaixo remove a presença velha.
+            _areas.Localizar(sessao.PersonagemId)?.Estado.Entrar(sessao.PersonagemId, sessao);
+            TentarMoverParaArea(
+                sessao.PersonagemId,
+                new PosicaoNoMundo(
+                    AreasDoMundo.Cidade,
+                    ValidadorDeMovimento.Nascimento.X,
+                    ValidadorDeMovimento.Nascimento.Y,
+                    ValidadorDeMovimento.Nascimento.Z,
+                    ValidadorDeMovimento.Nascimento.RotacaoY
+                )
+            );
+            return;
+        }
+
+        var (novo, eu, outros) = _areas.Entrar(
+            sessao.PersonagemId,
+            sessao,
+            AreasDoMundo.Cidade,
+            ValidadorDeMovimento.Nascimento
+        );
         _tempoReal!.Enviar(
             sessao,
             MundoMessageIds.EstadoDaCidade,
             new EstadoDaCidade { Eu = Visivel(eu), Outros = outros.Select(Visivel).ToArray() }
         );
-        if (_cidade.Velocidades(sessao.PersonagemId) is { } velocidades)
+        if (_areas.Cidade.Velocidades(sessao.PersonagemId) is { } velocidades)
         {
             EnviarVelocidades(sessao, velocidades);
         }
@@ -141,7 +177,14 @@ public sealed class MundoModule : IFeatureModule
     private void AoMover(SessaoTempoReal sessao, IntencaoDeMovimento intencao)
     {
         var desejada = new PosicaoNaCidade(intencao.X, intencao.Y, intencao.Z, intencao.RotacaoY);
-        var (resultado, avatar) = _cidade.Mover(sessao.PersonagemId, sessao, desejada);
+        var localizado = _areas.Localizar(sessao.PersonagemId);
+        if (localizado is null)
+        {
+            return;
+        }
+
+        var (area, estadoArea) = localizado.Value;
+        var (resultado, avatar) = estadoArea.Mover(sessao.PersonagemId, sessao, desejada);
         if (avatar == null)
         {
             return;
@@ -150,7 +193,7 @@ public sealed class MundoModule : IFeatureModule
         switch (resultado)
         {
             case ResultadoMovimento.Recusado:
-                if (_cidade.PosicaoForcadaPendente(sessao.PersonagemId) is { } sequencia)
+                if (estadoArea.PosicaoForcadaPendente(sessao.PersonagemId) is { } sequencia)
                 {
                     EnviarPosicaoForcada(sessao, avatar, sequencia);
                 }
@@ -158,17 +201,17 @@ public sealed class MundoModule : IFeatureModule
                 return;
             case ResultadoMovimento.Aceito:
             case ResultadoMovimento.AceitoComSuspeita:
-                Replicar(sessao, avatar);
+                Replicar(area, sessao, avatar);
                 return;
             default:
                 return;
         }
     }
 
-    private void Replicar(SessaoTempoReal dono, AvatarNaCidade<SessaoTempoReal> avatar)
+    private void Replicar(string area, SessaoTempoReal dono, AvatarNaCidade<SessaoTempoReal> avatar)
     {
         var replica = Posicao(avatar, 0);
-        foreach (var outro in _cidade.Presentes())
+        foreach (var outro in _areas.ObterOuCriar(area).Presentes())
         {
             if (!ReferenceEquals(outro.Sessao, dono))
             {
@@ -203,10 +246,15 @@ public sealed class MundoModule : IFeatureModule
     private void AoConfirmarPosicaoForcada(
         SessaoTempoReal sessao,
         ConfirmarPosicaoForcada confirmacao
-    ) => _cidade.ConfirmarPosicaoForcada(sessao.PersonagemId, sessao, confirmacao.Sequencia);
+    ) =>
+        _areas
+            .ParaPersonagem(sessao.PersonagemId)
+            ?.ConfirmarPosicaoForcada(sessao.PersonagemId, sessao, confirmacao.Sequencia);
 
     private void AoConfirmarVelocidade(SessaoTempoReal sessao, ConfirmarVelocidade confirmacao) =>
-        _cidade.ConfirmarVelocidades(sessao.PersonagemId, sessao, confirmacao.Sequencia);
+        _areas
+            .ParaPersonagem(sessao.PersonagemId)
+            ?.ConfirmarVelocidades(sessao.PersonagemId, sessao, confirmacao.Sequencia);
 
     // Equivalente ao .modify speed de GM do WoW: só com a configuração de desenvolvimento.
     private void AoPedirVelocidadeDeTeste(SessaoTempoReal sessao, PedirVelocidadeDeTeste pedido)
@@ -220,7 +268,9 @@ public sealed class MundoModule : IFeatureModule
         }
 
         if (
-            _cidade.MudarVelocidades(sessao.PersonagemId, sessao, pedido.Andar, pedido.Correr) is
+            _areas
+                .ParaPersonagem(sessao.PersonagemId)
+                ?.MudarVelocidades(sessao.PersonagemId, sessao, pedido.Andar, pedido.Correr) is
             { } novas
         )
         {
@@ -242,18 +292,119 @@ public sealed class MundoModule : IFeatureModule
 
     private void AoEncerrar(SessaoTempoReal sessao)
     {
-        if (!_cidade.Sair(sessao.PersonagemId, sessao))
+        var localizado = _areas.Localizar(sessao.PersonagemId);
+        if (localizado is null)
         {
             return;
         }
 
+        var (area, estadoArea) = localizado.Value;
+        if (!estadoArea.Sair(sessao.PersonagemId, sessao))
+        {
+            return;
+        }
+
+        _areas.RegistrarSaida(sessao.PersonagemId, area);
+
         var aviso = new JogadorSaiu { PersonagemId = sessao.PersonagemId };
-        foreach (var outro in _cidade.Presentes())
+        foreach (var outro in estadoArea.Presentes())
         {
             _tempoReal!.Enviar(outro.Sessao, MundoMessageIds.JogadorSaiu, aviso);
         }
 
-        _eventos!.Publicar(new JogadorSaiuDaArea(sessao.PersonagemId, AreasDoMundo.Cidade));
+        _eventos!.Publicar(new JogadorSaiuDaArea(sessao.PersonagemId, area));
+    }
+
+    public bool TentarMoverParaArea(long personagemId, PosicaoNoMundo destino)
+    {
+        if (
+            !AreasDoMundo.EhValida(destino.Area)
+            || !float.IsFinite(destino.X)
+            || !float.IsFinite(destino.Y)
+            || !float.IsFinite(destino.Z)
+            || !float.IsFinite(destino.RotacaoY)
+            || _tempoReal == null
+            || _eventos == null
+        )
+        {
+            return false;
+        }
+
+        var atual = _areas.Obter(personagemId);
+        if (atual == null)
+        {
+            return false;
+        }
+
+        var transicao = _areas.Mover(
+            personagemId,
+            atual.Value.Avatar.Sessao,
+            destino.Area,
+            new PosicaoNaCidade(destino.X, destino.Y, destino.Z, destino.RotacaoY)
+        );
+        if (transicao == null)
+        {
+            return false;
+        }
+
+        var sessao = transicao.Eu.Sessao;
+        foreach (var outro in transicao.OutrosNaOrigem)
+        {
+            _tempoReal.Enviar(
+                outro.Sessao,
+                MundoMessageIds.JogadorSaiu,
+                new JogadorSaiu { PersonagemId = personagemId }
+            );
+        }
+
+        _eventos.Publicar(new JogadorSaiuDaArea(personagemId, transicao.Origem));
+
+        if (destino.Area == AreasDoMundo.Cidade)
+        {
+            _tempoReal.Enviar(
+                sessao,
+                MundoMessageIds.EstadoDaCidade,
+                new EstadoDaCidade
+                {
+                    Eu = Visivel(transicao.Eu),
+                    Outros = transicao.OutrosNoDestino.Select(Visivel).ToArray(),
+                }
+            );
+        }
+        else
+        {
+            _tempoReal.Enviar(
+                sessao,
+                MundoMessageIds.EstadoDaArea,
+                new EstadoDaArea
+                {
+                    Area = destino.Area,
+                    Eu = Visivel(transicao.Eu),
+                    Outros = transicao.OutrosNoDestino.Select(Visivel).ToArray(),
+                }
+            );
+        }
+        if (_areas.ParaPersonagem(personagemId)?.Velocidades(personagemId) is { } velocidades)
+        {
+            EnviarVelocidades(sessao, velocidades);
+        }
+
+        foreach (var outro in transicao.OutrosNoDestino)
+        {
+            _tempoReal.Enviar(
+                outro.Sessao,
+                MundoMessageIds.JogadorEntrou,
+                new JogadorEntrou { Jogador = Visivel(transicao.Eu) }
+            );
+        }
+
+        _eventos.Publicar(new JogadorEntrouNaArea(personagemId, destino.Area));
+        if (destino.Area == AreasDoMundo.Cidade)
+        {
+            _hora?.Enviar(sessao);
+        }
+
+        return true;
     }
 
     private static JogadorVisivel Visivel(AvatarNaCidade<SessaoTempoReal> a) =>

@@ -42,5 +42,8 @@ namespace JogoDoGrupo.Shared.Features.Mundo
 
         /// <summary>Servidor → client: a hora do mundo (<see cref="Mundo.HoraDoMundo"/>).</summary>
         public const ushort HoraDoMundo = 1011;
+
+        /// <summary>Servidor → client: estado inicial após mudança para uma área do Mundo.</summary>
+        public const ushort EstadoDaArea = 1012;
     }
 }
