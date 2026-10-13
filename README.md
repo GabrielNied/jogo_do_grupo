@@ -225,7 +225,7 @@ A regra principal: **cada funcionalidade vive na própria pasta, nas três parte
 | NPCs | `Npcs` | 2000–2999 | Papel dos NPCs no mundo, comerciantes e reputação. |
 | Personagem | `Personagem` | 3000–3999 | Raças (com skill base), atributos e progressão de nível. Sem classes. |
 | Skills (magias) | `Skills` | 4000–4999 | Skills sorteadas nos itens e skill base da raça; custo e recarga. |
-| Habilidades (talentos) | `Talentos` | 5000–5999 | Árvore de pontos de talento. ⏸️ Adiada: o jogo começa sem talentos. |
+| Árvore de atributos (talentos) | `Talentos` | 5000–5999 | Árvore circular de atributos: nós, pontos por nível, compra no servidor e tela (tecla N). Redistribuição e perfis em andamento. |
 | Combate | `Combate` | 6000–6999 | Combate de ação (estilo New World): dano, esquiva, efeitos de status. Usado por PvE e PvP. |
 | Itens | `Itens` | 7000–7999 | Inventário, equipamentos, raridades e sistema de fusão. |
 | Profissões | `Profissoes` | 8000–8999 | Craft e coleta, conectados à economia. |

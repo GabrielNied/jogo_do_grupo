@@ -102,7 +102,9 @@
     "LogoEntradaAltura": 156,
     "MarcadorAliado": 4,
     "MarcadorJogador": 9,
-    "MarcadorMinimapa": 8
+    "MarcadorMinimapa": 8,
+    "Arvore": 440,
+    "NoGrande": 56
   },
   "Bordas": {
     "Fina": 1,

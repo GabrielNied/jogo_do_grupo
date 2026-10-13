@@ -30,8 +30,6 @@ namespace JogoDoGrupo.Client.Features.Personagem
         private VisualElement _atributos;
         private Label _secundariosTitulo;
         private VisualElement _secundarios;
-        private Label _gastoMensagem;
-        private Button _confirmar;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void Registrar()
@@ -66,11 +64,6 @@ namespace JogoDoGrupo.Client.Features.Personagem
             _secundariosTitulo = new Label(TextosSecundarios.Titulo);
             _secundariosTitulo.AddToClassList(EstiloCore.Texto);
             _secundarios = new VisualElement();
-            _gastoMensagem = new Label();
-            _gastoMensagem.AddToClassList(EstiloCore.Mensagem);
-            _confirmar = new Button(ConfirmarGasto) { text = "Gastar pontos" };
-            _confirmar.AddToClassList(EstiloCore.Botao);
-            _confirmar.AddToClassList(EstiloCore.BotaoPrincipal);
 
             conteudo.Add(_mensagem);
             conteudo.Add(_dados);
@@ -79,8 +72,6 @@ namespace JogoDoGrupo.Client.Features.Personagem
             conteudo.Add(_atributos);
             conteudo.Add(_secundariosTitulo);
             conteudo.Add(_secundarios);
-            conteudo.Add(_gastoMensagem);
-            conteudo.Add(_confirmar);
             conteudo.Add(_nota);
         }
 
@@ -266,106 +257,13 @@ namespace JogoDoGrupo.Client.Features.Personagem
             var estado = ProgressoDoClient.Estado;
             _barraTexto.text = TextosPersonagem.TextoDaBarra(estado);
             _barraPreenchimento.style.width = Length.Percent(estado.FracaoDaBarra * 100f);
-            _confirmar.SetEnabled(estado.PodeConfirmar);
-
             _atributos.Clear();
-            AdicionarAtributo(
-                TextosPersonagem.RotuloForca,
-                "Forca",
-                TextosPersonagem.EfeitoDaForca,
-                estado.Distribuidos.Forca,
-                estado.Rascunho.Forca
-            );
-            AdicionarAtributo(
-                TextosPersonagem.RotuloVigor,
-                "Vigor",
-                TextosPersonagem.EfeitoDoVigor,
-                estado.Distribuidos.Vigor,
-                estado.Rascunho.Vigor
-            );
-            AdicionarAtributo(
-                TextosPersonagem.RotuloAgilidade,
-                "Agilidade",
-                TextosPersonagem.EfeitoDaAgilidade,
-                estado.Distribuidos.Agilidade,
-                estado.Rascunho.Agilidade
-            );
-            AdicionarAtributo(
-                TextosPersonagem.RotuloIntelecto,
-                "Intelecto",
-                TextosPersonagem.EfeitoDoIntelecto,
-                estado.Distribuidos.Intelecto,
-                estado.Rascunho.Intelecto
-            );
-            AdicionarAtributo(
-                TextosPersonagem.RotuloEspirito,
-                "Espirito",
-                TextosPersonagem.EfeitoDoEspirito,
-                estado.Distribuidos.Espirito,
-                estado.Rascunho.Espirito
-            );
-
-            var livres = new Label("Pontos livres: " + estado.PontosLivres);
+            var livres = new Label(TextosPersonagem.PontosDaArvore + estado.PontosLivres);
             livres.AddToClassList(EstiloCore.Texto);
             _atributos.Add(livres);
-        }
-
-        private void AdicionarAtributo(
-            string rotulo,
-            string chave,
-            string efeito,
-            int distribuido,
-            int rascunho
-        )
-        {
-            var linha = new VisualElement();
-            linha.AddToClassList(EstiloCore.LinhaBotoes);
-            var texto = new Label(
-                TextosPersonagem.LinhaDoAtributo(rotulo, distribuido + rascunho, efeito)
-            );
-            texto.AddToClassList(EstiloCore.Texto);
-            texto.tooltip = efeito;
-            var mais = new Button(() => ProgressoDoClient.Estado.AumentarRascunho(chave))
-            {
-                text = "+",
-            };
-            mais.AddToClassList(EstiloCore.Botao);
-            mais.SetEnabled(
-                RegrasAtributos.Total(ProgressoDoClient.Estado.Rascunho)
-                    < ProgressoDoClient.Estado.PontosLivres
-            );
-            linha.Add(texto);
-            linha.Add(mais);
-            _atributos.Add(linha);
-        }
-
-        private async void ConfirmarGasto()
-        {
-            var pedido = ProgressoDoClient.Estado.MontarPedido();
-            if (pedido == null)
-            {
-                return;
-            }
-
-            var personagemId = EntradaNoJogo.PersonagemId;
-            var resposta = await ClienteApi.Post<ProgressoResponse>(
-                RotasPersonagem.AtributosDe(personagemId),
-                pedido
-            );
-            if (!Aberta)
-            {
-                return;
-            }
-
-            if (!resposta.Sucesso || resposta.Corpo == null)
-            {
-                _gastoMensagem.text = TextosPersonagem.MensagemDoGasto(resposta.CodigoErro);
-                _gastoMensagem.EnableInClassList(EstiloCore.MensagemErro, true);
-                return;
-            }
-
-            _gastoMensagem.text = "";
-            ProgressoDoClient.Estado.Aplicar(resposta.Corpo);
+            var dica = new Label(TextosPersonagem.DicaDaArvore);
+            dica.AddToClassList(EstiloCore.Mensagem);
+            _atributos.Add(dica);
         }
 
         private void MostrarMensagem(string texto, bool erro)

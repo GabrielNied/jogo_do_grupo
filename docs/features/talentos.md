@@ -1,7 +1,7 @@
 # Árvore de atributos (talentos)
 
 **Responsável:**
-**Status:** em definição. Estrutura decidida por Gabriel em 2026-10-12, números pendentes. **Prioridade alta**, épico [#621](https://github.com/GabrielNied/jogo_do_grupo/issues/621)
+**Status:** estrutura decidida por Gabriel em 2026-10-12; a árvore, a compra e a tela estão implementadas com **valores de teste** (#625, 13/10/2026); redistribuição, perfis e nós grandes faltam. **Prioridade alta**, épico [#621](https://github.com/GabrielNied/jogo_do_grupo/issues/621)
 **Faixa de IDs de mensagem:** 5000–5999
 
 ## Resumo
@@ -133,12 +133,29 @@ IDs estáveis da especificação; tarefas e testes apontam para eles.
 
 Épico [#621](https://github.com/GabrielNied/jogo_do_grupo/issues/621): [#622](https://github.com/GabrielNied/jogo_do_grupo/issues/622) nomes novos, [#623](https://github.com/GabrielNied/jogo_do_grupo/issues/623) atributos próprios dos equipamentos, [#624](https://github.com/GabrielNied/jogo_do_grupo/issues/624) secundários e pipeline, [#625](https://github.com/GabrielNied/jogo_do_grupo/issues/625) árvore e tela, [#626](https://github.com/GabrielNied/jogo_do_grupo/issues/626) redistribuição e perfis, [#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627) números.
 
+## Implementação da #625 (árvore, compra e tela)
+
+Decisões de design tomadas pela IA ao implementar, sem esperar resposta (mudam por constante ou por dados, nada trava):
+
+- **Configuração por dados.** `ConfiguracaoDaArvore` (shared) tem `Versao` e os nós: id, nome, descrição, tipo, caminhos, rank máximo, `CustoPorRank` (um custo por rank), requisitos, efeitos e posição `X`/`Y` (só para a tela). **As arestas são os requisitos** (todos valem juntos: "nó A com rank mínimo N"). Hoje a fonte é `ArvoreDeTeste.Criar()` em código; trocar por arquivo é mudar a origem da configuração em `TalentosModule`.
+- **Validador** (`ValidadorDaArvore`, puro): versão menor que 1, árvore sem nós, id vazio ou repetido, nó sem nome, rank máximo menor que 1, custo por rank com tamanho diferente do rank máximo ou menor que 1, caminho inexistente (híbrido precisa de dois caminhos diferentes), nó sem efeito (menos o híbrido, que pode ser só rota), efeito com valor menor que 1 ou secundário sem chave, requisito que aponta para nó inexistente ou pede rank fora de 1..máximo, e **ciclo**. O servidor chama em `ConfigurarServicos`; configuração inválida lança `InvalidOperationException` com o motivo de cada problema e o servidor não sobe.
+- **Árvore mínima de teste:** 3 nós pequenos por caminho (rank máximo 3, custos 1, 1 e 2, +1 de atributo por rank; o nó seguinte pede rank 2 do anterior) e 5 híbridos, um por par de caminhos vizinhos (Força-Vigor-Agilidade-Intelecto-Espírito-Força: rank máximo 2, custos 2 e 3, +1 nos dois atributos por rank; pedem rank 1 do 2º nó dos dois caminhos). Total de 15 + 5 nós. Todos os números são constantes de `ArvoreDeTeste`.
+- **Pontos.** O saldo é `PontosLivres` do personagem (só sobe ao subir de nível: `ConfigExperiencia.PontosPorNivel`, **1 por nível, valor de teste**). Talentos gasta por `IPontosDeNivel` ([personagem.md](personagem.md)), na mesma transação da compra. `PontosGastos` guarda o que foi pago, para a redistribuição (#626).
+- **Compra atômica e idempotente, sem tabela de pedidos.** O pedido (`ComprarNoRequest`) leva `RankAlvo` (o rank que o jogador viu mais um) e a versão da configuração. O servidor abre transação Serializable (no SQLite, `BEGIN IMMEDIATE`: pedidos do mesmo personagem rodam um depois do outro) e avalia com `RegrasDaArvore.AvaliarCompra`: `RankAlvo` menor que 1 ou mais de um acima do rank atual é `RankAlvoInvalido` (400); **rank atual já maior ou igual ao alvo responde sucesso sem cobrar** (pedido repetido ou concorrente); depois vêm rank máximo, requisitos e pontos (409). Só então baixa os pontos, grava o rank e confirma; qualquer recusa desfaz tudo.
+- **Estado persistido:** uma linha por personagem (`TalentosArvores`: versão da configuração em que comprou e `PontosGastos`, criada na primeira compra) e uma por nó comprado (`TalentosNos`: nó e rank maior que zero). Se a versão salva for diferente da atual, a compra é recusada com `ArvoreDesatualizada` e nada se perde; migrar ou reembolsar é da #626/#627.
+- **Rotas HTTP, sem mensagens de tempo real** (como Personagem; a faixa 5000–5999 segue reservada): `GET /api/personagens/{id}/talentos` devolve `ArvoreResponse` (a configuração inteira, `PontosLivres`, `PontosGastos`, `Ranks` e a soma `Atributos` da árvore) e `POST .../talentos/comprar` devolve o mesmo. Erros: `NoInvalido` e `RankAlvoInvalido` (400); `RankMaximo`, `RequisitoNaoCumprido`, `PontosInsuficientes` e `ArvoreDesatualizada` (409); 404 se o personagem não é da conta.
+- **Atributos para o combate:** `IAtributosDaArvore` (Talentos publica, só no servidor) soma os efeitos de atributo principal dos ranks comprados; Combate soma isso em `AtributosCombate` no lugar do antigo `IPontosDistribuidos`. Trocar equipamento não toca em nada disto.
+- **Secundários na pipeline:** o efeito de secundário (`Chave` = nome do `AtributoSecundario`, ex.: `ChanceCritica`; `Multiplica` falso soma, verdadeiro é bônus percentual) vira um modificador da fonte `Arvore` por `FonteDaArvore`, que implementa `IFonteDeModificadores` (Combate). Entra com o **total atual** (valor por rank vezes o rank), ordem `OrdemArvore`, grupo de acúmulo `arvore` (percentuais da árvore somam entre si) e origem "Árvore: nome do nó". Chave que não é um secundário recusa a configuração ao subir. A árvore de teste ainda **não tem nó de secundário** (os números são da #627); o teste usa uma árvore com um. Nós grandes e avançados (condicionais) existem só como tipo e estado na tela; nenhum nó de teste é condicional.
+- **Tela** (tecla **N**, janela do Core, Lumora UI com `ComponentesVisuais`): visão radial com os cinco caminhos (nome do caminho depois do último nó) e os híbridos entre eles, arestas ligando requisito e nó (mais grossas e turquesa quando cumpridas), legenda dos estados e painel do nó. Estados com **forma, marca e texto, nunca só cor**: bloqueado `x`, disponível `+`, comprado `rank/máximo`, no máximo `MAX`, condicionalmente ativo `~` (nó pequeno é redondo; híbrido e maior são quadrados de canto suave). O painel mostra tipo, descrição, estado, rank, efeito por rank, custo do próximo rank, cada requisito (cumprido ou pendente), o **motivo do bloqueio** ("Compre antes: ...", "Você não tem pontos livres. Suba de nível para ganhar mais.", "Rank máximo."), a **prévia antes e depois** dos atributos da árvore e dos pontos livres, e o botão de comprar (desabilitado com "Comprando..." enquanto o servidor não responde). Teclado: Tab entre os nós, Enter ou Espaço compra o nó escolhido. O botão na janela do personagem fica para depois (a tecla N abre a árvore; a janela do personagem só mostra o saldo e a dica).
+
 ## Depende de
 
-- **[Personagem](personagem.md):** identidade, nível e os pontos da árvore (`IPontosDistribuidos` hoje; vira o estado da árvore na #625).
+- **[Personagem](personagem.md):** identidade, nível e o saldo de pontos da árvore (`IPontosDeNivel`).
 - **[Skills](skills.md) e [Combate](combate.md):** propriedades das skills e a fórmula de dano e mitigação, por contrato.
 - **[Economia](economia.md):** cobrança da redistribuição.
 
 ## Expõe
 
-Ainda nada. A #625 define o contrato (configuração da árvore, estado do personagem e mensagens na faixa 5000–5999).
+- **Rotas HTTP** `RotasTalentos.Arvore` (`GET`) e `RotasTalentos.Comprar` (`POST`), com `ArvoreResponse`, `ComprarNoRequest` e `CodigosErroTalentos` (shared).
+- **Regras puras** no shared, usadas pelo servidor e pela tela: `RegrasDaArvore` (avaliar compra, estado do nó, requisitos pendentes, soma dos atributos), `ValidadorDaArvore` e `ArvoreDeTeste`.
+- **`IAtributosDaArvore`** (servidor, `Contratos/Talentos/`): atributos principais da árvore de um personagem, para Combate.

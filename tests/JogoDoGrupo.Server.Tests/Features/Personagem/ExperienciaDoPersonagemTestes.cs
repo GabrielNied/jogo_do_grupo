@@ -20,7 +20,7 @@ public class ExperienciaDoPersonagemTestes(ServidorDeTeste servidor)
     : IClassFixture<ServidorDeTeste>
 {
     [Fact]
-    public async Task Ganho_que_cruza_dois_niveis_sobe_os_dois_sem_ponto()
+    public async Task Ganho_que_cruza_dois_niveis_sobe_os_dois_e_da_os_pontos_da_arvore()
     {
         var cliente = await servidor.CriarClienteLogadoAsync();
         var id = await CriarPersonagemAsync(cliente);
@@ -32,7 +32,7 @@ public class ExperienciaDoPersonagemTestes(ServidorDeTeste servidor)
         var progresso = await ProgressoAsync(cliente, id);
         Assert.Equal(3, progresso.Nivel);
         Assert.Equal(0, progresso.XpAtual);
-        Assert.Equal(0, progresso.PontosLivres);
+        Assert.Equal(2 * ConfigExperiencia.PontosPorNivel, progresso.PontosLivres);
     }
 
     [Fact]
@@ -77,99 +77,6 @@ public class ExperienciaDoPersonagemTestes(ServidorDeTeste servidor)
         Assert.Equal(RegrasExperiencia.NivelMaximo, depois.Nivel);
         Assert.Equal(noTeto.XpAtual + 500, depois.XpAtual);
         Assert.Equal(noTeto.PontosLivres, depois.PontosLivres);
-    }
-
-    [Fact]
-    public async Task Gasto_exato_aplica_e_um_ponto_a_mais_nao_muda_nada()
-    {
-        var cliente = await servidor.CriarClienteLogadoAsync();
-        var id = await CriarPersonagemAsync(cliente);
-        await DefinirPontosLivresAsync(id, 5);
-
-        var gasto = await GastarAsync(cliente, id, new PontosDeAtributos { Forca = 5 });
-        Assert.Equal(HttpStatusCode.OK, gasto.StatusCode);
-        var progresso = await ServidorDeTeste.LerJsonAsync<ProgressoResponse>(gasto);
-        Assert.Equal(0, progresso.PontosLivres);
-        Assert.Equal(5, progresso.Distribuidos.Forca);
-
-        var recusa = await GastarAsync(cliente, id, new PontosDeAtributos { Forca = 1 });
-        Assert.Equal(HttpStatusCode.Conflict, recusa.StatusCode);
-        Assert.Equal(
-            CodigosErroPersonagem.PontosInsuficientes,
-            (await ServidorDeTeste.LerJsonAsync<ErroApi>(recusa)).Codigo
-        );
-        Assert.Equal(5, (await ProgressoAsync(cliente, id)).Distribuidos.Forca);
-    }
-
-    [Fact]
-    public async Task Dois_gastos_simultaneos_nao_usam_os_mesmos_pontos()
-    {
-        var cliente = await servidor.CriarClienteLogadoAsync();
-        var id = await CriarPersonagemAsync(cliente);
-        await DefinirPontosLivresAsync(id, 5);
-        var pedido = new PontosDeAtributos { Vigor = 5 };
-
-        var respostas = await Task.WhenAll(
-            GastarAsync(cliente, id, pedido),
-            GastarAsync(cliente, id, pedido)
-        );
-
-        Assert.Equal(1, respostas.Count(r => r.StatusCode == HttpStatusCode.OK));
-        Assert.Equal(1, respostas.Count(r => r.StatusCode == HttpStatusCode.Conflict));
-        var progresso = await ProgressoAsync(cliente, id);
-        Assert.Equal(0, progresso.PontosLivres);
-        Assert.Equal(5, progresso.Distribuidos.Vigor);
-    }
-
-    [Fact]
-    public async Task Pedido_invalido_e_personagem_de_outra_conta_sao_recusados()
-    {
-        var dono = await servidor.CriarClienteLogadoAsync();
-        var id = await CriarPersonagemAsync(dono);
-        await DefinirPontosLivresAsync(id, 5);
-
-        var negativo = await GastarAsync(dono, id, new PontosDeAtributos { Forca = -1 });
-        Assert.Equal(HttpStatusCode.BadRequest, negativo.StatusCode);
-        var zero = await GastarAsync(dono, id, new PontosDeAtributos());
-        Assert.Equal(HttpStatusCode.BadRequest, zero.StatusCode);
-        Assert.Equal(5, (await ProgressoAsync(dono, id)).PontosLivres);
-
-        var outro = await servidor.CriarClienteLogadoAsync();
-        var alheio = await GastarAsync(outro, id, new PontosDeAtributos { Forca = 1 });
-        Assert.Equal(HttpStatusCode.NotFound, alheio.StatusCode);
-        var progressoAlheio = await outro.GetAsync(RotasPersonagem.ProgressoDe(id));
-        Assert.Equal(HttpStatusCode.NotFound, progressoAlheio.StatusCode);
-    }
-
-    [Fact]
-    public async Task Vigor_distribuida_aumenta_a_vida_maxima()
-    {
-        var cliente = await servidor.CriarClienteLogadoAsync();
-        var id = await CriarPersonagemAsync(cliente);
-        await DefinirPontosLivresAsync(id, 5);
-        var gasto = await GastarAsync(cliente, id, new PontosDeAtributos { Vigor = 5 });
-        Assert.Equal(HttpStatusCode.OK, gasto.StatusCode);
-
-        var recursos = await cliente.GetAsync(RotasCombate.RecursosDe(id));
-        Assert.Equal(HttpStatusCode.OK, recursos.StatusCode);
-        var corpo = await ServidorDeTeste.LerJsonAsync<RecursosResponse>(recursos);
-        Assert.Equal(RegrasRecursos.VidaMaxima(5), corpo.VidaMaxima);
-    }
-
-    [Fact]
-    public async Task Agilidade_distribuida_aumenta_a_stamina_maxima()
-    {
-        var cliente = await servidor.CriarClienteLogadoAsync();
-        var id = await CriarPersonagemAsync(cliente);
-        await DefinirPontosLivresAsync(id, 5);
-        var gasto = await GastarAsync(cliente, id, new PontosDeAtributos { Agilidade = 5 });
-        Assert.Equal(HttpStatusCode.OK, gasto.StatusCode);
-
-        var recursos = await cliente.GetAsync(RotasCombate.RecursosDe(id));
-        Assert.Equal(HttpStatusCode.OK, recursos.StatusCode);
-        var corpo = await ServidorDeTeste.LerJsonAsync<RecursosResponse>(recursos);
-        Assert.Equal(RegrasRecursos.StaminaMaxima(5), corpo.StaminaMaxima);
-        Assert.True(corpo.StaminaMaxima > RegrasRecursos.StaminaBase);
     }
 
     [Fact]
@@ -337,15 +244,4 @@ public class ExperienciaDoPersonagemTestes(ServidorDeTeste servidor)
         personagem.PontosLivres = pontos;
         await db.SaveChangesAsync();
     }
-
-    private static Task<HttpResponseMessage> GastarAsync(
-        HttpClient cliente,
-        long id,
-        PontosDeAtributos pontos
-    ) =>
-        ServidorDeTeste.PostJsonAsync(
-            cliente,
-            RotasPersonagem.AtributosDe(id),
-            new DistribuirAtributosRequest { Pontos = pontos }
-        );
 }
