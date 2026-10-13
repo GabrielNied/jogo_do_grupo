@@ -192,6 +192,10 @@ function executarGit(args, opcoes = {}) {
   return res.stdout ? res.stdout.trim() : "";
 }
 
+function branchLocalExiste(nome) {
+  return spawnSync("git", ["show-ref", "--verify", "--quiet", `refs/heads/${nome}`]).status === 0;
+}
+
 function obterUsuarioAtual() {
   try {
     const res = executarGh(["api", "user", "--jq", ".login"], { ignorarErro: true });
@@ -464,6 +468,16 @@ async function puxarTarefa(args) {
 
   // Verificação de concorrência
   if (temLabelAndamento || statusProj === "In Progress") {
+    // Puxar repetido pelo mesmo agente (o primeiro já passou): a trava aponta a branch dele.
+    const trava = ultimaTrava(comentariosDa(numero));
+    const branchAqui = executarGit(["rev-parse", "--abbrev-ref", "HEAD"], { silencioso: true });
+    const mesmaBranch =
+      trava &&
+      (trava.branch === branchAqui || (trava.branch === nomeBranch && branchLocalExiste(nomeBranch)));
+    if (mesmaBranch) {
+      console.log(`\n✔ A tarefa #${numero} já foi puxada por você, na branch ${trava.branch}. Siga nela.`);
+      process.exit(0);
+    }
     const responsaveis = (issue.assignees || []).map((a) => a.login).join(", ") || "outro desenvolvedor/agente";
     console.error(`\n⛔ BLOQUEADO: A tarefa #${numero} ("${issue.title}") já está EM ANDAMENTO por: ${responsaveis}!`);
     console.error("Para evitar retrabalho e conflitos, múltiplos desenvolvedores ou agentes não podem atuar na mesma tarefa.");
