@@ -28,11 +28,16 @@ namespace JogoDoGrupo.Client.Core.Contas
 
         protected override void Montar(VisualElement raiz)
         {
-            var painel = EstiloCore.CriarPainel(social: true);
+            var composicao = new VisualElement();
+            composicao.AddToClassList("login-composicao");
 
             var titulo = ComponentesVisuais.Marca();
+            titulo.AddToClassList("login-marca");
 
-            var subtitulo = new Label("Entre com a sua conta");
+            var painel = EstiloCore.CriarPainel(social: true);
+            painel.AddToClassList("login-painel");
+
+            var subtitulo = new Label("Entre em Lumora");
             subtitulo.AddToClassList(EstiloCore.Subtitulo);
 
             _usuario = new TextField("Usuário") { maxLength = RegrasConta.UsuarioMaximo };
@@ -53,22 +58,25 @@ namespace JogoDoGrupo.Client.Core.Contas
 
             _criarConta = new Button(AoClicarCriarConta) { text = "Criar conta" };
             _criarConta.AddToClassList(EstiloCore.Botao);
-
-            var linha = new VisualElement();
-            linha.AddToClassList(EstiloCore.LinhaBotoes);
-            linha.Add(_entrar);
-            linha.Add(_criarConta);
+            _criarConta.AddToClassList("login-acao-secundaria");
 
             _mensagem = new Label();
             _mensagem.AddToClassList(EstiloCore.Mensagem);
+            _mensagem.AddToClassList("login-mensagem");
 
-            painel.Add(titulo);
+            var acoes = new VisualElement();
+            acoes.AddToClassList("login-acoes");
+            acoes.Add(_entrar);
+            acoes.Add(_criarConta);
+
             painel.Add(subtitulo);
             painel.Add(_usuario);
             painel.Add(_senha);
-            painel.Add(linha);
             painel.Add(_mensagem);
-            raiz.Add(painel);
+            painel.Add(acoes);
+            composicao.Add(titulo);
+            composicao.Add(painel);
+            raiz.Add(composicao);
         }
 
         protected override void AoAbrir()
