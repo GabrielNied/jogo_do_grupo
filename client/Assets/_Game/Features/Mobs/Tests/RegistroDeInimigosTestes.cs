@@ -7,11 +7,12 @@ namespace JogoDoGrupo.Client.Features.Mobs.Tests
     /// <summary>O que o client guarda e mostra dos inimigos, conforme as mensagens do servidor.</summary>
     public class RegistroDeInimigosTestes
     {
-        private static InimigoNoMundo Dados(long id, int vida = 180) =>
+        private static InimigoNoMundo Dados(long id, int vida = 180, int nivel = 0) =>
             new InimigoNoMundo
             {
                 InimigoId = id,
                 CriaturaId = CatalogoCriaturas.JavaliDoCampo,
+                Nivel = nivel,
                 X = 1f,
                 Z = 2f,
                 Vida = vida,
@@ -403,11 +404,12 @@ namespace JogoDoGrupo.Client.Features.Mobs.Tests
         }
 
         [Test]
-        public void Rotulo_UsaNomeENivelDoCatalogo_ECriaturaDesconhecidaCaiNoId()
+        public void Rotulo_UsaNivelDaMensagem_NaoDoCatalogo()
         {
-            Assert.AreEqual("Javali do Campo Nv 3", new InimigoNoClient(Dados(1)).Rotulo);
+            Assert.AreEqual("Javali do Campo Nv 8", new InimigoNoClient(Dados(1, nivel: 8)).Rotulo);
+            Assert.AreEqual("Javali do Campo Nv 3", new InimigoNoClient(Dados(2)).Rotulo);
 
-            var desconhecida = Dados(2);
+            var desconhecida = Dados(3);
             desconhecida.CriaturaId = 9999;
             Assert.AreEqual("Criatura 9999", new InimigoNoClient(desconhecida).Rotulo);
         }
