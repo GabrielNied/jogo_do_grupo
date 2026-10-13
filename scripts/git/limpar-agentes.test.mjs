@@ -1,7 +1,7 @@
 // Testes das regras do limpar-agentes: node --test scripts/git/limpar-agentes.test.mjs
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { decidir, dentroDe, lerWorktrees } from "./limpar-agentes.mjs";
+import { assuntoEquivalenteNaMain, decidir, dentroDe, lerWorktrees, patchesNaMain } from "./limpar-agentes.mjs";
 
 test("lê o porcelain do git worktree list, com e sem branch", () => {
   const saida = [
@@ -74,6 +74,50 @@ test("branch sem PR cujo conteúdo entrou por cherry-pick ou squash: sai", () =>
   const d = decidir({ commitsProprios: 4, conteudoNaMain: true });
   assert.equal(d.remover, true);
   assert.match(d.motivo, /já está na main/);
+});
+
+test("git cherry só com +: patches já na main", () => {
+  const r = patchesNaMain({
+    linhasCherry: [
+      "+ aaa111 feat(x): um",
+      "+ bbb222 feat(x): dois",
+    ],
+    assuntosNaMain: [],
+    assuntoDoCommit: () => null,
+  });
+  assert.equal(r.ok, true);
+  const d = decidir({ commitsProprios: 4, patchesNaMain: r });
+  assert.equal(d.remover, true);
+  assert.match(d.motivo, /patches já estão na main/);
+});
+
+test("assunto na main com (#NNN) de squash equivale ao local", () => {
+  assert.equal(
+    assuntoEquivalenteNaMain("feat(x): foo", ["feat(x): foo (#12)"]),
+    true,
+  );
+});
+
+test("git cherry com - cujo assunto já existe na main: reimplementação (squash)", () => {
+  const assunto = "feat(combate): ritmo do golpe";
+  const r = patchesNaMain({
+    linhasCherry: ["+ aaa111 feat(x): guarda", "- ccc333 feat(combate): ritmo do golpe"],
+    assuntosNaMain: ["feat(combate): ritmo do golpe (#597)"],
+    assuntoDoCommit: (sha) => (sha === "ccc333" ? assunto : null),
+  });
+  assert.equal(r.ok, true);
+  const d = decidir({ commitsProprios: 4, patchesNaMain: r });
+  assert.equal(d.remover, true);
+  assert.match(d.motivo, /reimplementados na main/);
+});
+
+test("git cherry com - sem par na main: não entrega", () => {
+  const r = patchesNaMain({
+    linhasCherry: ["- ddd444 feat(y): só local"],
+    assuntosNaMain: ["feat(y): outra coisa"],
+    assuntoDoCommit: () => "feat(y): só local",
+  });
+  assert.equal(r.ok, false);
 });
 
 test("branch sem PR já enviada ao origin: sai do local", () => {

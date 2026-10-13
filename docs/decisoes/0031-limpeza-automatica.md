@@ -20,7 +20,7 @@ O `npm run limpar-agentes` do ADR 0018 quase nunca removia nada. Em 2026-10-11 h
 
   O relatório da última rodada fica em `.git/limpar-agentes.log`.
 - **O critério é "nada se perde".** Sai o worktree ou branch sem mudança não commitada cujos commits estão em algum destes lugares:
-  - na `main`, inclusive pelo conteúdo, o que cobre cherry-pick e squash;
+  - na `main`, inclusive pelo conteúdo, o que cobre cherry-pick e squash (`git cherry` e, para cada commit `-`, o mesmo assunto num commit da `main` — branch local atrás da `main` deixa de ficar presa);
   - num PR do GitHub, mesclado ou fechado (o GitHub guarda a ponta em `refs/pull/N/head`);
   - numa branch do `origin`.
 - **PR aberto sempre fica.** Branch sem PR mexida nas últimas 2 h também fica, porque pode ser um agente começando. A recência vem do reflog (commit, checkout), não do `index`. PR mesclado sai mesmo se recente: o trabalho acabou.
