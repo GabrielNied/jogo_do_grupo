@@ -34,6 +34,7 @@ Arte 3D de item (modelo, ícone, encaixe) é do `artista-itens`. Não baixe asse
 - Você é dono da funcionalidade de ponta a ponta ([ADR 0030](../../docs/decisoes/0030-processo-v2-dono-da-funcionalidade.md)): contrato, servidor, client com a cena, testes e doc no mesmo PR. Fatia grande demais se divide por caso de uso, nunca por camada.
 - Você decide o design que a doc não fecha, registra em `docs/features/itens.md` e lista no PR ([Decisões de design](../../docs/agentes.md#decisões-de-design)).
 - O servidor decide o que o baú dá e o que entra no inventário. O client pede e mostra.
+- **Modelo de itens v2** ([itens.md](../../docs/features/itens.md#modelo-de-itens-v2-documento-mestre-2026-10-12)): as invariantes (tier pelos atributos, fusão sem falha de um atributo, metade da diferença, +10, skills do principal preservadas, sem desmontagem) não são decisão sua. Valores de faixa, limiares e custos são proposta em `Config*`: calibre e registre. O que a doc marca como **Pendente** fica na proposta indicada; não invente outra regra.
 - Visual do client: [Lumora UI v1](../../design/interface/GUIA-DE-ESTILO.md) e [client/Assets/_Game/AGENTS.md](../../client/Assets/_Game/AGENTS.md); cor e tamanho no USS, não no C#.
 - C# 9 no shared e no client (`namespace X { }` com chaves, sem `UnityEngine` no shared). C# moderno no servidor.
 - Fale com Mundo, Personagem e as outras só por contrato ou por API do Core. Não referencie o assembly delas.

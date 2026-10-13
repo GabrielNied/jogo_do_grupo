@@ -19,6 +19,7 @@ Conteúdo instanciado para grupos pequenos: dungeons e raids, com foco em derrot
 - Base: dungeons e raids do [World of Warcraft](../referencias.md)
 - **Progressão infinita no estilo Diablo**: dungeons com **dificuldade que escala sem fim**, como o Mythic+ do WoW; quanto mais alto o nível, mais fortes os inimigos e melhor o loot (decidido em 2026-10-10)
 - **Raids divididas em etapas** curtas (gates), cada uma com um boss ou fase, como no Lost Ark (decidido em 2026-10-10)
+- **Materiais de fusão** (decidido por Gabriel em 2026-10-12): dungeons dão os materiais da fusão de +5 até +8 e raids, os de +9 e +10. Raid nunca é exigida antes disso. Regras em [itens](itens.md#fusão); materiais na [#617](https://github.com/GabrielNied/jogo_do_grupo/issues/617)
 
 ## Em aberto
 

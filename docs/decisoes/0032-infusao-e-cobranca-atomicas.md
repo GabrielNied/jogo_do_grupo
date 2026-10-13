@@ -3,6 +3,8 @@
 **Data:** 2026-10-11
 **Status:** proposta
 
+> 2026-10-12: a infusão vira a [fusão v2](../features/itens.md#fusão) (#616). Este padrão (prévia que não altera nada, confirmação conferida e cobrança, consumo e ganho na mesma transação) vale também para ela, incluindo o consumo de materiais de dungeon e raid (#617). O "valor-base infusível" deixa de existir.
+
 ## Contexto
 
 A infusão destrói um exemplar e cobra coroas para aumentar outro. Confirmar só uma parte perderia itens ou permitiria melhorias sem pagamento. Uma prévia antiga pode apontar para peças que mudaram.

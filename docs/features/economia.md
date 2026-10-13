@@ -22,6 +22,7 @@ Moedas, mercado, comércio entre jogadores, saídas de recursos e taxas.
 - [ ] Haverá moeda premium?
 - [ ] Lojas de jogadores?
 - [x] Carteira e custo inicial da infusão entregues na #174; valores e configuração em [Itens — Infusão](itens.md#infusão-de-equipamentos-174).
+- [x] Desde 2026-10-12 a fusão cobra coroas **por nível** (+1 a +10) e, de +6 em diante, materiais de dungeon e de raid; custos iniciais em [Itens — Fusão](itens.md#fusão) (#616, #617). O "ouro" do [documento mestre](../brainstorm/documento-mestre.md) são as coroas. Itens não são desmontados (DEC-005): a economia não conta com materiais vindos de desmontagem.
 - [ ] Custo em coroas do reparo e das taxas: a propor (agente economia).
 
 ## Regras
