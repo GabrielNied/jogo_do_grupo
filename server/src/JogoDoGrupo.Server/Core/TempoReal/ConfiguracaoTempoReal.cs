@@ -31,6 +31,14 @@ public sealed class ConfiguracaoTempoReal
     /// <summary>Pacotes que podem chegar de uma vez acima da média (rajada após um engasgo da rede).</summary>
     public int RajadaMensagens { get; set; } = 120;
 
+    /// <summary>Tamanho total máximo em bytes, incluindo cabeçalho.</summary>
+    public int TamanhoMaximoPacote { get; set; } = 16_384;
+    public int ProfundidadeMaximaJson { get; set; } = 32;
+    public int MaximoRecusasPorSessao { get; set; } = 10;
+    public int MaximoExcecoesPorSessao { get; set; } = 3;
+    public int MaximoTentativasAutenticacao { get; set; } = 3;
+    public int MaximoConexoesPendentesPorIp { get; set; } = 16;
+
     /// <summary>Lê e valida a seção; configuração inválida impede o servidor de subir.</summary>
     public static ConfiguracaoTempoReal Ler(IConfiguration configuracao)
     {
@@ -74,6 +82,17 @@ public sealed class ConfiguracaoTempoReal
             );
         }
 
+        if (
+            tempoReal.TamanhoMaximoPacote < ProtocoloTempoReal.TamanhoCabecalho
+            || tempoReal.ProfundidadeMaximaJson <= 0
+            || tempoReal.MaximoRecusasPorSessao <= 0
+            || tempoReal.MaximoExcecoesPorSessao <= 0
+            || tempoReal.MaximoTentativasAutenticacao <= 0
+            || tempoReal.MaximoConexoesPendentesPorIp <= 0
+        )
+            throw new InvalidOperationException(
+                "TempoReal: limites do protocolo precisam ser positivos e o pacote precisa comportar o cabe�alho."
+            );
         return tempoReal;
     }
 }

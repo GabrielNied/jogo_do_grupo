@@ -28,11 +28,13 @@ public sealed class VerificadorFalso : IVerificadorPersonagem
     public void Permitir(long contaId, long personagemId) =>
         _permitidos[(contaId, personagemId)] = true;
 
+    public Func<Task<bool>>? Consulta { get; set; }
+
     public Task<bool> PertenceAContaAsync(
         long contaId,
         long personagemId,
         CancellationToken cancelamento
-    ) => Task.FromResult(_permitidos.ContainsKey((contaId, personagemId)));
+    ) => Consulta?.Invoke() ?? Task.FromResult(_permitidos.ContainsKey((contaId, personagemId)));
 }
 
 /// <summary>
@@ -43,6 +45,7 @@ public sealed class TempoRealFixture : IDisposable
 {
     public static readonly MessageIdRange FaixaTeste = new(60000, 60099);
     public const ushort IdEco = 60000;
+    public const ushort IdErro = 60001;
     public const ushort IdSemManipulador = 60050;
     public const int TempoParaAutenticarMs = 1500;
 
@@ -50,11 +53,16 @@ public sealed class TempoRealFixture : IDisposable
     private static long _proximoPersonagem;
 
     public TempoRealFixture()
+        : this(null) { }
+
+    internal TempoRealFixture(Dictionary<string, string>? limites)
     {
         Fabrica = _base.WithWebHostBuilder(builder =>
         {
             builder.UseSetting("TempoReal:TempoParaAutenticarMs", $"{TempoParaAutenticarMs}");
             builder.UseSetting("TempoReal:TempoQuedaMs", "1500");
+            foreach (var (nome, valor) in limites ?? [])
+                builder.UseSetting("TempoReal:" + nome, valor);
             builder.ConfigureServices(servicos =>
                 servicos.AddSingleton<IVerificadorPersonagem>(Verificador)
             );
@@ -70,6 +78,11 @@ public sealed class TempoRealFixture : IDisposable
                     Recebidas.Enqueue((sessao, mensagem));
                     TempoReal.Enviar(sessao, IdEco, mensagem);
                 }
+            )
+            .Ao<MensagemTeste>(
+                IdErro,
+                (SessaoTempoReal _, MensagemTeste _) =>
+                    throw new InvalidOperationException("erro de teste")
             );
         TempoReal.MensagemRecusada += (sessao, id, motivo) =>
             Recusadas.Enqueue((sessao, id, motivo));
