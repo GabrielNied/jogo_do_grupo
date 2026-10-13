@@ -18,6 +18,7 @@ internal static class TempoRealServicos
             sp.GetRequiredService<ConfiguracaoTempoReal>(),
             sp.GetRequiredService<MensagensTempoReal>(),
             sp.GetRequiredService<AutenticadorTempoReal>(),
+            sp.GetRequiredService<TimeProvider>(),
             sp.GetRequiredService<ILogger<ServidorTempoReal>>()
         ));
         servicos.AddHostedService(sp => sp.GetRequiredService<ServidorTempoReal>());

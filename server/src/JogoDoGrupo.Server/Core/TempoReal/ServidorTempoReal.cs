@@ -34,6 +34,7 @@ public sealed class ServidorTempoReal : BackgroundService
     private readonly ConfiguracaoTempoReal _configuracao;
     private readonly MensagensTempoReal _mensagens;
     private readonly AutenticadorTempoReal _autenticador;
+    private readonly TimeProvider _relogio;
     private readonly ILogger<ServidorTempoReal> _log;
     private readonly NetManager _rede;
 
@@ -50,12 +51,14 @@ public sealed class ServidorTempoReal : BackgroundService
         ConfiguracaoTempoReal configuracao,
         MensagensTempoReal mensagens,
         AutenticadorTempoReal autenticador,
+        TimeProvider relogio,
         ILogger<ServidorTempoReal> log
     )
     {
         _configuracao = configuracao;
         _mensagens = mensagens;
         _autenticador = autenticador;
+        _relogio = relogio;
         _log = log;
 
         var ouvinte = new EventBasedNetListener();
@@ -74,7 +77,8 @@ public sealed class ServidorTempoReal : BackgroundService
                 _conexoes[peer.Id] = new SessaoTempoReal(
                     peer,
                     _configuracao.MensagensPorSegundo,
-                    _configuracao.RajadaMensagens
+                    _configuracao.RajadaMensagens,
+                    _relogio
                 );
         };
         ouvinte.PeerDisconnectedEvent += (peer, _) =>
@@ -217,7 +221,7 @@ public sealed class ServidorTempoReal : BackgroundService
 
     private void Receber(SessaoTempoReal sessao, byte[] pacote)
     {
-        if (!sessao.Limite.Consumir(Environment.TickCount64))
+        if (!sessao.Limite.Consumir(AgoraMs()))
         {
             DerrubarPorExcesso(sessao, pacote);
             return;
@@ -383,7 +387,7 @@ public sealed class ServidorTempoReal : BackgroundService
 
     private void ExpirarNaoAutenticadas()
     {
-        var agora = Environment.TickCount64;
+        var agora = AgoraMs();
         List<SessaoTempoReal>? expiradas = null;
         foreach (var sessao in _conexoes.Values)
         {
@@ -479,6 +483,8 @@ public sealed class ServidorTempoReal : BackgroundService
             }
         }
     }
+
+    private long AgoraMs() => _relogio.GetUtcNow().ToUnixTimeMilliseconds();
 
     private static DeliveryMethod Metodo(EntregaTempoReal entrega) =>
         entrega == EntregaTempoReal.Sequenciada

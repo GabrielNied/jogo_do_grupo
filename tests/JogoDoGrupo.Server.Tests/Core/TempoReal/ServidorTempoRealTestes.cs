@@ -9,8 +9,21 @@ using LiteNetLib;
 
 namespace JogoDoGrupo.Server.Tests.Core.TempoReal;
 
-public class ServidorTempoRealTestes(TempoRealFixture f) : IClassFixture<TempoRealFixture>
+[CollectionDefinition("TempoRealSerial", DisableParallelization = true)]
+public sealed class TempoRealSerialCollection;
+
+[Collection("TempoRealSerial")]
+public class ServidorTempoRealTestes(TempoRealFixture f)
+    : IClassFixture<TempoRealFixture>, IAsyncLifetime
 {
+    public Task InitializeAsync()
+    {
+        f.SincronizarRelogioComAgora();
+        return Task.CompletedTask;
+    }
+
+    public Task DisposeAsync() => Task.CompletedTask;
+
     // ── Autenticação ──────────────────────────────────────────────────────────
 
     [Fact]
@@ -127,7 +140,8 @@ public class ServidorTempoRealTestes(TempoRealFixture f) : IClassFixture<TempoRe
     {
         using var cliente = await ClienteTempoRealDeTeste.ConectarAsync(f.Porta);
 
-        var info = await cliente.Desconectado.WaitAsync(TimeSpan.FromSeconds(5));
+        f.AvancarRelogio(TimeSpan.FromMilliseconds(TempoRealFixture.TempoParaAutenticarMs + 1));
+        var info = await cliente.Desconectado.WaitAsync(ClienteTempoRealDeTeste.Espera);
 
         Assert.Equal(DisconnectReason.RemoteConnectionClose, info.Reason);
     }
@@ -238,8 +252,9 @@ public class ServidorTempoRealTestes(TempoRealFixture f) : IClassFixture<TempoRe
     {
         var (cliente, contaId, _) = await f.EntrarAsync();
         using var _ = cliente;
+        var sessao = f.SessaoDaConta(contaId)!;
 
-        f.TempoReal.Desconectar(f.SessaoDaConta(contaId)!);
+        await Task.Run(() => f.TempoReal.Desconectar(sessao));
 
         await cliente.Desconectado.WaitAsync(ClienteTempoRealDeTeste.Espera);
         // O client pode saber da desconexão antes de o servidor terminar de remover a sessão.
@@ -247,6 +262,104 @@ public class ServidorTempoRealTestes(TempoRealFixture f) : IClassFixture<TempoRe
             () => f.SessaoDaConta(contaId) == null,
             "sessão removida após desconectar pelo servidor"
         );
+    }
+
+    [Fact]
+    public async Task Excecao_no_manipulador_nao_para_o_laco()
+    {
+        var (cliente, contaId, _) = await f.EntrarAsync();
+        using var _ = cliente;
+        var texto = Guid.NewGuid().ToString();
+
+        cliente.Enviar(TempoRealFixture.IdErro, new MensagemTeste());
+        cliente.Enviar(TempoRealFixture.IdEco, new MensagemTeste { Texto = texto });
+
+        Assert.Equal(
+            texto,
+            (await cliente.ReceberAsync<MensagemTeste>(TempoRealFixture.IdEco)).Texto
+        );
+        Assert.NotNull(f.SessaoDaConta(contaId));
+        Assert.False(cliente.Desconectado.IsCompleted);
+    }
+
+    [Fact]
+    public async Task Ouvinte_que_lanca_nao_impede_autenticacao_nem_saida()
+    {
+        void Lanca(SessaoTempoReal _) => throw new InvalidOperationException("ouvinte de teste");
+        f.TempoReal.SessaoAutenticada += Lanca;
+        f.TempoReal.SessaoEncerrada += Lanca;
+        try
+        {
+            var (cliente, contaId, _) = await f.EntrarAsync();
+            using var _ = cliente;
+
+            Assert.NotNull(f.SessaoDaConta(contaId));
+            cliente.Sair();
+            await TempoRealFixture.EsperarAsync(
+                () => f.SessaoDaConta(contaId) == null,
+                "sessão removida após saída"
+            );
+        }
+        finally
+        {
+            f.TempoReal.SessaoAutenticada -= Lanca;
+            f.TempoReal.SessaoEncerrada -= Lanca;
+        }
+    }
+
+    [Fact]
+    public async Task Autenticacao_concluida_depois_da_queda_nao_registra_sessao()
+    {
+        var (token, conta, personagem) = await f.NovaContaAsync();
+        var consulta = new TaskCompletionSource<bool>(
+            TaskCreationOptions.RunContinuationsAsynchronously
+        );
+        f.Verificador.Consulta = () => consulta.Task;
+        try
+        {
+            using var cliente = await ClienteTempoRealDeTeste.ConectarAsync(f.Porta);
+            cliente.Enviar(
+                TempoRealIds.AutenticarTempoReal,
+                new AutenticarTempoReal { Token = token, PersonagemId = personagem }
+            );
+
+            cliente.Cair();
+            consulta.SetResult(true);
+            await TempoRealFixture.EsperarAsync(
+                () => f.TempoReal.Sessoes.All(s => s.ContaId != conta),
+                "nenhuma sessão da conta após auth tardia"
+            );
+        }
+        finally
+        {
+            f.Verificador.Consulta = null;
+        }
+    }
+
+    [Fact]
+    public async Task Parar_com_autenticacao_em_andamento_nao_trava()
+    {
+        using var local = new TempoRealFixture();
+        var (token, _, personagem) = await local.NovaContaAsync();
+        var iniciou = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var consulta = new TaskCompletionSource<bool>(
+            TaskCreationOptions.RunContinuationsAsynchronously
+        );
+        local.Verificador.Consulta = () =>
+        {
+            iniciou.TrySetResult();
+            return consulta.Task;
+        };
+        using var cliente = await ClienteTempoRealDeTeste.ConectarAsync(local.Porta);
+        cliente.Enviar(
+            TempoRealIds.AutenticarTempoReal,
+            new AutenticarTempoReal { Token = token, PersonagemId = personagem }
+        );
+        await iniciou.Task.WaitAsync(ClienteTempoRealDeTeste.Espera);
+
+        await local.TempoReal.StopAsync(CancellationToken.None);
+
+        consulta.SetResult(true);
     }
 
     // ── Despacho por faixa ────────────────────────────────────────────────────

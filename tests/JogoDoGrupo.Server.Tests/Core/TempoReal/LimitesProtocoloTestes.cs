@@ -86,6 +86,11 @@ public class LimitesProtocoloTestes
             c.Enviar(TempoRealIds.AutenticarTempoReal, pedido);
             c.Enviar(TempoRealIds.AutenticarTempoReal, pedido);
         }
+        else
+        {
+            f.AvancarRelogio(TimeSpan.FromMilliseconds(TempoRealFixture.TempoParaAutenticarMs + 1));
+        }
+
         await c.Desconectado.WaitAsync(ClienteTempoRealDeTeste.Espera);
         consulta.SetResult(true);
         Assert.Equal(1, consultas);
