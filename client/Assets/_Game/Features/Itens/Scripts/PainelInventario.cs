@@ -543,6 +543,19 @@ namespace JogoDoGrupo.Client.Features.Itens
             ordenar.tooltip = "Ordena esta aba da bolsa por tipo, tier e nível";
             ordenar.SetEnabled(!_ocupado);
             _rodape.Add(ordenar);
+            // Filtro de loot (#565): preferência deste computador, vale na hora no chão.
+            var filtro = new DropdownField(
+                "Loot no chão",
+                new List<string>(Loot.FiltroDeLoot.Rotulos),
+                (int)Loot.FiltroDeLoot.TierMinimo
+            );
+            filtro.AddToClassList(EstiloCore.Campo);
+            filtro.tooltip =
+                "Peças abaixo deste tier não aparecem no chão nem entram com a tecla F";
+            filtro.RegisterValueChangedCallback(_ =>
+                Loot.FiltroDeLoot.TierMinimo = Loot.FiltroDeLoot.Normalizar(filtro.index)
+            );
+            _rodape.Add(filtro);
 #if DEBUG
             var grau = new DropdownField(
                 "Grau de teste",

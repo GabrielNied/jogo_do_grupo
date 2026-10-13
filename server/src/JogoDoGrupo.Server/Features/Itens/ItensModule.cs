@@ -49,6 +49,7 @@ public sealed class ItensModule : IFeatureModule
                 sp.GetRequiredService<ServidorTempoReal>(),
                 sp.GetRequiredService<IPosicoesDoMundo>(),
                 sp.GetRequiredService<IServiceScopeFactory>(),
+                sp.GetRequiredService<GeradorEquipamentos>(),
                 sp.GetRequiredService<TimeProvider>(),
                 sp.GetRequiredService<ILogger<ServicoDeLoot>>()
             );

@@ -12,7 +12,8 @@ public sealed record LootReservado(
     double Z,
     DateTimeOffset ApareceuEm,
     OrigemDoLoot Origem = OrigemDoLoot.Comum,
-    GrauEquipamento Grau = GrauEquipamento.Inicial
+    GrauEquipamento Grau = GrauEquipamento.Inicial,
+    Equipamento? Equipamento = null
 )
 {
     /// <summary>Segundos desde que o item apareceu.</summary>
@@ -26,6 +27,8 @@ public sealed record LootReservado(
             Nome =
                 CatalogoItens.ObterNome(ItemId) ?? CatalogoEquipamentos.Obter(ItemId)?.Nome ?? "",
             Grau = Grau,
+            TemTier = Equipamento != null,
+            Tier = Equipamento == null ? TierItem.D : RegrasTier.TierDe(Equipamento),
             X = (float)X,
             Z = (float)Z,
             ExpiraEmSegundos = RegrasLoot.SegundosRestantes(Idade(agora)),
@@ -85,14 +88,19 @@ public sealed class ChaoDeLoot
             agora
         );
 
-    /// <summary>Põe no chão uma peça por queda de <paramref name="quedas"/>, todas do mesmo dono.</summary>
+    /// <summary>
+    /// Põe no chão uma peça por queda de <paramref name="quedas"/>, todas do mesmo dono. Com
+    /// <paramref name="gerar"/>, os valores da peça já são sorteados aqui (o tier aparece no chão
+    /// e vale para o filtro de loot, #565); sem ele, a peça é gerada quando for coletada.
+    /// </summary>
     public IReadOnlyList<LootReservado> Largar(
         long donoId,
         IReadOnlyList<QuedaDeLoot> quedas,
         string area,
         double x,
         double z,
-        DateTimeOffset agora
+        DateTimeOffset agora,
+        Func<QuedaDeLoot, Equipamento?>? gerar = null
     )
     {
         var novos = new List<LootReservado>(quedas.Count);
@@ -109,7 +117,8 @@ public sealed class ChaoDeLoot
                     z,
                     agora,
                     queda.Origem,
-                    queda.Grau
+                    queda.Grau,
+                    gerar?.Invoke(queda)
                 );
                 _itens[loot.LootId] = new Entrada(loot);
                 novos.Add(loot);
