@@ -9,7 +9,7 @@ Como são os modelos que o jogo gera no Blender por script, e como gerar de novo
 ## Estilo
 
 - **Low poly com textura pintada.** A forma é simples (poucos polígonos, silhueta clara); o detalhe vem da textura: pelagem em fios, variação de tom, luz pintada (claro em cima, escuro embaixo) e oclusão de ambiente assada nas dobras. Nada de cor chapada.
-- **Polígonos:** criatura comum até ~2.000 triângulos; chefe até ~4.000. Hoje: javali e Presa-Velha ~1.500, Guardião ~1.500.
+- **Polígonos:** criatura comum até ~2.000 triângulos; chefe até ~4.000. Hoje: javali e Presa-Velha ~1.500, Guardião ~1.500, lobo ~1.200, tatu ~1.400.
 - **Textura:** uma por modelo, 1024×1024 (`<Nome>_Cor.png`). Material com brilho ou luz própria ganha `<Nome>_Brilho.png` (R = metal, A = lisura, o `_MetallicGlossMap` do URP Lit) e `<Nome>_Emissao.png`.
 - **Sombreamento:** suave nas partes orgânicas (pelo, pele, pedra); chapado em cascos, cristais e placas.
 - **Paleta:** cada script tem a sua no topo (`PALETA`). Bichos do campo em marrons quentes e dessaturados; o que é mágico usa azul-ardósia com ciano como cor de destaque.
@@ -42,6 +42,8 @@ Os scripts ficam em [arte/blender/](../../arte/blender/): `lib/` (malha por part
 ```
 "C:\Program Files\Blender Foundation\Blender 5.2\blender.exe" --background --factory-startup --python arte/blender/criaturas/javali.py
 "C:\Program Files\Blender Foundation\Blender 5.2\blender.exe" --background --factory-startup --python arte/blender/criaturas/presa_velha.py
+"C:\Program Files\Blender Foundation\Blender 5.2\blender.exe" --background --factory-startup --python arte/blender/criaturas/lobo.py
+"C:\Program Files\Blender Foundation\Blender 5.2\blender.exe" --background --factory-startup --python arte/blender/criaturas/tatu.py
 "C:\Program Files\Blender Foundation\Blender 5.2\blender.exe" --background --factory-startup --python arte/blender/criaturas/guardiao_do_reflexo.py
 ```
 
