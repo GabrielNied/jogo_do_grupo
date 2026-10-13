@@ -216,6 +216,16 @@ namespace JogoDoGrupo.Shared.Features.Itens
         public int Casa;
     }
 
+    /// <summary>
+    /// Ordena uma aba da bolsa no servidor (#562): tipo, tier (do maior para o menor), nível.
+    /// Rota: <see cref="RotasItens.Ordenar"/>.
+    /// </summary>
+    [Serializable]
+    public class PedidoOrdenar
+    {
+        public int Aba;
+    }
+
     [Serializable]
     public class PedidoConjunto
     {

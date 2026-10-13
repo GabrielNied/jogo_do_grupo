@@ -31,6 +31,17 @@ namespace JogoDoGrupo.Shared.Features.Itens
         /// </summary>
         public const string Mover = "/api/personagens/{personagemId}/inventario/mover";
 
+        /// <summary>
+        /// Modelo da rota. <c>POST</c> com <see cref="PedidoOrdenar"/> reordena uma aba da bolsa
+        /// (tipo, tier, nível; favoritos ficam onde estão) e responde 200
+        /// <see cref="EquipamentosResponse"/>. Aba fora da capacidade: 400 <c>CasaInvalida</c>.
+        /// </summary>
+        public const string Ordenar = "/api/personagens/{personagemId}/inventario/ordenar";
+
+        /// <summary>Caminho de <see cref="Ordenar"/> para um personagem (uso do client).</summary>
+        public static string OrdenarDe(long personagemId) =>
+            "/api/personagens/" + personagemId + "/inventario/ordenar";
+
         /// <summary>Caminho de <see cref="Mover"/> para um personagem (uso do client).</summary>
         public static string MoverDe(long personagemId) =>
             "/api/personagens/" + personagemId + "/inventario/mover";

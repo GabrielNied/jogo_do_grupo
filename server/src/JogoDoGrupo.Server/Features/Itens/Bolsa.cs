@@ -94,6 +94,48 @@ internal static class Bolsa
         return null;
     }
 
+    /// <summary>
+    /// Plano para ordenar uma aba (#562): quem muda de casa e para qual. Equipamentos primeiro,
+    /// por tipo (a ordem de <see cref="TipoEquipamento"/>), tier do maior para o menor e nível
+    /// do maior para o menor; depois os outros itens, por modelo; empate pela identidade. Os
+    /// **favoritos ficam onde estão** (os outros se arrumam nas casas que sobram, a partir da
+    /// primeira). Travados (#563) vão seguir a mesma regra quando existirem. Não altera nada.
+    /// </summary>
+    public static List<(ItemInventario Item, int Casa)> PlanoDeOrdenacao(
+        IEnumerable<ItemInventario> itens,
+        int aba,
+        CapacidadeBolsa capacidade
+    )
+    {
+        var daAba = itens
+            .Where(i => EstaNaBolsa(i) && i.Aba == aba && i.Casa != null)
+            .Select(i => (Item: i, Dados: i.LerEquipamento()))
+            .ToList();
+        var ocupadasPorFixos = daAba
+            .Where(x => x.Dados?.Favorito == true)
+            .Select(x => x.Item.Casa!.Value)
+            .ToHashSet();
+        var livres = Enumerable
+            .Range(0, capacidade.CasasPorAba)
+            .Where(casa => !ocupadasPorFixos.Contains(casa))
+            .ToList();
+        var ordenados = daAba
+            .Where(x => x.Dados?.Favorito != true)
+            .OrderBy(x => x.Dados == null ? 1 : 0)
+            .ThenBy(x => x.Dados == null ? x.Item.ItemId : (int)x.Dados.Tipo)
+            .ThenByDescending(x => x.Dados == null ? 0 : (int)RegrasTier.TierDe(x.Dados))
+            .ThenByDescending(x => x.Dados?.Nivel ?? 0)
+            .ThenBy(x => x.Item.Id)
+            .ToList();
+        var plano = new List<(ItemInventario Item, int Casa)>();
+        for (var n = 0; n < ordenados.Count && n < livres.Count; n++)
+        {
+            if (ordenados[n].Item.Casa != livres[n])
+                plano.Add((ordenados[n].Item, livres[n]));
+        }
+        return plano;
+    }
+
     /// <summary>O item que está na casa (na bolsa), se houver.</summary>
     public static ItemInventario? Em(IEnumerable<ItemInventario> itens, int aba, int casa) =>
         itens.FirstOrDefault(i => EstaNaBolsa(i) && i.Aba == aba && i.Casa == casa);

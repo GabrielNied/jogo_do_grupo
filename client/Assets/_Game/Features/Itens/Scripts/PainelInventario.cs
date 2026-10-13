@@ -53,6 +53,9 @@ namespace JogoDoGrupo.Client.Features.Itens
         public event Action<AcaoDoInventario> AcaoPedida;
         public event Action<int> ConjuntoPedido;
         public event Action BancadaPedida;
+
+        /// <summary>Pede ao servidor para ordenar a aba (índice) aberta da bolsa.</summary>
+        public event Action<int> OrdenarPedido;
 #pragma warning disable CS0067 // só é disparado em editor/build de desenvolvimento
         public event Action<int> ItemDeTestePedido;
 #pragma warning restore CS0067
@@ -536,6 +539,10 @@ namespace JogoDoGrupo.Client.Features.Itens
             bancada.tooltip = "Fundir equipamentos";
             bancada.SetEnabled(!_ocupado);
             _rodape.Add(bancada);
+            var ordenar = Botao("Ordenar", () => OrdenarPedido?.Invoke(_aba));
+            ordenar.tooltip = "Ordena esta aba da bolsa por tipo, tier e nível";
+            ordenar.SetEnabled(!_ocupado);
+            _rodape.Add(ordenar);
 #if DEBUG
             var grau = new DropdownField(
                 "Grau de teste",

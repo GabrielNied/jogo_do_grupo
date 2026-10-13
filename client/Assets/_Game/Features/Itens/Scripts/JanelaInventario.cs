@@ -98,6 +98,12 @@ namespace JogoDoGrupo.Client.Features.Itens
                     null
                 );
             _painel.BancadaPedida += () => EnviarFusao("fusao/estado", null);
+            _painel.OrdenarPedido += aba =>
+                _ = Postar(
+                    RotasItens.OrdenarDe(EntradaNoJogo.PersonagemId),
+                    new PedidoOrdenar { Aba = aba },
+                    null
+                );
             _painel.ItemDeTestePedido += grau =>
                 _ = Postar(
                     RegrasEquipamentos.RotaDe(EntradaNoJogo.PersonagemId)
