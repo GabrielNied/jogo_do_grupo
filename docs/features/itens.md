@@ -33,7 +33,7 @@ Inventário, equipamentos, tier calculado pelos atributos e fusão determinísti
 
 ### Modelo de itens v2 (documento mestre, 2026-10-12)
 
-Decidido por Gabriel em 2026-10-12 a partir do [documento mestre](../brainstorm/documento-mestre.md) (seções 7 a 9 e 18). **Prioridade alta de implementação**, épico [#619](https://github.com/GabrielNied/jogo_do_grupo/issues/619): tier [#615](https://github.com/GabrielNied/jogo_do_grupo/issues/615), fusão [#616](https://github.com/GabrielNied/jogo_do_grupo/issues/616), materiais [#617](https://github.com/GabrielNied/jogo_do_grupo/issues/617) e a decisão [#618](https://github.com/GabrielNied/jogo_do_grupo/issues/618). Até essas tarefas entrarem, o jogo roda o modelo anterior (raridade e infusão), descrito nas seções seguintes.
+Decidido por Gabriel em 2026-10-12 a partir do [documento mestre](../brainstorm/documento-mestre.md) (seções 7 a 9 e 18). **Prioridade alta de implementação**, épico [#619](https://github.com/GabrielNied/jogo_do_grupo/issues/619): tier [#615](https://github.com/GabrielNied/jogo_do_grupo/issues/615), fusão [#616](https://github.com/GabrielNied/jogo_do_grupo/issues/616), materiais [#617](https://github.com/GabrielNied/jogo_do_grupo/issues/617) e a decisão [#618](https://github.com/GabrielNied/jogo_do_grupo/issues/618). O **tier** (#615) já está no jogo; até a fusão e os materiais entrarem, o jogo mantém a infusão do modelo anterior, descrita nas seções seguintes.
 
 Status usados aqui: **Definido** (aprovado), **Proposta** (valor inicial em constante, que quem implementa pode calibrar e registrar aqui), **Pendente** (precisa de decisão do Gabriel) e **Depreciado** (substituído, mantido para histórico). "Ouro" no documento mestre são as **coroas** do jogo.
 
@@ -57,8 +57,8 @@ Não mudam por decisão de quem implementa: mudar exige aprovação do Gabriel e
 | Atributos próprios | `Atributos` (fixos e sorteados, fracionários) | Inteiros numa **escala interna de 0 a 100** por atributo ([Tier](#tier)); quais atributos cada peça pode ter vem do modelo-base. Lista e conversão em [Atributos dos equipamentos](#atributos-dos-equipamentos) |
 | Skills | ainda não existem ([#167](https://github.com/GabrielNied/jogo_do_grupo/issues/167)) | Quantidade definida pelo **modelo-base**, não por raridade; gravadas no exemplar; a fusão nunca as muda |
 | Nível de fusão | `InfusoesUsadas` (limite 10 a 30 pela raridade) | `NivelFusao`, de +0 a +10 |
-| Tier atual | não existe | Calculado pelos atributos ([Tier](#tier)) |
-| Tier de origem | `Raridade` (sorteada) | `TierOrigem`, gravado na geração; `Raridade` fica só como legado |
+| Tier atual | não existe | Calculado pelos atributos ([Tier](#tier)), `RegrasTier.TierDe` (feito na #615) |
+| Tier de origem | `Raridade` (sorteada) | `TierOrigem`, gravado na geração (feito na #615); `Raridade` fica só como legado |
 | Posse e equipamento | posição, contêiner, aba e casa | Iguais |
 | Grau, região, família de conjunto, requisito de nível, favorito | existem | Continuam |
 | Atributo infusível (`IndiceInfusivel`, `ValorBaseInfusivel`) | existem | **Depreciados**: qualquer atributo pode ser escolhido |
@@ -121,7 +121,7 @@ Decidido por Gabriel em 2026-10-12 (opção B da [#623](https://github.com/Gabri
 
 #### Tier
 
-Implementação na [#615](https://github.com/GabrielNied/jogo_do_grupo/issues/615).
+Implementada na [#615](https://github.com/GabrielNied/jogo_do_grupo/issues/615) ([Entregue na #615](#entregue-na-615-tier-calculado-pelos-atributos)).
 
 **Definido:**
 
@@ -146,8 +146,24 @@ Implementação na [#615](https://github.com/GabrielNied/jogo_do_grupo/issues/61
 | S | de 80% a 100% |
 | S+ | S com **todos** os elegíveis exatamente no máximo (média de 100% por arredondamento não basta) |
 
-- **Loot (proposta):** a origem do inimigo deixa de pesar a raridade e passa a melhorar o sorteio dos valores (ex.: fortalecido = melhor de 2 rolagens, chefe = melhor de 3), calibrado pela meta de ritmo de [Loot dos inimigos](#loot-dos-inimigos-493).
-- **Migração:** os valores atuais (escala do catálogo, com fator de grau) são convertidos para a escala 0 a 100 na [#615](https://github.com/GabrielNied/jogo_do_grupo/issues/615), com a regra de conversão registrada aqui.
+- **Loot:** a origem do inimigo deixa de pesar a raridade e passa a melhorar o sorteio dos valores (fortalecido = melhor de 2 rolagens por atributo, chefe raro 3, chefe 4), calibrado pela meta de ritmo de [Loot dos inimigos](#loot-dos-inimigos-493).
+- **Migração:** os valores antigos (escala do catálogo, com fator de grau) viram a escala 0 a 100 pela regra de [Entregue na #615](#entregue-na-615-tier-calculado-pelos-atributos).
+
+##### Entregue na #615 (tier calculado pelos atributos)
+
+Decisões de quem implementou (propostas, ajustáveis em `ConfigTier` e `ConfigLoot`; as invariantes TIER-001 a TIER-008 não mudaram).
+
+- **Genérico sobre `StatusItem`:** `RegrasTier` (cálculo, S+, sorteio do valor) não cita nenhum atributo. Tudo o que depende de qual atributo é vem de `ConfigTier.Faixas` (`TabelaDeFaixas`): faixa padrão por `StatusItem`, faixa própria por categoria de peça e atributo inelegível numa categoria. **Elegível = ter faixa para a categoria.** Hoje: Força, Destreza, Intelecto, Vitalidade, Espírito, Vigor e Defesa, de 0 a 100, em toda categoria. A [#623](https://github.com/GabrielNied/jogo_do_grupo/issues/623) troca essa lista e acrescenta as faixas dos atributos novos; a [#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627) diferencia as categorias.
+- **API para a fusão (#616):** `ConfigTier.Maximo(tipo, status)` (o teto de FUSAO-015, `null` se o atributo não é elegível), `ConfigTier.Faixa(tipo, status)`, `ConfigTier.Elegiveis(tipo)` e `RegrasTier.Calcular(equipamento)` (tier, qualidade média e quantos atributos entraram) para recalcular depois de mudar um valor.
+- **Tier atual é calculado, não gravado:** `RegrasTier.TierDe(equipamento)` olha só `Atributos` (TIER-002 e TIER-003). Só entram os atributos do exemplar que são elegíveis na categoria dele; o que o modelo não tem não conta como zero (TIER-007) e um atributo legado sem faixa (PotenciaFogo, Vida...) é ignorado. Exemplar sem nenhum atributo elegível é tier D. S+ é verificado no estado: S com todos os elegíveis em `valor >= máximo` (um atributo a 1 do máximo é S).
+- **Tier de origem:** `Equipamento.TierOrigem` é gravado na geração e na migração e nunca mais muda. `Equipamento.VersaoDosAtributos` marca a escala: 0 é a escala antiga, 1 (`RegrasTier.VersaoAtual`) é a de 0 a 100 com `TierOrigem` válido.
+- **Geração (`GeradorEquipamentos`):** os atributos do modelo-base do catálogo mais `QuantidadeAleatorios` (2) extras sorteados entre `StatusAleatorios` (os cinco básicos, só os elegíveis na categoria e que o modelo ainda não tem). Cada atributo recebe um **inteiro dentro da faixa**. O **grau** escolhe a janela da faixa em que se sorteia (`ConfigTier`: Inicial 0 a 60%, Médio 20 a 80%, Forte 40 a 100% da amplitude); a **origem do inimigo** dá rolagens ao atributo e vale a melhor (`ConfigLoot`: comum 1, fortalecido 2, chefe raro 3, chefe 4). Os valores fixos do catálogo (+6, defesas por categoria) não são mais valores: o catálogo só diz **quais** atributos o modelo tem (`Fixo` agora quer dizer "veio do modelo"). S+ não sai do sorteio na prática (exigiria todos os atributos exatamente no máximo): vem da evolução por fusão.
+- **Migração dos exemplares existentes:** `novo = round(valor_antigo × 100 / referência)`, limitado à faixa, com a referência de `ConfigTier.ReferenciaLegada` (Força, Destreza, Intelecto e Vitalidade 30; Espírito 15; Vigor 50; Defesa 190; atributo sem faixa: 100, ou seja, o valor fica como estava). A referência é 1,25 vez o que o grau Forte dava no catálogo, então um valor Inicial vira ~20, Médio ~40 e Forte ~80 (o grau decide onde a peça antiga cai, como decide a janela da geração). A base da infusão converte junto. `TierOrigem` = tier calculado no momento. **Sem mudança de esquema:** o exemplar é um JSON na coluna `EquipamentoJson`, então não há migração do EF; a conversão (`MigracaoDeTier`) roda ao **ler** o exemplar (determinística, então vale na hora, mesmo antes de gravar) e o `MigradorDeEquipamentos` grava os antigos de volta na subida do servidor, o que fixa o `TierOrigem` antes de qualquer ajuste de limiar.
+- **Combate não muda até a #623:** o bônus das peças ainda soma nos atributos do personagem (DEC-001 pendente da #623). Para um valor 0 a 100 não virar +100 de Força, `RegrasEquipamentos.Somar` (o resumo de bônus da janela e o que o Combate lê) converte de volta para a escala antiga com o inverso da migração (`MigracaoDeTier.ParaEscalaLegada`): Força 20 vale +6, como a peça antiga valia. A conversão por atributo e categoria de ATRIB-003 substitui isso na #623.
+- **`RaridadeItem` é legado:** `Equipamento.Raridade` continua no exemplar e é lido só pela infusão (compatibilidade do doador, custo e limite, até a #616); peças novas nascem `Comum` e nada novo decide por ela. Saíram `LootNoChao.Raridade`, os pesos de raridade e a promoção por sorteio.
+- **Infusão até a #616:** o valor infundido também respeita o máximo da faixa (`ConfigTier.Maximo`) e o tier é recalculado pelo valor novo; os valores infundidos continuam fracionários.
+- **Pontuação do loot** (`TabelaDeLoot.Pontuacao`, só para dizer qual peça é "melhor"): soma dos valores × (1 + `BonusDePontuacaoPorTier` × degrau do tier atual), com 10% por degrau de D a S+. Antes o degrau era o da raridade.
+- **Na tela:** a casa da bolsa e do paperdoll mostram a **letra do tier** no canto e a cor dele na borda e no ícone (D cinza, C verde, B turquesa, A rosa, S ouro, S+ ouro claro com borda grossa). O tooltip traz "Tier A" (e "Tier B (origem D)" quando o tier atual difere do de origem), o nome na cor do tier e cada atributo como `valor/máximo` com o bônus provisório de combate ("Força 72/100 · bônus +21,6"). O aviso diz "Você pegou Elmo do Vigia (tier B)."; a **cor** no aviso depende do HUD do Core (os avisos só têm as cores de informação, aviso e erro e não aceitam texto colorido).
 
 #### Fusão
 
@@ -268,7 +284,7 @@ Precisa de decisão do Gabriel. Até lá, vale a proposta indicada.
 
 I → Equipamentos → **Infundir equipamentos** abre a bancada na janela do inventário. Escolher um receptor (pode estar equipado) e um doador da bolsa; **Ver prévia** mostra nomes/identidades, atributo antes/depois, slots e custo. Só **Confirmar infusão e consumir doador** executa a operação. Cancelar ou trocar a seleção não consome nada. A prévia mostra o resultado mesmo sem saldo; nesse caso a confirmação fica desabilitada.
 
-O doador precisa ter o mesmo tipo **e** raridade, mas pode ter outro grau, região ou família. Uma confirmação consome um doador e um slot. O atributo escolhido na geração recebe **2% do seu valor-base**, preservando frações, sem juros compostos: base 20 recebe +0,4 por doador e chega a 24 após dez infusões. Os demais atributos, nível, raridade e sorteios permanecem. O limite segue `RegrasEquipamentos.LimiteInfusoes`.
+O doador precisa ter o mesmo tipo **e** raridade, mas pode ter outro grau, região ou família. Uma confirmação consome um doador e um slot. O atributo escolhido na geração recebe **2% do seu valor-base**, preservando frações, sem juros compostos: base 20 recebe +0,4 por doador e chega a 24 após dez infusões. Os demais atributos, nível, raridade (legado) e sorteios permanecem. Desde a #615 o valor infundido também não passa do máximo da faixa. O limite segue `RegrasEquipamentos.LimiteInfusoes`.
 
 O valor-base infusível é gravado na geração. Para exemplar anterior sem esse campo e sem infusões, usa-se o atributo atual na primeira confirmação; exemplar já infundido sem base válida é recusado. Peças sem metadados precisam ser equipadas uma vez pelo fluxo legado antes de aparecerem na bancada. A ação de favorito grava a proteção no exemplar; doador favorito ou equipado não pode ser consumido. O receptor pode continuar favorito.
 
@@ -284,17 +300,17 @@ Transferência de skills, promoção de raridade e obtenção normal de coroas c
 
 Modelo completo do livro: **11 posições** (capacete, peito, luvas, calça, botas, cinto, dois anéis, dois brincos e adorno), mais **dois conjuntos de armas**, cada um com mão principal e secundária. Só o conjunto ativo concede atributos. Armaduras e acessórios dos dois lados somam; misturar famílias é livre.
 
-Cada exemplar tem identidade própria, modelo, região, tipo, raridade, grau, nível da peça, requisito de nível do personagem, atributos fixos, atributos sorteados e índice do atributo infusível. O servidor sorteia e grava uma vez; vestir, tirar, trocar conjunto e reconectar não sorteiam novamente. O nível da peça não é o requisito de nível do personagem.
+Cada exemplar tem identidade própria, modelo, região, tipo, tier de origem (a raridade é legado desde a #615), grau, nível da peça, requisito de nível do personagem, atributos (os do modelo e os sorteados) e índice do atributo infusível. O servidor sorteia e grava uma vez; vestir, tirar, trocar conjunto e reconectar não sorteiam novamente. O nível da peça não é o requisito de nível do personagem.
 
 As cinco raridades e a tabela do livro (níveis máximos, slots de skills e infusões) têm representação em `RegrasEquipamentos`. Graus inicial/médio/forte usam os fatores 1/2/4 já escritos. A estrutura confirmada é a da seção Anatomia do equipamento do [livro](../brainstorm/figjam.md). Skills utilizáveis, XP da peça, promoção e infusão são as tarefas #167, #331 e #174; esta entrega não executa essas operações.
 
-**Geração para teste:** `ConfigEquipamentos` mantém a quantidade e os valores dos atributos aleatórios fora do sorteio. O padrão provisório usa dois atributos distintos, sem repetir os fixos, dentre os cinco atributos básicos; valores de referência 6 (3 para Espírito), retirados dos exemplos de peças do livro. É o código atual, com os nomes antigos; a lista nova por categoria é a de [Atributos dos equipamentos](#atributos-dos-equipamentos), na #623. Não é uma tabela final de balanceamento, de chances ou de atributos elementais. É configurável em `Itens:Equipamentos`. O catálogo confirmado da #330 contém as 72 peças do livro, além do Martelo Ressonante e dos dois equipamentos legados de teste; veja Catálogo abaixo. Espada e escudo de teste continuam compatíveis, sem inventar um bônus fixo para eles.
+**Geração para teste:** `ConfigEquipamentos` mantém a quantidade e o conjunto de atributos extras fora do sorteio (desde a #615 os valores saem da faixa, veja [Entregue na #615](#entregue-na-615-tier-calculado-pelos-atributos)). O padrão provisório usa dois atributos extras distintos, sem repetir os do modelo, dentre os cinco atributos básicos. É o código atual, com os nomes antigos; a lista nova por categoria é a de [Atributos dos equipamentos](#atributos-dos-equipamentos), na #623. Não é uma tabela final de balanceamento, de chances ou de atributos elementais. É configurável em `Itens:Equipamentos`. O catálogo confirmado da #330 contém as 72 peças do livro, além do Martelo Ressonante e dos dois equipamentos legados de teste; veja Catálogo abaixo. Espada e escudo de teste continuam compatíveis, sem inventar um bônus fixo para eles.
 
 **Troca autoritativa e persistente:** o servidor confere a conta dona, a identidade do exemplar, o tipo da posição e o nível exigido. A peça anterior volta ao inventário. Uma arma de duas mãos retira a mão secundária do mesmo conjunto; equipar escudo/foco com ela é recusado. Se todas as peças retiradas não couberem na bolsa, nada muda (a primeira peça deslocada ocupa a casa que o item novo deixou; as outras, a primeira casa livre). Peças equipadas não ocupam espaço do inventário. Transação e índice único por personagem/posição impedem duplicação em pedidos concorrentes.
 
 **Bônus:** Combate consulta o total atual através de `Contratos/Itens/IBonusEquipamentos`; não referencia a implementação de Itens. Força, Destreza, Intelecto, Vitalidade e Espírito entram nos cálculos já existentes de dano e recursos, sem acumular o mesmo bônus a cada troca. Isso sai na [#623](https://github.com/GabrielNied/jogo_do_grupo/issues/623): pelo DEC-001, atributo de item não soma nos atributos do personagem e vira número de combate pela conversão dele ([Atributos dos equipamentos](#atributos-dos-equipamentos)). Defesa e demais status têm representação e apresentação, mas não criam fórmulas novas de mitigação, bloqueio ou efeitos nesta tarefa.
 
-**No jogo:** abrir o inventário com **I** ([Interface do inventário](#interface-do-inventário-560)). O paperdoll mostra os encaixes e o conjunto ativo; o tooltip de cada item mostra atributos fixos/sorteados, atributo infusível, raridade, nível e requisito; clique direito e arrastar e soltar equipam e desequipam; os botões **Conj. 1** e **Conj. 2** trocam o conjunto de armas. Em editor/build de desenvolvimento, **Obter equipamento de teste** pede uma peça ao servidor. Essa rota só existe em ambiente `Development`; não altera o baú original; o loot dos mobs tem tabela própria ([Loot dos inimigos](#loot-dos-inimigos-493)).
+**No jogo:** abrir o inventário com **I** ([Interface do inventário](#interface-do-inventário-560)). O paperdoll mostra os encaixes e o conjunto ativo; o tooltip de cada item mostra o tier, os atributos com valor e máximo, o atributo infusível, nível e requisito; clique direito e arrastar e soltar equipam e desequipam; os botões **Conj. 1** e **Conj. 2** trocam o conjunto de armas. Em editor/build de desenvolvimento, **Obter equipamento de teste** pede uma peça ao servidor. Essa rota só existe em ambiente `Development`; não altera o baú original; o loot dos mobs tem tabela própria ([Loot dos inimigos](#loot-dos-inimigos-493)).
 
 API autenticada, sob `/api/personagens/{personagemId}/equipamentos`:
 
@@ -327,7 +343,7 @@ Decidido por Gabriel em 2026-10-12. Substitui a lista com dropdown e botões das
 
 **Janela (tecla I):** uma janela só. À esquerda o **paperdoll**: as posições de `PosicaoEquipamento` em volta da silhueta, as armas dos dois conjuntos embaixo e o botão de trocar conjunto. À direita a **bolsa**: grade de 8 colunas, abas no topo e contador x/capacidade. Embaixo, o resumo dos bônus. O painel de infusão continua o atual, aberto pelo botão **Bancada**; vira arrastar numa tarefa própria.
 
-**Casa:** ícone de silhueta por `TipoEquipamento`, tingido e com borda na cor da raridade (sem ícone ainda, a sigla do tipo). Item recém-chegado (baú, loot) tem selo **novo** até o mouse passar por cima. Encaixe vazio mostra a silhueta apagada do tipo.
+**Casa:** ícone de silhueta por `TipoEquipamento`, tingido e com borda na cor do tier, mais a letra do tier no canto (sem ícone ainda, a sigla do tipo). Item recém-chegado (baú, loot) tem selo **novo** até o mouse passar por cima. Encaixe vazio mostra a silhueta apagada do tipo.
 
 | Ação | Na bolsa | No paperdoll |
 |---|---|---|
@@ -360,7 +376,7 @@ Decidido por Gabriel em 2026-10-12. Substitui a lista com dropdown e botões das
 - **Tooltip:** a comparação só vale para peça da bolsa, contra o encaixe automático (com os dois encaixes de anel ou brinco cheios, contra o 1). O tooltip do item sob o mouse mostra as diferenças (▲ ganho e ▼ perda, com sinal e valor no texto, então a cor não é a única pista) e, ao lado, um segundo tooltip com a peça equipada, encabeçado por "Equipado"; encaixe vazio mostra tudo como ganho e não tem segundo tooltip. Aparece depois de 0,3 s e some ao arrastar. Os dois andam juntos como um bloco que cabe na tela e não cobre o painel de bônus (testa direita/esquerda e embaixo/em cima).
 - **Cabe na tela, sem rolagem** (decidido em 2026-10-12): a casa tem 40 a 64 px (unidades do painel, que escala por 1920×1080) e é o maior tamanho em que o paperdoll de 7 linhas e a bolsa de 8 colunas cabem na janela, medindo a moldura do Core e o resto do conteúdo; recalcula quando a geometria muda. A conta é `MedidasInventario`. Os botões do rodapé têm altura normal de botão.
 - **Descartar:** o descarte (solta fora da janela) pede a confirmação numa faixa da própria janela; só o **Confirmar descarte** envia.
-- **Ícone:** ponto único `PainelInventario.IconeDoTipo` (`IconesEquipamento.Carregar`, silhueta branca tingida pela raridade no USS); sem sprite, a sigla do tipo.
+- **Ícone:** ponto único `PainelInventario.IconeDoTipo` (`IconesEquipamento.Carregar`, silhueta branca tingida pelo tier no USS); sem sprite, a sigla do tipo.
 - **Dados de equipamento no client:** `JsonUtility` troca `"Equipamento": null` por um objeto vazio (tipo `Capacete`); use sempre `RegrasEquipamentos.DadosDe(entrada)`, nunca `entrada.Equipamento != null` (causa do 400 `PosicaoInvalida` da #585).
 - **Painel de infusão:** continua o atual, aberto por **Bancada**.
 - **Fora do ambiente de teste do agente:** a conferência visual da janela (capturas 1280x720 a 2560x1440, texto 20 e máximo) fica como pendência de Unity.
@@ -375,7 +391,7 @@ Bastião acrescenta +8 à defesa-base da peça, Ruptor e Olho Longo acrescentam 
 
 Os IDs 101–109 do Vigia permanecem; Bastião usa 110–118, Predador 119–127, Ruptor 128–136, Aurora 137–145, Tempestade 146–154, Batedor 155–163 e Olho Longo 164–172. Cada faixa segue capacete, peito, luvas, calça, botas, cinto, anel, brinco e adorno. O catálogo devolve objetos novos; alterar um exemplar não altera modelos ou outros exemplares. Exemplares já persistidos conservam seus valores, sem regeneração nem migração.
 
-O gerador aplica o fator Inicial/Médio/Forte **1/2/4 uma única vez** aos valores-base fixos e aleatórios; requisitos de personagem são 1/10/20. Raridade e nível da peça permanecem independentes do grau. Família e variante são gravadas junto aos metadados e apresentadas no inventário; itens antigos sem esses campos continuam válidos.
+Até a #615 o gerador aplicava o fator Inicial/Médio/Forte **1/2/4** aos valores-base; agora o grau escolhe a janela da faixa em que os valores são sorteados ([Entregue na #615](#entregue-na-615-tier-calculado-pelos-atributos)), e os valores do catálogo só dizem quais atributos o modelo tem (e dão a referência da migração dos exemplares antigos). Requisitos de personagem continuam 1/10/20. O nível da peça permanece independente do grau. Família e variante são gravadas junto aos metadados e apresentadas no inventário; itens antigos sem esses campos continuam válidos.
 
 **No jogo:** I → Equipamentos → escolher o grau → Obter equipamento de teste (editor/build de desenvolvimento, servidor Development). O servidor sorteia uniformemente entre os 72 modelos e o martelo já existente, grava o exemplar e devolve a bolsa atualizada. O parâmetro opcional `?grau=0|1|2` da rota `/bau-teste` escolhe o grau; omitido mantém Inicial, inválido retorna 400 sem criar item. Bolsa cheia, autenticação, propriedade e transação seguem as regras anteriores. Peças médias/fortes exigem nível 10/20 para equipar.
 
@@ -452,20 +468,20 @@ Matar um inimigo dá **peças reais** do catálogo de 72 (armaduras e acessório
 
 - **Quantidade:** continua a de `RegrasLoot` (50% nenhum, 40% um, 10% dois por participante). Cada item vira peça com `ConfigLoot.ChanceDeEquipamento` (hoje 100%); poção e moeda de teste **saíram da tabela** (seguem no baú de teste).
 - **Qual peça:** uniforme entre as 72, sem armas (martelo e itens legados não caem).
-- **Raridade pela origem do inimigo** (pesos relativos, Comum/Incomum/Raro/Épico/Lendário). **Depreciado em 2026-10-12:** com a [#615](https://github.com/GabrielNied/jogo_do_grupo/issues/615), a origem passa a melhorar os valores dos atributos ([Tier](#tier)); a tabela abaixo vale até lá:
+- **Origem do inimigo melhora os valores** (desde a [#615](https://github.com/GabrielNied/jogo_do_grupo/issues/615); antes eram pesos de raridade): a queda guarda a origem e, quando a peça entra no inventário, cada atributo é sorteado dentro da janela do grau e vale a **melhor de N rolagens**. O tier é só a consequência dos valores ([Tier](#tier)). Valores em `ConfigLoot`:
 
-| Origem | Quando | Pesos |
+| Origem | Quando | Rolagens por atributo |
 |---|---|---|
-| Comum | comum sem variante | 700 / 250 / 45 / 5 / 0 |
-| Fortalecida (elite) | comum fortalecida | 400 / 400 / 170 / 28 / 2 |
-| Chefe raro | categoria chefe raro | 100 / 400 / 380 / 100 / 20 |
-| Chefe | categoria chefe (dungeon) | 0 / 300 / 450 / 200 / 50 |
+| Comum | comum sem variante | 1 |
+| Fortalecida (elite) | comum fortalecida | 2 |
+| Chefe raro | categoria chefe raro | 3 |
+| Chefe | categoria chefe (dungeon) | 4 |
 
 - **Grau e requisito pelo nível do inimigo** (`InimigoDerrotado.Nivel`; 0 vale o da ficha da criatura): 1-9 Inicial (equipa no nível 1), 10-19 Médio (nível 10), 20+ Forte (nível 20). Os fatores 1/2/4 de atributos são os de [Equipamentos](#equipamentos-166-confirmação-do-usuário-em-2026-10-11).
-- **Individual:** cada participante faz o próprio sorteio (peça, raridade e grau); a queda guarda a raridade e o grau até a coleta, e o exemplar é gerado ao entrar no inventário.
-- **Aviso e chão:** `LootNoChao` traz `Raridade` e `Grau`, e o nome vem do catálogo de equipamentos. O aviso do HUD mostra nome e raridade (veja abaixo).
-- **Meta de ritmo (X = 3 min):** jogador solo, 4 mobs/min, níveis 1 a 10: em média uma peça **melhor** que a equipada a cada 3 minutos, e no máximo 20 minutos sem nenhuma. "Melhor" é maior `TabelaDeLoot.Pontuacao` (soma dos atributos, +10% por degrau de raridade) na posição onde a peça cabe. Hoje a simulação mede ~1,4 min de média e ~15 min na pior espera (posições quase cheias perto do nível 10). O teste `RitmoDeLootTestes` falha se a tabela, a quantidade ou o ritmo saírem da meta.
-- **Fora desta entrega:** `MultiplicadorDeRecompensa` não muda a quantidade (a variante já pesa na raridade); loot de chefe usa a mesma quantidade do comum, até o grupo definir a tabela do boss; skills nas peças (#340/#167); atributos elementais.
+- **Individual:** cada participante faz o próprio sorteio (peça e grau); a queda guarda a origem e o grau até a coleta, e o exemplar (valores, tier de origem) é gerado ao entrar no inventário. Por isso o item no chão não tem tier: ele nasce na coleta.
+- **Aviso e chão:** `LootNoChao` traz o `Grau` (a `Raridade` saiu na #615), e o nome vem do catálogo de equipamentos. O aviso do HUD mostra nome e tier (veja abaixo).
+- **Meta de ritmo (X = 3 min):** jogador solo, 4 mobs/min, níveis 1 a 10: em média uma peça **melhor** que a equipada a cada 3 minutos, e no máximo 20 minutos sem nenhuma. "Melhor" é maior `TabelaDeLoot.Pontuacao` (soma dos valores dos atributos, +10% por degrau do tier atual) na posição onde a peça cabe. **A meta não mudou** com a #615: a simulação (200 corridas de nível 1 a 10) mede ~1,3 min de média e ~17 min na pior espera (posições quase cheias perto do nível 10; eram ~1,4 e ~15 min com a raridade), e a primeira peça melhor sai nos 2 primeiros minutos. O teste `RitmoDeLootTestes` falha se a tabela, a quantidade ou o ritmo saírem da meta.
+- **Fora desta entrega:** `MultiplicadorDeRecompensa` não muda a quantidade (a variante já pesa nas rolagens); loot de chefe usa a mesma quantidade do comum, até o grupo definir a tabela do boss; skills nas peças (#340/#167); atributos elementais.
 
 ### Loot no chão (#64, contrato da #367)
 
@@ -473,7 +489,7 @@ Regras na [fatia jogável, seção 5](fatia-jogavel.md#5-loot-no-chão): loot **
 
 | ID | Mensagem | Direção | Campos |
 |---|---|---|---|
-| 7000 | `LootApareceu` | servidor → o dono | `Loot` (`LootNoChao`: `LootId`, `ItemId`, `Nome`, `Raridade`, `Grau`, `X`, `Z`, `ExpiraEmSegundos`) |
+| 7000 | `LootApareceu` | servidor → o dono | `Loot` (`LootNoChao`: `LootId`, `ItemId`, `Nome`, `Grau`, `X`, `Z`, `ExpiraEmSegundos`) |
 | 7001 | `ColetarLoot` | client → servidor | `LootId` (0 = tudo o que é meu por perto) |
 | 7002 | `LootColetado` | servidor → o dono | `LootId`, `Entrada` (`EntradaInventario`) |
 | 7003 | `ColetaRecusada` | servidor → o dono | `LootId`, `Codigo` (`LootNaoEncontrado`, `LongeDemais`, `InventarioCheio`) |
@@ -489,7 +505,7 @@ Valores em `RegrasLoot`, todos **proposta a calibrar**:
 | Distância em que o client mostra o item | `RaioDeVisaoMetros` | 12 m (não é regra do servidor) |
 
 - **Tecla F:** o client envia `ColetarLoot` com `LootId` 0 e o servidor coleta tudo o que é do personagem dentro de 3 m; os "12 m" da fatia viram a distância em que o item aparece na tela. Com um `LootId`, coleta só aquele item.
-- **Qual item cai:** peças do catálogo de equipamentos, com raridade e grau (veja [Loot dos inimigos](#loot-dos-inimigos-493)). Sem skills.
+- **Qual item cai:** peças do catálogo de equipamentos, com origem e grau (veja [Loot dos inimigos](#loot-dos-inimigos-493)). Sem skills.
 - **Inventário cheio:** o item fica no chão até expirar; os que couberem entram.
 - **Posição:** `X` e `Z` de onde o inimigo caiu. O servidor não conhece a altura do terreno; o client assenta o item no chão.
 - **Quem volta ao jogo** recebe de novo `LootApareceu` dos itens que ainda estão no prazo, com o tempo que falta.
@@ -497,7 +513,7 @@ Valores em `RegrasLoot`, todos **proposta a calibrar**:
 
 **No servidor (#368):**
 
-- Quem **participou** é quem o evento de morte de Mobs lista (`InimigoDerrotado.Participantes`: causou dano ao inimigo). Cada um tem um sorteio próprio; a variante e o nível do inimigo mudam a raridade e o grau (veja [Loot dos inimigos](#loot-dos-inimigos-493)).
+- Quem **participou** é quem o evento de morte de Mobs lista (`InimigoDerrotado.Participantes`: causou dano ao inimigo). Cada um tem um sorteio próprio; a variante e o nível do inimigo mudam as rolagens dos valores e o grau (veja [Loot dos inimigos](#loot-dos-inimigos-493)).
 - O chão fica **em memória**: se o servidor reinicia, o que estava no chão some (o inventário não, ele é do banco).
 - A coleta confere, nesta ordem: o item existe e é do jogador (senão `LootNaoEncontrado`), está ao alcance com a posição que o Mundo aceitou (senão `LongeDemais`) e cabe no inventário (senão `InventarioCheio`). O item só sai do chão depois de gravado.
 - Dois pedidos do mesmo item ao mesmo tempo: um coleta, o outro recebe `LootNaoEncontrado`.
@@ -509,8 +525,8 @@ Valores em `RegrasLoot`, todos **proposta a calibrar**:
 - As mensagens de loot são assinadas desde o início do jogo (não só com o mundo montado), para não perder o `LootApareceu` que chega logo ao voltar.
 - Cada item do jogador no chão vira um marcador dourado girando, assentado no chão, que aparece a até 12 m (`RaioDeVisaoMetros`). O client tira o item quando o prazo vence, sem esperar o `LootSumiu`.
 - Com algum item a até 3 m, aparece a dica **"F: pegar"**; F manda `ColetarLoot` com "tudo por perto". Com janela ou menu do Esc aberto, nem dica nem coleta.
-- Avisos no HUD: "Você pegou <item> (<raridade>)." ao coletar (ex.: "Você pegou Elmo do Vigia (Raro)."); inventário cheio (amarelo), longe demais e nada para pegar viram texto, sem mostrar o código.
+- Avisos no HUD: "Você pegou <item> (tier <letra>)." ao coletar (ex.: "Você pegou Elmo do Vigia (tier B)."; a cor do tier no aviso depende do HUD do Core); inventário cheio (amarelo), longe demais e nada para pegar viram texto, sem mostrar o código.
 
 ## Ícones de equipamento
 
-Silhuetas brancas com alpha (128 px), um por `TipoEquipamento`, para a UI tingir pela raridade. Para achar o ícone, use `IconesEquipamento.Carregar(tipo)` (`Resources/Itens/Icones/<TipoEquipamento>`). Origem e crédito em [licencas.md](../arte/licencas.md).
+Silhuetas brancas com alpha (128 px), um por `TipoEquipamento`, para a UI tingir pelo tier. Para achar o ícone, use `IconesEquipamento.Carregar(tipo)` (`Resources/Itens/Icones/<TipoEquipamento>`). Origem e crédito em [licencas.md](../arte/licencas.md).

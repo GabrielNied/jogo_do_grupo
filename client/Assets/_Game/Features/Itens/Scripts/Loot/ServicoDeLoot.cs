@@ -66,8 +66,13 @@ namespace JogoDoGrupo.Client.Features.Itens.Loot
         private static void AoColetar(LootColetado mensagem)
         {
             var nome = Registro.Receber(mensagem);
+            // JsonUtility troca "Equipamento": null por um objeto vazio: só DadosDe sabe se é peça.
+            var peca = RegrasEquipamentos.DadosDe(mensagem?.Entrada);
             AvisosDoJogo.Mostrar(
-                TextosDoLoot.Coletado(nome, mensagem?.Entrada?.Equipamento?.Raridade)
+                TextosDoLoot.Coletado(
+                    nome,
+                    peca == null ? (TierItem?)null : RegrasTier.TierDe(peca)
+                )
             );
         }
 

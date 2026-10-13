@@ -508,7 +508,7 @@ public class LootNoChaoTestes(ServidorDeLoot servidor) : IClassFixture<ServidorD
     }
 
     [Fact]
-    public async Task Peca_larga_pelo_mob_entra_no_inventario_com_a_raridade_e_o_grau_sorteados()
+    public async Task Peca_larga_pelo_mob_entra_no_inventario_com_tier_e_o_grau_da_queda()
     {
         using var ana = await NovoJogadorAsync();
         servidor.Sorteador.Quedas =
@@ -516,7 +516,7 @@ public class LootNoChaoTestes(ServidorDeLoot servidor) : IClassFixture<ServidorD
             new QuedaDeLoot
             {
                 ModeloId = CatalogoEquipamentos.PrimeiroModelo,
-                Raridade = RaridadeItem.Raro,
+                Origem = OrigemDoLoot.Chefe,
                 Grau = GrauEquipamento.Medio,
             },
         ];
@@ -525,14 +525,17 @@ public class LootNoChaoTestes(ServidorDeLoot servidor) : IClassFixture<ServidorD
         var loot = (await ApareceuAsync(ana)).Loot;
         Assert.Equal(CatalogoEquipamentos.PrimeiroModelo, loot.ItemId);
         Assert.Equal("Elmo do Vigia", loot.Nome);
-        Assert.Equal(RaridadeItem.Raro, loot.Raridade);
         Assert.Equal(GrauEquipamento.Medio, loot.Grau);
 
         Coletar(ana, loot.LootId);
         var coletado = await ColetadoAsync(ana);
         Assert.Equal("Elmo do Vigia", coletado.Entrada.Nome);
-        Assert.Equal(RaridadeItem.Raro, coletado.Entrada.Equipamento!.Raridade);
-        Assert.Equal(GrauEquipamento.Medio, coletado.Entrada.Equipamento.Grau);
+        var peca = coletado.Entrada.Equipamento!;
+        Assert.Equal(GrauEquipamento.Medio, peca.Grau);
+        // O servidor sorteou os valores dentro da faixa do grau Médio (20 a 80) e gravou o tier de origem.
+        Assert.Equal(RegrasTier.VersaoAtual, peca.VersaoDosAtributos);
+        Assert.All(peca.Atributos, a => Assert.InRange(a.Valor, 20, 80));
+        Assert.Equal(RegrasTier.TierDe(peca), peca.TierOrigem);
         Assert.Equal(10, coletado.Entrada.Equipamento.NivelPersonagemMinimo);
     }
 

@@ -113,7 +113,9 @@ namespace JogoDoGrupo.Client.Features.Itens.Tests
             var casa = raiz.Q<VisualElement>("casa-0-3");
             Assert.AreEqual("", casa.Q<Label>().text);
             Assert.IsNotNull(IconeDe(casa));
-            Assert.IsTrue(casa.ClassListContains(EstiloItens.Raridade(RaridadeItem.Comum)));
+            // O anel 107 do catálogo tem Vitalidade 6 na faixa de 0 a 100: tier D, letra no canto.
+            Assert.IsTrue(casa.ClassListContains(EstiloItens.Tier(TierItem.D)));
+            Assert.AreEqual("D", casa.Q<Label>(className: EstiloItens.LetraTier).text);
         }
 
         [Test]

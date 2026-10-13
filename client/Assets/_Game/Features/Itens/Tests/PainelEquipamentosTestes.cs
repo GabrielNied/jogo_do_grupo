@@ -14,7 +14,7 @@ namespace JogoDoGrupo.Client.Features.Itens.Tests
             var texto = TextosEquipamento.Descrever(new EntradaInventario { Equipamento = volta });
             StringAssert.Contains("Talismã do Olho Longo", texto);
             StringAssert.Contains("Família Batedor/Olho Longo · variante B", texto);
-            StringAssert.Contains("Vigor +10 (fixo)", texto);
+            StringAssert.Contains("Vigor 10/100", texto);
         }
 
         [Test]
@@ -42,7 +42,7 @@ namespace JogoDoGrupo.Client.Features.Itens.Tests
         }
 
         [Test]
-        public void DescricaoDistingueNivelRequisitoFixoESorteado()
+        public void DescricaoMostraNivelRequisitoTierEValorComMaximo()
         {
             var item = CatalogoEquipamentos.Obter(100);
             item.NivelPersonagemMinimo = 20;
@@ -60,8 +60,11 @@ namespace JogoDoGrupo.Client.Features.Itens.Tests
             var texto = TextosEquipamento.Descrever(new EntradaInventario { Equipamento = item });
             StringAssert.Contains("nível 1/10", texto);
             StringAssert.Contains("personagem nível 20", texto);
-            StringAssert.Contains("Força +20 (fixo)", texto);
-            StringAssert.Contains("Vida +30 (sorteado) · infusível", texto);
+            StringAssert.Contains("Tier D", texto);
+            // Valor/máximo da faixa e o bônus provisório de combate (20 x 30 / 100 = 6).
+            StringAssert.Contains("Força 20/100 · bônus +6", texto);
+            // Vida não tem faixa (legado): só o valor.
+            StringAssert.Contains("Vida +30 · infusível", texto);
         }
 
         [Test]

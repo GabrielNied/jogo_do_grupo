@@ -9,18 +9,18 @@ namespace JogoDoGrupo.Client.Features.Itens.Loot
         public const string Dica = "F: pegar";
 
         /// <summary>
-        /// Aviso de item que entrou no inventário. Com raridade (peça de equipamento), o aviso a
-        /// mostra entre parênteses: "Você pegou Elmo do Vigia (Raro)."
+        /// Aviso de item que entrou no inventário. Com tier (peça de equipamento), o aviso a
+        /// mostra entre parênteses: "Você pegou Elmo do Vigia (tier B)."
         /// </summary>
-        public static string Coletado(string nome, RaridadeItem? raridade = null)
+        public static string Coletado(string nome, TierItem? tier = null)
         {
             if (string.IsNullOrWhiteSpace(nome))
             {
                 return "Você pegou um item.";
             }
 
-            return raridade.HasValue
-                ? $"Você pegou {nome} ({RegrasEquipamentos.NomeDaRaridade(raridade.Value)})."
+            return tier.HasValue
+                ? $"Você pegou {nome} (tier {RegrasTier.Letra(tier.Value)})."
                 : $"Você pegou {nome}.";
         }
 

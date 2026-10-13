@@ -39,75 +39,64 @@ public class TabelaDeLootTestes
         Assert.Equal(requisito, TabelaDeLoot.NivelMinimoDoGrau(grau));
     }
 
-    [Theory]
-    [InlineData(OrigemDoLoot.Comum)]
-    [InlineData(OrigemDoLoot.Fortalecida)]
-    [InlineData(OrigemDoLoot.ChefeRaro)]
-    [InlineData(OrigemDoLoot.Chefe)]
-    public void Pesos_tem_uma_entrada_por_raridade_e_algum_peso(OrigemDoLoot origem)
-    {
-        var pesos = TabelaDeLoot.PesosDe(origem);
-
-        Assert.Equal(Enum.GetValues<RaridadeItem>().Length, pesos.Length);
-        Assert.All(pesos, p => Assert.True(p >= 0));
-        Assert.True(pesos.Sum() > 0);
-    }
-
     [Fact]
-    public void Raridade_sorteada_respeita_as_pontas_e_nunca_cai_em_peso_zero()
+    public void Origens_mais_valiosas_ganham_mais_rolagens()
     {
-        Assert.Equal(RaridadeItem.Comum, TabelaDeLoot.RaridadeSorteada(OrigemDoLoot.Comum, 0));
-        Assert.Equal(RaridadeItem.Comum, TabelaDeLoot.RaridadeSorteada(OrigemDoLoot.Comum, -3));
-        // O chefe tem peso zero em Comum: o começo da faixa já é Incomum.
-        Assert.Equal(RaridadeItem.Incomum, TabelaDeLoot.RaridadeSorteada(OrigemDoLoot.Chefe, 0));
-        Assert.Equal(RaridadeItem.Lendario, TabelaDeLoot.RaridadeSorteada(OrigemDoLoot.Chefe, 7));
-        Assert.Equal(
-            RaridadeItem.Lendario,
-            TabelaDeLoot.RaridadeSorteada(OrigemDoLoot.Chefe, 0.99999)
-        );
-        // O comum sem variante tem peso zero em Lendário: nunca sai.
-        Assert.Equal(
-            RaridadeItem.Epico,
-            TabelaDeLoot.RaridadeSorteada(OrigemDoLoot.Comum, 0.9999999)
-        );
-    }
-
-    [Fact]
-    public void Origens_mais_valiosas_deslocam_o_sorteio_para_raridades_maiores()
-    {
-        for (var sorteio = 0.05; sorteio < 1; sorteio += 0.05)
+        var rolagens = new[]
         {
-            var anterior = RaridadeItem.Comum;
-            foreach (
-                var origem in new[]
-                {
-                    OrigemDoLoot.Comum,
-                    OrigemDoLoot.Fortalecida,
-                    OrigemDoLoot.ChefeRaro,
-                    OrigemDoLoot.Chefe,
-                }
-            )
-            {
-                var atual = TabelaDeLoot.RaridadeSorteada(origem, sorteio);
-                Assert.True(
-                    atual >= anterior,
-                    $"sorteio {sorteio}: {origem} deu {atual} < {anterior}"
-                );
-                anterior = atual;
-            }
+            OrigemDoLoot.Comum,
+            OrigemDoLoot.Fortalecida,
+            OrigemDoLoot.ChefeRaro,
+            OrigemDoLoot.Chefe,
         }
+            .Select(TabelaDeLoot.RolagensDe)
+            .ToArray();
+
+        Assert.Equal(1, rolagens[0]);
+        Assert.Equal(rolagens.OrderBy(r => r), rolagens);
+        Assert.Equal(rolagens.Length, rolagens.Distinct().Count());
     }
 
     [Fact]
-    public void Pontuacao_soma_atributos_e_cresce_com_a_raridade()
+    public void Sortear_guarda_origem_e_grau_e_gasta_um_numero()
     {
-        var peca = CatalogoEquipamentos.Obter(CatalogoEquipamentos.PrimeiroModelo);
-        var soma = peca.Atributos.Sum(a => a.Valor);
+        var aleatorio = new Random(5);
+        var queda = TabelaDeLoot.Sortear(aleatorio, OrigemDoLoot.ChefeRaro, 12);
 
-        Assert.Equal(soma, TabelaDeLoot.Pontuacao(peca), 6);
-        peca.Raridade = RaridadeItem.Raro;
+        Assert.Equal(OrigemDoLoot.ChefeRaro, queda.Origem);
+        Assert.Equal(GrauEquipamento.Medio, queda.Grau);
+        Assert.InRange(
+            queda.ModeloId,
+            CatalogoEquipamentos.PrimeiroModelo,
+            CatalogoEquipamentos.PrimeiroModelo + CatalogoEquipamentos.QuantidadeModelos - 1
+        );
+        var referencia = new Random(5);
+        referencia.Next(CatalogoEquipamentos.QuantidadeModelos);
+        Assert.Equal(referencia.Next(), aleatorio.Next());
+    }
+
+    [Fact]
+    public void Pontuacao_soma_valores_e_cresce_com_o_tier()
+    {
+        var peca = new Equipamento
+        {
+            Tipo = TipoEquipamento.Peito,
+            Atributos = new[]
+            {
+                new AtributoItem { Status = StatusItem.Forca, Valor = 90 },
+                new AtributoItem { Status = StatusItem.Vitalidade, Valor = 70 },
+            },
+        };
+        Assert.Equal(TierItem.S, RegrasTier.TierDe(peca));
+
         Assert.Equal(
-            soma * (1 + 2 * ConfigLoot.BonusDePontuacaoPorRaridade),
+            160 * (1 + (int)TierItem.S * ConfigLoot.BonusDePontuacaoPorTier),
+            TabelaDeLoot.Pontuacao(peca),
+            6
+        );
+        peca.Raridade = RaridadeItem.Lendario;
+        Assert.Equal(
+            160 * (1 + (int)TierItem.S * ConfigLoot.BonusDePontuacaoPorTier),
             TabelaDeLoot.Pontuacao(peca),
             6
         );

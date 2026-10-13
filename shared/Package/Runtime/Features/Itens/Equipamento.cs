@@ -3,6 +3,10 @@ using System.Collections.Generic;
 
 namespace JogoDoGrupo.Shared.Features.Itens
 {
+    /// <summary>
+    /// Raridade sorteada do modelo anterior. <b>Legado</b> desde a #615: só é lida (infusão, até a
+    /// #616); o tier vem dos atributos (<see cref="TierItem"/>) e nenhuma regra nova usa isto.
+    /// </summary>
     public enum RaridadeItem
     {
         Comum,
@@ -93,12 +97,29 @@ namespace JogoDoGrupo.Shared.Features.Itens
         public string Familia = "";
         public string Variacao = "";
         public TipoEquipamento Tipo;
+
+        /// <summary>Legado: nada novo decide por ela (veja <see cref="RaridadeItem"/>).</summary>
         public RaridadeItem Raridade;
         public GrauEquipamento Grau;
         public int Nivel = 1;
         public int NivelPersonagemMinimo = 1;
         public bool DuasMaos;
+
+        /// <summary>
+        /// Valores inteiros de 0 a 100 (<see cref="ConfigTier"/>) desde a versão 1; no legado,
+        /// fracionários na escala do catálogo. Qualquer mudança aqui muda o tier atual
+        /// (<see cref="RegrasTier.Calcular(Equipamento)"/>).
+        /// </summary>
         public AtributoItem[] Atributos = Array.Empty<AtributoItem>();
+
+        /// <summary>
+        /// Tier na geração (ou na migração), nunca mais muda e não limita a evolução (TIER-004).
+        /// Só vale com <see cref="VersaoDosAtributos"/> 1 ou mais.
+        /// </summary>
+        public TierItem TierOrigem;
+
+        /// <summary>Escala dos atributos: 0 é o legado, <see cref="RegrasTier.VersaoAtual"/> a atual.</summary>
+        public int VersaoDosAtributos;
         public int IndiceInfusivel;
         public int InfusoesUsadas;
         public double ValorBaseInfusivel;
@@ -285,6 +306,11 @@ namespace JogoDoGrupo.Shared.Features.Itens
             }
         }
 
+        /// <summary>
+        /// Soma dos atributos das peças ativas, já na escala de combate de antes da #615
+        /// (<see cref="MigracaoDeTier.ParaEscalaLegada"/>): até a #623 o bônus ainda soma nos
+        /// atributos do personagem, e o valor 0 a 100 do item não pode virar +100 de Força.
+        /// </summary>
         public static AtributoItem[] Somar(IEnumerable<EntradaInventario> entradas, int conjunto)
         {
             var totais = new SortedDictionary<StatusItem, double>();
@@ -298,7 +324,8 @@ namespace JogoDoGrupo.Shared.Features.Itens
                 foreach (var atributo in entrada.Equipamento.Atributos)
                 {
                     totais.TryGetValue(atributo.Status, out var atual);
-                    totais[atributo.Status] = atual + atributo.Valor;
+                    totais[atributo.Status] =
+                        atual + MigracaoDeTier.ParaEscalaLegada(atributo.Status, atributo.Valor);
                 }
             }
             var resultado = new List<AtributoItem>();

@@ -44,14 +44,15 @@ public class RegrasEquipamentosTestes
             };
         var itens = new[]
         {
-            Item(PosicaoEquipamento.Anel1, 2),
-            Item(PosicaoEquipamento.Anel2, 3),
-            Item(PosicaoEquipamento.Arma1, 10),
-            Item(PosicaoEquipamento.Arma2, 20),
+            Item(PosicaoEquipamento.Anel1, 10),
+            Item(PosicaoEquipamento.Anel2, 20),
+            Item(PosicaoEquipamento.Arma1, 50),
+            Item(PosicaoEquipamento.Arma2, 100),
             Item(PosicaoEquipamento.Inventario, 99),
         };
-        Assert.Equal(15, Assert.Single(RegrasEquipamentos.Somar(itens, 1)).Valor);
-        Assert.Equal(25, Assert.Single(RegrasEquipamentos.Somar(itens, 2)).Valor);
-        Assert.Equal(15, Assert.Single(RegrasEquipamentos.Somar(itens, 1)).Valor);
+        // Valores de 0 a 100 voltam para a escala de combate de antes (Força: referência 30).
+        Assert.Equal(24, Assert.Single(RegrasEquipamentos.Somar(itens, 1)).Valor);
+        Assert.Equal(39, Assert.Single(RegrasEquipamentos.Somar(itens, 2)).Valor);
+        Assert.Equal(24, Assert.Single(RegrasEquipamentos.Somar(itens, 1)).Valor);
     }
 }

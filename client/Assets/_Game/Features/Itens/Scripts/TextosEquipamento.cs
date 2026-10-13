@@ -10,16 +10,40 @@ namespace JogoDoGrupo.Client.Features.Itens
     /// </summary>
     public static class TextosEquipamento
     {
-        private static readonly string[] Raridades =
+        /// <summary>
+        /// O tier como o jogador lê: "Tier A". Quando o tier atual já não é o de origem (os
+        /// valores mudaram), acrescenta a origem: "Tier B (origem D)". Exemplar sem tier de
+        /// origem gravado (escala antiga) não mostra origem.
+        /// </summary>
+        public static string NomeDoTier(Equipamento item)
         {
-            "Comum",
-            "Incomum",
-            "Raro",
-            "Épico",
-            "Lendário",
-        };
+            var atual = RegrasTier.TierDe(item);
+            var texto = "Tier " + RegrasTier.Letra(atual);
+            if (item.VersaoDosAtributos >= RegrasTier.VersaoAtual && item.TierOrigem != atual)
+                texto += " (origem " + RegrasTier.Letra(item.TierOrigem) + ")";
+            return texto;
+        }
 
-        public static string NomeDaRaridade(RaridadeItem raridade) => Raridades[(int)raridade];
+        /// <summary>
+        /// Linha de um atributo: valor e máximo da faixa ("Força 72/100") e o bônus que ele dá
+        /// hoje no combate ("bônus +21,6"; provisório até a #623). Atributo sem faixa (legado)
+        /// mostra só o valor.
+        /// </summary>
+        public static string LinhaDoAtributo(Equipamento item, int indice)
+        {
+            var atributo = item.Atributos[indice];
+            var faixa = ConfigTier.Faixa(item.Tipo, atributo.Status);
+            var texto = NomeStatus(atributo.Status);
+            if (faixa == null)
+                return texto + " +" + Numero(atributo.Valor);
+            return texto
+                + " "
+                + Numero(atributo.Valor)
+                + "/"
+                + faixa.Value.Maximo
+                + " · bônus +"
+                + Numero(MigracaoDeTier.ParaEscalaLegada(atributo.Status, atributo.Valor));
+        }
 
         /// <summary>Número com até duas casas, sem zeros sobrando (ex.: 6, 2,5).</summary>
         public static string Numero(double valor) =>
@@ -34,7 +58,7 @@ namespace JogoDoGrupo.Client.Features.Itens
             var texto =
                 item.Nome
                 + " · "
-                + NomeDaRaridade(item.Raridade)
+                + NomeDoTier(item)
                 + " · "
                 + item.Regiao
                 + " · nível "
@@ -51,13 +75,9 @@ namespace JogoDoGrupo.Client.Features.Itens
                 texto += "\nFamília " + item.Familia + " · variante " + item.Variacao;
             for (var i = 0; i < item.Atributos.Length; i++)
             {
-                var atributo = item.Atributos[i];
                 texto +=
                     "\n"
-                    + NomeStatus(atributo.Status)
-                    + " +"
-                    + Numero(atributo.Valor)
-                    + (atributo.Fixo ? " (fixo)" : " (sorteado)")
+                    + LinhaDoAtributo(item, i)
                     + (i == item.IndiceInfusivel ? " · infusível" : "");
             }
             return texto

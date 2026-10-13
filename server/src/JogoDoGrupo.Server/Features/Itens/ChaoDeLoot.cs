@@ -11,7 +11,7 @@ public sealed record LootReservado(
     double X,
     double Z,
     DateTimeOffset ApareceuEm,
-    RaridadeItem Raridade = RaridadeItem.Comum,
+    OrigemDoLoot Origem = OrigemDoLoot.Comum,
     GrauEquipamento Grau = GrauEquipamento.Inicial
 )
 {
@@ -25,7 +25,6 @@ public sealed record LootReservado(
             ItemId = ItemId,
             Nome =
                 CatalogoItens.ObterNome(ItemId) ?? CatalogoEquipamentos.Obter(ItemId)?.Nome ?? "",
-            Raridade = Raridade,
             Grau = Grau,
             X = (float)X,
             Z = (float)Z,
@@ -68,7 +67,7 @@ public sealed class ChaoDeLoot
         }
     }
 
-    /// <summary>Põe no chão um item por id de <paramref name="itens"/> (Comum, Inicial), do mesmo dono.</summary>
+    /// <summary>Põe no chão um item por id de <paramref name="itens"/> (origem comum, grau Inicial), do mesmo dono.</summary>
     public IReadOnlyList<LootReservado> Largar(
         long donoId,
         IReadOnlyList<int> itens,
@@ -109,7 +108,7 @@ public sealed class ChaoDeLoot
                     x,
                     z,
                     agora,
-                    queda.Raridade,
+                    queda.Origem,
                     queda.Grau
                 );
                 _itens[loot.LootId] = new Entrada(loot);

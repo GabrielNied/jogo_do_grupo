@@ -51,6 +51,9 @@ public class InfusaoRotasTestes(ServidorDeTeste servidor) : IClassFixture<Servid
         var dados = CatalogoEquipamentos.Obter(100);
         dados.ValorBaseInfusivel = 20;
         configurar?.Invoke(dados);
+        // Exemplar já na escala 0 a 100 (o de escala antiga é coberto pelos testes de migração).
+        dados.VersaoDosAtributos = RegrasTier.VersaoAtual;
+        dados.TierOrigem = RegrasTier.TierDe(dados);
         var entrada = new ItemInventario
         {
             PersonagemId = id,
@@ -167,8 +170,9 @@ public class InfusaoRotasTestes(ServidorDeTeste servidor) : IClassFixture<Servid
         Assert.Equal(20, item.ValorBaseInfusivel);
         Assert.Equal(1, item.InfusoesUsadas);
         using var escopo = servidor.Services.CreateScope();
+        // 20,4 na escala 0 a 100 é +6,12 de Força no combate (referência 30).
         Assert.Equal(
-            20.4,
+            6.12,
             Assert
                 .Single(
                     await escopo
@@ -179,6 +183,35 @@ public class InfusaoRotasTestes(ServidorDeTeste servidor) : IClassFixture<Servid
         );
         Assert.Equal(HttpStatusCode.NotFound, (await Confirmar(cliente, id, previa)).StatusCode);
         Assert.Equal(990, (await Estado(cliente, id)).Coroas);
+    }
+
+    [Fact]
+    public async Task InfusaoNaoPassaDoMaximoDaFaixaEORecalculoDoTierUsaOValorNovo()
+    {
+        var (cliente, id) = await Personagem();
+        var receptor = await Item(
+            id,
+            e =>
+            {
+                e.Atributos = new[]
+                {
+                    new AtributoItem { Status = StatusItem.Forca, Valor = 99.9 },
+                };
+                e.ValorBaseInfusivel = 99.9;
+            }
+        );
+        var doador = await Item(id);
+        var previa = await Previa(cliente, id, receptor, doador);
+        Assert.Equal(ConfigTier.EscalaMaxima, previa.Depois);
+
+        (await Confirmar(cliente, id, previa)).EnsureSuccessStatusCode();
+
+        var item = (await Estado(cliente, id))
+            .Inventario.Single(i => i.InstanciaId == receptor)
+            .Equipamento;
+        Assert.Equal(ConfigTier.EscalaMaxima, item.Atributos[0].Valor);
+        Assert.Equal(TierItem.SMais, RegrasTier.TierDe(item));
+        Assert.Equal(TierItem.S, item.TierOrigem); // 99,9 é S; o tier de origem não acompanha.
     }
 
     [Fact]

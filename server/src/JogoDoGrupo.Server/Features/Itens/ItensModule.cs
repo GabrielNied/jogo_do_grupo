@@ -28,6 +28,7 @@ public sealed class ItensModule : IFeatureModule
             JogoDoGrupo.Server.Contratos.Itens.IBonusEquipamentos,
             BonusEquipamentos
         >();
+        servicos.AddHostedService<MigradorDeEquipamentos>();
         servicos.AddSingleton<ISorteadorBau>(new SorteadorBau());
         servicos.AddSingleton<ISorteadorDeLoot>(new SorteadorDeLoot());
         servicos.AddSingleton<ChaoDeLoot>();

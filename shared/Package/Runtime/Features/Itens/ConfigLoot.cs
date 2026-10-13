@@ -1,7 +1,7 @@
 namespace JogoDoGrupo.Shared.Features.Itens
 {
     /// <summary>
-    /// Valores ajustáveis do que um inimigo derrotado deixa cair (issue #493). Tudo é proposta a
+    /// Valores ajustáveis do que um inimigo derrotado deixa cair (issues #493 e #615). Tudo é proposta a
     /// calibrar; as contas ficam em <see cref="TabelaDeLoot"/>. Quantos itens cada participante
     /// recebe continua em <see cref="RegrasLoot"/>.
     /// </summary>
@@ -24,26 +24,26 @@ namespace JogoDoGrupo.Shared.Features.Itens
         public const int NivelDoInimigoParaGrauForte = 20;
 
         /// <summary>
-        /// Quanto cada degrau de raridade soma à pontuação da peça (0,10 = +10% por degrau).
-        /// Serve só para dizer qual de duas peças é "melhor" (ritmo e destaque de upgrade).
+        /// Quanto cada degrau de tier soma à pontuação da peça (0,10 = +10% por degrau, de D a
+        /// S+). Serve só para dizer qual de duas peças é "melhor" (ritmo e destaque de upgrade).
         /// </summary>
-        public const double BonusDePontuacaoPorRaridade = 0.10;
+        public const double BonusDePontuacaoPorTier = 0.10;
 
-        // Pesos de raridade por origem do inimigo, na ordem Comum, Incomum, Raro, Épico,
-        // Lendário. Só a proporção importa. Subir o peso de uma raridade a torna mais comum
-        // nessa origem; a soma de cada linha não precisa ser 1000.
+        // Origem do inimigo: quantas vezes cada atributo é sorteado e vale a melhor rolagem
+        // (#615). Mais rolagens puxam o valor para o alto da janela do grau; com 1 o valor é
+        // uniforme. Só o valor melhora: o tier é consequência dos valores.
 
-        /// <summary>Inimigo comum sem variante: quase tudo comum ou incomum.</summary>
-        public static readonly int[] PesosDoInimigoComum = { 700, 250, 45, 5, 0 };
+        /// <summary>Inimigo comum sem variante: uma rolagem por atributo.</summary>
+        public const int RolagensDoInimigoComum = 1;
 
-        /// <summary>Inimigo comum fortalecido (elite): incomum e raro bem mais frequentes.</summary>
-        public static readonly int[] PesosDoInimigoFortalecido = { 400, 400, 170, 28, 2 };
+        /// <summary>Inimigo comum fortalecido (elite): melhor de duas.</summary>
+        public const int RolagensDoInimigoFortalecido = 2;
 
-        /// <summary>Chefe raro: raro e épico são o miolo da tabela.</summary>
-        public static readonly int[] PesosDoChefeRaro = { 100, 400, 380, 100, 20 };
+        /// <summary>Chefe raro: melhor de três.</summary>
+        public const int RolagensDoChefeRaro = 3;
 
-        /// <summary>Chefe: nunca comum; raro é o mais provável e lendário é possível.</summary>
-        public static readonly int[] PesosDoChefe = { 0, 300, 450, 200, 50 };
+        /// <summary>Chefe: melhor de quatro.</summary>
+        public const int RolagensDoChefe = 4;
 
         // Meta de ritmo (testada em RitmoDeLootTestes). Referência: jogador solo, mesmo mob de
         // referência de ConfigExperiencia (4 mobs por minuto), níveis 1 a 10.
