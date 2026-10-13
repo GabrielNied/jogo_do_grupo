@@ -48,6 +48,7 @@ namespace JogoDoGrupo.Client.Features.Combate
         private double _staminaDesde;
         private double _ultimoGasto = double.NegativeInfinity;
         private int _staminaMaxima = RegrasRecursos.StaminaBase;
+        private double _regeneracaoDeStamina = RegrasRecursos.RegeneracaoStaminaPorSegundo;
         private bool _ataqueEmCurso;
 
         // Para desfazer o golpe que o servidor recusou.
@@ -78,12 +79,29 @@ namespace JogoDoGrupo.Client.Features.Combate
                 return stamina;
             }
 
-            return RegrasRecursos.RegenerarStamina(
+            return RegrasRecursos.Regenerar(
                 stamina,
                 _staminaMaxima,
+                _regeneracaoDeStamina,
                 agora - _ultimoGasto,
                 passados
             );
+        }
+
+        /// <summary>
+        /// A regeneração de stamina por segundo que o servidor calculou (secundário, com o que o
+        /// equipamento dá), no lugar da base fixa. Valor inválido mantém o anterior. Fixa a previsão
+        /// em <paramref name="agora"/> antes, para a taxa nova só valer dali em diante.
+        /// </summary>
+        public void RegistrarRegeneracaoDeStamina(double porSegundo, double agora = 0)
+        {
+            if (double.IsNaN(porSegundo) || double.IsInfinity(porSegundo) || porSegundo < 0)
+            {
+                return;
+            }
+
+            Consolidar(agora);
+            _regeneracaoDeStamina = porSegundo;
         }
 
         /// <summary>O teto de velocidade do corpo, dividido entre o golpe e a guarda.</summary>

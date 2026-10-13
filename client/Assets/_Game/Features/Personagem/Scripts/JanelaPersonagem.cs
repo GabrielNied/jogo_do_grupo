@@ -28,6 +28,8 @@ namespace JogoDoGrupo.Client.Features.Personagem
         private Label _barraTexto;
         private VisualElement _barraPreenchimento;
         private VisualElement _atributos;
+        private Label _equipamentoTitulo;
+        private VisualElement _equipamento;
         private Label _secundariosTitulo;
         private VisualElement _secundarios;
         private Label _gastoMensagem;
@@ -63,6 +65,9 @@ namespace JogoDoGrupo.Client.Features.Personagem
             _barraTexto.AddToClassList(EstiloCore.Texto);
 
             _atributos = new VisualElement();
+            _equipamentoTitulo = new Label(TextosSecundarios.TituloEquipamento);
+            _equipamentoTitulo.AddToClassList(EstiloCore.Texto);
+            _equipamento = new VisualElement();
             _secundariosTitulo = new Label(TextosSecundarios.Titulo);
             _secundariosTitulo.AddToClassList(EstiloCore.Texto);
             _secundarios = new VisualElement();
@@ -77,6 +82,8 @@ namespace JogoDoGrupo.Client.Features.Personagem
             conteudo.Add(_barraTexto);
             conteudo.Add(barra);
             conteudo.Add(_atributos);
+            conteudo.Add(_equipamentoTitulo);
+            conteudo.Add(_equipamento);
             conteudo.Add(_secundariosTitulo);
             conteudo.Add(_secundarios);
             conteudo.Add(_gastoMensagem);
@@ -211,6 +218,7 @@ namespace JogoDoGrupo.Client.Features.Personagem
                     return;
                 }
 
+                MostrarEquipamento(resposta.Corpo.DoEquipamento);
                 _secundarios.Clear();
                 foreach (var calculado in resposta.Corpo.Secundarios)
                 {
@@ -224,6 +232,27 @@ namespace JogoDoGrupo.Client.Features.Personagem
                 {
                     MostrarTextoDosSecundarios(TextosSecundarios.Erro, true);
                 }
+            }
+        }
+
+        // O que as peças dão ao combate (dano da arma, bônus de dano, vida, defesa...), separado dos
+        // atributos do personagem: o equipamento nunca soma neles.
+        private void MostrarEquipamento(string[] linhas)
+        {
+            _equipamento.Clear();
+            if (linhas == null || linhas.Length == 0)
+            {
+                var vazio = new Label(TextosSecundarios.SemEquipamento);
+                vazio.AddToClassList(EstiloCore.Mensagem);
+                _equipamento.Add(vazio);
+                return;
+            }
+
+            foreach (var linha in linhas)
+            {
+                var texto = new Label(linha);
+                texto.AddToClassList(EstiloCore.Texto);
+                _equipamento.Add(texto);
             }
         }
 

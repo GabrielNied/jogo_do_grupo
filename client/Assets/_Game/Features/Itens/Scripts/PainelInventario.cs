@@ -502,22 +502,19 @@ namespace JogoDoGrupo.Client.Features.Itens
         private void MontarResumo()
         {
             _resumo.Clear();
-            _resumo.Add(Texto("Bônus das peças e das armas ativas", EstiloItens.ResumoTitulo));
+            _resumo.Add(
+                Texto(
+                    "Atributos dos equipamentos (não somam nos do personagem)",
+                    EstiloItens.ResumoTitulo
+                )
+            );
             var linha = new VisualElement();
             linha.AddToClassList(EstiloItens.ResumoLinha);
-            if (_estado.Bonus.Length == 0)
-                linha.Add(Texto("Nenhum bônus ainda.", EstiloItens.ResumoBonus));
-            foreach (var bonus in _estado.Bonus)
-            {
-                linha.Add(
-                    Texto(
-                        TextosEquipamento.NomeStatus(bonus.Status)
-                            + " +"
-                            + TextosEquipamento.Numero(bonus.Valor),
-                        EstiloItens.ResumoBonus
-                    )
-                );
-            }
+            var linhas = _estado.Atributos?.Linhas ?? new LinhaDeEquipamento[0];
+            if (linhas.Length == 0)
+                linha.Add(Texto("Nenhum atributo de equipamento ainda.", EstiloItens.ResumoBonus));
+            foreach (var atributo in linhas)
+                linha.Add(Texto(atributo.Texto, EstiloItens.ResumoBonus));
             _resumo.Add(linha);
         }
 

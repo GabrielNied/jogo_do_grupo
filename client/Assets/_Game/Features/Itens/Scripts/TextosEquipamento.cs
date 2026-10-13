@@ -25,9 +25,9 @@ namespace JogoDoGrupo.Client.Features.Itens
         }
 
         /// <summary>
-        /// Linha de um atributo: valor e máximo da faixa ("Força 72/100") e o bônus que ele dá
-        /// hoje no combate ("bônus +21,6"; provisório até a #623). Atributo sem faixa (legado)
-        /// mostra só o valor.
+        /// Linha de um atributo do item: valor e máximo da faixa e o que ele faz no combate
+        /// ("Força 72/100 · +14,4% de dano físico"). É o atributo <b>do item</b>: não soma na
+        /// Força do personagem. Atributo sem faixa (legado) mostra só o valor.
         /// </summary>
         public static string LinhaDoAtributo(Equipamento item, int indice)
         {
@@ -36,13 +36,22 @@ namespace JogoDoGrupo.Client.Features.Itens
             var texto = NomeStatus(atributo.Status);
             if (faixa == null)
                 return texto + " +" + Numero(atributo.Valor);
+            var convertido = ConfigAtributosItem.Converter(
+                item.Tipo,
+                atributo.Status,
+                atributo.Valor
+            );
             return texto
                 + " "
                 + Numero(atributo.Valor)
                 + "/"
                 + faixa.Value.Maximo
-                + " · bônus +"
-                + Numero(MigracaoDeTier.ParaEscalaLegada(atributo.Status, atributo.Valor));
+                + " · "
+                + RegrasAtributosDeItem.Efeito(
+                    atributo.Status,
+                    convertido,
+                    ConfigAtributosItem.ArmaMagica(item.Tipo)
+                );
         }
 
         /// <summary>Número com até duas casas, sem zeros sobrando (ex.: 6, 2,5).</summary>
@@ -80,24 +89,7 @@ namespace JogoDoGrupo.Client.Features.Itens
             return texto + "\nFusão +" + item.NivelFusao + "/" + ConfigFusao.NivelMaximo;
         }
 
-        public static string NomeStatus(StatusItem status)
-        {
-            switch (status)
-            {
-                case StatusItem.Forca:
-                    return "Força";
-                case StatusItem.PotenciaFogo:
-                    return "Potência de fogo (%)";
-                case StatusItem.PotenciaGelo:
-                    return "Potência de gelo (%)";
-                case StatusItem.Alcance:
-                    return "Alcance (m)";
-                case StatusItem.RecuperacaoVigor:
-                    return "Recuperação de vigor (%)";
-                default:
-                    return status.ToString();
-            }
-        }
+        public static string NomeStatus(StatusItem status) => RegrasAtributosDeItem.Nome(status);
 
         public static string NomePosicao(PosicaoEquipamento posicao)
         {

@@ -130,6 +130,30 @@ namespace JogoDoGrupo.Client.Features.Combate
             }
         }
 
+        // A regeneração de stamina é o secundário calculado pelo servidor (com o equipamento), não
+        // a base fixa.
+        private void RegistrarRegeneracaoDoServidor(RecursosResponse corpo)
+        {
+            if (corpo.Secundarios == null)
+            {
+                return;
+            }
+
+            foreach (var calculado in corpo.Secundarios)
+            {
+                if (
+                    calculado != null
+                    && calculado.Atributo == AtributoSecundario.RegeneracaoStamina
+                )
+                {
+                    _prontidao?.RegistrarRegeneracaoDeStamina(
+                        calculado.Valor,
+                        Time.unscaledTimeAsDouble
+                    );
+                }
+            }
+        }
+
         private async void Consultar()
         {
             _consultando = true;
@@ -155,6 +179,7 @@ namespace JogoDoGrupo.Client.Features.Combate
                         corpo.ManaAtual,
                         corpo.ManaMaxima
                     );
+                    RegistrarRegeneracaoDoServidor(corpo);
                 }
             }
             catch (System.Exception e)
