@@ -49,6 +49,7 @@ export function lerWorktrees(saida) {
 //     headContemLocal: a ponta local está no PR (o GitHub guarda em refs/pull/N/head)
 //     extrasNaMain: os arquivos dos commits feitos depois do merge já estão iguais na main
 //   conteudoNaMain: os arquivos que a branch mudou já estão iguais na main (cherry-pick, squash)
+//   patchesNaMain: { ok, motivo } — git cherry: só "+", ou cada "-" tem o mesmo assunto num commit da main
 //   naOrigem: a ponta local está numa branch do origin
 //   erroPr: texto se não deu para consultar o GitHub
 //   recente: commit ou checkout há menos que a espera mínima (pelo reflog, não pelo index,
@@ -59,6 +60,7 @@ export function decidir({
   commitsProprios = 0,
   pr = null,
   conteudoNaMain = false,
+  patchesNaMain = null,
   naOrigem = false,
   erroPr = null,
   recente = false,
@@ -77,6 +79,7 @@ export function decidir({
       true,
     );
   if (conteudoNaMain) return sai("o conteúdo já está na main", true);
+  if (patchesNaMain?.ok) return sai(patchesNaMain.motivo, true);
   if (naOrigem) return sai("a ponta está no GitHub (origin)", false);
   if (erroPr) return fica(`não deu para conferir o PR (${erroPr})`);
   if (pr?.estado === "mesclado")
@@ -166,6 +169,41 @@ function conteudoNaMain(head, cwd) {
   return git(["diff", "--quiet", "origin/main", head, "--", ...arquivos], { cwd, ignorarErro: true }) !== null;
 }
 
+// git cherry: "+" = patch já na main; "-" = SHA local sem o mesmo patch (squash muda o id).
+// Branch atrás da main falha no diff de arquivos; o cherry cobre squash e reimplementação.
+// PR squash costuma acrescentar " (#NNN)" ao assunto na main.
+export function assuntoEquivalenteNaMain(assunto, assuntosNaMain) {
+  const base = assunto.replace(/\s*\(#\d+\)\s*$/, "");
+  return assuntosNaMain.some((a) => a === assunto || a.replace(/\s*\(#\d+\)\s*$/, "") === base);
+}
+
+export function patchesNaMain({ linhasCherry, assuntosNaMain, assuntoDoCommit }) {
+  const filtradas = linhasCherry.filter((l) => l.startsWith("+") || l.startsWith("-"));
+  if (filtradas.length === 0) return { ok: false };
+  const menos = filtradas.filter((l) => l.startsWith("-"));
+  if (menos.length === 0) return { ok: true, motivo: "os patches já estão na main" };
+  for (const linha of menos) {
+    const sha = linha.slice(2).split(" ")[0];
+    const assunto = assuntoDoCommit(sha);
+    if (!assunto || !assuntoEquivalenteNaMain(assunto, assuntosNaMain)) return { ok: false };
+  }
+  return {
+    ok: true,
+    motivo: "commits locais reimplementados na main (squash ou PR paralelo)",
+  };
+}
+
+function patchesNaMainGit(head, cwd) {
+  const linhas = git(["cherry", "-v", "origin/main", head], { cwd, ignorarErro: true });
+  if (linhas === null) return { ok: false };
+  const assuntosNaMain = git(["log", "origin/main", "--format=%s"], { cwd }).split(/\r?\n/).filter(Boolean);
+  return patchesNaMain({
+    linhasCherry: linhas.split(/\r?\n/).filter(Boolean),
+    assuntosNaMain,
+    assuntoDoCommit: (sha) => git(["log", "-1", "--format=%s", sha], { cwd, ignorarErro: true }),
+  });
+}
+
 // remota: a branch do origin não conta como cópia de si mesma, e PR fechado sem merge fica.
 function avaliar({ head, branch, cwd, sujo, recente, remota = false }) {
   if (sujo) return decidir({ sujo });
@@ -184,7 +222,16 @@ function avaliar({ head, branch, cwd, sujo, recente, remota = false }) {
   const naOrigem =
     !remota &&
     git(["for-each-ref", "--contains", head, "--count=1", "refs/remotes/origin"], { cwd }) !== "";
-  return decidir({ commitsProprios, pr, erroPr, recente, naOrigem, conteudoNaMain: conteudoNaMain(head, cwd) });
+  const patches = patchesNaMainGit(head, cwd);
+  return decidir({
+    commitsProprios,
+    pr,
+    erroPr,
+    recente,
+    naOrigem,
+    conteudoNaMain: conteudoNaMain(head, cwd),
+    patchesNaMain: patches.ok ? patches : null,
+  });
 }
 
 function principal() {
@@ -258,7 +305,13 @@ function principal() {
         mantidos.push(`branch ${branch}: ${decisao.motivo}`);
         continue;
       }
-      if (aplicar) git(["branch", "-D", branch], { cwd: raiz });
+      if (aplicar) {
+        const ok = git(["branch", "-D", branch], { cwd: raiz, ignorarErro: true }) !== null;
+        if (!ok) {
+          mantidos.push(`branch ${branch}: git branch -D falhou (hook bloqueou?)`);
+          continue;
+        }
+      }
       removidos.push(`branch ${branch}: ${decisao.motivo}`);
     }
   }
