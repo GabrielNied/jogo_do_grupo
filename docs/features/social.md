@@ -102,7 +102,7 @@ Quem decide: **servidor**. O client só envia intenções (convidar, aceitar, re
 
 #### Desconexão e reconexão (**proposta**)
 
-- O membro que desconecta **fica na lista marcado como offline** e a **vaga fica guardada por 120 segundos**.
+- O membro que desconecta **fica na lista marcado como offline** e a **vaga fica guardada por 120 segundos** (constante `RegrasGrupo.VagaGuardadaSegundos`; [#210](https://github.com/GabrielNied/jogo_do_grupo/issues/210) unifica em **60 s** — ver [arquitetura](../arquitetura.md#reconexão-sem-perder-o-lugar-210)).
 - Se voltar (reautenticar no tempo real) antes disso, o servidor devolve o grupo e ele continua com a mesma posição; os outros veem "voltou".
 - Vencido o prazo, o servidor remove o membro como se tivesse saído. Se o grupo ficar com 1 pessoa, desfaz.
 - Convites pendentes **para** quem desconecta caem na hora; convites **de** quem desconecta caem junto com a vaga guardada vencendo (ou na hora, se não tiver grupo).
