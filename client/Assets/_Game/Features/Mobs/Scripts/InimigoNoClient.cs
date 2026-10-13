@@ -61,6 +61,7 @@ namespace JogoDoGrupo.Client.Features.Mobs
             Variante = dados.Variante;
             Vida = dados.Vida;
             VidaMaxima = dados.VidaMaxima;
+            Nivel = dados.Nivel;
             Estado = dados.Estado;
             AlvoId = dados.AlvoId;
             AlvoX = X = dados.X;
@@ -99,6 +100,7 @@ namespace JogoDoGrupo.Client.Features.Mobs
         public VarianteDeCriatura Variante { get; }
         public int Vida { get; set; }
         public int VidaMaxima { get; }
+        public int Nivel { get; }
         public EstadoDeInimigo Estado { get; set; }
         public long AlvoId { get; set; }
 
@@ -201,7 +203,13 @@ namespace JogoDoGrupo.Client.Features.Mobs
             get
             {
                 var ficha = CatalogoCriaturas.Obter(CriaturaId);
-                return ficha == null ? "Criatura " + CriaturaId : ficha.Nome + " Nv " + ficha.Nivel;
+                if (ficha == null)
+                {
+                    return "Criatura " + CriaturaId;
+                }
+
+                var nivel = Nivel > 0 ? Nivel : ficha.Nivel;
+                return ficha.Nome + " Nv " + nivel;
             }
         }
 

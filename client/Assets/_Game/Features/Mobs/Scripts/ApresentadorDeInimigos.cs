@@ -4,6 +4,7 @@ using JogoDoGrupo.Client.Core.Jogo;
 using JogoDoGrupo.Client.Core.TempoReal;
 using JogoDoGrupo.Shared.Features.Combate;
 using JogoDoGrupo.Shared.Features.Mobs;
+using JogoDoGrupo.Shared.Features.Personagem;
 using UnityEngine;
 
 namespace JogoDoGrupo.Client.Features.Mobs
@@ -67,12 +68,31 @@ namespace JogoDoGrupo.Client.Features.Mobs
 
         private PainelDeInimigos _painel;
         private AvisosNoChao _avisos;
+        private int _nivelJogador = 1;
 
         public void Configurar(PainelDeInimigos painel)
         {
             _painel = painel;
             _avisos = new AvisosNoChao(transform);
 
+            _assinaturas.Add(
+                ConexaoTempoReal.Assinar<ExperienciaGanha>(
+                    PersonagemMessageIds.ExperienciaGanha,
+                    ganho => _nivelJogador = ganho.Nivel
+                )
+            );
+            _assinaturas.Add(
+                ConexaoTempoReal.Assinar<SubiuDeNivel>(
+                    PersonagemMessageIds.SubiuDeNivel,
+                    aviso =>
+                    {
+                        if (aviso.PersonagemId == EntradaNoJogo.PersonagemId)
+                        {
+                            _nivelJogador = aviso.Nivel;
+                        }
+                    }
+                )
+            );
             _assinaturas.Add(
                 ConexaoTempoReal.Assinar<InimigosDaArea>(
                     MobsMessageIds.InimigosDaArea,
@@ -192,7 +212,13 @@ namespace JogoDoGrupo.Client.Features.Mobs
             }
 
             _avisos?.Mostrar(_registro.Todos);
-            _painel?.Mostrar(_registro.Todos, Camera.main, PosicaoDoJogadorNoChao());
+            _painel?.Mostrar(
+                _registro.Todos,
+                Camera.main,
+                EntradaNoJogo.PersonagemId,
+                _nivelJogador,
+                PosicaoDoJogadorNoChao()
+            );
 
             var jogador = EntradaNoJogo.Jogador;
             if (jogador != null)
