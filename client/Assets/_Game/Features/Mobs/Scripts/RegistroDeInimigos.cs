@@ -88,6 +88,7 @@ namespace JogoDoGrupo.Client.Features.Mobs
 
             _inimigos.Remove(mensagem.InimigoId);
             inimigo.Aviso = null;
+            inimigo.ExpostoRestanteSegundos = 0f;
             inimigo.Vida = 0;
             return inimigo;
         }
@@ -113,12 +114,47 @@ namespace JogoDoGrupo.Client.Features.Mobs
             }
 
             inimigo.Aviso = new AvisoDeGolpe(
-                mensagem.CentroX,
-                mensagem.CentroZ,
-                mensagem.Raio,
+                mensagem.Tipo,
+                AreasDoAviso(mensagem),
                 mensagem.PreparoMs / MilissegundosPorSegundo
             );
             return true;
+        }
+
+        /// <summary>
+        /// Abre a janela em que o inimigo leva mais dano (boss depois da investida ou da pisada).
+        /// Uma nova janela substitui a anterior. Inimigo desconhecido é ignorado.
+        /// </summary>
+        public bool Expor(InimigoExposto mensagem)
+        {
+            if (mensagem == null || !_inimigos.TryGetValue(mensagem.InimigoId, out var inimigo))
+            {
+                return false;
+            }
+
+            inimigo.ExpostoRestanteSegundos = mensagem.DuracaoMs / MilissegundosPorSegundo;
+            inimigo.ExpostoMultiplicador = mensagem.Multiplicador;
+            return true;
+        }
+
+        // Todas as áreas da mensagem; sem lista (servidor antigo), a área única de Centro/Raio.
+        private static AreaDoAviso[] AreasDoAviso(InimigoPreparaAtaque mensagem)
+        {
+            var areas = mensagem.Areas;
+            if (areas == null || areas.Length == 0)
+            {
+                return mensagem.Raio > 0f
+                    ? new[] { new AreaDoAviso(mensagem.CentroX, mensagem.CentroZ, mensagem.Raio) }
+                    : new AreaDoAviso[0];
+            }
+
+            var resultado = new AreaDoAviso[areas.Length];
+            for (var i = 0; i < areas.Length; i++)
+            {
+                resultado[i] = new AreaDoAviso(areas[i].CentroX, areas[i].CentroZ, areas[i].Raio);
+            }
+
+            return resultado;
         }
 
         /// <summary>

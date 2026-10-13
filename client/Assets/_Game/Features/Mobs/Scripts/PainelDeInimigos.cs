@@ -6,8 +6,9 @@ using UnityEngine.UIElements;
 namespace JogoDoGrupo.Client.Features.Mobs
 {
     /// <summary>
-    /// A camada de UI dos inimigos: nome e barra de vida sobre a cabeça de cada um e o círculo
-    /// de aviso do golpe no chão. Só desenha o que recebe; cores e tamanhos estão em
+    /// A camada de UI dos inimigos: nome, barra de vida e a marca "Exposto" sobre a cabeça de
+    /// cada um. O aviso do golpe no chão é malha no mundo (<see cref="AvisosNoChao"/>). Só
+    /// desenha o que recebe; cores e tamanhos estão em
     /// <c>EstiloMobs.uss</c>.
     /// </summary>
     internal sealed class PainelDeInimigos
@@ -20,28 +21,11 @@ namespace JogoDoGrupo.Client.Features.Mobs
         public const string ClasseNome = "inimigo-nome";
         public const string ClasseBarra = "inimigo-barra";
         public const string ClassePreenchimento = "inimigo-preenchimento";
-        public const string ClasseCamadaDeAviso = "inimigo-aviso";
-
-        /// <summary>Quantos lados tem o polígono que representa o círculo do aviso.</summary>
-        private const int LadosDoCirculo = 40;
-
-        private static readonly CustomStyleProperty<Color> CorDoAviso =
-            new CustomStyleProperty<Color>("--cor-aviso");
-
-        private static readonly CustomStyleProperty<Color> CorDoPreenchimento =
-            new CustomStyleProperty<Color>("--cor-aviso-preenchimento");
+        public const string ClasseExposto = "inimigo-exposto";
 
         private readonly VisualElement _camada;
-        private readonly VisualElement _camadaDeAviso;
         private readonly Dictionary<long, Etiqueta> _etiquetas = new Dictionary<long, Etiqueta>();
         private readonly List<long> _paraRemover = new List<long>();
-
-        private Color _corDoAviso = EstiloVisual.Cor(ConfigVisual.Cores.Perigo);
-        private Color _corDoPreenchimento = EstiloVisual.Cor(
-            ConfigVisual.Cores.PerigoPreenchimento
-        );
-        private IReadOnlyCollection<InimigoNoClient> _inimigos;
-        private Camera _camera;
 
         public PainelDeInimigos(VisualElement raiz)
         {
@@ -55,13 +39,6 @@ namespace JogoDoGrupo.Client.Features.Mobs
             _camada.pickingMode = PickingMode.Ignore;
             _camada.AddToClassList(ClasseCamada);
 
-            _camadaDeAviso = new VisualElement { name = "mobs.aviso" };
-            _camadaDeAviso.pickingMode = PickingMode.Ignore;
-            _camadaDeAviso.AddToClassList(ClasseCamadaDeAviso);
-            _camadaDeAviso.RegisterCallback<CustomStyleResolvedEvent>(AoResolverEstilo);
-            _camadaDeAviso.generateVisualContent += DesenharAvisos;
-            _camada.Add(_camadaDeAviso);
-
             raiz.Add(_camada);
         }
 
@@ -71,8 +48,6 @@ namespace JogoDoGrupo.Client.Features.Mobs
         /// </summary>
         public void Mostrar(IReadOnlyCollection<InimigoNoClient> inimigos, Camera camera)
         {
-            _inimigos = inimigos;
-            _camera = camera;
             _paraRemover.Clear();
             foreach (var par in _etiquetas)
             {
@@ -99,8 +74,6 @@ namespace JogoDoGrupo.Client.Features.Mobs
 
                 etiqueta.Mostrar(inimigo, camera);
             }
-
-            _camadaDeAviso.MarkDirtyRepaint();
         }
 
         private static bool Contem(IReadOnlyCollection<InimigoNoClient> inimigos, long id)
@@ -116,112 +89,13 @@ namespace JogoDoGrupo.Client.Features.Mobs
             return false;
         }
 
-        private void AoResolverEstilo(CustomStyleResolvedEvent evento)
-        {
-            if (evento.customStyle.TryGetValue(CorDoAviso, out var contorno))
-            {
-                _corDoAviso = contorno;
-            }
-
-            if (evento.customStyle.TryGetValue(CorDoPreenchimento, out var preenchimento))
-            {
-                _corDoPreenchimento = preenchimento;
-            }
-        }
-
-        private void DesenharAvisos(MeshGenerationContext contexto)
-        {
-            if (_inimigos == null || _camera == null)
-            {
-                return;
-            }
-
-            var painel = _camadaDeAviso.panel;
-            if (painel == null)
-            {
-                return;
-            }
-
-            var pintor = contexto.painter2D;
-            foreach (var inimigo in _inimigos)
-            {
-                var aviso = inimigo.Aviso;
-                if (aviso == null)
-                {
-                    continue;
-                }
-
-                // O preenchimento cresce do centro até a borda: o golpe cai quando enche.
-                DesenharCirculo(pintor, painel, aviso, inimigo.AlvoY, 1f, _corDoAviso, false);
-                DesenharCirculo(
-                    pintor,
-                    painel,
-                    aviso,
-                    inimigo.AlvoY,
-                    aviso.Progresso,
-                    _corDoPreenchimento,
-                    true
-                );
-            }
-        }
-
-        private void DesenharCirculo(
-            Painter2D pintor,
-            IPanel painel,
-            AvisoDeGolpe aviso,
-            float alturaDoChao,
-            float fracaoDoRaio,
-            Color cor,
-            bool preencher
-        )
-        {
-            var raio = aviso.Raio * fracaoDoRaio;
-            if (raio <= 0f)
-            {
-                return;
-            }
-
-            pintor.BeginPath();
-            for (var i = 0; i < LadosDoCirculo; i++)
-            {
-                var angulo = i * Mathf.PI * 2f / LadosDoCirculo;
-                var mundo = new Vector3(
-                    aviso.CentroX + Mathf.Sin(angulo) * raio,
-                    alturaDoChao,
-                    aviso.CentroZ + Mathf.Cos(angulo) * raio
-                );
-                var ponto = RuntimePanelUtils.CameraTransformWorldToPanel(painel, mundo, _camera);
-                var local = _camadaDeAviso.WorldToLocal(ponto);
-                if (i == 0)
-                {
-                    pintor.MoveTo(local);
-                }
-                else
-                {
-                    pintor.LineTo(local);
-                }
-            }
-
-            pintor.ClosePath();
-            if (preencher)
-            {
-                pintor.fillColor = cor;
-                pintor.Fill();
-            }
-            else
-            {
-                pintor.strokeColor = cor;
-                pintor.lineWidth = 3f;
-                pintor.Stroke();
-            }
-        }
-
         private sealed class Etiqueta
         {
             /// <summary>Altura acima do chão, em metros, onde fica a etiqueta (na escala 1).</summary>
             private const float AlturaDaEtiqueta = 2.1f;
 
             private readonly VisualElement _preenchimento;
+            private readonly Label _exposto;
 
             public Etiqueta(InimigoNoClient inimigo)
             {
@@ -246,6 +120,12 @@ namespace JogoDoGrupo.Client.Features.Mobs
                 _preenchimento.AddToClassList(ClassePreenchimento);
 
                 barra.Add(_preenchimento);
+                _exposto = new Label();
+                _exposto.pickingMode = PickingMode.Ignore;
+                _exposto.AddToClassList(ClasseExposto);
+                _exposto.style.display = DisplayStyle.None;
+
+                Raiz.Add(_exposto);
                 Raiz.Add(nome);
                 Raiz.Add(barra);
             }
@@ -255,6 +135,11 @@ namespace JogoDoGrupo.Client.Features.Mobs
             public void Mostrar(InimigoNoClient inimigo, Camera camera)
             {
                 _preenchimento.style.width = Length.Percent(inimigo.FracaoDeVida * 100f);
+                _exposto.style.display = inimigo.Exposto ? DisplayStyle.Flex : DisplayStyle.None;
+                if (inimigo.Exposto)
+                {
+                    _exposto.text = "Exposto x" + inimigo.ExpostoMultiplicador.ToString("0.##");
+                }
 
                 var painel = Raiz.panel;
                 if (camera == null || painel == null)

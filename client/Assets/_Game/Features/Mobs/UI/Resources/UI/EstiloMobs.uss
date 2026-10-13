@@ -6,16 +6,6 @@
     bottom: 0;
 }
 
-.inimigo-aviso {
-    position: absolute;
-    left: 0;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    --cor-aviso: var(--lumora-cores-perigo);
-    --cor-aviso-preenchimento: var(--lumora-cores-perigo-preenchimento);
-}
-
 .inimigo-etiqueta {
     position: absolute;
     width: var(--lumora-dimensoes-inimigo-largura);
@@ -50,4 +40,13 @@
     height: 100%;
     width: 100%;
     background-color: var(--lumora-cores-vida);
+}
+
+.inimigo-exposto {
+    font-size: var(--lumora-tipografia-leitura);
+    color: var(--lumora-cores-ganho);
+    -unity-text-outline-width: var(--lumora-bordas-fina);
+    -unity-text-outline-color: var(--lumora-cores-trilho);
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
 }

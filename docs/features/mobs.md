@@ -177,6 +177,7 @@ O Guardião do Reflexo (id 100), o boss da primeira dungeon ([fatia-jogavel.md](
 | Luta | desperta com um jogador a até **30 m** da origem; sala sem ninguém: ele volta, cura tudo e esquece quem participou |
 | Ritmo | **0,5 s** de alerta, ataque, **2 s** de pausa, próximo ataque |
 | Aviso | **3 s** em todo ataque; as áreas ficam fixas desde o aviso e só leva o dano quem está dentro de uma delas **no momento do acerto** (esquivar ou sair a tempo evita) |
+| Marca no chão | No client, uma malha no mundo por área (`AvisosNoChao`), na altura do terreno em cada ponto, com cor por tipo (investida salmão, pisada laranja, raios rosa); o miolo cresce até a borda e o golpe cai quando enche. O golpe comum não tem marca. Janela exposta (`InimigoExposto`): etiqueta "Exposto xN" sobre o boss até acabar |
 | Ordem | investida, raios, pisada, e recomeça |
 | Investida | área de **3 m** de raio no ponto onde o alvo (o mais próximo) estava ao começar o aviso, até **25 m** de alcance; no acerto o boss vai até lá. Dano **150**, recuperação **2 s** |
 | Raios | **4** círculos de **2,5 m** de raio, um por jogador em rodízio; se faltam jogadores, os que sobram caem a **4 m** de um deles. Dano **80** por raio, recuperação **1,5 s** |

@@ -3,21 +3,37 @@ using UnityEngine;
 
 namespace JogoDoGrupo.Client.Features.Mobs
 {
-    /// <summary>O círculo de aviso do golpe no chão, enquanto o preparo não acaba.</summary>
-    internal sealed class AvisoDeGolpe
+    /// <summary>Uma área de aviso no chão: centro no plano e raio, em metros.</summary>
+    internal readonly struct AreaDoAviso
     {
-        public AvisoDeGolpe(float centroX, float centroZ, float raio, float duracaoSegundos)
+        public AreaDoAviso(float centroX, float centroZ, float raio)
         {
             CentroX = centroX;
             CentroZ = centroZ;
             Raio = raio;
-            DuracaoSegundos = duracaoSegundos;
-            RestanteSegundos = duracaoSegundos;
         }
 
         public float CentroX { get; }
         public float CentroZ { get; }
         public float Raio { get; }
+    }
+
+    /// <summary>
+    /// O aviso do golpe no chão, enquanto o preparo não acaba: uma marca por área do ataque,
+    /// com cor e forma pelo tipo.
+    /// </summary>
+    internal sealed class AvisoDeGolpe
+    {
+        public AvisoDeGolpe(TipoDeAtaqueDeInimigo tipo, AreaDoAviso[] areas, float duracaoSegundos)
+        {
+            Tipo = tipo;
+            Areas = areas;
+            DuracaoSegundos = duracaoSegundos;
+            RestanteSegundos = duracaoSegundos;
+        }
+
+        public TipoDeAtaqueDeInimigo Tipo { get; }
+        public AreaDoAviso[] Areas { get; }
         public float DuracaoSegundos { get; }
         public float RestanteSegundos { get; set; }
 
@@ -75,6 +91,14 @@ namespace JogoDoGrupo.Client.Features.Mobs
 
         public AvisoDeGolpe Aviso { get; set; }
 
+        /// <summary>Por quanto o dano é multiplicado enquanto exposto (1 fora da janela).</summary>
+        public float ExpostoMultiplicador { get; set; } = 1f;
+
+        /// <summary>Quanto falta da janela exposta, em segundos (zero = fora dela).</summary>
+        public float ExpostoRestanteSegundos { get; set; }
+
+        public bool Exposto => ExpostoRestanteSegundos > 0f;
+
         /// <summary>Quantos avisos de golpe já chegaram; cada um dispara a animação uma vez.</summary>
         public int GolpesPreparados { get; set; }
 
@@ -124,6 +148,16 @@ namespace JogoDoGrupo.Client.Features.Mobs
             var dx = X - antesX;
             var dz = Z - antesZ;
             Animacao.Atualizar(Estado, Mathf.Sqrt(dx * dx + dz * dz), segundos, GolpesPreparados);
+
+            if (ExpostoRestanteSegundos > 0f)
+            {
+                ExpostoRestanteSegundos -= segundos;
+                if (ExpostoRestanteSegundos <= 0f)
+                {
+                    ExpostoRestanteSegundos = 0f;
+                    ExpostoMultiplicador = 1f;
+                }
+            }
 
             if (Aviso != null)
             {
