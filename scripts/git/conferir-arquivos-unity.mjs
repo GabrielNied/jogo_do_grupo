@@ -6,12 +6,16 @@
 //
 // Uso: npm run conferir-unity
 // No CI: node scripts/git/conferir-arquivos-unity.mjs <sha-da-base> --so-commit
+// No pre-push: ... origin/main --so-geraveis (só o commit e só os .meta que o npm run unity:meta
+// gera; o resto precisa do Unity e, sem ele no ambiente, vira pendência, não push barrado)
 
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
+import { tipoDoArquivo } from "../unity/gerar-meta.mjs";
 
 const base = process.argv[2] && !process.argv[2].startsWith("--") ? process.argv[2] : "origin/main";
-const soCommit = process.argv.includes("--so-commit") || process.env.CI === "true";
+const soGeraveis = process.argv.includes("--so-geraveis");
+const soCommit = soGeraveis || process.argv.includes("--so-commit") || process.env.CI === "true";
 
 const extensoesSoltas = new Set([
   ".meta",
@@ -94,7 +98,8 @@ const faltam = [];
 for (const arquivo of adicionados) {
   if (!sobUnity(arquivo) || arquivo.endsWith(".meta") || ignoradoPeloUnity(arquivo)) continue;
   const meta = `${arquivo}.meta`;
-  if (!existe("HEAD", meta)) faltam.push(meta);
+  const geravel = tipoDoArquivo(arquivo.split("/").pop()) !== null;
+  if (!existe("HEAD", meta) && (geravel || !soGeraveis)) faltam.push(meta);
   for (const pasta of pastas(arquivo)) {
     const metaPasta = `${pasta}.meta`;
     if (!existe(base, metaPasta) && !existe("HEAD", metaPasta) && !faltam.includes(metaPasta)) {
