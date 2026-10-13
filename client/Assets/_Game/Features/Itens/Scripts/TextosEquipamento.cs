@@ -203,6 +203,23 @@ namespace JogoDoGrupo.Client.Features.Itens
             }
         }
 
+        /// <summary>
+        /// O motivo curto, antes do clique, de uma recusa de <see cref="RegrasEquipar"/> (tooltip).
+        /// <c>null</c> para os códigos que a tela não precisa explicar.
+        /// </summary>
+        public static string MotivoDaRecusa(string codigo, Equipamento item)
+        {
+            switch (codigo)
+            {
+                case CodigosErroItens.NivelInsuficiente:
+                    return "Requer nível " + item.NivelPersonagemMinimo;
+                case CodigosErroItens.ArmaDeDuasMaos:
+                    return "Retire a arma de duas mãos para equipar aqui";
+                default:
+                    return null;
+            }
+        }
+
         /// <summary>Mensagem para a pessoa a partir do código de erro do servidor.</summary>
         public static string MensagemDeErro(string codigo)
         {
@@ -212,9 +229,9 @@ namespace JogoDoGrupo.Client.Features.Itens
                     return "A limpeza do inventário de teste não está liberada para esta conta.";
                 case CodigosErroItens.InventarioCheio:
                     return "Não há espaço na bolsa para guardar as peças retiradas.";
-                case "NivelInsuficiente":
+                case CodigosErroItens.NivelInsuficiente:
                     return "Seu personagem ainda não tem o nível exigido pela peça.";
-                case "ArmaDeDuasMaos":
+                case CodigosErroItens.ArmaDeDuasMaos:
                     return "Retire a arma de duas mãos antes de equipar a mão secundária.";
                 case CodigosErroItens.ItemEquipado:
                     return "Desequipe a peça antes de descartá-la.";
@@ -242,9 +259,9 @@ namespace JogoDoGrupo.Client.Features.Itens
                     return "As peças, o atributo ou o custo mudaram. Consulte uma nova prévia antes de confirmar.";
                 case CodigosErroItens.ItemInvalido:
                     return "Esta peça não pode ser fundida: os dados dela são inválidos.";
-                case "PosicaoInvalida":
+                case CodigosErroItens.PosicaoInvalida:
                     return "Essa peça não pode ser equipada nesse encaixe.";
-                case "ItemNaoEquipavel":
+                case CodigosErroItens.ItemNaoEquipavel:
                     return "Esse item não pode ser equipado.";
                 default:
                     return "Não foi possível concluir. Tente novamente.";

@@ -125,6 +125,46 @@ namespace JogoDoGrupo.Client.Features.Itens
             return validos;
         }
 
+        /// <summary>
+        /// Por que o servidor recusaria vestir <paramref name="item"/> em <paramref name="posicao"/>
+        /// agora (<see cref="RegrasEquipar"/>, com o nível e a arma vestida do <paramref name="estado"/>),
+        /// ou <c>null</c> se aceitaria.
+        /// </summary>
+        public static string RecusaNoEncaixe(
+            Equipamento item,
+            PosicaoEquipamento posicao,
+            EquipamentosResponse estado
+        )
+        {
+            var conjunto = RegrasEquipamentos.Conjunto(posicao);
+            Equipamento principal = null;
+            if (conjunto != 0 && posicao == RegrasEquipamentos.Secundaria(conjunto))
+            {
+                principal = RegrasEquipamentos.DadosDe(
+                    NoEncaixe(estado, RegrasEquipamentos.Principal(conjunto))
+                );
+            }
+            return RegrasEquipar.Recusa(item, posicao, estado.NivelDoPersonagem, principal);
+        }
+
+        /// <summary>
+        /// Encaixes que aceitam <paramref name="item"/> agora (tipo, nível e duas mãos): os que
+        /// acendem verdes no arraste; os outros acendem vermelhos.
+        /// </summary>
+        public static List<PosicaoEquipamento> EncaixesValidos(
+            Equipamento item,
+            EquipamentosResponse estado
+        )
+        {
+            var validos = new List<PosicaoEquipamento>();
+            foreach (var posicao in Encaixes)
+            {
+                if (RecusaNoEncaixe(item, posicao, estado) == null)
+                    validos.Add(posicao);
+            }
+            return validos;
+        }
+
         /// <summary>Os 15 encaixes do paperdoll (tudo menos <c>Inventario</c>).</summary>
         public static readonly PosicaoEquipamento[] Encaixes =
         {

@@ -150,7 +150,7 @@ internal static class EquipamentosRotas
         if (conjunto != null)
         {
             if (conjunto.Conjunto != 1 && conjunto.Conjunto != 2)
-                return Erro("ConjuntoInvalido", 400);
+                return Erro(CodigosErroItens.ConjuntoInvalido, 400);
             estado ??= new EstadoEquipamentos { PersonagemId = id };
             if (db.Entry(estado).State == EntityState.Detached)
                 db.Add(estado);
@@ -162,10 +162,10 @@ internal static class EquipamentosRotas
                 !Enum.IsDefined(desequipar.Posicao)
                 || desequipar.Posicao == PosicaoEquipamento.Inventario
             )
-                return Erro("PosicaoInvalida", 400);
+                return Erro(CodigosErroItens.PosicaoInvalida, 400);
             var item = itens.SingleOrDefault(i => i.Posicao == desequipar.Posicao);
             if (item == null)
-                return Erro("ItemNaoEncontrado", 404);
+                return Erro(CodigosErroItens.ItemNaoEncontrado, 404);
             if (desequipar.TemDestino)
             {
                 if (!capacidade.Contem(desequipar.Aba, desequipar.Casa))
@@ -205,7 +205,7 @@ internal static class EquipamentosRotas
         {
             var item = itens.SingleOrDefault(i => i.Id == equipar.InstanciaId);
             if (item == null)
-                return Erro("ItemNaoEncontrado", 404);
+                return Erro(CodigosErroItens.ItemNaoEncontrado, 404);
             var recusa = await EquiparAsync(
                 db,
                 itens,
@@ -220,7 +220,7 @@ internal static class EquipamentosRotas
                 return recusa;
         }
         await db.SaveChangesAsync(c);
-        var resposta = Resposta(itens, ativos);
+        var resposta = Resposta(itens, ativos, await ItensRotas.NivelAsync(id, db, c));
         await transacao.CommitAsync(c);
         // Só depois de gravado: a área vê o estado inteiro do que o servidor aceitou.
         if (visual != null && (equipar != null || desequipar != null || conjunto != null))
@@ -249,25 +249,31 @@ internal static class EquipamentosRotas
     {
         var dados = item.LerEquipamento() ?? gerador?.Gerar(item.ItemId, Random.Shared);
         if (dados == null)
-            return Erro("ItemNaoEquipavel", 400);
-        if (!RegrasEquipamentos.Aceita(dados.Tipo, posicao))
-            return Erro("PosicaoInvalida", 400);
-        if (dados.NivelPersonagemMinimo > await ItensRotas.NivelAsync(personagemId, db, c))
-            return Erro("NivelInsuficiente");
+            return Erro(CodigosErroItens.ItemNaoEquipavel, 400);
         var numero = RegrasEquipamentos.Conjunto(posicao);
+        // A regra de recusa é a do shared: a mesma que a tela usa antes do clique.
+        var principalDoConjunto =
+            numero != 0 && posicao == RegrasEquipamentos.Secundaria(numero)
+                ? itens
+                    .SingleOrDefault(i => i.Posicao == RegrasEquipamentos.Principal(numero))
+                    ?.LerEquipamento()
+                : null;
+        var recusaDaRegra = RegrasEquipar.Recusa(
+            dados,
+            posicao,
+            await ItensRotas.NivelAsync(personagemId, db, c),
+            principalDoConjunto
+        );
+        if (recusaDaRegra != null)
+            return Erro(
+                recusaDaRegra,
+                recusaDaRegra == CodigosErroItens.PosicaoInvalida ? 400 : 409
+            );
         var deslocados = itens.Where(i => i.Id != item.Id && i.Posicao == posicao).ToList();
         if (dados.DuasMaos)
             deslocados.AddRange(
                 itens.Where(i => i.Posicao == RegrasEquipamentos.Secundaria(numero))
             );
-        if (posicao == RegrasEquipamentos.Secundaria(numero))
-        {
-            var principal = itens.SingleOrDefault(i =>
-                i.Posicao == RegrasEquipamentos.Principal(numero)
-            );
-            if (principal?.LerEquipamento()?.DuasMaos == true)
-                return Erro("ArmaDeDuasMaos");
-        }
         deslocados = deslocados.Distinct().ToList();
         var vinhaDaBolsa = Bolsa.EstaNaBolsa(item);
         if (deslocados.Count > Bolsa.Livres(itens, capacidade) + (vinhaDaBolsa ? 1 : 0))
@@ -341,7 +347,9 @@ internal static class EquipamentosRotas
         await db.SaveChangesAsync(c);
         var estado = await db.Set<EstadoEquipamentos>().FindAsync(new object[] { id }, c);
         await transacao.CommitAsync(c);
-        return Results.Ok(Resposta(itens, estado?.ConjuntoAtivo ?? 1));
+        return Results.Ok(
+            Resposta(itens, estado?.ConjuntoAtivo ?? 1, await ItensRotas.NivelAsync(id, db, c))
+        );
     }
 
     private static async Task<IResult> LimparTesteAsync(
@@ -401,7 +409,11 @@ internal static class EquipamentosRotas
         );
     }
 
-    internal static EquipamentosResponse Resposta(IEnumerable<ItemInventario> itens, int conjunto)
+    internal static EquipamentosResponse Resposta(
+        IEnumerable<ItemInventario> itens,
+        int conjunto,
+        int nivelDoPersonagem
+    )
     {
         var lista = itens.ToList();
         var capacidade = Bolsa.CapacidadeDe(lista.Count > 0 ? lista[0].PersonagemId : 0);
@@ -414,6 +426,7 @@ internal static class EquipamentosRotas
             Equipados = equipados,
             Capacidade = capacidade,
             ConjuntoAtivo = conjunto,
+            NivelDoPersonagem = nivelDoPersonagem,
             Atributos = RegrasAtributosDeItem.Resumir(equipados, conjunto),
         };
     }

@@ -163,6 +163,31 @@ namespace JogoDoGrupo.Client.Features.Itens.Tests
         }
 
         [Test]
+        public void EncaixesValidosDoItemSomemQuandoONivelNaoBasta()
+        {
+            var capacete = CatalogoEquipamentos.Obter(Capacete);
+            capacete.NivelPersonagemMinimo = 10;
+            var estado = new EquipamentosResponse { NivelDoPersonagem = 5 };
+
+            CollectionAssert.IsEmpty(LogicaInventario.EncaixesValidos(capacete, estado));
+            Assert.AreEqual(
+                CodigosErroItens.NivelInsuficiente,
+                LogicaInventario.RecusaNoEncaixe(capacete, PosicaoEquipamento.Capacete, estado)
+            );
+
+            estado.NivelDoPersonagem = 10;
+            CollectionAssert.AreEquivalent(
+                new[] { PosicaoEquipamento.Capacete },
+                LogicaInventario.EncaixesValidos(capacete, estado)
+            );
+            // Resposta sem o nível (0): a tela não recusa, o servidor decide.
+            estado.NivelDoPersonagem = 0;
+            Assert.IsNull(
+                LogicaInventario.RecusaNoEncaixe(capacete, PosicaoEquipamento.Capacete, estado)
+            );
+        }
+
+        [Test]
         public void CliqueDireitoNaBolsaEquipaNoEncaixeAutomatico()
         {
             var estado = new EquipamentosResponse
