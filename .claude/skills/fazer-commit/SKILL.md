@@ -56,7 +56,7 @@ Coloque os arquivos no stage e entregue pelo script ([docs/git.md#entregar](../.
 
 ```
 git add <arquivos da tarefa>
-npm run entregar -- --titulo "tipo(escopo): descricao" --corpo .git/pr-corpo.md
+npm run entregar -- --titulo "tipo(escopo): descricao" --corpo pr-corpo.md
 ```
 
 O corpo do commit e o do PR saem do arquivo. Não use `gh pr create --body` no PowerShell: a crase parte o comando. O hook `commit-msg` valida de novo. Se recusar, leia o erro, corrija e tente de novo. **Nunca use `--no-verify`** para passar por cima do hook.

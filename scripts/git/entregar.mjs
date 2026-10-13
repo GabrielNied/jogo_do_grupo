@@ -2,7 +2,7 @@
 // O corpo vem de um arquivo: no PowerShell a crase parte um --body na linha de comando,
 // e o commitlint recusa linha de corpo com mais de 100 caracteres.
 //
-// Uso: npm run entregar -- --titulo "tipo(escopo): descricao" --corpo <arquivo fora do commit, ex.: .git/pr-corpo.md>
+// Uso: npm run entregar -- --titulo "tipo(escopo): descricao" --corpo <arquivo fora do commit, ex.: pr-corpo.md, ignorado pelo git>
 
 import { execFileSync } from "node:child_process";
 import { readFileSync, writeFileSync } from "node:fs";

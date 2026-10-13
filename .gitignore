@@ -81,3 +81,6 @@ appsettings.*.local.json
 
 # Endereço do servidor local de cada pessoa (veja ConfiguracaoServidor.cs, #198).
 client/servidor.json
+
+# Corpo do PR para o npm run entregar (docs/git.md#entregar).
+/pr-corpo.md
