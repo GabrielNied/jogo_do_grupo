@@ -453,6 +453,7 @@ Ficha aprovada em 2026-10-11. É um **recorte de teste** para ter o fluxo invent
 - Abrir o baú dá **1 a 3 itens** (2026-10-11), sorteados **com reposição** e **uniformes** entre os 4 do catálogo. O sorteio é do servidor.
 - O servidor só grava se **todos** os itens sorteados couberem nos 40 espaços. Se não couberem, responde `InventarioCheio` e **não grava nada** (nem parte dos itens).
 - Itens deste recorte não têm raridade, skills nem fusão.
+- **Posição e recarga do baú (#492, 2026-10-13):** `POST /bau` continua existindo, mas o servidor confere antes de sortear. (1) Posição: a que o Mundo aceitou (`IPosicoesDoMundo`), na área `cidade`, a até 4 m do baú; senão 409 `BauLongeDemais`. (2) Recarga por personagem de 5 s, reservada de forma atômica antes do sorteio (dois pedidos simultâneos dão um só sorteio), devolvida se nada foi aberto (bolsa cheia); senão 429 `BauEmRecarga`. O baú tem posição fixa em `ConfigBau` (shared): (2,5; -20,5), o nascimento da cidade mais 3,5 m à frente e 2,5 m à direita; o client o põe ali (antes calculava a partir de onde o jogador nascia). O alcance do client (3 m) é menor que o do servidor (4 m) para a posição atrasada pela rede não recusar quem o client via perto. A recarga fica em memória (reiniciar o servidor zera). Config `Itens:Bau:ExigirPosicao` e `Itens:Bau:RecargaSegundos` existem só para os testes que precisam de itens sem posição; os padrões são os de produção. No client, a dica "E: abrir o baú" vira "Baú recarregando (N s)" durante a espera.
 - Fora deste recorte: sorteio com raridade, drop de mobs, persistência definitiva, UI, prefab de baú, mundo.
 
 ### Proposta do board (2026-10-11, não validada)
@@ -513,6 +514,8 @@ API HTTP do recorte de teste (mesmo estilo de [Personagem](personagem.md#expõe)
 | Código | Status | Quando |
 |---|---|---|
 | `InventarioCheio` | 409 | os itens sorteados não cabem nos 40 espaços; nada é gravado |
+| `BauLongeDemais` | 409 | fora da área do baú ou a mais de 4 m dele; nada é sorteado |
+| `BauEmRecarga` | 429 | abriu há menos de 5 s; nada é sorteado |
 | `PersonagemNaoEncontrado` | 404 | não existe personagem com esse id, ou ele é de outra conta (mesma resposta nos dois casos) |
 | `NaoAutenticado` (Core) | 401 | sem token, inválido ou expirado |
 

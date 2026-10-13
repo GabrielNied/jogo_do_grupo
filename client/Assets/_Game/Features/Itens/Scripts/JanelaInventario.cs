@@ -27,6 +27,12 @@ namespace JogoDoGrupo.Client.Features.Itens
         // A janela não recebe parâmetros: o baú marca aqui que a próxima abertura é dele.
         private static bool _abrirBau;
 
+        /// <summary>
+        /// Quando o baú volta a abrir (<c>Time.unscaledTime</c>), pela recarga do servidor
+        /// (#492). A dica "E: abrir o baú" mostra a espera até lá.
+        /// </summary>
+        internal static float BauLivreEm;
+
         // Itens que a pessoa já viu, para marcar como "novo" o que chegou desde a última vez
         // (baú, loot). Só vale para o mesmo personagem.
         private static HashSet<long> _conhecidos;
@@ -59,6 +65,7 @@ namespace JogoDoGrupo.Client.Features.Itens
         private static void Reiniciar()
         {
             _abrirBau = false;
+            BauLivreEm = 0f;
             _conhecidos = null;
             _personagemDosConhecidos = 0;
             _ultimo = null;
@@ -156,6 +163,12 @@ namespace JogoDoGrupo.Client.Features.Itens
                     if (!AindaVale(personagemId))
                     {
                         return;
+                    }
+
+                    if (bau.Sucesso || bau.CodigoErro == CodigosErroItens.BauEmRecarga)
+                    {
+                        // O servidor é quem confere; isto só faz a dica mostrar a espera.
+                        BauLivreEm = Time.unscaledTime + ConfigBau.RecargaSegundos;
                     }
 
                     if (bau.Sucesso && bau.Corpo != null)

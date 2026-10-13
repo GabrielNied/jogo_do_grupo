@@ -85,5 +85,18 @@ namespace JogoDoGrupo.Shared.Features.Itens
         /// <see cref="RegrasLoot.RaioDeColetaMetros"/> do personagem.
         /// </summary>
         public const string LongeDemais = "LongeDemais";
+
+        /// <summary>
+        /// 409, baú: o personagem não está na área do baú ou está a mais de
+        /// <see cref="ConfigBau.RaioParaAbrirMetros"/> dele (pela posição que o servidor aceitou).
+        /// Nada é sorteado nem gravado.
+        /// </summary>
+        public const string BauLongeDemais = "BauLongeDemais";
+
+        /// <summary>
+        /// 429, baú: o personagem abriu há menos de <see cref="ConfigBau.RecargaSegundos"/>
+        /// segundos. Nada é sorteado nem gravado.
+        /// </summary>
+        public const string BauEmRecarga = "BauEmRecarga";
     }
 }

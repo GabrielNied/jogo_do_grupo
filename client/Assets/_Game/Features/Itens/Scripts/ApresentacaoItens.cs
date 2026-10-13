@@ -115,6 +115,10 @@ namespace JogoDoGrupo.Client.Features.Itens
                     return null;
                 case CodigosErroItens.InventarioCheio:
                     return AvisoInventarioCheio;
+                case CodigosErroItens.BauLongeDemais:
+                    return "Chegue mais perto do baú.";
+                case CodigosErroItens.BauEmRecarga:
+                    return "O baú ainda está recarregando.";
                 case CodigosErroItens.PersonagemNaoEncontrado:
                     return "Personagem não encontrado nesta conta.";
                 case CodigosErro.NaoAutenticado:
