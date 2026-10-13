@@ -142,3 +142,49 @@
     width: 0;
     background-color: var(--lumora-cores-essencia);
 }
+
+.personagem-painel-queda {
+    max-width: var(--lumora-dimensoes-dialogo);
+    align-items: center;
+}
+
+.personagem-queda-contagem {
+    font-size: var(--lumora-tipografia-titulo);
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    color: var(--lumora-cores-ouro);
+    margin-bottom: var(--lumora-espacamento-medio);
+}
+
+.personagem-queda-estado-aguardando,
+.personagem-queda-estado-levantando {
+    min-width: 0;
+    white-space: normal;
+    -unity-text-align: middle-center;
+}
+
+.personagem-queda-estado-aguardando {
+    color: var(--lumora-cores-texto-secundario);
+}
+
+.personagem-queda-estado-levantando {
+    color: var(--lumora-cores-essencia);
+}
+
+.personagem-queda-trilho {
+    width: 100%;
+    margin-top: var(--lumora-espacamento-pequeno);
+    margin-bottom: var(--lumora-espacamento-pequeno);
+}
+
+.personagem-queda-preenchimento {
+    background-color: var(--lumora-cores-ouro);
+}
+
+.personagem-queda-hold-ativo {
+    border-color: var(--lumora-cores-essencia);
+}
+
+.lumora-compacto .personagem-painel-queda {
+    max-height: var(--lumora-dimensoes-dialogo-percentual);
+}
