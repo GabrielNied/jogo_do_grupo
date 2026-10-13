@@ -62,6 +62,8 @@ Telas e menus do client que não pertencem a uma funcionalidade do jogo. Por enq
 | Sair da conta | apaga o token e volta ao login (já existe) |
 | Sair do jogo | fecha o aplicativo |
 
+Na composição do menu, **Continuar** é a ação principal, **Opções** vem em seguida e as três ações de saída ficam em grupo separado. Um aviso informa que o mundo continua ativo, e a dica no rodapé mostra como fechar com Esc.
+
 Com o menu aberto, o cursor fica livre e a câmera e o movimento não recebem input (**proposta**).
 
 ### Janelas do jogo

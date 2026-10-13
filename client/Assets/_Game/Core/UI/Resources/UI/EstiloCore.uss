@@ -36,6 +36,33 @@
     width: var(--lumora-dimensoes-painel-largo);
 }
 
+.menu-jogo-aviso {
+    margin-bottom: var(--lumora-espacamento-amplo);
+    color: var(--lumora-cores-texto-secundario);
+    -unity-text-align: middle-center;
+}
+
+.menu-jogo-acao {
+    flex-grow: 0;
+    margin: 0 0 var(--lumora-espacamento-pequeno);
+}
+
+.menu-jogo-saidas {
+    margin-top: var(--lumora-espacamento-padrao);
+    padding-top: var(--lumora-espacamento-padrao);
+    border-top-width: var(--lumora-bordas-fina);
+    border-top-color: var(--lumora-cores-borda-discreta);
+}
+
+.menu-jogo-saidas .subtitulo {
+    -unity-text-align: middle-left;
+    margin-bottom: var(--lumora-espacamento-medio);
+}
+
+.menu-jogo-dica {
+    margin-top: var(--lumora-espacamento-padrao);
+}
+
 .login-composicao {
     width: var(--lumora-dimensoes-painel-entrada);
     max-width: 100%;

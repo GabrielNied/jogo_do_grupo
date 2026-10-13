@@ -37,37 +37,56 @@ namespace JogoDoGrupo.Client.Core.Jogo
 
             var painel = EstiloCore.CriarPainel();
 
-            var titulo = new Label("Menu");
+            var titulo = new Label("Menu do jogo");
             titulo.AddToClassList(EstiloCore.Titulo);
+
+            var aviso = new Label("O mundo continua ativo enquanto este menu está aberto.");
+            aviso.AddToClassList(EstiloCore.Texto);
+            aviso.AddToClassList("menu-jogo-aviso");
 
             var continuar = new Button(() => _aoContinuar?.Invoke()) { text = "Continuar" };
             continuar.AddToClassList(EstiloCore.Botao);
             continuar.AddToClassList(EstiloCore.BotaoPrincipal);
+            continuar.AddToClassList("menu-jogo-acao");
 
             var opcoes = new Button(MostrarOpcoes) { text = "Opções" };
             opcoes.AddToClassList(EstiloCore.Botao);
+            opcoes.AddToClassList("menu-jogo-acao");
 
             var voltar = new Button(EntradaNoJogo.Sair) { text = "Voltar à seleção" };
             voltar.AddToClassList(EstiloCore.Botao);
+            voltar.AddToClassList("menu-jogo-acao");
 
             var sairConta = new Button(SairDaConta) { text = "Sair da conta" };
             sairConta.AddToClassList(EstiloCore.Botao);
+            sairConta.AddToClassList("menu-jogo-acao");
 
             var sairJogo = new Button(SairDoJogo) { text = "Sair do jogo" };
             sairJogo.AddToClassList(EstiloCore.Botao);
+            sairJogo.AddToClassList("menu-jogo-acao");
 
-            var linha = new VisualElement();
-            linha.AddToClassList(EstiloCore.LinhaBotoes);
-            linha.Add(continuar);
-            linha.Add(opcoes);
+            var saidas = new VisualElement();
+            saidas.AddToClassList("menu-jogo-saidas");
+            var tituloSaidas = new Label("Sair");
+            tituloSaidas.AddToClassList(EstiloCore.Subtitulo);
+            saidas.Add(tituloSaidas);
+            saidas.Add(voltar);
+            saidas.Add(sairConta);
+            saidas.Add(sairJogo);
+
+            var dica = new Label("Esc fecha este menu");
+            dica.AddToClassList(EstiloCore.Mensagem);
+            dica.AddToClassList("menu-jogo-dica");
 
             painel.Add(titulo);
-            painel.Add(linha);
-            painel.Add(voltar);
-            painel.Add(sairConta);
-            painel.Add(sairJogo);
+            painel.Add(aviso);
+            painel.Add(continuar);
+            painel.Add(opcoes);
+            painel.Add(saidas);
+            painel.Add(dica);
             _raiz.Add(painel);
             container.Add(_raiz);
+            continuar.schedule.Execute(() => continuar.Focus());
         }
 
         private void MostrarOpcoes()
