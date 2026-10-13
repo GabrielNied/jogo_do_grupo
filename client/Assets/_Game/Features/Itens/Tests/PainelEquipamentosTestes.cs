@@ -56,7 +56,7 @@ namespace JogoDoGrupo.Client.Features.Itens.Tests
                 },
                 new AtributoItem { Status = StatusItem.Vida, Valor = 30 },
             };
-            item.IndiceInfusivel = 1;
+            item.NivelFusao = 3;
             var texto = TextosEquipamento.Descrever(new EntradaInventario { Equipamento = item });
             StringAssert.Contains("nível 1/10", texto);
             StringAssert.Contains("personagem nível 20", texto);
@@ -64,7 +64,8 @@ namespace JogoDoGrupo.Client.Features.Itens.Tests
             // Valor/máximo da faixa e o bônus provisório de combate (20 x 30 / 100 = 6).
             StringAssert.Contains("Força 20/100 · bônus +6", texto);
             // Vida não tem faixa (legado): só o valor.
-            StringAssert.Contains("Vida +30 · infusível", texto);
+            StringAssert.Contains("Vida +30", texto);
+            StringAssert.Contains("Fusão +3/10", texto);
         }
 
         [Test]

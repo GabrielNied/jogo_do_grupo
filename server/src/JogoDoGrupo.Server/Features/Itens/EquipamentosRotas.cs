@@ -13,7 +13,7 @@ internal static class EquipamentosRotas
 {
     public static void Mapear(IEndpointRouteBuilder rotas)
     {
-        InfusaoRotas.Mapear(rotas);
+        FusaoRotas.Mapear(rotas);
         rotas
             .MapGet(
                 RegrasEquipamentos.Rota,

@@ -32,7 +32,6 @@ namespace JogoDoGrupo.Client.Features.Itens.Tests
                     },
                     new AtributoItem { Status = StatusItem.Defesa, Valor = forcaEDefesa[1] },
                 },
-                IndiceInfusivel = 1,
             };
         }
 
@@ -66,8 +65,7 @@ namespace JogoDoGrupo.Client.Features.Itens.Tests
             StringAssert.Contains("Requer personagem nível 10", texto);
             StringAssert.Contains("Força 6/100", texto);
             StringAssert.Contains("Defesa 10/100", texto);
-            StringAssert.Contains(" · infusível", texto);
-            StringAssert.Contains("Infusões: 0/10", texto);
+            StringAssert.Contains("Fusão +0/10", texto);
             Assert.IsNull(dados.TituloComparacao);
         }
 

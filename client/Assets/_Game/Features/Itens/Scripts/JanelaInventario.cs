@@ -38,8 +38,8 @@ namespace JogoDoGrupo.Client.Features.Itens
 
         private PainelInventario _painel;
         private VisualElement _areaPrincipal;
-        private VisualElement _areaInfusao;
-        private PainelInfusao _infusao;
+        private VisualElement _areaFusao;
+        private PainelFusao _fusao;
         private EquipamentosResponse _estado;
         private HashSet<long> _novos = new HashSet<long>();
         private HashSet<long> _pendentes = new HashSet<long>();
@@ -84,10 +84,10 @@ namespace JogoDoGrupo.Client.Features.Itens
         protected override void Montar(VisualElement conteudo)
         {
             _areaPrincipal = new VisualElement();
-            _areaInfusao = new VisualElement();
-            _areaInfusao.style.display = DisplayStyle.None;
+            _areaFusao = new VisualElement();
+            _areaFusao.style.display = DisplayStyle.None;
             conteudo.Add(_areaPrincipal);
-            conteudo.Add(_areaInfusao);
+            conteudo.Add(_areaFusao);
 
             _painel = new PainelInventario(_areaPrincipal);
             _painel.AcaoPedida += AoPedirAcao;
@@ -97,7 +97,7 @@ namespace JogoDoGrupo.Client.Features.Itens
                     new PedidoConjunto { Conjunto = numero },
                     null
                 );
-            _painel.BancadaPedida += () => EnviarInfusao("infusao/estado", null);
+            _painel.BancadaPedida += () => EnviarFusao("fusao/estado", null);
             _painel.ItemDeTestePedido += grau =>
                 _ = Postar(
                     RegrasEquipamentos.RotaDe(EntradaNoJogo.PersonagemId)
@@ -107,7 +107,7 @@ namespace JogoDoGrupo.Client.Features.Itens
                     null
                 );
             _painel.ItemVisto += id => _novos.Remove(id);
-            _infusao = new PainelInfusao(_areaInfusao, EnviarInfusao);
+            _fusao = new PainelFusao(_areaFusao, EnviarFusao);
         }
 
         protected override void AoAbrir()
@@ -246,15 +246,15 @@ namespace JogoDoGrupo.Client.Features.Itens
         private void Mostrar(EquipamentosResponse estado, string aviso, bool erro)
         {
             _estado = estado;
-            if (estado.ModoInfusao)
+            if (estado.ModoFusao)
             {
                 _areaPrincipal.style.display = DisplayStyle.None;
-                _areaInfusao.style.display = DisplayStyle.Flex;
-                _infusao.Mostrar(estado, aviso);
+                _areaFusao.style.display = DisplayStyle.Flex;
+                _fusao.Mostrar(estado, aviso);
                 return;
             }
 
-            _areaInfusao.style.display = DisplayStyle.None;
+            _areaFusao.style.display = DisplayStyle.None;
             _areaPrincipal.style.display = DisplayStyle.Flex;
             _painel.Mostrar(estado, _novos, _pendentes, _ocupado);
             _painel.MostrarAviso(aviso, erro);
@@ -397,8 +397,8 @@ namespace JogoDoGrupo.Client.Features.Itens
             }
         }
 
-        // O painel de infusão usa as ações do servidor por nome; null volta ao inventário.
-        private void EnviarInfusao(string acao, object pedido)
+        // A bancada de fusão usa as ações do servidor por nome; null volta ao inventário.
+        private void EnviarFusao(string acao, object pedido)
         {
             var personagemId = EntradaNoJogo.PersonagemId;
             if (acao == null)
@@ -468,7 +468,7 @@ namespace JogoDoGrupo.Client.Features.Itens
             var personagemId = EntradaNoJogo.PersonagemId;
             _ocupado = true;
             _pendentes = pendentes ?? new HashSet<long>();
-            if (_estado != null && !_estado.ModoInfusao)
+            if (_estado != null && !_estado.ModoFusao)
             {
                 Mostrar(_estado, null, false);
             }
