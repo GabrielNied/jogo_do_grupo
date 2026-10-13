@@ -63,6 +63,42 @@ public class ExperienciaDoPersonagemTestes(ServidorDeTeste servidor)
     }
 
     [Fact]
+    public async Task Experiencia_diminui_por_nivel_acima_e_zera_no_quinto()
+    {
+        var cliente = await servidor.CriarClienteLogadoAsync();
+        var abaixo = await CriarPersonagemAsync(cliente);
+        var umAcima = await CriarPersonagemAsync(cliente);
+        var quatroAcima = await CriarPersonagemAsync(cliente);
+        var cincoAcima = await CriarPersonagemAsync(cliente);
+        await DefinirNivelAsync(abaixo, 2);
+        await DefinirNivelAsync(umAcima, 4);
+        await DefinirNivelAsync(quatroAcima, 7);
+        await DefinirNivelAsync(cincoAcima, 8);
+
+        await Experiencia.ConcederAsync(
+            Derrota([abaixo, umAcima, quatroAcima, cincoAcima], 101, 1, 10, nivelInimigo: 3),
+            CancellationToken.None
+        );
+
+        Assert.Equal(101, (await ProgressoAsync(cliente, abaixo)).XpAtual);
+        Assert.Equal(80, (await ProgressoAsync(cliente, umAcima)).XpAtual);
+        Assert.Equal(20, (await ProgressoAsync(cliente, quatroAcima)).XpAtual);
+        Assert.Equal(0, (await ProgressoAsync(cliente, cincoAcima)).XpAtual);
+    }
+
+    [Fact]
+    public async Task Nivel_de_inimigo_desconhecido_concede_experiencia_base()
+    {
+        var cliente = await servidor.CriarClienteLogadoAsync();
+        var id = await CriarPersonagemAsync(cliente);
+        await DefinirNivelAsync(id, 20);
+
+        await ConcederAsync(id, 100, sequencia: 1, nivelInimigo: 0);
+
+        Assert.Equal(100, (await ProgressoAsync(cliente, id)).XpAtual);
+    }
+
+    [Fact]
     public async Task No_nivel_maximo_o_excedente_fica_guardado_e_nao_gera_ponto()
     {
         var cliente = await servidor.CriarClienteLogadoAsync();
@@ -72,7 +108,7 @@ public class ExperienciaDoPersonagemTestes(ServidorDeTeste servidor)
         var noTeto = await ProgressoAsync(cliente, id);
         Assert.Equal(RegrasExperiencia.NivelMaximo, noTeto.Nivel);
 
-        await ConcederAsync(id, 500, sequencia: 2);
+        await ConcederAsync(id, 500, sequencia: 2, nivelInimigo: 100);
         var depois = await ProgressoAsync(cliente, id);
         Assert.Equal(RegrasExperiencia.NivelMaximo, depois.Nivel);
         Assert.Equal(noTeto.XpAtual + 500, depois.XpAtual);
@@ -182,7 +218,8 @@ public class ExperienciaDoPersonagemTestes(ServidorDeTeste servidor)
         long personagemId,
         int experiencia,
         long sequencia,
-        long inimigoId
+        long inimigoId,
+        int nivelInimigo = 1
     ) =>
         new(
             inimigoId,
@@ -194,21 +231,45 @@ public class ExperienciaDoPersonagemTestes(ServidorDeTeste servidor)
             0,
             0,
             [personagemId],
-            sequencia
+            sequencia,
+            nivelInimigo
+        );
+
+    private static InimigoDerrotado Derrota(
+        IReadOnlyList<long> participantes,
+        int experiencia,
+        long sequencia,
+        long inimigoId,
+        int nivelInimigo
+    ) =>
+        new(
+            inimigoId,
+            1,
+            VarianteDeCriatura.Normal,
+            experiencia,
+            1,
+            "cidade",
+            0,
+            0,
+            participantes,
+            sequencia,
+            nivelInimigo
         );
 
     private Task ConcederAsync(
         long personagemId,
         int experiencia,
         long sequencia,
-        long? inimigoId = null
+        long? inimigoId = null,
+        int nivelInimigo = 1
     ) =>
         Experiencia.ConcederAsync(
             Derrota(
                 personagemId,
                 experiencia,
                 sequencia,
-                inimigoId ?? Interlocked.Increment(ref _proximoInimigo)
+                inimigoId ?? Interlocked.Increment(ref _proximoInimigo),
+                nivelInimigo
             ),
             CancellationToken.None
         );
@@ -242,6 +303,16 @@ public class ExperienciaDoPersonagemTestes(ServidorDeTeste servidor)
         var personagem = await db.Set<JogoDoGrupo.Server.Features.Personagem.Personagem>()
             .SingleAsync(p => p.Id == id);
         personagem.PontosLivres = pontos;
+        await db.SaveChangesAsync();
+    }
+
+    private async Task DefinirNivelAsync(long id, int nivel)
+    {
+        await using var escopo = servidor.Services.CreateAsyncScope();
+        var db = escopo.ServiceProvider.GetRequiredService<JogoDbContext>();
+        var personagem = await db.Set<JogoDoGrupo.Server.Features.Personagem.Personagem>()
+            .SingleAsync(p => p.Id == id);
+        personagem.Nivel = nivel;
         await db.SaveChangesAsync();
     }
 }
