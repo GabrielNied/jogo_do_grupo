@@ -1,3 +1,4 @@
+using JogoDoGrupo.Server.Contratos.Combate;
 using JogoDoGrupo.Server.Contratos.Mundo;
 using JogoDoGrupo.Server.Core;
 using JogoDoGrupo.Server.Core.Eventos;
@@ -79,6 +80,33 @@ public sealed class MundoModule : IFeatureModule
         _tempoReal = contexto.TempoReal;
         _eventos = contexto.Eventos;
         _tempoReal.SessaoEncerrada += AoEncerrar;
+        contexto.Eventos.Assinar<PersonagemVoltouParaACidade>(AoVoltarDaQueda);
+    }
+
+    /// <summary>
+    /// Combate enche os recursos e avisa o retorno; o Mundo leva o personagem ao nascimento da
+    /// cidade (docs/features/mundo.md, "Nascimento"; fatia-jogavel.md, seção 7).
+    /// </summary>
+    private void AoVoltarDaQueda(PersonagemVoltouParaACidade evento)
+    {
+        if (evento.Area != AreasDoMundo.Cidade)
+        {
+            return;
+        }
+
+        var nascimento = ValidadorDeMovimento.Nascimento;
+        if (_cidade.ForcarPosicao(evento.PersonagemId, nascimento) is not { } sequencia)
+        {
+            return;
+        }
+
+        if (_cidade.Obter(evento.PersonagemId) is not { } avatar)
+        {
+            return;
+        }
+
+        EnviarPosicaoForcada(avatar.Sessao, avatar, sequencia);
+        Replicar(avatar.Sessao, avatar);
     }
 
     private void AoEntrar(SessaoTempoReal sessao, EntrarNaCidade _)
