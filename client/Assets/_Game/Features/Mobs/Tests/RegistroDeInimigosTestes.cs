@@ -247,6 +247,31 @@ namespace JogoDoGrupo.Client.Features.Mobs.Tests
         }
 
         [Test]
+        public void AtaqueDoChefe_GuardaOPreparoDosTresSegundos_ComAMarcaFixa()
+        {
+            var registro = ComInimigos(1);
+            var inimigo = registro.Obter(1);
+
+            registro.PrepararAtaque(
+                new InimigoPreparaAtaque
+                {
+                    InimigoId = 1,
+                    PreparoMs = 3000,
+                    Tipo = TipoDeAtaqueDeInimigo.Investida,
+                    CentroX = 8f,
+                    CentroZ = 2f,
+                    Raio = 3f,
+                }
+            );
+            registro.Atualizar(1f);
+
+            Assert.AreEqual(3f, inimigo.PreparoDoGolpeSegundos, 0.001f);
+            Assert.IsNotNull(inimigo.Aviso);
+            Assert.AreEqual(8f, inimigo.Aviso.CentroX);
+            Assert.AreEqual(1f / 3f, inimigo.Aviso.Progresso, 0.001f);
+        }
+
+        [Test]
         public void PrepararAtaque_InimigoDesconhecido_EIgnorado()
         {
             var registro = ComInimigos(1);
