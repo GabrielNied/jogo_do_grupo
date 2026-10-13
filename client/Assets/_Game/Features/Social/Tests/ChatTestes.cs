@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using JogoDoGrupo.Client.Core.Jogo.Chat;
 using JogoDoGrupo.Shared.Features.Social;
 using NUnit.Framework;
 using UnityEngine.UIElements;
@@ -196,6 +197,53 @@ namespace JogoDoGrupo.Client.Features.Social.Tests
 
             Assert.AreEqual(AcaoDoComando.Erro, resultado.Acao);
             StringAssert.Contains("/xyz", resultado.Mensagem);
+        }
+
+        [Test]
+        public void Comandos_ListaSocial()
+        {
+            var resultado = InterpretadorDeComandos.Interpretar("/comandos", new EstadoDoEnvio());
+
+            Assert.AreEqual(AcaoDoComando.Informativo, resultado.Acao);
+            StringAssert.Contains("/c ", resultado.Mensagem);
+        }
+
+        [Test]
+        public void ComandoRegistrado_VaiParaOBarraNoChat()
+        {
+            ComandosDeBarraNoChat.LimparParaTeste();
+            ComandosDeBarraNoChat.Registrar(
+                "eco",
+                (_, resto, ctx) =>
+                {
+                    ctx.MostrarSistema("eco:" + resto);
+                    return new ResultadoDeComandoDeBarra();
+                },
+                "/eco texto"
+            );
+
+            var resultado = InterpretadorDeComandos.Interpretar("/eco oi", new EstadoDoEnvio());
+
+            Assert.AreEqual(AcaoDoComando.Registrado, resultado.Acao);
+            Assert.AreEqual("eco", resultado.ComandoBarra);
+            Assert.AreEqual("oi", resultado.RestoBarra);
+            ComandosDeBarraNoChat.LimparParaTeste();
+        }
+
+        [Test]
+        public void Completador_CompletaVerboUnico()
+        {
+            ComandosDeBarraNoChat.LimparParaTeste();
+            ComandosDeBarraNoChat.Registrar(
+                "spawn",
+                (_, _, _) => new ResultadoDeComandoDeBarra(),
+                "/spawn"
+            );
+
+            var sugestao = CompletadorDeComandosDeChat.Completar("/sp");
+
+            Assert.AreEqual("/spawn ", sugestao);
+            ComandosDeBarraNoChat.LimparParaTeste();
         }
 
         [TestCase("")]

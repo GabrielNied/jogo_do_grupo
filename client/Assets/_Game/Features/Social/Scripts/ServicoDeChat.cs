@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using JogoDoGrupo.Client.Core.Jogo.Chat;
 using JogoDoGrupo.Shared.Features.Social;
 
 namespace JogoDoGrupo.Client.Features.Social
@@ -60,6 +61,11 @@ namespace JogoDoGrupo.Client.Features.Social
                 case AcaoDoComando.Erro:
                     AdicionarSistema(resultado.Mensagem);
                     return !resultado.ManterAberto;
+                case AcaoDoComando.Informativo:
+                    AdicionarSistema(resultado.Mensagem);
+                    return true;
+                case AcaoDoComando.Registrado:
+                    return ExecutarRegistrado(resultado);
                 case AcaoDoComando.MudarCanal:
                     Estado.Registrar(resultado);
                     AdicionarSistema(TextoDaTroca(resultado));
@@ -151,6 +157,23 @@ namespace JogoDoGrupo.Client.Features.Social
 
             Historico.Adicionar(LinhaDeChat.Sistema(texto, _agoraUnixMs()));
             Mudou?.Invoke();
+        }
+
+        private bool ExecutarRegistrado(ResultadoDoComando resultado)
+        {
+            var contexto = new ContextoDeComandoDeBarra { MostrarSistema = AdicionarSistema };
+            var barra = ComandosDeBarraNoChat.Executar(
+                resultado.ComandoBarra,
+                resultado.RestoBarra,
+                contexto
+            );
+            if (barra == null)
+            {
+                AdicionarSistema(TextosDeChat.ComandoDesconhecido(resultado.ComandoBarra));
+                return true;
+            }
+
+            return barra.FecharCaixa && !barra.ManterAberto;
         }
 
         private bool Despachar(ResultadoDoComando resultado)

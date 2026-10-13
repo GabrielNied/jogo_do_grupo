@@ -81,18 +81,31 @@ namespace JogoDoGrupo.Client.Features.Mobs
             return true;
         }
 
+        /// <summary>Remove o inimigo que saiu do raio de interesse (sem morte).</summary>
+        public InimigoNoClient SairDoInteresse(InimigoSaiuDoInteresse mensagem) =>
+            Remover(mensagem?.InimigoId ?? 0);
+
         /// <summary>Remove o inimigo (e o aviso dele). Id desconhecido não faz nada.</summary>
         public InimigoNoClient Morrer(InimigoMorreu mensagem)
         {
-            if (mensagem == null || !_inimigos.TryGetValue(mensagem.InimigoId, out var inimigo))
+            return Remover(mensagem?.InimigoId ?? 0, zerarVida: true);
+        }
+
+        private InimigoNoClient Remover(long inimigoId, bool zerarVida = false)
+        {
+            if (inimigoId == 0 || !_inimigos.TryGetValue(inimigoId, out var inimigo))
             {
                 return null;
             }
 
-            _inimigos.Remove(mensagem.InimigoId);
+            _inimigos.Remove(inimigoId);
             inimigo.Aviso = null;
             inimigo.ExpostoRestanteSegundos = 0f;
-            inimigo.Vida = 0;
+            if (zerarVida)
+            {
+                inimigo.Vida = 0;
+            }
+
             return inimigo;
         }
 

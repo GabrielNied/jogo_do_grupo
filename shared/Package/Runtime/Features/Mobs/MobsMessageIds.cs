@@ -27,5 +27,8 @@ namespace JogoDoGrupo.Shared.Features.Mobs
 
         /// <summary>Servidor → quem está na área: o golpe de um inimigo comum encostou em alguém.</summary>
         public const ushort InimigoAcertou = 11006;
+
+        /// <summary>Servidor → jogador: inimigo saiu do raio de interesse (sumir no client).</summary>
+        public const ushort InimigoSaiuDoInteresse = 11007;
     }
 }

@@ -1,3 +1,4 @@
+using JogoDoGrupo.Client.Core.Jogo.Chat;
 using JogoDoGrupo.Shared.Features.Social;
 
 namespace JogoDoGrupo.Client.Features.Social
@@ -17,6 +18,12 @@ namespace JogoDoGrupo.Client.Features.Social
 
         /// <summary>Não enviar; mostrar <see cref="ResultadoDoComando.Mensagem"/> no chat.</summary>
         Erro,
+
+        /// <summary>Linha de Sistema informativa (ex.: <c>/comandos</c>).</summary>
+        Informativo,
+
+        /// <summary>Comando registrado em <see cref="ComandosDeBarraNoChat"/>.</summary>
+        Registrado,
     }
 
     internal sealed class ResultadoDoComando
@@ -35,6 +42,12 @@ namespace JogoDoGrupo.Client.Features.Social
 
         /// <summary>Erro que deixa a caixa aberta com o texto, para a pessoa corrigir.</summary>
         public bool ManterAberto { get; set; }
+
+        /// <summary>Com <see cref="AcaoDoComando.Registrado"/>.</summary>
+        public string ComandoBarra { get; set; } = "";
+
+        /// <summary>Com <see cref="AcaoDoComando.Registrado"/>; o que veio depois do verbo.</summary>
+        public string RestoBarra { get; set; } = "";
     }
 
     /// <summary>
@@ -107,7 +120,23 @@ namespace JogoDoGrupo.Client.Features.Social
                     return ComNome(AcaoDoComando.Ignorar, resto, "/ignorar Nome");
                 case "designorar":
                     return ComNome(AcaoDoComando.Designorar, resto, "/designorar Nome");
+                case "comandos":
+                    return new ResultadoDoComando
+                    {
+                        Acao = AcaoDoComando.Informativo,
+                        Mensagem = TextosDeChat.ListaCompletaDeComandos(),
+                    };
                 default:
+                    if (ComandosDeBarraNoChat.Conhece(comando))
+                    {
+                        return new ResultadoDoComando
+                        {
+                            Acao = AcaoDoComando.Registrado,
+                            ComandoBarra = comando,
+                            RestoBarra = resto,
+                        };
+                    }
+
                     return Erro(TextosDeChat.ComandoDesconhecido(comando));
             }
         }

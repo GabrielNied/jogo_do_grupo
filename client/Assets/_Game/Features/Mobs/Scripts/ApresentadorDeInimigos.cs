@@ -104,6 +104,12 @@ namespace JogoDoGrupo.Client.Features.Mobs
                 ConexaoTempoReal.Assinar<InimigoMorreu>(MobsMessageIds.InimigoMorreu, AoMorrer)
             );
             _assinaturas.Add(
+                ConexaoTempoReal.Assinar<InimigoSaiuDoInteresse>(
+                    MobsMessageIds.InimigoSaiuDoInteresse,
+                    AoSairDoInteresse
+                )
+            );
+            _assinaturas.Add(
                 ConexaoTempoReal.Assinar<AcaoInterrompida>(
                     CombateMessageIds.AcaoInterrompida,
                     AoInterromper
@@ -186,7 +192,7 @@ namespace JogoDoGrupo.Client.Features.Mobs
             }
 
             _avisos?.Mostrar(_registro.Todos);
-            _painel?.Mostrar(_registro.Todos, Camera.main);
+            _painel?.Mostrar(_registro.Todos, Camera.main, PosicaoDoJogadorNoChao());
 
             var jogador = EntradaNoJogo.Jogador;
             if (jogador != null)
@@ -199,6 +205,18 @@ namespace JogoDoGrupo.Client.Features.Mobs
                     EntradaNoJogo.PersonagemId
                 );
             }
+        }
+
+        private static (float X, float Z)? PosicaoDoJogadorNoChao()
+        {
+            var jogador = EntradaNoJogo.Jogador;
+            if (jogador == null)
+            {
+                return null;
+            }
+
+            var p = jogador.transform.position;
+            return (p.x, p.z);
         }
 
         private void AoReceberArea(InimigosDaArea mensagem)
@@ -360,6 +378,15 @@ namespace JogoDoGrupo.Client.Features.Mobs
             _reacoes[inimigoId] = restante;
             var onda = Mathf.Sin(Mathf.Clamp01(restante / DuracaoDaReacaoSegundos) * Mathf.PI);
             return escalaBase * (1f - AchatamentoDaReacao * onda);
+        }
+
+        private void AoSairDoInteresse(InimigoSaiuDoInteresse mensagem)
+        {
+            var inimigo = _registro.SairDoInteresse(mensagem);
+            if (inimigo != null)
+            {
+                RemoverVisualSemAnimacao(inimigo.InimigoId);
+            }
         }
 
         private void AoMorrer(InimigoMorreu mensagem)

@@ -37,8 +37,11 @@ namespace JogoDoGrupo.Shared.Features.Desenvolvimento
         /// <summary>Tamanho máximo do texto, para não aceitar um pacote enorme.</summary>
         public const int TextoMaximo = 80;
 
-        /// <summary>O que o comando <c>ajuda</c> responde.</summary>
+        /// <summary>O que o comando <c>ajuda</c> responde (texto sem barra, usado no servidor).</summary>
         public const string Ajuda = "xp <quantidade> | tp <x> <y> <z> | spawn";
+
+        /// <summary>Lista para o chat com barra (<c>/comandos</c> no client).</summary>
+        public const string AjudaComBarra = "/xp <quantidade> | /tp <x> <y> <z> | /spawn | /ajuda";
 
         /// <summary>Texto vazio ou <c>ajuda</c> pede a lista. O resto vira um comando ou um aviso.</summary>
         public static ComandoDeTesteInterpretado Interpretar(string texto)

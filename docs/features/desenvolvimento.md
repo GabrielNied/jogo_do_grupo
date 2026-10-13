@@ -10,7 +10,9 @@ Comandos para testar no editor do Unity e no build de desenvolvimento. O client 
 
 ## Definido
 
-No editor e no build de desenvolvimento, F12 abre o console. Enter envia, Esc fecha. O personagem fica parado enquanto a caixa está aberta. Build de release não traz o console.
+No editor e no build de desenvolvimento, os comandos de teste entram **pelo chat** (Enter ou F12, que abre ou fecha a caixa com `/` pronto). Esc fecha a caixa. O personagem fica parado enquanto a caixa está aberta. Build de release não traz esses comandos nem o atalho F12.
+
+`/comandos` no chat lista o que vale na sessão (chat social + comandos de teste, quando existirem). Tab completa o verbo depois da barra.
 
 O servidor só executa com `Desenvolvimento:PermitirComandos` ligado **e** ambiente Development (`PoliticaDeComandos`, mesmo padrão do `ConfiguracaoJwt`). Sem a chave, ignora o pedido e não responde. Com a chave ligada fora de Development, os comandos ficam desligados e o servidor avisa no log (não deixa de subir).
 
@@ -18,12 +20,14 @@ O servidor só executa com `Desenvolvimento:PermitirComandos` ligado **e** ambie
 
 `Mundo:PermitirVelocidadeDeTeste` mora em [Mundo](mundo.md) e segue a mesma proposta na [#552](https://github.com/GabrielNied/jogo_do_grupo/issues/552).
 
-| Comando | Efeito |
+| Comando no chat | Efeito |
 |---|---|
-| `xp <quantidade>` | Soma ou tira experiência de quem pediu. De -1.000.000 a 1.000.000, sem ser zero. |
-| `tp <x> <y> <z>` | Teleporta quem pediu, se já entrou na cidade. Números finitos, X e Z dentro do mapa, Y entre -50 e 300. |
-| `spawn` | Faz um inimigo comum aparecer 2 m no eixo X de quem pediu, no maior grupo da área. Até 20 a mais por grupo. |
-| `ajuda` | Lista os comandos. |
+| `/xp <quantidade>` | Soma ou tira experiência de quem pediu. De -1.000.000 a 1.000.000, sem ser zero. |
+| `/tp <x> <y> <z>` | Teleporta quem pediu, se já entrou na cidade. Números finitos, X e Z dentro do mapa, Y entre -50 e 300. |
+| `/spawn` | Faz um inimigo comum aparecer 2 m no eixo X de quem pediu, no maior grupo da área. Até 20 a mais por grupo. |
+| `/ajuda` ou `/comandos` | Lista os comandos ( `/comandos` inclui também os do chat). |
+
+O servidor continua lendo o texto **sem barra** (`xp 10`, `tp …`); o client tira a barra antes de enviar.
 
 Números usam ponto decimal. O texto tem no máximo 80 caracteres.
 

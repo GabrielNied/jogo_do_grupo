@@ -1,5 +1,7 @@
 using System;
 using System.Globalization;
+using System.Text;
+using JogoDoGrupo.Client.Core.Jogo.Chat;
 using JogoDoGrupo.Shared.Features.Social;
 
 namespace JogoDoGrupo.Client.Features.Social
@@ -7,9 +9,7 @@ namespace JogoDoGrupo.Client.Features.Social
     /// <summary>Os textos do chat que a pessoa lê: linhas, canais e recusas do servidor.</summary>
     internal static class TextosDeChat
     {
-        public const string AjudaDeComandos =
-            "Comandos: /c texto (cidade), /g texto (grupo), /s Nome texto (sussurro), "
-            + "/r texto (responder), /ignorar Nome, /designorar Nome.";
+        public const string AjudaDeComandos = "Digite /comandos para ver a lista completa.";
 
         public const string ChatSemConexao =
             "Sem conexão com o servidor: a mensagem não foi enviada.";
@@ -29,6 +29,26 @@ namespace JogoDoGrupo.Client.Features.Social
 
         public static string ComandoDesconhecido(string comando) =>
             $"Comando desconhecido: /{comando}. {AjudaDeComandos}";
+
+        public static string ListaCompletaDeComandos()
+        {
+            var texto = new StringBuilder();
+            texto.AppendLine(
+                "Chat: /c texto (cidade), /g texto (grupo), /s Nome texto (sussurro),"
+            );
+            texto.Append("/r texto (responder), /ignorar Nome, /designorar Nome.");
+            var extras = ComandosDeBarraNoChat.LinhasDoCatalogo();
+            if (extras.Count > 0)
+            {
+                texto.Append(" Teste:");
+                foreach (var linha in extras)
+                {
+                    texto.Append(' ').Append(linha).Append(';');
+                }
+            }
+
+            return texto.ToString().TrimEnd(';');
+        }
 
         /// <summary>O texto para o motivo de recusa do servidor; código desconhecido tem texto genérico.</summary>
         public static string Recusa(string codigo, int segundosRestantes)
