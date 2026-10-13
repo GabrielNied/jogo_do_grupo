@@ -400,6 +400,12 @@ namespace JogoDoGrupo.Client.Features.Combate
 
             if (areas.Count == 0)
             {
+                // Golpe comum sai no contato do modelo, sem marca no chão (Mobs): raio 0.
+                if (aviso.Raio <= 0f)
+                {
+                    return;
+                }
+
                 areas.Add((aviso.CentroX, aviso.CentroZ, aviso.Raio));
             }
 

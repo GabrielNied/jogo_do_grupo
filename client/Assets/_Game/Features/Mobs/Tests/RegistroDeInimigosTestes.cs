@@ -212,6 +212,7 @@ namespace JogoDoGrupo.Client.Features.Mobs.Tests
                 {
                     InimigoId = 1,
                     PreparoMs = 1000,
+                    Tipo = TipoDeAtaqueDeInimigo.Pisada,
                     CentroX = 3f,
                     CentroZ = 4f,
                     Raio = 1.5f,
@@ -227,6 +228,22 @@ namespace JogoDoGrupo.Client.Features.Mobs.Tests
             registro.Atualizar(0.6f);
 
             Assert.IsNull(inimigo.Aviso);
+        }
+
+        [Test]
+        public void GolpeComum_NaoDesenhaCirculo_MasGuardaOPreparo()
+        {
+            var registro = ComInimigos(1);
+            var inimigo = registro.Obter(1);
+
+            var ok = registro.PrepararAtaque(
+                new InimigoPreparaAtaque { InimigoId = 1, PreparoMs = 700 }
+            );
+
+            Assert.IsTrue(ok);
+            Assert.IsNull(inimigo.Aviso);
+            Assert.AreEqual(0.7f, inimigo.PreparoDoGolpeSegundos, 0.001f);
+            Assert.AreEqual(1, inimigo.GolpesPreparados);
         }
 
         [Test]

@@ -43,11 +43,17 @@ namespace JogoDoGrupo.Shared.Features.Mobs
         /// <summary>Segundos parado depois do golpe, antes de agir de novo.</summary>
         public const double RecuperacaoDoAtaqueSegundos = 1.5;
 
-        /// <summary>Distância do inimigo ao centro da área do golpe, à frente dele.</summary>
-        public const double DistanciaDoGolpeMetros = 1.5;
+        /// <summary>
+        /// Quanto o inimigo avança, no máximo, durante o preparo do golpe, na direção travada no
+        /// começo dele (parando antes de parede e de outro inimigo).
+        /// </summary>
+        public const double PassoDoGolpeMetros = 1.0;
 
-        /// <summary>Raio da área do golpe (círculo no chão).</summary>
-        public const double RaioDoGolpeMetros = 1.5;
+        /// <summary>Alcance do cone do golpe a partir do centro do inimigo, no fim do preparo.</summary>
+        public const double AlcanceDoGolpeMetros = 1.2;
+
+        /// <summary>Abertura total do cone do golpe (metade para cada lado da direção travada).</summary>
+        public const double AberturaDoGolpeGraus = 90.0;
 
         /// <summary>Raio do corpo do inimigo, usado como alvo dos golpes dos jogadores.</summary>
         public const double RaioDoCorpoMetros = 0.6;
@@ -250,38 +256,38 @@ namespace JogoDoGrupo.Shared.Features.Mobs
         }
 
         /// <summary>
-        /// Centro da área do golpe: <see cref="DistanciaDoGolpeMetros"/> à frente do inimigo, na
-        /// direção dada (0 grau aponta para +Z e cresce para +X). É calculado no começo do aviso
-        /// e não muda até o golpe.
+        /// Se um personagem está no cone do golpe, no fim do preparo: a mesma conta de
+        /// <c>RegrasAtaque.EstaNoVolume</c> (distância até o alcance e ângulo até metade da
+        /// abertura), com o alcance e a abertura do inimigo (<see cref="AlcanceDoGolpeMetros"/> e
+        /// <see cref="AberturaDoGolpeGraus"/>). A origem é o centro do inimigo onde ele parou e a
+        /// direção é a travada no começo do preparo. A borda conta; quem está em cima da origem
+        /// também.
         /// </summary>
-        public static void CentroDoGolpe(
+        public static bool EstaNoGolpe(
             double inimigoX,
             double inimigoZ,
             double direcaoYGraus,
-            out double centroX,
-            out double centroZ
-        )
-        {
-            double radianos = direcaoYGraus * Math.PI / 180.0;
-            centroX = inimigoX + Math.Sin(radianos) * DistanciaDoGolpeMetros;
-            centroZ = inimigoZ + Math.Cos(radianos) * DistanciaDoGolpeMetros;
-        }
-
-        /// <summary>
-        /// Se um personagem está na área do golpe (círculo de <see cref="RaioDoGolpeMetros"/> em
-        /// volta do centro). <paramref name="raioDoAlvo"/> aproxima o corpo do alvo e desconta da
-        /// distância. A borda ainda conta.
-        /// </summary>
-        public static bool EstaNaAreaDoGolpe(
-            double centroX,
-            double centroZ,
             double alvoX,
             double alvoZ,
             double raioDoAlvo = 0.0
         )
         {
-            double distancia = Distancia(centroX, centroZ, alvoX, alvoZ);
-            return distancia - Math.Max(0.0, raioDoAlvo) <= RaioDoGolpeMetros;
+            double dx = alvoX - inimigoX;
+            double dz = alvoZ - inimigoZ;
+            double distancia = Math.Sqrt(dx * dx + dz * dz);
+            if (distancia - Math.Max(0.0, raioDoAlvo) > AlcanceDoGolpeMetros)
+            {
+                return false;
+            }
+            if (distancia <= 0.0)
+            {
+                return true;
+            }
+            double anguloDoAlvo = Math.Atan2(dx, dz) * 180.0 / Math.PI;
+            double diferenca = Math.Abs(
+                Combate.RegrasAtaque.DiferencaDeAngulo(anguloDoAlvo, direcaoYGraus)
+            );
+            return diferenca <= AberturaDoGolpeGraus / 2.0;
         }
     }
 }

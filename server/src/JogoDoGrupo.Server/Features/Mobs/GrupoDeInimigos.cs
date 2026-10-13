@@ -23,6 +23,7 @@ public sealed class PassoDosInimigos
 {
     public List<MudancaDeInimigo> Mudancas { get; } = [];
     public List<InimigoPreparaAtaque> Preparos { get; } = [];
+    public List<InimigoAcertou> Acertos { get; } = [];
     public List<InimigoMorreu> Mortes { get; } = [];
     public List<InimigoApareceu> Aparicoes { get; } = [];
     public List<InimigoExposto> Expostos { get; } = [];
@@ -33,6 +34,7 @@ public sealed class PassoDosInimigos
     public bool Vazio =>
         Mudancas.Count == 0
         && Preparos.Count == 0
+        && Acertos.Count == 0
         && Mortes.Count == 0
         && Aparicoes.Count == 0
         && Expostos.Count == 0
@@ -550,7 +552,7 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
                 break;
 
             case EstadoDeInimigo.Ataque:
-                Atacar(inimigo, agora, presentes, emOrdem, candidatos, passo);
+                Atacar(inimigo, agora, segundos, presentes, emOrdem, candidatos, passo);
                 break;
 
             case EstadoDeInimigo.Retorno:
@@ -687,48 +689,98 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
         );
     }
 
+    // A direção trava aqui; o passo do golpe é medido já, até onde o caminho está livre.
     private void ComecarAtaque(Inimigo inimigo, long agora, PassoDosInimigos passo)
     {
         inimigo.SegundosSemAtacar = 0.0;
-        RegrasInimigo.CentroDoGolpe(
-            inimigo.X,
-            inimigo.Z,
-            inimigo.Rotacao,
-            out var centroX,
-            out var centroZ
-        );
-        inimigo.GolpeX = centroX;
-        inimigo.GolpeZ = centroZ;
+        inimigo.DirecaoDoGolpe = inimigo.Rotacao;
+        inimigo.PassoRestante = PassoLivre(inimigo);
         inimigo.Preparando = true;
         inimigo.FaseAteMs = agora + _comportamento.PreparoMs;
         Mudar(inimigo, EstadoDeInimigo.Ataque);
+        // O golpe comum não tem área no chão: o aviso é o preparo do modelo.
         passo.Preparos.Add(
             new InimigoPreparaAtaque
             {
                 InimigoId = inimigo.Id,
                 PreparoMs = (int)_comportamento.PreparoMs,
-                CentroX = (float)centroX,
-                CentroZ = (float)centroZ,
-                Raio = (float)RegrasInimigo.RaioDoGolpeMetros,
-                DirecaoY = (float)inimigo.Rotacao,
+                CentroX = (float)inimigo.X,
+                CentroZ = (float)inimigo.Z,
+                Raio = 0f,
+                DirecaoY = (float)inimigo.DirecaoDoGolpe,
                 Tipo = TipoDeAtaqueDeInimigo.Golpe,
-                Areas =
-                [
-                    new AreaDeAtaque
-                    {
-                        CentroX = (float)centroX,
-                        CentroZ = (float)centroZ,
-                        Raio = (float)RegrasInimigo.RaioDoGolpeMetros,
-                    },
-                ],
+                Areas = [],
             }
         );
+    }
+
+    // Quanto do passo do golpe cabe na direção travada: para antes da borda da cidade (a
+    // parede do campo) e antes de chegar a menos de 1,2 m de outro inimigo.
+    private double PassoLivre(Inimigo inimigo) =>
+        PassoDoGolpe.Livre(
+            inimigo.X,
+            inimigo.Z,
+            inimigo.DirecaoDoGolpe,
+            (deX, deZ, x, z) => PodeIrPara(inimigo, deX, deZ, x, z)
+        );
+
+    // Se o inimigo pode ir de um ponto a outro: fora da zona urbana e sem se aproximar de outro
+    // inimigo vivo a menos da separação mínima.
+    private bool PodeIrPara(Inimigo inimigo, double deX, double deZ, double x, double z)
+    {
+        if (NaZonaUrbana(x, z))
+        {
+            return false;
+        }
+
+        foreach (var outro in _inimigos)
+        {
+            if (
+                outro != inimigo
+                && RegrasInimigo.EstaVivo(outro.Estado)
+                && !PassoDoGolpe.RespeitaVizinho(deX, deZ, x, z, outro.X, outro.Z)
+            )
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    // Durante o preparo ele avança o passo travado, em velocidade constante, até o fim do aviso.
+    // No instante do contato o que faltar do passo é completado (a diferença é de um passo da IA).
+    private void AvancarNoPreparo(Inimigo inimigo, double segundos, bool completar = false)
+    {
+        if (inimigo.PassoRestante <= 0.0)
+        {
+            return;
+        }
+
+        var velocidade =
+            RegrasInimigo.PassoDoGolpeMetros / Math.Max(0.001, _comportamento.PreparoMs / 1000.0);
+        var andar = completar
+            ? inimigo.PassoRestante
+            : Math.Min(velocidade * segundos, inimigo.PassoRestante);
+        var radianos = inimigo.DirecaoDoGolpe * Math.PI / 180.0;
+        var novoX = inimigo.X + Math.Sin(radianos) * andar;
+        var novoZ = inimigo.Z + Math.Cos(radianos) * andar;
+        if (!PodeIrPara(inimigo, inimigo.X, inimigo.Z, novoX, novoZ))
+        {
+            inimigo.PassoRestante = 0.0;
+            return;
+        }
+
+        inimigo.X = novoX;
+        inimigo.Z = novoZ;
+        inimigo.PassoRestante -= andar;
     }
 
     // O ataque, uma vez começado, vai até o fim: aviso, golpe e recuperação.
     private void Atacar(
         Inimigo inimigo,
         long agora,
+        double segundos,
         Dictionary<long, JogadorNoCampo> presentes,
         JogadorNoCampo[] emOrdem,
         long[] candidatos,
@@ -737,19 +789,26 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
     {
         if (agora < inimigo.FaseAteMs)
         {
+            if (inimigo.Preparando)
+            {
+                AvancarNoPreparo(inimigo, segundos);
+            }
+
             return;
         }
 
         if (inimigo.Preparando)
         {
-            // O golpe: pega quem está na área agora, tenha o inimigo visto ou não.
+            AvancarNoPreparo(inimigo, segundos, completar: true);
+            // O golpe: pega quem está no cone agora, de onde ele parou, tenha o inimigo visto ou não.
             foreach (var jogador in emOrdem)
             {
                 if (
                     !NaZonaUrbana(jogador.X, jogador.Z)
-                    && RegrasInimigo.EstaNaAreaDoGolpe(
-                        inimigo.GolpeX,
-                        inimigo.GolpeZ,
+                    && RegrasInimigo.EstaNoGolpe(
+                        inimigo.X,
+                        inimigo.Z,
+                        inimigo.DirecaoDoGolpe,
                         jogador.X,
                         jogador.Z
                     )
@@ -763,6 +822,9 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
                             inimigo.Criatura.Dano,
                             Area
                         )
+                    );
+                    passo.Acertos.Add(
+                        new InimigoAcertou { InimigoId = inimigo.Id, AlvoId = jogador.PersonagemId }
                     );
                 }
             }
@@ -1231,8 +1293,11 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
         public long FaseAteMs;
         public double SegundosSemAtacar;
 
-        public double GolpeX;
-        public double GolpeZ;
+        /// <summary>Direção travada no começo do preparo do golpe, em graus.</summary>
+        public double DirecaoDoGolpe;
+
+        /// <summary>Quanto do passo do golpe ainda falta andar, em metros.</summary>
+        public double PassoRestante;
 
         /// <summary>Quem causou dano desde que ele apareceu ou voltou da desistência.</summary>
         public readonly HashSet<long> Atacantes = [];

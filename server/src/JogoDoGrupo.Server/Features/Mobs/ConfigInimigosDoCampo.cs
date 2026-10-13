@@ -73,4 +73,10 @@ public static class ConfigInimigosDoCampo
 
     /// <summary>A esta distância do ponto de origem, em metros, a volta já terminou.</summary>
     public const double ToleranciaDeChegadaMetros = 0.05;
+
+    /// <summary>
+    /// De quanto em quanto, em metros, o servidor confere o caminho do passo do golpe contra a
+    /// borda da cidade e os outros inimigos.
+    /// </summary>
+    public const double SubpassoDoGolpeMetros = 0.1;
 }

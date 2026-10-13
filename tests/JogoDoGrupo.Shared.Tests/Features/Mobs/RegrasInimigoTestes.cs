@@ -37,9 +37,9 @@ public class RegrasInimigoTestes
     [Fact]
     public void Golpe_alcanca_o_alvo_que_esta_no_alcance_de_ataque()
     {
-        // O inimigo ataca a até 2 m: a área do golpe (centro mais raio) tem que cobrir isso.
+        // O inimigo ataca a até 2 m: o passo do golpe mais o cone têm que cobrir isso.
         Assert.True(
-            RegrasInimigo.DistanciaDoGolpeMetros + RegrasInimigo.RaioDoGolpeMetros
+            RegrasInimigo.PassoDoGolpeMetros + RegrasInimigo.AlcanceDoGolpeMetros
                 >= RegrasInimigo.AlcanceDeAtaqueMetros
         );
     }
@@ -327,53 +327,41 @@ public class RegrasInimigoTestes
     }
 
     [Theory]
-    [InlineData(0.0, 0.0, 1.5)]
-    [InlineData(90.0, 1.5, 0.0)]
-    [InlineData(180.0, 0.0, -1.5)]
-    [InlineData(-90.0, -1.5, 0.0)]
-    public void CentroDoGolpe_fica_a_frente_do_inimigo(
-        double direcao,
-        double esperadoX,
-        double esperadoZ
-    )
-    {
-        RegrasInimigo.CentroDoGolpe(0, 0, direcao, out double centroX, out double centroZ);
-        Assert.Equal(esperadoX, centroX, Tolerancia);
-        Assert.Equal(esperadoZ, centroZ, Tolerancia);
-    }
-
-    [Fact]
-    public void CentroDoGolpe_parte_da_posicao_do_inimigo()
-    {
-        RegrasInimigo.CentroDoGolpe(10, -4, 0.0, out double centroX, out double centroZ);
-        Assert.Equal(10.0, centroX, Tolerancia);
-        Assert.Equal(-2.5, centroZ, Tolerancia);
-    }
-
-    [Theory]
-    [InlineData(0.0, 0.0, 0.0, true)] // no centro
-    [InlineData(1.5, 0.0, 0.0, true)] // na borda
-    [InlineData(1.51, 0.0, 0.0, false)] // logo fora
-    [InlineData(0.0, -1.9, 0.5, true)] // o corpo ainda encosta na área
-    [InlineData(0.0, 2.1, 0.5, false)]
-    [InlineData(1.5, 0.0, -3.0, true)] // raio negativo conta como zero
-    public void EstaNaAreaDoGolpe_e_um_circulo_no_chao(
+    [InlineData(0.0, 1.0, true)] // à frente
+    [InlineData(0.0, 1.2, true)] // na borda do alcance
+    [InlineData(0.0, 1.3, false)] // além do alcance
+    [InlineData(0.0, -1.0, false)] // atrás do corpo
+    [InlineData(0.8, 0.8, true)] // 45 graus, dentro do cone de 90
+    [InlineData(1.0, 0.5, false)] // mais de 45 graus para o lado
+    [InlineData(0.0, 0.0, true)] // em cima do inimigo
+    public void EstaNoGolpe_e_um_cone_a_frente_do_corpo(
         double alvoX,
         double alvoZ,
-        double raioDoAlvo,
         bool esperado
-    ) => Assert.Equal(esperado, RegrasInimigo.EstaNaAreaDoGolpe(0, 0, alvoX, alvoZ, raioDoAlvo));
+    ) => Assert.Equal(esperado, RegrasInimigo.EstaNoGolpe(0, 0, 0.0, alvoX, alvoZ));
 
     [Fact]
-    public void Sair_da_area_durante_o_aviso_evita_o_golpe()
+    public void EstaNoGolpe_segue_a_direcao_travada_e_o_corpo_do_alvo()
     {
-        // Inimigo em (0, 0) olhando para +Z; o jogador está a 2 m, no alcance do ataque.
-        RegrasInimigo.CentroDoGolpe(0, 0, 0.0, out double centroX, out double centroZ);
-        Assert.True(RegrasInimigo.EstaNaAreaDoGolpe(centroX, centroZ, 0, 2));
+        // Olhando para +X (90 graus): quem está a +X leva, quem está a +Z não.
+        Assert.True(RegrasInimigo.EstaNoGolpe(0, 0, 90.0, 1.0, 0));
+        Assert.False(RegrasInimigo.EstaNoGolpe(0, 0, 90.0, 0, 1.0));
+        // O raio do alvo desconta da distância.
+        Assert.False(RegrasInimigo.EstaNoGolpe(0, 0, 0.0, 0, 1.5));
+        Assert.True(RegrasInimigo.EstaNoGolpe(0, 0, 0.0, 0, 1.5, 0.5));
+    }
 
-        // Uma esquiva de 5 m para o lado, dentro do 1 s de aviso, tira o jogador da área.
-        Assert.False(RegrasInimigo.EstaNaAreaDoGolpe(centroX, centroZ, 5, 2));
-        // Ficar parado, ou dar só um passo curto, não.
-        Assert.True(RegrasInimigo.EstaNaAreaDoGolpe(centroX, centroZ, 0.5, 2));
+    [Fact]
+    public void EstaNoGolpe_confere_com_a_conta_do_cone_de_combate()
+    {
+        // Mesma conta de RegrasAtaque.EstaNoVolume, só com o alcance e a abertura do inimigo.
+        Assert.Equal(
+            JogoDoGrupo.Shared.Features.Combate.RegrasAtaque.EstaNoVolume(0, 0, 0.0, 1.0, 0.5),
+            RegrasInimigo.EstaNoGolpe(0, 0, 0.0, 1.0, 0.5)
+        );
+        Assert.Equal(
+            JogoDoGrupo.Shared.Features.Combate.RegrasAtaque.AberturaDoConeGraus,
+            RegrasInimigo.AberturaDoGolpeGraus
+        );
     }
 }

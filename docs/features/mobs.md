@@ -90,7 +90,7 @@ As regras de base estão em [fatia-jogavel.md](fatia-jogavel.md), seção 4. O q
 | Alerta | **0,5 s** entre ver e começar a perseguir; o grupo todo entra em alerta junto |
 | Perseguição | **4 m/s**, até o posto dele no cerco (veja abaixo; mais lento que o jogador correndo) |
 | Ataque | começa a até **2 m** do alvo; **1 s** de preparo (a animação), o contato no fim dele, e **1,5 s** de recuperação |
-| Contato do golpe | ver [abaixo](#contato-do-golpe); o círculo de 1,5 m no chão, travado no início do aviso, saiu em 2026-10-12 |
+| Contato do golpe | ver [abaixo](#contato-do-golpe); o círculo de 1,5 m no chão, travado no início do aviso, saiu em 2026-10-12 (feito na #573) |
 | Desistência | a mais de **30 m** do ponto de origem ele volta (a **6 m/s**), com a vida cheia, sem escolher alvo até chegar |
 | Corpo | raio de **0,6 m** como alvo dos golpes dos jogadores |
 | Atualização da IA | passo fixo, **10 vezes por segundo** |
@@ -122,6 +122,13 @@ Decidido em 2026-10-12. O golpe comum (javali, lobo, tatu e quem usa a mesma IA,
 - O client toca o clipe `Atacar` na velocidade que faz a pose de contato cair nesse mesmo instante. O aviso visível é o preparo do modelo, não um decalque.
 - Investida, pisada e raios do chefe de dungeon continuam com a área marcada no chão, fixa desde o aviso.
 - Para implementar: a conta do cone reaproveita `RegrasAtaque.EstaNoVolume`, no instante do contato. Sem colisor de malha e sem física no servidor. O círculo antigo não volta. O client não manda "acertou" nem "errou"; quem decide o contato é o servidor. O corte entre animação e resultado está em [combate](combate.md#o-que-o-client-mostra-e-o-que-o-servidor-decide).
+
+Como ficou (issue #573; decisões do agente, a calibrar):
+
+- **Valores:** `RegrasInimigo.PassoDoGolpeMetros` (1,0), `AlcanceDoGolpeMetros` (1,2) e `AberturaDoGolpeGraus` (90), no shared. A conta é `RegrasInimigo.EstaNoGolpe`, a mesma de `RegrasAtaque.EstaNoVolume` com o alcance e a abertura do inimigo (o do jogador é 2,5 m e tem outro alcance; um teste confere a abertura e a conta). Conta o centro do personagem, como antes.
+- **Passo:** a direção trava ao começar o preparo (a de `Rotacao`, olhando o alvo). O servidor mede o caminho de 0,1 em 0,1 m (`ConfigInimigosDoCampo.SubpassoDoGolpeMetros`, `PassoDoGolpe`) e para antes da borda da cidade (a "parede" do campo) e antes de chegar a menos de 1,2 m de outro inimigo vivo (quem já está mais perto só não pode se aproximar). Ele anda em velocidade constante durante o preparo e, no instante do contato, completa o que faltou. O contato é medido de onde parou.
+- **Mensagem:** `InimigoPreparaAtaque` do golpe comum vem com `Areas` vazio, `Raio` 0 e `DirecaoY` = direção travada. Investida, pisada e raios seguem com `Areas`. Nova `InimigoAcertou` (11006, só do golpe comum): o servidor avisa quem está na área que o golpe encostou em alguém, e o client segura a pose do inimigo que bateu por `RegrasReacao.PausaVisualNoAcertoMs` (70 ms). A pose de quem levou já é do Combate. Só visual: o relógio do servidor não para.
+- **Client:** sem decalque para o golpe comum. O clipe `Atacar` toca na velocidade `duração do clipe x ContatoNoClipeFracao / preparo` (`AnimacaoDoInimigo`, contato no meio do clipe até o artista marcar). O chefe de dungeon continua como estava.
 
 O chefe raro no campo (issue #310; **proposta**, a confirmar no review):
 

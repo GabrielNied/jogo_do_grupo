@@ -6,7 +6,7 @@ namespace JogoDoGrupo.Shared.Features.Mobs
     /// </summary>
     public enum TipoDeAtaqueDeInimigo
     {
-        /// <summary>O golpe do inimigo comum: um círculo à frente dele.</summary>
+        /// <summary>O golpe do inimigo comum: passo e cone à frente do corpo, sem área no chão.</summary>
         Golpe = 0,
 
         /// <summary>Boss: avança até o ponto marcado e acerta quem estiver nele.</summary>

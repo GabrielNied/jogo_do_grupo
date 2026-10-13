@@ -92,7 +92,11 @@ namespace JogoDoGrupo.Client.Features.Mobs
             return inimigo;
         }
 
-        /// <summary>Começa o círculo de aviso do golpe. Inimigo desconhecido é ignorado.</summary>
+        /// <summary>
+        /// Começa o preparo do golpe. O golpe comum não tem círculo no chão: só marca a duração
+        /// do preparo (para o clipe cair no contato). Investida, pisada e raios têm o círculo de
+        /// aviso. Inimigo desconhecido é ignorado.
+        /// </summary>
         public bool PrepararAtaque(InimigoPreparaAtaque mensagem)
         {
             if (mensagem == null || !_inimigos.TryGetValue(mensagem.InimigoId, out var inimigo))
@@ -101,6 +105,13 @@ namespace JogoDoGrupo.Client.Features.Mobs
             }
 
             inimigo.GolpesPreparados++;
+            inimigo.PreparoDoGolpeSegundos = mensagem.PreparoMs / MilissegundosPorSegundo;
+            if (mensagem.Tipo == TipoDeAtaqueDeInimigo.Golpe)
+            {
+                inimigo.Aviso = null;
+                return true;
+            }
+
             inimigo.Aviso = new AvisoDeGolpe(
                 mensagem.CentroX,
                 mensagem.CentroZ,

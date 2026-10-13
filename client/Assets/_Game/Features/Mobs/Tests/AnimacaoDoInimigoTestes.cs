@@ -136,5 +136,17 @@ namespace JogoDoGrupo.Client.Features.Mobs.Tests
             Assert.AreEqual(1, registro.Obter(7).GolpesPreparados);
             Assert.IsTrue(registro.Obter(7).Animacao.DisparouAtaque);
         }
+
+        [Test]
+        public void VelocidadeDoClipe_FazOContatoCairNoFimDoPreparo()
+        {
+            // Clipe de 1 s, contato no meio, preparo de 1 s: o contato leva 0,5 s, então 0,5x.
+            Assert.AreEqual(0.5f, AnimacaoDoInimigo.VelocidadeDoClipe(1f, 1f), 0.001f);
+            // Preparo mais curto acelera o clipe.
+            Assert.AreEqual(0.5f / 0.7f, AnimacaoDoInimigo.VelocidadeDoClipe(1f, 0.7f), 0.001f);
+            // Sem clipe ou sem preparo: velocidade normal.
+            Assert.AreEqual(1f, AnimacaoDoInimigo.VelocidadeDoClipe(0f, 1f));
+            Assert.AreEqual(1f, AnimacaoDoInimigo.VelocidadeDoClipe(1f, 0f));
+        }
     }
 }
