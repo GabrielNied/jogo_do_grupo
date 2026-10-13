@@ -324,7 +324,7 @@ namespace JogoDoGrupo.Client.Features.Personagem
             _voltar.AddToClassList(EstiloCore.BotaoPrincipal);
             _voltar.RegisterCallback<PointerDownEvent>(AoPressionar);
             _voltar.RegisterCallback<PointerUpEvent>(AoSoltar);
-            _voltar.RegisterCallback<PointerLeaveEvent>(AoSoltar);
+            _voltar.RegisterCallback<PointerLeaveEvent>(AoSairDoBotao);
             _voltar.RegisterCallback<KeyDownEvent>(AoPressionarTecla);
             _voltar.RegisterCallback<KeyUpEvent>(AoSoltarTecla);
 
@@ -410,6 +410,16 @@ namespace JogoDoGrupo.Client.Features.Personagem
         }
 
         private void AoSoltar(PointerUpEvent evento)
+        {
+            if (_voltar.HasPointerCapture(evento.pointerId))
+            {
+                _voltar.ReleasePointer(evento.pointerId);
+            }
+
+            _encerrarHold?.Invoke();
+        }
+
+        private void AoSairDoBotao(PointerLeaveEvent evento)
         {
             if (_voltar.HasPointerCapture(evento.pointerId))
             {
