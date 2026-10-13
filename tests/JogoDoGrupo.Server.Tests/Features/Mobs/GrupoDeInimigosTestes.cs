@@ -19,6 +19,14 @@ public class GrupoDeInimigosTestes
         CatalogoCriaturas.JavaliDoCampo
     );
 
+    /// <summary>Marca quem está caído para a IA consultar <see cref="IEstadoDeQueda"/>.</summary>
+    private sealed class QuedaFixa : IEstadoDeQueda
+    {
+        public HashSet<long> Caidos { get; } = [];
+
+        public bool EstaCaido(long personagemId) => Caidos.Contains(personagemId);
+    }
+
     /// <summary>Devolve sempre a mesma variante e conta os sorteios.</summary>
     private sealed class SorteadorFixo : ISorteadorDeCriaturas
     {
@@ -59,12 +67,14 @@ public class GrupoDeInimigosTestes
                 tamanho,
                 () => AgoraMs,
                 pontoX: 0.0,
-                pontoZ: 0.0
+                pontoZ: 0.0,
+                queda: Queda
             );
         }
 
         public long AgoraMs { get; set; } = 10_000;
         public SorteadorFixo Sorteador { get; } = new();
+        public QuedaFixa Queda { get; } = new();
         public GrupoDeInimigos Grupo { get; }
         public List<JogadorNoCampo> Jogadores { get; } = [];
 
@@ -999,5 +1009,60 @@ public class GrupoDeInimigosTestes
         campo.Avancar(ConfigInimigosDoCampo.LimiteSemAtacarSegundos + 4);
 
         Assert.All(campo.Grupo.Vivos(), i => Assert.NotEqual(EstadoDeInimigo.Retorno, i.Estado));
+    }
+
+    [Fact]
+    public void Caido_na_visao_nao_acorda_o_grupo()
+    {
+        var campo = new Campo();
+        campo.Por(Jogador, 0, 14);
+        campo.Queda.Caidos.Add(Jogador);
+
+        campo.Passo();
+
+        Assert.Equal(EstadoDeInimigo.Repouso, campo.Unico.Estado);
+        Assert.Equal(RegrasInimigo.SemAlvo, campo.Unico.AlvoId);
+    }
+
+    [Fact]
+    public void Caido_em_perseguicao_deixa_de_ser_alvo()
+    {
+        var campo = new Campo();
+        campo.Por(Jogador, 0, 14);
+        campo.AteOEstado(EstadoDeInimigo.Perseguicao, 2);
+        Assert.Equal(Jogador, campo.Unico.AlvoId);
+
+        campo.Queda.Caidos.Add(Jogador);
+        campo.Passo();
+
+        Assert.NotEqual(Jogador, campo.Unico.AlvoId);
+        Assert.Equal(EstadoDeInimigo.Retorno, campo.Unico.Estado);
+    }
+
+    [Fact]
+    public void Caido_no_cone_no_fim_do_preparo_nao_leva_golpe()
+    {
+        var campo = new Campo();
+        campo.Por(Jogador, 0, 14);
+        campo.Ate(p => p.Preparos.Count > 0, 6);
+        campo.Queda.Caidos.Add(Jogador);
+
+        var passos = campo.Avancar(RegrasInimigo.PreparoDoAtaqueSegundos + 0.2);
+        Assert.All(passos, p => Assert.Empty(p.Golpes));
+        Assert.All(passos, p => Assert.Empty(p.Acertos));
+    }
+
+    [Fact]
+    public void Levantou_volta_a_ser_alvo()
+    {
+        var campo = new Campo();
+        campo.Por(Jogador, 0, 14);
+        campo.Queda.Caidos.Add(Jogador);
+        campo.Passo();
+        Assert.Equal(EstadoDeInimigo.Repouso, campo.Unico.Estado);
+
+        campo.Queda.Caidos.Remove(Jogador);
+        campo.AteOEstado(EstadoDeInimigo.Perseguicao, 2);
+        Assert.Equal(Jogador, campo.Unico.AlvoId);
     }
 }
