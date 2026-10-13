@@ -158,6 +158,8 @@ O HUD só **mostra** o que o servidor já enviou. Ele não decide vida, dano, al
 | Região da tela | Elemento | De onde vem o dado |
 |---|---|---|
 | Canto inferior esquerdo | Barras do personagem: vida, stamina e mana (já existem) | [fatia-jogavel.md](fatia-jogavel.md), seção 1 |
+| Abaixo das barras do personagem | Barra de experiência | [personagem.md](personagem.md) |
+| Acima das barras e da experiência | Chat; a posição acompanha a altura real do bloco inferior | [social.md](social.md#chat-de-texto-issue-95) |
 | Lateral esquerda, do meio para cima | **Lista do grupo**: até 4 aliados (o grupo tem 5 e você não aparece na lista) | lista do grupo de [social.md](social.md) e a vida que o servidor envia |
 | Topo, centro | **Barra do alvo** e, acima dela, a **barra do boss** | vida do inimigo ([fatia-jogavel.md](fatia-jogavel.md), seções 4 e 7) |
 | Centro, logo abaixo da barra do boss | **Aviso de ataque telegrafado** | início do preparo do ataque, enviado pelo servidor |
@@ -165,7 +167,9 @@ O HUD só **mostra** o que o servidor já enviou. Ele não decide vida, dano, al
 | Parte de baixo, centro | **Mensagens de sistema** | avisos das funcionalidades (convite, loot, erro) |
 | Canto superior direito | Minimapa | [mundo.md](mundo.md#minimapa) |
 
-Nada do HUD recebe clique, salvo o que uma funcionalidade pedir (ex.: aceitar convite): o cursor fica preso à câmera durante o jogo. Com o menu do Esc ou o mapa aberto, o HUD continua visível por baixo, sem atualizar animações de aviso atrasadas (um aviso que já venceu não aparece ao fechar o menu).
+Nada do HUD recebe clique, salvo o que uma funcionalidade pedir (ex.: aceitar convite): o cursor fica preso à câmera durante o jogo. Com o menu do Esc aberto, o HUD continua visível por baixo, sem atualizar animações de aviso atrasadas (um aviso que já venceu não aparece ao fechar o menu). **Direção aprovada para o mapa, pendente da #506:** o mapa ocupa a tela inteira e oculta a HUD do personagem; só os controles e informações do mapa ficam sobre ele.
+
+O bloco de recursos e experiência deve permanecer legível sem competir com o chat. A distância entre eles acompanha a altura resolvida do bloco inferior, inclusive com texto ampliado; em largura estreita, ambos têm limite de largura relativo à área disponível. Conferir o conjunto em 1280 × 720, 1920 × 1080, 2560 × 1440, 960 × 720 e 640 × 720.
 
 #### Lista do grupo
 

@@ -39,7 +39,7 @@ namespace JogoDoGrupo.Client.Features.Personagem
             trilho.Add(_preenchimento);
             _raiz.Add(_rotulo);
             _raiz.Add(trilho);
-            regiao.Insert(0, _raiz);
+            regiao.Add(_raiz);
 
             ProgressoDoClient.Estado.Mudou += Atualizar;
             Atualizar();

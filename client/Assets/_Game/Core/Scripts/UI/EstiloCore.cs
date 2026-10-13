@@ -206,6 +206,9 @@ namespace JogoDoGrupo.Client.Core.UI
         /// <summary>Região do canto inferior esquerdo (barras do personagem).</summary>
         public const string HudInferiorEsquerda = "hud-inferior-esquerda";
 
+        /// <summary>Região do chat, acima dos recursos e da experiência.</summary>
+        public const string HudChat = "hud-chat";
+
         /// <summary>Região da lateral esquerda, do meio para cima (lista do grupo).</summary>
         public const string HudLateralEsquerda = "hud-lateral-esquerda";
 

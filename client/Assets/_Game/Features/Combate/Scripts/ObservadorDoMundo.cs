@@ -76,7 +76,8 @@ namespace JogoDoGrupo.Client.Features.Combate
             container.pickingMode = PickingMode.Ignore;
             documento.rootVisualElement.Add(container);
 
-            var painel = new PainelRecursos(container);
+            var regiaoRecursos = Hud.Regiao(RegiaoDoHud.InferiorEsquerda) ?? container;
+            var painel = new PainelRecursos(regiaoRecursos);
             var prontidao = new ProntidaoLocal();
             var controle = raiz.AddComponent<ControleRecursos>();
             controle.Configurar(personagemId, painel, prontidao);

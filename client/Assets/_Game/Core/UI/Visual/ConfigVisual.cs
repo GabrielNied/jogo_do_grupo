@@ -84,6 +84,7 @@ namespace JogoDoGrupo.Client.Core.Visual
             public const int LogoLargura = 210;
             public const int LogoAltura = 72;
             public const int ChatAltura = 160;
+            public const int HudChatBase = 246;
             public const int PranchaPercentual = 45;
             public const int DialogoPercentual = 90;
             public const int ComparacaoAltura = 300;
