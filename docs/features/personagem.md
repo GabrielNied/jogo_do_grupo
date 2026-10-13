@@ -86,7 +86,7 @@ Refinam a especialização e complementam os principais. Cada um é independente
 ### Personagem e equipamento
 
 - **Atributos do personagem:** o que o jogador investiu na [árvore](talentos.md).
-- **Atributos do equipamento:** pertencem ao item e evoluem pelas regras de [itens](itens.md) (tier, fusão). Não dão ponto da árvore, não sobem nó, não abrem caminho e não são convertidos em Força, Vigor, Agilidade, Intelecto ou Espírito. A lista de atributos próprios dos itens é a [#623](https://github.com/GabrielNied/jogo_do_grupo/issues/623).
+- **Atributos do equipamento:** pertencem ao item e evoluem pelas regras de [itens](itens.md) (tier, fusão). Não dão ponto da árvore, não sobem nó, não abrem caminho e não são convertidos em Força, Vigor, Agilidade, Intelecto ou Espírito. O item também tem atributos com esses cinco nomes, mas eles são do item: cada um vira número de combate pela sua própria conversão e nunca soma no atributo do personagem. Lista e conversão em [itens, Atributos dos equipamentos](itens.md#atributos-dos-equipamentos); a implementação é a [#623](https://github.com/GabrielNied/jogo_do_grupo/issues/623).
 - Trocar de equipamento não muda os pontos investidos nem pede redistribuição.
 - Personagem, equipamento e propriedades das skills interagem no combate, pelas fórmulas do [Combate](combate.md).
 
