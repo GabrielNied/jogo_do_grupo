@@ -14,7 +14,8 @@ namespace JogoDoGrupo.Client.Features.Itens.Tests
             var texto = TextosEquipamento.Descrever(new EntradaInventario { Equipamento = volta });
             StringAssert.Contains("Talismã do Olho Longo", texto);
             StringAssert.Contains("Família Batedor/Olho Longo · variante B", texto);
-            StringAssert.Contains("Vigor 10/100", texto);
+            // Olho Longo: Agilidade é o principal da família; o catálogo traz o valor 0 (#640).
+            StringAssert.Contains("Agilidade 0/100", texto);
         }
 
         [Test]
