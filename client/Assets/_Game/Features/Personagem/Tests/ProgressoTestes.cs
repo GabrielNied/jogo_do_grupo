@@ -61,6 +61,22 @@ namespace JogoDoGrupo.Client.Features.Personagem.Tests
             Assert.AreEqual(6, nivel);
         }
 
+        [Test]
+        public void TextoDaBarraNoHud_NoMaximo_MostraRotuloDeTeto()
+        {
+            var estado = new EstadoDeProgresso();
+            estado.Aplicar(
+                Progresso(nivel: RegrasExperiencia.NivelMaximo, xp: 0, custo: 1, livres: 0)
+            );
+
+            var texto = TextosPersonagem.TextoDaBarraNoHud(
+                estado,
+                estado.Nivel >= RegrasExperiencia.NivelMaximo
+            );
+
+            Assert.That(texto, Does.Contain(TextosPersonagem.NivelMaximo));
+        }
+
         private static ProgressoResponse Progresso(int nivel, long xp, long custo, int livres) =>
             new ProgressoResponse
             {

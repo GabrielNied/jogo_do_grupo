@@ -51,6 +51,11 @@ namespace JogoDoGrupo.Client.Features.Personagem
         /// <summary>Frase de seleção da raça, em destaque.</summary>
         public const string CartaoCitacao = "personagem-cartao-citacao";
 
+        public const string HudBarraXp = "personagem-hud-barra-xp";
+        public const string HudBarraXpRotulo = "personagem-hud-barra-xp-rotulo";
+        public const string HudBarraXpTrilho = "personagem-hud-barra-xp-trilho";
+        public const string HudBarraXpPreenchimento = "personagem-hud-barra-xp-preenchimento";
+
         /// <summary>Adiciona o USS de Personagem à raiz da tela.</summary>
         public static void Aplicar(VisualElement raiz)
         {
