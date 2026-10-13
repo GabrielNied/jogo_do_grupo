@@ -465,7 +465,7 @@ public class ServidorTempoRealTestes(TempoRealFixture f) : IClassFixture<TempoRe
         Assert.Equal(DisconnectReason.RemoteConnectionClose, info.Reason);
         Assert.Contains(
             f.Recusadas,
-            r => r.Motivo == MotivoRecusa.LimiteExcedido && !r.Sessao.Autenticada
+            r => r.Motivo == MotivoRecusa.NaoAutenticada && !r.Sessao.Autenticada
         );
     }
 

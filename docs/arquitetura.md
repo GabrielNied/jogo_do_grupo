@@ -149,8 +149,9 @@ private void AoEntrar(SessaoTempoReal sessao, EntrarNaCidade _) =>
 ```
 
 - **Faixa:** `RegistrarMensagens` (opcional em `IFeatureModule`, roda antes de `Inicializar`) reserva a faixa e registra um manipulador por ID. Faixa sobreposta, faixa do Core, ID fora da faixa ou ID repetido impedem o servidor de subir.
-- **Recusa:** mensagem com ID fora de qualquer faixa registrada, sem manipulador, com JSON inválido ou de conexão não autenticada é descartada (a conexão continua) e dispara `MensagemRecusada`.
+- **Recusa:** mensagem com ID fora de qualquer faixa registrada, sem manipulador, com JSON inválido ou de conexão não autenticada é descartada (a conexão continua até o limite de recusas) e dispara `MensagemRecusada`.
 - **Limite por conexão:** cada conexão, autenticada ou não, pode mandar em média `TempoReal:MensagensPorSegundo` pacotes (60) com rajada de `TempoReal:RajadaMensagens` (120). Acima disso o servidor registra um aviso no log com a conta, dispara `MensagemRecusada` com `LimiteExcedido` e derruba a conexão (proteção contra trapaça, #211).
+- **Proteções de entrada:** limites de tamanho, profundidade JSON, recusas/exceções, tentativas de autenticação e conexões pendentes por IP ficam em `TempoReal`. Padrões e fronteira da remontagem de fragmentos estão no [ADR 0036](decisoes/0036-limites-do-protocolo-udp.md). Acima do máximo, a sessão encerra pelo caminho comum.
 - **Sessão:** `SessaoTempoReal` traz `Id`, `ContaId` e `PersonagemId`. `contexto.TempoReal.Sessoes` lista as autenticadas.
 - **Envio:** `Enviar(sessao, id, dto, entrega)` e `EnviarParaTodos(id, dto, entrega, exceto)`. `EntregaTempoReal.Confiavel` (padrão) chega sempre e na ordem; `Sequenciada` pode se perder e descarta pacote velho (use para posição). `Desconectar(sessao)` encerra.
 - **Eventos:** `SessaoAutenticada` e `SessaoEncerrada` (saiu, caiu depois de `TempoReal:TempoQuedaMs`, foi substituída ou desconectada).

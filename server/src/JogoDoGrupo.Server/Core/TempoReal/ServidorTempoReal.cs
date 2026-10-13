@@ -59,13 +59,24 @@ public sealed class ServidorTempoReal : BackgroundService
         _log = log;
 
         var ouvinte = new EventBasedNetListener();
-        ouvinte.ConnectionRequestEvent += pedido => pedido.AcceptIfKey(_configuracao.ChaveConexao);
-        ouvinte.PeerConnectedEvent += peer =>
-            _conexoes[peer.Id] = new SessaoTempoReal(
-                peer,
-                _configuracao.MensagensPorSegundo,
-                _configuracao.RajadaMensagens
+        ouvinte.ConnectionRequestEvent += pedido =>
+        {
+            var pendentes = _conexoes.Values.Count(s =>
+                !s.Autenticada && s.Peer.Address.Equals(pedido.RemoteEndPoint.Address)
             );
+            if (pendentes >= _configuracao.MaximoConexoesPendentesPorIp)
+            {
+                pedido.Reject();
+                return;
+            }
+            var peer = pedido.AcceptIfKey(_configuracao.ChaveConexao);
+            if (peer != null)
+                _conexoes[peer.Id] = new SessaoTempoReal(
+                    peer,
+                    _configuracao.MensagensPorSegundo,
+                    _configuracao.RajadaMensagens
+                );
+        };
         ouvinte.PeerDisconnectedEvent += (peer, _) =>
         {
             if (_conexoes.TryGetValue(peer.Id, out var sessao) && sessao.Peer == peer)
@@ -77,6 +88,11 @@ public sealed class ServidorTempoReal : BackgroundService
         {
             if (_conexoes.TryGetValue(peer.Id, out var sessao) && sessao.Peer == peer)
             {
+                if (leitor.AvailableBytes > _configuracao.TamanhoMaximoPacote)
+                {
+                    Recusar(sessao, 0, MotivoRecusa.PacoteInvalido);
+                    return;
+                }
                 Receber(sessao, leitor.GetRemainingBytes());
             }
         };
@@ -219,6 +235,12 @@ public sealed class ServidorTempoReal : BackgroundService
             return;
         }
 
+        if (!ProtocoloTempoReal.CorpoValido(pacote, _configuracao.ProfundidadeMaximaJson))
+        {
+            Recusar(sessao, id, MotivoRecusa.CorpoInvalido);
+            return;
+        }
+
         if (CoreMessageIds.Faixa.Contem(id))
         {
             // AutenticarTempoReal de quem já entrou, ou ID do Core sem uso.
@@ -239,6 +261,8 @@ public sealed class ServidorTempoReal : BackgroundService
                 id,
                 sessao.ContaId
             );
+            if (++sessao.Excecoes > _configuracao.MaximoExcecoesPorSessao)
+                Encerrar(sessao, desconectar: true);
             return;
         }
 
@@ -270,12 +294,19 @@ public sealed class ServidorTempoReal : BackgroundService
             return;
         }
 
+        if (++sessao.TentativasAutenticacao > _configuracao.MaximoTentativasAutenticacao)
+        {
+            Encerrar(sessao, desconectar: true);
+            return;
+        }
         if (sessao.AutenticacaoEmAndamento)
         {
             return;
         }
 
-        var pedido = ProtocoloTempoReal.LerCorpo<AutenticarTempoReal>(pacote);
+        var pedido = ProtocoloTempoReal.CorpoValido(pacote, _configuracao.ProfundidadeMaximaJson)
+            ? ProtocoloTempoReal.LerCorpo<AutenticarTempoReal>(pacote)
+            : null;
         if (pedido == null)
         {
             Recusar(sessao, id, MotivoRecusa.CorpoInvalido);
@@ -358,7 +389,6 @@ public sealed class ServidorTempoReal : BackgroundService
         {
             if (
                 !sessao.Autenticada
-                && !sessao.AutenticacaoEmAndamento
                 && agora - sessao.ConectadaEm > _configuracao.TempoParaAutenticarMs
             )
             {
@@ -410,6 +440,8 @@ public sealed class ServidorTempoReal : BackgroundService
             motivo,
             sessao.Id
         );
+        if (++sessao.Recusas > _configuracao.MaximoRecusasPorSessao)
+            Encerrar(sessao, desconectar: true);
         if (MensagemRecusada == null)
         {
             return;

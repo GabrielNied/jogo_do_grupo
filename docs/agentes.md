@@ -38,6 +38,8 @@ Cenas, prefabs e assets saem dos próprios agentes, pelo Unity (script de editor
 
 ## Prioridade das tarefas
 
+Para edição e validação no Windows, siga a [lição sobre codificação e testes concorrentes](licoes.md#2026-10-11--edição-e-testes-no-windows).
+
 Decidida pelo grupo em 2026-10-11. Cada issue aberta tem um rótulo `prio:*`; ao escolher, vá da menor para a maior, respeitando o [foco do marco](features/fatia-jogavel.md#foco-atual) e o limite de 3 funcionalidades:
 
 1. `prio:1-erros`: tratamento de erros e bugs (o que quebra, perde dado ou trava o jogador).

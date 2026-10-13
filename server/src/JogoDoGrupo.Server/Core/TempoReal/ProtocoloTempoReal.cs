@@ -18,6 +18,24 @@ public static class ProtocoloTempoReal
         PropertyNamingPolicy = null,
     };
 
+    // L� tokens sem construir DTOs; inclui propriedades desconhecidas no limite.
+    internal static bool CorpoValido(ReadOnlySpan<byte> pacote, int profundidadeMaxima)
+    {
+        try
+        {
+            var leitor = new Utf8JsonReader(
+                pacote[TamanhoCabecalho..],
+                new JsonReaderOptions { MaxDepth = profundidadeMaxima }
+            );
+            while (leitor.Read()) { }
+            return leitor.BytesConsumed > 0;
+        }
+        catch (JsonException)
+        {
+            return false;
+        }
+    }
+
     public static byte[] Codificar<T>(ushort id, T mensagem)
     {
         var corpo = JsonSerializer.SerializeToUtf8Bytes(mensagem, Json);

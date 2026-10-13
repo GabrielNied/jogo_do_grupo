@@ -22,6 +22,10 @@ public sealed class SessaoTempoReal
 
     internal LimiteDeMensagens Limite { get; }
 
+    internal int Recusas { get; set; }
+    internal int Excecoes { get; set; }
+    internal int TentativasAutenticacao { get; set; }
+
     internal bool AutenticacaoEmAndamento { get; set; }
 
     /// <summary>Identificador da conexão enquanto ela está ativa.</summary>
