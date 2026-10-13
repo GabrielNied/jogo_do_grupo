@@ -36,6 +36,10 @@ public sealed class ServidorDeTeste : WebApplicationFactory<Program>
         // Cada servidor de teste escuta o UDP numa porta livre, só no loopback.
         builder.UseSetting("TempoReal:Porta", "0");
         builder.UseSetting("TempoReal:Endereco", "127.0.0.1");
+        // O baú exige estar perto e respeita a recarga (#492); os testes que só precisam de
+        // itens abrem sem posição nem espera. Os de posição e recarga ligam de novo.
+        builder.UseSetting("Itens:Bau:ExigirPosicao", "false");
+        builder.UseSetting("Itens:Bau:RecargaSegundos", "0");
         // O hash de senha de produção (PBKDF2, 100 mil iterações) custa dezenas de ms de CPU por
         // registro e login; com centenas de testes criando conta, essa carga atrasava os testes de
         // tempo real que rodam ao lado. Nos testes, uma iteração basta (o formato não muda).
