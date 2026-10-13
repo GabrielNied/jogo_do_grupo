@@ -232,7 +232,7 @@ Quem decide: **servidor**. O client envia o texto e o canal; o servidor valida, 
 - Painel no canto inferior esquerdo, acima das barras do personagem, mostrando as últimas **8** linhas; cada linha com a hora, o canal e o nome. Sem atividade por **10 s**, o painel fica quase transparente.
 - **Enter** abre a caixa de texto; **Enter** de novo envia; **Esc** fecha sem enviar. Com a caixa aberta, as ações do jogo não disparam (mesma regra do menu, [interface.md](interface.md)).
 - A mensagem sem comando vai para o **último canal usado** (o primeiro é Cidade). `/r texto` responde ao último sussurro recebido.
-- Comando desconhecido não é enviado ao servidor: aparece uma linha de Sistema explicando.
+- Comando desconhecido não é enviado ao servidor: aparece uma linha de Sistema explicando. **`/comandos`** lista chat e, no editor ou build de desenvolvimento, os [comandos de teste](desenvolvimento.md). **Tab** completa o verbo depois de `/`.
 - ~~A tecla Enter para abrir o chat entra na tabela de teclas e atalhos quando o chat for implementado.~~ A tecla Enter já está na tabela de [teclas e atalhos](interface.md#teclas-e-atalhos) (client do chat, #240).
 - No client, o painel fica na região inferior esquerda do HUD; o histórico de 100 linhas e a lista de ignorados (PlayerPrefs, neste computador) valem enquanto o jogo está aberto. Lacunas do Core: os atalhos de janela (letras) e o Esc ainda disparam com a caixa aberta, e as mensagens de sistema do HUD ainda não são repetidas no chat (pendências do `client-core`).
 

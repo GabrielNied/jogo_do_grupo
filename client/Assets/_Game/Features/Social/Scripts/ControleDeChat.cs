@@ -1,5 +1,6 @@
 using System;
 using JogoDoGrupo.Client.Core.Jogo;
+using JogoDoGrupo.Client.Core.Jogo.Chat;
 using JogoDoGrupo.Client.Core.Jogo.Controle;
 using JogoDoGrupo.Client.Core.Jogo.Janelas;
 using UnityEngine;
@@ -36,6 +37,9 @@ namespace JogoDoGrupo.Client.Features.Social
             _servico.Mudou += Redesenhar;
             _painel.EnterApertado += AoApertarEnter;
             _painel.EscApertado += AoApertarEsc;
+            _painel.CompletarTexto += CompletadorDeComandosDeChat.Completar;
+            ChatDoJogo.AbrirCaixaDeTexto = AbrirComTexto;
+            ChatDoJogo.AlternarCaixaDeTexto = AlternarCaixa;
             BloqueioDeEntradaPorTexto.RegistrarBloqueioDeAtalhos(() => _painel.Aberta);
             Redesenhar();
         }
@@ -55,6 +59,16 @@ namespace JogoDoGrupo.Client.Features.Social
             if (_servico != null)
             {
                 _servico.Mudou -= Redesenhar;
+            }
+
+            if (ChatDoJogo.AbrirCaixaDeTexto == AbrirComTexto)
+            {
+                ChatDoJogo.AbrirCaixaDeTexto = null;
+            }
+
+            if (ChatDoJogo.AlternarCaixaDeTexto == AlternarCaixa)
+            {
+                ChatDoJogo.AlternarCaixaDeTexto = null;
             }
 
             _enter?.Dispose();
@@ -85,9 +99,40 @@ namespace JogoDoGrupo.Client.Features.Social
 
         private void Abrir()
         {
+            AbrirComTexto("");
+        }
+
+        private void AlternarCaixa()
+        {
+            if (_painel == null || !EntradaNoJogo.NoJogo || JanelasDoJogo.AlgoAberto)
+            {
+                return;
+            }
+
+            if (_painel.Aberta)
+            {
+                Fechar(true);
+                return;
+            }
+
+            AbrirComTexto("/");
+        }
+
+        private void AbrirComTexto(string textoInicial)
+        {
+            if (_painel == null || !EntradaNoJogo.NoJogo || JanelasDoJogo.AlgoAberto)
+            {
+                return;
+            }
+
             _frameDaAbertura = Time.frameCount;
             _atividade.Registrar(Agora());
             _painel.Abrir();
+            if (!string.IsNullOrEmpty(textoInicial))
+            {
+                _painel.Texto = textoInicial;
+            }
+
             DefinirJogoAtivo(false);
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using JogoDoGrupo.Client.Core.Jogo;
+using JogoDoGrupo.Client.Core.Jogo.Chat;
 using JogoDoGrupo.Client.Core.TempoReal;
 using JogoDoGrupo.Shared.Features.Social;
 using UnityEngine;
@@ -89,6 +90,7 @@ namespace JogoDoGrupo.Client.Features.Social
                 )
             );
             AvisosDoJogo.Mostrado += AoMostrarAviso;
+            ChatDoJogo.AdicionarLinhaSistema = texto => _servico?.AdicionarSistema(texto);
         }
 
         private sealed class ArmazenamentoVazio : IArmazenamentoDeTexto
@@ -103,6 +105,7 @@ namespace JogoDoGrupo.Client.Features.Social
 
         private void OnDestroy()
         {
+            ChatDoJogo.AdicionarLinhaSistema = null;
             AvisosDoJogo.Mostrado -= AoMostrarAviso;
             foreach (var assinatura in _assinaturas)
             {

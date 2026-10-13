@@ -83,6 +83,9 @@ namespace JogoDoGrupo.Client.Features.Social
         /// <summary>Esc apertado com a caixa aberta.</summary>
         public event Action EscApertado;
 
+        /// <summary>Tab: devolve o texto completo sugerido ou null.</summary>
+        public event Func<string, string> CompletarTexto;
+
         public bool Aberta => _campo.style.display == DisplayStyle.Flex;
 
         public string Texto
@@ -150,7 +153,22 @@ namespace JogoDoGrupo.Client.Features.Social
                     BloqueioDeEntradaPorTexto.EscConsumidoNesteFrame = true;
                     EscApertado?.Invoke();
                     break;
+                case KeyCode.Tab:
+                    evento.StopPropagation();
+                    TentarCompletar();
+                    break;
             }
+        }
+
+        private void TentarCompletar()
+        {
+            var sugestao = CompletarTexto?.Invoke(Texto);
+            if (string.IsNullOrEmpty(sugestao))
+            {
+                return;
+            }
+
+            Texto = sugestao;
         }
     }
 }
