@@ -161,7 +161,9 @@ Decidido por Gabriel em 2026-10-12 ([especificação de poderes e sets](../brain
 - **PODER-003:** o poder declara de forma explícita o que afeta. Não vale "afeta tudo da mesma arma ou categoria".
 - **PODER-004:** a definição do poder traz: skills, categorias ou propriedades compatíveis; condição de ativação; efeito; alvos; duração e limites; interação com outros poderes; regra de acumulação; condição de encerramento; restrições.
 - **PODER-005:** poderes e bônus de set **não entram no tier** (DEC-004); a fusão preserva os poderes do item principal (DEC-003).
-- **SET-001:** set é um grupo de peças relacionadas com bônus pela quantidade **equipada** (marcos de exemplo: 2 peças aprimoram uma mecânica, 4 criam sinergia entre skills, 6 transformam a build; nem todo set precisa ter os três).
+- **PODER-006 (decidido em 2026-10-12):** o poder é **sorteado** de um catálogo compatível. Cada modelo-base declara quais categorias de poder pode receber; ao obter o item, o servidor sorteia o poder entre as opções válidas para aquele modelo e grava no exemplar, onde fica fixo. Modelo pode ter poder exclusivo quando isso fizer parte da identidade dele.
+- **PODER-007 (decidido em 2026-10-12):** só recebe poder lendário o modelo que declara categorias de poder; nem todo equipamento tem poder. O item sem poder continua com atributos numéricos e pode fazer parte de um set. Cada item tem no máximo um poder. Os bônus de set são independentes dos poderes individuais.
+- **SET-001:** set é um grupo de peças próprias com bônus pela quantidade **equipada**. Marcos: **2 peças**, bônus inicial que favorece uma mecânica ou estilo; **4 peças**, especialização que amplia ou transforma essa mecânica; **6 peças** só em sets que justifiquem, com efeito avançado que define uma combinação. A lista de sets, peças e bônus é definida set a set, na criação do conteúdo.
 - **SET-002:** cada peça mantém seus atributos e poderes; o bônus de set independe do tier; misturar peças de sets diferentes é livre; nenhum set é obrigatório nem superior para qualquer build.
 - **SET-003:** os bônus são recalculados quando o equipamento muda.
 - **Técnico:** definição de poder e de set separada do exemplar, em dados; condições e efeitos explícitos, sem regra espalhada pelo código; o servidor valida e aplica (autoridade); sem ciclo infinito de ativação; acumulação, duração e remoção controladas; efeitos atualizados ao equipar e desequipar. Sem arquitetura de plugins, scripts ou eventos complexos antes de a necessidade aparecer.
@@ -175,17 +177,14 @@ Decidido por Gabriel em 2026-10-12 ([especificação de poderes e sets](../brain
 | Luvas | ofensiva e sequências | combos, golpes seguidos ou carregados, críticos |
 | Calça | sobrevivência e sustentação | mitigação, escudos, contra-ataque, luta longa |
 | Botas | mobilidade e posicionamento | esquiva, investida, efeito ao atravessar inimigos |
-| Adorno (o "amuleto" da especificação, proposta) | modificadores amplos de build | categorias e elementos, geração e consumo de recurso |
+| Adorno (o "amuleto" da especificação, decidido em 2026-10-12: mesmo encaixe, sem categoria nova; segue as regras gerais dos acessórios) | modificadores amplos de build | categorias e elementos, geração e consumo de recurso |
 | Anel | gatilhos e condições | inimigo marcado ou debilitado, recarga sob condição |
-| Cinto, Brinco | **Pendente** (a especificação não cobre) | |
+| Cinto | recursos, sustentação e sobrevivência | vida, estamina, mana, regeneração, efeitos ligados ao uso de skills |
+| Brinco | especialização e efeitos secundários | chance crítica, velocidade de ataque, penetração, modificadores condicionais |
 
 **Exemplo** (ilustrativo, não é regra de balanceamento): arma com Investida Trovejante, Corte Relâmpago e Explosão Elétrica; o peito faz a investida marcar, as luvas fazem golpes seguidos fortalecerem a próxima skill, as botas fazem a esquiva fortalecer a investida e o anel faz acerto em marcado reduzir uma recarga. O jogador prepara, encadeia e fecha com a área.
 
-**Proposta** (até decidir):
-
-- "Lendário" não é raridade sorteada (a raridade saiu): é o item cujo **modelo-base declara um poder**. O poder do exemplar é gravado na geração.
-- No máximo um poder por peça.
-- As famílias do catálogo (Vigia, Bastião, Predador, Ruptor, Aurora, Tempestade, Batedor, Olho Longo), cada uma com nove peças, são os primeiros sets.
+**Lendário:** não é raridade sorteada (a raridade saiu); é o item cujo modelo-base declara categorias de poder (PODER-006 e PODER-007). ~~As famílias do catálogo são os primeiros sets~~ (substituído em 2026-10-12: os sets são definidos set a set no conteúdo, SET-001).
 
 #### Pendente
 
@@ -197,7 +196,7 @@ Precisa de decisão do Gabriel. Até lá, vale a proposta indicada.
 - ~~**Nível da peça e XP da peça**~~ decidido em 2026-10-12: fixo em 1 até existir progressão própria; não é regra central.
 - ~~**Descarte**~~ decidido em 2026-10-12: destino válido (ITEM-002 e ITEM-004).
 - **Atributos de cada categoria de peça** e a conversão de cada um para o combate: [#623](https://github.com/GabrielNied/jogo_do_grupo/issues/623).
-- **Poderes e sets:** o que torna um item "lendário"; se o poder é fixo do modelo-base ou sorteado de um catálogo compatível com a peça; quantos poderes por peça; foco do Cinto e do Brinco; se o Adorno é o amuleto; quais sets existem e os bônus de cada um ([#629](https://github.com/GabrielNied/jogo_do_grupo/issues/629), [#630](https://github.com/GabrielNied/jogo_do_grupo/issues/630)). Até lá vale a proposta de [Poderes e sets](#poderes-e-sets).
+- ~~**Poderes e sets:** poder fixo ou sorteado, foco do Cinto e do Brinco, marcos dos sets, Adorno como amuleto, quem tem poder~~ decididos em 2026-10-12 (PODER-006, PODER-007, SET-001, tabela de foco). O conteúdo de cada set vem na criação dos sets ([#630](https://github.com/GabrielNied/jogo_do_grupo/issues/630)).
 - **Materiais:** nomes, quantidades e fontes ([#617](https://github.com/GabrielNied/jogo_do_grupo/issues/617)); a raid ainda não tem issue.
 - **Venda, negociação e vinculação**, e fontes de coroas ([#173](https://github.com/GabrielNied/jogo_do_grupo/issues/173)).
 
