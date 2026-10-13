@@ -55,6 +55,7 @@ namespace JogoDoGrupo.Client.Features.Itens
 #pragma warning disable CS0067 // só é disparado em editor/build de desenvolvimento
         public event Action<int> ItemDeTestePedido;
 #pragma warning restore CS0067
+        public event Action LimpezaDeTestePedida;
         public event Action<long> ItemVisto;
 
         public PainelInventario(VisualElement conteudo)
@@ -539,6 +540,18 @@ namespace JogoDoGrupo.Client.Features.Itens
             );
             obter.SetEnabled(!_ocupado);
             _rodape.Add(obter);
+            var limpar = Botao(
+                "Limpar inventário",
+                () =>
+                    MostrarConfirmacao(
+                        "Isso destrói todos os itens da bolsa e os equipamentos de vez. Confirmar?",
+                        "Confirmar limpeza",
+                        () => LimpezaDeTestePedida?.Invoke(),
+                        null
+                    )
+            );
+            limpar.SetEnabled(!_ocupado);
+            _rodape.Add(limpar);
 #endif
         }
 

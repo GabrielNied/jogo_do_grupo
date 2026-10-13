@@ -67,7 +67,12 @@ internal static class EquipamentosRotas
             )
             .RequireAuthorization();
         if (rotas.ServiceProvider.GetRequiredService<IHostEnvironment>().IsDevelopment())
+        {
             rotas.MapPost(RegrasEquipamentos.Rota + "/bau-teste", BauAsync).RequireAuthorization();
+            rotas
+                .MapPost(RegrasEquipamentos.Rota + "/limpar-teste", LimparTesteAsync)
+                .RequireAuthorization();
+        }
     }
 
     private static IResult Erro(string codigo, int status = 409) =>
@@ -292,6 +297,61 @@ internal static class EquipamentosRotas
         var estado = await db.Set<EstadoEquipamentos>().FindAsync(new object[] { id }, c);
         await transacao.CommitAsync(c);
         return Results.Ok(Resposta(itens, estado?.ConjuntoAtivo ?? 1));
+    }
+
+    private static async Task<IResult> LimparTesteAsync(
+        string personagemId,
+        ClaimsPrincipal usuario,
+        JogoDbContext db,
+        IConfiguration configuracao,
+        IHostEnvironment ambiente,
+        VisualEquipadoServico visual,
+        CancellationToken c
+    )
+    {
+        var contaId = usuario.ObterContaId();
+        var contas = configuracao.GetSection("Desenvolvimento:Contas").Get<long[]>() ?? [];
+        if (
+            !ambiente.IsDevelopment()
+            || !configuracao.GetValue<bool>("Desenvolvimento:PermitirComandos")
+            || (contas.Length > 0 && !contas.Contains(contaId))
+        )
+            return Erro("ComandoDeTesteDesligado", 403);
+
+        await using var transacao = await db.Database.BeginTransactionAsync(
+            IsolationLevel.Serializable,
+            c
+        );
+        if (!await ItensRotas.PersonagemDaContaAsync(personagemId, contaId, db, c))
+            return Erro(CodigosErroItens.PersonagemNaoEncontrado, 404);
+
+        var id = long.Parse(personagemId, System.Globalization.CultureInfo.InvariantCulture);
+        var itens = await db.Set<ItemInventario>()
+            .Where(i => i.PersonagemId == id)
+            .OrderBy(i => i.Id)
+            .ToListAsync(c);
+        var estado = await db.Set<EstadoEquipamentos>().FindAsync(new object[] { id }, c);
+        var conjunto = estado?.ConjuntoAtivo ?? 1;
+        db.RemoveRange(itens);
+        await db.SaveChangesAsync(c);
+        await transacao.CommitAsync(c);
+
+        visual.Publicar(
+            RegrasVisualEquipado.Montar(id, conjunto, Array.Empty<EntradaInventario>())
+        );
+        return Results.Ok(
+            new EquipamentosResponse
+            {
+                Inventario = Array.Empty<EntradaInventario>(),
+                Equipados = Array.Empty<EntradaInventario>(),
+                Capacidade = Bolsa.CapacidadeDe(id),
+                ConjuntoAtivo = conjunto,
+                Atributos = RegrasAtributosDeItem.Resumir(
+                    Array.Empty<EntradaInventario>(),
+                    conjunto
+                ),
+            }
+        );
     }
 
     internal static EquipamentosResponse Resposta(IEnumerable<ItemInventario> itens, int conjunto)

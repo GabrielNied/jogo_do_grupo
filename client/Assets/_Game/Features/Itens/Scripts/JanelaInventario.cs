@@ -106,6 +106,12 @@ namespace JogoDoGrupo.Client.Features.Itens
                     null,
                     null
                 );
+            _painel.LimpezaDeTestePedida += () =>
+                _ = Postar(
+                    RegrasEquipamentos.RotaDe(EntradaNoJogo.PersonagemId) + "/limpar-teste",
+                    null,
+                    null
+                );
             _painel.ItemVisto += id => _novos.Remove(id);
             _fusao = new PainelFusao(_areaFusao, EnviarFusao);
         }

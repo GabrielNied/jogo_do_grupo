@@ -7,6 +7,7 @@ using JogoDoGrupo.Shared.Core.Api;
 using JogoDoGrupo.Shared.Features.Combate;
 using JogoDoGrupo.Shared.Features.Itens;
 using JogoDoGrupo.Shared.Features.Personagem;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -57,6 +58,85 @@ public class EquipamentosRotasTestes(ServidorDeTeste servidor) : IClassFixture<S
                 ).StatusCode
             );
         Assert.Empty((await Ler(cliente, id)).Inventario);
+    }
+
+    [Fact]
+    public async Task LimparInventarioDeTesteApagaBolsaEEquipamentosPreservandoConjuntoAtivo()
+    {
+        using var fabrica = servidor.WithWebHostBuilder(builder =>
+            builder.UseSetting("Desenvolvimento:PermitirComandos", "true")
+        );
+        var cliente = await ServidorDeTeste.CriarClienteLogadoEmAsync(fabrica);
+        var personagem = await ServidorDeTeste.PostJsonAsync(
+            cliente,
+            RotasPersonagem.Personagens,
+            new CriarPersonagemRequest { Nome = ServidorDeTeste.NomeUnico(), Raca = Raca.Valdren }
+        );
+        var id = (await ServidorDeTeste.LerJsonAsync<PersonagemResumo>(personagem)).Id;
+        var equipado = await Item(id, 100);
+        var naBolsa = await Item(id, 101);
+        (await Equipar(cliente, id, equipado, PosicaoEquipamento.Arma1)).EnsureSuccessStatusCode();
+        (
+            await ServidorDeTeste.PostJsonAsync(
+                cliente,
+                RegrasEquipamentos.RotaDe(id) + "/conjunto",
+                new PedidoConjunto { Conjunto = 2 }
+            )
+        ).EnsureSuccessStatusCode();
+        var antes = await Ler(cliente, id);
+        Assert.Equal(naBolsa, Assert.Single(antes.Inventario).InstanciaId);
+        Assert.Equal(equipado, Assert.Single(antes.Equipados).InstanciaId);
+
+        var resposta = await cliente.PostAsync(
+            RegrasEquipamentos.RotaDe(id) + "/limpar-teste",
+            null
+        );
+        resposta.EnsureSuccessStatusCode();
+        var estado = await ServidorDeTeste.LerJsonAsync<EquipamentosResponse>(resposta);
+
+        Assert.Empty(estado.Inventario);
+        Assert.Empty(estado.Equipados);
+        Assert.Equal(2, estado.ConjuntoAtivo);
+        Assert.Empty((await Ler(cliente, id)).Inventario);
+        using var escopo = servidor.Services.CreateScope();
+        var db = escopo.ServiceProvider.GetRequiredService<JogoDbContext>();
+        Assert.Empty(await db.Set<ItemInventario>().Where(i => i.PersonagemId == id).ToListAsync());
+    }
+
+    [Fact]
+    public async Task LimparInventarioDeTesteRecusaQuandoPoliticaDesligadaOuContaNaoPermitida()
+    {
+        using var fabricaDesligada = servidor.WithWebHostBuilder(builder =>
+            builder.UseSetting("Desenvolvimento:PermitirComandos", "false")
+        );
+        var cliente = await ServidorDeTeste.CriarClienteLogadoEmAsync(fabricaDesligada);
+        var personagem = await ServidorDeTeste.PostJsonAsync(
+            cliente,
+            RotasPersonagem.Personagens,
+            new CriarPersonagemRequest { Nome = ServidorDeTeste.NomeUnico(), Raca = Raca.Valdren }
+        );
+        var id = (await ServidorDeTeste.LerJsonAsync<PersonagemResumo>(personagem)).Id;
+        await Item(id, 101);
+        Assert.Equal(
+            HttpStatusCode.Forbidden,
+            (
+                await cliente.PostAsync(RegrasEquipamentos.RotaDe(id) + "/limpar-teste", null)
+            ).StatusCode
+        );
+
+        using var fabrica = servidor.WithWebHostBuilder(builder =>
+        {
+            builder.UseSetting("Desenvolvimento:PermitirComandos", "true");
+            builder.UseSetting("Desenvolvimento:Contas:0", "-1");
+        });
+        var outroCliente = await ServidorDeTeste.CriarClienteLogadoEmAsync(fabrica);
+        Assert.Equal(
+            HttpStatusCode.Forbidden,
+            (
+                await outroCliente.PostAsync(RegrasEquipamentos.RotaDe(id) + "/limpar-teste", null)
+            ).StatusCode
+        );
+        Assert.Single((await Ler(cliente, id)).Inventario);
     }
 
     private async Task<(HttpClient Cliente, long Id)> Personagem()
