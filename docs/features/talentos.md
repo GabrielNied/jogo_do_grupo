@@ -86,6 +86,7 @@ Quem decide: **servidor**. O client envia a intenção (comprar, redistribuir, c
 - **Combate:** junta as fontes por fórmula, sem converter atributo de item em ponto da árvore.
 - Atributo de equipamento não compra, não remove e não sobe rank de nó, não muda o orçamento de pontos e não abre nó. Tier e fusão não mudam a estrutura nem a escala da árvore.
 - Trocar equipamento pode mudar as skills disponíveis e, com isso, quais bônus condicionais estão ativos.
+- Poderes lendários e sets ([itens](itens.md#poderes-e-sets), [#629](https://github.com/GabrielNied/jogo_do_grupo/issues/629) e [#630](https://github.com/GabrielNied/jogo_do_grupo/issues/630)) também mudam as skills, mas são do equipamento: não dão ponto da árvore, não abrem nó e não viram atributo do personagem. Os nós da árvore leem as categorias e propriedades da skill já modificada, do mesmo jeito que leem as de uma skill-base.
 
 ### Redistribuição e perfis
 
