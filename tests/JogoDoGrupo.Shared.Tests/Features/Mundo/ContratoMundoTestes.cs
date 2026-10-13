@@ -14,6 +14,7 @@ public class ContratoMundoTestes
     [InlineData(MundoMessageIds.PosicaoJogador)]
     [InlineData(MundoMessageIds.JogadorEntrou)]
     [InlineData(MundoMessageIds.JogadorSaiu)]
+    [InlineData(MundoMessageIds.EstadoDaArea)]
     public void Id_esta_dentro_da_faixa_do_mundo(ushort id) =>
         Assert.True(
             MundoMessageIds.Faixa.Contem(id),
@@ -33,6 +34,7 @@ public class ContratoMundoTestes
             MundoMessageIds.PosicaoJogador,
             MundoMessageIds.JogadorEntrou,
             MundoMessageIds.JogadorSaiu,
+            MundoMessageIds.EstadoDaArea,
         };
         Assert.Equal(ids.Length, ids.Distinct().Count());
     }
@@ -54,6 +56,16 @@ public class ContratoMundoTestes
     public void EstadoDaCidade_outros_comecom_vazio_e_nao_nulo()
     {
         var msg = new EstadoDaCidade();
+        Assert.NotNull(msg.Eu);
+        Assert.NotNull(msg.Outros);
+        Assert.Empty(msg.Outros);
+    }
+
+    [Fact]
+    public void EstadoDaArea_comeca_com_area_e_jogadores_validos()
+    {
+        var msg = new EstadoDaArea();
+        Assert.Equal(string.Empty, msg.Area);
         Assert.NotNull(msg.Eu);
         Assert.NotNull(msg.Outros);
         Assert.Empty(msg.Outros);

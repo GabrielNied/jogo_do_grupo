@@ -5,11 +5,11 @@ using JogoDoGrupo.Shared.Features.Mundo;
 namespace JogoDoGrupo.Server.Features.Mundo;
 
 /// <summary>
-/// Teleporte do comando de teste. Usa <see cref="CidadeDoMundo{TSessao}.ForcarPosicao"/> e avisa
-/// quem está na cidade. Fora do mundo, ou com a pessoa ainda sem entrar, não move ninguém.
+/// Teleporte do comando de teste. Usa o estado da área atual e avisa quem está nela. Fora do
+/// mundo, ou com a pessoa ainda sem entrar, não move ninguém.
 /// </summary>
 internal sealed class TeleporteDeTeste(
-    CidadeDoMundo<SessaoTempoReal> cidade,
+    EstadoDasAreasDoMundo<SessaoTempoReal> areas,
     ServidorTempoReal tempoReal
 ) : ITeleporteDeTeste
 {
@@ -27,13 +27,16 @@ internal sealed class TeleporteDeTeste(
             return (false, recusa);
         }
 
-        var avatar = cidade.Obter(personagemId);
-        if (avatar == null)
+        var localizado = areas.Obter(personagemId);
+        if (localizado == null)
         {
             return (false, "Você não está no mundo.");
         }
 
-        var sequencia = cidade.ForcarPosicao(
+        var (area, avatar) = localizado.Value;
+        var estadoArea = areas.ObterOuCriar(area);
+
+        var sequencia = estadoArea.ForcarPosicao(
             personagemId,
             new PosicaoNaCidade(x, y, z, avatar.Posicao.RotacaoY)
         );
@@ -63,7 +66,7 @@ internal sealed class TeleporteDeTeste(
             Z = z,
             RotacaoY = avatar.Posicao.RotacaoY,
         };
-        foreach (var outro in cidade.Presentes())
+        foreach (var outro in estadoArea.Presentes())
         {
             if (!ReferenceEquals(outro.Sessao, avatar.Sessao))
             {

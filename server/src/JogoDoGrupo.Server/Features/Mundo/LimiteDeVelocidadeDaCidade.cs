@@ -4,9 +4,10 @@ using JogoDoGrupo.Server.Core.TempoReal;
 namespace JogoDoGrupo.Server.Features.Mundo;
 
 /// <summary>O teto de velocidade pedido por outra funcionalidade, guardado no estado da cidade.</summary>
-internal sealed class LimiteDeVelocidadeDaCidade(CidadeDoMundo<SessaoTempoReal> cidade)
+internal sealed class LimiteDeVelocidadeDaCidade(EstadoDasAreasDoMundo<SessaoTempoReal> areas)
     : ILimiteDeVelocidadeDoMundo
 {
     public bool LimitarVelocidade(long personagemId, double fator, double duracaoSegundos) =>
-        cidade.LimitarVelocidade(personagemId, fator, duracaoSegundos);
+        areas.ParaPersonagem(personagemId)?.LimitarVelocidade(personagemId, fator, duracaoSegundos)
+        ?? false;
 }

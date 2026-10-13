@@ -74,7 +74,8 @@ public sealed class CidadeDoMundo<TSessao>(Func<long> relogioMs)
     /// </summary>
     public (bool Novo, AvatarNaCidade<TSessao> Eu, AvatarNaCidade<TSessao>[] Outros) Entrar(
         long personagemId,
-        TSessao sessao
+        TSessao sessao,
+        PosicaoNaCidade? nascimento = null
     )
     {
         lock (_trava)
@@ -83,7 +84,7 @@ public sealed class CidadeDoMundo<TSessao>(Func<long> relogioMs)
             entrada = novo
                 ? new Entrada(
                     sessao,
-                    ValidadorDeMovimento.Nascimento,
+                    nascimento ?? ValidadorDeMovimento.Nascimento,
                     relogioMs(),
                     VelocidadesNaCidade.Padrao,
                     ValidadorDeMovimento.TetoDoOrcamento(VelocidadesNaCidade.Padrao.Maxima)

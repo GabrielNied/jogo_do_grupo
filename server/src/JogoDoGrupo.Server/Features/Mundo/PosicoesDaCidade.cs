@@ -3,25 +3,25 @@ using JogoDoGrupo.Server.Core.TempoReal;
 
 namespace JogoDoGrupo.Server.Features.Mundo;
 
-/// <summary>A consulta de posição do Mundo, respondida pelo estado da cidade.</summary>
-internal sealed class PosicoesDaCidade(CidadeDoMundo<SessaoTempoReal> cidade) : IPosicoesDoMundo
+/// <summary>A consulta de posição do Mundo, respondida pelo estado de cada área.</summary>
+internal sealed class PosicoesDoMundo<TSessao>(EstadoDasAreasDoMundo<TSessao> areas)
+    : IPosicoesDoMundo
+    where TSessao : class
 {
     public bool TentarObter(long personagemId, out PosicaoNoMundo posicao)
     {
-        var avatar = cidade.Obter(personagemId);
-        if (avatar == null)
+        var localizado = areas.Obter(personagemId);
+        if (localizado == null)
         {
             posicao = default;
             return false;
         }
 
+        var (area, avatar) = localizado.Value;
         var p = avatar.Posicao;
-        posicao = new PosicaoNoMundo(AreasDoMundo.Cidade, p.X, p.Y, p.Z, p.RotacaoY);
+        posicao = new PosicaoNoMundo(area, p.X, p.Y, p.Z, p.RotacaoY);
         return true;
     }
 
-    public IReadOnlyList<long> PersonagensNaArea(string area) =>
-        area == AreasDoMundo.Cidade
-            ? cidade.Presentes().Select(avatar => avatar.PersonagemId).ToArray()
-            : [];
+    public IReadOnlyList<long> PersonagensNaArea(string area) => areas.PersonagensNaArea(area);
 }
