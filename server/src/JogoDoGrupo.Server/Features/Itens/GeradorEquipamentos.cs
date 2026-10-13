@@ -15,11 +15,9 @@ public sealed class ConfigEquipamentos
     /// </summary>
     public StatusItem[] StatusAleatorios { get; set; } =
     [
-        StatusItem.Forca,
-        StatusItem.Vigor,
-        StatusItem.Agilidade,
-        StatusItem.Intelecto,
-        StatusItem.Espirito,
+        StatusItem.DanoFisico,
+        StatusItem.DanoMagico,
+        StatusItem.VidaMaxima,
         StatusItem.DefesaFisica,
         StatusItem.DefesaMagica,
         StatusItem.RegeneracaoVida,

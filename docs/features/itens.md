@@ -75,49 +75,34 @@ Decidido por Gabriel em 2026-10-12 (opção B da [#623](https://github.com/Gabri
 
 **Definido:**
 
-- **ATRIB-001 (lista):** um item pode ter:
-  - os cinco principais **do item**: Força, Vigor, Agilidade, Intelecto e Espírito;
+- **ATRIB-001 (lista, v3 — Gabriel 2026-10-13, [#709](https://github.com/GabrielNied/jogo_do_grupo/issues/709)):** um item **não** usa os nomes dos cinco atributos do personagem. Stats de combate do exemplar:
+  - **dano físico**, **dano mágico**, **vida** (vida máxima);
   - **dano da arma**, físico ou mágico, só em arma;
-  - defesa física e defesa mágica;
-  - os nove [secundários](personagem.md#atributos-secundários).
+  - **defesa física** e **defesa mágica**;
+  - regeneração de vida, stamina e mana (não stamina nem mana máximas);
+  - os demais [secundários](personagem.md#atributos-secundários).
 
-  Cada um é um inteiro de 0 a 100 (TIER-006). O modelo-base declara quais tem (TIER-007).
-- **ATRIB-002 (do item, não do personagem):** a Força do item e a Força do personagem são **fontes separadas**. O valor do item nunca soma no atributo do personagem, não dá ponto da árvore e não abre nó (DEC-001). Cada fonte vira número de combate pela sua própria conversão, e a pipeline guarda a origem de cada parcela.
-- **ATRIB-003 (conversão linear por categoria):** cada par (atributo, categoria de peça) declara nos dados o valor de combate no 0 e no 100 da escala, em `ConfigAtributosItem` ou equivalente. O meio é linear: `combate = no0 + (no100 - no0) × V / 100`. A mesma Força 80 pode valer diferente numa espada e num anel. Os números são valores de teste até a [#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627).
-- **ATRIB-004 (arma dá a base):** o dano da arma, já convertido, é o dano-base do golpe e da skill e substitui o "dano da espada 20" da [fatia](fatia-jogavel.md#2-um-ataque-primeira-arma-leve-e-pesado). A Força ou o Intelecto (do personagem e do item) aumentam esse dano em %, e o golpe ou a skill aplica o multiplicador dele. A estrutura da conta está em [combate](combate.md#em-aberto).
-- **ATRIB-005 (na tela):** o tooltip mostra o valor do item e o efeito convertido (ex.: "Força 72: +7% de dano físico"). A janela do personagem mostra separadas as linhas do personagem e as dos equipamentos (FR-010 de [talentos](talentos.md#requisitos)).
+  Cada um é inteiro de 0 a 100 (TIER-006). O modelo-base declara quais tem (TIER-007). A versão 3 dos exemplares (`RegrasTier.VersaoAtual`) migra Força→dano físico, Intelecto→dano mágico, Vigor→vida, Agilidade→regeneração de stamina, Espírito→regeneração de mana (`MigracaoDeAtributosV3`).
+- **ATRIB-002 (do item, não do personagem):** DEC-001 inalterado: nada do item soma nos cinco do personagem nem na árvore.
+- **ATRIB-003 (conversão linear por categoria):** `combate = no0 + (no100 - no0) × V / 100` em `ConfigAtributosItem`. Números de teste até a [#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627).
+- **ATRIB-004 (arma e dano flat):** dano-base = dano da arma + dano físico ou mágico flat das peças (conforme o tipo da arma). A Força ou o Intelecto **do personagem** aumentam em %; estrutura em [combate](combate.md#dano-com-arma-e-atributos-do-equipamento-623).
+- **ATRIB-005 (na tela):** tooltip com nome de combate (ex.: "Dano físico: +12"). Janela do personagem separa linhas do equipamento (FR-010 de [talentos](talentos.md#requisitos)).
 - **ATRIB-006:** tier e fusão usam o valor de 0 a 100, nunca o convertido. Os poderes e os bônus de set não são atributos e não entram no tier (PODER-005).
 
 **Para onde vai cada atributo** (proposta; quem implementa a #623 e a #624 pode ajustar e registrar aqui):
 
 | Atributo do item | Vira no combate | Forma |
 |---|---|---|
-| Dano da arma | Dano-base do golpe e da skill (físico ou mágico, pela arma) | Valor fixo |
-| Força / Intelecto | Dano físico / dano mágico | % sobre o dano-base |
-| Vigor / Agilidade / Espírito | Vida / stamina / mana máximas | Valor fixo |
+| Dano da arma | Parte do dano-base do golpe (físico ou mágico) | Valor fixo |
+| Dano físico / mágico | Soma flat ao dano-base (tipo da arma) | Valor fixo |
+| Vida | Vida máxima | Valor fixo |
 | Defesa física / mágica | Defesa física / mágica | Valor fixo |
+| Regenerações | Regeneração contínua | Por segundo |
 | Secundários | O próprio secundário | Unidade definida pelo Combate |
 
-**Elegíveis por categoria** (proposta inicial, segue a [tabela de foco](#poderes-e-sets) e as famílias do [catálogo](#catálogo-de-modelos-base-330-confirmado-pelo-usuário-em-2026-10-11)). O "principal da família" é Vigor (Vigia/Bastião), Força (Predador/Ruptor), Intelecto (Aurora/Tempestade) ou Agilidade (Batedor/Olho Longo). A variante B acrescenta a especialização: defesa (Bastião), Agilidade (Ruptor e Olho Longo) ou Espírito (Tempestade).
+**Elegíveis por categoria (v3):** principal da família = **vida** (Vigia/Bastião), **dano físico** (Predador/Ruptor), **dano mágico** (Aurora/Tempestade) ou **regeneração de stamina** (Batedor/Olho Longo). Variante B: defesa mágica (Bastião), regeneração de stamina (Ruptor/Olho Longo) ou regeneração de mana (Tempestade). Matriz em `ConfigAtributosItem`.
 
-| Categoria | Atributos |
-|---|---|
-| Espada, Martelo | Dano da arma (físico), Força, chance crítica, penetração física |
-| Arco | Dano da arma (físico), Força, velocidade de ataque físico, chance crítica |
-| Cajado | Dano da arma (mágico), Intelecto, velocidade de ataque mágico, penetração mágica |
-| Escudo | Vigor, defesa física, defesa mágica |
-| Foco | Intelecto, Espírito, regeneração de mana |
-| Capacete | Principal da família, defesa física, defesa mágica |
-| Peito | Principal da família, Vigor, defesa física, defesa mágica |
-| Luvas | Principal da família, defesa física, chance crítica |
-| Calça | Principal da família, Vigor, defesa física, regeneração de vida |
-| Botas | Principal da família, Agilidade, defesa física, regeneração de stamina |
-| Cinto | Vigor, Agilidade, Espírito, regenerações de vida, stamina e mana |
-| Anel | Principal da família, chance crítica, penetração física, penetração mágica |
-| Brinco | Principal da família, dano crítico, velocidade de ataque físico, velocidade de ataque mágico |
-| Adorno | Principal da família, defesa mágica, regeneração de mana |
-
-**Migração dos exemplares:** feita na #623 (versão 2 dos atributos). A tabela de equivalência e as regras estão em [Entregue na #623](#entregue-na-623-atributos-próprios-dos-equipamentos).
+**Migração:** versão 2 (#623) e versão 3 (#709) em `MigracaoDeTier` / `MigracaoDeAtributosV3`. Histórico da v2 em [Entregue na #623](#entregue-na-623-atributos-próprios-dos-equipamentos).
 
 #### Entregue na #623: atributos próprios dos equipamentos
 

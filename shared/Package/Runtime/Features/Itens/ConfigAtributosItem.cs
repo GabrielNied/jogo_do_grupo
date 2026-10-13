@@ -9,22 +9,19 @@ namespace JogoDoGrupo.Shared.Features.Itens
     /// TESTE</b> até a #627; trocá-los é mexer só aqui.
     /// <para>
     /// A conversão é linear por (atributo, categoria): <c>combate = no0 + (no100 - no0) x V /
-    /// 100</c>. A mesma Força 80 pode valer diferente numa espada e num anel. Unidade do número de
-    /// combate: dano da arma, vida/stamina/mana máximas e defesa em pontos; Força e Intelecto em
-    /// fração de bônus de dano (0,10 = +10%); secundários na unidade do Combate (fração de 0 a 1
-    /// para crítico, velocidade e penetração, acréscimo ao multiplicador no dano crítico, pontos por
-    /// segundo na regeneração).
+    /// 100</c>. Unidade: dano da arma, dano físico/mágico flat, vida e defesa em pontos; secundários
+    /// na unidade do Combate.
     /// </para>
     /// </summary>
     public static class ConfigAtributosItem
     {
-        // Os quatro "principais da família"; o Espírito só entra onde a matriz o lista.
+        // Principal de cada família na armadura (v3, #709).
         private static readonly StatusItem[] Principais =
         {
-            StatusItem.Forca,
-            StatusItem.Vigor,
-            StatusItem.Agilidade,
-            StatusItem.Intelecto,
+            StatusItem.VidaMaxima,
+            StatusItem.DanoFisico,
+            StatusItem.DanoMagico,
+            StatusItem.RegeneracaoStamina,
         };
 
         private static readonly Dictionary<TipoEquipamento, StatusItem[]> Matriz = CriarMatriz();
@@ -34,15 +31,10 @@ namespace JogoDoGrupo.Shared.Features.Itens
             Conversao
         >
         {
-            // Dano da arma: base do golpe e da skill.
             { StatusItem.DanoDaArma, new Conversao(10, 30) },
-            // Força e Intelecto do item: bônus de dano, em fração (0,10 = +10%).
-            { StatusItem.Forca, new Conversao(0, 0.10) },
-            { StatusItem.Intelecto, new Conversao(0, 0.10) },
-            // Vigor, Agilidade e Espírito do item: vida, stamina e mana máximas.
-            { StatusItem.Vigor, new Conversao(0, 150) },
-            { StatusItem.Agilidade, new Conversao(0, 30) },
-            { StatusItem.Espirito, new Conversao(0, 30) },
+            { StatusItem.DanoFisico, new Conversao(0, 15) },
+            { StatusItem.DanoMagico, new Conversao(0, 15) },
+            { StatusItem.VidaMaxima, new Conversao(0, 150) },
             { StatusItem.DefesaFisica, new Conversao(0, 40) },
             { StatusItem.DefesaMagica, new Conversao(0, 40) },
             { StatusItem.RegeneracaoVida, new Conversao(0, 2) },
@@ -56,17 +48,16 @@ namespace JogoDoGrupo.Shared.Features.Itens
             { StatusItem.PenetracaoMagica, new Conversao(0, 0.15) },
         };
 
-        // Exceções por categoria: o mesmo valor 0 a 100 vale diferente conforme a peça.
         private static readonly Dictionary<(TipoEquipamento, StatusItem), Conversao> PorCategoria =
             new Dictionary<(TipoEquipamento, StatusItem), Conversao>
             {
                 { (TipoEquipamento.Martelo, StatusItem.DanoDaArma), new Conversao(14, 44) },
                 { (TipoEquipamento.Arco, StatusItem.DanoDaArma), new Conversao(8, 28) },
-                { (TipoEquipamento.Espada, StatusItem.Forca), new Conversao(0, 0.20) },
-                { (TipoEquipamento.Martelo, StatusItem.Forca), new Conversao(0, 0.25) },
-                { (TipoEquipamento.Arco, StatusItem.Forca), new Conversao(0, 0.20) },
-                { (TipoEquipamento.Cajado, StatusItem.Intelecto), new Conversao(0, 0.20) },
-                { (TipoEquipamento.Peito, StatusItem.Vigor), new Conversao(0, 250) },
+                { (TipoEquipamento.Espada, StatusItem.DanoFisico), new Conversao(0, 20) },
+                { (TipoEquipamento.Martelo, StatusItem.DanoFisico), new Conversao(0, 25) },
+                { (TipoEquipamento.Arco, StatusItem.DanoFisico), new Conversao(0, 20) },
+                { (TipoEquipamento.Cajado, StatusItem.DanoMagico), new Conversao(0, 20) },
+                { (TipoEquipamento.Peito, StatusItem.VidaMaxima), new Conversao(0, 250) },
                 { (TipoEquipamento.Peito, StatusItem.DefesaFisica), new Conversao(0, 60) },
                 { (TipoEquipamento.Peito, StatusItem.DefesaMagica), new Conversao(0, 60) },
                 { (TipoEquipamento.Capacete, StatusItem.DefesaFisica), new Conversao(0, 50) },
@@ -74,10 +65,6 @@ namespace JogoDoGrupo.Shared.Features.Itens
                 { (TipoEquipamento.Brinco, StatusItem.DanoCritico), new Conversao(0, 0.75) },
             };
 
-        /// <summary>
-        /// Os atributos elegíveis da categoria (matriz de ATRIB-001): só eles têm faixa, entram no
-        /// tier e valem no combate.
-        /// </summary>
         public static StatusItem[] Elegiveis(TipoEquipamento tipo) =>
             Matriz.TryGetValue(tipo, out var lista)
                 ? (StatusItem[])lista.Clone()
@@ -86,17 +73,11 @@ namespace JogoDoGrupo.Shared.Features.Itens
         public static bool Elegivel(TipoEquipamento tipo, StatusItem status) =>
             Matriz.TryGetValue(tipo, out var lista) && Array.IndexOf(lista, status) >= 0;
 
-        /// <summary>Se o dano da arma da categoria é mágico (cajado); as demais armas são físicas.</summary>
         public static bool ArmaMagica(TipoEquipamento tipo) => tipo == TipoEquipamento.Cajado;
 
-        /// <summary>Se a categoria é arma da mão principal (dá o dano-base do golpe).</summary>
         public static bool EhArma(TipoEquipamento tipo) =>
             tipo >= TipoEquipamento.Espada && tipo <= TipoEquipamento.Cajado;
 
-        /// <summary>
-        /// O valor de combate no 0 e no 100 do atributo na categoria, ou <c>null</c> se o atributo
-        /// não tem conversão (legado, sem efeito).
-        /// </summary>
         public static Conversao? De(TipoEquipamento tipo, StatusItem status)
         {
             if (PorCategoria.TryGetValue((tipo, status), out var propria))
@@ -107,10 +88,6 @@ namespace JogoDoGrupo.Shared.Features.Itens
             return Padrao.TryGetValue(status, out var padrao) ? padrao : (Conversao?)null;
         }
 
-        /// <summary>
-        /// O número de combate de <paramref name="valor"/> (0 a 100) do atributo na categoria. Zero
-        /// se o atributo não é elegível na categoria ou não tem conversão (legado sem efeito).
-        /// </summary>
         public static double Converter(TipoEquipamento tipo, StatusItem status, double valor)
         {
             var conversao = Elegivel(tipo, status) ? De(tipo, status) : null;
@@ -119,7 +96,6 @@ namespace JogoDoGrupo.Shared.Features.Itens
 
         private static Dictionary<TipoEquipamento, StatusItem[]> CriarMatriz()
         {
-            // "Principal da família" mais os atributos próprios da categoria.
             StatusItem[] Com(params StatusItem[] extras)
             {
                 var lista = new List<StatusItem>(Principais);
@@ -141,7 +117,7 @@ namespace JogoDoGrupo.Shared.Features.Itens
                     new[]
                     {
                         StatusItem.DanoDaArma,
-                        StatusItem.Forca,
+                        StatusItem.DanoFisico,
                         StatusItem.ChanceCritica,
                         StatusItem.PenetracaoFisica,
                     }
@@ -151,7 +127,7 @@ namespace JogoDoGrupo.Shared.Features.Itens
                     new[]
                     {
                         StatusItem.DanoDaArma,
-                        StatusItem.Forca,
+                        StatusItem.DanoFisico,
                         StatusItem.ChanceCritica,
                         StatusItem.PenetracaoFisica,
                     }
@@ -161,7 +137,7 @@ namespace JogoDoGrupo.Shared.Features.Itens
                     new[]
                     {
                         StatusItem.DanoDaArma,
-                        StatusItem.Forca,
+                        StatusItem.DanoFisico,
                         StatusItem.VelocidadeAtaqueFisico,
                         StatusItem.ChanceCritica,
                     }
@@ -171,18 +147,23 @@ namespace JogoDoGrupo.Shared.Features.Itens
                     new[]
                     {
                         StatusItem.DanoDaArma,
-                        StatusItem.Intelecto,
+                        StatusItem.DanoMagico,
                         StatusItem.VelocidadeAtaqueMagico,
                         StatusItem.PenetracaoMagica,
                     }
                 },
                 {
                     TipoEquipamento.Escudo,
-                    new[] { StatusItem.Vigor, StatusItem.DefesaFisica, StatusItem.DefesaMagica }
+                    new[]
+                    {
+                        StatusItem.VidaMaxima,
+                        StatusItem.DefesaFisica,
+                        StatusItem.DefesaMagica,
+                    }
                 },
                 {
                     TipoEquipamento.Foco,
-                    new[] { StatusItem.Intelecto, StatusItem.Espirito, StatusItem.RegeneracaoMana }
+                    new[] { StatusItem.DanoMagico, StatusItem.RegeneracaoMana }
                 },
                 { TipoEquipamento.Capacete, Com(StatusItem.DefesaFisica, StatusItem.DefesaMagica) },
                 { TipoEquipamento.Peito, Com(StatusItem.DefesaFisica, StatusItem.DefesaMagica) },
@@ -196,9 +177,7 @@ namespace JogoDoGrupo.Shared.Features.Itens
                     TipoEquipamento.Cinto,
                     new[]
                     {
-                        StatusItem.Vigor,
-                        StatusItem.Agilidade,
-                        StatusItem.Espirito,
+                        StatusItem.VidaMaxima,
                         StatusItem.RegeneracaoVida,
                         StatusItem.RegeneracaoStamina,
                         StatusItem.RegeneracaoMana,
@@ -240,10 +219,6 @@ namespace JogoDoGrupo.Shared.Features.Itens
             No100 = no100;
         }
 
-        /// <summary>
-        /// <c>no0 + (no100 - no0) x V / 100</c>, com V limitado à escala de
-        /// <see cref="ConfigTier"/> (0 a 100).
-        /// </summary>
         public double Em(double valor)
         {
             var limitado = Math.Min(

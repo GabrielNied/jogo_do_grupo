@@ -248,18 +248,16 @@ namespace JogoDoGrupo.Shared.Features.Combate
 
         /// <summary>
         /// Dano do golpe em um alvo (combate.md, estrutura do dano com arma):
-        /// <c>dano-base da arma x (1 + % do personagem + % do equipamento) x multiplicador do
-        /// golpe</c>, arredondado. A Força do item e a do personagem são parcelas separadas. O dano
-        /// nunca é menor que 1.
+        /// <c>(dano-base da arma + dano flat do equipamento) x (1 + % do personagem) x
+        /// multiplicador do golpe</c>, arredondado. O dano nunca é menor que 1.
         /// </summary>
         public static int Dano(TipoDeAtaque tipo, ParcelasDeDano parcelas, int passo = 0)
         {
-            double bonus =
-                1.0
-                + Math.Max(0.0, parcelas.PercentualPersonagem)
-                + Math.Max(0.0, parcelas.PercentualEquipamento);
+            var baseComItem =
+                Math.Max(0.0, parcelas.DanoBase) + Math.Max(0.0, parcelas.DanoFlatEquipamento);
+            double bonus = 1.0 + Math.Max(0.0, parcelas.PercentualPersonagem);
             double dano = Math.Round(
-                Math.Max(0.0, parcelas.DanoBase) * bonus * Multiplicador(tipo, passo),
+                baseComItem * bonus * Multiplicador(tipo, passo),
                 MidpointRounding.AwayFromZero
             );
             return (int)Math.Max(1.0, Math.Min(dano, int.MaxValue));

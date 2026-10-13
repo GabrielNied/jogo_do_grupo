@@ -214,13 +214,8 @@ public class RecursosRotasTestes(ServidorDeCombate servidor) : IClassFixture<Ser
     public async Task Atributos_do_personagem_somam_so_os_efeitos_e_o_equipamento_vai_a_parte()
     {
         var (cliente, id) = await NovoPersonagem();
-        // O equipamento dá vida e mana máximas direto (Vigor e Espírito do item, convertidos): não
-        // vira Vigor nem Espírito do personagem.
-        servidor.Bonus.Equipamentos = new AtributosDosEquipamentos
-        {
-            VidaMaxima = 100,
-            ManaMaxima = 10,
-        };
+        // O equipamento dá vida direto; mana máxima vem só do personagem (#709).
+        servidor.Bonus.Equipamentos = new AtributosDosEquipamentos { VidaMaxima = 100 };
         servidor.Bonus.Efeitos = new AtributosCombate { Vigor = 2 };
 
         var r = await Recursos(cliente, id);
@@ -229,26 +224,22 @@ public class RecursosRotasTestes(ServidorDeCombate servidor) : IClassFixture<Ser
         Assert.Equal(2, r.Atributos.Vigor);
         Assert.Equal(0, r.Atributos.Espirito);
         Assert.Equal(620, r.VidaMaxima);
-        Assert.Equal(110, r.ManaMaxima);
+        Assert.Equal(RegrasRecursos.ManaBase, r.ManaMaxima);
         Assert.Equal(r.Atributos.Vigor, outra.Atributos.Vigor);
         Assert.Equal(r.VidaMaxima, outra.VidaMaxima);
     }
 
     [Fact]
-    public async Task Stamina_maxima_cresce_com_agilidade_do_personagem_e_do_item()
+    public async Task Stamina_maxima_vem_so_do_personagem_mesmo_com_bonus_de_equipamento()
     {
         var (cliente, id) = await NovoPersonagem();
-        servidor.Bonus.Equipamentos = new AtributosDosEquipamentos { StaminaMaxima = 20 };
+        servidor.Bonus.Equipamentos = new AtributosDosEquipamentos();
         servidor.Bonus.Efeitos = new AtributosCombate { Agilidade = 5 };
 
         var r = await Recursos(cliente, id);
 
         Assert.Equal(5, r.Atributos.Agilidade);
-        Assert.Equal(RegrasRecursos.StaminaMaxima(5, 20), r.StaminaMaxima);
-        Assert.Equal(
-            RegrasRecursos.StaminaBase + 5 * RegrasRecursos.StaminaPorAgilidade + 20,
-            r.StaminaMaxima
-        );
+        Assert.Equal(RegrasRecursos.StaminaMaxima(5), r.StaminaMaxima);
         Assert.Equal(r.StaminaMaxima, r.StaminaAtual);
     }
 
@@ -270,14 +261,10 @@ public class RecursosRotasTestes(ServidorDeCombate servidor) : IClassFixture<Ser
     public async Task Maximo_reduzido_limita_o_atual_e_nao_cura()
     {
         var (cliente, id) = await NovoPersonagem();
-        servidor.Bonus.Equipamentos = new AtributosDosEquipamentos
-        {
-            VidaMaxima = 100,
-            ManaMaxima = 20,
-        };
+        servidor.Bonus.Equipamentos = new AtributosDosEquipamentos { VidaMaxima = 100 };
         var cheio = await Recursos(cliente, id);
         Assert.Equal(600, cheio.VidaAtual);
-        Assert.Equal(120, cheio.ManaAtual);
+        Assert.Equal(RegrasRecursos.ManaBase, cheio.ManaAtual);
 
         servidor.Bonus.Equipamentos = new AtributosDosEquipamentos();
         var reduzido = await Recursos(cliente, id);

@@ -34,7 +34,7 @@ namespace JogoDoGrupo.Client.Features.Itens.Tests
                     Material = "Martelo da Serra",
                     MaterialId = 2,
                     Categoria = TipoEquipamento.Martelo,
-                    Status = StatusItem.Forca,
+                    Status = StatusItem.DanoFisico,
                     ValorAtual = 40,
                     ValorMaterial = 20,
                     ValorDepois = 30,
@@ -106,7 +106,7 @@ namespace JogoDoGrupo.Client.Features.Itens.Tests
                 {
                     PrincipalId = 1,
                     MaterialId = 2,
-                    Status = StatusItem.Forca,
+                    Status = StatusItem.DanoFisico,
                     Custo = 100,
                 },
             };

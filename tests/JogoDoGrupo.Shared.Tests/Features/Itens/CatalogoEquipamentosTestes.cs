@@ -49,34 +49,34 @@ public class CatalogoEquipamentosTestes
     }
 
     [Theory]
-    // Principal da família (Vigor, Força, Intelecto, Agilidade) mais o atributo da categoria, só
-    // o que a categoria aceita (a matriz de itens.md).
-    [InlineData(101, "Elmo do Vigia", new[] { StatusItem.Vigor, StatusItem.DefesaFisica })]
+    // Principal da família (vida, dano físico, dano mágico, regen de stamina) mais o da categoria.
+    [InlineData(101, "Elmo do Vigia", new[] { StatusItem.VidaMaxima, StatusItem.DefesaFisica })]
     [InlineData(
         111,
         "Peitoral do Bastião",
-        new[] { StatusItem.Vigor, StatusItem.DefesaFisica, StatusItem.DefesaMagica }
+        new[] { StatusItem.VidaMaxima, StatusItem.DefesaFisica, StatusItem.DefesaMagica }
     )]
-    [InlineData(126, "Brinco do Predador", new[] { StatusItem.Forca, StatusItem.DanoCritico })]
-    // Força não existe no cinto: fica o Vigor da categoria e a Agilidade da variante B.
-    [InlineData(133, "Cinto do Ruptor", new[] { StatusItem.Vigor, StatusItem.Agilidade })]
-    [InlineData(140, "Calças da Aurora", new[] { StatusItem.Intelecto, StatusItem.DefesaFisica })]
-    // Espírito (Tempestade B) não existe em botas.
+    [InlineData(126, "Brinco do Predador", new[] { StatusItem.DanoFisico, StatusItem.DanoCritico })]
+    [InlineData(
+        133,
+        "Cinto do Ruptor",
+        new[] { StatusItem.VidaMaxima, StatusItem.RegeneracaoStamina }
+    )]
+    [InlineData(140, "Calças da Aurora", new[] { StatusItem.DanoMagico, StatusItem.DefesaFisica })]
     [InlineData(
         150,
         "Botas da Tempestade",
-        new[] { StatusItem.Intelecto, StatusItem.DefesaFisica }
+        new[] { StatusItem.DanoMagico, StatusItem.DefesaFisica }
     )]
     [InlineData(
         157,
         "Braçadeiras do Batedor",
-        new[] { StatusItem.Agilidade, StatusItem.DefesaFisica }
+        new[] { StatusItem.RegeneracaoStamina, StatusItem.DefesaFisica }
     )]
-    // A especialização do Olho Longo B é a Agilidade, que já é o principal: não repete.
     [InlineData(
         172,
         "Talismã do Olho Longo",
-        new[] { StatusItem.Agilidade, StatusItem.DefesaMagica }
+        new[] { StatusItem.RegeneracaoStamina, StatusItem.DefesaMagica }
     )]
     public void AtributosDoModelo(int id, string nome, StatusItem[] esperados)
     {
@@ -86,9 +86,9 @@ public class CatalogoEquipamentosTestes
     }
 
     [Theory]
-    [InlineData(128, StatusItem.Agilidade)] // Ruptor B (capacete)
-    [InlineData(132, StatusItem.Agilidade)] // Ruptor B (botas)
-    [InlineData(151, StatusItem.Espirito)] // Tempestade B (cinto)
+    [InlineData(128, StatusItem.RegeneracaoStamina)] // Ruptor B (capacete)
+    [InlineData(132, StatusItem.RegeneracaoStamina)] // Ruptor B (botas)
+    [InlineData(151, StatusItem.RegeneracaoMana)] // Tempestade B (cinto)
     [InlineData(110, StatusItem.DefesaMagica)] // Bastião B (capacete)
     public void VariantesBTemEspecializacao(int id, StatusItem status) =>
         Assert.Contains(CatalogoEquipamentos.Obter(id).Atributos, a => a.Status == status);
@@ -107,7 +107,7 @@ public class CatalogoEquipamentosTestes
         Assert.Equal(ConfigAtributosItem.EhArma(tipo), status.Contains(StatusItem.DanoDaArma));
         Assert.Equal(
             tipo == TipoEquipamento.Cajado || tipo == TipoEquipamento.Foco,
-            status.Contains(StatusItem.Intelecto)
+            status.Contains(StatusItem.DanoMagico)
         );
     }
 

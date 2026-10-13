@@ -487,15 +487,14 @@ public class AtaqueTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDeA
     public async Task Dano_usa_a_arma_como_base_e_a_forca_do_item_e_do_personagem_em_parcelas_separadas()
     {
         using var ana = await NovoJogadorAsync();
-        // Espada de 30 de dano com Força de item de +50% e Força 2 do personagem (+20%):
-        // 30 x (1 + 0,20 + 0,50) = 51. A Força do item não vira ponto do personagem.
+        // Espada de 30 de dano, +15 flat do item e Força 2 do personagem (+20%): (30 + 15) x 1,20 = 54.
         servidor.Bonus.Efeitos = new AtributosCombate { Forca = 2 };
         servidor.Bonus.Equipamentos = new AtributosDosEquipamentos
         {
             TemArma = true,
             DanoDaArma = 30,
-            PercentualForca = 0.5,
-            PercentualIntelecto = 0.9, // arma física: o Intelecto do item não entra
+            BonusDanoFisico = 15,
+            BonusDanoMagico = 18, // arma física: dano mágico do item não entra
         };
 
         Atacar(ana);
@@ -503,7 +502,7 @@ public class AtaqueTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDeA
             CombateMessageIds.AtaqueAcertou
         );
 
-        Assert.Equal(51, Assert.Single(acertou.Acertos).Dano);
+        Assert.Equal(54, Assert.Single(acertou.Acertos).Dano);
     }
 
     [Fact]
@@ -516,8 +515,8 @@ public class AtaqueTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDeA
             TemArma = true,
             ArmaMagica = true,
             DanoDaArma = 20,
-            PercentualForca = 0.9,
-            PercentualIntelecto = 0.2,
+            BonusDanoFisico = 18,
+            BonusDanoMagico = 4,
         };
 
         Atacar(ana);
@@ -525,8 +524,8 @@ public class AtaqueTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDeA
             CombateMessageIds.AtaqueAcertou
         );
 
-        // 20 x (1 + 0,30 + 0,20) = 30.
-        Assert.Equal(30, Assert.Single(acertou.Acertos).Dano);
+        // (20 + 4) x (1 + 0,30) = 31,2.
+        Assert.Equal(31, Assert.Single(acertou.Acertos).Dano);
     }
 
     [Fact]
