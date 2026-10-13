@@ -37,6 +37,7 @@ npm run validar-branch -- <branch>   # confere nome de branch
 npm run tarefa -- listar             # lista tarefas livres e em andamento
 npm run tarefa -- puxar <N>          # puxa a tarefa para em andamento e cria a branch
 npm run tarefa -- liberar <N>        # libera a tarefa de volta se pausar/cancelar
+npm run tarefa -- relevancia [<N>]   # tarefas livres cuja regra mudou depois delas (o puxar já avisa)
 printf '%s
 ' "<msg>" | npx --no -- commitlint   # confere mensagem de commit
 npm run entregar -- --titulo "..." --corpo .git/pr-corpo.md   # commit, push e PR (docs/git.md#entregar)

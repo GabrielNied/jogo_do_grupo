@@ -19,6 +19,8 @@ Separe em três grupos:
 - **Travada:** label `bloqueada` ou `decisao`, ou a issue tem dúvida em aberto que muda o resultado.
 - **Em andamento:** já tem dono. Não mexa (regra 15).
 
+Depois rode `npm run tarefa -- relevancia`: ele lista as tarefas livres cuja regra mudou depois delas, as mais defasadas primeiro. Confira as do topo pelo `git diff` de cada uma (`relevancia <N>`) e dê a saída de [Conferir a relevância](../puxar-tarefa/SKILL.md#21-conferir-a-relevância). Aqui você pode fechar: a issue já feita ou obsoleta sai com `gh issue close <N> --reason "not planned"` e um comentário com o commit que a substituiu.
+
 ## 2. Decidir o que destrava
 
 Para cada travada, nesta ordem:
