@@ -79,11 +79,6 @@ public sealed class ServicoDeInimigos(
         }
 
         var passo = grupo.Passo(jogadores);
-        if (passo.Vazio)
-        {
-            return;
-        }
-
         var posicoesInimigos = PosicoesAtuais(grupo, passo);
 
         foreach (var sessao in tempoReal.Sessoes)
@@ -97,7 +92,24 @@ public sealed class ServicoDeInimigos(
                 continue;
             }
 
-            EnviarPasso(sessao, passo, posicoesInimigos, posicaoJogador.X, posicaoJogador.Z);
+            SincronizarNovosNoRaio(sessao, grupo, posicaoJogador.X, posicaoJogador.Z);
+
+            if (!passo.Vazio)
+            {
+                EnviarPasso(
+                    sessao,
+                    grupo,
+                    passo,
+                    posicoesInimigos,
+                    posicaoJogador.X,
+                    posicaoJogador.Z
+                );
+            }
+        }
+
+        if (passo.Vazio)
+        {
+            return;
         }
 
         foreach (var golpe in passo.Golpes)
@@ -108,6 +120,32 @@ public sealed class ServicoDeInimigos(
         foreach (var derrota in passo.Derrotas)
         {
             Publicar(derrota);
+        }
+    }
+
+    /// <summary>
+    /// Quem se aproxima de inimigos parados não recebia nada: o passo podia vir vazio e só
+    /// <see cref="InimigoMudou"/> não cria modelo no client.
+    /// </summary>
+    private void SincronizarNovosNoRaio(
+        SessaoTempoReal sessao,
+        IInimigosSimulados grupo,
+        double jogadorX,
+        double jogadorZ
+    )
+    {
+        foreach (var inimigo in grupo.Vivos())
+        {
+            AplicarInteresse(
+                sessao,
+                grupo,
+                inimigo.InimigoId,
+                inimigo.X,
+                inimigo.Z,
+                jogadorX,
+                jogadorZ,
+                retratoSeEntrou: inimigo
+            );
         }
     }
 
@@ -127,6 +165,7 @@ public sealed class ServicoDeInimigos(
 
     private void EnviarPasso(
         SessaoTempoReal sessao,
+        IInimigosSimulados grupo,
         PassoDosInimigos passo,
         Dictionary<long, (float X, float Z)> posicoesInimigos,
         double jogadorX,
@@ -137,14 +176,15 @@ public sealed class ServicoDeInimigos(
         {
             var id = mudanca.Mensagem.InimigoId;
             if (
-                !Filtrar(
-                    sessao.PersonagemId,
+                !AplicarInteresse(
+                    sessao,
+                    grupo,
                     id,
                     mudanca.Mensagem.X,
                     mudanca.Mensagem.Z,
                     jogadorX,
                     jogadorZ,
-                    sessao
+                    retratoSeEntrou: null
                 )
             )
             {
@@ -176,7 +216,16 @@ public sealed class ServicoDeInimigos(
             }
 
             if (
-                !Filtrar(sessao.PersonagemId, preparo.InimigoId, ix, iz, jogadorX, jogadorZ, sessao)
+                !AplicarInteresse(
+                    sessao,
+                    grupo,
+                    preparo.InimigoId,
+                    ix,
+                    iz,
+                    jogadorX,
+                    jogadorZ,
+                    retratoSeEntrou: null
+                )
             )
             {
                 continue;
@@ -192,7 +241,18 @@ public sealed class ServicoDeInimigos(
                 continue;
             }
 
-            if (!Filtrar(sessao.PersonagemId, acerto.InimigoId, ix, iz, jogadorX, jogadorZ, sessao))
+            if (
+                !AplicarInteresse(
+                    sessao,
+                    grupo,
+                    acerto.InimigoId,
+                    ix,
+                    iz,
+                    jogadorX,
+                    jogadorZ,
+                    retratoSeEntrou: null
+                )
+            )
             {
                 continue;
             }
@@ -202,31 +262,22 @@ public sealed class ServicoDeInimigos(
 
         foreach (var morte in passo.Mortes)
         {
-            if (!PosicaoDoInimigo(morte.InimigoId, posicoesInimigos, 0, 0, out var ix, out var iz))
-            {
-                continue;
-            }
-
-            if (!Filtrar(sessao.PersonagemId, morte.InimigoId, ix, iz, jogadorX, jogadorZ, sessao))
-            {
-                continue;
-            }
-
-            tempoReal.Enviar(sessao, MobsMessageIds.InimigoMorreu, morte);
+            EnviarMorte(sessao, morte, posicoesInimigos, jogadorX, jogadorZ, grupo);
         }
 
         foreach (var aparicao in passo.Aparicoes)
         {
             var dados = aparicao.Inimigo;
             if (
-                !Filtrar(
-                    sessao.PersonagemId,
+                !AplicarInteresse(
+                    sessao,
+                    grupo,
                     dados.InimigoId,
                     dados.X,
                     dados.Z,
                     jogadorX,
                     jogadorZ,
-                    sessao
+                    retratoSeEntrou: dados
                 )
             )
             {
@@ -246,7 +297,16 @@ public sealed class ServicoDeInimigos(
             }
 
             if (
-                !Filtrar(sessao.PersonagemId, exposto.InimigoId, ix, iz, jogadorX, jogadorZ, sessao)
+                !AplicarInteresse(
+                    sessao,
+                    grupo,
+                    exposto.InimigoId,
+                    ix,
+                    iz,
+                    jogadorX,
+                    jogadorZ,
+                    retratoSeEntrou: null
+                )
             )
             {
                 continue;
@@ -256,28 +316,75 @@ public sealed class ServicoDeInimigos(
         }
     }
 
-    private bool Filtrar(
-        long personagemId,
+    /// <summary>
+    /// Morte tira o inimigo de <see cref="IInimigosSimulados.Vivos"/>; sem posição no mapa do
+    /// passo, quem já recebia o retrato ainda precisa do <see cref="InimigoMorreu"/>.
+    /// </summary>
+    private void EnviarMorte(
+        SessaoTempoReal sessao,
+        InimigoMorreu morte,
+        Dictionary<long, (float X, float Z)> posicoesInimigos,
+        double jogadorX,
+        double jogadorZ,
+        IInimigosSimulados grupo
+    )
+    {
+        var podeEnviar = false;
+        if (
+            PosicaoDoInimigo(morte.InimigoId, posicoesInimigos, 0, 0, out var ix, out var iz)
+            && AplicarInteresse(
+                sessao,
+                grupo,
+                morte.InimigoId,
+                ix,
+                iz,
+                jogadorX,
+                jogadorZ,
+                retratoSeEntrou: null
+            )
+        )
+        {
+            podeEnviar = true;
+        }
+        else if (_interesse.JaRecebia(sessao.PersonagemId, morte.InimigoId))
+        {
+            podeEnviar = true;
+        }
+
+        if (!podeEnviar)
+        {
+            return;
+        }
+
+        _interesse.EsquecerInimigo(sessao.PersonagemId, morte.InimigoId);
+        tempoReal.Enviar(sessao, MobsMessageIds.InimigoMorreu, morte);
+    }
+
+    /// <summary>
+    /// Raio de interesse. Quem acaba de entrar no raio recebe <see cref="InimigoApareceu"/> aqui;
+    /// o caller só manda a mensagem específica (mudou, preparo…) se devolver true.
+    /// </summary>
+    private bool AplicarInteresse(
+        SessaoTempoReal sessao,
+        IInimigosSimulados grupo,
         long inimigoId,
         float inimigoX,
         float inimigoZ,
         double jogadorX,
         double jogadorZ,
-        SessaoTempoReal sessao
+        InimigoNoMundo? retratoSeEntrou
     )
     {
-        var acao = _interesse.Avaliar(
-            personagemId,
+        var avaliacao = _interesse.Avaliar(
+            sessao.PersonagemId,
             inimigoId,
             inimigoX,
             inimigoZ,
             jogadorX,
             jogadorZ
         );
-        switch (acao)
+        switch (avaliacao.Acao)
         {
-            case ControleInteresseDeInimigos.AcaoInteresse.Enviar:
-                return true;
             case ControleInteresseDeInimigos.AcaoInteresse.EnviarSaida:
                 tempoReal.Enviar(
                     sessao,
@@ -285,9 +392,39 @@ public sealed class ServicoDeInimigos(
                     new InimigoSaiuDoInteresse { InimigoId = inimigoId }
                 );
                 return false;
+            case ControleInteresseDeInimigos.AcaoInteresse.Enviar:
+                if (avaliacao.EntrouNoRaio)
+                {
+                    var retrato = retratoSeEntrou ?? BuscarRetrato(grupo, inimigoId);
+                    if (retrato != null)
+                    {
+                        tempoReal.Enviar(
+                            sessao,
+                            MobsMessageIds.InimigoApareceu,
+                            new InimigoApareceu { Inimigo = retrato }
+                        );
+                    }
+
+                    return false;
+                }
+
+                return true;
             default:
                 return false;
         }
+    }
+
+    private static InimigoNoMundo? BuscarRetrato(IInimigosSimulados grupo, long inimigoId)
+    {
+        foreach (var inimigo in grupo.Vivos())
+        {
+            if (inimigo.InimigoId == inimigoId)
+            {
+                return inimigo;
+            }
+        }
+
+        return null;
     }
 
     private static bool PosicaoDoInimigo(
@@ -360,14 +497,15 @@ public sealed class ServicoDeInimigos(
             }
 
             if (
-                Filtrar(
-                    sessao.PersonagemId,
+                AplicarInteresse(
+                    sessao,
+                    grupo,
                     inimigo.InimigoId,
                     inimigo.X,
                     inimigo.Z,
                     posicaoJogador.X,
                     posicaoJogador.Z,
-                    sessao
+                    retratoSeEntrou: inimigo
                 )
             )
             {

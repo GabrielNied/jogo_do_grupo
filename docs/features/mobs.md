@@ -237,7 +237,7 @@ Código em `shared/Package/Runtime/Features/Mobs/` (regras e números acima, nã
 
 Inimigo comum (tempo real; regras em "Inimigo comum da fatia"):
 
-**Interesse por distância (issue #485):** o `ServicoDeInimigos` só manda `InimigoMudou` e mensagens ligadas a um inimigo para jogadores a até **80 m** dele; quem já recebia continua até **100 m** (histerese em `RegrasInteresseDeInimigos`). Ao sair do raio chega `InimigoSaiuDoInteresse` (11007). O retrato em `InimigosDaArea` usa o mesmo corte. No client, etiquetas 3D só até **40 m** (`RegrasInteresseDeInimigos.EtiquetaMetros`).
+**Interesse por distância (issue #485):** o `ServicoDeInimigos` só manda `InimigoMudou` e mensagens ligadas a um inimigo para jogadores a até **80 m** dele; quem já recebia continua até **100 m** (histerese em `RegrasInteresseDeInimigos`). Quem entra no raio recebe `InimigoApareceu` (retrato completo), inclusive com passo de IA vazio; `InimigoMorreu` vai a quem já recebia o inimigo, mesmo sem posição no passo (morto não entra em `Vivos()`). Ao sair do raio chega `InimigoSaiuDoInteresse` (11007). O retrato em `InimigosDaArea` usa o mesmo corte. No client, etiquetas 3D só até **40 m** (`RegrasInteresseDeInimigos.EtiquetaMetros`).
 
 | ID | Mensagem | Direção | Campos |
 |---|---|---|---|

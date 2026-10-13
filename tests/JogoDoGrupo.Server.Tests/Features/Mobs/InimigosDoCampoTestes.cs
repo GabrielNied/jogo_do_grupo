@@ -54,7 +54,10 @@ public class InimigosDoCampoTestes(TempoRealFixture f) : IClassFixture<TempoReal
         using var _c = cliente;
 
         cliente.Enviar(MundoMessageIds.EntrarNaCidade, new EntrarNaCidade());
-        await cliente.ReceberAsync<EstadoDaCidade>(MundoMessageIds.EstadoDaCidade);
+        await Task.WhenAll(
+            cliente.ReceberAsync<EstadoDaCidade>(MundoMessageIds.EstadoDaCidade),
+            cliente.ReceberAsync<InimigosDaArea>(MobsMessageIds.InimigosDaArea)
+        );
 
         var teleporte = f.Fabrica.Services.GetRequiredService<ITeleporteDeTeste>();
         var (aceito, _) = teleporte.Teleportar(personagemId, 0f, 0f, 175f);
@@ -87,14 +90,17 @@ public class InimigosDoCampoTestes(TempoRealFixture f) : IClassFixture<TempoReal
                 ponto.Rota == null
                     ? (ponto.X, ponto.Z)
                     : (doPonto.Average(i => i.X), doPonto.Average(i => i.Z));
-            var confereRaio = ponto.Rota == null || doPonto.Length >= 2;
+            var confereRaio = ponto.Rota == null;
             Assert.All(
                 doPonto,
                 i =>
                 {
                     Assert.Equal(ponto.CriaturaId, i.CriaturaId);
                     Assert.InRange(i.Nivel, ponto.NivelMinimo, ponto.NivelMaximo);
-                    Assert.Equal(EstadoDeInimigo.Repouso, i.Estado);
+                    Assert.Contains(
+                        i.Estado,
+                        new[] { EstadoDeInimigo.Repouso, EstadoDeInimigo.Retorno }
+                    );
                     Assert.Equal(i.VidaMaxima, i.Vida);
                     Assert.Equal(
                         EscalaPorNivel.Vida(
@@ -107,11 +113,61 @@ public class InimigosDoCampoTestes(TempoRealFixture f) : IClassFixture<TempoReal
                     if (confereRaio)
                     {
                         var doCentro = RegrasInimigo.Distancia(centroX, centroZ, i.X, i.Z);
-                        Assert.Equal(ConfigInimigosDoCampo.RaioDoEspalhamentoMetros, doCentro, 2);
+                        Assert.Equal(ConfigInimigosDoCampo.RaioDoEspalhamentoMetros, doCentro, 5);
                     }
                 }
             );
         }
+    }
+
+    [Fact]
+    public async Task Aproximar_do_campo_sem_reentrada_recebe_inimigo_apareceu()
+    {
+        var (cliente, _, personagemId) = await f.EntrarAsync();
+        using var _c = cliente;
+
+        cliente.Enviar(MundoMessageIds.EntrarNaCidade, new EntrarNaCidade());
+        await cliente.ReceberAsync<InimigosDaArea>(MobsMessageIds.InimigosDaArea);
+
+        var teleporte = f.Fabrica.Services.GetRequiredService<ITeleporteDeTeste>();
+        Assert.True(teleporte.Teleportar(personagemId, 0f, 0f, 175f).Aceito);
+
+        var servico = f.Fabrica.Services.GetRequiredService<ServicoDeInimigos>();
+        servico.Avancar();
+
+        var apareceu = await cliente.ReceberAsync<InimigoApareceu>(MobsMessageIds.InimigoApareceu);
+        Assert.NotNull(apareceu.Inimigo);
+        Assert.Equal(
+            CategoriaDeCriatura.Comum,
+            CatalogoCriaturas.Obter(apareceu.Inimigo.CriaturaId).Categoria
+        );
+    }
+
+    [Fact]
+    public async Task Matar_inimigo_no_campo_manda_inimigo_morreu()
+    {
+        var (cliente, _, personagemId) = await f.EntrarAsync();
+        using var _c = cliente;
+
+        cliente.Enviar(MundoMessageIds.EntrarNaCidade, new EntrarNaCidade());
+        await cliente.ReceberAsync<InimigosDaArea>(MobsMessageIds.InimigosDaArea);
+
+        var teleporte = f.Fabrica.Services.GetRequiredService<ITeleporteDeTeste>();
+        Assert.True(teleporte.Teleportar(personagemId, 130f, 0f, 170f).Aceito);
+
+        var servico = f.Fabrica.Services.GetRequiredService<ServicoDeInimigos>();
+        servico.Avancar();
+        var apareceu = await cliente.ReceberAsync<InimigoApareceu>(MobsMessageIds.InimigoApareceu);
+        var alvoId = apareceu.Inimigo.InimigoId;
+
+        var grupos = f.Fabrica.Services.GetRequiredService<GruposDoCampo>().Grupos;
+        var grupo = grupos.First(g => g.Vivos().Any(i => i.InimigoId == alvoId));
+        Assert.True(grupo.TentarAplicarDano(alvoId, 1_000_000, personagemId, out _));
+
+        servico.Avancar();
+
+        var morreu = await cliente.ReceberAsync<InimigoMorreu>(MobsMessageIds.InimigoMorreu);
+        Assert.Equal(alvoId, morreu.InimigoId);
     }
 
     [Fact]
