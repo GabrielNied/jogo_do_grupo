@@ -41,7 +41,7 @@ Status usados aqui: **Definido** (aprovado), **Proposta** (valor inicial em cons
 
 Não mudam por decisão de quem implementa: mudar exige aprovação do Gabriel e atualização desta seção (exceção às [Decisões de design](../agentes.md#decisões-de-design)).
 
-- **DEC-001:** atributos de equipamento não concedem pontos de árvore nem são convertidos nos atributos do personagem; a interação é só pelas fórmulas de combate e pelas skills. **Definido** por Gabriel em 2026-10-12 na especificação de atributos ([personagem](personagem.md#atributos-do-personagem), [#618](https://github.com/GabrielNied/jogo_do_grupo/issues/618)): trocar de equipamento não muda a [árvore](talentos.md), e os pontos da árvore vêm só de subir de nível. A lista de atributos próprios dos itens, e se ela repete os nomes Força, Vigor, Agilidade, Intelecto e Espírito com conversão própria para o combate, sai na [#623](https://github.com/GabrielNied/jogo_do_grupo/issues/623). Até lá, o código ainda soma os atributos das peças nos do personagem.
+- **DEC-001:** atributos de equipamento não concedem pontos de árvore nem são convertidos nos atributos do personagem; a interação é só pelas fórmulas de combate e pelas skills. **Definido** por Gabriel em 2026-10-12 na especificação de atributos ([personagem](personagem.md#atributos-do-personagem), [#618](https://github.com/GabrielNied/jogo_do_grupo/issues/618)): trocar de equipamento não muda a [árvore](talentos.md), e os pontos da árvore vêm só de subir de nível. O item também usa os nomes Força, Vigor, Agilidade, Intelecto e Espírito, mas como atributos dele, com conversão própria para o combate ([Atributos dos equipamentos](#atributos-dos-equipamentos)). Até a [#623](https://github.com/GabrielNied/jogo_do_grupo/issues/623), o código ainda soma os atributos das peças nos do personagem.
 - **DEC-002:** a fusão não tem chance de falha. O equilíbrio vem de custo, materiais e limites.
 - **DEC-003:** uma fusão altera um único atributo, escolhido pelo jogador; o resto do item principal, inclusive as skills e os poderes, fica igual.
 - **DEC-004:** o tier atual vem só dos valores dos atributos e é recalculado quando eles mudam.
@@ -54,7 +54,7 @@ Não mudam por decisão de quem implementa: mudar exige aprovação do Gabriel e
 |---|---|---|
 | Identidade da instância, item-base | `InstanciaId`, `ModeloId` | Iguais |
 | Tipo e família de arma | `Tipo` | **Categoria de peça** = `Tipo` (Espada, Peito, Capacete, Anel...); "família de arma" do documento mestre vale para todas as peças |
-| Atributos próprios | `Atributos` (fixos e sorteados, fracionários) | Inteiros numa **escala interna de 0 a 100** por atributo ([Tier](#tier)); quais atributos cada peça pode ter vem do modelo-base. A lista é da [#623](https://github.com/GabrielNied/jogo_do_grupo/issues/623) |
+| Atributos próprios | `Atributos` (fixos e sorteados, fracionários) | Inteiros numa **escala interna de 0 a 100** por atributo ([Tier](#tier)); quais atributos cada peça pode ter vem do modelo-base. Lista e conversão em [Atributos dos equipamentos](#atributos-dos-equipamentos) |
 | Skills | ainda não existem ([#167](https://github.com/GabrielNied/jogo_do_grupo/issues/167)) | Quantidade definida pelo **modelo-base**, não por raridade; gravadas no exemplar; a fusão nunca as muda |
 | Nível de fusão | `InfusoesUsadas` (limite 10 a 30 pela raridade) | `NivelFusao`, de +0 a +10 |
 | Tier atual | não existe | Calculado pelos atributos ([Tier](#tier)) |
@@ -68,6 +68,56 @@ Não mudam por decisão de quem implementa: mudar exige aprovação do Gabriel e
 - **ITEM-002:** destinos permitidos: equipar, vender ([#173](https://github.com/GabrielNied/jogo_do_grupo/issues/173)), consumir como material de fusão e descartar ([Descartar item](#descartar-item-495)). Qualquer destino novo exige decisão explícita.
 - **ITEM-004:** o descarte apaga o item sem recompensa e sem gerar material. Item com investimento (nível de fusão acima de +0) ou de tier A ou acima pede uma **segunda confirmação** (na [#616](https://github.com/GabrielNied/jogo_do_grupo/issues/616), quando o nível de fusão existir).
 - **ITEM-003:** material favorito ou equipado não é consumido (vem da #174).
+
+#### Atributos dos equipamentos
+
+Decidido por Gabriel em 2026-10-12 (opção B da [#623](https://github.com/GabrielNied/jogo_do_grupo/issues/623), que implementa). Fonte única da lista de atributos de item e de como eles chegam ao combate. Os atributos do personagem estão em [personagem](personagem.md#atributos-do-personagem), e a pipeline que junta as fontes é do [Combate](combate.md) ([#624](https://github.com/GabrielNied/jogo_do_grupo/issues/624)).
+
+**Definido:**
+
+- **ATRIB-001 (lista):** um item pode ter:
+  - os cinco principais **do item**: Força, Vigor, Agilidade, Intelecto e Espírito;
+  - **dano da arma**, físico ou mágico, só em arma;
+  - defesa física e defesa mágica;
+  - os nove [secundários](personagem.md#atributos-secundários).
+
+  Cada um é um inteiro de 0 a 100 (TIER-006). O modelo-base declara quais tem (TIER-007).
+- **ATRIB-002 (do item, não do personagem):** a Força do item e a Força do personagem são **fontes separadas**. O valor do item nunca soma no atributo do personagem, não dá ponto da árvore e não abre nó (DEC-001). Cada fonte vira número de combate pela sua própria conversão, e a pipeline guarda a origem de cada parcela.
+- **ATRIB-003 (conversão linear por categoria):** cada par (atributo, categoria de peça) declara nos dados o valor de combate no 0 e no 100 da escala, em `ConfigAtributosItem` ou equivalente. O meio é linear: `combate = no0 + (no100 - no0) × V / 100`. A mesma Força 80 pode valer diferente numa espada e num anel. Os números são valores de teste até a [#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627).
+- **ATRIB-004 (arma dá a base):** o dano da arma, já convertido, é o dano-base do golpe e da skill e substitui o "dano da espada 20" da [fatia](fatia-jogavel.md#2-um-ataque-primeira-arma-leve-e-pesado). A Força ou o Intelecto (do personagem e do item) aumentam esse dano em %, e o golpe ou a skill aplica o multiplicador dele. A estrutura da conta está em [combate](combate.md#em-aberto).
+- **ATRIB-005 (na tela):** o tooltip mostra o valor do item e o efeito convertido (ex.: "Força 72: +7% de dano físico"). A janela do personagem mostra separadas as linhas do personagem e as dos equipamentos (FR-010 de [talentos](talentos.md#requisitos)).
+- **ATRIB-006:** tier e fusão usam o valor de 0 a 100, nunca o convertido. Os poderes e os bônus de set não são atributos e não entram no tier (PODER-005).
+
+**Para onde vai cada atributo** (proposta; quem implementa a #623 e a #624 pode ajustar e registrar aqui):
+
+| Atributo do item | Vira no combate | Forma |
+|---|---|---|
+| Dano da arma | Dano-base do golpe e da skill (físico ou mágico, pela arma) | Valor fixo |
+| Força / Intelecto | Dano físico / dano mágico | % sobre o dano-base |
+| Vigor / Agilidade / Espírito | Vida / stamina / mana máximas | Valor fixo |
+| Defesa física / mágica | Defesa física / mágica | Valor fixo |
+| Secundários | O próprio secundário | Unidade definida pelo Combate |
+
+**Elegíveis por categoria** (proposta inicial, segue a [tabela de foco](#poderes-e-sets) e as famílias do [catálogo](#catálogo-de-modelos-base-330-confirmado-pelo-usuário-em-2026-10-11)). O "principal da família" é Vigor (Vigia/Bastião), Força (Predador/Ruptor), Intelecto (Aurora/Tempestade) ou Agilidade (Batedor/Olho Longo). A variante B acrescenta a especialização: defesa (Bastião), Agilidade (Ruptor e Olho Longo) ou Espírito (Tempestade).
+
+| Categoria | Atributos |
+|---|---|
+| Espada, Martelo | Dano da arma (físico), Força, chance crítica, penetração física |
+| Arco | Dano da arma (físico), Força, velocidade de ataque físico, chance crítica |
+| Cajado | Dano da arma (mágico), Intelecto, velocidade de ataque mágico, penetração mágica |
+| Escudo | Vigor, defesa física, defesa mágica |
+| Foco | Intelecto, Espírito, regeneração de mana |
+| Capacete | Principal da família, defesa física, defesa mágica |
+| Peito | Principal da família, Vigor, defesa física, defesa mágica |
+| Luvas | Principal da família, defesa física, chance crítica |
+| Calça | Principal da família, Vigor, defesa física, regeneração de vida |
+| Botas | Principal da família, Agilidade, defesa física, regeneração de stamina |
+| Cinto | Vigor, Agilidade, Espírito, regenerações de vida, stamina e mana |
+| Anel | Principal da família, chance crítica, penetração física, penetração mágica |
+| Brinco | Principal da família, dano crítico, velocidade de ataque físico, velocidade de ataque mágico |
+| Adorno | Principal da família, defesa mágica, regeneração de mana |
+
+**Migração dos exemplares** (proposta, na #623): Destreza → Agilidade; Vitalidade → Vigor; Vigor (o recurso) → Agilidade; Energia → Espírito; Vida → Vigor; Defesa → defesa física; RecuperacaoVigor → regeneração de stamina; Força, Intelecto e Espírito ficam. PotenciaFogo, PotenciaGelo e Alcance ficam como legado sem efeito até existirem elementos e alcance. Se dois antigos caem no mesmo novo, somam antes de converter para 0 a 100. A conversão para a escala é a da [#615](https://github.com/GabrielNied/jogo_do_grupo/issues/615) (Tier, Migração).
 
 #### Tier
 
@@ -84,7 +134,7 @@ Implementação na [#615](https://github.com/GabrielNied/jogo_do_grupo/issues/61
 **Cálculo** (decidido por Gabriel em 2026-10-12; os números são valores iniciais de balanceamento, em `ConfigTier`):
 
 - **TIER-006 (escala e faixa):** cada atributo de item é um inteiro numa escala interna de **0 a 100**, com mínimo e máximo **absolutos por atributo e categoria de peça**. 100 é o máximo interno, não "100% de crítico" nem "100 de vida": a conversão para o combate é outra regra, de cada atributo. O grau não muda a faixa; proposta: ele só escolhe em que parte da faixa a geração sorteia.
-- **TIER-007 (elegíveis):** cada modelo-base declara quais atributos são elegíveis para geração, tier e S+ (ex.: peito com defesa física e vida; anel com chance crítica e penetração). Atributo que o modelo não tem **não conta como zero**: simplesmente não entra.
+- **TIER-007 (elegíveis):** cada modelo-base declara quais atributos são elegíveis para geração, tier e S+ (ex.: peito com defesa física e Vigor; anel com chance crítica e penetração; lista em [Atributos dos equipamentos](#atributos-dos-equipamentos)). Atributo que o modelo não tem **não conta como zero**: simplesmente não entra.
 - **TIER-008 (qualidade):** `Qi = (Vi - Vmin) / (Vmax - Vmin) × 100` para cada atributo elegível; a qualidade do item é a média. Exemplo: 90%, 85% e 65% dão 80%, tier S.
 
 | Tier | Qualidade média |
@@ -179,7 +229,7 @@ Decidido por Gabriel em 2026-10-12 ([especificação de poderes e sets](../brain
 | Botas | mobilidade e posicionamento | esquiva, investida, efeito ao atravessar inimigos |
 | Adorno (o "amuleto" da especificação, decidido em 2026-10-12: mesmo encaixe, sem categoria nova; segue as regras gerais dos acessórios) | modificadores amplos de build | categorias e elementos, geração e consumo de recurso |
 | Anel | gatilhos e condições | inimigo marcado ou debilitado, recarga sob condição |
-| Cinto | recursos, sustentação e sobrevivência | vida, estamina, mana, regeneração, efeitos ligados ao uso de skills |
+| Cinto | recursos, sustentação e sobrevivência | vida, stamina, mana, regeneração, efeitos ligados ao uso de skills |
 | Brinco | especialização e efeitos secundários | chance crítica, velocidade de ataque, penetração, modificadores condicionais |
 
 **Exemplo** (ilustrativo, não é regra de balanceamento): arma com Investida Trovejante, Corte Relâmpago e Explosão Elétrica; o peito faz a investida marcar, as luvas fazem golpes seguidos fortalecerem a próxima skill, as botas fazem a esquiva fortalecer a investida e o anel faz acerto em marcado reduzir uma recarga. O jogador prepara, encadeia e fecha com a área.
@@ -195,7 +245,7 @@ Precisa de decisão do Gabriel. Até lá, vale a proposta indicada.
 - ~~**Skills por item**~~ decidido em 2026-10-12: a quantidade vem do modelo-base. Armas têm seus conjuntos de skills; armaduras e acessórios modificam essas skills com poderes próprios; item especial pode ter exceção declarada nos dados. Sorteio e catálogo seguem na [#167](https://github.com/GabrielNied/jogo_do_grupo/issues/167) ([skills](skills.md)).
 - ~~**Nível da peça e XP da peça**~~ decidido em 2026-10-12: fixo em 1 até existir progressão própria; não é regra central.
 - ~~**Descarte**~~ decidido em 2026-10-12: destino válido (ITEM-002 e ITEM-004).
-- **Atributos de cada categoria de peça** e a conversão de cada um para o combate: [#623](https://github.com/GabrielNied/jogo_do_grupo/issues/623).
+- ~~**Atributos de cada categoria de peça** e a conversão de cada um para o combate~~ decidido em 2026-10-12: [Atributos dos equipamentos](#atributos-dos-equipamentos). Os números da conversão seguem na [#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627); a implementação é a [#623](https://github.com/GabrielNied/jogo_do_grupo/issues/623).
 - ~~**Poderes e sets:** poder fixo ou sorteado, foco do Cinto e do Brinco, marcos dos sets, Adorno como amuleto, quem tem poder~~ decididos em 2026-10-12 (PODER-006, PODER-007, SET-001, tabela de foco). O conteúdo de cada set vem na criação dos sets ([#630](https://github.com/GabrielNied/jogo_do_grupo/issues/630)).
 - **Materiais:** nomes, quantidades e fontes ([#617](https://github.com/GabrielNied/jogo_do_grupo/issues/617)); a raid ainda não tem issue.
 - **Venda, negociação e vinculação**, e fontes de coroas ([#173](https://github.com/GabrielNied/jogo_do_grupo/issues/173)).
@@ -238,11 +288,11 @@ Cada exemplar tem identidade própria, modelo, região, tipo, raridade, grau, n�
 
 As cinco raridades e a tabela do livro (níveis máximos, slots de skills e infusões) têm representação em `RegrasEquipamentos`. Graus inicial/médio/forte usam os fatores 1/2/4 já escritos. A estrutura confirmada é a da seção Anatomia do equipamento do [livro](../brainstorm/figjam.md). Skills utilizáveis, XP da peça, promoção e infusão são as tarefas #167, #331 e #174; esta entrega não executa essas operações.
 
-**Geração para teste:** `ConfigEquipamentos` mantém a quantidade e os valores dos atributos aleatórios fora do sorteio. O padrão provisório usa dois atributos distintos, sem repetir os fixos, dentre os cinco atributos básicos; valores de referência 6 (3 para Espírito), retirados dos exemplos de peças do livro. Não é uma tabela final de balanceamento, de chances ou de atributos elementais. É configurável em `Itens:Equipamentos`. O catálogo confirmado da #330 contém as 72 peças do livro, além do Martelo Ressonante e dos dois equipamentos legados de teste; veja Catálogo abaixo. Espada e escudo de teste continuam compatíveis, sem inventar um bônus fixo para eles.
+**Geração para teste:** `ConfigEquipamentos` mantém a quantidade e os valores dos atributos aleatórios fora do sorteio. O padrão provisório usa dois atributos distintos, sem repetir os fixos, dentre os cinco atributos básicos; valores de referência 6 (3 para Espírito), retirados dos exemplos de peças do livro. É o código atual, com os nomes antigos; a lista nova por categoria é a de [Atributos dos equipamentos](#atributos-dos-equipamentos), na #623. Não é uma tabela final de balanceamento, de chances ou de atributos elementais. É configurável em `Itens:Equipamentos`. O catálogo confirmado da #330 contém as 72 peças do livro, além do Martelo Ressonante e dos dois equipamentos legados de teste; veja Catálogo abaixo. Espada e escudo de teste continuam compatíveis, sem inventar um bônus fixo para eles.
 
 **Troca autoritativa e persistente:** o servidor confere a conta dona, a identidade do exemplar, o tipo da posição e o nível exigido. A peça anterior volta ao inventário. Uma arma de duas mãos retira a mão secundária do mesmo conjunto; equipar escudo/foco com ela é recusado. Se todas as peças retiradas não couberem na bolsa, nada muda (a primeira peça deslocada ocupa a casa que o item novo deixou; as outras, a primeira casa livre). Peças equipadas não ocupam espaço do inventário. Transação e índice único por personagem/posição impedem duplicação em pedidos concorrentes.
 
-**Bônus:** Combate consulta o total atual através de `Contratos/Itens/IBonusEquipamentos`; não referencia a implementação de Itens. Força, Destreza, Intelecto, Vitalidade e Espírito entram nos cálculos já existentes de dano e recursos, sem acumular o mesmo bônus a cada troca. Isso sai na [#623](https://github.com/GabrielNied/jogo_do_grupo/issues/623): pelo DEC-001, atributo de item não soma nos atributos do personagem. Defesa e demais status têm representação e apresentação, mas não criam fórmulas novas de mitigação, bloqueio ou efeitos nesta tarefa.
+**Bônus:** Combate consulta o total atual através de `Contratos/Itens/IBonusEquipamentos`; não referencia a implementação de Itens. Força, Destreza, Intelecto, Vitalidade e Espírito entram nos cálculos já existentes de dano e recursos, sem acumular o mesmo bônus a cada troca. Isso sai na [#623](https://github.com/GabrielNied/jogo_do_grupo/issues/623): pelo DEC-001, atributo de item não soma nos atributos do personagem e vira número de combate pela conversão dele ([Atributos dos equipamentos](#atributos-dos-equipamentos)). Defesa e demais status têm representação e apresentação, mas não criam fórmulas novas de mitigação, bloqueio ou efeitos nesta tarefa.
 
 **No jogo:** abrir o inventário com **I** ([Interface do inventário](#interface-do-inventário-560)). O paperdoll mostra os encaixes e o conjunto ativo; o tooltip de cada item mostra atributos fixos/sorteados, atributo infusível, raridade, nível e requisito; clique direito e arrastar e soltar equipam e desequipam; os botões **Conj. 1** e **Conj. 2** trocam o conjunto de armas. Em editor/build de desenvolvimento, **Obter equipamento de teste** pede uma peça ao servidor. Essa rota só existe em ambiente `Development`; não altera o baú original; o loot dos mobs tem tabela própria ([Loot dos inimigos](#loot-dos-inimigos-493)).
 
@@ -319,7 +369,7 @@ Decidido por Gabriel em 2026-10-12. Substitui a lista com dropdown e botões das
 
 ### Catálogo de modelos-base (#330, confirmado pelo usuário em 2026-10-11)
 
-As quatro famílias **Vigia/Bastião, Predador/Ruptor, Aurora/Tempestade e Batedor/Olho Longo** têm variantes A (atributo principal +6) e B (principal +4 e especialização), cada uma nas nove categorias de peça. São 72 modelos-base, sem contar armas. Os nomes, valores fixos e defesas por categoria vêm da seção 12 do [livro](../brainstorm/figjam.md#12--equipamentos-por-função-e-peça). As constantes/tabelas de balanceamento ficam em `CatalogoEquipamentos`.
+As quatro famílias **Vigia/Bastião, Predador/Ruptor, Aurora/Tempestade e Batedor/Olho Longo** têm variantes A (atributo principal +6) e B (principal +4 e especialização), cada uma nas nove categorias de peça. São 72 modelos-base, sem contar armas. Os nomes, valores fixos e defesas por categoria vêm da seção 12 do [livro](../brainstorm/figjam.md#12--equipamentos-por-função-e-peça). As constantes/tabelas de balanceamento ficam em `CatalogoEquipamentos`. Na #623, o principal de cada família e a especialização passam a usar os nomes novos, como atributos do item ([Atributos dos equipamentos](#atributos-dos-equipamentos)).
 
 Bastião acrescenta +8 à defesa-base da peça, Ruptor e Olho Longo acrescentam +10 de Vigor, Tempestade acrescenta +3 de Espírito. Defesa e especialização de defesa são somadas em um único atributo fixo. As peças de adorno chamadas Foco continuam na posição Adorno: o nome não as transforma em arma secundária.
 
