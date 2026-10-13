@@ -318,7 +318,6 @@
 .item-tooltip-suave { color: var(--lumora-cores-texto-secundario); }
 .item-tooltip-fixo { color: var(--lumora-cores-marfim); }
 .item-tooltip-sorteado { color: var(--lumora-cores-essencia); }
-.item-tooltip-infusivel { color: var(--lumora-cores-ouro); }
 .item-tooltip-ganho { color: var(--lumora-cores-ganho); }
 .item-tooltip-perda { color: var(--lumora-cores-erro); }
 

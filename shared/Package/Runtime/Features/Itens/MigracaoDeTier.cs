@@ -13,10 +13,51 @@ namespace JogoDoGrupo.Shared.Features.Itens
     public static class MigracaoDeTier
     {
         /// <summary>
-        /// Converte o exemplar no lugar se ele ainda está na escala antiga. Devolve <c>true</c> se
-        /// mudou alguma coisa (quem lê do banco grava de volta).
+        /// Converte o exemplar no lugar se ele ainda está na escala antiga ou tem infusões do
+        /// modelo anterior. Devolve <c>true</c> se mudou alguma coisa (quem lê do banco grava de
+        /// volta).
         /// </summary>
         public static bool Migrar(Equipamento item)
+        {
+            var escala = MigrarEscala(item);
+            var fusao = MigrarInfusaoParaFusao(item);
+            return escala || fusao;
+        }
+
+        /// <summary>
+        /// A infusão vira fusão (issue #616): <c>InfusoesUsadas</c> passa a ser o nível de fusão,
+        /// no máximo +10, e os valores fracionários que a infusão deixou são arredondados para o
+        /// inteiro mais próximo (limitados à faixa). Não mexe no tier de origem. Só age enquanto
+        /// <see cref="Equipamento.InfusoesUsadas"/> for maior que zero, então rodar de novo não
+        /// muda nada.
+        /// </summary>
+        private static bool MigrarInfusaoParaFusao(Equipamento item)
+        {
+            if (item == null || item.InfusoesUsadas <= 0)
+            {
+                return false;
+            }
+
+            item.NivelFusao = Math.Max(
+                item.NivelFusao,
+                Math.Min(item.InfusoesUsadas, ConfigFusao.NivelMaximo)
+            );
+            item.InfusoesUsadas = 0;
+            var atributos = item.Atributos ?? Array.Empty<AtributoItem>();
+            for (var i = 0; i < atributos.Length; i++)
+            {
+                var atributo = atributos[i];
+                var faixa = ConfigTier.Faixa(item.Tipo, atributo.Status);
+                atributo.Valor =
+                    faixa != null
+                        ? faixa.Value.Limitar(atributo.Valor)
+                        : Math.Round(atributo.Valor, MidpointRounding.AwayFromZero);
+            }
+
+            return true;
+        }
+
+        private static bool MigrarEscala(Equipamento item)
         {
             if (item == null || item.VersaoDosAtributos >= RegrasTier.VersaoAtual)
             {
@@ -30,19 +71,6 @@ namespace JogoDoGrupo.Shared.Features.Itens
                 var faixa = ConfigTier.Faixa(item.Tipo, atributo.Status);
                 var inteiro = ParaEscalaInteira(atributo.Status, atributo.Valor);
                 atributo.Valor = faixa != null ? faixa.Value.Limitar(inteiro) : inteiro;
-            }
-
-            if (item.IndiceInfusivel >= 0 && item.IndiceInfusivel < atributos.Length)
-            {
-                // A base da infusão anda junto com o atributo (mesma conta, sem arredondar).
-                item.ValorBaseInfusivel = Converter(
-                    atributos[item.IndiceInfusivel].Status,
-                    item.ValorBaseInfusivel
-                );
-            }
-            else
-            {
-                item.ValorBaseInfusivel = 0;
             }
 
             item.Atributos = atributos;

@@ -18,13 +18,13 @@ public class MigracaoDeEquipamentosTestes(ServidorDeTeste servidor) : IClassFixt
 {
     // JSON como o servidor gravava antes: sem os campos novos. Status: 3 Vitalidade, 8 Defesa,
     // 0 Força, 4 Espírito. Peitoral do Vigia A (modelo 102) do grau pedido.
-    private static string JsonLegado(int grau, int fator, int requisito) =>
+    private static string JsonLegado(int grau, int fator, int requisito, int infusoes = 0) =>
         $$"""
             {"ModeloId":102,"Nome":"Peitoral do Vigia","Regiao":"Vale","Familia":"Vigia/Bastião","Variacao":"A","Tipo":1,"Raridade":3,"Grau":{{grau}},"Nivel":1,"NivelPersonagemMinimo":{{requisito}},"DuasMaos":false,"Atributos":[{"Status":3,"Valor":{{6
                 * fator}},"Fixo":true},{"Status":8,"Valor":{{30
                 * fator}},"Fixo":true},{"Status":0,"Valor":{{6
                 * fator}},"Fixo":false},{"Status":4,"Valor":{{3
-                * fator}},"Fixo":false}],"IndiceInfusivel":0,"InfusoesUsadas":0,"ValorBaseInfusivel":{{6
+                * fator}},"Fixo":false}],"IndiceInfusivel":0,"InfusoesUsadas":{{infusoes}},"ValorBaseInfusivel":{{6
                 * fator}},"Favorito":false}
             """;
 
@@ -159,5 +159,48 @@ public class MigracaoDeEquipamentosTestes(ServidorDeTeste servidor) : IClassFixt
             .Equipamento;
         Assert.Equal(TierItem.A, lida.TierOrigem);
         Assert.Equal(TierItem.SMais, RegrasTier.TierDe(lida));
+    }
+
+    [Fact]
+    public async Task Infusoes_do_modelo_anterior_viram_nivel_de_fusao_ao_ler_e_ao_gravar()
+    {
+        var (cliente, id) = await Personagem();
+        var peca = await Legado(id, JsonLegado(0, 1, 1, infusoes: 12), 0);
+
+        var lida = (await Ler(cliente, id)).Inventario.Single(e => e.InstanciaId == peca);
+
+        Assert.Equal(10, lida.Equipamento.NivelFusao);
+        Assert.Equal(0, lida.Equipamento.InfusoesUsadas);
+        var migrador = new MigradorDeEquipamentos(
+            servidor.Services.GetRequiredService<IServiceScopeFactory>(),
+            NullLogger<MigradorDeEquipamentos>.Instance
+        );
+        await migrador.MigrarAsync(default);
+        var json = await JsonGravado(peca);
+        Assert.Contains("\"NivelFusao\":10", json);
+        Assert.Contains("\"InfusoesUsadas\":0", json);
+        Assert.DoesNotContain("Infusivel", json);
+    }
+
+    [Fact]
+    public async Task Migrador_regrava_o_exemplar_de_antes_da_fusao_sem_mudar_o_que_vale()
+    {
+        // Exemplar da #615: escala nova, versão 1, mas sem o campo do nível de fusão.
+        var (cliente, id) = await Personagem();
+        var json =
+            "{\"ModeloId\":102,\"Nome\":\"Peitoral\",\"Tipo\":1,\"Atributos\":[{\"Status\":0,\"Valor\":55,\"Fixo\":false}],"
+            + "\"TierOrigem\":2,\"VersaoDosAtributos\":1,\"IndiceInfusivel\":0,\"InfusoesUsadas\":0,\"ValorBaseInfusivel\":55,\"Favorito\":false}";
+        var peca = await Legado(id, json, 0);
+        await new MigradorDeEquipamentos(
+            servidor.Services.GetRequiredService<IServiceScopeFactory>(),
+            NullLogger<MigradorDeEquipamentos>.Instance
+        ).MigrarAsync(default);
+
+        var gravado = await JsonGravado(peca);
+
+        Assert.Contains("\"NivelFusao\":0", gravado);
+        var lida = (await Ler(cliente, id)).Inventario.Single(e => e.InstanciaId == peca);
+        Assert.Equal(55, lida.Equipamento.Atributos[0].Valor);
+        Assert.Equal(TierItem.B, lida.Equipamento.TierOrigem);
     }
 }

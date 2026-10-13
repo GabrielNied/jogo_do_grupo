@@ -111,8 +111,7 @@ public class GeradorEquipamentosTestes
         Assert.Equal(StatusItem.Forca, item.Atributos.Single(a => a.Fixo).Status);
         Assert.Equal(3, item.Atributos.Length);
         Assert.Equal(3, item.Atributos.Select(a => a.Status).Distinct().Count());
-        Assert.InRange(item.IndiceInfusivel, 0, 2);
-        Assert.Equal(item.Atributos[item.IndiceInfusivel].Valor, item.ValorBaseInfusivel);
+        Assert.Equal(0, item.NivelFusao);
         var igual = gerador.Gerar(100, new Random(7))!;
         Assert.Equal(item.Atributos.Select(a => a.Status), igual.Atributos.Select(a => a.Status));
         Assert.Equal(item.Atributos.Select(a => a.Valor), igual.Atributos.Select(a => a.Valor));

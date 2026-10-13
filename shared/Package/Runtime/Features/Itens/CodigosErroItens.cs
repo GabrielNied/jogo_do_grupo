@@ -36,6 +36,43 @@ namespace JogoDoGrupo.Shared.Features.Itens
         /// </summary>
         public const string CasaInvalida = "CasaInvalida";
 
+        /// <summary>409, fusão: o material não é da mesma categoria de peça do principal.</summary>
+        public const string MaterialIncompativel = "MaterialIncompativel";
+
+        /// <summary>409, fusão: o material está equipado; desequipe antes de consumi-lo.</summary>
+        public const string MaterialEquipado = "MaterialEquipado";
+
+        /// <summary>409, fusão: o material está marcado como favorito.</summary>
+        public const string ItemFavorito = "ItemFavorito";
+
+        /// <summary>409, fusão: o principal já está em +10.</summary>
+        public const string NivelMaximo = "NivelMaximo";
+
+        /// <summary>
+        /// 409, fusão: o atributo escolhido não existe nos dois itens ou não é elegível na
+        /// categoria.
+        /// </summary>
+        public const string AtributoInelegivel = "AtributoInelegivel";
+
+        /// <summary>
+        /// 409, fusão: faltam os materiais de dungeon ou raid que o nível exige (+5 em diante).
+        /// </summary>
+        public const string MateriaisInsuficientes = "MateriaisInsuficientes";
+
+        /// <summary>409, fusão: o saldo de coroas não cobre o custo.</summary>
+        public const string CoroasInsuficientes = "CoroasInsuficientes";
+
+        /// <summary>
+        /// 409, fusão: as peças, o atributo ou o custo mudaram desde a prévia. Peça outra prévia.
+        /// </summary>
+        public const string PreviaDesatualizada = "PreviaDesatualizada";
+
+        /// <summary>400, fusão: principal e material são o mesmo item.</summary>
+        public const string MesmoItem = "MesmoItem";
+
+        /// <summary>409: o exemplar tem dados que a regra não consegue usar.</summary>
+        public const string ItemInvalido = "ItemInvalido";
+
         /// <summary>
         /// Tempo real, em <see cref="ColetaRecusada.Codigo"/>: não há item no chão com esse id
         /// para este personagem (nunca existiu, já foi coletado, expirou ou é de outro), ou o

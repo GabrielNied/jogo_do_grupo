@@ -6,7 +6,7 @@ namespace JogoDoGrupo.Client.Features.Itens
     /// <summary>
     /// Textos do equipamento em português: nomes, descrição por extenso, siglas e mensagens de
     /// erro do servidor. Regra pura (sem Unity), compartilhada pela grade, pelo tooltip e pelo
-    /// painel de infusão.
+    /// painel da fusão.
     /// </summary>
     public static class TextosEquipamento
     {
@@ -49,7 +49,7 @@ namespace JogoDoGrupo.Client.Features.Itens
         public static string Numero(double valor) =>
             valor.ToString("0.##", CultureInfo.CurrentCulture);
 
-        /// <summary>Descrição completa em texto corrido (usada no painel de infusão).</summary>
+        /// <summary>Descrição completa em texto corrido (usada na bancada de fusão).</summary>
         public static string Descrever(EntradaInventario entrada)
         {
             var item = RegrasEquipamentos.DadosDe(entrada);
@@ -75,16 +75,9 @@ namespace JogoDoGrupo.Client.Features.Itens
                 texto += "\nFamília " + item.Familia + " · variante " + item.Variacao;
             for (var i = 0; i < item.Atributos.Length; i++)
             {
-                texto +=
-                    "\n"
-                    + LinhaDoAtributo(item, i)
-                    + (i == item.IndiceInfusivel ? " · infusível" : "");
+                texto += "\n" + LinhaDoAtributo(item, i);
             }
-            return texto
-                + "\nInfusões: "
-                + item.InfusoesUsadas
-                + "/"
-                + RegrasEquipamentos.LimiteInfusoes(item.Raridade);
+            return texto + "\nFusão +" + item.NivelFusao + "/" + ConfigFusao.NivelMaximo;
         }
 
         public static string NomeStatus(StatusItem status)
@@ -235,22 +228,26 @@ namespace JogoDoGrupo.Client.Features.Itens
                     return "Esse item não está mais disponível. Feche e abra o inventário para atualizar.";
                 case CodigosErroItens.CasaInvalida:
                     return "Essa casa não existe na bolsa.";
-                case "MesmoItem":
-                    return "Escolha uma peça diferente como doador.";
-                case "DoadorIncompativel":
-                    return "O doador precisa ter o mesmo tipo e raridade do receptor.";
-                case "DoadorEquipado":
-                    return "Desequipe o doador antes de consumi-lo.";
-                case "ItemFavorito":
-                    return "Desmarque o favorito do doador para permitir seu consumo.";
-                case "LimiteInfusoes":
-                    return "Esta peça atingiu o limite de infusões da raridade.";
-                case "CoroasInsuficientes":
-                    return "Você não tem coroas suficientes. Consulte uma nova prévia após obter mais coroas.";
-                case "PreviaDesatualizada":
-                    return "As peças ou o custo mudaram. Consulte uma nova prévia antes de confirmar.";
-                case "ItemInvalido":
-                    return "Esta peça não possui um atributo válido para infusão.";
+                case CodigosErroItens.MesmoItem:
+                    return "Escolha uma peça diferente como material.";
+                case CodigosErroItens.MaterialIncompativel:
+                    return "O material precisa ser da mesma categoria de peça do item principal.";
+                case CodigosErroItens.MaterialEquipado:
+                    return "Desequipe o material antes de consumi-lo.";
+                case CodigosErroItens.ItemFavorito:
+                    return "Desmarque o favorito do material para permitir seu consumo.";
+                case CodigosErroItens.NivelMaximo:
+                    return "Esta peça já está em +10 e não pode ser fundida de novo.";
+                case CodigosErroItens.AtributoInelegivel:
+                    return "Esse atributo não existe nos dois itens. Escolha outro.";
+                case CodigosErroItens.MateriaisInsuficientes:
+                    return "Faltam os materiais de dungeon ou raid que esta fusão exige.";
+                case CodigosErroItens.CoroasInsuficientes:
+                    return "Você não tem coroas suficientes para esta fusão.";
+                case CodigosErroItens.PreviaDesatualizada:
+                    return "As peças, o atributo ou o custo mudaram. Consulte uma nova prévia antes de confirmar.";
+                case CodigosErroItens.ItemInvalido:
+                    return "Esta peça não pode ser fundida: os dados dela são inválidos.";
                 case "PosicaoInvalida":
                     return "Essa peça não pode ser equipada nesse encaixe.";
                 case "ItemNaoEquipavel":

@@ -9,7 +9,6 @@ namespace JogoDoGrupo.Client.Features.Itens
         Normal,
         Fixo,
         Sorteado,
-        Infusivel,
         Ganho,
         Perda,
         Suave,
@@ -48,7 +47,7 @@ namespace JogoDoGrupo.Client.Features.Itens
 
     /// <summary>
     /// Monta o tooltip: nome, tier, grau, família, nível/máximo, requisito, atributos
-    /// (fixos, sorteados, infusível) e infusões. Para peça da bolsa, compara com a equipada no
+    /// (fixos e sorteados) e nível de fusão. Para peça da bolsa, compara com a equipada no
     /// encaixe automático (▲ ganho, ▼ perda).
     /// </summary>
     public static class TextosTooltip
@@ -110,21 +109,15 @@ namespace JogoDoGrupo.Client.Features.Itens
             for (var i = 0; i < item.Atributos.Length; i++)
             {
                 var atributo = item.Atributos[i];
-                var infusivel = i == item.IndiceInfusivel;
                 Adicionar(
                     dados.Linhas,
-                    TextosEquipamento.LinhaDoAtributo(item, i) + (infusivel ? " · infusível" : ""),
-                    infusivel ? EstiloLinha.Infusivel
-                        : atributo.Fixo ? EstiloLinha.Fixo
-                        : EstiloLinha.Sorteado
+                    TextosEquipamento.LinhaDoAtributo(item, i),
+                    atributo.Fixo ? EstiloLinha.Fixo : EstiloLinha.Sorteado
                 );
             }
             Adicionar(
                 dados.Linhas,
-                "Infusões: "
-                    + item.InfusoesUsadas
-                    + "/"
-                    + RegrasEquipamentos.LimiteInfusoes(item.Raridade),
+                "Fusão +" + item.NivelFusao + "/" + ConfigFusao.NivelMaximo,
                 EstiloLinha.Suave
             );
 
