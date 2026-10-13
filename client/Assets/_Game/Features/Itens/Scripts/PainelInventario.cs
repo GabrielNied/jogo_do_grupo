@@ -460,27 +460,35 @@ namespace JogoDoGrupo.Client.Features.Itens
             var capacidade = _estado.Capacidade;
             var usados = _estado.Inventario.Length;
             coluna.Add(
-                Cabecalho("Bolsa", usados + "/" + capacidade.Total, usados >= capacidade.Total)
+                Cabecalho(
+                    "Bolsa",
+                    usados + "/" + capacidade.Total,
+                    usados >= capacidade.Total,
+                    "Itens que não estão equipados"
+                )
             );
 
-            var abas = new VisualElement();
-            abas.AddToClassList(EstiloItens.Abas);
-            for (var i = 0; i < capacidade.Abas; i++)
+            if (capacidade.Abas > 1)
             {
-                var indice = i;
-                var aba = Botao(
-                    capacidade.Abas == 1 ? "Bolsa" : "Aba " + (i + 1),
-                    () =>
-                    {
-                        _aba = indice;
-                        Mostrar(_estado, _novos, _pendentes, _ocupado);
-                    }
-                );
-                aba.AddToClassList(EstiloItens.Aba);
-                aba.EnableInClassList(EstiloItens.AbaAtiva, i == _aba);
-                abas.Add(aba);
+                var abas = new VisualElement();
+                abas.AddToClassList(EstiloItens.Abas);
+                for (var i = 0; i < capacidade.Abas; i++)
+                {
+                    var indice = i;
+                    var aba = Botao(
+                        i == 0 ? "Bolsa" : "Aba " + (i + 1),
+                        () =>
+                        {
+                            _aba = indice;
+                            Mostrar(_estado, _novos, _pendentes, _ocupado);
+                        }
+                    );
+                    aba.AddToClassList(EstiloItens.Aba);
+                    aba.EnableInClassList(EstiloItens.AbaAtiva, i == _aba);
+                    abas.Add(aba);
+                }
+                coluna.Add(abas);
             }
-            coluna.Add(abas);
 
             _grade = new ScrollView(ScrollViewMode.Vertical)
             {
@@ -754,10 +762,17 @@ namespace JogoDoGrupo.Client.Features.Itens
 
         // ---- ajudantes ----
 
-        private static VisualElement Cabecalho(string titulo, string contador, bool cheio)
+        private static VisualElement Cabecalho(
+            string titulo,
+            string contador,
+            bool cheio,
+            string dica = null
+        )
         {
             var linha = new VisualElement();
             linha.AddToClassList(EstiloItens.CabecalhoSecao);
+            if (!string.IsNullOrEmpty(dica))
+                linha.tooltip = dica;
             var rotulo = new Label(titulo);
             rotulo.AddToClassList(EstiloCore.Subtitulo);
             rotulo.AddToClassList(EstiloItens.TituloSecao);

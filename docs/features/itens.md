@@ -386,7 +386,7 @@ Decidido por Gabriel em 2026-10-12. Substitui a lista com dropdown e botões das
 
 **Por que 1×1:** inventários com tamanho por tipo (Diablo II, Path of Exile) freiam o acúmulo pela falta de espaço. Aqui o centro do jogo é juntar material da mesma categoria para fundir, e cada peça é única (não empilha). Tamanho por tipo puniria justamente esse comportamento e dificultaria ordenar, filtrar e mover em lote. A bolsa guarda os itens valiosos do jogador; o conforto vem das ferramentas (abaixo), não da escassez de espaço.
 
-**Janela (tecla I):** uma janela só. À esquerda o **paperdoll**: as posições de `PosicaoEquipamento` em volta da silhueta, as armas dos dois conjuntos embaixo e o botão de trocar conjunto. À direita a **bolsa**: grade de 8 colunas, abas no topo e contador x/capacidade. Embaixo, o resumo dos bônus. A bancada de fusão é aberta pelo botão **Bancada**; vira arrastar numa tarefa própria.
+**Janela (tecla I):** uma janela só. À esquerda o **paperdoll**: as posições de `PosicaoEquipamento` em volta da silhueta, as armas dos dois conjuntos embaixo e o botão de trocar conjunto. À direita a **bolsa**: grade de 8 colunas, faixa de abas no topo quando houver mais de uma aba (com 1 aba fica oculta, #666) e cabeçalho com contador x/capacidade e tooltip "Itens que não estão equipados". Embaixo, o resumo dos bônus. A bancada de fusão é aberta pelo botão **Bancada**; vira arrastar numa tarefa própria.
 
 **Casa:** ícone de silhueta por `TipoEquipamento`, tingido e com borda na cor do tier, mais a letra do tier no canto (sem ícone ainda, a sigla do tipo). Item recém-chegado (baú, loot) tem selo **novo** até o mouse passar por cima. Encaixe vazio mostra a silhueta apagada do tipo.
 
@@ -406,7 +406,7 @@ Decidido por Gabriel em 2026-10-12. Substitui a lista com dropdown e botões das
 **Modelo preparado para inventário grande:**
 
 - Cada item fora do corpo tem **contêiner, aba e casa** (equipado: nulos). Por ora só existe o contêiner **Bolsa**, com 1 aba de 40 casas; o banco (#177) e o baú de grupo usam o mesmo modelo e a mesma grade.
-- A **capacidade vem do servidor** (abas e casas por aba, em configuração), não fica fixa no client nem espalhada nas regras. Expandir a bolsa é liberar abas (#564).
+- A **capacidade vem do servidor** (abas e casas por aba, em configuração), não fica fixa no client nem espalhada nas regras. Expandir a bolsa é liberar abas (#564). Com 1 aba, a faixa de abas fica oculta (#666); com mais de uma aba, exibe **Bolsa** na primeira e **Aba N** nas seguintes.
 - A **ordem é salva no servidor**: mover para uma casa ocupada troca os dois na mesma transação, com índice único por personagem, contêiner, aba e casa. Tudo que entra na bolsa (baú, loot, desequipar, peça deslocada) vai para a primeira casa livre. A migração numera os itens existentes pela ordem atual.
 
 **Entregue na #560 (decisões do dono, 2026-10-12):**
