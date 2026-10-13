@@ -148,5 +148,18 @@ namespace JogoDoGrupo.Client.Features.Mobs.Tests
             Assert.AreEqual(1f, AnimacaoDoInimigo.VelocidadeDoClipe(0f, 1f));
             Assert.AreEqual(1f, AnimacaoDoInimigo.VelocidadeDoClipe(1f, 0f));
         }
+
+        [Test]
+        public void VelocidadeDoClipe_NoAvisoDoChefe_AlongaOClipeParaOContatoCairNosTresSegundos()
+        {
+            const float aviso = 3f;
+            const float clipe = 1f;
+
+            var velocidade = AnimacaoDoInimigo.VelocidadeDoClipe(clipe, aviso);
+
+            // O tempo até a pose de contato, na velocidade escolhida, é o aviso inteiro.
+            var ate = clipe * AnimacaoDoInimigo.ContatoNoClipeFracao / velocidade;
+            Assert.AreEqual(aviso, ate, 0.001f);
+        }
     }
 }
