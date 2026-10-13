@@ -120,6 +120,15 @@ namespace JogoDoGrupo.Shared.Features.Itens
         VelocidadeAtaqueMagico,
         PenetracaoFisica,
         PenetracaoMagica,
+
+        /// <summary>Dano físico flat somado ao golpe (v3; substitui <see cref="Forca"/> do item).</summary>
+        DanoFisico,
+
+        /// <summary>Dano mágico flat somado ao golpe (v3; substitui <see cref="Intelecto"/> do item).</summary>
+        DanoMagico,
+
+        /// <summary>Vida máxima concedida pela peça (v3; substitui <see cref="Vigor"/> do item).</summary>
+        VidaMaxima,
     }
 
     [Serializable]

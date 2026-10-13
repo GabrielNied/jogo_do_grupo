@@ -38,8 +38,8 @@ Cálculo de dano, seleção de alvo e efeitos de status. Usado por PvE e PvP.
 ### Dano com arma e atributos do equipamento (#623)
 
 - O equipamento **nunca soma** nos cinco atributos do personagem (DEC-001). Combate lê o que as peças ativas dão por `IAtributosDosEquipamentos` (Itens) e, para os secundários, pela pipeline.
-- **Dano do golpe básico:** `dano = dano-base × (1 + %personagem + %equipamento) × multiplicador do passo`. O dano-base é o dano da arma equipada, ou 20 sem arma (`ParcelasDeDano.DanoSemArma`). O %personagem é `PercentualDeDanoPorPonto` (0,10) por ponto de Força, ou de Intelecto se a arma é mágica (cajado). O %equipamento é a Força ou o Intelecto dos itens, já convertidos. Os valores são de teste até a [#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627).
-- **Recursos:** vida, stamina e mana máximas somam o Vigor, a Agilidade e o Espírito dos itens ao que os atributos do personagem dão.
+- **Dano do golpe básico (v3, #709):** `dano = (dano-base da arma + dano flat do equipamento) × (1 + %personagem) × multiplicador do passo`. O flat é dano físico ou mágico das peças, conforme a arma. O %personagem é `PercentualDeDanoPorPonto` (0,10) por ponto de Força ou Intelecto (cajado). Valores de teste até a [#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627).
+- **Recursos:** vida máxima soma a **vida** dos itens; stamina e mana máximas vêm **só** do personagem (itens só dão regeneração).
 - **Defesa dos itens** está no contrato, mas não reduz o dano recebido até a #627.
 - **Client:** a janela do personagem mostra as linhas do equipamento separadas das do personagem, e a previsão de stamina do `ProntidaoLocal` usa a regeneração de stamina secundária devolvida pelo servidor.
 

@@ -142,17 +142,16 @@ public class MigracaoDeTierTestes
         Assert.Equal(
             new[]
             {
-                StatusItem.Agilidade,
-                StatusItem.Vigor,
-                StatusItem.DefesaFisica,
-                StatusItem.Espirito,
                 StatusItem.RegeneracaoStamina,
+                StatusItem.VidaMaxima,
+                StatusItem.DefesaFisica,
+                StatusItem.RegeneracaoMana,
                 StatusItem.PotenciaFogo,
             },
             item.Atributos.Select(a => a.Status)
         );
-        // Cinto não tem defesa física (a matriz): o valor fica no exemplar, limitado a 0 a 100.
-        Assert.Equal(new double[] { 70, 45, 50, 10, 15, 5 }, item.Atributos.Select(a => a.Valor));
+        // Agilidade e RecuperacaoVigor viram regeneração de stamina (70 + 15); defesa legada fica sem faixa no cinto.
+        Assert.Equal(new double[] { 85, 45, 50, 10, 5 }, item.Atributos.Select(a => a.Valor));
         Assert.Equal(RegrasTier.VersaoAtual, item.VersaoDosAtributos);
         Assert.False(MigracaoDeTier.Migrar(item));
     }
@@ -165,6 +164,7 @@ public class MigracaoDeTierTestes
 
         MigracaoDeTier.Migrar(item);
 
+        Assert.Equal(StatusItem.RegeneracaoStamina, Assert.Single(item.Atributos).Status);
         Assert.Equal(100, Assert.Single(item.Atributos).Valor);
     }
 
@@ -206,7 +206,7 @@ public class MigracaoDeTierTestes
         int nivel
     )
     {
-        var item = Atual(infusoes, (StatusItem.Forca, 20));
+        var item = Atual(infusoes, (StatusItem.DanoFisico, 20));
 
         Migrar_e_conferir(item, infusoes > 0);
 
@@ -217,7 +217,7 @@ public class MigracaoDeTierTestes
     [Fact]
     public void Valores_fracionarios_da_infusao_sao_arredondados_e_o_tier_de_origem_fica()
     {
-        var item = Atual(4, (StatusItem.Forca, 20.4), (StatusItem.Vitalidade, 20.5));
+        var item = Atual(4, (StatusItem.DanoFisico, 20.4), (StatusItem.Vitalidade, 20.5));
         item.TierOrigem = TierItem.C;
 
         Assert.True(MigracaoDeTier.Migrar(item));
@@ -231,7 +231,7 @@ public class MigracaoDeTierTestes
     [Fact]
     public void Item_ja_fundido_nao_perde_o_nivel_ao_ser_lido_de_novo()
     {
-        var item = Atual(0, (StatusItem.Forca, 30));
+        var item = Atual(0, (StatusItem.DanoFisico, 30));
         item.NivelFusao = 7;
 
         Assert.False(MigracaoDeTier.Migrar(item));

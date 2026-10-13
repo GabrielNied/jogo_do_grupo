@@ -11,7 +11,7 @@ namespace JogoDoGrupo.Shared.Features.Itens
         /// <summary>O número de combate somado de todas as peças ativas (unidade em <see cref="ConfigAtributosItem"/>).</summary>
         public double Valor;
 
-        /// <summary>A linha pronta: "Força dos itens: +7% de dano físico".</summary>
+        /// <summary>A linha pronta: "Dano físico dos itens: +12".</summary>
         public string Texto = "";
     }
 
@@ -25,34 +25,25 @@ namespace JogoDoGrupo.Shared.Features.Itens
     [Serializable]
     public class AtributosDosEquipamentos
     {
-        /// <summary>Se há arma na mão principal do conjunto ativo (senão vale o dano sem arma).</summary>
         public bool TemArma;
 
-        /// <summary>Se o dano da arma é mágico (cajado); aí o Intelecto aumenta o dano, não a Força.</summary>
         public bool ArmaMagica;
 
         /// <summary>Dano-base da arma já convertido; 0 sem arma.</summary>
         public double DanoDaArma;
 
-        /// <summary>Bônus de dano físico da Força dos itens, em fração (0,10 = +10%). Não é a Força do personagem.</summary>
-        public double PercentualForca;
+        /// <summary>Dano físico flat somado de todas as peças ativas.</summary>
+        public double BonusDanoFisico;
 
-        /// <summary>Bônus de dano mágico do Intelecto dos itens, em fração.</summary>
-        public double PercentualIntelecto;
+        /// <summary>Dano mágico flat somado de todas as peças ativas.</summary>
+        public double BonusDanoMagico;
 
-        /// <summary>Vida máxima somada (do Vigor dos itens).</summary>
+        /// <summary>Vida máxima somada das peças.</summary>
         public int VidaMaxima;
-
-        /// <summary>Stamina máxima somada (da Agilidade dos itens).</summary>
-        public int StaminaMaxima;
-
-        /// <summary>Mana máxima somada (do Espírito dos itens).</summary>
-        public int ManaMaxima;
 
         public double DefesaFisica;
         public double DefesaMagica;
 
-        /// <summary>As linhas para mostrar, uma por atributo, na ordem de <see cref="StatusItem"/>.</summary>
         public LinhaDeEquipamento[] Linhas = new LinhaDeEquipamento[0];
     }
 }

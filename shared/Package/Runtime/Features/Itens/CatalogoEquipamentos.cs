@@ -39,20 +39,18 @@ namespace JogoDoGrupo.Shared.Features.Itens
         // Batedor/Olho Longo (itens.md, Atributos dos equipamentos).
         private static readonly StatusItem[] Principais =
         {
-            StatusItem.Vigor,
-            StatusItem.Forca,
-            StatusItem.Intelecto,
-            StatusItem.Agilidade,
+            StatusItem.VidaMaxima,
+            StatusItem.DanoFisico,
+            StatusItem.DanoMagico,
+            StatusItem.RegeneracaoStamina,
         };
 
-        // Especialização da variante B de cada família: defesa (Bastião), Agilidade (Ruptor e
-        // Olho Longo) ou Espírito (Tempestade). Quando já é o principal, não repete.
         private static readonly StatusItem[] Especializacoes =
         {
             StatusItem.DefesaMagica,
-            StatusItem.Agilidade,
-            StatusItem.Espirito,
-            StatusItem.Agilidade,
+            StatusItem.RegeneracaoStamina,
+            StatusItem.RegeneracaoMana,
+            StatusItem.RegeneracaoStamina,
         };
 
         // O atributo próprio de cada categoria (capacete, peito, luvas, calça, botas, cinto,
@@ -64,7 +62,7 @@ namespace JogoDoGrupo.Shared.Features.Itens
             StatusItem.DefesaFisica,
             StatusItem.DefesaFisica,
             StatusItem.DefesaFisica,
-            StatusItem.Vigor,
+            StatusItem.VidaMaxima,
             StatusItem.ChanceCritica,
             StatusItem.DanoCritico,
             StatusItem.DefesaMagica,
@@ -199,9 +197,9 @@ namespace JogoDoGrupo.Shared.Features.Itens
         // Dano da arma, Força, Intelecto, Vigor e defesas; o resto da matriz vem do sorteio.
         private static bool EhDoModeloDeArma(StatusItem status) =>
             status == StatusItem.DanoDaArma
-            || status == StatusItem.Forca
-            || status == StatusItem.Intelecto
-            || status == StatusItem.Vigor
+            || status == StatusItem.DanoFisico
+            || status == StatusItem.DanoMagico
+            || status == StatusItem.VidaMaxima
             || status == StatusItem.DefesaFisica;
 
         private static string TextoDoTipo(TipoEquipamento tipo) => tipo.ToString();

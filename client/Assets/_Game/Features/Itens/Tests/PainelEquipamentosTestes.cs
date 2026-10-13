@@ -31,7 +31,7 @@ namespace JogoDoGrupo.Client.Features.Itens.Tests
                 {
                     Atributos = new[]
                     {
-                        new AtributoItem { Status = StatusItem.Forca, Valor = 20.4 },
+                        new AtributoItem { Status = StatusItem.DanoFisico, Valor = 20.4 },
                     },
                 },
             };
@@ -51,7 +51,7 @@ namespace JogoDoGrupo.Client.Features.Itens.Tests
             {
                 new AtributoItem
                 {
-                    Status = StatusItem.Forca,
+                    Status = StatusItem.DanoFisico,
                     Valor = 20,
                     Fixo = true,
                 },

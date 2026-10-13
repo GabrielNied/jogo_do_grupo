@@ -26,7 +26,7 @@ namespace JogoDoGrupo.Client.Features.Itens.Tests
                 {
                     new AtributoItem
                     {
-                        Status = StatusItem.Forca,
+                        Status = StatusItem.DanoFisico,
                         Valor = forcaEDefesa[0],
                         Fixo = true,
                     },
