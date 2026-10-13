@@ -1,4 +1,3 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using JogoDoGrupo.Client.Core.Jogo.Chat;
 using NUnit.Framework;
 
@@ -38,4 +37,3 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Tests
         }
     }
 }
-#endif
