@@ -1,6 +1,8 @@
 using JogoDoGrupo.Client.Features.Combate;
 using JogoDoGrupo.Shared.Features.Combate;
 using NUnit.Framework;
+using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace JogoDoGrupo.Client.Features.Combate.Tests
 {
@@ -162,6 +164,45 @@ namespace JogoDoGrupo.Client.Features.Combate.Tests
 
             // Sem gasto recente a espera de 2 s já passou; a 15 por segundo, 2 s dão 30.
             Assert.AreEqual(80, prontidao.StaminaEm(2));
+        }
+
+        [Test]
+        public void AplicarDoServidor_AtualizaTaxaDeRegeneracaoEPreservaOTeto()
+        {
+            var objeto = new GameObject();
+            try
+            {
+                var controle = objeto.AddComponent<ControleRecursos>();
+                var prontidao = new ProntidaoLocal();
+                controle.Configurar(1, new PainelRecursos(new VisualElement()), prontidao);
+                var agora = Time.unscaledTimeAsDouble;
+
+                controle.AplicarDoServidor(
+                    new RecursosMudaram
+                    {
+                        StaminaAtual = 50,
+                        StaminaMaxima = 100,
+                        RegeneracaoStamina = 15,
+                    }
+                );
+
+                Assert.AreEqual(65, prontidao.StaminaEm(agora + 1));
+
+                controle.AplicarDoServidor(
+                    new RecursosMudaram
+                    {
+                        StaminaAtual = 95,
+                        StaminaMaxima = 100,
+                        RegeneracaoStamina = 15,
+                    }
+                );
+
+                Assert.AreEqual(100, prontidao.StaminaEm(agora + 2));
+            }
+            finally
+            {
+                Object.DestroyImmediate(objeto);
+            }
         }
 
         [Test]
