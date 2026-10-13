@@ -14,7 +14,8 @@ public sealed class TempoRealSerialCollection;
 
 [Collection("TempoRealSerial")]
 public class ServidorTempoRealTestes(TempoRealFixture f)
-    : IClassFixture<TempoRealFixture>, IAsyncLifetime
+    : IClassFixture<TempoRealFixture>,
+        IAsyncLifetime
 {
     public Task InitializeAsync()
     {
