@@ -8,6 +8,8 @@ using JogoDoGrupo.Shared.Core;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Time.Testing;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 
@@ -57,6 +59,7 @@ public sealed class TempoRealFixture : IDisposable
 
     internal TempoRealFixture(Dictionary<string, string>? limites)
     {
+        Relogio = new FakeTimeProvider(DateTimeOffset.UtcNow);
         Fabrica = _base.WithWebHostBuilder(builder =>
         {
             builder.UseSetting("TempoReal:TempoParaAutenticarMs", $"{TempoParaAutenticarMs}");
@@ -64,8 +67,11 @@ public sealed class TempoRealFixture : IDisposable
             foreach (var (nome, valor) in limites ?? [])
                 builder.UseSetting("TempoReal:" + nome, valor);
             builder.ConfigureServices(servicos =>
-                servicos.AddSingleton<IVerificadorPersonagem>(Verificador)
-            );
+            {
+                servicos.RemoveAll<TimeProvider>();
+                servicos.AddSingleton<TimeProvider>(Relogio);
+                servicos.AddSingleton<IVerificadorPersonagem>(Verificador);
+            });
         });
         TempoReal = Fabrica.Services.GetRequiredService<ServidorTempoReal>();
         Fabrica
@@ -89,6 +95,7 @@ public sealed class TempoRealFixture : IDisposable
     }
 
     public WebApplicationFactory<Program> Fabrica { get; }
+    public FakeTimeProvider Relogio { get; }
     public VerificadorFalso Verificador { get; } = new();
     public ServidorTempoReal TempoReal { get; }
     public ConcurrentQueue<(SessaoTempoReal Sessao, MensagemTeste Mensagem)> Recebidas { get; } =
@@ -100,6 +107,22 @@ public sealed class TempoRealFixture : IDisposable
     )> Recusadas { get; } = new();
 
     public int Porta => TempoReal.Porta;
+
+    /// <summary>Avança o relógio injetado no tempo real (prazos e limite de mensagens).</summary>
+    public void AvancarRelogio(TimeSpan delta) => Relogio.Advance(delta);
+
+    /// <summary>
+    /// Alinha o relógio falso ao UTC real quando o relógio real passou adiante (FakeTimeProvider não
+    /// permite voltar no tempo).
+    /// </summary>
+    public void SincronizarRelogioComAgora()
+    {
+        var agora = DateTimeOffset.UtcNow;
+        if (agora > Relogio.GetUtcNow())
+        {
+            Relogio.SetUtcNow(agora);
+        }
+    }
 
     /// <summary>Conta nova e um personagem permitido para ela.</summary>
     public async Task<(string Token, long ContaId, long PersonagemId)> NovaContaAsync()
