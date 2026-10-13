@@ -74,7 +74,7 @@ Skills de utilidade que continuam no catálogo anterior (não fazem parte das 25
 - [ ] A skill pertence ao item equipado (trocou o item, perdeu a skill) ou o jogador aprende a skill do item?
 - [ ] Quantas skills ativas ao mesmo tempo? (New World: 3 por arma, com 2 armas)
 - [x] ~~Modelo da skill no item: sorteada e fixa, peça por peça ou encaixável?~~ Respondido em 2026-10-10: a skill do item é a magia que o jogador usa, e pode ser ativa, passiva ou buff (veja "Definido")
-- [ ] Quantas skills de cada tipo um item pode ter? Toda peça de equipamento pode ter skill, ou só algumas (arma, acessórios)?
+- [ ] Quantas skills de cada tipo um item pode ter? Toda peça de equipamento pode ter skill, ou só algumas (arma, acessórios)? **Em parte decidido por Gabriel em 2026-10-12:** a quantidade vem do **modelo-base** do item, não da raridade. Armas têm seus conjuntos de skills; armaduras e acessórios **modificam** essas skills com poderes próprios; item especial pode ter exceção declarada nos dados ([itens](itens.md#pendente)). Os números por modelo continuam em aberto.
 - [ ] Como funciona o sorteio: lista de skills por tipo de item, por região? ~~Por raridade?~~ A raridade saiu em 2026-10-12 (tier pelos atributos, que não depende das skills; [itens](itens.md#tier)).
 - [x] ~~A fusão mistura as skills dos itens?~~ Decidido em 2026-10-12: não. A fusão muda um atributo e preserva as skills do item principal ([itens](itens.md#fusão)).
 - [ ] ~~Quantas magias por classe?~~ não há classes (D2)

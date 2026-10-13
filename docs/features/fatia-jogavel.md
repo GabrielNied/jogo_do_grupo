@@ -59,7 +59,7 @@ Quem decide: **servidor** (calcula, valida e envia o resultado; o client só mos
 
 | Item | Regra | Origem |
 |---|---|---|
-| Atributos | Força, Vigor, Agilidade, Intelecto, Espírito, do personagem ([personagem](personagem.md#atributos-do-personagem)). Valor final = pontos da [árvore](talentos.md) + efeitos. Atributo de equipamento não soma aqui (DEC-001). Pontos por nível pendentes; até lá, zero | decidido em 2026-10-12 (estrutura); números são valores de teste |
+| Atributos | Força, Vigor, Agilidade, Intelecto, Espírito, do personagem ([personagem](personagem.md#atributos-do-personagem)). Valor final = pontos da [árvore](talentos.md) + efeitos. Atributo de equipamento não soma aqui (DEC-001). Pontos da árvore só por nível; quantos, pendente (no código, zero até a [#625](https://github.com/GabrielNied/jogo_do_grupo/issues/625)) | decidido em 2026-10-12 (estrutura); números são valores de teste |
 | Vida | base 500, +10 por ponto de Vigor. Chegar a 0 leva ao estado caído (seção 7) | valor de teste |
 | Stamina | base 100, +2 por ponto de Agilidade. Paga esquiva, ataque pesado e guarda. No código ainda se chama vigor ([#622](https://github.com/GabrielNied/jogo_do_grupo/issues/622)) | valor de teste |
 | Mana | base 100, +2 por ponto de Espírito. Paga as skills dos itens. No código ainda se chama energia ([#622](https://github.com/GabrielNied/jogo_do_grupo/issues/622)) | valor de teste |

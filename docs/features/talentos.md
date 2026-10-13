@@ -16,7 +16,7 @@ Decidido por Gabriel em 2026-10-12:
 
 - **Sem classes fixas.** A especialização vem da combinação de atributos investidos, nós de especialização, equipamentos e skills usadas.
 - **Uma árvore só, circular**, com cinco caminhos principais e conexões híbridas para builds mistas. Não há árvore por arma, por classe nem por equipamento, e nenhum item abre ramo exclusivo.
-- **Pontos próprios.** A árvore usa pontos da árvore, que nenhum item concede e que não se misturam com o sistema de equipamentos.
+- **Pontos próprios, só por nível.** A árvore usa pontos da árvore, obtidos exclusivamente ao subir de nível do personagem. Nenhum item concede ponto, e melhorar equipamento aumenta só os atributos do próprio item.
 - **Três tipos de nó:** pequeno (aumenta um atributo principal ou secundário), grande (especialização com bônus condicional pelas propriedades da skill usada) e avançado (sinergia entre atributos, especializações ou caminhos).
 - **Bônus pela skill, não pela arma.** O nó grande olha as propriedades declaradas da skill executada (dano físico, dano mágico, cura...), não o tipo da arma equipada.
 - **Trocar equipamento é grátis** e não mexe na árvore: recalcula os atributos finais e as skills, sem redistribuir pontos.
@@ -39,7 +39,7 @@ Decidido por Gabriel em 2026-10-12:
 
 Números e políticas que precisam de aprovação ([#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627)). Até lá, quem implementa usa **valores de teste** em constantes nomeadas e não os trata como balanceamento:
 
-- Como e quando o personagem ganha pontos da árvore (por nível, por marco) e o total no nível 100.
+- Quantos pontos da árvore cada nível dá e o total no nível 100 (a fonte já está decidida: só subir de nível).
 - Quantidade de nós, custo por rank, rank máximo, requisitos e limites.
 - Efeitos e valores dos nós grandes e avançados; lista final de categorias de skill.
 - Regras de acúmulo de cada tipo de modificador (soma, multiplicação, prioridade, limite).

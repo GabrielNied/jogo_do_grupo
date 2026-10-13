@@ -61,6 +61,7 @@ Decidido por Gabriel em 2026-10-12 (especificação de atributos; entrada em [ar
 - **Sem efeito implícito:** um atributo principal não dá outros bônus (esquiva, velocidade, regeneração...) sem decisão registrada. Cada efeito tem fonte e fórmula identificáveis.
 - **Recursos:** vida, stamina e mana. Decidido em 2026-10-12 (coordenador), para acabar com a colisão de nomes: o recurso que o código chama de "vigor" passa a ser **stamina**, e "energia" passa a ser **mana**. Vigor fica só como atributo. A troca no código é a [#622](https://github.com/GabrielNied/jogo_do_grupo/issues/622).
 - ~~Destreza~~ e ~~Vitalidade~~ substituídos em 2026-10-12 por **Agilidade** e **Vigor**.
+- **Pontos da árvore vêm só de subir de nível** (Gabriel, 2026-10-12). Melhorar equipamento aumenta só os atributos do próprio item e nunca dá ponto da árvore. Quantos pontos cada nível dá está pendente ([#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627)).
 
 ### Atributos secundários
 
@@ -99,7 +100,7 @@ Até a [#622](https://github.com/GabrielNied/jogo_do_grupo/issues/622) e a [#623
 
 ### Pendente
 
-Antes de fixar números ([#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627)): vida, stamina, mana e dano por ponto; fórmulas dos atributos finais; valores, limites e fontes dos secundários; limites de crítico, dano crítico, velocidade e penetração; regras de regeneração e consumo; pontos da árvore (quantos e quando); custos e requisitos dos nós; efeitos dos nós grandes e avançados; fórmulas entre atributos, equipamentos e skills.
+Antes de fixar números ([#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627)): vida, stamina, mana e dano por ponto; fórmulas dos atributos finais; valores, limites e fontes dos secundários; limites de crítico, dano crítico, velocidade e penetração; regras de regeneração e consumo; quantos pontos da árvore cada nível dá; custos e requisitos dos nós; efeitos dos nós grandes e avançados; fórmulas entre atributos, equipamentos e skills.
 
 ## Raças propostas no board (2026-10-11)
 
@@ -119,7 +120,7 @@ O Humano provisório virou **Valdren** (decisão do Gabriel, 2026-10-11; mesmo v
 
 Do "Livro de ideias de Asterra" ([seções 10 e 09](../brainstorm/figjam.md#10--regras-da-primeira-versão)). **Proposta do board (2026-10-11), não validada pelo grupo**, salvo o nível máximo, decidido na [fatia](fatia-jogavel.md#6-experiência-e-nível). Os atributos seguem [Atributos do personagem](#atributos-do-personagem).
 
-- **Nível do personagem** é separado do nível e da raridade dos itens. O teto é **100**. ~~Subir de nível não dá ponto de atributo.~~ Revisto em 2026-10-12: os pontos da árvore, e quando chegam, estão pendentes ([talentos](talentos.md#pendente)).
+- **Nível do personagem** é separado do nível e da raridade dos itens. O teto é **100**. ~~Subir de nível não dá ponto de atributo.~~ Revisto em 2026-10-12: subir de nível dá pontos da árvore, a única fonte deles; quantos por nível está pendente ([talentos](talentos.md#pendente)).
 - ~~**Cinco atributos**, só nos itens: Força, Destreza, Intelecto, Vitalidade e Espírito~~ (substituído em 2026-10-12 por [Atributos do personagem](#atributos-do-personagem): os atributos vêm da árvore, e DEC-001 separa os atributos dos itens).
 - **Fontes de XP:** derrotar inimigos, explorar pontos novos, coletar, produzir receitas e concluir objetivos.
 - **Skills não são aprendidas:** continuar dos itens. O orçamento de preparação segue fora desta fatia ([skills.md](skills.md#preparação-de-skills-proposta-do-board-2026-10-11)). Os atributos não mudam esse orçamento.
@@ -140,7 +141,7 @@ Decidido em 2026-10-12. A curva já está em `ConfigExperiencia`; o teste `Ritmo
 
 **Curva:** XP do nível = arredondar(50 × nível^1,2). Nível máximo: **100**. A curva dos primeiros níveis não muda. Era 100 × nível^1,7, e o nível 10 passava de 5 horas só de mobs do mesmo nível.
 
-**O que o nível dá:** ~~nada de atributo. Vida, vigor, energia e dano crescem pelos itens.~~ Revisto em 2026-10-12: os atributos vêm da [árvore](talentos.md), e se os pontos dela chegam por nível ou por marco está pendente ([#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627)). Até lá, zero pontos por nível. O nível em si não dá bônus. Os atributos não mudam o orçamento de preparação de skills; esse orçamento continua fora desta fatia ([skills.md](skills.md#preparação-de-skills-proposta-do-board-2026-10-11)).
+**O que o nível dá:** ~~nada de atributo. Vida, vigor, energia e dano crescem pelos itens.~~ Revisto em 2026-10-12: cada nível dá pontos da [árvore](talentos.md), e só o nível dá esses pontos (Gabriel). Quantos por nível está pendente ([#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627)); até a [#625](https://github.com/GabrielNied/jogo_do_grupo/issues/625), o código segue com zero pontos por nível. O nível em si não dá bônus. Os atributos não mudam o orçamento de preparação de skills; esse orçamento continua fora desta fatia ([skills.md](skills.md#preparação-de-skills-proposta-do-board-2026-10-11)).
 
 **XP por diferença de nível** (decidido em 2026-10-12): a diferença é o nível do jogador menos o nível do mob. 0 ou negativa paga 100%. Cada nível acima tira 20 pontos percentuais. 5 ou mais acima paga 0. Quem participou recebe essa parcela, não o valor cheio. A meta de ritmo acima vale contra mob do mesmo nível ou mais forte. O Javali do Campo é nível 3: a partir do nível 8 do jogador ele não dá XP. Constantes nomeadas, fáceis de calibrar.
 
@@ -152,7 +153,7 @@ O teto 100 e zero pontos por nível estão em `ConfigExperiencia`. A #454 ainda 
 - [x] ~~O orçamento de skills muda com os atributos?~~ Decidido em 2026-10-12: não muda. O orçamento em si continua fora desta fatia.
 - [ ] Quais raças existem e qual a skill base de cada uma? (as raças definitivas substituem a raça provisória Humano) **Cinco raças em uso desde 2026-10-11 ([Raças propostas](#raças-propostas-no-board-2026-10-11)); a skill base de cada uma segue em [Skills](skills.md) (#341).**
 - [ ] ~~Quais raças e classes existem?~~ classes não existem mais (D2)
-- [ ] O que o nível dá ao personagem? ~~Decidido em 2026-10-12: nenhum ponto de atributo; os atributos vêm dos itens.~~ Reaberto em 2026-10-12: os atributos vêm da [árvore](talentos.md); pontos por nível ou por marco na [#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627).
+- [x] ~~O que o nível dá ao personagem?~~ ~~Decidido em 2026-10-12: nenhum ponto de atributo; os atributos vêm dos itens.~~ Revisto em 2026-10-12 (Gabriel): pontos da árvore, só por nível. Quantos por nível na [#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627).
 - [x] ~~Nível máximo e curva de progressão~~ Decidido em 2026-10-12: 100, e arredondar(50 × nível^1,2). Ver [Ritmo de progressão](#ritmo-de-progressão).
 - [ ] Aparência e customização na criação (rosto, corpo, cores...)?
 - [ ] Excluir personagem: pode? Tem confirmação (ex.: digitar o nome) ou tempo de espera antes de apagar de vez?
@@ -349,7 +350,7 @@ API HTTP para listar e criar personagens (por que HTTP: [ADR 0009](../decisoes/0
 
 ### Experiência, nível e pontos de atributo (#65, contrato da #299)
 
-Regras na [fatia jogável, seção 6](fatia-jogavel.md#6-experiência-e-nível). O servidor concede a experiência e sobe o nível; o client só mostra. Subir de nível não dá ponto de atributo por enquanto (pontos da árvore pendentes, [#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627)). O contrato abaixo ainda descreve o gasto livre de pontos: a [#625](https://github.com/GabrielNied/jogo_do_grupo/issues/625) troca esse gasto pela compra de nós da [árvore](talentos.md), e a [#622](https://github.com/GabrielNied/jogo_do_grupo/issues/622) renomeia os atributos. ~~Este é o contrato; o servidor (#356) e o client (#357) vêm depois.~~ O servidor (#356, 11/10/2026) concede a experiência de `InimigoDerrotado` e gasta os pontos. O client (#357) mostra a barra e a tela de atributos (tecla C) e só envia o gasto.
+Regras na [fatia jogável, seção 6](fatia-jogavel.md#6-experiência-e-nível). O servidor concede a experiência e sobe o nível; o client só mostra. Subir de nível vai dar pontos da árvore (decidido em 2026-10-12; quantos, na [#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627)); por enquanto o código dá zero. O contrato abaixo ainda descreve o gasto livre de pontos: a [#625](https://github.com/GabrielNied/jogo_do_grupo/issues/625) troca esse gasto pela compra de nós da [árvore](talentos.md), e a [#622](https://github.com/GabrielNied/jogo_do_grupo/issues/622) renomeia os atributos. ~~Este é o contrato; o servidor (#356) e o client (#357) vêm depois.~~ O servidor (#356, 11/10/2026) concede a experiência de `InimigoDerrotado` e gasta os pontos. O client (#357) mostra a barra e a tela de atributos (tecla C) e só envia o gasto.
 
 | ID ou rota | Nome | Direção | Campos |
 |---|---|---|---|
