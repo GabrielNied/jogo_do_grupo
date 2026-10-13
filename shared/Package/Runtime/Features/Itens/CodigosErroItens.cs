@@ -85,5 +85,26 @@ namespace JogoDoGrupo.Shared.Features.Itens
         /// <see cref="RegrasLoot.RaioDeColetaMetros"/> do personagem.
         /// </summary>
         public const string LongeDemais = "LongeDemais";
+
+        /// <summary>
+        /// 409, equipar: o personagem está abaixo do nível que a peça exige
+        /// (<c>Equipamento.NivelPersonagemMinimo</c>). Nada muda.
+        /// </summary>
+        public const string NivelInsuficiente = "NivelInsuficiente";
+
+        /// <summary>
+        /// 409, equipar na mão secundária: a arma principal do conjunto é de duas mãos. Retire
+        /// a arma de duas mãos antes.
+        /// </summary>
+        public const string ArmaDeDuasMaos = "ArmaDeDuasMaos";
+
+        /// <summary>400, equipar: o item não é equipamento (poção, moeda de teste).</summary>
+        public const string ItemNaoEquipavel = "ItemNaoEquipavel";
+
+        /// <summary>400, equipar ou desequipar: o encaixe não existe ou não aceita o tipo da peça.</summary>
+        public const string PosicaoInvalida = "PosicaoInvalida";
+
+        /// <summary>400, trocar de conjunto de armas: só existem os conjuntos 1 e 2.</summary>
+        public const string ConjuntoInvalido = "ConjuntoInvalido";
     }
 }

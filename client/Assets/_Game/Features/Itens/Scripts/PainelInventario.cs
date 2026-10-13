@@ -731,6 +731,23 @@ namespace JogoDoGrupo.Client.Features.Itens
             return AlvoSoltura.Em(TipoAlvo.Fora);
         }
 
+        private EntradaInventario EntradaDe(long instanciaId)
+        {
+            if (_estado == null)
+                return null;
+            foreach (var entrada in _estado.Inventario)
+            {
+                if (entrada.InstanciaId == instanciaId)
+                    return entrada;
+            }
+            foreach (var entrada in _estado.Equipados)
+            {
+                if (entrada.InstanciaId == instanciaId)
+                    return entrada;
+            }
+            return null;
+        }
+
         private void AoMudarArrasto(OrigemArrasto origem, bool comecou)
         {
             _tooltip.Esconder();
@@ -743,7 +760,11 @@ namespace JogoDoGrupo.Client.Features.Itens
             LimparAlvo();
             if (!comecou || origem.Tipo == null)
                 return;
-            var validos = LogicaInventario.EncaixesValidos(origem.Tipo.Value);
+            var arrastado = RegrasEquipamentos.DadosDe(EntradaDe(origem.InstanciaId));
+            var validos =
+                arrastado != null && _estado != null
+                    ? LogicaInventario.EncaixesValidos(arrastado, _estado)
+                    : LogicaInventario.EncaixesValidos(origem.Tipo.Value);
             foreach (var par in _encaixes)
             {
                 par.Value.AddToClassList(

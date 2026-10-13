@@ -351,6 +351,62 @@ public class EquipamentosRotasTestes(ServidorDeTeste servidor) : IClassFixture<S
         );
     }
 
+    private static async Task AssertCodigo(
+        HttpResponseMessage resposta,
+        HttpStatusCode status,
+        string codigo
+    )
+    {
+        Assert.Equal(status, resposta.StatusCode);
+        Assert.Equal(codigo, (await ServidorDeTeste.LerJsonAsync<ErroApi>(resposta)).Codigo);
+    }
+
+    [Fact]
+    public async Task Recusas_de_equipar_trazem_o_codigo_do_contrato_e_a_resposta_traz_o_nivel()
+    {
+        var (cliente, id) = await Personagem();
+        Assert.Equal(1, (await Ler(cliente, id)).NivelDoPersonagem);
+
+        var alto = await Item(id, 100, grau: GrauEquipamento.Forte);
+        await AssertCodigo(
+            await Equipar(cliente, id, alto, PosicaoEquipamento.Arma1),
+            HttpStatusCode.Conflict,
+            CodigosErroItens.NivelInsuficiente
+        );
+        var martelo = await Item(id, 100);
+        await AssertCodigo(
+            await Equipar(cliente, id, martelo, PosicaoEquipamento.Capacete),
+            HttpStatusCode.BadRequest,
+            CodigosErroItens.PosicaoInvalida
+        );
+        await AssertCodigo(
+            await Equipar(cliente, id, await Item(id, 3), PosicaoEquipamento.Arma1),
+            HttpStatusCode.BadRequest,
+            CodigosErroItens.ItemNaoEquipavel
+        );
+        await AssertCodigo(
+            await Equipar(cliente, id, martelo + 9999, PosicaoEquipamento.Arma1),
+            HttpStatusCode.NotFound,
+            CodigosErroItens.ItemNaoEncontrado
+        );
+        await AssertCodigo(
+            await ServidorDeTeste.PostJsonAsync(
+                cliente,
+                RegrasEquipamentos.RotaDe(id) + "/conjunto",
+                new PedidoConjunto { Conjunto = 3 }
+            ),
+            HttpStatusCode.BadRequest,
+            CodigosErroItens.ConjuntoInvalido
+        );
+
+        (await Equipar(cliente, id, martelo, PosicaoEquipamento.Arma1)).EnsureSuccessStatusCode();
+        await AssertCodigo(
+            await Equipar(cliente, id, await Item(id, 2), PosicaoEquipamento.Secundaria1),
+            HttpStatusCode.Conflict,
+            CodigosErroItens.ArmaDeDuasMaos
+        );
+    }
+
     [Fact]
     public async Task DuasMaosRetiraEscudoMasNaoPerdeItemSeInventarioCheio()
     {

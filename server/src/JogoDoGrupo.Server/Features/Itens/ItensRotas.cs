@@ -99,7 +99,11 @@ internal static class ItensRotas
         await db.SaveChangesAsync(cancelamento);
         var estado = await db.Set<EstadoEquipamentos>()
             .FindAsync(new object[] { id }, cancelamento);
-        var resposta = EquipamentosRotas.Resposta(itens, estado?.ConjuntoAtivo ?? 1);
+        var resposta = EquipamentosRotas.Resposta(
+            itens,
+            estado?.ConjuntoAtivo ?? 1,
+            await NivelAsync(id, db, cancelamento)
+        );
         await transacao.CommitAsync(cancelamento);
         return Results.Ok(resposta);
     }
@@ -178,7 +182,11 @@ internal static class ItensRotas
 
         var estado = await db.Set<EstadoEquipamentos>()
             .FindAsync(new object[] { id }, cancelamento);
-        var resposta = EquipamentosRotas.Resposta(itens, estado?.ConjuntoAtivo ?? 1);
+        var resposta = EquipamentosRotas.Resposta(
+            itens,
+            estado?.ConjuntoAtivo ?? 1,
+            await NivelAsync(id, db, cancelamento)
+        );
         await transacao.CommitAsync(cancelamento);
         return Results.Ok(resposta);
     }

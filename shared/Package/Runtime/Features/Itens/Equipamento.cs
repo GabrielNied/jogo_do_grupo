@@ -231,6 +231,13 @@ namespace JogoDoGrupo.Shared.Features.Itens
         public int ConjuntoAtivo = 1;
 
         /// <summary>
+        /// Nível do personagem, para a tela mostrar antes do clique o que o servidor recusaria
+        /// por nível (<see cref="RegrasEquipar"/>). 0 é "não informado" (resposta antiga ou
+        /// inventário limpo): a tela não recusa por nível.
+        /// </summary>
+        public int NivelDoPersonagem;
+
+        /// <summary>
         /// O que as peças ativas dão ao combate, já convertido (ATRIB-003) e separado do
         /// personagem: nada aqui soma em Força, Vigor, Agilidade, Intelecto ou Espírito.
         /// </summary>

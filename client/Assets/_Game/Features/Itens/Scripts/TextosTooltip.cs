@@ -63,7 +63,10 @@ namespace JogoDoGrupo.Client.Features.Itens
             var dados = Basico(entrada);
             var item = RegrasEquipamentos.DadosDe(entrada);
             if (item != null && estado != null && entrada.Posicao == PosicaoEquipamento.Inventario)
+            {
                 Comparar(dados, item, estado);
+                AvisarRecusa(dados, item, estado);
+            }
             return dados;
         }
 
@@ -122,6 +125,23 @@ namespace JogoDoGrupo.Client.Features.Itens
             );
 
             return dados;
+        }
+
+        // Mostra antes do clique o motivo de o servidor recusar (nível, mão secundária com arma
+        // de duas mãos), em vermelho, no encaixe que o clique direito usaria.
+        private static void AvisarRecusa(
+            DadosTooltip dados,
+            Equipamento item,
+            EquipamentosResponse estado
+        )
+        {
+            var encaixe = LogicaInventario.EncaixeAutomatico(item.Tipo, estado);
+            var motivo = TextosEquipamento.MotivoDaRecusa(
+                LogicaInventario.RecusaNoEncaixe(item, encaixe, estado),
+                item
+            );
+            if (motivo != null)
+                Adicionar(dados.Linhas, motivo, EstiloLinha.Perda);
         }
 
         private static void Comparar(
