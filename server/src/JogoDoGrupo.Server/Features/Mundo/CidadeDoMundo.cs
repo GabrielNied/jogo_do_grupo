@@ -181,6 +181,22 @@ public sealed class CidadeDoMundo<TSessao>(Func<long> relogioMs)
                 return (ResultadoMovimento.Recusado, Converter(personagemId, entrada));
             }
 
+            // Teto de velocidade (ex.: preparo do golpe): longe demais de onde o teto começou é
+            // recusado e conta como suspeita; o servidor fica com a última posição aceita.
+            var teto = entrada.Teto is { } ativo && agora <= ativo.AteMs ? ativo : null;
+            if (
+                teto != null
+                && ValidadorDeMovimento.DistanciaHorizontal(teto.Origem, desejada)
+                    > ValidadorDeMovimento.AlcanceNoTeto(limite * teto.Fator, agora - teto.InicioMs)
+            )
+            {
+                _avatares[personagemId] = entrada with
+                {
+                    TotalDeSuspeitas = entrada.TotalDeSuspeitas + 1,
+                };
+                return (ResultadoMovimento.Recusado, Converter(personagemId, entrada));
+            }
+
             var julgamento = ValidadorDeMovimento.Julgar(entrada.Posicao, desejada, orcamento);
             if (julgamento != JulgamentoDoPasso.Normal)
             {
@@ -194,6 +210,7 @@ public sealed class CidadeDoMundo<TSessao>(Func<long> relogioMs)
                 Posicao = desejada,
                 UltimoMs = agora,
                 Janela = janela,
+                Teto = teto,
                 Orcamento = Math.Max(0, orcamento - andou),
                 Suspeitas = suspeitas,
                 TotalDeSuspeitas = entrada.TotalDeSuspeitas + (suspeito ? 1 : 0),
@@ -395,6 +412,46 @@ public sealed class CidadeDoMundo<TSessao>(Func<long> relogioMs)
     }
 
     /// <summary>
+    /// Limita a velocidade do personagem a <paramref name="fator"/> (0 a 1) da que ele tem, por
+    /// <paramref name="duracaoSegundos"/> (veja <c>ILimiteDeVelocidadeDoMundo</c>). Um pedido
+    /// novo substitui o anterior. Falso se ele não está na cidade ou se os números não servem.
+    /// </summary>
+    public bool LimitarVelocidade(long personagemId, double fator, double duracaoSegundos)
+    {
+        if (
+            !double.IsFinite(fator)
+            || !double.IsFinite(duracaoSegundos)
+            || fator < 0
+            || fator > 1
+            || duracaoSegundos <= 0
+        )
+        {
+            return false;
+        }
+
+        lock (_trava)
+        {
+            if (!_avatares.TryGetValue(personagemId, out var entrada))
+            {
+                return false;
+            }
+
+            // Fator 1 é "sem teto" (a guarda solta assim): volta o orçamento normal.
+            var agora = relogioMs();
+            var ateMs =
+                agora
+                + (long)Math.Ceiling(duracaoSegundos * 1000.0)
+                + ValidadorDeMovimento.FolgaDaJanelaMs;
+            _avatares[personagemId] = entrada with
+            {
+                Teto =
+                    fator >= 1 ? null : new TetoDeVelocidade(entrada.Posicao, agora, ateMs, fator),
+            };
+            return true;
+        }
+    }
+
+    /// <summary>
     /// Tira o avatar. Falso se a sessão não estava na cidade (ou já foi substituída por outra
     /// do mesmo personagem).
     /// </summary>
@@ -458,6 +515,7 @@ public sealed class CidadeDoMundo<TSessao>(Func<long> relogioMs)
         double Orcamento,
         VelocidadesNaCidade? Pendente = null,
         JanelaDeDeslocamento? Janela = null,
+        TetoDeVelocidade? Teto = null,
         double Suspeitas = 0,
         int TotalDeSuspeitas = 0,
         int SequenciaForcada = 0,
@@ -470,5 +528,14 @@ public sealed class CidadeDoMundo<TSessao>(Func<long> relogioMs)
         long AteMs,
         double DistanciaMaxima,
         double Velocidade
+    );
+
+    // Onde o personagem estava quando o teto começou, quando começou, até quando vale e a
+    // fração da velocidade que sobra.
+    private sealed record TetoDeVelocidade(
+        PosicaoNaCidade Origem,
+        long InicioMs,
+        long AteMs,
+        double Fator
     );
 }

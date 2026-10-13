@@ -33,6 +33,7 @@ public sealed class MundoModule : IFeatureModule
             sp.GetRequiredService<ServidorTempoReal>()
         ));
         servicos.AddSingleton<IDeslocamentosDoMundo>(new DeslocamentosDaCidade(_cidade));
+        servicos.AddSingleton<ILimiteDeVelocidadeDoMundo>(new LimiteDeVelocidadeDaCidade(_cidade));
         servicos.AddSingleton(sp => new RelogioDoMundo(sp.GetRequiredService<TimeProvider>()));
         servicos.AddSingleton(sp =>
         {

@@ -122,6 +122,19 @@ public static class ValidadorDeMovimento
     }
 
     /// <summary>
+    /// Folga (m) a mais sob o teto de velocidade (ex.: preparo do golpe): a última posição de
+    /// antes do teto pode chegar atrasada pela rede.
+    /// </summary>
+    public const double FolgaDoTeto = 1.0;
+
+    /// <summary>
+    /// Até onde (m, a partir de onde o teto começou) o personagem pode ir sob o teto, a
+    /// <paramref name="velocidade"/> (m/s, já reduzida) em <paramref name="decorridoMs"/>.
+    /// </summary>
+    public static double AlcanceNoTeto(double velocidade, long decorridoMs) =>
+        (velocidade * Math.Max(0, decorridoMs) / 1000.0) + Folga + FolgaDoTeto;
+
+    /// <summary>
     /// Quanto deslocamento (em segundos de corrida) o orçamento junta no máximo (ADR 0024). É o
     /// que absorve pacotes que chegam em rajada: o tempo de rede não vira recusa.
     /// </summary>
