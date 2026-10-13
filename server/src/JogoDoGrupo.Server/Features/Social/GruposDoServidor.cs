@@ -1,4 +1,5 @@
 using JogoDoGrupo.Server.Contratos.Personagem;
+using JogoDoGrupo.Server.Contratos.Social;
 using JogoDoGrupo.Shared.Features.Social;
 
 namespace JogoDoGrupo.Server.Features.Social;
@@ -21,7 +22,7 @@ public sealed class GruposDoServidor(
     ISaidaDoGrupo saida,
     Func<long> relogioMs,
     Func<long, long, bool>? contatoBarradoEntrePersonagens = null
-)
+) : IConsultaDeGrupo
 {
     private readonly Lock _trava = new();
     private readonly HashSet<long> _online = [];
@@ -45,6 +46,21 @@ public sealed class GruposDoServidor(
         lock (_trava)
         {
             return _grupoDe.TryGetValue(personagemId, out var grupo) ? Lista(grupo) : new();
+        }
+    }
+
+    /// <summary>Consulta atomicamente os IDs atuais do grupo, ou null se o personagem está solo.</summary>
+    public GrupoAtual? Consultar(long personagemId)
+    {
+        lock (_trava)
+        {
+            if (!_grupoDe.TryGetValue(personagemId, out var grupo))
+            {
+                return null;
+            }
+
+            var membros = Array.AsReadOnly(grupo.Membros.Select(m => m.PersonagemId).ToArray());
+            return new GrupoAtual(grupo.Id, grupo.LiderId, membros);
         }
     }
 

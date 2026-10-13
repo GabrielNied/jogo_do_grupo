@@ -340,7 +340,7 @@ Servidor (#394, implementado): pedido duplicado não cria outro; aceite cria a a
 - Contrato do grupo na faixa 13000–13999 (mensagens de convidar, aceitar, recusar, sair, expulsar, passar liderança e a lista do grupo), ~~a definir pelo agente de contrato a partir das regras acima~~ definido em 2026-10-11, veja [Contrato do grupo](#contrato-do-grupo) abaixo.
 - Contrato do chat na mesma faixa 13000–13999 (enviar mensagem, mensagem recebida, recusa e histórico da Cidade), ~~a definir pelo agente de contrato a partir das regras do chat~~ definido em 2026-10-11, veja [Contrato do chat](#contrato-do-chat) abaixo.
 - Contrato de amigos e ignorados na mesma faixa (IDs 13200 a 13299), definido em 2026-10-11, veja [Contrato de amigos e ignorar](#contrato-de-amigos-e-ignorar) abaixo.
-- Consulta "quem é o grupo de um personagem" para outras funcionalidades (ex.: dungeons), por evento ou contrato do shared, sem referência direta entre funcionalidades.
+- Consulta atual do grupo de um personagem para outras funcionalidades do servidor por `IConsultaDeGrupo`, em `server/src/JogoDoGrupo.Server/Contratos/Social/`; personagens solo retornam `null`, e grupos incluem ID, líder e membros na ordem de entrada.
 
 ### Contrato do grupo
 
