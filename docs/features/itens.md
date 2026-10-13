@@ -45,7 +45,7 @@ Não mudam por decisão de quem implementa: mudar exige aprovação do Gabriel e
 - **DEC-002:** a fusão não tem chance de falha. O equilíbrio vem de custo, materiais e limites.
 - **DEC-003:** uma fusão altera um único atributo, escolhido pelo jogador; o resto do item principal, inclusive as skills, fica igual.
 - **DEC-004:** o tier atual vem só dos valores dos atributos e é recalculado quando eles mudam.
-- **DEC-005:** sem desmontagem. Destinos do item: equipado, vendido ou consumido como material de fusão.
+- **DEC-005:** sem desmontagem. Destinos do item: equipado, vendido, consumido como material de fusão ou descartado (sem recompensa nem material; incluído por Gabriel em 2026-10-12).
 - A fórmula da fusão (metade da diferença), o limite **+10**, a estrutura de custo (coroas; dungeon até +8; raid em +9 e +10), a operação atômica e o servidor como autoridade.
 
 #### Exemplar
@@ -53,19 +53,20 @@ Não mudam por decisão de quem implementa: mudar exige aprovação do Gabriel e
 | Conceito (documento mestre) | Hoje (`Equipamento`) | Modelo v2 |
 |---|---|---|
 | Identidade da instância, item-base | `InstanciaId`, `ModeloId` | Iguais |
-| Tipo e família de arma | `Tipo` | `Tipo`; para armas, o tipo **é** a família (Espada, Martelo, Arco, Cajado, Escudo, Foco) |
-| Atributos próprios | `Atributos` (fixos e sorteados, fracionários) | Os mesmos `StatusItem`, em **inteiros** (proposta) |
-| Skills | ainda não existem ([#167](https://github.com/GabrielNied/jogo_do_grupo/issues/167)) | Gravadas no exemplar; a fusão nunca as muda |
+| Tipo e família de arma | `Tipo` | **Categoria de peça** = `Tipo` (Espada, Peito, Capacete, Anel...); "família de arma" do documento mestre vale para todas as peças |
+| Atributos próprios | `Atributos` (fixos e sorteados, fracionários) | Inteiros numa **escala interna de 0 a 100** por atributo ([Tier](#tier)); quais atributos cada peça pode ter vem do modelo-base. A lista é da [#623](https://github.com/GabrielNied/jogo_do_grupo/issues/623) |
+| Skills | ainda não existem ([#167](https://github.com/GabrielNied/jogo_do_grupo/issues/167)) | Quantidade definida pelo **modelo-base**, não por raridade; gravadas no exemplar; a fusão nunca as muda |
 | Nível de fusão | `InfusoesUsadas` (limite 10 a 30 pela raridade) | `NivelFusao`, de +0 a +10 |
 | Tier atual | não existe | Calculado pelos atributos ([Tier](#tier)) |
 | Tier de origem | `Raridade` (sorteada) | `TierOrigem`, gravado na geração; `Raridade` fica só como legado |
 | Posse e equipamento | posição, contêiner, aba e casa | Iguais |
 | Grau, região, família de conjunto, requisito de nível, favorito | existem | Continuam |
 | Atributo infusível (`IndiceInfusivel`, `ValorBaseInfusivel`) | existem | **Depreciados**: qualquer atributo pode ser escolhido |
-| Nível da peça (`Nivel`) | existe, sem XP ainda | **Pendente** (veja abaixo) |
+| Nível da peça (`Nivel`) | existe, sem XP ainda | **Fixo em 1** até existir progressão própria; não controla tier, qualidade nem skills |
 
 - **ITEM-001:** o servidor gera e grava o exemplar uma vez; vestir, tirar e reconectar não sorteiam de novo (já vale desde a #166).
-- **ITEM-002:** destinos permitidos: equipar, vender ([#173](https://github.com/GabrielNied/jogo_do_grupo/issues/173)) e consumir como material de fusão. Qualquer destino novo exige decisão explícita.
+- **ITEM-002:** destinos permitidos: equipar, vender ([#173](https://github.com/GabrielNied/jogo_do_grupo/issues/173)), consumir como material de fusão e descartar ([Descartar item](#descartar-item-495)). Qualquer destino novo exige decisão explícita.
+- **ITEM-004:** o descarte apaga o item sem recompensa e sem gerar material. Item com investimento (nível de fusão acima de +0) ou de tier A ou acima pede uma **segunda confirmação** (na [#616](https://github.com/GabrielNied/jogo_do_grupo/issues/616), quando o nível de fusão existir).
 - **ITEM-003:** material favorito ou equipado não é consumido (vem da #174).
 
 #### Tier
@@ -80,11 +81,23 @@ Implementação na [#615](https://github.com/GabrielNied/jogo_do_grupo/issues/61
 - **TIER-004:** o tier de origem é gravado na geração, nunca muda e não limita a evolução: um item D pode chegar a S por fusões.
 - **TIER-005:** S+ é um item S com todos os atributos elegíveis no máximo da faixa válida. É condição verificada no estado do item, nunca um tier sorteado.
 
-**Proposta** (valores em `ConfigTier`):
+**Cálculo** (decidido por Gabriel em 2026-10-12; os números são valores iniciais de balanceamento, em `ConfigTier`):
 
-- **TIER-006 (faixa válida):** para cada atributo, de 0,5 a 1,5 vezes o valor de referência vezes o fator do grau (1/2/4), em inteiros, com mínimo 1. A referência é o valor do catálogo para atributo fixo e a de `ConfigEquipamentos` para sorteado. A geração sorteia o valor dentro da faixa (hoje os valores são fixos).
-- **TIER-007 (cálculo):** nota de cada atributo = (valor - mínimo) / (máximo - mínimo), entre 0 e 1. Todos os atributos do exemplar são elegíveis; o que ele não tem não entra. Nota do item = média das notas. Limiares: **D** abaixo de 0,40; **C** de 0,40; **B** de 0,55; **A** de 0,70; **S** de 0,85.
-- **Loot:** a origem do inimigo deixa de pesar a raridade e passa a melhorar o sorteio dos valores (ex.: fortalecido = melhor de 2 rolagens, chefe = melhor de 3), calibrado pela meta de ritmo de [Loot dos inimigos](#loot-dos-inimigos-493).
+- **TIER-006 (escala e faixa):** cada atributo de item é um inteiro numa escala interna de **0 a 100**, com mínimo e máximo **absolutos por atributo e categoria de peça**. 100 é o máximo interno, não "100% de crítico" nem "100 de vida": a conversão para o combate é outra regra, de cada atributo. O grau não muda a faixa; proposta: ele só escolhe em que parte da faixa a geração sorteia.
+- **TIER-007 (elegíveis):** cada modelo-base declara quais atributos são elegíveis para geração, tier e S+ (ex.: peito com defesa física e vida; anel com chance crítica e penetração). Atributo que o modelo não tem **não conta como zero**: simplesmente não entra.
+- **TIER-008 (qualidade):** `Qi = (Vi - Vmin) / (Vmax - Vmin) × 100` para cada atributo elegível; a qualidade do item é a média. Exemplo: 90%, 85% e 65% dão 80%, tier S.
+
+| Tier | Qualidade média |
+|---|---|
+| D | abaixo de 35% |
+| C | de 35% a menos de 50% |
+| B | de 50% a menos de 65% |
+| A | de 65% a menos de 80% |
+| S | de 80% a 100% |
+| S+ | S com **todos** os elegíveis exatamente no máximo (média de 100% por arredondamento não basta) |
+
+- **Loot (proposta):** a origem do inimigo deixa de pesar a raridade e passa a melhorar o sorteio dos valores (ex.: fortalecido = melhor de 2 rolagens, chefe = melhor de 3), calibrado pela meta de ritmo de [Loot dos inimigos](#loot-dos-inimigos-493).
+- **Migração:** os valores atuais (escala do catálogo, com fator de grau) são convertidos para a escala 0 a 100 na [#615](https://github.com/GabrielNied/jogo_do_grupo/issues/615), com a regra de conversão registrada aqui.
 
 #### Fusão
 
@@ -93,8 +106,8 @@ Implementação na [#616](https://github.com/GabrielNied/jogo_do_grupo/issues/61
 **Definido:**
 
 - **FUSAO-001:** o item principal é o resultado; o material é consumido.
-- **FUSAO-002:** o material é compatível: mesmo `TipoEquipamento` (família de arma, para armas). Raridade legada, grau, região e família de conjunto (Vigia, Predador...) não restringem. Usar a mesma regra em armaduras e acessórios é proposta.
-- **FUSAO-003:** o jogador escolhe um atributo por operação. Proposta: o atributo precisa existir nos dois itens; a fusão não acrescenta atributo novo.
+- **FUSAO-002:** o material é compatível: mesma **categoria de peça** (`TipoEquipamento`), em armas, armaduras e acessórios (espada com espada, peito com peito, anel com anel). Raridade legada, grau, região e família de conjunto (Vigia, Predador...) não restringem. Se uma categoria tiver modelos com estruturas de atributos diferentes, a compatibilidade também pode exigir o mesmo modelo-base ou grupo de atributos, declarado nos dados.
+- **FUSAO-003:** o jogador escolhe um atributo por operação, elegível nos dois itens; a fusão não acrescenta atributo novo. A regra é a mesma em todas as categorias; muda só o catálogo de atributos, as faixas e os efeitos.
 - **FUSAO-004:** só o atributo escolhido muda. Os outros atributos, as skills, o tipo, o grau e o tier de origem ficam iguais.
 - **FUSAO-005:** `novo = atual + (material - atual) / 2`. O valor anda metade da diferença em direção ao do material e pode diminuir.
 - **FUSAO-006:** sem chance de falha.
@@ -102,30 +115,36 @@ Implementação na [#616](https://github.com/GabrielNied/jogo_do_grupo/issues/61
 - **FUSAO-008:** o tier atual é recalculado; o de origem é preservado.
 - **FUSAO-009 (custo por nível):**
 
-| Evolução | Custo | Valores iniciais (proposta, `ConfigFusao`) |
-|---|---|---|
-| +0 → +1 até +4 → +5 | coroas | 10, 20, 40, 80, 160 |
-| +5 → +6 até +7 → +8 | coroas e materiais de dungeon | 300, 450, 600 coroas e 1, 2, 3 materiais |
-| +8 → +9 e +9 → +10 | coroas e materiais de raid | 1000, 1500 coroas e 1, 2 materiais |
+| Evolução | Coroas | Material especial |
+|---|---:|---|
+| +0 → +1 | 100 | nenhum |
+| +1 → +2 | 200 | nenhum |
+| +2 → +3 | 350 | nenhum |
+| +3 → +4 | 550 | nenhum |
+| +4 → +5 | 800 | nenhum |
+| +5 → +6 | 1.200 | 1 de dungeon |
+| +6 → +7 | 1.700 | 2 de dungeon |
+| +7 → +8 | 2.400 | 3 de dungeon |
+| +8 → +9 | 3.400 | 1 de raid |
+| +9 → +10 | 4.800 | 2 de raid |
 
-  Material de raid nunca é exigido antes de +8 → +9. Os materiais são a [#617](https://github.com/GabrielNied/jogo_do_grupo/issues/617); até ela, o servidor recusa de +6 em diante por falta de material.
+  Valores iniciais de teste de Gabriel (2026-10-12), em `ConfigFusao`, não balanceamento final: 15.500 coroas de +0 a +10, além da peça compatível consumida em cada fusão. Material de raid nunca é exigido antes de +8 → +9. Os materiais são a [#617](https://github.com/GabrielNied/jogo_do_grupo/issues/617); até ela, o servidor recusa de +6 em diante por falta de material.
 - **FUSAO-010 (prévia):** principal, material, compatibilidade, nível atual e resultante, atributo escolhido, valor atual, do material e resultante, variação, custo em coroas, materiais exigidos, aviso de que o material some e tier antes e depois. A prévia não muda nada.
 - **FUSAO-011:** só a confirmação explícita aplica. O servidor confere tudo de novo e grava cobrança, consumo, novo valor, nível e tier na mesma transação: tudo ou nada.
 - **FUSAO-012:** recusa material alheio, inexistente, incompatível, equipado ou favorito; item em +10; coroas ou materiais insuficientes. Nunca cobra sem aplicar, aplica sem consumir, duplica item ou moeda em pedidos concorrentes, nem usa o mesmo material em duas fusões.
 - **FUSAO-013:** confirmação repetida ou após queda de rede não aplica duas vezes; reabrir a bancada mostra o resultado gravado.
-
-**Proposta:**
-
-- **FUSAO-014 (inteiros e arredondamento):** com `d = material - atual`, `novo = atual + sinal(d) × teto(|d| / 2)`. Quando os valores diferem, anda pelo menos 1 e nunca passa do valor do material; depois fica dentro da faixa válida do principal (TIER-006).
+- **FUSAO-014 (arredondamento, decidido por Gabriel em 2026-10-12):** o resultado da fórmula vai para o **inteiro mais próximo**; empate exato (,5) vai **na direção do material** (o mesmo que `atual + sinal(d) × teto(|d| / 2)`, com `d = material - atual`). Quando os valores diferem, anda pelo menos 1 e nunca passa do valor do material. Se um dia houver atributo decimal, a regra se adapta à precisão dele.
 
 | Principal | Material | Resultado |
 |---:|---:|---:|
 | 20 | 40 | 30 |
 | 40 | 20 | 30 |
+| 20 | 25 | 23 (22,5 vai para o material) |
 | 20 | 21 | 21 |
 | 21 | 20 | 20 |
 | 20 | 20 | 20 |
-| 20 | 25 | 23 |
+
+- **FUSAO-015 (teto, decidido por Gabriel em 2026-10-12):** material de grau maior pode levar o atributo até o **máximo absoluto** do atributo naquela categoria de peça (TIER-006). Nem o grau do principal nem o tier atual são teto.
 
 - **Migração:** `InfusoesUsadas` vira `NivelFusao` (no máximo 10); valores fracionários são arredondados; os textos "infusão" passam a "fusão".
 
@@ -134,10 +153,11 @@ Implementação na [#616](https://github.com/GabrielNied/jogo_do_grupo/issues/61
 Precisa de decisão do Gabriel. Até lá, vale a proposta indicada.
 
 - **DEC-001 x fatia:** [#618](https://github.com/GabrielNied/jogo_do_grupo/issues/618) (veja Invariantes).
-- **Grau e faixa:** fundir com material de grau maior pode levar o atributo acima da faixa do grau do principal? O pilar "loot relevante" pede que um item excepcional não perca valor com o nível. Proposta até decidir: não, o valor para no máximo da faixa do principal.
-- **Skills por item:** quantas e como sorteiam, agora sem raridade ([#167](https://github.com/GabrielNied/jogo_do_grupo/issues/167)).
-- **Nível da peça e XP da peça:** o nível máximo vinha da raridade; o modelo v2 não os usa. O campo fica em 1 até decidir.
-- **Descarte ([#495](#descartar-item-495)):** existe no jogo, mas não está entre os destinos do DEC-005. Fica como está até decidir.
+- ~~**Grau e faixa**~~ decidido em 2026-10-12: até o máximo absoluto (FUSAO-015).
+- ~~**Skills por item**~~ decidido em 2026-10-12: a quantidade vem do modelo-base. Armas têm seus conjuntos de skills; armaduras e acessórios modificam essas skills com poderes próprios; item especial pode ter exceção declarada nos dados. Sorteio e catálogo seguem na [#167](https://github.com/GabrielNied/jogo_do_grupo/issues/167) ([skills](skills.md)).
+- ~~**Nível da peça e XP da peça**~~ decidido em 2026-10-12: fixo em 1 até existir progressão própria; não é regra central.
+- ~~**Descarte**~~ decidido em 2026-10-12: destino válido (ITEM-002 e ITEM-004).
+- **Atributos de cada categoria de peça** e a conversão de cada um para o combate: [#623](https://github.com/GabrielNied/jogo_do_grupo/issues/623).
 - **Materiais:** nomes, quantidades e fontes ([#617](https://github.com/GabrielNied/jogo_do_grupo/issues/617)); a raid ainda não tem issue.
 - **Venda, negociação e vinculação**, e fontes de coroas ([#173](https://github.com/GabrielNied/jogo_do_grupo/issues/173)).
 
@@ -151,7 +171,7 @@ Precisa de decisão do Gabriel. Até lá, vale a proposta indicada.
 | Doador do mesmo tipo e raridade | Material do mesmo tipo | #616, #561 |
 | Promoção de raridade na forja (proposta do board) | Nada: o tier sobe pelos atributos | #331 fechada |
 | Fusão de skills (proposta do board) | Nada: as skills do principal são preservadas | DEC-003 |
-| Tabela de raridades do board (skills, nível máximo, infusões) | Skills por item pendente | #167 |
+| Tabela de raridades do board (skills, nível máximo, infusões) | Skills pelo modelo-base; nível da peça fixo em 1 | #167 |
 
 ### Infusão de equipamentos (#174)
 
@@ -201,7 +221,7 @@ Operações devolvem `EquipamentosResponse`; conta alheia e personagem ausente t
 
 ### Descartar item (#495)
 
-Soltar um item da bolsa fora da janela do inventário pede confirmação (**Confirmar descarte** / **Cancelar**) e só a confirmação envia o pedido ([Interface do inventário](#interface-do-inventário-560); antes da #560 era o botão **Descartar** na linha do item). O item some e o contador x/capacidade cai.
+Soltar um item da bolsa fora da janela do inventário pede confirmação (**Confirmar descarte** / **Cancelar**) e só a confirmação envia o pedido ([Interface do inventário](#interface-do-inventário-560); antes da #560 era o botão **Descartar** na linha do item). O item some e o contador x/capacidade cai. Desde 2026-10-12 o descarte é destino aprovado (ITEM-002); item com investimento ou de tier alto pede uma segunda confirmação (ITEM-004, na #616).
 
 `POST /api/personagens/{personagemId}/inventario/descartar` (`RotasItens.Descartar`), corpo `PedidoDescartar` (`InstanciaId`); responde 200 `EquipamentosResponse` com o estado atualizado.
 
