@@ -6,39 +6,23 @@ namespace JogoDoGrupo.Client.Features.Itens.Tests
     /// <summary>Onde o baú fica, quando está perto e o marcador criado em código.</summary>
     public class BauNoMundoTestes
     {
-        private static readonly Vector3 Nascimento = new Vector3(0f, 0f, -12f);
-
         [Test]
-        public void PosicaoPerto_FicaAFrenteEADireitaDoNascimento_AMesmaAltura()
+        public void Posicao_EOPontoQueOServidorConfere_NaAlturaPedida()
         {
-            var posicao = BauNoMundo.PosicaoPerto(Nascimento, Vector3.forward, Vector3.right);
+            var posicao = BauNoMundo.Posicao(1.5f);
 
-            Assert.AreEqual(BauNoMundo.DistanciaLado, posicao.x, 0.001f);
-            Assert.AreEqual(Nascimento.z + BauNoMundo.DistanciaFrente, posicao.z, 0.001f);
-            Assert.AreEqual(Nascimento.y, posicao.y, 0.001f);
+            Assert.AreEqual(JogoDoGrupo.Shared.Features.Itens.ConfigBau.X, posicao.x, 0.001f);
+            Assert.AreEqual(JogoDoGrupo.Shared.Features.Itens.ConfigBau.Z, posicao.z, 0.001f);
+            Assert.AreEqual(1.5f, posicao.y, 0.001f);
         }
 
         [Test]
-        public void PosicaoPerto_IgnoraAInclinacaoDosEixos()
+        public void AlcanceDoClient_FicaDentroDoRaioDoServidor()
         {
-            var posicao = BauNoMundo.PosicaoPerto(
-                Nascimento,
-                new Vector3(0f, 0.5f, 1f),
-                new Vector3(1f, -0.5f, 0f)
+            Assert.Less(
+                BauNoMundo.DistanciaParaAbrir,
+                JogoDoGrupo.Shared.Features.Itens.ConfigBau.RaioParaAbrirMetros
             );
-
-            Assert.AreEqual(Nascimento.y, posicao.y, 0.001f);
-        }
-
-        [Test]
-        public void PosicaoPerto_NaoNasceEmCimaDoJogador_MasDentroDoAlcanceDeAndar()
-        {
-            var posicao = BauNoMundo.PosicaoPerto(Nascimento, Vector3.forward, Vector3.right);
-            var distancia = Vector3.Distance(Nascimento, posicao);
-
-            // Fora do alcance de abrir (precisa andar até lá) e à vista perto do nascimento.
-            Assert.Greater(distancia, BauNoMundo.DistanciaParaAbrir);
-            Assert.Less(distancia, 8f);
         }
 
         [Test]

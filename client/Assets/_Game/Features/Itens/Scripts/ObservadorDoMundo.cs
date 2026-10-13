@@ -110,10 +110,10 @@ namespace JogoDoGrupo.Client.Features.Itens
             raiz.AddComponent<ControleLoot>().Configurar(jogador, container);
         }
 
-        /// <summary>Baú à frente e à direita do jogador, com a base no chão (se achar).</summary>
+        /// <summary>Baú no ponto fixo que o servidor confere, com a base no chão (se achar).</summary>
         private static Vector3 PosicaoDoBau(Transform jogador)
         {
-            var posicao = BauNoMundo.PosicaoPerto(jogador.position, jogador.forward, jogador.right);
+            var posicao = BauNoMundo.Posicao(jogador.position.y);
 
             var origem = posicao + Vector3.up * AlturaDaBusca;
             if (

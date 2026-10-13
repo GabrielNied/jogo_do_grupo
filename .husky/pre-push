@@ -11,6 +11,12 @@ printf '%s\n' "$entrada" | while read -r local_ref local_sha remote_ref remote_s
     refs/heads/*)
       node scripts/git/validar-branch.mjs "${remote_ref#refs/heads/}" || exit 1
       node scripts/git/recusar-push-mergeado.mjs "${remote_ref#refs/heads/}" || exit 1
+      # .meta que o npm run unity:meta gera: falta aqui é o mesmo erro do CI (padrao-git), uma
+      # rodada antes. Só confere o HEAD; sem origin/main para comparar (saída 2), não barra.
+      if [ "$local_sha" = "$(git rev-parse HEAD)" ]; then
+        node scripts/git/conferir-arquivos-unity.mjs origin/main --so-geraveis
+        [ $? -eq 1 ] && exit 1
+      fi
       ;;
   esac
 done || exit 1
