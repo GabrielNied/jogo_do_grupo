@@ -12,7 +12,7 @@ public class RegrasGrupoTestes
         Assert.Equal(5, RegrasGrupo.MaximoDeMembros);
         Assert.Equal(2, RegrasGrupo.MinimoDeMembros);
         Assert.Equal(60, RegrasGrupo.ValidadeDoConviteSegundos);
-        Assert.Equal(120, RegrasGrupo.VagaGuardadaSegundos);
+        Assert.Equal(60, RegrasGrupo.VagaGuardadaSegundos);
         Assert.Equal(30, RegrasGrupo.BloqueioDeReconviteSegundos);
         Assert.Equal(1.0, RegrasGrupo.IntervaloEntreConvitesSegundos);
         Assert.Equal(5, RegrasGrupo.MaximoDeConvitesPorAlvo);
@@ -97,10 +97,10 @@ public class RegrasGrupoTestes
 
     [Theory]
     [InlineData(0.0, false)]
-    [InlineData(119.0, false)]
-    [InlineData(120.0, false)]
-    [InlineData(120.1, true)]
-    public void Vaga_guardada_vence_so_depois_de_120_s(double segundosOffline, bool venceu) =>
+    [InlineData(59.0, false)]
+    [InlineData(60.0, false)]
+    [InlineData(60.1, true)]
+    public void Vaga_guardada_vence_so_depois_de_60_s(double segundosOffline, bool venceu) =>
         Assert.Equal(venceu, RegrasGrupo.VagaGuardadaVenceu(segundosOffline));
 
     [Theory]

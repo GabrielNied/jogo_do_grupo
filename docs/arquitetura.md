@@ -135,11 +135,11 @@ O Core sobe um host LiteNetLib junto com o app (código em `Core/TempoReal/`). C
 
 #### Reconexão sem perder o lugar ([#210](https://github.com/GabrielNied/jogo_do_grupo/issues/210))
 
-**Hoje:** o client tenta reconectar sozinho depois de autenticado (`ClienteTempoReal`, hoje **5** tentativas com backoff; a issue propõe **3** — alinhar na implementação). Reautenticar encerra a sessão UDP anterior. O grupo guarda a vaga do membro offline por **120 s** ([social.md](features/social.md), `RegrasGrupo.VagaGuardadaSegundos`). O mundo não reposiciona na reconexão ([mundo.md](features/mundo.md)) e concede orçamento extra de movimento.
+**Hoje:** o client tenta reconectar sozinho depois de autenticado (`ClienteTempoReal`, com **3** tentativas com backoff). Reautenticar encerra a sessão UDP anterior. O grupo guarda a vaga do membro offline por **60 s** ([social.md](features/social.md), `RegrasGrupo.VagaGuardadaSegundos`). O mundo não reposiciona na reconexão ([mundo.md](features/mundo.md)) e concede orçamento extra de movimento.
 
 **Alvo (#210, proposta IA):** por **60 s** após a queda o personagem permanece no mundo (parado, ainda alvo dos inimigos). Reconectar nesse prazo devolve o mesmo canal, instância e grupo; depois disso o personagem sai do mundo e do grupo como se tivesse saído do jogo. Duas sessões da mesma conta continuam proibidas.
 
-**Decisão de design (2026-10-13):** na entrega de #210, unificar o prazo do Social com os **60 s** do Core (ajustar `RegrasGrupo`, [social.md](features/social.md) e testes junto com servidor e client). Até lá, 120 s no código é legado em relação à issue.
+**Decisão de design (2026-10-13):** na entrega de #210, o prazo do Social fica unificado com os **60 s** do Core (`RegrasGrupo`, [social.md](features/social.md) e testes junto com servidor e client).
 
 **Testes esperados (#210):** reconectar antes de 60 s mantém grupo e instância; após 60 s o grupo segue sem o membro; segunda sessão da mesma conta continua recusada.
 

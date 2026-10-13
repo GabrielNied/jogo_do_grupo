@@ -26,7 +26,7 @@ Esta página detalha o **grupo** (convite, lista, líder, sair e expulsar; issue
   - **Aliados:** skills não causam dano entre membros do grupo.
 - [ ] Líder: quem herda quando o líder sai ou cai? (proposta: o membro mais antigo no grupo) e o líder pode passar a liderança? (proposta: sim)
 - [ ] Só o líder expulsa, ou qualquer membro pode pedir votação? (proposta: só o líder expulsa, sem votação)
-- [ ] Tempo que a vaga fica guardada após desconexão (proposta: 120 s) e tempo de validade do convite (proposta: 60 s)
+- [ ] Tempo que a vaga fica guardada após desconexão (proposta: 60 s) e tempo de validade do convite (proposta: 60 s)
 - [ ] Convidar por nome exige amizade ou proximidade? (proposta: não, basta o personagem estar online)
 - [ ] Bloquear convites (modo "não aceitar grupo") e fila automática de grupo: ficam fora da primeira versão?
 - [ ] Raid de 10: é um grupo maior ou dois grupos de 5 juntos? (veja [instancias.md](instancias.md))
@@ -102,7 +102,7 @@ Quem decide: **servidor**. O client só envia intenções (convidar, aceitar, re
 
 #### Desconexão e reconexão (**proposta**)
 
-- O membro que desconecta **fica na lista marcado como offline** e a **vaga fica guardada por 120 segundos** (constante `RegrasGrupo.VagaGuardadaSegundos`; [#210](https://github.com/GabrielNied/jogo_do_grupo/issues/210) unifica em **60 s** — ver [arquitetura](../arquitetura.md#reconexão-sem-perder-o-lugar-210)).
+- O membro que desconecta **fica na lista marcado como offline** e a **vaga fica guardada por 60 segundos** (constante `RegrasGrupo.VagaGuardadaSegundos`; [#210](https://github.com/GabrielNied/jogo_do_grupo/issues/210) unifica o prazo do Social com o Core — ver [arquitetura](../arquitetura.md#reconexão-sem-perder-o-lugar-210)).
 - Se voltar (reautenticar no tempo real) antes disso, o servidor devolve o grupo e ele continua com a mesma posição; os outros veem "voltou".
 - Vencido o prazo, o servidor remove o membro como se tivesse saído. Se o grupo ficar com 1 pessoa, desfaz.
 - Convites pendentes **para** quem desconecta caem na hora; convites **de** quem desconecta caem junto com a vaga guardada vencendo (ou na hora, se não tiver grupo).
@@ -150,14 +150,14 @@ Caminho feliz:
 - Recusar: o convidante recebe o aviso e nenhum grupo é criado.
 - Líder convida até chegar a 5; todos recebem a lista a cada entrada.
 - Membro sai; o líder sai e a liderança passa ao mais antigo online; o líder passa a liderança; o líder expulsa e o expulso recebe o aviso.
-- Reconexão antes de 120 s devolve o grupo ao membro.
+- Reconexão antes de 60 s devolve o grupo ao membro.
 
 Cada erro da tabela: um teste por código, conferindo que **nada muda** no estado do grupo quando o pedido é recusado.
 
 Limites:
 - Exatamente 5 membros é aceito; o 6º convite é recusado com `GrupoCheio`.
 - Convite com 59 s é aceito; com 60 s ou mais, `ConviteExpirado`.
-- Vaga guardada: voltar com 119 s mantém a vaga; passar de 120 s remove.
+- Vaga guardada: voltar com 59 s mantém a vaga; passar de 60 s remove.
 - Grupo com 2 membros: um sai e o grupo se desfaz.
 - Nome com maiúsculas diferentes encontra o mesmo personagem.
 - Limite de 5 convites pendentes por alvo e de convites por convidante conforme as vagas.
@@ -177,7 +177,7 @@ Código em `server/src/JogoDoGrupo.Server/Features/Social/`: as regras vivem em 
 - **Online** é ter uma sessão autenticada no tempo real (não precisa estar na cidade).
 - **Ordem das recusas ao convidar:** `NaoELider`, `ConvitesRapidosDemais`, nome (`AlvoNaoEncontrado`, `ConviteParaSiMesmo`, alvo offline), `AlvoJaEmGrupo`, `ReconviteBloqueado`, `ConviteJaPendente`, `GrupoCheio`, `AlvoComConvitesDemais`. Toda tentativa que passa de `NaoELider` conta no limite de 1 por segundo, mesmo se for recusada.
 - **Convite que acabou sem resposta** (expirou, o convidante caiu sem grupo ou o alvo entrou em outro grupo) fica lembrado por 60 s só para o alvo receber o código certo ao aceitar (`ConviteExpirado`, `ConvidanteOffline`, `AlvoJaEmGrupo`); depois disso vale `ConviteNaoEncontrado`. Convite cancelado por outro motivo (líder mudou, grupo desfeito, alvo caiu) some na hora.
-- **Líder offline:** a vaga guardada e a troca de liderança vencem juntas, passados os 120 s; ali ele sai do grupo como se tivesse saído.
+- **Líder offline:** a vaga guardada e a troca de liderança vencem juntas, passados os 60 s; ali ele sai do grupo como se tivesse saído.
 - **Reconvite bloqueado** vale para quem expulsou e para o grupo, e continua valendo se a expulsão desfez o grupo.
 
 ### Chat de texto (issue #95)
@@ -360,7 +360,7 @@ Código em `shared/Package/Runtime/Features/Social/` (fonte dos nomes e tipos ex
 
 - `TipoDeAvisoDoGrupo`: os avisos da lista acima que não têm mensagem própria (`ConviteRecusado`, `ConviteExpirou`, `EntrouNoGrupo`, `SaiuDoGrupo`, `LiderMudou`, `ExpulsoDoGrupo`, `GrupoDesfeito`, `MembroOffline`, `MembroVoltou`). `ConviteRecebido` e `ListaDoGrupo` são mensagens.
 - `CodigosErroSocial`: os 16 códigos da tabela de erros.
-- `RegrasGrupo`: os números do grupo como constantes (5 membros, 60 s, 120 s, 30 s, 1 convite por segundo, 5 convites por alvo) e as contas puras (`VagasLivres`, `ConviteExpirou`, `VagaGuardadaVenceu`, `ReconviteBloqueado`, `DeveDesfazer`, `PosicaoDoHerdeiro`).
+- `RegrasGrupo`: os números do grupo como constantes (5 membros, 60 s, 30 s, 1 convite por segundo, 5 convites por alvo) e as contas puras (`VagasLivres`, `ConviteExpirou`, `VagaGuardadaVenceu`, `ReconviteBloqueado`, `DeveDesfazer`, `PosicaoDoHerdeiro`).
 - O grupo fica com os IDs 13000 a 13099; o chat começa em 13100 (#121).
 
 ### Client do grupo (issue #222)
