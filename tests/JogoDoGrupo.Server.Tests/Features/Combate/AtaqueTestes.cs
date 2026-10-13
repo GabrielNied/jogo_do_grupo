@@ -222,7 +222,7 @@ public class AtaqueTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDeA
     }
 
     /// <summary>Muda o que está guardado dos recursos (cria a linha se for a primeira vez).</summary>
-    private async Task DefinirRecursosAsync(Jogador j, int? vida = null, int? vigor = null)
+    private async Task DefinirRecursosAsync(Jogador j, int? vida = null, int? stamina = null)
     {
         await RecursosAsync(j);
         var memoria = servidor.Falso.Services.GetRequiredService<RecursosEmMemoria>();
@@ -235,12 +235,12 @@ public class AtaqueTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDeA
             r.Vida = vida.Value;
         }
 
-        if (vigor != null)
+        if (stamina != null)
         {
             var agora = servidor.Relogio.GetUtcNow().UtcDateTime;
-            r.Vigor = vigor.Value;
-            r.UltimoGastoVigorEm = agora;
-            r.VigorContadoAte = agora;
+            r.Stamina = stamina.Value;
+            r.UltimoGastoStaminaEm = agora;
+            r.StaminaContadaAte = agora;
         }
 
         await db.SaveChangesAsync();
@@ -304,7 +304,7 @@ public class AtaqueTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDeA
     }
 
     [Fact]
-    public async Task Pesado_gasta_20_de_vigor_uma_vez_so_e_avisa_so_o_dono()
+    public async Task Pesado_gasta_20_de_stamina_uma_vez_so_e_avisa_so_o_dono()
     {
         using var ana = await NovoJogadorAsync();
         using var beto = await NovoJogadorAsync();
@@ -315,10 +315,10 @@ public class AtaqueTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDeA
             CombateMessageIds.RecursosMudaram
         );
         Assert.Equal(
-            RegrasRecursos.VigorBase - RegrasAtaque.CustoDeVigorPesado,
-            recursos.VigorAtual
+            RegrasRecursos.StaminaBase - RegrasAtaque.CustoDeStaminaPesado,
+            recursos.StaminaAtual
         );
-        Assert.Equal(RegrasRecursos.VigorBase, recursos.VigorMaximo);
+        Assert.Equal(RegrasRecursos.StaminaBase, recursos.StaminaMaxima);
         Assert.Equal(RegrasRecursos.VidaBase, recursos.VidaAtual);
 
         var iniciado = await ana.Cliente.ReceberAsync<AtaqueIniciado>(
@@ -332,12 +332,12 @@ public class AtaqueTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDeA
         Assert.Equal(RegrasAtaque.Dano(TipoDeAtaque.Pesado, 0), acerto.Dano);
         Assert.Equal(44, acerto.Dano);
 
-        Assert.Equal(80, (await RecursosAsync(ana)).VigorAtual);
+        Assert.Equal(80, (await RecursosAsync(ana)).StaminaAtual);
         Assert.False(beto.Recebeu(CombateMessageIds.RecursosMudaram));
     }
 
     [Fact]
-    public async Task Dois_pesados_no_mesmo_instante_cobram_o_vigor_uma_vez_e_um_so_comeca()
+    public async Task Dois_pesados_no_mesmo_instante_cobram_o_stamina_uma_vez_e_um_so_comeca()
     {
         using var ana = await NovoJogadorAsync();
 
@@ -353,14 +353,14 @@ public class AtaqueTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDeA
 
         Assert.Equal(1, ana.Recebidas(CombateMessageIds.AtaqueIniciado));
         Assert.Equal(1, ana.Recebidas(CombateMessageIds.RecursosMudaram));
-        Assert.Equal(80, (await RecursosAsync(ana)).VigorAtual);
+        Assert.Equal(80, (await RecursosAsync(ana)).StaminaAtual);
     }
 
     [Fact]
-    public async Task Pesado_sem_vigor_e_recusado_sem_gastar_nada_e_o_leve_ainda_pode()
+    public async Task Pesado_sem_stamina_e_recusado_sem_gastar_nada_e_o_leve_ainda_pode()
     {
         using var ana = await NovoJogadorAsync();
-        await DefinirRecursosAsync(ana, vigor: 19);
+        await DefinirRecursosAsync(ana, stamina: 19);
 
         Atacar(ana, TipoDeAtaque.Pesado, sequencia: 5);
         var recusa = await ana.Cliente.ReceberAsync<AtaqueRecusado>(
@@ -368,28 +368,28 @@ public class AtaqueTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDeA
         );
 
         Assert.Equal(5, recusa.Sequencia);
-        Assert.Equal(CodigosErroCombate.VigorInsuficiente, recusa.Codigo);
-        Assert.Equal(19, (await RecursosAsync(ana)).VigorAtual);
+        Assert.Equal(CodigosErroCombate.StaminaInsuficiente, recusa.Codigo);
+        Assert.Equal(19, (await RecursosAsync(ana)).StaminaAtual);
         Assert.False(ana.Recebeu(CombateMessageIds.AtaqueIniciado));
         Assert.Equal(ConfigBonecoDeTreino.Vida, servidor.Boneco.VidaAtual);
 
         // Recusado de verdade liberou o personagem: o leve (custo 0) começa na hora.
-        await DefinirRecursosAsync(ana, vigor: 0);
+        await DefinirRecursosAsync(ana, stamina: 0);
         Atacar(ana, TipoDeAtaque.Leve, sequencia: 6);
         await ana.Cliente.ReceberAsync<AtaqueAcertou>(CombateMessageIds.AtaqueAcertou);
-        Assert.Equal(0, (await RecursosAsync(ana)).VigorAtual);
+        Assert.Equal(0, (await RecursosAsync(ana)).StaminaAtual);
     }
 
     [Fact]
-    public async Task Pesado_com_vigor_exato_passa_e_deixa_zero()
+    public async Task Pesado_com_stamina_exato_passa_e_deixa_zero()
     {
         using var ana = await NovoJogadorAsync();
-        await DefinirRecursosAsync(ana, vigor: RegrasAtaque.CustoDeVigorPesado);
+        await DefinirRecursosAsync(ana, stamina: RegrasAtaque.CustoDeStaminaPesado);
 
         Atacar(ana, TipoDeAtaque.Pesado);
         await ana.Cliente.ReceberAsync<AtaqueAcertou>(CombateMessageIds.AtaqueAcertou);
 
-        Assert.Equal(0, (await RecursosAsync(ana)).VigorAtual);
+        Assert.Equal(0, (await RecursosAsync(ana)).StaminaAtual);
     }
 
     [Fact]
@@ -440,24 +440,24 @@ public class AtaqueTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDeA
         await ana.Cliente.ReceberAsync<RecursosMudaram>(CombateMessageIds.RecursosMudaram);
         await ana.Cliente.ReceberAsync<AtaqueAcertou>(CombateMessageIds.AtaqueAcertou);
 
-        // Em memória o vigor já baixou; o banco ainda não viu (a gravação periódica é de 5 s).
+        // Em memória a stamina já baixou; o banco ainda não viu (a gravação periódica é de 5 s).
         ana.Dispose();
 
-        var esperado = RegrasRecursos.VigorMaximo() - RegrasAtaque.CustoDeVigorPesado;
+        var esperado = RegrasRecursos.StaminaBase - RegrasAtaque.CustoDeStaminaPesado;
         await TempoRealFixture.EsperarAsync(
-            () => VigorGravado(ana.Id) == esperado,
-            "o vigor gasto gravado no banco"
+            () => StaminaGravada(ana.Id) == esperado,
+            "a stamina gasta gravada no banco"
         );
     }
 
-    private int VigorGravado(long personagemId)
+    private int StaminaGravada(long personagemId)
     {
         using var escopo = servidor.Falso.Services.CreateScope();
         var db = escopo.ServiceProvider.GetRequiredService<JogoDbContext>();
         return db.Set<RecursosPersonagem>()
             .AsNoTracking()
             .Single(x => x.PersonagemId == personagemId)
-            .Vigor;
+            .Stamina;
     }
 
     [Fact]
@@ -800,10 +800,10 @@ public class AtaqueTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDeA
     }
 
     [Fact]
-    public async Task Pedido_da_fila_sem_vigor_e_recusado_quando_chega_a_vez_dele()
+    public async Task Pedido_da_fila_sem_stamina_e_recusado_quando_chega_a_vez_dele()
     {
         using var ana = await NovoJogadorAsync();
-        await DefinirRecursosAsync(ana, vigor: 0);
+        await DefinirRecursosAsync(ana, stamina: 0);
 
         Atacar(ana, TipoDeAtaque.Leve, sequencia: 1);
         var primeiro = DateTime.UtcNow;
@@ -815,7 +815,7 @@ public class AtaqueTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDeA
             CombateMessageIds.AtaqueRecusado
         );
         Assert.Equal(2, recusa.Sequencia);
-        Assert.Equal(CodigosErroCombate.VigorInsuficiente, recusa.Codigo);
+        Assert.Equal(CodigosErroCombate.StaminaInsuficiente, recusa.Codigo);
         Assert.Equal(1, ana.Recebidas(CombateMessageIds.AtaqueIniciado));
     }
 

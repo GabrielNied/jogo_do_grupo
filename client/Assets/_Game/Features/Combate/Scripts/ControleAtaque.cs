@@ -261,8 +261,8 @@ namespace JogoDoGrupo.Client.Features.Combate
                 case ResultadoDoClique.EnviarNaFila:
                     EnviarNaFila(tipo);
                     break;
-                case ResultadoDoClique.SemVigor:
-                    _aviso.Mostrar(ApresentacaoAtaque.TextoVigorInsuficiente);
+                case ResultadoDoClique.SemStamina:
+                    _aviso.Mostrar(ApresentacaoAtaque.TextoStaminaInsuficiente);
                     break;
                 case ResultadoDoClique.Descartado:
                     _aviso.Mostrar(ApresentacaoAtaque.TextoAcaoEmAndamento);
@@ -411,7 +411,7 @@ namespace JogoDoGrupo.Client.Features.Combate
                 return; // Pedido de outro momento (o servidor recusou o 3º da fila, por exemplo).
             }
 
-            // O golpe já tocou e gastou vigor previsto (ADR 0024): desfaz os dois.
+            // O golpe já tocou e gastou stamina prevista (ADR 0024): desfaz os dois.
             _golpes.Confirmar(recusa.Sequencia, out _);
             _prontidao?.DesfazerAtaque(agora);
             _proximoPasso = _proximoPassoAntes;

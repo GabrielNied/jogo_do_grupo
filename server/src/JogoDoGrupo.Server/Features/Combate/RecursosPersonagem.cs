@@ -1,7 +1,7 @@
 namespace JogoDoGrupo.Server.Features.Combate;
 
 /// <summary>
-/// Vida, vigor e energia atuais de um personagem (uma linha por personagem, criada na primeira
+/// Vida, stamina e mana atuais de um personagem (uma linha por personagem, criada na primeira
 /// consulta, já cheia). Os máximos não são guardados: saem dos atributos a cada consulta.
 /// </summary>
 public sealed class RecursosPersonagem
@@ -10,21 +10,21 @@ public sealed class RecursosPersonagem
     public long PersonagemId { get; set; }
 
     public int Vida { get; set; }
-    public int Vigor { get; set; }
-    public int Energia { get; set; }
+    public int Stamina { get; set; }
+    public int Mana { get; set; }
 
-    /// <summary>Instante (UTC) do último gasto de vigor. Antes de qualquer gasto, a época.</summary>
-    public DateTime UltimoGastoVigorEm { get; set; } = DateTime.UnixEpoch;
+    /// <summary>Instante (UTC) do último gasto de stamina. Antes de qualquer gasto, a época.</summary>
+    public DateTime UltimoGastoStaminaEm { get; set; } = DateTime.UnixEpoch;
 
-    /// <summary>Instante (UTC) do último gasto de energia.</summary>
-    public DateTime UltimoGastoEnergiaEm { get; set; } = DateTime.UnixEpoch;
+    /// <summary>Instante (UTC) do último gasto de mana.</summary>
+    public DateTime UltimoGastoManaEm { get; set; } = DateTime.UnixEpoch;
 
     /// <summary>
-    /// Até quando a regeneração do vigor já foi paga. Só avança pelo tempo que virou pontos
+    /// Até quando a regeneração da stamina já foi paga. Só avança pelo tempo que virou pontos
     /// inteiros, para consultas frequentes não perderem a fração.
     /// </summary>
-    public DateTime VigorContadoAte { get; set; }
+    public DateTime StaminaContadaAte { get; set; }
 
-    /// <summary>Até quando a regeneração da energia já foi paga.</summary>
-    public DateTime EnergiaContadaAte { get; set; }
+    /// <summary>Até quando a regeneração da mana já foi paga.</summary>
+    public DateTime ManaContadaAte { get; set; }
 }

@@ -4,7 +4,7 @@ namespace JogoDoGrupo.Client.Features.Combate
 {
     /// <summary>
     /// O indicador de guarda segurada, logo acima das barras: aparece enquanto a guarda está
-    /// de pé e muda de cor quando o vigor está acabando. Só desenha o que recebe; cores e
+    /// de pé e muda de cor quando a stamina está acabando. Só desenha o que recebe; cores e
     /// tamanhos estão em <c>EstiloCombate.uss</c>.
     /// </summary>
     internal sealed class PainelDefesa
@@ -22,10 +22,10 @@ namespace JogoDoGrupo.Client.Features.Combate
             raiz.Add(_indicador);
         }
 
-        public void Mostrar(bool segurando, bool vigorBaixo)
+        public void Mostrar(bool segurando, bool staminaBaixo)
         {
             _indicador.style.display = segurando ? DisplayStyle.Flex : DisplayStyle.None;
-            _indicador.EnableInClassList("guarda-fraca", vigorBaixo);
+            _indicador.EnableInClassList("guarda-fraca", staminaBaixo);
         }
     }
 }

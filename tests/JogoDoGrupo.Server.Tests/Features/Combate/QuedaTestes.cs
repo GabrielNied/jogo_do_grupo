@@ -209,7 +209,7 @@ public class QuedaTestes(ServidorDeQueda servidor) : IClassFixture<ServidorDeQue
         return itens;
     }
 
-    private async Task GastarVigorEEnergiaAsync(Jogador j)
+    private async Task GastarStaminaEManaAsync(Jogador j)
     {
         await RecursosAsync(j); // Cria a linha.
         var memoria = servidor.Falso.Services.GetRequiredService<RecursosEmMemoria>();
@@ -218,12 +218,12 @@ public class QuedaTestes(ServidorDeQueda servidor) : IClassFixture<ServidorDeQue
         var db = escopo.ServiceProvider.GetRequiredService<JogoDbContext>();
         var r = await db.Set<RecursosPersonagem>().SingleAsync(x => x.PersonagemId == j.Id);
         var agora = DateTime.UtcNow;
-        r.Vigor = 10;
-        r.Energia = 10;
-        r.UltimoGastoVigorEm = agora;
-        r.UltimoGastoEnergiaEm = agora;
-        r.VigorContadoAte = agora;
-        r.EnergiaContadaAte = agora;
+        r.Stamina = 10;
+        r.Mana = 10;
+        r.UltimoGastoStaminaEm = agora;
+        r.UltimoGastoManaEm = agora;
+        r.StaminaContadaAte = agora;
+        r.ManaContadaAte = agora;
         await db.SaveChangesAsync();
         memoria.Descartar(j.Id); // E a memória precisa reler o que o teste mudou.
     }
@@ -614,7 +614,7 @@ public class QuedaTestes(ServidorDeQueda servidor) : IClassFixture<ServidorDeQue
     {
         using var ana = await NovoJogadorAsync();
         var itens = await GanharItensAsync(ana);
-        await GastarVigorEEnergiaAsync(ana);
+        await GastarStaminaEManaAsync(ana);
         await DerrubarAsync(ana);
         await Task.Delay(ServidorDeQueda.Config.MinimoParaVoltarMs + 100);
 
@@ -624,8 +624,8 @@ public class QuedaTestes(ServidorDeQueda servidor) : IClassFixture<ServidorDeQue
         Assert.Equal(ana.Id, retorno.PersonagemId);
         var recursos = await RecursosAsync(ana);
         Assert.Equal(recursos.VidaMaxima, recursos.VidaAtual);
-        Assert.Equal(recursos.VigorMaximo, recursos.VigorAtual);
-        Assert.Equal(recursos.EnergiaMaxima, recursos.EnergiaAtual);
+        Assert.Equal(recursos.StaminaMaxima, recursos.StaminaAtual);
+        Assert.Equal(recursos.ManaMaxima, recursos.ManaAtual);
         Assert.False(servidor.Queda.EstaCaido(ana.Id));
         Assert.Equal(1, servidor.Eventos<PersonagemVoltouParaACidade>(ana.Id));
         Assert.Equal(itens, await InventarioAsync(ana));

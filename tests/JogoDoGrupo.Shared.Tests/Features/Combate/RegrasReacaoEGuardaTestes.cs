@@ -55,7 +55,7 @@ public class RegrasReacaoEGuardaTestes
     }
 
     [Fact]
-    public void Guarda_anda_a_40_por_cento_e_custa_1_de_vigor_por_ponto_de_dano()
+    public void Guarda_anda_a_40_por_cento_e_custa_1_de_stamina_por_ponto_de_dano()
     {
         Assert.Equal(0.4, RegrasGuarda.VelocidadeComGuarda);
         Assert.Equal(42, RegrasGuarda.CustoDoBloqueio(42));

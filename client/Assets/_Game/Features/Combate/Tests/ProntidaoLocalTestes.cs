@@ -7,7 +7,7 @@ namespace JogoDoGrupo.Client.Features.Combate.Tests
     public class ProntidaoLocalTestes
     {
         [Test]
-        public void SemVigorConhecido_AtaqueEEsquivaSeguem()
+        public void SemStaminaConhecido_AtaqueEEsquivaSeguem()
         {
             var prontidao = new ProntidaoLocal();
 
@@ -16,10 +16,10 @@ namespace JogoDoGrupo.Client.Features.Combate.Tests
         }
 
         [Test]
-        public void SemVigor_PesadoEEsquivaNaoSeguem_LeveSegue()
+        public void SemStamina_PesadoEEsquivaNaoSeguem_LeveSegue()
         {
             var prontidao = new ProntidaoLocal();
-            prontidao.RegistrarVigor(RegrasEsquiva.CustoDeVigor - 1);
+            prontidao.RegistrarStamina(RegrasEsquiva.CustoDeStamina - 1);
 
             Assert.IsFalse(prontidao.PodeAtacar(TipoDeAtaque.Pesado, 0));
             Assert.IsFalse(prontidao.PodeEsquivar(0));
@@ -27,10 +27,10 @@ namespace JogoDoGrupo.Client.Features.Combate.Tests
         }
 
         [Test]
-        public void ComVigor_PesadoEEsquivaSeguem()
+        public void ComStamina_PesadoEEsquivaSeguem()
         {
             var prontidao = new ProntidaoLocal();
-            prontidao.RegistrarVigor(RegrasAtaque.CustoDeVigorPesado);
+            prontidao.RegistrarStamina(RegrasAtaque.CustoDeStaminaPesado);
 
             Assert.IsTrue(prontidao.PodeAtacar(TipoDeAtaque.Pesado, 0));
             Assert.IsTrue(prontidao.PodeEsquivar(0));
@@ -40,7 +40,7 @@ namespace JogoDoGrupo.Client.Features.Combate.Tests
         public void Recarga_BloqueiaAteADuracaoAcabar()
         {
             var prontidao = new ProntidaoLocal();
-            prontidao.RegistrarVigor(100);
+            prontidao.RegistrarStamina(100);
             prontidao.MarcarAtaque(TipoDeAtaque.Leve, 10);
 
             var durante = 10 + RegrasAtaque.DuracaoSegundos(TipoDeAtaque.Leve) - 0.01;
@@ -113,13 +113,13 @@ namespace JogoDoGrupo.Client.Features.Combate.Tests
             Assert.IsFalse(prontidao.Guardando);
         }
 
-        // ── Vigor previsto (#479) ────────────────────────────────────────────────
+        // ── Stamina prevista (#479) ────────────────────────────────────────────────
 
         [Test]
         public void Regeneracao_PrevistaLiberaOPesadoQuandoAlcancaOCusto()
         {
             var prontidao = new ProntidaoLocal();
-            prontidao.RegistrarVigor(100, 0);
+            prontidao.RegistrarStamina(100, 0);
             prontidao.MarcarAtaque(TipoDeAtaque.Pesado, 10); // 80
             prontidao.MarcarAtaque(TipoDeAtaque.Pesado, 12); // 60
             prontidao.MarcarAtaque(TipoDeAtaque.Pesado, 14); // 40
@@ -131,52 +131,52 @@ namespace JogoDoGrupo.Client.Features.Combate.Tests
             Assert.IsFalse(prontidao.PodeAtacar(TipoDeAtaque.Pesado, 18 + 1.6));
             Assert.IsFalse(prontidao.PodeAtacar(TipoDeAtaque.Pesado, agora + 1.9));
             Assert.IsTrue(prontidao.PodeAtacar(TipoDeAtaque.Pesado, agora + 2.0));
-            Assert.AreEqual(RegrasAtaque.CustoDeVigorPesado, prontidao.VigorEm(agora + 2.0));
+            Assert.AreEqual(RegrasAtaque.CustoDeStaminaPesado, prontidao.StaminaEm(agora + 2.0));
         }
 
         [Test]
         public void Gasto_ReiniciaAEspera_ESegurarAGuardaPausaARegeneracao()
         {
             var prontidao = new ProntidaoLocal();
-            prontidao.RegistrarVigor(100, 0);
+            prontidao.RegistrarStamina(100, 0);
             prontidao.MarcarAtaque(TipoDeAtaque.Pesado, 10); // 80, gasto em 10
 
-            Assert.AreEqual(80, prontidao.VigorEm(11.9));
-            Assert.AreEqual(100, prontidao.VigorEm(15)); // 2 s de espera, depois 10 por segundo.
+            Assert.AreEqual(80, prontidao.StaminaEm(11.9));
+            Assert.AreEqual(100, prontidao.StaminaEm(15)); // 2 s de espera, depois 10 por segundo.
 
-            prontidao.RegistrarVigor(50, 30);
+            prontidao.RegistrarStamina(50, 30);
             prontidao.MarcarGuarda(true, 30);
-            Assert.AreEqual(50, prontidao.VigorEm(40), "guarda segurada: nada regenera");
+            Assert.AreEqual(50, prontidao.StaminaEm(40), "guarda segurada: nada regenera");
 
             prontidao.MarcarGuarda(false, 40);
-            Assert.AreEqual(50, prontidao.VigorEm(41.9), "a espera recomeça ao soltar");
-            Assert.AreEqual(70, prontidao.VigorEm(44), "2 s depois, 10 por segundo");
+            Assert.AreEqual(50, prontidao.StaminaEm(41.9), "a espera recomeça ao soltar");
+            Assert.AreEqual(70, prontidao.StaminaEm(44), "2 s depois, 10 por segundo");
         }
 
         [Test]
-        public void Retrato_ComVigorAbaixoDoPrevisto_ContaComoGasto()
+        public void Retrato_ComStaminaAbaixoDoPrevisto_ContaComoGasto()
         {
             var prontidao = new ProntidaoLocal();
-            prontidao.RegistrarVigor(50, 0);
+            prontidao.RegistrarStamina(50, 0);
 
             // Aos 10 s o previsto seria 100; o servidor diz 40: houve um gasto agora.
-            prontidao.RegistrarVigor(40, 10);
+            prontidao.RegistrarStamina(40, 10);
 
-            Assert.AreEqual(40, prontidao.VigorEm(11.9));
-            Assert.AreEqual(50, prontidao.VigorEm(13));
+            Assert.AreEqual(40, prontidao.StaminaEm(11.9));
+            Assert.AreEqual(50, prontidao.StaminaEm(13));
         }
 
         [Test]
-        public void Recusa_DesfazOGolpe_EDevolveOVigorPrevisto()
+        public void Recusa_DesfazOGolpe_EDevolveOStaminaPrevisto()
         {
             var prontidao = new ProntidaoLocal();
-            prontidao.RegistrarVigor(100, 0);
+            prontidao.RegistrarStamina(100, 0);
             prontidao.MarcarAtaque(TipoDeAtaque.Pesado, 10);
-            Assert.AreEqual(80, prontidao.Vigor);
+            Assert.AreEqual(80, prontidao.Stamina);
 
             prontidao.DesfazerAtaque(10.1);
 
-            Assert.AreEqual(100, prontidao.Vigor);
+            Assert.AreEqual(100, prontidao.Stamina);
             Assert.IsFalse(prontidao.Comprometido(10.1));
             Assert.IsTrue(prontidao.PodeAtacar(TipoDeAtaque.Leve, 10.1));
         }

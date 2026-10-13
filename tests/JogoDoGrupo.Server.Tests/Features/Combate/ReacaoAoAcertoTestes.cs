@@ -232,9 +232,9 @@ public class ReacaoAoAcertoTestes
     // ── Guarda ───────────────────────────────────────────────────────────────────
 
     [Fact]
-    public void Guarda_custa_1_de_vigor_por_ponto_de_dano_e_zera_o_golpe()
+    public void Guarda_custa_1_de_stamina_por_ponto_de_dano_e_zera_o_golpe()
     {
-        Assert.Equal(1, RegrasGuarda.VigorPorDanoBloqueado);
+        Assert.Equal(1, RegrasGuarda.StaminaPorDanoBloqueado);
         Assert.Equal(30, RegrasGuarda.CustoDoBloqueio(30));
         Assert.True(RegrasGuarda.Segura(30, 30));
         Assert.False(RegrasGuarda.Segura(29, 30));

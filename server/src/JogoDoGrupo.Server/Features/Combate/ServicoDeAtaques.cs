@@ -8,7 +8,7 @@ namespace JogoDoGrupo.Server.Features.Combate;
 /// <summary>
 /// O ataque da primeira arma, do pedido ao acerto (docs/features/fatia-jogavel.md, seção 2).
 /// O client só envia a intenção: o servidor confere ação em andamento (fila de 1 pedido),
-/// queda e vigor, avisa o preparo a quem está na área, e no momento do acerto decide quem está
+/// queda e stamina, avisa o preparo a quem está na área, e no momento do acerto decide quem está
 /// no cone (pela posição que o Mundo tem <b>agora</b>, sem compensação de lag) e quanto cada um
 /// leva. O mesmo golpe acerta cada alvo uma vez só.
 /// <para>

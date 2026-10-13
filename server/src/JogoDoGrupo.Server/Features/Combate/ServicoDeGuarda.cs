@@ -92,15 +92,15 @@ public sealed class ServicoDeGuarda
     }
 
     /// <summary>A guarda segurou um golpe: avisa a área.</summary>
-    public void AoBloquear(long personagemId, string area, int vigorGasto) =>
+    public void AoBloquear(long personagemId, string area, int staminaGasto) =>
         _avisos.Enviar(
             area,
             personagemId,
             CombateMessageIds.GolpeBloqueado,
-            new GolpeBloqueado { PersonagemId = personagemId, VigorGasto = vigorGasto }
+            new GolpeBloqueado { PersonagemId = personagemId, StaminaGasto = staminaGasto }
         );
 
-    /// <summary>A guarda quebrou (sem vigor para o golpe): solta, devolve a corrida e avisa.</summary>
+    /// <summary>A guarda quebrou (sem stamina para o golpe): solta, devolve a corrida e avisa.</summary>
     public void AoQuebrar(long personagemId, string area)
     {
         _controle.SoltarGuarda(personagemId);
@@ -112,7 +112,7 @@ public sealed class ServicoDeGuarda
     private void LiberarVelocidade(long personagemId) =>
         _limite?.LimitarVelocidade(personagemId, 1.0, 0.1);
 
-    // Guarda segurada pausa a espera da regeneração do vigor. Roda numa tarefa: o laço de rede
+    // Guarda segurada pausa a espera da regeneração da stamina. Roda numa tarefa: o laço de rede
     // não espera o banco.
     private void PausarRegeneracao(long personagemId, bool segurando)
     {
@@ -129,7 +129,7 @@ public sealed class ServicoDeGuarda
                     .Recursos(_escopos)
                     .DefinirGuardaAsync(personagemId, segurando, CancellationToken.None);
 
-                // O client prevê a regeneração do vigor; saber que ela parou (ou recomeçou) corrige a previsão.
+                // O client prevê a regeneração da stamina; saber que ela parou (ou recomeçou) corrige a previsão.
                 var dono = _tempoReal.Sessoes.FirstOrDefault(s => s.PersonagemId == personagemId);
                 if (dono != null)
                 {

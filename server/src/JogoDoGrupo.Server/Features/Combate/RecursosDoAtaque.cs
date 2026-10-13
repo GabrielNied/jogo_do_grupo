@@ -5,15 +5,15 @@ namespace JogoDoGrupo.Server.Features.Combate;
 /// <summary>
 /// Resultado de conferir os recursos no começo de um ataque: <see cref="Recusa"/> é um código
 /// de <see cref="CodigosErroCombate"/> (nada foi gasto) ou nulo se o ataque vale;
-/// <see cref="Recursos"/> é o novo estado, só quando o ataque gastou vigor. <see cref="Forca"/>
+/// <see cref="Recursos"/> é o novo estado, só quando o ataque gastou stamina. <see cref="Forca"/>
 /// é a Força final lida na mesma ida ao banco (o acerto não volta lá).
 /// </summary>
 public sealed record InicioDoAtaque(string? Recusa, RecursosMudaram? Recursos, int Forca = 0);
 
 /// <summary>
-/// A parte do ataque que mexe nos recursos: recusa quem está caído ou sem vigor e cobra o vigor
+/// A parte do ataque que mexe nos recursos: recusa quem está caído ou sem stamina e cobra a stamina
 /// do pesado, uma vez só. Tudo em memória, sob a trava do personagem em
-/// <see cref="RecursosEmMemoria"/>, então pedidos simultâneos rodam um depois do outro e o vigor
+/// <see cref="RecursosEmMemoria"/>, então pedidos simultâneos rodam um depois do outro e a stamina
 /// nunca é cobrado duas vezes; o golpe leve (custo 0) não toca no banco.
 /// </summary>
 internal static class RecursosDoAtaque
@@ -24,23 +24,23 @@ internal static class RecursosDoAtaque
         TipoDeAtaque tipo,
         CancellationToken cancelamento
     ) =>
-        TentarGastarVigorAsync(
+        TentarGastarStaminaAsync(
             escopos,
             personagemId,
-            RegrasAtaque.CustoDeVigor(tipo),
+            RegrasAtaque.CustoDeStamina(tipo),
             cancelamento
         );
 
     /// <summary>
-    /// A mesma conferência para qualquer ação que custa vigor (ataque ou esquiva): recusa quem
-    /// está caído ou não tem <paramref name="custo"/> de vigor; senão cobra, uma vez só.
+    /// A mesma conferência para qualquer ação que custa stamina (ataque ou esquiva): recusa quem
+    /// está caído ou não tem <paramref name="custo"/> de stamina; senão cobra, uma vez só.
     /// </summary>
-    public static Task<InicioDoAtaque> TentarGastarVigorAsync(
+    public static Task<InicioDoAtaque> TentarGastarStaminaAsync(
         IServiceScopeFactory escopos,
         long personagemId,
         int custo,
         CancellationToken cancelamento
-    ) => Recursos(escopos).TentarGastarVigorAsync(personagemId, custo, cancelamento);
+    ) => Recursos(escopos).TentarGastarStaminaAsync(personagemId, custo, cancelamento);
 
     /// <summary>
     /// Tira <paramref name="dano"/> da vida do personagem (nunca abaixo de 0): golpes simultâneos
@@ -54,9 +54,9 @@ internal static class RecursosDoAtaque
     ) => Recursos(escopos).TirarVidaAsync(personagemId, dano, cancelamento);
 
     /// <summary>
-    /// Cobra do vigor o golpe contra a guarda segurada (ou quebra a guarda se não há vigor).
+    /// Cobra da stamina o golpe contra a guarda segurada (ou quebra a guarda se não há stamina).
     /// </summary>
-    public static Task<(bool Bloqueou, int VigorGasto, RecursosMudaram Recursos)> BloquearAsync(
+    public static Task<(bool Bloqueou, int StaminaGasto, RecursosMudaram Recursos)> BloquearAsync(
         IServiceScopeFactory escopos,
         long personagemId,
         int dano,

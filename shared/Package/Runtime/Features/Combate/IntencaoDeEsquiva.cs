@@ -1,7 +1,7 @@
 namespace JogoDoGrupo.Shared.Features.Combate
 {
     /// <summary>
-    /// Client pede ao servidor uma esquiva. É só a intenção: o servidor cobra o vigor e valida
+    /// Client pede ao servidor uma esquiva. É só a intenção: o servidor cobra a stamina e valida
     /// o deslocamento; o client pode antecipar o movimento e corrige se vier
     /// <see cref="EsquivaRecusada"/>.
     /// Id: <see cref="CombateMessageIds.IntencaoDeEsquiva"/>.

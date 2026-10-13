@@ -10,8 +10,8 @@ using Microsoft.EntityFrameworkCore;
 namespace JogoDoGrupo.Server.Features.Combate;
 
 /// <summary>
-/// Dono dos recursos (vida, vigor, energia) e dos atributos finais dos personagens em uso. Cada
-/// golpe, esquiva e dano mexe só na memória, sob a trava do personagem (o vigor nunca é cobrado
+/// Dono dos recursos (vida, stamina, mana) e dos atributos finais dos personagens em uso. Cada
+/// golpe, esquiva e dano mexe só na memória, sob a trava do personagem (a stamina nunca é cobrado
 /// duas vezes); o banco é lido uma vez, na primeira consulta do personagem, e recebe o que mudou a
 /// cada <see cref="ConfigRecursos.IntervaloDeGravacaoSegundos"/>, quando o personagem sai do jogo
 /// e quando o servidor para. Combate é o único que escreve em <see cref="RecursosPersonagem"/>.
@@ -92,10 +92,10 @@ public sealed class RecursosEmMemoria : IHostedService, IDisposable
     }
 
     /// <summary>
-    /// Recusa quem está caído ou não tem <paramref name="custo"/> de vigor; senão cobra o vigor.
+    /// Recusa quem está caído ou não tem <paramref name="custo"/> de stamina; senão cobra a stamina.
     /// Só na memória: o custo 0 (golpe leve) não toca no banco.
     /// </summary>
-    public async Task<InicioDoAtaque> TentarGastarVigorAsync(
+    public async Task<InicioDoAtaque> TentarGastarStaminaAsync(
         long personagemId,
         int custo,
         CancellationToken cancelamento
@@ -112,10 +112,10 @@ public sealed class RecursosEmMemoria : IHostedService, IDisposable
                 return new InicioDoAtaque(CodigosErroCombate.VoceEstaCaido, null, atributos.Forca);
             }
 
-            if (recursos.Vigor < custo)
+            if (recursos.Stamina < custo)
             {
                 return new InicioDoAtaque(
-                    CodigosErroCombate.VigorInsuficiente,
+                    CodigosErroCombate.StaminaInsuficiente,
                     null,
                     atributos.Forca
                 );
@@ -124,9 +124,9 @@ public sealed class RecursosEmMemoria : IHostedService, IDisposable
             if (custo > 0)
             {
                 var agora = Agora();
-                recursos.Vigor -= custo;
-                recursos.UltimoGastoVigorEm = agora;
-                recursos.VigorContadoAte = agora;
+                recursos.Stamina -= custo;
+                recursos.UltimoGastoStaminaEm = agora;
+                recursos.StaminaContadaAte = agora;
                 entrada.Sujo = true;
             }
 
@@ -143,11 +143,11 @@ public sealed class RecursosEmMemoria : IHostedService, IDisposable
     }
 
     /// <summary>
-    /// O golpe de <paramref name="dano"/> contra a guarda segurada: se o vigor paga
+    /// O golpe de <paramref name="dano"/> contra a guarda segurada: se a stamina paga
     /// <see cref="RegrasGuarda.CustoDoBloqueio"/>, ele é gasto e o golpe é bloqueado; senão o
-    /// vigor vai a zero e a guarda quebra (<c>Bloqueou</c> falso). Uma ida só, sob a trava.
+    /// stamina vai a zero e a guarda quebra (<c>Bloqueou</c> falso). Uma ida só, sob a trava.
     /// </summary>
-    public async Task<(bool Bloqueou, int VigorGasto, RecursosMudaram Recursos)> BloquearAsync(
+    public async Task<(bool Bloqueou, int StaminaGasto, RecursosMudaram Recursos)> BloquearAsync(
         long personagemId,
         int dano,
         CancellationToken cancelamento
@@ -159,14 +159,14 @@ public sealed class RecursosEmMemoria : IHostedService, IDisposable
             var atributos = await AtributosDaEntradaAsync(entrada, cancelamento);
             var recursos = Regenerado(entrada, atributos);
             var custo = RegrasGuarda.CustoDoBloqueio(dano);
-            var bloqueou = RegrasGuarda.Segura(recursos.Vigor, dano);
-            var gasto = bloqueou ? custo : recursos.Vigor;
+            var bloqueou = RegrasGuarda.Segura(recursos.Stamina, dano);
+            var gasto = bloqueou ? custo : recursos.Stamina;
             if (gasto > 0)
             {
                 var agora = Agora();
-                recursos.Vigor -= gasto;
-                recursos.UltimoGastoVigorEm = agora;
-                recursos.VigorContadoAte = agora;
+                recursos.Stamina -= gasto;
+                recursos.UltimoGastoStaminaEm = agora;
+                recursos.StaminaContadaAte = agora;
                 entrada.Sujo = true;
             }
 
@@ -179,7 +179,7 @@ public sealed class RecursosEmMemoria : IHostedService, IDisposable
     }
 
     /// <summary>
-    /// A guarda subiu ou desceu: enquanto segurada, a espera da regeneração do vigor não corre
+    /// A guarda subiu ou desceu: enquanto segurada, a espera da regeneração da stamina não corre
     /// (regras da fatia, seção 1). Regenera até agora antes de mudar, para não perder o que já
     /// era devido; ao soltar, a espera de 2 s recomeça.
     /// </summary>
@@ -196,8 +196,8 @@ public sealed class RecursosEmMemoria : IHostedService, IDisposable
             var recursos = Regenerado(entrada, atributos);
             entrada.Guardando = segurando;
             var agora = Agora();
-            recursos.UltimoGastoVigorEm = agora;
-            recursos.VigorContadoAte = agora;
+            recursos.UltimoGastoStaminaEm = agora;
+            recursos.StaminaContadaAte = agora;
             entrada.Sujo = true;
             return Estado(recursos, atributos);
         }
@@ -243,8 +243,8 @@ public sealed class RecursosEmMemoria : IHostedService, IDisposable
             var recursos = Regenerado(entrada, atributos);
             mudar(recursos, atributos);
             var agora = Agora();
-            recursos.VigorContadoAte = agora;
-            recursos.EnergiaContadaAte = agora;
+            recursos.StaminaContadaAte = agora;
+            recursos.ManaContadaAte = agora;
             entrada.Sujo = true;
             return Estado(recursos, atributos);
         }
@@ -274,10 +274,10 @@ public sealed class RecursosEmMemoria : IHostedService, IDisposable
             {
                 VidaAtual = estado.VidaAtual,
                 VidaMaxima = estado.VidaMaxima,
-                VigorAtual = estado.VigorAtual,
-                VigorMaximo = estado.VigorMaximo,
-                EnergiaAtual = estado.EnergiaAtual,
-                EnergiaMaxima = estado.EnergiaMaxima,
+                StaminaAtual = estado.StaminaAtual,
+                StaminaMaxima = estado.StaminaMaxima,
+                ManaAtual = estado.ManaAtual,
+                ManaMaxima = estado.ManaMaxima,
                 Atributos = atributos,
             };
         }
@@ -380,8 +380,8 @@ public sealed class RecursosEmMemoria : IHostedService, IDisposable
         var recursos = entrada.Recursos!;
         if (entrada.Guardando)
         {
-            // Guarda segurada: a espera da regeneração do vigor fica parada.
-            recursos.UltimoGastoVigorEm = Agora();
+            // Guarda segurada: a espera da regeneração da stamina fica parada.
+            recursos.UltimoGastoStaminaEm = Agora();
         }
 
         CalculadoraRecursos.Atualizar(recursos, atributos, Agora());
@@ -392,11 +392,11 @@ public sealed class RecursosEmMemoria : IHostedService, IDisposable
         new()
         {
             VidaAtual = r.Vida,
-            VidaMaxima = RegrasRecursos.VidaMaxima(a.Vitalidade),
-            VigorAtual = r.Vigor,
-            VigorMaximo = RegrasRecursos.VigorMaximo(),
-            EnergiaAtual = r.Energia,
-            EnergiaMaxima = RegrasRecursos.EnergiaMaxima(a.Espirito),
+            VidaMaxima = RegrasRecursos.VidaMaxima(a.Vigor),
+            StaminaAtual = r.Stamina,
+            StaminaMaxima = RegrasRecursos.StaminaMaxima(a.Agilidade),
+            ManaAtual = r.Mana,
+            ManaMaxima = RegrasRecursos.ManaMaxima(a.Espirito),
         };
 
     // Com a trava da entrada na mão: atributos guardados, ou lidos de novo se venceram. Na
@@ -496,12 +496,12 @@ public sealed class RecursosEmMemoria : IHostedService, IDisposable
     private static RecursosPersonagem Copiar(RecursosPersonagem origem, RecursosPersonagem destino)
     {
         destino.Vida = origem.Vida;
-        destino.Vigor = origem.Vigor;
-        destino.Energia = origem.Energia;
-        destino.UltimoGastoVigorEm = origem.UltimoGastoVigorEm;
-        destino.UltimoGastoEnergiaEm = origem.UltimoGastoEnergiaEm;
-        destino.VigorContadoAte = origem.VigorContadoAte;
-        destino.EnergiaContadaAte = origem.EnergiaContadaAte;
+        destino.Stamina = origem.Stamina;
+        destino.Mana = origem.Mana;
+        destino.UltimoGastoStaminaEm = origem.UltimoGastoStaminaEm;
+        destino.UltimoGastoManaEm = origem.UltimoGastoManaEm;
+        destino.StaminaContadaAte = origem.StaminaContadaAte;
+        destino.ManaContadaAte = origem.ManaContadaAte;
         return destino;
     }
 

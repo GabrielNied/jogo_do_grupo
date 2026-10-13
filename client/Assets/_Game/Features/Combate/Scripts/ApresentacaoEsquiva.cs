@@ -12,7 +12,7 @@ namespace JogoDoGrupo.Client.Features.Combate
         /// <summary>Tecla padrão da esquiva (docs/features/interface.md, Teclas e atalhos).</summary>
         public const string TeclaPadrao = "<Keyboard>/leftAlt";
 
-        public const string TextoVigorInsuficiente = "Vigor insuficiente";
+        public const string TextoStaminaInsuficiente = "Stamina insuficiente";
         public const string TextoAcaoEmAndamento = "Aguarde o golpe terminar";
         public const string TextoVoceEstaCaido = "Você está caído";
         public const string TextoRecusaGenerica = "Esquiva recusada";
@@ -22,8 +22,8 @@ namespace JogoDoGrupo.Client.Features.Combate
         {
             switch (codigo)
             {
-                case CodigosErroCombate.VigorInsuficiente:
-                    return TextoVigorInsuficiente;
+                case CodigosErroCombate.StaminaInsuficiente:
+                    return TextoStaminaInsuficiente;
                 case CodigosErroCombate.AcaoEmAndamento:
                     return TextoAcaoEmAndamento;
                 case CodigosErroCombate.VoceEstaCaido:

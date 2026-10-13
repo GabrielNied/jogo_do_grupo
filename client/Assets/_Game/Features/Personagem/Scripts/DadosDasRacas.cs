@@ -31,7 +31,7 @@ namespace JogoDoGrupo.Client.Features.Personagem
                 Traco =
                     "Espírito de Comunidade: comer perto de outro jogador compartilha 10 de saciedade com ele, uma vez por refeição.",
                 SkillRacial =
-                    "Estandarte dos Errantes: aliados em 25 m recuperam vigor mais depressa e resistem a interrupções por 20 s.",
+                    "Estandarte dos Errantes: aliados em 25 m recuperam stamina mais depressa e resistem a interrupções por 20 s.",
                 Texto = "Onde outros enxergam ruínas, os Valdren enxergam o próximo lar.",
             },
             new DadosDaRaca

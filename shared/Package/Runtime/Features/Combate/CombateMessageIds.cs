@@ -19,7 +19,7 @@ namespace JogoDoGrupo.Shared.Features.Combate
         /// <summary>Servidor → atacante: o pedido de ataque foi recusado.</summary>
         public const ushort AtaqueRecusado = 6003;
 
-        /// <summary>Servidor → dono: vida, vigor ou energia do próprio personagem mudaram.</summary>
+        /// <summary>Servidor → dono: vida, stamina ou mana do próprio personagem mudaram.</summary>
         public const ushort RecursosMudaram = 6004;
 
         /// <summary>Client → servidor: pedido de esquiva, com a direção do deslocamento.</summary>

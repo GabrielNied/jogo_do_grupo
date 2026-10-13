@@ -12,17 +12,20 @@ public class RegrasRecursosTestes
     [InlineData(0, 500)]
     [InlineData(10, 600)]
     [InlineData(-5, 450)]
-    public void VidaMaxima_e_500_mais_10_por_vitalidade(int vitalidade, int esperado) =>
-        Assert.Equal(esperado, RegrasRecursos.VidaMaxima(vitalidade));
-
-    [Fact]
-    public void VigorMaximo_e_100() => Assert.Equal(100, RegrasRecursos.VigorMaximo());
+    public void VidaMaxima_e_500_mais_10_por_vigor(int vigor, int esperado) =>
+        Assert.Equal(esperado, RegrasRecursos.VidaMaxima(vigor));
 
     [Theory]
     [InlineData(0, 100)]
     [InlineData(10, 120)]
-    public void EnergiaMaxima_e_100_mais_2_por_espirito(int espirito, int esperado) =>
-        Assert.Equal(esperado, RegrasRecursos.EnergiaMaxima(espirito));
+    public void StaminaMaxima_e_100_mais_2_por_agilidade(int agilidade, int esperado) =>
+        Assert.Equal(esperado, RegrasRecursos.StaminaMaxima(agilidade));
+
+    [Theory]
+    [InlineData(0, 100)]
+    [InlineData(10, 120)]
+    public void ManaMaxima_e_100_mais_2_por_espirito(int espirito, int esperado) =>
+        Assert.Equal(esperado, RegrasRecursos.ManaMaxima(espirito));
 
     [Theory]
     [InlineData(50, 100, 50)]
@@ -40,36 +43,36 @@ public class RegrasRecursosTestes
     }
 
     [Fact]
-    public void Vigor_nao_regenera_antes_dos_2_segundos()
+    public void Stamina_nao_regenera_antes_dos_2_segundos()
     {
-        Assert.Equal(50, RegrasRecursos.RegenerarVigor(50, 100, 1.5, 1.0));
-        Assert.Equal(50, RegrasRecursos.RegenerarVigor(50, 100, 2.0, 1.0));
+        Assert.Equal(50, RegrasRecursos.RegenerarStamina(50, 100, 1.5, 1.0));
+        Assert.Equal(50, RegrasRecursos.RegenerarStamina(50, 100, 2.0, 1.0));
     }
 
     [Fact]
-    public void Vigor_regenera_10_por_segundo_depois_do_atraso() =>
-        Assert.Equal(60, RegrasRecursos.RegenerarVigor(50, 100, 3.0, 1.0));
+    public void Stamina_regenera_10_por_segundo_depois_do_atraso() =>
+        Assert.Equal(60, RegrasRecursos.RegenerarStamina(50, 100, 3.0, 1.0));
 
     [Fact]
     public void Intervalo_que_cruza_o_atraso_conta_so_a_parte_depois() =>
         // 2,5 s desde o gasto, intervalo de 1 s: só 0,5 s regenera.
-        Assert.Equal(55, RegrasRecursos.RegenerarVigor(50, 100, 2.5, 1.0));
+        Assert.Equal(55, RegrasRecursos.RegenerarStamina(50, 100, 2.5, 1.0));
 
     [Fact]
-    public void Energia_regenera_5_por_segundo() =>
-        Assert.Equal(70, RegrasRecursos.RegenerarEnergia(50, 120, 10.0, 4.0));
+    public void Mana_regenera_5_por_segundo() =>
+        Assert.Equal(70, RegrasRecursos.RegenerarMana(50, 120, 10.0, 4.0));
 
     [Fact]
     public void Regeneracao_nao_passa_do_maximo() =>
-        Assert.Equal(100, RegrasRecursos.RegenerarVigor(95, 100, 10.0, 5.0));
+        Assert.Equal(100, RegrasRecursos.RegenerarStamina(95, 100, 10.0, 5.0));
 
     [Fact]
     public void Regeneracao_sem_tempo_nao_muda() =>
-        Assert.Equal(40, RegrasRecursos.RegenerarVigor(40, 100, 10.0, 0.0));
+        Assert.Equal(40, RegrasRecursos.RegenerarStamina(40, 100, 10.0, 0.0));
 
     [Fact]
     public void Regeneracao_limita_atual_acima_do_maximo() =>
-        Assert.Equal(80, RegrasRecursos.RegenerarVigor(100, 80, 10.0, 1.0));
+        Assert.Equal(80, RegrasRecursos.RegenerarStamina(100, 80, 10.0, 1.0));
 
     [Fact]
     public void Rota_e_codigo_de_erro_sao_os_combinados()

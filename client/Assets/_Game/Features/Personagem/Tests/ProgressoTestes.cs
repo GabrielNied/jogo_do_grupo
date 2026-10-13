@@ -19,7 +19,7 @@ namespace JogoDoGrupo.Client.Features.Personagem.Tests
                     XpAtual = 1,
                     XpDoNivel = 80,
                     PontosLivres = 5,
-                    Distribuidos = new PontosDeAtributos { Forca = 2, Vitalidade = 1 },
+                    Distribuidos = new PontosDeAtributos { Forca = 2, Vigor = 1 },
                 }
             );
 
@@ -58,13 +58,13 @@ namespace JogoDoGrupo.Client.Features.Personagem.Tests
             var estado = new EstadoDeProgresso();
             estado.Aplicar(Progresso(nivel: 1, xp: 0, custo: 40, livres: 2));
 
-            Assert.IsTrue(estado.AumentarRascunho("Destreza"));
-            Assert.IsTrue(estado.AumentarRascunho("Destreza"));
+            Assert.IsTrue(estado.AumentarRascunho("Agilidade"));
+            Assert.IsTrue(estado.AumentarRascunho("Agilidade"));
             Assert.IsFalse(estado.AumentarRascunho("Forca"));
 
             var pedido = estado.MontarPedido();
             Assert.AreEqual(2, estado.PontosLivres);
-            Assert.AreEqual(2, pedido.Pontos.Destreza);
+            Assert.AreEqual(2, pedido.Pontos.Agilidade);
             Assert.AreEqual(0, pedido.Pontos.Forca);
 
             estado.Aplicar(Progresso(nivel: 1, xp: 0, custo: 40, livres: 2));

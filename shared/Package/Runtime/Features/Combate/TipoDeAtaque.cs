@@ -9,7 +9,7 @@ namespace JogoDoGrupo.Shared.Features.Combate
         /// <summary>Corte rápido, sem custo.</summary>
         Leve = 0,
 
-        /// <summary>Corte lento e mais forte, que gasta vigor.</summary>
+        /// <summary>Corte lento e mais forte, que gasta stamina.</summary>
         Pesado = 1,
     }
 }

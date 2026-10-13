@@ -284,9 +284,9 @@ internal static class PersonagensRotas
         var gasto = pontos!;
         personagem.PontosLivres -= (int)RegrasAtributos.Total(gasto);
         personagem.Forca += gasto.Forca;
-        personagem.Destreza += gasto.Destreza;
+        personagem.Agilidade += gasto.Agilidade;
         personagem.Intelecto += gasto.Intelecto;
-        personagem.Vitalidade += gasto.Vitalidade;
+        personagem.Vigor += gasto.Vigor;
         personagem.Espirito += gasto.Espirito;
 
         await db.SaveChangesAsync(cancelamento);

@@ -6,17 +6,17 @@ public class RegrasAtributosTestes
 {
     private static PontosDeAtributos Pontos(
         int forca = 0,
-        int destreza = 0,
+        int agilidade = 0,
         int intelecto = 0,
-        int vitalidade = 0,
+        int vigor = 0,
         int espirito = 0
     ) =>
         new PontosDeAtributos
         {
             Forca = forca,
-            Destreza = destreza,
+            Agilidade = agilidade,
             Intelecto = intelecto,
-            Vitalidade = vitalidade,
+            Vigor = vigor,
             Espirito = espirito,
         };
 
@@ -33,7 +33,7 @@ public class RegrasAtributosTestes
 
     [Fact]
     public void Gastar_exatamente_os_pontos_livres_vale() =>
-        Assert.Null(RegrasAtributos.ValidarDistribuicao(5, Pontos(forca: 3, vitalidade: 2)));
+        Assert.Null(RegrasAtributos.ValidarDistribuicao(5, Pontos(forca: 3, vigor: 2)));
 
     [Fact]
     public void Gastar_menos_que_os_pontos_livres_vale() =>
@@ -43,14 +43,14 @@ public class RegrasAtributosTestes
     public void Um_ponto_a_mais_e_recusado() =>
         Assert.Equal(
             CodigosErroPersonagem.PontosInsuficientes,
-            RegrasAtributos.ValidarDistribuicao(5, Pontos(forca: 3, vitalidade: 3))
+            RegrasAtributos.ValidarDistribuicao(5, Pontos(forca: 3, vigor: 3))
         );
 
     [Fact]
     public void Sem_pontos_livres_qualquer_gasto_e_recusado() =>
         Assert.Equal(
             CodigosErroPersonagem.PontosInsuficientes,
-            RegrasAtributos.ValidarDistribuicao(0, Pontos(destreza: 1))
+            RegrasAtributos.ValidarDistribuicao(0, Pontos(agilidade: 1))
         );
 
     [Fact]
@@ -59,7 +59,7 @@ public class RegrasAtributosTestes
             CodigosErroPersonagem.PontosInsuficientes,
             RegrasAtributos.ValidarDistribuicao(
                 int.MaxValue,
-                Pontos(forca: int.MaxValue, destreza: int.MaxValue)
+                Pontos(forca: int.MaxValue, agilidade: int.MaxValue)
             )
         );
 
@@ -94,6 +94,6 @@ public class RegrasAtributosTestes
     public void Negativo_vence_a_falta_de_pontos() =>
         Assert.Equal(
             CodigosErroPersonagem.AtributoInvalido,
-            RegrasAtributos.ValidarDistribuicao(0, Pontos(forca: 10, destreza: -1))
+            RegrasAtributos.ValidarDistribuicao(0, Pontos(forca: 10, agilidade: -1))
         );
 }

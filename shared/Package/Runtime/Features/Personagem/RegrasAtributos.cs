@@ -12,9 +12,9 @@ namespace JogoDoGrupo.Shared.Features.Personagem
         /// <summary>Soma dos pontos pedidos. Usa <c>long</c> para a soma não estourar.</summary>
         public static long Total(PontosDeAtributos pontos) =>
             (long)pontos.Forca
-            + pontos.Destreza
+            + pontos.Agilidade
             + pontos.Intelecto
-            + pontos.Vitalidade
+            + pontos.Vigor
             + pontos.Espirito;
 
         /// <summary>
@@ -30,9 +30,9 @@ namespace JogoDoGrupo.Shared.Features.Personagem
             if (
                 pontos == null
                 || pontos.Forca < 0
-                || pontos.Destreza < 0
+                || pontos.Agilidade < 0
                 || pontos.Intelecto < 0
-                || pontos.Vitalidade < 0
+                || pontos.Vigor < 0
                 || pontos.Espirito < 0
             )
             {

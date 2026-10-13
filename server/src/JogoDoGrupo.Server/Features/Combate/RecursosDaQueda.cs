@@ -9,7 +9,7 @@ namespace JogoDoGrupo.Server.Features.Combate;
 /// </summary>
 internal static class RecursosDaQueda
 {
-    /// <summary>Vida em 20% do máximo (mínimo 1); vigor e energia como estavam.</summary>
+    /// <summary>Vida em 20% do máximo (mínimo 1); stamina e mana como estavam.</summary>
     public static Task<RecursosMudaram> LevantarAsync(
         IServiceScopeFactory escopos,
         long personagemId,
@@ -20,12 +20,12 @@ internal static class RecursosDaQueda
             personagemId,
             (recursos, atributos) =>
                 recursos.Vida = RegrasQueda.VidaAoLevantar(
-                    RegrasRecursos.VidaMaxima(atributos.Vitalidade)
+                    RegrasRecursos.VidaMaxima(atributos.Vigor)
                 ),
             cancelamento
         );
 
-    /// <summary>Vida, vigor e energia cheios (a volta à cidade).</summary>
+    /// <summary>Vida, stamina e mana cheios (a volta à cidade).</summary>
     public static Task<RecursosMudaram> EncherTudoAsync(
         IServiceScopeFactory escopos,
         long personagemId,
@@ -36,9 +36,9 @@ internal static class RecursosDaQueda
             personagemId,
             (recursos, atributos) =>
             {
-                recursos.Vida = RegrasRecursos.VidaMaxima(atributos.Vitalidade);
-                recursos.Vigor = RegrasRecursos.VigorMaximo();
-                recursos.Energia = RegrasRecursos.EnergiaMaxima(atributos.Espirito);
+                recursos.Vida = RegrasRecursos.VidaMaxima(atributos.Vigor);
+                recursos.Stamina = RegrasRecursos.StaminaMaxima(atributos.Agilidade);
+                recursos.Mana = RegrasRecursos.ManaMaxima(atributos.Espirito);
             },
             cancelamento
         );

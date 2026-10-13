@@ -29,11 +29,11 @@ namespace JogoDoGrupo.Shared.Features.Combate
         /// <summary>Multiplicador do dano da arma no ataque pesado.</summary>
         public const double MultiplicadorPesado = 2.2;
 
-        /// <summary>Vigor gasto pelo ataque leve (sempre pode).</summary>
-        public const int CustoDeVigorLeve = 0;
+        /// <summary>Stamina gasta pelo ataque leve (sempre pode).</summary>
+        public const int CustoDeStaminaLeve = 0;
 
-        /// <summary>Vigor gasto pelo ataque pesado; sem esse vigor o pesado é recusado.</summary>
-        public const int CustoDeVigorPesado = 20;
+        /// <summary>Stamina gasta pelo ataque pesado; sem essa stamina o pesado é recusado.</summary>
+        public const int CustoDeStaminaPesado = 20;
 
         /// <summary>Dano da espada com Força 0, antes do multiplicador do ataque.</summary>
         public const int DanoBaseDaEspada = 20;
@@ -229,12 +229,12 @@ namespace JogoDoGrupo.Shared.Features.Combate
             return inicialGraus + Math.Max(-teto, Math.Min(teto, giro));
         }
 
-        public static int CustoDeVigor(TipoDeAtaque tipo) =>
-            tipo == TipoDeAtaque.Pesado ? CustoDeVigorPesado : CustoDeVigorLeve;
+        public static int CustoDeStamina(TipoDeAtaque tipo) =>
+            tipo == TipoDeAtaque.Pesado ? CustoDeStaminaPesado : CustoDeStaminaLeve;
 
-        /// <summary>Se o vigor atual paga o ataque. O leve sempre pode.</summary>
-        public static bool TemVigor(TipoDeAtaque tipo, int vigorAtual) =>
-            vigorAtual >= CustoDeVigor(tipo);
+        /// <summary>Se a stamina atual paga o ataque. O leve sempre pode.</summary>
+        public static bool TemStamina(TipoDeAtaque tipo, int staminaAtual) =>
+            staminaAtual >= CustoDeStamina(tipo);
 
         /// <summary>
         /// Dano do golpe em um alvo: (dano da espada + Força) vezes o multiplicador do ataque,

@@ -43,7 +43,7 @@ Várias regiões, dezenas de jogadores na mesma área, cinco raças, 25 skills, 
 - [x] ~~Quem recebe o loot do boss: maior dano (plano) ou outra regra mais justa com tank e healer?~~ Decidido em 2026-10-11: loot individual, cada jogador que participou da luta sorteia o próprio (seção 5). ~~Maior dano~~ substituído em 2026-10-11 por loot individual no boss.
 - [x] ~~Troca de arma (S10) fica fora; a fatia tem uma arma equipada.~~ Decidido em 2026-10-12: duas armas, como o New World ([combate](combate.md#duas-armas-depois-desta-fatia)). Esta fatia ainda joga com uma espada.
 - [ ] **Livro de Asterra (proposta do board, 2026-10-11, não validada pelo grupo; [figjam.md](../brainstorm/figjam.md), seções 10, 11 e 09).** Nada abaixo muda os números da fatia:
-  - **Coincide** com as seções 1, 2, 3 e 7: 100 vigor e 100 energia, regeneração 10 e 5 por s após 2 s, caído 45 s, levantar em 3 s com 20% de vida. **Conflito (nível):** o livro pedia nível 1 a 30 com 5 pontos por nível; a seção 6, em 2026-10-12, adotou teto 100 e nenhum ponto de atributo por nível. Vale a seção 6. **Conflito (esquiva):** o livro pedia esquiva sem invulnerabilidade; a seção 3, em 2026-10-12, adotou a janela curta do New World. Vale a seção 3.
+  - **Coincide** com as seções 1, 2, 3 e 7: 100 stamina e 100 mana, regeneração 10 e 5 por s após 2 s, caído 45 s, levantar em 3 s com 20% de vida. **Conflito (nível):** o livro pedia nível 1 a 30 com 5 pontos por nível; a seção 6, em 2026-10-12, adotou teto 100 e nenhum ponto de atributo por nível. Vale a seção 6. **Conflito (esquiva):** o livro pedia esquiva sem invulnerabilidade; a seção 3, em 2026-10-12, adotou a janela curta do New World. Vale a seção 3.
   - **Conflito (loot):** o livro dá os itens a quem causou mais dano, com empate para o primeiro atacante; a seção 5 decidiu loot individual por participação. Vale a seção 5.
   - **Conflito (escala):** o livro fala em instâncias de 20 jogadores; a seção 7 é para 1 a 5. Fica em "Fora desta fatia".
   - **Novidade para depois da fatia:** botão de retorno antes dos 45 s e teleporte descoberto; bloqueio por defesa; pulo, natação e escalada; 12 pontos iniciais de orçamento de skills (+1 a cada 5 níveis); cinco raças, 25 skills, cinco espécies de inimigos; cidade com forja, banco e mercado.
@@ -51,7 +51,7 @@ Várias regiões, dezenas de jogadores na mesma área, cinco raças, 25 skills, 
 
 ## Regras
 
-**Base:** New World (ritmo, ataque e esquiva), World of Warcraft (dungeon de 5), Diablo IV (loot no chão). **Igual:** ação em 3ª pessoa, esquiva com custo de vigor, dungeon com boss, itens caindo no chão. **Diferente:** sem classes, skills nos itens. ~~Sessão pequena~~ substituído em 2026-10-11 por mundo persistente; a fatia ainda tem uma área e uma dungeon.
+**Base:** New World (ritmo, ataque e esquiva), World of Warcraft (dungeon de 5), Diablo IV (loot no chão). **Igual:** ação em 3ª pessoa, esquiva com custo de stamina, dungeon com boss, itens caindo no chão. **Diferente:** sem classes, skills nos itens. ~~Sessão pequena~~ substituído em 2026-10-11 por mundo persistente; a fatia ainda tem uma área e uma dungeon.
 
 ### 1. Atributos e recursos
 
@@ -61,13 +61,13 @@ Quem decide: **servidor** (calcula, valida e envia o resultado; o client só mos
 |---|---|---|
 | Atributos | Força, Vigor, Agilidade, Intelecto, Espírito, do personagem ([personagem](personagem.md#atributos-do-personagem)). Valor final = pontos da [árvore](talentos.md) + efeitos. Atributo de equipamento não soma aqui (DEC-001). Pontos da árvore só por nível; quantos, pendente (no código, zero até a [#625](https://github.com/GabrielNied/jogo_do_grupo/issues/625)) | decidido em 2026-10-12 (estrutura); números são valores de teste |
 | Vida | base 500, +10 por ponto de Vigor. Chegar a 0 leva ao estado caído (seção 7) | valor de teste |
-| Stamina | base 100, +2 por ponto de Agilidade. Paga esquiva, ataque pesado e guarda. No código ainda se chama vigor ([#622](https://github.com/GabrielNied/jogo_do_grupo/issues/622)) | valor de teste |
-| Mana | base 100, +2 por ponto de Espírito. Paga as skills dos itens. No código ainda se chama energia ([#622](https://github.com/GabrielNied/jogo_do_grupo/issues/622)) | valor de teste |
+| Stamina | base 100, +2 por ponto de Agilidade. Paga esquiva, ataque pesado e guarda. | valor de teste |
+| Mana | base 100, +2 por ponto de Espírito. Paga as skills dos itens. | valor de teste |
 | Regeneração | após 2 s sem atacar, esquivar ou segurar a guarda: +10 stamina/s e +5 mana/s. Segurar a guarda pausa a espera mesmo antes de um golpe gastar stamina. Vida não regenera sozinha na fatia. Regeneração é atributo secundário próprio de cada recurso ([personagem](personagem.md#atributos-secundários)); Agilidade e Espírito não a aumentam sem decisão | valor de teste |
 | Cálculo | recalcular ao equipar ou desequipar; nunca somar o mesmo bônus duas vezes | proposta |
 | Limites | valor atual nunca passa do máximo nem fica negativo; reduzir o máximo não cura | proposta |
 
-- ~~Decidido em 2026-10-12: os cinco atributos só vêm dos itens.~~ Substituído em 2026-10-12 pela [especificação de atributos](personagem.md#atributos-do-personagem): os atributos vêm da árvore, e os itens têm atributos próprios. Força aumenta o dano físico (seção 2). Vigor aumenta a vida. Agilidade aumenta a stamina máxima. Intelecto aumenta o dano mágico (valor de teste: **2%** por ponto). Espírito aumenta a mana máxima. Até a [#622](https://github.com/GabrielNied/jogo_do_grupo/issues/622) e a [#623](https://github.com/GabrielNied/jogo_do_grupo/issues/623), o código mantém os nomes antigos e soma os atributos das peças.
+- ~~Decidido em 2026-10-12: os cinco atributos só vêm dos itens.~~ Substituído em 2026-10-12 pela [especificação de atributos](personagem.md#atributos-do-personagem): os atributos vêm da árvore, e os itens têm atributos próprios. Força aumenta o dano físico (seção 2). Vigor aumenta a vida. Agilidade aumenta a stamina máxima. Intelecto aumenta o dano mágico (valor de teste: **2%** por ponto). Espírito aumenta a mana máxima. No código, os nomes novos valem desde a [#622](https://github.com/GabrielNied/jogo_do_grupo/issues/622) (constantes `VidaPorVigor`, `StaminaPorAgilidade` e `ManaPorEspirito` em `RegrasRecursos`); até a [#623](https://github.com/GabrielNied/jogo_do_grupo/issues/623), o código ainda soma os atributos das peças nos do personagem.
 - Dano físico pesado escala com Força; a primeira arma usa Força (seção 2).
 - O client mostra barras de vida, stamina e mana; o servidor envia valores atuais e máximos quando mudam.
 - **Testes esperados:** equipar/desequipar recalcula sem duplicar bônus; máximo reduzido limita o atual; regeneração só após 2 s sem atacar, esquivar ou segurar a guarda; recurso nunca fica negativo.
@@ -76,29 +76,29 @@ Quem decide: **servidor** (calcula, valida e envia o resultado; o client só mos
 
 Quem decide: **servidor** (acerto, dano, custo). O client envia a intenção (leve ou pesado, com a direção da mira) e toca a animação.
 
-- Primeira arma: **espada**, com ataque **leve** (corte rápido, sem custo) e **pesado** (corte lento, gasta vigor). O clique no botão do leve é o leve; segurar o mesmo botão por **0,3 s** (`SegurarParaPesadoSegundos`) começa o pesado. As teclas estão em [interface](interface.md#teclas-e-atalhos). Valores iniciais, **proposta a calibrar**: leve 0,5 s de preparo, dano 1,0x; pesado 1,0 s de preparo, dano 2,2x, custo 20 de vigor, recuperação maior.
+- Primeira arma: **espada**, com ataque **leve** (corte rápido, sem custo) e **pesado** (corte lento, gasta stamina). O clique no botão do leve é o leve; segurar o mesmo botão por **0,3 s** (`SegurarParaPesadoSegundos`) começa o pesado. As teclas estão em [interface](interface.md#teclas-e-atalhos). Valores iniciais, **proposta a calibrar**: leve 0,5 s de preparo, dano 1,0x; pesado 1,0 s de preparo, dano 2,2x, custo 20 de stamina, recuperação maior.
 - **Cadeia de leves** (decidido em 2026-10-12, ritmo da espada do New World, fácil de mudar): três leves seguidos. O 1º e o 2º ficam em 1,0x; o 3º em **1,2x**. O pesado no lugar de qualquer passo usa o 2,2x e a cadeia volta ao 1º. A cadeia também volta ao 1º se o próximo golpe não começar em até **0,8 s** depois que a ação anterior acaba. Errar o alvo não quebra a cadeia: o passo sobe quando a ação começa. Cada leve é uma ação: no fim dela dá para esquivar, e o próximo leve só sai se a pessoa pedir. A cadeia não prende ninguém num combo. Constantes em `RegrasAtaque`: `PassosDaCadeiaLeve`, `MultiplicadorDoTerceiroLeve`, `JanelaDaCadeiaSegundos`.
 - Cada ataque tem preparo, momento de acerto e recuperação; o dano só vale no momento de acerto, dentro do volume do golpe (cone à frente, alcance curto).
-- **Compromisso** (decidido em 2026-10-12, como no New World): durante preparo e momento de acerto o personagem anda a no máximo **40%** da corrida (`VelocidadeDuranteGolpe`) e a esquiva é recusada. Na recuperação, a esquiva cancela o que falta dela e gasta o vigor da esquiva.
+- **Compromisso** (decidido em 2026-10-12, como no New World): durante preparo e momento de acerto o personagem anda a no máximo **40%** da corrida (`VelocidadeDuranteGolpe`) e a esquiva é recusada. Na recuperação, a esquiva cancela o que falta dela e gasta a stamina da esquiva.
 - **Pesado firme** (decidido em 2026-10-12): dano tomado durante o pesado não interrompe a ação. O dano continua valendo. A reação dos outros golpes está em [combate](combate.md#reação-ao-acerto).
 - **Mira** (decidido em 2026-10-12): o cone usa a direção que o personagem olha no momento do acerto, limitada pelo giro desde o início do preparo. Leve até **240°/s**, pesado até **60°/s** (`GiroMaximoLeveGrausPorSegundo`, `GiroMaximoPesadoGrausPorSegundo`). Sem alvo fixo.
 - O mesmo golpe **não acerta o mesmo alvo duas vezes**; acerta vários alvos no volume.
 - Pedir novo ataque durante a ação espera o fim dela (fila de 1 pedido, descartado se passar de 0,3 s, **proposta**).
-- Sem vigor suficiente, o pesado é recusado (o leve sempre pode).
+- Sem stamina suficiente, o pesado é recusado (o leve sempre pode).
 - Valores que faltavam para implementar, **proposta a calibrar** (constantes em `RegrasAtaque`, no shared): recuperação de 0,3 s no leve e 0,6 s no pesado; dano do golpe = (dano da espada 20 + 2 por ponto de Força) x o multiplicador do ataque, arredondado (valor de teste: na [#623](https://github.com/GabrielNied/jogo_do_grupo/issues/623) e na [#624](https://github.com/GabrielNied/jogo_do_grupo/issues/624), o 20 vira o dano da arma e a Força passa a aumentar em %, veja [combate](combate.md#em-aberto)); o volume é medido no plano do chão (a altura não conta, então por enquanto o pulo não tira ninguém do golpe).
 - As skills dos itens ficam fora desta seção (veja [skills.md](skills.md) e [itens.md](itens.md)).
-- Base: New World. Igual: cadeia de leves, pesado firme, vigor na esquiva e no pesado, esquiva com janela curta sem dano (seção 3) e guarda segurada ([combate](combate.md#guarda-segurada)). Sem parry. Nesta fatia ainda é uma espada só; duas armas e três skills por arma são o desenho, e entram depois (S10 e [skills](skills.md)).
-- **Testes esperados:** acerto único por golpe e alvo; vários alvos no volume; pesado recusado sem vigor; fila de ataque; dano calculado só no servidor; o 3º leve usa 1,2x e o 4º volta a 1,0x; pesado no meio da cadeia volta a cadeia ao 1º; cadeia expira em 0,8 s; durante o preparo o deslocamento não passa de 40% da corrida e a esquiva é recusada; na recuperação a esquiva corta o resto da ação; o giro do pesado não passa de 60° no 1 s de preparo.
+- Base: New World. Igual: cadeia de leves, pesado firme, stamina na esquiva e no pesado, esquiva com janela curta sem dano (seção 3) e guarda segurada ([combate](combate.md#guarda-segurada)). Sem parry. Nesta fatia ainda é uma espada só; duas armas e três skills por arma são o desenho, e entram depois (S10 e [skills](skills.md)).
+- **Testes esperados:** acerto único por golpe e alvo; vários alvos no volume; pesado recusado sem stamina; fila de ataque; dano calculado só no servidor; o 3º leve usa 1,2x e o 4º volta a 1,0x; pesado no meio da cadeia volta a cadeia ao 1º; cadeia expira em 0,8 s; durante o preparo o deslocamento não passa de 40% da corrida e a esquiva é recusada; na recuperação a esquiva corta o resto da ação; o giro do pesado não passa de 60° no 1 s de preparo.
 
 ### 3. Esquiva
 
 Quem decide: **servidor** (custo, deslocamento e posição final); o client antecipa o movimento.
 
-- Deslocamento de **5 m em 0,6 s**, custo **15 de vigor**. A direção é a do movimento nesse instante; parado, é para trás da mira (`DirecaoDaEsquiva`). Nos primeiros **0,3 s** (`JanelaDeInvulnerabilidadeSegundos`) o dano direto some; o servidor confere o instante, o client não avisa que desviou. Depois dessa janela, o golpe acerta se a pessoa ainda está no volume.
-- Sem vigor suficiente, a esquiva é recusada.
+- Deslocamento de **5 m em 0,6 s**, custo **15 de stamina**. A direção é a do movimento nesse instante; parado, é para trás da mira (`DirecaoDaEsquiva`). Nos primeiros **0,3 s** (`JanelaDeInvulnerabilidadeSegundos`) o dano direto some; o servidor confere o instante, o client não avisa que desviou. Depois dessa janela, o golpe acerta se a pessoa ainda está no volume.
+- Sem stamina suficiente, a esquiva é recusada.
 - Não atravessa paredes nem sai do chão válido; o servidor valida a posição final.
 - Serve contra ataques telegrafados: o aviso dá tempo de esquivar ou sair da área.
-- **Testes esperados:** esquiva gasta 15 de vigor; recusada sem vigor; não atravessa parede; andando, sai na direção do movimento; parado, sai para trás da mira; golpe no meio dos primeiros 0,3 s não tira vida; golpe depois desses 0,3 s, ainda no volume, tira vida.
+- **Testes esperados:** esquiva gasta 15 de stamina; recusada sem stamina; não atravessa parede; andando, sai na direção do movimento; parado, sai para trás da mira; golpe no meio dos primeiros 0,3 s não tira vida; golpe depois desses 0,3 s, ainda no volume, tira vida.
 
 ### 4. Um inimigo comum, em grupo
 
@@ -134,7 +134,7 @@ Quem decide: **servidor** (concede e confere; cada prêmio vale uma vez).
 - Nível inicial 1; nível máximo **100** (decidido em 2026-10-12).
 - XP para o próximo nível = arredondar(50 × nível^1,2) (decidido em 2026-10-12; meta em [personagem](personagem.md#ritmo-de-progressão)).
 - XP vem de derrotar inimigos; quem **participou** (dano, cura, defesa) recebe, mesmo sem ser o dono do loot. O valor cai pela diferença de nível ([personagem](personagem.md#ritmo-de-progressão)).
-- Subir de nível não dá ponto de atributo. Força, Destreza, Intelecto, Vitalidade e Espírito vêm só dos itens.
+- Subir de nível dá pontos da árvore, a única fonte deles ([personagem](personagem.md#atributos-do-personagem)); quantos por nível está pendente, e o código dá zero até a [#625](https://github.com/GabrielNied/jogo_do_grupo/issues/625).
 - No nível máximo o XP excedente é guardado e não sobe de nível.
 - O client mostra barra de XP e nível.
 - **Testes esperados:** XP certo por nível; mob 5 níveis abaixo não dá XP; mob do mesmo nível dá o valor inteiro; subir de nível não cria ponto de atributo; mesmo prêmio não concede XP duas vezes; teto de nível.

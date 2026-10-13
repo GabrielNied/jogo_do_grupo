@@ -8,9 +8,9 @@ namespace JogoDoGrupo.Shared.Features.Combate
     public class AtributosCombate
     {
         public int Forca;
-        public int Destreza;
+        public int Agilidade;
         public int Intelecto;
-        public int Vitalidade;
+        public int Vigor;
         public int Espirito;
     }
 }

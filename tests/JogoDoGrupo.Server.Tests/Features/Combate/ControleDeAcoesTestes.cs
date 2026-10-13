@@ -283,7 +283,7 @@ public class ControleDeAcoesTestes
         var primeiro = Golpe(controle, Leve(), 1_000);
         var pesado = Golpe(controle, Pesado(), primeiro.FimMs);
 
-        controle.Desistir(Ana, pesado.Id, primeiro.FimMs + 20); // sem vigor
+        controle.Desistir(Ana, pesado.Id, primeiro.FimMs + 20); // sem stamina
 
         Assert.Equal(1, Golpe(controle, Leve(), primeiro.FimMs + 30).Passo);
     }

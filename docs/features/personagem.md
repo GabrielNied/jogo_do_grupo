@@ -58,8 +58,9 @@ Decidido por Gabriel em 2026-10-12 (especificação de atributos; entrada em [ar
 | Intelecto | Dano mágico | Aumenta o dano mágico das skills e de outras fontes mágicas | Conversão dos pontos em dano |
 | Espírito | Mana | Aumenta a mana máxima | Mana por ponto |
 
+- **Na tela:** a janela do personagem lista os cinco atributos na ordem da tabela (Força, Vigor, Agilidade, Intelecto, Espírito), cada um com o efeito ao lado ("Vigor: 3 (aumenta a vida)"); os textos ficam em `TextosPersonagem`. As barras do HUD são vida, stamina e mana.
 - **Sem efeito implícito:** um atributo principal não dá outros bônus (esquiva, velocidade, regeneração...) sem decisão registrada. Cada efeito tem fonte e fórmula identificáveis.
-- **Recursos:** vida, stamina e mana. Decidido em 2026-10-12 (coordenador), para acabar com a colisão de nomes: o recurso que o código chama de "vigor" passa a ser **stamina**, e "energia" passa a ser **mana**. Vigor fica só como atributo. A troca no código é a [#622](https://github.com/GabrielNied/jogo_do_grupo/issues/622).
+- **Recursos:** vida, stamina e mana. Decidido em 2026-10-12 (coordenador), para acabar com a colisão de nomes: o recurso que o código chama de "vigor" passa a ser **stamina**, e "energia" passa a ser **mana**. Vigor fica só como atributo. A troca no código foi a [#622](https://github.com/GabrielNied/jogo_do_grupo/issues/622).
 - ~~Destreza~~ e ~~Vitalidade~~ substituídos em 2026-10-12 por **Agilidade** e **Vigor**.
 - **Pontos da árvore vêm só de subir de nível** (Gabriel, 2026-10-12). Melhorar equipamento aumenta só os atributos do próprio item e nunca dá ponto da árvore. Quantos pontos cada nível dá está pendente ([#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627)).
 
@@ -96,7 +97,7 @@ Até a [#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627), as taref
 
 ### Transição
 
-Até a [#622](https://github.com/GabrielNied/jogo_do_grupo/issues/622) e a [#623](https://github.com/GabrielNied/jogo_do_grupo/issues/623) entrarem, o código continua como está: atributos com os nomes antigos, a soma dos atributos das peças nos do personagem e zero pontos por nível. Nenhuma regra nova se apoia nisso.
+Os nomes novos já valem no código ([#622](https://github.com/GabrielNied/jogo_do_grupo/issues/622)). Até a [#623](https://github.com/GabrielNied/jogo_do_grupo/issues/623) entrar, o código ainda soma os atributos das peças nos do personagem; e, até a [#625](https://github.com/GabrielNied/jogo_do_grupo/issues/625), dá zero pontos por nível. Nenhuma regra nova se apoia nisso.
 
 ### Pendente
 
@@ -108,7 +109,7 @@ O "Livro de ideias de Asterra" do FigJam propõe **cinco povos jogáveis**. Cada
 
 | Raça | Traço | Skill racial (recarga) |
 |---|---|---|
-| Valdren (humanos da fronteira) | Espírito de Comunidade: comer perto de outro jogador compartilha 10 de saciedade, uma vez por refeição | Estandarte dos Errantes: 20 s de vigor e resistência a interrupção para aliados em 25 m (90 s) |
+| Valdren (humanos da fronteira) | Espírito de Comunidade: comer perto de outro jogador compartilha 10 de saciedade, uma vez por refeição | Estandarte dos Errantes: 20 s de stamina e resistência a interrupção para aliados em 25 m (90 s) |
 | Aurídeos (portadores da alvorada) | Olhar Crepuscular: reconhecem contornos próximos com pouca luz | Aurora Errante: orbe que ilumina 35 m por 30 s e pode ser lançado a até 100 m (70 s) |
 | Graníticos (filhos da montanha) | Raiz de Pedra: parados preparando uma ação, sofrem 20% menos deslocamento por empurrões | Ressonância Ancestral: 3 pulsos em 6 s, raio de 30 m, desequilibram inimigos comuns (75 s) |
 | Cinéreos (herdeiros da brasa) | Corpo de Fornalha: 15% menos dano de queimadura | Sopro de Cinzas: faixa de 25 m por 8 m por 8 s, inflamável (65 s) |
@@ -125,7 +126,7 @@ Do "Livro de ideias de Asterra" ([seções 10 e 09](../brainstorm/figjam.md#10--
 - **Fontes de XP:** derrotar inimigos, explorar pontos novos, coletar, produzir receitas e concluir objetivos.
 - **Skills não são aprendidas:** continuar dos itens. O orçamento de preparação segue fora desta fatia ([skills.md](skills.md#preparação-de-skills-proposta-do-board-2026-10-11)). Os atributos não mudam esse orçamento.
 - **Rotina:** "três builds" de exemplo, bestiário (registro por observação, cervo jovem como primeiro companheiro) e o ciclo preparar, explorar, voltar: veja a [seção 09](../brainstorm/figjam.md#09--personagem-cooperação-e-rotina). O bestiário e a captura não têm funcionalidade dona ainda.
-- **Ataques, defesa e recursos** (golpe leve e pesado por arma, sem parry, bloqueio por defesa contra potência, 100 de vigor e de energia): pertencem a [combate.md](combate.md); o board repete os valores da fatia.
+- **Ataques, defesa e recursos** (golpe leve e pesado por arma, sem parry, bloqueio por defesa contra potência, 100 de stamina e de mana): pertencem a [combate.md](combate.md); o board repete os valores da fatia.
 - **Morte:** o board propõe 45 s caído, 3 s para levantar e 20% de vida, **iguais** à seção [Morte e caído](#morte-e-caído-issue-97). Novo: caído também pode ser levantado pela skill Hino do Recomeço ([skills.md](skills.md)).
 
 ## Ritmo de progressão
@@ -265,13 +266,13 @@ Quem decide: **servidor** (quando cai, a contagem, quem está levantando, a vida
 | Vivo | vida acima de 0 | Caído, quando a vida chega a 0 |
 | Caído | vida chegou a 0 | Levantando (um aliado começou a interação); Retorno (a contagem acabou, a pessoa escolheu voltar ou o grupo todo caiu) |
 | Levantando | um aliado segura a interação | Vivo com 20% de vida (os 3 s se completaram); Caído (a interação foi interrompida) |
-| Retorno | fim da contagem, escolha da pessoa ou derrota do grupo | Vivo, na cidade, com vida, vigor e energia cheios |
+| Retorno | fim da contagem, escolha da pessoa ou derrota do grupo | Vivo, na cidade, com vida, stamina e mana cheios |
 
 #### Enquanto está caído
 
 - Não anda, não ataca, não esquiva, não interage e não usa itens: o servidor recusa essas intenções com `VoceEstaCaido`. A câmera continua girando e o chat e o mapa funcionam.
 - Não recebe dano nem efeitos, e os inimigos **trocam de alvo** (deixam de perseguir quem caiu).
-- Vigor e energia ficam como estavam e não regeneram.
+- Stamina e mana ficam como estavam e não regeneram.
 - A contagem é do servidor. O client mostra o tempo que o servidor enviou e não decide o fim.
 - **Voltar à cidade:** liberado depois de **5 s** caído (evita clique sem querer), segurando o botão por **1 s**. Antes disso: `AindaNaoPodeVoltar`.
 - **Desconectar caído:** a contagem continua no servidor. Se a pessoa voltar depois do fim, aparece na cidade.
@@ -282,12 +283,12 @@ Quem decide: **servidor** (quando cai, a contagem, quem está levantando, a vida
 - Interrompe e **zera o progresso**: soltar a tecla, afastar-se mais de 2 m, levar dano, cair, ou atacar e esquivar.
 - **Um ajudante por vez:** o primeiro que começou vale; o segundo recebe `JaEstaSendoLevantado` (é a regra da fatia: dois ajudantes não duplicam a cura).
 - A contagem de 45 s **para** enquanto alguém está levantando e volta a correr se a interação for interrompida (em aberto).
-- Ao levantar: **20% da vida máxima**, vigor e energia como estavam, no mesmo lugar, com **2 s sem receber dano** (em aberto).
+- Ao levantar: **20% da vida máxima**, stamina e mana como estavam, no mesmo lugar, com **2 s sem receber dano** (em aberto).
 - Não há limite de quantas vezes alguém pode cair e ser levantado na mesma dungeon (na fatia).
 
 #### Retorno à cidade
 
-- A pessoa reaparece no **ponto de nascimento da cidade** ([mundo.md](mundo.md)), com vida, vigor e energia cheios.
+- A pessoa reaparece no **ponto de nascimento da cidade** ([mundo.md](mundo.md)), com vida, stamina e mana cheios.
 - Não perde item, XP, moeda nem nível. O loot que já era dela continua no chão da instância pelo tempo normal ([fatia-jogavel.md](fatia-jogavel.md), seção 5).
 - Continua **membro do grupo** ([social.md](social.md)); só sai da instância. Voltar a entrar na mesma dungeon é decisão de [instâncias](instancias.md) (#66).
 - **Todos caídos ao mesmo tempo** (inclusive quem joga sozinho): é a derrota da fatia. Não espera os 45 s: a tela de derrota aparece por **5 s** e todos voltam à cidade; a instância fecha.
@@ -350,7 +351,7 @@ API HTTP para listar e criar personagens (por que HTTP: [ADR 0009](../decisoes/0
 
 ### Experiência, nível e pontos de atributo (#65, contrato da #299)
 
-Regras na [fatia jogável, seção 6](fatia-jogavel.md#6-experiência-e-nível). O servidor concede a experiência e sobe o nível; o client só mostra. Subir de nível vai dar pontos da árvore (decidido em 2026-10-12; quantos, na [#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627)); por enquanto o código dá zero. O contrato abaixo ainda descreve o gasto livre de pontos: a [#625](https://github.com/GabrielNied/jogo_do_grupo/issues/625) troca esse gasto pela compra de nós da [árvore](talentos.md), e a [#622](https://github.com/GabrielNied/jogo_do_grupo/issues/622) renomeia os atributos. ~~Este é o contrato; o servidor (#356) e o client (#357) vêm depois.~~ O servidor (#356, 11/10/2026) concede a experiência de `InimigoDerrotado` e gasta os pontos. O client (#357) mostra a barra e a tela de atributos (tecla C) e só envia o gasto.
+Regras na [fatia jogável, seção 6](fatia-jogavel.md#6-experiência-e-nível). O servidor concede a experiência e sobe o nível; o client só mostra. Subir de nível vai dar pontos da árvore (decidido em 2026-10-12; quantos, na [#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627)); por enquanto o código dá zero. O contrato abaixo ainda descreve o gasto livre de pontos: a [#625](https://github.com/GabrielNied/jogo_do_grupo/issues/625) troca esse gasto pela compra de nós da [árvore](talentos.md). ~~Este é o contrato; o servidor (#356) e o client (#357) vêm depois.~~ O servidor (#356, 11/10/2026) concede a experiência de `InimigoDerrotado` e gasta os pontos. O client (#357) mostra a barra e a tela de atributos (tecla C) e só envia o gasto.
 
 | ID ou rota | Nome | Direção | Campos |
 |---|---|---|---|
@@ -359,7 +360,7 @@ Regras na [fatia jogável, seção 6](fatia-jogavel.md#6-experiência-e-nível).
 | `GET /api/personagens/{personagemId}/progresso` | `RotasPersonagem.Progresso` | client → servidor | recebe `ProgressoResponse`: `Nivel`, `XpAtual`, `XpDoNivel`, `PontosLivres`, `Distribuidos` |
 | `POST /api/personagens/{personagemId}/atributos` | `RotasPersonagem.Atributos` | client → servidor | envia `DistribuirAtributosRequest` (`Pontos`); recebe `ProgressoResponse` |
 
-- **`PontosDeAtributos`:** os cinco atributos (Forca, Destreza, Intelecto, Vitalidade, Espirito). No pedido é quanto gastar agora; em `Distribuidos` é o total que o jogador já distribuiu, sem base, equipamentos nem efeitos (o valor final é de [Combate](combate.md)).
+- **`PontosDeAtributos`:** os cinco atributos (Forca, Vigor, Agilidade, Intelecto, Espirito). No pedido é quanto gastar agora; em `Distribuidos` é o total que o jogador já distribuiu, sem base, equipamentos nem efeitos (o valor final é de [Combate](combate.md)).
 - **Gasto de pontos:** o pedido vale inteiro ou não vale; recusado, nenhum ponto é gasto. Gastar não tem volta na fatia. `RegrasAtributos.ValidarDistribuicao` é o validador comum a client e servidor: valor negativo ou pedido sem ponto nenhum é `AtributoInvalido` (400); pedir mais do que há livre é `PontosInsuficientes` (409). Um negativo nunca "devolve" ponto para outro atributo.
 - **Códigos novos em `CodigosErroPersonagem`:** `AtributoInvalido`, `PontosInsuficientes` e `PersonagemNaoEncontrado` (404: não existe ou não é da conta do token).
 - O client pede o `ProgressoResponse` ao entrar no mundo; depois disso a experiência chega por `ExperienciaGanha`.

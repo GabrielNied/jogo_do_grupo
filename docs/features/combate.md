@@ -19,13 +19,13 @@ Cálculo de dano, seleção de alvo e efeitos de status. Usado por PvE e PvP.
 - **Ataques telegrafados** (decidido em 2026-10-10): bosses e inimigos fortes avisam antes de bater (área marcada no chão, brilho ou animação de preparo) e o jogador tem tempo de esquivar ou sair da área. Base: Final Fantasy XIV e WoW
 - **Decisões do Gabriel em 2026-10-11** (estavam só em comentário de issue):
   - **Ataque (#61):** cone de **2,5 m e 90°** à frente do atacante; **sem compensação de lag na fatia**; boneco de treino na cidade. Os números moram em `RegrasAtaque`.
-  - **Esquiva (#62):** o dono do código é **Combate** (o vigor é dele); a tecla é o Alt esquerdo ([interface.md](interface.md)).
+  - **Esquiva (#62):** o dono do código é **Combate** (a stamina é dele); a tecla é o Alt esquerdo ([interface.md](interface.md)).
   - **Caído (#125):** o dono do estado é **Combate**, que já é dono da vida; [Personagem](personagem.md#morte-e-caído-issue-97) só mostra a tela.
 
 ## Em aberto
 
 - [x] ~~Combate com alvo fixo (tab target) ou mira livre (action)?~~ Decidido: action (D4)
-- [x] ~~Ataque leve e pesado, bloqueio, stamina: quais entram na fatia jogável?~~ Decidido em 2026-10-12, como no New World: entram a cadeia de três leves, o pesado, a esquiva com janela sem dano e a guarda segurada. Os dois gastam vigor.
+- [x] ~~Ataque leve e pesado, bloqueio, stamina: quais entram na fatia jogável?~~ Decidido em 2026-10-12, como no New World: entram a cadeia de três leves, o pesado, a esquiva com janela sem dano e a guarda segurada. Os dois gastam stamina.
 - [x] ~~**Troca de arma** (duas armas, como New World e Throne and Liberty)?~~ Decidido em 2026-10-12: sim, duas armas e três skills por arma, com recarga separada. A fatia atual ainda joga com uma espada. A troca entra na S10.
 - [x] ~~Bosses com ataques telegrafados?~~ Decidido em 2026-10-10: sim (veja "Definido")
 - [ ] Como o servidor valida acertos com a latência (lag compensation)? Decidido pelo Gabriel em 2026-10-11 **para a fatia**: sem compensação de lag (o cone é medido no momento do acerto, com a posição que o servidor tem). Depois da fatia a pergunta segue aberta (issue #172).
@@ -33,7 +33,7 @@ Cálculo de dano, seleção de alvo e efeitos de status. Usado por PvE e PvP.
 - [x] ~~Como funciona o agro (ameaça) para o tank segurar os inimigos?~~ Adotado em 2026-10-12 (/decida, #169), fácil de mudar: tabela de ameaça por inimigo, veja [Ameaça (agro)](#ameaça-agro-169).
 - [ ] Quais buffs cada papel traz? Eles acumulam?
 - [ ] Um jogador pode trocar de papel trocando de itens no meio da dungeon?
-- [ ] **Atributos de 2026-10-12** ([personagem](personagem.md#atributos-do-personagem), prioridade alta): Combate é dono das fórmulas que juntam atributos do personagem, atributos próprios dos equipamentos e propriedades das skills, com uma pipeline única que guarda a origem de cada modificador ([#624](https://github.com/GabrielNied/jogo_do_grupo/issues/624)). **Estrutura do dano com arma** (decidida por Gabriel em 2026-10-12): `dano = dano-base da arma × (1 + % de Força ou Intelecto do personagem + % de Força ou Intelecto do item + árvore) × multiplicador do golpe ou da skill`. O dano-base e os % do item vêm da conversão dos [atributos dos equipamentos](itens.md#atributos-dos-equipamentos); a Força do item é fonte separada da do personagem e nunca soma nela. A ordem e o acúmulo exatos ficam na #624. Pendentes ([#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627)): dano por ponto de Força e de Intelecto; crítico (chance, dano e quais skills podem critar); velocidade de ataque física e mágica sobre animação e conjuração; penetração contra defesa física e mágica; ordem e acúmulo dos modificadores. O recurso vigor passa a se chamar stamina e a energia, mana ([#622](https://github.com/GabrielNied/jogo_do_grupo/issues/622)).
+- [ ] **Atributos de 2026-10-12** ([personagem](personagem.md#atributos-do-personagem), prioridade alta): Combate é dono das fórmulas que juntam atributos do personagem, atributos próprios dos equipamentos e propriedades das skills, com uma pipeline única que guarda a origem de cada modificador ([#624](https://github.com/GabrielNied/jogo_do_grupo/issues/624)). **Estrutura do dano com arma** (decidida por Gabriel em 2026-10-12): `dano = dano-base da arma × (1 + % de Força ou Intelecto do personagem + % de Força ou Intelecto do item + árvore) × multiplicador do golpe ou da skill`. O dano-base e os % do item vêm da conversão dos [atributos dos equipamentos](itens.md#atributos-dos-equipamentos); a Força do item é fonte separada da do personagem e nunca soma nela. A ordem e o acúmulo exatos ficam na #624. Pendentes ([#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627)): dano por ponto de Força e de Intelecto; crítico (chance, dano e quais skills podem critar); velocidade de ataque física e mágica sobre animação e conjuração; penetração contra defesa física e mágica; ordem e acúmulo dos modificadores. Os recursos são vida, stamina e mana, e Vigor é só atributo ([personagem](personagem.md#atributos-do-personagem); nomes novos no código desde a [#622](https://github.com/GabrielNied/jogo_do_grupo/issues/622)).
 
 ### Propostas do livro de Asterra (2026-10-11, não validadas)
 
@@ -45,7 +45,7 @@ Vêm do [Livro de ideias](../brainstorm/figjam.md) (seção 10). São **proposta
 - [x] ~~**Ataques básicos por arma**~~ Decidido em 2026-10-12: a espada está na fatia. Martelo, arco e cajado, quando entrarem, usam a mesma cadeia, o mesmo pesado, a mesma esquiva e a mesma guarda. O volume de cada uma fica na tarefa dessa arma. Sem inventar o formato agora.
 - [ ] **Mira e volumes de acerto:** mouse direciona golpes, projéteis e áreas, sem seleção automática obrigatória; a área visível da skill deve ser a área real de acerto; volumes generosos (cone, faixa, círculo). Coerente com o cone de 90° já implementado; vale como critério para as skills.
 - [ ] **Movimentos além de correr e esquivar:** pulo, natação e escalada (proposta de escalada em superfícies e bordas do mapa; rios cruzados a nado, com gelo como alternativa). Dono: [personagem.md](personagem.md) e [mundo.md](mundo.md).
-- [ ] **Recursos:** pools-base de 100 vigor e 100 energia e regeneração de 10 vigor/s e 5 energia/s após 2 s **já coincidem** com a [fatia](fatia-jogavel.md#1-atributos-e-recursos). Novidade: poções, refeições e descanso em locais seguros como fontes de recuperação, e equipamentos e comida que modificam a regeneração.
+- [ ] **Recursos:** pools-base de 100 stamina e 100 mana e regeneração de 10 stamina/s e 5 mana/s após 2 s **já coincidem** com a [fatia](fatia-jogavel.md#1-atributos-e-recursos). Novidade: poções, refeições e descanso em locais seguros como fontes de recuperação, e equipamentos e comida que modificam a regeneração.
 - [ ] **Estado caído:** o livro propõe 45 s, levantar por 3 s, 20% de vida e retorno à cidade ou teleporte descoberto; coincide com a [fatia](fatia-jogavel.md#7-dungeon-de-até-5-com-um-boss) e com [personagem.md](personagem.md#morte-e-caído-issue-97). Novidade: o **botão de retorno antes dos 45 s** e o retorno a **teleporte descoberto**; sem perda de XP, moeda, equipamento, materiais nem durabilidade por morte na primeira versão.
 - [x] **Cast com compromisso, regra de custo adotada em 2026-10-11 (#345):** skill forte tem preparo visível e sonoro e pode ser cancelada; cancelar custa **50% do recurso** (constante nomeada) e o servidor cobra uma vez só (no cancelamento ou na conclusão, nunca nos dois).
 - [ ] **Combos** (sugestão do topo do board): uma skill prepara e outra finaliza; segue como proposta (e skills fortes, veja acima). Ficam em [skills.md](skills.md).
@@ -70,9 +70,9 @@ Para implementar sem refazer a leitura:
 
 Decidido em 2026-10-12, como no New World, fácil de mudar. Sem parry. Quem decide é o servidor: o client só diz que a guarda está segurada.
 
-- Segurar a guarda anda a no máximo **40%** da corrida e pausa a regeneração do vigor ([fatia](fatia-jogavel.md#1-atributos-e-recursos)). Não vale durante o preparo nem no momento de acerto de um golpe seu. Na recuperação, segurar a guarda corta o que falta dela.
-- O golpe recebido custa **1 de vigor por ponto de dano** (`VigorPorDanoBloqueado`), antes da defesa do equipamento. Com vigor suficiente, o dano desse golpe é zero e o vigor desce esse tanto.
-- Sem vigor para o custo, a guarda quebra: o vigor vai a zero, o dano entra (a defesa do equipamento da [#344](https://github.com/GabrielNied/jogo_do_grupo/issues/344) vale nesse caso) e a [reação ao acerto](#reação-ao-acerto) começa.
+- Segurar a guarda anda a no máximo **40%** da corrida e pausa a regeneração da stamina ([fatia](fatia-jogavel.md#1-atributos-e-recursos)). Não vale durante o preparo nem no momento de acerto de um golpe seu. Na recuperação, segurar a guarda corta o que falta dela.
+- O golpe recebido custa **1 de stamina por ponto de dano** (`StaminaPorDanoBloqueado`), antes da defesa do equipamento. Com stamina suficiente, o dano desse golpe é zero e a stamina desce esse tanto.
+- Sem stamina para o custo, a guarda quebra: a stamina vai a zero, o dano entra (a defesa do equipamento da [#344](https://github.com/GabrielNied/jogo_do_grupo/issues/344) vale nesse caso) e a [reação ao acerto](#reação-ao-acerto) começa.
 - A fórmula da #344 não substitui a guarda. Ela só reduz o que passou.
 
 ### Duas armas (depois desta fatia)
@@ -111,8 +111,8 @@ Decidido em 2026-10-12, no exemplo do Elden Ring, fácil de mudar. Vale igual pa
 
 Código em `shared/Package/Runtime/Features/Combate/`. Regras e números: [fatia-jogavel.md](fatia-jogavel.md), seção 1 (não copiados aqui).
 
-- `AtributosCombate`: os cinco atributos finais (Força, Destreza, Intelecto, Vitalidade, Espírito).
-- `RegrasRecursos`: fórmulas puras de vida, vigor e energia máximos, `Limitar` (clamp) e regeneração (`RegenerarVigor`, `RegenerarEnergia`).
+- `AtributosCombate`: os cinco atributos finais (Força, Vigor, Agilidade, Intelecto, Espírito). Os valores de teste que viram recursos estão em `RegrasRecursos` (`VidaPorVigor`, `StaminaPorAgilidade`, `ManaPorEspirito`).
+- `RegrasRecursos`: fórmulas puras de vida, stamina e mana máximos, `Limitar` (clamp) e regeneração (`RegenerarStamina`, `RegenerarMana`).
 - `RecursosResponse`: atuais, máximos e atributos finais.
 - `RotasCombate.Recursos`: `GET /api/personagens/{personagemId}/recursos` responde 200 `RecursosResponse`. Erros: `CodigosErroCombate.PersonagemNaoEncontrado` (404) e `NaoAutenticado` (401, Core).
 
@@ -123,10 +123,10 @@ Ataque da primeira arma (tempo real; regras e números em [fatia-jogavel.md](fat
 | 6000 | `IntencaoDeAtaque` | client → servidor | `Tipo` (`TipoDeAtaque`: Leve 0, Pesado 1), `DirecaoY` (graus, mesma convenção de `IntencaoDeMovimento.RotacaoY`), `Sequencia` |
 | 6001 | `AtaqueIniciado` | servidor → quem está na área | `AtacanteId`, `Tipo`, `DirecaoY`, `PreparoMs`, `Passo` (0 a 2, da cadeia de leves) |
 | 6002 | `AtaqueAcertou` | servidor → quem está na área | `AtacanteId`, `Acertos[]` (`AcertoDeAtaque`: `AlvoId`, `Dano`, `VidaRestante`, `VidaMaxima`), `Tipo`, `Sequencia` (a da `IntencaoDeAtaque`), `Passo` |
-| 6003 | `AtaqueRecusado` | servidor → atacante | `Sequencia`, `Codigo` (`CodigosErroCombate.VigorInsuficiente`, `AcaoEmAndamento` ou `VoceEstaCaido`) |
-| 6004 | `RecursosMudaram` | servidor → dono | vida, vigor e energia atuais e máximos |
+| 6003 | `AtaqueRecusado` | servidor → atacante | `Sequencia`, `Codigo` (`CodigosErroCombate.StaminaInsuficiente`, `AcaoEmAndamento` ou `VoceEstaCaido`) |
+| 6004 | `RecursosMudaram` | servidor → dono | vida, stamina e mana atuais e máximos |
 
-- `RegrasAtaque`: constantes de balanceamento do ataque e fórmulas puras (`PreparoSegundos`, `RecuperacaoSegundos`, `DuracaoSegundos`, `CustoDeVigor`, `TemVigor`, `Dano`, `EntraNaFila`, `EstaNoVolume`). O servidor decide; o client usa só para tocar a animação no tempo certo.
+- `RegrasAtaque`: constantes de balanceamento do ataque e fórmulas puras (`PreparoSegundos`, `RecuperacaoSegundos`, `DuracaoSegundos`, `CustoDeStamina`, `TemStamina`, `Dano`, `EntraNaFila`, `EstaNoVolume`). O servidor decide; o client usa só para tocar a animação no tempo certo.
 - ~~Os IDs 6010 a 6012 ficam reservados para a esquiva (#62).~~ Substituído em 2026-10-11: o contrato da esquiva está abaixo.
 
 Esquiva (tempo real; regras e números em [fatia-jogavel.md](fatia-jogavel.md), seção 3):
@@ -134,18 +134,18 @@ Esquiva (tempo real; regras e números em [fatia-jogavel.md](fatia-jogavel.md), 
 | ID | Mensagem | Direção | Campos |
 |---|---|---|---|
 | 6010 | `IntencaoDeEsquiva` | client → servidor | `DirecaoY` (graus, mesma convenção do ataque), `Sequencia` |
-| 6011 | `EsquivaRecusada` | servidor → dono | `Sequencia`, `Codigo` (os mesmos códigos do ataque: `VigorInsuficiente`, `AcaoEmAndamento`, `VoceEstaCaido`) |
+| 6011 | `EsquivaRecusada` | servidor → dono | `Sequencia`, `Codigo` (os mesmos códigos do ataque: `StaminaInsuficiente`, `AcaoEmAndamento`, `VoceEstaCaido`) |
 | 6012 | `EsquivaIniciada` | servidor → quem está na área | `PersonagemId`, `DirecaoY`, `DuracaoMs` |
 
-- `RegrasEsquiva`: constantes de balanceamento (5 m, 0,6 s, 15 de vigor) e fórmulas puras (`TemVigor`, `EmAndamento`, `DistanciaPermitidaAte`, `DeslocamentoCabe`, `Destino`). A posição continua chegando pelas mensagens do Mundo.
+- `RegrasEsquiva`: constantes de balanceamento (5 m, 0,6 s, 15 de stamina) e fórmulas puras (`TemStamina`, `EmAndamento`, `DistanciaPermitidaAte`, `DeslocamentoCabe`, `Destino`). A posição continua chegando pelas mensagens do Mundo.
 
 ### Ataque no servidor (#215)
 
-- Quem recebe: `AtaqueIniciado` e `AtaqueAcertou` vão a todos que o Mundo diz estarem na área do atacante (`IPosicoesDoMundo`); `AtaqueRecusado` só ao atacante; `RecursosMudaram` só ao dono, e só quando o ataque gasta vigor (o pesado; o leve não gasta nada).
+- Quem recebe: `AtaqueIniciado` e `AtaqueAcertou` vão a todos que o Mundo diz estarem na área do atacante (`IPosicoesDoMundo`); `AtaqueRecusado` só ao atacante; `RecursosMudaram` só ao dono, e só quando o ataque gasta stamina (o pesado; o leve não gasta nada).
 - O servidor mede o cone no **momento do acerto** (preparo depois do pedido) com a posição que o Mundo tem então; não há compensação de lag. A direção é a `RotacaoY` que o Mundo tem do personagem naquele instante, limitada pelo giro desde a direção do pedido (`RegrasAtaque.DirecaoDoGolpe`: leve 240°/s, pesado 60°/s, pelo menor caminho). O client vira o corpo para a mira dentro do mesmo teto (#571).
-- **Um relógio só (#477):** a ação nasce no pedido; o acerto sai em `InicioMs + PreparoMs` e o fim da ação vem depois do acerto, mesmo que o banco demore. A cobrança do vigor e a leitura da Força acontecem dentro do preparo (o acerto não volta ao banco; veja [Recursos em memória](#recursos-em-memória-478)), e a fila só avança depois do acerto resolvido. Banco mais lento que o preparo atrasa o acerto, mas não o perde.
-- Fila: um pedido feito nos últimos 0,3 s da ação espera e começa no fim dela (vigor e queda são conferidos nessa hora, e a recusa sai com a `Sequencia` dele). Pedido durante a ação fora da janela, ou com a fila ocupada, é recusado com `AcaoEmAndamento`.
-- Caído (vida 0) é recusado com `VoceEstaCaido`; o pesado gasta 20 de vigor uma vez só (trava do personagem em memória) e é recusado sem vigor.
+- **Um relógio só (#477):** a ação nasce no pedido; o acerto sai em `InicioMs + PreparoMs` e o fim da ação vem depois do acerto, mesmo que o banco demore. A cobrança da stamina e a leitura da Força acontecem dentro do preparo (o acerto não volta ao banco; veja [Recursos em memória](#recursos-em-memória-478)), e a fila só avança depois do acerto resolvido. Banco mais lento que o preparo atrasa o acerto, mas não o perde.
+- Fila: um pedido feito nos últimos 0,3 s da ação espera e começa no fim dela (stamina e queda são conferidos nessa hora, e a recusa sai com a `Sequencia` dele). Pedido durante a ação fora da janela, ou com a fila ocupada, é recusado com `AcaoEmAndamento`.
+- Caído (vida 0) é recusado com `VoceEstaCaido`; o pesado gasta 20 de stamina uma vez só (trava do personagem em memória) e é recusado sem stamina.
 - `Tipo` fora do enum, direção inválida, ou ataque de quem ainda não entrou no mundo: o pedido é **descartado sem resposta** (o contrato não tem código para isso; um client correto nunca manda).
 - O dano é `RegrasAtaque.Dano(tipo, Força final, passo)`; cada alvo leva o mesmo golpe uma vez, e o `Dano` de `AcertoDeAtaque` é o que o alvo realmente perdeu (nunca mais que a vida que ele tinha).
 - **Alvos:** `IAlvosDeCombate` (`server/.../Contratos/Combate/`, ADR 0016) é implementado por quem é dono de alvos; Combate junta todas as implementações. Hoje só há o **boneco de treino** (id de alvo `-1`), em `ConfigBonecoDeTreino`: 180 de vida, posição fixa na cidade (x 0, z -22, 2 m à frente do nascimento), volta à vida cheia 5 s depois do último golpe que levou. Com 0 de vida ele sai de combate (não é mais alvo) até voltar. O servidor **não avisa** a volta: o client deduz pelos 5 s sem golpes.
@@ -153,7 +153,7 @@ Esquiva (tempo real; regras e números em [fatia-jogavel.md](fatia-jogavel.md), 
 
 ### Recursos em memória (#478)
 
-- Vida, vigor e energia de quem está em uso ficam em memória (`RecursosEmMemoria`, o único que escreve em `RecursosPersonagem`). O banco é lido uma vez por personagem (na primeira consulta) e recebe o que mudou a cada 5 s, quando o personagem desconecta e quando o servidor para; um crash perde no máximo ~5 s de gasto. O golpe leve (custo 0) não toca no banco; golpe, esquiva, dano, queda e a rota de recursos passam pela mesma trava por personagem.
+- Vida, stamina e mana de quem está em uso ficam em memória (`RecursosEmMemoria`, o único que escreve em `RecursosPersonagem`). O banco é lido uma vez por personagem (na primeira consulta) e recebe o que mudou a cada 5 s, quando o personagem desconecta e quando o servidor para; um crash perde no máximo ~5 s de gasto. O golpe leve (custo 0) não toca no banco; golpe, esquiva, dano, queda e a rota de recursos passam pela mesma trava por personagem.
 - Os atributos finais (Itens + efeitos + pontos) ficam em memória por 2 s e depois são relidos. Itens ainda não publica um evento de troca de equipamento; por isso trocar de peça aparece no golpe seguinte depois de até 2 s (a rota de recursos sempre relê). Quando o evento existir, ele invalida a entrada na hora. Valores em `ConfigRecursos`.
 
 ### Golpe de inimigo tira vida (#278)
@@ -166,32 +166,32 @@ Esquiva (tempo real; regras e números em [fatia-jogavel.md](fatia-jogavel.md), 
 
 Implementado em 2026-10-12. As decisões que a doc não fechava:
 
-- **Cadeia (#569):** o `ControleDeAcoes` guarda, por personagem, o próximo passo e o fim da ação anterior. O passo sobe quando a ação **começa** (errar o alvo não quebra); o pesado vale o passo 0 e reinicia a cadeia; o 4º leve volta ao 1º. Pedido da fila continua a cadeia. Pesado recusado por falta de vigor não quebra a cadeia. `AtaqueIniciado.Passo` (0 a 2) vai ao client; o 3º leve e o pesado mostram o número de dano maior. As animações por passo continuam em [#475](https://github.com/GabrielNied/jogo_do_grupo/issues/475).
+- **Cadeia (#569):** o `ControleDeAcoes` guarda, por personagem, o próximo passo e o fim da ação anterior. O passo sobe quando a ação **começa** (errar o alvo não quebra); o pesado vale o passo 0 e reinicia a cadeia; o 4º leve volta ao 1º. Pedido da fila continua a cadeia. Pesado recusado por falta de stamina não quebra a cadeia. `AtaqueIniciado.Passo` (0 a 2) vai ao client; o 3º leve e o pesado mostram o número de dano maior. As animações por passo continuam em [#475](https://github.com/GabrielNied/jogo_do_grupo/issues/475).
 - **Janela da cadeia:** conta do fim **real** da ação. Se a esquiva cortou a recuperação, o fim é o instante do corte, então o golpe depois de uma esquiva (0,6 s) ainda continua a cadeia.
 - **Giro (#571):** o corpo do client começa virado para a mira no clique e, até o acerto, gira para a mira dentro do teto. O servidor repete a conta com a `RotacaoY` que o Mundo recebeu. A direção do pedido continua sendo o ponto de partida.
-- **Compromisso (#570):** a esquiva é recusada antes do `AcertoMs` (preparo e momento de acerto) e vale depois dele; ao valer, a ação ganha `CortadaEmMs`, o pedido da fila some e o fim da ação passa a ser o corte. Se a esquiva for recusada por falta de vigor, a recuperação volta como era. O client anda a 40% da corrida (`VelocidadeDuranteGolpe`) do clique ao acerto, mexendo só no `Movimento` do próprio jogador e devolvendo o valor depois.
+- **Compromisso (#570):** a esquiva é recusada antes do `AcertoMs` (preparo e momento de acerto) e vale depois dele; ao valer, a ação ganha `CortadaEmMs`, o pedido da fila some e o fim da ação passa a ser o corte. Se a esquiva for recusada por falta de stamina, a recuperação volta como era. O client anda a 40% da corrida (`VelocidadeDuranteGolpe`) do clique ao acerto, mexendo só no `Movimento` do próprio jogador e devolvendo o valor depois.
 - **Teto de velocidade no servidor:** o contrato `ILimiteDeVelocidadeDoMundo` (`Contratos/Mundo/`) existe e o Combate o chama no começo do preparo, mas o **Mundo ainda não o implementa**. Sem implementação, o servidor não corta a velocidade de um client que ignore os 40%. Pendente no responsável pelo Mundo (`ValidadorDeMovimento`/`CidadeDoMundo`).
-- **Esquiva sem dano (#578):** no `TentarOcupar` o `ControleDeAcoes` marca a invulnerabilidade até `JanelaDeInvulnerabilidadeSegundos` (0,3 s). O `ServicoDeDanoRecebido` ignora o `GolpeDeInimigoAcertou` que chegar nesse intervalo, pelo relógio do servidor. Recusa por vigor desfaz a janela. Golpe de dano em alvos não-jogador não muda.
+- **Esquiva sem dano (#578):** no `TentarOcupar` o `ControleDeAcoes` marca a invulnerabilidade até `JanelaDeInvulnerabilidadeSegundos` (0,3 s). O `ServicoDeDanoRecebido` ignora o `GolpeDeInimigoAcertou` que chegar nesse intervalo, pelo relógio do servidor. Recusa por stamina desfaz a janela. Golpe de dano em alvos não-jogador não muda.
 - **Direção da esquiva (#578):** andando, a do movimento; parado, para trás da mira (`RegrasEsquiva.DirecaoDaEsquiva`). Antes o client saía para onde o corpo olhava quando parado.
 
 ### Reação ao acerto e guarda no servidor (#577, #579)
 
-Implementado em 2026-10-12, a partir do ritmo do golpe. Mensagens (faixa de Combate): `IntencaoDeGuarda` 6030 (client → servidor, `Segurando`), `GuardaMudou` 6031 (`PersonagemId`, `Segurando`, `Quebrou`; vai à área e ao dono quando sobe ou quebra, e só ao dono quando a guarda é recusada; quem solta a guarda não recebe o eco), `GolpeBloqueado` 6032 (`PersonagemId`, `VigorGasto`) e `AcaoInterrompida` 6033 (`AlvoId`, `Jogador`, `DuracaoMs`). Números em `RegrasReacao` e `RegrasGuarda` (shared). As decisões que a doc não fechava:
+Implementado em 2026-10-12, a partir do ritmo do golpe. Mensagens (faixa de Combate): `IntencaoDeGuarda` 6030 (client → servidor, `Segurando`), `GuardaMudou` 6031 (`PersonagemId`, `Segurando`, `Quebrou`; vai à área e ao dono quando sobe ou quebra, e só ao dono quando a guarda é recusada; quem solta a guarda não recebe o eco), `GolpeBloqueado` 6032 (`PersonagemId`, `StaminaGasto`) e `AcaoInterrompida` 6033 (`AlvoId`, `Jogador`, `DuracaoMs`). Números em `RegrasReacao` e `RegrasGuarda` (shared). As decisões que a doc não fechava:
 
 - **Quem interrompe:** o golpe de inimigo que entra (depois de esquiva e guarda) chama `ControleDeAcoes.TentarReagir`. O golpe leve em curso do jogador para: no preparo ele não chega ao contato (`FoiInterrompida`), na recuperação a ação é cortada. O pesado em andamento não é interrompido (e não atordoa). Acerto durante a esquiva não interrompe: a esquiva termina.
 - **Inimigo comum:** Combate chama `IAlvosDeCombate.Interromper` (método novo no contrato, padrão falso) depois de um acerto confirmado; só `GrupoDeInimigos` o implementa. Acerto no preparo cancela o golpe e o inimigo fica 0,3 s sem atacar; acerto na recuperação não muda nada. O chefe de dungeon e o boneco usam o padrão e nunca são interrompidos. A folga dos inimigos fica em `ServicoDeAtaques`, e só começa se um preparo foi cancelado.
 - **Folga:** vale para tudo o que `TentarReagir` e `Interromper` controlam. Um acerto na reação ou nos 0,6 s seguintes entra, mas não interrompe nem começa outra reação. Quebra de guarda na folga também não interrompe: o combo não prende.
 - **Guarda bloqueada não interrompe.** Só a quebra (e o acerto sem guarda) começa a reação.
-- **Ordem do golpe de inimigo:** esquiva (dano some) → caído → guarda (custo 1 de vigor por ponto de dano, antes da defesa da #344) → vida → reação.
+- **Ordem do golpe de inimigo:** esquiva (dano some) → caído → guarda (custo 1 de stamina por ponto de dano, antes da defesa da #344) → vida → reação.
 - **Guarda:** `ControleDeAcoes` recusa subir no preparo e no momento de acerto, durante a esquiva e a reação; na recuperação corta o resto do golpe. Com a guarda segurada, ataque e esquiva são recusados (o client solta a guarda antes de pedir). O teto de 40% vai ao Mundo por `ILimiteDeVelocidadeDoMundo` (30 s por vez, `RegrasGuarda.LimiteDeVelocidadeSegundos`; ao soltar, fator 1); o Mundo ainda não o implementa (#598).
-- **Regeneração:** com a guarda segurada a espera de 2 s do vigor não corre; ao soltar ou quebrar ela recomeça (`RecursosEmMemoria.DefinirGuardaAsync`).
+- **Regeneração:** com a guarda segurada a espera de 2 s da stamina não corre; ao soltar ou quebrar ela recomeça (`RecursosEmMemoria.DefinirGuardaAsync`).
 - **Client:** o clique no botão esquerdo é o leve e segurá-lo por 0,3 s (`SegurarParaPesadoSegundos`) é o pesado, para o botão direito ser a guarda ([interface.md](interface.md#teclas-e-atalhos)). Segurar o direito sobe a guarda (corpo olhando a mira, 40%, indicador "Guarda"); atacar ou esquivar a solta antes do pedido. `AcaoInterrompida` do próprio personagem para o golpe, segura a próxima ação por 0,3 s e inclina o corpo; os parâmetros `Guarda` e `Interrompido` do Animator tocam a pose de guarda e a de dano (ver [Resposta visual](#resposta-visual-do-combate-no-client-475-476-479-480-482)). O visual do inimigo interrompido é de Mobs (hoje ele só deixa de dar o golpe).
 
 ### Esquiva no servidor (#233)
 
-- O servidor recebe `IntencaoDeEsquiva`, confere e cobra **15 de vigor uma vez** (mesma transação do ataque) e só então pede ao Mundo a janela de deslocamento (`IDeslocamentosDoMundo`: 5 m em 0,6 s). Quem valida cada posição continua sendo o Mundo; fora da janela vale o limite de corrida.
+- O servidor recebe `IntencaoDeEsquiva`, confere e cobra **15 de stamina uma vez** (mesma transação do ataque) e só então pede ao Mundo a janela de deslocamento (`IDeslocamentosDoMundo`: 5 m em 0,6 s). Quem valida cada posição continua sendo o Mundo; fora da janela vale o limite de corrida.
 - Quem recebe: `EsquivaIniciada` vai a todos que estão na área (o dono também); `EsquivaRecusada` e `RecursosMudaram` só ao dono.
-- Recusas: `VigorInsuficiente` (nada é gasto), `VoceEstaCaido` e `AcaoEmAndamento`.
+- Recusas: `StaminaInsuficiente` (nada é gasto), `VoceEstaCaido` e `AcaoEmAndamento`.
 - **Ataque e esquiva:** a esquiva é recusada no preparo e no momento de acerto, e durante outra esquiva. Na recuperação, a esquiva corta o resto da ação. O ataque pedido durante a esquiva é recusado com `AcaoEmAndamento`, sem entrar na fila. De dois pedidos no mesmo instante, um vale. A #62 já está fechada.
 - Direção inválida ou esquiva de quem ainda não entrou no mundo: o pedido é descartado sem resposta, como no ataque.
 - Parede: o servidor ainda não conhece a geometria; valida distância, velocidade e os limites do mundo. Colisão com parede fica no client até o servidor ter o mapa.
@@ -210,8 +210,8 @@ Combate é o dono do estado caído (decidido em 2026-10-11). As regras e os caso
 
 - **Números** em `RegrasQueda` (shared): 45 s caído, 3 s para levantar, 20% da vida, 2 m (2,0 vale), 5 s até poder voltar. O servidor lê os tempos de `ConfigQueda` (padrão = `RegrasQueda`; os testes de integração usam tempos curtos).
 - **Quando cai:** vida 0 depois de um golpe de inimigo. `EstadoDeQueda` com `Caido` vai ao dono, ao grupo e à área; `PersonagemCaiu` é publicado em `Contratos/Combate/`.
-- **Levantar:** `Levantando` com `AjudanteId` e `ProgressoMs`; ao completar, `Vivo` com 20% da vida (vigor e energia como estavam), `RecursosMudaram` ao dono e o evento `PersonagemLevantou`. O servidor confere o alcance a cada 100 ms: sair dos 2 m, soltar, levar dano, cair, atacar, esquivar ou desconectar interrompem e zeram o progresso (volta `Caido`).
-- **Voltar à cidade:** fim dos 45 s ou `VoltarParaACidade` (depois de 5 s). Vida, vigor e energia vão ao máximo, `Retorno` é enviado e o evento `PersonagemVoltouParaACidade` é publicado: **quem leva o personagem ao ponto de nascimento é o Mundo** (ainda não assina o evento; veja abaixo). Nada de item, XP, moeda ou nível muda.
+- **Levantar:** `Levantando` com `AjudanteId` e `ProgressoMs`; ao completar, `Vivo` com 20% da vida (stamina e mana como estavam), `RecursosMudaram` ao dono e o evento `PersonagemLevantou`. O servidor confere o alcance a cada 100 ms: sair dos 2 m, soltar, levar dano, cair, atacar, esquivar ou desconectar interrompem e zeram o progresso (volta `Caido`).
+- **Voltar à cidade:** fim dos 45 s ou `VoltarParaACidade` (depois de 5 s). Vida, stamina e mana vão ao máximo, `Retorno` é enviado e o evento `PersonagemVoltouParaACidade` é publicado: **quem leva o personagem ao ponto de nascimento é o Mundo** (ainda não assina o evento; veja abaixo). Nada de item, XP, moeda ou nível muda.
 - **Uma saída por queda:** levantar, fim do tempo e voltar disputam a mesma trava (`ControleDeQueda`); a primeira que vence ganha e as outras viram `NaoEstaCaido` ou `AlvoNaoEstaCaido`. Se a interação termina no mesmo ms do fim do tempo, levantar vence.
 - **Contagem não para** enquanto alguém levanta, e **não há** os 2 s sem dano depois de levantar (os dois seguem em aberto em [personagem.md](personagem.md#em-aberto)).
 - **Para outras funcionalidades (ADR 0016):** `IEstadoDeQueda.EstaCaido(id)` (Mobs deve ignorar quem está caído: não atacar nem contar como alvo) e os eventos `PersonagemCaiu`, `PersonagemLevantou` e `PersonagemVoltouParaACidade`, em `server/.../Contratos/Combate/`.
@@ -239,9 +239,9 @@ Decidido em 2026-10-12 pelo dono de Combate, fácil de mudar (constantes nomeada
 - **Boneco (#476):** `BonecoDeTreinoVisual` monta em código um poste com tronco e cabeça de palha na posição do shared, sobre o chão, com barra de vida que olha para a câmera. A vida vem de `AtaqueAcertou` e a volta à vida cheia (`SegundosParaRecuperar`) é a mesma conta do servidor. Flash e recuo são do `ControleImpacto`, que acha o alvo pelo `RegistroDeAlvos` (o boneco se registra; os inimigos de Mobs são achados uma vez por nome e guardados).
 - **Número de dano (#482):** nasce sobre a cabeça do alvo, no mundo, e sobe 0,9 m; o pesado e o 3º leve aparecem maiores. Sem o alvo na cena, volta a subir em torno da mira.
 - **Golpe no vazio:** o golpe do próprio jogador que o servidor não confirmou até o contato mais 0,25 s (`GolpesEmAberto`) mostra o leque do volume do golpe no chão por 0,22 s e um som de ar cortado. Um acerto sofrido no meio cancela o aviso.
-- **Vigor sem polling (#479):** uma consulta ao entrar traz o retrato; depois o servidor manda `RecursosMudaram` a cada gasto, dano e **ao subir ou soltar a guarda**, e a barra e a `ProntidaoLocal` preveem a regeneração de `RegrasRecursos.RegenerarVigor` (espera de 2 s depois do último gasto, parada com a guarda segurada). Um retrato do servidor abaixo da previsão por mais de 2 pontos conta como gasto. Nenhum "Vigor insuficiente" local quando a previsão paga.
+- **Stamina sem polling (#479):** uma consulta ao entrar traz o retrato; depois o servidor manda `RecursosMudaram` a cada gasto, dano e **ao subir ou soltar a guarda**, e a barra e a `ProntidaoLocal` preveem a regeneração de `RegrasRecursos.RegenerarStamina` (espera de 2 s depois do último gasto, parada com a guarda segurada). Um retrato do servidor abaixo da previsão por mais de 2 pontos conta como gasto. Nenhum "Stamina insuficiente" local quando a previsão paga.
 - **Buffer de entrada (#480):** um clique de ataque (ou esquiva) durante outra ação: nos últimos 0,3 s vai já ao servidor (entra na fila dele) e a animação começa quando a ação em curso acaba; entre 0,3 s e 0,5 s fica guardado (**1 pedido**) e sai 0,25 s antes do fim, para a latência não fazer o servidor vê-lo cedo; antes disso é descartado ("Aguarde o golpe terminar"). Um pedido guardado vence 0,25 s depois da hora de sair. A esquiva guardada sai quando pode começar (no fim do preparo do golpe ou da esquiva anterior).
-- **Golpe recusado desfeito:** `AtaqueRecusado` com a `Sequencia` do golpe em curso tira a pose (trigger `Cancelar`), devolve o vigor previsto e a cadeia de leves; a recusa do pedido que ainda estava na fila só o tira da fila.
+- **Golpe recusado desfeito:** `AtaqueRecusado` com a `Sequencia` do golpe em curso tira a pose (trigger `Cancelar`), devolve a stamina prevista e a cadeia de leves; a recusa do pedido que ainda estava na fila só o tira da fila.
 - **Fora desta entrega:** golpes de outros jogadores visíveis ([#481](https://github.com/GabrielNied/jogo_do_grupo/issues/481)), compensação de lag ([#172](https://github.com/GabrielNied/jogo_do_grupo/issues/172)), o teto de velocidade no servidor ([#598](https://github.com/GabrielNied/jogo_do_grupo/issues/598)) e o mob reagindo à interrupção (Mobs).
 
 ### Sem dano entre aliados (#346)

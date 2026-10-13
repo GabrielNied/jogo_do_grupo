@@ -30,6 +30,25 @@ namespace JogoDoGrupo.Client.Features.Personagem
 
         public const string AtributoInvalido = "Escolha ao menos um ponto para gastar.";
 
+        // Atributos principais e o que cada um faz (docs/features/personagem.md, "Atributos do
+        // personagem"). Os recursos são vida, stamina e mana.
+        public const string RotuloForca = "Força";
+        public const string RotuloVigor = "Vigor";
+        public const string RotuloAgilidade = "Agilidade";
+        public const string RotuloIntelecto = "Intelecto";
+        public const string RotuloEspirito = "Espírito";
+        public const string EfeitoDaForca = "aumenta o dano físico";
+        public const string EfeitoDoVigor = "aumenta a vida";
+        public const string EfeitoDaAgilidade = "aumenta a stamina";
+        public const string EfeitoDoIntelecto = "aumenta o dano mágico";
+        public const string EfeitoDoEspirito = "aumenta a mana";
+
+        /// <summary>Linha da janela: "Vigor: 3 (aumenta a vida)".</summary>
+        public static string LinhaDoAtributo(string rotulo, int valor, string efeito)
+        {
+            return rotulo + ": " + valor + " (" + efeito + ")";
+        }
+
         public static readonly string NomeInvalido =
             $"O nome deve ter de {RegrasPersonagem.NomeMinimo} a {RegrasPersonagem.NomeMaximo} "
             + "letras (A–Z, sem acento, espaço ou número).";

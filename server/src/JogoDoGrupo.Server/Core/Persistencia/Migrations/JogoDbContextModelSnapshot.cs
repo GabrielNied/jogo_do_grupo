@@ -53,26 +53,26 @@ namespace JogoDoGrupo.Server.Core.Persistencia.Migrations
                     b.Property<long>("PersonagemId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("Energia")
+                    b.Property<int>("Mana")
                         .HasColumnType("INTEGER");
 
-                    b.Property<DateTime>("EnergiaContadaAte")
+                    b.Property<DateTime>("ManaContadaAte")
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTime>("UltimoGastoEnergiaEm")
+                    b.Property<int>("Stamina")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("StaminaContadaAte")
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTime>("UltimoGastoVigorEm")
+                    b.Property<DateTime>("UltimoGastoManaEm")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("UltimoGastoStaminaEm")
                         .HasColumnType("TEXT");
 
                     b.Property<int>("Vida")
                         .HasColumnType("INTEGER");
-
-                    b.Property<int>("Vigor")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime>("VigorContadoAte")
-                        .HasColumnType("TEXT");
 
                     b.HasKey("PersonagemId");
 
@@ -156,14 +156,14 @@ namespace JogoDoGrupo.Server.Core.Persistencia.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<int>("Agilidade")
+                        .HasColumnType("INTEGER");
+
                     b.Property<long>("ContaId")
                         .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("CriadoEm")
                         .HasColumnType("TEXT");
-
-                    b.Property<int>("Destreza")
-                        .HasColumnType("INTEGER");
 
                     b.Property<int>("Espirito")
                         .HasColumnType("INTEGER");
@@ -193,7 +193,7 @@ namespace JogoDoGrupo.Server.Core.Persistencia.Migrations
                     b.Property<int>("Raca")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("Vitalidade")
+                    b.Property<int>("Vigor")
                         .HasColumnType("INTEGER");
 
                     b.Property<long>("XpAtual")

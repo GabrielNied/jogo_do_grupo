@@ -11,9 +11,9 @@ namespace JogoDoGrupo.Client.Features.Combate
 {
     /// <summary>
     /// A defesa do próprio personagem: segurar o botão direito sobe a guarda (andar a 40%,
-    /// vigor pago por golpe, o servidor decide quanto e quando quebra) e a reação ao acerto
+    /// stamina pago por golpe, o servidor decide quanto e quando quebra) e a reação ao acerto
     /// (o golpe em curso para e a próxima ação espera 0,3 s). O client só informa que a guarda
-    /// está segurada; vigor e quebra voltam em <c>RecursosMudaram</c> e <c>GuardaMudou</c>.
+    /// está segurada; stamina e quebra voltam em <c>RecursosMudaram</c> e <c>GuardaMudou</c>.
     /// </summary>
     internal sealed class ControleDefesa : MonoBehaviour
     {
@@ -27,8 +27,8 @@ namespace JogoDoGrupo.Client.Features.Combate
         // não repetir o pedido a cada quadro enquanto o botão continua apertado.
         private const double EsperaDepoisDaRecusaSegundos = 0.4;
 
-        // Abaixo disso de vigor o indicador avisa que a guarda está perto de quebrar.
-        private const int VigorBaixo = 20;
+        // Abaixo disso de stamina o indicador avisa que a guarda está perto de quebrar.
+        private const int StaminaBaixo = 20;
 
         // Inclinação do corpo para trás enquanto dura a reação ao acerto.
         private const float InclinacaoDaReacaoGraus = 14f;
@@ -139,8 +139,8 @@ namespace JogoDoGrupo.Client.Features.Combate
                 Descer(jogador, agora, avisarOServidor: noJogo);
             }
 
-            var vigorBaixo = _prontidao.Vigor is int vigor && vigor < VigorBaixo;
-            _painel?.Mostrar(_prontidao.Guardando, vigorBaixo);
+            var staminaBaixo = _prontidao.Stamina is int stamina && stamina < StaminaBaixo;
+            _painel?.Mostrar(_prontidao.Guardando, staminaBaixo);
         }
 
         // Depois do Update do ControleTerceiraPessoa (que vira o corpo para onde anda): a

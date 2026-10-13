@@ -12,7 +12,7 @@ namespace JogoDoGrupo.Shared.Features.Combate
         public int Sequencia = 0;
 
         /// <summary>
-        /// Motivo: <see cref="CodigosErroCombate.VigorInsuficiente"/>,
+        /// Motivo: <see cref="CodigosErroCombate.StaminaInsuficiente"/>,
         /// <see cref="CodigosErroCombate.AcaoEmAndamento"/> ou
         /// <see cref="CodigosErroCombate.VoceEstaCaido"/> (os mesmos do ataque).
         /// </summary>

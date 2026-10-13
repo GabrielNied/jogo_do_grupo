@@ -18,8 +18,8 @@ namespace JogoDoGrupo.Shared.Features.Combate
         /// <summary>Segundos que a esquiva dura.</summary>
         public const double DuracaoSegundos = 0.6;
 
-        /// <summary>Vigor gasto por esquiva; sem esse vigor ela é recusada.</summary>
-        public const int CustoDeVigor = 15;
+        /// <summary>Stamina gasta por esquiva; sem essa stamina ela é recusada.</summary>
+        public const int CustoDeStamina = 15;
 
         /// <summary>
         /// Segundos, desde o começo da esquiva, em que o dano direto some. Depois disso o golpe
@@ -57,8 +57,8 @@ namespace JogoDoGrupo.Shared.Features.Combate
         /// <summary>Velocidade média durante a esquiva, em metros por segundo.</summary>
         public static double VelocidadeMetrosPorSegundo => DistanciaMetros / DuracaoSegundos;
 
-        /// <summary>Se o vigor atual paga a esquiva.</summary>
-        public static bool TemVigor(int vigorAtual) => vigorAtual >= CustoDeVigor;
+        /// <summary>Se a stamina atual paga a esquiva.</summary>
+        public static bool TemStamina(int staminaAtual) => staminaAtual >= CustoDeStamina;
 
         /// <summary>
         /// Se o instante ainda está dentro da esquiva. Recebe os segundos desde que ela começou;

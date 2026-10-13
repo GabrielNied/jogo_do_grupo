@@ -10,9 +10,9 @@ namespace JogoDoGrupo.Shared.Features.Personagem
     public class PontosDeAtributos
     {
         public int Forca = 0;
-        public int Destreza = 0;
+        public int Agilidade = 0;
         public int Intelecto = 0;
-        public int Vitalidade = 0;
+        public int Vigor = 0;
         public int Espirito = 0;
     }
 }

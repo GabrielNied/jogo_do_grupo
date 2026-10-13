@@ -95,11 +95,11 @@ public sealed class ServicoDeDanoRecebido : IHostedService
                 s.PersonagemId == golpe.PersonagemId
             );
 
-            // Guarda segurada: o golpe custa 1 de vigor por ponto de dano, antes da defesa do
-            // equipamento. Com vigor ele zera; sem vigor a guarda quebra e o dano entra.
+            // Guarda segurada: o golpe custa 1 de stamina por ponto de dano, antes da defesa do
+            // equipamento. Com stamina ele zera; sem stamina a guarda quebra e o dano entra.
             if (_acoes?.EstaGuardando(golpe.PersonagemId) == true)
             {
-                var (bloqueou, vigorGasto, estado) = await RecursosDoAtaque.BloquearAsync(
+                var (bloqueou, staminaGasto, estado) = await RecursosDoAtaque.BloquearAsync(
                     _escopos,
                     golpe.PersonagemId,
                     dano,
@@ -112,7 +112,7 @@ public sealed class ServicoDeDanoRecebido : IHostedService
 
                 if (bloqueou)
                 {
-                    _guarda?.AoBloquear(golpe.PersonagemId, golpe.Area, vigorGasto);
+                    _guarda?.AoBloquear(golpe.PersonagemId, golpe.Area, staminaGasto);
                     return;
                 }
 

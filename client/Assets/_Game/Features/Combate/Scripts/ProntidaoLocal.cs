@@ -20,15 +20,15 @@ namespace JogoDoGrupo.Client.Features.Combate
         /// <summary>Longe demais do fim da ação, ou já há um pedido guardado: o clique se perde.</summary>
         Descartado,
 
-        /// <summary>O vigor previsto não paga a ação.</summary>
-        SemVigor,
+        /// <summary>A stamina prevista não paga a ação.</summary>
+        SemStamina,
     }
 
     /// <summary>
-    /// O que o client já sabe do próprio vigor e da ação em curso, para não pedir nem animar
-    /// o que o servidor recusaria. O vigor é uma previsão: o último retrato do servidor mais a
-    /// regeneração (<see cref="RegrasRecursos.RegenerarVigor"/>) que ele faria desde então, parada
-    /// enquanto a guarda está segurada. Sem leitura de vigor ainda, a ação segue (o servidor
+    /// O que o client já sabe do próprio stamina e da ação em curso, para não pedir nem animar
+    /// o que o servidor recusaria. A stamina é uma previsão: o último retrato do servidor mais a
+    /// regeneração (<see cref="RegrasRecursos.RegenerarStamina"/>) que ele faria desde então, parada
+    /// enquanto a guarda está segurada. Sem leitura de stamina ainda, a ação segue (o servidor
     /// continua conferindo). A recarga é a duração da ação (<see cref="RegrasAtaque.DuracaoSegundos"/>
     /// ou <see cref="RegrasEsquiva.DuracaoSegundos"/>). Um clique durante outra ação entra na fila
     /// do servidor, fica guardado (um só) ou se perde (ver <see cref="ClicarAtaque"/>).
@@ -36,7 +36,7 @@ namespace JogoDoGrupo.Client.Features.Combate
     internal sealed class ProntidaoLocal
     {
         /// <summary>
-        /// Diferença, em pontos de vigor, entre o retrato do servidor e a previsão que ainda conta
+        /// Diferença, em pontos de stamina, entre o retrato do servidor e a previsão que ainda conta
         /// como a mesma coisa (a regeneração arredonda para baixo nos dois lados). Mais que isto
         /// é um gasto e reinicia a espera da regeneração.
         /// </summary>
@@ -45,13 +45,13 @@ namespace JogoDoGrupo.Client.Features.Combate
         /// <summary>Quanto tempo um pedido guardado vale depois da hora de sair, em segundos.</summary>
         public const double ValidadeDoPedidoGuardadoSegundos = 0.25;
 
-        private double _vigorDesde;
+        private double _staminaDesde;
         private double _ultimoGasto = double.NegativeInfinity;
-        private int _vigorMaximo = RegrasRecursos.VigorBase;
+        private int _staminaMaxima = RegrasRecursos.StaminaBase;
         private bool _ataqueEmCurso;
 
         // Para desfazer o golpe que o servidor recusou.
-        private int? _vigorAntesDoGolpe;
+        private int? _staminaAntesDoGolpe;
         private double _ultimoGastoAntesDoGolpe = double.NegativeInfinity;
 
         private bool _guardadoEsquiva;
@@ -61,26 +61,26 @@ namespace JogoDoGrupo.Client.Features.Combate
 
         private TipoDeAtaque? _naFila;
 
-        /// <summary>O último retrato do vigor (do servidor ou do gasto previsto), em <c>_vigorDesde</c>.</summary>
-        public int? Vigor { get; private set; }
+        /// <summary>O último retrato da stamina (do servidor ou do gasto previsto), em <c>_staminaDesde</c>.</summary>
+        public int? Stamina { get; private set; }
 
-        /// <summary>O vigor previsto para <paramref name="agora"/>, já com a regeneração.</summary>
-        public int? VigorEm(double agora)
+        /// <summary>A stamina prevista para <paramref name="agora"/>, já com a regeneração.</summary>
+        public int? StaminaEm(double agora)
         {
-            if (Vigor is not int vigor)
+            if (Stamina is not int stamina)
             {
                 return null;
             }
 
-            var passados = agora - _vigorDesde;
+            var passados = agora - _staminaDesde;
             if (passados <= 0 || Guardando)
             {
-                return vigor;
+                return stamina;
             }
 
-            return RegrasRecursos.RegenerarVigor(
-                vigor,
-                _vigorMaximo,
+            return RegrasRecursos.RegenerarStamina(
+                stamina,
+                _staminaMaxima,
                 agora - _ultimoGasto,
                 passados
             );
@@ -104,22 +104,22 @@ namespace JogoDoGrupo.Client.Features.Combate
         public bool Comprometido(double agora) => agora < AcertoEm;
 
         /// <summary>
-        /// O servidor mandou o vigor (e o máximo, quando o tem). Um vigor bem abaixo do previsto é
+        /// O servidor mandou a stamina (e o máximo, quando o tem). Uma stamina bem abaixo do previsto é
         /// um gasto: a espera da regeneração recomeça em <paramref name="agora"/>.
         /// </summary>
-        public void RegistrarVigor(int vigor, double agora = 0, int? maximo = null)
+        public void RegistrarStamina(int stamina, double agora = 0, int? maximo = null)
         {
-            var limitado = vigor < 0 ? 0 : vigor;
-            if (VigorEm(agora) is int previsto && limitado < previsto - ToleranciaDaPrevisao)
+            var limitado = stamina < 0 ? 0 : stamina;
+            if (StaminaEm(agora) is int previsto && limitado < previsto - ToleranciaDaPrevisao)
             {
                 _ultimoGasto = agora;
             }
 
-            Vigor = limitado;
-            _vigorDesde = agora;
+            Stamina = limitado;
+            _staminaDesde = agora;
             if (maximo is int teto && teto > 0)
             {
-                _vigorMaximo = teto;
+                _staminaMaxima = teto;
             }
         }
 
@@ -130,12 +130,12 @@ namespace JogoDoGrupo.Client.Features.Combate
                 return false;
             }
 
-            return TemVigorPara(tipo, agora);
+            return TemStaminaPara(tipo, agora);
         }
 
-        /// <summary>Se o vigor previsto para <paramref name="quando"/> paga o ataque.</summary>
-        public bool TemVigorPara(TipoDeAtaque tipo, double quando) =>
-            VigorEm(quando) is not int vigor || RegrasAtaque.TemVigor(tipo, vigor);
+        /// <summary>Se a stamina prevista para <paramref name="quando"/> paga o ataque.</summary>
+        public bool TemStaminaPara(TipoDeAtaque tipo, double quando) =>
+            StaminaEm(quando) is not int stamina || RegrasAtaque.TemStamina(tipo, stamina);
 
         /// <summary>Se a guarda está segurada (o servidor confirmou ou o client antecipou).</summary>
         public bool Guardando { get; private set; }
@@ -195,7 +195,7 @@ namespace JogoDoGrupo.Client.Features.Combate
                 return false;
             }
 
-            return VigorEm(agora) is not int vigor || RegrasEsquiva.TemVigor(vigor);
+            return StaminaEm(agora) is not int stamina || RegrasEsquiva.TemStamina(stamina);
         }
 
         // Dentro de uma ação de ataque, depois do acerto (a esquiva de antes ocupa até LivreEm).
@@ -207,7 +207,7 @@ namespace JogoDoGrupo.Client.Features.Combate
             _ataqueEmCurso = true;
             AcertoEm = agora + RegrasAtaque.PreparoSegundos(tipo);
             LivreEm = agora + RegrasAtaque.DuracaoSegundos(tipo);
-            Gastar(RegrasAtaque.CustoDeVigor(tipo), agora);
+            Gastar(RegrasAtaque.CustoDeStamina(tipo), agora);
         }
 
         public void MarcarEsquiva(double agora)
@@ -217,21 +217,21 @@ namespace JogoDoGrupo.Client.Features.Combate
             _ataqueEmCurso = false;
             AcertoEm = 0;
             LivreEm = agora + RegrasEsquiva.DuracaoSegundos;
-            Gastar(RegrasEsquiva.CustoDeVigor, agora);
+            Gastar(RegrasEsquiva.CustoDeStamina, agora);
         }
 
         /// <summary>
         /// O servidor recusou o golpe que o client já começou (ADR 0024): a ação acaba aqui e o
-        /// vigor previsto volta ao que era antes do gasto.
+        /// stamina prevista volta ao que era antes do gasto.
         /// </summary>
         public void DesfazerAtaque(double agora)
         {
-            if (_vigorAntesDoGolpe is int antes)
+            if (_staminaAntesDoGolpe is int antes)
             {
-                Vigor = antes;
-                _vigorDesde = agora;
+                Stamina = antes;
+                _staminaDesde = agora;
                 _ultimoGasto = _ultimoGastoAntesDoGolpe;
-                _vigorAntesDoGolpe = null;
+                _staminaAntesDoGolpe = null;
             }
 
             _ataqueEmCurso = false;
@@ -257,9 +257,9 @@ namespace JogoDoGrupo.Client.Features.Combate
         {
             if (agora >= LivreEm)
             {
-                return TemVigorPara(tipo, agora)
+                return TemStaminaPara(tipo, agora)
                     ? ResultadoDoClique.EnviarAgora
-                    : ResultadoDoClique.SemVigor;
+                    : ResultadoDoClique.SemStamina;
             }
 
             if (_naFila != null || _temGuardado)
@@ -273,9 +273,9 @@ namespace JogoDoGrupo.Client.Features.Combate
                 return ResultadoDoClique.Descartado;
             }
 
-            if (!TemVigorPara(tipo, LivreEm))
+            if (!TemStaminaPara(tipo, LivreEm))
             {
-                return ResultadoDoClique.SemVigor;
+                return ResultadoDoClique.SemStamina;
             }
 
             if (espera <= 0)
@@ -303,7 +303,7 @@ namespace JogoDoGrupo.Client.Features.Combate
             var liberaEm = Comprometido(agora) ? AcertoEm : LivreEm;
             if (agora >= liberaEm)
             {
-                return ResultadoDoClique.SemVigor; // Livre de ação: só o vigor impede.
+                return ResultadoDoClique.SemStamina; // Livre de ação: só a stamina impede.
             }
 
             if (
@@ -315,9 +315,9 @@ namespace JogoDoGrupo.Client.Features.Combate
                 return ResultadoDoClique.Descartado;
             }
 
-            if (VigorEm(liberaEm) is int vigor && !RegrasEsquiva.TemVigor(vigor))
+            if (StaminaEm(liberaEm) is int stamina && !RegrasEsquiva.TemStamina(stamina))
             {
-                return ResultadoDoClique.SemVigor;
+                return ResultadoDoClique.SemStamina;
             }
 
             Guardar(TipoDeAtaque.Leve, true, liberaEm);
@@ -376,17 +376,17 @@ namespace JogoDoGrupo.Client.Features.Combate
             _guardadoEnviarEm = enviarEm;
         }
 
-        // ── Vigor previsto ───────────────────────────────────────────────────────
+        // ── Stamina prevista ───────────────────────────────────────────────────────
 
-        // Fixa o vigor previsto em agora para mudar a regra da regeneração dali em diante.
+        // Fixa a stamina prevista em agora para mudar a regra da regeneração dali em diante.
         private void Consolidar(double agora)
         {
-            if (VigorEm(agora) is int vigor)
+            if (StaminaEm(agora) is int stamina)
             {
-                Vigor = vigor;
+                Stamina = stamina;
             }
 
-            _vigorDesde = agora;
+            _staminaDesde = agora;
         }
 
         private void SoltarGuarda(double agora)
@@ -399,16 +399,16 @@ namespace JogoDoGrupo.Client.Features.Combate
 
         private void Gastar(int custo, double agora)
         {
-            _vigorAntesDoGolpe = null;
-            if (VigorEm(agora) is not int vigor)
+            _staminaAntesDoGolpe = null;
+            if (StaminaEm(agora) is not int stamina)
             {
                 return;
             }
 
-            _vigorAntesDoGolpe = vigor;
+            _staminaAntesDoGolpe = stamina;
             _ultimoGastoAntesDoGolpe = _ultimoGasto;
-            Vigor = vigor - custo;
-            _vigorDesde = agora;
+            Stamina = stamina - custo;
+            _staminaDesde = agora;
             if (custo > 0)
             {
                 _ultimoGasto = agora;
