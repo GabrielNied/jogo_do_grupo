@@ -26,9 +26,9 @@ namespace JogoDoGrupo.Client.Features.Personagem
 
         public const string NotaDaFicha = "Equipamentos aparecem aqui quando forem implementados.";
 
-        public const string PontosInsuficientes = "Não há pontos livres para esse gasto.";
+        public const string PontosDaArvore = "Pontos da árvore de atributos livres: ";
 
-        public const string AtributoInvalido = "Escolha ao menos um ponto para gastar.";
+        public const string DicaDaArvore = "Gaste os pontos na árvore de atributos (tecla N).";
 
         // Atributos principais e o que cada um faz (docs/features/personagem.md, "Atributos do
         // personagem"). Os recursos são vida, stamina e mana.
@@ -128,20 +128,6 @@ namespace JogoDoGrupo.Client.Features.Personagem
                 CodigosErroPersonagem.NomeJaExiste => "Esse nome já está em uso.",
                 CodigosErroPersonagem.RacaInvalida => "Raça inválida.",
                 CodigosErroPersonagem.LimitePersonagens => LimiteAtingido,
-                CodigosErroCliente.SemConexao => SemConexao,
-                CodigoHttpBloqueado => SemConexao,
-                _ => Generica,
-            };
-        }
-
-        /// <summary>Mensagem para a recusa do gasto de pontos.</summary>
-        public static string MensagemDoGasto(string codigo)
-        {
-            return codigo switch
-            {
-                CodigosErroPersonagem.PontosInsuficientes => PontosInsuficientes,
-                CodigosErroPersonagem.AtributoInvalido => AtributoInvalido,
-                CodigosErroPersonagem.PersonagemNaoEncontrado => ErroAoCarregarFicha,
                 CodigosErroCliente.SemConexao => SemConexao,
                 CodigoHttpBloqueado => SemConexao,
                 _ => Generica,

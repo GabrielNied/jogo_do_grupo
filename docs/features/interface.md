@@ -74,6 +74,7 @@ Decidido por Gabriel em 2026-10-11 (#134); é **provisório** e o grupo pode aju
 | **I** | Inventário | [Itens](itens.md) | o inventário do personagem; aberta pelo baú (E), mostra também os ganhos |
 | **L** | Missões | [Missões](missoes.md) | aviso "Em construção" (as missões ainda não existem) |
 | **M** | Mapa | [Mundo](mundo.md#mapa-múndi) | aviso "Em construção" (o mapa é a decisão #92) |
+| **N** | Árvore de atributos | [Talentos](talentos.md#implementação-da-625-árvore-compra-e-tela) | a árvore radial, o painel do nó e a compra de ranks |
 
 - **A tecla alterna:** abre a janela; apertar de novo fecha.
 - **Uma janela por vez:** abrir outra fecha a que estava aberta.

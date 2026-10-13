@@ -4,9 +4,8 @@ using JogoDoGrupo.Shared.Features.Personagem;
 namespace JogoDoGrupo.Client.Features.Personagem
 {
     /// <summary>
-    /// Nível, experiência e pontos como o servidor mandou. O rascunho de gasto só existe na
-    /// tela: some quando chega um <see cref="ProgressoResponse"/> e não muda os pontos oficiais
-    /// se o pedido for recusado.
+    /// Nível, experiência e pontos da árvore como o servidor mandou. Os pontos gastam na árvore
+    /// de atributos (Talentos); aqui só se mostra o saldo.
     /// </summary>
     internal sealed class EstadoDeProgresso
     {
@@ -17,8 +16,6 @@ namespace JogoDoGrupo.Client.Features.Personagem
         public long XpAtual { get; private set; }
         public long XpDoNivel { get; private set; }
         public int PontosLivres { get; private set; }
-        public PontosDeAtributos Distribuidos { get; private set; } = new PontosDeAtributos();
-        public PontosDeAtributos Rascunho { get; private set; } = new PontosDeAtributos();
 
         public event Action Mudou;
 
@@ -41,9 +38,6 @@ namespace JogoDoGrupo.Client.Features.Personagem
             }
         }
 
-        public bool PodeConfirmar =>
-            RegrasAtributos.ValidarDistribuicao(PontosLivres, Rascunho) == null;
-
         public void Aplicar(ProgressoResponse progresso)
         {
             if (progresso == null)
@@ -55,8 +49,6 @@ namespace JogoDoGrupo.Client.Features.Personagem
             XpAtual = progresso.XpAtual;
             XpDoNivel = progresso.XpDoNivel;
             PontosLivres = progresso.PontosLivres;
-            Distribuidos = Copiar(progresso.Distribuidos);
-            Rascunho = new PontosDeAtributos();
             Mudou?.Invoke();
         }
 
@@ -91,83 +83,5 @@ namespace JogoDoGrupo.Client.Features.Personagem
 
         public bool TentarNivelNaArea(long personagemId, out int nivel) =>
             _niveisNaArea.TryGetValue(personagemId, out nivel);
-
-        /// <summary>Soma um ponto no rascunho se ainda cabe nos pontos livres.</summary>
-        public bool AumentarRascunho(string atributo)
-        {
-            if (RegrasAtributos.Total(Rascunho) >= PontosLivres)
-            {
-                return false;
-            }
-
-            if (!Somar(Rascunho, atributo, 1))
-            {
-                return false;
-            }
-
-            Mudou?.Invoke();
-            return true;
-        }
-
-        public void LimparRascunho()
-        {
-            Rascunho = new PontosDeAtributos();
-            Mudou?.Invoke();
-        }
-
-        /// <summary>
-        /// O pedido a enviar, ou <c>null</c> se <see cref="RegrasAtributos.ValidarDistribuicao"/>
-        /// recusa. Não altera o progresso oficial.
-        /// </summary>
-        public DistribuirAtributosRequest MontarPedido()
-        {
-            if (!PodeConfirmar)
-            {
-                return null;
-            }
-
-            return new DistribuirAtributosRequest { Pontos = Copiar(Rascunho) };
-        }
-
-        private static PontosDeAtributos Copiar(PontosDeAtributos pontos)
-        {
-            if (pontos == null)
-            {
-                return new PontosDeAtributos();
-            }
-
-            return new PontosDeAtributos
-            {
-                Forca = pontos.Forca,
-                Agilidade = pontos.Agilidade,
-                Intelecto = pontos.Intelecto,
-                Vigor = pontos.Vigor,
-                Espirito = pontos.Espirito,
-            };
-        }
-
-        private static bool Somar(PontosDeAtributos pontos, string atributo, int quantidade)
-        {
-            switch (atributo)
-            {
-                case "Forca":
-                    pontos.Forca += quantidade;
-                    return true;
-                case "Agilidade":
-                    pontos.Agilidade += quantidade;
-                    return true;
-                case "Intelecto":
-                    pontos.Intelecto += quantidade;
-                    return true;
-                case "Vigor":
-                    pontos.Vigor += quantidade;
-                    return true;
-                case "Espirito":
-                    pontos.Espirito += quantidade;
-                    return true;
-                default:
-                    return false;
-            }
-        }
     }
 }

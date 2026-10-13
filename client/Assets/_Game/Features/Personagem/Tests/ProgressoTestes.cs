@@ -6,11 +6,10 @@ namespace JogoDoGrupo.Client.Features.Personagem.Tests
     public class ProgressoTestes
     {
         [Test]
-        public void AplicarProgresso_CopiaOEstadoEZeraORascunho()
+        public void AplicarProgresso_CopiaOEstado()
         {
             var estado = new EstadoDeProgresso();
             estado.Aplicar(Progresso(nivel: 2, xp: 10, custo: 40, livres: 3));
-            estado.AumentarRascunho("Forca");
 
             estado.Aplicar(
                 new ProgressoResponse
@@ -19,15 +18,12 @@ namespace JogoDoGrupo.Client.Features.Personagem.Tests
                     XpAtual = 1,
                     XpDoNivel = 80,
                     PontosLivres = 5,
-                    Distribuidos = new PontosDeAtributos { Forca = 2, Vigor = 1 },
                 }
             );
 
             Assert.AreEqual(3, estado.Nivel);
             Assert.AreEqual(1, estado.XpAtual);
             Assert.AreEqual(5, estado.PontosLivres);
-            Assert.AreEqual(2, estado.Distribuidos.Forca);
-            Assert.AreEqual(0, estado.Rascunho.Forca);
         }
 
         [Test]
@@ -49,37 +45,6 @@ namespace JogoDoGrupo.Client.Features.Personagem.Tests
             Assert.AreEqual(20, estado.XpAtual);
             Assert.AreEqual(2, estado.Nivel);
             Assert.AreEqual(3, estado.PontosLivres);
-            Assert.AreEqual(0, estado.Distribuidos.Forca);
-        }
-
-        [Test]
-        public void Rascunho_NaoGastaPontosAteOServidorResponder()
-        {
-            var estado = new EstadoDeProgresso();
-            estado.Aplicar(Progresso(nivel: 1, xp: 0, custo: 40, livres: 2));
-
-            Assert.IsTrue(estado.AumentarRascunho("Agilidade"));
-            Assert.IsTrue(estado.AumentarRascunho("Agilidade"));
-            Assert.IsFalse(estado.AumentarRascunho("Forca"));
-
-            var pedido = estado.MontarPedido();
-            Assert.AreEqual(2, estado.PontosLivres);
-            Assert.AreEqual(2, pedido.Pontos.Agilidade);
-            Assert.AreEqual(0, pedido.Pontos.Forca);
-
-            estado.Aplicar(Progresso(nivel: 1, xp: 0, custo: 40, livres: 2));
-            Assert.AreEqual(2, estado.PontosLivres);
-            Assert.IsNull(estado.MontarPedido());
-        }
-
-        [Test]
-        public void PedidoInvalido_NaoGeraIntencao()
-        {
-            var estado = new EstadoDeProgresso();
-            estado.Aplicar(Progresso(nivel: 1, xp: 0, custo: 40, livres: 1));
-
-            Assert.IsNull(estado.MontarPedido());
-            Assert.AreEqual(1, estado.PontosLivres);
         }
 
         [Test]
@@ -103,7 +68,6 @@ namespace JogoDoGrupo.Client.Features.Personagem.Tests
                 XpAtual = xp,
                 XpDoNivel = custo,
                 PontosLivres = livres,
-                Distribuidos = new PontosDeAtributos(),
             };
     }
 }
