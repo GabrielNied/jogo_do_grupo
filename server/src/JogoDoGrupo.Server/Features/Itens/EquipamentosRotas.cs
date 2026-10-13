@@ -300,7 +300,7 @@ internal static class EquipamentosRotas
             Equipados = equipados,
             Capacidade = capacidade,
             ConjuntoAtivo = conjunto,
-            Bonus = RegrasEquipamentos.Somar(equipados, conjunto),
+            Atributos = RegrasAtributosDeItem.Resumir(equipados, conjunto),
         };
     }
 }

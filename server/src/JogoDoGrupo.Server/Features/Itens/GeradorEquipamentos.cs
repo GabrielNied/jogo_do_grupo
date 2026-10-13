@@ -10,15 +10,27 @@ public sealed class ConfigEquipamentos
 
     /// <summary>
     /// De onde saem os atributos extras. Só entram os que o modelo ainda não tem e que são
-    /// elegíveis na categoria (<see cref="ConfigTier"/>); os valores saem da faixa, não daqui.
+    /// elegíveis na categoria (<see cref="ConfigAtributosItem"/>); os valores saem da faixa, não
+    /// daqui. O dano da arma não entra: quem o tem é o modelo da arma.
     /// </summary>
     public StatusItem[] StatusAleatorios { get; set; } =
     [
         StatusItem.Forca,
-        StatusItem.Destreza,
+        StatusItem.Vigor,
+        StatusItem.Agilidade,
         StatusItem.Intelecto,
-        StatusItem.Vitalidade,
         StatusItem.Espirito,
+        StatusItem.DefesaFisica,
+        StatusItem.DefesaMagica,
+        StatusItem.RegeneracaoVida,
+        StatusItem.RegeneracaoStamina,
+        StatusItem.RegeneracaoMana,
+        StatusItem.ChanceCritica,
+        StatusItem.DanoCritico,
+        StatusItem.VelocidadeAtaqueFisico,
+        StatusItem.VelocidadeAtaqueMagico,
+        StatusItem.PenetracaoFisica,
+        StatusItem.PenetracaoMagica,
     ];
 }
 
@@ -49,13 +61,11 @@ public sealed class GeradorEquipamentos(ConfigEquipamentos config)
             )
             .Distinct()
             .ToList();
-        if (
-            config.QuantidadeAleatorios < 0
-            || config.QuantidadeAleatorios > candidatos.Count
-            || candidatos.Any(c => !Enum.IsDefined(c))
-        )
+        if (config.QuantidadeAleatorios < 0 || candidatos.Any(c => !Enum.IsDefined(c)))
             throw new InvalidOperationException("Pool de atributos aleatórios inválido.");
-        for (var i = 0; i < config.QuantidadeAleatorios; i++)
+        // Categoria com poucos elegíveis (ex.: arma) sorteia só os que existem.
+        var quantidade = Math.Min(config.QuantidadeAleatorios, candidatos.Count);
+        for (var i = 0; i < quantidade; i++)
         {
             var indice = aleatorio.Next(candidatos.Count);
             atributos.Add(new AtributoItem { Status = candidatos[indice] });

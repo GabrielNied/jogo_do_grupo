@@ -1,4 +1,5 @@
 using JogoDoGrupo.Shared.Features.Combate;
+using JogoDoGrupo.Shared.Features.Itens;
 using JogoDoGrupo.Shared.Features.Personagem;
 
 namespace JogoDoGrupo.Server.Features.Combate;
@@ -13,17 +14,13 @@ internal static class CalculadoraRecursos
     public const int AtributoBase = 0;
 
     /// <summary>
-    /// Zero usado por <see cref="AtributosFinais(AtributosCombate, AtributosCombate)"/>.
-    /// A rota, o ataque e o dano leem os pontos de <c>IPontosDistribuidos</c>.
+    /// Zero usado por <see cref="AtributosFinais(AtributosCombate)"/>. A rota, o ataque e o dano
+    /// leem os pontos de <c>IPontosDistribuidos</c>.
     /// </summary>
     public const int PontosDistribuidos = 0;
 
-    public static AtributosCombate AtributosFinais(
-        AtributosCombate equipamentos,
-        AtributosCombate efeitos
-    ) =>
+    public static AtributosCombate AtributosFinais(AtributosCombate efeitos) =>
         AtributosFinais(
-            equipamentos,
             efeitos,
             new PontosDeAtributos
             {
@@ -35,31 +32,76 @@ internal static class CalculadoraRecursos
             }
         );
 
+    /// <summary>
+    /// Os cinco atributos do personagem: base + pontos distribuídos + efeitos. O equipamento não
+    /// entra aqui, nunca (DEC-001): ele é uma fonte à parte (<see cref="Maximos"/>,
+    /// <see cref="ParcelasDeDano"/> e os secundários da pipeline).
+    /// </summary>
     public static AtributosCombate AtributosFinais(
-        AtributosCombate equipamentos,
         AtributosCombate efeitos,
         PontosDeAtributos pontos
     ) =>
         new()
         {
-            Forca = Final(pontos.Forca, equipamentos.Forca, efeitos.Forca),
-            Agilidade = Final(pontos.Agilidade, equipamentos.Agilidade, efeitos.Agilidade),
-            Intelecto = Final(pontos.Intelecto, equipamentos.Intelecto, efeitos.Intelecto),
-            Vigor = Final(pontos.Vigor, equipamentos.Vigor, efeitos.Vigor),
-            Espirito = Final(pontos.Espirito, equipamentos.Espirito, efeitos.Espirito),
+            Forca = Final(pontos.Forca, efeitos.Forca),
+            Agilidade = Final(pontos.Agilidade, efeitos.Agilidade),
+            Intelecto = Final(pontos.Intelecto, efeitos.Intelecto),
+            Vigor = Final(pontos.Vigor, efeitos.Vigor),
+            Espirito = Final(pontos.Espirito, efeitos.Espirito),
         };
 
-    private static int Final(int pontos, int equipamentos, int efeitos) =>
-        Math.Max(0, RegrasRecursos.ValorFinal(AtributoBase, pontos, equipamentos, efeitos));
+    private static int Final(int pontos, int efeitos) =>
+        Math.Max(0, RegrasRecursos.ValorFinal(AtributoBase, pontos, efeitos));
+
+    /// <summary>
+    /// Vida, stamina e mana máximas: o que o personagem tem pelos atributos dele mais o que as
+    /// peças dão direto (Vigor, Agilidade e Espírito dos itens, já convertidos).
+    /// </summary>
+    public static MaximosDeRecursos Maximos(
+        AtributosCombate personagem,
+        AtributosDosEquipamentos equipamento
+    ) =>
+        new(
+            RegrasRecursos.VidaMaxima(personagem.Vigor, equipamento.VidaMaxima),
+            RegrasRecursos.StaminaMaxima(personagem.Agilidade, equipamento.StaminaMaxima),
+            RegrasRecursos.ManaMaxima(personagem.Espirito, equipamento.ManaMaxima)
+        );
+
+    /// <summary>
+    /// As parcelas do dano do golpe básico (combate.md): o dano-base é o da arma equipada (ou
+    /// dos punhos); a Força (arma física) ou o Intelecto (arma mágica) do personagem e a do item
+    /// aumentam em %, cada uma na sua parcela.
+    /// </summary>
+    public static ParcelasDeDano ParcelasDoDano(
+        AtributosCombate personagem,
+        AtributosDosEquipamentos equipamento
+    )
+    {
+        var magico = equipamento.TemArma && equipamento.ArmaMagica;
+        var pontos = magico ? personagem.Intelecto : personagem.Forca;
+        return new ParcelasDeDano
+        {
+            DanoBase = equipamento.TemArma ? equipamento.DanoDaArma : ParcelasDeDano.DanoSemArma,
+            Magico = magico,
+            PercentualPersonagem = RegrasAtaque.PercentualDeDanoPorPonto * Math.Max(0, pontos),
+            PercentualEquipamento = magico
+                ? equipamento.PercentualIntelecto
+                : equipamento.PercentualForca,
+        };
+    }
 
     /// <summary>Cria os recursos cheios para um personagem novo.</summary>
-    public static RecursosPersonagem Novo(long personagemId, AtributosCombate a, DateTime agora) =>
+    public static RecursosPersonagem Novo(
+        long personagemId,
+        MaximosDeRecursos maximos,
+        DateTime agora
+    ) =>
         new()
         {
             PersonagemId = personagemId,
-            Vida = RegrasRecursos.VidaMaxima(a.Vigor),
-            Stamina = RegrasRecursos.StaminaMaxima(a.Agilidade),
-            Mana = RegrasRecursos.ManaMaxima(a.Espirito),
+            Vida = maximos.Vida,
+            Stamina = maximos.Stamina,
+            Mana = maximos.Mana,
             StaminaContadaAte = agora,
             ManaContadaAte = agora,
         };
@@ -70,16 +112,15 @@ internal static class CalculadoraRecursos
     /// </summary>
     public static void Atualizar(
         RecursosPersonagem r,
-        AtributosCombate a,
+        MaximosDeRecursos maximos,
         AtributosSecundarios s,
         ref DateTime vidaContadaAte,
         DateTime agora
     )
     {
-        var vidaMaxima = RegrasRecursos.VidaMaxima(a.Vigor);
         (r.Vida, vidaContadaAte) = RegenerarVida(
             r.Vida,
-            vidaMaxima,
+            maximos.Vida,
             s.RegeneracaoVida,
             vidaContadaAte,
             agora
@@ -87,7 +128,7 @@ internal static class CalculadoraRecursos
 
         (r.Stamina, r.StaminaContadaAte) = Regenerar(
             r.Stamina,
-            RegrasRecursos.StaminaMaxima(a.Agilidade),
+            maximos.Stamina,
             s.RegeneracaoStamina,
             r.UltimoGastoStaminaEm,
             r.StaminaContadaAte,
@@ -96,7 +137,7 @@ internal static class CalculadoraRecursos
 
         (r.Mana, r.ManaContadaAte) = Regenerar(
             r.Mana,
-            RegrasRecursos.ManaMaxima(a.Espirito),
+            maximos.Mana,
             s.RegeneracaoMana,
             r.UltimoGastoManaEm,
             r.ManaContadaAte,
@@ -178,3 +219,6 @@ internal static class CalculadoraRecursos
         return (novo, inicio.AddSeconds(ganho / taxa));
     }
 }
+
+/// <summary>Os três máximos de recurso do personagem agora (atributos dele mais o equipamento).</summary>
+public readonly record struct MaximosDeRecursos(int Vida, int Stamina, int Mana);

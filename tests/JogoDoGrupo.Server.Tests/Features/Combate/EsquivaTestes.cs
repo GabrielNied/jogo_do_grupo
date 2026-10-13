@@ -4,6 +4,7 @@ using JogoDoGrupo.Server.Features.Mundo;
 using JogoDoGrupo.Server.Tests.Core.TempoReal;
 using JogoDoGrupo.Server.Tests.Infra;
 using JogoDoGrupo.Shared.Features.Combate;
+using JogoDoGrupo.Shared.Features.Itens;
 using JogoDoGrupo.Shared.Features.Mundo;
 using JogoDoGrupo.Shared.Features.Personagem;
 using Microsoft.EntityFrameworkCore;
@@ -20,7 +21,7 @@ public class EsquivaTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDe
 {
     private async Task<Jogador> NovoJogadorAsync(bool naCidade = true)
     {
-        servidor.Bonus.Equipamentos = new AtributosCombate();
+        servidor.Bonus.Equipamentos = new AtributosDosEquipamentos();
         servidor.Bonus.Efeitos = new AtributosCombate();
 
         var http = await ServidorDeTeste.CriarClienteLogadoEmAsync(servidor.Falso);

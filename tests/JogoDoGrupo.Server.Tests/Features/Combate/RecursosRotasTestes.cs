@@ -1,10 +1,12 @@
 using System.Collections.Concurrent;
 using System.Net;
+using JogoDoGrupo.Server.Contratos.Itens;
 using JogoDoGrupo.Server.Core.Persistencia;
 using JogoDoGrupo.Server.Features.Combate;
 using JogoDoGrupo.Server.Tests.Infra;
 using JogoDoGrupo.Shared.Core.Api;
 using JogoDoGrupo.Shared.Features.Combate;
+using JogoDoGrupo.Shared.Features.Itens;
 using JogoDoGrupo.Shared.Features.Personagem;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -27,10 +29,13 @@ public sealed class RelogioFalso : TimeProvider
         Interlocked.Add(ref _ticks, TimeSpan.FromSeconds(segundos).Ticks);
 }
 
-/// <summary>Bônus de equipamento e de efeito que o teste controla.</summary>
-public sealed class BonusFalso : IBonusDeAtributos
+/// <summary>
+/// O que o equipamento dá ao combate (já convertido, como o contrato de Itens entrega) e o bônus de
+/// efeito, que o teste controla.
+/// </summary>
+public sealed class BonusFalso : IBonusDeAtributos, IAtributosDosEquipamentos
 {
-    public volatile AtributosCombate Equipamentos = new();
+    public volatile AtributosDosEquipamentos Equipamentos = new();
     public volatile AtributosCombate Efeitos = new();
 
     /// <summary>Atraso de cada leitura de equipamentos: simula um banco lento.</summary>
@@ -44,7 +49,7 @@ public sealed class BonusFalso : IBonusDeAtributos
     /// <summary>Quando (<see cref="Environment.TickCount64"/>) começou cada leitura de equipamentos.</summary>
     public ConcurrentQueue<long> InicioDasLeituras { get; } = new();
 
-    public async Task<AtributosCombate> EquipamentosAsync(long personagemId, CancellationToken c)
+    public async Task<AtributosDosEquipamentos> ObterAsync(long personagemId, CancellationToken c)
     {
         Interlocked.Increment(ref _leituras);
         InicioDasLeituras.Enqueue(Environment.TickCount64);
@@ -75,6 +80,7 @@ public sealed class ServidorDeCombate : IDisposable
             {
                 s.AddSingleton<TimeProvider>(Relogio);
                 s.AddSingleton<IBonusDeAtributos>(Bonus);
+                s.AddSingleton<IAtributosDosEquipamentos>(Bonus);
             })
         );
     }
@@ -120,7 +126,7 @@ public class RecursosRotasTestes(ServidorDeCombate servidor) : IClassFixture<Ser
     private async Task<(HttpClient Cliente, long Id)> NovoPersonagem()
     {
         servidor.Relogio.Reiniciar();
-        servidor.Bonus.Equipamentos = new AtributosCombate();
+        servidor.Bonus.Equipamentos = new AtributosDosEquipamentos();
         servidor.Bonus.Efeitos = new AtributosCombate();
         var cliente = await ServidorDeTeste.CriarClienteLogadoEmAsync(servidor.Falso);
         return (cliente, await CriarPersonagem(cliente));
@@ -205,16 +211,23 @@ public class RecursosRotasTestes(ServidorDeCombate servidor) : IClassFixture<Ser
     }
 
     [Fact]
-    public async Task Atributos_somam_equipamentos_e_efeitos_uma_vez_so()
+    public async Task Atributos_do_personagem_somam_so_os_efeitos_e_o_equipamento_vai_a_parte()
     {
         var (cliente, id) = await NovoPersonagem();
-        servidor.Bonus.Equipamentos = new AtributosCombate { Vigor = 10, Espirito = 5 };
+        // O equipamento dá vida e mana máximas direto (Vigor e Espírito do item, convertidos): não
+        // vira Vigor nem Espírito do personagem.
+        servidor.Bonus.Equipamentos = new AtributosDosEquipamentos
+        {
+            VidaMaxima = 100,
+            ManaMaxima = 10,
+        };
         servidor.Bonus.Efeitos = new AtributosCombate { Vigor = 2 };
 
         var r = await Recursos(cliente, id);
         var outra = await Recursos(cliente, id);
 
-        Assert.Equal(12, r.Atributos.Vigor);
+        Assert.Equal(2, r.Atributos.Vigor);
+        Assert.Equal(0, r.Atributos.Espirito);
         Assert.Equal(620, r.VidaMaxima);
         Assert.Equal(110, r.ManaMaxima);
         Assert.Equal(r.Atributos.Vigor, outra.Atributos.Vigor);
@@ -222,32 +235,32 @@ public class RecursosRotasTestes(ServidorDeCombate servidor) : IClassFixture<Ser
     }
 
     [Fact]
-    public async Task Stamina_maxima_cresce_com_agilidade()
+    public async Task Stamina_maxima_cresce_com_agilidade_do_personagem_e_do_item()
     {
         var (cliente, id) = await NovoPersonagem();
-        servidor.Bonus.Equipamentos = new AtributosCombate { Agilidade = 10 };
+        servidor.Bonus.Equipamentos = new AtributosDosEquipamentos { StaminaMaxima = 20 };
         servidor.Bonus.Efeitos = new AtributosCombate { Agilidade = 5 };
 
         var r = await Recursos(cliente, id);
 
-        Assert.Equal(15, r.Atributos.Agilidade);
-        Assert.Equal(RegrasRecursos.StaminaMaxima(15), r.StaminaMaxima);
+        Assert.Equal(5, r.Atributos.Agilidade);
+        Assert.Equal(RegrasRecursos.StaminaMaxima(5, 20), r.StaminaMaxima);
         Assert.Equal(
-            RegrasRecursos.StaminaBase + 15 * RegrasRecursos.StaminaPorAgilidade,
+            RegrasRecursos.StaminaBase + 5 * RegrasRecursos.StaminaPorAgilidade + 20,
             r.StaminaMaxima
         );
         Assert.Equal(r.StaminaMaxima, r.StaminaAtual);
     }
 
     [Fact]
-    public async Task Equipar_e_desequipar_nao_duplica_bonus()
+    public async Task Equipar_e_desequipar_nao_duplica_o_que_o_equipamento_da()
     {
         var (cliente, id) = await NovoPersonagem();
-        var bonus = new AtributosCombate { Vigor = 10 };
+        var bonus = new AtributosDosEquipamentos { VidaMaxima = 100 };
 
         servidor.Bonus.Equipamentos = bonus;
         Assert.Equal(600, (await Recursos(cliente, id)).VidaMaxima);
-        servidor.Bonus.Equipamentos = new AtributosCombate();
+        servidor.Bonus.Equipamentos = new AtributosDosEquipamentos();
         Assert.Equal(500, (await Recursos(cliente, id)).VidaMaxima);
         servidor.Bonus.Equipamentos = bonus;
         Assert.Equal(600, (await Recursos(cliente, id)).VidaMaxima);
@@ -257,19 +270,23 @@ public class RecursosRotasTestes(ServidorDeCombate servidor) : IClassFixture<Ser
     public async Task Maximo_reduzido_limita_o_atual_e_nao_cura()
     {
         var (cliente, id) = await NovoPersonagem();
-        servidor.Bonus.Equipamentos = new AtributosCombate { Vigor = 10, Espirito = 10 };
+        servidor.Bonus.Equipamentos = new AtributosDosEquipamentos
+        {
+            VidaMaxima = 100,
+            ManaMaxima = 20,
+        };
         var cheio = await Recursos(cliente, id);
         Assert.Equal(600, cheio.VidaAtual);
         Assert.Equal(120, cheio.ManaAtual);
 
-        servidor.Bonus.Equipamentos = new AtributosCombate();
+        servidor.Bonus.Equipamentos = new AtributosDosEquipamentos();
         var reduzido = await Recursos(cliente, id);
         Assert.Equal(500, reduzido.VidaAtual);
         Assert.Equal(100, reduzido.ManaAtual);
 
         // Vida abaixo do máximo não sobe quando o máximo aumenta.
         await Gastar(id, vida: 300);
-        servidor.Bonus.Equipamentos = new AtributosCombate { Vigor = 10 };
+        servidor.Bonus.Equipamentos = new AtributosDosEquipamentos { VidaMaxima = 100 };
         var depois = await Recursos(cliente, id);
         Assert.Equal(300, depois.VidaAtual);
         Assert.Equal(600, depois.VidaMaxima);

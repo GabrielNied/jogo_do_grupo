@@ -1,10 +1,12 @@
 using System.Collections.Concurrent;
 using System.Data;
 using JogoDoGrupo.Server.Contratos.Combate;
+using JogoDoGrupo.Server.Contratos.Itens;
 using JogoDoGrupo.Server.Contratos.Personagem;
 using JogoDoGrupo.Server.Core.Persistencia;
 using JogoDoGrupo.Server.Core.TempoReal;
 using JogoDoGrupo.Shared.Features.Combate;
+using JogoDoGrupo.Shared.Features.Itens;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 
@@ -17,7 +19,7 @@ namespace JogoDoGrupo.Server.Features.Combate;
 /// cada <see cref="ConfigRecursos.IntervaloDeGravacaoSegundos"/>, quando o personagem sai do jogo
 /// e quando o servidor para. Combate é o único que escreve em <see cref="RecursosPersonagem"/>.
 /// <para>
-/// Os atributos finais (Itens + efeitos + pontos) ficam em memória por
+/// Os atributos finais (efeitos + pontos; o equipamento é fonte à parte) ficam em memória por
 /// <see cref="ConfigRecursos.ValidadeDosAtributosSegundos"/>; a rota de recursos lê sempre do
 /// zero e renova o que está guardado.
 /// </para>
@@ -29,6 +31,7 @@ public sealed class RecursosEmMemoria : IHostedService, IDisposable
 
     private readonly IServiceScopeFactory _escopos;
     private readonly IBonusDeAtributos _bonus;
+    private readonly IAtributosDosEquipamentos _equipamentos;
     private readonly IPontosDistribuidos _pontos;
     private readonly IReadOnlyList<IFonteDeModificadores> _fontes;
     private readonly ServidorTempoReal _tempoReal;
@@ -42,6 +45,7 @@ public sealed class RecursosEmMemoria : IHostedService, IDisposable
     public RecursosEmMemoria(
         IServiceScopeFactory escopos,
         IBonusDeAtributos bonus,
+        IAtributosDosEquipamentos equipamentos,
         IPontosDistribuidos pontos,
         IEnumerable<IFonteDeModificadores> fontes,
         ServidorTempoReal tempoReal,
@@ -51,6 +55,7 @@ public sealed class RecursosEmMemoria : IHostedService, IDisposable
     {
         _escopos = escopos;
         _bonus = bonus;
+        _equipamentos = equipamentos;
         _pontos = pontos;
         _fontes = fontes.OrderBy(f => f.Fonte).ToList();
         _tempoReal = tempoReal;
@@ -126,12 +131,12 @@ public sealed class RecursosEmMemoria : IHostedService, IDisposable
         var entrada = await EntrarAsync(personagemId, cancelamento);
         try
         {
-            var atributos = await AtributosDaEntradaAsync(entrada, cancelamento);
-            var recursos = Regenerado(entrada, atributos);
+            await AtributosDaEntradaAsync(entrada, cancelamento);
+            var recursos = Regenerado(entrada);
 
             if (recursos.Vida <= 0)
             {
-                return new InicioDoAtaque(CodigosErroCombate.VoceEstaCaido, null, atributos.Forca);
+                return new InicioDoAtaque(CodigosErroCombate.VoceEstaCaido, null, entrada.Dano!);
             }
 
             if (recursos.Stamina < custo)
@@ -139,7 +144,7 @@ public sealed class RecursosEmMemoria : IHostedService, IDisposable
                 return new InicioDoAtaque(
                     CodigosErroCombate.StaminaInsuficiente,
                     null,
-                    atributos.Forca
+                    entrada.Dano!
                 );
             }
 
@@ -154,8 +159,8 @@ public sealed class RecursosEmMemoria : IHostedService, IDisposable
 
             return new InicioDoAtaque(
                 null,
-                custo > 0 ? Estado(recursos, atributos) : null,
-                atributos.Forca
+                custo > 0 ? Estado(recursos, entrada.Maximos) : null,
+                entrada.Dano!
             );
         }
         finally
@@ -178,8 +183,8 @@ public sealed class RecursosEmMemoria : IHostedService, IDisposable
         var entrada = await EntrarAsync(personagemId, cancelamento);
         try
         {
-            var atributos = await AtributosDaEntradaAsync(entrada, cancelamento);
-            var recursos = Regenerado(entrada, atributos);
+            await AtributosDaEntradaAsync(entrada, cancelamento);
+            var recursos = Regenerado(entrada);
             var custo = RegrasGuarda.CustoDoBloqueio(dano);
             var bloqueou = RegrasGuarda.Segura(recursos.Stamina, dano);
             var gasto = bloqueou ? custo : recursos.Stamina;
@@ -192,7 +197,7 @@ public sealed class RecursosEmMemoria : IHostedService, IDisposable
                 entrada.Sujo = true;
             }
 
-            return (bloqueou, gasto, Estado(recursos, atributos));
+            return (bloqueou, gasto, Estado(recursos, entrada.Maximos));
         }
         finally
         {
@@ -214,14 +219,14 @@ public sealed class RecursosEmMemoria : IHostedService, IDisposable
         var entrada = await EntrarAsync(personagemId, cancelamento);
         try
         {
-            var atributos = await AtributosDaEntradaAsync(entrada, cancelamento);
-            var recursos = Regenerado(entrada, atributos);
+            await AtributosDaEntradaAsync(entrada, cancelamento);
+            var recursos = Regenerado(entrada);
             entrada.Guardando = segurando;
             var agora = Agora();
             recursos.UltimoGastoStaminaEm = agora;
             recursos.StaminaContadaAte = agora;
             entrada.Sujo = true;
-            return Estado(recursos, atributos);
+            return Estado(recursos, entrada.Maximos);
         }
         finally
         {
@@ -239,11 +244,11 @@ public sealed class RecursosEmMemoria : IHostedService, IDisposable
         var entrada = await EntrarAsync(personagemId, cancelamento);
         try
         {
-            var atributos = await AtributosDaEntradaAsync(entrada, cancelamento);
-            var recursos = Regenerado(entrada, atributos);
+            await AtributosDaEntradaAsync(entrada, cancelamento);
+            var recursos = Regenerado(entrada);
             recursos.Vida = Math.Max(0, recursos.Vida - dano);
             entrada.Sujo = true;
-            return Estado(recursos, atributos);
+            return Estado(recursos, entrada.Maximos);
         }
         finally
         {
@@ -254,22 +259,22 @@ public sealed class RecursosEmMemoria : IHostedService, IDisposable
     /// <summary>Regenera até agora e deixa <paramref name="mudar"/> alterar os recursos (queda).</summary>
     public async Task<RecursosMudaram> AtualizarAsync(
         long personagemId,
-        Action<RecursosPersonagem, AtributosCombate> mudar,
+        Action<RecursosPersonagem, MaximosDeRecursos> mudar,
         CancellationToken cancelamento
     )
     {
         var entrada = await EntrarAsync(personagemId, cancelamento);
         try
         {
-            var atributos = await AtributosDaEntradaAsync(entrada, cancelamento);
-            var recursos = Regenerado(entrada, atributos);
-            mudar(recursos, atributos);
+            await AtributosDaEntradaAsync(entrada, cancelamento);
+            var recursos = Regenerado(entrada);
+            mudar(recursos, entrada.Maximos);
             var agora = Agora();
             recursos.StaminaContadaAte = agora;
             recursos.ManaContadaAte = agora;
             entrada.VidaContadaAte = agora;
             entrada.Sujo = true;
-            return Estado(recursos, atributos);
+            return Estado(recursos, entrada.Maximos);
         }
         finally
         {
@@ -291,8 +296,8 @@ public sealed class RecursosEmMemoria : IHostedService, IDisposable
         {
             entrada.AtributosEm = null;
             var atributos = await AtributosDaEntradaAsync(entrada, cancelamento);
-            var recursos = Regenerado(entrada, atributos);
-            var estado = Estado(recursos, atributos);
+            var recursos = Regenerado(entrada);
+            var estado = Estado(recursos, entrada.Maximos);
             return new RecursosResponse
             {
                 VidaAtual = estado.VidaAtual,
@@ -303,6 +308,7 @@ public sealed class RecursosEmMemoria : IHostedService, IDisposable
                 ManaMaxima = estado.ManaMaxima,
                 Atributos = atributos,
                 Secundarios = entrada.Secundarios!,
+                DoEquipamento = entrada.LinhasDoEquipamento,
             };
         }
         finally
@@ -399,7 +405,7 @@ public sealed class RecursosEmMemoria : IHostedService, IDisposable
 
     private DateTime Agora() => _relogio.GetUtcNow().UtcDateTime;
 
-    private RecursosPersonagem Regenerado(Entrada entrada, AtributosCombate atributos)
+    private RecursosPersonagem Regenerado(Entrada entrada)
     {
         var recursos = entrada.Recursos!;
         if (entrada.Guardando)
@@ -410,7 +416,7 @@ public sealed class RecursosEmMemoria : IHostedService, IDisposable
 
         CalculadoraRecursos.Atualizar(
             recursos,
-            atributos,
+            entrada.Maximos,
             entrada.Valores!,
             ref entrada.VidaContadaAte,
             Agora()
@@ -418,15 +424,15 @@ public sealed class RecursosEmMemoria : IHostedService, IDisposable
         return recursos;
     }
 
-    private static RecursosMudaram Estado(RecursosPersonagem r, AtributosCombate a) =>
+    private static RecursosMudaram Estado(RecursosPersonagem r, MaximosDeRecursos maximos) =>
         new()
         {
             VidaAtual = r.Vida,
-            VidaMaxima = RegrasRecursos.VidaMaxima(a.Vigor),
+            VidaMaxima = maximos.Vida,
             StaminaAtual = r.Stamina,
-            StaminaMaxima = RegrasRecursos.StaminaMaxima(a.Agilidade),
+            StaminaMaxima = maximos.Stamina,
             ManaAtual = r.Mana,
-            ManaMaxima = RegrasRecursos.ManaMaxima(a.Espirito),
+            ManaMaxima = maximos.Mana,
         };
 
     // Com a trava da entrada na mão: atributos guardados, ou lidos de novo se venceram. Na
@@ -449,19 +455,24 @@ public sealed class RecursosEmMemoria : IHostedService, IDisposable
         }
 
         var lidos = CalculadoraRecursos.AtributosFinais(
-            await _bonus.EquipamentosAsync(entrada.PersonagemId, cancelamento),
             await _bonus.EfeitosAsync(entrada.PersonagemId, cancelamento),
             await _pontos.ObterAsync(entrada.PersonagemId, cancelamento)
         );
+        // O equipamento é uma fonte à parte: nunca soma nos cinco atributos do personagem.
+        var equipamento = await _equipamentos.ObterAsync(entrada.PersonagemId, cancelamento);
+        var maximos = CalculadoraRecursos.Maximos(lidos, equipamento);
         var secundarios = RegrasSecundarios.Calcular(
             await ModificadoresAsync(entrada.PersonagemId, cancelamento)
         );
         if (entrada.Recursos == null)
         {
-            entrada.Recursos = await CarregarAsync(entrada.PersonagemId, lidos, cancelamento);
+            entrada.Recursos = await CarregarAsync(entrada.PersonagemId, maximos, cancelamento);
             entrada.VidaContadaAte = Agora();
         }
 
+        entrada.Maximos = maximos;
+        entrada.Dano = CalculadoraRecursos.ParcelasDoDano(lidos, equipamento);
+        entrada.LinhasDoEquipamento = equipamento.Linhas.Select(l => l.Texto).ToArray();
         entrada.Atributos = lidos;
         entrada.Secundarios = secundarios;
         entrada.Valores = RegrasSecundarios.Valores(secundarios);
@@ -541,7 +552,7 @@ public sealed class RecursosEmMemoria : IHostedService, IDisposable
     // como a rota sempre fez, porque cria a linha quando ela não existe.
     private async Task<RecursosPersonagem> CarregarAsync(
         long personagemId,
-        AtributosCombate atributos,
+        MaximosDeRecursos maximos,
         CancellationToken cancelamento
     )
     {
@@ -565,7 +576,7 @@ public sealed class RecursosEmMemoria : IHostedService, IDisposable
                 .FirstOrDefaultAsync(r => r.PersonagemId == personagemId, cancelamento);
             if (linha == null)
             {
-                linha = CalculadoraRecursos.Novo(personagemId, atributos, Agora());
+                linha = CalculadoraRecursos.Novo(personagemId, maximos, Agora());
                 db.Set<RecursosPersonagem>().Add(linha);
                 await db.SaveChangesAsync(cancelamento);
             }
@@ -670,6 +681,9 @@ public sealed class RecursosEmMemoria : IHostedService, IDisposable
         public SemaphoreSlim Trava { get; } = new(1, 1);
         public RecursosPersonagem? Recursos;
         public AtributosCombate? Atributos;
+        public MaximosDeRecursos Maximos;
+        public ParcelasDeDano? Dano;
+        public string[] LinhasDoEquipamento = [];
         public SecundarioCalculado[]? Secundarios;
         public AtributosSecundarios? Valores;
 

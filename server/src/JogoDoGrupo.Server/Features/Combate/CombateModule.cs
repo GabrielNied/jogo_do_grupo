@@ -23,7 +23,7 @@ public sealed class CombateModule : IFeatureModule
 
     public void ConfigurarServicos(IServiceCollection servicos, IConfiguration configuracao)
     {
-        servicos.AddSingleton<IBonusDeAtributos, BonusDeEquipamentos>();
+        servicos.AddSingleton<IBonusDeAtributos, SemBonusDeEfeitos>();
         servicos.AddSingleton<RecursosEmMemoria>();
         servicos.AddHostedService(sp => sp.GetRequiredService<RecursosEmMemoria>());
         servicos.AddSingleton<IAlvosDeCombate>(new BonecoDeTreino());

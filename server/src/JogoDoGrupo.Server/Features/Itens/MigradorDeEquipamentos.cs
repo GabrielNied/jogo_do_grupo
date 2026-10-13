@@ -1,13 +1,15 @@
 using System.Data;
 using JogoDoGrupo.Server.Core.Persistencia;
+using JogoDoGrupo.Shared.Features.Itens;
 using Microsoft.EntityFrameworkCore;
 
 namespace JogoDoGrupo.Server.Features.Itens;
 
 /// <summary>
 /// Grava de volta, na subida do servidor, os exemplares que ainda estão na escala antiga dos
-/// atributos (issue #615) ou com infusões do modelo anterior (issue #616: <c>InfusoesUsadas</c>
-/// vira <c>NivelFusao</c>). O exemplar é um JSON na coluna <c>EquipamentoJson</c>, então não há
+/// atributos (issue #615), com os atributos do modelo anterior (issue #623: Destreza vira
+/// Agilidade, Vitalidade vira Vigor...) ou com infusões do modelo anterior (issue #616:
+/// <c>InfusoesUsadas</c> vira <c>NivelFusao</c>). O exemplar é um JSON na coluna <c>EquipamentoJson</c>, então não há
 /// mudança de esquema para uma migração do EF: a conversão é a regra de
 /// <see cref="Shared.Features.Itens.MigracaoDeTier"/>, aplicada por
 /// <see cref="ItemInventario.LerEquipamento"/>. Gravar cedo fixa o <c>TierOrigem</c> (ele não
@@ -21,9 +23,10 @@ public sealed class MigradorDeEquipamentos(
 {
     private const int TamanhoDoLote = 200;
 
-    // Exemplar já no formato atual (escala 0 a 100 e nível de fusão) tem o campo gravado; o
-    // serializador sempre o escreve, mesmo em +0.
-    private const string PadraoDoFormato = "%\"NivelFusao\":%";
+    // Exemplar já no formato atual (atributos próprios dos equipamentos, versão 2) tem a versão
+    // gravada; o serializador sempre a escreve, e o campo seguinte a delimita (2 não casa com 20).
+    private static readonly string PadraoDoFormato =
+        "%\"VersaoDosAtributos\":" + RegrasTier.VersaoAtual + ",%";
 
     public async Task StartAsync(CancellationToken cancelamento)
     {
@@ -32,7 +35,7 @@ public sealed class MigradorDeEquipamentos(
             var migrados = await MigrarAsync(cancelamento);
             if (migrados > 0)
                 log.LogInformation(
-                    "{Quantidade} equipamentos convertidos para a escala 0 a 100.",
+                    "{Quantidade} equipamentos convertidos para os atributos próprios dos equipamentos.",
                     migrados
                 );
         }

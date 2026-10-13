@@ -48,8 +48,8 @@ public class RegrasTierTestes
             Peca(
                 TipoEquipamento.Peito,
                 (StatusItem.Forca, 90),
-                (StatusItem.Vitalidade, 85),
-                (StatusItem.Defesa, 65)
+                (StatusItem.Vigor, 85),
+                (StatusItem.DefesaFisica, 65)
             )
         );
 
@@ -64,8 +64,8 @@ public class RegrasTierTestes
         var tudoNoMaximo = Peca(
             TipoEquipamento.Anel,
             (StatusItem.Forca, 100),
-            (StatusItem.Destreza, 100),
-            (StatusItem.Defesa, 100)
+            (StatusItem.Agilidade, 100),
+            (StatusItem.ChanceCritica, 100)
         );
         Assert.Equal(TierItem.SMais, RegrasTier.TierDe(tudoNoMaximo));
 
@@ -82,7 +82,7 @@ public class RegrasTierTestes
         // Um anel só com um atributo, no máximo, é S+: o que o modelo não tem não entra.
         Assert.Equal(TierItem.SMais, RegrasTier.TierDe(Unico(100)));
         var dois = RegrasTier.Calcular(
-            Peca(TipoEquipamento.Anel, (StatusItem.Forca, 70), (StatusItem.Defesa, 70))
+            Peca(TipoEquipamento.Anel, (StatusItem.Forca, 70), (StatusItem.ChanceCritica, 70))
         );
         var um = RegrasTier.Calcular(Peca(TipoEquipamento.Anel, (StatusItem.Forca, 70)));
         Assert.Equal(um.Qualidade, dois.Qualidade, 6);
@@ -173,7 +173,7 @@ public class RegrasTierTestes
 
         Assert.Equal(100, ConfigTier.Maximo(TipoEquipamento.Peito, StatusItem.Forca));
         Assert.Null(ConfigTier.Maximo(TipoEquipamento.Peito, StatusItem.PotenciaFogo));
-        Assert.Contains(StatusItem.Defesa, ConfigTier.Elegiveis(TipoEquipamento.Anel));
+        Assert.Contains(StatusItem.ChanceCritica, ConfigTier.Elegiveis(TipoEquipamento.Anel));
     }
 
     [Fact]

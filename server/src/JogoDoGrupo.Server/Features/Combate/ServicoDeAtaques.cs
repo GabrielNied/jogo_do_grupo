@@ -187,7 +187,7 @@ public sealed class ServicoDeAtaques : IHostedService, IDisposable
             // Um relógio só: o acerto sai em InicioMs + PreparoMs (a ida ao banco já correu
             // dentro desse tempo) e a fila só avança depois que o acerto foi resolvido.
             await EsperarAteAsync(acao.AcertoMs);
-            Acertar(personagemId, acao, inicio.Forca);
+            Acertar(personagemId, acao, inicio.Dano);
             await EsperarAteAsync(acao.FimMs);
             AvancarFila(personagemId, acao);
         }
@@ -219,7 +219,7 @@ public sealed class ServicoDeAtaques : IHostedService, IDisposable
     }
 
     // O momento de acerto: o volume é medido agora, pela posição que o servidor tem.
-    private void Acertar(long personagemId, AcaoDeAtaque acao, int forca)
+    private void Acertar(long personagemId, AcaoDeAtaque acao, ParcelasDeDano parcelas)
     {
         if (
             !_controle.EstaAtiva(personagemId, acao.Id)
@@ -231,7 +231,7 @@ public sealed class ServicoDeAtaques : IHostedService, IDisposable
             return;
         }
 
-        var dano = RegrasAtaque.Dano(acao.Pedido.Tipo, forca, acao.Passo);
+        var dano = RegrasAtaque.Dano(acao.Pedido.Tipo, parcelas, acao.Passo);
         var direcao = (float)
             RegrasAtaque.DirecaoDoGolpe(
                 acao.Pedido.Tipo,

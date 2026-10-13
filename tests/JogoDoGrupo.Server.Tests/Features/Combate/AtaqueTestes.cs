@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using JogoDoGrupo.Server.Contratos.Combate;
+using JogoDoGrupo.Server.Contratos.Itens;
 using JogoDoGrupo.Server.Contratos.Mundo;
 using JogoDoGrupo.Server.Core.Persistencia;
 using JogoDoGrupo.Server.Core.TempoReal;
@@ -9,6 +10,7 @@ using JogoDoGrupo.Server.Tests.Core.TempoReal;
 using JogoDoGrupo.Server.Tests.Infra;
 using JogoDoGrupo.Shared.Core.Contas;
 using JogoDoGrupo.Shared.Features.Combate;
+using JogoDoGrupo.Shared.Features.Itens;
 using JogoDoGrupo.Shared.Features.Mundo;
 using JogoDoGrupo.Shared.Features.Personagem;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -104,6 +106,7 @@ public sealed class ServidorDeAtaque : IDisposable
             {
                 s.AddSingleton<TimeProvider>(Relogio);
                 s.AddSingleton<IBonusDeAtributos>(Bonus);
+                s.AddSingleton<IAtributosDosEquipamentos>(Bonus);
                 s.AddSingleton<ILimiteDeVelocidadeDoMundo>(Limite);
                 s.RemoveAll<IAlvosDeCombate>();
                 s.AddSingleton<IAlvosDeCombate>(Boneco);
@@ -167,7 +170,7 @@ public class AtaqueTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDeA
 
     private async Task<Jogador> NovoJogadorAsync(bool naCidade = true)
     {
-        servidor.Bonus.Equipamentos = new AtributosCombate();
+        servidor.Bonus.Equipamentos = new AtributosDosEquipamentos();
         servidor.Bonus.Efeitos = new AtributosCombate();
         servidor.Extra.Ativo = false;
         servidor.RepetidoDoBoneco.Ativo = false;
@@ -420,8 +423,13 @@ public class AtaqueTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDeA
         );
         Assert.Equal(RegrasAtaque.Dano(TipoDeAtaque.Leve, 0), Assert.Single(primeiro.Acertos).Dano);
 
-        // Os atributos guardados valem por um tempo curto; passado ele, o golpe seguinte relê.
-        servidor.Bonus.Equipamentos = new AtributosCombate { Forca = 10 };
+        // Os atributos guardados valem por um tempo curto; passado ele, o golpe seguinte relê. A
+        // arma nova dá o dano-base (no lugar dos punhos).
+        servidor.Bonus.Equipamentos = new AtributosDosEquipamentos
+        {
+            TemArma = true,
+            DanoDaArma = 30,
+        };
         servidor.Relogio.Avancar(ConfigRecursos.ValidadeDosAtributosSegundos + 0.1);
         await Task.Delay(TimeSpan.FromMilliseconds(500)); // Fim do golpe anterior.
 
@@ -429,7 +437,7 @@ public class AtaqueTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDeA
         var segundo = await ana.Cliente.ReceberAsync<AtaqueAcertou>(
             CombateMessageIds.AtaqueAcertou
         );
-        Assert.Equal(RegrasAtaque.Dano(TipoDeAtaque.Leve, 10), Assert.Single(segundo.Acertos).Dano);
+        Assert.Equal(30, Assert.Single(segundo.Acertos).Dano);
     }
 
     [Fact]
@@ -464,7 +472,7 @@ public class AtaqueTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDeA
     public async Task Forca_do_personagem_aumenta_o_dano_no_servidor()
     {
         using var ana = await NovoJogadorAsync();
-        servidor.Bonus.Equipamentos = new AtributosCombate { Forca = 10 };
+        servidor.Bonus.Efeitos = new AtributosCombate { Forca = 10 };
 
         Atacar(ana);
         var acertou = await ana.Cliente.ReceberAsync<AtaqueAcertou>(
@@ -473,6 +481,52 @@ public class AtaqueTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDeA
 
         Assert.Equal(RegrasAtaque.Dano(TipoDeAtaque.Leve, 10), Assert.Single(acertou.Acertos).Dano);
         Assert.Equal(40, acertou.Acertos[0].Dano);
+    }
+
+    [Fact]
+    public async Task Dano_usa_a_arma_como_base_e_a_forca_do_item_e_do_personagem_em_parcelas_separadas()
+    {
+        using var ana = await NovoJogadorAsync();
+        // Espada de 30 de dano com Força de item de +50% e Força 2 do personagem (+20%):
+        // 30 x (1 + 0,20 + 0,50) = 51. A Força do item não vira ponto do personagem.
+        servidor.Bonus.Efeitos = new AtributosCombate { Forca = 2 };
+        servidor.Bonus.Equipamentos = new AtributosDosEquipamentos
+        {
+            TemArma = true,
+            DanoDaArma = 30,
+            PercentualForca = 0.5,
+            PercentualIntelecto = 0.9, // arma física: o Intelecto do item não entra
+        };
+
+        Atacar(ana);
+        var acertou = await ana.Cliente.ReceberAsync<AtaqueAcertou>(
+            CombateMessageIds.AtaqueAcertou
+        );
+
+        Assert.Equal(51, Assert.Single(acertou.Acertos).Dano);
+    }
+
+    [Fact]
+    public async Task Arma_magica_usa_o_intelecto_do_personagem_e_do_item()
+    {
+        using var ana = await NovoJogadorAsync();
+        servidor.Bonus.Efeitos = new AtributosCombate { Forca = 5, Intelecto = 3 };
+        servidor.Bonus.Equipamentos = new AtributosDosEquipamentos
+        {
+            TemArma = true,
+            ArmaMagica = true,
+            DanoDaArma = 20,
+            PercentualForca = 0.9,
+            PercentualIntelecto = 0.2,
+        };
+
+        Atacar(ana);
+        var acertou = await ana.Cliente.ReceberAsync<AtaqueAcertou>(
+            CombateMessageIds.AtaqueAcertou
+        );
+
+        // 20 x (1 + 0,30 + 0,20) = 30.
+        Assert.Equal(30, Assert.Single(acertou.Acertos).Dano);
     }
 
     [Fact]

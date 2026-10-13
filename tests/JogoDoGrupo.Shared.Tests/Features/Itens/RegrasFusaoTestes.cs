@@ -120,19 +120,19 @@ public class RegrasFusaoTestes
         var principal = Peca(
             TipoEquipamento.Peito,
             (StatusItem.Forca, 20),
-            (StatusItem.Vitalidade, 30),
-            (StatusItem.Defesa, 40),
+            (StatusItem.Vigor, 30),
+            (StatusItem.DefesaFisica, 40),
             (StatusItem.PotenciaFogo, 5) // sem faixa na categoria
         );
         var material = Peca(
             TipoEquipamento.Peito,
-            (StatusItem.Defesa, 10),
+            (StatusItem.DefesaFisica, 10),
             (StatusItem.Forca, 80),
             (StatusItem.PotenciaFogo, 9)
         );
 
         Assert.Equal(
-            new[] { StatusItem.Forca, StatusItem.Defesa },
+            new[] { StatusItem.Forca, StatusItem.DefesaFisica },
             RegrasFusao.Elegiveis(principal, material)
         );
         Assert.Empty(RegrasFusao.Elegiveis(null!, material));
