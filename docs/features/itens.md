@@ -41,7 +41,7 @@ Status usados aqui: **Definido** (aprovado), **Proposta** (valor inicial em cons
 
 Não mudam por decisão de quem implementa: mudar exige aprovação do Gabriel e atualização desta seção (exceção às [Decisões de design](../agentes.md#decisões-de-design)).
 
-- **DEC-001:** atributos de equipamento não concedem pontos de árvore nem são convertidos nos atributos do personagem; a interação é só pelas fórmulas de combate e pelas skills. **Pendente:** conflita com a [fatia, seção 1](fatia-jogavel.md#1-atributos-e-recursos) (atributos só vêm dos itens e somam aos do personagem); decisão na [#618](https://github.com/GabrielNied/jogo_do_grupo/issues/618). Até lá vale o que está no código.
+- **DEC-001:** atributos de equipamento não concedem pontos de árvore nem são convertidos nos atributos do personagem; a interação é só pelas fórmulas de combate e pelas skills. **Definido** por Gabriel em 2026-10-12 na especificação de atributos ([personagem](personagem.md#atributos-do-personagem), [#618](https://github.com/GabrielNied/jogo_do_grupo/issues/618)): trocar de equipamento não muda a [árvore](talentos.md). A lista de atributos próprios dos itens, sem Força, Vigor, Agilidade, Intelecto e Espírito, sai na [#623](https://github.com/GabrielNied/jogo_do_grupo/issues/623); até lá, o código ainda soma os atributos das peças nos do personagem.
 - **DEC-002:** a fusão não tem chance de falha. O equilíbrio vem de custo, materiais e limites.
 - **DEC-003:** uma fusão altera um único atributo, escolhido pelo jogador; o resto do item principal, inclusive as skills, fica igual.
 - **DEC-004:** o tier atual vem só dos valores dos atributos e é recalculado quando eles mudam.
@@ -133,7 +133,7 @@ Implementação na [#616](https://github.com/GabrielNied/jogo_do_grupo/issues/61
 
 Precisa de decisão do Gabriel. Até lá, vale a proposta indicada.
 
-- **DEC-001 x fatia:** [#618](https://github.com/GabrielNied/jogo_do_grupo/issues/618) (veja Invariantes).
+- ~~**DEC-001 x fatia:** [#618](https://github.com/GabrielNied/jogo_do_grupo/issues/618)~~ Decidido em 2026-10-12: DEC-001 vale (veja Invariantes). Falta a lista de atributos próprios dos itens ([#623](https://github.com/GabrielNied/jogo_do_grupo/issues/623)).
 - **Grau e faixa:** fundir com material de grau maior pode levar o atributo acima da faixa do grau do principal? O pilar "loot relevante" pede que um item excepcional não perca valor com o nível. Proposta até decidir: não, o valor para no máximo da faixa do principal.
 - **Skills por item:** quantas e como sorteiam, agora sem raridade ([#167](https://github.com/GabrielNied/jogo_do_grupo/issues/167)).
 - **Nível da peça e XP da peça:** o nível máximo vinha da raridade; o modelo v2 não os usa. O campo fica em 1 até decidir.
@@ -183,7 +183,7 @@ As cinco raridades e a tabela do livro (níveis máximos, slots de skills e infu
 
 **Troca autoritativa e persistente:** o servidor confere a conta dona, a identidade do exemplar, o tipo da posição e o nível exigido. A peça anterior volta ao inventário. Uma arma de duas mãos retira a mão secundária do mesmo conjunto; equipar escudo/foco com ela é recusado. Se todas as peças retiradas não couberem na bolsa, nada muda (a primeira peça deslocada ocupa a casa que o item novo deixou; as outras, a primeira casa livre). Peças equipadas não ocupam espaço do inventário. Transação e índice único por personagem/posição impedem duplicação em pedidos concorrentes.
 
-**Bônus:** Combate consulta o total atual através de `Contratos/Itens/IBonusEquipamentos`; não referencia a implementação de Itens. Força, Destreza, Intelecto, Vitalidade e Espírito entram nos cálculos já existentes de dano e recursos, sem acumular o mesmo bônus a cada troca. Defesa e demais status têm representação e apresentação, mas não criam fórmulas novas de mitigação, bloqueio ou efeitos nesta tarefa.
+**Bônus:** Combate consulta o total atual através de `Contratos/Itens/IBonusEquipamentos`; não referencia a implementação de Itens. Força, Destreza, Intelecto, Vitalidade e Espírito entram nos cálculos já existentes de dano e recursos, sem acumular o mesmo bônus a cada troca. Isso sai na [#623](https://github.com/GabrielNied/jogo_do_grupo/issues/623): pelo DEC-001, atributo de item não soma nos atributos do personagem. Defesa e demais status têm representação e apresentação, mas não criam fórmulas novas de mitigação, bloqueio ou efeitos nesta tarefa.
 
 **No jogo:** abrir o inventário com **I** ([Interface do inventário](#interface-do-inventário-560)). O paperdoll mostra os encaixes e o conjunto ativo; o tooltip de cada item mostra atributos fixos/sorteados, atributo infusível, raridade, nível e requisito; clique direito e arrastar e soltar equipam e desequipam; os botões **Conj. 1** e **Conj. 2** trocam o conjunto de armas. Em editor/build de desenvolvimento, **Obter equipamento de teste** pede uma peça ao servidor. Essa rota só existe em ambiente `Development`; não altera o baú original; o loot dos mobs tem tabela própria ([Loot dos inimigos](#loot-dos-inimigos-493)).
 

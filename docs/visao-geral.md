@@ -17,7 +17,7 @@ Decisões de direção tomadas em 2026-10-10 e revisadas em 2026-10-11, a partir
 
 ## Foco atual
 
-**Sistema de itens** (2026-10-10): itens com skills sorteadas (ativas, passivas e buffs), papéis vindos dos itens e fusão. Talentos ficam para depois. Desde 2026-10-12, **prioridade alta no modelo de itens v2**: tier calculado pelos atributos e fusão previsível até +10 ([itens](features/itens.md#modelo-de-itens-v2-documento-mestre-2026-10-12)).
+**Sistema de itens** (2026-10-10): itens com skills sorteadas (ativas, passivas e buffs), papéis vindos dos itens e fusão. ~~Talentos ficam para depois.~~ Desde 2026-10-12, **prioridade alta no modelo de itens v2**: tier calculado pelos atributos e fusão previsível até +10 ([itens](features/itens.md#modelo-de-itens-v2-documento-mestre-2026-10-12)). Também desde 2026-10-12, com **prioridade alta**, o personagem tem cinco atributos (Força, Vigor, Agilidade, Intelecto e Espírito) distribuídos numa [árvore de atributos](features/talentos.md), independentes dos atributos dos itens ([personagem](features/personagem.md#atributos-do-personagem)).
 
 ## Diferenciais
 

@@ -6,13 +6,14 @@
 
 ## Resumo
 
-Raças, atributos e progressão de nível. Sem classes: o estilo de jogo vem dos itens equipados.
+Raças, atributos e progressão de nível. Sem classes: o estilo de jogo vem da combinação de atributos, árvore, equipamentos e skills.
 
 ## Definido
 
-- Atributos, vida/vigor/energia, XP e nível da primeira fatia jogável (números em proposta): [fatia-jogavel.md](fatia-jogavel.md)
+- Atributos principais e secundários do personagem: [Atributos do personagem](#atributos-do-personagem) (decidido em 2026-10-12, prioridade alta)
+- Recursos, XP e nível da primeira fatia jogável (números em proposta): [fatia-jogavel.md](fatia-jogavel.md)
 - Raças com características únicas; cada raça dá uma **skill base** própria
-- **Sem classes** (D2 da [validação de 2026-10-10](../brainstorm/validacao.md)): a combinação de itens define o estilo de jogo
+- **Sem classes** (D2 da [validação de 2026-10-10](../brainstorm/validacao.md)): ~~a combinação de itens define o estilo de jogo~~ desde 2026-10-12, a especialização vem de atributos, [árvore](talentos.md), equipamentos e skills
 - Progressão por nível (leveling) faz parte do loop principal (D5)
 - ~~Classes diferenciadas~~ substituído em 2026-10-10 por "sem classes" (D2)
 
@@ -41,6 +42,65 @@ Decidido pelo grupo em 2026-10-10. É **provisório**: serve para implementar a 
 
 Estas funções não concedem prêmios nem persistem dados. Integração com servidor, mensagens, barra de XP e prevenção de prêmio duplicado continuam na #65. O padrão para outros valores ajustáveis está nas [convenções](../convencoes.md#valores-de-balanceamento).
 
+## Atributos do personagem
+
+Decidido por Gabriel em 2026-10-12 (especificação de atributos; entrada em [arvore-de-atributos.md](../brainstorm/arvore-de-atributos.md)). **Prioridade alta**, épico [#621](https://github.com/GabrielNied/jogo_do_grupo/issues/621). A estrutura está definida; fórmulas, valores, limites e custos estão **pendentes** ([#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627)). Esta seção é a fonte do que cada atributo faz; a árvore que distribui os pontos está em [talentos.md](talentos.md).
+
+**Princípio:** os atributos do personagem e os atributos dos equipamentos são **sistemas independentes**. A árvore é a progressão do personagem; os equipamentos têm atributos e progressão próprios ([itens](itens.md)). Os dois se encontram no combate, pelas fórmulas, mas não dividem pontos, e um não muda a progressão do outro (DEC-001, [itens](itens.md#invariantes)).
+
+### Atributos principais
+
+| Atributo | Responsabilidade | O que faz | Pendente |
+|---|---|---|---|
+| Força | Dano físico | Aumenta o dano físico, conforme a arma e a skill usadas | Conversão dos pontos em dano |
+| Vigor | Vida | Aumenta a vida máxima | Vida por ponto |
+| Agilidade | Stamina | Aumenta a stamina máxima | Relação com o consumo e a recuperação de stamina |
+| Intelecto | Dano mágico | Aumenta o dano mágico das skills e de outras fontes mágicas | Conversão dos pontos em dano |
+| Espírito | Mana | Aumenta a mana máxima | Mana por ponto |
+
+- **Sem efeito implícito:** um atributo principal não dá outros bônus (esquiva, velocidade, regeneração...) sem decisão registrada. Cada efeito tem fonte e fórmula identificáveis.
+- **Recursos:** vida, stamina e mana. Decidido em 2026-10-12 (coordenador), para acabar com a colisão de nomes: o recurso que o código chama de "vigor" passa a ser **stamina**, e "energia" passa a ser **mana**. Vigor fica só como atributo. A troca no código é a [#622](https://github.com/GabrielNied/jogo_do_grupo/issues/622).
+- ~~Destreza~~ e ~~Vitalidade~~ substituídos em 2026-10-12 por **Agilidade** e **Vigor**.
+
+### Atributos secundários
+
+Refinam a especialização e complementam os principais. Cada um é independente dos outros.
+
+| Atributo | Responsabilidade |
+|---|---|
+| Regeneração de vida | Recuperação de vida ao longo do tempo |
+| Regeneração de stamina | Recuperação de stamina ao longo do tempo |
+| Regeneração de mana | Recuperação de mana ao longo do tempo |
+| Chance crítica | Probabilidade de um ataque ou efeito elegível causar acerto crítico |
+| Dano crítico | Modificador aplicado quando o acerto crítico acontece |
+| Velocidade de ataque físico | Velocidade de execução dos ataques físicos |
+| Velocidade de ataque mágico | Velocidade de execução dos ataques mágicos (conjuração) |
+| Penetração física | Interação ofensiva com a defesa física do alvo |
+| Penetração mágica | Interação ofensiva com a defesa mágica do alvo |
+
+- As três regenerações são independentes: cada recurso tem fontes e valores próprios.
+- Velocidade física e mágica são separadas, para que ataques físicos e mágicos não dividam a mesma progressão.
+- As fórmulas de crítico, velocidade e penetração (com defesa, mitigação e resistência) são do [Combate](combate.md). A pipeline que junta as fontes é a [#624](https://github.com/GabrielNied/jogo_do_grupo/issues/624).
+
+### Personagem e equipamento
+
+- **Atributos do personagem:** o que o jogador investiu na [árvore](talentos.md).
+- **Atributos do equipamento:** pertencem ao item e evoluem pelas regras de [itens](itens.md) (tier, fusão). Não dão ponto da árvore, não sobem nó, não abrem caminho e não são convertidos em Força, Vigor, Agilidade, Intelecto ou Espírito. A lista de atributos próprios dos itens é a [#623](https://github.com/GabrielNied/jogo_do_grupo/issues/623).
+- Trocar de equipamento não muda os pontos investidos nem pede redistribuição.
+- Personagem, equipamento e propriedades das skills interagem no combate, pelas fórmulas do [Combate](combate.md).
+
+### Valores de teste até a decisão
+
+Até a [#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627), as tarefas usam os números da [fatia, seção 1](fatia-jogavel.md#1-atributos-e-recursos), que são os do código com os nomes novos, como **valores de teste** em constantes nomeadas. Não são balanceamento.
+
+### Transição
+
+Até a [#622](https://github.com/GabrielNied/jogo_do_grupo/issues/622) e a [#623](https://github.com/GabrielNied/jogo_do_grupo/issues/623) entrarem, o código continua como está: atributos com os nomes antigos, a soma dos atributos das peças nos do personagem e zero pontos por nível. Nenhuma regra nova se apoia nisso.
+
+### Pendente
+
+Antes de fixar números ([#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627)): vida, stamina, mana e dano por ponto; fórmulas dos atributos finais; valores, limites e fontes dos secundários; limites de crítico, dano crítico, velocidade e penetração; regras de regeneração e consumo; pontos da árvore (quantos e quando); custos e requisitos dos nós; efeitos dos nós grandes e avançados; fórmulas entre atributos, equipamentos e skills.
+
 ## Raças propostas no board (2026-10-11)
 
 O "Livro de ideias de Asterra" do FigJam propõe **cinco povos jogáveis**. Cada raça dá um **traço** e uma **skill racial**; armas e equipamentos continuam livres para todos, e cada raça tem 1 ou 2 modelos iniciais. O board avisa que nomes e números novos **continuam propostas**: **implementadas no servidor, na criação e no visual** desde 2026-10-11 (só o traço e a skill racial ainda não: [Skills](skills.md), #341) ([Raça](#raça)). Texto completo de cada raça (identidade, aparência, combinações): [figjam.md](../brainstorm/figjam.md#01--raças-de-asterra).
@@ -57,10 +117,10 @@ O Humano provisório virou **Valdren** (decisão do Gabriel, 2026-10-11; mesmo v
 
 ## Nível, atributos e rotina (proposta do board, 2026-10-11)
 
-Do "Livro de ideias de Asterra" ([seções 10 e 09](../brainstorm/figjam.md#10--regras-da-primeira-versão)). **Proposta do board (2026-10-11), não validada pelo grupo**, salvo o nível máximo e a origem dos atributos, decididos na [fatia](fatia-jogavel.md#6-experiência-e-nível).
+Do "Livro de ideias de Asterra" ([seções 10 e 09](../brainstorm/figjam.md#10--regras-da-primeira-versão)). **Proposta do board (2026-10-11), não validada pelo grupo**, salvo o nível máximo, decidido na [fatia](fatia-jogavel.md#6-experiência-e-nível). Os atributos seguem [Atributos do personagem](#atributos-do-personagem).
 
-- **Nível do personagem** é separado do nível e da raridade dos itens. O teto é **100**. Subir de nível não dá ponto de atributo.
-- **Cinco atributos**, só nos itens: Força (dano físico), Destreza (vigor e regeneração de vigor), Intelecto (dano mágico), Vitalidade (vida), Espírito (energia e regeneração de energia). Os números estão na [fatia, seção 1](fatia-jogavel.md#1-atributos-e-recursos). **Pendente (2026-10-12):** o [documento mestre](../brainstorm/documento-mestre.md) separa os atributos do personagem (árvore) dos atributos dos equipamentos (DEC-001, [itens](itens.md#invariantes)); decisão na [#618](https://github.com/GabrielNied/jogo_do_grupo/issues/618). Até lá vale o que está aqui.
+- **Nível do personagem** é separado do nível e da raridade dos itens. O teto é **100**. ~~Subir de nível não dá ponto de atributo.~~ Revisto em 2026-10-12: os pontos da árvore, e quando chegam, estão pendentes ([talentos](talentos.md#pendente)).
+- ~~**Cinco atributos**, só nos itens: Força, Destreza, Intelecto, Vitalidade e Espírito~~ (substituído em 2026-10-12 por [Atributos do personagem](#atributos-do-personagem): os atributos vêm da árvore, e DEC-001 separa os atributos dos itens).
 - **Fontes de XP:** derrotar inimigos, explorar pontos novos, coletar, produzir receitas e concluir objetivos.
 - **Skills não são aprendidas:** continuar dos itens. O orçamento de preparação segue fora desta fatia ([skills.md](skills.md#preparação-de-skills-proposta-do-board-2026-10-11)). Os atributos não mudam esse orçamento.
 - **Rotina:** "três builds" de exemplo, bestiário (registro por observação, cervo jovem como primeiro companheiro) e o ciclo preparar, explorar, voltar: veja a [seção 09](../brainstorm/figjam.md#09--personagem-cooperação-e-rotina). O bestiário e a captura não têm funcionalidade dona ainda.
@@ -80,7 +140,7 @@ Decidido em 2026-10-12. A curva já está em `ConfigExperiencia`; o teste `Ritmo
 
 **Curva:** XP do nível = arredondar(50 × nível^1,2). Nível máximo: **100**. A curva dos primeiros níveis não muda. Era 100 × nível^1,7, e o nível 10 passava de 5 horas só de mobs do mesmo nível.
 
-**O que o nível dá:** nada de atributo. Vida, vigor, energia e dano crescem pelos itens. O nível em si não dá bônus. Os atributos não mudam o orçamento de preparação de skills; esse orçamento continua fora desta fatia ([skills.md](skills.md#preparação-de-skills-proposta-do-board-2026-10-11)).
+**O que o nível dá:** ~~nada de atributo. Vida, vigor, energia e dano crescem pelos itens.~~ Revisto em 2026-10-12: os atributos vêm da [árvore](talentos.md), e se os pontos dela chegam por nível ou por marco está pendente ([#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627)). Até lá, zero pontos por nível. O nível em si não dá bônus. Os atributos não mudam o orçamento de preparação de skills; esse orçamento continua fora desta fatia ([skills.md](skills.md#preparação-de-skills-proposta-do-board-2026-10-11)).
 
 **XP por diferença de nível** (decidido em 2026-10-12): a diferença é o nível do jogador menos o nível do mob. 0 ou negativa paga 100%. Cada nível acima tira 20 pontos percentuais. 5 ou mais acima paga 0. Quem participou recebe essa parcela, não o valor cheio. A meta de ritmo acima vale contra mob do mesmo nível ou mais forte. O Javali do Campo é nível 3: a partir do nível 8 do jogador ele não dá XP. Constantes nomeadas, fáceis de calibrar.
 
@@ -92,7 +152,7 @@ O teto 100 e zero pontos por nível estão em `ConfigExperiencia`. A #454 ainda 
 - [x] ~~O orçamento de skills muda com os atributos?~~ Decidido em 2026-10-12: não muda. O orçamento em si continua fora desta fatia.
 - [ ] Quais raças existem e qual a skill base de cada uma? (as raças definitivas substituem a raça provisória Humano) **Cinco raças em uso desde 2026-10-11 ([Raças propostas](#raças-propostas-no-board-2026-10-11)); a skill base de cada uma segue em [Skills](skills.md) (#341).**
 - [ ] ~~Quais raças e classes existem?~~ classes não existem mais (D2)
-- [x] ~~O que o nível dá ao personagem?~~ Decidido em 2026-10-12: nenhum ponto de atributo; os atributos vêm dos itens. Ver [Ritmo de progressão](#ritmo-de-progressão).
+- [ ] O que o nível dá ao personagem? ~~Decidido em 2026-10-12: nenhum ponto de atributo; os atributos vêm dos itens.~~ Reaberto em 2026-10-12: os atributos vêm da [árvore](talentos.md); pontos por nível ou por marco na [#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627).
 - [x] ~~Nível máximo e curva de progressão~~ Decidido em 2026-10-12: 100, e arredondar(50 × nível^1,2). Ver [Ritmo de progressão](#ritmo-de-progressão).
 - [ ] Aparência e customização na criação (rosto, corpo, cores...)?
 - [ ] Excluir personagem: pode? Tem confirmação (ex.: digitar o nome) ou tempo de espera antes de apagar de vez?
@@ -289,7 +349,7 @@ API HTTP para listar e criar personagens (por que HTTP: [ADR 0009](../decisoes/0
 
 ### Experiência, nível e pontos de atributo (#65, contrato da #299)
 
-Regras na [fatia jogável, seção 6](fatia-jogavel.md#6-experiência-e-nível). O servidor concede a experiência e sobe o nível; o client só mostra. Subir de nível não dá ponto de atributo (decidido em 2026-10-12). O contrato abaixo ainda descreve o gasto de pontos, que a #454 deixa sem pontos livres. ~~Este é o contrato; o servidor (#356) e o client (#357) vêm depois.~~ O servidor (#356, 11/10/2026) concede a experiência de `InimigoDerrotado` e gasta os pontos. O client (#357) mostra a barra e a tela de atributos (tecla C) e só envia o gasto.
+Regras na [fatia jogável, seção 6](fatia-jogavel.md#6-experiência-e-nível). O servidor concede a experiência e sobe o nível; o client só mostra. Subir de nível não dá ponto de atributo por enquanto (pontos da árvore pendentes, [#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627)). O contrato abaixo ainda descreve o gasto livre de pontos: a [#625](https://github.com/GabrielNied/jogo_do_grupo/issues/625) troca esse gasto pela compra de nós da [árvore](talentos.md), e a [#622](https://github.com/GabrielNied/jogo_do_grupo/issues/622) renomeia os atributos. ~~Este é o contrato; o servidor (#356) e o client (#357) vêm depois.~~ O servidor (#356, 11/10/2026) concede a experiência de `InimigoDerrotado` e gasta os pontos. O client (#357) mostra a barra e a tela de atributos (tecla C) e só envia o gasto.
 
 | ID ou rota | Nome | Direção | Campos |
 |---|---|---|---|
