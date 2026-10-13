@@ -1,5 +1,7 @@
 using JogoDoGrupo.Server.Contratos.Combate;
+using JogoDoGrupo.Server.Contratos.Mundo;
 using JogoDoGrupo.Server.Features.Mobs;
+using JogoDoGrupo.Server.Features.Mundo;
 using JogoDoGrupo.Server.Tests.Core.TempoReal;
 using JogoDoGrupo.Shared.Features.Mobs;
 using JogoDoGrupo.Shared.Features.Mundo;
@@ -15,22 +17,61 @@ namespace JogoDoGrupo.Server.Tests.Features.Mobs;
 public class InimigosDoCampoTestes(TempoRealFixture f) : IClassFixture<TempoRealFixture>
 {
     [Fact]
-    public async Task Quem_entra_na_area_recebe_os_inimigos_vivos_de_cada_ponto_de_spawn()
+    public async Task No_nascimento_retrato_respeita_raio_de_interesse()
     {
         var (cliente, _, _) = await f.EntrarAsync();
         using var _c = cliente;
 
         cliente.Enviar(MundoMessageIds.EntrarNaCidade, new EntrarNaCidade());
         var todos = await cliente.ReceberAsync<InimigosDaArea>(MobsMessageIds.InimigosDaArea);
-        // O chefe raro pode estar no campo (sorteio); aqui só valem os grupos comuns.
         var comuns = todos
             .Inimigos.Where(i =>
                 CatalogoCriaturas.Obter(i.CriaturaId).Categoria == CategoriaDeCriatura.Comum
             )
             .ToArray();
 
-        Assert.Equal(comuns.Length, comuns.Select(i => i.InimigoId).Distinct().Count());
+        var nascimento = ValidadorDeMovimento.Nascimento;
+        Assert.All(
+            comuns,
+            i =>
+            {
+                var dist = RegrasInteresseDeInimigos.DistanciaAoJogador(
+                    nascimento.X,
+                    nascimento.Z,
+                    i.X,
+                    i.Z
+                );
+                Assert.True(dist <= RegrasInteresseDeInimigos.EntradaMetros);
+            }
+        );
+        Assert.Empty(comuns);
+    }
+
+    [Fact]
+    public async Task Perto_do_campo_recebe_retrato_de_inimigos()
+    {
+        var (cliente, _, personagemId) = await f.EntrarAsync();
+        using var _c = cliente;
+
+        cliente.Enviar(MundoMessageIds.EntrarNaCidade, new EntrarNaCidade());
+        await cliente.ReceberAsync<EstadoDaCidade>(MundoMessageIds.EstadoDaCidade);
+
+        var teleporte = f.Fabrica.Services.GetRequiredService<ITeleporteDeTeste>();
+        var (aceito, _) = teleporte.Teleportar(personagemId, 0f, 0f, 175f);
+        Assert.True(aceito);
+
+        var servico = f.Fabrica.Services.GetRequiredService<ServicoDeInimigos>();
+        servico.AoEntrarNaArea(new JogadorEntrouNaArea(personagemId, ConfigInimigosDoCampo.Area));
+
+        var todos = await cliente.ReceberAsync<InimigosDaArea>(MobsMessageIds.InimigosDaArea);
+        var comuns = todos
+            .Inimigos.Where(i =>
+                CatalogoCriaturas.Obter(i.CriaturaId).Categoria == CategoriaDeCriatura.Comum
+            )
+            .ToArray();
+
         Assert.InRange(comuns.Length, 1, PontosDeSpawnDoCampo.LimiteDeInimigosVivos);
+        Assert.Equal(comuns.Length, comuns.Select(i => i.InimigoId).Distinct().Count());
         foreach (var ponto in PontosDeSpawnDoCampo.Todos)
         {
             var doPonto = comuns
@@ -41,11 +82,7 @@ public class InimigosDoCampoTestes(TempoRealFixture f) : IClassFixture<TempoReal
                 .ToArray();
             var ficha = CatalogoCriaturas.Obter(ponto.CriaturaId);
 
-            // Com mais pontos do que vagas no teto, os últimos da fila podem esperar vaga.
             Assert.InRange(doPonto.Length, 0, ponto.TamanhoMaximo);
-            // A manada com rota sai andando depois da espera no primeiro ponto (e a máquina carregada
-            // pode atrasar o teste até lá): todos andam juntos, então o círculo vale em volta do
-            // centro do grupo, não do ponto de spawn.
             var (centroX, centroZ) =
                 ponto.Rota == null
                     ? (ponto.X, ponto.Z)

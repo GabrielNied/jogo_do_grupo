@@ -233,20 +233,24 @@ Código em `shared/Package/Runtime/Features/Mobs/` (regras e números acima, nã
 
 Inimigo comum (tempo real; regras em "Inimigo comum da fatia"):
 
+**Interesse por distância (issue #485):** o `ServicoDeInimigos` só manda `InimigoMudou` e mensagens ligadas a um inimigo para jogadores a até **80 m** dele; quem já recebia continua até **100 m** (histerese em `RegrasInteresseDeInimigos`). Ao sair do raio chega `InimigoSaiuDoInteresse` (11007). O retrato em `InimigosDaArea` usa o mesmo corte. No client, etiquetas 3D só até **40 m** (`RegrasInteresseDeInimigos.EtiquetaMetros`).
+
 | ID | Mensagem | Direção | Campos |
 |---|---|---|---|
-| 11000 | `InimigosDaArea` | servidor → quem entra na área | `Inimigos[]` (`InimigoNoMundo`: `InimigoId`, `CriaturaId`, `Variante`, `Nivel`, `X`, `Y`, `Z`, `RotacaoY`, `Vida`, `VidaMaxima`, `Estado`, `AlvoId`); só os vivos |
+| 11000 | `InimigosDaArea` | servidor → quem entra na área | `Inimigos[]` (`InimigoNoMundo`: `InimigoId`, `CriaturaId`, `Variante`, `Nivel`, `X`, `Y`, `Z`, `RotacaoY`, `Vida`, `VidaMaxima`, `Estado`, `AlvoId`); só os vivos no raio de interesse |
 | 11001 | `InimigoMudou` | servidor → quem está na área | `InimigoId`, `X`, `Y`, `Z`, `RotacaoY`, `Estado`, `AlvoId`, `Vida`, `Sequencia` (o client descarta a que não for maior que a última) |
 | 11002 | `InimigoPreparaAtaque` | servidor → quem está na área | `InimigoId`, `PreparoMs`, `CentroX`, `CentroZ`, `Raio`, `DirecaoY`, `Tipo` (`TipoDeAtaqueDeInimigo`: `Golpe` 0, `Investida` 1, `Pisada` 2, `Raios` 3), `Areas[]` (`AreaDeAtaque`: `CentroX`, `CentroZ`, `Raio`; os campos soltos repetem a primeira) |
 | 11003 | `InimigoMorreu` | servidor → quem está na área | `InimigoId` |
 | 11004 | `InimigoApareceu` | servidor → quem está na área | `Inimigo` (`InimigoNoMundo`) |
 | 11005 | `InimigoExposto` | servidor → quem está na área | `InimigoId`, `DuracaoMs`, `Multiplicador` (boss exposto a mais dano; acaba sozinho depois da duração) |
+| 11007 | `InimigoSaiuDoInteresse` | servidor → jogador | `InimigoId` (sumir no client sem animação de morte) |
 
 - `EstadoDeInimigo`: `Repouso` 0, `Alerta` 1, `Perseguicao` 2, `Ataque` 3, `Retorno` 4, `Morto` 5.
 - `InimigoId` é o mesmo `AlvoId` que o Combate manda em `AcertoDeAtaque`: o dano de um golpe do jogador chega por `AtaqueAcertou`, não por `InimigoMudou`. `AlvoId` 0 (`RegrasInimigo.SemAlvo`) é sem alvo.
 - `CriaturaId` aponta para o `CatalogoCriaturas` (nome, nível, categoria); a ficha da issue chamava esse campo de `Tipo`.
 - `RegrasCerco`: o cerco em anel, a separação mínima e o limite de atacantes por alvo (issue #487).
 - `RegrasManada` e `TipoDePontoDeRota`: a zona urbana, o limite de perseguição e os tipos de ponto da rota das manadas (issue #321).
+- `RegrasInteresseDeInimigos`: raio de broadcast (80 m / 100 m) e corte de etiquetas (40 m; issue #485).
 - `RegrasInimigo`: constantes de balanceamento e fórmulas puras (`TransicaoValida`, `EstaVivo`, `ProcuraAlvo`, `TamanhoDoGrupo`, `Ve`, `NoAlcanceDeAtaque`, `DeveDesistir`, `EscolherAlvo`, `DirecaoPara`, `Avancar`, `CentroDoGolpe`, `EstaNaAreaDoGolpe`). O servidor decide; o client usa só para mostrar.
 
 No servidor (`server/.../Features/Mobs/`): `SorteadorDeCriaturas` (sorteia a variante e a aparição) e `AparicaoDeChefeRaro` (o controle de um ponto de chefe raro). ~~Ainda não estão ligados ao mundo.~~ Substituído em 2026-10-11 (issue #268): o sorteador já sorteia a variante dos inimigos do campo; o chefe raro ficou sem ligação com o mundo até a issue #310, que ligou a Presa-Velha ao campo (seção "O chefe raro no campo", abaixo).
