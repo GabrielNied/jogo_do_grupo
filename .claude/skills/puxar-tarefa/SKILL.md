@@ -37,7 +37,19 @@ O que o comando faz:
 6. Publica comentário na issue registrando o início e a branch.
 7. Atualiza com a `origin/main` e cria a branch (ou worktree) no padrão `<tipo>/<escopo>/<descricao>`.
 
-## 2.1. Plano antes de codar (tarefa de jogo)
+## 2.1. Conferir a relevância
+
+Tarefa parada pode pedir uma regra que a doc já mudou. O `puxar` compara sozinho: se `docs/features/` ou um ADR citado na issue mudou depois que ela foi escrita (ou conferida), mostra **⚠ REVISAR RELEVÂNCIA** com os commits e o comando `git diff` do que mudou. Sem aviso, siga.
+
+Com aviso, rode o `git diff` mostrado (não releia a doc inteira) e compare com o que a issue pede. **A doc atual vence a issue.** Depois:
+
+- **Ainda vale:** siga. Se a conferência não for acabar em PR agora, registre-a com `npm run tarefa -- relevancia <N> --conferida "<o que conferiu>"`, para o aviso não voltar.
+- **Desatualizada em parte:** ajuste o corpo da issue ao que a doc diz agora (`gh issue edit <N> --body-file ...`), registre com `relevancia <N> --conferida "<o que mudou na issue>"` e siga.
+- **Já feita** (outro PR entregou) **ou obsoleta** (a doc tirou ou trocou o que ela pede): não implemente. Libere com `npm run tarefa -- liberar <N> --motivo "<o que a tornou obsoleta, com o commit>"` e ponha a label `decisao` (`gh issue edit <N> --add-label decisao`). Fechar a issue fica com o `/decida` ou com uma pessoa. No `/trabalhe`, escolha outra tarefa.
+
+`npm run tarefa -- relevancia` sem número varre as tarefas livres e lista as 10 mais defasadas (uso do `/decida`).
+
+## 2.2. Plano antes de codar (tarefa de jogo)
 
 Logo depois de puxar, escreva o plano num comentário da issue (`gh issue comment <N>`), ou confirme o da ficha se o coordenador já fez: casos de uso, estados da checklist de experiência que se aplicam e os testes que saem deles. Formato e checklist em [Plano da tarefa](../../../docs/agentes.md#plano-da-tarefa). Siga em frente; só pare se houver dúvida de regra. Tarefa de processo, docs ou infra não precisa.
 
