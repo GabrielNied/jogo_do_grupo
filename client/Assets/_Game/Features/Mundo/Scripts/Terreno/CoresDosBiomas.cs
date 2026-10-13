@@ -137,6 +137,13 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
             var pedra = Mathf.InverseLerp(DecliveComPedra, DecliveSoDePedra, declive);
             cor = Color.Lerp(cor, Rocha, pedra * (1f - pesos.Lava));
 
+            // Margens de rio com seixos, cascalho e areia úmida
+            if (MapaDoMundo.ProximoDeRio(x, z, out var distRio) && pesos.Lava < 0.35f)
+            {
+                var margem = 1f - Mathf.Clamp01(distRio / 20f);
+                cor = Color.Lerp(cor, MargemDeRio, margem * 0.75f);
+            }
+
             // Estrada norte que sai do portão da cidade pelas transições 1 e 2
             if (
                 Mathf.Abs(x) <= 8f

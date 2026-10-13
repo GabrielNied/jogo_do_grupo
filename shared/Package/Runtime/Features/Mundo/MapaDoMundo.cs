@@ -184,21 +184,20 @@ namespace JogoDoGrupo.Shared.Features.Mundo
         // medidas num ponto desviado por ruído, para não ficarem retas.
         private static float Calcular(float x, float z, bool comAltura, out PesosDosBiomas pesos)
         {
-            var desvioX = (Fbm(x / 260f, z / 260f, SementeDesvioX, 3) - 0.5f) * 520f;
-            var desvioZ = (Fbm(x / 260f, z / 260f, SementeDesvioZ, 3) - 0.5f) * 520f;
+            var desvioX = (Fbm(x / 320f, z / 320f, SementeDesvioX, 3) - 0.5f) * 220f;
+            var desvioZ = (Fbm(x / 320f, z / 320f, SementeDesvioZ, 3) - 0.5f) * 220f;
 
-            // Biomas de fora: quanto do ponto já saiu do miolo de 1 km.
+            // Biomas de fora: quanto do ponto já saiu do miolo.
             var foraX = x + desvioX;
             var foraZ = z + desvioZ;
             var fora = Suave(
-                MetadeDoMiolo - 40f,
-                MetadeDoMiolo + 40f,
+                MetadeDoMiolo - 60f,
+                MetadeDoMiolo + 60f,
                 Math.Max(Math.Abs(foraX), Math.Abs(foraZ))
             );
             var dentro = 1f - fora;
 
-            // Miolo, como já era: campo ao norte, mata a leste e colinas a oeste. O desvio é
-            // menor, para a divisão continuar perto de onde as peças antigas foram espalhadas.
+            // Miolo: campo ao norte, mata a leste e colinas a oeste.
             var mioloX = x + desvioX * 0.25f;
             var mioloZ = z + desvioZ * 0.25f;
             var campo = Suave(10f, 70f, mioloZ);
@@ -239,11 +238,11 @@ namespace JogoDoGrupo.Shared.Features.Mundo
             // Transição 1 (grudada no muro: 40 m a 60 m) e Transição 2 (intermediária: 60 m a 120 m).
             var alturaFaixa = AlturaDasTransicoes(x, z, alcance);
 
-            // A partir de 60 m o relevo do bioma começa a se misturar, atingindo 100% em 120 m.
-            var mascara = Suave(RaioTransicao1, RaioTransicao2, alcance);
+            // A partir de 85 m o relevo do bioma começa a se misturar, atingindo 100% em 130 m.
+            var mascara = Suave(85f, 130f, alcance);
 
-            // As montanhas crescem aos poucos a partir da fronteira com o miolo.
-            var longe = Suave(520f, 1050f, alcance);
+            // Relevo vivo imediato: as montanhas e platôs começam a subir logo após as transições da cidade (a partir de 100 m), atingindo porte pleno em 480 m.
+            var longe = Suave(100f, 480f, alcance);
 
             var altura = 0f;
             if (pesos.Campo > 0f)
@@ -281,10 +280,19 @@ namespace JogoDoGrupo.Shared.Features.Mundo
                 altura += pesos.Pantano * AlturaDoPantano(x, z);
             }
 
+            // Entalhe de rios de água doce com calha navegável e margens suaves
+            if (ProximoDeRio(x, z, out var dRio) && dRio <= 30f && pesos.Lava < 0.4f)
+            {
+                var calha = 1f - Suave(6f, 30f, dRio);
+                // No vale (z < 350) o rio atinge o nível da água (-0.92 m); na serra norte forma desfiladeiro alpino
+                var fundoRio = z < 350f ? -0.92f : Math.Max(3f, altura - 4.5f);
+                altura = (1f - calha) * altura + calha * fundoRio;
+            }
+
             // Um morro baixo acompanha cada fronteira: separa os biomas e impede que a água do
             // pântano encontre a lava.
             var puro = deserto * deserto + neve * neve + lava * lava + pantano * pantano;
-            var fronteira = 20f * fora * dentro + 18f * fora * (1f - puro);
+            var fronteira = 10f * fora * dentro + 10f * fora * (1f - puro);
 
             // O relevo base une a transição das bordas da cidade com o bioma natural.
             var alturaBase = (1f - mascara) * alturaFaixa + mascara * (altura + fronteira);
@@ -292,6 +300,40 @@ namespace JogoDoGrupo.Shared.Features.Mundo
 
             // Modificadores de relevo (monumentos do mundo e terraplanagens em tempo de execução)
             return ModificadoresDoMapa.Aplicar(x, z, comCaverna);
+        }
+
+        /// <summary>
+        /// Indica se as coordenadas estão dentro da calha ou margem de um rio navegável/visível.
+        /// Devolve a distância perpendicular à calha mais próxima em <paramref name="distanciaRio"/>.
+        /// </summary>
+        public static bool ProximoDeRio(float x, float z, out float distanciaRio)
+        {
+            // A cidade e sua transição imediata (60 m) não são cortadas por rios
+            if (Math.Abs(x) <= 60f && Math.Abs(z) <= 60f)
+            {
+                distanciaRio = float.MaxValue;
+                return false;
+            }
+
+            // Protege a área da Primeira Caverna (-220, -47) para não furar o teto do túnel
+            var dxCav = x - (-220f);
+            var dzCav = z - (-47f);
+            if (dxCav * dxCav + dzCav * dzCav <= 55f * 55f)
+            {
+                distanciaRio = float.MaxValue;
+                return false;
+            }
+
+            // Rio Glacial do Leste: nasce nas montanhas e corre a leste do campo em direção à costa
+            var xRio1 = 250f + 40f * (float)Math.Sin(z / 180f) + 20f * (float)Math.Cos(z / 90f);
+            var d1 = (z >= -550f && z <= 1500f) ? Math.Abs(x - xRio1) : float.MaxValue;
+
+            // Rio das Cascatas do Oeste: desce dos platôs da floresta a oeste contornando a caverna
+            var xRio2 = -260f - 35f * (float)Math.Sin(z / 220f) - 20f * (float)Math.Cos(z / 110f);
+            var d2 = (z >= -650f && z <= 1200f) ? Math.Abs(x - xRio2) : float.MaxValue;
+
+            distanciaRio = Math.Min(d1, d2);
+            return distanciaRio <= 30f;
         }
 
         /// <summary>
@@ -318,25 +360,27 @@ namespace JogoDoGrupo.Shared.Features.Mundo
             return baseT1 + (SubidaMaximaDaFaixaInicial * 0.5f * t2 * pesoNorte);
         }
 
-        // Campo: quase plano, até 1,5 m.
+        // Campo: ondulações campestres vivas de 2 a 6,5 m.
         private static float AlturaDoCampo(float x, float z)
         {
-            return 1.5f * Fbm(x / 90f, z / 90f, SementeCampo, 3);
+            return 2f + 4.5f * Fbm(x / 80f, z / 80f, SementeCampo, 3);
         }
 
-        // Mata: ondulada, até 3,5 m.
+        // Mata: platôs florestais escalonados em degraus e cascatas de 3 a 18 m.
         private static float AlturaDaMata(float x, float z)
         {
-            return 3.5f * Fbm(x / 70f, z / 70f, SementeMata, 3);
+            var patamares = Degrau(Fbm(x / 120f, z / 120f, SementeMata, 4) * 12f, 4f);
+            var ondulacao = 3f * Fbm(x / 50f, z / 50f, SementeMata + 13u, 2);
+            return 3f + patamares + ondulacao;
         }
 
-        // Colinas: morros suaves de até 14 m.
+        // Colinas: morros e cristas suaves de até 14 m.
         private static float AlturaDasColinas(float x, float z)
         {
-            return 14f * Potencia(Fbm(x / 110f, z / 110f, SementeColinas, 4), 1.3);
+            return 13f * Potencia(Fbm(x / 110f, z / 110f, SementeColinas, 4), 1.35);
         }
 
-        // Deserto: dunas alongadas e orgânicas de 3 a 17 m.
+        // Deserto: dunas e degraus de cânion de 3 a 20 m.
         private static float AlturaDoDeserto(float x, float z)
         {
             var dunas = Fbm(x / 140f, z / 90f, SementeDunas, 3);
@@ -349,8 +393,8 @@ namespace JogoDoGrupo.Shared.Features.Mundo
         {
             var cumes = 145f * Potencia(Fbm(x / 380f, z / 380f, SementePicosDeNeve, 4), 1.9);
             var encosta = 25f * Fbm(x / 110f, z / 110f, SementeEncostaDeNeve, 3);
-            var chao = 5f * Fbm(x / 60f, z / 60f, SementeChaoDeNeve, 2);
-            return 8f + longe * (cumes + encosta) + chao;
+            var chao = 4f * Fbm(x / 60f, z / 60f, SementeChaoDeNeve, 2);
+            return 5f + longe * (cumes + encosta) + chao;
         }
 
         // Lava: montanhas esculturais de até 95 m com cumes suaves, cortadas por trechos de rio de lava.
@@ -373,6 +417,15 @@ namespace JogoDoGrupo.Shared.Features.Mundo
         private static float AlturaDoPantano(float x, float z)
         {
             return -0.9f + 2.5f * Suave(0.38f, 0.62f, Fbm(x / 55f, z / 55f, SementePantano, 3));
+        }
+
+        // Função de platô/degrau suave para modelar patamares e terraços escalonados
+        private static float Degrau(float valor, float passo)
+        {
+            var b = (float)Math.Floor(valor / passo);
+            var f = (valor / passo) - b;
+            var s = f * f * (3f - 2f * f);
+            return (b + s) * passo;
         }
 
         private static int Limitar(int valor, int minimo, int maximo)

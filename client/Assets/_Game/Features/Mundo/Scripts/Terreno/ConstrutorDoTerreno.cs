@@ -44,7 +44,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
         {
             var amostras = AmostrasDoTerreno.Gerar();
 
-            var chao = CriarMaterial(modelo, Color.white, 0f);
+            var chao = CriarMaterialDoChao(modelo);
             if (chao != null)
             {
                 var textura = CriarTextura(amostras);
@@ -188,7 +188,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
                     var z = MapaDoMundo.CoordenadaDaGrade(j);
                     var meio = MapaDoMundo.PassoDaGrade / 2f;
                     var pesos = MapaDoMundo.PesosEm(x + meio, z + meio);
-                    var ehLava = pesos.Lava >= pesos.Pantano;
+                    var ehLava = pesos.Lava >= 0.35f && pesos.Lava >= pesos.Pantano;
                     if (ehLava != lava || fundo >= nivel)
                     {
                         continue;
@@ -423,6 +423,43 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
             }
 
             return objeto;
+        }
+
+        // Cria o material do chão: se o shader dedicado TerrenoMundo existir, usa-o com
+        // amostragem de alta definição em espaço mundial e projeção triplanar em paredões.
+        // Se não existir, usa o Lit nativo do URP com o mapa de micro-detalhe 1024x1024.
+        private static Material CriarMaterialDoChao(Material modelo)
+        {
+            var shaderTerreno = Shader.Find("JogoDoGrupo/TerrenoMundo");
+            Material material;
+            if (shaderTerreno != null)
+            {
+                material = new Material(shaderTerreno);
+                material.SetTexture("_GrassTex", GeradorDeTexturasDoTerreno.ObterGrama());
+                material.SetTexture("_DirtTex", GeradorDeTexturasDoTerreno.ObterTerra());
+                material.SetTexture("_SandTex", GeradorDeTexturasDoTerreno.ObterAreia());
+                material.SetTexture("_RockTex", GeradorDeTexturasDoTerreno.ObterRocha());
+                material.SetTexture("_SnowTex", GeradorDeTexturasDoTerreno.ObterNeve());
+                material.SetTexture("_DetailAlbedoMap", GeradorDeTexturasDoTerreno.ObterDetalhes());
+                material.SetFloat("_DetailTiling", 0.2f);
+            }
+            else
+            {
+                material = CriarMaterial(modelo, Color.white, 0.05f);
+                if (material != null && material.HasProperty("_DetailAlbedoMap"))
+                {
+                    material.EnableKeyword("_DETAIL_MULX2");
+                    material.EnableKeyword("_DETAIL_SCALED");
+                    material.SetTexture(
+                        "_DetailAlbedoMap",
+                        GeradorDeTexturasDoTerreno.ObterDetalhes()
+                    );
+                    material.SetFloat("_DetailAlbedoMapScale", 1.0f);
+                    material.SetVector("_DetailAlbedoMap_ST", new Vector4(600f, 600f, 0f, 0f));
+                }
+            }
+
+            return material;
         }
 
         // Copia o modelo (ou cria um material do URP, se não houver modelo) com a cor e o brilho
