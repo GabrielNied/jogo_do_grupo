@@ -78,6 +78,7 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
 
     /// <summary>Só nas manadas: a rota que o grupo segue em repouso; nulo nos outros grupos.</summary>
     private readonly RotaDaManada? _rota;
+    private readonly IEstadoDeQueda _queda;
 
     private int _pontoDaRota;
     private bool _andando;
@@ -122,6 +123,9 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
     /// Rota de uma manada: em repouso o grupo anda de ponto em ponto, nunca entra na zona
     /// urbana e desiste mais longe que o limite da rota. Nulo: um grupo parado no ponto.
     /// </param>
+    /// <param name="queda">
+    /// Estado caído (Combate): quem está caído ou sendo levantado não é visto nem acertado.
+    /// </param>
     public GrupoDeInimigos(
         DefinicaoDeCriatura definicao,
         ISorteadorDeCriaturas sorteador,
@@ -135,7 +139,8 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
         int nivelMinimo = 0,
         int nivelMaximo = 0,
         LimiteDeInimigosVivos? limite = null,
-        RotaDaManada? rota = null
+        RotaDaManada? rota = null,
+        IEstadoDeQueda? queda = null
     )
     {
         ArgumentNullException.ThrowIfNull(definicao);
@@ -157,6 +162,7 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
         _pontoZ = pontoZ;
         _limite = limite;
         _rota = rota;
+        _queda = queda ?? QuedaIgnorada.Instancia;
         Area = area;
         Capacidade = tamanho;
 
@@ -184,7 +190,8 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
         PontoDeSpawn ponto,
         ISorteadorDeCriaturas sorteador,
         LimiteDeInimigosVivos? limite = null,
-        Func<long>? relogioMs = null
+        Func<long>? relogioMs = null,
+        IEstadoDeQueda? queda = null
     ) =>
         new(
             CatalogoCriaturas.Obter(ponto.CriaturaId)
@@ -202,7 +209,8 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
             ponto.NivelMinimo,
             ponto.NivelMaximo,
             limite,
-            ponto.Rota
+            ponto.Rota,
+            queda
         );
 
     /// <summary>Quantos inimigos a mais o comando de teste pode acrescentar neste grupo.</summary>
@@ -315,7 +323,9 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
             }
 
             _vistos.RemoveWhere(id =>
-                !presentes.TryGetValue(id, out var visto) || NaZonaUrbana(visto.X, visto.Z)
+                _queda.EstaCaido(id)
+                || !presentes.TryGetValue(id, out var visto)
+                || NaZonaUrbana(visto.X, visto.Z)
             );
             if (_inimigos.All(ForaDeLuta))
             {
@@ -342,6 +352,11 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
                     if (NaZonaUrbana(jogador.X, jogador.Z))
                     {
                         continue; // moradores e visitantes da cidade ficam a salvo da manada
+                    }
+
+                    if (_queda.EstaCaido(jogador.PersonagemId))
+                    {
+                        continue;
                     }
 
                     var distancia = RegrasInimigo.Distancia(
@@ -626,7 +641,17 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
             return;
         }
 
-        var alvo = presentes[inimigo.Alvo];
+        if (!presentes.TryGetValue(inimigo.Alvo, out var alvo) || _queda.EstaCaido(inimigo.Alvo))
+        {
+            if (inimigo.Alvo != RegrasInimigo.SemAlvo)
+            {
+                perdidos.Add(inimigo.Alvo);
+            }
+
+            Retornar(inimigo);
+            return;
+        }
+
         // Vai ao posto dele no anel em volta do alvo (o de atacante, ou o de ronda se não há
         // vaga), em vez de em linha reta até o alvo, sem entrar no corpo dos outros.
         RegrasCerco.Posto(
@@ -804,7 +829,8 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
             foreach (var jogador in emOrdem)
             {
                 if (
-                    !NaZonaUrbana(jogador.X, jogador.Z)
+                    !_queda.EstaCaido(jogador.PersonagemId)
+                    && !NaZonaUrbana(jogador.X, jogador.Z)
                     && RegrasInimigo.EstaNoGolpe(
                         inimigo.X,
                         inimigo.Z,
@@ -1304,5 +1330,13 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
 
         /// <summary>A vida mudou desde o último <see cref="InimigoMudou"/>.</summary>
         public bool VidaMudou;
+    }
+
+    /// <summary>Queda ausente: testes unitários da IA sem Combate.</summary>
+    private sealed class QuedaIgnorada : IEstadoDeQueda
+    {
+        public static readonly QuedaIgnorada Instancia = new();
+
+        public bool EstaCaido(long personagemId) => false;
     }
 }

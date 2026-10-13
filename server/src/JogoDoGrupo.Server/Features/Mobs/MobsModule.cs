@@ -35,11 +35,12 @@ public sealed class MobsModule : IFeatureModule
         {
             var limite = new LimiteDeInimigosVivos(PontosDeSpawnDoCampo.LimiteDeInimigosVivos);
             var sorteador = sp.GetRequiredService<ISorteadorDeCriaturas>();
+            var queda = sp.GetRequiredService<IEstadoDeQueda>();
             return new GruposDoCampo(
                 limite,
                 [
                     .. PontosDeSpawnDoCampo.Todos.Select(ponto =>
-                        GrupoDeInimigos.DoPonto(ponto, sorteador, limite)
+                        GrupoDeInimigos.DoPonto(ponto, sorteador, limite, queda: queda)
                     ),
                 ]
             );
@@ -62,7 +63,8 @@ public sealed class MobsModule : IFeatureModule
                     1,
                     pontoX: ConfigInimigosDoCampo.PontoDoChefeRaroX,
                     pontoZ: ConfigInimigosDoCampo.PontoDoChefeRaroZ,
-                    primeiroId: ConfigInimigosDoCampo.PrimeiroIdDoChefeRaro
+                    primeiroId: ConfigInimigosDoCampo.PrimeiroIdDoChefeRaro,
+                    queda: sp.GetRequiredService<IEstadoDeQueda>()
                 )
         );
         servicos.AddSingleton<IAlvosDeCombate>(sp =>
@@ -98,6 +100,7 @@ public sealed class MobsModule : IFeatureModule
                 sp.GetRequiredService<IPosicoesDoMundo>(),
                 sp.GetRequiredService<EventosDoServidor>(),
                 sp.GetRequiredService<ILogger<ServicoDeInimigos>>(),
+                sp.GetRequiredService<IEstadoDeQueda>(),
                 sp.GetRequiredService<ChefesDaDungeon>()
             );
             _inimigos = servico;

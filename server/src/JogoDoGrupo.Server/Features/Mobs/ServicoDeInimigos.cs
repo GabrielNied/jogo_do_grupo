@@ -1,3 +1,4 @@
+using JogoDoGrupo.Server.Contratos.Combate;
 using JogoDoGrupo.Server.Contratos.Mobs;
 using JogoDoGrupo.Server.Contratos.Mundo;
 using JogoDoGrupo.Server.Core.Eventos;
@@ -18,6 +19,7 @@ public sealed class ServicoDeInimigos(
     IPosicoesDoMundo posicoes,
     EventosDoServidor eventos,
     ILogger<ServicoDeInimigos> log,
+    IEstadoDeQueda queda,
     ChefesDaDungeon? chefes = null
 ) : BackgroundService, ISpawnDeTeste
 {
@@ -62,10 +64,16 @@ public sealed class ServicoDeInimigos(
         var jogadores = new List<JogadorNoCampo>();
         foreach (var personagemId in posicoes.PersonagensNaArea(grupo.Area))
         {
-            if (posicoes.TentarObter(personagemId, out var posicao) && posicao.Area == grupo.Area)
+            if (
+                queda.EstaCaido(personagemId)
+                || !posicoes.TentarObter(personagemId, out var posicao)
+                || posicao.Area != grupo.Area
+            )
             {
-                jogadores.Add(new JogadorNoCampo(personagemId, posicao.X, posicao.Z));
+                continue;
             }
+
+            jogadores.Add(new JogadorNoCampo(personagemId, posicao.X, posicao.Z));
         }
 
         var passo = grupo.Passo(jogadores);
