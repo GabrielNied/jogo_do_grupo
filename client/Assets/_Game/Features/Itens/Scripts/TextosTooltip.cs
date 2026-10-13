@@ -62,6 +62,18 @@ namespace JogoDoGrupo.Client.Features.Itens
         {
             var dados = Basico(entrada);
             var item = RegrasEquipamentos.DadosDe(entrada);
+            if (item != null && estado != null)
+            {
+                dados.Linhas.Add(
+                    new LinhaTooltip
+                    {
+                        Texto = TextoDosDoadores(
+                            RegrasFusao.Doadores(entrada.InstanciaId, item, estado.Inventario).Count
+                        ),
+                        Estilo = EstiloLinha.Suave,
+                    }
+                );
+            }
             if (item != null && estado != null && entrada.Posicao == PosicaoEquipamento.Inventario)
             {
                 Comparar(dados, item, estado);
@@ -125,6 +137,14 @@ namespace JogoDoGrupo.Client.Features.Itens
             );
 
             return dados;
+        }
+
+        /// <summary>"N doadores na bolsa": peças que a fusão aceitaria como material desta.</summary>
+        public static string TextoDosDoadores(int quantidade)
+        {
+            if (quantidade == 0)
+                return "Nenhum doador na bolsa";
+            return quantidade == 1 ? "1 doador na bolsa" : quantidade + " doadores na bolsa";
         }
 
         // Mostra antes do clique o motivo de o servidor recusar (nível, mão secundária com arma

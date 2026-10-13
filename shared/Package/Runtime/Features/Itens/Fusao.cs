@@ -92,6 +92,36 @@ namespace JogoDoGrupo.Shared.Features.Itens
         }
 
         /// <summary>
+        /// Os doadores compatíveis de <paramref name="principal"/> na bolsa (#561): as outras
+        /// peças da bolsa que <see cref="Validar"/> aceitaria como material (mesmo
+        /// <see cref="TipoEquipamento"/>, sem favorito, principal que ainda não está em +10).
+        /// Peça equipada nunca é doadora (FUSAO-001), então só olha <paramref name="entradas"/>
+        /// na bolsa. Devolve as <c>InstanciaId</c>.
+        /// </summary>
+        public static List<long> Doadores(
+            long instanciaDoPrincipal,
+            Equipamento principal,
+            IEnumerable<EntradaInventario> entradas
+        )
+        {
+            var ids = new List<long>();
+            if (principal == null || entradas == null)
+                return ids;
+            foreach (var entrada in entradas)
+            {
+                if (
+                    entrada == null
+                    || entrada.InstanciaId == instanciaDoPrincipal
+                    || entrada.Posicao != PosicaoEquipamento.Inventario
+                )
+                    continue;
+                if (Validar(principal, RegrasEquipamentos.DadosDe(entrada)) == null)
+                    ids.Add(entrada.InstanciaId);
+            }
+            return ids;
+        }
+
+        /// <summary>
         /// Os atributos que podem ser escolhidos: existem nos dois itens e são elegíveis na
         /// categoria (FUSAO-003). Sem repetição, na ordem do principal.
         /// </summary>

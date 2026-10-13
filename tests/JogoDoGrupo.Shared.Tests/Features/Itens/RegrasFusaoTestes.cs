@@ -41,6 +41,57 @@ public class RegrasFusaoTestes
         int esperado
     ) => Assert.Equal(esperado, RegrasFusao.Resultado(atual, material, Faixa));
 
+    private static EntradaInventario Entrada(
+        long id,
+        Equipamento peca,
+        PosicaoEquipamento posicao = PosicaoEquipamento.Inventario
+    ) =>
+        new()
+        {
+            InstanciaId = id,
+            ItemId = peca.ModeloId,
+            Equipamento = peca,
+            Posicao = posicao,
+        };
+
+    [Fact]
+    public void Doadores_sao_as_outras_pecas_da_bolsa_do_mesmo_tipo_sem_favorito()
+    {
+        var principal = Peca(TipoEquipamento.Espada, (StatusItem.Forca, 50));
+        var favorita = Peca(TipoEquipamento.Espada, (StatusItem.Forca, 50));
+        favorita.Favorito = true;
+        var bolsa = new[]
+        {
+            Entrada(1, principal),
+            Entrada(2, Peca(TipoEquipamento.Espada, (StatusItem.Forca, 10))),
+            Entrada(3, Peca(TipoEquipamento.Escudo, (StatusItem.Forca, 10))),
+            Entrada(4, favorita),
+            Entrada(
+                5,
+                Peca(TipoEquipamento.Espada, (StatusItem.Forca, 10)),
+                PosicaoEquipamento.Arma1
+            ),
+            Entrada(6, Peca(TipoEquipamento.Espada, (StatusItem.Forca, 90))),
+        };
+
+        // Só 2 e 6: não conta a própria peça, outro tipo, favorito nem peça equipada.
+        Assert.Equal(new long[] { 2, 6 }, RegrasFusao.Doadores(1, principal, bolsa));
+    }
+
+    [Fact]
+    public void Principal_em_mais_dez_nao_tem_doadores()
+    {
+        var principal = Peca(TipoEquipamento.Espada, (StatusItem.Forca, 50));
+        principal.NivelFusao = ConfigFusao.NivelMaximo;
+        var bolsa = new[]
+        {
+            Entrada(1, principal),
+            Entrada(2, Peca(TipoEquipamento.Espada, (StatusItem.Forca, 10))),
+        };
+
+        Assert.Empty(RegrasFusao.Doadores(1, principal, bolsa));
+    }
+
     [Fact]
     public void Resultado_nunca_passa_do_material_e_sempre_anda_quando_diferem()
     {
