@@ -5,7 +5,6 @@
     top: 0;
     right: 0;
     bottom: 0;
-    picking-mode: Ignore;
 }
 
 .tela {
@@ -146,7 +145,7 @@
     white-space: normal;
     -unity-text-align: middle-center;
     color: var(--lumora-cores-ouro);
-    text-shadow: var(--lumora-bordas-fina) var(--lumora-bordas-fina) var(--lumora-bordas-destaque) var(--lumora-cores-sombra);
+    text-shadow: var(--lumora-bordas-fina) var(--lumora-bordas-fina) var(--lumora-cores-sombra);
 }
 
 .janela-cabecalho {
@@ -352,7 +351,7 @@
     -unity-text-align: upper-center;
     font-size: var(--lumora-tipografia-leitura);
     color: var(--lumora-cores-marfim);
-    text-shadow: var(--lumora-bordas-fina) var(--lumora-bordas-fina) var(--lumora-bordas-destaque) var(--lumora-cores-sombra);
+    text-shadow: var(--lumora-bordas-fina) var(--lumora-bordas-fina) var(--lumora-cores-sombra);
 }
 
 .mundo-mapa {

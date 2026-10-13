@@ -284,7 +284,6 @@
     width: 64px;
     height: 64px;
     opacity: 0.85;
-    picking-mode: ignore;
 }
 
 .item-tooltip {
@@ -295,7 +294,6 @@
     border-width: var(--lumora-bordas-fina);
     border-color: var(--lumora-cores-ouro);
     border-radius: var(--lumora-bordas-raio-painel);
-    picking-mode: ignore;
 }
 
 .item-tooltip-nome {

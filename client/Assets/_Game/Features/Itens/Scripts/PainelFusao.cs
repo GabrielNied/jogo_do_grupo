@@ -79,7 +79,7 @@ namespace JogoDoGrupo.Client.Features.Itens
                     )
                 );
             }
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
+#if DEBUG
             lista.Add(Botao("Receber coroas de teste", () => _enviar("fusao/coroas-teste", null)));
 #endif
         }
