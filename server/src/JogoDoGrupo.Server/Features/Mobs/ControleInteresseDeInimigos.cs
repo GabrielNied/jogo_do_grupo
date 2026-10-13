@@ -17,6 +17,14 @@ internal sealed class ControleInteresseDeInimigos
 
     public void RemoverJogador(long personagemId) => _recebendo.Remove(personagemId);
 
+    /// <summary>Se o jogador já recebia mensagens desse inimigo (estava no raio).</summary>
+    public bool JaRecebia(long personagemId, long inimigoId) =>
+        _recebendo.TryGetValue(personagemId, out var set) && set.Contains(inimigoId);
+
+    /// <summary>Para de mandar mensagens do inimigo (morte ou saída do raio).</summary>
+    public void EsquecerInimigo(long personagemId, long inimigoId) =>
+        ObterSet(personagemId).Remove(inimigoId);
+
     /// <summary>Filtra o retrato ao entrar na área.</summary>
     public InimigoNoMundo[] FiltrarEntrada(
         long personagemId,
@@ -48,9 +56,10 @@ internal sealed class ControleInteresseDeInimigos
 
     /// <summary>
     /// Decide envio de uma mensagem ligada a um inimigo. Se saiu do raio, devolve
-    /// <see cref="AcaoInteresse.EnviarSaida"/>.
+    /// <see cref="AcaoInteresse.EnviarSaida"/>. <see cref="ResultadoAvaliacaoDeInteresse.EntrouNoRaio"/>
+    /// vale quando o jogador passa a enxergar o inimigo (precisa de <see cref="InimigoApareceu"/>).
     /// </summary>
-    public AcaoInteresse Avaliar(
+    public ResultadoAvaliacaoDeInteresse Avaliar(
         long personagemId,
         long inimigoId,
         double inimigoX,
@@ -70,16 +79,19 @@ internal sealed class ControleInteresseDeInimigos
         if (RegrasInteresseDeInimigos.DeveEnviar(dist, ja))
         {
             set.Add(inimigoId);
-            return AcaoInteresse.Enviar;
+            return new ResultadoAvaliacaoDeInteresse(AcaoInteresse.Enviar, EntrouNoRaio: !ja);
         }
 
         if (ja)
         {
             set.Remove(inimigoId);
-            return AcaoInteresse.EnviarSaida;
+            return new ResultadoAvaliacaoDeInteresse(
+                AcaoInteresse.EnviarSaida,
+                EntrouNoRaio: false
+            );
         }
 
-        return AcaoInteresse.Ignorar;
+        return new ResultadoAvaliacaoDeInteresse(AcaoInteresse.Ignorar, EntrouNoRaio: false);
     }
 
     private HashSet<long> ObterSet(long personagemId)
@@ -99,4 +111,9 @@ internal sealed class ControleInteresseDeInimigos
         Enviar,
         EnviarSaida,
     }
+
+    internal readonly record struct ResultadoAvaliacaoDeInteresse(
+        AcaoInteresse Acao,
+        bool EntrouNoRaio
+    );
 }

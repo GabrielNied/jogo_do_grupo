@@ -1,5 +1,6 @@
 using JogoDoGrupo.Server.Contratos.Combate;
 using JogoDoGrupo.Server.Contratos.Mobs;
+using JogoDoGrupo.Server.Contratos.Mundo;
 using JogoDoGrupo.Server.Features.Mobs;
 using JogoDoGrupo.Server.Tests.Core.TempoReal;
 using JogoDoGrupo.Shared.Features.Mobs;
@@ -100,10 +101,29 @@ public class ChefesDaDungeonTestes(TempoRealFixture f) : IClassFixture<TempoReal
     [Fact]
     public async Task Quem_entra_na_area_recebe_o_boss_junto_dos_inimigos_vivos()
     {
-        var (cliente, _, _) = await f.EntrarAsync();
+        var (cliente, _, personagemId) = await f.EntrarAsync();
         using var _c = cliente;
 
         cliente.Enviar(MundoMessageIds.EntrarNaCidade, new EntrarNaCidade());
+        await cliente.ReceberAsync<InimigosDaArea>(MobsMessageIds.InimigosDaArea);
+
+        var teleporte = f.Fabrica.Services.GetRequiredService<ITeleporteDeTeste>();
+        Assert.True(
+            teleporte
+                .Teleportar(
+                    personagemId,
+                    (float)ConfigChefeDaDungeon.PontoDeTesteX,
+                    0f,
+                    (float)ConfigChefeDaDungeon.PontoDeTesteZ
+                )
+                .Aceito
+        );
+
+        var servico = f.Fabrica.Services.GetRequiredService<ServicoDeInimigos>();
+        servico.AoEntrarNaArea(
+            new JogadorEntrouNaArea(personagemId, ConfigChefeDaDungeon.AreaDeTeste)
+        );
+
         var area = await cliente.ReceberAsync<InimigosDaArea>(MobsMessageIds.InimigosDaArea);
 
         var boss = Assert.Single(
