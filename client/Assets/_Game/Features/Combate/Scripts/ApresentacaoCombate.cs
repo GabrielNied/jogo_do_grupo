@@ -41,30 +41,30 @@ namespace JogoDoGrupo.Client.Features.Combate
     internal static class ApresentacaoCombate
     {
         public const string RotuloVida = "Vida";
-        public const string RotuloVigor = "Vigor";
-        public const string RotuloEnergia = "Energia";
+        public const string RotuloStamina = "Stamina";
+        public const string RotuloMana = "Mana";
 
         /// <summary>
-        /// As três barras (vida, vigor, energia) da resposta, ou <c>false</c> quando a chamada
+        /// As três barras (vida, stamina, mana) da resposta, ou <c>false</c> quando a chamada
         /// falhou ou veio sem corpo (o painel mantém o que já mostrava).
         /// </summary>
         public static bool TentarMontar(
             bool sucesso,
             RecursosResponse corpo,
             out BarraRecurso vida,
-            out BarraRecurso vigor,
-            out BarraRecurso energia
+            out BarraRecurso stamina,
+            out BarraRecurso mana
         )
         {
             if (!sucesso || corpo == null)
             {
-                vida = vigor = energia = default;
+                vida = stamina = mana = default;
                 return false;
             }
 
             vida = new BarraRecurso(RotuloVida, corpo.VidaAtual, corpo.VidaMaxima);
-            vigor = new BarraRecurso(RotuloVigor, corpo.VigorAtual, corpo.VigorMaximo);
-            energia = new BarraRecurso(RotuloEnergia, corpo.EnergiaAtual, corpo.EnergiaMaxima);
+            stamina = new BarraRecurso(RotuloStamina, corpo.StaminaAtual, corpo.StaminaMaxima);
+            mana = new BarraRecurso(RotuloMana, corpo.ManaAtual, corpo.ManaMaxima);
             return true;
         }
 
@@ -75,19 +75,19 @@ namespace JogoDoGrupo.Client.Features.Combate
         public static bool TentarMontar(
             RecursosMudaram corpo,
             out BarraRecurso vida,
-            out BarraRecurso vigor,
-            out BarraRecurso energia
+            out BarraRecurso stamina,
+            out BarraRecurso mana
         )
         {
             if (corpo == null)
             {
-                vida = vigor = energia = default;
+                vida = stamina = mana = default;
                 return false;
             }
 
             vida = new BarraRecurso(RotuloVida, corpo.VidaAtual, corpo.VidaMaxima);
-            vigor = new BarraRecurso(RotuloVigor, corpo.VigorAtual, corpo.VigorMaximo);
-            energia = new BarraRecurso(RotuloEnergia, corpo.EnergiaAtual, corpo.EnergiaMaxima);
+            stamina = new BarraRecurso(RotuloStamina, corpo.StaminaAtual, corpo.StaminaMaxima);
+            mana = new BarraRecurso(RotuloMana, corpo.ManaAtual, corpo.ManaMaxima);
             return true;
         }
     }

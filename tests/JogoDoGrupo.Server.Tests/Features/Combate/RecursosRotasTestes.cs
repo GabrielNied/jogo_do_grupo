@@ -127,7 +127,7 @@ public class RecursosRotasTestes(ServidorDeCombate servidor) : IClassFixture<Ser
     }
 
     /// <summary>Muda o que está guardado, como um gasto de recurso faria.</summary>
-    private async Task Gastar(long id, int? vida = null, int? vigor = null, int? energia = null)
+    private async Task Gastar(long id, int? vida = null, int? stamina = null, int? mana = null)
     {
         var memoria = servidor.Falso.Services.GetRequiredService<RecursosEmMemoria>();
         await memoria.GravarAsync(id); // O banco precisa ter o que a memória já mudou.
@@ -139,17 +139,17 @@ public class RecursosRotasTestes(ServidorDeCombate servidor) : IClassFixture<Ser
         {
             r.Vida = vida.Value;
         }
-        if (vigor != null)
+        if (stamina != null)
         {
-            r.Vigor = vigor.Value;
-            r.UltimoGastoVigorEm = agora;
-            r.VigorContadoAte = agora;
+            r.Stamina = stamina.Value;
+            r.UltimoGastoStaminaEm = agora;
+            r.StaminaContadaAte = agora;
         }
-        if (energia != null)
+        if (mana != null)
         {
-            r.Energia = energia.Value;
-            r.UltimoGastoEnergiaEm = agora;
-            r.EnergiaContadaAte = agora;
+            r.Mana = mana.Value;
+            r.UltimoGastoManaEm = agora;
+            r.ManaContadaAte = agora;
         }
         await db.SaveChangesAsync();
         memoria.Descartar(id); // E a memória precisa reler o que o teste mudou.
@@ -164,11 +164,11 @@ public class RecursosRotasTestes(ServidorDeCombate servidor) : IClassFixture<Ser
 
         Assert.Equal(RegrasRecursos.VidaBase, r.VidaMaxima);
         Assert.Equal(r.VidaMaxima, r.VidaAtual);
-        Assert.Equal(RegrasRecursos.VigorBase, r.VigorMaximo);
-        Assert.Equal(r.VigorMaximo, r.VigorAtual);
-        Assert.Equal(RegrasRecursos.EnergiaBase, r.EnergiaMaxima);
-        Assert.Equal(r.EnergiaMaxima, r.EnergiaAtual);
-        Assert.Equal(0, r.Atributos.Forca + r.Atributos.Vitalidade + r.Atributos.Espirito);
+        Assert.Equal(RegrasRecursos.StaminaBase, r.StaminaMaxima);
+        Assert.Equal(r.StaminaMaxima, r.StaminaAtual);
+        Assert.Equal(RegrasRecursos.ManaBase, r.ManaMaxima);
+        Assert.Equal(r.ManaMaxima, r.ManaAtual);
+        Assert.Equal(0, r.Atributos.Forca + r.Atributos.Vigor + r.Atributos.Espirito);
     }
 
     [Fact]
@@ -208,24 +208,42 @@ public class RecursosRotasTestes(ServidorDeCombate servidor) : IClassFixture<Ser
     public async Task Atributos_somam_equipamentos_e_efeitos_uma_vez_so()
     {
         var (cliente, id) = await NovoPersonagem();
-        servidor.Bonus.Equipamentos = new AtributosCombate { Vitalidade = 10, Espirito = 5 };
-        servidor.Bonus.Efeitos = new AtributosCombate { Vitalidade = 2 };
+        servidor.Bonus.Equipamentos = new AtributosCombate { Vigor = 10, Espirito = 5 };
+        servidor.Bonus.Efeitos = new AtributosCombate { Vigor = 2 };
 
         var r = await Recursos(cliente, id);
         var outra = await Recursos(cliente, id);
 
-        Assert.Equal(12, r.Atributos.Vitalidade);
+        Assert.Equal(12, r.Atributos.Vigor);
         Assert.Equal(620, r.VidaMaxima);
-        Assert.Equal(110, r.EnergiaMaxima);
-        Assert.Equal(r.Atributos.Vitalidade, outra.Atributos.Vitalidade);
+        Assert.Equal(110, r.ManaMaxima);
+        Assert.Equal(r.Atributos.Vigor, outra.Atributos.Vigor);
         Assert.Equal(r.VidaMaxima, outra.VidaMaxima);
+    }
+
+    [Fact]
+    public async Task Stamina_maxima_cresce_com_agilidade()
+    {
+        var (cliente, id) = await NovoPersonagem();
+        servidor.Bonus.Equipamentos = new AtributosCombate { Agilidade = 10 };
+        servidor.Bonus.Efeitos = new AtributosCombate { Agilidade = 5 };
+
+        var r = await Recursos(cliente, id);
+
+        Assert.Equal(15, r.Atributos.Agilidade);
+        Assert.Equal(RegrasRecursos.StaminaMaxima(15), r.StaminaMaxima);
+        Assert.Equal(
+            RegrasRecursos.StaminaBase + 15 * RegrasRecursos.StaminaPorAgilidade,
+            r.StaminaMaxima
+        );
+        Assert.Equal(r.StaminaMaxima, r.StaminaAtual);
     }
 
     [Fact]
     public async Task Equipar_e_desequipar_nao_duplica_bonus()
     {
         var (cliente, id) = await NovoPersonagem();
-        var bonus = new AtributosCombate { Vitalidade = 10 };
+        var bonus = new AtributosCombate { Vigor = 10 };
 
         servidor.Bonus.Equipamentos = bonus;
         Assert.Equal(600, (await Recursos(cliente, id)).VidaMaxima);
@@ -239,54 +257,54 @@ public class RecursosRotasTestes(ServidorDeCombate servidor) : IClassFixture<Ser
     public async Task Maximo_reduzido_limita_o_atual_e_nao_cura()
     {
         var (cliente, id) = await NovoPersonagem();
-        servidor.Bonus.Equipamentos = new AtributosCombate { Vitalidade = 10, Espirito = 10 };
+        servidor.Bonus.Equipamentos = new AtributosCombate { Vigor = 10, Espirito = 10 };
         var cheio = await Recursos(cliente, id);
         Assert.Equal(600, cheio.VidaAtual);
-        Assert.Equal(120, cheio.EnergiaAtual);
+        Assert.Equal(120, cheio.ManaAtual);
 
         servidor.Bonus.Equipamentos = new AtributosCombate();
         var reduzido = await Recursos(cliente, id);
         Assert.Equal(500, reduzido.VidaAtual);
-        Assert.Equal(100, reduzido.EnergiaAtual);
+        Assert.Equal(100, reduzido.ManaAtual);
 
         // Vida abaixo do máximo não sobe quando o máximo aumenta.
         await Gastar(id, vida: 300);
-        servidor.Bonus.Equipamentos = new AtributosCombate { Vitalidade = 10 };
+        servidor.Bonus.Equipamentos = new AtributosCombate { Vigor = 10 };
         var depois = await Recursos(cliente, id);
         Assert.Equal(300, depois.VidaAtual);
         Assert.Equal(600, depois.VidaMaxima);
     }
 
     [Fact]
-    public async Task Vigor_so_regenera_depois_de_2_segundos_do_gasto()
+    public async Task Stamina_so_regenera_depois_de_2_segundos_do_gasto()
     {
         var (cliente, id) = await NovoPersonagem();
         await Recursos(cliente, id);
-        await Gastar(id, vigor: 40);
+        await Gastar(id, stamina: 40);
 
         servidor.Relogio.Avancar(1.5);
-        Assert.Equal(40, (await Recursos(cliente, id)).VigorAtual);
+        Assert.Equal(40, (await Recursos(cliente, id)).StaminaAtual);
 
         servidor.Relogio.Avancar(0.5); // 2,0 s: o atraso acabou, ainda não passou nada dele
-        Assert.Equal(40, (await Recursos(cliente, id)).VigorAtual);
+        Assert.Equal(40, (await Recursos(cliente, id)).StaminaAtual);
 
         servidor.Relogio.Avancar(1.0); // 1 s depois do atraso: +10
-        Assert.Equal(50, (await Recursos(cliente, id)).VigorAtual);
+        Assert.Equal(50, (await Recursos(cliente, id)).StaminaAtual);
     }
 
     [Fact]
-    public async Task Energia_regenera_5_por_segundo_e_nunca_passa_do_maximo()
+    public async Task Mana_regenera_5_por_segundo_e_nunca_passa_do_maximo()
     {
         var (cliente, id) = await NovoPersonagem();
         await Recursos(cliente, id);
-        await Gastar(id, energia: 0);
+        await Gastar(id, mana: 0);
 
         servidor.Relogio.Avancar(4.0); // 2 s pagos: +10
-        Assert.Equal(10, (await Recursos(cliente, id)).EnergiaAtual);
+        Assert.Equal(10, (await Recursos(cliente, id)).ManaAtual);
 
         servidor.Relogio.Avancar(30);
         var r = await Recursos(cliente, id);
-        Assert.Equal(r.EnergiaMaxima, r.EnergiaAtual);
+        Assert.Equal(r.ManaMaxima, r.ManaAtual);
     }
 
     [Fact]
@@ -294,7 +312,7 @@ public class RecursosRotasTestes(ServidorDeCombate servidor) : IClassFixture<Ser
     {
         var (cliente, id) = await NovoPersonagem();
         await Recursos(cliente, id);
-        await Gastar(id, vigor: 0);
+        await Gastar(id, stamina: 0);
         servidor.Relogio.Avancar(2.0);
 
         // 20 consultas de 0,05 s (1 s no total): tem que dar os 10 pontos de 1 s.
@@ -304,7 +322,7 @@ public class RecursosRotasTestes(ServidorDeCombate servidor) : IClassFixture<Ser
             await Recursos(cliente, id);
         }
 
-        Assert.Equal(10, (await Recursos(cliente, id)).VigorAtual);
+        Assert.Equal(10, (await Recursos(cliente, id)).StaminaAtual);
     }
 
     [Fact]
@@ -312,13 +330,13 @@ public class RecursosRotasTestes(ServidorDeCombate servidor) : IClassFixture<Ser
     {
         var (cliente, id) = await NovoPersonagem();
         await Recursos(cliente, id);
-        await Gastar(id, vida: -50, vigor: -10, energia: 9999);
+        await Gastar(id, vida: -50, stamina: -10, mana: 9999);
 
         var r = await Recursos(cliente, id);
 
         Assert.Equal(0, r.VidaAtual);
-        Assert.True(r.VigorAtual >= 0);
-        Assert.Equal(r.EnergiaMaxima, r.EnergiaAtual);
+        Assert.True(r.StaminaAtual >= 0);
+        Assert.Equal(r.ManaMaxima, r.ManaAtual);
     }
 
     [Fact]
@@ -326,15 +344,15 @@ public class RecursosRotasTestes(ServidorDeCombate servidor) : IClassFixture<Ser
     {
         var (cliente, id) = await NovoPersonagem();
         await Recursos(cliente, id);
-        await Gastar(id, vigor: 0);
+        await Gastar(id, stamina: 0);
         servidor.Relogio.Avancar(5.0); // 3 s pagos: +30
 
         var respostas = await Task.WhenAll(
             Enumerable.Range(0, 10).Select(_ => Recursos(cliente, id))
         );
 
-        Assert.All(respostas, r => Assert.Equal(30, r.VigorAtual));
-        Assert.Equal(30, (await Recursos(cliente, id)).VigorAtual);
+        Assert.All(respostas, r => Assert.Equal(30, r.StaminaAtual));
+        Assert.Equal(30, (await Recursos(cliente, id)).StaminaAtual);
     }
 
     [Fact]

@@ -31,11 +31,11 @@ public sealed class Personagem
     /// <summary>Pontos que o jogador já distribuiu. Sem base, equipamento nem efeito.</summary>
     public int Forca { get; set; }
 
-    public int Destreza { get; set; }
+    public int Agilidade { get; set; }
 
     public int Intelecto { get; set; }
 
-    public int Vitalidade { get; set; }
+    public int Vigor { get; set; }
 
     public int Espirito { get; set; }
 
@@ -66,9 +66,9 @@ public sealed class Personagem
         new()
         {
             Forca = Forca,
-            Destreza = Destreza,
+            Agilidade = Agilidade,
             Intelecto = Intelecto,
-            Vitalidade = Vitalidade,
+            Vigor = Vigor,
             Espirito = Espirito,
         };
 }

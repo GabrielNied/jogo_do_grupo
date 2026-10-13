@@ -3,22 +3,31 @@ using System;
 namespace JogoDoGrupo.Shared.Features.Combate
 {
     /// <summary>
-    /// Fórmulas puras de atributos e recursos (vida, vigor, energia). Valores da proposta em
+    /// Fórmulas puras de atributos e recursos (vida, stamina, mana). Valores da proposta em
     /// docs/features/fatia-jogavel.md, seção 1; o servidor é quem decide, o client só mostra.
     /// </summary>
     public static class RegrasRecursos
     {
+        // Valores de teste até a #627 (docs/features/personagem.md, "Valores de teste até a
+        // decisão"); não são balanceamento final.
         public const int VidaBase = 500;
-        public const int VidaPorVitalidade = 10;
-        public const int VigorBase = 100;
-        public const int EnergiaBase = 100;
-        public const int EnergiaPorEspirito = 2;
+
+        /// <summary>Vida máxima ganha por ponto de Vigor.</summary>
+        public const int VidaPorVigor = 10;
+        public const int StaminaBase = 100;
+
+        /// <summary>Stamina máxima ganha por ponto de Agilidade.</summary>
+        public const int StaminaPorAgilidade = 2;
+        public const int ManaBase = 100;
+
+        /// <summary>Mana máxima ganha por ponto de Espírito.</summary>
+        public const int ManaPorEspirito = 2;
 
         /// <summary>Segundos sem gastar o recurso antes de a regeneração começar.</summary>
         public const double AtrasoRegeneracaoSegundos = 2.0;
 
-        public const double RegeneracaoVigorPorSegundo = 10.0;
-        public const double RegeneracaoEnergiaPorSegundo = 5.0;
+        public const double RegeneracaoStaminaPorSegundo = 10.0;
+        public const double RegeneracaoManaPorSegundo = 5.0;
 
         /// <summary>Valor final de um atributo: base + pontos distribuídos + equipamentos + efeitos.</summary>
         public static int ValorFinal(
@@ -28,12 +37,12 @@ namespace JogoDoGrupo.Shared.Features.Combate
             int efeitos
         ) => basePersonagem + pontosDistribuidos + equipamentos + efeitos;
 
-        public static int VidaMaxima(int vitalidade) => VidaBase + VidaPorVitalidade * vitalidade;
+        public static int VidaMaxima(int vigor) => VidaBase + VidaPorVigor * vigor;
 
-        public static int VigorMaximo() => VigorBase;
+        public static int StaminaMaxima(int agilidade) =>
+            StaminaBase + StaminaPorAgilidade * agilidade;
 
-        public static int EnergiaMaxima(int espirito) =>
-            EnergiaBase + EnergiaPorEspirito * espirito;
+        public static int ManaMaxima(int espirito) => ManaBase + ManaPorEspirito * espirito;
 
         /// <summary>
         /// Mantém o valor atual entre 0 e o máximo. Reduzir o máximo não cura: o atual só
@@ -49,10 +58,10 @@ namespace JogoDoGrupo.Shared.Features.Combate
         }
 
         /// <summary>
-        /// Regeneração de vigor: devolve o novo atual. Só conta o tempo que passou depois do
+        /// Regeneração de stamina: devolve o novo atual. Só conta o tempo que passou depois do
         /// atraso de <see cref="AtrasoRegeneracaoSegundos"/> desde o último gasto.
         /// </summary>
-        public static int RegenerarVigor(
+        public static int RegenerarStamina(
             int atual,
             int maximo,
             double segundosDesdeUltimoGasto,
@@ -61,13 +70,13 @@ namespace JogoDoGrupo.Shared.Features.Combate
             Regenerar(
                 atual,
                 maximo,
-                RegeneracaoVigorPorSegundo,
+                RegeneracaoStaminaPorSegundo,
                 segundosDesdeUltimoGasto,
                 segundosPassados
             );
 
-        /// <summary>Regeneração de energia (mesma regra do vigor, outra taxa).</summary>
-        public static int RegenerarEnergia(
+        /// <summary>Regeneração de mana (mesma regra da stamina, outra taxa).</summary>
+        public static int RegenerarMana(
             int atual,
             int maximo,
             double segundosDesdeUltimoGasto,
@@ -76,7 +85,7 @@ namespace JogoDoGrupo.Shared.Features.Combate
             Regenerar(
                 atual,
                 maximo,
-                RegeneracaoEnergiaPorSegundo,
+                RegeneracaoManaPorSegundo,
                 segundosDesdeUltimoGasto,
                 segundosPassados
             );

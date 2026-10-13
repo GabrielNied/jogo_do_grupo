@@ -107,7 +107,7 @@ public class ExperienciaDoPersonagemTestes(ServidorDeTeste servidor)
         var cliente = await servidor.CriarClienteLogadoAsync();
         var id = await CriarPersonagemAsync(cliente);
         await DefinirPontosLivresAsync(id, 5);
-        var pedido = new PontosDeAtributos { Vitalidade = 5 };
+        var pedido = new PontosDeAtributos { Vigor = 5 };
 
         var respostas = await Task.WhenAll(
             GastarAsync(cliente, id, pedido),
@@ -118,7 +118,7 @@ public class ExperienciaDoPersonagemTestes(ServidorDeTeste servidor)
         Assert.Equal(1, respostas.Count(r => r.StatusCode == HttpStatusCode.Conflict));
         var progresso = await ProgressoAsync(cliente, id);
         Assert.Equal(0, progresso.PontosLivres);
-        Assert.Equal(5, progresso.Distribuidos.Vitalidade);
+        Assert.Equal(5, progresso.Distribuidos.Vigor);
     }
 
     [Fact]
@@ -142,18 +142,34 @@ public class ExperienciaDoPersonagemTestes(ServidorDeTeste servidor)
     }
 
     [Fact]
-    public async Task Vitalidade_distribuida_aumenta_a_vida_maxima()
+    public async Task Vigor_distribuida_aumenta_a_vida_maxima()
     {
         var cliente = await servidor.CriarClienteLogadoAsync();
         var id = await CriarPersonagemAsync(cliente);
         await DefinirPontosLivresAsync(id, 5);
-        var gasto = await GastarAsync(cliente, id, new PontosDeAtributos { Vitalidade = 5 });
+        var gasto = await GastarAsync(cliente, id, new PontosDeAtributos { Vigor = 5 });
         Assert.Equal(HttpStatusCode.OK, gasto.StatusCode);
 
         var recursos = await cliente.GetAsync(RotasCombate.RecursosDe(id));
         Assert.Equal(HttpStatusCode.OK, recursos.StatusCode);
         var corpo = await ServidorDeTeste.LerJsonAsync<RecursosResponse>(recursos);
         Assert.Equal(RegrasRecursos.VidaMaxima(5), corpo.VidaMaxima);
+    }
+
+    [Fact]
+    public async Task Agilidade_distribuida_aumenta_a_stamina_maxima()
+    {
+        var cliente = await servidor.CriarClienteLogadoAsync();
+        var id = await CriarPersonagemAsync(cliente);
+        await DefinirPontosLivresAsync(id, 5);
+        var gasto = await GastarAsync(cliente, id, new PontosDeAtributos { Agilidade = 5 });
+        Assert.Equal(HttpStatusCode.OK, gasto.StatusCode);
+
+        var recursos = await cliente.GetAsync(RotasCombate.RecursosDe(id));
+        Assert.Equal(HttpStatusCode.OK, recursos.StatusCode);
+        var corpo = await ServidorDeTeste.LerJsonAsync<RecursosResponse>(recursos);
+        Assert.Equal(RegrasRecursos.StaminaMaxima(5), corpo.StaminaMaxima);
+        Assert.True(corpo.StaminaMaxima > RegrasRecursos.StaminaBase);
     }
 
     [Fact]

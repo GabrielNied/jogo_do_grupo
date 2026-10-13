@@ -13,10 +13,10 @@ namespace JogoDoGrupo.Shared.Features.Combate
         public const string PersonagemNaoEncontrado = "PersonagemNaoEncontrado";
 
         /// <summary>
-        /// Tempo real, em <see cref="AtaqueRecusado.Codigo"/>: o ataque custa mais vigor do que o
+        /// Tempo real, em <see cref="AtaqueRecusado.Codigo"/>: o ataque custa mais stamina do que o
         /// personagem tem agora. Nada é gasto.
         /// </summary>
-        public const string VigorInsuficiente = "VigorInsuficiente";
+        public const string StaminaInsuficiente = "StaminaInsuficiente";
 
         /// <summary>
         /// Tempo real, em <see cref="AtaqueRecusado.Codigo"/>: o personagem ainda está em outra

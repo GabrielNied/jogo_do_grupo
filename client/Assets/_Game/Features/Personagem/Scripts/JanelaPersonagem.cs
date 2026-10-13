@@ -188,28 +188,38 @@ namespace JogoDoGrupo.Client.Features.Personagem
             _confirmar.SetEnabled(estado.PodeConfirmar);
 
             _atributos.Clear();
-            AdicionarAtributo("Força", "Forca", estado.Distribuidos.Forca, estado.Rascunho.Forca);
             AdicionarAtributo(
-                "Destreza",
-                "Destreza",
-                estado.Distribuidos.Destreza,
-                estado.Rascunho.Destreza
+                TextosPersonagem.RotuloForca,
+                "Forca",
+                TextosPersonagem.EfeitoDaForca,
+                estado.Distribuidos.Forca,
+                estado.Rascunho.Forca
             );
             AdicionarAtributo(
+                TextosPersonagem.RotuloVigor,
+                "Vigor",
+                TextosPersonagem.EfeitoDoVigor,
+                estado.Distribuidos.Vigor,
+                estado.Rascunho.Vigor
+            );
+            AdicionarAtributo(
+                TextosPersonagem.RotuloAgilidade,
+                "Agilidade",
+                TextosPersonagem.EfeitoDaAgilidade,
+                estado.Distribuidos.Agilidade,
+                estado.Rascunho.Agilidade
+            );
+            AdicionarAtributo(
+                TextosPersonagem.RotuloIntelecto,
                 "Intelecto",
-                "Intelecto",
+                TextosPersonagem.EfeitoDoIntelecto,
                 estado.Distribuidos.Intelecto,
                 estado.Rascunho.Intelecto
             );
             AdicionarAtributo(
-                "Vitalidade",
-                "Vitalidade",
-                estado.Distribuidos.Vitalidade,
-                estado.Rascunho.Vitalidade
-            );
-            AdicionarAtributo(
-                "Espírito",
+                TextosPersonagem.RotuloEspirito,
                 "Espirito",
+                TextosPersonagem.EfeitoDoEspirito,
                 estado.Distribuidos.Espirito,
                 estado.Rascunho.Espirito
             );
@@ -219,12 +229,21 @@ namespace JogoDoGrupo.Client.Features.Personagem
             _atributos.Add(livres);
         }
 
-        private void AdicionarAtributo(string rotulo, string chave, int distribuido, int rascunho)
+        private void AdicionarAtributo(
+            string rotulo,
+            string chave,
+            string efeito,
+            int distribuido,
+            int rascunho
+        )
         {
             var linha = new VisualElement();
             linha.AddToClassList(EstiloCore.LinhaBotoes);
-            var texto = new Label(rotulo + ": " + (distribuido + rascunho));
+            var texto = new Label(
+                TextosPersonagem.LinhaDoAtributo(rotulo, distribuido + rascunho, efeito)
+            );
             texto.AddToClassList(EstiloCore.Texto);
+            texto.tooltip = efeito;
             var mais = new Button(() => ProgressoDoClient.Estado.AumentarRascunho(chave))
             {
                 text = "+",

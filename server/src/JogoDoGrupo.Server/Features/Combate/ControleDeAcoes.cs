@@ -118,7 +118,7 @@ public sealed class ControleDeAcoes
     }
 
     /// <summary>
-    /// A ação <paramref name="acaoId"/> não valeu (sem vigor, caído): libera o personagem e,
+    /// A ação <paramref name="acaoId"/> não valeu (sem stamina, caído): libera o personagem e,
     /// se havia um pedido na fila, começa ele agora e o devolve.
     /// </summary>
     public AcaoDeAtaque? Desistir(long personagemId, long acaoId, long agoraMs)
@@ -174,7 +174,7 @@ public sealed class ControleDeAcoes
     }
 
     /// <summary>
-    /// A reserva <paramref name="ocupacaoId"/> não valeu (sem vigor, caído): libera o personagem
+    /// A reserva <paramref name="ocupacaoId"/> não valeu (sem stamina, caído): libera o personagem
     /// na hora, tira a invulnerabilidade e devolve a recuperação do ataque que ela havia cortado.
     /// Não faz nada se a reserva já é outra ou o personagem foi esquecido.
     /// </summary>

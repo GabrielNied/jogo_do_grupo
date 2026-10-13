@@ -61,7 +61,7 @@ public class RegrasEsquivaTestes
     {
         Assert.Equal(5.0, RegrasEsquiva.DistanciaMetros);
         Assert.Equal(0.6, RegrasEsquiva.DuracaoSegundos);
-        Assert.Equal(15, RegrasEsquiva.CustoDeVigor);
+        Assert.Equal(15, RegrasEsquiva.CustoDeStamina);
         Assert.Equal(600, RegrasEsquiva.DuracaoMs);
         Assert.Equal(5.0 / 0.6, RegrasEsquiva.VelocidadeMetrosPorSegundo, 9);
     }
@@ -70,7 +70,7 @@ public class RegrasEsquivaTestes
     public void Esquiva_e_mais_rapida_que_a_corrida() =>
         Assert.True(RegrasEsquiva.VelocidadeMetrosPorSegundo > 5.5);
 
-    // ── Vigor ─────────────────────────────────────────────────────────────────
+    // ── Stamina ─────────────────────────────────────────────────────────────────
 
     [Theory]
     [InlineData(15, true)]
@@ -78,8 +78,8 @@ public class RegrasEsquivaTestes
     [InlineData(14, false)]
     [InlineData(0, false)]
     [InlineData(-5, false)]
-    public void Esquiva_precisa_de_15_de_vigor(int vigorAtual, bool esperado) =>
-        Assert.Equal(esperado, RegrasEsquiva.TemVigor(vigorAtual));
+    public void Esquiva_precisa_de_15_de_stamina(int staminaAtual, bool esperado) =>
+        Assert.Equal(esperado, RegrasEsquiva.TemStamina(staminaAtual));
 
     // ── Janela e deslocamento ─────────────────────────────────────────────────
 

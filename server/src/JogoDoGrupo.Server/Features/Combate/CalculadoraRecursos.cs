@@ -28,9 +28,9 @@ internal static class CalculadoraRecursos
             new PontosDeAtributos
             {
                 Forca = PontosDistribuidos,
-                Destreza = PontosDistribuidos,
+                Agilidade = PontosDistribuidos,
                 Intelecto = PontosDistribuidos,
-                Vitalidade = PontosDistribuidos,
+                Vigor = PontosDistribuidos,
                 Espirito = PontosDistribuidos,
             }
         );
@@ -43,9 +43,9 @@ internal static class CalculadoraRecursos
         new()
         {
             Forca = Final(pontos.Forca, equipamentos.Forca, efeitos.Forca),
-            Destreza = Final(pontos.Destreza, equipamentos.Destreza, efeitos.Destreza),
+            Agilidade = Final(pontos.Agilidade, equipamentos.Agilidade, efeitos.Agilidade),
             Intelecto = Final(pontos.Intelecto, equipamentos.Intelecto, efeitos.Intelecto),
-            Vitalidade = Final(pontos.Vitalidade, equipamentos.Vitalidade, efeitos.Vitalidade),
+            Vigor = Final(pontos.Vigor, equipamentos.Vigor, efeitos.Vigor),
             Espirito = Final(pontos.Espirito, equipamentos.Espirito, efeitos.Espirito),
         };
 
@@ -57,36 +57,36 @@ internal static class CalculadoraRecursos
         new()
         {
             PersonagemId = personagemId,
-            Vida = RegrasRecursos.VidaMaxima(a.Vitalidade),
-            Vigor = RegrasRecursos.VigorMaximo(),
-            Energia = RegrasRecursos.EnergiaMaxima(a.Espirito),
-            VigorContadoAte = agora,
-            EnergiaContadaAte = agora,
+            Vida = RegrasRecursos.VidaMaxima(a.Vigor),
+            Stamina = RegrasRecursos.StaminaMaxima(a.Agilidade),
+            Mana = RegrasRecursos.ManaMaxima(a.Espirito),
+            StaminaContadaAte = agora,
+            ManaContadaAte = agora,
         };
 
     /// <summary>
-    /// Limita ao novo máximo e regenera vigor e energia até <paramref name="agora"/>. Muda
+    /// Limita ao novo máximo e regenera stamina e mana até <paramref name="agora"/>. Muda
     /// <paramref name="r"/> no lugar.
     /// </summary>
     public static void Atualizar(RecursosPersonagem r, AtributosCombate a, DateTime agora)
     {
-        r.Vida = RegrasRecursos.Limitar(r.Vida, RegrasRecursos.VidaMaxima(a.Vitalidade));
+        r.Vida = RegrasRecursos.Limitar(r.Vida, RegrasRecursos.VidaMaxima(a.Vigor));
 
-        (r.Vigor, r.VigorContadoAte) = Regenerar(
-            r.Vigor,
-            RegrasRecursos.VigorMaximo(),
-            RegrasRecursos.RegeneracaoVigorPorSegundo,
-            r.UltimoGastoVigorEm,
-            r.VigorContadoAte,
+        (r.Stamina, r.StaminaContadaAte) = Regenerar(
+            r.Stamina,
+            RegrasRecursos.StaminaMaxima(a.Agilidade),
+            RegrasRecursos.RegeneracaoStaminaPorSegundo,
+            r.UltimoGastoStaminaEm,
+            r.StaminaContadaAte,
             agora
         );
 
-        (r.Energia, r.EnergiaContadaAte) = Regenerar(
-            r.Energia,
-            RegrasRecursos.EnergiaMaxima(a.Espirito),
-            RegrasRecursos.RegeneracaoEnergiaPorSegundo,
-            r.UltimoGastoEnergiaEm,
-            r.EnergiaContadaAte,
+        (r.Mana, r.ManaContadaAte) = Regenerar(
+            r.Mana,
+            RegrasRecursos.ManaMaxima(a.Espirito),
+            RegrasRecursos.RegeneracaoManaPorSegundo,
+            r.UltimoGastoManaEm,
+            r.ManaContadaAte,
             agora
         );
     }

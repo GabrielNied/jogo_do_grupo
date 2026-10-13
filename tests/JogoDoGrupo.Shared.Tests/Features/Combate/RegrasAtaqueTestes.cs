@@ -11,7 +11,7 @@ public class RegrasAtaqueTestes
     {
         Assert.Equal(0.5, RegrasAtaque.PreparoSegundos(TipoDeAtaque.Leve));
         Assert.Equal(1.0, RegrasAtaque.Multiplicador(TipoDeAtaque.Leve));
-        Assert.Equal(0, RegrasAtaque.CustoDeVigor(TipoDeAtaque.Leve));
+        Assert.Equal(0, RegrasAtaque.CustoDeStamina(TipoDeAtaque.Leve));
         Assert.Equal(500, RegrasAtaque.PreparoMs(TipoDeAtaque.Leve));
     }
 
@@ -20,7 +20,7 @@ public class RegrasAtaqueTestes
     {
         Assert.Equal(1.0, RegrasAtaque.PreparoSegundos(TipoDeAtaque.Pesado));
         Assert.Equal(2.2, RegrasAtaque.Multiplicador(TipoDeAtaque.Pesado));
-        Assert.Equal(20, RegrasAtaque.CustoDeVigor(TipoDeAtaque.Pesado));
+        Assert.Equal(20, RegrasAtaque.CustoDeStamina(TipoDeAtaque.Pesado));
         Assert.Equal(1000, RegrasAtaque.PreparoMs(TipoDeAtaque.Pesado));
     }
 
@@ -59,21 +59,21 @@ public class RegrasAtaqueTestes
     public void TipoValido_so_aceita_leve_e_pesado(int valor, bool esperado) =>
         Assert.Equal(esperado, RegrasAtaque.TipoValido((TipoDeAtaque)valor));
 
-    // ── Vigor ─────────────────────────────────────────────────────────────────
+    // ── Stamina ─────────────────────────────────────────────────────────────────
 
     [Theory]
     [InlineData(0)]
     [InlineData(100)]
-    public void Leve_sempre_pode(int vigorAtual) =>
-        Assert.True(RegrasAtaque.TemVigor(TipoDeAtaque.Leve, vigorAtual));
+    public void Leve_sempre_pode(int staminaAtual) =>
+        Assert.True(RegrasAtaque.TemStamina(TipoDeAtaque.Leve, staminaAtual));
 
     [Theory]
     [InlineData(20, true)]
     [InlineData(100, true)]
     [InlineData(19, false)]
     [InlineData(0, false)]
-    public void Pesado_precisa_de_20_de_vigor(int vigorAtual, bool esperado) =>
-        Assert.Equal(esperado, RegrasAtaque.TemVigor(TipoDeAtaque.Pesado, vigorAtual));
+    public void Pesado_precisa_de_20_de_stamina(int staminaAtual, bool esperado) =>
+        Assert.Equal(esperado, RegrasAtaque.TemStamina(TipoDeAtaque.Pesado, staminaAtual));
 
     // ── Dano ──────────────────────────────────────────────────────────────────
 

@@ -139,9 +139,9 @@ namespace JogoDoGrupo.Client.Features.Personagem
             return new PontosDeAtributos
             {
                 Forca = pontos.Forca,
-                Destreza = pontos.Destreza,
+                Agilidade = pontos.Agilidade,
                 Intelecto = pontos.Intelecto,
-                Vitalidade = pontos.Vitalidade,
+                Vigor = pontos.Vigor,
                 Espirito = pontos.Espirito,
             };
         }
@@ -153,14 +153,14 @@ namespace JogoDoGrupo.Client.Features.Personagem
                 case "Forca":
                     pontos.Forca += quantidade;
                     return true;
-                case "Destreza":
-                    pontos.Destreza += quantidade;
+                case "Agilidade":
+                    pontos.Agilidade += quantidade;
                     return true;
                 case "Intelecto":
                     pontos.Intelecto += quantidade;
                     return true;
-                case "Vitalidade":
-                    pontos.Vitalidade += quantidade;
+                case "Vigor":
+                    pontos.Vigor += quantidade;
                     return true;
                 case "Espirito":
                     pontos.Espirito += quantidade;

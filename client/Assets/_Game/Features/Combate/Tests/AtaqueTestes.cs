@@ -48,8 +48,8 @@ namespace JogoDoGrupo.Client.Features.Combate.Tests
         public void TextoDaRecusa_TraduzCadaCodigo()
         {
             Assert.AreEqual(
-                ApresentacaoAtaque.TextoVigorInsuficiente,
-                ApresentacaoAtaque.TextoDaRecusa(CodigosErroCombate.VigorInsuficiente)
+                ApresentacaoAtaque.TextoStaminaInsuficiente,
+                ApresentacaoAtaque.TextoDaRecusa(CodigosErroCombate.StaminaInsuficiente)
             );
             Assert.AreEqual(
                 ApresentacaoAtaque.TextoAcaoEmAndamento,
@@ -144,9 +144,9 @@ namespace JogoDoGrupo.Client.Features.Combate.Tests
             var aviso = new AvisoTemporario();
             Assert.IsFalse(aviso.Visivel);
 
-            aviso.Mostrar("Vigor insuficiente");
+            aviso.Mostrar("Stamina insuficiente");
             Assert.IsTrue(aviso.Visivel);
-            Assert.AreEqual("Vigor insuficiente", aviso.Texto);
+            Assert.AreEqual("Stamina insuficiente", aviso.Texto);
 
             aviso.Atualizar(AvisoTemporario.DuracaoSegundos - 0.1f);
             Assert.IsTrue(aviso.Visivel);
@@ -198,23 +198,23 @@ namespace JogoDoGrupo.Client.Features.Combate.Tests
             {
                 VidaAtual = 70,
                 VidaMaxima = 100,
-                VigorAtual = 10,
-                VigorMaximo = 50,
-                EnergiaAtual = 0,
-                EnergiaMaxima = 20,
+                StaminaAtual = 10,
+                StaminaMaxima = 50,
+                ManaAtual = 0,
+                ManaMaxima = 20,
             };
 
             var ok = ApresentacaoCombate.TentarMontar(
                 mensagem,
                 out var vida,
-                out var vigor,
-                out var energia
+                out var stamina,
+                out var mana
             );
 
             Assert.IsTrue(ok);
             Assert.AreEqual("Vida 70 / 100", vida.Texto);
-            Assert.AreEqual("Vigor 10 / 50", vigor.Texto);
-            Assert.AreEqual("Energia 0 / 20", energia.Texto);
+            Assert.AreEqual("Stamina 10 / 50", stamina.Texto);
+            Assert.AreEqual("Mana 0 / 20", mana.Texto);
         }
 
         [Test]

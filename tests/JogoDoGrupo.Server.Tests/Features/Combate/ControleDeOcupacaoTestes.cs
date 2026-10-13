@@ -85,7 +85,7 @@ public class ControleDeOcupacaoTestes
         controle.Pedir(Ana, Leve(), 1_000, out var ataque);
         controle.TentarOcupar(Ana, ataque!.AcertoMs, Esquiva, out var ocupacao);
 
-        controle.Desocupar(Ana, ocupacao); // sem vigor
+        controle.Desocupar(Ana, ocupacao); // sem stamina
 
         Assert.Equal(ataque.FimMs, controle.AcaoAtual(Ana)!.FimMs);
         Assert.False(controle.EstaInvulneravel(Ana, ataque.AcertoMs + 10));

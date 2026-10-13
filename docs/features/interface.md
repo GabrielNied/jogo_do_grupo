@@ -30,7 +30,7 @@ Telas e menus do client que não pertencem a uma funcionalidade do jogo. Por enq
   - [x] ~~Aprovar os atalhos padrão da tabela (proposta).~~ Decidido em 2026-10-12, como no New World: leve no clique esquerdo, pesado ao segurar o esquerdo por 0,3 s, guarda no botão direito, esquiva no Alt esquerdo (esta última desde 2026-10-11). A troca de arma (R) e as skills 1, 2 e 3 valem quando a S10 entrar.
   - [ ] Tecla já usada: **trocar as duas ações** (proposta) ou deixar a outra sem tecla?
   - [ ] Tecla de **correr**: segurar (proposta) ou alternar?
-  - [x] ~~Combate ainda não decidiu se **bloqueio**, **stamina** e **troca de arma** entram na fatia jogável~~ Decidido em 2026-10-12: guarda e vigor entram nesta fatia. A troca de arma está decidida e fica para a S10; a tecla R vale nessa hora.
+  - [x] ~~Combate ainda não decidiu se **bloqueio**, **stamina** e **troca de arma** entram na fatia jogável~~ Decidido em 2026-10-12: guarda e stamina entram nesta fatia. A troca de arma está decidida e fica para a S10; a tecla R vale nessa hora.
   - [ ] ~~[personagem.md](personagem.md) só define andar e correr; **pular** não existe nas docs, então não tem atalho (se entrar, sugestão: Espaço vira pular e a esquiva vai para Alt)~~ substituído em 2026-10-11: o pulo **já existe no client** (Espaço, só no chão, 1,25 m de altura; `MovimentoTerceiraPessoa`), então entrou na tabela e a esquiva foi para o Alt esquerdo. Falta o grupo confirmar: o pulo fica no jogo? Ele serve para alguma coisa no combate (sair de área marcada no chão) ou é só movimento? O servidor precisa validar a altura (hoje a presença aceita de -5 a 50 m, veja [mundo.md](mundo.md))
 - [ ] **Textos de interface do livro de Asterra** (proposta do board, 2026-10-11, não validada; [figjam.md](../brainstorm/figjam.md) seção 10, 11 e 09): sugestões de texto para os cartões, a adotar na tela quando o grupo aprovar a regra por trás. Caído: "Você caiu. Aguarde ajuda ou retorne a um ponto seguro." e "Levantado: recupere a vida antes de voltar à linha de frente." Ajuda de mira: "Mire na direção do perigo. Mova-se para fora da área de ataque." Defesa: "Defesa insuficiente para bloquear completamente este impacto." Loot: "Maior dano: você. Recompensa disponível para coleta." (**conflito** com o loot individual da [fatia](fatia-jogavel.md#5-loot-no-chão); o texto precisaria mudar). Tela de atributos: "Distribua seus pontos. Sua raça dá identidade; seus equipamentos dão possibilidades." Mundo: "Entre, encontre seus amigos e continue de onde parou." Diário: "Cada saída pode render uma peça melhor, uma combinação nova ou uma história para contar." Também pede botão de **retorno** na tela de caído e aba **Preparação** de skills (dono: [skills.md](skills.md)).
 - [ ] ~~HUD configurável (#93): só listado, não desenhado aqui.~~ substituído em 2026-10-11 por [HUD do jogo](#hud-do-jogo) (proposta de layout e regras)
@@ -156,7 +156,7 @@ O HUD só **mostra** o que o servidor já enviou. Ele não decide vida, dano, al
 
 | Região da tela | Elemento | De onde vem o dado |
 |---|---|---|
-| Canto inferior esquerdo | Barras do personagem: vida, vigor e energia (já existem) | [fatia-jogavel.md](fatia-jogavel.md), seção 1 |
+| Canto inferior esquerdo | Barras do personagem: vida, stamina e mana (já existem) | [fatia-jogavel.md](fatia-jogavel.md), seção 1 |
 | Lateral esquerda, do meio para cima | **Lista do grupo**: até 4 aliados (o grupo tem 5 e você não aparece na lista) | lista do grupo de [social.md](social.md) e a vida que o servidor envia |
 | Topo, centro | **Barra do alvo** e, acima dela, a **barra do boss** | vida do inimigo ([fatia-jogavel.md](fatia-jogavel.md), seções 4 e 7) |
 | Centro, logo abaixo da barra do boss | **Aviso de ataque telegrafado** | início do preparo do ataque, enviado pelo servidor |
@@ -172,7 +172,7 @@ Nada do HUD recebe clique, salvo o que uma funcionalidade pedir (ex.: aceitar co
 - Estados da linha: **normal**; **caído** (barra vazia, ícone e a contagem de 45 s descendo, veja [fatia-jogavel.md](fatia-jogavel.md), seção 7); **offline** (linha apagada, sem barra, enquanto a vaga está guardada); **longe** (aliado em outra área: linha apagada com o nome da área, sem vida).
 - Vida abaixo de **30%**: a barra pisca, para o healer notar.
 - Sem grupo, a lista não aparece.
-- A lista mostra só vida. Vigor, energia e efeitos de status dos aliados ficam fora da primeira versão.
+- A lista mostra só vida. Stamina, mana e efeitos de status dos aliados ficam fora da primeira versão.
 
 #### Barra do alvo e barra do boss
 
@@ -201,7 +201,7 @@ Nada do HUD recebe clique, salvo o que uma funcionalidade pedir (ex.: aceitar co
 #### Mensagens de sistema
 
 - Lista de até **5** linhas; cada linha some depois de **6 s**. Linha nova entra embaixo e empurra as outras.
-- Três tipos: **informação** (branco), **aviso** (amarelo) e **erro** (vermelho). Exemplos: "Ana entrou no grupo", "Inventário cheio", "Vigor insuficiente".
+- Três tipos: **informação** (branco), **aviso** (amarelo) e **erro** (vermelho). Exemplos: "Ana entrou no grupo", "Inventário cheio", "Stamina insuficiente".
 - A mesma mensagem repetida em menos de **2 s** não cria linha nova: a linha existente ganha um contador ("x2") e o tempo dela recomeça.
 - As funcionalidades publicam a mensagem por um ponto do Core (nome sugerido: `AvisosDoJogo.Mostrar(texto, tipo)`), sem referenciar a interface de outra funcionalidade. O texto é o que a pessoa lê; códigos de erro do servidor são traduzidos por quem publica.
 - ~~Quando o chat existir (#95), as mensagens de sistema **também** entram no histórico do chat (veja [social.md](social.md)); a lista do HUD continua.~~ Substituído em 2026-10-11: a Social assina `AvisosDoJogo.Mostrado` e copia a linha no canal Sistema; a lista do HUD continua. O Core não referencia a Social.

@@ -12,9 +12,9 @@ namespace JogoDoGrupo.Client.Features.Combate
     /// <summary>
     /// Esquiva no client: o Alt esquerdo envia a intenção com a direção do movimento, e o
     /// personagem se desloca e anima na hora, no ritmo de <see cref="RegrasEsquiva"/>. O client é
-    /// dono do próprio corpo (ADR 0024): se o servidor recusar (ex.: sem vigor), o motivo aparece
+    /// dono do próprio corpo (ADR 0024): se o servidor recusar (ex.: sem stamina), o motivo aparece
     /// no aviso do jogo e a esquiva para onde está, sem voltar no tempo. O servidor decide o
-    /// vigor gasto; a posição só muda por fora com uma posição forçada do Mundo.
+    /// stamina gasta; a posição só muda por fora com uma posição forçada do Mundo.
     /// </summary>
     internal sealed class ControleEsquiva : MonoBehaviour
     {
@@ -147,11 +147,12 @@ namespace JogoDoGrupo.Client.Features.Combate
 
                 if (resultado != ResultadoDoClique.EnviarAgora)
                 {
-                    var semVigor =
-                        _prontidao.VigorEm(agora) is int vigor && !RegrasEsquiva.TemVigor(vigor);
+                    var semStamina =
+                        _prontidao.StaminaEm(agora) is int stamina
+                        && !RegrasEsquiva.TemStamina(stamina);
                     AvisosDoJogo.Mostrar(
-                        semVigor
-                            ? ApresentacaoEsquiva.TextoVigorInsuficiente
+                        semStamina
+                            ? ApresentacaoEsquiva.TextoStaminaInsuficiente
                             : ApresentacaoEsquiva.TextoAcaoEmAndamento,
                         TipoDeAviso.Aviso
                     );

@@ -4,7 +4,7 @@ using UnityEngine.UIElements;
 namespace JogoDoGrupo.Client.Features.Combate
 {
     /// <summary>
-    /// As barras de vida, vigor e energia no canto da tela (UI Toolkit montada em código).
+    /// As barras de vida, stamina e mana no canto da tela (UI Toolkit montada em código).
     /// Só mostra o que recebe; o visual está em <c>EstiloCombate.uss</c>.
     /// </summary>
     internal sealed class PainelRecursos
@@ -12,8 +12,8 @@ namespace JogoDoGrupo.Client.Features.Combate
         public const string CaminhoEstilo = "UI/EstiloCombate";
 
         private readonly Barra _vida;
-        private readonly Barra _vigor;
-        private readonly Barra _energia;
+        private readonly Barra _stamina;
+        private readonly Barra _mana;
 
         public PainelRecursos(VisualElement raiz)
         {
@@ -28,16 +28,16 @@ namespace JogoDoGrupo.Client.Features.Combate
             caixa.AddToClassList("recursos");
 
             _vida = new Barra(caixa, "barra-vida");
-            _vigor = new Barra(caixa, "barra-vigor");
-            _energia = new Barra(caixa, "barra-energia");
+            _stamina = new Barra(caixa, "barra-stamina");
+            _mana = new Barra(caixa, "barra-mana");
             raiz.Add(caixa);
         }
 
-        public void Mostrar(BarraRecurso vida, BarraRecurso vigor, BarraRecurso energia)
+        public void Mostrar(BarraRecurso vida, BarraRecurso stamina, BarraRecurso mana)
         {
             _vida.Mostrar(vida);
-            _vigor.Mostrar(vigor);
-            _energia.Mostrar(energia);
+            _stamina.Mostrar(stamina);
+            _mana.Mostrar(mana);
         }
 
         private sealed class Barra

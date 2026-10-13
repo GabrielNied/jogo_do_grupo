@@ -6,8 +6,8 @@ namespace JogoDoGrupo.Server.Features.Combate;
 
 /// <summary>
 /// A esquiva no servidor (docs/features/fatia-jogavel.md, seção 3). O client manda a intenção;
-/// aqui se decide se ela vale (não está em outra ação, não está caído, tem vigor), cobra-se o
-/// vigor uma vez e pede-se ao Mundo a janela de deslocamento. Quem valida cada posição continua
+/// aqui se decide se ela vale (não está em outra ação, não está caído, tem stamina), cobra-se o
+/// stamina uma vez e pede-se ao Mundo a janela de deslocamento. Quem valida cada posição continua
 /// sendo o Mundo. Os primeiros 0,3 s da esquiva não levam dano direto (ControleDeAcoes); depois, ela evita dano por tirar o personagem da área. Na recuperação de um golpe, corta o que falta dela.
 /// </summary>
 public sealed class ServicoDeEsquivas : IDisposable
@@ -75,7 +75,7 @@ public sealed class ServicoDeEsquivas : IDisposable
         _ = ExecutarAsync(sessao, intencao, ocupacaoId);
     }
 
-    // Cobra o vigor; só depois de pago abre a janela no Mundo e avisa a área.
+    // Cobra a stamina; só depois de pago abre a janela no Mundo e avisa a área.
     private async Task ExecutarAsync(
         SessaoTempoReal sessao,
         IntencaoDeEsquiva intencao,
@@ -85,10 +85,10 @@ public sealed class ServicoDeEsquivas : IDisposable
         var personagemId = sessao.PersonagemId;
         try
         {
-            var inicio = await RecursosDoAtaque.TentarGastarVigorAsync(
+            var inicio = await RecursosDoAtaque.TentarGastarStaminaAsync(
                 _escopos,
                 personagemId,
-                RegrasEsquiva.CustoDeVigor,
+                RegrasEsquiva.CustoDeStamina,
                 CancellationToken.None
             );
             if (inicio.Recusa != null)

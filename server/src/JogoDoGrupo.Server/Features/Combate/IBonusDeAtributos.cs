@@ -34,13 +34,13 @@ internal sealed class BonusDeEquipamentos(
                     total.Forca = valor;
                     break;
                 case JogoDoGrupo.Shared.Features.Itens.StatusItem.Destreza:
-                    total.Destreza = valor;
+                    total.Agilidade = valor;
                     break;
                 case JogoDoGrupo.Shared.Features.Itens.StatusItem.Intelecto:
                     total.Intelecto = valor;
                     break;
                 case JogoDoGrupo.Shared.Features.Itens.StatusItem.Vitalidade:
-                    total.Vitalidade = valor;
+                    total.Vigor = valor;
                     break;
                 case JogoDoGrupo.Shared.Features.Itens.StatusItem.Espirito:
                     total.Espirito = valor;

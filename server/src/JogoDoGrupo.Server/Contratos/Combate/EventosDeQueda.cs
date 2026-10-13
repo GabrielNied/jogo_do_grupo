@@ -14,7 +14,7 @@ public sealed record PersonagemLevantou(long PersonagemId, long AjudanteId, stri
 
 /// <summary>
 /// Publicado por Combate quando o caído sai voltando à cidade (fim dos 45 s ou pedido dele). A
-/// vida, o vigor e a energia já foram enchidos por Combate. <b>Quem é dono da posição (Mundo)
+/// vida, a stamina e a mana já foram enchidos por Combate. <b>Quem é dono da posição (Mundo)
 /// assina este evento e leva o personagem ao ponto de nascimento da cidade</b>; Combate não
 /// mexe na posição. <see cref="Area"/> é onde ele estava ao voltar.
 /// </summary>

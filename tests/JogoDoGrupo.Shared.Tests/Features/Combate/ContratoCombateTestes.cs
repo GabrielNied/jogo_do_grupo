@@ -46,7 +46,7 @@ public class ContratoCombateTestes
     [Fact]
     public void Codigos_de_recusa_tem_o_texto_do_contrato()
     {
-        Assert.Equal("VigorInsuficiente", CodigosErroCombate.VigorInsuficiente);
+        Assert.Equal("StaminaInsuficiente", CodigosErroCombate.StaminaInsuficiente);
         Assert.Equal("AcaoEmAndamento", CodigosErroCombate.AcaoEmAndamento);
         Assert.Equal("VoceEstaCaido", CodigosErroCombate.VoceEstaCaido);
     }
@@ -137,9 +137,9 @@ public class ContratoCombateTestes
         var msg = new RecursosMudaram();
         Assert.Equal(0, msg.VidaAtual);
         Assert.Equal(0, msg.VidaMaxima);
-        Assert.Equal(0, msg.VigorAtual);
-        Assert.Equal(0, msg.VigorMaximo);
-        Assert.Equal(0, msg.EnergiaAtual);
-        Assert.Equal(0, msg.EnergiaMaxima);
+        Assert.Equal(0, msg.StaminaAtual);
+        Assert.Equal(0, msg.StaminaMaxima);
+        Assert.Equal(0, msg.ManaAtual);
+        Assert.Equal(0, msg.ManaMaxima);
     }
 }

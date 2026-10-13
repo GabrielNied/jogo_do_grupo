@@ -68,7 +68,7 @@ public class ReacaoEGuardaRedeTestes(ServidorDeAtaque servidor) : IClassFixture<
         return await ServidorDeTeste.LerJsonAsync<RecursosResponse>(resposta);
     }
 
-    private async Task DefinirVigorAsync(Jogador j, int vigor)
+    private async Task DefinirStaminaAsync(Jogador j, int stamina)
     {
         await ConsultarAsync(j); // Cria a linha.
         var memoria = servidor.Falso.Services.GetRequiredService<RecursosEmMemoria>();
@@ -77,9 +77,9 @@ public class ReacaoEGuardaRedeTestes(ServidorDeAtaque servidor) : IClassFixture<
         var db = escopo.ServiceProvider.GetRequiredService<JogoDbContext>();
         var r = await db.Set<RecursosPersonagem>().SingleAsync(x => x.PersonagemId == j.Id);
         var agora = servidor.Relogio.GetUtcNow().UtcDateTime;
-        r.Vigor = vigor;
-        r.UltimoGastoVigorEm = agora;
-        r.VigorContadoAte = agora;
+        r.Stamina = stamina;
+        r.UltimoGastoStaminaEm = agora;
+        r.StaminaContadaAte = agora;
         await db.SaveChangesAsync();
         memoria.Descartar(j.Id);
     }
@@ -117,11 +117,11 @@ public class ReacaoEGuardaRedeTestes(ServidorDeAtaque servidor) : IClassFixture<
     }
 
     [Fact]
-    public async Task Guarda_com_vigor_anula_o_golpe_e_desconta_o_vigor()
+    public async Task Guarda_com_stamina_anula_o_golpe_e_desconta_o_stamina()
     {
         using var ana = await NovoJogadorAsync();
         using var beto = await NovoJogadorAsync();
-        await DefinirVigorAsync(ana, 100);
+        await DefinirStaminaAsync(ana, 100);
         var vida = (await ConsultarAsync(ana)).VidaAtual;
 
         Guardar(ana, true);
@@ -129,26 +129,26 @@ public class ReacaoEGuardaRedeTestes(ServidorDeAtaque servidor) : IClassFixture<
         Assert.Equal(ana.Id, sobe.PersonagemId);
         Assert.True(sobe.Segurando);
         var aoGuardar = await RecursosAsync(ana); // A previsão do client precisa saber da guarda.
-        Assert.Equal(100, aoGuardar.VigorAtual);
+        Assert.Equal(100, aoGuardar.StaminaAtual);
 
         Golpear(ana.Id, 30);
 
         var recursos = await RecursosAsync(ana);
-        Assert.Equal(100 - 30 * RegrasGuarda.VigorPorDanoBloqueado, recursos.VigorAtual);
+        Assert.Equal(100 - 30 * RegrasGuarda.StaminaPorDanoBloqueado, recursos.StaminaAtual);
         Assert.Equal(vida, recursos.VidaAtual);
         var bloqueado = await ana.Cliente.ReceberAsync<GolpeBloqueado>(
             CombateMessageIds.GolpeBloqueado
         );
-        Assert.Equal(30, bloqueado.VigorGasto);
+        Assert.Equal(30, bloqueado.StaminaGasto);
         Assert.False(ana.Recebeu(CombateMessageIds.AcaoInterrompida)); // Bloqueado não interrompe.
         Assert.Equal(vida, (await ConsultarAsync(ana)).VidaAtual);
     }
 
     [Fact]
-    public async Task Guarda_sem_vigor_quebra_toma_o_dano_e_fica_300_ms_sem_agir()
+    public async Task Guarda_sem_stamina_quebra_toma_o_dano_e_fica_300_ms_sem_agir()
     {
         using var ana = await NovoJogadorAsync();
-        await DefinirVigorAsync(ana, 10);
+        await DefinirStaminaAsync(ana, 10);
         var vida = (await ConsultarAsync(ana)).VidaAtual;
         Guardar(ana, true);
         Assert.True((await GuardaAsync(ana)).Segurando);
@@ -161,7 +161,7 @@ public class ReacaoEGuardaRedeTestes(ServidorDeAtaque servidor) : IClassFixture<
         await ana.Cliente.ReceberAsync<AcaoInterrompida>(CombateMessageIds.AcaoInterrompida);
         var final = await ConsultarAsync(ana);
         Assert.Equal(vida - 30, final.VidaAtual);
-        Assert.True(final.VigorAtual <= 1); // Foi a zero; no máximo a regeneração de 1 tick.
+        Assert.True(final.StaminaAtual <= 1); // Foi a zero; no máximo a regeneração de 1 tick.
 
         ana.Cliente.Enviar(
             CombateMessageIds.IntencaoDeEsquiva,
@@ -214,15 +214,15 @@ public class ReacaoEGuardaRedeTestes(ServidorDeAtaque servidor) : IClassFixture<
     public async Task Segurar_e_soltar_a_guarda_mandam_os_recursos_ao_dono()
     {
         using var ana = await NovoJogadorAsync();
-        await DefinirVigorAsync(ana, 60);
+        await DefinirStaminaAsync(ana, 60);
 
         Guardar(ana, true);
         var segurando = await RecursosAsync(ana);
         Guardar(ana, false);
         var solto = await RecursosAsync(ana);
 
-        Assert.Equal(60, segurando.VigorAtual);
-        Assert.Equal(60, solto.VigorAtual); // A espera de 2 s recomeçou: nada regenerou.
-        Assert.Equal(RegrasRecursos.VigorMaximo(), solto.VigorMaximo);
+        Assert.Equal(60, segurando.StaminaAtual);
+        Assert.Equal(60, solto.StaminaAtual); // A espera de 2 s recomeçou: nada regenerou.
+        Assert.Equal(RegrasRecursos.StaminaBase, solto.StaminaMaxima);
     }
 }

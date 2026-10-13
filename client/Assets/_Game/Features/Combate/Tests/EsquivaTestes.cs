@@ -65,8 +65,8 @@ namespace JogoDoGrupo.Client.Features.Combate.Tests
         public void TextoDaRecusa_TraduzCodigosEGenerico()
         {
             Assert.AreEqual(
-                ApresentacaoEsquiva.TextoVigorInsuficiente,
-                ApresentacaoEsquiva.TextoDaRecusa(CodigosErroCombate.VigorInsuficiente)
+                ApresentacaoEsquiva.TextoStaminaInsuficiente,
+                ApresentacaoEsquiva.TextoDaRecusa(CodigosErroCombate.StaminaInsuficiente)
             );
             Assert.AreEqual(
                 ApresentacaoEsquiva.TextoAcaoEmAndamento,

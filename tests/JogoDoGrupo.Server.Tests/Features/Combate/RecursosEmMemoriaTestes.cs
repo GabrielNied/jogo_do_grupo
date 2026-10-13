@@ -12,7 +12,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace JogoDoGrupo.Server.Tests.Features.Combate;
 
 /// <summary>
-/// Os recursos ficam em memória: o golpe leve não toca no banco e o vigor do pesado é cobrado
+/// Os recursos ficam em memória: o golpe leve não toca no banco e a stamina do pesado é cobrado
 /// uma vez só, mesmo com pedidos simultâneos.
 /// </summary>
 public sealed class RecursosEmMemoriaTestes : IClassFixture<ServidorDeTeste>, IDisposable
@@ -52,12 +52,12 @@ public sealed class RecursosEmMemoriaTestes : IClassFixture<ServidorDeTeste>, ID
     public async Task Golpe_leve_nao_abre_transacao_nem_consulta_o_banco()
     {
         var id = await NovoPersonagemAsync();
-        await Recursos.TentarGastarVigorAsync(id, 0, CancellationToken.None); // Primeira vez: lê.
+        await Recursos.TentarGastarStaminaAsync(id, 0, CancellationToken.None); // Primeira vez: lê.
         _banco.Zerar();
 
         for (var i = 0; i < 20; i++)
         {
-            var inicio = await Recursos.TentarGastarVigorAsync(id, 0, CancellationToken.None);
+            var inicio = await Recursos.TentarGastarStaminaAsync(id, 0, CancellationToken.None);
             Assert.Null(inicio.Recusa);
             Assert.Null(inicio.Recursos);
         }
@@ -70,37 +70,37 @@ public sealed class RecursosEmMemoriaTestes : IClassFixture<ServidorDeTeste>, ID
     public async Task Pesado_nao_abre_transacao_depois_de_carregado()
     {
         var id = await NovoPersonagemAsync();
-        await Recursos.TentarGastarVigorAsync(id, 0, CancellationToken.None);
+        await Recursos.TentarGastarStaminaAsync(id, 0, CancellationToken.None);
         _banco.Zerar();
 
-        var inicio = await Recursos.TentarGastarVigorAsync(
+        var inicio = await Recursos.TentarGastarStaminaAsync(
             id,
-            RegrasAtaque.CustoDeVigorPesado,
+            RegrasAtaque.CustoDeStaminaPesado,
             CancellationToken.None
         );
 
         Assert.Null(inicio.Recusa);
         Assert.Equal(
-            RegrasRecursos.VigorMaximo() - RegrasAtaque.CustoDeVigorPesado,
-            inicio.Recursos!.VigorAtual
+            RegrasRecursos.StaminaBase - RegrasAtaque.CustoDeStaminaPesado,
+            inicio.Recursos!.StaminaAtual
         );
         Assert.Equal(0, _banco.Transacoes);
         Assert.Equal(0, _banco.Comandos);
     }
 
     [Fact]
-    public async Task Vigor_e_cobrado_uma_vez_so_sob_concorrencia()
+    public async Task Stamina_e_cobrado_uma_vez_so_sob_concorrencia()
     {
         var id = await NovoPersonagemAsync();
-        var custo = RegrasAtaque.CustoDeVigorPesado;
-        await Recursos.AtualizarAsync(id, (r, _) => r.Vigor = custo, CancellationToken.None);
+        var custo = RegrasAtaque.CustoDeStaminaPesado;
+        await Recursos.AtualizarAsync(id, (r, _) => r.Stamina = custo, CancellationToken.None);
 
         var resultados = await Task.WhenAll(
             Enumerable
                 .Range(0, 30)
                 .Select(_ =>
                     Task.Run(() =>
-                        Recursos.TentarGastarVigorAsync(id, custo, CancellationToken.None)
+                        Recursos.TentarGastarStaminaAsync(id, custo, CancellationToken.None)
                     )
                 )
         );
@@ -108,7 +108,7 @@ public sealed class RecursosEmMemoriaTestes : IClassFixture<ServidorDeTeste>, ID
         Assert.Single(resultados, r => r.Recusa == null);
         Assert.All(
             resultados.Where(r => r.Recusa != null),
-            r => Assert.Equal(CodigosErroCombate.VigorInsuficiente, r.Recusa)
+            r => Assert.Equal(CodigosErroCombate.StaminaInsuficiente, r.Recusa)
         );
     }
 

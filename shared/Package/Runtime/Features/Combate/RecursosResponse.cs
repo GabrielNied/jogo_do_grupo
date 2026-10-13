@@ -9,10 +9,10 @@ namespace JogoDoGrupo.Shared.Features.Combate
     {
         public int VidaAtual;
         public int VidaMaxima;
-        public int VigorAtual;
-        public int VigorMaximo;
-        public int EnergiaAtual;
-        public int EnergiaMaxima;
+        public int StaminaAtual;
+        public int StaminaMaxima;
+        public int ManaAtual;
+        public int ManaMaxima;
         public AtributosCombate Atributos = new AtributosCombate();
     }
 }
