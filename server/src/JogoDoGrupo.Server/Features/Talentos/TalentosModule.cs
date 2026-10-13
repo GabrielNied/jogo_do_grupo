@@ -1,3 +1,4 @@
+using JogoDoGrupo.Server.Contratos.Combate;
 using JogoDoGrupo.Server.Contratos.Talentos;
 using JogoDoGrupo.Server.Core;
 using JogoDoGrupo.Shared.Features.Talentos;
@@ -15,6 +16,7 @@ public sealed class TalentosModule : IFeatureModule
         servicos.AddSingleton(arvore);
         servicos.AddScoped<ServicoDaArvore>();
         servicos.AddSingleton<IAtributosDaArvore, AtributosDaArvoreDoPersonagem>();
+        servicos.AddSingleton<IFonteDeModificadores, FonteDaArvore>();
     }
 
     public void MapearRotas(IEndpointRouteBuilder rotas) => TalentosRotas.Mapear(rotas);
@@ -28,6 +30,7 @@ public sealed class TalentosModule : IFeatureModule
     public static ConfiguracaoDaArvore ValidarOuFalhar(ConfiguracaoDaArvore configuracao)
     {
         var problemas = ValidadorDaArvore.Validar(configuracao);
+        problemas.AddRange(FonteDaArvore.ProblemasDeSecundarios(configuracao));
         if (problemas.Count > 0)
         {
             throw new InvalidOperationException(

@@ -67,8 +67,6 @@ namespace JogoDoGrupo.Client.Features.Itens
                     return "item-tooltip-fixo";
                 case EstiloLinha.Sorteado:
                     return "item-tooltip-sorteado";
-                case EstiloLinha.Infusivel:
-                    return "item-tooltip-infusivel";
                 case EstiloLinha.Ganho:
                     return "item-tooltip-ganho";
                 case EstiloLinha.Perda:

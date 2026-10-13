@@ -3,6 +3,7 @@ using JogoDoGrupo.Client.Core.Api;
 using JogoDoGrupo.Client.Core.Jogo;
 using JogoDoGrupo.Client.Core.Jogo.Janelas;
 using JogoDoGrupo.Client.Core.UI;
+using JogoDoGrupo.Shared.Features.Combate;
 using JogoDoGrupo.Shared.Features.Personagem;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -27,6 +28,8 @@ namespace JogoDoGrupo.Client.Features.Personagem
         private Label _barraTexto;
         private VisualElement _barraPreenchimento;
         private VisualElement _atributos;
+        private Label _secundariosTitulo;
+        private VisualElement _secundarios;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void Registrar()
@@ -58,12 +61,17 @@ namespace JogoDoGrupo.Client.Features.Personagem
             _barraTexto.AddToClassList(EstiloCore.Texto);
 
             _atributos = new VisualElement();
+            _secundariosTitulo = new Label(TextosSecundarios.Titulo);
+            _secundariosTitulo.AddToClassList(EstiloCore.Texto);
+            _secundarios = new VisualElement();
 
             conteudo.Add(_mensagem);
             conteudo.Add(_dados);
             conteudo.Add(_barraTexto);
             conteudo.Add(barra);
             conteudo.Add(_atributos);
+            conteudo.Add(_secundariosTitulo);
+            conteudo.Add(_secundarios);
             conteudo.Add(_nota);
         }
 
@@ -118,6 +126,7 @@ namespace JogoDoGrupo.Client.Features.Personagem
 
                 MostrarFicha(personagem);
                 await CarregarProgresso(personagemId);
+                await CarregarSecundarios(personagemId);
             }
             catch (Exception e)
             {
@@ -166,6 +175,78 @@ namespace JogoDoGrupo.Client.Features.Personagem
             ProgressoDoClient.Estado.Aplicar(resposta.Corpo);
         }
 
+        /// <summary>
+        /// Pede os nove secundários ao servidor (rota de recursos) e mostra o valor e a origem de
+        /// cada um. Se falhar, só esta seção avisa; o resto da janela segue.
+        /// </summary>
+        private async Awaitable CarregarSecundarios(long personagemId)
+        {
+            MostrarTextoDosSecundarios(TextosSecundarios.Carregando, false);
+            try
+            {
+                var resposta = await ClienteApi.Get<RecursosResponse>(
+                    RotasCombate.RecursosDe(personagemId)
+                );
+                if (!Aberta)
+                {
+                    return;
+                }
+
+                if (
+                    !resposta.Sucesso
+                    || resposta.Corpo?.Secundarios == null
+                    || resposta.Corpo.Secundarios.Length == 0
+                )
+                {
+                    MostrarTextoDosSecundarios(TextosSecundarios.Erro, true);
+                    return;
+                }
+
+                _secundarios.Clear();
+                foreach (var calculado in resposta.Corpo.Secundarios)
+                {
+                    AdicionarSecundario(calculado);
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+                if (Aberta)
+                {
+                    MostrarTextoDosSecundarios(TextosSecundarios.Erro, true);
+                }
+            }
+        }
+
+        private void AdicionarSecundario(SecundarioCalculado calculado)
+        {
+            var rotulo = new Label(TextosSecundarios.Rotulo(calculado.Atributo));
+            rotulo.AddToClassList(EstiloCore.Texto);
+            rotulo.AddToClassList(EstiloCore.RotuloDado);
+
+            var valor = new Label(TextosSecundarios.Valor(calculado.Atributo, calculado.Valor));
+            valor.AddToClassList(EstiloCore.Texto);
+
+            var linha = new VisualElement();
+            linha.AddToClassList(EstiloCore.LinhaDado);
+            linha.Add(rotulo);
+            linha.Add(valor);
+            _secundarios.Add(linha);
+
+            var origem = new Label(TextosSecundarios.Origem(calculado));
+            origem.AddToClassList(EstiloCore.Mensagem);
+            _secundarios.Add(origem);
+        }
+
+        private void MostrarTextoDosSecundarios(string texto, bool erro)
+        {
+            _secundarios.Clear();
+            var mensagem = new Label(texto);
+            mensagem.AddToClassList(EstiloCore.Mensagem);
+            mensagem.EnableInClassList(EstiloCore.MensagemErro, erro);
+            _secundarios.Add(mensagem);
+        }
+
         private void AtualizarProgresso()
         {
             if (!Aberta)
@@ -188,6 +269,7 @@ namespace JogoDoGrupo.Client.Features.Personagem
         private void MostrarMensagem(string texto, bool erro)
         {
             _dados.Clear();
+            _secundarios.Clear();
             _nota.style.display = DisplayStyle.None;
             _mensagem.text = texto;
             _mensagem.style.display = DisplayStyle.Flex;

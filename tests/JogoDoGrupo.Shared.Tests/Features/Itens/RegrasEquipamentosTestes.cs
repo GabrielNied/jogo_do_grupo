@@ -23,7 +23,6 @@ public class RegrasEquipamentosTestes
     public void Raridade_UsaATabelaDoLivro(RaridadeItem raridade, int limite, int skills)
     {
         Assert.Equal(limite, RegrasEquipamentos.NivelMaximo(raridade));
-        Assert.Equal(limite, RegrasEquipamentos.LimiteInfusoes(raridade));
         Assert.Equal(skills, RegrasEquipamentos.SlotsSkills(raridade));
     }
 

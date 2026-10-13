@@ -82,7 +82,7 @@ Refinam a especialização e complementam os principais. Cada um é independente
 
 - As três regenerações são independentes: cada recurso tem fontes e valores próprios.
 - Velocidade física e mágica são separadas, para que ataques físicos e mágicos não dividam a mesma progressão.
-- As fórmulas de crítico, velocidade e penetração (com defesa, mitigação e resistência) são do [Combate](combate.md). A pipeline que junta as fontes é a [#624](https://github.com/GabrielNied/jogo_do_grupo/issues/624).
+- As fórmulas de crítico, velocidade e penetração (com defesa, mitigação e resistência) são do [Combate](combate.md). A pipeline que junta as fontes (#624) está em [combate](combate.md#atributos-secundários-e-pipeline-624). **Na tela:** a janela do personagem lista os nove com o valor e a origem de cada parcela; a regeneração de vida tem valor de teste 0.
 
 ### Personagem e equipamento
 

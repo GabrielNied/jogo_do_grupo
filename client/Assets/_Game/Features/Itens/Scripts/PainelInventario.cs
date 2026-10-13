@@ -255,22 +255,77 @@ namespace JogoDoGrupo.Client.Features.Itens
             AplicarTamanho();
         }
 
-        /// <summary>Pede a confirmação de descarte (o item só sai depois do "Confirmar").</summary>
+        /// <summary>
+        /// Pede a confirmação de descarte (o item só sai depois do "Confirmar"). Peça com nível de
+        /// fusão acima de +0 ou de tier A ou acima pede uma segunda confirmação (ITEM-004).
+        /// </summary>
         public void PedirConfirmacaoDescarte(
             EntradaInventario item,
             Action confirmar,
             Action cancelar
         )
         {
-            _confirmacao.Clear();
             var dadosItem = RegrasEquipamentos.DadosDe(item);
             var nome = dadosItem != null ? dadosItem.Nome : item.Nome;
-            _confirmacao.Add(Texto("Descartar " + nome + " destrói o item de vez. Confirmar?"));
+            if (!RegrasFusao.DescarteExigeSegundaConfirmacao(dadosItem))
+            {
+                MostrarConfirmacao(
+                    "Descartar " + nome + " destrói o item de vez. Confirmar?",
+                    "Confirmar descarte",
+                    confirmar,
+                    cancelar
+                );
+                return;
+            }
+
+            MostrarConfirmacao(
+                "Descartar " + nome + " destrói o item de vez. Confirmar?",
+                "Confirmar descarte",
+                () =>
+                    MostrarConfirmacao(
+                        TextoDoInvestimento(dadosItem) + " Tem certeza?",
+                        "Descartar mesmo assim",
+                        confirmar,
+                        cancelar
+                    ),
+                cancelar
+            );
+        }
+
+        /// <summary>Por que o descarte pede a segunda confirmação.</summary>
+        public static string TextoDoInvestimento(Equipamento item)
+        {
+            var motivos = new List<string>();
+            if (item.NivelFusao > 0)
+            {
+                motivos.Add("está em fusão +" + item.NivelFusao);
+            }
+
+            if (RegrasTier.TierDe(item) >= TierItem.A)
+            {
+                motivos.Add("é " + TextosEquipamento.NomeDoTier(item));
+            }
+
+            return item.Nome
+                + " "
+                + string.Join(" e ", motivos)
+                + ". Descartar apaga a peça e o investimento, sem recompensa nem material.";
+        }
+
+        private void MostrarConfirmacao(
+            string texto,
+            string rotuloConfirmar,
+            Action confirmar,
+            Action cancelar
+        )
+        {
+            _confirmacao.Clear();
+            _confirmacao.Add(Texto(texto));
             var linha = new VisualElement();
             linha.AddToClassList(EstiloCore.LinhaBotoes);
             linha.Add(
                 Botao(
-                    "Confirmar descarte",
+                    rotuloConfirmar,
                     () =>
                     {
                         EsconderConfirmacao();
@@ -470,7 +525,7 @@ namespace JogoDoGrupo.Client.Features.Itens
         {
             _rodape.Clear();
             var bancada = Botao("Bancada", () => BancadaPedida?.Invoke());
-            bancada.tooltip = "Infundir equipamentos";
+            bancada.tooltip = "Fundir equipamentos";
             bancada.SetEnabled(!_ocupado);
             _rodape.Add(bancada);
 #if UNITY_EDITOR || DEVELOPMENT_BUILD

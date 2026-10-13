@@ -6,16 +6,12 @@ public class MigracaoDeTierTestes
 {
     private static Equipamento Legado(
         TipoEquipamento tipo,
-        int indiceInfusivel,
-        double baseInfusivel,
         params (StatusItem Status, double Valor)[] atributos
     ) =>
         new()
         {
             ModeloId = 102,
             Tipo = tipo,
-            IndiceInfusivel = indiceInfusivel,
-            ValorBaseInfusivel = baseInfusivel,
             Atributos = atributos
                 .Select(a => new AtributoItem { Status = a.Status, Valor = a.Valor })
                 .ToArray(),
@@ -40,7 +36,7 @@ public class MigracaoDeTierTestes
     [InlineData(StatusItem.PotenciaFogo, 7, 7)]
     public void Valor_legado_vira_inteiro_de_0_a_100(StatusItem status, double legado, int novo)
     {
-        var item = Legado(TipoEquipamento.Peito, 0, legado, (status, legado));
+        var item = Legado(TipoEquipamento.Peito, (status, legado));
 
         Assert.True(MigracaoDeTier.Migrar(item));
 
@@ -49,12 +45,10 @@ public class MigracaoDeTierTestes
     }
 
     [Fact]
-    public void Migrar_grava_o_tier_de_origem_calculado_e_corrige_a_base_da_infusao()
+    public void Migrar_grava_o_tier_de_origem_calculado()
     {
         var item = Legado(
             TipoEquipamento.Peito,
-            1,
-            6,
             (StatusItem.Vitalidade, 24),
             (StatusItem.Forca, 6.6)
         );
@@ -65,13 +59,12 @@ public class MigracaoDeTierTestes
         Assert.Equal(new double[] { 80, 22 }, item.Atributos.Select(a => a.Valor));
         Assert.Equal(TierItem.B, item.TierOrigem);
         Assert.Equal(TierItem.B, RegrasTier.TierDe(item));
-        Assert.Equal(20.0, item.ValorBaseInfusivel, 6);
     }
 
     [Fact]
     public void Migrar_so_converte_uma_vez()
     {
-        var item = Legado(TipoEquipamento.Peito, 0, 6, (StatusItem.Forca, 6));
+        var item = Legado(TipoEquipamento.Peito, (StatusItem.Forca, 6));
         Assert.True(MigracaoDeTier.Migrar(item));
         item.Atributos[0].Valor = 90; // mudou depois (ex.: fusão): o tier de origem não acompanha.
 
@@ -88,8 +81,6 @@ public class MigracaoDeTierTestes
         // Peito do Vigia A, grau Forte: Vitalidade 6 x 4, Defesa 30 x 4, extras 6 x 4 e 3 x 4.
         var forte = Legado(
             TipoEquipamento.Peito,
-            0,
-            24,
             (StatusItem.Vitalidade, 24),
             (StatusItem.Defesa, 120),
             (StatusItem.Forca, 24),
@@ -97,8 +88,6 @@ public class MigracaoDeTierTestes
         );
         var inicial = Legado(
             TipoEquipamento.Peito,
-            0,
-            6,
             (StatusItem.Vitalidade, 6),
             (StatusItem.Defesa, 30),
             (StatusItem.Forca, 6),
@@ -146,4 +135,61 @@ public class MigracaoDeTierTestes
             Assert.Equal(legado, MigracaoDeTier.ParaEscalaLegada(status, novo), 6);
         }
     }
+
+    [Theory]
+    [InlineData(0, 0)]
+    [InlineData(3, 3)]
+    [InlineData(10, 10)]
+    [InlineData(25, 10)]
+    public void Infusoes_do_modelo_anterior_viram_nivel_de_fusao_de_no_maximo_10(
+        int infusoes,
+        int nivel
+    )
+    {
+        var item = Atual(infusoes, (StatusItem.Forca, 20));
+
+        Migrar_e_conferir(item, infusoes > 0);
+
+        Assert.Equal(nivel, item.NivelFusao);
+        Assert.Equal(0, item.InfusoesUsadas);
+    }
+
+    [Fact]
+    public void Valores_fracionarios_da_infusao_sao_arredondados_e_o_tier_de_origem_fica()
+    {
+        var item = Atual(4, (StatusItem.Forca, 20.4), (StatusItem.Vitalidade, 20.5));
+        item.TierOrigem = TierItem.C;
+
+        Assert.True(MigracaoDeTier.Migrar(item));
+
+        Assert.Equal(new double[] { 20, 21 }, item.Atributos.Select(a => a.Valor));
+        Assert.Equal(TierItem.C, item.TierOrigem);
+        Assert.False(MigracaoDeTier.Migrar(item));
+        Assert.Equal(4, item.NivelFusao);
+    }
+
+    [Fact]
+    public void Item_ja_fundido_nao_perde_o_nivel_ao_ser_lido_de_novo()
+    {
+        var item = Atual(0, (StatusItem.Forca, 30));
+        item.NivelFusao = 7;
+
+        Assert.False(MigracaoDeTier.Migrar(item));
+
+        Assert.Equal(7, item.NivelFusao);
+    }
+
+    private static Equipamento Atual(
+        int infusoes,
+        params (StatusItem Status, double Valor)[] atributos
+    )
+    {
+        var item = Legado(TipoEquipamento.Peito, atributos);
+        item.VersaoDosAtributos = RegrasTier.VersaoAtual;
+        item.InfusoesUsadas = infusoes;
+        return item;
+    }
+
+    private static void Migrar_e_conferir(Equipamento item, bool mudou) =>
+        Assert.Equal(mudou, MigracaoDeTier.Migrar(item));
 }

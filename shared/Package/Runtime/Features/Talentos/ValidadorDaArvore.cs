@@ -174,9 +174,21 @@ namespace JogoDoGrupo.Shared.Features.Talentos
                 return;
             }
 
-            if (efeito.ValorPorRank < 1)
+            if (!(efeito.ValorPorRank > 0) || double.IsInfinity(efeito.ValorPorRank))
             {
-                problemas.Add(rotulo + " tem efeito com valor por rank menor que 1.");
+                problemas.Add(rotulo + " tem efeito com valor por rank menor ou igual a zero.");
+            }
+            else if (
+                efeito.Tipo == TipoDeEfeito.AtributoPrincipal
+                && (
+                    efeito.ValorPorRank < 1
+                    || efeito.ValorPorRank != Math.Floor(efeito.ValorPorRank)
+                )
+            )
+            {
+                problemas.Add(
+                    rotulo + " tem efeito de atributo principal com valor que não é inteiro."
+                );
             }
 
             if (efeito.Tipo == TipoDeEfeito.AtributoPrincipal)

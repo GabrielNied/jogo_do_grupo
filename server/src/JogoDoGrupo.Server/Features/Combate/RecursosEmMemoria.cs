@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Data;
+using JogoDoGrupo.Server.Contratos.Combate;
 using JogoDoGrupo.Server.Contratos.Talentos;
 using JogoDoGrupo.Server.Core.Persistencia;
 using JogoDoGrupo.Server.Core.TempoReal;
@@ -29,6 +30,7 @@ public sealed class RecursosEmMemoria : IHostedService, IDisposable
     private readonly IServiceScopeFactory _escopos;
     private readonly IBonusDeAtributos _bonus;
     private readonly IAtributosDaArvore _pontos;
+    private readonly IReadOnlyList<IFonteDeModificadores> _fontes;
     private readonly ServidorTempoReal _tempoReal;
     private readonly TimeProvider _relogio;
     private readonly ILogger<RecursosEmMemoria> _log;
@@ -41,6 +43,7 @@ public sealed class RecursosEmMemoria : IHostedService, IDisposable
         IServiceScopeFactory escopos,
         IBonusDeAtributos bonus,
         IAtributosDaArvore pontos,
+        IEnumerable<IFonteDeModificadores> fontes,
         ServidorTempoReal tempoReal,
         TimeProvider relogio,
         ILogger<RecursosEmMemoria> log
@@ -49,6 +52,7 @@ public sealed class RecursosEmMemoria : IHostedService, IDisposable
         _escopos = escopos;
         _bonus = bonus;
         _pontos = pontos;
+        _fontes = fontes.OrderBy(f => f.Fonte).ToList();
         _tempoReal = tempoReal;
         _relogio = relogio;
         _log = log;
@@ -84,6 +88,24 @@ public sealed class RecursosEmMemoria : IHostedService, IDisposable
         try
         {
             return await AtributosDaEntradaAsync(entrada, cancelamento);
+        }
+        finally
+        {
+            entrada.Trava.Release();
+        }
+    }
+
+    /// <summary>Os nove secundários do personagem (valores finais), pela pipeline única.</summary>
+    public async Task<AtributosSecundarios> SecundariosAsync(
+        long personagemId,
+        CancellationToken cancelamento
+    )
+    {
+        var entrada = await EntrarAsync(personagemId, cancelamento);
+        try
+        {
+            await AtributosDaEntradaAsync(entrada, cancelamento);
+            return entrada.Valores!;
         }
         finally
         {
@@ -245,6 +267,7 @@ public sealed class RecursosEmMemoria : IHostedService, IDisposable
             var agora = Agora();
             recursos.StaminaContadaAte = agora;
             recursos.ManaContadaAte = agora;
+            entrada.VidaContadaAte = agora;
             entrada.Sujo = true;
             return Estado(recursos, atributos);
         }
@@ -279,6 +302,7 @@ public sealed class RecursosEmMemoria : IHostedService, IDisposable
                 ManaAtual = estado.ManaAtual,
                 ManaMaxima = estado.ManaMaxima,
                 Atributos = atributos,
+                Secundarios = entrada.Secundarios!,
             };
         }
         finally
@@ -384,7 +408,13 @@ public sealed class RecursosEmMemoria : IHostedService, IDisposable
             recursos.UltimoGastoStaminaEm = Agora();
         }
 
-        CalculadoraRecursos.Atualizar(recursos, atributos, Agora());
+        CalculadoraRecursos.Atualizar(
+            recursos,
+            atributos,
+            entrada.Valores!,
+            ref entrada.VidaContadaAte,
+            Agora()
+        );
         return recursos;
     }
 
@@ -423,10 +453,72 @@ public sealed class RecursosEmMemoria : IHostedService, IDisposable
             await _bonus.EfeitosAsync(entrada.PersonagemId, cancelamento),
             await _pontos.ObterAsync(entrada.PersonagemId, cancelamento)
         );
-        entrada.Recursos ??= await CarregarAsync(entrada.PersonagemId, lidos, cancelamento);
+        var secundarios = RegrasSecundarios.Calcular(
+            await ModificadoresAsync(entrada.PersonagemId, cancelamento)
+        );
+        if (entrada.Recursos == null)
+        {
+            entrada.Recursos = await CarregarAsync(entrada.PersonagemId, lidos, cancelamento);
+            entrada.VidaContadaAte = Agora();
+        }
+
         entrada.Atributos = lidos;
+        entrada.Secundarios = secundarios;
+        entrada.Valores = RegrasSecundarios.Valores(secundarios);
         entrada.AtributosEm = agora;
         return lidos;
+    }
+
+    // Junta o que as fontes publicam. Quem declara outra fonte que não a sua, ou a Base, é
+    // recusado e registrado; falha de uma fonte não derruba a conta (o jogador fica sem aquela
+    // fonte até a próxima leitura).
+    private async Task<List<Modificador>> ModificadoresAsync(
+        long personagemId,
+        CancellationToken cancelamento
+    )
+    {
+        var todos = new List<Modificador>();
+        foreach (var fonte in _fontes)
+        {
+            try
+            {
+                foreach (var m in await fonte.ObterAsync(personagemId, cancelamento))
+                {
+                    if (m.Fonte != fonte.Fonte || m.Fonte == FonteDeModificador.Base)
+                    {
+                        _log.LogWarning(
+                            "Modificador {Origem} recusado: a fonte {Fonte} declarou {Declarada}.",
+                            m.Origem,
+                            fonte.Fonte,
+                            m.Fonte
+                        );
+                        continue;
+                    }
+
+                    if (!PipelineDeModificadores.EhValido(m))
+                    {
+                        _log.LogWarning(
+                            "Modificador {Origem} recusado: sem grupo de acúmulo ou valor inválido.",
+                            m.Origem
+                        );
+                        continue;
+                    }
+
+                    todos.Add(m);
+                }
+            }
+            catch (Exception e) when (e is not OperationCanceledException)
+            {
+                _log.LogError(
+                    e,
+                    "Erro ao ler os modificadores da fonte {Fonte} do personagem {Personagem}.",
+                    fonte.Fonte,
+                    personagemId
+                );
+            }
+        }
+
+        return todos;
     }
 
     // Devolve a entrada com a trava tomada.
@@ -578,6 +670,11 @@ public sealed class RecursosEmMemoria : IHostedService, IDisposable
         public SemaphoreSlim Trava { get; } = new(1, 1);
         public RecursosPersonagem? Recursos;
         public AtributosCombate? Atributos;
+        public SecundarioCalculado[]? Secundarios;
+        public AtributosSecundarios? Valores;
+
+        // Só em memória (sem migração): até onde a regeneração de vida já foi paga.
+        public DateTime VidaContadaAte;
         public DateTimeOffset? AtributosEm;
         public DateTimeOffset UltimoUso = DateTimeOffset.UnixEpoch;
         public bool Sujo;

@@ -175,7 +175,7 @@ namespace JogoDoGrupo.Shared.Features.Talentos
                 {
                     if (efeito.Tipo == TipoDeEfeito.AtributoPrincipal)
                     {
-                        Somar(total, efeito.Atributo, checked(efeito.ValorPorRank * rank));
+                        Somar(total, efeito.Atributo, checked((int)(efeito.ValorPorRank * rank)));
                     }
                 }
             }

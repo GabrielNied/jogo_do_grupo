@@ -4,8 +4,9 @@ using System.Collections.Generic;
 namespace JogoDoGrupo.Shared.Features.Itens
 {
     /// <summary>
-    /// Raridade sorteada do modelo anterior. <b>Legado</b> desde a #615: só é lida (infusão, até a
-    /// #616); o tier vem dos atributos (<see cref="TierItem"/>) e nenhuma regra nova usa isto.
+    /// Raridade sorteada do modelo anterior. <b>Legado</b> desde a #615: ninguém decide por ela
+    /// (a fusão da #616 também não); o tier vem dos atributos (<see cref="TierItem"/>). Fica no
+    /// exemplar só para o histórico.
     /// </summary>
     public enum RaridadeItem
     {
@@ -120,9 +121,15 @@ namespace JogoDoGrupo.Shared.Features.Itens
 
         /// <summary>Escala dos atributos: 0 é o legado, <see cref="RegrasTier.VersaoAtual"/> a atual.</summary>
         public int VersaoDosAtributos;
-        public int IndiceInfusivel;
+
+        /// <summary>Nível de fusão, de +0 a +10 (<see cref="ConfigFusao.NivelMaximo"/>).</summary>
+        public int NivelFusao;
+
+        /// <summary>
+        /// Legado da infusão (#174): só é lido na migração, que o converte em
+        /// <see cref="NivelFusao"/> e zera (<see cref="MigracaoDeTier"/>). Nada novo grava aqui.
+        /// </summary>
         public int InfusoesUsadas;
-        public double ValorBaseInfusivel;
         public bool Favorito;
     }
 
@@ -182,8 +189,8 @@ namespace JogoDoGrupo.Shared.Features.Itens
         public int ConjuntoAtivo = 1;
         public AtributoItem[] Bonus = Array.Empty<AtributoItem>();
         public long Coroas;
-        public bool ModoInfusao;
-        public PreviaInfusao Previa;
+        public bool ModoFusao;
+        public PreviaFusao Previa;
         public string Aviso = "";
     }
 
@@ -194,8 +201,6 @@ namespace JogoDoGrupo.Shared.Features.Itens
         public static string RotaDe(long id) => "/api/personagens/" + id + "/equipamentos";
 
         public static int NivelMaximo(RaridadeItem raridade) => 10 + 5 * (int)raridade;
-
-        public static int LimiteInfusoes(RaridadeItem raridade) => NivelMaximo(raridade);
 
         public static int SlotsSkills(RaridadeItem raridade) => 1 + (int)raridade;
 

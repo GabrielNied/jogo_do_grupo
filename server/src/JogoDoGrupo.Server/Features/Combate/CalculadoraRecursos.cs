@@ -68,14 +68,27 @@ internal static class CalculadoraRecursos
     /// Limita ao novo máximo e regenera stamina e mana até <paramref name="agora"/>. Muda
     /// <paramref name="r"/> no lugar.
     /// </summary>
-    public static void Atualizar(RecursosPersonagem r, AtributosCombate a, DateTime agora)
+    public static void Atualizar(
+        RecursosPersonagem r,
+        AtributosCombate a,
+        AtributosSecundarios s,
+        ref DateTime vidaContadaAte,
+        DateTime agora
+    )
     {
-        r.Vida = RegrasRecursos.Limitar(r.Vida, RegrasRecursos.VidaMaxima(a.Vigor));
+        var vidaMaxima = RegrasRecursos.VidaMaxima(a.Vigor);
+        (r.Vida, vidaContadaAte) = RegenerarVida(
+            r.Vida,
+            vidaMaxima,
+            s.RegeneracaoVida,
+            vidaContadaAte,
+            agora
+        );
 
         (r.Stamina, r.StaminaContadaAte) = Regenerar(
             r.Stamina,
             RegrasRecursos.StaminaMaxima(a.Agilidade),
-            RegrasRecursos.RegeneracaoStaminaPorSegundo,
+            s.RegeneracaoStamina,
             r.UltimoGastoStaminaEm,
             r.StaminaContadaAte,
             agora
@@ -84,11 +97,44 @@ internal static class CalculadoraRecursos
         (r.Mana, r.ManaContadaAte) = Regenerar(
             r.Mana,
             RegrasRecursos.ManaMaxima(a.Espirito),
-            RegrasRecursos.RegeneracaoManaPorSegundo,
+            s.RegeneracaoMana,
             r.UltimoGastoManaEm,
             r.ManaContadaAte,
             agora
         );
+    }
+
+    /// <summary>
+    /// Regeneração de vida: contínua (sem atraso), só com vida acima de 0 (quem caiu não volta
+    /// sozinho) e com taxa acima de 0. Paga só os pontos inteiros; a fração fica para a próxima.
+    /// </summary>
+    internal static (int Atual, DateTime ContadoAte) RegenerarVida(
+        int atual,
+        int maximo,
+        double taxa,
+        DateTime contadoAte,
+        DateTime agora
+    )
+    {
+        var limitado = RegrasRecursos.Limitar(atual, maximo);
+        if (limitado <= 0 || taxa <= 0 || limitado >= maximo)
+        {
+            return (limitado, agora > contadoAte ? agora : contadoAte);
+        }
+
+        if (agora <= contadoAte)
+        {
+            return (limitado, contadoAte);
+        }
+
+        var ganho = (int)Math.Floor((agora - contadoAte).TotalSeconds * taxa);
+        if (ganho <= 0)
+        {
+            return (limitado, contadoAte);
+        }
+
+        var novo = Math.Min(maximo, limitado + ganho);
+        return (novo, novo >= maximo ? agora : contadoAte.AddSeconds(ganho / taxa));
     }
 
     private static (int Atual, DateTime ContadoAte) Regenerar(

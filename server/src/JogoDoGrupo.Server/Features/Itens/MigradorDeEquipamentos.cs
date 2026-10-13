@@ -6,7 +6,8 @@ namespace JogoDoGrupo.Server.Features.Itens;
 
 /// <summary>
 /// Grava de volta, na subida do servidor, os exemplares que ainda estão na escala antiga dos
-/// atributos (issue #615). O exemplar é um JSON na coluna <c>EquipamentoJson</c>, então não há
+/// atributos (issue #615) ou com infusões do modelo anterior (issue #616: <c>InfusoesUsadas</c>
+/// vira <c>NivelFusao</c>). O exemplar é um JSON na coluna <c>EquipamentoJson</c>, então não há
 /// mudança de esquema para uma migração do EF: a conversão é a regra de
 /// <see cref="Shared.Features.Itens.MigracaoDeTier"/>, aplicada por
 /// <see cref="ItemInventario.LerEquipamento"/>. Gravar cedo fixa o <c>TierOrigem</c> (ele não
@@ -20,8 +21,9 @@ public sealed class MigradorDeEquipamentos(
 {
     private const int TamanhoDoLote = 200;
 
-    // Exemplar já na escala nova tem o campo gravado, com qualquer versão.
-    private const string PadraoDaVersao = "%\"VersaoDosAtributos\":%";
+    // Exemplar já no formato atual (escala 0 a 100 e nível de fusão) tem o campo gravado; o
+    // serializador sempre o escreve, mesmo em +0.
+    private const string PadraoDoFormato = "%\"NivelFusao\":%";
 
     public async Task StartAsync(CancellationToken cancelamento)
     {
@@ -60,7 +62,7 @@ public sealed class MigradorDeEquipamentos(
                 .Where(i =>
                     i.Id > ultimoId
                     && i.EquipamentoJson != null
-                    && !EF.Functions.Like(i.EquipamentoJson, PadraoDaVersao)
+                    && !EF.Functions.Like(i.EquipamentoJson, PadraoDoFormato)
                 )
                 .OrderBy(i => i.Id)
                 .Take(TamanhoDoLote)
