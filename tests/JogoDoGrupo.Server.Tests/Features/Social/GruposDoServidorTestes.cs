@@ -738,7 +738,7 @@ public class GruposDoServidorTestes
     }
 
     [Fact]
-    public void Vaga_guardada_com_120_segundos_mantem_e_depois_remove()
+    public void Vaga_guardada_com_60_segundos_mantem_e_depois_remove()
     {
         _a.FormarGrupo(A, B, C);
         _a.Grupos.AoDesconectar(B);

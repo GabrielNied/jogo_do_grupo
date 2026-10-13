@@ -1,7 +1,7 @@
 namespace JogoDoGrupo.Server.Features.Social;
 
 /// <summary>
-/// Valores do grupo que só o servidor usa. Os números das regras (5 membros, 60 s, 120 s, 30 s...)
+/// Valores do grupo que só o servidor usa. Os números das regras (5 membros, 60 s, 30 s...)
 /// ficam em <c>RegrasGrupo</c>, no shared; aqui só os prazos de manutenção do servidor.
 /// </summary>
 public static class ConfigGrupoServidor
