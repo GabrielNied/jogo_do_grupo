@@ -46,6 +46,35 @@ namespace JogoDoGrupo.Client.Features.Itens.Tests
             };
 
         [Test]
+        public void MostraQuantosDoadoresTemNaBolsa()
+        {
+            var principal = Peca("Elmo", TipoEquipamento.Capacete, 50, 10);
+            var estado = new EquipamentosResponse
+            {
+                Inventario = new[]
+                {
+                    Entrada(principal, PosicaoEquipamento.Inventario),
+                    DeOutroId(Peca("Elmo B", TipoEquipamento.Capacete, 20, 10), 2),
+                    DeOutroId(Peca("Elmo C", TipoEquipamento.Capacete, 20, 10), 3),
+                    DeOutroId(Peca("Anel", TipoEquipamento.Anel, 20, 10), 4),
+                },
+            };
+
+            var dados = TextosTooltip.Montar(estado.Inventario[0], estado);
+
+            Assert.IsTrue(dados.Linhas.Any(l => l.Texto == "2 doadores na bolsa"));
+            Assert.AreEqual("1 doador na bolsa", TextosTooltip.TextoDosDoadores(1));
+            Assert.AreEqual("Nenhum doador na bolsa", TextosTooltip.TextoDosDoadores(0));
+        }
+
+        private static EntradaInventario DeOutroId(Equipamento item, long id)
+        {
+            var entrada = Entrada(item, PosicaoEquipamento.Inventario);
+            entrada.InstanciaId = id;
+            return entrada;
+        }
+
+        [Test]
         public void MostraNomeTierGrauFamiliaNivelERequisito()
         {
             var dados = TextosTooltip.Montar(

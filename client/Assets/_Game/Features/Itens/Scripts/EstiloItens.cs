@@ -25,6 +25,7 @@ namespace JogoDoGrupo.Client.Features.Itens
         public const string SlotInvalido = "item-slot-invalido";
         public const string SlotAlvo = "item-slot-alvo";
         public const string SlotPendente = "item-slot-pendente";
+        public const string SlotDoador = "item-slot-doador";
         public const string Icone = "item-icone";
         public const string Sigla = "item-sigla";
         public const string SeloNovo = "item-selo-novo";
