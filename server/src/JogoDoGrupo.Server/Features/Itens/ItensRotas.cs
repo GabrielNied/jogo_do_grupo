@@ -30,6 +30,9 @@ internal static class ItensRotas
         rotas.MapGet(RotasItens.Inventario, InventarioAsync).RequireAuthorization();
         rotas.MapPost(RotasItens.Bau, AbrirBauAsync).RequireAuthorization();
         rotas.MapPost(RotasItens.Descartar, DescartarAsync).RequireAuthorization();
+        rotas.MapPost(RotasItens.DescartarLote, DescartarLoteAsync).RequireAuthorization();
+        rotas.MapPost(RotasItens.Lixo, LixoAsync).RequireAuthorization();
+        rotas.MapPost(RotasItens.Favorito, FavoritoAsync).RequireAuthorization();
         rotas.MapPost(RotasItens.Mover, MoverAsync).RequireAuthorization();
         rotas.MapPost(RotasItens.Ordenar, OrdenarAsync).RequireAuthorization();
         rotas.MapPost(RotasItens.Expandir, ExpandirBolsaAsync).RequireAuthorization();
@@ -61,7 +64,7 @@ internal static class ItensRotas
     /// Serializable, como o equipar: dois descartes do mesmo exemplar rodam em série e só o
     /// primeiro apaga; o segundo não acha o exemplar (404 <c>ItemNaoEncontrado</c>, sem efeito).
     /// Um descarte concorrente a um equipar vê o exemplar na bolsa ou já equipado (409), nunca
-    /// um meio-termo.
+    /// um meio-termo. Item favorito é protegido (409 <c>ItemFavorito</c>).
     /// </summary>
     private static async Task<IResult> DescartarAsync(
         string personagemId,
@@ -101,6 +104,10 @@ internal static class ItensRotas
         {
             return RespostasApi.Erro(StatusCodes.Status409Conflict, CodigosErroItens.ItemEquipado);
         }
+        if (alvo.LerEquipamento()?.Favorito == true)
+        {
+            return RespostasApi.Erro(StatusCodes.Status409Conflict, CodigosErroItens.ItemFavorito);
+        }
 
         db.Remove(alvo);
         itens.Remove(alvo);
@@ -111,6 +118,251 @@ internal static class ItensRotas
             await NivelAsync(id, db, cancelamento),
             capacidade
         );
+        await transacao.CommitAsync(cancelamento);
+        return Results.Ok(resposta);
+    }
+
+    /// <summary>
+    /// Destrói múltiplos exemplares da bolsa em lote ou todos os marcados como lixo.
+    /// Transação Serializable. Recusa com 409 se algum item for favorito ou equipado.
+    /// </summary>
+    private static async Task<IResult> DescartarLoteAsync(
+        string personagemId,
+        PedidoDescartarLote pedido,
+        ClaimsPrincipal usuario,
+        JogoDbContext db,
+        CancellationToken cancelamento
+    )
+    {
+        await using var transacao = await db.Database.BeginTransactionAsync(
+            IsolationLevel.Serializable,
+            cancelamento
+        );
+        if (!await PersonagemDaContaAsync(personagemId, usuario.ObterContaId(), db, cancelamento))
+        {
+            return PersonagemNaoEncontrado();
+        }
+
+        var id = ParaId(personagemId);
+        var itens = await db.Set<ItemInventario>()
+            .Where(i => i.PersonagemId == id)
+            .OrderBy(i => i.Id)
+            .ToListAsync(cancelamento);
+        Bolsa.Normalizar(itens, Bolsa.CapacidadeDe(id));
+
+        List<ItemInventario> alvos;
+        if (pedido.ApenasLixo || (pedido.InstanciaIds != null && pedido.InstanciaIds.Length == 0))
+        {
+            alvos = itens
+                .Where(i =>
+                    i.Posicao == PosicaoEquipamento.Inventario && i.LerEquipamento()?.Lixo == true
+                )
+                .ToList();
+        }
+        else
+        {
+            var idsDesejados = (pedido.InstanciaIds ?? Array.Empty<long>()).ToHashSet();
+            alvos = itens.Where(i => idsDesejados.Contains(i.Id)).ToList();
+        }
+
+        foreach (var item in alvos)
+        {
+            if (item.Posicao != PosicaoEquipamento.Inventario)
+            {
+                return RespostasApi.Erro(
+                    StatusCodes.Status409Conflict,
+                    CodigosErroItens.ItemEquipado
+                );
+            }
+            if (item.LerEquipamento()?.Favorito == true)
+            {
+                return RespostasApi.Erro(
+                    StatusCodes.Status409Conflict,
+                    CodigosErroItens.ItemFavorito
+                );
+            }
+        }
+
+        if (alvos.Count > 0)
+        {
+            db.RemoveRange(alvos);
+            foreach (var item in alvos)
+            {
+                itens.Remove(item);
+            }
+            await db.SaveChangesAsync(cancelamento);
+        }
+
+        var estado = await db.Set<EstadoEquipamentos>()
+            .FindAsync(new object[] { id }, cancelamento);
+        var resposta = EquipamentosRotas.Resposta(
+            itens,
+            estado?.ConjuntoAtivo ?? 1,
+            await NivelAsync(id, db, cancelamento)
+        );
+        resposta.Aviso =
+            alvos.Count > 0 ? $"{alvos.Count} item(ns) descartado(s)." : "Nenhum item descartado.";
+        await transacao.CommitAsync(cancelamento);
+        return Results.Ok(resposta);
+    }
+
+    /// <summary>
+    /// Marca ou desmarca item(ns) como lixo. Item favorito não pode ser marcado como lixo (409 ItemFavorito).
+    /// </summary>
+    private static async Task<IResult> LixoAsync(
+        string personagemId,
+        PedidoLixo pedido,
+        ClaimsPrincipal usuario,
+        JogoDbContext db,
+        CancellationToken cancelamento
+    )
+    {
+        await using var transacao = await db.Database.BeginTransactionAsync(
+            IsolationLevel.Serializable,
+            cancelamento
+        );
+        if (!await PersonagemDaContaAsync(personagemId, usuario.ObterContaId(), db, cancelamento))
+        {
+            return PersonagemNaoEncontrado();
+        }
+
+        var id = ParaId(personagemId);
+        var itens = await db.Set<ItemInventario>()
+            .Where(i => i.PersonagemId == id)
+            .OrderBy(i => i.Id)
+            .ToListAsync(cancelamento);
+        Bolsa.Normalizar(itens, Bolsa.CapacidadeDe(id));
+
+        var ids = new HashSet<long>();
+        if (pedido.InstanciaIds != null && pedido.InstanciaIds.Length > 0)
+        {
+            foreach (var instId in pedido.InstanciaIds)
+            {
+                ids.Add(instId);
+            }
+        }
+        else if (pedido.InstanciaId > 0)
+        {
+            ids.Add(pedido.InstanciaId);
+        }
+
+        var alvos = itens.Where(i => ids.Contains(i.Id)).ToList();
+        if (alvos.Count == 0 && pedido.InstanciaId > 0)
+        {
+            return RespostasApi.Erro(
+                StatusCodes.Status404NotFound,
+                CodigosErroItens.ItemNaoEncontrado
+            );
+        }
+
+        foreach (var item in alvos)
+        {
+            var equip = item.LerEquipamento();
+            if (equip == null)
+            {
+                continue;
+            }
+            if (pedido.Lixo && equip.Favorito)
+            {
+                return RespostasApi.Erro(
+                    StatusCodes.Status409Conflict,
+                    CodigosErroItens.ItemFavorito
+                );
+            }
+            equip.Lixo = pedido.Lixo;
+            item.GravarEquipamento(equip);
+        }
+
+        await db.SaveChangesAsync(cancelamento);
+        var estado = await db.Set<EstadoEquipamentos>()
+            .FindAsync(new object[] { id }, cancelamento);
+        var resposta = EquipamentosRotas.Resposta(
+            itens,
+            estado?.ConjuntoAtivo ?? 1,
+            await NivelAsync(id, db, cancelamento)
+        );
+        resposta.Aviso = pedido.Lixo
+            ? "Item(ns) marcado(s) como lixo."
+            : "Marcação de lixo removida.";
+        await transacao.CommitAsync(cancelamento);
+        return Results.Ok(resposta);
+    }
+
+    /// <summary>
+    /// Marca ou desmarca item(ns) como favorito (protegido). Ao marcar como favorito, desmarca lixo automaticamente.
+    /// </summary>
+    private static async Task<IResult> FavoritoAsync(
+        string personagemId,
+        PedidoFavorito pedido,
+        ClaimsPrincipal usuario,
+        JogoDbContext db,
+        CancellationToken cancelamento
+    )
+    {
+        await using var transacao = await db.Database.BeginTransactionAsync(
+            IsolationLevel.Serializable,
+            cancelamento
+        );
+        if (!await PersonagemDaContaAsync(personagemId, usuario.ObterContaId(), db, cancelamento))
+        {
+            return PersonagemNaoEncontrado();
+        }
+
+        var id = ParaId(personagemId);
+        var itens = await db.Set<ItemInventario>()
+            .Where(i => i.PersonagemId == id)
+            .OrderBy(i => i.Id)
+            .ToListAsync(cancelamento);
+        Bolsa.Normalizar(itens, Bolsa.CapacidadeDe(id));
+
+        var ids = new HashSet<long>();
+        if (pedido.InstanciaIds != null && pedido.InstanciaIds.Length > 0)
+        {
+            foreach (var instId in pedido.InstanciaIds)
+            {
+                ids.Add(instId);
+            }
+        }
+        else if (pedido.InstanciaId > 0)
+        {
+            ids.Add(pedido.InstanciaId);
+        }
+
+        var alvos = itens.Where(i => ids.Contains(i.Id)).ToList();
+        if (alvos.Count == 0 && pedido.InstanciaId > 0)
+        {
+            return RespostasApi.Erro(
+                StatusCodes.Status404NotFound,
+                CodigosErroItens.ItemNaoEncontrado
+            );
+        }
+
+        foreach (var item in alvos)
+        {
+            var equip = item.LerEquipamento();
+            if (equip == null)
+            {
+                continue;
+            }
+            equip.Favorito = pedido.Favorito;
+            if (pedido.Favorito)
+            {
+                equip.Lixo = false;
+            }
+            item.GravarEquipamento(equip);
+        }
+
+        await db.SaveChangesAsync(cancelamento);
+        var estado = await db.Set<EstadoEquipamentos>()
+            .FindAsync(new object[] { id }, cancelamento);
+        var resposta = EquipamentosRotas.Resposta(
+            itens,
+            estado?.ConjuntoAtivo ?? 1,
+            await NivelAsync(id, db, cancelamento)
+        );
+        resposta.Aviso = pedido.Favorito
+            ? "Item protegido como favorito."
+            : "Proteção de favorito removida.";
         await transacao.CommitAsync(cancelamento);
         return Results.Ok(resposta);
     }

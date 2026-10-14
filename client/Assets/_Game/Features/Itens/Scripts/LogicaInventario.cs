@@ -44,6 +44,7 @@ namespace JogoDoGrupo.Client.Features.Itens
         public int Aba;
         public int Casa;
         public long InstanciaId;
+        public bool Favorito;
 
         /// <summary>Tipo da peça; <c>null</c> para item que não é equipamento (poção, moeda).</summary>
         public TipoEquipamento? Tipo;
@@ -56,6 +57,9 @@ namespace JogoDoGrupo.Client.Features.Itens
         Equipar,
         Desequipar,
         Descartar,
+        DescartarLote,
+        Favoritar,
+        Lixo,
 
         /// <summary>Não envia nada: mostra <see cref="AcaoDoInventario.Aviso"/>.</summary>
         Recusada,
@@ -66,9 +70,11 @@ namespace JogoDoGrupo.Client.Features.Itens
     {
         public TipoAcao Tipo;
         public long InstanciaId;
+        public long[] InstanciaIds;
         public PosicaoEquipamento Posicao;
         public int Aba;
         public int Casa;
+        public bool ValorBooleano;
 
         /// <summary>Em <see cref="TipoAcao.Desequipar"/>: se vai para <see cref="Aba"/>/<see cref="Casa"/>.</summary>
         public bool TemDestino;
@@ -91,6 +97,8 @@ namespace JogoDoGrupo.Client.Features.Itens
         public const string AvisoNaoCabe = "Essa peça não cabe nesse encaixe.";
         public const string AvisoNaoEquipavel = "Esse item não pode ser equipado.";
         public const string AvisoDescartarEquipado = "Desequipe a peça antes de descartá-la.";
+        public const string AvisoDescartarFavorito =
+            "Item protegido como favorito. Desmarque antes de descartá-lo.";
 
         /// <summary>Tipo da peça, vindo do exemplar ou, nos itens antigos, do catálogo.</summary>
         public static TipoEquipamento? TipoDe(EntradaInventario entrada)
@@ -110,6 +118,7 @@ namespace JogoDoGrupo.Client.Features.Itens
                 Aba = entrada.Aba,
                 Casa = entrada.Casa,
                 InstanciaId = entrada.InstanciaId,
+                Favorito = entrada.Equipamento != null && entrada.Equipamento.Favorito,
                 Tipo = TipoDe(entrada),
             };
 
@@ -228,6 +237,8 @@ namespace JogoDoGrupo.Client.Features.Itens
                 case TipoAlvo.Fora:
                     if (origem.DoEncaixe)
                         return AcaoDoInventario.Recusa(AvisoDescartarEquipado);
+                    if (origem.Favorito)
+                        return AcaoDoInventario.Recusa(AvisoDescartarFavorito);
                     return new AcaoDoInventario
                     {
                         Tipo = TipoAcao.Descartar,
@@ -311,7 +322,17 @@ namespace JogoDoGrupo.Client.Features.Itens
             EquipamentosResponse estado
         )
         {
-            var ids = new List<long> { acao.InstanciaId };
+            var ids = new List<long>();
+            if (acao.InstanciaId > 0)
+                ids.Add(acao.InstanciaId);
+            if (acao.InstanciaIds != null)
+            {
+                foreach (var id in acao.InstanciaIds)
+                {
+                    if (id > 0 && !ids.Contains(id))
+                        ids.Add(id);
+                }
+            }
             switch (acao.Tipo)
             {
                 case TipoAcao.Mover:
@@ -323,6 +344,16 @@ namespace JogoDoGrupo.Client.Features.Itens
                 case TipoAcao.Desequipar:
                     if (acao.TemDestino)
                         AdicionarSe(ids, NaCasa(estado, acao.Aba, acao.Casa));
+                    break;
+                case TipoAcao.DescartarLote:
+                    if (acao.ValorBooleano && estado?.Inventario != null)
+                    {
+                        foreach (var item in estado.Inventario)
+                        {
+                            if (item.Equipamento != null && item.Equipamento.Lixo)
+                                AdicionarSe(ids, item);
+                        }
+                    }
                     break;
             }
             return ids;

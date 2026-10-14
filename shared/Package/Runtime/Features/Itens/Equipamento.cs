@@ -182,6 +182,7 @@ namespace JogoDoGrupo.Shared.Features.Itens
         /// </summary>
         public int InfusoesUsadas;
         public bool Favorito;
+        public bool Lixo;
     }
 
     [Serializable]
@@ -196,6 +197,23 @@ namespace JogoDoGrupo.Shared.Features.Itens
     public class PedidoDescartar
     {
         public long InstanciaId;
+    }
+
+    /// <summary>Descarta múltiplos itens em lote (ou todos marcados como lixo). Rota: <see cref="RotasItens.DescartarLote"/>.</summary>
+    [Serializable]
+    public class PedidoDescartarLote
+    {
+        public long[] InstanciaIds = System.Array.Empty<long>();
+        public bool ApenasLixo;
+    }
+
+    /// <summary>Marca ou desmarca itens como lixo. Rota: <see cref="RotasItens.Lixo"/>.</summary>
+    [Serializable]
+    public class PedidoLixo
+    {
+        public long InstanciaId;
+        public bool Lixo;
+        public long[] InstanciaIds = System.Array.Empty<long>();
     }
 
     [Serializable]

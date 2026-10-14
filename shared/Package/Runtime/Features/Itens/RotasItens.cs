@@ -39,10 +39,42 @@ namespace JogoDoGrupo.Shared.Features.Itens
         public const string Ordenar = "/api/personagens/{personagemId}/inventario/ordenar";
 
         /// <summary>
+        /// Modelo da rota. <c>POST</c> com <see cref="PedidoDescartarLote"/> destrói múltiplos
+        /// exemplares da bolsa em lote (ou todos marcados como lixo) e responde 200
+        /// <see cref="EquipamentosResponse"/>.
+        /// </summary>
+        public const string DescartarLote =
+            "/api/personagens/{personagemId}/inventario/descartar-lote";
+
+        /// <summary>
+        /// Modelo da rota. <c>POST</c> com <see cref="PedidoLixo"/> marca/desmarca itens como
+        /// lixo e responde 200 <see cref="EquipamentosResponse"/>.
+        /// </summary>
+        public const string Lixo = "/api/personagens/{personagemId}/inventario/lixo";
+
+        /// <summary>
+        /// Modelo da rota. <c>POST</c> com <see cref="PedidoFavorito"/> marca/desmarca itens como
+        /// favorito (protegidos) e responde 200 <see cref="EquipamentosResponse"/>.
+        /// </summary>
+        public const string Favorito = "/api/personagens/{personagemId}/inventario/favorito";
+
+        /// <summary>
         /// Modelo da rota. <c>POST</c> sem corpo desbloqueia uma nova aba da bolsa cobrando coroas
         /// e responde 200 <see cref="EquipamentosResponse"/> com a capacidade atualizada.
         /// </summary>
         public const string Expandir = "/api/personagens/{personagemId}/inventario/expandir";
+
+        /// <summary>Caminho de <see cref="DescartarLote"/> para um personagem (uso do client).</summary>
+        public static string DescartarLoteDe(long personagemId) =>
+            "/api/personagens/" + personagemId + "/inventario/descartar-lote";
+
+        /// <summary>Caminho de <see cref="Lixo"/> para um personagem (uso do client).</summary>
+        public static string LixoDe(long personagemId) =>
+            "/api/personagens/" + personagemId + "/inventario/lixo";
+
+        /// <summary>Caminho de <see cref="Favorito"/> para um personagem (uso do client).</summary>
+        public static string FavoritoDe(long personagemId) =>
+            "/api/personagens/" + personagemId + "/inventario/favorito";
 
         /// <summary>Caminho de <see cref="Expandir"/> para um personagem (uso do client).</summary>
         public static string ExpandirDe(long personagemId) =>

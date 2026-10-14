@@ -84,6 +84,20 @@
     background-color: var(--lumora-cores-selecionado);
 }
 
+.item-slot.item-slot-favorito {
+    border-color: var(--lumora-cores-ouro);
+}
+
+.item-slot.item-slot-lixo {
+    opacity: 0.65;
+}
+
+.item-slot.item-slot-selecionado {
+    border-color: var(--lumora-cores-essencia);
+    border-width: var(--lumora-bordas-destaque);
+    background-color: var(--lumora-cores-selecionado);
+}
+
 .item-slot.item-slot-pendente {
     opacity: 0.45;
 }
@@ -156,6 +170,27 @@
     color: var(--lumora-cores-petroleo);
     background-color: var(--lumora-cores-ouro);
     border-radius: var(--lumora-bordas-raio-campo);
+}
+
+.item-selo-favorito {
+    position: absolute;
+    left: 2px;
+    top: 0;
+    font-size: 11px;
+    color: var(--lumora-cores-ouro);
+    -unity-font-style: bold;
+}
+
+.item-selo-lixo {
+    position: absolute;
+    left: 1px;
+    top: 1px;
+    padding: 0 2px;
+    font-size: 8px;
+    color: var(--lumora-cores-erro);
+    background-color: var(--lumora-cores-perigo-preenchimento);
+    border-radius: var(--lumora-bordas-raio-campo);
+    -unity-font-style: bold;
 }
 
 /* ---- bolsa ---- */
