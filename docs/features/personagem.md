@@ -27,6 +27,8 @@ Decidido pelo grupo em 2026-10-10. É **provisório**: serve para implementar a 
 - ~~**Uma raça provisória: Humano**, até o grupo definir as raças definitivas.~~ substituído em 2026-10-11 por: **cinco raças jogáveis** (veja [Raças](#raças-propostas-no-board-2026-10-11) e [Raça](#raça)), a pedido do Gabriel; o antigo Humano (valor 1) virou **Valdren**.
 - O personagem começa no **nível 1**.
 - Fluxo de entrada: abertura → login (ou registro) → seleção de personagem → criação → volta para a seleção. ~~"Entrar" ainda não leva a um mundo.~~ substituído em 2026-10-11 por: "Entrar" leva ao mundo (veja [Fluxo de entrada no jogo](#fluxo-de-entrada-no-jogo)).
+- A seleção mostra quatro vagas na ordem recebida, destaca a escolhida e usa o prefab real da raça como prévia 3D. O nome, a raça e o nível aparecem no resumo ao lado de **Entrar**; vaga livre não imita um personagem. Em largura compacta, lista, prévia e resumo se empilham no painel rolável. A prévia representa a raça, pois ainda não existe personalização de aparência.
+- Na criação, nome e cinco raças ficam junto da prévia do prefab escolhido e dos textos definidos para essa raça. A habilidade racial aparece identificada como **em desenvolvimento**; escolher a raça ainda não concede uma habilidade jogável. Em largura compacta, as três áreas se empilham e rolam.
 - Comunicação pela API HTTP do [ADR 0009](../decisoes/0009-api-http-para-conta-e-personagens.md) (veja [Expõe](#expõe)).
 - O **servidor decide**: valida o nome, a unicidade, a raça e o limite de 4. O client só confere o formato do nome para dar retorno rápido.
 
@@ -304,6 +306,19 @@ Quem decide: **servidor** (quando cai, a contagem, quem está levantando, a vida
 | Todos, na derrota | "O grupo caiu" por 5 s, depois a cidade |
 
 A música baixa enquanto a pessoa está caída (regra do áudio, em [interface.md](interface.md)).
+
+#### Client da queda (#125)
+
+O client de Personagem ouve `EstadoDeQueda` do contrato de Combate. Para o próprio personagem,
+mostra a contagem recebida, o estado de espera ou de levantamento e o progresso informado pelo
+servidor. A contagem local só interpola a exibição; o servidor decide quando a queda termina.
+Depois de 5 s, a pessoa pode segurar o botão de retorno por 1 s; o client envia
+`VoltarParaACidade`, e o servidor valida a ação. A tela desaparece quando chega `Vivo` ou `Retorno`.
+
+O client atual não inicia o levantamento de outro personagem: o contrato aceita o id do alvo, mas
+Personagem não recebe a seleção de alvo nem a presença espacial necessária para escolher um aliado.
+Essa interação depende da integração de Mundo e deve ser ligada quando essa API existir. O estado
+recebido ainda permite mostrar o progresso do aliado que está levantando o personagem local.
 
 #### Erros que o servidor devolve (**proposta** de nomes)
 

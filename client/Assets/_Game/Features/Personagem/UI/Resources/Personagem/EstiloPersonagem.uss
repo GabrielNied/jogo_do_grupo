@@ -3,6 +3,92 @@
     width: var(--lumora-dimensoes-painel-largo);
 }
 
+.personagem-painel-selecao-visual {
+    width: var(--lumora-dimensoes-painel-selecao-personagem);
+}
+
+.personagem-selecao-corpo {
+    flex-direction: row;
+    min-width: 0;
+}
+
+.personagem-selecao-vagas {
+    width: 29%;
+    min-width: 0;
+    padding-right: var(--lumora-espacamento-medio);
+}
+
+.personagem-selecao-centro {
+    width: 40%;
+    min-width: 0;
+    padding-right: var(--lumora-espacamento-medio);
+}
+
+.personagem-selecao-resumo {
+    width: 31%;
+    min-width: 0;
+}
+
+.personagem-selecao-corpo .subtitulo {
+    -unity-text-align: middle-left;
+    margin-bottom: var(--lumora-espacamento-medio);
+}
+
+.personagem-selecao-imagem {
+    width: 100%;
+    height: var(--lumora-dimensoes-comparacao-altura);
+    background-color: var(--lumora-cores-campo);
+    border-width: var(--lumora-bordas-fina);
+    border-color: var(--lumora-cores-borda-discreta);
+    border-radius: var(--lumora-bordas-raio-cartao);
+}
+
+.personagem-selecao-resumo .personagem-item-nome {
+    margin-bottom: var(--lumora-espacamento-pequeno);
+}
+
+.personagem-selecao-resumo .personagem-item-detalhes {
+    margin-bottom: var(--lumora-espacamento-amplo);
+}
+
+.personagem-selecao-vagas > .botao,
+.personagem-selecao-resumo > .botao {
+    margin: var(--lumora-espacamento-pequeno) 0 0;
+}
+
+.personagem-selecao-rodape {
+    flex-direction: row;
+    justify-content: flex-end;
+    margin-top: var(--lumora-espacamento-medio);
+}
+
+.personagem-selecao-rodape > .botao {
+    flex-grow: 0;
+}
+
+.personagem-vaga-livre {
+    min-height: var(--lumora-dimensoes-alvo-minimo);
+    margin-bottom: var(--lumora-espacamento-pequeno);
+    padding: var(--lumora-espacamento-controle) var(--lumora-espacamento-padrao);
+    border-width: var(--lumora-bordas-fina);
+    border-color: var(--lumora-cores-borda-discreta);
+    border-radius: var(--lumora-bordas-raio-cartao);
+    color: var(--lumora-cores-texto-secundario);
+    white-space: normal;
+}
+
+.lumora-compacto .personagem-selecao-corpo {
+    flex-direction: column;
+}
+
+.lumora-compacto .personagem-selecao-vagas,
+.lumora-compacto .personagem-selecao-centro,
+.lumora-compacto .personagem-selecao-resumo {
+    width: 100%;
+    padding-right: 0;
+    margin-bottom: var(--lumora-espacamento-padrao);
+}
+
 .personagem-lista {
     margin-bottom: var(--lumora-espacamento-pequeno);
 }
@@ -67,6 +153,57 @@
     min-width: 0;
 }
 
+.personagem-painel-criacao-visual {
+    width: var(--lumora-dimensoes-painel-selecao-personagem);
+}
+
+.personagem-criacao-corpo .personagem-criacao-escolhas {
+    width: 29%;
+    min-width: 0;
+    margin-right: 0;
+    padding-right: var(--lumora-espacamento-medio);
+}
+
+.personagem-criacao-centro {
+    width: 40%;
+    min-width: 0;
+    padding-right: var(--lumora-espacamento-medio);
+}
+
+.personagem-criacao-corpo .personagem-criacao-informacoes {
+    width: 31%;
+    min-width: 0;
+    flex-grow: 0;
+}
+
+.personagem-criacao-corpo .subtitulo {
+    -unity-text-align: middle-left;
+    margin-bottom: var(--lumora-espacamento-medio);
+}
+
+.personagem-criacao-informacoes > .botao {
+    margin: var(--lumora-espacamento-pequeno) 0 0;
+}
+
+.personagem-criacao-erro-nome {
+    -unity-text-align: middle-left;
+    margin-top: 0;
+    margin-bottom: var(--lumora-espacamento-medio);
+}
+
+.lumora-compacto .personagem-criacao-corpo {
+    flex-direction: column;
+}
+
+.lumora-compacto .personagem-criacao-escolhas,
+.lumora-compacto .personagem-criacao-centro,
+.lumora-compacto .personagem-criacao-informacoes {
+    width: 100%;
+    margin-right: 0;
+    padding-right: 0;
+    margin-bottom: var(--lumora-espacamento-padrao);
+}
+
 .personagem-lista-racas {
     width: var(--lumora-dimensoes-item);
     margin-right: var(--lumora-espacamento-medio);
@@ -113,8 +250,7 @@
 }
 
 .personagem-hud-barra-xp {
-    width: var(--lumora-dimensoes-recursos-largura);
-    max-width: var(--lumora-dimensoes-dialogo-percentual);
+    width: 100%;
     margin-bottom: var(--lumora-espacamento-pequeno);
 }
 
@@ -141,4 +277,50 @@
     bottom: 0;
     width: 0;
     background-color: var(--lumora-cores-essencia);
+}
+
+.personagem-painel-queda {
+    max-width: var(--lumora-dimensoes-dialogo);
+    align-items: center;
+}
+
+.personagem-queda-contagem {
+    font-size: var(--lumora-tipografia-titulo);
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    color: var(--lumora-cores-ouro);
+    margin-bottom: var(--lumora-espacamento-medio);
+}
+
+.personagem-queda-estado-aguardando,
+.personagem-queda-estado-levantando {
+    min-width: 0;
+    white-space: normal;
+    -unity-text-align: middle-center;
+}
+
+.personagem-queda-estado-aguardando {
+    color: var(--lumora-cores-texto-secundario);
+}
+
+.personagem-queda-estado-levantando {
+    color: var(--lumora-cores-essencia);
+}
+
+.personagem-queda-trilho {
+    width: 100%;
+    margin-top: var(--lumora-espacamento-pequeno);
+    margin-bottom: var(--lumora-espacamento-pequeno);
+}
+
+.personagem-queda-preenchimento {
+    background-color: var(--lumora-cores-ouro);
+}
+
+.personagem-queda-hold-ativo {
+    border-color: var(--lumora-cores-essencia);
+}
+
+.lumora-compacto .personagem-painel-queda {
+    max-height: var(--lumora-dimensoes-dialogo-percentual);
 }

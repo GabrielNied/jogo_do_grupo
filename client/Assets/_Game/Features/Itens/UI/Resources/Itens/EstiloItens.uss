@@ -78,6 +78,12 @@
     border-width: var(--lumora-bordas-destaque);
 }
 
+.item-slot.item-slot-doador {
+    border-color: var(--lumora-cores-ouro);
+    border-width: var(--lumora-bordas-destaque);
+    background-color: var(--lumora-cores-selecionado);
+}
+
 .item-slot.item-slot-pendente {
     opacity: 0.45;
 }

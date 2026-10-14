@@ -1,9 +1,5 @@
 .recursos {
-    position: absolute;
-    left: var(--lumora-espacamento-grande);
-    top: var(--lumora-espacamento-grande);
-    width: var(--lumora-dimensoes-recursos-largura);
-    max-width: var(--lumora-dimensoes-dialogo-percentual);
+    width: 100%;
     padding: var(--lumora-espacamento-pequeno);
     background-color: var(--lumora-cores-painel);
     border-width: var(--lumora-bordas-fina);
@@ -11,15 +7,41 @@
     border-radius: var(--lumora-bordas-raio-cartao);
 }
 
-.recurso-barra {
+.recursos-soltos {
+    position: absolute;
+    left: var(--lumora-espacamento-grande);
+    top: var(--lumora-espacamento-grande);
+    width: var(--lumora-dimensoes-recursos-largura);
+    max-width: var(--lumora-dimensoes-dialogo-percentual);
+}
+
+.recurso-linha {
     min-height: var(--lumora-dimensoes-barra);
     margin-bottom: var(--lumora-espacamento-curto);
+    flex-direction: row;
+    align-items: center;
+}
+
+.recurso-rotulo {
+    width: 24%;
+    flex-shrink: 0;
+    font-size: var(--lumora-tipografia-leitura);
+    color: var(--lumora-cores-marfim);
+    white-space: normal;
+}
+
+.recurso-barra {
+    min-height: var(--lumora-dimensoes-barra);
+    min-width: var(--lumora-espacamento-extra);
+    margin-left: var(--lumora-espacamento-curto);
+    margin-right: var(--lumora-espacamento-curto);
+    flex-grow: 1;
+    flex-shrink: 1;
     background-color: var(--lumora-cores-trilho);
     border-width: var(--lumora-bordas-fina);
     border-color: var(--lumora-cores-borda-discreta);
     border-radius: var(--lumora-bordas-raio-campo);
     overflow: hidden;
-    justify-content: center;
 }
 
 .recurso-preenchimento {
@@ -42,14 +64,13 @@
     background-color: var(--lumora-cores-essencia);
 }
 
-.recurso-texto {
-    align-self: center;
-    padding: 0 var(--lumora-espacamento-pequeno);
-    background-color: var(--lumora-cores-painel);
+.recurso-valor {
+    width: 25%;
+    flex-shrink: 0;
     font-size: var(--lumora-tipografia-leitura);
-    -unity-text-align: middle-center;
+    -unity-text-align: middle-right;
     color: var(--lumora-cores-marfim);
-    text-shadow: var(--lumora-bordas-fina) var(--lumora-bordas-fina) var(--lumora-cores-sombra);
+    white-space: normal;
 }
 
 .numeros-de-dano {
@@ -101,6 +122,10 @@
 }
 
 .lumora-estreito .recursos {
+    width: 100%;
+}
+
+.lumora-estreito .recursos-soltos {
     left: var(--lumora-espacamento-pequeno);
     top: var(--lumora-espacamento-pequeno);
     width: var(--lumora-dimensoes-ferramentas);

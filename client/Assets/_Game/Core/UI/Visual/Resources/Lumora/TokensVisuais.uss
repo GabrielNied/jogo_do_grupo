@@ -67,12 +67,14 @@
     --lumora-dimensoes-logo-largura: 210px;
     --lumora-dimensoes-logo-altura: 72px;
     --lumora-dimensoes-chat-altura: 160px;
+    --lumora-dimensoes-hud-chat-base: 246px;
     --lumora-dimensoes-prancha-percentual: 45%;
     --lumora-dimensoes-dialogo-percentual: 90%;
     --lumora-dimensoes-comparacao-altura: 300px;
     --lumora-dimensoes-menu-estreito-altura: 180px;
     --lumora-dimensoes-painel-entrada: 560px;
     --lumora-dimensoes-painel-largo: 720px;
+    --lumora-dimensoes-painel-selecao-personagem: 1100px;
     --lumora-dimensoes-lista: 320px;
     --lumora-dimensoes-mensagem: 32px;
     --lumora-dimensoes-carregamento: 14px;

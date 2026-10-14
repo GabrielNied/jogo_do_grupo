@@ -133,6 +133,16 @@ private void AoEntrar(SessaoTempoReal sessao, EntrarNaCidade _) =>
 
 O Core sobe um host LiteNetLib junto com o app (código em `Core/TempoReal/`). Cada pacote é o ID da mensagem em 2 bytes (`ushort`, little-endian) seguido do DTO do shared em JSON UTF-8, no mesmo formato da API HTTP. O client conecta com a chave `TempoReal:ChaveConexao` e manda `AutenticarTempoReal` (JWT do login e personagem). Só depois de `ResultadoAutenticacaoTempoReal` aceito a conexão vira sessão e as mensagens chegam às funcionalidades. Recusada, a conexão pode tentar de novo até `TempoReal:TempoParaAutenticarMs`; depois disso, ou sem tentar, é desconectada. Uma conta tem uma sessão só: autenticar de novo (ex.: reconexão) encerra a anterior.
 
+#### Reconexão sem perder o lugar ([#210](https://github.com/GabrielNied/jogo_do_grupo/issues/210))
+
+**Hoje:** o client tenta reconectar sozinho depois de autenticado (`ClienteTempoReal`, com **3** tentativas com backoff). Reautenticar encerra a sessão UDP anterior. O grupo guarda a vaga do membro offline por **60 s** ([social.md](features/social.md), `RegrasGrupo.VagaGuardadaSegundos`). O mundo não reposiciona na reconexão ([mundo.md](features/mundo.md)) e concede orçamento extra de movimento.
+
+**Alvo (#210, proposta IA):** por **60 s** após a queda o personagem permanece no mundo (parado, ainda alvo dos inimigos). Reconectar nesse prazo devolve o mesmo canal, instância e grupo; depois disso o personagem sai do mundo e do grupo como se tivesse saído do jogo. Duas sessões da mesma conta continuam proibidas.
+
+**Decisão de design (2026-10-13):** na entrega de #210, o prazo do Social fica unificado com os **60 s** do Core (`RegrasGrupo`, [social.md](features/social.md) e testes junto com servidor e client).
+
+**Testes esperados (#210):** reconectar antes de 60 s mantém grupo e instância; após 60 s o grupo segue sem o membro; segunda sessão da mesma conta continua recusada.
+
 ```csharp
 public void RegistrarMensagens(MensagensTempoReal mensagens) =>
     mensagens.Faixa(MundoMessageIds.Faixa)

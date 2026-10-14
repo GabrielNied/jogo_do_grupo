@@ -48,6 +48,10 @@ namespace JogoDoGrupo.Client.Features.Combate
                 recursos.ManaAtual,
                 recursos.ManaMaxima
             );
+            _prontidao?.RegistrarRegeneracaoDeStamina(
+                recursos.RegeneracaoStamina,
+                Time.unscaledTimeAsDouble
+            );
         }
 
         public void Configurar(long personagemId, PainelRecursos painel, ProntidaoLocal prontidao)

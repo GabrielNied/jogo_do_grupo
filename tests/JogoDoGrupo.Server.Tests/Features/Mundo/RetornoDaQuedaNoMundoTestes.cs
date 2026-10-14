@@ -154,4 +154,89 @@ public class RetornoDaQuedaNoMundoTestes(ServidorMundoQueda servidor)
         Assert.Equal(Nascimento.X, pos.X);
         Assert.Equal(Nascimento.Z, pos.Z);
     }
+
+    [Fact]
+    public async Task Voltar_da_queda_na_instancia_transfere_para_cidade_e_avisa_as_duas_areas()
+    {
+        using var caido = await NovoJogadorNaCidadeAsync();
+        using var companheiroDaInstancia = await NovoJogadorNaCidadeAsync();
+        using var companheiroDaCidade = await NovoJogadorNaCidadeAsync();
+
+        var transicoes = servidor.Falso.Services.GetRequiredService<ITransicoesDeAreaDoMundo>();
+        var eventos = servidor.Falso.Services.GetRequiredService<EventosDoServidor>();
+        var posicoes = servidor.Falso.Services.GetRequiredService<IPosicoesDoMundo>();
+        var instancia = AreasDoMundo.Instancia("a");
+        var destino = new PosicaoNoMundo(instancia, 0f, 0f, 0f, 0f);
+
+        Assert.True(transicoes.TentarMoverParaArea(caido.Id, destino));
+        await caido.Cliente.ReceberAsync<EstadoDaArea>(MundoMessageIds.EstadoDaArea);
+        Assert.Equal(
+            caido.Id,
+            (
+                await companheiroDaInstancia.Cliente.ReceberAsync<JogadorSaiu>(
+                    MundoMessageIds.JogadorSaiu
+                )
+            ).PersonagemId
+        );
+        Assert.Equal(
+            caido.Id,
+            (
+                await companheiroDaCidade.Cliente.ReceberAsync<JogadorSaiu>(
+                    MundoMessageIds.JogadorSaiu
+                )
+            ).PersonagemId
+        );
+
+        Assert.True(transicoes.TentarMoverParaArea(companheiroDaInstancia.Id, destino));
+        await companheiroDaInstancia.Cliente.ReceberAsync<EstadoDaArea>(
+            MundoMessageIds.EstadoDaArea
+        );
+        Assert.Equal(
+            companheiroDaInstancia.Id,
+            (await caido.Cliente.ReceberAsync<JogadorEntrou>(MundoMessageIds.JogadorEntrou))
+                .Jogador
+                .PersonagemId
+        );
+        Assert.Equal(
+            companheiroDaInstancia.Id,
+            (
+                await companheiroDaCidade.Cliente.ReceberAsync<JogadorSaiu>(
+                    MundoMessageIds.JogadorSaiu
+                )
+            ).PersonagemId
+        );
+
+        eventos.Publicar(new PersonagemVoltouParaACidade(caido.Id, instancia));
+
+        var estadoCidade = await caido.Cliente.ReceberAsync<EstadoDaCidade>(
+            MundoMessageIds.EstadoDaCidade
+        );
+        Assert.Contains(
+            estadoCidade.Outros,
+            jogador => jogador.PersonagemId == companheiroDaCidade.Id
+        );
+        Assert.Equal(
+            caido.Id,
+            (
+                await companheiroDaInstancia.Cliente.ReceberAsync<JogadorSaiu>(
+                    MundoMessageIds.JogadorSaiu
+                )
+            ).PersonagemId
+        );
+        Assert.Equal(
+            caido.Id,
+            (
+                await companheiroDaCidade.Cliente.ReceberAsync<JogadorEntrou>(
+                    MundoMessageIds.JogadorEntrou
+                )
+            )
+                .Jogador
+                .PersonagemId
+        );
+        Assert.True(posicoes.TentarObter(caido.Id, out var posicao));
+        Assert.Equal(AreasDoMundo.Cidade, posicao.Area);
+        Assert.Equal(Nascimento.X, posicao.X);
+        Assert.Equal(Nascimento.Y, posicao.Y);
+        Assert.Equal(Nascimento.Z, posicao.Z);
+    }
 }

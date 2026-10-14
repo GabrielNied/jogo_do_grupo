@@ -15,13 +15,13 @@ public class AtributosDosEquipamentosTestes
     [InlineData(TipoEquipamento.Arco, StatusItem.DanoDaArma, 8, 28)]
     [InlineData(TipoEquipamento.Cajado, StatusItem.DanoDaArma, 10, 30)]
     // A mesma Força vale diferente conforme a categoria.
-    [InlineData(TipoEquipamento.Espada, StatusItem.Forca, 0, 0.20)]
-    [InlineData(TipoEquipamento.Martelo, StatusItem.Forca, 0, 0.25)]
-    [InlineData(TipoEquipamento.Anel, StatusItem.Forca, 0, 0.10)]
-    [InlineData(TipoEquipamento.Peito, StatusItem.Vigor, 0, 250)]
-    [InlineData(TipoEquipamento.Cinto, StatusItem.Vigor, 0, 150)]
-    [InlineData(TipoEquipamento.Botas, StatusItem.Agilidade, 0, 30)]
-    [InlineData(TipoEquipamento.Foco, StatusItem.Espirito, 0, 30)]
+    [InlineData(TipoEquipamento.Espada, StatusItem.DanoFisico, 0, 20)]
+    [InlineData(TipoEquipamento.Martelo, StatusItem.DanoFisico, 0, 25)]
+    [InlineData(TipoEquipamento.Anel, StatusItem.DanoFisico, 0, 15)]
+    [InlineData(TipoEquipamento.Peito, StatusItem.VidaMaxima, 0, 250)]
+    [InlineData(TipoEquipamento.Cinto, StatusItem.VidaMaxima, 0, 150)]
+    [InlineData(TipoEquipamento.Botas, StatusItem.RegeneracaoStamina, 0, 5)]
+    [InlineData(TipoEquipamento.Foco, StatusItem.RegeneracaoMana, 0, 3)]
     [InlineData(TipoEquipamento.Capacete, StatusItem.DefesaFisica, 0, 50)]
     [InlineData(TipoEquipamento.Escudo, StatusItem.DefesaMagica, 0, 40)]
     [InlineData(TipoEquipamento.Anel, StatusItem.ChanceCritica, 0, 0.15)]
@@ -48,9 +48,12 @@ public class AtributosDosEquipamentosTestes
         // Força não existe em escudo nem em cinto; Destreza e Defesa são do modelo anterior.
         Assert.Equal(
             0,
-            ConfigAtributosItem.Converter(TipoEquipamento.Escudo, StatusItem.Forca, 80)
+            ConfigAtributosItem.Converter(TipoEquipamento.Escudo, StatusItem.DanoFisico, 80)
         );
-        Assert.Equal(0, ConfigAtributosItem.Converter(TipoEquipamento.Cinto, StatusItem.Forca, 80));
+        Assert.Equal(
+            0,
+            ConfigAtributosItem.Converter(TipoEquipamento.Cinto, StatusItem.DanoFisico, 80)
+        );
         Assert.Equal(
             0,
             ConfigAtributosItem.Converter(TipoEquipamento.Peito, StatusItem.Destreza, 80)
@@ -59,7 +62,7 @@ public class AtributosDosEquipamentosTestes
             0,
             ConfigAtributosItem.Converter(TipoEquipamento.Peito, StatusItem.Defesa, 80)
         );
-        Assert.Null(ConfigTier.Faixa(TipoEquipamento.Escudo, StatusItem.Forca));
+        Assert.Null(ConfigTier.Faixa(TipoEquipamento.Escudo, StatusItem.DanoFisico));
     }
 
     [Fact]
@@ -69,7 +72,7 @@ public class AtributosDosEquipamentosTestes
             new[]
             {
                 StatusItem.DanoDaArma,
-                StatusItem.Forca,
+                StatusItem.DanoFisico,
                 StatusItem.ChanceCritica,
                 StatusItem.PenetracaoFisica,
             },
@@ -122,18 +125,21 @@ public class AtributosDosEquipamentosTestes
                 PosicaoEquipamento.Arma1,
                 TipoEquipamento.Espada,
                 (StatusItem.DanoDaArma, 50),
-                (StatusItem.Forca, 100),
+                (StatusItem.DanoFisico, 100),
                 (StatusItem.ChanceCritica, 40)
             ),
             Peca(
                 PosicaoEquipamento.Peito,
                 TipoEquipamento.Peito,
-                (StatusItem.Vigor, 80),
-                (StatusItem.Forca, 50),
-                (StatusItem.DefesaFisica, 50),
-                (StatusItem.Agilidade, 100)
+                (StatusItem.VidaMaxima, 80),
+                (StatusItem.DanoFisico, 50),
+                (StatusItem.DefesaFisica, 50)
             ),
-            Peca(PosicaoEquipamento.Cinto, TipoEquipamento.Cinto, (StatusItem.Espirito, 100)),
+            Peca(
+                PosicaoEquipamento.Cinto,
+                TipoEquipamento.Cinto,
+                (StatusItem.RegeneracaoMana, 100)
+            ),
         };
 
         var resumo = RegrasAtributosDeItem.Resumir(itens, 1);
@@ -141,10 +147,8 @@ public class AtributosDosEquipamentosTestes
         Assert.True(resumo.TemArma);
         Assert.False(resumo.ArmaMagica);
         Assert.Equal(20, resumo.DanoDaArma, 9); // espada: 10 a 30, 50 vale 20
-        Assert.Equal(0.20 + 0.05, resumo.PercentualForca, 9); // espada 100 = 20%; peito 50 = 5%
-        Assert.Equal(200, resumo.VidaMaxima); // peito: Vigor 0 a 250, 80 vale 200
-        Assert.Equal(30, resumo.StaminaMaxima); // Agilidade do peito, 100 vale 30
-        Assert.Equal(30, resumo.ManaMaxima); // Espírito do cinto
+        Assert.Equal(20 + 7.5, resumo.BonusDanoFisico, 9); // espada 100 = 20; peito 50 = 7,5
+        Assert.Equal(200, resumo.VidaMaxima); // peito: vida 0 a 250, 80 vale 200
         Assert.Equal(30, resumo.DefesaFisica, 9); // peito: 0 a 60, 50 vale 30
         // Chance crítica é secundário: vai pela pipeline, não por aqui.
         Assert.DoesNotContain(resumo.Linhas, l => l.Status == StatusItem.ChanceCritica);
@@ -160,10 +164,10 @@ public class AtributosDosEquipamentosTestes
                 PosicaoEquipamento.Arma1,
                 TipoEquipamento.Cajado,
                 (StatusItem.DanoDaArma, 100),
-                (StatusItem.Intelecto, 50)
+                (StatusItem.DanoMagico, 50)
             ),
             Peca(PosicaoEquipamento.Arma2, TipoEquipamento.Espada, (StatusItem.DanoDaArma, 100)),
-            Peca(PosicaoEquipamento.Inventario, TipoEquipamento.Anel, (StatusItem.Forca, 100)),
+            Peca(PosicaoEquipamento.Inventario, TipoEquipamento.Anel, (StatusItem.DanoFisico, 100)),
         };
 
         var conjunto1 = RegrasAtributosDeItem.Resumir(itens, 1);
@@ -171,11 +175,11 @@ public class AtributosDosEquipamentosTestes
 
         Assert.True(conjunto1.ArmaMagica);
         Assert.Equal(30, conjunto1.DanoDaArma, 9);
-        Assert.Equal(0.10, conjunto1.PercentualIntelecto, 9);
-        Assert.Equal(0, conjunto1.PercentualForca); // o anel está na bolsa
+        Assert.Equal(10, conjunto1.BonusDanoMagico, 9);
+        Assert.Equal(0, conjunto1.BonusDanoFisico); // o anel está na bolsa
         Assert.False(conjunto2.ArmaMagica);
         Assert.Equal(30, conjunto2.DanoDaArma, 9);
-        Assert.Equal(0, conjunto2.PercentualIntelecto);
+        Assert.Equal(0, conjunto2.BonusDanoMagico);
     }
 
     [Fact]
@@ -189,24 +193,31 @@ public class AtributosDosEquipamentosTestes
                 TipoEquipamento.Escudo,
                 (StatusItem.DanoDaArma, 100)
             ),
-            Peca(PosicaoEquipamento.Capacete, TipoEquipamento.Capacete, (StatusItem.Forca, 100)),
+            Peca(
+                PosicaoEquipamento.Capacete,
+                TipoEquipamento.Capacete,
+                (StatusItem.DanoFisico, 100)
+            ),
         };
 
         var resumo = RegrasAtributosDeItem.Resumir(itens, 1);
 
         Assert.False(resumo.TemArma);
         Assert.Equal(0, resumo.DanoDaArma);
-        Assert.Equal(0.10, resumo.PercentualForca, 9);
+        Assert.Equal(15, resumo.BonusDanoFisico, 9);
     }
 
     [Fact]
     public void Textos_dizem_o_efeito_convertido()
     {
         Assert.Equal(
-            "+14,4% de dano físico",
-            RegrasAtributosDeItem.Efeito(StatusItem.Forca, 0.144)
+            "+14,4 de dano físico",
+            RegrasAtributosDeItem.Efeito(StatusItem.DanoFisico, 14.4)
         );
-        Assert.Equal("+120 de vida máxima", RegrasAtributosDeItem.Efeito(StatusItem.Vigor, 120));
+        Assert.Equal(
+            "+120 de vida máxima",
+            RegrasAtributosDeItem.Efeito(StatusItem.VidaMaxima, 120)
+        );
         Assert.Equal("+3/s", RegrasAtributosDeItem.Efeito(StatusItem.RegeneracaoMana, 3));
         Assert.Equal(
             "24,4 de dano mágico",

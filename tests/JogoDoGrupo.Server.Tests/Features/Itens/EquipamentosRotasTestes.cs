@@ -199,6 +199,46 @@ public class EquipamentosRotasTestes(ServidorDeTeste servidor) : IClassFixture<S
         );
 
     [Fact]
+    public async Task EquipamentoMudou_SaiAoEquiparDesequiparETrocarOConjunto_ENaoNasRecusas()
+    {
+        var (cliente, id) = await Personagem();
+        var item = await Item(id, 100);
+        var avisados = new System.Collections.Concurrent.ConcurrentQueue<long>();
+        servidor
+            .Services.GetRequiredService<JogoDoGrupo.Server.Core.Eventos.EventosDoServidor>()
+            .Assinar<EquipamentoMudou>(e => avisados.Enqueue(e.PersonagemId));
+        int Meus() => avisados.Count(p => p == id);
+
+        (await Equipar(cliente, id, item, PosicaoEquipamento.Arma1)).EnsureSuccessStatusCode();
+        Assert.Equal(1, Meus());
+
+        // Recusa (peça que não existe): nada mudou, nada é avisado.
+        Assert.Equal(
+            HttpStatusCode.NotFound,
+            (await Equipar(cliente, id, item + 999, PosicaoEquipamento.Arma1)).StatusCode
+        );
+        Assert.Equal(1, Meus());
+
+        (
+            await ServidorDeTeste.PostJsonAsync(
+                cliente,
+                RegrasEquipamentos.RotaDe(id) + "/conjunto",
+                new PedidoConjunto { Conjunto = 2 }
+            )
+        ).EnsureSuccessStatusCode();
+        Assert.Equal(2, Meus());
+
+        (
+            await ServidorDeTeste.PostJsonAsync(
+                cliente,
+                RegrasEquipamentos.RotaDe(id) + "/desequipar",
+                new PedidoDesequipar { Posicao = PosicaoEquipamento.Arma1 }
+            )
+        ).EnsureSuccessStatusCode();
+        Assert.Equal(3, Meus());
+    }
+
+    [Fact]
     public async Task Equipar_ReabrirEDesequiparNaoRerrolaNemDuplicaOQueDaAoCombate()
     {
         var (cliente, id) = await Personagem();
@@ -208,15 +248,15 @@ public class EquipamentosRotasTestes(ServidorDeTeste servidor) : IClassFixture<S
         var estado = await Ler(cliente, id);
         Assert.Empty(estado.Inventario);
         Assert.Equal(item, Assert.Single(estado.Equipados).InstanciaId);
-        // Martelo: dano da arma de 14 a 44 e Força do item de 0 a 25% de dano; 50 é o meio.
+        // Martelo: dano da arma de 14 a 44 e dano físico flat de 0 a 25; 50 é o meio (12,5).
         Assert.True(estado.Atributos.TemArma);
         Assert.Equal(29, estado.Atributos.DanoDaArma, 6);
-        Assert.Equal(0.125, estado.Atributos.PercentualForca, 6);
+        Assert.Equal(12.5, estado.Atributos.BonusDanoFisico, 6);
         var contrato = await servidor
             .Services.GetRequiredService<IAtributosDosEquipamentos>()
             .ObterAsync(id, default);
         Assert.Equal(29, contrato.DanoDaArma, 6);
-        Assert.Equal(0.125, contrato.PercentualForca, 6);
+        Assert.Equal(12.5, contrato.BonusDanoFisico, 6);
         // A Força do martelo é do item: a Força do personagem continua em 0.
         var recursos = await Recursos(cliente, id);
         Assert.Equal(0, recursos.Atributos.Forca);
@@ -300,10 +340,10 @@ public class EquipamentosRotasTestes(ServidorDeTeste servidor) : IClassFixture<S
         troca.EnsureSuccessStatusCode();
         var estado = await Ler(cliente, id);
         Assert.Equal(2, estado.ConjuntoAtivo);
-        // Só a arma do conjunto ativo dá o dano-base e a Força do item (29 e 12,5%, uma vez).
+        // Só a arma do conjunto ativo dá o dano-base e o dano físico flat (29 e 12,5, uma vez).
         Assert.Equal(29, estado.Atributos.DanoDaArma, 6);
-        Assert.Equal(0.125, estado.Atributos.PercentualForca, 6);
-        // Os dois anéis contam: Vigor do anel de 0 a 150 de vida máxima; 50 vale 75 cada.
+        Assert.Equal(12.5, estado.Atributos.BonusDanoFisico, 6);
+        // Os dois anéis contam: vida do anel de 0 a 150; 50 vale 75 cada.
         Assert.Equal(150, estado.Atributos.VidaMaxima);
     }
 
@@ -348,6 +388,62 @@ public class EquipamentosRotasTestes(ServidorDeTeste servidor) : IClassFixture<S
         Assert.Equal(
             HttpStatusCode.Unauthorized,
             (await servidor.CreateClient().GetAsync(RegrasEquipamentos.RotaDe(id))).StatusCode
+        );
+    }
+
+    private static async Task AssertCodigo(
+        HttpResponseMessage resposta,
+        HttpStatusCode status,
+        string codigo
+    )
+    {
+        Assert.Equal(status, resposta.StatusCode);
+        Assert.Equal(codigo, (await ServidorDeTeste.LerJsonAsync<ErroApi>(resposta)).Codigo);
+    }
+
+    [Fact]
+    public async Task Recusas_de_equipar_trazem_o_codigo_do_contrato_e_a_resposta_traz_o_nivel()
+    {
+        var (cliente, id) = await Personagem();
+        Assert.Equal(1, (await Ler(cliente, id)).NivelDoPersonagem);
+
+        var alto = await Item(id, 100, grau: GrauEquipamento.Forte);
+        await AssertCodigo(
+            await Equipar(cliente, id, alto, PosicaoEquipamento.Arma1),
+            HttpStatusCode.Conflict,
+            CodigosErroItens.NivelInsuficiente
+        );
+        var martelo = await Item(id, 100);
+        await AssertCodigo(
+            await Equipar(cliente, id, martelo, PosicaoEquipamento.Capacete),
+            HttpStatusCode.BadRequest,
+            CodigosErroItens.PosicaoInvalida
+        );
+        await AssertCodigo(
+            await Equipar(cliente, id, await Item(id, 3), PosicaoEquipamento.Arma1),
+            HttpStatusCode.BadRequest,
+            CodigosErroItens.ItemNaoEquipavel
+        );
+        await AssertCodigo(
+            await Equipar(cliente, id, martelo + 9999, PosicaoEquipamento.Arma1),
+            HttpStatusCode.NotFound,
+            CodigosErroItens.ItemNaoEncontrado
+        );
+        await AssertCodigo(
+            await ServidorDeTeste.PostJsonAsync(
+                cliente,
+                RegrasEquipamentos.RotaDe(id) + "/conjunto",
+                new PedidoConjunto { Conjunto = 3 }
+            ),
+            HttpStatusCode.BadRequest,
+            CodigosErroItens.ConjuntoInvalido
+        );
+
+        (await Equipar(cliente, id, martelo, PosicaoEquipamento.Arma1)).EnsureSuccessStatusCode();
+        await AssertCodigo(
+            await Equipar(cliente, id, await Item(id, 2), PosicaoEquipamento.Secundaria1),
+            HttpStatusCode.Conflict,
+            CodigosErroItens.ArmaDeDuasMaos
         );
     }
 

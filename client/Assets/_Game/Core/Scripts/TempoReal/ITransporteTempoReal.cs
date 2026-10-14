@@ -8,6 +8,9 @@ namespace JogoDoGrupo.Client.Core.TempoReal
     /// </summary>
     internal interface ITransporteTempoReal
     {
+        /// <summary>Ping do servidor em milissegundos, ou -1 sem conexão.</summary>
+        int Latencia { get; }
+
         /// <summary>A conexão abriu.</summary>
         event Action Conectou;
 

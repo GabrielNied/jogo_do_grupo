@@ -11,7 +11,7 @@ O repositório é **público**, e a `main` é protegida pelo GitHub com um rules
 | Onde | O que confere | Arquivo |
 |---|---|---|
 | Na sua máquina, ao commitar | Mensagem do commit (commitlint) | `.husky/commit-msg` |
-| Na sua máquina, ao dar push | **Bloqueia push na `main`**, branch fora do padrão e branch cujo PR já foi mergeado | `.husky/pre-push` |
+| Na sua máquina, ao dar push | **Bloqueia push na `main`**, branch fora do padrão, branch cujo PR já foi mergeado e `.meta` que o `npm run unity:meta` gera faltando no commit | `.husky/pre-push` |
 | No GitHub, no PR | Título do PR, nome da branch, formatação, build | `.github/workflows/` |
 | No GitHub, na `main` | PR obrigatório, só squash, checks `csharpier`, `build` e `padrao-git` verdes **com a branch atualizada** | `.github/rulesets/proteger-main.json` (ativo) |
 | No GitHub, no PR de client | Compila e roda os testes EditMode no Unity (~10 min; não obrigatório) | `.github/workflows/client.yml` |
@@ -160,6 +160,8 @@ Um PR que parte de outro ainda aberto nasce com `npm run tarefa -- puxar <N> <br
 ```
 npm run reempilhar -- <PR de cima>
 ```
+
+  A [lição do falso conflito](licoes.md#2026-10-13--reempilhar-informava-conflito-falso) registra a falha que interrompia a publicação depois de um cherry-pick concluído.
 
 O script lê a linha `Depende de`, leva só os commits próprios do PR (cherry-pick) para uma branch `<nome>-segue` a partir de `origin/main`, abre o PR novo com o mesmo título e corpo e fecha o antigo.
 

@@ -9,6 +9,9 @@ namespace JogoDoGrupo.Client.Core.Jogo
         /// <summary>Canto inferior esquerdo: barras do personagem (Combate).</summary>
         InferiorEsquerda,
 
+        /// <summary>Acima das barras do personagem: chat (Social).</summary>
+        Chat,
+
         /// <summary>Lateral esquerda, do meio para cima: lista do grupo (Social).</summary>
         LateralEsquerda,
 

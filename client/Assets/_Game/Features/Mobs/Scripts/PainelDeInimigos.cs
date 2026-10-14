@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using JogoDoGrupo.Client.Core.Visual;
 using JogoDoGrupo.Shared.Features.Mobs;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -22,6 +23,8 @@ namespace JogoDoGrupo.Client.Features.Mobs
         public const string ClasseBarra = "inimigo-barra";
         public const string ClassePreenchimento = "inimigo-preenchimento";
         public const string ClasseExposto = "inimigo-exposto";
+        public const string ClasseAlerta = "inimigo-alerta";
+        public const string ClasseEtiquetaAlvo = "inimigo-etiqueta-alvo";
 
         private readonly VisualElement _camada;
         private readonly Dictionary<long, Etiqueta> _etiquetas = new Dictionary<long, Etiqueta>();
@@ -49,6 +52,8 @@ namespace JogoDoGrupo.Client.Features.Mobs
         public void Mostrar(
             IReadOnlyCollection<InimigoNoClient> inimigos,
             Camera camera,
+            long personagemId,
+            int nivelJogador,
             (float X, float Z)? jogadorNoChao = null
         )
         {
@@ -100,7 +105,7 @@ namespace JogoDoGrupo.Client.Features.Mobs
                     _etiquetas[inimigo.InimigoId] = etiqueta;
                 }
 
-                etiqueta.Mostrar(inimigo, camera);
+                etiqueta.Mostrar(inimigo, camera, personagemId, nivelJogador);
             }
         }
 
@@ -109,6 +114,8 @@ namespace JogoDoGrupo.Client.Features.Mobs
             /// <summary>Altura acima do chão, em metros, onde fica a etiqueta (na escala 1).</summary>
             private const float AlturaDaEtiqueta = 2.1f;
 
+            private readonly Label _nome;
+            private readonly Label _alerta;
             private readonly VisualElement _preenchimento;
             private readonly Label _exposto;
 
@@ -122,9 +129,14 @@ namespace JogoDoGrupo.Client.Features.Mobs
                     Raiz.AddToClassList(ClasseEtiquetaFortalecida);
                 }
 
-                var nome = new Label(inimigo.Rotulo);
-                nome.pickingMode = PickingMode.Ignore;
-                nome.AddToClassList(ClasseNome);
+                _alerta = new Label("!");
+                _alerta.pickingMode = PickingMode.Ignore;
+                _alerta.AddToClassList(ClasseAlerta);
+                _alerta.style.display = DisplayStyle.None;
+
+                _nome = new Label(inimigo.Rotulo);
+                _nome.pickingMode = PickingMode.Ignore;
+                _nome.AddToClassList(ClasseNome);
 
                 var barra = new VisualElement();
                 barra.pickingMode = PickingMode.Ignore;
@@ -140,15 +152,43 @@ namespace JogoDoGrupo.Client.Features.Mobs
                 _exposto.AddToClassList(ClasseExposto);
                 _exposto.style.display = DisplayStyle.None;
 
+                Raiz.Add(_alerta);
                 Raiz.Add(_exposto);
-                Raiz.Add(nome);
+                Raiz.Add(_nome);
                 Raiz.Add(barra);
             }
 
             public VisualElement Raiz { get; }
 
-            public void Mostrar(InimigoNoClient inimigo, Camera camera)
+            public void Mostrar(
+                InimigoNoClient inimigo,
+                Camera camera,
+                long personagemId,
+                int nivelJogador
+            )
             {
+                _nome.text = inimigo.Rotulo;
+                if (!inimigo.Fortalecido)
+                {
+                    _nome.style.color = CorDoTom(
+                        RegrasCorDePerigo.Tom(nivelJogador, inimigo.Nivel)
+                    );
+                }
+
+                var perseguindoLocal =
+                    personagemId != 0 && inimigo.AlvoId == personagemId && inimigo.Vida > 0;
+                Raiz.EnableInClassList(ClasseEtiquetaAlvo, perseguindoLocal);
+                var emAlerta =
+                    inimigo.Estado == EstadoDeInimigo.Alerta
+                    || (
+                        perseguindoLocal
+                        && (
+                            inimigo.Estado == EstadoDeInimigo.Perseguicao
+                            || inimigo.Estado == EstadoDeInimigo.Ataque
+                        )
+                    );
+                _alerta.style.display = emAlerta ? DisplayStyle.Flex : DisplayStyle.None;
+
                 _preenchimento.style.width = Length.Percent(inimigo.FracaoDeVida * 100f);
                 _exposto.style.display = inimigo.Exposto ? DisplayStyle.Flex : DisplayStyle.None;
                 if (inimigo.Exposto)
@@ -178,6 +218,21 @@ namespace JogoDoGrupo.Client.Features.Mobs
                 var ponto = RuntimePanelUtils.CameraTransformWorldToPanel(painel, mundo, camera);
                 Raiz.style.left = ponto.x;
                 Raiz.style.top = ponto.y;
+            }
+
+            private static Color CorDoTom(TomDePerigoDoNivel tom)
+            {
+                switch (tom)
+                {
+                    case TomDePerigoDoNivel.Trivial:
+                        return EstiloVisual.Cor(ConfigVisual.Cores.TextoDesabilitado);
+                    case TomDePerigoDoNivel.Atencao:
+                        return EstiloVisual.Cor(ConfigVisual.Cores.Ouro);
+                    case TomDePerigoDoNivel.Mortal:
+                        return EstiloVisual.Cor(ConfigVisual.Cores.Erro);
+                    default:
+                        return EstiloVisual.Cor(ConfigVisual.Cores.Marfim);
+                }
             }
         }
     }

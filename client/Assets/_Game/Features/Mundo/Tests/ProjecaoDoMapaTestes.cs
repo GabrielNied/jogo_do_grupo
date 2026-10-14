@@ -83,6 +83,38 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
         }
 
         [Test]
+        public void LugaresFicamSobreAsEstruturasDoMundo()
+        {
+            var esperado = new[] { (107, 137), (149, 136), (103, 145), (129, 122) };
+            var lado = ProjecaoDoMapa.LadoDasAmostras;
+            Assert.AreEqual(esperado.Length, EstruturasDoMapa.Lugares.Length);
+            for (var i = 0; i < esperado.Length; i++)
+            {
+                ProjecaoDoMapa.PixelDoLugar(
+                    EstruturasDoMapa.Lugares[i],
+                    lado,
+                    lado,
+                    out var x,
+                    out var y
+                );
+                Assert.AreEqual(esperado[i].Item1, x);
+                Assert.AreEqual(esperado[i].Item2, y);
+            }
+        }
+
+        [Test]
+        public void TexturaDoMapa_EGeradaUmaVez()
+        {
+            var geracoes = TexturaDoMapa.Geracoes;
+            Assert.IsTrue(TexturaDoMapa.Avancar(ProjecaoDoMapa.LadoDasAmostras));
+            Assert.IsNotNull(TexturaDoMapa.Pronta);
+            Assert.AreEqual(ProjecaoDoMapa.LadoDasAmostras, TexturaDoMapa.Pronta.width);
+            Assert.AreEqual(ProjecaoDoMapa.LadoDasAmostras, TexturaDoMapa.Pronta.height);
+            Assert.IsTrue(TexturaDoMapa.Avancar(1));
+            Assert.AreEqual(geracoes + (geracoes == 0 ? 1 : 0), TexturaDoMapa.Geracoes);
+        }
+
+        [Test]
         public void SobOChao_so_vale_dentro_do_tunel_da_caverna()
         {
             PrimeiraCaverna.PontoDoPercurso(40f, out var x, out var z);

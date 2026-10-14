@@ -149,7 +149,11 @@ public sealed class ServicoDeEsquivas : IDisposable
     private void AoEncerrar(SessaoTempoReal sessao)
     {
         var id = sessao.PersonagemId;
-        if (!_tempoReal.Sessoes.Any(s => s.PersonagemId == id && !ReferenceEquals(s, sessao)))
+        if (
+            !_tempoReal.TentarObterSessao(id, out var outra)
+            || outra is null
+            || ReferenceEquals(outra, sessao)
+        )
         {
             _controle.Esquecer(id);
         }

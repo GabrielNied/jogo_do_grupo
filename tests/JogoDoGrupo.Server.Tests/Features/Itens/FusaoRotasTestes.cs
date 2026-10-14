@@ -62,7 +62,7 @@ public class FusaoRotasTestes(ServidorDeTeste servidor) : IClassFixture<Servidor
         {
             new AtributoItem
             {
-                Status = StatusItem.Forca,
+                Status = StatusItem.DanoFisico,
                 Valor = forca,
                 Fixo = true,
             },
@@ -103,7 +103,7 @@ public class FusaoRotasTestes(ServidorDeTeste servidor) : IClassFixture<Servidor
     private static PedidoFusao Pedido(
         long principal,
         long material,
-        StatusItem status = StatusItem.Forca
+        StatusItem status = StatusItem.DanoFisico
     ) =>
         new()
         {
@@ -117,7 +117,7 @@ public class FusaoRotasTestes(ServidorDeTeste servidor) : IClassFixture<Servidor
         long id,
         long principal,
         long material,
-        StatusItem status = StatusItem.Forca
+        StatusItem status = StatusItem.DanoFisico
     )
     {
         var resposta = await Post(cliente, id, "previa", Pedido(principal, material, status));
@@ -207,7 +207,7 @@ public class FusaoRotasTestes(ServidorDeTeste servidor) : IClassFixture<Servidor
 
         var previa = await Previa(cliente, id, principal, material);
 
-        Assert.Equal(StatusItem.Forca, previa.Status);
+        Assert.Equal(StatusItem.DanoFisico, previa.Status);
         Assert.Equal((20, 40, 30), (previa.ValorAtual, previa.ValorMaterial, previa.ValorDepois));
         Assert.Equal((0, 1), (previa.NivelAtual, previa.NivelDepois));
         Assert.Equal(100, previa.Custo);
@@ -229,14 +229,15 @@ public class FusaoRotasTestes(ServidorDeTeste servidor) : IClassFixture<Servidor
         Assert.Equal(1, item.NivelFusao);
         Assert.Equal(30, item.Atributos[1].Valor);
         Assert.Equal(10, item.Atributos[2].Valor);
-        Assert.Equal(SemOQueMuda(antes, StatusItem.Forca), SemOQueMuda(item, StatusItem.Forca));
+        Assert.Equal(
+            SemOQueMuda(antes, StatusItem.DanoFisico),
+            SemOQueMuda(item, StatusItem.DanoFisico)
+        );
         using var escopo = servidor.Services.CreateScope();
-        // 30 na escala 0 a 100 vale 7,5% de dano no martelo (Força do item de 0 a 25%): o que o
-        // equipado dá ao combate acompanha o novo valor, sem somar duas vezes.
         var atributos = await escopo
             .ServiceProvider.GetRequiredService<IAtributosDosEquipamentos>()
             .ObterAsync(id, default);
-        Assert.Equal(0.075, atributos.PercentualForca, 6);
+        Assert.Equal(7.5, atributos.BonusDanoFisico, 6);
     }
 
     [Theory]
@@ -291,7 +292,7 @@ public class FusaoRotasTestes(ServidorDeTeste servidor) : IClassFixture<Servidor
         void SoForca(Equipamento e) =>
             e.Atributos = new[]
             {
-                new AtributoItem { Status = StatusItem.Forca, Valor = 20 },
+                new AtributoItem { Status = StatusItem.DanoFisico, Valor = 20 },
             };
         var principal = await Item(id, 20, SoForca);
         var material = await Item(
@@ -300,7 +301,7 @@ public class FusaoRotasTestes(ServidorDeTeste servidor) : IClassFixture<Servidor
             e =>
                 e.Atributos = new[]
                 {
-                    new AtributoItem { Status = StatusItem.Forca, Valor = 100 },
+                    new AtributoItem { Status = StatusItem.DanoFisico, Valor = 100 },
                 }
         );
 
@@ -322,7 +323,7 @@ public class FusaoRotasTestes(ServidorDeTeste servidor) : IClassFixture<Servidor
             e =>
                 e.Atributos = new[]
                 {
-                    new AtributoItem { Status = StatusItem.Forca, Valor = valor },
+                    new AtributoItem { Status = StatusItem.DanoFisico, Valor = valor },
                 };
         var principal = await Item(id, 100, forca(100));
         var material = await Item(id, 0, forca(0));
@@ -478,7 +479,7 @@ public class FusaoRotasTestes(ServidorDeTeste servidor) : IClassFixture<Servidor
             caso == "equipado" ? PosicaoEquipamento.Arma2 : PosicaoEquipamento.Inventario
         );
 
-        var status = caso == "semFaixa" ? StatusItem.PotenciaFogo : StatusItem.Forca;
+        var status = caso == "semFaixa" ? StatusItem.PotenciaFogo : StatusItem.DanoFisico;
         var resposta = await Post(cliente, id, "previa", Pedido(principal, material, status));
 
         Assert.Equal(HttpStatusCode.Conflict, resposta.StatusCode);
@@ -518,7 +519,7 @@ public class FusaoRotasTestes(ServidorDeTeste servidor) : IClassFixture<Servidor
         previa.Status = StatusItem.DanoDaArma;
         var outroAtributo = await Confirmar(cliente, id, previa);
         Assert.Equal(CodigosErroItens.PreviaDesatualizada, await Codigo(outroAtributo));
-        previa.Status = StatusItem.Forca;
+        previa.Status = StatusItem.DanoFisico;
         // O principal mudou depois da prévia (favorito): outra prévia.
         (
             await Post(

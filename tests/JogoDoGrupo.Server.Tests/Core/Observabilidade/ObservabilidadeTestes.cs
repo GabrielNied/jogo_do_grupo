@@ -1,5 +1,6 @@
 using JogoDoGrupo.Server.Core.Observabilidade;
 using JogoDoGrupo.Server.Tests.Core.TempoReal;
+using JogoDoGrupo.Shared.Core.Api;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using Serilog.Core;
@@ -18,6 +19,9 @@ public class ObservabilidadeTestes
         var resposta = await cliente.GetAsync("/saude");
 
         resposta.EnsureSuccessStatusCode();
+        var saude = await Infra.ServidorDeTeste.LerJsonAsync<EstadoDaSaude>(resposta);
+        Assert.Equal("ok", saude.Estado);
+        Assert.Equal(EstadoDaSaude.VersaoAtual, saude.Versao);
     }
 
     [Theory]

@@ -43,6 +43,7 @@ namespace JogoDoGrupo.Client.Features.Itens
         private VisualElement _janela;
         private ScrollView _grade;
         private VisualElement _alvoAceso;
+        private readonly List<VisualElement> _doadoresAcesos = new List<VisualElement>();
         private EquipamentosResponse _estado;
         private HashSet<long> _novos = new HashSet<long>();
         private HashSet<long> _pendentes = new HashSet<long>();
@@ -52,6 +53,9 @@ namespace JogoDoGrupo.Client.Features.Itens
         public event Action<AcaoDoInventario> AcaoPedida;
         public event Action<int> ConjuntoPedido;
         public event Action BancadaPedida;
+
+        /// <summary>Pede ao servidor para ordenar a aba (índice) aberta da bolsa.</summary>
+        public event Action<int> OrdenarPedido;
 #pragma warning disable CS0067 // só é disparado em editor/build de desenvolvimento
         public event Action<int> ItemDeTestePedido;
 #pragma warning restore CS0067
@@ -246,6 +250,7 @@ namespace JogoDoGrupo.Client.Features.Itens
             if (_aba >= estado.Capacidade.Abas)
                 _aba = 0;
 
+            _doadoresAcesos.Clear();
             _encaixes.Clear();
             _casas.Clear();
             _corpo.Clear();
@@ -534,6 +539,23 @@ namespace JogoDoGrupo.Client.Features.Itens
             bancada.tooltip = "Fundir equipamentos";
             bancada.SetEnabled(!_ocupado);
             _rodape.Add(bancada);
+            var ordenar = Botao("Ordenar", () => OrdenarPedido?.Invoke(_aba));
+            ordenar.tooltip = "Ordena esta aba da bolsa por tipo, tier e nível";
+            ordenar.SetEnabled(!_ocupado);
+            _rodape.Add(ordenar);
+            // Filtro de loot (#565): preferência deste computador, vale na hora no chão.
+            var filtro = new DropdownField(
+                "Loot no chão",
+                new List<string>(Loot.FiltroDeLoot.Rotulos),
+                (int)Loot.FiltroDeLoot.TierMinimo
+            );
+            filtro.AddToClassList(EstiloCore.Campo);
+            filtro.tooltip =
+                "Peças abaixo deste tier não aparecem no chão nem entram com a tecla F";
+            filtro.RegisterValueChangedCallback(_ =>
+                Loot.FiltroDeLoot.TierMinimo = Loot.FiltroDeLoot.Normalizar(filtro.index)
+            );
+            _rodape.Add(filtro);
 #if DEBUG
             var grau = new DropdownField(
                 "Grau de teste",
@@ -616,6 +638,12 @@ namespace JogoDoGrupo.Client.Features.Itens
             }
 
             _tooltip.Registrar(slot, () => TextosTooltip.Montar(entrada, _estado));
+            if (RegrasEquipamentos.DadosDe(entrada) != null)
+            {
+                // A pergunta central da fusão: quais peças da bolsa servem de material.
+                slot.RegisterCallback<PointerEnterEvent>(_ => AcenderDoadores(entrada));
+                slot.RegisterCallback<PointerLeaveEvent>(_ => ApagarDoadores());
+            }
             if (_ocupado || pendente)
                 return slot;
 
@@ -731,9 +759,57 @@ namespace JogoDoGrupo.Client.Features.Itens
             return AlvoSoltura.Em(TipoAlvo.Fora);
         }
 
+        // Acende na bolsa (aba aberta) os doadores compatíveis da peça sob o mouse. Em arraste
+        // não acende: o destaque do alvo é outro.
+        private void AcenderDoadores(EntradaInventario entrada)
+        {
+            ApagarDoadores();
+            var item = RegrasEquipamentos.DadosDe(entrada);
+            if (_estado == null || item == null || _arrasto.Arrastando)
+                return;
+            var ids = RegrasFusao.Doadores(entrada.InstanciaId, item, _estado.Inventario);
+            foreach (var doador in _estado.Inventario)
+            {
+                if (
+                    ids.Contains(doador.InstanciaId)
+                    && doador.Aba == _aba
+                    && _casas.TryGetValue((doador.Aba, doador.Casa), out var casa)
+                )
+                {
+                    casa.AddToClassList(EstiloItens.SlotDoador);
+                    _doadoresAcesos.Add(casa);
+                }
+            }
+        }
+
+        private void ApagarDoadores()
+        {
+            foreach (var casa in _doadoresAcesos)
+                casa.RemoveFromClassList(EstiloItens.SlotDoador);
+            _doadoresAcesos.Clear();
+        }
+
+        private EntradaInventario EntradaDe(long instanciaId)
+        {
+            if (_estado == null)
+                return null;
+            foreach (var entrada in _estado.Inventario)
+            {
+                if (entrada.InstanciaId == instanciaId)
+                    return entrada;
+            }
+            foreach (var entrada in _estado.Equipados)
+            {
+                if (entrada.InstanciaId == instanciaId)
+                    return entrada;
+            }
+            return null;
+        }
+
         private void AoMudarArrasto(OrigemArrasto origem, bool comecou)
         {
             _tooltip.Esconder();
+            ApagarDoadores();
             foreach (var par in _encaixes)
             {
                 par.Value.RemoveFromClassList(EstiloItens.SlotValido);
@@ -743,7 +819,11 @@ namespace JogoDoGrupo.Client.Features.Itens
             LimparAlvo();
             if (!comecou || origem.Tipo == null)
                 return;
-            var validos = LogicaInventario.EncaixesValidos(origem.Tipo.Value);
+            var arrastado = RegrasEquipamentos.DadosDe(EntradaDe(origem.InstanciaId));
+            var validos =
+                arrastado != null && _estado != null
+                    ? LogicaInventario.EncaixesValidos(arrastado, _estado)
+                    : LogicaInventario.EncaixesValidos(origem.Tipo.Value);
             foreach (var par in _encaixes)
             {
                 par.Value.AddToClassList(

@@ -310,17 +310,17 @@ public class RegrasAtaqueTestes
     [Fact]
     public void Dano_com_arma_usa_o_dano_da_arma_como_base_e_as_duas_forcas_em_parcelas_separadas()
     {
-        // Espada de 29 de dano, Força 2 do personagem (+20%) e Força do item (+12,5%).
+        // Espada de 29 de dano, Força 2 do personagem (+20%) e +3,625 flat do item.
         var parcelas = new ParcelasDeDano
         {
             DanoBase = 29,
             PercentualPersonagem = RegrasAtaque.PercentualDeDanoPorPonto * 2,
-            PercentualEquipamento = 0.125,
+            DanoFlatEquipamento = 3.625,
         };
 
-        // 29 x (1 + 0,20 + 0,125) = 38,425; o pesado multiplica por 2,2 (84,535).
-        Assert.Equal(38, RegrasAtaque.Dano(TipoDeAtaque.Leve, parcelas));
-        Assert.Equal(85, RegrasAtaque.Dano(TipoDeAtaque.Pesado, parcelas));
+        // (29 + 3,625) x 1,20 = 39,15; o pesado multiplica por 2,2.
+        Assert.Equal(39, RegrasAtaque.Dano(TipoDeAtaque.Leve, parcelas));
+        Assert.Equal(86, RegrasAtaque.Dano(TipoDeAtaque.Pesado, parcelas));
     }
 
     [Fact]
@@ -336,9 +336,9 @@ public class RegrasAtaqueTestes
         Assert.Equal(20, ParcelasDeDano.DanoSemArma);
         Assert.Equal(26, RegrasAtaque.Dano(TipoDeAtaque.Leve, semItem)); // 20 x 1,3
         Assert.Equal(39, RegrasAtaque.Dano(TipoDeAtaque.Leve, comArma)); // 30 x 1,3
-        // O mesmo item com Força de equipamento soma só a parcela dele, não pontos no personagem.
-        comArma.PercentualEquipamento = 0.5;
-        Assert.Equal(54, RegrasAtaque.Dano(TipoDeAtaque.Leve, comArma)); // 30 x 1,8
+        // O flat do equipamento soma na base, não vira ponto de Força do personagem.
+        comArma.DanoFlatEquipamento = 15;
+        Assert.Equal(59, RegrasAtaque.Dano(TipoDeAtaque.Leve, comArma)); // (30 + 15) x 1,3
         Assert.Equal(semItem.PercentualPersonagem, comArma.PercentualPersonagem);
     }
 
@@ -350,7 +350,7 @@ public class RegrasAtaqueTestes
             20,
             RegrasAtaque.Dano(
                 TipoDeAtaque.Leve,
-                new ParcelasDeDano { DanoBase = 20, PercentualEquipamento = -0.5 }
+                new ParcelasDeDano { DanoBase = 20, DanoFlatEquipamento = -0.5 }
             )
         );
     }

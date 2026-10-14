@@ -120,6 +120,15 @@ namespace JogoDoGrupo.Shared.Features.Itens
         VelocidadeAtaqueMagico,
         PenetracaoFisica,
         PenetracaoMagica,
+
+        /// <summary>Dano físico flat somado ao golpe (v3; substitui <see cref="Forca"/> do item).</summary>
+        DanoFisico,
+
+        /// <summary>Dano mágico flat somado ao golpe (v3; substitui <see cref="Intelecto"/> do item).</summary>
+        DanoMagico,
+
+        /// <summary>Vida máxima concedida pela peça (v3; substitui <see cref="Vigor"/> do item).</summary>
+        VidaMaxima,
     }
 
     [Serializable]
@@ -216,6 +225,16 @@ namespace JogoDoGrupo.Shared.Features.Itens
         public int Casa;
     }
 
+    /// <summary>
+    /// Ordena uma aba da bolsa no servidor (#562): tipo, tier (do maior para o menor), nível.
+    /// Rota: <see cref="RotasItens.Ordenar"/>.
+    /// </summary>
+    [Serializable]
+    public class PedidoOrdenar
+    {
+        public int Aba;
+    }
+
     [Serializable]
     public class PedidoConjunto
     {
@@ -229,6 +248,13 @@ namespace JogoDoGrupo.Shared.Features.Itens
         public EntradaInventario[] Equipados = Array.Empty<EntradaInventario>();
         public CapacidadeBolsa Capacidade = RegrasItens.CapacidadeInicial();
         public int ConjuntoAtivo = 1;
+
+        /// <summary>
+        /// Nível do personagem, para a tela mostrar antes do clique o que o servidor recusaria
+        /// por nível (<see cref="RegrasEquipar"/>). 0 é "não informado" (resposta antiga ou
+        /// inventário limpo): a tela não recusa por nível.
+        /// </summary>
+        public int NivelDoPersonagem;
 
         /// <summary>
         /// O que as peças ativas dão ao combate, já convertido (ATRIB-003) e separado do

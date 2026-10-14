@@ -26,6 +26,23 @@
     color: var(--lumora-cores-erro);
 }
 
+.inimigo-etiqueta-alvo {
+    border-width: var(--lumora-bordas-fina);
+    border-color: var(--lumora-cores-erro);
+    border-radius: var(--lumora-bordas-raio-campo);
+    padding: var(--lumora-espacamento-minimo);
+}
+
+.inimigo-alerta {
+    font-size: var(--lumora-tipografia-subtitulo);
+    color: var(--lumora-cores-erro);
+    -unity-text-outline-width: var(--lumora-bordas-fina);
+    -unity-text-outline-color: var(--lumora-cores-trilho);
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    margin-bottom: calc(var(--lumora-espacamento-minimo) * -0.5);
+}
+
 .inimigo-barra {
     width: var(--lumora-dimensoes-inimigo-barra);
     height: var(--lumora-dimensoes-inimigo-barra-altura);

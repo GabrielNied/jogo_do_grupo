@@ -2,7 +2,6 @@
 .chat {
     width: var(--lumora-dimensoes-chat-largura);
     max-width: 100%;
-    margin-bottom: var(--lumora-dimensoes-dica-base);
     transition-property: opacity;
     transition-duration: 0.4s;
 }

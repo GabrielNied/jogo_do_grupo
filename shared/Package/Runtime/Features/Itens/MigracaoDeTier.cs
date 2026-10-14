@@ -35,19 +35,25 @@ namespace JogoDoGrupo.Shared.Features.Itens
             }
 
             mudou |= MigrarInfusaoParaFusao(item);
+            if (item.VersaoDosAtributos < 2)
+            {
+                MigracaoDeAtributos.Aplicar(item);
+                item.VersaoDosAtributos = 2;
+                mudou = true;
+            }
+
             if (item.VersaoDosAtributos < RegrasTier.VersaoAtual)
             {
-                // Atributos do modelo anterior viram os da #623 (mapa em MigracaoDeAtributos). O
-                // tier de origem só é gravado aqui quando o exemplar nunca teve um (escala antiga):
-                // o dos exemplares da #615 é preservado (TIER-004).
-                MigracaoDeAtributos.Aplicar(item);
+                MigracaoDeAtributosV3.Aplicar(item);
                 item.VersaoDosAtributos = RegrasTier.VersaoAtual;
-                if (eraLegado)
-                {
-                    item.TierOrigem = RegrasTier.TierDe(item);
-                }
-
                 mudou = true;
+            }
+
+            // Tier de origem só depois da escala e dos mapas de atributo (v2 e v3), quando as faixas
+            // batem com os stats do exemplar (TIER-004).
+            if (eraLegado)
+            {
+                item.TierOrigem = RegrasTier.TierDe(item);
             }
 
             return mudou;

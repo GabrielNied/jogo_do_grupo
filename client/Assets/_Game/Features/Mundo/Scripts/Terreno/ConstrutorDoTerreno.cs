@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading;
 using JogoDoGrupo.Shared.Features.Mundo;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -44,6 +45,31 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
         {
             GeradorDeTexturasDoTerreno.LimparCache();
             var amostras = AmostrasDoTerreno.Gerar();
+            foreach (var _ in MontarEmEtapas(terreno, modelo, amostras)) { }
+        }
+
+        /// <summary>Distribui a montagem dos blocos entre quadros para manter a tela responsiva.</summary>
+        public static async Awaitable ConstruirAsync(
+            Transform terreno,
+            Material modelo,
+            CancellationToken cancelar
+        )
+        {
+            var amostras = await AmostrasDoTerreno.GerarAsync(cancelar);
+            foreach (var _ in MontarEmEtapas(terreno, modelo, amostras))
+            {
+                cancelar.ThrowIfCancellationRequested();
+                await Awaitable.NextFrameAsync(cancelar);
+            }
+        }
+
+        private static IEnumerable<int> MontarEmEtapas(
+            Transform terreno,
+            Material modelo,
+            AmostrasDoTerreno amostras
+        )
+        {
+            yield return 0;
 
             var chao = CriarMaterialDoChao(modelo);
             if (chao != null)
@@ -66,6 +92,8 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
                     var bloco = CriarObjetoComMalha($"Bloco_{bi}_{bj}", blocos, malha, chao);
                     bloco.AddComponent<MeshCollider>().sharedMesh = malha;
                 }
+
+                yield return bj + 1;
             }
 
             // As células que a boca da caverna atravessa saem dos blocos e voltam num remendo

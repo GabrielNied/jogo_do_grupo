@@ -99,7 +99,14 @@ public class InimigosDoCampoTestes(TempoRealFixture f) : IClassFixture<TempoReal
                     Assert.InRange(i.Nivel, ponto.NivelMinimo, ponto.NivelMaximo);
                     Assert.Contains(
                         i.Estado,
-                        new[] { EstadoDeInimigo.Repouso, EstadoDeInimigo.Retorno }
+                        new[]
+                        {
+                            EstadoDeInimigo.Repouso,
+                            EstadoDeInimigo.Retorno,
+                            EstadoDeInimigo.Alerta,
+                            EstadoDeInimigo.Perseguicao,
+                            EstadoDeInimigo.Ataque,
+                        }
                     );
                     Assert.Equal(i.VidaMaxima, i.Vida);
                     Assert.Equal(

@@ -110,6 +110,19 @@ Formato: `### AAAA-MM-DD · título` com **O que houve**, **Regra** e **Origem**
 - **O que houve:** a leva 2 de Combate (#602) partiu da branch da leva 1 (#597). O squash do #597 deu outro hash ao mesmo conteúdo, e o #602 passou a conflitar em 9 arquivos consigo mesmo. O push forçado para refazê-lo é barrado pela regra 0.
 - **Regra:** leva empilhada nasce com `puxar --base` e cita `Depende de #<N>` no corpo; depois do squash da leva de baixo, `npm run reempilhar -- <PR>` refaz o PR de cima sobre a `main` num PR novo ([Leva empilhada](git.md#leva-empilhada)).
 - **Origem:** PR #607.
+
+### 2026-10-13 · Reempilhar informava conflito falso
+
+- **O que houve:** ao refazer o PR #714 depois do squash do #713, o `reempilhar` aplicou o commit, mas informou conflito e parou antes de publicar o novo PR porque tentou tratar a saída herdada do Git como texto.
+- **Regra:** comandos do script que usam `stdio: "inherit"` devem aceitar retorno vazio; teste o caminho completo da função que executa Git antes de atribuir uma falha a conflito de cherry-pick.
+- **Origem:** issue #716; PR #715 foi concluído manualmente.
+
+### 2026-10-13 · `.meta` faltando só aparecia no CI
+
+- **O que houve:** na leva de Itens, o PR #698 subiu um script novo do shared sem o `.meta`. O agente rodou `npm run unity:meta` nos PRs seguintes, mas não neste, e só o check `padrao-git` do CI acusou, uma rodada depois do push.
+- **Regra:** o `pre-push` confere os `.meta` que o `npm run unity:meta` gera (script, pasta, `.asmdef`, `.uss`/`.tss`, texto) e barra o push com o comando para gerá-los. O resto continua com o `npm run conferir-unity` e, sem Unity, com a pendência ([git.md](git.md)).
+- **Origem:** PR #698.
+
 ### 2026-10-11 · Edição e testes no Windows
 
 - **O que houve:** na #516, o alias Python do Windows não executou o script; a edição exigiu corrigir codificação e quebras de linha. Uma segunda execução de testes também encontrou DLL em uso pela anterior.

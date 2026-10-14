@@ -23,11 +23,13 @@ namespace JogoDoGrupo.Client.Core.Inicializacao
         private static void Inicializar()
         {
             Navegacao.Registrar(TelasCore.Abertura, () => new TelaAbertura());
+            Navegacao.Registrar(TelasCore.Carregamento, () => new TelaCarregamento());
             Navegacao.Registrar(TelasCore.Login, () => new TelaLogin());
             Navegacao.Registrar(TelasCore.SemTelaAposLogin, () => new TelaSemTelaAposLogin());
 
             // Antes de qualquer chamada ao servidor (a sessão restaurada pode chamar a API).
             ConfiguracaoServidor.Aplicar();
+            OpcoesGravadas.Carregar();
             Navegacao.Inicializar(CriarInterface());
             Sessao.Restaurar();
             Sessao.Expirou += AoExpirarSessao;

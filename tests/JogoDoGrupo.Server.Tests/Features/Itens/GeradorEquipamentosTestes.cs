@@ -114,7 +114,7 @@ public class GeradorEquipamentosTestes
             item.Atributos.Take(modelo.Length).Select(a => a.Status)
         );
         Assert.All(item.Atributos.Take(modelo.Length), a => Assert.True(a.Fixo));
-        Assert.Contains(item.Atributos, a => a.Fixo && a.Status == StatusItem.Forca);
+        Assert.Contains(item.Atributos, a => a.Fixo && a.Status == StatusItem.DanoFisico);
         Assert.Equal(
             item.Atributos.Length,
             item.Atributos.Select(a => a.Status).Distinct().Count()
@@ -132,7 +132,12 @@ public class GeradorEquipamentosTestes
         var gerador = new GeradorEquipamentos(
             new ConfigEquipamentos
             {
-                StatusAleatorios = [StatusItem.PotenciaFogo, StatusItem.Forca, StatusItem.Espirito],
+                StatusAleatorios =
+                [
+                    StatusItem.PotenciaFogo,
+                    StatusItem.DanoFisico,
+                    StatusItem.RegeneracaoMana,
+                ],
                 QuantidadeAleatorios = 2,
             }
         );

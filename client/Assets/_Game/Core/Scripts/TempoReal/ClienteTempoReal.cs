@@ -15,13 +15,13 @@ namespace JogoDoGrupo.Client.Core.TempoReal
     internal sealed class ClienteTempoReal
     {
         /// <summary>Quantas vezes tenta reconectar depois de uma queda.</summary>
-        public const int MaximoTentativas = 5;
+        public const int MaximoTentativas = 3;
 
         /// <summary>Sem resposta à autenticação por este tempo, a conexão é dada como caída.</summary>
         public const float TempoLimiteAutenticacao = 10f;
 
         // Espera antes de cada tentativa de reconexão, em segundos.
-        private static readonly float[] EsperasReconexao = { 1f, 2f, 4f, 8f, 15f };
+        private static readonly float[] EsperasReconexao = { 1f, 2f, 4f };
 
         private readonly ITransporteTempoReal _transporte;
         private readonly RoteadorTempoReal _roteador;
@@ -65,6 +65,10 @@ namespace JogoDoGrupo.Client.Core.TempoReal
         /// Vazio se não houve erro.
         /// </summary>
         public string UltimoErro { get; private set; } = "";
+
+        public int Latencia => Estado == EstadoTempoReal.Conectado ? _transporte.Latencia : -1;
+
+        public int TentativaReconexao => _tentativas;
 
         public event Action<EstadoTempoReal> EstadoMudou;
 

@@ -420,6 +420,116 @@ public class InventarioEmGradeTestes(ServidorDeTeste servidor) : IClassFixture<S
         Assert.DoesNotContain(estado.Inventario, e => e.InstanciaId == a);
     }
 
+    private static Task<HttpResponseMessage> Ordenar(HttpClient cliente, long id, int aba = 0) =>
+        ServidorDeTeste.PostJsonAsync(
+            cliente,
+            RotasItens.OrdenarDe(id),
+            new PedidoOrdenar { Aba = aba }
+        );
+
+    private async Task Favoritar(long instancia)
+    {
+        using var escopo = servidor.Services.CreateScope();
+        var db = escopo.ServiceProvider.GetRequiredService<JogoDbContext>();
+        var item = await db.Set<ItemInventario>().FindAsync(instancia);
+        var dados = item!.LerEquipamento()!;
+        dados.Favorito = true;
+        item.GravarEquipamento(dados);
+        await db.SaveChangesAsync();
+    }
+
+    [Fact]
+    public async Task OrdenarAgrupaPorTipoDaPrimeiraCasaSemBuracosENaoMexeNoEquipado()
+    {
+        var (cliente, id) = await Personagem();
+        var espada = await Item(id, Espada, casa: 30);
+        var anel = await Item(id, Anel, casa: 7);
+        var capacete = await Item(id, Capacete, casa: 12);
+        var outroAnel = await Item(id, Anel, casa: 1);
+        var vestido = await Item(id, Escudo, posicao: PosicaoEquipamento.Secundaria1);
+
+        var resposta = await Ordenar(cliente, id);
+
+        Assert.Equal(HttpStatusCode.OK, resposta.StatusCode);
+        var estado = await ServidorDeTeste.LerJsonAsync<EquipamentosResponse>(resposta);
+        // Capacete, anéis (o de menor identidade antes) e espada; sem buracos.
+        Assert.Equal(0, CasaDe(estado, capacete));
+        Assert.Equal(1, CasaDe(estado, anel));
+        Assert.Equal(2, CasaDe(estado, outroAnel));
+        Assert.Equal(3, CasaDe(estado, espada));
+        Assert.Equal(vestido, Assert.Single(estado.Equipados).InstanciaId);
+        AssertCasasUnicasEValidas(estado);
+
+        // Ordenar de novo uma aba já ordenada não muda nada.
+        var denovo = await ServidorDeTeste.LerJsonAsync<EquipamentosResponse>(
+            await Ordenar(cliente, id)
+        );
+        Assert.Equal(
+            estado.Inventario.Select(e => (e.InstanciaId, e.Casa)),
+            denovo.Inventario.Select(e => (e.InstanciaId, e.Casa))
+        );
+    }
+
+    [Fact]
+    public async Task OrdenarDeixaOsFavoritosOndeEstao()
+    {
+        var (cliente, id) = await Personagem();
+        var espada = await Item(id, Espada, casa: 9);
+        var capacete = await Item(id, Capacete, casa: 4);
+        var favorita = await Item(id, Escudo, casa: 1);
+        await Favoritar(favorita);
+
+        var estado = await ServidorDeTeste.LerJsonAsync<EquipamentosResponse>(
+            await Ordenar(cliente, id)
+        );
+
+        Assert.Equal(1, CasaDe(estado, favorita));
+        // As outras peças ocupam as casas que sobram, a partir da primeira (a 1 é da favorita).
+        Assert.Equal(0, CasaDe(estado, capacete));
+        Assert.Equal(2, CasaDe(estado, espada));
+        AssertCasasUnicasEValidas(estado);
+    }
+
+    [Fact]
+    public async Task OrdenarAbaForaDaCapacidadeEh400OutroPersonagemEh404ESemTokenEh401()
+    {
+        var (cliente, id) = await Personagem();
+        var (_, idAlheio) = await Personagem();
+        var a = await Item(id, Espada, casa: 5);
+
+        var fora = await Ordenar(cliente, id, aba: 3);
+        Assert.Equal(HttpStatusCode.BadRequest, fora.StatusCode);
+        Assert.Equal(CodigosErroItens.CasaInvalida, await Codigo(fora));
+        Assert.Equal(5, CasaDe(await Estado(cliente, id), a));
+
+        var alheio = await Ordenar(cliente, idAlheio);
+        Assert.Equal(HttpStatusCode.NotFound, alheio.StatusCode);
+        Assert.Equal(CodigosErroItens.PersonagemNaoEncontrado, await Codigo(alheio));
+
+        Assert.Equal(
+            HttpStatusCode.Unauthorized,
+            (await Ordenar(servidor.CreateClient(), id)).StatusCode
+        );
+    }
+
+    [Fact]
+    public async Task DuasOrdenacoesSimultaneasNuncaDeixamDuasPecasNaMesmaCasa()
+    {
+        var (cliente, id) = await Personagem();
+        for (var n = 0; n < 8; n++)
+            await Item(id, n % 2 == 0 ? Espada : Anel, casa: 30 - n);
+
+        var respostas = await Task.WhenAll(
+            Enumerable.Range(0, 4).Select(_ => Ordenar(cliente, id))
+        );
+
+        Assert.All(respostas, r => Assert.True(r.StatusCode is HttpStatusCode.OK));
+        var estado = await Estado(cliente, id);
+        Assert.Equal(8, estado.Inventario.Length);
+        AssertCasasUnicasEValidas(estado);
+        Assert.Equal(Enumerable.Range(0, 8), estado.Inventario.Select(e => e.Casa).Order());
+    }
+
     [Fact]
     public async Task MoverSemTokenEh401()
     {

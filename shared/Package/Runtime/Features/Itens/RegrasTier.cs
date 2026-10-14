@@ -38,7 +38,8 @@ namespace JogoDoGrupo.Shared.Features.Itens
         /// <see cref="Equipamento.TierOrigem"/> gravado (#615); 2 são os atributos próprios dos
         /// equipamentos (#623, <see cref="MigracaoDeAtributos"/>).
         /// </summary>
-        public const int VersaoAtual = 2;
+        /// <summary>Stats de combate diretos (dano físico/mágico, vida); sem Força/Vigor/Agilidade/Intelecto/Espírito do item (#709).</summary>
+        public const int VersaoAtual = 3;
 
         /// <summary>O tier atual do exemplar: só os valores dos atributos mandam (TIER-002).</summary>
         public static TierItem TierDe(Equipamento item) => Calcular(item).Tier;

@@ -60,7 +60,11 @@ namespace JogoDoGrupo.Client.Features.Itens.Loot
         public static bool PedirColeta() =>
             ConexaoTempoReal.Enviar(
                 ItensMessageIds.ColetarLoot,
-                new ColetarLoot { LootId = RegrasLoot.TudoPorPerto }
+                new ColetarLoot
+                {
+                    LootId = RegrasLoot.TudoPorPerto,
+                    TierMinimo = FiltroDeLoot.TierMinimo,
+                }
             );
 
         private static void AoColetar(LootColetado mensagem)

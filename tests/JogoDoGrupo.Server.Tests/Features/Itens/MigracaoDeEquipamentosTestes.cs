@@ -107,15 +107,11 @@ public class MigracaoDeEquipamentosTestes(ServidorDeTeste servidor) : IClassFixt
 
         Assert.Equal(HttpStatusCode.OK, resposta.StatusCode);
         var estado = await ServidorDeTeste.LerJsonAsync<EquipamentosResponse>(resposta);
-        // Vitalidade 20 vira Vigor do item: 20 no peito vale 50 de vida máxima (0 a 250). A
-        // Força 20 vira 2% de dano (0 a 10%). A defesa 16 vira 9,6 (0 a 60). O Espírito antigo não
-        // existe no peito: fica no exemplar, sem efeito.
+        // Vitalidade 20 vira vida do item: 50 de vida máxima. Força 20 vira 3 de dano físico flat.
         Assert.Equal(50, estado.Atributos.VidaMaxima);
-        Assert.Equal(0.02, estado.Atributos.PercentualForca, 6);
+        Assert.Equal(3, estado.Atributos.BonusDanoFisico, 6);
         Assert.Equal(9.6, estado.Atributos.DefesaFisica, 6);
-        Assert.Equal(0, estado.Atributos.ManaMaxima);
-        // Equipar grava o exemplar na versão atual.
-        Assert.Contains("\"VersaoDosAtributos\":2", await JsonGravado(peca));
+        Assert.Contains("\"VersaoDosAtributos\":3", await JsonGravado(peca));
     }
 
     [Fact]
@@ -136,7 +132,7 @@ public class MigracaoDeEquipamentosTestes(ServidorDeTeste servidor) : IClassFixt
 
         var atributos = lida.Equipamento.Atributos;
         Assert.Equal(
-            new[] { StatusItem.Agilidade, StatusItem.Vigor },
+            new[] { StatusItem.RegeneracaoStamina, StatusItem.VidaMaxima },
             atributos.Select(a => a.Status)
         );
         Assert.Equal(new double[] { 70, 60 }, atributos.Select(a => a.Valor));
@@ -160,7 +156,7 @@ public class MigracaoDeEquipamentosTestes(ServidorDeTeste servidor) : IClassFixt
         Assert.True(await migrador.MigrarAsync(default) >= 1);
 
         var json = await JsonGravado(peca);
-        Assert.Contains("\"VersaoDosAtributos\":2", json);
+        Assert.Contains("\"VersaoDosAtributos\":3", json);
         Assert.Contains($"\"TierOrigem\":{(int)TierItem.A}", json);
         Assert.Equal(0, await migrador.MigrarAsync(default));
         Assert.Equal(json, await JsonGravado(peca));

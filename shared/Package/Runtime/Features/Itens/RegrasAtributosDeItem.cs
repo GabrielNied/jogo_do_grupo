@@ -11,11 +11,6 @@ namespace JogoDoGrupo.Shared.Features.Itens
     /// </summary>
     public static class RegrasAtributosDeItem
     {
-        /// <summary>
-        /// Resume o que as peças ativas dão ao combate. Conta a peça vestida (fora da bolsa) e,
-        /// das armas, só as do <paramref name="conjunto"/> ativo; o dano-base vem da arma da mão
-        /// principal. Atributo que não é elegível na categoria da peça (legado) não vale.
-        /// </summary>
         public static AtributosDosEquipamentos Resumir(
             IEnumerable<EntradaInventario> entradas,
             int conjunto
@@ -24,8 +19,6 @@ namespace JogoDoGrupo.Shared.Features.Itens
             var resumo = new AtributosDosEquipamentos();
             var somas = new SortedDictionary<StatusItem, double>();
             double vida = 0;
-            double stamina = 0;
-            double mana = 0;
             foreach (var entrada in entradas)
             {
                 if (!RegrasEquipamentos.EstaAtiva(entrada, conjunto))
@@ -65,20 +58,14 @@ namespace JogoDoGrupo.Shared.Features.Itens
 
                             resumo.DanoDaArma += convertido;
                             break;
-                        case StatusItem.Forca:
-                            resumo.PercentualForca += convertido;
+                        case StatusItem.DanoFisico:
+                            resumo.BonusDanoFisico += convertido;
                             break;
-                        case StatusItem.Intelecto:
-                            resumo.PercentualIntelecto += convertido;
+                        case StatusItem.DanoMagico:
+                            resumo.BonusDanoMagico += convertido;
                             break;
-                        case StatusItem.Vigor:
+                        case StatusItem.VidaMaxima:
                             vida += convertido;
-                            break;
-                        case StatusItem.Agilidade:
-                            stamina += convertido;
-                            break;
-                        case StatusItem.Espirito:
-                            mana += convertido;
                             break;
                         case StatusItem.DefesaFisica:
                             resumo.DefesaFisica += convertido;
@@ -87,7 +74,7 @@ namespace JogoDoGrupo.Shared.Features.Itens
                             resumo.DefesaMagica += convertido;
                             break;
                         default:
-                            continue; // Secundário: vai pela pipeline, não por aqui.
+                            continue;
                     }
 
                     somas.TryGetValue(atributo.Status, out var atual);
@@ -96,8 +83,6 @@ namespace JogoDoGrupo.Shared.Features.Itens
             }
 
             resumo.VidaMaxima = (int)Math.Round(vida, MidpointRounding.AwayFromZero);
-            resumo.StaminaMaxima = (int)Math.Round(stamina, MidpointRounding.AwayFromZero);
-            resumo.ManaMaxima = (int)Math.Round(mana, MidpointRounding.AwayFromZero);
 
             var linhas = new List<LinhaDeEquipamento>();
             foreach (var soma in somas)
@@ -119,7 +104,6 @@ namespace JogoDoGrupo.Shared.Features.Itens
             return resumo;
         }
 
-        /// <summary>Se o atributo é um dos nove secundários (chega ao combate pela pipeline).</summary>
         public static bool EhSecundario(StatusItem status)
         {
             switch (status)
@@ -139,21 +123,16 @@ namespace JogoDoGrupo.Shared.Features.Itens
             }
         }
 
-        /// <summary>O nome do atributo do item, como o jogador lê.</summary>
         public static string Nome(StatusItem status)
         {
             switch (status)
             {
-                case StatusItem.Forca:
-                    return "Força";
-                case StatusItem.Intelecto:
-                    return "Intelecto";
-                case StatusItem.Espirito:
-                    return "Espírito";
-                case StatusItem.Vigor:
-                    return "Vigor";
-                case StatusItem.Agilidade:
-                    return "Agilidade";
+                case StatusItem.DanoFisico:
+                    return "Dano físico";
+                case StatusItem.DanoMagico:
+                    return "Dano mágico";
+                case StatusItem.VidaMaxima:
+                    return "Vida";
                 case StatusItem.DanoDaArma:
                     return "Dano da arma";
                 case StatusItem.DefesaFisica:
@@ -178,6 +157,16 @@ namespace JogoDoGrupo.Shared.Features.Itens
                     return "Penetração física";
                 case StatusItem.PenetracaoMagica:
                     return "Penetração mágica";
+                case StatusItem.Forca:
+                    return "Força (legado)";
+                case StatusItem.Intelecto:
+                    return "Intelecto (legado)";
+                case StatusItem.Espirito:
+                    return "Espírito (legado)";
+                case StatusItem.Vigor:
+                    return "Vigor (legado)";
+                case StatusItem.Agilidade:
+                    return "Agilidade (legado)";
                 case StatusItem.PotenciaFogo:
                     return "Potência de fogo (%)";
                 case StatusItem.PotenciaGelo:
@@ -189,11 +178,6 @@ namespace JogoDoGrupo.Shared.Features.Itens
             }
         }
 
-        /// <summary>
-        /// O que o número de combate faz, em palavras: "+7% de dano físico", "+120 de vida
-        /// máxima". <paramref name="magica"/> diz se o dano da arma é mágico (só o dano da arma
-        /// usa). Atributo legado sem efeito devolve o valor puro.
-        /// </summary>
         public static string Efeito(
             StatusItem status,
             double convertido,
@@ -206,16 +190,12 @@ namespace JogoDoGrupo.Shared.Features.Itens
             {
                 case StatusItem.DanoDaArma:
                     return Numero(convertido) + (magica ? " de dano mágico" : " de dano físico");
-                case StatusItem.Forca:
-                    return sinal + Percentual(convertido) + " de dano físico";
-                case StatusItem.Intelecto:
-                    return sinal + Percentual(convertido) + " de dano mágico";
-                case StatusItem.Vigor:
+                case StatusItem.DanoFisico:
+                    return sinal + Numero(convertido) + " de dano físico";
+                case StatusItem.DanoMagico:
+                    return sinal + Numero(convertido) + " de dano mágico";
+                case StatusItem.VidaMaxima:
                     return sinal + Numero(convertido) + " de vida máxima";
-                case StatusItem.Agilidade:
-                    return sinal + Numero(convertido) + " de stamina máxima";
-                case StatusItem.Espirito:
-                    return sinal + Numero(convertido) + " de mana máxima";
                 case StatusItem.DefesaFisica:
                 case StatusItem.DefesaMagica:
                     return sinal + Numero(convertido) + " de defesa";
@@ -237,7 +217,6 @@ namespace JogoDoGrupo.Shared.Features.Itens
 
         private static string Percentual(double fracao) => Numero(fracao * 100) + "%";
 
-        // Até uma casa decimal, com vírgula, igual aos textos dos secundários.
         private static string Numero(double valor) =>
             valor.ToString("0.#", CultureInfo.InvariantCulture).Replace('.', ',');
     }

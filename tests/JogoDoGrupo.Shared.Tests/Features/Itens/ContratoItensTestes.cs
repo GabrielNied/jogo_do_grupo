@@ -46,6 +46,7 @@ public class ContratoItensTestes
         Assert.Equal("/api/personagens/{personagemId}/bau", RotasItens.Bau);
         Assert.Equal("/api/personagens/42/inventario", RotasItens.InventarioDe(42));
         Assert.Equal("/api/personagens/42/bau", RotasItens.BauDe(42));
+        Assert.Equal("/api/personagens/42/inventario/ordenar", RotasItens.OrdenarDe(42));
     }
 
     [Fact]
@@ -55,6 +56,49 @@ public class ContratoItensTestes
         Assert.Equal("PersonagemNaoEncontrado", CodigosErroItens.PersonagemNaoEncontrado);
         Assert.Equal("ItemNaoEncontrado", CodigosErroItens.ItemNaoEncontrado);
         Assert.Equal("ItemEquipado", CodigosErroItens.ItemEquipado);
+    }
+
+    [Fact]
+    public void Codigos_de_equipar_sao_os_textos_combinados()
+    {
+        Assert.Equal("NivelInsuficiente", CodigosErroItens.NivelInsuficiente);
+        Assert.Equal("ArmaDeDuasMaos", CodigosErroItens.ArmaDeDuasMaos);
+        Assert.Equal("ItemNaoEquipavel", CodigosErroItens.ItemNaoEquipavel);
+        Assert.Equal("PosicaoInvalida", CodigosErroItens.PosicaoInvalida);
+        Assert.Equal("ConjuntoInvalido", CodigosErroItens.ConjuntoInvalido);
+    }
+
+    [Fact]
+    public void Regra_de_equipar_recusa_por_posicao_nivel_e_duas_maos_nessa_ordem()
+    {
+        var martelo = CatalogoEquipamentos.Obter(100)!;
+        var escudo = CatalogoEquipamentos.Obter(2)!;
+        Assert.True(martelo.DuasMaos);
+        martelo.NivelPersonagemMinimo = 10;
+        escudo.NivelPersonagemMinimo = 1;
+        var principal = CatalogoEquipamentos.Obter(100)!;
+
+        Assert.Null(RegrasEquipar.Recusa(martelo, PosicaoEquipamento.Arma1, 10, null));
+        Assert.Equal(
+            CodigosErroItens.PosicaoInvalida,
+            RegrasEquipar.Recusa(martelo, PosicaoEquipamento.Capacete, 1, null)
+        );
+        Assert.Equal(
+            CodigosErroItens.NivelInsuficiente,
+            RegrasEquipar.Recusa(martelo, PosicaoEquipamento.Arma1, 9, null)
+        );
+        // Nível 0 é "não informado": não recusa por nível.
+        Assert.Null(RegrasEquipar.Recusa(martelo, PosicaoEquipamento.Arma1, 0, null));
+        Assert.Equal(
+            CodigosErroItens.ArmaDeDuasMaos,
+            RegrasEquipar.Recusa(escudo, PosicaoEquipamento.Secundaria1, 5, principal)
+        );
+        // A arma de duas mãos do outro conjunto não atrapalha, nem a mão principal.
+        Assert.Null(RegrasEquipar.Recusa(escudo, PosicaoEquipamento.Secundaria2, 5, null));
+        Assert.Equal(
+            CodigosErroItens.ItemNaoEquipavel,
+            RegrasEquipar.Recusa(null!, PosicaoEquipamento.Arma1, 5, null)
+        );
     }
 
     [Fact]

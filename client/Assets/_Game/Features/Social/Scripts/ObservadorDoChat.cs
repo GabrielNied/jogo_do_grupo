@@ -137,7 +137,7 @@ namespace JogoDoGrupo.Client.Features.Social
 
         private void Montar(GameObject jogador)
         {
-            var regiao = Hud.Regiao(RegiaoDoHud.InferiorEsquerda);
+            var regiao = Hud.Regiao(RegiaoDoHud.Chat);
             if (regiao == null)
             {
                 Debug.LogWarning("[Social] O HUD não está montado; o chat não foi criado.");

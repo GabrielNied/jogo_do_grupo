@@ -185,7 +185,7 @@ namespace JogoDoGrupo.Client.Features.Itens.Tests
                         {
                             new LinhaDeEquipamento
                             {
-                                Status = StatusItem.Forca,
+                                Status = StatusItem.DanoFisico,
                                 Texto = "Força: +12% de dano físico",
                             },
                         },

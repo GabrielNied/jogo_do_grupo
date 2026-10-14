@@ -55,7 +55,7 @@ internal static class CalculadoraRecursos
 
     /// <summary>
     /// Vida, stamina e mana máximas: o que o personagem tem pelos atributos dele mais o que as
-    /// peças dão direto (Vigor, Agilidade e Espírito dos itens, já convertidos).
+    /// peças dão direto (vida do item). Stamina e mana máximas vêm só do personagem (#709).
     /// </summary>
     public static MaximosDeRecursos Maximos(
         AtributosCombate personagem,
@@ -63,8 +63,8 @@ internal static class CalculadoraRecursos
     ) =>
         new(
             RegrasRecursos.VidaMaxima(personagem.Vigor, equipamento.VidaMaxima),
-            RegrasRecursos.StaminaMaxima(personagem.Agilidade, equipamento.StaminaMaxima),
-            RegrasRecursos.ManaMaxima(personagem.Espirito, equipamento.ManaMaxima)
+            RegrasRecursos.StaminaMaxima(personagem.Agilidade),
+            RegrasRecursos.ManaMaxima(personagem.Espirito)
         );
 
     /// <summary>
@@ -84,9 +84,9 @@ internal static class CalculadoraRecursos
             DanoBase = equipamento.TemArma ? equipamento.DanoDaArma : ParcelasDeDano.DanoSemArma,
             Magico = magico,
             PercentualPersonagem = RegrasAtaque.PercentualDeDanoPorPonto * Math.Max(0, pontos),
-            PercentualEquipamento = magico
-                ? equipamento.PercentualIntelecto
-                : equipamento.PercentualForca,
+            DanoFlatEquipamento = magico
+                ? equipamento.BonusDanoMagico
+                : equipamento.BonusDanoFisico,
         };
     }
 

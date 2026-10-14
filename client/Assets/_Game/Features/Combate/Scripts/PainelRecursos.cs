@@ -26,11 +26,15 @@ namespace JogoDoGrupo.Client.Features.Combate
             var caixa = new VisualElement { name = "combate.recursos" };
             caixa.pickingMode = PickingMode.Ignore;
             caixa.AddToClassList("recursos");
+            if (raiz.name == "CombateInterface")
+            {
+                caixa.AddToClassList("recursos-soltos");
+            }
 
             _vida = new Barra(caixa, "barra-vida");
             _stamina = new Barra(caixa, "barra-stamina");
             _mana = new Barra(caixa, "barra-mana");
-            raiz.Add(caixa);
+            raiz.Insert(0, caixa);
         }
 
         public void Mostrar(BarraRecurso vida, BarraRecurso stamina, BarraRecurso mana)
@@ -43,10 +47,19 @@ namespace JogoDoGrupo.Client.Features.Combate
         private sealed class Barra
         {
             private readonly VisualElement _preenchimento;
-            private readonly Label _texto;
+            private readonly Label _rotulo;
+            private readonly Label _valor;
 
             public Barra(VisualElement pai, string classeDaCor)
             {
+                var linha = new VisualElement();
+                linha.pickingMode = PickingMode.Ignore;
+                linha.AddToClassList("recurso-linha");
+
+                _rotulo = new Label();
+                _rotulo.pickingMode = PickingMode.Ignore;
+                _rotulo.AddToClassList("recurso-rotulo");
+
                 var barra = new VisualElement();
                 barra.pickingMode = PickingMode.Ignore;
                 barra.AddToClassList("recurso-barra");
@@ -56,19 +69,22 @@ namespace JogoDoGrupo.Client.Features.Combate
                 _preenchimento.AddToClassList("recurso-preenchimento");
                 _preenchimento.AddToClassList(classeDaCor);
 
-                _texto = new Label();
-                _texto.pickingMode = PickingMode.Ignore;
-                _texto.AddToClassList("recurso-texto");
+                _valor = new Label();
+                _valor.pickingMode = PickingMode.Ignore;
+                _valor.AddToClassList("recurso-valor");
 
                 barra.Add(_preenchimento);
-                barra.Add(_texto);
-                pai.Add(barra);
+                linha.Add(_rotulo);
+                linha.Add(barra);
+                linha.Add(_valor);
+                pai.Add(linha);
             }
 
             public void Mostrar(BarraRecurso dados)
             {
                 _preenchimento.style.width = Length.Percent(dados.Fracao * 100f);
-                _texto.text = dados.Texto;
+                _rotulo.text = dados.Rotulo;
+                _valor.text = dados.Atual + "/" + dados.Maximo;
             }
         }
     }

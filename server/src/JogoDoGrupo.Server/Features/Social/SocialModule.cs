@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using JogoDoGrupo.Server.Contratos.Mundo;
 using JogoDoGrupo.Server.Contratos.Personagem;
+using JogoDoGrupo.Server.Contratos.Social;
 using JogoDoGrupo.Server.Core;
 using JogoDoGrupo.Server.Core.TempoReal;
 using JogoDoGrupo.Shared.Features.Social;
@@ -15,7 +16,7 @@ namespace JogoDoGrupo.Server.Features.Social;
 /// O chat de texto (canais Cidade e Sussurro) segue o mesmo molde, com as regras em
 /// <see cref="ChatDoServidor"/>.
 /// </summary>
-public sealed class SocialModule : IFeatureModule
+public sealed class SocialModule : IFeatureModule, IConsultaDeGrupo
 {
     private readonly DiretorioTardio _diretorio = new();
     private GruposDoServidor? _grupos;
@@ -43,6 +44,7 @@ public sealed class SocialModule : IFeatureModule
 
     public void ConfigurarServicos(IServiceCollection servicos, IConfiguration configuracao)
     {
+        servicos.AddSingleton<IConsultaDeGrupo>(this);
         servicos.AddSingleton<LimitesDoChat>();
         servicos.AddSingleton<ChatDoServidor>();
         servicos.AddSingleton<HistoricoDaCidadeDoChat>();
@@ -173,6 +175,12 @@ public sealed class SocialModule : IFeatureModule
             grupos.AoConectar(sessao.PersonagemId);
         }
     }
+
+    /// <summary>Expõe a consulta Social; os grupos existem após a inicialização do módulo.</summary>
+    public GrupoAtual? Consultar(long personagemId) =>
+        (
+            _grupos ?? throw new InvalidOperationException("Social ainda não foi inicializado.")
+        ).Consultar(personagemId);
 
     // Quem entra na cidade recebe o que foi dito há pouco no canal Cidade (se houver algo).
     private void AoEntrarNaArea(JogadorEntrouNaArea evento)

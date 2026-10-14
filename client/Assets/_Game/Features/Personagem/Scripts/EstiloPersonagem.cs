@@ -56,6 +56,14 @@ namespace JogoDoGrupo.Client.Features.Personagem
         public const string HudBarraXpTrilho = "personagem-hud-barra-xp-trilho";
         public const string HudBarraXpPreenchimento = "personagem-hud-barra-xp-preenchimento";
 
+        public const string PainelQueda = "personagem-painel-queda";
+        public const string QuedaContagem = "personagem-queda-contagem";
+        public const string QuedaEstadoAguardando = "personagem-queda-estado-aguardando";
+        public const string QuedaEstadoLevantando = "personagem-queda-estado-levantando";
+        public const string QuedaTrilho = "personagem-queda-trilho";
+        public const string QuedaPreenchimento = "personagem-queda-preenchimento";
+        public const string QuedaHoldAtivo = "personagem-queda-hold-ativo";
+
         /// <summary>Adiciona o USS de Personagem à raiz da tela.</summary>
         public static void Aplicar(VisualElement raiz)
         {

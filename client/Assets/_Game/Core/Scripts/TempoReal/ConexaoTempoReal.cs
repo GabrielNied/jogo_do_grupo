@@ -74,6 +74,12 @@ namespace JogoDoGrupo.Client.Core.TempoReal
         /// </summary>
         public static string UltimoErro => _cliente?.UltimoErro ?? "";
 
+        /// <summary>Ping da conexão autenticada, em milissegundos; -1 sem medição.</summary>
+        public static int Latencia => _cliente?.Latencia ?? -1;
+
+        /// <summary>Tentativa atual de reconexão após queda.</summary>
+        public static int TentativaReconexao => _cliente?.TentativaReconexao ?? 0;
+
         /// <summary>Disparado a cada mudança de <see cref="Estado"/>.</summary>
         public static event Action<EstadoTempoReal> EstadoMudou;
 

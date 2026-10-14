@@ -75,49 +75,34 @@ Decidido por Gabriel em 2026-10-12 (opção B da [#623](https://github.com/Gabri
 
 **Definido:**
 
-- **ATRIB-001 (lista):** um item pode ter:
-  - os cinco principais **do item**: Força, Vigor, Agilidade, Intelecto e Espírito;
+- **ATRIB-001 (lista, v3 — Gabriel 2026-10-13, [#709](https://github.com/GabrielNied/jogo_do_grupo/issues/709)):** um item **não** usa os nomes dos cinco atributos do personagem. Stats de combate do exemplar:
+  - **dano físico**, **dano mágico**, **vida** (vida máxima);
   - **dano da arma**, físico ou mágico, só em arma;
-  - defesa física e defesa mágica;
-  - os nove [secundários](personagem.md#atributos-secundários).
+  - **defesa física** e **defesa mágica**;
+  - regeneração de vida, stamina e mana (não stamina nem mana máximas);
+  - os demais [secundários](personagem.md#atributos-secundários).
 
-  Cada um é um inteiro de 0 a 100 (TIER-006). O modelo-base declara quais tem (TIER-007).
-- **ATRIB-002 (do item, não do personagem):** a Força do item e a Força do personagem são **fontes separadas**. O valor do item nunca soma no atributo do personagem, não dá ponto da árvore e não abre nó (DEC-001). Cada fonte vira número de combate pela sua própria conversão, e a pipeline guarda a origem de cada parcela.
-- **ATRIB-003 (conversão linear por categoria):** cada par (atributo, categoria de peça) declara nos dados o valor de combate no 0 e no 100 da escala, em `ConfigAtributosItem` ou equivalente. O meio é linear: `combate = no0 + (no100 - no0) × V / 100`. A mesma Força 80 pode valer diferente numa espada e num anel. Os números são valores de teste até a [#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627).
-- **ATRIB-004 (arma dá a base):** o dano da arma, já convertido, é o dano-base do golpe e da skill e substitui o "dano da espada 20" da [fatia](fatia-jogavel.md#2-um-ataque-primeira-arma-leve-e-pesado). A Força ou o Intelecto (do personagem e do item) aumentam esse dano em %, e o golpe ou a skill aplica o multiplicador dele. A estrutura da conta está em [combate](combate.md#em-aberto).
-- **ATRIB-005 (na tela):** o tooltip mostra o valor do item e o efeito convertido (ex.: "Força 72: +7% de dano físico"). A janela do personagem mostra separadas as linhas do personagem e as dos equipamentos (FR-010 de [talentos](talentos.md#requisitos)).
+  Cada um é inteiro de 0 a 100 (TIER-006). O modelo-base declara quais tem (TIER-007). A versão 3 dos exemplares (`RegrasTier.VersaoAtual`) migra Força→dano físico, Intelecto→dano mágico, Vigor→vida, Agilidade→regeneração de stamina, Espírito→regeneração de mana (`MigracaoDeAtributosV3`).
+- **ATRIB-002 (do item, não do personagem):** DEC-001 inalterado: nada do item soma nos cinco do personagem nem na árvore.
+- **ATRIB-003 (conversão linear por categoria):** `combate = no0 + (no100 - no0) × V / 100` em `ConfigAtributosItem`. Números de teste até a [#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627).
+- **ATRIB-004 (arma e dano flat):** dano-base = dano da arma + dano físico ou mágico flat das peças (conforme o tipo da arma). A Força ou o Intelecto **do personagem** aumentam em %; estrutura em [combate](combate.md#dano-com-arma-e-atributos-do-equipamento-623).
+- **ATRIB-005 (na tela):** tooltip com nome de combate (ex.: "Dano físico: +12"). Janela do personagem separa linhas do equipamento (FR-010 de [talentos](talentos.md#requisitos)).
 - **ATRIB-006:** tier e fusão usam o valor de 0 a 100, nunca o convertido. Os poderes e os bônus de set não são atributos e não entram no tier (PODER-005).
 
 **Para onde vai cada atributo** (proposta; quem implementa a #623 e a #624 pode ajustar e registrar aqui):
 
 | Atributo do item | Vira no combate | Forma |
 |---|---|---|
-| Dano da arma | Dano-base do golpe e da skill (físico ou mágico, pela arma) | Valor fixo |
-| Força / Intelecto | Dano físico / dano mágico | % sobre o dano-base |
-| Vigor / Agilidade / Espírito | Vida / stamina / mana máximas | Valor fixo |
+| Dano da arma | Parte do dano-base do golpe (físico ou mágico) | Valor fixo |
+| Dano físico / mágico | Soma flat ao dano-base (tipo da arma) | Valor fixo |
+| Vida | Vida máxima | Valor fixo |
 | Defesa física / mágica | Defesa física / mágica | Valor fixo |
+| Regenerações | Regeneração contínua | Por segundo |
 | Secundários | O próprio secundário | Unidade definida pelo Combate |
 
-**Elegíveis por categoria** (proposta inicial, segue a [tabela de foco](#poderes-e-sets) e as famílias do [catálogo](#catálogo-de-modelos-base-330-confirmado-pelo-usuário-em-2026-10-11)). O "principal da família" é Vigor (Vigia/Bastião), Força (Predador/Ruptor), Intelecto (Aurora/Tempestade) ou Agilidade (Batedor/Olho Longo). A variante B acrescenta a especialização: defesa (Bastião), Agilidade (Ruptor e Olho Longo) ou Espírito (Tempestade).
+**Elegíveis por categoria (v3):** principal da família = **vida** (Vigia/Bastião), **dano físico** (Predador/Ruptor), **dano mágico** (Aurora/Tempestade) ou **regeneração de stamina** (Batedor/Olho Longo). Variante B: defesa mágica (Bastião), regeneração de stamina (Ruptor/Olho Longo) ou regeneração de mana (Tempestade). Matriz em `ConfigAtributosItem`.
 
-| Categoria | Atributos |
-|---|---|
-| Espada, Martelo | Dano da arma (físico), Força, chance crítica, penetração física |
-| Arco | Dano da arma (físico), Força, velocidade de ataque físico, chance crítica |
-| Cajado | Dano da arma (mágico), Intelecto, velocidade de ataque mágico, penetração mágica |
-| Escudo | Vigor, defesa física, defesa mágica |
-| Foco | Intelecto, Espírito, regeneração de mana |
-| Capacete | Principal da família, defesa física, defesa mágica |
-| Peito | Principal da família, Vigor, defesa física, defesa mágica |
-| Luvas | Principal da família, defesa física, chance crítica |
-| Calça | Principal da família, Vigor, defesa física, regeneração de vida |
-| Botas | Principal da família, Agilidade, defesa física, regeneração de stamina |
-| Cinto | Vigor, Agilidade, Espírito, regenerações de vida, stamina e mana |
-| Anel | Principal da família, chance crítica, penetração física, penetração mágica |
-| Brinco | Principal da família, dano crítico, velocidade de ataque físico, velocidade de ataque mágico |
-| Adorno | Principal da família, defesa mágica, regeneração de mana |
-
-**Migração dos exemplares:** feita na #623 (versão 2 dos atributos). A tabela de equivalência e as regras estão em [Entregue na #623](#entregue-na-623-atributos-próprios-dos-equipamentos).
+**Migração:** versão 2 (#623) e versão 3 (#709) em `MigracaoDeTier` / `MigracaoDeAtributosV3`. Histórico da v2 em [Entregue na #623](#entregue-na-623-atributos-próprios-dos-equipamentos).
 
 #### Entregue na #623: atributos próprios dos equipamentos
 
@@ -357,6 +342,8 @@ As cinco raridades e a tabela do livro (níveis máximos e slots de skills; as i
 
 **Bônus:** Combate consulta o que as peças ativas dão através de `Contratos/Itens/IAtributosDosEquipamentos` (dano da arma, % de Força e Intelecto, vida, stamina e mana máximas, defesas e as linhas para a tela, já convertidos) e da pipeline, como `IFonteDeModificadores` com `Fonte = Equipamento` (os nove secundários). Nada disso soma nos cinco atributos do personagem (DEC-001). Detalhes em [Entregue na #623](#entregue-na-623-atributos-próprios-dos-equipamentos).
 
+**Aviso de mudança (#547):** Itens publica `Contratos/Itens/EquipamentoMudou(PersonagemId)` depois de gravar, ao equipar, desequipar (inclusive a troca numa casa ocupada), trocar o conjunto de armas, fundir uma peça vestida e limpar o inventário de teste. O evento não carrega valores: quem guarda atributos finais invalida a entrada e relê por `IAtributosDosEquipamentos`. Mover ou descartar item da bolsa não publica.
+
 **No jogo:** abrir o inventário com **I** ([Interface do inventário](#interface-do-inventário-560)). O paperdoll mostra os encaixes e o conjunto ativo; o tooltip de cada item mostra o tier, os atributos com valor e máximo, o nível de fusão, nível e requisito; clique direito e arrastar e soltar equipam e desequipam; os botões **Conj. 1** e **Conj. 2** trocam o conjunto de armas. Em editor/build de desenvolvimento, **Obter equipamento de teste** pede uma peça ao servidor. Essa rota só existe em ambiente `Development`; não altera o baú original; o loot dos mobs tem tabela própria ([Loot dos inimigos](#loot-dos-inimigos-493)).
 
 API autenticada, sob `/api/personagens/{personagemId}/equipamentos`:
@@ -421,6 +408,10 @@ Decidido por Gabriel em 2026-10-12. Substitui a lista com dropdown e botões das
 - **Esc durante o arraste:** o Esc é do Core e fecha a janela inteira, o que também cancela o arraste (o item não se move). Soltar sobre a janela fora de casas e encaixes cancela sem fechar.
 - **Selo "novo":** o client compara os itens com os da abertura anterior (mesmo personagem, na sessão) e com os ganhos do baú; o selo sai quando o mouse passa por cima. Na primeira abertura da sessão nada é "novo".
 - **Tooltip:** a comparação só vale para peça da bolsa, contra o encaixe automático (com os dois encaixes de anel ou brinco cheios, contra o 1). O tooltip do item sob o mouse mostra as diferenças (▲ ganho e ▼ perda, com sinal e valor no texto, então a cor não é a única pista) e, ao lado, um segundo tooltip com a peça equipada, encabeçado por "Equipado"; encaixe vazio mostra tudo como ganho e não tem segundo tooltip. Aparece depois de 0,3 s e some ao arrastar. Os dois andam juntos como um bloco que cabe na tela e não cobre o painel de bônus (testa direita/esquerda e embaixo/em cima).
+- **Motivo da recusa antes do clique (#496, 2026-10-13):** a regra de recusa de equipar é uma só, `RegrasEquipar.Recusa` (shared): encaixe que não aceita o tipo (`PosicaoInvalida`, 400), nível do personagem abaixo do exigido (`NivelInsuficiente`, 409), mão secundária com arma de duas mãos na principal (`ArmaDeDuasMaos`, 409); item que não é equipamento é `ItemNaoEquipavel` (400) e conjunto fora de 1 e 2 é `ConjuntoInvalido` (400). O servidor a usa ao equipar e o client a usa antes do clique, então a tela não promete o que o servidor recusa. Para isso `EquipamentosResponse.NivelDoPersonagem` (0 = não informado, a tela não recusa por nível) vem do servidor. No tooltip de peça da bolsa, uma linha vermelha diz "Requer nível N" ou "Retire a arma de duas mãos para equipar aqui" (a do encaixe que o clique direito usaria); ao arrastar, só os encaixes que aceitam a peça agora acendem verdes e os outros, vermelhos. Os códigos moram em `CodigosErroItens` (servidor e client usam as constantes).
+- **Doadores na bolsa (#561, 2026-10-13):** passar o mouse num equipamento (da bolsa ou vestido) acende na bolsa os **doadores compatíveis** com borda dourada e o tooltip ganha "N doadores na bolsa" (ou "Nenhum doador na bolsa"). Doador compatível = o que a [fusão](#fusão) aceita como material daquela peça (`RegrasFusao.Doadores`, que usa `Validar`): outra peça da **bolsa** do **mesmo tipo** (`TipoEquipamento`; não há mais raridade), sem favorito, e a peça sob o mouse ainda fora de +10. Peça vestida nunca é doadora. O destaque só acende a aba aberta (o número do tooltip conta todas) e não acende durante um arraste.
+- **Ordenar (#562, 2026-10-13):** o botão **Ordenar** do rodapé pede ao servidor (`POST .../inventario/ordenar`, `PedidoOrdenar { Aba }`, resposta `EquipamentosResponse`) para ordenar a aba aberta. Ordem: equipamentos primeiro, por **tipo** (a ordem de `TipoEquipamento`, que agrupa os doadores de cada peça), **tier** do maior para o menor (S+ ... D) e **nível** do maior para o menor; depois os outros itens por modelo; empate pela identidade (estável, ordenar de novo não muda nada). As peças ocupam as casas da aba a partir da primeira, sem buracos. **Favoritos ficam onde estão** (o campo `Favorito` do equipamento, da fusão): as outras peças se arrumam nas casas que sobram. **Travados** (#563) ainda não existem; quando existirem seguem a mesma regra dos favoritos. Peça vestida não entra. Aba fora da capacidade: 400 `CasaInvalida`. Transação Serializable como o mover, então ordenações e movimentos simultâneos nunca deixam duas peças numa casa.
+- **Filtro de loot por tier (#565, 2026-10-13):** o seletor **Loot no chão** (rodapé da janela: Tudo, C ou melhor, B, A, S, só S+) esconde as peças de tier abaixo do escolhido: o marcador some, a dica "F: pegar" não conta com elas e a tecla F as deixa no chão. A preferência mora **no client** (`PlayerPrefs`, deste computador; `FiltroDeLoot`): o servidor não a persiste, e o client a manda em cada pedido de "tudo por perto" (`ColetarLoot.TierMinimo`, padrão D = tudo), que o servidor aplica (peça abaixo fica no chão; item que não é equipamento não tem tier e sempre passa; pedir um item pelo `LootId` ignora o filtro, é escolha explícita). Para o chão saber o tier, **os valores da peça agora são sorteados quando o mob a larga** (antes eram na coleta): `LootNoChao` ganha `TemTier` e `Tier`, e é esse mesmo exemplar que entra no inventário (mesma origem e grau, mesmas faixas). O que ficou no chão pelo filtro expira no prazo de sempre.
 - **Cabe na tela, sem rolagem** (decidido em 2026-10-12): a casa tem 40 a 64 px (unidades do painel, que escala por 1920×1080) e é o maior tamanho em que o paperdoll de 7 linhas e a bolsa de 8 colunas cabem na janela, medindo a moldura do Core e o resto do conteúdo; recalcula quando a geometria muda. A conta é `MedidasInventario`. Os botões do rodapé têm altura normal de botão.
 - **Descartar:** o descarte (solta fora da janela) pede a confirmação numa faixa da própria janela; só o **Confirmar descarte** envia. Peça com fusão acima de +0 ou de tier A ou acima pergunta de novo, com o motivo, antes de enviar.
 - **Ícone:** ponto único `PainelInventario.IconeDoTipo` (`IconesEquipamento.Carregar`, silhueta branca tingida pelo tier no USS); sem sprite, a sigla do tipo.
@@ -453,6 +444,7 @@ Ficha aprovada em 2026-10-11. É um **recorte de teste** para ter o fluxo invent
 - Abrir o baú dá **1 a 3 itens** (2026-10-11), sorteados **com reposição** e **uniformes** entre os 4 do catálogo. O sorteio é do servidor.
 - O servidor só grava se **todos** os itens sorteados couberem nos 40 espaços. Se não couberem, responde `InventarioCheio` e **não grava nada** (nem parte dos itens).
 - Itens deste recorte não têm raridade, skills nem fusão.
+- **Posição e recarga do baú (#492, 2026-10-13):** `POST /bau` continua existindo, mas o servidor confere antes de sortear. (1) Posição: a que o Mundo aceitou (`IPosicoesDoMundo`), na área `cidade`, a até 4 m do baú; senão 409 `BauLongeDemais`. (2) Recarga por personagem de 5 s, reservada de forma atômica antes do sorteio (dois pedidos simultâneos dão um só sorteio), devolvida se nada foi aberto (bolsa cheia); senão 429 `BauEmRecarga`. O baú tem posição fixa em `ConfigBau` (shared): (2,5; -20,5), o nascimento da cidade mais 3,5 m à frente e 2,5 m à direita; o client o põe ali (antes calculava a partir de onde o jogador nascia). O alcance do client (3 m) é menor que o do servidor (4 m) para a posição atrasada pela rede não recusar quem o client via perto. A recarga fica em memória (reiniciar o servidor zera). Config `Itens:Bau:ExigirPosicao` e `Itens:Bau:RecargaSegundos` existem só para os testes que precisam de itens sem posição; os padrões são os de produção. No client, a dica "E: abrir o baú" vira "Baú recarregando (N s)" durante a espera.
 - Fora deste recorte: sorteio com raridade, drop de mobs, persistência definitiva, UI, prefab de baú, mundo.
 
 ### Proposta do board (2026-10-11, não validada)
@@ -513,6 +505,8 @@ API HTTP do recorte de teste (mesmo estilo de [Personagem](personagem.md#expõe)
 | Código | Status | Quando |
 |---|---|---|
 | `InventarioCheio` | 409 | os itens sorteados não cabem nos 40 espaços; nada é gravado |
+| `BauLongeDemais` | 409 | fora da área do baú ou a mais de 4 m dele; nada é sorteado |
+| `BauEmRecarga` | 429 | abriu há menos de 5 s; nada é sorteado |
 | `PersonagemNaoEncontrado` | 404 | não existe personagem com esse id, ou ele é de outra conta (mesma resposta nos dois casos) |
 | `NaoAutenticado` (Core) | 401 | sem token, inválido ou expirado |
 

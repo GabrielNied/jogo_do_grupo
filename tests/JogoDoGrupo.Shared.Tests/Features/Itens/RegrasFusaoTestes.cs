@@ -41,6 +41,57 @@ public class RegrasFusaoTestes
         int esperado
     ) => Assert.Equal(esperado, RegrasFusao.Resultado(atual, material, Faixa));
 
+    private static EntradaInventario Entrada(
+        long id,
+        Equipamento peca,
+        PosicaoEquipamento posicao = PosicaoEquipamento.Inventario
+    ) =>
+        new()
+        {
+            InstanciaId = id,
+            ItemId = peca.ModeloId,
+            Equipamento = peca,
+            Posicao = posicao,
+        };
+
+    [Fact]
+    public void Doadores_sao_as_outras_pecas_da_bolsa_do_mesmo_tipo_sem_favorito()
+    {
+        var principal = Peca(TipoEquipamento.Espada, (StatusItem.DanoFisico, 50));
+        var favorita = Peca(TipoEquipamento.Espada, (StatusItem.DanoFisico, 50));
+        favorita.Favorito = true;
+        var bolsa = new[]
+        {
+            Entrada(1, principal),
+            Entrada(2, Peca(TipoEquipamento.Espada, (StatusItem.DanoFisico, 10))),
+            Entrada(3, Peca(TipoEquipamento.Escudo, (StatusItem.VidaMaxima, 10))),
+            Entrada(4, favorita),
+            Entrada(
+                5,
+                Peca(TipoEquipamento.Espada, (StatusItem.DanoFisico, 10)),
+                PosicaoEquipamento.Arma1
+            ),
+            Entrada(6, Peca(TipoEquipamento.Espada, (StatusItem.DanoFisico, 90))),
+        };
+
+        // Só 2 e 6: não conta a própria peça, outro tipo, favorito nem peça equipada.
+        Assert.Equal(new long[] { 2, 6 }, RegrasFusao.Doadores(1, principal, bolsa));
+    }
+
+    [Fact]
+    public void Principal_em_mais_dez_nao_tem_doadores()
+    {
+        var principal = Peca(TipoEquipamento.Espada, (StatusItem.DanoFisico, 50));
+        principal.NivelFusao = ConfigFusao.NivelMaximo;
+        var bolsa = new[]
+        {
+            Entrada(1, principal),
+            Entrada(2, Peca(TipoEquipamento.Espada, (StatusItem.DanoFisico, 10))),
+        };
+
+        Assert.Empty(RegrasFusao.Doadores(1, principal, bolsa));
+    }
+
     [Fact]
     public void Resultado_nunca_passa_do_material_e_sempre_anda_quando_diferem()
     {
@@ -79,8 +130,8 @@ public class RegrasFusaoTestes
     [Fact]
     public void Validar_aceita_mesma_categoria_mesmo_com_grau_regiao_e_raridade_diferentes()
     {
-        var principal = Peca(TipoEquipamento.Espada, (StatusItem.Forca, 20));
-        var material = Peca(TipoEquipamento.Espada, (StatusItem.Forca, 40));
+        var principal = Peca(TipoEquipamento.Espada, (StatusItem.DanoFisico, 20));
+        var material = Peca(TipoEquipamento.Espada, (StatusItem.DanoFisico, 40));
         material.Grau = GrauEquipamento.Forte;
         material.Regiao = "Serra";
         material.Familia = "Predador";
@@ -92,8 +143,8 @@ public class RegrasFusaoTestes
     [Fact]
     public void Validar_recusa_incompativel_favorito_e_maximo()
     {
-        var principal = Peca(TipoEquipamento.Espada, (StatusItem.Forca, 20));
-        var material = Peca(TipoEquipamento.Martelo, (StatusItem.Forca, 40));
+        var principal = Peca(TipoEquipamento.Espada, (StatusItem.DanoFisico, 20));
+        var material = Peca(TipoEquipamento.Martelo, (StatusItem.DanoFisico, 40));
         Assert.Equal(
             CodigosErroItens.MaterialIncompativel,
             RegrasFusao.Validar(principal, material)
@@ -119,20 +170,20 @@ public class RegrasFusaoTestes
     {
         var principal = Peca(
             TipoEquipamento.Peito,
-            (StatusItem.Forca, 20),
-            (StatusItem.Vigor, 30),
+            (StatusItem.DanoFisico, 20),
+            (StatusItem.VidaMaxima, 30),
             (StatusItem.DefesaFisica, 40),
             (StatusItem.PotenciaFogo, 5) // sem faixa na categoria
         );
         var material = Peca(
             TipoEquipamento.Peito,
             (StatusItem.DefesaFisica, 10),
-            (StatusItem.Forca, 80),
+            (StatusItem.DanoFisico, 80),
             (StatusItem.PotenciaFogo, 9)
         );
 
         Assert.Equal(
-            new[] { StatusItem.Forca, StatusItem.DefesaFisica },
+            new[] { StatusItem.DanoFisico, StatusItem.DefesaFisica },
             RegrasFusao.Elegiveis(principal, material)
         );
         Assert.Empty(RegrasFusao.Elegiveis(null!, material));
@@ -143,11 +194,19 @@ public class RegrasFusaoTestes
     public void Elegiveis_obedecem_a_tabela_de_faixas_dada()
     {
         var tabela = new TabelaDeFaixas()
-            .Padrao(StatusItem.Forca, 0, 100)
+            .Padrao(StatusItem.DanoFisico, 0, 100)
             .Padrao(StatusItem.Destreza, 0, 100)
-            .Inelegivel(TipoEquipamento.Anel, StatusItem.Forca);
-        var anel = Peca(TipoEquipamento.Anel, (StatusItem.Forca, 20), (StatusItem.Destreza, 20));
-        var outro = Peca(TipoEquipamento.Anel, (StatusItem.Forca, 50), (StatusItem.Destreza, 50));
+            .Inelegivel(TipoEquipamento.Anel, StatusItem.DanoFisico);
+        var anel = Peca(
+            TipoEquipamento.Anel,
+            (StatusItem.DanoFisico, 20),
+            (StatusItem.Destreza, 20)
+        );
+        var outro = Peca(
+            TipoEquipamento.Anel,
+            (StatusItem.DanoFisico, 50),
+            (StatusItem.Destreza, 50)
+        );
 
         Assert.Equal(new[] { StatusItem.Destreza }, RegrasFusao.Elegiveis(anel, outro, tabela));
     }
@@ -175,14 +234,14 @@ public class RegrasFusaoTestes
     [Fact]
     public void Descarte_pede_segunda_confirmacao_com_fusao_ou_tier_A_ou_acima()
     {
-        var comum = Peca(TipoEquipamento.Espada, (StatusItem.Forca, 20));
+        var comum = Peca(TipoEquipamento.Espada, (StatusItem.DanoFisico, 20));
         Assert.False(RegrasFusao.DescarteExigeSegundaConfirmacao(comum));
 
         comum.NivelFusao = 1;
         Assert.True(RegrasFusao.DescarteExigeSegundaConfirmacao(comum));
 
-        var tierB = Peca(TipoEquipamento.Espada, (StatusItem.Forca, 64));
-        var tierA = Peca(TipoEquipamento.Espada, (StatusItem.Forca, 65));
+        var tierB = Peca(TipoEquipamento.Espada, (StatusItem.DanoFisico, 64));
+        var tierA = Peca(TipoEquipamento.Espada, (StatusItem.DanoFisico, 65));
         Assert.Equal(TierItem.B, RegrasTier.TierDe(tierB));
         Assert.False(RegrasFusao.DescarteExigeSegundaConfirmacao(tierB));
         Assert.True(RegrasFusao.DescarteExigeSegundaConfirmacao(tierA));

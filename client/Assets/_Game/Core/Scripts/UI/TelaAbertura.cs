@@ -1,73 +1,76 @@
+using JogoDoGrupo.Client.Core.Api;
 using JogoDoGrupo.Client.Core.Contas;
 using JogoDoGrupo.Client.Core.Visual;
-using UnityEngine;
+using JogoDoGrupo.Shared.Core.Api;
 using UnityEngine.UIElements;
 
 namespace JogoDoGrupo.Client.Core.UI
 {
-    /// <summary>
-    /// Abertura/carregamento: nome do jogo e uma barra curta de carregamento; ao terminar,
-    /// abre o login, ou a tela após o login se a sessão gravada ainda valer.
-    /// </summary>
+    /// <summary>Pré-carrega a interface e verifica disponibilidade e versão antes do login.</summary>
     internal sealed class TelaAbertura : Tela
     {
-        private const float DuracaoSegundos = 1.5f;
-        private const long IntervaloMs = 16;
-
-        private VisualElement _preenchimento;
-        private IVisualElementScheduledItem _atualizacao;
-        private float _inicio;
+        private Label _estado;
+        private Button _tentar;
 
         protected override void Montar(VisualElement raiz)
         {
-            var titulo = ComponentesVisuais.Marca();
+            var painel = EstiloCore.CriarPainel();
+            painel.AddToClassList("abertura-painel");
+            painel.Add(ComponentesVisuais.Marca());
 
-            var subtitulo = new Label("Carregando...");
-            subtitulo.AddToClassList(EstiloCore.Subtitulo);
+            _estado = new Label("Verificando o servidor...");
+            _estado.AddToClassList(EstiloCore.Subtitulo);
+            _estado.AddToClassList("abertura-estado");
+            painel.Add(_estado);
 
-            var barra = new VisualElement();
-            barra.AddToClassList(EstiloCore.BarraCarregamento);
-            _preenchimento = new VisualElement();
-            _preenchimento.AddToClassList(EstiloCore.BarraCarregamentoPreenchimento);
-            barra.Add(_preenchimento);
-
-            raiz.Add(titulo);
-            raiz.Add(subtitulo);
-            raiz.Add(barra);
+            _tentar = new Button(Verificar) { text = "Tentar de novo" };
+            _tentar.AddToClassList(EstiloCore.Botao);
+            _tentar.AddToClassList(EstiloCore.BotaoPrincipal);
+            _tentar.style.display = DisplayStyle.None;
+            painel.Add(_tentar);
+            raiz.Add(painel);
         }
 
-        protected override void AoAbrir()
+        protected override void AoAbrir() => Verificar();
+
+        internal static string FalhaDaSaude(bool sucesso, EstadoDaSaude resposta)
         {
-            _inicio = Time.realtimeSinceStartup;
-            _atualizacao = Raiz.schedule.Execute(Atualizar).Every(IntervaloMs);
+            if (!sucesso || resposta == null || resposta.Estado != "ok")
+            {
+                return "Servidor fora do ar. Verifique sua conexão e tente de novo.";
+            }
+
+            return resposta.Versao == EstadoDaSaude.VersaoAtual
+                ? null
+                : "A versão do servidor é incompatível com este jogo.";
         }
 
-        protected override void AoFechar()
+        private async void Verificar()
         {
-            _atualizacao?.Pause();
-        }
-
-        private void Atualizar()
-        {
-            if (!Aberta)
+            _tentar.style.display = DisplayStyle.None;
+            _estado.text = "Verificando o servidor...";
+            // O tema e as fontes são carregados ao montar a interface; a rede é a etapa que resta.
+            var resposta = await ClienteApi.Get<EstadoDaSaude>("/saude", autenticar: false);
+            if (!Aberta || resposta.CodigoErro == CodigosErroCliente.Cancelada)
             {
                 return;
             }
 
-            var progresso = Mathf.Clamp01((Time.realtimeSinceStartup - _inicio) / DuracaoSegundos);
-            _preenchimento.style.width = Length.Percent(progresso * 100f);
-
-            if (progresso >= 1f)
+            var falha = FalhaDaSaude(resposta.Sucesso, resposta.Corpo);
+            if (falha != null)
             {
-                _atualizacao.Pause();
-                if (Sessao.Ativa)
-                {
-                    Navegacao.AbrirTelaAposLogin();
-                }
-                else
-                {
-                    Navegacao.Abrir(TelasCore.Login);
-                }
+                _estado.text = falha;
+                _tentar.style.display = DisplayStyle.Flex;
+                return;
+            }
+
+            if (Sessao.Ativa)
+            {
+                Navegacao.AbrirTelaAposLogin();
+            }
+            else
+            {
+                Navegacao.Abrir(TelasCore.Login);
             }
         }
     }

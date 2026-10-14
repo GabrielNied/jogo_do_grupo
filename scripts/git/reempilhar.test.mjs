@@ -2,7 +2,12 @@
 
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { corpoReempilhado, dependenciasDoCorpo } from "./reempilhar.mjs";
+import { corpoReempilhado, dependenciasDoCorpo, git } from "./reempilhar.mjs";
+
+test("comando Git com saída herdada conclui sem falso conflito", () => {
+  assert.match(git(["--version"]), /git version/);
+  assert.equal(git(["--version"], { stdio: "inherit" }), "");
+});
 
 test("lê os PRs da linha Depende de", () => {
   assert.deepEqual(dependenciasDoCorpo("**Depende de #597 e #607 (mergear nessa ordem)**\n\nCloses #1"), [597, 607]);

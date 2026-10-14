@@ -29,7 +29,33 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
         public const float AlturaPuloPadrao = 1.25f;
         public const float VelocidadeVerticalVooPadrao = 6f;
 
+        /// <summary>Frenagem para inverter a direção (m/s²).</summary>
+        public const float FrenagemPadrao = 15f;
+
+        /// <summary>Aceleração no ar (m/s²).</summary>
+        public const float AceleracaoNoArPadrao = 8f;
+
+        /// <summary>Coyote time (s): janela para pulo logo após sair da borda.</summary>
+        public const float CoyoteTimePadrao = 0.1f;
+
+        /// <summary>Buffer de pulo (s): janela para pulo antes de tocar o chão.</summary>
+        public const float BufferDePuloPadrao = 0.1f;
+
         private bool _voando;
+        private float _tempoDesdeQueEsteveNoChao;
+        private bool _pedidoDePuloAcumulado;
+
+        /// <summary>Frenagem para inverter a direção (m/s²).</summary>
+        public float Frenagem { get; set; } = FrenagemPadrao;
+
+        /// <summary>Aceleração no ar (m/s²).</summary>
+        public float AceleracaoNoAr { get; set; } = AceleracaoNoArPadrao;
+
+        /// <summary>Coyote time (s): janela para pulo logo após sair da borda.</summary>
+        public float CoyoteTime { get; set; } = CoyoteTimePadrao;
+
+        /// <summary>Buffer de pulo (s): janela para pulo antes de tocar o chão.</summary>
+        public float BufferDePulo { get; set; } = BufferDePuloPadrao;
 
         /// <summary>Velocidade de andar, em m/s.</summary>
         public float VelocidadeAndar { get; set; } = VelocidadeAndarPadrao;
@@ -120,10 +146,20 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
             return maxima * Intensidade(entrada);
         }
 
-        /// <summary>Aproxima a velocidade atual da alvo, limitada pela <see cref="Aceleracao"/>.</summary>
-        public float Acelerar(float atual, float alvo, float deltaTempo)
+        /// <summary>Aproxima a velocidade atual da alvo, limitada pela <see cref="Aceleracao"/> ou <see cref="Frenagem"/>.</summary>
+        public float Acelerar(float atual, float alvo, float deltaTempo, bool noAr)
         {
-            return Mathf.MoveTowards(atual, alvo, Aceleracao * Mathf.Max(0f, deltaTempo));
+            var aceleracao = noAr ? AceleracaoNoAr : Aceleracao;
+            var absAtual = Mathf.Abs(atual);
+            var absAlvo = Mathf.Abs(alvo);
+
+            // Se inverte a direção ou vai a zero, usar frenagem; senão, aceleração
+            if ((atual > 0 && alvo < 0) || (atual < 0 && alvo > 0) || alvo == 0)
+            {
+                return Mathf.MoveTowards(atual, alvo, Frenagem * Mathf.Max(0f, deltaTempo));
+            }
+
+            return Mathf.MoveTowards(atual, alvo, aceleracao * Mathf.Max(0f, deltaTempo));
         }
 
         /// <summary>
@@ -153,19 +189,58 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
             return Mathf.Max(nova, -VelocidadeMaximaQueda);
         }
 
+        /// <summary>Resetar estados de pulo (call when grounded).</summary>
+        public void ResetarEstadoDePulo()
+        {
+            _tempoDesdeQueEsteveNoChao = 0f;
+            _pedidoDePuloAcumulado = false;
+        }
+
         /// <summary>
         /// Aplica o pulo: se foi pedido e o jogador está no chão sem estar subindo, a velocidade
         /// vertical vira a <see cref="VelocidadeDoPulo"/>. No ar (ou já subindo) devolve a
         /// velocidade atual sem somar nada: não há segundo pulo. Com o voo ligado não pula.
+        /// Inclui coyote time e buffer de pulo.
         /// </summary>
-        public float Pular(float atual, bool noChao, bool pedido)
+        public float Pular(float atual, bool noChao, bool pedido, float deltaTempo)
         {
-            if (Voando || !pedido || !noChao || atual > 0f)
+            if (Voando)
             {
                 return atual;
             }
 
-            return VelocidadeDoPulo;
+            // Acumular pedido de pulo (buffer)
+            if (pedido)
+            {
+                _pedidoDePuloAcumulado = true;
+            }
+
+            // Atualizar coyote time
+            if (noChao)
+            {
+                _tempoDesdeQueEsteveNoChao = 0f;
+            }
+            else
+            {
+                _tempoDesdeQueEsteveNoChao += deltaTempo;
+            }
+
+            // Pulo válido se: está no chão, dentro do coyote time, ou tem buffer de pulo acumulado
+            var podePular = noChao || _tempoDesdeQueEsteveNoChao <= CoyoteTime;
+
+            if (_pedidoDePuloAcumulado && podePular && atual <= 0f)
+            {
+                _pedidoDePuloAcumulado = false;
+                return VelocidadeDoPulo;
+            }
+
+            // Resetar buffer se passou do tempo
+            if (_tempoDesdeQueEsteveNoChao > BufferDePulo)
+            {
+                _pedidoDePuloAcumulado = false;
+            }
+
+            return atual;
         }
     }
 }

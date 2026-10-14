@@ -18,7 +18,7 @@ public class RegrasTierTestes
         };
 
     private static Equipamento Unico(double valor) =>
-        Peca(TipoEquipamento.Peito, (StatusItem.Forca, valor));
+        Peca(TipoEquipamento.Peito, (StatusItem.DanoFisico, valor));
 
     // Faixa 0 a 100: a qualidade é o próprio valor. Abaixo, no limite e acima de cada limiar.
     [Theory]
@@ -47,8 +47,8 @@ public class RegrasTierTestes
         var resultado = RegrasTier.Calcular(
             Peca(
                 TipoEquipamento.Peito,
-                (StatusItem.Forca, 90),
-                (StatusItem.Vigor, 85),
+                (StatusItem.DanoFisico, 90),
+                (StatusItem.VidaMaxima, 85),
                 (StatusItem.DefesaFisica, 65)
             )
         );
@@ -63,8 +63,8 @@ public class RegrasTierTestes
     {
         var tudoNoMaximo = Peca(
             TipoEquipamento.Anel,
-            (StatusItem.Forca, 100),
-            (StatusItem.Agilidade, 100),
+            (StatusItem.DanoFisico, 100),
+            (StatusItem.RegeneracaoStamina, 100),
             (StatusItem.ChanceCritica, 100)
         );
         Assert.Equal(TierItem.SMais, RegrasTier.TierDe(tudoNoMaximo));
@@ -82,9 +82,9 @@ public class RegrasTierTestes
         // Um anel só com um atributo, no máximo, é S+: o que o modelo não tem não entra.
         Assert.Equal(TierItem.SMais, RegrasTier.TierDe(Unico(100)));
         var dois = RegrasTier.Calcular(
-            Peca(TipoEquipamento.Anel, (StatusItem.Forca, 70), (StatusItem.ChanceCritica, 70))
+            Peca(TipoEquipamento.Anel, (StatusItem.DanoFisico, 70), (StatusItem.ChanceCritica, 70))
         );
-        var um = RegrasTier.Calcular(Peca(TipoEquipamento.Anel, (StatusItem.Forca, 70)));
+        var um = RegrasTier.Calcular(Peca(TipoEquipamento.Anel, (StatusItem.DanoFisico, 70)));
         Assert.Equal(um.Qualidade, dois.Qualidade, 6);
     }
 
@@ -93,7 +93,7 @@ public class RegrasTierTestes
     {
         var comLegado = Peca(
             TipoEquipamento.Peito,
-            (StatusItem.Forca, 100),
+            (StatusItem.DanoFisico, 100),
             (StatusItem.PotenciaFogo, 0)
         );
         Assert.Equal(TierItem.SMais, RegrasTier.TierDe(comLegado));
@@ -171,7 +171,7 @@ public class RegrasTierTestes
             );
         }
 
-        Assert.Equal(100, ConfigTier.Maximo(TipoEquipamento.Peito, StatusItem.Forca));
+        Assert.Equal(100, ConfigTier.Maximo(TipoEquipamento.Peito, StatusItem.DanoFisico));
         Assert.Null(ConfigTier.Maximo(TipoEquipamento.Peito, StatusItem.PotenciaFogo));
         Assert.Contains(StatusItem.ChanceCritica, ConfigTier.Elegiveis(TipoEquipamento.Anel));
     }

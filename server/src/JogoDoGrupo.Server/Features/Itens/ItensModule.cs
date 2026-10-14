@@ -38,6 +38,10 @@ public sealed class ItensModule : IFeatureModule
         });
         // Hosted service só para o contêiner criá-lo ao subir (como o loot): ele escuta eventos.
         servicos.AddHostedService(sp => sp.GetRequiredService<VisualEquipadoServico>());
+        var opcoesBau = new OpcoesBau();
+        configuracao.GetSection("Itens:Bau").Bind(opcoesBau);
+        servicos.AddSingleton(opcoesBau);
+        servicos.AddSingleton<RecargaDoBau>();
         servicos.AddSingleton<ISorteadorBau>(new SorteadorBau());
         servicos.AddSingleton<ISorteadorDeLoot>(new SorteadorDeLoot());
         servicos.AddSingleton<ChaoDeLoot>();
@@ -49,6 +53,7 @@ public sealed class ItensModule : IFeatureModule
                 sp.GetRequiredService<ServidorTempoReal>(),
                 sp.GetRequiredService<IPosicoesDoMundo>(),
                 sp.GetRequiredService<IServiceScopeFactory>(),
+                sp.GetRequiredService<GeradorEquipamentos>(),
                 sp.GetRequiredService<TimeProvider>(),
                 sp.GetRequiredService<ILogger<ServicoDeLoot>>()
             );
