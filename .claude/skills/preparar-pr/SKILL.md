@@ -60,6 +60,8 @@ Sempre rode `git diff --check`. Depois aplique **só** as linhas que cobrem os a
 
 Se o risco extrapolar essa matriz (segurança, concorrência, migração, mudança ampla de Core), acrescente a verificação necessária e explique o motivo. Se o CSharpier alterar arquivos, inclua essas mudanças.
 
+Para correções de conexão ao mundo, a validação termina na autenticação UDP e na primeira posição aplicada, inclusive sem foco na janela do Unity; chegar ao login não basta. Veja a [lição da conexão sem foco](../../../docs/licoes.md#2026-10-14--login-não-comprovava-a-conexão-ao-mundo-sem-foco).
+
 ## 5. Documentação
 
 - Mudou regra do jogo? `docs/features/<x>.md` atualizado.

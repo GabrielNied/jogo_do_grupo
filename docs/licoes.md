@@ -15,6 +15,12 @@ Formato: `### AAAA-MM-DD · título` com **O que houve**, **Regra** e **Origem**
 - **Regra:** depois do `puxar`, releia apenas os trechos que pretende corrigir e confirme quais erros continuam antes de editar. O procedimento está na skill [puxar-tarefa](../.claude/skills/puxar-tarefa/SKILL.md#22-plano-antes-de-codar-tarefa-de-jogo).
 - **Origem:** issue #748.
 
+### 2026-10-14 · Login não comprovava a conexão ao mundo sem foco
+
+- **O que houve:** a validação chegou ao login, mas o client parava de processar a rede quando o Unity perdia foco; a autenticação UDP expirava e a pessoa não conseguia entrar no mundo.
+- **Regra:** para validar conexão ao mundo, confirme a autenticação UDP e a primeira posição aplicada com outra janela ativa. Heartbeat do MCP ou tela de login não comprovam que os frames do jogo continuam avançando. O Core mantém a execução em segundo plano, protegida por `ExecucaoClientTestes`.
+- **Origem:** issue #759.
+
 ### 2026-10-11 · Branch velha e checkout dividido (issue #442)
 
 - **O que houve:** `npm run tarefa -- puxar` sem `--worktree` caiu no fallback e criou a branch a partir da `main` local velha (o `pull` falhou por um `.mat` modificado). Depois, outra sessão trocou o HEAD do checkout principal no meio da edição.
