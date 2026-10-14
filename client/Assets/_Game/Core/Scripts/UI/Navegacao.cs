@@ -255,7 +255,7 @@ namespace JogoDoGrupo.Client.Core.UI
         // Com "Enter Play Mode Options" sem recarregar o domínio, os campos estáticos
         // sobrevivem entre execuções; limpa tudo antes de qualquer registro.
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        private static void Reiniciar()
+        internal static void Reiniciar()
         {
             _fabricas.Clear();
             _container = null;

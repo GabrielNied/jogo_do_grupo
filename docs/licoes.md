@@ -71,9 +71,9 @@ Formato: `### AAAA-MM-DD · título` com **O que houve**, **Regra** e **Origem**
 
 ### 2026-10-12 · Agentes em worktree: comando composto recusado e teste que estoura o tempo
 
-- **O que houve:** na leva de 2026-10-12, os agentes de Combate (#478) e Mobs (#487), cada um no seu worktree fora da pasta principal, tiveram comandos com heredoc, variável ou `$(...)` recusados pela permissão da sessão e precisaram dividir as chamadas ou escrever scripts no rascunho. O `dotnet test JogoDoGrupo.slnx` leva cerca de 3 min e estourou o limite padrão de 2 min da ferramenta de shell, e a rodada teve de ser repetida.
-- **Regra:** no worktree, prefira comandos simples (um por chamada) e escreva arquivos com a ferramenta de escrita, não com heredoc. Rode `dotnet test JogoDoGrupo.slnx` com tempo limite de 10 min, ou filtre pelo que mudou (`--filter`) e deixe a suíte inteira para o fim.
-- **Origem:** PRs #545 e #548 (relato dos agentes).
+- **O que houve:** na leva de 2026-10-12, os agentes de Combate (#478) e Mobs (#487), cada um no seu worktree fora da pasta principal, tiveram comandos com heredoc, variável ou `$(...)` recusados pela permissão da sessão e precisaram dividir as chamadas ou escrever scripts no rascunho. O `dotnet test JogoDoGrupo.slnx` leva cerca de 3 min e estourou o limite padrão de 2 min da ferramenta de shell, e a rodada teve de ser repetida. Nas issues #513 e #395, o hook bloqueou o shell do agente e impediu validação e entrega até o coordenador mudar de ferramenta.
+- **Regra:** no worktree, prefira comandos simples (um por chamada) e escreva arquivos com a ferramenta de escrita, não com heredoc. Se o hook bloquear o shell do agente, não o relance nem repita o comando: use o VS Code Task Runner no workspace aberto, direcionando cada comando ao worktree (`git -C <caminho>`). Rode `dotnet test JogoDoGrupo.slnx` com tempo limite de 10 min, ou filtre pelo que mudou (`--filter`) e deixe a suíte inteira para o fim.
+- **Origem:** PRs #545 e #548; issues #513 e #395.
 
 ### 2026-10-12 · Worktree fora da pasta de agentes sobrevive ao merge
 

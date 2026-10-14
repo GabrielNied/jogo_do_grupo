@@ -133,28 +133,36 @@ namespace JogoDoGrupo.Client.Core.Jogo
             {
                 if (_menu != null && (_menu.CapturaAtiva || _menu.CancelouCapturaNesteFrame))
                     return;
-                if (EntradaDeTextoAtiva(hud))
-                {
-                    if (FocoEmCampoDeTexto.TemCampoComFoco(hud))
-                    {
-                        FocoEmCampoDeTexto.SoltarFoco(hud);
-                    }
 
+                var campoComFoco = FocoEmCampoDeTexto.TemCampoComFoco(hud);
+                var decisao = DecisaoDeEntradaNoMundo.DecidirEsc(
+                    campoComFoco,
+                    !campoComFoco && BloqueioDeEntradaPorTexto.AtalhosDoJogoBloqueados(),
+                    BloqueioDeEntradaPorTexto.EscConsumidoNesteFrame,
+                    _menu != null && _menu.OpcoesAbertas
+                );
+                if (decisao == DecisaoDoEsc.IgnorarPorEntradaDeTexto)
+                {
                     if (BloqueioDeEntradaPorTexto.EscConsumidoNesteFrame)
                     {
                         BloqueioDeEntradaPorTexto.EscConsumidoNesteFrame = false;
                     }
 
+                    if (campoComFoco)
+                    {
+                        FocoEmCampoDeTexto.SoltarFoco(hud);
+                    }
+
                     return;
                 }
 
-                if (BloqueioDeEntradaPorTexto.EscConsumidoNesteFrame)
+                if (decisao == DecisaoDoEsc.IgnorarPorConsumoAnterior)
                 {
                     BloqueioDeEntradaPorTexto.EscConsumidoNesteFrame = false;
                     return;
                 }
 
-                if (_menu != null && _menu.OpcoesAbertas)
+                if (decisao == DecisaoDoEsc.VoltarDoSubmenu)
                 {
                     _menu.VoltarDoSubmenu();
                 }
@@ -177,9 +185,14 @@ namespace JogoDoGrupo.Client.Core.Jogo
             }
         }
 
-        private static bool EntradaDeTextoAtiva(VisualElement hud) =>
-            FocoEmCampoDeTexto.TemCampoComFoco(hud)
-            || BloqueioDeEntradaPorTexto.AtalhosDoJogoBloqueados();
+        private static bool EntradaDeTextoAtiva(VisualElement hud)
+        {
+            var campoComFoco = FocoEmCampoDeTexto.TemCampoComFoco(hud);
+            return !DecisaoDeEntradaNoMundo.PodeExecutarAtalho(
+                campoComFoco,
+                !campoComFoco && BloqueioDeEntradaPorTexto.AtalhosDoJogoBloqueados()
+            );
+        }
 
         private void AoMudarConexao(EstadoTempoReal _) => Sincronizar();
 
@@ -221,10 +234,11 @@ namespace JogoDoGrupo.Client.Core.Jogo
                 }
             }
 
-            var livre =
-                !_janelas.AlgoAberto
-                && !EntradaNoJogo.EntradaPendente
-                && ConexaoTempoReal.Conectado;
+            var livre = DecisaoDeEntradaNoMundo.DeveCapturarCursor(
+                _janelas.AlgoAberto,
+                EntradaNoJogo.EntradaPendente,
+                ConexaoTempoReal.Conectado
+            );
             Hud.DefinirVisivel(!_apresentador.TelaInteiraAberta);
 
             DefinirInputAtivo(livre);

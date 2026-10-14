@@ -236,14 +236,9 @@ namespace JogoDoGrupo.Client.Core.Api
         {
             resposta.Status = 0;
 
-            if (
-                e is InvalidOperationException
-                && url.StartsWith("http://", StringComparison.OrdinalIgnoreCase)
-                && e.Message != null
-                && e.Message.IndexOf("Insecure connection", StringComparison.OrdinalIgnoreCase) >= 0
-            )
+            resposta.Erro = CriarErro(CodigoErroAntesDeEnviar(url, e), e.Message);
+            if (resposta.CodigoErro == CodigosErroCliente.HttpBloqueado)
             {
-                resposta.Erro = CriarErro(CodigosErroCliente.HttpBloqueado, e.Message);
                 Debug.LogError(
                     $"[ClienteApi] {metodo} {url}: o Unity bloqueou HTTP sem criptografia ({e.Message}). "
                         + "Libere em Project Settings > Player > Other Settings > "
@@ -252,10 +247,24 @@ namespace JogoDoGrupo.Client.Core.Api
                 return;
             }
 
-            resposta.Erro = CriarErro(CodigosErroCliente.SemConexao, e.Message);
             Debug.LogWarning(
                 $"[ClienteApi] {metodo} {url}: não foi possível enviar ({e.GetType().Name}: {e.Message})."
             );
+        }
+
+        internal static string CodigoErroAntesDeEnviar(string url, Exception e)
+        {
+            if (
+                e is InvalidOperationException
+                && url.StartsWith("http://", StringComparison.OrdinalIgnoreCase)
+                && e.Message != null
+                && e.Message.IndexOf("Insecure connection", StringComparison.OrdinalIgnoreCase) >= 0
+            )
+            {
+                return CodigosErroCliente.HttpBloqueado;
+            }
+
+            return CodigosErroCliente.SemConexao;
         }
 
         private static void PreencherStatus(
@@ -266,8 +275,9 @@ namespace JogoDoGrupo.Client.Core.Api
         )
         {
             var status = requisicao.responseCode;
+            var codigoFalha = CodigoErroDeResposta(requisicao.result, status, autenticar);
 
-            if (requisicao.result == UnityWebRequest.Result.ConnectionError || status == 0)
+            if (codigoFalha == CodigosErroCliente.SemConexao)
             {
                 resposta.Status = 0;
                 resposta.Erro = CriarErro(CodigosErroCliente.SemConexao, requisicao.error);
@@ -278,14 +288,13 @@ namespace JogoDoGrupo.Client.Core.Api
             }
 
             resposta.Status = status;
-
             if (requisicao.result == UnityWebRequest.Result.Success)
             {
                 resposta.Sucesso = true;
                 return;
             }
 
-            if (autenticar && status == 401)
+            if (codigoFalha == CodigosErro.NaoAutenticado)
             {
                 resposta.Erro = CriarErro(
                     CodigosErro.NaoAutenticado,
@@ -304,7 +313,21 @@ namespace JogoDoGrupo.Client.Core.Api
             );
         }
 
-        private static ErroApi LerErro(string texto)
+        internal static string CodigoErroDeResposta(
+            UnityWebRequest.Result resultado,
+            long status,
+            bool autenticar
+        )
+        {
+            if (resultado == UnityWebRequest.Result.ConnectionError || status == 0)
+            {
+                return CodigosErroCliente.SemConexao;
+            }
+
+            return autenticar && status == 401 ? CodigosErro.NaoAutenticado : null;
+        }
+
+        internal static ErroApi LerErro(string texto)
         {
             if (!string.IsNullOrWhiteSpace(texto))
             {
