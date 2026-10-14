@@ -1,6 +1,15 @@
+using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
+using JogoDoGrupo.Client.Core.Contas;
+using JogoDoGrupo.Client.Core.Jogo;
 using JogoDoGrupo.Client.Core.Jogo.Janelas;
+using JogoDoGrupo.Client.Core.UI;
+using JogoDoGrupo.Shared.Core.Contas;
 using NUnit.Framework;
+using UnityEngine;
+using UnityEngine.TestTools;
+using UnityEngine.UIElements;
 
 namespace JogoDoGrupo.Client.Core.Tests
 {
@@ -189,6 +198,195 @@ namespace JogoDoGrupo.Client.Core.Tests
 
             Assert.IsTrue(_gerente.Alternar(Personagem));
             Assert.AreEqual(Personagem, _gerente.ChaveAberta);
+        }
+    }
+
+    public class NavegacaoTestes
+    {
+        private const string ChaveToken = "jogodogrupo.sessao.token";
+        private const string ChaveExpira = "jogodogrupo.sessao.expira";
+
+        private VisualElement _container;
+        private string _tokenAntes;
+        private string _expiraAntes;
+
+        [SetUp]
+        public void Preparar()
+        {
+            _tokenAntes = PlayerPrefs.GetString(ChaveToken, "");
+            _expiraAntes = PlayerPrefs.GetString(ChaveExpira, "");
+            Sessao.EsquecerMemoria();
+            Navegacao.Reiniciar();
+            _container = new VisualElement();
+            Navegacao.Inicializar(_container);
+        }
+
+        [TearDown]
+        public void Limpar()
+        {
+            Navegacao.FecharTelaAtual();
+            Navegacao.Reiniciar();
+            Sessao.EsquecerMemoria();
+            RestaurarPref(ChaveToken, _tokenAntes);
+            RestaurarPref(ChaveExpira, _expiraAntes);
+            PlayerPrefs.Save();
+        }
+
+        [Test]
+        public void Abrir_TelaRegistradaCriaInstanciaNovaEFechaAAtual()
+        {
+            Navegacao.Registrar("teste.principal", () => new TelaDeTeste());
+
+            Assert.IsTrue(Navegacao.Abrir("teste.principal"));
+            var primeira = Navegacao.TelaAtual;
+            var raizPrimeira = primeira.Raiz;
+
+            Assert.IsTrue(Navegacao.Abrir("teste.principal"));
+
+            Assert.AreNotSame(primeira, Navegacao.TelaAtual);
+            Assert.IsFalse(primeira.Aberta);
+            Assert.AreEqual("teste.principal", Navegacao.ChaveAtual);
+            Assert.AreSame(_container, Navegacao.TelaAtual.Raiz.parent);
+            Assert.IsNull(raizPrimeira.parent);
+        }
+
+        [Test]
+        public void Abrir_ChaveAusenteMantemATelaAtual()
+        {
+            Navegacao.Registrar("teste.principal", () => new TelaDeTeste());
+            Navegacao.Abrir("teste.principal");
+            var atual = Navegacao.TelaAtual;
+            LogAssert.Expect(LogType.Error, new Regex("Nenhuma tela registrada com a chave"));
+
+            Assert.IsFalse(Navegacao.Abrir("teste.inexistente"));
+
+            Assert.AreSame(atual, Navegacao.TelaAtual);
+            Assert.AreEqual("teste.principal", Navegacao.ChaveAtual);
+        }
+
+        [Test]
+        public void Abrir_FabricaLancaExcecaoMantemATelaAtual()
+        {
+            Navegacao.Registrar("teste.principal", () => new TelaDeTeste());
+            Navegacao.Registrar(
+                "teste.falha",
+                () => throw new InvalidOperationException("fábrica falhou")
+            );
+            Navegacao.Abrir("teste.principal");
+            var atual = Navegacao.TelaAtual;
+            LogAssert.Expect(
+                LogType.Exception,
+                new Regex("InvalidOperationException: fábrica falhou")
+            );
+
+            Assert.IsFalse(Navegacao.Abrir("teste.falha"));
+
+            Assert.AreSame(atual, Navegacao.TelaAtual);
+            Assert.AreEqual("teste.principal", Navegacao.ChaveAtual);
+        }
+
+        [Test]
+        public void AbrirTelaAposLogin_ChaveNaoRegistradaAbreFallbackDoCore()
+        {
+            Navegacao.Registrar(TelasCore.SemTelaAposLogin, () => new TelaDeTeste());
+            Navegacao.DefinirTelaAposLogin("personagem.selecao");
+            LogAssert.Expect(LogType.Warning, new Regex("não foi registrada"));
+
+            Navegacao.AbrirTelaAposLogin();
+
+            Assert.AreEqual(TelasCore.SemTelaAposLogin, Navegacao.ChaveAtual);
+        }
+
+        [Test]
+        public void VoltarParaLogin_EncerraSessaoAbreLoginEEntregaAvisoUmaVez()
+        {
+            Navegacao.Registrar(TelasCore.Login, () => new TelaDeTeste());
+            Sessao.Iniciar(
+                new LoginResponse
+                {
+                    Token = "sessao-de-teste",
+                    ExpiraEmUnix = DateTimeOffset.UtcNow.AddHours(1).ToUnixTimeSeconds(),
+                }
+            );
+
+            Navegacao.VoltarParaLogin("Sua sessão expirou.");
+
+            Assert.IsFalse(Sessao.Ativa);
+            Assert.AreEqual(TelasCore.Login, Navegacao.ChaveAtual);
+            Assert.AreEqual("Sua sessão expirou.", Navegacao.ConsumirAvisoLogin());
+            Assert.IsNull(Navegacao.ConsumirAvisoLogin());
+        }
+
+        private static void RestaurarPref(string chave, string valor)
+        {
+            if (string.IsNullOrEmpty(valor))
+            {
+                PlayerPrefs.DeleteKey(chave);
+            }
+            else
+            {
+                PlayerPrefs.SetString(chave, valor);
+            }
+        }
+
+        private sealed class TelaDeTeste : Tela
+        {
+            protected override void Montar(VisualElement raiz)
+            {
+                raiz.Add(new Label("teste"));
+            }
+        }
+    }
+
+    public class DecisaoDeEntradaTestes
+    {
+        [TestCase(false, false, true, true)]
+        [TestCase(true, false, true, false)]
+        [TestCase(false, true, true, false)]
+        [TestCase(false, false, false, false)]
+        public void Cursor_SoCapturadoQuandoLivreConectadoESemEntradaPendente(
+            bool algoAberto,
+            bool entradaPendente,
+            bool conectado,
+            bool esperado
+        )
+        {
+            Assert.AreEqual(
+                esperado,
+                DecisaoDeEntradaNoMundo.DeveCapturarCursor(algoAberto, entradaPendente, conectado)
+            );
+        }
+
+        [TestCase(true, false, false, false, DecisaoDoEsc.IgnorarPorEntradaDeTexto)]
+        [TestCase(false, true, false, false, DecisaoDoEsc.IgnorarPorEntradaDeTexto)]
+        [TestCase(false, false, true, false, DecisaoDoEsc.IgnorarPorConsumoAnterior)]
+        [TestCase(false, false, false, true, DecisaoDoEsc.VoltarDoSubmenu)]
+        [TestCase(false, false, false, false, DecisaoDoEsc.AlternarMenu)]
+        public void Esc_FocoOuBloqueioDeTextoConsomeEscAntesDeAcionarMenu(
+            bool campoComFoco,
+            bool bloqueadoPorTexto,
+            bool escConsumido,
+            bool submenuAberto,
+            DecisaoDoEsc esperado
+        )
+        {
+            Assert.AreEqual(
+                esperado,
+                DecisaoDeEntradaNoMundo.DecidirEsc(
+                    campoComFoco,
+                    bloqueadoPorTexto,
+                    escConsumido,
+                    submenuAberto
+                )
+            );
+        }
+
+        [Test]
+        public void Atalhos_CampoFocadoOuBloqueioDeTextoImpedemAcaoNoJogo()
+        {
+            Assert.IsFalse(DecisaoDeEntradaNoMundo.PodeExecutarAtalho(true, false));
+            Assert.IsFalse(DecisaoDeEntradaNoMundo.PodeExecutarAtalho(false, true));
+            Assert.IsTrue(DecisaoDeEntradaNoMundo.PodeExecutarAtalho(false, false));
         }
     }
 }
