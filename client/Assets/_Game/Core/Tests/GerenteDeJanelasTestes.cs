@@ -338,7 +338,7 @@ namespace JogoDoGrupo.Client.Core.Tests
         }
     }
 
-    public class DecisaoDeEntradaTestes
+    internal class DecisaoDeEntradaTestes
     {
         [TestCase(false, false, true, true)]
         [TestCase(true, false, true, false)]
