@@ -217,7 +217,13 @@ public sealed class MundoModule : IFeatureModule, ITransicoesDeAreaDoMundo
             .Where(outro => !ReferenceEquals(outro.Sessao, dono))
             .Select(outro => outro.Sessao)
             .ToArray();
-        _tempoReal!.Enviar(outros, MundoMessageIds.PosicaoJogador, replica, EntregaTempoReal.Sequenciada, avatar.PersonagemId);
+        _tempoReal!.Enviar(
+            outros,
+            MundoMessageIds.PosicaoJogador,
+            replica,
+            EntregaTempoReal.Sequenciada,
+            avatar.PersonagemId
+        );
     }
 
     private void EnviarPosicaoForcada(

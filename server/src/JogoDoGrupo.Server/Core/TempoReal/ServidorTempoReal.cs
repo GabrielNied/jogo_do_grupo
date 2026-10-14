@@ -168,9 +168,10 @@ public sealed class ServidorTempoReal : BackgroundService
     {
         var pacote = ProtocoloTempoReal.Codificar(id, mensagem);
         var metodo = Metodo(entrega);
-        var canal = entrega == EntregaTempoReal.Sequenciada && entidadeId is { } entidade
-            ? CanalParaEntidade(entidade, _rede.ChannelsCount)
-            : (byte)0;
+        var canal =
+            entrega == EntregaTempoReal.Sequenciada && entidadeId is { } entidade
+                ? CanalParaEntidade(entidade, _rede.ChannelsCount)
+                : (byte)0;
 
         foreach (var sessao in sessoes)
         {
@@ -200,9 +201,10 @@ public sealed class ServidorTempoReal : BackgroundService
     {
         var pacote = ProtocoloTempoReal.Codificar(id, mensagem);
         var metodo = Metodo(entrega);
-        var canal = entrega == EntregaTempoReal.Sequenciada && entidadeId is { } entidade
-            ? CanalParaEntidade(entidade, _rede.ChannelsCount)
-            : (byte)0;
+        var canal =
+            entrega == EntregaTempoReal.Sequenciada && entidadeId is { } entidade
+                ? CanalParaEntidade(entidade, _rede.ChannelsCount)
+                : (byte)0;
 
         foreach (var sessao in _autenticadas.Keys)
         {
@@ -493,7 +495,10 @@ public sealed class ServidorTempoReal : BackgroundService
         {
             _porConta.Remove(sessao.ContaId);
         }
-        if (_porPersonagem.TryGetValue(sessao.PersonagemId, out var doPersonagem) && doPersonagem == sessao)
+        if (
+            _porPersonagem.TryGetValue(sessao.PersonagemId, out var doPersonagem)
+            && doPersonagem == sessao
+        )
         {
             _porPersonagem.Remove(sessao.PersonagemId);
         }
