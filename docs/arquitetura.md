@@ -55,6 +55,12 @@ Assim, cada pessoa trabalha em pastas diferentes e os conflitos de merge ficam r
 
 Telas do client: UI Toolkit montada em código ([ADR 0011](decisoes/0011-telas-com-ui-toolkit-em-codigo.md)).
 
+### Threading do servidor
+
+O **laço principal do tempo real** é o único lugar em que as funcionalidades devem mexer em redes e estado quente do jogo: ele recebe UDP, executa a fila de pendências e dispara os ticks agendados por `ServerContext.AoPasso`. Funcionalidades que terminam trabalho assíncrono (banco, autenticação, processamento em segundo plano) devolvem a execução com `ServidorTempoReal.NoLaco(...)` e não ficam com `PeriodicTimer` privados no módulo.
+
+Esse modelo evita `lock` espalhado por `Combate`, `Mobs` e `Itens`, reduz a chance de deadlock e mantém a ordem de eventos estável. O restante de tarefas fora do laço continua sendo dívida documentada até a próxima refatoração, enquanto `ServicoDeInimigos` já usa o tick do core como exemplo.
+
 ## Servidor: como uma funcionalidade se pluga
 
 ### Observabilidade

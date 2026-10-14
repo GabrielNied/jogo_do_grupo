@@ -27,13 +27,9 @@ public sealed class ServicoDeInimigos(
 
     protected override async Task ExecuteAsync(CancellationToken parada)
     {
-        using var relogio = new PeriodicTimer(TimeSpan.FromSeconds(RegrasInimigo.PassoSegundos));
         try
         {
-            while (await relogio.WaitForNextTickAsync(parada))
-            {
-                Avancar();
-            }
+            await Task.Delay(Timeout.Infinite, parada);
         }
         catch (OperationCanceledException)
         {
