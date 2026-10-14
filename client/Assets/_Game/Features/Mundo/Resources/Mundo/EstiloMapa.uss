@@ -13,7 +13,7 @@
 .mundo-mapa-legenda,
 .mundo-mapa-posicao,
 .mundo-mapa-preparando,
-.mundo-mapa-lugar {
+.mundo-mapa-lugar-em-foco {
     position: absolute;
     padding: var(--lumora-espacamento-pequeno) var(--lumora-espacamento-medio);
     background-color: var(--lumora-cores-painel);
@@ -46,31 +46,35 @@
     -unity-text-align: middle-center;
 }
 
+.mundo-mapa-lugar-em-foco {
+    top: var(--lumora-dimensoes-atalho-altura);
+    left: var(--lumora-espacamento-padrao);
+    color: var(--lumora-cores-ouro);
+}
+
 .mundo-mapa-lugar {
-    flex-direction: row;
+    position: absolute;
+    width: var(--lumora-dimensoes-alvo-minimo);
+    height: var(--lumora-dimensoes-alvo-minimo);
     align-items: center;
-    max-width: var(--lumora-dimensoes-item);
+    justify-content: center;
+    background-color: var(--lumora-cores-painel);
     border-width: var(--lumora-bordas-fina);
-    border-color: var(--lumora-cores-borda-discreta);
+    border-color: var(--lumora-cores-ouro);
+    border-radius: var(--lumora-bordas-raio-cartao);
+}
+
+.mundo-mapa-lugar:hover,
+.mundo-mapa-lugar:focus {
+    background-color: var(--lumora-cores-selecionado);
 }
 
 .mundo-mapa-lugar-simbolo {
     color: var(--lumora-cores-ouro);
-    margin-right: var(--lumora-espacamento-curto);
-}
-
-.mundo-mapa-lugar-passagem {
-    flex-direction: row-reverse;
 }
 
 .mundo-mapa-lugar-passagem .mundo-mapa-lugar-simbolo {
-    margin-right: 0;
-    margin-left: var(--lumora-espacamento-curto);
-}
-
-.mundo-mapa-lugar-nome {
-    color: var(--lumora-cores-marfim);
-    white-space: normal;
+    color: var(--lumora-cores-essencia);
 }
 
 .lumora-compacto .mundo-mapa-legenda,
@@ -85,8 +89,4 @@
 .lumora-estreito .mundo-mapa-posicao {
     left: var(--lumora-espacamento-padrao);
     right: auto;
-}
-
-.lumora-estreito .mundo-mapa-lugar-nome {
-    display: none;
 }

@@ -21,6 +21,7 @@ namespace JogoDoGrupo.Client.Features.Mundo
         private VisualElement _marcadores;
         private Label _posicao;
         private Label _preparando;
+        private Label _lugarEmFoco;
         private Vector2? _sobMouse;
         private IVisualElementScheduledItem _agenda;
         private IVisualElementScheduledItem _agendaGeracao;
@@ -58,6 +59,12 @@ namespace JogoDoGrupo.Client.Features.Mundo
             {
                 AdicionarLugar(lugar);
             }
+
+            _lugarEmFoco = new Label();
+            _lugarEmFoco.AddToClassList(EstiloCore.Texto);
+            _lugarEmFoco.AddToClassList("mundo-mapa-lugar-em-foco");
+            _lugarEmFoco.style.display = DisplayStyle.None;
+            _mapa.Add(_lugarEmFoco);
 
             var norte = new Label("N ↑");
             norte.AddToClassList(EstiloCore.Texto);
@@ -132,9 +139,14 @@ namespace JogoDoGrupo.Client.Features.Mundo
                 lugar.Tipo == TipoDeEstrutura.Passagem
             );
             marcador.tooltip = lugar.Nome;
-            marcador.pickingMode = PickingMode.Ignore;
+            marcador.pickingMode = PickingMode.Position;
+            marcador.focusable = true;
             marcador.style.left = Length.Percent(pixelX * 100f / lado);
             marcador.style.top = Length.Percent(pixelY * 100f / lado);
+            marcador.RegisterCallback<PointerEnterEvent>(_ => MostrarLugar(lugar.Nome));
+            marcador.RegisterCallback<PointerLeaveEvent>(_ => EsconderLugar());
+            marcador.RegisterCallback<FocusInEvent>(_ => MostrarLugar(lugar.Nome));
+            marcador.RegisterCallback<FocusOutEvent>(_ => EsconderLugar());
 
             var simbolo = new Label("◆");
             simbolo.AddToClassList(EstiloCore.Texto);
@@ -142,12 +154,18 @@ namespace JogoDoGrupo.Client.Features.Mundo
             simbolo.pickingMode = PickingMode.Ignore;
             marcador.Add(simbolo);
 
-            var nome = new Label(lugar.Nome);
-            nome.AddToClassList(EstiloCore.Texto);
-            nome.AddToClassList("mundo-mapa-lugar-nome");
-            nome.pickingMode = PickingMode.Ignore;
-            marcador.Add(nome);
             _mapa.Add(marcador);
+        }
+
+        private void MostrarLugar(string nome)
+        {
+            _lugarEmFoco.text = nome;
+            _lugarEmFoco.style.display = DisplayStyle.Flex;
+        }
+
+        private void EsconderLugar()
+        {
+            _lugarEmFoco.style.display = DisplayStyle.None;
         }
 
         private void Atualizar()
@@ -238,16 +256,6 @@ namespace JogoDoGrupo.Client.Features.Mundo
             pincel.LineTo(new Vector2(x, y + altura));
             pincel.ClosePath();
             pincel.Stroke();
-
-            // A boca da primeira caverna.
-            Ponto(
-                pincel,
-                ret,
-                PrimeiraCaverna.EntradaX,
-                PrimeiraCaverna.EntradaZ,
-                ConfigVisual.Dimensoes.MarcadorAliado,
-                EstiloVisual.Cor(ConfigVisual.Cores.Ouro)
-            );
 
             foreach (var outro in _outros)
             {
