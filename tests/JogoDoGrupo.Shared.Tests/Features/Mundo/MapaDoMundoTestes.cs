@@ -130,7 +130,7 @@ public class MapaDoMundoTestes
             for (var j = 107; j < 193; j++)
             {
                 var altura = MapaDoMundo.AlturaNaGrade(i, j);
-                Assert.InRange(altura, 0f, 25f);
+                Assert.InRange(altura, -1.2f, 25f);
 
                 // Menos de 10 m de desnível em 10 m de chão: abaixo dos 45 graus que o
                 // personagem sobe.

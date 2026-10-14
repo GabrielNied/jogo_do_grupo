@@ -43,6 +43,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
         /// </summary>
         public static void Construir(Transform terreno, Material modelo)
         {
+            GeradorDeTexturasDoTerreno.LimparCache();
             var amostras = AmostrasDoTerreno.Gerar();
             foreach (var _ in MontarEmEtapas(terreno, modelo, amostras)) { }
         }
@@ -70,7 +71,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
         {
             yield return 0;
 
-            var chao = CriarMaterial(modelo, Color.white, 0f);
+            var chao = CriarMaterialDoChao(modelo);
             if (chao != null)
             {
                 var textura = CriarTextura(amostras);
@@ -216,26 +217,41 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
                     var z = MapaDoMundo.CoordenadaDaGrade(j);
                     var meio = MapaDoMundo.PassoDaGrade / 2f;
                     var pesos = MapaDoMundo.PesosEm(x + meio, z + meio);
-                    var ehLava = pesos.Lava >= pesos.Pantano;
+                    var ehLava = pesos.Lava >= 0.35f && pesos.Lava >= pesos.Pantano;
                     if (ehLava != lava || fundo >= nivel)
                     {
                         continue;
                     }
 
-                    var primeiro = vertices.Count;
-                    var passo = MapaDoMundo.PassoDaGrade;
-                    vertices.Add(new Vector3(x, nivel, z));
-                    vertices.Add(new Vector3(x, nivel, z + passo));
-                    vertices.Add(new Vector3(x + passo, nivel, z));
-                    vertices.Add(new Vector3(x + passo, nivel, z + passo));
+                    var subPasso = MapaDoMundo.PassoDaGrade / 4f;
+                    var subMeio = subPasso / 2f;
+                    for (var sj = 0; sj < 4; sj++)
+                    {
+                        for (var si = 0; si < 4; si++)
+                        {
+                            var subX = x + si * subPasso;
+                            var subZ = z + sj * subPasso;
+                            var subChao = MapaDoMundo.AlturaEm(subX + subMeio, subZ + subMeio);
+                            if (subChao >= nivel)
+                            {
+                                continue;
+                            }
 
-                    triangulos.Add(primeiro);
-                    triangulos.Add(primeiro + 1);
-                    triangulos.Add(primeiro + 2);
+                            var primeiro = vertices.Count;
+                            vertices.Add(new Vector3(subX, nivel, subZ));
+                            vertices.Add(new Vector3(subX, nivel, subZ + subPasso));
+                            vertices.Add(new Vector3(subX + subPasso, nivel, subZ));
+                            vertices.Add(new Vector3(subX + subPasso, nivel, subZ + subPasso));
 
-                    triangulos.Add(primeiro + 2);
-                    triangulos.Add(primeiro + 1);
-                    triangulos.Add(primeiro + 3);
+                            triangulos.Add(primeiro);
+                            triangulos.Add(primeiro + 1);
+                            triangulos.Add(primeiro + 2);
+
+                            triangulos.Add(primeiro + 2);
+                            triangulos.Add(primeiro + 1);
+                            triangulos.Add(primeiro + 3);
+                        }
+                    }
                 }
             }
 
@@ -451,6 +467,44 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
             }
 
             return objeto;
+        }
+
+        // Cria o material do chão: se o shader dedicado TerrenoMundo existir, usa-o com
+        // amostragem de alta definição em espaço mundial e projeção triplanar em paredões.
+        // Se não existir, usa o Lit nativo do URP com o mapa de micro-detalhe 1024x1024.
+        private static Material CriarMaterialDoChao(Material modelo)
+        {
+            var shaderTerreno = Shader.Find("JogoDoGrupo/TerrenoMundo");
+            Material material;
+            if (shaderTerreno != null)
+            {
+                material = new Material(shaderTerreno);
+                material.SetTexture("_GrassTex", GeradorDeTexturasDoTerreno.ObterGrama());
+                material.SetTexture("_DirtTex", GeradorDeTexturasDoTerreno.ObterTerra());
+                material.SetTexture("_SandTex", GeradorDeTexturasDoTerreno.ObterAreia());
+                material.SetTexture("_RockTex", GeradorDeTexturasDoTerreno.ObterRocha());
+                material.SetTexture("_RockBumpMap", GeradorDeTexturasDoTerreno.ObterNormalRocha());
+                material.SetTexture("_SnowTex", GeradorDeTexturasDoTerreno.ObterNeve());
+                material.SetTexture("_DetailAlbedoMap", GeradorDeTexturasDoTerreno.ObterDetalhes());
+                material.SetFloat("_DetailTiling", 0.2f);
+            }
+            else
+            {
+                material = CriarMaterial(modelo, Color.white, 0.05f);
+                if (material != null && material.HasProperty("_DetailAlbedoMap"))
+                {
+                    material.EnableKeyword("_DETAIL_MULX2");
+                    material.EnableKeyword("_DETAIL_SCALED");
+                    material.SetTexture(
+                        "_DetailAlbedoMap",
+                        GeradorDeTexturasDoTerreno.ObterDetalhes()
+                    );
+                    material.SetFloat("_DetailAlbedoMapScale", 1.0f);
+                    material.SetVector("_DetailAlbedoMap_ST", new Vector4(600f, 600f, 0f, 0f));
+                }
+            }
+
+            return material;
         }
 
         // Copia o modelo (ou cria um material do URP, se não houver modelo) com a cor e o brilho

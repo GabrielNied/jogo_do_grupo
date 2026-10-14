@@ -108,22 +108,25 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
                 );
             }
 
-            // Praia nas margens de águas calmas (pântano entre nível da água e +1.2 m com declive suave)
-            var praia =
-                Mathf.InverseLerp(
-                    MapaDoMundo.NivelDaAgua + 1.2f,
-                    MapaDoMundo.NivelDaAgua + 0.1f,
-                    altura
-                ) * Mathf.InverseLerp(0.7f, 0.25f, declive);
-            cor = Color.Lerp(cor, Praia, praia * pesos.Pantano * 0.85f);
+            // Faixa de praia contínua circulando toda a margem de água do pântano e lagoas
+            if (pesos.Pantano > 0.05f)
+            {
+                var deltaAgua = altura - MapaDoMundo.NivelDaAgua;
+                if (deltaAgua >= -0.35f && deltaAgua <= 0.85f)
+                {
+                    var distBorda = Mathf.Abs(deltaAgua - 0.2f);
+                    var fatorPraia = 1f - Mathf.Clamp01(distBorda / 0.65f);
+                    var suavePraia = fatorPraia * fatorPraia * (3f - 2f * fatorPraia);
+                    cor = Color.Lerp(cor, Praia, suavePraia * 0.95f);
+                }
+            }
 
-            // Fundo das poças: escurece de 30 cm acima da água até 20 cm abaixo.
-            var molhado = Mathf.InverseLerp(
-                MapaDoMundo.NivelDaAgua + 0.3f,
-                MapaDoMundo.NivelDaAgua - 0.2f,
-                altura
-            );
-            cor = Color.Lerp(cor, Lodo, molhado * pesos.Pantano);
+            // Fundo profundo das poças e lagos (bem abaixo da linha da água): lodo escuro
+            if (altura < MapaDoMundo.NivelDaAgua - 0.25f && pesos.Pantano > 0.1f)
+            {
+                var fundo = Mathf.Clamp01((MapaDoMundo.NivelDaAgua - 0.25f - altura) / 0.4f);
+                cor = Color.Lerp(cor, Lodo, fundo * pesos.Pantano);
+            }
 
             // Beira dos rios de lava: em brasa até 2 m acima da lava.
             var quente = Mathf.InverseLerp(
@@ -133,9 +136,16 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
             );
             cor = Color.Lerp(cor, Brasa, quente * pesos.Lava);
 
-            // Encostas e paredões rochosos: a pedra aparece. Na lava o chão já é pedra escura.
-            var pedra = Mathf.InverseLerp(DecliveComPedra, DecliveSoDePedra, declive);
-            cor = Color.Lerp(cor, Rocha, pedra * (1f - pesos.Lava));
+            // Encostas e paredões rochosos: sombreamento mineral suave na textura macro
+            var pedra = Mathf.InverseLerp(0.22f, 0.50f, declive);
+            cor = Color.Lerp(cor, Rocha, pedra * 0.90f * (1f - pesos.Lava));
+
+            // Margens de rio com seixos, cascalho e areia úmida
+            if (MapaDoMundo.ProximoDeRio(x, z, out var distRio) && pesos.Lava < 0.35f)
+            {
+                var margem = 1f - Mathf.Clamp01(distRio / 20f);
+                cor = Color.Lerp(cor, MargemDeRio, margem * 0.75f);
+            }
 
             // Estrada norte que sai do portão da cidade pelas transições 1 e 2
             if (
