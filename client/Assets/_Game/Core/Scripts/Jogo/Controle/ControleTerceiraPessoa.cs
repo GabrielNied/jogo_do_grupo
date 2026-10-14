@@ -42,6 +42,12 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
         private float _aceleracao = MovimentoTerceiraPessoa.AceleracaoPadrao;
 
         [SerializeField, Min(0f), Tooltip("m/s²")]
+        private float _frenagem = MovimentoTerceiraPessoa.FrenagemPadrao;
+
+        [SerializeField, Min(0f), Tooltip("m/s²")]
+        private float _aceleracaoNoAr = MovimentoTerceiraPessoa.AceleracaoNoArPadrao;
+
+        [SerializeField, Min(0f), Tooltip("m/s²")]
         private float _gravidade = MovimentoTerceiraPessoa.GravidadePadrao;
 
         [SerializeField, Min(0f), Tooltip("m/s")]
@@ -49,6 +55,12 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
 
         [SerializeField, Min(0f), Tooltip("m")]
         private float _alturaPulo = MovimentoTerceiraPessoa.AlturaPuloPadrao;
+
+        [SerializeField, Min(0f), Tooltip("s")]
+        private float _coyoteTime = MovimentoTerceiraPessoa.CoyoteTimePadrao;
+
+        [SerializeField, Min(0f), Tooltip("s")]
+        private float _bufferDePulo = MovimentoTerceiraPessoa.BufferDePuloPadrao;
 
         [Header("Voo (só no editor)")]
         [
@@ -163,9 +175,13 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
             _movimento.VelocidadeAndar = _velocidadesDoServidor?.x ?? _velocidadeAndar;
             _movimento.VelocidadeCorrer = _velocidadesDoServidor?.y ?? _velocidadeCorrer;
             _movimento.Aceleracao = _aceleracao;
+            _movimento.Frenagem = _frenagem;
+            _movimento.AceleracaoNoAr = _aceleracaoNoAr;
             _movimento.Gravidade = _gravidade;
             _movimento.VelocidadeMaximaQueda = _velocidadeMaximaQueda;
             _movimento.AlturaPulo = _alturaPulo;
+            _movimento.CoyoteTime = _coyoteTime;
+            _movimento.BufferDePulo = _bufferDePulo;
             _movimento.Voando = _voar;
             _movimento.VelocidadeVerticalVoo = _velocidadeVerticalVoo;
         }
@@ -194,10 +210,12 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
                 );
             }
 
+            var noAr = !_corpo.isGrounded;
             _velocidadeHorizontal = _movimento.Acelerar(
                 _velocidadeHorizontal,
                 _movimento.VelocidadeAlvo(entrada, correndo),
-                dt
+                dt,
+                noAr
             );
             _velocidadeVertical = _movimento.VelocidadeVertical(
                 _velocidadeVertical,
@@ -208,7 +226,8 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
             _velocidadeVertical = _movimento.Pular(
                 _velocidadeVertical,
                 _corpo.isGrounded,
-                InputAtivo && _acoes.PularApertado
+                InputAtivo && _acoes.PularApertado,
+                dt
             );
 
             var deslocamento =
@@ -219,6 +238,12 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
             if ((colisao & CollisionFlags.Above) != 0 && _velocidadeVertical > 0f)
             {
                 _velocidadeVertical = 0f;
+            }
+
+            // Resetar estado de pulo quando estiver no chão
+            if (_corpo.isGrounded)
+            {
+                _movimento.ResetarEstadoDePulo();
             }
 
             // Velocidade real no plano (parede freia a animação também).

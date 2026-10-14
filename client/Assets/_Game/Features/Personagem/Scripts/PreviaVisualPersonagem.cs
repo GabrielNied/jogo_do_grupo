@@ -61,6 +61,7 @@ namespace JogoDoGrupo.Client.Features.Personagem
             );
             _camera.transform.position = limites.center + new Vector3(0.6f, 0.2f, 5f);
             _camera.transform.LookAt(limites.center);
+            _camera.Render();
             _raca = raca;
             return true;
         }

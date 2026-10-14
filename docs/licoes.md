@@ -111,6 +111,12 @@ Formato: `### AAAA-MM-DD · título` com **O que houve**, **Regra** e **Origem**
 - **Regra:** leva empilhada nasce com `puxar --base` e cita `Depende de #<N>` no corpo; depois do squash da leva de baixo, `npm run reempilhar -- <PR>` refaz o PR de cima sobre a `main` num PR novo ([Leva empilhada](git.md#leva-empilhada)).
 - **Origem:** PR #607.
 
+### 2026-10-13 · Reempilhar informava conflito falso
+
+- **O que houve:** ao refazer o PR #714 depois do squash do #713, o `reempilhar` aplicou o commit, mas informou conflito e parou antes de publicar o novo PR porque tentou tratar a saída herdada do Git como texto.
+- **Regra:** comandos do script que usam `stdio: "inherit"` devem aceitar retorno vazio; teste o caminho completo da função que executa Git antes de atribuir uma falha a conflito de cherry-pick.
+- **Origem:** issue #716; PR #715 foi concluído manualmente.
+
 ### 2026-10-13 · `.meta` faltando só aparecia no CI
 
 - **O que houve:** na leva de Itens, o PR #698 subiu um script novo do shared sem o `.meta`. O agente rodou `npm run unity:meta` nos PRs seguintes, mas não neste, e só o check `padrao-git` do CI acusou, uma rodada depois do push.

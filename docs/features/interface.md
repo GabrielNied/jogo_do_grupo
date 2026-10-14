@@ -64,6 +64,8 @@ Telas e menus do client que não pertencem a uma funcionalidade do jogo. Por enq
 | Sair da conta | apaga o token e volta ao login (já existe) |
 | Sair do jogo | fecha o aplicativo |
 
+Na composição do menu, **Continuar** é a ação principal, **Opções** vem em seguida e as três ações de saída ficam em grupo separado. Um aviso informa que o mundo continua ativo, e a dica no rodapé mostra como fechar com Esc.
+
 Com o menu aberto, o cursor fica livre e a câmera e o movimento não recebem input (**proposta**).
 
 ### Janelas do jogo
@@ -105,7 +107,8 @@ Decidido por Gabriel em 2026-10-11 (#134); é **provisório** e o grupo pode aju
 | Sensibilidade da câmera | 0,5x a 2,0x, passo 0,1 | 1,0x |
 | Idioma | Português | Português |
 
-- Gravadas neste computador (arquivo local do client, não na conta); valor inválido ou ausente volta ao padrão. Aplicam na hora, sem botão "Aplicar" (proposta).
+- Gravadas neste computador (arquivo local do client, não na conta); valor inválido ou ausente volta ao padrão. Carregam antes da abertura/login. Áudio, qualidade gráfica e sensibilidade mudam sem reconstruir o painel; resolução e tela cheia só mudam após **Aplicar vídeo**. A lista de resoluções mostra cada tamanho uma vez, sem repetir taxas de atualização.
+- Opções usa as abas **Áudio**, **Vídeo** e **Jogo**. Esc em Opções volta ao menu principal. O idioma aparece como Português, único disponível nesta versão.
 - Servidor autoritativo não se aplica: nada aqui afeta regra de jogo.
 - **Testes esperados** (client, EditMode): salvar e ler as opções; valor fora da faixa é limitado; arquivo corrompido volta aos padrões.
 
@@ -169,7 +172,7 @@ O HUD só **mostra** o que o servidor já enviou. Ele não decide vida, dano, al
 | Parte de baixo, centro | **Mensagens de sistema** | avisos das funcionalidades (convite, loot, erro) |
 | Canto superior direito | Minimapa | [mundo.md](mundo.md#minimapa) |
 
-Nada do HUD recebe clique, salvo o que uma funcionalidade pedir (ex.: aceitar convite): o cursor fica preso à câmera durante o jogo. Com o menu do Esc aberto, o HUD continua visível por baixo, sem atualizar animações de aviso atrasadas (um aviso que já venceu não aparece ao fechar o menu). **Direção aprovada para o mapa, pendente da #506:** o mapa ocupa a tela inteira e oculta a HUD do personagem; só os controles e informações do mapa ficam sobre ele.
+Nada do HUD recebe clique, salvo o que uma funcionalidade pedir (ex.: aceitar convite): o cursor fica preso à câmera durante o jogo. Com o menu do Esc aberto, o HUD continua visível por baixo, sem atualizar animações de aviso atrasadas (um aviso que já venceu não aparece ao fechar o menu). Com o mapa em tela inteira, a HUD do personagem fica oculta; só os controles e informações do próprio mapa aparecem sobre ele (veja [Mapa-múndi](mundo.md#mapa-múndi)).
 
 O bloco de recursos e experiência deve permanecer legível sem competir com o chat. A distância entre eles acompanha a altura resolvida do bloco inferior, inclusive com texto ampliado; em largura estreita, ambos têm limite de largura relativo à área disponível. Conferir o conjunto em 1280 × 720, 1920 × 1080, 2560 × 1440, 960 × 720 e 640 × 720.
 

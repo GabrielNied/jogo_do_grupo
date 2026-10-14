@@ -29,6 +29,7 @@ namespace JogoDoGrupo.Client.Core.Inicializacao
 
             // Antes de qualquer chamada ao servidor (a sessão restaurada pode chamar a API).
             ConfiguracaoServidor.Aplicar();
+            OpcoesGravadas.Carregar();
             Navegacao.Inicializar(CriarInterface());
             Sessao.Restaurar();
             Sessao.Expirou += AoExpirarSessao;

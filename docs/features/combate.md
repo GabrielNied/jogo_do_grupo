@@ -38,6 +38,7 @@ Cálculo de dano, seleção de alvo e efeitos de status. Usado por PvE e PvP.
 ### Dano com arma e atributos do equipamento (#623)
 
 - O equipamento **nunca soma** nos cinco atributos do personagem (DEC-001). Combate lê o que as peças ativas dão por `IAtributosDosEquipamentos` (Itens) e, para os secundários, pela pipeline.
+- **Invalidação por evento (#705):** `CombateModule` assina `EquipamentoMudou` (publicado por Itens após equipar, desequipar, trocar conjunto ou fundir peça vestida) e chama `RecursosEmMemoria.AoEquipamentoMudar`. O próximo golpe já usa os novos atributos, sem esperar a validade de `ConfigRecursos.ValidadeDosAtributosSegundos`.
 - **Dano do golpe básico (v3, #709):** `dano = (dano-base da arma + dano flat do equipamento) × (1 + %personagem) × multiplicador do passo`. O flat é dano físico ou mágico das peças, conforme a arma. O %personagem é `PercentualDeDanoPorPonto` (0,10) por ponto de Força ou Intelecto (cajado). Valores de teste até a [#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627).
 - **Recursos:** vida máxima soma a **vida** dos itens; stamina e mana máximas vêm **só** do personagem (itens só dão regeneração).
 - **Defesa dos itens** está no contrato, mas não reduz o dano recebido até a #627.

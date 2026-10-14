@@ -31,8 +31,13 @@ export function corpoReempilhado(corpo, prAntigo, abertas) {
   return [aviso, dependencia, semLinha.trim()].filter(Boolean).join("\n\n") + "\n";
 }
 
-function git(args, opcoes = {}) {
-  return execFileSync("git", args, { encoding: "utf8", stdio: ["ignore", "pipe", "inherit"], ...opcoes }).trim();
+export function git(args, opcoes = {}) {
+  const saida = execFileSync("git", args, {
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "inherit"],
+    ...opcoes,
+  });
+  return typeof saida === "string" ? saida.trim() : "";
 }
 
 function gh(args) {
