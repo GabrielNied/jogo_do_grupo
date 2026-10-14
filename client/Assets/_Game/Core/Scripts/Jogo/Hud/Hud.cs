@@ -51,6 +51,15 @@ namespace JogoDoGrupo.Client.Core.Jogo
         /// <summary>Elemento raiz do HUD, ou <c>null</c> fora do mundo.</summary>
         internal static VisualElement Raiz => _raiz;
 
+        /// <summary>Esconde o HUD durante a entrada até a posição inicial ser confirmada.</summary>
+        internal static void DefinirVisivel(bool visivel)
+        {
+            if (_raiz != null)
+            {
+                _raiz.style.display = visivel ? DisplayStyle.Flex : DisplayStyle.None;
+            }
+        }
+
         /// <summary>Mensagens de sistema na tela, ou <c>null</c> fora do mundo.</summary>
         internal static PainelDeAvisos Avisos => _avisos;
 

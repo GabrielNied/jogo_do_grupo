@@ -113,6 +113,11 @@ namespace JogoDoGrupo.Client.Core.Jogo
 
         private void Update()
         {
+            if (EntradaNoJogo.EntradaPendente)
+            {
+                return;
+            }
+
             if (_acoes == null || _janelas == null)
             {
                 return;
@@ -196,8 +201,14 @@ namespace JogoDoGrupo.Client.Core.Jogo
                 }
             }
 
-            var livre = !_janelas.AlgoAberto;
+            var livre = !_janelas.AlgoAberto && !EntradaNoJogo.EntradaPendente;
             DefinirInputAtivo(livre);
+            if (_barra != null)
+            {
+                _barra.Raiz.style.display = EntradaNoJogo.EntradaPendente
+                    ? UnityEngine.UIElements.DisplayStyle.None
+                    : UnityEngine.UIElements.DisplayStyle.Flex;
+            }
             if (livre)
             {
                 Cursor.lockState = CursorLockMode.Locked;
@@ -208,6 +219,8 @@ namespace JogoDoGrupo.Client.Core.Jogo
                 LiberarCursor();
             }
         }
+
+        internal void LiberarEntrada() => Sincronizar();
 
         private void DefinirInputAtivo(bool ativo)
         {

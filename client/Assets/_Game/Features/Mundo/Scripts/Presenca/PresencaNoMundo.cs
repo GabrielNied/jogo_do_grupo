@@ -29,6 +29,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Presenca
         // Última velocidade do servidor: pode chegar antes de o controle do jogador existir.
         private Vector2? _velocidades;
         private bool _correcaoPendente;
+        private bool _posicaoInicialPendente;
         private Vector3 _posicaoCorrigida;
         private float _rotacaoCorrigida;
 
@@ -63,6 +64,11 @@ namespace JogoDoGrupo.Client.Features.Mundo.Presenca
             {
                 _correcaoPendente = false;
                 Corrigir(jogador);
+                if (_posicaoInicialPendente)
+                {
+                    _posicaoInicialPendente = false;
+                    EntradaNoJogo.SinalizarPronto();
+                }
             }
 
             _presenca.Atualizar(
@@ -114,6 +120,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Presenca
             _presenca.PosicaoDoServidor += (posicao, rotacao) =>
             {
                 _correcaoPendente = true;
+                _posicaoInicialPendente = true;
                 _posicaoCorrigida = posicao;
                 _rotacaoCorrigida = rotacao;
             };
