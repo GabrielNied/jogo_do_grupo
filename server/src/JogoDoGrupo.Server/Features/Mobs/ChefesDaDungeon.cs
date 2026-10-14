@@ -64,4 +64,17 @@ public sealed class ChefesDaDungeon(Func<long>? relogioMs = null)
         resultado = default;
         return false;
     }
+
+    public bool Provocar(long alvoId, long provocadorId)
+    {
+        foreach (var chefe in _porArea.Values)
+        {
+            if (chefe.Provocar(alvoId, provocadorId))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }
