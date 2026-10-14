@@ -46,7 +46,7 @@ namespace JogoDoGrupo.Client.Features.Itens.Tests
                     MateriaisDungeon = 1,
                 }
             );
-            StringAssert.Contains("Força: 40 → 30 (-10; material 20)", texto);
+            StringAssert.Contains("Dano físico: 40 → 30 (-10; material 20)", texto);
             StringAssert.Contains("+5 → +6", texto);
             StringAssert.Contains("Tier C → D", texto);
             StringAssert.Contains("1200 coroas", texto);

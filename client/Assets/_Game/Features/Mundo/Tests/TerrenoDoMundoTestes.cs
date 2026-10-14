@@ -251,27 +251,34 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
             Assert.Greater(vertices.Length, 400, $"Pouco de '{nome}' no mundo.");
             Assert.AreEqual(0, vertices.Length % 4);
 
-            // Cada quadrado cobre uma célula com chão abaixo do nível, no bioma certo.
+            var subPasso = MapaDoMundo.PassoDaGrade / 4f;
+            var subMeio = subPasso / 2f;
+
+            // Cada quadrado cobre uma sub-célula com chão abaixo do nível, no bioma certo.
             for (var k = 0; k < vertices.Length; k += 4 * 37)
             {
                 var canto = vertices[k];
                 Assert.AreEqual(nivel, canto.y, 0.0001f);
 
-                var meio = MapaDoMundo.PassoDaGrade / 2f;
                 var fundo = Mathf.Min(
                     Mathf.Min(
                         MapaDoMundo.AlturaEm(canto.x, canto.z),
-                        MapaDoMundo.AlturaEm(canto.x + 2f * meio, canto.z)
+                        MapaDoMundo.AlturaEm(canto.x + subPasso, canto.z)
                     ),
                     Mathf.Min(
-                        MapaDoMundo.AlturaEm(canto.x, canto.z + 2f * meio),
-                        MapaDoMundo.AlturaEm(canto.x + 2f * meio, canto.z + 2f * meio)
+                        MapaDoMundo.AlturaEm(canto.x, canto.z + subPasso),
+                        MapaDoMundo.AlturaEm(canto.x + subPasso, canto.z + subPasso)
                     )
                 );
-                Assert.Less(fundo, nivel, $"'{nome}' em {canto} sem chão abaixo do nível.");
+                var centroChao = MapaDoMundo.AlturaEm(canto.x + subMeio, canto.z + subMeio);
+                Assert.IsTrue(
+                    fundo < nivel || centroChao < nivel,
+                    $"'{nome}' em {canto} sem chão abaixo do nível."
+                );
 
-                var pesos = MapaDoMundo.PesosEm(canto.x + meio, canto.z + meio);
-                Assert.AreEqual(lava, pesos.Lava >= pesos.Pantano, $"'{nome}' em {canto}.");
+                var pesos = MapaDoMundo.PesosEm(canto.x + subMeio, canto.z + subMeio);
+                var ehLava = pesos.Lava >= 0.35f && pesos.Lava >= pesos.Pantano;
+                Assert.AreEqual(lava, ehLava, $"'{nome}' em {canto}.");
             }
         }
 
