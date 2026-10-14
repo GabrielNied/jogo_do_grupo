@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Net;
 using JogoDoGrupo.Shared.Core;
 using JogoDoGrupo.Shared.Core.Api;
@@ -6,6 +7,25 @@ using JogoDoGrupo.Shared.Core.TempoReal;
 using LiteNetLib;
 
 namespace JogoDoGrupo.Server.Core.TempoReal;
+
+internal sealed class AgendamentoTempoReal(TimeSpan intervalo, Action<TimeSpan> acao, long proximoEmMs)
+{
+    public TimeSpan Intervalo { get; } = intervalo;
+    public Action<TimeSpan> Acao { get; } = acao;
+    public long ProximoEmMs { get; set; } = proximoEmMs;
+
+    public bool AtualizarSeVencido(long agoraMs)
+    {
+        if (agoraMs < ProximoEmMs)
+        {
+            return false;
+        }
+
+        Acao(Intervalo);
+        ProximoEmMs += (long)Intervalo.TotalMilliseconds;
+        return true;
+    }
+}
 
 /// <summary>Como o pacote viaja.</summary>
 public enum EntregaTempoReal
@@ -30,6 +50,7 @@ public enum EntregaTempoReal
 public sealed class ServidorTempoReal : BackgroundService
 {
     private const int IntervaloMs = 10;
+    private const int LimiteDuracaoPassoMs = 100;
 
     private readonly ConfiguracaoTempoReal _configuracao;
     private readonly MensagensTempoReal _mensagens;
@@ -44,6 +65,8 @@ public sealed class ServidorTempoReal : BackgroundService
 
     private readonly ConcurrentDictionary<SessaoTempoReal, byte> _autenticadas = new();
     private readonly ConcurrentQueue<Action> _pendentes = new();
+    private readonly List<AgendamentoTempoReal> _passos = [];
+    private readonly object _travaPassos = new();
     private CancellationToken _parada;
     private int _parado;
 
@@ -114,6 +137,31 @@ public sealed class ServidorTempoReal : BackgroundService
 
     /// <summary>Sessões autenticadas neste momento (cópia).</summary>
     public IReadOnlyCollection<SessaoTempoReal> Sessoes => _autenticadas.Keys.ToArray();
+
+    /// <summary>
+    /// Agenda uma ação para rodar novamente no laço principal do servidor, em um passo fixo.
+    /// A ação recebe a duração do intervalo e fica em ordem de inscrição.
+    /// </summary>
+    public void AoPasso(TimeSpan intervalo, Action<TimeSpan> acao)
+    {
+        ArgumentNullException.ThrowIfNull(acao);
+        if (intervalo <= TimeSpan.Zero)
+        {
+            throw new ArgumentOutOfRangeException(nameof(intervalo));
+        }
+
+        lock (_travaPassos)
+        {
+            _passos.Add(new AgendamentoTempoReal(intervalo, acao, AgoraMs()));
+        }
+    }
+
+    /// <summary>Enfileira uma ação para executar pelo laço principal após trabalho assíncrono.</summary>
+    public void NoLaco(Action acao)
+    {
+        ArgumentNullException.ThrowIfNull(acao);
+        _pendentes.Enqueue(acao);
+    }
 
     /// <summary>Uma sessão acabou de se autenticar. Roda no laço de rede.</summary>
     public event Action<SessaoTempoReal>? SessaoAutenticada;
@@ -210,13 +258,47 @@ public sealed class ServidorTempoReal : BackgroundService
 
     private void Passo()
     {
+        var inicio = Stopwatch.GetTimestamp();
         _rede.PollEvents();
         while (_pendentes.TryDequeue(out var acao))
         {
             acao();
         }
 
+        ProcessarPassos();
         ExpirarNaoAutenticadas();
+
+        var duracao = Stopwatch.GetElapsedTime(inicio);
+        if (duracao > TimeSpan.FromMilliseconds(LimiteDuracaoPassoMs))
+        {
+            _log.LogWarning(
+                "Tempo real: passo do laço demorou {Duracao}ms, acima do limite de {Limite}ms.",
+                duracao.TotalMilliseconds,
+                LimiteDuracaoPassoMs
+            );
+        }
+    }
+
+    private void ProcessarPassos()
+    {
+        var agora = AgoraMs();
+        List<AgendamentoTempoReal> vencidos;
+        lock (_travaPassos)
+        {
+            vencidos = _passos.Where(p => agora >= p.ProximoEmMs).ToList();
+        }
+
+        foreach (var agendamento in vencidos)
+        {
+            try
+            {
+                agendamento.AtualizarSeVencido(agora);
+            }
+            catch (Exception erro)
+            {
+                _log.LogError(erro, "Erro no tick do tempo real agendado em {Intervalo}.", agendamento.Intervalo);
+            }
+        }
     }
 
     private void Receber(SessaoTempoReal sessao, byte[] pacote)

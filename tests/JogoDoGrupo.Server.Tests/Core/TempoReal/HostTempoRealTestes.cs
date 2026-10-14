@@ -32,6 +32,46 @@ public class HostTempoRealTestes
     }
 
     [Fact]
+    public async Task NoLaco_executa_no_laco_do_servidor()
+    {
+        using var servidor = new ServidorDeTeste();
+        var tempoReal = servidor.Services.GetRequiredService<ServidorTempoReal>();
+        var threadDoTeste = Thread.CurrentThread.ManagedThreadId;
+        var concluido = new TaskCompletionSource<int>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        tempoReal.NoLaco(() =>
+        {
+            concluido.TrySetResult(Thread.CurrentThread.ManagedThreadId);
+        });
+
+        var threadDoLoop = await concluido.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        Assert.NotEqual(threadDoTeste, threadDoLoop);
+    }
+
+    [Fact]
+    public async Task AoPasso_chama_a_acao_no_laco_em_intervalo_fixo()
+    {
+        using var servidor = new ServidorDeTeste();
+        var tempoReal = servidor.Services.GetRequiredService<ServidorTempoReal>();
+        var chamadas = 0;
+        var concluido = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        tempoReal.AoPasso(
+            TimeSpan.FromMilliseconds(20),
+            _ =>
+            {
+                if (Interlocked.Increment(ref chamadas) >= 2)
+                {
+                    concluido.TrySetResult(true);
+                }
+            }
+        );
+
+        await concluido.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        Assert.True(chamadas >= 2);
+    }
+
+    [Fact]
     public void Porta_ocupada_impede_o_servidor_de_subir()
     {
         using var ocupante = new UdpClient(new IPEndPoint(IPAddress.Loopback, 0));

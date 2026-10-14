@@ -2,17 +2,15 @@ namespace JogoDoGrupo.Server.Core.Eventos;
 
 /// <summary>
 /// Eventos entre funcionalidades do servidor: quem publica não conhece quem escuta (ADR 0016).
-/// A entrega é síncrona, na thread de quem publica e na ordem em que os assinantes se
-/// inscreveram. Assine no <c>Inicializar</c> do módulo e publique do laço de rede; o
-/// manipulador não pode bloquear.
+/// A entrega é síncrona, na ordem em que os assinantes se inscreveram, e a fila de eventos
+/// mantém a sequência mesmo quando diferentes threads publicam ao mesmo tempo. Assine no
+/// <c>Inicializar</c> do módulo e publique do laço de rede; o manipulador não pode bloquear.
 /// </summary>
 public sealed class EventosDoServidor
 {
     private readonly Lock _trava = new();
     private readonly Dictionary<Type, List<Delegate>> _assinantes = [];
-
-    /// <summary>Publicados de dentro de um manipulador, à espera da vez (por thread).</summary>
-    private readonly ThreadLocal<Queue<Action<List<Exception>>>?> _pendentes = new();
+    private readonly AsyncLocal<Queue<Action>?> _filaAtual = new();
 
     /// <summary>
     /// Inscreve um manipulador para o tipo exato <typeparamref name="T"/> (tipos derivados não
@@ -36,46 +34,43 @@ public sealed class EventosDoServidor
 
     /// <summary>
     /// Entrega o evento a todos os assinantes de <typeparamref name="T"/> antes de voltar. Sem
-    /// assinantes, não faz nada. Um evento publicado de dentro de um manipulador só é entregue
-    /// depois que o evento atual chegou a todos, então todos veem os eventos na mesma ordem.
-    /// Se algum assinante lançar exceção, os outros recebem o evento mesmo assim e, no fim, as
-    /// falhas saem juntas numa <see cref="AggregateException"/>.
+    /// assinantes, não faz nada. Eventos publicados de dentro de um manipulador entram na fila da
+    /// publicação corrente e só são entregues depois que o evento atual chegou a todos, então todos
+    /// veem os eventos na mesma ordem. Falhas dos assinantes são logadas e não interrompem o
+    /// publicador nem os outros.
     /// </summary>
     public void Publicar<T>(T evento)
         where T : class
     {
         ArgumentNullException.ThrowIfNull(evento);
 
-        var pendentes = _pendentes.Value;
-        if (pendentes != null)
+        lock (_trava)
         {
-            pendentes.Enqueue(erros => Entregar(evento, erros));
-            return;
-        }
-
-        pendentes = new Queue<Action<List<Exception>>>();
-        _pendentes.Value = pendentes;
-        var falhas = new List<Exception>();
-        try
-        {
-            Entregar(evento, falhas);
-            while (pendentes.TryDequeue(out var proximo))
+            var fila = _filaAtual.Value;
+            if (fila != null)
             {
-                proximo(falhas);
+                fila.Enqueue(() => Entregar(evento));
+                return;
             }
-        }
-        finally
-        {
-            _pendentes.Value = null;
-        }
 
-        if (falhas.Count > 0)
-        {
-            throw new AggregateException("Assinantes de eventos do servidor falharam.", falhas);
+            fila = new Queue<Action>();
+            _filaAtual.Value = fila;
+            try
+            {
+                fila.Enqueue(() => Entregar(evento));
+                while (fila.Count > 0)
+                {
+                    fila.Dequeue()();
+                }
+            }
+            finally
+            {
+                _filaAtual.Value = null;
+            }
         }
     }
 
-    private void Entregar<T>(T evento, List<Exception> falhas)
+    private void Entregar<T>(T evento)
         where T : class
     {
         Delegate[] assinantes;
@@ -92,7 +87,7 @@ public sealed class EventosDoServidor
             }
             catch (Exception erro)
             {
-                falhas.Add(erro);
+                Console.Error.WriteLine($"Assinante de {typeof(T).Name} falhou: {erro}");
             }
         }
     }

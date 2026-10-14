@@ -110,6 +110,12 @@ public sealed class MobsModule : IFeatureModule
         servicos.AddSingleton<ISpawnDeTeste>(sp => sp.GetRequiredService<ServicoDeInimigos>());
     }
 
-    public void Inicializar(ServerContext contexto) =>
+    public void Inicializar(ServerContext contexto)
+    {
         contexto.Eventos.Assinar<JogadorEntrouNaArea>(evento => _inimigos?.AoEntrarNaArea(evento));
+        contexto.AoPasso(
+            TimeSpan.FromSeconds(RegrasInimigo.PassoSegundos),
+            _ => _inimigos?.Avancar()
+        );
+    }
 }

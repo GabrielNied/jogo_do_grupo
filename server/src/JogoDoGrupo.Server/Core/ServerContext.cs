@@ -20,4 +20,13 @@ public sealed class ServerContext(ServidorTempoReal tempoReal, EventosDoServidor
     /// (ADR 0016). Assine no <c>Inicializar</c>.
     /// </summary>
     public EventosDoServidor Eventos { get; } = eventos;
+
+    /// <summary>
+    /// Agenda uma ação para rodar no laço principal do tempo real, em um passo fixo.
+    /// </summary>
+    public void AoPasso(TimeSpan intervalo, Action<TimeSpan> passo)
+    {
+        ArgumentNullException.ThrowIfNull(passo);
+        TempoReal.AoPasso(intervalo, passo);
+    }
 }
