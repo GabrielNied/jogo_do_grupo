@@ -248,6 +248,24 @@ namespace JogoDoGrupo.Server.Core.Persistencia.Migrations
                     b.ToTable("Personagens", (string)null);
                 });
 
+            modelBuilder.Entity("JogoDoGrupo.Server.Features.Skills.SkillsDoExemplar", b =>
+                {
+                    b.Property<long>("InstanciaId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ModeloId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("SkillIds")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("InstanciaId");
+
+                    b.ToTable("SkillsDoExemplar", (string)null);
+                });
+
             modelBuilder.Entity("JogoDoGrupo.Server.Features.Social.AmizadeSalva", b =>
                 {
                     b.Property<long>("Id")

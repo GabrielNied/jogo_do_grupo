@@ -6,5 +6,23 @@ namespace JogoDoGrupo.Shared.Features.Skills
     public static class SkillsMessageIds
     {
         public static readonly MessageIdRange Faixa = new MessageIdRange(4000, 4999);
+
+        /// <summary>Client → servidor: usar a skill de um espaço da barra, com a direção da mira.</summary>
+        public const ushort UsarSkill = 4000;
+
+        /// <summary>Client → servidor: pede a barra atual (ao entrar no mundo).</summary>
+        public const ushort PedirBarraDeSkills = 4001;
+
+        /// <summary>Servidor → dono: a barra de skills (da arma equipada) e as recargas em curso.</summary>
+        public const ushort BarraDeSkillsMudou = 4002;
+
+        /// <summary>Servidor → dono: uma skill foi usada; custo gasto e recarga começou.</summary>
+        public const ushort SkillUsada = 4003;
+
+        /// <summary>Servidor → quem está na área: o efeito da skill acertou um ou mais alvos.</summary>
+        public const ushort SkillAcertou = 4004;
+
+        /// <summary>Servidor → dono: o pedido de uso foi recusado. Nada foi gasto.</summary>
+        public const ushort SkillRecusada = 4005;
     }
 }
