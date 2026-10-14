@@ -139,13 +139,13 @@ internal static class EquipamentosRotas
         if (!await ItensRotas.PersonagemDaContaAsync(personagemId, usuario.ObterContaId(), db, c))
             return Erro(CodigosErroItens.PersonagemNaoEncontrado, 404);
         var id = long.Parse(personagemId, System.Globalization.CultureInfo.InvariantCulture);
-        var capacidade = Bolsa.CapacidadeDe(id);
+        var estado = await db.Set<EstadoEquipamentos>().FindAsync(new object[] { id }, c);
+        var capacidade = Bolsa.CapacidadeDe(estado);
         var itens = await db.Set<ItemInventario>()
             .Where(i => i.PersonagemId == id)
             .OrderBy(i => i.Id)
             .ToListAsync(c);
         Bolsa.Normalizar(itens, capacidade);
-        var estado = await db.Set<EstadoEquipamentos>().FindAsync(new object[] { id }, c);
         var ativos = estado?.ConjuntoAtivo ?? 1;
         if (conjunto != null)
         {
@@ -220,7 +220,7 @@ internal static class EquipamentosRotas
                 return recusa;
         }
         await db.SaveChangesAsync(c);
-        var resposta = Resposta(itens, ativos, await ItensRotas.NivelAsync(id, db, c));
+        var resposta = Resposta(itens, ativos, await ItensRotas.NivelAsync(id, db, c), capacidade);
         await transacao.CommitAsync(c);
         // Só depois de gravado: a área vê o estado inteiro do que o servidor aceitou.
         if (visual != null && (equipar != null || desequipar != null || conjunto != null))
@@ -327,7 +327,8 @@ internal static class EquipamentosRotas
         if (!await ItensRotas.PersonagemDaContaAsync(personagemId, usuario.ObterContaId(), db, c))
             return Erro(CodigosErroItens.PersonagemNaoEncontrado, 404);
         var id = long.Parse(personagemId, System.Globalization.CultureInfo.InvariantCulture);
-        var capacidade = Bolsa.CapacidadeDe(id);
+        var estado = await db.Set<EstadoEquipamentos>().FindAsync(new object[] { id }, c);
+        var capacidade = Bolsa.CapacidadeDe(estado);
         var itens = await db.Set<ItemInventario>()
             .Where(i => i.PersonagemId == id)
             .OrderBy(i => i.Id)
@@ -345,10 +346,14 @@ internal static class EquipamentosRotas
         db.Add(novo);
         itens.Add(novo);
         await db.SaveChangesAsync(c);
-        var estado = await db.Set<EstadoEquipamentos>().FindAsync(new object[] { id }, c);
         await transacao.CommitAsync(c);
         return Results.Ok(
-            Resposta(itens, estado?.ConjuntoAtivo ?? 1, await ItensRotas.NivelAsync(id, db, c))
+            Resposta(
+                itens,
+                estado?.ConjuntoAtivo ?? 1,
+                await ItensRotas.NivelAsync(id, db, c),
+                capacidade
+            )
         );
     }
 
@@ -399,7 +404,7 @@ internal static class EquipamentosRotas
             {
                 Inventario = Array.Empty<EntradaInventario>(),
                 Equipados = Array.Empty<EntradaInventario>(),
-                Capacidade = Bolsa.CapacidadeDe(id),
+                Capacidade = Bolsa.CapacidadeDe(estado),
                 ConjuntoAtivo = conjunto,
                 Atributos = RegrasAtributosDeItem.Resumir(
                     Array.Empty<EntradaInventario>(),
@@ -412,11 +417,12 @@ internal static class EquipamentosRotas
     internal static EquipamentosResponse Resposta(
         IEnumerable<ItemInventario> itens,
         int conjunto,
-        int nivelDoPersonagem
+        int nivelDoPersonagem,
+        CapacidadeBolsa? capacidade = null
     )
     {
         var lista = itens.ToList();
-        var capacidade = Bolsa.CapacidadeDe(lista.Count > 0 ? lista[0].PersonagemId : 0);
+        capacidade ??= Bolsa.CapacidadeDe(lista.Count > 0 ? lista[0].PersonagemId : 0);
         Bolsa.Normalizar(lista, capacidade);
         var entradas = lista.Select(i => i.ParaEntrada()).ToArray();
         var equipados = entradas.Where(i => i.Posicao != PosicaoEquipamento.Inventario).ToArray();

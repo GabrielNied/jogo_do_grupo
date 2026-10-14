@@ -10,9 +10,21 @@ namespace JogoDoGrupo.Server.Features.Itens;
 internal static class Bolsa
 {
     /// <summary>
-    /// Capacidade da bolsa do personagem. Hoje é igual para todos
-    /// (<see cref="RegrasItens.AbasBolsaInicial"/> x <see cref="RegrasItens.CasasPorAbaBolsa"/>).
+    /// Capacidade da bolsa do personagem a partir do estado gravado (#564).
     /// </summary>
+    public static CapacidadeBolsa CapacidadeDe(EstadoEquipamentos? estado) =>
+        CapacidadeDe(estado?.AbasBolsa ?? RegrasItens.AbasBolsaInicial);
+
+    /// <summary>
+    /// Capacidade da bolsa com base na quantidade de abas desbloqueadas (1 a 4).
+    /// </summary>
+    public static CapacidadeBolsa CapacidadeDe(int abas) =>
+        new CapacidadeBolsa
+        {
+            Abas = Math.Clamp(abas, RegrasItens.AbasBolsaInicial, ConfigBolsa.AbasMaximas),
+            CasasPorAba = RegrasItens.CasasPorAbaBolsa,
+        };
+
     public static CapacidadeBolsa CapacidadeDe(long personagemId) =>
         RegrasItens.CapacidadeInicial();
 

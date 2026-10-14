@@ -36,6 +36,11 @@ namespace JogoDoGrupo.Shared.Features.Itens
         /// </summary>
         public const string CasaInvalida = "CasaInvalida";
 
+        /// <summary>
+        /// 400: a bolsa já atingiu o limite máximo de abas.
+        /// </summary>
+        public const string BolsaNoLimite = "BolsaNoLimite";
+
         /// <summary>409, fusão: o material não é da mesma categoria de peça do principal.</summary>
         public const string MaterialIncompativel = "MaterialIncompativel";
 

@@ -1,6 +1,7 @@
 using System.Data;
 using System.Globalization;
 using System.Security.Claims;
+using JogoDoGrupo.Server.Contratos.Economia;
 using JogoDoGrupo.Server.Contratos.Mundo;
 using JogoDoGrupo.Server.Core.Api;
 using JogoDoGrupo.Server.Core.Autenticacao;
@@ -31,6 +32,7 @@ internal static class ItensRotas
         rotas.MapPost(RotasItens.Descartar, DescartarAsync).RequireAuthorization();
         rotas.MapPost(RotasItens.Mover, MoverAsync).RequireAuthorization();
         rotas.MapPost(RotasItens.Ordenar, OrdenarAsync).RequireAuthorization();
+        rotas.MapPost(RotasItens.Expandir, ExpandirBolsaAsync).RequireAuthorization();
     }
 
     private static async Task<IResult> InventarioAsync(
@@ -47,10 +49,11 @@ internal static class ItensRotas
         }
 
         var id = ParaId(personagemId);
+        var estado = await db.Set<EstadoEquipamentos>()
+            .FindAsync(new object[] { id }, cancelamento);
+        var capacidade = Bolsa.CapacidadeDe(estado);
         var entradas = await LerInventarioAsync(db, id, cancelamento);
-        return Results.Ok(
-            new InventarioResponse { Entradas = entradas, Capacidade = Bolsa.CapacidadeDe(id) }
-        );
+        return Results.Ok(new InventarioResponse { Entradas = entradas, Capacidade = capacidade });
     }
 
     /// <summary>
@@ -78,11 +81,14 @@ internal static class ItensRotas
         }
 
         var id = ParaId(personagemId);
+        var estado = await db.Set<EstadoEquipamentos>()
+            .FindAsync(new object[] { id }, cancelamento);
+        var capacidade = Bolsa.CapacidadeDe(estado);
         var itens = await db.Set<ItemInventario>()
             .Where(i => i.PersonagemId == id)
             .OrderBy(i => i.Id)
             .ToListAsync(cancelamento);
-        Bolsa.Normalizar(itens, Bolsa.CapacidadeDe(id));
+        Bolsa.Normalizar(itens, capacidade);
         var alvo = itens.SingleOrDefault(i => i.Id == pedido.InstanciaId);
         if (alvo == null)
         {
@@ -99,12 +105,11 @@ internal static class ItensRotas
         db.Remove(alvo);
         itens.Remove(alvo);
         await db.SaveChangesAsync(cancelamento);
-        var estado = await db.Set<EstadoEquipamentos>()
-            .FindAsync(new object[] { id }, cancelamento);
         var resposta = EquipamentosRotas.Resposta(
             itens,
             estado?.ConjuntoAtivo ?? 1,
-            await NivelAsync(id, db, cancelamento)
+            await NivelAsync(id, db, cancelamento),
+            capacidade
         );
         await transacao.CommitAsync(cancelamento);
         return Results.Ok(resposta);
@@ -133,7 +138,9 @@ internal static class ItensRotas
         }
 
         var id = ParaId(personagemId);
-        var capacidade = Bolsa.CapacidadeDe(id);
+        var estado = await db.Set<EstadoEquipamentos>()
+            .FindAsync(new object[] { id }, cancelamento);
+        var capacidade = Bolsa.CapacidadeDe(estado);
         if (!capacidade.Contem(pedido.Aba, pedido.Casa))
         {
             return RespostasApi.Erro(
@@ -182,12 +189,11 @@ internal static class ItensRotas
             await db.SaveChangesAsync(cancelamento);
         }
 
-        var estado = await db.Set<EstadoEquipamentos>()
-            .FindAsync(new object[] { id }, cancelamento);
         var resposta = EquipamentosRotas.Resposta(
             itens,
             estado?.ConjuntoAtivo ?? 1,
-            await NivelAsync(id, db, cancelamento)
+            await NivelAsync(id, db, cancelamento),
+            capacidade
         );
         await transacao.CommitAsync(cancelamento);
         return Results.Ok(resposta);
@@ -217,7 +223,9 @@ internal static class ItensRotas
         }
 
         var id = ParaId(personagemId);
-        var capacidade = Bolsa.CapacidadeDe(id);
+        var estado = await db.Set<EstadoEquipamentos>()
+            .FindAsync(new object[] { id }, cancelamento);
+        var capacidade = Bolsa.CapacidadeDe(estado);
         if (!capacidade.Contem(pedido.Aba, 0))
         {
             return RespostasApi.Erro(
@@ -244,12 +252,11 @@ internal static class ItensRotas
         }
         await db.SaveChangesAsync(cancelamento);
 
-        var estado = await db.Set<EstadoEquipamentos>()
-            .FindAsync(new object[] { id }, cancelamento);
         var resposta = EquipamentosRotas.Resposta(
             itens,
             estado?.ConjuntoAtivo ?? 1,
-            await NivelAsync(id, db, cancelamento)
+            await NivelAsync(id, db, cancelamento),
+            capacidade
         );
         await transacao.CommitAsync(cancelamento);
         return Results.Ok(resposta);
@@ -368,7 +375,9 @@ internal static class ItensRotas
             cancelamento
         );
 
-        var capacidade = Bolsa.CapacidadeDe(personagemId);
+        var estado = await db.Set<EstadoEquipamentos>()
+            .FindAsync(new object[] { personagemId }, cancelamento);
+        var capacidade = Bolsa.CapacidadeDe(estado);
         var existentes = await db.Set<ItemInventario>()
             .Where(i =>
                 i.PersonagemId == personagemId && i.Posicao == PosicaoEquipamento.Inventario
@@ -422,7 +431,9 @@ internal static class ItensRotas
             )
             .OrderBy(i => i.Id)
             .ToListAsync(cancelamento);
-        Bolsa.Normalizar(itens, Bolsa.CapacidadeDe(personagemId));
+        var estado = await db.Set<EstadoEquipamentos>()
+            .FindAsync(new object[] { personagemId }, cancelamento);
+        Bolsa.Normalizar(itens, Bolsa.CapacidadeDe(estado));
         return itens.Select(i => i.ParaEntrada()).ToArray();
     }
 
@@ -449,6 +460,72 @@ internal static class ItensRotas
 
     internal static Task<int> NivelAsync(long id, JogoDbContext db, CancellationToken c) =>
         db.Set<PersonagemEntidade>().Where(p => p.Id == id).Select(p => p.Nivel).SingleAsync(c);
+
+    private static async Task<IResult> ExpandirBolsaAsync(
+        string personagemId,
+        ClaimsPrincipal usuario,
+        JogoDbContext db,
+        ICarteiraCoroas carteira,
+        CancellationToken cancelamento
+    )
+    {
+        await using var transacao = await db.Database.BeginTransactionAsync(
+            IsolationLevel.Serializable,
+            cancelamento
+        );
+        if (!await PersonagemDaContaAsync(personagemId, usuario.ObterContaId(), db, cancelamento))
+        {
+            return PersonagemNaoEncontrado();
+        }
+
+        var id = ParaId(personagemId);
+        var estado = await db.Set<EstadoEquipamentos>()
+            .FindAsync(new object[] { id }, cancelamento);
+        estado ??= new EstadoEquipamentos { PersonagemId = id };
+        if (db.Entry(estado).State == EntityState.Detached)
+        {
+            db.Add(estado);
+        }
+
+        if (estado.AbasBolsa >= ConfigBolsa.AbasMaximas)
+        {
+            return RespostasApi.Erro(
+                StatusCodes.Status400BadRequest,
+                CodigosErroItens.BolsaNoLimite
+            );
+        }
+
+        var custo = ConfigBolsa.CustoPorAba(estado.AbasBolsa + 1);
+        if (custo > 0 && !await carteira.DebitarAsync(id, custo, cancelamento))
+        {
+            return RespostasApi.Erro(
+                StatusCodes.Status409Conflict,
+                CodigosErroItens.CoroasInsuficientes
+            );
+        }
+
+        estado.AbasBolsa++;
+        await db.SaveChangesAsync(cancelamento);
+
+        var capacidade = Bolsa.CapacidadeDe(estado);
+        var itens = await db.Set<ItemInventario>()
+            .Where(i => i.PersonagemId == id)
+            .OrderBy(i => i.Id)
+            .ToListAsync(cancelamento);
+        Bolsa.Normalizar(itens, capacidade);
+
+        var resposta = EquipamentosRotas.Resposta(
+            itens,
+            estado.ConjuntoAtivo,
+            await NivelAsync(id, db, cancelamento),
+            capacidade
+        );
+        resposta.Coroas = await carteira.SaldoAsync(id, cancelamento);
+        resposta.Aviso = $"Bolsa expandida para {estado.AbasBolsa} abas.";
+
+        await transacao.CommitAsync(cancelamento);
+        return Results.Ok(resposta);
+    }
 
     private static IResult PersonagemNaoEncontrado() =>
         RespostasApi.Erro(StatusCodes.Status404NotFound, CodigosErroItens.PersonagemNaoEncontrado);
