@@ -66,23 +66,42 @@ Skills de utilidade que continuam no catálogo anterior (não fazem parte das 25
 ### Perguntas que o board abre
 
 - [ ] Hino do Recomeço (levantar caído por skill) e Vínculo Vital: confirmar com [personagem.md](personagem.md#morte-e-caído-issue-97) que o levantar manual continua valendo para todos.
-- [ ] Conflito livro x docs: o board propõe **todas as peças** com skill (armadura e acessório), enquanto "Em aberto" ainda pergunta se toda peça pode ter skill. Manter a pergunta até o grupo validar.
-- [ ] Conflito livro x docs: o board propõe **uma skill por item, fixa até a fusão** e que ela some se o item sai; isso responde a "A skill pertence ao item equipado" como proposta, mas a pergunta continua em aberto até o grupo validar.
-- [ ] Conflito livro x docs: "poucas skills ativas, sem spam" (definido) x **24 posições na barra** (3 abas de 8). O orçamento de 12 pontos é o que limita; confirmar com o grupo.
+- [x] ~~Conflito livro x docs: o board propõe todas as peças com skill~~ Resolvido em 2026-10-12: apenas as armas trazem as skills ativas base; armaduras e acessórios trazem poderes lendários e bônus de set ([itens](itens.md#poderes-e-sets)).
+- [x] ~~Conflito livro x docs: o board propõe uma skill por item fixa até a fusão~~ Resolvido em 2026-10-12: a fusão preserva as skills do principal (DEC-003); a skill pertence ao item equipado e fica indisponível ao desequipar.
+- [x] ~~Conflito livro x docs: poucas skills ativas x 24 posições na barra~~ Resolvido em 2026-10-12: barra com 3 skills ativas por arma (estilo New World, #167, #580).
 
 ## Em aberto
 
-- [ ] A skill pertence ao item equipado (trocou o item, perdeu a skill) ou o jogador aprende a skill do item?
-- [ ] Quantas skills ativas ao mesmo tempo? (New World: 3 por arma, com 2 armas)
-- [x] ~~Modelo da skill no item: sorteada e fixa, peça por peça ou encaixável?~~ Respondido em 2026-10-10: a skill do item é a magia que o jogador usa, e pode ser ativa, passiva ou buff (veja "Definido")
-- [ ] Quantas skills de cada tipo um item pode ter? Toda peça de equipamento pode ter skill, ou só algumas (arma, acessórios)? **Em parte decidido por Gabriel em 2026-10-12:** a quantidade vem do **modelo-base** do item, não da raridade. Armas têm seus conjuntos de skills; armaduras e acessórios **modificam** essas skills com poderes próprios; item especial pode ter exceção declarada nos dados ([itens](itens.md#poderes-e-sets)). Os números por modelo continuam em aberto.
-- [ ] Como funciona o sorteio: lista de skills por tipo de item, por região? ~~Por raridade?~~ A raridade saiu em 2026-10-12 (tier pelos atributos, que não depende das skills; [itens](itens.md#tier)).
-- [x] ~~A fusão mistura as skills dos itens?~~ Decidido em 2026-10-12: não. A fusão muda um atributo e preserva as skills do item principal ([itens](itens.md#fusão)).
-- [ ] ~~Quantas magias por classe?~~ não há classes (D2)
-- [ ] Recurso usado (mana, energia, outro)?
+- [x] ~~A skill pertence ao item equipado ou o jogador aprende a skill?~~ Decidido: pertence ao item equipado. Desequipar ou trocar remove as skills da barra ativa.
+- [x] ~~Quantas skills ativas ao mesmo tempo?~~ Decidido: 3 skills ativas da arma ativa (teclas 1, 2, 3 / Q, E, R). Troca de armas (#580) dá acesso a outras 3 na segunda arma.
+- [x] ~~Quantas skills por tipo de item?~~ Decidido em 2026-10-12: armas trazem as 3 skills-base. Armaduras e acessórios trazem modificadores (poderes lendários e sets), não skills ativas.
+- [x] ~~Como funciona o sorteio?~~ Decidido: o modelo-base da arma declara as opções compatíveis; ao gerar o exemplar da arma, o servidor sorteia as 3 skills e grava no item.
+- [x] ~~A fusão mistura as skills dos itens?~~ Decidido em 2026-10-12: não. A fusão preserva as skills do principal (DEC-003).
+- [x] ~~Quantas magias por classe?~~ Não há classes (D2).
+- [x] ~~Recurso usado?~~ Mana (base 100, +2 por Espírito; [fatia](fatia-jogavel.md#1-atributos-e-recursos)). Custo físico pode consumir stamina.
+- [ ] Pools de skills de armas de regiões avançadas além do Vale.
 
 ## Regras
 
+### Skills nos itens (#167)
+
+Decidido em 2026-10-12 (Gabriel) e formalizado em 2026-10-14 (/decida).
+
+- **SKILL-001 (Pertence à arma):** a skill ativa pertence à arma equipada no conjunto ativo. Desequipar a arma ou trocar de conjunto altera as 3 skills ativas da barra. A recarga fica associada à arma; trocar de arma não zera nem avança o tempo de recarga da outra arma (#580).
+- **SKILL-002 (Barra de atalho):** 3 skills ativas na barra (teclas 1, 2, 3 ou Q, E, R). O client mostra ícones, recarga (sweep/tempo restante) e custo de recurso.
+- **SKILL-003 (Papel das outras peças):** apenas as armas trazem o conjunto de skills ativas base. Armaduras e acessórios concedem poderes lendários (modificadores de comportamento de skills) e bônus de set ([itens](itens.md#poderes-e-sets)), sem slots extras de skills ativas na barra.
+- **SKILL-004 (Sorteio e persistência):** o modelo-base da arma define o catálogo de skills elegíveis. Ao gerar o exemplar da arma, o servidor sorteia as 3 skills e grava no exemplar (`EquipamentoJson`). A fusão preserva as skills do item principal sem alterá-las (DEC-003).
+- **SKILL-005 (Recurso e validação autoritativa):** o servidor valida uso, alcance, custo de mana (ou stamina) e recarga. Pedido com recurso insuficiente ou em recarga é recusado com mensagem na faixa 4000 (`SkillRecusada`).
+- **SKILL-006 (Contrato com combate):** toda skill implementa `PropriedadesDaSkill` (`CategoriaDeDano`, `TipoDeEfeito`, `PodeCritar`, `RecebePenetracao`, `PodeSerAcelerada`), integrando com a pipeline de combate e atributos secundários ([combate](combate.md#atributos-secundários-e-pipeline-624)).
+
 ## Depende de
 
+- **[Itens](itens.md):** armas equipadas, catálogo de modelos-base e exemplar com skills gravadas.
+- **[Combate](combate.md):** recursos (mana/stamina), alvos (`IAlvosDeCombate`) e pipeline de modificadores (`PropriedadesDaSkill`).
+
 ## Expõe
+
+Contratos em `shared/Package/Runtime/Features/Skills/`:
+- Faixa de mensagens: 4000–4999 (`SkillsMessageIds`).
+- `CatalogoSkills`: catálogo estático de skills com id, custo, recarga e `PropriedadesDaSkill`.
+- `RegrasSkills`: validações puras de custo e recarga.
