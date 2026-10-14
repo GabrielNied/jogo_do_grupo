@@ -419,6 +419,41 @@ namespace JogoDoGrupo.Client.Features.Itens
                         pendentes
                     );
                     break;
+                case TipoAcao.DescartarLote:
+                    _ = Postar(
+                        RotasItens.DescartarLoteDe(personagemId),
+                        new PedidoDescartarLote
+                        {
+                            InstanciaIds = acao.InstanciaIds ?? Array.Empty<long>(),
+                            ApenasLixo = acao.ValorBooleano,
+                        },
+                        pendentes
+                    );
+                    break;
+                case TipoAcao.Favoritar:
+                    _ = Postar(
+                        RotasItens.FavoritoDe(personagemId),
+                        new PedidoFavorito
+                        {
+                            InstanciaId = acao.InstanciaId,
+                            InstanciaIds = acao.InstanciaIds ?? Array.Empty<long>(),
+                            Favorito = acao.ValorBooleano,
+                        },
+                        pendentes
+                    );
+                    break;
+                case TipoAcao.Lixo:
+                    _ = Postar(
+                        RotasItens.LixoDe(personagemId),
+                        new PedidoLixo
+                        {
+                            InstanciaId = acao.InstanciaId,
+                            InstanciaIds = acao.InstanciaIds ?? Array.Empty<long>(),
+                            Lixo = acao.ValorBooleano,
+                        },
+                        pendentes
+                    );
+                    break;
             }
         }
 

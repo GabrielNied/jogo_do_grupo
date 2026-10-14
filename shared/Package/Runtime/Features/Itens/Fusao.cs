@@ -24,6 +24,7 @@ namespace JogoDoGrupo.Shared.Features.Itens
     {
         public long InstanciaId;
         public bool Favorito;
+        public long[] InstanciaIds = System.Array.Empty<long>();
     }
 
     /// <summary>

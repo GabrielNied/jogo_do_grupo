@@ -239,12 +239,26 @@ namespace JogoDoGrupo.Client.Features.Itens.Tests
         }
 
         [Test]
-        public void ItensEnvolvidosIncluemOOcupanteDoDestino()
+        public void SoltarForaItemFavoritoRecusaDescarte()
         {
-            var a = NaBolsa(1, Anel, 3);
-            var b = NaBolsa(2, Capacete, 9);
-            var estado = new EquipamentosResponse { Inventario = new[] { a, b } };
-            var acao = Soltar(a, AlvoSoltura.EmCasa(0, 9));
+            var item = NaBolsa(1, Anel, 3);
+            item.Equipamento.Favorito = true;
+            var acao = Soltar(item, AlvoSoltura.Em(TipoAlvo.Fora));
+            Assert.AreEqual(TipoAcao.Recusada, acao.Tipo);
+            Assert.AreEqual(LogicaInventario.AvisoDescartarFavorito, acao.Aviso);
+        }
+
+        [Test]
+        public void ItensEnvolvidosEmDescarteLoteIncluemMarcadosComoLixo()
+        {
+            var lixo1 = NaBolsa(1, Anel, 0);
+            lixo1.Equipamento.Lixo = true;
+            var lixo2 = NaBolsa(2, Capacete, 1);
+            lixo2.Equipamento.Lixo = true;
+            var comum = NaBolsa(3, Capacete, 2);
+            var estado = new EquipamentosResponse { Inventario = new[] { lixo1, lixo2, comum } };
+
+            var acao = new AcaoDoInventario { Tipo = TipoAcao.DescartarLote, ValorBooleano = true };
             CollectionAssert.AreEquivalent(
                 new long[] { 1, 2 },
                 LogicaInventario.InstanciasEnvolvidas(acao, estado)

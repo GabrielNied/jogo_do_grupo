@@ -49,6 +49,7 @@ namespace JogoDoGrupo.Client.Features.Itens
         private HashSet<long> _pendentes = new HashSet<long>();
         private bool _ocupado;
         private int _aba;
+        private readonly HashSet<long> _selecionados = new HashSet<long>();
 
         public event Action<AcaoDoInventario> AcaoPedida;
         public event Action<int> ConjuntoPedido;
@@ -247,6 +248,13 @@ namespace JogoDoGrupo.Client.Features.Itens
             _pendentes = pendentes ?? new HashSet<long>();
             _ocupado = ocupado;
             _tooltip.Esconder();
+            if (_estado?.Inventario != null)
+            {
+                var existentes = new HashSet<long>();
+                foreach (var i in _estado.Inventario)
+                    existentes.Add(i.InstanciaId);
+                _selecionados.RemoveWhere(id => !existentes.Contains(id));
+            }
             if (_aba >= estado.Capacidade.Abas)
                 _aba = 0;
 
@@ -259,6 +267,43 @@ namespace JogoDoGrupo.Client.Features.Itens
             MontarResumo();
             MontarRodape();
             AplicarTamanho();
+        }
+
+        private void AlternarSelecao(long instanciaId)
+        {
+            if (_selecionados.Contains(instanciaId))
+                _selecionados.Remove(instanciaId);
+            else
+                _selecionados.Add(instanciaId);
+            AtualizarVisualSelecao();
+            MontarRodape();
+        }
+
+        private void LimparSelecao()
+        {
+            _selecionados.Clear();
+            AtualizarVisualSelecao();
+            MontarRodape();
+        }
+
+        private void AtualizarVisualSelecao()
+        {
+            foreach (var kvp in _casas)
+            {
+                var slot = kvp.Value;
+                var entrada = LogicaInventario.NaCasa(_estado, kvp.Key.Item1, kvp.Key.Item2);
+                if (entrada != null)
+                {
+                    slot.EnableInClassList(
+                        EstiloItens.SlotSelecionado,
+                        _selecionados.Contains(entrada.InstanciaId)
+                    );
+                }
+                else
+                {
+                    slot.RemoveFromClassList(EstiloItens.SlotSelecionado);
+                }
+            }
         }
 
         /// <summary>
@@ -543,6 +588,107 @@ namespace JogoDoGrupo.Client.Features.Itens
             ordenar.tooltip = "Ordena esta aba da bolsa por tipo, tier e nível";
             ordenar.SetEnabled(!_ocupado);
             _rodape.Add(ordenar);
+
+            var totalLixo = 0;
+            if (_estado?.Inventario != null)
+            {
+                foreach (var item in _estado.Inventario)
+                {
+                    if (item.Equipamento != null && item.Equipamento.Lixo)
+                        totalLixo++;
+                }
+            }
+            if (totalLixo > 0)
+            {
+                var descartarLixo = Botao(
+                    "Descartar lixo (" + totalLixo + ")",
+                    () =>
+                        MostrarConfirmacao(
+                            "Isso destrói "
+                                + totalLixo
+                                + " item(ns) marcado(s) como lixo. Confirmar?",
+                            "Confirmar descarte",
+                            () =>
+                                AcaoPedida?.Invoke(
+                                    new AcaoDoInventario
+                                    {
+                                        Tipo = TipoAcao.DescartarLote,
+                                        ValorBooleano = true,
+                                    }
+                                ),
+                            null
+                        )
+                );
+                descartarLixo.tooltip = "Descarta todos os itens da bolsa marcados como lixo";
+                descartarLixo.SetEnabled(!_ocupado);
+                _rodape.Add(descartarLixo);
+            }
+
+            if (_selecionados.Count > 0)
+            {
+                var selArray = new List<long>(_selecionados).ToArray();
+                var travar = Botao(
+                    "Travar (" + selArray.Length + ")",
+                    () =>
+                        AcaoPedida?.Invoke(
+                            new AcaoDoInventario
+                            {
+                                Tipo = TipoAcao.Favoritar,
+                                InstanciaIds = selArray,
+                                ValorBooleano = true,
+                            }
+                        )
+                );
+                travar.tooltip = "Protege os itens selecionados como favoritos";
+                travar.SetEnabled(!_ocupado);
+                _rodape.Add(travar);
+
+                var marcarLixo = Botao(
+                    "Marcar lixo (" + selArray.Length + ")",
+                    () =>
+                        AcaoPedida?.Invoke(
+                            new AcaoDoInventario
+                            {
+                                Tipo = TipoAcao.Lixo,
+                                InstanciaIds = selArray,
+                                ValorBooleano = true,
+                            }
+                        )
+                );
+                marcarLixo.tooltip = "Marca os itens selecionados como lixo";
+                marcarLixo.SetEnabled(!_ocupado);
+                _rodape.Add(marcarLixo);
+
+                var descartarSel = Botao(
+                    "Descartar (" + selArray.Length + ")",
+                    () =>
+                        MostrarConfirmacao(
+                            "Isso destrói "
+                                + selArray.Length
+                                + " item(ns) selecionado(s). Confirmar?",
+                            "Confirmar descarte",
+                            () =>
+                            {
+                                LimparSelecao();
+                                AcaoPedida?.Invoke(
+                                    new AcaoDoInventario
+                                    {
+                                        Tipo = TipoAcao.DescartarLote,
+                                        InstanciaIds = selArray,
+                                    }
+                                );
+                            },
+                            null
+                        )
+                );
+                descartarSel.tooltip = "Descarta os itens selecionados";
+                descartarSel.SetEnabled(!_ocupado);
+                _rodape.Add(descartarSel);
+
+                var limparSel = Botao("✕ Limpar seleção", LimparSelecao);
+                limparSel.SetEnabled(!_ocupado);
+                _rodape.Add(limparSel);
+            }
             // Filtro de loot (#565): preferência deste computador, vale na hora no chão.
             var filtro = new DropdownField(
                 "Loot no chão",
@@ -637,8 +783,27 @@ namespace JogoDoGrupo.Client.Features.Itens
                 });
             }
 
+            var dados = RegrasEquipamentos.DadosDe(entrada);
+            if (dados != null && dados.Favorito)
+            {
+                slot.AddToClassList(EstiloItens.SlotFavorito);
+                var seloFav = new Label("★") { pickingMode = PickingMode.Ignore };
+                seloFav.AddToClassList(EstiloItens.SeloFavorito);
+                slot.Add(seloFav);
+            }
+            else if (dados != null && dados.Lixo)
+            {
+                slot.AddToClassList(EstiloItens.SlotLixo);
+                var seloLixo = new Label("LIXO") { pickingMode = PickingMode.Ignore };
+                seloLixo.AddToClassList(EstiloItens.SeloLixo);
+                slot.Add(seloLixo);
+            }
+
+            if (_selecionados.Contains(entrada.InstanciaId))
+                slot.AddToClassList(EstiloItens.SlotSelecionado);
+
             _tooltip.Registrar(slot, () => TextosTooltip.Montar(entrada, _estado));
-            if (RegrasEquipamentos.DadosDe(entrada) != null)
+            if (dados != null)
             {
                 // A pergunta central da fusão: quais peças da bolsa servem de material.
                 slot.RegisterCallback<PointerEnterEvent>(_ => AcenderDoadores(entrada));
@@ -646,6 +811,33 @@ namespace JogoDoGrupo.Client.Features.Itens
             }
             if (_ocupado || pendente)
                 return slot;
+
+            slot.RegisterCallback<PointerDownEvent>(
+                e =>
+                {
+                    if (e.button == 0 && (e.ctrlKey || e.altKey))
+                    {
+                        e.StopImmediatePropagation();
+                        _tooltip.Esconder();
+                        if (e.ctrlKey)
+                        {
+                            AlternarSelecao(entrada.InstanciaId);
+                        }
+                        else if (e.altKey && dados != null)
+                        {
+                            AcaoPedida?.Invoke(
+                                new AcaoDoInventario
+                                {
+                                    Tipo = TipoAcao.Favoritar,
+                                    InstanciaId = entrada.InstanciaId,
+                                    ValorBooleano = !dados.Favorito,
+                                }
+                            );
+                        }
+                    }
+                },
+                TrickleDown.TrickleDown
+            );
 
             _arrasto.Registrar(
                 slot,

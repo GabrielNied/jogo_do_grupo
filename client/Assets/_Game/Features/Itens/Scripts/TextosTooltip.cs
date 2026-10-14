@@ -135,6 +135,15 @@ namespace JogoDoGrupo.Client.Features.Itens
                 "Fusão +" + item.NivelFusao + "/" + ConfigFusao.NivelMaximo,
                 EstiloLinha.Suave
             );
+            if (item.Favorito)
+                Adicionar(dados.Linhas, "★ Protegido como favorito", EstiloLinha.Fixo);
+            else if (item.Lixo)
+                Adicionar(dados.Linhas, "Marcado como lixo", EstiloLinha.Perda);
+            Adicionar(
+                dados.Linhas,
+                "Ctrl+clique: selecionar · Alt+clique: travar",
+                EstiloLinha.Suave
+            );
 
             return dados;
         }

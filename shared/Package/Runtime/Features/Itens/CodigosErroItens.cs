@@ -42,7 +42,7 @@ namespace JogoDoGrupo.Shared.Features.Itens
         /// <summary>409, fusão: o material está equipado; desequipe antes de consumi-lo.</summary>
         public const string MaterialEquipado = "MaterialEquipado";
 
-        /// <summary>409, fusão: o material está marcado como favorito.</summary>
+        /// <summary>409, descarte, lixo e fusão: o item está protegido como favorito.</summary>
         public const string ItemFavorito = "ItemFavorito";
 
         /// <summary>409, fusão: o principal já está em +10.</summary>

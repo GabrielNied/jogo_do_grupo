@@ -163,6 +163,8 @@ internal static class FusaoRotas
             if (entrada == null || equipamento == null)
                 return Erro(CodigosErroItens.ItemNaoEncontrado, 404);
             equipamento.Favorito = favorito.Favorito;
+            if (favorito.Favorito)
+                equipamento.Lixo = false;
             entrada.GravarEquipamento(equipamento);
             aviso = favorito.Favorito
                 ? "Item protegido como favorito."

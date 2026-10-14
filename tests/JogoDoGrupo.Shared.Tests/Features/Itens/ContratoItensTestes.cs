@@ -47,6 +47,12 @@ public class ContratoItensTestes
         Assert.Equal("/api/personagens/42/inventario", RotasItens.InventarioDe(42));
         Assert.Equal("/api/personagens/42/bau", RotasItens.BauDe(42));
         Assert.Equal("/api/personagens/42/inventario/ordenar", RotasItens.OrdenarDe(42));
+        Assert.Equal(
+            "/api/personagens/42/inventario/descartar-lote",
+            RotasItens.DescartarLoteDe(42)
+        );
+        Assert.Equal("/api/personagens/42/inventario/lixo", RotasItens.LixoDe(42));
+        Assert.Equal("/api/personagens/42/inventario/favorito", RotasItens.FavoritoDe(42));
     }
 
     [Fact]
@@ -56,6 +62,7 @@ public class ContratoItensTestes
         Assert.Equal("PersonagemNaoEncontrado", CodigosErroItens.PersonagemNaoEncontrado);
         Assert.Equal("ItemNaoEncontrado", CodigosErroItens.ItemNaoEncontrado);
         Assert.Equal("ItemEquipado", CodigosErroItens.ItemEquipado);
+        Assert.Equal("ItemFavorito", CodigosErroItens.ItemFavorito);
     }
 
     [Fact]
