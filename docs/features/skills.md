@@ -1,7 +1,7 @@
 # Skills (magias)
 
 **Responsável:**
-**Status:** em definição
+**Status:** skills ativas de arma implementadas ([#167](https://github.com/GabrielNied/jogo_do_grupo/issues/167)); o resto em definição
 **Faixa de IDs de mensagem:** 4000–4999
 
 ## Resumo
@@ -21,6 +21,26 @@ Skills que vêm dos itens (sorteadas) e da raça, com custo e recarga.
 - **Poucas skills ativas, com recarga que pesa: sem spam** (ritmo do New World, preferência do grupo em 2026-10-10)
 - Skills de itens incluem buffs de grupo que complementam o time (papéis tank, healer e DPS; veja [combate.md](combate.md))
 - ~~Cada classe tem suas magias, com custo e recarga~~ substituído em 2026-10-10: não há classes (D2), as skills vêm dos itens (D3)
+- **Decisões consolidadas na [#167](https://github.com/GabrielNied/jogo_do_grupo/issues/167) (SKILL-001 a SKILL-006):**
+  - **SKILL-001:** a skill ativa pertence à arma equipada no conjunto ativo; desequipar ou trocar de conjunto troca as skills ativas. A recarga fica na arma.
+  - **SKILL-002:** a barra tem **3** ativas por arma. **Teclas 1, 2 e 3** (decidido na implementação; Q, E e R eram a alternativa).
+  - **SKILL-003:** armas trazem as skills ativas; armaduras e acessórios trazem poderes lendários (modificadores) e bônus de set, **sem ativas extras** na barra ([itens](itens.md#poderes-e-sets)).
+  - **SKILL-004:** a quantidade (3) e as opções vêm do **modelo-base** da arma (o tipo: espada, martelo, arco, cajado, foco, escudo). O servidor sorteia e grava no exemplar; a fusão preserva (DEC-003).
+  - **SKILL-005:** o servidor valida tudo: arma equipada, recarga e custo (mana ou stamina). Recusa com `SkillRecusada`; nada é gasto numa recusa.
+  - **SKILL-006:** cada skill declara `PropriedadesDaSkill` (categoria de dano, tipo de efeito e as flags de crítico, penetração e velocidade), para os poderes e a árvore se ligarem a ela ([combate](combate.md#atributos-secundários-e-pipeline-624)).
+
+## Skills de arma (implementado, #167)
+
+Decisões de design da implementação (valores de teste, em `ConfigSkills` e `CatalogoDeSkills` no shared; mudam sem mexer nas regras):
+
+- **Catálogo inicial:** 5 skills por tipo de arma (4 no escudo), com nomes do catálogo de proposta acima e custo, recarga (8 a 30 s) e multiplicador de dano de teste. Armas físicas gastam **stamina**; cajado e foco, **mana** (responde "Recurso usado"). Uma skill de cada tipo de dano (física, mágica e híbrida) já declara as propriedades.
+- **Sorteio:** na primeira vez que a arma é equipada, sorteia 3 do pool do tipo, sem repetir, e grava por **exemplar** (tabela `SkillsDoExemplar`, fora do `EquipamentoJson` de Itens). A chave é o id do exemplar, que a fusão mantém: por isso a fusão preserva as skills. Se o modelo do exemplar ou o catálogo mudarem, sorteia de novo.
+- **Qual é a arma:** a principal do conjunto ativo (`Arma1` no conjunto 1, `Arma2` no 2). A mão secundária (escudo) não dá barra por enquanto.
+- **Uso:** `UsarSkill` com o espaço (0 a 2) e a direção da mira. O servidor confere arma, espaço, recarga e custo, cobra **uma vez só** (pedidos simultâneos do mesmo personagem rodam em fila) e aplica o dano **na hora** (sem preparo) nos alvos do cone do golpe básico. Skill que não acerta ninguém também gasta e recarrega.
+- **Dano:** `(dano da arma + dano flat dos itens, físico ou mágico conforme a skill) x multiplicador da skill`, arredondado, mínimo 1. Ainda **não** usa o bônus em % de Força ou Intelecto, crítico e penetração (pedem a pipeline do Combate, #627); as propriedades da skill já os declaram.
+- **Recarga:** em memória, por (exemplar, espaço): trocar de arma não mexe na recarga da outra. Reiniciar o servidor zera as recargas.
+- **Só dano nesta fatia:** cura, escudo, controle e mobilidade esperam os estados do Combate ([#171](https://github.com/GabrielNied/jogo_do_grupo/issues/171)) e os poderes ([#629](https://github.com/GabrielNied/jogo_do_grupo/issues/629)).
+- **Barra no client:** no centro de baixo da tela, três espaços com tecla, nome, custo e a recarga que falta (cobertura e segundos). Sem arma, a barra some e aparece o aviso para equipar uma. Um uso recusado mostra o motivo na tela. O dano aparece como número sobre o alvo.
 
 ## Proposta do board: preparação, raciais e catálogo (2026-10-11)
 
@@ -72,17 +92,26 @@ Skills de utilidade que continuam no catálogo anterior (não fazem parte das 25
 
 ## Em aberto
 
-- [ ] A skill pertence ao item equipado (trocou o item, perdeu a skill) ou o jogador aprende a skill do item?
-- [ ] Quantas skills ativas ao mesmo tempo? (New World: 3 por arma, com 2 armas)
+- [x] ~~A skill pertence ao item equipado ou o jogador aprende a skill do item?~~ Respondido em 2026-10-14 (SKILL-001): pertence à **arma equipada** no conjunto ativo; trocou a arma, trocou a barra.
+- [x] ~~Quantas skills ativas ao mesmo tempo?~~ Respondido em 2026-10-14 (SKILL-002): 3 por arma (teclas 1, 2 e 3); com duas armas ([#580](https://github.com/GabrielNied/jogo_do_grupo/issues/580)) serão 3 por arma, uma barra de cada vez.
 - [x] ~~Modelo da skill no item: sorteada e fixa, peça por peça ou encaixável?~~ Respondido em 2026-10-10: a skill do item é a magia que o jogador usa, e pode ser ativa, passiva ou buff (veja "Definido")
-- [ ] Quantas skills de cada tipo um item pode ter? Toda peça de equipamento pode ter skill, ou só algumas (arma, acessórios)? **Em parte decidido por Gabriel em 2026-10-12:** a quantidade vem do **modelo-base** do item, não da raridade. Armas têm seus conjuntos de skills; armaduras e acessórios **modificam** essas skills com poderes próprios; item especial pode ter exceção declarada nos dados ([itens](itens.md#poderes-e-sets)). Os números por modelo continuam em aberto.
-- [ ] Como funciona o sorteio: lista de skills por tipo de item, por região? ~~Por raridade?~~ A raridade saiu em 2026-10-12 (tier pelos atributos, que não depende das skills; [itens](itens.md#tier)).
+- [ ] Quantas skills de cada tipo um item pode ter? Toda peça de equipamento pode ter skill, ou só algumas (arma, acessórios)? **Em parte decidido por Gabriel em 2026-10-12:** a quantidade vem do **modelo-base** do item, não da raridade. Armas têm seus conjuntos de skills; armaduras e acessórios **modificam** essas skills com poderes próprios; item especial pode ter exceção declarada nos dados ([itens](itens.md#poderes-e-sets)). **Respondido em 2026-10-14 (SKILL-003, SKILL-004):** só a arma dá skills ativas, 3 por arma, do pool do tipo; armadura e acessório só modificam, por poderes (#629 e #630). Exceção de item especial continua para quando houver item especial.
+- [x] Como funciona o sorteio: **lista de skills por tipo de arma** (modelo-base), sem repetir e fixa no exemplar; por região fica para depois (respondido em 2026-10-14). ~~Por raridade?~~ A raridade saiu em 2026-10-12 (tier pelos atributos, que não depende das skills; [itens](itens.md#tier)).
 - [x] ~~A fusão mistura as skills dos itens?~~ Decidido em 2026-10-12: não. A fusão muda um atributo e preserva as skills do item principal ([itens](itens.md#fusão)).
 - [ ] ~~Quantas magias por classe?~~ não há classes (D2)
-- [ ] Recurso usado (mana, energia, outro)?
+- [x] Recurso usado: **stamina** nas skills físicas e **mana** nas mágicas; energia saiu (respondido em 2026-10-14).
 
 ## Regras
 
+Veja [Skills de arma](#skills-de-arma-implementado-167) em Definido.
+
 ## Depende de
 
+- **Itens:** `IArmaEquipada` (a arma principal do conjunto ativo) e `EquipamentoMudou`; `IAtributosDosEquipamentos` (dano da arma e flat).
+- **Combate:** `ICobrancaDeRecursos` (cobra stamina ou mana de forma atômica), `IAlvosDeCombate` (alvos no cone e dano). As barras de recursos mostram o gasto pelo `RecursosMudaram` de Combate.
+- **Mundo:** `IPosicoesDoMundo` (de onde sai a skill e quem está na área).
+
 ## Expõe
+
+- Mensagens 4000 a 4005 (`SkillsMessageIds`): `UsarSkill`, `PedirBarraDeSkills`, `BarraDeSkillsMudou`, `SkillUsada`, `SkillAcertou`, `SkillRecusada`.
+- `CatalogoDeSkills` e `DefinicaoDeSkill` (com `PropriedadesDaSkill`) no shared, para os poderes (#629) e a árvore lerem a skill.
