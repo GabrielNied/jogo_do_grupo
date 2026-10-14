@@ -19,6 +19,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
         private static Texture2D _texturaTerra;
         private static Texture2D _texturaAreia;
         private static Texture2D _texturaRocha;
+        private static Texture2D _texturaNormalRocha;
         private static Texture2D _texturaNeve;
         private static Texture2D _texturaDetalhes;
 
@@ -30,23 +31,35 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
 
         public static Texture2D ObterRocha() => _texturaRocha ??= CriarTexturaRocha();
 
+        public static Texture2D ObterNormalRocha() => _texturaNormalRocha ??= CriarNormalMapRocha();
+
         public static Texture2D ObterNeve() => _texturaNeve ??= CriarTexturaNeve();
 
         public static Texture2D ObterDetalhes() => _texturaDetalhes ??= CriarTexturaDetalhes();
 
-        /// <summary>
-        /// Textura contínua de grama de fantasia com lâminas verdes bem definidas,
-        /// variações de tom, trevos sutis e sombras profundas entre os tufos.
+        public static void LimparCache()
+        {
+            _texturaGrama = null;
+            _texturaTerra = null;
+            _texturaAreia = null;
+            _texturaRocha = null;
+            _texturaNormalRocha = null;
+            _texturaNeve = null;
+            _texturaDetalhes = null;
+        }
+
+        /// Textura contínua de grama de prado rica e viva (estilo RPG de ação):
+        /// tufos orgânicos, lâminas finas, trevos e variação natural sem listras diagonais.
         /// </summary>
         public static Texture2D CriarTexturaGrama(int tamanho = ResolucaoPadrao)
         {
             var tex = CriarTexturaBase("Terreno_Grama_512", tamanho);
             var pixels = new Color32[tamanho * tamanho];
 
-            var corBase = new Color(0.26f, 0.50f, 0.17f);
-            var corLuz = new Color(0.44f, 0.72f, 0.24f);
-            var corSombra = new Color(0.13f, 0.25f, 0.08f);
-            var corTrevo = new Color(0.48f, 0.68f, 0.20f);
+            var verdeRaiz = new Color(0.18f, 0.34f, 0.11f);
+            var verdeBase = new Color(0.30f, 0.56f, 0.18f);
+            var verdePonta = new Color(0.48f, 0.74f, 0.24f);
+            var verdeTrevo = new Color(0.38f, 0.66f, 0.16f);
 
             for (var y = 0; y < tamanho; y++)
             {
@@ -55,25 +68,26 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
                 {
                     var u = (float)x / tamanho;
 
-                    // Ruído orgânico de base para manchas de vegetação
-                    var macro = RuidoToroidal(u * 4f, v * 4f, 131u);
-                    var meso = RuidoToroidal(u * 12f, v * 12f, 173u);
+                    // 1. Manchas isotrópicas amplas de fertilidade do prado
+                    var clareira = FbmPeriodico(u, v, 4, 3, 101u);
 
-                    // Padrão direcional de lâminas de grama (feixes verticais inclinados)
-                    var laminaX = u * 64f + Mathf.Sin(v * 32f) * 0.35f;
-                    var laminaY = v * 32f;
-                    var lamina = RuidoToroidal(laminaX, laminaY, 239u);
+                    // 2. Tufos de grama isotrópicos sem inclinação diagonal artificial
+                    var tufo1 = FbmPeriodico(u, v, 12, 4, 211u);
+                    var tufo2 = FbmPeriodico(u, v, 24, 3, 317u);
+                    var tufo = tufo1 * 0.6f + tufo2 * 0.4f;
 
-                    // Fibras finas de alta frequência (detalhe milimétrico)
-                    var fibra = RuidoToroidal(u * 128f, v * 128f, 311u);
+                    // 3. Fibras finas de lâminas de alta frequência para nitidez de perto
+                    var fibras = FbmPeriodico(u, v, 48, 2, 431u);
 
-                    // Pequenos trevos e toques florais
-                    var trevo = Mathf.Pow(RuidoToroidal(u * 24f, v * 24f, 401u), 4f);
+                    // 4. Manchas orgânicas de trevos
+                    var trevoRuido = FbmPeriodico(u, v, 16, 2, 523u);
+                    var trevo = Mathf.Pow(Mathf.Clamp01(trevoRuido - 0.35f) * 1.5f, 2f);
 
-                    var t = lamina * 0.55f + fibra * 0.25f + meso * 0.20f;
-                    var cor = Color.Lerp(corSombra, corLuz, t);
-                    cor = Color.Lerp(cor, corBase, macro * 0.4f);
-                    cor = Color.Lerp(cor, corTrevo, trevo * 0.6f);
+                    var t = tufo * 0.65f + fibras * 0.35f;
+                    var cor = Color.Lerp(verdeRaiz, verdeBase, t);
+                    cor = Color.Lerp(cor, verdePonta, Mathf.Pow(tufo, 2.2f) * 0.6f);
+                    cor = Color.Lerp(cor, verdeTrevo, trevo * 0.4f);
+                    cor = Color.Lerp(cor, verdeBase, clareira * 0.2f);
 
                     pixels[y * tamanho + x] = cor;
                 }
@@ -85,18 +99,18 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
         }
 
         /// <summary>
-        /// Textura contínua de terra rica com torrões, grânulos de solo,
-        /// seixos dispersos e pequenas fissuras naturais.
+        /// Textura contínua de terra rica com torrões, partículas de solo,
+        /// seixos dispersos e micro-cascalho.
         /// </summary>
         public static Texture2D CriarTexturaTerra(int tamanho = ResolucaoPadrao)
         {
             var tex = CriarTexturaBase("Terreno_Terra_512", tamanho);
             var pixels = new Color32[tamanho * tamanho];
 
-            var corBase = new Color(0.36f, 0.25f, 0.16f);
-            var corEscura = new Color(0.22f, 0.15f, 0.09f);
-            var corClara = new Color(0.48f, 0.36f, 0.25f);
-            var corSeixo = new Color(0.56f, 0.52f, 0.46f);
+            var terraEscura = new Color(0.28f, 0.20f, 0.13f);
+            var terraMedia = new Color(0.42f, 0.31f, 0.20f);
+            var terraClara = new Color(0.55f, 0.42f, 0.28f);
+            var corSeixo = new Color(0.60f, 0.57f, 0.52f);
 
             for (var y = 0; y < tamanho; y++)
             {
@@ -105,17 +119,16 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
                 {
                     var u = (float)x / tamanho;
 
-                    var macro = RuidoToroidal(u * 5f, v * 5f, 503u);
-                    var terra = RuidoToroidal(u * 28f, v * 28f, 541u);
-                    var grao = RuidoToroidal(u * 96f, v * 96f, 587u);
+                    var baseSolo = FbmPeriodico(u, v, 6, 4, 501u);
+                    var microGrao = FbmPeriodico(u, v, 28, 3, 509u);
 
-                    // Seixos e cascalho (pontos nítidos com luz em cima e sombra embaixo)
-                    var seixoMascara = Mathf.Pow(RuidoToroidal(u * 36f, v * 36f, 619u), 5f);
+                    // Seixos e pequenas pedras naturais no solo
+                    VoronoiPeriodico(u, v, 18, 601u, out var dSeixo, out _);
+                    var seixo = Mathf.Clamp01(1f - dSeixo * 2.8f);
 
-                    var t = terra * 0.6f + grao * 0.4f;
-                    var cor = Color.Lerp(corEscura, corClara, t);
-                    cor = Color.Lerp(cor, corBase, macro * 0.35f);
-                    cor = Color.Lerp(cor, corSeixo, seixoMascara * 0.75f);
+                    var cor = Color.Lerp(terraEscura, terraMedia, baseSolo);
+                    cor = Color.Lerp(cor, terraClara, microGrao * 0.35f);
+                    cor = Color.Lerp(cor, corSeixo, seixo * 0.85f);
 
                     pixels[y * tamanho + x] = cor;
                 }
@@ -127,17 +140,17 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
         }
 
         /// <summary>
-        /// Textura contínua de areia dourada com ondulações de vento,
-        /// cristas iluminadas e micro-brilho granular.
+        /// Textura contínua de areia dourada de praia e dunas com ondulações suaves
+        /// e brilho granular sem marcas artificiais.
         /// </summary>
         public static Texture2D CriarTexturaAreia(int tamanho = ResolucaoPadrao)
         {
             var tex = CriarTexturaBase("Terreno_Areia_512", tamanho);
             var pixels = new Color32[tamanho * tamanho];
 
-            var corBase = new Color(0.85f, 0.73f, 0.48f);
-            var corCrista = new Color(0.92f, 0.82f, 0.58f);
-            var corCava = new Color(0.72f, 0.60f, 0.38f);
+            var areiaCava = new Color(0.78f, 0.66f, 0.45f);
+            var areiaMedia = new Color(0.88f, 0.77f, 0.54f);
+            var areiaCrista = new Color(0.96f, 0.87f, 0.65f);
 
             for (var y = 0; y < tamanho; y++)
             {
@@ -146,16 +159,16 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
                 {
                     var u = (float)x / tamanho;
 
-                    // Ondulações de vento (dunas menores e ripples na praia)
-                    var angulo = (u * 18f + v * 6f) * Mathf.PI * 2f;
-                    var onda = Mathf.Sin(angulo + Mathf.Sin(v * 12f) * 0.75f) * 0.5f + 0.5f;
+                    // Ondulações de vento suaves e orgânicas
+                    var perturbacao = FbmPeriodico(u, v, 4, 3, 701u) * 0.12f;
+                    var ripple =
+                        Mathf.Sin((u * 12f + v * 3f + perturbacao * 6f) * Mathf.PI * 2f) * 0.5f
+                        + 0.5f;
+                    var grao = FbmPeriodico(u, v, 32, 3, 719u);
 
-                    var macro = RuidoToroidal(u * 4f, v * 4f, 709u);
-                    var grao = RuidoToroidal(u * 120f, v * 120f, 751u);
-
-                    var t = onda * 0.65f + grao * 0.35f;
-                    var cor = Color.Lerp(corCava, corCrista, t);
-                    cor = Color.Lerp(cor, corBase, macro * 0.3f);
+                    var cor = Color.Lerp(areiaCava, areiaMedia, ripple);
+                    cor = Color.Lerp(cor, areiaCrista, Mathf.Pow(ripple, 2.0f) * 0.45f);
+                    cor = Color.Lerp(cor, areiaMedia, grao * 0.2f);
 
                     pixels[y * tamanho + x] = cor;
                 }
@@ -167,17 +180,17 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
         }
 
         /// <summary>
-        /// Textura contínua de rocha estratificada para paredões e encostas,
-        /// com fendas fraturadas e granito áspero.
+        /// Textura contínua de rocha com superfície mineral lisa e limpa (estilo RPG de ação),
+        /// deixando o relevo 3D modelado se destacar através do normal map com ondas serrilhadas.
         /// </summary>
         public static Texture2D CriarTexturaRocha(int tamanho = ResolucaoPadrao)
         {
             var tex = CriarTexturaBase("Terreno_Rocha_512", tamanho);
             var pixels = new Color32[tamanho * tamanho];
 
-            var corBase = new Color(0.46f, 0.45f, 0.44f);
-            var corFenda = new Color(0.18f, 0.17f, 0.17f);
-            var corCrista = new Color(0.66f, 0.64f, 0.62f);
+            var rochaSombra = new Color(0.40f, 0.42f, 0.44f);
+            var rochaMedia = new Color(0.54f, 0.56f, 0.58f);
+            var rochaClara = new Color(0.66f, 0.68f, 0.70f);
 
             for (var y = 0; y < tamanho; y++)
             {
@@ -186,24 +199,12 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
                 {
                     var u = (float)x / tamanho;
 
-                    // Camadas horizontais estratificadas de rocha
-                    var estrato = Mathf.Sin(v * 48f + RuidoToroidal(u * 8f, v * 8f, 809u) * 3f);
-                    estrato = estrato * 0.5f + 0.5f;
+                    // Altura da superfície serrilhada
+                    var h = AlturaRochaSuperficie(u, v);
 
-                    // Fendas angulares de fratura
-                    var fenda1 = Mathf.Abs(RuidoToroidal(u * 20f, v * 20f, 853u) * 2f - 1f);
-                    var fenda2 = Mathf.Abs(RuidoToroidal(u * 40f, v * 40f, 887u) * 2f - 1f);
-                    var fenda = Mathf.Min(fenda1, fenda2);
-
-                    var grao = RuidoToroidal(u * 90f, v * 90f, 929u);
-
-                    var t = estrato * 0.4f + grao * 0.35f + (1f - fenda) * 0.25f;
-                    var cor = Color.Lerp(corBase, corCrista, t);
-                    if (fenda < 0.18f)
-                    {
-                        var pesoFenda = 1f - (fenda / 0.18f);
-                        cor = Color.Lerp(cor, corFenda, pesoFenda * 0.85f);
-                    }
+                    // Superfície lisa mineral com sombreamento tonal suave acompanhando os degraus
+                    var cor = Color.Lerp(rochaSombra, rochaMedia, h);
+                    cor = Color.Lerp(cor, rochaClara, Mathf.Pow(h, 2.2f) * 0.45f);
 
                     pixels[y * tamanho + x] = cor;
                 }
@@ -215,16 +216,111 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
         }
 
         /// <summary>
-        /// Textura contínua de neve cristalina com crosta soprada pelo vento e brilho.
+        /// Onda serrilhada periódica contínua em [0, 1):
+        /// sobe suavemente pela prateleira de pedra e cai em degrau íngreme/abrupto.
+        /// </summary>
+        private static float OndaSerrilhadaPeriodica(float t)
+        {
+            var ciclo = t - Mathf.Floor(t);
+            if (ciclo < 0.78f)
+            {
+                // Rampa da prateleira de pedra
+                return (ciclo / 0.78f) * 0.95f;
+            }
+            else
+            {
+                // Queda abrupta e serrilhada (face vertical do degrau)
+                var q = (ciclo - 0.78f) / 0.22f;
+                return 0.95f * (1f - q * q * (3f - 2f * q));
+            }
+        }
+
+        /// <summary>
+        /// Perfil de relevo 3D modelado para o normal map:
+        /// ondas serrilhadas com degraus geológicos e facetas angulares de pedra.
+        /// </summary>
+        private static float AlturaRochaSuperficie(float u, float v)
+        {
+            // 1. Dobras geológicas orgânicas e quebra angular nos estratos
+            var dobra = FbmPeriodico(u, v, 3, 2, 809u) * 0.22f;
+            var serrilhaHorizontal = Mathf.Abs((u * 6f + dobra * 2f) % 1f - 0.5f) * 0.16f;
+
+            // 2. Ondas serrilhadas primárias (5 degraus/prateleiras de rocha)
+            var t1 = v * 5f + dobra * 1.6f + serrilhaHorizontal;
+            var degrauPrimario = OndaSerrilhadaPeriodica(t1);
+
+            // 3. Estratificação serrilhada secundária mais fina (10 degraus)
+            var t2 = v * 10f - dobra * 0.8f + serrilhaHorizontal * 0.5f;
+            var degrauSecundario = OndaSerrilhadaPeriodica(t2);
+
+            // 4. Facetas angulares de quebra de bloco de pedra
+            var blocos = FbmPeriodico(u * 2f + v * 0.5f, v * 2f - u * 0.5f, 4, 2, 853u);
+
+            var relevo = degrauPrimario * 0.65f + degrauSecundario * 0.25f + blocos * 0.10f;
+            return Mathf.Clamp01(relevo);
+        }
+
+        /// <summary>
+        /// Normal map contínuo (tangent space) para rugosidade modelada 3D da rocha:
+        /// ressalta fisicamente as camadas e facetas sob a luz direcional.
+        /// </summary>
+        public static Texture2D CriarNormalMapRocha(int tamanho = ResolucaoPadrao)
+        {
+            var tex = CriarTexturaBase("Terreno_Rocha_Normal_512", tamanho);
+            var pixels = new Color32[tamanho * tamanho];
+
+            var escalaForca = 5.2f;
+
+            for (var y = 0; y < tamanho; y++)
+            {
+                var v = (float)y / tamanho;
+                var vMenos = (float)((y - 1 + tamanho) % tamanho) / tamanho;
+                var vMais = (float)((y + 1) % tamanho) / tamanho;
+
+                for (var x = 0; x < tamanho; x++)
+                {
+                    var u = (float)x / tamanho;
+                    var uMenos = (float)((x - 1 + tamanho) % tamanho) / tamanho;
+                    var uMais = (float)((x + 1) % tamanho) / tamanho;
+
+                    var hE = AlturaRochaSuperficie(uMenos, v);
+                    var hD = AlturaRochaSuperficie(uMais, v);
+                    var hB = AlturaRochaSuperficie(u, vMenos);
+                    var hC = AlturaRochaSuperficie(u, vMais);
+
+                    var du = (hD - hE) * escalaForca;
+                    var dv = (hC - hB) * escalaForca;
+
+                    var normal = new Vector3(-du, -dv, 1f).normalized;
+
+                    pixels[y * tamanho + x] = new Color32(
+                        (byte)
+                            Mathf.Clamp(Mathf.RoundToInt((normal.x * 0.5f + 0.5f) * 255f), 0, 255),
+                        (byte)
+                            Mathf.Clamp(Mathf.RoundToInt((normal.y * 0.5f + 0.5f) * 255f), 0, 255),
+                        (byte)
+                            Mathf.Clamp(Mathf.RoundToInt((normal.z * 0.5f + 0.5f) * 255f), 0, 255),
+                        255
+                    );
+                }
+            }
+
+            tex.SetPixels32(pixels);
+            tex.Apply(true, false);
+            return tex;
+        }
+
+        /// <summary>
+        /// Textura contínua de neve limpa e cristalina sem marcas axiais ou pontilhados em grelha.
         /// </summary>
         public static Texture2D CriarTexturaNeve(int tamanho = ResolucaoPadrao)
         {
             var tex = CriarTexturaBase("Terreno_Neve_512", tamanho);
             var pixels = new Color32[tamanho * tamanho];
 
-            var corBase = new Color(0.92f, 0.94f, 0.98f);
-            var corSombra = new Color(0.80f, 0.84f, 0.92f);
-            var corCristal = new Color(1.0f, 1.0f, 1.0f);
+            var neveSombra = new Color(0.85f, 0.88f, 0.94f);
+            var neveMedia = new Color(0.95f, 0.96f, 0.99f);
+            var neveLuz = new Color(1.0f, 1.0f, 1.0f);
 
             for (var y = 0; y < tamanho; y++)
             {
@@ -233,12 +329,14 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
                 {
                     var u = (float)x / tamanho;
 
-                    var macro = RuidoToroidal(u * 6f, v * 6f, 967u);
-                    var vento = Mathf.Sin((u * 12f + v * 4f) * Mathf.PI * 2f) * 0.5f + 0.5f;
-                    var cristal = Mathf.Pow(RuidoToroidal(u * 110f, v * 110f, 997u), 3.5f);
+                    // Manto de neve suave e uniforme
+                    var manto = FbmPeriodico(u, v, 4, 3, 967u);
+                    var vento =
+                        Mathf.Sin((u * 6f + v * 2f + manto * 2.5f) * Mathf.PI * 2f) * 0.5f + 0.5f;
+                    var microCristal = FbmPeriodico(u, v, 32, 2, 991u);
 
-                    var cor = Color.Lerp(corSombra, corBase, vento * 0.6f + macro * 0.4f);
-                    cor = Color.Lerp(cor, corCristal, cristal * 0.5f);
+                    var cor = Color.Lerp(neveSombra, neveMedia, vento * 0.65f + manto * 0.35f);
+                    cor = Color.Lerp(cor, neveLuz, Mathf.Pow(microCristal, 2.5f) * 0.35f);
 
                     pixels[y * tamanho + x] = cor;
                 }
@@ -250,9 +348,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
         }
 
         /// <summary>
-        /// Mapa de detalhe albedo x2 de altíssima definição (1024x1024) centrado em cinza linear (0.5),
-        /// perfeitamente compatível com o shader nativo Lit do Universal Render Pipeline (_DetailAlbedoMap).
-        /// Em 0.5 a cor do bioma é mantida intacta; acima de 0.5 realça lâminas e arestas; abaixo aprofunda fendas e sombras.
+        /// Mapa de micro-detalhe albedo centrado em cinza linear (0.5), suave e orgânico.
         /// </summary>
         public static Texture2D CriarTexturaDetalhes(int tamanho = ResolucaoDetalhe)
         {
@@ -266,13 +362,9 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
                 {
                     var u = (float)x / tamanho;
 
-                    // Micro-relevo de alta frequência: lâminas, seixos, grânulos e fraturas
-                    var f1 = RuidoToroidal(u * 48f, v * 48f, 1013u);
-                    var f2 = RuidoToroidal(u * 128f, v * 128f, 1049u);
-                    var f3 = RuidoToroidal(u * 256f, v * 256f, 1091u);
-
-                    // Contraste centrado em 0.5 (cinza linear neutro do URP)
-                    var valor = 0.5f + (f1 * 0.5f + f2 * 0.35f + f3 * 0.15f - 0.5f) * 0.72f;
+                    var n1 = FbmPeriodico(u, v, 16, 4, 1013u);
+                    var n2 = FbmPeriodico(u, v, 48, 3, 1049u);
+                    var valor = 0.5f + (n1 * 0.6f + n2 * 0.4f - 0.5f) * 0.32f;
                     valor = Mathf.Clamp01(valor);
 
                     pixels[y * tamanho + x] = new Color(valor, valor, valor, 1f);
@@ -295,6 +387,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
             SalvarPNG(ObterTerra(), Path.Combine(pastaDestino, "Terra_512.png"));
             SalvarPNG(ObterAreia(), Path.Combine(pastaDestino, "Areia_512.png"));
             SalvarPNG(ObterRocha(), Path.Combine(pastaDestino, "Rocha_512.png"));
+            SalvarPNG(ObterNormalRocha(), Path.Combine(pastaDestino, "Rocha_Normal_512.png"));
             SalvarPNG(ObterNeve(), Path.Combine(pastaDestino, "Neve_512.png"));
             SalvarPNG(ObterDetalhes(), Path.Combine(pastaDestino, "Detalhe_Terreno.png"));
         }
@@ -326,31 +419,136 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
         }
 
         /// <summary>
-        /// Amostragem periódica toroidal de ruído para garantir que a textura se repita
-        /// perfeitamente em todas as direções sem emendas visíveis.
+        /// Ruído 2D periódico contínuo C2 (interpolação quíntica), 100% sem emendas (seamless)
+        /// no espaço toroidal [0, 1) x [0, 1). Sem dependência de senos 1D ou artefatos axiais.
         /// </summary>
-        private static float RuidoToroidal(float u, float v, uint semente)
+        private static float Ruido2DPeriodico(float x, float y, int periodo, uint semente)
         {
-            var uMod = u - Mathf.Floor(u);
-            var vMod = v - Mathf.Floor(v);
+            var p = periodo > 1 ? periodo : 1;
+            var ix = Mathf.FloorToInt(x);
+            var iy = Mathf.FloorToInt(y);
 
-            // Mapeia para um toro 4D via senos e cossenos
-            var nx = Mathf.Cos(uMod * Mathf.PI * 2f);
-            var ny = Mathf.Sin(uMod * Mathf.PI * 2f);
-            var nz = Mathf.Cos(vMod * Mathf.PI * 2f);
-            var nw = Mathf.Sin(vMod * Mathf.PI * 2f);
+            var x0 = ix % p;
+            if (x0 < 0)
+                x0 += p;
+            var y0 = iy % p;
+            if (y0 < 0)
+                y0 += p;
 
-            var r1 = Sorteio((int)((nx + 1f) * 128f), (int)((ny + 1f) * 128f), semente);
-            var r2 = Sorteio((int)((nz + 1f) * 128f), (int)((nw + 1f) * 128f), semente + 53u);
+            var x1 = (x0 + 1) % p;
+            var y1 = (y0 + 1) % p;
 
-            return (r1 + r2) * 0.5f;
+            var fx = x - Mathf.Floor(x);
+            var fy = y - Mathf.Floor(y);
+
+            // Curva quíntica C2 suave: 6t^5 - 15t^4 + 10t^3
+            var sx = fx * fx * fx * (fx * (fx * 6f - 15f) + 10f);
+            var sy = fy * fy * fy * (fy * (fy * 6f - 15f) + 10f);
+
+            var h00 = Hash2D(x0, y0, semente);
+            var h10 = Hash2D(x1, y0, semente);
+            var h01 = Hash2D(x0, y1, semente);
+            var h11 = Hash2D(x1, y1, semente);
+
+            var v0 = Mathf.Lerp(h00, h10, sx);
+            var v1 = Mathf.Lerp(h01, h11, sx);
+            return Mathf.Lerp(v0, v1, sy);
         }
 
-        private static float Sorteio(int x, int z, uint semente)
+        private static float FbmPeriodico(
+            float u,
+            float v,
+            int periodoBase,
+            int oitavas,
+            uint semente
+        )
+        {
+            var total = 0f;
+            var amplitude = 1f;
+            var maximo = 0f;
+            var freq = 1f;
+            var periodo = periodoBase;
+
+            for (var o = 0; o < oitavas; o++)
+            {
+                total +=
+                    Ruido2DPeriodico(
+                        u * freq * periodoBase,
+                        v * freq * periodoBase,
+                        periodo,
+                        semente + (uint)(o * 101)
+                    ) * amplitude;
+                maximo += amplitude;
+                amplitude *= 0.5f;
+                freq *= 2f;
+                periodo *= 2;
+            }
+
+            return total / maximo;
+        }
+
+        /// <summary>
+        /// Ruído celular periódico (Voronoi/Worley) no espaço toroidal [0, 1) x [0, 1).
+        /// Devolve a distância do ponto ao centro celular mais próximo (F1) e ao segundo mais próximo (F2).
+        /// F1 modela pedras e seixos; F2 - F1 modela fendas e fraturas minerais.
+        /// </summary>
+        private static void VoronoiPeriodico(
+            float u,
+            float v,
+            int celulas,
+            uint semente,
+            out float f1,
+            out float f2
+        )
+        {
+            f1 = 10f;
+            f2 = 10f;
+
+            var px = u * celulas;
+            var py = v * celulas;
+
+            var cx = Mathf.FloorToInt(px);
+            var cy = Mathf.FloorToInt(py);
+
+            for (var dy = -1; dy <= 1; dy++)
+            {
+                for (var dx = -1; dx <= 1; dx++)
+                {
+                    var nx = (cx + dx) % celulas;
+                    if (nx < 0)
+                        nx += celulas;
+                    var ny = (cy + dy) % celulas;
+                    if (ny < 0)
+                        ny += celulas;
+
+                    var rx = Hash2D(nx, ny, semente);
+                    var ry = Hash2D(nx, ny, semente + 7919u);
+
+                    var pontoX = (cx + dx) + rx * 0.75f + 0.125f;
+                    var pontoY = (cy + dy) + ry * 0.75f + 0.125f;
+
+                    var distX = pontoX - px;
+                    var distY = pontoY - py;
+                    var d = Mathf.Sqrt(distX * distX + distY * distY);
+
+                    if (d < f1)
+                    {
+                        f2 = f1;
+                        f1 = d;
+                    }
+                    else if (d < f2)
+                    {
+                        f2 = d;
+                    }
+                }
+            }
+        }
+
+        private static float Hash2D(int x, int y, uint semente)
         {
             unchecked
             {
-                var h = (uint)x * 374761393u + (uint)z * 668265263u + semente * 2246822519u;
+                var h = (uint)x * 374761393u + (uint)y * 668265263u + semente * 2246822519u;
                 h = (h ^ (h >> 13)) * 1274126177u;
                 h ^= h >> 16;
                 return (h & 0xFFFFFFu) / 16777216f;

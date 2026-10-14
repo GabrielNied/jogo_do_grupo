@@ -42,6 +42,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
         /// </summary>
         public static void Construir(Transform terreno, Material modelo)
         {
+            GeradorDeTexturasDoTerreno.LimparCache();
             var amostras = AmostrasDoTerreno.Gerar();
 
             var chao = CriarMaterialDoChao(modelo);
@@ -194,20 +195,35 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
                         continue;
                     }
 
-                    var primeiro = vertices.Count;
-                    var passo = MapaDoMundo.PassoDaGrade;
-                    vertices.Add(new Vector3(x, nivel, z));
-                    vertices.Add(new Vector3(x, nivel, z + passo));
-                    vertices.Add(new Vector3(x + passo, nivel, z));
-                    vertices.Add(new Vector3(x + passo, nivel, z + passo));
+                    var subPasso = MapaDoMundo.PassoDaGrade / 4f;
+                    var subMeio = subPasso / 2f;
+                    for (var sj = 0; sj < 4; sj++)
+                    {
+                        for (var si = 0; si < 4; si++)
+                        {
+                            var subX = x + si * subPasso;
+                            var subZ = z + sj * subPasso;
+                            var subChao = MapaDoMundo.AlturaEm(subX + subMeio, subZ + subMeio);
+                            if (subChao >= nivel)
+                            {
+                                continue;
+                            }
 
-                    triangulos.Add(primeiro);
-                    triangulos.Add(primeiro + 1);
-                    triangulos.Add(primeiro + 2);
+                            var primeiro = vertices.Count;
+                            vertices.Add(new Vector3(subX, nivel, subZ));
+                            vertices.Add(new Vector3(subX, nivel, subZ + subPasso));
+                            vertices.Add(new Vector3(subX + subPasso, nivel, subZ));
+                            vertices.Add(new Vector3(subX + subPasso, nivel, subZ + subPasso));
 
-                    triangulos.Add(primeiro + 2);
-                    triangulos.Add(primeiro + 1);
-                    triangulos.Add(primeiro + 3);
+                            triangulos.Add(primeiro);
+                            triangulos.Add(primeiro + 1);
+                            triangulos.Add(primeiro + 2);
+
+                            triangulos.Add(primeiro + 2);
+                            triangulos.Add(primeiro + 1);
+                            triangulos.Add(primeiro + 3);
+                        }
+                    }
                 }
             }
 
@@ -439,6 +455,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
                 material.SetTexture("_DirtTex", GeradorDeTexturasDoTerreno.ObterTerra());
                 material.SetTexture("_SandTex", GeradorDeTexturasDoTerreno.ObterAreia());
                 material.SetTexture("_RockTex", GeradorDeTexturasDoTerreno.ObterRocha());
+                material.SetTexture("_RockBumpMap", GeradorDeTexturasDoTerreno.ObterNormalRocha());
                 material.SetTexture("_SnowTex", GeradorDeTexturasDoTerreno.ObterNeve());
                 material.SetTexture("_DetailAlbedoMap", GeradorDeTexturasDoTerreno.ObterDetalhes());
                 material.SetFloat("_DetailTiling", 0.2f);
