@@ -8,7 +8,11 @@ using LiteNetLib;
 
 namespace JogoDoGrupo.Server.Core.TempoReal;
 
-internal sealed class AgendamentoTempoReal(TimeSpan intervalo, Action<TimeSpan> acao, long proximoEmMs)
+internal sealed class AgendamentoTempoReal(
+    TimeSpan intervalo,
+    Action<TimeSpan> acao,
+    long proximoEmMs
+)
 {
     public TimeSpan Intervalo { get; } = intervalo;
     public Action<TimeSpan> Acao { get; } = acao;
@@ -356,7 +360,11 @@ public sealed class ServidorTempoReal : BackgroundService
             }
             catch (Exception erro)
             {
-                _log.LogError(erro, "Erro no tick do tempo real agendado em {Intervalo}.", agendamento.Intervalo);
+                _log.LogError(
+                    erro,
+                    "Erro no tick do tempo real agendado em {Intervalo}.",
+                    agendamento.Intervalo
+                );
             }
         }
     }
