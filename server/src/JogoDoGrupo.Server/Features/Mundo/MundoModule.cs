@@ -210,7 +210,7 @@ public sealed class MundoModule : IFeatureModule, ITransicoesDeAreaDoMundo
 
     private void Replicar(string area, SessaoTempoReal dono, AvatarNaCidade<SessaoTempoReal> avatar)
     {
-        var replica = Posicao(avatar, 0);
+        var replica = Posicao(avatar, avatar.SequenciaReplica);
         var outros = _areas
             .ObterOuCriar(area)
             .Presentes()
@@ -427,5 +427,6 @@ public sealed class MundoModule : IFeatureModule, ITransicoesDeAreaDoMundo
             Z = a.Posicao.Z,
             RotacaoY = a.Posicao.RotacaoY,
             Sequencia = sequencia,
+            TempoServidorMs = a.UltimoMs > 0 ? a.UltimoMs : Environment.TickCount64,
         };
 }

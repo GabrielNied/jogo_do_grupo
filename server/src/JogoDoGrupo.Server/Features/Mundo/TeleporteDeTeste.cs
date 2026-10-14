@@ -58,6 +58,7 @@ internal sealed class TeleporteDeTeste(
             }
         );
 
+        var atualizado = estadoArea.Obter(personagemId) ?? avatar;
         var replica = new PosicaoJogador
         {
             PersonagemId = personagemId,
@@ -65,6 +66,9 @@ internal sealed class TeleporteDeTeste(
             Y = y,
             Z = z,
             RotacaoY = avatar.Posicao.RotacaoY,
+            Sequencia = atualizado.SequenciaReplica,
+            TempoServidorMs =
+                atualizado.UltimoMs > 0 ? atualizado.UltimoMs : Environment.TickCount64,
         };
         foreach (var outro in estadoArea.Presentes())
         {

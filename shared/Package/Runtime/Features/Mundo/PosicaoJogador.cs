@@ -16,9 +16,15 @@ namespace JogoDoGrupo.Shared.Features.Mundo
         public float RotacaoY = 0f;
 
         /// <summary>
-        /// Sequência espelhada de <see cref="IntencaoDeMovimento.Sequencia"/>; zero em réplicas de
-        /// outros jogadores.
+        /// Sequência crescente por jogador emissor no servidor (ou espelho de
+        /// <see cref="IntencaoDeMovimento.Sequencia"/> em predição local).
         /// </summary>
         public int Sequencia = 0;
+
+        /// <summary>
+        /// Carimbo de tempo do servidor em milissegundos (<c>Environment.TickCount64</c>).
+        /// Usado pelo client para alinhar o buffer de interpolação e descartar pacotes velhos.
+        /// </summary>
+        public long TempoServidorMs = 0;
     }
 }

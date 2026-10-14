@@ -433,5 +433,86 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
             var pedido = conexao.Enviados.Find(e => e.Id == MundoMessageIds.PedirVelocidadeDeTeste);
             Assert.AreEqual(10f, ((PedirVelocidadeDeTeste)pedido.Mensagem).Correr);
         }
+
+        [Test]
+        public void Interpolador_InterpolaNormalmenteEntreDoisPontos()
+        {
+            var interpolador = new InterpoladorDeMovimento();
+            interpolador.Adicionar(new SnapshotDeMovimento(0.0, 0f, 0f, 0f, 0f, 1));
+            interpolador.Adicionar(new SnapshotDeMovimento(0.1, 1f, 0f, 0f, 90f, 2));
+
+            var pose = interpolador.Amostrar(0.05);
+            Assert.AreEqual(0.5f, pose.X, 0.001f);
+            Assert.AreEqual(45f, pose.RotacaoY, 0.5f);
+            Assert.IsFalse(pose.Extrapolando);
+            Assert.AreEqual(10f, pose.Velocidade, 0.1f);
+        }
+
+        [Test]
+        public void Interpolador_DescartaPacotesForaDeOrdem()
+        {
+            var interpolador = new InterpoladorDeMovimento();
+            Assert.IsTrue(interpolador.Adicionar(new SnapshotDeMovimento(0.1, 1f, 0f, 0f, 0f, 5)));
+            // Sequência menor: descarta
+            Assert.IsFalse(
+                interpolador.Adicionar(new SnapshotDeMovimento(0.05, 0.5f, 0f, 0f, 0f, 4))
+            );
+            // Sequência igual (duplicado): descarta
+            Assert.IsFalse(
+                interpolador.Adicionar(new SnapshotDeMovimento(0.15, 1.5f, 0f, 0f, 0f, 5))
+            );
+            // Sequência maior e tempo maior: aceita
+            Assert.IsTrue(interpolador.Adicionar(new SnapshotDeMovimento(0.2, 2f, 0f, 0f, 0f, 6)));
+            Assert.AreEqual(6, interpolador.UltimaSequencia);
+        }
+
+        [Test]
+        public void Interpolador_ExtrapolaCurtoEmCasoDeAtraso()
+        {
+            var interpolador = new InterpoladorDeMovimento(
+                extrapolacaoMaximaSegundos: 0.15f,
+                saltoDeTeletransporteMetros: 8f
+            );
+            interpolador.Adicionar(new SnapshotDeMovimento(0.0, 0f, 0f, 0f, 0f, 1));
+            interpolador.Adicionar(new SnapshotDeMovimento(0.1, 1f, 0f, 0f, 0f, 2)); // 10 m/s
+
+            // 50 ms após o último pacote: dentro do limite de extrapolação (150 ms)
+            var poseMeio = interpolador.Amostrar(0.15);
+            Assert.IsTrue(poseMeio.Extrapolando);
+            Assert.AreEqual(1.5f, poseMeio.X, 0.01f);
+            Assert.AreEqual(10f, poseMeio.Velocidade, 0.1f);
+
+            // 300 ms após o último pacote: ultrapassou o limite de extrapolação (150 ms)
+            var poseFim = interpolador.Amostrar(0.4);
+            Assert.IsTrue(poseFim.Extrapolando);
+            Assert.AreEqual(2.5f, poseFim.X, 0.01f); // parou no limite 1.0 + 10 * 0.15 = 2.5
+            Assert.AreEqual(0f, poseFim.Velocidade, 0.01f);
+        }
+
+        [Test]
+        public void Interpolador_DistanciaGrandeTeleporta()
+        {
+            var interpolador = new InterpoladorDeMovimento(saltoDeTeletransporteMetros: 8f);
+            interpolador.Adicionar(new SnapshotDeMovimento(0.0, 0f, 0f, 0f, 0f, 1));
+            interpolador.Adicionar(new SnapshotDeMovimento(0.1, 20f, 0f, 0f, 0f, 2)); // 20m > 8m
+
+            // Antes do instante do segundo pacote, fica no primeiro sem deslizar
+            var poseAntes = interpolador.Amostrar(0.05);
+            Assert.AreEqual(0f, poseAntes.X);
+
+            // No instante do segundo pacote, salta direto
+            var poseDepois = interpolador.Amostrar(0.1);
+            Assert.AreEqual(20f, poseDepois.X);
+        }
+
+        [Test]
+        public void Avatar_AdicionaAmostraComSequenciaERejeitaAntiga()
+        {
+            var avatar = new AvatarRemoto(2, Vector3.zero, 0f);
+            Assert.IsTrue(avatar.AdicionarAmostra(new Vector3(1f, 0f, 0f), 0f, 10, 100));
+            Assert.IsFalse(avatar.AdicionarAmostra(new Vector3(0.5f, 0f, 0f), 0f, 9, 90));
+            Assert.IsTrue(avatar.AdicionarAmostra(new Vector3(2f, 0f, 0f), 0f, 11, 200));
+            Assert.AreEqual(new Vector3(2f, 0f, 0f), avatar.Alvo);
+        }
     }
 }

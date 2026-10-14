@@ -162,4 +162,31 @@ public class CidadeDoMundoTestes
         await Task.WhenAll(conexoes.Select((c, i) => Task.Run(() => cidade.Sair(i + 1, c))));
         Assert.Equal(0, cidade.Quantidade);
     }
+
+    [Fact]
+    public void Sequencia_de_replica_cresce_a_cada_movimento_e_carimba_tempo()
+    {
+        var cidade = Nova();
+        var a = new Conexao();
+        cidade.Entrar(1, a);
+
+        _agora = 1000;
+        var (_, av1) = cidade.Mover(1, a, new(1f, 0, -24f, 0));
+        Assert.NotNull(av1);
+        Assert.Equal(1, av1.SequenciaReplica);
+        Assert.Equal(1000, av1.UltimoMs);
+
+        _agora = 1100;
+        var (_, av2) = cidade.Mover(1, a, new(2f, 0, -24f, 0));
+        Assert.NotNull(av2);
+        Assert.Equal(2, av2.SequenciaReplica);
+        Assert.Equal(1100, av2.UltimoMs);
+
+        _agora = 1200;
+        cidade.ForcarPosicao(1, new(10f, 0, -24f, 0));
+        var av3 = cidade.Obter(1);
+        Assert.NotNull(av3);
+        Assert.Equal(3, av3.SequenciaReplica);
+        Assert.Equal(1200, av3.UltimoMs);
+    }
 }
