@@ -14,11 +14,10 @@ namespace JogoDoGrupo.Client.Features.Mundo.Presenca
     public sealed class PresencaNoMundo : MonoBehaviour
     {
         /// <summary>
-        /// ~~Acima desta distância (m) a posição do servidor vence a local.~~ Sem uso desde o ADR
-        /// 0024: o jogador local é dono da própria posição, e só a posição forçada (sempre
-        /// aplicada) e o nascimento mudam ele de lugar.
+        /// Acima desta distância (m) a posição forçada teleporta o jogador na hora;
+        /// abaixo ou igual a isto, a correção é suavizada.
         /// </summary>
-        public const float DistanciaDeCorrecao = 3f;
+        public const float DistanciaDeCorrecao = ConfigInterpolacaoMundo.DistanciaDeCorrecao;
 
         private readonly System.Collections.Generic.Dictionary<long, GameObject> _visuais =
             new System.Collections.Generic.Dictionary<long, GameObject>();
@@ -62,12 +61,23 @@ namespace JogoDoGrupo.Client.Features.Mundo.Presenca
             LigarControle(jogador);
             if (_correcaoPendente)
             {
-                _correcaoPendente = false;
-                Corrigir(jogador);
-                if (_posicaoInicialPendente)
+                if (
+                    _posicaoInicialPendente
+                    || (jogador.transform.position - _posicaoCorrigida).sqrMagnitude
+                        > DistanciaDeCorrecao * DistanciaDeCorrecao
+                )
                 {
-                    _posicaoInicialPendente = false;
-                    EntradaNoJogo.SinalizarPronto();
+                    _correcaoPendente = false;
+                    Corrigir(jogador);
+                    if (_posicaoInicialPendente)
+                    {
+                        _posicaoInicialPendente = false;
+                        EntradaNoJogo.SinalizarPronto();
+                    }
+                }
+                else
+                {
+                    CorrigirSuave(jogador, Time.deltaTime);
                 }
             }
 
@@ -178,6 +188,37 @@ namespace JogoDoGrupo.Client.Features.Mundo.Presenca
             if (corpo != null)
             {
                 corpo.enabled = true;
+            }
+        }
+
+        private void CorrigirSuave(GameObject jogador, float delta)
+        {
+            var novaPos = Vector3.MoveTowards(
+                jogador.transform.position,
+                _posicaoCorrigida,
+                ConfigInterpolacaoMundo.VelocidadeSuavizacaoCorrecao * delta
+            );
+            var novaRot = Mathf.MoveTowardsAngle(
+                jogador.transform.eulerAngles.y,
+                _rotacaoCorrigida,
+                360f * delta
+            );
+
+            var corpo = jogador.GetComponent<CharacterController>();
+            if (corpo != null)
+            {
+                corpo.enabled = false;
+            }
+
+            jogador.transform.SetPositionAndRotation(novaPos, Quaternion.Euler(0f, novaRot, 0f));
+            if (corpo != null)
+            {
+                corpo.enabled = true;
+            }
+
+            if ((jogador.transform.position - _posicaoCorrigida).sqrMagnitude < 0.001f)
+            {
+                _correcaoPendente = false;
             }
         }
 

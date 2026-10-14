@@ -92,6 +92,7 @@ public class ContratoMundoTestes
         Assert.Equal(0f, msg.Z);
         Assert.Equal(0f, msg.RotacaoY);
         Assert.Equal(0, msg.Sequencia);
+        Assert.Equal(0L, msg.TempoServidorMs);
     }
 
     [Fact]

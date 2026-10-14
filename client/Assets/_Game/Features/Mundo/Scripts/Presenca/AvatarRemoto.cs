@@ -1,18 +1,17 @@
+using System;
 using UnityEngine;
 
 namespace JogoDoGrupo.Client.Features.Mundo.Presenca
 {
     /// <summary>
     /// Estado de um outro jogador na cidade: a posição mais recente do servidor (alvo) e a
-    /// posição mostrada, que a segue de forma suave.
+    /// posição mostrada, interpolada suavemente por buffer de snapshots.
     /// </summary>
     public sealed class AvatarRemoto
     {
-        /// <summary>Quanto maior, mais rápido a posição mostrada alcança o alvo (por segundo).</summary>
-        public const float Suavizacao = 15f;
+        public const float DistanciaDeSalto = ConfigInterpolacaoMundo.DistanciaDeSalto;
 
-        /// <summary>Acima desta distância (m) o avatar salta para o alvo em vez de deslizar.</summary>
-        public const float DistanciaDeSalto = 8f;
+        private readonly InterpoladorDeMovimento _interpolador = new InterpoladorDeMovimento();
 
         public AvatarRemoto(long personagemId, Vector3 posicao, float rotacaoY)
         {
@@ -21,6 +20,13 @@ namespace JogoDoGrupo.Client.Features.Mundo.Presenca
             Alvo = posicao;
             RotacaoY = rotacaoY;
             AlvoRotacaoY = rotacaoY;
+            _interpolador.Teleportar(
+                posicao.x,
+                posicao.y,
+                posicao.z,
+                rotacaoY,
+                -ConfigInterpolacaoMundo.AtrasoDeRenderSegundos
+            );
         }
 
         public long PersonagemId { get; }
@@ -28,35 +34,61 @@ namespace JogoDoGrupo.Client.Features.Mundo.Presenca
         public float RotacaoY { get; private set; }
         public Vector3 Alvo { get; private set; }
         public float AlvoRotacaoY { get; private set; }
+        public float Velocidade { get; private set; }
+        public double Relogio { get; private set; }
 
-        public void DefinirAlvo(Vector3 posicao, float rotacaoY)
+        public bool DefinirAlvo(Vector3 posicao, float rotacaoY) =>
+            AdicionarAmostra(posicao, rotacaoY, 0, 0);
+
+        public bool AdicionarAmostra(
+            Vector3 posicao,
+            float rotacaoY,
+            int sequencia,
+            long tempoServidorMs
+        )
         {
             Alvo = posicao;
             AlvoRotacaoY = rotacaoY;
+            return _interpolador.Adicionar(
+                new SnapshotDeMovimento(
+                    Relogio,
+                    posicao.x,
+                    posicao.y,
+                    posicao.z,
+                    rotacaoY,
+                    sequencia,
+                    tempoServidorMs
+                )
+            );
         }
 
-        /// <summary>Posiciona direto, sem interpolar (entrada na cidade).</summary>
+        /// <summary>Posiciona direto, sem interpolar (entrada na cidade ou teleporte).</summary>
         public void Teleportar(Vector3 posicao, float rotacaoY)
         {
             Posicao = posicao;
             Alvo = posicao;
             RotacaoY = rotacaoY;
             AlvoRotacaoY = rotacaoY;
+            Velocidade = 0f;
+            _interpolador.Teleportar(
+                posicao.x,
+                posicao.y,
+                posicao.z,
+                rotacaoY,
+                Relogio - ConfigInterpolacaoMundo.AtrasoDeRenderSegundos
+            );
         }
 
-        /// <summary>Avança a posição mostrada em direção ao alvo.</summary>
+        /// <summary>Avança a posição mostrada em direção ao alvo pelo buffer de snapshots.</summary>
         public void Atualizar(float delta)
         {
-            if ((Alvo - Posicao).sqrMagnitude > DistanciaDeSalto * DistanciaDeSalto)
-            {
-                Posicao = Alvo;
-                RotacaoY = AlvoRotacaoY;
-                return;
-            }
-
-            var t = 1f - Mathf.Exp(-Suavizacao * Mathf.Max(0f, delta));
-            Posicao = Vector3.Lerp(Posicao, Alvo, t);
-            RotacaoY = Mathf.LerpAngle(RotacaoY, AlvoRotacaoY, t);
+            Relogio += Math.Max(0f, delta);
+            var pose = _interpolador.Amostrar(
+                Relogio - ConfigInterpolacaoMundo.AtrasoDeRenderSegundos
+            );
+            Posicao = new Vector3(pose.X, pose.Y, pose.Z);
+            RotacaoY = pose.RotacaoY;
+            Velocidade = pose.Velocidade;
         }
     }
 }

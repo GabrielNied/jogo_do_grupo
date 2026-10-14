@@ -99,7 +99,12 @@ namespace JogoDoGrupo.Client.Features.Mundo.Presenca
             var alvo = new Vector3(posicao.X, posicao.Y, posicao.Z);
             if (_avatares.TryGetValue(posicao.PersonagemId, out var avatar))
             {
-                avatar.DefinirAlvo(alvo, posicao.RotacaoY);
+                avatar.AdicionarAmostra(
+                    alvo,
+                    posicao.RotacaoY,
+                    posicao.Sequencia,
+                    posicao.TempoServidorMs
+                );
                 return;
             }
 
