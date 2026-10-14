@@ -70,10 +70,21 @@ Decidido pelo Gabriel em 2026-10-11 (issue #135). Substitui o terreno plano de 1
   - **Dentro dos muros (até 40 m do centro):** Chão rigorosamente plano em **Y = 0**.
   - **Transição 1 (40 a 60 m - faixa de 20 m fora dos muros):** Acomodação imediata ao sair da cidade com subida gradual da estrada norte.
   - **Transição 2 (60 a 120 m):** Conexão intermediária suave ligando as imediações da cidade ao relevo pleno dos biomas.
+  - **Relevo imediato:** O relevo dinâmico (ondulações campestres vivas, platôs escalonados em degraus e colinas) começa logo a partir de 100 m do centro, eliminando o plano artificial central.
+- **Rede de rios de água doce e cascatas:**
+  - Rios navegáveis escavados organicamente no terreno, inspirados no mapa de conceito artístico: Rio Glacial do Leste (norte/montanhas em direção à costa) e Rio das Cascatas do Oeste (platôs da floresta contornando a caverna).
+  - Leitos e margens com calha suave, leito com seixos e cascalho (`MargemDeRio`), e geração automática de malha de água doce em Y = -0,5 m conectada ao sistema de líquidos.
 - **Curvas e cumes das montanhas:** Montanhas imponentes e orgânicas com curvas multifractais suaves e arredondadas (sem cristas pontudas ou picos em V artificiais).
-- **Classificação de superfícies e texturas (`ClassificacaoTerreno`, `CoresDosBiomas`):** Diferenciação entre chão padrão do bioma, **praias** (areia dourada suave em cotas de água calma com declive suave), **margens de rios** (seixos e cascalho em leitos com bordas cortadas), **paredões de rocha** (declive >= 42°) e o **caminho da estrada norte**.
+- **Texturas em alta resolução e Shader dedicado (`GeradorDeTexturasDoTerreno`, `TerrenoMundo.shader`):**
+  - Texturas procedurais contínuas (seamless) de 512×512 geradas deterministicamente para cada elemento (grama com folhagens e tufos, terra e pedregulhos, areia fina dourada, rocha com estratificação e neve cristalina).
+  - Amostragem em coordenadas de mundo (*world-space tiling* de 4 m e 25 m em dual-scale), eliminando o efeito xadrez/grelha repetitiva em distâncias médias e longas.
+  - Projeção triplanar em encostas (transição a partir de 15° a 25°), cobrindo a encosta inteira até o topo plano e eliminando qualquer estiramento de textura vertical em paredões de pedra e penhascos.
+  - Acentuação geométrica da quina no topo das encostas (*crest sharpening* via derivadas de tela), mantendo o platô reto até a borda sem arredondamento inflado de balão.
+  - Rugosidade modelada 3D nas partes de rocha via Normal Map procedural contínuo com perfil de ondas serrilhadas periódicas (degraus e terraços geológicos) e textura albedo mineral lisa.
+  - Mapa de micro-detalhe albedo de 1024×1024 integrado com URP Lit (`_DetailAlbedoMap`), proporcionando fidelidade visual e nitidez tanto colado na câmera quanto ao olhar para o horizonte.
+- **Classificação de superfícies e texturas (`ClassificacaoTerreno`, `CoresDosBiomas`):** Diferenciação entre chão padrão do bioma, **praias** (areia dourada suave contornando 100% da linha d'água do pântano e lagoas), **margens de rios** (seixos e cascalho em leitos com bordas cortadas), **encostas e paredões de rocha** e o **caminho da estrada norte**.
 - **Modificadores de terreno (`ModificadorDeTerreno`, `ModificadoresDoMapa`):** Sistema modular e determinístico no shared que permite assentar monumentos e estruturas no relevo, além de suportar terraplanagens e estradas de jogadores em tempo de execução com transições suaves (Hermite smoothstep).
-- **Altura do chão:** de **-2 a 220 m** em qualquer ponto do mundo. A água do pântano fica em **Y = -0,5** (poças de até 40 cm) e a lava em **Y = -1** (rios de até 60 cm). As duas são só visuais por enquanto: não têm colisor e **não causam dano nem deixam mais lento** (em aberto, acima).
+- **Altura do chão:** de **-2 a 220 m** em qualquer ponto do mundo. A água do pântano e rios fica em **Y = -0,5** (malha refinada em sub-quadrados de 2,5 m) e a lava em **Y = -1** (rios de até 60 cm). As duas são visuais por enquanto: não têm colisor e **não causam dano nem deixam mais lento** (em aberto, acima).
 - **Encostas:** o personagem sobe até 45 graus (regra do Core). Campo, mata e colinas são andáveis por inteiro. Nas montanhas, até um décimo do chão é íngreme demais: são os paredões, e o caminho é pelos vales.
 - **Fonte única do relevo:** `MapaDoMundo`, no shared (`BiomaEm`, `PesosEm`, `AlturaEm`). Usa sementes fixas: o mundo é sempre o mesmo. A altura oficial é a de uma grade de 10 m, em triângulos, igual à malha que o client desenha.
 - **Montagem no client:** o `ConstrutorDoTerreno` cria o chão em 225 blocos de 200 m (malha com colisor), pinta uma textura com a cor de cada ponto, e cria as malhas da água e da lava. Nada disso é cena ou asset: nasce ao entrar no mundo. O chão não existe sob a cidade (lá vale o chão dela).
@@ -176,6 +187,7 @@ Campos: `PersonagemId` (long), `X`, `Y`, `Z`, `RotacaoY` (float). Usado em `Esta
 - **Excesso pequeno** (até 6 m além do orçamento, o tamanho de uma esquiva recusada) é aceito e conta como suspeita; o contador esvazia 0,5 por segundo e, passando de 5, vira caso grave. O total de suspeitas fica guardado para a ferramenta de GM.
 - ~~**Caso grave** (posição fora do mundo, longe do chão, não finita, excesso acima de 6 m ou suspeita demais): a posição do servidor fica, e o dono recebe `PosicaoForcada`. O client aplica e confirma (`ConfirmarPosicaoForcada`); até lá, o movimento dele é ignorado. Teleporte, renascer e empurrão de boss usam o mesmo caminho (`CidadeDoMundo.ForcarPosicao`).~~ Substituído em 2026-10-11: o jogador se move livremente e só informa a posição. O servidor grava e repassa aos outros; andar rápido, salto ou sair do limite **não** manda `PosicaoForcada`. Número não finito é ignorado. `ForcarPosicao` continua só para teleporte explícito (renascer, empurrão), que ainda não é o movimento normal. O comando de teste `tp` ([Desenvolvimento](desenvolvimento.md)) usa esse caminho e avisa os outros com `PosicaoJogador`.
 - **No client:** o nascimento só é aplicado na primeira entrada; na reconexão o jogador continua onde está.
+- Na primeira entrada, a presença sinaliza ao Core depois de aplicar a posição do servidor; a tela de carregamento e o bloqueio de input seguem as regras de [Interface](interface.md#definido).
 
 ### Dia e noite (#163, contrato da #380)
 
@@ -242,6 +254,7 @@ Os eventos saem depois das mensagens de rede da mesma mudança (`EstadoDaCidade`
 ### Mapa-múndi
 
 - Tecla **M** abre/fecha uma tela cheia; Esc também fecha. O jogo continua rodando por baixo.
+- A tela inteira cobre a HUD do personagem. Título, fechar, norte, legenda e coordenadas ficam sobre o próprio mapa; em telas estreitas, legenda e coordenadas se empilham. A textura de 256 × 256 amostras usa o relevo e os biomas do terreno, é gerada aos poucos na primeira abertura e reaproveitada depois. Ruína, acampamento, passagem e marco aparecem como símbolos nas posições de suas estruturas; o nome do lugar surge ao passar o mouse ou focar o símbolo, sem cobrir os lugares vizinhos.
 - ~~Na fatia mostra **duas áreas**: a **cidade** (com desenho do hub e o portão norte) e a **dungeon** (esquema: entrada, três salões e salão do boss). Cada área com o **nome** escrito. A área onde o jogador está aparece destacada; as outras ficam como ícone.~~ Substituído em 2026-10-11: o mapa pinta os biomas do mundo de 3 km. A cidade murada ganha contorno quando o jogador está dentro dela. O esquema da dungeon continua para a issue #66.
 - Marcadores: o próprio jogador (seta) e os aliados da mesma área (mesma fonte do minimapa: presença); **marcadores de missão** só quando [missões](missoes.md) definir posições (fora da fatia por enquanto).
 - **Visibilidade:** o mapa só mostra posições que o client já tem. Aliados em **outra** área não entram no mesmo mapa. ~~O ícone da área com a contagem de aliados, se o servidor já informar a instância do grupo,~~ continua em aberto.

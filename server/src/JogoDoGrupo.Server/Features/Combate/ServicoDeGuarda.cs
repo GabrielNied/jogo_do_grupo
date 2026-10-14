@@ -130,8 +130,7 @@ public sealed class ServicoDeGuarda
                     .DefinirGuardaAsync(personagemId, segurando, CancellationToken.None);
 
                 // O client prevê a regeneração da stamina; saber que ela parou (ou recomeçou) corrige a previsão.
-                var dono = _tempoReal.Sessoes.FirstOrDefault(s => s.PersonagemId == personagemId);
-                if (dono != null)
+                if (_tempoReal.TentarObterSessao(personagemId, out var dono))
                 {
                     _tempoReal.Enviar(dono, CombateMessageIds.RecursosMudaram, estado);
                 }
@@ -166,7 +165,11 @@ public sealed class ServicoDeGuarda
     private void AoEncerrar(SessaoTempoReal sessao)
     {
         var id = sessao.PersonagemId;
-        if (!_tempoReal.Sessoes.Any(s => s.PersonagemId == id && !ReferenceEquals(s, sessao)))
+        if (
+            !_tempoReal.TentarObterSessao(id, out var outra)
+            || outra is null
+            || ReferenceEquals(outra, sessao)
+        )
         {
             _controle.SoltarGuarda(id);
         }

@@ -62,6 +62,7 @@ public sealed class ServidorTempoReal : BackgroundService
     // Só o laço mexe nestes dois.
     private readonly Dictionary<int, SessaoTempoReal> _conexoes = [];
     private readonly Dictionary<long, SessaoTempoReal> _porConta = [];
+    private readonly Dictionary<long, SessaoTempoReal> _porPersonagem = [];
 
     private readonly ConcurrentDictionary<SessaoTempoReal, byte> _autenticadas = new();
     private readonly ConcurrentQueue<Action> _pendentes = new();
@@ -129,14 +130,18 @@ public sealed class ServidorTempoReal : BackgroundService
             AutoRecycle = true,
             IPv6Enabled = false,
             DisconnectTimeout = _configuracao.TempoQuedaMs,
+            ChannelsCount = 32,
         };
     }
 
     /// <summary>Porta UDP em que o servidor escuta (a real, mesmo com <c>TempoReal:Porta</c> 0).</summary>
     public int Porta => _rede.LocalPort;
 
-    /// <summary>Sessões autenticadas neste momento (cópia).</summary>
-    public IReadOnlyCollection<SessaoTempoReal> Sessoes => _autenticadas.Keys.ToArray();
+    /// <summary>Sessões autenticadas neste momento, em uma coleção sem alocar cópias.</summary>
+    public ICollection<SessaoTempoReal> Sessoes => _autenticadas.Keys;
+
+    public bool TentarObterSessao(long personagemId, out SessaoTempoReal? sessao) =>
+        _porPersonagem.TryGetValue(personagemId, out sessao);
 
     /// <summary>
     /// Agenda uma ação para rodar novamente no laço principal do servidor, em um passo fixo.
@@ -180,7 +185,8 @@ public sealed class ServidorTempoReal : BackgroundService
         SessaoTempoReal sessao,
         ushort id,
         T mensagem,
-        EntregaTempoReal entrega = EntregaTempoReal.Confiavel
+        EntregaTempoReal entrega = EntregaTempoReal.Confiavel,
+        long? entidadeId = null
     )
     {
         if (sessao.Peer.ConnectionState != ConnectionState.Connected)
@@ -188,8 +194,48 @@ public sealed class ServidorTempoReal : BackgroundService
             return false;
         }
 
-        sessao.Peer.Send(ProtocoloTempoReal.Codificar(id, mensagem), Metodo(entrega));
+        var pacote = ProtocoloTempoReal.Codificar(id, mensagem);
+        var metodo = Metodo(entrega);
+        if (entrega == EntregaTempoReal.Sequenciada && entidadeId is { } entidade)
+        {
+            sessao.Peer.Send(pacote, CanalParaEntidade(entidade, _rede.ChannelsCount), metodo);
+            return true;
+        }
+
+        sessao.Peer.Send(pacote, metodo);
         return true;
+    }
+
+    public void Enviar<T>(
+        IEnumerable<SessaoTempoReal> sessoes,
+        ushort id,
+        T mensagem,
+        EntregaTempoReal entrega = EntregaTempoReal.Confiavel,
+        long? entidadeId = null
+    )
+    {
+        var pacote = ProtocoloTempoReal.Codificar(id, mensagem);
+        var metodo = Metodo(entrega);
+        var canal =
+            entrega == EntregaTempoReal.Sequenciada && entidadeId is { } entidade
+                ? CanalParaEntidade(entidade, _rede.ChannelsCount)
+                : (byte)0;
+
+        foreach (var sessao in sessoes)
+        {
+            if (sessao.Peer.ConnectionState != ConnectionState.Connected)
+            {
+                continue;
+            }
+
+            if (entrega == EntregaTempoReal.Sequenciada && entidadeId is not null)
+            {
+                sessao.Peer.Send(pacote, canal, metodo);
+                continue;
+            }
+
+            sessao.Peer.Send(pacote, metodo);
+        }
     }
 
     /// <summary>Envia a todas as sessões autenticadas, menos <paramref name="exceto"/>.</summary>
@@ -197,17 +243,31 @@ public sealed class ServidorTempoReal : BackgroundService
         ushort id,
         T mensagem,
         EntregaTempoReal entrega = EntregaTempoReal.Confiavel,
-        SessaoTempoReal? exceto = null
+        SessaoTempoReal? exceto = null,
+        long? entidadeId = null
     )
     {
         var pacote = ProtocoloTempoReal.Codificar(id, mensagem);
         var metodo = Metodo(entrega);
+        var canal =
+            entrega == EntregaTempoReal.Sequenciada && entidadeId is { } entidade
+                ? CanalParaEntidade(entidade, _rede.ChannelsCount)
+                : (byte)0;
+
         foreach (var sessao in _autenticadas.Keys)
         {
-            if (sessao != exceto && sessao.Peer.ConnectionState == ConnectionState.Connected)
+            if (sessao == exceto || sessao.Peer.ConnectionState != ConnectionState.Connected)
             {
-                sessao.Peer.Send(pacote, metodo);
+                continue;
             }
+
+            if (entrega == EntregaTempoReal.Sequenciada && entidadeId is not null)
+            {
+                sessao.Peer.Send(pacote, canal, metodo);
+                continue;
+            }
+
+            sessao.Peer.Send(pacote, metodo);
         }
     }
 
@@ -445,10 +505,16 @@ public sealed class ServidorTempoReal : BackgroundService
             Encerrar(anterior, desconectar: true);
         }
 
+        if (_porPersonagem.TryGetValue(resultado.PersonagemId, out var daMesmaPessoa))
+        {
+            Encerrar(daMesmaPessoa, desconectar: true);
+        }
+
         sessao.ContaId = resultado.ContaId;
         sessao.PersonagemId = resultado.PersonagemId;
         sessao.Autenticada = true;
         _porConta[sessao.ContaId] = sessao;
+        _porPersonagem[sessao.PersonagemId] = sessao;
         _autenticadas[sessao] = 0;
 
         ResponderAutenticacao(sessao, "");
@@ -511,6 +577,13 @@ public sealed class ServidorTempoReal : BackgroundService
         {
             _porConta.Remove(sessao.ContaId);
         }
+        if (
+            _porPersonagem.TryGetValue(sessao.PersonagemId, out var doPersonagem)
+            && doPersonagem == sessao
+        )
+        {
+            _porPersonagem.Remove(sessao.PersonagemId);
+        }
 
         Avisar(SessaoEncerrada, sessao);
     }
@@ -567,6 +640,16 @@ public sealed class ServidorTempoReal : BackgroundService
     }
 
     private long AgoraMs() => _relogio.GetUtcNow().ToUnixTimeMilliseconds();
+
+    private static byte CanalParaEntidade(long entidadeId, int canais)
+    {
+        if (canais <= 1)
+        {
+            return 0;
+        }
+
+        return (byte)((ulong)entidadeId % (uint)canais);
+    }
 
     private static DeliveryMethod Metodo(EntregaTempoReal entrega) =>
         entrega == EntregaTempoReal.Sequenciada

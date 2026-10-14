@@ -146,6 +146,24 @@ public sealed class RecursosEmMemoriaTestes : IClassFixture<ServidorDeTeste>, ID
         Assert.True(_banco.Comandos > 0); // Venceram: leu Itens e Personagem de novo.
     }
 
+    [Fact]
+    public async Task Equipamento_mudou_invalida_o_cache_antes_da_validade()
+    {
+        var id = await NovoPersonagemAsync();
+        await Recursos.AtributosAsync(id, CancellationToken.None);
+        _banco.Zerar();
+
+        // Cache ainda não venceu.
+        await Recursos.AtributosAsync(id, CancellationToken.None);
+        Assert.Equal(0, _banco.Comandos);
+
+        // Evento chega: próximo acesso deve reler Itens e Personagem.
+        Recursos.AoEquipamentoMudar(id);
+
+        await Recursos.AtributosAsync(id, CancellationToken.None);
+        Assert.True(_banco.Comandos > 0); // Releu antes da validade vencer.
+    }
+
     private sealed class ContadorDeBanco : DbCommandInterceptor, IDbTransactionInterceptor
     {
         private int _comandos;

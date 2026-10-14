@@ -191,7 +191,8 @@ public sealed class ServicoDeInimigos(
                 sessao,
                 MobsMessageIds.InimigoMudou,
                 mudanca.Mensagem,
-                mudanca.SoPosicao ? EntregaTempoReal.Sequenciada : EntregaTempoReal.Confiavel
+                mudanca.SoPosicao ? EntregaTempoReal.Sequenciada : EntregaTempoReal.Confiavel,
+                mudanca.SoPosicao ? mudanca.Mensagem.InimigoId : null
             );
         }
 
@@ -521,8 +522,7 @@ public sealed class ServicoDeInimigos(
             return;
         }
 
-        var sessao = tempoReal.Sessoes.FirstOrDefault(s => s.PersonagemId == evento.PersonagemId);
-        if (sessao == null)
+        if (!tempoReal.TentarObterSessao(evento.PersonagemId, out var sessao) || sessao is null)
         {
             return;
         }

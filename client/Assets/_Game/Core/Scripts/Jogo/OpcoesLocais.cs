@@ -1,5 +1,12 @@
 namespace JogoDoGrupo.Client.Core.Jogo
 {
+    internal enum QualidadeGrafica
+    {
+        Baixa = 0,
+        Media = 1,
+        Alta = 2,
+    }
+
     /// <summary>
     /// Opções deste computador (volume, qualidade, tela, sensibilidade, idioma). Valor fora
     /// da faixa é limitado; texto inválido volta ao padrão. Não decide regra de jogo.
@@ -18,7 +25,15 @@ namespace JogoDoGrupo.Client.Core.Jogo
 
         public int VolumeEfeitos { get; private set; } = VolumeEfeitosPadrao;
 
-        public string Qualidade { get; private set; } = "Média";
+        public QualidadeGrafica NivelQualidade { get; private set; } = QualidadeGrafica.Media;
+
+        public string Qualidade =>
+            NivelQualidade switch
+            {
+                QualidadeGrafica.Baixa => "Baixa",
+                QualidadeGrafica.Alta => "Alta",
+                _ => "Média",
+            };
 
         public bool TelaCheia { get; private set; } = true;
 
@@ -75,8 +90,19 @@ namespace JogoDoGrupo.Client.Core.Jogo
 
         public void DefinirQualidade(string qualidade)
         {
-            Qualidade = qualidade == "Baixa" || qualidade == "Alta" ? qualidade : "Média";
+            NivelQualidade = qualidade switch
+            {
+                "Baixa" => QualidadeGrafica.Baixa,
+                "Alta" => QualidadeGrafica.Alta,
+                _ => QualidadeGrafica.Media,
+            };
         }
+
+        public void DefinirQualidade(QualidadeGrafica qualidade) =>
+            NivelQualidade =
+                qualidade >= QualidadeGrafica.Baixa && qualidade <= QualidadeGrafica.Alta
+                    ? qualidade
+                    : QualidadeGrafica.Media;
 
         public void DefinirTelaCheia(bool cheia) => TelaCheia = cheia;
 

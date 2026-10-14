@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using JogoDoGrupo.Client.Core.Jogo.Controle;
 using JogoDoGrupo.Client.Core.TempoReal;
 using JogoDoGrupo.Client.Core.UI;
@@ -41,10 +42,19 @@ namespace JogoDoGrupo.Client.Core.Jogo
         private static readonly List<Behaviour> _desativados = new List<Behaviour>();
 
         private static Func<PosicaoInicial> _construirMundo;
+        private static Func<CancellationToken, Awaitable<PosicaoInicial>> _construirMundoAsync;
         private static Func<long, GameObject> _criarVisual;
         private static Scene _cenaMundo;
         private static Scene _cenaAnterior;
         private static int _contadorCenas;
+        private static CancellationTokenSource _cancelamento;
+        private static bool _posicaoConfirmada;
+        private static long _ultimoPersonagemId;
+
+        internal const float TempoLimitePosicaoSegundos = 20f;
+
+        /// <summary>O jogador ainda espera o cenário e a posição inicial do servidor.</summary>
+        public static bool EntradaPendente { get; private set; }
 
         /// <summary>Se o jogador está no mundo (entre <see cref="Entrar"/> e <see cref="Sair"/>).</summary>
         public static bool NoJogo { get; private set; }
@@ -65,6 +75,11 @@ namespace JogoDoGrupo.Client.Core.Jogo
             _construirMundo = construir;
         }
 
+        /// <summary>Registra a montagem do mundo em etapas, com cancelamento ao sair.</summary>
+        public static void DefinirConstrutorDeMundoAsync(
+            Func<CancellationToken, Awaitable<PosicaoInicial>> construir
+        ) => _construirMundoAsync = construir;
+
         /// <summary>
         /// Registra quem cria o visual do personagem pelo Id (funcionalidade Personagem). O
         /// visual devolvido vira filho do jogador, com os pés no Y = 0 e a frente em +Z. Pode
@@ -82,7 +97,7 @@ namespace JogoDoGrupo.Client.Core.Jogo
         /// Esconde a interface, cria o <see cref="Hud"/>, monta o mundo, cria o jogador local com o visual do personagem e
         /// o posiciona no ponto de nascimento. Se já estiver no mundo, sai antes.
         /// </summary>
-        public static void Entrar(long personagemId)
+        public static async void Entrar(long personagemId)
         {
             if (NoJogo)
             {
@@ -90,9 +105,92 @@ namespace JogoDoGrupo.Client.Core.Jogo
                 Desmontar();
             }
 
-            Navegacao.FecharTelaAtual();
+            _cancelamento?.Cancel();
+            _cancelamento = new CancellationTokenSource();
+            var cancelar = _cancelamento.Token;
+            _ultimoPersonagemId = personagemId;
+            _posicaoConfirmada = false;
+            EntradaPendente = true;
+            Navegacao.Abrir(TelasCore.Carregamento);
             OpcoesGravadas.Carregar();
 
+            try
+            {
+                // Dá ao painel um quadro para aparecer antes de começar a montar o cenário.
+                await Awaitable.NextFrameAsync(cancelar);
+                MontarEntrada(personagemId);
+                TelaCarregamento.Atual?.MostrarEtapa(EtapaDoCarregamento.Cenario);
+                PosicaoInicial inicio;
+                if (_construirMundoAsync != null)
+                {
+                    inicio = await _construirMundoAsync(cancelar);
+                }
+                else
+                {
+                    inicio = MontarMundo(_construirMundo, out _);
+                }
+
+                cancelar.ThrowIfCancellationRequested();
+                DesativarDeOutrasCenas();
+                Jogador = CriarJogador(personagemId, inicio);
+                TelaCarregamento.Atual?.MostrarEtapa(EtapaDoCarregamento.Conexao);
+                var inicioDaEspera = Time.realtimeSinceStartup;
+                while (!ConexaoTempoReal.Conectado)
+                {
+                    cancelar.ThrowIfCancellationRequested();
+                    if (
+                        ConexaoTempoReal.Estado == EstadoTempoReal.Desconectado
+                        && !string.IsNullOrEmpty(ConexaoTempoReal.UltimoErro)
+                    )
+                    {
+                        throw new InvalidOperationException("Não foi possível conectar ao mundo.");
+                    }
+
+                    if (PrazoEsgotado(inicioDaEspera, Time.realtimeSinceStartup))
+                    {
+                        throw new TimeoutException("A conexão com o mundo não foi concluída.");
+                    }
+
+                    await Awaitable.NextFrameAsync(cancelar);
+                }
+
+                TelaCarregamento.Atual?.MostrarEtapa(EtapaDoCarregamento.Posicao);
+                while (!_posicaoConfirmada)
+                {
+                    cancelar.ThrowIfCancellationRequested();
+                    if (PrazoEsgotado(inicioDaEspera, Time.realtimeSinceStartup))
+                    {
+                        throw new TimeoutException("A conexão com o mundo não foi concluída.");
+                    }
+
+                    await Awaitable.NextFrameAsync(cancelar);
+                }
+
+                await Awaitable.NextFrameAsync(cancelar);
+                EntradaPendente = false;
+                Hud.DefinirVisivel(true);
+                Jogador?.GetComponent<SessaoNoMundo>()?.LiberarEntrada();
+                Navegacao.FecharTelaAtual();
+            }
+            catch (OperationCanceledException) { }
+            catch (Exception e)
+            {
+                if (cancelar.IsCancellationRequested)
+                {
+                    return;
+                }
+
+                Debug.LogException(e);
+                Desmontar();
+                TelaCarregamento.Atual?.MostrarFalha(
+                    "Não foi possível entrar",
+                    "A conexão com o mundo não foi concluída."
+                );
+            }
+        }
+
+        private static void MontarEntrada(long personagemId)
+        {
             _cenaAnterior = SceneManager.GetActiveScene();
             _contadorCenas++;
             _cenaMundo = SceneManager.CreateScene($"{PrefixoCena}.{_contadorCenas}");
@@ -101,19 +199,22 @@ namespace JogoDoGrupo.Client.Core.Jogo
             PersonagemId = personagemId;
             // Antes do mundo: quem monta o mundo ou o visual já encontra as regiões.
             Hud.Montar(Navegacao.Container);
+            Hud.DefinirVisivel(false);
+        }
 
-            try
+        /// <summary>Mundo chama depois de aplicar a primeira posição recebida do servidor.</summary>
+        public static void SinalizarPronto()
+        {
+            if (EntradaPendente && NoJogo)
             {
-                var inicio = MontarMundo(_construirMundo, out _);
-                DesativarDeOutrasCenas();
-                Jogador = CriarJogador(personagemId, inicio);
-            }
-            catch (Exception e)
-            {
-                Debug.LogException(e);
-                Sair();
+                _posicaoConfirmada = true;
             }
         }
+
+        internal static void TentarNovamente() => Entrar(_ultimoPersonagemId);
+
+        internal static bool PrazoEsgotado(float inicio, float agora) =>
+            agora - inicio >= TempoLimitePosicaoSegundos;
 
         /// <summary>
         /// Desmonta o mundo e o jogador e volta para a tela após o login (a seleção de
@@ -130,6 +231,10 @@ namespace JogoDoGrupo.Client.Core.Jogo
         /// </summary>
         internal static void Desmontar()
         {
+            _cancelamento?.Cancel();
+            _cancelamento = null;
+            EntradaPendente = false;
+            _posicaoConfirmada = false;
             if (!NoJogo)
             {
                 return;
@@ -382,6 +487,12 @@ namespace JogoDoGrupo.Client.Core.Jogo
         private static void Reiniciar()
         {
             _construirMundo = null;
+            _construirMundoAsync = null;
+            _cancelamento?.Cancel();
+            _cancelamento = null;
+            EntradaPendente = false;
+            _posicaoConfirmada = false;
+            _ultimoPersonagemId = 0;
             _criarVisual = null;
             _desativados.Clear();
             _cenaMundo = default;

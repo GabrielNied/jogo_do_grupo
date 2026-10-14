@@ -89,7 +89,7 @@ namespace JogoDoGrupo.Client.Features.Social
                     lista => _servico.Amigos.Aplicar(lista)
                 )
             );
-            AvisosDoJogo.Mostrado += AoMostrarAviso;
+            AvisosDoJogo.MostradoComCategoria += AoMostrarAviso;
             ChatDoJogo.AdicionarLinhaSistema = texto => _servico?.AdicionarSistema(texto);
         }
 
@@ -100,13 +100,13 @@ namespace JogoDoGrupo.Client.Features.Social
             public void Gravar(string chave, string valor) { }
         }
 
-        private void AoMostrarAviso(string texto, TipoDeAviso _) =>
-            _servico?.AdicionarSistema(texto);
+        private void AoMostrarAviso(string texto, TipoDeAviso _, CategoriaDeAviso categoria) =>
+            _servico?.AdicionarSistema(texto, categoria);
 
         private void OnDestroy()
         {
             ChatDoJogo.AdicionarLinhaSistema = null;
-            AvisosDoJogo.Mostrado -= AoMostrarAviso;
+            AvisosDoJogo.MostradoComCategoria -= AoMostrarAviso;
             foreach (var assinatura in _assinaturas)
             {
                 assinatura.Dispose();

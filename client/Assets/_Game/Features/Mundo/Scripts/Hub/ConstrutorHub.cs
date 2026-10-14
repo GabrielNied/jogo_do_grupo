@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading;
 using JogoDoGrupo.Client.Core.Jogo;
 using JogoDoGrupo.Client.Features.Mundo;
 using JogoDoGrupo.Client.Features.Mundo.DiaENoite;
@@ -47,6 +48,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
         private static void Registrar()
         {
             EntradaNoJogo.DefinirConstrutorDeMundo(Construir);
+            EntradaNoJogo.DefinirConstrutorDeMundoAsync(ConstruirAsync);
         }
 
         /// <summary>
@@ -64,6 +66,50 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
                 LayoutDoHub.PontoDeNascimento,
                 LayoutDoHub.RotacaoDeNascimento
             );
+        }
+
+        /// <summary>Entrada com o terreno dividido em quadros.</summary>
+        public static async Awaitable<PosicaoInicial> ConstruirAsync(CancellationToken cancelar)
+        {
+            var raiz = await MontarAsync(cancelar);
+            cancelar.ThrowIfCancellationRequested();
+            var presenca = new GameObject("Presenca");
+            presenca.AddComponent<PresencaNoMundo>();
+            presenca.AddComponent<Minimapa>();
+            presenca.transform.SetParent(raiz.transform, false);
+            return new PosicaoInicial(
+                LayoutDoHub.PontoDeNascimento,
+                LayoutDoHub.RotacaoDeNascimento
+            );
+        }
+
+        private static async Awaitable<GameObject> MontarAsync(CancellationToken cancelar)
+        {
+            var raiz = new GameObject(NomeRaiz);
+            _escalaDasPecas = MedirEscalaDasPecas();
+            CriarChao(raiz.transform);
+            await Awaitable.NextFrameAsync(cancelar);
+
+            var terreno = new GameObject(NomeTerreno);
+            terreno.transform.SetParent(raiz.transform, false);
+            await ConstrutorDoTerreno.ConstruirAsync(
+                terreno.transform,
+                MaterialDoTerreno(),
+                cancelar
+            );
+            CriarMuros(raiz.transform);
+            CriarEstradas(raiz.transform);
+            CriarProps(raiz.transform);
+            await Awaitable.NextFrameAsync(cancelar);
+            CriarPropsFora(raiz.transform);
+            await Awaitable.NextFrameAsync(cancelar);
+            await CriarPecasDosBiomasAsync(raiz.transform, cancelar);
+            CriarEstruturas(raiz.transform);
+            Caverna.Montar(raiz.transform);
+            var sol = CriarLuz(raiz.transform);
+            var preenchimento = CriarPreenchimento(raiz.transform);
+            ConfigurarAmbiente(raiz.transform, sol, preenchimento);
+            return raiz;
         }
 
         /// <summary>
@@ -402,18 +448,41 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
 
             foreach (var peca in PecasDosBiomas.Todas)
             {
-                var posicao = new Vector3(peca.X, peca.Y, peca.Z);
-                var instancia = VegetacaoProcedural.ConsegueCriar(peca.Prefab)
-                    ? VegetacaoProcedural.Criar(peca.Prefab, posicao, peca.Guinada, pecas)
-                    : Instanciar(peca.Prefab, posicao, peca.Guinada, pecas);
-                if (instancia == null)
-                {
-                    continue;
-                }
-
-                instancia.transform.localScale *= peca.Escala;
-                Tingir(instancia, peca.Bioma);
+                CriarPecaDoBioma(peca, pecas);
             }
+        }
+
+        private static async Awaitable CriarPecasDosBiomasAsync(
+            Transform pai,
+            CancellationToken cancelar
+        )
+        {
+            var pecas = new GameObject(NomePecasDosBiomas).transform;
+            pecas.SetParent(pai, false);
+            var indice = 0;
+            foreach (var peca in PecasDosBiomas.Todas)
+            {
+                CriarPecaDoBioma(peca, pecas);
+                if (++indice % 32 == 0)
+                {
+                    await Awaitable.NextFrameAsync(cancelar);
+                }
+            }
+        }
+
+        private static void CriarPecaDoBioma(PecaDoBioma peca, Transform pai)
+        {
+            var posicao = new Vector3(peca.X, peca.Y, peca.Z);
+            var instancia = VegetacaoProcedural.ConsegueCriar(peca.Prefab)
+                ? VegetacaoProcedural.Criar(peca.Prefab, posicao, peca.Guinada, pai)
+                : Instanciar(peca.Prefab, posicao, peca.Guinada, pai);
+            if (instancia == null)
+            {
+                return;
+            }
+
+            instancia.transform.localScale *= peca.Escala;
+            Tingir(instancia, peca.Bioma);
         }
 
         // Troca os materiais da peça por cópias multiplicadas pela cor do bioma. Branco (campo,

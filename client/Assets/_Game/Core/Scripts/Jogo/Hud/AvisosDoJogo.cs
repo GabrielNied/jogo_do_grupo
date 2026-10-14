@@ -21,19 +21,27 @@ namespace JogoDoGrupo.Client.Core.Jogo
         /// </summary>
         public static event Action<string, TipoDeAviso> Mostrado;
 
+        /// <summary>Mesmo aviso com a origem explícita para filtros de apresentação.</summary>
+        public static event Action<string, TipoDeAviso, CategoriaDeAviso> MostradoComCategoria;
+
         /// <summary>
         /// Mostra a mensagem. Fora do mundo (sem HUD) o painel não aparece, mas
         /// <see cref="Mostrado"/> ainda dispara. Texto vazio não faz nada.
         /// </summary>
-        public static void Mostrar(string texto, TipoDeAviso tipo = TipoDeAviso.Informacao)
+        public static void Mostrar(
+            string texto,
+            TipoDeAviso tipo = TipoDeAviso.Informacao,
+            CategoriaDeAviso categoria = CategoriaDeAviso.Sistema
+        )
         {
             if (string.IsNullOrWhiteSpace(texto))
             {
                 return;
             }
 
-            Hud.Avisos?.Mostrar(texto, tipo);
+            Hud.Avisos?.Mostrar(texto, tipo, categoria);
             Mostrado?.Invoke(texto, tipo);
+            MostradoComCategoria?.Invoke(texto, tipo, categoria);
         }
     }
 }

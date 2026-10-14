@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using JogoDoGrupo.Client.Core.Jogo;
+using JogoDoGrupo.Client.Core.UI;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -34,13 +35,19 @@ namespace JogoDoGrupo.Client.Features.Social
     /// </summary>
     internal sealed class PainelDeChat
     {
-        public const int LinhasVisiveis = 8;
         public const int TamanhoMaximoDaCaixa = 400;
         public const string CaminhoEstilo = "UI/EstiloSocial";
 
         private readonly VisualElement _raiz;
-        private readonly List<Label> _rotulos = new List<Label>();
+        private const string ChaveOculto = "lumora.chat.oculto";
+        private readonly ScrollView _rolagem;
+        private readonly VisualElement _conteudo;
+        private readonly VisualElement _painel;
+        private readonly Button _abrirPainel;
+        private readonly Button _irAoFim;
+        private readonly DropdownField _filtro;
         private readonly TextField _campo;
+        private bool _primeiraRenderizacao = true;
 
         public PainelDeChat(VisualElement regiao)
         {
@@ -53,28 +60,74 @@ namespace JogoDoGrupo.Client.Features.Social
                 _raiz.styleSheets.Add(estilo);
             }
 
-            var linhas = new VisualElement { name = "social.chat.linhas" };
-            linhas.pickingMode = PickingMode.Ignore;
-            linhas.AddToClassList("chat-linhas");
-            for (var i = 0; i < LinhasVisiveis; i++)
+            _abrirPainel = new Button(() => DefinirOculto(false)) { text = "Mostrar chat" };
+            _abrirPainel.AddToClassList(EstiloCore.Botao);
+            _abrirPainel.AddToClassList("chat-abrir");
+            _raiz.Add(_abrirPainel);
+
+            _painel = new VisualElement();
+            _painel.AddToClassList("chat-painel");
+            var cabecalho = new VisualElement();
+            cabecalho.AddToClassList("chat-cabecalho");
+            var titulo = new Label("Chat");
+            titulo.AddToClassList(EstiloCore.Subtitulo);
+            cabecalho.Add(titulo);
+            _filtro = new DropdownField(
+                new List<string> { "Todos", "Cidade", "Grupo", "Sussurro", "Sistema" },
+                0
+            );
+            _filtro.name = "social.chat.filtro";
+            _filtro.AddToClassList("chat-filtro");
+            _filtro.RegisterValueChangedCallback(_ => ConfiguracaoMudou?.Invoke());
+            cabecalho.Add(_filtro);
+            var ocultar = new Button(() => DefinirOculto(true)) { text = "Ocultar" };
+            ocultar.AddToClassList(EstiloCore.Botao);
+            cabecalho.Add(ocultar);
+            _painel.Add(cabecalho);
+
+            var opcoes = new VisualElement();
+            opcoes.AddToClassList("chat-opcoes");
+            var sistema = new Toggle("Sistema") { value = PreferenciasDeAvisos.MostrarSistema };
+            sistema.name = "social.chat.sistema";
+            sistema.RegisterValueChangedCallback(e =>
             {
-                // Texto puro: sem marcas de formatação, para ninguém mudar cor ou tamanho.
-                var rotulo = new Label { enableRichText = false };
-                rotulo.pickingMode = PickingMode.Ignore;
-                rotulo.AddToClassList("chat-linha");
-                rotulo.style.display = DisplayStyle.None;
-                linhas.Add(rotulo);
-                _rotulos.Add(rotulo);
-            }
+                PreferenciasDeAvisos.MostrarSistema = e.newValue;
+                ConfiguracaoMudou?.Invoke();
+            });
+            var combate = new Toggle("Combate") { value = PreferenciasDeAvisos.MostrarCombate };
+            combate.name = "social.chat.combate";
+            combate.RegisterValueChangedCallback(e =>
+            {
+                PreferenciasDeAvisos.MostrarCombate = e.newValue;
+                ConfiguracaoMudou?.Invoke();
+            });
+            opcoes.Add(sistema);
+            opcoes.Add(combate);
+            _painel.Add(opcoes);
+
+            _rolagem = new ScrollView(ScrollViewMode.Vertical) { name = "social.chat.historico" };
+            _rolagem.AddToClassList("chat-linhas");
+            _conteudo = _rolagem.contentContainer;
+            _painel.Add(_rolagem);
+            _irAoFim = new Button(IrAoFim) { text = "Ir ao fim" };
+            _irAoFim.AddToClassList(EstiloCore.Botao);
+            _irAoFim.AddToClassList("chat-ir-ao-fim");
+            _rolagem.verticalScroller.valueChanged += _ =>
+                _irAoFim.style.display =
+                    _rolagem.verticalScroller.value < _rolagem.verticalScroller.highValue - 12f
+                        ? DisplayStyle.Flex
+                        : DisplayStyle.None;
+            _painel.Add(_irAoFim);
 
             _campo = new TextField { name = "social.chat.campo", maxLength = TamanhoMaximoDaCaixa };
             _campo.AddToClassList("chat-campo");
             _campo.style.display = DisplayStyle.None;
             _campo.RegisterCallback<KeyDownEvent>(AoApertarTecla, TrickleDown.TrickleDown);
 
-            _raiz.Add(linhas);
-            _raiz.Add(_campo);
+            _painel.Add(_campo);
+            _raiz.Add(_painel);
             regiao.Add(_raiz);
+            DefinirOculto(PlayerPrefs.GetInt(ChaveOculto, 0) != 0, gravar: false);
         }
 
         /// <summary>Enter apertado com a caixa aberta.</summary>
@@ -85,6 +138,10 @@ namespace JogoDoGrupo.Client.Features.Social
 
         /// <summary>Tab: devolve o texto completo sugerido ou null.</summary>
         public event Func<string, string> CompletarTexto;
+
+        public event Action ConfiguracaoMudou;
+
+        public FiltroDoChat Filtro => (FiltroDoChat)_filtro.index;
 
         public bool Aberta => _campo.style.display == DisplayStyle.Flex;
 
@@ -98,6 +155,7 @@ namespace JogoDoGrupo.Client.Features.Social
 
         public void Abrir()
         {
+            DefinirOculto(false);
             _campo.style.display = DisplayStyle.Flex;
             // O foco só vale depois que o campo entra no layout.
             _campo.schedule.Execute(() => _campo.Q("unity-text-input")?.Focus()).StartingIn(0);
@@ -112,31 +170,68 @@ namespace JogoDoGrupo.Client.Features.Social
 
         public void Esmaecer(bool esmaecido)
         {
-            _raiz.EnableInClassList("chat-esmaecido", esmaecido);
+            _painel.EnableInClassList("chat-esmaecido", esmaecido);
         }
 
-        /// <summary>Mostra as linhas (as <see cref="LinhasVisiveis"/> últimas, da antiga para a nova).</summary>
+        public void RolarPagina(bool paraCima)
+        {
+            _rolagem.scrollOffset += new Vector2(0, (paraCima ? -1 : 1) * _rolagem.layout.height);
+        }
+
+        private void DefinirOculto(bool oculto, bool gravar = true)
+        {
+            if (oculto && Aberta)
+            {
+                EscApertado?.Invoke();
+            }
+
+            _painel.style.display = oculto ? DisplayStyle.None : DisplayStyle.Flex;
+            _abrirPainel.style.display = oculto ? DisplayStyle.Flex : DisplayStyle.None;
+            if (gravar)
+            {
+                PlayerPrefs.SetInt(ChaveOculto, oculto ? 1 : 0);
+                PlayerPrefs.Save();
+            }
+        }
+
+        private void IrAoFim()
+        {
+            _rolagem.scrollOffset = new Vector2(0, float.MaxValue);
+            _rolagem.schedule.Execute(() =>
+            {
+                _rolagem.scrollOffset = new Vector2(0, _rolagem.verticalScroller.highValue);
+                _irAoFim.style.display = DisplayStyle.None;
+            });
+        }
+
+        /// <summary>Mostra até 100 linhas filtradas e mantém a rolagem quando se lê o histórico.</summary>
         public void Mostrar(IReadOnlyList<LinhaDeChat> linhas, TimeSpan fuso)
         {
-            var inicio = Math.Max(0, linhas.Count - LinhasVisiveis);
-            for (var i = 0; i < _rotulos.Count; i++)
+            var noFim =
+                _primeiraRenderizacao
+                || _rolagem.verticalScroller.value >= _rolagem.verticalScroller.highValue - 12f;
+            _primeiraRenderizacao = false;
+            _conteudo.Clear();
+            if (linhas.Count == 0)
             {
-                var rotulo = _rotulos[i];
-                var indice = inicio + i;
-                if (indice >= linhas.Count)
-                {
-                    rotulo.style.display = DisplayStyle.None;
-                    continue;
-                }
-
-                var linha = linhas[indice];
-                rotulo.style.display = DisplayStyle.Flex;
+                var vazio = new Label("Nenhuma mensagem neste filtro.");
+                vazio.AddToClassList("chat-vazio");
+                _conteudo.Add(vazio);
+            }
+            foreach (var linha in linhas)
+            {
+                var rotulo = new Label { enableRichText = false };
+                rotulo.AddToClassList("chat-linha");
                 rotulo.text = TextosDeChat.Linha(linha, fuso);
                 rotulo.EnableInClassList("chat-cidade", linha.Canal == CanalDaLinha.Cidade);
                 rotulo.EnableInClassList("chat-grupo", linha.Canal == CanalDaLinha.Grupo);
                 rotulo.EnableInClassList("chat-sussurro", linha.Canal == CanalDaLinha.Sussurro);
                 rotulo.EnableInClassList("chat-sistema", linha.Canal == CanalDaLinha.Sistema);
+                _conteudo.Add(rotulo);
             }
+            if (noFim)
+                IrAoFim();
+            _irAoFim.style.display = noFim ? DisplayStyle.None : DisplayStyle.Flex;
         }
 
         private void AoApertarTecla(KeyDownEvent evento)

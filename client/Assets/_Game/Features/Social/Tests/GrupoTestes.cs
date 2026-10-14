@@ -351,6 +351,30 @@ namespace JogoDoGrupo.Client.Features.Social.Tests
         }
 
         [Test]
+        public void Convite_NoAvisoNaTela_AceitarERecusarEnviamResposta()
+        {
+            var objeto = new GameObject("AvisoDoGrupoTeste");
+            var aviso = objeto.AddComponent<AvisoDoGrupoNaTela>();
+            aviso.Configurar(_raiz, null, _estado);
+            try
+            {
+                ReceberConvite(5, "Bia");
+                aviso.Atualizar();
+                Click(_raiz.Query<Button>().ToList().First(b => b.text == "Aceitar (Y)"));
+                Assert.IsTrue(Ultimo<ResponderConvite>(SocialMessageIds.ResponderConvite).Aceitar);
+
+                ReceberConvite(6, "Caio");
+                aviso.Atualizar();
+                Click(_raiz.Query<Button>().ToList().First(b => b.text == "Recusar (N)"));
+                Assert.IsFalse(Ultimo<ResponderConvite>(SocialMessageIds.ResponderConvite).Aceitar);
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(objeto);
+            }
+        }
+
+        [Test]
         public void Convite_RecusarEnviaOPedidoETiraDaLista()
         {
             ReceberConvite(5, "Bia");

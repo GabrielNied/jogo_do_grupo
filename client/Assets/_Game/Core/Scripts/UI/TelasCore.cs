@@ -10,6 +10,9 @@ namespace JogoDoGrupo.Client.Core.UI
         /// <summary>Abertura/carregamento: primeira tela do jogo; segue sozinha para o login.</summary>
         public const string Abertura = "core.abertura";
 
+        /// <summary>Etapas reais da entrada no mundo e ações de recuperação.</summary>
+        public const string Carregamento = "core.carregamento";
+
         /// <summary>Login e registro de conta.</summary>
         public const string Login = "core.login";
 

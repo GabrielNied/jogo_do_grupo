@@ -28,6 +28,7 @@ Decidido pelo grupo em 2026-10-10. É **provisório**: serve para implementar a 
 - O personagem começa no **nível 1**.
 - Fluxo de entrada: abertura → login (ou registro) → seleção de personagem → criação → volta para a seleção. ~~"Entrar" ainda não leva a um mundo.~~ substituído em 2026-10-11 por: "Entrar" leva ao mundo (veja [Fluxo de entrada no jogo](#fluxo-de-entrada-no-jogo)).
 - A seleção mostra quatro vagas na ordem recebida, destaca a escolhida e usa o prefab real da raça como prévia 3D. O nome, a raça e o nível aparecem no resumo ao lado de **Entrar**; vaga livre não imita um personagem. Em largura compacta, lista, prévia e resumo se empilham no painel rolável. A prévia representa a raça, pois ainda não existe personalização de aparência.
+- Na criação, nome e cinco raças ficam junto da prévia do prefab escolhido e dos textos definidos para essa raça. A habilidade racial aparece identificada como **em desenvolvimento**; escolher a raça ainda não concede uma habilidade jogável. Em largura compacta, as três áreas se empilham e rolam.
 - Comunicação pela API HTTP do [ADR 0009](../decisoes/0009-api-http-para-conta-e-personagens.md) (veja [Expõe](#expõe)).
 - O **servidor decide**: valida o nome, a unicidade, a raça e o limite de 4. O client só confere o formato do nome para dar retorno rápido.
 
