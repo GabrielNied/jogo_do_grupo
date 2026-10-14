@@ -25,5 +25,46 @@ namespace JogoDoGrupo.Shared.Features.Talentos
         /// <summary>Caminho de <see cref="Comprar"/> para um personagem (uso do client).</summary>
         public static string ComprarDe(long personagemId) =>
             "/api/personagens/" + personagemId + "/talentos/comprar";
+
+        /// <summary>
+        /// Modelo da rota. <c>POST</c>: corpo <see cref="RedistribuirRequest"/>, redistribui todos os pontos
+        /// da árvore mediante custo em coroas (200 <see cref="ArvoreResponse"/>).
+        /// </summary>
+        public const string Redistribuir = "/api/personagens/{personagemId}/talentos/redistribuir";
+
+        /// <summary>Caminho de <see cref="Redistribuir"/> para um personagem (uso do client).</summary>
+        public static string RedistribuirDe(long personagemId) =>
+            "/api/personagens/" + personagemId + "/talentos/redistribuir";
+
+        /// <summary>
+        /// Modelo da rota de perfis. <c>GET</c> lista perfis (200 <see cref="ListaPerfisResponse"/>).
+        /// <c>POST</c> salva o estado atual como perfil (200 <see cref="PerfilTalentosDto"/>).
+        /// </summary>
+        public const string Perfis = "/api/personagens/{personagemId}/talentos/perfis";
+
+        /// <summary>Caminho de <see cref="Perfis"/> para um personagem (uso do client).</summary>
+        public static string PerfisDe(long personagemId) =>
+            "/api/personagens/" + personagemId + "/talentos/perfis";
+
+        /// <summary>
+        /// Modelo da rota de perfil individual. <c>PUT</c> renomeia (<see cref="RenomearPerfilRequest"/>).
+        /// <c>DELETE</c> remove o perfil.
+        /// </summary>
+        public const string Perfil = "/api/personagens/{personagemId}/talentos/perfis/{perfilId}";
+
+        /// <summary>Caminho de <see cref="Perfil"/> para um personagem e perfil (uso do client).</summary>
+        public static string PerfilDe(long personagemId, long perfilId) =>
+            "/api/personagens/" + personagemId + "/talentos/perfis/" + perfilId;
+
+        /// <summary>
+        /// Modelo da rota para carregar perfil. <c>POST</c> aplica o perfil salvo na árvore
+        /// (200 <see cref="CarregarPerfilResponse"/>).
+        /// </summary>
+        public const string CarregarPerfil =
+            "/api/personagens/{personagemId}/talentos/perfis/{perfilId}/carregar";
+
+        /// <summary>Caminho de <see cref="CarregarPerfil"/> para um personagem e perfil (uso do client).</summary>
+        public static string CarregarPerfilDe(long personagemId, long perfilId) =>
+            "/api/personagens/" + personagemId + "/talentos/perfis/" + perfilId + "/carregar";
     }
 }
