@@ -75,7 +75,7 @@ Skills de utilidade que continuam no catálogo anterior (não fazem parte das 25
 - [ ] Hino do Recomeço (levantar caído por skill) e Vínculo Vital: confirmar com [personagem.md](personagem.md#morte-e-caído-issue-97) que o levantar manual continua valendo para todos.
 - [x] ~~Conflito livro x docs: todas as peças com skill~~ Decidido em 2026-10-12/2026-10-14: **armas** trazem as ativas da barra; **outras peças** modificam via poderes/sets, não ativas extras (SKILL-003). Preparação com orçamento (#339) continua proposta do board.
 - [x] ~~Conflito livro x docs: skill fixa no item~~ Decidido: sorteio no exemplar da arma, preservado na fusão; some ao desequipar (SKILL-001, SKILL-004).
-- [ ] Conflito livro x docs: "poucas skills ativas, sem spam" (definido) x **24 posições na barra** (3 abas de 8). O orçamento de 12 pontos é o que limita; confirmar com o grupo (**#339**, proposta do board).
+- [x] ~~Conflito livro x docs: poucas skills ativas x 24 posições na barra~~ Decidido para a fatia ([#167](https://github.com/GabrielNied/jogo_do_grupo/issues/167)): **3 ativas por arma** (SKILL-002); orçamento de 12 pontos e 3×8 slots do livro ficam na proposta de preparação ([#339](https://github.com/GabrielNied/jogo_do_grupo/issues/339)).
 
 ## Em aberto
 
@@ -87,20 +87,18 @@ Skills de utilidade que continuam no catálogo anterior (não fazem parte das 25
 - [x] ~~A fusão mistura as skills dos itens?~~ Decidido em 2026-10-12: não. A fusão muda um atributo e preserva as skills do item principal ([itens](itens.md#fusão)).
 - [x] ~~Quantas magias por classe?~~ não há classes (D2)
 - [x] ~~Recurso usado (mana, energia, outro)?~~ Decidido em 2026-10-14: **mana** ou **stamina** por skill, conforme a skill (SKILL-005); alinhado à fatia (mana, não "energia" genérica).
-- [ ] Pools de skills de armas de regiões avançadas além do Vale.
+- [ ] Pools de skills de armas de regiões avançadas além do Vale ([#340](https://github.com/GabrielNied/jogo_do_grupo/issues/340)).
 
 ## Regras
 
 ### Skills nos itens (#167)
 
-Decidido em 2026-10-12 (Gabriel) e formalizado em 2026-10-14 (/decida).
+Formalizado em 2026-10-14 (issue #167, PR #750). Regras **SKILL-001 a SKILL-006** em **Definido**; detalhes de implementação:
 
-- **SKILL-001 (Pertence à arma):** a skill ativa pertence à arma equipada no conjunto ativo. Desequipar a arma ou trocar de conjunto altera as 3 skills ativas da barra. A recarga fica associada à arma; trocar de arma não zera nem avança o tempo de recarga da outra arma (#580).
-- **SKILL-002 (Barra de atalho):** 3 skills ativas na barra (teclas 1, 2, 3 ou Q, E, R). O client mostra ícones, recarga (sweep/tempo restante) e custo de recurso.
-- **SKILL-003 (Papel das outras peças):** apenas as armas trazem o conjunto de skills ativas base. Armaduras e acessórios concedem poderes lendários (modificadores de comportamento de skills) e bônus de set ([itens](itens.md#poderes-e-sets)), sem slots extras de skills ativas na barra.
-- **SKILL-004 (Sorteio e persistência):** o modelo-base da arma define o catálogo de skills elegíveis. Ao gerar o exemplar da arma, o servidor sorteia as 3 skills e grava no exemplar (`EquipamentoJson`). A fusão preserva as skills do item principal sem alterá-las (DEC-003).
-- **SKILL-005 (Recurso e validação autoritativa):** o servidor valida uso, alcance, custo de mana (ou stamina) e recarga. Pedido com recurso insuficiente ou em recarga é recusado com mensagem na faixa 4000 (`SkillRecusada`).
-- **SKILL-006 (Contrato com combate):** toda skill implementa `PropriedadesDaSkill` (`CategoriaDeDano`, `TipoDeEfeito`, `PodeCritar`, `RecebePenetracao`, `PodeSerAcelerada`), integrando com a pipeline de combate e atributos secundários ([combate](combate.md#atributos-secundários-e-pipeline-624)).
+- **Barra (client, SKILL-002):** ícones, recarga visível e custo de mana/stamina; teclas em [interface](interface.md#teclas-e-atalhos).
+- **Sorteio (SKILL-004):** três skills distintas do pool do modelo-base; gravadas no exemplar; fusão não altera (DEC-003).
+- **Rede (SKILL-005):** faixa 4000–4999; `SkillRecusada` com motivo na tela.
+- **Combate (SKILL-006):** `PropriedadesDaSkill` no `CatalogoSkills`; integração em [combate](combate.md#atributos-secundários-e-pipeline-624).
 
 ## Depende de
 
