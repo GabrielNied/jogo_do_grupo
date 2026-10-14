@@ -56,18 +56,14 @@ namespace JogoDoGrupo.Client.Features.Social
             return entraram;
         }
 
+        /// <summary>Remove uma linha específica, por exemplo uma recusa após o prazo de exibição.</summary>
+        public bool Remover(LinhaDeChat linha) => _linhas.Remove(linha);
+
         /// <summary>
         /// As últimas <paramref name="quantidade"/> linhas que podem aparecer (sem as de nomes
         /// ignorados), da mais antiga para a mais nova.
         /// </summary>
-        public List<LinhaDeChat> Ultimas(int quantidade, ListaDeIgnorados ignorados) =>
-            Ultimas(quantidade, ignorados, null);
-
-        public List<LinhaDeChat> Ultimas(
-            int quantidade,
-            ListaDeIgnorados ignorados,
-            EstadoDeAmigos amigos
-        )
+        public List<LinhaDeChat> Ultimas(int quantidade, EstadoDeAmigos amigos)
         {
             var resultado = new List<LinhaDeChat>();
             for (var i = _linhas.Count - 1; i >= 0 && resultado.Count < quantidade; i--)
@@ -76,10 +72,8 @@ namespace JogoDoGrupo.Client.Features.Social
                 var escondida =
                     !linha.Propria
                     && linha.Canal != CanalDaLinha.Sistema
-                    && (
-                        (ignorados != null && ignorados.Contem(linha.Nome))
-                        || (amigos != null && amigos.Contem(linha.Nome))
-                    );
+                    && amigos != null
+                    && amigos.Contem(linha.Nome);
                 if (!escondida)
                 {
                     resultado.Add(linha);

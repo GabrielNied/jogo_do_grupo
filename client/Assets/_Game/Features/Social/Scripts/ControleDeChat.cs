@@ -223,11 +223,7 @@ namespace JogoDoGrupo.Client.Features.Social
 
             _atividade.Registrar(Agora());
             var fuso = TimeZoneInfo.Local.GetUtcOffset(DateTimeOffset.UtcNow);
-            var linhas = _servico.Historico.Ultimas(
-                HistoricoDeChat.Maximo,
-                _servico.Ignorados,
-                _servico.Amigos
-            );
+            var linhas = _servico.Historico.Ultimas(HistoricoDeChat.Maximo, _servico.Amigos);
             _painel.Mostrar(
                 VisaoDoChat.Filtrar(
                     linhas,
