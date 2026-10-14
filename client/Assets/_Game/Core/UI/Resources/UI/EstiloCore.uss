@@ -349,6 +349,53 @@
     color: var(--lumora-cores-texto-secundario);
 }
 
+.janela-raiz-tela-inteira {
+    padding: 0;
+    background-image: none;
+    background-color: var(--lumora-cores-petroleo);
+}
+
+.janela-tela-inteira {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    min-width: 0;
+    min-height: 0;
+}
+
+.janela-tela-inteira .janela-conteudo {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    min-width: 0;
+    min-height: 0;
+}
+
+.janela-tela-inteira .janela-cabecalho {
+    position: absolute;
+    left: var(--lumora-espacamento-padrao);
+    right: var(--lumora-espacamento-padrao);
+    top: var(--lumora-espacamento-padrao);
+    padding: var(--lumora-espacamento-pequeno) var(--lumora-espacamento-medio);
+    background-color: var(--lumora-cores-topo);
+    border-width: 0;
+    border-radius: var(--lumora-bordas-raio-cartao);
+}
+
+.janela-tela-inteira .janela-rodape {
+    position: absolute;
+    left: var(--lumora-espacamento-padrao);
+    bottom: var(--lumora-espacamento-padrao);
+    margin: 0;
+    padding: var(--lumora-espacamento-pequeno);
+    background-color: var(--lumora-cores-painel);
+    border-radius: var(--lumora-bordas-raio-cartao);
+}
+
 .barra-atalhos {
     position: absolute;
     left: var(--lumora-espacamento-grande);

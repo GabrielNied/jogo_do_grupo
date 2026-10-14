@@ -37,7 +37,36 @@ namespace JogoDoGrupo.Client.Features.Mundo
         public const string AreaDaCidade = "cidade";
 
         /// <summary>Quantas amostras de bioma o mapa-múndi pinta de cada lado.</summary>
-        public const int LadoDasAmostras = 40;
+        public const int LadoDasAmostras = 256;
+
+        /// <summary>Pixel do centro de um lugar no mapa de tamanho informado (origem no topo).</summary>
+        public static void PixelDoLugar(
+            LugarDoMapa lugar,
+            int largura,
+            int altura,
+            out int pixelX,
+            out int pixelY
+        )
+        {
+            if (lugar == null || lugar.Pecas == null || lugar.Pecas.Length == 0)
+            {
+                pixelX = largura / 2;
+                pixelY = altura / 2;
+                return;
+            }
+
+            var x = 0f;
+            var z = 0f;
+            foreach (var peca in lugar.Pecas)
+            {
+                x += peca.X;
+                z += peca.Z;
+            }
+
+            NoMapa(x / lugar.Pecas.Length, z / lugar.Pecas.Length, out var u, out var v);
+            pixelX = (int)Math.Round(u * largura);
+            pixelY = (int)Math.Round((1f - v) * altura);
+        }
 
         /// <summary>
         /// Ponto do minimapa em -1..1, com o jogador no centro e o norte para cima.

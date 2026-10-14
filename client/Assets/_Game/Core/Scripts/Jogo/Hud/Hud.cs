@@ -54,6 +54,15 @@ namespace JogoDoGrupo.Client.Core.Jogo
         /// <summary>Mensagens de sistema na tela, ou <c>null</c> fora do mundo.</summary>
         internal static PainelDeAvisos Avisos => _avisos;
 
+        /// <summary>Esconde o HUD enquanto uma janela de tela inteira está aberta.</summary>
+        internal static void DefinirVisivel(bool visivel)
+        {
+            if (_raiz != null)
+            {
+                _raiz.style.display = visivel ? DisplayStyle.Flex : DisplayStyle.None;
+            }
+        }
+
         /// <summary>
         /// Cria o HUD atrás de tudo o que já está em <paramref name="container"/>. Se já
         /// existir, remove antes.

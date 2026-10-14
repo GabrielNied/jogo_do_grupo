@@ -2,6 +2,7 @@ using JogoDoGrupo.Client.Core.Jogo.Controle;
 using JogoDoGrupo.Client.Core.Jogo.Janelas;
 using JogoDoGrupo.Client.Core.UI;
 using UnityEngine;
+using DisplayStyle = UnityEngine.UIElements.DisplayStyle;
 using VisualElement = UnityEngine.UIElements.VisualElement;
 
 namespace JogoDoGrupo.Client.Core.Jogo
@@ -91,6 +92,7 @@ namespace JogoDoGrupo.Client.Core.Jogo
             }
 
             _menu?.Fechar();
+            Hud.DefinirVisivel(true);
             // Sai da tela já: a cena do mundo só termina de descarregar depois.
             _barra?.Remover();
             LiberarCursor();
@@ -196,12 +198,17 @@ namespace JogoDoGrupo.Client.Core.Jogo
 
             if (_barra != null)
             {
+                _barra.Raiz.style.display = _apresentador.TelaInteiraAberta
+                    ? DisplayStyle.None
+                    : DisplayStyle.Flex;
                 _barra.Destacar(_janelas.ChaveAberta);
-                if (_janelas.ChaveAberta != null)
+                if (_janelas.ChaveAberta != null && !_apresentador.TelaInteiraAberta)
                 {
                     _barra.TrazerParaFrente();
                 }
             }
+
+            Hud.DefinirVisivel(!_apresentador.TelaInteiraAberta);
 
             var livre = !_janelas.AlgoAberto;
             DefinirInputAtivo(livre);

@@ -170,7 +170,7 @@ O HUD só **mostra** o que o servidor já enviou. Ele não decide vida, dano, al
 | Parte de baixo, centro | **Mensagens de sistema** | avisos das funcionalidades (convite, loot, erro) |
 | Canto superior direito | Minimapa | [mundo.md](mundo.md#minimapa) |
 
-Nada do HUD recebe clique, salvo o que uma funcionalidade pedir (ex.: aceitar convite): o cursor fica preso à câmera durante o jogo. Com o menu do Esc aberto, o HUD continua visível por baixo, sem atualizar animações de aviso atrasadas (um aviso que já venceu não aparece ao fechar o menu). **Direção aprovada para o mapa, pendente da #506:** o mapa ocupa a tela inteira e oculta a HUD do personagem; só os controles e informações do mapa ficam sobre ele.
+Nada do HUD recebe clique, salvo o que uma funcionalidade pedir (ex.: aceitar convite): o cursor fica preso à câmera durante o jogo. Com o menu do Esc aberto, o HUD continua visível por baixo, sem atualizar animações de aviso atrasadas (um aviso que já venceu não aparece ao fechar o menu). Com o mapa em tela inteira, a HUD do personagem fica oculta; só os controles e informações do próprio mapa aparecem sobre ele (veja [Mapa-múndi](mundo.md#mapa-múndi)).
 
 O bloco de recursos e experiência deve permanecer legível sem competir com o chat. A distância entre eles acompanha a altura resolvida do bloco inferior, inclusive com texto ampliado; em largura estreita, ambos têm limite de largura relativo à área disponível. Conferir o conjunto em 1280 × 720, 1920 × 1080, 2560 × 1440, 960 × 720 e 640 × 720.
 
