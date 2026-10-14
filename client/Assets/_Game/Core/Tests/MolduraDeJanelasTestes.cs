@@ -21,7 +21,9 @@ namespace JogoDoGrupo.Client.Core.Tests
             public int Fechamentos;
             public bool FalharAoMontar;
             public bool Social;
+            public bool Cheia;
             public override bool MolduraSocial => Social;
+            public override bool TelaInteira => Cheia;
 
             protected override void Montar(VisualElement conteudo)
             {
@@ -71,6 +73,21 @@ namespace JogoDoGrupo.Client.Core.Tests
                     .ClassListContains("ui-painel-social")
             );
             presenter.Esconder();
+        }
+
+        [Test]
+        public void JanelaDeTelaInteira_UsaConteudoSemMolduraRolavel()
+        {
+            var apresentador = new ApresentadorDeJanelas(new VisualElement(), null);
+            apresentador.Mostrar(Definicao(() => new JanelaDeTeste { Cheia = true }));
+
+            Assert.IsTrue(apresentador.TelaInteiraAberta);
+            Assert.IsNotNull(apresentador.Raiz.Q<VisualElement>(null, "janela-tela-inteira"));
+            Assert.IsNull(apresentador.Raiz.Q<ScrollView>());
+            Assert.IsNotNull(apresentador.Raiz.Q<Label>("teste.rotulo"));
+
+            apresentador.Esconder();
+            Assert.IsFalse(apresentador.TelaInteiraAberta);
         }
 
         [Test]

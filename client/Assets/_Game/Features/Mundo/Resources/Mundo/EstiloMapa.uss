@@ -1,0 +1,92 @@
+.mundo-mapa-tela {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    overflow: hidden;
+    background-color: var(--lumora-cores-campo);
+    -unity-background-scale-mode: stretch-to-fill;
+}
+
+.mundo-mapa-norte,
+.mundo-mapa-legenda,
+.mundo-mapa-posicao,
+.mundo-mapa-preparando,
+.mundo-mapa-lugar {
+    position: absolute;
+    padding: var(--lumora-espacamento-pequeno) var(--lumora-espacamento-medio);
+    background-color: var(--lumora-cores-painel);
+    border-radius: var(--lumora-bordas-raio-cartao);
+    color: var(--lumora-cores-marfim);
+    white-space: normal;
+}
+
+.mundo-mapa-norte {
+    top: var(--lumora-dimensoes-atalho-altura);
+    right: var(--lumora-espacamento-padrao);
+    color: var(--lumora-cores-ouro);
+}
+
+.mundo-mapa-legenda {
+    left: var(--lumora-espacamento-padrao);
+    bottom: var(--lumora-dimensoes-atalho-altura);
+    max-width: var(--lumora-dimensoes-painel-entrada);
+}
+
+.mundo-mapa-posicao {
+    right: var(--lumora-espacamento-padrao);
+    bottom: var(--lumora-dimensoes-atalho-altura);
+    max-width: var(--lumora-dimensoes-painel-entrada);
+}
+
+.mundo-mapa-preparando {
+    top: 50%;
+    left: 50%;
+    -unity-text-align: middle-center;
+}
+
+.mundo-mapa-lugar {
+    flex-direction: row;
+    align-items: center;
+    max-width: var(--lumora-dimensoes-item);
+    border-width: var(--lumora-bordas-fina);
+    border-color: var(--lumora-cores-borda-discreta);
+}
+
+.mundo-mapa-lugar-simbolo {
+    color: var(--lumora-cores-ouro);
+    margin-right: var(--lumora-espacamento-curto);
+}
+
+.mundo-mapa-lugar-passagem {
+    flex-direction: row-reverse;
+}
+
+.mundo-mapa-lugar-passagem .mundo-mapa-lugar-simbolo {
+    margin-right: 0;
+    margin-left: var(--lumora-espacamento-curto);
+}
+
+.mundo-mapa-lugar-nome {
+    color: var(--lumora-cores-marfim);
+    white-space: normal;
+}
+
+.lumora-compacto .mundo-mapa-legenda,
+.lumora-compacto .mundo-mapa-posicao {
+    max-width: var(--lumora-dimensoes-recursos-largura);
+}
+
+.lumora-estreito .mundo-mapa-legenda {
+    bottom: var(--lumora-dimensoes-dica-base);
+}
+
+.lumora-estreito .mundo-mapa-posicao {
+    left: var(--lumora-espacamento-padrao);
+    right: auto;
+}
+
+.lumora-estreito .mundo-mapa-lugar-nome {
+    display: none;
+}

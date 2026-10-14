@@ -20,37 +20,28 @@ namespace JogoDoGrupo.Client.Features.Mundo
         private VisualElement _mapa;
         private VisualElement _marcadores;
         private Label _posicao;
+        private Label _preparando;
         private Vector2? _sobMouse;
         private IVisualElementScheduledItem _agenda;
+        private IVisualElementScheduledItem _agendaGeracao;
         private readonly List<MarcadorDoMapa> _outros = new List<MarcadorDoMapa>();
-        private readonly Color32[] _amostras = new Color32[
-            ProjecaoDoMapa.LadoDasAmostras * ProjecaoDoMapa.LadoDasAmostras
-        ];
+
+        public override bool TelaInteira => true;
 
         protected override void Montar(VisualElement conteudo)
         {
-            PreencherAmostras();
-            var legenda = new Label("Cidade e o terreno em volta. Sem viagem rápida.");
-            legenda.AddToClassList(EstiloCore.Texto);
-            conteudo.Add(legenda);
-
-            _posicao = new Label();
-            _posicao.AddToClassList(EstiloCore.Texto);
-            conteudo.Add(_posicao);
+            var estilo = Resources.Load<StyleSheet>("Mundo/EstiloMapa");
+            if (estilo != null)
+            {
+                conteudo.styleSheets.Add(estilo);
+            }
 
             _mapa = new VisualElement { name = "mundo.mapa-mundi" };
-            _mapa.AddToClassList("mundo-mapa");
-            _mapa.RegisterCallback<GeometryChangedEvent>(e =>
-            {
-                // Mantém a proporção ao estreitar a área disponível.
-                if (e.newRect.width > 0 && e.newRect.height != e.newRect.width)
-                    _mapa.style.height = e.newRect.width;
-            });
+            _mapa.AddToClassList("mundo-mapa-tela");
             _mapa.RegisterCallback<PointerMoveEvent>(e =>
                 _sobMouse = PontoDoMouse(e.localPosition)
             );
             _mapa.RegisterCallback<PointerLeaveEvent>(e => _sobMouse = null);
-            _mapa.generateVisualContent += DesenharFundo;
             conteudo.Add(_mapa);
 
             _marcadores = new VisualElement();
@@ -62,31 +53,101 @@ namespace JogoDoGrupo.Client.Features.Mundo
             _marcadores.style.bottom = 0;
             _marcadores.generateVisualContent += DesenharMarcadores;
             _mapa.Add(_marcadores);
+
+            foreach (var lugar in EstruturasDoMapa.Lugares)
+            {
+                AdicionarLugar(lugar);
+            }
+
+            var norte = new Label("N ↑");
+            norte.AddToClassList(EstiloCore.Texto);
+            norte.AddToClassList("mundo-mapa-norte");
+            _mapa.Add(norte);
+
+            var legenda = new Label("◆ Lugares   ◆ Caverna   ▲ Você  ·  Sem viagem rápida");
+            legenda.AddToClassList(EstiloCore.Texto);
+            legenda.AddToClassList("mundo-mapa-legenda");
+            _mapa.Add(legenda);
+
+            _posicao = new Label();
+            _posicao.AddToClassList(EstiloCore.Texto);
+            _posicao.AddToClassList("mundo-mapa-posicao");
+            _mapa.Add(_posicao);
+
+            _preparando = new Label("Preparando mapa...");
+            _preparando.AddToClassList(EstiloCore.Texto);
+            _preparando.AddToClassList("mundo-mapa-preparando");
+            _mapa.Add(_preparando);
+            AplicarTextura();
         }
 
         protected override void AoAbrir()
         {
+            Atualizar();
             _agenda = Conteudo.schedule.Execute(Atualizar).Every(200);
+            if (TexturaDoMapa.Pronta == null)
+            {
+                _agendaGeracao = Conteudo.schedule.Execute(AvancarTextura).Every(16);
+            }
         }
 
         protected override void AoFechar()
         {
             _agenda?.Pause();
             _agenda = null;
+            _agendaGeracao?.Pause();
+            _agendaGeracao = null;
         }
 
-        private void PreencherAmostras()
+        private void AvancarTextura()
+        {
+            if (!TexturaDoMapa.Avancar(8))
+            {
+                return;
+            }
+
+            AplicarTextura();
+            _agendaGeracao?.Pause();
+            _agendaGeracao = null;
+        }
+
+        private void AplicarTextura()
+        {
+            var textura = TexturaDoMapa.Pronta;
+            _preparando.style.display = textura == null ? DisplayStyle.Flex : DisplayStyle.None;
+            if (textura != null)
+            {
+                _mapa.style.backgroundImage = Background.FromTexture2D(textura);
+            }
+        }
+
+        private void AdicionarLugar(LugarDoMapa lugar)
         {
             var lado = ProjecaoDoMapa.LadoDasAmostras;
-            for (var linha = 0; linha < lado; linha++)
-            {
-                for (var coluna = 0; coluna < lado; coluna++)
-                {
-                    ProjecaoDoMapa.MundoDaAmostra(coluna, linha, out var x, out var z);
-                    var cor = CoresDosBiomas.Do(MapaDoMundo.BiomaEm(x, z));
-                    _amostras[linha * lado + coluna] = cor;
-                }
-            }
+            ProjecaoDoMapa.PixelDoLugar(lugar, lado, lado, out var pixelX, out var pixelY);
+            var marcador = new VisualElement();
+            marcador.AddToClassList("mundo-mapa-lugar");
+            marcador.EnableInClassList(
+                "mundo-mapa-lugar-passagem",
+                lugar.Tipo == TipoDeEstrutura.Passagem
+            );
+            marcador.tooltip = lugar.Nome;
+            marcador.pickingMode = PickingMode.Ignore;
+            marcador.style.left = Length.Percent(pixelX * 100f / lado);
+            marcador.style.top = Length.Percent(pixelY * 100f / lado);
+
+            var simbolo = new Label("◆");
+            simbolo.AddToClassList(EstiloCore.Texto);
+            simbolo.AddToClassList("mundo-mapa-lugar-simbolo");
+            simbolo.pickingMode = PickingMode.Ignore;
+            marcador.Add(simbolo);
+
+            var nome = new Label(lugar.Nome);
+            nome.AddToClassList(EstiloCore.Texto);
+            nome.AddToClassList("mundo-mapa-lugar-nome");
+            nome.pickingMode = PickingMode.Ignore;
+            marcador.Add(nome);
+            _mapa.Add(marcador);
         }
 
         private void Atualizar()
@@ -139,30 +200,6 @@ namespace JogoDoGrupo.Client.Features.Mundo
             _posicao.text = texto;
         }
 
-        private void DesenharFundo(MeshGenerationContext contexto)
-        {
-            var ret = _mapa.contentRect;
-            if (ret.width < 1f)
-            {
-                return;
-            }
-
-            var lado = ProjecaoDoMapa.LadoDasAmostras;
-            var largura = ret.width / lado;
-            var altura = ret.height / lado;
-            var pincel = contexto.painter2D;
-            for (var linha = 0; linha < lado; linha++)
-            {
-                for (var coluna = 0; coluna < lado; coluna++)
-                {
-                    var cor = (Color)_amostras[linha * lado + coluna];
-                    var x = coluna * largura;
-                    var y = ret.height - (linha + 1) * altura;
-                    Retangulo(pincel, x, y, largura + 0.5f, altura + 0.5f, cor);
-                }
-            }
-        }
-
         private void DesenharMarcadores(MeshGenerationContext contexto)
         {
             var ret = _marcadores.contentRect;
@@ -172,30 +209,35 @@ namespace JogoDoGrupo.Client.Features.Mundo
             }
 
             var pincel = contexto.painter2D;
+            ProjecaoDoMapa.NoMapa(
+                0f,
+                MapaDoMundo.MetadeDaCidade,
+                out var estradaU,
+                out var estradaV
+            );
+            ProjecaoDoMapa.NoMapa(0f, MapaDoMundo.RaioTransicao2, out _, out var fimEstradaV);
+            pincel.strokeColor = CoresDosBiomas.Estrada;
+            pincel.lineWidth = Mathf.Max(2f, ret.width * 8f / MapaDoMundo.Lado);
+            pincel.BeginPath();
+            pincel.MoveTo(new Vector2(estradaU * ret.width, (1f - estradaV) * ret.height));
+            pincel.LineTo(new Vector2(estradaU * ret.width, (1f - fimEstradaV) * ret.height));
+            pincel.Stroke();
+
             var jogador = EntradaNoJogo.Jogador;
-            if (
-                jogador != null
-                && ProjecaoDoMapa.DentroDaCidade(
-                    jogador.transform.position.x,
-                    jogador.transform.position.z
-                )
-            )
-            {
-                ProjecaoDoMapa.RetanguloDaCidade(out var u0, out var v0, out var u1, out var v1);
-                var x = u0 * ret.width;
-                var y = (1f - v1) * ret.height;
-                var largura = (u1 - u0) * ret.width;
-                var altura = (v1 - v0) * ret.height;
-                pincel.strokeColor = EstiloVisual.Cor(ConfigVisual.Cores.Ouro);
-                pincel.lineWidth = ConfigVisual.Bordas.Destaque;
-                pincel.BeginPath();
-                pincel.MoveTo(new Vector2(x, y));
-                pincel.LineTo(new Vector2(x + largura, y));
-                pincel.LineTo(new Vector2(x + largura, y + altura));
-                pincel.LineTo(new Vector2(x, y + altura));
-                pincel.ClosePath();
-                pincel.Stroke();
-            }
+            ProjecaoDoMapa.RetanguloDaCidade(out var u0, out var v0, out var u1, out var v1);
+            var x = u0 * ret.width;
+            var y = (1f - v1) * ret.height;
+            var largura = (u1 - u0) * ret.width;
+            var altura = (v1 - v0) * ret.height;
+            pincel.strokeColor = EstiloVisual.Cor(ConfigVisual.Cores.Ouro);
+            pincel.lineWidth = ConfigVisual.Bordas.Destaque;
+            pincel.BeginPath();
+            pincel.MoveTo(new Vector2(x, y));
+            pincel.LineTo(new Vector2(x + largura, y));
+            pincel.LineTo(new Vector2(x + largura, y + altura));
+            pincel.LineTo(new Vector2(x, y + altura));
+            pincel.ClosePath();
+            pincel.Stroke();
 
             // A boca da primeira caverna.
             Ponto(
@@ -256,25 +298,6 @@ namespace JogoDoGrupo.Client.Features.Mundo
             pincel.LineTo(new Vector2(centro.x + raio, centro.y));
             pincel.LineTo(new Vector2(centro.x, centro.y + raio));
             pincel.LineTo(new Vector2(centro.x - raio, centro.y));
-            pincel.ClosePath();
-            pincel.Fill();
-        }
-
-        private static void Retangulo(
-            Painter2D pincel,
-            float x,
-            float y,
-            float largura,
-            float altura,
-            Color cor
-        )
-        {
-            pincel.fillColor = cor;
-            pincel.BeginPath();
-            pincel.MoveTo(new Vector2(x, y));
-            pincel.LineTo(new Vector2(x + largura, y));
-            pincel.LineTo(new Vector2(x + largura, y + altura));
-            pincel.LineTo(new Vector2(x, y + altura));
             pincel.ClosePath();
             pincel.Fill();
         }
