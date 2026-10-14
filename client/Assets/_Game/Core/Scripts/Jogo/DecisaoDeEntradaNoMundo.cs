@@ -1,6 +1,6 @@
 namespace JogoDoGrupo.Client.Core.Jogo
 {
-    internal enum DecisaoDoEsc
+    public enum DecisaoDoEsc
     {
         IgnorarPorEntradaDeTexto,
         IgnorarPorConsumoAnterior,

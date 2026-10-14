@@ -323,6 +323,10 @@ Adotado em 2026-10-11 (/decida), a partir da proposta da issue; é valor inicial
 | Vulnerável | +15% de dano recebido | não acumula |
 | Fortalecido | +15% de dano causado | não acumula |
 
-- Cada efeito tem duração própria, em constante nomeada.
-- **Bosses são imunes a atordoado:** em vez disso acumulam uma barra de **quebra**; ao encher, abre a janela de vulnerabilidade da [fatia jogável](fatia-jogavel.md).
-- Testes esperados: duração e acúmulo de cada efeito, imunidade após o atordoado, boss não atordoa e enche a barra de quebra.
+- Cada efeito tem duração própria, em constante nomeada (`ConfigEfeitosDeStatus`).
+- **Bosses são imunes a atordoado:** em vez disso acumulam uma barra de **quebra**; ao encher (100 pontos), abre a janela de vulnerabilidade da [fatia jogável](fatia-jogavel.md) com o status Vulnerável.
+- **Implementação:**
+  - **Shared:** `TipoEfeitoDeStatus`, `ConfigEfeitosDeStatus`, contas puras em `RegrasEfeitosDeStatus`, DTO `InstanciaEfeitoDeStatus`, mensagens `EfeitosDeStatusMudaram` (6040) e `BarraDeQuebraMudou` (6041), e código de erro `VoceEstaAtordoado`.
+  - **Servidor:** `GerenciadorDeEfeitosDeStatus` autoritativo gerencia durações, acúmulos, ticks de DoT, período de 6 s de imunidade pós-atordoamento e barra de quebra de chefes; integrado ao `ControleDeAcoes` (bloqueia ataques, esquivas e guarda quando atordoado), `ServicoDeAtaques` (multiplica dano causado por Fortalecido e dano no alvo por Vulnerável) e `ServicoDeDanoRecebido` (multiplica dano recebido por Vulnerável).
+  - **Client:** `ControleEfeitosDeStatus`, `ControleBarraDeQuebra` e `ApresentacaoEfeitosDeStatus` para gerenciar e formatar estados visuais e tempos restantes.
+- **Testes:** `RegrasEfeitosDeStatusTestes` (shared) e `GerenciadorDeEfeitosDeStatusTestes` (servidor).

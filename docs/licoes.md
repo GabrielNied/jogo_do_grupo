@@ -9,6 +9,12 @@ Formato: `### AAAA-MM-DD · título` com **O que houve**, **Regra** e **Origem**
 - **Commite em etapas pequenas, mesmo em trabalho em andamento.** O que não está num commit pode sumir.
 - **Um problema novo vira lição no mesmo PR que o corrigiu** (ou num PR de docs logo depois), não só uma conversa.
 
+### 2026-10-14 · Diagnóstico anterior ao puxar ficou desatualizado
+
+- **O que houve:** enquanto o acesso ao GitHub era liberado, a `main` ganhou `ClienteApi.Delete`; o `puxar` trouxe a correção, mas aplicar o diagnóstico anterior duplicou o método e exigiu outra recompilação.
+- **Regra:** depois do `puxar`, releia apenas os trechos que pretende corrigir e confirme quais erros continuam antes de editar. O procedimento está na skill [puxar-tarefa](../.claude/skills/puxar-tarefa/SKILL.md#22-plano-antes-de-codar-tarefa-de-jogo).
+- **Origem:** issue #748.
+
 ### 2026-10-11 · Branch velha e checkout dividido (issue #442)
 
 - **O que houve:** `npm run tarefa -- puxar` sem `--worktree` caiu no fallback e criou a branch a partir da `main` local velha (o `pull` falhou por um `.mat` modificado). Depois, outra sessão trocou o HEAD do checkout principal no meio da edição.

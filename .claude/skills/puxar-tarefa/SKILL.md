@@ -51,6 +51,8 @@ Com aviso, rode o `git diff` mostrado (não releia a doc inteira) e compare com 
 
 ## 2.2. Plano antes de codar (tarefa de jogo)
 
+O `puxar` atualiza a base da branch: antes de aplicar um diagnóstico anterior, releia só os trechos que vai editar e confirme quais erros continuam. Veja a [lição sobre diagnóstico desatualizado](../../../docs/licoes.md#2026-10-14--diagnóstico-anterior-ao-puxar-ficou-desatualizado).
+
 Logo depois de puxar, escreva o plano num comentário da issue (`gh issue comment <N>`), ou confirme o da ficha se o coordenador já fez: casos de uso, estados da checklist de experiência que se aplicam e os testes que saem deles. Formato e checklist em [Plano da tarefa](../../../docs/agentes.md#plano-da-tarefa). Siga em frente; só pare se houver dúvida de regra. Tarefa de processo, docs ou infra não precisa.
 
 ## 3. Subtarefas para vários agentes em paralelo

@@ -21,13 +21,13 @@ Skills que vêm dos itens (sorteadas) e da raça, com custo e recarga.
 - **Poucas skills ativas, com recarga que pesa: sem spam** (ritmo do New World, preferência do grupo em 2026-10-10)
 - Skills de itens incluem buffs de grupo que complementam o time (papéis tank, healer e DPS; veja [combate.md](combate.md))
 - ~~Cada classe tem suas magias, com custo e recarga~~ substituído em 2026-10-10: não há classes (D2), as skills vêm dos itens (D3)
-- **Decisões consolidadas na [#167](https://github.com/GabrielNied/jogo_do_grupo/issues/167) (SKILL-001 a SKILL-006):**
-  - **SKILL-001:** a skill ativa pertence à arma equipada no conjunto ativo; desequipar ou trocar de conjunto troca as skills ativas. A recarga fica na arma.
-  - **SKILL-002:** a barra tem **3** ativas por arma. **Teclas 1, 2 e 3** (decidido na implementação; Q, E e R eram a alternativa).
-  - **SKILL-003:** armas trazem as skills ativas; armaduras e acessórios trazem poderes lendários (modificadores) e bônus de set, **sem ativas extras** na barra ([itens](itens.md#poderes-e-sets)).
-  - **SKILL-004:** a quantidade (3) e as opções vêm do **modelo-base** da arma (o tipo: espada, martelo, arco, cajado, foco, escudo). O servidor sorteia e grava no exemplar; a fusão preserva (DEC-003).
-  - **SKILL-005:** o servidor valida tudo: arma equipada, recarga e custo (mana ou stamina). Recusa com `SkillRecusada`; nada é gasto numa recusa.
-  - **SKILL-006:** cada skill declara `PropriedadesDaSkill` (categoria de dano, tipo de efeito e as flags de crítico, penetração e velocidade), para os poderes e a árvore se ligarem a ela ([combate](combate.md#atributos-secundários-e-pipeline-624)).
+- **Skills nas armas ([#167](https://github.com/GabrielNied/jogo_do_grupo/issues/167)), decidido em 2026-10-14** (valores de teste em constantes, fácil de mudar):
+  - **SKILL-001:** as **ativas** da barra vêm da **arma principal do conjunto ativo** (`Arma1`/`Arma2` quando existir troca — [#580](https://github.com/GabrielNied/jogo_do_grupo/issues/580)). Desequipar ou trocar de conjunto altera a barra na hora. A **recarga fica no exemplar da arma**, não no personagem.
+  - **SKILL-002:** **3 skills ativas** por arma, teclas **1, 2 e 3** ([interface](interface.md#teclas-e-atalhos)). Duas armas com recargas separadas ficam para a #580; a fatia joga com uma espada.
+  - **SKILL-003:** só a **arma** coloca ativas na barra. **Armaduras e acessórios** não somam ativa extra: modificam as skills da arma com **poderes lendários** e **bônus de set** ([#629](https://github.com/GabrielNied/jogo_do_grupo/issues/629), [#630](https://github.com/GabrielNied/jogo_do_grupo/issues/630)).
+  - **SKILL-004:** as **3 opções** vêm do **modelo-base** (tipo de arma): o servidor sorteia **sem repetição** no pool, grava por **exemplar** (`SkillsDoExemplar`; o id do exemplar não muda na fusão, DEC-003). Catálogo inicial em `ConfigSkills` / `CatalogoDeSkills`.
+  - **SKILL-005:** uso **autoritativo** no servidor: custo em **mana** ou **stamina** ([fatia-jogavel](fatia-jogavel.md#1-atributos-e-recursos)); recarga por slot da arma. Recusa com `SkillRecusada` (4000–4999) se faltar recurso, estiver em recarga, não houver arma ou o personagem estiver caído.
+  - **SKILL-006:** cada skill declara **`PropriedadesDaSkill`** para a pipeline de [combate](combate.md#atributos-secundários-e-pipeline-624), poderes (#629) e [talentos](talentos.md).
 
 ## Skills de arma (implementado, #167)
 
@@ -86,32 +86,35 @@ Skills de utilidade que continuam no catálogo anterior (não fazem parte das 25
 ### Perguntas que o board abre
 
 - [ ] Hino do Recomeço (levantar caído por skill) e Vínculo Vital: confirmar com [personagem.md](personagem.md#morte-e-caído-issue-97) que o levantar manual continua valendo para todos.
-- [ ] Conflito livro x docs: o board propõe **todas as peças** com skill (armadura e acessório), enquanto "Em aberto" ainda pergunta se toda peça pode ter skill. Manter a pergunta até o grupo validar.
-- [ ] Conflito livro x docs: o board propõe **uma skill por item, fixa até a fusão** e que ela some se o item sai; isso responde a "A skill pertence ao item equipado" como proposta, mas a pergunta continua em aberto até o grupo validar.
-- [ ] Conflito livro x docs: "poucas skills ativas, sem spam" (definido) x **24 posições na barra** (3 abas de 8). O orçamento de 12 pontos é o que limita; confirmar com o grupo.
+- [x] ~~Conflito livro x docs: todas as peças com skill~~ Decidido em 2026-10-12/2026-10-14: **armas** trazem as ativas da barra; **outras peças** modificam via poderes/sets, não ativas extras (SKILL-003). Preparação com orçamento (#339) continua proposta do board.
+- [x] ~~Conflito livro x docs: skill fixa no item~~ Decidido: sorteio no exemplar da arma, preservado na fusão; some ao desequipar (SKILL-001, SKILL-004).
+- [x] ~~Conflito livro x docs: poucas skills ativas x 24 posições na barra~~ Decidido para a fatia ([#167](https://github.com/GabrielNied/jogo_do_grupo/issues/167)): **3 ativas por arma** (SKILL-002); orçamento de 12 pontos e 3×8 slots do livro ficam na proposta de preparação ([#339](https://github.com/GabrielNied/jogo_do_grupo/issues/339)).
 
 ## Em aberto
 
-- [x] ~~A skill pertence ao item equipado ou o jogador aprende a skill do item?~~ Respondido em 2026-10-14 (SKILL-001): pertence à **arma equipada** no conjunto ativo; trocou a arma, trocou a barra.
-- [x] ~~Quantas skills ativas ao mesmo tempo?~~ Respondido em 2026-10-14 (SKILL-002): 3 por arma (teclas 1, 2 e 3); com duas armas ([#580](https://github.com/GabrielNied/jogo_do_grupo/issues/580)) serão 3 por arma, uma barra de cada vez.
-- [x] ~~Modelo da skill no item: sorteada e fixa, peça por peça ou encaixável?~~ Respondido em 2026-10-10: a skill do item é a magia que o jogador usa, e pode ser ativa, passiva ou buff (veja "Definido")
-- [ ] Quantas skills de cada tipo um item pode ter? Toda peça de equipamento pode ter skill, ou só algumas (arma, acessórios)? **Em parte decidido por Gabriel em 2026-10-12:** a quantidade vem do **modelo-base** do item, não da raridade. Armas têm seus conjuntos de skills; armaduras e acessórios **modificam** essas skills com poderes próprios; item especial pode ter exceção declarada nos dados ([itens](itens.md#poderes-e-sets)). **Respondido em 2026-10-14 (SKILL-003, SKILL-004):** só a arma dá skills ativas, 3 por arma, do pool do tipo; armadura e acessório só modificam, por poderes (#629 e #630). Exceção de item especial continua para quando houver item especial.
-- [x] Como funciona o sorteio: **lista de skills por tipo de arma** (modelo-base), sem repetir e fixa no exemplar; por região fica para depois (respondido em 2026-10-14). ~~Por raridade?~~ A raridade saiu em 2026-10-12 (tier pelos atributos, que não depende das skills; [itens](itens.md#tier)).
-- [x] ~~A fusão mistura as skills dos itens?~~ Decidido em 2026-10-12: não. A fusão muda um atributo e preserva as skills do item principal ([itens](itens.md#fusão)).
-- [ ] ~~Quantas magias por classe?~~ não há classes (D2)
-- [x] Recurso usado: **stamina** nas skills físicas e **mana** nas mágicas; energia saiu (respondido em 2026-10-14).
+- [x] ~~A skill pertence ao item equipado ou o jogador aprende?~~ Decidido em 2026-10-14 (SKILL-001): pertence à **arma equipada** no conjunto ativo.
+- [x] ~~Quantas skills ativas ao mesmo tempo?~~ Decidido em 2026-10-14 (SKILL-002): **3 por arma** (teclas 1, 2, 3); duas armas na [#580](https://github.com/GabrielNied/jogo_do_grupo/issues/580).
+- [x] ~~Modelo da skill no item: sorteada e fixa, peça por peça ou encaixável?~~ Respondido em 2026-10-10: ativa, passiva ou buff (veja "Definido").
+- [x] ~~Quantas skills de cada tipo e quais peças?~~ Decidido em 2026-10-12/2026-10-14 (SKILL-003, SKILL-004): **3 ativas** na **arma**; armaduras/acessórios via **poderes** ([#629](https://github.com/GabrielNied/jogo_do_grupo/issues/629)). Item especial: exceção declarada nos dados quando existir.
+- [x] ~~Como funciona o sorteio?~~ Decidido em 2026-10-14: pool por **tipo de arma**, sem repetição, fixo no exemplar (`SkillsDoExemplar`). ~~Por raridade?~~ saiu em 2026-10-12.
+- [x] ~~A fusão mistura as skills dos itens?~~ Decidido em 2026-10-12: não ([itens](itens.md#fusão), DEC-003).
+- [x] ~~Quantas magias por classe?~~ Não há classes (D2).
+- [x] ~~Recurso usado?~~ Decidido em 2026-10-14 (SKILL-005): **mana** ou **stamina** por skill; não "energia" genérica.
+- [ ] Pools de skills de armas de regiões avançadas além do Vale ([#340](https://github.com/GabrielNied/jogo_do_grupo/issues/340)).
 
 ## Regras
 
-Veja [Skills de arma](#skills-de-arma-implementado-167) em Definido.
+SKILL-001 a SKILL-006 em **Definido**; comportamento implementado em [Skills de arma](#skills-de-arma-implementado-167).
 
 ## Depende de
 
-- **Itens:** `IArmaEquipada` (a arma principal do conjunto ativo) e `EquipamentoMudou`; `IAtributosDosEquipamentos` (dano da arma e flat).
-- **Combate:** `ICobrancaDeRecursos` (cobra stamina ou mana de forma atômica), `IAlvosDeCombate` (alvos no cone e dano). As barras de recursos mostram o gasto pelo `RecursosMudaram` de Combate.
-- **Mundo:** `IPosicoesDoMundo` (de onde sai a skill e quem está na área).
+- **Itens:** `IArmaEquipada` (arma principal do conjunto ativo) e `EquipamentoMudou`; `IAtributosDosEquipamentos` (dano da arma e flat).
+- **Combate:** `ICobrancaDeRecursos` (cobra stamina ou mana de forma atômica), `IAlvosDeCombate` (alvos no cone e dano). Barras de recurso via `RecursosMudaram` de Combate.
+- **Mundo:** `IPosicoesDoMundo` (origem da skill e área).
 
 ## Expõe
 
-- Mensagens 4000 a 4005 (`SkillsMessageIds`): `UsarSkill`, `PedirBarraDeSkills`, `BarraDeSkillsMudou`, `SkillUsada`, `SkillAcertou`, `SkillRecusada`.
-- `CatalogoDeSkills` e `DefinicaoDeSkill` (com `PropriedadesDaSkill`) no shared, para os poderes (#629) e a árvore lerem a skill.
+Contratos em `shared/Package/Runtime/Features/Skills/`:
+
+- Mensagens **4000–4005** (`SkillsMessageIds`): `UsarSkill`, `PedirBarraDeSkills`, `BarraDeSkillsMudou`, `SkillUsada`, `SkillAcertou`, `SkillRecusada`.
+- `CatalogoDeSkills`, `DefinicaoDeSkill` (com `PropriedadesDaSkill`) e `RegrasSkills` (validações puras de custo e recarga).

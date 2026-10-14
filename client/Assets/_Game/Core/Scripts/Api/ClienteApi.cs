@@ -118,6 +118,16 @@ namespace JogoDoGrupo.Client.Core.Api
             return resposta;
         }
 
+        /// <summary><c>DELETE</c> sem corpo cuja resposta de sucesso não tem corpo.</summary>
+        /// <param name="rota">Rota do shared, começando com "/".</param>
+        /// <param name="autenticar">Se a rota é protegida (envia o token e trata 401).</param>
+        public static async Awaitable<RespostaApi> Delete(string rota, bool autenticar = true)
+        {
+            var resposta = new RespostaApi();
+            await Executar(UnityWebRequest.kHttpVerbDELETE, rota, null, autenticar, resposta, null);
+            return resposta;
+        }
+
         /// <summary>
         /// Envia a requisição e preenche <paramref name="resposta"/>. <paramref name="lerCorpo"/>
         /// (opcional) roda só no sucesso, antes do descarte da requisição.
