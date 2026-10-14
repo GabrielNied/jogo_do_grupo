@@ -1,6 +1,8 @@
+using JogoDoGrupo.Client.Core.Jogo;
 using JogoDoGrupo.Client.Core.Jogo.Janelas;
 using JogoDoGrupo.Client.Core.UI;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.UIElements;
 
 namespace JogoDoGrupo.Client.Features.Social
@@ -43,10 +45,10 @@ namespace JogoDoGrupo.Client.Features.Social
             _convite.Add(_textoConvite);
             var acoes = new VisualElement();
             acoes.AddToClassList(EstiloCore.LinhaBotoes);
-            var aceitar = new Button(() => Responder(true)) { text = "Aceitar" };
+            var aceitar = new Button(() => Responder(true)) { text = "Aceitar (Y)" };
             aceitar.AddToClassList(EstiloCore.Botao);
             aceitar.AddToClassList(EstiloCore.BotaoPrincipal);
-            var recusar = new Button(() => Responder(false)) { text = "Recusar" };
+            var recusar = new Button(() => Responder(false)) { text = "Recusar (N)" };
             recusar.AddToClassList(EstiloCore.Botao);
             acoes.Add(aceitar);
             acoes.Add(recusar);
@@ -63,7 +65,21 @@ namespace JogoDoGrupo.Client.Features.Social
             }
         }
 
-        private void Update() => Atualizar();
+        private void Update()
+        {
+            Atualizar();
+            if (
+                _convite?.style.display != DisplayStyle.Flex
+                || BloqueioDeEntradaPorTexto.AtalhosDoJogoBloqueados()
+                || Keyboard.current == null
+            )
+                return;
+
+            if (Keyboard.current.yKey.wasPressedThisFrame)
+                Responder(true);
+            else if (Keyboard.current.nKey.wasPressedThisFrame)
+                Responder(false);
+        }
 
         internal void Atualizar()
         {

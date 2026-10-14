@@ -360,12 +360,12 @@ namespace JogoDoGrupo.Client.Features.Social.Tests
             {
                 ReceberConvite(5, "Bia");
                 aviso.Atualizar();
-                Click(_raiz.Query<Button>().ToList().First(b => b.text == "Aceitar"));
+                Click(_raiz.Query<Button>().ToList().First(b => b.text == "Aceitar (Y)"));
                 Assert.IsTrue(Ultimo<ResponderConvite>(SocialMessageIds.ResponderConvite).Aceitar);
 
                 ReceberConvite(6, "Caio");
                 aviso.Atualizar();
-                Click(_raiz.Query<Button>().ToList().First(b => b.text == "Recusar"));
+                Click(_raiz.Query<Button>().ToList().First(b => b.text == "Recusar (N)"));
                 Assert.IsFalse(Ultimo<ResponderConvite>(SocialMessageIds.ResponderConvite).Aceitar);
             }
             finally

@@ -236,7 +236,7 @@ Quem decide: **servidor**. O client envia o texto e o canal; o servidor valida, 
 - A mensagem sem comando vai para o **último canal usado** (o primeiro é Cidade). `/r texto` responde ao último sussurro recebido.
 - Comando desconhecido não é enviado ao servidor: aparece uma linha de Sistema explicando. **`/comandos`** lista chat e, no editor ou build de desenvolvimento, os [comandos de teste](desenvolvimento.md). **Tab** completa o verbo depois de `/`.
 - ~~A tecla Enter para abrir o chat entra na tabela de teclas e atalhos quando o chat for implementado.~~ A tecla Enter já está na tabela de [teclas e atalhos](interface.md#teclas-e-atalhos) (client do chat, #240).
-- No client, o histórico de 100 linhas vale enquanto o jogo está aberto; a lista de ignorados vem do servidor. A Social copia os avisos do HUD para o canal Sistema. Convites pendentes mostram **Aceitar** e **Recusar** no próprio aviso sobre o jogo, além da janela do grupo.
+- No client, o histórico de 100 linhas vale enquanto o jogo está aberto; a lista de ignorados vem do servidor. A Social copia os avisos do HUD para o canal Sistema. Convites pendentes mostram **Aceitar (Y)** e **Recusar (N)** no próprio aviso sobre o jogo, além da janela do grupo. Os atalhos funcionam com o cursor travado e não disparam enquanto a pessoa digita no chat.
 
 #### O que o servidor decide e valida
 
