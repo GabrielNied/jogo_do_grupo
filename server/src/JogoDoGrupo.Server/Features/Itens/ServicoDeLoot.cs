@@ -241,7 +241,8 @@ public sealed class ServicoDeLoot(
             IsolationLevel.Serializable
         );
 
-        var capacidade = Bolsa.CapacidadeDe(personagemId);
+        var estado = await db.Set<EstadoEquipamentos>().FindAsync(personagemId);
+        var capacidade = Bolsa.CapacidadeDe(estado);
         var existentes = await db.Set<ItemInventario>()
             .Where(i =>
                 i.PersonagemId == personagemId && i.Posicao == PosicaoEquipamento.Inventario

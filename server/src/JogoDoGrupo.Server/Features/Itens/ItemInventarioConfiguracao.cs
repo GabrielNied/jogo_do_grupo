@@ -40,6 +40,9 @@ internal sealed class EstadoEquipamentosConfiguracao : IEntityTypeConfiguration<
         estado.HasKey(e => e.PersonagemId);
         estado.Property(e => e.PersonagemId).ValueGeneratedNever();
         estado
+            .Property(e => e.AbasBolsa)
+            .HasDefaultValue(JogoDoGrupo.Shared.Features.Itens.RegrasItens.AbasBolsaInicial);
+        estado
             .HasOne<PersonagemEntidade>()
             .WithMany()
             .HasForeignKey(e => e.PersonagemId)

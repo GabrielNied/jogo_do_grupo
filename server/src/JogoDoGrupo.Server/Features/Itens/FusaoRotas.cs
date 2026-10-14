@@ -200,10 +200,12 @@ internal static class FusaoRotas
         }
         await db.SaveChangesAsync(c);
         var estado = await db.Set<EstadoEquipamentos>().FindAsync(new object[] { id }, c);
+        var capacidade = Bolsa.CapacidadeDe(estado);
         var resposta = EquipamentosRotas.Resposta(
             itens,
             estado?.ConjuntoAtivo ?? 1,
-            await ItensRotas.NivelAsync(id, db, c)
+            await ItensRotas.NivelAsync(id, db, c),
+            capacidade
         );
         resposta.ModoFusao = true;
         resposta.Coroas = await carteira.SaldoAsync(id, c);

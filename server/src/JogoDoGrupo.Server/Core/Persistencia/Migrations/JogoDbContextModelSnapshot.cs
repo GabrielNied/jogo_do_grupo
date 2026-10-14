@@ -100,6 +100,11 @@ namespace JogoDoGrupo.Server.Core.Persistencia.Migrations
                     b.Property<long>("PersonagemId")
                         .HasColumnType("INTEGER");
 
+                    b.Property<int>("AbasBolsa")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(1);
+
                     b.Property<int>("ConjuntoAtivo")
                         .HasColumnType("INTEGER");
 
