@@ -1,5 +1,6 @@
 using JogoDoGrupo.Client.Core.Jogo.Controle;
 using JogoDoGrupo.Client.Core.Jogo.Janelas;
+using JogoDoGrupo.Client.Core.TempoReal;
 using JogoDoGrupo.Client.Core.UI;
 using UnityEngine;
 using VisualElement = UnityEngine.UIElements.VisualElement;
@@ -43,6 +44,7 @@ namespace JogoDoGrupo.Client.Core.Jogo
                 _apresentador.Esconder
             );
             _janelas.Mudou += Sincronizar;
+            ConexaoTempoReal.EstadoMudou += AoMudarConexao;
             _atalhos = new AtalhosDeJanelas(registro.Definicoes);
             if (Navegacao.Container != null)
             {
@@ -98,6 +100,7 @@ namespace JogoDoGrupo.Client.Core.Jogo
 
         private void OnDestroy()
         {
+            ConexaoTempoReal.EstadoMudou -= AoMudarConexao;
             _acoes?.Dispose();
             _acoes = null;
             _atalhos?.Dispose();
@@ -113,7 +116,7 @@ namespace JogoDoGrupo.Client.Core.Jogo
 
         private void Update()
         {
-            if (EntradaNoJogo.EntradaPendente)
+            if (EntradaNoJogo.EntradaPendente || !ConexaoTempoReal.Conectado)
             {
                 return;
             }
@@ -167,6 +170,8 @@ namespace JogoDoGrupo.Client.Core.Jogo
             FocoEmCampoDeTexto.TemCampoComFoco(hud)
             || BloqueioDeEntradaPorTexto.AtalhosDoJogoBloqueados();
 
+        private void AoMudarConexao(EstadoTempoReal _) => Sincronizar();
+
         private void FecharMenu()
         {
             _janelas?.DefinirMenuAberto(false);
@@ -201,7 +206,10 @@ namespace JogoDoGrupo.Client.Core.Jogo
                 }
             }
 
-            var livre = !_janelas.AlgoAberto && !EntradaNoJogo.EntradaPendente;
+            var livre =
+                !_janelas.AlgoAberto
+                && !EntradaNoJogo.EntradaPendente
+                && ConexaoTempoReal.Conectado;
             DefinirInputAtivo(livre);
             if (_barra != null)
             {

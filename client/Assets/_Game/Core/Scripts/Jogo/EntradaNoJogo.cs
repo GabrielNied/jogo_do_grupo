@@ -138,6 +138,14 @@ namespace JogoDoGrupo.Client.Core.Jogo
                 while (!ConexaoTempoReal.Conectado)
                 {
                     cancelar.ThrowIfCancellationRequested();
+                    if (
+                        ConexaoTempoReal.Estado == EstadoTempoReal.Desconectado
+                        && !string.IsNullOrEmpty(ConexaoTempoReal.UltimoErro)
+                    )
+                    {
+                        throw new InvalidOperationException("Não foi possível conectar ao mundo.");
+                    }
+
                     if (PrazoEsgotado(inicioDaEspera, Time.realtimeSinceStartup))
                     {
                         throw new TimeoutException("A conexão com o mundo não foi concluída.");
