@@ -13,12 +13,21 @@ namespace JogoDoGrupo.Client.Features.Social
     internal sealed class AvisoDoGrupoNaTela : MonoBehaviour
     {
         private Label _aviso;
+        private VisualElement _convite;
+        private Label _textoConvite;
+        private long _conviteAtual;
+        private EstadoDoGrupo _estado;
         private PanelSettings _configuracaoDoPainel;
 
         /// <summary>Liga o aviso à interface. Chamar antes de ativar.</summary>
-        public void Configurar(VisualElement raizDaInterface, PanelSettings configuracaoDoPainel)
+        public void Configurar(
+            VisualElement raizDaInterface,
+            PanelSettings configuracaoDoPainel,
+            EstadoDoGrupo estado = null
+        )
         {
             _configuracaoDoPainel = configuracaoDoPainel;
+            _estado = estado ?? GrupoDoClient.Estado;
 
             // O aviso não pode pegar o mouse nem esconder o jogo: texto solto embaixo da tela.
             _aviso = new Label();
@@ -26,6 +35,23 @@ namespace JogoDoGrupo.Client.Features.Social
             _aviso.AddToClassList(EstiloCore.Dica);
             _aviso.AddToClassList(EstiloSocial.AvisoNaTela);
             raizDaInterface.Add(_aviso);
+
+            _convite = new VisualElement { name = "social.convite.na-tela" };
+            _convite.AddToClassList("social-convite-tela");
+            _textoConvite = new Label();
+            _textoConvite.AddToClassList(EstiloCore.Texto);
+            _convite.Add(_textoConvite);
+            var acoes = new VisualElement();
+            acoes.AddToClassList(EstiloCore.LinhaBotoes);
+            var aceitar = new Button(() => Responder(true)) { text = "Aceitar" };
+            aceitar.AddToClassList(EstiloCore.Botao);
+            aceitar.AddToClassList(EstiloCore.BotaoPrincipal);
+            var recusar = new Button(() => Responder(false)) { text = "Recusar" };
+            recusar.AddToClassList(EstiloCore.Botao);
+            acoes.Add(aceitar);
+            acoes.Add(recusar);
+            _convite.Add(acoes);
+            raizDaInterface.Add(_convite);
             Mostrar("");
         }
 
@@ -37,18 +63,31 @@ namespace JogoDoGrupo.Client.Features.Social
             }
         }
 
-        private void Update()
+        private void Update() => Atualizar();
+
+        internal void Atualizar()
         {
             if (_aviso == null)
             {
                 return;
             }
 
-            // Com janela ou menu aberto, o convite aparece dentro da janela do grupo.
-            var texto = JanelasDoJogo.AlgoAberto
-                ? ""
-                : ApresentacaoGrupo.TextoNaTela(GrupoDoClient.Estado, JanelaGrupo.Tecla);
-            Mostrar(texto);
+            var estado = _estado;
+            var visivel = !JanelasDoJogo.AlgoAberto && estado.Convites.Count > 0;
+            _convite.style.display = visivel ? DisplayStyle.Flex : DisplayStyle.None;
+            if (visivel)
+            {
+                var convite = estado.Convites[estado.Convites.Count - 1];
+                _conviteAtual = convite.ConviteId;
+                _textoConvite.text = ApresentacaoGrupo.TextoDoConvite(convite);
+            }
+            Mostrar(visivel || JanelasDoJogo.AlgoAberto ? "" : estado.Mensagem);
+        }
+
+        private void Responder(bool aceitar)
+        {
+            if (_conviteAtual != 0)
+                _estado.Responder(_conviteAtual, aceitar);
         }
 
         private void Mostrar(string texto)

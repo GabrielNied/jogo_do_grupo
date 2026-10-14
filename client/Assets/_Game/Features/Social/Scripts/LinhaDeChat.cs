@@ -1,3 +1,5 @@
+using JogoDoGrupo.Client.Core.Jogo;
+
 namespace JogoDoGrupo.Client.Features.Social
 {
     /// <summary>Canal de uma linha do chat na tela. Sistema só existe no client.</summary>
@@ -19,7 +21,8 @@ namespace JogoDoGrupo.Client.Features.Social
             string nomeDoAlvo,
             string texto,
             long horaUnixMs,
-            bool propria
+            bool propria,
+            CategoriaDeAviso categoria = CategoriaDeAviso.Sistema
         )
         {
             Canal = canal;
@@ -29,6 +32,7 @@ namespace JogoDoGrupo.Client.Features.Social
             Texto = texto ?? "";
             HoraUnixMs = horaUnixMs;
             Propria = propria;
+            Categoria = categoria;
         }
 
         public CanalDaLinha Canal { get; }
@@ -46,7 +50,12 @@ namespace JogoDoGrupo.Client.Features.Social
         /// <summary>Se foi o próprio jogador quem falou (nunca é escondida por ignorar).</summary>
         public bool Propria { get; }
 
-        public static LinhaDeChat Sistema(string texto, long horaUnixMs) =>
-            new LinhaDeChat(CanalDaLinha.Sistema, 0, "", "", texto, horaUnixMs, true);
+        public CategoriaDeAviso Categoria { get; }
+
+        public static LinhaDeChat Sistema(
+            string texto,
+            long horaUnixMs,
+            CategoriaDeAviso categoria = CategoriaDeAviso.Sistema
+        ) => new LinhaDeChat(CanalDaLinha.Sistema, 0, "", "", texto, horaUnixMs, true, categoria);
     }
 }

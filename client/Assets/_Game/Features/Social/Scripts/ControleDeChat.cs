@@ -19,6 +19,8 @@ namespace JogoDoGrupo.Client.Features.Social
         private PainelDeChat _painel;
         private AtividadeDoPainel _atividade;
         private InputAction _enter;
+        private InputAction _paginaAcima;
+        private InputAction _paginaAbaixo;
         private int _frameDaAbertura = -1;
 
         public void Configurar(ServicoDeChat servico, PainelDeChat painel)
@@ -29,15 +31,28 @@ namespace JogoDoGrupo.Client.Features.Social
 
             _enter = new InputAction("ChatAbrir", InputActionType.Button, "<Keyboard>/enter");
             _enter.AddBinding("<Keyboard>/numpadEnter");
+            _paginaAcima = new InputAction(
+                "ChatPaginaAcima",
+                InputActionType.Button,
+                "<Keyboard>/pageUp"
+            );
+            _paginaAbaixo = new InputAction(
+                "ChatPaginaAbaixo",
+                InputActionType.Button,
+                "<Keyboard>/pageDown"
+            );
             if (isActiveAndEnabled)
             {
                 _enter.Enable();
+                _paginaAcima.Enable();
+                _paginaAbaixo.Enable();
             }
 
             _servico.Mudou += Redesenhar;
             _painel.EnterApertado += AoApertarEnter;
             _painel.EscApertado += AoApertarEsc;
             _painel.CompletarTexto += CompletadorDeComandosDeChat.Completar;
+            _painel.ConfiguracaoMudou += Redesenhar;
             ChatDoJogo.AbrirCaixaDeTexto = AbrirComTexto;
             ChatDoJogo.AlternarCaixaDeTexto = AlternarCaixa;
             BloqueioDeEntradaPorTexto.RegistrarBloqueioDeAtalhos(() => _painel.Aberta);
@@ -47,11 +62,15 @@ namespace JogoDoGrupo.Client.Features.Social
         private void OnEnable()
         {
             _enter?.Enable();
+            _paginaAcima?.Enable();
+            _paginaAbaixo?.Enable();
         }
 
         private void OnDisable()
         {
             _enter?.Disable();
+            _paginaAcima?.Disable();
+            _paginaAbaixo?.Disable();
         }
 
         private void OnDestroy()
@@ -59,6 +78,7 @@ namespace JogoDoGrupo.Client.Features.Social
             if (_servico != null)
             {
                 _servico.Mudou -= Redesenhar;
+                _painel.ConfiguracaoMudou -= Redesenhar;
             }
 
             if (ChatDoJogo.AbrirCaixaDeTexto == AbrirComTexto)
@@ -72,6 +92,8 @@ namespace JogoDoGrupo.Client.Features.Social
             }
 
             _enter?.Dispose();
+            _paginaAcima?.Dispose();
+            _paginaAbaixo?.Dispose();
         }
 
         private void Update()
@@ -93,6 +115,11 @@ namespace JogoDoGrupo.Client.Features.Social
             {
                 Abrir();
             }
+
+            if (!JanelasDoJogo.AlgoAberto && _paginaAcima.WasPressedThisFrame())
+                _painel.RolarPagina(true);
+            if (!JanelasDoJogo.AlgoAberto && _paginaAbaixo.WasPressedThisFrame())
+                _painel.RolarPagina(false);
 
             _painel.Esmaecer(_atividade.Esmaecido(Agora(), _painel.Aberta));
         }
@@ -196,11 +223,17 @@ namespace JogoDoGrupo.Client.Features.Social
 
             _atividade.Registrar(Agora());
             var fuso = TimeZoneInfo.Local.GetUtcOffset(DateTimeOffset.UtcNow);
+            var linhas = _servico.Historico.Ultimas(
+                HistoricoDeChat.Maximo,
+                _servico.Ignorados,
+                _servico.Amigos
+            );
             _painel.Mostrar(
-                _servico.Historico.Ultimas(
-                    PainelDeChat.LinhasVisiveis,
-                    _servico.Ignorados,
-                    _servico.Amigos
+                VisaoDoChat.Filtrar(
+                    linhas,
+                    _painel.Filtro,
+                    PreferenciasDeAvisos.MostrarSistema,
+                    PreferenciasDeAvisos.MostrarCombate
                 ),
                 fuso
             );

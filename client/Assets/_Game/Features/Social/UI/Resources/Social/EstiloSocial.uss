@@ -66,6 +66,30 @@
     font-size: var(--lumora-tipografia-subtitulo);
 }
 
+.social-convite-tela {
+    position: absolute;
+    left: var(--lumora-espacamento-padrao);
+    right: var(--lumora-espacamento-padrao);
+    bottom: var(--lumora-dimensoes-social-aviso-base);
+    max-width: var(--lumora-dimensoes-chat-largura);
+    align-self: center;
+    padding: var(--lumora-espacamento-medio);
+    background-color: var(--lumora-cores-painel);
+    border-width: var(--lumora-bordas-fina);
+    border-color: var(--lumora-cores-ouro);
+    border-radius: var(--lumora-bordas-raio-cartao);
+}
+
+.social-convite-tela .linha-botoes {
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+.social-convite-tela .botao {
+    flex-grow: 1;
+    min-width: var(--lumora-dimensoes-social-acao);
+}
+
 .lumora-estreito .social-convidar {
     flex-direction: column;
     align-items: stretch;
