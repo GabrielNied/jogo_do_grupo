@@ -2,6 +2,10 @@
 .chat {
     width: var(--lumora-dimensoes-chat-largura);
     max-width: 100%;
+    min-width: 0;
+}
+
+.chat-painel {
     transition-property: opacity;
     transition-duration: 0.4s;
 }
@@ -11,6 +15,8 @@
 }
 
 .chat-linhas {
+    height: var(--lumora-dimensoes-chat-altura);
+    min-height: 0;
     padding: var(--lumora-espacamento-curto) var(--lumora-espacamento-pequeno);
     background-color: var(--lumora-cores-painel);
     border-width: var(--lumora-bordas-fina);
@@ -42,4 +48,79 @@
 
 .chat-campo {
     margin: var(--lumora-espacamento-minimo) 0 0;
+}
+
+.chat-cabecalho, .chat-opcoes {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    background-color: var(--lumora-cores-painel);
+    padding: var(--lumora-espacamento-curto);
+    border-width: var(--lumora-bordas-fina);
+    border-color: var(--lumora-cores-borda-discreta);
+}
+
+.chat-cabecalho > .subtitulo {
+    flex-grow: 1;
+    margin: 0;
+}
+
+.chat-cabecalho > .botao, .chat-abrir, .chat-ir-ao-fim {
+    min-height: var(--lumora-dimensoes-alvo-minimo);
+    margin: 0 0 0 var(--lumora-espacamento-curto);
+}
+
+.chat-filtro {
+    min-width: 110px;
+    flex-shrink: 1;
+    color: var(--lumora-cores-marfim);
+    background-color: var(--lumora-cores-painel);
+}
+
+.chat-filtro .unity-base-popup-field__input {
+    background-color: var(--lumora-cores-campo);
+    color: var(--lumora-cores-marfim);
+    border-width: var(--lumora-bordas-fina);
+    border-color: var(--lumora-cores-borda-discreta);
+}
+
+.chat-filtro .unity-base-popup-field__text {
+    color: var(--lumora-cores-marfim);
+}
+
+.chat-filtro .unity-base-popup-field__arrow {
+    -unity-background-image-tint-color: var(--lumora-cores-ouro);
+}
+
+.chat-opcoes .unity-toggle__input {
+    background-color: var(--lumora-cores-campo);
+    border-width: var(--lumora-bordas-fina);
+    border-color: var(--lumora-cores-borda-discreta);
+}
+
+.chat-linhas .unity-scroller {
+    background-color: var(--lumora-cores-campo);
+}
+
+.chat-linhas .unity-scroller__slider {
+    background-color: var(--lumora-cores-borda-discreta);
+}
+
+.chat-opcoes > Toggle {
+    color: var(--lumora-cores-marfim);
+    margin-right: var(--lumora-espacamento-pequeno);
+    min-height: var(--lumora-dimensoes-alvo-minimo);
+}
+
+.chat-abrir { align-self: flex-start; }
+.chat-ir-ao-fim { align-self: flex-end; }
+
+.chat-vazio {
+    color: var(--lumora-cores-texto-secundario);
+    font-size: var(--lumora-tipografia-leitura);
+}
+
+.lumora-estreito .chat-cabecalho {
+    flex-direction: column;
+    align-items: stretch;
 }

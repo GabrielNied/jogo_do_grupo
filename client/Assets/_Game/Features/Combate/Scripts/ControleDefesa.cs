@@ -232,7 +232,11 @@ namespace JogoDoGrupo.Client.Features.Combate
             _proximaTentativa = Time.unscaledTimeAsDouble + EsperaDepoisDaRecusaSegundos;
             if (guarda.Quebrou)
             {
-                AvisosDoJogo.Mostrar(TextoGuardaQuebrou, TipoDeAviso.Erro);
+                AvisosDoJogo.Mostrar(
+                    TextoGuardaQuebrou,
+                    TipoDeAviso.Erro,
+                    CategoriaDeAviso.Combate
+                );
             }
         }
 
@@ -240,7 +244,11 @@ namespace JogoDoGrupo.Client.Features.Combate
         {
             if (bloqueio.PersonagemId == _personagemId)
             {
-                AvisosDoJogo.Mostrar(TextoGolpeBloqueado, TipoDeAviso.Aviso);
+                AvisosDoJogo.Mostrar(
+                    TextoGolpeBloqueado,
+                    TipoDeAviso.Aviso,
+                    CategoriaDeAviso.Combate
+                );
             }
         }
 

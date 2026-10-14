@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using JogoDoGrupo.Client.Core.Jogo;
 using JogoDoGrupo.Client.Core.Jogo.Chat;
 using JogoDoGrupo.Shared.Features.Social;
 using NUnit.Framework;
@@ -50,6 +51,39 @@ namespace JogoDoGrupo.Client.Features.Social.Tests
                 () => _agora,
                 _ignorados
             );
+        }
+
+        [Test]
+        public void HistoricoLongo_ApareceInteiroNaRolagem()
+        {
+            var linhas = new List<LinhaDeChat>();
+            for (var i = 0; i < HistoricoDeChat.Maximo; i++)
+                linhas.Add(LinhaDeChat.Sistema($"linha {i}", i));
+
+            var painel = new PainelDeChat(new VisualElement());
+            painel.Mostrar(linhas, TimeSpan.Zero);
+
+            var rolagem = painel.Raiz.Q<ScrollView>("social.chat.historico");
+            Assert.AreEqual(
+                HistoricoDeChat.Maximo,
+                rolagem.Query<Label>(className: "chat-linha").ToList().Count
+            );
+        }
+
+        [Test]
+        public void FiltroSeparaCanalSistemaECombateSemApagarHistorico()
+        {
+            var linhas = new List<LinhaDeChat>
+            {
+                new LinhaDeChat(CanalDaLinha.Grupo, 1, "Bia", "", "oi", 1, false),
+                LinhaDeChat.Sistema("sistema", 2),
+                LinhaDeChat.Sistema("golpe", 3, CategoriaDeAviso.Combate),
+            };
+
+            Assert.AreEqual(1, VisaoDoChat.Filtrar(linhas, FiltroDoChat.Grupo, true, true).Count);
+            Assert.AreEqual(2, VisaoDoChat.Filtrar(linhas, FiltroDoChat.Todos, false, true).Count);
+            Assert.AreEqual(1, VisaoDoChat.Filtrar(linhas, FiltroDoChat.Todos, false, false).Count);
+            Assert.AreEqual(3, linhas.Count);
         }
 
         private static MensagemDeChat Mensagem(
@@ -660,7 +694,7 @@ namespace JogoDoGrupo.Client.Features.Social.Tests
         }
 
         [Test]
-        public void Painel_MostraTextoComMarcasComoTextoPuro_ESoAsUltimas8Linhas()
+        public void Painel_MostraTextoComMarcasComoTextoPuro_NoHistoricoRolavel()
         {
             var regiao = new VisualElement();
             var painel = new PainelDeChat(regiao);
@@ -673,14 +707,14 @@ namespace JogoDoGrupo.Client.Features.Social.Tests
             painel.Mostrar(linhas, TimeSpan.Zero);
 
             var rotulos = painel.Raiz.Query<Label>(className: "chat-linha").ToList();
-            Assert.AreEqual(PainelDeChat.LinhasVisiveis, rotulos.Count);
+            Assert.AreEqual(10, rotulos.Count);
             foreach (var rotulo in rotulos)
             {
                 Assert.IsFalse(rotulo.enableRichText);
             }
 
-            StringAssert.Contains("<color=red>oi</color>", rotulos[7].text);
-            StringAssert.Contains("l2", rotulos[0].text);
+            StringAssert.Contains("<color=red>oi</color>", rotulos[9].text);
+            StringAssert.Contains("l0", rotulos[0].text);
         }
 
         [Test]

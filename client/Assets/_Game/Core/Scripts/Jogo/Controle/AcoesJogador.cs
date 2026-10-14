@@ -7,13 +7,12 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
     /// <summary>
     /// Ações de input do jogador no mundo (Input System), criadas em código com as mesmas teclas
     /// do mapa "Player" de <c>Core/Input/InputSystem_Actions.inputactions</c>: assim não depende
-    /// de um asset ligado numa cena. Teclado e mouse, com controle como alternativa.
+    /// de um asset ligado numa cena. Teclado e mouse apenas (controle fora do escopo da fatia jogável, veja #508).
     /// </summary>
     internal sealed class AcoesJogador : IDisposable
     {
         private readonly InputAction _mover;
         private readonly InputAction _olharMouse;
-        private readonly InputAction _olharControle;
         private readonly InputAction _correr;
         private readonly InputAction _pular;
         private readonly InputAction _subir;
@@ -38,7 +37,6 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
                 .With("Down", "<Keyboard>/downArrow")
                 .With("Left", "<Keyboard>/leftArrow")
                 .With("Right", "<Keyboard>/rightArrow");
-            _mover.AddBinding("<Gamepad>/leftStick");
 
             _olharMouse = new InputAction(
                 "OlharMouse",
@@ -46,16 +44,9 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
                 "<Mouse>/delta",
                 expectedControlType: "Vector2"
             );
-            _olharControle = new InputAction(
-                "OlharControle",
-                InputActionType.Value,
-                "<Gamepad>/rightStick",
-                expectedControlType: "Vector2"
-            );
 
             _correr = new InputAction("Correr", InputActionType.Button, "<Keyboard>/leftShift");
             _correr.AddBinding("<Keyboard>/rightShift");
-            _correr.AddBinding("<Gamepad>/leftStickPress");
 
             _pular = new InputAction("Pular", InputActionType.Button, "<Keyboard>/space");
 
@@ -64,10 +55,6 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
                 .AddCompositeBinding("1DAxis")
                 .With("Positive", "<Keyboard>/space")
                 .With("Negative", "<Keyboard>/leftCtrl");
-            _subir
-                .AddCompositeBinding("1DAxis")
-                .With("Positive", "<Gamepad>/buttonSouth")
-                .With("Negative", "<Gamepad>/buttonEast");
 
             _menu = new InputAction("Menu", InputActionType.Button, "<Keyboard>/escape");
             _menu.AddBinding("<Gamepad>/start");
@@ -92,8 +79,8 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
         /// <summary>Quanto o mouse andou neste frame, em pixels.</summary>
         public Vector2 OlharMouse => _olharMouse.ReadValue<Vector2>();
 
-        /// <summary>Analógico direito do controle, de -1 a 1.</summary>
-        public Vector2 OlharControle => _olharControle.ReadValue<Vector2>();
+        /// <summary>Analógico direito; zero enquanto gamepad estiver fora do escopo (#508).</summary>
+        public Vector2 OlharControle => Vector2.zero;
 
         /// <summary>Se o botão de correr está pressionado.</summary>
         public bool Correr => _correr.IsPressed();
@@ -111,7 +98,6 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
         {
             _mover.Enable();
             _olharMouse.Enable();
-            _olharControle.Enable();
             _correr.Enable();
             _pular.Enable();
             _subir.Enable();
@@ -122,7 +108,6 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
         {
             _mover.Disable();
             _olharMouse.Disable();
-            _olharControle.Disable();
             _correr.Disable();
             _pular.Disable();
             _subir.Disable();
@@ -134,7 +119,6 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
             TeclasDoJogo.Mudou -= AtualizarTeclas;
             _mover.Dispose();
             _olharMouse.Dispose();
-            _olharControle.Dispose();
             _correr.Dispose();
             _pular.Dispose();
             _subir.Dispose();

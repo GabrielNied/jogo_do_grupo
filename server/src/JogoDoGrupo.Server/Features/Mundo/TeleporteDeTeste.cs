@@ -74,7 +74,8 @@ internal sealed class TeleporteDeTeste(
                     outro.Sessao,
                     MundoMessageIds.PosicaoJogador,
                     replica,
-                    EntregaTempoReal.Sequenciada
+                    EntregaTempoReal.Sequenciada,
+                    personagemId
                 );
             }
         }

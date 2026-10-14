@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using JogoDoGrupo.Client.Core.TempoReal;
 using JogoDoGrupo.Client.Core.UI;
 using JogoDoGrupo.Client.Core.Visual;
 using UnityEngine;
@@ -35,6 +36,7 @@ namespace JogoDoGrupo.Client.Core.Jogo
 
         private static VisualElement _raiz;
         private static PainelDeAvisos _avisos;
+        private static ApresentadorDaConexao _conexao;
 
         /// <summary>Se o HUD está na tela (entre a entrada e a saída do mundo).</summary>
         public static bool Montado => _raiz != null;
@@ -50,6 +52,17 @@ namespace JogoDoGrupo.Client.Core.Jogo
 
         /// <summary>Elemento raiz do HUD, ou <c>null</c> fora do mundo.</summary>
         internal static VisualElement Raiz => _raiz;
+
+        /// <summary>
+        /// Mostra ou esconde o HUD (entrada até posição confirmada, janelas de tela inteira, etc.).
+        /// </summary>
+        internal static void DefinirVisivel(bool visivel)
+        {
+            if (_raiz != null)
+            {
+                _raiz.style.display = visivel ? DisplayStyle.Flex : DisplayStyle.None;
+            }
+        }
 
         /// <summary>Mensagens de sistema na tela, ou <c>null</c> fora do mundo.</summary>
         internal static PainelDeAvisos Avisos => _avisos;
@@ -93,6 +106,14 @@ namespace JogoDoGrupo.Client.Core.Jogo
             _avisos = new PainelDeAvisos(_regioes[RegiaoDoHud.InferiorCentro], lista);
             _raiz.schedule.Execute(_avisos.Atualizar).Every(IntervaloAtualizacaoMs);
 
+            _conexao = new ApresentadorDaConexao(
+                new FonteDaConexaoReal(),
+                container,
+                _regioes[RegiaoDoHud.SuperiorDireita],
+                () => ConexaoTempoReal.Conectar(EntradaNoJogo.PersonagemId),
+                EntradaNoJogo.Sair
+            );
+
             // Atrás das telas, janelas e menu que já estiverem (e dos que vierem depois).
             container.Insert(0, _raiz);
         }
@@ -100,6 +121,8 @@ namespace JogoDoGrupo.Client.Core.Jogo
         /// <summary>Tira o HUD da tela, com tudo o que as funcionalidades puseram nas regiões.</summary>
         internal static void Remover()
         {
+            _conexao?.Dispose();
+            _conexao = null;
             // Solta cada região: quem guardou a referência não continua preso ao HUD antigo.
             foreach (var regiao in _regioes.Values)
             {
@@ -109,6 +132,7 @@ namespace JogoDoGrupo.Client.Core.Jogo
             _raiz?.RemoveFromHierarchy();
             _raiz = null;
             _avisos = null;
+            _conexao = null;
             _regioes.Clear();
         }
 
@@ -156,6 +180,8 @@ namespace JogoDoGrupo.Client.Core.Jogo
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void Reiniciar()
         {
+            _conexao?.Dispose();
+            _conexao = null;
             _raiz = null;
             _avisos = null;
             _regioes.Clear();

@@ -165,7 +165,8 @@ namespace JogoDoGrupo.Client.Features.Combate
                         semStamina
                             ? ApresentacaoEsquiva.TextoStaminaInsuficiente
                             : ApresentacaoEsquiva.TextoAcaoEmAndamento,
-                        TipoDeAviso.Aviso
+                        TipoDeAviso.Aviso,
+                        CategoriaDeAviso.Combate
                     );
                     return;
                 }
@@ -226,7 +227,8 @@ namespace JogoDoGrupo.Client.Features.Combate
         {
             AvisosDoJogo.Mostrar(
                 ApresentacaoEsquiva.TextoDaRecusa(recusa.Codigo),
-                TipoDeAviso.Erro
+                TipoDeAviso.Erro,
+                CategoriaDeAviso.Combate
             );
 
             // Para onde está, sem voltar no tempo (ADR 0024): o client é dono do próprio corpo.

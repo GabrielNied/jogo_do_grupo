@@ -1,7 +1,9 @@
 using JogoDoGrupo.Client.Core.Jogo.Controle;
 using JogoDoGrupo.Client.Core.Jogo.Janelas;
+using JogoDoGrupo.Client.Core.TempoReal;
 using JogoDoGrupo.Client.Core.UI;
 using UnityEngine;
+using DisplayStyle = UnityEngine.UIElements.DisplayStyle;
 using VisualElement = UnityEngine.UIElements.VisualElement;
 
 namespace JogoDoGrupo.Client.Core.Jogo
@@ -43,6 +45,7 @@ namespace JogoDoGrupo.Client.Core.Jogo
                 _apresentador.Esconder
             );
             _janelas.Mudou += Sincronizar;
+            ConexaoTempoReal.EstadoMudou += AoMudarConexao;
             _atalhos = new AtalhosDeJanelas(registro.Definicoes);
             if (Navegacao.Container != null)
             {
@@ -91,6 +94,7 @@ namespace JogoDoGrupo.Client.Core.Jogo
             }
 
             _menu?.Fechar();
+            Hud.DefinirVisivel(true);
             // Sai da tela já: a cena do mundo só termina de descarregar depois.
             _barra?.Remover();
             LiberarCursor();
@@ -98,6 +102,7 @@ namespace JogoDoGrupo.Client.Core.Jogo
 
         private void OnDestroy()
         {
+            ConexaoTempoReal.EstadoMudou -= AoMudarConexao;
             _acoes?.Dispose();
             _acoes = null;
             _atalhos?.Dispose();
@@ -113,6 +118,11 @@ namespace JogoDoGrupo.Client.Core.Jogo
 
         private void Update()
         {
+            if (EntradaNoJogo.EntradaPendente || !ConexaoTempoReal.Conectado)
+            {
+                return;
+            }
+
             if (_acoes == null || _janelas == null)
             {
                 return;
@@ -171,6 +181,8 @@ namespace JogoDoGrupo.Client.Core.Jogo
             FocoEmCampoDeTexto.TemCampoComFoco(hud)
             || BloqueioDeEntradaPorTexto.AtalhosDoJogoBloqueados();
 
+        private void AoMudarConexao(EstadoTempoReal _) => Sincronizar();
+
         private void FecharMenu()
         {
             _janelas?.DefinirMenuAberto(false);
@@ -198,14 +210,23 @@ namespace JogoDoGrupo.Client.Core.Jogo
 
             if (_barra != null)
             {
+                _barra.Raiz.style.display =
+                    _apresentador.TelaInteiraAberta || EntradaNoJogo.EntradaPendente
+                        ? DisplayStyle.None
+                        : DisplayStyle.Flex;
                 _barra.Destacar(_janelas.ChaveAberta);
-                if (_janelas.ChaveAberta != null)
+                if (_janelas.ChaveAberta != null && !_apresentador.TelaInteiraAberta)
                 {
                     _barra.TrazerParaFrente();
                 }
             }
 
-            var livre = !_janelas.AlgoAberto;
+            var livre =
+                !_janelas.AlgoAberto
+                && !EntradaNoJogo.EntradaPendente
+                && ConexaoTempoReal.Conectado;
+            Hud.DefinirVisivel(!_apresentador.TelaInteiraAberta);
+
             DefinirInputAtivo(livre);
             if (livre)
             {
@@ -217,6 +238,8 @@ namespace JogoDoGrupo.Client.Core.Jogo
                 LiberarCursor();
             }
         }
+
+        internal void LiberarEntrada() => Sincronizar();
 
         private void DefinirInputAtivo(bool ativo)
         {

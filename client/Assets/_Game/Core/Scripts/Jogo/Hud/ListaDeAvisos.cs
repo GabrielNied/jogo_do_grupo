@@ -6,10 +6,16 @@ namespace JogoDoGrupo.Client.Core.Jogo
     /// <summary>Uma linha das mensagens de sistema.</summary>
     internal sealed class LinhaDeAviso
     {
-        public LinhaDeAviso(string texto, TipoDeAviso tipo, double agora)
+        public LinhaDeAviso(
+            string texto,
+            TipoDeAviso tipo,
+            double agora,
+            CategoriaDeAviso categoria = CategoriaDeAviso.Sistema
+        )
         {
             Texto = texto;
             Tipo = tipo;
+            Categoria = categoria;
             Contagem = 1;
             UltimaVez = agora;
         }
@@ -17,6 +23,7 @@ namespace JogoDoGrupo.Client.Core.Jogo
         public string Texto { get; }
 
         public TipoDeAviso Tipo { get; }
+        public CategoriaDeAviso Categoria { get; }
 
         /// <summary>Quantas vezes a mensagem chegou seguida (aparece como "x2", "x3"...).</summary>
         public int Contagem { get; private set; }
@@ -61,7 +68,11 @@ namespace JogoDoGrupo.Client.Core.Jogo
 
         /// <summary>Acrescenta a mensagem (ou soma no contador da repetida). Texto vazio é ignorado.</summary>
         /// <returns><c>true</c> se as linhas mudaram.</returns>
-        public bool Mostrar(string texto, TipoDeAviso tipo)
+        public bool Mostrar(
+            string texto,
+            TipoDeAviso tipo,
+            CategoriaDeAviso categoria = CategoriaDeAviso.Sistema
+        )
         {
             if (string.IsNullOrWhiteSpace(texto))
             {
@@ -77,6 +88,7 @@ namespace JogoDoGrupo.Client.Core.Jogo
                 if (
                     linha.Texto == texto
                     && linha.Tipo == tipo
+                    && linha.Categoria == categoria
                     && agora - linha.UltimaVez < JanelaDeRepeticao
                 )
                 {
@@ -85,7 +97,7 @@ namespace JogoDoGrupo.Client.Core.Jogo
                 }
             }
 
-            _linhas.Add(new LinhaDeAviso(texto, tipo, agora));
+            _linhas.Add(new LinhaDeAviso(texto, tipo, agora, categoria));
             while (_linhas.Count > Maximo)
             {
                 _linhas.RemoveAt(0);

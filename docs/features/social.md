@@ -223,18 +223,20 @@ Quem decide: **servidor**. O client envia o texto e o canal; o servidor valida, 
 #### Moderação mínima
 
 - O que existe na primeira versão: os limites da tabela acima (frequência, repetição e silêncio automático) e **ignorar jogador**.
-- **Ignorar** (`/ignorar Nome`, `/designorar Nome`): o client esconde as mensagens daquele nome em todos os canais. A lista fica **neste computador** (até **50** nomes), junto com as opções. O servidor não participa; quem foi ignorado não fica sabendo.
+- **Ignorar** (`/ignorar Nome`, `/designorar Nome`): a lista de até **50** nomes fica na conta e vem do servidor. O client esconde na apresentação as mensagens daquele nome em todos os canais; quem foi ignorado não fica sabendo.
 - Ficam fora: filtro de palavrões, denúncia, moderadores e punição manual (itens em "Em aberto").
 - O servidor **não escreve o texto das mensagens no log** (privacidade); registra só quem falou, em que canal e se foi recusada.
 
 #### Na tela (client)
 
-- Painel no canto inferior esquerdo, acima das barras do personagem, mostrando as últimas **8** linhas; cada linha com a hora, o canal e o nome. Sem atividade por **10 s**, o painel fica quase transparente.
+- Painel no canto inferior esquerdo, acima das barras do personagem. A área de leitura tem altura limitada e rola até as **100** linhas locais com roda, PageUp e PageDown. Mensagens novas levam ao fim se a pessoa já estava no fim; o botão **Ir ao fim** volta às recentes. Cada linha tem hora, canal e nome. Sem atividade por **10 s**, o painel fica quase transparente.
+- No cabeçalho, o filtro **Todos, Cidade, Grupo, Sussurro ou Sistema** muda só o que se vê. **Ocultar** recolhe o painel para um botão discreto **Mostrar chat**; Enter também reabre a caixa. O histórico continua chegando com o painel oculto.
+- As opções **Sistema** e **Combate** controlam separadamente a exibição dessas mensagens no chat e dos avisos comuns no HUD. A escolha e o estado oculto ficam neste computador. Avisos de erro continuam no HUD para não esconder uma falha que exige ação. Combate é identificado por categoria explícita ao publicar o aviso, sem inferência pelo texto ou pela cor. As mensagens ocultas continuam no histórico local e reaparecem se a opção for ligada.
 - **Enter** abre a caixa de texto; **Enter** de novo envia; **Esc** fecha sem enviar. Com a caixa aberta, as ações do jogo não disparam (mesma regra do menu, [interface.md](interface.md)).
 - A mensagem sem comando vai para o **último canal usado** (o primeiro é Cidade). `/r texto` responde ao último sussurro recebido.
 - Comando desconhecido não é enviado ao servidor: aparece uma linha de Sistema explicando. **`/comandos`** lista chat e, no editor ou build de desenvolvimento, os [comandos de teste](desenvolvimento.md). **Tab** completa o verbo depois de `/`.
 - ~~A tecla Enter para abrir o chat entra na tabela de teclas e atalhos quando o chat for implementado.~~ A tecla Enter já está na tabela de [teclas e atalhos](interface.md#teclas-e-atalhos) (client do chat, #240).
-- No client, o painel fica na região inferior esquerda do HUD; o histórico de 100 linhas e a lista de ignorados (PlayerPrefs, neste computador) valem enquanto o jogo está aberto. Lacunas do Core: os atalhos de janela (letras) e o Esc ainda disparam com a caixa aberta, e as mensagens de sistema do HUD ainda não são repetidas no chat (pendências do `client-core`).
+- No client, o histórico de 100 linhas vale enquanto o jogo está aberto; a lista de ignorados vem do servidor. A Social copia os avisos do HUD para o canal Sistema. Convites pendentes mostram **Aceitar (Y)** e **Recusar (N)** no próprio aviso sobre o jogo, além da janela do grupo. Os atalhos funcionam com o cursor travado e não disparam enquanto a pessoa digita no chat.
 
 #### O que o servidor decide e valida
 
@@ -384,7 +386,7 @@ Código em `shared/Package/Runtime/Features/Social/`. Tempo real, entrega confi�
 | 13103 | `HistoricoDaCidade` | servidor → quem entra na cidade | `Mensagens[]` (`MensagemDeChat`, da mais antiga para a mais nova) |
 
 - `CodigosErroSocial` ganhou os códigos do chat (`MensagemVazia`, `MensagemLongaDemais`, `MensagensRapidasDemais`, `MensagemRepetida`, `Silenciado`, `CanalIndisponivel`, `SussurroParaSiMesmo`); `NaoEstaEmGrupo` e `AlvoNaoEncontrado` são os mesmos do grupo.
-- `RegrasChat`: os números da tabela de limites como constantes e as contas puras (`Limpar`, `Validar`, `ChaveDeRepeticao`, `FrequenciaEstourou`, `Repetida`, `DeveSilenciar`, `SilencioRestanteSegundos`, `VelhaDemaisParaOHistorico`). Os limites só do client (100 linhas, 50 ignorados, 8 linhas no painel) ficam no client.
+- `RegrasChat`: os números da tabela de limites como constantes e as contas puras (`Limpar`, `Validar`, `ChaveDeRepeticao`, `FrequenciaEstourou`, `Repetida`, `DeveSilenciar`, `SilencioRestanteSegundos`, `VelhaDemaisParaOHistorico`). Os limites só do client (100 linhas e altura de leitura do painel) ficam no client.
 - **Servidor do chat (2026-10-11, primeira fatia):** canais **Cidade** e **Sussurro** com os limites (tamanho, frequência, repetição e silêncio). O terceiro estouro de frequência já responde `Silenciado`. O canal **Grupo** responde `NaoEstaEmGrupo` para todos até o servidor do grupo existir, e o **histórico da Cidade** ainda não é enviado. Código em `server/src/JogoDoGrupo.Server/Features/Social/` (`ChatDoServidor`, `LimitesDoChat`).
 - **Servidor do chat (2026-10-11, segunda fatia):** o **histórico da Cidade** (20 mensagens, 10 minutos) é enviado a quem entra na cidade, só quando há algo a mostrar, e o canal **Grupo** entrega aos membros online do grupo de quem falou (a lista vem do servidor do grupo). Com isso o trecho acima sobre o Grupo responder `NaoEstaEmGrupo` para todos e o histórico não ser enviado deixa de valer. Código: `HistoricoDaCidadeDoChat`.
 

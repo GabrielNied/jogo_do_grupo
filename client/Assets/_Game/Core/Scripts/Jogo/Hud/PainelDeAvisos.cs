@@ -26,13 +26,19 @@ namespace JogoDoGrupo.Client.Core.Jogo
         /// <summary>Elemento com as linhas.</summary>
         public VisualElement Raiz => _raiz;
 
-        public void Mostrar(string texto, TipoDeAviso tipo)
+        public void Mostrar(
+            string texto,
+            TipoDeAviso tipo,
+            CategoriaDeAviso categoria = CategoriaDeAviso.Sistema
+        )
         {
-            if (_lista.Mostrar(texto, tipo))
+            if (_lista.Mostrar(texto, tipo, categoria))
             {
                 Redesenhar();
             }
         }
+
+        public void AtualizarVisibilidade() => Redesenhar();
 
         /// <summary>Tira da tela as linhas vencidas.</summary>
         public void Atualizar()
@@ -61,6 +67,8 @@ namespace JogoDoGrupo.Client.Core.Jogo
             _raiz.Clear();
             foreach (var linha in _lista.Linhas)
             {
+                if (!PreferenciasDeAvisos.PodeMostrar(linha.Categoria, linha.Tipo))
+                    continue;
                 var rotulo = new Label(linha.TextoNaTela);
                 rotulo.AddToClassList(EstiloCore.Aviso);
                 rotulo.AddToClassList(ClasseDoTipo(linha.Tipo));
