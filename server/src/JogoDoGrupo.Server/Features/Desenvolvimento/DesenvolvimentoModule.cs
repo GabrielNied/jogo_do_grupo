@@ -119,8 +119,7 @@ public sealed class DesenvolvimentoModule : IFeatureModule
             resultado = (false, "Comando falhou.");
         }
 
-        var sessao = _tempoReal?.Sessoes.FirstOrDefault(s => s.PersonagemId == personagemId);
-        if (sessao == null || _tempoReal == null)
+        if (_tempoReal == null || !_tempoReal.TentarObterSessao(personagemId, out var sessao))
         {
             return;
         }

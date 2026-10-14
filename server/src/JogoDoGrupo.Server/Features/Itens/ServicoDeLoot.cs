@@ -316,8 +316,10 @@ public sealed class ServicoDeLoot(
         posicao.Area == loot.Area
         && RegrasLoot.DentroDoRaioDeColeta(posicao.X, posicao.Z, loot.X, loot.Z);
 
-    private SessaoTempoReal? SessaoDe(long personagemId) =>
-        tempoReal.Sessoes.FirstOrDefault(s => s.PersonagemId == personagemId);
+    private SessaoTempoReal? SessaoDe(long personagemId)
+    {
+        return tempoReal.TentarObterSessao(personagemId, out var sessao) ? sessao : null;
+    }
 
     private void Mostrar(
         SessaoTempoReal sessao,

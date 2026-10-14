@@ -17,6 +17,8 @@ namespace JogoDoGrupo.Client.Core.TempoReal
         private NetManager _pararDepois;
         private bool _processando;
 
+        public int Latencia => _servidor?.Ping ?? -1;
+
         public event Action Conectou;
         public event Action<string> Caiu;
         public event Action<byte[]> Recebeu;

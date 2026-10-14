@@ -1,4 +1,5 @@
 using JogoDoGrupo.Server.Contratos.Combate;
+using JogoDoGrupo.Server.Contratos.Itens;
 using JogoDoGrupo.Server.Contratos.Mobs;
 using JogoDoGrupo.Server.Contratos.Mundo;
 using JogoDoGrupo.Server.Core;
@@ -18,6 +19,7 @@ public sealed class CombateModule : IFeatureModule
     private volatile ServicoDeGuarda? _guarda;
     private volatile ServicoDeDanoRecebido? _danoRecebido;
     private volatile ServicoDeQueda? _queda;
+    private volatile RecursosEmMemoria? _recursos;
 
     public string Nome => "Combate";
 
@@ -25,7 +27,11 @@ public sealed class CombateModule : IFeatureModule
     {
         servicos.AddSingleton<IBonusDeAtributos, SemBonusDeEfeitos>();
         servicos.AddSingleton<RecursosEmMemoria>();
-        servicos.AddHostedService(sp => sp.GetRequiredService<RecursosEmMemoria>());
+        servicos.AddHostedService(sp =>
+        {
+            _recursos = sp.GetRequiredService<RecursosEmMemoria>();
+            return _recursos;
+        });
         servicos.AddSingleton<IAlvosDeCombate>(new BonecoDeTreino());
         servicos.AddSingleton<ControleDeAcoes>();
         servicos.TryAddSingleton<IAliadosDeCombate, NinguemEAliado>();
@@ -134,8 +140,17 @@ public sealed class CombateModule : IFeatureModule
                 (sessao, _) => _queda?.AoVoltarParaACidade(sessao)
             );
 
-    public void Inicializar(ServerContext contexto) =>
+    public void Inicializar(ServerContext contexto)
+    {
         contexto.Eventos.Assinar<GolpeDeInimigoAcertou>(evento =>
             _danoRecebido?.AoGolpeDeInimigo(evento)
         );
+        contexto.Eventos.Assinar<EquipamentoMudou>(evento =>
+            _recursos?.AoEquipamentoMudar(evento.PersonagemId)
+        );
+    }
+
+    // Chamado pelo módulo no Inicializar após obter RecursosEmMemoria do contêiner.
+    internal void AssinarEquipamentoMudou(EventosDoServidor eventos, RecursosEmMemoria recursos) =>
+        eventos.Assinar<EquipamentoMudou>(e => recursos.AoEquipamentoMudar(e.PersonagemId));
 }

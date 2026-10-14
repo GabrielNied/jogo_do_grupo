@@ -57,10 +57,7 @@ public sealed class VisualEquipadoServico(
             var visualDele = await LerAsync(db, entrada.PersonagemId);
             Publicar(visualDele);
 
-            var novo = tempoReal.Sessoes.FirstOrDefault(s =>
-                s.PersonagemId == entrada.PersonagemId
-            );
-            if (novo == null)
+            if (!tempoReal.TentarObterSessao(entrada.PersonagemId, out var novo))
             {
                 return;
             }

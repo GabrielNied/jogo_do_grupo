@@ -42,6 +42,9 @@ namespace JogoDoGrupo.Client.Core.Jogo.Janelas
         /// <summary>Solicita folhas e calçada na moldura, com espaço reservado à decoração.</summary>
         public virtual bool MolduraSocial => false;
 
+        /// <summary>Ocupa a tela e usa apenas os controles da própria janela sobre o conteúdo.</summary>
+        public virtual bool TelaInteira => false;
+
         /// <summary>Cria os elementos dentro de <paramref name="conteudo"/>. Chamado uma vez.</summary>
         protected abstract void Montar(VisualElement conteudo);
 

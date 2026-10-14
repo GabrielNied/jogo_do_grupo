@@ -7,6 +7,7 @@ using JogoDoGrupo.Server.Core.Eventos;
 using JogoDoGrupo.Server.Core.Observabilidade;
 using JogoDoGrupo.Server.Core.Persistencia;
 using JogoDoGrupo.Server.Core.TempoReal;
+using JogoDoGrupo.Shared.Core.Api;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using Serilog.Formatting.Compact;
@@ -78,7 +79,7 @@ app.UsarErrosApi();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapGet("/saude", () => Results.Ok(new { Estado = "ok" }));
+app.MapGet("/saude", () => Results.Ok(new { Estado = "ok", Versao = EstadoDaSaude.VersaoAtual }));
 app.MapGet(
         "/admin/metricas",
         (MetricasDoServidor observabilidade) => Results.Ok(observabilidade.Obter())

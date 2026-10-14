@@ -470,6 +470,7 @@ namespace JogoDoGrupo.Client.Core.Tests
 
         private sealed class TransporteFalso : ITransporteTempoReal
         {
+            public int Latencia { get; set; } = -1;
             public readonly List<byte[]> Enviados = new List<byte[]>();
             public readonly List<EntregaTempoReal> Entregas = new List<EntregaTempoReal>();
 

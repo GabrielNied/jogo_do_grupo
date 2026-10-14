@@ -91,9 +91,7 @@ public sealed class ServicoDeDanoRecebido : IHostedService
                 return;
             }
 
-            var sessao = _tempoReal.Sessoes.FirstOrDefault(s =>
-                s.PersonagemId == golpe.PersonagemId
-            );
+            _tempoReal.TentarObterSessao(golpe.PersonagemId, out var sessao);
 
             // Guarda segurada: o golpe custa 1 de stamina por ponto de dano, antes da defesa do
             // equipamento. Com stamina ele zera; sem stamina a guarda quebra e o dano entra.

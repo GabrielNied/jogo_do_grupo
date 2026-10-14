@@ -176,6 +176,7 @@ Campos: `PersonagemId` (long), `X`, `Y`, `Z`, `RotacaoY` (float). Usado em `Esta
 - **Excesso pequeno** (até 6 m além do orçamento, o tamanho de uma esquiva recusada) é aceito e conta como suspeita; o contador esvazia 0,5 por segundo e, passando de 5, vira caso grave. O total de suspeitas fica guardado para a ferramenta de GM.
 - ~~**Caso grave** (posição fora do mundo, longe do chão, não finita, excesso acima de 6 m ou suspeita demais): a posição do servidor fica, e o dono recebe `PosicaoForcada`. O client aplica e confirma (`ConfirmarPosicaoForcada`); até lá, o movimento dele é ignorado. Teleporte, renascer e empurrão de boss usam o mesmo caminho (`CidadeDoMundo.ForcarPosicao`).~~ Substituído em 2026-10-11: o jogador se move livremente e só informa a posição. O servidor grava e repassa aos outros; andar rápido, salto ou sair do limite **não** manda `PosicaoForcada`. Número não finito é ignorado. `ForcarPosicao` continua só para teleporte explícito (renascer, empurrão), que ainda não é o movimento normal. O comando de teste `tp` ([Desenvolvimento](desenvolvimento.md)) usa esse caminho e avisa os outros com `PosicaoJogador`.
 - **No client:** o nascimento só é aplicado na primeira entrada; na reconexão o jogador continua onde está.
+- Na primeira entrada, a presença sinaliza ao Core depois de aplicar a posição do servidor; a tela de carregamento e o bloqueio de input seguem as regras de [Interface](interface.md#definido).
 
 ### Dia e noite (#163, contrato da #380)
 
@@ -242,6 +243,7 @@ Os eventos saem depois das mensagens de rede da mesma mudança (`EstadoDaCidade`
 ### Mapa-múndi
 
 - Tecla **M** abre/fecha uma tela cheia; Esc também fecha. O jogo continua rodando por baixo.
+- A tela inteira cobre a HUD do personagem. Título, fechar, norte, legenda e coordenadas ficam sobre o próprio mapa; em telas estreitas, legenda e coordenadas se empilham. A textura de 256 × 256 amostras usa o relevo e os biomas do terreno, é gerada aos poucos na primeira abertura e reaproveitada depois. Ruína, acampamento, passagem e marco aparecem como símbolos nas posições de suas estruturas; o nome do lugar surge ao passar o mouse ou focar o símbolo, sem cobrir os lugares vizinhos.
 - ~~Na fatia mostra **duas áreas**: a **cidade** (com desenho do hub e o portão norte) e a **dungeon** (esquema: entrada, três salões e salão do boss). Cada área com o **nome** escrito. A área onde o jogador está aparece destacada; as outras ficam como ícone.~~ Substituído em 2026-10-11: o mapa pinta os biomas do mundo de 3 km. A cidade murada ganha contorno quando o jogador está dentro dela. O esquema da dungeon continua para a issue #66.
 - Marcadores: o próprio jogador (seta) e os aliados da mesma área (mesma fonte do minimapa: presença); **marcadores de missão** só quando [missões](missoes.md) definir posições (fora da fatia por enquanto).
 - **Visibilidade:** o mapa só mostra posições que o client já tem. Aliados em **outra** área não entram no mesmo mapa. ~~O ícone da área com a contagem de aliados, se o servidor já informar a instância do grupo,~~ continua em aberto.

@@ -32,6 +32,8 @@ namespace JogoDoGrupo.Client.Core.Jogo.Janelas
         /// <summary>Elemento da janela na tela, ou <c>null</c> com tudo fechado.</summary>
         public VisualElement Raiz => _raiz;
 
+        public bool TelaInteiraAberta => _janela != null && _janela.TelaInteira;
+
         /// <summary>Texto da dica do rodapé (ex.: "I ou Esc: fechar").</summary>
         internal static string TextoDoRodape(string tecla)
         {
@@ -46,13 +48,30 @@ namespace JogoDoGrupo.Client.Core.Jogo.Janelas
                 return;
             }
 
+            JanelaDoJogo janela = null;
+            try
+            {
+                janela = definicao.Criar();
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+            }
+
+            var telaInteira = janela != null && janela.TelaInteira;
+
             _raiz = new VisualElement { name = NomeElemento };
             _raiz.AddToClassList(EstiloCore.Tela);
             _raiz.AddToClassList(EstiloCore.TelaSobreJogo);
+            _raiz.EnableInClassList("janela-raiz-tela-inteira", telaInteira);
 
-            var painel = EstiloCore.CriarPainel();
-            painel.AddToClassList(EstiloCore.PainelLargo);
+            VisualElement painel = telaInteira ? new VisualElement() : EstiloCore.CriarPainel();
+            if (!telaInteira)
+            {
+                painel.AddToClassList(EstiloCore.PainelLargo);
+            }
             painel.AddToClassList(EstiloCore.Janela);
+            painel.EnableInClassList("janela-tela-inteira", telaInteira);
 
             var titulo = new Label(definicao.Titulo);
             titulo.AddToClassList(EstiloCore.Titulo);
@@ -74,23 +93,22 @@ namespace JogoDoGrupo.Client.Core.Jogo.Janelas
             var rodape = new Label(TextoDoRodape(definicao.Tecla));
             rodape.AddToClassList(EstiloCore.JanelaRodape);
 
-            painel.Add(cabecalho);
-            painel.Add(conteudo);
-            painel.Add(rodape);
+            if (telaInteira)
+            {
+                painel.Add(conteudo);
+                painel.Add(cabecalho);
+                painel.Add(rodape);
+            }
+            else
+            {
+                painel.Add(cabecalho);
+                painel.Add(conteudo);
+                painel.Add(rodape);
+            }
             _raiz.Add(painel);
             _container.Add(_raiz);
 
             // Janela com defeito não pode travar o jogo: mostra o aviso e segue fechável.
-            JanelaDoJogo janela = null;
-            try
-            {
-                janela = definicao.Criar();
-            }
-            catch (Exception e)
-            {
-                Debug.LogException(e);
-            }
-
             if (janela == null)
             {
                 Debug.LogError($"[JanelasDoJogo] A janela \"{definicao.Chave}\" não foi criada.");

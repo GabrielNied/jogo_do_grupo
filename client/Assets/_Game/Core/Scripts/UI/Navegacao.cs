@@ -126,9 +126,19 @@ namespace JogoDoGrupo.Client.Core.UI
 
             var raiz = new VisualElement { name = chave };
             raiz.AddToClassList(EstiloCore.Tela);
+            raiz.AddToClassList("tela-com-transicao");
+            raiz.style.opacity = 0f;
             _telaAtual = nova;
             _chaveAtual = chave;
             _container.Add(raiz);
+            raiz.schedule.Execute(() =>
+                {
+                    if (raiz.parent != null)
+                    {
+                        raiz.style.opacity = 1f;
+                    }
+                })
+                .StartingIn(16);
 
             try
             {
