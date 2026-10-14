@@ -23,6 +23,32 @@ namespace JogoDoGrupo.Client.Features.Talentos
         public const string Dica =
             "Escolha um nó para ver o custo e o efeito. Os pontos vêm de subir de nível.";
         public const string FonteDosAtributos = "Atributos da árvore (equipamentos ficam à parte)";
+        public const string Redistribuir = "Redistribuir pontos";
+        public const string Redistribuindo = "Redistribuindo...";
+        public const string SemPontosParaRedistribuir =
+            "Você ainda não gastou nenhum ponto nesta árvore.";
+        public const string SaldoInsuficiente =
+            "Você não tem coroas suficientes para pagar a redistribuição.";
+        public const string EmCombate = "Não é permitido alterar talentos durante o combate.";
+        public const string TituloPerfis = "Perfis de build";
+        public const string SalvarPerfil = "Salvar perfil";
+        public const string CarregarPerfil = "Carregar";
+        public const string ExcluirPerfil = "Excluir";
+        public const string RenomearPerfil = "Renomear";
+        public const string SalvandoPerfil = "Salvando...";
+        public const string CarregandoPerfil = "Carregando...";
+        public const string PerfilCarregado = "Perfil aplicado com sucesso.";
+        public const string PerfilSalvo = "Perfil salvo com sucesso.";
+        public const string LimitePerfisAtingido = "Limite de perfis atingido (máximo 5).";
+        public const string NomePerfilInvalido =
+            "Nome de perfil inválido (deve ter entre 1 e 32 caracteres).";
+
+        public static string ConfirmarRedistribuicao(long custo) =>
+            "Deseja redistribuir todos os pontos por "
+            + custo
+            + " coroas? Seus pontos gastos voltarão como pontos livres.";
+
+        public static string CustoRedistribuicao(long custo) => "Custo: " + custo + " coroas";
 
         // Códigos do Core comparados pelo valor, como as outras funcionalidades fazem.
         private const string CodigoSemConexao = "SemConexao";

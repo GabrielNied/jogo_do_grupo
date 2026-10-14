@@ -254,7 +254,9 @@ namespace JogoDoGrupo.Client.Features.Itens
                 case CodigosErroItens.MateriaisInsuficientes:
                     return "Faltam os materiais de dungeon ou raid que esta fusão exige.";
                 case CodigosErroItens.CoroasInsuficientes:
-                    return "Você não tem coroas suficientes para esta fusão.";
+                    return "Você não tem coroas suficientes para esta operação.";
+                case CodigosErroItens.BolsaNoLimite:
+                    return "Sua bolsa já atingiu o limite máximo de abas.";
                 case CodigosErroItens.PreviaDesatualizada:
                     return "As peças, o atributo ou o custo mudaram. Consulte uma nova prévia antes de confirmar.";
                 case CodigosErroItens.ItemInvalido:

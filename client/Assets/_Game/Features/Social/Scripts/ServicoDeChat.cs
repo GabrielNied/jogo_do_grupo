@@ -13,9 +13,13 @@ namespace JogoDoGrupo.Client.Features.Social
     /// </summary>
     internal sealed class ServicoDeChat
     {
+        public const int DuracaoDaRecusaSocialSegundos = 6;
+
         private readonly Func<EnviarMensagemDeChat, bool> _enviar;
         private readonly Func<long> _meuId;
         private readonly Func<long> _agoraUnixMs;
+        private readonly List<MensagemTemporaria> _mensagensTemporarias =
+            new List<MensagemTemporaria>();
 
         private readonly Func<string, bool> _ignorar;
         private readonly Func<long, bool> _deixarDeIgnorar;
@@ -24,7 +28,6 @@ namespace JogoDoGrupo.Client.Features.Social
             Func<EnviarMensagemDeChat, bool> enviar,
             Func<long> meuId,
             Func<long> agoraUnixMs,
-            ListaDeIgnorados ignorados,
             EstadoDeAmigos amigos = null,
             Func<string, bool> ignorar = null,
             Func<long, bool> deixarDeIgnorar = null
@@ -35,17 +38,45 @@ namespace JogoDoGrupo.Client.Features.Social
             _agoraUnixMs = agoraUnixMs;
             _ignorar = ignorar;
             _deixarDeIgnorar = deixarDeIgnorar;
-            Ignorados = ignorados;
             Amigos = amigos ?? new EstadoDeAmigos();
+            Amigos.Mudou += AoMudarAmigos;
+            Amigos.OperacaoRecusada += AoReceberRecusaDeAmizade;
         }
 
         public HistoricoDeChat Historico { get; } = new HistoricoDeChat();
-        public ListaDeIgnorados Ignorados { get; }
         public EstadoDeAmigos Amigos { get; }
         public EstadoDoEnvio Estado { get; } = new EstadoDoEnvio();
 
         /// <summary>Algo novo no histórico ou nos ignorados: a tela deve se redesenhar.</summary>
         public event Action Mudou;
+
+        public void Dispose()
+        {
+            Amigos.Mudou -= AoMudarAmigos;
+            Amigos.OperacaoRecusada -= AoReceberRecusaDeAmizade;
+        }
+
+        public void Atualizar()
+        {
+            var agora = _agoraUnixMs();
+            var mudou = false;
+            for (var i = _mensagensTemporarias.Count - 1; i >= 0; i--)
+            {
+                if (_mensagensTemporarias[i].ExpiraEmUnixMs > agora)
+                {
+                    continue;
+                }
+
+                Historico.Remover(_mensagensTemporarias[i].Linha);
+                _mensagensTemporarias.RemoveAt(i);
+                mudou = true;
+            }
+
+            if (mudou)
+            {
+                Mudou?.Invoke();
+            }
+        }
 
         /// <summary>
         /// Trata o que a pessoa digitou ao apertar Enter. Devolve <c>true</c> quando a caixa pode
@@ -163,6 +194,26 @@ namespace JogoDoGrupo.Client.Features.Social
             Mudou?.Invoke();
         }
 
+        public void AdicionarSistemaTemporario(string texto, int duracaoSegundos)
+        {
+            if (string.IsNullOrEmpty(texto) || duracaoSegundos <= 0)
+            {
+                return;
+            }
+
+            var agora = _agoraUnixMs();
+            var linha = LinhaDeChat.Sistema(texto, agora);
+            Historico.Adicionar(linha);
+            _mensagensTemporarias.Add(
+                new MensagemTemporaria
+                {
+                    Linha = linha,
+                    ExpiraEmUnixMs = agora + duracaoSegundos * 1000L,
+                }
+            );
+            Mudou?.Invoke();
+        }
+
         private bool ExecutarRegistrado(ResultadoDoComando resultado)
         {
             var contexto = new ContextoDeComandoDeBarra { MostrarSistema = AdicionarSistema };
@@ -229,8 +280,60 @@ namespace JogoDoGrupo.Client.Features.Social
             return null;
         }
 
-        private bool NomeEstaIgnorado(string nome) =>
-            Amigos.Contem(nome) || (Ignorados != null && Ignorados.Contem(nome));
+        private bool NomeEstaIgnorado(string nome) => Amigos.Contem(nome);
+
+        private void AoMudarAmigos() => Mudou?.Invoke();
+
+        private void AoReceberRecusaDeAmizade(string codigo)
+        {
+            AdicionarSistemaTemporario(
+                TextoDaRecusaDeAmizade(codigo),
+                DuracaoDaRecusaSocialSegundos
+            );
+        }
+
+        private static string TextoDaRecusaDeAmizade(string codigo)
+        {
+            switch (codigo)
+            {
+                case CodigosErroSocial.AlvoNaoEncontrado:
+                    return "Jogador não encontrado.";
+                case CodigosErroSocial.AmizadeConsigoMesmo:
+                    return "Você não pode adicionar a si mesmo.";
+                case CodigosErroSocial.AlvoIgnorado:
+                    return "Esse jogador está na sua lista de ignorados.";
+                case CodigosErroSocial.JaSaoAmigos:
+                    return "Vocês já são amigos.";
+                case CodigosErroSocial.PedidoJaPendente:
+                    return "Já existe um pedido de amizade pendente.";
+                case CodigosErroSocial.PedidosRapidosDemais:
+                    return "Você está enviando pedidos rápido demais.";
+                case CodigosErroSocial.ListaDeAmigosCheia:
+                    return "Sua lista de amigos está cheia.";
+                case CodigosErroSocial.AlvoComPedidosDemais:
+                    return "Esse jogador tem pedidos de amizade demais.";
+                case CodigosErroSocial.PedidoNaoEncontrado:
+                    return "Esse pedido de amizade não existe mais.";
+                case CodigosErroSocial.AmigoNaoEncontrado:
+                    return "Esse jogador não está na sua lista de amigos.";
+                case CodigosErroSocial.IgnorarASiMesmo:
+                    return "Você não pode ignorar a si mesmo.";
+                case CodigosErroSocial.JaIgnorado:
+                    return "Esse jogador já está na sua lista de ignorados.";
+                case CodigosErroSocial.ListaDeIgnoradosCheia:
+                    return "Sua lista de ignorados está cheia.";
+                case CodigosErroSocial.IgnoradoNaoEncontrado:
+                    return "Esse jogador não está na sua lista de ignorados.";
+                default:
+                    return "Não foi possível completar a operação de amizade.";
+            }
+        }
+
+        private sealed class MensagemTemporaria
+        {
+            public LinhaDeChat Linha;
+            public long ExpiraEmUnixMs;
+        }
 
         private static string TextoDaTroca(ResultadoDoComando resultado) =>
             resultado.Canal == CanalDeChat.Sussurro

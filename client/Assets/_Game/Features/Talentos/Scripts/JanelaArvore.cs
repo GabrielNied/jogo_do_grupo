@@ -44,6 +44,13 @@ namespace JogoDoGrupo.Client.Features.Talentos
         private VisualElement _arestas;
         private VisualElement _detalhes;
         private Button _comprar;
+        private Button _redistribuir;
+        private VisualElement _confirmacaoRedistribuir;
+        private VisualElement _painelPerfis;
+        private VisualElement _containerSalvarPerfil;
+        private TextField _inputNomePerfil;
+        private VisualElement _listaPerfis;
+        private List<PerfilTalentosDto> _perfis = new List<PerfilTalentosDto>();
         private Label _retorno;
         private bool _montouNos;
 
@@ -106,6 +113,7 @@ namespace JogoDoGrupo.Client.Features.Talentos
 
             _corpo.Add(MontarLegenda());
             _corpo.Add(MontarPainel());
+            _corpo.Add(MontarPerfis());
         }
 
         protected override void AoAbrir()
@@ -157,14 +165,118 @@ namespace JogoDoGrupo.Client.Features.Talentos
             _detalhes = new VisualElement();
             painel.Add(_detalhes);
 
+            var linhaBotoes = new VisualElement();
+            linhaBotoes.style.flexDirection = FlexDirection.Row;
+            linhaBotoes.style.flexWrap = Wrap.Wrap;
+            linhaBotoes.style.marginTop = ConfigVisual.Espacamento.Medio;
+
             _comprar = ComponentesVisuais.Botao(TextosTalentos.Compra, Comprar, principal: true);
-            _comprar.style.marginTop = ConfigVisual.Espacamento.Medio;
-            painel.Add(_comprar);
+            linhaBotoes.Add(_comprar);
+
+            _redistribuir = ComponentesVisuais.Botao(
+                TextosTalentos.Redistribuir
+                    + " ("
+                    + ConfigRedistribuicao.CustoPadraoCoroas
+                    + " coroas)",
+                IniciarRedistribuicao
+            );
+            _redistribuir.style.marginLeft = ConfigVisual.Espacamento.Medio;
+            linhaBotoes.Add(_redistribuir);
+
+            painel.Add(linhaBotoes);
+
+            _confirmacaoRedistribuir = new VisualElement();
+            _confirmacaoRedistribuir.style.display = DisplayStyle.None;
+            _confirmacaoRedistribuir.style.marginTop = ConfigVisual.Espacamento.Pequeno;
+            _confirmacaoRedistribuir.style.paddingTop = ConfigVisual.Espacamento.Pequeno;
+            SetBorda(
+                _confirmacaoRedistribuir,
+                ConfigVisual.Bordas.Fina,
+                ConfigVisual.Cores.BordaDiscreta
+            );
+
+            var textoConfirmar = ComponentesVisuais.Texto(
+                TextosTalentos.ConfirmarRedistribuicao(ConfigRedistribuicao.CustoPadraoCoroas)
+            );
+            _confirmacaoRedistribuir.Add(textoConfirmar);
+
+            var linhaBotoesConfirma = new VisualElement();
+            linhaBotoesConfirma.style.flexDirection = FlexDirection.Row;
+            linhaBotoesConfirma.style.marginTop = ConfigVisual.Espacamento.Pequeno;
+
+            var botaoSim = ComponentesVisuais.Botao(
+                "Sim, redistribuir",
+                ConfirmarRedistribuicao,
+                principal: true
+            );
+            linhaBotoesConfirma.Add(botaoSim);
+
+            var botaoCancelar = ComponentesVisuais.Botao(
+                "Cancelar",
+                () => _confirmacaoRedistribuir.style.display = DisplayStyle.None
+            );
+            botaoCancelar.style.marginLeft = ConfigVisual.Espacamento.Pequeno;
+            linhaBotoesConfirma.Add(botaoCancelar);
+
+            _confirmacaoRedistribuir.Add(linhaBotoesConfirma);
+            painel.Add(_confirmacaoRedistribuir);
 
             _retorno = ComponentesVisuais.Texto("");
             _retorno.style.marginTop = ConfigVisual.Espacamento.Pequeno;
             painel.Add(_retorno);
             return painel;
+        }
+
+        private VisualElement MontarPerfis()
+        {
+            _painelPerfis = ComponentesVisuais.Painel();
+            _painelPerfis.style.marginTop = ConfigVisual.Espacamento.Pequeno;
+            _painelPerfis.style.width = Length.Percent(100);
+
+            var topo = new VisualElement();
+            topo.style.flexDirection = FlexDirection.Row;
+            topo.style.justifyContent = Justify.SpaceBetween;
+            topo.style.alignItems = Align.Center;
+
+            var titulo = ComponentesVisuais.Texto(TextosTalentos.TituloPerfis, subtitulo: true);
+            topo.Add(titulo);
+
+            var botaoNovo = ComponentesVisuais.Botao(
+                "+ " + TextosTalentos.SalvarPerfil,
+                () =>
+                {
+                    _containerSalvarPerfil.style.display =
+                        _containerSalvarPerfil.style.display == DisplayStyle.Flex
+                            ? DisplayStyle.None
+                            : DisplayStyle.Flex;
+                }
+            );
+            topo.Add(botaoNovo);
+            _painelPerfis.Add(topo);
+
+            _containerSalvarPerfil = new VisualElement();
+            _containerSalvarPerfil.style.display = DisplayStyle.None;
+            _containerSalvarPerfil.style.flexDirection = FlexDirection.Row;
+            _containerSalvarPerfil.style.marginTop = ConfigVisual.Espacamento.Pequeno;
+
+            _inputNomePerfil = new TextField
+            {
+                maxLength = ConfigRedistribuicao.TamanhoMaximoNomePerfil,
+            };
+            _inputNomePerfil.style.flexGrow = 1;
+            _containerSalvarPerfil.Add(_inputNomePerfil);
+
+            var botaoSalvar = ComponentesVisuais.Botao("Salvar", SalvarPerfil, principal: true);
+            botaoSalvar.style.marginLeft = ConfigVisual.Espacamento.Pequeno;
+            _containerSalvarPerfil.Add(botaoSalvar);
+
+            _painelPerfis.Add(_containerSalvarPerfil);
+
+            _listaPerfis = new VisualElement();
+            _listaPerfis.style.marginTop = ConfigVisual.Espacamento.Pequeno;
+            _painelPerfis.Add(_listaPerfis);
+
+            return _painelPerfis;
         }
 
         // Pede a árvore ao servidor. Reaproveitado depois de uma falha de rede, porque a compra
@@ -205,6 +317,7 @@ namespace JogoDoGrupo.Client.Features.Talentos
 
                 _mensagem.style.display = DisplayStyle.None;
                 _estado.Aplicar(resposta.Corpo);
+                CarregarPerfis();
             }
             catch (Exception e)
             {
@@ -716,6 +829,259 @@ namespace JogoDoGrupo.Client.Features.Talentos
             }
 
             _detalhes.Add(linha);
+        }
+
+        private void IniciarRedistribuicao()
+        {
+            if (_estado.PontosGastos <= 0)
+            {
+                MostrarRetorno(TextosTalentos.SemPontosParaRedistribuir, true);
+                return;
+            }
+
+            _confirmacaoRedistribuir.style.display = DisplayStyle.Flex;
+        }
+
+        private async void ConfirmarRedistribuicao()
+        {
+            _confirmacaoRedistribuir.style.display = DisplayStyle.None;
+            MostrarRetorno(TextosTalentos.Redistribuindo, false);
+            try
+            {
+                var resposta = await ClienteApi.Post<ArvoreResponse>(
+                    RotasTalentos.RedistribuirDe(EntradaNoJogo.PersonagemId),
+                    new RedistribuirRequest { VersaoConfiguracao = _estado.Configuracao.Versao }
+                );
+
+                if (!Aberta)
+                {
+                    return;
+                }
+
+                if (resposta.Sucesso && resposta.Corpo != null)
+                {
+                    _estado.Aplicar(resposta.Corpo);
+                    MostrarRetorno("Pontos redistribuídos com sucesso.", false);
+                    return;
+                }
+
+                MostrarRetorno(TraduzirErro(resposta.CodigoErro), true);
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+                if (Aberta)
+                {
+                    MostrarRetorno(TextosTalentos.Generica, true);
+                }
+            }
+        }
+
+        private async void CarregarPerfis()
+        {
+            try
+            {
+                var resposta = await ClienteApi.Get<ListaPerfisResponse>(
+                    RotasTalentos.PerfisDe(EntradaNoJogo.PersonagemId)
+                );
+                if (!Aberta || !resposta.Sucesso || resposta.Corpo == null)
+                {
+                    return;
+                }
+
+                _perfis = new List<PerfilTalentosDto>(
+                    resposta.Corpo.Perfis ?? Array.Empty<PerfilTalentosDto>()
+                );
+                AtualizarListaPerfis();
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+            }
+        }
+
+        private void AtualizarListaPerfis()
+        {
+            _listaPerfis.Clear();
+            if (_perfis.Count == 0)
+            {
+                var vazio = ComponentesVisuais.Texto("Nenhum perfil de build salvo.");
+                vazio.style.color = EstiloVisual.Cor(ConfigVisual.Cores.TextoSecundario);
+                _listaPerfis.Add(vazio);
+                return;
+            }
+
+            foreach (var perfil in _perfis)
+            {
+                var linha = new VisualElement();
+                linha.style.flexDirection = FlexDirection.Row;
+                linha.style.justifyContent = Justify.SpaceBetween;
+                linha.style.alignItems = Align.Center;
+                linha.style.marginBottom = ConfigVisual.Espacamento.Minimo;
+
+                var rotulo = ComponentesVisuais.Texto(
+                    perfil.Nome + " (" + perfil.PontosTotais + " pts)"
+                );
+                linha.Add(rotulo);
+
+                var acoes = new VisualElement();
+                acoes.style.flexDirection = FlexDirection.Row;
+
+                var idPerfil = perfil.Id;
+                var botaoCarregar = ComponentesVisuais.Botao(
+                    TextosTalentos.CarregarPerfil,
+                    () => CarregarPerfil(idPerfil)
+                );
+                acoes.Add(botaoCarregar);
+
+                var botaoExcluir = ComponentesVisuais.Botao(
+                    TextosTalentos.ExcluirPerfil,
+                    () => ExcluirPerfil(idPerfil)
+                );
+                botaoExcluir.style.marginLeft = ConfigVisual.Espacamento.Pequeno;
+                acoes.Add(botaoExcluir);
+
+                linha.Add(acoes);
+                _listaPerfis.Add(linha);
+            }
+        }
+
+        private async void SalvarPerfil()
+        {
+            var nome = _inputNomePerfil.value?.Trim();
+            if (string.IsNullOrEmpty(nome))
+            {
+                MostrarRetorno(TextosTalentos.NomePerfilInvalido, true);
+                return;
+            }
+
+            try
+            {
+                var resposta = await ClienteApi.Post<PerfilTalentosDto>(
+                    RotasTalentos.PerfisDe(EntradaNoJogo.PersonagemId),
+                    new SalvarPerfilRequest { Nome = nome }
+                );
+
+                if (!Aberta)
+                {
+                    return;
+                }
+
+                if (resposta.Sucesso && resposta.Corpo != null)
+                {
+                    _inputNomePerfil.value = "";
+                    _containerSalvarPerfil.style.display = DisplayStyle.None;
+                    MostrarRetorno(TextosTalentos.PerfilSalvo, false);
+                    CarregarPerfis();
+                    return;
+                }
+
+                MostrarRetorno(TraduzirErro(resposta.CodigoErro), true);
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+                if (Aberta)
+                {
+                    MostrarRetorno(TextosTalentos.Generica, true);
+                }
+            }
+        }
+
+        private async void CarregarPerfil(long perfilId)
+        {
+            MostrarRetorno(TextosTalentos.CarregandoPerfil, false);
+            try
+            {
+                var resposta = await ClienteApi.Post<CarregarPerfilResponse>(
+                    RotasTalentos.CarregarPerfilDe(EntradaNoJogo.PersonagemId, perfilId),
+                    null
+                );
+
+                if (!Aberta)
+                {
+                    return;
+                }
+
+                if (resposta.Sucesso && resposta.Corpo != null)
+                {
+                    _estado.Aplicar(resposta.Corpo.Arvore);
+                    if (resposta.Corpo.Avisos != null && resposta.Corpo.Avisos.Length > 0)
+                    {
+                        MostrarRetorno(string.Join(" ", resposta.Corpo.Avisos), false);
+                    }
+                    else
+                    {
+                        MostrarRetorno(TextosTalentos.PerfilCarregado, false);
+                    }
+
+                    return;
+                }
+
+                MostrarRetorno(TraduzirErro(resposta.CodigoErro), true);
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+                if (Aberta)
+                {
+                    MostrarRetorno(TextosTalentos.Generica, true);
+                }
+            }
+        }
+
+        private async void ExcluirPerfil(long perfilId)
+        {
+            try
+            {
+                var resposta = await ClienteApi.Delete(
+                    RotasTalentos.PerfilDe(EntradaNoJogo.PersonagemId, perfilId)
+                );
+
+                if (!Aberta)
+                {
+                    return;
+                }
+
+                if (resposta.Sucesso)
+                {
+                    CarregarPerfis();
+                    return;
+                }
+
+                MostrarRetorno(TraduzirErro(resposta.CodigoErro), true);
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+                if (Aberta)
+                {
+                    MostrarRetorno(TextosTalentos.Generica, true);
+                }
+            }
+        }
+
+        private static string TraduzirErro(string codigo)
+        {
+            switch (codigo)
+            {
+                case CodigosErroTalentos.EmCombate:
+                    return TextosTalentos.EmCombate;
+                case CodigosErroTalentos.SaldoInsuficiente:
+                    return TextosTalentos.SaldoInsuficiente;
+                case CodigosErroTalentos.NenhumPontoGasto:
+                    return TextosTalentos.SemPontosParaRedistribuir;
+                case CodigosErroTalentos.LimiteDePerfisAtingido:
+                    return TextosTalentos.LimitePerfisAtingido;
+                case CodigosErroTalentos.NomeDePerfilInvalido:
+                    return TextosTalentos.NomePerfilInvalido;
+                case CodigosErroTalentos.PontosInsuficientes:
+                    return TextosTalentos.SemPontos;
+                case CodigosErroTalentos.ArvoreDesatualizada:
+                    return TextosTalentos.Desatualizada;
+                default:
+                    return TextosTalentos.Generica;
+            }
         }
 
         // --- Estilo --------------------------------------------------------------------

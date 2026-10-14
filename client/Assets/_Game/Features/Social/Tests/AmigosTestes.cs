@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+using JogoDoGrupo.Client.Core.TempoReal;
 using JogoDoGrupo.Shared.Features.Social;
 using NUnit.Framework;
 
@@ -6,6 +9,27 @@ namespace JogoDoGrupo.Client.Features.Social.Tests
     /// <summary>Estado local das listas que o servidor manda (sem cena).</summary>
     public class AmigosTestes
     {
+        private sealed class ConexaoFalsa : IConexaoDoGrupo
+        {
+            public List<(ushort Id, object Mensagem)> Enviados { get; } =
+                new List<(ushort, object)>();
+
+            public bool Conectado => true;
+
+            public bool Enviar<T>(ushort id, T mensagem, EntregaTempoReal entrega)
+            {
+                Enviados.Add((id, mensagem));
+                return true;
+            }
+
+            public IDisposable Assinar<T>(ushort id, Action<T> aoReceber) => new Assinatura();
+
+            private sealed class Assinatura : IDisposable
+            {
+                public void Dispose() { }
+            }
+        }
+
         [Test]
         public void AplicarLista_SubstituiAmigosEPedidos()
         {
@@ -113,12 +137,29 @@ namespace JogoDoGrupo.Client.Features.Social.Tests
                 }
             );
 
-            var visiveis = historico.Ultimas(8, null, estado);
+            var visiveis = historico.Ultimas(8, estado);
 
             Assert.AreEqual(1, visiveis.Count);
             Assert.AreEqual("Ana", visiveis[0].Nome);
             Assert.IsTrue(estado.TentarIgnorado("CHATO", out var ignorado));
             Assert.AreEqual(7, ignorado.IgnoradoId);
+        }
+
+        [Test]
+        public void IgnorarEDesignorar_EnviamIntencoesDoContrato()
+        {
+            var conexao = new ConexaoFalsa();
+            var estado = new EstadoDeAmigos(conexao);
+
+            Assert.IsTrue(estado.Ignorar("Chato"));
+            Assert.IsTrue(estado.DeixarDeIgnorar(7));
+
+            Assert.AreEqual(SocialMessageIds.IgnorarJogador, conexao.Enviados[0].Id);
+            Assert.AreEqual("Chato", ((IgnorarJogador)conexao.Enviados[0].Mensagem).Nome);
+            Assert.AreEqual(SocialMessageIds.DeixarDeIgnorar, conexao.Enviados[1].Id);
+            Assert.AreEqual(7L, ((DeixarDeIgnorar)conexao.Enviados[1].Mensagem).IgnoradoId);
+
+            estado.Dispose();
         }
     }
 }

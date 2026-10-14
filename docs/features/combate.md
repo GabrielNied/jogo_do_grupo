@@ -307,8 +307,8 @@ Quem decide: **servidor**. O dono é [Mobs](mobs.md), que já escolhe o alvo; Co
 - **Sem decaimento** com o tempo nesta versão.
 - **Chefe:** usa a mesma tabela no lugar do "mais próximo" (`ChefeDaDungeon`). Ataques de área do chefe (investida) continuam mirando como estão descritos em [mobs.md](mobs.md).
 - **Ainda sem efeito:** cura e item de tank não existem; o multiplicador e a ameaça de cura entram quando chegarem ([#170](https://github.com/GabrielNied/jogo_do_grupo/issues/170) e [itens.md](itens.md)). Até lá só o dano conta, o que já faz o jogador que mais bate segurar o inimigo.
-- **Implementação sugerida:** contas puras em `RegrasAmeaca` no shared de Mobs (somar ameaça, escolher alvo com margem, provocação), como já é `RegrasInimigo.EscolherAlvo`. Código próprio, sem biblioteca: é uma tabela pequena por inimigo.
-- **Testes esperados:** quem bate mais vira o alvo só depois de passar a margem (110% perto, 130% longe); empate não troca; tank com 3x segura o alvo contra quem dá o dobro de dano; provocar vira o alvo na hora e segura por 4 s; caído e quem saiu da área saem da tabela; desistir e reaparecer zeram a tabela; dano além da vida que restava não conta.
+- **Implementação:** contas puras em `RegrasAmeaca` e gerenciamento por criatura em `TabelaDeAmeaca` (`shared/Package/Runtime/Features/Mobs/`), integrado em `GrupoDeInimigos` e `ChefeDaDungeon`.
+- **Testes:** quem bate mais vira o alvo só depois de passar a margem (110% perto, 130% longe); empate não troca; tank com 3x segura o alvo contra quem dá o dobro de dano; provocar vira o alvo na hora e segura por 4 s; caído e quem saiu da área saem da tabela; desistir e reaparecer zeram a tabela; dano além da vida que restava não conta (`RegrasAmeacaTestes` e `AmeacaDeInimigosTestes`).
 
 ### Efeitos de status (#171)
 

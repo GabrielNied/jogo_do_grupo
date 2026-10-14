@@ -24,7 +24,7 @@ namespace JogoDoGrupo.Client.Core.Contas
         private Button _entrar;
         private Button _criarConta;
         private Label _mensagem;
-        private bool _esperando;
+        private readonly EstadoDeEnvioLogin _estadoDeEnvio = new EstadoDeEnvioLogin();
 
         protected override void Montar(VisualElement raiz)
         {
@@ -118,7 +118,7 @@ namespace JogoDoGrupo.Client.Core.Contas
         {
             var usuario = _usuario.value;
             var senha = _senha.value;
-            if (_esperando || !ValidarFormato(usuario, senha))
+            if (!_estadoDeEnvio.TentarIniciar(() => ValidarFormato(usuario, senha)))
             {
                 return;
             }
@@ -141,6 +141,7 @@ namespace JogoDoGrupo.Client.Core.Contas
             {
                 if (Aberta)
                 {
+                    _estadoDeEnvio.Encerrar();
                     DefinirEsperando(false);
                 }
             }
@@ -150,7 +151,7 @@ namespace JogoDoGrupo.Client.Core.Contas
         {
             var usuario = _usuario.value;
             var senha = _senha.value;
-            if (_esperando || !ValidarFormato(usuario, senha))
+            if (!_estadoDeEnvio.TentarIniciar(() => ValidarFormato(usuario, senha)))
             {
                 return;
             }
@@ -196,6 +197,7 @@ namespace JogoDoGrupo.Client.Core.Contas
             {
                 if (Aberta)
                 {
+                    _estadoDeEnvio.Encerrar();
                     DefinirEsperando(false);
                 }
             }
@@ -241,23 +243,28 @@ namespace JogoDoGrupo.Client.Core.Contas
         /// <summary>Confere o formato com <see cref="RegrasConta"/> antes de chamar o servidor.</summary>
         private bool ValidarFormato(string usuario, string senha)
         {
-            if (string.IsNullOrEmpty(usuario) || string.IsNullOrEmpty(senha))
+            var mensagem = MensagemDeFormato(usuario, senha);
+            if (mensagem != null)
             {
-                MostrarMensagem("Preencha o usuário e a senha.", EstiloCore.MensagemErro);
-                return false;
-            }
-
-            var codigo = RegrasConta.ValidarUsuario(usuario) ?? RegrasConta.ValidarSenha(senha);
-            if (codigo != null)
-            {
-                MostrarMensagem(MensagemDoErro(codigo), EstiloCore.MensagemErro);
+                MostrarMensagem(mensagem, EstiloCore.MensagemErro);
                 return false;
             }
 
             return true;
         }
 
-        private static string MensagemDoErro(string codigo)
+        internal static string MensagemDeFormato(string usuario, string senha)
+        {
+            if (string.IsNullOrEmpty(usuario) || string.IsNullOrEmpty(senha))
+            {
+                return "Preencha o usuário e a senha.";
+            }
+
+            var codigo = RegrasConta.ValidarUsuario(usuario) ?? RegrasConta.ValidarSenha(senha);
+            return codigo == null ? null : MensagemDoErro(codigo);
+        }
+
+        internal static string MensagemDoErro(string codigo)
         {
             return codigo switch
             {
@@ -278,7 +285,6 @@ namespace JogoDoGrupo.Client.Core.Contas
 
         private void DefinirEsperando(bool esperando)
         {
-            _esperando = esperando;
             _usuario.SetEnabled(!esperando);
             _senha.SetEnabled(!esperando);
             _entrar.SetEnabled(!esperando);
@@ -293,6 +299,27 @@ namespace JogoDoGrupo.Client.Core.Contas
             if (classe != null)
             {
                 _mensagem.AddToClassList(classe);
+            }
+        }
+
+        internal sealed class EstadoDeEnvioLogin
+        {
+            private bool _emAndamento;
+
+            internal bool TentarIniciar(Func<bool> validar)
+            {
+                if (_emAndamento || !validar())
+                {
+                    return false;
+                }
+
+                _emAndamento = true;
+                return true;
+            }
+
+            internal void Encerrar()
+            {
+                _emAndamento = false;
             }
         }
     }

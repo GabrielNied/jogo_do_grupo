@@ -195,6 +195,126 @@ namespace JogoDoGrupo.Shared.Features.Talentos
             return total;
         }
 
+        /// <summary>Calcula a soma total de pontos gastos por um dicionário de ranks na configuração.</summary>
+        public static int CalcularPontosGastos(
+            ConfiguracaoDaArvore configuracao,
+            IReadOnlyDictionary<string, int> ranks
+        )
+        {
+            if (configuracao == null || configuracao.Nos == null || ranks == null)
+            {
+                return 0;
+            }
+
+            var total = 0;
+            foreach (var no in configuracao.Nos)
+            {
+                if (no != null)
+                {
+                    var rank = RankDe(ranks, no.Id);
+                    if (rank > 0)
+                    {
+                        total += CustoPago(no, rank);
+                    }
+                }
+            }
+
+            return total;
+        }
+
+        /// <summary>
+        /// Valida os ranks de um perfil contra a configuração atual da árvore e os pontos disponíveis.
+        /// Nós que não existem mais ou cujos requisitos foram quebrados são removidos com aviso.
+        /// </summary>
+        public static ValidacaoDePerfil ValidarECalcularPerfil(
+            ConfiguracaoDaArvore configuracao,
+            RankDoNo[] ranksDoPerfil,
+            int pontosDisponiveis
+        )
+        {
+            var resultado = new ValidacaoDePerfil();
+            if (configuracao == null || configuracao.Nos == null)
+            {
+                resultado.Erro = CodigosErroTalentos.ArvoreDesatualizada;
+                return resultado;
+            }
+
+            var candidatos = new Dictionary<string, int>();
+            if (ranksDoPerfil != null)
+            {
+                foreach (var item in ranksDoPerfil)
+                {
+                    if (item == null || string.IsNullOrEmpty(item.NoId) || item.Rank <= 0)
+                    {
+                        continue;
+                    }
+
+                    var no = Procurar(configuracao, item.NoId);
+                    if (no == null)
+                    {
+                        resultado.Avisos.Add(
+                            "O nó '" + item.NoId + "' não existe mais na árvore e foi ignorado."
+                        );
+                        continue;
+                    }
+
+                    var rankAjustado = item.Rank;
+                    if (rankAjustado > no.RankMaximo)
+                    {
+                        resultado.Avisos.Add(
+                            "O nó '"
+                                + no.Nome
+                                + "' foi ajustado para o rank máximo ("
+                                + no.RankMaximo
+                                + ")."
+                        );
+                        rankAjustado = no.RankMaximo;
+                    }
+
+                    candidatos[item.NoId] = rankAjustado;
+                }
+            }
+
+            // Remove em cascata nós cujos requisitos não estão cumpridos entre os candidatos
+            bool removeu;
+            do
+            {
+                removeu = false;
+                var aRemover = new List<string>();
+                foreach (var par in candidatos)
+                {
+                    var no = Procurar(configuracao, par.Key);
+                    if (no == null || RequisitosPendentes(candidatos, no).Count > 0)
+                    {
+                        aRemover.Add(par.Key);
+                    }
+                }
+
+                foreach (var noId in aRemover)
+                {
+                    var no = Procurar(configuracao, noId);
+                    var nome = no != null ? no.Nome : noId;
+                    resultado.Avisos.Add(
+                        "O nó '"
+                            + nome
+                            + "' não teve todos os pré-requisitos cumpridos e foi removido do perfil."
+                    );
+                    candidatos.Remove(noId);
+                    removeu = true;
+                }
+            } while (removeu);
+
+            resultado.RanksAplicaveis = candidatos;
+            resultado.CustoTotal = CalcularPontosGastos(configuracao, candidatos);
+
+            if (resultado.CustoTotal > pontosDisponiveis)
+            {
+                resultado.Erro = CodigosErroTalentos.PontosInsuficientes;
+            }
+
+            return resultado;
+        }
+
         private static void Somar(AtributosDaArvore total, AtributoPrincipal atributo, int valor)
         {
             switch (atributo)
@@ -216,5 +336,21 @@ namespace JogoDoGrupo.Shared.Features.Talentos
                     break;
             }
         }
+    }
+
+    /// <summary>Resultado de <see cref="RegrasDaArvore.ValidarECalcularPerfil"/>.</summary>
+    public sealed class ValidacaoDePerfil
+    {
+        /// <summary>Código de erro, ou <c>null</c> se o perfil pode ser aplicado.</summary>
+        public string Erro;
+
+        /// <summary>Ranks finais válidos e que cumprem todos os requisitos.</summary>
+        public Dictionary<string, int> RanksAplicaveis = new Dictionary<string, int>();
+
+        /// <summary>Custo total em pontos da árvore para aplicar estes ranks.</summary>
+        public int CustoTotal;
+
+        /// <summary>Avisos explicativos de nós descartados ou ajustados.</summary>
+        public List<string> Avisos = new List<string>();
     }
 }

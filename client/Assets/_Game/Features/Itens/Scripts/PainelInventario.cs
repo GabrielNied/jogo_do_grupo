@@ -57,6 +57,9 @@ namespace JogoDoGrupo.Client.Features.Itens
 
         /// <summary>Pede ao servidor para ordenar a aba (índice) aberta da bolsa.</summary>
         public event Action<int> OrdenarPedido;
+
+        /// <summary>Pede ao servidor para desbloquear a próxima aba da bolsa (#564).</summary>
+        public event Action ExpansaoPedida;
 #pragma warning disable CS0067 // só é disparado em editor/build de desenvolvimento
         public event Action<int> ItemDeTestePedido;
 #pragma warning restore CS0067
@@ -404,6 +407,15 @@ namespace JogoDoGrupo.Client.Features.Itens
             _confirmacao.style.display = DisplayStyle.None;
         }
 
+        public void SelecionarAba(int aba)
+        {
+            if (_estado != null && _estado.Capacidade.Contem(aba, 0))
+            {
+                _aba = aba;
+                Mostrar(_estado, _novos, _pendentes, _ocupado);
+            }
+        }
+
         // ---- montagem ----
 
         private VisualElement MontarPaperdoll()
@@ -519,7 +531,7 @@ namespace JogoDoGrupo.Client.Features.Itens
                 )
             );
 
-            if (capacidade.Abas > 1)
+            if (capacidade.Abas > 1 || capacidade.Abas < ConfigBolsa.AbasMaximas)
             {
                 var abas = new VisualElement();
                 abas.AddToClassList(EstiloItens.Abas);
@@ -538,6 +550,28 @@ namespace JogoDoGrupo.Client.Features.Itens
                     aba.EnableInClassList(EstiloItens.AbaAtiva, i == _aba);
                     abas.Add(aba);
                 }
+
+                if (capacidade.Abas < ConfigBolsa.AbasMaximas)
+                {
+                    var proximaAba = capacidade.Abas + 1;
+                    var custo = ConfigBolsa.CustoPorAba(proximaAba);
+                    var botaoExpandir = Botao(
+                        "+",
+                        () =>
+                        {
+                            MostrarConfirmacao(
+                                $"Desbloquear a Aba {proximaAba} da bolsa por {custo} coroas?",
+                                $"Desbloquear ({custo} coroas)",
+                                () => ExpansaoPedida?.Invoke(),
+                                null
+                            );
+                        }
+                    );
+                    botaoExpandir.AddToClassList(EstiloItens.Aba);
+                    botaoExpandir.tooltip = $"Desbloquear Aba {proximaAba} por {custo} coroas";
+                    abas.Add(botaoExpandir);
+                }
+
                 coluna.Add(abas);
             }
 

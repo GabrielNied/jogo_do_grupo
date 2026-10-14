@@ -56,6 +56,52 @@ namespace JogoDoGrupo.Client.Features.Personagem
         public static readonly string LimiteAtingido =
             $"Você já tem o máximo de {RegrasPersonagem.MaximoPorConta} personagens.";
 
+        public const string ConfirmacaoDeNomeIncorreta =
+            "O nome digitado não confere com o do personagem.";
+
+        public const string AparenciaInvalida = "Opção de aparência inválida.";
+
+        public static string NomeTomDePele(int tom) =>
+            tom switch
+            {
+                0 => "Padrão",
+                1 => "Claro",
+                2 => "Bronze",
+                3 => "Escuro",
+                _ => "Tom " + (tom + 1),
+            };
+
+        public static string NomeCabelo(int cabelo) =>
+            cabelo switch
+            {
+                0 => "Curto",
+                1 => "Trançado",
+                2 => "Longo",
+                3 => "Raspado",
+                _ => "Estilo " + (cabelo + 1),
+            };
+
+        public static string NomeCorDeCabelo(int cor) =>
+            cor switch
+            {
+                0 => "Castanho",
+                1 => "Preto",
+                2 => "Loiro",
+                3 => "Ruivo",
+                4 => "Prateado",
+                _ => "Cor " + (cor + 1),
+            };
+
+        public static string DescricaoAparencia(AparenciaPersonagem aparencia)
+        {
+            if (aparencia == null)
+            {
+                return "";
+            }
+
+            return $"{NomeTomDePele(aparencia.TomDePele)} · {NomeCabelo(aparencia.Cabelo)} ({NomeCorDeCabelo(aparencia.CorDeCabelo)})";
+        }
+
         // Códigos de CodigosErroCliente (Core) comparados pelo valor, para não depender de
         // símbolos que podem ainda não existir no Core desta versão.
         private const string CodigoHttpBloqueado = "HttpBloqueado";
@@ -119,7 +165,7 @@ namespace JogoDoGrupo.Client.Features.Personagem
             };
         }
 
-        /// <summary>Mensagem para a recusa do <c>POST</c> de criação.</summary>
+        /// <summary>Mensagem para a recusa do <c>POST</c> de criação ou exclusão.</summary>
         public static string MensagemDaRecusa(string codigo)
         {
             return codigo switch
@@ -128,6 +174,9 @@ namespace JogoDoGrupo.Client.Features.Personagem
                 CodigosErroPersonagem.NomeJaExiste => "Esse nome já está em uso.",
                 CodigosErroPersonagem.RacaInvalida => "Raça inválida.",
                 CodigosErroPersonagem.LimitePersonagens => LimiteAtingido,
+                CodigosErroPersonagem.ConfirmacaoDeNomeIncorreta => ConfirmacaoDeNomeIncorreta,
+                CodigosErroPersonagem.AparenciaInvalida => AparenciaInvalida,
+                CodigosErroPersonagem.PersonagemNaoEncontrado => "Personagem não encontrado.",
                 CodigosErroCliente.SemConexao => SemConexao,
                 CodigoHttpBloqueado => SemConexao,
                 _ => Generica,

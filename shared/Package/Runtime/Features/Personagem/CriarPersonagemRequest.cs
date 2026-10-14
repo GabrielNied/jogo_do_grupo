@@ -12,5 +12,6 @@ namespace JogoDoGrupo.Shared.Features.Personagem
     {
         public string Nome = "";
         public Raca Raca;
+        public AparenciaPersonagem Aparencia = new AparenciaPersonagem();
     }
 }

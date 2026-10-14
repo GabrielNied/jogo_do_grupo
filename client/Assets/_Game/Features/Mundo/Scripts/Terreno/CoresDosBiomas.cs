@@ -112,7 +112,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
             if (pesos.Pantano > 0.05f)
             {
                 var deltaAgua = altura - MapaDoMundo.NivelDaAgua;
-                if (deltaAgua >= -0.35f && deltaAgua <= 0.85f)
+                if (deltaAgua >= 0f && deltaAgua <= 0.85f)
                 {
                     var distBorda = Mathf.Abs(deltaAgua - 0.2f);
                     var fatorPraia = 1f - Mathf.Clamp01(distBorda / 0.65f);
@@ -122,9 +122,9 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
             }
 
             // Fundo profundo das poças e lagos (bem abaixo da linha da água): lodo escuro
-            if (altura < MapaDoMundo.NivelDaAgua - 0.25f && pesos.Pantano > 0.1f)
+            if (altura < MapaDoMundo.NivelDaAgua && pesos.Pantano > 0.1f)
             {
-                var fundo = Mathf.Clamp01((MapaDoMundo.NivelDaAgua - 0.25f - altura) / 0.4f);
+                var fundo = Mathf.Clamp01((MapaDoMundo.NivelDaAgua - altura) / 0.3f);
                 cor = Color.Lerp(cor, Lodo, fundo * pesos.Pantano);
             }
 
@@ -136,9 +136,10 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
             );
             cor = Color.Lerp(cor, Brasa, quente * pesos.Lava);
 
-            // Encostas e paredões rochosos: sombreamento mineral suave na textura macro
-            var pedra = Mathf.InverseLerp(0.22f, 0.50f, declive);
-            cor = Color.Lerp(cor, Rocha, pedra * 0.90f * (1f - pesos.Lava));
+            // Encostas e paredões rochosos: sombreamento mineral suave e pedra total no paredão
+            var pedra =
+                declive >= DecliveSoDePedra ? 1f : Mathf.InverseLerp(0.22f, 0.50f, declive) * 0.90f;
+            cor = Color.Lerp(cor, Rocha, pedra * (1f - pesos.Lava));
 
             // Margens de rio com seixos, cascalho e areia úmida
             if (MapaDoMundo.ProximoDeRio(x, z, out var distRio) && pesos.Lava < 0.35f)

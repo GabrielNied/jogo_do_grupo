@@ -327,6 +327,21 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
                 || !presentes.TryGetValue(id, out var visto)
                 || NaZonaUrbana(visto.X, visto.Z)
             );
+
+            foreach (var inimigo in _inimigos)
+            {
+                foreach (var id in inimigo.Ameacas.Personagens.ToArray())
+                {
+                    if (
+                        _queda.EstaCaido(id)
+                        || !presentes.TryGetValue(id, out var visto)
+                        || NaZonaUrbana(visto.X, visto.Z)
+                    )
+                    {
+                        inimigo.Ameacas.Remover(id);
+                    }
+                }
+            }
             if (_inimigos.All(ForaDeLuta))
             {
                 // Ninguém em alerta, perseguindo ou atacando: o grupo esquece quem viu. Quem
@@ -477,6 +492,7 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
             var aplicado = Math.Min(dano, inimigo.Vida);
             inimigo.Vida -= aplicado;
             inimigo.Atacantes.Add(atacanteId);
+            inimigo.Ameacas.AdicionarDano(atacanteId, aplicado);
             inimigo.VidaMudou = true;
             resultado = new ResultadoDeDano(
                 inimigo.Id,
@@ -534,7 +550,7 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
             case EstadoDeInimigo.Repouso:
                 if (candidatos.Length > 0)
                 {
-                    inimigo.Alvo = Escolher(inimigo, candidatos, presentes);
+                    inimigo.Alvo = Escolher(inimigo, candidatos, presentes, agora);
                     inimigo.AlertaAteMs = agora + AlertaMs;
                     Mudar(inimigo, EstadoDeInimigo.Alerta);
                     OlharParaOAlvo(inimigo, presentes);
@@ -547,7 +563,7 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
                 break;
 
             case EstadoDeInimigo.Alerta:
-                inimigo.Alvo = Escolher(inimigo, candidatos, presentes);
+                inimigo.Alvo = Escolher(inimigo, candidatos, presentes, agora);
                 if (inimigo.Alvo == RegrasInimigo.SemAlvo)
                 {
                     Retornar(inimigo);
@@ -597,7 +613,7 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
         PassoDosInimigos passo
     )
     {
-        inimigo.Alvo = Escolher(inimigo, candidatos, presentes);
+        inimigo.Alvo = Escolher(inimigo, candidatos, presentes, agora);
         if (inimigo.Alvo == RegrasInimigo.SemAlvo)
         {
             Retornar(inimigo);
@@ -860,7 +876,7 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
             return;
         }
 
-        inimigo.Alvo = Escolher(inimigo, candidatos, presentes);
+        inimigo.Alvo = Escolher(inimigo, candidatos, presentes, agora);
         if (inimigo.Alvo == RegrasInimigo.SemAlvo)
         {
             Retornar(inimigo);
@@ -912,6 +928,7 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
         inimigo.Preparando = false;
         inimigo.SegundosSemAtacar = 0.0;
         inimigo.Atacantes.Clear();
+        inimigo.Ameacas.Limpar();
         if (inimigo.Vida != inimigo.Criatura.VidaMaxima)
         {
             inimigo.Vida = inimigo.Criatura.VidaMaxima;
@@ -926,6 +943,7 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
         Mudar(inimigo, EstadoDeInimigo.Morto);
         inimigo.Alvo = RegrasInimigo.SemAlvo;
         inimigo.Preparando = false;
+        inimigo.Ameacas.Limpar();
 
         if (_aparicao != null)
         {
@@ -1185,7 +1203,8 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
     private static long Escolher(
         Inimigo inimigo,
         long[] candidatos,
-        Dictionary<long, JogadorNoCampo> presentes
+        Dictionary<long, JogadorNoCampo> presentes,
+        long agora
     )
     {
         var distancias = new double[candidatos.Length];
@@ -1195,7 +1214,46 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
             distancias[i] = RegrasInimigo.Distancia(inimigo.X, inimigo.Z, jogador.X, jogador.Z);
         }
 
-        return RegrasInimigo.EscolherAlvo(inimigo.Alvo, candidatos, distancias);
+        return inimigo.Ameacas.EscolherAlvo(
+            inimigo.Alvo,
+            candidatos,
+            distancias,
+            RegrasInimigo.AlcanceDeAtaqueMetros,
+            agora
+        );
+    }
+
+    /// <summary>
+    /// Força o alvo a focar no provocador na hora e iguala sua ameaça ao maior da tabela por 4 s.
+    /// </summary>
+    public bool Provocar(long alvoId, long provocadorId)
+    {
+        lock (_trava)
+        {
+            var inimigo = Array.Find(_inimigos, i => i.Id == alvoId);
+            if (
+                inimigo == null
+                || !RegrasInimigo.EstaVivo(inimigo.Estado)
+                || inimigo.Estado == EstadoDeInimigo.Retorno
+            )
+            {
+                return false;
+            }
+
+            inimigo.Ameacas.Provocar(provocadorId, _relogioMs());
+            inimigo.Alvo = provocadorId;
+            return true;
+        }
+    }
+
+    /// <summary>Retorna a ameaça de um personagem sobre um inimigo (para consultas e testes).</summary>
+    public double ObterAmeaca(long alvoId, long personagemId)
+    {
+        lock (_trava)
+        {
+            var inimigo = Array.Find(_inimigos, i => i.Id == alvoId);
+            return inimigo?.Ameacas.ObterAmeaca(personagemId) ?? 0.0;
+        }
     }
 
     private static void OlharParaOAlvo(Inimigo inimigo, Dictionary<long, JogadorNoCampo> presentes)
@@ -1327,6 +1385,9 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
 
         /// <summary>Quem causou dano desde que ele apareceu ou voltou da desistência.</summary>
         public readonly HashSet<long> Atacantes = [];
+
+        /// <summary>Tabela de ameaça individual deste inimigo.</summary>
+        public readonly TabelaDeAmeaca Ameacas = new();
 
         /// <summary>A vida mudou desde o último <see cref="InimigoMudou"/>.</summary>
         public bool VidaMudou;

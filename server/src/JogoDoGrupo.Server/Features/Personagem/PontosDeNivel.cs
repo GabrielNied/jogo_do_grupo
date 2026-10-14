@@ -36,4 +36,23 @@ public sealed class PontosDeNivel(JogoDbContext db) : IPontosDeNivel
             );
         return linhas == 1;
     }
+
+    public async Task DevolverAsync(
+        long personagemId,
+        int quantidade,
+        CancellationToken cancelamento
+    )
+    {
+        if (quantidade < 1)
+        {
+            return;
+        }
+
+        await db.Set<Personagem>()
+            .Where(p => p.Id == personagemId)
+            .ExecuteUpdateAsync(
+                p => p.SetProperty(x => x.PontosLivres, x => x.PontosLivres + quantidade),
+                cancelamento
+            );
+    }
 }

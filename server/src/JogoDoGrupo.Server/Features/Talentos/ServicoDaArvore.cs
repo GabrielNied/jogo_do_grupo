@@ -1,4 +1,7 @@
 using System.Data;
+using System.Text.Json;
+using JogoDoGrupo.Server.Contratos.Combate;
+using JogoDoGrupo.Server.Contratos.Economia;
 using JogoDoGrupo.Server.Contratos.Personagem;
 using JogoDoGrupo.Server.Core.Persistencia;
 using JogoDoGrupo.Shared.Features.Talentos;
@@ -9,14 +12,28 @@ namespace JogoDoGrupo.Server.Features.Talentos;
 /// <summary>Resultado de uma compra: o estado novo, ou o código de erro.</summary>
 public sealed record ResultadoDaCompra(ArvoreResponse? Arvore, string? Erro);
 
+/// <summary>Resultado de uma redistribuição: o estado novo, ou o código de erro.</summary>
+public sealed record ResultadoDaRedistribuicao(ArvoreResponse? Arvore, string? Erro);
+
+/// <summary>Resultado ao salvar um perfil.</summary>
+public sealed record ResultadoSalvarPerfil(PerfilTalentosDto? Perfil, string? Erro);
+
+/// <summary>Resultado ao carregar um perfil.</summary>
+public sealed record ResultadoCarregarPerfil(CarregarPerfilResponse? Resposta, string? Erro);
+
+/// <summary>Resultado simples de operações com perfis (renomear, excluir).</summary>
+public sealed record ResultadoPerfil(string? Erro);
+
 /// <summary>
-/// Lê e compra ranks da árvore. Usa o mesmo contexto da requisição, então a baixa dos pontos de
-/// Personagem (<see cref="IPontosDeNivel"/>) e a gravação do rank saem na mesma transação.
+/// Lê, compra ranks, redistribui e gerencia perfis da árvore de talentos. Usa o mesmo contexto da
+/// requisição, garantindo atomicidade com Personagem (<see cref="IPontosDeNivel"/>) e Economia (<see cref="ICarteiraCoroas"/>).
 /// </summary>
 public sealed class ServicoDaArvore(
     JogoDbContext db,
     IPontosDeNivel pontos,
-    ConfiguracaoDaArvore configuracao
+    ConfiguracaoDaArvore configuracao,
+    ICarteiraCoroas carteira,
+    IEstadoDeCombate? combate = null
 )
 {
     public async Task<ArvoreResponse> ObterAsync(long personagemId, CancellationToken cancelamento)
@@ -111,6 +128,370 @@ public sealed class ServicoDaArvore(
         await db.SaveChangesAsync(cancelamento);
         await transacao.CommitAsync(cancelamento);
         return new ResultadoDaCompra(Montar(cabecalho, nos, livres - avaliacao.Custo), null);
+    }
+
+    /// <summary>
+    /// Redistribui todos os pontos gastos da árvore: cobra o custo em coroas via <see cref="ICarteiraCoroas"/>,
+    /// remove os nós comprados e devolve os pontos para os pontos livres de Personagem.
+    /// Só permitido fora de combate. Cobrança e redistribuição acontecem na mesma transação.
+    /// </summary>
+    public async Task<ResultadoDaRedistribuicao> RedistribuirAsync(
+        long personagemId,
+        RedistribuirRequest pedido,
+        CancellationToken cancelamento
+    )
+    {
+        if (combate != null && combate.EmCombate(personagemId))
+        {
+            return new ResultadoDaRedistribuicao(null, CodigosErroTalentos.EmCombate);
+        }
+
+        await using var transacao = await db.Database.BeginTransactionAsync(
+            IsolationLevel.Serializable,
+            cancelamento
+        );
+
+        var cabecalho = await db.Set<ArvoreDoPersonagem>()
+            .FirstOrDefaultAsync(a => a.PersonagemId == personagemId, cancelamento);
+        var nos = await db.Set<NoComprado>()
+            .Where(n => n.PersonagemId == personagemId)
+            .ToListAsync(cancelamento);
+
+        if (
+            pedido.VersaoConfiguracao != configuracao.Versao
+            || (cabecalho != null && cabecalho.Versao != configuracao.Versao)
+        )
+        {
+            return new ResultadoDaRedistribuicao(null, CodigosErroTalentos.ArvoreDesatualizada);
+        }
+
+        var pontosGastos = cabecalho?.PontosGastos ?? 0;
+        if (pontosGastos <= 0 && nos.Count == 0)
+        {
+            return new ResultadoDaRedistribuicao(null, CodigosErroTalentos.NenhumPontoGasto);
+        }
+
+        var cobrou = await carteira.DebitarAsync(
+            personagemId,
+            ConfigRedistribuicao.CustoPadraoCoroas,
+            cancelamento
+        );
+        if (!cobrou)
+        {
+            return new ResultadoDaRedistribuicao(null, CodigosErroTalentos.SaldoInsuficiente);
+        }
+
+        if (nos.Count > 0)
+        {
+            db.Set<NoComprado>().RemoveRange(nos);
+            nos.Clear();
+        }
+
+        if (cabecalho != null)
+        {
+            cabecalho.PontosGastos = 0;
+        }
+
+        if (pontosGastos > 0)
+        {
+            await pontos.DevolverAsync(personagemId, pontosGastos, cancelamento);
+        }
+
+        await db.SaveChangesAsync(cancelamento);
+        await transacao.CommitAsync(cancelamento);
+
+        var livres = await pontos.ObterAsync(personagemId, cancelamento);
+        return new ResultadoDaRedistribuicao(Montar(cabecalho, nos, livres), null);
+    }
+
+    /// <summary>Lista todos os perfis de build salvos do personagem.</summary>
+    public async Task<ListaPerfisResponse> ListarPerfisAsync(
+        long personagemId,
+        CancellationToken cancelamento
+    )
+    {
+        var perfis = await db.Set<PerfilDeTalentos>()
+            .AsNoTracking()
+            .Where(p => p.PersonagemId == personagemId)
+            .OrderBy(p => p.CriadoEm)
+            .ToListAsync(cancelamento);
+
+        var lista = new List<PerfilTalentosDto>();
+        foreach (var p in perfis)
+        {
+            var ranks = DeserializarRanks(p.RanksJson);
+            var pontosTotais = RegrasDaArvore.CalcularPontosGastos(
+                configuracao,
+                RegrasDaArvore.ParaDicionario(ranks)
+            );
+
+            lista.Add(
+                new PerfilTalentosDto
+                {
+                    Id = p.Id,
+                    Nome = p.Nome,
+                    VersaoConfiguracao = p.Versao,
+                    CriadoEm = p.CriadoEm.ToString("O"),
+                    Ranks = ranks,
+                    PontosTotais = pontosTotais,
+                }
+            );
+        }
+
+        return new ListaPerfisResponse { Perfis = lista.ToArray() };
+    }
+
+    /// <summary>Salva a distribuição atual de talentos do personagem como um novo perfil.</summary>
+    public async Task<ResultadoSalvarPerfil> SalvarPerfilAsync(
+        long personagemId,
+        SalvarPerfilRequest pedido,
+        CancellationToken cancelamento
+    )
+    {
+        var nome = pedido.Nome?.Trim();
+        if (
+            string.IsNullOrEmpty(nome)
+            || nome.Length > ConfigRedistribuicao.TamanhoMaximoNomePerfil
+        )
+        {
+            return new ResultadoSalvarPerfil(null, CodigosErroTalentos.NomeDePerfilInvalido);
+        }
+
+        var total = await db.Set<PerfilDeTalentos>()
+            .CountAsync(p => p.PersonagemId == personagemId, cancelamento);
+        if (total >= ConfigRedistribuicao.LimitePerfis)
+        {
+            return new ResultadoSalvarPerfil(null, CodigosErroTalentos.LimiteDePerfisAtingido);
+        }
+
+        var nos = await db.Set<NoComprado>()
+            .AsNoTracking()
+            .Where(n => n.PersonagemId == personagemId && n.Rank > 0)
+            .ToListAsync(cancelamento);
+
+        var ranks = Ranks(nos);
+        var novo = new PerfilDeTalentos
+        {
+            PersonagemId = personagemId,
+            Nome = nome,
+            Versao = configuracao.Versao,
+            CriadoEm = DateTime.UtcNow,
+            RanksJson = JsonSerializer.Serialize(ranks, OpcoesJson),
+        };
+
+        db.Add(novo);
+        await db.SaveChangesAsync(cancelamento);
+
+        var pontosTotais = RegrasDaArvore.CalcularPontosGastos(
+            configuracao,
+            RegrasDaArvore.ParaDicionario(ranks)
+        );
+
+        var dto = new PerfilTalentosDto
+        {
+            Id = novo.Id,
+            Nome = novo.Nome,
+            VersaoConfiguracao = novo.Versao,
+            CriadoEm = novo.CriadoEm.ToString("O"),
+            Ranks = ranks,
+            PontosTotais = pontosTotais,
+        };
+
+        return new ResultadoSalvarPerfil(dto, null);
+    }
+
+    /// <summary>Renomeia um perfil de build existente.</summary>
+    public async Task<ResultadoPerfil> RenomearPerfilAsync(
+        long personagemId,
+        long perfilId,
+        RenomearPerfilRequest pedido,
+        CancellationToken cancelamento
+    )
+    {
+        var nome = pedido.Nome?.Trim();
+        if (
+            string.IsNullOrEmpty(nome)
+            || nome.Length > ConfigRedistribuicao.TamanhoMaximoNomePerfil
+        )
+        {
+            return new ResultadoPerfil(CodigosErroTalentos.NomeDePerfilInvalido);
+        }
+
+        var perfil = await db.Set<PerfilDeTalentos>()
+            .FirstOrDefaultAsync(
+                p => p.Id == perfilId && p.PersonagemId == personagemId,
+                cancelamento
+            );
+        if (perfil == null)
+        {
+            return new ResultadoPerfil(CodigosErroTalentos.PerfilNaoEncontrado);
+        }
+
+        perfil.Nome = nome;
+        await db.SaveChangesAsync(cancelamento);
+        return new ResultadoPerfil(null);
+    }
+
+    /// <summary>Exclui um perfil de build.</summary>
+    public async Task<ResultadoPerfil> ExcluirPerfilAsync(
+        long personagemId,
+        long perfilId,
+        CancellationToken cancelamento
+    )
+    {
+        var perfil = await db.Set<PerfilDeTalentos>()
+            .FirstOrDefaultAsync(
+                p => p.Id == perfilId && p.PersonagemId == personagemId,
+                cancelamento
+            );
+        if (perfil == null)
+        {
+            return new ResultadoPerfil(CodigosErroTalentos.PerfilNaoEncontrado);
+        }
+
+        db.Remove(perfil);
+        await db.SaveChangesAsync(cancelamento);
+        return new ResultadoPerfil(null);
+    }
+
+    /// <summary>
+    /// Carrega e aplica um perfil de build no personagem.
+    /// Valida os ranks contra a versão atual e os pontos totais (livres + gastos).
+    /// Nós que não existem mais ou cujos requisitos foram quebrados geram aviso e têm seus pontos preservados.
+    /// </summary>
+    public async Task<ResultadoCarregarPerfil> CarregarPerfilAsync(
+        long personagemId,
+        long perfilId,
+        CancellationToken cancelamento
+    )
+    {
+        if (combate != null && combate.EmCombate(personagemId))
+        {
+            return new ResultadoCarregarPerfil(null, CodigosErroTalentos.EmCombate);
+        }
+
+        var perfil = await db.Set<PerfilDeTalentos>()
+            .AsNoTracking()
+            .FirstOrDefaultAsync(
+                p => p.Id == perfilId && p.PersonagemId == personagemId,
+                cancelamento
+            );
+        if (perfil == null)
+        {
+            return new ResultadoCarregarPerfil(null, CodigosErroTalentos.PerfilNaoEncontrado);
+        }
+
+        await using var transacao = await db.Database.BeginTransactionAsync(
+            IsolationLevel.Serializable,
+            cancelamento
+        );
+
+        var cabecalho = await db.Set<ArvoreDoPersonagem>()
+            .FirstOrDefaultAsync(a => a.PersonagemId == personagemId, cancelamento);
+        var nos = await db.Set<NoComprado>()
+            .Where(n => n.PersonagemId == personagemId)
+            .ToListAsync(cancelamento);
+
+        var livres = await pontos.ObterAsync(personagemId, cancelamento);
+        var pontosGastosAtuais = cabecalho?.PontosGastos ?? 0;
+        var totalPontosDisponiveis = livres + pontosGastosAtuais;
+
+        var ranksDoPerfil = DeserializarRanks(perfil.RanksJson);
+        var validacao = RegrasDaArvore.ValidarECalcularPerfil(
+            configuracao,
+            ranksDoPerfil,
+            totalPontosDisponiveis
+        );
+        if (validacao.Erro != null)
+        {
+            return new ResultadoCarregarPerfil(null, validacao.Erro);
+        }
+
+        // Remove os nós atuais
+        if (nos.Count > 0)
+        {
+            db.Set<NoComprado>().RemoveRange(nos);
+            nos.Clear();
+        }
+
+        // Insere os novos nós validados
+        foreach (var par in validacao.RanksAplicaveis)
+        {
+            var novoNo = new NoComprado
+            {
+                PersonagemId = personagemId,
+                NoId = par.Key,
+                Rank = par.Value,
+            };
+            nos.Add(novoNo);
+            db.Add(novoNo);
+        }
+
+        if (cabecalho == null)
+        {
+            cabecalho = new ArvoreDoPersonagem
+            {
+                PersonagemId = personagemId,
+                Versao = configuracao.Versao,
+            };
+            db.Add(cabecalho);
+        }
+        else
+        {
+            cabecalho.Versao = configuracao.Versao;
+        }
+
+        var diferenca = validacao.CustoTotal - pontosGastosAtuais;
+        cabecalho.PontosGastos = validacao.CustoTotal;
+
+        if (diferenca > 0)
+        {
+            if (!await pontos.TentarGastarAsync(personagemId, diferenca, cancelamento))
+            {
+                return new ResultadoCarregarPerfil(null, CodigosErroTalentos.PontosInsuficientes);
+            }
+        }
+        else if (diferenca < 0)
+        {
+            await pontos.DevolverAsync(personagemId, -diferenca, cancelamento);
+        }
+
+        await db.SaveChangesAsync(cancelamento);
+        await transacao.CommitAsync(cancelamento);
+
+        var respostaArvore = Montar(cabecalho, nos, livres - diferenca);
+        return new ResultadoCarregarPerfil(
+            new CarregarPerfilResponse
+            {
+                Arvore = respostaArvore,
+                Avisos = validacao.Avisos.ToArray(),
+            },
+            null
+        );
+    }
+
+    private static readonly JsonSerializerOptions OpcoesJson = new()
+    {
+        IncludeFields = true,
+        PropertyNameCaseInsensitive = true,
+    };
+
+    private static RankDoNo[] DeserializarRanks(string json)
+    {
+        if (string.IsNullOrWhiteSpace(json))
+        {
+            return Array.Empty<RankDoNo>();
+        }
+
+        try
+        {
+            return JsonSerializer.Deserialize<RankDoNo[]>(json, OpcoesJson)
+                ?? Array.Empty<RankDoNo>();
+        }
+        catch
+        {
+            return Array.Empty<RankDoNo>();
+        }
     }
 
     private static RankDoNo[] Ranks(List<NoComprado> nos) =>

@@ -324,3 +324,58 @@
 .lumora-compacto .personagem-painel-queda {
     max-height: var(--lumora-dimensoes-dialogo-percentual);
 }
+
+/* Aparência básica na criação */
+.personagem-criacao-aparencia {
+    margin-top: var(--lumora-espacamento-medio);
+    padding: var(--lumora-espacamento-pequeno);
+    background-color: var(--lumora-cores-campo);
+    border-width: var(--lumora-bordas-fina);
+    border-color: var(--lumora-cores-borda-discreta);
+    border-radius: var(--lumora-bordas-raio-cartao);
+}
+
+.personagem-stepper-item {
+    margin-bottom: var(--lumora-espacamento-curto);
+}
+
+.personagem-stepper-linha {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 2px;
+}
+
+.personagem-stepper-botao {
+    width: 32px;
+    height: 28px;
+    padding: 0;
+    -unity-text-align: middle-center;
+}
+
+.personagem-stepper-valor {
+    flex-grow: 1;
+    -unity-text-align: middle-center;
+    font-size: var(--lumora-tipografia-leitura);
+    color: var(--lumora-cores-marfim);
+}
+
+/* Confirmação de exclusão */
+.personagem-confirmacao-exclusao {
+    margin-top: var(--lumora-espacamento-medio);
+    padding: var(--lumora-espacamento-padrao);
+    background-color: var(--lumora-cores-campo);
+    border-width: var(--lumora-bordas-fina);
+    border-color: var(--lumora-cores-erro);
+    border-radius: var(--lumora-bordas-raio-cartao);
+}
+
+.personagem-confirmacao-exclusao .campo {
+    margin-top: var(--lumora-espacamento-curto);
+    margin-bottom: var(--lumora-espacamento-curto);
+}
+
+.personagem-botao-perigo {
+    color: var(--lumora-cores-erro);
+    border-color: var(--lumora-cores-erro);
+}

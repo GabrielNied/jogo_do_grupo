@@ -18,5 +18,8 @@ namespace JogoDoGrupo.Shared.Features.Personagem
 
         /// <summary>Nível atual. Personagem recém-criado tem nível 1.</summary>
         public int Nivel;
+
+        /// <summary>Aparência básica customizada do personagem.</summary>
+        public AparenciaPersonagem Aparencia = new AparenciaPersonagem();
     }
 }

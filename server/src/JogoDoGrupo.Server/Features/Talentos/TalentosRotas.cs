@@ -8,7 +8,7 @@ using JogoDoGrupo.Shared.Features.Talentos;
 
 namespace JogoDoGrupo.Server.Features.Talentos;
 
-/// <summary>Ver a árvore e comprar rank (rotas de <see cref="RotasTalentos"/>, com token).</summary>
+/// <summary>Rotas HTTP da árvore de talentos, redistribuição e perfis de build (com token).</summary>
 internal static class TalentosRotas
 {
     public static void Mapear(IEndpointRouteBuilder rotas)
@@ -16,8 +16,15 @@ internal static class TalentosRotas
         var grupo = rotas
             .MapGroup("/api/personagens/{personagemId}/talentos")
             .RequireAuthorization();
+
         grupo.MapGet("", ArvoreAsync);
         grupo.MapPost("/comprar", ComprarAsync);
+        grupo.MapPost("/redistribuir", RedistribuirAsync);
+        grupo.MapGet("/perfis", ListarPerfisAsync);
+        grupo.MapPost("/perfis", SalvarPerfilAsync);
+        grupo.MapPut("/perfis/{perfilId}", RenomearPerfilAsync);
+        grupo.MapDelete("/perfis/{perfilId}", ExcluirPerfilAsync);
+        grupo.MapPost("/perfis/{perfilId}/carregar", CarregarPerfilAsync);
     }
 
     private static async Task<IResult> ArvoreAsync(
@@ -61,10 +68,182 @@ internal static class TalentosRotas
         return resultado.Erro == null ? Results.Ok(resultado.Arvore) : Recusa(resultado.Erro);
     }
 
+    private static async Task<IResult> RedistribuirAsync(
+        string personagemId,
+        RedistribuirRequest? pedido,
+        ClaimsPrincipal usuario,
+        IVerificadorPersonagem verificador,
+        ServicoDaArvore servico,
+        CancellationToken cancelamento
+    )
+    {
+        var id = await PersonagemDaContaAsync(personagemId, usuario, verificador, cancelamento);
+        if (id == null)
+        {
+            return PersonagemNaoEncontrado();
+        }
+
+        if (pedido == null)
+        {
+            return RespostasApi.Erro(
+                StatusCodes.Status400BadRequest,
+                CodigosErroTalentos.ArvoreDesatualizada
+            );
+        }
+
+        var resultado = await servico.RedistribuirAsync(id.Value, pedido, cancelamento);
+        return resultado.Erro == null ? Results.Ok(resultado.Arvore) : Recusa(resultado.Erro);
+    }
+
+    private static async Task<IResult> ListarPerfisAsync(
+        string personagemId,
+        ClaimsPrincipal usuario,
+        IVerificadorPersonagem verificador,
+        ServicoDaArvore servico,
+        CancellationToken cancelamento
+    )
+    {
+        var id = await PersonagemDaContaAsync(personagemId, usuario, verificador, cancelamento);
+        return id == null
+            ? PersonagemNaoEncontrado()
+            : Results.Ok(await servico.ListarPerfisAsync(id.Value, cancelamento));
+    }
+
+    private static async Task<IResult> SalvarPerfilAsync(
+        string personagemId,
+        SalvarPerfilRequest? pedido,
+        ClaimsPrincipal usuario,
+        IVerificadorPersonagem verificador,
+        ServicoDaArvore servico,
+        CancellationToken cancelamento
+    )
+    {
+        var id = await PersonagemDaContaAsync(personagemId, usuario, verificador, cancelamento);
+        if (id == null)
+        {
+            return PersonagemNaoEncontrado();
+        }
+
+        if (pedido == null)
+        {
+            return RespostasApi.Erro(
+                StatusCodes.Status400BadRequest,
+                CodigosErroTalentos.NomeDePerfilInvalido
+            );
+        }
+
+        var resultado = await servico.SalvarPerfilAsync(id.Value, pedido, cancelamento);
+        return resultado.Erro == null ? Results.Ok(resultado.Perfil) : Recusa(resultado.Erro);
+    }
+
+    private static async Task<IResult> RenomearPerfilAsync(
+        string personagemId,
+        string perfilId,
+        RenomearPerfilRequest? pedido,
+        ClaimsPrincipal usuario,
+        IVerificadorPersonagem verificador,
+        ServicoDaArvore servico,
+        CancellationToken cancelamento
+    )
+    {
+        var id = await PersonagemDaContaAsync(personagemId, usuario, verificador, cancelamento);
+        if (id == null)
+        {
+            return PersonagemNaoEncontrado();
+        }
+
+        if (
+            !long.TryParse(perfilId, NumberStyles.None, CultureInfo.InvariantCulture, out var pId)
+            || pId <= 0
+        )
+        {
+            return RespostasApi.Erro(
+                StatusCodes.Status404NotFound,
+                CodigosErroTalentos.PerfilNaoEncontrado
+            );
+        }
+
+        if (pedido == null)
+        {
+            return RespostasApi.Erro(
+                StatusCodes.Status400BadRequest,
+                CodigosErroTalentos.NomeDePerfilInvalido
+            );
+        }
+
+        var resultado = await servico.RenomearPerfilAsync(id.Value, pId, pedido, cancelamento);
+        return resultado.Erro == null ? Results.Ok() : Recusa(resultado.Erro);
+    }
+
+    private static async Task<IResult> ExcluirPerfilAsync(
+        string personagemId,
+        string perfilId,
+        ClaimsPrincipal usuario,
+        IVerificadorPersonagem verificador,
+        ServicoDaArvore servico,
+        CancellationToken cancelamento
+    )
+    {
+        var id = await PersonagemDaContaAsync(personagemId, usuario, verificador, cancelamento);
+        if (id == null)
+        {
+            return PersonagemNaoEncontrado();
+        }
+
+        if (
+            !long.TryParse(perfilId, NumberStyles.None, CultureInfo.InvariantCulture, out var pId)
+            || pId <= 0
+        )
+        {
+            return RespostasApi.Erro(
+                StatusCodes.Status404NotFound,
+                CodigosErroTalentos.PerfilNaoEncontrado
+            );
+        }
+
+        var resultado = await servico.ExcluirPerfilAsync(id.Value, pId, cancelamento);
+        return resultado.Erro == null ? Results.Ok() : Recusa(resultado.Erro);
+    }
+
+    private static async Task<IResult> CarregarPerfilAsync(
+        string personagemId,
+        string perfilId,
+        ClaimsPrincipal usuario,
+        IVerificadorPersonagem verificador,
+        ServicoDaArvore servico,
+        CancellationToken cancelamento
+    )
+    {
+        var id = await PersonagemDaContaAsync(personagemId, usuario, verificador, cancelamento);
+        if (id == null)
+        {
+            return PersonagemNaoEncontrado();
+        }
+
+        if (
+            !long.TryParse(perfilId, NumberStyles.None, CultureInfo.InvariantCulture, out var pId)
+            || pId <= 0
+        )
+        {
+            return RespostasApi.Erro(
+                StatusCodes.Status404NotFound,
+                CodigosErroTalentos.PerfilNaoEncontrado
+            );
+        }
+
+        var resultado = await servico.CarregarPerfilAsync(id.Value, pId, cancelamento);
+        return resultado.Erro == null ? Results.Ok(resultado.Resposta) : Recusa(resultado.Erro);
+    }
+
     private static IResult Recusa(string erro) =>
         RespostasApi.Erro(
-            erro is CodigosErroTalentos.NoInvalido or CodigosErroTalentos.RankAlvoInvalido
-                ? StatusCodes.Status400BadRequest
+            erro
+                    is CodigosErroTalentos.NoInvalido
+                        or CodigosErroTalentos.RankAlvoInvalido
+                        or CodigosErroTalentos.NenhumPontoGasto
+                        or CodigosErroTalentos.NomeDePerfilInvalido
+                    ? StatusCodes.Status400BadRequest
+                : erro == CodigosErroTalentos.PerfilNaoEncontrado ? StatusCodes.Status404NotFound
                 : StatusCodes.Status409Conflict,
             erro
         );

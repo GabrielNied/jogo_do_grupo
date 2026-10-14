@@ -26,6 +26,7 @@ internal static class PersonagensRotas
         var grupo = rotas.MapGroup(RotasPersonagem.Personagens).RequireAuthorization();
         grupo.MapGet("", ListarAsync);
         grupo.MapPost("", CriarAsync);
+        grupo.MapPost("/{personagemId}/excluir", ExcluirAsync);
         grupo.MapGet("/{personagemId}/progresso", ProgressoAsync);
     }
 
@@ -72,6 +73,12 @@ internal static class PersonagensRotas
                 StatusCodes.Status400BadRequest,
                 CodigosErroPersonagem.RacaInvalida
             );
+        }
+
+        var erroAparencia = RegrasPersonagem.ValidarAparencia(requisicao.Aparencia);
+        if (erroAparencia != null)
+        {
+            return RespostasApi.Erro(StatusCodes.Status400BadRequest, erroAparencia);
         }
 
         var contaId = usuario.ObterContaId();
@@ -153,14 +160,34 @@ internal static class PersonagensRotas
             return NomeJaExiste();
         }
 
+        var agora = relogio.GetUtcNow().UtcDateTime;
+        var reserva = await db.Set<NomeReservado>()
+            .FirstOrDefaultAsync(
+                r => r.NomeNormalizado == normalizado && r.ReservadoAte > agora,
+                cancelamento
+            );
+        if (reserva != null)
+        {
+            if (reserva.ContaId != contaId)
+            {
+                return NomeJaExiste();
+            }
+
+            db.Remove(reserva);
+        }
+
+        var aparencia = requisicao.Aparencia ?? new AparenciaPersonagem();
         var personagem = new Personagem
         {
             ContaId = contaId,
             Nome = requisicao.Nome,
             NomeNormalizado = normalizado,
             Raca = requisicao.Raca,
+            TomDePele = aparencia.TomDePele,
+            Cabelo = aparencia.Cabelo,
+            CorDeCabelo = aparencia.CorDeCabelo,
             Nivel = Personagem.NivelInicial,
-            CriadoEm = relogio.GetUtcNow().UtcDateTime,
+            CriadoEm = agora,
         };
         db.Add(personagem);
 
@@ -180,6 +207,47 @@ internal static class PersonagensRotas
 
     private static IResult NomeJaExiste() =>
         RespostasApi.Erro(StatusCodes.Status409Conflict, CodigosErroPersonagem.NomeJaExiste);
+
+    private static async Task<IResult> ExcluirAsync(
+        string personagemId,
+        ExcluirPersonagemRequest requisicao,
+        ClaimsPrincipal usuario,
+        JogoDbContext db,
+        TimeProvider relogio,
+        CancellationToken cancelamento
+    )
+    {
+        var contaId = usuario.ObterContaId();
+        var personagem = await BuscarDaContaAsync(personagemId, contaId, db, cancelamento);
+        if (personagem == null)
+        {
+            return PersonagemNaoEncontrado();
+        }
+
+        if (!RegrasPersonagem.ConfirmacaoDeNomeConfere(personagem.Nome, requisicao.ConfirmacaoNome))
+        {
+            return RespostasApi.Erro(
+                StatusCodes.Status400BadRequest,
+                CodigosErroPersonagem.ConfirmacaoDeNomeIncorreta
+            );
+        }
+
+        var agora = relogio.GetUtcNow().UtcDateTime;
+        var reserva = new NomeReservado
+        {
+            ContaId = contaId,
+            Nome = personagem.Nome,
+            NomeNormalizado = personagem.NomeNormalizado,
+            ExcluidoEm = agora,
+            ReservadoAte = agora.AddDays(RegrasPersonagem.DiasDeReservaDeNome),
+        };
+
+        db.Add(reserva);
+        db.Remove(personagem);
+        await db.SaveChangesAsync(cancelamento);
+
+        return Results.Ok();
+    }
 
     private static async Task<IResult> ProgressoAsync(
         string personagemId,

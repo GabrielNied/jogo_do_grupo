@@ -1,4 +1,7 @@
 using System.Net;
+using System.Net.Http.Json;
+using JogoDoGrupo.Server.Contratos.Combate;
+using JogoDoGrupo.Server.Contratos.Economia;
 using JogoDoGrupo.Server.Contratos.Itens;
 using JogoDoGrupo.Server.Core.Persistencia;
 using JogoDoGrupo.Server.Features.Itens;
@@ -38,6 +41,20 @@ public class TalentosRotasTestes(ServidorDeTeste servidor) : IClassFixture<Servi
         personagem.PontosLivres = pontos;
         await db.SaveChangesAsync();
         return (cliente, id);
+    }
+
+    private async Task CreditarCoroasAsync(
+        long personagemId,
+        long valor,
+        IServiceProvider? services = null
+    )
+    {
+        await using var escopo = (services ?? servidor.Services).CreateAsyncScope();
+        var db = escopo.ServiceProvider.GetRequiredService<JogoDbContext>();
+        await using var tx = await db.Database.BeginTransactionAsync();
+        var carteira = escopo.ServiceProvider.GetRequiredService<ICarteiraCoroas>();
+        await carteira.CreditarAsync(personagemId, valor, default);
+        await tx.CommitAsync();
     }
 
     private static Task<HttpResponseMessage> ComprarAsync(
@@ -364,6 +381,341 @@ public class TalentosRotasTestes(ServidorDeTeste servidor) : IClassFixture<Servi
             depois.Ranks.Select(r => (r.NoId, r.Rank))
         );
         Assert.Equal(antes.Atributos.Forca, depois.Atributos.Forca);
+    }
+
+    [Fact]
+    public async Task Redistribuir_sem_pontos_gastos_recusa_com_400()
+    {
+        var (cliente, id) = await NovoPersonagemAsync(5);
+
+        var resposta = await ServidorDeTeste.PostJsonAsync(
+            cliente,
+            RotasTalentos.RedistribuirDe(id),
+            new RedistribuirRequest { VersaoConfiguracao = ArvoreDeTeste.Versao }
+        );
+
+        await AssertErroAsync(
+            resposta,
+            HttpStatusCode.BadRequest,
+            CodigosErroTalentos.NenhumPontoGasto
+        );
+    }
+
+    [Fact]
+    public async Task Redistribuir_sem_saldo_de_coroas_recusa_com_409()
+    {
+        var (cliente, id) = await NovoPersonagemAsync(5);
+        (await ComprarAsync(cliente, id, Forca1, 1)).EnsureSuccessStatusCode();
+
+        var resposta = await ServidorDeTeste.PostJsonAsync(
+            cliente,
+            RotasTalentos.RedistribuirDe(id),
+            new RedistribuirRequest { VersaoConfiguracao = ArvoreDeTeste.Versao }
+        );
+
+        await AssertErroAsync(
+            resposta,
+            HttpStatusCode.Conflict,
+            CodigosErroTalentos.SaldoInsuficiente
+        );
+
+        var arvore = await LerArvoreAsync(cliente, id);
+        Assert.Equal(1, arvore.PontosGastos);
+        Assert.Equal(1, RankDe(arvore, Forca1));
+    }
+
+    [Fact]
+    public async Task Redistribuir_com_saldo_cobra_coroas_devolve_pontos_e_limpa_ranks()
+    {
+        var (cliente, id) = await NovoPersonagemAsync(5);
+        (await ComprarAsync(cliente, id, Forca1, 1)).EnsureSuccessStatusCode();
+        (await ComprarAsync(cliente, id, Forca1, 2)).EnsureSuccessStatusCode();
+
+        // Credita 500 coroas na carteira
+        await CreditarCoroasAsync(id, 500);
+
+        var resposta = await ServidorDeTeste.PostJsonAsync(
+            cliente,
+            RotasTalentos.RedistribuirDe(id),
+            new RedistribuirRequest { VersaoConfiguracao = ArvoreDeTeste.Versao }
+        );
+
+        Assert.Equal(HttpStatusCode.OK, resposta.StatusCode);
+        var arvore = await ServidorDeTeste.LerJsonAsync<ArvoreResponse>(resposta);
+        Assert.Equal(0, arvore.PontosGastos);
+        Assert.Equal(5, arvore.PontosLivres);
+        Assert.Empty(arvore.Ranks);
+        Assert.Equal(0, arvore.Atributos.Forca);
+
+        // Confere que debitou 100 coroas
+        await using (var escopo = servidor.Services.CreateAsyncScope())
+        {
+            var carteira = escopo.ServiceProvider.GetRequiredService<ICarteiraCoroas>();
+            Assert.Equal(400, await carteira.SaldoAsync(id, default));
+        }
+    }
+
+    [Fact]
+    public async Task Redistribuir_em_combate_recusa_com_409()
+    {
+        var servidorEmCombate = servidor.WithWebHostBuilder(b =>
+            b.ConfigureServices(s => s.AddSingleton<IEstadoDeCombate>(new CombateMock(true)))
+        );
+
+        var (cliente, id) = await NovoPersonagemAsync(5);
+        (await ComprarAsync(cliente, id, Forca1, 1)).EnsureSuccessStatusCode();
+
+        await CreditarCoroasAsync(id, 500, servidorEmCombate.Services);
+
+        var clienteCombate = servidorEmCombate.CreateClient();
+        clienteCombate.DefaultRequestHeaders.Authorization = cliente
+            .DefaultRequestHeaders
+            .Authorization;
+
+        var resposta = await ServidorDeTeste.PostJsonAsync(
+            clienteCombate,
+            RotasTalentos.RedistribuirDe(id),
+            new RedistribuirRequest { VersaoConfiguracao = ArvoreDeTeste.Versao }
+        );
+
+        await AssertErroAsync(resposta, HttpStatusCode.Conflict, CodigosErroTalentos.EmCombate);
+    }
+
+    [Fact]
+    public async Task Salvar_e_listar_perfis()
+    {
+        var (cliente, id) = await NovoPersonagemAsync(5);
+        (await ComprarAsync(cliente, id, Forca1, 1)).EnsureSuccessStatusCode();
+
+        var salvar = await ServidorDeTeste.PostJsonAsync(
+            cliente,
+            RotasTalentos.PerfisDe(id),
+            new SalvarPerfilRequest { Nome = "Build Força Inicial" }
+        );
+
+        Assert.Equal(HttpStatusCode.OK, salvar.StatusCode);
+        var dto = await ServidorDeTeste.LerJsonAsync<PerfilTalentosDto>(salvar);
+        Assert.Equal("Build Força Inicial", dto.Nome);
+        Assert.Equal(1, dto.PontosTotais);
+        Assert.Single(dto.Ranks);
+        Assert.Equal(Forca1, dto.Ranks[0].NoId);
+        Assert.Equal(1, dto.Ranks[0].Rank);
+
+        var listar = await cliente.GetAsync(RotasTalentos.PerfisDe(id));
+        Assert.Equal(HttpStatusCode.OK, listar.StatusCode);
+        var lista = await ServidorDeTeste.LerJsonAsync<ListaPerfisResponse>(listar);
+        var unico = Assert.Single(lista.Perfis);
+        Assert.Equal(dto.Id, unico.Id);
+        Assert.Equal("Build Força Inicial", unico.Nome);
+    }
+
+    [Fact]
+    public async Task Salvar_perfil_com_nome_invalido_ou_limite_atingido_recusa()
+    {
+        var (cliente, id) = await NovoPersonagemAsync(5);
+
+        // Nome vazio
+        var vazio = await ServidorDeTeste.PostJsonAsync(
+            cliente,
+            RotasTalentos.PerfisDe(id),
+            new SalvarPerfilRequest { Nome = "" }
+        );
+        await AssertErroAsync(
+            vazio,
+            HttpStatusCode.BadRequest,
+            CodigosErroTalentos.NomeDePerfilInvalido
+        );
+
+        // Nome longo demais (> 32)
+        var longo = await ServidorDeTeste.PostJsonAsync(
+            cliente,
+            RotasTalentos.PerfisDe(id),
+            new SalvarPerfilRequest { Nome = new string('x', 33) }
+        );
+        await AssertErroAsync(
+            longo,
+            HttpStatusCode.BadRequest,
+            CodigosErroTalentos.NomeDePerfilInvalido
+        );
+
+        // Salva até atingir o limite (5)
+        for (var i = 1; i <= ConfigRedistribuicao.LimitePerfis; i++)
+        {
+            var ok = await ServidorDeTeste.PostJsonAsync(
+                cliente,
+                RotasTalentos.PerfisDe(id),
+                new SalvarPerfilRequest { Nome = "Build " + i }
+            );
+            Assert.Equal(HttpStatusCode.OK, ok.StatusCode);
+        }
+
+        // 6º perfil recusa
+        var excedente = await ServidorDeTeste.PostJsonAsync(
+            cliente,
+            RotasTalentos.PerfisDe(id),
+            new SalvarPerfilRequest { Nome = "Build 6" }
+        );
+        await AssertErroAsync(
+            excedente,
+            HttpStatusCode.Conflict,
+            CodigosErroTalentos.LimiteDePerfisAtingido
+        );
+    }
+
+    [Fact]
+    public async Task Renomear_e_excluir_perfil()
+    {
+        var (cliente, id) = await NovoPersonagemAsync(5);
+
+        var salvar = await ServidorDeTeste.PostJsonAsync(
+            cliente,
+            RotasTalentos.PerfisDe(id),
+            new SalvarPerfilRequest { Nome = "Antes" }
+        );
+        var dto = await ServidorDeTeste.LerJsonAsync<PerfilTalentosDto>(salvar);
+
+        // Renomear
+        var renomear = await cliente.PutAsJsonAsync(
+            RotasTalentos.PerfilDe(id, dto.Id),
+            new RenomearPerfilRequest { Nome = "Depois" }
+        );
+        Assert.Equal(HttpStatusCode.OK, renomear.StatusCode);
+
+        var lista = await ServidorDeTeste.LerJsonAsync<ListaPerfisResponse>(
+            await cliente.GetAsync(RotasTalentos.PerfisDe(id))
+        );
+        Assert.Equal("Depois", Assert.Single(lista.Perfis).Nome);
+
+        // Excluir
+        var excluir = await cliente.DeleteAsync(RotasTalentos.PerfilDe(id, dto.Id));
+        Assert.Equal(HttpStatusCode.OK, excluir.StatusCode);
+
+        var listaDepois = await ServidorDeTeste.LerJsonAsync<ListaPerfisResponse>(
+            await cliente.GetAsync(RotasTalentos.PerfisDe(id))
+        );
+        Assert.Empty(listaDepois.Perfis);
+    }
+
+    [Fact]
+    public async Task Carregar_perfil_aplica_ranks_e_atualiza_pontos()
+    {
+        var (cliente, id) = await NovoPersonagemAsync(5);
+        (await ComprarAsync(cliente, id, Forca1, 1)).EnsureSuccessStatusCode();
+        (await ComprarAsync(cliente, id, Forca1, 2)).EnsureSuccessStatusCode();
+
+        // Salva perfil "Build Força" (custou 2 pontos)
+        var salvar = await ServidorDeTeste.PostJsonAsync(
+            cliente,
+            RotasTalentos.PerfisDe(id),
+            new SalvarPerfilRequest { Nome = "Build Força" }
+        );
+        var perfil = await ServidorDeTeste.LerJsonAsync<PerfilTalentosDto>(salvar);
+
+        // Credita coroas e redistribui: agora tem 5 pontos livres e 0 gastos
+        await CreditarCoroasAsync(id, 500);
+        (
+            await ServidorDeTeste.PostJsonAsync(
+                cliente,
+                RotasTalentos.RedistribuirDe(id),
+                new RedistribuirRequest { VersaoConfiguracao = ArvoreDeTeste.Versao }
+            )
+        ).EnsureSuccessStatusCode();
+
+        // Compra Vigor1 rank 1 (1 ponto gasto, 4 livres)
+        (await ComprarAsync(cliente, id, Vigor1, 1)).EnsureSuccessStatusCode();
+
+        // Carrega o perfil "Build Força": deve tirar Vigor1 e colocar Forca1 rank 2
+        var carregar = await ServidorDeTeste.PostJsonAsync(
+            cliente,
+            RotasTalentos.CarregarPerfilDe(id, perfil.Id),
+            (object?)null
+        );
+        Assert.Equal(HttpStatusCode.OK, carregar.StatusCode);
+
+        var resultado = await ServidorDeTeste.LerJsonAsync<CarregarPerfilResponse>(carregar);
+        Assert.Empty(resultado.Avisos);
+        Assert.Equal(2, RankDe(resultado.Arvore, Forca1));
+        Assert.Equal(0, RankDe(resultado.Arvore, Vigor1));
+        Assert.Equal(2, resultado.Arvore.PontosGastos);
+        Assert.Equal(3, resultado.Arvore.PontosLivres);
+        Assert.Equal(2 * ArvoreDeTeste.ValorPorRankPequeno, resultado.Arvore.Atributos.Forca);
+        Assert.Equal(0, resultado.Arvore.Atributos.Vigor);
+    }
+
+    [Fact]
+    public async Task Carregar_perfil_com_pontos_insuficientes_recusa_com_409()
+    {
+        var (cliente, id) = await NovoPersonagemAsync(5);
+        (await ComprarAsync(cliente, id, Forca1, 1)).EnsureSuccessStatusCode();
+        (await ComprarAsync(cliente, id, Forca1, 2)).EnsureSuccessStatusCode();
+        (await ComprarAsync(cliente, id, Forca1, 3)).EnsureSuccessStatusCode(); // 4 pontos gastos
+
+        var salvar = await ServidorDeTeste.PostJsonAsync(
+            cliente,
+            RotasTalentos.PerfisDe(id),
+            new SalvarPerfilRequest { Nome = "Build 4 Pontos" }
+        );
+        var perfil = await ServidorDeTeste.LerJsonAsync<PerfilTalentosDto>(salvar);
+
+        // Reduz os pontos do personagem diretamente no banco para 1 ponto no total (simulando perda ou nível menor)
+        await using (var escopo = servidor.Services.CreateAsyncScope())
+        {
+            var db = escopo.ServiceProvider.GetRequiredService<JogoDbContext>();
+            var p = await db.Set<JogoDoGrupo.Server.Features.Personagem.Personagem>()
+                .SingleAsync(x => x.Id == id);
+            p.PontosLivres = 0;
+            var arvore = await db.Set<ArvoreDoPersonagem>().SingleAsync(x => x.PersonagemId == id);
+            arvore.PontosGastos = 1;
+            await db.SaveChangesAsync();
+        }
+
+        var carregar = await ServidorDeTeste.PostJsonAsync(
+            cliente,
+            RotasTalentos.CarregarPerfilDe(id, perfil.Id),
+            (object?)null
+        );
+
+        await AssertErroAsync(
+            carregar,
+            HttpStatusCode.Conflict,
+            CodigosErroTalentos.PontosInsuficientes
+        );
+    }
+
+    [Fact]
+    public async Task Carregar_perfil_em_combate_recusa_com_409()
+    {
+        var servidorEmCombate = servidor.WithWebHostBuilder(b =>
+            b.ConfigureServices(s => s.AddSingleton<IEstadoDeCombate>(new CombateMock(true)))
+        );
+
+        var (cliente, id) = await NovoPersonagemAsync(5);
+        (await ComprarAsync(cliente, id, Forca1, 1)).EnsureSuccessStatusCode();
+
+        var salvar = await ServidorDeTeste.PostJsonAsync(
+            cliente,
+            RotasTalentos.PerfisDe(id),
+            new SalvarPerfilRequest { Nome = "Build 1" }
+        );
+        var perfil = await ServidorDeTeste.LerJsonAsync<PerfilTalentosDto>(salvar);
+
+        var clienteCombate = servidorEmCombate.CreateClient();
+        clienteCombate.DefaultRequestHeaders.Authorization = cliente
+            .DefaultRequestHeaders
+            .Authorization;
+
+        var carregar = await ServidorDeTeste.PostJsonAsync(
+            clienteCombate,
+            RotasTalentos.CarregarPerfilDe(id, perfil.Id),
+            (object?)null
+        );
+
+        await AssertErroAsync(carregar, HttpStatusCode.Conflict, CodigosErroTalentos.EmCombate);
+    }
+
+    private sealed class CombateMock(bool emCombate) : IEstadoDeCombate
+    {
+        public bool EmCombate(long personagemId) => emCombate;
     }
 
     private async Task<long> CriarEquipamentoAsync(long personagemId, int modelo)

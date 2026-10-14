@@ -21,5 +21,11 @@ namespace JogoDoGrupo.Shared.Features.Personagem
 
         /// <summary>404: o personagem não existe ou não é da conta do token.</summary>
         public const string PersonagemNaoEncontrado = "PersonagemNaoEncontrado";
+
+        /// <summary>400: a confirmação do nome não confere com o nome do personagem.</summary>
+        public const string ConfirmacaoDeNomeIncorreta = "ConfirmacaoDeNomeIncorreta";
+
+        /// <summary>400: tom de pele, cabelo ou cor de cabelo fora dos limites permitidos.</summary>
+        public const string AparenciaInvalida = "AparenciaInvalida";
     }
 }

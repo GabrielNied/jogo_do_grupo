@@ -19,7 +19,9 @@ public readonly record struct VelocidadesNaCidade(float Andar, float Correr, int
 public sealed record AvatarNaCidade<TSessao>(
     long PersonagemId,
     TSessao Sessao,
-    PosicaoNaCidade Posicao
+    PosicaoNaCidade Posicao,
+    int SequenciaReplica = 0,
+    long UltimoMs = 0
 );
 
 /// <summary>Resultado de pedir movimento.</summary>
@@ -170,6 +172,7 @@ public sealed class CidadeDoMundo<TSessao>(Func<long> relogioMs)
                     Janela = janela,
                     Orcamento = orcamento,
                     Suspeitas = suspeitas,
+                    SequenciaReplica = entrada.SequenciaReplica + 1,
                 };
                 _avatares[personagemId] = entrada;
                 return (ResultadoMovimento.Aceito, Converter(personagemId, entrada));
@@ -215,6 +218,7 @@ public sealed class CidadeDoMundo<TSessao>(Func<long> relogioMs)
                 Orcamento = Math.Max(0, orcamento - andou),
                 Suspeitas = suspeitas,
                 TotalDeSuspeitas = entrada.TotalDeSuspeitas + (suspeito ? 1 : 0),
+                SequenciaReplica = entrada.SequenciaReplica + 1,
             };
             _avatares[personagemId] = entrada;
             return (
@@ -258,6 +262,8 @@ public sealed class CidadeDoMundo<TSessao>(Func<long> relogioMs)
                 SequenciaForcada = sequencia,
                 ForcadaPendente = sequencia,
                 Janela = null,
+                SequenciaReplica = entrada.SequenciaReplica + 1,
+                UltimoMs = relogioMs(),
             };
             return sequencia;
         }
@@ -494,7 +500,7 @@ public sealed class CidadeDoMundo<TSessao>(Func<long> relogioMs)
     }
 
     private static AvatarNaCidade<TSessao> Converter(long id, Entrada e) =>
-        new(id, e.Sessao, e.Posicao);
+        new(id, e.Sessao, e.Posicao, e.SequenciaReplica, e.UltimoMs);
 
     // Até o client confirmar, vale a maior entre a confirmada e a pendente.
     private static bool PosicaoFinita(PosicaoNaCidade posicao) =>
@@ -520,7 +526,8 @@ public sealed class CidadeDoMundo<TSessao>(Func<long> relogioMs)
         double Suspeitas = 0,
         int TotalDeSuspeitas = 0,
         int SequenciaForcada = 0,
-        int? ForcadaPendente = null
+        int? ForcadaPendente = null,
+        int SequenciaReplica = 0
     );
 
     // Onde o personagem estava quando a janela abriu, até quando ela vale e os limites dela.

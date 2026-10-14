@@ -54,6 +54,7 @@ public sealed class ChefeDaDungeon : IAlvosDeCombate, IInimigosSimulados
     private readonly double _origemZ;
     private readonly HashSet<long> _atacantes = [];
     private readonly List<AreaDoChefe> _areas = [];
+    private readonly TabelaDeAmeaca _ameacas = new();
 
     private PassoDosInimigos _pendente = new();
     private long _id;
@@ -213,13 +214,21 @@ public sealed class ChefeDaDungeon : IAlvosDeCombate, IInimigosSimulados
                 )
                 .ToArray();
 
+            foreach (var id in _ameacas.Personagens.ToArray())
+            {
+                if (!presentes.Any(j => j.PersonagemId == id))
+                {
+                    _ameacas.Remover(id);
+                }
+            }
+
             var antes = (_x, _z, _rotacao, _estado, _alvo);
             switch (_estado)
             {
                 case EstadoDeInimigo.Repouso:
                     if (engajados.Length > 0)
                     {
-                        _alvo = MaisProximo(engajados).PersonagemId;
+                        _alvo = EscolherAlvo(engajados, agora);
                         _alertaAteMs = agora + AlertaMs;
                         Mudar(EstadoDeInimigo.Alerta);
                         OlharPara(engajados);
@@ -355,6 +364,7 @@ public sealed class ChefeDaDungeon : IAlvosDeCombate, IInimigosSimulados
             var aplicado = Math.Min(recebido, _vida);
             _vida -= aplicado;
             _atacantes.Add(atacanteId);
+            _ameacas.AdicionarDano(atacanteId, aplicado);
             _vidaMudou = true;
             resultado = new ResultadoDeDano(_id, aplicado, _vida, ConfigChefeDaDungeon.VidaMaxima);
             if (_vida <= 0)
@@ -374,7 +384,9 @@ public sealed class ChefeDaDungeon : IAlvosDeCombate, IInimigosSimulados
         var tipo = ordem[_indiceDoAtaque % ordem.Length];
         _indiceDoAtaque++;
 
-        var alvo = MaisProximo(engajados);
+        var alvoId = EscolherAlvo(engajados, agora);
+        var idx = Array.FindIndex(engajados, j => j.PersonagemId == alvoId);
+        var alvo = idx >= 0 ? engajados[idx] : MaisProximo(engajados);
         _alvo = alvo.PersonagemId;
         OlharPara(engajados);
 
@@ -520,6 +532,7 @@ public sealed class ChefeDaDungeon : IAlvosDeCombate, IInimigosSimulados
     {
         _alvo = RegrasInimigo.SemAlvo;
         _atacantes.Clear();
+        _ameacas.Limpar();
         _expostoAteMs = 0;
         _areas.Clear();
         if (_vida != ConfigChefeDaDungeon.VidaMaxima)
@@ -562,6 +575,7 @@ public sealed class ChefeDaDungeon : IAlvosDeCombate, IInimigosSimulados
         _alvo = RegrasInimigo.SemAlvo;
         _expostoAteMs = 0;
         _areas.Clear();
+        _ameacas.Limpar();
 
         _pendente.Mortes.Add(new InimigoMorreu { InimigoId = _id });
         _pendente.Derrotas.Add(
@@ -609,6 +623,59 @@ public sealed class ChefeDaDungeon : IAlvosDeCombate, IInimigosSimulados
         }
 
         return escolhido;
+    }
+
+    private long EscolherAlvo(JogadorNoCampo[] engajados, long agora)
+    {
+        var candidatos = new long[engajados.Length];
+        var distancias = new double[engajados.Length];
+        for (var i = 0; i < engajados.Length; i++)
+        {
+            var j = engajados[i];
+            candidatos[i] = j.PersonagemId;
+            distancias[i] = RegrasInimigo.Distancia(_x, _z, j.X, j.Z);
+        }
+
+        var escolhido = _ameacas.EscolherAlvo(
+            _alvo,
+            candidatos,
+            distancias,
+            ConfigChefeDaDungeon.RaioDoCorpoMetros,
+            agora
+        );
+
+        return escolhido != RegrasInimigo.SemAlvo ? escolhido : MaisProximo(engajados).PersonagemId;
+    }
+
+    /// <summary>
+    /// Força o boss a focar no provocador na hora e iguala sua ameaça ao maior da tabela por 4 s.
+    /// </summary>
+    public bool Provocar(long alvoId, long provocadorId)
+    {
+        lock (_trava)
+        {
+            if (
+                alvoId != _id
+                || _estado == EstadoDeInimigo.Morto
+                || _estado == EstadoDeInimigo.Retorno
+            )
+            {
+                return false;
+            }
+
+            _ameacas.Provocar(provocadorId, _relogioMs());
+            _alvo = provocadorId;
+            return true;
+        }
+    }
+
+    /// <summary>Retorna a ameaça de um personagem sobre o boss (para consultas e testes).</summary>
+    public double ObterAmeaca(long personagemId)
+    {
+        lock (_trava)
+        {
+            return _ameacas.ObterAmeaca(personagemId);
+        }
     }
 
     private void OlharPara(JogadorNoCampo[] candidatos)

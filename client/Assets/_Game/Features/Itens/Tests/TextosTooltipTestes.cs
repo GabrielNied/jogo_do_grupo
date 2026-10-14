@@ -92,7 +92,7 @@ namespace JogoDoGrupo.Client.Features.Itens.Tests
             StringAssert.Contains("Grau Medio · nível 3/10", texto);
             StringAssert.Contains("Família Vigia/Bastião · variante A", texto);
             StringAssert.Contains("Requer personagem nível 10", texto);
-            StringAssert.Contains("Força 6/100", texto);
+            StringAssert.Contains("Dano físico 6/100", texto);
             StringAssert.Contains("Defesa física 10/100", texto);
             StringAssert.Contains("Fusão +0/10", texto);
             Assert.IsNull(dados.TituloComparacao);
@@ -151,7 +151,7 @@ namespace JogoDoGrupo.Client.Features.Itens.Tests
                 ganho.Texto
             );
             Assert.AreEqual(
-                TextosTooltip.SetaPerda + " Força -" + TextosEquipamento.Numero(2),
+                TextosTooltip.SetaPerda + " Dano físico -" + TextosEquipamento.Numero(2),
                 perda.Texto
             );
         }

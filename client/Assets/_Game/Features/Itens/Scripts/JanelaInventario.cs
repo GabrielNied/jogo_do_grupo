@@ -111,6 +111,19 @@ namespace JogoDoGrupo.Client.Features.Itens
                     new PedidoOrdenar { Aba = aba },
                     null
                 );
+            _painel.ExpansaoPedida += () =>
+                _ = Postar(
+                    RotasItens.ExpandirDe(EntradaNoJogo.PersonagemId),
+                    null,
+                    null,
+                    res =>
+                    {
+                        if (res != null)
+                        {
+                            _painel.SelecionarAba(res.Capacidade.Abas - 1);
+                        }
+                    }
+                );
             _painel.ItemDeTestePedido += grau =>
                 _ = Postar(
                     RegrasEquipamentos.RotaDe(EntradaNoJogo.PersonagemId)
@@ -517,7 +530,8 @@ namespace JogoDoGrupo.Client.Features.Itens
         private async System.Threading.Tasks.Task Postar(
             string caminho,
             object pedido,
-            HashSet<long> pendentes
+            HashSet<long> pendentes,
+            Action<EquipamentosResponse> aoConcluir = null
         )
         {
             if (_ocupado)
@@ -546,6 +560,7 @@ namespace JogoDoGrupo.Client.Features.Itens
                 if (resposta.Sucesso && resposta.Corpo != null)
                 {
                     Aplicar(resposta.Corpo, personagemId, new HashSet<long>(), null, false);
+                    aoConcluir?.Invoke(resposta.Corpo);
                 }
                 else if (resposta.CodigoErro != CodigosErroCliente.Cancelada && _estado != null)
                 {

@@ -100,6 +100,11 @@ namespace JogoDoGrupo.Server.Core.Persistencia.Migrations
                     b.Property<long>("PersonagemId")
                         .HasColumnType("INTEGER");
 
+                    b.Property<int>("AbasBolsa")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(1);
+
                     b.Property<int>("ConjuntoAtivo")
                         .HasColumnType("INTEGER");
 
@@ -150,7 +155,7 @@ namespace JogoDoGrupo.Server.Core.Persistencia.Migrations
                     b.ToTable("ItensInventario", (string)null);
                 });
 
-            modelBuilder.Entity("JogoDoGrupo.Server.Features.Personagem.Personagem", b =>
+            modelBuilder.Entity("JogoDoGrupo.Server.Features.Personagem.NomeReservado", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -158,6 +163,50 @@ namespace JogoDoGrupo.Server.Core.Persistencia.Migrations
 
                     b.Property<long>("ContaId")
                         .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("ExcluidoEm")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Nome")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("NomeNormalizado")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("ReservadoAte")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ContaId");
+
+                    b.HasIndex("NomeNormalizado");
+
+                    b.ToTable("NomesReservados", (string)null);
+                });
+
+            modelBuilder.Entity("JogoDoGrupo.Server.Features.Personagem.Personagem", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Cabelo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(0);
+
+                    b.Property<long>("ContaId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("CorDeCabelo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(0);
 
                     b.Property<DateTime>("CriadoEm")
                         .HasColumnType("TEXT");
@@ -180,6 +229,11 @@ namespace JogoDoGrupo.Server.Core.Persistencia.Migrations
 
                     b.Property<int>("Raca")
                         .HasColumnType("INTEGER");
+
+                    b.Property<int>("TomDePele")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(0);
 
                     b.Property<long>("XpAtual")
                         .HasColumnType("INTEGER");
@@ -300,6 +354,37 @@ namespace JogoDoGrupo.Server.Core.Persistencia.Migrations
                     b.HasKey("PersonagemId", "NoId");
 
                     b.ToTable("TalentosNos", (string)null);
+                });
+
+            modelBuilder.Entity("JogoDoGrupo.Server.Features.Talentos.PerfilDeTalentos", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CriadoEm")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Nome")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("PersonagemId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("RanksJson")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Versao")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PersonagemId");
+
+                    b.ToTable("TalentosPerfis", (string)null);
                 });
 
             modelBuilder.Entity("JogoDoGrupo.Server.Features.Combate.RecursosPersonagem", b =>

@@ -14,8 +14,8 @@ namespace JogoDoGrupo.Client.Features.Itens.Tests
             var texto = TextosEquipamento.Descrever(new EntradaInventario { Equipamento = volta });
             StringAssert.Contains("Talismã do Olho Longo", texto);
             StringAssert.Contains("Família Batedor/Olho Longo · variante B", texto);
-            // Olho Longo: Agilidade é o principal da família; o catálogo traz o valor 0 (#640).
-            StringAssert.Contains("Agilidade 0/100", texto);
+            // Olho Longo: Regeneração de stamina é o principal da família; o catálogo traz o valor 0 (#640).
+            StringAssert.Contains("Regeneração de stamina 0/100", texto);
         }
 
         [Test]
@@ -62,8 +62,8 @@ namespace JogoDoGrupo.Client.Features.Itens.Tests
             StringAssert.Contains("nível 1/10", texto);
             StringAssert.Contains("personagem nível 20", texto);
             StringAssert.Contains("Tier D", texto);
-            // Valor/máximo da faixa e o efeito convertido (martelo: Força 0 a 25% de dano; 20 vale 5%).
-            StringAssert.Contains("Força 20/100 · +5% de dano físico", texto);
+            // Valor/máximo da faixa e o efeito convertido (martelo: Dano físico 0 a 25; 20 vale 5).
+            StringAssert.Contains("Dano físico 20/100 · +5 de dano físico", texto);
             // Vida não tem faixa (legado): só o valor.
             StringAssert.Contains("Vida +30", texto);
             StringAssert.Contains("Fusão +3/10", texto);

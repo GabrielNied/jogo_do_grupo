@@ -157,9 +157,8 @@ O teto 100 e os pontos da árvore por nível (valor de teste: 1) estão em `Conf
 - [ ] Quais raças existem e qual a skill base de cada uma? (as raças definitivas substituem a raça provisória Humano) **Cinco raças em uso desde 2026-10-11 ([Raças propostas](#raças-propostas-no-board-2026-10-11)); a skill base de cada uma segue em [Skills](skills.md) (#341).**
 - [ ] ~~Quais raças e classes existem?~~ classes não existem mais (D2)
 - [x] ~~O que o nível dá ao personagem?~~ ~~Decidido em 2026-10-12: nenhum ponto de atributo; os atributos vêm dos itens.~~ Revisto em 2026-10-12 (Gabriel): pontos da árvore, só por nível. Quantos por nível na [#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627).
-- [x] ~~Nível máximo e curva de progressão~~ Decidido em 2026-10-12: 100, e arredondar(50 × nível^1,2). Ver [Ritmo de progressão](#ritmo-de-progressão).
-- [ ] Aparência e customização na criação (rosto, corpo, cores...)?
-- [ ] Excluir personagem: pode? Tem confirmação (ex.: digitar o nome) ou tempo de espera antes de apagar de vez?
+- [x] ~~Aparência e customização na criação (rosto, corpo, cores...)?~~ Decidido na #182: customização básica com tom de pele (4 opções), cabelo (4 estilos) e cor de cabelo (5 opções). Servidor valida limites e persiste; client aplica prévia e material.
+- [x] ~~Excluir personagem: pode? Tem confirmação (ex.: digitar o nome) ou tempo de espera antes de apagar de vez?~~ Decidido na #182: exclusão com confirmação digitando o nome exato. Nome fica reservado para a mesma conta por 7 dias, bloqueando outras contas.
 - [ ] Renomear personagem: pode? Tem custo ou limite?
 - [ ] Aceitar letras acentuadas no nome (ç, ã, é...) no futuro? Hoje o grupo decidiu só A–Z (veja [Regras](#regras))
 - [ ] Morte e caído (#97), decisões do grupo (regras em proposta em [Morte e caído](#morte-e-caído-issue-97)):
@@ -244,14 +243,37 @@ O servidor recusa e diz o motivo, para o client mostrar uma mensagem clara:
 | Motivo | Quando | Mensagem sugerida no client |
 |---|---|---|
 | Nome inválido | fora do formato (tamanho ou caracteres) | "O nome deve ter de 3 a 16 letras (A–Z, sem acento, espaço ou número)." |
-| Nome em uso | já existe personagem com esse nome, sem diferenciar maiúsculas | "Esse nome já está em uso." |
 | Raça inválida | raça fora das cinco do enum | "Raça inválida." |
+| Aparência inválida | opções de aparência fora das faixas válidas | "Opções de aparência inválidas." |
 | Limite atingido | a conta já tem 4 personagens | "Você já tem o máximo de 4 personagens." |
+| Nome em uso | já existe personagem com esse nome (ou nome reservado por outra conta), sem diferenciar maiúsculas | "Esse nome já está em uso." |
 | Não autenticado | sem token ou token inválido/expirado | volta para o login (Core) |
 
-Se mais de um motivo vale ao mesmo tempo, o servidor responde só o primeiro, nesta ordem: nome inválido, raça inválida, limite atingido, nome em uso.
+Se mais de um motivo vale ao mesmo tempo, o servidor responde só o primeiro, nesta ordem: nome inválido, raça inválida, aparência inválida, limite atingido, nome em uso.
 
 O formato exato dessas respostas (códigos e campos) é definido no contrato do shared (veja [Expõe](#expõe)).
+
+### Aparência básica do personagem (#182)
+
+Customização visual inicial definida na [#182](https://github.com/GabrielNied/jogo_do_grupo/issues/182) para dar identidade aos personagens na criação e seleção:
+
+- **Tom de pele:** 4 opções (0 a 3: Padrão, Claro, Bronze, Escuro).
+- **Estilo de cabelo:** 4 estilos (0 a 3: Curto, Trançado, Longo, Raspado).
+- **Cor de cabelo:** 5 opções (0 a 4: Castanho, Preto, Loiro, Ruivo, Prateado).
+- **Validação:** `RegrasPersonagem.ValidarAparencia` no shared e no servidor. Se algum campo for menor que 0 ou igual/maior que o total permitido, a criação é recusada com 400 (`CodigosErroPersonagem.AparenciaInvalida`).
+- **Visual:** no client, `AplicadorAparencia` aplica a tonalidade de pele via `MaterialPropertyBlock` (`_BaseColor`) na prévia 3D e no visual no mundo sem modificar materiais compartilhados.
+
+### Exclusão de personagem e reserva de nome (#182)
+
+Regras de exclusão definidas na [#182](https://github.com/GabrielNied/jogo_do_grupo/issues/182):
+
+- **Confirmação por nome:** na tela de seleção, o botão "Excluir personagem" abre diálogo solicitando digitar o nome exato do personagem.
+- **Validação de confirmação:** client e servidor usam `RegrasPersonagem.ConfirmacaoDeNomeConfere`. Se não bater com o nome do personagem, a requisição é recusada com 400 (`CodigosErroPersonagem.ConfirmacaoDeNomeIncorreta`).
+- **Autorização:** apenas o dono (conta vinculada ao token JWT) pode excluir o personagem. Se não pertencer à conta, retorna 404 (`CodigosErroPersonagem.PersonagemNaoEncontrado`).
+- **Reserva de nome por 7 dias:** ao excluir o personagem, o nome entra na tabela de `NomesReservados` com expiração de 7 dias (`RegrasPersonagem.DiasDeReservaDeNome = 7`):
+  - Durante esse período, **outras contas são bloqueadas** de criar um personagem com esse nome (retorna 409 `NomeJaExiste`).
+  - A **mesma conta** que excluiu pode recriar o personagem com esse nome a qualquer momento, consumindo a reserva.
+  - Após 7 dias, a reserva expira e o nome volta a ficar disponível para qualquer conta.
 
 ### Morte e caído (issue #97)
 
@@ -354,14 +376,17 @@ API HTTP para listar e criar personagens (por que HTTP: [ADR 0009](../decisoes/0
 | Rota | O que faz | Envia | Recebe |
 |---|---|---|---|
 | `GET /api/personagens` | Lista os personagens da conta logada, em ordem de criação | nada (a conta vem do token) | `ListaPersonagensResponse`: a lista de `PersonagemResumo` |
-| `POST /api/personagens` | Cria um personagem na conta logada | `CriarPersonagemRequest`: Nome e Raca | deu certo: **201** com o `PersonagemResumo` do personagem criado (já com o Id); recusado: o motivo (veja [Motivos de recusa](#motivos-de-recusa-na-criação)) |
+| `POST /api/personagens` | Cria um personagem na conta logada | `CriarPersonagemRequest`: Nome, Raca e Aparencia | deu certo: **201** com o `PersonagemResumo` do personagem criado (já com o Id); recusado: o motivo (veja [Motivos de recusa](#motivos-de-recusa-na-criação)) |
+| `POST /api/personagens/{personagemId}/excluir` | Exclui um personagem com confirmação do nome e reserva de 7 dias | `ExcluirPersonagemRequest`: ConfirmacaoNome | deu certo: **200 OK** com corpo vazio; recusado: 400 (`ConfirmacaoDeNomeIncorreta`) ou 404 (`PersonagemNaoEncontrado`) |
 
-- **`PersonagemResumo`:** o que a seleção mostra de cada personagem: Id, Nome, Raca e Nivel.
-- **`CriarPersonagemRequest`:** o que a criação envia: Nome e Raca.
+- **`PersonagemResumo`:** o que a seleção mostra de cada personagem: Id, Nome, Raca, Nivel e Aparencia.
+- **`CriarPersonagemRequest`:** o que a criação envia: Nome, Raca e Aparencia.
+- **`ExcluirPersonagemRequest`:** o que a exclusão envia: ConfirmacaoNome.
+- **`AparenciaPersonagem`:** opções cosméticas básicas: TomDePele (0..3), Cabelo (0..3), CorDeCabelo (0..4).
 - **`Raca`:** enum do shared (`Valdren`=1, `Aurideo`=2, `Granitico`=3, `Cinereo`=4, `Silvano`=5). No JSON trafega como **número**, não como texto.
-- **`RegrasPersonagem.ValidarNome`:** validador do formato do nome, usado pelo client e pelo servidor.
+- **`RegrasPersonagem`:** validadores de formato do nome (`ValidarNome`), de aparência (`ValidarAparencia`) e de confirmação de exclusão (`ConfirmacaoDeNomeConfere`).
 - **`ListaPersonagensResponse`:** a lista de personagens da conta (de 0 a 4).
-- **`CodigosErroPersonagem`:** os códigos dos motivos de recusa (`NomeInvalido`, `NomeJaExiste`, `LimitePersonagens`, `RacaInvalida`), que chegam no campo `Codigo` do `ErroApi` do Core. Erros genéricos (não autenticado, requisição inválida, erro interno) usam os códigos do Core (`CodigosErro`).
+- **`CodigosErroPersonagem`:** os códigos dos motivos de recusa (`NomeInvalido`, `NomeJaExiste`, `LimitePersonagens`, `RacaInvalida`, `AparenciaInvalida`, `ConfirmacaoDeNomeIncorreta`, `PersonagemNaoEncontrado`), que chegam no campo `Codigo` do `ErroApi` do Core. Erros genéricos (não autenticado, requisição inválida, erro interno) usam os códigos do Core (`CodigosErro`).
 - Por serem HTTP, essas rotas não usam IDs de mensagem da faixa 3000–3999.
 
 ### Experiência, nível e pontos de atributo (#65, contrato da #299)

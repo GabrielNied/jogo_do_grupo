@@ -164,7 +164,7 @@ Campos: `PersonagemId` (long), `X`, `Y`, `Z`, `RotacaoY` (float). Usado em `Esta
 | 1000 | `EntrarNaCidade` | client → servidor | *(nenhum — a conexão já está autenticada)* |
 | 1001 | `EstadoDaCidade` | servidor → client | `Eu` (JogadorVisivel), `Outros` (JogadorVisivel[]) |
 | 1002 | `IntencaoDeMovimento` | client → servidor | `X`, `Y`, `Z`, `RotacaoY` (float), `Sequencia` (int) |
-| 1003 | `PosicaoJogador` | servidor → client | `PersonagemId` (long), `X`, `Y`, `Z`, `RotacaoY` (float), `Sequencia` (int) |
+| 1003 | `PosicaoJogador` | servidor → client | `PersonagemId` (long), `X`, `Y`, `Z`, `RotacaoY` (float), `Sequencia` (int), `TempoServidorMs` (long) |
 | 1004 | `JogadorEntrou` | servidor → client | `Jogador` (JogadorVisivel) |
 | 1005 | `JogadorSaiu` | servidor → client | `PersonagemId` (long) |
 | 1006 | `VelocidadesDeMovimento` | servidor → client | `Andar`, `Correr` (float, m/s), `Sequencia` (int) |
@@ -188,6 +188,14 @@ Campos: `PersonagemId` (long), `X`, `Y`, `Z`, `RotacaoY` (float). Usado em `Esta
 - ~~**Caso grave** (posição fora do mundo, longe do chão, não finita, excesso acima de 6 m ou suspeita demais): a posição do servidor fica, e o dono recebe `PosicaoForcada`. O client aplica e confirma (`ConfirmarPosicaoForcada`); até lá, o movimento dele é ignorado. Teleporte, renascer e empurrão de boss usam o mesmo caminho (`CidadeDoMundo.ForcarPosicao`).~~ Substituído em 2026-10-11: o jogador se move livremente e só informa a posição. O servidor grava e repassa aos outros; andar rápido, salto ou sair do limite **não** manda `PosicaoForcada`. Número não finito é ignorado. `ForcarPosicao` continua só para teleporte explícito (renascer, empurrão), que ainda não é o movimento normal. O comando de teste `tp` ([Desenvolvimento](desenvolvimento.md)) usa esse caminho e avisa os outros com `PosicaoJogador`.
 - **No client:** o nascimento só é aplicado na primeira entrada; na reconexão o jogador continua onde está.
 - Na primeira entrada, a presença sinaliza ao Core depois de aplicar a posição do servidor; a tela de carregamento e o bloqueio de input seguem as regras de [Interface](interface.md#definido).
+
+**Interpolação e movimento suave dos outros jogadores (#499):**
+- **Servidor:** réplicas `PosicaoJogador` carimbam `Sequencia` estritamente crescente por personagem emissor e `TempoServidorMs` (`Environment.TickCount64`).
+- **Buffer de interpolação:** `AvatarRemoto` usa `InterpoladorDeMovimento` com buffer atrasado em 100 ms (`ConfigInterpolacaoMundo.AtrasoDeRenderSegundos`), interpolando suavemente posição e rotação pelo caminho angular mais curto entre os dois pacotes mais próximos.
+- **Descarte de desordem:** amostras com `Sequencia` menor ou igual à última aceita são descartadas (evita jitter por pacotes atrasados ou duplicados).
+- **Extrapolação curta:** se um pacote atrasar ou for perdido, o avatar continua na velocidade horizontal recente por até 150 ms (`ExtrapolacaoMaximaSegundos`), freando suavemente caso novos pacotes não cheguem.
+- **Salto:** deslocamentos acima de 8 m (`DistanciaDeSalto`) teleportam imediatamente sem deslizar.
+- **Correção local:** posições forçadas recebidas pelo jogador acima de 3 m (`DistanciaDeCorrecao`) teleportam na hora; abaixo disso, a posição do CharacterController avança suavemente a 15 m/s (`VelocidadeSuavizacaoCorrecao`), eliminando trancos de câmera.
 
 ### Dia e noite (#163, contrato da #380)
 

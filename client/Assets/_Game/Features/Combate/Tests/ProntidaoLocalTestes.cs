@@ -186,7 +186,7 @@ namespace JogoDoGrupo.Client.Features.Combate.Tests
                 );
 
                 var primeiroRetratoEm = Time.unscaledTimeAsDouble;
-                Assert.AreEqual(65, prontidao.StaminaEm(primeiroRetratoEm + 3));
+                Assert.AreEqual(95, prontidao.StaminaEm(primeiroRetratoEm + 3));
 
                 controle.AplicarDoServidor(
                     new RecursosMudaram
