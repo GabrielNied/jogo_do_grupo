@@ -38,13 +38,18 @@ namespace JogoDoGrupo.Client.Features.Itens
             _configuracaoDoPainel = configuracaoDoPainel;
 
             // A dica não pode pegar o mouse nem esconder o jogo: texto solto embaixo da tela.
-            _dica = new Label(TextoDicaBau);
+            _dica = new Label(TeclasDoJogo.Rotulo(TeclasDoJogo.Interagir) + ": abrir o baú");
             _dica.pickingMode = PickingMode.Ignore;
             _dica.AddToClassList(EstiloCore.Dica);
             raizDaInterface.Add(_dica);
             MostrarDica(false);
 
-            _interagir = new InputAction("Interagir", InputActionType.Button, "<Keyboard>/e");
+            _interagir = new InputAction(
+                "Interagir",
+                InputActionType.Button,
+                TeclasDoJogo.Caminho(TeclasDoJogo.Interagir)
+            );
+            TeclasDoJogo.Mudou += AtualizarTecla;
             _interagir.AddBinding("<Gamepad>/buttonWest");
 
             if (isActiveAndEnabled)
@@ -58,6 +63,9 @@ namespace JogoDoGrupo.Client.Features.Itens
             _interagir?.Enable();
         }
 
+        private void AtualizarTecla() =>
+            _interagir?.ApplyBindingOverride(0, TeclasDoJogo.Caminho(TeclasDoJogo.Interagir));
+
         private void OnDisable()
         {
             _interagir?.Disable();
@@ -65,6 +73,7 @@ namespace JogoDoGrupo.Client.Features.Itens
 
         private void OnDestroy()
         {
+            TeclasDoJogo.Mudou -= AtualizarTecla;
             _interagir?.Dispose();
             _interagir = null;
 
@@ -94,7 +103,7 @@ namespace JogoDoGrupo.Client.Features.Itens
             {
                 _dica.text = recarregando
                     ? "Baú recarregando (" + Mathf.CeilToInt(espera) + " s)"
-                    : TextoDicaBau;
+                    : TeclasDoJogo.Rotulo(TeclasDoJogo.Interagir) + ": abrir o baú";
             }
 
             if (perto && !recarregando && _interagir.WasPressedThisFrame())

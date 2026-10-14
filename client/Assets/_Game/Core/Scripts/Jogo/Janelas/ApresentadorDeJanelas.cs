@@ -71,7 +71,9 @@ namespace JogoDoGrupo.Client.Core.Jogo.Janelas
             var conteudo = new VisualElement { name = definicao.Chave };
             conteudo.AddToClassList(EstiloCore.JanelaConteudo);
 
-            var rodape = new Label(TextoDoRodape(definicao.Tecla));
+            var rodape = new Label(
+                TextoDoRodape(TeclasDoJogo.Rotulo(TeclasDoJogo.Janela(definicao.Chave)))
+            );
             rodape.AddToClassList(EstiloCore.JanelaRodape);
 
             painel.Add(cabecalho);

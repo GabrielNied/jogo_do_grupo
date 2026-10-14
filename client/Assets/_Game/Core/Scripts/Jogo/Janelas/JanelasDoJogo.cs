@@ -45,6 +45,7 @@ namespace JogoDoGrupo.Client.Core.Jogo.Janelas
         public static void Registrar(DefinicaoDeJanela definicao)
         {
             _registro.Registrar(definicao);
+            TeclasDoJogo.RegistrarJanela(definicao.Chave, definicao.Tecla);
         }
 
         /// <summary>Se existe janela registrada com essa chave.</summary>

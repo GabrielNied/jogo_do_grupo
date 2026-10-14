@@ -38,15 +38,16 @@ namespace JogoDoGrupo.Client.Features.Combate
             _esquiva = new InputAction(
                 "Esquiva",
                 InputActionType.Button,
-                ApresentacaoEsquiva.TeclaPadrao
+                TeclasDoJogo.Caminho(TeclasDoJogo.Esquiva)
             );
             _mover = new InputAction("EsquivaDirecao", InputActionType.Value);
             _mover
                 .AddCompositeBinding("2DVector")
-                .With("Up", "<Keyboard>/w")
-                .With("Down", "<Keyboard>/s")
-                .With("Left", "<Keyboard>/a")
-                .With("Right", "<Keyboard>/d");
+                .With("Up", TeclasDoJogo.Caminho(TeclasDoJogo.Frente))
+                .With("Down", TeclasDoJogo.Caminho(TeclasDoJogo.Tras))
+                .With("Left", TeclasDoJogo.Caminho(TeclasDoJogo.Esquerda))
+                .With("Right", TeclasDoJogo.Caminho(TeclasDoJogo.Direita));
+            TeclasDoJogo.Mudou += AtualizarTeclas;
             if (isActiveAndEnabled)
             {
                 _esquiva.Enable();
@@ -73,6 +74,15 @@ namespace JogoDoGrupo.Client.Features.Combate
             _mover?.Enable();
         }
 
+        private void AtualizarTeclas()
+        {
+            _esquiva?.ApplyBindingOverride(0, TeclasDoJogo.Caminho(TeclasDoJogo.Esquiva));
+            _mover?.ApplyBindingOverride(1, TeclasDoJogo.Caminho(TeclasDoJogo.Frente));
+            _mover?.ApplyBindingOverride(2, TeclasDoJogo.Caminho(TeclasDoJogo.Tras));
+            _mover?.ApplyBindingOverride(3, TeclasDoJogo.Caminho(TeclasDoJogo.Esquerda));
+            _mover?.ApplyBindingOverride(4, TeclasDoJogo.Caminho(TeclasDoJogo.Direita));
+        }
+
         private void OnDisable()
         {
             _esquiva?.Disable();
@@ -81,6 +91,7 @@ namespace JogoDoGrupo.Client.Features.Combate
 
         private void OnDestroy()
         {
+            TeclasDoJogo.Mudou -= AtualizarTeclas;
             foreach (var assinatura in _assinaturas)
             {
                 assinatura.Dispose();

@@ -30,7 +30,10 @@ namespace JogoDoGrupo.Client.Core.Jogo.Janelas
             {
                 foreach (var definicao in definicoes)
                 {
-                    var item = CriarItem(definicao.Tecla, definicao.Titulo);
+                    var item = CriarItem(
+                        TeclasDoJogo.Rotulo(TeclasDoJogo.Janela(definicao.Chave)),
+                        definicao.Titulo
+                    );
                     _itens[definicao.Chave] = item;
                     _raiz.Add(item);
                 }
@@ -38,6 +41,14 @@ namespace JogoDoGrupo.Client.Core.Jogo.Janelas
 
             _raiz.Add(CriarItem(TeclaMenu, TituloMenu));
             container?.Add(_raiz);
+            TeclasDoJogo.Mudou += AtualizarTeclas;
+        }
+
+        private void AtualizarTeclas()
+        {
+            foreach (var par in _itens)
+                if (par.Value.childCount > 0 && par.Value[0] is Label rotulo)
+                    rotulo.text = TeclasDoJogo.Rotulo(TeclasDoJogo.Janela(par.Key));
         }
 
         /// <summary>Elemento da barra.</summary>
@@ -61,6 +72,12 @@ namespace JogoDoGrupo.Client.Core.Jogo.Janelas
         public void Remover()
         {
             _raiz.RemoveFromHierarchy();
+        }
+
+        public void Destruir()
+        {
+            TeclasDoJogo.Mudou -= AtualizarTeclas;
+            Remover();
         }
 
         private static VisualElement CriarItem(string tecla, string titulo)

@@ -51,7 +51,12 @@ namespace JogoDoGrupo.Client.Features.Itens.Loot
             _dica.style.display = DisplayStyle.None;
             raizDaInterface.Add(_dica);
 
-            _coletar = new InputAction("Coletar", InputActionType.Button, "<Keyboard>/f");
+            _coletar = new InputAction(
+                "Coletar",
+                InputActionType.Button,
+                TeclasDoJogo.Caminho(TeclasDoJogo.Coletar)
+            );
+            TeclasDoJogo.Mudou += AtualizarTecla;
             _coletar.AddBinding("<Gamepad>/buttonNorth");
 
             _registro.Apareceu += CriarMarcador;
@@ -72,6 +77,9 @@ namespace JogoDoGrupo.Client.Features.Itens.Loot
             _coletar?.Enable();
         }
 
+        private void AtualizarTecla() =>
+            _coletar?.ApplyBindingOverride(0, TeclasDoJogo.Caminho(TeclasDoJogo.Coletar));
+
         private void OnDisable()
         {
             _coletar?.Disable();
@@ -79,6 +87,7 @@ namespace JogoDoGrupo.Client.Features.Itens.Loot
 
         private void OnDestroy()
         {
+            TeclasDoJogo.Mudou -= AtualizarTecla;
             if (_registro != null)
             {
                 _registro.Apareceu -= CriarMarcador;
@@ -129,6 +138,8 @@ namespace JogoDoGrupo.Client.Features.Itens.Loot
                 !JanelasDoJogo.AlgoAberto
                 && _registro.AlgumAoAlcance(posicao.x, posicao.z, tierMinimo);
             _dica.style.display = aoAlcance ? DisplayStyle.Flex : DisplayStyle.None;
+            if (aoAlcance)
+                _dica.text = TeclasDoJogo.Rotulo(TeclasDoJogo.Coletar) + ": pegar";
             if (aoAlcance && _coletar.WasPressedThisFrame())
             {
                 ServicoDeLoot.PedirColeta();

@@ -13,7 +13,7 @@ namespace JogoDoGrupo.Client.Core.Jogo.Janelas
         /// Teclas que uma janela não pode usar: já são de outra ação na tabela de
         /// <c>docs/features/interface.md</c> (andar, bloqueio, interagir, trocar de arma).
         /// </summary>
-        internal const string TeclasReservadas = "WASDQER";
+        internal const string TeclasReservadas = "WASDQERF";
 
         private readonly List<DefinicaoDeJanela> _definicoes = new List<DefinicaoDeJanela>();
 

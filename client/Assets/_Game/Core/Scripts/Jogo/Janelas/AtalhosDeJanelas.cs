@@ -20,10 +20,20 @@ namespace JogoDoGrupo.Client.Core.Jogo.Janelas
                 var acao = new InputAction(
                     "Janela." + definicao.Chave,
                     InputActionType.Button,
-                    CaminhoDaTecla(definicao.Tecla)
+                    TeclasDoJogo.Caminho(TeclasDoJogo.Janela(definicao.Chave))
                 );
                 _acoes.Add(new KeyValuePair<string, InputAction>(definicao.Chave, acao));
             }
+            TeclasDoJogo.Mudou += AtualizarTeclas;
+        }
+
+        private void AtualizarTeclas()
+        {
+            foreach (var par in _acoes)
+                par.Value.ApplyBindingOverride(
+                    0,
+                    TeclasDoJogo.Caminho(TeclasDoJogo.Janela(par.Key))
+                );
         }
 
         /// <summary>Caminho do Input System para a letra (ex.: "I" vira <c>&lt;Keyboard&gt;/i</c>).</summary>
@@ -64,6 +74,7 @@ namespace JogoDoGrupo.Client.Core.Jogo.Janelas
 
         public void Dispose()
         {
+            TeclasDoJogo.Mudou -= AtualizarTeclas;
             foreach (var par in _acoes)
             {
                 par.Value.Dispose();

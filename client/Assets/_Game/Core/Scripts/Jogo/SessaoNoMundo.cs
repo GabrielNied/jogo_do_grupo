@@ -103,7 +103,7 @@ namespace JogoDoGrupo.Client.Core.Jogo
             _atalhos?.Dispose();
             _atalhos = null;
             _apresentador?.Esconder();
-            _barra?.Remover();
+            _barra?.Destruir();
             _barra = null;
             if (_janelas != null)
             {
@@ -121,6 +121,8 @@ namespace JogoDoGrupo.Client.Core.Jogo
             var hud = Navegacao.Container;
             if (_acoes.MenuApertado)
             {
+                if (_menu != null && (_menu.CapturaAtiva || _menu.CancelouCapturaNesteFrame))
+                    return;
                 if (EntradaDeTextoAtiva(hud))
                 {
                     if (FocoEmCampoDeTexto.TemCampoComFoco(hud))
