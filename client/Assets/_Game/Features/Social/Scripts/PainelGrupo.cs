@@ -96,6 +96,8 @@ namespace JogoDoGrupo.Client.Features.Social
             _estado.Mudou -= Atualizar;
         }
 
+        public string TituloAtual => Titulo();
+
         /// <summary>Redesenha tudo a partir do estado atual.</summary>
         public void Atualizar()
         {

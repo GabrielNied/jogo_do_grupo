@@ -8,22 +8,14 @@ using UnityEngine.UIElements;
 
 namespace JogoDoGrupo.Client.Features.Social.Tests
 {
-    internal sealed class ArmazenamentoEmMemoria : IArmazenamentoDeTexto
-    {
-        public readonly Dictionary<string, string> Valores = new Dictionary<string, string>();
-
-        public string Ler(string chave) => Valores.TryGetValue(chave, out var v) ? v : "";
-
-        public void Gravar(string chave, string valor) => Valores[chave] = valor;
-    }
-
-    /// <summary>Comandos, ignorados, histórico e o serviço do chat (sem cena nem servidor).</summary>
+    /// <summary>Comandos, listas do servidor, histórico e o serviço do chat (sem cena nem servidor).</summary>
     public class ChatTestes
     {
-        private ArmazenamentoEmMemoria _armazenamento;
-        private ListaDeIgnorados _ignorados;
+        private EstadoDeAmigos _amigos;
         private ServicoDeChat _servico;
         private List<EnviarMensagemDeChat> _enviadas;
+        private List<string> _pedidosDeIgnorar;
+        private List<long> _pedidosDeDesignorar;
         private bool _conectado;
         private long _meuId;
         private long _agora;
@@ -31,9 +23,10 @@ namespace JogoDoGrupo.Client.Features.Social.Tests
         [SetUp]
         public void Preparar()
         {
-            _armazenamento = new ArmazenamentoEmMemoria();
-            _ignorados = new ListaDeIgnorados(_armazenamento);
+            _amigos = new EstadoDeAmigos();
             _enviadas = new List<EnviarMensagemDeChat>();
+            _pedidosDeIgnorar = new List<string>();
+            _pedidosDeDesignorar = new List<long>();
             _conectado = true;
             _meuId = 1;
             _agora = 1_000;
@@ -49,7 +42,17 @@ namespace JogoDoGrupo.Client.Features.Social.Tests
                 },
                 () => _meuId,
                 () => _agora,
-                _ignorados
+                _amigos,
+                nome =>
+                {
+                    _pedidosDeIgnorar.Add(nome);
+                    return _conectado;
+                },
+                id =>
+                {
+                    _pedidosDeDesignorar.Add(id);
+                    return _conectado;
+                }
             );
         }
 
@@ -313,58 +316,6 @@ namespace JogoDoGrupo.Client.Features.Social.Tests
             Assert.AreEqual("<b>oi</b> você", resultado.Texto);
         }
 
-        // ── Ignorados ───────────────────────────────────────────────────────────
-
-        [Test]
-        public void Ignorados_NaoDiferenciamMaiusculasENaoDuplicam()
-        {
-            Assert.AreEqual(ResultadoDeIgnorar.Adicionado, _ignorados.Adicionar("Chato"));
-            Assert.AreEqual(ResultadoDeIgnorar.JaIgnorado, _ignorados.Adicionar("chato"));
-
-            Assert.IsTrue(_ignorados.Contem("CHATO"));
-            Assert.AreEqual(1, _ignorados.Nomes.Count);
-        }
-
-        [Test]
-        public void Ignorados_LimiteDe50()
-        {
-            for (var i = 0; i < ListaDeIgnorados.Maximo; i++)
-            {
-                Assert.AreEqual(ResultadoDeIgnorar.Adicionado, _ignorados.Adicionar("Nome" + i));
-            }
-
-            Assert.AreEqual(ResultadoDeIgnorar.ListaCheia, _ignorados.Adicionar("Outro"));
-            Assert.AreEqual(ListaDeIgnorados.Maximo, _ignorados.Nomes.Count);
-            Assert.IsTrue(_ignorados.Remover("Nome0"));
-            Assert.AreEqual(ResultadoDeIgnorar.Adicionado, _ignorados.Adicionar("Outro"));
-        }
-
-        [TestCase("")]
-        [TestCase("  ")]
-        [TestCase("dois nomes")]
-        public void Ignorados_NomeInvalido(string nome)
-        {
-            Assert.AreEqual(ResultadoDeIgnorar.NomeInvalido, _ignorados.Adicionar(nome));
-        }
-
-        [Test]
-        public void Ignorados_FicamGravadosEVoltamNaProximaVez()
-        {
-            _ignorados.Adicionar("Ana");
-            _ignorados.Adicionar("Bia");
-            _ignorados.Remover("Ana");
-
-            var outra = new ListaDeIgnorados(_armazenamento);
-
-            CollectionAssert.AreEqual(new[] { "Bia" }, outra.Nomes);
-        }
-
-        [Test]
-        public void Ignorados_RemoverQuemNaoEstavaDevolveFalso()
-        {
-            Assert.IsFalse(_ignorados.Remover("Ninguem"));
-        }
-
         // ── Histórico ───────────────────────────────────────────────────────────
 
         [Test]
@@ -385,15 +336,23 @@ namespace JogoDoGrupo.Client.Features.Social.Tests
         {
             _servico.AoReceberMensagem(Mensagem(CanalDeChat.Cidade, 2, "Chato", "spam", 10));
             _servico.AoReceberMensagem(Mensagem(CanalDeChat.Cidade, 3, "Ana", "oi", 20));
-            _ignorados.Adicionar("chato");
+            _amigos.Aplicar(
+                new JogoDoGrupo.Shared.Features.Social.ListaDeIgnorados
+                {
+                    Ignorados = new[]
+                    {
+                        new JogadorIgnorado { IgnoradoId = 2, Nome = "chato" },
+                    },
+                }
+            );
 
-            var visiveis = _servico.Historico.Ultimas(8, _ignorados);
+            var visiveis = _servico.Historico.Ultimas(8, _amigos);
 
             Assert.AreEqual(1, visiveis.Count);
             Assert.AreEqual("Ana", visiveis[0].Nome);
 
-            _ignorados.Remover("Chato");
-            Assert.AreEqual(2, _servico.Historico.Ultimas(8, _ignorados).Count);
+            _amigos.Aplicar(new JogoDoGrupo.Shared.Features.Social.ListaDeIgnorados());
+            Assert.AreEqual(2, _servico.Historico.Ultimas(8, _amigos).Count);
         }
 
         [Test]
@@ -404,7 +363,7 @@ namespace JogoDoGrupo.Client.Features.Social.Tests
                 _servico.Historico.Adicionar(LinhaDeChat.Sistema("l" + i, i));
             }
 
-            var ultimas = _servico.Historico.Ultimas(8, _ignorados);
+            var ultimas = _servico.Historico.Ultimas(8, _amigos);
 
             Assert.AreEqual(8, ultimas.Count);
             Assert.AreEqual("l4", ultimas[0].Texto);
@@ -506,30 +465,7 @@ namespace JogoDoGrupo.Client.Features.Social.Tests
         [Test]
         public void Enviar_IgnorarEDesignorar_EnviamIntencaoAoServidor()
         {
-            string nomeIgnorado = null;
-            long idDesignorado = -1;
-            _servico = new ServicoDeChat(
-                m =>
-                {
-                    _enviadas.Add(m);
-                    return true;
-                },
-                () => _meuId,
-                () => _agora,
-                _ignorados,
-                _servico.Amigos,
-                nome =>
-                {
-                    nomeIgnorado = nome;
-                    return true;
-                },
-                id =>
-                {
-                    idDesignorado = id;
-                    return true;
-                }
-            );
-            _servico.Amigos.Aplicar(
+            _amigos.Aplicar(
                 new JogoDoGrupo.Shared.Features.Social.ListaDeIgnorados
                 {
                     Ignorados = new[]
@@ -542,10 +478,30 @@ namespace JogoDoGrupo.Client.Features.Social.Tests
             _servico.Enviar("/ignorar Chato");
             _servico.Enviar("/designorar chato");
 
-            Assert.AreEqual("Chato", nomeIgnorado);
-            Assert.AreEqual(9, idDesignorado);
+            CollectionAssert.AreEqual(new[] { "Chato" }, _pedidosDeIgnorar);
+            CollectionAssert.AreEqual(new[] { 9L }, _pedidosDeDesignorar);
             Assert.AreEqual(0, _enviadas.Count);
-            Assert.IsFalse(_ignorados.Contem("Chato"));
+            Assert.IsTrue(_amigos.Contem("Chato"));
+        }
+
+        [Test]
+        public void RecusaDeAmizade_ApareceComoSistemaPorSeisSegundos()
+        {
+            _amigos.Aplicar(
+                new OperacaoDeAmizadeRecusada { Codigo = CodigosErroSocial.JaSaoAmigos }
+            );
+
+            Assert.AreEqual(1, _servico.Historico.Linhas.Count);
+            Assert.AreEqual(CanalDaLinha.Sistema, _servico.Historico.Linhas[0].Canal);
+            StringAssert.Contains("já são amigos", _servico.Historico.Linhas[0].Texto);
+
+            _agora += (ServicoDeChat.DuracaoDaRecusaSocialSegundos - 1) * 1000;
+            _servico.Atualizar();
+            Assert.AreEqual(1, _servico.Historico.Linhas.Count);
+
+            _agora += 1000;
+            _servico.Atualizar();
+            Assert.AreEqual(0, _servico.Historico.Linhas.Count);
         }
 
         [Test]
@@ -581,14 +537,22 @@ namespace JogoDoGrupo.Client.Features.Social.Tests
         [Test]
         public void Receber_SussurroDeIgnorado_NaoApareceENaoViraAlvoDoResponder()
         {
-            _ignorados.Adicionar("Chato");
+            _amigos.Aplicar(
+                new JogoDoGrupo.Shared.Features.Social.ListaDeIgnorados
+                {
+                    Ignorados = new[]
+                    {
+                        new JogadorIgnorado { IgnoradoId = 8, Nome = "Chato" },
+                    },
+                }
+            );
 
             _servico.AoReceberMensagem(
                 Mensagem(CanalDeChat.Sussurro, 2, "Chato", "psiu", 10, alvo: "Eu")
             );
 
             Assert.AreEqual("", _servico.Estado.UltimoSussurroRecebido);
-            Assert.AreEqual(0, _servico.Historico.Ultimas(8, _ignorados).Count);
+            Assert.AreEqual(0, _servico.Historico.Ultimas(8, _amigos).Count);
         }
 
         [Test]

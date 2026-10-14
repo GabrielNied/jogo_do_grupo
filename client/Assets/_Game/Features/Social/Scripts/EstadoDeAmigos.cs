@@ -1,19 +1,67 @@
 using System;
 using System.Collections.Generic;
+using JogoDoGrupo.Client.Core.TempoReal;
 using JogoDoGrupo.Shared.Features.Social;
 
 namespace JogoDoGrupo.Client.Features.Social
 {
     /// <summary>
-    /// Listas de amigos, pedidos e ignorados como o servidor mandou. A lista inteira substitui
+    /// Listas de amigos, pedidos e ignorados conforme o servidor manda. A lista inteira substitui
     /// a anterior; <see cref="AmigoMudouDeEstado"/> troca só a linha daquele amigo.
     /// </summary>
     internal sealed class EstadoDeAmigos
     {
+        private static EstadoDeAmigos _estadoDoClient;
+
         private readonly List<AmigoDaLista> _amigos = new List<AmigoDaLista>();
         private readonly List<PedidoDeAmizade> _recebidos = new List<PedidoDeAmizade>();
         private readonly List<PedidoDeAmizade> _enviados = new List<PedidoDeAmizade>();
         private readonly List<JogadorIgnorado> _ignorados = new List<JogadorIgnorado>();
+        private readonly IConexaoDoGrupo _conexao;
+        private readonly List<IDisposable> _assinaturas = new List<IDisposable>();
+
+        public EstadoDeAmigos() { }
+
+        public EstadoDeAmigos(IConexaoDoGrupo conexao)
+        {
+            _conexao = conexao;
+            if (_conexao == null)
+            {
+                return;
+            }
+
+            _assinaturas.Add(
+                _conexao.Assinar<ListaDeAmigos>(SocialMessageIds.ListaDeAmigos, Aplicar)
+            );
+            _assinaturas.Add(
+                _conexao.Assinar<AmigoMudouDeEstado>(SocialMessageIds.AmigoMudouDeEstado, Aplicar)
+            );
+            _assinaturas.Add(
+                _conexao.Assinar<JogoDoGrupo.Shared.Features.Social.ListaDeIgnorados>(
+                    SocialMessageIds.ListaDeIgnorados,
+                    Aplicar
+                )
+            );
+            _assinaturas.Add(
+                _conexao.Assinar<OperacaoDeAmizadeRecusada>(
+                    SocialMessageIds.OperacaoDeAmizadeRecusada,
+                    Aplicar
+                )
+            );
+        }
+
+        public static EstadoDeAmigos DoClient
+        {
+            get
+            {
+                if (_estadoDoClient == null)
+                {
+                    _estadoDoClient = new EstadoDeAmigos(new ConexaoDoGrupoReal());
+                }
+
+                return _estadoDoClient;
+            }
+        }
 
         public IReadOnlyList<AmigoDaLista> Amigos => _amigos;
         public IReadOnlyList<PedidoDeAmizade> PedidosRecebidos => _recebidos;
@@ -21,6 +69,42 @@ namespace JogoDoGrupo.Client.Features.Social
         public IReadOnlyList<JogadorIgnorado> Ignorados => _ignorados;
 
         public event Action Mudou;
+        public event Action<string> OperacaoRecusada;
+
+        public bool PedirAmizade(string nome) =>
+            Enviar(SocialMessageIds.PedirAmizade, new PedirAmizade { Nome = nome ?? "" });
+
+        public bool ResponderPedido(long pedidoId, bool aceitar) =>
+            Enviar(
+                SocialMessageIds.ResponderPedidoDeAmizade,
+                new ResponderPedidoDeAmizade { PedidoId = pedidoId, Aceitar = aceitar }
+            );
+
+        public bool CancelarPedido(long pedidoId) =>
+            Enviar(
+                SocialMessageIds.CancelarPedidoDeAmizade,
+                new CancelarPedidoDeAmizade { PedidoId = pedidoId }
+            );
+
+        public bool RemoverAmigo(long amigoId) =>
+            Enviar(SocialMessageIds.RemoverAmigo, new RemoverAmigo { AmigoId = amigoId });
+
+        public bool Ignorar(string nome) =>
+            Enviar(SocialMessageIds.IgnorarJogador, new IgnorarJogador { Nome = nome ?? "" });
+
+        public bool DeixarDeIgnorar(long ignoradoId) =>
+            Enviar(
+                SocialMessageIds.DeixarDeIgnorar,
+                new DeixarDeIgnorar { IgnoradoId = ignoradoId }
+            );
+
+        [UnityEngine.RuntimeInitializeOnLoadMethod(
+            UnityEngine.RuntimeInitializeLoadType.BeforeSceneLoad
+        )]
+        private static void Iniciar()
+        {
+            _ = DoClient;
+        }
 
         public void Aplicar(ListaDeAmigos lista)
         {
@@ -61,6 +145,14 @@ namespace JogoDoGrupo.Client.Features.Social
             Mudou?.Invoke();
         }
 
+        public void Aplicar(OperacaoDeAmizadeRecusada recusa)
+        {
+            if (recusa != null)
+            {
+                OperacaoRecusada?.Invoke(recusa.Codigo ?? "");
+            }
+        }
+
         /// <summary>O nome está na lista do servidor, sem diferenciar maiúsculas.</summary>
         public bool Contem(string nome)
         {
@@ -89,7 +181,21 @@ namespace JogoDoGrupo.Client.Features.Social
             return false;
         }
 
+        public void Dispose()
+        {
+            foreach (var assinatura in _assinaturas)
+            {
+                assinatura.Dispose();
+            }
+
+            _assinaturas.Clear();
+        }
+
+        private bool Enviar<T>(ushort id, T mensagem) =>
+            _conexao != null && _conexao.Enviar(id, mensagem, EntregaTempoReal.Confiavel);
+
         private static void Copiar<T>(T[] origem, List<T> destino, Func<T, T> copiar)
+            where T : class
         {
             if (origem == null)
             {
@@ -121,5 +227,14 @@ namespace JogoDoGrupo.Client.Features.Social
             new JogadorIgnorado { IgnoradoId = ignorado.IgnoradoId, Nome = ignorado.Nome ?? "" };
 
         private static string Normalizar(string nome) => (nome ?? "").Trim().ToLowerInvariant();
+
+        [UnityEngine.RuntimeInitializeOnLoadMethod(
+            UnityEngine.RuntimeInitializeLoadType.SubsystemRegistration
+        )]
+        private static void Reiniciar()
+        {
+            _estadoDoClient?.Dispose();
+            _estadoDoClient = null;
+        }
     }
 }
