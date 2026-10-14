@@ -1,0 +1,117 @@
+.skills-barra {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: var(--lumora-espacamento-grande);
+    flex-direction: row;
+    justify-content: center;
+    align-items: flex-end;
+}
+
+.skill-espaco {
+    width: 20%;
+    min-width: 96px;
+    max-width: 168px;
+    margin-left: var(--lumora-espacamento-curto);
+    margin-right: var(--lumora-espacamento-curto);
+    padding: var(--lumora-espacamento-pequeno);
+    background-color: var(--lumora-cores-painel);
+    border-width: var(--lumora-bordas-fina);
+    border-color: var(--lumora-cores-borda-botao);
+    border-radius: var(--lumora-bordas-raio-cartao);
+    overflow: hidden;
+}
+
+.skill-em-recarga {
+    border-color: var(--lumora-cores-borda-discreta);
+}
+
+.skill-cobertura {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 0;
+    background-color: var(--lumora-cores-trilho);
+    opacity: 0.85;
+}
+
+.skill-tecla {
+    font-size: var(--lumora-tipografia-controle);
+    color: var(--lumora-cores-ouro);
+    -unity-text-align: middle-left;
+}
+
+.skill-nome {
+    font-size: var(--lumora-tipografia-leitura);
+    color: var(--lumora-cores-marfim);
+    white-space: normal;
+}
+
+.skill-custo {
+    font-size: var(--lumora-tipografia-leitura);
+    color: var(--lumora-cores-essencia);
+}
+
+.skill-recarga {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    font-size: var(--lumora-tipografia-titulo);
+    color: var(--lumora-cores-marfim);
+    -unity-text-align: middle-center;
+}
+
+.skills-vazio {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: var(--lumora-espacamento-grande);
+    font-size: var(--lumora-tipografia-leitura);
+    color: var(--lumora-cores-borda-discreta);
+    -unity-text-align: middle-center;
+    white-space: normal;
+}
+
+.skills-aviso {
+    position: absolute;
+    left: 50%;
+    bottom: 110px;
+    width: var(--lumora-dimensoes-recursos-largura);
+    max-width: var(--lumora-dimensoes-dialogo-percentual);
+    translate: -50% 0;
+    padding: var(--lumora-espacamento-pequeno);
+    font-size: var(--lumora-tipografia-controle);
+    -unity-text-align: middle-center;
+    color: var(--lumora-cores-erro);
+    background-color: var(--lumora-cores-painel);
+    white-space: normal;
+}
+
+.skills-numeros {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.skill-dano {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: var(--lumora-dimensoes-dano-largura);
+    translate: -50% -100%;
+    font-size: var(--lumora-tipografia-titulo);
+    -unity-text-align: middle-center;
+    color: var(--lumora-cores-essencia);
+}
+
+.lumora-estreito .skill-espaco {
+    width: 30%;
+    min-width: 0;
+    margin-left: var(--lumora-espacamento-minimo);
+    margin-right: var(--lumora-espacamento-minimo);
+}
