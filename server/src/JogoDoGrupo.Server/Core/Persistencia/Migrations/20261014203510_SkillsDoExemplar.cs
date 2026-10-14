@@ -16,19 +16,19 @@ namespace JogoDoGrupo.Server.Core.Persistencia.Migrations
                 {
                     InstanciaId = table.Column<long>(type: "INTEGER", nullable: false),
                     ModeloId = table.Column<int>(type: "INTEGER", nullable: false),
-                    SkillIds = table.Column<string>(type: "TEXT", maxLength: 256, nullable: false)
+                    SkillIds = table.Column<string>(type: "TEXT", maxLength: 256, nullable: false),
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_SkillsDoExemplar", x => x.InstanciaId);
-                });
+                }
+            );
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(
-                name: "SkillsDoExemplar");
+            migrationBuilder.DropTable(name: "SkillsDoExemplar");
         }
     }
 }

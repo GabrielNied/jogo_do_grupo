@@ -217,7 +217,9 @@ public sealed class NucleoDeSkills
         var acertos = new List<AcertoDeAtaque>();
         foreach (var fonte in _alvos)
         {
-            foreach (var alvo in fonte.AlvosNoVolume(posicao.Area, posicao.X, posicao.Z, pedido.DirecaoY))
+            foreach (
+                var alvo in fonte.AlvosNoVolume(posicao.Area, posicao.X, posicao.Z, pedido.DirecaoY)
+            )
             {
                 if (
                     alvo.PersonagemId == 0

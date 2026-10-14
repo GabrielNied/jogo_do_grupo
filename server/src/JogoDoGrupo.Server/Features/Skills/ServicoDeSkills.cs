@@ -78,7 +78,11 @@ public sealed class ServicoDeSkills : IHostedService, IDisposable
                 if (resultado.Recursos != null)
                 {
                     // A mensagem é de Combate: as barras de vida, stamina e mana dele a mostram.
-                    _tempoReal.Enviar(sessao, CombateMessageIds.RecursosMudaram, resultado.Recursos);
+                    _tempoReal.Enviar(
+                        sessao,
+                        CombateMessageIds.RecursosMudaram,
+                        resultado.Recursos
+                    );
                 }
 
                 _tempoReal.Enviar(sessao, SkillsMessageIds.SkillUsada, resultado.Usada);
