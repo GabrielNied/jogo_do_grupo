@@ -370,8 +370,10 @@ public sealed class ServicoDeQueda : IEstadoDeQueda, IHostedService, IDisposable
     private string AreaDe(long personagemId) =>
         _posicoes.TentarObter(personagemId, out var p) ? p.Area : AreasDoMundo.Cidade;
 
-    private SessaoTempoReal? SessaoDe(long personagemId) =>
-        _tempoReal.Sessoes.FirstOrDefault(s => s.PersonagemId == personagemId);
+    private SessaoTempoReal? SessaoDe(long personagemId)
+    {
+        return _tempoReal.TentarObterSessao(personagemId, out var sessao) ? sessao : null;
+    }
 
     private void PublicarSemFalhar<T>(T evento)
         where T : class
@@ -391,7 +393,11 @@ public sealed class ServicoDeQueda : IEstadoDeQueda, IHostedService, IDisposable
     private void AoEncerrar(SessaoTempoReal sessao)
     {
         var id = sessao.PersonagemId;
-        if (_tempoReal.Sessoes.Any(s => s.PersonagemId == id && !ReferenceEquals(s, sessao)))
+        if (
+            _tempoReal.TentarObterSessao(id, out var outra)
+            && outra is not null
+            && !ReferenceEquals(outra, sessao)
+        )
         {
             return;
         }
