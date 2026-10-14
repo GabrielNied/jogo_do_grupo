@@ -32,6 +32,40 @@ public class HostTempoRealTestes
     }
 
     [Fact]
+    public async Task TentarObterSessao_encontra_a_sessao_ativa()
+    {
+        using var fixture = new TempoRealFixture();
+        var (cliente, contaId, personagemId) = await fixture.EntrarAsync();
+
+        try
+        {
+            Assert.True(fixture.TempoReal.TentarObterSessao(personagemId, out var sessao));
+            Assert.NotNull(sessao);
+            Assert.Same(sessao, fixture.SessaoDaConta(contaId));
+        }
+        finally
+        {
+            cliente.Sair();
+        }
+    }
+
+    [Fact]
+    public async Task TentarObterSessao_nao_encontra_apos_desconectar()
+    {
+        using var fixture = new TempoRealFixture();
+        var (cliente, _, personagemId) = await fixture.EntrarAsync();
+
+        cliente.Sair();
+
+        await TempoRealFixture.EsperarAsync(
+            () => !fixture.TempoReal.TentarObterSessao(personagemId, out _),
+            "sessão do personagem continuar indexada após desconectar"
+        );
+
+        Assert.False(fixture.TempoReal.TentarObterSessao(personagemId, out _));
+    }
+
+    [Fact]
     public void Porta_ocupada_impede_o_servidor_de_subir()
     {
         using var ocupante = new UdpClient(new IPEndPoint(IPAddress.Loopback, 0));

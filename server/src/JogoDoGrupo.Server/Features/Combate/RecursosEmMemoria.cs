@@ -631,7 +631,11 @@ public sealed class RecursosEmMemoria : IHostedService, IDisposable
     private void AoEncerrar(SessaoTempoReal sessao)
     {
         var id = sessao.PersonagemId;
-        if (_tempoReal.Sessoes.Any(s => s.PersonagemId == id && !ReferenceEquals(s, sessao)))
+        if (
+            _tempoReal.TentarObterSessao(id, out var outra)
+            && outra is not null
+            && !ReferenceEquals(outra, sessao)
+        )
         {
             return;
         }

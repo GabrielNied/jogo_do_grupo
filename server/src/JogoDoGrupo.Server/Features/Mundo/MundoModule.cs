@@ -211,18 +211,19 @@ public sealed class MundoModule : IFeatureModule, ITransicoesDeAreaDoMundo
     private void Replicar(string area, SessaoTempoReal dono, AvatarNaCidade<SessaoTempoReal> avatar)
     {
         var replica = Posicao(avatar, 0);
-        foreach (var outro in _areas.ObterOuCriar(area).Presentes())
-        {
-            if (!ReferenceEquals(outro.Sessao, dono))
-            {
-                _tempoReal!.Enviar(
-                    outro.Sessao,
-                    MundoMessageIds.PosicaoJogador,
-                    replica,
-                    EntregaTempoReal.Sequenciada
-                );
-            }
-        }
+        var outros = _areas
+            .ObterOuCriar(area)
+            .Presentes()
+            .Where(outro => !ReferenceEquals(outro.Sessao, dono))
+            .Select(outro => outro.Sessao)
+            .ToArray();
+        _tempoReal!.Enviar(
+            outros,
+            MundoMessageIds.PosicaoJogador,
+            replica,
+            EntregaTempoReal.Sequenciada,
+            avatar.PersonagemId
+        );
     }
 
     private void EnviarPosicaoForcada(
