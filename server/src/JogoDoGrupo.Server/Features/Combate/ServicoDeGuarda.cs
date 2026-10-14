@@ -70,6 +70,21 @@ public sealed class ServicoDeGuarda
         // Segurar a guarda interrompe quem levantava um aliado, como atacar e esquivar.
         _queda?.AoAgir(personagemId);
 
+        if (_controle.EstaAtordoado(personagemId))
+        {
+            _tempoReal.Enviar(
+                sessao,
+                CombateMessageIds.GuardaMudou,
+                new GuardaMudou { PersonagemId = personagemId, Segurando = false }
+            );
+            _tempoReal.Enviar(
+                sessao,
+                CombateMessageIds.AcaoRecusada,
+                new AcaoRecusada { Codigo = CodigosErroCombate.VoceEstaAtordoado }
+            );
+            return;
+        }
+
         var caido = _queda?.EstaCaido(personagemId) == true;
         if (caido || !_controle.TentarGuardar(personagemId, _relogioMs()))
         {

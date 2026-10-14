@@ -59,6 +59,10 @@ namespace JogoDoGrupo.Client.Features.Combate.Tests
                 ApresentacaoAtaque.TextoVoceEstaCaido,
                 ApresentacaoAtaque.TextoDaRecusa(CodigosErroCombate.VoceEstaCaido)
             );
+            Assert.AreEqual(
+                ApresentacaoAtaque.TextoVoceEstaAtordoado,
+                ApresentacaoAtaque.TextoDaRecusa(CodigosErroCombate.VoceEstaAtordoado)
+            );
         }
 
         [Test]

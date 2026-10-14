@@ -192,6 +192,23 @@ public class ReacaoEGuardaRedeTestes(ServidorDeAtaque servidor) : IClassFixture<
     }
 
     [Fact]
+    public async Task Segurar_a_guarda_durante_atordoamento_e_recusado_com_VoceEstaAtordoado()
+    {
+        using var ana = await NovoJogadorAsync();
+        var efeitos = servidor.Falso.Services.GetRequiredService<GerenciadorDeEfeitosDeStatus>();
+        efeitos.Aplicar(ana.Id, TipoEfeitoDeStatus.Atordoado, duracaoSegundos: 5.0);
+
+        Guardar(ana, true);
+
+        var resposta = await GuardaAsync(ana);
+        Assert.False(resposta.Segurando);
+        Assert.False(resposta.Quebrou);
+
+        var recusa = await ana.Cliente.ReceberAsync<AcaoRecusada>(CombateMessageIds.AcaoRecusada);
+        Assert.Equal(CodigosErroCombate.VoceEstaAtordoado, recusa.Codigo);
+    }
+
+    [Fact]
     public async Task Guarda_pede_ao_mundo_o_teto_de_40_por_cento_e_solta_ao_largar()
     {
         using var ana = await NovoJogadorAsync();

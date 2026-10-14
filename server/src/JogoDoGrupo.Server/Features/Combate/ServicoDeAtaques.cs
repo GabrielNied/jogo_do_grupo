@@ -127,6 +127,9 @@ public sealed class ServicoDeAtaques : IHostedService, IDisposable
                 break;
             case ResultadoDoPedido.Enfileirado:
                 break; // Começa no fim da ação em curso (EsperarFimAsync dela).
+            case ResultadoDoPedido.Atordoado:
+                Recusar(personagemId, pedido.Sequencia, CodigosErroCombate.VoceEstaAtordoado);
+                break;
             default:
                 Recusar(personagemId, pedido.Sequencia, CodigosErroCombate.AcaoEmAndamento);
                 break;
