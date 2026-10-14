@@ -3,11 +3,38 @@ using System.Linq;
 using JogoDoGrupo.Client.Features.Itens.Loot;
 using JogoDoGrupo.Shared.Features.Itens;
 using NUnit.Framework;
+using UnityEngine;
 
 namespace JogoDoGrupo.Client.Features.Itens.Tests
 {
     public class LootNoChaoDoClienteTestes
     {
+        [Test]
+        public void Marcador_de_loot_usa_cor_por_tier_e_neutro_para_tiers_sem_cor()
+        {
+            var neutra = new Color(0.45f, 0.45f, 0.45f);
+
+            Assert.AreEqual(neutra, CoresMarcadorDeLoot.Para(false, TierItem.SMais));
+            Assert.AreEqual(neutra, CoresMarcadorDeLoot.Para(true, TierItem.D));
+            Assert.AreEqual(neutra, CoresMarcadorDeLoot.Para(true, TierItem.C));
+            Assert.AreEqual(
+                new Color(0.18f, 0.48f, 0.95f),
+                CoresMarcadorDeLoot.Para(true, TierItem.B)
+            );
+            Assert.AreEqual(
+                new Color(0.58f, 0.27f, 0.82f),
+                CoresMarcadorDeLoot.Para(true, TierItem.A)
+            );
+            Assert.AreEqual(
+                new Color(0.96f, 0.48f, 0.12f),
+                CoresMarcadorDeLoot.Para(true, TierItem.S)
+            );
+            Assert.AreEqual(
+                new Color(0.48f, 0.08f, 0.13f),
+                CoresMarcadorDeLoot.Para(true, TierItem.SMais)
+            );
+        }
+
         private static LootApareceu Apareceu(
             long id,
             float x = 0f,

@@ -53,7 +53,11 @@ namespace JogoDoGrupo.Client.Features.Skills
             _teclas = new InputAction[ConfigSkills.SkillsPorArma];
             for (var i = 0; i < _teclas.Length; i++)
             {
-                _teclas[i] = new InputAction("Skill" + (i + 1), InputActionType.Button, caminhos[i]);
+                _teclas[i] = new InputAction(
+                    "Skill" + (i + 1),
+                    InputActionType.Button,
+                    caminhos[i]
+                );
                 if (isActiveAndEnabled)
                 {
                     _teclas[i].Enable();
