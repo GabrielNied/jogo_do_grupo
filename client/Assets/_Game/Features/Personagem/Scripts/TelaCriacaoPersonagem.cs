@@ -18,8 +18,13 @@ namespace JogoDoGrupo.Client.Features.Personagem
         private readonly List<Raca> _racas = new List<Raca>();
 
         private TextField _nome;
+        private Label _erroNome;
         private readonly List<Button> _botoesRaca = new List<Button>();
         private VisualElement _escolhaDeRaca;
+        private VisualElement _cartaoDaRaca;
+        private Image _imagem;
+        private Label _avisoPrevia;
+        private PreviaVisualPersonagem _previsao;
         private Label _racaNome;
         private Label _racaPovo;
         private Label _racaAparencia;
@@ -38,6 +43,7 @@ namespace JogoDoGrupo.Client.Features.Personagem
 
             var painel = EstiloCore.CriarPainel(social: true);
             painel.AddToClassList(EstiloPersonagem.PainelSelecao);
+            painel.AddToClassList("personagem-painel-criacao-visual");
 
             var titulo = new Label("Novo personagem");
             titulo.AddToClassList(EstiloCore.Titulo);
@@ -49,30 +55,34 @@ namespace JogoDoGrupo.Client.Features.Personagem
             _nome.AddToClassList(EstiloCore.Campo);
             _nome.RegisterValueChangedCallback(AoMudarNome);
             _nome.RegisterCallback<KeyDownEvent>(AoTeclarNoNome, TrickleDown.TrickleDown);
+            _erroNome = new Label();
+            _erroNome.AddToClassList(EstiloCore.Mensagem);
+            _erroNome.AddToClassList(EstiloCore.MensagemErro);
+            _erroNome.AddToClassList("personagem-criacao-erro-nome");
+            EstiloPersonagem.Mostrar(_erroNome, false);
 
             _escolhaDeRaca = MontarRacas();
 
-            _confirmar = new Button(AoClicarConfirmar) { text = "Confirmar" };
+            _confirmar = new Button(AoClicarConfirmar) { text = "Criar personagem" };
             _confirmar.AddToClassList(EstiloCore.Botao);
             _confirmar.AddToClassList(EstiloCore.BotaoPrincipal);
 
             _voltar = new Button(AoClicarVoltar) { text = "Voltar" };
             _voltar.AddToClassList(EstiloCore.Botao);
 
-            var linha = new VisualElement();
-            linha.AddToClassList(EstiloCore.LinhaBotoes);
-            linha.Add(_confirmar);
-            linha.Add(_voltar);
-
             _mensagem = new Label();
             _mensagem.AddToClassList(EstiloCore.Mensagem);
+            _cartaoDaRaca.Add(_mensagem);
+            _cartaoDaRaca.Add(_confirmar);
+
+            var rodape = new VisualElement();
+            rodape.AddToClassList("personagem-selecao-rodape");
+            rodape.Add(_voltar);
 
             painel.Add(titulo);
             painel.Add(subtitulo);
-            painel.Add(_nome);
             painel.Add(_escolhaDeRaca);
-            painel.Add(linha);
-            painel.Add(_mensagem);
+            painel.Add(rodape);
             raiz.Add(painel);
         }
 
@@ -80,6 +90,13 @@ namespace JogoDoGrupo.Client.Features.Personagem
         {
             // Dá o foco depois do primeiro layout, quando o campo já pode receber foco.
             _nome.schedule.Execute(() => _nome.Focus());
+        }
+
+        protected override void AoFechar()
+        {
+            _imagem.image = null;
+            _previsao?.Dispose();
+            _previsao = null;
         }
 
         /// <summary>
@@ -95,9 +112,16 @@ namespace JogoDoGrupo.Client.Features.Personagem
 
             var linha = new VisualElement();
             linha.AddToClassList(EstiloPersonagem.EscolhaDeRaca);
+            linha.AddToClassList("personagem-criacao-corpo");
 
             var coluna = new VisualElement();
             coluna.AddToClassList(EstiloPersonagem.ListaDeRacas);
+            coluna.AddToClassList("personagem-criacao-escolhas");
+            coluna.Add(_nome);
+            coluna.Add(_erroNome);
+            var tituloRacas = new Label("Escolha sua raça");
+            tituloRacas.AddToClassList(EstiloCore.Subtitulo);
+            coluna.Add(tituloRacas);
             for (var i = 0; i < _racas.Count; i++)
             {
                 var indice = i;
@@ -111,17 +135,31 @@ namespace JogoDoGrupo.Client.Features.Personagem
                 coluna.Add(botao);
             }
 
-            var cartao = new VisualElement();
-            cartao.AddToClassList(EstiloPersonagem.CartaoDaRaca);
-            _racaNome = NovoRotulo(cartao, EstiloPersonagem.ItemNome);
-            _racaPovo = NovoRotulo(cartao, EstiloPersonagem.ItemDetalhes);
-            _racaAparencia = NovoRotulo(cartao, EstiloPersonagem.CartaoTexto);
-            _racaTraco = NovoRotulo(cartao, EstiloPersonagem.CartaoTexto);
-            _racaSkill = NovoRotulo(cartao, EstiloPersonagem.CartaoTexto);
-            _racaTexto = NovoRotulo(cartao, EstiloPersonagem.CartaoCitacao);
+            var centro = new VisualElement();
+            centro.AddToClassList("personagem-criacao-centro");
+            var tituloPrevia = new Label("Visual da raça");
+            tituloPrevia.AddToClassList(EstiloCore.Subtitulo);
+            centro.Add(tituloPrevia);
+            _imagem = new Image { scaleMode = ScaleMode.ScaleToFit };
+            _imagem.AddToClassList("personagem-selecao-imagem");
+            centro.Add(_imagem);
+            _avisoPrevia = new Label();
+            _avisoPrevia.AddToClassList(EstiloCore.Mensagem);
+            centro.Add(_avisoPrevia);
+
+            _cartaoDaRaca = new VisualElement();
+            _cartaoDaRaca.AddToClassList(EstiloPersonagem.CartaoDaRaca);
+            _cartaoDaRaca.AddToClassList("personagem-criacao-informacoes");
+            _racaNome = NovoRotulo(_cartaoDaRaca, EstiloPersonagem.ItemNome);
+            _racaPovo = NovoRotulo(_cartaoDaRaca, EstiloPersonagem.ItemDetalhes);
+            _racaAparencia = NovoRotulo(_cartaoDaRaca, EstiloPersonagem.CartaoTexto);
+            _racaTraco = NovoRotulo(_cartaoDaRaca, EstiloPersonagem.CartaoTexto);
+            _racaSkill = NovoRotulo(_cartaoDaRaca, EstiloPersonagem.CartaoTexto);
+            _racaTexto = NovoRotulo(_cartaoDaRaca, EstiloPersonagem.CartaoCitacao);
 
             linha.Add(coluna);
-            linha.Add(cartao);
+            linha.Add(centro);
+            linha.Add(_cartaoDaRaca);
             EscolherRaca(0);
             return linha;
         }
@@ -159,8 +197,15 @@ namespace JogoDoGrupo.Client.Features.Personagem
             _racaPovo.text = dados?.Povo ?? "";
             _racaAparencia.text = dados?.Aparencia ?? "";
             _racaTraco.text = dados?.Traco ?? "";
-            _racaSkill.text = dados?.SkillRacial ?? "";
+            _racaSkill.text =
+                dados == null ? "" : "Habilidade racial em desenvolvimento: " + dados.SkillRacial;
             _racaTexto.text = dados != null ? "“" + dados.Texto + "”" : "";
+
+            _previsao ??= new PreviaVisualPersonagem();
+            var disponivel = _previsao.Mostrar(_racas[indice]);
+            _imagem.image = disponivel ? _previsao.Textura : null;
+            _avisoPrevia.text = disponivel ? "" : "Visual indisponível neste momento";
+            EstiloPersonagem.Mostrar(_avisoPrevia, !disponivel);
         }
 
         private void AoMudarNome(ChangeEvent<string> evt)
@@ -174,11 +219,16 @@ namespace JogoDoGrupo.Client.Features.Personagem
             var nome = evt.newValue;
             if (string.IsNullOrEmpty(nome) || RegrasPersonagem.ValidarNome(nome) == null)
             {
+                _nome.RemoveFromClassList("campo-erro");
+                EstiloPersonagem.Mostrar(_erroNome, false);
                 MostrarMensagem(null);
             }
             else
             {
-                MostrarMensagem(TextosPersonagem.NomeInvalido, EstiloCore.MensagemErro);
+                _nome.AddToClassList("campo-erro");
+                _erroNome.text = TextosPersonagem.NomeInvalido;
+                EstiloPersonagem.Mostrar(_erroNome, true);
+                MostrarMensagem(null);
             }
         }
 
@@ -201,9 +251,14 @@ namespace JogoDoGrupo.Client.Features.Personagem
             var nome = _nome.value;
             if (RegrasPersonagem.ValidarNome(nome) != null)
             {
-                MostrarMensagem(TextosPersonagem.NomeInvalido, EstiloCore.MensagemErro);
+                _nome.AddToClassList("campo-erro");
+                _erroNome.text = TextosPersonagem.NomeInvalido;
+                EstiloPersonagem.Mostrar(_erroNome, true);
                 return;
             }
+
+            _nome.RemoveFromClassList("campo-erro");
+            EstiloPersonagem.Mostrar(_erroNome, false);
 
             var indice = _indiceRaca;
             if (indice < 0 || indice >= _racas.Count)
@@ -260,6 +315,18 @@ namespace JogoDoGrupo.Client.Features.Personagem
         {
             if (TextosPersonagem.FoiCancelada(codigo))
             {
+                MostrarMensagem(null);
+                return;
+            }
+
+            if (
+                codigo == CodigosErroPersonagem.NomeInvalido
+                || codigo == CodigosErroPersonagem.NomeJaExiste
+            )
+            {
+                _nome.AddToClassList("campo-erro");
+                _erroNome.text = TextosPersonagem.MensagemDaRecusa(codigo);
+                EstiloPersonagem.Mostrar(_erroNome, true);
                 MostrarMensagem(null);
                 return;
             }
