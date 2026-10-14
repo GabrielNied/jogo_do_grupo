@@ -17,4 +17,10 @@ public interface IPontosDeNivel
     /// aberta do chamador (não precisa de <c>SaveChanges</c>) e some junto se ele desfizer.
     /// </summary>
     Task<bool> TentarGastarAsync(long personagemId, int quantidade, CancellationToken cancelamento);
+
+    /// <summary>
+    /// Devolve <paramref name="quantidade"/> para os pontos livres de uma vez só (ex.: ao
+    /// redistribuir a árvore de talentos). A devolução vale na transação aberta do chamador.
+    /// </summary>
+    Task DevolverAsync(long personagemId, int quantidade, CancellationToken cancelamento);
 }

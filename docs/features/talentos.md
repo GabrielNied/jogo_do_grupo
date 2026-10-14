@@ -1,7 +1,7 @@
 # Árvore de atributos (talentos)
 
 **Responsável:**
-**Status:** estrutura decidida por Gabriel em 2026-10-12; a árvore, a compra e a tela estão implementadas com **valores de teste** (#625, 13/10/2026); redistribuição, perfis e nós grandes faltam. **Prioridade alta**, épico [#621](https://github.com/GabrielNied/jogo_do_grupo/issues/621)
+**Status:** estrutura decidida por Gabriel em 2026-10-12; árvore, compra e tela implementadas (#625); redistribuição paga e perfis de build implementados (#626); nós grandes e números finais faltam (#627). **Prioridade alta**, épico [#621](https://github.com/GabrielNied/jogo_do_grupo/issues/621)
 **Faixa de IDs de mensagem:** 5000–5999
 
 ## Resumo
@@ -148,14 +148,49 @@ Decisões de design tomadas pela IA ao implementar, sem esperar resposta (mudam 
 - **Secundários na pipeline:** o efeito de secundário (`Chave` = nome do `AtributoSecundario`, ex.: `ChanceCritica`; `Multiplica` falso soma, verdadeiro é bônus percentual) vira um modificador da fonte `Arvore` por `FonteDaArvore`, que implementa `IFonteDeModificadores` (Combate). Entra com o **total atual** (valor por rank vezes o rank), ordem `OrdemArvore`, grupo de acúmulo `arvore` (percentuais da árvore somam entre si) e origem "Árvore: nome do nó". Chave que não é um secundário recusa a configuração ao subir. A árvore de teste ainda **não tem nó de secundário** (os números são da #627); o teste usa uma árvore com um. Nós grandes e avançados (condicionais) existem só como tipo e estado na tela; nenhum nó de teste é condicional.
 - **Tela** (tecla **N**, janela do Core, Lumora UI com `ComponentesVisuais`): visão radial com os cinco caminhos (nome do caminho depois do último nó) e os híbridos entre eles, arestas ligando requisito e nó (mais grossas e turquesa quando cumpridas), legenda dos estados e painel do nó. Estados com **forma, marca e texto, nunca só cor**: bloqueado `x`, disponível `+`, comprado `rank/máximo`, no máximo `MAX`, condicionalmente ativo `~` (nó pequeno é redondo; híbrido e maior são quadrados de canto suave). O painel mostra tipo, descrição, estado, rank, efeito por rank, custo do próximo rank, cada requisito (cumprido ou pendente), o **motivo do bloqueio** ("Compre antes: ...", "Você não tem pontos livres. Suba de nível para ganhar mais.", "Rank máximo."), a **prévia antes e depois** dos atributos da árvore e dos pontos livres, e o botão de comprar (desabilitado com "Comprando..." enquanto o servidor não responde). Teclado: Tab entre os nós, Enter ou Espaço compra o nó escolhido. O botão na janela do personagem fica para depois (a tecla N abre a árvore; a janela do personagem só mostra o saldo e a dica).
 
+## Implementação da #626 (redistribuição paga e perfis de build)
+
+- **Redistribuição Paga:**
+  - Custo configurável em `ConfigRedistribuicao.CustoPadraoCoroas` (100 coroas, valor de teste).
+  - Consulta `IEstadoDeCombate` (ADR 0016): se o personagem estiver em combate, a ação é recusada com `EmCombate` (409 Conflict).
+  - Valida se `PontosGastos > 0`: se nenhum ponto foi gasto, recusa com `NenhumPontoGasto` (400 Bad Request).
+  - Valida saldo e cobra via `ICarteiraCoroas` na mesma transação atômica serializável; saldo insuficiente recusa com `SaldoInsuficiente` (409 Conflict).
+  - Remove todos os `NoComprado` do personagem, zera `PontosGastos` na `ArvoreDoPersonagem` e devolve todos os pontos gastos de volta para `PontosLivres` via `IPontosDeNivel.DevolverAsync`.
+  - Rota HTTP: `POST /api/personagens/{id}/talentos/redistribuir` (`RedistribuirRequest`), retornando a nova `ArvoreResponse`.
+- **Perfis de Build:**
+  - Persistência na tabela `TalentosPerfis` (`Id`, `PersonagemId`, `Nome`, `Versao`, `CriadoEm`, `RanksJson`), até 5 perfis por personagem (`ConfigRedistribuicao.LimitePerfis`), com nome de até 32 caracteres (`ConfigRedistribuicao.TamanhoMaximoNomePerfil`).
+  - Rotas HTTP:
+    - `GET /api/personagens/{id}/talentos/perfis`: lista perfis salvos com pontos totais pré-calculados.
+    - `POST /api/personagens/{id}/talentos/perfis`: salva a distribuição atual de talentos como um novo perfil (`SalvarPerfilRequest`).
+    - `PUT /api/personagens/{id}/talentos/perfis/{perfilId}`: renomeia o perfil (`RenomearPerfilRequest`).
+    - `DELETE /api/personagens/{id}/talentos/perfis/{perfilId}`: exclui o perfil salvo.
+    - `POST /api/personagens/{id}/talentos/perfis/{perfilId}/carregar`: valida e aplica a distribuição do perfil (`CarregarPerfilResponse`).
+  - **Validação e Aplicação de Perfil (`RegrasDaArvore.ValidarECalcularPerfil`):**
+    - Bloqueia se o personagem estiver em combate (`EmCombate`, 409).
+    - Valida o total de pontos disponíveis (`PontosLivres` atuais + `PontosGastos` atuais): se o perfil exigir mais pontos do que o total disponível, recusa com `PontosInsuficientes` (409).
+    - Nós obsoletos ou excluídos da configuração são ignorados com aviso explicativo nos `Avisos`.
+    - Nós com requisitos quebrados são removidos em cascata com aviso explicativo nos `Avisos`.
+    - Ranks que excedam o limite máximo da configuração atual são limitados ao teto com aviso.
+    - A aplicação substitui os nós em transação atômica e debita ou devolve a diferença de pontos via `IPontosDeNivel`.
+- **Interface (JanelaArvore):**
+  - Botão de redistribuição com custo visível e confirmação antes de disparar.
+  - Painel de perfis integrado à tela de talentos: listagem com nome, pontos e data; salvar estado atual com nome; carregar perfil com exibição de avisos de migração; e exclusão de perfil com confirmação.
+
 ## Depende de
 
-- **[Personagem](personagem.md):** identidade, nível e o saldo de pontos da árvore (`IPontosDeNivel`).
-- **[Skills](skills.md) e [Combate](combate.md):** propriedades das skills e a fórmula de dano e mitigação, por contrato.
-- **[Economia](economia.md):** cobrança da redistribuição.
+- **[Personagem](personagem.md):** identidade, nível e o saldo de pontos da árvore (`IPontosDeNivel`, incluindo `DevolverAsync`).
+- **[Skills](skills.md) e [Combate](combate.md):** propriedades das skills, fórmula de dano e mitigação por contrato, e consulta de estado de combate (`IEstadoDeCombate`).
+- **[Economia](economia.md):** cobrança da redistribuição (`ICarteiraCoroas`).
 
 ## Expõe
 
-- **Rotas HTTP** `RotasTalentos.Arvore` (`GET`) e `RotasTalentos.Comprar` (`POST`), com `ArvoreResponse`, `ComprarNoRequest` e `CodigosErroTalentos` (shared).
-- **Regras puras** no shared, usadas pelo servidor e pela tela: `RegrasDaArvore` (avaliar compra, estado do nó, requisitos pendentes, soma dos atributos), `ValidadorDaArvore` e `ArvoreDeTeste`.
+- **Rotas HTTP** (todas em `RotasTalentos`):
+  - `GET /api/personagens/{id}/talentos` e `POST .../comprar` (`ArvoreResponse`, `ComprarNoRequest`).
+  - `POST /api/personagens/{id}/talentos/redistribuir` (`RedistribuirRequest`).
+  - `GET /api/personagens/{id}/talentos/perfis` (`ListaPerfisResponse`).
+  - `POST /api/personagens/{id}/talentos/perfis` (`SalvarPerfilRequest`).
+  - `PUT /api/personagens/{id}/talentos/perfis/{perfilId}` (`RenomearPerfilRequest`).
+  - `DELETE /api/personagens/{id}/talentos/perfis/{perfilId}`.
+  - `POST /api/personagens/{id}/talentos/perfis/{perfilId}/carregar` (`CarregarPerfilResponse`).
+- **Regras puras** no shared (`RegrasDaArvore`): avaliar compra, validação e cálculo de perfil de build, estado do nó, requisitos pendentes, soma dos atributos.
 - **`IAtributosDaArvore`** (servidor, `Contratos/Talentos/`): atributos principais da árvore de um personagem, para Combate.

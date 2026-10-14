@@ -189,4 +189,97 @@ public class RegrasDaArvoreTestes
         Assert.Empty(ValidadorDaArvore.Validar(config));
         Assert.Equal(0, RegrasDaArvore.SomarAtributos(config, Ranks(("s", 1))).Forca);
     }
+
+    [Fact]
+    public void CalcularPontosGastos_soma_corretamente_o_custo_de_cada_rank()
+    {
+        var forca1 = Forca1;
+        var ranks = Ranks((forca1, 3)); // custos: 1 + 1 + 2 = 4
+        var total = RegrasDaArvore.CalcularPontosGastos(Arvore, ranks);
+
+        Assert.Equal(4, total);
+        Assert.Equal(0, RegrasDaArvore.CalcularPontosGastos(Arvore, Ranks()));
+    }
+
+    [Fact]
+    public void ValidarECalcularPerfil_com_perfil_valido_calcula_ranks_e_custo()
+    {
+        var ranks = new[]
+        {
+            new RankDoNo { NoId = Forca1, Rank = 2 },
+            new RankDoNo { NoId = Forca2, Rank = 1 },
+        };
+
+        var resultado = RegrasDaArvore.ValidarECalcularPerfil(Arvore, ranks, 10);
+
+        Assert.Null(resultado.Erro);
+        Assert.Empty(resultado.Avisos);
+        Assert.Equal(2, resultado.RanksAplicaveis[Forca1]);
+        Assert.Equal(1, resultado.RanksAplicaveis[Forca2]);
+        Assert.Equal(3, resultado.CustoTotal); // Forca1 rank 2: 1 + 1 = 2; Forca2 rank 1: 1 -> total 3
+    }
+
+    [Fact]
+    public void ValidarECalcularPerfil_com_pontos_insuficientes_retorna_erro()
+    {
+        var ranks = new[]
+        {
+            new RankDoNo { NoId = Forca1, Rank = 3 },
+        };
+
+        var resultado = RegrasDaArvore.ValidarECalcularPerfil(Arvore, ranks, 2);
+
+        Assert.Equal(CodigosErroTalentos.PontosInsuficientes, resultado.Erro);
+        Assert.Equal(4, resultado.CustoTotal);
+    }
+
+    [Fact]
+    public void ValidarECalcularPerfil_com_no_inexistente_ignora_e_gera_aviso()
+    {
+        var ranks = new[]
+        {
+            new RankDoNo { NoId = Forca1, Rank = 1 },
+            new RankDoNo { NoId = "no_que_foi_apagado", Rank = 3 },
+        };
+
+        var resultado = RegrasDaArvore.ValidarECalcularPerfil(Arvore, ranks, 10);
+
+        Assert.Null(resultado.Erro);
+        Assert.Single(resultado.Avisos);
+        Assert.Contains("no_que_foi_apagado", resultado.Avisos[0]);
+        Assert.Equal(1, resultado.RanksAplicaveis[Forca1]);
+        Assert.False(resultado.RanksAplicaveis.ContainsKey("no_que_foi_apagado"));
+    }
+
+    [Fact]
+    public void ValidarECalcularPerfil_com_requisito_quebrado_remove_em_cascata_com_aviso()
+    {
+        // Forca2 pede Forca1 com rank mínimo 2. Sem Forca1 no perfil, Forca2 deve ser removido.
+        var ranks = new[]
+        {
+            new RankDoNo { NoId = Forca2, Rank = 1 },
+        };
+
+        var resultado = RegrasDaArvore.ValidarECalcularPerfil(Arvore, ranks, 10);
+
+        Assert.Null(resultado.Erro);
+        Assert.Single(resultado.Avisos);
+        Assert.False(resultado.RanksAplicaveis.ContainsKey(Forca2));
+        Assert.Equal(0, resultado.CustoTotal);
+    }
+
+    [Fact]
+    public void ValidarECalcularPerfil_com_rank_acima_do_maximo_ajusta_para_maximo_com_aviso()
+    {
+        var ranks = new[]
+        {
+            new RankDoNo { NoId = Forca1, Rank = 10 },
+        };
+
+        var resultado = RegrasDaArvore.ValidarECalcularPerfil(Arvore, ranks, 10);
+
+        Assert.Null(resultado.Erro);
+        Assert.Single(resultado.Avisos);
+        Assert.Equal(ArvoreDeTeste.RankMaximoPequeno, resultado.RanksAplicaveis[Forca1]);
+    }
 }
