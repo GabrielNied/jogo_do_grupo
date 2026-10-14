@@ -29,6 +29,7 @@ public sealed class ServicoDeAtaques : IHostedService, IDisposable
     private readonly ServicoDeQueda? _queda;
     private readonly IAliadosDeCombate _aliados;
     private readonly ILimiteDeVelocidadeDoMundo? _limiteDeVelocidade;
+    private readonly GerenciadorDeEfeitosDeStatus? _efeitos;
     private readonly Dictionary<long, SessaoTempoReal> _sessoes = [];
     private readonly Lock _travaSessoes = new();
 
@@ -47,9 +48,11 @@ public sealed class ServicoDeAtaques : IHostedService, IDisposable
         ControleDeAcoes? controle = null,
         ServicoDeQueda? queda = null,
         IAliadosDeCombate? aliados = null,
-        ILimiteDeVelocidadeDoMundo? limiteDeVelocidade = null
+        ILimiteDeVelocidadeDoMundo? limiteDeVelocidade = null,
+        GerenciadorDeEfeitosDeStatus? efeitos = null
     )
     {
+        _efeitos = efeitos;
         _aliados = aliados ?? new NinguemEAliado();
         _limiteDeVelocidade = limiteDeVelocidade;
         _queda = queda;
@@ -232,6 +235,14 @@ public sealed class ServicoDeAtaques : IHostedService, IDisposable
         }
 
         var dano = RegrasAtaque.Dano(acao.Pedido.Tipo, parcelas, acao.Passo);
+        if (_efeitos != null)
+        {
+            dano = Math.Max(
+                1,
+                (int)Math.Round(dano * _efeitos.MultiplicadorDanoCausado(personagemId))
+            );
+        }
+
         var direcao = (float)
             RegrasAtaque.DirecaoDoGolpe(
                 acao.Pedido.Tipo,
@@ -247,12 +258,21 @@ public sealed class ServicoDeAtaques : IHostedService, IDisposable
             var alvos = fonte.AlvosNoVolume(posicao.Area, posicao.X, posicao.Z, direcao);
             foreach (var alvo in alvos)
             {
+                var danoNoAlvo = dano;
+                if (_efeitos != null)
+                {
+                    danoNoAlvo = Math.Max(
+                        1,
+                        (int)Math.Round(danoNoAlvo * _efeitos.MultiplicadorDanoRecebido(alvo.Id))
+                    );
+                }
+
                 // O mesmo golpe não acerta o mesmo alvo duas vezes.
                 // Aliados do grupo (e o próprio atacante) não levam o golpe.
                 if (
                     SelecaoDeAlvos.PodeAcertar(personagemId, alvo, _aliados)
                     && vistos.Add(alvo.Id)
-                    && fonte.TentarAplicarDano(alvo.Id, dano, personagemId, out var r)
+                    && fonte.TentarAplicarDano(alvo.Id, danoNoAlvo, personagemId, out var r)
                 )
                 {
                     acertos.Add(

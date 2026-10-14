@@ -24,6 +24,7 @@ public sealed class ServicoDeDanoRecebido : IHostedService
     private readonly Func<long> _relogioMs;
     private readonly ServicoDeGuarda? _guarda;
     private readonly AvisosNaArea? _avisos;
+    private readonly GerenciadorDeEfeitosDeStatus? _efeitos;
     private readonly CancellationTokenSource _parada = new();
 
     public ServicoDeDanoRecebido(
@@ -34,9 +35,11 @@ public sealed class ServicoDeDanoRecebido : IHostedService
         ControleDeAcoes? acoes = null,
         Func<long>? relogioMs = null,
         ServicoDeGuarda? guarda = null,
-        IPosicoesDoMundo? posicoes = null
+        IPosicoesDoMundo? posicoes = null,
+        GerenciadorDeEfeitosDeStatus? efeitos = null
     )
     {
+        _efeitos = efeitos;
         _guarda = guarda;
         _avisos = posicoes == null ? null : new AvisosNaArea(tempoReal, posicoes);
         _queda = queda;
@@ -77,6 +80,14 @@ public sealed class ServicoDeDanoRecebido : IHostedService
             if (dano <= 0)
             {
                 return;
+            }
+
+            if (_efeitos != null)
+            {
+                dano = Math.Max(
+                    1,
+                    (int)Math.Round(dano * _efeitos.MultiplicadorDanoRecebido(golpe.PersonagemId))
+                );
             }
 
             // Nos primeiros 0,3 s da esquiva o dano direto some (o servidor confere o instante).

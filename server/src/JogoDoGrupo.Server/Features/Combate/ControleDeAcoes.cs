@@ -55,7 +55,13 @@ public sealed class ControleDeAcoes
 {
     private readonly Lock _trava = new();
     private readonly Dictionary<long, Estado> _estados = [];
+    private readonly GerenciadorDeEfeitosDeStatus? _efeitos;
     private long _proximoId;
+
+    public ControleDeAcoes(GerenciadorDeEfeitosDeStatus? efeitos = null)
+    {
+        _efeitos = efeitos;
+    }
 
     /// <summary>
     /// Pede um ataque. Sem ação em curso (ou com ela já terminada) começa na hora; durante uma
@@ -77,9 +83,9 @@ public sealed class ControleDeAcoes
                 _estados[personagemId] = estado;
             }
 
-            if (EstaOcupado(estado, agoraMs))
+            if (_efeitos?.EstaAtordoado(personagemId) == true || EstaOcupado(estado, agoraMs))
             {
-                // Em outra ação (esquiva, reação ao acerto, guarda): não ataca nem entra na fila.
+                // Em outra ação (esquiva, reação ao acerto, guarda) ou atordoado: não ataca nem entra na fila.
                 acao = null;
                 return ResultadoDoPedido.Recusado;
             }
@@ -148,7 +154,12 @@ public sealed class ControleDeAcoes
             var emAtaque = atual != null && agoraMs < atual.FimMs;
 
             // Preparo e momento de acerto são compromisso: a esquiva só vale na recuperação.
-            if ((emAtaque && agoraMs < atual!.AcertoMs) || EstaOcupado(estado, agoraMs))
+            // Atordoado impede esquiva.
+            if (
+                _efeitos?.EstaAtordoado(personagemId) == true
+                || (emAtaque && agoraMs < atual!.AcertoMs)
+                || EstaOcupado(estado, agoraMs)
+            )
             {
                 ocupacaoId = 0;
                 return false;
@@ -297,7 +308,8 @@ public sealed class ControleDeAcoes
             var atual = estado.Atual;
             var emAtaque = atual != null && agoraMs < atual.FimMs;
             if (
-                (emAtaque && agoraMs < atual!.AcertoMs)
+                _efeitos?.EstaAtordoado(personagemId) == true
+                || (emAtaque && agoraMs < atual!.AcertoMs)
                 || agoraMs < estado.OcupadoAteMs
                 || agoraMs < estado.ReagindoAteMs
             )
