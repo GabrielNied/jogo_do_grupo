@@ -108,7 +108,7 @@ namespace JogoDoGrupo.Client.Core.Jogo
             _atalhos?.Dispose();
             _atalhos = null;
             _apresentador?.Esconder();
-            _barra?.Remover();
+            _barra?.Destruir();
             _barra = null;
             if (_janelas != null)
             {
@@ -131,6 +131,8 @@ namespace JogoDoGrupo.Client.Core.Jogo
             var hud = Navegacao.Container;
             if (_acoes.MenuApertado)
             {
+                if (_menu != null && (_menu.CapturaAtiva || _menu.CancelouCapturaNesteFrame))
+                    return;
                 if (EntradaDeTextoAtiva(hud))
                 {
                     if (FocoEmCampoDeTexto.TemCampoComFoco(hud))
@@ -208,9 +210,10 @@ namespace JogoDoGrupo.Client.Core.Jogo
 
             if (_barra != null)
             {
-                _barra.Raiz.style.display = _apresentador.TelaInteiraAberta
-                    ? DisplayStyle.None
-                    : DisplayStyle.Flex;
+                _barra.Raiz.style.display =
+                    _apresentador.TelaInteiraAberta || EntradaNoJogo.EntradaPendente
+                        ? DisplayStyle.None
+                        : DisplayStyle.Flex;
                 _barra.Destacar(_janelas.ChaveAberta);
                 if (_janelas.ChaveAberta != null && !_apresentador.TelaInteiraAberta)
                 {
@@ -224,14 +227,7 @@ namespace JogoDoGrupo.Client.Core.Jogo
                 && ConexaoTempoReal.Conectado;
             Hud.DefinirVisivel(!_apresentador.TelaInteiraAberta);
 
-            var livre = !_janelas.AlgoAberto;
             DefinirInputAtivo(livre);
-            if (_barra != null)
-            {
-                _barra.Raiz.style.display = EntradaNoJogo.EntradaPendente
-                    ? UnityEngine.UIElements.DisplayStyle.None
-                    : UnityEngine.UIElements.DisplayStyle.Flex;
-            }
             if (livre)
             {
                 Cursor.lockState = CursorLockMode.Locked;

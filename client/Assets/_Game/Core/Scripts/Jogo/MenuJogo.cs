@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using JogoDoGrupo.Client.Core.Jogo.Janelas;
 using JogoDoGrupo.Client.Core.UI;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -21,6 +22,10 @@ namespace JogoDoGrupo.Client.Core.Jogo
         private Button _abaAudio;
         private Button _abaVideo;
         private Button _abaJogo;
+        private Button _abaTeclas;
+        private string _capturando;
+        private int _capturaCanceladaNoFrame = -1;
+        private Label _avisoTeclas;
         private Button _aplicarTela;
         private List<Vector2Int> _resolucoes;
         private Vector2Int _resolucaoPendente;
@@ -32,6 +37,7 @@ namespace JogoDoGrupo.Client.Core.Jogo
             Audio,
             Video,
             Jogo,
+            Teclas,
         }
 
         public MenuJogo(Action aoContinuar)
@@ -42,6 +48,10 @@ namespace JogoDoGrupo.Client.Core.Jogo
         public bool Aberto => _raiz != null;
 
         public bool OpcoesAbertas => _opcoesAbertas;
+
+        public bool CapturaAtiva => _capturando != null;
+
+        public bool CancelouCapturaNesteFrame => _capturaCanceladaNoFrame == Time.frameCount;
 
         public void Abrir()
         {
@@ -134,14 +144,18 @@ namespace JogoDoGrupo.Client.Core.Jogo
             _abaAudio = CriarAba("Áudio", AbaOpcoes.Audio);
             _abaVideo = CriarAba("Vídeo", AbaOpcoes.Video);
             _abaJogo = CriarAba("Jogo", AbaOpcoes.Jogo);
+            _abaTeclas = CriarAba("Teclas", AbaOpcoes.Teclas);
             abas.Add(_abaAudio);
             abas.Add(_abaVideo);
             abas.Add(_abaJogo);
+            abas.Add(_abaTeclas);
             painel.Add(abas);
 
-            _conteudoOpcoes = new VisualElement();
+            _conteudoOpcoes = new ScrollView();
             _conteudoOpcoes.AddToClassList("opcoes-conteudo");
             painel.Add(_conteudoOpcoes);
+            _raiz.RegisterCallback<KeyDownEvent>(AoCapturarTecla);
+            _raiz.RegisterCallback<PointerDownEvent>(AoCapturarMouse);
 
             var voltar = new Button(VoltarDoSubmenu) { text = "Voltar ao menu" };
             voltar.AddToClassList(EstiloCore.Botao);
@@ -162,9 +176,11 @@ namespace JogoDoGrupo.Client.Core.Jogo
 
         private void MostrarAba(AbaOpcoes aba)
         {
+            _capturando = null;
             _abaAudio.EnableInClassList("opcoes-aba-ativa", aba == AbaOpcoes.Audio);
             _abaVideo.EnableInClassList("opcoes-aba-ativa", aba == AbaOpcoes.Video);
             _abaJogo.EnableInClassList("opcoes-aba-ativa", aba == AbaOpcoes.Jogo);
+            _abaTeclas.EnableInClassList("opcoes-aba-ativa", aba == AbaOpcoes.Teclas);
             _conteudoOpcoes.Clear();
             switch (aba)
             {
@@ -177,6 +193,178 @@ namespace JogoDoGrupo.Client.Core.Jogo
                 case AbaOpcoes.Jogo:
                     MontarJogo();
                     break;
+                case AbaOpcoes.Teclas:
+                    MontarTeclas();
+                    break;
+            }
+        }
+
+        private void MontarTeclas()
+        {
+            var subtitulo = new Label("Controles do mundo");
+            subtitulo.AddToClassList(EstiloCore.Subtitulo);
+            _conteudoOpcoes.Add(subtitulo);
+            CriarLinhaTecla("Andar para frente", TeclasDoJogo.Frente);
+            CriarLinhaTecla("Andar para trás", TeclasDoJogo.Tras);
+            CriarLinhaTecla("Andar à esquerda", TeclasDoJogo.Esquerda);
+            CriarLinhaTecla("Andar à direita", TeclasDoJogo.Direita);
+            CriarLinhaTecla("Correr", TeclasDoJogo.Correr);
+            CriarLinhaTecla("Pular", TeclasDoJogo.Pular);
+            CriarLinhaTecla("Esquiva", TeclasDoJogo.Esquiva);
+            CriarLinhaTecla("Ataque leve / pesado", TeclasDoJogo.Ataque);
+            CriarLinhaTecla("Bloqueio", TeclasDoJogo.Defesa);
+            CriarLinhaTecla("Interagir", TeclasDoJogo.Interagir);
+            CriarLinhaTecla("Pegar item", TeclasDoJogo.Coletar);
+
+            var janelas = new Label("Janelas");
+            janelas.AddToClassList(EstiloCore.Subtitulo);
+            _conteudoOpcoes.Add(janelas);
+            foreach (var definicao in JanelasDoJogo.Registro.Definicoes)
+                CriarLinhaTecla(definicao.Titulo, TeclasDoJogo.Janela(definicao.Chave));
+
+            _avisoTeclas = new Label("Clique em Trocar e aperte uma tecla. Esc cancela.");
+            _avisoTeclas.AddToClassList(EstiloCore.Mensagem);
+            _conteudoOpcoes.Add(_avisoTeclas);
+            Button restaurar = null;
+            restaurar = new Button(() =>
+            {
+                if (restaurar.text == "Restaurar padrão")
+                {
+                    restaurar.text = "Confirmar restauração";
+                    _avisoTeclas.text = "Clique novamente para restaurar todas as teclas.";
+                    return;
+                }
+                TeclasDoJogo.RestaurarTudo();
+                OpcoesGravadas.Salvar(GrupoDeOpcoes.Teclas);
+                MontarAbaTeclasNovamente();
+            })
+            {
+                text = "Restaurar padrão",
+            };
+            restaurar.AddToClassList(EstiloCore.Botao);
+            _conteudoOpcoes.Add(restaurar);
+        }
+
+        private void CriarLinhaTecla(string nome, string id)
+        {
+            var linha = new VisualElement();
+            linha.AddToClassList("opcoes-tecla-linha");
+            var rotulo = new Label(nome);
+            rotulo.AddToClassList("opcoes-tecla-nome");
+            var atual = new Label(TeclasDoJogo.Rotulo(id));
+            atual.AddToClassList("opcoes-tecla-atual");
+            Button trocar = null;
+            trocar = new Button(() =>
+            {
+                _capturando = id;
+                _avisoTeclas.text = "Aperte uma tecla para " + nome + " · Esc cancela";
+                trocar.Focus();
+            })
+            {
+                text = "Trocar",
+            };
+            trocar.AddToClassList(EstiloCore.Botao);
+            var padrao = new Button(() =>
+            {
+                TeclasDoJogo.Restaurar(id);
+                OpcoesGravadas.Salvar(GrupoDeOpcoes.Teclas);
+                MontarAbaTeclasNovamente();
+            })
+            {
+                text = "Padrão",
+            };
+            padrao.AddToClassList(EstiloCore.Botao);
+            linha.Add(rotulo);
+            linha.Add(atual);
+            linha.Add(trocar);
+            linha.Add(padrao);
+            _conteudoOpcoes.Add(linha);
+        }
+
+        private void MontarAbaTeclasNovamente()
+        {
+            _capturando = null;
+            _conteudoOpcoes.Clear();
+            MontarTeclas();
+        }
+
+        private void AoCapturarTecla(KeyDownEvent evt)
+        {
+            if (_capturando == null)
+                return;
+            evt.StopImmediatePropagation();
+            if (evt.keyCode == KeyCode.Escape)
+            {
+                _capturaCanceladaNoFrame = Time.frameCount;
+                _capturando = null;
+                _avisoTeclas.text = "Troca cancelada.";
+                return;
+            }
+            var caminho = CaminhoDaTecla(evt.keyCode);
+            AplicarTecla(caminho);
+        }
+
+        private void AoCapturarMouse(PointerDownEvent evt)
+        {
+            if (_capturando == null)
+                return;
+            evt.StopImmediatePropagation();
+            var caminho = evt.button switch
+            {
+                0 => "<Mouse>/leftButton",
+                1 => "<Mouse>/rightButton",
+                2 => "<Mouse>/middleButton",
+                _ => null,
+            };
+            AplicarTecla(caminho);
+        }
+
+        private void AplicarTecla(string caminho)
+        {
+            if (TeclasDoJogo.TentarTrocar(_capturando, caminho, out var aviso))
+            {
+                OpcoesGravadas.Salvar(GrupoDeOpcoes.Teclas);
+                MontarAbaTeclasNovamente();
+                _avisoTeclas.text = aviso ?? "Tecla atualizada.";
+            }
+            else
+                _avisoTeclas.text = aviso;
+        }
+
+        private static string CaminhoDaTecla(KeyCode tecla)
+        {
+            if (tecla >= KeyCode.A && tecla <= KeyCode.Z)
+                return "<Keyboard>/" + tecla.ToString().ToLowerInvariant();
+            if (tecla >= KeyCode.Alpha0 && tecla <= KeyCode.Alpha9)
+                return "<Keyboard>/" + (int)(tecla - KeyCode.Alpha0);
+            switch (tecla)
+            {
+                case KeyCode.Space:
+                    return "<Keyboard>/space";
+                case KeyCode.LeftShift:
+                    return "<Keyboard>/leftShift";
+                case KeyCode.RightShift:
+                    return "<Keyboard>/rightShift";
+                case KeyCode.LeftAlt:
+                    return "<Keyboard>/leftAlt";
+                case KeyCode.RightAlt:
+                    return "<Keyboard>/rightAlt";
+                case KeyCode.LeftControl:
+                    return "<Keyboard>/leftCtrl";
+                case KeyCode.RightControl:
+                    return "<Keyboard>/rightCtrl";
+                case KeyCode.UpArrow:
+                    return "<Keyboard>/upArrow";
+                case KeyCode.DownArrow:
+                    return "<Keyboard>/downArrow";
+                case KeyCode.LeftArrow:
+                    return "<Keyboard>/leftArrow";
+                case KeyCode.RightArrow:
+                    return "<Keyboard>/rightArrow";
+                case KeyCode.Tab:
+                    return "<Keyboard>/tab";
+                default:
+                    return null;
             }
         }
 
@@ -405,6 +593,7 @@ namespace JogoDoGrupo.Client.Core.Jogo
 
         public void Fechar()
         {
+            _capturando = null;
             _raiz?.RemoveFromHierarchy();
             _raiz = null;
             _opcoesAbertas = false;

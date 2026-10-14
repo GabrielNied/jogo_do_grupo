@@ -13,7 +13,7 @@ Telas e menus do client que não pertencem a uma funcionalidade do jogo. Por enq
 - O menu abre com **Esc**, tem **continuar**, **opções**, **voltar à seleção**, **sair da conta** e **sair do jogo**. "Sair da conta" já existe (apaga o token gravado; veja [personagem.md](personagem.md)). "Voltar à seleção" volta à escolha de personagem sem sair da conta.
 - Opções iniciais (da issue #89, no client em 2026-10-11): volume (geral, música, efeitos), qualidade gráfica, resolução e tela cheia, sensibilidade da câmera, idioma. Gravadas neste computador. O volume geral, a qualidade, a tela e a resolução valem na hora; música e efeitos ficam gravados para o áudio (#123). Resolução 0 significa a do monitor. Idioma: só português. O jogo não pausa.
 - **Janelas do jogo por atalho** (#134, decidido por Gabriel em 2026-10-11; provisório, o grupo pode ajustar): **C** personagem, **I** inventário, **L** missões, **M** mapa. **Uma janela por vez**, e com janela aberta o personagem fica **parado**. Regras em [Janelas do jogo](#janelas-do-jogo).
-- Remapear teclas fica fora (tarefa própria, #90). Os atalhos padrão e as regras de troca estão em [Teclas e atalhos](#teclas-e-atalhos) (em proposta).
+- As teclas atuais podem ser ajustadas em **Opções > Teclas**; os padrões e limites estão em [Teclas e atalhos](#teclas-e-atalhos).
 - Na abertura, o client carrega o tema e verifica a disponibilidade e a versão da API em `/saude` antes de mostrar o login; falha mostra "Servidor fora do ar" e **Tentar de novo**. Ao escolher personagem, a tela Lumora mostra **Cenário**, **Conexão** e **Posição** conforme o trabalho real, sem porcentagem simulada. O mundo só aparece depois de aplicar a primeira posição do servidor; até lá, HUD e input ficam bloqueados. A espera por conexão e posição expira em 20 s. A falha oferece **Tentar de novo** e **Voltar à seleção**, desmontando a tentativa parcial antes de outra entrada.
 - No mundo, a HUD mostra latência em milissegundos quando a conexão está autenticada. Na queda, uma faixa informa a tentativa de reconexão e o movimento fica bloqueado; após o limite de três tentativas, um diálogo **Conexão perdida** oferece **Tentar de novo** e **Voltar à seleção**. Acesso negado recebe mensagem própria. Na primeira entrada, falha de conexão encerra a espera imediatamente; o erro fica na tela de carregamento. Os avisos são removidos ao sair do mundo.
 
@@ -88,8 +88,8 @@ Decidido por Gabriel em 2026-10-11 (#134); é **provisório** e o grupo pode aju
 - Toda janela tem a mesma moldura: título, botão de fechar (X) no canto e, no pé, a dica de como fechar (ex.: "I ou Esc: fechar").
 - **Barra de atalhos:** no canto inferior direito, mostra a tecla de cada janela e a do menu, com a janela aberta em destaque. Só mostra, não recebe clique. Quando a moldura do HUD existir (#122), a barra passa a ser uma região dela.
 - Janela com defeito mostra "Não foi possível abrir esta janela." e continua fechável; o jogo não trava.
-- **Teclas que uma janela não pode usar:** as de outra ação da tabela de [Teclas e atalhos](#teclas-e-atalhos) (W, A, S, D, Q, E, R) e a de outra janela. O client recusa o registro na inicialização.
-- Trocar as teclas das janelas é a tela de **Opções > Teclas** (#124); até lá valem as da tabela.
+  - **Teclas que uma janela não pode usar por padrão:** as de outra ação da tabela de [Teclas e atalhos](#teclas-e-atalhos) (W, A, S, D, Q, E, F, R) e a de outra janela. O client recusa o registro na inicialização.
+  - Trocar as teclas das janelas é a tela de **Opções > Teclas** (#124); a tabela mostra os padrões.
 - Servidor autoritativo não se aplica: abrir janela não afeta regra de jogo. O que a janela mostra vem do servidor (inventário, personagem).
 
 **Quem monta o quê:** o Core cuida do atalho, da moldura, do Esc, do cursor e da barra. Cada funcionalidade registra a sua janela e monta só o conteúdo, sem referenciar outra funcionalidade (API em [arquitetura.md](../arquitetura.md#entrada-no-mundo)).
@@ -108,7 +108,7 @@ Decidido por Gabriel em 2026-10-11 (#134); é **provisório** e o grupo pode aju
 | Idioma | Português | Português |
 
 - Gravadas neste computador (arquivo local do client, não na conta); valor inválido ou ausente volta ao padrão. Carregam antes da abertura/login. Áudio, qualidade gráfica e sensibilidade mudam sem reconstruir o painel; resolução e tela cheia só mudam após **Aplicar vídeo**. A lista de resoluções mostra cada tamanho uma vez, sem repetir taxas de atualização.
-- Opções usa as abas **Áudio**, **Vídeo** e **Jogo**. Esc em Opções volta ao menu principal. O idioma aparece como Português, único disponível nesta versão.
+- Opções usa as abas **Áudio**, **Vídeo**, **Jogo** e **Teclas**. Esc em Opções volta ao menu principal, exceto durante a captura de uma tecla, quando cancela a troca. O idioma aparece como Português, único disponível nesta versão.
 - Servidor autoritativo não se aplica: nada aqui afeta regra de jogo.
 - **Testes esperados** (client, EditMode): salvar e ler as opções; valor fora da faixa é limitado; arquivo corrompido volta aos padrões.
 
@@ -116,7 +116,7 @@ Decidido por Gabriel em 2026-10-11 (#134); é **provisório** e o grupo pode aju
 
 **Base:** New World (combate de ação em 3ª pessoa no PC, veja [referências](../referencias.md)) e MMOs de PC em geral. **Igual:** WASD para andar, mouse para câmera e ataque, menu no Esc, tecla fixa por ação com atalhos de painel em letras. **Igual ao New World nas teclas de luta** (decidido em 2026-10-12): leve no clique esquerdo, pesado ao segurar o esquerdo, guarda no direito, esquiva no Alt esquerdo. O Espaço continua o pulo. Só teclado e mouse; gamepad fica fora.
 
-A tela fica em **Opções > Teclas**, com uma linha por ação (nome, tecla atual, botão **Trocar**) e um botão **Restaurar padrão**. Os nomes das ações seguem [combate.md](combate.md) (esquiva, ataque leve, ataque pesado, bloqueio) e [personagem.md](personagem.md) (andar, correr); o pulo vem do controle do Core (`AcoesJogador`).
+  A tela fica em **Opções > Teclas**, com uma linha por ação (nome, tecla atual, botões **Trocar** e **Padrão**) e um botão **Restaurar padrão** com confirmação. O ataque leve e o pesado compartilham o mesmo botão: soltar faz o leve, segurar por 0,3 s faz o pesado. A coleta de itens no chão também aparece como ação própria.
 
 | Ação | Tecla padrão (proposta) | Troca? |
 |---|---|---|
@@ -125,12 +125,12 @@ A tela fica em **Opções > Teclas**, com uma linha por ação (nome, tecla atua
 | Câmera | mover o mouse | não (sensibilidade fica em Opções) |
 | Pular (já existe no client) | Espaço | sim |
 | Esquiva | ~~Espaço~~ Alt esquerdo (substituído e decidido em 2026-10-11) | sim |
-| Ataque leve | clique no botão esquerdo do mouse | sim |
-| Ataque pesado | segurar o botão esquerdo por 0,3 s | sim |
+  | Ataque leve / pesado | clicar / segurar o botão esquerdo do mouse por 0,3 s | sim, juntos |
 | Bloqueio | botão direito do mouse | sim |
 | Skills 1, 2 e 3 (quando a S10 entrar) | 1, 2, 3 | sim |
 | Trocar de arma (quando a S10 entrar) | R | sim |
 | Interagir | E | sim |
+  | Pegar item no chão | F | sim |
 | Personagem | C | sim |
 | Inventário | I | sim |
 | Missões | L | sim |
@@ -138,13 +138,13 @@ A tela fica em **Opções > Teclas**, com uma linha por ação (nome, tecla atua
 | Chat (abrir e enviar) | Enter | não por enquanto (fixa no código do chat; Esc fecha a caixa sem enviar) |
 | Menu | Esc | **não** (reservada) |
 
-**Regras de troca (proposta):**
+  **Regras de troca implementadas:**
 
 - Cada ação tem **uma** tecla ou botão. Clicar em **Trocar** e apertar a nova tecla grava; Esc durante a captura cancela e mantém a tecla antiga.
-- **Tecla já usada por outra ação:** as duas ações **trocam de tecla** (a outra fica com a tecla antiga desta) e a tela avisa "X agora usa Y". Nenhuma ação fica sem tecla.
+  - **Tecla já usada por outra ação:** as duas ações **trocam de tecla** (a outra fica com a tecla antiga desta) e a tela avisa "X agora usa Y". Se a troca daria um botão de mouse a uma ação que só aceita teclado, é recusada. Nenhuma ação fica sem tecla.
 - **Reservadas, não podem ser usadas nem trocadas:** Esc (menu e cancelar), Alt+F4 e teclas do sistema (Windows, Cmd). Tentar usar uma delas mostra aviso e não muda nada.
 - Botões do mouse só valem para ações de combate (ataque leve, ataque pesado, bloqueio, skills); andar, interagir, mapa e inventário aceitam só teclado. A câmera segue o mouse e não é uma ação trocável.
-- **Voltar ao padrão:** por ação (botão ao lado da linha) e para todas (botão **Restaurar padrão**, com confirmação).
+  - **Voltar ao padrão:** por ação (botão ao lado da linha, trocando com outra se necessário) e para todas (botão **Restaurar padrão**, com confirmação).
 - Mudanças aplicam na hora, sem botão "Aplicar", e valem também com o menu aberto novamente.
 - Com o menu ou a captura de tecla aberta, as ações do jogo não disparam (mesma regra do menu).
 

@@ -114,9 +114,9 @@ namespace JogoDoGrupo.Client.Core.Tests
         {
             var movimento = new MovimentoTerceiraPessoa { Aceleracao = 10f };
 
-            Assert.AreEqual(1f, movimento.Acelerar(0f, 5f, 0.1f), Tolerancia);
-            Assert.AreEqual(5f, movimento.Acelerar(4.5f, 5f, 0.1f), Tolerancia);
-            Assert.AreEqual(4f, movimento.Acelerar(5f, 0f, 0.1f), Tolerancia);
+            Assert.AreEqual(1f, movimento.Acelerar(0f, 5f, 0.1f, false), Tolerancia);
+            Assert.AreEqual(5f, movimento.Acelerar(4.5f, 5f, 0.1f, false), Tolerancia);
+            Assert.AreEqual(4f, movimento.Acelerar(5f, 0f, 0.1f, false), Tolerancia);
         }
 
         [Test]
@@ -124,7 +124,7 @@ namespace JogoDoGrupo.Client.Core.Tests
         {
             var movimento = new MovimentoTerceiraPessoa();
 
-            Assert.AreEqual(2f, movimento.Acelerar(2f, 5f, -1f), Tolerancia);
+            Assert.AreEqual(2f, movimento.Acelerar(2f, 5f, -1f, false), Tolerancia);
         }
 
         [Test]
@@ -171,7 +171,8 @@ namespace JogoDoGrupo.Client.Core.Tests
             var velocidade = movimento.Pular(
                 MovimentoTerceiraPessoa.VelocidadeGrudarNoChao,
                 true,
-                true
+                true,
+                0.1f
             );
 
             Assert.Greater(velocidade, 0f);
@@ -183,7 +184,7 @@ namespace JogoDoGrupo.Client.Core.Tests
         {
             var movimento = new MovimentoTerceiraPessoa();
 
-            Assert.AreEqual(-2f, movimento.Pular(-2f, true, false), Tolerancia);
+            Assert.AreEqual(-2f, movimento.Pular(-2f, true, false, 0.1f), Tolerancia);
         }
 
         [Test]
@@ -191,17 +192,17 @@ namespace JogoDoGrupo.Client.Core.Tests
         {
             var movimento = new MovimentoTerceiraPessoa();
 
-            Assert.AreEqual(3f, movimento.Pular(3f, false, true), Tolerancia);
-            Assert.AreEqual(-4f, movimento.Pular(-4f, false, true), Tolerancia);
+            Assert.AreEqual(3f, movimento.Pular(3f, false, true, 0.1f), Tolerancia);
+            Assert.AreEqual(-4f, movimento.Pular(-4f, false, true, 0.1f), Tolerancia);
         }
 
         [Test]
         public void Pular_JaSubindo_NaoSomaOutraVelocidade()
         {
             var movimento = new MovimentoTerceiraPessoa();
-            var subindo = movimento.Pular(-2f, true, true);
+            var subindo = movimento.Pular(-2f, true, true, 0.1f);
 
-            Assert.AreEqual(subindo, movimento.Pular(subindo, true, true), Tolerancia);
+            Assert.AreEqual(subindo, movimento.Pular(subindo, true, true, 0.1f), Tolerancia);
         }
 
         [Test]
@@ -228,7 +229,8 @@ namespace JogoDoGrupo.Client.Core.Tests
             var velocidade = movimento.Pular(
                 MovimentoTerceiraPessoa.VelocidadeGrudarNoChao,
                 true,
-                true
+                true,
+                dt
             );
             var altura = 0f;
             var maxima = 0f;
@@ -304,7 +306,7 @@ namespace JogoDoGrupo.Client.Core.Tests
         {
             var movimento = new MovimentoTerceiraPessoa { Voando = true };
 
-            Assert.AreEqual(0f, movimento.Pular(0f, true, true), Tolerancia);
+            Assert.AreEqual(0f, movimento.Pular(0f, true, true, 0.1f), Tolerancia);
         }
 
         [Test]
@@ -315,7 +317,7 @@ namespace JogoDoGrupo.Client.Core.Tests
 
             Assert.AreEqual(
                 movimento.VelocidadeDoPulo,
-                movimento.Pular(MovimentoTerceiraPessoa.VelocidadeGrudarNoChao, true, true),
+                movimento.Pular(MovimentoTerceiraPessoa.VelocidadeGrudarNoChao, true, true, 0.1f),
                 Tolerancia
             );
             Assert.AreEqual(-2f, movimento.VelocidadeVertical(0f, false, 0.1f, 1f), Tolerancia);

@@ -8,6 +8,7 @@ namespace JogoDoGrupo.Client.Core.Jogo
         Qualidade,
         Tela,
         Jogo,
+        Teclas,
     }
 
     [System.Flags]

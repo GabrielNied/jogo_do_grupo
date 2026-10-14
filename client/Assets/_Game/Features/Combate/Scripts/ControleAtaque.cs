@@ -72,7 +72,12 @@ namespace JogoDoGrupo.Client.Features.Combate
 
             // Botão esquerdo, como em docs/features/interface.md (Teclas e atalhos): o clique é
             // o leve e segurar por 0,3 s é o pesado. O direito é a guarda (ControleDefesa).
-            _leve = new InputAction("AtaqueLeve", InputActionType.Button, "<Mouse>/leftButton");
+            _leve = new InputAction(
+                "AtaqueLeve",
+                InputActionType.Button,
+                TeclasDoJogo.Caminho(TeclasDoJogo.Ataque)
+            );
+            TeclasDoJogo.Mudou += AtualizarTecla;
             if (isActiveAndEnabled)
             {
                 _leve.Enable();
@@ -108,6 +113,9 @@ namespace JogoDoGrupo.Client.Features.Combate
         {
             _leve?.Enable();
         }
+
+        private void AtualizarTecla() =>
+            _leve?.ApplyBindingOverride(0, TeclasDoJogo.Caminho(TeclasDoJogo.Ataque));
 
         private void OnDisable()
         {
@@ -151,6 +159,7 @@ namespace JogoDoGrupo.Client.Features.Combate
 
         private void OnDestroy()
         {
+            TeclasDoJogo.Mudou -= AtualizarTecla;
             foreach (var assinatura in _assinaturas)
             {
                 assinatura.Dispose();

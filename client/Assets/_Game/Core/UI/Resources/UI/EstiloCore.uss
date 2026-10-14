@@ -91,6 +91,33 @@
 
 .opcoes-conteudo {
     min-width: 0;
+    min-height: 0;
+    flex-shrink: 1;
+}
+
+.opcoes-tecla-linha {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    min-height: var(--lumora-dimensoes-alvo-minimo);
+    margin-bottom: var(--lumora-espacamento-pequeno);
+    border-bottom-width: var(--lumora-bordas-fina);
+    border-bottom-color: var(--lumora-cores-borda-discreta);
+}
+
+.opcoes-tecla-nome {
+    flex-grow: 1;
+    min-width: var(--lumora-dimensoes-retrato);
+    color: var(--lumora-cores-marfim);
+}
+
+.opcoes-tecla-atual {
+    min-width: var(--lumora-dimensoes-retrato);
+    color: var(--lumora-cores-ouro);
+}
+
+.opcoes-tecla-linha .botao {
+    margin: var(--lumora-espacamento-minimo);
 }
 
 .opcoes-linha {
@@ -162,6 +189,11 @@
 }
 
 .lumora-estreito .opcoes-linha {
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.lumora-estreito .opcoes-tecla-linha {
     flex-direction: column;
     align-items: stretch;
 }

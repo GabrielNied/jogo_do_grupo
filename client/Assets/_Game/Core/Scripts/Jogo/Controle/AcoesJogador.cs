@@ -57,6 +57,20 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
                 .With("Negative", "<Keyboard>/leftCtrl");
 
             _menu = new InputAction("Menu", InputActionType.Button, "<Keyboard>/escape");
+            _menu.AddBinding("<Gamepad>/start");
+            TeclasDoJogo.Mudou += AtualizarTeclas;
+            AtualizarTeclas();
+        }
+
+        private void AtualizarTeclas()
+        {
+            _mover.ApplyBindingOverride(1, TeclasDoJogo.Caminho(TeclasDoJogo.Frente));
+            _mover.ApplyBindingOverride(2, TeclasDoJogo.Caminho(TeclasDoJogo.Tras));
+            _mover.ApplyBindingOverride(3, TeclasDoJogo.Caminho(TeclasDoJogo.Esquerda));
+            _mover.ApplyBindingOverride(4, TeclasDoJogo.Caminho(TeclasDoJogo.Direita));
+            _correr.ApplyBindingOverride(0, TeclasDoJogo.Caminho(TeclasDoJogo.Correr));
+            _pular.ApplyBindingOverride(0, TeclasDoJogo.Caminho(TeclasDoJogo.Pular));
+            _subir.ApplyBindingOverride(1, TeclasDoJogo.Caminho(TeclasDoJogo.Pular));
         }
 
         /// <summary>Movimento (x = lado, y = frente), de -1 a 1.</summary>
@@ -64,6 +78,9 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
 
         /// <summary>Quanto o mouse andou neste frame, em pixels.</summary>
         public Vector2 OlharMouse => _olharMouse.ReadValue<Vector2>();
+
+        /// <summary>Analógico direito; zero enquanto gamepad estiver fora do escopo (#508).</summary>
+        public Vector2 OlharControle => Vector2.zero;
 
         /// <summary>Se o botão de correr está pressionado.</summary>
         public bool Correr => _correr.IsPressed();
@@ -99,6 +116,7 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
 
         public void Dispose()
         {
+            TeclasDoJogo.Mudou -= AtualizarTeclas;
             _mover.Dispose();
             _olharMouse.Dispose();
             _correr.Dispose();

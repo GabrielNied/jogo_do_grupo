@@ -50,7 +50,12 @@ namespace JogoDoGrupo.Client.Features.Combate
             _prontidao = prontidao;
             _painel = painel;
 
-            _guarda = new InputAction("Guarda", InputActionType.Button, BotaoPadrao);
+            _guarda = new InputAction(
+                "Guarda",
+                InputActionType.Button,
+                TeclasDoJogo.Caminho(TeclasDoJogo.Defesa)
+            );
+            TeclasDoJogo.Mudou += AtualizarTecla;
             if (isActiveAndEnabled)
             {
                 _guarda.Enable();
@@ -81,6 +86,9 @@ namespace JogoDoGrupo.Client.Features.Combate
 
         private void OnEnable() => _guarda?.Enable();
 
+        private void AtualizarTecla() =>
+            _guarda?.ApplyBindingOverride(0, TeclasDoJogo.Caminho(TeclasDoJogo.Defesa));
+
         private void OnDisable()
         {
             _guarda?.Disable();
@@ -89,6 +97,7 @@ namespace JogoDoGrupo.Client.Features.Combate
 
         private void OnDestroy()
         {
+            TeclasDoJogo.Mudou -= AtualizarTecla;
             foreach (var assinatura in _assinaturas)
             {
                 assinatura.Dispose();

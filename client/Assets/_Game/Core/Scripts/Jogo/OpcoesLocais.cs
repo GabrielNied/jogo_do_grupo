@@ -138,7 +138,8 @@ namespace JogoDoGrupo.Client.Core.Jogo
             + "\nlargura="
             + Largura
             + "\naltura="
-            + Altura;
+            + Altura
+            + TeclasDoJogo.Gravar();
 
         /// <summary>Lê o texto gravado. Vazio, nulo ou ilegível volta ao padrão.</summary>
         public static OpcoesLocais Ler(string texto)
@@ -146,6 +147,7 @@ namespace JogoDoGrupo.Client.Core.Jogo
             var opcoes = Padrao();
             if (string.IsNullOrWhiteSpace(texto) || !texto.Contains("geral="))
             {
+                TeclasDoJogo.Carregar(null);
                 return opcoes;
             }
 
@@ -187,6 +189,7 @@ namespace JogoDoGrupo.Client.Core.Jogo
             }
 
             opcoes.DefinirResolucao(opcoes.Largura, opcoes.Altura);
+            TeclasDoJogo.Carregar(texto);
             return opcoes;
         }
 
