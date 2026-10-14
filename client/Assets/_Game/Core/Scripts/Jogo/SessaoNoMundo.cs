@@ -142,7 +142,14 @@ namespace JogoDoGrupo.Client.Core.Jogo
                     return;
                 }
 
-                _janelas.ApertarEsc();
+                if (_menu != null && _menu.OpcoesAbertas)
+                {
+                    _menu.VoltarDoSubmenu();
+                }
+                else
+                {
+                    _janelas.ApertarEsc();
+                }
                 return;
             }
 
