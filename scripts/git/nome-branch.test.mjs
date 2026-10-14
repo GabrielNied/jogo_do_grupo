@@ -25,3 +25,9 @@ test("título solto usa a label de escopo e nunca termina em hífen", () => {
   assert.match(nome, /^feature\/itens\//);
   assert.match(nome, padraoDeBranch);
 });
+
+test("conserto da main quebrada sai como fix", () => {
+  const nome = sugerirNomeBranch({ number: 742, title: "[Core] Build falhou na main (1410cbe)", labels: [{ name: "core" }, { name: "prio:1-erros" }] });
+  assert.match(nome, /^fix\/core\//);
+  assert.match(nome, padraoDeBranch);
+});

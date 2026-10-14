@@ -31,6 +31,8 @@ export function sugerirNomeBranch(issue) {
     }
   }
 
+  // Conserto (main quebrada, bug) é fix, não feature: evita renomear a branch depois do puxar.
+  const tipo = labels.includes("prio:1-erros") || labels.includes("bug") ? "fix" : "feature";
   const slug = gerarSlug(issue.title) || `task-${issue.number}`;
-  return `feature/${escopoEncontrado}/${slug}`;
+  return `${tipo}/${escopoEncontrado}/${slug}`;
 }
