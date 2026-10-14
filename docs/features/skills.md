@@ -21,6 +21,13 @@ Skills que vêm dos itens (sorteadas) e da raça, com custo e recarga.
 - **Poucas skills ativas, com recarga que pesa: sem spam** (ritmo do New World, preferência do grupo em 2026-10-10)
 - Skills de itens incluem buffs de grupo que complementam o time (papéis tank, healer e DPS; veja [combate.md](combate.md))
 - ~~Cada classe tem suas magias, com custo e recarga~~ substituído em 2026-10-10: não há classes (D2), as skills vêm dos itens (D3)
+- **Skills nas armas (#167), decidido em 2026-10-14** (consolida Gabriel 2026-10-12 e plano da issue; valores iniciais em constantes, fácil de mudar):
+  - **SKILL-001:** as **ativas** da barra vêm da **arma equipada no conjunto ativo** (`Arma1`/`Arma2` quando existir troca — [#580](https://github.com/GabrielNied/jogo_do_grupo/issues/580)). Desequipar ou trocar de conjunto altera a barra na hora. A **recarga fica na arma** (no exemplar), não no personagem.
+  - **SKILL-002:** **3 skills ativas** por arma, teclas **1, 2 e 3** ([interface](interface.md#teclas-e-atalhos)). Duas armas com recargas separadas ficam para a #580; a fatia joga com uma espada.
+  - **SKILL-003:** só a **arma** coloca ativas na barra. **Armaduras e acessórios** não somam ativa extra: modificam as skills da arma com **poderes lendários** e **bônus de set** ([#629](https://github.com/GabrielNied/jogo_do_grupo/issues/629), [#630](https://github.com/GabrielNied/jogo_do_grupo/issues/630)), fora do escopo da #167.
+  - **SKILL-004:** as **3 opções** vêm do **modelo-base** da arma: o servidor sorteia **sem repetição** dentro do pool daquele modelo, grava no exemplar (`EquipamentoJson`) e **não muda na fusão** (DEC-003). Catálogo inicial pequeno por **tipo de arma** (proposta de teste: ~5 skills por tipo, constantes em `ConfigSkills`).
+  - **SKILL-005:** uso **autoritativo** no servidor: cada skill declara custo em **mana** ou **stamina** ([fatia-jogavel](fatia-jogavel.md#1-atributos-e-recursos)); recarga por slot da arma. Recusa com `SkillRecusada` (faixa 4000–4999) se faltar recurso, estiver em recarga, não houver arma ou o personagem estiver caído.
+  - **SKILL-006:** cada skill declara **`PropriedadesDaSkill`** (categoria de dano, tipo de efeito e flags de crítico, penetração e velocidade) para a pipeline de [combate](combate.md#atributos-secundários-e-pipeline-624), poderes (#629) e [talentos](talentos.md).
 
 ## Proposta do board: preparação, raciais e catálogo (2026-10-11)
 
@@ -66,19 +73,20 @@ Skills de utilidade que continuam no catálogo anterior (não fazem parte das 25
 ### Perguntas que o board abre
 
 - [ ] Hino do Recomeço (levantar caído por skill) e Vínculo Vital: confirmar com [personagem.md](personagem.md#morte-e-caído-issue-97) que o levantar manual continua valendo para todos.
-- [x] ~~Conflito livro x docs: o board propõe todas as peças com skill~~ Resolvido em 2026-10-12: apenas as armas trazem as skills ativas base; armaduras e acessórios trazem poderes lendários e bônus de set ([itens](itens.md#poderes-e-sets)).
-- [x] ~~Conflito livro x docs: o board propõe uma skill por item fixa até a fusão~~ Resolvido em 2026-10-12: a fusão preserva as skills do principal (DEC-003); a skill pertence ao item equipado e fica indisponível ao desequipar.
-- [x] ~~Conflito livro x docs: poucas skills ativas x 24 posições na barra~~ Resolvido em 2026-10-12: barra com 3 skills ativas por arma (estilo New World, #167, #580).
+- [x] ~~Conflito livro x docs: todas as peças com skill~~ Decidido em 2026-10-12/2026-10-14: **armas** trazem as ativas da barra; **outras peças** modificam via poderes/sets, não ativas extras (SKILL-003). Preparação com orçamento (#339) continua proposta do board.
+- [x] ~~Conflito livro x docs: skill fixa no item~~ Decidido: sorteio no exemplar da arma, preservado na fusão; some ao desequipar (SKILL-001, SKILL-004).
+- [ ] Conflito livro x docs: "poucas skills ativas, sem spam" (definido) x **24 posições na barra** (3 abas de 8). O orçamento de 12 pontos é o que limita; confirmar com o grupo (**#339**, proposta do board).
 
 ## Em aberto
 
-- [x] ~~A skill pertence ao item equipado ou o jogador aprende a skill?~~ Decidido: pertence ao item equipado. Desequipar ou trocar remove as skills da barra ativa.
-- [x] ~~Quantas skills ativas ao mesmo tempo?~~ Decidido: 3 skills ativas da arma ativa (teclas 1, 2, 3 / Q, E, R). Troca de armas (#580) dá acesso a outras 3 na segunda arma.
-- [x] ~~Quantas skills por tipo de item?~~ Decidido em 2026-10-12: armas trazem as 3 skills-base. Armaduras e acessórios trazem modificadores (poderes lendários e sets), não skills ativas.
-- [x] ~~Como funciona o sorteio?~~ Decidido: o modelo-base da arma declara as opções compatíveis; ao gerar o exemplar da arma, o servidor sorteia as 3 skills e grava no item.
-- [x] ~~A fusão mistura as skills dos itens?~~ Decidido em 2026-10-12: não. A fusão preserva as skills do principal (DEC-003).
-- [x] ~~Quantas magias por classe?~~ Não há classes (D2).
-- [x] ~~Recurso usado?~~ Mana (base 100, +2 por Espírito; [fatia](fatia-jogavel.md#1-atributos-e-recursos)). Custo físico pode consumir stamina.
+- [x] ~~A skill pertence ao item equipado ou o jogador aprende?~~ Decidido em 2026-10-14: pertence à **arma equipada**; não há aprendizado permanente (SKILL-001).
+- [x] ~~Quantas skills ativas ao mesmo tempo?~~ Decidido em 2026-10-14: **3 por arma** na barra; **duas armas** com recargas separadas na [#580](https://github.com/GabrielNied/jogo_do_grupo/issues/580) (SKILL-002).
+- [x] ~~Modelo da skill no item: sorteada e fixa, peça por peça ou encaixável?~~ Respondido em 2026-10-10: a skill do item é a magia que o jogador usa, e pode ser ativa, passiva ou buff (veja "Definido")
+- [x] ~~Quantas skills de cada tipo e quais peças?~~ Decidido em 2026-10-12/2026-10-14: quantidade e pool vêm do **modelo-base**; **3 ativas** sorteadas na **arma**; armaduras/acessórios usam **poderes**, não ativas na barra ([#629](https://github.com/GabrielNied/jogo_do_grupo/issues/629)). Números finais por modelo-base e catálogo amplo ficam na [#340](https://github.com/GabrielNied/jogo_do_grupo/issues/340).
+- [x] ~~Como funciona o sorteio~~ Decidido em 2026-10-14: pool do **modelo-base** da arma (tipo de arma na fatia); **sem repetição** entre as 3; ~~por raridade~~ saiu em 2026-10-12. Pools por **região e família** ficam na #340.
+- [x] ~~A fusão mistura as skills dos itens?~~ Decidido em 2026-10-12: não. A fusão muda um atributo e preserva as skills do item principal ([itens](itens.md#fusão)).
+- [x] ~~Quantas magias por classe?~~ não há classes (D2)
+- [x] ~~Recurso usado (mana, energia, outro)?~~ Decidido em 2026-10-14: **mana** ou **stamina** por skill, conforme a skill (SKILL-005); alinhado à fatia (mana, não "energia" genérica).
 - [ ] Pools de skills de armas de regiões avançadas além do Vale.
 
 ## Regras

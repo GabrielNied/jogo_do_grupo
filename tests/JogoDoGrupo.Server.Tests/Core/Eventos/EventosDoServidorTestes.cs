@@ -220,6 +220,29 @@ public class EventosDoServidorTestes
     }
 
     [Fact]
+    public async Task Evento_publicado_por_tarefa_criada_dentro_de_um_manipulador_e_entregue()
+    {
+        var eventos = new EventosDoServidor();
+        var saiu = new TaskCompletionSource<int>(
+            TaskCreationOptions.RunContinuationsAsynchronously
+        );
+        Task? tarefa = null;
+        eventos.Assinar<Chegou>(_ =>
+            tarefa = Task.Run(async () =>
+            {
+                await Task.Delay(50);
+                eventos.Publicar(new Saiu { Numero = 3 });
+            })
+        );
+        eventos.Assinar<Saiu>(e => saiu.TrySetResult(e.Numero));
+
+        eventos.Publicar(new Chegou());
+        await tarefa!;
+
+        Assert.Equal(3, await saiu.Task.WaitAsync(TimeSpan.FromSeconds(5)));
+    }
+
+    [Fact]
     public async Task Assinar_e_publicar_ao_mesmo_tempo_nao_quebra()
     {
         var eventos = new EventosDoServidor();

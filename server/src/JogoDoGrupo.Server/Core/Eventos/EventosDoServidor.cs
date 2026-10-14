@@ -10,7 +10,13 @@ public sealed class EventosDoServidor
 {
     private readonly Lock _trava = new();
     private readonly Dictionary<Type, List<Delegate>> _assinantes = [];
-    private readonly AsyncLocal<Queue<Action>?> _filaAtual = new();
+
+    /// <summary>
+    /// Fila da publicação em andamento nesta thread. É <see cref="ThreadLocal{T}"/> e não
+    /// <c>AsyncLocal</c> de propósito: uma Task ou timer criado dentro de um manipulador
+    /// herdaria a fila já esvaziada, e o evento que publicasse depois nunca seria entregue.
+    /// </summary>
+    private readonly ThreadLocal<Queue<Action>?> _filaAtual = new();
 
     /// <summary>
     /// Inscreve um manipulador para o tipo exato <typeparamref name="T"/> (tipos derivados não

@@ -46,5 +46,10 @@ namespace JogoDoGrupo.Shared.Features.Combate
 
         /// <summary>Em <see cref="AcaoRecusada.Codigo"/>: pediu para voltar antes de 5 s caído.</summary>
         public const string AindaNaoPodeVoltar = "AindaNaoPodeVoltar";
+
+        /// <summary>
+        /// Tempo real: o personagem está atordoado e não pode realizar ações.
+        /// </summary>
+        public const string VoceEstaAtordoado = "VoceEstaAtordoado";
     }
 }

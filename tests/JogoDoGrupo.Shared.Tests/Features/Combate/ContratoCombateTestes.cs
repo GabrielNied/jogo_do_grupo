@@ -49,6 +49,16 @@ public class ContratoCombateTestes
         Assert.Equal("StaminaInsuficiente", CodigosErroCombate.StaminaInsuficiente);
         Assert.Equal("AcaoEmAndamento", CodigosErroCombate.AcaoEmAndamento);
         Assert.Equal("VoceEstaCaido", CodigosErroCombate.VoceEstaCaido);
+        Assert.Equal("VoceEstaAtordoado", CodigosErroCombate.VoceEstaAtordoado);
+    }
+
+    [Fact]
+    public void Ids_de_efeitos_de_status_estao_na_faixa()
+    {
+        Assert.True(CombateMessageIds.Faixa.Contem(CombateMessageIds.EfeitosDeStatusMudaram));
+        Assert.True(CombateMessageIds.Faixa.Contem(CombateMessageIds.BarraDeQuebraMudou));
+        Assert.Equal(6040, CombateMessageIds.EfeitosDeStatusMudaram);
+        Assert.Equal(6041, CombateMessageIds.BarraDeQuebraMudou);
     }
 
     [Fact]

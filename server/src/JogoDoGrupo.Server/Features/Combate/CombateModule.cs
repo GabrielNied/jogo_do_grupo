@@ -26,6 +26,7 @@ public sealed class CombateModule : IFeatureModule
     public void ConfigurarServicos(IServiceCollection servicos, IConfiguration configuracao)
     {
         servicos.AddSingleton<IBonusDeAtributos, SemBonusDeEfeitos>();
+        servicos.AddSingleton<GerenciadorDeEfeitosDeStatus>();
         servicos.AddSingleton<RecursosEmMemoria>();
         servicos.AddHostedService(sp =>
         {
@@ -33,7 +34,9 @@ public sealed class CombateModule : IFeatureModule
             return _recursos;
         });
         servicos.AddSingleton<IAlvosDeCombate>(new BonecoDeTreino());
-        servicos.AddSingleton<ControleDeAcoes>();
+        servicos.AddSingleton(sp => new ControleDeAcoes(
+            sp.GetRequiredService<GerenciadorDeEfeitosDeStatus>()
+        ));
         servicos.TryAddSingleton<IAliadosDeCombate, NinguemEAliado>();
         servicos.TryAddSingleton<ConfigQueda>();
         servicos.AddSingleton(sp =>
@@ -82,7 +85,8 @@ public sealed class CombateModule : IFeatureModule
                 sp.GetRequiredService<ServicoDeQueda>(),
                 sp.GetRequiredService<ControleDeAcoes>(),
                 guarda: sp.GetRequiredService<ServicoDeGuarda>(),
-                posicoes: sp.GetRequiredService<IPosicoesDoMundo>()
+                posicoes: sp.GetRequiredService<IPosicoesDoMundo>(),
+                efeitos: sp.GetRequiredService<GerenciadorDeEfeitosDeStatus>()
             );
             _danoRecebido = servico;
             return servico;
@@ -98,7 +102,8 @@ public sealed class CombateModule : IFeatureModule
                 controle: sp.GetRequiredService<ControleDeAcoes>(),
                 queda: sp.GetRequiredService<ServicoDeQueda>(),
                 aliados: sp.GetRequiredService<IAliadosDeCombate>(),
-                limiteDeVelocidade: sp.GetService<ILimiteDeVelocidadeDoMundo>()
+                limiteDeVelocidade: sp.GetService<ILimiteDeVelocidadeDoMundo>(),
+                efeitos: sp.GetRequiredService<GerenciadorDeEfeitosDeStatus>()
             );
             _ataques = servico;
             _esquivas = sp.GetRequiredService<ServicoDeEsquivas>();

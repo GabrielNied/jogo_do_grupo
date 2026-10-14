@@ -59,7 +59,7 @@ public class PresencaNaCidadeTestes(TempoRealFixture f) : IClassFixture<TempoRea
         var replica = await b.ReceberAsync<PosicaoJogador>(MundoMessageIds.PosicaoJogador);
         Assert.Equal(idA, replica.PersonagemId);
         Assert.Equal(0.3f, replica.X);
-        Assert.Equal(0, replica.Sequencia);
+        Assert.Equal(1, replica.Sequencia);
 
         a.Enviar(
             MundoMessageIds.IntencaoDeMovimento,
@@ -73,6 +73,7 @@ public class PresencaNaCidadeTestes(TempoRealFixture f) : IClassFixture<TempoRea
         // 40 m de uma vez: o dono não é puxado; os outros recebem a posição informada.
         var replicaLonge = await b.ReceberAsync<PosicaoJogador>(MundoMessageIds.PosicaoJogador);
         Assert.Equal(40f, replicaLonge.X);
+        Assert.True(replicaLonge.Sequencia > replica.Sequencia);
         Assert.DoesNotContain(MundoMessageIds.PosicaoForcada, a.IdsRecebidos);
     }
 
