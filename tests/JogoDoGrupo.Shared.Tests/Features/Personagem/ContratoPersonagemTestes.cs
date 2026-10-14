@@ -63,5 +63,36 @@ public class ContratoPersonagemTestes
     public void Codigos_de_erro_novos_tem_o_texto_do_contrato()
     {
         Assert.Equal("PersonagemNaoEncontrado", CodigosErroPersonagem.PersonagemNaoEncontrado);
+        Assert.Equal(
+            "ConfirmacaoDeNomeIncorreta",
+            CodigosErroPersonagem.ConfirmacaoDeNomeIncorreta
+        );
+        Assert.Equal("AparenciaInvalida", CodigosErroPersonagem.AparenciaInvalida);
+    }
+
+    [Fact]
+    public void Rota_de_excluir_troca_o_id_do_modelo()
+    {
+        Assert.Equal(
+            RotasPersonagem.Excluir.Replace("{personagemId}", "42"),
+            RotasPersonagem.ExcluirDe(42)
+        );
+        Assert.StartsWith(RotasPersonagem.Personagens + "/", RotasPersonagem.ExcluirDe(42));
+    }
+
+    [Fact]
+    public void AparenciaPersonagem_valores_padrao()
+    {
+        var aparencia = new AparenciaPersonagem();
+        Assert.Equal(0, aparencia.TomDePele);
+        Assert.Equal(0, aparencia.Cabelo);
+        Assert.Equal(0, aparencia.CorDeCabelo);
+    }
+
+    [Fact]
+    public void ExcluirPersonagemRequest_padrao()
+    {
+        var req = new ExcluirPersonagemRequest();
+        Assert.Equal("", req.ConfirmacaoNome);
     }
 }

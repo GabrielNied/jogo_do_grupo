@@ -11,12 +11,29 @@ public class PersonagensRotasTestes(ServidorDeTeste servidor) : IClassFixture<Se
     private static Task<HttpResponseMessage> Criar(
         HttpClient cliente,
         string nome,
-        Raca raca = Raca.Valdren
+        Raca raca = Raca.Valdren,
+        AparenciaPersonagem? aparencia = null
     ) =>
         ServidorDeTeste.PostJsonAsync(
             cliente,
             RotasPersonagem.Personagens,
-            new CriarPersonagemRequest { Nome = nome, Raca = raca }
+            new CriarPersonagemRequest
+            {
+                Nome = nome,
+                Raca = raca,
+                Aparencia = aparencia ?? new AparenciaPersonagem(),
+            }
+        );
+
+    private static Task<HttpResponseMessage> Excluir(
+        HttpClient cliente,
+        long personagemId,
+        string confirmacaoNome
+    ) =>
+        ServidorDeTeste.PostJsonAsync(
+            cliente,
+            RotasPersonagem.ExcluirDe(personagemId),
+            new ExcluirPersonagemRequest { ConfirmacaoNome = confirmacaoNome }
         );
 
     private static async Task<PersonagemResumo[]> Listar(HttpClient cliente)
@@ -300,5 +317,125 @@ public class PersonagensRotasTestes(ServidorDeTeste servidor) : IClassFixture<Se
         var recusada = respostas.Single(r => r.StatusCode != HttpStatusCode.Created);
         await AssertErro(recusada, HttpStatusCode.Conflict, CodigosErroPersonagem.NomeJaExiste);
         Assert.Equal(1, (await Listar(a)).Length + (await Listar(b)).Length);
+    }
+
+    [Fact]
+    public async Task Criar_com_aparencia_valida_persiste_e_devolve_aparencia()
+    {
+        var cliente = await servidor.CriarClienteLogadoAsync();
+        var aparencia = new AparenciaPersonagem
+        {
+            TomDePele = 2,
+            Cabelo = 1,
+            CorDeCabelo = 3,
+        };
+
+        var resposta = await Criar(cliente, ServidorDeTeste.NomeUnico(), Raca.Aurideo, aparencia);
+
+        Assert.Equal(HttpStatusCode.Created, resposta.StatusCode);
+        var criado = await ServidorDeTeste.LerJsonAsync<PersonagemResumo>(resposta);
+        Assert.NotNull(criado.Aparencia);
+        Assert.Equal(2, criado.Aparencia.TomDePele);
+        Assert.Equal(1, criado.Aparencia.Cabelo);
+        Assert.Equal(3, criado.Aparencia.CorDeCabelo);
+
+        var listado = (await Listar(cliente)).Single();
+        Assert.NotNull(listado.Aparencia);
+        Assert.Equal(2, listado.Aparencia.TomDePele);
+        Assert.Equal(1, listado.Aparencia.Cabelo);
+        Assert.Equal(3, listado.Aparencia.CorDeCabelo);
+    }
+
+    [Fact]
+    public async Task Criar_com_aparencia_invalida_devolve_400()
+    {
+        var cliente = await servidor.CriarClienteLogadoAsync();
+        var invalida = new AparenciaPersonagem
+        {
+            TomDePele = 99,
+            Cabelo = 0,
+            CorDeCabelo = 0,
+        };
+
+        var resposta = await Criar(cliente, ServidorDeTeste.NomeUnico(), Raca.Valdren, invalida);
+
+        await AssertErro(
+            resposta,
+            HttpStatusCode.BadRequest,
+            CodigosErroPersonagem.AparenciaInvalida
+        );
+    }
+
+    [Fact]
+    public async Task Excluir_com_confirmacao_correta_exclui_personagem()
+    {
+        var cliente = await servidor.CriarClienteLogadoAsync();
+        var nome = ServidorDeTeste.NomeUnico("E");
+        var respCriar = await Criar(cliente, nome);
+        var criado = await ServidorDeTeste.LerJsonAsync<PersonagemResumo>(respCriar);
+
+        var respExcluir = await Excluir(cliente, criado.Id, nome.ToLowerInvariant());
+
+        Assert.Equal(HttpStatusCode.OK, respExcluir.StatusCode);
+        Assert.Empty(await Listar(cliente));
+    }
+
+    [Fact]
+    public async Task Excluir_com_nome_incorreto_devolve_400_e_mantem_personagem()
+    {
+        var cliente = await servidor.CriarClienteLogadoAsync();
+        var nome = ServidorDeTeste.NomeUnico("E");
+        var respCriar = await Criar(cliente, nome);
+        var criado = await ServidorDeTeste.LerJsonAsync<PersonagemResumo>(respCriar);
+
+        var respExcluir = await Excluir(cliente, criado.Id, "NomeCompletamenteDiferente");
+
+        await AssertErro(
+            respExcluir,
+            HttpStatusCode.BadRequest,
+            CodigosErroPersonagem.ConfirmacaoDeNomeIncorreta
+        );
+        Assert.Single(await Listar(cliente));
+    }
+
+    [Fact]
+    public async Task Excluir_de_outra_conta_devolve_404()
+    {
+        var dono = await servidor.CriarClienteLogadoAsync();
+        var invasor = await servidor.CriarClienteLogadoAsync();
+        var nome = ServidorDeTeste.NomeUnico("E");
+        var respCriar = await Criar(dono, nome);
+        var criado = await ServidorDeTeste.LerJsonAsync<PersonagemResumo>(respCriar);
+
+        var respExcluir = await Excluir(invasor, criado.Id, nome);
+
+        await AssertErro(
+            respExcluir,
+            HttpStatusCode.NotFound,
+            CodigosErroPersonagem.PersonagemNaoEncontrado
+        );
+        Assert.Single(await Listar(dono));
+    }
+
+    [Fact]
+    public async Task Excluir_reserva_nome_outra_conta_nao_pode_usar_mas_mesma_conta_pode()
+    {
+        var dono = await servidor.CriarClienteLogadoAsync();
+        var outraConta = await servidor.CriarClienteLogadoAsync();
+        var nome = ServidorDeTeste.NomeUnico("R");
+
+        var respCriar = await Criar(dono, nome);
+        var criado = await ServidorDeTeste.LerJsonAsync<PersonagemResumo>(respCriar);
+
+        var respExcluir = await Excluir(dono, criado.Id, nome);
+        Assert.Equal(HttpStatusCode.OK, respExcluir.StatusCode);
+
+        // Outra conta tenta criar com o mesmo nome antes de expirar a reserva
+        var respOutra = await Criar(outraConta, nome);
+        await AssertErro(respOutra, HttpStatusCode.Conflict, CodigosErroPersonagem.NomeJaExiste);
+
+        // Mesma conta tenta recriar o personagem com o mesmo nome
+        var respDono = await Criar(dono, nome);
+        Assert.Equal(HttpStatusCode.Created, respDono.StatusCode);
     }
 }

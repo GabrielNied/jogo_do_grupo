@@ -26,16 +26,24 @@ namespace JogoDoGrupo.Client.Features.Personagem
         private Label _vazio;
         private Label _resumoNome;
         private Label _resumoDetalhes;
+        private Label _resumoAparencia;
         private Image _imagem;
         private Label _previsaoIndisponivel;
         private PreviaVisualPersonagem _previsao;
         private Button _criar;
         private Button _entrar;
+        private Button _excluir;
+        private VisualElement _painelConfirmacao;
+        private Label _instrucaoExclusao;
+        private TextField _campoConfirmacao;
+        private Button _botaoConfirmarExclusao;
+        private Button _botaoCancelarExclusao;
         private Label _avisoLimite;
         private Label _mensagem;
 
         private long? _idSelecionado;
         private bool _carregandoLista;
+        private bool _excluindo;
 
         protected override void Montar(VisualElement raiz)
         {
@@ -113,8 +121,51 @@ namespace JogoDoGrupo.Client.Features.Personagem
             _resumoDetalhes = new Label();
             _resumoDetalhes.AddToClassList(EstiloPersonagem.ItemDetalhes);
             resumo.Add(_resumoDetalhes);
+            _resumoAparencia = new Label();
+            _resumoAparencia.AddToClassList(EstiloPersonagem.ItemDetalhes);
+            resumo.Add(_resumoAparencia);
             resumo.Add(_vazio);
             resumo.Add(_entrar);
+
+            _excluir = new Button(AoClicarExcluir) { text = "Excluir personagem" };
+            _excluir.AddToClassList(EstiloCore.Botao);
+            _excluir.AddToClassList("personagem-botao-perigo");
+            EstiloPersonagem.Mostrar(_excluir, false);
+            resumo.Add(_excluir);
+
+            _painelConfirmacao = new VisualElement();
+            _painelConfirmacao.AddToClassList("personagem-confirmacao-exclusao");
+            _instrucaoExclusao = new Label();
+            _instrucaoExclusao.AddToClassList(EstiloCore.Texto);
+            _campoConfirmacao = new TextField("Confirmar")
+            {
+                maxLength = RegrasPersonagem.NomeMaximo,
+            };
+            _campoConfirmacao.AddToClassList(EstiloCore.Campo);
+            _campoConfirmacao.RegisterCallback<KeyDownEvent>(
+                AoTeclarNaConfirmacao,
+                TrickleDown.TrickleDown
+            );
+
+            var linhaBotoesExclusao = new VisualElement();
+            linhaBotoesExclusao.AddToClassList(EstiloCore.LinhaBotoes);
+
+            _botaoConfirmarExclusao = new Button(AoConfirmarExclusao) { text = "Confirmar" };
+            _botaoConfirmarExclusao.AddToClassList(EstiloCore.Botao);
+            _botaoConfirmarExclusao.AddToClassList(EstiloCore.BotaoPrincipal);
+
+            _botaoCancelarExclusao = new Button(AoCancelarExclusao) { text = "Cancelar" };
+            _botaoCancelarExclusao.AddToClassList(EstiloCore.Botao);
+
+            linhaBotoesExclusao.Add(_botaoConfirmarExclusao);
+            linhaBotoesExclusao.Add(_botaoCancelarExclusao);
+
+            _painelConfirmacao.Add(_instrucaoExclusao);
+            _painelConfirmacao.Add(_campoConfirmacao);
+            _painelConfirmacao.Add(linhaBotoesExclusao);
+            EstiloPersonagem.Mostrar(_painelConfirmacao, false);
+            resumo.Add(_painelConfirmacao);
+
             resumo.Add(_mensagem);
 
             _corpo = new VisualElement();
@@ -346,6 +397,10 @@ namespace JogoDoGrupo.Client.Features.Personagem
             }
 
             _entrar.SetEnabled(id.HasValue);
+            _excluir.SetEnabled(id.HasValue && !_excluindo);
+            EstiloPersonagem.Mostrar(_excluir, id.HasValue);
+            EstiloPersonagem.Mostrar(_painelConfirmacao, false);
+
             PersonagemResumo escolhido = null;
             foreach (var personagem in _personagens)
             {
@@ -361,6 +416,10 @@ namespace JogoDoGrupo.Client.Features.Personagem
                 escolhido == null
                     ? ""
                     : $"{TextosPersonagem.NomeDaRaca(escolhido.Raca)} · Nível {escolhido.Nivel}";
+            _resumoAparencia.text =
+                escolhido == null ? "" : TextosPersonagem.DescricaoAparencia(escolhido.Aparencia);
+            EstiloPersonagem.Mostrar(_resumoAparencia, escolhido != null);
+
             if (escolhido == null)
             {
                 _imagem.image = null;
@@ -370,10 +429,122 @@ namespace JogoDoGrupo.Client.Features.Personagem
             }
 
             _previsao ??= new PreviaVisualPersonagem();
-            var disponivel = _previsao.Mostrar(escolhido.Raca);
+            var disponivel = _previsao.Mostrar(escolhido.Raca, escolhido.Aparencia);
             _imagem.image = disponivel ? _previsao.Textura : null;
             _previsaoIndisponivel.text = disponivel ? "" : "Visual indisponível neste momento";
             EstiloPersonagem.Mostrar(_previsaoIndisponivel, !disponivel);
+        }
+
+        private void AoClicarExcluir()
+        {
+            if (!_idSelecionado.HasValue || _excluindo)
+            {
+                return;
+            }
+
+            var escolhido = _personagens.Find(p => p.Id == _idSelecionado.Value);
+            if (escolhido == null)
+            {
+                return;
+            }
+
+            _instrucaoExclusao.text = $"Digite \"{escolhido.Nome}\" para confirmar:";
+            _campoConfirmacao.value = "";
+            EstiloPersonagem.Mostrar(_painelConfirmacao, true);
+            _campoConfirmacao.schedule.Execute(() => _campoConfirmacao.Focus());
+        }
+
+        private void AoCancelarExclusao()
+        {
+            if (_excluindo)
+            {
+                return;
+            }
+
+            EstiloPersonagem.Mostrar(_painelConfirmacao, false);
+            _campoConfirmacao.value = "";
+            MostrarMensagem(null);
+        }
+
+        private void AoTeclarNaConfirmacao(KeyDownEvent evt)
+        {
+            if (evt.keyCode == KeyCode.Return || evt.keyCode == KeyCode.KeypadEnter)
+            {
+                evt.StopPropagation();
+                AoConfirmarExclusao();
+            }
+        }
+
+        private async void AoConfirmarExclusao()
+        {
+            if (!_idSelecionado.HasValue || _excluindo)
+            {
+                return;
+            }
+
+            var id = _idSelecionado.Value;
+            var escolhido = _personagens.Find(p => p.Id == id);
+            if (escolhido == null)
+            {
+                return;
+            }
+
+            var digitado = _campoConfirmacao.value;
+            if (!RegrasPersonagem.ConfirmacaoDeNomeConfere(escolhido.Nome, digitado))
+            {
+                MostrarMensagem(
+                    TextosPersonagem.ConfirmacaoDeNomeIncorreta,
+                    EstiloCore.MensagemErro
+                );
+                return;
+            }
+
+            _excluindo = true;
+            _botaoConfirmarExclusao.SetEnabled(false);
+            _botaoCancelarExclusao.SetEnabled(false);
+            MostrarMensagem("Excluindo personagem...");
+
+            try
+            {
+                var pedido = new ExcluirPersonagemRequest { ConfirmacaoNome = digitado };
+                var resposta = await ClienteApi.Post(RotasPersonagem.ExcluirDe(id), pedido);
+
+                if (!Aberta)
+                {
+                    return;
+                }
+
+                if (!resposta.Sucesso)
+                {
+                    MostrarMensagem(
+                        TextosPersonagem.MensagemDaRecusa(resposta.CodigoErro),
+                        EstiloCore.MensagemErro
+                    );
+                    return;
+                }
+
+                EstiloPersonagem.Mostrar(_painelConfirmacao, false);
+                _campoConfirmacao.value = "";
+                MostrarMensagem(null);
+                Carregar();
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+                if (Aberta)
+                {
+                    MostrarMensagem(TextosPersonagem.Generica, EstiloCore.MensagemErro);
+                }
+            }
+            finally
+            {
+                if (Aberta)
+                {
+                    _excluindo = false;
+                    _botaoConfirmarExclusao.SetEnabled(true);
+                    _botaoCancelarExclusao.SetEnabled(true);
+                }
+            }
         }
 
         private void AoClicarCriar()

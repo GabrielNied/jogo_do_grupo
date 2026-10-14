@@ -22,5 +22,15 @@ namespace JogoDoGrupo.Shared.Features.Personagem
         /// <summary>Caminho de <see cref="Progresso"/> para um personagem (uso do client).</summary>
         public static string ProgressoDe(long personagemId) =>
             "/api/personagens/" + personagemId + "/progresso";
+
+        /// <summary>
+        /// Modelo da rota. <c>POST</c> com corpo <see cref="ExcluirPersonagemRequest"/> exclui o personagem
+        /// da conta após verificar a confirmação do nome. Responde 200/204.
+        /// </summary>
+        public const string Excluir = "/api/personagens/{personagemId}/excluir";
+
+        /// <summary>Caminho de <see cref="Excluir"/> para um personagem (uso do client).</summary>
+        public static string ExcluirDe(long personagemId) =>
+            "/api/personagens/" + personagemId + "/excluir";
     }
 }

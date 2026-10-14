@@ -155,7 +155,7 @@ namespace JogoDoGrupo.Server.Core.Persistencia.Migrations
                     b.ToTable("ItensInventario", (string)null);
                 });
 
-            modelBuilder.Entity("JogoDoGrupo.Server.Features.Personagem.Personagem", b =>
+            modelBuilder.Entity("JogoDoGrupo.Server.Features.Personagem.NomeReservado", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -163,6 +163,50 @@ namespace JogoDoGrupo.Server.Core.Persistencia.Migrations
 
                     b.Property<long>("ContaId")
                         .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("ExcluidoEm")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Nome")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("NomeNormalizado")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("ReservadoAte")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ContaId");
+
+                    b.HasIndex("NomeNormalizado");
+
+                    b.ToTable("NomesReservados", (string)null);
+                });
+
+            modelBuilder.Entity("JogoDoGrupo.Server.Features.Personagem.Personagem", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Cabelo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(0);
+
+                    b.Property<long>("ContaId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("CorDeCabelo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(0);
 
                     b.Property<DateTime>("CriadoEm")
                         .HasColumnType("TEXT");
@@ -185,6 +229,11 @@ namespace JogoDoGrupo.Server.Core.Persistencia.Migrations
 
                     b.Property<int>("Raca")
                         .HasColumnType("INTEGER");
+
+                    b.Property<int>("TomDePele")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(0);
 
                     b.Property<long>("XpAtual")
                         .HasColumnType("INTEGER");
