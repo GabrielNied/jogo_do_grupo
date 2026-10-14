@@ -206,5 +206,28 @@ namespace JogoDoGrupo.Client.Core.Tests
                 AvisosDoJogo.Mostrado -= Ouvir;
             }
         }
+
+        [Test]
+        public void CategoriaDeCombate_PodeSerOcultadaSemPerderHistoricoNemErro()
+        {
+            var antes = PreferenciasDeAvisos.MostrarCombate;
+            var painel = new PainelDeAvisos(new VisualElement(), _lista);
+            try
+            {
+                PreferenciasDeAvisos.MostrarCombate = false;
+                painel.Mostrar("golpe", TipoDeAviso.Aviso, CategoriaDeAviso.Combate);
+                painel.Mostrar("falha", TipoDeAviso.Erro, CategoriaDeAviso.Combate);
+                Assert.AreEqual(2, _lista.Linhas.Count);
+                Assert.AreEqual(1, painel.Raiz.childCount);
+
+                PreferenciasDeAvisos.MostrarCombate = true;
+                painel.AtualizarVisibilidade();
+                Assert.AreEqual(2, painel.Raiz.childCount);
+            }
+            finally
+            {
+                PreferenciasDeAvisos.MostrarCombate = antes;
+            }
+        }
     }
 }

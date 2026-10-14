@@ -190,7 +190,11 @@ namespace JogoDoGrupo.Client.Features.Combate
                 var esquivas = _detector.Atualizar(Time.unscaledTime, posicao.x, posicao.z);
                 if (esquivas > 0)
                 {
-                    AvisosDoJogo.Mostrar(TextoEsquivou, TipoDeAviso.Informacao);
+                    AvisosDoJogo.Mostrar(
+                        TextoEsquivou,
+                        TipoDeAviso.Informacao,
+                        CategoriaDeAviso.Combate
+                    );
                     Tocar(SomDeCombate.EsquivaBemSucedida, 0.8f);
                 }
             }
@@ -420,7 +424,7 @@ namespace JogoDoGrupo.Client.Features.Combate
             if (dentro && Time.unscaledTime >= _proximoAlerta)
             {
                 _proximoAlerta = Time.unscaledTime + IntervaloDoAlertaSegundos;
-                AvisosDoJogo.Mostrar(TextoSaiaDaArea, TipoDeAviso.Aviso);
+                AvisosDoJogo.Mostrar(TextoSaiaDaArea, TipoDeAviso.Aviso, CategoriaDeAviso.Combate);
                 Tocar(SomDeCombate.AlertaDeArea, 0.6f);
             }
         }
