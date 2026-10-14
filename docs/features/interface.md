@@ -16,6 +16,7 @@ Telas e menus do client que não pertencem a uma funcionalidade do jogo. Por enq
 - As teclas atuais podem ser ajustadas em **Opções > Teclas**; os padrões e limites estão em [Teclas e atalhos](#teclas-e-atalhos).
 - Na abertura, o client carrega o tema e verifica a disponibilidade e a versão da API em `/saude` antes de mostrar o login; falha mostra "Servidor fora do ar" e **Tentar de novo**. Ao escolher personagem, a tela Lumora mostra **Cenário**, **Conexão** e **Posição** conforme o trabalho real, sem porcentagem simulada. O mundo só aparece depois de aplicar a primeira posição do servidor; até lá, HUD e input ficam bloqueados. A espera por conexão e posição expira em 20 s. A falha oferece **Tentar de novo** e **Voltar à seleção**, desmontando a tentativa parcial antes de outra entrada.
 - No mundo, a HUD mostra latência em milissegundos quando a conexão está autenticada. Na queda, uma faixa informa a tentativa de reconexão e o movimento fica bloqueado; após o limite de três tentativas, um diálogo **Conexão perdida** oferece **Tentar de novo** e **Voltar à seleção**. Acesso negado recebe mensagem própria. Na primeira entrada, falha de conexão encerra a espera imediatamente; o erro fica na tela de carregamento. Os avisos são removidos ao sair do mundo.
+- O client continua executando quando a janela perde foco, inclusive no Play do Unity. A inicialização do Core habilita `Application.runInBackground` para manter o processamento da rede e evitar que a autenticação UDP expire enquanto outra janela está ativa (#759).
 
 ## Em aberto
 

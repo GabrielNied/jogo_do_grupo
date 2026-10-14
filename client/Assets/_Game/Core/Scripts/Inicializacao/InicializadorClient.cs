@@ -22,6 +22,9 @@ namespace JogoDoGrupo.Client.Core.Inicializacao
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void Inicializar()
         {
+            // O jogo online precisa processar a rede mesmo quando outra janela ganha foco.
+            Application.runInBackground = true;
+
             Navegacao.Registrar(TelasCore.Abertura, () => new TelaAbertura());
             Navegacao.Registrar(TelasCore.Carregamento, () => new TelaCarregamento());
             Navegacao.Registrar(TelasCore.Login, () => new TelaLogin());
