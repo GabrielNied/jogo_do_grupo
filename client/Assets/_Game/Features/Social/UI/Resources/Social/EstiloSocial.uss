@@ -68,11 +68,10 @@
 
 .social-convite-tela {
     position: absolute;
-    left: var(--lumora-espacamento-padrao);
     right: var(--lumora-espacamento-padrao);
-    bottom: var(--lumora-dimensoes-social-aviso-base);
-    max-width: var(--lumora-dimensoes-chat-largura);
-    align-self: center;
+    bottom: 35%;
+    width: var(--lumora-dimensoes-chat-largura);
+    max-width: 92%;
     padding: var(--lumora-espacamento-medio);
     background-color: var(--lumora-cores-painel);
     border-width: var(--lumora-bordas-fina);
