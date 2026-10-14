@@ -119,7 +119,7 @@ namespace JogoDoGrupo.Client.Core.Tests
 
             Assert.AreNotSame(antigo, Hud.Raiz);
             Assert.IsNull(antigo.parent);
-            Assert.AreEqual(1, _container.childCount);
+            Assert.AreEqual(3, _container.childCount);
         }
 
         [Test]

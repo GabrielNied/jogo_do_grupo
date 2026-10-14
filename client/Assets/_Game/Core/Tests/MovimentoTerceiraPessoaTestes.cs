@@ -112,7 +112,7 @@ namespace JogoDoGrupo.Client.Core.Tests
         [Test]
         public void Acelerar_LimitadoPelaAceleracao()
         {
-            var movimento = new MovimentoTerceiraPessoa { Aceleracao = 10f };
+            var movimento = new MovimentoTerceiraPessoa { Aceleracao = 10f, Frenagem = 10f };
 
             Assert.AreEqual(1f, movimento.Acelerar(0f, 5f, 0.1f, false), Tolerancia);
             Assert.AreEqual(5f, movimento.Acelerar(4.5f, 5f, 0.1f, false), Tolerancia);
