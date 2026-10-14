@@ -66,6 +66,10 @@ namespace JogoDoGrupo.Client.Core.TempoReal
         /// </summary>
         public string UltimoErro { get; private set; } = "";
 
+        public int Latencia => Estado == EstadoTempoReal.Conectado ? _transporte.Latencia : -1;
+
+        public int TentativaReconexao => _tentativas;
+
         public event Action<EstadoTempoReal> EstadoMudou;
 
         /// <summary>

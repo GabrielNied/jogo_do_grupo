@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Threading;
 using JogoDoGrupo.Shared.Features.Mundo;
 using UnityEngine;
 
@@ -31,6 +33,31 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
         /// <summary>Calcula a grade inteira do mapa.</summary>
         public static AmostrasDoTerreno Gerar()
         {
+            AmostrasDoTerreno pronta = null;
+            foreach (var amostras in GerarEmEtapas())
+            {
+                pronta = amostras;
+            }
+
+            return pronta;
+        }
+
+        /// <summary>Calcula altura e cor em lotes para a entrada no mundo não congelar a tela.</summary>
+        public static async Awaitable<AmostrasDoTerreno> GerarAsync(CancellationToken cancelar)
+        {
+            AmostrasDoTerreno pronta = null;
+            foreach (var amostras in GerarEmEtapas())
+            {
+                pronta = amostras;
+                cancelar.ThrowIfCancellationRequested();
+                await Awaitable.NextFrameAsync(cancelar);
+            }
+
+            return pronta;
+        }
+
+        private static IEnumerable<AmostrasDoTerreno> GerarEmEtapas()
+        {
             var lado = MapaDoMundo.PontosPorLado;
             var alturas = new float[lado * lado];
             var pesos = new PesosDosBiomas[lado * lado];
@@ -40,6 +67,11 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
                 {
                     var indice = j * lado + i;
                     alturas[indice] = MapaDoMundo.AmostrarNaGrade(i, j, out pesos[indice]);
+                }
+
+                if ((j + 1) % 8 == 0)
+                {
+                    yield return null;
                 }
             }
 
@@ -59,9 +91,14 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
                         z
                     );
                 }
+
+                if ((j + 1) % 8 == 0)
+                {
+                    yield return null;
+                }
             }
 
-            return amostras;
+            yield return amostras;
         }
 
         /// <summary>

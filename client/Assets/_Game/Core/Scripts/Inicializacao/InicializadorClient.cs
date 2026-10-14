@@ -23,6 +23,7 @@ namespace JogoDoGrupo.Client.Core.Inicializacao
         private static void Inicializar()
         {
             Navegacao.Registrar(TelasCore.Abertura, () => new TelaAbertura());
+            Navegacao.Registrar(TelasCore.Carregamento, () => new TelaCarregamento());
             Navegacao.Registrar(TelasCore.Login, () => new TelaLogin());
             Navegacao.Registrar(TelasCore.SemTelaAposLogin, () => new TelaSemTelaAposLogin());
 

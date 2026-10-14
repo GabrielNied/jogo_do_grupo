@@ -176,6 +176,7 @@ Campos: `PersonagemId` (long), `X`, `Y`, `Z`, `RotacaoY` (float). Usado em `Esta
 - **Excesso pequeno** (até 6 m além do orçamento, o tamanho de uma esquiva recusada) é aceito e conta como suspeita; o contador esvazia 0,5 por segundo e, passando de 5, vira caso grave. O total de suspeitas fica guardado para a ferramenta de GM.
 - ~~**Caso grave** (posição fora do mundo, longe do chão, não finita, excesso acima de 6 m ou suspeita demais): a posição do servidor fica, e o dono recebe `PosicaoForcada`. O client aplica e confirma (`ConfirmarPosicaoForcada`); até lá, o movimento dele é ignorado. Teleporte, renascer e empurrão de boss usam o mesmo caminho (`CidadeDoMundo.ForcarPosicao`).~~ Substituído em 2026-10-11: o jogador se move livremente e só informa a posição. O servidor grava e repassa aos outros; andar rápido, salto ou sair do limite **não** manda `PosicaoForcada`. Número não finito é ignorado. `ForcarPosicao` continua só para teleporte explícito (renascer, empurrão), que ainda não é o movimento normal. O comando de teste `tp` ([Desenvolvimento](desenvolvimento.md)) usa esse caminho e avisa os outros com `PosicaoJogador`.
 - **No client:** o nascimento só é aplicado na primeira entrada; na reconexão o jogador continua onde está.
+- Na primeira entrada, a presença sinaliza ao Core depois de aplicar a posição do servidor; a tela de carregamento e o bloqueio de input seguem as regras de [Interface](interface.md#definido).
 
 ### Dia e noite (#163, contrato da #380)
 
