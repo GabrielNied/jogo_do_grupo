@@ -161,6 +161,8 @@ Um PR que parte de outro ainda aberto nasce com `npm run tarefa -- puxar <N> <br
 npm run reempilhar -- <PR de cima>
 ```
 
+  A [lição do falso conflito](licoes.md#2026-10-13--reempilhar-informava-conflito-falso) registra a falha que interrompia a publicação depois de um cherry-pick concluído.
+
 O script lê a linha `Depende de`, leva só os commits próprios do PR (cherry-pick) para uma branch `<nome>-segue` a partir de `origin/main`, abre o PR novo com o mesmo título e corpo e fecha o antigo.
 
 Os commits dentro da branch podem ser pequenos e frequentes. Como o merge é por squash, o que entra na `main` é **o título do PR**.
