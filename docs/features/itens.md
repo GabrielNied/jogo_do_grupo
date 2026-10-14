@@ -23,7 +23,7 @@ Inventário, equipamentos, tier calculado pelos atributos e fusão determinísti
 ## Em aberto
 
 - [x] ~~Cinco raridades confirmadas para #166: comum, incomum, raro, épico e lendário.~~ Substituído em 2026-10-12: tier D a S+ calculado pelos atributos. Grau continua um eixo separado (veja Equipamentos abaixo).
-- [ ] Quantas skills um item pode ter? ~~A raridade muda isso?~~ Sem raridade, o que muda o número de skills? ([#167](https://github.com/GabrielNied/jogo_do_grupo/issues/167))
+- [x] ~~Quantas skills um item pode ter?~~ Decidido em 2026-10-14: a **arma** sorteia **3 ativas** no exemplar a partir do pool do **modelo-base** ([skills](skills.md#definido), SKILL-004); outras peças não somam ativa na barra (poderes #629). Catálogo amplo: [#340](https://github.com/GabrielNied/jogo_do_grupo/issues/340) / [#167](https://github.com/GabrielNied/jogo_do_grupo/issues/167).
 - [x] ~~Infusão usa o atributo marcado e +2% do valor-base (#174).~~ Substituído em 2026-10-12 pela fusão v2 (#616).
 - [x] ~~Custo inicial configurável por raridade na #174.~~ Substituído em 2026-10-12: custo por nível de fusão (#616).
 - [x] ~~Ajustes à tabela de raridades~~: sem objeto desde 2026-10-12 (a raridade saiu).
