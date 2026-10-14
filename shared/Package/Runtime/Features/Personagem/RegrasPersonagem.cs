@@ -11,6 +11,11 @@ namespace JogoDoGrupo.Shared.Features.Personagem
         public const int MaximoPorConta = 4;
         public const int NomeMinimo = 3;
         public const int NomeMaximo = 16;
+        public const int DiasDeReservaDeNome = 7;
+
+        public const int TotalTonsDePele = 4;
+        public const int TotalCabelos = 4;
+        public const int TotalCoresDeCabelo = 5;
 
         /// <summary>
         /// Nome com <see cref="NomeMinimo"/> a <see cref="NomeMaximo"/> caracteres, só letras ASCII
@@ -35,6 +40,48 @@ namespace JogoDoGrupo.Shared.Features.Personagem
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// Confere se as escolhas de tom de pele, cabelo e cor de cabelo estão dentro dos limites.
+        /// </summary>
+        public static string? ValidarAparencia(AparenciaPersonagem? aparencia)
+        {
+            if (aparencia == null)
+            {
+                return null;
+            }
+
+            if (
+                aparencia.TomDePele < 0
+                || aparencia.TomDePele >= TotalTonsDePele
+                || aparencia.Cabelo < 0
+                || aparencia.Cabelo >= TotalCabelos
+                || aparencia.CorDeCabelo < 0
+                || aparencia.CorDeCabelo >= TotalCoresDeCabelo
+            )
+            {
+                return CodigosErroPersonagem.AparenciaInvalida;
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Confere se a confirmação digitada corresponde ao nome do personagem (sem diferenciar maiúsculas/minúsculas).
+        /// </summary>
+        public static bool ConfirmacaoDeNomeConfere(string? nomeReal, string? confirmacao)
+        {
+            if (string.IsNullOrWhiteSpace(nomeReal) || string.IsNullOrWhiteSpace(confirmacao))
+            {
+                return false;
+            }
+
+            return string.Equals(
+                nomeReal.Trim(),
+                confirmacao.Trim(),
+                System.StringComparison.OrdinalIgnoreCase
+            );
         }
     }
 }

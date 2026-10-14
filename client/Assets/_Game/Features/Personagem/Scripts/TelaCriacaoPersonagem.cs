@@ -32,6 +32,10 @@ namespace JogoDoGrupo.Client.Features.Personagem
         private Label _racaSkill;
         private Label _racaTexto;
         private int _indiceRaca;
+        private readonly AparenciaPersonagem _aparencia = new AparenciaPersonagem();
+        private Label _rotuloTom;
+        private Label _rotuloCabelo;
+        private Label _rotuloCor;
         private Button _confirmar;
         private Button _voltar;
         private Label _mensagem;
@@ -146,6 +150,7 @@ namespace JogoDoGrupo.Client.Features.Personagem
             _avisoPrevia = new Label();
             _avisoPrevia.AddToClassList(EstiloCore.Mensagem);
             centro.Add(_avisoPrevia);
+            centro.Add(MontarSecaoAparencia());
 
             _cartaoDaRaca = new VisualElement();
             _cartaoDaRaca.AddToClassList(EstiloPersonagem.CartaoDaRaca);
@@ -162,6 +167,138 @@ namespace JogoDoGrupo.Client.Features.Personagem
             linha.Add(_cartaoDaRaca);
             EscolherRaca(0);
             return linha;
+        }
+
+        private VisualElement MontarSecaoAparencia()
+        {
+            var secao = new VisualElement();
+            secao.AddToClassList("personagem-criacao-aparencia");
+
+            var titulo = new Label("Personalização");
+            titulo.AddToClassList(EstiloCore.Subtitulo);
+            secao.Add(titulo);
+
+            secao.Add(
+                CriarLinhaAparencia(
+                    "Tom de pele",
+                    () => TextosPersonagem.NomeTomDePele(_aparencia.TomDePele),
+                    () => MudarTom(-1),
+                    () => MudarTom(1),
+                    out _rotuloTom
+                )
+            );
+
+            secao.Add(
+                CriarLinhaAparencia(
+                    "Cabelo",
+                    () => TextosPersonagem.NomeCabelo(_aparencia.Cabelo),
+                    () => MudarCabelo(-1),
+                    () => MudarCabelo(1),
+                    out _rotuloCabelo
+                )
+            );
+
+            secao.Add(
+                CriarLinhaAparencia(
+                    "Cor do cabelo",
+                    () => TextosPersonagem.NomeCorDeCabelo(_aparencia.CorDeCabelo),
+                    () => MudarCor(-1),
+                    () => MudarCor(1),
+                    out _rotuloCor
+                )
+            );
+
+            return secao;
+        }
+
+        private static VisualElement CriarLinhaAparencia(
+            string nome,
+            Func<string> obterTexto,
+            Action aoVoltar,
+            Action aoAvancar,
+            out Label rotuloValor
+        )
+        {
+            var item = new VisualElement();
+            item.AddToClassList("personagem-stepper-item");
+
+            var titulo = new Label(nome);
+            titulo.AddToClassList(EstiloCore.Texto);
+            item.Add(titulo);
+
+            var linha = new VisualElement();
+            linha.AddToClassList("personagem-stepper-linha");
+
+            var anterior = new Button(aoVoltar) { text = "◀" };
+            anterior.AddToClassList(EstiloCore.Botao);
+            anterior.AddToClassList("personagem-stepper-botao");
+
+            rotuloValor = new Label(obterTexto());
+            rotuloValor.AddToClassList("personagem-stepper-valor");
+
+            var proximo = new Button(aoAvancar) { text = "▶" };
+            proximo.AddToClassList(EstiloCore.Botao);
+            proximo.AddToClassList("personagem-stepper-botao");
+
+            linha.Add(anterior);
+            linha.Add(rotuloValor);
+            linha.Add(proximo);
+            item.Add(linha);
+            return item;
+        }
+
+        private void MudarTom(int delta)
+        {
+            if (_esperando)
+            {
+                return;
+            }
+
+            _aparencia.TomDePele =
+                (_aparencia.TomDePele + delta + RegrasPersonagem.TotalTonsDePele)
+                % RegrasPersonagem.TotalTonsDePele;
+            _rotuloTom.text = TextosPersonagem.NomeTomDePele(_aparencia.TomDePele);
+            AtualizarPrevia();
+        }
+
+        private void MudarCabelo(int delta)
+        {
+            if (_esperando)
+            {
+                return;
+            }
+
+            _aparencia.Cabelo =
+                (_aparencia.Cabelo + delta + RegrasPersonagem.TotalCabelos)
+                % RegrasPersonagem.TotalCabelos;
+            _rotuloCabelo.text = TextosPersonagem.NomeCabelo(_aparencia.Cabelo);
+            AtualizarPrevia();
+        }
+
+        private void MudarCor(int delta)
+        {
+            if (_esperando)
+            {
+                return;
+            }
+
+            _aparencia.CorDeCabelo =
+                (_aparencia.CorDeCabelo + delta + RegrasPersonagem.TotalCoresDeCabelo)
+                % RegrasPersonagem.TotalCoresDeCabelo;
+            _rotuloCor.text = TextosPersonagem.NomeCorDeCabelo(_aparencia.CorDeCabelo);
+            AtualizarPrevia();
+        }
+
+        private void AtualizarPrevia()
+        {
+            if (_indiceRaca >= 0 && _indiceRaca < _racas.Count)
+            {
+                _previsao ??= new PreviaVisualPersonagem();
+                var disponivel = _previsao.Mostrar(_racas[_indiceRaca], _aparencia);
+                _imagem.image = disponivel ? _previsao.Textura : null;
+                _avisoPrevia.text = disponivel ? "" : "Visual indisponível neste momento";
+                EstiloPersonagem.Mostrar(_avisoPrevia, !disponivel);
+            }
         }
 
         private static Label NovoRotulo(VisualElement pai, string classe)
@@ -201,11 +338,7 @@ namespace JogoDoGrupo.Client.Features.Personagem
                 dados == null ? "" : "Habilidade racial em desenvolvimento: " + dados.SkillRacial;
             _racaTexto.text = dados != null ? "“" + dados.Texto + "”" : "";
 
-            _previsao ??= new PreviaVisualPersonagem();
-            var disponivel = _previsao.Mostrar(_racas[indice]);
-            _imagem.image = disponivel ? _previsao.Textura : null;
-            _avisoPrevia.text = disponivel ? "" : "Visual indisponível neste momento";
-            EstiloPersonagem.Mostrar(_avisoPrevia, !disponivel);
+            AtualizarPrevia();
         }
 
         private void AoMudarNome(ChangeEvent<string> evt)
@@ -267,7 +400,12 @@ namespace JogoDoGrupo.Client.Features.Personagem
                 return;
             }
 
-            var pedido = new CriarPersonagemRequest { Nome = nome, Raca = _racas[indice] };
+            var pedido = new CriarPersonagemRequest
+            {
+                Nome = nome,
+                Raca = _racas[indice],
+                Aparencia = _aparencia,
+            };
 
             DefinirEsperando(true);
             MostrarMensagem("Criando o personagem...");

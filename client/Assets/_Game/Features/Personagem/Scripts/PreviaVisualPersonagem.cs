@@ -16,53 +16,58 @@ namespace JogoDoGrupo.Client.Features.Personagem
         private Camera _camera;
         private RenderTexture _textura;
         private Raca? _raca;
+        private AparenciaPersonagem _aparencia;
 
         public RenderTexture Textura => _textura;
 
-        public bool Mostrar(Raca raca)
+        public bool Mostrar(Raca raca, AparenciaPersonagem aparencia = null)
         {
-            if (_raca == raca && _modelo != null)
-            {
-                return true;
-            }
-
-            LimparModelo();
-            var prefab = Resources.Load<GameObject>(RegistroVisualJogador.CaminhoDoPrefab(raca));
-            if (prefab == null)
-            {
-                Debug.LogWarning($"[Personagem] Prévia da raça {raca} não encontrada.");
-                return false;
-            }
-
-            CriarCenaSeNecessario();
-            _modelo = UnityEngine.Object.Instantiate(prefab, _raiz.transform);
-            _modelo.name = "Modelo da prévia";
-            _modelo.transform.localPosition = Vector3.zero;
-            _modelo.transform.localRotation = Quaternion.identity;
-            DefinirCamada(_modelo.transform);
-
-            var renderizadores = _modelo.GetComponentsInChildren<Renderer>();
-            if (renderizadores.Length == 0)
+            var precisaRecriar = _raca != raca || _modelo == null;
+            if (precisaRecriar)
             {
                 LimparModelo();
-                return false;
+                var prefab = Resources.Load<GameObject>(
+                    RegistroVisualJogador.CaminhoDoPrefab(raca)
+                );
+                if (prefab == null)
+                {
+                    Debug.LogWarning($"[Personagem] Prévia da raça {raca} não encontrada.");
+                    return false;
+                }
+
+                CriarCenaSeNecessario();
+                _modelo = UnityEngine.Object.Instantiate(prefab, _raiz.transform);
+                _modelo.name = "Modelo da prévia";
+                _modelo.transform.localPosition = Vector3.zero;
+                _modelo.transform.localRotation = Quaternion.identity;
+                DefinirCamada(_modelo.transform);
+
+                var renderizadores = _modelo.GetComponentsInChildren<Renderer>();
+                if (renderizadores.Length == 0)
+                {
+                    LimparModelo();
+                    return false;
+                }
+
+                var limites = renderizadores[0].bounds;
+                for (var i = 1; i < renderizadores.Length; i++)
+                {
+                    limites.Encapsulate(renderizadores[i].bounds);
+                }
+
+                _camera.orthographicSize = Mathf.Max(
+                    limites.extents.y * 1.25f,
+                    limites.extents.x * Altura / Largura * 1.25f,
+                    0.8f
+                );
+                _camera.transform.position = limites.center + new Vector3(0.6f, 0.2f, 5f);
+                _camera.transform.LookAt(limites.center);
+                _raca = raca;
             }
 
-            var limites = renderizadores[0].bounds;
-            for (var i = 1; i < renderizadores.Length; i++)
-            {
-                limites.Encapsulate(renderizadores[i].bounds);
-            }
-
-            _camera.orthographicSize = Mathf.Max(
-                limites.extents.y * 1.25f,
-                limites.extents.x * Altura / Largura * 1.25f,
-                0.8f
-            );
-            _camera.transform.position = limites.center + new Vector3(0.6f, 0.2f, 5f);
-            _camera.transform.LookAt(limites.center);
+            _aparencia = aparencia;
+            AplicadorAparencia.Aplicar(_modelo, aparencia);
             _camera.Render();
-            _raca = raca;
             return true;
         }
 

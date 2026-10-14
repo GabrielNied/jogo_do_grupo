@@ -22,6 +22,18 @@ public sealed class Personagem
 
     public int Nivel { get; set; } = NivelInicial;
 
+    public int TomDePele { get; set; }
+    public int Cabelo { get; set; }
+    public int CorDeCabelo { get; set; }
+
+    public AparenciaPersonagem Aparencia =>
+        new()
+        {
+            TomDePele = TomDePele,
+            Cabelo = Cabelo,
+            CorDeCabelo = CorDeCabelo,
+        };
+
     /// <summary>Experiência acumulada dentro do nível atual. No teto, passa do custo do nível.</summary>
     public long XpAtual { get; set; }
 
@@ -39,6 +51,7 @@ public sealed class Personagem
             Nome = Nome,
             Raca = Raca,
             Nivel = Nivel,
+            Aparencia = Aparencia,
         };
 
     public ProgressoResponse ParaProgresso() =>
