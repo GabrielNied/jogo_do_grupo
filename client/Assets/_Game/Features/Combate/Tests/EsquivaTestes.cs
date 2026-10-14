@@ -77,6 +77,10 @@ namespace JogoDoGrupo.Client.Features.Combate.Tests
                 ApresentacaoEsquiva.TextoDaRecusa(CodigosErroCombate.VoceEstaCaido)
             );
             Assert.AreEqual(
+                ApresentacaoEsquiva.TextoVoceEstaAtordoado,
+                ApresentacaoEsquiva.TextoDaRecusa(CodigosErroCombate.VoceEstaAtordoado)
+            );
+            Assert.AreEqual(
                 ApresentacaoEsquiva.TextoRecusaGenerica,
                 ApresentacaoEsquiva.TextoDaRecusa("Outro")
             );

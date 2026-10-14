@@ -60,6 +60,12 @@ public sealed class ServicoDeEsquivas : IDisposable
         // Esquivar interrompe quem levantava um aliado (quem está caído é recusado mais adiante).
         _queda?.AoAgir(personagemId);
 
+        if (_controle.EstaAtordoado(personagemId))
+        {
+            Recusar(sessao, intencao.Sequencia, CodigosErroCombate.VoceEstaAtordoado);
+            return;
+        }
+
         var ocupou = _controle.TentarOcupar(
             personagemId,
             _relogioMs(),

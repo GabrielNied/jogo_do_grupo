@@ -13,8 +13,9 @@ namespace JogoDoGrupo.Shared.Features.Combate
         /// <see cref="CodigosErroCombate.AlvoNaoEstaCaido"/>,
         /// <see cref="CodigosErroCombate.LongeDemais"/>,
         /// <see cref="CodigosErroCombate.JaEstaSendoLevantado"/>,
-        /// <see cref="CodigosErroCombate.NaoEstaCaido"/> ou
-        /// <see cref="CodigosErroCombate.AindaNaoPodeVoltar"/>.
+        /// <see cref="CodigosErroCombate.NaoEstaCaido"/>,
+        /// <see cref="CodigosErroCombate.AindaNaoPodeVoltar"/> ou
+        /// <see cref="CodigosErroCombate.VoceEstaAtordoado"/>.
         /// </summary>
         public string Codigo = "";
     }

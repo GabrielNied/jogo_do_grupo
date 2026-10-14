@@ -384,6 +384,23 @@ public class AtaqueTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDeA
     }
 
     [Fact]
+    public async Task Ataque_durante_atordoamento_e_recusado_com_VoceEstaAtordoado()
+    {
+        using var ana = await NovoJogadorAsync();
+        var efeitos = servidor.Falso.Services.GetRequiredService<GerenciadorDeEfeitosDeStatus>();
+        efeitos.Aplicar(ana.Id, TipoEfeitoDeStatus.Atordoado, duracaoSegundos: 5.0);
+
+        Atacar(ana, TipoDeAtaque.Leve, sequencia: 1);
+
+        var recusa = await ana.Cliente.ReceberAsync<AtaqueRecusado>(
+            CombateMessageIds.AtaqueRecusado
+        );
+        Assert.Equal(1, recusa.Sequencia);
+        Assert.Equal(CodigosErroCombate.VoceEstaAtordoado, recusa.Codigo);
+        Assert.False(ana.Recebeu(CombateMessageIds.AtaqueIniciado));
+    }
+
+    [Fact]
     public async Task Pesado_com_stamina_exato_passa_e_deixa_zero()
     {
         using var ana = await NovoJogadorAsync();

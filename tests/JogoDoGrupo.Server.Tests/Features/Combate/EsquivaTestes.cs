@@ -163,6 +163,21 @@ public class EsquivaTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDe
     }
 
     [Fact]
+    public async Task Esquiva_durante_atordoamento_e_recusada_com_VoceEstaAtordoado()
+    {
+        using var ana = await NovoJogadorAsync();
+        var efeitos = servidor.Falso.Services.GetRequiredService<GerenciadorDeEfeitosDeStatus>();
+        efeitos.Aplicar(ana.Id, TipoEfeitoDeStatus.Atordoado, duracaoSegundos: 5.0);
+
+        Esquivar(ana, sequencia: 4);
+
+        var recusada = await RecusadaAsync(ana);
+        Assert.Equal(4, recusada.Sequencia);
+        Assert.Equal(CodigosErroCombate.VoceEstaAtordoado, recusada.Codigo);
+        Assert.False(ana.Recebeu(CombateMessageIds.EsquivaIniciada));
+    }
+
+    [Fact]
     public async Task Recusada_por_falta_de_stamina_nao_prende_o_personagem()
     {
         using var ana = await NovoJogadorAsync();

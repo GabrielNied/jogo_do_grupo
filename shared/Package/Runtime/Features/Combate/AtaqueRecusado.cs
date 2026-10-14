@@ -12,8 +12,9 @@ namespace JogoDoGrupo.Shared.Features.Combate
 
         /// <summary>
         /// Motivo: <see cref="CodigosErroCombate.StaminaInsuficiente"/>,
-        /// <see cref="CodigosErroCombate.AcaoEmAndamento"/> ou
-        /// <see cref="CodigosErroCombate.VoceEstaCaido"/>.
+        /// <see cref="CodigosErroCombate.AcaoEmAndamento"/>,
+        /// <see cref="CodigosErroCombate.VoceEstaCaido"/> ou
+        /// <see cref="CodigosErroCombate.VoceEstaAtordoado"/>.
         /// </summary>
         public string Codigo = "";
     }
