@@ -1,6 +1,6 @@
 ---
 name: puxar-tarefa
-description: Confere se uma tarefa está livre, puxa-a para em andamento (bloqueia concorrência), registra no GitHub e cria a branch de desenvolvimento.
+description: Puxa uma tarefa ou um lote para em andamento (trava contra concorrência) e cria a branch, ou libera a tarefa. Use antes de codar qualquer tarefa, ou ao pausar ou trocar de tarefa.
 ---
 
 # puxar-tarefa

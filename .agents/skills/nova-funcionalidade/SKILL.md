@@ -1,6 +1,6 @@
 ---
 name: nova-funcionalidade
-description: Cria uma funcionalidade vertical nova (client, server, shared e documentação) com a faixa correta de IDs.
+description: Cria uma funcionalidade nova nas três partes (client, server, shared) e na doc, com a próxima faixa de IDs livre. Use para "criar a feature X".
 ---
 
 # nova-funcionalidade

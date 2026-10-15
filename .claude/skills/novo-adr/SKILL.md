@@ -1,6 +1,6 @@
 ---
 name: novo-adr
-description: Registra uma decisão técnica do projeto como ADR em docs/decisoes/, com numeração sequencial e o template do repo. Use quando uma decisão de arquitetura, biblioteca, ferramenta ou processo for tomada (ex.: "decidimos usar LiteNetLib", "vamos usar Postgres") ou quando pedirem um ADR.
+description: Registra uma decisão técnica (arquitetura, biblioteca, ferramenta ou processo) como ADR em docs/decisoes/. Use quando uma decisão for tomada ou pedirem um ADR.
 ---
 
 # Novo ADR

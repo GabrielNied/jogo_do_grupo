@@ -10,11 +10,8 @@ test("a pasta vem da lista real, sem depender de maiúscula", () => {
 });
 
 test("cada papel mexe na sua pasta", () => {
-  assert.deepEqual(pastasDoPapel("client-funcionalidade", "Itens"), [
-    "client/Assets/_Game/Features/Itens/",
-  ]);
-  assert.ok(pastasDoPapel("server-funcionalidade", "Itens")[0].startsWith("server/"));
-  assert.ok(pastasDoPapel("shared-contratos", "Itens")[0].startsWith("shared/"));
+  assert.deepEqual(pastasDoPapel("client-core", "Itens"), ["client/Assets/_Game/Core/"]);
+  assert.deepEqual(pastasDoPapel("server-core", "Itens"), ["server/src/JogoDoGrupo.Server/Core/"]);
   assert.equal(pastasDoPapel("outro", "Itens").length, 3);
 });
 
@@ -31,7 +28,7 @@ test("o corpo aponta onde ler e onde mexer e mantém o Parent", () => {
   const corpo = corpoSubtarefa({
     pai: 64,
     tituloPai: "[Itens] Loot no chão",
-    papel: "client-funcionalidade",
+    papel: "funcionalidade",
     escopo: "itens",
     pastas: ["Itens"],
     contexto: "Marcador do item e tecla F.",

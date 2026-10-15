@@ -1,6 +1,6 @@
 ---
 name: trabalhe
-description: Inicia uma leva de tarefas do projeto, do começo ao PR, sem pedir o que puxar. Organizar o quadro é o /decida.
+description: Implementa tarefas do Jogo do Grupo do começo ao PR, na ordem de prioridade, juntando num lote (um agente, um PR) as que mexem no mesmo código. Use para "/trabalhe", "pegar as próximas tarefas", "implemente a issue X" ou "coloque os agentes para trabalhar". Não pede input humano.
 ---
 
 # trabalhe

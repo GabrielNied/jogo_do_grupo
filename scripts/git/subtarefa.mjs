@@ -19,13 +19,6 @@ export function pastasDoPapel(papel, pasta) {
   const client = `client/Assets/_Game/Features/${pasta}/`;
   const shared = `shared/Package/Runtime/Features/${pasta}/`;
   switch (papel) {
-    case "client-funcionalidade":
-      return [client];
-    case "server-funcionalidade":
-      return [server, `tests/JogoDoGrupo.Server.Tests/Features/${pasta}/`];
-    case "shared-contratos":
-    case "regras-do-jogo":
-      return [shared, `tests/JogoDoGrupo.Shared.Tests/Features/${pasta}/`];
     case "funcionalidade":
     case "itens":
     case "economia":

@@ -1,6 +1,6 @@
 ---
 name: fazer-commit
-description: Escreve e faz commits no padrão Conventional Commits do repo, validado pelo commitlint (tipo, escopo obrigatório da funcionalidade, descrição em português minúscula). Use quando pedirem para commitar, sugerir mensagem de commit, escrever o título de um PR ou corrigir uma mensagem recusada pelo commitlint.
+description: Escreve commits e títulos de PR no padrão do commitlint do repo (tipo, escopo, descrição em português minúscula). Use para commitar, sugerir mensagem ou corrigir uma recusada.
 ---
 
 # Fazer commit

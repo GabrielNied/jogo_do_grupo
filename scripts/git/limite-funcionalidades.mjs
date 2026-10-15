@@ -1,9 +1,10 @@
-// No máximo 3 funcionalidades de jogo em andamento (docs/agentes.md).
-// Core e desenvolvimento não ocupam vaga: não são o ciclo do marco.
+// No máximo 3 lotes de jogo em andamento (docs/agentes.md#lote, ADR 0037). Um lote é uma
+// branch com uma ou mais issues, de uma ou várias funcionalidades. Core e desenvolvimento não
+// ocupam vaga: não são o ciclo do marco.
 
 import { escopos } from "../../commitlint.config.mjs";
 
-export const LIMITE_FUNCIONALIDADES = 3;
+export const LIMITE_LOTES = 3;
 
 export const FUNCIONALIDADES_DE_JOGO = escopos.filter((escopo) => escopo !== "core" && escopo !== "desenvolvimento");
 
@@ -11,14 +12,19 @@ export function funcionalidadesDe(labels) {
   return FUNCIONALIDADES_DE_JOGO.filter((funcionalidade) => labels.includes(funcionalidade));
 }
 
-export function podePuxarFuncionalidade(labelsDaIssue, gruposEmAndamento) {
-  const desta = funcionalidadesDe(labelsDaIssue);
-  if (desta.length === 0) return { ok: true, emCurso: [], novas: [] };
-
-  const emCurso = new Set(gruposEmAndamento.flatMap((labels) => funcionalidadesDe(labels)));
-  const novas = desta.filter((funcionalidade) => !emCurso.has(funcionalidade));
-  const lista = [...emCurso].sort();
-  if (emCurso.size + novas.length <= LIMITE_FUNCIONALIDADES) return { ok: true, emCurso: lista, novas };
-
-  return { ok: false, emCurso: lista, novas };
+/**
+ * `labelsDoLote`: rótulos de todas as issues do lote, juntos.
+ * `emAndamento`: [{ numero, labels, branch }] das issues já em andamento (branch null se a trava não diz).
+ * `branchDoLote`: a branch que o lote vai usar; juntar-se a um lote em curso não abre vaga nova.
+ */
+export function podePuxarLote(labelsDoLote, emAndamento, branchDoLote = null) {
+  const lotes = new Set(
+    emAndamento
+      .filter((item) => funcionalidadesDe(item.labels).length > 0)
+      .map((item) => item.branch ?? `#${item.numero}`),
+  );
+  const emCurso = [...lotes].sort();
+  if (funcionalidadesDe(labelsDoLote).length === 0) return { ok: true, emCurso };
+  if (branchDoLote && lotes.has(branchDoLote)) return { ok: true, emCurso };
+  return { ok: lotes.size < LIMITE_LOTES, emCurso };
 }

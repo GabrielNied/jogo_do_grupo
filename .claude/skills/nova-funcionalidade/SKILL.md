@@ -1,6 +1,6 @@
 ---
 name: nova-funcionalidade
-description: Cria uma funcionalidade nova do jogo nas três partes do monorepo (client Unity, server .NET, shared) e na documentação, com a próxima faixa de IDs de mensagem livre. Use quando pedirem para adicionar/criar uma feature, sistema ou área nova do jogo (ex.: "criar a feature Montarias").
+description: Cria uma funcionalidade nova nas três partes (client, server, shared) e na doc, com a próxima faixa de IDs livre. Use para "criar a feature X".
 ---
 
 # Nova funcionalidade

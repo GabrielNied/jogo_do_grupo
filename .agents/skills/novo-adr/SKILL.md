@@ -1,6 +1,6 @@
 ---
 name: novo-adr
-description: Registra uma decisão técnica do projeto como ADR.
+description: Registra uma decisão técnica (arquitetura, biblioteca, ferramenta ou processo) como ADR em docs/decisoes/. Use quando uma decisão for tomada ou pedirem um ADR.
 ---
 
 # novo-adr

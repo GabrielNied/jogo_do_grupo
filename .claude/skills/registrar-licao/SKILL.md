@@ -1,31 +1,20 @@
 ---
 name: registrar-licao
-description: Registra em docs/licoes.md um problema de processo que acabou de acontecer (comando que travou, trabalho perdido, retrabalho de agente, ferramenta que enganou) e a regra para não repetir, e aponta a regra nos docs certos. Use quando algo deu errado no fluxo de trabalho, ao fim de uma tarefa que teve tropeço, ou quando pedirem para documentar o que se aprendeu.
+description: Transforma um tropeço de processo (comando que travou, trabalho perdido, retrabalho de agente, ferramenta que enganou) em script, hook ou regra curta, e registra em docs/licoes.md só o que ainda não virou. Use quando algo deu errado no fluxo ou pedirem para documentar o que se aprendeu.
 ---
 
 # Registrar lição
 
-Cada problema de processo vira uma lição escrita, para ninguém (pessoa ou IA) cair nele de novo. A lista fica em [docs/licoes.md](../../../docs/licoes.md), a fonte única; os outros docs só apontam para ela.
+Um tropeço não se repete quando uma máquina o impede. Texto é o último recurso: cada linha a mais nas instruções é paga em toda rodada de todo agente ([orçamento de contexto](../../../docs/agentes.md#orçamento-de-contexto)).
 
-## Quando
+**Quando:** algo travou, sumiu ou foi refeito; uma ferramenta respondeu errado; você contornou algo que vai voltar. Dúvida de design ou estilo não é lição: vai em `docs/features/` ou em [convenções](../../../docs/convencoes.md).
 
-- Algo travou, caiu, sumiu ou precisou ser refeito (computador travado, trabalho perdido, agente que parou sem editar, PR fechado antes do último commit).
-- Uma ferramenta ou comando deu resposta enganosa (ex.: `unity:editor` achando que o Unity aberto é do projeto).
-- Você contornou algo que vai acontecer de novo.
+## Passos, na ordem: pare no primeiro que resolve
 
-Não registre dúvida de design nem preferência de estilo: isso vai em `docs/features/` ou em [convenções](../../../docs/convencoes.md).
+1. **Script ou hook** que impede o erro ou faz o passo sozinho (regra 16), no mesmo PR, com teste se for script. Feito isso, não escreva lição: o commit conta a história.
+2. **Regra curta onde ela será lida** (uma linha em [agentes.md](../../../docs/agentes.md), [git.md](../../../docs/git.md), `docs/arte/` ou na skill do passo), sem copiar texto entre docs.
+3. **Entrada em [licoes.md](../../../docs/licoes.md)** só se nenhum dos dois cabe agora (é grande, ou é diagnóstico que ninguém automatiza): `### AAAA-MM-DD · título`, com **O que houve**, **Regra** e **Origem** (PR ou issue). Se for grande, abra também uma issue com o rótulo `desenvolvimento`.
 
-## Passos
+Antes, veja se a lição já existe e reforce em vez de duplicar. Lição que virou script ou regra sai do licoes.md no mesmo PR.
 
-1. **Leia** `docs/licoes.md` e veja se a lição já existe. Se existir, só reforce a entrada (data, PR) em vez de duplicar.
-2. **Escreva a entrada** em `docs/licoes.md`, no bloco da data (crie `### AAAA-MM-DD · título` se não existir): **o que houve** (1 frase, com o efeito), **a regra** (imperativa, verificável) e a **origem** (PR ou issue).
-3. **Aponte a regra onde ela será lida**, sem copiar o texto: um link em [agentes.md](../../../docs/agentes.md) se for de agentes, em `docs/arte/` se for de arte, em [git.md](../../../docs/git.md) se for de git, ou uma linha no [AGENTS.md](../../../AGENTS.md) se todo agente precisa saber.
-4. **Dá para evitar com código?** Se for um script ou hook pequeno que impede o erro (regra 16 do AGENTS.md), implemente no mesmo PR; uma regra que uma máquina confere vale mais que um aviso. Se for grande, abra uma issue e cite no registro.
-5. **Entregue:** inclua na mesma branch da tarefa; se o PR já foi mergeado, parta de `origin/main` e abra um PR de docs (`docs(core): ...`). Só Markdown: verifique com `git diff --check`.
-
-## Checklist
-
-- [ ] A lição diz o que houve e a regra, em poucas linhas.
-- [ ] Não duplica outra lição nem copia texto de outro doc.
-- [ ] Os links que apontam para a regra funcionam.
-- [ ] Se dava para automatizar, foi automatizado ou há uma issue.
+**Entregue** na branch da tarefa; se o PR já foi mergeado, parta de `origin/main` num PR pequeno. Só Markdown: `git diff --check`.
