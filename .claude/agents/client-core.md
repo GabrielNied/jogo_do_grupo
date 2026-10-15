@@ -21,6 +21,7 @@ Você é o agente **client-core**: a infraestrutura do client (conexão, envio e
 ## Do papel
 
 - Exponha às funcionalidades uma API simples (enviar mensagem, assinar por ID); elas não falam com a rede direto.
+- Parâmetros do transporte UDP (`ChannelsCount`, etc.) vêm de `TransporteTempoReal` no shared; alinhe com o servidor no **mesmo PR** ([padroes-de-fix.md](../../docs/desenvolvimento/padroes-de-fix.md)). Rode `npm run conferir-contratos-rede` antes de abrir PR.
 - Visual: seção **Estilo** de `docs/arquitetura.md`, classes de `EstiloCore` e `EstiloCore.uss`; nada de cor, tamanho ou borda no C#.
 
 ## Como trabalhar
