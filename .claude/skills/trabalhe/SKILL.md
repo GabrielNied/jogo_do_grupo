@@ -1,45 +1,64 @@
 ---
 name: trabalhe
-description: Inicia uma leva de tarefas do Jogo do Grupo do começo ao PR (escolhe as tarefas livres, decide o que a doc deixa em aberto, puxa, orquestra os agentes, abre os PRs e limpa). Use quando pedirem "/trabalhe", "começar uma leva", "pegar as próximas tarefas" ou "trabalhe nas tarefas X". Não pede input humano. Organizar o quadro é o /decida.
+description: Implementa tarefas do Jogo do Grupo do começo ao PR, na ordem de prioridade, juntando num lote (um agente, um PR) as que mexem no mesmo código. Use para "/trabalhe", "pegar as próximas tarefas", "implemente a issue X" ou "coloque os agentes para trabalhar". Não pede input humano.
 ---
 
-# Trabalhe (leva de tarefas)
+# Trabalhe
 
-Você é o **coordenador** da leva. `/trabalhe` já autoriza escolher, puxar, decidir o que a doc deixa em aberto e implementar. Não pergunte o que puxar, não peça regra, contrato nem confirmação, não ofereça alternativas e não espere OK. Organizar o quadro e destravar sem implementar é o `/decida`. Abrir tarefa de melhoria do que já existe é o `/melhore`.
+Você é o **coordenador**: escolhe, agrupa, puxa, lança os donos, junta e entrega. `/trabalhe` já autoriza tudo isso; não pergunte o que puxar, não peça confirmação, não ofereça alternativas. Conferir e organizar o quadro é o `/decida`; abrir melhorias é o `/melhore`.
 
-Argumentos opcionais após `/trabalhe` (todos podem faltar):
+Argumentos (todos opcionais):
 
-- **Números de issues** (`#123 #130`): são as tarefas da leva; pule a escolha do passo 2.
-- **Filtro** (`mundo`, `unity`, `bugs`): restringe a escolha a essa funcionalidade ou tipo.
-- **N** (`3`): máximo de tarefas na leva. Sem N, use 3. É o controle de custo, igual em qualquer ferramenta: com o plano no fim, a pessoa pede `/trabalhe 1`.
+- **Issues** (`#123 #130`): formam o lote; pule o passo 2.
+- **Filtro** (`mundo`, `bugs`): restringe a escolha.
+- **N** (`2`): máximo de lotes (agentes) em paralelo. Sem N, 3.
 
 ## 1. Estado inicial
 
-- `git status` e branch atual. Mudança não commitada que não é sua: não leve para a leva e não apague; avise no relatório.
-- Branch atual com commit sem PR: abra o PR (regra 12) e siga a leva. Não pare para oferecer.
-- A leva sai de branches novas a partir da `main` atualizada (skill `nova-branch`), cada uma no seu worktree.
-- Prepare o ambiente se precisar (`npm run nuvem:preparar` na nuvem). O hook de início de sessão lista pendências de Unity: considere-as candidatas se houver Unity na máquina.
+- `git status`. Mudança que não é sua: não leve e não apague; cite no relatório. Branch sua com commit sem PR: abra o PR (regra 12) e siga.
+- Na nuvem, `npm run nuvem:preparar`. Pendência de Unity do hook de início é candidata se houver Unity na máquina.
 
-## 2. Escolher as tarefas
+## 2. Escolher pela ordem
 
-`npm run tarefa -- listar`. Para cada candidata livre, anote funcionalidade, camadas (docs, contrato, server, client) e dependências. Prefira, nesta ordem: o que está quebrado (CI, main), depois o rótulo `prio:*` (menor número primeiro, [Prioridade das tarefas](../../../docs/agentes.md#prioridade-das-tarefas)), depois o que destrava outras tarefas e o que é independente das demais. O tamanho da leva é N. Duas tarefas na mesma funcionalidade ou em `Core/` não rodam em paralelo. Não entra: tarefa já em andamento, label `bloqueada` ou `decisao`. Essas ficam para o `/decida`.
+`npm run tarefa -- listar`. A lista "Disponíveis" já sai na [ordem de prioridade](../../../docs/agentes.md#prioridade-das-tarefas) e marca o que não entra (`⏳ depende de`, `decisao`) e o que falta (`sem ficha`, `rótulos v1`). Pegue de cima para baixo.
 
-A escolha é sua. Não devolva a lista para a pessoa decidir.
+Tarefa sem ficha: se for pequena e clara, escreva a [ficha](../../../docs/agentes.md#ficha-da-tarefa) no corpo antes de lançar. Épico (`planejamento`, sem cena): pegue o próximo recorte jogável listado nele; se não houver, pule (é do `/decida`).
 
-## 3. Começar no mesmo turno
+## 3. Montar os lotes
 
-Decida a leva com os critérios do passo 2 e siga para o passo 4 na mesma resposta. A tabela (tarefa, funcionalidade, camadas, por que entrou, o que ficou de fora) sai junto com o início do trabalho. É informe. A resposta não termina na tabela.
+- A **semente** é a melhor tarefa livre ainda sem lote.
+- Entram junto **todas** as livres com afinidade de código com ela: mesmos arquivos ou fluxo, dependência, "Lote sugerido" da ficha. Pode cruzar funcionalidades e não tem limite; tarefa de prioridade menor entra se mexe no mesmo código (reabrir depois custa mais).
+- O próximo lote parte da melhor que sobrou e não pode dividir arquivos com os já montados. Pare em N lotes ou no limite de 3 lotes de jogo em andamento.
+- Dono e regras do lote: [Lote](../../../docs/agentes.md#lote). Lote pequeno (docs, config, até ~50 linhas cada) você faz direto, sem agente.
 
-O que a doc e a proposta da issue já dizem, siga. O que estiver em aberto, decida e registre ([Decisões de design](../../../docs/agentes.md#decisões-de-design)). Se a decisão mudaria algo marcado como Definido, pule a tarefa, comente na issue e escolha outra. Isso vai para um `/decida`, e a leva continua.
+Mostre a tabela (lote, issues, funcionalidades, dono, por que) e siga no mesmo turno. O que a doc deixa em aberto, o dono decide ([Decisões de design](../../../docs/agentes.md#decisões-de-design)). Decisão que mudaria algo **Definido**: tire a issue do lote, comente nela e siga.
 
-## 4. Executar
+## 4. Lançar os donos
 
-Para cada tarefa da leva, siga a skill [orquestrar-tarefa](../orquestrar-tarefa/SKILL.md) (ficha, contrato primeiro, server e client em paralelo, revisor). Essa skill não pede aprovação nesta leva: `/trabalhe` já decidiu. Antes de qualquer agente, puxe com `npm run tarefa -- puxar <N>` (skill [puxar-tarefa](../puxar-tarefa/SKILL.md)); tarefa já em andamento por outra pessoa: pule e registre no relatório (regra 15). Se o `puxar` avisar **REVISAR RELEVÂNCIA**, você confere antes de passar para o agente ([Conferir a relevância](../puxar-tarefa/SKILL.md#21-conferir-a-relevância)) e manda na ficha a issue já ajustada. Se ela estiver feita ou obsoleta, troque por outra tarefa. A tarefa de Core fica com o agente de Core. Se uma funcionalidade exigir a pasta de outra, ou Core que a issue não pediu, comente na issue, deixe essa parte de fora e termine o que cabe na pasta dela.
+Lote que precisa de algo novo em Core: lance `server-core`/`client-core` antes e espere o merge. Os outros donos vão **na mesma mensagem, em segundo plano**, um por lote. O prompt precisa ser completo, porque o agente não vê esta conversa:
 
-## 5. Entregar
+```
+Lote: #<a>, #<b> (nesta ordem; um commit por issue; Closes de todas no PR)
+Funcionalidades: <X, Y> (escopo de commit <x>)
+Objetivo: <a cena de cada issue, 1–2 linhas cada>
+Fichas: o corpo de cada issue. Regras: docs/features/<x>.md, seções <...>.
+Puxar: `npm run tarefa -- puxar <a> <b> <branch> --agente <papel> --worktree .` no seu worktree, antes de codar.
+Fora do escopo: <...>
+Pronto quando: a cena de cada issue no jogo, com os estados do plano (docs/agentes.md#entrega-da-funcionalidade).
+Autorização: commitar, enviar a branch e abrir PR. Não faça merge.
+Base: <só se depender de PR aberto: `--base <branch-do-PR>` no puxar>
+```
 
-Cada tarefa vira um PR próprio, pela skill [preparar-pr](../preparar-pr/SKILL.md): testes do que mudou, `dotnet csharpier format .`, verificação proporcional à matriz, `Closes #<N>`. Faça commit, push e abra o PR sem esperar pedido (regra 12). Merge é humano. Sem Unity no ambiente, registre `pendencia-unity` (regra 10).
+Se o `puxar` avisar **REVISAR RELEVÂNCIA**, o dono confere pelo `git diff` mostrado ([Conferir a relevância](../puxar-tarefa/SKILL.md#21-conferir-a-relevância)); issue já feita ou obsoleta sai do lote. Nunca dois donos com os mesmos arquivos.
 
-## 6. Fechar a leva
+## 5. Juntar e entregar
 
-Você integra e limpa o que criou: `npm run limpar-agentes -- --aplicar`. Antes do relatório, a reflexão da regra 16 (skill `preparar-pr`): corte que cabe, no PR; sem corte, silêncio. Relatório final curto: PRs abertos (links), o que ficou de fora e por quê, o que um `/decida` ainda precisa destravar. Merge continua humano: não peça para mergear.
+- Cada lote vira **um PR** pela skill [preparar-pr](../preparar-pr/SKILL.md), com `Closes #` de cada issue e "Como testar" por issue.
+- "Para outros" do relatório vira tarefa nova. Decisões de design vão no resumo.
+- `revisor` só em PR de Core, segurança ou regra de dano, preço ou fusão que a doc não fechou; uma passada. Achados que valem viram commits na mesma branch, pelo agente que abriu o PR (retome-o).
+- Agente que só commitou local: `git cherry-pick <hash>` e `git show --stat` ([Fechamento](../../../docs/agentes.md#fechamento-o-coordenador-integra-e-limpa-o-que-criou)).
+- PR empilhado: depois do squash do de baixo, `npm run reempilhar -- <PR>`. PR mergeado antes dos ajustes: não envie mais nada à branch dele; branch nova da `origin/main` com `cherry-pick`.
+
+## 6. Fechar
+
+Antes do relatório, a [reflexão de custo](../../../docs/agentes.md#custo-de-ia): corte que cabe entra num PR; sem corte, silêncio. Relatório curto: PRs (links) por lote, como testar, decisões de design, o que ficou de fora e por quê, o que o `/decida` precisa destravar. Só diga "pronto para merge" com o CI verde (e o revisor, se rodou). Merge é humano; a limpeza é automática.

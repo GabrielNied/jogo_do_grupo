@@ -5,8 +5,9 @@
 //
 // Uso:
 //   npm run tarefa -- listar
-//   npm run tarefa -- puxar <numero> [nome-da-branch] [--agente <nome>] [--worktree <caminho>] [--base <branch>]
-//   npm run tarefa -- liberar <numero> [--motivo "<motivo>"]
+//   npm run tarefa -- puxar <numero> [<numero>...] [nome-da-branch] [--agente <nome>] [--worktree <caminho>] [--base <branch>]
+//   npm run tarefa -- liberar <numero> [<numero>...] [--motivo "<motivo>"]
+//   npm run tarefa -- revisar [N]
 //   npm run tarefa -- soltar-travas
 //   npm run tarefa -- status <numero>
 //   npm run tarefa -- relevancia [numero...] [--conferida "<nota>"]
@@ -18,8 +19,14 @@ import { escopos, tipos } from "../../commitlint.config.mjs";
 import { existsSync, readdirSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { LIMITE_FUNCIONALIDADES, podePuxarFuncionalidade } from "./limite-funcionalidades.mjs";
-import { compararDisponiveis, textoDaPrioridade } from "./prioridade-lista.mjs";
+import { LIMITE_LOTES, podePuxarLote } from "./limite-funcionalidades.mjs";
+import {
+  compararDisponiveis,
+  dependenciasAbertas,
+  sinaisDaIssue,
+  textoDaPrioridade,
+} from "./prioridade-lista.mjs";
+import { REVISAR_PADRAO, linhaDeRevisao, ordenarParaRevisar } from "./revisar.mjs";
 import { motivoTravaAbandonada, travaAbandonada, ultimaTrava } from "./trava-abandonada.mjs";
 import { corpoSubtarefa } from "./subtarefa.mjs";
 import { baseDaConferencia, comentarioConferida, docsDaIssue } from "./relevancia.mjs";
@@ -355,6 +362,8 @@ async function listarTarefas() {
   const disponiveis = [];
   const bloqueadas = [];
   const pendenciasUnity = [];
+  const paraPessoas = [];
+  const abertas = new Set(issues.map((issue) => issue.number));
 
   for (const issue of issues) {
     const labels = (issue.labels || []).map((l) => (typeof l === "string" ? l : l.name));
@@ -371,8 +380,13 @@ async function listarTarefas() {
       emAndamento.push({ issue, labels, itemProj });
     } else if (labels.includes(LABEL_PENDENCIA)) {
       pendenciasUnity.push({ issue, labels, itemProj });
+    } else if (labels.includes("pessoa")) {
+      paraPessoas.push({ issue, labels, itemProj });
     } else {
-      disponiveis.push({ issue, labels, itemProj });
+      const sinais = sinaisDaIssue({ labels, corpo: issue.body, abertas });
+      if (labels.includes("decisao")) sinais.push("decisao (/decida)");
+      const esperando = dependenciasAbertas(issue.body, abertas).length > 0;
+      disponiveis.push({ issue, labels, itemProj, sinais, esperando });
     }
   }
 
@@ -397,16 +411,25 @@ async function listarTarefas() {
     console.log("   (Nenhuma tarefa livre no momento)");
   } else {
     disponiveis.sort(compararDisponiveis);
-    for (const { issue, labels } of disponiveis) {
+    for (const { issue, labels, sinais } of disponiveis) {
       const agentesTags = labels.filter((l) => l.startsWith("agente:")).join(", ") || "geral";
+      const foco = labels.includes("foco") ? " | foco" : "";
+      const avisos = sinais.length > 0 ? ` | ${sinais.join(" · ")}` : "";
       console.log(`   #${issue.number} - ${issue.title}`);
-      console.log(`     ${textoDaPrioridade(labels)} | Recomendado para: [${agentesTags}]`);
+      console.log(`     ${textoDaPrioridade(labels)}${foco} | Recomendado para: [${agentesTags}]${avisos}`);
     }
   }
 
   if (pendenciasUnity.length > 0) {
     console.log(`\n🧩 PENDÊNCIAS DE UNITY (${pendenciasUnity.length}) - só para quem tem Unity na máquina:`);
     for (const { issue } of pendenciasUnity) {
+      console.log(`   #${issue.number} - ${issue.title}`);
+    }
+  }
+
+  if (paraPessoas.length > 0) {
+    console.log(`\n🙋 PARA PESSOAS (${paraPessoas.length}) - fora do /trabalhe:`);
+    for (const { issue } of paraPessoas) {
       console.log(`   #${issue.number} - ${issue.title}`);
     }
   }
@@ -420,24 +443,21 @@ async function listarTarefas() {
 
   console.log("\n-------------------------------------------------------");
   console.log("Para assumir uma tarefa:");
-  console.log("  npm run tarefa -- puxar <numero> [nome-da-branch] [--agente <nome>]");
+  console.log("  npm run tarefa -- puxar <numero> [<numero>...] [nome-da-branch] [--agente <nome>]");
   console.log("-------------------------------------------------------\n");
 }
 
+// Puxa uma tarefa ou um lote (várias issues numa branch só, docs/agentes.md#lote).
+// Confere todas antes de marcar qualquer uma: lote pela metade não fica travado.
 async function puxarTarefa(args) {
-  const numero = parseInt(args[0], 10);
-  if (isNaN(numero)) {
-    console.error("✖ Informe o número da tarefa. Exemplo: npm run tarefa -- puxar 36");
-    process.exit(1);
-  }
-
+  const numeros = [];
   let nomeBranch = null;
   let nomeAgente = null;
   let worktreePath = null;
   // Branch de base de uma leva empilhada (ainda sem merge); o padrão é a main.
   let base = "main";
 
-  for (let i = 1; i < args.length; i++) {
+  for (let i = 0; i < args.length; i++) {
     if (args[i] === "--agente" && args[i + 1]) {
       nomeAgente = args[i + 1];
       i++;
@@ -447,96 +467,91 @@ async function puxarTarefa(args) {
     } else if (args[i] === "--base" && args[i + 1]) {
       base = args[i + 1].replace(/^origin\//, "");
       i++;
+    } else if (/^#?\d+$/.test(args[i])) {
+      numeros.push(parseInt(args[i].replace("#", ""), 10));
     } else if (!args[i].startsWith("--") && !nomeBranch) {
       nomeBranch = args[i];
     }
   }
-
-  console.log(`🔍 Verificando tarefa #${numero}...`);
-  const issue = obterIssue(numero);
-  if (issue.state !== "OPEN") {
-    console.error(`✖ A tarefa #${numero} está com estado "${issue.state}". Só é possível puxar tarefas abertas.`);
+  if (numeros.length === 0) {
+    console.error("✖ Informe o número da tarefa (ou do lote). Exemplo: npm run tarefa -- puxar 36 [37 38]");
     process.exit(1);
   }
 
-  const labels = (issue.labels || []).map((l) => (typeof l === "string" ? l : l.name));
-  const temLabelAndamento = labels.includes("em-andamento");
-
+  const branchAqui = executarGit(["rev-parse", "--abbrev-ref", "HEAD"], { silencioso: true });
+  const issues = [];
+  const jaPuxadas = [];
+  const recusas = [];
   const itensProjeto = buscarItensDoProjeto();
-  const itemProj = itensProjeto.find((i) => i.content && i.content.number === issue.number);
-  const statusProj = itemProj ? itemProj.status : null;
-
-  // Verificação de concorrência
-  if (temLabelAndamento || statusProj === "In Progress") {
-    // Puxar repetido pelo mesmo agente (o primeiro já passou): a trava aponta a branch dele.
-    const trava = ultimaTrava(comentariosDa(numero));
-    const branchAqui = executarGit(["rev-parse", "--abbrev-ref", "HEAD"], { silencioso: true });
-    const mesmaBranch =
-      trava &&
-      (trava.branch === branchAqui || (trava.branch === nomeBranch && branchLocalExiste(nomeBranch)));
-    if (mesmaBranch) {
-      console.log(`\n✔ A tarefa #${numero} já foi puxada por você, na branch ${trava.branch}. Siga nela.`);
-      process.exit(0);
+  for (const numero of numeros) {
+    console.log(`🔍 Verificando tarefa #${numero}...`);
+    const issue = obterIssue(numero);
+    const labels = nomesDasLabels(issue);
+    if (issue.state !== "OPEN") {
+      recusas.push(`#${numero} está com estado "${issue.state}"; só tarefa aberta pode ser puxada.`);
+      continue;
     }
-    const responsaveis = (issue.assignees || []).map((a) => a.login).join(", ") || "outro desenvolvedor/agente";
-    console.error(`\n⛔ BLOQUEADO: A tarefa #${numero} ("${issue.title}") já está EM ANDAMENTO por: ${responsaveis}!`);
-    console.error("Para evitar retrabalho e conflitos, múltiplos desenvolvedores ou agentes não podem atuar na mesma tarefa.");
-    console.error(`Se a tarefa foi abandonada ou transferida, peça para o responsável liberar com:`);
-    console.error(`  npm run tarefa -- liberar ${numero}\n`);
-    process.exit(1);
+    const itemProj = itensProjeto.find((i) => i.content && i.content.number === issue.number);
+    if (labels.includes("em-andamento") || itemProj?.status === "In Progress") {
+      // Puxar repetido pelo mesmo agente (o primeiro já passou): a trava aponta a branch dele.
+      const trava = ultimaTrava(comentariosDa(numero));
+      const mesmaBranch =
+        trava &&
+        (trava.branch === branchAqui || (trava.branch === nomeBranch && branchLocalExiste(nomeBranch)));
+      if (mesmaBranch) {
+        jaPuxadas.push({ numero, branch: trava.branch });
+        continue;
+      }
+      const responsaveis = (issue.assignees || []).map((a) => a.login).join(", ") || "outro desenvolvedor/agente";
+      recusas.push(
+        `#${numero} ("${issue.title}") já está EM ANDAMENTO por: ${responsaveis}. Se foi abandonada, peça para liberar: npm run tarefa -- liberar ${numero}`,
+      );
+      continue;
+    }
+    if (labels.includes("bloqueada")) {
+      recusas.push(`#${numero} está BLOQUEADA por dependência ou decisão; resolva antes (/decida).`);
+      continue;
+    }
+    issues.push({ issue, labels });
   }
 
-  if (labels.includes("bloqueada")) {
-    console.error(`\n⛔ ATENÇÃO: A tarefa #${numero} está marcada como BLOQUEADA por dependência ou decisão técnica.`);
-    console.error("Resolva os impedimentos antes de iniciar o desenvolvimento.\n");
+  if (recusas.length > 0) {
+    console.error(`\n⛔ Nada foi puxado:`);
+    for (const recusa of recusas) console.error(`   ${recusa}`);
+    console.error("Tire essas do lote e puxe de novo.\n");
     process.exit(1);
   }
-
-  soltarTravasAbandonadas();
-  const emAndamento = listarIssuesAbertas()
-    .filter((aberta) => aberta.number !== numero && nomesDasLabels(aberta).includes("em-andamento"))
-    .map((aberta) => nomesDasLabels(aberta));
-  const vaga = podePuxarFuncionalidade(labels, emAndamento);
-  if (!vaga.ok) {
-    console.error(
-      `\n⛔ O marco já tem ${LIMITE_FUNCIONALIDADES} funcionalidades de jogo em andamento: ${vaga.emCurso.join(", ")}.`,
-    );
-    console.error(`A #${numero} abriria mais uma (${vaga.novas.join(", ")}). Espere uma fechar.\n`);
-    process.exit(1);
+  if (issues.length === 0) {
+    const branch = jaPuxadas[0].branch;
+    console.log(`\n✔ ${jaPuxadas.map((j) => `#${j.numero}`).join(", ")} já puxada(s) por você, na branch ${branch}. Siga nela.`);
+    process.exit(0);
   }
+  if (!nomeBranch && jaPuxadas.length > 0) nomeBranch = jaPuxadas[0].branch;
 
-  // Tarefa antiga pode pedir regra que a doc já mudou: só avisa, quem decide é o agente.
-  let docMudou = false;
-  if (!labels.includes(LABEL_PENDENCIA)) {
-    executarGit(["fetch", "origin", "main"], { silencioso: true });
-    const mudancas = mudancasNasDocs(issue);
-    docMudou = mudancas.commits.length > 0;
-    if (docMudou) avisarRelevancia(issue, mudancas);
-  }
+  const [primeira] = issues;
+  const numero = primeira.issue.number;
 
   // Pendência de Unity: com o PR ainda aberto, trabalha na branch dele em vez de criar outra.
   // Com o PR já fechado, segue o fluxo normal numa branch nova a partir da main.
   let branchExistente = null;
-  if (labels.includes(LABEL_PENDENCIA)) {
-    const pr = prDaPendencia(issue.body);
+  if (primeira.labels.includes(LABEL_PENDENCIA)) {
+    const pr = prDaPendencia(primeira.issue.body);
     const dadosPr = pr ? apiGh(`${REPO}/pulls/${pr}`, { ignorarErro: true }) : null;
     if (dadosPr && dadosPr.state === "open") {
       branchExistente = dadosPr.head.ref;
       nomeBranch = branchExistente;
       console.log(`ℹ Pendência de Unity do PR #${pr}, ainda aberto: usando a branch dele (${nomeBranch}).`);
     } else if (!nomeBranch) {
-      const escopoDoPr = (branchDaPendencia(issue.body) || "").split("/")[1];
+      const escopoDoPr = (branchDaPendencia(primeira.issue.body) || "").split("/")[1];
       nomeBranch = `chore/${escopos.includes(escopoDoPr) ? escopoDoPr : "core"}/unity-pendencia-${numero}`;
       console.log(`ℹ O PR #${pr} já foi fechado: a pendência vai numa branch nova a partir da main.`);
     }
   }
 
-  // Nome da branch
   if (!nomeBranch) {
-    nomeBranch = sugerirNomeBranch(issue);
+    nomeBranch = sugerirNomeBranch(primeira.issue);
     console.log(`ℹ Nome de branch sugerido automaticamente: ${nomeBranch}`);
   }
-
   if (!padraoBranch.test(nomeBranch)) {
     console.error(`✖ Nome de branch inválido: "${nomeBranch}"`);
     console.error("  Formato: <tipo>/<escopo>/<descricao-em-kebab-case>");
@@ -545,31 +560,62 @@ async function puxarTarefa(args) {
     process.exit(1);
   }
 
-  const usuario = nomeAgente ? `agente ${nomeAgente}` : `@${obterUsuarioAtual()}`;
-  console.log(`\n🔒 Reivindicando tarefa #${numero} para ${usuario}...`);
-
-  // 1. Marca na issue como em-andamento
-  adicionarLabel(numero, "em-andamento");
-
-  // 2. Atribui no GitHub se for pessoa
-  if (!nomeAgente) {
-    atribuir(numero, obterUsuarioAtual());
+  // Limite de lotes em andamento, conferido uma vez para o lote inteiro.
+  soltarTravasAbandonadas();
+  const doLote = new Set(numeros);
+  const emAndamento = listarIssuesAbertas()
+    .filter((aberta) => !doLote.has(aberta.number) && nomesDasLabels(aberta).includes("em-andamento"))
+    .map((aberta) => ({
+      numero: aberta.number,
+      labels: nomesDasLabels(aberta),
+      branch: ultimaTrava(aberta.totalComentarios > 0 ? comentariosDa(aberta.number) : [])?.branch ?? null,
+    }));
+  const vaga = podePuxarLote(
+    issues.flatMap((item) => item.labels),
+    emAndamento,
+    nomeBranch,
+  );
+  if (!vaga.ok) {
+    console.error(`\n⛔ Já há ${LIMITE_LOTES} lotes de jogo em andamento: ${vaga.emCurso.join(", ")}.`);
+    console.error(`Espere um fechar ou junte estas issues a um lote em curso.\n`);
+    process.exit(1);
   }
 
-  // 3. Move no Project para In Progress
-  sincronizarStatusProjeto(numero, issue.url, "In Progress");
+  // Tarefa antiga pode pedir regra que a doc já mudou: só avisa, quem decide é o agente.
+  let docMudou = false;
+  executarGit(["fetch", "origin", "main"], { silencioso: true });
+  for (const { issue, labels } of issues) {
+    if (labels.includes(LABEL_PENDENCIA)) continue;
+    const mudancas = mudancasNasDocs(issue);
+    if (mudancas.commits.length > 0) {
+      docMudou = true;
+      avisarRelevancia(issue, mudancas);
+    }
+  }
 
-  // 4. Comenta na issue
-  const comentario = `🚀 **Tarefa em andamento**\n\n- **Responsável:** ${usuario}\n- **Branch:** \`${nomeBranch}\`\n- **Início:** ${new Date().toISOString()}\n\n*Esta tarefa foi puxada e está bloqueada para outros agentes/desenvolvedores até ser concluída ou liberada.*`;
-  comentar(numero, comentario);
+  const usuario = nomeAgente ? `agente ${nomeAgente}` : `@${obterUsuarioAtual()}`;
+  const lote = issues.map(({ issue }) => `#${issue.number}`).join(", ");
+  for (const { issue } of issues) {
+    console.log(`\n🔒 Reivindicando tarefa #${issue.number} para ${usuario}...`);
+    adicionarLabel(issue.number, "em-andamento");
+    if (!nomeAgente) atribuir(issue.number, obterUsuarioAtual());
+    sincronizarStatusProjeto(issue.number, issue.url, "In Progress");
+    const doMesmoLote = issues.length > 1 ? `\n- **Lote:** ${lote}` : "";
+    comentar(
+      issue.number,
+      `🚀 **Tarefa em andamento**\n\n- **Responsável:** ${usuario}\n- **Branch:** \`${nomeBranch}\`${doMesmoLote}\n- **Início:** ${new Date().toISOString()}\n\n*Esta tarefa foi puxada e está bloqueada para outros agentes/desenvolvedores até ser concluída ou liberada.*`,
+    );
+  }
 
-  // 5. Configura Git (Worktree ou Branch local)
+  // Configura Git (Worktree ou Branch local). Branch que já existe aqui (lote acrescentado depois) fica como está.
   // Agente que já nasceu num worktree e passa o próprio caminho: cria a branch ali mesmo
   // (o git worktree add falharia depois de a issue já estar marcada).
   const raizAtual = executarGit(["rev-parse", "--show-toplevel"], { silencioso: true });
   if (worktreePath && resolve(worktreePath).toLowerCase() === resolve(raizAtual).toLowerCase()) worktreePath = null;
   console.log(`🌿 Configurando branch "${nomeBranch}"...`);
-  if (branchExistente) {
+  if (branchAqui === nomeBranch) {
+    console.log(`✔ Já na branch ${nomeBranch}.`);
+  } else if (branchExistente) {
     // Branch do PR, que já existe no origin: o git cria a local acompanhando a remota.
     executarGit(["fetch", "origin", branchExistente]);
     if (worktreePath) {
@@ -601,46 +647,42 @@ async function puxarTarefa(args) {
     windowsHide: true,
   });
 
+  const closes = issues.map(({ issue }) => `Closes #${issue.number}`).join(", ");
   console.log(`\n=======================================================`);
-  console.log(`✔ TAREFA #${numero} PUXADA COM SUCESSO!`);
+  console.log(`✔ ${issues.length > 1 ? `LOTE ${lote}` : `TAREFA #${numero}`} PUXADO COM SUCESSO!`);
   console.log(`=======================================================`);
-  console.log(`Tarefa:     #${numero} - ${issue.title}`);
+  for (const { issue } of issues) console.log(`Tarefa:     #${issue.number} - ${issue.title}`);
   console.log(`Atribuída:  ${usuario}`);
   console.log(`Branch:     ${nomeBranch}`);
-  console.log(`Status:     Em andamento (bloqueada contra concorrência)`);
   console.log(`\nPróximos passos:`);
   if (docMudou) {
     console.log(`0. A doc mudou depois da issue (aviso acima): confira a relevância antes de codar.`);
   }
-  console.log(`1. Desenvolva as alterações e escreva os testes necessários.`);
-  console.log(`2. Formate e confira com: npm run preparar-pr (ou verificação proporcional).`);
+  console.log(`1. Desenvolva e teste${issues.length > 1 ? ", um commit por issue" : ""}.`);
   if (branchExistente) {
-    console.log(`3. Dê push na mesma branch e comente no PR o que foi feito. Feche a pendência #${numero} com "Closes #${numero}" no corpo do PR.`);
+    console.log(`2. Dê push na mesma branch e comente no PR o que foi feito. Feche a pendência com "${closes}" no corpo do PR.`);
   } else {
-    console.log(`3. Ao abrir o PR, inclua "Closes #${numero}" na descrição para fechar a tarefa automaticamente no merge.`);
+    console.log(`2. No corpo do PR: ${closes}.`);
   }
-  console.log(`4. Se precisar interromper sem concluir, libere com: npm run tarefa -- liberar ${numero}\n`);
+  console.log(`3. Se precisar interromper sem concluir: npm run tarefa -- liberar ${numeros.join(" ")}\n`);
 }
 
 async function liberarTarefa(args) {
-  const numero = parseInt(args[0], 10);
-  if (isNaN(numero)) {
-    console.error("✖ Informe o número da tarefa. Exemplo: npm run tarefa -- liberar 36");
+  const iMotivo = args.indexOf("--motivo");
+  const motivo = iMotivo >= 0 && args[iMotivo + 1] ? args[iMotivo + 1] : "Não especificado";
+  const numeros = args
+    .filter((arg, i) => (iMotivo < 0 || i !== iMotivo + 1) && /^#?\d+$/.test(arg))
+    .map((arg) => parseInt(arg.replace("#", ""), 10));
+  if (numeros.length === 0) {
+    console.error("✖ Informe o número da tarefa. Exemplo: npm run tarefa -- liberar 36 [37]");
     process.exit(1);
   }
 
-  let motivo = "Não especificado";
-  for (let i = 1; i < args.length; i++) {
-    if (args[i] === "--motivo" && args[i + 1]) {
-      motivo = args[i + 1];
-      break;
-    }
+  for (const numero of numeros) {
+    console.log(`🔓 Liberando tarefa #${numero} e devolvendo para a fila...`);
+    soltarIssue(numero, motivo);
+    console.log(`✔ Tarefa #${numero} liberada! Ela voltou para o estado DISPONÍVEL.`);
   }
-
-  console.log(`🔍 Verificando tarefa #${numero}...`);
-  console.log(`🔓 Liberando tarefa #${numero} e devolvendo para a fila...`);
-  soltarIssue(numero, motivo);
-  console.log(`✔ Tarefa #${numero} liberada com sucesso! Ela voltou para o estado DISPONÍVEL.`);
 }
 
 async function verStatus(args) {
@@ -723,6 +765,32 @@ async function conferirRelevancia(args) {
     console.log(`  #${issue.number}  ${mudancas.commits.length} commit(s) desde ${mudancas.desde.slice(0, 10)} em ${docs}  ${issue.title}`);
   }
   console.log(`\nDetalhe de uma: npm run tarefa -- relevancia <numero>`);
+}
+
+// Fila do /decida: as livres há mais tempo sem conferência, com os sinais de cada uma.
+// Conferir com `relevancia <N> --conferida "..."` tira a issue do topo da próxima varredura.
+async function revisarQuadro(args) {
+  const limite = parseInt(args.find((a) => /^\d+$/.test(a)) ?? REVISAR_PADRAO, 10);
+  executarGit(["fetch", "origin", "main"], { silencioso: true });
+  const abertas = listarIssuesAbertas();
+  const numerosAbertos = new Set(abertas.map((issue) => issue.number));
+  const livres = abertas
+    .filter((issue) => {
+      const labels = nomesDasLabels(issue);
+      return !labels.includes("em-andamento") && !labels.includes(LABEL_PENDENCIA);
+    })
+    .map((issue) => {
+      const comentarios = issue.totalComentarios > 0 ? comentariosDa(issue.number) : [];
+      return { issue: { ...issue, comments: comentarios }, desde: baseDaConferencia(issue.criadaEm, comentarios) };
+    });
+  const fila = ordenarParaRevisar(livres).slice(0, limite);
+  const agoraMs = Date.now();
+  console.log(`\nConferir (${fila.length} de ${livres.length} livres, as há mais tempo sem conferência):`);
+  for (const { issue, desde } of fila) {
+    const commitsDoc = mudancasNasDocs(issue).commits.length;
+    console.log(`  ${linhaDeRevisao({ issue, labels: nomesDasLabels(issue), desde, commitsDoc, abertas: numerosAbertos, agoraMs })}`);
+  }
+  console.log(`\nDepois do veredito: npm run tarefa -- relevancia <N> --conferida "<o que ficou>"`);
 }
 
 async function concluirTarefa(args) {
@@ -866,12 +934,14 @@ Uso: npm run tarefa -- <comando> [argumentos]
 
 Comandos disponíveis:
   listar                          Lista tarefas abertas, separando as disponíveis das em andamento.
-  puxar <numero> [branch] [opts]  Reivindica a tarefa, bloqueia contra duplicidade e cria a branch.
+  puxar <numero>... [branch] [opts]
+                                  Reivindica a tarefa (ou o lote: várias issues numa branch só),
+                                  bloqueia contra duplicidade e cria a branch.
                                   Opções:
                                     --agente <nome>     Identifica o papel do agente (ex: server-core).
                                     --worktree <path>   Cria a branch em um worktree separado.
                                     --base <branch>     Parte de outra branch do origin (leva empilhada).
-  liberar <numero> [--motivo ...] Libera uma tarefa em andamento de volta para a fila de disponíveis.
+  liberar <numero>... [--motivo ..] Libera tarefas em andamento de volta para a fila de disponíveis.
   soltar-travas                  Libera em-andamento sem branch no origin e sem PR aberto há mais de 2 h.
   subtarefa <pai> [opts]          Cria uma subtarefa para um agente específico vinculada à tarefa pai.
                                   Opções:
@@ -882,6 +952,7 @@ Comandos disponíveis:
   status <numero>                 Exibe detalhes completos e o estado de bloqueio da tarefa.
   relevancia [numero...]          Aponta as tarefas livres cuja doc mudou depois delas (o puxar também avisa).
                                     --conferida "..."   Registra na issue que ela foi conferida com a doc atual.
+  revisar [N]                     Fila do /decida: as N livres há mais tempo sem conferência (padrão 15).
   concluir <numero>               Atualiza o status no projeto para "Done".
   pendencia-unity <pr> --falta .. Registra o que ficou sem Unity num PR (issue "pendente-unity"),
                                   para o próximo agente com Unity puxar. Repita --falta por item.
@@ -891,6 +962,7 @@ Exemplos:
   npm run tarefa -- listar
   npm run tarefa -- puxar 36
   npm run tarefa -- puxar 36 feature/core/entrada-no-jogo-client --agente client-core
+  npm run tarefa -- puxar 40 41 52 feature/mobs/lote-do-chefe --agente funcionalidade --worktree .
   npm run tarefa -- subtarefa 36 --titulo "Controle de 3a pessoa" --agente client-core
   npm run tarefa -- liberar 36 --motivo "Pausa para almoço"
 `);
@@ -936,6 +1008,9 @@ switch (comando) {
     break;
   case "relevancia":
     await conferirRelevancia(argumentos);
+    break;
+  case "revisar":
+    await revisarQuadro(argumentos);
     break;
   case "concluir":
   case "done":

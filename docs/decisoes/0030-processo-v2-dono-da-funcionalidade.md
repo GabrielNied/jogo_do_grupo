@@ -1,7 +1,7 @@
 # 0030. Processo v2: dono da funcionalidade, foco do marco e design decidido por quem implementa
 
 **Data:** 2026-10-11
-**Status:** aceita
+**Status:** aceita; emendada pelo [ADR 0037](0037-lotes-de-tarefas.md) (dono e limite por lote)
 
 ## Contexto
 

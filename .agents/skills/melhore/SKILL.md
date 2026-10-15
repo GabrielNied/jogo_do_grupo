@@ -1,6 +1,6 @@
 ---
 name: melhore
-description: Analisa o que já está implementado e abre tarefas de melhoria, sem implementar.
+description: Procura melhorias no que já existe no Jogo do Grupo (produto, qualidade de código, desempenho do jogo e custo das IAs), com evidência, e abre as issues já com a ficha para o /trabalhe. Use para "/melhore" ou "criar tarefas de melhoria". Não implementa.
 ---
 
 # melhore
