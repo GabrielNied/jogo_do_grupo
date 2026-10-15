@@ -49,9 +49,7 @@ public sealed class ClienteTempoRealDeTeste : IDisposable
             UnsyncedEvents = true,
             AutoRecycle = true,
             IPv6Enabled = false,
-            // Deve bater com o servidor (ChannelsCount = 32), senão pacotes sequenciados por
-            // entidade em canais > 0 são descartados em silêncio pelo LiteNetLib.
-            ChannelsCount = 32,
+            ChannelsCount = TransporteTempoReal.Canais,
             // Ping frequente: o servidor de teste considera queda depois de 1,5 s em silêncio.
             PingInterval = 200,
         };

@@ -1,4 +1,5 @@
 using System;
+using JogoDoGrupo.Shared.Core.TempoReal;
 using LiteNetLib;
 
 namespace JogoDoGrupo.Client.Core.TempoReal
@@ -28,7 +29,12 @@ namespace JogoDoGrupo.Client.Core.TempoReal
             Encerrar();
 
             var ouvinte = new EventBasedNetListener();
-            var manager = new NetManager(ouvinte) { DisconnectTimeout = TempoLimiteMs };
+            var manager = new NetManager(ouvinte)
+            {
+                // Igual ao servidor: com menos canais, a posição das entidades fora do canal 0 some.
+                ChannelsCount = TransporteTempoReal.Canais,
+                DisconnectTimeout = TempoLimiteMs,
+            };
 
             ouvinte.PeerConnectedEvent += peer =>
             {
