@@ -282,7 +282,7 @@ Decisões de design (2026-10-11, do agente da funcionalidade; ajustáveis):
 
 - **Regra:** um golpe ou skill de área nunca acerta o **próprio atacante** nem **aliados**. Aliado = mesmo grupo ([social.md](social.md)). Boneco, inimigos, chefes e jogadores de fora do grupo continuam alvos válidos (PvP é futuro; hoje nenhum jogador é alvo).
 - **Onde:** `SelecaoDeAlvos.PodeAcertar` filtra os alvos do volume antes do dano em `ServicoDeAtaques`; vale para qualquer skill que use `IAlvosDeCombate`. `AlvoDeCombate.PersonagemId` (0 = não é jogador) diz que o alvo é um jogador.
-- **Sem referência a Social (ADR 0016):** Combate consulta `IAliadosDeCombate.SaoAliados` (`Contratos/Combate/`); sem implementação vale `NinguemEAliado`. **Pendência de Social:** implementar a interface sobre `GruposDoServidor` (consulta por demanda, sem evento nem cache: reflete o grupo na hora do acerto). Serve também ao TODO de levantar só aliado (queda).
+- **Sem referência a Social (ADR 0016):** Combate consulta `IAliadosDeCombate.SaoAliados` (`Contratos/Combate/`), implementado por Social em `AliadosDeCombateDoSocial` (consulta por demanda via `IConsultaDeGrupo`, sem evento nem cache: reflete o grupo na hora do acerto); sem implementação (ou em testes isolados) vale `NinguemEAliado`.
 - **Fora do escopo:** cura e buffs em aliados.
 
 ### Ameaça (agro) (#169)
