@@ -22,9 +22,19 @@ namespace JogoDoGrupo.Client.Features.Montarias
             new Dictionary<long, VisualDaMontaria>();
         private readonly Dictionary<long, int> _estadosPendentes = new Dictionary<long, int>();
         private IDisposable _assinatura;
+        private IDisposable _assinaturaEquipada;
+        private Vector3 _posicaoInicioInvocacao;
 
         public bool MontadoLocal { get; private set; }
+        public int MontariaEquipada { get; private set; } = RegrasMontaria.TipoPadrao;
+
+        public bool Invocando { get; private set; }
+        public float TempoInvocacaoAtual { get; private set; }
+        public float DuracaoInvocacao => RegrasMontaria.TempoInvocacaoSegundos;
+
         public event Action<bool> EstadoMudou;
+        public event Action<int> MontariaEquipadaMudou;
+        public event Action<bool, float, float> InvocacaoProgresso;
 
         private void Awake()
         {
@@ -44,8 +54,7 @@ namespace JogoDoGrupo.Client.Features.Montarias
 
         private void OnDisable()
         {
-            _assinatura?.Dispose();
-            _assinatura = null;
+            DesassinarRede();
         }
 
         public void Iniciar()
@@ -55,29 +64,47 @@ namespace JogoDoGrupo.Client.Features.Montarias
 
         public void Reiniciar()
         {
-            _assinatura?.Dispose();
-            _assinatura = null;
+            CancelarInvocacao();
+            DesassinarRede();
             LimparVisuais();
             MontadoLocal = false;
         }
 
         private void AssinarRede()
         {
-            if (_assinatura != null)
+            if (_assinatura == null)
             {
-                return;
+                _assinatura = ConexaoTempoReal.Assinar<EstadoMontaria>(
+                    MontariasMessageIds.EstadoMontaria,
+                    AoReceberEstadoMontaria
+                );
             }
 
-            _assinatura = ConexaoTempoReal.Assinar<EstadoMontaria>(
-                MontariasMessageIds.EstadoMontaria,
-                AoReceberEstadoMontaria
-            );
+            if (_assinaturaEquipada == null)
+            {
+                _assinaturaEquipada = ConexaoTempoReal.Assinar<MontariaEquipada>(
+                    MontariasMessageIds.MontariaEquipada,
+                    AoReceberMontariaEquipada
+                );
+            }
+        }
+
+        private void DesassinarRede()
+        {
+            _assinatura?.Dispose();
+            _assinatura = null;
+            _assinaturaEquipada?.Dispose();
+            _assinaturaEquipada = null;
         }
 
         private void Update()
         {
             if (!EntradaNoJogo.NoJogo || EntradaNoJogo.Jogador == null)
             {
+                if (Invocando)
+                {
+                    CancelarInvocacao();
+                }
                 return;
             }
 
@@ -91,6 +118,38 @@ namespace JogoDoGrupo.Client.Features.Montarias
                 AlternarMontaria();
             }
 
+            // Atualiza tempo de invocação da montaria
+            if (Invocando)
+            {
+                var jogador = EntradaNoJogo.Jogador;
+                if (jogador == null)
+                {
+                    CancelarInvocacao();
+                    return;
+                }
+
+                // Cancela se o jogador se deslocar durante a invocação
+                var deslocamento = Vector3.Distance(
+                    jogador.transform.position,
+                    _posicaoInicioInvocacao
+                );
+                if (deslocamento > 0.25f)
+                {
+                    CancelarInvocacao("Invocação interrompida por movimento.");
+                    return;
+                }
+
+                TempoInvocacaoAtual += Time.deltaTime;
+                InvocacaoProgresso?.Invoke(true, TempoInvocacaoAtual, DuracaoInvocacao);
+
+                if (TempoInvocacaoAtual >= DuracaoInvocacao)
+                {
+                    Invocando = false;
+                    InvocacaoProgresso?.Invoke(false, DuracaoInvocacao, DuracaoInvocacao);
+                    ChamarMontaria();
+                }
+            }
+
             // Tenta aplicar visuais pendentes para avatares que acabaram de ser instanciados na cena
             AplicarPendentes();
         }
@@ -101,10 +160,70 @@ namespace JogoDoGrupo.Client.Features.Montarias
             {
                 Desmontar();
             }
+            else if (Invocando)
+            {
+                CancelarInvocacao("Invocação cancelada.");
+            }
             else
             {
-                ChamarMontaria();
+                IniciarInvocacao();
             }
+        }
+
+        public void IniciarInvocacao()
+        {
+            if (MontadoLocal || Invocando)
+            {
+                return;
+            }
+
+            var jogador = EntradaNoJogo.Jogador;
+            if (jogador != null)
+            {
+                _posicaoInicioInvocacao = jogador.transform.position;
+            }
+
+            Invocando = true;
+            TempoInvocacaoAtual = 0f;
+            InvocacaoProgresso?.Invoke(true, 0f, DuracaoInvocacao);
+        }
+
+        public void CancelarInvocacao(string motivo = null)
+        {
+            if (!Invocando)
+            {
+                return;
+            }
+
+            Invocando = false;
+            TempoInvocacaoAtual = 0f;
+            InvocacaoProgresso?.Invoke(false, 0f, DuracaoInvocacao);
+
+            if (!string.IsNullOrEmpty(motivo))
+            {
+                AvisosDoJogo.Mostrar(motivo, TipoDeAviso.Aviso);
+            }
+        }
+
+        public void EquiparMontaria(int tipo)
+        {
+            if (!RegrasMontaria.TipoValido(tipo))
+            {
+                return;
+            }
+
+            MontariaEquipada = tipo;
+            MontariaEquipadaMudou?.Invoke(tipo);
+
+            ConexaoTempoReal.Enviar(
+                MontariasMessageIds.EquiparMontaria,
+                new EquiparMontaria { TipoMontaria = tipo }
+            );
+
+            AvisosDoJogo.Mostrar(
+                $"Montaria equipada: {RegrasMontaria.ObterNome(tipo)}",
+                TipoDeAviso.Informacao
+            );
         }
 
         public void ChamarMontaria()
@@ -114,7 +233,26 @@ namespace JogoDoGrupo.Client.Features.Montarias
 
         public void Desmontar()
         {
+            if (Invocando)
+            {
+                CancelarInvocacao();
+            }
+
             ConexaoTempoReal.Enviar(MontariasMessageIds.Desmontar, new Desmontar());
+        }
+
+        public void AoReceberMontariaEquipada(MontariaEquipada msg)
+        {
+            if (msg == null || !RegrasMontaria.TipoValido(msg.TipoMontaria))
+            {
+                return;
+            }
+
+            if (MontariaEquipada != msg.TipoMontaria)
+            {
+                MontariaEquipada = msg.TipoMontaria;
+                MontariaEquipadaMudou?.Invoke(msg.TipoMontaria);
+            }
         }
 
         public void AoReceberEstadoMontaria(EstadoMontaria msg)
@@ -126,6 +264,12 @@ namespace JogoDoGrupo.Client.Features.Montarias
 
             if (msg.PersonagemId == EntradaNoJogo.PersonagemId)
             {
+                if (Invocando)
+                {
+                    Invocando = false;
+                    InvocacaoProgresso?.Invoke(false, DuracaoInvocacao, DuracaoInvocacao);
+                }
+
                 var mudou = MontadoLocal != msg.Montado;
                 MontadoLocal = msg.Montado;
 

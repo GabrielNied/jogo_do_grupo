@@ -38,7 +38,8 @@ public sealed class MontariasModule : IFeatureModule
         mensagens
             .Faixa(MontariasMessageIds.Faixa)
             .Ao<ChamarMontaria>(MontariasMessageIds.ChamarMontaria, AoChamarMontaria)
-            .Ao<Desmontar>(MontariasMessageIds.Desmontar, AoDesmontar);
+            .Ao<Desmontar>(MontariasMessageIds.Desmontar, AoDesmontar)
+            .Ao<EquiparMontaria>(MontariasMessageIds.EquiparMontaria, AoEquiparMontaria);
 
     public void Inicializar(ServerContext contexto)
     {
@@ -54,6 +55,11 @@ public sealed class MontariasModule : IFeatureModule
     private void AoDesmontar(SessaoTempoReal sessao, Desmontar pedido)
     {
         _servico?.Desmontar(sessao.PersonagemId, sessao);
+    }
+
+    private void AoEquiparMontaria(SessaoTempoReal sessao, EquiparMontaria pedido)
+    {
+        _servico?.EquiparMontaria(sessao.PersonagemId, pedido.TipoMontaria, sessao);
     }
 
     private void AoEncerrar(SessaoTempoReal sessao)

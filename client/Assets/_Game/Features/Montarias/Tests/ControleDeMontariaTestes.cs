@@ -59,5 +59,53 @@ namespace JogoDoGrupo.Client.Features.Montarias.Tests
                 Object.DestroyImmediate(objeto);
             }
         }
+
+        [Test]
+        public void EquiparMontaria_AlteraMontariaEquipada()
+        {
+            var objeto = new GameObject("ControleTeste");
+            try
+            {
+                var controle = objeto.AddComponent<ControleDeMontaria>();
+                var equipadaNotificada = 0;
+                controle.MontariaEquipadaMudou += tipo => equipadaNotificada = tipo;
+
+                Assert.AreEqual(RegrasMontaria.TipoPadrao, controle.MontariaEquipada);
+
+                controle.EquiparMontaria(RegrasMontaria.TipoNoturno);
+                Assert.AreEqual(RegrasMontaria.TipoNoturno, controle.MontariaEquipada);
+                Assert.AreEqual(RegrasMontaria.TipoNoturno, equipadaNotificada);
+            }
+            finally
+            {
+                Object.DestroyImmediate(objeto);
+            }
+        }
+
+        [Test]
+        public void Invocacao_IniciarECancelar_AtualizaEstadoCorretamente()
+        {
+            var objeto = new GameObject("ControleTeste");
+            try
+            {
+                var controle = objeto.AddComponent<ControleDeMontaria>();
+                var invocandoNotificado = false;
+                controle.InvocacaoProgresso += (invocando, _, _) => invocandoNotificado = invocando;
+
+                Assert.IsFalse(controle.Invocando);
+
+                controle.IniciarInvocacao();
+                Assert.IsTrue(controle.Invocando);
+                Assert.IsTrue(invocandoNotificado);
+
+                controle.CancelarInvocacao();
+                Assert.IsFalse(controle.Invocando);
+                Assert.IsFalse(invocandoNotificado);
+            }
+            finally
+            {
+                Object.DestroyImmediate(objeto);
+            }
+        }
     }
 }
