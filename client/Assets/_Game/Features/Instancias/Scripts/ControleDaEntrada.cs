@@ -56,6 +56,7 @@ namespace JogoDoGrupo.Client.Features.Instancias
             }
 
             _estado.EntradaRecusada += AoRecusar;
+            _estado.ChefeDerrotado += AoChefeDerrotado;
             _estado.DungeonEncerrada += AoEncerrar;
         }
 
@@ -74,6 +75,7 @@ namespace JogoDoGrupo.Client.Features.Instancias
             if (_estado != null)
             {
                 _estado.EntradaRecusada -= AoRecusar;
+                _estado.ChefeDerrotado -= AoChefeDerrotado;
                 _estado.DungeonEncerrada -= AoEncerrar;
             }
 
@@ -87,6 +89,12 @@ namespace JogoDoGrupo.Client.Features.Instancias
 
         private static void AoRecusar(EntradaRecusada recusa) =>
             AvisosDoJogo.Mostrar(TextosInstancias.Recusa(recusa.Codigo), TipoDeAviso.Aviso);
+
+        private static void AoChefeDerrotado(ChefeDerrotadoNaDungeon _) =>
+            AvisosDoJogo.Mostrar(
+                "Chefe derrotado! Colete seus itens antes de sair.",
+                TipoDeAviso.Sucesso
+            );
 
         private void AoEncerrar(DungeonEncerrada encerrada) => _tela?.Mostrar(encerrada.Resultado);
 
@@ -102,6 +110,17 @@ namespace JogoDoGrupo.Client.Features.Instancias
             if (_tela.Visivel && apertou)
             {
                 _tela.Fechar();
+                return;
+            }
+
+            if (_estado.NaInstancia && _estado.VitoriaAlcancada && !JanelasDoJogo.AlgoAberto)
+            {
+                MostrarDica(true);
+                _dica.text = TeclasDoJogo.Rotulo(TeclasDoJogo.Interagir) + ": sair da dungeon";
+                if (apertou)
+                {
+                    _estado.PedirSair();
+                }
                 return;
             }
 

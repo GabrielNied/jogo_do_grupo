@@ -69,7 +69,7 @@ public sealed class InstanciasConteudoTestes
     }
 
     [Fact]
-    public async Task Boss_morto_encerra_a_corrida_com_vitoria()
+    public async Task Boss_morto_agenda_vitoria_e_encerra_apos_prazo_de_loot()
     {
         using var f = new InstanciasFixture();
         using var jogador = await f.EntrarAsync();
@@ -94,11 +94,131 @@ public sealed class InstanciasConteudoTestes
             )
         );
 
+        var aviso = await jogador.Cliente.ReceberAsync<ChefeDerrotadoNaDungeon>(
+            InstanciasMessageIds.ChefeDerrotadoNaDungeon
+        );
+        Assert.Equal(inicio.IdInstancia, aviso.IdInstancia);
+        Assert.True(aviso.SegundosParaColeta > 0);
+        Assert.Equal(1, f.Instancias.CorridasAtivas);
+
+        f.Relogio.Advance(TimeSpan.FromSeconds(aviso.SegundosParaColeta + 1));
+        f.Instancias.Varrer();
+
         var encerrada = await jogador.Cliente.ReceberAsync<DungeonEncerrada>(
             InstanciasMessageIds.DungeonEncerrada
         );
         Assert.Equal(ResultadoDungeon.Vitoria, encerrada.Resultado);
         Assert.Equal(0, f.Instancias.CorridasAtivas);
+    }
+
+    [Fact]
+    public async Task Boss_morto_permite_pedir_saida_antecipada()
+    {
+        using var f = new InstanciasFixture();
+        using var jogador = await f.EntrarAsync();
+        jogador.Cliente.Enviar(InstanciasMessageIds.EntrarNaDungeon, new EntrarNaDungeon());
+        var inicio = await jogador.Cliente.ReceberAsync<DungeonIniciada>(
+            InstanciasMessageIds.DungeonIniciada
+        );
+
+        f.Instancias.AoInimigoDerrotado(
+            new InimigoDerrotado(
+                1,
+                CatalogoCriaturas.GuardiaoDoReflexo,
+                VarianteDeCriatura.Normal,
+                500,
+                1,
+                inicio.Area,
+                LayoutDaMinaDoReflexo.BossCentroX,
+                LayoutDaMinaDoReflexo.BossCentroZ,
+                [jogador.PersonagemId],
+                1,
+                5
+            )
+        );
+
+        await jogador.Cliente.ReceberAsync<ChefeDerrotadoNaDungeon>(
+            InstanciasMessageIds.ChefeDerrotadoNaDungeon
+        );
+
+        jogador.Cliente.Enviar(InstanciasMessageIds.SairDaDungeon, new SairDaDungeon());
+
+        var encerrada = await jogador.Cliente.ReceberAsync<DungeonEncerrada>(
+            InstanciasMessageIds.DungeonEncerrada
+        );
+        Assert.Equal(ResultadoDungeon.Vitoria, encerrada.Resultado);
+        Assert.Equal(0, f.Instancias.CorridasAtivas);
+    }
+
+    [Fact]
+    public async Task Loot_do_boss_alcancavel_antes_do_encerramento()
+    {
+        using var f = new InstanciasFixture();
+        using var jogador = await f.EntrarAsync();
+        jogador.Cliente.Enviar(InstanciasMessageIds.EntrarNaDungeon, new EntrarNaDungeon());
+        var inicio = await jogador.Cliente.ReceberAsync<DungeonIniciada>(
+            InstanciasMessageIds.DungeonIniciada
+        );
+
+        // Move jogador para perto do centro do boss dentro da instancia
+        f.Posicoes.Definir(
+            jogador.PersonagemId,
+            new PosicaoNoMundo(
+                inicio.Area,
+                LayoutDaMinaDoReflexo.BossCentroX,
+                0,
+                LayoutDaMinaDoReflexo.BossCentroZ,
+                0
+            )
+        );
+
+        var eventos =
+            f.Fabrica.Services.GetRequiredService<JogoDoGrupo.Server.Core.Eventos.EventosDoServidor>();
+        eventos.Publicar(
+            new InimigoDerrotado(
+                1,
+                CatalogoCriaturas.GuardiaoDoReflexo,
+                VarianteDeCriatura.Normal,
+                500,
+                1,
+                inicio.Area,
+                LayoutDaMinaDoReflexo.BossCentroX,
+                LayoutDaMinaDoReflexo.BossCentroZ,
+                [jogador.PersonagemId],
+                1,
+                5
+            )
+        );
+
+        var aviso = await jogador.Cliente.ReceberAsync<ChefeDerrotadoNaDungeon>(
+            InstanciasMessageIds.ChefeDerrotadoNaDungeon
+        );
+        Assert.NotNull(aviso);
+
+        var loot =
+            await jogador.Cliente.ReceberAsync<JogoDoGrupo.Shared.Features.Itens.LootApareceu>(
+                JogoDoGrupo.Shared.Features.Itens.ItensMessageIds.LootApareceu
+            );
+        Assert.NotNull(loot);
+
+        // Jogador ainda na dungeon coleta o loot na sala do boss
+        jogador.Cliente.Enviar(
+            JogoDoGrupo.Shared.Features.Itens.ItensMessageIds.ColetarLoot,
+            new JogoDoGrupo.Shared.Features.Itens.ColetarLoot { LootId = loot.Loot.LootId }
+        );
+
+        var coletado =
+            await jogador.Cliente.ReceberAsync<JogoDoGrupo.Shared.Features.Itens.LootColetado>(
+                JogoDoGrupo.Shared.Features.Itens.ItensMessageIds.LootColetado
+            );
+        Assert.Equal(loot.Loot.LootId, coletado.LootId);
+
+        // Agora pede saída antecipada
+        jogador.Cliente.Enviar(InstanciasMessageIds.SairDaDungeon, new SairDaDungeon());
+        var encerrada = await jogador.Cliente.ReceberAsync<DungeonEncerrada>(
+            InstanciasMessageIds.DungeonEncerrada
+        );
+        Assert.Equal(ResultadoDungeon.Vitoria, encerrada.Resultado);
     }
 
     [Fact]
@@ -217,5 +337,47 @@ public sealed class InstanciasConteudoTestes
 
         var chefes = f.Fabrica.Services.GetRequiredService<ChefesDaDungeon>();
         Assert.NotNull(chefes.Obter(inicio.Area));
+    }
+
+    [Fact]
+    public async Task Grupo_de_dois_um_caido_mantem_instancia_e_reviver_evita_derrota()
+    {
+        using var f = new InstanciasFixture();
+        using var lider = await f.EntrarAsync();
+        using var membro = await f.EntrarAsync();
+        f.Grupos.Definir(100, lider.PersonagemId, lider.PersonagemId, membro.PersonagemId);
+
+        lider.Cliente.Enviar(InstanciasMessageIds.EntrarNaDungeon, new EntrarNaDungeon());
+        var inicio = await lider.Cliente.ReceberAsync<DungeonIniciada>(
+            InstanciasMessageIds.DungeonIniciada
+        );
+        await membro.Cliente.ReceberAsync<DungeonIniciada>(InstanciasMessageIds.DungeonIniciada);
+
+        // Passa a carência inicial de derrota
+        f.Relogio.Advance(TimeSpan.FromSeconds(5));
+
+        // Membro cai; líder continua de pé
+        f.Queda.Derrubar(membro.PersonagemId);
+        f.Instancias.VarrerDerrota();
+
+        // Corrida não encerra por derrota porque o líder está vivo e na dungeon
+        Assert.Equal(1, f.Instancias.CorridasAtivas);
+
+        // Líder levanta o membro
+        f.Queda.Levantar(membro.PersonagemId);
+        f.Instancias.VarrerDerrota();
+        Assert.Equal(1, f.Instancias.CorridasAtivas);
+
+        // Se agora AMBOS caírem:
+        f.Queda.Derrubar(lider.PersonagemId);
+        f.Queda.Derrubar(membro.PersonagemId);
+        f.Instancias.VarrerDerrota();
+
+        // Agora sim todos caídos encerra a corrida com derrota
+        var encerrada = await lider.Cliente.ReceberAsync<DungeonEncerrada>(
+            InstanciasMessageIds.DungeonEncerrada
+        );
+        Assert.Equal(ResultadoDungeon.Derrota, encerrada.Resultado);
+        Assert.Equal(0, f.Instancias.CorridasAtivas);
     }
 }

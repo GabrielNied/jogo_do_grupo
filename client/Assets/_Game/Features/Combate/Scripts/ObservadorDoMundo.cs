@@ -106,6 +106,7 @@ namespace JogoDoGrupo.Client.Features.Combate
             raiz.AddComponent<ControleEsquiva>().Configurar(personagemId, prontidao);
             raiz.AddComponent<ControleDefesa>()
                 .Configurar(personagemId, prontidao, new PainelDefesa(container));
+            raiz.AddComponent<ControleSocorro>().Configurar(personagemId, container);
 
             // O boneco de treino da cidade (o servidor o trata como alvo fixo, id negativo).
             var boneco = BonecoDeTreinoVisual.Criar();

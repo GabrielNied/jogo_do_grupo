@@ -18,5 +18,11 @@ namespace JogoDoGrupo.Shared.Features.Instancias
 
         /// <summary>Servidor → participantes: a corrida foi encerrada.</summary>
         public const ushort DungeonEncerrada = 12003;
+
+        /// <summary>Servidor → participantes: o chefe da dungeon foi derrotado; carência para coleta de loot.</summary>
+        public const ushort ChefeDerrotadoNaDungeon = 12004;
+
+        /// <summary>Client → servidor: participante solicita saída da dungeon antecipadamente após a vitória.</summary>
+        public const ushort SairDaDungeon = 12005;
     }
 }
