@@ -30,6 +30,9 @@ Um clipe por ação, com estes nomes (o gerador do Unity e o teste `PrefabsDasCr
 | `Andar` | sim | parâmetro bool `Andando` |
 | `Atacar` | não | gatilho `Atacar`; o golpe acontece perto de 1 s (o aviso do servidor) |
 | `Morrer` | não | gatilho `Morrer` (o `ApresentadorDeInimigos` dispara) |
+| `AtacarInvestida`, `AtacarRaios`, `AtacarPisada` | não | só o chefe (`ataques_do_chefe` nas medidas); gatilho de mesmo nome, um por `TipoDeAtaqueDeInimigo` |
+
+A pose de contato (o instante do golpe) de cada clipe de golpe é uma fração do clipe: `CONTATO_*` em `lib/quadrupede.py`, repetida em `ContatosDosClipes` no client. Clipe de golpe novo: marque nos dois e gere de novo.
 
 Criaturas pesadas usam o mesmo esqueleto com os clipes mais lentos (`peso` nas medidas).
 

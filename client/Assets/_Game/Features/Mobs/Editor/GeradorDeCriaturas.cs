@@ -59,6 +59,9 @@ namespace JogoDoGrupo.Client.Features.Mobs.Editor
             public string Nome;
             public bool TemBrilho;
             public bool TemEmissao;
+
+            // Clipes de preparo por ataque (investida, raios, pisada): so o chefe de dungeon.
+            public bool AtaquesDoChefe;
         }
 
         static readonly Receita[] Receitas =
@@ -70,6 +73,7 @@ namespace JogoDoGrupo.Client.Features.Mobs.Editor
                 Nome = "GuardiaoDoReflexo",
                 TemBrilho = true,
                 TemEmissao = true,
+                AtaquesDoChefe = true,
             },
             new Receita { Id = CatalogoCriaturas.PresaVelha, Nome = "PresaVelha" },
             new Receita { Id = CatalogoCriaturas.LoboDoCampo, Nome = "LoboDoCampo" },
@@ -299,6 +303,30 @@ namespace JogoDoGrupo.Client.Features.Mobs.Editor
             voltar.hasExitTime = true;
             voltar.exitTime = 1f;
             voltar.duration = VoltaDoAtaque;
+
+            if (receita.AtaquesDoChefe)
+            {
+                // Um estado por ataque, disparado pelo gatilho de mesmo nome (o client escolhe
+                // pelo TipoDeAtaqueDeInimigo, ContatosDosClipes). Voltam ao parado como o Atacar.
+                var y = -240f;
+                foreach (var nome in ContatosDosClipes.ClipesDoChefe)
+                {
+                    controller.AddParameter(nome, AnimatorControllerParameterType.Trigger);
+                    var estado = maquina.AddState(nome, new Vector3(375f, y, 0f));
+                    estado.motion = ObterClipe(modelo, nome);
+                    y -= 120f;
+                    foreach (var origem in new[] { parado, andar })
+                    {
+                        var entrada = origem.AddTransition(estado);
+                        entrada.AddCondition(AnimatorConditionMode.If, 0, nome);
+                        entrada.duration = TransicaoAtaque;
+                    }
+                    var saida = estado.AddTransition(parado);
+                    saida.hasExitTime = true;
+                    saida.exitTime = 1f;
+                    saida.duration = VoltaDoAtaque;
+                }
+            }
 
             var paraMorte = maquina.AddAnyStateTransition(morte);
             paraMorte.AddCondition(AnimatorConditionMode.If, 0, ParametroMorrer);

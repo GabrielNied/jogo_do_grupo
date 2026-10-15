@@ -12,6 +12,20 @@ ACAO_ATACAR = "Atacar"
 ACAO_MORRER = "Morrer"
 ACOES = [ACAO_PARADO, ACAO_ANDAR, ACAO_ATACAR, ACAO_MORRER]
 
+# Clipes de preparo do chefe (Medidas.ataques_do_chefe): um por tipo de ataque do servidor.
+ACAO_INVESTIDA = "AtacarInvestida"
+ACAO_RAIOS = "AtacarRaios"
+ACAO_PISADA = "AtacarPisada"
+ACOES_DO_CHEFE = [ACAO_INVESTIDA, ACAO_RAIOS, ACAO_PISADA]
+
+# Fracao (0 a 1) do clipe em que fica a pose de contato, o instante do golpe. Os mesmos valores
+# estao em ContatosDosClipes (client/.../Mobs/Scripts), que o client usa para casar o contato
+# com o fim do aviso; mude nos dois lugares e gere de novo.
+CONTATO_ATACAR = 0.71
+CONTATO_INVESTIDA = 0.85
+CONTATO_RAIOS = 0.85
+CONTATO_PISADA = 0.85
+
 PERNAS = ["Perna_DianteiraE", "Perna_DianteiraD", "Perna_TraseiraE", "Perna_TraseiraD"]
 
 
@@ -33,6 +47,7 @@ class Medidas:
         escala=1.0,
         peso=1.0,
         altura_tombo=0.22,
+        ataques_do_chefe=False,
     ):
         self.corpo = corpo  # (x, y, z)
         self.cabeca = cabeca
@@ -43,6 +58,7 @@ class Medidas:
         self.escala = escala
         self.peso = peso
         self.altura_tombo = altura_tombo  # altura do centro do corpo deitado de lado
+        self.ataques_do_chefe = ataques_do_chefe  # gera os 3 clipes de preparo do chefe
 
 
 def _esp(p):
@@ -78,6 +94,10 @@ def animar(arm, m):
     _andar(arm, m, s)
     _atacar(arm, m, s)
     _morrer(arm, m, s)
+    if m.ataques_do_chefe:
+        _investida(arm, m, s)
+        _raios(arm, m, s)
+        _pisada(arm, m, s)
 
 
 def _parado(arm, m, s):
@@ -121,7 +141,7 @@ def _andar(arm, m, s):
 def _atacar(arm, m, s):
     # Preparo de ~1 s (o aviso do golpe do servidor), investida e volta.
     f = _q(1.4, m)
-    golpe = round(f * 0.71)
+    golpe = round(f * CONTATO_ATACAR)
     preparo = round(f * 0.55)
     with esqueleto.Acao(arm, ACAO_ATACAR, f, repete=False) as a:
         a.chave("Corpo", 0, loc=(0, 0, 0), rot=(0, 0, 0))
@@ -180,3 +200,103 @@ def _morrer(arm, m, s):
         for o in ("Orelha_E", "Orelha_D"):
             a.chave(o, queda, rot=(30, 0, 0))
         a.chave("Rabo", queda, rot=(40, 0, 0))
+
+
+def _investida(arm, m, s):
+    # Agacha para tras, cava o chao com a pata e, no contato, o corpo sai para a frente de
+    # cabeca baixa. Depois do contato, so o amortecimento.
+    f = _q(2.0, m)
+    golpe = round(f * CONTATO_INVESTIDA)
+    agacha = round(f * 0.60)
+    with esqueleto.Acao(arm, ACAO_INVESTIDA, f, repete=False) as a:
+        a.chave("Corpo", 0, loc=(0, 0, 0), rot=(0, 0, 0))
+        a.chave("Corpo", agacha, loc=(0, -0.10 * s, -0.16 * s), rot=(10, 0, 0))
+        a.chave("Corpo", golpe, loc=(0, 0.06 * s, 0.34 * s), rot=(-10, 0, 0))
+        a.chave("Corpo", f, loc=(0, 0.02 * s, 0.10 * s), rot=(-3, 0, 0))
+        a.chave("Cabeca", 0, rot=(0, 0, 0))
+        a.chave("Cabeca", agacha, rot=(30, 0, 0))
+        a.chave("Cabeca", golpe, rot=(38, 0, 0))
+        a.chave("Cabeca", f, rot=(8, 0, 0))
+        p = "Perna_DianteiraD"
+        a.chave(p, 0, rot=(0, 0, 0), loc=(0, 0, 0))
+        for i, t in enumerate((0.10, 0.22, 0.34, 0.46)):
+            q = round(f * t)
+            if i % 2 == 0:
+                a.chave(p, q, rot=(-35, 0, 0), loc=(0, 0.06 * s, 0))
+            else:
+                a.chave(p, q, rot=(25, 0, 0), loc=(0, 0, 0))
+        a.chave(p, agacha, rot=(0, 0, 0), loc=(0, 0, 0))
+        a.chave(p, golpe, rot=(-30, 0, 0))
+        a.chave(p, f, rot=(0, 0, 0))
+        for perna, sinal in (("Perna_DianteiraE", -1), ("Perna_TraseiraE", 1), ("Perna_TraseiraD", 1)):
+            a.chave(perna, agacha, rot=(14 * sinal, 0, 0))
+            a.chave(perna, golpe, rot=(-30 if sinal < 0 else 35, 0, 0))
+            a.chave(perna, f, rot=(0, 0, 0))
+        for o in ("Orelha_E", "Orelha_D"):
+            a.chave(o, agacha, rot=(30, 0, 0))
+            a.chave(o, f, rot=(0, 0, 0))
+        a.chave("Rabo", agacha, rot=(-45, 0, 0))
+        a.chave("Rabo", golpe, rot=(30, 0, 0))
+        a.chave("Rabo", f, rot=(0, 0, 0))
+
+
+def _raios(arm, m, s):
+    # Empina o peito e joga a cabeca para cima enquanto o corpo treme (os cristais carregam);
+    # no contato o peito esta no alto, e depois a cabeca cai de uma vez para soltar os raios.
+    f = _q(2.0, m)
+    golpe = round(f * CONTATO_RAIOS)
+    with esqueleto.Acao(arm, ACAO_RAIOS, f, repete=False) as a:
+        a.chave("Corpo", 0, loc=(0, 0, 0), rot=(0, 0, 0))
+        a.chave("Corpo", round(f * 0.45), loc=(0, 0.02 * s, 0.04 * s), rot=(-12, 0, 0))
+        # Tremor do corpo na carga.
+        for i, t in enumerate((0.50, 0.58, 0.66, 0.74)):
+            a.chave("Corpo", round(f * t), rot=(-14 - 3 * (i % 2), 0, 3 if i % 2 == 0 else -3))
+        a.chave("Corpo", golpe, loc=(0, 0.03 * s, 0.06 * s), rot=(-20, 0, 0))
+        a.chave("Corpo", f, loc=(0, 0, 0), rot=(0, 0, 0))
+        a.chave("Cabeca", 0, rot=(0, 0, 0))
+        a.chave("Cabeca", round(f * 0.45), rot=(-30, 0, 0))
+        a.chave("Cabeca", golpe, rot=(-48, 0, 0))
+        a.chave("Cabeca", f, rot=(14, 0, 0))
+        for perna in ("Perna_DianteiraE", "Perna_DianteiraD"):
+            a.chave(perna, round(f * 0.45), rot=(-22, 0, 0))
+            a.chave(perna, golpe, rot=(-34, 0, 0))
+            a.chave(perna, f, rot=(0, 0, 0))
+        for perna in ("Perna_TraseiraE", "Perna_TraseiraD"):
+            a.chave(perna, golpe, rot=(14, 0, 0))
+            a.chave(perna, f, rot=(0, 0, 0))
+        for o in ("Orelha_E", "Orelha_D"):
+            a.chave(o, golpe, rot=(-30, 0, 0))
+            a.chave(o, f, rot=(0, 0, 0))
+        a.chave("Rabo", golpe, rot=(-55, 0, 0))
+        a.chave("Rabo", f, rot=(0, 0, 0))
+
+
+def _pisada(arm, m, s):
+    # Empina sobre as patas de tras, levanta as duas dianteiras e, no contato, as patas
+    # batem no chao com o corpo caindo junto (o impacto).
+    f = _q(2.0, m)
+    golpe = round(f * CONTATO_PISADA)
+    alto = round(f * 0.62)
+    with esqueleto.Acao(arm, ACAO_PISADA, f, repete=False) as a:
+        a.chave("Corpo", 0, loc=(0, 0, 0), rot=(0, 0, 0))
+        a.chave("Corpo", alto, loc=(0, 0.02 * s, 0.14 * s), rot=(-22, 0, 0))
+        a.chave("Corpo", golpe, loc=(0, 0.02 * s, -0.08 * s), rot=(8, 0, 0))
+        a.chave("Corpo", f, loc=(0, 0, 0), rot=(0, 0, 0))
+        a.chave("Cabeca", 0, rot=(0, 0, 0))
+        a.chave("Cabeca", alto, rot=(-18, 0, 0))
+        a.chave("Cabeca", golpe, rot=(26, 0, 0))
+        a.chave("Cabeca", f, rot=(0, 0, 0))
+        for perna in ("Perna_DianteiraE", "Perna_DianteiraD"):
+            a.chave(perna, alto, rot=(-70, 0, 0), loc=(0, 0.10 * s, 0))
+            a.chave(perna, golpe, rot=(-12, 0, 0), loc=(0, -0.04 * s, 0))
+            a.chave(perna, f, rot=(0, 0, 0), loc=(0, 0, 0))
+        for perna in ("Perna_TraseiraE", "Perna_TraseiraD"):
+            a.chave(perna, alto, rot=(20, 0, 0))
+            a.chave(perna, golpe, rot=(-8, 0, 0))
+            a.chave(perna, f, rot=(0, 0, 0))
+        for o in ("Orelha_E", "Orelha_D"):
+            a.chave(o, golpe, rot=(35, 0, 0))
+            a.chave(o, f, rot=(0, 0, 0))
+        a.chave("Rabo", alto, rot=(-35, 0, 0))
+        a.chave("Rabo", golpe, rot=(30, 0, 0))
+        a.chave("Rabo", f, rot=(0, 0, 0))

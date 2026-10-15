@@ -19,24 +19,23 @@ namespace JogoDoGrupo.Client.Features.Mobs
         public const float SuavizacaoDaVelocidade = 8f;
 
         /// <summary>
-        /// Em que ponto do clipe <c>Atacar</c> (de 0 a 1) está a pose de contato. Chute até o
-        /// artista marcar o clipe: o meio do golpe.
-        /// </summary>
-        public const float ContatoNoClipeFracao = 0.5f;
-
-        /// <summary>
         /// Velocidade do Animator para a pose de contato cair no fim do preparo: o contato do
-        /// clipe (<see cref="ContatoNoClipeFracao"/> da duração) tem de levar
-        /// <paramref name="preparoSegundos"/>. Sem clipe ou sem preparo, 1 (velocidade normal).
+        /// clipe (<paramref name="contatoFracao"/> da duração, marcada por clipe em
+        /// <see cref="ContatosDosClipes"/>) tem de levar <paramref name="preparoSegundos"/>. Sem
+        /// clipe ou sem preparo, 1 (velocidade normal).
         /// </summary>
-        public static float VelocidadeDoClipe(float clipeSegundos, float preparoSegundos)
+        public static float VelocidadeDoClipe(
+            float clipeSegundos,
+            float preparoSegundos,
+            float contatoFracao
+        )
         {
             if (clipeSegundos <= 0f || preparoSegundos <= 0f)
             {
                 return 1f;
             }
 
-            return clipeSegundos * ContatoNoClipeFracao / preparoSegundos;
+            return clipeSegundos * contatoFracao / preparoSegundos;
         }
 
         private int _golpesVistos;

@@ -195,6 +195,7 @@ def medidas():
         escala=1.0,
         peso=PESO,
         altura_tombo=0.30,
+        ataques_do_chefe=True,
     )
 
 

@@ -70,6 +70,31 @@ namespace JogoDoGrupo.Client.Features.Mobs.Tests
         }
 
         [Test]
+        public void ChefeDaDungeonTemUmClipeEUmGatilhoPorTipoDeAtaque()
+        {
+            var animator = Carregar(CatalogoCriaturas.GuardiaoDoReflexo)
+                .GetComponentInChildren<Animator>();
+            var nomes = animator.runtimeAnimatorController.animationClips.Select(c => c.name);
+
+            foreach (
+                var tipo in new[]
+                {
+                    TipoDeAtaqueDeInimigo.Investida,
+                    TipoDeAtaqueDeInimigo.Raios,
+                    TipoDeAtaqueDeInimigo.Pisada,
+                }
+            )
+            {
+                var clipe = ContatosDosClipes.ClipeDoAtaque(tipo);
+                CollectionAssert.Contains(nomes.ToArray(), clipe, "Clipe do ataque " + tipo);
+                Assert.IsTrue(
+                    TemParametro(animator, clipe, AnimatorControllerParameterType.Trigger),
+                    "Sem o gatilho " + clipe
+                );
+            }
+        }
+
+        [Test]
         public void CadaCriaturaUsaOModeloProprioComTextura()
         {
             foreach (var criatura in CatalogoCriaturas.Todas)

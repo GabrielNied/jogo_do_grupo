@@ -176,6 +176,9 @@ namespace JogoDoGrupo.Client.Features.Mobs
         /// <summary>Duração do preparo do último golpe, em segundos (zero antes do primeiro).</summary>
         public float PreparoDoGolpeSegundos { get; set; }
 
+        /// <summary>Tipo do último ataque preparado; escolhe o clipe do modelo.</summary>
+        public TipoDeAtaqueDeInimigo TipoDoGolpe { get; set; }
+
         /// <summary>Decide andar e atacar do modelo.</summary>
         public AnimacaoDoInimigo Animacao { get; } = new AnimacaoDoInimigo();
 
