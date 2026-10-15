@@ -164,14 +164,16 @@ namespace JogoDoGrupo.Client.Features.Itens.Loot
             }
 
             // Com janela ou menu do Esc aberto, nem dica nem coleta por baixo.
+            ItemNoChao maisProximo = null;
+            var totalAoAlcance = 0;
             var aoAlcance =
                 !JanelasDoJogo.AlgoAberto
                 && _registro.ObterAoAlcance(
                     posicao.x,
                     posicao.z,
                     tierMinimo,
-                    out var maisProximo,
-                    out var totalAoAlcance
+                    out maisProximo,
+                    out totalAoAlcance
                 );
             _dica.style.display = aoAlcance ? DisplayStyle.Flex : DisplayStyle.None;
             if (aoAlcance)
