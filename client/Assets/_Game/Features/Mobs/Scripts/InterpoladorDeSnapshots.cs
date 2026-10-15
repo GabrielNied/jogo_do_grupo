@@ -122,7 +122,7 @@ namespace JogoDoGrupo.Client.Features.Mobs
                 }
                 else
                 {
-                    var dt = (float)(snapshot.Tempo - ultimo.Tempo);
+                    var dt = Math.Max(0.001f, (float)(snapshot.Tempo - ultimo.Tempo));
                     _vx = dx / dt;
                     _vy = (snapshot.Y - ultimo.Y) / dt;
                     _vz = dz / dt;
@@ -169,7 +169,7 @@ namespace JogoDoGrupo.Client.Features.Mobs
                 return new PoseAmostrada(a.X, a.Y, a.Z, a.RotacaoY, 0f, a.Etiqueta, false);
             }
 
-            var dt = b.Tempo - a.Tempo;
+            var dt = Math.Max(0.001, b.Tempo - a.Tempo);
             var t = (float)((tempo - a.Tempo) / dt);
             return new PoseAmostrada(
                 a.X + dx * t,

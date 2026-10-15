@@ -69,7 +69,8 @@ namespace JogoDoGrupo.Shared.Features.Mobs
         /// <summary>
         /// Empurra o ponto para longe dos vizinhos que estão mais perto que
         /// <see cref="SeparacaoMinimaMetros"/>, o bastante para voltar à separação. Dois
-        /// pontos no mesmo lugar são afastados ao longo de +X.
+        /// pontos no mesmo lugar são afastados ao longo de +X. O deslocamento resultante pode ser
+        /// limitado por <paramref name="maxDeslocamentoMetros"/> para evitar saltos instantâneos.
         /// </summary>
         public static void Afastar(
             double x,
@@ -77,7 +78,8 @@ namespace JogoDoGrupo.Shared.Features.Mobs
             double[] vizinhosX,
             double[] vizinhosZ,
             out double novoX,
-            out double novoZ
+            out double novoZ,
+            double maxDeslocamentoMetros = double.MaxValue
         )
         {
             novoX = x;
@@ -104,6 +106,18 @@ namespace JogoDoGrupo.Shared.Features.Mobs
                 double falta = SeparacaoMinimaMetros - distancia;
                 novoX += dx / distancia * falta;
                 novoZ += dz / distancia * falta;
+            }
+
+            if (maxDeslocamentoMetros < double.MaxValue)
+            {
+                double desX = novoX - x;
+                double desZ = novoZ - z;
+                double distTotal = Math.Sqrt(desX * desX + desZ * desZ);
+                if (distTotal > maxDeslocamentoMetros && distTotal > 0.0)
+                {
+                    novoX = x + (desX / distTotal) * maxDeslocamentoMetros;
+                    novoZ = z + (desZ / distTotal) * maxDeslocamentoMetros;
+                }
             }
         }
     }

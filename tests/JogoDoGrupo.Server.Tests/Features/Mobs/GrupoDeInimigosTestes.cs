@@ -32,6 +32,7 @@ public class GrupoDeInimigosTestes
     {
         public VarianteDeCriatura Variante { get; set; } = VarianteDeCriatura.Normal;
         public int Sorteios { get; private set; }
+        public Func<double>? ProximoFunc { get; set; }
 
         public CriaturaSorteada Sortear(DefinicaoDeCriatura definicao)
         {
@@ -50,7 +51,7 @@ public class GrupoDeInimigosTestes
         public bool Aparece(DefinicaoDeCriatura definicao) => true;
 
         // Sem folga sorteada no intervalo de volta: os testes contam o intervalo exato da ficha.
-        public double Proximo() => 0.0;
+        public double Proximo() => ProximoFunc != null ? ProximoFunc() : 0.0;
     }
 
     /// <summary>Um grupo no ponto (0, 0), com relógio e jogadores controlados pelo teste.</summary>
@@ -1064,5 +1065,103 @@ public class GrupoDeInimigosTestes
         campo.Queda.Caidos.Remove(Jogador);
         campo.AteOEstado(EstadoDeInimigo.Perseguicao, 2);
         Assert.Equal(Jogador, campo.Unico.AlvoId);
+    }
+
+    [Fact]
+    public void Criatura_em_repouso_vaga_ao_redor_da_origem()
+    {
+        var campo = new Campo(tamanho: 1);
+        var origemX = campo.Unico.X;
+        var origemZ = campo.Unico.Z;
+
+        // Jogador no campo a 50 m (fora do alcance de visão de 12 m).
+        campo.Por(Jogador, 0, 50);
+
+        // Ângulo 0 (+Z), distância 1.0 (raio máximo = 3.5 m).
+        campo.Sorteador.ProximoFunc = () => 0.0;
+        // Inicialmente com Proximo() == 0, fica na origem.
+        campo.Avancar(1.0);
+        Assert.Equal(origemX, campo.Unico.X);
+        Assert.Equal(origemZ, campo.Unico.Z);
+
+        // Agora sorteador entrega ângulo 0.25 (+X) e distância 1.0.
+        var sorteios = new Queue<double>(new[] { 0.25, 1.0, 0.5 });
+        campo.Sorteador.ProximoFunc = () => sorteios.Count > 0 ? sorteios.Dequeue() : 0.5;
+
+        // Avança tempo suficiente para passar a pausa e começar a andar.
+        campo.Avancar(RegrasInimigo.TempoParadoVagarMaximoSegundos + 2.0);
+
+        var agoraX = campo.Unico.X;
+        var agoraZ = campo.Unico.Z;
+        var dist = RegrasInimigo.Distancia(origemX, origemZ, agoraX, agoraZ);
+
+        Assert.True(dist > 0.1, "criatura deve ter se movido do ponto de origem");
+        Assert.True(
+            dist <= RegrasInimigo.RaioDeVagarEmRepousoMetros + 0.01,
+            "distância deve respeitar o raio de vagar"
+        );
+        Assert.Equal(EstadoDeInimigo.Repouso, campo.Unico.Estado);
+    }
+
+    [Fact]
+    public void Criatura_vagando_em_repouso_entra_em_alerta_ao_ver_jogador()
+    {
+        var campo = new Campo(tamanho: 1);
+        // Jogador inicialmente a 50 m (fora da visão).
+        campo.Por(Jogador, 0, 50);
+
+        var sorteios = new Queue<double>(new[] { 0.0, 1.0, 0.5 });
+        campo.Sorteador.ProximoFunc = () => sorteios.Count > 0 ? sorteios.Dequeue() : 0.5;
+
+        // Avança até começar a andar
+        campo.Avancar(RegrasInimigo.TempoParadoVagarMaximoSegundos + 1.0);
+
+        // Jogador se aproxima a 10 m (visão é 12 m)
+        campo.Por(Jogador, 0, 10);
+        campo.Passo();
+
+        Assert.Equal(EstadoDeInimigo.Alerta, campo.Unico.Estado);
+        Assert.Equal(Jogador, campo.Unico.AlvoId);
+    }
+
+    [Fact]
+    public void Inimigo_em_perseguicao_gira_suavemente_sem_snap_instantaneo()
+    {
+        var campo = new Campo(tamanho: 1);
+        campo.Por(Jogador, 0, 10);
+        campo.AteOEstado(EstadoDeInimigo.Perseguicao, 2);
+
+        // Inimigo alinhado com o jogador em Z positivo (rotacao ~0 graus)
+        Assert.Equal(0.0, campo.Unico.RotacaoY, 1);
+
+        // Move o jogador para +X (90 graus)
+        campo.Por(Jogador, 10, campo.Unico.Z);
+        campo.Passo(); // 1 passo = 0.1 s. A 360 graus/s, o giro maximo eh 36 graus.
+
+        Assert.True(
+            campo.Unico.RotacaoY > 30.0 && campo.Unico.RotacaoY <= 36.1,
+            $"esperado giro de ate 36 graus, obteve {campo.Unico.RotacaoY}"
+        );
+    }
+
+    [Fact]
+    public void Preparo_do_ataque_avanca_continuamente_sem_pular_no_contato()
+    {
+        var campo = new Campo(tamanho: 1);
+        campo.Por(Jogador, 0, 1.8);
+        campo.AteOEstado(EstadoDeInimigo.Ataque, 2);
+
+        var zInicial = campo.Unico.Z;
+        // Avanca ate o golpe encostar
+        var passos = campo.Avancar(1.5);
+        var houveAcerto = passos.Any(p => p.Acertos.Count > 0);
+        Assert.True(houveAcerto, "golpe deve encostar");
+
+        // O deslocamento total durante o preparo nao pode exceder PassoDoGolpeMetros
+        var deslocamentoTotal = campo.Unico.Z - zInicial;
+        Assert.True(
+            deslocamentoTotal <= RegrasInimigo.PassoDoGolpeMetros + 0.01,
+            $"deslocamento {deslocamentoTotal} excedeu {RegrasInimigo.PassoDoGolpeMetros}"
+        );
     }
 }

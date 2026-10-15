@@ -120,7 +120,15 @@ public class InimigosDoCampoTestes(TempoRealFixture f) : IClassFixture<TempoReal
                     if (confereRaio)
                     {
                         var doCentro = RegrasInimigo.Distancia(centroX, centroZ, i.X, i.Z);
-                        Assert.Equal(ConfigInimigosDoCampo.RaioDoEspalhamentoMetros, doCentro, 5);
+                        Assert.InRange(
+                            doCentro,
+                            ConfigInimigosDoCampo.RaioDoEspalhamentoMetros
+                                - RegrasInimigo.RaioDeVagarEmRepousoMetros
+                                - 0.01,
+                            ConfigInimigosDoCampo.RaioDoEspalhamentoMetros
+                                + RegrasInimigo.RaioDeVagarEmRepousoMetros
+                                + 0.01
+                        );
                     }
                 }
             );
