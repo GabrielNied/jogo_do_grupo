@@ -27,7 +27,6 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
             ("Bug", "bug"),
             ("Melhoria", "melhoria"),
             ("Novidade", "novidade"),
-            ("UX / interface", "ux"),
         };
 
         public static readonly (string Rotulo, string Valor)[] Severidades =

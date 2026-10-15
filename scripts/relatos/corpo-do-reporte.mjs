@@ -16,7 +16,6 @@ const TIPOS = {
   bug: { nome: "Bug", rotulo: "bug" },
   melhoria: { nome: "Melhoria", rotulo: "enhancement" },
   novidade: { nome: "Novidade", rotulo: "enhancement" },
-  ux: { nome: "UX", rotulo: "enhancement" },
 };
 
 const SEVERIDADES = {
@@ -44,7 +43,7 @@ export function tituloDoReporte(manifesto) {
 /**
  * Prioridade pelo tipo e pela severidade, na régua de docs/agentes.md#prioridade-das-tarefas:
  * bug crítico é erro; bug alto ou médio do ciclo principal é core loop; melhoria (do que já
- * existe), UX e o resto dos bugs são experiência; novidade é funcionalidade nova.
+ * existe, inclusive interface) e o resto dos bugs são experiência; novidade é funcionalidade nova.
  */
 export function prioridadeDoReporte(manifesto) {
   if (manifesto.Tipo === "novidade") return "prio:5-features";

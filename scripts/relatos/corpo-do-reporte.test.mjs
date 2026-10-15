@@ -66,7 +66,6 @@ test("prioridade segue a régua do quadro", () => {
     prioridadeDoReporte(manifesto({ Tipo: "melhoria", Area: "Combate" })),
     "prio:3-experiencia",
   );
-  assert.equal(prioridadeDoReporte(manifesto({ Tipo: "ux" })), "prio:3-experiencia");
   assert.equal(
     prioridadeDoReporte(manifesto({ Tipo: "novidade", Severidade: "critica" })),
     "prio:5-features",

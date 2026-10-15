@@ -15,7 +15,7 @@ O que é o report e o F10: [Report beta e ajuste ao vivo](../../../docs/features
 2. **Estado no momento:** cena, janela aberta e a última mensagem de cada tipo (ex.: `JogadorMorreu há 9.8 s` explica "ando morto").
 3. **Linha do tempo:** só mudanças, em ms e com o quadro (`qNNN`). Os últimos 3 s têm imagem.
 4. **Console do Unity** e **log do servidor**, se vieram: exceção ou aviso perto do momento costuma ser a causa.
-5. As imagens: folha de impacto primeiro, depois a tela inteira (UX) e a folha geral.
+5. As imagens: folha de impacto primeiro, depois a tela inteira (interface) e a folha geral.
 
 **Pasta local** (argumento, ou `relatos/<conteúdo de relatos/ultimo.txt>` na raiz do checkout principal; worktree não tem relatos): os mesmos arquivos, mais `quadros/NNN.png` e `quadros.csv` para um quadro específico.
 
@@ -26,7 +26,7 @@ Confira em `docs/features/<área>.md` o que deveria acontecer. Depois ligue a fr
 - Bug: `JogadorMorreu` às 3120 ms e `↓W` com `Morrer → Correr` às 5810 ms, sem mensagem do servidor recusando o movimento.
 - Resposta: clique em 412 ms, clipe do golpe em 520 ms, `AtaqueIniciado` em 560 ms.
 - Peso: `AtaqueAcertou` em 640 ms sem `speed → 0` no alvo e sem `timeScale`, tremor de 1 cm.
-- UX: o que a tela inteira mostra contra o que a doc da interface pede.
+- Interface: o que a tela inteira mostra contra o que a doc da interface pede.
 
 Latência alta muda o diagnóstico: diga se o problema é a rede. Sem evidência suficiente, diga o que faltou e o que o próximo report precisa mostrar.
 
