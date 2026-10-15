@@ -31,10 +31,13 @@ namespace JogoDoGrupo.Shared.Features.Instancias
         /// <summary>Quem está a até esta distância da porta entra junto com o líder (m).</summary>
         public const float DistanciaDosMembrosMetros = 10f;
 
-        /// <summary>Início do eixo da dungeon (plano XZ).</summary>
-        public const float OrigemX = -1350f;
+        /// <summary>
+        /// Início do eixo da dungeon (plano XZ), no canto sudoeste do deserto, a uns 850 m da
+        /// estrada mais próxima. A planta de 3 km (#797) pôs a grande duna oeste no lugar antigo.
+        /// </summary>
+        public const float OrigemX = -1440f;
 
-        public const float OrigemZ = -360f;
+        public const float OrigemZ = -1420f;
 
         /// <summary>Onde o jogador nasce ao entrar, dentro da antecâmara (rumo ao leste).</summary>
         public const float SpawnX = OrigemX + 5f;
