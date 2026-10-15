@@ -33,7 +33,7 @@ Esta página detalha o **grupo** (convite, lista, líder, sair e expulsar; issue
 - [ ] O grupo desfaz ao ficar com 1 pessoa? (proposta: sim)
 - [ ] Chat (#95), decisões do grupo:
   - [ ] Aprovar os três canais (Cidade, Grupo, Sussurro) e os números da tabela de limites (proposta)
-  - [ ] O canal **Cidade** vale só para quem está na cidade (proposta) ou é um canal do servidor inteiro, que também chega dentro da dungeon?
+  - [x] O canal **Cidade** vale só para quem está dentro dos muros (decidido, #500; veja [Canais](#canais)); não chega à dungeon nem ao terreno em volta.
   - [ ] Filtro de palavrões: fica fora da primeira versão (proposta) ou entra uma lista simples?
   - [ ] **Ignorar jogador** gravado neste computador (proposta) ou na conta, pelo servidor?
   - [ ] O servidor guarda as mensagens em algum lugar para moderação? (proposta: não guarda; só o histórico curto da Cidade em memória)
@@ -190,12 +190,12 @@ Quem decide: **servidor**. O client envia o texto e o canal; o servidor valida, 
 
 | Canal | Quem recebe | Quem pode falar | Comando | Cor |
 |---|---|---|---|---|
-| **Cidade** | todos os personagens que estão na cidade | quem está na cidade | `/c texto` | branco |
+| **Cidade** | todos os personagens que estão **dentro dos muros** | quem está dentro dos muros | `/c texto` | branco |
 | **Grupo** | todos os membros online do seu grupo, em qualquer área | quem está em um grupo | `/g texto` | azul |
 | **Sussurro** | só o personagem indicado (e você vê a sua própria mensagem) | qualquer personagem online | `/s Nome texto` | rosa |
 | **Sistema** | só você | ninguém (só leitura) | não tem | amarelo |
 
-- **Cidade** segue a presença na cidade ([mundo.md](mundo.md)): entra quem recebeu `EstadoDaCidade` e sai quem saiu da cidade. Dentro da dungeon o canal não existe: falar nele devolve `CanalIndisponivel`.
+- **Cidade** vale **só dentro dos muros** (decidido em 2026-10-14, #500): o mundo tem 3 km e o canal não pode chegar a quem está na lava. Recebe e fala quem está na cidade com a posição dentro do quadrado de 40 m de cada lado do centro (`MapaDoMundo.MetadeDaCidade`, `AreasDoMundo.DentroDosMuros`); o servidor confere a posição de quem fala e de cada destinatário. Fora dos muros ou dentro da dungeon o canal não existe: falar nele devolve `CanalIndisponivel`. Não há canal "Local" por distância nesta versão: quem está fora dos muros usa Grupo e Sussurro (um canal por distância fica como evolução, se o grupo sentir falta). O histórico curto vai a quem entra na cidade, como antes.
 - **Grupo** usa a lista do [grupo](#grupo-issue-94). Sem grupo: `NaoEstaEmGrupo`. Membro offline com a vaga guardada não recebe o que foi dito enquanto estava fora.
 - **Sussurro** indica a pessoa pelo **nome do personagem**, sem diferenciar maiúsculas de minúsculas (mesma regra do convite). Nome inexistente ou personagem offline: `AlvoNaoEncontrado` (a mesma resposta nos dois casos). Para si mesmo: `SussurroParaSiMesmo`. Funciona entre áreas.
 - **Sistema** não passa pelo servidor de chat: são as mensagens de sistema do HUD (issue #93, [interface.md](interface.md)) repetidas no histórico do chat do client.
@@ -254,7 +254,7 @@ Quem decide: **servidor**. O client envia o texto e o canal; o servidor valida, 
 | `MensagensRapidasDemais` | mais de 5 mensagens em 10 s |
 | `MensagemRepetida` | mesma mensagem no mesmo canal em menos de 30 s |
 | `Silenciado` | personagem em silêncio automático |
-| `CanalIndisponivel` | falar em Cidade fora da cidade, ou canal que não existe |
+| `CanalIndisponivel` | falar em Cidade fora dos muros (terreno em volta ou dungeon), ou canal que não existe |
 | `NaoEstaEmGrupo` | falar em Grupo sem estar em grupo (mesmo código do grupo) |
 | `AlvoNaoEncontrado` | sussurro para nome inexistente ou personagem offline (mesmo código do grupo) |
 | `SussurroParaSiMesmo` | sussurro para o próprio personagem |

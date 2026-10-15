@@ -44,6 +44,7 @@ namespace JogoDoGrupo.Client.Core.Jogo
         private static Func<PosicaoInicial> _construirMundo;
         private static Func<CancellationToken, Awaitable<PosicaoInicial>> _construirMundoAsync;
         private static Func<long, GameObject> _criarVisual;
+        private static Func<int, GameObject> _criarVisualDeOutro;
         private static Scene _cenaMundo;
         private static Scene _cenaAnterior;
         private static int _contadorCenas;
@@ -91,6 +92,52 @@ namespace JogoDoGrupo.Client.Core.Jogo
         public static void DefinirVisualDoJogador(Func<long, GameObject> criarVisual)
         {
             _criarVisual = criarVisual;
+        }
+
+        /// <summary>
+        /// Registra quem cria o visual dos <b>outros</b> jogadores pela raça (funcionalidade
+        /// Personagem; a raça é o número que o servidor manda no <c>JogadorVisivel</c>). O visual
+        /// segue as mesmas regras de <see cref="DefinirVisualDoJogador"/>: pés no Y = 0, frente em
+        /// +Z, Animator com <see cref="AnimadorDoVisual.ParametroVelocidade"/>. <c>null</c> remove o
+        /// registro (o Core usa uma cápsula).
+        /// </summary>
+        public static void DefinirVisualDeOutroJogador(Func<int, GameObject> criarVisual)
+        {
+            _criarVisualDeOutro = criarVisual;
+        }
+
+        /// <summary>
+        /// Cria o visual de outro jogador da raça (o Mundo chama ao ver alguém). Sempre devolve uma
+        /// instância na cena: sem registro, raça sem prefab ou falha do criador, é a cápsula.
+        /// </summary>
+        public static GameObject CriarVisualDeOutroJogador(int raca) =>
+            CriarVisualDeOutro(_criarVisualDeOutro, raca);
+
+        internal static GameObject CriarVisualDeOutro(Func<int, GameObject> criar, int raca)
+        {
+            if (criar != null)
+            {
+                try
+                {
+                    var visual = criar(raca);
+                    if (visual != null)
+                    {
+                        return visual.scene.IsValid()
+                            ? visual
+                            : UnityEngine.Object.Instantiate(visual);
+                    }
+                }
+                catch (Exception e)
+                {
+                    Debug.LogException(e);
+                }
+
+                Debug.LogWarning(
+                    $"[EntradaNoJogo] Sem visual para a raça {raca}; usando a cápsula."
+                );
+            }
+
+            return MundoPadrao.CriarCapsula();
         }
 
         /// <summary>
@@ -494,6 +541,7 @@ namespace JogoDoGrupo.Client.Core.Jogo
             _posicaoConfirmada = false;
             _ultimoPersonagemId = 0;
             _criarVisual = null;
+            _criarVisualDeOutro = null;
             _desativados.Clear();
             _cenaMundo = default;
             _cenaAnterior = default;

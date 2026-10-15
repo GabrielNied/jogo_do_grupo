@@ -12,5 +12,14 @@ namespace JogoDoGrupo.Shared.Features.Mundo
         public float Y = 0f;
         public float Z = 0f;
         public float RotacaoY = 0f;
+
+        /// <summary>Nome do personagem, preenchido pelo servidor (vazio se desconhecido).</summary>
+        public string Nome = string.Empty;
+
+        /// <summary>
+        /// Raça como número (o valor de <c>Raca</c> de Personagem; 0 se desconhecida). Número
+        /// para o Mundo não depender do enum de outra funcionalidade.
+        /// </summary>
+        public int Raca = 0;
     }
 }

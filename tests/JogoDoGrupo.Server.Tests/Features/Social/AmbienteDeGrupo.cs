@@ -47,6 +47,12 @@ public sealed class DiretorioFalso : IDiretorioDePersonagens
         }
     }
 
+    public bool TentarObterRaca(long personagemId, out int raca)
+    {
+        raca = 1;
+        return true;
+    }
+
     public bool TentarObterContaDoPersonagem(long personagemId, out long contaId)
     {
         lock (_nomes)

@@ -74,12 +74,22 @@ public sealed class ChatDoServidor(
         switch (pedido.Canal)
         {
             case CanalDeChat.Cidade:
-                destinatarios = posicoes.PersonagensNaArea(AreasDoMundo.Cidade);
-                if (!destinatarios.Contains(remetenteId))
+                // Só dentro dos muros (#500): o mundo tem 3 km, e o canal não chega à lava.
+                if (
+                    !posicoes.TentarObter(remetenteId, out var posicaoDoRemetente)
+                    || !AreasDoMundo.DentroDosMuros(posicaoDoRemetente)
+                )
                 {
                     return ResultadoDoChat.Recusar(CodigosErroSocial.CanalIndisponivel);
                 }
 
+                destinatarios = posicoes
+                    .PersonagensNaArea(AreasDoMundo.Cidade)
+                    .Where(id =>
+                        posicoes.TentarObter(id, out var posicao)
+                        && AreasDoMundo.DentroDosMuros(posicao)
+                    )
+                    .ToArray();
                 break;
 
             case CanalDeChat.Sussurro:

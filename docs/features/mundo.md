@@ -155,7 +155,7 @@ No shared (`Features/Mundo/`), sem rede: `Bioma` (enum: `Cidade`, `Campo`, `Mata
 
 ### Tipo compartilhado – `JogadorVisivel`
 
-Campos: `PersonagemId` (long), `X`, `Y`, `Z`, `RotacaoY` (float). Usado em `EstadoDaCidade`, `JogadorEntrou` e `PosicaoJogador`.
+Campos: `PersonagemId` (long), `X`, `Y`, `Z`, `RotacaoY` (float), `Nome` (string) e `Raca` (int: o valor do enum `Raca` de [personagem](personagem.md); número para o Mundo não depender do enum de outra funcionalidade; 0 se desconhecida). O servidor preenche nome e raça pelo `IDiretorioDePersonagens` (#498). Usado em `EstadoDaCidade`, `EstadoDaArea` e `JogadorEntrou` (a `PosicaoJogador` leva só a posição).
 
 ### Mensagens UDP – Mundo (faixa 1000–1999, `MundoMessageIds`)
 
@@ -196,6 +196,20 @@ Campos: `PersonagemId` (long), `X`, `Y`, `Z`, `RotacaoY` (float). Usado em `Esta
 - **Extrapolação curta:** se um pacote atrasar ou for perdido, o avatar continua na velocidade horizontal recente por até 150 ms (`ExtrapolacaoMaximaSegundos`), freando suavemente caso novos pacotes não cheguem.
 - **Salto:** deslocamentos acima de 8 m (`DistanciaDeSalto`) teleportam imediatamente sem deslizar.
 - **Correção local:** posições forçadas recebidas pelo jogador acima de 3 m (`DistanciaDeCorrecao`) teleportam na hora; abaixo disso, a posição do CharacterController avança suavemente a 15 m/s (`VelocidadeSuavizacaoCorrecao`), eliminando trancos de câmera.
+
+**Área de interesse na cidade (#500):** cada um recebe só quem está perto.
+- **Grade espacial:** células de **100 m** (`GradeDeInteresse.TamanhoDaCelula`). Dois personagens passam a se ver a até **150 m** (`RaioDeVisao`) e só deixam de se ver além de **180 m** (`RaioDeSaida`): a folga evita que quem anda na borda apareça e suma a cada passo. A relação é simétrica e conta só o plano horizontal.
+- **Mensagens:** `EstadoDaCidade` traz só quem está no raio. `PosicaoJogador` vai só a quem vê o personagem. Quem entra no raio recebe `JogadorEntrou` (com nome e raça) um do outro; quem sai recebe `JogadorSaiu` um do outro. Sair do jogo, cair ou ir para uma instância avisa só quem via o personagem. Teleporte e retorno da queda passam pelo mesmo caminho: quem fica perto vê o salto, quem fica longe recebe a saída.
+- **Instâncias** (dungeons) são pequenas e isoladas: seguem replicando para todos da área, sem grade.
+- **Contrato `IVizinhanca`** (`Contratos/Mundo`): `QuemVe(personagemId)` e `PersonagensPerto(area, x, z, raio)`, para Mobs e Combate não varrerem a área inteira. Na cidade responde pela grade; em instância, pela área toda. Mobs e Combate ainda não usam: o interesse deles é outra tarefa.
+- **Efeitos para quem usa a presença:** o minimapa e o mapa mostram só quem o client conhece, ou seja, quem está perto. Aliados longe do grupo precisam de outro caminho (posição do grupo, fora desta tarefa).
+- **Fora do escopo:** canais do mundo e lotação (#188); trocar JSON por binário.
+
+**Outros jogadores com a raça, o nome e a animação (#498):**
+- O client cria o modelo pelo gancho `EntradaNoJogo.DefinirVisualDeOutroJogador` (Core), que Personagem preenche com o prefab da raça (`RegistroVisualJogador.CarregarVisualDaRaca`). Raça desconhecida ou sem prefab usa o prefab de reserva (Valdren); sem prefab nenhum, o Core devolve a cápsula. O Mundo não referencia Personagem.
+- O objeto de cada um continua `Jogador_<id>` (Combate acha o Animator por esse nome e Itens prende a arma nele); o modelo é filho dele, sem colisor.
+- **Animação:** o Animator recebe `Velocidade` (a velocidade horizontal interpolada, a mesma que move o corpo; sem deslizar parado nem andar no lugar) e `NoChao` (sempre verdadeiro por enquanto).
+- **Nome:** rótulo em UI Toolkit (Lumora UI v1, `EstiloNomesDeJogadores.uss`) a 2,2 m dos pés, visível até 45 m da câmera e só à frente dela. Sem nome ainda (posição chegou antes da entrada), não mostra rótulo. Se a raça chegar depois, o modelo é trocado.
 
 ### Dia e noite (#163, contrato da #380)
 

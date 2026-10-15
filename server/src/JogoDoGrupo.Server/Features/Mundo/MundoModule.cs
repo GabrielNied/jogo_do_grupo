@@ -1,5 +1,7 @@
+using System.Collections.Concurrent;
 using JogoDoGrupo.Server.Contratos.Combate;
 using JogoDoGrupo.Server.Contratos.Mundo;
+using JogoDoGrupo.Server.Contratos.Personagem;
 using JogoDoGrupo.Server.Core;
 using JogoDoGrupo.Server.Core.Eventos;
 using JogoDoGrupo.Server.Core.TempoReal;
@@ -18,6 +20,9 @@ public sealed class MundoModule : IFeatureModule, ITransicoesDeAreaDoMundo
     private readonly EstadoDasAreasDoMundo<SessaoTempoReal> _areas = new(() =>
         Environment.TickCount64
     );
+    private readonly GradeDeInteresse _grade = new();
+    private readonly ConcurrentDictionary<long, (string Nome, int Raca)> _identidades = new();
+    private IDiretorioDePersonagens? _diretorio;
     private bool _permitirVelocidadeDeTeste;
     private ServidorTempoReal? _tempoReal;
     private EventosDoServidor? _eventos;
@@ -31,10 +36,12 @@ public sealed class MundoModule : IFeatureModule, ITransicoesDeAreaDoMundo
     public void ConfigurarServicos(IServiceCollection servicos, IConfiguration configuracao)
     {
         servicos.AddSingleton<IPosicoesDoMundo>(new PosicoesDoMundo<SessaoTempoReal>(_areas));
+        servicos.AddSingleton<IVizinhanca>(new VizinhancaDoMundo<SessaoTempoReal>(_areas, _grade));
         servicos.AddSingleton<ITransicoesDeAreaDoMundo>(this);
         servicos.AddSingleton<ITeleporteDeTeste>(sp => new TeleporteDeTeste(
             _areas,
-            sp.GetRequiredService<ServidorTempoReal>()
+            sp.GetRequiredService<ServidorTempoReal>(),
+            (area, avatar) => Replicar(area, avatar.Sessao, avatar)
         ));
         servicos.AddSingleton<IDeslocamentosDoMundo>(new DeslocamentosDaCidade(_areas));
         servicos.AddSingleton<ILimiteDeVelocidadeDoMundo>(new LimiteDeVelocidadeDaCidade(_areas));
@@ -56,6 +63,8 @@ public sealed class MundoModule : IFeatureModule, ITransicoesDeAreaDoMundo
     public void MapearRotas(IEndpointRouteBuilder rotas)
     {
         var servicos = rotas.ServiceProvider;
+        // Personagem pode não estar carregada (testes só do Mundo): sem ela, nome e raça vão vazios.
+        _diretorio = servicos.GetService<IDiretorioDePersonagens>();
         _permitirVelocidadeDeTeste = PoliticaDeVelocidadeDeTeste.Ligada(
             servicos.GetRequiredService<IConfiguration>(),
             servicos.GetRequiredService<IHostEnvironment>(),
@@ -148,10 +157,14 @@ public sealed class MundoModule : IFeatureModule, ITransicoesDeAreaDoMundo
             AreasDoMundo.Cidade,
             ValidadorDeMovimento.Nascimento
         );
+        // Na cidade cada um recebe só quem está dentro do raio de visão (#500).
+        var mudanca = _grade.Atualizar(eu.PersonagemId, eu.Posicao.X, eu.Posicao.Z);
+        var vistos = _grade.Vistos(eu.PersonagemId);
+        var proximos = outros.Where(o => vistos.Contains(o.PersonagemId)).ToArray();
         _tempoReal!.Enviar(
             sessao,
             MundoMessageIds.EstadoDaCidade,
-            new EstadoDaCidade { Eu = Visivel(eu), Outros = outros.Select(Visivel).ToArray() }
+            new EstadoDaCidade { Eu = Visivel(eu), Outros = proximos.Select(Visivel).ToArray() }
         );
         if (_areas.Cidade.Velocidades(sessao.PersonagemId) is { } velocidades)
         {
@@ -160,14 +173,15 @@ public sealed class MundoModule : IFeatureModule, ITransicoesDeAreaDoMundo
 
         _hora?.Enviar(sessao);
 
+        // Quem passou a ver o recém-chegado (ou voltou a ver, numa sessão nova) recebe a entrada.
+        var aviso = new JogadorEntrou { Jogador = Visivel(eu) };
+        foreach (var outro in proximos.Where(o => mudanca.Entraram.Contains(o.PersonagemId)))
+        {
+            _tempoReal.Enviar(outro.Sessao, MundoMessageIds.JogadorEntrou, aviso);
+        }
+
         if (novo)
         {
-            var aviso = new JogadorEntrou { Jogador = Visivel(eu) };
-            foreach (var outro in outros)
-            {
-                _tempoReal.Enviar(outro.Sessao, MundoMessageIds.JogadorEntrou, aviso);
-            }
-
             _eventos!.Publicar(new JogadorEntrouNaArea(sessao.PersonagemId, AreasDoMundo.Cidade));
         }
     }
@@ -210,10 +224,16 @@ public sealed class MundoModule : IFeatureModule, ITransicoesDeAreaDoMundo
 
     private void Replicar(string area, SessaoTempoReal dono, AvatarNaCidade<SessaoTempoReal> avatar)
     {
+        if (area == AreasDoMundo.Cidade)
+        {
+            NotificarMudanca(
+                avatar,
+                _grade.Atualizar(avatar.PersonagemId, avatar.Posicao.X, avatar.Posicao.Z)
+            );
+        }
+
         var replica = Posicao(avatar, avatar.SequenciaReplica);
-        var outros = _areas
-            .ObterOuCriar(area)
-            .Presentes()
+        var outros = Observadores(area, avatar.PersonagemId)
             .Where(outro => !ReferenceEquals(outro.Sessao, dono))
             .Select(outro => outro.Sessao)
             .ToArray();
@@ -224,6 +244,66 @@ public sealed class MundoModule : IFeatureModule, ITransicoesDeAreaDoMundo
             EntregaTempoReal.Sequenciada,
             avatar.PersonagemId
         );
+    }
+
+    /// <summary>
+    /// Quem enxerga o personagem: na cidade, os que estão no raio de visão; nas instâncias
+    /// (pequenas e isoladas), todos os outros da área.
+    /// </summary>
+    private AvatarNaCidade<SessaoTempoReal>[] Observadores(string area, long personagemId)
+    {
+        var presentes = _areas.ObterOuCriar(area).Presentes();
+        if (area != AreasDoMundo.Cidade)
+        {
+            return presentes.Where(a => a.PersonagemId != personagemId).ToArray();
+        }
+
+        var vistos = _grade.Vistos(personagemId);
+        return presentes.Where(a => vistos.Contains(a.PersonagemId)).ToArray();
+    }
+
+    // Quem passou a se ver recebe a entrada um do outro; quem deixou de se ver, a saída.
+    private void NotificarMudanca(
+        AvatarNaCidade<SessaoTempoReal> avatar,
+        MudancaDeInteresse mudanca
+    )
+    {
+        foreach (var id in mudanca.Entraram)
+        {
+            if (_areas.Cidade.Obter(id) is not { } outro)
+            {
+                continue;
+            }
+
+            _tempoReal!.Enviar(
+                outro.Sessao,
+                MundoMessageIds.JogadorEntrou,
+                new JogadorEntrou { Jogador = Visivel(avatar) }
+            );
+            _tempoReal.Enviar(
+                avatar.Sessao,
+                MundoMessageIds.JogadorEntrou,
+                new JogadorEntrou { Jogador = Visivel(outro) }
+            );
+        }
+
+        foreach (var id in mudanca.Sairam)
+        {
+            if (_areas.Cidade.Obter(id) is { } outro)
+            {
+                _tempoReal!.Enviar(
+                    outro.Sessao,
+                    MundoMessageIds.JogadorSaiu,
+                    new JogadorSaiu { PersonagemId = avatar.PersonagemId }
+                );
+            }
+
+            _tempoReal!.Enviar(
+                avatar.Sessao,
+                MundoMessageIds.JogadorSaiu,
+                new JogadorSaiu { PersonagemId = id }
+            );
+        }
     }
 
     private void EnviarPosicaoForcada(
@@ -308,7 +388,7 @@ public sealed class MundoModule : IFeatureModule, ITransicoesDeAreaDoMundo
         _areas.RegistrarSaida(sessao.PersonagemId, area);
 
         var aviso = new JogadorSaiu { PersonagemId = sessao.PersonagemId };
-        foreach (var outro in estadoArea.Presentes())
+        foreach (var outro in AosQueViam(area, sessao.PersonagemId, estadoArea.Presentes()))
         {
             _tempoReal!.Enviar(outro.Sessao, MundoMessageIds.JogadorSaiu, aviso);
         }
@@ -349,7 +429,19 @@ public sealed class MundoModule : IFeatureModule, ITransicoesDeAreaDoMundo
         }
 
         var sessao = transicao.Eu.Sessao;
-        foreach (var outro in transicao.OutrosNaOrigem)
+        var vizinhos = transicao.OutrosNoDestino;
+        if (destino.Area == AreasDoMundo.Cidade)
+        {
+            // Entrar na cidade pelo portão ou pela queda: só quem está no raio de visão.
+            var mudanca = _grade.Atualizar(
+                personagemId,
+                transicao.Eu.Posicao.X,
+                transicao.Eu.Posicao.Z
+            );
+            vizinhos = vizinhos.Where(o => mudanca.Entraram.Contains(o.PersonagemId)).ToArray();
+        }
+
+        foreach (var outro in AosQueViam(transicao.Origem, personagemId, transicao.OutrosNaOrigem))
         {
             _tempoReal.Enviar(
                 outro.Sessao,
@@ -368,7 +460,7 @@ public sealed class MundoModule : IFeatureModule, ITransicoesDeAreaDoMundo
                 new EstadoDaCidade
                 {
                     Eu = Visivel(transicao.Eu),
-                    Outros = transicao.OutrosNoDestino.Select(Visivel).ToArray(),
+                    Outros = vizinhos.Select(Visivel).ToArray(),
                 }
             );
         }
@@ -381,7 +473,7 @@ public sealed class MundoModule : IFeatureModule, ITransicoesDeAreaDoMundo
                 {
                     Area = destino.Area,
                     Eu = Visivel(transicao.Eu),
-                    Outros = transicao.OutrosNoDestino.Select(Visivel).ToArray(),
+                    Outros = vizinhos.Select(Visivel).ToArray(),
                 }
             );
         }
@@ -390,7 +482,7 @@ public sealed class MundoModule : IFeatureModule, ITransicoesDeAreaDoMundo
             EnviarVelocidades(sessao, velocidades);
         }
 
-        foreach (var outro in transicao.OutrosNoDestino)
+        foreach (var outro in vizinhos)
         {
             _tempoReal.Enviar(
                 outro.Sessao,
@@ -408,15 +500,57 @@ public sealed class MundoModule : IFeatureModule, ITransicoesDeAreaDoMundo
         return true;
     }
 
-    private static JogadorVisivel Visivel(AvatarNaCidade<SessaoTempoReal> a) =>
-        new()
+    // Na saída da área: quem via o personagem (a grade na cidade; todos nas instâncias).
+    private AvatarNaCidade<SessaoTempoReal>[] AosQueViam(
+        string area,
+        long personagemId,
+        AvatarNaCidade<SessaoTempoReal>[] presentes
+    )
+    {
+        if (area != AreasDoMundo.Cidade)
+        {
+            return presentes.Where(a => a.PersonagemId != personagemId).ToArray();
+        }
+
+        var viam = _grade.Remover(personagemId);
+        return presentes.Where(a => viam.Contains(a.PersonagemId)).ToArray();
+    }
+
+    private JogadorVisivel Visivel(AvatarNaCidade<SessaoTempoReal> a)
+    {
+        if (!_identidades.TryGetValue(a.PersonagemId, out var identidade))
+        {
+            identidade = Identidade(a.PersonagemId);
+            if (identidade.Nome.Length > 0)
+            {
+                _identidades[a.PersonagemId] = identidade;
+            }
+        }
+
+        var (nome, raca) = identidade;
+        return new JogadorVisivel
         {
             PersonagemId = a.PersonagemId,
             X = a.Posicao.X,
             Y = a.Posicao.Y,
             Z = a.Posicao.Z,
             RotacaoY = a.Posicao.RotacaoY,
+            Nome = nome,
+            Raca = raca,
         };
+    }
+
+    // Nome e raça não mudam depois da criação: uma consulta ao banco por personagem.
+    private (string Nome, int Raca) Identidade(long personagemId)
+    {
+        if (_diretorio == null || !_diretorio.TentarObterNome(personagemId, out var nome))
+        {
+            return ("", 0);
+        }
+
+        _diretorio.TentarObterRaca(personagemId, out var raca);
+        return (nome, raca);
+    }
 
     private static PosicaoJogador Posicao(AvatarNaCidade<SessaoTempoReal> a, int sequencia) =>
         new()

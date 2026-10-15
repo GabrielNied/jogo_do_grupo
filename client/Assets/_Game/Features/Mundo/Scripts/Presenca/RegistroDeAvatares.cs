@@ -26,6 +26,9 @@ namespace JogoDoGrupo.Client.Features.Mundo.Presenca
         public event Action<AvatarRemoto> Criado;
         public event Action<AvatarRemoto> Removido;
 
+        /// <summary>O servidor informou outro nome ou outra raça de um avatar que já existia.</summary>
+        public event Action<AvatarRemoto> IdentidadeMudou;
+
         public bool TentarObter(long personagemId, out AvatarRemoto avatar) =>
             _avatares.TryGetValue(personagemId, out avatar);
 
@@ -78,10 +81,21 @@ namespace JogoDoGrupo.Client.Features.Mundo.Presenca
             if (_avatares.TryGetValue(jogador.PersonagemId, out var existente))
             {
                 existente.Teleportar(posicao, jogador.RotacaoY);
+                if (existente.DefinirIdentidade(jogador.Nome, jogador.Raca))
+                {
+                    IdentidadeMudou?.Invoke(existente);
+                }
+
                 return;
             }
 
-            var avatar = new AvatarRemoto(jogador.PersonagemId, posicao, jogador.RotacaoY);
+            var avatar = new AvatarRemoto(
+                jogador.PersonagemId,
+                posicao,
+                jogador.RotacaoY,
+                jogador.Nome,
+                jogador.Raca
+            );
             _avatares.Add(jogador.PersonagemId, avatar);
             Criado?.Invoke(avatar);
         }

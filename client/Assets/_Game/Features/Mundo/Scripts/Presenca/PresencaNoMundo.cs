@@ -22,6 +22,10 @@ namespace JogoDoGrupo.Client.Features.Mundo.Presenca
         private readonly System.Collections.Generic.Dictionary<long, GameObject> _visuais =
             new System.Collections.Generic.Dictionary<long, GameObject>();
 
+        private readonly System.Collections.Generic.Dictionary<long, AnimadorDoVisual> _animadores =
+            new System.Collections.Generic.Dictionary<long, AnimadorDoVisual>();
+
+        private EtiquetasDeNomes _nomes;
         private PresencaNaCidade _presenca;
         private ControleTerceiraPessoa _controle;
 
@@ -95,8 +99,17 @@ namespace JogoDoGrupo.Client.Features.Mundo.Presenca
                         avatar.Posicao,
                         Quaternion.Euler(0f, avatar.RotacaoY, 0f)
                     );
+                    // A animação segue a velocidade interpolada, a mesma que move o corpo: sem
+                    // deslizar parado nem andar no lugar.
+                    if (_animadores.TryGetValue(avatar.PersonagemId, out var animador))
+                    {
+                        animador.Atualizar(avatar.Velocidade, true);
+                    }
                 }
             }
+
+            _nomes ??= EtiquetasDeNomes.Criar(transform);
+            _nomes.Mostrar(_presenca.Avatares.Todos, Camera.main);
         }
 
         private void OnDestroy()
@@ -116,6 +129,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Presenca
             _presenca = new PresencaNaCidade(new ConexaoDePresencaReal(), personagemId);
             _presenca.Avatares.Criado += CriarVisual;
             _presenca.Avatares.Removido += RemoverVisual;
+            _presenca.Avatares.IdentidadeMudou += RecriarVisual;
             _presenca.VelocidadesDoServidor += (andar, correr) =>
             {
                 _velocidades = new Vector2(andar, correr);
@@ -222,32 +236,50 @@ namespace JogoDoGrupo.Client.Features.Mundo.Presenca
             }
         }
 
+        // O visual da raça (gancho do Core, ou cápsula de reserva) vira filho de uma raiz
+        // "Jogador_<id>": Combate acha o Animator por esse nome e Itens prende a arma nela.
         private void CriarVisual(AvatarRemoto avatar)
         {
-            var capsula = GameObject.CreatePrimitive(PrimitiveType.Capsule);
-            capsula.name = $"Jogador_{avatar.PersonagemId}";
-            var colisor = capsula.GetComponent<Collider>();
-            if (colisor != null)
-            {
-                Destroy(colisor);
-            }
-
-            // A cápsula do Unity tem 2 m de altura; o pivô fica nos pés.
-            var raiz = new GameObject(capsula.name);
-            capsula.name = "Capsula";
-            capsula.transform.SetParent(raiz.transform, false);
-            capsula.transform.localPosition = new Vector3(0f, EntradaNoJogo.AlturaJogador / 2f, 0f);
-            capsula.transform.localScale = new Vector3(
-                EntradaNoJogo.RaioJogador * 2f,
-                EntradaNoJogo.AlturaJogador / 2f,
-                EntradaNoJogo.RaioJogador * 2f
-            );
+            var raiz = new GameObject($"Jogador_{avatar.PersonagemId}");
             raiz.transform.SetPositionAndRotation(
                 avatar.Posicao,
                 Quaternion.Euler(0f, avatar.RotacaoY, 0f)
             );
             raiz.transform.SetParent(transform, true);
+
+            var visual = EntradaNoJogo.CriarVisualDeOutroJogador(avatar.Raca);
+            visual.transform.SetParent(raiz.transform, false);
+            visual.transform.localPosition = Vector3.zero;
+            visual.transform.localRotation = Quaternion.identity;
+            if (!visual.activeSelf)
+            {
+                visual.SetActive(true);
+            }
+
+            // Quem colide é o corpo do próprio jogador; o avatar é só imagem.
+            foreach (var colisor in visual.GetComponentsInChildren<Collider>())
+            {
+                if (!colisor.isTrigger)
+                {
+                    colisor.enabled = false;
+                }
+            }
+
+            var animator = visual.GetComponentInChildren<Animator>();
+            if (animator != null)
+            {
+                animator.applyRootMotion = false;
+            }
+
             _visuais[avatar.PersonagemId] = raiz;
+            _animadores[avatar.PersonagemId] = new AnimadorDoVisual(animator);
+        }
+
+        // O servidor informou outra raça de quem já aparecia: troca o modelo.
+        private void RecriarVisual(AvatarRemoto avatar)
+        {
+            RemoverVisual(avatar);
+            CriarVisual(avatar);
         }
 
         /// <summary>
@@ -278,6 +310,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Presenca
 
         private void RemoverVisual(AvatarRemoto avatar)
         {
+            _animadores.Remove(avatar.PersonagemId);
             if (_visuais.TryGetValue(avatar.PersonagemId, out var visual))
             {
                 _visuais.Remove(avatar.PersonagemId);

@@ -10,7 +10,8 @@ namespace JogoDoGrupo.Server.Features.Mundo;
 /// </summary>
 internal sealed class TeleporteDeTeste(
     EstadoDasAreasDoMundo<SessaoTempoReal> areas,
-    ServidorTempoReal tempoReal
+    ServidorTempoReal tempoReal,
+    Action<string, AvatarNaCidade<SessaoTempoReal>> replicar
 ) : ITeleporteDeTeste
 {
     /// <summary>Abaixo disto o comando recusa, para um número solto não enterrar o personagem.</summary>
@@ -58,31 +59,8 @@ internal sealed class TeleporteDeTeste(
             }
         );
 
-        var atualizado = estadoArea.Obter(personagemId) ?? avatar;
-        var replica = new PosicaoJogador
-        {
-            PersonagemId = personagemId,
-            X = x,
-            Y = y,
-            Z = z,
-            RotacaoY = avatar.Posicao.RotacaoY,
-            Sequencia = atualizado.SequenciaReplica,
-            TempoServidorMs =
-                atualizado.UltimoMs > 0 ? atualizado.UltimoMs : Environment.TickCount64,
-        };
-        foreach (var outro in estadoArea.Presentes())
-        {
-            if (!ReferenceEquals(outro.Sessao, avatar.Sessao))
-            {
-                tempoReal.Enviar(
-                    outro.Sessao,
-                    MundoMessageIds.PosicaoJogador,
-                    replica,
-                    EntregaTempoReal.Sequenciada,
-                    personagemId
-                );
-            }
-        }
+        // Quem vê o personagem (grade de interesse na cidade) recebe a réplica.
+        replicar(area, estadoArea.Obter(personagemId) ?? avatar);
 
         return (true, "Teleportado.");
     }
