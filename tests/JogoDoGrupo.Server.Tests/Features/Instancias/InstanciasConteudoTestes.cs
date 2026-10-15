@@ -148,6 +148,7 @@ public sealed class InstanciasConteudoTestes
             InstanciasMessageIds.DungeonEncerrada
         );
         Assert.Equal(ResultadoDungeon.Vitoria, encerrada.Resultado);
+        await InstanciasFixture.EsperarAsync(() => f.Instancias.CorridasAtivas == 0);
         Assert.Equal(0, f.Instancias.CorridasAtivas);
     }
 
