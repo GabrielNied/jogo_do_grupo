@@ -65,6 +65,22 @@ namespace JogoDoGrupo.Client.Core.Tests
                 CodecTempoReal.TentarDecodificar(new byte[] { 1, 0, 0xFF, 0xFE }, out _)
             );
         }
+
+        [Test]
+        public void CodificarParaEnvio_ReutilizaBufferSemAlocarByteArray()
+        {
+            var autenticar = new AutenticarTempoReal { Token = "token", PersonagemId = 42 };
+
+            // Aquecimento para garantir inicialização do buffer
+            var seg1 = CodecTempoReal.CodificarParaEnvio(1, autenticar);
+            var seg2 = CodecTempoReal.CodificarParaEnvio(2, autenticar);
+
+            // Reutiliza a mesma referência de buffer interno
+            Assert.AreSame(seg1.Array, seg2.Array);
+            Assert.IsTrue(CodecTempoReal.TentarDecodificar(seg2, out var decodificado));
+            Assert.AreEqual(2, decodificado.Id);
+            Assert.AreEqual(42, decodificado.Ler<AutenticarTempoReal>().PersonagemId);
+        }
     }
 
     /// <summary>Entrega das mensagens a quem assinou o Id ou a faixa.</summary>
@@ -165,6 +181,50 @@ namespace JogoDoGrupo.Client.Core.Tests
             Assert.Throws<ArgumentNullException>(() =>
                 roteador.Assinar<AutenticarTempoReal>(1, null)
             );
+        }
+
+        [Test]
+        public void MultiplosAssinantes_MesmoDto_ReutilizaInstanciaCacheada()
+        {
+            var roteador = new RoteadorTempoReal();
+            ResultadoAutenticacaoTempoReal recebido1 = null;
+            ResultadoAutenticacaoTempoReal recebido2 = null;
+
+            roteador.Assinar<ResultadoAutenticacaoTempoReal>(2, r => recebido1 = r);
+            roteador.Assinar<ResultadoAutenticacaoTempoReal>(2, r => recebido2 = r);
+
+            var mensagem = new MensagemTempoReal(2, "{\"Aceita\":true,\"Codigo\":\"OK\"}");
+            roteador.Despachar(mensagem);
+
+            Assert.IsNotNull(recebido1);
+            Assert.IsNotNull(recebido2);
+            Assert.AreSame(recebido1, recebido2);
+        }
+
+        [Test]
+        public void Despachar_MilVezes_ZeroAlocacaoDeArray()
+        {
+            var roteador = new RoteadorTempoReal();
+            var contagem = 0;
+            roteador.Assinar(10, _ => contagem++);
+            roteador.Assinar(10, _ => contagem++);
+            roteador.Assinar(20, _ => contagem++);
+
+            var mensagem = new MensagemTempoReal(10, "{}");
+
+            // Aquecimento
+            roteador.Despachar(mensagem);
+
+            var antes = GC.GetAllocatedBytesForCurrentThread();
+            for (var i = 0; i < 1000; i++)
+            {
+                roteador.Despachar(mensagem);
+            }
+            var depois = GC.GetAllocatedBytesForCurrentThread();
+
+            Assert.AreEqual(2002, contagem);
+            // Array copy-on-write elimina o _assinaturas.ToArray() a cada despacho (0 bytes de alocação de array).
+            Assert.Less(depois - antes, 100);
         }
     }
 
@@ -481,7 +541,7 @@ namespace JogoDoGrupo.Client.Core.Tests
 
             public event Action Conectou;
             public event Action<string> Caiu;
-            public event Action<byte[]> Recebeu;
+            public event Action<ArraySegment<byte>> Recebeu;
 
             public void Conectar(string host, int porta, string chave)
             {
@@ -491,7 +551,20 @@ namespace JogoDoGrupo.Client.Core.Tests
 
             public void Enviar(byte[] dados, EntregaTempoReal entrega)
             {
-                Enviados.Add(dados);
+                if (dados != null)
+                {
+                    Enviar(new ArraySegment<byte>(dados, 0, dados.Length), entrega);
+                }
+            }
+
+            public void Enviar(ArraySegment<byte> dados, EntregaTempoReal entrega)
+            {
+                var copia = new byte[dados.Count];
+                if (dados.Array != null && dados.Count > 0)
+                {
+                    Buffer.BlockCopy(dados.Array, dados.Offset, copia, 0, dados.Count);
+                }
+                Enviados.Add(copia);
                 Entregas.Add(entrega);
             }
 
@@ -510,9 +583,10 @@ namespace JogoDoGrupo.Client.Core.Tests
             public void SimularQueda() => Caiu?.Invoke("queda de teste");
 
             public void SimularRecebimento<T>(ushort id, T corpo) =>
-                Recebeu?.Invoke(CodecTempoReal.Codificar(id, corpo));
+                Recebeu?.Invoke(new ArraySegment<byte>(CodecTempoReal.Codificar(id, corpo)));
 
-            public void SimularBytes(byte[] dados) => Recebeu?.Invoke(dados);
+            public void SimularBytes(byte[] dados) =>
+                Recebeu?.Invoke(dados == null ? default : new ArraySegment<byte>(dados));
         }
     }
 }
