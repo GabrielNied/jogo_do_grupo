@@ -137,7 +137,13 @@ function principal() {
     process.exit(1);
   }
 
-  if (gitOut(["diff", "--cached", "--name-only"])) {
+  const temStage = Boolean(gitOut(["diff", "--cached", "--name-only"]));
+  // Sem stage e com mudança solta, o PR sairia só com os commits antigos e sem o trabalho.
+  if (!temStage && temMudancaForaDoStage()) {
+    console.error("✖ Nada no stage, mas há mudanças fora dele. Dê git add no que vai no PR (ou guarde o resto).");
+    process.exit(1);
+  }
+  if (temStage) {
     // Num worktree, .git é um arquivo: a pasta certa vem do próprio git.
     const arquivoMensagem = join(gitOut(["rev-parse", "--git-dir"]), "MENSAGEM_COMMIT");
     writeFileSync(arquivoMensagem, mensagem);
