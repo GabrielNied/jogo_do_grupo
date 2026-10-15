@@ -8,6 +8,7 @@ using JogoDoGrupo.Client.Core.Contas;
 using JogoDoGrupo.Client.Core.Jogo.Janelas;
 using JogoDoGrupo.Client.Core.UI;
 using UnityEngine;
+using UnityEngine.Assemblies;
 using UnityEngine.UIElements;
 
 namespace JogoDoGrupo.Client.Features.Desenvolvimento.Editor
@@ -303,7 +304,7 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Editor
                 | BindingFlags.Instance
                 | BindingFlags.DeclaredOnly;
 
-            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            foreach (var assembly in CurrentAssemblies.GetLoadedAssemblies())
             {
                 var nome = assembly.GetName().Name ?? "";
                 if (!nome.StartsWith("JogoDoGrupo.Client.", StringComparison.Ordinal))

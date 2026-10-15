@@ -133,6 +133,11 @@ namespace JogoDoGrupo.Client.Features.Combate
 
         private void Update()
         {
+            if (_prontidao == null)
+            {
+                return;
+            }
+
             var agora = Time.unscaledTimeAsDouble;
             var jogador = EntradaNoJogo.Jogador;
             var noJogo = EntradaNoJogo.NoJogo && jogador != null && ConexaoTempoReal.Conectado;
@@ -162,6 +167,11 @@ namespace JogoDoGrupo.Client.Features.Combate
         // postura de guarda olha para onde a câmera mira e anda a 40%; a reação inclina o corpo.
         private void LateUpdate()
         {
+            if (_prontidao == null)
+            {
+                return;
+            }
+
             var jogador = EntradaNoJogo.Jogador;
             if (!EntradaNoJogo.NoJogo || jogador == null)
             {

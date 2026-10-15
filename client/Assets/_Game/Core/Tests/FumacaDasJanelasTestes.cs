@@ -5,6 +5,7 @@ using System.Reflection;
 using JogoDoGrupo.Client.Core.Jogo.Janelas;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.Assemblies;
 using UnityEngine.TestTools;
 using UnityEngine.UIElements;
 
@@ -261,7 +262,7 @@ namespace JogoDoGrupo.Client.Core.Tests
                 | BindingFlags.Instance
                 | BindingFlags.DeclaredOnly;
 
-            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            foreach (var assembly in CurrentAssemblies.GetLoadedAssemblies())
             {
                 var nome = assembly.GetName().Name;
                 if (!nome.StartsWith(PrefixoDosAssemblies, StringComparison.Ordinal))
