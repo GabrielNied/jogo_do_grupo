@@ -115,7 +115,9 @@ namespace JogoDoGrupo.Client.Features.Itens.Tests
             Assert.IsNotNull(confirmar);
             Assert.IsFalse(confirmar.enabledSelf);
             raiz.Q<DropdownField>("principal-fusao").index = 1;
-            Assert.IsNull(raiz.Q<Button>("confirmar-fusao"));
+            var confirmarAposTroca = raiz.Q<Button>("confirmar-fusao");
+            Assert.IsNotNull(confirmarAposTroca);
+            Assert.IsFalse(confirmarAposTroca.enabledSelf);
             Assert.AreEqual(0, pedidos);
             Assert.AreEqual(0, principal.NivelFusao);
             Assert.AreEqual(2, estado.Inventario.Length);
@@ -173,6 +175,101 @@ namespace JogoDoGrupo.Client.Features.Itens.Tests
             Assert.IsEmpty(raiz.Q<DropdownField>("material-fusao").choices);
             Assert.IsFalse(raiz.Q<Button>("previa-fusao").enabledSelf);
             StringAssert.Contains("material compatível", raiz.Q<Label>("motivo-fusao").text);
+        }
+
+        [Test]
+        public void PalcoHeroExibeCasasComTierENivel()
+        {
+            var raiz = new VisualElement();
+            var principal = CatalogoEquipamentos.Obter(100);
+            principal.NivelFusao = 3;
+            var material = CatalogoEquipamentos.Obter(100);
+
+            new PainelFusao(raiz, (_, __) => { }).Mostrar(
+                new EquipamentosResponse
+                {
+                    ModoFusao = true,
+                    Inventario = new[] { Entrada(1, principal), Entrada(2, material) },
+                }
+            );
+
+            var palco = raiz.Q<VisualElement>(className: EstiloItens.FusaoPalco);
+            Assert.IsNotNull(palco);
+
+            var slotPrincipal = raiz.Q<VisualElement>("slot-hero-principal");
+            Assert.IsNotNull(slotPrincipal);
+            Assert.IsTrue(slotPrincipal.ClassListContains(EstiloItens.Slot));
+            Assert.IsTrue(slotPrincipal.ClassListContains(EstiloItens.SlotSelecionado));
+
+            var tier = RegrasTier.TierDe(principal);
+            Assert.IsTrue(slotPrincipal.ClassListContains(EstiloItens.Tier(tier)));
+            Assert.AreEqual(
+                RegrasTier.Letra(tier),
+                slotPrincipal.Q<Label>(className: EstiloItens.LetraTier).text
+            );
+            Assert.AreEqual("+3", slotPrincipal.Q<Label>(className: EstiloItens.SeloNovo).text);
+
+            var slotMaterial = raiz.Q<VisualElement>("slot-hero-material");
+            Assert.IsNotNull(slotMaterial);
+            Assert.IsTrue(slotMaterial.ClassListContains(EstiloItens.Slot));
+        }
+
+        [Test]
+        public void CasasClicaveisPermitemSelecionarPrincipalEMaterial()
+        {
+            var raiz = new VisualElement();
+            var itemA = CatalogoEquipamentos.Obter(100);
+            var itemB = CatalogoEquipamentos.Obter(100);
+            var mat1 = CatalogoEquipamentos.Obter(100);
+            var mat2 = CatalogoEquipamentos.Obter(100);
+
+            new PainelFusao(raiz, (_, __) => { }).Mostrar(
+                new EquipamentosResponse
+                {
+                    ModoFusao = true,
+                    Inventario = new[]
+                    {
+                        Entrada(1, itemA),
+                        Entrada(2, itemB),
+                        Entrada(3, mat1),
+                        Entrada(4, mat2),
+                    },
+                }
+            );
+
+            var slotPrincipal0 = raiz.Q<VisualElement>("slot-principal-0");
+            var slotPrincipal1 = raiz.Q<VisualElement>("slot-principal-1");
+            Assert.IsNotNull(slotPrincipal0);
+            Assert.IsNotNull(slotPrincipal1);
+
+            Assert.IsTrue(slotPrincipal0.ClassListContains(EstiloItens.SlotSelecionado));
+            Assert.IsFalse(slotPrincipal1.ClassListContains(EstiloItens.SlotSelecionado));
+
+            var slotMat0 = raiz.Q<VisualElement>("slot-material-0");
+            Assert.IsNotNull(slotMat0);
+            Assert.IsTrue(slotMat0.ClassListContains(EstiloItens.SlotSelecionado));
+        }
+
+        [Test]
+        public void AtributosAparecemComoChipsComValorEAvanco()
+        {
+            var raiz = new VisualElement();
+            var principal = CatalogoEquipamentos.Obter(100);
+            var material = CatalogoEquipamentos.Obter(100);
+
+            new PainelFusao(raiz, (_, __) => { }).Mostrar(
+                new EquipamentosResponse
+                {
+                    ModoFusao = true,
+                    Inventario = new[] { Entrada(1, principal), Entrada(2, material) },
+                }
+            );
+
+            var listaChips = raiz.Q<VisualElement>(className: EstiloItens.FusaoAtributosLista);
+            Assert.IsNotNull(listaChips);
+            var chips = listaChips.Query<Button>(className: EstiloItens.FusaoAtributoChip).ToList();
+            Assert.IsNotEmpty(chips);
+            Assert.IsTrue(chips[0].ClassListContains(EstiloItens.FusaoAtributoAtivo));
         }
     }
 }
