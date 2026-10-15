@@ -240,11 +240,26 @@ namespace JogoDoGrupo.Client.Features.Combate
             Tocar(SomDeCombate.GolpeNoVazio, 0.5f);
         }
 
-        // Segura a pose de quem tem Animator por RegrasReacao.PausaVisualNoAcertoMs. O relógio do
-        // servidor não para: é só a sensação de contato.
-        private void SegurarPose(GameObject objeto)
+        internal static bool DeveSegurarPose(GameObject objeto)
         {
             if (objeto == null || !ConfiguracaoDeImpacto.HitStopLigado)
+            {
+                return false;
+            }
+
+            if (objeto.name.StartsWith(RegistroDeAlvos.NomeDoInimigo))
+            {
+                return false;
+            }
+
+            return objeto.GetComponentInChildren<Animator>() != null;
+        }
+
+        // Segura a pose de quem tem Animator por RegrasReacao.PausaVisualNoAcertoMs. O relógio do
+        // servidor não para: é só a sensação de contato. Mobs cuida do Animator de seus inimigos (#812).
+        private void SegurarPose(GameObject objeto)
+        {
+            if (!DeveSegurarPose(objeto))
             {
                 return;
             }
@@ -340,8 +355,12 @@ namespace JogoDoGrupo.Client.Features.Combate
                 Aplicar(efeito, alvo, origem);
 
                 // A pose de quem bateu e de quem levou fica parada por um instante (70 ms).
+                // Mobs cuida da pose de seus inimigos ao receber AtaqueAcertou (#812).
                 SegurarPose(meu ? jogador : null);
-                SegurarPose(alvo);
+                if (acerto.AlvoId == RegrasBonecoDeTreino.AlvoId)
+                {
+                    SegurarPose(alvo);
+                }
             }
         }
 
