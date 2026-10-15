@@ -80,6 +80,7 @@ public sealed class CombateModule : IFeatureModule
             _troca = servico;
             return servico;
         });
+        servicos.AddSingleton<ITrocaDeArma>(sp => sp.GetRequiredService<ServicoDeTrocaDeArma>());
         servicos.AddSingleton(sp =>
         {
             var servico = new ServicoDeGuarda(

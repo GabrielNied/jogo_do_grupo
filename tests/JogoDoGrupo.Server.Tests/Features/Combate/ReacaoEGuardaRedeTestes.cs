@@ -175,6 +175,46 @@ public class ReacaoEGuardaRedeTestes(ServidorDeAtaque servidor) : IClassFixture<
         Assert.Equal(vida, (await ConsultarAsync(ana)).VidaAtual);
     }
 
+    private static Task<HttpResponseMessage> TrocarConjuntoPeloBotaoAsync(
+        Jogador j,
+        int conjunto
+    ) =>
+        ServidorDeTeste.PostJsonAsync(
+            j.Http,
+            RegrasEquipamentos.RotaDe(j.Id) + "/conjunto",
+            new PedidoConjunto { Conjunto = conjunto }
+        );
+
+    [Fact]
+    public async Task Botao_de_conjunto_durante_o_preparo_do_golpe_e_recusado()
+    {
+        using var ana = await NovoJogadorAsync();
+        ana.Cliente.Enviar(
+            CombateMessageIds.IntencaoDeAtaque,
+            new IntencaoDeAtaque { Tipo = TipoDeAtaque.Pesado, Sequencia = 1 }
+        );
+        await ana.Cliente.ReceberAsync<AtaqueIniciado>(CombateMessageIds.AtaqueIniciado);
+
+        var resposta = await TrocarConjuntoPeloBotaoAsync(ana, 2);
+
+        Assert.Equal(System.Net.HttpStatusCode.Conflict, resposta.StatusCode);
+        Assert.Contains(
+            CodigosErroItens.TrocaDeArmaBloqueada,
+            await resposta.Content.ReadAsStringAsync()
+        );
+    }
+
+    [Fact]
+    public async Task Botao_de_conjunto_parado_troca_o_conjunto()
+    {
+        // O tempo dos 0,4 s é testado com relógio controlado em TrocaDeArmaTestes.
+        using var ana = await NovoJogadorAsync();
+
+        var troca = await TrocarConjuntoPeloBotaoAsync(ana, 2);
+
+        troca.EnsureSuccessStatusCode();
+    }
+
     [Fact]
     public async Task Guarda_sem_stamina_quebra_toma_o_dano_e_fica_300_ms_sem_agir()
     {
@@ -208,9 +248,11 @@ public class ReacaoEGuardaRedeTestes(ServidorDeAtaque servidor) : IClassFixture<
     public async Task Segurar_a_guarda_no_preparo_do_golpe_e_recusado()
     {
         using var ana = await NovoJogadorAsync();
+        // Pesado: o preparo de 1 s dá folga sob carga (o leve, de 0,5 s, perdia a janela). A guarda
+        // só é pedida depois da mensagem de preparo, então cai dentro dele.
         ana.Cliente.Enviar(
             CombateMessageIds.IntencaoDeAtaque,
-            new IntencaoDeAtaque { Tipo = TipoDeAtaque.Leve, Sequencia = 1 }
+            new IntencaoDeAtaque { Tipo = TipoDeAtaque.Pesado, Sequencia = 1 }
         );
         await ana.Cliente.ReceberAsync<AtaqueIniciado>(CombateMessageIds.AtaqueIniciado);
 

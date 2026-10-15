@@ -1,3 +1,5 @@
+using System.Collections.Concurrent;
+using JogoDoGrupo.Server.Contratos.Combate;
 using JogoDoGrupo.Server.Contratos.Itens;
 using JogoDoGrupo.Server.Contratos.Mundo;
 using JogoDoGrupo.Server.Core.TempoReal;
@@ -13,7 +15,7 @@ namespace JogoDoGrupo.Server.Features.Combate;
 /// tempo. Só depois de reservar se pede a Itens (<see cref="ITrocaDeConjunto"/>) que vire o
 /// conjunto. A troca não tem recarga própria nem mexe na recarga das skills, que é de cada arma.
 /// </summary>
-public sealed class ServicoDeTrocaDeArma
+public sealed class ServicoDeTrocaDeArma : ITrocaDeArma
 {
     private readonly ServidorTempoReal _tempoReal;
     private readonly IPosicoesDoMundo _posicoes;
@@ -22,6 +24,7 @@ public sealed class ServicoDeTrocaDeArma
     private readonly ILogger<ServicoDeTrocaDeArma>? _log;
     private readonly Func<long> _relogioMs;
     private readonly ServicoDeQueda? _queda;
+    private readonly ConcurrentDictionary<long, long> _fimDaTrocaMs = new();
 
     public ServicoDeTrocaDeArma(
         ServidorTempoReal tempoReal,
@@ -51,36 +54,66 @@ public sealed class ServicoDeTrocaDeArma
             return; // Fora do mundo: não há arma para trocar.
         }
 
+        var recusa = Reservar(personagemId, out var ocupacaoId);
+        if (recusa != null)
+        {
+            Recusar(sessao, intencao.Sequencia, recusa);
+            return;
+        }
+
+        _ = ExecutarAsync(sessao, intencao, ocupacaoId);
+    }
+
+    /// <inheritdoc />
+    public bool EmTroca(long personagemId) =>
+        _fimDaTrocaMs.TryGetValue(personagemId, out var fim) && _relogioMs() < fim;
+
+    /// <inheritdoc />
+    public string? TentarReservar(long personagemId) =>
+        _conjuntos == null || !_posicoes.TentarObter(personagemId, out _)
+            ? null
+            : Reservar(personagemId, out _);
+
+    // As recusas e a reserva do R e dos botões de conjunto: uma lógica só.
+    private string? Reservar(long personagemId, out long ocupacaoId)
+    {
+        ocupacaoId = 0;
+
         // Trocar interrompe quem levantava um aliado, como atacar e esquivar.
         _queda?.AoAgir(personagemId);
 
         if (_queda?.EstaCaido(personagemId) == true)
         {
-            Recusar(sessao, intencao.Sequencia, CodigosErroCombate.VoceEstaCaido);
-            return;
+            return CodigosErroCombate.VoceEstaCaido;
         }
 
         if (_controle.EstaAtordoado(personagemId))
         {
-            Recusar(sessao, intencao.Sequencia, CodigosErroCombate.VoceEstaAtordoado);
-            return;
+            return CodigosErroCombate.VoceEstaAtordoado;
         }
 
+        var agora = _relogioMs();
         if (
             !_controle.TentarOcupar(
                 personagemId,
-                _relogioMs(),
+                agora,
                 RegrasTrocaDeArma.DuracaoMs,
-                out var ocupacaoId,
+                out ocupacaoId,
                 invulneravel: false
             )
         )
         {
-            Recusar(sessao, intencao.Sequencia, CodigosErroCombate.AcaoEmAndamento);
-            return;
+            return CodigosErroCombate.AcaoEmAndamento;
         }
 
-        _ = ExecutarAsync(sessao, intencao, ocupacaoId);
+        _fimDaTrocaMs[personagemId] = agora + RegrasTrocaDeArma.DuracaoMs;
+        return null;
+    }
+
+    private void Liberar(long personagemId, long ocupacaoId)
+    {
+        _controle.Desocupar(personagemId, ocupacaoId);
+        _fimDaTrocaMs.TryRemove(personagemId, out _);
     }
 
     private async Task ExecutarAsync(
@@ -95,7 +128,7 @@ public sealed class ServicoDeTrocaDeArma
             var conjunto = await _conjuntos!.AlternarAsync(personagemId, CancellationToken.None);
             if (conjunto is not int ativo)
             {
-                _controle.Desocupar(personagemId, ocupacaoId);
+                Liberar(personagemId, ocupacaoId);
                 Recusar(sessao, intencao.Sequencia, CodigosErroCombate.AcaoEmAndamento);
                 return;
             }
@@ -113,7 +146,7 @@ public sealed class ServicoDeTrocaDeArma
         catch (Exception e)
         {
             _log?.LogError(e, "Erro na troca de arma do personagem {Personagem}.", personagemId);
-            _controle.Desocupar(personagemId, ocupacaoId);
+            Liberar(personagemId, ocupacaoId);
             Recusar(sessao, intencao.Sequencia, CodigosErroCombate.AcaoEmAndamento);
         }
     }

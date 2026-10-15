@@ -37,6 +37,18 @@ public sealed class ArmazemEmMemoria : IArmazemDeSkills
     }
 }
 
+/// <summary>A troca de arma de Combate, com o fim dos 0,4 s no relógio do teste.</summary>
+public sealed class TrocaFalsa(Func<long> agoraMs) : ITrocaDeArma
+{
+    private long _fimMs;
+
+    public void Iniciar() => _fimMs = agoraMs() + RegrasTrocaDeArma.DuracaoMs;
+
+    public bool EmTroca(long personagemId) => agoraMs() < _fimMs;
+
+    public string? TentarReservar(long personagemId) => null;
+}
+
 /// <summary>Stamina e mana do personagem, com a mesma regra de conferir e descontar de Combate.</summary>
 public sealed class CobrancaFalsa : ICobrancaDeRecursos
 {
@@ -88,9 +100,11 @@ public sealed class NucleoDeSkillsTestes
     };
     private long _agoraMs = 1_000_000;
     private readonly NucleoDeSkills _nucleo;
+    private readonly TrocaFalsa _troca;
 
     public NucleoDeSkillsTestes()
     {
+        _troca = new TrocaFalsa(() => Interlocked.Read(ref _agoraMs));
         var posicoes = new PosicoesFalsas();
         posicoes.Colocar(Personagem, Area, 0, 0);
         _nucleo = new NucleoDeSkills(
@@ -100,7 +114,8 @@ public sealed class NucleoDeSkillsTestes
             _itens,
             posicoes,
             [_alvo],
-            () => Interlocked.Read(ref _agoraMs)
+            () => Interlocked.Read(ref _agoraMs),
+            _troca
         );
     }
 
@@ -143,6 +158,23 @@ public sealed class NucleoDeSkillsTestes
 
         var barra = await _nucleo.BarraAsync(Personagem, CancellationToken.None);
         Assert.Equal(skill.RecargaMs, barra.Skills[0].RestanteMs);
+    }
+
+    [Fact]
+    public async Task Durante_a_troca_de_arma_recusa_sem_gastar_e_depois_dos_400_ms_aceita()
+    {
+        _troca.Iniciar();
+
+        var recusado = await UsarAsync(0);
+        Assert.Equal(CodigosErroSkills.AcaoEmAndamento, recusado.Recusa);
+        Assert.Equal(0, _cobranca.Cobrancas);
+
+        _agoraMs += RegrasTrocaDeArma.DuracaoMs - 1;
+        Assert.Equal(CodigosErroSkills.AcaoEmAndamento, (await UsarAsync(0)).Recusa);
+
+        _agoraMs += 1;
+        Assert.Null((await UsarAsync(0)).Recusa);
+        Assert.Equal(1, _cobranca.Cobrancas);
     }
 
     [Fact]

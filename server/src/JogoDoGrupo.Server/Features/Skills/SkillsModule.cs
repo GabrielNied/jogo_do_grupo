@@ -30,7 +30,8 @@ public sealed class SkillsModule : IFeatureModule
                 sp.GetRequiredService<IAtributosDosEquipamentos>(),
                 sp.GetRequiredService<IPosicoesDoMundo>(),
                 sp.GetServices<IAlvosDeCombate>(),
-                () => relogio.GetUtcNow().ToUnixTimeMilliseconds()
+                () => relogio.GetUtcNow().ToUnixTimeMilliseconds(),
+                sp.GetService<ITrocaDeArma>()
             );
         });
         servicos.AddSingleton(sp =>

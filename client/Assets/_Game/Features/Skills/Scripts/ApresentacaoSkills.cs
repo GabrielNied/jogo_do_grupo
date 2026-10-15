@@ -52,6 +52,8 @@ namespace JogoDoGrupo.Client.Features.Skills
                     return "Falta stamina ou mana";
                 case CodigosErroSkills.VoceEstaCaido:
                     return "Você está caído";
+                case CodigosErroSkills.AcaoEmAndamento:
+                    return "Trocando de arma";
                 default:
                     return "Sem skill nesse espaço";
             }
