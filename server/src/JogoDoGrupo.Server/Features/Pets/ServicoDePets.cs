@@ -347,8 +347,8 @@ public sealed class ServicoDePets(
                         Andando = pet.Andando,
                         Sequencia = pet.Sequencia,
                     },
-                    // Sequenciada no canal 0 (sem canal por entidade): o client Unity abre a
-                    // conexão com um canal só e descarta o que vem em canal maior.
+                    // Sequenciada no canal 0: o canal por entidade (DonoId) seria o mesmo da
+                    // PosicaoJogador do dono, e um pacote fora de ordem descartaria o outro.
                     EntregaTempoReal.Sequenciada
                 );
             }
