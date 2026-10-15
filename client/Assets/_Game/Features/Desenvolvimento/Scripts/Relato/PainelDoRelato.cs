@@ -31,6 +31,7 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
         private Label _mensagemAjustes;
         private Momento _momento;
         private int _frameDaAbertura;
+        private int _fecharDepoisDoQuadro = -1;
 
         public PainelDoRelato(GravadorDeMomento gravador)
         {
@@ -118,6 +119,7 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
 
             FecharAjustes();
             _momento = null;
+            _fecharDepoisDoQuadro = -1;
             _gravador.DefinirGravando(true);
             PrenderJogo(false);
         }
@@ -153,7 +155,29 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
                 );
             }
 
-            Fechar();
+            // Fecha no próximo quadro: o Enter deste quadro não pode abrir o chat ao mesmo tempo.
+            _momento = null;
+            _fecharDepoisDoQuadro = Time.frameCount;
+        }
+
+        /// <summary>
+        /// Chamado todo quadro pelo gravador: fecha o relato salvo no quadro anterior e fecha o
+        /// painel no Esc (o painel de ajustes não tem campo de texto para receber a tecla).
+        /// </summary>
+        public void Atualizar(bool escApertado)
+        {
+            if (_fecharDepoisDoQuadro >= 0 && Time.frameCount > _fecharDepoisDoQuadro)
+            {
+                Fechar();
+                return;
+            }
+
+            // A sessão já ignorou este Esc (o painel aberto bloqueia os atalhos); não marca
+            // como consumido, senão o próximo Esc da pessoa se perde.
+            if (escApertado && Aberto)
+            {
+                Fechar();
+            }
         }
 
         private void Montar()

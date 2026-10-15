@@ -121,6 +121,8 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
                 return;
             }
 
+            var esc = Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame;
+            _painel.Atualizar(esc);
             if (_f9.WasPressedThisFrame())
             {
                 _painel.AlternarRelato();
