@@ -45,6 +45,18 @@ import {
   prDaPendencia,
   tituloPendencia,
 } from "./pendencia-unity.mjs";
+import {
+  LABEL_REGISTRO,
+  TITULO_REGISTRO,
+  blocoAtivoParaIssue,
+  corpoRegistro,
+  escopoDaIssue,
+  labelSegure,
+  labelsSegureParaIssue,
+  normalizarEscopo,
+  parseRegistro,
+  recusaPuxarSegure,
+} from "./segure.mjs";
 
 const PROJECT_OWNER = "GabrielNied";
 const PROJECT_NUMBER = "1";
@@ -280,6 +292,63 @@ function nomesDasLabels(issue) {
   return (issue.labels || []).map((l) => (typeof l === "string" ? l : l.name));
 }
 
+function obterIssueRegistroSegure({ criarSeFaltar = false } = {}) {
+  const lote =
+    apiGh(`${REPO}/issues?state=open&labels=${encodeURIComponent(LABEL_REGISTRO)}&per_page=5`) || [];
+  const bruta = lote.find((item) => !item.pull_request);
+  if (bruta) return normalizarIssue(bruta);
+  if (!criarSeFaltar) return null;
+  const criada = apiGh(`${REPO}/issues`, {
+    metodo: "POST",
+    campos: {
+      title: TITULO_REGISTRO,
+      body: corpoRegistro({}),
+      labels: ["desenvolvimento", LABEL_REGISTRO],
+    },
+  });
+  return normalizarIssue(criada);
+}
+
+function carregarBlocosSegure() {
+  const registro = obterIssueRegistroSegure();
+  if (!registro) return {};
+  return parseRegistro(registro.body);
+}
+
+function salvarBlocosSegure(blocos) {
+  const registro = obterIssueRegistroSegure({ criarSeFaltar: true });
+  apiGh(`${REPO}/issues/${registro.number}`, {
+    metodo: "PATCH",
+    campos: { body: corpoRegistro(blocos) },
+  });
+}
+
+function rotularIssueSegure(numero, blocos) {
+  const issue = obterIssue(numero);
+  if (issue.state !== "OPEN") return 0;
+  const labels = nomesDasLabels(issue);
+  if (labels.includes("em-andamento")) return 0;
+  const extras = labelsSegureParaIssue({ titulo: issue.title, labels, blocos });
+  for (const label of extras) adicionarLabel(numero, label);
+  return extras.length;
+}
+
+function removerLabelsSegureDoEscopo(escopo) {
+  const alvo = labelSegure(escopo);
+  for (const issue of listarIssuesAbertas()) {
+    if (nomesDasLabels(issue).includes(alvo)) removerLabel(issue.number, alvo);
+  }
+}
+
+function mesclarLabelsSegure({ titulo, escopoExplicito, labels, blocos }) {
+  return [
+    ...new Set([
+      ...labels,
+      ...labelsSegureParaIssue({ titulo, escopoExplicito, labels, blocos }),
+    ]),
+  ];
+}
+
 function branchesNoOrigin(nomes) {
   const unicos = [...new Set(nomes)];
   if (unicos.length === 0) return new Set();
@@ -362,6 +431,7 @@ async function listarTarefas() {
     console.log(`🔓 Trava abandonada liberada: ${liberadas.map((numero) => `#${numero}`).join(", ")}`);
   }
   const issues = listarIssuesAbertas();
+  const blocosSegure = carregarBlocosSegure();
   const itensProjeto = buscarItensDoProjeto();
 
   const emAndamento = [];
@@ -421,8 +491,10 @@ async function listarTarefas() {
       const agentesTags = labels.filter((l) => l.startsWith("agente:")).join(", ") || "geral";
       const foco = labels.includes("foco") ? " | foco" : "";
       const avisos = sinais.length > 0 ? ` | ${sinais.join(" · ")}` : "";
+      const ativo = blocoAtivoParaIssue({ titulo: issue.title, labels, blocos: blocosSegure });
+      const segure = ativo ? ` | segure @${ativo.dono}` : "";
       console.log(`   #${issue.number} - ${issue.title}`);
-      console.log(`     ${textoDaPrioridade(labels)}${foco} | Recomendado para: [${agentesTags}]${avisos}`);
+      console.log(`     ${textoDaPrioridade(labels)}${foco} | Recomendado para: [${agentesTags}]${avisos}${segure}`);
     }
   }
 
@@ -488,6 +560,8 @@ async function puxarTarefa(args) {
   const issues = [];
   const jaPuxadas = [];
   const recusas = [];
+  const blocosSegure = carregarBlocosSegure();
+  const loginAtual = obterUsuarioAtual();
   const itensProjeto = buscarItensDoProjeto();
   for (const numero of numeros) {
     console.log(`🔍 Verificando tarefa #${numero}...`);
@@ -516,6 +590,16 @@ async function puxarTarefa(args) {
     }
     if (labels.includes("bloqueada")) {
       recusas.push(`#${numero} está BLOQUEADA por dependência ou decisão; resolva antes (/decida).`);
+      continue;
+    }
+    const recusaSegure = recusaPuxarSegure({
+      login: loginAtual,
+      titulo: issue.title,
+      labels,
+      blocos: blocosSegure,
+    });
+    if (recusaSegure) {
+      recusas.push(`#${numero} ("${issue.title}") ${recusaSegure}`);
       continue;
     }
     issues.push({ issue, labels });
@@ -872,12 +956,19 @@ async function criarSubtarefa(args) {
     escopo = escopos.find((e) => parentLabels.includes(e)) || "core";
   }
 
-  const labels = [escopo];
+  const blocosSegure = carregarBlocosSegure();
+  let labels = [escopo];
   if (agente) {
     labels.push(`agente:${agente}`);
   }
 
   const tituloCompleto = `[#${parentNumero}] ${titulo}`;
+  labels = mesclarLabelsSegure({
+    titulo: tituloCompleto,
+    escopoExplicito: escopo,
+    labels,
+    blocos: blocosSegure,
+  });
   let pastas = [];
   try {
     pastas = readdirSync("shared/Package/Runtime/Features");
@@ -926,12 +1017,20 @@ async function criarPendenciaUnity(args) {
   const dadosPr = apiGh(`${REPO}/pulls/${pr}`);
   const branch = dadosPr.head.ref;
   const escopoDoPr = branch.split("/")[1];
-  const labels = [LABEL_PENDENCIA, ...(escopos.includes(escopoDoPr) ? [escopoDoPr] : [])];
+  const blocosSegure = carregarBlocosSegure();
+  let labels = [LABEL_PENDENCIA, ...(escopos.includes(escopoDoPr) ? [escopoDoPr] : [])];
+  const titulo = tituloPendencia(pr, faltas);
+  labels = mesclarLabelsSegure({
+    titulo,
+    escopoExplicito: escopos.includes(escopoDoPr) ? escopoDoPr : null,
+    labels,
+    blocos: blocosSegure,
+  });
 
   console.log(`🧩 Registrando pendência de Unity do PR #${pr}...`);
   const issue = apiGh(`${REPO}/issues`, {
     metodo: "POST",
-    campos: { title: tituloPendencia(pr, faltas), body: corpoPendencia({ pr, branch, faltas }), labels },
+    campos: { title: titulo, body: corpoPendencia({ pr, branch, faltas }), labels },
   });
   sincronizarStatusProjeto(issue.number, issue.html_url, "Todo");
 
@@ -949,6 +1048,88 @@ async function criarPendenciaUnity(args) {
   console.log("  O PR segue normal. Quem tiver Unity puxa com: npm run tarefa -- puxar " + issue.number);
 }
 
+async function comandoSegure(args) {
+  const login = obterUsuarioAtual();
+
+  if (args[0] === "status") {
+    const blocos = carregarBlocosSegure();
+    const escoposAtivos = Object.keys(blocos).sort();
+    if (escoposAtivos.length === 0) {
+      console.log("Nenhum segure ativo.");
+      return;
+    }
+    console.log("Segures ativos:");
+    for (const escopo of escoposAtivos) {
+      const { dono, desde } = blocos[escopo];
+      console.log(`  ${escopo}: @${dono} (desde ${desde.slice(0, 10)})`);
+    }
+    return;
+  }
+
+  if (args[0] === "liberar") {
+    const escopo = normalizarEscopo(args[1]);
+    if (!escopo) {
+      console.error("✖ Informe o escopo. Exemplo: npm run tarefa -- segure liberar personagem");
+      process.exit(1);
+    }
+    const blocos = carregarBlocosSegure();
+    if (!blocos[escopo]) {
+      console.error(`✖ Não há segure ativo para "${escopo}".`);
+      process.exit(1);
+    }
+    if (blocos[escopo].dono !== login) {
+      console.error(`✖ Só @${blocos[escopo].dono} pode liberar o segure de ${escopo}.`);
+      process.exit(1);
+    }
+    delete blocos[escopo];
+    salvarBlocosSegure(blocos);
+    removerLabelsSegureDoEscopo(escopo);
+    console.log(`✔ Segure de ${escopo} liberado.`);
+    return;
+  }
+
+  if (args[0] === "rotular") {
+    const blocos = carregarBlocosSegure();
+    const numeros = args.slice(1).map((a) => parseInt(a.replace("#", ""), 10)).filter((n) => !isNaN(n));
+    let total = 0;
+    if (numeros.length === 0) {
+      for (const issue of listarIssuesAbertas()) {
+        total += rotularIssueSegure(issue.number, blocos);
+      }
+    } else {
+      for (const numero of numeros) total += rotularIssueSegure(numero, blocos);
+    }
+    console.log(`✔ ${total} label(s) segure aplicada(s).`);
+    return;
+  }
+
+  const escopo = normalizarEscopo(args[0]);
+  if (!escopo) {
+    console.error("✖ Escopo inválido. Use um escopo do commitlint (ex.: personagem, itens, mundo).");
+    console.error("  npm run tarefa -- segure <escopo> | status | liberar <escopo> | rotular [#N ...]");
+    process.exit(1);
+  }
+
+  const blocos = carregarBlocosSegure();
+  if (blocos[escopo] && blocos[escopo].dono !== login) {
+    console.error(`✖ ${escopo} já está seguro para @${blocos[escopo].dono}. Peça para liberar antes.`);
+    process.exit(1);
+  }
+  blocos[escopo] = { dono: login, desde: new Date().toISOString() };
+  salvarBlocosSegure(blocos);
+
+  let rotuladas = 0;
+  for (const issue of listarIssuesAbertas()) {
+    const labels = nomesDasLabels(issue);
+    if (labels.includes("em-andamento")) continue;
+    if (escopoDaIssue(issue.title, labels) !== escopo) continue;
+    rotuladas += rotularIssueSegure(issue.number, blocos);
+  }
+
+  console.log(`🔒 Segure ${escopo} ativo para @${login}. ${rotuladas} tarefa(s) livre(s) rotulada(s).`);
+  console.log("  Issues novas: npm run tarefa -- segure rotular <numero> (ou rotular sem número para varrer).");
+}
+
 function exibirAjuda() {
   console.log(`
 Uso: npm run tarefa -- <comando> [argumentos]
@@ -963,7 +1144,11 @@ Comandos disponíveis:
                                     --worktree <path>   Cria a branch em um worktree separado.
                                     --base <branch>     Parte de outra branch do origin (leva empilhada).
   liberar <numero>... [--motivo ..] Libera tarefas em andamento de volta para a fila de disponíveis.
-  soltar-travas                  Libera em-andamento sem branch no origin e sem PR aberto há mais de 2 h.
+  soltar-travas                  Libera em-andamento sem branch no origin e sem PR aberto há mais de 24 h.
+  segure <escopo>                Reserva tarefas livres do prefixo [Escopo] para quem rodou (IA incluída).
+  segure status                  Lista segures ativos.
+  segure liberar <escopo>        Encerra a reserva (só o dono).
+  segure rotular [#N ...]        Aplica label segure em issues novas (todas abertas se omitir #N).
   subtarefa <pai> [opts]          Cria uma subtarefa para um agente específico vinculada à tarefa pai.
                                   Opções:
                                     --titulo "..."      Título da subtarefa.
@@ -1039,6 +1224,9 @@ switch (comando) {
     break;
   case "pendencia-unity":
     await criarPendenciaUnity(argumentos);
+    break;
+  case "segure":
+    await comandoSegure(argumentos);
     break;
   case "ajuda":
   case "help":

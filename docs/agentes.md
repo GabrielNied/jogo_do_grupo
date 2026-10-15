@@ -13,7 +13,7 @@ Vários agentes de IA implementam ao mesmo tempo, cada um num worktree e num **l
 | `designer-docs` | `docs/features/`, visão, referências | Decisão de design que precisa virar regra escrita |
 | `revisor` | Só leitura | PR de risco: Core, segurança, regra de dano, preço ou fusão que a doc não fechou |
 
-Sonnet é o padrão; Opus em Core e nos PRs de risco. Comandos: `/trabalhe` implementa, `/decida` confere e organiza o quadro, `/melhore` abre melhorias. Nenhum dos dois últimos implementa.
+Sonnet é o padrão; Opus em Core e nos PRs de risco. Comandos: `/trabalhe` implementa, `/decida` confere e organiza o quadro, `/melhore` abre melhorias, `/segure` reserva fila por escopo. Nenhum dos três últimos implementa.
 
 ## Doc e regras atuais
 
@@ -54,8 +54,23 @@ Tarefas livres que mexem no **mesmo código**: mesmos arquivos ou fluxo, uma dep
 
 - **Dono:** `itens` ou `economia` se o lote é só deles; `funcionalidade` se cruza funcionalidades; `server-core` ou `client-core` se é Core. Core não entra em lote de funcionalidade.
 - **Entrega:** `npm run tarefa -- puxar <N> <M> ... <branch>`, uma branch, um commit por issue, um PR com um `Closes #` por issue. Passou de ~1500 linhas: o mesmo dono divide em PRs empilhados por caso de uso ([Leva empilhada](git.md#leva-empilhada)).
-- **Paralelo:** lotes que não dividem arquivos. No máximo 3 lotes de jogo em andamento (o `puxar` recusa o quarto); Core e desenvolvimento não ocupam vaga. Trava sem branch no `origin` e sem PR sai sozinha em 2 h.
+- **Paralelo:** lotes que não dividem arquivos. No máximo 3 lotes de jogo em andamento (o `puxar` recusa o quarto); Core e desenvolvimento não ocupam vaga. Trava sem branch no `origin` e sem PR sai sozinha em **24 h** (`soltar-travas`).
 - **Pequeno:** lote só de docs, config ou mudanças de até ~50 linhas o coordenador faz direto, sem agente.
+
+## Segure (reserva manual)
+
+Quem vai fazer **todas** as tarefas livres de um escopo na mão (sem concorrência de agente):
+
+```
+npm run tarefa -- segure <escopo>    # ex.: personagem — prefixo [Personagem] no título
+npm run tarefa -- segure rotular <N> # issues criadas depois (/melhore, /decida)
+npm run tarefa -- segure liberar <escopo>
+```
+
+- Escopo = prefixo do título (`[Mundo]` → `mundo`), alinhado ao commitlint.
+- Só rotula issues **livres**; `em-andamento` de outro segue até liberar, merge ou trava de 24 h.
+- Dono = login do `gh` de quem rodou; só esse login `puxa` (IA inclusa no mesmo auth).
+- Vários segures em paralelo (ex.: `personagem` + `itens`). O `/decida` não remove `segure:*`. Registro na issue `[Desenvolvimento] Registro segure`. Skill: [segure](../../.claude/skills/segure/SKILL.md).
 
 ## Entrega da funcionalidade
 

@@ -22,6 +22,8 @@ npm run tarefa -- puxar <N> [<M> ...] [branch] [--agente <papel>] [--worktree <c
 
 Já em andamento por outro: pare e avise. Puxar de novo na própria branch só confirma.
 
+**Segure:** issue de escopo reservado (`segure:*` ou bloco ativo no registro) só entra se o `gh auth` for o dono do segure; senão o script recusa.
+
 ## 2.1. Conferir a relevância
 
 Se a doc que a issue segue mudou depois dela, o `puxar` mostra **⚠ REVISAR RELEVÂNCIA** e o `git diff` exato. Rode só esse diff (não releia a doc inteira). **A doc atual vence a issue.**

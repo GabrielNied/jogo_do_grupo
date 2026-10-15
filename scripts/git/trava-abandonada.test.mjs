@@ -10,7 +10,7 @@ const COMENTARIO = `🚀 **Tarefa em andamento**
 `;
 
 const INICIO = Date.parse("2026-10-12T02:13:39.559Z");
-const DUAS_HORAS = 2 * 3_600_000;
+const VINTE_E_QUATRO_HORAS = 24 * 3_600_000;
 
 test("lê a branch e o início do comentário do puxar", () => {
   assert.deepEqual(travaDoComentario(COMENTARIO), {
@@ -26,14 +26,14 @@ test("vale o puxar mais recente", () => {
   assert.equal(ultimaTrava([{ body: antiga }, { body: "nota" }, { body: nova }]).branch, "fix/core/nova");
 });
 
-test("sai depois de 2 h sem branch no origin e sem PR", () => {
+test("sai depois de 24 h sem branch no origin e sem PR", () => {
   const trava = travaDoComentario(COMENTARIO);
   assert.equal(
-    travaAbandonada({ trava, agoraMs: INICIO + DUAS_HORAS, branchNoOrigin: false, prAberto: false }),
+    travaAbandonada({ trava, agoraMs: INICIO + VINTE_E_QUATRO_HORAS, branchNoOrigin: false, prAberto: false }),
     true,
   );
   assert.equal(
-    travaAbandonada({ trava, agoraMs: INICIO + DUAS_HORAS - 1, branchNoOrigin: false, prAberto: false }),
+    travaAbandonada({ trava, agoraMs: INICIO + VINTE_E_QUATRO_HORAS - 1, branchNoOrigin: false, prAberto: false }),
     false,
   );
 });
@@ -41,15 +41,15 @@ test("sai depois de 2 h sem branch no origin e sem PR", () => {
 test("branch no origin ou PR aberto segura a trava", () => {
   const trava = travaDoComentario(COMENTARIO);
   assert.equal(
-    travaAbandonada({ trava, agoraMs: INICIO + DUAS_HORAS, branchNoOrigin: true, prAberto: false }),
+    travaAbandonada({ trava, agoraMs: INICIO + VINTE_E_QUATRO_HORAS, branchNoOrigin: true, prAberto: false }),
     false,
   );
   assert.equal(
-    travaAbandonada({ trava, agoraMs: INICIO + DUAS_HORAS, branchNoOrigin: false, prAberto: true }),
+    travaAbandonada({ trava, agoraMs: INICIO + VINTE_E_QUATRO_HORAS, branchNoOrigin: false, prAberto: true }),
     false,
   );
   assert.equal(
-    travaAbandonada({ trava: null, agoraMs: INICIO + DUAS_HORAS, branchNoOrigin: false, prAberto: false }),
+    travaAbandonada({ trava: null, agoraMs: INICIO + VINTE_E_QUATRO_HORAS, branchNoOrigin: false, prAberto: false }),
     false,
   );
 });

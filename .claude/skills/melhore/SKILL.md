@@ -49,7 +49,7 @@ Rótulos:
 - `qualidade` nas lentes de código, desempenho e IA;
 - `desenvolvimento` na lente de IA.
 
-Não atribua nem marque `em-andamento`. Logo depois de criar, `npm run tarefa -- relevancia <N> --conferida "aberta pelo /melhore"`, para o `/decida` não reconferir.
+Não atribua nem marque `em-andamento`. Logo depois de criar, `npm run tarefa -- relevancia <N> --conferida "aberta pelo /melhore"`, para o `/decida` não reconferir. Se houver segure ativo no escopo, `npm run tarefa -- segure rotular <N>`.
 
 ## 4. Relatório
 
