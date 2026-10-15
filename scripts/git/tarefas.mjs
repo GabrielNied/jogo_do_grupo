@@ -351,6 +351,7 @@ function soltarTravasAbandonadasAgora() {
 
 async function listarTarefas() {
   console.log("🔍 Consultando tarefas abertas no GitHub...");
+  executarGit(["fetch", "origin", "main"], { silencioso: true });
   const liberadas = soltarTravasAbandonadas();
   if (liberadas.length > 0) {
     console.log(`🔓 Trava abandonada liberada: ${liberadas.map((numero) => `#${numero}`).join(", ")}`);
