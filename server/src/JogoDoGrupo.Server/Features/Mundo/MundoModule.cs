@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using JogoDoGrupo.Server.Contratos.Combate;
 using JogoDoGrupo.Server.Contratos.Mundo;
 using JogoDoGrupo.Server.Contratos.Personagem;
+using JogoDoGrupo.Server.Contratos.Social;
 using JogoDoGrupo.Server.Core;
 using JogoDoGrupo.Server.Core.Eventos;
 using JogoDoGrupo.Server.Core.TempoReal;
@@ -58,6 +59,15 @@ public sealed class MundoModule : IFeatureModule, ITransicoesDeAreaDoMundo
             return servico;
         });
         servicos.AddHostedService(sp => sp.GetRequiredService<ServicoDaHoraDoMundo>());
+        // Posição do grupo para o mapa (#789): o grupo vem do contrato do Social, se carregado.
+        servicos.AddSingleton(sp => new ServicoDePosicaoDoGrupo(
+            () => _areas.Cidade.Presentes(),
+            _grade.Vistos,
+            () => sp.GetService<IConsultaDeGrupo>(),
+            sp.GetRequiredService<ServidorTempoReal>(),
+            sp.GetRequiredService<ILogger<ServicoDePosicaoDoGrupo>>()
+        ));
+        servicos.AddHostedService(sp => sp.GetRequiredService<ServicoDePosicaoDoGrupo>());
     }
 
     public void MapearRotas(IEndpointRouteBuilder rotas)

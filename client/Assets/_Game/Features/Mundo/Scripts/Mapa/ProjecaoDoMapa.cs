@@ -8,8 +8,16 @@ namespace JogoDoGrupo.Client.Features.Mundo
     /// </summary>
     public readonly struct MarcadorDoMapa
     {
-        public MarcadorDoMapa(float x, float z, float rotacaoY, string area, bool eu)
+        public MarcadorDoMapa(
+            float x,
+            float z,
+            float rotacaoY,
+            string area,
+            bool eu,
+            bool longe = false
+        )
         {
+            Longe = longe;
             X = x;
             Z = z;
             RotacaoY = rotacaoY;
@@ -22,6 +30,9 @@ namespace JogoDoGrupo.Client.Features.Mundo
         public float RotacaoY { get; }
         public string Area { get; }
         public bool Eu { get; }
+
+        /// <summary>Aliado do grupo fora da área de interesse (#789): só ponto no mapa, sem corpo 3D.</summary>
+        public bool Longe { get; }
     }
 
     /// <summary>
@@ -84,6 +95,22 @@ namespace JogoDoGrupo.Client.Features.Mundo
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// Ponto do minimapa para quem está além do disco: na borda, na direção dele (#789).
+        /// Dentro do disco, é o mesmo ponto de <see cref="NoMinimapa"/>.
+        /// </summary>
+        public static void NaBordaDoMinimapa(float deltaX, float deltaZ, out float x, out float y)
+        {
+            x = deltaX / RaioDoMinimapa;
+            y = deltaZ / RaioDoMinimapa;
+            var tamanho = (float)Math.Sqrt(x * x + y * y);
+            if (tamanho > 0.9f)
+            {
+                x = x / tamanho * 0.9f;
+                y = y / tamanho * 0.9f;
+            }
         }
 
         /// <summary>

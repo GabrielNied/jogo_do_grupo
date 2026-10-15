@@ -21,6 +21,8 @@ namespace JogoDoGrupo.Client.Features.Mundo.Presenca
         private readonly LimitadorDeTaxa _limitador = new LimitadorDeTaxa(EnviosPorSegundo);
         private readonly IDisposable[] _assinaturas;
         private int _sequencia;
+        private AliadoLonge[] _aliadosLonge = Array.Empty<AliadoLonge>();
+        private float _idadeDosAliados;
         private bool _posicionado;
         private bool _descartado;
 
@@ -39,6 +41,10 @@ namespace JogoDoGrupo.Client.Features.Mundo.Presenca
                     MundoMessageIds.PosicaoForcada,
                     AoReceberPosicaoForcada
                 ),
+                _conexao.Assinar<PosicoesDosAliados>(
+                    MundoMessageIds.PosicoesDosAliados,
+                    AoReceberAliados
+                ),
                 _conexao.Assinar<VelocidadesDeMovimento>(
                     MundoMessageIds.VelocidadesDeMovimento,
                     AoReceberVelocidades
@@ -52,7 +58,20 @@ namespace JogoDoGrupo.Client.Features.Mundo.Presenca
             }
         }
 
+        /// <summary>
+        /// Segundos sem notícia dos aliados longe: passado isso, o servidor parou de mandar (saiu
+        /// do grupo ou da cidade) e eles somem do mapa.
+        /// </summary>
+        public const float ValidadeDosAliadosLonge = 3f;
+
         public RegistroDeAvatares Avatares { get; }
+
+        /// <summary>
+        /// Aliados do grupo fora da área de interesse (#789): só posição, para o mapa e o minimapa.
+        /// O modelo 3D continua só dos que estão em <see cref="Avatares"/>.
+        /// </summary>
+        public System.Collections.Generic.IReadOnlyList<AliadoLonge> AliadosLonge =>
+            _aliadosLonge;
 
         /// <summary>
         /// Onde o jogador local nasce: só no primeiro <c>EstadoDaCidade</c>. Na reconexão o
@@ -90,6 +109,12 @@ namespace JogoDoGrupo.Client.Features.Mundo.Presenca
         public void Atualizar(float delta, Vector3 posicaoLocal, float rotacaoY)
         {
             Avatares.Atualizar(delta);
+            _idadeDosAliados += delta;
+            if (_idadeDosAliados > ValidadeDosAliadosLonge && _aliadosLonge.Length > 0)
+            {
+                _aliadosLonge = Array.Empty<AliadoLonge>();
+            }
+
             if (!_conexao.Conectado || !_limitador.Deve(delta))
             {
                 return;
@@ -140,7 +165,14 @@ namespace JogoDoGrupo.Client.Features.Mundo.Presenca
             {
                 // Sem conexão não há presença; o snapshot da reconexão repõe todo mundo.
                 Avatares.Limpar();
+                _aliadosLonge = Array.Empty<AliadoLonge>();
             }
+        }
+
+        private void AoReceberAliados(PosicoesDosAliados mensagem)
+        {
+            _aliadosLonge = mensagem?.Aliados ?? Array.Empty<AliadoLonge>();
+            _idadeDosAliados = 0f;
         }
 
         private void EntrarNaCidade()
