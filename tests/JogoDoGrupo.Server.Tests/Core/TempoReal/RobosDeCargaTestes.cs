@@ -27,7 +27,7 @@ public class RobosDeCargaTestes
             EntradasPorSegundo = 50,
             HostTempoReal = "127.0.0.1",
             PortaTempoReal = tempoReal.Porta,
-            AtaqueACadaMs = 1000,
+            AtaqueACadaMs = 2000,
         };
 
         var relatorio = await CargaDeRobos.RodarAsync(
@@ -45,6 +45,7 @@ public class RobosDeCargaTestes
                         DuracaoP50Ms = m.Passos.DuracaoP50Ms,
                         DuracaoP95Ms = m.Passos.DuracaoP95Ms,
                         DuracaoMaximaMs = m.Passos.DuracaoMaximaMs,
+                        MsDesdeOUltimoPasso = m.Passos.MsDesdeOUltimoPasso,
                     }
                 );
             },

@@ -9,10 +9,11 @@ A meta de jogadores por área e os números medidos estão em [arquitetura.md](.
 Com o servidor de pé (`npm run server:rodar`), na raiz:
 
 ```
-dotnet run -c Release --project tools/JogoDoGrupo.Robos -- --robos 80 --duracao 30 --chave-jwt <Jwt:Chave>
+$env:JOGO_CHAVE_JWT = "<Jwt:Chave>"     # PowerShell; no bash: export JOGO_CHAVE_JWT=...
+dotnet run -c Release --project tools/JogoDoGrupo.Robos -- --robos 80 --duracao 30
 ```
 
-- `--chave-jwt`: a chave do servidor (no desenvolvimento, `Jwt:Chave` do `appsettings.Development.json`; ou a variável `JOGO_CHAVE_JWT`). Com ela o robô assina um token curto com `permissao=administrar` e lê o tick em `/admin/metricas`. Sem ela, o resto sai igual e o tick fica de fora.
+- `JOGO_CHAVE_JWT`: a chave do servidor (no desenvolvimento, `Jwt:Chave` do `appsettings.Development.json`). Com ela o robô assina um token curto com `permissao=administrar` e lê o tick em `/admin/metricas`. Sem ela, o resto sai igual e o tick fica de fora. `--chave-jwt <chave>` faz o mesmo, mas fica no histórico do shell: prefira a variável.
 - `--json arquivo.json` grava o relatório em JSON; `--json -` escreve só o JSON no console.
 - `--ajuda` lista as outras opções (servidor, porta UDP, ritmo de entrada, de movimento e de ataque, prefixo das contas).
 - Sai com código 1 se houve erro, para usar em script.
@@ -23,7 +24,7 @@ dotnet run -c Release --project tools/JogoDoGrupo.Robos -- --robos 80 --duracao 
 Robôs: 80/80 no mundo, 15 s medidos
 Mensagens: 838.4/s enviadas, 66905.1/s recebidas (7708.9 KB/s), réplicas 63662.7/s
 Latência do ataque (ida e volta): p50 45.7 ms, p95 64.5 ms, p99 138.3 ms, máx 169.7 ms (588 amostras, 0 recusados)
-Tick do servidor: 63 passos/s, duração p50 0.785 ms, p95 4.84 ms, máx 8.552 ms; 80 online, 0 erros no log no último minuto
+Tick do servidor: 63 passos/s, duração p50 0.785 ms, p95 4.84 ms, máx 8.552 ms, último passo há 3.1 ms; 80 online, 0 erros no log no último minuto
 Erros: 0
 ```
 

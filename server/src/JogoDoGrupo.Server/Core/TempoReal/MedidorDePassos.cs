@@ -29,7 +29,10 @@ public sealed class MedidorDePassos
         }
     }
 
-    public ResumoDosPassos Resumir()
+    public ResumoDosPassos Resumir() => Resumir(Stopwatch.GetTimestamp());
+
+    /// <summary>Resumo visto no instante <paramref name="agora"/> (<see cref="Stopwatch"/>).</summary>
+    public ResumoDosPassos Resumir(long agora)
     {
         double[] duracoes;
         long primeiro;
@@ -38,7 +41,7 @@ public sealed class MedidorDePassos
         {
             if (_quantidade == 0)
             {
-                return new ResumoDosPassos(0, 0, 0, 0);
+                return new ResumoDosPassos(0, 0, 0, 0, 0);
             }
 
             duracoes = new double[_quantidade];
@@ -59,7 +62,8 @@ public sealed class MedidorDePassos
             Math.Round(porSegundo, 1),
             Math.Round(Percentil(duracoes, 0.50), 3),
             Math.Round(Percentil(duracoes, 0.95), 3),
-            Math.Round(duracoes[^1], 3)
+            Math.Round(duracoes[^1], 3),
+            Math.Round(Stopwatch.GetElapsedTime(ultimo, agora).TotalMilliseconds, 1)
         );
     }
 
@@ -70,10 +74,13 @@ public sealed class MedidorDePassos
 /// <summary>
 /// Ritmo e custo do laço do tempo real: passos por segundo (o laço tenta um a cada 10 ms) e a
 /// duração de cada passo. Duração alta ou ritmo caindo indica que o servidor não dá conta.
+/// <see cref="MsDesdeOUltimoPasso"/> alto mostra o laço travado (a janela guarda só passos já
+/// terminados, então um passo preso não aparece nas durações).
 /// </summary>
 public sealed record ResumoDosPassos(
     double PassosPorSegundo,
     double DuracaoP50Ms,
     double DuracaoP95Ms,
-    double DuracaoMaximaMs
+    double DuracaoMaximaMs,
+    double MsDesdeOUltimoPasso
 );

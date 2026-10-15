@@ -61,12 +61,12 @@ public sealed record RelatorioDeCarga
         {
             t.AppendLine(
                 c,
-                $"Tick do servidor: {s.PassosPorSegundo:0.#} passos/s, duração p50 {s.DuracaoP50Ms:0.###} ms, p95 {s.DuracaoP95Ms:0.###} ms, máx {s.DuracaoMaximaMs:0.###} ms; {s.JogadoresOnline} online, {s.ErrosNoUltimoMinuto} erros no log no último minuto"
+                $"Tick do servidor: {s.PassosPorSegundo:0.#} passos/s, duração p50 {s.DuracaoP50Ms:0.###} ms, p95 {s.DuracaoP95Ms:0.###} ms, máx {s.DuracaoMaximaMs:0.###} ms, último passo há {s.MsDesdeOUltimoPasso:0.#} ms; {s.JogadoresOnline} online, {s.ErrosNoUltimoMinuto} erros no log no último minuto"
             );
         }
         else
         {
-            t.AppendLine("Tick do servidor: sem leitura (passe --chave-jwt)");
+            t.AppendLine("Tick do servidor: sem leitura (defina JOGO_CHAVE_JWT)");
         }
         t.Append("Erros: ").Append(TotalDeErros);
         if (TotalDeErros > 0)
@@ -105,4 +105,7 @@ public sealed record TickDoServidor
     public double DuracaoP50Ms { get; init; }
     public double DuracaoP95Ms { get; init; }
     public double DuracaoMaximaMs { get; init; }
+
+    /// <summary>Tempo desde o último passo terminado; alto = laço travado.</summary>
+    public double MsDesdeOUltimoPasso { get; init; }
 }

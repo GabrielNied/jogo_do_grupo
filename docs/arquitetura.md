@@ -74,7 +74,7 @@ sem descartar o evento. `GET /saude` confirma que o processo
 está respondendo; `GET /admin/metricas` exige a claim `permissao=administrar` e retorna jogadores
 online, erros no último minuto ([ADR 0033](decisoes/0033-mascaramento-de-logs.md)) e o tick do
 laço do tempo real em `Passos` (passos por segundo e duração p50/p95/máxima dos últimos 512
-passos, de `ServidorTempoReal.Passos`).
+passos, de `ServidorTempoReal.Passos`, e `MsDesdeOUltimoPasso`, que cresce se o laço travar).
 
 #### Carga do tempo real
 

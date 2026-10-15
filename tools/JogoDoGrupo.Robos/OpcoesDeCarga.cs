@@ -59,7 +59,7 @@ public sealed record OpcoesDeCarga
           --prefixo TEXTO        início do usuário das contas, reaproveitadas (robo)
           --movimentos-por-s N   intenções de movimento por segundo (10)
           --ataque-ms N          intervalo entre ataques leves (2000)
-          --chave-jwt TEXTO      chave JWT do servidor para ler o tick (ou JOGO_CHAVE_JWT)
+          --chave-jwt TEXTO      chave JWT para ler o tick; prefira a variável JOGO_CHAVE_JWT
           --json ARQUIVO         grava o relatório em JSON (- = JSON no console)
         Sai com código 1 se houve erro.
         """;

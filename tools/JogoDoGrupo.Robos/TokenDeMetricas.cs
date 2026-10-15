@@ -42,6 +42,7 @@ public static class TokenDeMetricas
             DuracaoP50Ms = passos.GetProperty("DuracaoP50Ms").GetDouble(),
             DuracaoP95Ms = passos.GetProperty("DuracaoP95Ms").GetDouble(),
             DuracaoMaximaMs = passos.GetProperty("DuracaoMaximaMs").GetDouble(),
+            MsDesdeOUltimoPasso = passos.GetProperty("MsDesdeOUltimoPasso").GetDouble(),
         };
     }
 
