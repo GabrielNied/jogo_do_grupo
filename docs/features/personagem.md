@@ -303,7 +303,7 @@ Quem decide: **servidor** (quando cai, a contagem, quem está levantando, a vida
 
 #### Levantar um aliado
 
-- Quem pode: um jogador **vivo** da mesma instância, a até **2 m** do caído, segurando **Interagir** (E, veja [teclas](interface.md#teclas-e-atalhos)) por 3 s.
+- Quem pode: um jogador **vivo do mesmo grupo** (validado por `IConsultaDeGrupo`), da mesma instância, a até **2 m** do caído, segurando **Interagir** (E, veja [teclas](interface.md#teclas-e-atalhos)) por 3 s. Jogador sem grupo ou de outro grupo recebe `NaoSaoDoMesmoGrupo` (#832).
 - Interrompe e **zera o progresso**: soltar a tecla, afastar-se mais de 2 m, levar dano, cair, ou atacar e esquivar.
 - **Um ajudante por vez:** o primeiro que começou vale; o segundo recebe `JaEstaSendoLevantado` (é a regra da fatia: dois ajudantes não duplicam a cura).
 - A contagem de 45 s **para** enquanto alguém está levantando e volta a correr se a interação for interrompida (em aberto).

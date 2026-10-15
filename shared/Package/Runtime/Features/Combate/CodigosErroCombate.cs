@@ -41,6 +41,11 @@ namespace JogoDoGrupo.Shared.Features.Combate
         /// <summary>Em <see cref="AcaoRecusada.Codigo"/>: outro aliado já está levantando esse caído.</summary>
         public const string JaEstaSendoLevantado = "JaEstaSendoLevantado";
 
+        /// <summary>
+        /// Em <see cref="AcaoRecusada.Codigo"/>: o ajudante e o caído não estão no mesmo grupo.
+        /// </summary>
+        public const string NaoSaoDoMesmoGrupo = "NaoSaoDoMesmoGrupo";
+
         /// <summary>Em <see cref="AcaoRecusada.Codigo"/>: pediu para voltar à cidade sem estar caído.</summary>
         public const string NaoEstaCaido = "NaoEstaCaido";
 

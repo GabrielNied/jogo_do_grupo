@@ -4,6 +4,7 @@ using System.Net;
 using JogoDoGrupo.Server.Contratos.Combate;
 using JogoDoGrupo.Server.Contratos.Mobs;
 using JogoDoGrupo.Server.Contratos.Mundo;
+using JogoDoGrupo.Server.Contratos.Social;
 using JogoDoGrupo.Server.Core.Eventos;
 using JogoDoGrupo.Server.Core.Persistencia;
 using JogoDoGrupo.Server.Core.TempoReal;
@@ -39,6 +40,24 @@ public sealed class PosicoesFalsas : IPosicoesDoMundo
         _posicoes.Where(p => p.Value.Area == area).Select(p => p.Key).ToArray();
 }
 
+/// <summary>Consulta de grupo controlada pelo teste (por padrão todos são do grupo 1).</summary>
+public sealed class ConsultaDeGrupoFalsa : IConsultaDeGrupo
+{
+    private readonly ConcurrentDictionary<long, long> _grupos = new();
+
+    public void DefinirGrupo(long personagemId, long grupoId) => _grupos[personagemId] = grupoId;
+
+    public GrupoAtual? Consultar(long personagemId)
+    {
+        if (_grupos.TryGetValue(personagemId, out var grupoId))
+        {
+            return grupoId == 0 ? null : new GrupoAtual(grupoId, 1, [personagemId]);
+        }
+
+        return new GrupoAtual(1, 1, [personagemId]);
+    }
+}
+
 /// <summary>
 /// Servidor de teste do estado caído: banco real, posições falsas e tempos curtos (3 s caído,
 /// 0,6 s para levantar, 1,2 s até poder voltar) para os testes não esperarem 45 s. Os tempos
@@ -58,6 +77,7 @@ public sealed class ServidorDeQueda : IDisposable
 
     public ServidorDeTeste Real { get; } = new();
     public PosicoesFalsas Posicoes { get; } = new();
+    public ConsultaDeGrupoFalsa Grupos { get; } = new();
     public WebApplicationFactory<Program> Falso { get; }
     public int Porta { get; }
 
@@ -68,6 +88,8 @@ public sealed class ServidorDeQueda : IDisposable
             {
                 s.RemoveAll<IPosicoesDoMundo>();
                 s.AddSingleton<IPosicoesDoMundo>(Posicoes);
+                s.RemoveAll<IConsultaDeGrupo>();
+                s.AddSingleton<IConsultaDeGrupo>(Grupos);
                 s.RemoveAll<ConfigQueda>();
                 s.AddSingleton(Config);
             })
@@ -583,6 +605,41 @@ public class QuedaTestes(ServidorDeQueda servidor) : IClassFixture<ServidorDeQue
         Levantar(beto, ana);
 
         Assert.Equal(CodigosErroCombate.AlvoNaoEstaCaido, (await RecusadaAsync(beto)).Codigo);
+    }
+
+    [Fact]
+    public async Task Levantar_de_grupos_diferentes_e_recusado()
+    {
+        using var ana = await NovoJogadorAsync();
+        using var beto = await NovoJogadorAsync(1f, 0f);
+        servidor.Grupos.DefinirGrupo(ana.Id, 1);
+        servidor.Grupos.DefinirGrupo(beto.Id, 2);
+        await DerrubarAsync(ana);
+
+        Levantar(beto, ana);
+
+        Assert.Equal(CodigosErroCombate.NaoSaoDoMesmoGrupo, (await RecusadaAsync(beto)).Codigo);
+        Assert.True(servidor.Queda.EstaCaido(ana.Id));
+    }
+
+    [Fact]
+    public async Task Levantar_quando_ajudante_ou_alvo_esta_sem_grupo_e_recusado()
+    {
+        using var ana = await NovoJogadorAsync();
+        using var beto = await NovoJogadorAsync(1f, 0f);
+        await DerrubarAsync(ana);
+
+        // Alvo sem grupo (solo)
+        servidor.Grupos.DefinirGrupo(ana.Id, 0);
+        servidor.Grupos.DefinirGrupo(beto.Id, 1);
+        Levantar(beto, ana);
+        Assert.Equal(CodigosErroCombate.NaoSaoDoMesmoGrupo, (await RecusadaAsync(beto)).Codigo);
+
+        // Ajudante sem grupo (solo)
+        servidor.Grupos.DefinirGrupo(ana.Id, 1);
+        servidor.Grupos.DefinirGrupo(beto.Id, 0);
+        Levantar(beto, ana);
+        Assert.Equal(CodigosErroCombate.NaoSaoDoMesmoGrupo, (await RecusadaAsync(beto)).Codigo);
     }
 
     [Fact]
