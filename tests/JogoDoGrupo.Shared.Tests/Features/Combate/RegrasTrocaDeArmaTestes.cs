@@ -10,7 +10,7 @@ public class RegrasTrocaDeArmaTestes
         Assert.Equal(6050, CombateMessageIds.IntencaoDeTrocaDeArma);
         Assert.Equal(6051, CombateMessageIds.TrocaDeArmaIniciada);
         Assert.Equal(6052, CombateMessageIds.TrocaDeArmaRecusada);
-        Assert.True(CombateMessageIds.Faixa.Contains(CombateMessageIds.TrocaDeArmaRecusada));
+        Assert.True(CombateMessageIds.Faixa.Contem(CombateMessageIds.TrocaDeArmaRecusada));
     }
 
     [Fact]
