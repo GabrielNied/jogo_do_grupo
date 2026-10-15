@@ -1,3 +1,4 @@
+using JogoDoGrupo.Server.Contratos.Itens;
 using JogoDoGrupo.Server.Features.Combate;
 using JogoDoGrupo.Shared.Features.Combate;
 
@@ -77,6 +78,81 @@ public class TrocaDeArmaTestes
         var esquiva = new ControleDeAcoes();
         esquiva.TentarOcupar(Ana, 1_000, 600, out _);
         Assert.False(esquiva.TentarOcupar(Ana, 1_100, Troca, out _, invulneravel: false));
+    }
+
+    private sealed class ConjuntosFalsos : ITrocaDeConjunto
+    {
+        public Task<int?> AlternarAsync(long personagemId, CancellationToken c) =>
+            Task.FromResult<int?>(2);
+    }
+
+    // O serviço de verdade (a lógica do R e dos botões de conjunto), com relógio controlado.
+    private static (
+        ServicoDeTrocaDeArma Servico,
+        ControleDeAcoes Controle,
+        Func<long> Relogio
+    ) Servico(Func<long> relogio)
+    {
+        var posicoes = new PosicoesFalsas();
+        posicoes.Colocar(Ana, "cidade", 0, 0);
+        var controle = new ControleDeAcoes();
+        var servico = new ServicoDeTrocaDeArma(
+            null!,
+            posicoes,
+            controle,
+            new ConjuntosFalsos(),
+            relogioMs: relogio
+        );
+        return (servico, controle, relogio);
+    }
+
+    [Fact]
+    public void Botao_de_conjunto_reserva_400_ms_e_bloqueia_golpe_esquiva_guarda_e_skill()
+    {
+        long agora = 1_000;
+        var (servico, controle, _) = Servico(() => agora);
+
+        Assert.Null(servico.TentarReservar(Ana));
+
+        Assert.True(servico.EmTroca(Ana));
+        Assert.Equal(ResultadoDoPedido.Recusado, controle.Pedir(Ana, Leve(), agora, out _));
+        Assert.False(controle.TentarOcupar(Ana, agora, 600, out _));
+        Assert.False(controle.TentarGuardar(Ana, agora));
+
+        agora = 1_399;
+        Assert.True(servico.EmTroca(Ana));
+        Assert.Equal(ResultadoDoPedido.Recusado, controle.Pedir(Ana, Leve(), agora, out _));
+
+        agora = 1_400;
+        Assert.False(servico.EmTroca(Ana));
+        Assert.Equal(ResultadoDoPedido.Iniciado, controle.Pedir(Ana, Leve(), agora, out _));
+    }
+
+    [Fact]
+    public void Botao_de_conjunto_e_recusado_nos_mesmos_estados_do_R()
+    {
+        long agora = 1_000;
+        var (servico, controle, _) = Servico(() => agora);
+
+        // No preparo do golpe.
+        controle.Pedir(Ana, Leve(), agora, out _);
+        Assert.Equal(CodigosErroCombate.AcaoEmAndamento, servico.TentarReservar(Ana));
+        Assert.False(servico.EmTroca(Ana));
+
+        // Na guarda segurada.
+        var guarda = Servico(() => agora);
+        guarda.Controle.TentarGuardar(Ana, agora);
+        Assert.Equal(CodigosErroCombate.AcaoEmAndamento, guarda.Servico.TentarReservar(Ana));
+
+        // Na esquiva.
+        var esquiva = Servico(() => agora);
+        esquiva.Controle.TentarOcupar(Ana, agora, 600, out _);
+        Assert.Equal(CodigosErroCombate.AcaoEmAndamento, esquiva.Servico.TentarReservar(Ana));
+
+        // Durante outra troca (R ou botão).
+        var outra = Servico(() => agora);
+        Assert.Null(outra.Servico.TentarReservar(Ana));
+        Assert.Equal(CodigosErroCombate.AcaoEmAndamento, outra.Servico.TentarReservar(Ana));
     }
 
     [Fact]

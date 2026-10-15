@@ -205,29 +205,14 @@ public class ReacaoEGuardaRedeTestes(ServidorDeAtaque servidor) : IClassFixture<
     }
 
     [Fact]
-    public async Task Botao_de_conjunto_bloqueia_golpe_por_400_ms_como_o_R()
+    public async Task Botao_de_conjunto_parado_troca_o_conjunto()
     {
+        // O tempo dos 0,4 s é testado com relógio controlado em TrocaDeArmaTestes.
         using var ana = await NovoJogadorAsync();
 
         var troca = await TrocarConjuntoPeloBotaoAsync(ana, 2);
+
         troca.EnsureSuccessStatusCode();
-
-        ana.Cliente.Enviar(
-            CombateMessageIds.IntencaoDeAtaque,
-            new IntencaoDeAtaque { Tipo = TipoDeAtaque.Leve, Sequencia = 1 }
-        );
-        var recusa = await ana.Cliente.ReceberAsync<AtaqueRecusado>(
-            CombateMessageIds.AtaqueRecusado
-        );
-        Assert.Equal(CodigosErroCombate.AcaoEmAndamento, recusa.Codigo);
-
-        // Depois dos 0,4 s o golpe vale (esperar a mais não torna o teste instável).
-        await Task.Delay(RegrasTrocaDeArma.DuracaoMs + 300);
-        ana.Cliente.Enviar(
-            CombateMessageIds.IntencaoDeAtaque,
-            new IntencaoDeAtaque { Tipo = TipoDeAtaque.Leve, Sequencia = 2 }
-        );
-        await ana.Cliente.ReceberAsync<AtaqueIniciado>(CombateMessageIds.AtaqueIniciado);
     }
 
     [Fact]
