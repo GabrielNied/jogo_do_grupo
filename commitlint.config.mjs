@@ -35,6 +35,7 @@ export const escopos = [
   "social",
   "pvp",
   "desenvolvimento",
+  "pets",
   "montarias",
 ];
 

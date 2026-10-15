@@ -1,0 +1,7 @@
+Deer Low Poly (rigged), by crownjoshua
+Source: https://opengameart.org/content/deer-low-poly-rigged
+License: CC0 1.0 Universal (public domain dedication)
+https://creativecommons.org/publicdomain/zero/1.0/
+
+Only Deer.obj and Deer.mtl (the "Other formats" files of the updated download) are kept here.
+Downloaded 2026-10-15 for the Pets feature (young deer).
