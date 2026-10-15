@@ -1,5 +1,7 @@
+using JogoDoGrupo.Shared.Features.Combate;
 using JogoDoGrupo.Shared.Features.Mobs;
 using NUnit.Framework;
+using UnityEngine;
 
 namespace JogoDoGrupo.Client.Features.Mobs.Tests
 {
@@ -160,6 +162,77 @@ namespace JogoDoGrupo.Client.Features.Mobs.Tests
             // O tempo até a pose de contato, na velocidade escolhida, é o aviso inteiro.
             var ate = clipe * AnimacaoDoInimigo.ContatoNoClipeFracao / velocidade;
             Assert.AreEqual(aviso, ate, 0.001f);
+        }
+
+        // ── Pausa de pose no acerto (#812) ───────────────────────────────────────
+
+        [Test]
+        public void AoAcertarAtaque_SeguraPoseDoInimigoAtingido()
+        {
+            var go = new GameObject("Apresentador");
+            var inimigoGo = new GameObject("Inimigo 10");
+            try
+            {
+                var apresentador = go.AddComponent<ApresentadorDeInimigos>();
+                var animador = inimigoGo.AddComponent<Animator>();
+                apresentador.RegistrarAnimadorParaTeste(10, animador);
+
+                var mensagem = new AtaqueAcertou
+                {
+                    AtacanteId = 1,
+                    Acertos = new[]
+                    {
+                        new AcertoDeAtaque
+                        {
+                            AlvoId = 10,
+                            Dano = 25,
+                            VidaRestante = 75,
+                            VidaMaxima = 100,
+                        },
+                    },
+                };
+
+                apresentador.AoAcertarAtaque(mensagem);
+
+                Assert.IsTrue(apresentador.TemPoseSegurada(10));
+                Assert.AreEqual(
+                    RegrasReacao.PausaVisualNoAcertoMs / 1000f,
+                    apresentador.RestanteDaPose(10),
+                    0.001f
+                );
+            }
+            finally
+            {
+                Object.DestroyImmediate(inimigoGo);
+                Object.DestroyImmediate(go);
+            }
+        }
+
+        [Test]
+        public void AoAcertarAtaque_IgnoraAlvoSemAnimador()
+        {
+            var go = new GameObject("Apresentador");
+            try
+            {
+                var apresentador = go.AddComponent<ApresentadorDeInimigos>();
+
+                var mensagem = new AtaqueAcertou
+                {
+                    AtacanteId = 1,
+                    Acertos = new[]
+                    {
+                        new AcertoDeAtaque { AlvoId = 999, Dano = 25 },
+                    },
+                };
+
+                apresentador.AoAcertarAtaque(mensagem);
+
+                Assert.IsFalse(apresentador.TemPoseSegurada(999));
+            }
+            finally
+            {
+                Object.DestroyImmediate(go);
+            }
         }
     }
 }

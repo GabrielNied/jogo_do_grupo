@@ -59,7 +59,7 @@ namespace JogoDoGrupo.Client.Features.Mobs
 
         private readonly Dictionary<long, float> _reacoes = new Dictionary<long, float>();
 
-        // Pose segurada no acerto: quanto falta (s) para soltar o inimigo que bateu.
+        // Pose segurada no acerto: quanto falta (s) para soltar o inimigo (ao bater ou ao ser atingido, #812).
         private readonly Dictionary<long, float> _poses = new Dictionary<long, float>();
 
         // Velocidade do clipe de ataque de cada inimigo, para o contato cair no fim do preparo.
@@ -143,10 +143,21 @@ namespace JogoDoGrupo.Client.Features.Mobs
             );
         }
 
-        private void AoAcertarAtaque(AtaqueAcertou mensagem)
+        internal void AoAcertarAtaque(AtaqueAcertou mensagem)
         {
             _registro.AplicarAcertos(mensagem);
             _rastreadorDeAlvo.RegistrarAcertoDoJogador(mensagem, EntradaNoJogo.PersonagemId);
+            if (mensagem?.Acertos != null)
+            {
+                var pausaSegundos = RegrasReacao.PausaVisualNoAcertoMs / 1000f;
+                foreach (var acerto in mensagem.Acertos)
+                {
+                    if (acerto != null && _animadores.ContainsKey(acerto.AlvoId))
+                    {
+                        _poses[acerto.AlvoId] = pausaSegundos;
+                    }
+                }
+            }
         }
 
         private void OnDestroy()
@@ -279,7 +290,8 @@ namespace JogoDoGrupo.Client.Features.Mobs
 
         /// <summary>
         /// O golpe encostou: o inimigo que bateu segura a pose por um instante (a sensação de
-        /// contato). Só visual; o relógio do servidor não para. A pose de quem levou é do Combate.
+        /// contato). Só visual; o relógio do servidor não para. Quando o inimigo é o alvo atingido,
+        /// a pose é segurada em <see cref="AoAcertarAtaque"/> (#812).
         /// </summary>
         private void AoAcertar(InimigoAcertou mensagem)
         {
@@ -315,6 +327,17 @@ namespace JogoDoGrupo.Client.Features.Mobs
 
             return 1f;
         }
+
+        internal bool TemPoseSegurada(long inimigoId) => _poses.ContainsKey(inimigoId);
+
+        internal float RestanteDaPose(long inimigoId) =>
+            _poses.TryGetValue(inimigoId, out var r) ? r : 0f;
+
+        internal void RegistrarAnimadorParaTeste(long inimigoId, Animator animador) =>
+            _animadores[inimigoId] = animador;
+
+        internal float VelocidadeDoAnimatorParaTeste(InimigoNoClient inimigo) =>
+            VelocidadeDoAnimator(inimigo);
 
         // Duração do clipe de ataque do modelo; zero se o controlador não tem um (velocidade 1).
         private static float DuracaoDoClipeDeAtaque(Animator animador)
