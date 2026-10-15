@@ -45,5 +45,8 @@ namespace JogoDoGrupo.Shared.Features.Mundo
 
         /// <summary>Servidor → client: estado inicial após mudança para uma área do Mundo.</summary>
         public const ushort EstadoDaArea = 1012;
+
+        /// <summary>Servidor → client: posições dos aliados do grupo fora da área de interesse (<see cref="Mundo.PosicoesDosAliados"/>).</summary>
+        public const ushort PosicoesDosAliados = 1013;
     }
 }
