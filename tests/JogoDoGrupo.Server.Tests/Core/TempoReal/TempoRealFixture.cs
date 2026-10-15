@@ -64,6 +64,7 @@ public sealed class TempoRealFixture : IDisposable
         {
             builder.UseSetting("TempoReal:TempoParaAutenticarMs", $"{TempoParaAutenticarMs}");
             builder.UseSetting("TempoReal:TempoQuedaMs", "1500");
+            builder.UseSetting("TempoReal:MaximoConexoesPendentesPorIp", "64");
             foreach (var (nome, valor) in limites ?? [])
                 builder.UseSetting("TempoReal:" + nome, valor);
             builder.ConfigureServices(servicos =>

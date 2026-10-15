@@ -185,9 +185,19 @@ public class ServidorTempoRealTestes(TempoRealFixture f)
     [Fact]
     public async Task Varias_contas_autenticando_ao_mesmo_tempo_entram_todas()
     {
-        var entradas = await Task.WhenAll(Enumerable.Range(0, 8).Select(_ => f.EntrarAsync()));
+        var clientes = new ConcurrentBag<ClienteTempoRealDeTeste>();
         try
         {
+            var tarefas = Enumerable
+                .Range(0, 8)
+                .Select(async _ =>
+                {
+                    var (cliente, contaId, personagemId) = await f.EntrarAsync();
+                    clientes.Add(cliente);
+                    return (cliente, contaId, personagemId);
+                });
+            var entradas = await Task.WhenAll(tarefas);
+
             foreach (var (_, contaId, personagemId) in entradas)
             {
                 Assert.Equal(personagemId, f.SessaoDaConta(contaId)?.PersonagemId);
@@ -195,7 +205,7 @@ public class ServidorTempoRealTestes(TempoRealFixture f)
         }
         finally
         {
-            foreach (var (cliente, _, _) in entradas)
+            foreach (var cliente in clientes)
             {
                 cliente.Dispose();
             }
