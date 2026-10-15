@@ -145,8 +145,6 @@ namespace JogoDoGrupo.Client.Core.Tests
             var mensagemGenerica = "Algo deu errado. Tente de novo.";
             var codigosGenericos = new[]
             {
-                CodigosErro.UsuarioInvalido,
-                CodigosErro.SenhaInvalida,
                 CodigosErro.NaoAutenticado,
                 CodigosErro.RequisicaoInvalida,
                 CodigosErro.AcessoNegado,

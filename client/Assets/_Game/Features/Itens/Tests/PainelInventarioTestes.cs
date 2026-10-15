@@ -265,7 +265,7 @@ namespace JogoDoGrupo.Client.Features.Itens.Tests
         }
 
         [Test]
-        public void ComUmaAbaNaoMostraFaixaDeAbasETemTooltipNoCabecalho()
+        public void ComUmaAbaMostraFaixaDeAbasComBotaoExpandirETemTooltipNoCabecalho()
         {
             var raiz = NovaRaiz();
             Montar(
@@ -276,11 +276,13 @@ namespace JogoDoGrupo.Client.Features.Itens.Tests
                 }
             );
 
-            Assert.IsNull(raiz.Q<VisualElement>(className: EstiloItens.Abas));
-            Assert.AreEqual(
-                0,
-                raiz.Query<VisualElement>(className: EstiloItens.Aba).ToList().Count
-            );
+            var faixa = raiz.Q<VisualElement>(className: EstiloItens.Abas);
+            Assert.IsNotNull(faixa);
+            var botoes = raiz.Query<Button>(className: EstiloItens.Aba).ToList();
+            Assert.AreEqual(2, botoes.Count);
+            Assert.AreEqual("Bolsa", botoes[0].text);
+            Assert.AreEqual("+", botoes[1].text);
+            Assert.IsTrue(botoes[0].ClassListContains(EstiloItens.AbaAtiva));
             var cabecalho = raiz.Q<VisualElement>("itens.bolsa")
                 .Q<VisualElement>(className: EstiloItens.CabecalhoSecao);
             Assert.IsNotNull(cabecalho);
@@ -302,13 +304,38 @@ namespace JogoDoGrupo.Client.Features.Itens.Tests
             var faixa = raiz.Q<VisualElement>(className: EstiloItens.Abas);
             Assert.IsNotNull(faixa);
             var botoes = raiz.Query<Button>(className: EstiloItens.Aba).ToList();
-            Assert.AreEqual(3, botoes.Count);
+            Assert.AreEqual(4, botoes.Count);
             Assert.AreEqual("Bolsa", botoes[0].text);
             Assert.AreEqual("Aba 2", botoes[1].text);
             Assert.AreEqual("Aba 3", botoes[2].text);
+            Assert.AreEqual("+", botoes[3].text);
             Assert.IsTrue(botoes[0].ClassListContains(EstiloItens.AbaAtiva));
             Assert.IsFalse(botoes[1].ClassListContains(EstiloItens.AbaAtiva));
             Assert.IsFalse(botoes[2].ClassListContains(EstiloItens.AbaAtiva));
+            Assert.IsFalse(botoes[3].ClassListContains(EstiloItens.AbaAtiva));
+        }
+
+        [Test]
+        public void NoLimiteDeAbasNaoMostraBotaoDeExpansao()
+        {
+            var raiz = NovaRaiz();
+            Montar(
+                raiz,
+                new EquipamentosResponse
+                {
+                    Capacidade = new CapacidadeBolsa
+                    {
+                        Abas = ConfigBolsa.AbasMaximas,
+                        CasasPorAba = 24,
+                    },
+                }
+            );
+
+            var faixa = raiz.Q<VisualElement>(className: EstiloItens.Abas);
+            Assert.IsNotNull(faixa);
+            var botoes = raiz.Query<Button>(className: EstiloItens.Aba).ToList();
+            Assert.AreEqual(ConfigBolsa.AbasMaximas, botoes.Count);
+            Assert.IsFalse(botoes.Exists(b => b.text == "+"));
         }
 
         private static Sprite IconeDe(VisualElement slot) =>

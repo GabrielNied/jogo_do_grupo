@@ -49,6 +49,12 @@ namespace JogoDoGrupo.Client.Features.Mundo.Presenca
         {
             Alvo = posicao;
             AlvoRotacaoY = rotacaoY;
+            if ((posicao - Posicao).sqrMagnitude > DistanciaDeSalto * DistanciaDeSalto)
+            {
+                Teleportar(posicao, rotacaoY);
+                return true;
+            }
+
             return _interpolador.Adicionar(
                 new SnapshotDeMovimento(
                     Relogio,
