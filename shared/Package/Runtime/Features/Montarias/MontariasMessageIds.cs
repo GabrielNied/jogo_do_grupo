@@ -15,5 +15,11 @@ namespace JogoDoGrupo.Shared.Features.Montarias
 
         /// <summary>Servidor → client (broadcast): avisa novo estado de montaria de um personagem.</summary>
         public const ushort EstadoMontaria = 16002;
+
+        /// <summary>Client → servidor: equipa uma montaria da coleção.</summary>
+        public const ushort EquiparMontaria = 16003;
+
+        /// <summary>Servidor → client: confirmação da montaria equipada.</summary>
+        public const ushort MontariaEquipada = 16004;
     }
 }

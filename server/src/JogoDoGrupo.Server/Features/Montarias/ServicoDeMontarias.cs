@@ -16,6 +16,7 @@ namespace JogoDoGrupo.Server.Features.Montarias;
 public sealed class ServicoDeMontarias : IMontariasConsulta
 {
     private readonly ConcurrentDictionary<long, int> _montados = new();
+    private readonly ConcurrentDictionary<long, int> _montariasEquipadas = new();
     private readonly ServidorTempoReal? _tempoReal;
     private readonly IControleDeVelocidadeDoMundo? _controleVelocidade;
     private readonly IEstadoDeCombate? _combate;
@@ -45,14 +46,47 @@ public sealed class ServicoDeMontarias : IMontariasConsulta
     public int? TipoDaMontaria(long personagemId) =>
         _montados.TryGetValue(personagemId, out var tipo) ? tipo : null;
 
+    public int ObterMontariaEquipada(long personagemId) =>
+        _montariasEquipadas.TryGetValue(personagemId, out var tipo)
+            ? tipo
+            : RegrasMontaria.TipoPadrao;
+
     /// <summary>
-    /// Tenta montar na montaria. Recusa se estiver em combate.
+    /// Equipa uma montaria da coleção para ser chamada pelo personagem.
+    /// Se já estiver montado, atualiza o visual da montaria imediatamente.
     /// </summary>
-    public bool ChamarMontaria(
-        long personagemId,
-        SessaoTempoReal? sessao = null,
-        int tipo = RegrasMontaria.TipoPadrao
-    )
+    public bool EquiparMontaria(long personagemId, int tipo, SessaoTempoReal? sessao = null)
+    {
+        if (!RegrasMontaria.TipoValido(tipo))
+        {
+            return false;
+        }
+
+        _montariasEquipadas[personagemId] = tipo;
+
+        // Se estiver montado no momento, troca a montaria ativa na hora
+        if (_montados.ContainsKey(personagemId))
+        {
+            _montados[personagemId] = tipo;
+            NotificarMudanca(personagemId, montado: true, tipo, sessao);
+        }
+
+        if (sessao != null && _tempoReal != null)
+        {
+            _tempoReal.Enviar(
+                sessao,
+                MontariasMessageIds.MontariaEquipada,
+                new MontariaEquipada { TipoMontaria = tipo }
+            );
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Tenta montar na montaria equipada ou indicada. Recusa se estiver em combate.
+    /// </summary>
+    public bool ChamarMontaria(long personagemId, SessaoTempoReal? sessao = null, int? tipo = null)
     {
         if (_combate?.EmCombate(personagemId) == true)
         {
@@ -63,14 +97,20 @@ public sealed class ServicoDeMontarias : IMontariasConsulta
             return false;
         }
 
-        _montados[personagemId] = tipo;
+        var tipoFinal = tipo ?? ObterMontariaEquipada(personagemId);
+        if (!RegrasMontaria.TipoValido(tipoFinal))
+        {
+            tipoFinal = RegrasMontaria.TipoPadrao;
+        }
+
+        _montados[personagemId] = tipoFinal;
         _controleVelocidade?.DefinirVelocidades(
             personagemId,
             RegrasVelocidade.AndarPadrao,
             RegrasMontaria.VelocidadeMontariaPadrao
         );
 
-        NotificarMudanca(personagemId, montado: true, tipo, sessao);
+        NotificarMudanca(personagemId, montado: true, tipoFinal, sessao);
         return true;
     }
 
@@ -100,6 +140,7 @@ public sealed class ServicoDeMontarias : IMontariasConsulta
     public void Desconectar(long personagemId)
     {
         _montados.TryRemove(personagemId, out _);
+        _montariasEquipadas.TryRemove(personagemId, out _);
     }
 
     private void NotificarMudanca(
