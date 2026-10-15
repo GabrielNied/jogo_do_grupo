@@ -7,4 +7,5 @@ Ao criar ou alterar uma interface, ler obrigatoriamente [o guia Lumora UI v1](..
 - Cada layout deve tratar largura real disponível, quebra, rolagem e leitura aumentada. Validar estados de interação, teclado, acentos, contraste e ausência de cortes conforme o guia.
 - Arte aprovada permanece em `design/`. Novos assets e seus metadados são importados pelo Unity, preservando origem e licenças. Não substituir marca ou fontes silenciosamente.
 - Preservar telas existentes fora da tarefa. A migração é gradual; a adoção do padrão não autoriza reestilizar outras funcionalidades.
+- Valor de sensação novo (hit-stop, tremor, animação, câmera, número na tela) nasce ajustável na `Sintonia`, no `Config<Assunto>` da funcionalidade ([convenção](../../../docs/convencoes.md#valores-de-balanceamento)).
 - Depois de mudar a configuração: `node design/interface/ferramentas/gerar-config-visual.mjs`, `node design/interface/ferramentas/gerar-config-visual.mjs --conferir` e testes direcionados. Registrar o que depende de Unity; não confundir comando pulado com verificação aprovada.

@@ -104,6 +104,7 @@ Quem implementa decide o que a doc não fecha, sem esperar ([ADR 0030](decisoes/
 - **Cena/prefab/asset:** editor em `Features/<X>/Editor/` + `unity:executar`; YAML/`.meta` à mão o hook barra. `unity:importar`, `unity:recompilar`, `unity:editor`.
 - **Um Unity por máquina:** trava em [trava.mjs](../scripts/unity/trava.mjs) (`UNITY_ESPERA_MIN`, até 30 min).
 - **Commit:** assets gerados no PR; `conferir-unity`. `ProjectSettings/` e cenas Core: pare e avise.
+- **Ao vivo:** `capture_game_view` sem foco na Game view trava o editor; use o [F9](features/desenvolvimento.md#report-beta-e-ajuste-ao-vivo).
 - **Nuvem:** `unity:*` pulam; falta vira `pendencia-unity` ([ADR 0019](decisoes/0019-unity-no-ci.md)).
 
 ### Prints da tela

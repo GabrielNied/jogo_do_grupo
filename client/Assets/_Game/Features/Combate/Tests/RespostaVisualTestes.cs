@@ -165,7 +165,7 @@ namespace JogoDoGrupo.Client.Features.Combate.Tests
         {
             Assert.AreEqual(RastroDoGolpe.OpacidadeInicial, RastroDoGolpe.Opacidade(0f), 0.0001f);
             Assert.Less(RastroDoGolpe.Opacidade(0.1f), RastroDoGolpe.Opacidade(0.05f));
-            Assert.AreEqual(0f, RastroDoGolpe.Opacidade(RastroDoGolpe.DuracaoSegundos));
+            Assert.AreEqual(0f, RastroDoGolpe.Opacidade(ConfigSensacaoCombate.RastroSegundos));
         }
 
         // ── Pausa de pose (#812) ─────────────────────────────────────────────────

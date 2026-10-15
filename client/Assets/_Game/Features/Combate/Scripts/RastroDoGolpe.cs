@@ -6,11 +6,10 @@ namespace JogoDoGrupo.Client.Features.Combate
     /// <summary>
     /// O rastro de um golpe que não pegou ninguém: um leque no chão, na abertura e no alcance do
     /// volume do golpe (<see cref="RegrasAtaque"/>), que aparece e some em
-    /// <see cref="DuracaoSegundos"/>. É só retorno visual: quem acertou o quê é o servidor.
+    /// <see cref="ConfigSensacaoCombate.RastroSegundos"/>. É só retorno visual: quem acertou o quê é o servidor.
     /// </summary>
     internal sealed class RastroDoGolpe : MonoBehaviour
     {
-        public const float DuracaoSegundos = 0.22f;
         public const float AlturaDoChao = 0.05f;
         public const int Segmentos = 12;
         public const float OpacidadeInicial = 0.45f;
@@ -44,12 +43,14 @@ namespace JogoDoGrupo.Client.Features.Combate
         /// zero ao fim, sem voltar a subir.
         /// </summary>
         public static float Opacidade(float idade) =>
-            idade >= DuracaoSegundos ? 0f : OpacidadeInicial * (1f - idade / DuracaoSegundos);
+            idade >= ConfigSensacaoCombate.RastroSegundos
+                ? 0f
+                : OpacidadeInicial * (1f - idade / ConfigSensacaoCombate.RastroSegundos);
 
         private void Update()
         {
             _idade += Time.unscaledDeltaTime;
-            if (_idade >= DuracaoSegundos)
+            if (_idade >= ConfigSensacaoCombate.RastroSegundos)
             {
                 Destroy(gameObject);
                 return;

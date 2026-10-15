@@ -74,22 +74,7 @@ namespace JogoDoGrupo.Client.Features.Combate
     /// </summary>
     internal static class EscolhaDeEfeito
     {
-        // Valores de sensação: ajuste aqui, sem mexer nas escolhas.
-        public const float FlashLeve = 0.08f;
-        public const float FlashPesado = 0.14f;
-        public const float FlashRecebido = 0.18f;
-        public const float RecuoLeve = 0.08f;
-        public const float RecuoPesado = 0.22f;
-        public const float HitStopPesado = 0.07f;
-        public const float HitStopRecebidoForte = 0.09f;
-        public const float TremorPesado = 0.05f;
-        public const float TremorRecebido = 0.04f;
-        public const float TremorRecebidoForte = 0.09f;
-        public const float TremorSegundosPadrao = 0.18f;
-        public const float VolumeLeve = 0.5f;
-        public const float VolumePesado = 0.85f;
-        public const float VolumeDeOutro = 0.25f;
-        public const float VolumeRecebido = 0.7f;
+        // Os valores de sensação estão em ConfigSensacaoCombate (ajustáveis no F10).
 
         /// <summary>Fração da vida máxima, perdida de uma vez, que conta como golpe forte.</summary>
         public const float FracaoDeGolpeForte = 0.2f;
@@ -107,23 +92,23 @@ namespace JogoDoGrupo.Client.Features.Combate
                 tipo == TipoDeAtaque.Pesado
                     ? new EfeitoDeImpacto(
                         OrigemDoImpacto.GolpePesado,
-                        FlashPesado,
-                        RecuoPesado,
-                        HitStopPesado,
-                        TremorPesado,
-                        TremorSegundosPadrao,
+                        ConfigSensacaoCombate.FlashPesado,
+                        ConfigSensacaoCombate.RecuoPesado,
+                        ConfigSensacaoCombate.HitStopPesado,
+                        ConfigSensacaoCombate.TremorPesado,
+                        ConfigSensacaoCombate.TremorSegundos,
                         SomDeCombate.AcertoPesado,
-                        VolumePesado
+                        ConfigSensacaoCombate.VolumePesado
                     )
                     : new EfeitoDeImpacto(
                         OrigemDoImpacto.GolpeLeve,
-                        FlashLeve,
-                        RecuoLeve,
+                        ConfigSensacaoCombate.FlashLeve,
+                        ConfigSensacaoCombate.RecuoLeve,
                         0f,
                         0f,
                         0f,
                         SomDeCombate.AcertoLeve,
-                        VolumeLeve
+                        ConfigSensacaoCombate.VolumeLeve
                     );
             return true;
         }
@@ -142,13 +127,13 @@ namespace JogoDoGrupo.Client.Features.Combate
 
             efeito = new EfeitoDeImpacto(
                 OrigemDoImpacto.GolpeDeOutro,
-                FlashLeve,
+                ConfigSensacaoCombate.FlashLeve,
                 0f,
                 0f,
                 0f,
                 0f,
                 SomDeCombate.AcertoLeve,
-                VolumeDeOutro
+                ConfigSensacaoCombate.VolumeDeOutro
             );
             return true;
         }
@@ -174,13 +159,15 @@ namespace JogoDoGrupo.Client.Features.Combate
             var forte = (float)perdida / vidaMaxima >= FracaoDeGolpeForte - 0.0001f;
             efeito = new EfeitoDeImpacto(
                 forte ? OrigemDoImpacto.GolpeRecebidoForte : OrigemDoImpacto.GolpeRecebido,
-                FlashRecebido,
+                ConfigSensacaoCombate.FlashRecebido,
                 0f,
-                forte ? HitStopRecebidoForte : 0f,
-                forte ? TremorRecebidoForte : TremorRecebido,
-                TremorSegundosPadrao,
+                forte ? ConfigSensacaoCombate.HitStopRecebidoForte : 0f,
+                forte
+                    ? ConfigSensacaoCombate.TremorRecebidoForte
+                    : ConfigSensacaoCombate.TremorRecebido,
+                ConfigSensacaoCombate.TremorSegundos,
                 SomDeCombate.GolpeRecebido,
-                VolumeRecebido
+                ConfigSensacaoCombate.VolumeRecebido
             );
             return true;
         }
@@ -195,8 +182,6 @@ namespace JogoDoGrupo.Client.Features.Combate
         public const int MaximoDeFlashes = 8;
         public const int MaximoDeSons = 4;
         public const float JanelaDosSonsSegundos = 0.12f;
-        public const float HitStopMaximo = 0.12f;
-        public const float TremorMaximo = 0.12f;
 
         private readonly System.Collections.Generic.List<float> _flashes =
             new System.Collections.Generic.List<float>();
@@ -242,7 +227,10 @@ namespace JogoDoGrupo.Client.Features.Combate
 
         public void PedirHitStop(float segundos)
         {
-            var limitado = segundos > HitStopMaximo ? HitStopMaximo : segundos;
+            var limitado =
+                segundos > ConfigSensacaoCombate.HitStopMaximo
+                    ? ConfigSensacaoCombate.HitStopMaximo
+                    : segundos;
             if (limitado > HitStopRestante)
             {
                 HitStopRestante = limitado;
@@ -256,7 +244,10 @@ namespace JogoDoGrupo.Client.Features.Combate
                 return;
             }
 
-            var limitada = amplitude > TremorMaximo ? TremorMaximo : amplitude;
+            var limitada =
+                amplitude > ConfigSensacaoCombate.TremorMaximo
+                    ? ConfigSensacaoCombate.TremorMaximo
+                    : amplitude;
             if (limitada >= TremorAmplitude || _tremorRestante <= 0f)
             {
                 TremorAmplitude = limitada;

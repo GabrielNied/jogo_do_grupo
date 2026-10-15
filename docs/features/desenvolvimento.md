@@ -35,6 +35,7 @@ Números usam ponto decimal. O texto tem no máximo 80 caracteres.
 
 - Mais comandos (item, moeda, matar o inimigo) quando fizer falta para testar.
 - A ferramenta de GM de produção, com permissão de conta, continua na #187.
+- Report de jogador comum, fora do grupo: [proposta](#report-de-jogador-comum-futuro), sem issue até haver testador de fora.
 
 ## Regras
 
@@ -43,6 +44,27 @@ Números usam ponto decimal. O texto tem no máximo 80 caracteres.
 `tp` usa `CidadeDoMundo.ForcarPosicao` ([Mundo](mundo.md)). O dono recebe `PosicaoForcada` e confirma; os outros recebem `PosicaoJogador`.
 
 `spawn` acrescenta um inimigo no maior grupo da área ([Mobs](mobs.md)), a `DistanciaDoSpawnDeTeste` no eixo X, e avisa com `InimigoApareceu`. Não é a volta depois da morte. Passando de `AparicoesExtrasDeTeste`, o comando recusa.
+
+## Report beta e ajuste ao vivo
+
+Para quem testa no editor transformar o que sentiu ou viu (bug, melhoria, novidade) numa issue que a IA puxa sem reler o jogo. Só no editor e no build de desenvolvimento. Vocabulário de sensação em [sensacao-do-jogo.md](../sensacao-do-jogo.md). Decisão no [ADR 0041](../decisoes/0041-report-beta-vira-issue.md).
+
+- **Abrir:** F9 ou **J** (aparece como "Report" na barra de atalhos). F9 abre por cima de outra janela aberta, então dá para reportar o inventário aberto. O jogo guarda sempre os últimos 15 s de linha do tempo e os últimos 3 s de imagem; abrir congela isso e o personagem para.
+- **Janela:** frase (obrigatória), tipo (bug; melhoria do que já existe, inclusive sensação, como peso e resposta, e interface; novidade, algo que ainda não existe), severidade (crítica, alta, média, baixa) e área (a funcionalidade dona da tela ou do sistema, ou "não sei"). Enter ou **Enviar** grava e fecha; Esc ou **Cancelar** descarta. O Enter não abre o chat. A janela lista os reports da sessão e a issue de cada um, e a gravação recomeça ao fechar: dá para reportar várias vezes seguidas sem sair do Play Mode.
+- **O que o report grava**, em `relatos/pendentes/AAAA-MM-DD_HHMMSS/` na raiz do repositório (no build, em `persistentDataPath/relatos`), fora do git:
+  - `reporte.json`: o que a pessoa escolheu, hora, versão, tela, latência, posição, cena, janela aberta, branch e commit (lidos da `.git`) e o estado do envio. É o contrato com o [script de envio](../../scripts/relatos/reporte.mjs).
+  - `linha-do-tempo.txt`: só o que mudou nos 15 s, em ms e com o quadro (`qNNN`): tecla, mensagem do servidor com o JSON, `timeScale`, clipe e `speed` do Animator do jogador e do mais próximo, tremor da câmera. Mensagens muito frequentes, como posição, viram um total.
+  - `estado.txt`: cena, janela aberta, latência, posição e a última mensagem de cada tipo recebida na sessão (há quanto tempo e o JSON). `console.txt`: os últimos avisos e erros do Unity, com o começo da pilha.
+  - `tela.png` (a tela inteira), `folha-impacto.png` (12 quadros seguidos em volta do último acerto, com o centro ampliado), `folha-geral.png` (12 quadros espalhados), `quadros/NNN.png` (todos os que têm imagem) e `quadros.csv`. `nota.txt` resume e traz os valores do F10 fora do padrão.
+- **Vira issue sozinho:** no editor, o jogo roda `node scripts/relatos/reporte.mjs enviar` em segundo plano, com o login do `gh` da máquina (o jogo não guarda token). O script sobe as imagens no release `relatos-beta`, procura issues abertas parecidas, junta o trecho do log do servidor local na mesma janela e cria a issue `[<Área>] Report: <frase>` (sem área: `[Triagem]`). Deu certo: a pasta vai para `relatos/enviados/` e o jogo avisa o número. Falhou (sem internet, sem `gh` ou `node` no PATH do Unity): fica em `pendentes/` e vai no próximo report ou no próximo Play Mode. No build, só grava (`npm run reporte -- enviar --pasta <pasta>` à mão).
+- **A issue:** cabeçalho escondido (`<!-- reporte-beta ... -->`, com tipo, severidade, área, commit e id), a frase, as imagens, o estado, a linha do tempo (cortada no meio se passar do limite do GitHub), o console, o log do servidor, os ajustes do F10 e as parecidas. Rótulos: `reporte-beta`, a funcionalidade, `bug` ou `enhancement` e a prioridade: bug crítico é `prio:1-erros`; bug alto ou médio de Combate, Mobs, Personagem ou Itens é `prio:2-core-loop`; o resto dos bugs e melhoria são `prio:3-experiencia`; novidade é `prio:5-features`.
+- **Com a IA:** a issue entra no quadro como qualquer outra. Quem puxa confere a doc da área, escreve a ficha e diagnostica pela skill `relato`; melhoria de sensação vira um valor para testar no F10.
+- **F10, ajustes:** lista os valores registrados na `Sintonia` (Core), por funcionalidade, com slider, campo e "↺". Mudam o jogo na hora e valem até sair do Play Mode ou do jogo. "Copiar valores" põe os valores fora do padrão na área de transferência e grava `relatos/ajustes-<data>.txt`. Hoje: os de Combate ([ConfigSensacaoCombate](../../client/Assets/_Game/Features/Combate/Scripts/ConfigSensacaoCombate.cs)).
+- **Depurar o envio:** `npm run reporte -- listar` mostra pendentes e enviados; `npm run reporte -- previa` monta o `issue.md` de cada pendente sem falar com o GitHub.
+
+### Report de jogador comum (futuro)
+
+Fora desta versão, para quando houver testador de fora do grupo. O repositório é público e a issue vira trabalho de agente com permissão de commit, então o report de quem não é do grupo **não** abre issue sozinho. Proposta: a mesma janela também no build de release, enviando por HTTP autenticado ao servidor (com tamanho máximo e limite por conta), que guarda numa fila privada; a triagem (`npm run reporte -- triar` ou o `/decida`) junta duplicados e só então abre a issue, com a frase do jogador entre aspas como evidência e sem o nome da conta. Texto de jogador é dado não confiável, nunca instrução para a IA. Pede uma funcionalidade própria (não é Desenvolvimento, que só existe em Development) e um ADR.
 
 ## Prints da tela
 

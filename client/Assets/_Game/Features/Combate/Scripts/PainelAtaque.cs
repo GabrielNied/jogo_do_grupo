@@ -11,12 +11,6 @@ namespace JogoDoGrupo.Client.Features.Combate
     /// </summary>
     internal sealed class PainelAtaque
     {
-        /// <summary>Quanto o número sobe até sumir, em metros (número no mundo).</summary>
-        public const float SubidaMetros = 0.9f;
-
-        /// <summary>Quanto o número sobe até sumir, em pixels de referência (número em torno da mira).</summary>
-        public const float SubidaPixels = 90f;
-
         /// <summary>Altura da mira na tela, em fração (de cima para baixo), para o número sem alvo.</summary>
         public const float AlturaDaMira = 0.38f;
 
@@ -105,7 +99,7 @@ namespace JogoDoGrupo.Client.Features.Combate
                 var mundo = ApresentacaoAtaque.PosicaoDoNumero(
                     origem,
                     numero.Progresso,
-                    SubidaMetros
+                    ConfigSensacaoCombate.NumeroSubidaMetros
                 );
                 if (camera.WorldToViewportPoint(mundo).z <= 0f)
                 {
@@ -119,7 +113,9 @@ namespace JogoDoGrupo.Client.Features.Combate
             }
 
             rotulo.style.left = tamanho.x * 0.5f + numero.Deslocamento;
-            rotulo.style.top = tamanho.y * AlturaDaMira - SubidaPixels * numero.Progresso;
+            rotulo.style.top =
+                tamanho.y * AlturaDaMira
+                - ConfigSensacaoCombate.NumeroSubidaPixels * numero.Progresso;
             return true;
         }
     }
