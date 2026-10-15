@@ -3,6 +3,7 @@ using JogoDoGrupo.Server.Core;
 using JogoDoGrupo.Server.Core.TempoReal;
 using JogoDoGrupo.Shared.Features.Instancias;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace JogoDoGrupo.Server.Features.Instancias;
 
@@ -24,7 +25,8 @@ public sealed class InstanciasModule : IFeatureModule
             sp.GetRequiredService<PopuladorDeInstancia>(),
             sp.GetRequiredService<JogoDoGrupo.Server.Contratos.Combate.IEstadoDeQueda>(),
             prazoColetaLoot: null,
-            scopeFactory: sp.GetService<IServiceScopeFactory>()
+            scopeFactory: sp.GetService<IServiceScopeFactory>(),
+            logger: sp.GetService<ILogger<ServicoDeInstancias>>()
         ));
     }
 

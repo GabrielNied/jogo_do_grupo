@@ -29,7 +29,7 @@ public sealed class InstanciasFixture : IDisposable
     private static long _proximoPersonagem = 9000;
     private readonly ServidorDeTeste _base = new();
 
-    public InstanciasFixture()
+    public InstanciasFixture(Action<IServiceCollection>? configurarServicos = null)
     {
         Relogio = new FakeTimeProvider(DateTimeOffset.UtcNow);
         Fabrica = _base.WithWebHostBuilder(builder =>
@@ -55,6 +55,7 @@ public sealed class InstanciasFixture : IDisposable
                 servicos.AddSingleton<IEstadoDeQueda>(Queda);
                 servicos.RemoveAll<ISorteadorDeLoot>();
                 servicos.AddSingleton<ISorteadorDeLoot>(Sorteador);
+                configurarServicos?.Invoke(servicos);
             });
         });
         TempoReal = Fabrica.Services.GetRequiredService<ServidorTempoReal>();

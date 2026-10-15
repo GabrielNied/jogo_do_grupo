@@ -8,6 +8,7 @@ using JogoDoGrupo.Server.Core.TempoReal;
 using JogoDoGrupo.Shared.Features.Instancias;
 using JogoDoGrupo.Shared.Features.Mobs;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace JogoDoGrupo.Server.Features.Instancias;
 
@@ -21,9 +22,11 @@ public sealed class ServicoDeInstancias(
     PopuladorDeInstancia populador,
     IEstadoDeQueda queda,
     TimeSpan? prazoColetaLoot = null,
-    IServiceScopeFactory? scopeFactory = null
+    IServiceScopeFactory? scopeFactory = null,
+    ILogger<ServicoDeInstancias>? logger = null
 )
 {
+    private readonly ILogger<ServicoDeInstancias>? _logger = logger;
     public static readonly TimeSpan PrazoDeReconexao = TimeSpan.FromSeconds(120);
     public static readonly TimeSpan PrazoVazia = TimeSpan.FromMinutes(5);
     public static readonly TimeSpan PrazoParaColetaDeLoot = TimeSpan.FromSeconds(20);
@@ -446,34 +449,17 @@ public sealed class ServicoDeInstancias(
                         await transacao.CommitAsync();
                     }
                 }
-                catch
+                catch (Exception ex)
                 {
                     // Falha no crédito em segundo plano não derruba a instância.
+                    _logger?.LogError(
+                        ex,
+                        "Falha ao creditar essência de dungeon na corrida {IdInstancia} (participantes: {Participantes})",
+                        idInstancia,
+                        string.Join(", ", participantes)
+                    );
                 }
             });
-        }
-    }
-
-    /// <summary>
-    /// Concede o material de dungeon aos participantes da instância de forma síncrona/testável (MAT-003).
-    /// </summary>
-    public async Task CreditarMateriaisVitoriaAsync(
-        string idInstancia,
-        ISaldosMateriaisFusao materiais,
-        CancellationToken c
-    )
-    {
-        long[] participantes;
-        lock (_trava)
-        {
-            if (!_corridas.TryGetValue(idInstancia, out var corrida))
-                return;
-            participantes = corrida.Participantes.ToArray();
-        }
-
-        foreach (var participante in participantes)
-        {
-            await materiais.CreditarDungeonAsync(participante, 1, c);
         }
     }
 
