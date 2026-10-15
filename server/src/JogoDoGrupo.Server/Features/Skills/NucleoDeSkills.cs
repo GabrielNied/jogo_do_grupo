@@ -36,6 +36,7 @@ public sealed class NucleoDeSkills
     private readonly IPosicoesDoMundo _posicoes;
     private readonly IReadOnlyList<IAlvosDeCombate> _alvos;
     private readonly Func<long> _agoraMs;
+    private readonly ITrocaDeArma? _troca;
 
     // Fim da recarga (ms) por (exemplar da arma, espaço).
     private readonly ConcurrentDictionary<(long Arma, int Espaco), long> _recargas = new();
@@ -48,9 +49,11 @@ public sealed class NucleoDeSkills
         IAtributosDosEquipamentos equipamentos,
         IPosicoesDoMundo posicoes,
         IEnumerable<IAlvosDeCombate> alvos,
-        Func<long> agoraMs
+        Func<long> agoraMs,
+        ITrocaDeArma? troca = null
     )
     {
+        _troca = troca;
         _armas = armas;
         _armazem = armazem;
         _cobranca = cobranca;
@@ -128,6 +131,12 @@ public sealed class NucleoDeSkills
         if (!float.IsFinite(pedido.DirecaoY))
         {
             return Recusar(CodigosErroSkills.SemSkill);
+        }
+
+        // Nos 0,4 s da troca de arma não sai skill, como golpe, esquiva e guarda.
+        if (_troca?.EmTroca(personagemId) == true)
+        {
+            return Recusar(CodigosErroSkills.AcaoEmAndamento);
         }
 
         var arma = await _armas.ObterAsync(personagemId, c);

@@ -14,5 +14,8 @@ namespace JogoDoGrupo.Shared.Features.Skills
 
         /// <summary>O personagem está caído.</summary>
         public const string VoceEstaCaido = "VoceEstaCaido";
+
+        /// <summary>O personagem está trocando de arma (os 0,4 s da troca).</summary>
+        public const string AcaoEmAndamento = "AcaoEmAndamento";
     }
 }
