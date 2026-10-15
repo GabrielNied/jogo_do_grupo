@@ -56,6 +56,22 @@ namespace JogoDoGrupo.Client.Features.Itens
         public const string TooltipLinha = "item-tooltip-linha";
         public const string TooltipComparacao = "item-tooltip-comparacao";
 
+        public const string FusaoPalco = "fusao-palco";
+        public const string FusaoSlotDestaque = "fusao-slot-destaque";
+        public const string FusaoSlotRotulo = "fusao-slot-rotulo";
+        public const string FusaoSlotNome = "fusao-slot-nome";
+        public const string FusaoSeta = "fusao-seta";
+        public const string FusaoGradeCasas = "fusao-grade-casas";
+        public const string FusaoAtributosLista = "fusao-atributos-lista";
+        public const string FusaoAtributoChip = "fusao-atributo-chip";
+        public const string FusaoAtributoAtivo = "fusao-atributo-ativo";
+        public const string FusaoPreviaBloco = "fusao-previa-bloco";
+        public const string FusaoPreviaTitulo = "fusao-previa-titulo";
+        public const string FusaoPreviaLinha = "fusao-previa-linha";
+        public const string FusaoMotivo = "fusao-motivo";
+        public const string FusaoMotivoAlerta = "fusao-motivo-alerta";
+        public const string FusaoAcoes = "fusao-acoes";
+
         /// <summary>Letra do tier no canto da casa.</summary>
         public const string LetraTier = "item-tier-letra";
 

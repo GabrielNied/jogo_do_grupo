@@ -366,3 +366,128 @@
     border-top-width: var(--lumora-bordas-fina);
     border-top-color: var(--lumora-cores-borda-discreta);
 }
+
+/* ---- bancada de fusão (Lumora UI v1) ---- */
+
+.fusao-palco {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--lumora-cores-campo);
+    border-radius: var(--lumora-bordas-raio-campo);
+    border-width: var(--lumora-bordas-fina);
+    border-color: var(--lumora-cores-borda-discreta);
+    padding: var(--lumora-espacamento-medio);
+    margin-bottom: var(--lumora-espacamento-pequeno);
+}
+
+.fusao-slot-destaque {
+    align-items: center;
+    justify-content: center;
+    min-width: 140px;
+}
+
+.fusao-slot-rotulo {
+    color: var(--lumora-cores-texto-secundario);
+    font-size: var(--lumora-tipografia-controle);
+    -unity-font-style: bold;
+    margin-bottom: var(--lumora-espacamento-minimo);
+    -unity-text-align: middle-center;
+}
+
+.fusao-slot-nome {
+    color: var(--lumora-cores-marfim);
+    font-size: var(--lumora-tipografia-controle);
+    -unity-text-align: middle-center;
+    white-space: normal;
+    max-width: 150px;
+    margin-top: var(--lumora-espacamento-minimo);
+}
+
+.fusao-seta {
+    color: var(--lumora-cores-ouro);
+    font-size: 26px;
+    -unity-font-style: bold;
+    margin: 0 var(--lumora-espacamento-medio);
+    -unity-text-align: middle-center;
+}
+
+.fusao-grade-casas {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    padding: var(--lumora-espacamento-minimo) 0;
+    margin-bottom: var(--lumora-espacamento-pequeno);
+}
+
+.fusao-atributos-lista {
+    flex-direction: column;
+    margin-top: var(--lumora-espacamento-minimo);
+    margin-bottom: var(--lumora-espacamento-pequeno);
+}
+
+.fusao-atributo-chip {
+    min-height: 34px;
+    margin: 2px 0;
+    padding: var(--lumora-espacamento-minimo) var(--lumora-espacamento-medio);
+    -unity-text-align: middle-left;
+    white-space: normal;
+    border-radius: var(--lumora-bordas-raio-campo);
+    border-width: var(--lumora-bordas-fina);
+    border-color: var(--lumora-cores-borda-discreta);
+    background-color: var(--lumora-cores-campo);
+    color: var(--lumora-cores-marfim);
+}
+
+.fusao-atributo-chip:hover {
+    border-color: var(--lumora-cores-essencia);
+}
+
+.fusao-atributo-chip.fusao-atributo-ativo {
+    border-color: var(--lumora-cores-ouro);
+    border-width: var(--lumora-bordas-destaque);
+    background-color: var(--lumora-cores-selecionado);
+    -unity-font-style: bold;
+}
+
+.fusao-previa-bloco {
+    padding: var(--lumora-espacamento-medio);
+    background-color: var(--lumora-cores-campo);
+    border-radius: var(--lumora-bordas-raio-campo);
+    border-width: var(--lumora-bordas-fina);
+    border-color: var(--lumora-cores-borda-discreta);
+    margin-top: var(--lumora-espacamento-pequeno);
+    margin-bottom: var(--lumora-espacamento-pequeno);
+}
+
+.fusao-previa-titulo {
+    color: var(--lumora-cores-ouro);
+    font-size: var(--lumora-tipografia-subtitulo);
+    -unity-font-style: bold;
+    margin-bottom: var(--lumora-espacamento-minimo);
+}
+
+.fusao-previa-linha {
+    color: var(--lumora-cores-marfim);
+    white-space: normal;
+    margin-bottom: 2px;
+}
+
+.fusao-motivo {
+    color: var(--lumora-cores-ouro);
+    white-space: normal;
+    margin-top: var(--lumora-espacamento-minimo);
+    margin-bottom: var(--lumora-espacamento-minimo);
+}
+
+.fusao-motivo-alerta {
+    color: var(--lumora-cores-erro);
+    -unity-font-style: bold;
+}
+
+.fusao-acoes {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-top: var(--lumora-espacamento-pequeno);
+}

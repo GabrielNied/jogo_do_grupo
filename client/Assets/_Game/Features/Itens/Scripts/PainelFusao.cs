@@ -3,15 +3,15 @@ using System.Collections.Generic;
 using System.Globalization;
 using JogoDoGrupo.Client.Core.UI;
 using JogoDoGrupo.Shared.Features.Itens;
+using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace JogoDoGrupo.Client.Features.Itens
 {
     /// <summary>
-    /// Bancada de fusão (I → Bancada, issue #616): o jogador escolhe o item principal, o material
-    /// e um atributo, vê a prévia completa e confirma. Quem decide é o servidor; aqui só se
-    /// filtram as escolhas com as mesmas regras puras (<see cref="RegrasFusao"/>) e se mostra o
-    /// que ele respondeu.
+    /// Bancada de fusão (I → Bancada, issue #616, melhoria #755): o jogador escolhe o item principal,
+    /// o material e um atributo com layout Lumora UI e casas clicáveis com tier visível, vê a prévia
+    /// em bloco fixo com motivos de validação e confirma. O servidor decide tudo de forma autoritativa.
     /// </summary>
     public sealed class PainelFusao
     {
@@ -31,40 +31,76 @@ namespace JogoDoGrupo.Client.Features.Itens
             lista.AddToClassList(EstiloCore.Lista);
             lista.style.flexGrow = 1;
             _raiz.Add(lista);
-            lista.Add(Texto("Fusão · saldo: " + estado.Coroas + " coroas"));
+
+            // Cabeçalho da Bancada
+            var cabecalho = new VisualElement();
+            cabecalho.AddToClassList(EstiloItens.CabecalhoSecao);
+            cabecalho.Add(
+                Texto("Fusão · Saldo: " + estado.Coroas + " coroas", EstiloItens.TituloSecao)
+            );
+            lista.Add(cabecalho);
+
             if (!string.IsNullOrEmpty(aviso ?? estado.Aviso))
-                lista.Add(Texto(aviso ?? estado.Aviso));
+            {
+                var msgAviso = Texto(aviso ?? estado.Aviso, EstiloCore.Mensagem);
+                msgAviso.AddToClassList(EstiloCore.MensagemAviso);
+                lista.Add(msgAviso);
+            }
+
             lista.Add(
                 Texto(
-                    "Escolha a peça principal, um material da mesma categoria e um atributo que os dois tenham. O atributo anda metade da diferença até o valor do material (pode diminuir), a peça sobe um nível de fusão, até +10, e o material é destruído. Não há chance de falha."
+                    "Aprimore a peça principal consumindo um material da mesma categoria. O atributo escolhido avança metade da diferença até o do material (sem falha aleatória) e a peça sobe de nível (até +10).",
+                    EstiloCore.Texto
                 )
             );
-            lista.Add(Botao("Voltar aos equipamentos", () => _enviar(null, null)));
+
+            lista.Add(Botao("← Voltar aos equipamentos", () => _enviar(null, null)));
+
             var principais = new List<EntradaInventario>();
             foreach (var item in estado.Equipados)
+            {
                 if (RegrasEquipamentos.DadosDe(item) != null)
+                {
                     principais.Add(item);
+                }
+            }
             foreach (var item in estado.Inventario)
+            {
                 if (RegrasEquipamentos.DadosDe(item) != null)
+                {
                     principais.Add(item);
+                }
+            }
+
             if (principais.Count == 0)
             {
                 lista.Add(
                     Texto(
-                        "Você precisa de equipamentos para fundir. Volte aos equipamentos para obter peças."
+                        "Você precisa de equipamentos para fundir. Volte aos equipamentos para obter peças.",
+                        EstiloCore.Mensagem
                     )
                 );
-            }
-            else
-            {
-                MontarEscolhas(lista, estado, principais);
+                return;
             }
 
-            lista.Add(Texto("Favoritos: a proteção impede consumir uma peça como material."));
+            MontarEscolhas(lista, estado, principais);
+
+            // Seção de favoritos / proteção
+            var blocoFav = new VisualElement();
+            blocoFav.AddToClassList(EstiloItens.Resumo);
+            blocoFav.Add(
+                Texto(
+                    "Proteção de favoritos: itens protegidos (★) nunca podem ser consumidos como material.",
+                    EstiloItens.ResumoTitulo
+                )
+            );
+            var linhaFav = new VisualElement();
+            linhaFav.AddToClassList(EstiloCore.LinhaBotoes);
+            linhaFav.style.flexWrap = Wrap.Wrap;
             foreach (var item in principais)
             {
                 var entrada = item;
-                lista.Add(
+                linhaFav.Add(
                     Botao(
                         (item.Equipamento.Favorito ? "Desproteger " : "Proteger ") + Nome(item),
                         () =>
@@ -79,6 +115,9 @@ namespace JogoDoGrupo.Client.Features.Itens
                     )
                 );
             }
+            blocoFav.Add(linhaFav);
+            lista.Add(blocoFav);
+
 #if DEBUG
             lista.Add(Botao("Receber coroas de teste", () => _enviar("fusao/coroas-teste", null)));
 #endif
@@ -93,71 +132,380 @@ namespace JogoDoGrupo.Client.Features.Itens
             var previa = estado.Previa;
             var indicePrincipal = 0;
             for (var i = 0; i < principais.Count; i++)
+            {
                 if (previa != null && principais[i].InstanciaId == previa.PrincipalId)
+                {
                     indicePrincipal = i;
-            var nomes = new List<string>();
+                }
+            }
+
+            // --- Palco Hero da Fusão ---
+            var palco = new VisualElement();
+            palco.AddToClassList(EstiloItens.FusaoPalco);
+            lista.Add(palco);
+
+            var destaquePrincipal = new VisualElement();
+            destaquePrincipal.AddToClassList(EstiloItens.FusaoSlotDestaque);
+            var rotuloHeroPrincipal = Texto(
+                "Peça Principal (Resultado)",
+                EstiloItens.FusaoSlotRotulo
+            );
+            destaquePrincipal.Add(rotuloHeroPrincipal);
+            var containerHeroPrincipal = new VisualElement();
+            destaquePrincipal.Add(containerHeroPrincipal);
+            var nomeHeroPrincipal = Texto("", EstiloItens.FusaoSlotNome);
+            destaquePrincipal.Add(nomeHeroPrincipal);
+            palco.Add(destaquePrincipal);
+
+            var setaHero = new Label("➜");
+            setaHero.AddToClassList(EstiloItens.FusaoSeta);
+            palco.Add(setaHero);
+
+            var destaqueMaterial = new VisualElement();
+            destaqueMaterial.AddToClassList(EstiloItens.FusaoSlotDestaque);
+            var rotuloHeroMaterial = Texto("Material (Consumido)", EstiloItens.FusaoSlotRotulo);
+            destaqueMaterial.Add(rotuloHeroMaterial);
+            var containerHeroMaterial = new VisualElement();
+            destaqueMaterial.Add(containerHeroMaterial);
+            var nomeHeroMaterial = Texto("", EstiloItens.FusaoSlotNome);
+            destaqueMaterial.Add(nomeHeroMaterial);
+            palco.Add(destaqueMaterial);
+
+            // --- Seção 1: Peça Principal ---
+            lista.Add(Texto("1. Peça Principal a aprimorar:", EstiloItens.TituloSecao));
+            var nomesPrincipais = new List<string>();
             foreach (var item in principais)
-                nomes.Add(Nome(item));
-            var principal = new DropdownField("Peça principal (resultado)", nomes, indicePrincipal);
-            principal.name = "principal-fusao";
-            principal.AddToClassList(EstiloCore.Campo);
-            lista.Add(principal);
-            var detalhesPrincipal = Texto("");
+            {
+                nomesPrincipais.Add(Nome(item));
+            }
+            var principalDropdown = new DropdownField(
+                "Peça principal",
+                nomesPrincipais,
+                indicePrincipal
+            );
+            principalDropdown.name = "principal-fusao";
+            principalDropdown.AddToClassList(EstiloCore.Campo);
+            lista.Add(principalDropdown);
+
+            var gradePrincipais = new VisualElement();
+            gradePrincipais.AddToClassList(EstiloItens.FusaoGradeCasas);
+            lista.Add(gradePrincipais);
+
+            var detalhesPrincipal = Texto("", EstiloItens.FusaoPreviaLinha);
             lista.Add(detalhesPrincipal);
 
+            // --- Seção 2: Material ---
+            lista.Add(
+                Texto("2. Material compatível (mesmo tipo, na bolsa):", EstiloItens.TituloSecao)
+            );
             var materiais = new List<EntradaInventario>();
-            var material = new DropdownField("Material (será consumido)");
-            material.name = "material-fusao";
-            material.AddToClassList(EstiloCore.Campo);
-            lista.Add(material);
-            var detalhesMaterial = Texto("");
+            var materialDropdown = new DropdownField("Material (será consumido)");
+            materialDropdown.name = "material-fusao";
+            materialDropdown.AddToClassList(EstiloCore.Campo);
+            lista.Add(materialDropdown);
+
+            var gradeMateriais = new VisualElement();
+            gradeMateriais.AddToClassList(EstiloItens.FusaoGradeCasas);
+            lista.Add(gradeMateriais);
+
+            var detalhesMaterial = Texto("", EstiloItens.FusaoPreviaLinha);
             detalhesMaterial.name = "detalhes-material-fusao";
             lista.Add(detalhesMaterial);
 
+            // --- Seção 3: Atributos ---
+            lista.Add(Texto("3. Atributo a fundir:", EstiloItens.TituloSecao));
             var atributos = new List<StatusItem>();
-            var atributo = new DropdownField("Atributo");
-            atributo.name = "atributo-fusao";
-            atributo.AddToClassList(EstiloCore.Campo);
-            lista.Add(atributo);
+            var atributoDropdown = new DropdownField("Atributo");
+            atributoDropdown.name = "atributo-fusao";
+            atributoDropdown.AddToClassList(EstiloCore.Campo);
+            lista.Add(atributoDropdown);
 
-            var motivo = Texto("");
-            motivo.name = "motivo-fusao";
-            lista.Add(motivo);
-            var areaPrevia = new VisualElement();
-            var consultar = Botao(
+            var listaChipsAtributos = new VisualElement();
+            listaChipsAtributos.AddToClassList(EstiloItens.FusaoAtributosLista);
+            lista.Add(listaChipsAtributos);
+
+            // --- Seção 4: Bloco Fixo de Prévia e Ações ---
+            var blocoPrevia = new VisualElement();
+            blocoPrevia.AddToClassList(EstiloItens.FusaoPreviaBloco);
+            lista.Add(blocoPrevia);
+
+            var tituloPrevia = Texto(
+                "4. Prévia e Confirmação da Fusão",
+                EstiloItens.FusaoPreviaTitulo
+            );
+            blocoPrevia.Add(tituloPrevia);
+
+            var textoPrevia = Texto("", EstiloItens.FusaoPreviaLinha);
+            blocoPrevia.Add(textoPrevia);
+
+            var avisoSemCoroas = Texto("", EstiloItens.FusaoMotivoAlerta);
+            blocoPrevia.Add(avisoSemCoroas);
+
+            var avisoSemMateriais = Texto("", EstiloItens.FusaoMotivoAlerta);
+            blocoPrevia.Add(avisoSemMateriais);
+
+            var motivoLabel = Texto("", EstiloItens.FusaoMotivo);
+            motivoLabel.name = "motivo-fusao";
+            blocoPrevia.Add(motivoLabel);
+
+            var acoesLinha = new VisualElement();
+            acoesLinha.AddToClassList(EstiloItens.FusaoAcoes);
+            blocoPrevia.Add(acoesLinha);
+
+            var consultarBtn = Botao(
                 "Ver prévia",
                 () =>
                 {
                     if (
-                        material.index < 0
-                        || material.index >= materiais.Count
-                        || atributo.index < 0
-                        || atributo.index >= atributos.Count
+                        materialDropdown.index < 0
+                        || materialDropdown.index >= materiais.Count
+                        || atributoDropdown.index < 0
+                        || atributoDropdown.index >= atributos.Count
                     )
+                    {
                         return;
+                    }
+
                     _enviar(
                         "fusao/previa",
                         new PedidoFusao
                         {
-                            PrincipalId = principais[principal.index].InstanciaId,
-                            MaterialId = materiais[material.index].InstanciaId,
-                            Status = atributos[atributo.index],
+                            PrincipalId = principais[principalDropdown.index].InstanciaId,
+                            MaterialId = materiais[materialDropdown.index].InstanciaId,
+                            Status = atributos[atributoDropdown.index],
                         }
                     );
                 }
             );
-            consultar.name = "previa-fusao";
-            lista.Add(consultar);
-            lista.Add(areaPrevia);
+            consultarBtn.name = "previa-fusao";
+            acoesLinha.Add(consultarBtn);
+
+            var confirmarBtn = Botao(
+                "Confirmar fusão e consumir material",
+                () =>
+                {
+                    if (previa == null)
+                    {
+                        return;
+                    }
+
+                    _enviar(
+                        "fusao/confirmar",
+                        new PedidoFusao
+                        {
+                            PrincipalId = previa.PrincipalId,
+                            MaterialId = previa.MaterialId,
+                            Status = previa.Status,
+                            Confirmacao = previa.Confirmacao,
+                        }
+                    );
+                }
+            );
+            confirmarBtn.name = "confirmar-fusao";
+            confirmarBtn.AddToClassList(EstiloCore.BotaoPrincipal);
+            acoesLinha.Add(confirmarBtn);
+
+            var cancelarBtn = Botao("Cancelar prévia", () => _enviar("fusao/estado", null));
+            acoesLinha.Add(cancelarBtn);
+
+            // Helpers de Atualização
+            Action atualizarBlocoPrevia = () =>
+            {
+                var principal = principais[principalDropdown.index];
+                var noMaximo = principal.Equipamento.NivelFusao >= ConfigFusao.NivelMaximo;
+
+                if (previa != null)
+                {
+                    textoPrevia.text = DescreverPrevia(previa);
+                    var semCoroas = estado.Coroas < previa.Custo;
+                    var semMats = !previa.MateriaisSuficientes;
+
+                    avisoSemCoroas.text = semCoroas
+                        ? "Coroas insuficientes: faltam "
+                            + (previa.Custo - estado.Coroas)
+                            + " coroas para confirmar esta fusão."
+                        : "";
+                    avisoSemCoroas.style.display = semCoroas
+                        ? DisplayStyle.Flex
+                        : DisplayStyle.None;
+
+                    avisoSemMateriais.text = semMats
+                        ? "Faltam os materiais exigidos ("
+                            + DescreverMateriais(previa)
+                            + "). Eles ainda não existem no jogo."
+                        : "";
+                    avisoSemMateriais.style.display = semMats
+                        ? DisplayStyle.Flex
+                        : DisplayStyle.None;
+
+                    confirmarBtn.SetEnabled(!semCoroas && !semMats);
+                    cancelarBtn.style.display = DisplayStyle.Flex;
+
+                    motivoLabel.text = semCoroas
+                        ? "Saldo insuficiente: " + estado.Coroas + " / " + previa.Custo + " coroas."
+                        : (semMats ? "Materiais insuficientes." : "");
+                }
+                else
+                {
+                    textoPrevia.text =
+                        "Selecione uma peça principal, um material e um atributo. Em seguida, clique em 'Ver prévia' para calcular o resultado determinístico antes de confirmar.";
+                    avisoSemCoroas.style.display = DisplayStyle.None;
+                    avisoSemMateriais.style.display = DisplayStyle.None;
+                    confirmarBtn.SetEnabled(false);
+                    cancelarBtn.style.display = DisplayStyle.None;
+
+                    motivoLabel.text = MotivoSemEscolha(
+                        noMaximo,
+                        materiais.Count,
+                        atributos.Count,
+                        principal.Equipamento.NivelFusao
+                    );
+                }
+            };
+
+            Action atualizarPalco = () =>
+            {
+                var principal = principais[principalDropdown.index];
+                containerHeroPrincipal.Clear();
+                containerHeroPrincipal.Add(
+                    MontarCasaItem(principal, true, null, "slot-hero-principal")
+                );
+                nomeHeroPrincipal.text =
+                    Nome(principal)
+                    + "\nNível +"
+                    + principal.Equipamento.NivelFusao
+                    + " · Tier "
+                    + RegrasTier.Letra(RegrasTier.TierDe(principal.Equipamento));
+
+                containerHeroMaterial.Clear();
+                if (materialDropdown.index >= 0 && materialDropdown.index < materiais.Count)
+                {
+                    var mat = materiais[materialDropdown.index];
+                    containerHeroMaterial.Add(
+                        MontarCasaItem(mat, true, null, "slot-hero-material")
+                    );
+                    nomeHeroMaterial.text =
+                        Nome(mat)
+                        + "\nTier "
+                        + RegrasTier.Letra(RegrasTier.TierDe(mat.Equipamento));
+                }
+                else
+                {
+                    containerHeroMaterial.Add(
+                        MontarCasaItem(null, false, null, "slot-hero-material-vazio")
+                    );
+                    nomeHeroMaterial.text =
+                        materiais.Count == 0
+                            ? "(Nenhum material na bolsa)"
+                            : "(Selecione o material)";
+                }
+            };
+
+            Action atualizarGradePrincipais = () =>
+            {
+                gradePrincipais.Clear();
+                for (var i = 0; i < principais.Count; i++)
+                {
+                    var idx = i;
+                    var item = principais[i];
+                    var selecionado = idx == principalDropdown.index;
+                    var slot = MontarCasaItem(
+                        item,
+                        selecionado,
+                        () =>
+                        {
+                            if (principalDropdown.index != idx)
+                            {
+                                principalDropdown.index = idx;
+                            }
+                        },
+                        "slot-principal-" + idx
+                    );
+                    gradePrincipais.Add(slot);
+                }
+            };
+
+            Action atualizarGradeMateriais = () =>
+            {
+                gradeMateriais.Clear();
+                if (materiais.Count == 0)
+                {
+                    var vazioMsg = Texto(
+                        "Não há material compatível na bolsa: precisa ser da mesma categoria de peça, estar na bolsa e não ser favorito.",
+                        EstiloItens.FusaoMotivo
+                    );
+                    gradeMateriais.Add(vazioMsg);
+                    return;
+                }
+
+                for (var i = 0; i < materiais.Count; i++)
+                {
+                    var idx = i;
+                    var item = materiais[i];
+                    var selecionado = idx == materialDropdown.index;
+                    var slot = MontarCasaItem(
+                        item,
+                        selecionado,
+                        () =>
+                        {
+                            if (materialDropdown.index != idx)
+                            {
+                                materialDropdown.index = idx;
+                            }
+                        },
+                        "slot-material-" + idx
+                    );
+                    gradeMateriais.Add(slot);
+                }
+            };
+
+            Action atualizarChipsAtributos = () =>
+            {
+                listaChipsAtributos.Clear();
+                if (materialDropdown.index >= 0 && materialDropdown.index < materiais.Count)
+                {
+                    var dadosPrincipal = principais[principalDropdown.index].Equipamento;
+                    var dadosMaterial = materiais[materialDropdown.index].Equipamento;
+
+                    for (var i = 0; i < atributos.Count; i++)
+                    {
+                        var idx = i;
+                        var st = atributos[i];
+                        var valPrinc = RegrasFusao.Procurar(dadosPrincipal, st).Valor;
+                        var valMat = RegrasFusao.Procurar(dadosMaterial, st).Valor;
+                        var chip = Botao(
+                            TextosEquipamento.NomeStatus(st)
+                                + " · "
+                                + Numero(valPrinc)
+                                + " → material "
+                                + Numero(valMat),
+                            () =>
+                            {
+                                if (atributoDropdown.index != idx)
+                                {
+                                    atributoDropdown.index = idx;
+                                }
+                            }
+                        );
+                        chip.name = "chip-atributo-" + (int)st;
+                        chip.AddToClassList(EstiloItens.FusaoAtributoChip);
+                        if (idx == atributoDropdown.index)
+                        {
+                            chip.AddToClassList(EstiloItens.FusaoAtributoAtivo);
+                        }
+                        listaChipsAtributos.Add(chip);
+                    }
+                }
+            };
 
             Action atualizarAtributos = () =>
             {
                 atributos.Clear();
                 var opcoes = new List<string>();
-                if (material.index >= 0 && material.index < materiais.Count)
+                if (materialDropdown.index >= 0 && materialDropdown.index < materiais.Count)
                 {
-                    var dadosPrincipal = principais[principal.index].Equipamento;
-                    var dadosMaterial = materiais[material.index].Equipamento;
+                    var dadosPrincipal = principais[principalDropdown.index].Equipamento;
+                    var dadosMaterial = materiais[materialDropdown.index].Equipamento;
                     foreach (var status in RegrasFusao.Elegiveis(dadosPrincipal, dadosMaterial))
                     {
                         atributos.Add(status);
@@ -171,31 +519,31 @@ namespace JogoDoGrupo.Client.Features.Itens
                     }
                 }
 
-                atributo.choices = opcoes;
-                atributo.index = opcoes.Count == 0 ? -1 : 0;
-                var dono = principais[principal.index].Equipamento;
+                atributoDropdown.choices = opcoes;
+                atributoDropdown.index = opcoes.Count == 0 ? -1 : 0;
+                var dono = principais[principalDropdown.index].Equipamento;
                 var noMaximo = dono.NivelFusao >= ConfigFusao.NivelMaximo;
-                consultar.SetEnabled(opcoes.Count > 0 && !noMaximo);
-                motivo.text = MotivoSemEscolha(
-                    noMaximo,
-                    materiais.Count,
-                    opcoes.Count,
-                    dono.NivelFusao
-                );
+                consultarBtn.SetEnabled(opcoes.Count > 0 && !noMaximo);
+
                 detalhesMaterial.text =
-                    material.index >= 0 && material.index < materiais.Count
+                    materialDropdown.index >= 0 && materialDropdown.index < materiais.Count
                         ? "Material que será consumido:\n"
-                            + TextosEquipamento.Descrever(materiais[material.index])
+                            + TextosEquipamento.Descrever(materiais[materialDropdown.index])
                         : "";
+
+                atualizarChipsAtributos();
+                atualizarPalco();
+                atualizarBlocoPrevia();
             };
 
             Action atualizarMateriais = () =>
             {
                 materiais.Clear();
                 var opcoes = new List<string>();
-                var dono = principais[principal.index];
+                var dono = principais[principalDropdown.index];
                 detalhesPrincipal.text = TextosEquipamento.Descrever(dono);
                 foreach (var item in estado.Inventario)
+                {
                     if (
                         item.InstanciaId != dono.InstanciaId
                         && RegrasEquipamentos.DadosDe(item) != null
@@ -206,90 +554,162 @@ namespace JogoDoGrupo.Client.Features.Itens
                         materiais.Add(item);
                         opcoes.Add(Nome(item));
                     }
+                }
 
-                material.choices = opcoes;
-                material.index = opcoes.Count == 0 ? -1 : 0;
+                materialDropdown.choices = opcoes;
+                materialDropdown.index = opcoes.Count == 0 ? -1 : 0;
+
+                atualizarGradeMateriais();
             };
 
             atualizarMateriais();
             if (previa != null)
             {
                 for (var i = 0; i < materiais.Count; i++)
+                {
                     if (materiais[i].InstanciaId == previa.MaterialId)
-                        material.index = i;
+                    {
+                        materialDropdown.index = i;
+                    }
+                }
             }
 
             atualizarAtributos();
             if (previa != null)
             {
                 for (var i = 0; i < atributos.Count; i++)
+                {
                     if (atributos[i] == previa.Status)
-                        atributo.index = i;
-                MontarPrevia(areaPrevia, estado, previa);
+                    {
+                        atributoDropdown.index = i;
+                    }
+                }
             }
 
-            principal.RegisterValueChangedCallback(_ =>
+            atualizarGradePrincipais();
+            atualizarPalco();
+            atualizarBlocoPrevia();
+
+            principalDropdown.RegisterValueChangedCallback(_ =>
             {
                 previa = null;
-                areaPrevia.Clear();
                 atualizarMateriais();
                 atualizarAtributos();
+                atualizarGradePrincipais();
             });
-            material.RegisterValueChangedCallback(_ =>
+
+            materialDropdown.RegisterValueChangedCallback(_ =>
             {
                 previa = null;
-                areaPrevia.Clear();
                 atualizarAtributos();
+                atualizarGradeMateriais();
             });
-            atributo.RegisterValueChangedCallback(_ =>
+
+            atributoDropdown.RegisterValueChangedCallback(_ =>
             {
                 previa = null;
-                areaPrevia.Clear();
+                atualizarChipsAtributos();
+                atualizarBlocoPrevia();
             });
         }
 
-        private void MontarPrevia(
-            VisualElement area,
-            EquipamentosResponse estado,
-            PreviaFusao previa
+        private static VisualElement MontarCasaItem(
+            EntradaInventario entrada,
+            bool selecionada,
+            Action aoClicar,
+            string nomeElemento = null
         )
         {
-            area.Add(Texto(DescreverPrevia(previa)));
-            var semCoroas = estado.Coroas < previa.Custo;
-            var confirmar = Botao(
-                "Confirmar fusão e consumir material",
-                () =>
-                    _enviar(
-                        "fusao/confirmar",
-                        new PedidoFusao
-                        {
-                            PrincipalId = previa.PrincipalId,
-                            MaterialId = previa.MaterialId,
-                            Status = previa.Status,
-                            Confirmacao = previa.Confirmacao,
-                        }
-                    )
-            );
-            confirmar.name = "confirmar-fusao";
-            confirmar.SetEnabled(!semCoroas && previa.MateriaisSuficientes);
-            area.Add(confirmar);
-            if (semCoroas)
-                area.Add(
-                    Texto(
-                        "Coroas insuficientes: faltam "
-                            + (previa.Custo - estado.Coroas)
-                            + " para confirmar esta fusão."
-                    )
-                );
-            if (!previa.MateriaisSuficientes)
-                area.Add(
-                    Texto(
-                        "Faltam os materiais exigidos ("
-                            + DescreverMateriais(previa)
-                            + "). Eles ainda não existem no jogo."
-                    )
-                );
-            area.Add(Botao("Cancelar prévia", () => _enviar("fusao/estado", null)));
+            var slot = new VisualElement();
+            if (!string.IsNullOrEmpty(nomeElemento))
+            {
+                slot.name = nomeElemento;
+            }
+            slot.AddToClassList(EstiloItens.Slot);
+            if (selecionada)
+            {
+                slot.AddToClassList(EstiloItens.SlotSelecionado);
+            }
+
+            var icone = new VisualElement { pickingMode = PickingMode.Ignore };
+            icone.AddToClassList(EstiloItens.Icone);
+            var sigla = new Label { pickingMode = PickingMode.Ignore };
+            sigla.AddToClassList(EstiloCore.Texto);
+            sigla.AddToClassList(EstiloItens.Sigla);
+            slot.Add(icone);
+            slot.Add(sigla);
+
+            if (entrada == null)
+            {
+                slot.AddToClassList(EstiloItens.SlotVazio);
+                return slot;
+            }
+
+            var dados = RegrasEquipamentos.DadosDe(entrada);
+            var tipo = LogicaInventario.TipoDe(entrada);
+            if (tipo != null)
+            {
+                var sprite = IconesEquipamento.Carregar(tipo.Value);
+                if (sprite != null)
+                {
+                    icone.style.backgroundImage = new StyleBackground(sprite);
+                    sigla.text = "";
+                }
+                else
+                {
+                    sigla.text = TextosEquipamento.SiglaDoTipo(tipo.Value);
+                }
+            }
+            else
+            {
+                sigla.text = !string.IsNullOrEmpty(entrada.Nome)
+                    ? entrada.Nome.Substring(0, 1)
+                    : "?";
+            }
+
+            if (dados != null)
+            {
+                var tier = RegrasTier.TierDe(dados);
+                slot.AddToClassList(EstiloItens.Tier(tier));
+                var letra = new Label(RegrasTier.Letra(tier)) { pickingMode = PickingMode.Ignore };
+                letra.AddToClassList(EstiloCore.Texto);
+                letra.AddToClassList(EstiloItens.LetraTier);
+                slot.Add(letra);
+
+                if (dados.NivelFusao > 0)
+                {
+                    var seloNivel = new Label("+" + dados.NivelFusao)
+                    {
+                        pickingMode = PickingMode.Ignore,
+                    };
+                    seloNivel.AddToClassList(EstiloItens.SeloNovo);
+                    slot.Add(seloNivel);
+                }
+
+                if (dados.Favorito)
+                {
+                    slot.AddToClassList(EstiloItens.SlotFavorito);
+                    var seloFav = new Label("★") { pickingMode = PickingMode.Ignore };
+                    seloFav.AddToClassList(EstiloItens.SeloFavorito);
+                    slot.Add(seloFav);
+                }
+
+                slot.tooltip = TextosEquipamento.Descrever(entrada);
+            }
+
+            if (aoClicar != null)
+            {
+                slot.RegisterCallback<PointerDownEvent>(e =>
+                {
+                    if (e.button == 0)
+                    {
+                        aoClicar();
+                        e.StopPropagation();
+                    }
+                });
+            }
+
+            return slot;
         }
 
         /// <summary>
@@ -304,11 +724,20 @@ namespace JogoDoGrupo.Client.Features.Itens
         )
         {
             if (noMaximo)
+            {
                 return "Esta peça já está em +" + nivel + " e não pode ser fundida de novo.";
+            }
+
             if (materiaisCompativeis == 0)
+            {
                 return "Não há material compatível na bolsa: precisa ser da mesma categoria de peça, estar na bolsa e não ser favorito.";
+            }
+
             if (atributosEmComum == 0)
+            {
                 return "Essa peça e o material não têm nenhum atributo em comum para fundir.";
+            }
+
             return "";
         }
 
@@ -357,9 +786,15 @@ namespace JogoDoGrupo.Client.Features.Itens
         {
             var partes = new List<string>();
             if (previa.MateriaisDungeon > 0)
+            {
                 partes.Add(previa.MateriaisDungeon + " de dungeon");
+            }
+
             if (previa.MateriaisRaid > 0)
+            {
                 partes.Add(previa.MateriaisRaid + " de raid");
+            }
+
             return partes.Count == 0 ? "nenhum" : string.Join(" e ", partes);
         }
 
@@ -371,9 +806,13 @@ namespace JogoDoGrupo.Client.Features.Itens
         private static string Nome(EntradaInventario item) =>
             item.Equipamento.Nome + " (#" + item.InstanciaId + ")";
 
-        private static Label Texto(string texto)
+        private static Label Texto(string texto, string classeEstilo = null)
         {
             var label = new Label(texto);
+            if (!string.IsNullOrEmpty(classeEstilo))
+            {
+                label.AddToClassList(classeEstilo);
+            }
             label.AddToClassList(EstiloCore.Texto);
             label.style.whiteSpace = WhiteSpace.Normal;
             return label;
