@@ -70,7 +70,8 @@ public sealed class ServicoDeEsquivas : IDisposable
             personagemId,
             _relogioMs(),
             RegrasEsquiva.DuracaoMs,
-            out var ocupacaoId
+            out var ocupacaoId,
+            intencao.TempoVistoMs
         );
         if (!ocupou)
         {

@@ -26,6 +26,7 @@ public sealed class MundoModule : IFeatureModule, ITransicoesDeAreaDoMundo
     private bool _permitirVelocidadeDeTeste;
     private ServidorTempoReal? _tempoReal;
     private EventosDoServidor? _eventos;
+    private IHistoricoDePosicoesDoMundo? _historico;
 
     // Criado pelo contêiner quando o app sobe (hosted service); o manipulador de rede só o usa
     // depois que uma sessão se autentica.
@@ -70,6 +71,7 @@ public sealed class MundoModule : IFeatureModule, ITransicoesDeAreaDoMundo
             servicos.GetRequiredService<IHostEnvironment>(),
             servicos.GetRequiredService<ILogger<MundoModule>>()
         );
+        _historico = servicos.GetRequiredService<IHistoricoDePosicoesDoMundo>();
     }
 
     public void RegistrarMensagens(MensagensTempoReal mensagens) =>
@@ -184,6 +186,8 @@ public sealed class MundoModule : IFeatureModule, ITransicoesDeAreaDoMundo
         {
             _eventos!.Publicar(new JogadorEntrouNaArea(sessao.PersonagemId, AreasDoMundo.Cidade));
         }
+
+        RegistrarPosicaoDoJogador(AreasDoMundo.Cidade, eu);
     }
 
     // O client é dono da própria posição (ADR 0024): o servidor valida e repassa aos outros,
@@ -243,6 +247,17 @@ public sealed class MundoModule : IFeatureModule, ITransicoesDeAreaDoMundo
             replica,
             EntregaTempoReal.Sequenciada,
             avatar.PersonagemId
+        );
+        RegistrarPosicaoDoJogador(area, avatar);
+    }
+
+    private void RegistrarPosicaoDoJogador(string area, AvatarNaCidade<SessaoTempoReal> avatar)
+    {
+        var p = avatar.Posicao;
+        _historico?.Registrar(
+            avatar.PersonagemId,
+            new PosicaoNoMundo(area, p.X, p.Y, p.Z, p.RotacaoY),
+            Environment.TickCount64
         );
     }
 

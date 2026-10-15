@@ -295,7 +295,8 @@ public sealed class ChefeDaDungeon : IAlvosDeCombate, IInimigosSimulados
         string area,
         double origemX,
         double origemZ,
-        double direcaoYGraus
+        double direcaoYGraus,
+        long instanteReferenciaMs = 0
     )
     {
         if (area != Area)
