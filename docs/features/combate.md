@@ -99,13 +99,14 @@ Decidido em 2026-10-12, como no New World, fácil de mudar. Sem parry. Quem deci
 - Sem stamina para o custo, a guarda quebra: a stamina vai a zero, o dano entra (a defesa do equipamento da [#344](https://github.com/GabrielNied/jogo_do_grupo/issues/344) vale nesse caso) e a [reação ao acerto](#reação-ao-acerto) começa.
 - A fórmula da #344 não substitui a guarda. Ela só reduz o que passou.
 
-### Duas armas (depois desta fatia)
+### Duas armas (#580)
 
-Decidido em 2026-10-12, opção B da [S10](../brainstorm/validacao.md#s10-troca-de-arma). Não entra na luta da espada.
+Decidido em 2026-10-12, opção B da [S10](../brainstorm/validacao.md#s10-troca-de-arma). Implementado na [#580](https://github.com/GabrielNied/jogo_do_grupo/issues/580) (a luta da espada segue valendo com uma arma na mão).
 
 - Duas armas equipadas. Cada uma tem até **3** skills ativas: as skills sorteadas naquela arma, não uma árvore à parte. A recarga é da arma. Trocar não zera nem avança a recarga da outra.
 - A troca não tem recarga própria. Dura **0,4 s** (`DuracaoDaTrocaSegundos`). Nesse tempo não sai golpe, esquiva nem guarda.
 - Martelo, arco e cajado reaproveitam cadeia, pesado, esquiva e guarda. O volume do golpe de cada uma espera a tarefa dela.
+- **Como funciona (decidido na #580, fácil de mudar):** o **R** manda `IntencaoDeTrocaDeArma`. O servidor reserva o personagem por 0,4 s no `ControleDeAcoes` (a reserva da esquiva, sem a janela sem dano) e só então pede a Itens (`ITrocaDeConjunto`) que vire o conjunto ativo 1 ↔ 2. Recusa no preparo e no acerto de um golpe, com a guarda segurada, na esquiva, na reação ao acerto, atordoado ou caído (`TrocaDeArmaRecusada`); na recuperação do golpe a troca corta o que falta. O client solta a guarda antes de pedir. Na resposta (`TrocaDeArmaIniciada`) a barra das skills 1 a 3 já é a da arma nova (`BarraDeSkillsMudou`, de Skills) e a recarga de cada arma continua só andando com o relógio. Trocar o conjunto pelos botões do inventário segue sem o bloqueio de 0,4 s.
 
 ### O que o client mostra e o que o servidor decide
 

@@ -10,4 +10,7 @@ public interface IMontariasConsulta
 
     /// <summary>Tipo da montaria se estiver montado, ou null se a pé.</summary>
     int? TipoDaMontaria(long personagemId);
+
+    /// <summary>Tipo da montaria atualmente equipada pelo personagem.</summary>
+    int ObterMontariaEquipada(long personagemId);
 }

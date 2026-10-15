@@ -216,6 +216,32 @@ namespace JogoDoGrupo.Client.Features.Combate
             return StaminaEm(agora) is not int stamina || RegrasEsquiva.TemStamina(stamina);
         }
 
+        /// <summary>
+        /// Se a troca de arma pode começar: fora do preparo e do acerto de um golpe e da esquiva
+        /// ou reação em curso, e com a guarda já solta. Na recuperação do golpe ela vale e corta o
+        /// que falta (como a esquiva).
+        /// </summary>
+        public bool PodeTrocarDeArma(double agora) =>
+            !Guardando && !Comprometido(agora) && (agora >= LivreEm || EmRecuperacao(agora));
+
+        /// <summary>
+        /// A troca de arma começou: por <see cref="RegrasTrocaDeArma.DuracaoDaTrocaSegundos"/> golpe,
+        /// esquiva e guarda ficam bloqueados (<see cref="LivreEm"/>). Sem custo de stamina e sem
+        /// recarga própria.
+        /// </summary>
+        public void MarcarTrocaDeArma(double agora)
+        {
+            SoltarGuarda(agora);
+            _ataqueEmCurso = false;
+            AcertoEm = 0;
+            LivreEm = agora + RegrasTrocaDeArma.DuracaoDaTrocaSegundos;
+            _naFila = null;
+            _temGuardado = false;
+        }
+
+        /// <summary>O servidor recusou a troca que o client antecipou: o bloqueio acaba aqui.</summary>
+        public void DesfazerTrocaDeArma(double agora) => LivreEm = agora;
+
         // Dentro de uma ação de ataque, depois do acerto (a esquiva de antes ocupa até LivreEm).
         private bool EmRecuperacao(double agora) => _ataqueEmCurso && agora >= AcertoEm;
 

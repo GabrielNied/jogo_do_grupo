@@ -10,13 +10,22 @@ namespace JogoDoGrupo.Client.Features.Montarias
     /// </summary>
     public sealed class VisualDaMontaria : MonoBehaviour
     {
-        private static readonly Color CorDoPelo = new Color(0.48f, 0.32f, 0.20f); // Castanho aconchegante
-        private static readonly Color CorSecundaria = new Color(0.35f, 0.22f, 0.14f);
-        private static readonly Color CorDaSela = new Color(0.18f, 0.12f, 0.08f); // Couro escuro
-        private static readonly Color CorDoDetalhe = new Color(0.85f, 0.68f, 0.25f); // Dourado metálico
+        // Paleta Tipo 1 - Corcel Castanho
+        private static readonly Color PeloCastanho = new Color(0.48f, 0.32f, 0.20f);
+        private static readonly Color SecundariaCastanho = new Color(0.35f, 0.22f, 0.14f);
+        private static readonly Color SelaCastanho = new Color(0.18f, 0.12f, 0.08f);
+        private static readonly Color DetalheCastanho = new Color(0.85f, 0.68f, 0.25f);
+
+        // Paleta Tipo 2 - Corcel Noturno
+        private static readonly Color PeloNoturno = new Color(0.11f, 0.12f, 0.16f);
+        private static readonly Color SecundariaNoturno = new Color(0.18f, 0.22f, 0.34f);
+        private static readonly Color SelaNoturno = new Color(0.38f, 0.42f, 0.50f);
+        private static readonly Color DetalheNoturno = new Color(0.25f, 0.85f, 1.00f);
 
         private readonly List<Material> _materiais = new List<Material>();
         private Transform _raizVisual;
+
+        public int Tipo { get; private set; }
 
         /// <summary>
         /// Instancia e conecta o visual da montaria ao avatar especificado.
@@ -35,6 +44,12 @@ namespace JogoDoGrupo.Client.Features.Montarias
 
         private void Construir(int tipo)
         {
+            Tipo = tipo;
+            var corPelo = tipo == 2 ? PeloNoturno : PeloCastanho;
+            var corSecundaria = tipo == 2 ? SecundariaNoturno : SecundariaCastanho;
+            var corSela = tipo == 2 ? SelaNoturno : SelaCastanho;
+            var corDetalhe = tipo == 2 ? DetalheNoturno : DetalheCastanho;
+
             _raizVisual = new GameObject("Modelo").transform;
             _raizVisual.SetParent(transform, false);
             _raizVisual.localPosition = new Vector3(0f, 0f, 0f);
@@ -45,7 +60,7 @@ namespace JogoDoGrupo.Client.Features.Montarias
                 "Tronco",
                 new Vector3(0f, 0.75f, 0f),
                 new Vector3(0.7f, 0.7f, 1.4f),
-                CorDoPelo
+                corPelo
             ).localRotation = Quaternion.Euler(90f, 0f, 0f);
 
             // Sela
@@ -54,14 +69,14 @@ namespace JogoDoGrupo.Client.Features.Montarias
                 "Sela",
                 new Vector3(0f, 0.88f, -0.05f),
                 new Vector3(0.65f, 0.15f, 0.65f),
-                CorDaSela
+                corSela
             );
             Parte(
                 PrimitiveType.Cylinder,
                 "Manta",
                 new Vector3(0f, 0.82f, -0.05f),
                 new Vector3(0.72f, 0.06f, 0.72f),
-                CorDoDetalhe
+                corDetalhe
             );
 
             // Pescoço e Cabeça
@@ -70,14 +85,14 @@ namespace JogoDoGrupo.Client.Features.Montarias
                 "Pescoco",
                 new Vector3(0f, 1.15f, 0.65f),
                 new Vector3(0.35f, 0.45f, 0.35f),
-                CorDoPelo
+                corPelo
             ).localRotation = Quaternion.Euler(30f, 0f, 0f);
             Parte(
                 PrimitiveType.Cube,
                 "Cabeca",
                 new Vector3(0f, 1.45f, 0.85f),
                 new Vector3(0.35f, 0.35f, 0.55f),
-                CorSecundaria
+                corSecundaria
             );
 
             // Focinho
@@ -86,7 +101,7 @@ namespace JogoDoGrupo.Client.Features.Montarias
                 "Focinho",
                 new Vector3(0f, 1.35f, 1.15f),
                 new Vector3(0.25f, 0.22f, 0.35f),
-                CorDoPelo
+                corPelo
             );
 
             // Orelhas
@@ -95,21 +110,33 @@ namespace JogoDoGrupo.Client.Features.Montarias
                 "OrelhaEsq",
                 new Vector3(-0.16f, 1.68f, 0.75f),
                 new Vector3(0.08f, 0.22f, 0.12f),
-                CorDoPelo
+                corPelo
             );
             Parte(
                 PrimitiveType.Cube,
                 "OrelhaDir",
                 new Vector3(0.16f, 1.68f, 0.75f),
                 new Vector3(0.08f, 0.22f, 0.12f),
-                CorDoPelo
+                corPelo
             );
 
+            // Elemento especial do Corcel Noturno: chifre / adereço místico na fronte
+            if (tipo == 2)
+            {
+                Parte(
+                    PrimitiveType.Cylinder,
+                    "ChifreMistico",
+                    new Vector3(0f, 1.72f, 0.95f),
+                    new Vector3(0.07f, 0.22f, 0.07f),
+                    corDetalhe
+                ).localRotation = Quaternion.Euler(45f, 0f, 0f);
+            }
+
             // 4 Patas
-            CriarPata("PataDianteiraEsq", new Vector3(-0.28f, 0.4f, 0.5f));
-            CriarPata("PataDianteiraDir", new Vector3(0.28f, 0.4f, 0.5f));
-            CriarPata("PataTraseiraEsq", new Vector3(-0.28f, 0.4f, -0.5f));
-            CriarPata("PataTraseiraDir", new Vector3(0.28f, 0.4f, -0.5f));
+            CriarPata("PataDianteiraEsq", new Vector3(-0.28f, 0.4f, 0.5f), corSecundaria, corSela);
+            CriarPata("PataDianteiraDir", new Vector3(0.28f, 0.4f, 0.5f), corSecundaria, corSela);
+            CriarPata("PataTraseiraEsq", new Vector3(-0.28f, 0.4f, -0.5f), corSecundaria, corSela);
+            CriarPata("PataTraseiraDir", new Vector3(0.28f, 0.4f, -0.5f), corSecundaria, corSela);
 
             // Cauda
             Parte(
@@ -117,25 +144,19 @@ namespace JogoDoGrupo.Client.Features.Montarias
                 "Cauda",
                 new Vector3(0f, 0.7f, -0.85f),
                 new Vector3(0.12f, 0.4f, 0.12f),
-                CorSecundaria
+                corSecundaria
             ).localRotation = Quaternion.Euler(-35f, 0f, 0f);
         }
 
-        private void CriarPata(string nome, Vector3 posicao)
+        private void CriarPata(string nome, Vector3 posicao, Color corPata, Color corCasco)
         {
-            Parte(
-                PrimitiveType.Cylinder,
-                nome,
-                posicao,
-                new Vector3(0.16f, 0.45f, 0.16f),
-                CorSecundaria
-            );
+            Parte(PrimitiveType.Cylinder, nome, posicao, new Vector3(0.16f, 0.45f, 0.16f), corPata);
             Parte(
                 PrimitiveType.Cube,
                 nome + "_Casco",
                 posicao - new Vector3(0f, 0.4f, 0f),
                 new Vector3(0.18f, 0.1f, 0.2f),
-                CorDaSela
+                corCasco
             );
         }
 

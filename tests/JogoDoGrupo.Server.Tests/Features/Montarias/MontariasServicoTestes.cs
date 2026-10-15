@@ -92,4 +92,45 @@ public class MontariasServicoTestes
         servico.Desconectar(personagemId);
         Assert.False(servico.EstaMontado(personagemId));
     }
+
+    [Fact]
+    public void EquiparMontaria_AlteraMontariaEquipada_E_ChamaComNovaMontaria()
+    {
+        var servico = new ServicoDeMontarias();
+        long personagemId = 42;
+
+        Assert.Equal(RegrasMontaria.TipoPadrao, servico.ObterMontariaEquipada(personagemId));
+
+        var equipou = servico.EquiparMontaria(personagemId, RegrasMontaria.TipoNoturno);
+        Assert.True(equipou);
+        Assert.Equal(RegrasMontaria.TipoNoturno, servico.ObterMontariaEquipada(personagemId));
+
+        servico.ChamarMontaria(personagemId);
+        Assert.True(servico.EstaMontado(personagemId));
+        Assert.Equal(RegrasMontaria.TipoNoturno, servico.TipoDaMontaria(personagemId));
+    }
+
+    [Fact]
+    public void EquiparMontaria_RecusaTipoInvalido()
+    {
+        var servico = new ServicoDeMontarias();
+        long personagemId = 42;
+
+        var equipou = servico.EquiparMontaria(personagemId, 999);
+        Assert.False(equipou);
+        Assert.Equal(RegrasMontaria.TipoPadrao, servico.ObterMontariaEquipada(personagemId));
+    }
+
+    [Fact]
+    public void EquiparMontaria_QuandoJaMontado_AtualizaTipoAtivoImediatamente()
+    {
+        var servico = new ServicoDeMontarias();
+        long personagemId = 42;
+
+        servico.ChamarMontaria(personagemId);
+        Assert.Equal(RegrasMontaria.TipoCastanho, servico.TipoDaMontaria(personagemId));
+
+        servico.EquiparMontaria(personagemId, RegrasMontaria.TipoNoturno);
+        Assert.Equal(RegrasMontaria.TipoNoturno, servico.TipoDaMontaria(personagemId));
+    }
 }

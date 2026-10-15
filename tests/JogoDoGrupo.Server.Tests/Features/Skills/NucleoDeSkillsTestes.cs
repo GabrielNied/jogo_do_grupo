@@ -234,6 +234,37 @@ public sealed class NucleoDeSkillsTestes
     }
 
     [Fact]
+    public async Task Trocar_no_meio_da_recarga_nao_altera_o_tempo_de_nenhuma_das_duas_armas()
+    {
+        await UsarAsync(0); // Espada em recarga.
+        _agoraMs += 1_000;
+        var espadaAntes = (await _nucleo.BarraAsync(Personagem, CancellationToken.None))
+            .Skills[0]
+            .RestanteMs;
+
+        _arma.Atual = Cajado;
+        await UsarAsync(1); // Cajado em recarga.
+        _agoraMs += 700; // Passa o tempo; a troca em si não gasta nem devolve recarga.
+        var cajadoAntes = (await _nucleo.BarraAsync(Personagem, CancellationToken.None))
+            .Skills[1]
+            .RestanteMs;
+
+        _arma.Atual = Espada;
+        var espadaDepois = (await _nucleo.BarraAsync(Personagem, CancellationToken.None))
+            .Skills[0]
+            .RestanteMs;
+        _arma.Atual = Cajado;
+        var cajadoDepois = (await _nucleo.BarraAsync(Personagem, CancellationToken.None))
+            .Skills[1]
+            .RestanteMs;
+
+        // Só o relógio gasta a recarga: ir e voltar de arma não zera nem adianta nada.
+        Assert.True(espadaAntes > 0);
+        Assert.Equal(espadaAntes - 700, espadaDepois);
+        Assert.Equal(cajadoAntes, cajadoDepois);
+    }
+
+    [Fact]
     public async Task Skill_magica_gasta_mana_e_a_fisica_gasta_stamina()
     {
         _arma.Atual = Cajado;
