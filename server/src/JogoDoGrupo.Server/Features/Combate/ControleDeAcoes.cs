@@ -156,13 +156,15 @@ public sealed class ControleDeAcoes
     /// Reserva o personagem para uma ação que não é ataque (ex.: a esquiva) por
     /// <paramref name="duracaoMs"/>. Falso se ele está no meio de um ataque ou de outra reserva:
     /// de dois pedidos no mesmo instante, um vale. Durante a reserva, <see cref="Pedir"/> recusa.
+    /// <paramref name="invulneravel"/> falso (a troca de arma) reserva sem a janela sem dano.
     /// </summary>
     public bool TentarOcupar(
         long personagemId,
         long agoraMs,
         long duracaoMs,
         out long ocupacaoId,
-        long tempoVistoMs = 0
+        long tempoVistoMs = 0,
+        bool invulneravel = true
     )
     {
         var inicioMs = RegrasCompensacaoDeLag.InstanteParaTeste(tempoVistoMs, agoraMs);
@@ -200,9 +202,10 @@ public sealed class ControleDeAcoes
 
             estado.OcupacaoId = ++_proximoId;
             estado.OcupadoAteMs = inicioMs + Math.Max(0, duracaoMs);
-            estado.InvulneravelAteMs =
-                inicioMs
-                + (long)Math.Round(RegrasEsquiva.JanelaDeInvulnerabilidadeSegundos * 1000.0);
+            estado.InvulneravelAteMs = invulneravel
+                ? inicioMs
+                    + (long)Math.Round(RegrasEsquiva.JanelaDeInvulnerabilidadeSegundos * 1000.0)
+                : 0;
             ocupacaoId = estado.OcupacaoId;
             return true;
         }

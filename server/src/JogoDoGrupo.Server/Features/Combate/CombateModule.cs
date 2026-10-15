@@ -17,6 +17,7 @@ public sealed class CombateModule : IFeatureModule
     private volatile ServicoDeAtaques? _ataques;
     private volatile ServicoDeEsquivas? _esquivas;
     private volatile ServicoDeGuarda? _guarda;
+    private volatile ServicoDeTrocaDeArma? _troca;
     private volatile ServicoDeDanoRecebido? _danoRecebido;
     private volatile ServicoDeQueda? _queda;
     private volatile RecursosEmMemoria? _recursos;
@@ -66,6 +67,19 @@ public sealed class CombateModule : IFeatureModule
         ));
         servicos.AddSingleton(sp =>
         {
+            var servico = new ServicoDeTrocaDeArma(
+                sp.GetRequiredService<ServidorTempoReal>(),
+                sp.GetRequiredService<IPosicoesDoMundo>(),
+                sp.GetRequiredService<ControleDeAcoes>(),
+                sp.GetService<ITrocaDeConjunto>(),
+                sp.GetRequiredService<ILogger<ServicoDeTrocaDeArma>>(),
+                queda: sp.GetRequiredService<ServicoDeQueda>()
+            );
+            _troca = servico;
+            return servico;
+        });
+        servicos.AddSingleton(sp =>
+        {
             var servico = new ServicoDeGuarda(
                 sp.GetRequiredService<ServidorTempoReal>(),
                 sp.GetRequiredService<IPosicoesDoMundo>(),
@@ -112,6 +126,7 @@ public sealed class CombateModule : IFeatureModule
             );
             _ataques = servico;
             _esquivas = sp.GetRequiredService<ServicoDeEsquivas>();
+            _troca = sp.GetRequiredService<ServicoDeTrocaDeArma>();
             _guarda = sp.GetRequiredService<ServicoDeGuarda>();
             return servico;
         });
@@ -146,6 +161,10 @@ public sealed class CombateModule : IFeatureModule
             .Ao<IntencaoDeGuarda>(
                 CombateMessageIds.IntencaoDeGuarda,
                 (sessao, intencao) => _guarda?.AoGuardar(sessao, intencao)
+            )
+            .Ao<IntencaoDeTrocaDeArma>(
+                CombateMessageIds.IntencaoDeTrocaDeArma,
+                (sessao, intencao) => _troca?.AoTrocar(sessao, intencao)
             )
             .Ao<ComecarALevantar>(
                 CombateMessageIds.ComecarALevantar,
