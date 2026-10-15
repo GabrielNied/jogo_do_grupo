@@ -19,6 +19,8 @@
     "testar-scripts": "node --test \"scripts/**/*.test.mjs\"",
     "contexto": "node scripts/agentes/orcamento-contexto.mjs",
     "conferir-unity": "node scripts/git/conferir-arquivos-unity.mjs",
+    "arte:referencias": "node scripts/arte/conferir-referencias.mjs",
+    "arte:baixar-referencias": "node scripts/arte/baixar-referencias.mjs",
     "entregar": "node scripts/git/entregar.mjs",
     "tarefa": "node scripts/git/tarefas.mjs",
     "reempilhar": "node scripts/git/reempilhar.mjs",

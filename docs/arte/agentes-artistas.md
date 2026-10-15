@@ -1,6 +1,6 @@
 # Agentes artistas
 
-O que vale para `artista-mundo`, `artista-personagens` e `artista-itens` ([ADR 0014](../decisoes/0014-conteudo-3d-e-agentes-artistas.md)). Cada agente tem só o próprio papel em [.claude/agents/](../../.claude/agents/). Estilo: **low-poly estilizado**, medieval; modelos próprios em [padrao-de-modelos.md](padrao-de-modelos.md).
+O que vale para `artista-mundo`, `artista-personagens` e `artista-itens` ([ADR 0014](../decisoes/0014-conteudo-3d-e-agentes-artistas.md)). Cada agente tem só o próprio papel em [.claude/agents/](../../.claude/agents/). Estilo: **low-poly estilizado**, medieval; modelos próprios em [padrao-de-modelos.md](padrao-de-modelos.md). Antes de modelar ou buscar asset, siga as [referências visuais](referencias-visuais/instrucoes-agentes.md) (bíblia + imagens locais, sem buscar na web).
 
 ## Buscar assets
 
