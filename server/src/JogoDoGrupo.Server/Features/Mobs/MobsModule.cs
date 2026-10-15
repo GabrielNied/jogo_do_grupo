@@ -102,7 +102,8 @@ public sealed class MobsModule : IFeatureModule
                 sp.GetRequiredService<ILogger<ServicoDeInimigos>>(),
                 sp.GetRequiredService<IEstadoDeQueda>(),
                 sp.GetRequiredService<ChefesDaDungeon>(),
-                sp.GetRequiredService<InimigosPorInstancia>()
+                sp.GetRequiredService<InimigosPorInstancia>(),
+                vizinhanca: sp.GetService<IVizinhanca>()
             );
             _inimigos = servico;
             return servico;
@@ -114,6 +115,7 @@ public sealed class MobsModule : IFeatureModule
     public void Inicializar(ServerContext contexto)
     {
         contexto.Eventos.Assinar<JogadorEntrouNaArea>(evento => _inimigos?.AoEntrarNaArea(evento));
+        contexto.Eventos.Assinar<JogadorSaiuDaArea>(evento => _inimigos?.AoSairDaArea(evento));
         contexto.AoPasso(
             TimeSpan.FromSeconds(RegrasInimigo.PassoSegundos),
             _ => _inimigos?.Avancar()

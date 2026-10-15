@@ -47,7 +47,8 @@ public sealed class CombateModule : IFeatureModule
                 sp.GetRequiredService<EventosDoServidor>(),
                 sp.GetRequiredService<IServiceScopeFactory>(),
                 sp.GetRequiredService<ILogger<ServicoDeQueda>>(),
-                sp.GetRequiredService<ConfigQueda>()
+                sp.GetRequiredService<ConfigQueda>(),
+                vizinhanca: sp.GetService<IVizinhanca>()
             );
             _queda = servico;
             return servico;
@@ -60,7 +61,8 @@ public sealed class CombateModule : IFeatureModule
             sp.GetRequiredService<ControleDeAcoes>(),
             sp.GetRequiredService<IServiceScopeFactory>(),
             sp.GetRequiredService<ILogger<ServicoDeEsquivas>>(),
-            queda: sp.GetRequiredService<ServicoDeQueda>()
+            queda: sp.GetRequiredService<ServicoDeQueda>(),
+            vizinhanca: sp.GetService<IVizinhanca>()
         ));
         servicos.AddSingleton(sp =>
         {
@@ -71,7 +73,8 @@ public sealed class CombateModule : IFeatureModule
                 sp.GetRequiredService<ServicoDeQueda>(),
                 sp.GetService<ILimiteDeVelocidadeDoMundo>(),
                 escopos: sp.GetRequiredService<IServiceScopeFactory>(),
-                log: sp.GetRequiredService<ILogger<ServicoDeGuarda>>()
+                log: sp.GetRequiredService<ILogger<ServicoDeGuarda>>(),
+                vizinhanca: sp.GetService<IVizinhanca>()
             );
             _guarda = servico;
             return servico;
@@ -86,7 +89,8 @@ public sealed class CombateModule : IFeatureModule
                 sp.GetRequiredService<ControleDeAcoes>(),
                 guarda: sp.GetRequiredService<ServicoDeGuarda>(),
                 posicoes: sp.GetRequiredService<IPosicoesDoMundo>(),
-                efeitos: sp.GetRequiredService<GerenciadorDeEfeitosDeStatus>()
+                efeitos: sp.GetRequiredService<GerenciadorDeEfeitosDeStatus>(),
+                vizinhanca: sp.GetService<IVizinhanca>()
             );
             _danoRecebido = servico;
             return servico;
@@ -103,7 +107,8 @@ public sealed class CombateModule : IFeatureModule
                 queda: sp.GetRequiredService<ServicoDeQueda>(),
                 aliados: sp.GetRequiredService<IAliadosDeCombate>(),
                 limiteDeVelocidade: sp.GetService<ILimiteDeVelocidadeDoMundo>(),
-                efeitos: sp.GetRequiredService<GerenciadorDeEfeitosDeStatus>()
+                efeitos: sp.GetRequiredService<GerenciadorDeEfeitosDeStatus>(),
+                vizinhanca: sp.GetService<IVizinhanca>()
             );
             _ataques = servico;
             _esquivas = sp.GetRequiredService<ServicoDeEsquivas>();
@@ -119,7 +124,8 @@ public sealed class CombateModule : IFeatureModule
             sp.GetRequiredService<IServiceScopeFactory>(),
             sp.GetRequiredService<ILogger<ServicoDeEfeitosDeStatus>>(),
             posicoes: sp.GetService<IPosicoesDoMundo>(),
-            queda: sp.GetService<ServicoDeQueda>()
+            queda: sp.GetService<ServicoDeQueda>(),
+            vizinhanca: sp.GetService<IVizinhanca>()
         ));
         servicos.AddHostedService(sp => sp.GetRequiredService<ServicoDeEfeitosDeStatus>());
     }

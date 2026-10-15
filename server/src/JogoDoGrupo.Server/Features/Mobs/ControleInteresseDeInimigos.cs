@@ -6,7 +6,7 @@ namespace JogoDoGrupo.Server.Features.Mobs;
 /// Quais inimigos cada jogador já recebeu no raio de interesse (histerese em
 /// <see cref="RegrasInteresseDeInimigos"/>).
 /// </summary>
-internal sealed class ControleInteresseDeInimigos
+public sealed class ControleInteresseDeInimigos
 {
     private readonly Dictionary<long, HashSet<long>> _recebendo = new();
 
@@ -21,13 +21,26 @@ internal sealed class ControleInteresseDeInimigos
     public bool JaRecebia(long personagemId, long inimigoId) =>
         _recebendo.TryGetValue(personagemId, out var set) && set.Contains(inimigoId);
 
+    /// <summary>Quem já recebia mensagens desse inimigo.</summary>
+    public IEnumerable<long> QuemJaRecebia(long inimigoId)
+    {
+        foreach (var (personagemId, set) in _recebendo)
+        {
+            if (set.Contains(inimigoId))
+            {
+                yield return personagemId;
+            }
+        }
+    }
+
     /// <summary>Para de mandar mensagens do inimigo (morte ou saída do raio).</summary>
     public void EsquecerInimigo(long personagemId, long inimigoId) =>
         ObterSet(personagemId).Remove(inimigoId);
 
-    /// <summary>Filtra o retrato ao entrar na área.</summary>
+    /// <summary>Filtra o retrato ao entrar na área (dungeons replicam tudo; cidade usa interesse).</summary>
     public InimigoNoMundo[] FiltrarEntrada(
         long personagemId,
+        string area,
         double jogadorX,
         double jogadorZ,
         IEnumerable<InimigoNoMundo> vivos
@@ -35,6 +48,7 @@ internal sealed class ControleInteresseDeInimigos
     {
         var ids = new HashSet<long>();
         var lista = new List<InimigoNoMundo>();
+        var replicaTudo = area != JogoDoGrupo.Server.Contratos.Mundo.AreasDoMundo.Cidade;
         foreach (var inimigo in vivos)
         {
             var dist = RegrasInteresseDeInimigos.DistanciaAoJogador(
@@ -43,7 +57,7 @@ internal sealed class ControleInteresseDeInimigos
                 inimigo.X,
                 inimigo.Z
             );
-            if (RegrasInteresseDeInimigos.DeveEnviar(dist, jaRecebia: false))
+            if (replicaTudo || RegrasInteresseDeInimigos.DeveEnviar(dist, jaRecebia: false))
             {
                 ids.Add(inimigo.InimigoId);
                 lista.Add(inimigo);
@@ -53,6 +67,21 @@ internal sealed class ControleInteresseDeInimigos
         _recebendo[personagemId] = ids;
         return lista.ToArray();
     }
+
+    /// <summary>Filtra o retrato ao entrar na cidade.</summary>
+    public InimigoNoMundo[] FiltrarEntrada(
+        long personagemId,
+        double jogadorX,
+        double jogadorZ,
+        IEnumerable<InimigoNoMundo> vivos
+    ) =>
+        FiltrarEntrada(
+            personagemId,
+            JogoDoGrupo.Server.Contratos.Mundo.AreasDoMundo.Cidade,
+            jogadorX,
+            jogadorZ,
+            vivos
+        );
 
     /// <summary>
     /// Decide envio de uma mensagem ligada a um inimigo. Se saiu do raio, devolve
@@ -105,14 +134,14 @@ internal sealed class ControleInteresseDeInimigos
         return set;
     }
 
-    internal enum AcaoInteresse
+    public enum AcaoInteresse
     {
         Ignorar,
         Enviar,
         EnviarSaida,
     }
 
-    internal readonly record struct ResultadoAvaliacaoDeInteresse(
+    public readonly record struct ResultadoAvaliacaoDeInteresse(
         AcaoInteresse Acao,
         bool EntrouNoRaio
     );

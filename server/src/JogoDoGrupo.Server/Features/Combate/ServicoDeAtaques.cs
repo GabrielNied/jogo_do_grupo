@@ -30,6 +30,7 @@ public sealed class ServicoDeAtaques : IHostedService, IDisposable
     private readonly IAliadosDeCombate _aliados;
     private readonly ILimiteDeVelocidadeDoMundo? _limiteDeVelocidade;
     private readonly GerenciadorDeEfeitosDeStatus? _efeitos;
+    private readonly IVizinhanca? _vizinhanca;
     private readonly Dictionary<long, SessaoTempoReal> _sessoes = [];
     private readonly Lock _travaSessoes = new();
 
@@ -49,9 +50,11 @@ public sealed class ServicoDeAtaques : IHostedService, IDisposable
         ServicoDeQueda? queda = null,
         IAliadosDeCombate? aliados = null,
         ILimiteDeVelocidadeDoMundo? limiteDeVelocidade = null,
-        GerenciadorDeEfeitosDeStatus? efeitos = null
+        GerenciadorDeEfeitosDeStatus? efeitos = null,
+        IVizinhanca? vizinhanca = null
     )
     {
+        _vizinhanca = vizinhanca;
         _efeitos = efeitos;
         _aliados = aliados ?? new NinguemEAliado();
         _limiteDeVelocidade = limiteDeVelocidade;
@@ -405,10 +408,14 @@ public sealed class ServicoDeAtaques : IHostedService, IDisposable
         }
     }
 
-    // Quem está na área (e o próprio atacante, mesmo se acabou de sair dela).
+    // Quem enxerga o atacante (e o próprio atacante, mesmo se acabou de sair dela).
     private void EnviarParaArea<T>(string area, long atacanteId, ushort id, T mensagem)
     {
-        var presentes = new HashSet<long>(_posicoes.PersonagensNaArea(area)) { atacanteId };
+        var quemVe =
+            (area == AreasDoMundo.Cidade && _vizinhanca != null)
+                ? _vizinhanca.QuemVe(atacanteId)
+                : _posicoes.PersonagensNaArea(area);
+        var presentes = new HashSet<long>(quemVe) { atacanteId };
         foreach (var sessao in _tempoReal.Sessoes)
         {
             if (presentes.Contains(sessao.PersonagemId))
