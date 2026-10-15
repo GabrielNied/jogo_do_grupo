@@ -33,6 +33,11 @@ import { baseDaConferencia, comentarioConferida, docsDaIssue } from "./relevanci
 import { sugerirNomeBranch } from "./nome-branch.mjs";
 import { ligarNodeModules } from "./worktree-npm.mjs";
 import {
+  checkoutPrincipal,
+  recusarPuxarNoCheckoutCompartilhado,
+  worktreeSeparado,
+} from "./worktree-puxar.mjs";
+import {
   LABEL_PENDENCIA,
   branchDaPendencia,
   corpoDoPrComPendencia,
@@ -351,6 +356,7 @@ function soltarTravasAbandonadasAgora() {
 
 async function listarTarefas() {
   console.log("🔍 Consultando tarefas abertas no GitHub...");
+  executarGit(["fetch", "origin", "main"], { silencioso: true });
   const liberadas = soltarTravasAbandonadas();
   if (liberadas.length > 0) {
     console.log(`🔓 Trava abandonada liberada: ${liberadas.map((numero) => `#${numero}`).join(", ")}`);
@@ -443,7 +449,7 @@ async function listarTarefas() {
 
   console.log("\n-------------------------------------------------------");
   console.log("Para assumir uma tarefa:");
-  console.log("  npm run tarefa -- puxar <numero> [<numero>...] [nome-da-branch] [--agente <nome>]");
+  console.log("  npm run tarefa -- puxar <numero> [<numero>...] [branch] [--worktree <pasta>] [--agente <nome>]");
   console.log("-------------------------------------------------------\n");
 }
 
@@ -560,9 +566,25 @@ async function puxarTarefa(args) {
     process.exit(1);
   }
 
-  // Limite de lotes em andamento, conferido uma vez para o lote inteiro.
   soltarTravasAbandonadas();
   const doLote = new Set(numeros);
+  const outroLoteEmAndamento = listarIssuesAbertas().some(
+    (aberta) => !doLote.has(aberta.number) && nomesDasLabels(aberta).includes("em-andamento"),
+  );
+  const raizAtual = executarGit(["rev-parse", "--show-toplevel"], { silencioso: true });
+  const recusaWorktree = recusarPuxarNoCheckoutCompartilhado({
+    checkoutPrincipal: checkoutPrincipal(executarGit(["rev-parse", "--git-dir"], { silencioso: true })),
+    worktreeSeparado: worktreeSeparado(worktreePath, raizAtual),
+    outroLoteEmAndamento,
+    nomeAgente,
+  });
+  if (recusaWorktree) {
+    console.error(`\n⛔ ${recusaWorktree}`);
+    console.error("  Ver docs/agentes.md#worktree-ao-puxar\n");
+    process.exit(1);
+  }
+
+  // Limite de lotes em andamento, conferido uma vez para o lote inteiro.
   const emAndamento = listarIssuesAbertas()
     .filter((aberta) => !doLote.has(aberta.number) && nomesDasLabels(aberta).includes("em-andamento"))
     .map((aberta) => ({
@@ -610,7 +632,6 @@ async function puxarTarefa(args) {
   // Configura Git (Worktree ou Branch local). Branch que já existe aqui (lote acrescentado depois) fica como está.
   // Agente que já nasceu num worktree e passa o próprio caminho: cria a branch ali mesmo
   // (o git worktree add falharia depois de a issue já estar marcada).
-  const raizAtual = executarGit(["rev-parse", "--show-toplevel"], { silencioso: true });
   if (worktreePath && resolve(worktreePath).toLowerCase() === resolve(raizAtual).toLowerCase()) worktreePath = null;
   console.log(`🌿 Configurando branch "${nomeBranch}"...`);
   if (branchAqui === nomeBranch) {

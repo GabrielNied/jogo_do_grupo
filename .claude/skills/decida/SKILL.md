@@ -11,6 +11,7 @@ Argumentos (opcionais): **N** issues a conferir (padrão 15) e um **filtro** de 
 
 ## 1. Ler
 
+- [Doc e regras atuais](../../../docs/agentes.md#doc-e-regras-atuais): `git fetch origin main` antes de conferir issues ou editar doc. Vereditos e fichas seguem a `origin/main` (`git show`); trechos de `docs/features/` que você citar ou reescrever vêm dali.
 - `npm run tarefa -- revisar <N>`: as livres há mais tempo sem conferência, com idade, prioridade e sinais (`sem ficha`, `rótulos v1`, `⏳ depende de`, `doc mudou Nx`, `decisao`, `bloqueada`).
 - `gh pr list` (PR aberto que já cumpre uma issue), o [foco atual](../../../docs/features/fatia-jogavel.md#foco-atual) e a [visão](../../../docs/visao-geral.md).
 - Por issue: o corpo, e o `git diff` que o `relevancia <N>` mostra quando a doc mudou. Abra a doc da funcionalidade ou o código só para decidir o veredito.

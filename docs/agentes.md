@@ -15,6 +15,26 @@ Vários agentes de IA implementam ao mesmo tempo, cada um num worktree e num **l
 
 Sonnet é o padrão; Opus em Core e nos PRs de risco. Comandos: `/trabalhe` implementa, `/decida` confere e organiza o quadro, `/melhore` abre melhorias. Nenhum dos dois últimos implementa.
 
+## Doc e regras atuais
+
+Primeiro passo do `/trabalhe`, `/decida` e `/melhore`: **`git fetch origin main`**. Regras (`AGENTS.md`), `docs/features/` e ADRs valem o que está na **`origin/main`**, não o working tree da branch atual se ela estiver velha.
+
+- **Ler doc:** `git show origin/main:docs/features/<x>.md` (ou outro caminho em `docs/`, e `git show origin/main:AGENTS.md` na raiz).
+- **Buscar no código** (ex.: lente código ou desempenho do `/melhore`): `git grep … origin/main -- <pastas>`, depois do fetch.
+- **`npm run tarefa -- puxar`** faz fetch de novo e cria a branch a partir de `origin/main`; isso **não substitui** o fetch no início da leva ou da varredura, quando você ainda lê doc, escreve ficha ou decide veredito.
+
+Checkout principal limpo: `git switch main && git pull --rebase origin main` também serve. Em worktree ou com mudança local, prefira `fetch` + `git show` / `git grep`.
+
+## Worktree ao puxar
+
+Paralelismo é **uma pasta Git por lote**. Várias IAs no **mesmo checkout** (só `git switch` de branch) pisam nos arquivos uma da outra; a trava `em-andamento` evita duas pessoas na **mesma issue**, não dois lotes no **mesmo diretório**.
+
+Quem vai **codar** usa `npm run tarefa -- puxar … --worktree <pasta>` para o script criar a branch num worktree novo (liga `node_modules` do checkout principal). Exemplos de pasta: `.claude/worktrees/meu-lote`, `../jdg-itens` ([ferramentas-ia.md](ferramentas-ia.md)).
+
+- **Agente** já num worktree linkado (Claude `isolation: worktree`, Codex/Cursor numa pasta separada): `puxar … --worktree .` — a pasta atual já é isolada.
+- **Checkout principal** (`.git` na raiz do repo, sem `worktrees` no caminho): com **outro lote em andamento** ou com **`--agente`**, o `puxar` **recusa** sem `--worktree <pasta>` fora deste checkout. Sozinho num lote só, ainda pode puxar na branch local (pessoa ou teste rápido).
+- **Coordenador** que implementa lote pequeno no `/trabalhe`: worktree próprio, não o checkout compartilhado ([Fechamento](#fechamento-o-coordenador-integra-e-limpa-o-que-criou)).
+
 ## Prioridade das tarefas
 
 Cada issue tem um rótulo `prio:*` (decisão do grupo de 2026-10-11). Quebrado na `main` (CI) vem antes de tudo.
@@ -102,7 +122,7 @@ $env:PRINT_PAINEL="itens.inventario"; npm run unity:executar -- JogoDoGrupo.Clie
 ## Fechamento: o coordenador integra e limpa o que criou
 
 - O worktree do agente parte do commit do checkout principal: o que o coordenador não commitou não chega. Commite antes e ponha no prompt `git merge <branch>` como passo 0.
-- O coordenador trabalha num worktree próprio (`puxar --worktree`), porque o checkout principal é compartilhado.
+- O coordenador que codifica trabalha num worktree próprio ([Worktree ao puxar](#worktree-ao-puxar)), não no checkout compartilhado.
 - Agente que não abre PR commita local e informa branch e hash; integre com `git cherry-pick <hash>` (nunca `git merge` da branch dele) e confira `git show --stat`.
 - Worktrees e branches saem sozinhos depois do merge ([ADR 0031](decisoes/0031-limpeza-automatica.md)); o motivo do que ficou está em `.git/limpar-agentes.log`.
 
