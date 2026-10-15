@@ -44,7 +44,7 @@ public class GerenciadorDeEfeitosDeStatusTestes
         // Controle de ações recusa enquanto atordoado
         var pedido = new PedidoDeAtaque(TipoDeAtaque.Leve, 0f, 1);
         var resPedido = controle.Pedir(1, pedido, tempoMs, out _);
-        Assert.Equal(ResultadoDoPedido.Recusado, resPedido);
+        Assert.Equal(ResultadoDoPedido.Atordoado, resPedido);
 
         var resEsquiva = controle.TentarOcupar(1, tempoMs, 500, out _);
         Assert.False(resEsquiva);
@@ -169,5 +169,38 @@ public class GerenciadorDeEfeitosDeStatusTestes
 
         gerenciador.Limpar(1);
         Assert.False(gerenciador.EstaImuneAAtordoado(1));
+    }
+
+    [Fact]
+    public void Eventos_disparam_ao_aplicar_remover_e_mudar_quebra_boss()
+    {
+        long tempoMs = 0;
+        var gerenciador = new GerenciadorDeEfeitosDeStatus(() => tempoMs);
+
+        EfeitosDeStatusMudaram? ultimoStatus = null;
+        BarraDeQuebraMudou? ultimaQuebra = null;
+
+        gerenciador.EfeitosMudaram += (_, msg) => ultimoStatus = msg;
+        gerenciador.BarraDeQuebraMudou += (_, msg) => ultimaQuebra = msg;
+
+        // Aplica lentidão em jogador 1
+        gerenciador.Aplicar(1, TipoEfeitoDeStatus.Lentidao, duracaoSegundos: 5.0);
+        Assert.NotNull(ultimoStatus);
+        Assert.Equal(1L, ultimoStatus!.EntidadeId);
+        Assert.Single(ultimoStatus.Efeitos);
+        Assert.Equal(TipoEfeitoDeStatus.Lentidao, ultimoStatus.Efeitos[0].Tipo);
+
+        // Aplica atordoado em boss 100
+        gerenciador.Aplicar(100, TipoEfeitoDeStatus.Atordoado, ehBoss: true);
+        Assert.NotNull(ultimaQuebra);
+        Assert.Equal(100L, ultimaQuebra!.EntidadeId);
+        Assert.Equal(25, ultimaQuebra.ValorAtual);
+        Assert.False(ultimaQuebra.Quebrado);
+
+        // Remove lentidão do jogador 1
+        ultimoStatus = null;
+        gerenciador.Remover(1, TipoEfeitoDeStatus.Lentidao);
+        Assert.NotNull(ultimoStatus);
+        Assert.Empty(ultimoStatus!.Efeitos);
     }
 }

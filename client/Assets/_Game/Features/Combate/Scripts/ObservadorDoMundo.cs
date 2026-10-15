@@ -78,6 +78,15 @@ namespace JogoDoGrupo.Client.Features.Combate
 
             var regiaoRecursos = Hud.Regiao(RegiaoDoHud.InferiorEsquerda) ?? container;
             var painel = new PainelRecursos(regiaoRecursos);
+            var painelStatus = new PainelEfeitosDeStatus(regiaoRecursos);
+            var controleStatus = raiz.AddComponent<ControleEfeitosDeStatus>();
+            controleStatus.Configurar(personagemId, painelStatus);
+
+            var regiaoTopo = Hud.Regiao(RegiaoDoHud.TopoCentro) ?? container;
+            var painelQuebra = new PainelBarraDeQuebra(regiaoTopo);
+            var controleQuebra = raiz.AddComponent<ControleBarraDeQuebra>();
+            controleQuebra.Configurar(0, painelQuebra);
+
             var prontidao = new ProntidaoLocal();
             var controle = raiz.AddComponent<ControleRecursos>();
             controle.Configurar(personagemId, painel, prontidao);

@@ -33,7 +33,11 @@ namespace JogoDoGrupo.Client.Features.Combate
             get
             {
                 var sufixo = Acumulos > 1 ? " x" + Acumulos : "";
-                var tempo = DuracaoRestante.ToString("0.0") + "s";
+                var tempo =
+                    DuracaoRestante.ToString(
+                        "0.0",
+                        System.Globalization.CultureInfo.InvariantCulture
+                    ) + "s";
                 return Nome + sufixo + " (" + tempo + ")";
             }
         }

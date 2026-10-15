@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using JogoDoGrupo.Client.Core.TempoReal;
 using JogoDoGrupo.Shared.Features.Combate;
 using UnityEngine;
 
@@ -12,6 +13,8 @@ namespace JogoDoGrupo.Client.Features.Combate
     internal sealed class ControleEfeitosDeStatus : MonoBehaviour
     {
         private readonly List<ItemDeStatus> _efeitos = new List<ItemDeStatus>();
+        private readonly List<IDisposable> _assinaturas = new List<IDisposable>();
+        private PainelEfeitosDeStatus _painel;
         private float _imunidadeAtordoadoRestante;
         private long _entidadeId;
 
@@ -19,9 +22,27 @@ namespace JogoDoGrupo.Client.Features.Combate
         public float ImunidadeAtordoadoRestante => _imunidadeAtordoadoRestante;
         public IReadOnlyList<ItemDeStatus> Efeitos => _efeitos;
 
-        public void Configurar(long entidadeId)
+        public void Configurar(long entidadeId, PainelEfeitosDeStatus painel = null)
         {
             _entidadeId = entidadeId;
+            _painel = painel;
+
+            _assinaturas.Add(
+                ConexaoTempoReal.Assinar<EfeitosDeStatusMudaram>(
+                    CombateMessageIds.EfeitosDeStatusMudaram,
+                    AoMudarEfeitos
+                )
+            );
+
+            _painel?.Atualizar(_efeitos, _imunidadeAtordoadoRestante);
+        }
+
+        private void AoMudarEfeitos(EfeitosDeStatusMudaram msg)
+        {
+            if (msg != null && msg.EntidadeId == _entidadeId)
+            {
+                AplicarDoServidor(msg);
+            }
         }
 
         /// <summary>
@@ -43,6 +64,7 @@ namespace JogoDoGrupo.Client.Features.Combate
                 }
             }
             _imunidadeAtordoadoRestante = Math.Max(0f, msg.ImunidadeAtordoadoRestanteSegundos);
+            _painel?.Atualizar(_efeitos, _imunidadeAtordoadoRestante);
         }
 
         /// <summary>Se o efeito de status está ativo.</summary>
@@ -60,6 +82,12 @@ namespace JogoDoGrupo.Client.Features.Combate
 
         private void Update()
         {
+            var tinhaAlgo = _efeitos.Count > 0 || _imunidadeAtordoadoRestante > 0f;
+            if (!tinhaAlgo)
+            {
+                return;
+            }
+
             var dt = Time.deltaTime;
             if (_imunidadeAtordoadoRestante > 0f)
             {
@@ -79,6 +107,18 @@ namespace JogoDoGrupo.Client.Features.Combate
                     _efeitos[i] = new ItemDeStatus(e.Tipo, e.Acumulos, restante, e.DuracaoTotal);
                 }
             }
+
+            _painel?.Atualizar(_efeitos, _imunidadeAtordoadoRestante);
+        }
+
+        private void OnDestroy()
+        {
+            for (int i = 0; i < _assinaturas.Count; i++)
+            {
+                _assinaturas[i]?.Dispose();
+            }
+            _assinaturas.Clear();
+            _painel?.Descartar();
         }
     }
 }

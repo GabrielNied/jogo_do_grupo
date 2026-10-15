@@ -113,6 +113,15 @@ public sealed class CombateModule : IFeatureModule
         servicos.AddHostedService(sp => sp.GetRequiredService<ServicoDeAtaques>());
         servicos.AddHostedService(sp => sp.GetRequiredService<ServicoDeDanoRecebido>());
         servicos.AddHostedService(sp => sp.GetRequiredService<ServicoDeQueda>());
+        servicos.AddSingleton(sp => new ServicoDeEfeitosDeStatus(
+            sp.GetRequiredService<GerenciadorDeEfeitosDeStatus>(),
+            sp.GetRequiredService<ServidorTempoReal>(),
+            sp.GetRequiredService<IServiceScopeFactory>(),
+            sp.GetRequiredService<ILogger<ServicoDeEfeitosDeStatus>>(),
+            posicoes: sp.GetService<IPosicoesDoMundo>(),
+            queda: sp.GetService<ServicoDeQueda>()
+        ));
+        servicos.AddHostedService(sp => sp.GetRequiredService<ServicoDeEfeitosDeStatus>());
     }
 
     public void MapearRotas(IEndpointRouteBuilder rotas) => CombateRotas.Mapear(rotas);
