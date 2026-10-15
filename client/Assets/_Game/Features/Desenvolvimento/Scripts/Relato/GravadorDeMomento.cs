@@ -31,6 +31,7 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
         private readonly StringBuilder _entrada = new StringBuilder();
 
         private RenderTexture[] _anel;
+        private RenderTexture[] _zoom;
         private AmostraDeQuadro[] _amostras;
         private int _proximo;
         private int _guardados;
@@ -76,6 +77,7 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
                 ConfigRelato.SegundosGuardados * ConfigRelato.QuadrosPorSegundo
             );
             _anel = new RenderTexture[capacidade];
+            _zoom = new RenderTexture[capacidade];
             _amostras = new AmostraDeQuadro[capacidade];
             _nomes = NomesDasMensagens();
             _f9 = new InputAction("Relato", InputActionType.Button, "<Keyboard>/f9");
@@ -107,6 +109,11 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
             _f10?.Dispose();
             _painel?.Destruir();
             foreach (var textura in _anel)
+            {
+                Liberar(textura);
+            }
+
+            foreach (var textura in _zoom)
             {
                 Liberar(textura);
             }
@@ -208,12 +215,14 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
         {
             var quadros = new List<AmostraDeQuadro>(_guardados);
             var texturas = new List<RenderTexture>(_guardados);
+            var zooms = new List<RenderTexture>(_guardados);
             var inicio = (_proximo - _guardados + _anel.Length) % _anel.Length;
             for (var i = 0; i < _guardados; i++)
             {
                 var indice = (inicio + i) % _anel.Length;
                 quadros.Add(_amostras[indice]);
                 texturas.Add(_anel[indice]);
+                zooms.Add(_zoom[indice]);
             }
 
             var eventos = new List<EventoDeRede>();
@@ -226,7 +235,7 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
                 }
             }
 
-            return new Momento(quadros, texturas, eventos);
+            return new Momento(quadros, texturas, zooms, eventos);
         }
 
         private void AoReceber(MensagemTempoReal mensagem)
@@ -281,27 +290,57 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
                 );
             }
 
-            if (_anel[indice] == null)
-            {
-                _anel[indice] = new RenderTexture(
-                    ConfigRelato.LarguraDoQuadro,
-                    ConfigRelato.AlturaDoQuadro,
-                    0,
-                    RenderTextureFormat.ARGB32
-                );
-            }
-
+            _anel[indice] = _anel[indice] ?? NovoQuadro();
+            _zoom[indice] = _zoom[indice] ?? NovoQuadro();
             ScreenCapture.CaptureScreenshotIntoRenderTexture(_telaCheia);
-            // Em APIs com a origem da textura no topo (Direct3D, Metal, Vulkan) a captura vem de
-            // ponta-cabeça: desvira ao reduzir.
+            Reduzir(_anel[indice], 1f, 0.5f, 0.5f);
+            Reduzir(
+                _zoom[indice],
+                ConfigRelato.FracaoDoZoom,
+                ConfigRelato.CentroXDoZoom,
+                ConfigRelato.CentroYDoZoomDoTopo
+            );
+        }
+
+        // Copia para o quadro guardado a região da tela de largura e altura "fracao", centrada em
+        // (centroX, centroYDoTopo), em fração da tela. Em APIs com a origem da textura no topo
+        // (Direct3D, Metal, Vulkan) a captura vem de ponta-cabeça: desvira ao reduzir.
+        private void Reduzir(
+            RenderTexture destino,
+            float fracao,
+            float centroX,
+            float centroYDoTopo
+        )
+        {
+            var deslocamentoX = centroX - fracao / 2f;
             if (SystemInfo.graphicsUVStartsAtTop)
             {
-                Graphics.Blit(_telaCheia, _anel[indice], new Vector2(1f, -1f), new Vector2(0f, 1f));
+                Graphics.Blit(
+                    _telaCheia,
+                    destino,
+                    new Vector2(fracao, -fracao),
+                    new Vector2(deslocamentoX, centroYDoTopo + fracao / 2f)
+                );
             }
             else
             {
-                Graphics.Blit(_telaCheia, _anel[indice]);
+                Graphics.Blit(
+                    _telaCheia,
+                    destino,
+                    new Vector2(fracao, fracao),
+                    new Vector2(deslocamentoX, 1f - centroYDoTopo - fracao / 2f)
+                );
             }
+        }
+
+        private static RenderTexture NovoQuadro()
+        {
+            return new RenderTexture(
+                ConfigRelato.LarguraDoQuadro,
+                ConfigRelato.AlturaDoQuadro,
+                0,
+                RenderTextureFormat.ARGB32
+            );
         }
 
         private float MedirSolavanco(Camera camera)
@@ -364,7 +403,7 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
             var estado = new EstadoDoAnimator
             {
                 Existe = true,
-                Objeto = animator.gameObject.name,
+                Objeto = animator.transform.root.name,
                 Velocidade = animator.speed,
                 Normalizado = animator.GetCurrentAnimatorStateInfo(0).normalizedTime,
                 Clipe = "(sem clipe)",
@@ -374,23 +413,40 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
                         : 0f,
             };
 
-            var clipes = animator.GetCurrentAnimatorClipInfo(0);
+            estado.Clipe = ClipeDaCamada(animator, 0) ?? "(sem clipe)";
+            // Camadas de cima com peso (ex.: o golpe no tronco) entram depois de "+".
+            for (var camada = 1; camada < animator.layerCount; camada++)
+            {
+                if (animator.GetLayerWeight(camada) <= 0.01f)
+                {
+                    continue;
+                }
+
+                var clipe = ClipeDaCamada(animator, camada);
+                if (clipe != null)
+                {
+                    estado.Clipe += " + " + clipe;
+                }
+            }
+
+            return estado;
+        }
+
+        // Clipe de maior peso na camada, com "*" se ela está em transição; null sem clipe.
+        private static string ClipeDaCamada(Animator animator, int camada)
+        {
+            string nome = null;
             var peso = -1f;
-            foreach (var clipe in clipes)
+            foreach (var clipe in animator.GetCurrentAnimatorClipInfo(camada))
             {
                 if (clipe.clip != null && clipe.weight > peso)
                 {
                     peso = clipe.weight;
-                    estado.Clipe = clipe.clip.name;
+                    nome = clipe.clip.name;
                 }
             }
 
-            if (animator.IsInTransition(0))
-            {
-                estado.Clipe += "*";
-            }
-
-            return estado;
+            return nome != null && animator.IsInTransition(camada) ? nome + "*" : nome;
         }
 
         private void AnotarEntrada()
@@ -476,16 +532,21 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
         public Momento(
             IReadOnlyList<AmostraDeQuadro> quadros,
             IReadOnlyList<RenderTexture> texturas,
+            IReadOnlyList<RenderTexture> zooms,
             IReadOnlyList<EventoDeRede> eventos
         )
         {
             Quadros = quadros;
             Texturas = texturas;
+            Zooms = zooms;
             Eventos = eventos;
         }
 
         public IReadOnlyList<AmostraDeQuadro> Quadros { get; }
         public IReadOnlyList<RenderTexture> Texturas { get; }
+
+        /// <summary>O centro da tela ampliado (jogador e alvo), na mesma ordem.</summary>
+        public IReadOnlyList<RenderTexture> Zooms { get; }
         public IReadOnlyList<EventoDeRede> Eventos { get; }
     }
 }

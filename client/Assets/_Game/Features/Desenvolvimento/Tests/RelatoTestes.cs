@@ -79,7 +79,7 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Tests
             StringAssert.Contains("timeScale 1 → 0.05", linhas[3]);
             StringAssert.Contains("jogador  speed 1 → 0", linhas[4]);
             StringAssert.Contains("jogador  clipe Parado → Golpe", linhas[5]);
-            StringAssert.Contains("câmera   tremor começou (2 cm)", linhas[6]);
+            StringAssert.Contains("câmera   tremor começou (solavanco 2 cm)", linhas[6]);
             StringAssert.Contains("    50 ms  q005  câmera   tremor parou (pico 2 cm)", linhas[7]);
             Assert.AreEqual(8, linhas.Length);
         }

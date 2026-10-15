@@ -19,6 +19,8 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
     /// </summary>
     internal static class EscritorDeRelato
     {
+        private static readonly Encoding SemBom = new UTF8Encoding(false);
+
         private static readonly ushort[] IdsDeAcerto =
         {
             CombateMessageIds.AtaqueAcertou,
@@ -55,6 +57,7 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
             Directory.CreateDirectory(pastaDosQuadros);
 
             var imagens = new List<Texture2D>(momento.Texturas.Count);
+            var ampliadas = new Texture2D[momento.Zooms.Count];
             try
             {
                 foreach (var textura in momento.Texturas)
@@ -89,30 +92,43 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
                     ConfigRelato.QuadrosAntesDoAcerto
                 );
                 GravarFolha(Path.Combine(pasta, "folha-geral.png"), imagens, geral);
-                GravarFolha(Path.Combine(pasta, "folha-impacto.png"), imagens, impacto);
+                foreach (var indice in impacto)
+                {
+                    ampliadas[indice] = Ler(momento.Zooms[indice]);
+                }
+
+                GravarFolha(Path.Combine(pasta, "folha-impacto.png"), ampliadas, impacto);
 
                 File.WriteAllText(
                     Path.Combine(pasta, "linha-do-tempo.txt"),
                     LinhaDoTempo.Montar(momento.Quadros, momento.Eventos),
-                    Encoding.UTF8
+                    SemBom
                 );
                 File.WriteAllText(
                     Path.Combine(pasta, "quadros.csv"),
                     LinhaDoTempo.Tabela(momento.Quadros),
-                    Encoding.UTF8
+                    SemBom
                 );
                 File.WriteAllText(
                     Path.Combine(pasta, "nota.txt"),
                     Nota(momento, frase, geral, impacto, centro),
-                    Encoding.UTF8
+                    SemBom
                 );
-                File.WriteAllText(Path.Combine(PastaDosRelatos, "ultimo.txt"), nome, Encoding.UTF8);
+                File.WriteAllText(Path.Combine(PastaDosRelatos, "ultimo.txt"), nome, SemBom);
             }
             finally
             {
                 foreach (var imagem in imagens)
                 {
                     UnityEngine.Object.Destroy(imagem);
+                }
+
+                foreach (var imagem in ampliadas)
+                {
+                    if (imagem != null)
+                    {
+                        UnityEngine.Object.Destroy(imagem);
+                    }
                 }
             }
 
@@ -129,7 +145,7 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
                     + DateTime.Now.ToString("yyyy-MM-dd_HHmmss", CultureInfo.InvariantCulture)
                     + ".txt"
             );
-            File.WriteAllText(caminho, alterados, Encoding.UTF8);
+            File.WriteAllText(caminho, alterados, SemBom);
             return caminho;
         }
 
@@ -197,7 +213,7 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
                 .Append(Lista(impacto))
                 .Append(" (centro q")
                 .Append(centro.ToString("000", CultureInfo.InvariantCulture))
-                .Append(", último acerto ou o fim)\n");
+                .Append(", último acerto ou o fim; centro da tela ampliado 2×)\n");
             texto.Append(
                 "leitura das folhas: esquerda para a direita, de cima para baixo; o número no canto é o qNNN.\n"
             );

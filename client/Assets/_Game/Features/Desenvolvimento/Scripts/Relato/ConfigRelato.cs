@@ -14,6 +14,16 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
 
         public const int AlturaDoQuadro = 180;
 
+        /// <summary>
+        /// Recorte ampliado da folha de impacto: fração da tela em largura e altura e o centro,
+        /// em fração da tela (o jogador fica um pouco abaixo do meio na câmera de 3ª pessoa).
+        /// </summary>
+        public const float FracaoDoZoom = 0.5f;
+
+        public const float CentroXDoZoom = 0.5f;
+
+        public const float CentroYDoZoomDoTopo = 0.55f;
+
         /// <summary>Quadros em cada folha (grade de colunas × linhas).</summary>
         public const int ColunasDaFolha = 4;
 

@@ -105,7 +105,7 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
                                 atual.Tempo,
                                 i,
                                 "câmera",
-                                $"tremor começou ({Metros(atual.Solavanco)})"
+                                $"tremor começou (solavanco {Metros(atual.Solavanco)})"
                             )
                         )
                     );
