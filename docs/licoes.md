@@ -37,3 +37,9 @@ Formato: `### AAAA-MM-DD · título` com **O que houve**, **Regra** e **Origem**
 - **O que houve:** o `reempilhar` aplicou o commit do #714, mas informou conflito e parou antes de publicar, porque tratou a saída herdada do Git como texto.
 - **Regra:** em script, comando com `stdio: "inherit"` aceita retorno vazio; teste o caminho completo antes de atribuir a falha a conflito de cherry-pick.
 - **Origem:** issue #716.
+
+### 2026-10-15 · Sintoma na funcionalidade, causa no contrato
+
+- **O que houve:** "mobs parados e saltando" virou `fix(mobs)` e `fix(core)` em série (#725, #732) até o #826 achar a causa: o client Unity ficou com 1 canal da LiteNetLib e o servidor mandava em 32 (hoje barrado por `npm run conferir-contratos-rede`). No mesmo padrão, atributos que "não atualizavam" eram um evento (`EquipamentoMudou`) que Combate não assinava (#720).
+- **Regra:** quando um `fix(<feature>)` volta, olhe primeiro o contrato com o outro lado (canal, DTO, evento assinado, cache que o evento devia invalidar) e prove com teste que cruza os dois lados.
+- **Origem:** PRs #720, #826 e #846.
