@@ -553,7 +553,7 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
                     inimigo.Alvo = Escolher(inimigo, candidatos, presentes, agora);
                     inimigo.AlertaAteMs = agora + AlertaMs;
                     Mudar(inimigo, EstadoDeInimigo.Alerta);
-                    OlharParaOAlvo(inimigo, presentes);
+                    OlharParaOAlvo(inimigo, presentes, segundos);
                     inimigo.Vagando = false;
                 }
                 else if (_rota != null && inimigo.Segue)
@@ -575,7 +575,7 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
                     break;
                 }
 
-                OlharParaOAlvo(inimigo, presentes);
+                OlharParaOAlvo(inimigo, presentes, segundos);
                 if (agora >= inimigo.AlertaAteMs)
                 {
                     Mudar(inimigo, EstadoDeInimigo.Perseguicao);
@@ -694,7 +694,14 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
             out var novoX,
             out var novoZ
         );
-        Afastar(inimigo, novoX, novoZ, out novoX, out novoZ);
+        Afastar(
+            inimigo,
+            novoX,
+            novoZ,
+            out novoX,
+            out novoZ,
+            _comportamento.VelocidadeDePerseguicaoMetrosPorSegundo * segundos
+        );
         if (NaZonaUrbana(novoX, novoZ))
         {
             // A borda da cidade: a manada não passa. Encerra a perseguição e volta.
@@ -706,7 +713,7 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
         inimigo.X = novoX;
         inimigo.Z = novoZ;
 
-        OlharParaOAlvo(inimigo, presentes);
+        OlharParaOAlvo(inimigo, presentes, segundos);
         if (podeAtacar && NoAlcance(inimigo, alvo))
         {
             ComecarAtaque(inimigo, agora, passo);
@@ -720,7 +727,14 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
         );
 
     // Empurra o ponto para fora dos corpos dos outros inimigos vivos do grupo.
-    private void Afastar(Inimigo inimigo, double x, double z, out double novoX, out double novoZ)
+    private void Afastar(
+        Inimigo inimigo,
+        double x,
+        double z,
+        out double novoX,
+        out double novoZ,
+        double maxDeslocamento = double.MaxValue
+    )
     {
         var vizinhos = _inimigos
             .Where(i => i != inimigo && RegrasInimigo.EstaVivo(i.Estado))
@@ -731,7 +745,8 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
             vizinhos.Select(i => i.X).ToArray(),
             vizinhos.Select(i => i.Z).ToArray(),
             out novoX,
-            out novoZ
+            out novoZ,
+            maxDeslocamento
         );
     }
 
@@ -795,8 +810,7 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
     }
 
     // Durante o preparo ele avança o passo travado, em velocidade constante, até o fim do aviso.
-    // No instante do contato o que faltar do passo é completado (a diferença é de um passo da IA).
-    private void AvancarNoPreparo(Inimigo inimigo, double segundos, bool completar = false)
+    private void AvancarNoPreparo(Inimigo inimigo, double segundos)
     {
         if (inimigo.PassoRestante <= 0.0)
         {
@@ -805,9 +819,7 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
 
         var velocidade =
             RegrasInimigo.PassoDoGolpeMetros / Math.Max(0.001, _comportamento.PreparoMs / 1000.0);
-        var andar = completar
-            ? inimigo.PassoRestante
-            : Math.Min(velocidade * segundos, inimigo.PassoRestante);
+        var andar = Math.Min(velocidade * segundos, inimigo.PassoRestante);
         var radianos = inimigo.DirecaoDoGolpe * Math.PI / 180.0;
         var novoX = inimigo.X + Math.Sin(radianos) * andar;
         var novoZ = inimigo.Z + Math.Cos(radianos) * andar;
@@ -845,7 +857,7 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
 
         if (inimigo.Preparando)
         {
-            AvancarNoPreparo(inimigo, segundos, completar: true);
+            AvancarNoPreparo(inimigo, segundos);
             // O golpe: pega quem está no cone agora, de onde ele parou, tenha o inimigo visto ou não.
             foreach (var jogador in emOrdem)
             {
@@ -1151,12 +1163,18 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
             return;
         }
 
-        inimigo.Rotacao = RegrasInimigo.DirecaoPara(
+        var direcaoDesejada = RegrasInimigo.DirecaoPara(
             inimigo.X,
             inimigo.Z,
             inimigo.OrigemX,
             inimigo.OrigemZ,
             inimigo.Rotacao
+        );
+        inimigo.Rotacao = RegrasInimigo.GirarPara(
+            inimigo.Rotacao,
+            direcaoDesejada,
+            RegrasInimigo.VelocidadeDeGiroGrausPorSegundo,
+            segundos
         );
         RegrasInimigo.Avancar(
             inimigo.X,
@@ -1223,12 +1241,18 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
             return;
         }
 
-        inimigo.Rotacao = RegrasInimigo.DirecaoPara(
+        var direcaoDesejada = RegrasInimigo.DirecaoPara(
             inimigo.X,
             inimigo.Z,
             inimigo.DestinoVagarX,
             inimigo.DestinoVagarZ,
             inimigo.Rotacao
+        );
+        inimigo.Rotacao = RegrasInimigo.GirarPara(
+            inimigo.Rotacao,
+            direcaoDesejada,
+            RegrasInimigo.VelocidadeDeGiroGrausPorSegundo,
+            segundos
         );
 
         RegrasInimigo.Avancar(
@@ -1243,7 +1267,14 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
             out var novoZ
         );
 
-        Afastar(inimigo, novoX, novoZ, out novoX, out novoZ);
+        Afastar(
+            inimigo,
+            novoX,
+            novoZ,
+            out novoX,
+            out novoZ,
+            RegrasInimigo.VelocidadeDeVagarEmRepousoMetrosPorSegundo * segundos
+        );
         if (NaZonaUrbana(novoX, novoZ))
         {
             inimigo.Vagando = false;
@@ -1343,17 +1374,30 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
         }
     }
 
-    private static void OlharParaOAlvo(Inimigo inimigo, Dictionary<long, JogadorNoCampo> presentes)
+    private static void OlharParaOAlvo(
+        Inimigo inimigo,
+        Dictionary<long, JogadorNoCampo> presentes,
+        double segundos = 0.0
+    )
     {
         if (presentes.TryGetValue(inimigo.Alvo, out var alvo))
         {
-            inimigo.Rotacao = RegrasInimigo.DirecaoPara(
+            var direcaoDesejada = RegrasInimigo.DirecaoPara(
                 inimigo.X,
                 inimigo.Z,
                 alvo.X,
                 alvo.Z,
                 inimigo.Rotacao
             );
+            inimigo.Rotacao =
+                segundos > 0.0
+                    ? RegrasInimigo.GirarPara(
+                        inimigo.Rotacao,
+                        direcaoDesejada,
+                        RegrasInimigo.VelocidadeDeGiroGrausPorSegundo,
+                        segundos
+                    )
+                    : direcaoDesejada;
         }
     }
 

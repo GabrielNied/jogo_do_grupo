@@ -73,6 +73,9 @@ namespace JogoDoGrupo.Shared.Features.Mobs
         /// <summary>Tempo máximo, em segundos, que a criatura fica parada entre passos ao vagar.</summary>
         public const double TempoParadoVagarMaximoSegundos = 5.0;
 
+        /// <summary>Velocidade máxima de giro da criatura, em graus por segundo.</summary>
+        public const double VelocidadeDeGiroGrausPorSegundo = 360.0;
+
         /// <summary>Quantas vezes por segundo o servidor atualiza a IA (passo fixo).</summary>
         public const int PassosPorSegundo = 10;
 
@@ -234,6 +237,66 @@ namespace JogoDoGrupo.Shared.Features.Mobs
                 return direcaoAtualGraus;
             }
             return Math.Atan2(dx, dz) * 180.0 / Math.PI;
+        }
+
+        /// <summary>
+        /// Menor diferença angular de <paramref name="deGraus"/> para <paramref name="paraGraus"/>,
+        /// no intervalo [-180, 180]. Positivo = sentido horário (+X).
+        /// </summary>
+        public static double DiferencaAngular(double deGraus, double paraGraus)
+        {
+            double diff = (paraGraus - deGraus) % 360.0;
+            if (diff > 180.0)
+            {
+                diff -= 360.0;
+            }
+            else if (diff < -180.0)
+            {
+                diff += 360.0;
+            }
+            return diff;
+        }
+
+        /// <summary>Normaliza o ângulo para o intervalo [-180, 180].</summary>
+        public static double NormalizarAngulo(double graus)
+        {
+            graus %= 360.0;
+            if (graus > 180.0)
+            {
+                graus -= 360.0;
+            }
+            else if (graus < -180.0)
+            {
+                graus += 360.0;
+            }
+            return graus;
+        }
+
+        /// <summary>
+        /// Gira o ângulo atual em direção ao ângulo desejado (em graus, de -180 a 180),
+        /// pelo menor caminho angular, limitando pela velocidade em graus por segundo e tempo em segundos.
+        /// </summary>
+        public static double GirarPara(
+            double anguloAtualGraus,
+            double anguloDesejadoGraus,
+            double velocidadeGrausPorSegundo,
+            double segundos
+        )
+        {
+            if (velocidadeGrausPorSegundo <= 0.0 || segundos <= 0.0)
+            {
+                return anguloAtualGraus;
+            }
+
+            double delta = DiferencaAngular(anguloAtualGraus, anguloDesejadoGraus);
+            double maxGiro = velocidadeGrausPorSegundo * segundos;
+
+            if (Math.Abs(delta) <= maxGiro)
+            {
+                return NormalizarAngulo(anguloDesejadoGraus);
+            }
+
+            return NormalizarAngulo(anguloAtualGraus + Math.Sign(delta) * maxGiro);
         }
 
         /// <summary>

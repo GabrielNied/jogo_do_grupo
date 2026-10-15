@@ -1123,4 +1123,45 @@ public class GrupoDeInimigosTestes
         Assert.Equal(EstadoDeInimigo.Alerta, campo.Unico.Estado);
         Assert.Equal(Jogador, campo.Unico.AlvoId);
     }
+
+    [Fact]
+    public void Inimigo_em_perseguicao_gira_suavemente_sem_snap_instantaneo()
+    {
+        var campo = new Campo(tamanho: 1);
+        campo.Por(Jogador, 0, 10);
+        campo.AteOEstado(EstadoDeInimigo.Perseguicao, 2);
+
+        // Inimigo alinhado com o jogador em Z positivo (rotacao ~0 graus)
+        Assert.Equal(0.0, campo.Unico.RotacaoY, 1);
+
+        // Move o jogador para +X (90 graus)
+        campo.Por(Jogador, 10, campo.Unico.Z);
+        campo.Passo(); // 1 passo = 0.1 s. A 360 graus/s, o giro maximo eh 36 graus.
+
+        Assert.True(
+            campo.Unico.RotacaoY > 30.0 && campo.Unico.RotacaoY <= 36.1,
+            $"esperado giro de ate 36 graus, obteve {campo.Unico.RotacaoY}"
+        );
+    }
+
+    [Fact]
+    public void Preparo_do_ataque_avanca_continuamente_sem_pular_no_contato()
+    {
+        var campo = new Campo(tamanho: 1);
+        campo.Por(Jogador, 0, 1.8);
+        campo.AteOEstado(EstadoDeInimigo.Ataque, 2);
+
+        var zInicial = campo.Unico.Z;
+        // Avanca ate o golpe encostar
+        var passos = campo.Avancar(1.5);
+        var houveAcerto = passos.Any(p => p.Acertos.Count > 0);
+        Assert.True(houveAcerto, "golpe deve encostar");
+
+        // O deslocamento total durante o preparo nao pode exceder PassoDoGolpeMetros
+        var deslocamentoTotal = campo.Unico.Z - zInicial;
+        Assert.True(
+            deslocamentoTotal <= RegrasInimigo.PassoDoGolpeMetros + 0.01,
+            $"deslocamento {deslocamentoTotal} excedeu {RegrasInimigo.PassoDoGolpeMetros}"
+        );
+    }
 }

@@ -402,4 +402,50 @@ public class RegrasInimigoTestes
         var distancia = RegrasInimigo.Distancia(10.0, 20.0, destinoX, destinoZ);
         Assert.True(distancia <= RegrasInimigo.RaioDeVagarEmRepousoMetros + Tolerancia);
     }
+
+    [Theory]
+    [InlineData(0.0, 90.0, 90.0)]
+    [InlineData(0.0, -90.0, -90.0)]
+    [InlineData(170.0, -170.0, 20.0)]
+    [InlineData(-170.0, 170.0, -20.0)]
+    [InlineData(350.0, 10.0, 20.0)]
+    [InlineData(10.0, 350.0, -20.0)]
+    [InlineData(0.0, 180.0, 180.0)]
+    public void DiferencaAngular_calcula_menor_caminho(
+        double deGraus,
+        double paraGraus,
+        double esperado
+    )
+    {
+        Assert.Equal(esperado, RegrasInimigo.DiferencaAngular(deGraus, paraGraus), Tolerancia);
+    }
+
+    [Theory]
+    [InlineData(0.0, 0.0)]
+    [InlineData(180.0, 180.0)]
+    [InlineData(190.0, -170.0)]
+    [InlineData(-190.0, 170.0)]
+    [InlineData(360.0, 0.0)]
+    [InlineData(-360.0, 0.0)]
+    [InlineData(540.0, 180.0)]
+    public void NormalizarAngulo_mantem_no_intervalo(double graus, double esperado)
+    {
+        Assert.Equal(esperado, RegrasInimigo.NormalizarAngulo(graus), Tolerancia);
+    }
+
+    [Fact]
+    public void GirarPara_gira_limitado_pela_velocidade_e_para_no_alvo()
+    {
+        // 360 graus por segundo em 0.1 s = 36 graus de giro maximo
+        var resultado = RegrasInimigo.GirarPara(0.0, 90.0, 360.0, 0.1);
+        Assert.Equal(36.0, resultado, Tolerancia);
+
+        // Quando falta menos que o maximo, para exatamente no desejado
+        resultado = RegrasInimigo.GirarPara(80.0, 90.0, 360.0, 0.1);
+        Assert.Equal(90.0, resultado, Tolerancia);
+
+        // Caminho mais curto atravessando a fronteira de 180 / -180
+        resultado = RegrasInimigo.GirarPara(170.0, -170.0, 360.0, 0.1);
+        Assert.Equal(-170.0, resultado, Tolerancia); // diferenca eh 20 graus, menor que 36
+    }
 }
