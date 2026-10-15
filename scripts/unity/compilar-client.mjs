@@ -7,6 +7,7 @@
 // Unity em outro lugar: defina UNITY_EDITOR_DATA com a pasta "Editor/Data" da versão do projeto.
 
 import { execFileSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
@@ -15,7 +16,11 @@ import { pularSemUnity, temUnityNaMaquina } from "./sem-unity.mjs";
 
 const RAIZ = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const CLIENT = join(RAIZ, "client");
-const SAIDA = join(tmpdir(), "jogo-do-grupo-unity-compilar");
+// Uma pasta por checkout: worktrees compilando ao mesmo tempo não disputam os mesmos arquivos (CS2012).
+const SAIDA = join(
+  tmpdir(),
+  `jogo-do-grupo-unity-compilar-${createHash("sha1").update(RAIZ).digest("hex").slice(0, 8)}`,
+);
 
 // Library/ do Unity (test runner, NUnit, pacotes): num worktree de agente ela não existe,
 // então usa a do checkout principal do repositório.
