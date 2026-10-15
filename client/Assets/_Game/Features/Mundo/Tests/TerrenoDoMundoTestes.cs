@@ -448,30 +448,119 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
             }
         }
 
+        private static readonly string[] TiposComTronco =
+        {
+            "Cacto",
+            "Arvore_Seca",
+            "Pinheiro",
+            "Arvore_Pantano",
+        };
+
         [Test]
-        public void Hub_instancia_as_pecas_dos_biomas_no_tamanho_e_na_cor_do_bioma()
+        public void Hub_desenha_toda_peca_dos_biomas_por_instancias_com_poucos_materiais()
         {
             ConstruirTerreno();
             var raiz = _hub.transform.Find(ConstrutorHub.NomePecasDosBiomas);
             Assert.IsNotNull(raiz, "O hub deveria ter as peças dos biomas.");
-            Assert.AreEqual(PecasDosBiomas.Todas.Count, raiz.childCount);
+            var blocos = raiz.GetComponent<BlocosDeVegetacao>();
+            Assert.IsNotNull(blocos);
 
-            var indice = 0;
-            while (PecasDosBiomas.Todas[indice].Bioma != Bioma.Lava)
+            // Sem um objeto (nem um Renderer) por peça: o desenho é por instancing.
+            Assert.AreEqual(0, raiz.GetComponentsInChildren<Renderer>(true).Length);
+            Assert.GreaterOrEqual(blocos.Instancias, PecasDosBiomas.Todas.Count);
+
+            // Materiais compartilhados por tipo: poucos, em vez de um por cubo.
+            Assert.LessOrEqual(
+                blocos.MateriaisDistintos,
+                ConfigVegetacao.LimiteDeMateriais,
+                "Materiais demais na vegetação."
+            );
+            Assert.LessOrEqual(MateriaisDosBiomas.Quantidade, ConfigVegetacao.LimiteDeMateriais);
+        }
+
+        [Test]
+        public void Todo_tronco_gerado_tem_colisor_de_capsula_no_lugar_da_peca()
+        {
+            ConstruirTerreno();
+            foreach (var nome in TiposComTronco)
             {
-                indice++;
+                var modelo = VegetacaoProcedural.Modelo(nome);
+                Assert.IsTrue(modelo.Colisor.HasValue, $"{nome} sem colisor.");
+                Assert.IsFalse(modelo.Colisor.Value.EhCaixa);
+                Assert.Greater(modelo.Colisor.Value.Raio, 0.1f);
             }
 
-            var peca = PecasDosBiomas.Todas[indice];
-            var objeto = raiz.GetChild(indice);
-            Assert.Less(
-                Vector3.Distance(new Vector3(peca.X, peca.Y, peca.Z), objeto.position),
-                0.001f
-            );
+            var verificadas = 0;
+            foreach (var peca in PecasDosBiomas.Todas)
+            {
+                if (!TiposComTronco.Contains(peca.Prefab))
+                {
+                    continue;
+                }
 
-            // Na lava a peça fica escura: o material é uma cópia tingida, não o do prefab.
-            var material = objeto.GetComponentInChildren<Renderer>().sharedMaterial;
-            StringAssert.EndsWith("_" + Bioma.Lava, material.name);
+                var ponto = new Vector3(peca.X, peca.Y + 0.4f, peca.Z);
+                var achou = false;
+                foreach (var colisor in Physics.OverlapSphere(ponto, 0.05f))
+                {
+                    achou |= colisor is CapsuleCollider;
+                }
+
+                Assert.IsTrue(achou, $"{peca.Prefab} em ({peca.X}, {peca.Z}) atravessável.");
+                verificadas++;
+            }
+
+            Assert.Greater(verificadas, 100);
+
+            // Arbusto continua atravessável.
+            Assert.IsFalse(VegetacaoProcedural.Modelo("Arbusto").Colisor.HasValue);
+        }
+
+        [Test]
+        public void Montagem_da_vegetacao_cabe_em_quadros_curtos_e_espalha_o_trabalho()
+        {
+            var raiz = new GameObject("TesteDaVegetacao").transform;
+            _hub = raiz.gameObject;
+            var maior = 0.0;
+            var etapas = 0;
+            var relogio = System.Diagnostics.Stopwatch.StartNew();
+            foreach (var _ in MontadorDaVegetacao.Montar(raiz, 1f, OrcamentoDeTesteMs))
+            {
+                maior = System.Math.Max(maior, relogio.Elapsed.TotalMilliseconds);
+                etapas++;
+                relogio.Restart();
+            }
+
+            Assert.Greater(etapas, 2, "A montagem deveria se espalhar por vários quadros.");
+            Assert.Less(
+                maior,
+                LimiteDoQuadroDeMontagemMs,
+                $"Uma etapa levou {maior:0.0} ms (orçamento {OrcamentoDeTesteMs} ms)."
+            );
+        }
+
+        // Folga sobre o orçamento: o carregamento dos prefabs na primeira peça de cada tipo e o
+        // ruído da máquina de teste cabem aqui.
+        private const double LimiteDoQuadroDeMontagemMs = 60.0;
+
+        // Orçamento pequeno de propósito: numa máquina rápida a montagem inteira cabe em poucos ms,
+        // e o teste precisa ver a divisão em etapas.
+        private const float OrcamentoDeTesteMs = 0.25f;
+
+        [Test]
+        public void Corte_por_distancia_tira_blocos_longe_e_pecas_pequenas_mais_perto()
+        {
+            ConstruirTerreno();
+            var blocos = _hub
+                .transform.Find(ConstrutorHub.NomePecasDosBiomas)
+                .GetComponent<BlocosDeVegetacao>();
+
+            var peca = PecasDosBiomas.Todas[0];
+            var junto = new Vector3(peca.X, peca.Y, peca.Z);
+            var perto = blocos.ContarChamadas(junto);
+            var longe = blocos.ContarChamadas(new Vector3(0f, 0f, 0f));
+            Assert.Greater(perto, 0);
+            Assert.Less(perto, blocos.GruposTotais, "O corte deveria esconder o resto do mundo.");
+            Assert.LessOrEqual(longe, blocos.GruposTotais);
         }
 
         [Test]

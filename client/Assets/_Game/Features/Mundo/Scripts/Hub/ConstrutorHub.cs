@@ -441,48 +441,32 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
         }
 
         // Árvores e pedras além do miolo de 1 km, por bioma, na altura do chão e na cor do bioma.
-        private static void CriarPecasDosBiomas(Transform pai)
+        // Não são um objeto por peça: o MontadorDaVegetacao registra cada uma no desenho por
+        // blocos (malha e material divididos) e cria só o colisor.
+        private static Transform CriarRaizDasPecasDosBiomas(Transform pai)
         {
             var pecas = new GameObject(NomePecasDosBiomas).transform;
             pecas.SetParent(pai, false);
-
-            foreach (var peca in PecasDosBiomas.Todas)
-            {
-                CriarPecaDoBioma(peca, pecas);
-            }
+            return pecas;
         }
 
+        private static void CriarPecasDosBiomas(Transform pai)
+        {
+            var pecas = CriarRaizDasPecasDosBiomas(pai);
+            foreach (var _ in MontadorDaVegetacao.Montar(pecas, _escalaDasPecas)) { }
+        }
+
+        // Mesma montagem, devolvendo o quadro a cada orçamento de tempo gasto.
         private static async Awaitable CriarPecasDosBiomasAsync(
             Transform pai,
             CancellationToken cancelar
         )
         {
-            var pecas = new GameObject(NomePecasDosBiomas).transform;
-            pecas.SetParent(pai, false);
-            var indice = 0;
-            foreach (var peca in PecasDosBiomas.Todas)
+            var pecas = CriarRaizDasPecasDosBiomas(pai);
+            foreach (var _ in MontadorDaVegetacao.Montar(pecas, _escalaDasPecas))
             {
-                CriarPecaDoBioma(peca, pecas);
-                if (++indice % 32 == 0)
-                {
-                    await Awaitable.NextFrameAsync(cancelar);
-                }
+                await Awaitable.NextFrameAsync(cancelar);
             }
-        }
-
-        private static void CriarPecaDoBioma(PecaDoBioma peca, Transform pai)
-        {
-            var posicao = new Vector3(peca.X, peca.Y, peca.Z);
-            var instancia = VegetacaoProcedural.ConsegueCriar(peca.Prefab)
-                ? VegetacaoProcedural.Criar(peca.Prefab, posicao, peca.Guinada, pai)
-                : Instanciar(peca.Prefab, posicao, peca.Guinada, pai);
-            if (instancia == null)
-            {
-                return;
-            }
-
-            instancia.transform.localScale *= peca.Escala;
-            Tingir(instancia, peca.Bioma);
         }
 
         // Troca os materiais da peça por cópias multiplicadas pela cor do bioma. Branco (campo,
