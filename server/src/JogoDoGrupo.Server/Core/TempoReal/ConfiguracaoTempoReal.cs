@@ -37,7 +37,7 @@ public sealed class ConfiguracaoTempoReal
     public int MaximoRecusasPorSessao { get; set; } = 10;
     public int MaximoExcecoesPorSessao { get; set; } = 3;
     public int MaximoTentativasAutenticacao { get; set; } = 3;
-    public int MaximoConexoesPendentesPorIp { get; set; } = 16;
+    public int MaximoConexoesPendentesPorIp { get; set; } = 32;
 
     /// <summary>Lê e valida a seção; configuração inválida impede o servidor de subir.</summary>
     public static ConfiguracaoTempoReal Ler(IConfiguration configuracao)

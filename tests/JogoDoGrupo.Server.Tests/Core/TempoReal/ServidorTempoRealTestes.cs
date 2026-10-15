@@ -185,9 +185,19 @@ public class ServidorTempoRealTestes(TempoRealFixture f)
     [Fact]
     public async Task Varias_contas_autenticando_ao_mesmo_tempo_entram_todas()
     {
-        var entradas = await Task.WhenAll(Enumerable.Range(0, 8).Select(_ => f.EntrarAsync()));
+        var clientes = new ConcurrentBag<ClienteTempoRealDeTeste>();
         try
         {
+            var tarefas = Enumerable
+                .Range(0, 8)
+                .Select(async _ =>
+                {
+                    var (cliente, contaId, personagemId) = await f.EntrarAsync();
+                    clientes.Add(cliente);
+                    return (cliente, contaId, personagemId);
+                });
+            var entradas = await Task.WhenAll(tarefas);
+
             foreach (var (_, contaId, personagemId) in entradas)
             {
                 Assert.Equal(personagemId, f.SessaoDaConta(contaId)?.PersonagemId);
@@ -195,7 +205,7 @@ public class ServidorTempoRealTestes(TempoRealFixture f)
         }
         finally
         {
-            foreach (var (cliente, _, _) in entradas)
+            foreach (var cliente in clientes)
             {
                 cliente.Dispose();
             }
@@ -601,6 +611,37 @@ public class ServidorTempoRealTestes(TempoRealFixture f)
         await cliente.ReceberAsync<MensagemTeste>(TempoRealFixture.IdEco);
         Assert.NotNull(f.SessaoDaConta(contaId));
         Assert.False(cliente.Desconectado.IsCompleted);
+    }
+
+    [Fact]
+    public async Task Passo_lento_mede_e_identifica_modulo_que_estourou()
+    {
+        var executado = false;
+        f.TempoReal.AoPasso(
+            TimeSpan.FromMilliseconds(10),
+            _ =>
+            {
+                if (!executado)
+                {
+                    executado = true;
+                    Thread.Sleep(110);
+                }
+            },
+            "ModuloLentoTeste"
+        );
+
+        await TempoRealFixture.EsperarAsync(
+            () => f.TempoReal.UltimoPassoLento != null,
+            "detalhes do passo lento gravados"
+        );
+
+        var lento = f.TempoReal.UltimoPassoLento!;
+        Assert.True(lento.DuracaoTotalMs >= 100);
+        Assert.True(lento.PassosMs >= 100);
+        Assert.Contains(
+            lento.EtapasPassos,
+            e => e.Nome == "ModuloLentoTeste" && e.DuracaoMs >= 100
+        );
     }
 
     private async Task AssertRecusadaSemDerrubar(

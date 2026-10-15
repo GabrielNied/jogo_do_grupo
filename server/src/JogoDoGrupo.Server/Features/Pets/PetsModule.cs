@@ -49,7 +49,8 @@ public sealed class PetsModule : IFeatureModule
         contexto.Eventos.Assinar<JogadorEntrouNaArea>(evento => _pets?.AoEntrarNaArea(evento));
         contexto.AoPasso(
             TimeSpan.FromSeconds(PassoSegundos),
-            _ => _pets?.Avancar((float)PassoSegundos)
+            _ => _pets?.Avancar((float)PassoSegundos),
+            "Pets"
         );
     }
 

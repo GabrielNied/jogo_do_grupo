@@ -23,10 +23,11 @@ public sealed class ServerContext(ServidorTempoReal tempoReal, EventosDoServidor
 
     /// <summary>
     /// Agenda uma ação para rodar no laço principal do tempo real, em um passo fixo.
+    /// <paramref name="nome"/> identifica a etapa nas medições de atraso do laço.
     /// </summary>
-    public void AoPasso(TimeSpan intervalo, Action<TimeSpan> passo)
+    public void AoPasso(TimeSpan intervalo, Action<TimeSpan> passo, string? nome = null)
     {
         ArgumentNullException.ThrowIfNull(passo);
-        TempoReal.AoPasso(intervalo, passo);
+        TempoReal.AoPasso(intervalo, passo, nome);
     }
 }
