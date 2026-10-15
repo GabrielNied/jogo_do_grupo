@@ -225,5 +225,106 @@ namespace JogoDoGrupo.Client.Features.Itens.Tests
             Assert.IsNotEmpty(TextosDoLoot.Recusa("CodigoNovo"));
             Assert.IsFalse(TextosDoLoot.Recusa(CodigosErroItens.LongeDemais).Contains("Longe"));
         }
+
+        [Test]
+        public void ObterAoAlcance_EncontraItemMaisProximoETotal()
+        {
+            var loot = new LootNoChaoDoCliente();
+            Assert.IsFalse(loot.ObterAoAlcance(0f, 0f, TierItem.D, out _, out var totalZero));
+            Assert.AreEqual(0, totalZero);
+
+            loot.Receber(Apareceu(1, x: 2f, z: 0f, nome: "Item Longe"));
+            loot.Receber(Apareceu(2, x: 1f, z: 0f, nome: "Item Perto"));
+            loot.Receber(Apareceu(3, x: 10f, z: 0f, nome: "Item Fora"));
+
+            var ok = loot.ObterAoAlcance(0f, 0f, TierItem.D, out var maisProximo, out var total);
+            Assert.IsTrue(ok);
+            Assert.AreEqual(2, total);
+            Assert.NotNull(maisProximo);
+            Assert.AreEqual(2L, maisProximo.LootId);
+            Assert.AreEqual("Item Perto", maisProximo.Nome);
+        }
+
+        [Test]
+        public void ObterAoAlcance_RespeitaFiltroDeTier()
+        {
+            var loot = new LootNoChaoDoCliente();
+            var item1 = Apareceu(1, x: 1f, z: 0f, nome: "Elmo D");
+            item1.Loot.TemTier = true;
+            item1.Loot.Tier = TierItem.D;
+            loot.Receber(item1);
+
+            var item2 = Apareceu(2, x: 1.5f, z: 0f, nome: "Espada S");
+            item2.Loot.TemTier = true;
+            item2.Loot.Tier = TierItem.S;
+            loot.Receber(item2);
+
+            // Com filtro para S, apenas o item 2 passa
+            var ok = loot.ObterAoAlcance(0f, 0f, TierItem.S, out var maisProximo, out var total);
+            Assert.IsTrue(ok);
+            Assert.AreEqual(1, total);
+            Assert.AreEqual(2L, maisProximo.LootId);
+            Assert.AreEqual("Espada S", maisProximo.Nome);
+        }
+
+        [Test]
+        public void Textos_DescricaoItem_FormataNomeETier()
+        {
+            Assert.AreEqual(
+                "Espada de treino",
+                TextosDoLoot.DescricaoItem("Espada de treino", false, TierItem.D)
+            );
+            Assert.AreEqual(
+                "Elmo do Vigia (tier B)",
+                TextosDoLoot.DescricaoItem("Elmo do Vigia", true, TierItem.B)
+            );
+            Assert.AreEqual("Item (tier A)", TextosDoLoot.DescricaoItem("", true, TierItem.A));
+            Assert.AreEqual("Item", TextosDoLoot.DescricaoItem(null, false, TierItem.D));
+        }
+
+        [Test]
+        public void Textos_FormatarDica_UmOuMaisItensETeclaPersonalizada()
+        {
+            var itemTier = new ItemNoChao(
+                new LootNoChao
+                {
+                    LootId = 1,
+                    Nome = "Elmo do Vigia",
+                    TemTier = true,
+                    Tier = TierItem.B,
+                },
+                100f
+            );
+            var itemComum = new ItemNoChao(
+                new LootNoChao
+                {
+                    LootId = 2,
+                    Nome = "Poção de Vida",
+                    TemTier = false,
+                },
+                100f
+            );
+
+            // 1 item com tier
+            Assert.AreEqual(
+                "F: pegar — Elmo do Vigia (tier B)",
+                TextosDoLoot.FormatarDica("F", itemTier, 1)
+            );
+            // 1 item comum
+            Assert.AreEqual(
+                "F: pegar — Poção de Vida",
+                TextosDoLoot.FormatarDica("F", itemComum, 1)
+            );
+            // Mais de 1 item
+            Assert.AreEqual("F: pegar (3 itens)", TextosDoLoot.FormatarDica("F", itemTier, 3));
+            // Tecla personalizada (ex.: Gamepad Y ou tecla remapeada)
+            Assert.AreEqual(
+                "E: pegar — Elmo do Vigia (tier B)",
+                TextosDoLoot.FormatarDica("E", itemTier, 1)
+            );
+            Assert.AreEqual("Y: pegar (2 itens)", TextosDoLoot.FormatarDica("Y", itemTier, 2));
+            // Sem itens ou nulo
+            Assert.AreEqual("F: pegar", TextosDoLoot.FormatarDica("F", null, 0));
+        }
     }
 }
