@@ -56,4 +56,18 @@ public class LagCompensacaoVolumeTestes
         var instante = RegrasCompensacaoDeLag.InstanteParaTeste(relogio - 400, relogio);
         Assert.Equal(relogio, instante);
     }
+
+    [Fact]
+    public void Rewind_do_acerto_ancora_no_inicio_da_acao_nao_no_momento_do_golpe()
+    {
+        const long inicioMs = 10_000L;
+        const long tempoVistoMs = 9_800L;
+        const long acertoMs = inicioMs + 500;
+
+        Assert.Equal(acertoMs, RegrasCompensacaoDeLag.InstanteParaTeste(tempoVistoMs, acertoMs));
+        Assert.Equal(
+            tempoVistoMs,
+            RegrasCompensacaoDeLag.InstanteParaTeste(tempoVistoMs, inicioMs)
+        );
+    }
 }

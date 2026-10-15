@@ -18,7 +18,7 @@ Cálculo de dano, seleção de alvo e efeitos de status. Usado por PvE e PvP.
 - **Buffs de grupo**: cada papel traz buffs que complementam o time
 - **Ataques telegrafados** (decidido em 2026-10-10): bosses e inimigos fortes avisam antes de bater (área marcada no chão, brilho ou animação de preparo) e o jogador tem tempo de esquivar ou sair da área. Base: Final Fantasy XIV e WoW
 - **Decisões do Gabriel em 2026-10-11** (estavam só em comentário de issue):
-  - **Ataque (#61):** cone de **2,5 m e 90°** à frente do atacante; **sem compensação de lag na fatia**; boneco de treino na cidade. Os números moram em `RegrasAtaque`.
+  - **Ataque (#61):** cone de **2,5 m e 90°** à frente do atacante; boneco de treino na cidade (compensação de lag no servidor desde #172). Os números moram em `RegrasAtaque`.
   - **Esquiva (#62):** o dono do código é **Combate** (a stamina é dele); a tecla é o Alt esquerdo ([interface.md](interface.md)).
   - **Caído (#125):** o dono do estado é **Combate**, que já é dono da vida; [Personagem](personagem.md#morte-e-caído-issue-97) só mostra a tela.
 
