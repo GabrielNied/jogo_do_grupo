@@ -17,23 +17,19 @@ Sonnet é o padrão; Opus em Core e nos PRs de risco. Comandos: `/trabalhe` impl
 
 ## Doc e regras atuais
 
-Primeiro passo do `/trabalhe`, `/decida` e `/melhore`: **`git fetch origin main`**. Regras (`AGENTS.md`), `docs/features/` e ADRs valem o que está na **`origin/main`**, não o working tree da branch atual se ela estiver velha.
+No `/trabalhe`, `/decida` e `/melhore`: **`git fetch origin main`** antes de ler doc, escrever ficha ou decidir. `AGENTS.md`, `docs/features/` e ADRs valem **`origin/main`**, não a branch velha.
 
-- **Ler doc:** `git show origin/main:docs/features/<x>.md` (ou outro caminho em `docs/`, e `git show origin/main:AGENTS.md` na raiz).
-- **Buscar no código** (ex.: lente código ou desempenho do `/melhore`): `git grep … origin/main -- <pastas>`, depois do fetch.
-- **`npm run tarefa -- puxar`** faz fetch de novo e cria a branch a partir de `origin/main`; isso **não substitui** o fetch no início da leva ou da varredura, quando você ainda lê doc, escreve ficha ou decide veredito.
+- Doc: `git show origin/main:docs/features/<x>.md` (ou `…:AGENTS.md`).
+- Código: `git grep … origin/main -- <pastas>`.
+- O `puxar` refaz fetch e cria branch da main; não substitui o fetch do início da leva.
 
-Checkout principal limpo: `git switch main && git pull --rebase origin main` também serve. Em worktree ou com mudança local, prefira `fetch` + `git show` / `git grep`.
+Checkout limpo: `git switch main && git pull --rebase origin main`. Com worktree ou mudança local: `fetch` + `show` / `grep`.
 
 ## Worktree ao puxar
 
-Paralelismo é **uma pasta Git por lote**. Várias IAs no **mesmo checkout** (só `git switch` de branch) pisam nos arquivos uma da outra; a trava `em-andamento` evita duas pessoas na **mesma issue**, não dois lotes no **mesmo diretório**.
+**Uma pasta Git por lote.** A trava `em-andamento` é por issue, não por diretório — duas IAs no mesmo checkout se atropelam.
 
-Quem vai **codar** usa `npm run tarefa -- puxar … --worktree <pasta>` para o script criar a branch num worktree novo (liga `node_modules` do checkout principal). Exemplos de pasta: `.claude/worktrees/meu-lote`, `../jdg-itens` ([ferramentas-ia.md](ferramentas-ia.md)).
-
-- **Agente** já num worktree linkado (Claude `isolation: worktree`, Codex/Cursor numa pasta separada): `puxar … --worktree .` — a pasta atual já é isolada.
-- **Checkout principal** (`.git` na raiz do repo, sem `worktrees` no caminho): com **outro lote em andamento** ou com **`--agente`**, o `puxar` **recusa** sem `--worktree <pasta>` fora deste checkout. Sozinho num lote só, ainda pode puxar na branch local (pessoa ou teste rápido).
-- **Coordenador** que implementa lote pequeno no `/trabalhe`: worktree próprio, não o checkout compartilhado ([Fechamento](#fechamento-o-coordenador-integra-e-limpa-o-que-criou)).
+`npm run tarefa -- puxar … --worktree <pasta>` cria branch no worktree (`.claude/worktrees/…`, [ferramentas-ia.md](ferramentas-ia.md)). Agente já isolado: `--worktree .`. Checkout principal com outro lote ou `--agente`: precisa de pasta fora da raiz. Coordenador que codifica: worktree próprio ([Fechamento](#fechamento-o-coordenador-integra-e-limpa-o-que-criou)).
 
 ## Prioridade das tarefas
 
@@ -50,21 +46,7 @@ Dentro da faixa: `foco` ([foco do marco](features/fatia-jogavel.md#foco-atual)) 
 
 ## Ficha da tarefa
 
-O corpo da issue que o agente lê. Escrita pelo /decida, pelo /melhore ou pelo coordenador; o texto original fica num `<details><summary>Texto original</summary>` no fim.
-
-```
-<!-- ficha -->
-**Objetivo:** o que funciona no final, em 2–3 linhas.
-**Hoje:** o que já existe na main.
-**Cena:** ponto de entrada → o que a pessoa faz → o que aparece.
-**Regra:** link para a seção de docs/features/<x>.md (sem copiar).
-**Onde mexer:** arquivos e fluxo atual.
-**Contrato:** mensagens, DTOs e erros, se já souber.
-**Testes esperados:** os casos que mudam contrato ou resultado.
-**Depende de:** #N (o listar lê esta linha).
-**Lote sugerido:** #N, #M (opcional).
-**Fora do escopo:** ...
-```
+Corpo da issue que o agente lê (/decida, /melhore ou coordenador). Template completo: skill [decida](../../.claude/skills/decida/SKILL.md). Texto original antigo fica em `<details><summary>Texto original</summary>`.
 
 ## Lote
 
@@ -95,7 +77,7 @@ Quem puxa escreve na issue, antes de codar, e segue sem esperar:
 - **Decisões de design** que tomou.
 - **Testes:** os casos que mudam contrato ou resultado (xUnit). A tela é conferida pelo "Como testar".
 
-**Checklist de experiência:** vazio, erro e limite com texto que diz o que fazer · espera do servidor (botão não envia duas vezes, recusa mostra o motivo) · outros jogadores (entra, sai, mexe na mesma coisa, desconecta) · reconectar e relogar · entrada (rebind, ESC fecha, não rouba movimento nem combate) · retorno (aviso, som ou efeito, até com a tela fechada) · descoberta · visual [Lumora UI v1](../design/interface/GUIA-DE-ESTILO.md), sem corte em leitura aumentada.
+**Checklist de experiência:** vazio/erro/limite, espera do servidor, multiplayer, reconexão, entrada (rebind/ESC), retorno, descoberta, visual [Lumora](../design/interface/GUIA-DE-ESTILO.md) — detalhe na skill [preparar-pr](../../.claude/skills/preparar-pr/SKILL.md).
 
 ### Decisões de design
 
@@ -103,21 +85,15 @@ Quem implementa decide o que a doc não fecha, sem esperar ([ADR 0030](decisoes/
 
 ## Usar o Unity
 
-- **Tela e HUD:** UI Toolkit montada por código e registrada sozinha (`[RuntimeInitializeOnLoadMethod]` + `JanelasDoJogo.Registrar`, como `JanelaMissoes`). Sem cena nem prefab.
-- **Cena, prefab, material, asset:** script de editor em `Features/<X>/Editor/`, rodado com `npm run unity:executar -- <Classe.Metodo>` no seu worktree, ou Unity CLI no editor aberto. YAML e `.meta` à mão o hook barra. Outros: `unity:importar` (gera `.meta` de asset, editor fechado), `unity:recompilar` (editor aberto), `unity:editor` (diz se está aberto).
-- **Um Unity por vez na máquina:** `unity:executar`, `unity:importar` e `unity:testes` esperam a vez numa trava ([trava.mjs](../scripts/unity/trava.mjs)), até 30 min (`UNITY_ESPERA_MIN`). A primeira importação de um worktree é lenta: não abra outro só para repetir.
-- **Commit:** o que o Unity gerou entra no mesmo PR; `npm run conferir-unity` precisa passar. `ProjectSettings/` e cenas de Core: pare e avise.
-- **Sem Unity (nuvem):** `unity:*` pulam; o PR sai normal e só o que precisa do Unity para existir vira `npm run tarefa -- pendencia-unity <PR> --falta "..."` ([ADR 0019](decisoes/0019-unity-no-ci.md)).
+- **HUD:** UI Toolkit por código (`JanelasDoJogo.Registrar`); sem cena/prefab de tela.
+- **Cena/prefab/asset:** editor em `Features/<X>/Editor/` + `unity:executar`; YAML/`.meta` à mão o hook barra. `unity:importar`, `unity:recompilar`, `unity:editor`.
+- **Um Unity por máquina:** trava em [trava.mjs](../scripts/unity/trava.mjs) (`UNITY_ESPERA_MIN`, até 30 min).
+- **Commit:** assets gerados no PR; `conferir-unity`. `ProjectSettings/` e cenas Core: pare e avise.
+- **Nuvem:** `unity:*` pulam; falta vira `pendencia-unity` ([ADR 0019](decisoes/0019-unity-no-ci.md)).
 
 ### Prints da tela
 
-Mudou tela ou HUD: com o editor fechado, grave 1280×720, 1920×1080 e 2560×1440 e leia os PNG antes do PR. Caem em `prints/` (ignorada pelo git; cada execução apaga a leva anterior). Sem Unity ou com o editor aberto, pule.
-
-```
-$env:PRINT_PAINEL="itens.inventario"; npm run unity:executar -- JogoDoGrupo.Client.Features.Desenvolvimento.Editor.CapturaDaTelaComando.Capturar
-```
-
-`PRINT_CENA` (caminho da cena), `PRINT_PAINEL` (chave da janela, como `personagem.ficha`, ou da tela, como `core.login`) e `PRINT_SAIDA` (outra pasta, que não é apagada).
+Mudou tela ou HUD: `CapturaDaTelaComando.Capturar` via `unity:executar` (1280/1920/2560, pasta `prints/`). Variáveis `PRINT_CENA`, `PRINT_PAINEL`, `PRINT_SAIDA`: [client/Assets/_Game/AGENTS.md](../client/Assets/_Game/AGENTS.md).
 
 ## Fechamento: o coordenador integra e limpa o que criou
 
