@@ -124,6 +124,7 @@ Decidido por Gabriel em 2026-10-11 (#134); é **provisório** e o grupo pode aju
 | Andar para frente / trás / esquerda / direita | W / S / A / D | sim, cada direção |
 | Correr | Shift (segurar) | sim |
 | Câmera | mover o mouse | não (sensibilidade fica em Opções) |
+| Zoom da câmera | roda do mouse (de 2 a 8 m) | não |
 | Pular (já existe no client) | Espaço | sim |
 | Esquiva | ~~Espaço~~ Alt esquerdo (substituído e decidido em 2026-10-11) | sim |
   | Ataque leve / pesado | clicar / segurar o botão esquerdo do mouse por 0,3 s | sim, juntos |

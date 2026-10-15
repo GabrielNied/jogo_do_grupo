@@ -13,6 +13,7 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
     {
         private readonly InputAction _mover;
         private readonly InputAction _olharMouse;
+        private readonly InputAction _zoom;
         private readonly InputAction _correr;
         private readonly InputAction _pular;
         private readonly InputAction _subir;
@@ -43,6 +44,13 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
                 InputActionType.Value,
                 "<Mouse>/delta",
                 expectedControlType: "Vector2"
+            );
+
+            _zoom = new InputAction(
+                "Zoom",
+                InputActionType.Value,
+                "<Mouse>/scroll/y",
+                expectedControlType: "Axis"
             );
 
             _correr = new InputAction("Correr", InputActionType.Button, "<Keyboard>/leftShift");
@@ -79,6 +87,21 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
         /// <summary>Quanto o mouse andou neste frame, em pixels.</summary>
         public Vector2 OlharMouse => _olharMouse.ReadValue<Vector2>();
 
+        /// <summary>
+        /// Cliques da roda do mouse neste frame: 1 para frente (aproxima), -1 para trás, 0 parada.
+        /// Só o sinal conta, porque o tamanho do passo muda com o sistema.
+        /// </summary>
+        public float ZoomCliques
+        {
+            get
+            {
+                var valor = _zoom.ReadValue<float>();
+                return valor > 0f ? 1f
+                    : valor < 0f ? -1f
+                    : 0f;
+            }
+        }
+
         /// <summary>Analógico direito; zero enquanto gamepad estiver fora do escopo (#508).</summary>
         public Vector2 OlharControle => Vector2.zero;
 
@@ -98,6 +121,7 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
         {
             _mover.Enable();
             _olharMouse.Enable();
+            _zoom.Enable();
             _correr.Enable();
             _pular.Enable();
             _subir.Enable();
@@ -108,6 +132,7 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
         {
             _mover.Disable();
             _olharMouse.Disable();
+            _zoom.Disable();
             _correr.Disable();
             _pular.Disable();
             _subir.Disable();
@@ -119,6 +144,7 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
             TeclasDoJogo.Mudou -= AtualizarTeclas;
             _mover.Dispose();
             _olharMouse.Dispose();
+            _zoom.Dispose();
             _correr.Dispose();
             _pular.Dispose();
             _subir.Dispose();
