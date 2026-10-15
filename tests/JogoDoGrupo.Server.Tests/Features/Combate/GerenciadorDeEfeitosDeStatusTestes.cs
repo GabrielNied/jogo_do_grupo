@@ -44,7 +44,7 @@ public class GerenciadorDeEfeitosDeStatusTestes
         // Controle de ações recusa enquanto atordoado
         var pedido = new PedidoDeAtaque(TipoDeAtaque.Leve, 0f, 1);
         var resPedido = controle.Pedir(1, pedido, tempoMs, out _);
-        Assert.Equal(ResultadoDoPedido.Recusado, resPedido);
+        Assert.Equal(ResultadoDoPedido.Atordoado, resPedido);
 
         var resEsquiva = controle.TentarOcupar(1, tempoMs, 500, out _);
         Assert.False(resEsquiva);
