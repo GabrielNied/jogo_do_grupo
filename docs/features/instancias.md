@@ -43,6 +43,26 @@ Do "Livro de ideias" do [FigJam](../brainstorm/figjam.md) (seções 06 e 10). **
 - **Recompensas:** equipamentos, essências e materiais; o dono do loot de chefe é quem causou mais dano. Insumos essenciais também vêm de exploração e mobs comuns.
 - **Expedição inicial:** a dungeon integra a primeira expedição (preparar na cidade, explorar, combater, voltar).
 
+### Instância da dungeon (#425, #66)
+
+Entrada, ciclo de vida e isolamento das corridas de dungeon no servidor autoritativo:
+
+- **Entrada solo ou em grupo:** o líder do grupo (ou jogador solo) envia `EntrarNaDungeon` a partir da cidade (`AreasDoMundo.Cidade`). Se um membro não líder tentar iniciar uma corrida nova, o pedido é recusado com `NaoELider`.
+- **Membros próximos e retardatários:** ao iniciar a corrida, membros do grupo que estão a até **10 m** da entrada na cidade são teleportados para a área isolada da instância (`AreasDoMundo.Instancia(id)`). Membros a mais de 10 m ficam de fora e podem enviar `EntrarNaDungeon` mais tarde para entrar na corrida ativa.
+- **Isolamento de área:** cada corrida gera uma área exclusiva no Mundo. Posições e presenças não vazam para a cidade nem para corridas simultâneas de outros grupos.
+- **Reconexão e tolerância a quedas:** se um participante desconectar dentro da instância, sua vaga fica reservada por até **120 s** (`PrazoDeReconexao`). Reconectar e pedir entrada nesse intervalo recoloca o jogador na mesma corrida. Após 120 s sem retornar, a vaga é liberada.
+- **Encerramento:** a instância encerra por **vitória**, **derrota** ou após ficar **5 minutos vazia** (`PrazoVazia`). No encerramento, todos os participantes recebem `DungeonEncerrada` com o resultado e são devolvidos à posição anterior na cidade.
+
 ## Depende de
 
+- [Social](social.md): consulta de grupo e líder (`IConsultaDeGrupo`)
+- [Mundo](mundo.md): posições e transição entre áreas (`IPosicoesDoMundo`, `ITransicoesDeAreaDoMundo`, `AreasDoMundo`)
+
 ## Expõe
+
+- Mensagens de tempo real (`InstanciasMessageIds`, faixa 12000–12999):
+  - `EntrarNaDungeon` (12000): cliente solicita entrar na dungeon
+  - `DungeonIniciada` (12001): servidor confirma início/entrada na corrida com ID e área
+  - `EntradaRecusada` (12002): servidor recusa com código (`NaoELider`, `GrupoEmOutraDungeon`, `LongeDemais`)
+  - `DungeonEncerrada` (12003): servidor avisa encerramento com `ResultadoDungeon` (`Vitoria`, `Derrota`, `InstanciaVazia`)
+- Serviço server-side `ServicoDeInstancias`: gerencia criação, entrada, varredura periódica e encerramento de corridas
