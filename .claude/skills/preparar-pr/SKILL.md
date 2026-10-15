@@ -23,6 +23,7 @@ Sempre `git diff --check`. Depois, **só** a linha da alteração; o CI é a con
 | C# de servidor ou shared | `dotnet csharpier format .` e `dotnet test JogoDoGrupo.slnx -c Release` (já compila). |
 | C# de client | `dotnet csharpier format .`, `npm run unity:compilar` e `npm run conferir-unity`. Tela ou HUD: [prints](../../../docs/agentes.md#prints-da-tela). Os testes EditMode ficam com o CI. |
 | Shared usado pelo client | A linha de server/shared e `npm run unity:compilar`. |
+| Tempo real / transporte UDP (`Core/TempoReal/`, `TransporteTempoReal`, canal de `Sequenciada`) | `npm run conferir-contratos-rede` e `node scripts/agentes/conferir-contratos-rede.mjs origin/main` se a branch divergiu. Mesmo PR: shared + `ServidorTempoReal` + `TransporteLiteNetLib`; label `testar-unity` se tocou teste EditMode. |
 | Conteúdo Unity (cena, prefab, asset) | O comando que gerou, `npm run conferir-unity` e `unity:recompilar` (aberto) ou `unity:compilar` (fechado). |
 | CI, dependência, build | O comando que usa a configuração e o teste afetado. |
 

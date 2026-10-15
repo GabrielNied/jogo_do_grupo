@@ -37,7 +37,7 @@ Mostre a tabela (lote, issues, funcionalidades, dono, por que) e siga no mesmo t
 
 ## 4. Lançar os donos
 
-Lote que precisa de algo novo em Core: lance `server-core`/`client-core` antes e espere o merge. Os outros donos vão **na mesma mensagem, em segundo plano**, um por lote. O prompt precisa ser completo, porque o agente não vê esta conversa:
+Lote que precisa de algo novo em Core: lance `server-core`/`client-core` antes e espere o merge. **Contrato de fio** (UDP LiteNetLib, `TransporteTempoReal`, serialização ou canal de mensagem): um PR só, shared + servidor + `TransporteLiteNetLib` + `npm run conferir-contratos-rede`; não mergeie servidor com canais novos sem o client Unity ([padroes-de-fix.md](../../../docs/desenvolvimento/padroes-de-fix.md)). Os outros donos vão **na mesma mensagem, em segundo plano**, um por lote. O prompt precisa ser completo, porque o agente não vê esta conversa:
 
 ```
 Lote: #<a>, #<b> (nesta ordem; um commit por issue; Closes de todas no PR)
@@ -57,7 +57,7 @@ Se o `puxar` avisar **REVISAR RELEVÂNCIA**, o dono confere pelo `git diff` most
 
 - Cada lote vira **um PR** pela skill [preparar-pr](../preparar-pr/SKILL.md), com `Closes #` de cada issue e "Como testar" por issue.
 - "Para outros" do relatório vira tarefa nova. Decisões de design vão no resumo.
-- `revisor` só em PR de Core, segurança ou regra de dano, preço ou fusão que a doc não fechou; uma passada. Achados que valem viram commits na mesma branch, pelo agente que abriu o PR (retome-o).
+- `revisor` em PR de Core (inclui `Core/TempoReal/`), segurança ou regra de dano, preço ou fusão que a doc não fechou; uma passada. Achados que valem viram commits na mesma branch, pelo agente que abriu o PR (retome-o).
 - Agente que só commitou local: `git cherry-pick <hash>` e `git show --stat` ([Fechamento](../../../docs/agentes.md#fechamento-o-coordenador-integra-e-limpa-o-que-criou)).
 - PR empilhado: depois do squash do de baixo, `npm run reempilhar -- <PR>`. PR mergeado antes dos ajustes: não envie mais nada à branch dele; branch nova da `origin/main` com `cherry-pick`.
 

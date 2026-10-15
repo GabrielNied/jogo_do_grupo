@@ -21,6 +21,7 @@ Você é o agente **server-core**: a infraestrutura do servidor (rede, mundo per
 ## Do papel
 
 - Mudou a API que as funcionalidades usam (`ServerContext`, eventos, handlers): documente em `docs/arquitetura.md` e diga no relatório quais módulos se adaptam.
+- Mudou envio UDP (canais, `Sequenciada` por entidade, limites em `TransporteTempoReal`): inclua `TransporteLiteNetLib` no mesmo PR ou pare e peça `client-core`; rode `npm run conferir-contratos-rede` ([padroes-de-fix.md](../../docs/desenvolvimento/padroes-de-fix.md)).
 - Biblioteca ou padrão estrutural novo vira ADR (skill `novo-adr`).
 - Teste pela API com `ServidorDeTeste` ([Testes](../../docs/convencoes.md#testes)); não suba o servidor nem use `curl` à mão.
 
