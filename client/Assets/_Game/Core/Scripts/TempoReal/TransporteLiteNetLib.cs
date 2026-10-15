@@ -21,7 +21,7 @@ namespace JogoDoGrupo.Client.Core.TempoReal
 
         public event Action Conectou;
         public event Action<string> Caiu;
-        public event Action<byte[]> Recebeu;
+        public event Action<ArraySegment<byte>> Recebeu;
 
         public void Conectar(string host, int porta, string chave)
         {
@@ -47,12 +47,16 @@ namespace JogoDoGrupo.Client.Core.TempoReal
             };
             ouvinte.NetworkReceiveEvent += (peer, leitor, canal, entrega) =>
             {
-                var dados = leitor.GetRemainingBytes();
-                leitor.Recycle();
+                var segmento = new ArraySegment<byte>(
+                    leitor.RawData,
+                    leitor.Position,
+                    leitor.AvailableBytes
+                );
                 if (_manager == manager)
                 {
-                    Recebeu?.Invoke(dados);
+                    Recebeu?.Invoke(segmento);
                 }
+                leitor.Recycle();
             };
 
             _manager = manager;
@@ -73,7 +77,18 @@ namespace JogoDoGrupo.Client.Core.TempoReal
 
         public void Enviar(byte[] dados, EntregaTempoReal entrega)
         {
-            _servidor?.Send(dados, 0, ParaLiteNetLib(entrega));
+            if (dados != null)
+            {
+                Enviar(new ArraySegment<byte>(dados, 0, dados.Length), entrega);
+            }
+        }
+
+        public void Enviar(ArraySegment<byte> dados, EntregaTempoReal entrega)
+        {
+            if (dados.Array != null && dados.Count > 0)
+            {
+                _servidor?.Send(dados.Array, dados.Offset, dados.Count, ParaLiteNetLib(entrega));
+            }
         }
 
         public void Desconectar() => Encerrar();

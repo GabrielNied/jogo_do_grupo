@@ -21,9 +21,11 @@ namespace JogoDoGrupo.Client.Core.TempoReal
         event Action<string> Caiu;
 
         /// <summary>Chegou um pacote do servidor.</summary>
-        event Action<byte[]> Recebeu;
+        event Action<ArraySegment<byte>> Recebeu;
 
         void Conectar(string host, int porta, string chave);
+
+        void Enviar(ArraySegment<byte> dados, EntregaTempoReal entrega);
 
         void Enviar(byte[] dados, EntregaTempoReal entrega);
 

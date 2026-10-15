@@ -122,7 +122,7 @@ namespace JogoDoGrupo.Client.Core.TempoReal
                 return false;
             }
 
-            _transporte.Enviar(CodecTempoReal.Codificar(id, mensagem), entrega);
+            _transporte.Enviar(CodecTempoReal.CodificarParaEnvio(id, mensagem), entrega);
             return true;
         }
 
@@ -174,7 +174,7 @@ namespace JogoDoGrupo.Client.Core.TempoReal
                 PersonagemId = _personagemId,
             };
             _transporte.Enviar(
-                CodecTempoReal.Codificar(TempoRealIds.AutenticarTempoReal, autenticar),
+                CodecTempoReal.CodificarParaEnvio(TempoRealIds.AutenticarTempoReal, autenticar),
                 EntregaTempoReal.Confiavel
             );
         }
@@ -202,7 +202,7 @@ namespace JogoDoGrupo.Client.Core.TempoReal
             MudarEstado(EstadoTempoReal.Reconectando);
         }
 
-        private void AoReceber(byte[] dados)
+        private void AoReceber(ArraySegment<byte> dados)
         {
             if (!CodecTempoReal.TentarDecodificar(dados, out var mensagem))
             {

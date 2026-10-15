@@ -12,6 +12,7 @@ namespace JogoDoGrupo.Client.Core.TempoReal
     internal sealed class RoteadorTempoReal
     {
         private readonly List<Assinatura> _assinaturas = new List<Assinatura>();
+        private Assinatura[] _snapshot = Array.Empty<Assinatura>();
 
         public int Quantidade => _assinaturas.Count;
 
@@ -39,15 +40,16 @@ namespace JogoDoGrupo.Client.Core.TempoReal
         /// <summary>Entrega a mensagem e devolve quantos assinantes a receberam.</summary>
         public int Despachar(MensagemTempoReal mensagem)
         {
-            if (_assinaturas.Count == 0)
+            var snapshot = _snapshot;
+            if (snapshot.Length == 0)
             {
                 return 0;
             }
 
-            // Cópia: um assinante pode assinar ou cancelar durante a entrega.
             var entregues = 0;
-            foreach (var assinatura in _assinaturas.ToArray())
+            for (var i = 0; i < snapshot.Length; i++)
             {
+                var assinatura = snapshot[i];
                 if (assinatura.Cancelada || !assinatura.Faixa.Contem(mensagem.Id))
                 {
                     continue;
@@ -70,12 +72,13 @@ namespace JogoDoGrupo.Client.Core.TempoReal
         /// <summary>Cancela todas as assinaturas.</summary>
         public void Limpar()
         {
-            foreach (var assinatura in _assinaturas)
+            for (var i = 0; i < _assinaturas.Count; i++)
             {
-                assinatura.Cancelada = true;
+                _assinaturas[i].Cancelada = true;
             }
 
             _assinaturas.Clear();
+            _snapshot = Array.Empty<Assinatura>();
         }
 
         private IDisposable Adicionar(MessageIdRange faixa, Action<MensagemTempoReal> aoReceber)
@@ -87,7 +90,16 @@ namespace JogoDoGrupo.Client.Core.TempoReal
 
             var assinatura = new Assinatura(this, faixa, aoReceber);
             _assinaturas.Add(assinatura);
+            _snapshot = _assinaturas.ToArray();
             return assinatura;
+        }
+
+        private void Remover(Assinatura assinatura)
+        {
+            if (_assinaturas.Remove(assinatura))
+            {
+                _snapshot = _assinaturas.ToArray();
+            }
         }
 
         private sealed class Assinatura : IDisposable
@@ -117,7 +129,7 @@ namespace JogoDoGrupo.Client.Core.TempoReal
                 }
 
                 Cancelada = true;
-                _roteador._assinaturas.Remove(this);
+                _roteador.Remover(this);
             }
         }
     }
