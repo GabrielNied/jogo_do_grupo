@@ -1,6 +1,7 @@
 using JogoDoGrupo.Server.Contratos.Itens;
 using JogoDoGrupo.Server.Contratos.Mundo;
 using JogoDoGrupo.Server.Core.TempoReal;
+using JogoDoGrupo.Shared.Core.TempoReal;
 using JogoDoGrupo.Shared.Features.Pets;
 
 namespace JogoDoGrupo.Server.Features.Pets;
@@ -26,7 +27,17 @@ public sealed class ServicoDePets(
     ILogger<ServicoDePets> log
 ) : IHostedService
 {
+    /// <summary>
+    /// Deslocamento do canal do pet em relação ao do dono. Com <c>entidadeId = DonoId</c> o
+    /// <c>PetMudou</c> cairia no canal da <c>PosicaoJogador</c> do dono e um descartaria o outro;
+    /// sem entidade, todos os pets dividiriam o canal 0. Meia volta nos canais nunca cai no do dono.
+    /// </summary>
+    public const int DeslocamentoDoCanal = TransporteTempoReal.Canais / 2;
+
     private readonly Dictionary<long, PetDoDono> _pets = [];
+
+    /// <summary>Entidade do canal sequenciado do pet de <paramref name="donoId"/>.</summary>
+    public static long EntidadeDoPet(long donoId) => donoId + DeslocamentoDoCanal;
 
     public Task StartAsync(CancellationToken cancelamento) => Task.CompletedTask;
 
@@ -347,9 +358,8 @@ public sealed class ServicoDePets(
                         Andando = pet.Andando,
                         Sequencia = pet.Sequencia,
                     },
-                    // Sequenciada no canal 0: o canal por entidade (DonoId) seria o mesmo da
-                    // PosicaoJogador do dono, e um pacote fora de ordem descartaria o outro.
-                    EntregaTempoReal.Sequenciada
+                    EntregaTempoReal.Sequenciada,
+                    EntidadeDoPet(pet.DonoId)
                 );
             }
         }
