@@ -130,6 +130,7 @@ namespace JogoDoGrupo.Client.Features.Itens
                     atributo.Fixo ? EstiloLinha.Fixo : EstiloLinha.Sorteado
                 );
             }
+            AdicionarPoder(dados, item);
             Adicionar(
                 dados.Linhas,
                 "Fusão +" + item.NivelFusao + "/" + ConfigFusao.NivelMaximo,
@@ -146,6 +147,20 @@ namespace JogoDoGrupo.Client.Features.Itens
             );
 
             return dados;
+        }
+
+        /// <summary>
+        /// O poder lendário da peça: nome, o que faz e quais skills afeta (PODER-003). Peça sem
+        /// poder não ganha linha.
+        /// </summary>
+        public static void AdicionarPoder(DadosTooltip dados, Equipamento item)
+        {
+            var poder = CatalogoDePoderes.Obter(item.PoderId);
+            if (poder == null)
+                return;
+            Adicionar(dados.Linhas, "Poder lendário: " + poder.Nome, EstiloLinha.Fixo);
+            Adicionar(dados.Linhas, poder.Descricao, EstiloLinha.Normal);
+            Adicionar(dados.Linhas, "Afeta: " + poder.Afeta, EstiloLinha.Suave);
         }
 
         /// <summary>"N doadores na bolsa": peças que a fusão aceitaria como material desta.</summary>

@@ -90,6 +90,21 @@
     white-space: normal;
 }
 
+.skills-poder {
+    position: absolute;
+    left: 50%;
+    bottom: 150px;
+    width: var(--lumora-dimensoes-recursos-largura);
+    max-width: var(--lumora-dimensoes-dialogo-percentual);
+    translate: -50% 0;
+    padding: var(--lumora-espacamento-pequeno);
+    font-size: var(--lumora-tipografia-controle);
+    -unity-text-align: middle-center;
+    color: var(--lumora-cores-ouro);
+    background-color: var(--lumora-cores-painel);
+    white-space: normal;
+}
+
 .skills-numeros {
     position: absolute;
     left: 0;

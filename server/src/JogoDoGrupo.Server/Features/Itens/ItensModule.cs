@@ -33,6 +33,9 @@ public sealed class ItensModule : IFeatureModule
         servicos.AddSingleton<JogoDoGrupo.Server.Contratos.Itens.IArmaEquipada>(sp =>
             sp.GetRequiredService<EquipamentosParaCombate>()
         );
+        servicos.AddSingleton<JogoDoGrupo.Server.Contratos.Itens.IEfeitosDoEquipamento>(sp =>
+            sp.GetRequiredService<EquipamentosParaCombate>()
+        );
         servicos.AddSingleton<
             JogoDoGrupo.Server.Contratos.Itens.ITrocaDeConjunto,
             TrocaDeConjunto

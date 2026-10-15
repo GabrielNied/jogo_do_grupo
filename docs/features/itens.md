@@ -261,7 +261,7 @@ Implementado na [#617](https://github.com/GabrielNied/jogo_do_grupo/issues/617).
 
 #### Poderes e sets
 
-Decidido por Gabriel em 2026-10-12 ([especificação de poderes e sets](../brainstorm/poderes-e-sets.md)). Implementação: poderes [#629](https://github.com/GabrielNied/jogo_do_grupo/issues/629) e sets [#630](https://github.com/GabrielNied/jogo_do_grupo/issues/630), as duas bloqueadas pelas skills nas armas ([#167](https://github.com/GabrielNied/jogo_do_grupo/issues/167), [#580](https://github.com/GabrielNied/jogo_do_grupo/issues/580)).
+Decidido por Gabriel em 2026-10-12 ([especificação de poderes e sets](../brainstorm/poderes-e-sets.md)). Implementação: poderes [#629](https://github.com/GabrielNied/jogo_do_grupo/issues/629) e sets [#630](https://github.com/GabrielNied/jogo_do_grupo/issues/630) (motor e primeiro lote entregues, veja [Entregue nas #629 e #630](#entregue-nas-629-e-630-poderes-e-sets)); as skills nas armas vieram na [#167](https://github.com/GabrielNied/jogo_do_grupo/issues/167) e na [#580](https://github.com/GabrielNied/jogo_do_grupo/issues/580).
 
 **Princípio:** os equipamentos modificam as skills e o estilo de combate, não só os números. A **arma** define as skills-base; as **outras peças** fortalecem, modificam ou conectam essas skills; os **poderes lendários** criam mecânicas de build; os **sets** dão sinergias pela combinação de peças; a **árvore** especializa o personagem pelas categorias e propriedades das skills ([talentos](talentos.md)). Duas builds com a mesma arma devem jogar de jeitos bem diferentes por causa do equipamento.
 
@@ -296,6 +296,37 @@ Decidido por Gabriel em 2026-10-12 ([especificação de poderes e sets](../brain
 **Exemplo** (ilustrativo, não é regra de balanceamento): arma com Investida Trovejante, Corte Relâmpago e Explosão Elétrica; o peito faz a investida marcar, as luvas fazem golpes seguidos fortalecerem a próxima skill, as botas fazem a esquiva fortalecer a investida e o anel faz acerto em marcado reduzir uma recarga. O jogador prepara, encadeia e fecha com a área.
 
 **Lendário:** não é raridade sorteada (a raridade saiu); é o item cujo modelo-base declara categorias de poder (PODER-006 e PODER-007). ~~As famílias do catálogo são os primeiros sets~~ (substituído em 2026-10-12: os sets são definidos set a set no conteúdo, SET-001).
+
+#### Entregue nas #629 e #630 (poderes e sets)
+
+Decisões de design da implementação (valores de teste em `ConfigPoderes`, no shared, fáceis de mudar). O primeiro lote prova o motor; **não é o catálogo final** nem balanceamento.
+
+**Dados e motor**
+
+- **Definição separada do exemplar:** `CatalogoDePoderes` e `CatalogoDeSets` (shared, `Features/Itens/`). Um poder tem categoria, os tipos de peça em que cabe, o texto "afeta" do tooltip e uma lista de `RegraDePoder`: **gatilho** (usar skill, acertar com skill, golpe comum acertou, esquivar), **seletor de skill** explícito (ids ou etiqueta que a skill declara; seletor vazio é regra inválida, PODER-003), **condição** (nenhuma, alvo marcado, tem carga), **ação** (marcar alvos, ganhar carga, amplificar dano, reduzir recarga), valor, duração, máximo de acúmulos e folga mínima entre ativações. Sem script nem plugin.
+- **Quem faz o quê:** Itens resolve os efeitos ligados (`RegrasDePoderes.Ativos`: poderes das peças vestidas e marcos de set atingidos, só o conjunto de armas ativo) e os entrega por `Contratos/Itens/IEfeitosDoEquipamento`. Skills guarda o estado de execução (cargas do personagem, marcas nos alvos, folga) no `MotorDePoderes` e aplica ao usar a skill. O servidor decide tudo; o client só mostra.
+- **Recalculo (SET-003):** Skills invalida a lista de efeitos em `EquipamentoMudou` (equipar, desequipar, trocar conjunto, fundir peça vestida). Ao reler, o estado que veio de uma origem que saiu (peça tirada, marco perdido) é apagado: tirar a peça desliga o efeito e vestir de novo começa do zero.
+- **Sem ciclo:** a ação de uma regra nunca dispara outro gatilho, e as condições olham o estado de **antes** do evento (a carga que a skill acabou de dar não a fortalece). Cada regra tem folga mínima própria.
+- **Acumulação:** o mesmo poder em duas peças vale **uma vez**; carga empilha até o máximo da regra e renova a duração; marca renova a duração; bônus de dano de poderes diferentes **soma** (multiplicador `1 + soma`); cargas são gastas todas de uma vez pela skill compatível.
+- **Etiquetas de skill:** a skill declara em `DefinicaoDeSkill.Etiquetas` (`fisica`, `magica`, `investida`; ver [skills](skills.md)). Itens escreve o mesmo texto e um teste confere que as duas pontas concordam.
+
+**Poder no exemplar (PODER-006 e PODER-007)**
+
+- `Equipamento.PoderId` (vazio = sem poder), sorteado pelo gerador **depois** de todo o resto (não muda nenhum valor sorteado antes) e fixo. Nem todo modelo declara: por ora só as peças **variante B** de cada família, pelas categorias do foco de cada encaixe (`CatalogoDePoderes.CategoriasDoModelo`); o poder sai dos candidatos de categoria e encaixe compatíveis. Encaixe sem poder no catálogo fica sem poder.
+- **Migração:** não há mudança de esquema. O exemplar é um JSON na coluna `EquipamentoJson`, e `PoderId` entra nele; exemplar antigo lê vazio e **não recebe poder retroativo** (o poder é sorteado ao obter o item, e o que já existe foi obtido antes). A fusão regrava o mesmo objeto do principal, então **preserva o poder** (DEC-003); poder e set **não entram no tier** (DEC-004), conferido por teste.
+
+**Primeiro lote de poderes** (exemplo da especificação, valores de teste)
+
+| Peça | Poder | Efeito |
+|---|---|---|
+| Peito | Investida Marcante | a skill de investida marca os inimigos atingidos por 6 s |
+| Luvas | Embalo de Golpes | golpe comum que acerta dá 1 carga de Embalo (até 3, 5 s); a próxima skill física gasta todas e causa +10% de dano por carga |
+| Botas | Esquiva Impetuosa | esquivar dá o Impulso (4 s); a próxima skill de investida causa +40% de dano |
+| Anel | Caçador de Marcados | skill física que acerta alvo marcado pela investida tira 2 s da recarga das **outras** skills físicas (folga de 4 s) |
+
+Skills de investida hoje: Avanço Devastador (espada) e Avanço de Muralha (escudo). Em combate: aviso dourado ("Investida Marcante: alvo marcado", "Embalo de Golpes: +30% de dano", "Caçador de Marcados: -2 s de recarga") e o dano maior no número; a barra mostra a recarga menor. O tooltip da peça traz "Poder lendário", o que faz e "Afeta: ...".
+
+**Pendente de Combate:** os gatilhos de **golpe comum** e **esquiva** (Embalo e Esquiva Impetuosa) esperam Combate publicar `Contratos/Combate/GolpeComumAcertou` e `PersonagemEsquivou` (já definidos e escutados por Skills; nada publica ainda). Até lá esses dois poderes ficam parados e os de marca e recarga funcionam só com skills.
 
 #### Pendente
 

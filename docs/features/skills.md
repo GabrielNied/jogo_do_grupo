@@ -39,7 +39,12 @@ Decisões de design da implementação (valores de teste, em `ConfigSkills` e `C
 - **Uso:** `UsarSkill` com o espaço (0 a 2) e a direção da mira. O servidor confere arma, espaço, recarga e custo, cobra **uma vez só** (pedidos simultâneos do mesmo personagem rodam em fila) e aplica o dano **na hora** (sem preparo) nos alvos do cone do golpe básico. Skill que não acerta ninguém também gasta e recarrega.
 - **Dano:** `(dano da arma + dano flat dos itens, físico ou mágico conforme a skill) x multiplicador da skill`, arredondado, mínimo 1. Ainda **não** usa o bônus em % de Força ou Intelecto, crítico e penetração (pedem a pipeline do Combate, #627); as propriedades da skill já os declaram.
 - **Recarga:** em memória, por (exemplar, espaço): trocar de arma não mexe na recarga da outra. Reiniciar o servidor zera as recargas.
-- **Só dano nesta fatia:** cura, escudo, controle e mobilidade esperam os estados do Combate ([#171](https://github.com/GabrielNied/jogo_do_grupo/issues/171)) e os poderes ([#629](https://github.com/GabrielNied/jogo_do_grupo/issues/629)).
+- **Só dano nesta fatia:** cura, escudo, controle e mobilidade esperam os estados do Combate ([#171](https://github.com/GabrielNied/jogo_do_grupo/issues/171)). Os poderes ([#629](https://github.com/GabrielNied/jogo_do_grupo/issues/629)) e sets ([#630](https://github.com/GabrielNied/jogo_do_grupo/issues/630)) já mudam o dano e a recarga (abaixo).
+- **Poderes e sets aplicados ao uso (#629, #630):** decidido na implementação; as regras e os valores estão em [itens, Entregue nas #629 e #630](itens.md#entregue-nas-629-e-630-poderes-e-sets).
+  - **Etiquetas:** `DefinicaoDeSkill.Etiquetas` declara o que a skill é para os poderes (PODER-003): `fisica`/`magica` saem da categoria de dano (a híbrida leva as duas) e `investida` é marcada no catálogo (Avanço Devastador e Avanço de Muralha). Poder só afeta skill cujo id ou etiqueta ele cita.
+  - **Ordem do uso:** cobra o custo; `MotorDePoderes.AoUsarSkillAsync` gasta as cargas e devolve o multiplicador do dano (`RegrasSkills.ComPoderes`); aplica o dano; com acerto, marca alvos, dá cargas e reduz recarga (`AoAcertarComSkillAsync`). Reduzir recarga tira das **outras** skills da barra (a recém-usada começa a recarga inteira) e o dono recebe a barra nova.
+  - **Aviso:** `PoderDisparou` (4006) vai ao dono a cada efeito aplicado: nome do poder ou do set, ação e valor.
+  - **Estado:** cargas, marcas e folga ficam em memória por personagem, somem ao sair e são apagados quando a origem (peça, marco) deixa de valer.
 - **Barra no client:** no centro de baixo da tela, três espaços com tecla, nome, custo e a recarga que falta (cobertura e segundos). Sem arma, a barra some e aparece o aviso para equipar uma. Um uso recusado mostra o motivo na tela. O dano aparece como número sobre o alvo.
 
 ## Proposta do board: preparação, raciais e catálogo (2026-10-11)
@@ -108,7 +113,8 @@ SKILL-001 a SKILL-006 em **Definido**; comportamento implementado em [Skills de 
 
 ## Depende de
 
-- **Itens:** `IArmaEquipada` (arma principal do conjunto ativo) e `EquipamentoMudou`; `IAtributosDosEquipamentos` (dano da arma e flat).
+- **Itens:** `IArmaEquipada` (arma principal do conjunto ativo) e `EquipamentoMudou`; `IAtributosDosEquipamentos` (dano da arma e flat); `IEfeitosDoEquipamento` (poderes e marcos de set ligados).
+- **Combate (a publicar):** `GolpeComumAcertou` e `PersonagemEsquivou` em `Contratos/Combate/`, para os poderes de golpe comum e de esquiva. Skills já escuta; falta Combate publicar.
 - **Combate:** `ICobrancaDeRecursos` (cobra stamina ou mana de forma atômica), `IAlvosDeCombate` (alvos no cone e dano). Barras de recurso via `RecursosMudaram` de Combate.
 - **Mundo:** `IPosicoesDoMundo` (origem da skill e área).
 
@@ -116,5 +122,5 @@ SKILL-001 a SKILL-006 em **Definido**; comportamento implementado em [Skills de 
 
 Contratos em `shared/Package/Runtime/Features/Skills/`:
 
-- Mensagens **4000–4005** (`SkillsMessageIds`): `UsarSkill`, `PedirBarraDeSkills`, `BarraDeSkillsMudou`, `SkillUsada`, `SkillAcertou`, `SkillRecusada`.
+- Mensagens **4000–4006** (`SkillsMessageIds`): `UsarSkill`, `PedirBarraDeSkills`, `BarraDeSkillsMudou`, `SkillUsada`, `SkillAcertou`, `SkillRecusada`, `PoderDisparou`.
 - `CatalogoDeSkills`, `DefinicaoDeSkill` (com `PropriedadesDaSkill`) e `RegrasSkills` (validações puras de custo e recarga).

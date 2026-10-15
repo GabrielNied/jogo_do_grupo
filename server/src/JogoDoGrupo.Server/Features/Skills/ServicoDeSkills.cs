@@ -1,3 +1,4 @@
+using JogoDoGrupo.Server.Contratos.Combate;
 using JogoDoGrupo.Server.Contratos.Itens;
 using JogoDoGrupo.Server.Contratos.Mundo;
 using JogoDoGrupo.Server.Core.TempoReal;
@@ -16,6 +17,7 @@ public sealed class ServicoDeSkills : IHostedService, IDisposable
 {
     private readonly ServidorTempoReal _tempoReal;
     private readonly NucleoDeSkills _nucleo;
+    private readonly MotorDePoderes _motor;
     private readonly IPosicoesDoMundo _posicoes;
     private readonly ILogger<ServicoDeSkills> _log;
     private readonly CancellationTokenSource _parada = new();
@@ -23,12 +25,14 @@ public sealed class ServicoDeSkills : IHostedService, IDisposable
     public ServicoDeSkills(
         ServidorTempoReal tempoReal,
         NucleoDeSkills nucleo,
+        MotorDePoderes motor,
         IPosicoesDoMundo posicoes,
         ILogger<ServicoDeSkills> log
     )
     {
         _tempoReal = tempoReal;
         _nucleo = nucleo;
+        _motor = motor;
         _posicoes = posicoes;
         _log = log;
         _tempoReal.SessaoEncerrada += AoEncerrar;
@@ -90,6 +94,13 @@ public sealed class ServicoDeSkills : IHostedService, IDisposable
                 {
                     EnviarParaArea(resultado.Area, sessao.PersonagemId, resultado.Acertos);
                 }
+
+                EnviarAvisos(sessao, resultado.Poderes);
+                if (resultado.BarraMudou)
+                {
+                    // Um poder tirou recarga de outra skill: o dono recebe os tempos novos.
+                    await EnviarBarraAsync(sessao);
+                }
             }
         );
 
@@ -100,9 +111,61 @@ public sealed class ServicoDeSkills : IHostedService, IDisposable
     /// <summary>Itens avisou que o equipamento mudou: a barra do dono pode ter mudado.</summary>
     public void AoEquipamentoMudar(EquipamentoMudou evento)
     {
+        // Os poderes e os marcos de set dependem do que está vestido: recalcula na próxima vez.
+        _motor.Invalidar(evento.PersonagemId);
         if (_tempoReal.TentarObterSessao(evento.PersonagemId, out var sessao) && sessao != null)
         {
             _ = ExecutarAsync(sessao, () => EnviarBarraAsync(sessao));
+        }
+    }
+
+    /// <summary>Combate avisou que um golpe comum do personagem acertou.</summary>
+    public void AoGolpeComum(GolpeComumAcertou evento) =>
+        AoGatilhoDeCombate(
+            evento.PersonagemId,
+            () =>
+                _motor.AoGolpeComumAsync(
+                    evento.PersonagemId,
+                    evento.AlvoIds.ToArray(),
+                    _parada.Token
+                )
+        );
+
+    /// <summary>Combate avisou que o personagem esquivou.</summary>
+    public void AoEsquivar(PersonagemEsquivou evento) =>
+        AoGatilhoDeCombate(
+            evento.PersonagemId,
+            () => _motor.AoEsquivarAsync(evento.PersonagemId, _parada.Token)
+        );
+
+    // Os gatilhos de Combate vêm do laço de rede: o trabalho vai para uma tarefa.
+    private void AoGatilhoDeCombate(long personagemId, Func<Task<ResultadoDosPoderes>> avaliar)
+    {
+        if (!_tempoReal.TentarObterSessao(personagemId, out var sessao) || sessao == null)
+        {
+            return;
+        }
+
+        _ = ExecutarAsync(
+            sessao,
+            async () =>
+            {
+                var resultado = await avaliar();
+                EnviarAvisos(sessao, resultado.Avisos);
+            }
+        );
+    }
+
+    private void EnviarAvisos(SessaoTempoReal sessao, IReadOnlyList<PoderDisparou>? avisos)
+    {
+        if (avisos == null)
+        {
+            return;
+        }
+
+        foreach (var aviso in avisos)
+        {
+            _tempoReal.Enviar(sessao, SkillsMessageIds.PoderDisparou, aviso);
         }
     }
 
@@ -138,5 +201,9 @@ public sealed class ServicoDeSkills : IHostedService, IDisposable
         }
     }
 
-    private void AoEncerrar(SessaoTempoReal sessao) => _nucleo.Esquecer(sessao.PersonagemId);
+    private void AoEncerrar(SessaoTempoReal sessao)
+    {
+        _nucleo.Esquecer(sessao.PersonagemId);
+        _motor.Esquecer(sessao.PersonagemId);
+    }
 }

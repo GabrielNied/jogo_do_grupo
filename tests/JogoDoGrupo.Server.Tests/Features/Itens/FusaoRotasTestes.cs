@@ -316,6 +316,31 @@ public class FusaoRotasTestes(ServidorDeTeste servidor) : IClassFixture<Servidor
     }
 
     [Fact]
+    public async Task FusaoPreservaOPoderDoPrincipalENaoUsaOPoderDoMaterial()
+    {
+        var (cliente, id) = await Personagem();
+        var principal = await Item(id, 20, e => e.PoderId = CatalogoDePoderes.PoderPeito);
+        var material = await Item(id, 100, e => e.PoderId = CatalogoDePoderes.PoderLuvas);
+        var semPoder = await Item(id, 20);
+
+        var previa = await Previa(cliente, id, principal, material);
+        (await Confirmar(cliente, id, previa)).EnsureSuccessStatusCode();
+
+        var estado = await Estado(cliente, id);
+        var fundido = Dados(estado, principal);
+        // DEC-003: o poder do principal fica. DEC-004: o poder não entra no tier.
+        Assert.Equal(CatalogoDePoderes.PoderPeito, fundido.PoderId);
+        var semOPoder = Dados(estado, semPoder);
+        Assert.Equal("", semOPoder.PoderId);
+        var copia = JsonSerializer.Deserialize<Equipamento>(
+            JsonSerializer.Serialize(fundido, ServidorDeTeste.Json),
+            ServidorDeTeste.Json
+        )!;
+        copia.PoderId = "";
+        Assert.Equal(RegrasTier.TierDe(copia), RegrasTier.TierDe(fundido));
+    }
+
+    [Fact]
     public async Task FusaoQueDiminuiPodeBaixarOTierAtual()
     {
         var (cliente, id) = await Personagem();

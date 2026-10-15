@@ -17,7 +17,9 @@ public sealed record ResultadoDoUso(
     SkillUsada? Usada = null,
     RecursosMudaram? Recursos = null,
     SkillAcertou? Acertos = null,
-    string Area = ""
+    string Area = "",
+    IReadOnlyList<PoderDisparou>? Poderes = null,
+    bool BarraMudou = false
 );
 
 /// <summary>
@@ -37,6 +39,7 @@ public sealed class NucleoDeSkills
     private readonly IReadOnlyList<IAlvosDeCombate> _alvos;
     private readonly Func<long> _agoraMs;
     private readonly ITrocaDeArma? _troca;
+    private readonly MotorDePoderes? _poderes;
 
     // Fim da recarga (ms) por (exemplar da arma, espaço).
     private readonly ConcurrentDictionary<(long Arma, int Espaco), long> _recargas = new();
@@ -50,10 +53,12 @@ public sealed class NucleoDeSkills
         IPosicoesDoMundo posicoes,
         IEnumerable<IAlvosDeCombate> alvos,
         Func<long> agoraMs,
-        ITrocaDeArma? troca = null
+        ITrocaDeArma? troca = null,
+        MotorDePoderes? poderes = null
     )
     {
         _troca = troca;
+        _poderes = poderes;
         _armas = armas;
         _armazem = armazem;
         _cobranca = cobranca;
@@ -180,7 +185,32 @@ public sealed class NucleoDeSkills
 
         _recargas[(equipada.InstanciaId, pedido.Espaco)] = _agoraMs() + skill.RecargaMs;
 
-        var acertos = await AplicarDanoAsync(personagemId, skill, pedido, posicao, c);
+        // Os poderes de equipamento mexem na skill depois do custo cobrado: o dano extra vem das
+        // cargas gastas agora e as marcas e reduções vêm do que a skill acertou.
+        var avisos = new List<PoderDisparou>();
+        var uso =
+            _poderes == null
+                ? ResultadoDosPoderes.Nenhum
+                : await _poderes.AoUsarSkillAsync(personagemId, skill, c);
+        avisos.AddRange(uso.Avisos);
+
+        var acertos = await AplicarDanoAsync(
+            personagemId,
+            skill,
+            pedido,
+            posicao,
+            uso.MultiplicadorDoDano,
+            c
+        );
+        var barraMudou = false;
+        if (_poderes != null && acertos.Length > 0)
+        {
+            var alvos = acertos.Select(a => a.AlvoId).ToArray();
+            var acerto = await _poderes.AoAcertarComSkillAsync(personagemId, skill, alvos, c);
+            avisos.AddRange(acerto.Avisos);
+            barraMudou = ReduzirRecargas(equipada.InstanciaId, ids, pedido.Espaco, acerto.Reducoes);
+        }
+
         return new ResultadoDoUso(
             null,
             new SkillUsada
@@ -199,7 +229,9 @@ public sealed class NucleoDeSkills
                 Sequencia = pedido.Sequencia,
                 Acertos = acertos,
             },
-            posicao.Area
+            posicao.Area,
+            avisos,
+            barraMudou
         );
 
         ResultadoDoUso Recusar(string codigo) => new(codigo);
@@ -212,15 +244,19 @@ public sealed class NucleoDeSkills
         DefinicaoDeSkill skill,
         UsarSkill pedido,
         PosicaoNoMundo posicao,
+        double multiplicadorDosPoderes,
         CancellationToken c
     )
     {
         var itens = await _equipamentos.ObterAsync(personagemId, c);
-        var dano = RegrasSkills.Dano(
-            skill,
-            itens.DanoDaArma,
-            itens.BonusDanoFisico,
-            itens.BonusDanoMagico
+        var dano = RegrasSkills.ComPoderes(
+            RegrasSkills.Dano(
+                skill,
+                itens.DanoDaArma,
+                itens.BonusDanoFisico,
+                itens.BonusDanoMagico
+            ),
+            multiplicadorDosPoderes
         );
         var vistos = new HashSet<long>();
         var acertos = new List<AcertoDeAtaque>();
@@ -250,6 +286,48 @@ public sealed class NucleoDeSkills
         }
 
         return acertos.ToArray();
+    }
+
+    // Tira ms da recarga das outras skills da barra que o seletor escolhe (a que acabou de ser
+    // usada fica de fora). Devolve se mexeu em alguma, para o dono receber a barra atualizada.
+    private bool ReduzirRecargas(
+        long armaId,
+        IReadOnlyList<string> ids,
+        int espacoUsado,
+        IReadOnlyList<ReducaoDeRecarga> reducoes
+    )
+    {
+        var mudou = false;
+        foreach (var reducao in reducoes)
+        {
+            for (int espaco = 0; espaco < ids.Count; espaco++)
+            {
+                var definicao = CatalogoDeSkills.Obter(ids[espaco]);
+                if (
+                    espaco == espacoUsado
+                    || definicao == null
+                    || !reducao.Alvo.Corresponde(definicao.Id, definicao.Etiquetas)
+                    || !_recargas.TryGetValue((armaId, espaco), out var fim)
+                )
+                {
+                    continue;
+                }
+
+                var novo = fim - reducao.Ms;
+                if (novo <= _agoraMs())
+                {
+                    _recargas.TryRemove(new KeyValuePair<(long, int), long>((armaId, espaco), fim));
+                }
+                else
+                {
+                    _recargas[(armaId, espaco)] = novo;
+                }
+
+                mudou = true;
+            }
+        }
+
+        return mudou;
     }
 
     private int RestanteMs(long armaId, int espaco, long agora)

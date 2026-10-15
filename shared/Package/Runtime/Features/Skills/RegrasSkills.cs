@@ -69,5 +69,17 @@ namespace JogoDoGrupo.Shared.Features.Skills
             var dano = Math.Round(bruto, MidpointRounding.AwayFromZero);
             return (int)Math.Max(1, Math.Min(dano, int.MaxValue));
         }
+
+        /// <summary>
+        /// O dano depois dos poderes de equipamento: o multiplicador (1 sem poder; 1 mais a soma
+        /// dos bônus), arredondado, nunca menor que 1 e sem mudar o dano quando não há bônus.
+        /// </summary>
+        public static int ComPoderes(int dano, double multiplicador)
+        {
+            if (multiplicador <= 1.0 || double.IsNaN(multiplicador))
+                return dano;
+            var total = Math.Round(dano * multiplicador, MidpointRounding.AwayFromZero);
+            return (int)Math.Max(1, Math.Min(total, int.MaxValue));
+        }
     }
 }
