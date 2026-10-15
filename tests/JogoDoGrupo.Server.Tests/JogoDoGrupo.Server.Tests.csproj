@@ -24,5 +24,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\server\src\JogoDoGrupo.Server\JogoDoGrupo.Server.csproj" />
+    <ProjectReference Include="..\..\tools\JogoDoGrupo.Robos\JogoDoGrupo.Robos.csproj" />
   </ItemGroup>
 </Project>

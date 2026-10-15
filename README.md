@@ -166,6 +166,7 @@ Depois, abra o PR no GitHub com o título no mesmo padrão do commit e preencha 
 | Atualizar sua branch com a `main` | `git pull --rebase origin main` |
 | Antes de commitar C# | `dotnet csharpier format .` |
 | Compilar e rodar o servidor | `dotnet build JogoDoGrupo.slnx` e `npm run server:rodar` |
+| Medir a carga do tempo real (robôs) | `dotnet run --project tools/JogoDoGrupo.Robos -- --robos 80` ([uso](tools/JogoDoGrupo.Robos/README.md)) |
 | Mudou o `package-lock.json` | `npm install` |
 | Mudou o `dotnet-tools.json` | `dotnet tool restore` |
 | Vai editar um binário (PSD, FBX, Blend) | `git lfs lock <arquivo>` antes; `git lfs unlock <arquivo>` depois |
@@ -202,6 +203,7 @@ jogo_do_grupo/
 │       ├── Core/
 │       └── Features/<X>/
 ├── tests/           Testes automatizados (xUnit) do shared e do servidor
+├── tools/           Ferramentas .NET (robôs de carga do tempo real)
 ├── docs/            Documentação (visão, arquitetura, features, decisões)
 ├── .claude/
 │   ├── agents/      Agentes especializados para trabalho em paralelo (ver docs/agentes.md)

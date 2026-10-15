@@ -23,7 +23,11 @@ public sealed class MetricasDoServidor
     {
         var agora = DateTimeOffset.UtcNow;
         RemoverErrosAntigos(agora);
-        return new MetricasServidor(_tempoReal?.Sessoes.Count ?? 0, _erros.Count);
+        return new MetricasServidor(
+            _tempoReal?.Sessoes.Count ?? 0,
+            _erros.Count,
+            _tempoReal?.Passos.Resumir() ?? new ResumoDosPassos(0, 0, 0, 0)
+        );
     }
 
     private void RemoverErrosAntigos(DateTimeOffset agora)
@@ -36,7 +40,11 @@ public sealed class MetricasDoServidor
 }
 
 /// <summary>Resposta do comando administrativo de métricas.</summary>
-public sealed record MetricasServidor(int JogadoresOnline, int ErrosNoUltimoMinuto);
+public sealed record MetricasServidor(
+    int JogadoresOnline,
+    int ErrosNoUltimoMinuto,
+    ResumoDosPassos Passos
+);
 
 /// <summary>Mascara segredos e conteúdo de conversa sem perder o evento.</summary>
 public sealed class FiltroDadosSensiveis : ILogEventEnricher

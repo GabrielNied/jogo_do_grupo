@@ -141,6 +141,9 @@ public sealed class ServidorTempoReal : BackgroundService
     /// <summary>Porta UDP em que o servidor escuta (a real, mesmo com <c>TempoReal:Porta</c> 0).</summary>
     public int Porta => _rede.LocalPort;
 
+    /// <summary>Duração e ritmo dos últimos passos do laço (o "tick"), para as métricas.</summary>
+    public MedidorDePassos Passos { get; } = new();
+
     /// <summary>Sessões autenticadas neste momento, em uma coleção sem alocar cópias.</summary>
     public ICollection<SessaoTempoReal> Sessoes => _autenticadas.Keys;
 
@@ -333,6 +336,7 @@ public sealed class ServidorTempoReal : BackgroundService
         ExpirarNaoAutenticadas();
 
         var duracao = Stopwatch.GetElapsedTime(inicio);
+        Passos.Registrar(inicio, duracao);
         if (duracao > TimeSpan.FromMilliseconds(LimiteDuracaoPassoMs))
         {
             _log.LogWarning(
