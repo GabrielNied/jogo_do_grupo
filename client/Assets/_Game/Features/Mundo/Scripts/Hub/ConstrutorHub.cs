@@ -451,7 +451,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
             {
                 if (
                     MapaDoMundo.PertoDeCidadeSecundaria(peca.X, peca.Z, 8f)
-                    || CaminhosDoMundo.DistanciaAteCaminho(peca.X, peca.Z) < 9f
+                    || CaminhosDoMundo.LivreDeVegetacao(peca.X, peca.Z)
                     || PertoDeBairroFlorestal(peca.X, peca.Z)
                     || PertoDeEstrutura(peca.X, peca.Z)
                 )
@@ -514,7 +514,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
             raiz.SetParent(pai, false);
             foreach (var peca in BairrosDaFloresta)
             {
-                if (CaminhosDoMundo.DistanciaAteCaminho(peca.X, peca.Z) < 12f)
+                if (CaminhosDoMundo.LivreDeVegetacao(peca.X, peca.Z, 3f))
                 {
                     continue;
                 }

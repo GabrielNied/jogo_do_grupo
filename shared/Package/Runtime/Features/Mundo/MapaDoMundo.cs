@@ -350,7 +350,13 @@ namespace JogoDoGrupo.Shared.Features.Mundo
 
         // Pesos dos biomas e, se pedida, a altura do chão sem interpolar. As fronteiras são
         // medidas num ponto desviado por ruído, para não ficarem retas.
-        private static float Calcular(float x, float z, bool comAltura, out PesosDosBiomas pesos)
+        private static float Calcular(
+            float x,
+            float z,
+            bool comAltura,
+            out PesosDosBiomas pesos,
+            bool aplicarEstrada = true
+        )
         {
             pesos = PesosDoNovoMundo(x, z);
 
@@ -444,7 +450,16 @@ namespace JogoDoGrupo.Shared.Features.Mundo
             var comCaverna = alturaBase + PrimeiraCaverna.AlturaDoMorro(x, z);
 
             // Modificadores de relevo (monumentos do mundo e terraplanagens em tempo de execução)
-            return ModificadoresDoMapa.Aplicar(x, z, comCaverna);
+            var alturaFinal = ModificadoresDoMapa.Aplicar(x, z, comCaverna);
+            return aplicarEstrada
+                ? EstradaDoPasso.Tracado.AplicarEstrada(x, z, alturaFinal, AlturaBaseDaAutoriaEm)
+                : alturaFinal;
+        }
+
+        /// <summary>Altura anterior ao tracado autoral, para a previa da ferramenta no editor.</summary>
+        public static float AlturaBaseDaAutoriaEm(float x, float z)
+        {
+            return Calcular(x, z, true, out _, false);
         }
 
         // Planta autoral nova: a mata liga os tres assentamentos; neve, deserto, pantano e

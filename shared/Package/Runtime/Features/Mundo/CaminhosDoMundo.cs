@@ -21,14 +21,7 @@ namespace JogoDoGrupo.Shared.Features.Mundo
         private static readonly Ponto[][] Caminhos =
         {
             // Cidade florestal -> cidade do passo, pelo vale das colinas.
-            new[]
-            {
-                new Ponto(0f, 42f),
-                new Ponto(-75f, 105f),
-                new Ponto(-205f, 145f),
-                new Ponto(-345f, 205f),
-                new Ponto(-520f, 320f),
-            },
+            Array.ConvertAll(EstradaDoPasso.Tracado.Pontos, p => new Ponto(p.X, p.Z)),
             // Cidade florestal -> oasis, passando pela ruina e pelas colinas secas.
             new[]
             {
@@ -78,9 +71,15 @@ namespace JogoDoGrupo.Shared.Features.Mundo
         /// <summary>Distancia horizontal ao eixo do caminho mais proximo, em metros.</summary>
         public static float DistanciaAteCaminho(float x, float z)
         {
+            return DistanciaAteCaminho(x, z, 0);
+        }
+
+        private static float DistanciaAteCaminho(float x, float z, int primeiraRota)
+        {
             var melhorQuadrado = float.MaxValue;
-            foreach (var caminho in Caminhos)
+            for (var rota = primeiraRota; rota < Caminhos.Length; rota++)
             {
+                var caminho = Caminhos[rota];
                 for (var i = 0; i + 1 < caminho.Length; i++)
                 {
                     var a = caminho[i];
@@ -106,9 +105,23 @@ namespace JogoDoGrupo.Shared.Features.Mundo
 
         public static float PesoEm(float x, float z)
         {
-            var t = (DistanciaAteCaminho(x, z) - 3f) / 9f;
+            var t = (DistanciaAteCaminho(x, z, 1) - 3f) / 9f;
             t = Math.Max(0f, Math.Min(1f, t));
-            return 1f - t * t * (3f - 2f * t);
+            var pesoAnterior = 1f - t * t * (3f - 2f * t);
+            var tracado = EstradaDoPasso.Tracado;
+            var distancia = tracado.Projetar(x, z, out _, out _, out _, out _);
+            var metade = tracado.Largura * 0.5f;
+            var borda = Math.Max(0f, Math.Min(1f, (distancia - metade) / tracado.Borda));
+            var pesoAutoral = 1f - borda * borda * (3f - 2f * borda);
+            return Math.Max(pesoAnterior, pesoAutoral);
+        }
+
+        /// <summary>Reserva a passagem visivel da estrada antes de distribuir arvores e pecas.</summary>
+        public static bool LivreDeVegetacao(float x, float z, float folga = 0f)
+        {
+            var raio = Math.Max(9f, EstradaDoPasso.Tracado.Largura * 0.5f + 2f) + folga;
+            return DistanciaAteCaminho(x, z, 1) < 9f + folga
+                || EstradaDoPasso.Tracado.Projetar(x, z, out _, out _, out _, out _) < raio;
         }
     }
 }

@@ -105,6 +105,8 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
                 yield return bj + 1;
             }
 
+            MontadorDaEstrada.Criar(terreno);
+
             // As células que a boca da caverna atravessa saem dos blocos e voltam num remendo
             // mais fino, com o túnel aberto (o mapa de alturas não tem como furar o chão).
             var remendo = CriarMalhaDoFuro();

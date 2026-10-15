@@ -8,7 +8,7 @@
 
 import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { homedir, tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { pularSemUnity, temUnityNaMaquina } from "./sem-unity.mjs";
@@ -161,10 +161,29 @@ writeFileSync(join(SAIDA, "Client.slnx"), solucao);
 console.log(`Unity ${versao} · ${projetos.length} assemblies: ${projetos.join(", ")}`);
 for (const aviso of avisos) console.warn(`⚠ ${aviso}`);
 
+// Os projetos gerados nao usam pacotes NuGet externos. Quando o cache local existe,
+// restaurar por ele evita tentativas de rede em ambientes isolados.
+const cacheNuget = process.env.NUGET_PACKAGES ?? join(homedir(), ".nuget/packages");
+let restauradoLocalmente = false;
+if (existsSync(cacheNuget)) {
+  try {
+    execFileSync(
+      "dotnet",
+      ["restore", join(SAIDA, "Client.slnx"), "--source", cacheNuget, "-p:NuGetAudit=false", "-v", "q"],
+      { stdio: "pipe" },
+    );
+    restauradoLocalmente = true;
+  } catch {
+    // Em uma maquina sem o pacote basico no cache, o build normal pode restaura-lo.
+  }
+}
+
 let saida = "";
 let falhou = false;
 try {
-  saida = execFileSync("dotnet", ["build", join(SAIDA, "Client.slnx"), "-nologo", "-v", "q", "-clp:NoSummary"], {
+  const argumentos = ["build", join(SAIDA, "Client.slnx"), "-nologo", "-v", "q", "-clp:NoSummary"];
+  if (restauradoLocalmente) argumentos.push("--no-restore");
+  saida = execFileSync("dotnet", argumentos, {
     encoding: "utf8",
     stdio: ["ignore", "pipe", "pipe"],
   });

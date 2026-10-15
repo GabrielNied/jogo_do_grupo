@@ -250,7 +250,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
                         continue;
                     }
 
-                    if (CaminhosDoMundo.DistanciaAteCaminho(x, z) < 9f)
+                    if (CaminhosDoMundo.LivreDeVegetacao(x, z))
                     {
                         continue;
                     }
