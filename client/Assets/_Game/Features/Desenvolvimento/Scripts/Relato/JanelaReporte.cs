@@ -228,7 +228,7 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
             for (var i = itens.Count - 1; i >= 0 && i >= itens.Count - ReportsNoHistorico; i--)
             {
                 var linha = new Label($"{itens[i].Frase} · {itens[i].Situacao}");
-                linha.AddToClassList(EstiloCore.Dica);
+                linha.AddToClassList(EstiloCore.Texto);
                 _historico.Add(linha);
             }
         }
