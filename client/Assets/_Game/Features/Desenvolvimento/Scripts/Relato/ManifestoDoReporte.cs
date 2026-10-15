@@ -8,7 +8,7 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
     {
         public string Frase = "";
         public string Tipo = "bug";
-        public string Severidade = "irritante";
+        public string Severidade = "media";
 
         /// <summary>Funcionalidade (ex.: <c>"Combate"</c>); vazio quando a pessoa não sabe.</summary>
         public string Area = "";
@@ -18,6 +18,9 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
     internal static class OpcoesDoReporte
     {
         public const string AreaNaoSei = "Não sei";
+
+        /// <summary>Severidade que a janela já traz marcada.</summary>
+        public const string SeveridadePadrao = "Média";
 
         public static readonly (string Rotulo, string Valor)[] Tipos =
         {
@@ -29,9 +32,10 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
 
         public static readonly (string Rotulo, string Valor)[] Severidades =
         {
-            ("Irritante", "irritante"),
-            ("Bloqueia", "bloqueia"),
-            ("Cosmético", "cosmetico"),
+            ("Crítica", "critica"),
+            ("Alta", "alta"),
+            ("Média", "media"),
+            ("Baixa", "baixa"),
         };
 
         /// <summary>Escopos usados nos títulos das issues (<c>[Combate]</c>, <c>[Mobs]</c>...).</summary>

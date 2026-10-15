@@ -23,6 +23,10 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
         private const int OrdemNaBarra = 900;
         private const int ReportsNoHistorico = 5;
 
+        // Espera a tecla que abriu a janela (J) passar antes de dar foco ao campo, senão ela
+        // vira a primeira letra da frase.
+        private const long AtrasoDoFocoMs = 100;
+
         private static int _fecharDepoisDoQuadro = -1;
 
         private Momento _momento;
@@ -114,20 +118,21 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
 
             var escolhas = new VisualElement();
             escolhas.style.flexDirection = FlexDirection.Row;
-            _tipo = Escolha("Tipo", Rotulos(OpcoesDoReporte.Tipos));
-            _severidade = Escolha("Severidade", Rotulos(OpcoesDoReporte.Severidades));
-            _area = Escolha("Área", new List<string>(OpcoesDoReporte.Areas));
+            _tipo = Escolha("Tipo", Rotulos(OpcoesDoReporte.Tipos), null);
+            _severidade = Escolha(
+                "Severidade",
+                Rotulos(OpcoesDoReporte.Severidades),
+                OpcoesDoReporte.SeveridadePadrao
+            );
+            _area = Escolha("Área", new List<string>(OpcoesDoReporte.Areas), null);
             escolhas.Add(_tipo);
             escolhas.Add(_severidade);
             escolhas.Add(_area);
             conteudo.Add(escolhas);
 
-            var resumo = new Label(Resumo());
-            resumo.AddToClassList(EstiloCore.Dica);
-            conteudo.Add(resumo);
-
             _mensagem = new Label();
-            _mensagem.AddToClassList(EstiloCore.Dica);
+            _mensagem.AddToClassList(EstiloCore.MensagemErro);
+            _mensagem.style.display = DisplayStyle.None;
             conteudo.Add(_mensagem);
 
             var botoes = new VisualElement();
@@ -141,7 +146,7 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
             MostrarHistorico();
             EnvioDeReporte.Mudou += MostrarHistorico;
 
-            _frase.schedule.Execute(() => _frase.Focus());
+            _frase.schedule.Execute(() => _frase.Focus()).ExecuteLater(AtrasoDoFocoMs);
         }
 
         protected override void AoFechar()
@@ -150,20 +155,6 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
             _momento?.Liberar();
             _momento = null;
             GravadorDeMomento.Instancia?.DefinirGravando(true);
-        }
-
-        private string Resumo()
-        {
-            if (_momento == null)
-            {
-                return "O gravador está desligado: o report vai só com a frase.";
-            }
-
-            var quadros = _momento.Quadros;
-            var segundos =
-                quadros.Count > 1 ? quadros[quadros.Count - 1].Tempo - quadros[0].Tempo : 0;
-            return $"Guardado: {segundos:0.0} s de linha do tempo, {_momento.Texturas.Count} quadros com imagem, "
-                + $"{_momento.Eventos.Count} mensagens. Enter envia como issue, Esc cancela.";
         }
 
         private void Enviar()
@@ -176,14 +167,14 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
 
             if (string.IsNullOrWhiteSpace(_frase.value))
             {
-                _mensagem.text = "Escreva o que aconteceu antes de enviar.";
+                Avisar("Escreva o que aconteceu antes de enviar.");
                 _frase.Focus();
                 return;
             }
 
             if (_momento == null)
             {
-                _mensagem.text = "Sem gravador nesta sessão: não dá para gravar o report.";
+                Avisar("Sem gravador nesta sessão: não dá para gravar o report.");
                 return;
             }
 
@@ -204,11 +195,17 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
             catch (Exception e)
             {
                 Debug.LogException(e);
-                _mensagem.text = "Não deu para salvar o report (veja o console).";
+                Avisar("Não deu para salvar o report (veja o console).");
                 return;
             }
 
             _fecharDepoisDoQuadro = Time.frameCount;
+        }
+
+        private void Avisar(string texto)
+        {
+            _mensagem.text = texto;
+            _mensagem.style.display = DisplayStyle.Flex;
         }
 
         private void MostrarHistorico()
@@ -264,9 +261,9 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
             return rotulos;
         }
 
-        private static DropdownField Escolha(string rotulo, List<string> opcoes)
+        private static DropdownField Escolha(string rotulo, List<string> opcoes, string padrao)
         {
-            var escolha = new DropdownField(rotulo, opcoes, 0);
+            var escolha = new DropdownField(rotulo, opcoes, Math.Max(0, opcoes.IndexOf(padrao)));
             escolha.AddToClassList(EstiloCore.Campo);
             escolha.style.flexGrow = 1;
             escolha.style.flexBasis = 0;
