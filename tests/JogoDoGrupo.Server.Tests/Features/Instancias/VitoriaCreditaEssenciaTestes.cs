@@ -2,9 +2,12 @@ using JogoDoGrupo.Server.Contratos.Itens;
 using JogoDoGrupo.Server.Contratos.Mobs;
 using JogoDoGrupo.Server.Contratos.Mundo;
 using JogoDoGrupo.Server.Core.Persistencia;
+using JogoDoGrupo.Server.Features.Instancias;
 using JogoDoGrupo.Shared.Features.Instancias;
 using JogoDoGrupo.Shared.Features.Mobs;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging;
 
 namespace JogoDoGrupo.Server.Tests.Features.Instancias;
 
@@ -58,6 +61,39 @@ public sealed class VitoriaCreditaEssenciaTestes
         Assert.Equal((0, 0), await LerSaldoAsync(f, jogador.PersonagemId));
     }
 
+    [Fact]
+    public async Task Falha_no_credito_de_essencia_registra_log_de_erro_e_mantem_instancia()
+    {
+        var coletor = new LogColetor();
+        using var f = new InstanciasFixture(servicos =>
+        {
+            servicos.RemoveAll<ILogger<ServicoDeInstancias>>();
+            servicos.AddSingleton<ILogger<ServicoDeInstancias>>(coletor);
+            servicos.RemoveAll<ISaldosMateriaisFusao>();
+            servicos.AddScoped<ISaldosMateriaisFusao, SaldosMateriaisFalhos>();
+        });
+        using var jogador = await f.EntrarAsync();
+        jogador.Cliente.Enviar(InstanciasMessageIds.EntrarNaDungeon, new EntrarNaDungeon());
+        var inicio = await jogador.Cliente.ReceberAsync<DungeonIniciada>(
+            InstanciasMessageIds.DungeonIniciada
+        );
+
+        f.Instancias.AgendarVitoria(inicio.IdInstancia);
+
+        var limite = DateTime.UtcNow.AddSeconds(5);
+        while (coletor.Erros.Count == 0 && DateTime.UtcNow < limite)
+        {
+            await Task.Delay(50);
+        }
+
+        Assert.NotEmpty(coletor.Erros);
+        var (mensagem, ex) = coletor.Erros[0];
+        Assert.NotNull(ex);
+        Assert.Contains(inicio.IdInstancia, mensagem);
+        Assert.Contains(jogador.PersonagemId.ToString(), mensagem);
+        Assert.True(f.Instancias.VitoriaAgendada(inicio.IdInstancia));
+    }
+
     private static async Task<(int Dungeon, int Raid)> LerSaldoAsync(
         InstanciasFixture f,
         long personagemId
@@ -82,6 +118,49 @@ public sealed class VitoriaCreditaEssenciaTestes
             if (saldo.Dungeon >= dungeonEsperado || DateTime.UtcNow > limite)
                 return saldo;
             await Task.Delay(50);
+        }
+    }
+
+    private sealed class SaldosMateriaisFalhos : ISaldosMateriaisFusao
+    {
+        public Task<bool> DebitarAsync(
+            long personagemId,
+            int dungeon,
+            int raid,
+            CancellationToken c
+        ) => Task.FromResult(false);
+
+        public Task<(int Dungeon, int Raid)> SaldoAsync(long personagemId, CancellationToken c) =>
+            Task.FromResult((0, 0));
+
+        public Task CreditarDungeonAsync(long personagemId, int quantidade, CancellationToken c) =>
+            throw new InvalidOperationException("Falha simulada de conexão com banco de dados");
+
+        public Task CreditarRaidAsync(long personagemId, int quantidade, CancellationToken c) =>
+            throw new InvalidOperationException("Falha simulada de conexão com banco de dados");
+    }
+
+    private sealed class LogColetor : ILogger<ServicoDeInstancias>
+    {
+        public List<(string Mensagem, Exception? Ex)> Erros { get; } = [];
+
+        public IDisposable? BeginScope<TState>(TState state)
+            where TState : notnull => null;
+
+        public bool IsEnabled(LogLevel logLevel) => true;
+
+        public void Log<TState>(
+            LogLevel logLevel,
+            EventId eventId,
+            TState state,
+            Exception? exception,
+            Func<TState, Exception?, string> formatter
+        )
+        {
+            if (logLevel == LogLevel.Error)
+            {
+                Erros.Add((formatter(state, exception), exception));
+            }
         }
     }
 }
