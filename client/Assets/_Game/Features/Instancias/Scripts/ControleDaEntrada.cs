@@ -92,8 +92,8 @@ namespace JogoDoGrupo.Client.Features.Instancias
 
         private static void AoChefeDerrotado(ChefeDerrotadoNaDungeon _) =>
             AvisosDoJogo.Mostrar(
-                "Chefe derrotado! Colete seus itens antes de sair.",
-                TipoDeAviso.Sucesso
+                "Chefe derrotado! +1 Essência de instância obtida. Colete seus itens antes de sair.",
+                TipoDeAviso.Informacao
             );
 
         private void AoEncerrar(DungeonEncerrada encerrada) => _tela?.Mostrar(encerrada.Resultado);

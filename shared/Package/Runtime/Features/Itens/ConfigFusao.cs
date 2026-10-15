@@ -13,6 +13,18 @@ namespace JogoDoGrupo.Shared.Features.Itens
         /// <summary>Nível máximo de fusão (FUSAO-007).</summary>
         public const int NivelMaximo = 10;
 
+        /// <summary>Identificador estável do material de dungeon (MAT-002).</summary>
+        public const string IdMaterialDungeon = "essencia-instancia";
+
+        /// <summary>Identificador estável do material de raid (MAT-002).</summary>
+        public const string IdMaterialRaid = "essencia-incursao";
+
+        /// <summary>Nome de exibição do material de dungeon na interface.</summary>
+        public const string NomeMaterialDungeon = "Essência de instância";
+
+        /// <summary>Nome de exibição do material de raid na interface.</summary>
+        public const string NomeMaterialRaid = "Essência de incursão";
+
         /// <summary>Coroas de cada fusão, de +0 → +1 até +9 → +10. Total 15.500.</summary>
         private static readonly long[] CoroasPorNivel =
         {

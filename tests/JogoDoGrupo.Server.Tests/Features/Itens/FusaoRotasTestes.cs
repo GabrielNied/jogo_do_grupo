@@ -665,4 +665,107 @@ public class FusaoRotasTestes(ServidorDeTeste servidor) : IClassFixture<Servidor
             await db.Database.ExecuteSqlRawAsync($"DROP TRIGGER {nomeTrigger};");
         }
     }
+
+    [Fact]
+    public async Task ComMateriaisSuficientesFusaoEmNiveisSuperioresConsomeCoroasEEssenciasEAvancaNivel()
+    {
+        var (cliente, id) = await Personagem();
+        var principal = await Item(id, 20, e => e.NivelFusao = 5);
+        var material = await Item(id, 40);
+
+        var creditou = await Post(cliente, id, "materiais-teste", null);
+        Assert.Equal(HttpStatusCode.OK, creditou.StatusCode);
+        var estadoComCredito = await Estado(cliente, id);
+        Assert.Equal(10, estadoComCredito.MateriaisDungeon);
+        Assert.Equal(10, estadoComCredito.MateriaisRaid);
+
+        var previa = await Previa(cliente, id, principal, material);
+        Assert.Equal(1200, previa.Custo);
+        Assert.Equal(1, previa.MateriaisDungeon);
+        Assert.Equal(0, previa.MateriaisRaid);
+        Assert.True(previa.MateriaisSuficientes);
+
+        var resposta = await Confirmar(cliente, id, previa);
+        Assert.Equal(HttpStatusCode.OK, resposta.StatusCode);
+
+        var estadoFinal = await Estado(cliente, id);
+        Assert.Equal(Saldo - 1200, estadoFinal.Coroas);
+        Assert.Equal(9, estadoFinal.MateriaisDungeon);
+        Assert.Equal(10, estadoFinal.MateriaisRaid);
+        Assert.Equal(6, Dados(estadoFinal, principal).NivelFusao);
+    }
+
+    [Fact]
+    public async Task FusaoRaidNivelOitoParaNoveConsomeEssenciaDeRaid()
+    {
+        var (cliente, id) = await Personagem();
+        var principal = await Item(id, 20, e => e.NivelFusao = 8);
+        var material = await Item(id, 40);
+
+        await Post(cliente, id, "materiais-teste", null);
+        var previa = await Previa(cliente, id, principal, material);
+        Assert.Equal(3400, previa.Custo);
+        Assert.Equal(0, previa.MateriaisDungeon);
+        Assert.Equal(1, previa.MateriaisRaid);
+        Assert.True(previa.MateriaisSuficientes);
+
+        var resposta = await Confirmar(cliente, id, previa);
+        Assert.Equal(HttpStatusCode.OK, resposta.StatusCode);
+
+        var estadoFinal = await Estado(cliente, id);
+        Assert.Equal(Saldo - 3400, estadoFinal.Coroas);
+        Assert.Equal(10, estadoFinal.MateriaisDungeon);
+        Assert.Equal(9, estadoFinal.MateriaisRaid);
+        Assert.Equal(9, Dados(estadoFinal, principal).NivelFusao);
+    }
+
+    [Fact]
+    public async Task ConcorrenciaDebitoDeMateriaisNaoDuplicaNemFicaNegativo()
+    {
+        var (_, id) = await Personagem();
+        using var escopo = servidor.Services.CreateScope();
+        var materiais = escopo.ServiceProvider.GetRequiredService<ISaldosMateriaisFusao>();
+        var db = escopo.ServiceProvider.GetRequiredService<JogoDbContext>();
+
+        await using (var t = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable))
+        {
+            await materiais.CreditarDungeonAsync(id, 1, CancellationToken.None);
+            await t.CommitAsync();
+        }
+
+        var tarefa1 = Task.Run(async () =>
+        {
+            using var s1 = servidor.Services.CreateScope();
+            var m1 = s1.ServiceProvider.GetRequiredService<ISaldosMateriaisFusao>();
+            var db1 = s1.ServiceProvider.GetRequiredService<JogoDbContext>();
+            await using var t1 = await db1.Database.BeginTransactionAsync(
+                IsolationLevel.Serializable
+            );
+            var ok = await m1.DebitarAsync(id, 1, 0, CancellationToken.None);
+            if (ok)
+                await t1.CommitAsync();
+            return ok;
+        });
+
+        var tarefa2 = Task.Run(async () =>
+        {
+            using var s2 = servidor.Services.CreateScope();
+            var m2 = s2.ServiceProvider.GetRequiredService<ISaldosMateriaisFusao>();
+            var db2 = s2.ServiceProvider.GetRequiredService<JogoDbContext>();
+            await using var t2 = await db2.Database.BeginTransactionAsync(
+                IsolationLevel.Serializable
+            );
+            var ok = await m2.DebitarAsync(id, 1, 0, CancellationToken.None);
+            if (ok)
+                await t2.CommitAsync();
+            return ok;
+        });
+
+        var resultados = await Task.WhenAll(tarefa1, tarefa2);
+        Assert.Single(resultados, r => r);
+        Assert.Single(resultados, r => !r);
+
+        var (saldoDungeon, _) = await materiais.SaldoAsync(id, CancellationToken.None);
+        Assert.Equal(0, saldoDungeon);
+    }
 }

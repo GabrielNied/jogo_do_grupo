@@ -35,9 +35,18 @@ namespace JogoDoGrupo.Client.Features.Itens
             // Cabeçalho da Bancada
             var cabecalho = new VisualElement();
             cabecalho.AddToClassList(EstiloItens.CabecalhoSecao);
-            cabecalho.Add(
-                Texto("Fusão · Saldo: " + estado.Coroas + " coroas", EstiloItens.TituloSecao)
-            );
+            var saldoTexto =
+                "Fusão · Saldo: "
+                + estado.Coroas
+                + " coroas · "
+                + estado.MateriaisDungeon
+                + " "
+                + ConfigFusao.NomeMaterialDungeon
+                + " · "
+                + estado.MateriaisRaid
+                + " "
+                + ConfigFusao.NomeMaterialRaid;
+            cabecalho.Add(Texto(saldoTexto, EstiloItens.TituloSecao));
             lista.Add(cabecalho);
 
             if (!string.IsNullOrEmpty(aviso ?? estado.Aviso))
@@ -119,7 +128,15 @@ namespace JogoDoGrupo.Client.Features.Itens
             lista.Add(blocoFav);
 
 #if DEBUG
-            lista.Add(Botao("Receber coroas de teste", () => _enviar("fusao/coroas-teste", null)));
+            var linhaBotoesTeste = new VisualElement();
+            linhaBotoesTeste.AddToClassList(EstiloCore.LinhaBotoes);
+            linhaBotoesTeste.Add(
+                Botao("Receber coroas de teste", () => _enviar("fusao/coroas-teste", null))
+            );
+            linhaBotoesTeste.Add(
+                Botao("Receber essências de teste", () => _enviar("fusao/materiais-teste", null))
+            );
+            lista.Add(linhaBotoesTeste);
 #endif
         }
 
@@ -330,9 +347,17 @@ namespace JogoDoGrupo.Client.Features.Itens
                         : DisplayStyle.None;
 
                     avisoSemMateriais.text = semMats
-                        ? "Faltam os materiais exigidos ("
+                        ? "Materiais insuficientes: exigido "
                             + DescreverMateriais(previa)
-                            + "). Eles ainda não existem no jogo."
+                            + ". Saldo: "
+                            + estado.MateriaisDungeon
+                            + " "
+                            + ConfigFusao.NomeMaterialDungeon
+                            + ", "
+                            + estado.MateriaisRaid
+                            + " "
+                            + ConfigFusao.NomeMaterialRaid
+                            + "."
                         : "";
                     avisoSemMateriais.style.display = semMats
                         ? DisplayStyle.Flex
@@ -343,7 +368,11 @@ namespace JogoDoGrupo.Client.Features.Itens
 
                     motivoLabel.text = semCoroas
                         ? "Saldo insuficiente: " + estado.Coroas + " / " + previa.Custo + " coroas."
-                        : (semMats ? "Materiais insuficientes." : "");
+                        : (
+                            semMats
+                                ? "Materiais insuficientes: " + DescreverMateriais(previa) + "."
+                                : ""
+                        );
                 }
                 else
                 {
@@ -787,12 +816,12 @@ namespace JogoDoGrupo.Client.Features.Itens
             var partes = new List<string>();
             if (previa.MateriaisDungeon > 0)
             {
-                partes.Add(previa.MateriaisDungeon + " de dungeon");
+                partes.Add(previa.MateriaisDungeon + " " + ConfigFusao.NomeMaterialDungeon);
             }
 
             if (previa.MateriaisRaid > 0)
             {
-                partes.Add(previa.MateriaisRaid + " de raid");
+                partes.Add(previa.MateriaisRaid + " " + ConfigFusao.NomeMaterialRaid);
             }
 
             return partes.Count == 0 ? "nenhum" : string.Join(" e ", partes);

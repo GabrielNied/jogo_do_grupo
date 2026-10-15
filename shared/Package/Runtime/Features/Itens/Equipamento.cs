@@ -280,6 +280,8 @@ namespace JogoDoGrupo.Shared.Features.Itens
         /// </summary>
         public AtributosDosEquipamentos Atributos = new AtributosDosEquipamentos();
         public long Coroas;
+        public int MateriaisDungeon;
+        public int MateriaisRaid;
         public bool ModoFusao;
         public PreviaFusao Previa;
         public string Aviso = "";

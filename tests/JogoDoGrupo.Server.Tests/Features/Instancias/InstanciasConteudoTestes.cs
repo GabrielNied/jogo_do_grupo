@@ -1,3 +1,4 @@
+using JogoDoGrupo.Server.Contratos.Itens;
 using JogoDoGrupo.Server.Contratos.Mobs;
 using JogoDoGrupo.Server.Contratos.Mundo;
 using JogoDoGrupo.Server.Features.Instancias;
@@ -379,5 +380,72 @@ public sealed class InstanciasConteudoTestes
         );
         Assert.Equal(ResultadoDungeon.Derrota, encerrada.Resultado);
         Assert.Equal(0, f.Instancias.CorridasAtivas);
+    }
+
+    [Fact]
+    public async Task Boss_morto_concede_essencia_de_dungeon_aos_participantes()
+    {
+        using var f = new InstanciasFixture();
+        using var jogador = await f.EntrarAsync();
+        jogador.Cliente.Enviar(InstanciasMessageIds.EntrarNaDungeon, new EntrarNaDungeon());
+        var inicio = await jogador.Cliente.ReceberAsync<DungeonIniciada>(
+            InstanciasMessageIds.DungeonIniciada
+        );
+
+        var materiaisFake = new MateriaisFusaoFake();
+        await f.Instancias.CreditarMateriaisVitoriaAsync(
+            inicio.IdInstancia,
+            materiaisFake,
+            CancellationToken.None
+        );
+
+        var (dungeon, raid) = await materiaisFake.SaldoAsync(
+            jogador.PersonagemId,
+            CancellationToken.None
+        );
+        Assert.Equal(1, dungeon);
+        Assert.Equal(0, raid);
+    }
+
+    private sealed class MateriaisFusaoFake : ISaldosMateriaisFusao
+    {
+        private readonly Dictionary<long, (int Dungeon, int Raid)> _saldos = new();
+
+        public Task<(int Dungeon, int Raid)> SaldoAsync(long personagemId, CancellationToken c) =>
+            Task.FromResult(_saldos.TryGetValue(personagemId, out var s) ? s : (0, 0));
+
+        public Task<bool> DebitarAsync(
+            long personagemId,
+            int dungeon,
+            int raid,
+            CancellationToken c
+        )
+        {
+            (int Dungeon, int Raid) atual = _saldos.TryGetValue(personagemId, out var s)
+                ? s
+                : (0, 0);
+            if (atual.Dungeon < dungeon || atual.Raid < raid)
+                return Task.FromResult(false);
+            _saldos[personagemId] = (atual.Dungeon - dungeon, atual.Raid - raid);
+            return Task.FromResult(true);
+        }
+
+        public Task CreditarDungeonAsync(long personagemId, int quantidade, CancellationToken c)
+        {
+            (int Dungeon, int Raid) atual = _saldos.TryGetValue(personagemId, out var s)
+                ? s
+                : (0, 0);
+            _saldos[personagemId] = (atual.Dungeon + quantidade, atual.Raid);
+            return Task.CompletedTask;
+        }
+
+        public Task CreditarRaidAsync(long personagemId, int quantidade, CancellationToken c)
+        {
+            (int Dungeon, int Raid) atual = _saldos.TryGetValue(personagemId, out var s)
+                ? s
+                : (0, 0);
+            _saldos[personagemId] = (atual.Dungeon, atual.Raid + quantidade);
+            return Task.CompletedTask;
+        }
     }
 }
