@@ -96,6 +96,7 @@ As regras de base estão em [fatia-jogavel.md](fatia-jogavel.md), seção 4. O q
 | Atualização da IA | passo fixo, **10 vezes por segundo** |
 
 - **Estados:** repouso → alerta → perseguição ⇄ ataque; alerta, perseguição e ataque → retorno → repouso; qualquer estado vivo → morto. Morto não muda mais: a volta é um inimigo novo (`InimigoApareceu`), com a variante sorteada de novo.
+- **Vagar em repouso (issue #793):** fora de combate e sem jogadores à vista, cada criatura comum vaga num raio curto de até **3,5 m** ao redor da sua origem individual (`RegrasInimigo.RaioDeVagarEmRepousoMetros`), em velocidade reduzida de **1,2 m/s**, alternando pausas de **2 a 5 s** e passos curtos. Ao avistar um jogador a até 12 m, a criatura interrompe o vagar e entra em alerta imediatamente. Manadas com rota continuam seguindo os pontos da rota.
 - **Alvo:** o jogador mais próximo que ele viu. Enquanto esse alvo continuar valendo, ele **não troca**, mesmo com outro mais perto. No empate de distância fica o de menor id. Depois do primeiro dano, o alvo segue a tabela de ameaça adotada em 2026-10-12 ([combate.md](combate.md#ameaça-agro-169), #169).
 - **Golpe telegrafado:** quem estiver no volume de contato quando o preparo acaba leva o dano; quem saiu a tempo não leva (a esquiva de 5 m tira o jogador da frente do modelo).
 - Sem desvio de obstáculos na fatia: o campo é aberto.

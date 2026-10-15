@@ -364,4 +364,42 @@ public class RegrasInimigoTestes
             RegrasInimigo.AberturaDoGolpeGraus
         );
     }
+
+    [Fact]
+    public void Numeros_de_vagar_em_repouso_sao_os_da_proposta()
+    {
+        Assert.Equal(3.5, RegrasInimigo.RaioDeVagarEmRepousoMetros);
+        Assert.Equal(1.2, RegrasInimigo.VelocidadeDeVagarEmRepousoMetrosPorSegundo);
+        Assert.Equal(2.0, RegrasInimigo.TempoParadoVagarMinimoSegundos);
+        Assert.Equal(5.0, RegrasInimigo.TempoParadoVagarMaximoSegundos);
+        Assert.True(
+            RegrasInimigo.VelocidadeDeVagarEmRepousoMetrosPorSegundo
+                < RegrasInimigo.VelocidadeDePerseguicaoMetrosPorSegundo
+        );
+    }
+
+    [Theory]
+    [InlineData(0.0, 0.0)]
+    [InlineData(0.25, 1.0)]
+    [InlineData(0.5, 0.5)]
+    [InlineData(0.75, 0.25)]
+    [InlineData(1.0, 1.0)]
+    public void PontoDeVagar_fica_dentro_do_raio_estipulado(
+        double sorteioAngulo,
+        double sorteioDistancia
+    )
+    {
+        RegrasInimigo.PontoDeVagar(
+            10.0,
+            20.0,
+            sorteioAngulo,
+            sorteioDistancia,
+            RegrasInimigo.RaioDeVagarEmRepousoMetros,
+            out var destinoX,
+            out var destinoZ
+        );
+
+        var distancia = RegrasInimigo.Distancia(10.0, 20.0, destinoX, destinoZ);
+        Assert.True(distancia <= RegrasInimigo.RaioDeVagarEmRepousoMetros + Tolerancia);
+    }
 }

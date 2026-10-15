@@ -554,10 +554,15 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
                     inimigo.AlertaAteMs = agora + AlertaMs;
                     Mudar(inimigo, EstadoDeInimigo.Alerta);
                     OlharParaOAlvo(inimigo, presentes);
+                    inimigo.Vagando = false;
                 }
                 else if (_rota != null && inimigo.Segue)
                 {
                     SeguirRota(inimigo, segundos);
+                }
+                else
+                {
+                    VagarEmRepouso(inimigo, agora, segundos);
                 }
 
                 break;
@@ -587,7 +592,7 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
                 break;
 
             case EstadoDeInimigo.Retorno:
-                Voltar(inimigo, segundos);
+                Voltar(inimigo, agora, segundos);
                 break;
         }
 
@@ -888,7 +893,7 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
     }
 
     // Volta ao ponto de origem sem olhar para os jogadores.
-    private static void Voltar(Inimigo inimigo, double segundos)
+    private static void Voltar(Inimigo inimigo, long agora, double segundos)
     {
         inimigo.Rotacao = RegrasInimigo.DirecaoPara(
             inimigo.X,
@@ -917,6 +922,8 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
             inimigo.X = inimigo.OrigemX;
             inimigo.Z = inimigo.OrigemZ;
             inimigo.Rotacao = ConfigInimigosDoCampo.DirecaoDeRepousoGraus;
+            inimigo.Vagando = false;
+            inimigo.PausaVagarAteMs = agora + EmMs(RegrasInimigo.TempoParadoVagarMinimoSegundos);
             Mudar(inimigo, EstadoDeInimigo.Repouso);
         }
     }
@@ -926,6 +933,7 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
     {
         inimigo.Alvo = RegrasInimigo.SemAlvo;
         inimigo.Preparando = false;
+        inimigo.Vagando = false;
         inimigo.SegundosSemAtacar = 0.0;
         inimigo.Atacantes.Clear();
         inimigo.Ameacas.Limpar();
@@ -1170,6 +1178,83 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
         }
     }
 
+    // Fora de combate, a criatura comum vaga devagar num raio curto ao redor da sua origem.
+    private void VagarEmRepouso(Inimigo inimigo, long agora, double segundos)
+    {
+        if (!inimigo.Vagando)
+        {
+            if (agora < inimigo.PausaVagarAteMs)
+            {
+                return;
+            }
+
+            var sorteioAngulo = _sorteador.Proximo();
+            var sorteioDistancia = _sorteador.Proximo();
+            RegrasInimigo.PontoDeVagar(
+                inimigo.OrigemX,
+                inimigo.OrigemZ,
+                sorteioAngulo,
+                sorteioDistancia,
+                RegrasInimigo.RaioDeVagarEmRepousoMetros,
+                out inimigo.DestinoVagarX,
+                out inimigo.DestinoVagarZ
+            );
+            inimigo.Vagando = true;
+        }
+
+        var falta = RegrasInimigo.Distancia(
+            inimigo.X,
+            inimigo.Z,
+            inimigo.DestinoVagarX,
+            inimigo.DestinoVagarZ
+        );
+        if (falta <= ConfigInimigosDoCampo.ToleranciaDeChegadaMetros)
+        {
+            inimigo.X = inimigo.DestinoVagarX;
+            inimigo.Z = inimigo.DestinoVagarZ;
+            inimigo.Vagando = false;
+            var esperaSegundos =
+                RegrasInimigo.TempoParadoVagarMinimoSegundos
+                + (
+                    RegrasInimigo.TempoParadoVagarMaximoSegundos
+                    - RegrasInimigo.TempoParadoVagarMinimoSegundos
+                ) * _sorteador.Proximo();
+            inimigo.PausaVagarAteMs = agora + EmMs(esperaSegundos);
+            return;
+        }
+
+        inimigo.Rotacao = RegrasInimigo.DirecaoPara(
+            inimigo.X,
+            inimigo.Z,
+            inimigo.DestinoVagarX,
+            inimigo.DestinoVagarZ,
+            inimigo.Rotacao
+        );
+
+        RegrasInimigo.Avancar(
+            inimigo.X,
+            inimigo.Z,
+            inimigo.DestinoVagarX,
+            inimigo.DestinoVagarZ,
+            RegrasInimigo.VelocidadeDeVagarEmRepousoMetrosPorSegundo,
+            segundos,
+            0.0,
+            out var novoX,
+            out var novoZ
+        );
+
+        Afastar(inimigo, novoX, novoZ, out novoX, out novoZ);
+        if (NaZonaUrbana(novoX, novoZ))
+        {
+            inimigo.Vagando = false;
+            inimigo.PausaVagarAteMs = agora + EmMs(RegrasInimigo.TempoParadoVagarMinimoSegundos);
+            return;
+        }
+
+        inimigo.X = novoX;
+        inimigo.Z = novoZ;
+    }
+
     // Só a manada tem zona urbana; os outros grupos ignoram a cidade como sempre.
     private bool NaZonaUrbana(double x, double z) =>
         _rota != null && RegrasManada.EstaNaZonaUrbana(x, z);
@@ -1181,11 +1266,13 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
                 ? _nivelMinimo
                 : EscalaPorNivel.Sortear(_nivelMinimo, _nivelMaximo, _sorteador.Proximo());
         var criatura = EscalaPorNivel.Aplicar(_sorteador.Sortear(_definicao), nivel);
-        return new Inimigo(_proximoId++, criatura, origemX, origemZ, contaNoLimite)
+        var inimigo = new Inimigo(_proximoId++, criatura, origemX, origemZ, contaNoLimite)
         {
             DesvioX = origemX - _pontoX,
             DesvioZ = origemZ - _pontoZ,
         };
+        inimigo.PausaVagarAteMs = _relogioMs() + EmMs(RegrasInimigo.TempoParadoVagarMinimoSegundos);
+        return inimigo;
     }
 
     private static void Mudar(Inimigo inimigo, EstadoDeInimigo para)
@@ -1366,6 +1453,16 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
         public long Alvo = RegrasInimigo.SemAlvo;
         public int Vida = criatura.VidaMaxima;
         public int Sequencia;
+
+        /// <summary>Destino atual do passo de vagar em repouso.</summary>
+        public double DestinoVagarX = origemX;
+        public double DestinoVagarZ = origemZ;
+
+        /// <summary>Quando a pausa em repouso acaba e a criatura pode escolher outro ponto para vagar.</summary>
+        public long PausaVagarAteMs;
+
+        /// <summary>Se está em movimento em direção ao ponto de vagar.</summary>
+        public bool Vagando;
 
         /// <summary>Quando o alerta acaba e a perseguição começa.</summary>
         public long AlertaAteMs;
