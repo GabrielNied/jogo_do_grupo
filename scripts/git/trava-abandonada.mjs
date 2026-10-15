@@ -2,7 +2,7 @@
 // no comentário da issue. Sem essa branch no origin e sem PR aberto, a trava sai
 // depois de HORAS_TRAVA_ABANDONADA (o agente parou sem liberar).
 
-export const HORAS_TRAVA_ABANDONADA = 2;
+export const HORAS_TRAVA_ABANDONADA = 24;
 
 export function travaDoComentario(body) {
   if (!body?.includes("Tarefa em andamento")) return null;

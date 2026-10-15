@@ -39,6 +39,8 @@ Para `bloqueada`, `decisao` ou dúvida em aberto que muda o resultado, nesta ord
 
 Prefira o que é fácil de mudar (constante nomeada, regra 17). `bloqueada` cuja dependência fechou: tire o rótulo.
 
+**Segure:** nunca remova rótulos `segure:*` nem edite a issue `[Desenvolvimento] Registro segure`. Quem encerra é `npm run tarefa -- segure liberar <escopo>` (dono). Trava `em-andamento` abandonada só sai sozinha após **24 h** (`soltar-travas`); o `/decida` não libera trava de execução.
+
 ## 4. Pesquisar como implementar (só se a escolha técnica muda o resultado)
 
 Biblioteca, algoritmo ou padrão do Unity/.NET em aberto:
