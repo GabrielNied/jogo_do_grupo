@@ -182,5 +182,88 @@ namespace JogoDoGrupo.Client.Features.Itens.Tests
                 Object.DestroyImmediate(controle.gameObject);
             }
         }
+
+        [Test]
+        public void ObterTransformacao_MaoDireita_CentralizaEmpunhaduraEAlinhaGolpe()
+        {
+            var (posEspada, rotEspada) = ApresentadorDoVisual.ObterTransformacao(
+                TipoEquipamento.Espada,
+                EncaixeDoVisual.MaoDireita
+            );
+            Assert.AreEqual(75f, rotEspada.eulerAngles.x, 0.1f);
+            Assert.Less(posEspada.z, 0f);
+
+            var (posArco, rotArco) = ApresentadorDoVisual.ObterTransformacao(
+                TipoEquipamento.Arco,
+                EncaixeDoVisual.MaoDireita
+            );
+            Assert.AreEqual(90f, rotArco.eulerAngles.y, 0.1f);
+            Assert.AreEqual(-0.45f, posArco.y, 0.01f);
+
+            var (posCajado, rotCajado) = ApresentadorDoVisual.ObterTransformacao(
+                TipoEquipamento.Cajado,
+                EncaixeDoVisual.MaoDireita
+            );
+            Assert.AreEqual(15f, rotCajado.eulerAngles.x, 0.1f);
+            Assert.AreEqual(-0.70f, posCajado.y, 0.05f);
+        }
+
+        [Test]
+        public void ObterTransformacao_Costas_InclinaNaDiagonalEAplicaOffsetProfundidade()
+        {
+            var (posEspada, rotEspada) = ApresentadorDoVisual.ObterTransformacao(
+                TipoEquipamento.Espada,
+                EncaixeDoVisual.Costas
+            );
+            Assert.AreEqual(142f, rotEspada.eulerAngles.z, 0.1f);
+            Assert.Less(posEspada.z, 0f); // Afastado para trás do torso
+
+            var (posArco, rotArco) = ApresentadorDoVisual.ObterTransformacao(
+                TipoEquipamento.Arco,
+                EncaixeDoVisual.Costas
+            );
+            Assert.AreEqual(325f, rotArco.eulerAngles.z, 0.1f); // -35 graus normalizado
+            Assert.Less(posArco.z, 0f);
+
+            var (posCajado, rotCajado) = ApresentadorDoVisual.ObterTransformacao(
+                TipoEquipamento.Cajado,
+                EncaixeDoVisual.Costas
+            );
+            Assert.AreEqual(322f, rotCajado.eulerAngles.z, 0.1f); // -38 graus normalizado
+            Assert.Less(posCajado.z, 0f);
+        }
+
+        [Test]
+        public void Aplicar_MaoECostas_RecebemTransformsCalibrados()
+        {
+            ApresentadorDoVisual.Aplicar(
+                _avatar.transform,
+                Visual(
+                    1,
+                    (PosicaoEquipamento.Arma1, TipoEquipamento.Espada),
+                    (PosicaoEquipamento.Arma2, TipoEquipamento.Arco)
+                )
+            );
+
+            var espada = _mao.GetComponentInChildren<ArmaNoAvatar>();
+            var arco = _costas.GetComponentInChildren<ArmaNoAvatar>();
+
+            var (espadaPosEsperada, _) = ApresentadorDoVisual.ObterTransformacao(
+                TipoEquipamento.Espada,
+                EncaixeDoVisual.MaoDireita
+            );
+            var (arcoPosEsperada, _) = ApresentadorDoVisual.ObterTransformacao(
+                TipoEquipamento.Arco,
+                EncaixeDoVisual.Costas
+            );
+
+            Assert.AreEqual(espadaPosEsperada.x, espada.transform.localPosition.x, 0.001f);
+            Assert.AreEqual(espadaPosEsperada.y, espada.transform.localPosition.y, 0.001f);
+            Assert.AreEqual(espadaPosEsperada.z, espada.transform.localPosition.z, 0.001f);
+
+            Assert.AreEqual(arcoPosEsperada.x, arco.transform.localPosition.x, 0.001f);
+            Assert.AreEqual(arcoPosEsperada.y, arco.transform.localPosition.y, 0.001f);
+            Assert.AreEqual(arcoPosEsperada.z, arco.transform.localPosition.z, 0.001f);
+        }
     }
 }
