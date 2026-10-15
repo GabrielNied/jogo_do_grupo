@@ -9,9 +9,11 @@ namespace JogoDoGrupo.Client.Features.Instancias
     {
         private readonly IDisposable[] _assinaturas;
         private readonly Action _desligar;
+        private readonly IConexaoDeInstancias _conexao;
 
         public EstadoDeInstancias(IConexaoDeInstancias conexao)
         {
+            _conexao = conexao;
             // Sem conexão a corrida some do ponto de vista do client: o servidor leva quem
             // reconecta de volta à cidade.
             conexao.EstadoMudou += AoMudarEstado;
@@ -24,12 +26,21 @@ namespace JogoDoGrupo.Client.Features.Instancias
                     {
                         AreaAtual = m.Area;
                         IdInstancia = m.IdInstancia;
+                        VitoriaAlcancada = false;
                         DungeonIniciada?.Invoke(m);
                     }
                 ),
                 conexao.Assinar<EntradaRecusada>(
                     InstanciasMessageIds.EntradaRecusada,
                     m => EntradaRecusada?.Invoke(m)
+                ),
+                conexao.Assinar<ChefeDerrotadoNaDungeon>(
+                    InstanciasMessageIds.ChefeDerrotadoNaDungeon,
+                    m =>
+                    {
+                        VitoriaAlcancada = true;
+                        ChefeDerrotado?.Invoke(m);
+                    }
                 ),
                 conexao.Assinar<DungeonEncerrada>(
                     InstanciasMessageIds.DungeonEncerrada,
@@ -38,6 +49,7 @@ namespace JogoDoGrupo.Client.Features.Instancias
                         DungeonEncerrada?.Invoke(m);
                         AreaAtual = string.Empty;
                         IdInstancia = string.Empty;
+                        VitoriaAlcancada = false;
                     }
                 ),
             };
@@ -47,6 +59,8 @@ namespace JogoDoGrupo.Client.Features.Instancias
 
         public string IdInstancia { get; private set; } = string.Empty;
 
+        public bool VitoriaAlcancada { get; private set; }
+
         public bool NaInstancia =>
             !string.IsNullOrEmpty(AreaAtual)
             && AreaAtual.StartsWith("instancia:", StringComparison.Ordinal);
@@ -55,7 +69,16 @@ namespace JogoDoGrupo.Client.Features.Instancias
 
         public event Action<EntradaRecusada> EntradaRecusada;
 
+        public event Action<ChefeDerrotadoNaDungeon> ChefeDerrotado;
+
         public event Action<DungeonEncerrada> DungeonEncerrada;
+
+        public bool PedirSair() =>
+            _conexao.Enviar(
+                InstanciasMessageIds.SairDaDungeon,
+                new SairDaDungeon(),
+                EntregaTempoReal.Confiavel
+            );
 
         private void AoMudarEstado(EstadoTempoReal estado)
         {
@@ -63,6 +86,7 @@ namespace JogoDoGrupo.Client.Features.Instancias
             {
                 AreaAtual = string.Empty;
                 IdInstancia = string.Empty;
+                VitoriaAlcancada = false;
             }
         }
 

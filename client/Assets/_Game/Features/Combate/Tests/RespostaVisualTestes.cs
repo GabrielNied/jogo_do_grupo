@@ -167,5 +167,37 @@ namespace JogoDoGrupo.Client.Features.Combate.Tests
             Assert.Less(RastroDoGolpe.Opacidade(0.1f), RastroDoGolpe.Opacidade(0.05f));
             Assert.AreEqual(0f, RastroDoGolpe.Opacidade(ConfigSensacaoCombate.RastroSegundos));
         }
+
+        // ── Pausa de pose (#812) ─────────────────────────────────────────────────
+
+        [Test]
+        public void DeveSegurarPose_InimigoDeMobs_NaoSeguraPoseNoCombate()
+        {
+            var inimigo = new GameObject(RegistroDeAlvos.NomeDoInimigo + "123");
+            try
+            {
+                inimigo.AddComponent<Animator>();
+                Assert.IsFalse(ControleImpacto.DeveSegurarPose(inimigo));
+            }
+            finally
+            {
+                Object.DestroyImmediate(inimigo);
+            }
+        }
+
+        [Test]
+        public void DeveSegurarPose_BonecoDeTreinoOuJogador_SeguraPose()
+        {
+            var jogador = new GameObject("Jogador");
+            try
+            {
+                jogador.AddComponent<Animator>();
+                Assert.IsTrue(ControleImpacto.DeveSegurarPose(jogador));
+            }
+            finally
+            {
+                Object.DestroyImmediate(jogador);
+            }
+        }
     }
 }

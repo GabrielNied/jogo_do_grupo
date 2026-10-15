@@ -31,7 +31,8 @@ public sealed class ServicoDeEfeitosDeStatus : IHostedService, IDisposable
         ILogger<ServicoDeEfeitosDeStatus> log,
         IPosicoesDoMundo? posicoes = null,
         ServicoDeQueda? queda = null,
-        Func<long>? relogioMs = null
+        Func<long>? relogioMs = null,
+        IVizinhanca? vizinhanca = null
     )
     {
         _efeitos = efeitos;
@@ -39,7 +40,7 @@ public sealed class ServicoDeEfeitosDeStatus : IHostedService, IDisposable
         _escopos = escopos;
         _log = log;
         _posicoes = posicoes;
-        _avisos = posicoes != null ? new AvisosNaArea(tempoReal, posicoes) : null;
+        _avisos = posicoes != null ? new AvisosNaArea(tempoReal, posicoes, vizinhanca) : null;
         _queda = queda;
         _relogioMs = relogioMs ?? (() => Environment.TickCount64);
 

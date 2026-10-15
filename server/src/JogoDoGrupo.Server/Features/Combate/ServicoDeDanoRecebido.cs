@@ -36,12 +36,13 @@ public sealed class ServicoDeDanoRecebido : IHostedService
         Func<long>? relogioMs = null,
         ServicoDeGuarda? guarda = null,
         IPosicoesDoMundo? posicoes = null,
-        GerenciadorDeEfeitosDeStatus? efeitos = null
+        GerenciadorDeEfeitosDeStatus? efeitos = null,
+        IVizinhanca? vizinhanca = null
     )
     {
         _efeitos = efeitos;
         _guarda = guarda;
-        _avisos = posicoes == null ? null : new AvisosNaArea(tempoReal, posicoes);
+        _avisos = posicoes == null ? null : new AvisosNaArea(tempoReal, posicoes, vizinhanca);
         _queda = queda;
         _acoes = acoes;
         _relogioMs = relogioMs ?? (() => Environment.TickCount64);

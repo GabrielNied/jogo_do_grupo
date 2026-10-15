@@ -1,10 +1,13 @@
 using JogoDoGrupo.Server.Contratos.Combate;
+using JogoDoGrupo.Server.Contratos.Itens;
 using JogoDoGrupo.Server.Contratos.Mobs;
 using JogoDoGrupo.Server.Contratos.Mundo;
 using JogoDoGrupo.Server.Contratos.Social;
+using JogoDoGrupo.Server.Core.Persistencia;
 using JogoDoGrupo.Server.Core.TempoReal;
 using JogoDoGrupo.Shared.Features.Instancias;
 using JogoDoGrupo.Shared.Features.Mobs;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace JogoDoGrupo.Server.Features.Instancias;
 
@@ -16,11 +19,16 @@ public sealed class ServicoDeInstancias(
     ServidorTempoReal tempoReal,
     TimeProvider relogio,
     PopuladorDeInstancia populador,
-    IEstadoDeQueda queda
+    IEstadoDeQueda queda,
+    TimeSpan? prazoColetaLoot = null,
+    IServiceScopeFactory? scopeFactory = null
 )
 {
     public static readonly TimeSpan PrazoDeReconexao = TimeSpan.FromSeconds(120);
     public static readonly TimeSpan PrazoVazia = TimeSpan.FromMinutes(5);
+    public static readonly TimeSpan PrazoParaColetaDeLoot = TimeSpan.FromSeconds(20);
+
+    private readonly TimeSpan _prazoColetaLoot = prazoColetaLoot ?? PrazoParaColetaDeLoot;
 
     private const double DistanciaMaximaInicial = LayoutDaMinaDoReflexo.DistanciaDosMembrosMetros;
 
@@ -218,6 +226,15 @@ public sealed class ServicoDeInstancias(
         {
             foreach (var corrida in _corridas.Values.ToArray())
             {
+                if (corrida.VitoriaDesdeMs is { } vitoriaDesde)
+                {
+                    if (agora - vitoriaDesde >= _prazoColetaLoot.TotalMilliseconds)
+                    {
+                        encerramentos.Add((corrida.Id, ResultadoDungeon.Vitoria));
+                        continue;
+                    }
+                }
+
                 foreach (
                     var personagemId in corrida
                         .DesconectadosDesde.Where(par =>
@@ -365,7 +382,7 @@ public sealed class ServicoDeInstancias(
         }
     }
 
-    /// <summary>Encerra por vitória quando o boss da instância morre.</summary>
+    /// <summary>Encerra por vitória quando o boss da instância morre, agendando a carência para loot.</summary>
     public void AoInimigoDerrotado(InimigoDerrotado derrota)
     {
         if (
@@ -376,7 +393,139 @@ public sealed class ServicoDeInstancias(
             return;
         }
 
-        Encerrar(id, ResultadoDungeon.Vitoria);
+        AgendarVitoria(id);
+    }
+
+    /// <summary>Registra a vitória e avisa os participantes com a carência para pegar loot.</summary>
+    public void AgendarVitoria(string idInstancia)
+    {
+        Corrida? corrida;
+        lock (_trava)
+        {
+            if (!_corridas.TryGetValue(idInstancia, out corrida) || corrida.VitoriaDesdeMs != null)
+            {
+                return;
+            }
+
+            corrida.VitoriaDesdeMs = AgoraMs();
+            var aviso = new ChefeDerrotadoNaDungeon
+            {
+                IdInstancia = corrida.Id,
+                SegundosParaColeta = (int)_prazoColetaLoot.TotalSeconds,
+            };
+            foreach (var participante in corrida.Participantes)
+            {
+                if (tempoReal.TentarObterSessao(participante, out var sessao) && sessao != null)
+                {
+                    tempoReal.Enviar(sessao, InstanciasMessageIds.ChefeDerrotadoNaDungeon, aviso);
+                }
+            }
+        }
+
+        if (scopeFactory != null && corrida != null)
+        {
+            var participantes = corrida.Participantes.ToArray();
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    using var scope = scopeFactory.CreateScope();
+                    var materiais = scope.ServiceProvider.GetService<ISaldosMateriaisFusao>();
+                    if (materiais != null)
+                    {
+                        var db = scope.ServiceProvider.GetRequiredService<JogoDbContext>();
+                        await using var transacao = await db.Database.BeginTransactionAsync();
+                        foreach (var participante in participantes)
+                        {
+                            await materiais.CreditarDungeonAsync(
+                                participante,
+                                1,
+                                CancellationToken.None
+                            );
+                        }
+                        await transacao.CommitAsync();
+                    }
+                }
+                catch
+                {
+                    // Falha no crédito em segundo plano não derruba a instância.
+                }
+            });
+        }
+    }
+
+    /// <summary>
+    /// Concede o material de dungeon aos participantes da instância de forma síncrona/testável (MAT-003).
+    /// </summary>
+    public async Task CreditarMateriaisVitoriaAsync(
+        string idInstancia,
+        ISaldosMateriaisFusao materiais,
+        CancellationToken c
+    )
+    {
+        long[] participantes;
+        lock (_trava)
+        {
+            if (!_corridas.TryGetValue(idInstancia, out var corrida))
+                return;
+            participantes = corrida.Participantes.ToArray();
+        }
+
+        foreach (var participante in participantes)
+        {
+            await materiais.CreditarDungeonAsync(participante, 1, c);
+        }
+    }
+
+    /// <summary>Informa se a instância já derrotou o chefe e aguarda encerramento.</summary>
+    public bool VitoriaAgendada(string idInstancia)
+    {
+        lock (_trava)
+        {
+            return _corridas.TryGetValue(idInstancia, out var corrida)
+                && corrida.VitoriaDesdeMs != null;
+        }
+    }
+
+    /// <summary>Trata o pedido de um participante para sair da dungeon após a vitória.</summary>
+    public void AoPedirSair(SessaoTempoReal sessao)
+    {
+        var personagemId = sessao.PersonagemId;
+        Corrida? corrida;
+        PosicaoNoMundo retorno = default;
+        lock (_trava)
+        {
+            if (
+                !_corridaDoPersonagem.TryGetValue(personagemId, out corrida)
+                || corrida.VitoriaDesdeMs == null
+                || !corrida.PosicoesDeRetorno.TryGetValue(personagemId, out retorno)
+            )
+            {
+                return;
+            }
+
+            corrida.Participantes.Remove(personagemId);
+            _corridaDoPersonagem.Remove(personagemId);
+        }
+
+        tempoReal.Enviar(
+            sessao,
+            InstanciasMessageIds.DungeonEncerrada,
+            new DungeonEncerrada { IdInstancia = corrida.Id, Resultado = ResultadoDungeon.Vitoria }
+        );
+
+        if (posicoes.TentarObter(personagemId, out var atual) && atual.Area == corrida.Area)
+        {
+            transicoes.TentarMoverParaArea(personagemId, retorno);
+        }
+
+        lock (_trava)
+        {
+            if (corrida.Participantes.Count == 0)
+            {
+                tempoReal.NoLaco(() => EncerrarNoLaco(corrida.Id, ResultadoDungeon.Vitoria));
+            }
+        }
     }
 
     /// <summary>
@@ -391,7 +540,10 @@ public sealed class ServicoDeInstancias(
         lock (_trava)
         {
             ativas = _corridas
-                .Values.Where(c => agora - c.IniciadaEmMs >= CarenciaDaDerrotaSegundos * 1000)
+                .Values.Where(c =>
+                    c.VitoriaDesdeMs == null
+                    && agora - c.IniciadaEmMs >= CarenciaDaDerrotaSegundos * 1000
+                )
                 .Select(c =>
                     (c.Id, c.Area, c.Participantes.ToArray(), c.DesconectadosDesde.Keys.ToHashSet())
                 )
@@ -494,6 +646,7 @@ public sealed class ServicoDeInstancias(
         public Dictionary<long, PosicaoNoMundo> PosicoesDeRetorno { get; } = [];
         public Dictionary<long, long> DesconectadosDesde { get; } = [];
         public long? VaziaDesde { get; set; }
+        public long? VitoriaDesdeMs { get; set; }
         public long IniciadaEmMs { get; set; }
     }
 }
