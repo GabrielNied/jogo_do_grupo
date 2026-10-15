@@ -277,7 +277,10 @@ function principal() {
       continue;
     }
     if (aplicar) {
-      const ok = git(["worktree", "remove", wt.caminho], { cwd: raiz, ignorarErro: true }) !== null;
+      // A Library do Unity passa de 260 caracteres no Windows: sem longpaths o remove falha no meio.
+      const ok =
+        git(["-c", "core.longpaths=true", "worktree", "remove", wt.caminho], { cwd: raiz, ignorarErro: true }) !==
+        null;
       if (!ok) {
         mantidos.push(`${nome}: git worktree remove falhou (Unity aberto nessa pasta?)`);
         if (wt.branch) emUso.add(wt.branch);
