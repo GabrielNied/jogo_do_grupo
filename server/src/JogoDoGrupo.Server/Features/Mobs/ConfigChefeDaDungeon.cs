@@ -22,7 +22,7 @@ public static class ConfigChefeDaDungeon
     /// Se o servidor já sobe com um boss de teste no mundo, enquanto a instância da dungeon não
     /// o cria sozinha. Quando ela existir, desligue aqui.
     /// </summary>
-    public const bool CriarChefeDeTesteAoSubir = true;
+    public const bool CriarChefeDeTesteAoSubir = false;
 
     /// <summary>Área e ponto do boss de teste: nas colinas a oeste, longe da cidade.</summary>
     public const string AreaDeTeste = AreasDoMundo.Cidade;

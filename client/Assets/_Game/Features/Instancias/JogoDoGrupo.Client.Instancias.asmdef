@@ -3,7 +3,9 @@
   "rootNamespace": "JogoDoGrupo.Client.Features.Instancias",
   "references": [
     "JogoDoGrupo.Client.Core",
-    "JogoDoGrupo.Shared"
+    "JogoDoGrupo.Shared",
+    "JogoDoGrupo.Client.Visual",
+    "Unity.InputSystem"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

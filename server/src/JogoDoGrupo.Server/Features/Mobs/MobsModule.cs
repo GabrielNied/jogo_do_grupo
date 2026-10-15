@@ -73,22 +73,14 @@ public sealed class MobsModule : IFeatureModule
 
         // Os bosses de dungeon: um por área, criados pela instância (IChefesDaDungeon). Enquanto
         // a instância não existe, sobe um de teste fora da cidade.
-        servicos.AddSingleton(_ =>
-        {
-            var chefes = new ChefesDaDungeon();
-            if (ConfigChefeDaDungeon.CriarChefeDeTesteAoSubir)
-            {
-                chefes.Criar(
-                    ConfigChefeDaDungeon.AreaDeTeste,
-                    ConfigChefeDaDungeon.PontoDeTesteX,
-                    ConfigChefeDaDungeon.PontoDeTesteZ
-                );
-            }
-
-            return chefes;
-        });
+        servicos.AddSingleton(_ => new ChefesDaDungeon());
         servicos.AddSingleton<IChefesDaDungeon>(sp => sp.GetRequiredService<ChefesDaDungeon>());
         servicos.AddSingleton<IAlvosDeCombate>(sp => sp.GetRequiredService<ChefesDaDungeon>());
+        servicos.AddSingleton<InimigosPorInstancia>();
+        servicos.AddSingleton<IInimigosPorInstancia>(sp =>
+            sp.GetRequiredService<InimigosPorInstancia>()
+        );
+        servicos.AddSingleton<IAlvosDeCombate>(sp => sp.GetRequiredService<InimigosPorInstancia>());
         servicos.AddSingleton(sp =>
         {
             var servico = new ServicoDeInimigos(
@@ -101,7 +93,8 @@ public sealed class MobsModule : IFeatureModule
                 sp.GetRequiredService<EventosDoServidor>(),
                 sp.GetRequiredService<ILogger<ServicoDeInimigos>>(),
                 sp.GetRequiredService<IEstadoDeQueda>(),
-                sp.GetRequiredService<ChefesDaDungeon>()
+                sp.GetRequiredService<ChefesDaDungeon>(),
+                sp.GetRequiredService<InimigosPorInstancia>()
             );
             _inimigos = servico;
             return servico;

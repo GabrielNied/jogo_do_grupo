@@ -79,6 +79,7 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
     /// <summary>Só nas manadas: a rota que o grupo segue em repouso; nulo nos outros grupos.</summary>
     private readonly RotaDaManada? _rota;
     private readonly IEstadoDeQueda _queda;
+    private readonly bool _semReposicao;
 
     private int _pontoDaRota;
     private bool _andando;
@@ -140,7 +141,8 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
         int nivelMaximo = 0,
         LimiteDeInimigosVivos? limite = null,
         RotaDaManada? rota = null,
-        IEstadoDeQueda? queda = null
+        IEstadoDeQueda? queda = null,
+        bool semReposicao = false
     )
     {
         ArgumentNullException.ThrowIfNull(definicao);
@@ -163,6 +165,7 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
         _limite = limite;
         _rota = rota;
         _queda = queda ?? QuedaIgnorada.Instancia;
+        _semReposicao = semReposicao;
         Area = area;
         Capacidade = tamanho;
 
@@ -211,6 +214,37 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
             limite,
             ponto.Rota,
             queda
+        );
+
+    /// <summary>
+    /// Grupo fixo de um salão de instância: sem respawn e sem o teto de vivos do campo. O nível
+    /// de cada inimigo é sorteado na faixa do pedido.
+    /// </summary>
+    public static GrupoDeInimigos ParaInstancia(
+        string area,
+        GrupoDeInstancia pedido,
+        ISorteadorDeCriaturas sorteador,
+        long primeiroId,
+        IEstadoDeQueda? queda = null,
+        Func<long>? relogioMs = null
+    ) =>
+        new(
+            CatalogoCriaturas.Obter(pedido.CriaturaId)
+                ?? throw new ArgumentException(
+                    $"Criatura {pedido.CriaturaId} não existe no catálogo."
+                ),
+            sorteador,
+            pedido.Quantidade,
+            relogioMs,
+            area,
+            pedido.X,
+            pedido.Z,
+            primeiroId,
+            tamanhoMinimo: pedido.Quantidade,
+            nivelMinimo: pedido.NivelMinimo,
+            nivelMaximo: pedido.NivelMaximo,
+            queda: queda,
+            semReposicao: true
         );
 
     /// <summary>Quantos inimigos a mais o comando de teste pode acrescentar neste grupo.</summary>
@@ -971,7 +1005,7 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
             // O chefe raro não volta por tempo fixo: a espera recomeça e o sorteio decide.
             _aparicao.RegistrarMorte(Instante(_relogioMs()));
         }
-        else
+        else if (!_semReposicao)
         {
             if (inimigo.ContaNoLimite)
             {
@@ -1093,6 +1127,14 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
         _pontoDaRota = 0;
         _andando = false;
         _esperaAteMs = agora + EmMs(_rota?.Pontos[0].EsperaSegundos ?? 0.0);
+        if (_semReposicao)
+        {
+            foreach (var inimigo in novos)
+            {
+                inimigo.Reponivel = false;
+            }
+        }
+
         aparicoes?.AddRange(novos.Select(n => new InimigoApareceu { Inimigo = Retrato(n) }));
     }
 
