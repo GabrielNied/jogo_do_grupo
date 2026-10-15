@@ -1,5 +1,7 @@
 namespace JogoDoGrupo.Shared.Features.Combate
 {
+    using JogoDoGrupo.Shared.Features.Mobs;
+
     /// <summary>
     /// A reação ao acerto: um golpe confirmado pelo servidor interrompe a ação comum de quem o
     /// levou e o deixa sem esquivar nem atacar por um instante. Regra em
@@ -42,5 +44,13 @@ namespace JogoDoGrupo.Shared.Features.Combate
         /// <summary>Quando a folga de uma reação que começou em <paramref name="inicioMs"/> acaba.</summary>
         public static long FimDaFolgaMs(long inicioMs) =>
             inicioMs + AtordoamentoNoAcertoMs + FolgaDepoisDoAcertoMs;
+
+        /// <summary>
+        /// Se um ataque de inimigo interrompe a ação e atordoa o jogador.
+        /// Golpes comuns (<see cref="TipoDeAtaqueDeInimigo.Golpe"/>) não atordoam nem interrompem o jogador;
+        /// golpes especiais (investida, pisada, raios, etc.) interrompem (#795).
+        /// </summary>
+        public static bool InterrompeJogador(TipoDeAtaqueDeInimigo tipo) =>
+            tipo != TipoDeAtaqueDeInimigo.Golpe;
     }
 }

@@ -1,5 +1,8 @@
 namespace JogoDoGrupo.Server.Contratos.Mobs;
 
+using JogoDoGrupo.Shared.Features.Combate;
+using JogoDoGrupo.Shared.Features.Mobs;
+
 /// <summary>
 /// Publicado por Mobs quando o golpe de um inimigo pega um personagem: ele estava na área do
 /// golpe quando o aviso acabou. <see cref="Dano"/> é o dano do inimigo, já com a variante,
@@ -15,5 +18,13 @@ public sealed record GolpeDeInimigoAcertou(
     int CriaturaId,
     long PersonagemId,
     int Dano,
-    string Area
-);
+    string Area,
+    TipoDeAtaqueDeInimigo Tipo = TipoDeAtaqueDeInimigo.Golpe
+)
+{
+    /// <summary>
+    /// Se este golpe interrompe a ação e atordoa o jogador alvo.
+    /// Golpes comuns não atordoam nem interrompem o jogador; especiais (investida, pisada, raios, etc.) interrompem (#795).
+    /// </summary>
+    public bool InterrompeAlvo => RegrasReacao.InterrompeJogador(Tipo);
+}

@@ -365,7 +365,10 @@ namespace JogoDoGrupo.Client.Features.Combate
             {
                 _detector.AoPerderVida(Time.unscaledTime);
                 Aplicar(efeito, EntradaNoJogo.Jogador, Vector3.zero);
-                SegurarPose(EntradaNoJogo.Jogador);
+                if (efeito.Origem == OrigemDoImpacto.GolpeRecebidoForte)
+                {
+                    SegurarPose(EntradaNoJogo.Jogador);
+                }
             }
         }
 

@@ -1,4 +1,5 @@
 using JogoDoGrupo.Shared.Features.Combate;
+using JogoDoGrupo.Shared.Features.Mobs;
 
 namespace JogoDoGrupo.Shared.Tests.Features.Combate;
 
@@ -62,5 +63,14 @@ public class RegrasReacaoEGuardaTestes
         Assert.Equal(0, RegrasGuarda.CustoDoBloqueio(-5));
         Assert.True(RegrasGuarda.Segura(42, 42));
         Assert.False(RegrasGuarda.Segura(41, 42));
+    }
+
+    [Fact]
+    public void InterrompeJogador_so_para_ataques_especiais_de_inimigo()
+    {
+        Assert.False(RegrasReacao.InterrompeJogador(TipoDeAtaqueDeInimigo.Golpe));
+        Assert.True(RegrasReacao.InterrompeJogador(TipoDeAtaqueDeInimigo.Investida));
+        Assert.True(RegrasReacao.InterrompeJogador(TipoDeAtaqueDeInimigo.Pisada));
+        Assert.True(RegrasReacao.InterrompeJogador(TipoDeAtaqueDeInimigo.Raios));
     }
 }
