@@ -75,6 +75,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
         public const float DecliveMaximoDePedra = 1.1f;
 
         private const uint Semente = 20261012u;
+        private const float MaiorDensidade = 0.45f;
 
         // Lado das manchas de vegetação, em metros: cada mancha é mais cheia ou mais vazia.
         private const float Mancha = 150f;
@@ -111,10 +112,10 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
         // Deserto: pedra, cacto e árvore seca. Sem pinheiro.
         private static readonly string[] PecasDoDeserto =
         {
-            "Pedra_Grande",
-            "Pedra_Larga",
             "Pedra_Larga",
             "Pedra_Pequena",
+            "Cacto",
+            "Cacto",
             "Cacto",
             "Arvore_Seca",
         };
@@ -182,11 +183,11 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
                 case Bioma.Campo:
                     return 0.03f;
                 case Bioma.Mata:
-                    return 0.2f;
+                    return MaiorDensidade;
                 case Bioma.Colinas:
                     return 0.08f;
                 case Bioma.Deserto:
-                    return 0.04f;
+                    return 0.07f;
                 case Bioma.Neve:
                     return 0.07f;
                 case Bioma.Lava:
@@ -244,10 +245,20 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
                         continue;
                     }
 
+                    if (MapaDoMundo.PertoDeCidadeSecundaria(x, z, 8f))
+                    {
+                        continue;
+                    }
+
+                    if (CaminhosDoMundo.DistanciaAteCaminho(x, z) < 9f)
+                    {
+                        continue;
+                    }
+
                     // O teste barato vem antes: a maioria das células fica vazia sem consultar
                     // o mapa.
                     var chance = sorteio.Proximo();
-                    if (chance >= 0.2f * 1.8f)
+                    if (chance >= MaiorDensidade * 1.8f)
                     {
                         continue;
                     }
@@ -286,6 +297,11 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
                 return false;
             }
 
+            if (MapaDoMundo.DentroDoRioAlto(x, z))
+            {
+                return false;
+            }
+
             if (bioma == Bioma.Lava && y < MapaDoMundo.NivelDaLava + 2f)
             {
                 return false;
@@ -303,7 +319,17 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
         // Pedras variam mais de tamanho (até 2,6 vezes); árvores, de 0,9 a 1,5.
         private static float Escala(string prefab, float sorteado)
         {
-            return EhPedra(prefab) ? 1f + 1.6f * sorteado * sorteado : 0.9f + 0.6f * sorteado;
+            if (EhPedra(prefab))
+            {
+                return 1f + 1.6f * sorteado * sorteado;
+            }
+
+            if (prefab == "Cacto")
+            {
+                return 1.6f + 1.1f * sorteado;
+            }
+
+            return 0.9f + 0.6f * sorteado;
         }
 
         // Inclinação do chão em volta do ponto, em metros de subida por metro andado.

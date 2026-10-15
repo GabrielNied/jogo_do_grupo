@@ -10,13 +10,13 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
         // Pontos de referência de cada bioma (centro de cada um, longe das fronteiras).
         private static readonly (Bioma bioma, float x, float z)[] Referencias =
         {
-            (Bioma.Campo, 0f, 300f),
-            (Bioma.Mata, 300f, 0f),
-            (Bioma.Colinas, -300f, 0f),
-            (Bioma.Deserto, -1100f, 0f),
-            (Bioma.Neve, 0f, 1100f),
-            (Bioma.Lava, 0f, -1100f),
-            (Bioma.Pantano, 1100f, 0f),
+            (Bioma.Campo, 160f, -180f),
+            (Bioma.Mata, 350f, -250f),
+            (Bioma.Colinas, -300f, 180f),
+            (Bioma.Deserto, -1080f, -680f),
+            (Bioma.Neve, -920f, 1030f),
+            (Bioma.Lava, 790f, -1180f),
+            (Bioma.Pantano, 1090f, 250f),
         };
 
         [Test]

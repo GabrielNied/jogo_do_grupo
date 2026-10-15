@@ -14,6 +14,12 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
         /// <summary>Parte da terra batida nas colinas (o resto é grama seca).</summary>
         public const float TerraNasColinas = 0.6f;
 
+        /// <summary>Parte de solo terroso sob a mata (o resto permanece grama).</summary>
+        public const float TerraNaMata = 0.45f;
+
+        /// <summary>Quanto a estrada troca o material natural por terra batida.</summary>
+        public const float TerraNosCaminhos = 0.8f;
+
         /// <summary>Altura acima da linha d'água em que a margem vira areia (m).</summary>
         public const float AlturaDaPraia = 0.85f;
 
@@ -55,8 +61,11 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
         public static PesosDoTerreno Calcular(PesosDosBiomas biomas, float altura, float x, float z)
         {
             var p = new float[5]; // grama, terra, areia, neve, lama
-            p[0] = biomas.Campo + biomas.Mata + biomas.Colinas * (1f - TerraNasColinas);
-            p[1] = biomas.Colinas * TerraNasColinas + biomas.Lava;
+            p[0] =
+                biomas.Campo
+                + biomas.Mata * (1f - TerraNaMata)
+                + biomas.Colinas * (1f - TerraNasColinas);
+            p[1] = biomas.Mata * TerraNaMata + biomas.Colinas * TerraNasColinas + biomas.Lava;
             p[2] = biomas.Deserto;
             p[3] = biomas.Neve;
             p[4] = biomas.Pantano;
@@ -88,6 +97,10 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
                 Misturar(p, 2, margem * AreiaNaMargemDeRio);
                 Misturar(p, 1, margem * (1f - AreiaNaMargemDeRio));
             }
+
+            // Os seis corredores do mapa novo usam o mesmo traçado compartilhado que
+            // afasta árvores e permite ao servidor consultar a altura do caminho.
+            Misturar(p, 1, CaminhosDoMundo.PesoEm(x, z) * TerraNosCaminhos);
 
             // Estrada que sai do portão: terra batida.
             if (

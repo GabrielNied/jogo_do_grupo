@@ -1,18 +1,19 @@
 ﻿using System.Collections.Generic;
+using JogoDoGrupo.Shared.Features.Mundo;
 using UnityEngine;
 
 namespace JogoDoGrupo.Client.Features.Mundo.Hub
 {
-    /// <summary>As três áreas do terreno em volta da cidade.</summary>
+    /// <summary>Tipos de vegetacao das clareiras, mata e colinas proximas da cidade.</summary>
     public enum AreaDoTerreno
     {
-        /// <summary>Campo aberto ao norte, para onde sai a estrada do portão.</summary>
+        /// <summary>Clareiras abertas entre os bosques.</summary>
         Campo,
 
-        /// <summary>Mata a leste e no sul leste, com árvores próximas.</summary>
+        /// <summary>Bosques em volta da cidade, com arvores proximas.</summary>
         Mata,
 
-        /// <summary>Colinas a oeste e no sul oeste, com mais pedra do que árvore.</summary>
+        /// <summary>Dorsais locais entre a mata e as regioes externas.</summary>
         Colinas,
     }
 
@@ -126,23 +127,22 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
         public static readonly IReadOnlyList<PecaDoHub> PropsFora = GerarPropsFora();
 
         /// <summary>
-        /// Área do terreno em (<paramref name="x"/>, <paramref name="z"/>). O norte inteiro, a
-        /// partir dos muros, é campo. A leste (e no sul leste) é mata. A oeste (e no sul oeste)
-        /// são colinas.
+        /// Tipo de vegetacao local, seguindo o mapa novo do shared em vez de setores fixos.
         /// </summary>
         public static AreaDoTerreno AreaEm(float x, float z)
         {
-            if (z >= Metade)
+            var bioma = MapaDoMundo.BiomaEm(x, z);
+            if (bioma == Bioma.Campo)
             {
                 return AreaDoTerreno.Campo;
             }
 
-            if (x >= 0f)
+            if (bioma == Bioma.Colinas)
             {
-                return AreaDoTerreno.Mata;
+                return AreaDoTerreno.Colinas;
             }
 
-            return AreaDoTerreno.Colinas;
+            return AreaDoTerreno.Mata;
         }
 
         /// <summary>
@@ -346,8 +346,8 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
             // Campo: aberto, árvores afastadas. Mata: muitas árvores. Colinas: mais pedra.
             Espalhar(lista, ref sorteio, campo, 36, 18f, true, AreaDoTerreno.Campo);
             Espalhar(lista, ref sorteio, campo, 28, 28f, false, AreaDoTerreno.Campo);
-            Espalhar(lista, ref sorteio, mata, 80, 9f, true, AreaDoTerreno.Mata);
-            Espalhar(lista, ref sorteio, mata, 60, 14f, false, AreaDoTerreno.Mata);
+            Espalhar(lista, ref sorteio, mata, 170, 8f, true, AreaDoTerreno.Mata);
+            Espalhar(lista, ref sorteio, mata, 150, 12f, false, AreaDoTerreno.Mata);
             Espalhar(lista, ref sorteio, colinas, 48, 12f, true, AreaDoTerreno.Colinas);
             Espalhar(lista, ref sorteio, colinas, 36, 18f, false, AreaDoTerreno.Colinas);
 
@@ -421,7 +421,17 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
                 return false;
             }
 
-            if (AreaEm(x, z) != area)
+            var bioma = MapaDoMundo.BiomaEm(x, z);
+            if (bioma != Bioma.Campo && bioma != Bioma.Mata && bioma != Bioma.Colinas)
+            {
+                return false;
+            }
+
+            var areaDoBioma =
+                bioma == Bioma.Campo ? AreaDoTerreno.Campo
+                : bioma == Bioma.Colinas ? AreaDoTerreno.Colinas
+                : AreaDoTerreno.Mata;
+            if (areaDoBioma != area)
             {
                 return false;
             }

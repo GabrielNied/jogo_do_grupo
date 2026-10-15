@@ -27,6 +27,8 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
         public const string NomePropsFora = "PropsFora";
         public const string NomePecasDosBiomas = "PecasDosBiomas";
         public const string NomeEstruturas = "Estruturas";
+        public const string NomeCidadesSecundarias = "CidadesSecundarias";
+        public const string NomeBairrosFlorestais = "BairrosFlorestais";
         public const string NomeCaverna = "Caverna";
         public const string NomeLuz = "Sol";
         public const string NomeAmbiente = "Ambiente";
@@ -43,6 +45,45 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
         // bioma dividem o mesmo material.
         private static readonly Dictionary<(Material, Bioma), Material> _materiaisTingidos =
             new Dictionary<(Material, Bioma), Material>();
+
+        // Bairros provisórios que acompanham as clareiras do novo mapa.
+        private static readonly (
+            string Prefab,
+            float X,
+            float Z,
+            float Guinada
+        )[] BairrosDaFloresta =
+        {
+            ("Casa_Pedra_Larga", -77f, 44f, 24f),
+            ("Casa_Madeira_Pequena", -59f, 12f, -63f),
+            ("Casa_Madeira_Pequena", -91f, -25f, 52f),
+            ("Barraca_Verde", -66f, -55f, -18f),
+            ("Casa_Pedra_Pequena", -58f, 102f, -46f),
+            ("Casa_Madeira_Pequena", -28f, 87f, 32f),
+            ("Carroca", -89f, 65f, 75f),
+            ("Casa_Madeira_Pequena", -112f, 82f, 34f),
+            ("Casa_Pedra_Pequena", -145f, 59f, -28f),
+            ("Barraca_Verde", -126f, 119f, 112f),
+            ("Lanterna", -100f, 91f, 0f),
+            ("Casa_Pedra_Larga", 70f, 62f, -28f),
+            ("Casa_Madeira_Pequena", 98f, 33f, 41f),
+            ("Casa_Pedra_Pequena", 63f, -23f, -49f),
+            ("Barraca_Vermelha", 101f, -47f, 102f),
+            ("Carroca", 50f, 91f, 122f),
+            ("Casa_Madeira_Pequena", 111f, 101f, -42f),
+            ("Casa_Pedra_Larga", 145f, 77f, 28f),
+            ("Barraca_Vermelha", 123f, 132f, 158f),
+            ("Lanterna", 95f, 109f, 0f),
+            ("Casa_Pedra_Pequena", -27f, -73f, 38f),
+            ("Casa_Madeira_Pequena", 21f, -80f, -40f),
+            ("Casa_Pedra_Larga", 47f, -111f, 26f),
+            ("Barraca_Verde", -51f, -118f, -110f),
+            ("Carroca", 5f, -105f, 70f),
+            ("Casa_Pedra_Pequena", -103f, -93f, 55f),
+            ("Casa_Madeira_Pequena", -137f, -119f, -50f),
+            ("Casa_Madeira_Pequena", 115f, -111f, -34f),
+            ("Barraca_Verde", 145f, -87f, 96f),
+        };
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void Registrar()
@@ -105,6 +146,8 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
             await Awaitable.NextFrameAsync(cancelar);
             await CriarPecasDosBiomasAsync(raiz.transform, cancelar);
             CriarEstruturas(raiz.transform);
+            CriarCidadesSecundarias(raiz.transform);
+            CriarBairrosFlorestais(raiz.transform);
             Caverna.Montar(raiz.transform);
             var sol = CriarLuz(raiz.transform);
             var preenchimento = CriarPreenchimento(raiz.transform);
@@ -130,6 +173,8 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
             CriarPropsFora(raiz.transform);
             CriarPecasDosBiomas(raiz.transform);
             CriarEstruturas(raiz.transform);
+            CriarCidadesSecundarias(raiz.transform);
+            CriarBairrosFlorestais(raiz.transform);
             Caverna.Montar(raiz.transform);
             var sol = CriarLuz(raiz.transform);
             var preenchimento = CriarPreenchimento(raiz.transform);
@@ -404,6 +449,16 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
             // lava (onde um bioma de fora avança sobre o miolo) são puladas.
             foreach (var peca in LayoutDoHub.PropsFora)
             {
+                if (
+                    MapaDoMundo.PertoDeCidadeSecundaria(peca.X, peca.Z, 8f)
+                    || CaminhosDoMundo.DistanciaAteCaminho(peca.X, peca.Z) < 9f
+                    || PertoDeBairroFlorestal(peca.X, peca.Z)
+                    || PertoDeEstrutura(peca.X, peca.Z)
+                )
+                {
+                    continue;
+                }
+
                 var altura = MapaDoMundo.AlturaEm(peca.X, peca.Z);
                 if (altura < MapaDoMundo.NivelDaAgua)
                 {
@@ -417,6 +472,64 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
                     props
                 );
                 Tingir(instancia, MapaDoMundo.BiomaEm(peca.X, peca.Z));
+            }
+        }
+
+        private static bool PertoDeBairroFlorestal(float x, float z)
+        {
+            foreach (var peca in BairrosDaFloresta)
+            {
+                var dx = x - peca.X;
+                var dz = z - peca.Z;
+                if (dx * dx + dz * dz < 13f * 13f)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static bool PertoDeEstrutura(float x, float z)
+        {
+            foreach (var lugar in EstruturasDoMapa.Lugares)
+            {
+                foreach (var peca in lugar.Pecas)
+                {
+                    var dx = x - peca.X;
+                    var dz = z - peca.Z;
+                    if (dx * dx + dz * dz < 12f * 12f)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        private static void CriarBairrosFlorestais(Transform pai)
+        {
+            var raiz = new GameObject(NomeBairrosFlorestais).transform;
+            raiz.SetParent(pai, false);
+            foreach (var peca in BairrosDaFloresta)
+            {
+                if (CaminhosDoMundo.DistanciaAteCaminho(peca.X, peca.Z) < 12f)
+                {
+                    continue;
+                }
+
+                var altura = MapaDoMundo.AlturaEm(peca.X, peca.Z);
+                var instancia = Instanciar(
+                    peca.Prefab,
+                    new Vector3(peca.X, altura, peca.Z),
+                    peca.Guinada,
+                    raiz
+                );
+                if (instancia != null && peca.Prefab == PrefabDaLanterna)
+                {
+                    CalibrarLanterna(instancia);
+                }
             }
         }
 
@@ -436,6 +549,88 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
                         peca.Guinada,
                         raiz
                     );
+                }
+            }
+        }
+
+        private static void CriarCidadesSecundarias(Transform pai)
+        {
+            var raiz = new GameObject(NomeCidadesSecundarias).transform;
+            raiz.SetParent(pai, false);
+
+            CriarVila(
+                raiz,
+                "PassoDaNeve",
+                MapaDoMundo.CidadeDaNeveX,
+                MapaDoMundo.CidadeDaNeveZ,
+                MapaDoMundo.CidadeDaNeveAltura,
+                Bioma.Neve,
+                new (string Prefab, float X, float Z, float Guinada)[]
+                {
+                    ("Fonte", 0f, 0f, 0f),
+                    ("Casa_Pedra_Larga", -26f, -17f, 35f),
+                    ("Casa_Madeira_Pequena", 23f, -23f, -35f),
+                    ("Casa_Madeira_Pequena", -24f, 22f, 145f),
+                    ("Casa_Pedra_Larga", 25f, 21f, -145f),
+                    ("Barraca_Verde", -9f, -27f, 20f),
+                    ("Carroca", 11f, 28f, 110f),
+                    ("Lanterna", -11f, 10f, 0f),
+                    ("Lanterna", 12f, -9f, 0f),
+                }
+            );
+
+            CriarVila(
+                raiz,
+                "OasisDoDeserto",
+                MapaDoMundo.CidadeDoDesertoX,
+                MapaDoMundo.CidadeDoDesertoZ,
+                MapaDoMundo.CidadeDoDesertoAltura,
+                Bioma.Deserto,
+                new (string Prefab, float X, float Z, float Guinada)[]
+                {
+                    ("Fonte", 0f, 0f, 0f),
+                    ("Casa_Pedra_Larga", -27f, -18f, 40f),
+                    ("Casa_Pedra_Pequena", 25f, -24f, -35f),
+                    ("Casa_Pedra_Pequena", -25f, 24f, 140f),
+                    ("Casa_Pedra_Larga", 26f, 19f, -140f),
+                    ("Barraca_Vermelha", -11f, -29f, 25f),
+                    ("Barraca_Verde", 10f, 28f, 115f),
+                    ("Carroca", 32f, 1f, 90f),
+                    ("Lanterna", -10f, 10f, 0f),
+                    ("Lanterna", 12f, -9f, 0f),
+                }
+            );
+        }
+
+        private static void CriarVila(
+            Transform pai,
+            string nome,
+            float centroX,
+            float centroZ,
+            float altura,
+            Bioma bioma,
+            (string Prefab, float X, float Z, float Guinada)[] pecas
+        )
+        {
+            var vila = new GameObject(nome).transform;
+            vila.SetParent(pai, false);
+            foreach (var peca in pecas)
+            {
+                var instancia = Instanciar(
+                    peca.Prefab,
+                    new Vector3(centroX + peca.X, altura, centroZ + peca.Z),
+                    peca.Guinada,
+                    vila
+                );
+                if (instancia == null)
+                {
+                    continue;
+                }
+
+                Tingir(instancia, bioma);
+                if (peca.Prefab == PrefabDaLanterna)
+                {
+                    CalibrarLanterna(instancia);
                 }
             }
         }

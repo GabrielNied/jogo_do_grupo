@@ -60,6 +60,49 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
             Debug.Log($"[CapturaDoTerreno] salvo em {caminho}");
         }
 
+        /// <summary>Vista de cima para comparar a planta, os rios e os caminhos do mapa.</summary>
+        public static void CapturarMapa()
+        {
+            EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+            ConstrutorHub.Montar();
+
+            var objeto = new GameObject("CameraDoMapa");
+            var camera = objeto.AddComponent<Camera>();
+            camera.orthographic = true;
+            camera.orthographicSize = MapaDoMundo.Metade;
+            camera.farClipPlane = 2000f;
+            camera.clearFlags = CameraClearFlags.SolidColor;
+            camera.backgroundColor = Color.black;
+            objeto.transform.position = new Vector3(0f, 1000f, 0f);
+            objeto.transform.LookAt(Vector3.zero);
+
+            var nevoa = RenderSettings.fog;
+            RenderSettings.fog = false;
+            var render = RenderTexture.GetTemporary(1024, 1024, 24);
+            camera.targetTexture = render;
+            camera.Render();
+            RenderTexture.active = render;
+            var imagem = new Texture2D(1024, 1024, TextureFormat.RGB24, false);
+            imagem.ReadPixels(new Rect(0, 0, 1024, 1024), 0, 0);
+            imagem.Apply();
+            RenderTexture.active = null;
+            camera.targetTexture = null;
+            RenderTexture.ReleaseTemporary(render);
+            RenderSettings.fog = nevoa;
+            Object.DestroyImmediate(objeto);
+
+            var tag = System.Environment.GetEnvironmentVariable("TERRENO_TAG");
+            if (string.IsNullOrEmpty(tag))
+            {
+                tag = "captura";
+            }
+
+            var caminho = Path.Combine(Path.GetTempPath(), $"terreno-{tag}-mapa.png");
+            File.WriteAllBytes(caminho, imagem.EncodeToPNG());
+            Object.DestroyImmediate(imagem);
+            Debug.Log($"[CapturaDoTerreno] mapa salvo em {caminho}");
+        }
+
         private static void Relatar(GameObject hub, long milissegundos)
         {
             var renderizadores = hub.GetComponentsInChildren<Renderer>(true);
