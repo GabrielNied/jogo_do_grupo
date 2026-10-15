@@ -2,6 +2,16 @@
 
 Este guia ensina a usar as ferramentas de mapa dentro do **editor Unity**. Ele é permanente: cada nova operação deve ganhar aqui um passo a passo antes de ser considerada entregue. As regras do mundo ficam em [Mundo](features/mundo.md); a situação provisória do desenvolvimento fica na [retomada](../client/Assets/_Game/Features/Mundo/MapaEmDesenvolvimento/RETOMADA.md).
 
+## Direção da ferramenta
+
+O objetivo é **desenhar o mapa**, sem montar cada trecho manualmente com código. Você escolhe uma operação, desenha sua forma no mapa, ajusta parâmetros, vê o resultado em tempo real e salva para continuar editando depois. A ordem confirmada de desenvolvimento e de uso é:
+
+1. **Biomas:** desenhar as regiões; cada uma recebe relevo base, texturas e vegetação conforme suas regras, não apenas uma cor.
+2. **Lagos:** desenhar a área da água; a ferramenta forma a bacia e as margens junto com a superfície da água.
+3. **Estradas:** desenhar linhas em qualquer ponto do mapa; a ferramenta cria o piso, acomoda o terreno e deixa a passagem livre.
+
+A estrada Cidade central → Passo descrita abaixo é um **protótipo já disponível**, criado antes da definição dessa ordem. Ela não muda a prioridade das próximas entregas: primeiro biomas, depois lagos, depois estradas livres.
+
 ## O que funciona hoje
 
 A ferramenta permite **redesenhar a estrada Cidade central → Passo**. Você pode clicar pontos no terreno 3D, mover os pontos intermediários e ajustar a aparência da passagem enquanto vê uma prévia. A largura inicial é de **7 m**.
@@ -46,8 +56,9 @@ Se um clique não adicionar ponto, confira se **Adicionar ponto por clique** est
 
 | Operação | Situação |
 |---|---|
-| Criar várias estradas independentes | Ainda não disponível. |
-| Pintar um bioma com seu relevo, texturas e vegetação próprios | Ainda não disponível. Pintar só uma cor não atende ao objetivo do editor. |
-| Desenhar rios, escavar o leito e mostrar água | Planejado para uma etapa posterior. |
+| Desenhar biomas com relevo, texturas e vegetação próprios | Próxima operação a desenvolver. |
+| Desenhar lagos com bacia, água e margens | Depois dos biomas. |
+| Criar várias estradas independentes | Depois dos lagos. A janela atual só altera a rota do Passo. |
+| Desenhar rios com leito e água corrente | Ideia separada dos lagos; ordem ainda não definida. |
 
 Ao concluir cada tarefa ou funcionalidade do criador de mapas, atualizar esta página com o caminho da tela, os controles, como salvar, como conferir o resultado e as limitações atuais. Se a tarefa não mudar as ações na interface, registrar seu efeito e indicar que o procedimento continua igual.
