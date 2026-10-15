@@ -21,7 +21,8 @@ public sealed class ServicoDeInimigos(
     ILogger<ServicoDeInimigos> log,
     IEstadoDeQueda queda,
     ChefesDaDungeon? chefes = null,
-    InimigosPorInstancia? instancias = null
+    InimigosPorInstancia? instancias = null,
+    IVizinhanca? vizinhanca = null
 ) : BackgroundService, ISpawnDeTeste
 {
     private readonly ControleInteresseDeInimigos _interesse = new();
@@ -91,7 +92,8 @@ public sealed class ServicoDeInimigos(
         var passo = grupo.Passo(jogadores);
         var posicoesInimigos = PosicoesAtuais(grupo, passo);
 
-        foreach (var sessao in tempoReal.Sessoes)
+        var sessoesAlvo = ObterSessoesAlvo(grupo, passo, posicoesInimigos);
+        foreach (var sessao in sessoesAlvo)
         {
             if (
                 !posicoes.TentarObter(sessao.PersonagemId, out var posicaoJogador)
@@ -341,7 +343,11 @@ public sealed class ServicoDeInimigos(
     )
     {
         var podeEnviar = false;
-        if (
+        if (grupo.Area != AreasDoMundo.Cidade)
+        {
+            podeEnviar = true;
+        }
+        else if (
             PosicaoDoInimigo(morte.InimigoId, posicoesInimigos, 0, 0, out var ix, out var iz)
             && AplicarInteresse(
                 sessao,
@@ -386,6 +392,11 @@ public sealed class ServicoDeInimigos(
         InimigoNoMundo? retratoSeEntrou
     )
     {
+        if (grupo.Area != AreasDoMundo.Cidade)
+        {
+            return true;
+        }
+
         var avaliacao = _interesse.Avaliar(
             sessao.PersonagemId,
             inimigoId,
@@ -497,7 +508,13 @@ public sealed class ServicoDeInimigos(
         }
 
         var mensagem = new InimigoApareceu { Inimigo = inimigo };
-        foreach (var sessao in tempoReal.Sessoes)
+        var sessoesCandidatas = ObterSessoesPerto(
+            posicao.Area,
+            inimigo.X,
+            inimigo.Z,
+            (float)RegrasInteresseDeInimigos.SaidaMetros
+        );
+        foreach (var sessao in sessoesCandidatas)
         {
             if (
                 !posicoes.TentarObter(sessao.PersonagemId, out var posicaoJogador)
@@ -547,12 +564,91 @@ public sealed class ServicoDeInimigos(
         }
 
         var vivos = daArea.SelectMany(g => g.Vivos());
-        var filtrados = _interesse.FiltrarEntrada(evento.PersonagemId, posicao.X, posicao.Z, vivos);
+        var filtrados = _interesse.FiltrarEntrada(
+            evento.PersonagemId,
+            evento.Area,
+            posicao.X,
+            posicao.Z,
+            vivos
+        );
         tempoReal.Enviar(
             sessao,
             MobsMessageIds.InimigosDaArea,
             new InimigosDaArea { Inimigos = filtrados }
         );
+    }
+
+    /// <summary>Quem sai da área limpa o estado de interesse de inimigos.</summary>
+    public void AoSairDaArea(JogadorSaiuDaArea evento)
+    {
+        _interesse.RemoverJogador(evento.PersonagemId);
+    }
+
+    private IEnumerable<SessaoTempoReal> ObterSessoesAlvo(
+        IInimigosSimulados grupo,
+        PassoDosInimigos passo,
+        Dictionary<long, (float X, float Z)> posicoesInimigos
+    )
+    {
+        if (vizinhanca != null && grupo.Area == AreasDoMundo.Cidade)
+        {
+            var pertoIds = new HashSet<long>();
+            foreach (var (inimigoId, (ix, iz)) in posicoesInimigos)
+            {
+                pertoIds.UnionWith(
+                    vizinhanca.PersonagensPerto(
+                        grupo.Area,
+                        ix,
+                        iz,
+                        (float)RegrasInteresseDeInimigos.SaidaMetros
+                    )
+                );
+                pertoIds.UnionWith(_interesse.QuemJaRecebia(inimigoId));
+            }
+
+            foreach (var morte in passo.Mortes)
+            {
+                pertoIds.UnionWith(_interesse.QuemJaRecebia(morte.InimigoId));
+            }
+
+            var lista = new List<SessaoTempoReal>(pertoIds.Count);
+            foreach (var id in pertoIds)
+            {
+                if (tempoReal.TentarObterSessao(id, out var s) && s != null)
+                {
+                    lista.Add(s);
+                }
+            }
+
+            return lista;
+        }
+
+        return tempoReal.Sessoes;
+    }
+
+    private IEnumerable<SessaoTempoReal> ObterSessoesPerto(
+        string area,
+        float x,
+        float z,
+        float raio
+    )
+    {
+        if (vizinhanca != null && area == AreasDoMundo.Cidade)
+        {
+            var perto = vizinhanca.PersonagensPerto(area, x, z, raio);
+            var lista = new List<SessaoTempoReal>(perto.Count);
+            foreach (var id in perto)
+            {
+                if (tempoReal.TentarObterSessao(id, out var s) && s != null)
+                {
+                    lista.Add(s);
+                }
+            }
+
+            return lista;
+        }
+
+        return tempoReal.Sessoes;
     }
 
     // A falha de um assinante não pode parar a IA nem os outros eventos do passo.
