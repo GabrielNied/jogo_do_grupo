@@ -113,6 +113,12 @@ namespace JogoDoGrupo.Shared.Features.Itens
         public const string ConjuntoInvalido = "ConjuntoInvalido";
 
         /// <summary>
+        /// 409, trocar de conjunto de armas: o personagem está numa ação (golpe, esquiva, guarda,
+        /// outra troca, reação ao acerto, atordoado ou caído). A mesma regra da tecla R.
+        /// </summary>
+        public const string TrocaDeArmaBloqueada = "TrocaDeArmaBloqueada";
+
+        /// <summary>
         /// 409, baú: o personagem não está na área do baú ou está a mais de
         /// <see cref="ConfigBau.RaioParaAbrirMetros"/> dele (pela posição que o servidor aceitou).
         /// Nada é sorteado nem gravado.

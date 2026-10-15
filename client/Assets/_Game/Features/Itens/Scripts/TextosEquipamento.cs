@@ -265,6 +265,8 @@ namespace JogoDoGrupo.Client.Features.Itens
                     return "Essa peça não pode ser equipada nesse encaixe.";
                 case CodigosErroItens.ItemNaoEquipavel:
                     return "Esse item não pode ser equipado.";
+                case CodigosErroItens.TrocaDeArmaBloqueada:
+                    return "Termine a ação em andamento antes de trocar de arma.";
                 default:
                     return "Não foi possível concluir. Tente novamente.";
             }

@@ -1,5 +1,6 @@
 using System.Data;
 using System.Security.Claims;
+using JogoDoGrupo.Server.Contratos.Combate;
 using JogoDoGrupo.Server.Contratos.Itens;
 using JogoDoGrupo.Server.Core.Api;
 using JogoDoGrupo.Server.Core.Autenticacao;
@@ -89,6 +90,7 @@ internal static class EquipamentosRotas
                     PedidoConjunto pedido,
                     ClaimsPrincipal usuario,
                     JogoDbContext db,
+                    IServiceProvider servicos,
                     VisualEquipadoServico visual,
                     EventosDoServidor eventos,
                     CancellationToken c
@@ -103,7 +105,8 @@ internal static class EquipamentosRotas
                         null,
                         visual,
                         eventos,
-                        c
+                        c,
+                        servicos.GetService<ITrocaDeArma>()
                     )
             )
             .RequireAuthorization();
@@ -129,7 +132,8 @@ internal static class EquipamentosRotas
         GeradorEquipamentos? gerador,
         VisualEquipadoServico? visual,
         EventosDoServidor? eventos,
-        CancellationToken c
+        CancellationToken c,
+        ITrocaDeArma? troca = null
     )
     {
         await using var transacao = await db.Database.BeginTransactionAsync(
@@ -151,6 +155,10 @@ internal static class EquipamentosRotas
         {
             if (conjunto.Conjunto != 1 && conjunto.Conjunto != 2)
                 return Erro(CodigosErroItens.ConjuntoInvalido, 400);
+            // Trocar de conjunto é trocar de arma: a mesma regra do R (recusa nas ações e 0,4 s
+            // sem golpe, esquiva e guarda). Pedir o conjunto que já está ativo não troca nada.
+            if (conjunto.Conjunto != ativos && troca?.TentarReservar(id) is not null)
+                return Erro(CodigosErroItens.TrocaDeArmaBloqueada);
             estado ??= new EstadoEquipamentos { PersonagemId = id };
             if (db.Entry(estado).State == EntityState.Detached)
                 db.Add(estado);
