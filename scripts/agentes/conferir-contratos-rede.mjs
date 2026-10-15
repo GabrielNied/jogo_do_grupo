@@ -1,9 +1,9 @@
-// Garante que parâmetros do transporte UDP (LiteNetLib) estão alinhados entre shared,
-// servidor, client Unity e client de teste — evita repetir #725/#732/#826.
+// Garante que todo NetManager da LiteNetLib (servidor, client Unity e client de teste) usa
+// TransporteTempoReal.Canais do shared: com canais a menos, quem recebe descarta em silêncio
+// as posições fora dos primeiros canais (#826). O valor mora só no shared, então mudar o
+// número lá basta; o que não pode é um lado voltar ao padrão ou a um literal.
 //
-// Uso:
-//   npm run conferir-contratos-rede
-//   node scripts/agentes/conferir-contratos-rede.mjs [base]   # ex.: origin/main no pre-push
+// Uso: npm run conferir-contratos-rede
 
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
@@ -12,122 +12,65 @@ import { fileURLToPath } from "node:url";
 
 const raiz = join(dirname(fileURLToPath(import.meta.url)), "../..");
 
-export const ARQUIVOS = {
-  sharedTransporte: "shared/Package/Runtime/Core/TempoReal/TransporteTempoReal.cs",
-  servidor: "server/src/JogoDoGrupo.Server/Core/TempoReal/ServidorTempoReal.cs",
-  clientTransporte: "client/Assets/_Game/Core/Scripts/TempoReal/TransporteLiteNetLib.cs",
-  clientTesteUdp: "tests/JogoDoGrupo.Server.Tests/Infra/ClienteTempoRealDeTeste.cs",
-  clientTesteUnity: "client/Assets/_Game/Core/Tests/TransporteLiteNetLibTestes.cs",
-};
+export const SHARED = "shared/Package/Runtime/Core/TempoReal/TransporteTempoReal.cs";
+
+export const NET_MANAGERS = [
+  "server/src/JogoDoGrupo.Server/Core/TempoReal/ServidorTempoReal.cs",
+  "client/Assets/_Game/Core/Scripts/TempoReal/TransporteLiteNetLib.cs",
+  "tests/JogoDoGrupo.Server.Tests/Infra/ClienteTempoRealDeTeste.cs",
+];
 
 const PADRAO_CANAIS = /ChannelsCount\s*=\s*TransporteTempoReal\.Canais/;
-const PADRAO_LITERAL = /ChannelsCount\s*=\s*\d+/;
+const PADRAO_ATRIBUICAO = /ChannelsCount\s*=\s*(?!TransporteTempoReal\.Canais)\S/;
 
-export function ler(relativo) {
-  return readFileSync(join(raiz, relativo), "utf8");
-}
-
-/** @param {Record<string, string>} conteudos */
-export function verificarCanais(conteudos) {
+/**
+ * @param {string} shared conteúdo de TransporteTempoReal.cs
+ * @param {Record<string, string>} netManagers caminho → conteúdo
+ */
+export function verificarCanais(shared, netManagers) {
   const erros = [];
-
-  if (!conteudos.sharedTransporte.includes("public const byte Canais")) {
-    erros.push(`${ARQUIVOS.sharedTransporte}: falta TransporteTempoReal.Canais no shared.`);
+  if (!/public const byte Canais\b/.test(shared)) {
+    erros.push(`${SHARED}: falta TransporteTempoReal.Canais.`);
   }
-
-  for (const [nome, caminho] of [
-    ["servidor", ARQUIVOS.servidor],
-    ["clientTransporte", ARQUIVOS.clientTransporte],
-    ["clientTesteUdp", ARQUIVOS.clientTesteUdp],
-  ]) {
-    const texto = conteudos[nome];
-    if (!PADRAO_CANAIS.test(texto)) {
-      erros.push(`${caminho}: use ChannelsCount = TransporteTempoReal.Canais (não literal).`);
-    }
-    if (PADRAO_LITERAL.test(texto)) {
-      erros.push(`${caminho}: ChannelsCount numérico literal — use TransporteTempoReal.Canais.`);
+  for (const [caminho, texto] of Object.entries(netManagers)) {
+    if (PADRAO_ATRIBUICAO.test(texto)) {
+      erros.push(`${caminho}: ChannelsCount com outro valor; use TransporteTempoReal.Canais.`);
+    } else if (!PADRAO_CANAIS.test(texto)) {
+      erros.push(`${caminho}: falta ChannelsCount = TransporteTempoReal.Canais.`);
     }
   }
-
-  if (!conteudos.clientTesteUnity.includes("Sequenciada_NoUltimoCanalDoServidor_Chega")) {
-    erros.push(
-      `${ARQUIVOS.clientTesteUnity}: falta o teste do transporte Unity no último canal (#826).`,
-    );
-  }
-
   return erros;
 }
 
-function git(args) {
+/** Arquivos C# fora de ThirdParty que atribuem ChannelsCount, além dos conhecidos. */
+function outrosNetManagers() {
   try {
-    return execFileSync("git", args, { cwd: raiz, encoding: "utf8" }).trim();
+    const saida = execFileSync(
+      "git",
+      ["grep", "-l", "-E", "ChannelsCount *=", "--", "*.cs", ":!**/ThirdParty/**"],
+      { cwd: raiz, encoding: "utf8" },
+    );
+    return saida
+      .split("\n")
+      .map((l) => l.trim())
+      .filter((l) => l && !NET_MANAGERS.includes(l));
   } catch {
-    return "";
-  }
-}
-
-/** @param {string} base */
-export function arquivosAlteradosDesde(base) {
-  if (!base) return [];
-  const saida = git(["diff", "--name-only", `${base}...HEAD`]);
-  return saida ? saida.split("\n").map((l) => l.trim()).filter(Boolean) : [];
-}
-
-/** @param {string} base */
-export function diffServidorDesde(base) {
-  if (!base) return "";
-  return git(["diff", `${base}...HEAD`, "--", ARQUIVOS.servidor]);
-}
-
-/**
- * @param {string[]} alterados
- * @param {string} diffServidor
- */
-export function verificarPareamentoNaBranch(alterados, diffServidor) {
-  const set = new Set(alterados);
-  const tocouShared = set.has(ARQUIVOS.sharedTransporte);
-  const tocouServidorTransporte =
-    set.has(ARQUIVOS.servidor) &&
-    /ChannelsCount|CanalParaEntidade|TransporteTempoReal/.test(diffServidor);
-
-  if (!tocouShared && !tocouServidorTransporte) {
     return [];
   }
-
-  if (set.has(ARQUIVOS.clientTransporte)) {
-    return [];
-  }
-
-  return [
-    "Mudou o transporte UDP no servidor ou no shared, mas não alterou " +
-      `${ARQUIVOS.clientTransporte}. ` +
-      "No mesmo PR: shared + ServidorTempoReal + TransporteLiteNetLib (+ teste EditMode se aplicável).",
-  ];
 }
 
 function main() {
-  const base = process.argv[2] && !process.argv[2].startsWith("--") ? process.argv[2] : null;
-
-  const conteudos = {
-    sharedTransporte: ler(ARQUIVOS.sharedTransporte),
-    servidor: ler(ARQUIVOS.servidor),
-    clientTransporte: ler(ARQUIVOS.clientTransporte),
-    clientTesteUdp: ler(ARQUIVOS.clientTesteUdp),
-    clientTesteUnity: ler(ARQUIVOS.clientTesteUnity),
-  };
-
-  const erros = [...verificarCanais(conteudos)];
-
-  if (base && git(["rev-parse", "--verify", base])) {
-    const alterados = arquivosAlteradosDesde(base);
-    erros.push(...verificarPareamentoNaBranch(alterados, diffServidorDesde(base)));
-  }
+  const ler = (relativo) => readFileSync(join(raiz, relativo), "utf8");
+  const caminhos = [...NET_MANAGERS, ...outrosNetManagers()];
+  const erros = verificarCanais(
+    ler(SHARED),
+    Object.fromEntries(caminhos.map((c) => [c, ler(c)])),
+  );
 
   if (erros.length) {
     console.error("conferir-contratos-rede: falhou\n" + erros.map((e) => `- ${e}`).join("\n"));
     process.exit(1);
   }
-
   console.log("conferir-contratos-rede: ok");
 }
 

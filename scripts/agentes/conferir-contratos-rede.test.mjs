@@ -1,65 +1,38 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import {
-  ARQUIVOS,
-  verificarCanais,
-  verificarPareamentoNaBranch,
-} from "./conferir-contratos-rede.mjs";
+import { NET_MANAGERS, verificarCanais } from "./conferir-contratos-rede.mjs";
 
-const CANAIS_OK = "ChannelsCount = TransporteTempoReal.Canais";
+const SHARED_OK = "public const byte Canais = 32;";
+const CANAIS_OK = "ChannelsCount = TransporteTempoReal.Canais,";
 
-function conteudoBase() {
-  return {
-    sharedTransporte: "public const byte Canais = 32;",
-    servidor: CANAIS_OK,
-    clientTransporte: CANAIS_OK,
-    clientTesteUdp: CANAIS_OK,
-    clientTesteUnity: "Sequenciada_NoUltimoCanalDoServidor_Chega",
-  };
+function netManagers(texto = CANAIS_OK) {
+  return Object.fromEntries(NET_MANAGERS.map((c) => [c, texto]));
 }
 
 test("aceita os três lados usando TransporteTempoReal.Canais", () => {
-  assert.deepEqual(verificarCanais(conteudoBase()), []);
+  assert.deepEqual(verificarCanais(SHARED_OK, netManagers()), []);
 });
 
-test("rejeita ChannelsCount literal no client", () => {
-  const c = conteudoBase();
-  c.clientTransporte = "ChannelsCount = 32,";
-  const erros = verificarCanais(c);
-  assert.ok(erros.some((e) => e.includes(ARQUIVOS.clientTransporte)));
-});
-
-test("exige teste EditMode do transporte Unity", () => {
-  const c = conteudoBase();
-  c.clientTesteUnity = "// vazio";
-  assert.ok(verificarCanais(c).length > 0);
-});
-
-test("pareamento: shared mudou sem TransporteLiteNetLib falha", () => {
-  const erros = verificarPareamentoNaBranch([ARQUIVOS.sharedTransporte], "");
+test("rejeita ChannelsCount literal", () => {
+  const n = netManagers();
+  n[NET_MANAGERS[1]] = "ChannelsCount = 32,";
+  const erros = verificarCanais(SHARED_OK, n);
   assert.equal(erros.length, 1);
+  assert.ok(erros[0].includes(NET_MANAGERS[1]));
 });
 
-test("pareamento: shared + client ok", () => {
-  const erros = verificarPareamentoNaBranch(
-    [ARQUIVOS.sharedTransporte, ARQUIVOS.clientTransporte],
-    "",
-  );
-  assert.deepEqual(erros, []);
+test("rejeita ChannelsCount de outra constante", () => {
+  const n = netManagers();
+  n[NET_MANAGERS[0]] = "ChannelsCount = MeusCanais,";
+  assert.equal(verificarCanais(SHARED_OK, n).length, 1);
 });
 
-test("pareamento: ServidorTempoReal com Canais exige client", () => {
-  const erros = verificarPareamentoNaBranch(
-    [ARQUIVOS.servidor],
-    "+ ChannelsCount = TransporteTempoReal.Canais",
-  );
-  assert.equal(erros.length, 1);
+test("rejeita NetManager sem ChannelsCount (padrão de 1 canal, #826)", () => {
+  const n = netManagers();
+  n[NET_MANAGERS[1]] = "new NetManager(_ouvinte) { AutoRecycle = true };";
+  assert.equal(verificarCanais(SHARED_OK, n).length, 1);
 });
 
-test("pareamento: ServidorTempoReal sem mudança de transporte não exige client", () => {
-  const erros = verificarPareamentoNaBranch(
-    [ARQUIVOS.servidor],
-    "+ comentario qualquer",
-  );
-  assert.deepEqual(erros, []);
+test("rejeita shared sem a constante", () => {
+  assert.equal(verificarCanais("// vazio", netManagers()).length, 1);
 });
