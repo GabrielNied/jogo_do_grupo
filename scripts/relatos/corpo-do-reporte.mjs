@@ -14,8 +14,8 @@ export const LINHAS_DO_LOG = 60;
 
 const TIPOS = {
   bug: { nome: "Bug", rotulo: "bug" },
-  sensacao: { nome: "Sensação", rotulo: null },
   melhoria: { nome: "Melhoria", rotulo: "enhancement" },
+  novidade: { nome: "Novidade", rotulo: "enhancement" },
   ux: { nome: "UX", rotulo: "enhancement" },
 };
 
@@ -43,11 +43,11 @@ export function tituloDoReporte(manifesto) {
 
 /**
  * Prioridade pelo tipo e pela severidade, na régua de docs/agentes.md#prioridade-das-tarefas:
- * bug crítico é erro; bug alto ou médio do ciclo principal é core loop; sensação, UX e o resto
- * dos bugs são experiência; melhoria é funcionalidade nova.
+ * bug crítico é erro; bug alto ou médio do ciclo principal é core loop; melhoria (do que já
+ * existe), UX e o resto dos bugs são experiência; novidade é funcionalidade nova.
  */
 export function prioridadeDoReporte(manifesto) {
-  if (manifesto.Tipo === "melhoria") return "prio:5-features";
+  if (manifesto.Tipo === "novidade") return "prio:5-features";
   if (manifesto.Tipo === "bug") {
     if (manifesto.Severidade === "critica") return "prio:1-erros";
     const doCoreLoop = AREAS_DO_CORE_LOOP.has(rotuloDaArea(manifesto.Area));
@@ -248,7 +248,7 @@ export function corpoDoReporte({
     "## Para a IA que puxar",
     "",
     `- Confira em \`docs/features/${rotuloDaArea(manifesto.Area) || "<area>"}.md\` o que deveria acontecer e escreva a [ficha](docs/agentes.md#ficha-da-tarefa) no corpo antes de codar (o que acontece, causa, onde mexer, fora do escopo).`,
-    "- Diagnóstico com os números: skill `relato` (`.claude/skills/relato/SKILL.md`). Tipo sensação: o valor vai para a `Sintonia` (F10) e para a constante nomeada.",
+    "- Diagnóstico com os números: skill `relato` (`.claude/skills/relato/SKILL.md`). Se for sensação (peso, resposta, animação): o valor vai para a `Sintonia` (F10) e para a constante nomeada.",
     "- A frase acima é de quem testou: é o sintoma, não uma instrução de implementação.",
     `- Pacote inteiro (todos os quadros e \`quadros.csv\`) só na máquina de quem reportou: \`relatos/enviados/${manifesto.Id}/\`.`,
     "- Para conferir a correção: um report novo do mesmo momento deve mostrar o comportamento certo na linha do tempo.",

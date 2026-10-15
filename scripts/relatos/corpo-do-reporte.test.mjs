@@ -63,12 +63,12 @@ test("prioridade segue a régua do quadro", () => {
   );
   assert.equal(prioridadeDoReporte(manifesto({ Area: "Social" })), "prio:3-experiencia");
   assert.equal(
-    prioridadeDoReporte(manifesto({ Tipo: "sensacao", Area: "Combate" })),
+    prioridadeDoReporte(manifesto({ Tipo: "melhoria", Area: "Combate" })),
     "prio:3-experiencia",
   );
   assert.equal(prioridadeDoReporte(manifesto({ Tipo: "ux" })), "prio:3-experiencia");
   assert.equal(
-    prioridadeDoReporte(manifesto({ Tipo: "melhoria", Severidade: "critica" })),
+    prioridadeDoReporte(manifesto({ Tipo: "novidade", Severidade: "critica" })),
     "prio:5-features",
   );
 });
@@ -77,7 +77,7 @@ test("rótulos só os que existem no repositório, sem acento na área", () => {
   assert.equal(rotuloDaArea("Profissões"), "profissoes");
   const existentes = new Set(["reporte-beta", "prio:5-features", "enhancement", "profissoes"]);
   assert.deepEqual(
-    rotulosDoReporte(manifesto({ Tipo: "melhoria", Area: "Profissões" }), existentes),
+    rotulosDoReporte(manifesto({ Tipo: "novidade", Area: "Profissões" }), existentes),
     ["reporte-beta", "prio:5-features", "enhancement", "profissoes"],
   );
   assert.deepEqual(

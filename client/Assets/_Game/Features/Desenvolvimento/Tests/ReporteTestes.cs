@@ -72,7 +72,7 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Tests
         [Test]
         public void OpcaoDesconhecidaFicaComAPrimeira()
         {
-            Assert.AreEqual("sensacao", OpcoesDoReporte.Valor(OpcoesDoReporte.Tipos, "Sensação"));
+            Assert.AreEqual("novidade", OpcoesDoReporte.Valor(OpcoesDoReporte.Tipos, "Novidade"));
             Assert.AreEqual("bug", OpcoesDoReporte.Valor(OpcoesDoReporte.Tipos, "???"));
         }
 

@@ -25,8 +25,8 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
         public static readonly (string Rotulo, string Valor)[] Tipos =
         {
             ("Bug", "bug"),
-            ("Sensação", "sensacao"),
             ("Melhoria", "melhoria"),
+            ("Novidade", "novidade"),
             ("UX / interface", "ux"),
         };
 
