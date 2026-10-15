@@ -10,7 +10,10 @@ using JogoDoGrupo.Shared.Features.Mundo;
 
 namespace JogoDoGrupo.Server.Features.Mundo;
 
-public sealed class MundoModule : IFeatureModule, ITransicoesDeAreaDoMundo
+public sealed class MundoModule
+    : IFeatureModule,
+        ITransicoesDeAreaDoMundo,
+        IControleDeVelocidadeDoMundo
 {
     /// <summary>
     /// Chave que libera o pedido de velocidade de teste. Sem ela, ou fora de Development, o
@@ -40,6 +43,7 @@ public sealed class MundoModule : IFeatureModule, ITransicoesDeAreaDoMundo
         servicos.AddSingleton<IPosicoesDoMundo>(new PosicoesDoMundo<SessaoTempoReal>(_areas));
         servicos.AddSingleton<IVizinhanca>(new VizinhancaDoMundo<SessaoTempoReal>(_areas, _grade));
         servicos.AddSingleton<ITransicoesDeAreaDoMundo>(this);
+        servicos.AddSingleton<IControleDeVelocidadeDoMundo>(this);
         servicos.AddSingleton<ITeleporteDeTeste>(sp => new TeleporteDeTeste(
             _areas,
             sp.GetRequiredService<ServidorTempoReal>(),
@@ -395,6 +399,27 @@ public sealed class MundoModule : IFeatureModule, ITransicoesDeAreaDoMundo
                 Sequencia = v.Sequencia,
             }
         );
+
+    public bool DefinirVelocidades(long personagemId, float andar, float correr)
+    {
+        if (_areas.Obter(personagemId) is not { } localizado)
+        {
+            return false;
+        }
+
+        if (
+            _areas
+                .ParaPersonagem(personagemId)
+                ?.MudarVelocidades(personagemId, localizado.Avatar.Sessao, andar, correr) is
+            { } novas
+        )
+        {
+            EnviarVelocidades(localizado.Avatar.Sessao, novas);
+            return true;
+        }
+
+        return false;
+    }
 
     private void AoEncerrar(SessaoTempoReal sessao)
     {
