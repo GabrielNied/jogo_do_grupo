@@ -119,7 +119,12 @@ public sealed class ServicoDeAtaques : IHostedService, IDisposable
             _sessoes[personagemId] = sessao;
         }
 
-        var pedido = new PedidoDeAtaque(intencao.Tipo, intencao.DirecaoY, intencao.Sequencia);
+        var pedido = new PedidoDeAtaque(
+            intencao.Tipo,
+            intencao.DirecaoY,
+            intencao.Sequencia,
+            intencao.TempoVistoMs
+        );
         switch (_controle.Pedir(personagemId, pedido, _relogioMs(), out var acao))
         {
             case ResultadoDoPedido.Iniciado:
@@ -237,6 +242,12 @@ public sealed class ServicoDeAtaques : IHostedService, IDisposable
             return;
         }
 
+        var agoraMs = _relogioMs();
+        var instanteTeste = RegrasCompensacaoDeLag.InstanteParaTeste(
+            acao.Pedido.TempoVistoMs,
+            agoraMs
+        );
+
         var dano = RegrasAtaque.Dano(acao.Pedido.Tipo, parcelas, acao.Passo);
         if (_efeitos != null)
         {
@@ -258,7 +269,13 @@ public sealed class ServicoDeAtaques : IHostedService, IDisposable
         var interrompidos = new List<long>();
         foreach (var fonte in _fontes)
         {
-            var alvos = fonte.AlvosNoVolume(posicao.Area, posicao.X, posicao.Z, direcao);
+            var alvos = fonte.AlvosNoVolume(
+                posicao.Area,
+                posicao.X,
+                posicao.Z,
+                direcao,
+                instanteTeste
+            );
             foreach (var alvo in alvos)
             {
                 var danoNoAlvo = dano;

@@ -36,11 +36,18 @@ public sealed class MobsModule : IFeatureModule
             var limite = new LimiteDeInimigosVivos(PontosDeSpawnDoCampo.LimiteDeInimigosVivos);
             var sorteador = sp.GetRequiredService<ISorteadorDeCriaturas>();
             var queda = sp.GetRequiredService<IEstadoDeQueda>();
+            var historico = sp.GetRequiredService<IHistoricoDePosicoesDoMundo>();
             return new GruposDoCampo(
                 limite,
                 [
                     .. PontosDeSpawnDoCampo.Todos.Select(ponto =>
-                        GrupoDeInimigos.DoPonto(ponto, sorteador, limite, queda: queda)
+                        GrupoDeInimigos.DoPonto(
+                            ponto,
+                            sorteador,
+                            limite,
+                            queda: queda,
+                            historico: historico
+                        )
                     ),
                 ]
             );
@@ -64,7 +71,8 @@ public sealed class MobsModule : IFeatureModule
                     pontoX: ConfigInimigosDoCampo.PontoDoChefeRaroX,
                     pontoZ: ConfigInimigosDoCampo.PontoDoChefeRaroZ,
                     primeiroId: ConfigInimigosDoCampo.PrimeiroIdDoChefeRaro,
-                    queda: sp.GetRequiredService<IEstadoDeQueda>()
+                    queda: sp.GetRequiredService<IEstadoDeQueda>(),
+                    historico: sp.GetRequiredService<IHistoricoDePosicoesDoMundo>()
                 )
         );
         servicos.AddSingleton<IAlvosDeCombate>(sp =>

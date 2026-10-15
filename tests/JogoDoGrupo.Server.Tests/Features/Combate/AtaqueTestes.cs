@@ -38,7 +38,8 @@ public sealed class AlvoFalso(long id) : IAlvosDeCombate
         string area,
         double origemX,
         double origemZ,
-        double direcaoYGraus
+        double direcaoYGraus,
+        long instanteReferenciaMs = 0
     )
     {
         Consultas.Enqueue(Environment.TickCount64);

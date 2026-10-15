@@ -36,7 +36,8 @@ public sealed class BonecoDeTreino(Func<long> relogioMs) : IAlvosDeCombate
         string area,
         double origemX,
         double origemZ,
-        double direcaoYGraus
+        double direcaoYGraus,
+        long instanteReferenciaMs = 0
     )
     {
         if (area != AreasDoMundo.Cidade)
