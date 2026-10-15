@@ -1,0 +1,7 @@
+# Screenshots de outros jogos não vão para o git (repositório público, ADR 0038).
+# Baixe com: npm run arte:baixar-referencias
+*.jpg
+*.jpeg
+*.png
+*.webp
+*.gif

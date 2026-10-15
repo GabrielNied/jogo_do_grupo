@@ -38,6 +38,8 @@ Cada informação mora em um lugar só. Os outros documentos apontam para ele em
 | Regras de cada funcionalidade | [features/](features/) |
 | Padrão dos modelos 3D próprios e como gerá-los | [arte/padrao-de-modelos.md](arte/padrao-de-modelos.md) |
 | Buscar assets e montar conteúdo pelo Unity (agentes artistas) | [arte/agentes-artistas.md](arte/agentes-artistas.md) |
+| Direção de arte 3D in-game (forma, proporção, material, cor, luz) | [arte/biblia-visual-3d.md](arte/biblia-visual-3d.md) |
+| Imagens de referência de outros jogos, manifesto e licenças | [arte/referencias-visuais/indice.md](arte/referencias-visuais/indice.md) |
 | Prioridade, ficha da tarefa e lote | [agentes.md](agentes.md#prioridade-das-tarefas) |
 | Jogar com o grupo com o servidor no PC de alguém | [hospedagem.md](hospedagem.md) |
 | Instruções para assistentes de IA | [AGENTS.md](../AGENTS.md) |
