@@ -27,6 +27,9 @@ public sealed class Robo : IAsyncDisposable
     /// <summary>Fração da velocidade de andar: folga para a validação de movimento do servidor.</summary>
     private const float FracaoDaVelocidade = 0.8f;
 
+    /// <summary>Maior intervalo entre dois movimentos considerado no deslocamento.</summary>
+    private const double DecorridoMaximoSegundos = 0.15;
+
     private readonly int _numero;
     private readonly string _usuario;
     private readonly OpcoesDeCarga _opcoes;
@@ -202,7 +205,12 @@ public sealed class Robo : IAsyncDisposable
             while (await relogio.WaitForNextTickAsync(parada))
             {
                 var agora = Stopwatch.GetTimestamp();
-                var decorrido = Stopwatch.GetElapsedTime(ultimo, agora).TotalSeconds;
+                // Teto no passo: uma pausa de GC ou de CPU no robô não vira um salto que o
+                // servidor recusaria (PosicaoForcada); o robô só anda menos naquele instante.
+                var decorrido = Math.Min(
+                    Stopwatch.GetElapsedTime(ultimo, agora).TotalSeconds,
+                    DecorridoMaximoSegundos
+                );
                 ultimo = agora;
                 if (agora >= proximoAtaque)
                 {

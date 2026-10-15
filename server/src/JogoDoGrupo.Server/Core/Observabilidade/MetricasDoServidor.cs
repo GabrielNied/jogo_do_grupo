@@ -26,7 +26,7 @@ public sealed class MetricasDoServidor
         return new MetricasServidor(
             _tempoReal?.Sessoes.Count ?? 0,
             _erros.Count,
-            _tempoReal?.Passos.Resumir() ?? new ResumoDosPassos(0, 0, 0, 0)
+            _tempoReal?.Passos.Resumir() ?? new ResumoDosPassos(0, 0, 0, 0, 0)
         );
     }
 
