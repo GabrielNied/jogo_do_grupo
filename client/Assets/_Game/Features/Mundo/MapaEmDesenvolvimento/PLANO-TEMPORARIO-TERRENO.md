@@ -1,6 +1,6 @@
 # Plano temporario: qualidade do mundo
 
-**Inicio:** 2026-10-14. **Dono:** Mundo. **Estado:** planta e estrada do Passo mergeadas no PR #797; autoria de biomas na branch `feature/mundo/integra-mapa-terreno-segue`; proxima etapa e autoria procedural de lagos.
+**Inicio:** 2026-10-14. **Dono:** Mundo. **Estado:** planta e estrada do Passo mergeadas no PR #797; autoria de biomas no PR #871, branch `feature/mundo/integra-mapa-terreno-segue`; proxima etapa e autoria procedural de lagos.
 
 Este arquivo acompanha a renovacao do mapa enquanto ela atravessa varias tarefas. Nao e a fonte das regras do jogo: decisoes finais vao para [mundo.md](../../../../../../docs/features/mundo.md) e, se forem tecnicas, para um ADR. O [guia de uso do criador de mapas](../../../../../../docs/guia-criador-de-mapas.md) e permanente. **Remover este arquivo e seu `.meta` ao concluir a ultima etapa**, depois de conferir que as decisoes permanentes e os links necessarios estao na documentacao final.
 
