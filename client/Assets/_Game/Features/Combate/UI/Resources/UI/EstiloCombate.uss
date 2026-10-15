@@ -146,3 +146,80 @@
 .guarda-fraca {
     color: var(--lumora-cores-erro);
 }
+
+/* Efeitos de status */
+.painel-status {
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin-top: var(--lumora-espacamento-curto);
+    max-width: var(--lumora-dimensoes-recursos-largura);
+}
+
+.item-status {
+    flex-direction: row;
+    align-items: center;
+    background-color: var(--lumora-cores-painel);
+    border-width: var(--lumora-bordas-fina);
+    border-color: var(--lumora-cores-borda-botao);
+    border-radius: var(--lumora-bordas-raio-cartao);
+    padding: var(--lumora-espacamento-minimo) var(--lumora-espacamento-curto);
+    margin-right: var(--lumora-espacamento-curto);
+    margin-bottom: var(--lumora-espacamento-curto);
+}
+
+.status-rotulo {
+    font-size: var(--lumora-tipografia-leitura);
+    color: var(--lumora-cores-marfim);
+    white-space: nowrap;
+}
+
+.status-tempo {
+    font-size: var(--lumora-tipografia-leitura);
+    color: var(--lumora-cores-ouro);
+    margin-left: var(--lumora-espacamento-curto);
+}
+
+/* Barra de quebra (chefe) */
+.painel-quebra-boss {
+    position: absolute;
+    top: 14%;
+    left: 50%;
+    translate: -50% 0;
+    width: var(--lumora-dimensoes-recursos-largura);
+    background-color: var(--lumora-cores-painel);
+    border-width: var(--lumora-bordas-fina);
+    border-color: var(--lumora-cores-borda-botao);
+    border-radius: var(--lumora-bordas-raio-cartao);
+    padding: var(--lumora-espacamento-curto);
+    align-items: center;
+}
+
+.quebra-boss-rotulo {
+    font-size: var(--lumora-tipografia-leitura);
+    color: var(--lumora-cores-marfim);
+    -unity-text-align: middle-center;
+    margin-bottom: var(--lumora-espacamento-curto);
+}
+
+.quebra-boss-trilho {
+    width: 100%;
+    min-height: var(--lumora-dimensoes-barra);
+    background-color: var(--lumora-cores-trilho);
+    border-width: var(--lumora-bordas-fina);
+    border-color: var(--lumora-cores-borda-discreta);
+    border-radius: var(--lumora-bordas-raio-campo);
+    overflow: hidden;
+}
+
+.quebra-boss-preenchimento {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 0;
+    background-color: var(--lumora-cores-ouro);
+}
+
+.quebra-boss-vulneravel {
+    background-color: var(--lumora-cores-erro);
+}

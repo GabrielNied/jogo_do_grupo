@@ -44,6 +44,9 @@ public sealed class GerenciadorDeEfeitosDeStatus
     private readonly Dictionary<long, EntidadeStatus> _entidades = [];
     private readonly Func<long> _relogioMs;
 
+    public event Action<long, EfeitosDeStatusMudaram>? EfeitosMudaram;
+    public event Action<long, BarraDeQuebraMudou>? BarraDeQuebraMudou;
+
     public GerenciadorDeEfeitosDeStatus(Func<long>? relogioMs = null)
     {
         _relogioMs = relogioMs ?? (() => Environment.TickCount64);
@@ -66,6 +69,10 @@ public sealed class GerenciadorDeEfeitosDeStatus
             Math.Round(
                 (duracaoSegundos ?? RegrasEfeitosDeStatus.DuracaoPadraoSegundos(tipo)) * 1000.0
             );
+
+        ResultadoAplicacaoStatus resultado;
+        BarraDeQuebraMudou? msgQuebra = null;
+        EfeitosDeStatusMudaram? msgEfeitos = null;
 
         lock (_trava)
         {
@@ -106,52 +113,102 @@ public sealed class GerenciadorDeEfeitosDeStatus
                             DuracaoTotalMs = duracaoQuebraMs,
                             UltimoTickDoTMs = agora,
                         };
-                        return ResultadoAplicacaoStatus.QuebrouBoss;
+
+                        resultado = ResultadoAplicacaoStatus.QuebrouBoss;
+                        msgQuebra = new BarraDeQuebraMudou
+                        {
+                            EntidadeId = entidadeId,
+                            ValorAtual = 0,
+                            CapacidadeMax = ConfigEfeitosDeStatus.CapacidadeBarraDeQuebraBoss,
+                            Quebrado = true,
+                        };
+                        msgEfeitos = MontarRetratoSobTrava(entidadeId, status, agora);
                     }
-
-                    return ResultadoAplicacaoStatus.AvancoQuebraBoss;
+                    else
+                    {
+                        resultado = ResultadoAplicacaoStatus.AvancoQuebraBoss;
+                        msgQuebra = new BarraDeQuebraMudou
+                        {
+                            EntidadeId = entidadeId,
+                            ValorAtual = status.BarraDeQuebraBoss,
+                            CapacidadeMax = ConfigEfeitosDeStatus.CapacidadeBarraDeQuebraBoss,
+                            Quebrado = false,
+                        };
+                    }
                 }
-
-                if (agora < status.ImunidadeAtordoadoAteMs)
+                else if (agora < status.ImunidadeAtordoadoAteMs)
                 {
                     return ResultadoAplicacaoStatus.Imune;
                 }
-            }
-
-            if (status.Efeitos.TryGetValue(tipo, out var ativo))
-            {
-                ativo.ExpiraEmMs = agora + duracaoMs;
-                ativo.DuracaoTotalMs = duracaoMs;
-
-                if (RegrasEfeitosDeStatus.PodeAcumular(tipo))
+                else
                 {
-                    if (ativo.Acumulos < RegrasEfeitosDeStatus.MaximoAcumulos(tipo))
-                    {
-                        ativo.Acumulos++;
-                        return ResultadoAplicacaoStatus.Acumulado;
-                    }
+                    resultado = AplicarEfeitoPadrao(status, tipo, agora, duracaoMs);
+                    msgEfeitos = MontarRetratoSobTrava(entidadeId, status, agora);
                 }
+            }
+            else
+            {
+                resultado = AplicarEfeitoPadrao(status, tipo, agora, duracaoMs);
+                msgEfeitos = MontarRetratoSobTrava(entidadeId, status, agora);
+            }
+        }
 
-                return ResultadoAplicacaoStatus.Renovado;
+        if (msgQuebra != null)
+        {
+            BarraDeQuebraMudou?.Invoke(entidadeId, msgQuebra);
+        }
+
+        if (msgEfeitos != null)
+        {
+            EfeitosMudaram?.Invoke(entidadeId, msgEfeitos);
+        }
+
+        return resultado;
+    }
+
+    private static ResultadoAplicacaoStatus AplicarEfeitoPadrao(
+        EntidadeStatus status,
+        TipoEfeitoDeStatus tipo,
+        long agora,
+        long duracaoMs
+    )
+    {
+        if (status.Efeitos.TryGetValue(tipo, out var ativo))
+        {
+            ativo.ExpiraEmMs = agora + duracaoMs;
+            ativo.DuracaoTotalMs = duracaoMs;
+
+            if (RegrasEfeitosDeStatus.PodeAcumular(tipo))
+            {
+                if (ativo.Acumulos < RegrasEfeitosDeStatus.MaximoAcumulos(tipo))
+                {
+                    ativo.Acumulos++;
+                    return ResultadoAplicacaoStatus.Acumulado;
+                }
             }
 
-            status.Efeitos[tipo] = new EfeitoAtivo
-            {
-                Tipo = tipo,
-                Acumulos = 1,
-                ExpiraEmMs = agora + duracaoMs,
-                DuracaoTotalMs = duracaoMs,
-                UltimoTickDoTMs = agora,
-            };
-
-            return ResultadoAplicacaoStatus.Aplicado;
+            return ResultadoAplicacaoStatus.Renovado;
         }
+
+        status.Efeitos[tipo] = new EfeitoAtivo
+        {
+            Tipo = tipo,
+            Acumulos = 1,
+            ExpiraEmMs = agora + duracaoMs,
+            DuracaoTotalMs = duracaoMs,
+            UltimoTickDoTMs = agora,
+        };
+
+        return ResultadoAplicacaoStatus.Aplicado;
     }
 
     /// <summary>Remove um efeito imediatamente. Se era Atordoado, inicia a imunidade de 6s.</summary>
     public bool Remover(long entidadeId, TipoEfeitoDeStatus tipo)
     {
         var agora = _relogioMs();
+        EfeitosDeStatusMudaram? msgEfeitos = null;
+        bool removeu;
+
         lock (_trava)
         {
             if (!_entidades.TryGetValue(entidadeId, out var status))
@@ -159,7 +216,8 @@ public sealed class GerenciadorDeEfeitosDeStatus
                 return false;
             }
 
-            if (status.Efeitos.Remove(tipo))
+            removeu = status.Efeitos.Remove(tipo);
+            if (removeu)
             {
                 if (tipo == TipoEfeitoDeStatus.Atordoado && !status.EhBoss)
                 {
@@ -168,11 +226,16 @@ public sealed class GerenciadorDeEfeitosDeStatus
                         + (long)
                             Math.Round(ConfigEfeitosDeStatus.ImunidadeAtordoadoSegundos * 1000.0);
                 }
-                return true;
+                msgEfeitos = MontarRetratoSobTrava(entidadeId, status, agora);
             }
-
-            return false;
         }
+
+        if (msgEfeitos != null)
+        {
+            EfeitosMudaram?.Invoke(entidadeId, msgEfeitos);
+        }
+
+        return removeu;
     }
 
     /// <summary>Se a entidade está com o status Atordoado ativo.</summary>
@@ -280,34 +343,60 @@ public sealed class GerenciadorDeEfeitosDeStatus
                 return false;
             }
 
-            var lista = new List<InstanciaEfeitoDeStatus>();
-            foreach (var kvp in status.Efeitos)
-            {
-                var e = kvp.Value;
-                if (agora < e.ExpiraEmMs)
-                {
-                    var restanteSegundos = Math.Max(0f, (float)((e.ExpiraEmMs - agora) / 1000.0));
-                    var totalSegundos = (float)(e.DuracaoTotalMs / 1000.0);
-                    lista.Add(
-                        new InstanciaEfeitoDeStatus
-                        {
-                            Tipo = e.Tipo,
-                            Acumulos = e.Acumulos,
-                            DuracaoRestanteSegundos = restanteSegundos,
-                            DuracaoTotalSegundos = totalSegundos,
-                        }
-                    );
-                }
-            }
-
-            imunidadeRestanteSegundos =
-                agora < status.ImunidadeAtordoadoAteMs
-                    ? Math.Max(0f, (float)((status.ImunidadeAtordoadoAteMs - agora) / 1000.0))
-                    : 0f;
-
-            efeitos = lista.ToArray();
+            var retrato = MontarRetratoSobTrava(entidadeId, status, agora);
+            efeitos = retrato.Efeitos;
+            imunidadeRestanteSegundos = retrato.ImunidadeAtordoadoRestanteSegundos;
             return true;
         }
+    }
+
+    private static EfeitosDeStatusMudaram MontarRetratoSobTrava(
+        long entidadeId,
+        EntidadeStatus? status,
+        long agora
+    )
+    {
+        if (status == null)
+        {
+            return new EfeitosDeStatusMudaram
+            {
+                EntidadeId = entidadeId,
+                Efeitos = [],
+                ImunidadeAtordoadoRestanteSegundos = 0f,
+            };
+        }
+
+        var lista = new List<InstanciaEfeitoDeStatus>();
+        foreach (var kvp in status.Efeitos)
+        {
+            var e = kvp.Value;
+            if (agora < e.ExpiraEmMs)
+            {
+                var restanteSegundos = Math.Max(0f, (float)((e.ExpiraEmMs - agora) / 1000.0));
+                var totalSegundos = (float)(e.DuracaoTotalMs / 1000.0);
+                lista.Add(
+                    new InstanciaEfeitoDeStatus
+                    {
+                        Tipo = e.Tipo,
+                        Acumulos = e.Acumulos,
+                        DuracaoRestanteSegundos = restanteSegundos,
+                        DuracaoTotalSegundos = totalSegundos,
+                    }
+                );
+            }
+        }
+
+        var imunidade =
+            agora < status.ImunidadeAtordoadoAteMs
+                ? Math.Max(0f, (float)((status.ImunidadeAtordoadoAteMs - agora) / 1000.0))
+                : 0f;
+
+        return new EfeitosDeStatusMudaram
+        {
+            EntidadeId = entidadeId,
+            Efeitos = lista.ToArray(),
+            ImunidadeAtordoadoRestanteSegundos = imunidade,
+        };
     }
 
     /// <summary>
@@ -321,6 +410,8 @@ public sealed class GerenciadorDeEfeitosDeStatus
     {
         danosDoT = [];
         entidadesComMudanca = [];
+        var notificacoesEfeitos = new List<EfeitosDeStatusMudaram>();
+        var notificacoesQuebra = new List<BarraDeQuebraMudou>();
 
         lock (_trava)
         {
@@ -363,22 +454,60 @@ public sealed class GerenciadorDeEfeitosDeStatus
                                     ConfigEfeitosDeStatus.ImunidadeAtordoadoSegundos * 1000.0
                                 );
                     }
+                    else if (exp == TipoEfeitoDeStatus.Vulneravel && status.EhBoss)
+                    {
+                        // Quando vulnerabilidade do boss expira, quebra reseta e avisa
+                        notificacoesQuebra.Add(
+                            new BarraDeQuebraMudou
+                            {
+                                EntidadeId = entidadeId,
+                                ValorAtual = 0,
+                                CapacidadeMax = ConfigEfeitosDeStatus.CapacidadeBarraDeQuebraBoss,
+                                Quebrado = false,
+                            }
+                        );
+                    }
                 }
 
                 if (mudou)
                 {
                     entidadesComMudanca.Add(entidadeId);
+                    notificacoesEfeitos.Add(MontarRetratoSobTrava(entidadeId, status, agoraMs));
                 }
             }
+        }
+
+        foreach (var msg in notificacoesQuebra)
+        {
+            BarraDeQuebraMudou?.Invoke(msg.EntidadeId, msg);
+        }
+
+        foreach (var msg in notificacoesEfeitos)
+        {
+            EfeitosMudaram?.Invoke(msg.EntidadeId, msg);
         }
     }
 
     /// <summary>Limpa todos os efeitos da entidade (morte, respawn ou desconexão).</summary>
     public void Limpar(long entidadeId)
     {
+        bool removeu;
         lock (_trava)
         {
-            _entidades.Remove(entidadeId);
+            removeu = _entidades.Remove(entidadeId);
+        }
+
+        if (removeu)
+        {
+            EfeitosMudaram?.Invoke(
+                entidadeId,
+                new EfeitosDeStatusMudaram
+                {
+                    EntidadeId = entidadeId,
+                    Efeitos = [],
+                    ImunidadeAtordoadoRestanteSegundos = 0f,
+                }
+            );
         }
     }
 }
