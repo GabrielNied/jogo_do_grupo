@@ -35,6 +35,10 @@ public sealed class InstanciasModule : IFeatureModule
             .Ao<EntrarNaDungeon>(
                 InstanciasMessageIds.EntrarNaDungeon,
                 (sessao, _) => _servico?.AoEntrar(sessao)
+            )
+            .Ao<SairDaDungeon>(
+                InstanciasMessageIds.SairDaDungeon,
+                (sessao, _) => _servico?.AoPedirSair(sessao)
             );
 
     public void Inicializar(ServerContext contexto)
