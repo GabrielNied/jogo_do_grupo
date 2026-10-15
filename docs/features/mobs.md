@@ -211,7 +211,7 @@ Além das etiquetas no mundo (`PainelDeInimigos`), o client monta barras na regi
 
 ### Livro de Asterra: bestiário (proposta do board, 2026-10-11)
 
-Do "Livro de ideias" do [FigJam](../brainstorm/figjam.md) (seções 05, 09 e 10). **Proposta do board, não validada pelo grupo**; não troca nenhuma ficha acima. Os números do livro são só referência.
+Do "Livro de ideias" do [FigJam](../brainstorm/figjam.md) (seções 05, 09 e 10). **Proposta do board**; não troca nenhuma ficha acima. Decisões de espécies em [Em aberto](#em-aberto) (#322, /decida 2026-10-15). Implementação das fichas, bestiário, captura e reação a luz/som (**#320**, **#322**, **#323**) fica **adiada** pós-MVP. Os números do livro são só referência.
 
 - **Conflito com o já implementado:** o livro descreve o **Javali Ferrugem** (nível 3, vida 180, ataque-base 18, grupos de 8 a 15, perseguição de 180 m) como a primeira grande puxada. O **Javali do Campo** acima tem nível 3 e vida 180 como ele, mas dano 40 e grupo de 3 a 5. Não foi trocado; veja "Em aberto".
 - **Espécies propostas** (nível, vida, grupo): Lobo de Geada (22, 1.400, 6 a 12; perseguição 240 m), Carapaça de Brasa (30, 3.200, 15 a 30), Cervo de Galhada Oca (12, 650, manadas de 60 a 150, não hostil, foge de fogo e ruído), Mariposa de Breu (10, 90, enxames de 20 a 50, atraída pela luz). Chefes de mundo: **Ancião Trovejante** (nível 45, vida 250.000, FUTURO) e **Colosso Basáltico** (nível 50, vida 350.000, FUTURO), hostis entre si. Todos de força fixa, sem escalar com jogadores (já é a regra do jogo).
