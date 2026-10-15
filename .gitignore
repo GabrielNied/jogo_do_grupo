@@ -64,6 +64,9 @@ AGENTS.local.md
 # Prints locais da tela (script de editor; o agente lê e não versiona).
 /prints/
 
+# Relatos F9 de sensação (quadros e linha do tempo; a IA lê pelo /relato e não versiona).
+/relatos/
+
 # ---------- Sistema ----------
 .DS_Store
 Thumbs.db

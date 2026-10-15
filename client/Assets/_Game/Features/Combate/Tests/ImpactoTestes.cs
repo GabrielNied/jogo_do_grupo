@@ -48,7 +48,7 @@ namespace JogoDoGrupo.Client.Features.Combate.Tests
             Assert.AreEqual(0f, e.HitStopSegundos);
             Assert.AreEqual(0f, e.TremorAmplitude);
             Assert.AreEqual(0f, e.RecuoMetros);
-            Assert.Less(e.VolumeDoSom, EscolhaDeEfeito.VolumeLeve);
+            Assert.Less(e.VolumeDoSom, ConfigSensacaoCombate.VolumeLeve);
         }
 
         [Test]
@@ -67,7 +67,7 @@ namespace JogoDoGrupo.Client.Features.Combate.Tests
 
             Assert.AreEqual(OrigemDoImpacto.GolpeRecebido, e.Origem);
             Assert.AreEqual(0f, e.HitStopSegundos);
-            Assert.AreEqual(EscolhaDeEfeito.TremorRecebido, e.TremorAmplitude);
+            Assert.AreEqual(ConfigSensacaoCombate.TremorRecebido, e.TremorAmplitude);
             Assert.AreEqual(SomDeCombate.GolpeRecebido, e.Som);
         }
 
@@ -78,7 +78,7 @@ namespace JogoDoGrupo.Client.Features.Combate.Tests
 
             Assert.AreEqual(OrigemDoImpacto.GolpeRecebidoForte, e.Origem);
             Assert.Greater(e.HitStopSegundos, 0f);
-            Assert.AreEqual(EscolhaDeEfeito.TremorRecebidoForte, e.TremorAmplitude);
+            Assert.AreEqual(ConfigSensacaoCombate.TremorRecebidoForte, e.TremorAmplitude);
         }
 
         [Test]
@@ -118,7 +118,7 @@ namespace JogoDoGrupo.Client.Features.Combate.Tests
             limite.PedirHitStop(0.05f);
             limite.PedirHitStop(10f);
 
-            Assert.AreEqual(LimiteDeEfeitos.HitStopMaximo, limite.HitStopRestante, 0.0001f);
+            Assert.AreEqual(ConfigSensacaoCombate.HitStopMaximo, limite.HitStopRestante, 0.0001f);
             limite.Atualizar(1f);
             Assert.AreEqual(0f, limite.HitStopRestante);
         }
@@ -129,10 +129,10 @@ namespace JogoDoGrupo.Client.Features.Combate.Tests
             var limite = new LimiteDeEfeitos();
             limite.PedirTremor(0.04f, 0.2f);
             limite.PedirTremor(5f, 0.2f);
-            Assert.AreEqual(LimiteDeEfeitos.TremorMaximo, limite.TremorAtual, 0.0001f);
+            Assert.AreEqual(ConfigSensacaoCombate.TremorMaximo, limite.TremorAtual, 0.0001f);
 
             limite.Atualizar(0.1f);
-            Assert.Less(limite.TremorAtual, LimiteDeEfeitos.TremorMaximo);
+            Assert.Less(limite.TremorAtual, ConfigSensacaoCombate.TremorMaximo);
             limite.Atualizar(0.2f);
             Assert.AreEqual(0f, limite.TremorAtual);
         }

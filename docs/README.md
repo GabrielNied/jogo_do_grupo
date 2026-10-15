@@ -6,6 +6,7 @@
 | [referencias.md](referencias.md) | Jogos usados como base, por sistema |
 | [arquitetura.md](arquitetura.md) | Como cliente, servidor e shared se organizam |
 | [convencoes.md](convencoes.md) | Padrões de código e nomes |
+| [sensacao-do-jogo.md](sensacao-do-jogo.md) | Como relatar e ajustar a sensação (peso, resposta, impacto) |
 | [git.md](git.md) | Branches, commits (commitlint), PRs e proteção da `main` |
 | [agentes.md](agentes.md) | Vários agentes de IA em paralelo: papéis, prioridade, ficha, lote e entrega |
 | [ferramentas-ia.md](ferramentas-ia.md) | Como rodar os agentes no Claude Code, Codex, Antigravity e outras IAs |

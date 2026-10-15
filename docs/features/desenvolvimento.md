@@ -44,6 +44,15 @@ Números usam ponto decimal. O texto tem no máximo 80 caracteres.
 
 `spawn` acrescenta um inimigo no maior grupo da área ([Mobs](mobs.md)), a `DistanciaDoSpawnDeTeste` no eixo X, e avisa com `InimigoApareceu`. Não é a volta depois da morte. Passando de `AparicoesExtrasDeTeste`, o comando recusa.
 
+## Relato e ajuste ao vivo
+
+Para melhorar a sensação do jogo (peso, resposta, animação, câmera) com dados que a IA lê. Só no editor e no build de desenvolvimento. Vocabulário e exemplos em [sensacao-do-jogo.md](../sensacao-do-jogo.md).
+
+- **F9, relato:** o jogo guarda sempre os últimos 3 s. F9 congela, abre uma caixa ("o que pareceu errado?") e o personagem para. Enter salva em `relatos/AAAA-MM-DD_HHMMSS/` na raiz do repositório (no build, em `persistentDataPath/relatos`), fora do git; Esc descarta. `relatos/ultimo.txt` aponta o mais recente.
+- **O que o relato tem:** `nota.txt` (frase, tela, latência, posição, valores do F10 fora do padrão), `linha-do-tempo.txt` (só o que mudou, em ms e com o quadro: tecla, mensagem do servidor com o JSON, `timeScale`, clipe e `speed` do Animator do jogador e do mais próximo, tremor da câmera), `folha-impacto.png` (12 quadros seguidos em volta do último acerto), `folha-geral.png` (12 quadros espalhados), `quadros.csv` e `quadros/NNN.png` (todos). Mensagens muito frequentes, como posição, viram só um total.
+- **F10, ajustes:** lista os valores registrados na `Sintonia` (Core), por funcionalidade, com slider, campo e "↺". Mudam o jogo na hora e valem até sair do Play Mode ou do jogo. "Copiar valores" põe os valores fora do padrão na área de transferência e grava `relatos/ajustes-<data>.txt`. Hoje: os de Combate ([ConfigSensacaoCombate](../../client/Assets/_Game/Features/Combate/Scripts/ConfigSensacaoCombate.cs)).
+- **Com a IA:** `/relato` lê o relato mais recente, diagnostica com os números e propõe o valor para testar no F10 ou a correção.
+
 ## Prints da tela
 
 Script de editor que grava a cena ou um painel em três resoluções para o agente ler antes do PR. O comando está em [Prints da tela](../agentes.md#prints-da-tela).
