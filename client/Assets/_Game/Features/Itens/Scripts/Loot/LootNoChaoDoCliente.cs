@@ -103,17 +103,47 @@ namespace JogoDoGrupo.Client.Features.Itens.Loot
         /// Algum item ao alcance da tecla F (<see cref="RegrasLoot.DentroDoRaioDeColeta"/>)? Só
         /// para mostrar a dica e não mandar pedido à toa; o servidor confere de novo.
         /// </summary>
-        public bool AlgumAoAlcance(float x, float z, TierItem tierMinimo = TierItem.D)
+        public bool AlgumAoAlcance(float x, float z, TierItem tierMinimo = TierItem.D) =>
+            ObterAoAlcance(x, z, tierMinimo, out _, out _);
+
+        /// <summary>
+        /// Procura o item mais próximo ao alcance e o total de itens ao alcance que passam no filtro.
+        /// Devolve verdadeiro se houver pelo menos um item ao alcance.
+        /// </summary>
+        public bool ObterAoAlcance(
+            float x,
+            float z,
+            TierItem tierMinimo,
+            out ItemNoChao maisProximo,
+            out int total
+        )
         {
+            maisProximo = null;
+            total = 0;
+            var menorDistanciaSq = double.PositiveInfinity;
+
             foreach (var item in _itens.Values)
             {
-                if (item.Passa(tierMinimo) && RegrasLoot.DentroDoRaioDeColeta(x, z, item.X, item.Z))
+                if (
+                    !item.Passa(tierMinimo)
+                    || !RegrasLoot.DentroDoRaioDeColeta(x, z, item.X, item.Z)
+                )
                 {
-                    return true;
+                    continue;
+                }
+
+                total++;
+                var dx = (double)(x - item.X);
+                var dz = (double)(z - item.Z);
+                var distSq = dx * dx + dz * dz;
+                if (distSq < menorDistanciaSq)
+                {
+                    menorDistanciaSq = distSq;
+                    maisProximo = item;
                 }
             }
 
-            return false;
+            return total > 0;
         }
 
         /// <summary>O item aparece na tela a até <see cref="RegrasLoot.RaioDeVisaoMetros"/> do jogador.</summary>

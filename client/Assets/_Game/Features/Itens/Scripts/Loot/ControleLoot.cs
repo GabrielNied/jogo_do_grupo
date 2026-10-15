@@ -166,10 +166,23 @@ namespace JogoDoGrupo.Client.Features.Itens.Loot
             // Com janela ou menu do Esc aberto, nem dica nem coleta por baixo.
             var aoAlcance =
                 !JanelasDoJogo.AlgoAberto
-                && _registro.AlgumAoAlcance(posicao.x, posicao.z, tierMinimo);
+                && _registro.ObterAoAlcance(
+                    posicao.x,
+                    posicao.z,
+                    tierMinimo,
+                    out var maisProximo,
+                    out var totalAoAlcance
+                );
             _dica.style.display = aoAlcance ? DisplayStyle.Flex : DisplayStyle.None;
             if (aoAlcance)
-                _dica.text = TeclasDoJogo.Rotulo(TeclasDoJogo.Coletar) + ": pegar";
+            {
+                _dica.text = TextosDoLoot.FormatarDica(
+                    TeclasDoJogo.Rotulo(TeclasDoJogo.Coletar),
+                    maisProximo,
+                    totalAoAlcance
+                );
+            }
+
             if (aoAlcance && _coletar.WasPressedThisFrame())
             {
                 ServicoDeLoot.PedirColeta();
