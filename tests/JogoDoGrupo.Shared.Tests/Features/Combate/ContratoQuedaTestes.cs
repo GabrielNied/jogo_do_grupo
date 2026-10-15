@@ -59,6 +59,7 @@ public class ContratoQuedaTestes
         Assert.Equal("JaEstaSendoLevantado", CodigosErroCombate.JaEstaSendoLevantado);
         Assert.Equal("NaoEstaCaido", CodigosErroCombate.NaoEstaCaido);
         Assert.Equal("AindaNaoPodeVoltar", CodigosErroCombate.AindaNaoPodeVoltar);
+        Assert.Equal("NaoSaoDoMesmoGrupo", CodigosErroCombate.NaoSaoDoMesmoGrupo);
     }
 
     [Fact]

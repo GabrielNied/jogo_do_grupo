@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using JogoDoGrupo.Server.Contratos.Combate;
 using JogoDoGrupo.Server.Contratos.Mundo;
+using JogoDoGrupo.Server.Contratos.Social;
 using JogoDoGrupo.Server.Core.Eventos;
 using JogoDoGrupo.Server.Core.TempoReal;
 using JogoDoGrupo.Shared.Features.Combate;
@@ -19,9 +20,8 @@ namespace JogoDoGrupo.Server.Features.Combate;
 /// threads diferentes, mas o controle devolve cada saída uma única vez: quem a recebe a aplica.
 /// </para>
 /// <para>
-/// TODO (Social): ainda não há consulta de grupo em <c>Contratos/</c>. Por isso qualquer jogador
-/// vivo e próximo pode levantar, e o estado vai a todos da área. Quando Social expuser o grupo,
-/// restringir o ajudante ao grupo e o aviso aos membros.
+/// O ajudante que levanta precisa pertencer ao mesmo grupo do caído (<see cref="IConsultaDeGrupo"/>).
+/// Estranhos recebem a recusa <see cref="CodigosErroCombate.NaoSaoDoMesmoGrupo"/>.
 /// </para>
 /// </summary>
 public sealed class ServicoDeQueda : IEstadoDeQueda, IHostedService, IDisposable
@@ -37,6 +37,7 @@ public sealed class ServicoDeQueda : IEstadoDeQueda, IHostedService, IDisposable
     private readonly ConcurrentDictionary<long, byte> _gravando = new();
     private readonly CancellationTokenSource _parada = new();
     private readonly IVizinhanca? _vizinhanca;
+    private readonly IConsultaDeGrupo? _grupos;
 
     public ServicoDeQueda(
         ServidorTempoReal tempoReal,
@@ -46,10 +47,12 @@ public sealed class ServicoDeQueda : IEstadoDeQueda, IHostedService, IDisposable
         ILogger<ServicoDeQueda> log,
         ConfigQueda? config = null,
         Func<long>? relogioMs = null,
-        IVizinhanca? vizinhanca = null
+        IVizinhanca? vizinhanca = null,
+        IConsultaDeGrupo? grupos = null
     )
     {
         _vizinhanca = vizinhanca;
+        _grupos = grupos;
         _tempoReal = tempoReal;
         _posicoes = posicoes;
         _eventos = eventos;
@@ -128,6 +131,22 @@ public sealed class ServicoDeQueda : IEstadoDeQueda, IHostedService, IDisposable
     {
         var ajudanteId = sessao.PersonagemId;
         var alvoId = pedido.AlvoId;
+
+        if (_grupos != null)
+        {
+            var grupoAjudante = _grupos.Consultar(ajudanteId);
+            var grupoAlvo = _grupos.Consultar(alvoId);
+            if (
+                grupoAjudante == null
+                || grupoAlvo == null
+                || grupoAjudante.GrupoId != grupoAlvo.GrupoId
+            )
+            {
+                Recusar(sessao, CodigosErroCombate.NaoSaoDoMesmoGrupo);
+                return;
+            }
+        }
+
         var resultado = _controle.Comecar(
             ajudanteId,
             alvoId,

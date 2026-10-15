@@ -2,6 +2,7 @@ using JogoDoGrupo.Server.Contratos.Combate;
 using JogoDoGrupo.Server.Contratos.Itens;
 using JogoDoGrupo.Server.Contratos.Mobs;
 using JogoDoGrupo.Server.Contratos.Mundo;
+using JogoDoGrupo.Server.Contratos.Social;
 using JogoDoGrupo.Server.Core;
 using JogoDoGrupo.Server.Core.Eventos;
 using JogoDoGrupo.Server.Core.TempoReal;
@@ -49,7 +50,8 @@ public sealed class CombateModule : IFeatureModule
                 sp.GetRequiredService<IServiceScopeFactory>(),
                 sp.GetRequiredService<ILogger<ServicoDeQueda>>(),
                 sp.GetRequiredService<ConfigQueda>(),
-                vizinhanca: sp.GetService<IVizinhanca>()
+                vizinhanca: sp.GetService<IVizinhanca>(),
+                grupos: sp.GetService<IConsultaDeGrupo>()
             );
             _queda = servico;
             return servico;

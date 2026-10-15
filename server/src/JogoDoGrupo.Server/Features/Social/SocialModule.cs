@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using JogoDoGrupo.Server.Contratos.Combate;
 using JogoDoGrupo.Server.Contratos.Mundo;
 using JogoDoGrupo.Server.Contratos.Personagem;
 using JogoDoGrupo.Server.Contratos.Social;
@@ -45,6 +46,7 @@ public sealed class SocialModule : IFeatureModule, IConsultaDeGrupo
     public void ConfigurarServicos(IServiceCollection servicos, IConfiguration configuracao)
     {
         servicos.AddSingleton<IConsultaDeGrupo>(this);
+        servicos.AddSingleton<IAliadosDeCombate, AliadosDeCombateDoSocial>();
         servicos.AddSingleton<LimitesDoChat>();
         servicos.AddSingleton<ChatDoServidor>();
         servicos.AddSingleton<HistoricoDaCidadeDoChat>();
