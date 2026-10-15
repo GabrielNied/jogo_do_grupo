@@ -827,23 +827,46 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
     }
 
     // A direção trava aqui (a de Rotacao, olhando o alvo); o passo do golpe é medido já, até onde o caminho está livre.
-    private void ComecarAtaque(
+    // Só começa se o golpe pegar o alvo de onde o passo termina; se um vizinho barra o passo,
+    // devolve false e ele segue para o posto, em vez de errar o golpe parado fora do cone (#856).
+    private bool ComecarAtaque(
         Inimigo inimigo,
         JogadorNoCampo alvo,
         long agora,
         PassoDosInimigos passo
     )
     {
-        inimigo.SegundosSemAtacar = 0.0;
-        inimigo.Rotacao = RegrasInimigo.DirecaoPara(
+        var direcao = RegrasInimigo.DirecaoPara(
             inimigo.X,
             inimigo.Z,
             alvo.X,
             alvo.Z,
             inimigo.Rotacao
         );
-        inimigo.DirecaoDoGolpe = inimigo.Rotacao;
-        inimigo.PassoRestante = PassoLivre(inimigo);
+        var ate = RegrasInimigo.Distancia(inimigo.X, inimigo.Z, alvo.X, alvo.Z);
+        var passoLivre = PassoLivre(
+            inimigo,
+            direcao,
+            Math.Max(0.0, ate - RegrasInimigo.ParadaDoGolpeMetros)
+        );
+        var radianos = direcao * Math.PI / 180.0;
+        if (
+            !RegrasInimigo.EstaNoGolpe(
+                inimigo.X + (Math.Sin(radianos) * passoLivre),
+                inimigo.Z + (Math.Cos(radianos) * passoLivre),
+                direcao,
+                alvo.X,
+                alvo.Z
+            )
+        )
+        {
+            return false;
+        }
+
+        inimigo.SegundosSemAtacar = 0.0;
+        inimigo.Rotacao = direcao;
+        inimigo.DirecaoDoGolpe = direcao;
+        inimigo.PassoRestante = passoLivre;
         inimigo.Preparando = true;
         inimigo.FaseAteMs = agora + _comportamento.PreparoMs;
         Mudar(inimigo, EstadoDeInimigo.Ataque);
@@ -861,16 +884,18 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
                 Areas = [],
             }
         );
+        return true;
     }
 
     // Quanto do passo do golpe cabe na direção travada: para antes da borda da cidade (a
     // parede do campo) e antes de chegar a menos de 1,2 m de outro inimigo.
-    private double PassoLivre(Inimigo inimigo) =>
+    private double PassoLivre(Inimigo inimigo, double direcao, double maximo) =>
         PassoDoGolpe.Livre(
             inimigo.X,
             inimigo.Z,
-            inimigo.DirecaoDoGolpe,
-            (deX, deZ, x, z) => PodeIrPara(inimigo, deX, deZ, x, z)
+            direcao,
+            (deX, deZ, x, z) => PodeIrPara(inimigo, deX, deZ, x, z),
+            maximo
         );
 
     // Se o inimigo pode ir de um ponto a outro: fora da zona urbana e sem se aproximar de outro
