@@ -13,8 +13,7 @@ O que vale para `artista-mundo`, `artista-personagens` e `artista-itens` ([ADR 0
 
 Siga [Usar o Unity](../agentes.md#usar-o-unity). Para o artista:
 
-- **Editor aberto** (`unity status` mostra o projeto): Unity CLI (`unity command`; veja `unity skill show`) e depois `npm run unity:recompilar`.
-- **Editor fechado:** script de editor em `Features/<X>/Editor/`, rodado com `npm run unity:executar -- <Classe.Metodo>`.
+- Script de editor em `Features/<X>/Editor/`, rodado com `npm run unity:executar -- <Classe.Metodo>`. Não abra o editor sem pedido ([Usar o Unity](../agentes.md#usar-o-unity)).
 - Prefira **script reproduzível** (rodar de novo dá o mesmo resultado) a clique único.
 - Lógica pura em C# (gerador, componente) tem teste EditMode em `Features/<X>/Tests/`; o CI roda depois do merge.
 - Commite os `.meta`, `.mat` e prefabs que o Unity gerou na sua pasta; `npm run conferir-unity` precisa passar.
@@ -22,4 +21,4 @@ Siga [Usar o Unity](../agentes.md#usar-o-unity). Para o artista:
 
 ## Trabalhar e relatar
 
-Leia a ficha e `docs/features/<x>.md`, puxe com a branch `feature/<x>/<descricao>-arte` (skill `puxar-tarefa`), monte, verifique (`dotnet csharpier format .` e `unity:recompilar` ou `unity:compilar`) e abra o PR. O relatório segue [Regras para todos os agentes](../agentes.md#regras-para-todos-os-agentes), com mais duas linhas: **Assets** (pacotes, fonte, licença e tamanho) e **Para conferir no editor** (o que abrir e o que olhar).
+Leia a ficha e `docs/features/<x>.md`, puxe com a branch `feature/<x>/<descricao>-arte` (skill `puxar-tarefa`), monte, verifique (`dotnet csharpier format .` e `unity:compilar`) e abra o PR. O relatório segue [Regras para todos os agentes](../agentes.md#regras-para-todos-os-agentes), com mais duas linhas: **Assets** (pacotes, fonte, licença e tamanho) e **Para conferir no editor** (o que abrir e o que olhar).
