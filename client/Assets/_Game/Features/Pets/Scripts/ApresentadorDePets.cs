@@ -166,8 +166,8 @@ namespace JogoDoGrupo.Client.Features.Pets
         {
             switch (codigo)
             {
-                case CodigosErroPets.ForaDaCidade:
-                    return "O pet só acompanha você na cidade.";
+                case CodigosErroPets.SemPosicao:
+                    return "Entre no mundo para chamar o pet.";
                 case CodigosErroPets.SemPet:
                     return "Você não está com um pet.";
                 default:

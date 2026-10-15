@@ -17,12 +17,13 @@ Decidido em 2026-10-12, a partir da proposta da #161 e do cervo jovem do livro:
 - Ele anda até o dono e para a **2 m** (`DistanciaDeSeguidaMetros`). Não fica em cima do dono. Se passar de **20 m** (`DistanciaParaAlcancarMetros`), o servidor o coloca de volta na distância de seguida.
 - Não luta, não é alvo e não é montaria. Não tem bolsa própria.
 - Ajuda a juntar o loot do dono: se um item que o dono poderia coletar com F está a até **8 m** do pet, o pet vai até o item, o servidor coleta para o inventário do dono e o pet volta a seguir. Um item por vez. Inventário cheio deixa o item no chão. Item de outra pessoa não sai do lugar.
-- Dispensar remove. Desconectar remove para os outros. Quem está na cidade vê o pet dos outros.
+- Dispensar remove. Desconectar remove para os outros. Na dungeon ele continua com o dono.
+- Quem está na cidade vê o pet dos outros.
 - Fora desta versão: combate do pet, coleta de recurso de profissão, nível do pet e a coleção de conhecimentos.
 
 ## Decidido na implementação (2026-10-15, #161)
 
-- ~~Na dungeon ele continua com o dono.~~ **O pet só existe na cidade:** entrar numa caverna ou dungeon o remove, e lá não dá para chamá-lo (o pedido recebe `ForaDaCidade`). Voltar à cidade não o traz de volta; chame de novo. Motivo: o escopo da primeira versão é a cidade; o pet dentro das instâncias fica para depois.
+- **Entrar e sair de caverna ou dungeon:** o pet vai junto. Ao trocar de área ele some para quem via na área antiga e reaparece a 2 m do dono na nova (a mesma publicação por vizinhança); `/pet` e a busca de loot funcionam lá. Sair do jogo ou cair o remove.
 - **Como chamar:** o comando de chat `/pet` (alterna: chama, ou dispensa se já está com você), `/pet chamar` e `/pet dispensar`. Aparece em `/comandos`. Sem botão nem tecla nesta versão.
 - **Posição:** o servidor move o pet 10 vezes por segundo, como a IA dos mobs, a 6,5 m/s (acima da corrida do jogador, 5,5). Publica a quem vê o dono (a mesma área de interesse dos mobs): `PetApareceu` ao entrar no campo de visão, `PetMudou` sequenciado enquanto anda ou para, `PetSumiu` ao sair. O pet nasce atrás do dono, a 2 m.
 - **Parar sem tremer:** parado, o pet só volta a andar se o dono passar de 2,5 m (`FolgaDeSeguidaMetros`).
