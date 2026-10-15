@@ -4,6 +4,7 @@
   "references": [
     "JogoDoGrupo.Client.Core",
     "JogoDoGrupo.Shared",
+    "LiteNetLib",
     "UnityEngine.TestRunner",
     "UnityEditor.TestRunner",
     "JogoDoGrupo.Client.Visual"

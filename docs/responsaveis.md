@@ -21,3 +21,4 @@ Cada funcionalidade tem um responsável, que revisa os PRs das pastas dela. Depo
 | PvP | | `Features/Pvp/` |
 | Desenvolvimento | | `Features/Desenvolvimento/` |
 | Pets | | `Features/Pets/` |
+| Montarias | | `Features/Montarias/` |

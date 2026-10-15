@@ -115,3 +115,10 @@
 # /server/src/JogoDoGrupo.Server/Features/Pets/ @usuario
 # /shared/Package/Runtime/Features/Pets/ @usuario
 # /docs/features/pets.md @usuario
+
+# Montarias
+# /client/Assets/_Game/Features/Montarias/ @usuario
+# /server/src/JogoDoGrupo.Server/Features/Montarias/ @usuario
+# /shared/Package/Runtime/Features/Montarias/ @usuario
+# /docs/features/montarias.md @usuario
+

@@ -1,0 +1,18 @@
+{
+  "name": "JogoDoGrupo.Client.Montarias",
+  "rootNamespace": "JogoDoGrupo.Client.Features.Montarias",
+  "references": [
+    "JogoDoGrupo.Client.Core",
+    "JogoDoGrupo.Shared",
+    "Unity.InputSystem"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}
