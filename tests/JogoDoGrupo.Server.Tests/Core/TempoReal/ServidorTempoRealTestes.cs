@@ -603,6 +603,37 @@ public class ServidorTempoRealTestes(TempoRealFixture f)
         Assert.False(cliente.Desconectado.IsCompleted);
     }
 
+    [Fact]
+    public async Task Passo_lento_mede_e_identifica_modulo_que_estourou()
+    {
+        var executado = false;
+        f.TempoReal.AoPasso(
+            TimeSpan.FromMilliseconds(10),
+            _ =>
+            {
+                if (!executado)
+                {
+                    executado = true;
+                    Thread.Sleep(110);
+                }
+            },
+            "ModuloLentoTeste"
+        );
+
+        await TempoRealFixture.EsperarAsync(
+            () => f.TempoReal.UltimoPassoLento != null,
+            "detalhes do passo lento gravados"
+        );
+
+        var lento = f.TempoReal.UltimoPassoLento!;
+        Assert.True(lento.DuracaoTotalMs >= 100);
+        Assert.True(lento.PassosMs >= 100);
+        Assert.Contains(
+            lento.EtapasPassos,
+            e => e.Nome == "ModuloLentoTeste" && e.DuracaoMs >= 100
+        );
+    }
+
     private async Task AssertRecusadaSemDerrubar(
         ClienteTempoRealDeTeste cliente,
         byte[] pacote,

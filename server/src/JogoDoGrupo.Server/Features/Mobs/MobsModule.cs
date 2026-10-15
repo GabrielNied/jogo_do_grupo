@@ -118,7 +118,8 @@ public sealed class MobsModule : IFeatureModule
         contexto.Eventos.Assinar<JogadorSaiuDaArea>(evento => _inimigos?.AoSairDaArea(evento));
         contexto.AoPasso(
             TimeSpan.FromSeconds(RegrasInimigo.PassoSegundos),
-            _ => _inimigos?.Avancar()
+            _ => _inimigos?.Avancar(),
+            "Mobs"
         );
     }
 }

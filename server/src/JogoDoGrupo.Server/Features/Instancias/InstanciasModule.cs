@@ -52,7 +52,8 @@ public sealed class InstanciasModule : IFeatureModule
             {
                 _servico?.Varrer();
                 _servico?.VarrerDerrota();
-            }
+            },
+            "Instancias"
         );
         contexto.Eventos.Assinar<InimigoDerrotado>(derrota =>
             _servico?.AoInimigoDerrotado(derrota)

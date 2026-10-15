@@ -11,25 +11,58 @@ namespace JogoDoGrupo.Server.Core.TempoReal;
 internal sealed class AgendamentoTempoReal(
     TimeSpan intervalo,
     Action<TimeSpan> acao,
-    long proximoEmMs
+    long proximoEmMs,
+    string? nome = null
 )
 {
     public TimeSpan Intervalo { get; } = intervalo;
     public Action<TimeSpan> Acao { get; } = acao;
     public long ProximoEmMs { get; set; } = proximoEmMs;
+    public string Nome { get; } = nome ?? ObterNomePadrao(acao);
 
-    public bool AtualizarSeVencido(long agoraMs)
+    public bool AtualizarSeVencido(long agoraMs, out TimeSpan duracao)
     {
         if (agoraMs < ProximoEmMs)
         {
+            duracao = TimeSpan.Zero;
             return false;
         }
 
+        var inicio = Stopwatch.GetTimestamp();
         Acao(Intervalo);
+        duracao = Stopwatch.GetElapsedTime(inicio);
         ProximoEmMs += (long)Intervalo.TotalMilliseconds;
         return true;
     }
+
+    private static string ObterNomePadrao(Action<TimeSpan> acao)
+    {
+        var metodo = acao.Method;
+        var tipo = acao.Target?.GetType() ?? metodo.DeclaringType;
+        if (tipo is not null && !tipo.Name.StartsWith("<>"))
+        {
+            return tipo.Name;
+        }
+
+        return metodo.Name;
+    }
 }
+
+/// <summary>Medição de uma etapa registrada via <see cref="ServidorTempoReal.AoPasso"/>.</summary>
+public readonly record struct PassoExecutado(string Nome, double DuracaoMs);
+
+/// <summary>
+/// Detalhes de um passo do laço do tempo real que demorou mais que o limite configurado.
+/// </summary>
+public sealed record DetalhesDoPassoLento(
+    double DuracaoTotalMs,
+    double PollMs,
+    double PendentesMs,
+    int ContagemPendentes,
+    double ExpiracaoMs,
+    double PassosMs,
+    IReadOnlyList<PassoExecutado> EtapasPassos
+);
 
 /// <summary>Como o pacote viaja.</summary>
 public enum EntregaTempoReal
@@ -71,9 +104,16 @@ public sealed class ServidorTempoReal : BackgroundService
     private readonly ConcurrentDictionary<SessaoTempoReal, byte> _autenticadas = new();
     private readonly ConcurrentQueue<Action> _pendentes = new();
     private readonly List<AgendamentoTempoReal> _passos = [];
+    private volatile AgendamentoTempoReal[] _passosSnapshot = [];
+    private readonly List<PassoExecutado> _etapasBuffer = [];
     private readonly object _travaPassos = new();
     private CancellationToken _parada;
     private int _parado;
+
+    /// <summary>
+    /// Resumo do último passo que passou de <see cref="LimiteDuracaoPassoMs"/>, ou <c>null</c>.
+    /// </summary>
+    public DetalhesDoPassoLento? UltimoPassoLento { get; private set; }
 
     internal ServidorTempoReal(
         ConfiguracaoTempoReal configuracao,
@@ -153,8 +193,9 @@ public sealed class ServidorTempoReal : BackgroundService
     /// <summary>
     /// Agenda uma ação para rodar novamente no laço principal do servidor, em um passo fixo.
     /// A ação recebe a duração do intervalo e fica em ordem de inscrição.
+    /// <paramref name="nome"/> identifica a etapa nas medições de atraso do laço.
     /// </summary>
-    public void AoPasso(TimeSpan intervalo, Action<TimeSpan> acao)
+    public void AoPasso(TimeSpan intervalo, Action<TimeSpan> acao, string? nome = null)
     {
         ArgumentNullException.ThrowIfNull(acao);
         if (intervalo <= TimeSpan.Zero)
@@ -164,7 +205,8 @@ public sealed class ServidorTempoReal : BackgroundService
 
         lock (_travaPassos)
         {
-            _passos.Add(new AgendamentoTempoReal(intervalo, acao, AgoraMs()));
+            _passos.Add(new AgendamentoTempoReal(intervalo, acao, AgoraMs(), nome));
+            _passosSnapshot = [.. _passos];
         }
     }
 
@@ -323,54 +365,98 @@ public sealed class ServidorTempoReal : BackgroundService
         }
     }
 
-    private void Passo()
+    internal void Passo()
     {
         var inicio = Stopwatch.GetTimestamp();
+
+        var t0 = inicio;
         _rede.PollEvents();
+        var duracaoPoll = Stopwatch.GetElapsedTime(t0);
+
+        var t1 = Stopwatch.GetTimestamp();
+        var contagemPendentes = 0;
         while (_pendentes.TryDequeue(out var acao))
         {
             acao();
+            contagemPendentes++;
         }
+        var duracaoPendentes = Stopwatch.GetElapsedTime(t1);
 
-        ProcessarPassos();
+        var (duracaoPassos, etapasPassos) = ProcessarPassos();
+
+        var t2 = Stopwatch.GetTimestamp();
         ExpirarNaoAutenticadas();
+        var duracaoExpiracao = Stopwatch.GetElapsedTime(t2);
 
         var duracao = Stopwatch.GetElapsedTime(inicio);
         Passos.Registrar(inicio, duracao);
         if (duracao > TimeSpan.FromMilliseconds(LimiteDuracaoPassoMs))
         {
-            _log.LogWarning(
-                "Tempo real: passo do laço demorou {Duracao}ms, acima do limite de {Limite}ms.",
+            var detalhesPassos =
+                etapasPassos.Count > 0
+                    ? string.Join(", ", etapasPassos.Select(e => $"{e.Nome}={e.DuracaoMs:F1}ms"))
+                    : "nenhum";
+
+            UltimoPassoLento = new DetalhesDoPassoLento(
                 duracao.TotalMilliseconds,
-                LimiteDuracaoPassoMs
+                duracaoPoll.TotalMilliseconds,
+                duracaoPendentes.TotalMilliseconds,
+                contagemPendentes,
+                duracaoExpiracao.TotalMilliseconds,
+                duracaoPassos.TotalMilliseconds,
+                [.. etapasPassos]
+            );
+
+            _log.LogWarning(
+                "Tempo real: passo do laço demorou {Duracao:F1}ms, acima do limite de {Limite}ms (poll: {Poll:F1}ms, pendentes: {Pendentes:F1}ms [{ContagemPendentes}], expiracao: {Expiracao:F1}ms, passos: {Passos:F1}ms [{DetalhesPassos}]).",
+                duracao.TotalMilliseconds,
+                LimiteDuracaoPassoMs,
+                duracaoPoll.TotalMilliseconds,
+                duracaoPendentes.TotalMilliseconds,
+                contagemPendentes,
+                duracaoExpiracao.TotalMilliseconds,
+                duracaoPassos.TotalMilliseconds,
+                detalhesPassos
             );
         }
     }
 
-    private void ProcessarPassos()
+    private (TimeSpan DuracaoTotal, IReadOnlyList<PassoExecutado> Etapas) ProcessarPassos()
     {
         var agora = AgoraMs();
-        List<AgendamentoTempoReal> vencidos;
-        lock (_travaPassos)
+        var passos = _passosSnapshot;
+        if (passos.Length == 0)
         {
-            vencidos = _passos.Where(p => agora >= p.ProximoEmMs).ToList();
+            return (TimeSpan.Zero, []);
         }
 
-        foreach (var agendamento in vencidos)
+        var inicio = Stopwatch.GetTimestamp();
+        _etapasBuffer.Clear();
+
+        for (var i = 0; i < passos.Length; i++)
         {
+            var agendamento = passos[i];
             try
             {
-                agendamento.AtualizarSeVencido(agora);
+                if (agendamento.AtualizarSeVencido(agora, out var duracao))
+                {
+                    _etapasBuffer.Add(
+                        new PassoExecutado(agendamento.Nome, duracao.TotalMilliseconds)
+                    );
+                }
             }
             catch (Exception erro)
             {
                 _log.LogError(
                     erro,
-                    "Erro no tick do tempo real agendado em {Intervalo}.",
-                    agendamento.Intervalo
+                    "Erro no tick do tempo real agendado em {Intervalo} ({Nome}).",
+                    agendamento.Intervalo,
+                    agendamento.Nome
                 );
             }
         }
+
+        return (Stopwatch.GetElapsedTime(inicio), _etapasBuffer);
     }
 
     private void Receber(SessaoTempoReal sessao, byte[] pacote)
