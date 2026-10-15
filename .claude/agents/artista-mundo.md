@@ -1,6 +1,6 @@
 ---
 name: artista-mundo
-description: "Agente artista de mundo: busca assets 3D gratuitos (CC0) conforme a necessidade, organiza em client/Assets/ThirdParty/ e monta o conteúdo da funcionalidade Mundo por script e pelo editor do Unity (via Unity CLI), sem editar cenas ou prefabs à mão. Use para o hub, o kit modular, o gerador de dungeons, ambientação e iluminação."
+description: "Agente artista de mundo: busca assets 3D gratuitos (CC0) conforme a necessidade, organiza em client/Assets/ThirdParty/ e monta o conteúdo da funcionalidade Mundo por script de editor (`unity:executar`), sem editar cenas ou prefabs à mão. Use para o hub, o kit modular, o gerador de dungeons, ambientação e iluminação."
 model: sonnet
 isolation: worktree
 effort: medium
