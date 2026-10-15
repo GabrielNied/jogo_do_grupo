@@ -209,11 +209,13 @@ namespace JogoDoGrupo.Client.Features.Mobs
                         animador.SetBool(ParametroAndando, inimigo.Animacao.Andando);
                         if (inimigo.Animacao.DisparouAtaque)
                         {
-                            animador.SetTrigger(GatilhoDeAtaque);
+                            var clipe = ClipeDoGolpe(animador, inimigo.TipoDoGolpe);
+                            animador.SetTrigger(clipe);
                             _velocidadesDoGolpe[inimigo.InimigoId] =
                                 AnimacaoDoInimigo.VelocidadeDoClipe(
-                                    DuracaoDoClipeDeAtaque(animador),
-                                    inimigo.PreparoParaOClipeSegundos
+                                    DuracaoDoClipe(animador, clipe),
+                                    inimigo.PreparoParaOClipeSegundos,
+                                    ContatosDosClipes.Contato(clipe)
                                 );
                         }
 
@@ -339,8 +341,17 @@ namespace JogoDoGrupo.Client.Features.Mobs
         internal float VelocidadeDoAnimatorParaTeste(InimigoNoClient inimigo) =>
             VelocidadeDoAnimator(inimigo);
 
-        // Duração do clipe de ataque do modelo; zero se o controlador não tem um (velocidade 1).
-        private static float DuracaoDoClipeDeAtaque(Animator animador)
+        // Clipe do tipo de ataque; sem o gatilho dele no Animator (criatura comum, modelo de
+        // outra origem), cai no golpe comum.
+        private static string ClipeDoGolpe(Animator animador, TipoDeAtaqueDeInimigo tipo)
+        {
+            var clipe = ContatosDosClipes.ClipeDoAtaque(tipo);
+            return TemParametro(animador, clipe) ? clipe : GatilhoDeAtaque;
+        }
+
+        // Duração do clipe do golpe no modelo; zero se o controlador não tem um (velocidade 1).
+        // Nome exato primeiro; modelo de outra origem ainda acha um "attack"/"atacar".
+        private static float DuracaoDoClipe(Animator animador, string nomeDoClipe)
         {
             var controlador = animador.runtimeAnimatorController;
             if (controlador == null)
@@ -348,10 +359,19 @@ namespace JogoDoGrupo.Client.Features.Mobs
                 return 0f;
             }
 
-            foreach (var clipe in controlador.animationClips)
+            var clipes = controlador.animationClips;
+            foreach (var clipe in clipes)
+            {
+                if (clipe.name == nomeDoClipe)
+                {
+                    return clipe.length;
+                }
+            }
+
+            foreach (var clipe in clipes)
             {
                 var nome = clipe.name.ToLowerInvariant();
-                if (nome.Contains("atacar") || nome.Contains("attack"))
+                if (nome == "atacar" || nome.Contains("attack"))
                 {
                     return clipe.length;
                 }
@@ -380,6 +400,14 @@ namespace JogoDoGrupo.Client.Features.Mobs
             if (_animadores.TryGetValue(inimigo.InimigoId, out var animador) && animador != null)
             {
                 animador.ResetTrigger(GatilhoDeAtaque);
+                foreach (var clipe in ContatosDosClipes.ClipesDoChefe)
+                {
+                    if (TemParametro(animador, clipe))
+                    {
+                        animador.ResetTrigger(clipe);
+                    }
+                }
+
                 if (TemParametro(animador, ParametroInterrompido))
                 {
                     animador.SetTrigger(ParametroInterrompido);
