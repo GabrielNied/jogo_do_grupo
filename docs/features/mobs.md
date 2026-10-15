@@ -202,7 +202,7 @@ O Guardião do Reflexo (id 100), o boss da primeira dungeon ([fatia-jogavel.md](
 - **Dano nos jogadores:** um `GolpeDeInimigoAcertou` por personagem atingido em cada ataque (mesmo em duas áreas), com o dano da tabela; o Combate é quem tira a vida.
 - **Estados:** repouso, alerta, perseguição (aqui só "em combate", entre ataques: ele não anda), ataque, retorno, morto. Os estados são os do inimigo comum.
 - **Morte:** publica `InimigoDerrotado` uma vez, com os participantes (quem causou dano desde que a luta começou; a lista zera se a sala esvazia) e `InimigoMorreu`. **Não volta sozinho**: só a instância nova cria outro boss (`IChefesDaDungeon.Criar`) ou `ChefeDaDungeon.Reiniciar`. Loot e XP são os de qualquer inimigo.
-- **Onde:** a instância cria o boss pelo contrato `IChefesDaDungeon` (`server/.../Contratos/Mobs/`), um por área. Enquanto ela não existe, o servidor sobe com um **boss de teste** na área `cidade`, em (-200, 0) (`ConfigChefeDaDungeon.CriarChefeDeTesteAoSubir`; desligue quando a instância o criar).
+- **Onde:** a instância cria o boss pelo contrato `IChefesDaDungeon` (`server/.../Contratos/Mobs/`), um por área. O boss de teste na cidade está desligado (`ConfigChefeDaDungeon.CriarChefeDeTesteAoSubir = false`): o boss só nasce na corrida. Os inimigos comuns dos salões vêm do contrato `IInimigosPorInstancia` (`Criar(areaId, grupos)` ao abrir a corrida e `Remover(areaId)` ao encerrar), sem reposição (#800).
 - Fora desta tarefa: o desenho do salão, o client (aviso no chão e janela exposta) e loot próprio do boss.
 
 ### Barra do alvo e do boss no HUD (#660)

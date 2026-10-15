@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.IdentityModel.Tokens.Jwt;
+using JogoDoGrupo.Server.Contratos.Combate;
 using JogoDoGrupo.Server.Contratos.Mundo;
 using JogoDoGrupo.Server.Contratos.Personagem;
 using JogoDoGrupo.Server.Contratos.Social;
@@ -14,6 +15,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Time.Testing;
+using LayoutDungeon = JogoDoGrupo.Shared.Features.Instancias.LayoutDaMinaDoReflexo;
 
 namespace JogoDoGrupo.Server.Tests.Features.Instancias;
 
@@ -44,6 +46,8 @@ public sealed class InstanciasFixture : IDisposable
                 Posicoes = new PosicoesDeTeste(posicoesReais);
                 servicos.RemoveAll<IPosicoesDoMundo>();
                 servicos.AddSingleton<IPosicoesDoMundo>(Posicoes);
+                servicos.RemoveAll<IEstadoDeQueda>();
+                servicos.AddSingleton<IEstadoDeQueda>(Queda);
             });
         });
         TempoReal = Fabrica.Services.GetRequiredService<ServidorTempoReal>();
@@ -54,6 +58,7 @@ public sealed class InstanciasFixture : IDisposable
     public FakeTimeProvider Relogio { get; }
     public VerificadorFalso Verificador { get; } = new();
     public ConsultaDeGrupoFalsa Grupos { get; } = new();
+    public QuedaDeTeste Queda { get; } = new();
     public PosicoesDeTeste Posicoes { get; private set; } = null!;
     public ServidorTempoReal TempoReal { get; }
     public ServicoDeInstancias Instancias { get; }
@@ -79,6 +84,16 @@ public sealed class InstanciasFixture : IDisposable
         Assert.True(resultado.Aceita, resultado.Codigo);
         cliente.Enviar(MundoMessageIds.EntrarNaCidade, new EntrarNaCidade());
         await cliente.ReceberAsync<EstadoDaCidade>(MundoMessageIds.EstadoDaCidade);
+        Posicoes.Definir(
+            personagemId,
+            new PosicaoNoMundo(
+                AreasDoMundo.Cidade,
+                LayoutDungeon.EntradaX,
+                LayoutDungeon.EntradaY,
+                LayoutDungeon.EntradaZ,
+                0
+            )
+        );
         return new Jogador(cliente, personagemId, token);
     }
 
@@ -138,9 +153,22 @@ public sealed class PosicoesDeTeste(IPosicoesDoMundo origem) : IPosicoesDoMundo
 
     public void Remover(long personagemId) => _sobreposicoes.TryRemove(personagemId, out _);
 
-    public bool TentarObter(long personagemId, out PosicaoNoMundo posicao) =>
-        _sobreposicoes.TryGetValue(personagemId, out posicao)
-        || origem.TentarObter(personagemId, out posicao);
+    // A sobreposição só vale enquanto o personagem está na cidade: dentro de uma instância a
+    // posição é a real, senão o teste acharia que ele saiu da dungeon.
+    public bool TentarObter(long personagemId, out PosicaoNoMundo posicao)
+    {
+        if (
+            origem.TentarObter(personagemId, out var real)
+            && real.Area.StartsWith("instancia:", StringComparison.Ordinal)
+        )
+        {
+            posicao = real;
+            return true;
+        }
+
+        return _sobreposicoes.TryGetValue(personagemId, out posicao)
+            || origem.TentarObter(personagemId, out posicao);
+    }
 
     public IReadOnlyList<long> PersonagensNaArea(string area) => origem.PersonagensNaArea(area);
 }
@@ -201,7 +229,7 @@ public sealed class InstanciasTempoRealTestes
         );
         Assert.DoesNotContain(InstanciasMessageIds.DungeonIniciada, membro.Cliente.IdsRecebidos);
 
-        f.Posicoes.Remover(membro.PersonagemId);
+        f.Posicoes.Definir(membro.PersonagemId, posicaoMembro);
         membro.Cliente.Enviar(InstanciasMessageIds.EntrarNaDungeon, new EntrarNaDungeon());
         var inicioMembro = await membro.Cliente.ReceberAsync<DungeonIniciada>(
             InstanciasMessageIds.DungeonIniciada
@@ -354,4 +382,13 @@ public sealed class InstanciasTempoRealTestes
             Assert.Equal(CodigosErroInstancias.GrupoEmOutraDungeon, recusa.Codigo);
         }
     }
+}
+
+public sealed class QuedaDeTeste : IEstadoDeQueda
+{
+    private readonly ConcurrentDictionary<long, bool> _caidos = new();
+
+    public void Derrubar(long personagemId) => _caidos[personagemId] = true;
+
+    public bool EstaCaido(long personagemId) => _caidos.ContainsKey(personagemId);
 }

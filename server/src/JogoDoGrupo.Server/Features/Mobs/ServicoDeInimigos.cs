@@ -20,7 +20,8 @@ public sealed class ServicoDeInimigos(
     EventosDoServidor eventos,
     ILogger<ServicoDeInimigos> log,
     IEstadoDeQueda queda,
-    ChefesDaDungeon? chefes = null
+    ChefesDaDungeon? chefes = null,
+    InimigosPorInstancia? instancias = null
 ) : BackgroundService, ISpawnDeTeste
 {
     private readonly ControleInteresseDeInimigos _interesse = new();
@@ -53,9 +54,22 @@ public sealed class ServicoDeInimigos(
         }
     }
 
-    // Os grupos fixos e os bosses de dungeon que existem agora (a lista deles muda).
-    private IEnumerable<IInimigosSimulados> Simulados() =>
-        chefes == null ? grupos : grupos.Concat(chefes.Ativos());
+    // Os grupos fixos, os bosses de dungeon e os salões de instância (listas que mudam).
+    private IEnumerable<IInimigosSimulados> Simulados()
+    {
+        IEnumerable<IInimigosSimulados> todos = grupos;
+        if (chefes != null)
+        {
+            todos = todos.Concat(chefes.Ativos());
+        }
+
+        if (instancias != null)
+        {
+            todos = todos.Concat(instancias.Simulados());
+        }
+
+        return todos;
+    }
 
     private void Avancar(IInimigosSimulados grupo)
     {

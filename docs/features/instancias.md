@@ -51,7 +51,8 @@ Entrada, ciclo de vida e isolamento das corridas de dungeon no servidor autorita
 - **Membros próximos e retardatários:** ao iniciar a corrida, membros do grupo que estão a até **10 m** da entrada na cidade são teleportados para a área isolada da instância (`AreasDoMundo.Instancia(id)`). Membros a mais de 10 m ficam de fora e podem enviar `EntrarNaDungeon` mais tarde para entrar na corrida ativa.
 - **Isolamento de área:** cada corrida gera uma área exclusiva no Mundo. Posições e presenças não vazam para a cidade nem para corridas simultâneas de outros grupos.
 - **Reconexão e tolerância a quedas:** se um participante desconectar dentro da instância, sua vaga fica reservada por até **120 s** (`PrazoDeReconexao`). Reconectar e pedir entrada nesse intervalo recoloca o jogador na mesma corrida. Após 120 s sem retornar, a vaga é liberada.
-- **Encerramento:** a instância encerra por **vitória**, **derrota** ou após ficar **5 minutos vazia** (`PrazoVazia`). No encerramento, todos os participantes recebem `DungeonEncerrada` com o resultado e são devolvidos à posição anterior na cidade.
+- **Encerramento:** a instância encerra por **vitória** (boss derrotado), **derrota** (ninguém vivo resta na instância) ou após ficar **5 minutos vazia** (`PrazoVazia`). No encerramento, todos os participantes recebem `DungeonEncerrada` com o resultado e são devolvidos à posição anterior na cidade.
+- **Conteúdo da Mina do Reflexo (issue #800):** ao abrir a corrida o servidor popula a área com três salões de Javali do Campo **sem respawn** e o Guardião do Reflexo no salão final (`LayoutDaMinaDoReflexo`, shared). A entrada física fica na colina oeste (~200 m da cidade); o client monta a entrada e os salões por código e mostra recusas e resultado na tela.
 
 ## Depende de
 
