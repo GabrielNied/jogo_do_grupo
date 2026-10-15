@@ -34,6 +34,9 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
         /// <summary>Lado dos quadrados do remendo que preenche o furo da caverna (m).</summary>
         public const float PassoDoFuro = 1f;
 
+        /// <summary>Profundidade (m) em que a água chega à cor e à opacidade de fundo.</summary>
+        public const float ProfundidadeMaximaDaAgua = 3f;
+
         private const int PontosPorBloco = CelulasPorBloco + 1;
 
         /// <summary>
@@ -80,6 +83,11 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
                 {
                     chao.SetTexture("_BaseMap", textura);
                 }
+
+                if (chao.HasProperty("_PesosMap"))
+                {
+                    chao.SetTexture("_PesosMap", CriarTexturaDePesos(amostras));
+                }
             }
 
             var blocos = new GameObject(NomeBlocos).transform;
@@ -105,18 +113,18 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
                 furo.AddComponent<MeshCollider>().sharedMesh = remendo;
             }
 
-            var agua = CriarMaterial(modelo, CoresDosBiomas.Agua, 0.85f);
-            CriarLiquido(NomeAgua, terreno, CriarMalhaDoLiquido(amostras, false), agua);
-
-            var lava = CriarMaterial(modelo, CoresDosBiomas.LavaViva, 0.3f);
-            if (lava != null && lava.HasProperty("_EmissionColor"))
-            {
-                // A lava brilha no escuro.
-                lava.EnableKeyword("_EMISSION");
-                lava.SetColor("_EmissionColor", CoresDosBiomas.LavaViva * 1.6f);
-            }
-
-            CriarLiquido(NomeLava, terreno, CriarMalhaDoLiquido(amostras, true), lava);
+            CriarLiquido(
+                NomeAgua,
+                terreno,
+                CriarMalhaDoLiquido(amostras, false),
+                MateriaisDosLiquidos.Agua(modelo)
+            );
+            CriarLiquido(
+                NomeLava,
+                terreno,
+                CriarMalhaDoLiquido(amostras, true),
+                MateriaisDosLiquidos.Lava(modelo)
+            );
 
             CriarBarreiras(terreno);
         }
@@ -256,14 +264,23 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
             }
 
             var normais = new Vector3[vertices.Count];
+            var cores = new Color32[vertices.Count];
             for (var k = 0; k < normais.Length; k++)
             {
                 normais[k] = Vector3.up;
+
+                // Profundidade da água sob o vértice (canal R): o shader escurece e opacifica.
+                var fundoDoVertice = MapaDoMundo.AlturaEm(vertices[k].x, vertices[k].z);
+                var profundidade = Mathf.Clamp01(
+                    (nivel - fundoDoVertice) / ProfundidadeMaximaDaAgua
+                );
+                cores[k] = new Color32((byte)Mathf.RoundToInt(profundidade * 255f), 0, 0, 255);
             }
 
             var malha = new Mesh { name = lava ? NomeLava : NomeAgua };
             malha.indexFormat = IndexFormat.UInt32;
             malha.SetVertices(vertices);
+            malha.SetColors(cores);
             malha.normals = normais;
             malha.SetTriangles(triangulos, 0);
             malha.RecalculateBounds();
@@ -284,6 +301,24 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
                 filterMode = FilterMode.Bilinear,
             };
             textura.SetPixels32(amostras.Cores);
+            textura.Apply(false, false);
+            return textura;
+        }
+
+        /// <summary>
+        /// Textura de pesos dos materiais do chão (<see cref="PesosDoTerreno"/>): um pixel por
+        /// ponto da grade, em espaço linear para o shader ler os pesos sem curva de gama.
+        /// </summary>
+        public static Texture2D CriarTexturaDePesos(AmostrasDoTerreno amostras)
+        {
+            var lado = amostras.PontosPorLado;
+            var textura = new Texture2D(lado, lado, TextureFormat.RGBA32, false, true)
+            {
+                name = "PesosDoTerreno",
+                wrapMode = TextureWrapMode.Clamp,
+                filterMode = FilterMode.Bilinear,
+            };
+            textura.SetPixels32(amostras.PesosDoChao);
             textura.Apply(false, false);
             return textura;
         }
@@ -485,6 +520,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
                 material.SetTexture("_RockTex", GeradorDeTexturasDoTerreno.ObterRocha());
                 material.SetTexture("_RockBumpMap", GeradorDeTexturasDoTerreno.ObterNormalRocha());
                 material.SetTexture("_SnowTex", GeradorDeTexturasDoTerreno.ObterNeve());
+                material.SetTexture("_MudTex", GeradorDeTexturasDoTerreno.ObterLama());
                 material.SetTexture("_DetailAlbedoMap", GeradorDeTexturasDoTerreno.ObterDetalhes());
                 material.SetFloat("_DetailTiling", 0.2f);
             }

@@ -14,11 +14,13 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
     {
         private readonly float[] _alturas;
         private readonly Color32[] _cores;
+        private readonly Color32[] _pesosDoChao;
 
-        private AmostrasDoTerreno(float[] alturas, Color32[] cores)
+        private AmostrasDoTerreno(float[] alturas, Color32[] cores, Color32[] pesosDoChao)
         {
             _alturas = alturas;
             _cores = cores;
+            _pesosDoChao = pesosDoChao;
         }
 
         /// <summary>Número de pontos por lado da grade.</summary>
@@ -29,6 +31,12 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
         /// textura espera).
         /// </summary>
         public Color32[] Cores => _cores;
+
+        /// <summary>
+        /// Pesos dos materiais do chão (<see cref="PesosDoTerreno.ParaTextura"/>), um por ponto
+        /// da grade, no mesmo formato de <see cref="Cores"/>.
+        /// </summary>
+        public Color32[] PesosDoChao => _pesosDoChao;
 
         /// <summary>Calcula a grade inteira do mapa.</summary>
         public static AmostrasDoTerreno Gerar()
@@ -75,7 +83,11 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
                 }
             }
 
-            var amostras = new AmostrasDoTerreno(alturas, new Color32[lado * lado]);
+            var amostras = new AmostrasDoTerreno(
+                alturas,
+                new Color32[lado * lado],
+                new Color32[lado * lado]
+            );
             for (var j = 0; j < lado; j++)
             {
                 var z = MapaDoMundo.CoordenadaDaGrade(j);
@@ -90,6 +102,9 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
                         x,
                         z
                     );
+                    amostras._pesosDoChao[indice] = PesosDoTerreno
+                        .Calcular(pesos[indice], alturas[indice], x, z)
+                        .ParaTextura();
                 }
 
                 if ((j + 1) % 8 == 0)

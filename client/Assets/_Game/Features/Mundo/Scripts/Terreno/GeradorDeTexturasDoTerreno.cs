@@ -21,6 +21,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
         private static Texture2D _texturaRocha;
         private static Texture2D _texturaNormalRocha;
         private static Texture2D _texturaNeve;
+        private static Texture2D _texturaLama;
         private static Texture2D _texturaDetalhes;
 
         public static Texture2D ObterGrama() => _texturaGrama ??= CriarTexturaGrama();
@@ -35,6 +36,8 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
 
         public static Texture2D ObterNeve() => _texturaNeve ??= CriarTexturaNeve();
 
+        public static Texture2D ObterLama() => _texturaLama ??= CriarTexturaLama();
+
         public static Texture2D ObterDetalhes() => _texturaDetalhes ??= CriarTexturaDetalhes();
 
         public static void LimparCache()
@@ -45,6 +48,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
             _texturaRocha = null;
             _texturaNormalRocha = null;
             _texturaNeve = null;
+            _texturaLama = null;
             _texturaDetalhes = null;
         }
 
@@ -337,6 +341,45 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
 
                     var cor = Color.Lerp(neveSombra, neveMedia, vento * 0.65f + manto * 0.35f);
                     cor = Color.Lerp(cor, neveLuz, Mathf.Pow(microCristal, 2.5f) * 0.35f);
+
+                    pixels[y * tamanho + x] = cor;
+                }
+            }
+
+            tex.SetPixels32(pixels);
+            tex.Apply(true, false);
+            return tex;
+        }
+
+        /// <summary>
+        /// Textura contínua de lama escura e úmida do pântano: poças lisas, raízes e torrões.
+        /// </summary>
+        public static Texture2D CriarTexturaLama(int tamanho = ResolucaoPadrao)
+        {
+            var tex = CriarTexturaBase("Terreno_Lama_512", tamanho);
+            var pixels = new Color32[tamanho * tamanho];
+
+            var lamaFundo = new Color(0.14f, 0.12f, 0.08f);
+            var lamaMedia = new Color(0.24f, 0.20f, 0.12f);
+            var lamaSeca = new Color(0.36f, 0.30f, 0.19f);
+            var limo = new Color(0.20f, 0.27f, 0.12f);
+
+            for (var y = 0; y < tamanho; y++)
+            {
+                var v = (float)y / tamanho;
+                for (var x = 0; x < tamanho; x++)
+                {
+                    var u = (float)x / tamanho;
+
+                    var base0 = FbmPeriodico(u, v, 5, 4, 1103u);
+                    var torrao = FbmPeriodico(u, v, 20, 3, 1109u);
+                    VoronoiPeriodico(u, v, 9, 1117u, out var dRachadura, out _);
+                    var rachadura = Mathf.Clamp01(1f - dRachadura * 3.2f);
+                    var mancha = Mathf.Clamp01(FbmPeriodico(u, v, 7, 2, 1123u) - 0.45f) * 1.8f;
+
+                    var cor = Color.Lerp(lamaFundo, lamaMedia, base0);
+                    cor = Color.Lerp(cor, lamaSeca, torrao * 0.35f * rachadura);
+                    cor = Color.Lerp(cor, limo, mancha * 0.5f);
 
                     pixels[y * tamanho + x] = cor;
                 }

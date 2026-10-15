@@ -9,6 +9,8 @@ Shader "JogoDoGrupo/TerrenoMundo"
         _RockTex("Rocha (High-Res 512)", 2D) = "white" {}
         _RockBumpMap("Normal Map de Rocha", 2D) = "bump" {}
         _SnowTex("Neve (High-Res 512)", 2D) = "white" {}
+        _MudTex("Lama (High-Res 512)", 2D) = "white" {}
+        _PesosMap("Pesos dos materiais (RGBA: grama, terra, areia, neve)", 2D) = "red" {}
         _DetailAlbedoMap("Detalhes (1024)", 2D) = "gray" {}
         _DetailTiling("World Tiling (rep/m)", Float) = 0.2
         _Smoothness("Smoothness", Range(0.0, 1.0)) = 0.05
@@ -69,6 +71,12 @@ Shader "JogoDoGrupo/TerrenoMundo"
 
             TEXTURE2D(_SnowTex);
             SAMPLER(sampler_SnowTex);
+
+            TEXTURE2D(_MudTex);
+            SAMPLER(sampler_MudTex);
+
+            TEXTURE2D(_PesosMap);
+            SAMPLER(sampler_PesosMap);
 
             TEXTURE2D(_DetailAlbedoMap);
             SAMPLER(sampler_DetailAlbedoMap);
@@ -169,22 +177,15 @@ Shader "JogoDoGrupo/TerrenoMundo"
                 // Perturba a normal com o relevo 3D modelado de rocha (ondas serrilhadas)
                 float3 normalFinalWS = normalize(lerp(normalAcentuada, rockNormalWS, fatorParedao * 0.90));
 
-                // Identificação orgânica dos materiais pelo mapa macro
-                float ehNeve = smoothstep(0.78, 0.90, macroColor.b) * step(0.68, macroColor.r);
+                // Materiais pelo mapa de pesos (PesosDoTerreno): R grama, G terra, B areia, A neve;
+                // a lama e o que falta para 1. Nada e adivinhado pela cor macro.
+                half4 pesosMat = SAMPLE_TEXTURE2D(_PesosMap, sampler_PesosMap, input.uv);
+                half pesoLama = saturate(1.0 - (pesosMat.r + pesosMat.g + pesosMat.b + pesosMat.a));
+                half4 mud = lerp(SAMPLE_TEXTURE2D(_MudTex, sampler_MudTex, uvMicro),
+                                 SAMPLE_TEXTURE2D(_MudTex, sampler_MudTex, uvMacro), 0.25);
 
-                // Anel contínuo de areia em toda a margem de água do pântano e lagoas (Y próximo de -0.5 m)
-                float deltaAguaWS = abs(input.positionWS.y - (-0.5));
-                float bordaAgua = 1.0 - saturate(deltaAguaWS / 0.85);
-                float ehMargemPantano = bordaAgua * smoothstep(0.10, 0.35, macroColor.g + macroColor.r * 0.5);
-
-                float ehAreiaMacro = saturate((macroColor.r - macroColor.b - 0.08) * 4.5);
-                float ehAreia = max(ehAreiaMacro, ehMargemPantano) * (1.0 - ehNeve);
-
-                float ehTerra = saturate((macroColor.r - macroColor.g * 0.88) * 3.5) * (1.0 - ehNeve) * (1.0 - ehAreia);
-                float ehGrama = saturate((macroColor.g - macroColor.r * 0.82) * 4.0) * (1.0 - ehNeve) * (1.0 - ehAreia);
-
-                half4 chao = grass * ehGrama + dirt * ehTerra + sand * ehAreia + snow * ehNeve;
-                float somaPesos = ehGrama + ehTerra + ehAreia + ehNeve;
+                half4 chao = grass * pesosMat.r + dirt * pesosMat.g + sand * pesosMat.b + snow * pesosMat.a + mud * pesoLama;
+                half somaPesos = pesosMat.r + pesosMat.g + pesosMat.b + pesosMat.a + pesoLama;
                 chao = somaPesos > 0.01 ? (chao / somaPesos) : grass;
 
                 // Encostas e paredões usam rocha com relevo modelado
