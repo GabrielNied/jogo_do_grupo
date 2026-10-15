@@ -251,7 +251,7 @@ O client só reage ao que o servidor confirmou (`AtaqueAcertou`, vida menor em `
 - **Limites:** no máximo 8 flashes e 4 sons por janela de 0,12 s; hit-stop e tremor não se somam (vale o maior, com teto).
 - **Esquiva:** som ao esquivar. "Esquivou!" aparece quando o jogador estava no círculo de um golpe avisado, esquivou antes do golpe, estava fora quando o preparo acabou e o servidor não tirou vida. Hoje é inferido; uma mensagem do servidor para "esquivou" deixaria exato. Estar dentro de um círculo avisado mostra "Saia da área!" com um som de alerta.
 - **Sons:** gerados por código (`SintetizadorDeSons`), sem arquivos de terceiros. Entram no mixer de Core quando o #123 existir. Tremor, hit-stop e som têm chaves em `ConfiguracaoDeImpacto`, a ligar na tela de opções do Core.
-- **Valores:** flash, recuo, hit-stop, tremor, volume, vinheta, rastro, número de dano e pausa de pose moram em `ConfigSensacaoCombate` e mudam ao vivo no F10 ([Relato e ajuste ao vivo](desenvolvimento.md#relato-e-ajuste-ao-vivo)).
+- **Valores:** flash, recuo, hit-stop, tremor, volume, vinheta, rastro, número de dano e pausa de pose moram em `ConfigSensacaoCombate` e mudam ao vivo no F10 ([Report beta e ajuste ao vivo](desenvolvimento.md#report-beta-e-ajuste-ao-vivo)).
 
 ### Resposta visual do combate no client (#475, #476, #479, #480, #482)
 

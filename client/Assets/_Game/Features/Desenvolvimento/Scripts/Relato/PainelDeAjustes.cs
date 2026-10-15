@@ -10,11 +10,11 @@ using UnityEngine.UIElements;
 namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
 {
     /// <summary>
-    /// A caixa do relato (F9) e o painel de ajustes (F10), montados em código por cima de tudo.
-    /// Com um deles aberto o gravador para, o personagem fica parado e o cursor fica livre, como
-    /// no chat. Enter salva o relato, Esc fecha sem salvar.
+    /// O painel de ajustes de sensação (F10), montado em código por cima de tudo. Aberto, o
+    /// gravador para, o personagem fica parado e o cursor fica livre, como no chat. Esc fecha.
+    /// O report (F9 ou J) é a <see cref="JanelaReporte"/>.
     /// </summary>
-    internal sealed class PainelDoRelato
+    internal sealed class PainelDeAjustes
     {
         private const float OrdemDoPainel = 50f;
         private const float LarguraDoPainel = 560f;
@@ -24,72 +24,27 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
 
         private GameObject _objeto;
         private VisualElement _raiz;
-        private VisualElement _caixaRelato;
-        private TextField _frase;
-        private Label _resumo;
         private VisualElement _caixaAjustes;
         private Label _mensagemAjustes;
-        private Momento _momento;
-        private int _frameDaAbertura;
-        private int _fecharDepoisDoQuadro = -1;
 
-        public PainelDoRelato(GravadorDeMomento gravador)
+        public PainelDeAjustes(GravadorDeMomento gravador)
         {
             _gravador = gravador;
             Sintonia.Mudou += AtualizarAjustes;
         }
 
-        public bool Aberto => RelatoAberto || AjustesAberto;
-
-        private bool RelatoAberto =>
-            _caixaRelato != null && _caixaRelato.style.display == DisplayStyle.Flex;
-
-        private bool AjustesAberto =>
+        public bool Aberto =>
             _caixaAjustes != null && _caixaAjustes.style.display == DisplayStyle.Flex;
 
-        public void AlternarRelato()
+        public void Alternar()
         {
-            if (RelatoAberto)
+            if (Aberto)
             {
                 Fechar();
                 return;
             }
 
             if (JanelasDoJogo.AlgoAberto || BloqueioDeEntradaPorTexto.AtalhosDoJogoBloqueados())
-            {
-                return;
-            }
-
-            Montar();
-            FecharAjustes();
-            _momento = _gravador.Congelar();
-            _gravador.DefinirGravando(false);
-            var segundos =
-                _momento.Quadros.Count > 1
-                    ? _momento.Quadros[_momento.Quadros.Count - 1].Tempo - _momento.Quadros[0].Tempo
-                    : 0;
-            _resumo.text =
-                $"{_momento.Quadros.Count} quadros, {segundos:0.0} s, {_momento.Eventos.Count} mensagens. Enter salva, Esc descarta.";
-            _frase.value = "";
-            _caixaRelato.style.display = DisplayStyle.Flex;
-            _frameDaAbertura = Time.frameCount;
-            PrenderJogo(true);
-            _frase.schedule.Execute(() => _frase.Focus());
-        }
-
-        public void AlternarAjustes()
-        {
-            if (AjustesAberto)
-            {
-                Fechar();
-                return;
-            }
-
-            if (
-                RelatoAberto
-                || JanelasDoJogo.AlgoAberto
-                || BloqueioDeEntradaPorTexto.AtalhosDoJogoBloqueados()
-            )
             {
                 return;
             }
@@ -112,66 +67,21 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
 
         private void Fechar()
         {
-            if (_caixaRelato != null)
-            {
-                _caixaRelato.style.display = DisplayStyle.None;
-            }
-
-            FecharAjustes();
-            _momento = null;
-            _fecharDepoisDoQuadro = -1;
-            _gravador.DefinirGravando(true);
-            PrenderJogo(false);
-        }
-
-        private void FecharAjustes()
-        {
             if (_caixaAjustes != null)
             {
                 _caixaAjustes.style.display = DisplayStyle.None;
             }
-        }
 
-        private void Salvar()
-        {
-            // O Enter de outra caixa não pode salvar no mesmo quadro em que esta abriu.
-            if (Time.frameCount == _frameDaAbertura || _momento == null)
-            {
-                return;
-            }
-
-            try
-            {
-                var pasta = EscritorDeRelato.Escrever(_momento, _frase.value);
-                Debug.Log($"[Relato] Salvo em {pasta}");
-                AvisosDoJogo.Mostrar("Relato salvo em relatos/. Peça à IA: /relato");
-            }
-            catch (Exception e)
-            {
-                Debug.LogException(e);
-                AvisosDoJogo.Mostrar(
-                    "Não deu para salvar o relato (veja o console).",
-                    TipoDeAviso.Erro
-                );
-            }
-
-            // Fecha no próximo quadro: o Enter deste quadro não pode abrir o chat ao mesmo tempo.
-            _momento = null;
-            _fecharDepoisDoQuadro = Time.frameCount;
+            _gravador.DefinirGravando(true);
+            PrenderJogo(false);
         }
 
         /// <summary>
-        /// Chamado todo quadro pelo gravador: fecha o relato salvo no quadro anterior e fecha o
-        /// painel no Esc (o painel de ajustes não tem campo de texto para receber a tecla).
+        /// Chamado todo quadro pelo gravador: fecha o painel no Esc (ele não tem campo de texto
+        /// para receber a tecla).
         /// </summary>
         public void Atualizar(bool escApertado)
         {
-            if (_fecharDepoisDoQuadro >= 0 && Time.frameCount > _fecharDepoisDoQuadro)
-            {
-                Fechar();
-                return;
-            }
-
             // A sessão já ignorou este Esc (o painel aberto bloqueia os atalhos); não marca
             // como consumido, senão o próximo Esc da pessoa se perde.
             if (escApertado && Aberto)
@@ -187,43 +97,23 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
                 return;
             }
 
-            _objeto = new GameObject("Desenvolvimento.Relato.Painel");
+            _objeto = new GameObject("Desenvolvimento.Ajustes.Painel");
             UnityEngine.Object.DontDestroyOnLoad(_objeto);
             _objeto.SetActive(false);
             var documento = _objeto.AddComponent<UIDocument>();
             documento.panelSettings = EstiloCore.CriarConfiguracaoDoPainel(
-                "PainelRelato",
+                "PainelAjustes",
                 OrdemDoPainel
             );
             _objeto.SetActive(true);
             EstiloCore.Aplicar(documento.rootVisualElement);
 
-            _raiz = new VisualElement { name = "desenvolvimento.relato" };
+            _raiz = new VisualElement { name = "desenvolvimento.ajustes" };
             _raiz.AddToClassList(EstiloCore.RaizInterface);
             _raiz.pickingMode = PickingMode.Ignore;
             _raiz.style.alignItems = Align.Center;
             _raiz.style.justifyContent = Justify.Center;
             documento.rootVisualElement.Add(_raiz);
-
-            _caixaRelato = Caixa("Relato de sensação (F9)");
-            var pergunta = new Label(
-                "O que pareceu errado? Uma frase basta (ex.: \"o pesado não tem peso\")."
-            );
-            pergunta.AddToClassList(EstiloCore.Texto);
-            _caixaRelato.Add(pergunta);
-            _frase = new TextField { name = "desenvolvimento.relato.frase", maxLength = 300 };
-            _frase.AddToClassList(EstiloCore.Campo);
-            _frase.RegisterCallback<KeyDownEvent>(AoApertarTecla, TrickleDown.TrickleDown);
-            _caixaRelato.Add(_frase);
-            _resumo = new Label();
-            _resumo.AddToClassList(EstiloCore.Dica);
-            _caixaRelato.Add(_resumo);
-            var botoes = new VisualElement();
-            botoes.AddToClassList(EstiloCore.LinhaBotoes);
-            botoes.Add(Botao("Salvar", Salvar, true));
-            botoes.Add(Botao("Descartar", Fechar, false));
-            _caixaRelato.Add(botoes);
-            _raiz.Add(_caixaRelato);
 
             _caixaAjustes = Caixa("Ajustes de sensação (F10)");
             _raiz.Add(_caixaAjustes);
@@ -342,23 +232,6 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
             _mensagemAjustes.text =
                 $"Copiado e salvo em {caminho}. Cole para a IA gravar no código.";
             Debug.Log("[Relato] Ajustes fora do padrão:\n" + alterados);
-        }
-
-        private void AoApertarTecla(KeyDownEvent evento)
-        {
-            switch (evento.keyCode)
-            {
-                case KeyCode.Return:
-                case KeyCode.KeypadEnter:
-                    evento.StopPropagation();
-                    Salvar();
-                    break;
-                case KeyCode.Escape:
-                    evento.StopPropagation();
-                    BloqueioDeEntradaPorTexto.EscConsumidoNesteFrame = true;
-                    Fechar();
-                    break;
-            }
         }
 
         private static VisualElement Caixa(string titulo)

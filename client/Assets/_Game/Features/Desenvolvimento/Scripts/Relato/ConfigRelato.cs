@@ -1,10 +1,25 @@
 namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
 {
-    /// <summary>Valores ajustáveis do relato F9 (regra 17).</summary>
+    /// <summary>Valores ajustáveis do report (F9 ou J, regra 17).</summary>
     internal static class ConfigRelato
     {
-        /// <summary>Quantos segundos antes do F9 o relato guarda.</summary>
+        /// <summary>Quantos segundos antes do report têm imagem (folhas e <c>quadros/</c>).</summary>
         public const float SegundosGuardados = 3f;
+
+        /// <summary>
+        /// Quantos segundos antes do report a linha do tempo cobre (texto é barato; a causa de
+        /// um bug costuma vir antes dos últimos segundos com imagem).
+        /// </summary>
+        public const float SegundosDaLinhaDoTempo = 15f;
+
+        /// <summary>Avisos e erros do console guardados para o <c>console.txt</c>.</summary>
+        public const int LinhasDoConsole = 40;
+
+        /// <summary>Linhas da pilha de cada erro do console que entram no report.</summary>
+        public const int LinhasDaPilha = 4;
+
+        /// <summary>Tempo máximo, em segundos, do envio do report como issue.</summary>
+        public const int SegundosDoEnvio = 120;
 
         /// <summary>Teto de quadros gravados por segundo (relógio real, ignora o hit-stop).</summary>
         public const int QuadrosPorSegundo = 60;

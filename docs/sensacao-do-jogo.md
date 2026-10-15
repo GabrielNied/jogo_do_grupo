@@ -1,6 +1,6 @@
 # Sensação do jogo: como relatar
 
-Para quem testa e sente que algo está errado (peso, resposta, animação, câmera) e para a IA que diagnostica. A ferramenta é o [relato F9 e o ajuste F10](features/desenvolvimento.md#relato-e-ajuste-ao-vivo); as regras de cada funcionalidade continuam em [features/](features/).
+Para quem testa e sente que algo está errado (peso, resposta, animação, câmera) e para a IA que diagnostica. A ferramenta é o [relato F9 e o ajuste F10](features/desenvolvimento.md#report-beta-e-ajuste-ao-vivo); as regras de cada funcionalidade continuam em [features/](features/).
 
 ## Termos
 

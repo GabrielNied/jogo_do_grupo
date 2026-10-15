@@ -58,4 +58,22 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
         public string Nome { get; }
         public string Json { get; }
     }
+
+    /// <summary>Aviso ou erro do console do Unity.</summary>
+    internal readonly struct LinhaDoConsole
+    {
+        public LinhaDoConsole(double tempo, UnityEngine.LogType tipo, string mensagem, string pilha)
+        {
+            Tempo = tempo;
+            Tipo = tipo;
+            Mensagem = mensagem ?? "";
+            Pilha = pilha ?? "";
+        }
+
+        /// <summary>Relógio real, na escala de <see cref="AmostraDeQuadro.Tempo"/>.</summary>
+        public double Tempo { get; }
+        public UnityEngine.LogType Tipo { get; }
+        public string Mensagem { get; }
+        public string Pilha { get; }
+    }
 }

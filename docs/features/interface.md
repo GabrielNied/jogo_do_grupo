@@ -137,6 +137,7 @@ Decidido por Gabriel em 2026-10-11 (#134); é **provisório** e o grupo pode aju
 | Inventário | I | sim |
 | Missões | L | sim |
 | Mapa | M | sim |
+| Report (só no editor e no build de desenvolvimento, [Desenvolvimento](desenvolvimento.md#report-beta-e-ajuste-ao-vivo)) | J (e F9, fixa) | sim, só o J |
 | Chat (abrir e enviar) | Enter | não por enquanto (fixa no código do chat; Esc fecha a caixa sem enviar) |
 | Menu | Esc | **não** (reservada) |
 

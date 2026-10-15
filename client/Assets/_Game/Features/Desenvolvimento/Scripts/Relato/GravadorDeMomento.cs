@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
 using JogoDoGrupo.Client.Core.Jogo;
+using JogoDoGrupo.Client.Core.Jogo.Janelas;
 using JogoDoGrupo.Client.Core.TempoReal;
 using JogoDoGrupo.Shared.Core;
 using JogoDoGrupo.Shared.Features.Combate;
@@ -14,10 +15,12 @@ using UnityEngine.InputSystem.Controls;
 namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
 {
     /// <summary>
-    /// Guarda os últimos <see cref="ConfigRelato.SegundosGuardados"/> do jogo para o relato F9:
-    /// a tela em miniatura, o estado dos Animators do jogador e do mais próximo, o
-    /// <c>timeScale</c>, o solavanco da câmera, as teclas e as mensagens do servidor. Só existe
-    /// no editor e no build de desenvolvimento. Roda depois de todos (câmera, recuo e tremor já
+    /// Guarda o passado recente do jogo para o report (F9 ou J): por
+    /// <see cref="ConfigRelato.SegundosDaLinhaDoTempo"/>, o estado dos Animators do jogador e do
+    /// mais próximo, o <c>timeScale</c>, o solavanco da câmera, as teclas e as mensagens do
+    /// servidor; pelos últimos <see cref="ConfigRelato.SegundosGuardados"/>, a tela em miniatura.
+    /// Guarda também a última mensagem de cada tipo e os avisos e erros do console. Só existe no
+    /// editor e no build de desenvolvimento. Roda depois de todos (câmera, recuo e tremor já
     /// aplicados no quadro).
     /// </summary>
     [DefaultExecutionOrder(10000)]
@@ -28,13 +31,19 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
         private static GravadorDeMomento _instancia;
 
         private readonly List<EventoDeRede> _eventos = new List<EventoDeRede>();
+        private readonly Dictionary<ushort, EventoDeRede> _ultimas =
+            new Dictionary<ushort, EventoDeRede>();
+        private readonly List<LinhaDoConsole> _console = new List<LinhaDoConsole>();
         private readonly StringBuilder _entrada = new StringBuilder();
 
         private RenderTexture[] _anel;
         private RenderTexture[] _zoom;
+        private int _proximaImagem;
+        private int _imagens;
         private AmostraDeQuadro[] _amostras;
-        private int _proximo;
-        private int _guardados;
+        private int _proximaAmostra;
+        private int _guardadas;
+        private string _janelaAberta;
         private RenderTexture _telaCheia;
         private double _ultimaCaptura = double.NegativeInfinity;
         private bool _capturarNoFim;
@@ -47,7 +56,10 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
         private Dictionary<ushort, string> _nomes;
         private InputAction _f9;
         private InputAction _f10;
-        private PainelDoRelato _painel;
+        private PainelDeAjustes _ajustes;
+
+        /// <summary>O gravador da sessão, ou <c>null</c> (build de release, ou antes de iniciar).</summary>
+        public static GravadorDeMomento Instancia => _instancia;
 
         /// <summary>Se está guardando (para enquanto um painel de Desenvolvimento está aberto).</summary>
         public bool Gravando { get; private set; } = true;
@@ -63,6 +75,7 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
             var objeto = new GameObject(NomeObjeto);
             DontDestroyOnLoad(objeto);
             _instancia = objeto.AddComponent<GravadorDeMomento>();
+            EnvioDeReporte.EnviarPendentes();
         }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
@@ -73,19 +86,23 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
 
         private void Awake()
         {
-            var capacidade = Mathf.CeilToInt(
+            var imagens = Mathf.CeilToInt(
                 ConfigRelato.SegundosGuardados * ConfigRelato.QuadrosPorSegundo
             );
-            _anel = new RenderTexture[capacidade];
-            _zoom = new RenderTexture[capacidade];
-            _amostras = new AmostraDeQuadro[capacidade];
+            _anel = new RenderTexture[imagens];
+            _zoom = new RenderTexture[imagens];
+            _amostras = new AmostraDeQuadro[
+                Mathf.CeilToInt(
+                    ConfigRelato.SegundosDaLinhaDoTempo * ConfigRelato.QuadrosPorSegundo
+                )
+            ];
             _nomes = NomesDasMensagens();
             _f9 = new InputAction("Relato", InputActionType.Button, "<Keyboard>/f9");
             _f10 = new InputAction("Ajustes", InputActionType.Button, "<Keyboard>/f10");
             _f9.Enable();
             _f10.Enable();
-            _painel = new PainelDoRelato(this);
-            BloqueioDeEntradaPorTexto.RegistrarBloqueioDeAtalhos(() => _painel.Aberto);
+            _ajustes = new PainelDeAjustes(this);
+            BloqueioDeEntradaPorTexto.RegistrarBloqueioDeAtalhos(() => _ajustes.Aberto);
         }
 
         private void OnEnable()
@@ -94,11 +111,13 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
                 new MessageIdRange(0, ushort.MaxValue),
                 AoReceber
             );
+            Application.logMessageReceived += AoLogar;
             StartCoroutine(CapturarNoFimDoQuadro());
         }
 
         private void OnDisable()
         {
+            Application.logMessageReceived -= AoLogar;
             _assinatura?.Dispose();
             _assinatura = null;
         }
@@ -107,7 +126,7 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
         {
             _f9?.Dispose();
             _f10?.Dispose();
-            _painel?.Destruir();
+            _ajustes?.Destruir();
             foreach (var textura in _anel)
             {
                 Liberar(textura);
@@ -123,20 +142,22 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
 
         private void Update()
         {
+            EnvioDeReporte.Atualizar();
             if (!EntradaNoJogo.NoJogo)
             {
                 return;
             }
 
             var esc = Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame;
-            _painel.Atualizar(esc);
+            _ajustes.Atualizar(esc);
+            JanelaReporte.Atualizar();
             if (_f9.WasPressedThisFrame())
             {
-                _painel.AlternarRelato();
+                JanelaReporte.Alternar();
             }
             else if (_f10.WasPressedThisFrame())
             {
-                _painel.AlternarAjustes();
+                _ajustes.Alternar();
             }
         }
 
@@ -158,9 +179,10 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
             }
 
             _ultimaCaptura = agora;
+            _janelaAberta = JanelasDoJogo.ChaveAberta;
             var jogador = EntradaNoJogo.Jogador;
             BuscarAlvo(jogador);
-            _amostras[_proximo] = new AmostraDeQuadro
+            _amostras[_proximaAmostra] = new AmostraDeQuadro
             {
                 Frame = Time.frameCount,
                 Tempo = agora,
@@ -173,6 +195,8 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
                 Solavanco = solavanco,
                 Entrada = _entrada.ToString(),
             };
+            _proximaAmostra = (_proximaAmostra + 1) % _amostras.Length;
+            _guardadas = Math.Min(_guardadas + 1, _amostras.Length);
             _entrada.Clear();
             _capturarNoFim = true;
         }
@@ -189,9 +213,9 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
                 }
 
                 _capturarNoFim = false;
-                CapturarTela(_proximo);
-                _proximo = (_proximo + 1) % _anel.Length;
-                _guardados = Math.Min(_guardados + 1, _anel.Length);
+                CapturarTela(_proximaImagem);
+                _proximaImagem = (_proximaImagem + 1) % _anel.Length;
+                _imagens = Math.Min(_imagens + 1, _anel.Length);
             }
         }
 
@@ -200,8 +224,10 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
         {
             if (gravando && !Gravando)
             {
-                _guardados = 0;
-                _proximo = 0;
+                _guardadas = 0;
+                _proximaAmostra = 0;
+                _imagens = 0;
+                _proximaImagem = 0;
                 _eventos.Clear();
                 _quadrosDeCamera = 0;
             }
@@ -210,19 +236,29 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
             _capturarNoFim = false;
         }
 
-        /// <summary>O que está guardado, do mais antigo ao mais novo.</summary>
+        /// <summary>
+        /// O que está guardado, do mais antigo ao mais novo. As imagens são dos últimos quadros
+        /// (veja <see cref="Momento.PrimeiraImagem"/>). Quem recebe chama
+        /// <see cref="Momento.Liberar"/> no fim.
+        /// </summary>
         public Momento Congelar()
         {
-            var quadros = new List<AmostraDeQuadro>(_guardados);
-            var texturas = new List<RenderTexture>(_guardados);
-            var zooms = new List<RenderTexture>(_guardados);
-            var inicio = (_proximo - _guardados + _anel.Length) % _anel.Length;
-            for (var i = 0; i < _guardados; i++)
+            var quadros = new List<AmostraDeQuadro>(_guardadas);
+            var inicio = (_proximaAmostra - _guardadas + _amostras.Length) % _amostras.Length;
+            for (var i = 0; i < _guardadas; i++)
             {
-                var indice = (inicio + i) % _anel.Length;
-                quadros.Add(_amostras[indice]);
-                texturas.Add(_anel[indice]);
-                zooms.Add(_zoom[indice]);
+                quadros.Add(_amostras[(inicio + i) % _amostras.Length]);
+            }
+
+            // Cada quadro guardado também ganhou imagem, então as imagens são dos últimos.
+            var comImagem = Math.Min(_imagens, quadros.Count);
+            var texturas = new List<RenderTexture>(comImagem);
+            var zooms = new List<RenderTexture>(comImagem);
+            var primeira = (_proximaImagem - comImagem + _anel.Length) % _anel.Length;
+            for (var i = 0; i < comImagem; i++)
+            {
+                texturas.Add(_anel[(primeira + i) % _anel.Length]);
+                zooms.Add(_zoom[(primeira + i) % _anel.Length]);
             }
 
             var eventos = new List<EventoDeRede>();
@@ -235,27 +271,74 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
                 }
             }
 
-            return new Momento(quadros, texturas, zooms, eventos);
+            var ultimas = new List<EventoDeRede>(_ultimas.Values);
+            ultimas.Sort((a, b) => string.CompareOrdinal(a.Nome, b.Nome));
+            return new Momento(quadros, texturas, zooms, eventos)
+            {
+                Ultimas = ultimas,
+                Console = new List<LinhaDoConsole>(_console),
+                Tela = CopiarTela(),
+                JanelaAberta = _janelaAberta,
+                Agora = Time.realtimeSinceStartupAsDouble,
+                QuandoUtc = DateTime.UtcNow,
+            };
+        }
+
+        // A tela inteira do último quadro guardado (o report ainda não estava aberto nele).
+        private Texture2D CopiarTela()
+        {
+            if (_telaCheia == null || _imagens == 0)
+            {
+                return null;
+            }
+
+            var anterior = RenderTexture.active;
+            RenderTexture.active = _telaCheia;
+            var tela = new Texture2D(
+                _telaCheia.width,
+                _telaCheia.height,
+                TextureFormat.RGB24,
+                false
+            );
+            tela.ReadPixels(new Rect(0, 0, _telaCheia.width, _telaCheia.height), 0, 0);
+            tela.Apply();
+            RenderTexture.active = anterior;
+            return tela;
+        }
+
+        private void AoLogar(string mensagem, string pilha, LogType tipo)
+        {
+            if (tipo == LogType.Log)
+            {
+                return;
+            }
+
+            _console.Add(
+                new LinhaDoConsole(Time.realtimeSinceStartupAsDouble, tipo, mensagem, pilha)
+            );
+            if (_console.Count > ConfigRelato.LinhasDoConsole)
+            {
+                _console.RemoveAt(0);
+            }
         }
 
         private void AoReceber(MensagemTempoReal mensagem)
         {
+            var agora = Time.realtimeSinceStartupAsDouble;
+            var evento = new EventoDeRede(
+                agora,
+                mensagem.Id,
+                _nomes.TryGetValue(mensagem.Id, out var nome) ? nome : "Id" + mensagem.Id,
+                mensagem.Json
+            );
+            _ultimas[mensagem.Id] = evento;
             if (!Gravando)
             {
                 return;
             }
 
-            var agora = Time.realtimeSinceStartupAsDouble;
-            _eventos.Add(
-                new EventoDeRede(
-                    agora,
-                    mensagem.Id,
-                    _nomes.TryGetValue(mensagem.Id, out var nome) ? nome : "Id" + mensagem.Id,
-                    mensagem.Json
-                )
-            );
-
-            var limite = agora - ConfigRelato.SegundosGuardados - 1.0;
+            _eventos.Add(evento);
+            var limite = agora - ConfigRelato.SegundosDaLinhaDoTempo - 1.0;
             var velhos = 0;
             while (velhos < _eventos.Count && _eventos[velhos].Tempo < limite)
             {
@@ -526,7 +609,7 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
         }
     }
 
-    /// <summary>O que estava guardado quando a pessoa apertou F9, do mais antigo ao mais novo.</summary>
+    /// <summary>O que estava guardado quando a pessoa abriu o report, do mais antigo ao mais novo.</summary>
     internal sealed class Momento
     {
         public Momento(
@@ -543,10 +626,42 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
         }
 
         public IReadOnlyList<AmostraDeQuadro> Quadros { get; }
+
+        /// <summary>Imagem dos últimos quadros: a de índice i é do quadro <c>PrimeiraImagem + i</c>.</summary>
         public IReadOnlyList<RenderTexture> Texturas { get; }
 
-        /// <summary>O centro da tela ampliado (jogador e alvo), na mesma ordem.</summary>
+        /// <summary>O centro da tela ampliado (jogador e alvo), na mesma ordem das texturas.</summary>
         public IReadOnlyList<RenderTexture> Zooms { get; }
         public IReadOnlyList<EventoDeRede> Eventos { get; }
+
+        /// <summary>Índice do primeiro quadro com imagem.</summary>
+        public int PrimeiraImagem => Quadros.Count - Texturas.Count;
+
+        /// <summary>A última mensagem recebida de cada tipo na sessão, por nome.</summary>
+        public IReadOnlyList<EventoDeRede> Ultimas { get; set; } = new List<EventoDeRede>();
+
+        /// <summary>Os últimos avisos e erros do console, do mais antigo ao mais novo.</summary>
+        public IReadOnlyList<LinhaDoConsole> Console { get; set; } = new List<LinhaDoConsole>();
+
+        /// <summary>A tela inteira antes do report (ou <c>null</c>).</summary>
+        public Texture2D Tela { get; set; }
+
+        /// <summary>A janela do jogo aberta antes do report (ou <c>null</c>).</summary>
+        public string JanelaAberta { get; set; }
+
+        /// <summary>Relógio real do congelamento, na escala de <see cref="AmostraDeQuadro.Tempo"/>.</summary>
+        public double Agora { get; set; }
+
+        public DateTime QuandoUtc { get; set; } = DateTime.UtcNow;
+
+        /// <summary>Solta a cópia da tela (as texturas do anel continuam do gravador).</summary>
+        public void Liberar()
+        {
+            if (Tela != null)
+            {
+                UnityEngine.Object.Destroy(Tela);
+                Tela = null;
+            }
+        }
     }
 }

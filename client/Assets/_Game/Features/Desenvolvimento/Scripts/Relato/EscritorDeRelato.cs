@@ -8,14 +8,16 @@ using JogoDoGrupo.Client.Core.TempoReal;
 using JogoDoGrupo.Shared.Features.Combate;
 using JogoDoGrupo.Shared.Features.Mobs;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
 {
     /// <summary>
-    /// Grava o relato em <c>relatos/AAAA-MM-DD_HHMMSS/</c>: as duas folhas de quadros, todos os
-    /// quadros, a linha do tempo, a tabela por quadro e a nota. No editor a pasta fica na raiz
-    /// do repositório (fora do git); no build, em <c>persistentDataPath</c>. A skill
-    /// <c>/relato</c> lê nessa ordem: nota, linha do tempo, folha de impacto.
+    /// Grava o report em <c>relatos/pendentes/AAAA-MM-DD_HHMMSS/</c>: o <c>reporte.json</c>, a
+    /// nota, a linha do tempo, o estado, o console, a tela inteira, as duas folhas de quadros,
+    /// todos os quadros e a tabela por quadro. No editor a pasta fica na raiz do repositório
+    /// (fora do git); no build, em <c>persistentDataPath</c>. O <c>scripts/relatos/reporte.mjs</c>
+    /// transforma a pasta em issue e a move para <c>relatos/enviados/</c>.
     /// </summary>
     internal static class EscritorDeRelato
     {
@@ -42,19 +44,34 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
             "111101111001111",
         };
 
+        /// <summary>Raiz do repositório (no editor; o projeto Unity fica em <c>client/</c>).</summary>
+        public static string RaizDoRepositorio =>
+            Path.GetFullPath(Path.Combine(Application.dataPath, "..", ".."));
+
         /// <summary>Pasta onde os relatos ficam.</summary>
         public static string PastaDosRelatos =>
             Application.isEditor
-                ? Path.GetFullPath(Path.Combine(Application.dataPath, "..", "..", "relatos"))
+                ? Path.Combine(RaizDoRepositorio, "relatos")
                 : Path.Combine(Application.persistentDataPath, "relatos");
 
-        /// <returns>A pasta do relato criado.</returns>
-        public static string Escrever(Momento momento, string frase)
+        /// <summary>Reports ainda sem issue.</summary>
+        public static string PastaDosPendentes => Path.Combine(PastaDosRelatos, "pendentes");
+
+        /// <returns>A pasta do report criado (o nome é o id).</returns>
+        public static string Escrever(Momento momento, DadosDoReporte dados)
         {
-            var nome = DateTime.Now.ToString("yyyy-MM-dd_HHmmss", CultureInfo.InvariantCulture);
-            var pasta = Path.Combine(PastaDosRelatos, nome);
+            var agora = DateTime.Now;
+            var nome = ManifestoDoReporte.NovoId(agora);
+            var pasta = Path.Combine(PastaDosPendentes, nome);
+            for (var n = 2; Directory.Exists(pasta); n++)
+            {
+                pasta = Path.Combine(PastaDosPendentes, nome + "-" + n);
+            }
+
+            nome = Path.GetFileName(pasta);
             var pastaDosQuadros = Path.Combine(pasta, "quadros");
             Directory.CreateDirectory(pastaDosQuadros);
+            var primeira = momento.PrimeiraImagem;
 
             var imagens = new List<Texture2D>(momento.Texturas.Count);
             var ampliadas = new Texture2D[momento.Zooms.Count];
@@ -65,12 +82,13 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
                     imagens.Add(Ler(textura));
                 }
 
+                // O arquivo leva o número do quadro (qNNN da linha do tempo), não o da imagem.
                 for (var i = 0; i < imagens.Count; i++)
                 {
                     File.WriteAllBytes(
                         Path.Combine(
                             pastaDosQuadros,
-                            i.ToString("000", CultureInfo.InvariantCulture) + ".png"
+                            (primeira + i).ToString("000", CultureInfo.InvariantCulture) + ".png"
                         ),
                         imagens[i].EncodeToPNG()
                     );
@@ -80,10 +98,10 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
                     imagens.Count,
                     ConfigRelato.QuadrosPorFolha
                 );
-                var centro = EscolhaDeQuadros.CentroDoImpacto(
-                    momento.Quadros,
-                    momento.Eventos,
-                    IdsDeAcerto
+                var centro = CentroComImagem(
+                    EscolhaDeQuadros.CentroDoImpacto(momento.Quadros, momento.Eventos, IdsDeAcerto),
+                    primeira,
+                    imagens.Count
                 );
                 var impacto = EscolhaDeQuadros.EmVolta(
                     imagens.Count,
@@ -91,13 +109,17 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
                     ConfigRelato.QuadrosPorFolha,
                     ConfigRelato.QuadrosAntesDoAcerto
                 );
-                GravarFolha(Path.Combine(pasta, "folha-geral.png"), imagens, geral);
+                GravarFolha(Path.Combine(pasta, "folha-geral.png"), imagens, geral, primeira);
                 foreach (var indice in impacto)
                 {
                     ampliadas[indice] = Ler(momento.Zooms[indice]);
                 }
 
-                GravarFolha(Path.Combine(pasta, "folha-impacto.png"), ampliadas, impacto);
+                GravarFolha(Path.Combine(pasta, "folha-impacto.png"), ampliadas, impacto, primeira);
+                if (momento.Tela != null)
+                {
+                    File.WriteAllBytes(Path.Combine(pasta, "tela.png"), momento.Tela.EncodeToPNG());
+                }
 
                 File.WriteAllText(
                     Path.Combine(pasta, "linha-do-tempo.txt"),
@@ -109,12 +131,42 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
                     LinhaDoTempo.Tabela(momento.Quadros),
                     SemBom
                 );
+                var posicao = Posicao();
                 File.WriteAllText(
-                    Path.Combine(pasta, "nota.txt"),
-                    Nota(momento, frase, geral, impacto, centro),
+                    Path.Combine(pasta, "estado.txt"),
+                    EstadoDoMomento.Estado(
+                        SceneManager.GetActiveScene().name,
+                        momento.JanelaAberta,
+                        ConexaoTempoReal.Latencia,
+                        posicao == null
+                            ? null
+                            : $"{Numero(posicao.Value.x)} {Numero(posicao.Value.y)} {Numero(posicao.Value.z)}",
+                        momento.Ultimas,
+                        momento.Agora
+                    ),
                     SemBom
                 );
-                File.WriteAllText(Path.Combine(PastaDosRelatos, "ultimo.txt"), nome, SemBom);
+                var console = EstadoDoMomento.Console(momento.Console, momento.Agora);
+                if (console.Length > 0)
+                {
+                    File.WriteAllText(Path.Combine(pasta, "console.txt"), console, SemBom);
+                }
+
+                File.WriteAllText(
+                    Path.Combine(pasta, "nota.txt"),
+                    Nota(momento, dados.Frase, geral, impacto, centro + primeira, primeira),
+                    SemBom
+                );
+                File.WriteAllText(
+                    Path.Combine(pasta, "reporte.json"),
+                    JsonUtility.ToJson(Manifesto(nome, momento, dados, posicao), true),
+                    SemBom
+                );
+                File.WriteAllText(
+                    Path.Combine(PastaDosRelatos, "ultimo.txt"),
+                    "pendentes/" + nome,
+                    SemBom
+                );
             }
             finally
             {
@@ -133,6 +185,53 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
             }
 
             return pasta;
+        }
+
+        // Índice da imagem do centro da folha de impacto: o acerto, se ele tem imagem; senão o fim.
+        private static int CentroComImagem(int quadro, int primeira, int imagens)
+        {
+            return quadro >= primeira ? quadro - primeira : Math.Max(0, imagens - 1);
+        }
+
+        private static Vector3? Posicao()
+        {
+            var jogador = EntradaNoJogo.Jogador;
+            return jogador != null ? jogador.transform.position : (Vector3?)null;
+        }
+
+        private static ManifestoDoReporte Manifesto(
+            string id,
+            Momento momento,
+            DadosDoReporte dados,
+            Vector3? posicao
+        )
+        {
+            var git = Application.isEditor ? InfoDoGit.Ler(RaizDoRepositorio) : ("", "");
+            return new ManifestoDoReporte
+            {
+                Id = id,
+                Tipo = dados.Tipo,
+                Severidade = dados.Severidade,
+                Area = dados.Area,
+                Frase = dados.Frase.Trim(),
+                Quando = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture),
+                QuandoUtc = momento.QuandoUtc.ToString("o", CultureInfo.InvariantCulture),
+                Versao = Application.version,
+                Editor = Application.isEditor,
+                Tela = Screen.width + "x" + Screen.height,
+                LatenciaMs = ConexaoTempoReal.Latencia,
+                Posicao =
+                    posicao == null
+                        ? new float[0]
+                        : new[] { posicao.Value.x, posicao.Value.y, posicao.Value.z },
+                Cena = SceneManager.GetActiveScene().name,
+                JanelaAberta = momento.JanelaAberta ?? "",
+                AjustesF10 = Sintonia.Alterados(),
+                Branch = git.Item1,
+                Commit = git.Item2,
+                SegundosDaLinhaDoTempo = ConfigRelato.SegundosDaLinhaDoTempo,
+                SegundosDeQuadros = ConfigRelato.SegundosGuardados,
+            };
         }
 
         /// <summary>Grava os valores fora do padrão do F10 em <c>relatos/ajustes-&lt;data&gt;.txt</c>.</summary>
@@ -154,7 +253,8 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
             string frase,
             int[] geral,
             int[] impacto,
-            int centro
+            int centro,
+            int primeira
         )
         {
             var quadros = momento.Quadros;
@@ -207,10 +307,10 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
                     .Append('\n');
             }
 
-            texto.Append("folha-geral.png: quadros ").Append(Lista(geral)).Append('\n');
+            texto.Append("folha-geral.png: quadros ").Append(Lista(geral, primeira)).Append('\n');
             texto
                 .Append("folha-impacto.png: quadros ")
-                .Append(Lista(impacto))
+                .Append(Lista(impacto, primeira))
                 .Append(" (centro q")
                 .Append(centro.ToString("000", CultureInfo.InvariantCulture))
                 .Append(", último acerto ou o fim; centro da tela ampliado 2×)\n");
@@ -225,11 +325,11 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
             return texto.ToString();
         }
 
-        private static string Lista(int[] indices)
+        private static string Lista(int[] indices, int primeira)
         {
             return indices.Length == 0
                 ? "(nenhum)"
-                : $"q{indices[0]:000}–q{indices[indices.Length - 1]:000}";
+                : $"q{primeira + indices[0]:000}–q{primeira + indices[indices.Length - 1]:000}";
         }
 
         private static string Numero(float valor) =>
@@ -246,10 +346,12 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
             return imagem;
         }
 
+        // "primeira" soma ao índice da imagem para o número desenhado ser o qNNN do quadro.
         private static void GravarFolha(
             string caminho,
             IReadOnlyList<Texture2D> imagens,
-            int[] indices
+            int[] indices,
+            int primeira
         )
         {
             if (indices.Length == 0)
@@ -276,7 +378,7 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
                 var x = coluna * largura;
                 var y = linha * altura;
                 folha.SetPixels(x, y, largura, altura, imagens[indices[i]].GetPixels());
-                Numerar(folha, x + 4, y + altura - 4, indices[i]);
+                Numerar(folha, x + 4, y + altura - 4, primeira + indices[i]);
             }
 
             folha.Apply();

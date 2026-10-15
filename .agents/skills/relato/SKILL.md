@@ -1,6 +1,6 @@
 ---
 name: relato
-description: Lê um relato F9 de sensação do jogo (quadros, linha do tempo em ms e ajustes do F10), diagnostica com números e propõe o valor para testar no F10 ou a correção. Use para "/relato", "olha o relato" ou quando a pessoa colar valores copiados do F10.
+description: Diagnostica um report beta do jogo (issue `reporte-beta` ou pasta em relatos/) com os números da linha do tempo, do estado, do console e do log do servidor, e propõe a correção ou o valor para testar no F10. Use para "/relato", "olha o report", ao puxar uma issue `reporte-beta` ou quando a pessoa colar valores copiados do F10.
 ---
 
 # relato
