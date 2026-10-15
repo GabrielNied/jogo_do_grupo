@@ -263,13 +263,113 @@ namespace JogoDoGrupo.Client.Features.Mobs.Editor
             return material;
         }
 
+        /// <summary>
+        /// Idempotente: monta o controller numa copia temporaria e so mexe no asset da criatura
+        /// quando a assinatura difere (fileIDs e GUID ficam estaveis, o diff mostra so criatura
+        /// que mudou). Quando difere, reescreve no lugar, mantendo o GUID.
+        /// </summary>
         static AnimatorController CriarController(Receita receita)
         {
-            var modelo = CaminhoModelo(receita.Nome);
             var caminho = PastaArte + "/Criatura_" + receita.Id + ".controller";
-            if (AssetDatabase.LoadAssetAtPath<AnimatorController>(caminho) != null)
-                AssetDatabase.DeleteAsset(caminho);
-            var controller = AnimatorController.CreateAnimatorControllerAtPath(caminho);
+            var existente = AssetDatabase.LoadAssetAtPath<AnimatorController>(caminho);
+            if (existente == null)
+            {
+                existente = AnimatorController.CreateAnimatorControllerAtPath(caminho);
+                Montar(existente, receita);
+                EditorUtility.SetDirty(existente);
+                return existente;
+            }
+
+            var caminhoTemp = PastaArte + "/Criatura_" + receita.Id + "_tmp.controller";
+            var temp = AnimatorController.CreateAnimatorControllerAtPath(caminhoTemp);
+            string novaAssinatura;
+            try
+            {
+                Montar(temp, receita);
+                novaAssinatura = Assinatura(temp);
+            }
+            finally
+            {
+                AssetDatabase.DeleteAsset(caminhoTemp);
+            }
+            if (Assinatura(existente) == novaAssinatura)
+                return existente;
+
+            Limpar(existente);
+            Montar(existente, receita);
+            EditorUtility.SetDirty(existente);
+            return existente;
+        }
+
+        static void Limpar(AnimatorController controller)
+        {
+            for (var i = controller.parameters.Length - 1; i >= 0; i--)
+                controller.RemoveParameter(i);
+            var maquina = controller.layers[0].stateMachine;
+            foreach (var t in maquina.anyStateTransitions)
+                maquina.RemoveAnyStateTransition(t);
+            foreach (var e in maquina.states)
+                maquina.RemoveState(e.state);
+        }
+
+        static string Assinatura(AnimatorController controller)
+        {
+            var sb = new StringBuilder();
+            foreach (var p in controller.parameters)
+                sb.Append("P ").Append(p.name).Append(' ').Append(p.type).AppendLine();
+            var maquina = controller.layers[0].stateMachine;
+            sb.Append("D ")
+                .Append(maquina.defaultState == null ? "" : maquina.defaultState.name)
+                .AppendLine();
+            foreach (var e in maquina.states)
+            {
+                var estado = e.state;
+                sb.Append("S ")
+                    .Append(estado.name)
+                    .Append(' ')
+                    .Append(e.position.ToString("F1"))
+                    .Append(' ')
+                    .Append(estado.motion == null ? "" : AssetDatabase.GetAssetPath(estado.motion))
+                    .Append('|')
+                    .Append(estado.motion == null ? "" : estado.motion.name)
+                    .AppendLine();
+                foreach (var t in estado.transitions)
+                    AssinarTransicao(sb, "T " + estado.name, t);
+            }
+            foreach (var t in maquina.anyStateTransitions)
+                AssinarTransicao(sb, "A", t);
+            return sb.ToString();
+        }
+
+        static void AssinarTransicao(StringBuilder sb, string origem, AnimatorStateTransition t)
+        {
+            sb.Append(origem)
+                .Append("->")
+                .Append(t.destinationState == null ? "" : t.destinationState.name)
+                .Append(' ')
+                .Append(t.duration.ToString("F4"))
+                .Append(' ')
+                .Append(t.hasExitTime)
+                .Append(' ')
+                .Append(t.exitTime.ToString("F4"))
+                .Append(' ')
+                .Append(t.offset.ToString("F4"))
+                .Append(' ')
+                .Append(t.canTransitionToSelf);
+            foreach (var c in t.conditions)
+                sb.Append(" [")
+                    .Append(c.parameter)
+                    .Append(' ')
+                    .Append(c.mode)
+                    .Append(' ')
+                    .Append(c.threshold.ToString("F4"))
+                    .Append(']');
+            sb.AppendLine();
+        }
+
+        static void Montar(AnimatorController controller, Receita receita)
+        {
+            var modelo = CaminhoModelo(receita.Nome);
             controller.AddParameter(ParametroMorrer, AnimatorControllerParameterType.Trigger);
             controller.AddParameter(ParametroAtacar, AnimatorControllerParameterType.Trigger);
             controller.AddParameter(ParametroAndando, AnimatorControllerParameterType.Bool);
@@ -332,9 +432,6 @@ namespace JogoDoGrupo.Client.Features.Mobs.Editor
             paraMorte.AddCondition(AnimatorConditionMode.If, 0, ParametroMorrer);
             paraMorte.duration = TransicaoMorte;
             paraMorte.canTransitionToSelf = false;
-
-            EditorUtility.SetDirty(controller);
-            return controller;
         }
 
         static void CriarPrefab(
