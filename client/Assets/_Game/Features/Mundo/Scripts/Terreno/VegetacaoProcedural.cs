@@ -228,6 +228,27 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
                 AdicionarCubo(bloco, vertices, normais, triangulos[cores.IndexOf(bloco.Cor)]);
             }
 
+            // As posições dos blocos foram escritas com a base um pouco acima do chão; desce tudo
+            // até o ponto mais baixo ficar em Y = 0 (a base encosta no terreno).
+            var folga = 0f;
+            if (vertices.Count > 0)
+            {
+                folga = float.MaxValue;
+                foreach (var vertice in vertices)
+                {
+                    folga = Mathf.Min(folga, vertice.y);
+                }
+
+                for (var i = 0; i < vertices.Count; i++)
+                {
+                    var v = vertices[i];
+                    v.y -= folga;
+                    vertices[i] = v;
+                }
+            }
+
+            colisor = BaixarColisor(colisor, folga);
+
             var malha = new Mesh { name = $"Vegetacao_{nome}" };
             malha.SetVertices(vertices);
             malha.SetNormals(normais);
@@ -251,6 +272,25 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
             }
 
             return new ModeloDePeca(nome, partes, colisor, ConfigVegetacao.EhPequena(nome));
+        }
+
+        // O colisor vai do chão ao topo; com o modelo `folga` metros mais baixo, o topo desce igual.
+        private static ColisorDaPeca? BaixarColisor(ColisorDaPeca? colisor, float folga)
+        {
+            if (!colisor.HasValue || folga <= 0f)
+            {
+                return colisor;
+            }
+
+            var c = colisor.Value;
+            if (c.EhCaixa)
+            {
+                return c;
+            }
+
+            var altura = Mathf.Max(c.Altura - folga, c.Raio * 2f);
+            var centro = new Vector3(c.Centro.x, altura * 0.5f, c.Centro.z);
+            return new ColisorDaPeca(centro, c.Raio, altura);
         }
 
         private static readonly Vector3[] Faces =
