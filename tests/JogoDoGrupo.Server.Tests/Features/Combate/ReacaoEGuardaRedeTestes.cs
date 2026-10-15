@@ -263,9 +263,11 @@ public class ReacaoEGuardaRedeTestes(ServidorDeAtaque servidor) : IClassFixture<
     public async Task Segurar_a_guarda_no_preparo_do_golpe_e_recusado()
     {
         using var ana = await NovoJogadorAsync();
+        // Pesado: o preparo de 1 s dá folga sob carga (o leve, de 0,5 s, perdia a janela). A guarda
+        // só é pedida depois da mensagem de preparo, então cai dentro dele.
         ana.Cliente.Enviar(
             CombateMessageIds.IntencaoDeAtaque,
-            new IntencaoDeAtaque { Tipo = TipoDeAtaque.Leve, Sequencia = 1 }
+            new IntencaoDeAtaque { Tipo = TipoDeAtaque.Pesado, Sequencia = 1 }
         );
         await ana.Cliente.ReceberAsync<AtaqueIniciado>(CombateMessageIds.AtaqueIniciado);
 
