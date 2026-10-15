@@ -151,6 +151,29 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
 
         private static IReadOnlyList<PecaDoBioma> _todas;
 
+        /// <summary>Refaz a distribuição após uma alteração de autoria no editor.</summary>
+        public static void LimparCache()
+        {
+            _todas = null;
+        }
+
+        /// <summary>Conserva parte das peças antigas na borda de uma pintura do miolo.</summary>
+        public static bool ManterPecaAntiga(float x, float z)
+        {
+            var cobertura = MapaDoMundo.CoberturaDaAutoriaEm(x, z);
+            if (cobertura <= 0f)
+            {
+                return true;
+            }
+            unchecked
+            {
+                var a = (uint)Mathf.RoundToInt(x * 100f);
+                var b = (uint)Mathf.RoundToInt(z * 100f);
+                var hash = (a * 374761393u + b * 668265263u + 20261015u) * 1274126177u;
+                return ((hash ^ (hash >> 13)) >> 8) / 16777216f >= cobertura;
+            }
+        }
+
         /// <summary>Todas as peças de fora do miolo. Calculadas na primeira vez que são pedidas.</summary>
         public static IReadOnlyList<PecaDoBioma> Todas
         {
@@ -240,7 +263,11 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
                     // A peça fica nos 70% do meio da célula: duas vizinhas nunca se encostam.
                     var x = -limite + (ci + 0.15f + 0.7f * sorteio.Proximo()) * Celula;
                     var z = -limite + (cj + 0.15f + 0.7f * sorteio.Proximo()) * Celula;
-                    if (Mathf.Max(Mathf.Abs(x), Mathf.Abs(z)) < InicioDeFora)
+                    var dentroDoMiolo = Mathf.Max(Mathf.Abs(x), Mathf.Abs(z)) < InicioDeFora;
+                    var coberturaDoMiolo = dentroDoMiolo
+                        ? MapaDoMundo.CoberturaDaAutoriaEm(x, z)
+                        : 1f;
+                    if (coberturaDoMiolo <= 0f)
                     {
                         continue;
                     }
@@ -255,16 +282,34 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
                         continue;
                     }
 
+                    if (
+                        dentroDoMiolo
+                        && (
+                            ConstrutorHub.PertoDeBairroFlorestal(x, z)
+                            || ConstrutorHub.PertoDeEstrutura(x, z)
+                        )
+                    )
+                    {
+                        continue;
+                    }
+
                     // O teste barato vem antes: a maioria das células fica vazia sem consultar
                     // o mapa.
                     var chance = sorteio.Proximo();
-                    if (chance >= MaiorDensidade * 1.8f)
+                    var densidadeAutoral = MapaDoMundo.DensidadeDaVegetacaoEm(x, z);
+                    if (chance >= MaiorDensidade * 1.8f * densidadeAutoral * coberturaDoMiolo)
                     {
                         continue;
                     }
 
                     var bioma = MapaDoMundo.BiomaEm(x, z);
-                    if (chance >= Densidade(bioma) * DensidadeDaMancha(x, z))
+                    if (
+                        chance
+                        >= Densidade(bioma)
+                            * DensidadeDaMancha(x, z)
+                            * densidadeAutoral
+                            * coberturaDoMiolo
+                    )
                     {
                         continue;
                     }
@@ -280,13 +325,172 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
                         continue;
                     }
 
-                    lista.Add(
-                        new PecaDoBioma(prefab, bioma, x, y, z, guinada, Escala(prefab, tamanho))
-                    );
+                    var escala = Escala(prefab, tamanho);
+                    if (bioma == Bioma.Mata && !EhPedra(prefab))
+                    {
+                        var cobertura = MapaDoMundo.CoberturaDaAutoriaEm(x, z);
+                        escala *=
+                            1f + (ConfigVegetacao.EscalaDaArvoreNaMataAutoral - 1f) * cobertura;
+                    }
+
+                    lista.Add(new PecaDoBioma(prefab, bioma, x, y, z, guinada, escala));
                 }
             }
 
+            AcrescentarArvoresDaMataAutoral(lista);
             return lista;
+        }
+
+        private static void AcrescentarArvoresDaMataAutoral(List<PecaDoBioma> lista)
+        {
+            const float passo = 8f;
+            const float distanciaMinima = 5f;
+            var ocupadas = new Dictionary<(int, int), List<Vector2>>();
+            foreach (var peca in lista)
+            {
+                Registrar(peca.X, peca.Z);
+            }
+
+            var visitadas = new HashSet<(int, int)>();
+            foreach (var regiao in MapaDoMundo.CopiarRegioesAtivas())
+            {
+                if (regiao.Bioma != Bioma.Mata)
+                {
+                    continue;
+                }
+
+                var pontos = regiao.Pontos;
+                var minX = float.MaxValue;
+                var maxX = float.MinValue;
+                var minZ = float.MaxValue;
+                var maxZ = float.MinValue;
+                foreach (var ponto in pontos)
+                {
+                    minX = Mathf.Min(minX, ponto.X);
+                    maxX = Mathf.Max(maxX, ponto.X);
+                    minZ = Mathf.Min(minZ, ponto.Z);
+                    maxZ = Mathf.Max(maxZ, ponto.Z);
+                }
+
+                var margem = regiao.LarguraDaBorda / 2f;
+                var inicioI = Mathf.Max(
+                    0,
+                    Mathf.FloorToInt((minX - margem + MapaDoMundo.Metade) / passo)
+                );
+                var fimI = Mathf.Min(
+                    Mathf.CeilToInt(MapaDoMundo.Lado / passo),
+                    Mathf.CeilToInt((maxX + margem + MapaDoMundo.Metade) / passo)
+                );
+                var inicioJ = Mathf.Max(
+                    0,
+                    Mathf.FloorToInt((minZ - margem + MapaDoMundo.Metade) / passo)
+                );
+                var fimJ = Mathf.Min(
+                    Mathf.CeilToInt(MapaDoMundo.Lado / passo),
+                    Mathf.CeilToInt((maxZ + margem + MapaDoMundo.Metade) / passo)
+                );
+                for (var j = inicioJ; j < fimJ; j++)
+                {
+                    for (var i = inicioI; i < fimI; i++)
+                    {
+                        if (!visitadas.Add((i, j)))
+                        {
+                            continue;
+                        }
+
+                        var sorteio = new Sorteio(Semente + 17u, i, j);
+                        var x =
+                            -MapaDoMundo.Metade + (i + 0.35f + 0.3f * sorteio.Proximo()) * passo;
+                        var z =
+                            -MapaDoMundo.Metade + (j + 0.35f + 0.3f * sorteio.Proximo()) * passo;
+                        var cobertura = MapaDoMundo.CoberturaDaAutoriaEm(x, z);
+                        if (cobertura <= 0f || MapaDoMundo.BiomaEm(x, z) != Bioma.Mata)
+                        {
+                            continue;
+                        }
+
+                        var densidade = MapaDoMundo.DensidadeDaVegetacaoEm(x, z);
+                        if (
+                            sorteio.Proximo() >= Mathf.Clamp01((densidade - 1f) * 0.65f) * cobertura
+                            || MapaDoMundo.PertoDeCidadeSecundaria(x, z, 8f)
+                            || CaminhosDoMundo.LivreDeVegetacao(x, z)
+                            || ConstrutorHub.PertoDeBairroFlorestal(x, z)
+                            || ConstrutorHub.PertoDeEstrutura(x, z)
+                            || MuitoPertoDeTronco(x, z)
+                        )
+                        {
+                            continue;
+                        }
+
+                        var prefab = sorteio.Proximo() < 0.65f ? "Arvore_Alta" : "Arvore_Redonda";
+                        var y = MapaDoMundo.AlturaEm(x, z);
+                        if (!Cabe(prefab, Bioma.Mata, x, y, z))
+                        {
+                            continue;
+                        }
+
+                        var escala = Escala(prefab, sorteio.Proximo());
+                        escala *=
+                            1f + (ConfigVegetacao.EscalaDaArvoreNaMataAutoral - 1f) * cobertura;
+                        lista.Add(
+                            new PecaDoBioma(
+                                prefab,
+                                Bioma.Mata,
+                                x,
+                                y,
+                                z,
+                                sorteio.Proximo() * 360f,
+                                escala
+                            )
+                        );
+                        Registrar(x, z);
+                    }
+                }
+            }
+
+            bool MuitoPertoDeTronco(float x, float z)
+            {
+                var ix = Mathf.FloorToInt(x / distanciaMinima);
+                var iz = Mathf.FloorToInt(z / distanciaMinima);
+                for (var dz = -1; dz <= 1; dz++)
+                {
+                    for (var dx = -1; dx <= 1; dx++)
+                    {
+                        if (!ocupadas.TryGetValue((ix + dx, iz + dz), out var vizinhas))
+                        {
+                            continue;
+                        }
+
+                        foreach (var vizinha in vizinhas)
+                        {
+                            if (
+                                (new Vector2(x, z) - vizinha).sqrMagnitude
+                                < distanciaMinima * distanciaMinima
+                            )
+                            {
+                                return true;
+                            }
+                        }
+                    }
+                }
+
+                return false;
+            }
+
+            void Registrar(float x, float z)
+            {
+                var chave = (
+                    Mathf.FloorToInt(x / distanciaMinima),
+                    Mathf.FloorToInt(z / distanciaMinima)
+                );
+                if (!ocupadas.TryGetValue(chave, out var pontos))
+                {
+                    pontos = new List<Vector2>();
+                    ocupadas.Add(chave, pontos);
+                }
+
+                pontos.Add(new Vector2(x, z));
+            }
         }
 
         // Fora da água e da lava, em chão que não seja íngreme demais, e sem árvore nos picos.

@@ -540,6 +540,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
                     || CaminhosDoMundo.LivreDeVegetacao(peca.X, peca.Z)
                     || PertoDeBairroFlorestal(peca.X, peca.Z)
                     || PertoDeEstrutura(peca.X, peca.Z)
+                    || !PecasDosBiomas.ManterPecaAntiga(peca.X, peca.Z)
                 )
                 {
                     continue;
@@ -565,7 +566,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
             }
         }
 
-        private static bool PertoDeBairroFlorestal(float x, float z)
+        internal static bool PertoDeBairroFlorestal(float x, float z)
         {
             foreach (var peca in BairrosDaFloresta)
             {
@@ -580,7 +581,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
             return false;
         }
 
-        private static bool PertoDeEstrutura(float x, float z)
+        internal static bool PertoDeEstrutura(float x, float z)
         {
             foreach (var lugar in EstruturasDoMapa.Lugares)
             {
@@ -737,6 +738,37 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
             var pecas = new GameObject(NomePecasDosBiomas).transform;
             pecas.SetParent(pai, false);
             return pecas;
+        }
+
+        private static void CriarPecasDosBiomas(Transform pai)
+        {
+            var pecas = CriarRaizDasPecasDosBiomas(pai);
+            foreach (var _ in MontadorDaVegetacao.Montar(pecas, _escalaDasPecas)) { }
+        }
+
+        /// <summary>Refaz só as peças naturais da prévia depois de editar uma região.</summary>
+        public static void AtualizarVegetacaoDaPrevia(Transform raiz)
+        {
+            var antigas = raiz.Find(NomePropsFora);
+            if (antigas != null)
+            {
+                foreach (Transform peca in antigas)
+                {
+                    var x = peca.localPosition.x;
+                    var z = peca.localPosition.z;
+                    peca.gameObject.SetActive(PecasDosBiomas.ManterPecaAntiga(x, z));
+                    peca.localPosition = new Vector3(x, MapaDoMundo.AlturaEm(x, z), z);
+                }
+            }
+
+            var atual = raiz.Find(NomePecasDosBiomas);
+            if (atual != null)
+            {
+                Object.DestroyImmediate(atual.gameObject);
+            }
+
+            PecasDosBiomas.LimparCache();
+            CriarPecasDosBiomas(raiz);
         }
 
         // Troca os materiais da peça por cópias multiplicadas pela cor do bioma. Branco (campo,

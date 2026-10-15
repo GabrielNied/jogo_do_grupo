@@ -292,7 +292,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
                 Assert.AreEqual(MapaDoMundo.PontosPorLado, textura.height);
 
                 // Coluna = X, linha = Z. Referências estáveis da planta com clareiras.
-                ConferirCor(CoresDosBiomas.Campo, textura.GetPixel(166, 132), 0.1f);
+                ConferirCor(CoresDosBiomas.Campo, textura.GetPixel(160, 132), 0.1f);
                 ConferirCor(CoresDosBiomas.Mata, textura.GetPixel(185, 125), 0.1f);
                 ConferirCor(CoresDosBiomas.Colinas, textura.GetPixel(120, 168), 0.1f);
             }
@@ -354,13 +354,22 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
             foreach (var peca in pecas)
             {
                 var alcance = Mathf.Max(Mathf.Abs(peca.X), Mathf.Abs(peca.Z));
-                Assert.GreaterOrEqual(alcance, PecasDosBiomas.InicioDeFora);
+                if (alcance < PecasDosBiomas.InicioDeFora)
+                {
+                    Assert.Greater(MapaDoMundo.CoberturaDaAutoriaEm(peca.X, peca.Z), 0f);
+                }
                 Assert.LessOrEqual(alcance, limite);
                 Assert.AreEqual(MapaDoMundo.AlturaEm(peca.X, peca.Z), peca.Y, 0.001f);
                 Assert.AreEqual(MapaDoMundo.BiomaEm(peca.X, peca.Z), peca.Bioma);
                 Assert.AreNotEqual(Bioma.Cidade, peca.Bioma);
                 Assert.GreaterOrEqual(peca.Y, MapaDoMundo.NivelDaAgua, "Peça dentro da água.");
-                Assert.That(peca.Escala, Is.InRange(0.9f, peca.Prefab == "Cacto" ? 2.7f : 2.6f));
+                var escalaMaxima =
+                    peca.Bioma == Bioma.Mata
+                    && MapaDoMundo.CoberturaDaAutoriaEm(peca.X, peca.Z) > 0f
+                        ? 1.5f * ConfigVegetacao.EscalaDaArvoreNaMataAutoral
+                    : peca.Prefab == "Cacto" ? 2.7f
+                    : 2.6f;
+                Assert.That(peca.Escala, Is.InRange(0.9f, escalaMaxima));
 
                 if (peca.Bioma == Bioma.Lava)
                 {
@@ -426,7 +435,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
                 Assert.AreEqual(pecas[k].Guinada, deNovo[k].Guinada);
             }
 
-            // No máximo uma peça por célula, nos 70% do meio dela: sobram 30% entre vizinhas.
+            // A camada adicional da mata mantém distância entre troncos e demais peças.
             var minima = 0.3f * PecasDosBiomas.Celula - 0.01f;
             for (var a = 0; a < pecas.Count; a++)
             {

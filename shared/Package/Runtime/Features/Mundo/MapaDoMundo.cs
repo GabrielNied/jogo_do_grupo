@@ -72,6 +72,25 @@ namespace JogoDoGrupo.Shared.Features.Mundo
         /// <summary>Nenhum ponto do chão fica acima desta altura, em metros.</summary>
         public const float AlturaMaxima = 220f;
 
+        private static RegiaoDeBioma[] _regioesDePrevia;
+
+        /// <summary>Mostra um desenho ainda não salvo somente no editor Unity.</summary>
+        public static void DefinirRegioesDePrevia(RegiaoDeBioma[] regioes)
+        {
+            _regioesDePrevia = regioes == null ? null : (RegiaoDeBioma[])regioes.Clone();
+        }
+
+        private static RegiaoDeBioma[] RegioesAtivas
+        {
+            get => _regioesDePrevia ?? RegioesDoMundo.Todas;
+        }
+
+        /// <summary>Regiões salvas ou em prévia para gerar detalhes dentro de seus contornos.</summary>
+        public static RegiaoDeBioma[] CopiarRegioesAtivas()
+        {
+            return (RegiaoDeBioma[])RegioesAtivas.Clone();
+        }
+
         private const uint SementeDesvioX = 11u;
         private const uint SementeDesvioZ = 23u;
         private const uint SementeCampo = 31u;
@@ -359,6 +378,21 @@ namespace JogoDoGrupo.Shared.Features.Mundo
         )
         {
             pesos = PesosDoNovoMundo(x, z);
+            var intensidadeDoRelevo = 1f;
+            var regioes = RegioesAtivas;
+            for (var indice = 0; indice < regioes.Length; indice++)
+            {
+                var regiao = regioes[indice];
+                var cobertura = CoberturaPermitida(regiao, x, z);
+                if (cobertura <= 0f)
+                {
+                    continue;
+                }
+
+                pesos = regiao.Aplicar(pesos, cobertura);
+                intensidadeDoRelevo +=
+                    (regiao.IntensidadeDoRelevo - intensidadeDoRelevo) * cobertura;
+            }
 
             if (!comAltura)
             {
@@ -416,6 +450,8 @@ namespace JogoDoGrupo.Shared.Features.Mundo
                 altura += pesos.Pantano * AlturaDoPantano(x, z);
             }
 
+            altura *= intensidadeDoRelevo;
+
             // A divisoria vulcanica conserva um bordo seco antes do delta pantanoso.
             altura += 8f * pesos.Lava * pesos.Pantano;
             if (ProximoDeRio(x, z, out var dRio) && pesos.Lava < 0.4f)
@@ -460,6 +496,61 @@ namespace JogoDoGrupo.Shared.Features.Mundo
         public static float AlturaBaseDaAutoriaEm(float x, float z)
         {
             return Calcular(x, z, true, out _, false);
+        }
+
+        /// <summary>Densidade autoral relativa da vegetação no ponto (1 é a distribuição padrão).</summary>
+        public static float DensidadeDaVegetacaoEm(float x, float z)
+        {
+            var densidade = 1f;
+            var regioes = RegioesAtivas;
+            for (var indice = 0; indice < regioes.Length; indice++)
+            {
+                var regiao = regioes[indice];
+                var cobertura = CoberturaPermitida(regiao, x, z);
+                densidade += (regiao.DensidadeDaVegetacao - densidade) * cobertura;
+            }
+
+            return densidade;
+        }
+
+        /// <summary>Parte já redesenhada por alguma região autoral, inclusive na transição.</summary>
+        public static float CoberturaDaAutoriaEm(float x, float z)
+        {
+            var cobertura = 0f;
+            var regioes = RegioesAtivas;
+            for (var indice = 0; indice < regioes.Length; indice++)
+            {
+                cobertura = Math.Max(cobertura, CoberturaPermitida(regioes[indice], x, z));
+            }
+
+            return cobertura;
+        }
+
+        private static float CoberturaPermitida(RegiaoDeBioma regiao, float x, float z)
+        {
+            var cobertura = regiao.CoberturaEm(x, z);
+            if (cobertura <= 0f)
+            {
+                return 0f;
+            }
+
+            // As praças mantêm altura e solo; a autoria entra sem criar um anel brusco.
+            var alcance = Math.Max(Math.Abs(x), Math.Abs(z));
+            var distanciaPasso = (float)
+                Math.Sqrt(
+                    (x - CidadeDaNeveX) * (x - CidadeDaNeveX)
+                        + (z - CidadeDaNeveZ) * (z - CidadeDaNeveZ)
+                );
+            var distanciaOasis = (float)
+                Math.Sqrt(
+                    (x - CidadeDoDesertoX) * (x - CidadeDoDesertoX)
+                        + (z - CidadeDoDesertoZ) * (z - CidadeDoDesertoZ)
+                );
+            var raioVila = RaioCidadeSecundaria + BordaCidadeSecundaria;
+            return cobertura
+                * Suave(RaioPlano, RaioPlano + 30f, alcance)
+                * Suave(raioVila, raioVila + 30f, distanciaPasso)
+                * Suave(raioVila, raioVila + 30f, distanciaOasis);
         }
 
         // Planta autoral nova: a mata liga os tres assentamentos; neve, deserto, pantano e

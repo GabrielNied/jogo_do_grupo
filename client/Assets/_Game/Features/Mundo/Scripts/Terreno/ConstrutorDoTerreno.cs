@@ -52,6 +52,104 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
             foreach (var _ in MontarEmEtapas(terreno, modelo, amostras)) { }
         }
 
+        /// <summary>Atualiza a prévia existente sem recriar os materiais e texturas procedurais.</summary>
+        public static void AtualizarPrevia(
+            Transform terreno,
+            Rect areaAlterada,
+            bool atualizarLiquidos
+        )
+        {
+            var amostras = AmostrasDoTerreno.Gerar();
+            var blocos = terreno.Find(NomeBlocos);
+            if (blocos == null)
+            {
+                throw new System.InvalidOperationException(
+                    "Blocos do terreno da prévia não encontrados."
+                );
+            }
+
+            var primeiro = blocos.Find("Bloco_0_0");
+            var material = primeiro.GetComponent<MeshRenderer>().sharedMaterial;
+            var cores = material.mainTexture as Texture2D;
+            var pesos = material.GetTexture("_PesosMap") as Texture2D;
+            if (cores == null || pesos == null)
+            {
+                throw new System.InvalidOperationException(
+                    "Texturas do terreno da prévia não encontradas."
+                );
+            }
+
+            cores.SetPixels32(amostras.Cores);
+            cores.Apply(false, false);
+            pesos.SetPixels32(amostras.PesosDoChao);
+            pesos.Apply(false, false);
+
+            for (var j = 0; j < BlocosPorLado; j++)
+            {
+                for (var i = 0; i < BlocosPorLado; i++)
+                {
+                    var x = -MapaDoMundo.Metade + i * CelulasPorBloco * MapaDoMundo.PassoDaGrade;
+                    var z = -MapaDoMundo.Metade + j * CelulasPorBloco * MapaDoMundo.PassoDaGrade;
+                    var lado = CelulasPorBloco * MapaDoMundo.PassoDaGrade;
+                    if (
+                        x > areaAlterada.xMax
+                        || x + lado < areaAlterada.xMin
+                        || z > areaAlterada.yMax
+                        || z + lado < areaAlterada.yMin
+                    )
+                    {
+                        continue;
+                    }
+
+                    var bloco = blocos.Find($"Bloco_{i}_{j}");
+                    SubstituirMalha(bloco, CriarMalhaDoBloco(amostras, i, j));
+                }
+            }
+            if (atualizarLiquidos)
+            {
+                SubstituirMalha(terreno.Find(NomeAgua), CriarMalhaDoLiquido(amostras, false));
+                SubstituirMalha(terreno.Find(NomeLava), CriarMalhaDoLiquido(amostras, true));
+            }
+            var furo = blocos.Find(NomeFuroDaCaverna);
+            if (furo != null)
+            {
+                SubstituirMalha(furo, CriarMalhaDoFuro());
+            }
+
+            SubstituirMalha(
+                terreno.Find("EstradaDoPasso"),
+                MontadorDaEstrada.CriarMalha(EstradaDoPasso.Tracado)
+            );
+        }
+
+        private static void SubstituirMalha(Transform objeto, Mesh nova)
+        {
+            if (objeto == null)
+            {
+                Object.DestroyImmediate(nova);
+                return;
+            }
+
+            var filtro = objeto.GetComponent<MeshFilter>();
+            var antiga = filtro.sharedMesh;
+            var colisor = objeto.GetComponent<MeshCollider>();
+            if (colisor != null)
+            {
+                colisor.sharedMesh = null;
+            }
+
+            filtro.sharedMesh = nova;
+            if (colisor != null)
+            {
+                colisor.sharedMesh = nova;
+            }
+
+            if (antiga != null)
+            {
+                Object.DestroyImmediate(antiga);
+            }
+        }
+
         /// <summary>Distribui a montagem dos blocos entre quadros para manter a tela responsiva.</summary>
         public static async Awaitable ConstruirAsync(
             Transform terreno,
