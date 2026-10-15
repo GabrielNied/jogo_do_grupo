@@ -1,10 +1,13 @@
 using JogoDoGrupo.Server.Contratos.Combate;
+using JogoDoGrupo.Server.Contratos.Itens;
 using JogoDoGrupo.Server.Contratos.Mobs;
 using JogoDoGrupo.Server.Contratos.Mundo;
 using JogoDoGrupo.Server.Contratos.Social;
+using JogoDoGrupo.Server.Core.Persistencia;
 using JogoDoGrupo.Server.Core.TempoReal;
 using JogoDoGrupo.Shared.Features.Instancias;
 using JogoDoGrupo.Shared.Features.Mobs;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace JogoDoGrupo.Server.Features.Instancias;
 
@@ -17,7 +20,8 @@ public sealed class ServicoDeInstancias(
     TimeProvider relogio,
     PopuladorDeInstancia populador,
     IEstadoDeQueda queda,
-    TimeSpan? prazoColetaLoot = null
+    TimeSpan? prazoColetaLoot = null,
+    IServiceScopeFactory? scopeFactory = null
 )
 {
     public static readonly TimeSpan PrazoDeReconexao = TimeSpan.FromSeconds(120);
@@ -395,31 +399,81 @@ public sealed class ServicoDeInstancias(
     /// <summary>Registra a vitória e avisa os participantes com a carência para pegar loot.</summary>
     public void AgendarVitoria(string idInstancia)
     {
+        Corrida? corrida;
         lock (_trava)
         {
-            if (
-                _corridas.TryGetValue(idInstancia, out var corrida)
-                && corrida.VitoriaDesdeMs == null
-            )
+            if (!_corridas.TryGetValue(idInstancia, out corrida) || corrida.VitoriaDesdeMs != null)
             {
-                corrida.VitoriaDesdeMs = AgoraMs();
-                var aviso = new ChefeDerrotadoNaDungeon
+                return;
+            }
+
+            corrida.VitoriaDesdeMs = AgoraMs();
+            var aviso = new ChefeDerrotadoNaDungeon
+            {
+                IdInstancia = corrida.Id,
+                SegundosParaColeta = (int)_prazoColetaLoot.TotalSeconds,
+            };
+            foreach (var participante in corrida.Participantes)
+            {
+                if (tempoReal.TentarObterSessao(participante, out var sessao) && sessao != null)
                 {
-                    IdInstancia = corrida.Id,
-                    SegundosParaColeta = (int)_prazoColetaLoot.TotalSeconds,
-                };
-                foreach (var participante in corrida.Participantes)
-                {
-                    if (tempoReal.TentarObterSessao(participante, out var sessao) && sessao != null)
-                    {
-                        tempoReal.Enviar(
-                            sessao,
-                            InstanciasMessageIds.ChefeDerrotadoNaDungeon,
-                            aviso
-                        );
-                    }
+                    tempoReal.Enviar(sessao, InstanciasMessageIds.ChefeDerrotadoNaDungeon, aviso);
                 }
             }
+        }
+
+        if (scopeFactory != null && corrida != null)
+        {
+            var participantes = corrida.Participantes.ToArray();
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    using var scope = scopeFactory.CreateScope();
+                    var materiais = scope.ServiceProvider.GetService<ISaldosMateriaisFusao>();
+                    if (materiais != null)
+                    {
+                        var db = scope.ServiceProvider.GetRequiredService<JogoDbContext>();
+                        await using var transacao = await db.Database.BeginTransactionAsync();
+                        foreach (var participante in participantes)
+                        {
+                            await materiais.CreditarDungeonAsync(
+                                participante,
+                                1,
+                                CancellationToken.None
+                            );
+                        }
+                        await transacao.CommitAsync();
+                    }
+                }
+                catch
+                {
+                    // Falha no crédito em segundo plano não derruba a instância.
+                }
+            });
+        }
+    }
+
+    /// <summary>
+    /// Concede o material de dungeon aos participantes da instância de forma síncrona/testável (MAT-003).
+    /// </summary>
+    public async Task CreditarMateriaisVitoriaAsync(
+        string idInstancia,
+        ISaldosMateriaisFusao materiais,
+        CancellationToken c
+    )
+    {
+        long[] participantes;
+        lock (_trava)
+        {
+            if (!_corridas.TryGetValue(idInstancia, out var corrida))
+                return;
+            participantes = corrida.Participantes.ToArray();
+        }
+
+        foreach (var participante in participantes)
+        {
+            await materiais.CreditarDungeonAsync(participante, 1, c);
         }
     }
 

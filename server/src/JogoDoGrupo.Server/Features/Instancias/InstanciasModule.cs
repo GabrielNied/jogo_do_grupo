@@ -22,7 +22,9 @@ public sealed class InstanciasModule : IFeatureModule
             sp.GetRequiredService<ServidorTempoReal>(),
             sp.GetService<TimeProvider>() ?? TimeProvider.System,
             sp.GetRequiredService<PopuladorDeInstancia>(),
-            sp.GetRequiredService<JogoDoGrupo.Server.Contratos.Combate.IEstadoDeQueda>()
+            sp.GetRequiredService<JogoDoGrupo.Server.Contratos.Combate.IEstadoDeQueda>(),
+            prazoColetaLoot: null,
+            scopeFactory: sp.GetService<IServiceScopeFactory>()
         ));
     }
 

@@ -229,6 +229,10 @@ public class RegrasFusaoTestes
         );
         Assert.Throws<ArgumentOutOfRangeException>(() => ConfigFusao.Custo(10));
         Assert.Throws<ArgumentOutOfRangeException>(() => ConfigFusao.Custo(-1));
+        Assert.Equal("essencia-instancia", ConfigFusao.IdMaterialDungeon);
+        Assert.Equal("essencia-incursao", ConfigFusao.IdMaterialRaid);
+        Assert.Equal("Essência de instância", ConfigFusao.NomeMaterialDungeon);
+        Assert.Equal("Essência de incursão", ConfigFusao.NomeMaterialRaid);
     }
 
     [Fact]

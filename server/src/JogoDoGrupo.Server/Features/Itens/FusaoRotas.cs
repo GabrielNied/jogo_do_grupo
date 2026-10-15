@@ -33,14 +33,17 @@ public sealed class AssinadorFusao
 }
 
 /// <summary>
-/// Fusão de equipamentos (issue #616, FUSAO-001 a FUSAO-015): prévia que não altera nada e
-/// confirmação que cobra as coroas, consome o material e grava o novo valor e o nível na mesma
-/// transação serializável (ADR 0032). Tudo ou nada.
+/// Fusão de equipamentos (issue #616, FUSAO-001 a FUSAO-015; materiais #617, MAT-001 a MAT-004):
+/// prévia que não altera nada e confirmação que cobra as coroas e materiais, consome o material
+/// e grava o novo valor e o nível na mesma transação serializável (ADR 0032). Tudo ou nada.
 /// </summary>
 internal static class FusaoRotas
 {
-    /// <summary>Crédito da rota de teste (só Development).</summary>
+    /// <summary>Crédito da rota de teste de coroas (só Development).</summary>
     public const long CreditoDeTeste = 20000;
+
+    /// <summary>Crédito da rota de teste de materiais (só Development).</summary>
+    public const int CreditoMateriaisDeTeste = 10;
 
     public static void Mapear(IEndpointRouteBuilder rotas)
     {
@@ -53,8 +56,9 @@ internal static class FusaoRotas
                     ClaimsPrincipal usuario,
                     JogoDbContext db,
                     ICarteiraCoroas carteira,
+                    ISaldosMateriaisFusao materiais,
                     CancellationToken c
-                ) => Executar(personagemId, usuario, db, carteira, c)
+                ) => Executar(personagemId, usuario, db, carteira, materiais, c)
             )
             .RequireAuthorization();
         rotas
@@ -66,9 +70,21 @@ internal static class FusaoRotas
                     ClaimsPrincipal usuario,
                     JogoDbContext db,
                     ICarteiraCoroas carteira,
+                    ISaldosMateriaisFusao materiais,
                     AssinadorFusao assinador,
                     CancellationToken c
-                ) => Executar(personagemId, usuario, db, carteira, c, pedido, assinador, false)
+                ) =>
+                    Executar(
+                        personagemId,
+                        usuario,
+                        db,
+                        carteira,
+                        materiais,
+                        c,
+                        pedido,
+                        assinador,
+                        false
+                    )
             )
             .RequireAuthorization();
         rotas
@@ -80,6 +96,7 @@ internal static class FusaoRotas
                     ClaimsPrincipal usuario,
                     JogoDbContext db,
                     ICarteiraCoroas carteira,
+                    ISaldosMateriaisFusao materiais,
                     AssinadorFusao assinador,
                     EventosDoServidor eventos,
                     CancellationToken c
@@ -89,6 +106,7 @@ internal static class FusaoRotas
                         usuario,
                         db,
                         carteira,
+                        materiais,
                         c,
                         pedido,
                         assinador,
@@ -106,11 +124,13 @@ internal static class FusaoRotas
                     ClaimsPrincipal usuario,
                     JogoDbContext db,
                     ICarteiraCoroas carteira,
+                    ISaldosMateriaisFusao materiais,
                     CancellationToken c
-                ) => Executar(personagemId, usuario, db, carteira, c, favorito: pedido)
+                ) => Executar(personagemId, usuario, db, carteira, materiais, c, favorito: pedido)
             )
             .RequireAuthorization();
         if (rotas.ServiceProvider.GetRequiredService<IHostEnvironment>().IsDevelopment())
+        {
             rotas
                 .MapPost(
                     caminho + "/coroas-teste",
@@ -119,10 +139,34 @@ internal static class FusaoRotas
                         ClaimsPrincipal usuario,
                         JogoDbContext db,
                         ICarteiraCoroas carteira,
+                        ISaldosMateriaisFusao materiais,
                         CancellationToken c
-                    ) => Executar(personagemId, usuario, db, carteira, c, credito: true)
+                    ) => Executar(personagemId, usuario, db, carteira, materiais, c, credito: true)
                 )
                 .RequireAuthorization();
+            rotas
+                .MapPost(
+                    caminho + "/materiais-teste",
+                    (
+                        string personagemId,
+                        ClaimsPrincipal usuario,
+                        JogoDbContext db,
+                        ICarteiraCoroas carteira,
+                        ISaldosMateriaisFusao materiais,
+                        CancellationToken c
+                    ) =>
+                        Executar(
+                            personagemId,
+                            usuario,
+                            db,
+                            carteira,
+                            materiais,
+                            c,
+                            creditoMateriais: true
+                        )
+                )
+                .RequireAuthorization();
+        }
     }
 
     private static IResult Erro(string codigo, int status = 409) =>
@@ -133,12 +177,14 @@ internal static class FusaoRotas
         ClaimsPrincipal usuario,
         JogoDbContext db,
         ICarteiraCoroas carteira,
+        ISaldosMateriaisFusao materiais,
         CancellationToken c,
         PedidoFusao? pedido = null,
         AssinadorFusao? assinador = null,
         bool confirmar = false,
         PedidoFavorito? favorito = null,
         bool credito = false,
+        bool creditoMateriais = false,
         EventosDoServidor? eventos = null
     )
     {
@@ -172,9 +218,16 @@ internal static class FusaoRotas
         }
         if (credito)
             await carteira.CreditarAsync(id, CreditoDeTeste, c);
+        if (creditoMateriais)
+        {
+            await materiais.CreditarDungeonAsync(id, CreditoMateriaisDeTeste, c);
+            await materiais.CreditarRaidAsync(id, CreditoMateriaisDeTeste, c);
+            aviso = "Essências de teste creditadas (10 de dungeon e 10 de raid).";
+        }
+        var (saldoDungeon, saldoRaid) = await materiais.SaldoAsync(id, c);
         if (pedido != null)
         {
-            var resultado = Avaliar(id, pedido, itens, assinador!);
+            var resultado = Avaliar(id, pedido, itens, saldoDungeon, saldoRaid, assinador!);
             if (resultado.Erro != null)
                 return resultado.Erro;
             var calculo = resultado.Calculo!;
@@ -183,12 +236,20 @@ internal static class FusaoRotas
             {
                 if (!assinador!.Confere(pedido.Confirmacao, previa.Confirmacao))
                     return Erro(CodigosErroItens.PreviaDesatualizada);
-                // Materiais de dungeon e raid são a #617: sem eles a fusão de +6 em diante não
-                // acontece (FUSAO-009). Conferido antes de cobrar.
+                // Materiais de dungeon e raid (MAT-004): conferido antes de cobrar.
                 if (!previa.MateriaisSuficientes)
                     return Erro(CodigosErroItens.MateriaisInsuficientes);
                 if (!await carteira.DebitarAsync(id, previa.Custo, c))
                     return Erro(CodigosErroItens.CoroasInsuficientes);
+                if (
+                    !await materiais.DebitarAsync(
+                        id,
+                        previa.MateriaisDungeon,
+                        previa.MateriaisRaid,
+                        c
+                    )
+                )
+                    return Erro(CodigosErroItens.MateriaisInsuficientes);
                 calculo.Atributo.Valor = previa.ValorDepois;
                 calculo.Dados.NivelFusao = previa.NivelDepois;
                 calculo.Principal.GravarEquipamento(calculo.Dados);
@@ -211,6 +272,9 @@ internal static class FusaoRotas
         );
         resposta.ModoFusao = true;
         resposta.Coroas = await carteira.SaldoAsync(id, c);
+        var saldosAtualizados = await materiais.SaldoAsync(id, c);
+        resposta.MateriaisDungeon = saldosAtualizados.Dungeon;
+        resposta.MateriaisRaid = saldosAtualizados.Raid;
         resposta.Previa = previa!;
         resposta.Aviso = aviso;
         await transacao.CommitAsync(c);
@@ -238,6 +302,8 @@ internal static class FusaoRotas
         long personagemId,
         PedidoFusao pedido,
         List<ItemInventario> itens,
+        int saldoDungeon,
+        int saldoRaid,
         AssinadorFusao assinador
     )
     {
@@ -292,6 +358,7 @@ internal static class FusaoRotas
                 raid
             )
         );
+        var materiaisSuficientes = saldoDungeon >= dungeon && saldoRaid >= raid;
         var previa = new PreviaFusao
         {
             PrincipalId = principal.Id,
@@ -310,7 +377,7 @@ internal static class FusaoRotas
             Custo = custo,
             MateriaisDungeon = dungeon,
             MateriaisRaid = raid,
-            MateriaisSuficientes = dungeon == 0 && raid == 0,
+            MateriaisSuficientes = materiaisSuficientes,
             Confirmacao = assinatura,
         };
         return new(null, new Calculo(previa, principal, material, dados, atributo));
