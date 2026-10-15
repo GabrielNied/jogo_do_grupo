@@ -70,8 +70,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Presenca
         /// Aliados do grupo fora da área de interesse (#789): só posição, para o mapa e o minimapa.
         /// O modelo 3D continua só dos que estão em <see cref="Avatares"/>.
         /// </summary>
-        public System.Collections.Generic.IReadOnlyList<AliadoLonge> AliadosLonge =>
-            _aliadosLonge;
+        public System.Collections.Generic.IReadOnlyList<AliadoLonge> AliadosLonge => _aliadosLonge;
 
         /// <summary>
         /// Onde o jogador local nasce: só no primeiro <c>EstadoDaCidade</c>. Na reconexão o
