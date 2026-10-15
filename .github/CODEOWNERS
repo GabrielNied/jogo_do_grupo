@@ -109,3 +109,10 @@
 # /server/src/JogoDoGrupo.Server/Features/Desenvolvimento/ @usuario
 # /shared/Package/Runtime/Features/Desenvolvimento/ @usuario
 # /docs/features/desenvolvimento.md @usuario
+
+# Montarias
+# /client/Assets/_Game/Features/Montarias/ @usuario
+# /server/src/JogoDoGrupo.Server/Features/Montarias/ @usuario
+# /shared/Package/Runtime/Features/Montarias/ @usuario
+# /docs/features/montarias.md @usuario
+
