@@ -347,6 +347,70 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
         }
 
         [Test]
+        public void Presenca_EstadoDaAreaLevaOJogadorParaOLugarDeChegada()
+        {
+            var conexao = new ConexaoFalsa { Conectado = true };
+            using var presenca = new PresencaNaCidade(conexao, 1);
+            Vector3? recebida = null;
+            presenca.PosicaoForcada += (posicao, _) => recebida = posicao;
+            presenca.Atualizar(0f, new Vector3(-190f, 5f, 30f), 0f);
+
+            conexao.Receber(
+                MundoMessageIds.EstadoDaArea,
+                new EstadoDaArea
+                {
+                    Eu = new JogadorVisivel
+                    {
+                        PersonagemId = 1,
+                        X = -1345f,
+                        Y = 8f,
+                        Z = -360f,
+                    },
+                    Outros = new[] { Jogador(2, -1344f, -360f) },
+                }
+            );
+
+            Assert.That(recebida, Is.EqualTo(new Vector3(-1345f, 8f, -360f)));
+            Assert.That(presenca.Avatares.Quantidade, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void Presenca_VoltarParaACidadeDepoisDeUmaInstanciaReposicionaMasReconexaoNao()
+        {
+            var conexao = new ConexaoFalsa { Conectado = true };
+            using var presenca = new PresencaNaCidade(conexao, 1);
+            var vezes = 0;
+            presenca.PosicaoForcada += (_, __) => vezes++;
+            var naCidade = new EstadoDaCidade
+            {
+                Eu = new JogadorVisivel { PersonagemId = 1, Z = -24f },
+                Outros = new JogadorVisivel[0],
+            };
+
+            conexao.Receber(MundoMessageIds.EstadoDaCidade, naCidade);
+            presenca.Atualizar(0f, new Vector3(0f, 0f, -24f), 0f);
+            conexao.Receber(MundoMessageIds.EstadoDaCidade, naCidade); // reconexão
+            Assert.That(vezes, Is.EqualTo(0));
+
+            presenca.Atualizar(0f, new Vector3(-1300f, 5f, -360f), 0f);
+            conexao.Receber(
+                MundoMessageIds.EstadoDaCidade,
+                new EstadoDaCidade
+                {
+                    Eu = new JogadorVisivel
+                    {
+                        PersonagemId = 1,
+                        X = -190f,
+                        Y = 5f,
+                        Z = 30f,
+                    },
+                    Outros = new JogadorVisivel[0],
+                }
+            );
+            Assert.That(vezes, Is.EqualTo(1));
+        }
+
+        [Test]
         public void Presenca_EnviaPosicaoEmTaxaLimitadaESequenciada()
         {
             var conexao = new ConexaoFalsa { Conectado = true };
