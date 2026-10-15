@@ -9,6 +9,42 @@ namespace JogoDoGrupo.Client.Features.Combate.Tests
     public class ProntidaoLocalTestes
     {
         [Test]
+        public void TrocaDeArma_BloqueiaGolpeEsquivaEGuardaPor400Ms()
+        {
+            var prontidao = new ProntidaoLocal();
+            Assert.IsTrue(prontidao.PodeTrocarDeArma(10));
+
+            prontidao.MarcarTrocaDeArma(10);
+
+            Assert.IsFalse(prontidao.PodeAtacar(TipoDeAtaque.Leve, 10.39));
+            Assert.IsFalse(prontidao.PodeEsquivar(10.39));
+            Assert.IsFalse(prontidao.PodeGuardar(10.39));
+            Assert.IsTrue(prontidao.PodeAtacar(TipoDeAtaque.Leve, 10.4));
+            Assert.IsTrue(prontidao.PodeEsquivar(10.4));
+            Assert.IsTrue(prontidao.PodeGuardar(10.4));
+        }
+
+        [Test]
+        public void TrocaDeArma_RecusadaLiberaNaHora()
+        {
+            var prontidao = new ProntidaoLocal();
+            prontidao.MarcarTrocaDeArma(10);
+
+            prontidao.DesfazerTrocaDeArma(10.1);
+
+            Assert.IsTrue(prontidao.PodeAtacar(TipoDeAtaque.Leve, 10.1));
+        }
+
+        [Test]
+        public void TrocaDeArma_NaoValeNoPreparoDoGolpe()
+        {
+            var prontidao = new ProntidaoLocal();
+            prontidao.MarcarAtaque(TipoDeAtaque.Leve, 10);
+
+            Assert.IsFalse(prontidao.PodeTrocarDeArma(10));
+        }
+
+        [Test]
         public void SemStaminaConhecido_AtaqueEEsquivaSeguem()
         {
             var prontidao = new ProntidaoLocal();

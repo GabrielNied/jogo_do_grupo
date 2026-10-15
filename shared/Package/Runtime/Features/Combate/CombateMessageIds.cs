@@ -63,5 +63,14 @@ namespace JogoDoGrupo.Shared.Features.Combate
 
         /// <summary>Servidor → quem está na área: a barra de quebra de um chefe mudou.</summary>
         public const ushort BarraDeQuebraMudou = 6041;
+
+        /// <summary>Client → servidor: pedido de troca de arma (tecla R).</summary>
+        public const ushort IntencaoDeTrocaDeArma = 6050;
+
+        /// <summary>Servidor → dono: a troca de arma valeu e o bloqueio de 0,4 s começou.</summary>
+        public const ushort TrocaDeArmaIniciada = 6051;
+
+        /// <summary>Servidor → dono: o pedido de troca de arma foi recusado.</summary>
+        public const ushort TrocaDeArmaRecusada = 6052;
     }
 }
