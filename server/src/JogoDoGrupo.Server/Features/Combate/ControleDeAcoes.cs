@@ -3,7 +3,12 @@ using JogoDoGrupo.Shared.Features.Combate;
 namespace JogoDoGrupo.Server.Features.Combate;
 
 /// <summary>O que o client pediu num <c>IntencaoDeAtaque</c>, já validado.</summary>
-public readonly record struct PedidoDeAtaque(TipoDeAtaque Tipo, float DirecaoY, int Sequencia);
+public readonly record struct PedidoDeAtaque(
+    TipoDeAtaque Tipo,
+    float DirecaoY,
+    int Sequencia,
+    long TempoVistoMs = 0
+);
 
 /// <summary>
 /// Um ataque em andamento: preparo, momento de acerto e recuperação, medidos pelo relógio do
@@ -151,9 +156,18 @@ public sealed class ControleDeAcoes
     /// Reserva o personagem para uma ação que não é ataque (ex.: a esquiva) por
     /// <paramref name="duracaoMs"/>. Falso se ele está no meio de um ataque ou de outra reserva:
     /// de dois pedidos no mesmo instante, um vale. Durante a reserva, <see cref="Pedir"/> recusa.
+    /// <paramref name="invulneravel"/> falso (a troca de arma) reserva sem a janela sem dano.
     /// </summary>
-    public bool TentarOcupar(long personagemId, long agoraMs, long duracaoMs, out long ocupacaoId)
+    public bool TentarOcupar(
+        long personagemId,
+        long agoraMs,
+        long duracaoMs,
+        out long ocupacaoId,
+        long tempoVistoMs = 0,
+        bool invulneravel = true
+    )
     {
+        var inicioMs = RegrasCompensacaoDeLag.InstanteParaTeste(tempoVistoMs, agoraMs);
         lock (_trava)
         {
             if (!_estados.TryGetValue(personagemId, out var estado))
@@ -187,10 +201,11 @@ public sealed class ControleDeAcoes
             }
 
             estado.OcupacaoId = ++_proximoId;
-            estado.OcupadoAteMs = agoraMs + Math.Max(0, duracaoMs);
-            estado.InvulneravelAteMs =
-                agoraMs
-                + (long)Math.Round(RegrasEsquiva.JanelaDeInvulnerabilidadeSegundos * 1000.0);
+            estado.OcupadoAteMs = inicioMs + Math.Max(0, duracaoMs);
+            estado.InvulneravelAteMs = invulneravel
+                ? inicioMs
+                    + (long)Math.Round(RegrasEsquiva.JanelaDeInvulnerabilidadeSegundos * 1000.0)
+                : 0;
             ocupacaoId = estado.OcupacaoId;
             return true;
         }

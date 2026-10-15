@@ -155,6 +155,27 @@ namespace JogoDoGrupo.Server.Core.Persistencia.Migrations
                     b.ToTable("ItensInventario", (string)null);
                 });
 
+            modelBuilder.Entity("JogoDoGrupo.Server.Features.Itens.SaldoMateriaisFusao", b =>
+                {
+                    b.Property<long>("PersonagemId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("EssenciasDungeon")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("EssenciasRaid")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("PersonagemId");
+
+                    b.ToTable("SaldosMateriaisFusao", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_SaldosMateriaisFusao_Dungeon", "\"EssenciasDungeon\" >= 0");
+
+                            t.HasCheckConstraint("CK_SaldosMateriaisFusao_Raid", "\"EssenciasRaid\" >= 0");
+                        });
+                });
+
             modelBuilder.Entity("JogoDoGrupo.Server.Features.Personagem.NomeReservado", b =>
                 {
                     b.Property<long>("Id")
@@ -433,6 +454,15 @@ namespace JogoDoGrupo.Server.Core.Persistencia.Migrations
                 });
 
             modelBuilder.Entity("JogoDoGrupo.Server.Features.Itens.ItemInventario", b =>
+                {
+                    b.HasOne("JogoDoGrupo.Server.Features.Personagem.Personagem", null)
+                        .WithMany()
+                        .HasForeignKey("PersonagemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("JogoDoGrupo.Server.Features.Itens.SaldoMateriaisFusao", b =>
                 {
                     b.HasOne("JogoDoGrupo.Server.Features.Personagem.Personagem", null)
                         .WithMany()

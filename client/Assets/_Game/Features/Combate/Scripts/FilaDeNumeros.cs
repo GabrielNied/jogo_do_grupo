@@ -37,7 +37,9 @@ namespace JogoDoGrupo.Client.Features.Combate
 
         /// <summary>De 0 (acabou de nascer) a 1 (some).</summary>
         public float Progresso =>
-            Idade >= FilaDeNumeros.DuracaoSegundos ? 1f : Idade / FilaDeNumeros.DuracaoSegundos;
+            Idade >= ConfigSensacaoCombate.NumeroSegundos
+                ? 1f
+                : Idade / ConfigSensacaoCombate.NumeroSegundos;
     }
 
     /// <summary>
@@ -46,7 +48,6 @@ namespace JogoDoGrupo.Client.Features.Combate
     /// </summary>
     internal sealed class FilaDeNumeros
     {
-        public const float DuracaoSegundos = 1f;
         public const int Maximo = 20;
 
         private readonly List<NumeroFlutuante> _numeros = new List<NumeroFlutuante>();
@@ -68,7 +69,7 @@ namespace JogoDoGrupo.Client.Features.Combate
             for (var i = _numeros.Count - 1; i >= 0; i--)
             {
                 _numeros[i].Idade += segundos;
-                if (_numeros[i].Idade >= DuracaoSegundos)
+                if (_numeros[i].Idade >= ConfigSensacaoCombate.NumeroSegundos)
                 {
                     _numeros.RemoveAt(i);
                 }

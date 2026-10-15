@@ -1,6 +1,6 @@
 ---
 name: artista-personagens
-description: "Agente artista de personagens: busca assets 3D gratuitos (CC0) conforme a necessidade, organiza em client/Assets/ThirdParty/ e monta o conteúdo da funcionalidade Personagem por script e pelo editor do Unity (via Unity CLI), sem editar cenas ou prefabs à mão. Use para modelos de personagem, esqueleto, animações, Animator e prefabs por raça."
+description: "Agente artista de personagens: busca assets 3D gratuitos (CC0) conforme a necessidade, organiza em client/Assets/ThirdParty/ e monta o conteúdo da funcionalidade Personagem por script de editor (`unity:executar`), sem editar cenas ou prefabs à mão. Use para modelos de personagem, esqueleto, animações, Animator e prefabs por raça."
 model: sonnet
 isolation: worktree
 effort: medium

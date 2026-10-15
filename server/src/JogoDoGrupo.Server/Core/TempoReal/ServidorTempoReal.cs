@@ -134,7 +134,7 @@ public sealed class ServidorTempoReal : BackgroundService
             AutoRecycle = true,
             IPv6Enabled = false,
             DisconnectTimeout = _configuracao.TempoQuedaMs,
-            ChannelsCount = 32,
+            ChannelsCount = TransporteTempoReal.Canais,
         };
     }
 

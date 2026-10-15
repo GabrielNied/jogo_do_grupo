@@ -30,7 +30,7 @@ Telas e menus do client que não pertencem a uma funcionalidade do jogo. Por enq
   - [ ] Outras janelas que o grupo quer com atalho (sugestões: **K** skills, **N** talentos, **O** social, **P** profissões)
   - [ ] A barra de atalhos fica sempre visível (como está) ou some depois que a pessoa aprende?
 - [ ] Teclas e atalhos (#90), decisões do grupo:
-  - [x] ~~Aprovar os atalhos padrão da tabela (proposta).~~ Decidido em 2026-10-12, como no New World: leve no clique esquerdo, pesado ao segurar o esquerdo por 0,3 s, guarda no botão direito, esquiva no Alt esquerdo (esta última desde 2026-10-11). A troca de arma (R) e as skills 1, 2 e 3 valem quando a S10 entrar.
+  - [x] ~~Aprovar os atalhos padrão da tabela (proposta).~~ Decidido em 2026-10-12, como no New World: leve no clique esquerdo, pesado ao segurar o esquerdo por 0,3 s, guarda no botão direito, esquiva no Alt esquerdo (esta última desde 2026-10-11). A troca de arma (R) e as skills 1, 2 e 3 valem desde a [#580](https://github.com/GabrielNied/jogo_do_grupo/issues/580).
   - [ ] Tecla já usada: **trocar as duas ações** (proposta) ou deixar a outra sem tecla?
   - [ ] Tecla de **correr**: segurar (proposta) ou alternar?
   - [x] ~~Combate ainda não decidiu se **bloqueio**, **stamina** e **troca de arma** entram na fatia jogável~~ Decidido em 2026-10-12: guarda e stamina entram nesta fatia. A troca de arma está decidida e fica para a S10; a tecla R vale nessa hora.
@@ -137,6 +137,7 @@ Decidido por Gabriel em 2026-10-11 (#134); é **provisório** e o grupo pode aju
 | Inventário | I | sim |
 | Missões | L | sim |
 | Mapa | M | sim |
+| Report (só no editor e no build de desenvolvimento, [Desenvolvimento](desenvolvimento.md#report-beta-e-ajuste-ao-vivo)) | J (e F9, fixa) | sim, só o J |
 | Chat (abrir e enviar) | Enter | não por enquanto (fixa no código do chat; Esc fecha a caixa sem enviar) |
 | Menu | Esc | **não** (reservada) |
 

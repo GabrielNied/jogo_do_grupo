@@ -61,6 +61,8 @@ O **laço principal do tempo real** é o único lugar em que as funcionalidades 
 
 Esse modelo evita `lock` espalhado por `Combate`, `Mobs` e `Itens`, reduz a chance de deadlock e mantém a ordem de eventos estável. O restante de tarefas fora do laço continua sendo dívida documentada até a próxima refatoração, enquanto `ServicoDeInimigos` já usa o tick do core como exemplo.
 
+**Compensação de lag:** o Core expõe `IHistoricoDePosicoesDoMundo` (amostras podadas a 250 ms). Mundo e Mobs registram posição; Combate consulta no acerto e na esquiva ([ADR 0039](decisoes/0039-compensacao-de-lag-no-servidor.md)).
+
 ## Servidor: como uma funcionalidade se pluga
 
 ### Observabilidade

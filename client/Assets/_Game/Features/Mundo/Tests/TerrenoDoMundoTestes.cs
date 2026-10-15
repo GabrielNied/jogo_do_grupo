@@ -509,6 +509,36 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
             Assert.IsFalse(VegetacaoProcedural.Modelo("Arbusto").Colisor.HasValue);
         }
 
+        [TestCase("Cacto")]
+        [TestCase("Arvore_Seca")]
+        [TestCase("Pinheiro")]
+        [TestCase("Rocha_Vulcanica")]
+        [TestCase("Arvore_Pantano")]
+        [TestCase("Arbusto")]
+        public void Base_de_cada_peca_gerada_encosta_no_chao(string nome)
+        {
+            VegetacaoProcedural.Limpar();
+            var modelo = VegetacaoProcedural.Modelo(nome);
+            var maisBaixo = float.MaxValue;
+            foreach (var parte in modelo.Partes)
+            {
+                var limites = parte.Malha.bounds;
+                maisBaixo = Mathf.Min(maisBaixo, parte.Local.MultiplyPoint3x4(limites.min).y);
+            }
+
+            Assert.AreEqual(0f, maisBaixo, 0.02f, $"{nome} flutua ou afunda.");
+            if (modelo.Colisor.HasValue && !modelo.Colisor.Value.EhCaixa)
+            {
+                var colisor = modelo.Colisor.Value;
+                Assert.AreEqual(
+                    0f,
+                    colisor.Centro.y - (colisor.Altura * 0.5f),
+                    0.02f,
+                    $"Colisor de {nome} não parte do chão."
+                );
+            }
+        }
+
         [Test]
         public void Montagem_da_vegetacao_cabe_em_quadros_curtos_e_espalha_o_trabalho()
         {

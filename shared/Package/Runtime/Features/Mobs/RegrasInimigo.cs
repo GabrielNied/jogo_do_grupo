@@ -61,6 +61,21 @@ namespace JogoDoGrupo.Shared.Features.Mobs
         /// <summary>Longe assim do ponto de origem, em metros, o inimigo desiste e volta.</summary>
         public const double DistanciaDeDesistenciaMetros = 30.0;
 
+        /// <summary>Raio máximo, em metros, em torno da origem em que a criatura vaga em repouso.</summary>
+        public const double RaioDeVagarEmRepousoMetros = 3.5;
+
+        /// <summary>Velocidade de deslocamento, em m/s, ao vagar em repouso (passo calmo).</summary>
+        public const double VelocidadeDeVagarEmRepousoMetrosPorSegundo = 1.2;
+
+        /// <summary>Tempo mínimo, em segundos, que a criatura fica parada entre passos ao vagar.</summary>
+        public const double TempoParadoVagarMinimoSegundos = 2.0;
+
+        /// <summary>Tempo máximo, em segundos, que a criatura fica parada entre passos ao vagar.</summary>
+        public const double TempoParadoVagarMaximoSegundos = 5.0;
+
+        /// <summary>Velocidade máxima de giro da criatura, em graus por segundo.</summary>
+        public const double VelocidadeDeGiroGrausPorSegundo = 360.0;
+
         /// <summary>Quantas vezes por segundo o servidor atualiza a IA (passo fixo).</summary>
         public const int PassosPorSegundo = 10;
 
@@ -225,6 +240,66 @@ namespace JogoDoGrupo.Shared.Features.Mobs
         }
 
         /// <summary>
+        /// Menor diferença angular de <paramref name="deGraus"/> para <paramref name="paraGraus"/>,
+        /// no intervalo [-180, 180]. Positivo = sentido horário (+X).
+        /// </summary>
+        public static double DiferencaAngular(double deGraus, double paraGraus)
+        {
+            double diff = (paraGraus - deGraus) % 360.0;
+            if (diff > 180.0)
+            {
+                diff -= 360.0;
+            }
+            else if (diff < -180.0)
+            {
+                diff += 360.0;
+            }
+            return diff;
+        }
+
+        /// <summary>Normaliza o ângulo para o intervalo [-180, 180].</summary>
+        public static double NormalizarAngulo(double graus)
+        {
+            graus %= 360.0;
+            if (graus > 180.0)
+            {
+                graus -= 360.0;
+            }
+            else if (graus < -180.0)
+            {
+                graus += 360.0;
+            }
+            return graus;
+        }
+
+        /// <summary>
+        /// Gira o ângulo atual em direção ao ângulo desejado (em graus, de -180 a 180),
+        /// pelo menor caminho angular, limitando pela velocidade em graus por segundo e tempo em segundos.
+        /// </summary>
+        public static double GirarPara(
+            double anguloAtualGraus,
+            double anguloDesejadoGraus,
+            double velocidadeGrausPorSegundo,
+            double segundos
+        )
+        {
+            if (velocidadeGrausPorSegundo <= 0.0 || segundos <= 0.0)
+            {
+                return anguloAtualGraus;
+            }
+
+            double delta = DiferencaAngular(anguloAtualGraus, anguloDesejadoGraus);
+            double maxGiro = velocidadeGrausPorSegundo * segundos;
+
+            if (Math.Abs(delta) <= maxGiro)
+            {
+                return NormalizarAngulo(anguloDesejadoGraus);
+            }
+
+            return NormalizarAngulo(anguloAtualGraus + Math.Sign(delta) * maxGiro);
+        }
+
+        /// <summary>
         /// Um passo de movimento em linha reta até o destino, sem passar dele. Para quando falta
         /// <paramref name="distanciaDeParadaMetros"/> (ou menos) para chegar; quem já está nessa
         /// distância não se move. Velocidade ou tempo negativos contam como zero.
@@ -253,6 +328,27 @@ namespace JogoDoGrupo.Shared.Features.Mobs
             double andado = Math.Min(passo, falta);
             novoX = x + (destinoX - x) / distancia * andado;
             novoZ = z + (destinoZ - z) / distancia * andado;
+        }
+
+        /// <summary>
+        /// Sorteia um ponto de destino dentro do raio de vagar em torno da origem, usando dois valores de 0 a 1.
+        /// </summary>
+        public static void PontoDeVagar(
+            double origemX,
+            double origemZ,
+            double sorteioAngulo,
+            double sorteioDistancia,
+            double raioMaximoMetros,
+            out double destinoX,
+            out double destinoZ
+        )
+        {
+            double anguloRadianos = sorteioAngulo * 2.0 * Math.PI;
+            double distancia =
+                Math.Sqrt(Math.Max(0.0, Math.Min(1.0, sorteioDistancia)))
+                * Math.Max(0.0, raioMaximoMetros);
+            destinoX = origemX + Math.Cos(anguloRadianos) * distancia;
+            destinoZ = origemZ + Math.Sin(anguloRadianos) * distancia;
         }
 
         /// <summary>

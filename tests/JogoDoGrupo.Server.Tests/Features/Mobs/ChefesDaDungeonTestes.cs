@@ -82,18 +82,13 @@ public class ChefesDaDungeonTestes(TempoRealFixture f) : IClassFixture<TempoReal
     }
 
     [Fact]
-    public void O_servidor_sobe_com_o_boss_de_teste_fora_da_cidade()
+    public void O_servidor_sobe_sem_boss_de_teste_ate_a_instancia_criar()
     {
         var servicos = f.Fabrica.Services;
         var chefes = servicos.GetRequiredService<ChefesDaDungeon>();
 
-        var teste = chefes.Obter(ConfigChefeDaDungeon.AreaDeTeste);
-
-        Assert.NotNull(teste);
-        var retrato = Assert.Single(teste.Vivos());
-        Assert.Equal(ConfigChefeDaDungeon.PontoDeTesteX, retrato.X, 1);
-        Assert.Equal(ConfigChefeDaDungeon.PontoDeTesteZ, retrato.Z, 1);
-        Assert.True(RegrasInimigo.Distancia(0, 0, retrato.X, retrato.Z) > 100.0);
+        Assert.Null(chefes.Obter(ConfigChefeDaDungeon.AreaDeTeste));
+        Assert.Empty(chefes.Ativos());
         Assert.Same(chefes, servicos.GetRequiredService<IChefesDaDungeon>());
         Assert.Contains(servicos.GetServices<IAlvosDeCombate>(), a => ReferenceEquals(a, chefes));
     }
@@ -106,6 +101,13 @@ public class ChefesDaDungeonTestes(TempoRealFixture f) : IClassFixture<TempoReal
 
         cliente.Enviar(MundoMessageIds.EntrarNaCidade, new EntrarNaCidade());
         await cliente.ReceberAsync<InimigosDaArea>(MobsMessageIds.InimigosDaArea);
+
+        var chefes = f.Fabrica.Services.GetRequiredService<ChefesDaDungeon>();
+        chefes.Criar(
+            ConfigChefeDaDungeon.AreaDeTeste,
+            ConfigChefeDaDungeon.PontoDeTesteX,
+            ConfigChefeDaDungeon.PontoDeTesteZ
+        );
 
         var teleporte = f.Fabrica.Services.GetRequiredService<ITeleporteDeTeste>();
         Assert.True(

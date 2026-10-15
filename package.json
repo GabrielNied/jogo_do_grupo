@@ -23,6 +23,7 @@
     "arte:baixar-referencias": "node scripts/arte/baixar-referencias.mjs",
     "entregar": "node scripts/git/entregar.mjs",
     "tarefa": "node scripts/git/tarefas.mjs",
+    "reporte": "node scripts/relatos/reporte.mjs",
     "reempilhar": "node scripts/git/reempilhar.mjs",
     "limpar-agentes": "node scripts/git/limpar-agentes.mjs",
     "nuvem:preparar": "node scripts/agentes/preparar-nuvem.mjs"

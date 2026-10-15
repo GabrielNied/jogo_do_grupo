@@ -1,37 +1,58 @@
 # Montarias
 
 **Responsável:**
-**Status:** decidido, fora da fatia jogável
-**Faixa de IDs de mensagem:** a reservar quando a funcionalidade for criada
+**Status:** em desenvolvimento
+**Faixa de IDs de mensagem:** 16000–16999
 
 ## Resumo
 
-A pessoa chama uma montaria, anda mais rápido e desce. O servidor decide a posição e a velocidade.
+Sistema de montarias: a pessoa chama uma montaria, anda com velocidade aumentada autoritativa e desmonta quando desejar ou quando entrar em combate.
 
 ## Definido
 
-Decidido em 2026-10-12, a partir da proposta da #160:
-
-- Uma montaria nesta primeira versão. Montar e desmontar no mundo aberto e na cidade, no estilo do World of Warcraft: ela aumenta a velocidade e não luta.
-- Entrar em combate ou levar dano não desmonta. Começar um ataque ou uma skill desmonta. Não se ataca de cima dela.
-- A velocidade é **9 m/s** (`VelocidadeDaMontariaMetrosPorSegundo`), acima da corrida de 5,5 m/s. Desmontar volta à corrida. O servidor só aceita esse teto enquanto a pessoa está montada.
-- Desconectar desmonta. Quem está na cidade vê o outro montado.
-- Fora desta versão: estábulo, várias montarias, personalização, montaria que luta e voo.
+- **Coleção de montarias:** menu de montarias (tecla **B**, ordem 50 nas `JanelasDoJogo`) e acesso rápido no HUD, permitindo visualizar a coleção e equipar o companheiro desejado.
+- **Modelos disponíveis:**
+  - *Corcel Castanho* (Tipo 1): montaria clássica em tons acolhedores e arreios tradicionais de couro com detalhes dourados.
+  - *Corcel Noturno* (Tipo 2): montaria mística com pelagem ébano, tons de índigo, sela prateada, detalhes luminescentes e chifre estrelado.
+- **Tempo de espera para montar:** subir na montaria exige 1,5 segundo de invocação parado (`RegrasMontaria.TempoInvocacaoSegundos`). Deslocar-se, sofrer dano ou cancelar interrompe a barra de progresso. Desmontar é instantâneo.
+- **Velocidade:** a velocidade montada é autoritativa no servidor (`VelocidadesDeMovimento`), com corrida padrão de 9,0 m/s (`RegrasMontaria.VelocidadeMontariaPadrao`), contra os 5,5 m/s da corrida padrão a pé.
+- **Validação de movimento:** o `ValidadorDeMovimento` aceita o teto da montaria enquanto a pessoa estiver montada.
+- **Multiplayer:** quem está na cidade ou no mundo aberto vê os outros jogadores montados e desmontados em tempo real (`EstadoMontaria`), refletindo o tipo e o modelo equipado pelo jogador.
+- **Combate:** não é permitido chamar montaria durante o combate. Se o personagem montado entrar em combate ou sofrer queda (`PersonagemCaiu`), é desmontado automaticamente e a velocidade retorna aos valores a pé.
+- **Desconexão:** desconectar desmonta o personagem e limpa a sessão.
 
 ## Em aberto
 
-- [ ] Qual modelo CC0 entra na primeira montaria (a implementação escolhe e registra a licença).
+- [x] Estábulo e coleção de montarias com aparências diferentes (implementado com Corcel Castanho e Corcel Noturno)
+- [ ] Montarias com bônus ou habilidades utilitárias
+- [ ] Voo e montarias voadoras
 
 ## Regras
 
-Quem decide: **servidor** (estado montado, velocidade e posição). O client pede montar ou desmontar e mostra.
+### Velocidade autoritativa
 
-A velocidade segue o aviso e a confirmação que o Mundo já usa para andar e correr ([ADR 0024](../decisoes/0024-rede-sem-voltar-no-tempo.md)). Não há biblioteca nova: o teto entra no validador de movimento que já existe, só enquanto a pessoa está montada.
+| Estado | Andar (m/s) | Correr (m/s) |
+|---|---|---|
+| A pé | 2,0 (`RegrasVelocidade.AndarPadrao`) | 5,5 (`RegrasVelocidade.CorrerPadrao`) |
+| Montado | 2,0 | 9,0 (`RegrasMontaria.VelocidadeMontariaPadrao`) |
+
+Ao montar, o servidor envia `VelocidadesDeMovimento` com `Correr = 9.0f` e notifica `EstadoMontaria` (`Montado = true`, `TipoMontaria`). O client aplica e responde `ConfirmarVelocidade`.
+
+### Mensagens de rede
+
+| ID | Mensagem | Direção | Campos |
+|---|---|---|---|
+| 16000 | `ChamarMontaria` | client → servidor | _(vazia)_ |
+| 16001 | `Desmontar` | client → servidor | _(vazia)_ |
+| 16002 | `EstadoMontaria` | servidor → client | `PersonagemId` (long), `Montado` (bool), `TipoMontaria` (int) |
+| 16003 | `EquiparMontaria` | client → servidor | `TipoMontaria` (int) |
+| 16004 | `MontariaEquipada` | servidor → client | `TipoMontaria` (int) |
 
 ## Depende de
 
-[Mundo](mundo.md) (posição e velocidade).
+- `Mundo`: `IVelocidadesAutoritativasDoMundo` para atualização de velocidades autoritativas no servidor e validação de deslocamento.
+- `Combate`: `IEstadoDeCombate` para consulta de combate ativo e evento `PersonagemCaiu` para desmontar na queda.
 
 ## Expõe
 
-O estado montado, para quem está na mesma área ver.
+- `IMontariasConsulta`: interface no servidor para outras funcionalidades consultarem se um jogador está montado (`EstaMontado(long personagemId)`).

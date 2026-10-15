@@ -21,5 +21,12 @@ namespace JogoDoGrupo.Shared.Features.Combate
         /// quando o pedido é recusado.
         /// </summary>
         public int Sequencia = 0;
+
+        /// <summary>
+        /// Relógio do servidor (<c>Environment.TickCount64</c> no host) que o client acreditava
+        /// ter ao pedir o golpe; o servidor rebobina até <see cref="RegrasCompensacaoDeLag.JanelaMs"/>
+        /// para medir o volume. Zero = sem referência (comportamento anterior).
+        /// </summary>
+        public long TempoVistoMs = 0;
     }
 }

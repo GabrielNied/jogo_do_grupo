@@ -22,6 +22,10 @@ public sealed class ItensModule : IFeatureModule
         servicos.AddSingleton(configEquipamentos);
         servicos.AddSingleton<GeradorEquipamentos>();
         servicos.AddSingleton<AssinadorFusao>();
+        servicos.AddScoped<
+            JogoDoGrupo.Server.Contratos.Itens.ISaldosMateriaisFusao,
+            SaldosMateriaisFusao
+        >();
         servicos.AddSingleton<EquipamentosParaCombate>();
         servicos.AddSingleton<JogoDoGrupo.Server.Contratos.Itens.IAtributosDosEquipamentos>(sp =>
             sp.GetRequiredService<EquipamentosParaCombate>()
@@ -29,6 +33,10 @@ public sealed class ItensModule : IFeatureModule
         servicos.AddSingleton<JogoDoGrupo.Server.Contratos.Itens.IArmaEquipada>(sp =>
             sp.GetRequiredService<EquipamentosParaCombate>()
         );
+        servicos.AddSingleton<
+            JogoDoGrupo.Server.Contratos.Itens.ITrocaDeConjunto,
+            TrocaDeConjunto
+        >();
         servicos.AddSingleton<JogoDoGrupo.Server.Contratos.Combate.IFonteDeModificadores>(sp =>
             sp.GetRequiredService<EquipamentosParaCombate>()
         );
@@ -64,6 +72,9 @@ public sealed class ItensModule : IFeatureModule
             return servico;
         });
         servicos.AddHostedService(sp => sp.GetRequiredService<ServicoDeLoot>());
+        servicos.AddSingleton<JogoDoGrupo.Server.Contratos.Itens.ILootDoDono>(sp =>
+            sp.GetRequiredService<ServicoDeLoot>()
+        );
     }
 
     public void MapearRotas(IEndpointRouteBuilder rotas) => ItensRotas.Mapear(rotas);

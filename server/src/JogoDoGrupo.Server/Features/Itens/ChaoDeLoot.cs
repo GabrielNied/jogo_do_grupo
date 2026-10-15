@@ -145,6 +145,52 @@ public sealed class ChaoDeLoot
     }
 
     /// <summary>
+    /// O item livre do dono, na área, mais perto do ponto e a até <paramref name="raio"/> dele.
+    /// Empate vai ao mais antigo.
+    /// </summary>
+    public bool TentarEscolherMaisPerto(
+        long donoId,
+        string area,
+        double x,
+        double z,
+        double raio,
+        DateTimeOffset agora,
+        out LootReservado loot
+    )
+    {
+        LootReservado? melhor = null;
+        var menor = double.MaxValue;
+        lock (_trava)
+        {
+            foreach (var entrada in _itens.Values)
+            {
+                if (!Disponivel(entrada, donoId, agora) || entrada.Loot.Area != area)
+                {
+                    continue;
+                }
+
+                var dx = entrada.Loot.X - x;
+                var dz = entrada.Loot.Z - z;
+                var distancia = Math.Sqrt(dx * dx + dz * dz);
+                if (
+                    distancia <= raio
+                    && (
+                        distancia < menor
+                        || (distancia == menor && entrada.Loot.LootId < melhor!.LootId)
+                    )
+                )
+                {
+                    melhor = entrada.Loot;
+                    menor = distancia;
+                }
+            }
+        }
+
+        loot = melhor!;
+        return melhor != null;
+    }
+
+    /// <summary>
     /// O item, se ele existe, é desse dono, está no prazo e livre. Item de outro dono responde
     /// como se não existisse.
     /// </summary>

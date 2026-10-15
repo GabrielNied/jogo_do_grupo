@@ -111,7 +111,12 @@ namespace JogoDoGrupo.Client.Features.Social
                     Fechar(false);
                 }
             }
-            else if (_enter.WasPressedThisFrame() && !JanelasDoJogo.AlgoAberto)
+            // Outra caixa de texto aberta (ex.: o relato F9) fica com o Enter.
+            else if (
+                _enter.WasPressedThisFrame()
+                && !JanelasDoJogo.AlgoAberto
+                && !BloqueioDeEntradaPorTexto.AtalhosDoJogoBloqueados()
+            )
             {
                 Abrir();
             }

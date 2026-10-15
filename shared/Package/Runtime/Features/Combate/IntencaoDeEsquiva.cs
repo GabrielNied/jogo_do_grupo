@@ -20,5 +20,11 @@ namespace JogoDoGrupo.Shared.Features.Combate
         /// quando o pedido é recusado.
         /// </summary>
         public int Sequencia = 0;
+
+        /// <summary>
+        /// Relógio do servidor que o client acreditava ter ao pedir a esquiva; usado para
+        /// abrir a janela de invulnerabilidade no instante visto (issue #172). Zero = sem referência.
+        /// </summary>
+        public long TempoVistoMs = 0;
     }
 }

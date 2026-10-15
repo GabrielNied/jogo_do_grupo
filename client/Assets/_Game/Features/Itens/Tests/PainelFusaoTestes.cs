@@ -50,7 +50,7 @@ namespace JogoDoGrupo.Client.Features.Itens.Tests
             StringAssert.Contains("+5 → +6", texto);
             StringAssert.Contains("Tier C → D", texto);
             StringAssert.Contains("1200 coroas", texto);
-            StringAssert.Contains("materiais: 1 de dungeon", texto);
+            StringAssert.Contains("materiais: 1 " + ConfigFusao.NomeMaterialDungeon, texto);
             StringAssert.Contains("mesma categoria (Martelo)", texto);
             StringAssert.Contains("Martelo da Serra (#2) será consumido", texto);
         }

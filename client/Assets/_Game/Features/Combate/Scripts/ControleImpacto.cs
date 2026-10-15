@@ -28,13 +28,7 @@ namespace JogoDoGrupo.Client.Features.Combate
     [DefaultExecutionOrder(500)]
     internal sealed class ControleImpacto : MonoBehaviour
     {
-        /// <summary>Velocidade do jogo durante o hit-stop (quase parado, sem zerar).</summary>
-        public const float EscalaDeTempoNoHitStop = 0.05f;
-
         public const float VolumeBase = 0.6f;
-        public const float VinhetaNormal = 0.5f;
-        public const float VinhetaForte = 0.9f;
-        public const float VinhetaQuedaPorSegundo = 3f;
         public const float IntervaloDoAlertaSegundos = 1.2f;
         public const string TextoEsquivou = "Esquivou!";
         public const string TextoSaiaDaArea = "Saia da área!";
@@ -161,7 +155,7 @@ namespace JogoDoGrupo.Client.Features.Combate
             var congelar = ConfiguracaoDeImpacto.HitStopLigado && _limite.HitStopRestante > 0f;
             if (congelar && !_congelado)
             {
-                Time.timeScale = EscalaDeTempoNoHitStop;
+                Time.timeScale = ConfigSensacaoCombate.EscalaDeTempoNoHitStop;
                 _congelado = true;
             }
             else if (!congelar)
@@ -180,7 +174,7 @@ namespace JogoDoGrupo.Client.Features.Combate
                 }
             }
 
-            _vinheta = Mathf.Max(0f, _vinheta - VinhetaQuedaPorSegundo * dt);
+            _vinheta = Mathf.Max(0f, _vinheta - ConfigSensacaoCombate.VinhetaQuedaPorSegundo * dt);
             _painel?.Mostrar(_vinheta);
 
             var jogador = EntradaNoJogo.Jogador;
@@ -240,11 +234,26 @@ namespace JogoDoGrupo.Client.Features.Combate
             Tocar(SomDeCombate.GolpeNoVazio, 0.5f);
         }
 
-        // Segura a pose de quem tem Animator por RegrasReacao.PausaVisualNoAcertoMs. O relógio do
-        // servidor não para: é só a sensação de contato.
-        private void SegurarPose(GameObject objeto)
+        internal static bool DeveSegurarPose(GameObject objeto)
         {
             if (objeto == null || !ConfiguracaoDeImpacto.HitStopLigado)
+            {
+                return false;
+            }
+
+            if (objeto.name.StartsWith(RegistroDeAlvos.NomeDoInimigo))
+            {
+                return false;
+            }
+
+            return objeto.GetComponentInChildren<Animator>() != null;
+        }
+
+        // Segura a pose de quem tem Animator por ConfigSensacaoCombate.PausaDaPoseNoAcerto. O relógio do
+        // servidor não para: é só a sensação de contato. Mobs cuida do Animator de seus inimigos (#812).
+        private void SegurarPose(GameObject objeto)
+        {
+            if (!DeveSegurarPose(objeto))
             {
                 return;
             }
@@ -255,7 +264,7 @@ namespace JogoDoGrupo.Client.Features.Combate
                 return;
             }
 
-            var duracao = RegrasReacao.PausaVisualNoAcertoMs / 1000f;
+            var duracao = ConfigSensacaoCombate.PausaDaPoseNoAcerto;
             foreach (var pausa in _pausas)
             {
                 if (pausa.Animator == animator)
@@ -340,8 +349,12 @@ namespace JogoDoGrupo.Client.Features.Combate
                 Aplicar(efeito, alvo, origem);
 
                 // A pose de quem bateu e de quem levou fica parada por um instante (70 ms).
+                // Mobs cuida da pose de seus inimigos ao receber AtaqueAcertou (#812).
                 SegurarPose(meu ? jogador : null);
-                SegurarPose(alvo);
+                if (acerto.AlvoId == RegrasBonecoDeTreino.AlvoId)
+                {
+                    SegurarPose(alvo);
+                }
             }
         }
 
@@ -365,7 +378,10 @@ namespace JogoDoGrupo.Client.Features.Combate
             {
                 _detector.AoPerderVida(Time.unscaledTime);
                 Aplicar(efeito, EntradaNoJogo.Jogador, Vector3.zero);
-                SegurarPose(EntradaNoJogo.Jogador);
+                if (efeito.Origem == OrigemDoImpacto.GolpeRecebidoForte)
+                {
+                    SegurarPose(EntradaNoJogo.Jogador);
+                }
             }
         }
 
@@ -444,8 +460,8 @@ namespace JogoDoGrupo.Client.Features.Combate
                 _vinheta = Mathf.Max(
                     _vinheta,
                     efeito.Origem == OrigemDoImpacto.GolpeRecebidoForte
-                        ? VinhetaForte
-                        : VinhetaNormal
+                        ? ConfigSensacaoCombate.VinhetaForte
+                        : ConfigSensacaoCombate.VinhetaNormal
                 );
             }
 

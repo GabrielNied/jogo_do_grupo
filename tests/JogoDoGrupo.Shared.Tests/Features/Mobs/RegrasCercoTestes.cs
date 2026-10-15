@@ -78,4 +78,22 @@ public class RegrasCercoTestes
         RegrasCerco.Afastar(1, 1, null, null, out x, out z);
         Assert.Equal((1.0, 1.0), (x, z));
     }
+
+    [Fact]
+    public void Afastar_respeita_maxDeslocamentoMetros()
+    {
+        // Ponto sobreposto com vizinho tenta empurrar SeparacaoMinimaMetros (1.2 m),
+        // mas com maxDeslocamentoMetros = 0.3 m, desloca no maximo 0.3 m.
+        RegrasCerco.Afastar(
+            1,
+            1,
+            new[] { 1.0 },
+            new[] { 1.0 },
+            out var x,
+            out var z,
+            maxDeslocamentoMetros: 0.3
+        );
+        Assert.Equal(1.3, x, 9);
+        Assert.Equal(1.0, z, 9);
+    }
 }

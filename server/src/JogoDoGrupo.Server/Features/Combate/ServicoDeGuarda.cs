@@ -31,7 +31,8 @@ public sealed class ServicoDeGuarda
         ILimiteDeVelocidadeDoMundo? limite = null,
         Func<long>? relogioMs = null,
         IServiceScopeFactory? escopos = null,
-        ILogger<ServicoDeGuarda>? log = null
+        ILogger<ServicoDeGuarda>? log = null,
+        IVizinhanca? vizinhanca = null
     )
     {
         _escopos = escopos;
@@ -39,7 +40,7 @@ public sealed class ServicoDeGuarda
         _tempoReal = tempoReal;
         _posicoes = posicoes;
         _controle = controle;
-        _avisos = new AvisosNaArea(tempoReal, posicoes);
+        _avisos = new AvisosNaArea(tempoReal, posicoes, vizinhanca);
         _queda = queda;
         _limite = limite;
         _relogioMs = relogioMs ?? (() => Environment.TickCount64);

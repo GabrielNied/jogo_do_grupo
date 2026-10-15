@@ -36,11 +36,18 @@ public sealed class MobsModule : IFeatureModule
             var limite = new LimiteDeInimigosVivos(PontosDeSpawnDoCampo.LimiteDeInimigosVivos);
             var sorteador = sp.GetRequiredService<ISorteadorDeCriaturas>();
             var queda = sp.GetRequiredService<IEstadoDeQueda>();
+            var historico = sp.GetRequiredService<IHistoricoDePosicoesDoMundo>();
             return new GruposDoCampo(
                 limite,
                 [
                     .. PontosDeSpawnDoCampo.Todos.Select(ponto =>
-                        GrupoDeInimigos.DoPonto(ponto, sorteador, limite, queda: queda)
+                        GrupoDeInimigos.DoPonto(
+                            ponto,
+                            sorteador,
+                            limite,
+                            queda: queda,
+                            historico: historico
+                        )
                     ),
                 ]
             );
@@ -64,7 +71,8 @@ public sealed class MobsModule : IFeatureModule
                     pontoX: ConfigInimigosDoCampo.PontoDoChefeRaroX,
                     pontoZ: ConfigInimigosDoCampo.PontoDoChefeRaroZ,
                     primeiroId: ConfigInimigosDoCampo.PrimeiroIdDoChefeRaro,
-                    queda: sp.GetRequiredService<IEstadoDeQueda>()
+                    queda: sp.GetRequiredService<IEstadoDeQueda>(),
+                    historico: sp.GetRequiredService<IHistoricoDePosicoesDoMundo>()
                 )
         );
         servicos.AddSingleton<IAlvosDeCombate>(sp =>
@@ -73,22 +81,14 @@ public sealed class MobsModule : IFeatureModule
 
         // Os bosses de dungeon: um por área, criados pela instância (IChefesDaDungeon). Enquanto
         // a instância não existe, sobe um de teste fora da cidade.
-        servicos.AddSingleton(_ =>
-        {
-            var chefes = new ChefesDaDungeon();
-            if (ConfigChefeDaDungeon.CriarChefeDeTesteAoSubir)
-            {
-                chefes.Criar(
-                    ConfigChefeDaDungeon.AreaDeTeste,
-                    ConfigChefeDaDungeon.PontoDeTesteX,
-                    ConfigChefeDaDungeon.PontoDeTesteZ
-                );
-            }
-
-            return chefes;
-        });
+        servicos.AddSingleton(_ => new ChefesDaDungeon());
         servicos.AddSingleton<IChefesDaDungeon>(sp => sp.GetRequiredService<ChefesDaDungeon>());
         servicos.AddSingleton<IAlvosDeCombate>(sp => sp.GetRequiredService<ChefesDaDungeon>());
+        servicos.AddSingleton<InimigosPorInstancia>();
+        servicos.AddSingleton<IInimigosPorInstancia>(sp =>
+            sp.GetRequiredService<InimigosPorInstancia>()
+        );
+        servicos.AddSingleton<IAlvosDeCombate>(sp => sp.GetRequiredService<InimigosPorInstancia>());
         servicos.AddSingleton(sp =>
         {
             var servico = new ServicoDeInimigos(
@@ -101,7 +101,9 @@ public sealed class MobsModule : IFeatureModule
                 sp.GetRequiredService<EventosDoServidor>(),
                 sp.GetRequiredService<ILogger<ServicoDeInimigos>>(),
                 sp.GetRequiredService<IEstadoDeQueda>(),
-                sp.GetRequiredService<ChefesDaDungeon>()
+                sp.GetRequiredService<ChefesDaDungeon>(),
+                sp.GetRequiredService<InimigosPorInstancia>(),
+                vizinhanca: sp.GetService<IVizinhanca>()
             );
             _inimigos = servico;
             return servico;
@@ -113,6 +115,7 @@ public sealed class MobsModule : IFeatureModule
     public void Inicializar(ServerContext contexto)
     {
         contexto.Eventos.Assinar<JogadorEntrouNaArea>(evento => _inimigos?.AoEntrarNaArea(evento));
+        contexto.Eventos.Assinar<JogadorSaiuDaArea>(evento => _inimigos?.AoSairDaArea(evento));
         contexto.AoPasso(
             TimeSpan.FromSeconds(RegrasInimigo.PassoSegundos),
             _ => _inimigos?.Avancar()

@@ -1,8 +1,8 @@
 # Pets
 
 **Responsável:**
-**Status:** decidido, fora da fatia jogável
-**Faixa de IDs de mensagem:** a reservar quando a funcionalidade for criada
+**Status:** em desenvolvimento (cervo jovem implementado; fora da fatia jogável)
+**Faixa de IDs de mensagem:** 17000–17999
 
 ## Resumo
 
@@ -21,9 +21,21 @@ Decidido em 2026-10-12, a partir da proposta da #161 e do cervo jovem do livro:
 - Quem está na cidade vê o pet dos outros.
 - Fora desta versão: combate do pet, coleta de recurso de profissão, nível do pet e a coleção de conhecimentos.
 
+## Decidido na implementação (2026-10-15, #161)
+
+- **Entrar e sair de caverna ou dungeon:** o pet vai junto. Ao trocar de área ele some para quem via na área antiga e reaparece a 2 m do dono na nova (a mesma publicação por vizinhança); `/pet` e a busca de loot funcionam lá. Sair do jogo ou cair o remove.
+- **Como chamar:** o comando de chat `/pet` (alterna: chama, ou dispensa se já está com você), `/pet chamar` e `/pet dispensar`. Aparece em `/comandos`. Sem botão nem tecla nesta versão.
+- **Posição:** o servidor move o pet 10 vezes por segundo, como a IA dos mobs, a 6,5 m/s (acima da corrida do jogador, 5,5). Publica a quem vê o dono (a mesma área de interesse dos mobs): `PetApareceu` ao entrar no campo de visão, `PetMudou` sequenciado enquanto anda ou para, `PetSumiu` ao sair. O pet nasce atrás do dono, a 2 m.
+- **Parar sem tremer:** parado, o pet só volta a andar se o dono passar de 2,5 m (`FolgaDeSeguidaMetros`).
+- **Loot:** o pet procura o item a cada 0,5 s, a até 8 m **dele** (não do dono). "Que o dono poderia coletar" quer dizer: o item é do dono, está no prazo e livre; a distância de 12 m da tecla F não vale para o pet. O servidor de Itens faz a coleta pelo mesmo caminho da tecla F (um só vencedor por item, espaço conferido na gravação) e o dono recebe o `LootColetado` normal. Se o pet e o dono pedirem o mesmo item juntos, um deles leva e o outro não recebe nada.
+- **Inventário cheio:** o item fica no chão sem aviso ao dono, e o pet para de buscar loot por 30 s (`PausaSemEspacoSegundos`).
+- Se o dono se afasta mais de 20 m enquanto o pet busca um item, o pet desiste do item e volta para perto dele.
+- O pet não persiste: reiniciar o servidor ou sair do jogo o remove.
+- **Visual:** modelo CC0 "Deer Low Poly" ([licencas](../arte/licencas.md)), sem esqueleto: o client suaviza a posição e balança o corpo ao andar. Valores em `ConfigVisualDoPet`.
+
 ## Em aberto
 
-- [ ] Qual modelo CC0 entra no cervo jovem (a implementação escolhe e registra a licença).
+- [ ] Animação de verdade (esqueleto) do cervo e um jeito de chamar além do comando de chat.
 
 ## Regras
 
@@ -31,10 +43,12 @@ Quem decide: **servidor** (existência, posição e a coleta). O client pede cha
 
 O pet não é um inimigo e não entra no catálogo de criaturas hostis. A posição segue o mesmo jeito de publicar movimento que os mobs já usam, sem biblioteca nova.
 
+Constantes: `ConfigPets` (shared) e `ConfigVisualDoPet` (client).
+
 ## Depende de
 
-[Mundo](mundo.md) (posição do dono) e [Itens](itens.md) (o loot que o dono pode coletar).
+[Mundo](mundo.md) (posição do dono e quem o vê, por `IPosicoesDoMundo` e `IVizinhanca`) e [Itens](itens.md) (o loot que o dono pode coletar, pelo contrato `ILootDoDono` de `server/.../Contratos/Itens/`). Pets não referencia Personagem, Itens nem Mobs.
 
 ## Expõe
 
-A posição do pet, para quem está na mesma área ver.
+A posição do pet, para quem está na mesma área ver (`PetApareceu`, `PetMudou`, `PetSumiu`).

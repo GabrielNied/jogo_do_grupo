@@ -9,7 +9,7 @@ Rode na ordem e relate só o que falhou. Corrija o automático (formatação); o
 
 ## 1. O que mudou e onde
 
-`git status`, `git diff --stat origin/main...HEAD`. Confira contra as regras 1 a 9 do AGENTS.md: arquivos fora das pastas do lote, `Core/` (incluindo `ProjectSettings/`, `Packages/`, `.github/`, cenas de `Core/Scenes/`) pede review do responsável; binário (PSD, FBX, Blend) só com `git lfs lock`.
+`git status`, `git diff --stat origin/main...HEAD`. Confira contra as regras 1 a 9 do AGENTS.md: arquivos fora das pastas do lote, `Core/` (incluindo `ProjectSettings/`, `Packages/`, `.github/`, cenas de `Core/Scenes/`) pede review do responsável; binário (PSD, FBX, Blend) só com `git lfs lock`. Valor de sensação novo no client está na `Sintonia` (regra 17)?
 
 ## 2. Verificação proporcional
 

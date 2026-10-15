@@ -43,8 +43,11 @@ public sealed class ChefesDaDungeon(Func<long>? relogioMs = null)
         string area,
         double origemX,
         double origemZ,
-        double direcaoYGraus
-    ) => Obter(area)?.AlvosNoVolume(area, origemX, origemZ, direcaoYGraus) ?? [];
+        double direcaoYGraus,
+        long instanteReferenciaMs = 0
+    ) =>
+        Obter(area)?.AlvosNoVolume(area, origemX, origemZ, direcaoYGraus, instanteReferenciaMs)
+        ?? [];
 
     public bool TentarAplicarDano(
         long alvoId,

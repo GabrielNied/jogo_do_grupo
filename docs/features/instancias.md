@@ -51,12 +51,16 @@ Entrada, ciclo de vida e isolamento das corridas de dungeon no servidor autorita
 - **Membros próximos e retardatários:** ao iniciar a corrida, membros do grupo que estão a até **10 m** da entrada na cidade são teleportados para a área isolada da instância (`AreasDoMundo.Instancia(id)`). Membros a mais de 10 m ficam de fora e podem enviar `EntrarNaDungeon` mais tarde para entrar na corrida ativa.
 - **Isolamento de área:** cada corrida gera uma área exclusiva no Mundo. Posições e presenças não vazam para a cidade nem para corridas simultâneas de outros grupos.
 - **Reconexão e tolerância a quedas:** se um participante desconectar dentro da instância, sua vaga fica reservada por até **120 s** (`PrazoDeReconexao`). Reconectar e pedir entrada nesse intervalo recoloca o jogador na mesma corrida. Após 120 s sem retornar, a vaga é liberada.
-- **Encerramento:** a instância encerra por **vitória**, **derrota** ou após ficar **5 minutos vazia** (`PrazoVazia`). No encerramento, todos os participantes recebem `DungeonEncerrada` com o resultado e são devolvidos à posição anterior na cidade.
+- **Encerramento:** a instância encerra por **vitória** (boss derrotado e prazo de coleta expirado), **derrota** (todos os membros caídos ou ausentes) ou após ficar **5 minutos vazia** (`PrazoVazia`). No encerramento, todos os participantes recebem `DungeonEncerrada` com o resultado e são devolvidos à posição anterior na cidade.
+- **Vitória do chefe e prazo de coleta (issue #809):** ao derrotar o Guardião do Reflexo, o servidor não expulsa o grupo imediatamente. Ele envia `ChefeDerrotadoNaDungeon` aos participantes e mantém a instância ativa durante um prazo de coleta de **20 s** (`PrazoParaColetaDeLoot`), permitindo que os participantes coletem o loot gerado no chão da sala do chefe. Jogadores que desejarem podem enviar `SairDaDungeon` para sair antes do fim do prazo.
+- **Caído e socorro na dungeon (issue #809):** quando a vida de um participante chega a 0, ele entra em `FaseDeQueda.Caido` por 45 s. Um aliado próximo (até 2 m) pode segurar a tecla de interagir por 3 s para levantá-lo (`FaseDeQueda.Vivo` com 20% da vida máxima); dano ao socorrista cancela o canal. Esgotado o prazo de 45 s, o jogador retorna à cidade sem perder itens. Se todos os membros da dungeon estiverem caídos ou tiverem saído, a instância encerra em **derrota**.
+- **Conteúdo da Mina do Reflexo (issue #800):** ao abrir a corrida o servidor popula a área com três salões de Javali do Campo **sem respawn** e o Guardião do Reflexo no salão final (`LayoutDaMinaDoReflexo`, shared). A entrada física fica na colina oeste (~200 m da cidade); o client monta a entrada e os salões por código e mostra recusas e resultado na tela.
 
 ## Depende de
 
 - [Social](social.md): consulta de grupo e líder (`IConsultaDeGrupo`)
 - [Mundo](mundo.md): posições e transição entre áreas (`IPosicoesDoMundo`, `ITransicoesDeAreaDoMundo`, `AreasDoMundo`)
+- [Combate](combate.md): regras de estado de queda e socorro (`IEstadoDeQueda`, `RegrasQueda`)
 
 ## Expõe
 
@@ -65,4 +69,6 @@ Entrada, ciclo de vida e isolamento das corridas de dungeon no servidor autorita
   - `DungeonIniciada` (12001): servidor confirma início/entrada na corrida com ID e área
   - `EntradaRecusada` (12002): servidor recusa com código (`NaoELider`, `GrupoEmOutraDungeon`, `LongeDemais`)
   - `DungeonEncerrada` (12003): servidor avisa encerramento com `ResultadoDungeon` (`Vitoria`, `Derrota`, `InstanciaVazia`)
+  - `ChefeDerrotadoNaDungeon` (12004): servidor avisa que o chefe caiu e que o prazo para coleta de loot começou
+  - `SairDaDungeon` (12005): cliente pede saída antecipada da corrida após a vitória
 - Serviço server-side `ServicoDeInstancias`: gerencia criação, entrada, varredura periódica e encerramento de corridas

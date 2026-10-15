@@ -364,4 +364,88 @@ public class RegrasInimigoTestes
             RegrasInimigo.AberturaDoGolpeGraus
         );
     }
+
+    [Fact]
+    public void Numeros_de_vagar_em_repouso_sao_os_da_proposta()
+    {
+        Assert.Equal(3.5, RegrasInimigo.RaioDeVagarEmRepousoMetros);
+        Assert.Equal(1.2, RegrasInimigo.VelocidadeDeVagarEmRepousoMetrosPorSegundo);
+        Assert.Equal(2.0, RegrasInimigo.TempoParadoVagarMinimoSegundos);
+        Assert.Equal(5.0, RegrasInimigo.TempoParadoVagarMaximoSegundos);
+        Assert.True(
+            RegrasInimigo.VelocidadeDeVagarEmRepousoMetrosPorSegundo
+                < RegrasInimigo.VelocidadeDePerseguicaoMetrosPorSegundo
+        );
+    }
+
+    [Theory]
+    [InlineData(0.0, 0.0)]
+    [InlineData(0.25, 1.0)]
+    [InlineData(0.5, 0.5)]
+    [InlineData(0.75, 0.25)]
+    [InlineData(1.0, 1.0)]
+    public void PontoDeVagar_fica_dentro_do_raio_estipulado(
+        double sorteioAngulo,
+        double sorteioDistancia
+    )
+    {
+        RegrasInimigo.PontoDeVagar(
+            10.0,
+            20.0,
+            sorteioAngulo,
+            sorteioDistancia,
+            RegrasInimigo.RaioDeVagarEmRepousoMetros,
+            out var destinoX,
+            out var destinoZ
+        );
+
+        var distancia = RegrasInimigo.Distancia(10.0, 20.0, destinoX, destinoZ);
+        Assert.True(distancia <= RegrasInimigo.RaioDeVagarEmRepousoMetros + Tolerancia);
+    }
+
+    [Theory]
+    [InlineData(0.0, 90.0, 90.0)]
+    [InlineData(0.0, -90.0, -90.0)]
+    [InlineData(170.0, -170.0, 20.0)]
+    [InlineData(-170.0, 170.0, -20.0)]
+    [InlineData(350.0, 10.0, 20.0)]
+    [InlineData(10.0, 350.0, -20.0)]
+    [InlineData(0.0, 180.0, 180.0)]
+    public void DiferencaAngular_calcula_menor_caminho(
+        double deGraus,
+        double paraGraus,
+        double esperado
+    )
+    {
+        Assert.Equal(esperado, RegrasInimigo.DiferencaAngular(deGraus, paraGraus), Tolerancia);
+    }
+
+    [Theory]
+    [InlineData(0.0, 0.0)]
+    [InlineData(180.0, 180.0)]
+    [InlineData(190.0, -170.0)]
+    [InlineData(-190.0, 170.0)]
+    [InlineData(360.0, 0.0)]
+    [InlineData(-360.0, 0.0)]
+    [InlineData(540.0, 180.0)]
+    public void NormalizarAngulo_mantem_no_intervalo(double graus, double esperado)
+    {
+        Assert.Equal(esperado, RegrasInimigo.NormalizarAngulo(graus), Tolerancia);
+    }
+
+    [Fact]
+    public void GirarPara_gira_limitado_pela_velocidade_e_para_no_alvo()
+    {
+        // 360 graus por segundo em 0.1 s = 36 graus de giro maximo
+        var resultado = RegrasInimigo.GirarPara(0.0, 90.0, 360.0, 0.1);
+        Assert.Equal(36.0, resultado, Tolerancia);
+
+        // Quando falta menos que o maximo, para exatamente no desejado
+        resultado = RegrasInimigo.GirarPara(80.0, 90.0, 360.0, 0.1);
+        Assert.Equal(90.0, resultado, Tolerancia);
+
+        // Caminho mais curto atravessando a fronteira de 180 / -180
+        resultado = RegrasInimigo.GirarPara(170.0, -170.0, 360.0, 0.1);
+        Assert.Equal(-170.0, resultado, Tolerancia); // diferenca eh 20 graus, menor que 36
+    }
 }

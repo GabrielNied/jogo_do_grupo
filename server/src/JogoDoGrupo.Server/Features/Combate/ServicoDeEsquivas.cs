@@ -20,6 +20,7 @@ public sealed class ServicoDeEsquivas : IDisposable
     private readonly ILogger<ServicoDeEsquivas> _log;
     private readonly Func<long> _relogioMs;
     private readonly ServicoDeQueda? _queda;
+    private readonly IVizinhanca? _vizinhanca;
 
     public ServicoDeEsquivas(
         ServidorTempoReal tempoReal,
@@ -29,9 +30,11 @@ public sealed class ServicoDeEsquivas : IDisposable
         IServiceScopeFactory escopos,
         ILogger<ServicoDeEsquivas> log,
         Func<long>? relogioMs = null,
-        ServicoDeQueda? queda = null
+        ServicoDeQueda? queda = null,
+        IVizinhanca? vizinhanca = null
     )
     {
+        _vizinhanca = vizinhanca;
         _queda = queda;
         _tempoReal = tempoReal;
         _posicoes = posicoes;
@@ -70,7 +73,8 @@ public sealed class ServicoDeEsquivas : IDisposable
             personagemId,
             _relogioMs(),
             RegrasEsquiva.DuracaoMs,
-            out var ocupacaoId
+            out var ocupacaoId,
+            intencao.TempoVistoMs
         );
         if (!ocupou)
         {
@@ -125,10 +129,11 @@ public sealed class ServicoDeEsquivas : IDisposable
                 DirecaoY = intencao.DirecaoY,
                 DuracaoMs = RegrasEsquiva.DuracaoMs,
             };
-            var presentes = new HashSet<long>(_posicoes.PersonagensNaArea(posicao.Area))
-            {
-                personagemId,
-            };
+            var quemVe =
+                (posicao.Area == AreasDoMundo.Cidade && _vizinhanca != null)
+                    ? _vizinhanca.QuemVe(personagemId)
+                    : _posicoes.PersonagensNaArea(posicao.Area);
+            var presentes = new HashSet<long>(quemVe) { personagemId };
             foreach (var outra in _tempoReal.Sessoes)
             {
                 if (presentes.Contains(outra.PersonagemId))

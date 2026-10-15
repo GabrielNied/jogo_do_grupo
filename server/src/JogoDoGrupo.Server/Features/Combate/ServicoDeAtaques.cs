@@ -9,8 +9,8 @@ namespace JogoDoGrupo.Server.Features.Combate;
 /// O ataque da primeira arma, do pedido ao acerto (docs/features/fatia-jogavel.md, seção 2).
 /// O client só envia a intenção: o servidor confere ação em andamento (fila de 1 pedido),
 /// queda e stamina, avisa o preparo a quem está na área, e no momento do acerto decide quem está
-/// no cone (pela posição que o Mundo tem <b>agora</b>, sem compensação de lag) e quanto cada um
-/// leva. O mesmo golpe acerta cada alvo uma vez só.
+/// no cone (posição histórica dentro de <see cref="RegrasCompensacaoDeLag.JanelaMs"/>, ver ADR
+/// 0039) e quanto cada um leva. O mesmo golpe acerta cada alvo uma vez só.
 /// <para>
 /// O manipulador roda no laço de rede e não bloqueia: a conferência de recursos (banco) e a
 /// espera até o acerto rodam em tarefas, que respondem pelo <see cref="ServidorTempoReal"/>
@@ -30,6 +30,7 @@ public sealed class ServicoDeAtaques : IHostedService, IDisposable
     private readonly IAliadosDeCombate _aliados;
     private readonly ILimiteDeVelocidadeDoMundo? _limiteDeVelocidade;
     private readonly GerenciadorDeEfeitosDeStatus? _efeitos;
+    private readonly IVizinhanca? _vizinhanca;
     private readonly Dictionary<long, SessaoTempoReal> _sessoes = [];
     private readonly Lock _travaSessoes = new();
 
@@ -49,9 +50,11 @@ public sealed class ServicoDeAtaques : IHostedService, IDisposable
         ServicoDeQueda? queda = null,
         IAliadosDeCombate? aliados = null,
         ILimiteDeVelocidadeDoMundo? limiteDeVelocidade = null,
-        GerenciadorDeEfeitosDeStatus? efeitos = null
+        GerenciadorDeEfeitosDeStatus? efeitos = null,
+        IVizinhanca? vizinhanca = null
     )
     {
+        _vizinhanca = vizinhanca;
         _efeitos = efeitos;
         _aliados = aliados ?? new NinguemEAliado();
         _limiteDeVelocidade = limiteDeVelocidade;
@@ -119,7 +122,12 @@ public sealed class ServicoDeAtaques : IHostedService, IDisposable
             _sessoes[personagemId] = sessao;
         }
 
-        var pedido = new PedidoDeAtaque(intencao.Tipo, intencao.DirecaoY, intencao.Sequencia);
+        var pedido = new PedidoDeAtaque(
+            intencao.Tipo,
+            intencao.DirecaoY,
+            intencao.Sequencia,
+            intencao.TempoVistoMs
+        );
         switch (_controle.Pedir(personagemId, pedido, _relogioMs(), out var acao))
         {
             case ResultadoDoPedido.Iniciado:
@@ -224,7 +232,8 @@ public sealed class ServicoDeAtaques : IHostedService, IDisposable
         }
     }
 
-    // O momento de acerto: o volume é medido agora, pela posição que o servidor tem.
+    // O momento de acerto: o volume usa o instante visto no pedido, ancorado no início da ação
+    // (não no acerto após o preparo), para caber na janela de lag.
     private void Acertar(long personagemId, AcaoDeAtaque acao, ParcelasDeDano parcelas)
     {
         if (
@@ -236,6 +245,11 @@ public sealed class ServicoDeAtaques : IHostedService, IDisposable
         {
             return;
         }
+
+        var instanteTeste = RegrasCompensacaoDeLag.InstanteParaTeste(
+            acao.Pedido.TempoVistoMs,
+            acao.InicioMs
+        );
 
         var dano = RegrasAtaque.Dano(acao.Pedido.Tipo, parcelas, acao.Passo);
         if (_efeitos != null)
@@ -258,7 +272,13 @@ public sealed class ServicoDeAtaques : IHostedService, IDisposable
         var interrompidos = new List<long>();
         foreach (var fonte in _fontes)
         {
-            var alvos = fonte.AlvosNoVolume(posicao.Area, posicao.X, posicao.Z, direcao);
+            var alvos = fonte.AlvosNoVolume(
+                posicao.Area,
+                posicao.X,
+                posicao.Z,
+                direcao,
+                instanteTeste
+            );
             foreach (var alvo in alvos)
             {
                 var danoNoAlvo = dano;
@@ -388,10 +408,14 @@ public sealed class ServicoDeAtaques : IHostedService, IDisposable
         }
     }
 
-    // Quem está na área (e o próprio atacante, mesmo se acabou de sair dela).
+    // Quem enxerga o atacante (e o próprio atacante, mesmo se acabou de sair dela).
     private void EnviarParaArea<T>(string area, long atacanteId, ushort id, T mensagem)
     {
-        var presentes = new HashSet<long>(_posicoes.PersonagensNaArea(area)) { atacanteId };
+        var quemVe =
+            (area == AreasDoMundo.Cidade && _vizinhanca != null)
+                ? _vizinhanca.QuemVe(atacanteId)
+                : _posicoes.PersonagensNaArea(area);
+        var presentes = new HashSet<long>(quemVe) { atacanteId };
         foreach (var sessao in _tempoReal.Sessoes)
         {
             if (presentes.Contains(sessao.PersonagemId))

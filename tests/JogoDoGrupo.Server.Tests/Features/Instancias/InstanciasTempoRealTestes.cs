@@ -1,19 +1,26 @@
 using System.Collections.Concurrent;
 using System.IdentityModel.Tokens.Jwt;
+using JogoDoGrupo.Server.Contratos.Combate;
 using JogoDoGrupo.Server.Contratos.Mundo;
 using JogoDoGrupo.Server.Contratos.Personagem;
 using JogoDoGrupo.Server.Contratos.Social;
+using JogoDoGrupo.Server.Core.Persistencia;
 using JogoDoGrupo.Server.Core.TempoReal;
 using JogoDoGrupo.Server.Features.Instancias;
+using JogoDoGrupo.Server.Features.Itens;
 using JogoDoGrupo.Server.Tests.Core.TempoReal;
+using JogoDoGrupo.Server.Tests.Features.Itens;
 using JogoDoGrupo.Server.Tests.Infra;
 using JogoDoGrupo.Shared.Features.Instancias;
 using JogoDoGrupo.Shared.Features.Mundo;
+using JogoDoGrupo.Shared.Features.Personagem;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Time.Testing;
+using LayoutDungeon = JogoDoGrupo.Shared.Features.Instancias.LayoutDaMinaDoReflexo;
+using PersonagemEntidade = JogoDoGrupo.Server.Features.Personagem.Personagem;
 
 namespace JogoDoGrupo.Server.Tests.Features.Instancias;
 
@@ -44,6 +51,10 @@ public sealed class InstanciasFixture : IDisposable
                 Posicoes = new PosicoesDeTeste(posicoesReais);
                 servicos.RemoveAll<IPosicoesDoMundo>();
                 servicos.AddSingleton<IPosicoesDoMundo>(Posicoes);
+                servicos.RemoveAll<IEstadoDeQueda>();
+                servicos.AddSingleton<IEstadoDeQueda>(Queda);
+                servicos.RemoveAll<ISorteadorDeLoot>();
+                servicos.AddSingleton<ISorteadorDeLoot>(Sorteador);
             });
         });
         TempoReal = Fabrica.Services.GetRequiredService<ServidorTempoReal>();
@@ -54,6 +65,8 @@ public sealed class InstanciasFixture : IDisposable
     public FakeTimeProvider Relogio { get; }
     public VerificadorFalso Verificador { get; } = new();
     public ConsultaDeGrupoFalsa Grupos { get; } = new();
+    public QuedaDeTeste Queda { get; } = new();
+    public SorteadorDeLootFalso Sorteador { get; } = new() { Resultado = [1] };
     public PosicoesDeTeste Posicoes { get; private set; } = null!;
     public ServidorTempoReal TempoReal { get; }
     public ServicoDeInstancias Instancias { get; }
@@ -70,6 +83,26 @@ public sealed class InstanciasFixture : IDisposable
         var token = http.DefaultRequestHeaders.Authorization!.Parameter!;
         var contaId = long.Parse(new JwtSecurityTokenHandler().ReadJwtToken(token).Subject!);
         var personagemId = Interlocked.Increment(ref _proximoPersonagem);
+
+        await using (var escopo = Fabrica.Services.CreateAsyncScope())
+        {
+            var db = escopo.ServiceProvider.GetRequiredService<JogoDbContext>();
+            db.Set<PersonagemEntidade>()
+                .Add(
+                    new PersonagemEntidade
+                    {
+                        Id = personagemId,
+                        ContaId = contaId,
+                        Nome = $"Personagem_{personagemId}",
+                        NomeNormalizado = $"personagem_{personagemId}",
+                        Raca = Raca.Valdren,
+                        Nivel = 1,
+                        CriadoEm = DateTime.UtcNow,
+                    }
+                );
+            await db.SaveChangesAsync();
+        }
+
         Verificador.Permitir(contaId, personagemId);
         var (cliente, resultado) = await ClienteTempoRealDeTeste.AutenticarAsync(
             TempoReal.Porta,
@@ -79,6 +112,16 @@ public sealed class InstanciasFixture : IDisposable
         Assert.True(resultado.Aceita, resultado.Codigo);
         cliente.Enviar(MundoMessageIds.EntrarNaCidade, new EntrarNaCidade());
         await cliente.ReceberAsync<EstadoDaCidade>(MundoMessageIds.EstadoDaCidade);
+        Posicoes.Definir(
+            personagemId,
+            new PosicaoNoMundo(
+                AreasDoMundo.Cidade,
+                LayoutDungeon.EntradaX,
+                LayoutDungeon.EntradaY,
+                LayoutDungeon.EntradaZ,
+                0
+            )
+        );
         return new Jogador(cliente, personagemId, token);
     }
 
@@ -138,9 +181,33 @@ public sealed class PosicoesDeTeste(IPosicoesDoMundo origem) : IPosicoesDoMundo
 
     public void Remover(long personagemId) => _sobreposicoes.TryRemove(personagemId, out _);
 
-    public bool TentarObter(long personagemId, out PosicaoNoMundo posicao) =>
-        _sobreposicoes.TryGetValue(personagemId, out posicao)
-        || origem.TentarObter(personagemId, out posicao);
+    // A sobreposição só vale se for na mesma área do personagem ou enquanto o personagem está
+    // na cidade: dentro de uma instância uma sobreposição da cidade não tira o personagem da dungeon.
+    public bool TentarObter(long personagemId, out PosicaoNoMundo posicao)
+    {
+        if (_sobreposicoes.TryGetValue(personagemId, out var sobreposta))
+        {
+            if (origem.TentarObter(personagemId, out var real))
+            {
+                if (sobreposta.Area == real.Area)
+                {
+                    posicao = sobreposta;
+                    return true;
+                }
+
+                if (real.Area.StartsWith("instancia:", StringComparison.Ordinal))
+                {
+                    posicao = real;
+                    return true;
+                }
+            }
+
+            posicao = sobreposta;
+            return true;
+        }
+
+        return origem.TentarObter(personagemId, out posicao);
+    }
 
     public IReadOnlyList<long> PersonagensNaArea(string area) => origem.PersonagensNaArea(area);
 }
@@ -201,7 +268,7 @@ public sealed class InstanciasTempoRealTestes
         );
         Assert.DoesNotContain(InstanciasMessageIds.DungeonIniciada, membro.Cliente.IdsRecebidos);
 
-        f.Posicoes.Remover(membro.PersonagemId);
+        f.Posicoes.Definir(membro.PersonagemId, posicaoMembro);
         membro.Cliente.Enviar(InstanciasMessageIds.EntrarNaDungeon, new EntrarNaDungeon());
         var inicioMembro = await membro.Cliente.ReceberAsync<DungeonIniciada>(
             InstanciasMessageIds.DungeonIniciada
@@ -354,4 +421,15 @@ public sealed class InstanciasTempoRealTestes
             Assert.Equal(CodigosErroInstancias.GrupoEmOutraDungeon, recusa.Codigo);
         }
     }
+}
+
+public sealed class QuedaDeTeste : IEstadoDeQueda
+{
+    private readonly ConcurrentDictionary<long, bool> _caidos = new();
+
+    public void Derrubar(long personagemId) => _caidos[personagemId] = true;
+
+    public void Levantar(long personagemId) => _caidos.TryRemove(personagemId, out _);
+
+    public bool EstaCaido(long personagemId) => _caidos.ContainsKey(personagemId);
 }

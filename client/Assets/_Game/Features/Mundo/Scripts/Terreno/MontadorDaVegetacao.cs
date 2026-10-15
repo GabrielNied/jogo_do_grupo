@@ -1,7 +1,5 @@
 using System.Collections.Generic;
-using System.Diagnostics;
 using UnityEngine;
-using Debug = UnityEngine.Debug;
 
 namespace JogoDoGrupo.Client.Features.Mundo.Terreno
 {
@@ -41,17 +39,28 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
             float orcamentoMs = ConfigVegetacao.OrcamentoDeMontagemPorQuadroMs
         )
         {
+            foreach (var passo in Montar(pai, escalaDasPecas, new OrcamentoDeQuadro(orcamentoMs)))
+            {
+                yield return passo;
+            }
+        }
+
+        /// <summary>Mesma montagem, compartilhando o relógio de <paramref name="orcamento"/>.</summary>
+        public static IEnumerable<int> Montar(
+            Transform pai,
+            float escalaDasPecas,
+            OrcamentoDeQuadro orcamento
+        )
+        {
             var blocos = pai.gameObject.AddComponent<BlocosDeVegetacao>();
-            var relogio = Stopwatch.StartNew();
             var indice = 0;
             foreach (var peca in PecasDosBiomas.Todas)
             {
                 MontarPeca(peca, pai, blocos, escalaDasPecas);
                 indice++;
-                if (relogio.Elapsed.TotalMilliseconds >= orcamentoMs)
+                if (orcamento.Esgotou())
                 {
                     yield return indice;
-                    relogio.Restart();
                 }
             }
 

@@ -1,6 +1,6 @@
 ---
 name: artista-itens
-description: "Agente artista de itens: busca assets 3D gratuitos (CC0) conforme a necessidade, organiza em client/Assets/ThirdParty/ e monta o conteúdo da funcionalidade Itens por script e pelo editor do Unity (via Unity CLI), sem editar cenas ou prefabs à mão. Use para modelos de armas e equipamentos, ícones e encaixe no personagem."
+description: "Agente artista de itens: busca assets 3D gratuitos (CC0) conforme a necessidade, organiza em client/Assets/ThirdParty/ e monta o conteúdo da funcionalidade Itens por script de editor (`unity:executar`), sem editar cenas ou prefabs à mão. Use para modelos de armas e equipamentos, ícones e encaixe no personagem."
 model: sonnet
 isolation: worktree
 effort: medium

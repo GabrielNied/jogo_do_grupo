@@ -36,12 +36,13 @@ public sealed class ServicoDeDanoRecebido : IHostedService
         Func<long>? relogioMs = null,
         ServicoDeGuarda? guarda = null,
         IPosicoesDoMundo? posicoes = null,
-        GerenciadorDeEfeitosDeStatus? efeitos = null
+        GerenciadorDeEfeitosDeStatus? efeitos = null,
+        IVizinhanca? vizinhanca = null
     )
     {
         _efeitos = efeitos;
         _guarda = guarda;
-        _avisos = posicoes == null ? null : new AvisosNaArea(tempoReal, posicoes);
+        _avisos = posicoes == null ? null : new AvisosNaArea(tempoReal, posicoes, vizinhanca);
         _queda = queda;
         _acoes = acoes;
         _relogioMs = relogioMs ?? (() => Environment.TickCount64);
@@ -104,6 +105,7 @@ public sealed class ServicoDeDanoRecebido : IHostedService
 
             _tempoReal.TentarObterSessao(golpe.PersonagemId, out var sessao);
 
+            var quebrouGuarda = false;
             // Guarda segurada: o golpe custa 1 de stamina por ponto de dano, antes da defesa do
             // equipamento. Com stamina ele zera; sem stamina a guarda quebra e o dano entra.
             if (_acoes?.EstaGuardando(golpe.PersonagemId) == true)
@@ -125,6 +127,7 @@ public sealed class ServicoDeDanoRecebido : IHostedService
                     return;
                 }
 
+                quebrouGuarda = true;
                 _guarda?.AoQuebrar(golpe.PersonagemId, golpe.Area);
             }
 
@@ -143,9 +146,12 @@ public sealed class ServicoDeDanoRecebido : IHostedService
             // Vida 0 leva a caído; vida acima de 0 interrompe quem este personagem levantava.
             _queda?.AoDano(golpe.PersonagemId, recursos.VidaAtual);
 
-            // O acerto interrompe a ação comum (reação ao acerto): o golpe do preparo para.
+            // O acerto só interrompe a ação do jogador se a guarda quebrou ou o golpe for especial (#795):
+            // golpes comuns de criatura (TipoDeAtaqueDeInimigo.Golpe) não atordoam nem giram o jogador.
+            var deveInterromper = quebrouGuarda || golpe.InterrompeAlvo;
             if (
                 recursos.VidaAtual > 0
+                && deveInterromper
                 && _acoes?.TentarReagir(golpe.PersonagemId, _relogioMs()) == true
             )
             {

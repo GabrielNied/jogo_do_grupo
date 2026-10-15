@@ -1,4 +1,5 @@
 using System.Data;
+using JogoDoGrupo.Server.Contratos.Itens;
 using JogoDoGrupo.Server.Contratos.Mobs;
 using JogoDoGrupo.Server.Contratos.Mundo;
 using JogoDoGrupo.Server.Core.Persistencia;
@@ -28,7 +29,7 @@ public sealed class ServicoDeLoot(
     GeradorEquipamentos gerador,
     TimeProvider relogio,
     ILogger<ServicoDeLoot> log
-) : BackgroundService
+) : BackgroundService, ILootDoDono
 {
     protected override async Task ExecuteAsync(CancellationToken parada)
     {
@@ -178,10 +179,11 @@ public sealed class ServicoDeLoot(
 
     // Grava os itens separados que couberem; o que não coube (ou tudo, se o banco falhar) volta
     // para o chão. Só depois de gravado o item sai do chão e o dono é avisado.
-    private async Task ColetarAsync(
+    private async Task<ResultadoDaColetaParaODono> ColetarAsync(
         SessaoTempoReal sessao,
         long lootIdDoPedido,
-        IReadOnlyList<LootReservado> separados
+        IReadOnlyList<LootReservado> separados,
+        bool silenciosa = false
     )
     {
         var donoId = sessao.PersonagemId;
@@ -198,7 +200,7 @@ public sealed class ServicoDeLoot(
                 chao.Devolver(loot.LootId);
             }
 
-            return;
+            return ResultadoDaColetaParaODono.SemEspaco;
         }
 
         for (var i = 0; i < separados.Count; i++)
@@ -220,8 +222,75 @@ public sealed class ServicoDeLoot(
 
         if (gravados.Count < separados.Count)
         {
-            Recusar(sessao, lootIdDoPedido, CodigosErroItens.InventarioCheio);
+            if (!silenciosa)
+            {
+                Recusar(sessao, lootIdDoPedido, CodigosErroItens.InventarioCheio);
+            }
+
+            return ResultadoDaColetaParaODono.SemEspaco;
         }
+
+        return ResultadoDaColetaParaODono.Coletado;
+    }
+
+    /// <inheritdoc />
+    public bool TentarEscolher(
+        long donoId,
+        string area,
+        float x,
+        float z,
+        float raioMetros,
+        out LootAlcancavel loot
+    )
+    {
+        if (
+            chao.TentarEscolherMaisPerto(
+                donoId,
+                area,
+                x,
+                z,
+                raioMetros,
+                relogio.GetUtcNow(),
+                out var achado
+            )
+        )
+        {
+            loot = new LootAlcancavel(achado.LootId, (float)achado.X, (float)achado.Z);
+            return true;
+        }
+
+        loot = default;
+        return false;
+    }
+
+    /// <inheritdoc />
+    public bool Continua(long donoId, long lootId) =>
+        chao.TentarObter(donoId, lootId, relogio.GetUtcNow(), out _);
+
+    /// <inheritdoc />
+    public async Task<ResultadoDaColetaParaODono> ColetarParaODono(long donoId, long lootId)
+    {
+        var agora = relogio.GetUtcNow();
+        if (!chao.TentarObter(donoId, lootId, agora, out var loot))
+        {
+            return ResultadoDaColetaParaODono.Indisponivel;
+        }
+
+        // Mesma separação da tecla F: se o dono (ou outro pedido) pegou o item entre as duas
+        // chamadas, só um dos dois vence.
+        if (!chao.TentarSeparar(donoId, lootId, agora))
+        {
+            return ResultadoDaColetaParaODono.Indisponivel;
+        }
+
+        var sessao = SessaoDe(donoId);
+        if (sessao == null)
+        {
+            chao.Devolver(lootId);
+            return ResultadoDaColetaParaODono.Indisponivel;
+        }
+
+        return await ColetarAsync(sessao, lootId, [loot], silenciosa: true);
     }
 
     /// <summary>

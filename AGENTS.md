@@ -38,7 +38,7 @@ Outros: `npm run tarefa -- ajuda`, [README](README.md#dia-a-dia), [docs/git.md](
 6. **Server:** namespace de arquivo; módulos `IFeatureModule` descobertos sozinhos, sem registro central.
 7. **Nomes de domínio em português sem acento**, termos técnicos em inglês, campos `_camelCase` ([convenções](docs/convencoes.md)).
 8. **Formatação é do CSharpier**, rodado antes do push.
-9. **Unity:** cena, prefab, `.asset`, `.meta` e `ProjectSettings/` nunca à mão; o Unity cria (script de editor ou Unity CLI). `.meta` de script, pasta, `.asmdef`, `.uss/.tss` e texto: `npm run unity:meta`. Assets de terceiros só CC0/CC-BY em `client/Assets/ThirdParty/`, em [licencas.md](docs/arte/licencas.md).
+9. **Unity:** cena, prefab, `.asset`, `.meta` e `ProjectSettings/` nunca à mão; o Unity cria (script de editor, `unity:executar`). `.meta` de script, pasta, `.asmdef`, `.uss/.tss` e texto: `npm run unity:meta`. Assets de terceiros só CC0/CC-BY em `client/Assets/ThirdParty/`, em [licencas.md](docs/arte/licencas.md).
 10. **Testes:** contrato e regra que decide resultado; concorrência se item ou moeda puder duplicar. Client sem teste obrigatório ([Testes](docs/convencoes.md#testes), matriz em [preparar-pr](.claude/skills/preparar-pr/SKILL.md), [ADR 0034](docs/decisoes/0034-menos-verificacao-repetida.md)).
 11. **Mudou regra do jogo:** `docs/features/<x>.md` na mesma mudança. **Decisão técnica:** ADR. As [invariantes de itens](docs/features/itens.md#invariantes) só mudam com o Gabriel.
 12. **Git:** nunca commite na `main`; branch `<tipo>/<escopo>/<descricao>`, commit `<tipo>(<escopo>): <descrição minúscula>`, sem `--no-verify`. Terminou: commit, push e PR sem esperar pedido. Merge é humano ([git.md](docs/git.md)).
@@ -46,7 +46,7 @@ Outros: `npm run tarefa -- ajuda`, [README](README.md#dia-a-dia), [docs/git.md](
 14. **Cada informação mora num lugar só** ([docs/README.md](docs/README.md#onde-cada-coisa-fica-fonte-única)); aponte com link.
 15. **Puxe antes de mexer:** `npm run tarefa -- puxar <N>` (com `--worktree <pasta>` se outro lote está ativo ou você é agente no checkout principal; [Worktree ao puxar](docs/agentes.md#worktree-ao-puxar)). Tarefa em andamento de outro: pare. O PR leva um `Closes #<N>` por issue do lote.
 16. **Espera que vai se repetir vira corte na hora** (script, hook, skill ou doc), no mesmo PR ou num pequeno de processo. Sem corte, não escreva nada. Tropeço de processo: skill `registrar-licao` ([Custo de IA](docs/agentes.md#custo-de-ia)).
-17. **Balanceamento:** valores ajustáveis em constantes nomeadas ou `Config<Assunto>` ([convenção](docs/convencoes.md#valores-de-balanceamento)).
+17. **Balanceamento:** constantes nomeadas ou `Config<Assunto>`; sensação no client na `Sintonia` (F10) ([convenção](docs/convencoes.md#valores-de-balanceamento)).
 18. **Entrega:** um lote tem um dono que faz contrato, servidor, client e cena no mesmo PR e escreve o [plano](docs/agentes.md#plano-da-tarefa) na issue antes de codar. No máximo **3 lotes de jogo** em andamento ([ADR 0037](docs/decisoes/0037-lotes-de-tarefas.md)).
 
 ## Skills

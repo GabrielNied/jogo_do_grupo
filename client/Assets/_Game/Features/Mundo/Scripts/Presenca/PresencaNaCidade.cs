@@ -21,6 +21,10 @@ namespace JogoDoGrupo.Client.Features.Mundo.Presenca
         private readonly LimitadorDeTaxa _limitador = new LimitadorDeTaxa(EnviosPorSegundo);
         private readonly IDisposable[] _assinaturas;
         private int _sequencia;
+        private Vector3 _ultimaPosicaoLocal;
+        private bool _temPosicaoLocal;
+        private AliadoLonge[] _aliadosLonge = Array.Empty<AliadoLonge>();
+        private float _idadeDosAliados;
         private bool _posicionado;
         private bool _descartado;
 
@@ -32,12 +36,17 @@ namespace JogoDoGrupo.Client.Features.Mundo.Presenca
             _assinaturas = new[]
             {
                 _conexao.Assinar<EstadoDaCidade>(MundoMessageIds.EstadoDaCidade, AoReceberEstado),
+                _conexao.Assinar<EstadoDaArea>(MundoMessageIds.EstadoDaArea, AoReceberEstadoDaArea),
                 _conexao.Assinar<JogadorEntrou>(MundoMessageIds.JogadorEntrou, AoEntrar),
                 _conexao.Assinar<JogadorSaiu>(MundoMessageIds.JogadorSaiu, AoSair),
                 _conexao.Assinar<PosicaoJogador>(MundoMessageIds.PosicaoJogador, AoReceberPosicao),
                 _conexao.Assinar<PosicaoForcada>(
                     MundoMessageIds.PosicaoForcada,
                     AoReceberPosicaoForcada
+                ),
+                _conexao.Assinar<PosicoesDosAliados>(
+                    MundoMessageIds.PosicoesDosAliados,
+                    AoReceberAliados
                 ),
                 _conexao.Assinar<VelocidadesDeMovimento>(
                     MundoMessageIds.VelocidadesDeMovimento,
@@ -52,7 +61,19 @@ namespace JogoDoGrupo.Client.Features.Mundo.Presenca
             }
         }
 
+        /// <summary>
+        /// Segundos sem notícia dos aliados longe: passado isso, o servidor parou de mandar (saiu
+        /// do grupo ou da cidade) e eles somem do mapa.
+        /// </summary>
+        public const float ValidadeDosAliadosLonge = 3f;
+
         public RegistroDeAvatares Avatares { get; }
+
+        /// <summary>
+        /// Aliados do grupo fora da área de interesse (#789): só posição, para o mapa e o minimapa.
+        /// O modelo 3D continua só dos que estão em <see cref="Avatares"/>.
+        /// </summary>
+        public System.Collections.Generic.IReadOnlyList<AliadoLonge> AliadosLonge => _aliadosLonge;
 
         /// <summary>
         /// Onde o jogador local nasce: só no primeiro <c>EstadoDaCidade</c>. Na reconexão o
@@ -90,6 +111,14 @@ namespace JogoDoGrupo.Client.Features.Mundo.Presenca
         public void Atualizar(float delta, Vector3 posicaoLocal, float rotacaoY)
         {
             Avatares.Atualizar(delta);
+            _ultimaPosicaoLocal = posicaoLocal;
+            _temPosicaoLocal = true;
+            _idadeDosAliados += delta;
+            if (_idadeDosAliados > ValidadeDosAliadosLonge && _aliadosLonge.Length > 0)
+            {
+                _aliadosLonge = Array.Empty<AliadoLonge>();
+            }
+
             if (!_conexao.Conectado || !_limitador.Deve(delta))
             {
                 return;
@@ -140,7 +169,14 @@ namespace JogoDoGrupo.Client.Features.Mundo.Presenca
             {
                 // Sem conexão não há presença; o snapshot da reconexão repõe todo mundo.
                 Avatares.Limpar();
+                _aliadosLonge = Array.Empty<AliadoLonge>();
             }
+        }
+
+        private void AoReceberAliados(PosicoesDosAliados mensagem)
+        {
+            _aliadosLonge = mensagem?.Aliados ?? Array.Empty<AliadoLonge>();
+            _idadeDosAliados = 0f;
         }
 
         private void EntrarNaCidade()
@@ -168,6 +204,53 @@ namespace JogoDoGrupo.Client.Features.Mundo.Presenca
                     estado.Eu.RotacaoY
                 );
             }
+            else if (estado.Eu != null)
+            {
+                // Já posicionado: só é troca de área se o servidor trouxe o jogador de longe (volta
+                // da instância). Na reconexão o servidor mantém a posição, perto do jogador.
+                AplicarMudancaDeArea(estado.Eu);
+            }
+        }
+
+        /// <summary>Longe assim (m) da posição local, o estado do servidor é troca de área.</summary>
+        public const float DistanciaDeTrocaDeArea = 20f;
+
+        private void AoReceberEstadoDaArea(EstadoDaArea estado)
+        {
+            if (estado == null)
+            {
+                return;
+            }
+
+            Avatares.Aplicar(new EstadoDaCidade { Eu = estado.Eu, Outros = estado.Outros });
+            _posicionado = true;
+            AplicarMudancaDeArea(estado.Eu);
+        }
+
+        private void AplicarMudancaDeArea(JogadorVisivel eu)
+        {
+            if (eu == null)
+            {
+                return;
+            }
+
+            var destino = new Vector3(eu.X, eu.Y, eu.Z);
+            if (MudouDeArea(destino))
+            {
+                PosicaoForcada?.Invoke(destino, eu.RotacaoY);
+            }
+        }
+
+        private bool MudouDeArea(Vector3 destino)
+        {
+            if (!_temPosicaoLocal)
+            {
+                return true;
+            }
+
+            var dx = destino.x - _ultimaPosicaoLocal.x;
+            var dz = destino.z - _ultimaPosicaoLocal.z;
+            return dx * dx + dz * dz > DistanciaDeTrocaDeArea * DistanciaDeTrocaDeArea;
         }
 
         private void AoEntrar(JogadorEntrou mensagem) => Avatares.Entrou(mensagem?.Jogador);

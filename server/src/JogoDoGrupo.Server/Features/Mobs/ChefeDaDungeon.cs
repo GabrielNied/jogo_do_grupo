@@ -295,7 +295,8 @@ public sealed class ChefeDaDungeon : IAlvosDeCombate, IInimigosSimulados
         string area,
         double origemX,
         double origemZ,
-        double direcaoYGraus
+        double direcaoYGraus,
+        long instanteReferenciaMs = 0
     )
     {
         if (area != Area)
@@ -499,7 +500,14 @@ public sealed class ChefeDaDungeon : IAlvosDeCombate, IInimigosSimulados
             if (_areas.Any(a => RegrasInimigo.Distancia(a.X, a.Z, jogador.X, jogador.Z) <= a.Raio))
             {
                 passo.Golpes.Add(
-                    new GolpeDeInimigoAcertou(_id, _definicao.Id, jogador.PersonagemId, dano, Area)
+                    new GolpeDeInimigoAcertou(
+                        _id,
+                        _definicao.Id,
+                        jogador.PersonagemId,
+                        dano,
+                        Area,
+                        _tipo
+                    )
                 );
             }
         }

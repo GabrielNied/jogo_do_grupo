@@ -719,5 +719,25 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
             var terreno = _hub.transform.Find(ConstrutorHub.NomeTerreno);
             Assert.IsNotNull(terreno.Find(ConstrutorDoTerreno.NomeBlocos));
         }
+
+        [Test]
+        public void Montagem_do_mundo_com_orcamento_pequeno_divide_em_varios_quadros_e_o_mundo_e_o_mesmo()
+        {
+            ConstrutorHub.LimparCacheParaTeste();
+            var inteiro = ConstrutorHub.MontarEtapasParaTeste(float.MaxValue);
+            ConstrutorHub.LimparCacheParaTeste();
+            var picado = ConstrutorHub.MontarEtapasParaTeste(0f);
+
+            Assert.Greater(
+                picado.Etapas,
+                inteiro.Etapas + 100,
+                "Muros, props, estruturas e caverna deveriam ceder o quadro várias vezes."
+            );
+            Assert.AreEqual(
+                inteiro.Objetos,
+                picado.Objetos,
+                "Dividir em quadros não pode mudar o mundo montado."
+            );
+        }
     }
 }
