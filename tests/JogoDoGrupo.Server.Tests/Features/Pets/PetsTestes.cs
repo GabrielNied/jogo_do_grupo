@@ -240,27 +240,49 @@ public class PetsTestes(ServidorDePets servidor) : IClassFixture<ServidorDePets>
     }
 
     [Fact]
-    public async Task Entrar_numa_caverna_remove_o_pet_e_la_nao_da_para_chamar()
+    public async Task Entrar_na_caverna_leva_o_pet_junto_e_ele_reaparece_ao_lado_do_dono()
     {
         using var ana = await NovoJogadorAsync();
         Chamar(ana);
         await ApareceuAsync(ana);
+        var area = AreasDoMundo.Instancia("pets-teste");
 
         var movido = servidor
             .Servico<ITransicoesDeAreaDoMundo>()
-            .TentarMoverParaArea(
-                ana.Id,
-                new PosicaoNoMundo(AreasDoMundo.Instancia("pets-teste"), 0, 0, 0, 0)
-            );
+            .TentarMoverParaArea(ana.Id, new PosicaoNoMundo(area, 5, 0, 5, 0));
         Assert.True(movido);
 
         await ana.Cliente.ReceberAsync<PetSumiu>(PetsMessageIds.PetSumiu);
-        Assert.Equal(0, Pets);
+        var pet = await ApareceuAsync(ana);
+        Assert.Equal(ana.Id, pet.DonoId);
+        Assert.Equal(1, Pets);
+        Assert.Equal(
+            ConfigPets.DistanciaDeSeguidaMetros,
+            RegrasPets.Distancia(pet.X, pet.Z, 5, 5),
+            2
+        );
 
-        Chamar(ana);
-        var recusa = await ana.Cliente.ReceberAsync<PetRecusado>(PetsMessageIds.PetRecusado);
-        Assert.Equal(CodigosErroPets.ForaDaCidade, recusa.Codigo);
-        Assert.Equal(0, Pets);
+        // Lá dentro o pet também junta o loot do dono.
+        servidor.Sorteador.Resultado = [Espada];
+        servidor
+            .Servico<EventosDoServidor>()
+            .Publicar(
+                new InimigoDerrotado(
+                    1,
+                    RegrasInimigo.CriaturaDaFatia,
+                    VarianteDeCriatura.Normal,
+                    40,
+                    1.0,
+                    area,
+                    8,
+                    5,
+                    [ana.Id],
+                    Interlocked.Increment(ref _mortes),
+                    0
+                )
+            );
+        await ana.Cliente.ReceberAsync<LootColetado>(ItensMessageIds.LootColetado);
+        Assert.Equal(new[] { Espada }, await InventarioAsync(ana));
     }
 
     [Fact]

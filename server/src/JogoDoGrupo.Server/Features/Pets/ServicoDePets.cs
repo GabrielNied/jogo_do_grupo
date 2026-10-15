@@ -44,13 +44,9 @@ public sealed class ServicoDePets(
             return;
         }
 
-        if (
-            !posicoes.TentarObter(donoId, out var dono)
-            || dono.Area != AreasDoMundo.Cidade
-            || !Enum.IsDefined(pedido.Especie)
-        )
+        if (!posicoes.TentarObter(donoId, out var dono) || !Enum.IsDefined(pedido.Especie))
         {
-            Recusar(sessao, CodigosErroPets.ForaDaCidade);
+            Recusar(sessao, CodigosErroPets.SemPosicao);
             return;
         }
 
@@ -72,25 +68,56 @@ public sealed class ServicoDePets(
         Remover(pet);
     }
 
-    /// <summary>Quem deixou uma área (saiu do jogo, caiu ou trocou de área) fica sem pet.</summary>
+    /// <summary>
+    /// Quem deixou uma área por sair do jogo ou cair fica sem pet. Quem só trocou de área (cidade
+    /// e instância) continua no Mundo: o pet vai junto, em <see cref="AoEntrarNaArea"/>.
+    /// </summary>
     public void AoSairDaArea(JogadorSaiuDaArea saida)
     {
-        if (_pets.TryGetValue(saida.PersonagemId, out var pet))
+        if (
+            _pets.TryGetValue(saida.PersonagemId, out var pet)
+            && !posicoes.TentarObter(saida.PersonagemId, out _)
+        )
         {
             Remover(pet);
         }
     }
 
-    /// <summary>Quem entra numa área que não é a cidade (caverna, dungeon) fica sem pet.</summary>
+    /// <summary>
+    /// Quem entra noutra área (caverna, dungeon ou volta à cidade) leva o pet: ele some para
+    /// quem via na área antiga e reaparece junto do dono na nova.
+    /// </summary>
     public void AoEntrarNaArea(JogadorEntrouNaArea entrada)
     {
         if (
-            entrada.Area != AreasDoMundo.Cidade
-            && _pets.TryGetValue(entrada.PersonagemId, out var pet)
+            !_pets.TryGetValue(entrada.PersonagemId, out var pet)
+            || !posicoes.TentarObter(entrada.PersonagemId, out var dono)
         )
         {
-            Remover(pet);
+            return;
         }
+
+        foreach (var id in pet.Vistos)
+        {
+            if (tempoReal.TentarObterSessao(id, out var sessao) && sessao != null)
+            {
+                tempoReal.Enviar(
+                    sessao,
+                    PetsMessageIds.PetSumiu,
+                    new PetSumiu { DonoId = pet.DonoId }
+                );
+            }
+        }
+
+        pet.Vistos.Clear();
+        RegrasPets.PontoDeChegada(dono.X, dono.Z, dono.RotacaoY, out var x, out var z);
+        pet.X = x;
+        pet.Y = dono.Y;
+        pet.Z = z;
+        pet.RotacaoY = dono.RotacaoY;
+        pet.Andando = false;
+        pet.Atividade = AtividadeDoPet.Seguindo;
+        Publicar(pet, mudou: false);
     }
 
     /// <summary>Um passo de <paramref name="segundos"/> para todos os pets (laço do tempo real).</summary>
@@ -116,7 +143,7 @@ public sealed class ServicoDePets(
 
     private void Avancar(PetDoDono pet, float dt)
     {
-        if (!posicoes.TentarObter(pet.DonoId, out var dono) || dono.Area != AreasDoMundo.Cidade)
+        if (!posicoes.TentarObter(pet.DonoId, out var dono))
         {
             Remover(pet);
             return;
