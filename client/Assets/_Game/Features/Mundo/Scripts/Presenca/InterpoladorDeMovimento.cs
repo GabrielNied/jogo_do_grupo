@@ -118,7 +118,22 @@ namespace JogoDoGrupo.Client.Features.Mundo.Presenca
                 var ultimo = _buffer[_buffer.Count - 1];
                 if (snapshot.Tempo <= ultimo.Tempo)
                 {
-                    return false;
+                    if (snapshot.Sequencia > 0 && snapshot.Sequencia > _ultimaSequencia)
+                    {
+                        snapshot = new SnapshotDeMovimento(
+                            ultimo.Tempo + 0.0001,
+                            snapshot.X,
+                            snapshot.Y,
+                            snapshot.Z,
+                            snapshot.RotacaoY,
+                            snapshot.Sequencia,
+                            snapshot.TempoServidorMs
+                        );
+                    }
+                    else
+                    {
+                        return false;
+                    }
                 }
 
                 var dx = snapshot.X - ultimo.X;
@@ -146,6 +161,10 @@ namespace JogoDoGrupo.Client.Features.Mundo.Presenca
                         _vx = _vy = _vz = 0f;
                     }
                 }
+            }
+            else
+            {
+                _amostrasValidas = 1;
             }
 
             if (snapshot.Sequencia > 0)

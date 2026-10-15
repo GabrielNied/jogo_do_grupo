@@ -12,16 +12,26 @@ namespace JogoDoGrupo.Client.Features.Personagem.Tests
     /// </summary>
     public class RegistroVisualJogadorTestes
     {
+        private readonly List<GameObject> _criados = new List<GameObject>();
+
         [TearDown]
         public void Limpar()
         {
             RegistroVisualJogador.LembrarRacas(null);
+            foreach (var go in _criados)
+            {
+                if (go != null)
+                {
+                    UnityEngine.Object.DestroyImmediate(go);
+                }
+            }
+            _criados.Clear();
         }
 
         [Test]
-        public void CarregarVisual_CadaRacaTemOPrefabProprio_ForaDeCena()
+        public void CarregarVisual_CadaRacaTemOPrefabProprio()
         {
-            var vistos = new HashSet<GameObject>();
+            var vistos = new HashSet<string>();
             long id = 1;
             foreach (Raca raca in Enum.GetValues(typeof(Raca)))
             {
@@ -33,6 +43,7 @@ namespace JogoDoGrupo.Client.Features.Personagem.Tests
                 );
 
                 var visual = RegistroVisualJogador.CarregarVisual(id);
+                _criados.Add(visual);
 
                 Assert.IsNotNull(
                     visual,
@@ -40,9 +51,13 @@ namespace JogoDoGrupo.Client.Features.Personagem.Tests
                         + RegistroVisualJogador.CaminhoDoPrefab(raca)
                         + " não foi encontrado."
                 );
-                Assert.IsFalse(visual.scene.IsValid(), "Deve ser o prefab; o Core instancia.");
+                Assert.IsTrue(
+                    visual.scene.IsValid(),
+                    "Deve ser a instância com a aparência aplicada."
+                );
                 Assert.IsNotNull(visual.GetComponentInChildren<Animator>());
-                Assert.IsTrue(vistos.Add(visual), "Prefab repetido para " + raca);
+                var nomeBase = visual.name.Replace("(Clone)", "").Trim();
+                Assert.IsTrue(vistos.Add(nomeBase), "Prefab repetido para " + raca);
                 id++;
             }
         }
@@ -54,7 +69,11 @@ namespace JogoDoGrupo.Client.Features.Personagem.Tests
                 RegistroVisualJogador.CaminhoDoPrefab(RegistroVisualJogador.RacaPadrao)
             );
 
-            Assert.AreSame(esperado, RegistroVisualJogador.CarregarVisual(99));
+            var visual = RegistroVisualJogador.CarregarVisual(99);
+            _criados.Add(visual);
+
+            Assert.IsNotNull(visual);
+            StringAssert.StartsWith(esperado.name, visual.name);
         }
 
         [Test]
@@ -67,6 +86,7 @@ namespace JogoDoGrupo.Client.Features.Personagem.Tests
                 }
             );
             var silvano = RegistroVisualJogador.CarregarVisual(5);
+            _criados.Add(silvano);
 
             RegistroVisualJogador.LembrarRacas(
                 new[]
@@ -75,7 +95,9 @@ namespace JogoDoGrupo.Client.Features.Personagem.Tests
                 }
             );
 
-            Assert.AreNotSame(silvano, RegistroVisualJogador.CarregarVisual(5));
+            var novo = RegistroVisualJogador.CarregarVisual(5);
+            _criados.Add(novo);
+            Assert.AreNotSame(silvano, novo);
         }
     }
 }

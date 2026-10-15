@@ -76,7 +76,8 @@ namespace JogoDoGrupo.Client.Features.Skills
             container.pickingMode = PickingMode.Ignore;
             documento.rootVisualElement.Add(container);
 
-            raiz.AddComponent<ControleSkills>().Configurar(personagemId, new PainelSkills(container));
+            raiz.AddComponent<ControleSkills>()
+                .Configurar(personagemId, new PainelSkills(container));
         }
     }
 }
