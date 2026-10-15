@@ -183,6 +183,7 @@ public class ReacaoEGuardaRedeTestes(ServidorDeAtaque servidor) : IClassFixture<
             CombateMessageIds.IntencaoDeAtaque,
             new IntencaoDeAtaque { Tipo = TipoDeAtaque.Leve, Sequencia = 1 }
         );
+        await ana.Cliente.ReceberAsync<AtaqueIniciado>(CombateMessageIds.AtaqueIniciado);
 
         Guardar(ana, true);
 
