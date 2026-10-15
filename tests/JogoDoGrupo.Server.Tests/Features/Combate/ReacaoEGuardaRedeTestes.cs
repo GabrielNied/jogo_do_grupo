@@ -6,6 +6,7 @@ using JogoDoGrupo.Server.Tests.Core.TempoReal;
 using JogoDoGrupo.Server.Tests.Infra;
 using JogoDoGrupo.Shared.Features.Combate;
 using JogoDoGrupo.Shared.Features.Itens;
+using JogoDoGrupo.Shared.Features.Mobs;
 using JogoDoGrupo.Shared.Features.Mundo;
 using JogoDoGrupo.Shared.Features.Personagem;
 using Microsoft.EntityFrameworkCore;
@@ -45,10 +46,14 @@ public class ReacaoEGuardaRedeTestes(ServidorDeAtaque servidor) : IClassFixture<
         return jogador;
     }
 
-    private void Golpear(long personagemId, int dano) =>
+    private void Golpear(
+        long personagemId,
+        int dano,
+        TipoDeAtaqueDeInimigo tipo = TipoDeAtaqueDeInimigo.Golpe
+    ) =>
         servidor
             .Falso.Services.GetRequiredService<EventosDoServidor>()
-            .Publicar(new GolpeDeInimigoAcertou(1, 1, personagemId, dano, "cidade"));
+            .Publicar(new GolpeDeInimigoAcertou(1, 1, personagemId, dano, "cidade", tipo));
 
     private static void Guardar(Jogador j, bool segurando) =>
         j.Cliente.Enviar(
@@ -90,7 +95,7 @@ public class ReacaoEGuardaRedeTestes(ServidorDeAtaque servidor) : IClassFixture<
     {
         using var ana = await NovoJogadorAsync();
 
-        Golpear(ana.Id, 10);
+        Golpear(ana.Id, 10, TipoDeAtaqueDeInimigo.Investida);
         var interrompida = await ana.Cliente.ReceberAsync<AcaoInterrompida>(
             CombateMessageIds.AcaoInterrompida
         );
@@ -115,6 +120,30 @@ public class ReacaoEGuardaRedeTestes(ServidorDeAtaque servidor) : IClassFixture<
         );
         Assert.Equal(CodigosErroCombate.AcaoEmAndamento, esquiva.Codigo);
         Assert.Equal(CodigosErroCombate.AcaoEmAndamento, ataque.Codigo);
+    }
+
+    [Fact]
+    public async Task Golpe_comum_de_inimigo_nao_interrompe_nem_atordoa_o_jogador()
+    {
+        using var ana = await NovoJogadorAsync();
+
+        Golpear(ana.Id, 10, TipoDeAtaqueDeInimigo.Golpe);
+        var recursos = await RecursosAsync(ana);
+        Assert.True(recursos.VidaAtual > 0);
+
+        // Não recebe AcaoInterrompida.
+        Assert.False(ana.Recebeu(CombateMessageIds.AcaoInterrompida));
+
+        // Esquiva imediata é aceita, sem recusa por ação em andamento.
+        ana.Cliente.Enviar(
+            CombateMessageIds.IntencaoDeEsquiva,
+            new IntencaoDeEsquiva { DirecaoY = 0f, Sequencia = 1 }
+        );
+        var esquiva = await ana.Cliente.ReceberAsync<EsquivaIniciada>(
+            CombateMessageIds.EsquivaIniciada
+        );
+        Assert.Equal(ana.Id, esquiva.PersonagemId);
+        Assert.False(ana.Recebeu(CombateMessageIds.EsquivaRecusada));
     }
 
     [Fact]

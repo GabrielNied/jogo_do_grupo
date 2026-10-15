@@ -879,7 +879,8 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
                             inimigo.Criatura.Definicao.Id,
                             jogador.PersonagemId,
                             inimigo.Criatura.Dano,
-                            Area
+                            Area,
+                            TipoDeAtaqueDeInimigo.Golpe
                         )
                     );
                     passo.Acertos.Add(

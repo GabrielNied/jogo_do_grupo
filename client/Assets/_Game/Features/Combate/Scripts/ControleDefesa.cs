@@ -298,7 +298,11 @@ namespace JogoDoGrupo.Client.Features.Combate
         private void AoInterromper(AcaoInterrompida interrupcao)
         {
             // Os inimigos interrompidos são do visual de Mobs; aqui só o próprio personagem.
-            if (!interrupcao.Jogador || interrupcao.AlvoId != _personagemId)
+            if (
+                !interrupcao.Jogador
+                || interrupcao.AlvoId != _personagemId
+                || interrupcao.DuracaoMs <= 0
+            )
             {
                 return;
             }

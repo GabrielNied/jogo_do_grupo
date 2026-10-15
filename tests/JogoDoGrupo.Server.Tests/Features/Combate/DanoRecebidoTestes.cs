@@ -7,6 +7,7 @@ using JogoDoGrupo.Server.Tests.Core.TempoReal;
 using JogoDoGrupo.Server.Tests.Infra;
 using JogoDoGrupo.Shared.Features.Combate;
 using JogoDoGrupo.Shared.Features.Itens;
+using JogoDoGrupo.Shared.Features.Mobs;
 using JogoDoGrupo.Shared.Features.Personagem;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -43,10 +44,14 @@ public class DanoRecebidoTestes(ServidorDeAtaque servidor) : IClassFixture<Servi
         return new Jogador(http, cliente, personagem.Id);
     }
 
-    private void Golpear(long personagemId, int dano) =>
+    private void Golpear(
+        long personagemId,
+        int dano,
+        TipoDeAtaqueDeInimigo tipo = TipoDeAtaqueDeInimigo.Golpe
+    ) =>
         servidor
             .Falso.Services.GetRequiredService<EventosDoServidor>()
-            .Publicar(new GolpeDeInimigoAcertou(1, 1, personagemId, dano, "cidade"));
+            .Publicar(new GolpeDeInimigoAcertou(1, 1, personagemId, dano, "cidade", tipo));
 
     private static async Task<RecursosResponse> RecursosAsync(Jogador j)
     {
@@ -227,4 +232,34 @@ public class DanoRecebidoTestes(ServidorDeAtaque servidor) : IClassFixture<Servi
     [InlineData(-5, 0)]
     public void Dano_final_nao_e_negativo(int golpe, int esperado) =>
         Assert.Equal(esperado, ServicoDeDanoRecebido.DanoFinal(golpe));
+
+    [Fact]
+    public async Task Golpe_comum_de_inimigo_tira_vida_mas_nao_emite_acao_interrompida()
+    {
+        using var ana = await NovoJogadorAsync();
+        var antes = await RecursosAsync(ana);
+
+        Golpear(ana.Id, 20, TipoDeAtaqueDeInimigo.Golpe);
+
+        var aviso = await MudouAsync(ana);
+        Assert.Equal(antes.VidaAtual - 20, aviso.VidaAtual);
+        Assert.False(ana.Recebeu(CombateMessageIds.AcaoInterrompida));
+    }
+
+    [Fact]
+    public async Task Golpe_especial_de_inimigo_tira_vida_e_emite_acao_interrompida()
+    {
+        using var ana = await NovoJogadorAsync();
+        var antes = await RecursosAsync(ana);
+
+        Golpear(ana.Id, 25, TipoDeAtaqueDeInimigo.Investida);
+
+        var aviso = await MudouAsync(ana);
+        Assert.Equal(antes.VidaAtual - 25, aviso.VidaAtual);
+        var interrompida = await ana.Cliente.ReceberAsync<AcaoInterrompida>(
+            CombateMessageIds.AcaoInterrompida
+        );
+        Assert.True(interrompida.Jogador);
+        Assert.Equal(ana.Id, interrompida.AlvoId);
+    }
 }

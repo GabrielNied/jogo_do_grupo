@@ -268,5 +268,5 @@ Eventos para as outras funcionalidades do servidor (`server/.../Contratos/Mobs/`
 
 | Evento | Quando | Campos |
 |---|---|---|
-| `GolpeDeInimigoAcertou` | o golpe de um inimigo pegou um personagem (um evento por personagem) | `InimigoId`, `CriaturaId`, `PersonagemId`, `Dano` (já com a variante, antes de defesa), `Area` |
+| `GolpeDeInimigoAcertou` | o golpe de um inimigo pegou um personagem (um evento por personagem) | `InimigoId`, `CriaturaId`, `PersonagemId`, `Dano` (já com a variante, antes de defesa), `Area`, `Tipo` (`InterrompeAlvo`, #795) |
 | `InimigoDerrotado` | um inimigo morreu (uma vez por morte) | `InimigoId`, `CriaturaId`, `Variante`, `Experiencia`, `MultiplicadorDeRecompensa`, `Area`, `X`, `Z`, `Participantes`, `Nivel` |
