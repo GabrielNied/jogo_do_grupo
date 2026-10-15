@@ -42,6 +42,12 @@ public sealed class DiretorioDoChatFalso : IDiretorioDePersonagens
         return false;
     }
 
+    public bool TentarObterRaca(long personagemId, out int raca)
+    {
+        raca = 1;
+        return true;
+    }
+
     public bool TentarObterContaDoPersonagem(long personagemId, out long contaId)
     {
         contaId = personagemId;
@@ -54,9 +60,18 @@ public sealed class PosicoesFalsas : IPosicoesDoMundo
 {
     public List<long> NaCidade { get; } = [];
 
+    /// <summary>Quem está na cidade mas fora dos muros (no terreno em volta).</summary>
+    public HashSet<long> ForaDosMuros { get; } = [];
+
     public bool TentarObter(long personagemId, out PosicaoNoMundo posicao)
     {
-        posicao = new PosicaoNoMundo(AreasDoMundo.Cidade, 0, 0, 0, 0);
+        posicao = new PosicaoNoMundo(
+            AreasDoMundo.Cidade,
+            ForaDosMuros.Contains(personagemId) ? 500 : 0,
+            0,
+            0,
+            0
+        );
         return NaCidade.Contains(personagemId);
     }
 
@@ -127,6 +142,27 @@ public class ChatDoServidorTestes
         Assert.Equal("", mensagem.NomeDoAlvo);
         Assert.Equal("bom dia", mensagem.Texto);
         Assert.Equal(_relogio.GetUtcNow().ToUnixTimeMilliseconds(), mensagem.HoraUnixMs);
+    }
+
+    [Fact]
+    public void Canal_cidade_nao_chega_a_quem_esta_fora_dos_muros()
+    {
+        _posicoes.NaCidade.AddRange([Ana, Bia, Caio]);
+        _posicoes.ForaDosMuros.Add(Caio);
+
+        var resultado = Enviar(Ana, CanalDeChat.Cidade, "bom dia");
+
+        Assert.Null(resultado.Recusa);
+        Assert.Equal(new[] { Ana, Bia }, resultado.Destinatarios.Order());
+    }
+
+    [Fact]
+    public void Quem_fala_de_fora_dos_muros_recebe_canal_indisponivel()
+    {
+        _posicoes.NaCidade.AddRange([Ana, Bia]);
+        _posicoes.ForaDosMuros.Add(Ana);
+
+        AssertRecusada(CodigosErroSocial.CanalIndisponivel, Enviar(Ana, CanalDeChat.Cidade, "oi"));
     }
 
     [Fact]

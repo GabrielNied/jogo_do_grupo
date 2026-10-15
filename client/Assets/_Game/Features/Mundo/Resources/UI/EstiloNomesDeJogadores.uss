@@ -1,0 +1,18 @@
+.nomes-camada {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.nome-jogador {
+    position: absolute;
+    translate: -50% -100%;
+    font-size: var(--lumora-tipografia-leitura);
+    color: var(--lumora-cores-marfim);
+    -unity-text-outline-width: var(--lumora-bordas-fina);
+    -unity-text-outline-color: var(--lumora-cores-trilho);
+    white-space: nowrap;
+    -unity-text-align: middle-center;
+}

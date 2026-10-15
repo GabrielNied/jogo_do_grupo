@@ -299,6 +299,12 @@ public sealed class SocialModule : IFeatureModule, IConsultaDeGrupo
             return _real?.TentarObterNome(personagemId, out nome) ?? false;
         }
 
+        public bool TentarObterRaca(long personagemId, out int raca)
+        {
+            raca = 0;
+            return _real?.TentarObterRaca(personagemId, out raca) ?? false;
+        }
+
         public bool TentarObterContaDoPersonagem(long personagemId, out long contaId)
         {
             contaId = 0;

@@ -13,9 +13,17 @@ namespace JogoDoGrupo.Client.Features.Mundo.Presenca
 
         private readonly InterpoladorDeMovimento _interpolador = new InterpoladorDeMovimento();
 
-        public AvatarRemoto(long personagemId, Vector3 posicao, float rotacaoY)
+        public AvatarRemoto(
+            long personagemId,
+            Vector3 posicao,
+            float rotacaoY,
+            string nome = "",
+            int raca = 0
+        )
         {
             PersonagemId = personagemId;
+            Nome = nome ?? string.Empty;
+            Raca = raca;
             Posicao = posicao;
             Alvo = posicao;
             RotacaoY = rotacaoY;
@@ -30,12 +38,40 @@ namespace JogoDoGrupo.Client.Features.Mundo.Presenca
         }
 
         public long PersonagemId { get; }
+
+        /// <summary>Nome do personagem (vazio até o servidor informar).</summary>
+        public string Nome { get; private set; }
+
+        /// <summary>Raça como número (0 até o servidor informar).</summary>
+        public int Raca { get; private set; }
         public Vector3 Posicao { get; private set; }
         public float RotacaoY { get; private set; }
         public Vector3 Alvo { get; private set; }
         public float AlvoRotacaoY { get; private set; }
         public float Velocidade { get; private set; }
         public double Relogio { get; private set; }
+
+        /// <summary>
+        /// Guarda nome e raça que o servidor informou. Informação vazia (nome em branco, raça 0)
+        /// não apaga o que já se sabe. Devolve <c>true</c> se algo mudou.
+        /// </summary>
+        public bool DefinirIdentidade(string nome, int raca)
+        {
+            var mudou = false;
+            if (!string.IsNullOrEmpty(nome) && nome != Nome)
+            {
+                Nome = nome;
+                mudou = true;
+            }
+
+            if (raca != 0 && raca != Raca)
+            {
+                Raca = raca;
+                mudou = true;
+            }
+
+            return mudou;
+        }
 
         public bool DefinirAlvo(Vector3 posicao, float rotacaoY) =>
             AdicionarAmostra(posicao, rotacaoY, 0, 0);

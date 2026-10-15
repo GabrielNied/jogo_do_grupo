@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using JogoDoGrupo.Client.Core.Jogo;
 using JogoDoGrupo.Shared.Features.Personagem;
@@ -30,6 +31,26 @@ namespace JogoDoGrupo.Client.Features.Personagem
         {
             _dadosPorPersonagem.Clear();
             EntradaNoJogo.DefinirVisualDoJogador(CarregarVisual);
+            EntradaNoJogo.DefinirVisualDeOutroJogador(CarregarVisualDaRaca);
+        }
+
+        /// <summary>
+        /// Visual de outro jogador pela raça que o servidor mandou (número do enum <see cref="Raca"/>).
+        /// Raça desconhecida ou sem prefab usa o prefab de reserva (<see cref="RacaPadrao"/>); sem
+        /// nenhum, devolve <c>null</c> e o Core põe a cápsula. A aparência dos outros não é enviada,
+        /// então vale a do prefab.
+        /// </summary>
+        internal static GameObject CarregarVisualDaRaca(int raca)
+        {
+            var prefab = Enum.IsDefined(typeof(Raca), raca)
+                ? Resources.Load<GameObject>(CaminhoDoPrefab((Raca)raca))
+                : null;
+            if (prefab == null)
+            {
+                prefab = Resources.Load<GameObject>(CaminhoDoPrefab(RacaPadrao));
+            }
+
+            return prefab == null ? null : UnityEngine.Object.Instantiate(prefab);
         }
 
         /// <summary>
@@ -64,7 +85,7 @@ namespace JogoDoGrupo.Client.Features.Personagem
                 return null;
             }
 
-            var instancia = Object.Instantiate(prefab);
+            var instancia = UnityEngine.Object.Instantiate(prefab);
             AplicadorAparencia.Aplicar(instancia, dados.Aparencia);
             return instancia;
         }

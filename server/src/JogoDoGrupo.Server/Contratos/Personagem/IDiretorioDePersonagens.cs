@@ -22,4 +22,10 @@ public interface IDiretorioDePersonagens
 
     /// <summary>A conta dona do personagem. Falso se o id não existe.</summary>
     bool TentarObterContaDoPersonagem(long personagemId, out long contaId);
+
+    /// <summary>
+    /// A raça do personagem, como número (o valor do enum <c>Raca</c> de Personagem). Falso, com
+    /// 0, se o id não existe.
+    /// </summary>
+    bool TentarObterRaca(long personagemId, out int raca);
 }

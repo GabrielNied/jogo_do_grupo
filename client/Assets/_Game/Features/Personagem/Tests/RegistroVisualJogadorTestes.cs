@@ -77,6 +77,37 @@ namespace JogoDoGrupo.Client.Features.Personagem.Tests
         }
 
         [Test]
+        public void CarregarVisualDaRaca_UsaOPrefabDaRacaQueOServidorMandou()
+        {
+            var visual = RegistroVisualJogador.CarregarVisualDaRaca((int)Raca.Aurideo);
+            _criados.Add(visual);
+
+            Assert.IsNotNull(visual);
+            StringAssert.StartsWith(
+                RegistroVisualJogador.CaminhoDoPrefab(Raca.Aurideo).Replace("Personagem/", ""),
+                visual.name
+            );
+            Assert.IsNotNull(visual.GetComponentInChildren<Animator>());
+        }
+
+        [TestCase(0)]
+        [TestCase(99)]
+        [TestCase(-3)]
+        public void CarregarVisualDaRaca_RacaSemPrefab_UsaOPrefabDeReserva(int raca)
+        {
+            var visual = RegistroVisualJogador.CarregarVisualDaRaca(raca);
+            _criados.Add(visual);
+
+            Assert.IsNotNull(visual, "Sem prefab de reserva o outro jogador vira cápsula.");
+            StringAssert.StartsWith(
+                RegistroVisualJogador
+                    .CaminhoDoPrefab(RegistroVisualJogador.RacaPadrao)
+                    .Replace("Personagem/", ""),
+                visual.name
+            );
+        }
+
+        [Test]
         public void LembrarRacas_SubstituiAListaAnterior()
         {
             RegistroVisualJogador.LembrarRacas(
