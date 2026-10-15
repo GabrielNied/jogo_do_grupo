@@ -109,3 +109,9 @@
 # /server/src/JogoDoGrupo.Server/Features/Desenvolvimento/ @usuario
 # /shared/Package/Runtime/Features/Desenvolvimento/ @usuario
 # /docs/features/desenvolvimento.md @usuario
+
+# Pets
+# /client/Assets/_Game/Features/Pets/ @usuario
+# /server/src/JogoDoGrupo.Server/Features/Pets/ @usuario
+# /shared/Package/Runtime/Features/Pets/ @usuario
+# /docs/features/pets.md @usuario

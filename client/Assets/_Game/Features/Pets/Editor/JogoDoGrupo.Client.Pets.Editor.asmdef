@@ -1,0 +1,16 @@
+{
+  "name": "JogoDoGrupo.Client.Pets.Editor",
+  "rootNamespace": "JogoDoGrupo.Client.Features.Pets.Editor",
+  "references": ["JogoDoGrupo.Shared"],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": false,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

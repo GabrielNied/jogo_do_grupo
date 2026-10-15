@@ -236,6 +236,7 @@ A regra principal: **cada funcionalidade vive na própria pasta, nas três parte
 | Social | `Social` | 13000–13999 | Party (time), guilda e chat. |
 | PvP | `Pvp` | 14000–14999 | Arenas, PvP no mundo aberto e guerra de guildas. |
 | Desenvolvimento | `Desenvolvimento` | 15000–15999 | Comandos de teste no editor e no build de desenvolvimento (experiência, teleporte, spawn). |
+| Pets | `Pets` | 17000–17999 | Pet que segue o dono (cervo jovem), junta o loot dele e aparece para quem está por perto. |
 
 Responsáveis por cada uma: [docs/responsaveis.md](docs/responsaveis.md).
 

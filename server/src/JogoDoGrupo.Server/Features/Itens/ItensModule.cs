@@ -68,6 +68,9 @@ public sealed class ItensModule : IFeatureModule
             return servico;
         });
         servicos.AddHostedService(sp => sp.GetRequiredService<ServicoDeLoot>());
+        servicos.AddSingleton<JogoDoGrupo.Server.Contratos.Itens.ILootDoDono>(sp =>
+            sp.GetRequiredService<ServicoDeLoot>()
+        );
     }
 
     public void MapearRotas(IEndpointRouteBuilder rotas) => ItensRotas.Mapear(rotas);
