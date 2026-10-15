@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    Robôs de carga do tempo real (issue #150): contas e personagens pela API HTTP, LiteNetLib
+    (ADR 0015) e os contratos do shared, sem referenciar o servidor. Uso no README.md ao lado.
+  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>JogoDoGrupo.Robos</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="LiteNetLib" Version="2.1.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\shared\JogoDoGrupo.Shared.csproj" />
+  </ItemGroup>
+</Project>

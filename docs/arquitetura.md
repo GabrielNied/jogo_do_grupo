@@ -72,7 +72,15 @@ O Core grava logs estruturados no caminho `Observabilidade:CaminhoLog` (padrão
 arquivos. Propriedades sensíveis são mascaradas, inclusive dentro de objetos e coleções,
 sem descartar o evento. `GET /saude` confirma que o processo
 está respondendo; `GET /admin/metricas` exige a claim `permissao=administrar` e retorna jogadores
-online e erros no último minuto ([ADR 0033](decisoes/0033-mascaramento-de-logs.md)).
+online, erros no último minuto ([ADR 0033](decisoes/0033-mascaramento-de-logs.md)) e o tick do
+laço do tempo real em `Passos` (passos por segundo e duração p50/p95/máxima dos últimos 512
+passos, de `ServidorTempoReal.Passos`).
+
+#### Carga do tempo real
+
+**Meta (#150):** **80 jogadores na mesma área**, todos à vista uns dos outros (a lotação de canal proposta no [#188](https://github.com/GabrielNied/jogo_do_grupo/issues/188)), com zero erros, laço a **50 passos/s ou mais** com passo **p95 até 10 ms**, e ataque de ida e volta **p95 até 100 ms** na rede local. Mede-se com os [robôs de carga](../tools/JogoDoGrupo.Robos/README.md); o `dotnet test` roda uma versão curta só para pegar regressão de protocolo.
+
+Medido em 2026-10-15 (servidor Release e robôs no mesmo PC de desenvolvimento, SQLite): 80 robôs dão 63 passos/s, passo p95 4,8 ms e ataque p95 65 ms; 150 ainda cabem na meta (52 passos/s, p95 9,9 ms); perto de 190 o laço cai para 23 passos/s com passo p95 50 ms. Antes da CPU, o gargalo é a **banda**: cada jogador que vê outros 79 andando recebe ~800 pacotes/s (~95 KB/s), cerca de 60 Mbit/s de upload para 80 jogadores, acima do upload de um PC de casa ([hospedagem](hospedagem.md)). A área de interesse (#500) só ajuda quando as pessoas se espalham.
 
 O servidor é um app ASP.NET Core em `http://localhost:5080` (desenvolvimento). O `Program.cs` encontra todos os `IFeatureModule` sozinho e chama, nesta ordem, `ConfigurarServicos`, `MapearRotas` e `Inicializar`. Os dois primeiros são opcionais ([ADR 0012](decisoes/0012-pontos-de-extensao-do-servidor.md)).
 
