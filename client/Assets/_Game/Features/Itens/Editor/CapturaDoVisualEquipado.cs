@@ -50,18 +50,115 @@ namespace JogoDoGrupo.Client.Features.Itens.Editor
                     },
                 };
                 var postos = ApresentadorDoVisual.Aplicar(jogador.transform, visual);
-                Debug.Log($"[VisualEquipado] modelos postos: {postos}");
-                foreach (var arma in jogador.GetComponentsInChildren<ArmaNoAvatar>())
+                var logBuffer = new System.Text.StringBuilder();
+                logBuffer.AppendLine($"[VisualEquipado] modelos postos: {postos}");
+
+                // Pega os clipes do FBX
+                var assets = AssetDatabase.LoadAllAssetsAtPath(
+                    Prefab.Replace(
+                        "Resources/Personagem/Jogador_Valdren.prefab",
+                        "Art/Modelos/Valdren.fbx"
+                    )
+                );
+                AnimationClip atacarClip = null;
+                AnimationClip idleClip = null;
+                foreach (var a in assets)
                 {
-                    Debug.Log(
-                        $"[VisualEquipado] {arma.name} em {arma.transform.parent.name}: "
-                            + $"mundo {arma.transform.position} para cima {arma.transform.up}"
-                    );
+                    if (a is AnimationClip clip)
+                    {
+                        if (clip.name == "Atacar")
+                            atacarClip = clip;
+                        if (clip.name == "Idle")
+                            idleClip = clip;
+                    }
                 }
 
+                var alvoAnimacao = jogador.transform.Find("Valdren")?.gameObject ?? jogador;
+                if (idleClip != null)
+                {
+                    idleClip.SampleAnimation(alvoAnimacao, 0f);
+                    foreach (var t in jogador.GetComponentsInChildren<Transform>())
+                    {
+                        if (
+                            t.name == "Weapon.R"
+                            || t.name == "EncaixeMaoDireita"
+                            || t.name == "Costas"
+                            || t.name == "EncaixeCostas"
+                        )
+                        {
+                            logBuffer.AppendLine(
+                                $"[Idle 0s] {t.name}: worldPos={t.position}, worldFwd={t.forward}, worldUp={t.up}"
+                            );
+                        }
+                    }
+                }
+
+                // Captura padrão (Espada na mão, Arco nas costas)
+                var visualPadrao = new VisualEquipado
+                {
+                    PersonagemId = 1,
+                    ConjuntoAtivo = 1,
+                    Armas = new[]
+                    {
+                        new ArmaVisual
+                        {
+                            Posicao = PosicaoEquipamento.Arma1,
+                            Tipo = TipoEquipamento.Espada,
+                        },
+                        new ArmaVisual
+                        {
+                            Posicao = PosicaoEquipamento.Arma2,
+                            Tipo = TipoEquipamento.Arco,
+                        },
+                    },
+                };
+                ApresentadorDoVisual.Aplicar(jogador.transform, visualPadrao);
                 Foto(camera, jogador.transform, 0f, Path.Combine(saida, "visual-frente.png"));
-                Foto(camera, jogador.transform, 180f, Path.Combine(saida, "visual-costas.png"));
                 Foto(camera, jogador.transform, 90f, Path.Combine(saida, "visual-lado.png"));
+                Foto(camera, jogador.transform, 180f, Path.Combine(saida, "visual-costas.png"));
+
+                // Catálogo completo de armas para validação visual de cada tipo
+                TipoEquipamento[] armas =
+                {
+                    TipoEquipamento.Espada,
+                    TipoEquipamento.Martelo,
+                    TipoEquipamento.Arco,
+                    TipoEquipamento.Cajado,
+                };
+                for (int i = 0; i < armas.Length; i++)
+                {
+                    var ativa = armas[i];
+                    var inativa = armas[(i + 1) % armas.Length];
+                    var visualArmas = new VisualEquipado
+                    {
+                        PersonagemId = 1,
+                        ConjuntoAtivo = 1,
+                        Armas = new[]
+                        {
+                            new ArmaVisual { Posicao = PosicaoEquipamento.Arma1, Tipo = ativa },
+                            new ArmaVisual { Posicao = PosicaoEquipamento.Arma2, Tipo = inativa },
+                        },
+                    };
+                    ApresentadorDoVisual.Aplicar(jogador.transform, visualArmas);
+                    Foto(
+                        camera,
+                        jogador.transform,
+                        0f,
+                        Path.Combine(saida, $"teste-{ativa}-frente.png")
+                    );
+                    Foto(
+                        camera,
+                        jogador.transform,
+                        90f,
+                        Path.Combine(saida, $"teste-{ativa}-lado.png")
+                    );
+                    Foto(
+                        camera,
+                        jogador.transform,
+                        180f,
+                        Path.Combine(saida, $"teste-{ativa}-costas.png")
+                    );
+                }
             }
             finally
             {

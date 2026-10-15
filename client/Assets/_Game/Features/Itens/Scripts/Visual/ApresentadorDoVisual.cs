@@ -61,19 +61,9 @@ namespace JogoDoGrupo.Client.Features.Itens.Visual
 
                 var pai = AcharOuCriarEncaixe(avatar, encaixe.Value);
                 modelo.transform.SetParent(pai, false);
-                if (encaixe.Value == EncaixeDoVisual.Costas)
-                {
-                    // Nas costas o meio da arma fica no encaixe (o cabo está na origem do modelo).
-                    var giro = Quaternion.Euler(0f, 0f, GiroNasCostas);
-                    modelo.transform.localRotation = giro;
-                    modelo.transform.localPosition =
-                        giro * new Vector3(0f, -ModelosDeArma.Comprimento(arma.Tipo) / 2f, 0f);
-                }
-                else
-                {
-                    modelo.transform.localPosition = Vector3.zero;
-                    modelo.transform.localRotation = Quaternion.identity;
-                }
+                var (posLocal, rotLocal) = ObterTransformacao(arma.Tipo, encaixe.Value);
+                modelo.transform.localPosition = posLocal;
+                modelo.transform.localRotation = rotLocal;
 
                 var marca = modelo.AddComponent<ArmaNoAvatar>();
                 marca.Posicao = arma.Posicao;
@@ -131,6 +121,92 @@ namespace JogoDoGrupo.Client.Features.Itens.Visual
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// Posição e rotação calibradas por tipo de arma e encaixe, alinhando empunhadura e bainha às costas.
+        /// </summary>
+        public static (Vector3 posicao, Quaternion rotacao) ObterTransformacao(
+            TipoEquipamento tipo,
+            EncaixeDoVisual encaixe
+        )
+        {
+            if (encaixe == EncaixeDoVisual.MaoDireita)
+            {
+                switch (tipo)
+                {
+                    case TipoEquipamento.Espada:
+                        // Empunhada na mão: lâmina aponta para a frente/diagonal do punho, guarda alinhada.
+                        var rotEspada = Quaternion.Euler(75f, 0f, 0f);
+                        var posEspada = rotEspada * new Vector3(0f, -0.09f, 0f);
+                        return (posEspada, rotEspada);
+
+                    case TipoEquipamento.Martelo:
+                        // Empunhado pela base do cabo: cabeça de metal para a frente.
+                        var rotMartelo = Quaternion.Euler(75f, 0f, 0f);
+                        var posMartelo = rotMartelo * new Vector3(0f, -0.20f, 0f);
+                        return (posMartelo, rotMartelo);
+
+                    case TipoEquipamento.Arco:
+                        // Empunhado pelo centro (y = 0.45m): haste vertical, corda voltada para trás.
+                        var rotArco = Quaternion.Euler(0f, 90f, 0f);
+                        var posArco = rotArco * new Vector3(0f, -0.45f, 0f);
+                        return (posArco, rotArco);
+
+                    case TipoEquipamento.Cajado:
+                        // Empunhado na terça superior (y = 0.70m), gema para cima/à frente.
+                        var rotCajado = Quaternion.Euler(15f, 0f, 0f);
+                        var posCajado = rotCajado * new Vector3(0f, -0.70f, 0f);
+                        return (posCajado, rotCajado);
+
+                    default:
+                        return (Vector3.zero, Quaternion.identity);
+                }
+            }
+            else // EncaixeDoVisual.Costas
+            {
+                var comprimento = ModelosDeArma.Comprimento(tipo);
+                switch (tipo)
+                {
+                    case TipoEquipamento.Espada:
+                        // Punho no ombro direito (fácil de sacar), lâmina descendo para o quadril esquerdo.
+                        var rotEspada = Quaternion.Euler(0f, 0f, 142f);
+                        var posEspada =
+                            rotEspada * new Vector3(0f, -comprimento / 2f, 0f)
+                            + new Vector3(0f, 0f, -0.07f);
+                        return (posEspada, rotEspada);
+
+                    case TipoEquipamento.Martelo:
+                        // Cabeça perto do ombro direito, cabo para o quadril esquerdo.
+                        var rotMartelo = Quaternion.Euler(0f, 0f, -38f);
+                        var posMartelo =
+                            rotMartelo * new Vector3(0f, -comprimento / 2f, 0f)
+                            + new Vector3(0f, 0f, -0.09f);
+                        return (posMartelo, rotMartelo);
+
+                    case TipoEquipamento.Arco:
+                        // O arco já está no plano X-Y. Deita plano nas costas, inclinado na diagonal.
+                        var rotArco = Quaternion.Euler(0f, 0f, -35f);
+                        var posArco =
+                            rotArco * new Vector3(0f, -0.45f, 0f) + new Vector3(0f, 0f, -0.07f);
+                        return (posArco, rotArco);
+
+                    case TipoEquipamento.Cajado:
+                        // Gema no ombro direito, haste descendo na diagonal.
+                        var rotCajado = Quaternion.Euler(0f, 0f, -38f);
+                        var posCajado =
+                            rotCajado * new Vector3(0f, -comprimento / 2f, 0f)
+                            + new Vector3(0f, 0f, -0.07f);
+                        return (posCajado, rotCajado);
+
+                    default:
+                        var rotPadrao = Quaternion.Euler(0f, 0f, -GiroNasCostas);
+                        var posPadrao =
+                            rotPadrao * new Vector3(0f, -comprimento / 2f, 0f)
+                            + new Vector3(0f, 0f, -0.07f);
+                        return (posPadrao, rotPadrao);
+                }
+            }
         }
     }
 }
