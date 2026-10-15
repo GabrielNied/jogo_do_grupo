@@ -2,12 +2,46 @@ using System.Collections.Generic;
 using JogoDoGrupo.Client.Core.Jogo;
 using JogoDoGrupo.Client.Core.Jogo.Janelas;
 using JogoDoGrupo.Client.Core.UI;
+using JogoDoGrupo.Shared.Features.Itens;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UIElements;
 
 namespace JogoDoGrupo.Client.Features.Itens.Loot
 {
+    /// <summary>Cores do marcador de loot, distintas sem criar materiais por peça.</summary>
+    public static class CoresMarcadorDeLoot
+    {
+        private static readonly Color CorNeutra = new Color(0.45f, 0.45f, 0.45f);
+        private static readonly Color CorTierB = new Color(0.18f, 0.48f, 0.95f);
+        private static readonly Color CorTierA = new Color(0.58f, 0.27f, 0.82f);
+        private static readonly Color CorTierS = new Color(0.96f, 0.48f, 0.12f);
+        private static readonly Color CorTierSMais = new Color(0.48f, 0.08f, 0.13f);
+
+        /// <summary>Devolve a cor correspondente ao tier; D, C e itens sem tier são neutros.</summary>
+        public static Color Para(bool temTier, TierItem tier)
+        {
+            if (!temTier)
+            {
+                return CorNeutra;
+            }
+
+            switch (tier)
+            {
+                case TierItem.B:
+                    return CorTierB;
+                case TierItem.A:
+                    return CorTierA;
+                case TierItem.S:
+                    return CorTierS;
+                case TierItem.SMais:
+                    return CorTierSMais;
+                default:
+                    return CorNeutra;
+            }
+        }
+    }
+
     /// <summary>
     /// O loot no mundo, enquanto o jogador está nele (issue #369): um marcador por item do
     /// jogador no chão, visível a até 12 m, a dica "F: pegar" com item ao alcance e o pedido de
@@ -28,7 +62,8 @@ namespace JogoDoGrupo.Client.Features.Itens.Loot
         private const float AlturaDaBusca = 30f;
         private const float AlcanceDaBusca = 80f;
 
-        private static readonly Color CorDoMarcador = new Color(1f, 0.82f, 0.3f);
+        private static readonly int CorBaseDoMaterial = Shader.PropertyToID("_BaseColor");
+        private static readonly int CorDoMaterial = Shader.PropertyToID("_Color");
 
         private readonly Dictionary<long, GameObject> _marcadores =
             new Dictionary<long, GameObject>();
@@ -37,7 +72,6 @@ namespace JogoDoGrupo.Client.Features.Itens.Loot
         private GameObject _jogador;
         private Label _dica;
         private InputAction _coletar;
-        private Material _material;
 
         /// <summary>Liga ao jogador e à interface. Chamar antes de ativar.</summary>
         public void Configurar(GameObject jogador, VisualElement raizDaInterface)
@@ -96,10 +130,6 @@ namespace JogoDoGrupo.Client.Features.Itens.Loot
 
             _coletar?.Dispose();
             _coletar = null;
-            if (_material != null)
-            {
-                Destroy(_material);
-            }
         }
 
         private void Update()
@@ -163,12 +193,11 @@ namespace JogoDoGrupo.Client.Features.Itens.Loot
             marcador.transform.localScale = Vector3.one * TamanhoDoMarcador;
 
             var renderizador = marcador.GetComponent<Renderer>();
-            if (_material == null)
-            {
-                _material = new Material(renderizador.sharedMaterial) { color = CorDoMarcador };
-            }
-
-            renderizador.sharedMaterial = _material;
+            var propriedades = new MaterialPropertyBlock();
+            var cor = CoresMarcadorDeLoot.Para(item.TemTier, item.Tier);
+            propriedades.SetColor(CorBaseDoMaterial, cor);
+            propriedades.SetColor(CorDoMaterial, cor);
+            renderizador.SetPropertyBlock(propriedades);
             marcador.SetActive(false);
             _marcadores[item.LootId] = marcador;
         }

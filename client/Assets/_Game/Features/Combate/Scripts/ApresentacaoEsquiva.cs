@@ -15,6 +15,7 @@ namespace JogoDoGrupo.Client.Features.Combate
         public const string TextoStaminaInsuficiente = "Stamina insuficiente";
         public const string TextoAcaoEmAndamento = "Aguarde o golpe terminar";
         public const string TextoVoceEstaCaido = "Você está caído";
+        public const string TextoVoceEstaAtordoado = "Você está atordoado";
         public const string TextoRecusaGenerica = "Esquiva recusada";
 
         /// <summary>O aviso para o motivo de recusa do servidor; código desconhecido tem texto genérico.</summary>
@@ -28,6 +29,8 @@ namespace JogoDoGrupo.Client.Features.Combate
                     return TextoAcaoEmAndamento;
                 case CodigosErroCombate.VoceEstaCaido:
                     return TextoVoceEstaCaido;
+                case CodigosErroCombate.VoceEstaAtordoado:
+                    return TextoVoceEstaAtordoado;
                 default:
                     return TextoRecusaGenerica;
             }

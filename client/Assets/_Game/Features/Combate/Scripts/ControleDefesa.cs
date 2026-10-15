@@ -71,6 +71,12 @@ namespace JogoDoGrupo.Client.Features.Combate
                 )
             );
             _assinaturas.Add(
+                ConexaoTempoReal.Assinar<AcaoRecusada>(
+                    CombateMessageIds.AcaoRecusada,
+                    AoRecusarAcao
+                )
+            );
+            _assinaturas.Add(
                 ConexaoTempoReal.Assinar<AcaoInterrompida>(
                     CombateMessageIds.AcaoInterrompida,
                     AoInterromper
@@ -247,6 +253,18 @@ namespace JogoDoGrupo.Client.Features.Combate
                 AvisosDoJogo.Mostrar(
                     TextoGolpeBloqueado,
                     TipoDeAviso.Aviso,
+                    CategoriaDeAviso.Combate
+                );
+            }
+        }
+
+        private void AoRecusarAcao(AcaoRecusada recusa)
+        {
+            if (recusa != null && recusa.Codigo == CodigosErroCombate.VoceEstaAtordoado)
+            {
+                AvisosDoJogo.Mostrar(
+                    ApresentacaoAtaque.TextoVoceEstaAtordoado,
+                    TipoDeAviso.Erro,
                     CategoriaDeAviso.Combate
                 );
             }

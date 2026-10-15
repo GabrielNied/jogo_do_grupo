@@ -298,4 +298,28 @@ public class ControleDeAcoesTestes
         // 0,6 s de esquiva + 0,15 s: dentro da janela de 0,8 s contada do corte.
         Assert.Equal(1, Golpe(controle, Leve(), primeiro.AcertoMs + 750).Passo);
     }
+
+    [Fact]
+    public void Personagem_atordoado_recusa_ataque_com_codigo_atordoado()
+    {
+        var relogio = 1_000L;
+        var efeitos = new GerenciadorDeEfeitosDeStatus(() => relogio);
+        efeitos.Aplicar(Ana, TipoEfeitoDeStatus.Atordoado, duracaoSegundos: 2.0);
+        var controle = new ControleDeAcoes(efeitos);
+
+        Assert.True(controle.EstaAtordoado(Ana));
+
+        var resultado = controle.Pedir(Ana, Leve(), relogio, out var acao);
+        Assert.Equal(ResultadoDoPedido.Atordoado, resultado);
+        Assert.Null(acao);
+        Assert.False(controle.TentarOcupar(Ana, relogio, 600, out _));
+        Assert.False(controle.TentarGuardar(Ana, relogio));
+
+        // Após expirar o atordoamento, volta a poder agir normalmente.
+        relogio += 2_100;
+        Assert.False(controle.EstaAtordoado(Ana));
+        var resultadoLivre = controle.Pedir(Ana, Leve(), relogio, out var acaoLivre);
+        Assert.Equal(ResultadoDoPedido.Iniciado, resultadoLivre);
+        Assert.NotNull(acaoLivre);
+    }
 }

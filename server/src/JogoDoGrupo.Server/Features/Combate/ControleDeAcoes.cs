@@ -44,6 +44,9 @@ public enum ResultadoDoPedido
 
     /// <summary>Não coube (ação em andamento e fila fora da janela ou ocupada).</summary>
     Recusado,
+
+    /// <summary>Personagem está sob efeito de atordoamento e não pode agir.</summary>
+    Atordoado,
 }
 
 /// <summary>
@@ -62,6 +65,9 @@ public sealed class ControleDeAcoes
     {
         _efeitos = efeitos;
     }
+
+    /// <summary>Informa se o personagem está atordoado por efeitos de status.</summary>
+    public bool EstaAtordoado(long personagemId) => _efeitos?.EstaAtordoado(personagemId) == true;
 
     /// <summary>
     /// Pede um ataque. Sem ação em curso (ou com ela já terminada) começa na hora; durante uma
@@ -83,9 +89,15 @@ public sealed class ControleDeAcoes
                 _estados[personagemId] = estado;
             }
 
-            if (_efeitos?.EstaAtordoado(personagemId) == true || EstaOcupado(estado, agoraMs))
+            if (EstaAtordoado(personagemId))
             {
-                // Em outra ação (esquiva, reação ao acerto, guarda) ou atordoado: não ataca nem entra na fila.
+                acao = null;
+                return ResultadoDoPedido.Atordoado;
+            }
+
+            if (EstaOcupado(estado, agoraMs))
+            {
+                // Em outra ação (esquiva, reação ao acerto, guarda): não ataca nem entra na fila.
                 acao = null;
                 return ResultadoDoPedido.Recusado;
             }

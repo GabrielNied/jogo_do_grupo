@@ -147,7 +147,7 @@ Ataque da primeira arma (tempo real; regras e números em [fatia-jogavel.md](fat
 | 6000 | `IntencaoDeAtaque` | client → servidor | `Tipo` (`TipoDeAtaque`: Leve 0, Pesado 1), `DirecaoY` (graus, mesma convenção de `IntencaoDeMovimento.RotacaoY`), `Sequencia` |
 | 6001 | `AtaqueIniciado` | servidor → quem está na área | `AtacanteId`, `Tipo`, `DirecaoY`, `PreparoMs`, `Passo` (0 a 2, da cadeia de leves) |
 | 6002 | `AtaqueAcertou` | servidor → quem está na área | `AtacanteId`, `Acertos[]` (`AcertoDeAtaque`: `AlvoId`, `Dano`, `VidaRestante`, `VidaMaxima`), `Tipo`, `Sequencia` (a da `IntencaoDeAtaque`), `Passo` |
-| 6003 | `AtaqueRecusado` | servidor → atacante | `Sequencia`, `Codigo` (`CodigosErroCombate.StaminaInsuficiente`, `AcaoEmAndamento` ou `VoceEstaCaido`) |
+| 6003 | `AtaqueRecusado` | servidor → atacante | `Sequencia`, `Codigo` (`CodigosErroCombate.StaminaInsuficiente`, `AcaoEmAndamento`, `VoceEstaCaido` ou `VoceEstaAtordoado`) |
 | 6004 | `RecursosMudaram` | servidor → dono | vida, stamina e mana atuais e máximos |
 
 - `RegrasAtaque`: constantes de balanceamento do ataque e fórmulas puras (`PreparoSegundos`, `RecuperacaoSegundos`, `DuracaoSegundos`, `CustoDeStamina`, `TemStamina`, `Dano`, `EntraNaFila`, `EstaNoVolume`). O servidor decide; o client usa só para tocar a animação no tempo certo.
@@ -158,7 +158,7 @@ Esquiva (tempo real; regras e números em [fatia-jogavel.md](fatia-jogavel.md), 
 | ID | Mensagem | Direção | Campos |
 |---|---|---|---|
 | 6010 | `IntencaoDeEsquiva` | client → servidor | `DirecaoY` (graus, mesma convenção do ataque), `Sequencia` |
-| 6011 | `EsquivaRecusada` | servidor → dono | `Sequencia`, `Codigo` (os mesmos códigos do ataque: `StaminaInsuficiente`, `AcaoEmAndamento`, `VoceEstaCaido`) |
+| 6011 | `EsquivaRecusada` | servidor → dono | `Sequencia`, `Codigo` (os mesmos códigos do ataque: `StaminaInsuficiente`, `AcaoEmAndamento`, `VoceEstaCaido`, `VoceEstaAtordoado`) |
 | 6012 | `EsquivaIniciada` | servidor → quem está na área | `PersonagemId`, `DirecaoY`, `DuracaoMs` |
 
 - `RegrasEsquiva`: constantes de balanceamento (5 m, 0,6 s, 15 de stamina) e fórmulas puras (`TemStamina`, `EmAndamento`, `DistanciaPermitidaAte`, `DeslocamentoCabe`, `Destino`). A posição continua chegando pelas mensagens do Mundo.
@@ -230,7 +230,7 @@ Combate é o dono do estado caído (decidido em 2026-10-11). As regras e os caso
 | 6021 | `CancelarLevantar` | client → servidor | (vazio) |
 | 6022 | `VoltarParaACidade` | client → servidor | (vazio) |
 | 6023 | `EstadoDeQueda` | servidor → caído, ajudante e quem está na área | `PersonagemId`, `Estado` (`FaseDeQueda`: `Vivo`=0, `Caido`=1, `Levantando`=2, `Retorno`=3), `SegundosRestantes`, `AjudanteId`, `ProgressoMs` |
-| 6024 | `AcaoRecusada` | servidor → quem pediu | `Codigo`: `VoceEstaCaido`, `AlvoNaoEstaCaido`, `LongeDemais`, `JaEstaSendoLevantado`, `NaoEstaCaido`, `AindaNaoPodeVoltar` |
+| 6024 | `AcaoRecusada` | servidor → quem pediu | `Codigo`: `VoceEstaCaido`, `AlvoNaoEstaCaido`, `LongeDemais`, `JaEstaSendoLevantado`, `NaoEstaCaido`, `AindaNaoPodeVoltar`, `VoceEstaAtordoado` |
 
 - **Números** em `RegrasQueda` (shared): 45 s caído, 3 s para levantar, 20% da vida, 2 m (2,0 vale), 5 s até poder voltar. O servidor lê os tempos de `ConfigQueda` (padrão = `RegrasQueda`; os testes de integração usam tempos curtos).
 - **Quando cai:** vida 0 depois de um golpe de inimigo. `EstadoDeQueda` com `Caido` vai ao dono, ao grupo e à área; `PersonagemCaiu` é publicado em `Contratos/Combate/`.
@@ -327,6 +327,6 @@ Adotado em 2026-10-11 (/decida), a partir da proposta da issue; é valor inicial
 - **Bosses são imunes a atordoado:** em vez disso acumulam uma barra de **quebra**; ao encher (100 pontos), abre a janela de vulnerabilidade da [fatia jogável](fatia-jogavel.md) com o status Vulnerável.
 - **Implementação:**
   - **Shared:** `TipoEfeitoDeStatus`, `ConfigEfeitosDeStatus`, contas puras em `RegrasEfeitosDeStatus`, DTO `InstanciaEfeitoDeStatus`, mensagens `EfeitosDeStatusMudaram` (6040) e `BarraDeQuebraMudou` (6041), e código de erro `VoceEstaAtordoado`.
-  - **Servidor:** `GerenciadorDeEfeitosDeStatus` autoritativo gerencia durações, acúmulos, ticks de DoT, período de 6 s de imunidade pós-atordoamento e barra de quebra de chefes; integrado ao `ControleDeAcoes` (bloqueia ataques, esquivas e guarda quando atordoado), `ServicoDeAtaques` (multiplica dano causado por Fortalecido e dano no alvo por Vulnerável) e `ServicoDeDanoRecebido` (multiplica dano recebido por Vulnerável).
-  - **Client:** `ControleEfeitosDeStatus`, `ControleBarraDeQuebra` e `ApresentacaoEfeitosDeStatus` para gerenciar e formatar estados visuais e tempos restantes.
-- **Testes:** `RegrasEfeitosDeStatusTestes` (shared) e `GerenciadorDeEfeitosDeStatusTestes` (servidor).
+  - **Servidor:** `GerenciadorDeEfeitosDeStatus` autoritativo gerencia durações, acúmulos, ticks de DoT, período de 6 s de imunidade pós-atordoamento e barra de quebra de chefes; integrado ao `ControleDeAcoes` (bloqueia ataques, esquivas e guarda quando atordoado; `ServicoDeAtaques`, `ServicoDeEsquivas` e `ServicoDeGuarda` recusam com `VoceEstaAtordoado`), `ServicoDeAtaques` (multiplica dano causado por Fortalecido e dano no alvo por Vulnerável) e `ServicoDeDanoRecebido` (multiplica dano recebido por Vulnerável).
+  - **Client:** `ControleEfeitosDeStatus`, `ControleBarraDeQuebra` e `ApresentacaoEfeitosDeStatus` para gerenciar e formatar estados visuais e tempos restantes; `ApresentacaoAtaque`, `ApresentacaoEsquiva` e `ControleDefesa` mostram "Você está atordoado" ao tentar agir atordoado.
+- **Testes:** `RegrasEfeitosDeStatusTestes` (shared), `GerenciadorDeEfeitosDeStatusTestes` (servidor), recusa de ações em `ControleDeAcoesTestes`, `AtaqueTestes`, `EsquivaTestes` e `ReacaoEGuardaRedeTestes`.
