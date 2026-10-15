@@ -174,9 +174,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
             objeto.transform.position = new Vector3(alvo.x, nivel + altura, alvo.z - distancia);
             objeto.transform.rotation = Quaternion.Euler(inclinacao, 0f, 0f);
             // A cena de captura não roda o loop de jogo: o desenho da vegetação é pedido aqui.
-            foreach (
-                var blocos in Object.FindObjectsByType<BlocosDeVegetacao>(FindObjectsSortMode.None)
-            )
+            foreach (var blocos in Object.FindObjectsByType<BlocosDeVegetacao>())
             {
                 blocos.Desenhar(objeto.transform.position, camera);
             }
