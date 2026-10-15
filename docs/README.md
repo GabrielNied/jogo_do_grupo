@@ -7,12 +7,13 @@
 | [arquitetura.md](arquitetura.md) | Como cliente, servidor e shared se organizam |
 | [convencoes.md](convencoes.md) | Padrões de código e nomes |
 | [git.md](git.md) | Branches, commits (commitlint), PRs e proteção da `main` |
-| [agentes.md](agentes.md) | Vários agentes de IA trabalhando em paralelo: papéis, áreas e fluxo |
+| [agentes.md](agentes.md) | Vários agentes de IA em paralelo: papéis, prioridade, ficha, lote e entrega |
+| [ferramentas-ia.md](ferramentas-ia.md) | Como rodar os agentes no Claude Code, Codex, Antigravity e outras IAs |
 | [responsaveis.md](responsaveis.md) | Quem cuida de cada funcionalidade |
 | [brainstorm/](brainstorm/) | Cópia em texto do board do FigJam (ideias não validadas) |
 | [features/](features/) | Um documento por funcionalidade do jogo |
 | [decisoes/](decisoes/) | Decisões técnicas registradas (ADRs) |
-| [licoes.md](licoes.md) | Problemas de processo já vistos e a regra para não repetir |
+| [licoes.md](licoes.md) | Tropeços de processo que ainda não viraram script, hook ou regra |
 
 O brainstorm de ideias fica no board do FigJam **"Jogo do Grupo - Definição de Features"** (time "Gabriel Nied's team", pasta "Team project"). Uma cópia em texto, para ler sem acessar o Figma, fica em [brainstorm/figjam.md](brainstorm/figjam.md) ([como atualizar](brainstorm/README.md)). Quando uma ideia for aprovada, ela entra no documento da funcionalidade.
 
@@ -36,6 +37,8 @@ Cada informação mora em um lugar só. Os outros documentos apontam para ele em
 | Especificação de poderes e sets de 2026-10-12 (entrada; a regra vale em itens.md) | [brainstorm/poderes-e-sets.md](brainstorm/poderes-e-sets.md) |
 | Regras de cada funcionalidade | [features/](features/) |
 | Padrão dos modelos 3D próprios e como gerá-los | [arte/padrao-de-modelos.md](arte/padrao-de-modelos.md) |
+| Buscar assets e montar conteúdo pelo Unity (agentes artistas) | [arte/agentes-artistas.md](arte/agentes-artistas.md) |
+| Prioridade, ficha da tarefa e lote | [agentes.md](agentes.md#prioridade-das-tarefas) |
 | Jogar com o grupo com o servidor no PC de alguém | [hospedagem.md](hospedagem.md) |
 | Instruções para assistentes de IA | [AGENTS.md](../AGENTS.md) |
 | Papéis e fluxo dos agentes | [agentes.md](agentes.md) e [.claude/agents/](../.claude/agents/) |

@@ -17,6 +17,7 @@
     "unity:importar": "node scripts/unity/unity.mjs importar",
     "unity:meta": "node scripts/unity/gerar-meta.mjs",
     "testar-scripts": "node --test \"scripts/**/*.test.mjs\"",
+    "contexto": "node scripts/agentes/orcamento-contexto.mjs",
     "conferir-unity": "node scripts/git/conferir-arquivos-unity.mjs",
     "entregar": "node scripts/git/entregar.mjs",
     "tarefa": "node scripts/git/tarefas.mjs",

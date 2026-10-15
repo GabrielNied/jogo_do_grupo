@@ -1,6 +1,6 @@
 ---
 name: preparar-pr
-description: Confere se uma mudança está pronta para PR e prepara a descrição.
+description: Confere se a mudança está pronta para PR (pastas, regras, verificação proporcional, branch e commit) e escreve a descrição no template. Use antes de abrir PR, ao commitar ou para "ver se está tudo certo".
 ---
 
 # preparar-pr

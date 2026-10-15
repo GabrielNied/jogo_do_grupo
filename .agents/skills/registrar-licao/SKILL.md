@@ -1,6 +1,6 @@
 ---
 name: registrar-licao
-description: Registra em docs/licoes.md um problema de processo e a regra para não repetir.
+description: Transforma um tropeço de processo (comando que travou, trabalho perdido, retrabalho de agente, ferramenta que enganou) em script, hook ou regra curta, e registra em docs/licoes.md só o que ainda não virou. Use quando algo deu errado no fluxo ou pedirem para documentar o que se aprendeu.
 ---
 
 # registrar-licao

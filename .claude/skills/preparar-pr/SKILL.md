@@ -1,84 +1,46 @@
 ---
 name: preparar-pr
-description: Confere se a mudança atual está pronta para abrir PR neste repo (formatação CSharpier, build, pastas da funcionalidade, docs, branch e commit no padrão) e escreve a descrição do PR no template. Use quando pedirem para revisar antes do PR, preparar o PR, fazer commit ou "ver se está tudo certo".
+description: Confere se a mudança está pronta para PR (pastas, regras, verificação proporcional, branch e commit) e escreve a descrição no template. Use antes de abrir PR, ao commitar ou para "ver se está tudo certo".
 ---
 
 # Preparar PR
 
-Rode as verificações na ordem e **relate o resultado de cada uma**. Corrija o que for automático (formatação); para o resto, explique o problema e pergunte antes de mudar.
+Rode na ordem e relate só o que falhou. Corrija o automático (formatação); o resto, explique.
 
-## 1. O que mudou
+## 1. O que mudou e onde
 
-```
-git status
-git diff --stat main...HEAD
-git diff --stat
-```
+`git status`, `git diff --stat origin/main...HEAD`. Confira contra as regras 1 a 9 do AGENTS.md: arquivos fora das pastas do lote, `Core/` (incluindo `ProjectSettings/`, `Packages/`, `.github/`, cenas de `Core/Scenes/`) pede review do responsável; binário (PSD, FBX, Blend) só com `git lfs lock`.
 
-Identifique a funcionalidade `<X>` da mudança.
+## 2. Verificação proporcional
 
-## 2. Pastas
+Sempre `git diff --check`. Depois, **só** a linha da alteração; o CI é a confirmação completa ([ADR 0034](../../../docs/decisoes/0034-menos-verificacao-repetida.md)).
 
-Os arquivos alterados devem estar em:
-
-- `client/Assets/_Game/Features/<X>/`, `server/src/JogoDoGrupo.Server/Features/<X>/`, `shared/Package/Runtime/Features/<X>/`, `docs/features/<x>.md`
-
-Avise se houver arquivos:
-
-- de **outra funcionalidade**: sugira separar em outro PR ou pedir review do responsável (ver `docs/responsaveis.md`);
-- de **Core** (`*/Core/`, `client/ProjectSettings/`, `client/Packages/`, `.github/`, cenas de `Core/Scenes/`): exigem review do responsável do core;
-- **cenas `.unity`** de outra pessoa ou binários (PSD, FBX, Blend) sem `git lfs lock`.
-
-## 3. Regras de código
-
-Nos arquivos alterados, confira:
-
-- **Testes:** todo código novo ou alterado tem teste em `tests/` (caminho feliz, erros, limites, concorrência quando houver). Faltou? Escreva antes de abrir o PR. Mudança só de docs, `.meta` ou configuração não precisa.
-
-- Nenhuma referência direta entre funcionalidades (nem `using JogoDoGrupo.*.Features.<Outra>` nem referência entre `.asmdef` de features).
-- `shared/` sem `UnityEngine` e sem recursos acima de C# 9 (namespace de arquivo, `record struct`, `required`, etc.).
-- IDs de mensagem dentro de `<X>MessageIds.Faixa`.
-- Lógica que decide resultado (dano, drop, fusão, preço) no servidor, não no cliente.
-- Nomes conforme `docs/convencoes.md`.
-
-## 4. Verificação proporcional
-
-Sempre rode `git diff --check`. Depois aplique **só** as linhas que cobrem os arquivos alterados; não rode build, testes .NET ou Unity por ritual. O CI continua sendo a confirmação completa no PR.
-
-| Alteração | Verificação local mínima |
+| Alteração | Verificação mínima |
 |---|---|
-| Só Markdown/documentação | `git diff --check`; confira links, comandos e referências alterados. Não rode CSharpier, build, testes ou Unity. |
-| Instruções/configuração de IA (`AGENTS.md`, `.claude/`, `.codex/`, `.agents/`) | `git diff --check` e valide diretamente o formato/comportamento alterado (ex.: `node --check` para hook, parse de JSON/TOML). |
-| Script Node ou ferramenta de automação | `node --check <arquivo>` e o teste/comando específico do script. Rode testes do projeto só se o script os altera ou dispara. |
-| C# de servidor ou shared | `dotnet csharpier format .`, `dotnet csharpier check .` e `dotnet test JogoDoGrupo.slnx -c Release`. Não rode `dotnet build` separado: o teste já compila. |
-| C# de client | `dotnet csharpier format .`, `dotnet csharpier check .`, `npm run unity:compilar` e `npm run conferir-unity`. **Não** rode `unity:testes`: o check "Testes EditMode (Unity)" do PR roda todos ([ADR 0034](../../../docs/decisoes/0034-menos-verificacao-repetida.md)). Se a mudança é tela ou HUD, grave e leia os PNG de [Prints da tela](../../../docs/agentes.md#prints-da-tela) com o editor fechado. Sem Unity, ou com o editor aberto, pule o print e não crie pendência. |
-| Shared usado pelo client | Além da linha de server/shared, `npm run unity:compilar`. |
-| Conteúdo Unity gerado (cena, prefab, asset, animação) | O comando Unity que gerou/alterou o conteúdo, `npm run conferir-unity` e `npm run unity:recompilar` (editor aberto) ou `npm run unity:compilar` (fechado). Os testes EditMode ficam com o CI do PR. |
-| Dependência, CI ou configuração de build | O comando que usa a configuração alterada e o teste/build especificamente afetado. |
+| Markdown, docs | Links e comandos alterados. Nada de build. |
+| Instruções de IA (`AGENTS.md`, `.claude/`, `.codex/`, `.agents/`) | `npm run contexto` e o formato alterado (`node --check` no hook, parse de JSON/TOML). |
+| Script Node | `node --check` e `npm run testar-scripts`. |
+| C# de servidor ou shared | `dotnet csharpier format .` e `dotnet test JogoDoGrupo.slnx -c Release` (já compila). |
+| C# de client | `dotnet csharpier format .`, `npm run unity:compilar` e `npm run conferir-unity`. Tela ou HUD: [prints](../../../docs/agentes.md#prints-da-tela). Os testes EditMode ficam com o CI. |
+| Shared usado pelo client | A linha de server/shared e `npm run unity:compilar`. |
+| Conteúdo Unity (cena, prefab, asset) | O comando que gerou, `npm run conferir-unity` e `unity:recompilar` (aberto) ou `unity:compilar` (fechado). |
+| CI, dependência, build | O comando que usa a configuração e o teste afetado. |
 
-**Sem Unity no ambiente** (nuvem): os comandos `unity:*` saem 0 com "pulado". Não tente de novo nem peça à pessoa para rodar na máquina dela. Gere os `.meta` com `npm run unity:meta` e abra o PR normal (não em rascunho; ele pode ir para merge sem a validação do Unity). O CI "Client (Unity)" compila e roda os testes EditMode depois do merge, não no PR ([ADR 0019](../../../docs/decisoes/0019-unity-no-ci.md)); não espere por ele. Logo depois de abrir o PR, registre só o que **precisa do Unity para existir** e ficou sem fazer: `npm run tarefa -- pendencia-unity <PR> --falta "<item>"` (um `--falta` por item, ex.: ".meta das texturas novas", "rodar o gerador X"). **Não** registre pendência para conferir a tela ou a cena (quem faz o merge olha pelo "Como testar" do PR), nem para compilar ou rodar os testes EditMode: o CI faz isso na `main` depois do merge e, se falhar, abre a pendência ele mesmo ([ADR 0034](../../../docs/decisoes/0034-menos-verificacao-repetida.md)). No PR o Unity só roda com a label `testar-unity`; use-a quando o PR mexe em algo arriscado do client que você não conseguiu compilar. A pendência continua aberta depois do merge, e o próximo agente com Unity puxa e resolve.
+Risco além da matriz (segurança, concorrência, migração, Core amplo): acrescente a verificação e diga por quê. Conexão ao mundo só se confirma com a autenticação UDP e a primeira posição aplicada, com outra janela em foco; chegar ao login não basta.
 
-Se o risco extrapolar essa matriz (segurança, concorrência, migração, mudança ampla de Core), acrescente a verificação necessária e explique o motivo. Se o CSharpier alterar arquivos, inclua essas mudanças.
+**Sem Unity no ambiente:** `unity:*` saem 0 com "pulado"; não repita nem peça à pessoa. Gere `.meta` com `npm run unity:meta` e abra o PR normal. Depois, só o que precisa do Unity para existir: `npm run tarefa -- pendencia-unity <PR> --falta "<item>"`. Tela, compilar e EditMode não viram pendência. A label `testar-unity` roda o Unity no PR quando o risco no client é alto.
 
-Para correções de conexão ao mundo, a validação termina na autenticação UDP e na primeira posição aplicada, inclusive sem foco na janela do Unity; chegar ao login não basta. Veja a [lição da conexão sem foco](../../../docs/licoes.md#2026-10-14--login-não-comprovava-a-conexão-ao-mundo-sem-foco).
+## 3. Docs, branch e commit
 
-## 5. Documentação
+- Regra do jogo mudou: `docs/features/<x>.md`. Decisão técnica: ADR (skill `novo-adr`).
+- Antes de commitar, a [reflexão de custo](../../../docs/agentes.md#custo-de-ia): corte pequeno entra aqui; sem corte, não escreva nada.
+- Branch: `npm run validar-branch -- "$(git branch --show-current)"`; fora do padrão ou na `main`, skill `nova-branch`.
+- Commits pela skill `fazer-commit`; `npx --no -- commitlint --from origin/main --to HEAD`.
+- Mexeu em `client/Assets/` ou `shared/Package/`: `npm run conferir-unity` antes do PR (`.meta` de script, pasta, `.asmdef`, estilo e texto com `unity:meta`; o resto com `unity:importar`, editor fechado). Sem Unity, abra assim mesmo e registre a pendência.
+- Entregue com `npm run entregar` ([Entregar](../../../docs/git.md#entregar)), sem esperar pedido. Merge é humano.
 
-- Mudou regra do jogo? `docs/features/<x>.md` atualizado.
-- Decisão técnica nova? Existe ADR (skill `novo-adr`).
+## 4. Título e descrição
 
-## 6. Branch e commit
+**Título:** cabeçalho de commit válido que resume o PR (vira o commit do squash).
 
-- Antes de commitar: a reflexão da [regra 16](../../../AGENTS.md). Corte pequeno entra neste commit. Sem corte, siga, e não escreva "sem corte" no PR.
-- Branch: confira com `npm run validar-branch -- "$(git branch --show-current)"`. Se estiver na `main` ou fora do padrão, siga a skill `nova-branch`. Nunca faça push na `main`.
-- Commits: siga a skill `fazer-commit`. Confira as mensagens da branch com `npx --no -- commitlint --from origin/main --to HEAD`.
-- Se a branch mexe em `client/Assets/` ou `shared/Package/`, rode `npm run conferir-unity` **antes** de abrir o PR. Se falhar, não abra: faltam `.meta` ou o Unity alterou `.mat`/prefab que ficou fora do commit. Para script C#, pasta, `.asmdef`, `.uss`/`.tss` e texto, gere com `npm run unity:meta` (não precisa do Unity nem de editor fechado). Para o resto, gere com `npm run unity:importar` (editor fechado, neste worktree). Sem Unity no ambiente, abra o PR assim mesmo e registre o que falta com `npm run tarefa -- pendencia-unity <PR> --falta "<o quê>"`; `npm run conferir-unity` falhando por esses arquivos não impede o PR nesse caso. Inclua no commit. Não escreva esses arquivos à mão. `ProjectSettings/` continua de fora, salvo pedido da pessoa.
-- Terminou a mudança: faça commit, push e abra o PR sem esperar pedido. Merge é sempre humano.
-
-## 7. Título e descrição do PR
-
-**Título:** um cabeçalho de commit válido que resume o PR inteiro (ele vira o commit na `main` no squash merge). Valide com `printf '%s\n' "<título>" | npx --no -- commitlint`.
-
-**Descrição:** siga `.github/pull_request_template.md`: "O que muda" (1–3 frases), "Funcionalidade", checklist marcado conforme o que foi verificado acima e "Como testar" com passos concretos.
-
-Se o PR é a entrega de uma funcionalidade de jogo, "Como testar" descreve a cena (o que a pessoa faz e o que aparece) e o corpo leva `Closes` da issue dessa funcionalidade. PR de contrato ou de servidor não leva esse `Closes`. A regra está em [Entrega da funcionalidade](../../../docs/agentes.md#entrega-da-funcionalidade).
+**Descrição:** `.github/pull_request_template.md`. "O que muda" em 1–3 frases, checklist do que foi verificado e "Como testar" concreto. PR da cena de jogo: "Como testar" diz o que a pessoa faz e o que aparece, e o corpo leva `Closes #` de cada issue do lote ([Entrega](../../../docs/agentes.md#entrega-da-funcionalidade)). PR só de contrato ou servidor não fecha a issue.

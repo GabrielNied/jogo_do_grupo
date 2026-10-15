@@ -56,6 +56,8 @@ jobs:
         run: node scripts/git/validar-branch.mjs "$BRANCH"
       - name: Testes dos scripts do repo
         run: npm run testar-scripts
+      - name: Orçamento de contexto das instruções de IA
+        run: npm run contexto
       - name: Arquivos do Unity no commit
         env:
           CI: "true"

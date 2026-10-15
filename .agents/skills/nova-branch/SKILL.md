@@ -1,6 +1,6 @@
 ---
 name: nova-branch
-description: Cria ou renomeia uma branch no padrão do repositório.
+description: Cria ou renomeia a branch de uma tarefa no padrão <tipo>/<escopo>/<descricao> a partir da origin/main. Use ao começar uma tarefa ou quando estiver na main com mudanças.
 ---
 
 # nova-branch

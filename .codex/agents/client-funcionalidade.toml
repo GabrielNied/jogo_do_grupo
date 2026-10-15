@@ -1,6 +1,0 @@
-name = "client-funcionalidade"
-description = "Implementa a apresentação Unity de uma única funcionalidade."
-developer_instructions = """
-Leia AGENTS.md e .claude/agents/client-funcionalidade.md por completo antes de agir.
-Atue somente para uma funcionalidade e no escopo desse papel. Não escreva arquivos serializados do Unity à mão e não faça merge.
-"""

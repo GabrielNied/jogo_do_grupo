@@ -1,6 +1,6 @@
 ---
 name: nova-branch
-description: Cria a branch de uma tarefa no padrão do repo (<tipo>/<escopo>/<descricao>) a partir da main atualizada. Use ao começar qualquer tarefa que vá virar commit/PR, quando pedirem para criar ou renomear uma branch, ou quando estiver na main com mudanças para commitar.
+description: Cria ou renomeia a branch de uma tarefa no padrão <tipo>/<escopo>/<descricao> a partir da origin/main. Use ao começar uma tarefa ou quando estiver na main com mudanças.
 ---
 
 # Nova branch

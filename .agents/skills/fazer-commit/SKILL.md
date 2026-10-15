@@ -1,6 +1,6 @@
 ---
 name: fazer-commit
-description: Valida e cria uma mensagem de commit ou título de PR no padrão do repositório.
+description: Escreve commits e títulos de PR no padrão do commitlint do repo (tipo, escopo, descrição em português minúscula). Use para commitar, sugerir mensagem ou corrigir uma recusada.
 ---
 
 # fazer-commit
