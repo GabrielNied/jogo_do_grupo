@@ -7,7 +7,11 @@ namespace JogoDoGrupo.Server.Features.Combate;
 /// Envia uma mensagem a quem está na área de um personagem, incluindo o próprio personagem
 /// mesmo se acabou de sair dela. Seguro para qualquer thread.
 /// </summary>
-public sealed class AvisosNaArea(ServidorTempoReal tempoReal, IPosicoesDoMundo posicoes)
+public sealed class AvisosNaArea(
+    ServidorTempoReal tempoReal,
+    IPosicoesDoMundo posicoes,
+    IVizinhanca? vizinhanca = null
+)
 {
     /// <param name="incluirDono">Falso quando o dono já sabe (ex.: soltou a guarda ele mesmo).</param>
     public void Enviar<T>(
@@ -18,7 +22,11 @@ public sealed class AvisosNaArea(ServidorTempoReal tempoReal, IPosicoesDoMundo p
         bool incluirDono = true
     )
     {
-        var presentes = new HashSet<long>(posicoes.PersonagensNaArea(area));
+        var quemVe =
+            (area == AreasDoMundo.Cidade && vizinhanca != null)
+                ? vizinhanca.QuemVe(personagemId)
+                : posicoes.PersonagensNaArea(area);
+        var presentes = new HashSet<long>(quemVe);
         if (incluirDono)
         {
             presentes.Add(personagemId);

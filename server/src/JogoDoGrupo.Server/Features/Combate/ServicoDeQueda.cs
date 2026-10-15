@@ -36,6 +36,7 @@ public sealed class ServicoDeQueda : IEstadoDeQueda, IHostedService, IDisposable
     private readonly ControleDeQueda _controle;
     private readonly ConcurrentDictionary<long, byte> _gravando = new();
     private readonly CancellationTokenSource _parada = new();
+    private readonly IVizinhanca? _vizinhanca;
 
     public ServicoDeQueda(
         ServidorTempoReal tempoReal,
@@ -44,9 +45,11 @@ public sealed class ServicoDeQueda : IEstadoDeQueda, IHostedService, IDisposable
         IServiceScopeFactory escopos,
         ILogger<ServicoDeQueda> log,
         ConfigQueda? config = null,
-        Func<long>? relogioMs = null
+        Func<long>? relogioMs = null,
+        IVizinhanca? vizinhanca = null
     )
     {
+        _vizinhanca = vizinhanca;
         _tempoReal = tempoReal;
         _posicoes = posicoes;
         _eventos = eventos;
@@ -330,7 +333,14 @@ public sealed class ServicoDeQueda : IEstadoDeQueda, IHostedService, IDisposable
 
         if (_posicoes.TentarObter(alvoId, out var posicao))
         {
-            destino.UnionWith(_posicoes.PersonagensNaArea(posicao.Area));
+            if (posicao.Area == AreasDoMundo.Cidade && _vizinhanca != null)
+            {
+                destino.UnionWith(_vizinhanca.QuemVe(alvoId));
+            }
+            else
+            {
+                destino.UnionWith(_posicoes.PersonagensNaArea(posicao.Area));
+            }
         }
 
         foreach (var sessao in _tempoReal.Sessoes)
