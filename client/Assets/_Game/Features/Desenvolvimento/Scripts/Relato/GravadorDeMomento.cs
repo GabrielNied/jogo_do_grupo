@@ -301,9 +301,32 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
                 false
             );
             tela.ReadPixels(new Rect(0, 0, _telaCheia.width, _telaCheia.height), 0, 0);
-            tela.Apply();
             RenderTexture.active = anterior;
+
+            // Como no Reduzir: com a origem da textura no topo (Direct3D, Metal, Vulkan) a
+            // captura vem de ponta-cabeça.
+            if (SystemInfo.graphicsUVStartsAtTop)
+            {
+                Desvirar(tela);
+            }
+
+            tela.Apply();
             return tela;
+        }
+
+        private static void Desvirar(Texture2D imagem)
+        {
+            var pixels = imagem.GetPixels32();
+            var largura = imagem.width;
+            var linha = new Color32[largura];
+            for (int cima = 0, baixo = imagem.height - 1; cima < baixo; cima++, baixo--)
+            {
+                Array.Copy(pixels, cima * largura, linha, 0, largura);
+                Array.Copy(pixels, baixo * largura, pixels, cima * largura, largura);
+                Array.Copy(linha, 0, pixels, baixo * largura, largura);
+            }
+
+            imagem.SetPixels32(pixels);
         }
 
         private void AoLogar(string mensagem, string pilha, LogType tipo)
