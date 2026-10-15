@@ -1,3 +1,6 @@
+using JogoDoGrupo.Server.Contratos.Mundo;
+using JogoDoGrupo.Server.Core.Mundo;
+
 namespace JogoDoGrupo.Server.Core.TempoReal;
 
 internal static class TempoRealServicos
@@ -11,6 +14,7 @@ internal static class TempoRealServicos
         IConfiguration configuracao
     )
     {
+        servicos.AddSingleton<IHistoricoDePosicoesDoMundo, HistoricoDePosicoesDoMundo>();
         servicos.AddSingleton(ConfiguracaoTempoReal.Ler(configuracao));
         servicos.AddSingleton<MensagensTempoReal>();
         servicos.AddSingleton<AutenticadorTempoReal>();

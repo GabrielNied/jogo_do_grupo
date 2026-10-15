@@ -43,7 +43,8 @@ public sealed class InimigosPorInstancia(ISorteadorDeCriaturas sorteador, IEstad
         string area,
         double origemX,
         double origemZ,
-        double direcaoYGraus
+        double direcaoYGraus,
+        long instanteReferenciaMs = 0
     )
     {
         if (!_porArea.TryGetValue(area, out var grupos))
@@ -52,7 +53,9 @@ public sealed class InimigosPorInstancia(ISorteadorDeCriaturas sorteador, IEstad
         }
 
         return grupos
-            .SelectMany(g => g.AlvosNoVolume(area, origemX, origemZ, direcaoYGraus))
+            .SelectMany(g =>
+                g.AlvosNoVolume(area, origemX, origemZ, direcaoYGraus, instanteReferenciaMs)
+            )
             .ToArray();
     }
 

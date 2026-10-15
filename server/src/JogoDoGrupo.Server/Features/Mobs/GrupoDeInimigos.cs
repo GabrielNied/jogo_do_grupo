@@ -1,5 +1,6 @@
 using JogoDoGrupo.Server.Contratos.Combate;
 using JogoDoGrupo.Server.Contratos.Mobs;
+using JogoDoGrupo.Server.Contratos.Mundo;
 using JogoDoGrupo.Shared.Features.Combate;
 using JogoDoGrupo.Shared.Features.Mobs;
 using JogoDoGrupo.Shared.Features.Mundo;
@@ -74,6 +75,7 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
     private readonly double _pontoX;
     private readonly double _pontoZ;
     private readonly LimiteDeInimigosVivos? _limite;
+    private readonly IHistoricoDePosicoesDoMundo? _historico;
     private Inimigo[] _inimigos;
 
     /// <summary>Só nas manadas: a rota que o grupo segue em repouso; nulo nos outros grupos.</summary>
@@ -142,7 +144,8 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
         LimiteDeInimigosVivos? limite = null,
         RotaDaManada? rota = null,
         IEstadoDeQueda? queda = null,
-        bool semReposicao = false
+        bool semReposicao = false,
+        IHistoricoDePosicoesDoMundo? historico = null
     )
     {
         ArgumentNullException.ThrowIfNull(definicao);
@@ -166,6 +169,7 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
         _rota = rota;
         _queda = queda ?? QuedaIgnorada.Instancia;
         _semReposicao = semReposicao;
+        _historico = historico;
         Area = area;
         Capacidade = tamanho;
 
@@ -194,7 +198,8 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
         ISorteadorDeCriaturas sorteador,
         LimiteDeInimigosVivos? limite = null,
         Func<long>? relogioMs = null,
-        IEstadoDeQueda? queda = null
+        IEstadoDeQueda? queda = null,
+        IHistoricoDePosicoesDoMundo? historico = null
     ) =>
         new(
             CatalogoCriaturas.Obter(ponto.CriaturaId)
@@ -213,7 +218,8 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
             ponto.NivelMaximo,
             limite,
             ponto.Rota,
-            queda
+            queda,
+            historico: historico
         );
 
     /// <summary>
@@ -454,7 +460,8 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
         string area,
         double origemX,
         double origemZ,
-        double direcaoYGraus
+        double direcaoYGraus,
+        long instanteReferenciaMs = 0
     )
     {
         if (area != Area)
@@ -467,14 +474,29 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
             var alvos = new List<AlvoDeCombate>();
             foreach (var inimigo in _inimigos)
             {
+                var alvoX = inimigo.X;
+                var alvoZ = inimigo.Z;
+                if (
+                    instanteReferenciaMs > 0
+                    && _historico?.TentarObterEm(
+                        inimigo.Id,
+                        instanteReferenciaMs,
+                        out var posicaoHistorica
+                    ) == true
+                )
+                {
+                    alvoX = posicaoHistorica.X;
+                    alvoZ = posicaoHistorica.Z;
+                }
+
                 if (
                     RegrasInimigo.EstaVivo(inimigo.Estado)
                     && RegrasAtaque.EstaNoVolume(
                         origemX,
                         origemZ,
                         direcaoYGraus,
-                        inimigo.X,
-                        inimigo.Z,
+                        alvoX,
+                        alvoZ,
                         RegrasInimigo.RaioDoCorpoMetros
                     )
                 )
@@ -482,8 +504,8 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
                     alvos.Add(
                         new AlvoDeCombate(
                             inimigo.Id,
-                            inimigo.X,
-                            inimigo.Z,
+                            alvoX,
+                            alvoZ,
                             RegrasInimigo.RaioDoCorpoMetros,
                             inimigo.Vida,
                             inimigo.Criatura.VidaMaxima
@@ -640,6 +662,26 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
             inimigo.Sequencia++;
             passo.Mudancas.Add(new MudancaDeInimigo(Mudanca(inimigo), !mudouOResto));
         }
+
+        if (mudouPosicao)
+        {
+            RegistrarPosicao(inimigo, agora);
+        }
+    }
+
+    private void RegistrarPosicao(Inimigo inimigo, long instanteMs)
+    {
+        _historico?.Registrar(
+            inimigo.Id,
+            new PosicaoNoMundo(
+                Area,
+                (float)inimigo.X,
+                0f,
+                (float)inimigo.Z,
+                (float)inimigo.Rotacao
+            ),
+            instanteMs
+        );
     }
 
     private void Perseguir(

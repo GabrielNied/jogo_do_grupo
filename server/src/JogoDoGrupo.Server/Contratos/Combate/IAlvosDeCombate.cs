@@ -43,7 +43,8 @@ public interface IAlvosDeCombate
         string area,
         double origemX,
         double origemZ,
-        double direcaoYGraus
+        double direcaoYGraus,
+        long instanteReferenciaMs = 0
     );
 
     /// <summary>

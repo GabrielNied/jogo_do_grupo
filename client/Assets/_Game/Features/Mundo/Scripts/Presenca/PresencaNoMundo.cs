@@ -306,6 +306,24 @@ namespace JogoDoGrupo.Client.Features.Mundo.Presenca
                     )
                 );
             }
+
+            // Aliados do grupo fora da área de interesse: só ponto no mapa (#789).
+            foreach (var aliado in _presenca.AliadosLonge)
+            {
+                if (!_presenca.Avatares.TentarObter(aliado.PersonagemId, out _))
+                {
+                    destino.Add(
+                        new MarcadorDoMapa(
+                            aliado.X,
+                            aliado.Z,
+                            0f,
+                            ProjecaoDoMapa.AreaDaCidade,
+                            false,
+                            true
+                        )
+                    );
+                }
+            }
         }
 
         private void RemoverVisual(AvatarRemoto avatar)

@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using JogoDoGrupo.Client.Features.Mundo.Terreno;
 using JogoDoGrupo.Shared.Features.Mundo;
 using UnityEngine;
 
@@ -31,12 +33,33 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
 
         public static void Montar(Transform pai)
         {
+            foreach (var _ in MontarPorEtapas(pai, new OrcamentoDeQuadro(float.MaxValue))) { }
+        }
+
+        /// <summary>
+        /// Mesma montagem, cedendo a vez (<c>yield</c>) entre o túnel, cada luz e cada pedra
+        /// quando o orçamento do quadro esgota.
+        /// </summary>
+        public static IEnumerable<int> MontarPorEtapas(Transform pai, OrcamentoDeQuadro orcamento)
+        {
             var raiz = new GameObject(ConstrutorHub.NomeCaverna);
             raiz.transform.SetParent(pai, false);
 
             CriarTunel(raiz.transform);
-            CriarLuzes(raiz.transform);
-            CriarPedras(raiz.transform);
+            if (orcamento.Esgotou())
+            {
+                yield return 0;
+            }
+
+            foreach (var passo in CriarLuzes(raiz.transform, orcamento))
+            {
+                yield return passo;
+            }
+
+            foreach (var passo in CriarPedras(raiz.transform, orcamento))
+            {
+                yield return passo;
+            }
         }
 
         private static void CriarTunel(Transform pai)
@@ -57,7 +80,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
 
         // Uma luz de ponto de tempos em tempos ao longo do percurso, uma no meio de cada câmara
         // e uma na ponta do beco. Sem sombra (barato) e sem depender do sol.
-        private static void CriarLuzes(Transform pai)
+        private static IEnumerable<int> CriarLuzes(Transform pai, OrcamentoDeQuadro orcamento)
         {
             var luzes = new GameObject(NomeLuzes).transform;
             luzes.SetParent(pai, false);
@@ -71,9 +94,18 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
             {
                 PrimeiraCaverna.PontoDoPercurso(d, out var x, out var z);
                 CriarLuz(luzes, x, z);
+                if (orcamento.Esgotou())
+                {
+                    yield return 0;
+                }
             }
 
             CriarLuz(luzes, PrimeiraCaverna.CamaraFinalX, PrimeiraCaverna.CamaraFinalZ);
+            if (orcamento.Esgotou())
+            {
+                yield return 0;
+            }
+
             CriarLuz(luzes, PrimeiraCaverna.PontaDoBecoX, PrimeiraCaverna.PontaDoBecoZ);
         }
 
@@ -97,7 +129,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
 
         // Pedras soltas dos dois lados da boca, apoiadas no chão e sem colisão (não fecham a
         // passagem nem atrapalham o corte do terreno). Posição fixa: o mundo é o mesmo para todos.
-        private static void CriarPedras(Transform pai)
+        private static IEnumerable<int> CriarPedras(Transform pai, OrcamentoDeQuadro orcamento)
         {
             var pedras = new GameObject(NomePedras).transform;
             pedras.SetParent(pai, false);
@@ -123,6 +155,11 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
                 if (material != null)
                 {
                     pedra.GetComponent<MeshRenderer>().sharedMaterial = material;
+                }
+
+                if (orcamento.Esgotou())
+                {
+                    yield return 0;
                 }
             }
         }

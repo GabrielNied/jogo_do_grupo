@@ -97,18 +97,14 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
                 MaterialDoTerreno(),
                 cancelar
             );
-            CriarMuros(raiz.transform);
-            CriarEstradas(raiz.transform);
-            CriarProps(raiz.transform);
-            await Awaitable.NextFrameAsync(cancelar);
-            CriarPropsFora(raiz.transform);
-            await Awaitable.NextFrameAsync(cancelar);
-            await CriarPecasDosBiomasAsync(raiz.transform, cancelar);
-            CriarEstruturas(raiz.transform);
-            Caverna.Montar(raiz.transform);
-            var sol = CriarLuz(raiz.transform);
-            var preenchimento = CriarPreenchimento(raiz.transform);
-            ConfigurarAmbiente(raiz.transform, sol, preenchimento);
+            // Muros, estradas, props, peças dos biomas, estruturas e caverna: cada etapa cede o
+            // quadro quando gasta o orçamento (o mesmo da vegetação, #502).
+            foreach (var _ in MontarEtapas(raiz.transform, new OrcamentoDeQuadro()))
+            {
+                await Awaitable.NextFrameAsync(cancelar);
+            }
+
+            FinalizarMontagem(raiz.transform);
             return raiz;
         }
 
@@ -119,23 +115,99 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
         /// </summary>
         public static GameObject Montar()
         {
+            return MontarComOrcamento(float.MaxValue, out _);
+        }
+
+        /// <summary>Monta o hub cedendo quadros quando o orçamento esgota (testes EditMode).</summary>
+        internal static GameObject MontarComOrcamento(float orcamentoMs, out int cedencias)
+        {
+            cedencias = 0;
             var raiz = new GameObject(NomeRaiz);
             _escalaDasPecas = MedirEscalaDasPecas();
 
             CriarChao(raiz.transform);
             CriarTerreno(raiz.transform);
-            CriarMuros(raiz.transform);
-            CriarEstradas(raiz.transform);
-            CriarProps(raiz.transform);
-            CriarPropsFora(raiz.transform);
-            CriarPecasDosBiomas(raiz.transform);
-            CriarEstruturas(raiz.transform);
-            Caverna.Montar(raiz.transform);
-            var sol = CriarLuz(raiz.transform);
-            var preenchimento = CriarPreenchimento(raiz.transform);
-            ConfigurarAmbiente(raiz.transform, sol, preenchimento);
+            foreach (var _ in MontarEtapas(raiz.transform, new OrcamentoDeQuadro(orcamentoMs)))
+            {
+                cedencias++;
+            }
 
+            FinalizarMontagem(raiz.transform);
             return raiz;
+        }
+
+        /// <summary>Limpa caches estáticos entre montagens nos testes.</summary>
+        internal static void LimparCacheParaTeste()
+        {
+            _materiaisTingidos.Clear();
+            MontadorDaVegetacao.Limpar();
+        }
+
+        /// <summary>Monta só as etapas pós-terreno, com a escala medida (testes EditMode).</summary>
+        internal static (int Objetos, int Etapas) MontarEtapasParaTeste(float orcamentoMs)
+        {
+            _escalaDasPecas = MedirEscalaDasPecas();
+            var raiz = new GameObject("RaizDeTeste");
+            var etapas = 0;
+            foreach (var _ in MontarEtapas(raiz.transform, new OrcamentoDeQuadro(orcamentoMs)))
+            {
+                etapas++;
+            }
+
+            var objetos = raiz.GetComponentsInChildren<Transform>(true).Length;
+            Object.DestroyImmediate(raiz);
+            return (objetos, etapas);
+        }
+
+        private static void FinalizarMontagem(Transform raiz)
+        {
+            var sol = CriarLuz(raiz);
+            var preenchimento = CriarPreenchimento(raiz);
+            ConfigurarAmbiente(raiz, sol, preenchimento);
+        }
+
+        /// <summary>
+        /// Tudo o que vem depois do chão e do terreno, em etapas: cada <c>yield</c> é um ponto
+        /// onde o orçamento do quadro esgotou e dá para ceder a vez. Quem quiser tudo de uma vez
+        /// só percorre o enumerador.
+        /// </summary>
+        internal static IEnumerable<int> MontarEtapas(Transform raiz, OrcamentoDeQuadro orcamento)
+        {
+            foreach (var passo in CriarMuros(raiz, orcamento))
+            {
+                yield return passo;
+            }
+
+            foreach (var passo in CriarEstradas(raiz, orcamento))
+            {
+                yield return passo;
+            }
+
+            foreach (var passo in CriarProps(raiz, orcamento))
+            {
+                yield return passo;
+            }
+
+            foreach (var passo in CriarPropsFora(raiz, orcamento))
+            {
+                yield return passo;
+            }
+
+            var pecas = CriarRaizDasPecasDosBiomas(raiz);
+            foreach (var passo in MontadorDaVegetacao.Montar(pecas, _escalaDasPecas, orcamento))
+            {
+                yield return passo;
+            }
+
+            foreach (var passo in CriarEstruturas(raiz, orcamento))
+            {
+                yield return passo;
+            }
+
+            foreach (var passo in Caverna.MontarPorEtapas(raiz, orcamento))
+            {
+                yield return passo;
+            }
         }
 
         private static void CriarChao(Transform pai)
@@ -233,7 +305,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
             return renderizador != null ? renderizador.sharedMaterial : null;
         }
 
-        private static void CriarMuros(Transform pai)
+        private static IEnumerable<int> CriarMuros(Transform pai, OrcamentoDeQuadro orcamento)
         {
             var muros = new GameObject(NomeMuros).transform;
             muros.SetParent(pai, false);
@@ -264,6 +336,11 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
                     CriarMuro(muros, LayoutDoHub.CentroDaCelula(0), centro, false);
                     CriarMuro(muros, LayoutDoHub.CentroDaCelula(ultimo), centro, false);
                 }
+
+                if (orcamento.Esgotou())
+                {
+                    yield return i;
+                }
             }
         }
 
@@ -289,7 +366,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
             );
         }
 
-        private static void CriarEstradas(Transform pai)
+        private static IEnumerable<int> CriarEstradas(Transform pai, OrcamentoDeQuadro orcamento)
         {
             var estradas = new GameObject(NomeEstradas).transform;
             estradas.SetParent(pai, false);
@@ -317,7 +394,12 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
                     // Um prefab que falta já foi avisado na primeira vez; não repete 100 vezes.
                     if (!CriarEstrada(estradas, x, z))
                     {
-                        return;
+                        yield break;
+                    }
+
+                    if (orcamento.Esgotou())
+                    {
+                        yield return i;
                     }
                 }
             }
@@ -332,7 +414,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
                     var x = LayoutDoHub.CentroDaCelula(i);
                     if (LayoutDoHub.EhVaoDoPortao(x) && !CriarEstrada(estradas, x, z))
                     {
-                        return;
+                        yield break;
                     }
                 }
             }
@@ -343,7 +425,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
             return Instanciar(LayoutDoHub.PrefabEstrada, new Vector3(x, 0f, z), 0f, pai) != null;
         }
 
-        private static void CriarProps(Transform pai)
+        private static IEnumerable<int> CriarProps(Transform pai, OrcamentoDeQuadro orcamento)
         {
             var props = new GameObject(NomeProps).transform;
             props.SetParent(pai, false);
@@ -359,6 +441,11 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
                 if (instancia != null && peca.Prefab == PrefabDaLanterna)
                 {
                     CalibrarLanterna(instancia);
+                }
+
+                if (orcamento.Esgotou())
+                {
+                    yield return 0;
                 }
             }
         }
@@ -395,7 +482,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
             luz.shadows = LightShadows.None;
         }
 
-        private static void CriarPropsFora(Transform pai)
+        private static IEnumerable<int> CriarPropsFora(Transform pai, OrcamentoDeQuadro orcamento)
         {
             var props = new GameObject(NomePropsFora).transform;
             props.SetParent(pai, false);
@@ -417,11 +504,15 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
                     props
                 );
                 Tingir(instancia, MapaDoMundo.BiomaEm(peca.X, peca.Z));
+                if (orcamento.Esgotou())
+                {
+                    yield return 0;
+                }
             }
         }
 
         // Ruína, acampamento, passagem e marco: coordenadas fixas, cada peça na altura do chão.
-        private static void CriarEstruturas(Transform pai)
+        private static IEnumerable<int> CriarEstruturas(Transform pai, OrcamentoDeQuadro orcamento)
         {
             var raiz = new GameObject(NomeEstruturas).transform;
             raiz.SetParent(pai, false);
@@ -436,6 +527,10 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
                         peca.Guinada,
                         raiz
                     );
+                    if (orcamento.Esgotou())
+                    {
+                        yield return 0;
+                    }
                 }
             }
         }
@@ -448,25 +543,6 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
             var pecas = new GameObject(NomePecasDosBiomas).transform;
             pecas.SetParent(pai, false);
             return pecas;
-        }
-
-        private static void CriarPecasDosBiomas(Transform pai)
-        {
-            var pecas = CriarRaizDasPecasDosBiomas(pai);
-            foreach (var _ in MontadorDaVegetacao.Montar(pecas, _escalaDasPecas)) { }
-        }
-
-        // Mesma montagem, devolvendo o quadro a cada orçamento de tempo gasto.
-        private static async Awaitable CriarPecasDosBiomasAsync(
-            Transform pai,
-            CancellationToken cancelar
-        )
-        {
-            var pecas = CriarRaizDasPecasDosBiomas(pai);
-            foreach (var _ in MontadorDaVegetacao.Montar(pecas, _escalaDasPecas))
-            {
-                await Awaitable.NextFrameAsync(cancelar);
-            }
         }
 
         // Troca os materiais da peça por cópias multiplicadas pela cor do bioma. Branco (campo,

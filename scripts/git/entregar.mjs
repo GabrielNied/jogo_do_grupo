@@ -85,6 +85,31 @@ export function lerArgumentos(argv) {
   return args;
 }
 
+// C# que o check `csharpier` do CI confere: os .cs de uma lista do git (um por linha).
+export function arquivosCsharp(saidaNomes) {
+  return String(saidaNomes)
+    .split("\n")
+    .map((linha) => linha.trim())
+    .filter((nome) => nome.endsWith(".cs"));
+}
+
+function csharpier(acao, arquivos) {
+  if (arquivos.length === 0) return true;
+  try {
+    execFileSync("dotnet", ["csharpier", acao, ...arquivos], {
+      stdio: ["ignore", "ignore", "inherit"],
+      windowsHide: true,
+    });
+    return true;
+  } catch (erro) {
+    if (erro.code === "ENOENT") {
+      console.error("⚠ dotnet indisponível: CSharpier não conferido (o CI confere).");
+      return true;
+    }
+    return false;
+  }
+}
+
 function gitOut(args) {
   return execFileSync("git", args, {
     encoding: "utf8",
@@ -144,6 +169,13 @@ function principal() {
     process.exit(1);
   }
   if (temStage) {
+    // Formata o C# do stage antes do commit. Arquivo com parte fora do stage fica de fora,
+    // para o add não levar o que não foi escolhido (o check antes do push ainda o pega).
+    const foraDoStage = new Set(arquivosCsharp(gitOut(["diff", "--name-only"])));
+    const doStage = arquivosCsharp(
+      gitOut(["diff", "--cached", "--name-only", "--diff-filter=ACMR"]),
+    ).filter((nome) => !foraDoStage.has(nome));
+    if (csharpier("format", doStage) && doStage.length > 0) gitRun(["add", "--", ...doStage]);
     // Num worktree, .git é um arquivo: a pasta certa vem do próprio git.
     const arquivoMensagem = join(gitOut(["rev-parse", "--git-dir"]), "MENSAGEM_COMMIT");
     writeFileSync(arquivoMensagem, mensagem);
@@ -185,6 +217,16 @@ function principal() {
   const head = gitOut(["rev-parse", "HEAD"]);
   if (gitOut(["rev-list", "--count", `origin/main..${head}`]) === "0") {
     console.error("✖ Nada para entregar. Coloque os arquivos no stage (git add) antes.");
+    process.exit(1);
+  }
+
+  const doPr = arquivosCsharp(
+    gitOut(["diff", "--name-only", "--diff-filter=ACMR", `origin/main...${head}`]),
+  );
+  if (!csharpier("check", doPr)) {
+    console.error(
+      "✖ C# fora do CSharpier nos commits da branch. Rode `dotnet csharpier format .`, commite e entregue de novo.",
+    );
     process.exit(1);
   }
 

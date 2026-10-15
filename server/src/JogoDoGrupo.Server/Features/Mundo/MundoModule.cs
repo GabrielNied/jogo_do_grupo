@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using JogoDoGrupo.Server.Contratos.Combate;
 using JogoDoGrupo.Server.Contratos.Mundo;
 using JogoDoGrupo.Server.Contratos.Personagem;
+using JogoDoGrupo.Server.Contratos.Social;
 using JogoDoGrupo.Server.Core;
 using JogoDoGrupo.Server.Core.Eventos;
 using JogoDoGrupo.Server.Core.TempoReal;
@@ -26,6 +27,7 @@ public sealed class MundoModule : IFeatureModule, ITransicoesDeAreaDoMundo
     private bool _permitirVelocidadeDeTeste;
     private ServidorTempoReal? _tempoReal;
     private EventosDoServidor? _eventos;
+    private IHistoricoDePosicoesDoMundo? _historico;
 
     // Criado pelo contêiner quando o app sobe (hosted service); o manipulador de rede só o usa
     // depois que uma sessão se autentica.
@@ -58,6 +60,15 @@ public sealed class MundoModule : IFeatureModule, ITransicoesDeAreaDoMundo
             return servico;
         });
         servicos.AddHostedService(sp => sp.GetRequiredService<ServicoDaHoraDoMundo>());
+        // Posição do grupo para o mapa (#789): o grupo vem do contrato do Social, se carregado.
+        servicos.AddSingleton(sp => new ServicoDePosicaoDoGrupo(
+            () => _areas.Cidade.Presentes(),
+            _grade.Vistos,
+            () => sp.GetService<IConsultaDeGrupo>(),
+            sp.GetRequiredService<ServidorTempoReal>(),
+            sp.GetRequiredService<ILogger<ServicoDePosicaoDoGrupo>>()
+        ));
+        servicos.AddHostedService(sp => sp.GetRequiredService<ServicoDePosicaoDoGrupo>());
     }
 
     public void MapearRotas(IEndpointRouteBuilder rotas)
@@ -70,6 +81,7 @@ public sealed class MundoModule : IFeatureModule, ITransicoesDeAreaDoMundo
             servicos.GetRequiredService<IHostEnvironment>(),
             servicos.GetRequiredService<ILogger<MundoModule>>()
         );
+        _historico = servicos.GetRequiredService<IHistoricoDePosicoesDoMundo>();
     }
 
     public void RegistrarMensagens(MensagensTempoReal mensagens) =>
@@ -184,6 +196,8 @@ public sealed class MundoModule : IFeatureModule, ITransicoesDeAreaDoMundo
         {
             _eventos!.Publicar(new JogadorEntrouNaArea(sessao.PersonagemId, AreasDoMundo.Cidade));
         }
+
+        RegistrarPosicaoDoJogador(AreasDoMundo.Cidade, eu);
     }
 
     // O client é dono da própria posição (ADR 0024): o servidor valida e repassa aos outros,
@@ -243,6 +257,17 @@ public sealed class MundoModule : IFeatureModule, ITransicoesDeAreaDoMundo
             replica,
             EntregaTempoReal.Sequenciada,
             avatar.PersonagemId
+        );
+        RegistrarPosicaoDoJogador(area, avatar);
+    }
+
+    private void RegistrarPosicaoDoJogador(string area, AvatarNaCidade<SessaoTempoReal> avatar)
+    {
+        var p = avatar.Posicao;
+        _historico?.Registrar(
+            avatar.PersonagemId,
+            new PosicaoNoMundo(area, p.X, p.Y, p.Z, p.RotacaoY),
+            Environment.TickCount64
         );
     }
 

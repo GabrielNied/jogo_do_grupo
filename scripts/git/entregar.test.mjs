@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import {
+  arquivosCsharp,
   commitsParaLevar,
   lerArgumentos,
   mensagemDeCommit,
@@ -63,4 +64,8 @@ test("corpo na linha de comando não é argumento", () => {
     titulo: "chore(core): x",
     corpo: ".git/pr.md",
   });
+});
+
+test("só arquivos .cs vão para o CSharpier", () => {
+  assert.deepEqual(arquivosCsharp("a/B.cs\nc/D.cs.meta\ndocs/x.md\n\nE.cs\n"), ["a/B.cs", "E.cs"]);
 });

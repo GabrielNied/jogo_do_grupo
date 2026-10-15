@@ -166,12 +166,24 @@ namespace JogoDoGrupo.Client.Features.Mundo
                         continue;
                     }
 
-                    if (
+                    float x;
+                    float y;
+                    if (outro.Longe)
+                    {
+                        // Aliado longe (#789): ponto na borda, na direção dele.
+                        ProjecaoDoMapa.NaBordaDoMinimapa(
+                            outro.X - origem.x,
+                            outro.Z - origem.z,
+                            out x,
+                            out y
+                        );
+                    }
+                    else if (
                         !ProjecaoDoMapa.NoMinimapa(
                             outro.X - origem.x,
                             outro.Z - origem.z,
-                            out var x,
-                            out var y
+                            out x,
+                            out y
                         )
                     )
                     {
