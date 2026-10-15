@@ -28,6 +28,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
 
         public const string NomeBlocos = "Blocos";
         public const string NomeAgua = "Agua";
+        public const string NomeRiosAltos = "RiosAltos";
         public const string NomeLava = "Lava";
         public const string NomeFuroDaCaverna = "FuroDaCaverna";
 
@@ -104,6 +105,8 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
                 yield return bj + 1;
             }
 
+            MontadorDaEstrada.Criar(terreno);
+
             // As células que a boca da caverna atravessa saem dos blocos e voltam num remendo
             // mais fino, com o túnel aberto (o mapa de alturas não tem como furar o chão).
             var remendo = CriarMalhaDoFuro();
@@ -117,6 +120,12 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
                 NomeAgua,
                 terreno,
                 CriarMalhaDoLiquido(amostras, false),
+                MateriaisDosLiquidos.Agua(modelo)
+            );
+            CriarLiquido(
+                NomeRiosAltos,
+                terreno,
+                CriarMalhaDosRiosAltos(),
                 MateriaisDosLiquidos.Agua(modelo)
             );
             CriarLiquido(
@@ -283,6 +292,65 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
             malha.SetColors(cores);
             malha.normals = normais;
             malha.SetTriangles(triangulos, 0);
+            malha.RecalculateBounds();
+            return malha;
+        }
+
+        /// <summary>Superficie dos rios altos, acompanhando a altura oficial do leito.</summary>
+        public static Mesh CriarMalhaDosRiosAltos()
+        {
+            const float inicioZ = 300f;
+            const float fimZ = 1500f;
+            const float passoZ = 5f;
+            var vertices = new List<Vector3>();
+            var cores = new List<Color32>();
+            var triangulos = new List<int>();
+
+            for (var rio = 0; rio < 2; rio++)
+            {
+                var inicio = vertices.Count;
+                var primeiroZ = rio == 0 ? inicioZ : 400f;
+                var ultimoZ = rio == 0 ? fimZ : 1200f;
+                var segmentos = Mathf.RoundToInt((ultimoZ - primeiroZ) / passoZ);
+                for (var i = 0; i <= segmentos; i++)
+                {
+                    var z = primeiroZ + i * passoZ;
+                    var x =
+                        rio == 0
+                            ? MapaDoMundo.CentroDoRioGlacial(z)
+                            : MapaDoMundo.CentroDoRioDasCascatas(z);
+                    var y = MapaDoMundo.NivelDoRioAlto(z);
+                    var meiaLargura = MapaDoMundo.MeiaLarguraDoRioAlto(z);
+                    vertices.Add(new Vector3(x - meiaLargura, y, z));
+                    vertices.Add(new Vector3(x + meiaLargura, y, z));
+                    // O shader de agua da main le a profundidade do canal vermelho.
+                    cores.Add(new Color32(115, 0, 0, 255));
+                    cores.Add(new Color32(115, 0, 0, 255));
+
+                    if (i == segmentos)
+                    {
+                        continue;
+                    }
+
+                    var a = inicio + 2 * i;
+                    var b = a + 1;
+                    var c = a + 2;
+                    var d = a + 3;
+                    triangulos.Add(a);
+                    triangulos.Add(c);
+                    triangulos.Add(b);
+                    triangulos.Add(b);
+                    triangulos.Add(c);
+                    triangulos.Add(d);
+                }
+            }
+
+            var malha = new Mesh { name = NomeRiosAltos };
+            malha.indexFormat = IndexFormat.UInt32;
+            malha.SetVertices(vertices);
+            malha.SetColors(cores);
+            malha.SetTriangles(triangulos, 0);
+            malha.RecalculateNormals();
             malha.RecalculateBounds();
             return malha;
         }

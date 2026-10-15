@@ -25,7 +25,10 @@ public class EstruturasDoMapaTestes
             Assert.NotEmpty(lugar.Pecas);
             foreach (var peca in lugar.Pecas)
             {
-                Assert.Equal(lugar.Bioma, MapaDoMundo.BiomaEm(peca.X, peca.Z));
+                Assert.True(
+                    lugar.Bioma == MapaDoMundo.BiomaEm(peca.X, peca.Z),
+                    $"{lugar.Nome} em ({peca.X}, {peca.Z}) caiu em {MapaDoMundo.BiomaEm(peca.X, peca.Z)}."
+                );
                 Assert.Equal(MapaDoMundo.AlturaEm(peca.X, peca.Z), peca.Altura);
                 Assert.True(EstruturasDoMapa.ForaDaCidade(peca.X, peca.Z), lugar.Nome);
                 Assert.True(EstruturasDoMapa.ChaoSeco(peca.X, peca.Z), lugar.Nome);

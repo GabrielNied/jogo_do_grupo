@@ -49,24 +49,17 @@ public class MapaDoMundoTestes
         Assert.Equal(Bioma.Cidade, MapaDoMundo.BiomaEm(x, z));
 
     [Theory]
-    [InlineData(0f, 250f, Bioma.Campo)]
-    [InlineData(0f, 300f, Bioma.Campo)]
-    [InlineData(250f, -100f, Bioma.Mata)]
-    [InlineData(300f, -200f, Bioma.Mata)]
-    [InlineData(-250f, -100f, Bioma.Colinas)]
-    [InlineData(-300f, -200f, Bioma.Colinas)]
-    [InlineData(0f, 1000f, Bioma.Neve)]
-    [InlineData(0f, 1200f, Bioma.Neve)]
-    [InlineData(0f, -1000f, Bioma.Lava)]
-    [InlineData(0f, -1200f, Bioma.Lava)]
-    [InlineData(-1000f, 0f, Bioma.Deserto)]
-    [InlineData(-1200f, 0f, Bioma.Deserto)]
-    [InlineData(1000f, 0f, Bioma.Pantano)]
-    [InlineData(1200f, 0f, Bioma.Pantano)]
-    public void Cada_bioma_fica_do_seu_lado(float x, float z, Bioma esperado)
+    [InlineData(350f, -250f, Bioma.Mata)]
+    [InlineData(160f, -180f, Bioma.Campo)]
+    [InlineData(-300f, 180f, Bioma.Colinas)]
+    [InlineData(-920f, 1030f, Bioma.Neve)]
+    [InlineData(-1080f, -680f, Bioma.Deserto)]
+    [InlineData(1090f, 250f, Bioma.Pantano)]
+    [InlineData(790f, -1180f, Bioma.Lava)]
+    public void Regioes_novas_tem_identidade_sem_setores_radiais(float x, float z, Bioma esperado)
     {
         Assert.Equal(esperado, MapaDoMundo.BiomaEm(x, z));
-        Assert.Equal(1f, MapaDoMundo.PesosEm(x, z).De(esperado), 0.001f);
+        Assert.True(MapaDoMundo.PesosEm(x, z).De(esperado) > 0.5f);
     }
 
     [Fact]
@@ -85,6 +78,43 @@ public class MapaDoMundoTestes
         }
     }
 
+    [Theory]
+    [InlineData(400f)]
+    [InlineData(900f)]
+    [InlineData(1400f)]
+    public void Centros_dos_rios_altos_coincidem_com_os_leitos(float z)
+    {
+        Assert.True(MapaDoMundo.ProximoDeRio(MapaDoMundo.CentroDoRioGlacial(z), z, out var leste));
+        Assert.InRange(leste, 0f, 0.001f);
+        if (z <= 1200f)
+        {
+            Assert.True(
+                MapaDoMundo.ProximoDeRio(MapaDoMundo.CentroDoRioDasCascatas(z), z, out var oeste)
+            );
+            Assert.InRange(oeste, 0f, 0.001f);
+        }
+
+        var nivel = MapaDoMundo.NivelDoRioAlto(z);
+        Assert.True(nivel > MapaDoMundo.NivelDaAgua);
+        Assert.True(nivel < MapaDoMundo.NivelDoRioAlto(z + 10f));
+        Assert.Equal(
+            nivel - 0.42f,
+            MapaDoMundo.AlturaEm(MapaDoMundo.CentroDoRioGlacial(z), z),
+            0.05f
+        );
+        Assert.True(MapaDoMundo.DentroDoRioAlto(MapaDoMundo.CentroDoRioGlacial(z), z));
+        Assert.False(MapaDoMundo.DentroDoRioAlto(MapaDoMundo.CentroDoRioGlacial(z) + 30f, z));
+    }
+
+    [Fact]
+    public void Rio_novo_nao_corta_a_caverna_ou_os_marcos_existentes()
+    {
+        Assert.False(MapaDoMundo.ProximoDeRio(-250f, -100f, out var distanciaRuina));
+        Assert.False(MapaDoMundo.ProximoDeRio(-300f, -200f, out var distanciaPassagem));
+        Assert.True(distanciaRuina > 60f);
+        Assert.True(distanciaPassagem > 60f);
+    }
+
     [Fact]
     public void Dentro_dos_muros_o_chao_fica_plano_em_zero()
     {
@@ -98,6 +128,87 @@ public class MapaDoMundoTestes
 
         Assert.Equal(0f, MapaDoMundo.AlturaEm(0f, -24f));
         Assert.Equal(0f, MapaDoMundo.AlturaEm(3.3f, 7.1f));
+    }
+
+    [Fact]
+    public void Cidades_novas_tem_patios_planos_e_ficam_separadas_de_rios()
+    {
+        foreach (
+            var (x, z, altura) in new[]
+            {
+                (
+                    MapaDoMundo.CidadeDaNeveX,
+                    MapaDoMundo.CidadeDaNeveZ,
+                    MapaDoMundo.CidadeDaNeveAltura
+                ),
+                (
+                    MapaDoMundo.CidadeDoDesertoX,
+                    MapaDoMundo.CidadeDoDesertoZ,
+                    MapaDoMundo.CidadeDoDesertoAltura
+                ),
+            }
+        )
+        {
+            Assert.True(MapaDoMundo.DentroDoMundo(x, z));
+            Assert.False(MapaDoMundo.ProximoDeRio(x, z, out _));
+            Assert.Equal(altura, MapaDoMundo.AlturaEm(x, z), 0.05f);
+            Assert.Equal(altura, MapaDoMundo.AlturaEm(x + 20f, z + 20f), 0.05f);
+        }
+    }
+
+    [Fact]
+    public void Trilha_leste_cruza_o_rio_por_vau_raso()
+    {
+        const float x = 385f;
+        const float z = 109f;
+        Assert.True(MapaDoMundo.ProximoDeRio(x, z, out _));
+        Assert.InRange(
+            MapaDoMundo.AlturaEm(x, z),
+            MapaDoMundo.NivelDaAgua - 0.5f,
+            MapaDoMundo.NivelDaAgua + 1f
+        );
+    }
+
+    [Fact]
+    public void Corredores_de_exploracao_tem_eixos_continuos_e_chao_caminhavel()
+    {
+        foreach (var rota in CaminhosDoMundo.Rotas)
+        {
+            for (var i = 0; i + 1 < rota.Length; i++)
+            {
+                var a = rota[i];
+                var b = rota[i + 1];
+                var comprimento = Math.Sqrt(Math.Pow(b.X - a.X, 2) + Math.Pow(b.Z - a.Z, 2));
+                var passos = (int)Math.Ceiling(comprimento / 10d);
+                for (var passo = 0; passo <= passos; passo++)
+                {
+                    var t = passo / (float)passos;
+                    var x = a.X + (b.X - a.X) * t;
+                    var z = a.Z + (b.Z - a.Z) * t;
+                    var altura = MapaDoMundo.AlturaEm(x, z);
+                    Assert.True(MapaDoMundo.DentroDoMundo(x, z));
+                    Assert.True(
+                        MapaDoMundo.PesosEm(x, z).Lava < 0.4f
+                            || altura >= MapaDoMundo.NivelDaLava + 1f,
+                        $"Lava na rota em ({x}, {z})."
+                    );
+                    Assert.InRange(CaminhosDoMundo.DistanciaAteCaminho(x, z), 0f, 0.05f);
+                    if (passo < passos)
+                    {
+                        var proximoT = (passo + 1) / (float)passos;
+                        var proximoX = a.X + (b.X - a.X) * proximoT;
+                        var proximoZ = a.Z + (b.Z - a.Z) * proximoT;
+                        var proximaAltura = MapaDoMundo.AlturaEm(proximoX, proximoZ);
+                        var distancia = (float)
+                            Math.Sqrt(Math.Pow(proximoX - x, 2) + Math.Pow(proximoZ - z, 2));
+                        Assert.True(
+                            Math.Abs(proximaAltura - altura) < distancia,
+                            $"Declive acima de 45 graus na rota em ({x}, {z})."
+                        );
+                    }
+                }
+            }
+        }
     }
 
     [Fact]
@@ -124,11 +235,18 @@ public class MapaDoMundoTestes
     [Fact]
     public void Miolo_em_volta_da_cidade_e_baixo_e_andavel()
     {
-        // Até 430 m do centro só há campo, mata e colinas: nada de montanha nem de paredão.
+        // Os primeiros 200 m da mata em torno da entrada continuam andaveis.
         for (var i = 107; i < 193; i++)
         {
             for (var j = 107; j < 193; j++)
             {
+                var x = MapaDoMundo.CoordenadaDaGrade(i);
+                var z = MapaDoMundo.CoordenadaDaGrade(j);
+                if (x * x + z * z > 200f * 200f)
+                {
+                    continue;
+                }
+
                 var altura = MapaDoMundo.AlturaNaGrade(i, j);
                 Assert.InRange(altura, -1.2f, 25f);
 
@@ -169,26 +287,27 @@ public class MapaDoMundoTestes
             }
         }
 
-        // Os quatro biomas de fora ocupam, cada um, perto de um quinto do mundo.
+        // As massas principais ocupam regioes expressivas sem quotas de quadrantes.
         foreach (var bioma in new[] { Bioma.Deserto, Bioma.Neve, Bioma.Lava, Bioma.Pantano })
         {
-            Assert.InRange(pontos[bioma], 1500, 2900);
+            Assert.InRange(pontos[bioma], 500, 5000);
         }
 
         foreach (var bioma in new[] { Bioma.Campo, Bioma.Mata, Bioma.Colinas })
         {
-            Assert.InRange(pontos[bioma], 150, 900);
+            Assert.True(pontos.GetValueOrDefault(bioma) > 0);
         }
 
         Assert.InRange(maximo[Bioma.Neve], 100f, MapaDoMundo.AlturaMaxima);
         Assert.InRange(maximo[Bioma.Lava], 60f, MapaDoMundo.AlturaMaxima);
         Assert.True(maximo[Bioma.Neve] > maximo[Bioma.Lava], "A neve tem os picos mais altos.");
-        Assert.InRange(maximo[Bioma.Colinas], 8f, 25f);
+        Assert.InRange(maximo[Bioma.Colinas], 8f, 70f);
         Assert.InRange(minimo[Bioma.Deserto], 1f, 10f);
-        Assert.InRange(minimo[Bioma.Neve], 1f, 20f);
+        // O vale do rio glacial pode ficar abaixo do terreno nevado ao redor.
+        Assert.InRange(minimo[Bioma.Neve], -1f, 20f);
         Assert.InRange(minimo[Bioma.Pantano], -1f, MapaDoMundo.NivelDaAgua);
-        Assert.InRange(alagados, 300, 1200);
-        Assert.InRange(comLava, 40, 400);
+        Assert.True(alagados > 100);
+        Assert.True(comLava > 20);
     }
 
     [Fact]

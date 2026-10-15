@@ -11,6 +11,24 @@ namespace JogoDoGrupo.Shared.Features.Mundo
     {
         private static readonly List<ModificadorDeTerreno> ModificadoresFixos = new()
         {
+            new ModificadorDeTerreno(
+                "cidade.passo_da_neve",
+                TipoModificadorTerreno.Planar,
+                MapaDoMundo.CidadeDaNeveX,
+                MapaDoMundo.CidadeDaNeveZ,
+                MapaDoMundo.RaioCidadeSecundaria,
+                MapaDoMundo.BordaCidadeSecundaria,
+                MapaDoMundo.CidadeDaNeveAltura
+            ),
+            new ModificadorDeTerreno(
+                "cidade.oasis_do_deserto",
+                TipoModificadorTerreno.Planar,
+                MapaDoMundo.CidadeDoDesertoX,
+                MapaDoMundo.CidadeDoDesertoZ,
+                MapaDoMundo.RaioCidadeSecundaria,
+                MapaDoMundo.BordaCidadeSecundaria,
+                MapaDoMundo.CidadeDoDesertoAltura
+            ),
             // Ruína do oeste (Colinas) em (-250, -100): área aplanada de 16 m com 8 m de transição suave
             new ModificadorDeTerreno(
                 "monumento.ruina_oeste",
@@ -21,12 +39,12 @@ namespace JogoDoGrupo.Shared.Features.Mundo
                 8f,
                 6.5f
             ),
-            // Acampamento da mata em (250, -100): clareira aplanada de 18 m com 10 m de borda suave
+            // Acampamento da mata em (350, -250): clareira aplanada de 18 m com 10 m de borda suave
             new ModificadorDeTerreno(
                 "monumento.acampamento_mata",
                 TipoModificadorTerreno.Planar,
-                250f,
-                -100f,
+                350f,
+                -250f,
                 18f,
                 10f,
                 2f

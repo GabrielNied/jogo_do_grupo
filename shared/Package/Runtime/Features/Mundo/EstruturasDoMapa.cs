@@ -99,9 +99,9 @@ namespace JogoDoGrupo.Shared.Features.Mundo
                 Bioma.Mata,
                 new[]
                 {
-                    new PecaDeEstrutura("Barraca_Vermelha", 250f, -100f, 20f),
-                    new PecaDeEstrutura("Carroca", 254f, -98f, 70f),
-                    new PecaDeEstrutura("Banco", 247f, -98f, 110f),
+                    new PecaDeEstrutura("Barraca_Vermelha", 350f, -250f, 20f),
+                    new PecaDeEstrutura("Carroca", 354f, -248f, 70f),
+                    new PecaDeEstrutura("Banco", 347f, -248f, 110f),
                 }
             ),
             new LugarDoMapa(

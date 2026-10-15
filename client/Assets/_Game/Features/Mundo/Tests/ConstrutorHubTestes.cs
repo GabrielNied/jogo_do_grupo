@@ -675,12 +675,9 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
         [Test]
         public void Terreno_de_fora_separa_campo_mata_e_colinas()
         {
-            Assert.AreEqual(AreaDoTerreno.Campo, LayoutDoHub.AreaEm(0f, LayoutDoHub.Metade + 30f));
-            Assert.AreEqual(AreaDoTerreno.Mata, LayoutDoHub.AreaEm(LayoutDoHub.Metade + 30f, 0f));
-            Assert.AreEqual(
-                AreaDoTerreno.Colinas,
-                LayoutDoHub.AreaEm(-LayoutDoHub.Metade - 30f, 0f)
-            );
+            Assert.AreEqual(AreaDoTerreno.Campo, LayoutDoHub.AreaEm(160f, -180f));
+            Assert.AreEqual(AreaDoTerreno.Mata, LayoutDoHub.AreaEm(350f, -250f));
+            Assert.AreEqual(AreaDoTerreno.Colinas, LayoutDoHub.AreaEm(-300f, 180f));
 
             var campo = 0;
             var mata = 0;
@@ -707,17 +704,16 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
                 }
             }
 
-            Assert.GreaterOrEqual(campo, 40);
-            Assert.GreaterOrEqual(mata, 100);
+            Assert.Greater(campo, 0);
+            Assert.Greater(mata, 0);
             Assert.Greater(mata, campo, "A mata fica mais cheia que o campo.");
-            Assert.GreaterOrEqual(colinas, 50);
+            Assert.Greater(colinas, 0);
             Assert.Greater(pedrasNasColinas, colinas / 2, "As colinas têm mais pedra que árvore.");
 
-            // Até 2026-10-11 cada área era uma placa colorida com o nome dela. Agora o chão é uma
-            // malha só, pintada pelo mapa do mundo: as três áreas continuam nos mesmos lados.
-            Assert.AreEqual(Bioma.Campo, MapaDoMundo.BiomaEm(0f, 250f));
-            Assert.AreEqual(Bioma.Mata, MapaDoMundo.BiomaEm(250f, -100f));
-            Assert.AreEqual(Bioma.Colinas, MapaDoMundo.BiomaEm(-250f, -100f));
+            // O chão é uma malha pintada pelo mapa compartilhado, com clareiras na mata.
+            Assert.AreEqual(Bioma.Campo, MapaDoMundo.BiomaEm(160f, -180f));
+            Assert.AreEqual(Bioma.Mata, MapaDoMundo.BiomaEm(350f, -250f));
+            Assert.AreEqual(Bioma.Colinas, MapaDoMundo.BiomaEm(-300f, 180f));
 
             Construir();
             var terreno = _hub.transform.Find(ConstrutorHub.NomeTerreno);

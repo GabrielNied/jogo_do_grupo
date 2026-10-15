@@ -8,6 +8,7 @@
 | [convencoes.md](convencoes.md) | Padrões de código e nomes |
 | [sensacao-do-jogo.md](sensacao-do-jogo.md) | Como relatar e ajustar a sensação (peso, resposta, impacto) |
 | [git.md](git.md) | Branches, commits (commitlint), PRs e proteção da `main` |
+| [guia-criador-de-mapas.md](guia-criador-de-mapas.md) | Passo a passo permanente para usar as ferramentas de autoria do mapa no Unity |
 | [agentes.md](agentes.md) | Vários agentes de IA em paralelo: papéis, prioridade, ficha, lote e entrega |
 | [ferramentas-ia.md](ferramentas-ia.md) | Como rodar os agentes no Claude Code, Codex, Antigravity e outras IAs |
 | [responsaveis.md](responsaveis.md) | Quem cuida de cada funcionalidade |
@@ -37,6 +38,7 @@ Cada informação mora em um lugar só. Os outros documentos apontam para ele em
 | Especificação da árvore de atributos de 2026-10-12 (entrada; as regras valem onde a tabela dela aponta) | [brainstorm/arvore-de-atributos.md](brainstorm/arvore-de-atributos.md) |
 | Especificação de poderes e sets de 2026-10-12 (entrada; a regra vale em itens.md) | [brainstorm/poderes-e-sets.md](brainstorm/poderes-e-sets.md) |
 | Regras de cada funcionalidade | [features/](features/) |
+| Como usar o criador de mapas no Unity | [guia-criador-de-mapas.md](guia-criador-de-mapas.md) |
 | Padrão dos modelos 3D próprios e como gerá-los | [arte/padrao-de-modelos.md](arte/padrao-de-modelos.md) |
 | Buscar assets e montar conteúdo pelo Unity (agentes artistas) | [arte/agentes-artistas.md](arte/agentes-artistas.md) |
 | Direção de arte 3D in-game (forma, proporção, material, cor, luz) | [arte/biblia-visual-3d.md](arte/biblia-visual-3d.md) |

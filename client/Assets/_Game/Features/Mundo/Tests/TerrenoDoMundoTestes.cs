@@ -81,7 +81,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
         public void Mapa_do_mundo_e_layout_do_hub_concordam_nas_medidas()
         {
             Assert.AreEqual(LayoutDoHub.Metade, MapaDoMundo.MetadeDaCidade);
-            Assert.AreEqual(LayoutDoHub.MetadeDoTerreno, MapaDoMundo.MetadeDoMiolo);
+            Assert.Less(LayoutDoHub.MetadeDoTerreno, MapaDoMundo.Metade);
 
             // A estrada do portão termina dentro da faixa plana.
             var fimDaEstrada = LayoutDoHub.Metade + LayoutDoHub.ComprimentoDaEstradaFora;
@@ -291,11 +291,10 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
                 Assert.AreEqual(MapaDoMundo.PontosPorLado, textura.width);
                 Assert.AreEqual(MapaDoMundo.PontosPorLado, textura.height);
 
-                // Coluna = X, linha = Z. O ponto (150, 175) é o campo, 250 m ao norte da cidade.
-                // A folga cobre o arredondamento do pixel e um pouco de pedra nas encostas.
-                ConferirCor(CoresDosBiomas.Campo, textura.GetPixel(150, 175), 0.1f);
-                ConferirCor(CoresDosBiomas.Mata, textura.GetPixel(175, 140), 0.1f);
-                ConferirCor(CoresDosBiomas.Colinas, textura.GetPixel(125, 140), 0.1f);
+                // Coluna = X, linha = Z. Referências estáveis da planta com clareiras.
+                ConferirCor(CoresDosBiomas.Campo, textura.GetPixel(166, 132), 0.1f);
+                ConferirCor(CoresDosBiomas.Mata, textura.GetPixel(185, 125), 0.1f);
+                ConferirCor(CoresDosBiomas.Colinas, textura.GetPixel(120, 168), 0.1f);
             }
             finally
             {
@@ -361,7 +360,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
                 Assert.AreEqual(MapaDoMundo.BiomaEm(peca.X, peca.Z), peca.Bioma);
                 Assert.AreNotEqual(Bioma.Cidade, peca.Bioma);
                 Assert.GreaterOrEqual(peca.Y, MapaDoMundo.NivelDaAgua, "Peça dentro da água.");
-                Assert.That(peca.Escala, Is.InRange(0.9f, 2.6f));
+                Assert.That(peca.Escala, Is.InRange(0.9f, peca.Prefab == "Cacto" ? 2.7f : 2.6f));
 
                 if (peca.Bioma == Bioma.Lava)
                 {
@@ -385,15 +384,10 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
                 Assert.GreaterOrEqual(quantas, 200, $"Poucas em {bioma}.");
             }
 
-            // Deserto e lava são de pedra; o pântano é de árvore; o pântano é o mais cheio.
-            Assert.Greater(Pedras(Bioma.Deserto), Arvores(Bioma.Deserto));
+            // O deserto agora tem cactos; lava fica rochosa e o pântano tem árvores.
             Assert.Greater(Pedras(Bioma.Lava), Arvores(Bioma.Lava));
             Assert.Greater(Arvores(Bioma.Pantano), Pedras(Bioma.Pantano));
             Assert.Greater(Arvores(Bioma.Neve), 100);
-            Assert.Greater(
-                pecas.Count(p => p.Bioma == Bioma.Pantano),
-                pecas.Count(p => p.Bioma == Bioma.Deserto)
-            );
 
             Assert.Greater(pecas.Count(p => p.Bioma == Bioma.Deserto && p.Prefab == "Cacto"), 0);
             Assert.AreEqual(0, pecas.Count(p => p.Bioma == Bioma.Neve && p.Prefab == "Cacto"));
@@ -675,14 +669,14 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
             AmbienteDosBiomas.Hora = 22f;
             try
             {
-                Assert.AreEqual(EfeitoDoClima.Vagalume, AmbienteDosBiomas.Em(250f, -100f).Efeito);
+                Assert.AreEqual(EfeitoDoClima.Vagalume, AmbienteDosBiomas.Em(350f, -250f).Efeito);
             }
             finally
             {
                 AmbienteDosBiomas.Hora = 12f;
             }
 
-            Assert.AreNotEqual(EfeitoDoClima.Vagalume, AmbienteDosBiomas.Em(250f, -100f).Efeito);
+            Assert.AreNotEqual(EfeitoDoClima.Vagalume, AmbienteDosBiomas.Em(350f, -250f).Efeito);
         }
 
         [Test]

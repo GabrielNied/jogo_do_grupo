@@ -60,6 +60,85 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
             Debug.Log($"[CapturaDoTerreno] salvo em {caminho}");
         }
 
+        /// <summary>Vista de cima para comparar a planta, os rios e os caminhos do mapa.</summary>
+        public static void CapturarMapa()
+        {
+            EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+            ConstrutorHub.Montar();
+
+            var objeto = new GameObject("CameraDoMapa");
+            var camera = objeto.AddComponent<Camera>();
+            camera.orthographic = true;
+            camera.orthographicSize = MapaDoMundo.Metade;
+            camera.farClipPlane = 2000f;
+            camera.clearFlags = CameraClearFlags.SolidColor;
+            camera.backgroundColor = Color.black;
+            objeto.transform.position = new Vector3(0f, 1000f, 0f);
+            objeto.transform.LookAt(Vector3.zero);
+
+            var nevoa = RenderSettings.fog;
+            RenderSettings.fog = false;
+            var render = RenderTexture.GetTemporary(1024, 1024, 24);
+            camera.targetTexture = render;
+            camera.Render();
+            RenderTexture.active = render;
+            var imagem = new Texture2D(1024, 1024, TextureFormat.RGB24, false);
+            imagem.ReadPixels(new Rect(0, 0, 1024, 1024), 0, 0);
+            imagem.Apply();
+            RenderTexture.active = null;
+            camera.targetTexture = null;
+            RenderTexture.ReleaseTemporary(render);
+            RenderSettings.fog = nevoa;
+            Object.DestroyImmediate(objeto);
+
+            var tag = System.Environment.GetEnvironmentVariable("TERRENO_TAG");
+            if (string.IsNullOrEmpty(tag))
+            {
+                tag = "captura";
+            }
+
+            var caminho = Path.Combine(Path.GetTempPath(), $"terreno-{tag}-mapa.png");
+            File.WriteAllBytes(caminho, imagem.EncodeToPNG());
+            Object.DestroyImmediate(imagem);
+            Debug.Log($"[CapturaDoTerreno] mapa salvo em {caminho}");
+        }
+
+        /// <summary>Compara a estrada do Passo em dois trechos ao nivel do personagem.</summary>
+        public static void CapturarEstradaDoPasso()
+        {
+            EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+            ConstrutorHub.Montar();
+            var folha = new Texture2D(Largura * 2, Altura, TextureFormat.RGB24, false);
+            Colar(
+                folha,
+                Fotografar(
+                    new Vector3(-140f, MapaDoMundo.AlturaEm(-140f, 130f), 130f),
+                    20f,
+                    1.8f,
+                    10f,
+                    -70f
+                ),
+                0,
+                0
+            );
+            Colar(
+                folha,
+                Fotografar(
+                    new Vector3(-420f, MapaDoMundo.AlturaEm(-420f, 250f), 250f),
+                    20f,
+                    1.8f,
+                    10f,
+                    -57f
+                ),
+                1,
+                0
+            );
+            var caminho = Path.Combine(Path.GetTempPath(), "terreno-estrada-passo.png");
+            File.WriteAllBytes(caminho, folha.EncodeToPNG());
+            Object.DestroyImmediate(folha);
+            Debug.Log($"[CapturaDoTerreno] estrada salva em {caminho}");
+        }
+
         private static void Relatar(GameObject hub, long milissegundos)
         {
             var renderizadores = hub.GetComponentsInChildren<Renderer>(true);
@@ -161,7 +240,8 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
             Vector3 alvo,
             float distancia,
             float altura,
-            float inclinacao
+            float inclinacao,
+            float giro = 0f
         )
         {
             var objeto = new GameObject("CameraDeCaptura");
@@ -171,8 +251,10 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
             camera.backgroundColor = RenderSettings.ambientSkyColor;
             camera.farClipPlane = 500f;
             var nivel = Mathf.Max(alvo.y, MapaDoMundo.NivelDaAgua);
-            objeto.transform.position = new Vector3(alvo.x, nivel + altura, alvo.z - distancia);
-            objeto.transform.rotation = Quaternion.Euler(inclinacao, 0f, 0f);
+            var avanco = Quaternion.Euler(0f, giro, 0f) * Vector3.forward;
+            objeto.transform.position =
+                new Vector3(alvo.x, nivel + altura, alvo.z) - avanco * distancia;
+            objeto.transform.rotation = Quaternion.Euler(inclinacao, giro, 0f);
             // A cena de captura não roda o loop de jogo: o desenho da vegetação é pedido aqui.
             foreach (var blocos in Object.FindObjectsByType<BlocosDeVegetacao>())
             {

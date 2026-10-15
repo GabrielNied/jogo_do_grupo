@@ -53,19 +53,25 @@ Primeira área jogável (issue #36): o Core chama o construtor do Mundo ao entra
 Decidido pelo Gabriel em 2026-10-11 (issue #135). Substitui o terreno plano de 1 km. A decisão técnica está no [ADR 0020](../decisoes/0020-mapa-do-mundo-no-shared.md).
 
 - **Tamanho:** quadrado de **3 km × 3 km** (de -1500 a +1500 m em X e Z), com a cidade no centro. Barreiras invisíveis na borda.
+- **Planta em integração (2026-10-15):** a cidade inicial fica na origem; duas vilas provisórias ocupam o Passo da Neve (-520, 320) e o Oásis do Deserto (-900, -620). A mata envolve a cidade em manchas e clareiras, as colinas acompanham o oeste, e neve, deserto, pântano e lava ocupam massas irregulares que se misturam nas bordas. Essas coordenadas são provisórias para revisão visual.
+- **Caminhos:** seis corredores ligam as três cidades, o pântano, a caldeira e a serra. `CaminhosDoMundo` guarda os eixos compartilhados; o relevo fica mais suave e a vegetação abre passagem. `PesosDoTerreno` usa o mesmo eixo para desenhar terra batida. A ligação da cidade central ao Passo usa `EstradaDoPasso.Tracado`: pontos de controle, largura, acomodação lateral e suavização longitudinal são dados compartilhados. A altura oficial é ajustada com cortes e aterros suaves ao redor desse eixo. `MontadorDaEstrada` põe uma superfície visual fina com textura de terra sobre a malha oficial, sem colisão separada, para a rua continuar legível abaixo da resolução de 10 m da textura do terreno. As outras cinco rotas continuam fixas até passarem pela mesma autoria.
+- **Objetivo do editor procedural de mapas:** a pessoa desenha o mundo no editor Unity, ajusta parâmetros e vê o resultado antes de salvar, sem editar código. A ordem confirmada de desenvolvimento e de autoria é **biomas → lagos → estradas**. Desenhar um bioma deve gerar sua forma de relevo, texturas e vegetação conforme as regras daquele bioma; desenhar um lago deve formar a bacia, água e margens; traçar uma estrada deve acomodar o relevo, aplicar o piso e abrir a passagem. Os elementos salvos precisam continuar editáveis e produzir a mesma altura oficial para cliente e servidor. O [guia permanente](../guia-criador-de-mapas.md) documenta o uso real de cada operação quando ela estiver disponível.
+- **Protótipo atual da estrada do Passo:** a primeira janela desenha somente a ligação Cidade central--Passo. Seus extremos ficam fixos nas cidades; ao salvar, o traçado compartilhado determina a altura usada por cliente e servidor. Ela valida as regras da estrada, mas ainda não é o editor completo nem permite criar estradas independentes. Biomas e lagos são as próximas operações a desenvolver, nessa ordem; só depois a operação de estradas será generalizada.
+- **Rios altos:** o rio glacial e o rio das cascatas seguem o leito definido em `MapaDoMundo`. `ConstrutorDoTerreno` cria uma superfície de água que acompanha sua altura; o shader de água recebe a profundidade pelo canal vermelho da cor dos vértices, como nas demais águas. Árvores não nascem dentro do leito.
+- **Vegetação:** a distribuição do novo mapa usa `PecasDosBiomas` e continua desenhada em lotes por `MontadorDaVegetacao` e `BlocosDeVegetacao`, preservando a otimização de desenho por blocos.
 - **Biomas (sete):**
 
   | Bioma | Onde | Chão | Relevo | Peças |
   |---|---|---|---|---|
-  | **Campo** | norte da cidade, até uns 500 m | verde claro | quase plano (até 1,5 m) | árvores afastadas |
-  | **Mata** | leste da cidade, até uns 500 m | verde escuro | ondulado (até 3,5 m) | árvores próximas |
-  | **Colinas** | oeste da cidade, até uns 500 m | terra seca | morros (até 14 m) | mais pedra que árvore |
-  | **Deserto** | oeste do mundo | areia | dunas de 3 a 17 m | pedras e árvores secas |
-  | **Montanhas de neve** | norte do mundo | branco, pedra nas encostas | picos de até uns 155 m, com vales | árvores altas até 85 m de altura, pedra acima |
-  | **Montanhas de lava** | sul do mundo | pedra escura, brasa na beira da lava | picos de até uns 100 m, cortados por rios de lava | pedras e árvores queimadas |
-  | **Pântano** | leste do mundo | lama | ilhas baixas e poças rasas (cerca de um terço alagado) | árvores tortas nas ilhas |
+  | **Campo** | clareiras perto da cidade e entre as massas externas | verde claro | baixo e suave | árvores afastadas |
+  | **Mata** | em torno da cidade, com manchas densas e clareiras | verde escuro misturado a terra | ondulado | árvores próximas |
+  | **Colinas** | oeste e sudoeste da cidade, inclusive perto da caverna | terra seca | morros e platôs | mais pedra que árvore |
+  | **Deserto** | oeste e sudoeste do mundo | areia | dunas | pedras, cactos e árvores secas |
+  | **Montanhas de neve** | norte e noroeste, com uma passagem a oeste | branco, pedra nas encostas | picos altos e vales | pinheiros até 85 m de altura, pedra acima |
+  | **Montanhas de lava** | sul e sudeste | pedra escura, brasa na beira da lava | picos cortados por rios de lava | rochas vulcânicas |
+  | **Pântano** | leste e manchas a nordeste e sudeste | lama | ilhas baixas e poças rasas | árvores tortas nas ilhas |
 
-- **Fronteiras:** os biomas de fora começam a uns 500 m do centro e se dividem pelas diagonais do mapa. As fronteiras ondulam (não são retas) e os biomas se misturam numa faixa de dezenas de metros: a cor, a altura e a luz mudam aos poucos. Um morro baixo acompanha cada fronteira; é ele que impede a água do pântano de encontrar a lava.
+- **Fronteiras:** as massas de bioma têm formas elípticas irregulares e se misturam numa faixa de dezenas de metros: cor, altura e luz mudam aos poucos. A área inicial tem clareiras e manchas de mata, e o relevo separa os líquidos do pântano e da lava.
 - **Transições e relevo da cidade (2026-10-13):**
   - **Dentro dos muros (até 40 m do centro):** Chão rigorosamente plano em **Y = 0**.
   - **Transição 1 (40 a 60 m - faixa de 20 m fora dos muros):** Acomodação imediata ao sair da cidade com subida gradual da estrada norte.
@@ -73,7 +79,7 @@ Decidido pelo Gabriel em 2026-10-11 (issue #135). Substitui o terreno plano de 1
   - **Relevo imediato:** O relevo dinâmico (ondulações campestres vivas, platôs escalonados em degraus e colinas) começa logo a partir de 100 m do centro, eliminando o plano artificial central.
 - **Rede de rios de água doce e cascatas:**
   - Rios navegáveis escavados organicamente no terreno, inspirados no mapa de conceito artístico: Rio Glacial do Leste (norte/montanhas em direção à costa) e Rio das Cascatas do Oeste (platôs da floresta contornando a caverna).
-  - Leitos e margens com calha suave, leito com seixos e cascalho (`MargemDeRio`), e geração automática de malha de água doce em Y = -0,5 m conectada ao sistema de líquidos.
+  - Leitos e margens com calha suave e seixos e cascalho (`MargemDeRio`). Os trechos baixos usam a malha de água em Y = -0,5 m; os trechos altos acompanham `NivelDoRioAlto(z)` em malha própria, com o mesmo material de água.
 - **Curvas e cumes das montanhas:** Montanhas imponentes e orgânicas com curvas multifractais suaves e arredondadas (sem cristas pontudas ou picos em V artificiais).
 - **Texturas em alta resolução e Shader dedicado (`GeradorDeTexturasDoTerreno`, `TerrenoMundo.shader`):**
   - Texturas procedurais contínuas (seamless) de 512×512 geradas deterministicamente para cada elemento (grama com folhagens e tufos, terra e pedregulhos, areia fina dourada, rocha com estratificação e neve cristalina).

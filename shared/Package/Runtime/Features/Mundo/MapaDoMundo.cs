@@ -19,6 +19,22 @@ namespace JogoDoGrupo.Shared.Features.Mundo
         /// <summary>Metade do lado da cidade murada, em metros (a cidade tem 80 m).</summary>
         public const float MetadeDaCidade = 40f;
 
+        /// <summary>Cidade do passo, no vale ao sul da serra nevada.</summary>
+        public const float CidadeDaNeveX = -520f;
+        public const float CidadeDaNeveZ = 320f;
+        public const float CidadeDaNeveAltura = 28f;
+
+        /// <summary>Oásis da terceira cidade, no deserto oeste.</summary>
+        public const float CidadeDoDesertoX = -900f;
+        public const float CidadeDoDesertoZ = -620f;
+        public const float CidadeDoDesertoAltura = 8f;
+
+        /// <summary>Raio dos pátios das duas cidades externas.</summary>
+        public const float RaioCidadeSecundaria = 42f;
+
+        /// <summary>Folga suavizada entre os pátios e o terreno natural.</summary>
+        public const float BordaCidadeSecundaria = 30f;
+
         /// <summary>
         /// Até esta distância do centro (a maior entre |x| e |z|) a chegada à cidade ainda não
         /// entrou no relevo dos biomas distantes: dentro dos muros é plano; entre os muros e este
@@ -34,12 +50,6 @@ namespace JogoDoGrupo.Shared.Features.Mundo
 
         /// <summary>Subida máxima na faixa entre os muros e <see cref="RaioPlano"/>, em metros.</summary>
         public const float SubidaMaximaDaFaixaInicial = 5f;
-
-        /// <summary>
-        /// Distância do centro (a maior entre |x| e |z|) em que campo, mata e colinas dão lugar
-        /// aos biomas de fora. A fronteira real ondula em torno deste valor.
-        /// </summary>
-        public const float MetadeDoMiolo = 500f;
 
         /// <summary>Distância entre dois pontos vizinhos da grade de alturas, em metros.</summary>
         public const float PassoDaGrade = 10f;
@@ -79,6 +89,152 @@ namespace JogoDoGrupo.Shared.Features.Mundo
         private const uint SementePantano = 83u;
         private const uint SementeTrechos = 89u;
 
+        // As formas da planta sao fixas: preparar seno e cosseno uma vez evita
+        // milhares de chamadas trigonometricas durante a geracao de cada mapa.
+        private static readonly ManchaEliptica NeveNoroeste = new ManchaEliptica(
+            -920f,
+            1030f,
+            900f,
+            760f,
+            -0.22f
+        );
+        private static readonly ManchaEliptica NeveNorte = new ManchaEliptica(
+            -130f,
+            1340f,
+            730f,
+            390f,
+            0.22f
+        );
+        private static readonly ManchaEliptica NeveOriental = new ManchaEliptica(
+            580f,
+            1160f,
+            430f,
+            330f,
+            -0.27f
+        );
+        private static readonly ManchaEliptica NeveDoPasso = new ManchaEliptica(
+            -570f,
+            450f,
+            280f,
+            480f,
+            -0.30f
+        );
+        private static readonly ManchaEliptica DesertoSul = new ManchaEliptica(
+            -1080f,
+            -680f,
+            920f,
+            1030f,
+            0.12f
+        );
+        private static readonly ManchaEliptica DesertoOeste = new ManchaEliptica(
+            -1350f,
+            270f,
+            390f,
+            720f,
+            -0.23f
+        );
+        private static readonly ManchaEliptica PantanoLeste = new ManchaEliptica(
+            1090f,
+            250f,
+            760f,
+            1040f,
+            0.13f
+        );
+        private static readonly ManchaEliptica PantanoSul = new ManchaEliptica(
+            730f,
+            -480f,
+            490f,
+            650f,
+            -0.28f
+        );
+        private static readonly ManchaEliptica PantanoNorte = new ManchaEliptica(
+            990f,
+            1130f,
+            470f,
+            470f,
+            0.15f
+        );
+        private static readonly ManchaEliptica LavaSul = new ManchaEliptica(
+            790f,
+            -1180f,
+            1300f,
+            760f,
+            -0.16f
+        );
+        private static readonly ManchaEliptica LavaLeste = new ManchaEliptica(
+            1300f,
+            -580f,
+            370f,
+            560f,
+            0.20f
+        );
+        private static readonly ManchaEliptica ClareiraSul = new ManchaEliptica(
+            160f,
+            -180f,
+            260f,
+            220f,
+            0.28f
+        );
+        private static readonly ManchaEliptica ClareiraCentro = new ManchaEliptica(
+            -110f,
+            60f,
+            180f,
+            130f,
+            -0.22f
+        );
+        private static readonly ManchaEliptica ClareiraDoPortao = new ManchaEliptica(
+            0f,
+            95f,
+            90f,
+            115f,
+            0.14f
+        );
+        private static readonly ManchaEliptica ColinasOeste = new ManchaEliptica(
+            -450f,
+            180f,
+            300f,
+            680f,
+            -0.23f
+        );
+        private static readonly ManchaEliptica ColinasSul = new ManchaEliptica(
+            -530f,
+            -440f,
+            390f,
+            330f,
+            0.30f
+        );
+        private static readonly ManchaEliptica ColinasDaCaverna = new ManchaEliptica(
+            -270f,
+            -100f,
+            260f,
+            200f,
+            0.18f
+        );
+
+        private static readonly (float Z, float X)[] TrajetoRioPrincipal =
+        {
+            (-650f, 1030f),
+            (-400f, 800f),
+            (-200f, 590f),
+            (0f, 430f),
+            (200f, 340f),
+            (400f, 300f),
+            (600f, 210f),
+            (800f, 70f),
+            (1000f, -80f),
+            (1200f, -240f),
+            (1500f, -310f),
+        };
+
+        private static readonly (float Z, float X)[] TrajetoAfluenteDaNeve =
+        {
+            (400f, 300f),
+            (600f, -110f),
+            (800f, -430f),
+            (1000f, -600f),
+            (1200f, -760f),
+        };
+
         /// <summary>Coordenada (X ou Z) do ponto <paramref name="indice"/> da grade, em metros.</summary>
         public static float CoordenadaDaGrade(int indice)
         {
@@ -89,6 +245,18 @@ namespace JogoDoGrupo.Shared.Features.Mundo
         public static bool DentroDoMundo(float x, float z)
         {
             return Math.Abs(x) <= Metade && Math.Abs(z) <= Metade;
+        }
+
+        /// <summary>Área reservada para as duas cidades externas e sua borda vegetada.</summary>
+        public static bool PertoDeCidadeSecundaria(float x, float z, float folga = 0f)
+        {
+            var raio = RaioCidadeSecundaria + BordaCidadeSecundaria + folga;
+            var dxNeve = x - CidadeDaNeveX;
+            var dzNeve = z - CidadeDaNeveZ;
+            var dxDeserto = x - CidadeDoDesertoX;
+            var dzDeserto = z - CidadeDoDesertoZ;
+            return dxNeve * dxNeve + dzNeve * dzNeve <= raio * raio
+                || dxDeserto * dxDeserto + dzDeserto * dzDeserto <= raio * raio;
         }
 
         /// <summary>
@@ -182,47 +350,15 @@ namespace JogoDoGrupo.Shared.Features.Mundo
 
         // Pesos dos biomas e, se pedida, a altura do chão sem interpolar. As fronteiras são
         // medidas num ponto desviado por ruído, para não ficarem retas.
-        private static float Calcular(float x, float z, bool comAltura, out PesosDosBiomas pesos)
+        private static float Calcular(
+            float x,
+            float z,
+            bool comAltura,
+            out PesosDosBiomas pesos,
+            bool aplicarEstrada = true
+        )
         {
-            var desvioX = (Fbm(x / 320f, z / 320f, SementeDesvioX, 3) - 0.5f) * 220f;
-            var desvioZ = (Fbm(x / 320f, z / 320f, SementeDesvioZ, 3) - 0.5f) * 220f;
-
-            // Biomas de fora: quanto do ponto já saiu do miolo.
-            var foraX = x + desvioX;
-            var foraZ = z + desvioZ;
-            var fora = Suave(
-                MetadeDoMiolo - 60f,
-                MetadeDoMiolo + 60f,
-                Math.Max(Math.Abs(foraX), Math.Abs(foraZ))
-            );
-            var dentro = 1f - fora;
-
-            // Miolo: campo ao norte, mata a leste e colinas a oeste.
-            var mioloX = x + desvioX * 0.25f;
-            var mioloZ = z + desvioZ * 0.25f;
-            var campo = Suave(10f, 70f, mioloZ);
-            var resto = 1f - campo;
-            var mata = resto * Suave(-30f, 30f, mioloX);
-            var colinas = resto - mata;
-
-            // Fora: as duas diagonais dividem o mundo em norte (neve), leste (pântano), sul
-            // (lava) e oeste (deserto).
-            var a = Suave(-90f, 90f, foraZ - foraX);
-            var b = Suave(-90f, 90f, foraZ + foraX);
-            var neve = a * b;
-            var pantano = (1f - a) * b;
-            var lava = (1f - a) * (1f - b);
-            var deserto = a * (1f - b);
-
-            pesos = new PesosDosBiomas(
-                campo * dentro,
-                mata * dentro,
-                colinas * dentro,
-                deserto * fora,
-                neve * fora,
-                lava * fora,
-                pantano * fora
-            );
+            pesos = PesosDoNovoMundo(x, z);
 
             if (!comAltura)
             {
@@ -280,26 +416,154 @@ namespace JogoDoGrupo.Shared.Features.Mundo
                 altura += pesos.Pantano * AlturaDoPantano(x, z);
             }
 
-            // Entalhe de rios de água doce com calha navegável e margens suaves
-            if (ProximoDeRio(x, z, out var dRio) && dRio <= 30f && pesos.Lava < 0.4f)
+            // A divisoria vulcanica conserva um bordo seco antes do delta pantanoso.
+            altura += 8f * pesos.Lava * pesos.Pantano;
+            if (ProximoDeRio(x, z, out var dRio) && pesos.Lava < 0.4f)
             {
-                var calha = 1f - Suave(6f, 30f, dRio);
-                // No vale (z < 350) o rio atinge o nível da água (-0.92 m); na serra norte forma desfiladeiro alpino
-                var fundoRio = z < 350f ? -0.92f : Math.Max(3f, altura - 4.5f);
+                var calha = 1f - Suave(16f, 60f, dRio);
+                var fundoRio = z < 300f ? -0.92f : NivelDoRioAlto(z) - 0.42f;
                 altura = (1f - calha) * altura + calha * fundoRio;
             }
 
-            // Um morro baixo acompanha cada fronteira: separa os biomas e impede que a água do
-            // pântano encontre a lava.
-            var puro = deserto * deserto + neve * neve + lava * lava + pantano * pantano;
-            var fronteira = 10f * fora * dentro + 10f * fora * (1f - puro);
+            // Vau raso no unico cruzamento da trilha oriental com o rio principal.
+            // O chao oficial sobe junto no shared; o servidor aceita a mesma travessia.
+            if (x > 300f && x < 480f && z > 60f && z < 160f)
+            {
+                var eixo = CaminhosDoMundo.DistanciaAteCaminho(x, z);
+                var vau =
+                    Suave(300f, 325f, x)
+                    * (1f - Suave(455f, 480f, x))
+                    * (1f - Suave(8f, 20f, eixo));
+                altura = Math.Max(altura, altura * (1f - vau) + (NivelDaAgua - 0.15f) * vau);
+            }
+
+            // Vale de acesso ao Passo: a serra se aproxima da vila sem criar um poco
+            // circular ou uma parede de subida na chegada pelas trilhas.
+            var dxPasso = x - CidadeDaNeveX;
+            var dzPasso = z - CidadeDaNeveZ;
+            var distanciaPasso = (float)Math.Sqrt(dxPasso * dxPasso + dzPasso * dzPasso);
+            var entradaDoVale = Suave(65f, 380f, distanciaPasso);
+            altura = CidadeDaNeveAltura * (1f - entradaDoVale) + altura * entradaDoVale;
 
             // O relevo base une a transição das bordas da cidade com o bioma natural.
-            var alturaBase = (1f - mascara) * alturaFaixa + mascara * (altura + fronteira);
+            var alturaBase = (1f - mascara) * alturaFaixa + mascara * altura;
             var comCaverna = alturaBase + PrimeiraCaverna.AlturaDoMorro(x, z);
 
             // Modificadores de relevo (monumentos do mundo e terraplanagens em tempo de execução)
-            return ModificadoresDoMapa.Aplicar(x, z, comCaverna);
+            var alturaFinal = ModificadoresDoMapa.Aplicar(x, z, comCaverna);
+            return aplicarEstrada
+                ? EstradaDoPasso.Tracado.AplicarEstrada(x, z, alturaFinal, AlturaBaseDaAutoriaEm)
+                : alturaFinal;
+        }
+
+        /// <summary>Altura anterior ao tracado autoral, para a previa da ferramenta no editor.</summary>
+        public static float AlturaBaseDaAutoriaEm(float x, float z)
+        {
+            return Calcular(x, z, true, out _, false);
+        }
+
+        // Planta autoral nova: a mata liga os tres assentamentos; neve, deserto, pantano e
+        // caldeira formam massas irregulares, com prolongamentos e vales, sem setores radiais.
+        private static PesosDosBiomas PesosDoNovoMundo(float x, float z)
+        {
+            var xDesviado = x + 220f * (Fbm(x / 440f, z / 440f, SementeDesvioX, 3) - 0.5f);
+            var zDesviado = z + 220f * (Fbm(x / 440f, z / 440f, SementeDesvioZ, 3) - 0.5f);
+
+            var neve = Math.Max(
+                NeveNoroeste.PesoEm(xDesviado, zDesviado),
+                NeveNorte.PesoEm(xDesviado, zDesviado)
+            );
+            neve = Math.Max(neve, 0.84f * NeveOriental.PesoEm(xDesviado, zDesviado));
+            // O povoado fica no pe nevado da serra, nao numa clareira marrom isolada.
+            neve = Math.Max(neve, 0.92f * NeveDoPasso.PesoEm(xDesviado, zDesviado));
+            var deserto = Math.Max(
+                DesertoSul.PesoEm(xDesviado, zDesviado),
+                DesertoOeste.PesoEm(xDesviado, zDesviado)
+            );
+            var pantano = Math.Max(
+                PantanoLeste.PesoEm(xDesviado, zDesviado),
+                PantanoSul.PesoEm(xDesviado, zDesviado)
+            );
+            pantano = Math.Max(pantano, PantanoNorte.PesoEm(xDesviado, zDesviado));
+            if (z > -650f && z < 320f)
+            {
+                var deltaDoRio =
+                    (1f - Suave(55f, 290f, Math.Abs(x - CentroDoRioGlacial(z))))
+                    * Suave(-650f, -500f, z)
+                    * (1f - Suave(100f, 320f, z));
+                pantano = Math.Max(pantano, 0.53f * deltaDoRio);
+            }
+            var lava = Math.Max(
+                LavaSul.PesoEm(xDesviado, zDesviado),
+                LavaLeste.PesoEm(xDesviado, zDesviado)
+            );
+
+            var mataLivre = (1f - neve) * (1f - deserto) * (1f - pantano) * (1f - lava);
+            var clareira = Math.Max(
+                Math.Max(
+                    0.85f * ClareiraSul.PesoEm(xDesviado, zDesviado),
+                    0.57f * ClareiraCentro.PesoEm(xDesviado, zDesviado)
+                ),
+                0.84f * ClareiraDoPortao.PesoEm(x, z)
+            );
+            var colinas =
+                0.78f
+                * Math.Max(
+                    Math.Max(
+                        ColinasOeste.PesoEm(xDesviado, zDesviado),
+                        ColinasSul.PesoEm(xDesviado, zDesviado)
+                    ),
+                    ColinasDaCaverna.PesoEm(xDesviado, zDesviado)
+                );
+            var pesoColinas = mataLivre * colinas;
+            var pesoCampo = (mataLivre - pesoColinas) * clareira;
+            var pesoMata = mataLivre - pesoColinas - pesoCampo;
+            var soma = pesoMata + pesoCampo + pesoColinas + neve + deserto + pantano + lava;
+            return new PesosDosBiomas(
+                pesoCampo / soma,
+                pesoMata / soma,
+                pesoColinas / soma,
+                deserto / soma,
+                neve / soma,
+                lava / soma,
+                pantano / soma
+            );
+        }
+
+        private readonly struct ManchaEliptica
+        {
+            private readonly float _centroX;
+            private readonly float _centroZ;
+            private readonly float _raioX;
+            private readonly float _raioZ;
+            private readonly float _cosseno;
+            private readonly float _seno;
+
+            public ManchaEliptica(
+                float centroX,
+                float centroZ,
+                float raioX,
+                float raioZ,
+                float giro
+            )
+            {
+                _centroX = centroX;
+                _centroZ = centroZ;
+                _raioX = raioX;
+                _raioZ = raioZ;
+                _cosseno = (float)Math.Cos(giro);
+                _seno = (float)Math.Sin(giro);
+            }
+
+            public float PesoEm(float x, float z)
+            {
+                var dx = x - _centroX;
+                var dz = z - _centroZ;
+                var u = (dx * _cosseno + dz * _seno) / _raioX;
+                var v = (dz * _cosseno - dx * _seno) / _raioZ;
+                var distancia = (float)Math.Sqrt(u * u + v * v);
+                return 1f - Suave(0.65f, 1.02f, distancia);
+            }
         }
 
         /// <summary>
@@ -324,16 +588,87 @@ namespace JogoDoGrupo.Shared.Features.Mundo
                 return false;
             }
 
-            // Rio Glacial do Leste: nasce nas montanhas e corre a leste do campo em direção à costa
-            var xRio1 = 250f + 40f * (float)Math.Sin(z / 180f) + 20f * (float)Math.Cos(z / 90f);
-            var d1 = (z >= -550f && z <= 1500f) ? Math.Abs(x - xRio1) : float.MaxValue;
+            // Rio principal: nasce na serra, contorna a cidade florestal pelo leste e termina no delta.
+            var xRio1 = CentroDoRioGlacial(z);
+            var d1 = (z >= -650f && z <= 1500f) ? Math.Abs(x - xRio1) : float.MaxValue;
 
-            // Rio das Cascatas do Oeste: desce dos platôs da floresta a oeste contornando a caverna
-            var xRio2 = -260f - 35f * (float)Math.Sin(z / 220f) - 20f * (float)Math.Cos(z / 110f);
-            var d2 = (z >= -650f && z <= 1200f) ? Math.Abs(x - xRio2) : float.MaxValue;
+            // Afluente da neve: chega ao rio principal ao norte da cidade, sem um canal paralelo.
+            var xRio2 = CentroDoRioDasCascatas(z);
+            var d2 = (z >= 400f && z <= 1200f) ? Math.Abs(x - xRio2) : float.MaxValue;
 
             distanciaRio = Math.Min(d1, d2);
-            return distanciaRio <= 30f;
+            return distanciaRio <= 60f;
+        }
+
+        /// <summary>Nivel da superficie dos rios norte, com descida continua ate as lagoas.</summary>
+        public static float NivelDoRioAlto(float z)
+        {
+            return NivelDaAgua + 0.015f * (z - 300f);
+        }
+
+        /// <summary>Meia largura visivel dos rios altos, com variacao suave ao longo do curso.</summary>
+        public static float MeiaLarguraDoRioAlto(float z)
+        {
+            return 10f + 1.4f * (float)Math.Sin(z / 39f) + 1.3f * (float)Math.Sin(z / 91f);
+        }
+
+        /// <summary>Se o ponto esta sob a superficie de um dos rios altos.</summary>
+        public static bool DentroDoRioAlto(float x, float z)
+        {
+            return z >= 300f
+                && ProximoDeRio(x, z, out var distanciaRio)
+                && distanciaRio <= MeiaLarguraDoRioAlto(z);
+        }
+
+        /// <summary>Coordenada X do leito do rio glacial na altura Z indicada.</summary>
+        public static float CentroDoRioGlacial(float z)
+        {
+            return CentroInterpolado(z, TrajetoRioPrincipal);
+        }
+
+        /// <summary>Coordenada X do leito do rio das cascatas na altura Z indicada.</summary>
+        public static float CentroDoRioDasCascatas(float z)
+        {
+            return CentroInterpolado(z, TrajetoAfluenteDaNeve);
+        }
+
+        private static float CentroInterpolado(float z, (float Z, float X)[] pontos)
+        {
+            if (z <= pontos[0].Z)
+            {
+                return pontos[0].X;
+            }
+
+            var ultimo = pontos.Length - 1;
+            if (z >= pontos[ultimo].Z)
+            {
+                return pontos[ultimo].X;
+            }
+
+            for (var i = 0; i < ultimo; i++)
+            {
+                var inicio = pontos[i];
+                var fim = pontos[i + 1];
+                if (z > fim.Z)
+                {
+                    continue;
+                }
+
+                var anterior = pontos[Math.Max(0, i - 1)];
+                var proximo = pontos[Math.Min(ultimo, i + 2)];
+                var intervalo = fim.Z - inicio.Z;
+                var t = (z - inicio.Z) / intervalo;
+                var tangenteInicial = intervalo * (fim.X - anterior.X) / (fim.Z - anterior.Z);
+                var tangenteFinal = intervalo * (proximo.X - inicio.X) / (proximo.Z - inicio.Z);
+                var t2 = t * t;
+                var t3 = t2 * t;
+                return (2f * t3 - 3f * t2 + 1f) * inicio.X
+                    + (t3 - 2f * t2 + t) * tangenteInicial
+                    + (-2f * t3 + 3f * t2) * fim.X
+                    + (t3 - t2) * tangenteFinal;
+            }
+
+            return pontos[ultimo].X;
         }
 
         /// <summary>
@@ -374,18 +709,51 @@ namespace JogoDoGrupo.Shared.Features.Mundo
             return 3f + patamares + ondulacao;
         }
 
-        // Colinas: morros e cristas suaves de até 14 m.
+        // Colinas: morros baixos perto da cidade, com dorsais rochosas rumo ao deserto.
         private static float AlturaDasColinas(float x, float z)
         {
-            return 13f * Potencia(Fbm(x / 110f, z / 110f, SementeColinas, 4), 1.35);
+            var morros = 13f * Potencia(Fbm(x / 110f, z / 110f, SementeColinas, 4), 1.35);
+            var distancia = Math.Max(Math.Abs(x), Math.Abs(z));
+            var dorsais =
+                12f
+                * Crista(x / 120f, z / 160f, SementeColinas + 17u, 3)
+                * Suave(220f, 390f, distancia);
+            var rochaExposta =
+                2.8f
+                * (Crista(x / 28f, z / 34f, SementeColinas + 31u, 2) - 0.45f)
+                * Suave(260f, 460f, distancia);
+            return morros + dorsais + rochaExposta;
         }
 
         // Deserto: dunas e degraus de cânion de 3 a 20 m.
+        private const float AlturaDaGrandeDunaOeste = 60f;
+        private const float AlturaDaGrandeDunaSul = 42f;
+
         private static float AlturaDoDeserto(float x, float z)
         {
             var dunas = Fbm(x / 140f, z / 90f, SementeDunas, 3);
             var regiao = 0.35f + 0.65f * Fbm(x / 350f, z / 350f, SementeAreia, 2);
-            return 3f + 14f * dunas * regiao;
+            var dunaOeste = DunaSuave(x, z, -1350f, -570f, 500f, 580f);
+            var dunaSul = DunaSuave(x, z, -720f, -1130f, 410f, 370f);
+            return 3f
+                + 14f * dunas * regiao
+                + AlturaDaGrandeDunaOeste * dunaOeste
+                + AlturaDaGrandeDunaSul * dunaSul;
+        }
+
+        private static float DunaSuave(
+            float x,
+            float z,
+            float centroX,
+            float centroZ,
+            float raioX,
+            float raioZ
+        )
+        {
+            var dx = (x - centroX) / raioX;
+            var dz = (z - centroZ) / raioZ;
+            var distancia = (float)Math.Sqrt(dx * dx + dz * dz);
+            return 1f - Suave(0f, 1f, distancia);
         }
 
         // Neve: montanhas imponentes com cumes arredondados e orgânicos (sem picos pontudos em V).
@@ -394,7 +762,10 @@ namespace JogoDoGrupo.Shared.Features.Mundo
             var cumes = 145f * Potencia(Fbm(x / 380f, z / 380f, SementePicosDeNeve, 4), 1.9);
             var encosta = 25f * Fbm(x / 110f, z / 110f, SementeEncostaDeNeve, 3);
             var chao = 4f * Fbm(x / 60f, z / 60f, SementeChaoDeNeve, 2);
-            return 5f + longe * (cumes + encosta) + chao;
+            var erosao = 4.5f * (Crista(x / 45f, z / 55f, SementeEncostaDeNeve + 17u, 3) - 0.35f);
+            var rochaExposta =
+                3.5f * (Crista(x / 30f, z / 38f, SementeEncostaDeNeve + 29u, 2) - 0.45f);
+            return 5f + longe * (cumes + encosta + erosao + rochaExposta) + chao;
         }
 
         // Lava: montanhas esculturais de até 95 m com cumes suaves, cortadas por trechos de rio de lava.
@@ -403,7 +774,10 @@ namespace JogoDoGrupo.Shared.Features.Mundo
             var picos = 85f * Potencia(Fbm(x / 350f, z / 350f, SementePicosDeLava, 4), 1.8);
             var encosta = 16f * Fbm(x / 90f, z / 90f, SementeEncostaDeLava, 3);
             var chao = 4f * Fbm(x / 50f, z / 50f, SementeChaoDeLava, 2);
-            var altura = 6f + longe * (picos + encosta) + chao;
+            var erosao = 5f * (Crista(x / 40f, z / 50f, SementeEncostaDeLava + 17u, 3) - 0.35f);
+            var rochaExposta =
+                3.5f * (Crista(x / 28f, z / 36f, SementeEncostaDeLava + 29u, 2) - 0.45f);
+            var altura = 6f + longe * (picos + encosta + erosao + rochaExposta) + chao;
 
             // O rio segue a linha em que um ruído largo cruza a metade. Um segundo ruído corta o
             // rio em trechos, para sobrar terra por onde atravessar.

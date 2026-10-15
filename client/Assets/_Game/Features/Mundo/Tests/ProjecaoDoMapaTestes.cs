@@ -85,7 +85,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
         [Test]
         public void LugaresFicamSobreAsEstruturasDoMundo()
         {
-            var esperado = new[] { (107, 137), (149, 136), (103, 145), (129, 122) };
+            var esperado = new[] { (107, 137), (158, 149), (103, 145), (129, 122) };
             var lado = ProjecaoDoMapa.LadoDasAmostras;
             Assert.AreEqual(esperado.Length, EstruturasDoMapa.Lugares.Length);
             for (var i = 0; i < esperado.Length; i++)
