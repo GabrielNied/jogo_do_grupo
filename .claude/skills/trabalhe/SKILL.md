@@ -16,6 +16,8 @@ Argumentos (todos opcionais):
 ## 1. Estado inicial
 
 - `git status`. Mudança que não é sua: não leve e não apague; cite no relatório. Branch sua com commit sem PR: abra o PR (regra 12) e siga.
+- [Doc e regras atuais](../../../docs/agentes.md#doc-e-regras-atuais): `git fetch origin main` antes do `listar`, de escrever ficha ou de decidir design. Leia `docs/` e `AGENTS.md` pela `origin/main` (`git show`), não assuma que os arquivos locais já refletem o remoto.
+- Lote que **você** implementa no checkout principal: [Worktree ao puxar](../../../docs/agentes.md#worktree-ao-puxar) (`puxar … --worktree .claude/worktrees/…`). Donos do prompt já recebem `--worktree .` no worktree deles.
 - Na nuvem, `npm run nuvem:preparar`. Pendência de Unity do hook de início é candidata se houver Unity na máquina.
 
 ## 2. Escolher pela ordem

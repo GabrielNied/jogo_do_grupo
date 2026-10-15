@@ -14,7 +14,7 @@
 
 import { spawnSync } from "node:child_process";
 import { editorDoProjetoAberto } from "./editor-aberto.mjs";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync, statSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -23,6 +23,7 @@ import { esperarAVez } from "./trava.mjs";
 
 const RAIZ = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const CLIENT = join(RAIZ, "client");
+const SAIDA_TESTES = join(tmpdir(), "jogo-do-grupo-unity-testes.xml");
 
 // UNITY_CLI, quando definido, é o único candidato (um caminho errado não cai em outro Unity).
 const candidatos = process.env.UNITY_CLI
@@ -33,7 +34,7 @@ const cli = candidatos.find((c) => existsSync(c)) ?? process.env.UNITY_CLI ?? "u
 const [acao, ...resto] = process.argv.slice(2);
 const comandos = {
   recompilar: ["recompile", "--project-path", CLIENT],
-  testes: ["test", CLIENT, "--mode", "EditMode", "--output", join(tmpdir(), "jogo-do-grupo-unity-testes.xml")],
+  testes: ["test", CLIENT, "--mode", "EditMode", "--output", SAIDA_TESTES],
   executar: () => {
     if (!resto[0]) {
       console.error("Uso: npm run unity:executar -- <Classe.Metodo>");
@@ -56,6 +57,7 @@ if (acao === "importar" || acao === "testes" || acao === "executar") {
   esperarAVez({ acao, editoresAbertos: editorDoProjetoAberto, cwd: RAIZ });
 }
 const args = typeof montar === "function" ? montar() : montar;
+const inicio = Date.now();
 const resultado = spawnSync(cli, ["--non-interactive", "--no-banner", ...args], { stdio: "inherit" });
 // Sem Unity neste ambiente (ex.: agente na nuvem): compilar, testar e importar ficam com o CI
 // e com o npm run unity:meta. Gerar conteúdo (executar) não tem substituto e continua sendo erro.
@@ -66,4 +68,26 @@ if (resultado.error) {
   console.error(`✖ Não consegui rodar o Unity CLI (${cli}). Instale o Unity Hub ou defina UNITY_CLI.`);
   process.exit(2);
 }
+if (acao === "testes") {
+  resumirTestes();
+}
 process.exit(resultado.status ?? 1);
+
+// O CLI não imprime o placar: lê o XML desta rodada e mostra o total e as falhas.
+function resumirTestes() {
+  if (!existsSync(SAIDA_TESTES) || statSync(SAIDA_TESTES).mtimeMs < inicio) {
+    console.error("✖ Os testes não geraram resultado nesta rodada (veja o log acima).");
+    return;
+  }
+  const xml = readFileSync(SAIDA_TESTES, "utf8");
+  const atributo = (nome) => xml.match(new RegExp(`<test-run[^>]* ${nome}="([^"]*)"`))?.[1] ?? "?";
+  const falhas = [...xml.matchAll(/<test-case [^>]*fullname="([^"]*)"[^>]*result="Failed"/g)].map((m) => m[1]);
+  const marca = falhas.length === 0 && atributo("result") === "Passed" ? "✔" : "✖";
+  console.log(`${marca} Testes EditMode: ${atributo("passed")}/${atributo("total")} passaram, ${atributo("failed")} falharam.`);
+  for (const nome of falhas.slice(0, 10)) {
+    console.log(`  - ${nome}`);
+  }
+  if (falhas.length > 10) {
+    console.log(`  ... e mais ${falhas.length - 10}. Resultado completo: ${SAIDA_TESTES}`);
+  }
+}
