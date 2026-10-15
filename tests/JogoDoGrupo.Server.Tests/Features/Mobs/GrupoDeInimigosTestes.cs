@@ -1164,4 +1164,39 @@ public class GrupoDeInimigosTestes
             $"deslocamento {deslocamentoTotal} excedeu {RegrasInimigo.PassoDoGolpeMetros}"
         );
     }
+
+    [Fact]
+    public void No_inicio_do_ataque_o_inimigo_vira_diretamente_para_o_alvo_e_acerta()
+    {
+        var campo = new Campo(tamanho: 1);
+        campo.Por(Jogador, 0, 10);
+        campo.AteOEstado(EstadoDeInimigo.Perseguicao, 2);
+
+        // Inimigo esta virado para o norte (0 graus, +Z)
+        Assert.Equal(0.0, campo.Unico.RotacaoY, 1);
+
+        // Move o jogador para o leste (+X), dentro do alcance de ataque (1.5 m)
+        var jogadorX = campo.Unico.X + 1.5;
+        var jogadorZ = campo.Unico.Z;
+        campo.Por(Jogador, jogadorX, jogadorZ);
+
+        // No proximo passo ele inicia o ataque
+        var passo = campo.Passo();
+        var preparo = Assert.Single(passo.Preparos);
+
+        // O preparo e a rotacao do mob devem estar virados diretamente para o jogador (calculado de sua posicao atual)
+        var direcaoEsperada = RegrasInimigo.DirecaoPara(
+            campo.Unico.X,
+            campo.Unico.Z,
+            jogadorX,
+            jogadorZ
+        );
+        Assert.Equal(direcaoEsperada, preparo.DirecaoY, 1);
+        Assert.Equal(direcaoEsperada, campo.Unico.RotacaoY, 1);
+
+        // Avanca o tempo de preparo e confirma que o golpe acerta o jogador
+        var passos = campo.Avancar(RegrasInimigo.PreparoDoAtaqueSegundos + 0.2);
+        var houveGolpe = passos.Any(p => p.Golpes.Any(g => g.PersonagemId == Jogador));
+        Assert.True(houveGolpe, "o ataque alinhado deve acertar o jogador");
+    }
 }

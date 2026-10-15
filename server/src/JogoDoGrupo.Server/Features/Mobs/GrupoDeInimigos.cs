@@ -792,7 +792,7 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
         OlharParaOAlvo(inimigo, presentes, segundos);
         if (podeAtacar && NoAlcance(inimigo, alvo))
         {
-            ComecarAtaque(inimigo, agora, passo);
+            ComecarAtaque(inimigo, alvo, agora, passo);
         }
     }
 
@@ -826,10 +826,22 @@ public sealed class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulados
         );
     }
 
-    // A direção trava aqui; o passo do golpe é medido já, até onde o caminho está livre.
-    private void ComecarAtaque(Inimigo inimigo, long agora, PassoDosInimigos passo)
+    // A direção trava aqui (a de Rotacao, olhando o alvo); o passo do golpe é medido já, até onde o caminho está livre.
+    private void ComecarAtaque(
+        Inimigo inimigo,
+        JogadorNoCampo alvo,
+        long agora,
+        PassoDosInimigos passo
+    )
     {
         inimigo.SegundosSemAtacar = 0.0;
+        inimigo.Rotacao = RegrasInimigo.DirecaoPara(
+            inimigo.X,
+            inimigo.Z,
+            alvo.X,
+            alvo.Z,
+            inimigo.Rotacao
+        );
         inimigo.DirecaoDoGolpe = inimigo.Rotacao;
         inimigo.PassoRestante = PassoLivre(inimigo);
         inimigo.Preparando = true;
