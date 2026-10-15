@@ -19,10 +19,10 @@ namespace JogoDoGrupo.Shared.Features.Mobs
         public const double SeparacaoMinimaMetros = 2.0 * RegrasInimigo.RaioDoCorpoMetros;
 
         /// <summary>
-        /// Raio do anel dos atacantes, em metros: dentro do alcance de ataque, com a mesma folga
-        /// que o arredondamento exige.
+        /// Raio do anel dos atacantes, em metros: dentro do alcance do cone do golpe, para pegar o
+        /// alvo mesmo se um vizinho barrar o passo do preparo (#856).
         /// </summary>
-        public const double RaioDoAnelMetros = RegrasInimigo.AlcanceDeAtaqueMetros - 0.1;
+        public const double RaioDoAnelMetros = RegrasInimigo.AlcanceDoGolpeMetros - 0.1;
 
         /// <summary>Raio do anel de quem ronda à espera de vaga, logo fora do anel dos atacantes.</summary>
         public const double RaioDaRondaMetros = RaioDoAnelMetros + SeparacaoMinimaMetros;

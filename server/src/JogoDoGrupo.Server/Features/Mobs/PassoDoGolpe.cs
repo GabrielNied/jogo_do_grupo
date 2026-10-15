@@ -18,16 +18,18 @@ public static class PassoDoGolpe
         double x,
         double z,
         double direcaoYGraus,
-        Func<double, double, double, double, bool> podeIr
+        Func<double, double, double, double, bool> podeIr,
+        double maximoMetros = RegrasInimigo.PassoDoGolpeMetros
     )
     {
+        var limite = Math.Min(maximoMetros, RegrasInimigo.PassoDoGolpeMetros);
         var radianos = direcaoYGraus * Math.PI / 180.0;
         var dx = Math.Sin(radianos);
         var dz = Math.Cos(radianos);
         var livre = 0.0;
         for (
             var andado = ConfigInimigosDoCampo.SubpassoDoGolpeMetros;
-            andado <= RegrasInimigo.PassoDoGolpeMetros + 1e-9;
+            andado <= limite + 1e-9;
             andado += ConfigInimigosDoCampo.SubpassoDoGolpeMetros
         )
         {

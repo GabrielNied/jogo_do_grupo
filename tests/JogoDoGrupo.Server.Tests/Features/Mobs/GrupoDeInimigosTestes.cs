@@ -1002,6 +1002,30 @@ public class GrupoDeInimigosTestes
     }
 
     [Fact]
+    public void Cerco_de_varios_inimigos_acerta_o_alvo_parado_em_todo_golpe_comecado()
+    {
+        // #856: com vários no cerco, o passo do preparo era barrado pelo vizinho e o golpe errava
+        // parado a 1,9 m, de novo e de novo.
+        var campo = new Campo(tamanho: 3);
+        campo.Por(Jogador, 0, 10);
+        var preparos = 0;
+        var golpes = 0;
+        for (var passo = 0; passo < 300; passo++)
+        {
+            var p = campo.Passo();
+            preparos += p.Preparos.Count;
+            golpes += p.Golpes.Count;
+        }
+
+        Assert.True(preparos >= 6, $"preparos: {preparos}");
+        // O último preparo pode estar em curso no fim da janela.
+        Assert.True(
+            golpes >= preparos - RegrasCerco.LimiteDeAtacantesPorAlvo,
+            $"{golpes}/{preparos}"
+        );
+    }
+
+    [Fact]
     public void Quem_espera_vaga_de_atacante_nao_desiste_por_kite()
     {
         var campo = new Campo(tamanho: 5);

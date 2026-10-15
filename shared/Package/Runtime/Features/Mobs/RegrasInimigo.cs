@@ -52,6 +52,9 @@ namespace JogoDoGrupo.Shared.Features.Mobs
         /// <summary>Alcance do cone do golpe a partir do centro do inimigo, no fim do preparo.</summary>
         public const double AlcanceDoGolpeMetros = 1.2;
 
+        /// <summary>Menor distância do alvo a que o passo do golpe chega: não entra no alvo (#856).</summary>
+        public const double ParadaDoGolpeMetros = 0.9;
+
         /// <summary>Abertura total do cone do golpe (metade para cada lado da direção travada).</summary>
         public const double AberturaDoGolpeGraus = 90.0;
 
