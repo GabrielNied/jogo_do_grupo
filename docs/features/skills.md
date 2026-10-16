@@ -114,7 +114,7 @@ SKILL-001 a SKILL-006 em **Definido**; comportamento implementado em [Skills de 
 ## Depende de
 
 - **Itens:** `IArmaEquipada` (arma principal do conjunto ativo) e `EquipamentoMudou`; `IAtributosDosEquipamentos` (dano da arma e flat); `IEfeitosDoEquipamento` (poderes e marcos de set ligados).
-- **Combate (a publicar):** `GolpeComumAcertou` e `PersonagemEsquivou` em `Contratos/Combate/`, para os poderes de golpe comum e de esquiva. Skills já escuta; falta Combate publicar.
+- **Combate:** `GolpeComumAcertou` e `PersonagemEsquivou` em `Contratos/Combate/`, para os poderes de golpe comum e de esquiva (#875).
 - **Combate:** `ICobrancaDeRecursos` (cobra stamina ou mana de forma atômica), `IAlvosDeCombate` (alvos no cone e dano). Barras de recurso via `RecursosMudaram` de Combate.
 - **Mundo:** `IPosicoesDoMundo` (origem da skill e área).
 

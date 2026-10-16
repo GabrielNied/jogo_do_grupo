@@ -1,5 +1,6 @@
 using JogoDoGrupo.Server.Contratos.Combate;
 using JogoDoGrupo.Server.Contratos.Mundo;
+using JogoDoGrupo.Server.Core.Eventos;
 using JogoDoGrupo.Server.Core.TempoReal;
 using JogoDoGrupo.Shared.Features.Combate;
 
@@ -31,6 +32,7 @@ public sealed class ServicoDeAtaques : IHostedService, IDisposable
     private readonly ILimiteDeVelocidadeDoMundo? _limiteDeVelocidade;
     private readonly GerenciadorDeEfeitosDeStatus? _efeitos;
     private readonly IVizinhanca? _vizinhanca;
+    private readonly EventosDoServidor? _eventos;
     private readonly Dictionary<long, SessaoTempoReal> _sessoes = [];
     private readonly Lock _travaSessoes = new();
 
@@ -51,9 +53,11 @@ public sealed class ServicoDeAtaques : IHostedService, IDisposable
         IAliadosDeCombate? aliados = null,
         ILimiteDeVelocidadeDoMundo? limiteDeVelocidade = null,
         GerenciadorDeEfeitosDeStatus? efeitos = null,
-        IVizinhanca? vizinhanca = null
+        IVizinhanca? vizinhanca = null,
+        EventosDoServidor? eventos = null
     )
     {
+        _eventos = eventos;
         _vizinhanca = vizinhanca;
         _efeitos = efeitos;
         _aliados = aliados ?? new NinguemEAliado();
@@ -330,6 +334,13 @@ public sealed class ServicoDeAtaques : IHostedService, IDisposable
                     Passo = acao.Passo,
                 }
             );
+
+            var alvoIds = new long[acertos.Count];
+            for (var i = 0; i < acertos.Count; i++)
+            {
+                alvoIds[i] = acertos[i].AlvoId;
+            }
+            _eventos?.Publicar(new GolpeComumAcertou(personagemId, alvoIds));
         }
 
         foreach (var alvoId in interrompidos)

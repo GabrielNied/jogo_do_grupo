@@ -65,7 +65,8 @@ public sealed class CombateModule : IFeatureModule
             sp.GetRequiredService<IServiceScopeFactory>(),
             sp.GetRequiredService<ILogger<ServicoDeEsquivas>>(),
             queda: sp.GetRequiredService<ServicoDeQueda>(),
-            vizinhanca: sp.GetService<IVizinhanca>()
+            vizinhanca: sp.GetService<IVizinhanca>(),
+            eventos: sp.GetService<EventosDoServidor>()
         ));
         servicos.AddSingleton(sp =>
         {
@@ -126,7 +127,8 @@ public sealed class CombateModule : IFeatureModule
                 aliados: sp.GetRequiredService<IAliadosDeCombate>(),
                 limiteDeVelocidade: sp.GetService<ILimiteDeVelocidadeDoMundo>(),
                 efeitos: sp.GetRequiredService<GerenciadorDeEfeitosDeStatus>(),
-                vizinhanca: sp.GetService<IVizinhanca>()
+                vizinhanca: sp.GetService<IVizinhanca>(),
+                eventos: sp.GetService<EventosDoServidor>()
             );
             _ataques = servico;
             _esquivas = sp.GetRequiredService<ServicoDeEsquivas>();

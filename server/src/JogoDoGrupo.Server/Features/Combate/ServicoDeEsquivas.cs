@@ -1,4 +1,6 @@
+using JogoDoGrupo.Server.Contratos.Combate;
 using JogoDoGrupo.Server.Contratos.Mundo;
+using JogoDoGrupo.Server.Core.Eventos;
 using JogoDoGrupo.Server.Core.TempoReal;
 using JogoDoGrupo.Shared.Features.Combate;
 
@@ -21,6 +23,7 @@ public sealed class ServicoDeEsquivas : IDisposable
     private readonly Func<long> _relogioMs;
     private readonly ServicoDeQueda? _queda;
     private readonly IVizinhanca? _vizinhanca;
+    private readonly EventosDoServidor? _eventos;
 
     public ServicoDeEsquivas(
         ServidorTempoReal tempoReal,
@@ -31,9 +34,11 @@ public sealed class ServicoDeEsquivas : IDisposable
         ILogger<ServicoDeEsquivas> log,
         Func<long>? relogioMs = null,
         ServicoDeQueda? queda = null,
-        IVizinhanca? vizinhanca = null
+        IVizinhanca? vizinhanca = null,
+        EventosDoServidor? eventos = null
     )
     {
+        _eventos = eventos;
         _vizinhanca = vizinhanca;
         _queda = queda;
         _tempoReal = tempoReal;
@@ -141,6 +146,8 @@ public sealed class ServicoDeEsquivas : IDisposable
                     _tempoReal.Enviar(outra, CombateMessageIds.EsquivaIniciada, aviso);
                 }
             }
+
+            _eventos?.Publicar(new PersonagemEsquivou(personagemId));
         }
         catch (Exception e)
         {

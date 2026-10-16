@@ -326,7 +326,7 @@ Decisões de design da implementação (valores de teste em `ConfigPoderes`, no 
 
 Skills de investida hoje: Avanço Devastador (espada) e Avanço de Muralha (escudo). Em combate: aviso dourado ("Investida Marcante: alvo marcado", "Embalo de Golpes: +30% de dano", "Caçador de Marcados: -2 s de recarga") e o dano maior no número; a barra mostra a recarga menor. O tooltip da peça traz "Poder lendário", o que faz e "Afeta: ...".
 
-**Pendente de Combate:** os gatilhos de **golpe comum** e **esquiva** (Embalo e Esquiva Impetuosa) esperam Combate publicar `Contratos/Combate/GolpeComumAcertou` e `PersonagemEsquivou` (já definidos e escutados por Skills; nada publica ainda). Até lá esses dois poderes ficam parados e os de marca e recarga funcionam só com skills.
+**Gatilhos de Combate (#875):** os gatilhos de **golpe comum** e **esquiva** (Embalo e Esquiva Impetuosa) são alimentados pelos eventos `Contratos/Combate/GolpeComumAcertou` e `PersonagemEsquivou`, publicados pelo Combate ao confirmar acertos de ataques básicos e início válido de esquiva.
 
 **Sets (#630)**
 
