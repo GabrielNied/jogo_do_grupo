@@ -47,7 +47,7 @@ Outros: `npm run tarefa -- ajuda`, [README](README.md#dia-a-dia), [docs/git.md](
 15. **Puxe antes de mexer:** `npm run tarefa -- puxar <N>` (com `--worktree <pasta>` se outro lote está ativo ou você é agente no checkout principal; [Worktree ao puxar](docs/agentes.md#worktree-ao-puxar)). Tarefa em andamento de outro: pare. O PR leva um `Closes #<N>` por issue do lote.
 16. **Espera que vai se repetir vira corte na hora** (script, hook, skill ou doc), no mesmo PR ou num pequeno de processo. Sem corte, não escreva nada. Tropeço de processo: skill `registrar-licao` ([Custo de IA](docs/agentes.md#custo-de-ia)).
 17. **Balanceamento:** constantes nomeadas ou `Config<Assunto>`; sensação no client na `Sintonia` (F10) ([convenção](docs/convencoes.md#valores-de-balanceamento)).
-18. **Entrega:** um lote tem um dono que faz contrato, servidor, client e cena no mesmo PR e escreve o [plano](docs/agentes.md#plano-da-tarefa) na issue antes de codar. **Recomendado** até **3 lotes de jogo** em andamento; acima disso o `puxar` só avisa ([ADR 0037](docs/decisoes/0037-lotes-de-tarefas.md)).
+18. **Entrega:** um dono por lote faz contrato, servidor, client e cena num PR e escreve o [plano](docs/agentes.md#plano-da-tarefa) na issue antes de codar. Acima de **3 lotes de jogo** em andamento, o `puxar` só avisa ([ADR 0037](docs/decisoes/0037-lotes-de-tarefas.md)).
 
 ## Skills
 
