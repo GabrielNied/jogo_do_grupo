@@ -9,6 +9,7 @@ namespace JogoDoGrupo.Shared.Features.Mobs
     public sealed class TabelaDeAmeaca
     {
         private readonly Dictionary<long, double> _pontos = new();
+        private readonly List<long> _chavesParaRemover = new();
         private long _provocadorId = RegrasInimigo.SemAlvo;
         private long _provocacaoAteMs;
 
@@ -100,6 +101,54 @@ namespace JogoDoGrupo.Shared.Features.Mobs
                 _provocadorId = RegrasInimigo.SemAlvo;
                 _provocacaoAteMs = 0;
             }
+        }
+
+        public void RemoverOnde(Func<long, bool> condicao)
+        {
+            if (condicao == null || _pontos.Count == 0)
+            {
+                return;
+            }
+
+            _chavesParaRemover.Clear();
+            foreach (var kvp in _pontos)
+            {
+                if (condicao(kvp.Key))
+                {
+                    _chavesParaRemover.Add(kvp.Key);
+                }
+            }
+
+            for (int i = 0; i < _chavesParaRemover.Count; i++)
+            {
+                Remover(_chavesParaRemover[i]);
+            }
+
+            _chavesParaRemover.Clear();
+        }
+
+        public void RemoverOnde<TContext>(Func<long, TContext, bool> condicao, TContext contexto)
+        {
+            if (condicao == null || _pontos.Count == 0)
+            {
+                return;
+            }
+
+            _chavesParaRemover.Clear();
+            foreach (var kvp in _pontos)
+            {
+                if (condicao(kvp.Key, contexto))
+                {
+                    _chavesParaRemover.Add(kvp.Key);
+                }
+            }
+
+            for (int i = 0; i < _chavesParaRemover.Count; i++)
+            {
+                Remover(_chavesParaRemover[i]);
+            }
+
+            _chavesParaRemover.Clear();
         }
 
         public void Limpar()

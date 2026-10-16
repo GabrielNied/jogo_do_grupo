@@ -218,5 +218,31 @@ namespace JogoDoGrupo.Shared.Tests.Features.Mobs
             Assert.False(tabela.TemAmeaca);
             Assert.Equal(0.0, tabela.ObterAmeaca(2));
         }
+
+        [Fact]
+        public void RemoverOnde_remove_apenas_quem_satisfaz_condicao_e_limpa_provocador()
+        {
+            var tabela = new TabelaDeAmeaca();
+            tabela.AdicionarDano(10, 100);
+            tabela.AdicionarDano(20, 200);
+            tabela.AdicionarDano(30, 300);
+            tabela.Provocar(20, 1000);
+
+            // Remove quem tem id <= 20
+            tabela.RemoverOnde(id => id <= 20);
+
+            Assert.True(tabela.TemAmeaca);
+            Assert.Equal(0.0, tabela.ObterAmeaca(10));
+            Assert.Equal(0.0, tabela.ObterAmeaca(20));
+            Assert.Equal(300.0, tabela.ObterAmeaca(30));
+            // Provocador (20) foi removido
+            Assert.False(tabela.EstaProvocado(2000, out _));
+
+            // Teste da sobrecarga com contexto
+            var limite = 25;
+            tabela.RemoverOnde((id, lim) => id > lim, limite);
+            Assert.False(tabela.TemAmeaca);
+            Assert.Equal(0.0, tabela.ObterAmeaca(30));
+        }
     }
 }

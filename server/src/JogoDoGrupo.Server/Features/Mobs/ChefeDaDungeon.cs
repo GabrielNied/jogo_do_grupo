@@ -214,13 +214,7 @@ public sealed class ChefeDaDungeon : IAlvosDeCombate, IInimigosSimulados
                 )
                 .ToArray();
 
-            foreach (var id in _ameacas.Personagens.ToArray())
-            {
-                if (!presentes.Any(j => j.PersonagemId == id))
-                {
-                    _ameacas.Remover(id);
-                }
-            }
+            _ameacas.RemoverOnde(id => !presentes.Any(j => j.PersonagemId == id));
 
             var antes = (_x, _z, _rotacao, _estado, _alvo);
             switch (_estado)
