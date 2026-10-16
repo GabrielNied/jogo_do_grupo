@@ -107,10 +107,11 @@ public class MigracaoDeEquipamentosTestes(ServidorDeTeste servidor) : IClassFixt
 
         Assert.Equal(HttpStatusCode.OK, resposta.StatusCode);
         var estado = await ServidorDeTeste.LerJsonAsync<EquipamentosResponse>(resposta);
-        // Vitalidade 20 vira vida do item: 50 de vida máxima. Força 20 vira 3 de dano físico flat.
-        Assert.Equal(50, estado.Atributos.VidaMaxima);
-        Assert.Equal(3, estado.Atributos.BonusDanoFisico, 6);
-        Assert.Equal(9.6, estado.Atributos.DefesaFisica, 6);
+        // Vitalidade 20 vira vida do item: 32 de vida máxima (peito, 0 a 160). Força 20 vira 1 de
+        // dano físico flat (0 a 5).
+        Assert.Equal(32, estado.Atributos.VidaMaxima);
+        Assert.Equal(1, estado.Atributos.BonusDanoFisico, 6);
+        Assert.Equal(2.88, estado.Atributos.DefesaFisica, 6);
         Assert.Contains("\"VersaoDosAtributos\":3", await JsonGravado(peca));
     }
 

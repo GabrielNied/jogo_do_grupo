@@ -23,18 +23,57 @@ public class ArvoreDaConfiguracaoTestes
         new() { Versao = 1, Nos = nos };
 
     [Fact]
-    public void Arvore_de_teste_e_valida_e_tem_os_cinco_caminhos_e_cinco_hibridos()
+    public void Arvore_do_jogo_e_valida_e_tem_cinco_caminhos_completos_e_cinco_hibridos()
     {
-        var arvore = ArvoreDeTeste.Criar();
+        var arvore = ArvoreDoJogo.Criar();
 
         Assert.Empty(ValidadorDaArvore.Validar(arvore));
         Assert.Equal(5, arvore.Nos.Count(n => n.Tipo == TipoDeNo.Hibrido));
         foreach (var caminho in Enum.GetValues<AtributoPrincipal>())
         {
+            // 3 principais e 2 secundários, 1 grande e 1 marco por caminho.
             Assert.Equal(
-                3,
+                5,
                 arvore.Nos.Count(n => n.Tipo == TipoDeNo.Pequeno && n.Caminhos[0] == caminho)
             );
+            Assert.Equal(
+                1,
+                arvore.Nos.Count(n => n.Tipo == TipoDeNo.Grande && n.Caminhos[0] == caminho)
+            );
+            Assert.Equal(
+                1,
+                arvore.Nos.Count(n => n.Tipo == TipoDeNo.Avancado && n.Caminhos[0] == caminho)
+            );
+        }
+    }
+
+    [Fact]
+    public void Os_pontos_do_nivel_100_nao_compram_a_arvore_toda_mas_fecham_um_caminho()
+    {
+        var arvore = ArvoreDoJogo.Criar();
+        var pontos =
+            JogoDoGrupo.Shared.Features.Personagem.ConfigExperiencia.PontosPorNivel
+            * (JogoDoGrupo.Shared.Features.Personagem.ConfigExperiencia.NivelMaximo - 1);
+        var caminho = arvore
+            .Nos.Where(n => n.Caminhos.Length == 1 && n.Caminhos[0] == AtributoPrincipal.Forca)
+            .Sum(n => RegrasDaArvore.CustoPago(n, n.RankMaximo));
+
+        Assert.Equal(99, pontos);
+        Assert.True(ArvoreDoJogo.CustoTotal(arvore) > 3 * pontos);
+        Assert.InRange(caminho, 50, pontos);
+    }
+
+    [Fact]
+    public void Todo_no_tem_custo_crescente_ou_igual_e_so_o_marco_tem_um_rank()
+    {
+        foreach (var no in ArvoreDoJogo.Criar().Nos)
+        {
+            for (var i = 1; i < no.CustoPorRank.Length; i++)
+            {
+                Assert.True(no.CustoPorRank[i] >= no.CustoPorRank[i - 1], no.Id);
+            }
+
+            Assert.Equal(no.Tipo == TipoDeNo.Avancado, no.RankMaximo == 1);
         }
     }
 

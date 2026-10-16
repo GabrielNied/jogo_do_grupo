@@ -52,25 +52,25 @@ Estas funções não concedem prêmios nem persistem dados. Integração com ser
 
 ## Atributos do personagem
 
-Decidido por Gabriel em 2026-10-12 (especificação de atributos; entrada em [arvore-de-atributos.md](../brainstorm/arvore-de-atributos.md)). **Prioridade alta**, épico [#621](https://github.com/GabrielNied/jogo_do_grupo/issues/621). A estrutura está definida; fórmulas, valores, limites e custos estão **pendentes** ([#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627)). Esta seção é a fonte do que cada atributo faz; a árvore que distribui os pontos está em [talentos.md](talentos.md).
+Decidido por Gabriel em 2026-10-12 (especificação de atributos; entrada em [arvore-de-atributos.md](../brainstorm/arvore-de-atributos.md)). **Prioridade alta**, épico [#621](https://github.com/GabrielNied/jogo_do_grupo/issues/621). A estrutura está definida; as fórmulas e os valores estão **propostos** na [#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627) e viram definitivos com a aprovação de Gabriel no review do PR (tabela em [talentos](talentos.md#implementação-da-627-números-da-árvore-e-dos-atributos)). Esta seção é a fonte do que cada atributo faz; a árvore que distribui os pontos está em [talentos.md](talentos.md).
 
 **Princípio:** os atributos do personagem e os atributos dos equipamentos são **sistemas independentes**. A árvore é a progressão do personagem; os equipamentos têm atributos e progressão próprios ([itens](itens.md)). Os dois se encontram no combate, pelas fórmulas, mas não dividem pontos, e um não muda a progressão do outro (DEC-001, [itens](itens.md#invariantes)).
 
 ### Atributos principais
 
-| Atributo | Responsabilidade | O que faz | Pendente |
+| Atributo | Responsabilidade | O que faz | Valor por ponto (proposto na #627) |
 |---|---|---|---|
-| Força | Dano físico | Aumenta o dano físico, conforme a arma e a skill usadas | Conversão dos pontos em dano |
-| Vigor | Vida | Aumenta a vida máxima | Vida por ponto |
-| Agilidade | Stamina | Aumenta a stamina máxima | Relação com o consumo e a recuperação de stamina |
-| Intelecto | Dano mágico | Aumenta o dano mágico das skills e de outras fontes mágicas | Conversão dos pontos em dano |
-| Espírito | Mana | Aumenta a mana máxima | Mana por ponto |
+| Força | Dano físico | Aumenta o dano físico, conforme a arma e a skill usadas | +1,5% do dano |
+| Vigor | Vida | Aumenta a vida máxima | +12 de vida (base 500) |
+| Agilidade | Stamina | Aumenta a stamina máxima | +2 de stamina (base 100); não mexe na regeneração |
+| Intelecto | Dano mágico | Aumenta o dano mágico das skills e de outras fontes mágicas | +1,5% do dano |
+| Espírito | Mana | Aumenta a mana máxima | +2 de mana (base 100); não mexe na regeneração |
 
 - **Na tela:** a janela do personagem lista os cinco atributos na ordem da tabela (Força, Vigor, Agilidade, Intelecto, Espírito), cada um com o efeito ao lado ("Vigor: 3 (aumenta a vida)"); os textos ficam em `TextosPersonagem`. As barras do HUD são vida, stamina e mana.
 - **Sem efeito implícito:** um atributo principal não dá outros bônus (esquiva, velocidade, regeneração...) sem decisão registrada. Cada efeito tem fonte e fórmula identificáveis.
 - **Recursos:** vida, stamina e mana. Decidido em 2026-10-12 (coordenador), para acabar com a colisão de nomes: o recurso que o código chama de "vigor" passa a ser **stamina**, e "energia" passa a ser **mana**. Vigor fica só como atributo. A troca no código foi a [#622](https://github.com/GabrielNied/jogo_do_grupo/issues/622).
 - ~~Destreza~~ e ~~Vitalidade~~ substituídos em 2026-10-12 por **Agilidade** e **Vigor**.
-- **Pontos da árvore vêm só de subir de nível** (Gabriel, 2026-10-12). Melhorar equipamento aumenta só os atributos do próprio item e nunca dá ponto da árvore. Quantos pontos cada nível dá está pendente ([#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627)).
+- **Pontos da árvore vêm só de subir de nível** (Gabriel, 2026-10-12). Melhorar equipamento aumenta só os atributos do próprio item e nunca dá ponto da árvore. Cada nível dá 1 ponto (99 no nível 100, decidido em 2026-10-16).
 
 ### Atributos secundários
 
@@ -90,7 +90,7 @@ Refinam a especialização e complementam os principais. Cada um é independente
 
 - As três regenerações são independentes: cada recurso tem fontes e valores próprios.
 - Velocidade física e mágica são separadas, para que ataques físicos e mágicos não dividam a mesma progressão.
-- As fórmulas de crítico, velocidade e penetração (com defesa, mitigação e resistência) são do [Combate](combate.md). A pipeline que junta as fontes (#624) está em [combate](combate.md#atributos-secundários-e-pipeline-624). **Na tela:** a janela do personagem lista os nove com o valor e a origem de cada parcela; a regeneração de vida tem valor de teste 0.
+- As fórmulas de crítico, velocidade e penetração (com defesa, mitigação e resistência) são do [Combate](combate.md). A pipeline que junta as fontes (#624) está em [combate](combate.md#atributos-secundários-e-pipeline-624). **Na tela:** a janela do personagem lista os nove com o valor e a origem de cada parcela; a regeneração de vida tem base 0 (só árvore e equipamento a dão).
 
 ### Personagem e equipamento
 
@@ -99,19 +99,17 @@ Refinam a especialização e complementam os principais. Cada um é independente
 - Trocar de equipamento não muda os pontos investidos nem pede redistribuição.
 - Personagem, equipamento e propriedades das skills interagem no combate, pelas fórmulas do [Combate](combate.md).
 
-### Valores de teste até a decisão
+### Números da #627
 
-Até a [#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627), as tarefas usam os números da [fatia, seção 1](fatia-jogavel.md#1-atributos-e-recursos), que são os do código com os nomes novos, como **valores de teste** em constantes nomeadas. Não são balanceamento.
+Os valores de recursos e dano por ponto, os secundários, a árvore e o custo de redistribuir foram propostos pela simulação da [#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627) (tabelas em [talentos](talentos.md#implementação-da-627-números-da-árvore-e-dos-atributos)) e aguardam a aprovação de Gabriel no review do PR. Eles substituem os "valores de teste" da [fatia, seção 1](fatia-jogavel.md#1-atributos-e-recursos). Nenhum atributo principal dá regeneração, esquiva ou velocidade sem decisão registrada.
 
 ### Transição
 
-Os nomes novos já valem no código ([#622](https://github.com/GabrielNied/jogo_do_grupo/issues/622)). Até a [#623](https://github.com/GabrielNied/jogo_do_grupo/issues/623) entrar, o código ainda soma os atributos das peças nos do personagem; pontos por nível usam `PontosPorNivel` (valor de teste: 1; número final pendente da [#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627)). Nenhuma regra nova se apoia nisso.
+Os nomes novos valem no código ([#622](https://github.com/GabrielNied/jogo_do_grupo/issues/622)) e o equipamento tem atributos próprios desde a [#623](https://github.com/GabrielNied/jogo_do_grupo/issues/623): nada do item soma nos cinco atributos do personagem.
 
 ### Pendente
 
-Decidido por Gabriel em 2026-10-16: **1 ponto da árvore por nível** (99 até o nível 100), que já é o valor de `PontosPorNivel`. Os outros números são propostos pela IA a partir de uma simulação em C# com o `shared` ([ADR 0043](../decisoes/0043-simulacoes-em-csharp-e-scripts-em-node.md)) e aprovados por Gabriel num PR ([#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627)).
-
-Antes de fixar números ([#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627)): vida, stamina, mana e dano por ponto; fórmulas dos atributos finais; valores, limites e fontes dos secundários; limites de crítico, dano crítico, velocidade e penetração; regras de regeneração e consumo; custos e requisitos dos nós; efeitos dos nós grandes e avançados; fórmulas entre atributos, equipamentos e skills.
+Só o bônus condicional por categoria de skill dos nós grandes ([talentos](talentos.md#números-propostos-627)), que espera as propriedades das skills.
 
 ## Raças propostas no board (2026-10-11)
 
@@ -154,11 +152,11 @@ Decidido em 2026-10-12. A curva já está em `ConfigExperiencia`; o teste `Ritmo
 
 **Curva:** XP do nível = arredondar(50 × nível^1,2). Nível máximo: **100**. A curva dos primeiros níveis não muda. Era 100 × nível^1,7, e o nível 10 passava de 5 horas só de mobs do mesmo nível.
 
-**O que o nível dá:** ~~nada de atributo. Vida, vigor, energia e dano crescem pelos itens.~~ Revisto em 2026-10-12: cada nível dá pontos da [árvore](talentos.md) via `PontosPorNivel`, e só o nível dá esses pontos (Gabriel). Quantos por nível está pendente (valor de teste: 1; calibração final pendente da [#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627)). O nível em si não dá bônus. Os atributos não mudam o orçamento de preparação de skills; esse orçamento continua fora desta fatia ([skills.md](skills.md#preparação-de-skills-proposta-do-board-2026-10-11)).
+**O que o nível dá:** ~~nada de atributo. Vida, vigor, energia e dano crescem pelos itens.~~ Revisto em 2026-10-12: cada nível dá pontos da [árvore](talentos.md) via `PontosPorNivel`, e só o nível dá esses pontos (Gabriel). Cada nível dá 1 (99 no nível 100, decidido em 2026-10-16). O nível em si não dá bônus. Os atributos não mudam o orçamento de preparação de skills; esse orçamento continua fora desta fatia ([skills.md](skills.md#preparação-de-skills-proposta-do-board-2026-10-11)).
 
 **XP por diferença de nível** (decidido em 2026-10-12): a diferença é o nível do jogador menos o nível do mob. 0 ou negativa paga 100%. Cada nível acima tira 20 pontos percentuais. 5 ou mais acima paga 0. Cada participante calcula a parcela com seu próprio nível e o nível informado na morte do inimigo; o percentual é aplicado ao XP base com arredondamento para baixo até XP inteiro. Se o contrato informar nível desconhecido (`0`), Personagem concede o XP base sem penalidade, pois não há dado para calcular a diferença. Quem participou recebe essa parcela, não o valor cheio. Ganho zero consome a morte contra duplicatas, mas não grava progresso nem publica notificação de XP. A meta de ritmo acima vale contra mob do mesmo nível ou mais forte. O Javali do Campo é nível 3: a partir do nível 8 do jogador ele não dá XP. Constantes nomeadas, fáceis de calibrar.
 
-O teto 100 e os pontos da árvore por nível (valor de teste: 1) estão em `ConfigExperiencia`. A #454 ainda aplica o XP por diferença de nível. Os pontos gastam na [árvore de atributos](talentos.md); a rota antiga de gastar pontos nos atributos saiu na #625.
+O teto 100 e os pontos da árvore por nível (1) estão em `ConfigExperiencia`. A #454 ainda aplica o XP por diferença de nível. Os pontos gastam na [árvore de atributos](talentos.md); a rota antiga de gastar pontos nos atributos saiu na #625.
 
 ## Em aberto
 
@@ -404,7 +402,7 @@ API HTTP para listar e criar personagens (por que HTTP: [ADR 0009](../decisoes/0
 
 ### Experiência, nível e pontos de atributo (#65, contrato da #299)
 
-Regras na [fatia jogável, seção 6](fatia-jogavel.md#6-experiência-e-nível). O servidor concede a experiência e sobe o nível; o client só mostra. Subir de nível dá pontos da árvore (decidido em 2026-10-12): `PontosPorNivel` em `ConfigExperiencia`, hoje **1 por nível, valor de teste** (o número final é da [#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627)). O saldo (`PontosLivres`) fica no personagem e gasta na compra de nós da [árvore](talentos.md) (#625, 13/10/2026), que substituiu a distribuição livre nos atributos. O servidor concede a experiência de `InimigoDerrotado`; o client mostra a barra e o saldo na janela do personagem (tecla C).
+Regras na [fatia jogável, seção 6](fatia-jogavel.md#6-experiência-e-nível). O servidor concede a experiência e sobe o nível; o client só mostra. Subir de nível dá pontos da árvore (decidido em 2026-10-12): `PontosPorNivel` em `ConfigExperiencia`, **1 por nível** (99 no nível 100, decidido em 2026-10-16). O saldo (`PontosLivres`) fica no personagem e gasta na compra de nós da [árvore](talentos.md) (#625, 13/10/2026), que substituiu a distribuição livre nos atributos. O servidor concede a experiência de `InimigoDerrotado`; o client mostra a barra e o saldo na janela do personagem (tecla C).
 
 | ID ou rota | Nome | Direção | Campos |
 |---|---|---|---|

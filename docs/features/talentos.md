@@ -1,7 +1,7 @@
 # Árvore de atributos (talentos)
 
 **Responsável:**
-**Status:** estrutura decidida por Gabriel em 2026-10-12; árvore, compra e tela implementadas (#625); redistribuição paga e perfis de build implementados (#626); nós grandes e números finais faltam (#627). **Prioridade alta**, épico [#621](https://github.com/GabrielNied/jogo_do_grupo/issues/621)
+**Status:** estrutura decidida por Gabriel em 2026-10-12; árvore, compra e tela implementadas (#625); redistribuição paga e perfis de build implementados (#626); números propostos pela simulação e custo de redistribuição por nível implementados (#627, #910), aguardando a aprovação de Gabriel no review; falta só o bônus por categoria de skill. **Prioridade alta**, épico [#621](https://github.com/GabrielNied/jogo_do_grupo/issues/621)
 **Faixa de IDs de mensagem:** 5000–5999
 
 ## Resumo
@@ -20,7 +20,7 @@ Decidido por Gabriel em 2026-10-12:
 - **Três tipos de nó:** pequeno (aumenta um atributo principal ou secundário), grande (especialização com bônus condicional pelas propriedades da skill usada) e avançado (sinergia entre atributos, especializações ou caminhos).
 - **Bônus pela skill, não pela arma.** O nó grande olha as propriedades declaradas da skill executada (dano físico, dano mágico, cura...), não o tipo da arma equipada.
 - **Trocar equipamento é grátis** e não mexe na árvore: recalcula os atributos finais e as skills, sem redistribuir pontos.
-- **Redistribuir pontos custa** recursos do jogo. O valor e as condições estão pendentes.
+- **Redistribuir pontos custa** coroas, escalando com o nível do personagem (decidido em 2026-10-16; a curva está em [Implementação da #627](#implementação-da-627-números-da-árvore-e-dos-atributos)).
 - **Perfis de build:** o jogador salva e carrega distribuições. Ligar um perfil a um conjunto de equipamentos é opcional e não deve ser presumido.
 - **Novos nós e skills entram por dados** (configuração), sem código próprio para cada item.
 - ~~Adiada (2026-10-10): o jogo começa sem árvore de talentos~~ Substituído em 2026-10-12: a árvore volta, com prioridade alta.
@@ -30,24 +30,20 @@ Decidido por Gabriel em 2026-10-12:
 
 - [x] ~~A árvore de talentos continua existindo, com o jogo sem classes e com skills nos itens?~~ Decidido em 2026-10-12: sim, como árvore de atributos. Ela não ensina skill; dá atributos e especializações.
 - [x] ~~Progressão por tipo de equipamento (Destiny Board do Albion)?~~ Decidido em 2026-10-12: não. Uma árvore só, e o bônus olha a skill, não a arma.
-- [x] ~~Dá para resetar a árvore? Qual o custo?~~ Decidido em 2026-10-12: dá, com custo em recursos. Os números estão em [Pendente](#pendente).
+- [x] ~~Dá para resetar a árvore? Qual o custo?~~ Decidido em 2026-10-12: dá, com custo em recursos. Os números estão em [Números propostos](#números-propostos-627).
 - [x] ~~Documento mestre x adiada x fatia (#618)~~ Decidido em 2026-10-12 por esta especificação: a árvore volta e DEC-001 vale ([itens](itens.md#invariantes)).
-- [x] ~~Proposta da IA na #194 (1 ponto por nível a partir do 10, reset grátis)~~ Substituída em 2026-10-12: redistribuir custa. Pontos por nível seguem em [Pendente](#pendente).
+- [x] ~~Proposta da IA na #194 (1 ponto por nível a partir do 10, reset grátis)~~ Substituída em 2026-10-12: redistribuir custa. Pontos por nível: 1 (decidido em 2026-10-16).
 - [x] Respondido em 2026-10-16: não há orçamento de preparação (#339 fechada), então a árvore não tem o que mexer nele. O livro de Asterra ([seções 04, 09 e 10](../brainstorm/figjam.md#09--personagem-cooperação-e-rotina)) pede que a evolução do personagem não ensine skills nem mude o orçamento de preparação. A árvore respeita: não ensina skill. Se algum nó for mexer no orçamento de preparação ([skills.md](skills.md#preparação-de-skills-proposta-do-board-2026-10-11)), é decisão explícita.
 
-### Pendente
+### Números propostos ([#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627))
 
-Números e políticas que precisam de aprovação ([#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627)). Até lá, quem implementa usa **valores de teste** em constantes nomeadas e não os trata como balanceamento:
+**Decidido por Gabriel em 2026-10-16:** **1 ponto por nível** (99 no nível 100); redistribuir custa **coroas, escalando com o nível** ([economia](economia.md#definido)); o resto foi **proposto pela IA** a partir de uma simulação em C# com o `shared` ([ADR 0043](../decisoes/0043-simulacoes-em-csharp-e-scripts-em-node.md), `tools/JogoDoGrupo.Simulacoes`) e vira definitivo com a **aprovação de Gabriel no review do PR** da [#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627) (quiz 4). Tudo está em constantes nomeadas (regra 17): trocar um número é mexer em `ArvoreDoJogo`, `ConfigRedistribuicao`, `RegrasRecursos`, `RegrasAtaque`, `ConfigAtributosSecundarios` ou `ConfigAtributosItem`. A tabela completa está em [Implementação da #627](#implementação-da-627-números-da-árvore-e-dos-atributos).
 
-**Decidido por Gabriel em 2026-10-16:** **1 ponto por nível** (99 no nível 100); redistribuir custa **coroas, escalando com o nível** do personagem (saída de moeda, [economia](economia.md#definido)); os demais números são **propostos pela IA** a partir de uma simulação em C# com o `shared` ([ADR 0043](../decisoes/0043-simulacoes-em-csharp-e-scripts-em-node.md)) e **aprovados por Gabriel no review do PR** da [#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627) (quiz de definições 4).
+Continua em aberto (não trava o jogo, nenhum nó depende disso):
 
-- ~~Quantos pontos da árvore cada nível dá e o total no nível 100~~ decidido em 2026-10-16: 1 por nível, 99 no total.
-- Quantidade de nós, custo por rank, rank máximo, requisitos e limites.
-- Efeitos e valores dos nós grandes e avançados; lista final de categorias de skill.
-- Regras de acúmulo de cada tipo de modificador (soma, multiplicação, prioridade, limite).
-- Curva de coroas da redistribuição por nível, restrições e recarga; se é total, parcial ou as duas (a moeda está decidida: coroas).
-- Limite, custo e restrições de uso dos perfis.
-- O que fazer quando a árvore mudar e uma distribuição salva deixar de valer: migrar, reembolsar, zerar ou bloquear para revisão.
+- **Bônus por categoria de skill** dos nós grandes e avançados. Hoje eles somam atributo e secundários físicos ou mágicos, sem condição; o efeito "+X% de dano a skill de tal categoria" espera as propriedades das [skills](skills.md) e a lista final de categorias.
+- **Regras de acúmulo** além das que a pipeline já tem (soma na ordem da árvore; percentuais da árvore somam entre si).
+- **Restrições de uso e recarga** da redistribuição além de "só fora de combate" (hoje não há recarga).
 
 ## Regras
 
@@ -139,10 +135,10 @@ IDs estáveis da especificação; tarefas e testes apontam para eles.
 
 Decisões de design tomadas pela IA ao implementar, sem esperar resposta (mudam por constante ou por dados, nada trava):
 
-- **Configuração por dados.** `ConfiguracaoDaArvore` (shared) tem `Versao` e os nós: id, nome, descrição, tipo, caminhos, rank máximo, `CustoPorRank` (um custo por rank), requisitos, efeitos e posição `X`/`Y` (só para a tela). **As arestas são os requisitos** (todos valem juntos: "nó A com rank mínimo N"). Hoje a fonte é `ArvoreDeTeste.Criar()` em código; trocar por arquivo é mudar a origem da configuração em `TalentosModule`.
+- **Configuração por dados.** `ConfiguracaoDaArvore` (shared) tem `Versao` e os nós: id, nome, descrição, tipo, caminhos, rank máximo, `CustoPorRank` (um custo por rank), requisitos, efeitos e posição `X`/`Y` (só para a tela). **As arestas são os requisitos** (todos valem juntos: "nó A com rank mínimo N"). Hoje a fonte é `ArvoreDoJogo.Criar()` em código; trocar por arquivo é mudar a origem da configuração em `TalentosModule`.
 - **Validador** (`ValidadorDaArvore`, puro): versão menor que 1, árvore sem nós, id vazio ou repetido, nó sem nome, rank máximo menor que 1, custo por rank com tamanho diferente do rank máximo ou menor que 1, caminho inexistente (híbrido precisa de dois caminhos diferentes), nó sem efeito (menos o híbrido, que pode ser só rota), efeito com valor menor que 1 ou secundário sem chave, requisito que aponta para nó inexistente ou pede rank fora de 1..máximo, e **ciclo**. O servidor chama em `ConfigurarServicos`; configuração inválida lança `InvalidOperationException` com o motivo de cada problema e o servidor não sobe.
-- **Árvore mínima de teste:** 3 nós pequenos por caminho (rank máximo 3, custos 1, 1 e 2, +1 de atributo por rank; o nó seguinte pede rank 2 do anterior) e 5 híbridos, um por par de caminhos vizinhos (Força-Vigor-Agilidade-Intelecto-Espírito-Força: rank máximo 2, custos 2 e 3, +1 nos dois atributos por rank; pedem rank 1 do 2º nó dos dois caminhos). Total de 15 + 5 nós. Todos os números são constantes de `ArvoreDeTeste`.
-- **Pontos.** O saldo é `PontosLivres` do personagem (só sobe ao subir de nível: `ConfigExperiencia.PontosPorNivel`, **1 por nível, valor de teste**). Talentos gasta por `IPontosDeNivel` ([personagem.md](personagem.md)), na mesma transação da compra. `PontosGastos` guarda o que foi pago, para a redistribuição (#626).
+- ~~Árvore mínima de teste (20 nós, `ArvoreDeTeste`).~~ Substituída pela árvore final da #627 (`ArvoreDoJogo`, versão 2, 40 nós): veja [Implementação da #627](#implementação-da-627-números-da-árvore-e-dos-atributos).
+- **Pontos.** O saldo é `PontosLivres` do personagem (só sobe ao subir de nível: `ConfigExperiencia.PontosPorNivel`, **1 por nível**, 99 no nível 100). Talentos gasta por `IPontosDeNivel` ([personagem.md](personagem.md)), na mesma transação da compra. `PontosGastos` guarda o que foi pago, para a redistribuição (#626).
 - **Compra atômica e idempotente, sem tabela de pedidos.** O pedido (`ComprarNoRequest`) leva `RankAlvo` (o rank que o jogador viu mais um) e a versão da configuração. O servidor abre transação Serializable (no SQLite, `BEGIN IMMEDIATE`: pedidos do mesmo personagem rodam um depois do outro) e avalia com `RegrasDaArvore.AvaliarCompra`: `RankAlvo` menor que 1 ou mais de um acima do rank atual é `RankAlvoInvalido` (400); **rank atual já maior ou igual ao alvo responde sucesso sem cobrar** (pedido repetido ou concorrente); depois vêm rank máximo, requisitos e pontos (409). Só então baixa os pontos, grava o rank e confirma; qualquer recusa desfaz tudo.
 - **Estado persistido:** uma linha por personagem (`TalentosArvores`: versão da configuração em que comprou e `PontosGastos`, criada na primeira compra) e uma por nó comprado (`TalentosNos`: nó e rank maior que zero). Se a versão salva for diferente da atual, a compra é recusada com `ArvoreDesatualizada` e nada se perde; migrar ou reembolsar é da #626/#627.
 - **Rotas HTTP, sem mensagens de tempo real** (como Personagem; a faixa 5000–5999 segue reservada): `GET /api/personagens/{id}/talentos` devolve `ArvoreResponse` (a configuração inteira, `PontosLivres`, `PontosGastos`, `Ranks` e a soma `Atributos` da árvore) e `POST .../talentos/comprar` devolve o mesmo. Erros: `NoInvalido` e `RankAlvoInvalido` (400); `RankMaximo`, `RequisitoNaoCumprido`, `PontosInsuficientes` e `ArvoreDesatualizada` (409); 404 se o personagem não é da conta.
@@ -160,6 +156,7 @@ Decisões de design tomadas pela IA ao implementar, sem esperar resposta (mudam 
   - Remove todos os `NoComprado` do personagem, zera `PontosGastos` na `ArvoreDoPersonagem` e devolve todos os pontos gastos de volta para `PontosLivres` via `IPontosDeNivel.DevolverAsync`.
   - Rota HTTP: `POST /api/personagens/{id}/talentos/redistribuir` (`RedistribuirRequest`), retornando a nova `ArvoreResponse`.
 - **Perfis de Build:**
+  - Salvar é grátis; **carregar um perfil que muda a distribuição custa o mesmo que redistribuir** (#627: senão o perfil seria um jeito grátis de trocar de build). Perfil igual ao que o personagem já tem não cobra. A resposta traz `CoroasCobradas`; sem saldo, recusa com `SaldoInsuficiente` (409) e nada muda.
   - Persistência na tabela `TalentosPerfis` (`Id`, `PersonagemId`, `Nome`, `Versao`, `CriadoEm`, `RanksJson`), até 5 perfis por personagem (`ConfigRedistribuicao.LimitePerfis`), com nome de até 32 caracteres (`ConfigRedistribuicao.TamanhoMaximoNomePerfil`).
   - Rotas HTTP:
     - `GET /api/personagens/{id}/talentos/perfis`: lista perfis salvos com pontos totais pré-calculados.
@@ -177,6 +174,104 @@ Decisões de design tomadas pela IA ao implementar, sem esperar resposta (mudam 
 - **Interface (JanelaArvore):**
   - Botão de redistribuição com custo visível e confirmação antes de disparar.
   - Painel de perfis integrado à tela de talentos: listagem com nome, pontos e data; salvar estado atual com nome; carregar perfil com exibição de avisos de migração; e exclusão de perfil com confirmação.
+
+## Implementação da #627 (números da árvore e dos atributos)
+
+Propostos pela simulação `tools/JogoDoGrupo.Simulacoes` ([ADR 0043](../decisoes/0043-simulacoes-em-csharp-e-scripts-em-node.md); `dotnet run --project tools/JogoDoGrupo.Simulacoes` refaz todas as tabelas) e regredidos por `NumerosDaArvoreTestes`. **Para a aprovação de Gabriel no review do PR.**
+
+### Fórmulas dos cinco atributos (`RegrasRecursos`, `RegrasAtaque`)
+
+Os atributos do personagem começam em 0 e só vêm da árvore (mais efeitos). O equipamento nunca soma neles (DEC-001).
+
+| Atributo | Efeito por ponto | Valor no nível 100 de uma build focada (40 pontos) |
+|---|---|---|
+| Força | +1,5% no dano físico (sobre dano da arma + dano flat do equipamento) | +60% |
+| Vigor | +12 de vida máxima (base 500) | +480 (quase dobra a vida-base) |
+| Agilidade | +2 de stamina máxima (base 100) | +80 |
+| Intelecto | +1,5% no dano mágico | +60% |
+| Espírito | +2 de mana máxima (base 100) | +80 |
+
+### Secundários
+
+Valor final = base + árvore + equipamento, na pipeline do [Combate](combate.md#atributos-secundários-e-pipeline-624). Bases e tetos em `ConfigAtributosSecundarios`.
+
+| Secundário | Base | Teto ou piso | Fontes (árvore · equipamento 0 a 100) |
+|---|---|---|---|
+| Regeneração de vida | 0 (não regenera sozinha) | sem teto | árvore +0,5/rank e +1,0/rank (grande) em Vigor · equipamento 0 a 1,5/s por peça |
+| Regeneração de stamina | 10/s | sem teto | árvore +1,0/rank em Agilidade e +0,7/rank em Vigor · equipamento 0 a 1,2/s por peça |
+| Regeneração de mana | 5/s | sem teto | árvore +0,7/rank em Espírito, e +15%/rank no nó grande dele · equipamento 0 a 0,8/s |
+| Chance crítica | 5% | teto 75% | árvore +2%/rank (Espírito) · equipamento 0 a 3% (anel 6%) |
+| Dano crítico | 1,5x | piso 1,0x | árvore +0,04/rank (Força) e +0,06/rank (grande de Força) · equipamento 0 a +0,15 (brinco +0,20) |
+| Velocidade de ataque física e mágica | 1,0x | 0,25x a 3,0x | árvore +0,03/rank (Agilidade; Intelecto), +0,04 (grande de Agilidade) e +0,02 (grande de Intelecto) · equipamento 0 a +8% |
+| Penetração física e mágica | 0% | teto 75% | árvore +2%/rank e +3%/rank (grande) · equipamento 0 a 6% |
+
+A regeneração de recurso mantém o atraso de 2 s do [Combate](combate.md). Os atributos principais **não** aumentam regeneração.
+
+### A árvore (40 nós, versão 2)
+
+Cada caminho (Força, Vigor, Agilidade, Intelecto, Espírito) tem 7 nós, e há 5 híbridos. Constantes em `ArvoreDoJogo`.
+
+| Nó | Por caminho | Ranks | Custo por rank | Efeito por rank | Requisito |
+|---|---|---|---|---|---|
+| Principal | 3 (encadeados) | 5 | 1, 1, 2, 2, 3 (9) | +2 no atributo do caminho | o anterior no rank 3 |
+| Secundário | 2 | 3 | 2, 2, 3 (7) | um secundário da tabela acima | 1º/2º principal no rank 2 |
+| Grande (especialização) | 1 | 3 | 4, 5, 6 (15) | +2 no atributo e 1 ou 2 secundários do tipo de dano do caminho | 3º principal no rank 3 |
+| Avançado (marco) | 1 | 1 | 8 | +4 no atributo do caminho e +3 no do caminho seguinte (sinergia) | grande no rank 3 e 3º principal no rank 5 |
+| Híbrido | 1 por par vizinho (5) | 4 | 2, 2, 3, 3 (10) | +1 em cada um dos dois atributos | 1º principal dos dois caminhos no rank 3 |
+
+- **Um caminho completo custa 64 pontos; a árvore toda, 370.** Os 99 pontos do nível 100 compram 27%: fecham um caminho e meio, ou um híbrido, ou duas especializações parciais. Uma build focada chega a **40** pontos no atributo do caminho.
+- Os híbridos são deliberadamente um pouco piores que o principal puro (0,8 atributo por ponto contra 1,1), mas dão dois atributos.
+- Não há pontos extras de ninguém: o total de 99 é o teto de qualquer build.
+
+### Builds no nível 100 (99 pontos)
+
+Equipamento de referência: o melhor (valor 100 em todos os atributos elegíveis, uma peça por posição) de cada função. Ver o resto em `relatorio.md` da simulação.
+
+| Build | Atributos da árvore | Vida | Stamina | Mana | Golpe leve sem equipamento | Golpe leve com o melhor equipamento |
+|---|---|---|---|---|---|---|
+| Guerreiro (Força, depois Vigor) | F 40, V 35 | 920 | 100 | 100 | 32 | 133 |
+| Tanque (Vigor, depois Força) | V 40, F 32 | 980 (1.940 com equipamento de vida) | 106 | 100 | 30 | 86 |
+| Ladino (Agilidade, depois Força) | A 40, F 32 | 500 | 180 | 100 | 30 | 123 (vel. de ataque 1,37x) |
+| Mago (Intelecto, depois Espírito) | I 40, E 35 | 500 | 100 | 170 | 20 | 141 |
+| Místico (Espírito, depois Intelecto) | E 40, I 32 | 500 | 100 | 180 | 21 | 130 (regen. de mana 13,8/s) |
+| Híbrido Força e Vigor | F 34, V 34 | 908 | 100 | 100 | 30 | 125 |
+| Espalhado (2 nós de cada caminho) | 20 de cada | 740 | 140 | 140 | 26 | 108 |
+
+Leitura: a árvore dá o que o equipamento não dá (dobra a vida do Vigor, +80% de stamina ou mana, +60% de dano na build focada), e o equipamento de ponta multiplica o dano por ~4. Ninguém fica obrigado a uma build: o espalhado perde para o focado, mas não é inútil.
+
+### Conversão dos atributos de item e dano da arma
+
+Detalhe em [itens, Atributos dos equipamentos](itens.md#atributos-dos-equipamentos). Resumo do valor de combate no **0 e no 100** da escala do item:
+
+| Atributo do item | No 0 | No 100 (padrão) | Exceções no 100 |
+|---|---|---|---|
+| Dano da arma | 20 (martelo 28, arco 16) | 50 | martelo 72, arco 46 |
+| Dano físico / mágico (flat) | 0 | 5 | espada e arco 8, martelo 10, cajado 8 |
+| Vida | 0 | 100 | peito 160; anel, brinco e adorno 50 |
+| Defesa física / mágica | 0 | 12 | peito 18, capacete (física) 15, escudo 20 |
+| Regeneração de vida / stamina / mana | 0 | 1,5 / 1,2 / 0,8 por s | |
+| Chance crítica | 0 | 3% | anel 6% |
+| Dano crítico | 0 | +0,15 | brinco +0,20 |
+| Velocidade de ataque | 0 | +8% | |
+| Penetração | 0 | 6% | |
+
+O dano sem arma continua 20 (`ParcelasDeDano.DanoSemArma`): uma arma de qualidade 0 vale o punho; a de qualidade 100 vale 2,5x. A mitigação por defesa (`ConstanteDeMitigacao` 100) segue sendo do Combate; com esses valores o melhor conjunto físico dá 31% de redução e o de tanque, 47%.
+
+### Custo de redistribuir e de carregar perfil (#910)
+
+`ConfigRedistribuicao.CustoEmCoroas(nível)` = 50 + 0,5 × nível², arredondado a 10. O servidor debita esse valor, e `ArvoreResponse.CustoRedistribuicaoCoroas` é o que o botão mostra.
+
+| Nível | 1 | 10 | 20 | 30 | 50 | 75 | 100 |
+|---|---|---|---|---|---|---|---|
+| Pontos (nível - 1) | 0 | 9 | 19 | 29 | 49 | 74 | 99 |
+| Coroas | 50 | 100 | 250 | 500 | 1.300 | 2.860 | 5.050 |
+
+Referência: a fusão de um item até +10 custa 15.500 coroas. Redistribuir no nível 100 custa um terço disso.
+
+### Perfis e migração
+
+- **Perfis:** até 5 por personagem, nome de 1 a 32 caracteres, salvar grátis, carregar cobra como redistribuir quando muda alguma coisa, só fora de combate.
+- **Migração quando a árvore mudar** (`ArvoreDoJogo.Versao`): ao ler, comprar, redistribuir ou carregar perfil, uma árvore comprada em outra versão é **zerada e reembolsada por inteiro** (cada ponto pago volta aos pontos livres, sem cobrar coroas, porque a mudança foi do jogo). A versão 1 (árvore de teste) migra assim. Perfis antigos seguem o aviso de migração de [Perfis de Build](#implementação-da-626-redistribuição-paga-e-perfis-de-build): nó sumido gera aviso e o ponto não some.
 
 ## Depende de
 

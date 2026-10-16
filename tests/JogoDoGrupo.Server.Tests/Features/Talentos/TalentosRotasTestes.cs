@@ -19,9 +19,9 @@ namespace JogoDoGrupo.Server.Tests.Features.Talentos;
 
 public class TalentosRotasTestes(ServidorDeTeste servidor) : IClassFixture<ServidorDeTeste>
 {
-    private static readonly string Forca1 = ArvoreDeTeste.IdPequeno(AtributoPrincipal.Forca, 0);
-    private static readonly string Forca2 = ArvoreDeTeste.IdPequeno(AtributoPrincipal.Forca, 1);
-    private static readonly string Vigor1 = ArvoreDeTeste.IdPequeno(AtributoPrincipal.Vigor, 0);
+    private static readonly string Forca1 = ArvoreDoJogo.IdPrincipal(AtributoPrincipal.Forca, 0);
+    private static readonly string Forca2 = ArvoreDoJogo.IdPrincipal(AtributoPrincipal.Forca, 1);
+    private static readonly string Vigor1 = ArvoreDoJogo.IdPrincipal(AtributoPrincipal.Vigor, 0);
 
     private async Task<(HttpClient Cliente, long Id)> NovoPersonagemAsync(int pontos, int nivel = 1)
     {
@@ -72,7 +72,7 @@ public class TalentosRotasTestes(ServidorDeTeste servidor) : IClassFixture<Servi
             {
                 NoId = no,
                 RankAlvo = rankAlvo,
-                VersaoConfiguracao = versao ?? ArvoreDeTeste.Versao,
+                VersaoConfiguracao = versao ?? ArvoreDoJogo.Versao,
             }
         );
 
@@ -103,8 +103,8 @@ public class TalentosRotasTestes(ServidorDeTeste servidor) : IClassFixture<Servi
 
         var arvore = await LerArvoreAsync(cliente, id);
 
-        Assert.Equal(ArvoreDeTeste.Versao, arvore.Configuracao.Versao);
-        Assert.Equal(ArvoreDeTeste.Criar().Nos.Length, arvore.Configuracao.Nos.Length);
+        Assert.Equal(ArvoreDoJogo.Versao, arvore.Configuracao.Versao);
+        Assert.Equal(ArvoreDoJogo.Criar().Nos.Length, arvore.Configuracao.Nos.Length);
         Assert.Empty(arvore.Ranks);
         Assert.Equal(3, arvore.PontosLivres);
         Assert.Equal(0, arvore.PontosGastos);
@@ -120,9 +120,9 @@ public class TalentosRotasTestes(ServidorDeTeste servidor) : IClassFixture<Servi
         Assert.Equal(HttpStatusCode.OK, resposta.StatusCode);
         var arvore = await ServidorDeTeste.LerJsonAsync<ArvoreResponse>(resposta);
         Assert.Equal(1, RankDe(arvore, Forca1));
-        Assert.Equal(5 - ArvoreDeTeste.CustoPequeno[0], arvore.PontosLivres);
-        Assert.Equal(ArvoreDeTeste.CustoPequeno[0], arvore.PontosGastos);
-        Assert.Equal(ArvoreDeTeste.ValorPorRankPequeno, arvore.Atributos.Forca);
+        Assert.Equal(5 - ArvoreDoJogo.CustoPrincipal[0], arvore.PontosLivres);
+        Assert.Equal(ArvoreDoJogo.CustoPrincipal[0], arvore.PontosGastos);
+        Assert.Equal(ArvoreDoJogo.ValorPorRankPrincipal, arvore.Atributos.Forca);
         // O saldo é o mesmo que o progresso do personagem mostra.
         var progresso = await ServidorDeTeste.LerJsonAsync<ProgressoResponse>(
             await cliente.GetAsync(RotasPersonagem.ProgressoDe(id))
@@ -164,13 +164,13 @@ public class TalentosRotasTestes(ServidorDeTeste servidor) : IClassFixture<Servi
     public async Task Requisito_cumprido_abre_o_proximo_no_e_o_maximo_e_respeitado()
     {
         var (cliente, id) = await NovoPersonagemAsync(20);
-        for (var rank = 1; rank <= ArvoreDeTeste.RankMaximoPequeno; rank++)
+        for (var rank = 1; rank <= ArvoreDoJogo.RankMaximoPrincipal; rank++)
         {
             (await ComprarAsync(cliente, id, Forca1, rank)).EnsureSuccessStatusCode();
         }
 
         await AssertErroAsync(
-            await ComprarAsync(cliente, id, Forca1, ArvoreDeTeste.RankMaximoPequeno + 1),
+            await ComprarAsync(cliente, id, Forca1, ArvoreDoJogo.RankMaximoPrincipal + 1),
             HttpStatusCode.Conflict,
             CodigosErroTalentos.RankMaximo
         );
@@ -178,10 +178,10 @@ public class TalentosRotasTestes(ServidorDeTeste servidor) : IClassFixture<Servi
 
         Assert.Equal(HttpStatusCode.OK, comRequisito.StatusCode);
         var arvore = await LerArvoreAsync(cliente, id);
-        Assert.Equal(ArvoreDeTeste.RankMaximoPequeno, RankDe(arvore, Forca1));
+        Assert.Equal(ArvoreDoJogo.RankMaximoPrincipal, RankDe(arvore, Forca1));
         Assert.Equal(1, RankDe(arvore, Forca2));
         Assert.Equal(
-            ArvoreDeTeste.CustoPequeno.Sum() + ArvoreDeTeste.CustoPequeno[0],
+            ArvoreDoJogo.CustoPrincipal.Sum() + ArvoreDoJogo.CustoPrincipal[0],
             arvore.PontosGastos
         );
         Assert.Equal(20 - arvore.PontosGastos, arvore.PontosLivres);
@@ -199,7 +199,7 @@ public class TalentosRotasTestes(ServidorDeTeste servidor) : IClassFixture<Servi
         Assert.Equal(HttpStatusCode.OK, repetida.StatusCode);
         var arvore = await LerArvoreAsync(cliente, id);
         Assert.Equal(1, RankDe(arvore, Forca1));
-        Assert.Equal(5 - ArvoreDeTeste.CustoPequeno[0], arvore.PontosLivres);
+        Assert.Equal(5 - ArvoreDoJogo.CustoPrincipal[0], arvore.PontosLivres);
     }
 
     [Fact]
@@ -216,15 +216,15 @@ public class TalentosRotasTestes(ServidorDeTeste servidor) : IClassFixture<Servi
         Assert.All(respostas, r => Assert.Equal(HttpStatusCode.OK, r.StatusCode));
         var arvore = await LerArvoreAsync(cliente, id);
         Assert.Equal(1, RankDe(arvore, Forca1));
-        Assert.Equal(5 - ArvoreDeTeste.CustoPequeno[0], arvore.PontosLivres);
-        Assert.Equal(ArvoreDeTeste.CustoPequeno[0], arvore.PontosGastos);
+        Assert.Equal(5 - ArvoreDoJogo.CustoPrincipal[0], arvore.PontosLivres);
+        Assert.Equal(ArvoreDoJogo.CustoPrincipal[0], arvore.PontosGastos);
     }
 
     [Fact]
     public async Task Compras_diferentes_ao_mesmo_tempo_nunca_gastam_mais_que_o_saldo()
     {
         // Só dá para pagar uma das duas raízes.
-        var (cliente, id) = await NovoPersonagemAsync(ArvoreDeTeste.CustoPequeno[0]);
+        var (cliente, id) = await NovoPersonagemAsync(ArvoreDoJogo.CustoPrincipal[0]);
 
         var respostas = await Task.WhenAll(
             ComprarAsync(cliente, id, Forca1, 1),
@@ -259,7 +259,7 @@ public class TalentosRotasTestes(ServidorDeTeste servidor) : IClassFixture<Servi
             CodigosErroTalentos.RankAlvoInvalido
         );
         await AssertErroAsync(
-            await ComprarAsync(cliente, id, Forca1, 1, versao: ArvoreDeTeste.Versao + 1),
+            await ComprarAsync(cliente, id, Forca1, 1, versao: ArvoreDoJogo.Versao + 1),
             HttpStatusCode.Conflict,
             CodigosErroTalentos.ArvoreDesatualizada
         );
@@ -270,28 +270,46 @@ public class TalentosRotasTestes(ServidorDeTeste servidor) : IClassFixture<Servi
     }
 
     [Fact]
-    public async Task Arvore_salva_em_outra_versao_recusa_a_compra_sem_perder_nada()
+    public async Task Arvore_salva_em_versao_antiga_e_migrada_com_reembolso_total_e_sem_coroas()
     {
         var (cliente, id) = await NovoPersonagemAsync(5);
         (await ComprarAsync(cliente, id, Forca1, 1)).EnsureSuccessStatusCode();
+        (await ComprarAsync(cliente, id, Forca1, 2)).EnsureSuccessStatusCode();
         await using (var escopo = servidor.Services.CreateAsyncScope())
         {
             var db = escopo.ServiceProvider.GetRequiredService<JogoDbContext>();
             var cabecalho = await db.Set<ArvoreDoPersonagem>()
                 .SingleAsync(a => a.PersonagemId == id);
-            cabecalho.Versao = ArvoreDeTeste.Versao + 1;
+            cabecalho.Versao = ArvoreDoJogo.Versao - 1;
             await db.SaveChangesAsync();
         }
 
-        await AssertErroAsync(
-            await ComprarAsync(cliente, id, Forca1, 2),
-            HttpStatusCode.Conflict,
-            CodigosErroTalentos.ArvoreDesatualizada
-        );
-
+        // Ao ler: os ranks saem, os 2 pontos pagos voltam e nenhuma coroa é cobrada.
         var arvore = await LerArvoreAsync(cliente, id);
-        Assert.Equal(1, RankDe(arvore, Forca1));
-        Assert.Equal(5 - ArvoreDeTeste.CustoPequeno[0], arvore.PontosLivres);
+        Assert.Empty(arvore.Ranks);
+        Assert.Equal(0, arvore.PontosGastos);
+        Assert.Equal(5, arvore.PontosLivres);
+        await using (var escopo = servidor.Services.CreateAsyncScope())
+        {
+            var db = escopo.ServiceProvider.GetRequiredService<JogoDbContext>();
+            Assert.Equal(
+                ArvoreDoJogo.Versao,
+                (await db.Set<ArvoreDoPersonagem>().SingleAsync(a => a.PersonagemId == id)).Versao
+            );
+            Assert.Equal(
+                0,
+                await escopo
+                    .ServiceProvider.GetRequiredService<ICarteiraCoroas>()
+                    .SaldoAsync(id, default)
+            );
+        }
+
+        // Já na versão nova, volta a comprar normalmente (e uma segunda leitura não reembolsa de novo).
+        (await ComprarAsync(cliente, id, Forca1, 1)).EnsureSuccessStatusCode();
+        Assert.Equal(
+            5 - ArvoreDoJogo.CustoPrincipal[0],
+            (await LerArvoreAsync(cliente, id)).PontosLivres
+        );
     }
 
     [Fact]
@@ -331,10 +349,10 @@ public class TalentosRotasTestes(ServidorDeTeste servidor) : IClassFixture<Servi
 
         Assert.Equal(2, RankDe(arvore, Forca1));
         Assert.Equal(
-            ArvoreDeTeste.CustoPequeno[0] + ArvoreDeTeste.CustoPequeno[1],
+            ArvoreDoJogo.CustoPrincipal[0] + ArvoreDoJogo.CustoPrincipal[1],
             arvore.PontosGastos
         );
-        Assert.Equal(2 * ArvoreDeTeste.ValorPorRankPequeno, arvore.Atributos.Forca);
+        Assert.Equal(2 * ArvoreDoJogo.ValorPorRankPrincipal, arvore.Atributos.Forca);
     }
 
     [Fact]
@@ -348,7 +366,7 @@ public class TalentosRotasTestes(ServidorDeTeste servidor) : IClassFixture<Servi
 
         Assert.Equal(HttpStatusCode.OK, recursos.StatusCode);
         var corpo = await ServidorDeTeste.LerJsonAsync<RecursosResponse>(recursos);
-        var vigor = 2 * ArvoreDeTeste.ValorPorRankPequeno;
+        var vigor = 2 * ArvoreDoJogo.ValorPorRankPrincipal;
         Assert.Equal(vigor, corpo.Atributos.Vigor);
         Assert.Equal(RegrasRecursos.VidaMaxima(vigor), corpo.VidaMaxima);
     }
@@ -392,7 +410,7 @@ public class TalentosRotasTestes(ServidorDeTeste servidor) : IClassFixture<Servi
         var resposta = await ServidorDeTeste.PostJsonAsync(
             cliente,
             RotasTalentos.RedistribuirDe(id),
-            new RedistribuirRequest { VersaoConfiguracao = ArvoreDeTeste.Versao }
+            new RedistribuirRequest { VersaoConfiguracao = ArvoreDoJogo.Versao }
         );
 
         await AssertErroAsync(
@@ -411,7 +429,7 @@ public class TalentosRotasTestes(ServidorDeTeste servidor) : IClassFixture<Servi
         var resposta = await ServidorDeTeste.PostJsonAsync(
             cliente,
             RotasTalentos.RedistribuirDe(id),
-            new RedistribuirRequest { VersaoConfiguracao = ArvoreDeTeste.Versao }
+            new RedistribuirRequest { VersaoConfiguracao = ArvoreDoJogo.Versao }
         );
 
         await AssertErroAsync(
@@ -438,7 +456,7 @@ public class TalentosRotasTestes(ServidorDeTeste servidor) : IClassFixture<Servi
         var resposta = await ServidorDeTeste.PostJsonAsync(
             cliente,
             RotasTalentos.RedistribuirDe(id),
-            new RedistribuirRequest { VersaoConfiguracao = ArvoreDeTeste.Versao }
+            new RedistribuirRequest { VersaoConfiguracao = ArvoreDoJogo.Versao }
         );
 
         Assert.Equal(HttpStatusCode.OK, resposta.StatusCode);
@@ -473,7 +491,7 @@ public class TalentosRotasTestes(ServidorDeTeste servidor) : IClassFixture<Servi
         var recusada = await ServidorDeTeste.PostJsonAsync(
             cliente,
             RotasTalentos.RedistribuirDe(id),
-            new RedistribuirRequest { VersaoConfiguracao = ArvoreDeTeste.Versao }
+            new RedistribuirRequest { VersaoConfiguracao = ArvoreDoJogo.Versao }
         );
         await AssertErroAsync(
             recusada,
@@ -487,9 +505,64 @@ public class TalentosRotasTestes(ServidorDeTeste servidor) : IClassFixture<Servi
         var aceita = await ServidorDeTeste.PostJsonAsync(
             cliente,
             RotasTalentos.RedistribuirDe(id),
-            new RedistribuirRequest { VersaoConfiguracao = ArvoreDeTeste.Versao }
+            new RedistribuirRequest { VersaoConfiguracao = ArvoreDoJogo.Versao }
         );
         Assert.Equal(HttpStatusCode.OK, aceita.StatusCode);
+        await using var escopo = servidor.Services.CreateAsyncScope();
+        var carteira = escopo.ServiceProvider.GetRequiredService<ICarteiraCoroas>();
+        Assert.Equal(0, await carteira.SaldoAsync(id, default));
+    }
+
+    [Fact]
+    public async Task Carregar_perfil_que_muda_a_distribuicao_cobra_o_custo_do_nivel()
+    {
+        var (cliente, id) = await NovoPersonagemAsync(5, nivel: 30);
+        var custo = ConfigRedistribuicao.CustoEmCoroas(30);
+        (await ComprarAsync(cliente, id, Forca1, 1)).EnsureSuccessStatusCode();
+        var salvar = await ServidorDeTeste.PostJsonAsync(
+            cliente,
+            RotasTalentos.PerfisDe(id),
+            new SalvarPerfilRequest { Nome = "Só Força" }
+        );
+        var perfil = await ServidorDeTeste.LerJsonAsync<PerfilTalentosDto>(salvar);
+
+        // Perfil igual ao que o personagem já tem: nada muda, nada é cobrado.
+        var igual = await ServidorDeTeste.PostJsonAsync(
+            cliente,
+            RotasTalentos.CarregarPerfilDe(id, perfil.Id),
+            (object?)null
+        );
+        Assert.Equal(HttpStatusCode.OK, igual.StatusCode);
+        Assert.Equal(
+            0,
+            (await ServidorDeTeste.LerJsonAsync<CarregarPerfilResponse>(igual)).CoroasCobradas
+        );
+
+        // Muda a build e tenta voltar sem coroas: recusa e a distribuição fica como está.
+        (await ComprarAsync(cliente, id, Vigor1, 1)).EnsureSuccessStatusCode();
+        var semSaldo = await ServidorDeTeste.PostJsonAsync(
+            cliente,
+            RotasTalentos.CarregarPerfilDe(id, perfil.Id),
+            (object?)null
+        );
+        await AssertErroAsync(
+            semSaldo,
+            HttpStatusCode.Conflict,
+            CodigosErroTalentos.SaldoInsuficiente
+        );
+        Assert.Equal(1, RankDe(await LerArvoreAsync(cliente, id), Vigor1));
+
+        // Com as coroas do nível: cobra uma vez e aplica o perfil.
+        await CreditarCoroasAsync(id, custo);
+        var carregado = await ServidorDeTeste.PostJsonAsync(
+            cliente,
+            RotasTalentos.CarregarPerfilDe(id, perfil.Id),
+            (object?)null
+        );
+        Assert.Equal(HttpStatusCode.OK, carregado.StatusCode);
+        var resposta = await ServidorDeTeste.LerJsonAsync<CarregarPerfilResponse>(carregado);
+        Assert.Equal(custo, resposta.CoroasCobradas);
+        Assert.Equal(0, RankDe(resposta.Arvore, Vigor1));
         await using var escopo = servidor.Services.CreateAsyncScope();
         var carteira = escopo.ServiceProvider.GetRequiredService<ICarteiraCoroas>();
         Assert.Equal(0, await carteira.SaldoAsync(id, default));
@@ -515,7 +588,7 @@ public class TalentosRotasTestes(ServidorDeTeste servidor) : IClassFixture<Servi
         var resposta = await ServidorDeTeste.PostJsonAsync(
             clienteCombate,
             RotasTalentos.RedistribuirDe(id),
-            new RedistribuirRequest { VersaoConfiguracao = ArvoreDeTeste.Versao }
+            new RedistribuirRequest { VersaoConfiguracao = ArvoreDoJogo.Versao }
         );
 
         await AssertErroAsync(resposta, HttpStatusCode.Conflict, CodigosErroTalentos.EmCombate);
@@ -657,7 +730,7 @@ public class TalentosRotasTestes(ServidorDeTeste servidor) : IClassFixture<Servi
             await ServidorDeTeste.PostJsonAsync(
                 cliente,
                 RotasTalentos.RedistribuirDe(id),
-                new RedistribuirRequest { VersaoConfiguracao = ArvoreDeTeste.Versao }
+                new RedistribuirRequest { VersaoConfiguracao = ArvoreDoJogo.Versao }
             )
         ).EnsureSuccessStatusCode();
 
@@ -678,7 +751,7 @@ public class TalentosRotasTestes(ServidorDeTeste servidor) : IClassFixture<Servi
         Assert.Equal(0, RankDe(resultado.Arvore, Vigor1));
         Assert.Equal(2, resultado.Arvore.PontosGastos);
         Assert.Equal(3, resultado.Arvore.PontosLivres);
-        Assert.Equal(2 * ArvoreDeTeste.ValorPorRankPequeno, resultado.Arvore.Atributos.Forca);
+        Assert.Equal(2 * ArvoreDoJogo.ValorPorRankPrincipal, resultado.Arvore.Atributos.Forca);
         Assert.Equal(0, resultado.Arvore.Atributos.Vigor);
     }
 

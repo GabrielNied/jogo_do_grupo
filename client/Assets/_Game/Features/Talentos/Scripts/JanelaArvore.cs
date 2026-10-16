@@ -430,6 +430,12 @@ namespace JogoDoGrupo.Client.Features.Talentos
                 AtualizarNo(no);
             }
 
+            // O custo no botão de cada perfil acompanha o nível do personagem.
+            if (_listaPerfis != null && _perfis.Count > 0)
+            {
+                AtualizarListaPerfis();
+            }
+
             _arestas.MarkDirtyRepaint();
             AtualizarPainel();
         }
@@ -931,7 +937,7 @@ namespace JogoDoGrupo.Client.Features.Talentos
 
                 var idPerfil = perfil.Id;
                 var botaoCarregar = ComponentesVisuais.Botao(
-                    TextosTalentos.CarregarPerfil,
+                    TextosTalentos.CarregarPerfilComCusto(_estado.CustoRedistribuicaoCoroas),
                     () => CarregarPerfil(idPerfil)
                 );
                 acoes.Add(botaoCarregar);

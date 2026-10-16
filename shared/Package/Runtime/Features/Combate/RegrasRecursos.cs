@@ -8,12 +8,12 @@ namespace JogoDoGrupo.Shared.Features.Combate
     /// </summary>
     public static class RegrasRecursos
     {
-        // Valores de teste até a #627 (docs/features/personagem.md, "Valores de teste até a
-        // decisão"); não são balanceamento final.
+        // Números propostos pela simulação da #627 (docs/features/personagem.md, "Atributos
+        // do personagem"); o PR da #627 é a aprovação.
         public const int VidaBase = 500;
 
         /// <summary>Vida máxima ganha por ponto de Vigor.</summary>
-        public const int VidaPorVigor = 10;
+        public const int VidaPorVigor = 12;
         public const int StaminaBase = 100;
 
         /// <summary>Stamina máxima ganha por ponto de Agilidade.</summary>

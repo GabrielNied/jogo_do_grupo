@@ -91,3 +91,6 @@ client/servidor.json
 
 # Corpo do PR para o npm run entregar (docs/git.md#entregar).
 /pr-corpo.md
+
+# Saída das simulações (tools/JogoDoGrupo.Simulacoes)
+tools/JogoDoGrupo.Simulacoes/saida/

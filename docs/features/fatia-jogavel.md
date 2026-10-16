@@ -59,15 +59,15 @@ Quem decide: **servidor** (calcula, valida e envia o resultado; o client só mos
 
 | Item | Regra | Origem |
 |---|---|---|
-| Atributos | Força, Vigor, Agilidade, Intelecto, Espírito, do personagem ([personagem](personagem.md#atributos-do-personagem)). Valor final = pontos da [árvore](talentos.md) + efeitos. Atributo de equipamento não soma aqui (DEC-001). Pontos da árvore só por nível via `PontosPorNivel` (valor de teste: 1; número final pendente da [#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627)) | decidido em 2026-10-12 (estrutura); números são valores de teste |
-| Vida | base 500, +10 por ponto de Vigor. Chegar a 0 leva ao estado caído (seção 7) | valor de teste |
-| Stamina | base 100, +2 por ponto de Agilidade. Paga esquiva, ataque pesado e guarda. | valor de teste |
-| Mana | base 100, +2 por ponto de Espírito. Paga as skills dos itens. | valor de teste |
-| Regeneração | após 2 s sem atacar, esquivar ou segurar a guarda: +10 stamina/s e +5 mana/s. Segurar a guarda pausa a espera mesmo antes de um golpe gastar stamina. Vida não regenera sozinha na fatia. Regeneração é atributo secundário próprio de cada recurso ([personagem](personagem.md#atributos-secundários)); Agilidade e Espírito não a aumentam sem decisão | valor de teste |
+| Atributos | Força, Vigor, Agilidade, Intelecto, Espírito, do personagem ([personagem](personagem.md#atributos-do-personagem)). Valor final = pontos da [árvore](talentos.md) + efeitos. Atributo de equipamento não soma aqui (DEC-001). Pontos da árvore só por nível via `PontosPorNivel` (1 por nível, 99 no nível 100) | decidido em 2026-10-12 (estrutura) e 2026-10-16 (pontos); demais números propostos na [#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627) |
+| Vida | base 500, +12 por ponto de Vigor. Chegar a 0 leva ao estado caído (seção 7) | proposto na #627 |
+| Stamina | base 100, +2 por ponto de Agilidade. Paga esquiva, ataque pesado e guarda. | proposto na #627 |
+| Mana | base 100, +2 por ponto de Espírito. Paga as skills dos itens. | proposto na #627 |
+| Regeneração | após 2 s sem atacar, esquivar ou segurar a guarda: +10 stamina/s e +5 mana/s. Segurar a guarda pausa a espera mesmo antes de um golpe gastar stamina. Vida não regenera sozinha na fatia. Regeneração é atributo secundário próprio de cada recurso ([personagem](personagem.md#atributos-secundários)); Agilidade e Espírito não a aumentam (decidido) | base proposta na #627 |
 | Cálculo | recalcular ao equipar ou desequipar; nunca somar o mesmo bônus duas vezes | proposta |
 | Limites | valor atual nunca passa do máximo nem fica negativo; reduzir o máximo não cura | proposta |
 
-- ~~Decidido em 2026-10-12: os cinco atributos só vêm dos itens.~~ Substituído em 2026-10-12 pela [especificação de atributos](personagem.md#atributos-do-personagem): os atributos vêm da árvore, e os itens têm atributos próprios. Força aumenta o dano físico (seção 2). Vigor aumenta a vida. Agilidade aumenta a stamina máxima. Intelecto aumenta o dano mágico (valor de teste: **2%** por ponto). Espírito aumenta a mana máxima. No código, os nomes novos valem desde a [#622](https://github.com/GabrielNied/jogo_do_grupo/issues/622) (constantes `VidaPorVigor`, `StaminaPorAgilidade` e `ManaPorEspirito` em `RegrasRecursos`); até a [#623](https://github.com/GabrielNied/jogo_do_grupo/issues/623), o código ainda soma os atributos das peças nos do personagem.
+- ~~Decidido em 2026-10-12: os cinco atributos só vêm dos itens.~~ Substituído em 2026-10-12 pela [especificação de atributos](personagem.md#atributos-do-personagem): os atributos vêm da árvore, e os itens têm atributos próprios. Força aumenta o dano físico (seção 2). Vigor aumenta a vida. Agilidade aumenta a stamina máxima. Intelecto aumenta o dano mágico (**1,5%** por ponto, como a Força, #627). Espírito aumenta a mana máxima. No código, os nomes novos valem desde a [#622](https://github.com/GabrielNied/jogo_do_grupo/issues/622) (constantes `VidaPorVigor`, `StaminaPorAgilidade` e `ManaPorEspirito` em `RegrasRecursos`); até a [#623](https://github.com/GabrielNied/jogo_do_grupo/issues/623), o código ainda soma os atributos das peças nos do personagem.
 - Dano físico pesado escala com Força; a primeira arma usa Força (seção 2).
 - O client mostra barras de vida, stamina e mana; o servidor envia valores atuais e máximos quando mudam.
 - **Testes esperados:** equipar/desequipar recalcula sem duplicar bônus; máximo reduzido limita o atual; regeneração só após 2 s sem atacar, esquivar ou segurar a guarda; recurso nunca fica negativo.
@@ -135,7 +135,7 @@ Quem decide: **servidor** (concede e confere; cada prêmio vale uma vez).
 - Nível inicial 1; nível máximo **100** (decidido em 2026-10-12).
 - XP para o próximo nível = arredondar(50 × nível^1,2) (decidido em 2026-10-12; meta em [personagem](personagem.md#ritmo-de-progressão)).
 - XP vem de derrotar inimigos; quem **participou** (dano, cura, defesa) recebe, mesmo sem ser o dono do loot. O valor cai pela diferença de nível ([personagem](personagem.md#ritmo-de-progressão)).
-- Subir de nível dá pontos da árvore via `PontosPorNivel`, a única fonte deles ([personagem](personagem.md#atributos-do-personagem)); valor de teste: 1 por nível (número final pendente da [#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627)).
+- Subir de nível dá pontos da árvore via `PontosPorNivel`, a única fonte deles ([personagem](personagem.md#atributos-do-personagem)); 1 por nível (99 no nível 100, decidido em 2026-10-16).
 - No nível máximo o XP excedente é guardado e não sobe de nível.
 - O client mostra barra de XP e nível.
 - **Testes esperados:** XP certo por nível; mob 5 níveis abaixo não dá XP; mob do mesmo nível dá o valor inteiro; subir de nível não cria ponto de atributo; mesmo prêmio não concede XP duas vezes; teto de nível.

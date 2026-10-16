@@ -237,7 +237,7 @@ public class FusaoRotasTestes(ServidorDeTeste servidor) : IClassFixture<Servidor
         var atributos = await escopo
             .ServiceProvider.GetRequiredService<IAtributosDosEquipamentos>()
             .ObterAsync(id, default);
-        Assert.Equal(7.5, atributos.BonusDanoFisico, 6);
+        Assert.Equal(3, atributos.BonusDanoFisico, 6);
     }
 
     [Theory]

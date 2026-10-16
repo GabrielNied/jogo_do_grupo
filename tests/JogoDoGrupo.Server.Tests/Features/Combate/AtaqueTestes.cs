@@ -499,14 +499,14 @@ public class AtaqueTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDeA
         );
 
         Assert.Equal(RegrasAtaque.Dano(TipoDeAtaque.Leve, 10), Assert.Single(acertou.Acertos).Dano);
-        Assert.Equal(40, acertou.Acertos[0].Dano);
+        Assert.Equal(23, acertou.Acertos[0].Dano);
     }
 
     [Fact]
     public async Task Dano_usa_a_arma_como_base_e_a_forca_do_item_e_do_personagem_em_parcelas_separadas()
     {
         using var ana = await NovoJogadorAsync();
-        // Espada de 30 de dano, +15 flat do item e Força 2 do personagem (+20%): (30 + 15) x 1,20 = 54.
+        // Espada de 30 de dano, +15 flat do item e Força 2 do personagem (+3%): (30 + 15) x 1,03 = 46,35.
         servidor.Bonus.Efeitos = new AtributosCombate { Forca = 2 };
         servidor.Bonus.Equipamentos = new AtributosDosEquipamentos
         {
@@ -521,7 +521,7 @@ public class AtaqueTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDeA
             CombateMessageIds.AtaqueAcertou
         );
 
-        Assert.Equal(54, Assert.Single(acertou.Acertos).Dano);
+        Assert.Equal(46, Assert.Single(acertou.Acertos).Dano);
     }
 
     [Fact]
@@ -543,8 +543,8 @@ public class AtaqueTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDeA
             CombateMessageIds.AtaqueAcertou
         );
 
-        // (20 + 4) x (1 + 0,30) = 31,2.
-        Assert.Equal(31, Assert.Single(acertou.Acertos).Dano);
+        // (20 + 4) x (1 + 0,045) = 25,08.
+        Assert.Equal(25, Assert.Single(acertou.Acertos).Dano);
     }
 
     [Fact]

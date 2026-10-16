@@ -12,5 +12,11 @@ namespace JogoDoGrupo.Shared.Features.Talentos
         /// e foram ignorados, com seus pontos preservados).
         /// </summary>
         public string[] Avisos { get; set; } = Array.Empty<string>();
+
+        /// <summary>
+        /// Coroas cobradas por trocar a distribuição (<see cref="ConfigRedistribuicao.CustoEmCoroas"/>);
+        /// 0 se o perfil era igual ao que o personagem já tinha.
+        /// </summary>
+        public long CoroasCobradas { get; set; }
     }
 }
