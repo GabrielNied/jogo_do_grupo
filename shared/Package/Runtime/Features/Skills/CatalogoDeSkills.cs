@@ -87,6 +87,17 @@ namespace JogoDoGrupo.Shared.Features.Skills
             : categoria == CategoriaDeDano.Magica ? new[] { EtiquetasDeSkill.Magica }
             : new[] { EtiquetasDeSkill.Fisica, EtiquetasDeSkill.Magica };
 
+        /// <summary>Os tipos de equipamento que possuem conjunto de skills catalogadas.</summary>
+        public static readonly TipoEquipamento[] TiposComSkills = new[]
+        {
+            TipoEquipamento.Espada,
+            TipoEquipamento.Martelo,
+            TipoEquipamento.Arco,
+            TipoEquipamento.Cajado,
+            TipoEquipamento.Foco,
+            TipoEquipamento.Escudo,
+        };
+
         /// <summary>O conjunto do modelo-base de um tipo de arma; vazio se o tipo não tem skills.</summary>
         public static IReadOnlyList<DefinicaoDeSkill> Pool(TipoEquipamento tipo) =>
             PorTipo.TryGetValue(tipo, out var pool) ? pool : Array.Empty<DefinicaoDeSkill>();
@@ -94,6 +105,28 @@ namespace JogoDoGrupo.Shared.Features.Skills
         /// <summary>A skill pelo id, ou <c>null</c> se o id não existe no catálogo.</summary>
         public static DefinicaoDeSkill Obter(string id) =>
             id != null && PorId.TryGetValue(id, out var skill) ? skill : null;
+
+        /// <summary>Identifica a qual tipo de arma a skill pertence, ou <c>null</c> se não encontrada.</summary>
+        public static TipoEquipamento? TipoDaSkill(string id)
+        {
+            if (string.IsNullOrEmpty(id))
+            {
+                return null;
+            }
+
+            foreach (var par in PorTipo)
+            {
+                foreach (var skill in par.Value)
+                {
+                    if (skill.Id == id)
+                    {
+                        return par.Key;
+                    }
+                }
+            }
+
+            return null;
+        }
 
         private static void Registrar(TipoEquipamento tipo, params DefinicaoDeSkill[] skills)
         {

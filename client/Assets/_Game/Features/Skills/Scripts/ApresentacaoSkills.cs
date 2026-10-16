@@ -17,7 +17,75 @@ namespace JogoDoGrupo.Client.Features.Skills
 
         /// <summary>"30 Stamina" ou "35 Mana".</summary>
         public static string Custo(SkillDaBarra skill) =>
-            skill.Custo + " " + (skill.Recurso == RecursoDeSkill.Mana ? RotuloMana : RotuloStamina);
+            skill == null
+                ? ""
+                : skill.Custo
+                    + " "
+                    + (skill.Recurso == RecursoDeSkill.Mana ? RotuloMana : RotuloStamina);
+
+        /// <summary>"30 Stamina" ou "35 Mana" formatado da definição do catálogo.</summary>
+        public static string Custo(DefinicaoDeSkill skill) =>
+            skill == null
+                ? ""
+                : skill.Custo
+                    + " "
+                    + (skill.Recurso == RecursoDeSkill.Mana ? RotuloMana : RotuloStamina);
+
+        /// <summary>Nome de exibição amigável do tipo de arma.</summary>
+        public static string NomeDaArma(TipoEquipamento tipo)
+        {
+            switch (tipo)
+            {
+                case TipoEquipamento.Espada:
+                    return "Espada";
+                case TipoEquipamento.Martelo:
+                    return "Martelo";
+                case TipoEquipamento.Arco:
+                    return "Arco";
+                case TipoEquipamento.Cajado:
+                    return "Cajado";
+                case TipoEquipamento.Foco:
+                    return "Foco";
+                case TipoEquipamento.Escudo:
+                    return "Escudo";
+                default:
+                    return tipo.ToString();
+            }
+        }
+
+        /// <summary>Tempo total de recarga em segundos com sufixo ("8 s", "14 s").</summary>
+        public static string RecargaEmSegundos(int recargaMs) => $"{recargaMs / 1000f:0.#} s";
+
+        /// <summary>Multiplicador percentual do dano base ("130%", "200%").</summary>
+        public static string DescricaoDano(DefinicaoDeSkill skill)
+        {
+            if (skill == null)
+            {
+                return "";
+            }
+
+            var perc = (int)System.Math.Round(skill.Multiplicador * 100);
+            return $"{perc}% do dano base";
+        }
+
+        /// <summary>Nome em português da categoria de dano ("Física", "Mágica", "Híbrida").</summary>
+        public static string DescricaoCategoria(DefinicaoDeSkill skill)
+        {
+            if (skill == null || skill.Propriedades == null)
+            {
+                return "Física";
+            }
+
+            switch (skill.Propriedades.Categoria)
+            {
+                case JogoDoGrupo.Shared.Features.Combate.CategoriaDeDano.Magica:
+                    return "Mágica";
+                case JogoDoGrupo.Shared.Features.Combate.CategoriaDeDano.Ambas:
+                    return "Híbrida";
+                default:
+                    return "Física";
+            }
+        }
 
         /// <summary>Segundos que faltam da recarga, arredondados para cima ("12"); vazio se pronta.</summary>
         public static string Recarga(int restanteMs)
