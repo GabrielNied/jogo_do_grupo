@@ -15,12 +15,13 @@ História principal, missões secundárias e diárias.
 - **Decisões do Gabriel em 2026-10-16** (quiz de lacunas de MMO):
   - **Tipos que entram primeiro:** história principal (começa pelo prólogo e pela primeira hora do livro, abaixo), secundárias por região (dadas por NPCs da cidade e de pontos do mapa: matar, coletar, entregar) e diárias e semanais (renovam no reset e dão coroas e [reputação](npcs.md#definido)).
   - **Em grupo:** o objetivo conta para todos do grupo que estão por perto, têm a missão e participaram ([fatia, seção 5](fatia-jogavel.md#5-loot-no-chão)). O líder pode compartilhar a missão com o grupo.
+- **História igual para todas as raças** (decidido por Gabriel em 2026-10-16): raça é só visual ([personagem](personagem.md#definido)), então não há início, fala nem missão por raça.
 
 ## Em aberto
 
 - [x] Missões em grupo? Decidido em 2026-10-16 (veja Definido).
-- [ ] Como a história se conecta às raças?
-- [ ] O prólogo e a primeira hora do livro (proposta do board, 2026-10-11) viram o tutorial do jogo? Veja "Livro de Asterra: chegada ao mundo".
+- [x] Como a história se conecta às raças? Decidido em 2026-10-16: não se conecta; raça é só visual.
+- [x] O prólogo e a primeira hora do livro (proposta do board, 2026-10-11) viram o tutorial do jogo? Respondido em 2026-10-16 (Definido): a história principal começa pelo prólogo e pela primeira hora do livro.
 
 ## Regras
 

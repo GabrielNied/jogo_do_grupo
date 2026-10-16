@@ -21,11 +21,19 @@ Moedas, mercado, comércio entre jogadores, saídas de recursos e taxas.
   - **Saídas:** fusão, reparo da [durabilidade](itens.md#definido), taxas, correio e criação de guilda.
   - **Entre jogadores**, além do leilão: troca direta (os dois lados confirmam e o servidor troca de uma vez), correio (itens e coroas para quem está offline, com taxa), troca do loot da luta ([itens](itens.md#definido)) e banco pessoal na cidade, compartilhado entre os personagens da conta.
   - **Imposto de território:** só quando existirem os territórios de guilda ([pvp](pvp.md#definido)).
+- **Decisões do Gabriel em 2026-10-16** (quiz de definições; números a propor pelo agente economia, em constante nomeada):
+  - **Sem moeda premium**, nunca: sem dinheiro real no jogo.
+  - **Taxa do leilão:** porcentagem **só na venda** (proposta: 5%); anunciar é grátis.
+  - **Barracas de jogador, ligadas ao leilão:** o leilão continua sendo o único livro de ordens, e as barracas trazem vida à cidade sem dividir o mercado.
+    - **Barraca presencial:** o personagem monta a barraca numa praça da cidade e fica ali, visível e livre da desconexão por inatividade. As ofertas dele entram no leilão com o selo "na barraca de <nome>", e quem compra ali em pessoa paga taxa menor (proposta: 3%).
+    - **Vendedor offline:** a pessoa contrata um manequim com a aparência do personagem, que fica na praça com ela deslogada e cobra uma **diária em coroas** (outra saída de moeda). As ofertas também entram no leilão.
+    - Vem depois do leilão ([#176](https://github.com/GabrielNied/jogo_do_grupo/issues/176)).
+  - **Redistribuir a árvore** custa coroas, escalando com o nível ([talentos](talentos.md#pendente)).
 
 ## Em aberto
 
-- [ ] Haverá moeda premium?
-- [ ] Lojas de jogadores?
+- [x] Haverá moeda premium? Decidido em 2026-10-16: não.
+- [x] Lojas de jogadores? Decidido em 2026-10-16: barraca presencial e vendedor offline, espelhados no leilão (veja Definido).
 - [x] Carteira e custo inicial da infusão entregues na #174; valores e configuração em [Itens — Infusão](itens.md#infusão-de-equipamentos-174).
 - [x] Desde 2026-10-12 a fusão cobra coroas **por nível** (+1 a +10) e, de +6 em diante, materiais de dungeon e de raid; custos iniciais em [Itens — Fusão](itens.md#fusão) (#616, #617). O "ouro" do [documento mestre](../brainstorm/documento-mestre.md) são as coroas. Itens não são desmontados (DEC-005): a economia não conta com materiais vindos de desmontagem.
 - [ ] Custo em coroas do reparo e das taxas: a propor (agente economia).

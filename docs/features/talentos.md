@@ -39,11 +39,13 @@ Decidido por Gabriel em 2026-10-12:
 
 Números e políticas que precisam de aprovação ([#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627)). Até lá, quem implementa usa **valores de teste** em constantes nomeadas e não os trata como balanceamento:
 
-- Quantos pontos da árvore cada nível dá e o total no nível 100 (a fonte já está decidida: só subir de nível).
+**Decidido por Gabriel em 2026-10-16:** **1 ponto por nível** (99 no nível 100); redistribuir custa **coroas, escalando com o nível** do personagem (saída de moeda, [economia](economia.md#definido)); os demais números são **propostos pela IA** a partir de uma simulação em C# com o `shared` ([ADR 0043](../decisoes/0043-simulacoes-em-csharp-e-scripts-em-node.md)) e aprovados por Gabriel no PR da #627.
+
+- ~~Quantos pontos da árvore cada nível dá e o total no nível 100~~ decidido em 2026-10-16: 1 por nível, 99 no total.
 - Quantidade de nós, custo por rank, rank máximo, requisitos e limites.
 - Efeitos e valores dos nós grandes e avançados; lista final de categorias de skill.
 - Regras de acúmulo de cada tipo de modificador (soma, multiplicação, prioridade, limite).
-- Custo, restrições e recarga da redistribuição; se é total, parcial ou as duas.
+- Curva de coroas da redistribuição por nível, restrições e recarga; se é total, parcial ou as duas (a moeda está decidida: coroas).
 - Limite, custo e restrições de uso dos perfis.
 - O que fazer quando a árvore mudar e uma distribuição salva deixar de valer: migrar, reembolsar, zerar ou bloquear para revisão.
 

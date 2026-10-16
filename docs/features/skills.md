@@ -64,6 +64,8 @@ Do "Livro de ideias de Asterra" ([seções 04 e 13](../brainstorm/figjam.md#04--
 
 ### Skills raciais (proposta do board, 2026-10-11)
 
+> **Não serão implementadas** (Gabriel, 2026-10-16): raça é só visual ([personagem](personagem.md#definido)); #341 fechada. O texto abaixo fica como registro.
+
 Cada raça dá uma skill própria; descrição curta de cada uma em [personagem.md](personagem.md#raças-propostas-no-board-2026-10-11). Interações previstas (detalhes no [livro](../brainstorm/figjam.md#01--raças-de-asterra)):
 
 - **Estandarte dos Errantes** (Valdren, 90 s): protege a preparação de uma magia coletiva (aliados resistem a interrupção).
@@ -90,7 +92,7 @@ Skills de utilidade que continuam no catálogo anterior (não fazem parte das 25
 
 ### Perguntas que o board abre
 
-- [ ] Hino do Recomeço (levantar caído por skill) e Vínculo Vital: confirmar com [personagem.md](personagem.md#morte-e-caído-issue-97) que o levantar manual continua valendo para todos.
+- [x] Hino do Recomeço (levantar caído por skill) e Vínculo Vital: confirmar com [personagem.md](personagem.md#morte-e-caído-issue-97) que o levantar manual continua valendo para todos. Respondido: o levantar manual vale para todos ([Levantar um aliado](personagem.md#levantar-um-aliado)); a skill é uma forma a mais.
 - [x] ~~Conflito livro x docs: todas as peças com skill~~ Decidido em 2026-10-12/2026-10-14: **armas** trazem as ativas da barra; **outras peças** modificam via poderes/sets, não ativas extras (SKILL-003). Preparação com orçamento (#339) continua proposta do board.
 - [x] ~~Conflito livro x docs: skill fixa no item~~ Decidido: sorteio no exemplar da arma, preservado na fusão; some ao desequipar (SKILL-001, SKILL-004).
 - [x] ~~Conflito livro x docs: poucas skills ativas x 24 posições na barra~~ Decidido para a fatia ([#167](https://github.com/GabrielNied/jogo_do_grupo/issues/167)): **3 ativas por arma** (SKILL-002); orçamento de 12 pontos e 3×8 slots do livro ficam na proposta de preparação ([#339](https://github.com/GabrielNied/jogo_do_grupo/issues/339)).

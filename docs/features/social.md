@@ -21,34 +21,39 @@ Esta página detalha o **grupo** (convite, lista, líder, sair e expulsar; issue
   - **Guilda:** até **100** membros; criar custa coroas; quatro cargos (líder, oficial, membro, recruta) com permissões de convidar, expulsar e usar o banco; chat e banco de guilda; **níveis e bônus** já na primeira versão, subindo com a atividade dos membros. Base própria fica para depois.
   - **Canais de chat novos:** Guilda, Mundo/Comércio (alcança o servidor todo, com intervalo mínimo entre mensagens), Raid e Procurar grupo.
   - **Denúncia, silenciar e filtro de palavrões:** todos juntos com a ferramenta de GM ([#187](https://github.com/GabrielNied/jogo_do_grupo/issues/187)).
+- **Decisões do Gabriel em 2026-10-16** (quiz de definições; números em constante nomeada):
+  - **Regras do grupo:** as propostas viram regra. Quando o líder sai ou cai, assume o membro mais antigo, e o líder pode passar a liderança. Só o líder expulsa, sem votação. A vaga fica guardada **60 s** depois de desconectar e o convite vale **60 s**. Convidar por nome só exige que o personagem esteja online. O grupo desfaz quando fica com 1 pessoa. O modo "não aceitar grupo" fica fora da primeira versão.
+  - **Amizade e ignorar ficam na conta**, gravados no servidor: valem em qualquer computador e em todos os personagens, e o servidor filtra sussurro, convite e troca de quem foi ignorado. Quem foi ignorado recebe "não encontrado".
+  - **O amigo vê em que área o outro está** (cidade, campo, dungeon), além do online e do nome.
+  - **Moderação do chat:** o servidor não guarda mensagens por padrão. Ao denunciar, as últimas mensagens do denunciado vão junto com a denúncia ([#187](https://github.com/GabrielNied/jogo_do_grupo/issues/187), mascaradas como no [ADR 0033](../decisoes/0033-mascaramento-de-logs.md)).
 
 ## Em aberto
 
 - [x] Tamanho máximo de party e guilda? Party decidida em 2026-10-10: 5 (veja "Definido"); ~~party~~ sai desta pergunta. Falta o tamanho da guilda. Guilda: 100, decidido em 2026-10-16.
-- [ ] Regras de divisão de loot
+- [x] Regras de divisão de loot. Respondido: loot individual para quem participou ([fatia, seção 5](fatia-jogavel.md#5-loot-no-chão)) e troca do loot da luta por 2 h ([itens](itens.md#definido)).
 - [ ] **Proposta do livro de Asterra (2026-10-11), não validada pelo grupo** ([figjam.md](../brainstorm/figjam.md), seção 10, "Grupo, disputa de loot e PvP futuro"):
   - **Tamanho:** instância de 20 jogadores e grupo que pode reunir os 20, com vida e localização dos aliados e baú compartilhado conforme permissão. **Decidido em 2026-10-11 (/decida, #351):** o limite fica **party de 5, raid de 10, dungeon de 5** (o definido não muda). Entra a lista com localização e vida dos aliados, no limite atual; o grupo de 20 fica só como proposta registrada. Antes: hoje está definido party de 5 e raid de 10 (2026-10-10); a regra não muda, a pergunta fica aberta (veja a pergunta de raid abaixo e [instancias.md](instancias.md)).
   - **Loot por dano:** o dano ao mob define quem recebe os itens **individualmente**, mesmo dentro do grupo; o primeiro golpe no recurso garante a coleta. Empate favorece o primeiro atacante; a contagem zera se o mob voltar e recuperar vida; só conta dano real, sem excedente após a morte. Cura e tanque sem prioridade automática; a participação por apoio e defesa pode dar XP, sem mudar o dono dos itens; amigos compensam por troca. **Conflito:** a [fatia](fatia-jogavel.md#5-loot-no-chão) decidiu em 2026-10-11 loot individual para quem participou, não por maior dano; a decisão vale e o livro fica registrado aqui.
   - **Aliados:** skills não causam dano entre membros do grupo.
-- [ ] Líder: quem herda quando o líder sai ou cai? (proposta: o membro mais antigo no grupo) e o líder pode passar a liderança? (proposta: sim)
-- [ ] Só o líder expulsa, ou qualquer membro pode pedir votação? (proposta: só o líder expulsa, sem votação)
-- [ ] Tempo que a vaga fica guardada após desconexão (proposta: 60 s) e tempo de validade do convite (proposta: 60 s)
-- [ ] Convidar por nome exige amizade ou proximidade? (proposta: não, basta o personagem estar online)
-- [ ] Bloquear convites (modo "não aceitar grupo") fica fora da primeira versão? ~~E a fila automática de grupo?~~ A fila entra (decidido em 2026-10-16).
+- [x] Líder: quem herda quando o líder sai ou cai? (proposta: o membro mais antigo no grupo) e o líder pode passar a liderança? (proposta: sim) Decidido em 2026-10-16: a proposta.
+- [x] Só o líder expulsa, ou qualquer membro pode pedir votação? (proposta: só o líder expulsa, sem votação) Decidido em 2026-10-16: a proposta.
+- [x] Tempo que a vaga fica guardada após desconexão (proposta: 60 s) e tempo de validade do convite (proposta: 60 s) Decidido em 2026-10-16: a proposta.
+- [x] Convidar por nome exige amizade ou proximidade? (proposta: não, basta o personagem estar online) Decidido em 2026-10-16: a proposta.
+- [x] Bloquear convites (modo "não aceitar grupo") fica fora da primeira versão? ~~E a fila automática de grupo?~~ A fila entra (decidido em 2026-10-16). Decidido em 2026-10-16: fica fora.
 - [x] Raid de 10: é um grupo maior ou dois grupos de 5 juntos? (veja [instancias.md](instancias.md)) Decidido em 2026-10-16: um grupo só, até 10.
-- [ ] O grupo desfaz ao ficar com 1 pessoa? (proposta: sim)
+- [x] O grupo desfaz ao ficar com 1 pessoa? (proposta: sim) Decidido em 2026-10-16: sim.
 - [ ] Chat (#95), decisões do grupo:
   - [ ] Aprovar os três canais (Cidade, Grupo, Sussurro) e os números da tabela de limites (proposta)
   - [x] O canal **Cidade** vale só para quem está dentro dos muros (decidido, #500; veja [Canais](#canais)); não chega à dungeon nem ao terreno em volta.
   - [ ] Filtro de palavrões: fica fora da primeira versão (proposta) ou entra uma lista simples?
-  - [ ] **Ignorar jogador** gravado neste computador (proposta) ou na conta, pelo servidor?
-  - [ ] O servidor guarda as mensagens em algum lugar para moderação? (proposta: não guarda; só o histórico curto da Cidade em memória)
+  - [x] **Ignorar jogador** gravado neste computador (proposta) ou na conta, pelo servidor? Decidido em 2026-10-16: na conta, pelo servidor.
+  - [x] O servidor guarda as mensagens em algum lugar para moderação? (proposta: não guarda; só o histórico curto da Cidade em memória) Decidido em 2026-10-16: não guarda; a denúncia leva as últimas mensagens do denunciado.
   - [x] Denunciar jogador e silenciar por um moderador: ficam para depois? Decidido em 2026-10-16: junto com a #187.
   - [ ] Sussurro para quem está em outra área (ex.: você na cidade e a pessoa na dungeon): pode? (proposta: sim)
 - [ ] Amigos e ignorar (#180), decisões do grupo:
-  - [ ] Aprovar amizade e ignorar **por conta** (proposta) em vez de por personagem, e os números da tabela de [Amigos e ignorar](#amigos-e-ignorar-issue-180)
-  - [ ] Quem foi ignorado recebe a mesma resposta de "não encontrado" (proposta) ou um aviso claro de que foi ignorado?
-  - [ ] O amigo vê **em que área** o outro está (cidade, dungeon)? (proposta: não na primeira versão; só online e o nome do personagem)
+  - [x] Aprovar amizade e ignorar **por conta** (proposta) em vez de por personagem, e os números da tabela de [Amigos e ignorar](#amigos-e-ignorar-issue-180). Decidido em 2026-10-16: por conta.
+  - [x] Quem foi ignorado recebe a mesma resposta de "não encontrado" (proposta) ou um aviso claro de que foi ignorado? Decidido em 2026-10-16: "não encontrado".
+  - [x] O amigo vê **em que área** o outro está (cidade, dungeon)? (proposta: não na primeira versão; só online e o nome do personagem) Decidido em 2026-10-16: vê a área.
 
 ## Regras
 
