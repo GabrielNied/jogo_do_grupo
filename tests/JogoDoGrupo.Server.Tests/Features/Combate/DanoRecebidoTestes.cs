@@ -187,11 +187,16 @@ public class DanoRecebidoTestes(ServidorDeAtaque servidor) : IClassFixture<Servi
 
     // Serviço próprio, com o controle de ações e o relógio nas mãos do teste: o instante do
     // golpe é decidido por quem testa, sem depender de tempo real.
-    private ServicoDeDanoRecebido ServicoComRelogio(ControleDeAcoes acoes, Func<long> relogioMs) =>
+    private ServicoDeDanoRecebido ServicoComRelogio(
+        ControleDeAcoes acoes,
+        Func<long> relogioMs,
+        ServicoDeQueda? queda = null
+    ) =>
         new(
             servidor.Falso.Services.GetRequiredService<ServidorTempoReal>(),
             servidor.Falso.Services.GetRequiredService<IServiceScopeFactory>(),
             servidor.Falso.Services.GetRequiredService<ILogger<ServicoDeDanoRecebido>>(),
+            queda: queda,
             acoes: acoes,
             relogioMs: relogioMs
         );
@@ -214,6 +219,38 @@ public class DanoRecebidoTestes(ServidorDeAtaque servidor) : IClassFixture<Servi
         Assert.Equal(antes.VidaAtual, (await RecursosAsync(ana)).VidaAtual);
 
         agora = 10_300; // acabou a janela: o golpe, ainda no volume, tira vida
+        servico.AoGolpeDeInimigo(golpe);
+        Assert.Equal(antes.VidaAtual - 30, (await MudouAsync(ana)).VidaAtual);
+    }
+
+    [Fact]
+    public async Task Golpe_nos_primeiros_2_s_apos_levantar_nao_tira_vida_e_depois_tira()
+    {
+        using var ana = await NovoJogadorAsync();
+        var antes = await RecursosAsync(ana);
+        var acoes = new ControleDeAcoes();
+        long agora = 10_000;
+        var queda = servidor.Falso.Services.GetRequiredService<ServicoDeQueda>();
+        var servico = ServicoComRelogio(acoes, () => agora, queda);
+
+        // Ana cai aos 10_000 e é levantada por Beto aos 13_000
+        queda.Controle.Cair(ana.Id, agora, out _);
+        queda.Controle.Comecar(2, ana.Id, agora, () => true, out _);
+        agora = 13_000;
+        queda.Controle.Resolver(ana.Id, agora);
+        queda.LimparGravandoParaTeste(ana.Id);
+
+        var golpe = new GolpeDeInimigoAcertou(1, 1, ana.Id, 30, "cidade");
+
+        // Em 1,9 s após levantar (14_900 ms), o golpe não causa dano devido à imunidade de 2 s
+        agora = 14_900;
+        servico.AoGolpeDeInimigo(golpe);
+        await Task.Delay(300);
+        Assert.False(ana.Recebeu(CombateMessageIds.RecursosMudaram));
+        Assert.Equal(antes.VidaAtual, (await RecursosAsync(ana)).VidaAtual);
+
+        // Em 2,0 s após levantar (15_000 ms), a imunidade expirou e o golpe dá dano
+        agora = 15_000;
         servico.AoGolpeDeInimigo(golpe);
         Assert.Equal(antes.VidaAtual - 30, (await MudouAsync(ana)).VidaAtual);
     }

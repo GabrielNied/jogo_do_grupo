@@ -81,9 +81,9 @@ public readonly record struct SituacaoDaQueda(
 /// rede, banco nem relógio (o tempo entra como parâmetro, em ms). Seguro para várias threads: uma
 /// trava protege tudo, então eventos simultâneos viram uma ordem só.
 /// <para>
-/// Regras (docs/features/personagem.md, "Morte e caído"): a contagem de caído <b>não para</b>
-/// enquanto alguém levanta; um ajudante por vez; levantar completa 3 s depois de começar e, se o
-/// fim do tempo cai no mesmo instante ou antes, o fim do tempo vale (empate: levantar vale).
+/// Regras (docs/features/personagem.md, "Morte e caído"): a contagem de caído <b>para</b>
+/// enquanto alguém levanta e volta a correr se interrompida; um ajudante por vez; levantar completa
+/// 3 s depois de começar; ao levantar, 2 s de imunidade sem receber dano.
 /// Toda chamada primeiro resolve o que já venceu até <c>agoraMs</c>, então nenhuma ordem de
 /// chegada produz duas saídas.
 /// </para>
@@ -94,6 +94,7 @@ public sealed class ControleDeQueda
     private readonly ConfigQueda _config;
     private readonly Dictionary<long, Caido> _caidos = [];
     private readonly Dictionary<long, long> _alvoDoAjudante = [];
+    private readonly Dictionary<long, long> _imunidadeAposLevantar = [];
 
     private readonly Action<long>? _aoSair;
 
@@ -117,6 +118,25 @@ public sealed class ControleDeQueda
         }
     }
 
+    /// <summary>Se o personagem está no período de 2 s de imunidade a dano após ser levantado.</summary>
+    public bool EstaImuneAposLevantar(long personagemId, long agoraMs)
+    {
+        lock (_trava)
+        {
+            if (_imunidadeAposLevantar.TryGetValue(personagemId, out var fim))
+            {
+                if (agoraMs < fim)
+                {
+                    return true;
+                }
+
+                _imunidadeAposLevantar.Remove(personagemId);
+            }
+
+            return false;
+        }
+    }
+
     /// <summary>
     /// A vida do personagem chegou a 0. Falso se ele já estava caído. Se ele estava levantando
     /// alguém, essa interação é interrompida (<paramref name="efeito"/>).
@@ -131,9 +151,10 @@ public sealed class ControleDeQueda
                 return false;
             }
 
+            _imunidadeAposLevantar.Remove(personagemId);
             var interrompido = Interromper(personagemId, agoraMs, out var saida);
             efeito = EfeitoDaQueda.De(interrompido, saida);
-            _caidos[personagemId] = new Caido(agoraMs);
+            _caidos[personagemId] = new Caido(agoraMs, _config);
             return true;
         }
     }
@@ -161,7 +182,7 @@ public sealed class ControleDeQueda
                 return ResultadoDeComecar.VoceEstaCaido;
             }
 
-            if (!_caidos.TryGetValue(alvoId, out var alvo) || agoraMs >= alvo.FimMs(_config))
+            if (!_caidos.TryGetValue(alvoId, out var alvo) || alvo.RestanteMs(agoraMs) <= 0)
             {
                 return ResultadoDeComecar.AlvoNaoEstaCaido;
             }
@@ -178,6 +199,7 @@ public sealed class ControleDeQueda
 
             var interrompido = Interromper(ajudanteId, agoraMs, out var saidaDoOutro);
             efeito = EfeitoDaQueda.De(interrompido, saida, saidaDoOutro);
+            alvo.Pausar(agoraMs);
             alvo.AjudanteId = ajudanteId;
             alvo.InicioDaAjudaMs = agoraMs;
             _alvoDoAjudante[ajudanteId] = alvoId;
@@ -211,6 +233,7 @@ public sealed class ControleDeQueda
             {
                 alvo.AjudanteId = 0;
                 alvo.InicioDaAjudaMs = 0;
+                alvo.Retomar(agoraMs);
             }
 
             return alvoId;
@@ -237,7 +260,7 @@ public sealed class ControleDeQueda
                 return ResultadoDeVoltar.AindaNaoPodeVoltar;
             }
 
-            saida = Encerrar(personagemId, caido, TipoDeSaida.Retorno);
+            saida = Encerrar(personagemId, caido, TipoDeSaida.Retorno, agoraMs);
             return ResultadoDeVoltar.Voltou;
         }
     }
@@ -255,20 +278,20 @@ public sealed class ControleDeQueda
                 return SaidaDaQueda.Nenhuma;
             }
 
-            var fim = caido.FimMs(_config);
             if (
                 caido.AjudanteId != 0
-                && caido.InicioDaAjudaMs + _config.TempoParaLevantarMs is var completa
-                && completa <= fim
-                && agoraMs >= completa
+                && agoraMs >= caido.InicioDaAjudaMs + _config.TempoParaLevantarMs
             )
             {
-                return Encerrar(personagemId, caido, TipoDeSaida.Levantou);
+                return Encerrar(personagemId, caido, TipoDeSaida.Levantou, agoraMs);
             }
 
-            return agoraMs >= fim
-                ? Encerrar(personagemId, caido, TipoDeSaida.Retorno)
-                : SaidaDaQueda.Nenhuma;
+            if (caido.AjudanteId == 0 && caido.RestanteMs(agoraMs) <= 0)
+            {
+                return Encerrar(personagemId, caido, TipoDeSaida.Retorno, agoraMs);
+            }
+
+            return SaidaDaQueda.Nenhuma;
         }
     }
 
@@ -291,7 +314,7 @@ public sealed class ControleDeQueda
                 return new SituacaoDaQueda(FaseDeQueda.Vivo, 0, 0, 0);
             }
 
-            var restante = Math.Max(0, caido.FimMs(_config) - agoraMs);
+            var restante = caido.RestanteMs(agoraMs);
             if (caido.AjudanteId == 0)
             {
                 return new SituacaoDaQueda(FaseDeQueda.Caido, restante, 0, 0);
@@ -321,18 +344,17 @@ public sealed class ControleDeQueda
                 return -1;
             }
 
-            var proximo = caido.FimMs(_config);
             if (caido.AjudanteId != 0)
             {
-                proximo = Math.Min(proximo, caido.InicioDaAjudaMs + _config.TempoParaLevantarMs);
+                return Math.Max(0, (caido.InicioDaAjudaMs + _config.TempoParaLevantarMs) - agoraMs);
             }
 
-            return Math.Max(0, proximo - agoraMs);
+            return Math.Max(0, caido.RestanteMs(agoraMs));
         }
     }
 
     // Chamar com a trava.
-    private SaidaDaQueda Encerrar(long personagemId, Caido caido, TipoDeSaida tipo)
+    private SaidaDaQueda Encerrar(long personagemId, Caido caido, TipoDeSaida tipo, long agoraMs)
     {
         var ajudante = caido.AjudanteId;
         _aoSair?.Invoke(personagemId);
@@ -342,15 +364,49 @@ public sealed class ControleDeQueda
             _alvoDoAjudante.Remove(ajudante);
         }
 
+        if (tipo == TipoDeSaida.Levantou)
+        {
+            _imunidadeAposLevantar[personagemId] = agoraMs + _config.ImunidadeAposLevantarMs;
+        }
+
         return new SaidaDaQueda(tipo, personagemId, ajudante);
     }
 
-    private sealed class Caido(long caiuEmMs)
+    private sealed class Caido
     {
-        public long CaiuEmMs { get; } = caiuEmMs;
+        public long CaiuEmMs { get; }
+        public long TempoRestanteMs { get; private set; }
+        public long UltimoInicioContagemMs { get; private set; }
         public long AjudanteId { get; set; }
         public long InicioDaAjudaMs { get; set; }
 
-        public long FimMs(ConfigQueda config) => CaiuEmMs + config.TempoCaidoMs;
+        public Caido(long caiuEmMs, ConfigQueda config)
+        {
+            CaiuEmMs = caiuEmMs;
+            TempoRestanteMs = config.TempoCaidoMs;
+            UltimoInicioContagemMs = caiuEmMs;
+        }
+
+        public long RestanteMs(long agoraMs)
+        {
+            if (AjudanteId != 0)
+            {
+                return TempoRestanteMs;
+            }
+
+            var decorrido = Math.Max(0, agoraMs - UltimoInicioContagemMs);
+            return Math.Max(0, TempoRestanteMs - decorrido);
+        }
+
+        public void Pausar(long agoraMs)
+        {
+            TempoRestanteMs = RestanteMs(agoraMs);
+            UltimoInicioContagemMs = agoraMs;
+        }
+
+        public void Retomar(long agoraMs)
+        {
+            UltimoInicioContagemMs = agoraMs;
+        }
     }
 }

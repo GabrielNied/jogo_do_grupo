@@ -10,6 +10,8 @@ public class RegrasQuedaTestes
         Assert.Equal(45_000, RegrasQueda.DuracaoCaidoMs);
         Assert.Equal(3_000, RegrasQueda.TempoParaLevantarMs);
         Assert.Equal(5_000, RegrasQueda.MinimoParaVoltarMs);
+        Assert.Equal(2_000, RegrasQueda.ImunidadeAposLevantarMs);
+        Assert.Equal(2.0, RegrasQueda.ImunidadeAposLevantarSegundos);
         Assert.Equal(2.0, RegrasQueda.AlcanceParaLevantarMetros);
         Assert.Equal(0.20, RegrasQueda.FracaoDeVidaAoLevantar);
     }
