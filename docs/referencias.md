@@ -22,11 +22,12 @@ Ao definir um sistema novo, comece pela referência dele, descreva o que muda e 
 | Dungeons e raids | World of Warcraft | Lost Ark, Final Fantasy XIV | Raid de 10, não de 20 a 40 |
 | Bosses cada vez mais fortes | WoW Mythic+ | Monster Hunter | — |
 | Mecânicas de boss | Final Fantasy XIV, WoW | Lost Ark | — |
-| Sessões e hub | Monster Hunter, Lost Ark | — | — |
+| Cidade compartilhada | World of Warcraft (cidades) | New World (assentamentos) | Uma cidade, dividida em canais |
 | Farm de mapa em grupo e inimigos em massa | RYL, Diablo IV | Path of Exile (mapas) | — |
-| Eventos | Guild Wars 2 (eventos dinâmicos) | Diablo IV (eventos de mundo) | Dentro das sessões de grupo |
+| Eventos | Guild Wars 2 (eventos dinâmicos) | Diablo IV (eventos de mundo) | No mundo aberto; o chefe de mundo tem força fixa |
 | Fusão e utilidade de todo item | Runescape | Black Desert (aprimoramento com risco), Ragnarok (cartas) | A fusão tem teto e custo crescente |
 | Economia entre jogadores | Albion Online | Runescape (Grand Exchange) | A decidir durante a construção |
+| PvP no mundo aberto | New World (bandeira e zonas) | RYL (nações), Albion Online (perda) | Sem perda na morte; territórios de guilda depois |
 | Sobrevivência e construção | Valheim | — | Ainda não decidido; fica para depois da fatia jogável |
 
 ## No que cada jogo é famoso

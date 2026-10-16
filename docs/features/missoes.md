@@ -12,10 +12,13 @@ História principal, missões secundárias e diárias.
 
 - Principal, secundárias e diárias
 - O loop principal é leveling, loot e eventos, com foco em bosses, dungeons e raids (D5 da [validação de 2026-10-10](../brainstorm/validacao.md)); missões entram como parte desse loop
+- **Decisões do Gabriel em 2026-10-16** (quiz de lacunas de MMO):
+  - **Tipos que entram primeiro:** história principal (começa pelo prólogo e pela primeira hora do livro, abaixo), secundárias por região (dadas por NPCs da cidade e de pontos do mapa: matar, coletar, entregar) e diárias e semanais (renovam no reset e dão coroas e [reputação](npcs.md#definido)).
+  - **Em grupo:** o objetivo conta para todos do grupo que estão por perto, têm a missão e participaram ([fatia, seção 5](fatia-jogavel.md#5-loot-no-chão)). O líder pode compartilhar a missão com o grupo.
 
 ## Em aberto
 
-- [ ] Missões em grupo?
+- [x] Missões em grupo? Decidido em 2026-10-16 (veja Definido).
 - [ ] Como a história se conecta às raças?
 - [ ] O prólogo e a primeira hora do livro (proposta do board, 2026-10-11) viram o tutorial do jogo? Veja "Livro de Asterra: chegada ao mundo".
 

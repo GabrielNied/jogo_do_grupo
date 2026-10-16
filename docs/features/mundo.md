@@ -12,6 +12,11 @@
 
 - ~~**Sessões de grupo pequeno** (D1 da [validação de 2026-10-10](../brainstorm/validacao.md)): o objetivo é jogar em poucas pessoas, não um mundo aberto com centenas de jogadores.~~ Substituído em 2026-10-11 por: **mundo persistente** (D1 opção A da [validação](../brainstorm/validacao.md)): um mundo único e contínuo. A cidade é compartilhada por quem está nela.
 - Ambientação medieval
+- **Decisões do Gabriel em 2026-10-16** (quiz de lacunas de MMO):
+  - **Canais:** cada área tem canais de até 80 pessoas ([meta de capacidade](../arquitetura.md)); o servidor abre outro quando lota. Entrar num grupo leva ao canal do líder. Trocar à mão só fora de combate, com espera de 1 min.
+  - **Sem viagem rápida:** o mundo se percorre a pé ou de [montaria](montarias.md). Em troca, **andar automático**: a pessoa marca um ponto no mapa e o personagem vai sozinho até lá. Pede caminho pelo terreno e um mapa bem melhor que o de hoje. Os **pontos de retorno** descobertos servem só para voltar da queda ([personagem](personagem.md#retorno-à-cidade)).
+  - **Muro da cidade:** a cidade é área protegida; criatura nenhuma entra ([mobs](mobs.md#definido)).
+  - **Sair do jogo:** fora de combate sai na hora; em combate o personagem fica 10 s no mundo. Parado 30 min, desconecta. Ao entrar de novo volta onde saiu (se a dungeon encerrou, na cidade).
 - **Farm de mapa em grupo**: o grupo limpa áreas cheias de inimigos para ganhar experiência e loot (decidido em 2026-10-10)
 - ~~Mundo aberto~~ substituído em 2026-10-10 por sessões de grupo pequeno. ~~Sessões de grupo pequeno~~ substituídas em 2026-10-11: o mundo aberto volta (D1 opção A).
 
@@ -23,7 +28,7 @@
 - [x] ~~Tamanho do mapa e quantidade de regiões. A primeira área (cidade e arredores) ficou em cerca de 1 km com três áreas (campo, mata e colinas); o resto do mundo continua em aberto.~~ Decidido em 2026-10-11 (Gabriel, issue #135): **3 km de lado e sete biomas**. Veja "Biomas e relevo".
 - [ ] A lava causa dano? O pântano deixa o jogador mais lento? Frio e calor têm efeito? Hoje os biomas são só cenário.
 - [ ] Quais inimigos vivem em cada bioma?
-- [ ] Como funciona a viagem rápida?
+- [x] Como funciona a viagem rápida? Decidido em 2026-10-16: não existe; há o andar automático (veja Definido).
 - [ ] Clima dinâmico afeta gameplay?
 - [ ] Luz e som como mecânica (noite escura, skills que iluminam)? Veja S8 na validação.
 - [x] **Livro de Asterra, decidido em 2026-10-11 (/decida, #326):** os nomes entram como **rótulos** sobre os biomas atuais, sem criar bioma: Vale das Fogueiras = campo e arredores, Mata do Eco = mata, Serra do Vidro Frio = montanhas de neve, Caldeira Rubra = montanhas de lava. Deserto e pântano ficam sem nome do livro por ora; Planalto Astral é FUTURO, sem bioma. Estruturas nomeadas entram em tarefas próprias. Pergunta original: o grupo adota os nomes de região e de lugar (Vale das Fogueiras, Mata do Eco, Serra do Vidro Frio, Caldeira Rubra, Planalto Astral, Brasa Mansa...)? Como encaixam nos sete biomas de 3 km já decididos (o livro não tem deserto nem pântano e tem o Planalto Astral)? Veja "Livro de Asterra: regiões e cidade".
@@ -145,7 +150,7 @@ Tudo abaixo vem do "Livro de ideias" do [FigJam](../brainstorm/figjam.md) (seç�
 - **Escopo do MVP no livro:** mundo persistente, mapa pronto com uma cidade e subáreas (floresta, rios, caverna), referência de 20 jogadores por instância, expedições que não apagam o progresso. Meteoros, invasões, fendas e PvP são posteriores.
 - **Ciclo de dia e noite (proposta):** 40 min de dia e 20 min de noite; a noite reduz a leitura de mobs entre árvores, mas mantém contornos. Liga com a #163 (hora do mundo).
 - **Luz e som (proposta):** tochas (perto), flechas de fogo (marcam destino) e orbes (área grande) como fontes de luz; cada espécie reage à luz e ao som (veja [mobs](mobs.md)). Marcas de impacto (martelada, fuligem) são superficiais e não destroem o relevo. **Ponte de gelo:** superfície temporária entre margens válidas, com aviso de rachadura; criaturas também atravessam.
-- **Caído e retorno sem perdas (proposta):** ao zerar a vida, 45 s caído; aliado levanta em 3 s com 20% da vida; senão retorna à cidade mais próxima ou a teleporte descoberto, sem perder XP, moeda, equipamento ou durabilidade. A regra de combate e grupo é de [combate](combate.md) e [social](social.md); aqui só o retorno e os pontos de teleporte (ligados à viagem rápida em aberto).
+- **Caído e retorno sem perdas (proposta):** ao zerar a vida, 45 s caído; aliado levanta em 3 s com 20% da vida; senão retorna à cidade mais próxima ou a teleporte descoberto, sem perder XP, moeda, equipamento ou durabilidade. A regra de combate e grupo é de [combate](combate.md) e [social](social.md); aqui só o retorno e os pontos de teleporte (sem viagem rápida desde 2026-10-16; servem só ao retorno).
 - **Eventos de mundo: FUTURO** (Chuva de Ferro Estelar no Planalto, Cerco da Brasa Mansa, Fenda do Horizonte): sem prioridade no MVP, ficam no backlog de eventos de mundo.
 
 ## Depende de
@@ -292,7 +297,7 @@ Os eventos saem depois das mensagens de rede da mesma mudança (`EstadoDaCidade`
 - Marcadores: o próprio jogador (seta) e os aliados da mesma área (mesma fonte do minimapa: presença); **marcadores de missão** só quando [missões](missoes.md) definir posições (fora da fatia por enquanto).
 - **Visibilidade:** o mapa só mostra posições que o client já tem; aliados do grupo longe da cidade entram por `PosicoesDosAliados` (#789). Aliados em **outra** área não entram no mesmo mapa. ~~O ícone da área com a contagem de aliados, se o servidor já informar a instância do grupo,~~ continua em aberto.
 - O mapa da dungeon mostra os salões já visitados pelo grupo? **Em aberto** (depende da #66).
-- **Sem viagem rápida na fatia**: a cidade e a dungeon se ligam pelo portão. Viagem rápida segue em aberto acima ("Como funciona a viagem rápida?").
+- **Sem viagem rápida na fatia**: a cidade e a dungeon se ligam pelo portão. Desde 2026-10-16 não há viagem rápida ([Definido](#definido)); o mapa ganha o andar automático.
 - **Fora da fatia:** várias regiões, névoa de exploração, zoom e arrasto, anotações, viagem rápida.
 - **Quem decide:** nada do mapa é regra de jogo; o servidor só envia as posições da presença, o client desenha. Se algum dia houver viagem rápida, ela será validada pelo servidor.
 - **Testes esperados** (client, EditMode): tecla M abre o mapa; a cidade só é destacada para quem está nela; sem posições de áreas diferentes no mesmo mapa.
@@ -303,6 +308,6 @@ Os eventos saem depois das mensagens de rede da mesma mudança (`EstadoDaCidade`
 - [ ] Mostrar inimigos no minimapa sempre ou só em combate? Pode tirar o susto do telegrafado. Enquanto isso, o ícone não existe; o modelo só aparece se a câmera de cima já o vê.
 - [ ] Aliados em outra área aparecem no mapa-múndi (e o servidor envia a instância do grupo)?
 - [ ] O mapa da dungeon revela salões só depois de visitados?
-- [ ] Viagem rápida existe depois da fatia? Com custo, só a pontos descobertos?
+- [x] Viagem rápida existe depois da fatia? Com custo, só a pontos descobertos? Decidido em 2026-10-16: não (veja [Definido](#definido)).
 
 - **Ajuste da luz para os modelos (2026-10-11, issue #311):** o ambiente padrão (campo, mata e colinas) ficou mais claro (céu, horizonte e solo) e o sol um pouco mais forte, o preenchimento subiu para 40% do sol e a sombra do sol ficou mais leve (0,55), para o lado do personagem e das criaturas fora do sol, de textura escura, continuar legível sem perder o volume. Horizonte e solo da lava e do pântano subiram um pouco. A névoa, o céu e o ângulo do sol não mudaram, e não há Volume no mundo (o URP não liga pós-processamento na câmera do Core), então não há tonemapping. Para conferir: `npm run unity:executar -- JogoDoGrupo.Client.Features.Mundo.Editor.CapturaDaIluminacao.Capturar` (editor fechado) salva em `%TEMP%` uma folha com o personagem e as criaturas vistos de quatro lados; exemplos em `docs/arte/renders/`.

@@ -99,7 +99,7 @@ Até a [#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627), as taref
 
 ### Transição
 
-Os nomes novos já valem no código ([#622](https://github.com/GabrielNied/jogo_do_grupo/issues/622)). Até a [#623](https://github.com/GabrielNied/jogo_do_grupo/issues/623) entrar, o código ainda soma os atributos das peças nos do personagem; e, até a [#625](https://github.com/GabrielNied/jogo_do_grupo/issues/625), dá zero pontos por nível. Nenhuma regra nova se apoia nisso.
+Os nomes novos já valem no código ([#622](https://github.com/GabrielNied/jogo_do_grupo/issues/622)). Até a [#623](https://github.com/GabrielNied/jogo_do_grupo/issues/623) entrar, o código ainda soma os atributos das peças nos do personagem; pontos por nível usam `PontosPorNivel` (valor de teste: 1; número final pendente da [#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627)). Nenhuma regra nova se apoia nisso.
 
 ### Pendente
 
@@ -144,7 +144,7 @@ Decidido em 2026-10-12. A curva já está em `ConfigExperiencia`; o teste `Ritmo
 
 **Curva:** XP do nível = arredondar(50 × nível^1,2). Nível máximo: **100**. A curva dos primeiros níveis não muda. Era 100 × nível^1,7, e o nível 10 passava de 5 horas só de mobs do mesmo nível.
 
-**O que o nível dá:** ~~nada de atributo. Vida, vigor, energia e dano crescem pelos itens.~~ Revisto em 2026-10-12: cada nível dá pontos da [árvore](talentos.md), e só o nível dá esses pontos (Gabriel). Quantos por nível está pendente ([#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627)); até a [#625](https://github.com/GabrielNied/jogo_do_grupo/issues/625), o código segue com zero pontos por nível. O nível em si não dá bônus. Os atributos não mudam o orçamento de preparação de skills; esse orçamento continua fora desta fatia ([skills.md](skills.md#preparação-de-skills-proposta-do-board-2026-10-11)).
+**O que o nível dá:** ~~nada de atributo. Vida, vigor, energia e dano crescem pelos itens.~~ Revisto em 2026-10-12: cada nível dá pontos da [árvore](talentos.md) via `PontosPorNivel`, e só o nível dá esses pontos (Gabriel). Quantos por nível está pendente (valor de teste: 1; calibração final pendente da [#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627)). O nível em si não dá bônus. Os atributos não mudam o orçamento de preparação de skills; esse orçamento continua fora desta fatia ([skills.md](skills.md#preparação-de-skills-proposta-do-board-2026-10-11)).
 
 **XP por diferença de nível** (decidido em 2026-10-12): a diferença é o nível do jogador menos o nível do mob. 0 ou negativa paga 100%. Cada nível acima tira 20 pontos percentuais. 5 ou mais acima paga 0. Cada participante calcula a parcela com seu próprio nível e o nível informado na morte do inimigo; o percentual é aplicado ao XP base com arredondamento para baixo até XP inteiro. Se o contrato informar nível desconhecido (`0`), Personagem concede o XP base sem penalidade, pois não há dado para calcular a diferença. Quem participou recebe essa parcela, não o valor cheio. Ganho zero consome a morte contra duplicatas, mas não grava progresso nem publica notificação de XP. A meta de ritmo acima vale contra mob do mesmo nível ou mais forte. O Javali do Campo é nível 3: a partir do nível 8 do jogador ele não dá XP. Constantes nomeadas, fáceis de calibrar.
 
@@ -152,7 +152,7 @@ O teto 100 e os pontos da árvore por nível (valor de teste: 1) estão em `Conf
 
 ## Em aberto
 
-- [ ] Conflito livro x docs: o board pede **sem perda nenhuma na morte** (nem durabilidade) e esta doc já prevê isso só para a fatia; confirmar se vale para o jogo todo.
+- [x] Conflito livro x docs: o board pede **sem perda nenhuma na morte** (nem durabilidade) e esta doc já prevê isso só para a fatia; confirmar se vale para o jogo todo. Decidido por Gabriel em 2026-10-16: vale para o jogo todo, PvP incluído; a única perda é a durabilidade pelo uso ([itens](itens.md#definido)).
 - [x] ~~O orçamento de skills muda com os atributos?~~ Decidido em 2026-10-12: não muda. O orçamento em si continua fora desta fatia.
 - [ ] Quais raças existem e qual a skill base de cada uma? (as raças definitivas substituem a raça provisória Humano) **Cinco raças em uso desde 2026-10-11 ([Raças propostas](#raças-propostas-no-board-2026-10-11)); a skill base de cada uma segue em [Skills](skills.md) (#341).**
 - [ ] ~~Quais raças e classes existem?~~ classes não existem mais (D2)
@@ -168,7 +168,7 @@ O teto 100 e os pontos da árvore por nível (valor de teste: 1) estão em `Conf
   - [x] Inimigos ignoram quem está caído (não atacam, não contam como alvo); o caído não ataca nem esquiva. **Decidido em 2026-10-11 (coordenador, autonomia dada pelo Gabriel)**
   - [x] Levantar: aliado do mesmo grupo a até 2 m segura a interação por 3 s e o caído volta com 20% da vida máxima; dano recebido pelo ajudante interrompe; dois ajudantes não duplicam (só um levanta por vez, o segundo é recusado); fim do tempo e levantar ao mesmo tempo resolvem uma única saída. **Decidido em 2026-10-11 (coordenador, autonomia dada pelo Gabriel)**
   - [ ] Quem voltou à cidade pode **entrar de novo na mesma dungeon** enquanto o grupo ainda luta? (decisão da dungeon, #66)
-  - [ ] Cair tem algum custo depois da fatia (durabilidade, XP, tempo de espera)? Na fatia não tem perda nenhuma
+  - [x] Cair tem algum custo depois da fatia (durabilidade, XP, tempo de espera)? Na fatia não tem perda nenhuma Decidido em 2026-10-16: não; a durabilidade cai só pelo uso.
   - [x] Qual funcionalidade é dona do estado caído no código: Personagem (como a issue #97) ou Combate (que já é dono da vida)? Decisão técnica, vira contrato. **Decidido pelo Gabriel em 2026-10-11: Combate** é o dono do estado caído; Personagem só mostra a tela (issue #125)
 
 ## Regras
@@ -303,7 +303,7 @@ Quem decide: **servidor** (quando cai, a contagem, quem está levantando, a vida
 
 #### Levantar um aliado
 
-- Quem pode: um jogador **vivo do mesmo grupo** (validado por `IConsultaDeGrupo`), da mesma instância, a até **2 m** do caído, segurando **Interagir** (E, veja [teclas](interface.md#teclas-e-atalhos)) por 3 s. Jogador sem grupo ou de outro grupo recebe `NaoSaoDoMesmoGrupo` (#832).
+- Quem pode: um jogador **vivo do mesmo grupo** (validado por `IConsultaDeGrupo`), da mesma instância, a até **2 m** do caído, segurando **Interagir** (E, veja [teclas](interface.md#teclas-e-atalhos)) por 3 s. Jogador sem grupo ou de outro grupo recebe `NaoSaoDoMesmoGrupo` (#832). Fora da dungeon, desde 2026-10-16, qualquer jogador vivo pode levantar (veja [Retorno à cidade](#retorno-à-cidade)).
 - Interrompe e **zera o progresso**: soltar a tecla, afastar-se mais de 2 m, levar dano, cair, ou atacar e esquivar.
 - **Um ajudante por vez:** o primeiro que começou vale; o segundo recebe `JaEstaSendoLevantado` (é a regra da fatia: dois ajudantes não duplicam a cura).
 - A contagem de 45 s **para** enquanto alguém está levantando e volta a correr se a interação for interrompida (em aberto).
@@ -313,6 +313,7 @@ Quem decide: **servidor** (quando cai, a contagem, quem está levantando, a vida
 #### Retorno à cidade
 
 - A pessoa reaparece no **ponto de nascimento da cidade** ([mundo.md](mundo.md)), com vida, stamina e mana cheios.
+- **Fora da dungeon** (decidido por Gabriel em 2026-10-16): quem não é levantado volta ao **ponto de retorno descoberto** mais próximo, ou à cidade se não descobriu nenhum ([mundo](mundo.md#definido)). No mundo aberto **qualquer jogador vivo** pode levantar, não só o do grupo; na dungeon continua só o grupo.
 - Não perde item, XP, moeda nem nível. O loot que já era dela continua no chão da instância pelo tempo normal ([fatia-jogavel.md](fatia-jogavel.md), seção 5).
 - Continua **membro do grupo** ([social.md](social.md)); só sai da instância. Voltar a entrar na mesma dungeon é decisão de [instâncias](instancias.md) (#66).
 - **Todos caídos ao mesmo tempo** (inclusive quem joga sozinho): é a derrota da fatia. Não espera os 45 s: a tela de derrota aparece por **5 s** e todos voltam à cidade; a instância fecha.

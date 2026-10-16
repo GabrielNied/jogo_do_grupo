@@ -59,7 +59,7 @@ Quem decide: **servidor** (calcula, valida e envia o resultado; o client só mos
 
 | Item | Regra | Origem |
 |---|---|---|
-| Atributos | Força, Vigor, Agilidade, Intelecto, Espírito, do personagem ([personagem](personagem.md#atributos-do-personagem)). Valor final = pontos da [árvore](talentos.md) + efeitos. Atributo de equipamento não soma aqui (DEC-001). Pontos da árvore só por nível; quantos, pendente (no código, zero até a [#625](https://github.com/GabrielNied/jogo_do_grupo/issues/625)) | decidido em 2026-10-12 (estrutura); números são valores de teste |
+| Atributos | Força, Vigor, Agilidade, Intelecto, Espírito, do personagem ([personagem](personagem.md#atributos-do-personagem)). Valor final = pontos da [árvore](talentos.md) + efeitos. Atributo de equipamento não soma aqui (DEC-001). Pontos da árvore só por nível via `PontosPorNivel` (valor de teste: 1; número final pendente da [#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627)) | decidido em 2026-10-12 (estrutura); números são valores de teste |
 | Vida | base 500, +10 por ponto de Vigor. Chegar a 0 leva ao estado caído (seção 7) | valor de teste |
 | Stamina | base 100, +2 por ponto de Agilidade. Paga esquiva, ataque pesado e guarda. | valor de teste |
 | Mana | base 100, +2 por ponto de Espírito. Paga as skills dos itens. | valor de teste |
@@ -121,6 +121,7 @@ Quem decide: **servidor** (sorteio, dono, validação da coleta).
 - Ao morrer, o inimigo larga itens no chão da instância. São peças reais do catálogo de equipamentos: a raridade pesa pela origem do inimigo (comum, fortalecido, chefe raro, chefe) e o grau e o requisito vêm do nível dele. Tabela e meta de ritmo em [itens.md](itens.md#loot-dos-inimigos-493). O aviso de coleta mostra nome e raridade. A raridade vira tier calculado pelos atributos na [#615](https://github.com/GabrielNied/jogo_do_grupo/issues/615) ([itens](itens.md#tier)).
 - ~~**Dono do loot** (**proposta**): quem causou **mais dano real** àquele inimigo; empate vai ao primeiro atacante; dano contínuo conta para quem o causou. Resolve-se uma vez, na morte.~~ Substituído em 2026-10-11: **loot individual também no inimigo comum**; cada jogador que participou (o servidor define "participou") sorteia o próprio loot, no chão só para ele.
 - **Loot do boss** (decidido em 2026-10-11): **individual**; cada jogador que participou da luta sorteia o próprio loot, no chão para ele (o servidor define "participou"). ~~Dono por maior dano~~ substituído em 2026-10-11 por loot individual, só para o boss; o inimigo comum segue a proposta acima.
+- **Quem participou** (decidido por Gabriel em 2026-10-16): quem causou dano ao inimigo, curou alguém que lutava com ele ou foi alvo dele, esteja ou não no grupo de quem matou, como o crédito compartilhado do New World. Não existe dono do mob nem roubo de mob. Vale para loot, XP e objetivo de [missão](missoes.md). Hoje o código conta só quem causou dano ([mobs](mobs.md#inimigo-comum-da-fatia-issue-63)).
 - Coleta pela tecla **F** (**proposta**: raio de 12 m). O servidor confere dono, disponibilidade e espaço no inventário.
 - Inventário cheio: o item continua no chão, sem perda, até expirar.
 - Reservado ao dono por **180 s**; ao expirar desaparece (**proposta**).
@@ -134,7 +135,7 @@ Quem decide: **servidor** (concede e confere; cada prêmio vale uma vez).
 - Nível inicial 1; nível máximo **100** (decidido em 2026-10-12).
 - XP para o próximo nível = arredondar(50 × nível^1,2) (decidido em 2026-10-12; meta em [personagem](personagem.md#ritmo-de-progressão)).
 - XP vem de derrotar inimigos; quem **participou** (dano, cura, defesa) recebe, mesmo sem ser o dono do loot. O valor cai pela diferença de nível ([personagem](personagem.md#ritmo-de-progressão)).
-- Subir de nível dá pontos da árvore, a única fonte deles ([personagem](personagem.md#atributos-do-personagem)); quantos por nível está pendente, e o código dá zero até a [#625](https://github.com/GabrielNied/jogo_do_grupo/issues/625).
+- Subir de nível dá pontos da árvore via `PontosPorNivel`, a única fonte deles ([personagem](personagem.md#atributos-do-personagem)); valor de teste: 1 por nível (número final pendente da [#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627)).
 - No nível máximo o XP excedente é guardado e não sobe de nível.
 - O client mostra barra de XP e nível.
 - **Testes esperados:** XP certo por nível; mob 5 níveis abaixo não dá XP; mob do mesmo nível dá o valor inteiro; subir de nível não cria ponto de atributo; mesmo prêmio não concede XP duas vezes; teto de nível.

@@ -20,14 +20,19 @@ Conteúdo instanciado para grupos pequenos: dungeons e raids, com foco em derrot
 - **Progressão infinita no estilo Diablo**: dungeons com **dificuldade que escala sem fim**, como o Mythic+ do WoW; quanto mais alto o nível, mais fortes os inimigos e melhor o loot (decidido em 2026-10-10)
 - **Raids divididas em etapas** curtas (gates), cada uma com um boss ou fase, como no Lost Ark (decidido em 2026-10-10)
 - **Materiais de fusão** (decidido por Gabriel em 2026-10-12): dungeons dão os materiais da fusão de +5 até +8 e raids, os de +9 e +10. Raid nunca é exigida antes disso. Regras em [itens](itens.md#fusão); materiais na [#617](https://github.com/GabrielNied/jogo_do_grupo/issues/617)
+- **Decisões do Gabriel em 2026-10-16** (quiz de lacunas de MMO):
+  - **Raid:** entra quantas vezes quiser; cada etapa dá loot **uma vez por semana** por personagem, então dá para ajudar amigos sem ganhar de novo. O reset semanal é o mesmo das [missões](missoes.md).
+  - **Dificuldade sem fim:** o líder escolhe o nível, até um acima do maior que já venceu. Cada nível soma **8%** de vida e de dano aos inimigos. Há cronômetro: vencer no tempo libera o próximo nível. Sem chave e sem modificador semanal. Se "o maior já vencido" é do grupo ou de cada um fica para a implementação.
+  - **Grupo de raid:** o grupo vira de raid ao passar de 5, até 10, com um líder só ([social](social.md#definido)).
+  - **Fila automática:** a pessoa escolhe o papel sem conferência do servidor, e o servidor monta 1 tank, 1 healer e 3 DPS ([social](social.md#definido)).
 
 ## Em aberto
 
 - [x] ~~Tamanho de grupo de dungeons e de raids?~~ Decidido: dungeon 5, raid 10
 - [x] ~~Dificuldades diferentes?~~ Decidido em 2026-10-10: dificuldade que escala sem fim (veja "Definido")
 - [x] ~~Raids divididas em etapas curtas (gates)?~~ Decidido em 2026-10-10: sim
-- [ ] Quanto cada nível de dificuldade aumenta vida e dano dos inimigos? (WoW Mythic+: cerca de 8% por nível)
-- [ ] Vai ter cronômetro e modificadores, como no Mythic+?
+- [x] Quanto cada nível de dificuldade aumenta vida e dano dos inimigos? (WoW Mythic+: cerca de 8% por nível) Decidido em 2026-10-16: 8% por nível.
+- [x] Vai ter cronômetro e modificadores, como no Mythic+? Decidido em 2026-10-16: cronômetro sim, modificadores não.
 - [ ] **Conflito com o livro (proposta do board, 2026-10-11):** o livro fala em "instâncias de 20 jogadores" (seção 10); aqui continua valendo dungeon de 5 e raid de 10 (decididos em 2026-10-10). O grupo decide se os 20 são o limite do mundo/grupo (veja [social](social.md)) e não da dungeon.
 - [ ] A Mina do Reflexo (três salões, chefe mineral) é a dungeon do MVP? Veja "Livro de Asterra: Mina do Reflexo".
 - [ ] Veja as [referências](../referencias.md) de dungeons, raids e bosses
