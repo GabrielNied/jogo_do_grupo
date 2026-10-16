@@ -27,8 +27,11 @@ public sealed class CombateModule : IFeatureModule
 
     public void ConfigurarServicos(IServiceCollection servicos, IConfiguration configuracao)
     {
+        servicos.TryAddSingleton<RelogioDeCombate>();
         servicos.AddSingleton<IBonusDeAtributos, SemBonusDeEfeitos>();
-        servicos.AddSingleton<GerenciadorDeEfeitosDeStatus>();
+        servicos.AddSingleton(sp => new GerenciadorDeEfeitosDeStatus(() =>
+            sp.GetRequiredService<RelogioDeCombate>().AgoraMs
+        ));
         servicos.AddSingleton<RecursosEmMemoria>();
         servicos.AddHostedService(sp =>
         {
@@ -51,7 +54,9 @@ public sealed class CombateModule : IFeatureModule
                 sp.GetRequiredService<ILogger<ServicoDeQueda>>(),
                 sp.GetRequiredService<ConfigQueda>(),
                 vizinhanca: sp.GetService<IVizinhanca>(),
-                grupos: sp.GetService<IConsultaDeGrupo>()
+                grupos: sp.GetService<IConsultaDeGrupo>(),
+                relogioMs: () => sp.GetRequiredService<RelogioDeCombate>().AgoraMs,
+                esperarAte: sp.GetRequiredService<RelogioDeCombate>().EsperarAteAsync
             );
             _queda = servico;
             return servico;
@@ -66,7 +71,8 @@ public sealed class CombateModule : IFeatureModule
             sp.GetRequiredService<ILogger<ServicoDeEsquivas>>(),
             queda: sp.GetRequiredService<ServicoDeQueda>(),
             vizinhanca: sp.GetService<IVizinhanca>(),
-            eventos: sp.GetService<EventosDoServidor>()
+            eventos: sp.GetService<EventosDoServidor>(),
+            relogioMs: () => sp.GetRequiredService<RelogioDeCombate>().AgoraMs
         ));
         servicos.AddSingleton(sp =>
         {
@@ -76,7 +82,8 @@ public sealed class CombateModule : IFeatureModule
                 sp.GetRequiredService<ControleDeAcoes>(),
                 sp.GetService<ITrocaDeConjunto>(),
                 sp.GetRequiredService<ILogger<ServicoDeTrocaDeArma>>(),
-                queda: sp.GetRequiredService<ServicoDeQueda>()
+                queda: sp.GetRequiredService<ServicoDeQueda>(),
+                relogioMs: () => sp.GetRequiredService<RelogioDeCombate>().AgoraMs
             );
             _troca = servico;
             return servico;
@@ -92,7 +99,8 @@ public sealed class CombateModule : IFeatureModule
                 sp.GetService<ILimiteDeVelocidadeDoMundo>(),
                 escopos: sp.GetRequiredService<IServiceScopeFactory>(),
                 log: sp.GetRequiredService<ILogger<ServicoDeGuarda>>(),
-                vizinhanca: sp.GetService<IVizinhanca>()
+                vizinhanca: sp.GetService<IVizinhanca>(),
+                relogioMs: () => sp.GetRequiredService<RelogioDeCombate>().AgoraMs
             );
             _guarda = servico;
             return servico;
@@ -110,7 +118,8 @@ public sealed class CombateModule : IFeatureModule
                 efeitos: sp.GetRequiredService<GerenciadorDeEfeitosDeStatus>(),
                 vizinhanca: sp.GetService<IVizinhanca>(),
                 equipamentos: sp.GetService<IAtributosDosEquipamentos>(),
-                eventos: sp.GetService<EventosDoServidor>()
+                eventos: sp.GetService<EventosDoServidor>(),
+                relogioMs: () => sp.GetRequiredService<RelogioDeCombate>().AgoraMs
             );
             _danoRecebido = servico;
             return servico;
@@ -129,7 +138,9 @@ public sealed class CombateModule : IFeatureModule
                 limiteDeVelocidade: sp.GetService<ILimiteDeVelocidadeDoMundo>(),
                 efeitos: sp.GetRequiredService<GerenciadorDeEfeitosDeStatus>(),
                 vizinhanca: sp.GetService<IVizinhanca>(),
-                eventos: sp.GetService<EventosDoServidor>()
+                eventos: sp.GetService<EventosDoServidor>(),
+                relogioMs: () => sp.GetRequiredService<RelogioDeCombate>().AgoraMs,
+                esperarAte: sp.GetRequiredService<RelogioDeCombate>().EsperarAteAsync
             );
             _ataques = servico;
             _esquivas = sp.GetRequiredService<ServicoDeEsquivas>();
@@ -147,7 +158,8 @@ public sealed class CombateModule : IFeatureModule
             sp.GetRequiredService<ILogger<ServicoDeEfeitosDeStatus>>(),
             posicoes: sp.GetService<IPosicoesDoMundo>(),
             queda: sp.GetService<ServicoDeQueda>(),
-            vizinhanca: sp.GetService<IVizinhanca>()
+            vizinhanca: sp.GetService<IVizinhanca>(),
+            relogioMs: () => sp.GetRequiredService<RelogioDeCombate>().AgoraMs
         ));
         servicos.AddHostedService(sp => sp.GetRequiredService<ServicoDeEfeitosDeStatus>());
     }

@@ -26,6 +26,7 @@ public sealed class ServicoDeAtaques : IHostedService, IDisposable
     private readonly IServiceScopeFactory _escopos;
     private readonly ILogger<ServicoDeAtaques> _log;
     private readonly Func<long> _relogioMs;
+    private readonly Func<long, CancellationToken, Task> _esperarAte;
     private readonly ControleDeAcoes _controle;
     private readonly ServicoDeQueda? _queda;
     private readonly IAliadosDeCombate _aliados;
@@ -54,7 +55,8 @@ public sealed class ServicoDeAtaques : IHostedService, IDisposable
         ILimiteDeVelocidadeDoMundo? limiteDeVelocidade = null,
         GerenciadorDeEfeitosDeStatus? efeitos = null,
         IVizinhanca? vizinhanca = null,
-        EventosDoServidor? eventos = null
+        EventosDoServidor? eventos = null,
+        Func<long, CancellationToken, Task>? esperarAte = null
     )
     {
         _eventos = eventos;
@@ -71,7 +73,17 @@ public sealed class ServicoDeAtaques : IHostedService, IDisposable
         _escopos = escopos;
         _log = log;
         _relogioMs = relogioMs ?? (() => Environment.TickCount64);
+        _esperarAte = esperarAte ?? EsperaReal;
         _tempoReal.SessaoEncerrada += AoEncerrar;
+    }
+
+    // Sem relógio de combate injetado: dorme o que falta na escala do próprio relógio do serviço.
+    private Task EsperaReal(long instanteMs, CancellationToken cancelamento)
+    {
+        var falta = instanteMs - _relogioMs();
+        return falta > 0
+            ? Task.Delay(TimeSpan.FromMilliseconds(falta), cancelamento)
+            : Task.CompletedTask;
     }
 
     public Task StartAsync(CancellationToken cancelamento) => Task.CompletedTask;
@@ -217,14 +229,7 @@ public sealed class ServicoDeAtaques : IHostedService, IDisposable
         }
     }
 
-    private async Task EsperarAteAsync(long instanteMs)
-    {
-        var falta = instanteMs - _relogioMs();
-        if (falta > 0)
-        {
-            await Task.Delay(TimeSpan.FromMilliseconds(falta), _parada.Token);
-        }
-    }
+    private Task EsperarAteAsync(long instanteMs) => _esperarAte(instanteMs, _parada.Token);
 
     // No fim da ação, o pedido da fila (se houver) começa.
     private void AvancarFila(long personagemId, AcaoDeAtaque acao)

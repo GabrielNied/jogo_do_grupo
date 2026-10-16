@@ -77,6 +77,7 @@ public sealed class ServidorDeQueda : IDisposable
 
     public ServidorDeTeste Real { get; } = new();
     public PosicoesFalsas Posicoes { get; } = new();
+    public RelogioDeCombateControlado RelogioCombate { get; } = new();
     public ConsultaDeGrupoFalsa Grupos { get; } = new();
     public WebApplicationFactory<Program> Falso { get; }
     public int Porta { get; }
@@ -90,6 +91,8 @@ public sealed class ServidorDeQueda : IDisposable
                 s.AddSingleton<IPosicoesDoMundo>(Posicoes);
                 s.RemoveAll<IConsultaDeGrupo>();
                 s.AddSingleton<IConsultaDeGrupo>(Grupos);
+                s.RemoveAll<RelogioDeCombate>();
+                s.AddSingleton<RelogioDeCombate>(RelogioCombate);
                 s.RemoveAll<ConfigQueda>();
                 s.AddSingleton(Config);
             })
@@ -138,6 +141,7 @@ public class QuedaTestes(ServidorDeQueda servidor) : IClassFixture<ServidorDeQue
 
     private async Task<Jogador> NovoJogadorAsync(float x = 0f, float z = 0f)
     {
+        servidor.RelogioCombate.Soltar(); // cada teste decide se controla o tempo
         var http = await ServidorDeTeste.CriarClienteLogadoEmAsync(servidor.Falso);
         var resposta = await ServidorDeTeste.PostJsonAsync(
             http,
@@ -371,11 +375,17 @@ public class QuedaTestes(ServidorDeQueda servidor) : IClassFixture<ServidorDeQue
     {
         using var ana = await NovoJogadorAsync();
         using var beto = await NovoJogadorAsync(1f, 0f);
+        servidor.RelogioCombate.Controlar();
         await DerrubarAsync(ana);
         Levantar(beto, ana);
+        await EstadoAsync(ana, FaseDeQueda.Levantando);
+        await servidor.RelogioCombate.AvancarQuandoEsperarAsync(
+            ServidorDeQueda.Config.TempoParaLevantarMs
+        );
         await EstadoAsync(ana, FaseDeQueda.Vivo);
 
-        await Task.Delay(ServidorDeQueda.Config.TempoCaidoMs + 400);
+        // Passa o tempo todo do caído: o fim antigo não pode trazer uma segunda saída.
+        servidor.RelogioCombate.Avancar(ServidorDeQueda.Config.TempoCaidoMs + 400);
 
         Assert.Equal(0, servidor.Eventos<PersonagemVoltouParaACidade>(ana.Id));
         Assert.Equal(1, servidor.Eventos<PersonagemLevantou>(ana.Id));
@@ -388,12 +398,17 @@ public class QuedaTestes(ServidorDeQueda servidor) : IClassFixture<ServidorDeQue
     {
         using var ana = await NovoJogadorAsync();
         using var beto = await NovoJogadorAsync(1f, 0f);
+        servidor.RelogioCombate.Controlar();
         await DerrubarAsync(ana);
         Levantar(beto, ana);
+        await EstadoAsync(ana, FaseDeQueda.Levantando);
+        await servidor.RelogioCombate.AvancarQuandoEsperarAsync(
+            ServidorDeQueda.Config.TempoParaLevantarMs
+        );
         await EstadoAsync(ana, FaseDeQueda.Vivo);
 
-        // Espera a imunidade temporária de 2 s expirar antes do próximo golpe
-        await Task.Delay(RegrasQueda.ImunidadeAposLevantarMs + 50);
+        // Passa a imunidade temporária de 2 s antes do próximo golpe
+        servidor.RelogioCombate.Avancar(RegrasQueda.ImunidadeAposLevantarMs + 50);
 
         await DerrubarAsync(ana);
 
@@ -460,6 +475,7 @@ public class QuedaTestes(ServidorDeQueda servidor) : IClassFixture<ServidorDeQue
     {
         using var ana = await NovoJogadorAsync();
         using var beto = await NovoJogadorAsync(1f, 0f);
+        servidor.RelogioCombate.Controlar();
         await DerrubarAsync(ana);
         Levantar(beto, ana);
         await EstadoAsync(ana, FaseDeQueda.Levantando);
@@ -469,7 +485,7 @@ public class QuedaTestes(ServidorDeQueda servidor) : IClassFixture<ServidorDeQue
         var volta = await EstadoAsync(ana, FaseDeQueda.Caido);
         Assert.Equal(0L, volta.AjudanteId);
         Assert.Equal(0, volta.ProgressoMs);
-        await Task.Delay(ServidorDeQueda.Config.TempoParaLevantarMs + 300);
+        servidor.RelogioCombate.Avancar(ServidorDeQueda.Config.TempoParaLevantarMs + 300);
         Assert.Equal(0, servidor.Eventos<PersonagemLevantou>(ana.Id));
         Assert.True((await RecursosAsync(beto)).VidaAtual < (await RecursosAsync(beto)).VidaMaxima);
     }
@@ -479,6 +495,7 @@ public class QuedaTestes(ServidorDeQueda servidor) : IClassFixture<ServidorDeQue
     {
         using var ana = await NovoJogadorAsync();
         using var beto = await NovoJogadorAsync(1f, 0f);
+        servidor.RelogioCombate.Controlar();
         await DerrubarAsync(ana);
         Levantar(beto, ana);
         await EstadoAsync(ana, FaseDeQueda.Levantando);
@@ -487,7 +504,7 @@ public class QuedaTestes(ServidorDeQueda servidor) : IClassFixture<ServidorDeQue
 
         await EstadoAsync(ana, FaseDeQueda.Caido);
         Assert.True(servidor.Queda.EstaCaido(beto.Id));
-        await Task.Delay(ServidorDeQueda.Config.TempoParaLevantarMs + 300);
+        servidor.RelogioCombate.Avancar(ServidorDeQueda.Config.TempoParaLevantarMs + 300);
         Assert.Equal(0, servidor.Eventos<PersonagemLevantou>(ana.Id));
     }
 
@@ -496,6 +513,7 @@ public class QuedaTestes(ServidorDeQueda servidor) : IClassFixture<ServidorDeQue
     {
         using var ana = await NovoJogadorAsync();
         using var beto = await NovoJogadorAsync(1f, 0f);
+        servidor.RelogioCombate.Controlar();
         await DerrubarAsync(ana);
         Levantar(beto, ana);
         await EstadoAsync(ana, FaseDeQueda.Levantando);
@@ -503,7 +521,7 @@ public class QuedaTestes(ServidorDeQueda servidor) : IClassFixture<ServidorDeQue
         beto.Cliente.Enviar(CombateMessageIds.CancelarLevantar, new CancelarLevantar());
 
         await EstadoAsync(ana, FaseDeQueda.Caido);
-        await Task.Delay(ServidorDeQueda.Config.TempoParaLevantarMs + 300);
+        servidor.RelogioCombate.Avancar(ServidorDeQueda.Config.TempoParaLevantarMs + 300);
         Assert.Equal(0, servidor.Eventos<PersonagemLevantou>(ana.Id)); // a interação não terminou
     }
 
@@ -512,14 +530,19 @@ public class QuedaTestes(ServidorDeQueda servidor) : IClassFixture<ServidorDeQue
     {
         using var ana = await NovoJogadorAsync();
         using var beto = await NovoJogadorAsync(1f, 0f);
+        servidor.RelogioCombate.Controlar();
         await DerrubarAsync(ana);
         Levantar(beto, ana);
         await EstadoAsync(ana, FaseDeQueda.Levantando);
 
         servidor.Posicoes.Mover(beto.Id, 2.5f, 0f);
+        // A conferência de alcance roda a cada tick do caído: anda um tick.
+        await servidor.RelogioCombate.AvancarQuandoEsperarAsync(
+            ServidorDeQueda.Config.IntervaloDeConferenciaMs
+        );
 
         await EstadoAsync(ana, FaseDeQueda.Caido);
-        await Task.Delay(ServidorDeQueda.Config.TempoParaLevantarMs + 300);
+        servidor.RelogioCombate.Avancar(ServidorDeQueda.Config.TempoParaLevantarMs + 300);
         Assert.Equal(0, servidor.Eventos<PersonagemLevantou>(ana.Id)); // a interação não terminou
     }
 
@@ -690,8 +713,11 @@ public class QuedaTestes(ServidorDeQueda servidor) : IClassFixture<ServidorDeQue
         using var ana = await NovoJogadorAsync();
         var itens = await GanharItensAsync(ana);
         await GastarStaminaEManaAsync(ana);
+        servidor.RelogioCombate.Controlar();
         await DerrubarAsync(ana);
-        await Task.Delay(ServidorDeQueda.Config.MinimoParaVoltarMs + 100);
+        await servidor.RelogioCombate.AvancarQuandoEsperarAsync(
+            ServidorDeQueda.Config.MinimoParaVoltarMs + 100
+        );
 
         Voltar(ana);
 
@@ -747,14 +773,16 @@ public class QuedaTestes(ServidorDeQueda servidor) : IClassFixture<ServidorDeQue
         {
             using var ana = await NovoJogadorAsync();
             using var beto = await NovoJogadorAsync(1f, 0f);
-            var relogio = Stopwatch.StartNew();
+            servidor.RelogioCombate.Controlar();
             await DerrubarAsync(ana);
 
-            // Começa de modo que os 0,6 s acabem quase junto com os 3 s.
-            var espera =
-                config.TempoCaidoMs - config.TempoParaLevantarMs - relogio.ElapsedMilliseconds;
-            await Task.Delay((int)Math.Max(0, espera));
+            // Começa de modo que os 0,6 s acabem exatamente junto com os 3 s.
+            await servidor.RelogioCombate.AvancarQuandoEsperarAsync(
+                config.TempoCaidoMs - config.TempoParaLevantarMs
+            );
             Levantar(beto, ana);
+            await EstadoAsync(ana, FaseDeQueda.Levantando);
+            await servidor.RelogioCombate.AvancarQuandoEsperarAsync(config.TempoParaLevantarMs);
 
             await UmaSaidaSoAsync(ana);
             Assert.Equal(
@@ -772,13 +800,19 @@ public class QuedaTestes(ServidorDeQueda servidor) : IClassFixture<ServidorDeQue
         {
             using var ana = await NovoJogadorAsync();
             using var beto = await NovoJogadorAsync(1f, 0f);
+            servidor.RelogioCombate.Controlar();
             await DerrubarAsync(ana);
-            await Task.Delay(ServidorDeQueda.Config.MinimoParaVoltarMs + 50);
+            await servidor.RelogioCombate.AvancarQuandoEsperarAsync(
+                ServidorDeQueda.Config.MinimoParaVoltarMs + 50
+            );
             Levantar(beto, ana);
             await EstadoAsync(ana, FaseDeQueda.Levantando);
-            await Task.Delay(ServidorDeQueda.Config.TempoParaLevantarMs - 10);
+            await servidor.RelogioCombate.AvancarQuandoEsperarAsync(
+                ServidorDeQueda.Config.TempoParaLevantarMs - 10
+            );
 
             Voltar(ana);
+            await servidor.RelogioCombate.AvancarQuandoEsperarAsync(10);
 
             await UmaSaidaSoAsync(ana);
             Assert.False(servidor.Queda.EstaCaido(ana.Id));

@@ -32,6 +32,7 @@ public sealed class ServicoDeQueda : IEstadoDeQueda, IHostedService, IDisposable
     private readonly IServiceScopeFactory _escopos;
     private readonly ILogger<ServicoDeQueda> _log;
     private readonly Func<long> _relogioMs;
+    private readonly Func<long, CancellationToken, Task> _esperarAte;
     private readonly ConfigQueda _config;
     private readonly ControleDeQueda _controle;
     private readonly ConcurrentDictionary<long, byte> _gravando = new();
@@ -48,7 +49,8 @@ public sealed class ServicoDeQueda : IEstadoDeQueda, IHostedService, IDisposable
         ConfigQueda? config = null,
         Func<long>? relogioMs = null,
         IVizinhanca? vizinhanca = null,
-        IConsultaDeGrupo? grupos = null
+        IConsultaDeGrupo? grupos = null,
+        Func<long, CancellationToken, Task>? esperarAte = null
     )
     {
         _vizinhanca = vizinhanca;
@@ -61,6 +63,7 @@ public sealed class ServicoDeQueda : IEstadoDeQueda, IHostedService, IDisposable
         _config = config ?? new ConfigQueda();
         _controle = new ControleDeQueda(_config, id => _gravando[id] = 0);
         _relogioMs = relogioMs ?? (() => Environment.TickCount64);
+        _esperarAte = esperarAte ?? EsperaReal;
         _tempoReal.SessaoEncerrada += AoEncerrar;
     }
 
@@ -68,6 +71,15 @@ public sealed class ServicoDeQueda : IEstadoDeQueda, IHostedService, IDisposable
 
     internal void LimparGravandoParaTeste(long personagemId) =>
         _gravando.TryRemove(personagemId, out _);
+
+    // Sem relógio de combate injetado: dorme o que falta na escala do próprio relógio do serviço.
+    private Task EsperaReal(long instanteMs, CancellationToken cancelamento)
+    {
+        var falta = instanteMs - _relogioMs();
+        return falta > 0
+            ? Task.Delay(TimeSpan.FromMilliseconds(falta), cancelamento)
+            : Task.CompletedTask;
+    }
 
     public Task StartAsync(CancellationToken cancelamento) => Task.CompletedTask;
 
@@ -227,14 +239,15 @@ public sealed class ServicoDeQueda : IEstadoDeQueda, IHostedService, IDisposable
         {
             while (!_parada.IsCancellationRequested)
             {
-                var falta = _controle.MsAteOProximoEvento(alvoId, _relogioMs());
+                var agora = _relogioMs();
+                var falta = _controle.MsAteOProximoEvento(alvoId, agora);
                 if (falta < 0)
                 {
                     return;
                 }
 
                 var espera = Math.Clamp(falta, 1, Math.Max(1, _config.IntervaloDeConferenciaMs));
-                await Task.Delay(TimeSpan.FromMilliseconds(espera), _parada.Token);
+                await _esperarAte(agora + espera, _parada.Token);
 
                 var saida = _controle.Resolver(alvoId, _relogioMs());
                 if (saida.Houve)
