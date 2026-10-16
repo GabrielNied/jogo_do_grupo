@@ -18,10 +18,14 @@ Tipos de mobs, comportamento por região e bosses com mecânicas marcantes.
   - **Comum:** pode aparecer **fortalecida**: mais forte, maior e com **aura vermelha**, e dá mais recompensa.
   - **Chefe:** sempre aparece e sempre com a mesma força. Nunca vem fortalecido.
   - **Chefe raro:** força fixa como a do chefe, mas **pode aparecer ou não**, no estilo dos raros de World of Warcraft.
+- **Decisões do Gabriel em 2026-10-16** (quiz de lacunas de MMO):
+  - **Horda puxada (agro longo do RYL):** três travas juntas. A desistência por distância continua e pode crescer (hoje 30 m, a calibrar); criatura nunca entra na cidade ([mundo](mundo.md#definido)); e a criatura que já persegue alguém **só ataca quem tem ameaça nela** ([ameaça](combate.md#ameaça-agro-169)), então quem só passa por perto não é atacado.
+  - **Chefe de mundo:** aparece em lugar e hora sorteados, com **força fixa** (a regra de não escalar continua), e avisa na área. Loot individual para quem participou ([fatia, seção 5](fatia-jogavel.md#5-loot-no-chão)).
+  - **Coroas:** cada criatura larga poucas coroas pelo nível; chefes, mais ([economia](economia.md#definido)).
 
 ## Em aberto
 
-- [ ] Bosses de mundo aberto (world boss)?
+- [x] Bosses de mundo aberto (world boss)? Decidido em 2026-10-16: sim, aparição sorteada e força fixa (veja Definido).
 - [ ] Respawn: tempo fixo ou dinâmico?
 - [ ] O nome "fortalecida" fica, ou o grupo prefere outro (elite, enfurecida)?
 - [ ] Os números da criatura fortalecida e do chefe raro (tabelas em "Regras").

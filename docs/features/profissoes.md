@@ -12,6 +12,7 @@ Craft e coleta, conectados à economia.
 
 - Profissões separadas de talentos.
 - Cada profissão se conecta à economia.
+- **Pontos de coleta compartilhados** (decidido por Gabriel em 2026-10-16): quem coleta primeiro leva, e o ponto some para todos até voltar, como no New World.
 - Decidido em 2026-10-12: seis profissões, no estilo do World of Warcraft (coleta separada de produção) e sem limite por personagem, como no New World. Coleta: Lenhador, Minerador e Curtidor. Produção: Ferreiro, Alquimista e Cozinheiro. Um personagem pode aprender as seis. Fora da [fatia jogável](fatia-jogavel.md#fora-desta-fatia).
 
 ## Em aberto

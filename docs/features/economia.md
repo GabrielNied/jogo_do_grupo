@@ -16,6 +16,11 @@ Moedas, mercado, comércio entre jogadores, saídas de recursos e taxas.
 - Drops, crafting e fusão alimentam o mercado
 - Saídas de recursos: custo de fusão, reparo, taxas
 - Taxas e impostos: leilão, guilda, território
+- **Decisões do Gabriel em 2026-10-16** (quiz de lacunas de MMO; números a propor):
+  - **Entrada de coroas:** criaturas largam poucas (mais nos chefes), a loja de NPC compra itens por um valor baixo, e missões, diárias e semanais pagam valor fixo ([missões](missoes.md)).
+  - **Saídas:** fusão, reparo da [durabilidade](itens.md#definido), taxas, correio e criação de guilda.
+  - **Entre jogadores**, além do leilão: troca direta (os dois lados confirmam e o servidor troca de uma vez), correio (itens e coroas para quem está offline, com taxa), troca do loot da luta ([itens](itens.md#definido)) e banco pessoal na cidade, compartilhado entre os personagens da conta.
+  - **Imposto de território:** só quando existirem os territórios de guilda ([pvp](pvp.md#definido)).
 
 ## Em aberto
 
