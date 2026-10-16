@@ -16,6 +16,9 @@ Cálculo de dano, seleção de alvo e efeitos de status. Usado por PvE e PvP.
 - **Ritmo do New World: ação, mas não frenética e sem spam de skills** (preferência do grupo, 2026-10-10). O dano vem principalmente de ataque leve e pesado; poucas skills, com recarga que pesa; stamina para esquiva e bloqueio
 - **Papéis no grupo: tank, healer e DPS**, no estilo de World of Warcraft (decidido em 2026-10-10). Sem classes, o papel vem da combinação de itens equipados (D2)
 - **Buffs de grupo**: cada papel traz buffs que complementam o time
+- **Decisões do Gabriel em 2026-10-16** (quiz de lacunas de MMO; números são valor inicial, em constante nomeada):
+  - **Cura:** vai no aliado da mira, como o cajado de vida do New World; algumas skills curam em área no chão. Sem alvo selecionado e sem cura automática no mais ferido.
+  - **Sair de combate:** 5 s sem dar nem levar dano. Fora de combate a vida regenera, e stamina e mana regeneram mais rápido. Montar só fora de combate ([montarias](montarias.md)).
 - **Ataques telegrafados** (decidido em 2026-10-10): bosses e inimigos fortes avisam antes de bater (área marcada no chão, brilho ou animação de preparo) e o jogador tem tempo de esquivar ou sair da área. Base: Final Fantasy XIV e WoW
 - **Decisões do Gabriel em 2026-10-11** (estavam só em comentário de issue):
   - **Ataque (#61):** cone de **2,5 m e 90°** à frente do atacante; boneco de treino na cidade (compensação de lag no servidor desde #172). Os números moram em `RegrasAtaque`.

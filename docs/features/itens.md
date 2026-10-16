@@ -18,6 +18,9 @@ Inventário, equipamentos, tier calculado pelos atributos e fusão determinísti
 - ~~**Fusão/infusão** (decidido por Gabriel em 2026-10-11, a validar pelo grupo): só doadores do mesmo tipo **e** raridade, +2% fixo do valor-base por doador, sem retorno decrescente, **com custo em coroas**. O item sacrificado é destruído.~~ Substituído em 2026-10-12 pela fusão v2 (abaixo); a fusão v2 entrou na [#616](https://github.com/GabrielNied/jogo_do_grupo/issues/616) ([Fusão](#fusão)) e a infusão saiu do código.
 - **Modelo de itens v2** (decidido por Gabriel em 2026-10-12, a partir do [documento mestre](../brainstorm/documento-mestre.md); **prioridade alta**): tier pelos atributos, fusão que escolhe um atributo e anda metade da diferença, sem falha, até **+10**, custos em coroas e materiais de dungeon e raid, sem desmontagem. Regras e invariantes em [Modelo de itens v2](#modelo-de-itens-v2-documento-mestre-2026-10-12).
 - Itens negociáveis, inclusive os fundidos (fomentar a economia)
+- **Vínculo** (decidido por Gabriel em 2026-10-16): equipamento é sempre negociável. Só os materiais de fusão de raid (+9 e +10) vinculam ao personagem ao coletar, para a raid continuar necessária.
+- **Troca do loot da luta** (decidido por Gabriel em 2026-10-16): por 2 h, o loot pode ser passado a quem participou da mesma luta, mesmo o material vinculado.
+- **Durabilidade** (decidido por Gabriel em 2026-10-16): o equipamento perde durabilidade pelo uso em combate; reparar custa coroas ([economia](economia.md#definido)). Quebrado deixa de dar atributos, mas não some. Cair não tira durabilidade extra. Números a propor.
 - **Inventário de jogo, não de formulário** (decidido por Gabriel em 2026-10-12): bolsa em grade de casas **1×1** para todos os tipos, paperdoll, tooltip, clique direito e arrastar e soltar, com a base pronta para inventário grande. Veja [Interface do inventário](#interface-do-inventário-560).
 
 ## Em aberto

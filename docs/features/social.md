@@ -15,10 +15,16 @@ Esta página detalha o **grupo** (convite, lista, líder, sair e expulsar; issue
 - Party: tamanho e divisão de loot
 - Party de até 5 jogadores (o tamanho de uma dungeon); raids juntam 10 (decidido em 2026-10-10)
 - Guilda: níveis, base própria, benefícios
+- **Decisões do Gabriel em 2026-10-16** (quiz de lacunas de MMO; números a propor):
+  - **Grupo de raid:** um grupo só, de até 10, com um líder; a tela mostra duas listas de 5 ([instâncias](instancias.md#definido)).
+  - **Fila automática por papel:** a pessoa escolhe tank, healer ou DPS livremente (o servidor não confere os itens); o grupo resolve se alguém escolher errado.
+  - **Guilda:** até **100** membros; criar custa coroas; quatro cargos (líder, oficial, membro, recruta) com permissões de convidar, expulsar e usar o banco; chat e banco de guilda; **níveis e bônus** já na primeira versão, subindo com a atividade dos membros. Base própria fica para depois.
+  - **Canais de chat novos:** Guilda, Mundo/Comércio (alcança o servidor todo, com intervalo mínimo entre mensagens), Raid e Procurar grupo.
+  - **Denúncia, silenciar e filtro de palavrões:** todos juntos com a ferramenta de GM ([#187](https://github.com/GabrielNied/jogo_do_grupo/issues/187)).
 
 ## Em aberto
 
-- [ ] Tamanho máximo de party e guilda? Party decidida em 2026-10-10: 5 (veja "Definido"); ~~party~~ sai desta pergunta. Falta o tamanho da guilda.
+- [x] Tamanho máximo de party e guilda? Party decidida em 2026-10-10: 5 (veja "Definido"); ~~party~~ sai desta pergunta. Falta o tamanho da guilda. Guilda: 100, decidido em 2026-10-16.
 - [ ] Regras de divisão de loot
 - [ ] **Proposta do livro de Asterra (2026-10-11), não validada pelo grupo** ([figjam.md](../brainstorm/figjam.md), seção 10, "Grupo, disputa de loot e PvP futuro"):
   - **Tamanho:** instância de 20 jogadores e grupo que pode reunir os 20, com vida e localização dos aliados e baú compartilhado conforme permissão. **Decidido em 2026-10-11 (/decida, #351):** o limite fica **party de 5, raid de 10, dungeon de 5** (o definido não muda). Entra a lista com localização e vida dos aliados, no limite atual; o grupo de 20 fica só como proposta registrada. Antes: hoje está definido party de 5 e raid de 10 (2026-10-10); a regra não muda, a pergunta fica aberta (veja a pergunta de raid abaixo e [instancias.md](instancias.md)).
@@ -28,8 +34,8 @@ Esta página detalha o **grupo** (convite, lista, líder, sair e expulsar; issue
 - [ ] Só o líder expulsa, ou qualquer membro pode pedir votação? (proposta: só o líder expulsa, sem votação)
 - [ ] Tempo que a vaga fica guardada após desconexão (proposta: 60 s) e tempo de validade do convite (proposta: 60 s)
 - [ ] Convidar por nome exige amizade ou proximidade? (proposta: não, basta o personagem estar online)
-- [ ] Bloquear convites (modo "não aceitar grupo") e fila automática de grupo: ficam fora da primeira versão?
-- [ ] Raid de 10: é um grupo maior ou dois grupos de 5 juntos? (veja [instancias.md](instancias.md))
+- [ ] Bloquear convites (modo "não aceitar grupo") fica fora da primeira versão? ~~E a fila automática de grupo?~~ A fila entra (decidido em 2026-10-16).
+- [x] Raid de 10: é um grupo maior ou dois grupos de 5 juntos? (veja [instancias.md](instancias.md)) Decidido em 2026-10-16: um grupo só, até 10.
 - [ ] O grupo desfaz ao ficar com 1 pessoa? (proposta: sim)
 - [ ] Chat (#95), decisões do grupo:
   - [ ] Aprovar os três canais (Cidade, Grupo, Sussurro) e os números da tabela de limites (proposta)
@@ -37,7 +43,7 @@ Esta página detalha o **grupo** (convite, lista, líder, sair e expulsar; issue
   - [ ] Filtro de palavrões: fica fora da primeira versão (proposta) ou entra uma lista simples?
   - [ ] **Ignorar jogador** gravado neste computador (proposta) ou na conta, pelo servidor?
   - [ ] O servidor guarda as mensagens em algum lugar para moderação? (proposta: não guarda; só o histórico curto da Cidade em memória)
-  - [ ] Denunciar jogador e silenciar por um moderador: ficam para depois?
+  - [x] Denunciar jogador e silenciar por um moderador: ficam para depois? Decidido em 2026-10-16: junto com a #187.
   - [ ] Sussurro para quem está em outra área (ex.: você na cidade e a pessoa na dungeon): pode? (proposta: sim)
 - [ ] Amigos e ignorar (#180), decisões do grupo:
   - [ ] Aprovar amizade e ignorar **por conta** (proposta) em vez de por personagem, e os números da tabela de [Amigos e ignorar](#amigos-e-ignorar-issue-180)
