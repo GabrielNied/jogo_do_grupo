@@ -20,7 +20,7 @@ Tipos de mobs, comportamento por região e bosses com mecânicas marcantes.
   - **Chefe raro:** força fixa como a do chefe, mas **pode aparecer ou não**, no estilo dos raros de World of Warcraft.
 - **Decisões do Gabriel em 2026-10-16** (quiz de lacunas de MMO):
   - **Horda puxada (agro longo do RYL):** três travas juntas. A desistência por distância continua e pode crescer (hoje 30 m, a calibrar); criatura nunca entra na cidade ([mundo](mundo.md#definido)); e a criatura que já persegue alguém **só ataca quem tem ameaça nela** ([ameaça](combate.md#ameaça-agro-169)), então quem só passa por perto não é atacado.
-  - **Chefe de mundo:** aparece em lugar e hora sorteados, com **força fixa** (a regra de não escalar continua), e avisa na área. Loot individual para quem participou ([fatia, seção 5](fatia-jogavel.md#5-loot-no-chão)).
+  - **Chefe de mundo:** aparece em lugar e hora sorteados, com **força fixa** (a regra de não escalar continua), e avisa na área. Loot individual para quem participou ([fatia, seção 5](fatia-jogavel.md#5-loot-no-chão)). ~~Só aviso na área~~ ampliado no quiz 4: também **marca no mapa/minimapa** para o chefe raro (ver bullet do chefe raro abaixo).
   - **Coroas:** cada criatura larga poucas coroas pelo nível; chefes, mais ([economia](economia.md#definido)).
 - **Decisões do Gabriel em 2026-10-16** (quiz de definições):
   - **Puxar em cadeia** (quiz de definições 2, como no WoW): atacar um inimigo puxa também os grupos da mesma espécie a até **10 m** dele (constante nomeada). O barulho do combate não chama ninguém, e as criaturas não reagem a luz nem a som (#320 fechada).
@@ -28,7 +28,7 @@ Tipos de mobs, comportamento por região e bosses com mecânicas marcantes.
   - **Escolhas do inimigo comum e do campo viram regra** (quiz de definições 2): o grupo perde o alvo de vista na desistência, o golpe pega todos no volume de contato e o inimigo é imune enquanto volta; os pontos, níveis e tamanhos de "Mais mobs no campo", o Lobo do Campo e o Tatu Rochoso (#452) e os nomes Javali do Campo, Guardião do Reflexo e Presa-Velha ficam. Os números da Elite e do chefe raro o agente propõe e calibra.
   - **"Fortalecida" passa a se chamar Elite** (texto na tela, docs e código; a regra não muda).
   - **Respawn dinâmico pela lotação:** quanto mais jogadores perto do ponto, mais curto o intervalo de reposição. O agente de mobs calibra a curva e o limite, em constante nomeada; o teto de vivos da área continua.
-  - **Chefe raro:** **avisa na área** quando aparece, **some depois de 30 min** se ninguém o matar (volta ao sorteio) e tem **loot próprio** (item que só ele larga, na tabela de [itens](itens.md)). **Não** aparece em dungeon.
+  - **Chefe raro:** **avisa na área e no mapa/minimapa** quando aparece; **some depois de 30 min** se ninguém o matar (volta ao sorteio) e tem **loot próprio** (item que só ele larga, na tabela de [itens](itens.md)). **Não** aparece em dungeon. Enquanto **houver combate** com o chefe raro, o **timer de 30 min pausa**; ao sair de combate, **retoma o tempo restante** (quiz de definições 4, 2026-10-16).
 - **Decisões do Gabriel em 2026-10-16** (quiz de definições 3):
   - **Bestiário:** UI com **progresso por espécie** (observação/morte preenche fichas); implementação separada de [#323](https://github.com/GabrielNied/jogo_do_grupo/issues/323).
   - **Pets:** ~~captura do cervo~~ substituído: mobs têm **chance rara** de dropar **item de pet negociável** (estilo WoW); **usar o item registra o pet na conta** ([pets](pets.md#definido)).
@@ -41,7 +41,7 @@ Tipos de mobs, comportamento por região e bosses com mecânicas marcantes.
 - [x] Decidido em 2026-10-16 (quiz de definições 2): o agente propõe e calibra. Os números da criatura fortalecida e do chefe raro (tabelas em "Regras").
 - [x] Decidido em 2026-10-16 (quiz de definições 2): ficam. As três primeiras criaturas (Javali do Campo, Guardião do Reflexo, Presa-Velha) são só um ponto de partida: nomes, espécies e onde ficam.
 - [x] **Livro de Asterra, decidido em 2026-10-11 (/decida, #322):** o Javali do Campo **permanece** (dano 40, grupo de 3 a 5, já implementado); o Javali Ferrugem do livro (dano 18, grupo de 8 a 15) só entra depois, como espécie à parte. Lobo de Geada, Carapaça de Brasa, Cervo e Mariposa viram fichas em `Config<Assunto>`, de força fixa, fora do campo da fatia até o foco do marco mudar. Ancião e Colosso só com o chefe de mundo (#191). Bestiário e captura ficam para depois do MVP. As manadas com rota e limite urbano estão feitas (issue #321: veja "Manadas com rota (#321)"). Pergunta original: o Javali do Campo vira o Javali Ferrugem (dano 18, grupo de 8 a 15) ou os dois convivem? As cinco espécies, o bestiário com conhecimento e a captura do cervo entram no MVP? As manadas que nunca entram na cidade e seguem rotas? Veja "Livro de Asterra: bestiário".
-- [x] O chefe raro avisa quando aparece (mensagem na área, marca no mapa) ou o jogador tem que achar? Decidido em 2026-10-16: avisa na área.
+- [x] O chefe raro avisa quando aparece (mensagem na área, marca no mapa) ou o jogador tem que achar? Decidido em 2026-10-16: avisa na área; quiz 4: **marca no mapa/minimapa** também.
 - [x] O chefe raro some sozinho se ninguém o matar? Decidido em 2026-10-16: some depois de 30 min.
 - [x] Dungeon tem chefe raro (um sorteio ao criar a instância)? Decidido em 2026-10-16: não.
 - [x] Loot próprio do chefe raro (item que só ele larga): depende de [itens.md](itens.md). Decidido em 2026-10-16: sim.
@@ -149,7 +149,9 @@ O chefe raro no campo (issue #310; **proposta**, a confirmar no review):
 
 - **Onde:** a Presa-Velha tem um ponto próprio no campo, com centro em (-60, 230) na área `cidade` (ele nasce 4 m ao norte do centro, como o inimigo de um grupo de um; uns 60 m a oeste do grupo de javalis, fora da visão deles). Valores em `ConfigInimigosDoCampo`.
 - **Como aparece:** o servidor sobe sem o chefe; o `AparicaoDeChefeRaro` faz o primeiro sorteio no primeiro passo e depois um por intervalo (1800 s, chance de 20%). Quando sorteia, ele chega como `InimigoApareceu`, com `Variante` normal, e fica até morrer, sem novo sorteio. A morte manda `InimigoMorreu` e `InimigoDerrotado` como a de qualquer inimigo e recomeça a espera; a volta é um inimigo novo (id novo), por sorteio, nunca por tempo fixo.
-- **IA:** a do inimigo comum, com vida (1500) e dano (80) da própria ficha. Quem entra na área recebe os inimigos vivos do campo, chefe incluído. Não há aviso de aparição (continua em aberto).
+- **IA:** a do inimigo comum, com vida (1500) e dano (80) da própria ficha. Quem entra na área recebe os inimigos vivos do campo, chefe incluído.
+- **Aviso:** mensagem na área e marca no mapa/minimapa ao sortear aparição ([#896](https://github.com/GabrielNied/jogo_do_grupo/issues/896)).
+- **Timer de 30 min:** pausa enquanto houver jogador em combate com o chefe; retoma o restante ao fim do combate; ao zerar, some e volta ao sorteio ([#896](https://github.com/GabrielNied/jogo_do_grupo/issues/896)).
 
 ### Movimento suave no client (#486, aprimorado na #794)
 

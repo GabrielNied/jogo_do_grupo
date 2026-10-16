@@ -17,6 +17,7 @@ Telas e menus do client que não pertencem a uma funcionalidade do jogo. Por enq
   - **Teclas:** não existe mais tecla de correr, porque o personagem está sempre correndo ([personagem](personagem.md#definido)). **Ctrl esquerdo** (segurar) anda devagar, a **esquiva vai para o Shift** e o pulo continua no Espaço.
   - **Quiz de definições 2:** novos atalhos de janela **K** skills, **N** talentos, **O** social e **P** profissões; a barra de atalhos fica **sempre visível**; remapear para uma tecla ocupada **troca as duas ações**. O layout do HUD e o áudio propostos em [HUD do jogo](#hud-do-jogo) e [Áudio](#áudio) viram regra. Os **outros jogadores** soam no espaço: golpes, acertos e passos, até 25 m. Os textos do livro compatíveis com as regras atuais entram ([#352](https://github.com/GabrielNied/jogo_do_grupo/issues/352)); sai o "Maior dano: você" e o texto que fala de raça.
   - **Alvo sem tab target:** o HUD mostra o inimigo sob a mira ou o último que você acertou. Não há tecla de travar alvo.
+  - **Quiz de definições 4:** tecla **U** chama ou dispensa o pet ([pets](pets.md#definido)); **P** continua profissões.
   - **HUD:** mostra também o **dano dos aliados** (além do meu e do que recebo; a cura que faço sempre aparece), a **vida exata dos aliados** (número junto da barra) e tem a opção de **esconder o HUD inteiro** já na primeira versão. O aviso de ataque no HUD continua **só para o boss**.
 - As teclas atuais podem ser ajustadas em **Opções > Teclas**; os padrões e limites estão em [Teclas e atalhos](#teclas-e-atalhos).
 - Na abertura, o client carrega o tema e verifica a disponibilidade e a versão da API em `/saude` antes de mostrar o login; falha mostra "Servidor fora do ar" e **Tentar de novo**. Ao escolher personagem, a tela Lumora mostra **Cenário**, **Conexão** e **Posição** conforme o trabalho real, sem porcentagem simulada. O mundo só aparece depois de aplicar a primeira posição do servidor; até lá, HUD e input ficam bloqueados. A espera por conexão e posição expira em 20 s. A falha oferece **Tentar de novo** e **Voltar à seleção**, desmontando a tentativa parcial antes de outra entrada.
@@ -138,6 +139,7 @@ Decidido por Gabriel em 2026-10-11 (#134); é **provisório** e o grupo pode aju
 | Trocar de arma (quando a S10 entrar) | R | sim |
 | Interagir | E | sim |
   | Pegar item no chão | F | sim |
+| Chamar / dispensar pet | U | sim |
 | Personagem | C | sim |
 | Inventário | I | sim |
 | Missões | L | sim |

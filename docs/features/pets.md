@@ -25,7 +25,7 @@ Decidido em 2026-10-12 (#161) e **revisto em 2026-10-16** (quiz de definições 
 ## Decidido na implementação (2026-10-15, #161)
 
 - **Entrar e sair de caverna ou dungeon:** o pet vai junto. Ao trocar de área ele some para quem via na área antiga e reaparece a 2 m do dono na nova (a mesma publicação por vizinhança); `/pet` e a busca de loot funcionam lá. Sair do jogo ou cair o remove.
-- **Como chamar:** o comando de chat `/pet` (alterna: chama, ou dispensa se já está com você), `/pet chamar` e `/pet dispensar`. Aparece em `/comandos`. Sem botão nem tecla nesta versão.
+- **Como chamar:** comando de chat `/pet` (alterna: chama, ou dispensa se já está com você), `/pet chamar` e `/pet dispensar`, mais a tecla **U** (chamar/dispensar, como alternar; quiz 4, 2026-10-16; [#925](https://github.com/GabrielNied/jogo_do_grupo/issues/925)). Aparece em `/comandos` e em [Teclas e atalhos](interface.md#teclas-e-atalhos). **P** fica reservada a profissões ([#134](https://github.com/GabrielNied/jogo_do_grupo/issues/134)).
 - **Posição:** o servidor move o pet 10 vezes por segundo, como a IA dos mobs, a 6,5 m/s (acima da corrida do jogador, 5,5). Publica a quem vê o dono (a mesma área de interesse dos mobs): `PetApareceu` ao entrar no campo de visão, `PetMudou` sequenciado enquanto anda ou para, `PetSumiu` ao sair. O pet nasce atrás do dono, a 2 m.
 - **Parar sem tremer:** parado, o pet só volta a andar se o dono passar de 2,5 m (`FolgaDeSeguidaMetros`).
 - **Loot:** o pet procura o item a cada 0,5 s, a até 8 m **dele** (não do dono). "Que o dono poderia coletar" quer dizer: o item é do dono, está no prazo e livre; a distância de 12 m da tecla F não vale para o pet. O servidor de Itens faz a coleta pelo mesmo caminho da tecla F (um só vencedor por item, espaço conferido na gravação) e o dono recebe o `LootColetado` normal. Se o pet e o dono pedirem o mesmo item juntos, um deles leva e o outro não recebe nada.
@@ -36,7 +36,8 @@ Decidido em 2026-10-12 (#161) e **revisto em 2026-10-16** (quiz de definições 
 
 ## Em aberto
 
-- [ ] Animação de verdade (esqueleto) do cervo e um jeito de chamar além do comando de chat.
+- [x] Animação de verdade (esqueleto) do cervo e um jeito de chamar além do comando de chat. Decidido em 2026-10-16 (quiz 4): tecla **U** além do `/pet`; esqueleto continua em aberto.
+- [ ] Animação de verdade (esqueleto) do cervo.
 
 ## Regras
 
