@@ -1,7 +1,7 @@
 # Árvore de atributos (talentos)
 
 **Responsável:**
-**Status:** estrutura decidida por Gabriel em 2026-10-12; árvore, compra e tela implementadas (#625); redistribuição paga e perfis de build implementados (#626); números da simulação e custo de redistribuição por nível implementados (#627, #910). **Gabriel aprovou os números como base de jogo** em 2026-10-16 (quiz 5); calibrar depois na Sintonia (F10) sem reabrir design. Falta só o bônus por categoria de skill. **Prioridade alta**, épico [#621](https://github.com/GabrielNied/jogo_do_grupo/issues/621)
+**Status:** estrutura decidida por Gabriel em 2026-10-12; árvore, compra e tela implementadas (#625); redistribuição paga e perfis de build implementados (#626); números da simulação e custo de redistribuição por nível implementados (#627, #910). **Gabriel aprovou os números como base de jogo** em 2026-10-16 (quiz 5); calibrar depois na Sintonia (F10) sem reabrir design. Nós condicionais usam placeholder genérico de dano de skills até fechar categorias (quiz 6). **Prioridade alta**, épico [#621](https://github.com/GabrielNied/jogo_do_grupo/issues/621)
 **Faixa de IDs de mensagem:** 5000–5999
 
 ## Resumo
@@ -25,6 +25,7 @@ Decidido por Gabriel em 2026-10-12:
 - **Novos nós e skills entram por dados** (configuração), sem código próprio para cada item.
 - ~~Adiada (2026-10-10): o jogo começa sem árvore de talentos~~ Substituído em 2026-10-12: a árvore volta, com prioridade alta.
 - ~~Habilidades são pontos de talento~~ Substituído em 2026-10-12: a árvore distribui atributos e especializações. Skills continuam vindo dos itens ([skills.md](skills.md)) e a árvore não ensina skill.
+- **Decisões do Gabriel em 2026-10-16** (quiz de definições 6): nós **grandes** e **avançados** (condicionais) usam, até existir lista final de categorias de skill, efeito placeholder **"+X% de dano de skills"** genérico (sem filtrar por categoria); depois substituir pelos bônus por propriedade/categoria declarados na skill ([skills](skills.md)). Falta implementar o placeholder e, depois, a versão por categoria.
 
 ## Em aberto
 
@@ -41,7 +42,7 @@ Decidido por Gabriel em 2026-10-12:
 
 Continua em aberto (não trava o jogo, nenhum nó depende disso):
 
-- **Bônus por categoria de skill** dos nós grandes e avançados. Hoje eles somam atributo e secundários físicos ou mágicos, sem condição; o efeito "+X% de dano a skill de tal categoria" espera as propriedades das [skills](skills.md) e a lista final de categorias.
+- [x] **Bônus por categoria de skill** nos nós grandes e avançados. Decidido em 2026-10-16 (quiz 6): placeholder **"+X% de dano de skills"** genérico até a lista final de categorias; ver Definido. **Falta implementar** placeholder e, depois, efeito por categoria.
 - **Regras de acúmulo** além das que a pipeline já tem (soma na ordem da árvore; percentuais da árvore somam entre si).
 - **Restrições de uso e recarga** da redistribuição além de "só fora de combate" (hoje não há recarga).
 

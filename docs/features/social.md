@@ -27,6 +27,7 @@ Esta página detalha o **grupo** (convite, lista, líder, sair e expulsar; issue
   - **Amizade e ignorar ficam na conta**, gravados no servidor: valem em qualquer computador e em todos os personagens, e o servidor filtra sussurro, convite e troca de quem foi ignorado. Quem foi ignorado recebe "não encontrado".
   - **O amigo vê em que área o outro está** (cidade, campo, dungeon), além do online e do nome.
   - **Moderação do chat:** o servidor não guarda mensagens por padrão. Ao denunciar, as últimas mensagens do denunciado vão junto com a denúncia ([#187](https://github.com/GabrielNied/jogo_do_grupo/issues/187), mascaradas como no [ADR 0033](../decisoes/0033-mascaramento-de-logs.md)).
+- **Decisões do Gabriel em 2026-10-16** (quiz de definições 6): a [#351](https://github.com/GabrielNied/jogo_do_grupo/issues/351) cobre só **localização/área** dos aliados na lista do HUD; **vida** (barra, número e sync) ficou na [#900](https://github.com/GabrielNied/jogo_do_grupo/issues/900) (entregue). Estados **longe** e **offline** seguem [interface.md](interface.md#hud-do-jogo).
 
 ## Em aberto
 
@@ -394,6 +395,11 @@ Código em `client/Assets/_Game/Features/Social/`. O client só envia intençõe
 - **Vida crítica:** quando a vida estiver abaixo de 30% (`RegrasGrupo.LimiarVidaCritica`), a linha e a barra recebem destaque visual (`.vida-critica`).
 - **Membro offline:** exibido com indicação visual (`.aliado-offline`, texto "(Offline)").
 - **Sincronização em tempo real:** o servidor sincroniza alterações de vida (dano, cura, renascimento) através de `VidaDoMembroMudou` (ID 13014: `PersonagemId`, `Vida`, `VidaMaxima`).
+
+#### Localização/área na lista ([#351](https://github.com/GabrielNied/jogo_do_grupo/issues/351))
+
+- **Escopo da issue:** nome da **área** ou estado **longe** (aliado em outra instância/área), conforme [HUD do jogo](interface.md#hud-do-jogo); não repete o trabalho de vida da #900.
+- **Fonte:** servidor envia área atual ou flag de distância; o client pinta a linha apagada com o nome da área quando **longe**.
 
 ### Contrato do chat
 
