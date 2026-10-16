@@ -26,6 +26,7 @@ public sealed class ServicoDeInimigos(
 ) : BackgroundService, ISpawnDeTeste
 {
     private readonly ControleInteresseDeInimigos _interesse = new();
+    private readonly List<JogadorNoCampo> _jogadoresBuffer = new(32);
 
     protected override async Task ExecuteAsync(CancellationToken parada)
     {
@@ -74,22 +75,27 @@ public sealed class ServicoDeInimigos(
 
     private void Avancar(IInimigosSimulados grupo)
     {
-        var jogadores = new List<JogadorNoCampo>();
-        foreach (var personagemId in posicoes.PersonagensNaArea(grupo.Area))
+        PassoDosInimigos passo;
+        lock (_jogadoresBuffer)
         {
-            if (
-                queda.EstaCaido(personagemId)
-                || !posicoes.TentarObter(personagemId, out var posicao)
-                || posicao.Area != grupo.Area
-            )
+            _jogadoresBuffer.Clear();
+            foreach (var personagemId in posicoes.PersonagensNaArea(grupo.Area))
             {
-                continue;
+                if (
+                    queda.EstaCaido(personagemId)
+                    || !posicoes.TentarObter(personagemId, out var posicao)
+                    || posicao.Area != grupo.Area
+                )
+                {
+                    continue;
+                }
+
+                _jogadoresBuffer.Add(new JogadorNoCampo(personagemId, posicao.X, posicao.Z));
             }
 
-            jogadores.Add(new JogadorNoCampo(personagemId, posicao.X, posicao.Z));
+            passo = grupo.Passo(_jogadoresBuffer);
         }
 
-        var passo = grupo.Passo(jogadores);
         var posicoesInimigos = PosicoesAtuais(grupo, passo);
 
         var sessoesAlvo = ObterSessoesAlvo(grupo, passo, posicoesInimigos);
@@ -547,12 +553,6 @@ public sealed class ServicoDeInimigos(
     /// <summary>Quem entra na área do grupo recebe os inimigos vivos no raio de interesse.</summary>
     public void AoEntrarNaArea(JogadorEntrouNaArea evento)
     {
-        var daArea = Simulados().Where(g => g.Area == evento.Area).ToArray();
-        if (daArea.Length == 0)
-        {
-            return;
-        }
-
         if (!tempoReal.TentarObterSessao(evento.PersonagemId, out var sessao) || sessao is null)
         {
             return;
@@ -563,7 +563,12 @@ public sealed class ServicoDeInimigos(
             return;
         }
 
-        var vivos = daArea.SelectMany(g => g.Vivos());
+        var vivos = VivosDaArea(evento.Area);
+        if (vivos.Count == 0)
+        {
+            return;
+        }
+
         var filtrados = _interesse.FiltrarEntrada(
             evento.PersonagemId,
             evento.Area,
@@ -576,6 +581,20 @@ public sealed class ServicoDeInimigos(
             MobsMessageIds.InimigosDaArea,
             new InimigosDaArea { Inimigos = filtrados }
         );
+    }
+
+    private List<InimigoNoMundo> VivosDaArea(string area)
+    {
+        var vivos = new List<InimigoNoMundo>();
+        foreach (var grupo in Simulados())
+        {
+            if (grupo.Area == area)
+            {
+                vivos.AddRange(grupo.Vivos());
+            }
+        }
+
+        return vivos;
     }
 
     /// <summary>Quem sai da área limpa o estado de interesse de inimigos.</summary>
