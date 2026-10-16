@@ -15,6 +15,7 @@ Telas e menus do client que não pertencem a uma funcionalidade do jogo. Por enq
 - **Janelas do jogo por atalho** (#134, decidido por Gabriel em 2026-10-11; provisório, o grupo pode ajustar): **C** personagem, **I** inventário, **L** missões, **M** mapa. ~~**Uma janela por vez**, e com janela aberta o personagem fica **parado**.~~ Substituído em 2026-10-16 (Gabriel): **várias janelas abertas ao mesmo tempo, e o personagem anda com elas**, como no WoW. Com janela aberta o mouse vira cursor, e a câmera só gira segurando o botão direito. Regras em [Janelas do jogo](#janelas-do-jogo) (ainda descrevem a regra antiga até a implementação).
 - **Decisões do Gabriel em 2026-10-16** (quiz de definições):
   - **Teclas:** não existe mais tecla de correr, porque o personagem está sempre correndo ([personagem](personagem.md#definido)). **Ctrl esquerdo** (segurar) anda devagar, a **esquiva vai para o Shift** e o pulo continua no Espaço.
+  - **Quiz de definições 2:** novos atalhos de janela **K** skills, **N** talentos, **O** social e **P** profissões; a barra de atalhos fica **sempre visível**; remapear para uma tecla ocupada **troca as duas ações**. O layout do HUD e o áudio propostos em [HUD do jogo](#hud-do-jogo) e [Áudio](#áudio) viram regra. Os **outros jogadores** soam no espaço: golpes, acertos e passos, até 25 m. Os textos do livro compatíveis com as regras atuais entram ([#352](https://github.com/GabrielNied/jogo_do_grupo/issues/352)); sai o "Maior dano: você" e o texto que fala de raça.
   - **Alvo sem tab target:** o HUD mostra o inimigo sob a mira ou o último que você acertou. Não há tecla de travar alvo.
   - **HUD:** mostra também o **dano dos aliados** (além do meu e do que recebo; a cura que faço sempre aparece), a **vida exata dos aliados** (número junto da barra) e tem a opção de **esconder o HUD inteiro** já na primeira versão. O aviso de ataque no HUD continua **só para o boss**.
 - As teclas atuais podem ser ajustadas em **Opções > Teclas**; os padrões e limites estão em [Teclas e atalhos](#teclas-e-atalhos).
@@ -24,36 +25,36 @@ Telas e menus do client que não pertencem a uma funcionalidade do jogo. Por enq
 
 ## Em aberto
 
-- [ ] Abrir o menu pausa o jogo? Proposta: **não**. O jogo é online e persistente, o mundo segue rodando; o personagem fica parado e vulnerável (sem tela de pausa).
-- [ ] Idiomas disponíveis na primeira versão (proposta: só português; a opção existe mas lista um idioma).
+- [x] Respondido no Definido: o jogo não pausa. Abrir o menu pausa o jogo? Proposta: **não**. O jogo é online e persistente, o mundo segue rodando; o personagem fica parado e vulnerável (sem tela de pausa).
+- [x] Respondido no Definido: só português. Idiomas disponíveis na primeira versão (proposta: só português; a opção existe mas lista um idioma).
 - [x] Sair do jogo/da conta dentro de dungeon ou combate: sai na hora ou tem espera (proposta: espera de 10 s em combate)? Decidido em 2026-10-16 em [mundo](mundo.md#definido): fora de combate sai na hora; em combate o personagem fica 10 s no mundo.
 - [ ] ~~Remapear teclas (#90): só listado, não desenhado aqui.~~ substituído em 2026-10-11 por [Teclas e atalhos](#teclas-e-atalhos) (proposta de atalhos padrão e regras de troca)
-- [ ] Janelas do jogo (#134), decisões do grupo:
+- [x] Janelas do jogo (#134), decisões do grupo:
   - [x] Confirmar **uma janela por vez e personagem parado** (decisão provisória de 2026-10-11) ou permitir várias janelas abertas e andar com elas (como no WoW)? Decidido em 2026-10-16: várias, andando.
   - [ ] Com o chat aberto (#95), as letras não podem abrir janela: a regra entra junto com o chat
-  - [ ] Outras janelas que o grupo quer com atalho (sugestões: **K** skills, **N** talentos, **O** social, **P** profissões)
-  - [ ] A barra de atalhos fica sempre visível (como está) ou some depois que a pessoa aprende?
-- [ ] Teclas e atalhos (#90), decisões do grupo:
+  - [x] Decidido em 2026-10-16 (quiz de definições 2): K, N, O e P. Outras janelas que o grupo quer com atalho (sugestões: **K** skills, **N** talentos, **O** social, **P** profissões)
+  - [x] Decidido em 2026-10-16 (quiz de definições 2): fica. A barra de atalhos fica sempre visível (como está) ou some depois que a pessoa aprende?
+- [x] Teclas e atalhos (#90), decisões do grupo:
   - [x] ~~Aprovar os atalhos padrão da tabela (proposta).~~ Decidido em 2026-10-12, como no New World: leve no clique esquerdo, pesado ao segurar o esquerdo por 0,3 s, guarda no botão direito, esquiva no Alt esquerdo (esta última desde 2026-10-11). A troca de arma (R) e as skills 1, 2 e 3 valem desde a [#580](https://github.com/GabrielNied/jogo_do_grupo/issues/580).
-  - [ ] Tecla já usada: **trocar as duas ações** (proposta) ou deixar a outra sem tecla?
+  - [x] Decidido em 2026-10-16 (quiz de definições 2): troca as duas. Tecla já usada: **trocar as duas ações** (proposta) ou deixar a outra sem tecla?
   - [x] Tecla de **correr**: segurar (proposta) ou alternar? Decidido em 2026-10-16: não há tecla de correr; Ctrl esquerdo anda devagar e a esquiva vai para o Shift.
   - [x] ~~Combate ainda não decidiu se **bloqueio**, **stamina** e **troca de arma** entram na fatia jogável~~ Decidido em 2026-10-12: guarda e stamina entram nesta fatia. A troca de arma está decidida e fica para a S10; a tecla R vale nessa hora.
   - [x] Decidido em 2026-10-16: o pulo fica como está (Espaço). ~~[personagem.md](personagem.md) só define andar e correr; **pular** não existe nas docs, então não tem atalho (se entrar, sugestão: Espaço vira pular e a esquiva vai para Alt)~~ substituído em 2026-10-11: o pulo **já existe no client** (Espaço, só no chão, 1,25 m de altura; `MovimentoTerceiraPessoa`), então entrou na tabela e a esquiva foi para o Alt esquerdo. Falta o grupo confirmar: o pulo fica no jogo? Ele serve para alguma coisa no combate (sair de área marcada no chão) ou é só movimento? O servidor precisa validar a altura (hoje a presença aceita de -5 a 50 m, veja [mundo.md](mundo.md))
-- [ ] **Textos de interface do livro de Asterra** (proposta do board, 2026-10-11, não validada; [figjam.md](../brainstorm/figjam.md) seção 10, 11 e 09): sugestões de texto para os cartões, a adotar na tela quando o grupo aprovar a regra por trás. Caído: "Você caiu. Aguarde ajuda ou retorne a um ponto seguro." e "Levantado: recupere a vida antes de voltar à linha de frente." Ajuda de mira: "Mire na direção do perigo. Mova-se para fora da área de ataque." Defesa: "Defesa insuficiente para bloquear completamente este impacto." Loot: "Maior dano: você. Recompensa disponível para coleta." (**conflito** com o loot individual da [fatia](fatia-jogavel.md#5-loot-no-chão); o texto precisaria mudar). Tela de atributos: "Distribua seus pontos. Sua raça dá identidade; seus equipamentos dão possibilidades." Mundo: "Entre, encontre seus amigos e continue de onde parou." Diário: "Cada saída pode render uma peça melhor, uma combinação nova ou uma história para contar." Também pede botão de **retorno** na tela de caído e aba **Preparação** de skills (dono: [skills.md](skills.md)).
+- [x] Decidido em 2026-10-16 (quiz de definições 2): entram os compatíveis (veja Definido). **Textos de interface do livro de Asterra** (proposta do board, 2026-10-11, não validada; [figjam.md](../brainstorm/figjam.md) seção 10, 11 e 09): sugestões de texto para os cartões, a adotar na tela quando o grupo aprovar a regra por trás. Caído: "Você caiu. Aguarde ajuda ou retorne a um ponto seguro." e "Levantado: recupere a vida antes de voltar à linha de frente." Ajuda de mira: "Mire na direção do perigo. Mova-se para fora da área de ataque." Defesa: "Defesa insuficiente para bloquear completamente este impacto." Loot: "Maior dano: você. Recompensa disponível para coleta." (**conflito** com o loot individual da [fatia](fatia-jogavel.md#5-loot-no-chão); o texto precisaria mudar). Tela de atributos: "Distribua seus pontos. Sua raça dá identidade; seus equipamentos dão possibilidades." Mundo: "Entre, encontre seus amigos e continue de onde parou." Diário: "Cada saída pode render uma peça melhor, uma combinação nova ou uma história para contar." Também pede botão de **retorno** na tela de caído e aba **Preparação** de skills (dono: [skills.md](skills.md)).
 - [ ] ~~HUD configurável (#93): só listado, não desenhado aqui.~~ substituído em 2026-10-11 por [HUD do jogo](#hud-do-jogo) (proposta de layout e regras)
 - [ ] ~~Áudio (#96): só listado; os sons em si não são desenhados aqui.~~ substituído em 2026-10-11 por [Áudio](#áudio) (proposta de áreas com música, sons e fontes)
-- [ ] HUD do jogo (#93), decisões do grupo:
-  - [ ] Aprovar as posições da tabela de layout (proposta)
+- [x] HUD do jogo (#93), decisões do grupo:
+  - [x] Aprovar as posições da tabela de layout (proposta). Decidido em 2026-10-16 (quiz de definições 2): aprovado.
   - [x] **Alvo sem tab target:** vale "o inimigo sob a mira ou o último que você acertou" (proposta), ou o jogador trava o alvo com uma tecla? Decidido em 2026-10-16: a proposta.
   - [x] Número de dano: mostrar **só o meu dano e o que eu recebo** (proposta) ou também o dos aliados? E a cura que eu faço nos outros? Decidido em 2026-10-16: também o dos aliados; a minha cura aparece.
   - [x] Aviso de ataque no HUD **só para o boss** (proposta) ou também para o inimigo comum? Decidido em 2026-10-16: só o boss.
   - [x] Ver a vida exata dos aliados (número) ou só a barra (proposta: barra e porcentagem)? Decidido em 2026-10-16: número.
   - [x] Opção para esconder o HUD inteiro (captura de tela): entra na primeira versão? (proposta: não) Decidido em 2026-10-16: entra.
-- [ ] Áudio (#96), decisões do grupo:
-  - [ ] Aprovar as áreas com música e a troca entre elas (proposta)
-  - [ ] Aprovar as fontes CC0 sugeridas; quem baixa escolhe as faixas e registra em [licenças](../arte/licencas.md)
-  - [ ] Som posicional de outros jogadores (passos, golpes): entra na primeira versão? (proposta: sim, só golpes e acertos, até 25 m)
-  - [ ] "Som que se ouve de longe" e noite escura ([validação](../brainstorm/validacao.md), S8) ficam fora desta base; entram quando o grupo decidir S8
+- [x] Áudio (#96), decisões do grupo:
+  - [x] Aprovar as áreas com música e a troca entre elas (proposta). Decidido em 2026-10-16 (quiz de definições 2): aprovado.
+  - [x] Decidido em 2026-10-16 (quiz de definições 2): aprovado. Aprovar as fontes CC0 sugeridas; quem baixa escolhe as faixas e registra em [licenças](../arte/licencas.md)
+  - [x] Decidido em 2026-10-16 (quiz de definições 2): sim: golpes, acertos e passos, até 25 m. Som posicional de outros jogadores (passos, golpes): entra na primeira versão? (proposta: sim, só golpes e acertos, até 25 m)
+  - [x] Decidido em 2026-10-16 (quiz de definições 2): sem luz e som como mecânica ([mundo](mundo.md#definido)). "Som que se ouve de longe" e noite escura ([validação](../brainstorm/validacao.md), S8) ficam fora desta base; entram quando o grupo decidir S8
 
 ## Regras
 

@@ -22,6 +22,10 @@
   - **Clima muda o jogo:** chuva, neblina e nevasca alteram a visão ou o movimento, conforme o bioma. O clima é do servidor, e todos na área veem o mesmo.
   - **Dia e noite:** ciclo de **40 min de dia e 20 min de noite** (proposta do livro). A noite continua sendo só cenário.
   - **Mapa:** inimigos aparecem **sempre** no minimapa, e o mapa-múndi mostra os **aliados que estão em outra área** (o servidor envia em qual área ou instância cada um está). O mapa da dungeon mostra todos os salões desde a entrada.
+- **Decisões do Gabriel em 2026-10-16** (quiz de definições 2):
+  - **Mapa novo, feito à mão do zero** no Unity, por uma pessoa, e exportado para o shared (altura, biomas, áreas especiais e pontos marcados), para o servidor continuar só consultando uma grade ([ADR 0044](../decisoes/0044-mapa-feito-a-mao-exportado-para-o-shared.md)). Até ficar pronto, vale o mundo gerado.
+  - **Sem luz e som como mecânica:** a noite não pede tocha, nenhuma skill existe só para iluminar (a luz dos efeitos das skills aparece, como visual) e as criaturas não reagem a luz nem a som. À noite **aparecem espécies diferentes** (sem ficar mais fortes; [mobs](mobs.md#definido)).
+  - **Inimigos por bioma:** o agente de Mobs propõe a tabela bioma × espécie × nível, de dia e de noite, e registra em [mobs](mobs.md); Gabriel revisa no PR.
 - **Farm de mapa em grupo**: o grupo limpa áreas cheias de inimigos para ganhar experiência e loot (decidido em 2026-10-10)
 - ~~Mundo aberto~~ substituído em 2026-10-10 por sessões de grupo pequeno. ~~Sessões de grupo pequeno~~ substituídas em 2026-10-11: o mundo aberto volta (D1 opção A).
 
@@ -29,13 +33,13 @@
 
 - [x] ~~Quantas pessoas por sessão? (a fatia jogável propõe até 4)~~ Substituído em 2026-10-11: a sessão deixou de ser o formato do jogo. O tamanho do grupo da dungeon continua em [instâncias](instancias.md).
 - [x] ~~Existe um hub social compartilhado entre grupos ou cada grupo tem o seu?~~ Decidido em 2026-10-11: a cidade faz parte do mundo único. Quem está na área se vê.
-- [ ] As regiões são mapas fixos, gerados ou uma mistura? Em 2026-10-11 o terreno aberto passou a ser **gerado por semente fixa** (sempre o mesmo mundo; [ADR 0020](../decisoes/0020-mapa-do-mundo-no-shared.md), proposta). Lugares feitos à mão por cima dele continuam em aberto.
+- [x] Decidido em 2026-10-16 (quiz de definições 2): mapa feito à mão ([ADR 0044](../decisoes/0044-mapa-feito-a-mao-exportado-para-o-shared.md)). As regiões são mapas fixos, gerados ou uma mistura? Em 2026-10-11 o terreno aberto passou a ser **gerado por semente fixa** (sempre o mesmo mundo; [ADR 0020](../decisoes/0020-mapa-do-mundo-no-shared.md), proposta). Lugares feitos à mão por cima dele continuam em aberto.
 - [x] ~~Tamanho do mapa e quantidade de regiões. A primeira área (cidade e arredores) ficou em cerca de 1 km com três áreas (campo, mata e colinas); o resto do mundo continua em aberto.~~ Decidido em 2026-10-11 (Gabriel, issue #135): **3 km de lado e sete biomas**. Veja "Biomas e relevo".
 - [x] A lava causa dano? O pântano deixa o jogador mais lento? Frio e calor têm efeito? Hoje os biomas são só cenário. Decidido em 2026-10-16: lava causa dano e o pântano deixa mais lento; frio e calor não têm efeito.
-- [ ] Quais inimigos vivem em cada bioma?
+- [x] Decidido em 2026-10-16 (quiz de definições 2): o agente de Mobs propõe a tabela. Quais inimigos vivem em cada bioma?
 - [x] Como funciona a viagem rápida? Decidido em 2026-10-16: não existe; há o andar automático (veja Definido).
 - [x] Clima dinâmico afeta gameplay? Decidido em 2026-10-16: sim, visão ou movimento.
-- [ ] Luz e som como mecânica (noite escura, skills que iluminam)? Veja S8 na validação.
+- [x] Decidido em 2026-10-16 (quiz de definições 2): não; só espécies diferentes à noite. Luz e som como mecânica (noite escura, skills que iluminam)? Veja S8 na validação.
 - [x] **Livro de Asterra, decidido em 2026-10-11 (/decida, #326):** os nomes entram como **rótulos** sobre os biomas atuais, sem criar bioma: Vale das Fogueiras = campo e arredores, Mata do Eco = mata, Serra do Vidro Frio = montanhas de neve, Caldeira Rubra = montanhas de lava. Deserto e pântano ficam sem nome do livro por ora; Planalto Astral é FUTURO, sem bioma. Estruturas nomeadas entram em tarefas próprias. Pergunta original: o grupo adota os nomes de região e de lugar (Vale das Fogueiras, Mata do Eco, Serra do Vidro Frio, Caldeira Rubra, Planalto Astral, Brasa Mansa...)? Como encaixam nos sete biomas de 3 km já decididos (o livro não tem deserto nem pântano e tem o Planalto Astral)? Veja "Livro de Asterra: regiões e cidade".
 - [x] Ciclo de 40 min de dia e 20 min de noite (proposta do livro): vale? Liga com a #163. Decidido em 2026-10-16: vale.
 - [ ] Bases e construção em pontos marcados: FUTURO, fora do MVP.

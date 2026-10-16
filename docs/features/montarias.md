@@ -21,11 +21,13 @@ Sistema de montarias: a pessoa chama uma montaria, anda com velocidade aumentada
 - **Combate:** não é permitido chamar montaria durante o combate. Se o personagem montado entrar em combate ou sofrer queda (`PersonagemCaiu`), é desmontado automaticamente e a velocidade retorna aos valores a pé.
 - **Desconexão:** desconectar desmonta o personagem e limpa a sessão.
 
+- **Todas as montarias são iguais e só muda o visual** (decidido por Gabriel em 2026-10-16): sem bônus, sem habilidade utilitária e sem voo.
+
 ## Em aberto
 
 - [x] Estábulo e coleção de montarias com aparências diferentes (implementado com Corcel Castanho e Corcel Noturno)
-- [ ] Montarias com bônus ou habilidades utilitárias
-- [ ] Voo e montarias voadoras
+- [x] Decidido em 2026-10-16 (quiz de definições 2): não. Montarias com bônus ou habilidades utilitárias
+- [x] Decidido em 2026-10-16 (quiz de definições 2): não. Voo e montarias voadoras
 
 ## Regras
 

@@ -1,7 +1,7 @@
 # 0020. Mapa do mundo calculado no shared, por semente fixa
 
 **Data:** 2026-10-11
-**Status:** proposta
+**Status:** substituída por [0044](0044-mapa-feito-a-mao-exportado-para-o-shared.md) (a geração por semente vale até o mapa feito à mão ficar pronto)
 
 ## Contexto
 
