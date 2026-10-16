@@ -99,7 +99,7 @@ Até a [#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627), as taref
 
 ### Transição
 
-Os nomes novos já valem no código ([#622](https://github.com/GabrielNied/jogo_do_grupo/issues/622)). Até a [#623](https://github.com/GabrielNied/jogo_do_grupo/issues/623) entrar, o código ainda soma os atributos das peças nos do personagem; e, até a [#625](https://github.com/GabrielNied/jogo_do_grupo/issues/625), dá zero pontos por nível. Nenhuma regra nova se apoia nisso.
+Os nomes novos já valem no código ([#622](https://github.com/GabrielNied/jogo_do_grupo/issues/622)). Até a [#623](https://github.com/GabrielNied/jogo_do_grupo/issues/623) entrar, o código ainda soma os atributos das peças nos do personagem; pontos por nível usam `PontosPorNivel` (valor de teste: 1; número final pendente da [#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627)). Nenhuma regra nova se apoia nisso.
 
 ### Pendente
 
@@ -144,7 +144,7 @@ Decidido em 2026-10-12. A curva já está em `ConfigExperiencia`; o teste `Ritmo
 
 **Curva:** XP do nível = arredondar(50 × nível^1,2). Nível máximo: **100**. A curva dos primeiros níveis não muda. Era 100 × nível^1,7, e o nível 10 passava de 5 horas só de mobs do mesmo nível.
 
-**O que o nível dá:** ~~nada de atributo. Vida, vigor, energia e dano crescem pelos itens.~~ Revisto em 2026-10-12: cada nível dá pontos da [árvore](talentos.md), e só o nível dá esses pontos (Gabriel). Quantos por nível está pendente ([#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627)); até a [#625](https://github.com/GabrielNied/jogo_do_grupo/issues/625), o código segue com zero pontos por nível. O nível em si não dá bônus. Os atributos não mudam o orçamento de preparação de skills; esse orçamento continua fora desta fatia ([skills.md](skills.md#preparação-de-skills-proposta-do-board-2026-10-11)).
+**O que o nível dá:** ~~nada de atributo. Vida, vigor, energia e dano crescem pelos itens.~~ Revisto em 2026-10-12: cada nível dá pontos da [árvore](talentos.md) via `PontosPorNivel`, e só o nível dá esses pontos (Gabriel). Quantos por nível está pendente (valor de teste: 1; calibração final pendente da [#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627)). O nível em si não dá bônus. Os atributos não mudam o orçamento de preparação de skills; esse orçamento continua fora desta fatia ([skills.md](skills.md#preparação-de-skills-proposta-do-board-2026-10-11)).
 
 **XP por diferença de nível** (decidido em 2026-10-12): a diferença é o nível do jogador menos o nível do mob. 0 ou negativa paga 100%. Cada nível acima tira 20 pontos percentuais. 5 ou mais acima paga 0. Cada participante calcula a parcela com seu próprio nível e o nível informado na morte do inimigo; o percentual é aplicado ao XP base com arredondamento para baixo até XP inteiro. Se o contrato informar nível desconhecido (`0`), Personagem concede o XP base sem penalidade, pois não há dado para calcular a diferença. Quem participou recebe essa parcela, não o valor cheio. Ganho zero consome a morte contra duplicatas, mas não grava progresso nem publica notificação de XP. A meta de ritmo acima vale contra mob do mesmo nível ou mais forte. O Javali do Campo é nível 3: a partir do nível 8 do jogador ele não dá XP. Constantes nomeadas, fáceis de calibrar.
 
