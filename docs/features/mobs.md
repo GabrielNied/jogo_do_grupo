@@ -32,6 +32,8 @@ Tipos de mobs, comportamento por região e bosses com mecânicas marcantes.
 - **Decisões do Gabriel em 2026-10-16** (quiz de definições 3):
   - **Bestiário:** UI com **progresso por espécie** (observação/morte preenche fichas); implementação separada de [#323](https://github.com/GabrielNied/jogo_do_grupo/issues/323).
   - **Pets:** ~~captura do cervo~~ substituído: mobs têm **chance rara** de dropar **item de pet negociável** (estilo WoW); **usar o item registra o pet na conta** ([pets](pets.md#definido)).
+- **Decisões do Gabriel em 2026-10-16** (refino pós quiz 4):
+  - **Montarias:** **chefes** podem dropar **item de montaria raro negociável**; usar registra na conta ([montarias](montarias.md#definido)). Pets continuam em drop raro de mobs comuns/elite; montarias ficam na tabela de loot de boss.
 
 ## Em aberto
 

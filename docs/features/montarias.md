@@ -10,8 +10,9 @@ Sistema de montarias: a pessoa chama uma montaria, anda com velocidade aumentada
 
 ## Definido
 
-- **Coleção de montarias:** menu de montarias (tecla **B**, ordem 50 nas `JanelasDoJogo`) e acesso rápido no HUD, permitindo visualizar a coleção e equipar o companheiro desejado.
-- **Modelos disponíveis:**
+- **Modelo alvo (refino pós quiz 4, 2026-10-16):** montarias entram como **item raro negociável** largado por **chefes** (campo, chefe raro, dungeon/raid — tabela por boss), estilo WoW. **Usar o item registra a montaria na conta**; a conta **coleciona várias**; só **uma montada** por vez. Os *Corceis* abaixo são **legado** até alinhar com drops ([#928](https://github.com/GabrielNied/jogo_do_grupo/issues/928)).
+- **Coleção e menu:** mesma janela **Companheiros** que [pets](pets.md#definido) (tecla **U**, aba **Montarias**), com lista, escolha da montaria **equipada** (visual) e **ativar/desativar** montar/desmontar. ~~Menu só de montarias na tecla **B**~~ substituído por **U**. Acesso rápido no HUD pode espelhar a montaria equipada (implementação em [#925](https://github.com/GabrielNied/jogo_do_grupo/issues/925)).
+- **Modelos legado (implementados):**
   - *Corcel Castanho* (Tipo 1): montaria clássica em tons acolhedores e arreios tradicionais de couro com detalhes dourados.
   - *Corcel Noturno* (Tipo 2): montaria mística com pelagem ébano, tons de índigo, sela prateada, detalhes luminescentes e chifre estrelado.
 - **Tempo de espera para montar:** subir na montaria exige 1,5 segundo de invocação parado (`RegrasMontaria.TempoInvocacaoSegundos`). Deslocar-se, sofrer dano ou cancelar interrompe a barra de progresso. Desmontar é instantâneo.
