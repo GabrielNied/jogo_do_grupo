@@ -77,6 +77,12 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Tests
         }
 
         [Test]
+        public void AreasContemInterface()
+        {
+            CollectionAssert.Contains(OpcoesDoReporte.Areas, "Interface");
+        }
+
+        [Test]
         public void GitLeBranchECommitDaRefSoltaOuEmpacotada()
         {
             var git = Path.Combine(_pasta, ".git");
