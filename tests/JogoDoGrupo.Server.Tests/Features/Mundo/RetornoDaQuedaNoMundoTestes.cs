@@ -239,4 +239,41 @@ public class RetornoDaQuedaNoMundoTestes(ServidorMundoQueda servidor)
         Assert.Equal(Nascimento.Y, posicao.Y);
         Assert.Equal(Nascimento.Z, posicao.Z);
     }
+
+    [Fact]
+    public async Task Jogador_caido_tem_movimento_recusado_e_recebe_posicao_forcada()
+    {
+        using var caido = await NovoJogadorNaCidadeAsync();
+        ColocarLonge(caido);
+
+        var posicoes = servidor.Falso.Services.GetRequiredService<IPosicoesDoMundo>();
+        Assert.True(posicoes.TentarObter(caido.Id, out var longe));
+        Assert.Equal(50f, longe.X);
+
+        Derrubar(caido);
+        await EsperarFaseAsync(caido, FaseDeQueda.Caido);
+
+        // Caído tenta se mover 10 m além da posição onde caiu
+        caido.Cliente.Enviar(
+            MundoMessageIds.IntencaoDeMovimento,
+            new IntencaoDeMovimento
+            {
+                X = 60f,
+                Y = 0f,
+                Z = Nascimento.Z,
+                RotacaoY = 0f,
+                Sequencia = 10,
+            }
+        );
+
+        // O servidor recusa e força a posição de volta para onde ele caiu (50f)
+        var forcada = await caido.Cliente.ReceberAsync<PosicaoForcada>(
+            MundoMessageIds.PosicaoForcada
+        );
+        Assert.Equal(50f, forcada.X);
+
+        // A posição no servidor permanece em 50f
+        Assert.True(posicoes.TentarObter(caido.Id, out var atual));
+        Assert.Equal(50f, atual.X);
+    }
 }
