@@ -101,6 +101,33 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
         }
 
         [Test]
+        public void Boca_da_caverna_fica_aberta_para_sair()
+        {
+            var objeto = new GameObject("Tunel");
+            var malha = GeometriaDaCaverna.CriarMalha();
+            try
+            {
+                objeto.AddComponent<MeshCollider>().sharedMesh = malha;
+                Physics.SyncTransforms();
+                var origem = new Vector3(
+                    PrimeiraCaverna.EntradaX,
+                    PrimeiraCaverna.EntradaY + 1.4f,
+                    PrimeiraCaverna.EntradaZ + 0.45f
+                );
+
+                Assert.IsFalse(
+                    Physics.Raycast(origem, Vector3.back, 1.5f),
+                    "não há tampa ou colisor na boca quando o jogador volta para fora"
+                );
+            }
+            finally
+            {
+                Object.DestroyImmediate(objeto);
+                Object.DestroyImmediate(malha);
+            }
+        }
+
+        [Test]
         public void Montar_cria_o_tunel_com_colisao_e_as_luzes_sem_teleporte()
         {
             var pai = new GameObject("Pai").transform;
@@ -117,6 +144,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
                 Assert.IsNotNull(colisor.sharedMesh);
                 Assert.Greater(colisor.sharedMesh.triangles.Length, 0);
                 Assert.Greater(raiz.Find(Caverna.NomeLuzes).childCount, 3);
+                Assert.Greater(raiz.Find(Caverna.NomeEstruturas).childCount, 0);
                 Assert.AreEqual(
                     0,
                     raiz.GetComponents<MonoBehaviour>().Length,

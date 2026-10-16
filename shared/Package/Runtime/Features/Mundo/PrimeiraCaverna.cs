@@ -165,6 +165,54 @@ namespace JogoDoGrupo.Shared.Features.Mundo
         public static void PontoDoPercurso(float distancia, out float x, out float z) =>
             _percurso.PontoA(distancia, out x, out z);
 
+        /// <summary>
+        /// Seção do túnel principal a uma distância da boca. A malha do client usa estes mesmos
+        /// valores que a validação de movimento, para o vão visual nunca divergir da passagem
+        /// autorizada pelo servidor.
+        /// </summary>
+        public static void SecaoDoPercurso(
+            float distancia,
+            out float x,
+            out float z,
+            out float meiaLargura,
+            out float piso,
+            out float altura,
+            out float direcaoX,
+            out float direcaoZ
+        ) =>
+            _percurso.SecaoA(
+                distancia,
+                out x,
+                out z,
+                out meiaLargura,
+                out piso,
+                out altura,
+                out direcaoX,
+                out direcaoZ
+            );
+
+        /// <summary>Seção do beco lateral, usada só para desenhar a continuação sem saída.</summary>
+        public static void SecaoDoBeco(
+            float fracao,
+            out float x,
+            out float z,
+            out float meiaLargura,
+            out float piso,
+            out float altura,
+            out float direcaoX,
+            out float direcaoZ
+        ) =>
+            _beco.SecaoA(
+                fracao * _beco.Comprimento,
+                out x,
+                out z,
+                out meiaLargura,
+                out piso,
+                out altura,
+                out direcaoX,
+                out direcaoZ
+            );
+
         /// <summary>Centro da câmara grande, no fim do percurso, em X.</summary>
         public static float CamaraFinalX => NosDoPercurso[NosDoPercurso.Length - 1][0];
 
@@ -365,6 +413,46 @@ namespace JogoDoGrupo.Shared.Features.Mundo
                 var t = trecho < TamanhoDoTrechoMinimo ? 0f : (d - _acumulado[i - 1]) / trecho;
                 x = X[i - 1] + ((X[i] - X[i - 1]) * t);
                 z = Z[i - 1] + ((Z[i] - Z[i - 1]) * t);
+            }
+
+            public void SecaoA(
+                float distancia,
+                out float x,
+                out float z,
+                out float meiaLargura,
+                out float piso,
+                out float altura,
+                out float direcaoX,
+                out float direcaoZ
+            )
+            {
+                var d = Math.Max(0f, Math.Min(distancia, Comprimento));
+                var i = 1;
+                while (i < _acumulado.Length - 1 && _acumulado[i] < d)
+                {
+                    i++;
+                }
+
+                var trecho = _acumulado[i] - _acumulado[i - 1];
+                var t = trecho < TamanhoDoTrechoMinimo ? 0f : (d - _acumulado[i - 1]) / trecho;
+                x = X[i - 1] + ((X[i] - X[i - 1]) * t);
+                z = Z[i - 1] + ((Z[i] - Z[i - 1]) * t);
+                meiaLargura = Meia[i - 1] + ((Meia[i] - Meia[i - 1]) * t);
+                piso = _entradaY - (Descida[i - 1] + ((Descida[i] - Descida[i - 1]) * t));
+                altura = Altura[i - 1] + ((Altura[i] - Altura[i - 1]) * t);
+                direcaoX = X[i] - X[i - 1];
+                direcaoZ = Z[i] - Z[i - 1];
+                var tamanho = (float)Math.Sqrt((direcaoX * direcaoX) + (direcaoZ * direcaoZ));
+                if (tamanho >= TamanhoDoTrechoMinimo)
+                {
+                    direcaoX /= tamanho;
+                    direcaoZ /= tamanho;
+                }
+                else
+                {
+                    direcaoX = 0f;
+                    direcaoZ = 1f;
+                }
             }
 
             // Ponto do eixo mais próximo de (x, z): distância, meia largura, descida e altura

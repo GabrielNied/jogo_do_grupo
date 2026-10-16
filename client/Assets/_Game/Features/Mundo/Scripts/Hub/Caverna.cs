@@ -16,6 +16,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
         public const string NomeTunel = "Tunel";
         public const string NomeLuzes = "Luzes";
         public const string NomePedras = "Pedras";
+        public const string NomeEstruturas = "EstruturasDeMineracao";
 
         private static readonly Color CorDaRocha = new Color(0.34f, 0.3f, 0.27f);
 
@@ -57,6 +58,11 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
             }
 
             foreach (var passo in CriarPedras(raiz.transform, orcamento))
+            {
+                yield return passo;
+            }
+
+            foreach (var passo in CriarEstruturasDeMineracao(raiz.transform, orcamento))
             {
                 yield return passo;
             }
@@ -164,7 +170,92 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
             }
         }
 
-        private static Material CriarMaterial(Color cor)
+        // Armações simples, espaçadas no trecho estreito. Elas reforçam a leitura de mina sem
+        // criar um segundo conjunto de colisores: o jogador continua guiado só pela rocha.
+        private static IEnumerable<int> CriarEstruturasDeMineracao(
+            Transform pai,
+            OrcamentoDeQuadro orcamento
+        )
+        {
+            var estruturas = new GameObject(NomeEstruturas).transform;
+            estruturas.SetParent(pai, false);
+            var madeira = CriarMaterial(new Color(0.24f, 0.12f, 0.055f), false);
+            var comprimento = PrimeiraCaverna.ComprimentoDoPercurso;
+            for (var d = 10f; d < comprimento - 18f; d += 12f)
+            {
+                PrimeiraCaverna.SecaoDoPercurso(
+                    d,
+                    out var x,
+                    out var z,
+                    out var meiaLargura,
+                    out var piso,
+                    out var altura,
+                    out var direcaoX,
+                    out var direcaoZ
+                );
+                if (meiaLargura > 3.5f)
+                {
+                    continue;
+                }
+
+                var lateral = new Vector3(-direcaoZ, 0f, direcaoX);
+                var esquerda = new Vector3(x, piso, z) - (lateral * (meiaLargura * 0.76f));
+                var direita = new Vector3(x, piso, z) + (lateral * (meiaLargura * 0.76f));
+                var alturaDoApoio = altura * 0.76f;
+                CriarViga(
+                    estruturas,
+                    "Pilar",
+                    esquerda + (Vector3.up * (alturaDoApoio * 0.5f)),
+                    Vector3.up,
+                    alturaDoApoio,
+                    madeira
+                );
+                CriarViga(
+                    estruturas,
+                    "Pilar",
+                    direita + (Vector3.up * (alturaDoApoio * 0.5f)),
+                    Vector3.up,
+                    alturaDoApoio,
+                    madeira
+                );
+                CriarViga(
+                    estruturas,
+                    "Travessa",
+                    new Vector3(x, piso + alturaDoApoio, z),
+                    lateral,
+                    meiaLargura * 1.75f,
+                    madeira
+                );
+                if (orcamento.Esgotou())
+                {
+                    yield return 0;
+                }
+            }
+        }
+
+        private static void CriarViga(
+            Transform pai,
+            string nome,
+            Vector3 posicao,
+            Vector3 direcao,
+            float comprimento,
+            Material material
+        )
+        {
+            var viga = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            viga.name = nome;
+            viga.transform.SetParent(pai, false);
+            viga.transform.position = posicao;
+            viga.transform.rotation = Quaternion.FromToRotation(Vector3.up, direcao.normalized);
+            viga.transform.localScale = new Vector3(0.16f, comprimento * 0.5f, 0.16f);
+            Object.DestroyImmediate(viga.GetComponent<Collider>());
+            if (material != null)
+            {
+                viga.GetComponent<MeshRenderer>().sharedMaterial = material;
+            }
+        }
+
+        private static Material CriarMaterial(Color cor, bool usarRocha = true)
         {
             var shader = Shader.Find("Universal Render Pipeline/Lit");
             if (shader == null)
@@ -176,6 +267,19 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
             if (material.HasProperty("_BaseColor"))
             {
                 material.SetColor("_BaseColor", cor);
+            }
+
+            if (usarRocha && material.HasProperty("_BaseMap"))
+            {
+                material.SetTexture("_BaseMap", GeradorDeTexturasDoTerreno.ObterRocha());
+                material.SetTextureScale("_BaseMap", new Vector2(0.25f, 0.25f));
+            }
+
+            if (usarRocha && material.HasProperty("_BumpMap"))
+            {
+                material.EnableKeyword("_NORMALMAP");
+                material.SetTexture("_BumpMap", GeradorDeTexturasDoTerreno.ObterNormalRocha());
+                material.SetFloat("_BumpScale", 0.55f);
             }
 
             if (material.HasProperty("_Smoothness"))
