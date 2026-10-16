@@ -1,7 +1,9 @@
+using JogoDoGrupo.Server.Contratos.Itens;
 using JogoDoGrupo.Server.Contratos.Mobs;
 using JogoDoGrupo.Server.Contratos.Mundo;
 using JogoDoGrupo.Server.Core.TempoReal;
 using JogoDoGrupo.Shared.Features.Combate;
+using JogoDoGrupo.Shared.Features.Mobs;
 
 namespace JogoDoGrupo.Server.Features.Combate;
 
@@ -25,6 +27,7 @@ public sealed class ServicoDeDanoRecebido : IHostedService
     private readonly ServicoDeGuarda? _guarda;
     private readonly AvisosNaArea? _avisos;
     private readonly GerenciadorDeEfeitosDeStatus? _efeitos;
+    private readonly IAtributosDosEquipamentos? _equipamentos;
     private readonly CancellationTokenSource _parada = new();
 
     public ServicoDeDanoRecebido(
@@ -37,9 +40,11 @@ public sealed class ServicoDeDanoRecebido : IHostedService
         ServicoDeGuarda? guarda = null,
         IPosicoesDoMundo? posicoes = null,
         GerenciadorDeEfeitosDeStatus? efeitos = null,
-        IVizinhanca? vizinhanca = null
+        IVizinhanca? vizinhanca = null,
+        IAtributosDosEquipamentos? equipamentos = null
     )
     {
+        _equipamentos = equipamentos;
         _efeitos = efeitos;
         _guarda = guarda;
         _avisos = posicoes == null ? null : new AvisosNaArea(tempoReal, posicoes, vizinhanca);
@@ -69,6 +74,12 @@ public sealed class ServicoDeDanoRecebido : IHostedService
     /// mexer em quem chama.
     /// </summary>
     public static int DanoFinal(int danoDoGolpe) => Math.Max(0, danoDoGolpe);
+
+    /// <summary>
+    /// O que o golpe tira de vida considerando a defesa de equipamento e a potência de bloqueio do golpe (#344).
+    /// </summary>
+    public static int DanoFinal(int danoDoGolpe, double defesa, double potenciaBloqueio) =>
+        RegrasBloqueioPorDefesa.CalcularDanoFinal(danoDoGolpe, defesa, potenciaBloqueio);
 
     /// <summary>Trata <see cref="GolpeDeInimigoAcertou"/> sem bloquear quem publica.</summary>
     public void AoGolpeDeInimigo(GolpeDeInimigoAcertou golpe) => _ = AplicarAsync(golpe);
@@ -131,10 +142,50 @@ public sealed class ServicoDeDanoRecebido : IHostedService
                 _guarda?.AoQuebrar(golpe.PersonagemId, golpe.Area);
             }
 
+            double defesa = 0;
+            if (_equipamentos != null)
+            {
+                try
+                {
+                    var atributos = await _equipamentos.ObterAsync(
+                        golpe.PersonagemId,
+                        _parada.Token
+                    );
+                    defesa =
+                        golpe.Tipo == TipoDeAtaqueDeInimigo.Raios
+                            ? atributos.DefesaMagica
+                            : atributos.DefesaFisica;
+                }
+                catch (Exception ex)
+                {
+                    _log.LogWarning(
+                        ex,
+                        "Erro ao obter atributos de equipamento do personagem {Personagem}.",
+                        golpe.PersonagemId
+                    );
+                }
+            }
+
+            var danoFinal = DanoFinal(dano, defesa, golpe.PotenciaBloqueio);
+
+            if (sessao != null && quebrouGuarda && danoFinal > 0)
+            {
+                _tempoReal.Enviar(
+                    sessao,
+                    CombateMessageIds.DefesaInsuficiente,
+                    new DefesaInsuficiente
+                    {
+                        PersonagemId = golpe.PersonagemId,
+                        DanoResidual = danoFinal,
+                        DanoOriginal = dano,
+                    }
+                );
+            }
+
             var recursos = await RecursosDoAtaque.TirarVidaAsync(
                 _escopos,
                 golpe.PersonagemId,
-                dano,
+                danoFinal,
                 _parada.Token
             );
 
@@ -150,7 +201,8 @@ public sealed class ServicoDeDanoRecebido : IHostedService
             // golpes comuns de criatura (TipoDeAtaqueDeInimigo.Golpe) não atordoam nem giram o jogador.
             var deveInterromper = quebrouGuarda || golpe.InterrompeAlvo;
             if (
-                recursos.VidaAtual > 0
+                danoFinal > 0
+                && recursos.VidaAtual > 0
                 && deveInterromper
                 && _acoes?.TentarReagir(golpe.PersonagemId, _relogioMs()) == true
             )

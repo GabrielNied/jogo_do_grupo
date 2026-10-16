@@ -19,7 +19,8 @@ public sealed record GolpeDeInimigoAcertou(
     long PersonagemId,
     int Dano,
     string Area,
-    TipoDeAtaqueDeInimigo Tipo = TipoDeAtaqueDeInimigo.Golpe
+    TipoDeAtaqueDeInimigo Tipo = TipoDeAtaqueDeInimigo.Golpe,
+    int? PotenciaDeBloqueio = null
 )
 {
     /// <summary>
@@ -27,4 +28,9 @@ public sealed record GolpeDeInimigoAcertou(
     /// Golpes comuns não atordoam nem interrompem o jogador; especiais (investida, pisada, raios, etc.) interrompem (#795).
     /// </summary>
     public bool InterrompeAlvo => RegrasReacao.InterrompeJogador(Tipo);
+
+    /// <summary>
+    /// Potência de bloqueio exigida pelo golpe (#344). Se não informada, equivale ao dano do golpe.
+    /// </summary>
+    public int PotenciaBloqueio => PotenciaDeBloqueio ?? Dano;
 }

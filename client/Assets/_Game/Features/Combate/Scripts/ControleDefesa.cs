@@ -19,6 +19,8 @@ namespace JogoDoGrupo.Client.Features.Combate
     {
         public const string TextoGuardaQuebrou = "Guarda quebrou!";
         public const string TextoGolpeBloqueado = "Bloqueou!";
+        public const string TextoDefesaInsuficiente =
+            "Defesa insuficiente para bloquear completamente este impacto.";
 
         /// <summary>Botão direito do mouse (docs/features/interface.md, Teclas e atalhos: bloqueio).</summary>
         public const string BotaoPadrao = "<Mouse>/rightButton";
@@ -68,6 +70,12 @@ namespace JogoDoGrupo.Client.Features.Combate
                 ConexaoTempoReal.Assinar<GolpeBloqueado>(
                     CombateMessageIds.GolpeBloqueado,
                     AoBloquear
+                )
+            );
+            _assinaturas.Add(
+                ConexaoTempoReal.Assinar<DefesaInsuficiente>(
+                    CombateMessageIds.DefesaInsuficiente,
+                    AoDefesaInsuficiente
                 )
             );
             _assinaturas.Add(
@@ -262,6 +270,18 @@ namespace JogoDoGrupo.Client.Features.Combate
             {
                 AvisosDoJogo.Mostrar(
                     TextoGolpeBloqueado,
+                    TipoDeAviso.Aviso,
+                    CategoriaDeAviso.Combate
+                );
+            }
+        }
+
+        private void AoDefesaInsuficiente(DefesaInsuficiente aviso)
+        {
+            if (aviso.PersonagemId == _personagemId)
+            {
+                AvisosDoJogo.Mostrar(
+                    TextoDefesaInsuficiente,
                     TipoDeAviso.Aviso,
                     CategoriaDeAviso.Combate
                 );
