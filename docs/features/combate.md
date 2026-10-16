@@ -97,7 +97,7 @@ Decidido em 2026-10-12, como no New World, fácil de mudar. Sem parry. Quem deci
 
 - Segurar a guarda anda a no máximo **40%** da corrida e pausa a regeneração da stamina ([fatia](fatia-jogavel.md#1-atributos-e-recursos)). Não vale durante o preparo nem no momento de acerto de um golpe seu. Na recuperação, segurar a guarda corta o que falta dela.
 - O golpe recebido custa **1 de stamina por ponto de dano** (`StaminaPorDanoBloqueado`), antes da defesa do equipamento. Com stamina suficiente, o dano desse golpe é zero e a stamina desce esse tanto.
-- Sem stamina para o custo, a guarda quebra: a stamina vai a zero, o dano entra (a defesa do equipamento da [#344](https://github.com/GabrielNied/jogo_do_grupo/issues/344) vale nesse caso: anula se defesa >= 1,5x potência ou reduz proporcionalmente até 80%; se dano residual > 0, o client recebe `DefesaInsuficiente` e avisa "Defesa insuficiente para bloquear completamente este impacto.") e a [reação ao acerto](#reação-ao-acerto) começa (apenas se dano direto residual > 0).
+- Sem stamina para o custo, a guarda quebra: a stamina vai a zero, o dano entra (a defesa do equipamento da [#344](https://github.com/GabrielNied/jogo_do_grupo/issues/344) vale nesse caso: anula se defesa >= 1,5x potência ou reduz proporcionalmente até 80%; se dano residual > 0, o client recebe `DefesaInsuficiente` e avisa quanto dano passou, ex.: "12 de 40 passaram", com fallback para "Defesa insuficiente para bloquear completamente este impacto.") e a [reação ao acerto](#reação-ao-acerto) começa (apenas se dano direto residual > 0).
 - A fórmula da #344 não substitui a guarda. Ela só reduz o que passou.
 
 ### Duas armas (#580)

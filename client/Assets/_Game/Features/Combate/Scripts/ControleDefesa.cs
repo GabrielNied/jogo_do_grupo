@@ -276,15 +276,18 @@ namespace JogoDoGrupo.Client.Features.Combate
             }
         }
 
-        private void AoDefesaInsuficiente(DefesaInsuficiente aviso)
+        internal void DefinirPersonagemIdParaTestes(long personagemId) =>
+            _personagemId = personagemId;
+
+        internal void AoDefesaInsuficiente(DefesaInsuficiente aviso)
         {
-            if (aviso.PersonagemId == _personagemId)
+            if (aviso != null && aviso.PersonagemId == _personagemId)
             {
-                AvisosDoJogo.Mostrar(
-                    TextoDefesaInsuficiente,
-                    TipoDeAviso.Aviso,
-                    CategoriaDeAviso.Combate
+                var texto = ApresentacaoDefesa.TextoDefesaInsuficiente(
+                    aviso.DanoResidual,
+                    aviso.DanoOriginal
                 );
+                AvisosDoJogo.Mostrar(texto, TipoDeAviso.Aviso, CategoriaDeAviso.Combate);
             }
         }
 
