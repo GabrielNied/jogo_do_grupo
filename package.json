@@ -4,7 +4,7 @@
   "description": "Ferramentas do repo (commitlint, hooks do git, export do FigJam). O jogo é C#; isto não roda no jogo.",
   "type": "module",
   "scripts": {
-    "prepare": "husky",
+    "prepare": "node scripts/git/preparar-husky.mjs",
     "commitlint": "commitlint",
     "validar-branch": "node scripts/git/validar-branch.mjs",
     "figma:exportar": "node scripts/figma/exportar-brainstorm.mjs",

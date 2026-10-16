@@ -14,12 +14,6 @@ Formato: `### AAAA-MM-DD · título` com **O que houve**, **Regra** e **Origem**
 - **Regra:** se o comando disser que o editor está aberto, confira na saída qual janela é e espere ou peça para fechar.
 - **Origem:** PR #383.
 
-### 2026-10-11 · Hooks no PowerShell sem sh no PATH
-
-- **O que houve:** o commit da #519 falhou com `/usr/bin/env: sh: No such file or directory`, com o Git instalado.
-- **Regra:** rode o commit pelo Git Bash, com `/usr/bin:/bin` no PATH da sessão. Mantenha os hooks ativos, sem `--no-verify`.
-- **Origem:** issue #519.
-
 ### 2026-10-11 · Edição no Windows
 
 - **O que houve:** na #516, o alias Python do Windows não executou o script, e a edição exigiu corrigir codificação e quebras de linha.

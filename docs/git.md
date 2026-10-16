@@ -28,7 +28,7 @@ Precisa do [Node.js](https://nodejs.org) 20 ou mais novo (só para as ferramenta
 npm install
 ```
 
-Isso instala o commitlint e ativa os hooks do husky (`git config core.hooksPath` passa a apontar para `.husky/_`). Sem esse passo os hooks locais não rodam, mas o CI confere tudo do mesmo jeito.
+Isso instala o commitlint e ativa os hooks do husky (`git config core.hooksPath` passa a apontar para `.husky/_`). No Windows, a preparação ajusta os hooks para localizar automaticamente o `sh.exe` do Git for Windows, permitindo commitar e dar push diretamente no PowerShell sem exigir Git Bash manual. Sem esse passo os hooks locais não rodam, mas o CI confere tudo do mesmo jeito.
 
 ## Ciclo de vida de uma tarefa
 
@@ -230,5 +230,4 @@ Quando o workflow [Server, Shared e testes](../.github/workflows/server.yml) fal
 | Commitei na `main` local sem querer | `git switch -c feature/<x>/<descricao>` (leva os commits) e depois `git switch main && git reset --hard origin/main` |
 | Branch desatualizada | `git pull --rebase origin main` e `git push --force-with-lease` |
 | Pular os hooks | `--no-verify` só em emergência; o CI confere tudo de novo no PR |
-
-Para hooks no PowerShell, veja a [lição sobre sh no PATH](licoes.md#2026-10-11--hooks-no-powershell-sem-sh-no-path).
+No Windows, se os hooks falharem por ausência de sh, rode `npm run prepare` para reconfigurar a resolução do Git for Windows.
