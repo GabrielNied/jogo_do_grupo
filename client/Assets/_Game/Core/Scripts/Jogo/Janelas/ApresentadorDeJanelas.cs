@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using JogoDoGrupo.Client.Core.UI;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -6,33 +7,64 @@ using UnityEngine.UIElements;
 namespace JogoDoGrupo.Client.Core.Jogo.Janelas
 {
     /// <summary>
-    /// Põe a janela aberta na tela: a mesma moldura para todas (véu sobre o jogo, título,
-    /// botão de fechar, conteúdo da funcionalidade e a dica de como fechar).
+    /// Põe as janelas abertas na tela, várias ao mesmo tempo, com a mesma moldura para todas
+    /// (título, botão de fechar, conteúdo da funcionalidade e a dica de como fechar). As
+    /// comuns ficam lado a lado numa área sem véu, para o jogo seguir à vista; a de tela
+    /// inteira (o mapa) fica por baixo delas.
     /// </summary>
     internal sealed class ApresentadorDeJanelas
     {
         internal const string NomeElemento = "core.janela";
+        internal const string NomeArea = "core.janelas";
         internal const string TextoFechar = "X";
         internal const string TextoFalha = "Não foi possível abrir esta janela.";
 
         private readonly VisualElement _container;
-        private readonly Action _aoPedirFechar;
+        private readonly Action<string> _aoPedirFechar;
+        private readonly Action<string> _aoFocar;
+        private readonly VisualElement _area;
 
-        private VisualElement _raiz;
-        private JanelaDoJogo _janela;
+        // Na ordem em que foram mostradas; a focada é a de cima.
+        private readonly List<Aberta> _abertas = new List<Aberta>();
+        private Aberta _focada;
 
-        /// <param name="container">Elemento que recebe a janela (o das telas do Core).</param>
-        /// <param name="aoPedirFechar">Chamado quando a pessoa clica no botão de fechar.</param>
-        public ApresentadorDeJanelas(VisualElement container, Action aoPedirFechar)
+        /// <param name="container">Elemento que recebe as janelas (o das telas do Core).</param>
+        /// <param name="aoPedirFechar">Chamado com a chave quando a pessoa clica no X.</param>
+        /// <param name="aoFocar">Chamado com a chave quando a pessoa clica numa janela.</param>
+        public ApresentadorDeJanelas(
+            VisualElement container,
+            Action<string> aoPedirFechar,
+            Action<string> aoFocar = null
+        )
         {
             _container = container;
             _aoPedirFechar = aoPedirFechar;
+            _aoFocar = aoFocar;
+            _area = new VisualElement { name = NomeArea, pickingMode = PickingMode.Ignore };
+            _area.AddToClassList(EstiloCore.JanelasArea);
         }
 
-        /// <summary>Elemento da janela na tela, ou <c>null</c> com tudo fechado.</summary>
-        public VisualElement Raiz => _raiz;
+        /// <summary>Elemento da janela focada (a de cima), ou <c>null</c> com tudo fechado.</summary>
+        public VisualElement Raiz => _focada?.Raiz;
 
-        public bool TelaInteiraAberta => _janela != null && _janela.TelaInteira;
+        /// <summary>Área onde ficam as janelas comuns, lado a lado.</summary>
+        public VisualElement Area => _area;
+
+        public bool TelaInteiraAberta
+        {
+            get
+            {
+                foreach (var aberta in _abertas)
+                {
+                    if (aberta.Janela != null && aberta.Janela.TelaInteira)
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+        }
 
         /// <summary>Texto da dica do rodapé (ex.: "I ou Esc: fechar").</summary>
         internal static string TextoDoRodape(string tecla)
@@ -40,13 +72,41 @@ namespace JogoDoGrupo.Client.Core.Jogo.Janelas
             return $"{tecla} ou Esc: fechar";
         }
 
+        /// <summary>
+        /// Se o ponto da tela (em pixels, origem embaixo à esquerda, como o mouse) está sobre
+        /// alguma janela aberta.
+        /// </summary>
+        public bool ContemPontoDaTela(Vector2 ponto)
+        {
+            var painel = _container?.panel;
+            if (painel == null || _abertas.Count == 0)
+            {
+                return false;
+            }
+
+            var noPainel = RuntimePanelUtils.ScreenToPanel(
+                painel,
+                new Vector2(ponto.x, Screen.height - ponto.y)
+            );
+            foreach (var aberta in _abertas)
+            {
+                if (aberta.Painel.worldBound.Contains(noPainel))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         public void Mostrar(DefinicaoDeJanela definicao)
         {
-            Esconder();
             if (_container == null || definicao == null)
             {
                 return;
             }
+
+            Esconder(definicao);
 
             JanelaDoJogo janela = null;
             try
@@ -59,11 +119,19 @@ namespace JogoDoGrupo.Client.Core.Jogo.Janelas
             }
 
             var telaInteira = janela != null && janela.TelaInteira;
+            var chave = definicao.Chave;
 
-            _raiz = new VisualElement { name = NomeElemento };
-            _raiz.AddToClassList(EstiloCore.Tela);
-            _raiz.AddToClassList(EstiloCore.TelaSobreJogo);
-            _raiz.EnableInClassList("janela-raiz-tela-inteira", telaInteira);
+            var raiz = new VisualElement { name = NomeElemento };
+            if (telaInteira)
+            {
+                raiz.AddToClassList(EstiloCore.Tela);
+                raiz.AddToClassList(EstiloCore.TelaSobreJogo);
+                raiz.AddToClassList("janela-raiz-tela-inteira");
+            }
+            else
+            {
+                raiz.AddToClassList(EstiloCore.JanelaRaiz);
+            }
 
             VisualElement painel = telaInteira ? new VisualElement() : EstiloCore.CriarPainel();
             if (!telaInteira)
@@ -72,12 +140,17 @@ namespace JogoDoGrupo.Client.Core.Jogo.Janelas
             }
             painel.AddToClassList(EstiloCore.Janela);
             painel.EnableInClassList("janela-tela-inteira", telaInteira);
+            // Clicar em qualquer parte da janela a traz para cima (o Esc fecha ela primeiro).
+            painel.RegisterCallback<PointerDownEvent>(
+                _ => _aoFocar?.Invoke(chave),
+                TrickleDown.TrickleDown
+            );
 
             var titulo = new Label(definicao.Titulo);
             titulo.AddToClassList(EstiloCore.Titulo);
             titulo.AddToClassList(EstiloCore.JanelaTitulo);
 
-            var fechar = new Button(() => _aoPedirFechar?.Invoke()) { text = TextoFechar };
+            var fechar = new Button(() => _aoPedirFechar?.Invoke(chave)) { text = TextoFechar };
             fechar.AddToClassList(EstiloCore.Botao);
             fechar.AddToClassList(EstiloCore.JanelaFechar);
             fechar.tooltip = "Fechar";
@@ -87,12 +160,10 @@ namespace JogoDoGrupo.Client.Core.Jogo.Janelas
             cabecalho.Add(titulo);
             cabecalho.Add(fechar);
 
-            var conteudo = new VisualElement { name = definicao.Chave };
+            var conteudo = new VisualElement { name = chave };
             conteudo.AddToClassList(EstiloCore.JanelaConteudo);
 
-            var rodape = new Label(
-                TextoDoRodape(TeclasDoJogo.Rotulo(TeclasDoJogo.Janela(definicao.Chave)))
-            );
+            var rodape = new Label(TextoDoRodape(TeclasDoJogo.Rotulo(TeclasDoJogo.Janela(chave))));
             rodape.AddToClassList(EstiloCore.JanelaRodape);
 
             if (telaInteira)
@@ -107,18 +178,39 @@ namespace JogoDoGrupo.Client.Core.Jogo.Janelas
                 painel.Add(conteudo);
                 painel.Add(rodape);
             }
-            _raiz.Add(painel);
-            _container.Add(_raiz);
+            raiz.Add(painel);
+
+            if (telaInteira)
+            {
+                // Por baixo das janelas comuns, que continuam à vista sobre o mapa.
+                _container.Add(raiz);
+                if (_area.parent == _container)
+                {
+                    _area.BringToFront();
+                }
+            }
+            else
+            {
+                if (_area.parent != _container)
+                {
+                    _container.Add(_area);
+                }
+                _area.Add(raiz);
+            }
+
+            var aberta = new Aberta(chave, raiz, painel);
+            _abertas.Add(aberta);
+            Destacar(aberta);
 
             // Janela com defeito não pode travar o jogo: mostra o aviso e segue fechável.
             if (janela == null)
             {
-                Debug.LogError($"[JanelasDoJogo] A janela \"{definicao.Chave}\" não foi criada.");
+                Debug.LogError($"[JanelasDoJogo] A janela \"{chave}\" não foi criada.");
                 MostrarFalha(conteudo);
                 return;
             }
 
-            _janela = janela;
+            aberta.Janela = janela;
             painel.EnableInClassList("ui-painel-social", janela.MolduraSocial);
             try
             {
@@ -132,10 +224,83 @@ namespace JogoDoGrupo.Client.Core.Jogo.Janelas
             }
         }
 
+        /// <summary>Marca a janela como a de cima.</summary>
+        public void Focar(DefinicaoDeJanela definicao)
+        {
+            var aberta = Procurar(definicao?.Chave);
+            if (aberta != null)
+            {
+                Destacar(aberta);
+            }
+        }
+
+        /// <summary>Fecha a janela e tira da tela. Sem efeito se ela não estiver aberta.</summary>
+        public void Esconder(DefinicaoDeJanela definicao)
+        {
+            var aberta = Procurar(definicao?.Chave);
+            if (aberta == null)
+            {
+                return;
+            }
+
+            _abertas.Remove(aberta);
+            Desmontar(aberta);
+            if (_focada == aberta)
+            {
+                Destacar(_abertas.Count > 0 ? _abertas[_abertas.Count - 1] : null);
+            }
+
+            if (_abertas.Count == 0 || _area.childCount == 0)
+            {
+                _area.RemoveFromHierarchy();
+            }
+        }
+
+        /// <summary>Fecha todas as janelas.</summary>
         public void Esconder()
         {
-            var janela = _janela;
-            _janela = null;
+            while (_abertas.Count > 0)
+            {
+                var aberta = _abertas[_abertas.Count - 1];
+                _abertas.RemoveAt(_abertas.Count - 1);
+                Desmontar(aberta);
+            }
+
+            _focada = null;
+            _area.RemoveFromHierarchy();
+        }
+
+        private void Destacar(Aberta focada)
+        {
+            _focada = focada;
+            foreach (var aberta in _abertas)
+            {
+                aberta.Painel.EnableInClassList(EstiloCore.JanelaFocada, aberta == focada);
+            }
+        }
+
+        private Aberta Procurar(string chave)
+        {
+            if (chave == null)
+            {
+                return null;
+            }
+
+            foreach (var aberta in _abertas)
+            {
+                if (aberta.Chave == chave)
+                {
+                    return aberta;
+                }
+            }
+
+            return null;
+        }
+
+        private static void Desmontar(Aberta aberta)
+        {
+            var janela = aberta.Janela;
+            aberta.Janela = null;
             if (janela != null)
             {
                 try
@@ -148,8 +313,7 @@ namespace JogoDoGrupo.Client.Core.Jogo.Janelas
                 }
             }
 
-            _raiz?.RemoveFromHierarchy();
-            _raiz = null;
+            aberta.Raiz.RemoveFromHierarchy();
         }
 
         private static void MostrarFalha(VisualElement conteudo)
@@ -158,6 +322,21 @@ namespace JogoDoGrupo.Client.Core.Jogo.Janelas
             falha.AddToClassList(EstiloCore.Mensagem);
             falha.AddToClassList(EstiloCore.MensagemErro);
             conteudo.Add(falha);
+        }
+
+        private sealed class Aberta
+        {
+            public Aberta(string chave, VisualElement raiz, VisualElement painel)
+            {
+                Chave = chave;
+                Raiz = raiz;
+                Painel = painel;
+            }
+
+            public string Chave { get; }
+            public VisualElement Raiz { get; }
+            public VisualElement Painel { get; }
+            public JanelaDoJogo Janela { get; set; }
         }
     }
 }

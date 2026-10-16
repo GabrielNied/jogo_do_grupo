@@ -12,7 +12,7 @@ Telas e menus do client que não pertencem a uma funcionalidade do jogo. Por enq
 
 - O menu abre com **Esc**, tem **continuar**, **opções**, **voltar à seleção**, **sair da conta** e **sair do jogo**. "Sair da conta" já existe (apaga o token gravado; veja [personagem.md](personagem.md)). "Voltar à seleção" volta à escolha de personagem sem sair da conta.
 - Opções iniciais (da issue #89, no client em 2026-10-11): volume (geral, música, efeitos), qualidade gráfica, resolução e tela cheia, sensibilidade da câmera, idioma. Gravadas neste computador. O volume geral, a qualidade, a tela e a resolução valem na hora; música e efeitos ficam gravados para o áudio (#123). Resolução 0 significa a do monitor. Idioma: só português. O jogo não pausa.
-- **Janelas do jogo por atalho** (#134, decidido por Gabriel em 2026-10-11; provisório, o grupo pode ajustar): **C** personagem, **I** inventário, **L** missões, **M** mapa. ~~**Uma janela por vez**, e com janela aberta o personagem fica **parado**.~~ Substituído em 2026-10-16 (Gabriel): **várias janelas abertas ao mesmo tempo, e o personagem anda com elas**, como no WoW. Com janela aberta o mouse vira cursor, e a câmera só gira segurando o botão direito. Regras em [Janelas do jogo](#janelas-do-jogo) (ainda descrevem a regra antiga até a implementação).
+- **Janelas do jogo por atalho** (#134, decidido por Gabriel em 2026-10-11; provisório, o grupo pode ajustar): **C** personagem, **I** inventário, **L** missões, **M** mapa. ~~**Uma janela por vez**, e com janela aberta o personagem fica **parado**.~~ Substituído em 2026-10-16 (Gabriel): **várias janelas abertas ao mesmo tempo, e o personagem anda com elas**, como no WoW. Com janela aberta o mouse vira cursor, e a câmera só gira segurando o botão direito. Regras em [Janelas do jogo](#janelas-do-jogo) (no client desde a [#899](https://github.com/GabrielNied/jogo_do_grupo/issues/899)).
 - **Decisões do Gabriel em 2026-10-16** (quiz de definições):
   - **Teclas:** não existe mais tecla de correr, porque o personagem está sempre correndo ([personagem](personagem.md#definido)). **Ctrl esquerdo** (segurar) anda devagar, a **esquiva vai para o Shift** e o pulo continua no Espaço. Em Opções > Teclas a linha "Correr" virou "Andar devagar"; uma troca salva da tecla de correr é descartada e as duas ações voltam ao padrão novo ([#894](https://github.com/GabrielNied/jogo_do_grupo/issues/894)).
   - **Quiz de definições 2:** novos atalhos de janela **K** skills, **N** talentos, **O** social e **P** profissões; a barra de atalhos fica **sempre visível**; remapear para uma tecla ocupada **troca as duas ações**. O layout do HUD e o áudio propostos em [HUD do jogo](#hud-do-jogo) e [Áudio](#áudio) viram regra. Os **outros jogadores** soam no espaço: golpes, acertos e passos, até 25 m. Os textos do livro compatíveis com as regras atuais entram ([#352](https://github.com/GabrielNied/jogo_do_grupo/issues/352)); sai o "Maior dano: você" e o texto que fala de raça.
@@ -77,7 +77,7 @@ Com o menu aberto, o cursor fica livre e a câmera e o movimento não recebem in
 
 ### Janelas do jogo
 
-Decidido por Gabriel em 2026-10-11 (#134); é **provisório** e o grupo pode ajustar. **Base:** MMOs de PC (World of Warcraft, New World), veja [referências](../referencias.md). **Igual:** uma letra abre cada janela e a mesma letra fecha; Esc fecha a janela aberta. **Diferente:** só uma janela aberta por vez e o personagem fica parado, como no New World (no WoW dá para abrir várias e andar com elas).
+Decidido por Gabriel em 2026-10-11 (#134); é **provisório** e o grupo pode ajustar. **Base:** MMOs de PC (World of Warcraft, New World), veja [referências](../referencias.md). **Igual (WoW):** uma letra abre cada janela e a mesma letra fecha; várias ficam abertas ao mesmo tempo e o personagem anda com elas; Esc fecha a de cima. ~~Só uma janela por vez e o personagem parado, como no New World.~~ Substituído em 2026-10-16 (Gabriel, #899).
 
 | Tecla | Janela | Dona | Hoje mostra |
 |---|---|---|---|
@@ -97,13 +97,15 @@ Decidido por Gabriel em 2026-10-16 (refino pós quiz 4). **Base:** diário de mo
 - **Onde conseguir:** ao selecionar um bloqueado (clique permitido, sem ativar), o painel mostra texto fixo de **origem**, vindo do catálogo, por exemplo: drop raro de **criatura X** na **região Y**; item de **chefe Z** (campo, dungeon ou raid nomeada). O client **não inventa** a dica: copia o campo de origem declarado junto da entrada (alinhado à tabela de loot em [mobs](mobs.md#definido) / [itens](itens.md)).
 - **Progresso opcional:** contador "X de Y" na aba é permitido; não substitui o bestiário de espécies ([#323](https://github.com/GabrielNied/jogo_do_grupo/issues/323)).
 
-- **A tecla alterna:** abre a janela; apertar de novo fecha.
-- **Uma janela por vez:** abrir outra fecha a que estava aberta.
-- **Esc** fecha a janela aberta. Sem janela aberta, Esc abre o [menu](#menu-esc). Um Esc nunca faz as duas coisas.
-- Com janela aberta, o personagem fica **parado**, a câmera não gira e o cursor fica livre. O jogo **não pausa**: o mundo segue rodando e o personagem fica vulnerável.
+- **A tecla alterna:** abre a janela; apertar de novo fecha, mesmo que ela não esteja em cima.
+- **Várias ao mesmo tempo:** abrir outra não fecha as abertas; as janelas comuns ficam lado a lado, sem véu sobre o jogo. A de tela inteira (o mapa) fica por baixo das comuns.
+- **A de cima** é a última aberta ou a última clicada; ela tem a borda em destaque.
+- **Esc** fecha a de cima, uma por vez. Sem janela aberta, Esc abre o [menu](#menu-esc). Um Esc nunca faz as duas coisas. Abrir o menu fecha as janelas.
+- Com janela aberta, o personagem **anda** (WASD, pulo, andar devagar), o mouse vira **cursor** e a câmera só gira **segurando o botão direito** apertado fora das janelas (o cursor some enquanto gira). A roda do mouse só aproxima fora das janelas. Sem janela, o mouse volta a ficar preso e a câmera livre. Com o menu do Esc, o personagem fica parado. O jogo **não pausa**: o mundo segue rodando.
+- Com janela aberta o clique não é golpe: os ataques, a guarda e as skills só saem com o cursor preso (sem janela).
 - Com o **menu do Esc aberto**, os atalhos de janela não disparam.
 - Toda janela tem a mesma moldura: título, botão de fechar (X) no canto e, no pé, a dica de como fechar (ex.: "I ou Esc: fechar").
-- **Barra de atalhos:** no canto inferior direito, mostra a tecla de cada janela e a do menu, com a janela aberta em destaque. Só mostra, não recebe clique. Quando a moldura do HUD existir (#122), a barra passa a ser uma região dela.
+- **Barra de atalhos:** no canto inferior direito, mostra a tecla de cada janela e a do menu, com as janelas abertas em destaque. Só mostra, não recebe clique. Quando a moldura do HUD existir (#122), a barra passa a ser uma região dela.
 - Janela com defeito mostra "Não foi possível abrir esta janela." e continua fechável; o jogo não trava.
   - **Teclas que uma janela não pode usar por padrão:** as de outra ação da tabela de [Teclas e atalhos](#teclas-e-atalhos) (W, A, S, D, Q, E, F, R) e a de outra janela. O client recusa o registro na inicialização.
   - Trocar as teclas das janelas é a tela de **Opções > Teclas** (#124); a tabela mostra os padrões.
@@ -111,7 +113,7 @@ Decidido por Gabriel em 2026-10-16 (refino pós quiz 4). **Base:** diário de mo
 
 **Quem monta o quê:** o Core cuida do atalho, da moldura, do Esc, do cursor e da barra. Cada funcionalidade registra a sua janela e monta só o conteúdo, sem referenciar outra funcionalidade (API em [arquitetura.md](../arquitetura.md#entrada-no-mundo)).
 
-**Testes** (client, EditMode): chave ou tecla repetida, reservada ou inválida é recusada; a tecla abre e fecha; abrir outra fecha a atual; Esc fecha a janela antes de abrir o menu; atalho não abre janela com o menu aberto; ordem e destaque da barra de atalhos; janela com defeito mostra o aviso.
+**Testes** (client, EditMode): chave ou tecla repetida, reservada ou inválida é recusada; a tecla abre e fecha; abrir outra mantém as duas; Esc fecha uma por vez, a de cima, antes de abrir o menu; o input do personagem segue com janela e para com o menu; atalho não abre janela com o menu aberto; ordem e destaque da barra de atalhos; janela com defeito mostra o aviso.
 
 ### Opções iniciais
 

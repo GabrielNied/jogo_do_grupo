@@ -11,7 +11,8 @@ namespace JogoDoGrupo.Client.Core.Jogo
     /// <summary>
     /// Fica no jogador local enquanto ele está no mundo: dono das ações de input, abre e fecha o
     /// menu do Esc e as janelas do jogo (<see cref="JanelasDoJogo"/>) e prende o cursor do mouse
-    /// quando nada está aberto. Criada pela <see cref="EntradaNoJogo"/>.
+    /// quando nada está aberto. Com janela aberta o personagem anda, o mouse vira cursor e a
+    /// câmera só gira segurando o botão direito fora das janelas. Criada pela <see cref="EntradaNoJogo"/>.
     /// </summary>
     internal sealed class SessaoNoMundo : MonoBehaviour
     {
@@ -23,6 +24,7 @@ namespace JogoDoGrupo.Client.Core.Jogo
         private ApresentadorDeJanelas _apresentador;
         private AtalhosDeJanelas _atalhos;
         private BarraDeAtalhos _barra;
+        private bool _girando;
 
         public bool MenuAberto => _menu != null && _menu.Aberto;
 
@@ -38,11 +40,16 @@ namespace JogoDoGrupo.Client.Core.Jogo
             _menu = new MenuJogo(FecharMenu);
 
             var registro = JanelasDoJogo.Registro;
-            _apresentador = new ApresentadorDeJanelas(Navegacao.Container, FecharJanela);
+            _apresentador = new ApresentadorDeJanelas(
+                Navegacao.Container,
+                FecharJanela,
+                FocarJanela
+            );
             _janelas = new GerenteDeJanelas(
                 registro,
                 _apresentador.Mostrar,
-                _apresentador.Esconder
+                _apresentador.Esconder,
+                _apresentador.Focar
             );
             _janelas.Mudou += Sincronizar;
             ConexaoTempoReal.EstadoMudou += AoMudarConexao;
@@ -88,12 +95,13 @@ namespace JogoDoGrupo.Client.Core.Jogo
             {
                 JanelasDoJogo.Desligar(_janelas);
                 _janelas.Mudou -= Sincronizar;
-                _janelas.Fechar();
+                _janelas.FecharTodas();
                 _janelas.DefinirMenuAberto(false);
                 _janelas.Mudou += Sincronizar;
             }
 
             _menu?.Fechar();
+            _girando = false;
             Hud.DefinirVisivel(true);
             // Sai da tela já: a cena do mundo só termina de descarregar depois.
             _barra?.Remover();
@@ -127,6 +135,8 @@ namespace JogoDoGrupo.Client.Core.Jogo
             {
                 return;
             }
+
+            AtualizarGiroComJanela();
 
             var hud = Navegacao.Container;
             if (_acoes.MenuApertado)
@@ -201,9 +211,66 @@ namespace JogoDoGrupo.Client.Core.Jogo
             _janelas?.DefinirMenuAberto(false);
         }
 
-        private void FecharJanela()
+        private void FecharJanela(string chave)
         {
-            _janelas?.Fechar();
+            _janelas?.Fechar(chave);
+        }
+
+        private void FocarJanela(string chave)
+        {
+            _janelas?.Focar(chave);
+        }
+
+        /// <summary>
+        /// Com janela aberta: a câmera só gira enquanto o botão direito, apertado fora das
+        /// janelas, está segurado (o cursor some e fica na janela do jogo); a roda só aproxima
+        /// com o mouse fora das janelas. Sem janela, tudo livre como antes.
+        /// </summary>
+        private void AtualizarGiroComJanela()
+        {
+            if (_camera == null)
+            {
+                return;
+            }
+
+            var comCursor = _janelas.JanelaAberta && !_janelas.MenuAberto && _camera.InputAtivo;
+            if (!comCursor)
+            {
+                if (_girando)
+                {
+                    PararDeGirar();
+                }
+
+                _camera.GiroBloqueado = false;
+                _camera.ZoomBloqueado = false;
+                return;
+            }
+
+            var sobreJanela = _apresentador.ContemPontoDaTela(_acoes.PosicaoDoMouse);
+            if (
+                !_girando
+                && DecisaoDeEntradaNoMundo.ComecaAGirar(_acoes.GirarCameraApertado, sobreJanela)
+            )
+            {
+                _girando = true;
+                // Confined, não Locked: o combate lê Locked como "no jogo" e o botão direito
+                // seria a guarda.
+                Cursor.lockState = CursorLockMode.Confined;
+                Cursor.visible = false;
+            }
+            else if (_girando && !_acoes.GirarCameraSegurado)
+            {
+                PararDeGirar();
+            }
+
+            _camera.GiroBloqueado = !_girando;
+            _camera.ZoomBloqueado = sobreJanela && !_girando;
+        }
+
+        private void PararDeGirar()
+        {
+            _girando = false;
+            LiberarCursor();
         }
 
         /// <summary>
@@ -227,8 +294,8 @@ namespace JogoDoGrupo.Client.Core.Jogo
                     _apresentador.TelaInteiraAberta || EntradaNoJogo.EntradaPendente
                         ? DisplayStyle.None
                         : DisplayStyle.Flex;
-                _barra.Destacar(_janelas.ChaveAberta);
-                if (_janelas.ChaveAberta != null && !_apresentador.TelaInteiraAberta)
+                _barra.DestacarAbertas(_janelas.ChavesAbertas);
+                if (_janelas.JanelaAberta && !_apresentador.TelaInteiraAberta)
                 {
                     _barra.TrazerParaFrente();
                 }
@@ -241,7 +308,21 @@ namespace JogoDoGrupo.Client.Core.Jogo
             );
             Hud.DefinirVisivel(!_apresentador.TelaInteiraAberta);
 
-            DefinirInputAtivo(livre);
+            // Com janelas abertas o personagem anda; só o menu, a entrada e a queda param.
+            DefinirInputAtivo(
+                DecisaoDeEntradaNoMundo.DeveLerInput(
+                    _janelas.MenuAberto,
+                    EntradaNoJogo.EntradaPendente,
+                    ConexaoTempoReal.Conectado
+                )
+            );
+            _girando = false;
+            if (_camera != null)
+            {
+                _camera.GiroBloqueado = _janelas.JanelaAberta;
+                _camera.ZoomBloqueado = false;
+            }
+
             if (livre)
             {
                 Cursor.lockState = CursorLockMode.Locked;

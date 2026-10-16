@@ -176,6 +176,15 @@ namespace JogoDoGrupo.Client.Core.UI
         /// <summary>Dica de como fechar, no pé da janela (ex.: "I ou Esc: fechar").</summary>
         public const string JanelaRodape = "janela-rodape";
 
+        /// <summary>Área sobre o jogo, sem véu, onde as janelas abertas ficam lado a lado (o Core aplica).</summary>
+        public const string JanelasArea = "janelas-area";
+
+        /// <summary>Elemento de cada janela comum dentro de <see cref="JanelasArea"/> (o Core aplica).</summary>
+        public const string JanelaRaiz = "janela-raiz";
+
+        /// <summary>Destaque da janela de cima, a próxima que o Esc fecha (use junto com <see cref="Janela"/>).</summary>
+        public const string JanelaFocada = "janela-focada";
+
         /// <summary>Linha de "rótulo: valor" dentro de uma janela (ex.: "Nível  3").</summary>
         public const string LinhaDado = "linha-dado";
 

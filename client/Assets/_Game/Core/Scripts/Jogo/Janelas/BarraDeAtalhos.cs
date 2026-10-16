@@ -63,6 +63,21 @@ namespace JogoDoGrupo.Client.Core.Jogo.Janelas
             }
         }
 
+        /// <summary>Destaca todas as janelas abertas (lista vazia tira o destaque de todas).</summary>
+        public void DestacarAbertas(IReadOnlyList<string> chavesAbertas)
+        {
+            foreach (var par in _itens)
+            {
+                var aberta = false;
+                for (var i = 0; i < chavesAbertas.Count && !aberta; i++)
+                {
+                    aberta = chavesAbertas[i] == par.Key;
+                }
+
+                par.Value.EnableInClassList(EstiloCore.AtalhoAtivo, aberta);
+            }
+        }
+
         /// <summary>Mantém a barra na frente da janela aberta, para o destaque aparecer.</summary>
         public void TrazerParaFrente()
         {

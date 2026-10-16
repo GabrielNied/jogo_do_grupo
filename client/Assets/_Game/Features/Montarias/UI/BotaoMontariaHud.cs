@@ -177,9 +177,9 @@ namespace JogoDoGrupo.Client.Features.Montarias.UI
         {
             if (JanelasDoJogo.EstaRegistrada(JanelaMontarias.Chave))
             {
-                if (JanelasDoJogo.ChaveAberta == JanelaMontarias.Chave)
+                if (JanelasDoJogo.EstaAberta(JanelaMontarias.Chave))
                 {
-                    JanelasDoJogo.Fechar();
+                    JanelasDoJogo.Fechar(JanelaMontarias.Chave);
                 }
                 else
                 {

@@ -59,7 +59,7 @@ namespace JogoDoGrupo.Client.Core.Tests
             }
 
             _container = new VisualElement();
-            _apresentador = new ApresentadorDeJanelas(_container, () => _gerente.Fechar());
+            _apresentador = new ApresentadorDeJanelas(_container, chave => _gerente.Fechar(chave));
             _gerente = new GerenteDeJanelas(
                 JanelasDoJogo.Registro,
                 _apresentador.Mostrar,
@@ -80,7 +80,7 @@ namespace JogoDoGrupo.Client.Core.Tests
             Application.logMessageReceived -= GuardarErro;
             LogAssert.ignoreFailingMessages = _ignoravaLogs;
 
-            _gerente.Fechar();
+            _gerente.FecharTodas();
             JanelasDoJogo.Desligar(_gerente);
             JanelasDoJogo.Registro.Limpar();
             foreach (var definicao in _registradasAntes)
@@ -160,7 +160,10 @@ namespace JogoDoGrupo.Client.Core.Tests
         {
             var chave = definicao.Chave;
             Assert.IsTrue(JanelasDoJogo.Abrir(chave), $"[{chave}] A janela não abriu.");
-            Assert.IsTrue(JanelasDoJogo.AlgoAberto, $"[{chave}] Aberta, mas o jogo não parou.");
+            Assert.IsTrue(
+                JanelasDoJogo.AlgoAberto,
+                $"[{chave}] Aberta, mas o cursor não ficou livre."
+            );
             Assert.AreEqual(chave, JanelasDoJogo.ChaveAberta);
 
             var raiz = _apresentador.Raiz;
