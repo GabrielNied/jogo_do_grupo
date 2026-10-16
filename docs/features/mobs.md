@@ -280,7 +280,7 @@ No servidor (`server/.../Features/Mobs/`): `SorteadorDeCriaturas` (sorteia a var
 
 Inimigos do campo no servidor (issue #268): `GrupoDeInimigos` (a IA, sem rede, e o alvo dos golpes), `ServicoDeInimigos` (o laço de 10 passos por segundo, que envia as mensagens acima e publica os eventos) e `ConfigInimigosDoCampo` (ponto do grupo, espalhamento e id inicial).
 
-Boss da dungeon no servidor: `ChefeDaDungeon` (a IA, sem rede), `ChefesDaDungeon` (um por área, o alvo dos golpes) e `ConfigChefeDaDungeon`; o contrato `IChefesDaDungeon` (`Criar(areaId, x, z)` e `Remover(areaId)`) fica em `server/.../Contratos/Mobs/`.
+Boss da dungeon no servidor: `ChefeDaDungeon` (a IA, sem rede, com rewind de compensação de lag em `AlvosProximos` e `AlvosNoVolume`, ADR 0039), `ChefesDaDungeon` (um por área, o alvo dos golpes) e `ConfigChefeDaDungeon`; o contrato `IChefesDaDungeon` (`Criar(areaId, x, z)` e `Remover(areaId)`) fica em `server/.../Contratos/Mobs/`.
 
 Eventos para as outras funcionalidades do servidor (`server/.../Contratos/Mobs/`, [ADR 0016](../decisoes/0016-eventos-entre-funcionalidades-do-servidor.md)). Saem do laço de IA, não do laço de rede: o assinante precisa ser seguro entre threads e não bloquear.
 

@@ -1,5 +1,6 @@
 using JogoDoGrupo.Server.Contratos.Combate;
 using JogoDoGrupo.Server.Contratos.Mobs;
+using JogoDoGrupo.Server.Contratos.Mundo;
 using JogoDoGrupo.Shared.Features.Combate;
 using JogoDoGrupo.Shared.Features.Mobs;
 using JogoDoGrupo.Shared.Features.Mundo;
@@ -50,6 +51,7 @@ public sealed class ChefeDaDungeon : IAlvosDeCombate, IInimigosSimulados
     );
     private readonly Func<long> _proximoId;
     private readonly Func<long> _relogioMs;
+    private readonly IHistoricoDePosicoesDoMundo? _historico;
     private readonly double _origemX;
     private readonly double _origemZ;
     private readonly HashSet<long> _participantes = [];
@@ -82,12 +84,14 @@ public sealed class ChefeDaDungeon : IAlvosDeCombate, IInimigosSimulados
     /// <param name="origemZ">Onde o boss fica, no plano do chão.</param>
     /// <param name="proximoId">Dá o id do boss, e um novo a cada <see cref="Reiniciar"/>.</param>
     /// <param name="relogioMs">Relógio em milissegundos; os testes trocam por um controlado.</param>
+    /// <param name="historico">Histórico de posições no mundo para compensação de lag/rewind.</param>
     public ChefeDaDungeon(
         string area,
         double origemX,
         double origemZ,
         Func<long> proximoId,
-        Func<long>? relogioMs = null
+        Func<long>? relogioMs = null,
+        IHistoricoDePosicoesDoMundo? historico = null
     )
     {
         ArgumentException.ThrowIfNullOrEmpty(area);
@@ -98,10 +102,21 @@ public sealed class ChefeDaDungeon : IAlvosDeCombate, IInimigosSimulados
         _origemZ = origemZ;
         _proximoId = proximoId;
         _relogioMs = relogioMs ?? (() => Environment.TickCount64);
+        _historico = historico;
         _x = origemX;
         _z = origemZ;
         _id = proximoId();
         _vida = ConfigChefeDaDungeon.VidaMaxima;
+        RegistrarPosicao(_relogioMs());
+    }
+
+    private void RegistrarPosicao(long instanteMs)
+    {
+        _historico?.Registrar(
+            _id,
+            new PosicaoNoMundo(Area, (float)_x, 0f, (float)_z, (float)_rotacao),
+            instanteMs
+        );
     }
 
     public string Area { get; }
@@ -173,6 +188,7 @@ public sealed class ChefeDaDungeon : IAlvosDeCombate, IInimigosSimulados
             _rodizioDosRaios = 0;
             _expostoAteMs = 0;
             _participantes.Clear();
+            RegistrarPosicao(_relogioMs());
             _pendente.Aparicoes.Add(new InimigoApareceu { Inimigo = Retrato() });
             return _id;
         }
@@ -281,6 +297,7 @@ public sealed class ChefeDaDungeon : IAlvosDeCombate, IInimigosSimulados
                 passo.Mudancas.Add(new MudancaDeInimigo(Mudanca(), !mudouOResto));
             }
 
+            RegistrarPosicao(agora);
             return passo;
         }
     }
@@ -300,14 +317,26 @@ public sealed class ChefeDaDungeon : IAlvosDeCombate, IInimigosSimulados
 
         lock (_trava)
         {
+            var alvoX = _x;
+            var alvoZ = _z;
+            if (
+                instanteReferenciaMs > 0
+                && _historico?.TentarObterEm(_id, instanteReferenciaMs, out var posicaoHistorica)
+                    == true
+            )
+            {
+                alvoX = posicaoHistorica.X;
+                alvoZ = posicaoHistorica.Z;
+            }
+
             if (
                 RegrasInimigo.EstaVivo(_estado)
                 && RegrasAtaque.EstaNoVolume(
                     origemX,
                     origemZ,
                     direcaoYGraus,
-                    _x,
-                    _z,
+                    alvoX,
+                    alvoZ,
                     ConfigChefeDaDungeon.RaioDoCorpoMetros
                 )
             )
@@ -316,8 +345,8 @@ public sealed class ChefeDaDungeon : IAlvosDeCombate, IInimigosSimulados
                 [
                     new AlvoDeCombate(
                         _id,
-                        _x,
-                        _z,
+                        alvoX,
+                        alvoZ,
                         ConfigChefeDaDungeon.RaioDoCorpoMetros,
                         _vida,
                         ConfigChefeDaDungeon.VidaMaxima
@@ -344,8 +373,20 @@ public sealed class ChefeDaDungeon : IAlvosDeCombate, IInimigosSimulados
 
         lock (_trava)
         {
-            var dx = _x - origemX;
-            var dz = _z - origemZ;
+            var alvoX = _x;
+            var alvoZ = _z;
+            if (
+                instanteReferenciaMs > 0
+                && _historico?.TentarObterEm(_id, instanteReferenciaMs, out var posicaoHistorica)
+                    == true
+            )
+            {
+                alvoX = posicaoHistorica.X;
+                alvoZ = posicaoHistorica.Z;
+            }
+
+            var dx = alvoX - origemX;
+            var dz = alvoZ - origemZ;
             if (
                 RegrasInimigo.EstaVivo(_estado)
                 && Math.Sqrt(dx * dx + dz * dz) - ConfigChefeDaDungeon.RaioDoCorpoMetros
@@ -356,8 +397,8 @@ public sealed class ChefeDaDungeon : IAlvosDeCombate, IInimigosSimulados
                 [
                     new AlvoDeCombate(
                         _id,
-                        _x,
-                        _z,
+                        alvoX,
+                        alvoZ,
                         ConfigChefeDaDungeon.RaioDoCorpoMetros,
                         _vida,
                         ConfigChefeDaDungeon.VidaMaxima
