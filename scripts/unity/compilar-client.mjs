@@ -92,6 +92,8 @@ function scripts(pasta) {
 const nossos = new Set(asmdefs.map((a) => a.name));
 const pacotesUnity = join(LIBRARY, "ScriptAssemblies");
 const avisos = [];
+// Assembly de teste sem NUnit não compila; terminar verde assim escondia erro de teste (#947).
+const pulados = [];
 const projetos = [];
 
 // NUnit do Unity: só existe depois que o editor abriu o projeto (Library/PackageCache).
@@ -114,7 +116,7 @@ for (const a of asmdefs) {
   if (arquivos.length === 0) continue;
   const nunit = ehTeste(a) ? acharNunit() : null;
   if (ehTeste(a) && !nunit) {
-    avisos.push(`${a.name}: pulado (testes; abra o projeto no Unity uma vez para criar a Library).`);
+    pulados.push(a.name);
     continue;
   }
   const referencias = (a.references ?? []).map((r) => {
@@ -204,6 +206,10 @@ for (const l of linhas) console.log(l.replace(/\s*\[[^\]]*\.csproj\]$/, ""));
 
 if (falhou || erros.length) {
   console.error(`✖ Client não compila: ${erros.length} erro(s), ${avisosCompilacao.length} aviso(s).`);
+  process.exit(1);
+}
+if (pulados.length) {
+  console.error(`✖ Testes não compilados (sem NUnit; abra o projeto no Unity uma vez para criar a Library): ${pulados.join(", ")}.`);
   process.exit(1);
 }
 console.log(`✔ Client compila contra o Unity ${versao}: 0 erros, ${avisosCompilacao.length} aviso(s).`);
