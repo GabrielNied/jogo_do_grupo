@@ -14,7 +14,8 @@
 - Ambientação medieval
 - **Decisões do Gabriel em 2026-10-16** (quiz de lacunas de MMO):
   - **Canais:** cada área tem canais de até 80 pessoas ([meta de capacidade](../arquitetura.md)); o servidor abre outro quando lota. Entrar num grupo leva ao canal do líder. Trocar à mão só fora de combate, com espera de 1 min.
-  - **Sem viagem rápida:** o mundo se percorre a pé ou de [montaria](montarias.md). Em troca, **andar automático**: a pessoa marca um ponto no mapa e o personagem vai sozinho até lá. Pede caminho pelo terreno e um mapa bem melhor que o de hoje. Os **pontos de retorno** descobertos servem só para voltar da queda ([personagem](personagem.md#retorno-à-cidade)).
+  - **Sem viagem rápida:** o mundo se percorre a pé ou de [montaria](montarias.md). Em troca, **andar automático**: a pessoa marca um ponto no mapa e o personagem vai sozinho até lá. Pede caminho pelo terreno e um mapa bem melhor que o de hoje.
+- **Decisões do Gabriel em 2026-10-16** (quiz de definições 3): **sem teleporte jogável** nem rede de pontos descobertos por enquanto. Queda/morte no mapa: **cidade mais próxima** ([personagem](personagem.md#retorno-à-cidade)); na dungeon: **entrada da instância** ([instâncias](instancias.md#definido)).
   - **Muro da cidade:** a cidade é área protegida; criatura nenhuma entra ([mobs](mobs.md#definido)).
   - **Sair do jogo:** fora de combate sai na hora; em combate o personagem fica 10 s no mundo. Parado 30 min, desconecta. Ao entrar de novo volta onde saiu (se a dungeon encerrou, na cidade). Exceção: quem está com a barraca montada não é desconectado por inatividade ([economia](economia.md#definido)).
 - **Decisões do Gabriel em 2026-10-16** (quiz de definições; números em constante nomeada):
@@ -159,7 +160,7 @@ Tudo abaixo vem do "Livro de ideias" do [FigJam](../brainstorm/figjam.md) (seç�
 - **Escopo do MVP no livro:** mundo persistente, mapa pronto com uma cidade e subáreas (floresta, rios, caverna), referência de 20 jogadores por instância, expedições que não apagam o progresso. Meteoros, invasões, fendas e PvP são posteriores.
 - **Ciclo de dia e noite (proposta):** 40 min de dia e 20 min de noite; a noite reduz a leitura de mobs entre árvores, mas mantém contornos. Liga com a #163 (hora do mundo).
 - **Luz e som (proposta):** tochas (perto), flechas de fogo (marcam destino) e orbes (área grande) como fontes de luz; cada espécie reage à luz e ao som (veja [mobs](mobs.md)). Marcas de impacto (martelada, fuligem) são superficiais e não destroem o relevo. **Ponte de gelo:** superfície temporária entre margens válidas, com aviso de rachadura; criaturas também atravessam.
-- **Caído e retorno sem perdas (proposta):** ao zerar a vida, 45 s caído; aliado levanta em 3 s com 20% da vida; senão retorna à cidade mais próxima ou a teleporte descoberto, sem perder XP, moeda, equipamento ou durabilidade. A regra de combate e grupo é de [combate](combate.md) e [social](social.md); aqui só o retorno e os pontos de teleporte (sem viagem rápida desde 2026-10-16; servem só ao retorno).
+- **Caído e retorno sem perdas (proposta):** ao zerar a vida, 45 s caído; aliado levanta em 3 s com 20% da vida; senão retorna à **cidade mais próxima** (mapa) ou à **entrada da dungeon** (instância), sem perder XP, moeda, equipamento ou durabilidade — **sem teleporte** (quiz 3, 2026-10-16). A regra de combate e grupo é de [combate](combate.md) e [social](social.md).
 - **Eventos de mundo: FUTURO** (Chuva de Ferro Estelar no Planalto, Cerco da Brasa Mansa, Fenda do Horizonte): sem prioridade no MVP, ficam no backlog de eventos de mundo.
 
 ## Depende de

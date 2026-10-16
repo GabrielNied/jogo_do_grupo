@@ -12,10 +12,11 @@ Papel dos NPCs no mundo, comerciantes e reputação.
 
 - Comerciantes
 - **Reputação por facção de NPC da cidade** (decidido por Gabriel em 2026-10-16): por exemplo Forja, Guarda e Mercadores. Sobe com missões e diárias e libera receitas, descontos e aparências. Não tem relação com PvP. **Nunca cai** e não há facções rivais (quiz de definições, 2026-10-16).
+- **Decisões do Gabriel em 2026-10-16** (quiz de definições 3): na primeira Brasa Mansa entram **vendedor**, **ferreiro**, **banqueiro**, **leiloeiro** e **dadores de missão** ([#178](https://github.com/GabrielNied/jogo_do_grupo/issues/178)). NPCs de cena do prólogo só com a [#327](https://github.com/GabrielNied/jogo_do_grupo/issues/327).
 
 ## Em aberto
 
-- [ ] Quais tipos de NPC existem? Quem implementa a [#178](https://github.com/GabrielNied/jogo_do_grupo/issues/178) decide, a partir dos serviços já definidos: comerciante, ferreiro, banqueiro, leiloeiro, quem dá missões e o NPC de cena do prólogo.
+- [x] Quais tipos de NPC existem? Decidido em 2026-10-16 (quiz 3): lista acima; prólogo adiado.
 - [x] Como a reputação é perdida? (ganha por missões e diárias, decidido em 2026-10-16) Decidido em 2026-10-16: não é perdida.
 
 ## Regras

@@ -28,7 +28,7 @@ Inventário, equipamentos, tier calculado pelos atributos e fusão determinísti
 ## Em aberto
 
 - [x] ~~Cinco raridades confirmadas para #166: comum, incomum, raro, épico e lendário.~~ Substituído em 2026-10-12: tier D a S+ calculado pelos atributos. Grau continua um eixo separado (veja Equipamentos abaixo).
-- [x] ~~Quantas skills um item pode ter?~~ Decidido em 2026-10-14: a **arma** sorteia **3 ativas** no exemplar a partir do pool do **modelo-base** ([skills](skills.md#definido), SKILL-004); outras peças não somam ativa na barra (poderes #629). Catálogo amplo: [#340](https://github.com/GabrielNied/jogo_do_grupo/issues/340) / [#167](https://github.com/GabrielNied/jogo_do_grupo/issues/167).
+- [x] ~~Quantas skills um item pode ter?~~ Decidido em 2026-10-14: a **arma** sorteia **3 ativas** no exemplar a partir do pool do **modelo-base** ([skills](skills.md#definido), SKILL-004); outras peças não somam ativa na barra (poderes #629). Catálogo amplo: [#167](https://github.com/GabrielNied/jogo_do_grupo/issues/167) (sem pool por região; quiz 3).
 - [x] ~~Infusão usa o atributo marcado e +2% do valor-base (#174).~~ Substituído em 2026-10-12 pela fusão v2 (#616).
 - [x] ~~Custo inicial configurável por raridade na #174.~~ Substituído em 2026-10-12: custo por nível de fusão (#616).
 - [x] ~~Ajustes à tabela de raridades~~: sem objeto desde 2026-10-12 (a raridade saiu).
@@ -483,7 +483,7 @@ Até a #615 o gerador aplicava o fator Inicial/Médio/Forte **1/2/4** aos valore
 
 **No jogo:** I → Equipamentos → escolher o grau → Obter equipamento de teste (editor/build de desenvolvimento, servidor Development). O servidor sorteia uniformemente entre os 72 modelos e o martelo já existente, grava o exemplar e devolve a bolsa atualizada. O parâmetro opcional `?grau=0|1|2` da rota `/bau-teste` escolhe o grau; omitido mantém Inicial, inválido retorna 400 sem criar item. Bolsa cheia, autenticação, propriedade e transação seguem as regras anteriores. Peças médias/fortes exigem nível 10/20 para equipar.
 
-O catálogo inicial permanece na região Vale; variações regionais, pools de skills (#340/#167) não são definidos aqui; a distribuição no loot dos mobs é a de [Loot dos inimigos](#loot-dos-inimigos-493). O baú original conserva a tabela dele.
+O catálogo inicial permanece na região Vale; variações regionais, pools de skills (#167) não são definidos aqui; a distribuição no loot dos mobs é a de [Loot dos inimigos](#loot-dos-inimigos-493). O baú original conserva a tabela dele.
 
 ### Inventário e baú de teste: definido (provisório, 2026-10-11)
 
@@ -583,7 +583,7 @@ Matar um inimigo dá **peças reais** do catálogo de 72 (armaduras e acessório
 - **Individual:** cada participante faz o próprio sorteio (peça e grau); a queda guarda a origem e o grau até a coleta, e o exemplar (valores, tier de origem) é gerado ao entrar no inventário. Por isso o item no chão não tem tier: ele nasce na coleta.
 - **Aviso e chão:** `LootNoChao` traz o `Grau` (a `Raridade` saiu na #615), e o nome vem do catálogo de equipamentos. O aviso do HUD mostra nome e tier (veja abaixo).
 - **Meta de ritmo (X = 3 min):** jogador solo, 4 mobs/min, níveis 1 a 10: em média uma peça **melhor** que a equipada a cada 3 minutos, e no máximo 20 minutos sem nenhuma. "Melhor" é maior `TabelaDeLoot.Pontuacao` (soma dos valores dos atributos, +10% por degrau do tier atual) na posição onde a peça cabe. **A meta não mudou** com a #615: a simulação (200 corridas de nível 1 a 10) mede ~1,3 min de média e ~17 min na pior espera (posições quase cheias perto do nível 10; eram ~1,4 e ~15 min com a raridade), e a primeira peça melhor sai nos 2 primeiros minutos. O teste `RitmoDeLootTestes` falha se a tabela, a quantidade ou o ritmo saírem da meta.
-- **Fora desta entrega:** `MultiplicadorDeRecompensa` não muda a quantidade (a variante já pesa nas rolagens); loot de chefe usa a mesma quantidade do comum, até o grupo definir a tabela do boss; skills nas peças (#340/#167); atributos elementais.
+- **Fora desta entrega:** `MultiplicadorDeRecompensa` não muda a quantidade (a variante já pesa nas rolagens); loot de chefe usa a mesma quantidade do comum, até o grupo definir a tabela do boss; skills nas peças (#167); atributos elementais.
 
 ### Loot no chão (#64, contrato da #367)
 
@@ -615,7 +615,7 @@ Valores em `RegrasLoot`, todos **proposta a calibrar**:
 
 **No servidor (#368):**
 
-- Quem **participou** é quem o evento de morte de Mobs lista (`InimigoDerrotado.Participantes`: causou dano ao inimigo). Cada um tem um sorteio próprio; a variante e o nível do inimigo mudam as rolagens dos valores e o grau (veja [Loot dos inimigos](#loot-dos-inimigos-493)).
+- Quem **participou** é quem o evento de morte de Mobs lista (`InimigoDerrotado.Participantes`: dano, cura em combate ou ter sido alvo; [fatia, seção 5](fatia-jogavel.md#5-loot-no-chão), [mobs](mobs.md#inimigo-comum-da-fatia-issue-63)). Cada um tem um sorteio próprio; a variante e o nível do inimigo mudam as rolagens dos valores e o grau (veja [Loot dos inimigos](#loot-dos-inimigos-493)). Até a [#909](https://github.com/GabrielNied/jogo_do_grupo/issues/909), o servidor ainda só inclui quem causou dano.
 - O chão fica **em memória**: se o servidor reinicia, o que estava no chão some (o inventário não, ele é do banco).
 - A coleta confere, nesta ordem: o item existe e é do jogador (senão `LootNaoEncontrado`), está ao alcance com a posição que o Mundo aceitou (senão `LongeDemais`) e cabe no inventário (senão `InventarioCheio`). O item só sai do chão depois de gravado.
 - Dois pedidos do mesmo item ao mesmo tempo: um coleta, o outro recebe `LootNaoEncontrado`.

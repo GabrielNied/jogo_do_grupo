@@ -78,7 +78,7 @@ Cada raça dá uma skill própria; descrição curta de cada uma em [personagem.
 
 ### Catálogo inicial: 25 skills para montar funções (proposta do board, 2026-10-11)
 
-> **Adotado em 2026-10-16** (Gabriel): as 25 viram o catálogo dos **pools por tipo de arma** (ex.: escudo = tanque, cajado = mago, arco = arqueiro; [#340](https://github.com/GabrielNied/jogo_do_grupo/issues/340)). Sai o custo de preparação, ficam o recurso (stamina ou mana, SKILL-005) e a recarga. Sem reações elementais entre elas.
+> **Adotado em 2026-10-16** (Gabriel): as 25 viram referência do **catálogo por tipo de arma** ([#167](https://github.com/GabrielNied/jogo_do_grupo/issues/167)); **não há pool extra por região** (#340 not planned, quiz 3). Sai o custo de preparação, ficam o recurso (stamina ou mana, SKILL-005) e a recarga. Sem reações elementais entre elas.
 
 Cinco por função. Custo de preparação em pontos, uso e recarga; os efeitos completos estão no [livro, seção 13](../brainstorm/figjam.md#13--25-skills-para-montar-funções).
 
@@ -111,7 +111,8 @@ Skills de utilidade que continuam no catálogo anterior (não fazem parte das 25
 - [x] ~~A fusão mistura as skills dos itens?~~ Decidido em 2026-10-12: não ([itens](itens.md#fusão), DEC-003).
 - [x] ~~Quantas magias por classe?~~ Não há classes (D2).
 - [x] ~~Recurso usado?~~ Decidido em 2026-10-14 (SKILL-005): **mana** ou **stamina** por skill; não "energia" genérica.
-- [ ] Pools de skills de armas de regiões avançadas além do Vale ([#340](https://github.com/GabrielNied/jogo_do_grupo/issues/340)).
+- [x] ~~Pools de skills de armas de regiões avançadas além do Vale ([#340](https://github.com/GabrielNied/jogo_do_grupo/issues/340)).~~ Substituído em 2026-10-16 (quiz 3): **não existe** segundo pool por região; #340 **not planned**. Sorteio continua só pelo **tipo de arma** (Vale).
+- [x] ~~Orçamento da aba Preparação ([#339](https://github.com/GabrielNied/jogo_do_grupo/issues/339)).~~ Decidido em 2026-10-16 (quiz 3): **sem orçamento**; só as **3 skills da arma equipada**. Tela somente leitura para ver skills **por conjunto/arma** (issue nova).
 
 ## Regras
 
