@@ -196,7 +196,7 @@ namespace JogoDoGrupo.Client.Features.Mobs
             }
         }
 
-        public bool Fortalecido => Variante == VarianteDeCriatura.Fortalecida;
+        public bool Elite => Variante == VarianteDeCriatura.Elite;
 
         public float Escala => RegrasCriaturas.Escala(Variante);
 

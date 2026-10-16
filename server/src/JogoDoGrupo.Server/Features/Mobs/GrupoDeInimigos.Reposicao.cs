@@ -30,13 +30,13 @@ public sealed partial class GrupoDeInimigos
             }
 
             // Depois do intervalo da ficha (com uma folga sorteada, para os grupos não voltarem
-            // juntos): sem sobrevivente o grupo todo volta contado da última morte; com
+            // juntos), encurtado pela lotação do ponto (ConfigRespawn): sem sobrevivente o grupo todo volta contado da última morte; com
             // sobrevivente, o próprio inimigo volta (veja ReporMortos).
             var intervalo = inimigo.Criatura.Definicao.IntervaloDeAparicaoSegundos;
             if (intervalo > 0)
             {
                 var espera = EmMs(
-                    intervalo
+                    ConfigRespawn.Intervalo(intervalo, _lotacao)
                         * (
                             1.0
                             + (ConfigReposicaoDeInimigos.VariacaoDoIntervalo * _sorteador.Proximo())

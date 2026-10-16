@@ -45,7 +45,7 @@ namespace JogoDoGrupo.Client.Features.Mobs
         /// <summary>Quanto tempo o corpo fica no chão tocando a morte antes de sumir.</summary>
         public const float DuracaoDaMorteSegundos = 1.5f;
 
-        // Ajustes da aura da fortalecida (balanceamento visual).
+        // Ajustes da aura da elite (balanceamento visual).
         private static readonly Color AuraCor = new Color(1f, 0.1f, 0.05f);
         private const float AuraAltura = 0.6f;
         private const float AuraAlcance = 4f;
@@ -534,7 +534,7 @@ namespace JogoDoGrupo.Client.Features.Mobs
                 new Vector3(inimigo.X, inimigo.Y, inimigo.Z),
                 Quaternion.Euler(0f, inimigo.RotacaoY, 0f)
             );
-            if (inimigo.Fortalecido)
+            if (inimigo.Elite)
             {
                 AdicionarAura(visual);
             }
@@ -547,7 +547,7 @@ namespace JogoDoGrupo.Client.Features.Mobs
             }
         }
 
-        /// <summary>Aura vermelha da variante fortalecida: uma luz que tinge o chão ao redor.</summary>
+        /// <summary>Aura vermelha da variante elite: uma luz que tinge o chão ao redor.</summary>
         private static void AdicionarAura(GameObject visual)
         {
             var aura = new GameObject("Aura");

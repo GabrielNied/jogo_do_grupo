@@ -63,6 +63,12 @@ public sealed partial class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulado
     /// <summary>Jogadores que o grupo viu e que continuam na área.</summary>
     private readonly HashSet<long> _vistos = [];
     private PassoDosInimigos _pendente = new();
+
+    /// <summary>Quem atacou um vizinho da mesma espécie e deve ser visto por este grupo (#915).</summary>
+    private readonly HashSet<long> _puxados = [];
+
+    /// <summary>Jogadores perto do ponto no último passo (respawn dinâmico, #897).</summary>
+    private int _lotacao;
     private long _proximoId;
     private long _proximaMorte = 1;
     private long? _ultimoPassoMs;
@@ -288,6 +294,7 @@ public sealed partial class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulado
                 )
                 : 0.0;
             _ultimoPassoMs = agora;
+            _lotacao = ContarLotacao(jogadores);
 
             if (_aparicao != null)
             {
@@ -343,6 +350,21 @@ public sealed partial class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulado
                 // continua por perto é visto de novo logo abaixo.
                 _vistos.Clear();
             }
+
+            // Puxada em cadeia: quem atacou um vizinho da mesma espécie passa a ser visto.
+            foreach (var puxado in _puxados)
+            {
+                if (
+                    presentes.TryGetValue(puxado, out var alvo)
+                    && !NaZonaUrbana(alvo.X, alvo.Z)
+                    && !_queda.EstaCaido(puxado)
+                )
+                {
+                    _vistos.Add(puxado);
+                }
+            }
+
+            _puxados.Clear();
 
             if (_rota == null && presentes.Count == 0 && _inimigos.All(EmRepousoOuMorto))
             {
@@ -544,6 +566,8 @@ public sealed partial class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulado
             return false;
         }
 
+        ResultadoDeDano aplicadoAgora;
+        PontoAtacado ponto;
         lock (_trava)
         {
             var inimigo = Array.Find(_inimigos, i => i.Id == alvoId);
@@ -563,7 +587,7 @@ public sealed partial class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulado
             inimigo.Participantes.Add(atacanteId);
             inimigo.Ameacas.AdicionarDano(atacanteId, aplicado);
             inimigo.VidaMudou = true;
-            resultado = new ResultadoDeDano(
+            aplicadoAgora = new ResultadoDeDano(
                 inimigo.Id,
                 aplicado,
                 inimigo.Vida,
@@ -574,9 +598,54 @@ public sealed partial class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulado
                 Matar(inimigo);
             }
 
+            ponto = new PontoAtacado(inimigo.X, inimigo.Z);
+        }
+
+        resultado = aplicadoAgora;
+        // Fora da trava: a cadeia trava os outros grupos, e dois grupos não podem se esperar.
+        AoSerAtacado?.Invoke(this, atacanteId, ponto.X, ponto.Z);
+        return true;
+    }
+
+    private readonly record struct PontoAtacado(double X, double Z);
+
+    /// <summary>
+    /// Avisa que um inimigo deste grupo foi atacado (grupo, atacante, posição do atacado). Quem
+    /// liga a puxada em cadeia assina (veja <see cref="PuxadaEmCadeia"/>); roda fora da trava.
+    /// </summary>
+    public Action<GrupoDeInimigos, long, double, double>? AoSerAtacado { get; set; }
+
+    /// <summary>
+    /// Puxada em cadeia (#915): um vizinho da mesma espécie foi atacado em (x, z). Se algum
+    /// inimigo vivo deste grupo está a até <paramref name="raioMetros"/> dali, o atacante passa
+    /// a ser visto por ele. Devolve se o grupo foi puxado.
+    /// </summary>
+    public bool Puxar(long atacanteId, int criaturaId, double x, double z, double raioMetros)
+    {
+        if (_definicao.Id != criaturaId)
+        {
+            return false;
+        }
+
+        lock (_trava)
+        {
+            if (
+                !_inimigos.Any(i =>
+                    RegrasInimigo.EstaVivo(i.Estado)
+                    && RegrasInimigo.Distancia(i.X, i.Z, x, z) <= raioMetros
+                )
+            )
+            {
+                return false;
+            }
+
+            _puxados.Add(atacanteId);
             return true;
         }
     }
+
+    /// <summary>Espécie do grupo (para a puxada em cadeia).</summary>
+    public int CriaturaId => _definicao.Id;
 
     /// <summary>
     /// Reação ao acerto (Combate): um acerto no preparo cancela o golpe, que não chega ao
@@ -1031,6 +1100,26 @@ public sealed partial class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulado
         RegrasInimigo.NoAlcanceDeAtaque(
             RegrasInimigo.Distancia(inimigo.X, inimigo.Z, alvo.X, alvo.Z)
         );
+
+    // Quem está a até ConfigRespawn.RaioDaLotacaoMetros do ponto do grupo e de pé.
+    private int ContarLotacao(IReadOnlyList<JogadorNoCampo> jogadores)
+    {
+        var total = 0;
+        foreach (var jogador in jogadores)
+        {
+            if (
+                jogador.PersonagemId != RegrasInimigo.SemAlvo
+                && !_queda.EstaCaido(jogador.PersonagemId)
+                && RegrasInimigo.Distancia(_pontoX, _pontoZ, jogador.X, jogador.Z)
+                    <= ConfigRespawn.RaioDaLotacaoMetros
+            )
+            {
+                total++;
+            }
+        }
+
+        return total;
+    }
 
     private static bool ForaDeLuta(Inimigo inimigo) =>
         inimigo.Estado

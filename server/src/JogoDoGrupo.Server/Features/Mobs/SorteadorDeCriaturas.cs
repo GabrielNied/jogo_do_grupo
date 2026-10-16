@@ -24,7 +24,7 @@ public interface ISorteadorDeCriaturas
 {
     /// <summary>
     /// Sorteia a variante de uma criatura que vai aparecer e calcula os valores finais. Só a
-    /// comum pode vir fortalecida; chefe e chefe raro saem sempre com os valores de base.
+    /// comum pode vir elite; chefe e chefe raro saem sempre com os valores de base.
     /// </summary>
     CriaturaSorteada Sortear(DefinicaoDeCriatura definicao);
 
@@ -53,7 +53,7 @@ public sealed class SorteadorDeCriaturas(Random aleatorio) : ISorteadorDeCriatur
     public CriaturaSorteada Sortear(DefinicaoDeCriatura definicao)
     {
         // Chefes não gastam sorteio: a sequência de um Random com semente não depende deles.
-        var variante = RegrasCriaturas.PodeSerFortalecida(definicao.Categoria)
+        var variante = RegrasCriaturas.PodeSerElite(definicao.Categoria)
             ? RegrasCriaturas.SortearVariante(definicao.Categoria, ProximoSorteio())
             : VarianteDeCriatura.Normal;
 

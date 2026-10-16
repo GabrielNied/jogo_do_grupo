@@ -7,11 +7,11 @@ public class RegrasCriaturasTestes
     [Fact]
     public void Numeros_sao_os_da_proposta()
     {
-        Assert.Equal(0.05, RegrasCriaturas.ChanceDeFortalecida);
-        Assert.Equal(2.0, RegrasCriaturas.MultiplicadorDeVidaFortalecida);
-        Assert.Equal(1.5, RegrasCriaturas.MultiplicadorDeDanoFortalecida);
-        Assert.Equal(2.0, RegrasCriaturas.MultiplicadorDeRecompensaFortalecida);
-        Assert.Equal(1.3f, RegrasCriaturas.EscalaFortalecida);
+        Assert.Equal(0.05, RegrasCriaturas.ChanceDeElite);
+        Assert.Equal(2.0, RegrasCriaturas.MultiplicadorDeVidaElite);
+        Assert.Equal(1.5, RegrasCriaturas.MultiplicadorDeDanoElite);
+        Assert.Equal(2.0, RegrasCriaturas.MultiplicadorDeRecompensaElite);
+        Assert.Equal(1.3f, RegrasCriaturas.EscalaElite);
     }
 
     [Fact]
@@ -21,22 +21,22 @@ public class RegrasCriaturasTestes
         Assert.Equal(1, (int)CategoriaDeCriatura.Chefe);
         Assert.Equal(2, (int)CategoriaDeCriatura.ChefeRaro);
         Assert.Equal(0, (int)VarianteDeCriatura.Normal);
-        Assert.Equal(1, (int)VarianteDeCriatura.Fortalecida);
+        Assert.Equal(1, (int)VarianteDeCriatura.Elite);
     }
 
     [Theory]
     [InlineData(CategoriaDeCriatura.Comum, true)]
     [InlineData(CategoriaDeCriatura.Chefe, false)]
     [InlineData(CategoriaDeCriatura.ChefeRaro, false)]
-    public void So_a_comum_pode_ser_fortalecida(CategoriaDeCriatura categoria, bool esperado) =>
-        Assert.Equal(esperado, RegrasCriaturas.PodeSerFortalecida(categoria));
+    public void So_a_comum_pode_ser_elite(CategoriaDeCriatura categoria, bool esperado) =>
+        Assert.Equal(esperado, RegrasCriaturas.PodeSerElite(categoria));
 
     [Theory]
-    [InlineData(0.0, VarianteDeCriatura.Fortalecida)]
-    [InlineData(0.0499, VarianteDeCriatura.Fortalecida)]
+    [InlineData(0.0, VarianteDeCriatura.Elite)]
+    [InlineData(0.0499, VarianteDeCriatura.Elite)]
     [InlineData(0.05, VarianteDeCriatura.Normal)]
     [InlineData(0.999, VarianteDeCriatura.Normal)]
-    public void Comum_vem_fortalecida_abaixo_da_chance(double sorteio, VarianteDeCriatura esperado)
+    public void Comum_vem_elite_abaixo_da_chance(double sorteio, VarianteDeCriatura esperado)
     {
         var variante = RegrasCriaturas.SortearVariante(CategoriaDeCriatura.Comum, sorteio);
 
@@ -46,7 +46,7 @@ public class RegrasCriaturasTestes
     [Theory]
     [InlineData(CategoriaDeCriatura.Chefe)]
     [InlineData(CategoriaDeCriatura.ChefeRaro)]
-    public void Chefes_nunca_vem_fortalecidos(CategoriaDeCriatura categoria)
+    public void Chefes_nunca_vem_elites(CategoriaDeCriatura categoria)
     {
         // Zero é o menor sorteio possível: se nem ele fortalece, nenhum fortalece.
         var variante = RegrasCriaturas.SortearVariante(categoria, 0.0);
@@ -75,28 +75,28 @@ public class RegrasCriaturasTestes
     }
 
     [Fact]
-    public void Fortalecida_tem_mais_vida_dano_tamanho_e_recompensa()
+    public void Elite_tem_mais_vida_dano_tamanho_e_recompensa()
     {
-        var fortalecida = VarianteDeCriatura.Fortalecida;
+        var elite = VarianteDeCriatura.Elite;
 
-        Assert.Equal(360, RegrasCriaturas.VidaMaxima(180, fortalecida));
-        Assert.Equal(60, RegrasCriaturas.Dano(40, fortalecida));
-        Assert.Equal(40, RegrasCriaturas.Experiencia(20, fortalecida));
-        Assert.Equal(2.0, RegrasCriaturas.MultiplicadorDeRecompensa(fortalecida));
-        Assert.Equal(1.3f, RegrasCriaturas.Escala(fortalecida));
+        Assert.Equal(360, RegrasCriaturas.VidaMaxima(180, elite));
+        Assert.Equal(60, RegrasCriaturas.Dano(40, elite));
+        Assert.Equal(40, RegrasCriaturas.Experiencia(20, elite));
+        Assert.Equal(2.0, RegrasCriaturas.MultiplicadorDeRecompensa(elite));
+        Assert.Equal(1.3f, RegrasCriaturas.Escala(elite));
     }
 
     [Theory]
     [InlineData(1, 2)]
     [InlineData(3, 5)]
     [InlineData(0, 0)]
-    public void Dano_fortalecido_arredonda_meio_para_cima(int danoBase, int esperado) =>
-        Assert.Equal(esperado, RegrasCriaturas.Dano(danoBase, VarianteDeCriatura.Fortalecida));
+    public void Dano_elite_arredonda_meio_para_cima(int danoBase, int esperado) =>
+        Assert.Equal(esperado, RegrasCriaturas.Dano(danoBase, VarianteDeCriatura.Elite));
 
     [Fact]
     public void Valor_enorme_nao_estoura_o_inteiro()
     {
-        var vida = RegrasCriaturas.VidaMaxima(int.MaxValue, VarianteDeCriatura.Fortalecida);
+        var vida = RegrasCriaturas.VidaMaxima(int.MaxValue, VarianteDeCriatura.Elite);
 
         Assert.Equal(int.MaxValue, vida);
     }

@@ -37,20 +37,20 @@ public sealed class MobsModule : IFeatureModule
             var sorteador = sp.GetRequiredService<ISorteadorDeCriaturas>();
             var queda = sp.GetRequiredService<IEstadoDeQueda>();
             var historico = sp.GetRequiredService<IHistoricoDePosicoesDoMundo>();
-            return new GruposDoCampo(
-                limite,
-                [
-                    .. PontosDeSpawnDoCampo.Todos.Select(ponto =>
-                        GrupoDeInimigos.DoPonto(
-                            ponto,
-                            sorteador,
-                            limite,
-                            queda: queda,
-                            historico: historico
-                        )
-                    ),
-                ]
-            );
+            GrupoDeInimigos[] grupos =
+            [
+                .. PontosDeSpawnDoCampo.Todos.Select(ponto =>
+                    GrupoDeInimigos.DoPonto(
+                        ponto,
+                        sorteador,
+                        limite,
+                        queda: queda,
+                        historico: historico
+                    )
+                ),
+            ];
+            PuxadaEmCadeia.Ligar(grupos);
+            return new GruposDoCampo(limite, grupos);
         });
         for (var i = 0; i < PontosDeSpawnDoCampo.Todos.Count; i++)
         {

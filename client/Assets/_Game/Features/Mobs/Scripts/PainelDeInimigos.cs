@@ -18,7 +18,7 @@ namespace JogoDoGrupo.Client.Features.Mobs
 
         public const string ClasseCamada = "inimigos-camada";
         public const string ClasseEtiqueta = "inimigo-etiqueta";
-        public const string ClasseEtiquetaFortalecida = "inimigo-etiqueta-fortalecida";
+        public const string ClasseEtiquetaElite = "inimigo-etiqueta-elite";
         public const string ClasseNome = "inimigo-nome";
         public const string ClasseBarra = "inimigo-barra";
         public const string ClassePreenchimento = "inimigo-preenchimento";
@@ -124,9 +124,9 @@ namespace JogoDoGrupo.Client.Features.Mobs
                 Raiz = new VisualElement();
                 Raiz.pickingMode = PickingMode.Ignore;
                 Raiz.AddToClassList(ClasseEtiqueta);
-                if (inimigo.Fortalecido)
+                if (inimigo.Elite)
                 {
-                    Raiz.AddToClassList(ClasseEtiquetaFortalecida);
+                    Raiz.AddToClassList(ClasseEtiquetaElite);
                 }
 
                 _alerta = new Label("!");
@@ -168,7 +168,7 @@ namespace JogoDoGrupo.Client.Features.Mobs
             )
             {
                 _nome.text = inimigo.Rotulo;
-                if (!inimigo.Fortalecido)
+                if (!inimigo.Elite)
                 {
                     _nome.style.color = CorDoTom(
                         RegrasCorDePerigo.Tom(nivelJogador, inimigo.Nivel)

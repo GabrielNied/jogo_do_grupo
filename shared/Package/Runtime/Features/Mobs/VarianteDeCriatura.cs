@@ -12,6 +12,6 @@ namespace JogoDoGrupo.Shared.Features.Mobs
         /// Mais forte, maior e com aura vermelha; dá mais recompensa. Só criaturas comuns
         /// (veja <see cref="RegrasCriaturas"/>).
         /// </summary>
-        Fortalecida = 1,
+        Elite = 1,
     }
 }

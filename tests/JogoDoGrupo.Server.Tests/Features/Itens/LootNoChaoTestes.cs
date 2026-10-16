@@ -478,12 +478,12 @@ public class LootNoChaoTestes(ServidorDeLoot servidor) : IClassFixture<ServidorD
             ana,
             0,
             CatalogoCriaturas.LoboDoCampo,
-            VarianteDeCriatura.Fortalecida,
+            VarianteDeCriatura.Elite,
             12,
             ana
         );
         await EsperarAsync(() => servidor.Sorteador.UltimoNivel == 12);
-        Assert.Equal(OrigemDoLoot.Fortalecida, servidor.Sorteador.UltimaOrigem);
+        Assert.Equal(OrigemDoLoot.Elite, servidor.Sorteador.UltimaOrigem);
 
         DerrotarInimigoPertoDe(
             ana,

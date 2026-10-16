@@ -22,7 +22,7 @@
     -unity-text-align: middle-center;
 }
 
-.inimigo-etiqueta-fortalecida .inimigo-nome {
+.inimigo-etiqueta-elite .inimigo-nome {
     color: var(--lumora-cores-erro);
 }
 

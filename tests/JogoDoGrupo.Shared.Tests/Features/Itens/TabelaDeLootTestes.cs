@@ -7,11 +7,7 @@ public class TabelaDeLootTestes
 {
     [Theory]
     [InlineData(CategoriaDeCriatura.Comum, VarianteDeCriatura.Normal, OrigemDoLoot.Comum)]
-    [InlineData(
-        CategoriaDeCriatura.Comum,
-        VarianteDeCriatura.Fortalecida,
-        OrigemDoLoot.Fortalecida
-    )]
+    [InlineData(CategoriaDeCriatura.Comum, VarianteDeCriatura.Elite, OrigemDoLoot.Elite)]
     [InlineData(CategoriaDeCriatura.ChefeRaro, VarianteDeCriatura.Normal, OrigemDoLoot.ChefeRaro)]
     [InlineData(CategoriaDeCriatura.Chefe, VarianteDeCriatura.Normal, OrigemDoLoot.Chefe)]
     public void Origem_vem_da_categoria_e_da_variante(
@@ -45,7 +41,7 @@ public class TabelaDeLootTestes
         var rolagens = new[]
         {
             OrigemDoLoot.Comum,
-            OrigemDoLoot.Fortalecida,
+            OrigemDoLoot.Elite,
             OrigemDoLoot.ChefeRaro,
             OrigemDoLoot.Chefe,
         }

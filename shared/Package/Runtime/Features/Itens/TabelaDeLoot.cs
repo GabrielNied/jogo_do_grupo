@@ -7,7 +7,7 @@ namespace JogoDoGrupo.Shared.Features.Itens
     public enum OrigemDoLoot
     {
         Comum = 0,
-        Fortalecida = 1,
+        Elite = 1,
         ChefeRaro = 2,
         Chefe = 3,
     }
@@ -47,9 +47,7 @@ namespace JogoDoGrupo.Shared.Features.Itens
                 return OrigemDoLoot.ChefeRaro;
             }
 
-            return variante == VarianteDeCriatura.Fortalecida
-                ? OrigemDoLoot.Fortalecida
-                : OrigemDoLoot.Comum;
+            return variante == VarianteDeCriatura.Elite ? OrigemDoLoot.Elite : OrigemDoLoot.Comum;
         }
 
         /// <summary>Grau da peça pelo nível do inimigo (nível menor que 1 conta como 1).</summary>
@@ -84,8 +82,8 @@ namespace JogoDoGrupo.Shared.Features.Itens
         {
             switch (origem)
             {
-                case OrigemDoLoot.Fortalecida:
-                    return ConfigLoot.RolagensDoInimigoFortalecido;
+                case OrigemDoLoot.Elite:
+                    return ConfigLoot.RolagensDoInimigoElite;
                 case OrigemDoLoot.ChefeRaro:
                     return ConfigLoot.RolagensDoChefeRaro;
                 case OrigemDoLoot.Chefe:

@@ -6,7 +6,7 @@ namespace JogoDoGrupo.Shared.Features.Mobs
     /// </summary>
     public enum CategoriaDeCriatura
     {
-        /// <summary>Inimigo comum. É a única categoria que pode vir fortalecida.</summary>
+        /// <summary>Inimigo comum. É a única categoria que pode vir elite.</summary>
         Comum = 0,
 
         /// <summary>Chefe: sempre aparece, sempre com a mesma força.</summary>

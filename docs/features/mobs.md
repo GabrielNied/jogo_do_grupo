@@ -15,8 +15,8 @@ Tipos de mobs, comportamento por região e bosses com mecânicas marcantes.
 - Bosses com mecânicas marcantes e **ataques telegrafados** (veja [combate.md](combate.md)); **bosses cada vez mais fortes são o objetivo do loop principal** (D5 da [validação de 2026-10-10](../brainstorm/validacao.md))
 - Referência de agro: RYL: Path of the Emperor (agro longo, juntar muitos inimigos e derrotar de uma vez); veja S3 na validação
 - **Três categorias de criatura** (pedido do Gabriel em 2026-10-11; os números são **proposta**, veja "Regras"):
-  - **Comum:** pode aparecer **fortalecida**: mais forte, maior e com **aura vermelha**, e dá mais recompensa.
-  - **Chefe:** sempre aparece e sempre com a mesma força. Nunca vem fortalecido.
+  - **Comum:** pode aparecer **elite**: mais forte, maior e com **aura vermelha**, e dá mais recompensa.
+  - **Chefe:** sempre aparece e sempre com a mesma força. Nunca vem elite.
   - **Chefe raro:** força fixa como a do chefe, mas **pode aparecer ou não**, no estilo dos raros de World of Warcraft.
 - **Decisões do Gabriel em 2026-10-16** (quiz de lacunas de MMO):
   - **Horda puxada (agro longo do RYL):** três travas juntas. A desistência por distância continua e pode crescer (hoje 30 m, a calibrar); criatura nunca entra na cidade ([mundo](mundo.md#definido)); e a criatura que já persegue alguém **só ataca quem tem ameaça nela** ([ameaça](combate.md#ameaça-agro-169)), então quem só passa por perto não é atacado.
@@ -40,7 +40,7 @@ Tipos de mobs, comportamento por região e bosses com mecânicas marcantes.
 - [x] Bosses de mundo aberto (world boss)? Decidido em 2026-10-16: sim, aparição sorteada e força fixa (veja Definido).
 - [x] Respawn: tempo fixo ou dinâmico? Decidido em 2026-10-16: dinâmico pela lotação.
 - [x] O nome "fortalecida" fica, ou o grupo prefere outro (elite, enfurecida)? Decidido em 2026-10-16: Elite.
-- [x] Decidido em 2026-10-16 (quiz de definições 2): o agente propõe e calibra. Os números da criatura fortalecida e do chefe raro (tabelas em "Regras").
+- [x] Decidido em 2026-10-16 (quiz de definições 2): o agente propõe e calibra. Os números da criatura elite e do chefe raro (tabelas em "Regras").
 - [x] Decidido em 2026-10-16 (quiz de definições 2): ficam. As três primeiras criaturas (Javali do Campo, Guardião do Reflexo, Presa-Velha) são só um ponto de partida: nomes, espécies e onde ficam.
 - [x] **Livro de Asterra, decidido em 2026-10-11 (/decida, #322):** o Javali do Campo **permanece** (dano 40, grupo de 3 a 5, já implementado); o Javali Ferrugem do livro (dano 18, grupo de 8 a 15) só entra depois, como espécie à parte. Lobo de Geada, Carapaça de Brasa, Cervo e Mariposa viram fichas em `Config<Assunto>`, de força fixa, fora do campo da fatia até o foco do marco mudar. Ancião e Colosso só com o chefe de mundo (#191). Bestiário e captura ficam para depois do MVP. As manadas com rota e limite urbano estão feitas (issue #321: veja "Manadas com rota (#321)"). Pergunta original: o Javali do Campo vira o Javali Ferrugem (dano 18, grupo de 8 a 15) ou os dois convivem? As cinco espécies, o bestiário com conhecimento e a captura do cervo entram no MVP? As manadas que nunca entram na cidade e seguem rotas? Veja "Livro de Asterra: bestiário".
 - [x] O chefe raro avisa quando aparece (mensagem na área, marca no mapa) ou o jogador tem que achar? Decidido em 2026-10-16: avisa na área; quiz 4: **marca no mapa/minimapa** também.
@@ -55,13 +55,13 @@ Tipos de mobs, comportamento por região e bosses com mecânicas marcantes.
 
 Tudo abaixo é **proposta** de 2026-10-11, a calibrar. Quem decide é o **servidor**: ele sorteia a variante e a aparição, e o client só mostra. Força sempre **fixa**: nenhuma criatura escala com o número ou o nível dos jogadores ([fatia-jogavel.md](fatia-jogavel.md), seções 4 e 7).
 
-### Criatura fortalecida
+### Criatura elite
 
 Só a criatura **comum**. O sorteio acontece uma vez, quando ela aparece (inclusive no respawn), e vale até ela morrer.
 
 | Item | Valor |
 |---|---|
-| Chance de vir fortalecida | **5%** (1 em 20) |
+| Chance de vir elite | **5%** (1 em 20) |
 | Vida | **2x** |
 | Dano | **1,5x** (meio arredonda para cima) |
 | Tamanho do modelo | **1,3x** |
@@ -69,7 +69,7 @@ Só a criatura **comum**. O sorteio acontece uma vez, quando ela aparece (inclus
 | Recompensa | **2x**: experiência em dobro e o dobro de sorteios de loot |
 
 - O loot é da funcionalidade [Itens](itens.md): Mobs só informa o multiplicador de recompensa na morte.
-- Desistir da perseguição e voltar ao ponto de origem **não** sorteia de novo: a fortalecida continua fortalecida.
+- Desistir da perseguição e voltar ao ponto de origem **não** sorteia de novo: a elite continua elite.
 
 ### Chefe e chefe raro
 
@@ -177,13 +177,15 @@ O servidor manda a posição a cerca de 10 Hz (`InimigoMudou`, com perda). A rot
 | Javali do Campo | equilibrado (o da fatia) | 12 m | 4 m/s | 1 s / 1,5 s |
 | Lobo do Campo | rápido e frágil: vê longe, corre e golpeia depressa | 16 m | 5,5 m/s | 0,7 s / 1 s |
 | Tatu Rochoso | lento e duro: vê pouco, golpeia forte e demora a recuperar | 8 m | 2,5 m/s | 1,4 s / 2 s |
-- **Modelos próprios (issue #483, decidido pelo agente):** o Lobo (0,85 m, esguio, pernas longas, orelhas em pé, cauda cheia, clipes com golpe em 0,7 s) e o Tatu (0,5 m, baixo e largo, carapaça de placas de pedra com cristas, golpe em 1,4 s) vêm do pipeline do Blender ([padrão dos modelos](../arte/padrao-de-modelos.md)), com o mesmo esqueleto e os quatro clipes. O `peso` do clipe segue o aviso da tabela acima. A variante fortalecida (1,3x e aura) é aplicada pelo `ApresentadorDeInimigos` na raiz do prefab e vale para todos.
+- **Modelos próprios (issue #483, decidido pelo agente):** o Lobo (0,85 m, esguio, pernas longas, orelhas em pé, cauda cheia, clipes com golpe em 0,7 s) e o Tatu (0,5 m, baixo e largo, carapaça de placas de pedra com cristas, golpe em 1,4 s) vêm do pipeline do Blender ([padrão dos modelos](../arte/padrao-de-modelos.md)), com o mesmo esqueleto e os quatro clipes. O `peso` do clipe segue o aviso da tabela acima. A variante elite (1,3x e aura) é aplicada pelo `ApresentadorDeInimigos` na raiz do prefab e vale para todos.
 
 - **Pontos de spawn** (issue #489): **15 pontos** na área `cidade`, mais longe da cidade, mais forte. Grandes: o campo norte (0, 190), o leste (130, 170) e o oeste (-150, 190), e os três "longe" (0, 330), (200, 300) e (-220, 280), mais a manada do pasto. Pequenos (2 a 3 inimigos, perto dos caminhos): `portao-oeste` (-80, 150), `portao-leste` (80, 150), `oeste-perto` (-180, 110), `leste-perto` (180, 100), `norte-meio` (0, 260), `oeste-meio` (-90, 260), `leste-meio` (95, 255) e `noroeste-longe` (-100, 330). Faixas de nível de 1 a 2 (perto) até 8 a 10 (longe). A tabela completa está no código (`PontosDeSpawnDoCampo`).
 - **Meta de densidade:** de qualquer ponto do campo próximo (x entre -200 e 200, z de 40 a 340) há um ponto de spawn a no máximo **150 m**, cerca de 30 s correndo (5,5 m/s) descontada a visão do inimigo; saindo do portão norte, o grupo mais próximo é a manada do pasto, a uns 50 m. Os números moram em `PontosDeSpawnDoCampo`; um teste confere a grade do campo.
 - **Reposição:** o grupo com **sobrevivente** repõe cada morto **individualmente** depois do intervalo da ficha contado da morte dele, no lugar onde ele estava (a manada, no ponto da rota para onde vai), com id e sorteio de nível e variante novos. Só repõe com o grupo **todo fora de luta** (repouso ou retorno) e com vaga no teto; em luta ou sem vaga espera e tenta de novo (a cada 5 s sem vaga). O grupo com **todos mortos** volta **inteiro** depois do intervalo da última morte, com o tamanho sorteado de novo na faixa do ponto. Inimigos do comando de teste não voltam.
+- **Puxada em cadeia (#915):** ao receber um golpe, o inimigo avisa os outros grupos da **mesma espécie** e da mesma área: o grupo que tem algum inimigo vivo a até **10 m** do atingido (`ConfigInimigosDoCampo.RaioDaPuxadaEmCadeiaMetros`) passa a ver o atacante e entra em alerta. Espécie diferente não entra e barulho sozinho não chama ninguém. Código em `PuxadaEmCadeia`.
+- **Respawn dinâmico pela lotação (#897, proposta do agente, a calibrar):** o intervalo da ficha é multiplicado por uma fração que cai com os jogadores de pé a até **60 m** do ponto do grupo (`ConfigRespawn.RaioDaLotacaoMetros`): **−15% por jogador** (`ReducaoPorJogador`), com piso em **40%** do intervalo (`FracaoMinimaDoIntervalo`, alcançado com 4 jogadores). Zero jogadores: intervalo base. Ex.: javali, base 120 s: 1 jogador 102 s, 3 jogadores 66 s, 4 ou mais 48 s. A lotação é a do último passo antes da morte; a folga da variação soma por cima, e o teto de vivos da área continua mandando (sem vaga, espera). Chefe raro, chefe da dungeon e salões de instância não usam.
 - **Variação:** cada intervalo ganha uma folga sorteada de **0 a 25%** a mais (`ConfigReposicaoDeInimigos.VariacaoDoIntervalo`), para os grupos e os membros não voltarem juntos; o intervalo da ficha é o mínimo.
-- **Nível conta** (só a criatura comum; chefes têm força fixa): em relação ao nível da ficha, cada nível acima soma **15%** de vida, **10%** de dano e **20%** de experiência (abaixo, tira; piso de 40%). A variante fortalecida multiplica por cima. O `InimigoNoMundo.Nivel` e o `InimigoDerrotado.Nivel` levam o nível; `InimigoDerrotado.Experiencia` já vem escalada (o ajuste por diferença de nível entre jogador e mob é de [Personagem](personagem.md)).
+- **Nível conta** (só a criatura comum; chefes têm força fixa): em relação ao nível da ficha, cada nível acima soma **15%** de vida, **10%** de dano e **20%** de experiência (abaixo, tira; piso de 40%). A variante elite multiplica por cima. O `InimigoNoMundo.Nivel` e o `InimigoDerrotado.Nivel` levam o nível; `InimigoDerrotado.Experiencia` já vem escalada (o ajuste por diferença de nível entre jogador e mob é de [Personagem](personagem.md)).
 - **Limite de vivos:** no máximo **40** inimigos comuns do campo vivos ao mesmo tempo, somando todos os pontos. Os máximos dos pontos somam mais que isso (57), então o teto age: na subida do servidor os pontos enchem na ordem da lista (perto do portão primeiro) e os últimos esperam vaga. Sem vaga, o grupo (ou a parte que couber) espera e tenta de novo a cada 5 s. O chefe raro e os inimigos do comando de teste não contam.
 - **Cuidados de experiência:** jogadores de qualquer número no mesmo grupo dividem o mesmo alvo (o grupo divide o que vê); quem cai ou desconecta deixa de ser alvo e o grupo volta ao repouso; o grupo reaparece nos pontos de origem, que são fixos (quem fica parado em cima de um ponto o vê reaparecer ao lado dele, como qualquer reaparição). Quem está caído ou sendo levantado não entra em `_vistos`, não é escolhido como alvo e não recebe `GolpeDeInimigoAcertou` (consulta `IEstadoDeQueda` do Combate).
 
@@ -250,7 +252,7 @@ Do "Livro de ideias" do [FigJam](../brainstorm/figjam.md) (seções 05, 09 e 10)
 Código em `shared/Package/Runtime/Features/Mobs/` (regras e números acima, não copiados aqui). ~~Ainda **não há mensagens de rede**: as criaturas ainda não aparecem no mundo (issue #63).~~ Substituído em 2026-10-11: o contrato do inimigo comum está abaixo; o servidor e o client que o usam são as issues #268 e #269.
 
 - `CategoriaDeCriatura`: `Comum`, `Chefe`, `ChefeRaro`.
-- `VarianteDeCriatura`: `Normal`, `Fortalecida`.
+- `VarianteDeCriatura`: `Normal`, `Elite`.
 - `DefinicaoDeCriatura` e `CatalogoCriaturas`: a ficha fixa de cada criatura e `Obter` por id.
 - `RegrasCriaturas`: fórmulas puras (variante, aparição, vida, dano, experiência, multiplicador de recompensa e tamanho).
 
