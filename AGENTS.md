@@ -53,10 +53,11 @@ Outros: `npm run tarefa -- ajuda`, [README](README.md#dia-a-dia), [docs/git.md](
 
 | Tarefa | Skill |
 |---|---|
-| Implementar: escolher, agrupar em lotes, orquestrar e abrir PRs | `/trabalhe` ([trabalhe](.claude/skills/trabalhe/SKILL.md)) |
-| Conferir o quadro: fechar o obsoleto, ordenar, escrever fichas, destravar | `/decida` ([decida](.claude/skills/decida/SKILL.md)) |
-| Abrir tarefas de melhoria (produto, código, desempenho, custo de IA) | `/melhore` ([melhore](.claude/skills/melhore/SKILL.md)) |
-| Reservar fila de um escopo para você (trabalho manual) | `/segure` ([segure](.claude/skills/segure/SKILL.md)) |
+| Implementar em lotes até o PR | [`/trabalhe`](.claude/skills/trabalhe/SKILL.md) |
+| Conferir o quadro: fechar, ordenar, fichar, destravar | [`/decida`](.claude/skills/decida/SKILL.md) |
+| Quiz ao Gabriel do que falta decidir; doc e tarefas | [`/pergunte`](.claude/skills/pergunte/SKILL.md) |
+| Tarefas de melhoria (produto, código, desempenho, IA) | [`/melhore`](.claude/skills/melhore/SKILL.md) |
+| Reservar a fila de um escopo (trabalho manual) | [`/segure`](.claude/skills/segure/SKILL.md) |
 | Puxar, liberar, conferir relevância | [puxar-tarefa](.claude/skills/puxar-tarefa/SKILL.md) |
 | Antes do PR (verificação e descrição) | [preparar-pr](.claude/skills/preparar-pr/SKILL.md) |
 | Branch, commit, ADR, lição, funcionalidade nova | [nova-branch](.claude/skills/nova-branch/SKILL.md), [fazer-commit](.claude/skills/fazer-commit/SKILL.md), [novo-adr](.claude/skills/novo-adr/SKILL.md), [registrar-licao](.claude/skills/registrar-licao/SKILL.md), [nova-funcionalidade](.claude/skills/nova-funcionalidade/SKILL.md) |
