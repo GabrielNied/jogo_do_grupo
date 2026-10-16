@@ -8,7 +8,7 @@ public class ConfiguracaoInvalidaTestes
     [Fact]
     public void Configuracao_valida_passa()
     {
-        var arvore = ArvoreDeTeste.Criar();
+        var arvore = ArvoreDoJogo.Criar();
 
         Assert.Same(arvore, TalentosModule.ValidarOuFalhar(arvore));
     }
@@ -16,7 +16,7 @@ public class ConfiguracaoInvalidaTestes
     [Fact]
     public void Configuracao_invalida_nao_sobe_e_diz_o_motivo()
     {
-        var arvore = ArvoreDeTeste.Criar();
+        var arvore = ArvoreDoJogo.Criar();
         arvore.Nos[1].Id = arvore.Nos[0].Id;
         arvore.Nos[2].Requisitos = new[] { new RequisitoDeNo { NoId = "fantasma" } };
 

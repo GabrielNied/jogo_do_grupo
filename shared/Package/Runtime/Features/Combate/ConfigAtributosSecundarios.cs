@@ -1,15 +1,14 @@
 namespace JogoDoGrupo.Shared.Features.Combate
 {
     /// <summary>
-    /// Valores dos atributos secundários. <b>TODOS são valores de TESTE</b> até a decisão da
-    /// #627 (docs/features/personagem.md, "Valores de teste até a decisão"); não são balanceamento.
-    /// Ficam aqui, separados das contas, para trocar sem mexer nas regras.
+    /// Valores dos atributos secundários, propostos pela simulação da #627
+    /// (<c>tools/JogoDoGrupo.Simulacoes</c>; o PR é a aprovação). Ficam aqui, separados das contas, para trocar sem mexer nas regras.
     /// </summary>
     public static class ConfigAtributosSecundarios
     {
-        // Base (fonte Base). Teste.
+        // Base (fonte Base).
 
-        /// <summary>Teste: 0 = a vida não regenera sozinha até a decisão (#627).</summary>
+        /// <summary>0: a vida não regenera sozinha; só árvore e equipamento dão regeneração.</summary>
         public const double BaseRegeneracaoVida = 0.0;
         public const double BaseRegeneracaoStamina = RegrasRecursos.RegeneracaoStaminaPorSegundo;
         public const double BaseRegeneracaoMana = RegrasRecursos.RegeneracaoManaPorSegundo;
@@ -18,8 +17,9 @@ namespace JogoDoGrupo.Shared.Features.Combate
         public const double BaseVelocidadeAtaque = 1.0;
         public const double BasePenetracao = 0.0;
 
-        // Limites finais. Teste.
-        public const double TetoChanceCritica = 1.0;
+        // Limites finais. Nas builds simuladas o crítico chega a 51%, a velocidade a 1,6x e a
+        // penetração a 45%; os tetos ficam folgados acima disso.
+        public const double TetoChanceCritica = 0.75;
         public const double DanoCriticoMinimo = 1.0;
         public const double VelocidadeMinima = 0.25;
         public const double VelocidadeMaxima = 3.0;

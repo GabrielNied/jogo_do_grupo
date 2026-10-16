@@ -23,7 +23,7 @@ public class SecundariosDaArvoreTestes : IClassFixture<ServidorDeTeste>, IDispos
 
     public SecundariosDaArvoreTestes(ServidorDeTeste real)
     {
-        var config = ArvoreDeTeste.Criar();
+        var config = ArvoreDoJogo.Criar();
         config.Nos = [.. config.Nos, NoSecundario()];
         TalentosModule.ValidarOuFalhar(config);
         _fabrica = real.WithWebHostBuilder(b => b.ConfigureServices(s => s.AddSingleton(config)));
@@ -86,7 +86,7 @@ public class SecundariosDaArvoreTestes : IClassFixture<ServidorDeTeste>, IDispos
                 {
                     NoId = NoCritico,
                     RankAlvo = rank,
-                    VersaoConfiguracao = ArvoreDeTeste.Versao,
+                    VersaoConfiguracao = ArvoreDoJogo.Versao,
                 }
             );
             Assert.Equal(HttpStatusCode.OK, compra.StatusCode);
@@ -121,7 +121,7 @@ public class SecundariosDaArvoreTestes : IClassFixture<ServidorDeTeste>, IDispos
     [Fact]
     public void Secundario_com_chave_que_nao_existe_nao_sobe()
     {
-        var config = ArvoreDeTeste.Criar();
+        var config = ArvoreDoJogo.Criar();
         var no = NoSecundario();
         no.Efeitos[0].Chave = "Inexistente";
         config.Nos = [.. config.Nos, no];

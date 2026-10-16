@@ -60,7 +60,7 @@ O golpe comum (leve 1, 2 e 3 da cadeia, e o pesado) acerta pelo arco que a lâmi
 
 - O equipamento **nunca soma** nos cinco atributos do personagem (DEC-001). Combate lê o que as peças ativas dão por `IAtributosDosEquipamentos` (Itens) e, para os secundários, pela pipeline.
 - **Invalidação por evento (#705):** `CombateModule` assina `EquipamentoMudou` (publicado por Itens após equipar, desequipar, trocar conjunto ou fundir peça vestida) e chama `RecursosEmMemoria.AoEquipamentoMudar`. O próximo golpe já usa os novos atributos, sem esperar a validade de `ConfigRecursos.ValidadeDosAtributosSegundos`.
-- **Dano do golpe básico (v3, #709):** `dano = (dano-base da arma + dano flat do equipamento) × (1 + %personagem) × multiplicador do passo`. O flat é dano físico ou mágico das peças, conforme a arma. O %personagem é `PercentualDeDanoPorPonto` (0,10) por ponto de Força ou Intelecto (cajado). Valores de teste até a [#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627).
+- **Dano do golpe básico (v3, #709):** `dano = (dano-base da arma + dano flat do equipamento) × (1 + %personagem) × multiplicador do passo`. O flat é dano físico ou mágico das peças, conforme a arma. O %personagem é `PercentualDeDanoPorPonto` (0,015) por ponto de Força ou Intelecto (cajado). Números propostos na [#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627).
 - **Recursos:** vida máxima soma a **vida** dos itens; stamina e mana máximas vêm **só** do personagem (itens só dão regeneração).
 - **Defesa dos itens** está no contrato, mas não reduz o dano recebido até a #627.
 - **Client:** a janela do personagem mostra as linhas do equipamento separadas das do personagem, e a previsão de stamina do `ProntidaoLocal` usa a regeneração de stamina secundária devolvida pelo servidor.
@@ -82,7 +82,7 @@ Vêm do [Livro de ideias](../brainstorm/figjam.md) (seção 10). São **proposta
 
 ## Atributos secundários e pipeline (#624)
 
-Decidido pelo dono da #624 em 2026-10-13, tudo **valor de teste** em `ConfigAtributosSecundarios` (shared) até a [#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627). Código: `Features/Combate` no shared (`PipelineDeModificadores`, `RegrasSecundarios`, `RegrasDeSkill`) e `RecursosEmMemoria` no servidor.
+Decidido pelo dono da #624 em 2026-10-13, valores propostos na [#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627) (aprovação no review do PR) em `ConfigAtributosSecundarios` (shared): bases, tetos e fontes na [tabela de talentos](talentos.md#implementação-da-627-números-da-árvore-e-dos-atributos); o teto de chance crítica passou de 100% para 75%. Código: `Features/Combate` no shared (`PipelineDeModificadores`, `RegrasSecundarios`, `RegrasDeSkill`) e `RecursosEmMemoria` no servidor.
 
 - **Os nove:** regeneração de vida, stamina e mana (pontos por segundo); chance crítica (0 a 1); dano crítico (multiplicador, base 1,5); velocidade de ataque físico e mágico (multiplicador, base 1); penetração física e mágica (fração da defesa ignorada, 0 a 1). Cada um tem limites em constantes (teto de crítico 100%, penetração até 75%, velocidade de 0,25 a 3).
 - **Modificador:** atributo, fonte (base, personagem, árvore, equipamento, efeito, alvo), origem (texto para o jogador), operação (soma ou multiplica), ordem (inteiro) e grupo de acúmulo (obrigatório; sem grupo, o modificador é recusado).
@@ -157,7 +157,7 @@ Decidido em 2026-10-12, no exemplo do Elden Ring, fácil de mudar. Vale igual pa
 
 Código em `shared/Package/Runtime/Features/Combate/`. Regras e números: [fatia-jogavel.md](fatia-jogavel.md), seção 1 (não copiados aqui).
 
-- `AtributosCombate`: os cinco atributos finais (Força, Vigor, Agilidade, Intelecto, Espírito). Os valores de teste que viram recursos estão em `RegrasRecursos` (`VidaPorVigor`, `StaminaPorAgilidade`, `ManaPorEspirito`).
+- `AtributosCombate`: os cinco atributos finais (Força, Vigor, Agilidade, Intelecto, Espírito). Os valores que viram recursos estão em `RegrasRecursos` (`VidaPorVigor`, `StaminaPorAgilidade`, `ManaPorEspirito`).
 - `RegrasRecursos`: fórmulas puras de vida, stamina e mana máximos, `Limitar` (clamp) e regeneração (`RegenerarStamina`, `RegenerarMana`).
 - `RecursosResponse`: atuais, máximos e atributos finais.
 - `RotasCombate.Recursos`: `GET /api/personagens/{personagemId}/recursos` responde 200 `RecursosResponse`. Erros: `CodigosErroCombate.PersonagemNaoEncontrado` (404) e `NaoAutenticado` (401, Core).

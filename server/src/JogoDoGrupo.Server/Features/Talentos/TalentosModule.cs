@@ -12,7 +12,7 @@ public sealed class TalentosModule : IFeatureModule
     public void ConfigurarServicos(IServiceCollection servicos, IConfiguration configuracao)
     {
         // A configuração é conferida aqui, antes de o app existir: árvore inválida não sobe.
-        var arvore = ValidarOuFalhar(ArvoreDeTeste.Criar());
+        var arvore = ValidarOuFalhar(ArvoreDoJogo.Criar());
         servicos.AddSingleton(arvore);
         servicos.AddScoped<ServicoDaArvore>();
         servicos.AddSingleton<IAtributosDaArvore, AtributosDaArvoreDoPersonagem>();

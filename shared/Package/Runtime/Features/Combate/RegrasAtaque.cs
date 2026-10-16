@@ -37,11 +37,11 @@ namespace JogoDoGrupo.Shared.Features.Combate
 
         /// <summary>
         /// Bônus de dano por ponto de Força (arma física) ou de Intelecto (arma mágica) do
-        /// personagem, em fração do dano-base: 0,10 = +10% por ponto. Valor de teste até a #627;
-        /// com o dano de 20 de antes dá os mesmos +2 por ponto. O item tem a sua própria conversão
-        /// (<c>ConfigAtributosItem</c>) e nunca soma nos pontos do personagem.
+        /// personagem, em fração do dano-base: 0,015 = +1,5% por ponto (#627: 40 pontos numa
+        /// build focada dão +60%). O item tem a sua própria conversão (<c>ConfigAtributosItem</c>)
+        /// e nunca soma nos pontos do personagem.
         /// </summary>
-        public const double PercentualDeDanoPorPonto = 0.10;
+        public const double PercentualDeDanoPorPonto = 0.015;
 
         /// <summary>Alcance do golpe, em metros, a partir do atacante.</summary>
         public const double AlcanceMetros = 2.5;

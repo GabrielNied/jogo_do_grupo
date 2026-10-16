@@ -223,7 +223,8 @@ public class RecursosRotasTestes(ServidorDeCombate servidor) : IClassFixture<Ser
 
         Assert.Equal(2, r.Atributos.Vigor);
         Assert.Equal(0, r.Atributos.Espirito);
-        Assert.Equal(620, r.VidaMaxima);
+        Assert.Equal(RegrasRecursos.VidaMaxima(2, 100), r.VidaMaxima);
+        Assert.Equal(624, r.VidaMaxima);
         Assert.Equal(RegrasRecursos.ManaBase, r.ManaMaxima);
         Assert.Equal(r.Atributos.Vigor, outra.Atributos.Vigor);
         Assert.Equal(r.VidaMaxima, outra.VidaMaxima);

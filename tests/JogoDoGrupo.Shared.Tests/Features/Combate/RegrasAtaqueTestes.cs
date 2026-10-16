@@ -79,9 +79,9 @@ public class RegrasAtaqueTestes
 
     [Theory]
     [InlineData(TipoDeAtaque.Leve, 0, 20)]
-    [InlineData(TipoDeAtaque.Leve, 10, 40)]
+    [InlineData(TipoDeAtaque.Leve, 10, 23)]
     [InlineData(TipoDeAtaque.Pesado, 0, 44)]
-    [InlineData(TipoDeAtaque.Pesado, 10, 88)]
+    [InlineData(TipoDeAtaque.Pesado, 10, 51)]
     public void Dano_e_arma_mais_forca_vezes_o_multiplicador(
         TipoDeAtaque tipo,
         int forca,
@@ -96,8 +96,12 @@ public class RegrasAtaqueTestes
         );
 
     [Fact]
-    public void Dano_com_forca_enorme_nao_estoura() =>
-        Assert.Equal(int.MaxValue, RegrasAtaque.Dano(TipoDeAtaque.Pesado, int.MaxValue));
+    public void Dano_com_forca_enorme_nao_estoura()
+    {
+        Assert.True(RegrasAtaque.Dano(TipoDeAtaque.Pesado, int.MaxValue) > 0);
+        var gigante = new ParcelasDeDano { DanoBase = 1e12 };
+        Assert.Equal(int.MaxValue, RegrasAtaque.Dano(TipoDeAtaque.Pesado, gigante));
+    }
 
     [Fact]
     public void Pesado_causa_mais_dano_que_o_leve() =>
@@ -310,7 +314,7 @@ public class RegrasAtaqueTestes
     [Fact]
     public void Dano_com_arma_usa_o_dano_da_arma_como_base_e_as_duas_forcas_em_parcelas_separadas()
     {
-        // Espada de 29 de dano, Força 2 do personagem (+20%) e +3,625 flat do item.
+        // Espada de 29 de dano, Força 2 do personagem (+3%) e +3,625 flat do item.
         var parcelas = new ParcelasDeDano
         {
             DanoBase = 29,
@@ -318,9 +322,9 @@ public class RegrasAtaqueTestes
             DanoFlatEquipamento = 3.625,
         };
 
-        // (29 + 3,625) x 1,20 = 39,15; o pesado multiplica por 2,2.
-        Assert.Equal(39, RegrasAtaque.Dano(TipoDeAtaque.Leve, parcelas));
-        Assert.Equal(86, RegrasAtaque.Dano(TipoDeAtaque.Pesado, parcelas));
+        // (29 + 3,625) x 1,03 = 33,6; o pesado multiplica por 2,2.
+        Assert.Equal(34, RegrasAtaque.Dano(TipoDeAtaque.Leve, parcelas));
+        Assert.Equal(74, RegrasAtaque.Dano(TipoDeAtaque.Pesado, parcelas));
     }
 
     [Fact]
@@ -334,11 +338,11 @@ public class RegrasAtaqueTestes
         };
 
         Assert.Equal(20, ParcelasDeDano.DanoSemArma);
-        Assert.Equal(26, RegrasAtaque.Dano(TipoDeAtaque.Leve, semItem)); // 20 x 1,3
-        Assert.Equal(39, RegrasAtaque.Dano(TipoDeAtaque.Leve, comArma)); // 30 x 1,3
+        Assert.Equal(21, RegrasAtaque.Dano(TipoDeAtaque.Leve, semItem)); // 20 x 1,045
+        Assert.Equal(31, RegrasAtaque.Dano(TipoDeAtaque.Leve, comArma)); // 30 x 1,045
         // O flat do equipamento soma na base, não vira ponto de Força do personagem.
         comArma.DanoFlatEquipamento = 15;
-        Assert.Equal(59, RegrasAtaque.Dano(TipoDeAtaque.Leve, comArma)); // (30 + 15) x 1,3
+        Assert.Equal(47, RegrasAtaque.Dano(TipoDeAtaque.Leve, comArma)); // (30 + 15) x 1,045
         Assert.Equal(semItem.PercentualPersonagem, comArma.PercentualPersonagem);
     }
 

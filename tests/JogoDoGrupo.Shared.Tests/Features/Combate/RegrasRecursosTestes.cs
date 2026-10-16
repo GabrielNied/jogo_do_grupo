@@ -11,16 +11,16 @@ public class RegrasRecursosTestes
     [Fact]
     public void Maximos_somam_o_que_o_equipamento_da_direto_depois_da_conta_do_atributo()
     {
-        Assert.Equal(650, RegrasRecursos.VidaMaxima(10, 50));
+        Assert.Equal(670, RegrasRecursos.VidaMaxima(10, 50));
         Assert.Equal(125, RegrasRecursos.StaminaMaxima(10, 5));
         Assert.Equal(130, RegrasRecursos.ManaMaxima(10, 10));
     }
 
     [Theory]
     [InlineData(0, 500)]
-    [InlineData(10, 600)]
-    [InlineData(-5, 450)]
-    public void VidaMaxima_e_500_mais_10_por_vigor(int vigor, int esperado) =>
+    [InlineData(10, 620)]
+    [InlineData(-5, 440)]
+    public void VidaMaxima_e_500_mais_12_por_vigor(int vigor, int esperado) =>
         Assert.Equal(esperado, RegrasRecursos.VidaMaxima(vigor));
 
     [Theory]

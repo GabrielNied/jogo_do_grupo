@@ -16,6 +16,9 @@ namespace JogoDoGrupo.Client.Features.Talentos
         public ConfiguracaoDaArvore Configuracao { get; private set; } = new ConfiguracaoDaArvore();
         public int PontosLivres { get; private set; }
         public int PontosGastos { get; private set; }
+
+        /// <summary>Custo da redistribuição agora, como o servidor calculou (a tela não refaz a conta).</summary>
+        public long CustoRedistribuicaoCoroas { get; private set; }
         public AtributosDaArvore Atributos { get; private set; } = new AtributosDaArvore();
         public bool Carregada { get; private set; }
         public string NoSelecionadoId { get; private set; }
@@ -40,6 +43,7 @@ namespace JogoDoGrupo.Client.Features.Talentos
             Configuracao = arvore.Configuracao ?? new ConfiguracaoDaArvore();
             PontosLivres = arvore.PontosLivres;
             PontosGastos = arvore.PontosGastos;
+            CustoRedistribuicaoCoroas = arvore.CustoRedistribuicaoCoroas;
             Atributos = arvore.Atributos ?? new AtributosDaArvore();
             _ranks = RegrasDaArvore.ParaDicionario(arvore.Ranks);
             Carregada = true;

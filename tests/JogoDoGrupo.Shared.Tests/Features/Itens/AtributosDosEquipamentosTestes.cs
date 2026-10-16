@@ -10,23 +10,23 @@ public class AtributosDosEquipamentosTestes
 {
     [Theory]
     // Dano da arma: cada arma tem a sua faixa (o 0 e o 100 estão nos dados).
-    [InlineData(TipoEquipamento.Espada, StatusItem.DanoDaArma, 10, 30)]
-    [InlineData(TipoEquipamento.Martelo, StatusItem.DanoDaArma, 14, 44)]
-    [InlineData(TipoEquipamento.Arco, StatusItem.DanoDaArma, 8, 28)]
-    [InlineData(TipoEquipamento.Cajado, StatusItem.DanoDaArma, 10, 30)]
+    [InlineData(TipoEquipamento.Espada, StatusItem.DanoDaArma, 20, 50)]
+    [InlineData(TipoEquipamento.Martelo, StatusItem.DanoDaArma, 28, 72)]
+    [InlineData(TipoEquipamento.Arco, StatusItem.DanoDaArma, 16, 46)]
+    [InlineData(TipoEquipamento.Cajado, StatusItem.DanoDaArma, 20, 50)]
     // A mesma Força vale diferente conforme a categoria.
-    [InlineData(TipoEquipamento.Espada, StatusItem.DanoFisico, 0, 20)]
-    [InlineData(TipoEquipamento.Martelo, StatusItem.DanoFisico, 0, 25)]
-    [InlineData(TipoEquipamento.Anel, StatusItem.DanoFisico, 0, 15)]
-    [InlineData(TipoEquipamento.Peito, StatusItem.VidaMaxima, 0, 250)]
-    [InlineData(TipoEquipamento.Cinto, StatusItem.VidaMaxima, 0, 150)]
-    [InlineData(TipoEquipamento.Botas, StatusItem.RegeneracaoStamina, 0, 5)]
-    [InlineData(TipoEquipamento.Foco, StatusItem.RegeneracaoMana, 0, 3)]
-    [InlineData(TipoEquipamento.Capacete, StatusItem.DefesaFisica, 0, 50)]
-    [InlineData(TipoEquipamento.Escudo, StatusItem.DefesaMagica, 0, 40)]
-    [InlineData(TipoEquipamento.Anel, StatusItem.ChanceCritica, 0, 0.15)]
-    [InlineData(TipoEquipamento.Brinco, StatusItem.DanoCritico, 0, 0.75)]
-    [InlineData(TipoEquipamento.Calca, StatusItem.RegeneracaoVida, 0, 2)]
+    [InlineData(TipoEquipamento.Espada, StatusItem.DanoFisico, 0, 8)]
+    [InlineData(TipoEquipamento.Martelo, StatusItem.DanoFisico, 0, 10)]
+    [InlineData(TipoEquipamento.Anel, StatusItem.DanoFisico, 0, 5)]
+    [InlineData(TipoEquipamento.Peito, StatusItem.VidaMaxima, 0, 160)]
+    [InlineData(TipoEquipamento.Cinto, StatusItem.VidaMaxima, 0, 100)]
+    [InlineData(TipoEquipamento.Botas, StatusItem.RegeneracaoStamina, 0, 1.2)]
+    [InlineData(TipoEquipamento.Foco, StatusItem.RegeneracaoMana, 0, 0.8)]
+    [InlineData(TipoEquipamento.Capacete, StatusItem.DefesaFisica, 0, 15)]
+    [InlineData(TipoEquipamento.Escudo, StatusItem.DefesaMagica, 0, 20)]
+    [InlineData(TipoEquipamento.Anel, StatusItem.ChanceCritica, 0, 0.06)]
+    [InlineData(TipoEquipamento.Brinco, StatusItem.DanoCritico, 0, 0.20)]
+    [InlineData(TipoEquipamento.Calca, StatusItem.RegeneracaoVida, 0, 1.5)]
     public void Conversao_linear_vale_no0_em_0_e_no100_em_100(
         TipoEquipamento tipo,
         StatusItem status,
@@ -146,10 +146,10 @@ public class AtributosDosEquipamentosTestes
 
         Assert.True(resumo.TemArma);
         Assert.False(resumo.ArmaMagica);
-        Assert.Equal(20, resumo.DanoDaArma, 9); // espada: 10 a 30, 50 vale 20
-        Assert.Equal(20 + 7.5, resumo.BonusDanoFisico, 9); // espada 100 = 20; peito 50 = 7,5
-        Assert.Equal(200, resumo.VidaMaxima); // peito: vida 0 a 250, 80 vale 200
-        Assert.Equal(30, resumo.DefesaFisica, 9); // peito: 0 a 60, 50 vale 30
+        Assert.Equal(35, resumo.DanoDaArma, 9); // espada: 20 a 50, 50 vale 35
+        Assert.Equal(8 + 2.5, resumo.BonusDanoFisico, 9); // espada 100 = 8; peito 50 = 2,5
+        Assert.Equal(128, resumo.VidaMaxima); // peito: vida 0 a 160, 80 vale 128
+        Assert.Equal(9, resumo.DefesaFisica, 9); // peito: 0 a 18, 50 vale 9
         // Chance crítica é secundário: vai pela pipeline, não por aqui.
         Assert.DoesNotContain(resumo.Linhas, l => l.Status == StatusItem.ChanceCritica);
         Assert.Contains(resumo.Linhas, l => l.Status == StatusItem.DanoDaArma);
@@ -174,11 +174,11 @@ public class AtributosDosEquipamentosTestes
         var conjunto2 = RegrasAtributosDeItem.Resumir(itens, 2);
 
         Assert.True(conjunto1.ArmaMagica);
-        Assert.Equal(30, conjunto1.DanoDaArma, 9);
-        Assert.Equal(10, conjunto1.BonusDanoMagico, 9);
+        Assert.Equal(50, conjunto1.DanoDaArma, 9);
+        Assert.Equal(4, conjunto1.BonusDanoMagico, 9);
         Assert.Equal(0, conjunto1.BonusDanoFisico); // o anel está na bolsa
         Assert.False(conjunto2.ArmaMagica);
-        Assert.Equal(30, conjunto2.DanoDaArma, 9);
+        Assert.Equal(50, conjunto2.DanoDaArma, 9);
         Assert.Equal(0, conjunto2.BonusDanoMagico);
     }
 
@@ -204,7 +204,7 @@ public class AtributosDosEquipamentosTestes
 
         Assert.False(resumo.TemArma);
         Assert.Equal(0, resumo.DanoDaArma);
-        Assert.Equal(15, resumo.BonusDanoFisico, 9);
+        Assert.Equal(5, resumo.BonusDanoFisico, 9);
     }
 
     [Fact]

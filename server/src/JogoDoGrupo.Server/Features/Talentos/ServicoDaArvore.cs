@@ -38,6 +38,7 @@ public sealed class ServicoDaArvore(
 {
     public async Task<ArvoreResponse> ObterAsync(long personagemId, CancellationToken cancelamento)
     {
+        await MigrarSeDesatualizadaAsync(personagemId, cancelamento);
         var cabecalho = await db.Set<ArvoreDoPersonagem>()
             .AsNoTracking()
             .FirstOrDefaultAsync(a => a.PersonagemId == personagemId, cancelamento);
@@ -46,7 +47,7 @@ public sealed class ServicoDaArvore(
             .Where(n => n.PersonagemId == personagemId)
             .ToListAsync(cancelamento);
         var livres = await pontos.ObterAsync(personagemId, cancelamento);
-        return Montar(cabecalho, nos, livres);
+        return Montar(cabecalho, nos, livres, await CustoAsync(personagemId, cancelamento));
     }
 
     /// <summary>
@@ -60,6 +61,7 @@ public sealed class ServicoDaArvore(
         CancellationToken cancelamento
     )
     {
+        await MigrarSeDesatualizadaAsync(personagemId, cancelamento);
         await using var transacao = await db.Database.BeginTransactionAsync(
             IsolationLevel.Serializable,
             cancelamento
@@ -71,10 +73,7 @@ public sealed class ServicoDaArvore(
             .Where(n => n.PersonagemId == personagemId)
             .ToListAsync(cancelamento);
 
-        if (
-            pedido.VersaoConfiguracao != configuracao.Versao
-            || (cabecalho != null && cabecalho.Versao != configuracao.Versao)
-        )
+        if (pedido.VersaoConfiguracao != configuracao.Versao)
         {
             return new ResultadoDaCompra(null, CodigosErroTalentos.ArvoreDesatualizada);
         }
@@ -95,7 +94,10 @@ public sealed class ServicoDaArvore(
 
         if (avaliacao.JaComprado)
         {
-            return new ResultadoDaCompra(Montar(cabecalho, nos, livres), null);
+            return new ResultadoDaCompra(
+                Montar(cabecalho, nos, livres, await CustoAsync(personagemId, cancelamento)),
+                null
+            );
         }
 
         if (!await pontos.TentarGastarAsync(personagemId, avaliacao.Custo, cancelamento))
@@ -127,7 +129,15 @@ public sealed class ServicoDaArvore(
 
         await db.SaveChangesAsync(cancelamento);
         await transacao.CommitAsync(cancelamento);
-        return new ResultadoDaCompra(Montar(cabecalho, nos, livres - avaliacao.Custo), null);
+        return new ResultadoDaCompra(
+            Montar(
+                cabecalho,
+                nos,
+                livres - avaliacao.Custo,
+                await CustoAsync(personagemId, cancelamento)
+            ),
+            null
+        );
     }
 
     /// <summary>
@@ -146,6 +156,7 @@ public sealed class ServicoDaArvore(
             return new ResultadoDaRedistribuicao(null, CodigosErroTalentos.EmCombate);
         }
 
+        await MigrarSeDesatualizadaAsync(personagemId, cancelamento);
         await using var transacao = await db.Database.BeginTransactionAsync(
             IsolationLevel.Serializable,
             cancelamento
@@ -157,10 +168,7 @@ public sealed class ServicoDaArvore(
             .Where(n => n.PersonagemId == personagemId)
             .ToListAsync(cancelamento);
 
-        if (
-            pedido.VersaoConfiguracao != configuracao.Versao
-            || (cabecalho != null && cabecalho.Versao != configuracao.Versao)
-        )
+        if (pedido.VersaoConfiguracao != configuracao.Versao)
         {
             return new ResultadoDaRedistribuicao(null, CodigosErroTalentos.ArvoreDesatualizada);
         }
@@ -171,11 +179,8 @@ public sealed class ServicoDaArvore(
             return new ResultadoDaRedistribuicao(null, CodigosErroTalentos.NenhumPontoGasto);
         }
 
-        var cobrou = await carteira.DebitarAsync(
-            personagemId,
-            ConfigRedistribuicao.CustoPadraoCoroas,
-            cancelamento
-        );
+        var custo = await CustoAsync(personagemId, cancelamento);
+        var cobrou = await carteira.DebitarAsync(personagemId, custo, cancelamento);
         if (!cobrou)
         {
             return new ResultadoDaRedistribuicao(null, CodigosErroTalentos.SaldoInsuficiente);
@@ -201,7 +206,53 @@ public sealed class ServicoDaArvore(
         await transacao.CommitAsync(cancelamento);
 
         var livres = await pontos.ObterAsync(personagemId, cancelamento);
-        return new ResultadoDaRedistribuicao(Montar(cabecalho, nos, livres), null);
+        return new ResultadoDaRedistribuicao(Montar(cabecalho, nos, livres, custo), null);
+    }
+
+    /// <summary>
+    /// Migração da configuração (#627): uma árvore comprada em outra versão não vale na atual,
+    /// então os ranks saem e os pontos pagos voltam inteiros para os livres, sem cobrar coroas
+    /// (a mudança foi do jogo, não do jogador). Roda ao ler, comprar, redistribuir e carregar
+    /// perfil; sem árvore salva ou na versão atual não faz nada. Os perfis salvos seguem a
+    /// validação própria ao carregar (nó sumido gera aviso, ponto não some).
+    /// </summary>
+    private async Task MigrarSeDesatualizadaAsync(long personagemId, CancellationToken cancelamento)
+    {
+        var versaoSalva = await db.Set<ArvoreDoPersonagem>()
+            .AsNoTracking()
+            .Where(a => a.PersonagemId == personagemId)
+            .Select(a => (int?)a.Versao)
+            .FirstOrDefaultAsync(cancelamento);
+        if (versaoSalva == null || versaoSalva == configuracao.Versao)
+        {
+            return;
+        }
+
+        await using var transacao = await db.Database.BeginTransactionAsync(
+            IsolationLevel.Serializable,
+            cancelamento
+        );
+        var cabecalho = await db.Set<ArvoreDoPersonagem>()
+            .FirstOrDefaultAsync(a => a.PersonagemId == personagemId, cancelamento);
+        if (cabecalho == null || cabecalho.Versao == configuracao.Versao)
+        {
+            return;
+        }
+
+        var nos = await db.Set<NoComprado>()
+            .Where(n => n.PersonagemId == personagemId)
+            .ToListAsync(cancelamento);
+        db.Set<NoComprado>().RemoveRange(nos);
+        var reembolso = cabecalho.PontosGastos;
+        cabecalho.PontosGastos = 0;
+        cabecalho.Versao = configuracao.Versao;
+        if (reembolso > 0)
+        {
+            await pontos.DevolverAsync(personagemId, reembolso, cancelamento);
+        }
+
+        await db.SaveChangesAsync(cancelamento);
+        await transacao.CommitAsync(cancelamento);
     }
 
     /// <summary>Lista todos os perfis de build salvos do personagem.</summary>
@@ -381,6 +432,7 @@ public sealed class ServicoDaArvore(
             return new ResultadoCarregarPerfil(null, CodigosErroTalentos.PerfilNaoEncontrado);
         }
 
+        await MigrarSeDesatualizadaAsync(personagemId, cancelamento);
         await using var transacao = await db.Database.BeginTransactionAsync(
             IsolationLevel.Serializable,
             cancelamento
@@ -405,6 +457,24 @@ public sealed class ServicoDaArvore(
         if (validacao.Erro != null)
         {
             return new ResultadoCarregarPerfil(null, validacao.Erro);
+        }
+
+        // Carregar um perfil que muda a distribuição custa o mesmo que redistribuir: senão o perfil
+        // seria um jeito grátis de trocar de build e a cobrança por nível não valeria nada (#910).
+        var atuais = nos.Where(n => n.Rank > 0).ToDictionary(n => n.NoId, n => n.Rank);
+        var muda =
+            atuais.Count != validacao.RanksAplicaveis.Count
+            || validacao.RanksAplicaveis.Any(par =>
+                !atuais.TryGetValue(par.Key, out var rank) || rank != par.Value
+            );
+        long cobrado = 0;
+        if (muda)
+        {
+            cobrado = await CustoAsync(personagemId, cancelamento);
+            if (!await carteira.DebitarAsync(personagemId, cobrado, cancelamento))
+            {
+                return new ResultadoCarregarPerfil(null, CodigosErroTalentos.SaldoInsuficiente);
+            }
         }
 
         // Remove os nós atuais
@@ -459,12 +529,18 @@ public sealed class ServicoDaArvore(
         await db.SaveChangesAsync(cancelamento);
         await transacao.CommitAsync(cancelamento);
 
-        var respostaArvore = Montar(cabecalho, nos, livres - diferenca);
+        var respostaArvore = Montar(
+            cabecalho,
+            nos,
+            livres - diferenca,
+            await CustoAsync(personagemId, cancelamento)
+        );
         return new ResultadoCarregarPerfil(
             new CarregarPerfilResponse
             {
                 Arvore = respostaArvore,
                 Avisos = validacao.Avisos.ToArray(),
+                CoroasCobradas = cobrado,
             },
             null
         );
@@ -500,7 +576,18 @@ public sealed class ServicoDaArvore(
             .Select(n => new RankDoNo { NoId = n.NoId, Rank = n.Rank })
             .ToArray();
 
-    private ArvoreResponse Montar(ArvoreDoPersonagem? cabecalho, List<NoComprado> nos, int livres)
+    /// <summary>Coroas da redistribuição no nível atual do personagem (a regra é do shared).</summary>
+    private async Task<long> CustoAsync(long personagemId, CancellationToken cancelamento) =>
+        ConfigRedistribuicao.CustoEmCoroas(
+            await pontos.ObterNivelAsync(personagemId, cancelamento)
+        );
+
+    private ArvoreResponse Montar(
+        ArvoreDoPersonagem? cabecalho,
+        List<NoComprado> nos,
+        int livres,
+        long custoRedistribuicao
+    )
     {
         var ranks = Ranks(nos);
         return new ArvoreResponse
@@ -508,6 +595,7 @@ public sealed class ServicoDaArvore(
             Configuracao = configuracao,
             PontosLivres = livres,
             PontosGastos = cabecalho?.PontosGastos ?? 0,
+            CustoRedistribuicaoCoroas = custoRedistribuicao,
             Ranks = ranks,
             Atributos = RegrasDaArvore.SomarAtributos(
                 configuracao,

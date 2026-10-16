@@ -5,8 +5,8 @@ namespace JogoDoGrupo.Shared.Features.Itens
 {
     /// <summary>
     /// A conversão do atributo do item (escala 0 a 100) para o número de combate (ATRIB-003) e a
-    /// matriz de atributos elegíveis por categoria (ATRIB-001). <b>Todos os números são valores de
-    /// TESTE</b> até a #627; trocá-los é mexer só aqui.
+    /// matriz de atributos elegíveis por categoria (ATRIB-001). Números propostos pela simulação da
+    /// #627 (<c>tools/JogoDoGrupo.Simulacoes</c>); trocá-los é mexer só aqui.
     /// <para>
     /// A conversão é linear por (atributo, categoria): <c>combate = no0 + (no100 - no0) x V /
     /// 100</c>. Unidade: dano da arma, dano físico/mágico flat, vida e defesa em pontos; secundários
@@ -31,38 +31,43 @@ namespace JogoDoGrupo.Shared.Features.Itens
             Conversao
         >
         {
-            { StatusItem.DanoDaArma, new Conversao(10, 30) },
-            { StatusItem.DanoFisico, new Conversao(0, 15) },
-            { StatusItem.DanoMagico, new Conversao(0, 15) },
-            { StatusItem.VidaMaxima, new Conversao(0, 150) },
-            { StatusItem.DefesaFisica, new Conversao(0, 40) },
-            { StatusItem.DefesaMagica, new Conversao(0, 40) },
-            { StatusItem.RegeneracaoVida, new Conversao(0, 2) },
-            { StatusItem.RegeneracaoStamina, new Conversao(0, 5) },
-            { StatusItem.RegeneracaoMana, new Conversao(0, 3) },
-            { StatusItem.ChanceCritica, new Conversao(0, 0.10) },
-            { StatusItem.DanoCritico, new Conversao(0, 0.50) },
-            { StatusItem.VelocidadeAtaqueFisico, new Conversao(0, 0.20) },
-            { StatusItem.VelocidadeAtaqueMagico, new Conversao(0, 0.20) },
-            { StatusItem.PenetracaoFisica, new Conversao(0, 0.15) },
-            { StatusItem.PenetracaoMagica, new Conversao(0, 0.15) },
+            { StatusItem.DanoDaArma, new Conversao(20, 50) },
+            { StatusItem.DanoFisico, new Conversao(0, 5) },
+            { StatusItem.DanoMagico, new Conversao(0, 5) },
+            { StatusItem.VidaMaxima, new Conversao(0, 100) },
+            { StatusItem.DefesaFisica, new Conversao(0, 12) },
+            { StatusItem.DefesaMagica, new Conversao(0, 12) },
+            { StatusItem.RegeneracaoVida, new Conversao(0, 1.5) },
+            { StatusItem.RegeneracaoStamina, new Conversao(0, 1.2) },
+            { StatusItem.RegeneracaoMana, new Conversao(0, 0.8) },
+            { StatusItem.ChanceCritica, new Conversao(0, 0.03) },
+            { StatusItem.DanoCritico, new Conversao(0, 0.15) },
+            { StatusItem.VelocidadeAtaqueFisico, new Conversao(0, 0.08) },
+            { StatusItem.VelocidadeAtaqueMagico, new Conversao(0, 0.08) },
+            { StatusItem.PenetracaoFisica, new Conversao(0, 0.06) },
+            { StatusItem.PenetracaoMagica, new Conversao(0, 0.06) },
         };
 
         private static readonly Dictionary<(TipoEquipamento, StatusItem), Conversao> PorCategoria =
             new Dictionary<(TipoEquipamento, StatusItem), Conversao>
             {
-                { (TipoEquipamento.Martelo, StatusItem.DanoDaArma), new Conversao(14, 44) },
-                { (TipoEquipamento.Arco, StatusItem.DanoDaArma), new Conversao(8, 28) },
-                { (TipoEquipamento.Espada, StatusItem.DanoFisico), new Conversao(0, 20) },
-                { (TipoEquipamento.Martelo, StatusItem.DanoFisico), new Conversao(0, 25) },
-                { (TipoEquipamento.Arco, StatusItem.DanoFisico), new Conversao(0, 20) },
-                { (TipoEquipamento.Cajado, StatusItem.DanoMagico), new Conversao(0, 20) },
-                { (TipoEquipamento.Peito, StatusItem.VidaMaxima), new Conversao(0, 250) },
-                { (TipoEquipamento.Peito, StatusItem.DefesaFisica), new Conversao(0, 60) },
-                { (TipoEquipamento.Peito, StatusItem.DefesaMagica), new Conversao(0, 60) },
-                { (TipoEquipamento.Capacete, StatusItem.DefesaFisica), new Conversao(0, 50) },
-                { (TipoEquipamento.Anel, StatusItem.ChanceCritica), new Conversao(0, 0.15) },
-                { (TipoEquipamento.Brinco, StatusItem.DanoCritico), new Conversao(0, 0.75) },
+                { (TipoEquipamento.Martelo, StatusItem.DanoDaArma), new Conversao(28, 72) },
+                { (TipoEquipamento.Arco, StatusItem.DanoDaArma), new Conversao(16, 46) },
+                { (TipoEquipamento.Espada, StatusItem.DanoFisico), new Conversao(0, 8) },
+                { (TipoEquipamento.Martelo, StatusItem.DanoFisico), new Conversao(0, 10) },
+                { (TipoEquipamento.Arco, StatusItem.DanoFisico), new Conversao(0, 8) },
+                { (TipoEquipamento.Cajado, StatusItem.DanoMagico), new Conversao(0, 8) },
+                { (TipoEquipamento.Peito, StatusItem.VidaMaxima), new Conversao(0, 160) },
+                { (TipoEquipamento.Anel, StatusItem.VidaMaxima), new Conversao(0, 50) },
+                { (TipoEquipamento.Brinco, StatusItem.VidaMaxima), new Conversao(0, 50) },
+                { (TipoEquipamento.Adorno, StatusItem.VidaMaxima), new Conversao(0, 50) },
+                { (TipoEquipamento.Peito, StatusItem.DefesaFisica), new Conversao(0, 18) },
+                { (TipoEquipamento.Peito, StatusItem.DefesaMagica), new Conversao(0, 18) },
+                { (TipoEquipamento.Capacete, StatusItem.DefesaFisica), new Conversao(0, 15) },
+                { (TipoEquipamento.Escudo, StatusItem.DefesaFisica), new Conversao(0, 20) },
+                { (TipoEquipamento.Escudo, StatusItem.DefesaMagica), new Conversao(0, 20) },
+                { (TipoEquipamento.Anel, StatusItem.ChanceCritica), new Conversao(0, 0.06) },
+                { (TipoEquipamento.Brinco, StatusItem.DanoCritico), new Conversao(0, 0.20) },
             };
 
         public static StatusItem[] Elegiveis(TipoEquipamento tipo) =>

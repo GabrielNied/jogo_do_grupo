@@ -4,10 +4,11 @@ namespace JogoDoGrupo.Shared.Tests.Features.Talentos;
 
 public class RegrasDaArvoreTestes
 {
-    private static readonly ConfiguracaoDaArvore Arvore = ArvoreDeTeste.Criar();
-    private static readonly string Forca1 = ArvoreDeTeste.IdPequeno(AtributoPrincipal.Forca, 0);
-    private static readonly string Forca2 = ArvoreDeTeste.IdPequeno(AtributoPrincipal.Forca, 1);
-    private static readonly string Vigor2 = ArvoreDeTeste.IdPequeno(AtributoPrincipal.Vigor, 1);
+    private static readonly ConfiguracaoDaArvore Arvore = ArvoreDoJogo.Criar();
+    private static readonly string Forca1 = ArvoreDoJogo.IdPrincipal(AtributoPrincipal.Forca, 0);
+    private static readonly string Forca2 = ArvoreDoJogo.IdPrincipal(AtributoPrincipal.Forca, 1);
+    private static readonly string Vigor1 = ArvoreDoJogo.IdPrincipal(AtributoPrincipal.Vigor, 0);
+    private static readonly string Vigor2 = ArvoreDoJogo.IdPrincipal(AtributoPrincipal.Vigor, 1);
 
     private static Dictionary<string, int> Ranks(params (string No, int Rank)[] itens) =>
         itens.ToDictionary(i => i.No, i => i.Rank);
@@ -19,9 +20,9 @@ public class RegrasDaArvoreTestes
         var terceira = RegrasDaArvore.AvaliarCompra(Arvore, Ranks((Forca1, 2)), 5, Forca1, 3);
 
         Assert.Null(primeira.Erro);
-        Assert.Equal(ArvoreDeTeste.CustoPequeno[0], primeira.Custo);
+        Assert.Equal(ArvoreDoJogo.CustoPrincipal[0], primeira.Custo);
         Assert.Null(terceira.Erro);
-        Assert.Equal(ArvoreDeTeste.CustoPequeno[2], terceira.Custo);
+        Assert.Equal(ArvoreDoJogo.CustoPrincipal[2], terceira.Custo);
     }
 
     [Fact]
@@ -38,7 +39,7 @@ public class RegrasDaArvoreTestes
         var sem = RegrasDaArvore.AvaliarCompra(Arvore, Ranks((Forca1, 1)), 9, Forca2, 1);
         var com = RegrasDaArvore.AvaliarCompra(
             Arvore,
-            Ranks((Forca1, ArvoreDeTeste.RankParaAbrirProximo)),
+            Ranks((Forca1, ArvoreDoJogo.RankParaAbrirProximo)),
             9,
             Forca2,
             1
@@ -51,14 +52,14 @@ public class RegrasDaArvoreTestes
     [Fact]
     public void No_no_maximo_recusa_e_nunca_passa_do_maximo()
     {
-        var cheio = Ranks((Forca1, ArvoreDeTeste.RankMaximoPequeno));
+        var cheio = Ranks((Forca1, ArvoreDoJogo.RankMaximoPrincipal));
 
         var alem = RegrasDaArvore.AvaliarCompra(
             Arvore,
             cheio,
             99,
             Forca1,
-            ArvoreDeTeste.RankMaximoPequeno + 1
+            ArvoreDoJogo.RankMaximoPrincipal + 1
         );
 
         Assert.Equal(CodigosErroTalentos.RankMaximo, alem.Erro);
@@ -110,7 +111,7 @@ public class RegrasDaArvoreTestes
         Assert.Equal(EstadoDoNo.Comprado, RegrasDaArvore.EstadoDe(Ranks((Forca1, 1)), forca1));
         Assert.Equal(
             EstadoDoNo.NoMaximo,
-            RegrasDaArvore.EstadoDe(Ranks((Forca1, ArvoreDeTeste.RankMaximoPequeno)), forca1)
+            RegrasDaArvore.EstadoDe(Ranks((Forca1, ArvoreDoJogo.RankMaximoPrincipal)), forca1)
         );
         forca1.Condicional = true;
         Assert.Equal(
@@ -124,23 +125,24 @@ public class RegrasDaArvoreTestes
     public void Hibrido_pede_os_dois_caminhos_vizinhos()
     {
         var hibrido = Arvore.Nos.Single(n =>
-            n.Id == ArvoreDeTeste.IdHibrido(AtributoPrincipal.Forca, AtributoPrincipal.Vigor)
+            n.Id == ArvoreDoJogo.IdHibrido(AtributoPrincipal.Forca, AtributoPrincipal.Vigor)
         );
-        var forca2 = Ranks((Forca2, 1));
+        var rank = ArvoreDoJogo.RankParaAbrirHibrido;
+        var soForca = Ranks((Forca1, rank));
 
-        var pendentes = RegrasDaArvore.RequisitosPendentes(forca2, hibrido);
+        var pendentes = RegrasDaArvore.RequisitosPendentes(soForca, hibrido);
 
-        Assert.Equal(Vigor2, Assert.Single(pendentes).NoId);
+        Assert.Equal(Vigor1, Assert.Single(pendentes).NoId);
         Assert.Equal(
             EstadoDoNo.Disponivel,
-            RegrasDaArvore.EstadoDe(Ranks((Forca2, 1), (Vigor2, 1)), hibrido)
+            RegrasDaArvore.EstadoDe(Ranks((Forca1, rank), (Vigor1, rank)), hibrido)
         );
     }
 
     [Fact]
     public void Soma_dos_atributos_vem_so_dos_ranks_comprados()
     {
-        var hibrido = ArvoreDeTeste.IdHibrido(AtributoPrincipal.Forca, AtributoPrincipal.Vigor);
+        var hibrido = ArvoreDoJogo.IdHibrido(AtributoPrincipal.Forca, AtributoPrincipal.Vigor);
 
         var total = RegrasDaArvore.SomarAtributos(
             Arvore,
@@ -148,11 +150,11 @@ public class RegrasDaArvoreTestes
         );
 
         Assert.Equal(
-            3 * ArvoreDeTeste.ValorPorRankPequeno + 2 * ArvoreDeTeste.ValorPorRankHibrido,
+            3 * ArvoreDoJogo.ValorPorRankPrincipal + 2 * ArvoreDoJogo.ValorPorRankHibrido,
             total.Forca
         );
         Assert.Equal(
-            1 * ArvoreDeTeste.ValorPorRankPequeno + 2 * ArvoreDeTeste.ValorPorRankHibrido,
+            1 * ArvoreDoJogo.ValorPorRankPrincipal + 2 * ArvoreDoJogo.ValorPorRankHibrido,
             total.Vigor
         );
         Assert.Equal(0, total.Agilidade + total.Intelecto + total.Espirito);
@@ -206,7 +208,7 @@ public class RegrasDaArvoreTestes
     {
         var ranks = new[]
         {
-            new RankDoNo { NoId = Forca1, Rank = 2 },
+            new RankDoNo { NoId = Forca1, Rank = 3 },
             new RankDoNo { NoId = Forca2, Rank = 1 },
         };
 
@@ -214,9 +216,9 @@ public class RegrasDaArvoreTestes
 
         Assert.Null(resultado.Erro);
         Assert.Empty(resultado.Avisos);
-        Assert.Equal(2, resultado.RanksAplicaveis[Forca1]);
+        Assert.Equal(3, resultado.RanksAplicaveis[Forca1]);
         Assert.Equal(1, resultado.RanksAplicaveis[Forca2]);
-        Assert.Equal(3, resultado.CustoTotal); // Forca1 rank 2: 1 + 1 = 2; Forca2 rank 1: 1 -> total 3
+        Assert.Equal(5, resultado.CustoTotal); // Forca1 rank 3: 1 + 1 + 2 = 4; Forca2 rank 1: 1
     }
 
     [Fact]
@@ -280,6 +282,6 @@ public class RegrasDaArvoreTestes
 
         Assert.Null(resultado.Erro);
         Assert.Single(resultado.Avisos);
-        Assert.Equal(ArvoreDeTeste.RankMaximoPequeno, resultado.RanksAplicaveis[Forca1]);
+        Assert.Equal(ArvoreDoJogo.RankMaximoPrincipal, resultado.RanksAplicaveis[Forca1]);
     }
 }

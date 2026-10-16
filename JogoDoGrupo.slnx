@@ -7,6 +7,7 @@
   </Folder>
   <Folder Name="/tools/">
     <Project Path="tools/JogoDoGrupo.Robos/JogoDoGrupo.Robos.csproj" />
+    <Project Path="tools/JogoDoGrupo.Simulacoes/JogoDoGrupo.Simulacoes.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/JogoDoGrupo.Shared.Tests/JogoDoGrupo.Shared.Tests.csproj" />

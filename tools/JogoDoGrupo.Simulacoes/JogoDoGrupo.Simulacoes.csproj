@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    Simulações de balanceamento (ADR 0043): console que chama as regras puras do shared, nunca uma
+    cópia das fórmulas. Uso no README.md ao lado.
+  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>JogoDoGrupo.Simulacoes</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\shared\JogoDoGrupo.Shared.csproj" />
+  </ItemGroup>
+</Project>
