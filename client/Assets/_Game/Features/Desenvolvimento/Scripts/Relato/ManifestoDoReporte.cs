@@ -55,6 +55,7 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
             "Profissões",
             "Economia",
             "PvP",
+            "Interface",
             "Core",
             "Desenvolvimento",
         };
