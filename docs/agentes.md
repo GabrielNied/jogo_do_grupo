@@ -13,23 +13,17 @@ Vários agentes de IA implementam ao mesmo tempo, cada um num worktree e num **l
 | `designer-docs` | `docs/features/`, visão, referências | Decisão de design que precisa virar regra escrita |
 | `revisor` | Só leitura | PR de risco: Core, segurança, regra de dano, preço ou fusão que a doc não fechou |
 
-Sonnet é o padrão; Opus em Core e nos PRs de risco. Comandos: `/trabalhe` implementa, `/decida` confere e organiza o quadro, `/melhore` abre melhorias, `/segure` reserva fila por escopo. Nenhum dos três últimos implementa.
+Sonnet é o padrão; Opus em Core e PRs de risco. Comandos: `/trabalhe` implementa; `/decida`, `/melhore` e `/segure` não implementam (conferem, sugerem ou reservam).
 
 ## Doc e regras atuais
 
-No `/trabalhe`, `/decida` e `/melhore`: **`git fetch origin main`** antes de ler doc, escrever ficha ou decidir. `AGENTS.md`, `docs/features/` e ADRs valem **`origin/main`**, não a branch velha.
-
-- Doc: `git show origin/main:docs/features/<x>.md` (ou `…:AGENTS.md`).
-- Código: `git grep … origin/main -- <pastas>`.
-- O `puxar` refaz fetch e cria branch da main; não substitui o fetch do início da leva.
-
-Checkout limpo: `git switch main && git pull --rebase origin main`. Com worktree ou mudança local: `fetch` + `show` / `grep`.
+No `/trabalhe`, `/decida` e `/melhore`: **`git fetch origin main`** antes de ler doc, escrever ficha ou decidir. `AGENTS.md`, `docs/features/` e ADRs valem **`origin/main`**, não a branch velha (`git show origin/main:<arquivo>`, `git grep … origin/main -- <pastas>`). O `puxar` refaz fetch ao criar a branch; não substitui o fetch do início da leva.
 
 ## Worktree ao puxar
 
 **Uma pasta Git por lote.** A trava `em-andamento` é por issue, não por diretório — duas IAs no mesmo checkout se atropelam.
 
-`npm run tarefa -- puxar … --worktree <pasta>` cria branch no worktree (`.claude/worktrees/…`, [ferramentas-ia.md](ferramentas-ia.md)). Agente já isolado: `--worktree .`. Checkout principal com outro lote ou `--agente`: precisa de pasta fora da raiz. Coordenador que codifica: worktree próprio ([Fechamento](#fechamento-o-coordenador-integra-e-limpa-o-que-criou)).
+`npm run tarefa -- puxar … --worktree <pasta>` cria a branch no worktree (`.claude/worktrees/…`, [ferramentas-ia.md](ferramentas-ia.md)). Agente já isolado: `--worktree .`. Checkout principal com outro lote ou `--agente`: pasta fora da raiz é obrigatória. Coordenador que codifica: worktree próprio ([Fechamento](#fechamento-o-coordenador-integra-e-limpa-o-que-criou)).
 
 ## Prioridade das tarefas
 
@@ -59,18 +53,11 @@ Tarefas livres que mexem no **mesmo código**: mesmos arquivos ou fluxo, uma dep
 
 ## Segure (reserva manual)
 
-Quem vai fazer **todas** as tarefas livres de um escopo na mão (sem concorrência de agente):
+Reserva manual de **todas** as tarefas livres de um escopo (sem concorrência de agente): `npm run tarefa -- segure <escopo>` (`rotular <N>`, `liberar <escopo>`).
 
-```
-npm run tarefa -- segure <escopo>    # ex.: personagem — prefixo [Personagem] no título
-npm run tarefa -- segure rotular <N> # issues criadas depois (/melhore, /decida)
-npm run tarefa -- segure liberar <escopo>
-```
-
-- Escopo = prefixo do título (`[Mundo]` → `mundo`), alinhado ao commitlint.
+- Escopo = prefixo do título (`[Mundo]` → `mundo`, alinhado ao commitlint).
 - Só rotula issues **livres**; `em-andamento` de outro segue até liberar, merge ou trava de 24 h.
-- Dono = login do `gh` de quem rodou; só esse login `puxa` (IA inclusa no mesmo auth).
-- Vários segures em paralelo (ex.: `personagem` + `itens`). O `/decida` não remove `segure:*`. Registro na issue `[Desenvolvimento] Registro segure`. Skill: [segure](../../.claude/skills/segure/SKILL.md).
+- Dono = login do `gh`; só esse login `puxa`. Vários segures em paralelo são permitidos; o `/decida` não remove `segure:*`. Registro na issue `[Desenvolvimento] Registro segure`. Detalhe na skill [segure](../../.claude/skills/segure/SKILL.md).
 
 ## Entrega da funcionalidade
 
@@ -80,7 +67,7 @@ A tarefa de jogo termina na **cena** que o jogador usa, a partir do jogo aberto,
 
 1. Lê as fichas do lote, a doc da funcionalidade e o código que vai mudar.
 2. Puxa o lote (`puxar <N> <M> ... <branch> --agente <papel> --worktree .`) e escreve o plano em cada issue.
-3. Por issue, um commit: contrato no shared, servidor com testes, client com a cena e o ponto de entrada. Migração com `dotnet dotnet-ef migrations add <X><Descricao> --project server/src/JogoDoGrupo.Server`, nunca à mão.
+3. Por issue, um commit: contrato no shared, servidor com testes, client com a cena e o ponto de entrada. Migração EF por comando no servidor, nunca à mão.
 4. Verifica com a skill `preparar-pr`, abre o PR e termina com o relatório (abaixo).
 
 ### Plano da tarefa
@@ -101,10 +88,10 @@ Quem implementa decide o que a doc não fecha, sem esperar ([ADR 0030](decisoes/
 ## Usar o Unity
 
 - **HUD:** UI Toolkit por código (`JanelasDoJogo.Registrar`); sem cena/prefab de tela.
-- **Cena/prefab/asset:** editor em `Features/<X>/Editor/` + `unity:executar`; YAML/`.meta` à mão o hook barra. `unity:importar`, `unity:recompilar`, `unity:editor`.
-- **Um Unity por máquina:** trava em [trava.mjs](../scripts/unity/trava.mjs) (`UNITY_ESPERA_MIN`, até 30 min).
+- **Cena/prefab/asset:** editor em `Features/<X>/Editor/` + `unity:executar`; YAML/`.meta` à mão o hook barra. Comandos `unity:importar`, `unity:recompilar`, `unity:editor`.
+- **Um Unity por máquina:** trava em [trava.mjs](../scripts/unity/trava.mjs) (`UNITY_ESPERA_MIN`).
 - **Commit:** assets gerados no PR; `conferir-unity`. `ProjectSettings/` e cenas Core: pare e avise.
-- **Sem editor:** só `unity:*` sem janela; editor e Play Mode se pedirem. Ao vivo: a pessoa ([F9](features/desenvolvimento.md#report-beta-e-ajuste-ao-vivo)).
+- **Sem editor:** só `unity:*` sem janela; editor/Play Mode se pedirem. Ao vivo: a pessoa ([F9](features/desenvolvimento.md#report-beta-e-ajuste-ao-vivo)).
 - **Nuvem:** `unity:*` pulam; falta vira `pendencia-unity` ([ADR 0019](decisoes/0019-unity-no-ci.md)).
 
 ### Prints da tela
@@ -127,7 +114,7 @@ Mudou tela ou HUD: `CapturaDaTelaComando.Capturar` via `unity:executar` (1280/19
 
 ### Custo de IA
 
-Regra 16: antes do PR, pergunte se a próxima vez desta tarefa sai mais barata. Espera que vai se repetir (agente relançado, revisor em cima de teste, comando que falha e abre outra rodada, releitura do que a issue dizia, print pedido à pessoa, script ou hook que faltou) vira corte neste PR ou num pequeno de processo. Não vale para ampliar o jogo nem polir fora da tarefa. Tropeço de processo vira regra, script ou hook; o [licoes.md](licoes.md) guarda só o que ainda não virou.
+Regra 16: antes do PR, pergunte se a próxima vez desta tarefa sai mais barata. Espera que vai se repetir (agente relançado, comando que falha, releitura de issue, script/hook que faltou) vira corte neste PR ou num de processo (sem ampliar o jogo nem polir fora da tarefa). Tropeço de processo vira regra, script ou hook; o [licoes.md](licoes.md) guarda só o que ainda não virou.
 
 ### Orçamento de contexto
 
@@ -135,4 +122,4 @@ AGENTS.md, este arquivo, cada agente e cada skill são reenviados em todas as ro
 
 ### Trocar de assunto sem perder o fio
 
-Sessão longa encarece até as mensagens curtas. Ao fechar um assunto, registre o pendente (trabalho que vira PR: numa issue; a próxima pergunta: `node scripts/agentes/retomar.mjs gravar "<texto>"`) e dê `/clear`. O hook de início mostra o bilhete e o apaga.
+Sessão longa encarece mensagens curtas. Ao fechar um assunto, registre o pendente (PR: numa issue; próxima pergunta: `node scripts/agentes/retomar.mjs gravar "<texto>"`) e dê `/clear`. O hook de início mostra o bilhete e o apaga.
