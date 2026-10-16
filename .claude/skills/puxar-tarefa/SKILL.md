@@ -14,7 +14,7 @@ npm run tarefa -- puxar <N> [<M> ...] [branch] [--agente <papel>] [--worktree <c
 ```
 
 - Vários números são um [lote](../../../docs/agentes.md#lote): uma branch e uma trava por issue. Se qualquer uma estiver em andamento por outro ou `bloqueada`, nada é puxado.
-- Recusa o quarto lote de jogo em andamento.
+- Avisa se já houver 3+ lotes de jogo em andamento (recomendação ADR 0037; não bloqueia).
 - [Worktree ao puxar](../../../docs/agentes.md#worktree-ao-puxar): **uma pasta por lote**. No checkout principal, com outro lote ativo ou com `--agente`, `--worktree <pasta>` é obrigatório (o script recusa). Agente já num worktree isolado: `--worktree .`.
 - Cria a branch sempre da `origin/main` (ou de `--base`, em leva empilhada), com `git fetch origin main` na hora.
 - O fetch do início do `/trabalhe`, `/decida` ou `/melhore` ([Doc e regras atuais](../../../docs/agentes.md#doc-e-regras-atuais)) não dispensa o do `puxar`: quem vai codificar parte da branch que o script acaba de criar.

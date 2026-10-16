@@ -1,4 +1,4 @@
-// No máximo 3 lotes de jogo em andamento (docs/agentes.md#lote, ADR 0037). Um lote é uma
+// Recomendado até 3 lotes de jogo em andamento (docs/agentes.md#lote, ADR 0037 emenda 2026-10-16). Um lote é uma
 // branch com uma ou mais issues, de uma ou várias funcionalidades. Core e desenvolvimento não
 // ocupam vaga: não são o ciclo do marco.
 
@@ -24,7 +24,8 @@ export function podePuxarLote(labelsDoLote, emAndamento, branchDoLote = null) {
       .map((item) => item.branch ?? `#${item.numero}`),
   );
   const emCurso = [...lotes].sort();
-  if (funcionalidadesDe(labelsDoLote).length === 0) return { ok: true, emCurso };
-  if (branchDoLote && lotes.has(branchDoLote)) return { ok: true, emCurso };
-  return { ok: lotes.size < LIMITE_LOTES, emCurso };
+  if (funcionalidadesDe(labelsDoLote).length === 0) return { ok: true, emCurso, acimaDoRecomendado: false };
+  if (branchDoLote && lotes.has(branchDoLote)) return { ok: true, emCurso, acimaDoRecomendado: false };
+  const acimaDoRecomendado = lotes.size >= LIMITE_LOTES;
+  return { ok: true, emCurso, acimaDoRecomendado };
 }

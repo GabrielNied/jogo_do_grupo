@@ -10,7 +10,7 @@ Regras mínimas para jogar o [primeiro marco](../visao-geral.md#primeiro-marco-f
 
 ## Foco atual
 
-Decidido pelo grupo em 2026-10-11 ([ADR 0030](../decisoes/0030-processo-v2-dono-da-funcionalidade.md)). Tarefa de jogo nova sai daqui, com no máximo 3 lotes de jogo em andamento ([ADR 0037](../decisoes/0037-lotes-de-tarefas.md)):
+Decidido pelo grupo em 2026-10-11 ([ADR 0030](../decisoes/0030-processo-v2-dono-da-funcionalidade.md)). Tarefa de jogo nova sai daqui; **recomendado** até 3 lotes de jogo em andamento ([ADR 0037](../decisoes/0037-lotes-de-tarefas.md), emenda 2026-10-16):
 
 0. **Prioridade alta** (decidido por Gabriel em 2026-10-12), antes dos outros itens deste foco:
    - **Modelo de itens v2:** tier, fusão e atributos próprios dos equipamentos entregues ([#615](https://github.com/GabrielNied/jogo_do_grupo/issues/615), [#616](https://github.com/GabrielNied/jogo_do_grupo/issues/616), [#623](https://github.com/GabrielNied/jogo_do_grupo/issues/623)). **Próximo de Itens:** [#617](https://github.com/GabrielNied/jogo_do_grupo/issues/617) materiais de fusão (regras em [itens — Materiais de fusão](itens.md#materiais-de-fusão-617); épico [#619](https://github.com/GabrielNied/jogo_do_grupo/issues/619)). Poderes e sets ([#629](https://github.com/GabrielNied/jogo_do_grupo/issues/629), [#630](https://github.com/GabrielNied/jogo_do_grupo/issues/630)) ficam depois das skills na arma ([#167](https://github.com/GabrielNied/jogo_do_grupo/issues/167)).

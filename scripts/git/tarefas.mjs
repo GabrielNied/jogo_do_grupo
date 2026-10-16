@@ -681,10 +681,11 @@ async function puxarTarefa(args) {
     emAndamento,
     nomeBranch,
   );
-  if (!vaga.ok) {
-    console.error(`\n⛔ Já há ${LIMITE_LOTES} lotes de jogo em andamento: ${vaga.emCurso.join(", ")}.`);
-    console.error(`Espere um fechar ou junte estas issues a um lote em curso.\n`);
-    process.exit(1);
+  if (vaga.acimaDoRecomendado) {
+    console.warn(
+      `\n⚠ Recomendado no máximo ${LIMITE_LOTES} lotes de jogo em andamento (ADR 0037); em curso: ${vaga.emCurso.join(", ")}.`,
+    );
+    console.warn(`Continuando mesmo assim. Feche um lote ou junte a um branch em curso se quiser foco.\n`);
   }
 
   // Tarefa antiga pode pedir regra que a doc já mudou: só avisa, quem decide é o agente.

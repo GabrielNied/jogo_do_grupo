@@ -23,3 +23,11 @@
 - Menos agentes e rodadas de CI por leva; o PR de um lote é maior e o "Como testar" vem por issue.
 - O pacote de instruções do dono caiu de ~60 mil para ~25 mil caracteres. Para crescer, outro trecho precisa sair.
 - Issues antigas ganham ficha aos poucos, 15 por `/decida`; até lá o `listar` as marca com `sem ficha` e `rótulos v1`.
+
+## Emenda 2026-10-16 (Gabriel)
+
+O item 2 (**Limite de 3 lotes**) passa a ser **recomendação**, não trava:
+
+- **Recomendado:** até **3 lotes de jogo** em andamento para manter foco no marco e custo de CI/IA.
+- **`puxar`:** **não recusa** o quarto lote; emite **aviso** listando os lotes em curso. Core e desenvolvimento continuam fora da contagem.
+- Quem coordena pode manter a disciplina manualmente; o script só lembra.
