@@ -12,7 +12,11 @@ Telas e menus do client que não pertencem a uma funcionalidade do jogo. Por enq
 
 - O menu abre com **Esc**, tem **continuar**, **opções**, **voltar à seleção**, **sair da conta** e **sair do jogo**. "Sair da conta" já existe (apaga o token gravado; veja [personagem.md](personagem.md)). "Voltar à seleção" volta à escolha de personagem sem sair da conta.
 - Opções iniciais (da issue #89, no client em 2026-10-11): volume (geral, música, efeitos), qualidade gráfica, resolução e tela cheia, sensibilidade da câmera, idioma. Gravadas neste computador. O volume geral, a qualidade, a tela e a resolução valem na hora; música e efeitos ficam gravados para o áudio (#123). Resolução 0 significa a do monitor. Idioma: só português. O jogo não pausa.
-- **Janelas do jogo por atalho** (#134, decidido por Gabriel em 2026-10-11; provisório, o grupo pode ajustar): **C** personagem, **I** inventário, **L** missões, **M** mapa. **Uma janela por vez**, e com janela aberta o personagem fica **parado**. Regras em [Janelas do jogo](#janelas-do-jogo).
+- **Janelas do jogo por atalho** (#134, decidido por Gabriel em 2026-10-11; provisório, o grupo pode ajustar): **C** personagem, **I** inventário, **L** missões, **M** mapa. ~~**Uma janela por vez**, e com janela aberta o personagem fica **parado**.~~ Substituído em 2026-10-16 (Gabriel): **várias janelas abertas ao mesmo tempo, e o personagem anda com elas**, como no WoW. Com janela aberta o mouse vira cursor, e a câmera só gira segurando o botão direito. Regras em [Janelas do jogo](#janelas-do-jogo) (ainda descrevem a regra antiga até a implementação).
+- **Decisões do Gabriel em 2026-10-16** (quiz de definições):
+  - **Teclas:** não existe mais tecla de correr, porque o personagem está sempre correndo ([personagem](personagem.md#definido)). **Ctrl esquerdo** (segurar) anda devagar, a **esquiva vai para o Shift** e o pulo continua no Espaço.
+  - **Alvo sem tab target:** o HUD mostra o inimigo sob a mira ou o último que você acertou. Não há tecla de travar alvo.
+  - **HUD:** mostra também o **dano dos aliados** (além do meu e do que recebo; a cura que faço sempre aparece), a **vida exata dos aliados** (número junto da barra) e tem a opção de **esconder o HUD inteiro** já na primeira versão. O aviso de ataque no HUD continua **só para o boss**.
 - As teclas atuais podem ser ajustadas em **Opções > Teclas**; os padrões e limites estão em [Teclas e atalhos](#teclas-e-atalhos).
 - Na abertura, o client carrega o tema e verifica a disponibilidade e a versão da API em `/saude` antes de mostrar o login; falha mostra "Servidor fora do ar" e **Tentar de novo**. Ao escolher personagem, a tela Lumora mostra **Cenário**, **Conexão** e **Posição** conforme o trabalho real, sem porcentagem simulada. O mundo só aparece depois de aplicar a primeira posição do servidor; até lá, HUD e input ficam bloqueados. A espera por conexão e posição expira em 20 s. A falha oferece **Tentar de novo** e **Voltar à seleção**, desmontando a tentativa parcial antes de outra entrada.
 - No mundo, a HUD mostra latência em milissegundos quando a conexão está autenticada. Na queda, uma faixa informa a tentativa de reconexão e o movimento fica bloqueado; após o limite de três tentativas, um diálogo **Conexão perdida** oferece **Tentar de novo** e **Voltar à seleção**. Acesso negado recebe mensagem própria. Na primeira entrada, falha de conexão encerra a espera imediatamente; o erro fica na tela de carregamento. Os avisos são removidos ao sair do mundo.
@@ -22,29 +26,29 @@ Telas e menus do client que não pertencem a uma funcionalidade do jogo. Por enq
 
 - [ ] Abrir o menu pausa o jogo? Proposta: **não**. O jogo é online e persistente, o mundo segue rodando; o personagem fica parado e vulnerável (sem tela de pausa).
 - [ ] Idiomas disponíveis na primeira versão (proposta: só português; a opção existe mas lista um idioma).
-- [ ] Sair do jogo/da conta dentro de dungeon ou combate: sai na hora ou tem espera (proposta: espera de 10 s em combate)? Decisão do grupo.
+- [x] Sair do jogo/da conta dentro de dungeon ou combate: sai na hora ou tem espera (proposta: espera de 10 s em combate)? Decidido em 2026-10-16 em [mundo](mundo.md#definido): fora de combate sai na hora; em combate o personagem fica 10 s no mundo.
 - [ ] ~~Remapear teclas (#90): só listado, não desenhado aqui.~~ substituído em 2026-10-11 por [Teclas e atalhos](#teclas-e-atalhos) (proposta de atalhos padrão e regras de troca)
 - [ ] Janelas do jogo (#134), decisões do grupo:
-  - [ ] Confirmar **uma janela por vez e personagem parado** (decisão provisória de 2026-10-11) ou permitir várias janelas abertas e andar com elas (como no WoW)?
+  - [x] Confirmar **uma janela por vez e personagem parado** (decisão provisória de 2026-10-11) ou permitir várias janelas abertas e andar com elas (como no WoW)? Decidido em 2026-10-16: várias, andando.
   - [ ] Com o chat aberto (#95), as letras não podem abrir janela: a regra entra junto com o chat
   - [ ] Outras janelas que o grupo quer com atalho (sugestões: **K** skills, **N** talentos, **O** social, **P** profissões)
   - [ ] A barra de atalhos fica sempre visível (como está) ou some depois que a pessoa aprende?
 - [ ] Teclas e atalhos (#90), decisões do grupo:
   - [x] ~~Aprovar os atalhos padrão da tabela (proposta).~~ Decidido em 2026-10-12, como no New World: leve no clique esquerdo, pesado ao segurar o esquerdo por 0,3 s, guarda no botão direito, esquiva no Alt esquerdo (esta última desde 2026-10-11). A troca de arma (R) e as skills 1, 2 e 3 valem desde a [#580](https://github.com/GabrielNied/jogo_do_grupo/issues/580).
   - [ ] Tecla já usada: **trocar as duas ações** (proposta) ou deixar a outra sem tecla?
-  - [ ] Tecla de **correr**: segurar (proposta) ou alternar?
+  - [x] Tecla de **correr**: segurar (proposta) ou alternar? Decidido em 2026-10-16: não há tecla de correr; Ctrl esquerdo anda devagar e a esquiva vai para o Shift.
   - [x] ~~Combate ainda não decidiu se **bloqueio**, **stamina** e **troca de arma** entram na fatia jogável~~ Decidido em 2026-10-12: guarda e stamina entram nesta fatia. A troca de arma está decidida e fica para a S10; a tecla R vale nessa hora.
-  - [ ] ~~[personagem.md](personagem.md) só define andar e correr; **pular** não existe nas docs, então não tem atalho (se entrar, sugestão: Espaço vira pular e a esquiva vai para Alt)~~ substituído em 2026-10-11: o pulo **já existe no client** (Espaço, só no chão, 1,25 m de altura; `MovimentoTerceiraPessoa`), então entrou na tabela e a esquiva foi para o Alt esquerdo. Falta o grupo confirmar: o pulo fica no jogo? Ele serve para alguma coisa no combate (sair de área marcada no chão) ou é só movimento? O servidor precisa validar a altura (hoje a presença aceita de -5 a 50 m, veja [mundo.md](mundo.md))
+  - [x] Decidido em 2026-10-16: o pulo fica como está (Espaço). ~~[personagem.md](personagem.md) só define andar e correr; **pular** não existe nas docs, então não tem atalho (se entrar, sugestão: Espaço vira pular e a esquiva vai para Alt)~~ substituído em 2026-10-11: o pulo **já existe no client** (Espaço, só no chão, 1,25 m de altura; `MovimentoTerceiraPessoa`), então entrou na tabela e a esquiva foi para o Alt esquerdo. Falta o grupo confirmar: o pulo fica no jogo? Ele serve para alguma coisa no combate (sair de área marcada no chão) ou é só movimento? O servidor precisa validar a altura (hoje a presença aceita de -5 a 50 m, veja [mundo.md](mundo.md))
 - [ ] **Textos de interface do livro de Asterra** (proposta do board, 2026-10-11, não validada; [figjam.md](../brainstorm/figjam.md) seção 10, 11 e 09): sugestões de texto para os cartões, a adotar na tela quando o grupo aprovar a regra por trás. Caído: "Você caiu. Aguarde ajuda ou retorne a um ponto seguro." e "Levantado: recupere a vida antes de voltar à linha de frente." Ajuda de mira: "Mire na direção do perigo. Mova-se para fora da área de ataque." Defesa: "Defesa insuficiente para bloquear completamente este impacto." Loot: "Maior dano: você. Recompensa disponível para coleta." (**conflito** com o loot individual da [fatia](fatia-jogavel.md#5-loot-no-chão); o texto precisaria mudar). Tela de atributos: "Distribua seus pontos. Sua raça dá identidade; seus equipamentos dão possibilidades." Mundo: "Entre, encontre seus amigos e continue de onde parou." Diário: "Cada saída pode render uma peça melhor, uma combinação nova ou uma história para contar." Também pede botão de **retorno** na tela de caído e aba **Preparação** de skills (dono: [skills.md](skills.md)).
 - [ ] ~~HUD configurável (#93): só listado, não desenhado aqui.~~ substituído em 2026-10-11 por [HUD do jogo](#hud-do-jogo) (proposta de layout e regras)
 - [ ] ~~Áudio (#96): só listado; os sons em si não são desenhados aqui.~~ substituído em 2026-10-11 por [Áudio](#áudio) (proposta de áreas com música, sons e fontes)
 - [ ] HUD do jogo (#93), decisões do grupo:
   - [ ] Aprovar as posições da tabela de layout (proposta)
-  - [ ] **Alvo sem tab target:** vale "o inimigo sob a mira ou o último que você acertou" (proposta), ou o jogador trava o alvo com uma tecla?
-  - [ ] Número de dano: mostrar **só o meu dano e o que eu recebo** (proposta) ou também o dos aliados? E a cura que eu faço nos outros?
-  - [ ] Aviso de ataque no HUD **só para o boss** (proposta) ou também para o inimigo comum?
-  - [ ] Ver a vida exata dos aliados (número) ou só a barra (proposta: barra e porcentagem)?
-  - [ ] Opção para esconder o HUD inteiro (captura de tela): entra na primeira versão? (proposta: não)
+  - [x] **Alvo sem tab target:** vale "o inimigo sob a mira ou o último que você acertou" (proposta), ou o jogador trava o alvo com uma tecla? Decidido em 2026-10-16: a proposta.
+  - [x] Número de dano: mostrar **só o meu dano e o que eu recebo** (proposta) ou também o dos aliados? E a cura que eu faço nos outros? Decidido em 2026-10-16: também o dos aliados; a minha cura aparece.
+  - [x] Aviso de ataque no HUD **só para o boss** (proposta) ou também para o inimigo comum? Decidido em 2026-10-16: só o boss.
+  - [x] Ver a vida exata dos aliados (número) ou só a barra (proposta: barra e porcentagem)? Decidido em 2026-10-16: número.
+  - [x] Opção para esconder o HUD inteiro (captura de tela): entra na primeira versão? (proposta: não) Decidido em 2026-10-16: entra.
 - [ ] Áudio (#96), decisões do grupo:
   - [ ] Aprovar as áreas com música e a troca entre elas (proposta)
   - [ ] Aprovar as fontes CC0 sugeridas; quem baixa escolhe as faixas e registra em [licenças](../arte/licencas.md)
@@ -115,18 +119,18 @@ Decidido por Gabriel em 2026-10-11 (#134); é **provisório** e o grupo pode aju
 
 ### Teclas e atalhos
 
-**Base:** New World (combate de ação em 3ª pessoa no PC, veja [referências](../referencias.md)) e MMOs de PC em geral. **Igual:** WASD para andar, mouse para câmera e ataque, menu no Esc, tecla fixa por ação com atalhos de painel em letras. **Igual ao New World nas teclas de luta** (decidido em 2026-10-12): leve no clique esquerdo, pesado ao segurar o esquerdo, guarda no direito, esquiva no Alt esquerdo. O Espaço continua o pulo. Só teclado e mouse; gamepad fica fora.
+**Base:** New World (combate de ação em 3ª pessoa no PC, veja [referências](../referencias.md)) e MMOs de PC em geral. **Igual:** WASD para andar, mouse para câmera e ataque, menu no Esc, tecla fixa por ação com atalhos de painel em letras. **Igual ao New World nas teclas de luta** (decidido em 2026-10-12): leve no clique esquerdo, pesado ao segurar o esquerdo, guarda no direito, esquiva ~~no Alt esquerdo~~ no Shift (desde 2026-10-16). O Espaço continua o pulo. Só teclado e mouse; gamepad fica fora.
 
   A tela fica em **Opções > Teclas**, com uma linha por ação (nome, tecla atual, botões **Trocar** e **Padrão**) e um botão **Restaurar padrão** com confirmação. O ataque leve e o pesado compartilham o mesmo botão: soltar faz o leve, segurar por 0,3 s faz o pesado. A coleta de itens no chão também aparece como ação própria.
 
 | Ação | Tecla padrão (proposta) | Troca? |
 |---|---|---|
 | Andar para frente / trás / esquerda / direita | W / S / A / D | sim, cada direção |
-| Correr | Shift (segurar) | sim |
+| ~~Correr~~ Andar devagar (desde 2026-10-16; o personagem está sempre correndo) | ~~Shift (segurar)~~ Ctrl esquerdo (segurar) | sim |
 | Câmera | mover o mouse | não (sensibilidade fica em Opções) |
 | Zoom da câmera | roda do mouse (de 2 a 8 m) | não |
 | Pular (já existe no client) | Espaço | sim |
-| Esquiva | ~~Espaço~~ Alt esquerdo (substituído e decidido em 2026-10-11) | sim |
+| Esquiva | ~~Espaço~~ ~~Alt esquerdo (substituído e decidido em 2026-10-11)~~ Shift (decidido em 2026-10-16) | sim |
   | Ataque leve / pesado | clicar / segurar o botão esquerdo do mouse por 0,3 s | sim, juntos |
 | Bloqueio | botão direito do mouse | sim |
 | Skills 1, 2 e 3 (quando a S10 entrar) | 1, 2, 3 | sim |

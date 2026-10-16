@@ -11,12 +11,12 @@ Papel dos NPCs no mundo, comerciantes e reputação.
 ## Definido
 
 - Comerciantes
-- **Reputação por facção de NPC da cidade** (decidido por Gabriel em 2026-10-16): por exemplo Forja, Guarda e Mercadores. Sobe com missões e diárias e libera receitas, descontos e aparências. Não tem relação com PvP.
+- **Reputação por facção de NPC da cidade** (decidido por Gabriel em 2026-10-16): por exemplo Forja, Guarda e Mercadores. Sobe com missões e diárias e libera receitas, descontos e aparências. Não tem relação com PvP. **Nunca cai** e não há facções rivais (quiz de definições, 2026-10-16).
 
 ## Em aberto
 
-- [ ] Quais tipos de NPC existem?
-- [ ] Como a reputação é perdida? (ganha por missões e diárias, decidido em 2026-10-16)
+- [ ] Quais tipos de NPC existem? Quem implementa a [#178](https://github.com/GabrielNied/jogo_do_grupo/issues/178) decide, a partir dos serviços já definidos: comerciante, ferreiro, banqueiro, leiloeiro, quem dá missões e o NPC de cena do prólogo.
+- [x] Como a reputação é perdida? (ganha por missões e diárias, decidido em 2026-10-16) Decidido em 2026-10-16: não é perdida.
 
 ## Regras
 

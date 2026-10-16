@@ -22,19 +22,23 @@ Tipos de mobs, comportamento por região e bosses com mecânicas marcantes.
   - **Horda puxada (agro longo do RYL):** três travas juntas. A desistência por distância continua e pode crescer (hoje 30 m, a calibrar); criatura nunca entra na cidade ([mundo](mundo.md#definido)); e a criatura que já persegue alguém **só ataca quem tem ameaça nela** ([ameaça](combate.md#ameaça-agro-169)), então quem só passa por perto não é atacado.
   - **Chefe de mundo:** aparece em lugar e hora sorteados, com **força fixa** (a regra de não escalar continua), e avisa na área. Loot individual para quem participou ([fatia, seção 5](fatia-jogavel.md#5-loot-no-chão)).
   - **Coroas:** cada criatura larga poucas coroas pelo nível; chefes, mais ([economia](economia.md#definido)).
+- **Decisões do Gabriel em 2026-10-16** (quiz de definições):
+  - **"Fortalecida" passa a se chamar Elite** (texto na tela, docs e código; a regra não muda).
+  - **Respawn dinâmico pela lotação:** quanto mais jogadores perto do ponto, mais curto o intervalo de reposição. O agente de mobs calibra a curva e o limite, em constante nomeada; o teto de vivos da área continua.
+  - **Chefe raro:** **avisa na área** quando aparece, **some depois de 30 min** se ninguém o matar (volta ao sorteio) e tem **loot próprio** (item que só ele larga, na tabela de [itens](itens.md)). **Não** aparece em dungeon.
 
 ## Em aberto
 
 - [x] Bosses de mundo aberto (world boss)? Decidido em 2026-10-16: sim, aparição sorteada e força fixa (veja Definido).
-- [ ] Respawn: tempo fixo ou dinâmico?
-- [ ] O nome "fortalecida" fica, ou o grupo prefere outro (elite, enfurecida)?
+- [x] Respawn: tempo fixo ou dinâmico? Decidido em 2026-10-16: dinâmico pela lotação.
+- [x] O nome "fortalecida" fica, ou o grupo prefere outro (elite, enfurecida)? Decidido em 2026-10-16: Elite.
 - [ ] Os números da criatura fortalecida e do chefe raro (tabelas em "Regras").
 - [ ] As três primeiras criaturas (Javali do Campo, Guardião do Reflexo, Presa-Velha) são só um ponto de partida: nomes, espécies e onde ficam.
 - [x] **Livro de Asterra, decidido em 2026-10-11 (/decida, #322):** o Javali do Campo **permanece** (dano 40, grupo de 3 a 5, já implementado); o Javali Ferrugem do livro (dano 18, grupo de 8 a 15) só entra depois, como espécie à parte. Lobo de Geada, Carapaça de Brasa, Cervo e Mariposa viram fichas em `Config<Assunto>`, de força fixa, fora do campo da fatia até o foco do marco mudar. Ancião e Colosso só com o chefe de mundo (#191). Bestiário e captura ficam para depois do MVP. As manadas com rota e limite urbano estão feitas (issue #321: veja "Manadas com rota (#321)"). Pergunta original: o Javali do Campo vira o Javali Ferrugem (dano 18, grupo de 8 a 15) ou os dois convivem? As cinco espécies, o bestiário com conhecimento e a captura do cervo entram no MVP? As manadas que nunca entram na cidade e seguem rotas? Veja "Livro de Asterra: bestiário".
-- [ ] O chefe raro avisa quando aparece (mensagem na área, marca no mapa) ou o jogador tem que achar?
-- [ ] O chefe raro some sozinho se ninguém o matar? Proposta atual: fica até morrer.
-- [ ] Dungeon tem chefe raro (um sorteio ao criar a instância)? As regras já servem; falta decidir.
-- [ ] Loot próprio do chefe raro (item que só ele larga): depende de [itens.md](itens.md).
+- [x] O chefe raro avisa quando aparece (mensagem na área, marca no mapa) ou o jogador tem que achar? Decidido em 2026-10-16: avisa na área.
+- [x] O chefe raro some sozinho se ninguém o matar? Decidido em 2026-10-16: some depois de 30 min.
+- [x] Dungeon tem chefe raro (um sorteio ao criar a instância)? Decidido em 2026-10-16: não.
+- [x] Loot próprio do chefe raro (item que só ele larga): depende de [itens.md](itens.md). Decidido em 2026-10-16: sim.
 - [ ] As escolhas do servidor do inimigo comum (lista em "Inimigo comum da fatia"): o grupo perder o alvo de vista na desistência, o golpe pegar todos no volume de contato e o inimigo ser imune na volta. O ataque ir até o fim quando o alvo foge, e ser cancelado por um acerto no preparo, ficou decidido em 2026-10-12.
 - [x] ~~O tamanho do grupo do campo é sorteado de novo a cada volta do grupo inteiro?~~ Sim (issue #452, proposta): veja "Mais mobs no campo".
 - [ ] Os pontos, níveis, tamanhos e as duas espécies novas (Lobo do Campo, Tatu Rochoso) de "Mais mobs no campo" são proposta do agente (issue #452): o dono confirma ou troca, alinhado ao bestiário ([#322](https://github.com/GabrielNied/jogo_do_grupo/issues/322)).

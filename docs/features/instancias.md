@@ -25,6 +25,9 @@ Conteúdo instanciado para grupos pequenos: dungeons e raids, com foco em derrot
   - **Dificuldade sem fim:** o líder escolhe o nível, até um acima do maior que já venceu. Cada nível soma **8%** de vida e de dano aos inimigos. Há cronômetro: vencer no tempo libera o próximo nível. Sem chave e sem modificador semanal. Se "o maior já vencido" é do grupo ou de cada um fica para a implementação.
   - **Grupo de raid:** o grupo vira de raid ao passar de 5, até 10, com um líder só ([social](social.md#definido)).
   - **Fila automática:** a pessoa escolhe o papel sem conferência do servidor, e o servidor monta 1 tank, 1 healer e 3 DPS ([social](social.md#definido)).
+- **Decisões do Gabriel em 2026-10-16** (quiz de definições):
+  - **A Mina do Reflexo é a dungeon do MVP** (conteúdo da #800, abaixo).
+  - **Voltar à dungeon depois de cair:** quem retornou à cidade pode entrar de novo na mesma instância enquanto ela estiver aberta e o grupo continuar lá ([personagem](personagem.md#retorno-à-cidade)).
 
 ## Em aberto
 
@@ -33,8 +36,8 @@ Conteúdo instanciado para grupos pequenos: dungeons e raids, com foco em derrot
 - [x] ~~Raids divididas em etapas curtas (gates)?~~ Decidido em 2026-10-10: sim
 - [x] Quanto cada nível de dificuldade aumenta vida e dano dos inimigos? (WoW Mythic+: cerca de 8% por nível) Decidido em 2026-10-16: 8% por nível.
 - [x] Vai ter cronômetro e modificadores, como no Mythic+? Decidido em 2026-10-16: cronômetro sim, modificadores não.
-- [ ] **Conflito com o livro (proposta do board, 2026-10-11):** o livro fala em "instâncias de 20 jogadores" (seção 10); aqui continua valendo dungeon de 5 e raid de 10 (decididos em 2026-10-10). O grupo decide se os 20 são o limite do mundo/grupo (veja [social](social.md)) e não da dungeon.
-- [ ] A Mina do Reflexo (três salões, chefe mineral) é a dungeon do MVP? Veja "Livro de Asterra: Mina do Reflexo".
+- [x] **Conflito com o livro (proposta do board, 2026-10-11):** o livro fala em "instâncias de 20 jogadores" (seção 10); aqui continua valendo dungeon de 5 e raid de 10 (decididos em 2026-10-10). Respondido em 2026-10-11 (/decida, #351, [social](social.md#em-aberto)): party de 5, raid de 10, dungeon de 5; os 20 ficam só como proposta registrada.
+- [x] A Mina do Reflexo (três salões, chefe mineral) é a dungeon do MVP? Veja "Livro de Asterra: Mina do Reflexo". Decidido em 2026-10-16: sim.
 - [ ] Veja as [referências](../referencias.md) de dungeons, raids e bosses
 
 ## Regras

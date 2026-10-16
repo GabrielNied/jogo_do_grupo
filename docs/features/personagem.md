@@ -12,7 +12,9 @@ Raças, atributos e progressão de nível. Sem classes: o estilo de jogo vem da 
 
 - Atributos principais e secundários do personagem: [Atributos do personagem](#atributos-do-personagem) (decidido em 2026-10-12, prioridade alta)
 - Recursos, XP e nível da primeira fatia jogável (números em proposta): [fatia-jogavel.md](fatia-jogavel.md)
-- Raças com características únicas; cada raça dá uma **skill base** própria
+- ~~Raças com características únicas; cada raça dá uma **skill base** própria~~ Substituído em 2026-10-16 (Gabriel, quiz de definições): **raça é só visual**. Não dá traço, skill racial nem bônus, e a história é a mesma para todas ([missões](missoes.md#definido)).
+- **Sempre correndo** (decidido por Gabriel em 2026-10-16): a velocidade normal do personagem é a de corrida de hoje (5,5 m/s). Não há tecla de correr; uma tecla de **andar devagar** (Ctrl esquerdo, segurar) usa a velocidade de andar. A esquiva vai para o **Shift** e o pulo continua no Espaço ([teclas](interface.md#teclas-e-atalhos)).
+- **Renomear não pode** (decidido por Gabriel em 2026-10-16): o nome escolhido na criação é permanente.
 - **Sem classes** (D2 da [validação de 2026-10-10](../brainstorm/validacao.md)): ~~a combinação de itens define o estilo de jogo~~ desde 2026-10-12, a especialização vem de atributos, [árvore](talentos.md), equipamentos e skills
 - Progressão por nível (leveling) faz parte do loop principal (D5)
 - ~~Classes diferenciadas~~ substituído em 2026-10-10 por "sem classes" (D2)
@@ -103,9 +105,13 @@ Os nomes novos já valem no código ([#622](https://github.com/GabrielNied/jogo_
 
 ### Pendente
 
-Antes de fixar números ([#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627)): vida, stamina, mana e dano por ponto; fórmulas dos atributos finais; valores, limites e fontes dos secundários; limites de crítico, dano crítico, velocidade e penetração; regras de regeneração e consumo; quantos pontos da árvore cada nível dá; custos e requisitos dos nós; efeitos dos nós grandes e avançados; fórmulas entre atributos, equipamentos e skills.
+Decidido por Gabriel em 2026-10-16: **1 ponto da árvore por nível** (99 até o nível 100), que já é o valor de `PontosPorNivel`. Os outros números são propostos pela IA a partir de uma simulação em C# com o `shared` ([ADR 0043](../decisoes/0043-simulacoes-em-csharp-e-scripts-em-node.md)) e aprovados por Gabriel num PR ([#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627)).
+
+Antes de fixar números ([#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627)): vida, stamina, mana e dano por ponto; fórmulas dos atributos finais; valores, limites e fontes dos secundários; limites de crítico, dano crítico, velocidade e penetração; regras de regeneração e consumo; custos e requisitos dos nós; efeitos dos nós grandes e avançados; fórmulas entre atributos, equipamentos e skills.
 
 ## Raças propostas no board (2026-10-11)
+
+> **Traço e skill racial saíram em 2026-10-16** (Gabriel): raça é só visual ([Definido](#definido)). As colunas abaixo ficam como registro do board; nada delas será implementado (#341 fechada).
 
 O "Livro de ideias de Asterra" do FigJam propõe **cinco povos jogáveis**. Cada raça dá um **traço** e uma **skill racial**; armas e equipamentos continuam livres para todos, e cada raça tem 1 ou 2 modelos iniciais. O board avisa que nomes e números novos **continuam propostas**: **implementadas no servidor, na criação e no visual** desde 2026-10-11 (só o traço e a skill racial ainda não: [Skills](skills.md), #341) ([Raça](#raça)). Texto completo de cada raça (identidade, aparência, combinações): [figjam.md](../brainstorm/figjam.md#01--raças-de-asterra).
 
@@ -154,20 +160,20 @@ O teto 100 e os pontos da árvore por nível (valor de teste: 1) estão em `Conf
 
 - [x] Conflito livro x docs: o board pede **sem perda nenhuma na morte** (nem durabilidade) e esta doc já prevê isso só para a fatia; confirmar se vale para o jogo todo. Decidido por Gabriel em 2026-10-16: vale para o jogo todo, PvP incluído; a única perda é a durabilidade pelo uso ([itens](itens.md#definido)).
 - [x] ~~O orçamento de skills muda com os atributos?~~ Decidido em 2026-10-12: não muda. O orçamento em si continua fora desta fatia.
-- [ ] Quais raças existem e qual a skill base de cada uma? (as raças definitivas substituem a raça provisória Humano) **Cinco raças em uso desde 2026-10-11 ([Raças propostas](#raças-propostas-no-board-2026-10-11)); a skill base de cada uma segue em [Skills](skills.md) (#341).**
-- [ ] ~~Quais raças e classes existem?~~ classes não existem mais (D2)
+- [x] Quais raças existem e qual a skill base de cada uma? Cinco raças em uso desde 2026-10-11 ([Raças propostas](#raças-propostas-no-board-2026-10-11)). Decidido em 2026-10-16: sem skill base; raça é só visual.
+- [x] ~~Quais raças e classes existem?~~ classes não existem mais (D2)
 - [x] ~~O que o nível dá ao personagem?~~ ~~Decidido em 2026-10-12: nenhum ponto de atributo; os atributos vêm dos itens.~~ Revisto em 2026-10-12 (Gabriel): pontos da árvore, só por nível. Quantos por nível na [#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627).
 - [x] ~~Aparência e customização na criação (rosto, corpo, cores...)?~~ Decidido na #182: customização básica com tom de pele (4 opções), cabelo (4 estilos) e cor de cabelo (5 opções). Servidor valida limites e persiste; client aplica prévia e material.
 - [x] ~~Excluir personagem: pode? Tem confirmação (ex.: digitar o nome) ou tempo de espera antes de apagar de vez?~~ Decidido na #182: exclusão com confirmação digitando o nome exato. Nome fica reservado para a mesma conta por 7 dias, bloqueando outras contas.
-- [ ] Renomear personagem: pode? Tem custo ou limite?
+- [x] Renomear personagem: pode? Tem custo ou limite? Decidido em 2026-10-16: não pode.
 - [ ] Aceitar letras acentuadas no nome (ç, ã, é...) no futuro? Hoje o grupo decidiu só A–Z (veja [Regras](#regras))
-- [ ] Morte e caído (#97), decisões do grupo (regras em proposta em [Morte e caído](#morte-e-caído-issue-97)):
-  - [ ] A contagem de 45 s **para enquanto um aliado está levantando** (proposta) ou continua correndo? O servidor (#423) implementou **continua correndo** (mais simples e é o que a fatia diz); trocar é mudança em `ControleDeQueda`
+- [x] Morte e caído (#97), decisões do grupo (regras em proposta em [Morte e caído](#morte-e-caído-issue-97)):
+  - [x] A contagem de 45 s **para enquanto um aliado está levantando** (proposta) ou continua correndo? O servidor (#423) implementou **continua correndo**; trocar é mudança em `ControleDeQueda`. Decidido em 2026-10-16: **para**.
   - [x] "Voltar à cidade" antes do fim da contagem: **pode, depois de 5 s caído**; ao fim dos 45 s volta sozinho; voltar = vida cheia no ponto de nascimento da cidade, sem perder nada. **Decidido em 2026-10-11 (coordenador, autonomia dada pelo Gabriel)**
-  - [ ] Depois de levantar, **2 s sem receber dano** (proposta), para não cair de novo no mesmo golpe?
+  - [x] Depois de levantar, **2 s sem receber dano** (proposta), para não cair de novo no mesmo golpe? Decidido em 2026-10-16: sim.
   - [x] Inimigos ignoram quem está caído (não atacam, não contam como alvo); o caído não ataca nem esquiva. **Decidido em 2026-10-11 (coordenador, autonomia dada pelo Gabriel)**
   - [x] Levantar: aliado do mesmo grupo a até 2 m segura a interação por 3 s e o caído volta com 20% da vida máxima; dano recebido pelo ajudante interrompe; dois ajudantes não duplicam (só um levanta por vez, o segundo é recusado); fim do tempo e levantar ao mesmo tempo resolvem uma única saída. **Decidido em 2026-10-11 (coordenador, autonomia dada pelo Gabriel)**
-  - [ ] Quem voltou à cidade pode **entrar de novo na mesma dungeon** enquanto o grupo ainda luta? (decisão da dungeon, #66)
+  - [x] Quem voltou à cidade pode **entrar de novo na mesma dungeon** enquanto o grupo ainda luta? (decisão da dungeon, #66) Decidido em 2026-10-16: pode ([instâncias](instancias.md#definido)).
   - [x] Cair tem algum custo depois da fatia (durabilidade, XP, tempo de espera)? Na fatia não tem perda nenhuma Decidido em 2026-10-16: não; a durabilidade cai só pelo uso.
   - [x] Qual funcionalidade é dona do estado caído no código: Personagem (como a issue #97) ou Combate (que já é dono da vida)? Decisão técnica, vira contrato. **Decidido pelo Gabriel em 2026-10-11: Combate** é o dono do estado caído; Personagem só mostra a tela (issue #125)
 
@@ -306,8 +312,8 @@ Quem decide: **servidor** (quando cai, a contagem, quem está levantando, a vida
 - Quem pode: um jogador **vivo do mesmo grupo** (validado por `IConsultaDeGrupo`), da mesma instância, a até **2 m** do caído, segurando **Interagir** (E, veja [teclas](interface.md#teclas-e-atalhos)) por 3 s. Jogador sem grupo ou de outro grupo recebe `NaoSaoDoMesmoGrupo` (#832). Fora da dungeon, desde 2026-10-16, qualquer jogador vivo pode levantar (veja [Retorno à cidade](#retorno-à-cidade)).
 - Interrompe e **zera o progresso**: soltar a tecla, afastar-se mais de 2 m, levar dano, cair, ou atacar e esquivar.
 - **Um ajudante por vez:** o primeiro que começou vale; o segundo recebe `JaEstaSendoLevantado` (é a regra da fatia: dois ajudantes não duplicam a cura).
-- A contagem de 45 s **para** enquanto alguém está levantando e volta a correr se a interação for interrompida (em aberto).
-- Ao levantar: **20% da vida máxima**, stamina e mana como estavam, no mesmo lugar, com **2 s sem receber dano** (em aberto).
+- A contagem de 45 s **para** enquanto alguém está levantando e volta a correr se a interação for interrompida (decidido em 2026-10-16; o servidor ainda deixa correr).
+- Ao levantar: **20% da vida máxima**, stamina e mana como estavam, no mesmo lugar, com **2 s sem receber dano** (decidido em 2026-10-16; ainda não implementado).
 - Não há limite de quantas vezes alguém pode cair e ser levantado na mesma dungeon (na fatia).
 
 #### Retorno à cidade
@@ -315,7 +321,7 @@ Quem decide: **servidor** (quando cai, a contagem, quem está levantando, a vida
 - A pessoa reaparece no **ponto de nascimento da cidade** ([mundo.md](mundo.md)), com vida, stamina e mana cheios.
 - **Fora da dungeon** (decidido por Gabriel em 2026-10-16): quem não é levantado volta ao **ponto de retorno descoberto** mais próximo, ou à cidade se não descobriu nenhum ([mundo](mundo.md#definido)). No mundo aberto **qualquer jogador vivo** pode levantar, não só o do grupo; na dungeon continua só o grupo.
 - Não perde item, XP, moeda nem nível. O loot que já era dela continua no chão da instância pelo tempo normal ([fatia-jogavel.md](fatia-jogavel.md), seção 5).
-- Continua **membro do grupo** ([social.md](social.md)); só sai da instância. Voltar a entrar na mesma dungeon é decisão de [instâncias](instancias.md) (#66).
+- Continua **membro do grupo** ([social.md](social.md)); só sai da instância. Pode voltar a entrar na mesma dungeon enquanto ela estiver aberta (decidido em 2026-10-16, [instâncias](instancias.md#definido)).
 - **Todos caídos ao mesmo tempo** (inclusive quem joga sozinho): é a derrota da fatia. Não espera os 45 s: a tela de derrota aparece por **5 s** e todos voltam à cidade; a instância fecha.
 
 #### Na tela

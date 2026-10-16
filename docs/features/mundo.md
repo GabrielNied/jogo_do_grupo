@@ -16,7 +16,12 @@
   - **Canais:** cada área tem canais de até 80 pessoas ([meta de capacidade](../arquitetura.md)); o servidor abre outro quando lota. Entrar num grupo leva ao canal do líder. Trocar à mão só fora de combate, com espera de 1 min.
   - **Sem viagem rápida:** o mundo se percorre a pé ou de [montaria](montarias.md). Em troca, **andar automático**: a pessoa marca um ponto no mapa e o personagem vai sozinho até lá. Pede caminho pelo terreno e um mapa bem melhor que o de hoje. Os **pontos de retorno** descobertos servem só para voltar da queda ([personagem](personagem.md#retorno-à-cidade)).
   - **Muro da cidade:** a cidade é área protegida; criatura nenhuma entra ([mobs](mobs.md#definido)).
-  - **Sair do jogo:** fora de combate sai na hora; em combate o personagem fica 10 s no mundo. Parado 30 min, desconecta. Ao entrar de novo volta onde saiu (se a dungeon encerrou, na cidade).
+  - **Sair do jogo:** fora de combate sai na hora; em combate o personagem fica 10 s no mundo. Parado 30 min, desconecta. Ao entrar de novo volta onde saiu (se a dungeon encerrou, na cidade). Exceção: quem está com a barraca montada não é desconectado por inatividade ([economia](economia.md#definido)).
+- **Decisões do Gabriel em 2026-10-16** (quiz de definições; números em constante nomeada):
+  - **Biomas com efeito:** a **lava causa dano** por segundo a quem pisa, e a **água do pântano deixa mais lento**. Frio e calor não têm efeito.
+  - **Clima muda o jogo:** chuva, neblina e nevasca alteram a visão ou o movimento, conforme o bioma. O clima é do servidor, e todos na área veem o mesmo.
+  - **Dia e noite:** ciclo de **40 min de dia e 20 min de noite** (proposta do livro). A noite continua sendo só cenário.
+  - **Mapa:** inimigos aparecem **sempre** no minimapa, e o mapa-múndi mostra os **aliados que estão em outra área** (o servidor envia em qual área ou instância cada um está). O mapa da dungeon mostra todos os salões desde a entrada.
 - **Farm de mapa em grupo**: o grupo limpa áreas cheias de inimigos para ganhar experiência e loot (decidido em 2026-10-10)
 - ~~Mundo aberto~~ substituído em 2026-10-10 por sessões de grupo pequeno. ~~Sessões de grupo pequeno~~ substituídas em 2026-10-11: o mundo aberto volta (D1 opção A).
 
@@ -26,13 +31,13 @@
 - [x] ~~Existe um hub social compartilhado entre grupos ou cada grupo tem o seu?~~ Decidido em 2026-10-11: a cidade faz parte do mundo único. Quem está na área se vê.
 - [ ] As regiões são mapas fixos, gerados ou uma mistura? Em 2026-10-11 o terreno aberto passou a ser **gerado por semente fixa** (sempre o mesmo mundo; [ADR 0020](../decisoes/0020-mapa-do-mundo-no-shared.md), proposta). Lugares feitos à mão por cima dele continuam em aberto.
 - [x] ~~Tamanho do mapa e quantidade de regiões. A primeira área (cidade e arredores) ficou em cerca de 1 km com três áreas (campo, mata e colinas); o resto do mundo continua em aberto.~~ Decidido em 2026-10-11 (Gabriel, issue #135): **3 km de lado e sete biomas**. Veja "Biomas e relevo".
-- [ ] A lava causa dano? O pântano deixa o jogador mais lento? Frio e calor têm efeito? Hoje os biomas são só cenário.
+- [x] A lava causa dano? O pântano deixa o jogador mais lento? Frio e calor têm efeito? Hoje os biomas são só cenário. Decidido em 2026-10-16: lava causa dano e o pântano deixa mais lento; frio e calor não têm efeito.
 - [ ] Quais inimigos vivem em cada bioma?
 - [x] Como funciona a viagem rápida? Decidido em 2026-10-16: não existe; há o andar automático (veja Definido).
-- [ ] Clima dinâmico afeta gameplay?
+- [x] Clima dinâmico afeta gameplay? Decidido em 2026-10-16: sim, visão ou movimento.
 - [ ] Luz e som como mecânica (noite escura, skills que iluminam)? Veja S8 na validação.
 - [x] **Livro de Asterra, decidido em 2026-10-11 (/decida, #326):** os nomes entram como **rótulos** sobre os biomas atuais, sem criar bioma: Vale das Fogueiras = campo e arredores, Mata do Eco = mata, Serra do Vidro Frio = montanhas de neve, Caldeira Rubra = montanhas de lava. Deserto e pântano ficam sem nome do livro por ora; Planalto Astral é FUTURO, sem bioma. Estruturas nomeadas entram em tarefas próprias. Pergunta original: o grupo adota os nomes de região e de lugar (Vale das Fogueiras, Mata do Eco, Serra do Vidro Frio, Caldeira Rubra, Planalto Astral, Brasa Mansa...)? Como encaixam nos sete biomas de 3 km já decididos (o livro não tem deserto nem pântano e tem o Planalto Astral)? Veja "Livro de Asterra: regiões e cidade".
-- [ ] Ciclo de 40 min de dia e 20 min de noite (proposta do livro): vale? Liga com a #163.
+- [x] Ciclo de 40 min de dia e 20 min de noite (proposta do livro): vale? Liga com a #163. Decidido em 2026-10-16: vale.
 - [ ] Bases e construção em pontos marcados: FUTURO, fora do MVP.
 
 ## Regras
@@ -255,7 +260,7 @@ Valores em `RegrasDiaENoite`, **a calibrar**:
 
 Valores em `ConfigDiaENoite` (client), **a calibrar** no editor.
 
-A hora anda no mesmo ritmo o dia todo, então a noite dura 7,5 min de cada 20. A proposta do livro (40 min de dia e 20 de noite) continua em [Em aberto](#em-aberto); adotá-la é mudar constante e, se o ritmo da noite for diferente do dia, a função `HoraApos`.
+A hora anda no mesmo ritmo o dia todo, então a noite dura 7,5 min de cada 20. A proposta do livro (40 min de dia e 20 de noite) foi adotada em 2026-10-16 ([Definido](#definido)) e falta implementar; adotá-la é mudar constante e, se o ritmo da noite for diferente do dia, a função `HoraApos`.
 
 ### Eventos e consulta para outras funcionalidades do servidor (#119)
 
@@ -296,7 +301,7 @@ Os eventos saem depois das mensagens de rede da mesma mudança (`EstadoDaCidade`
 - ~~Na fatia mostra **duas áreas**: a **cidade** (com desenho do hub e o portão norte) e a **dungeon** (esquema: entrada, três salões e salão do boss). Cada área com o **nome** escrito. A área onde o jogador está aparece destacada; as outras ficam como ícone.~~ Substituído em 2026-10-11: o mapa pinta os biomas do mundo de 3 km. A cidade murada ganha contorno quando o jogador está dentro dela. O esquema da dungeon continua para a issue #66.
 - Marcadores: o próprio jogador (seta) e os aliados da mesma área (mesma fonte do minimapa: presença); **marcadores de missão** só quando [missões](missoes.md) definir posições (fora da fatia por enquanto).
 - **Visibilidade:** o mapa só mostra posições que o client já tem; aliados do grupo longe da cidade entram por `PosicoesDosAliados` (#789). Aliados em **outra** área não entram no mesmo mapa. ~~O ícone da área com a contagem de aliados, se o servidor já informar a instância do grupo,~~ continua em aberto.
-- O mapa da dungeon mostra os salões já visitados pelo grupo? **Em aberto** (depende da #66).
+- O mapa da dungeon mostra todos os salões desde a entrada (decidido em 2026-10-16).
 - **Sem viagem rápida na fatia**: a cidade e a dungeon se ligam pelo portão. Desde 2026-10-16 não há viagem rápida ([Definido](#definido)); o mapa ganha o andar automático.
 - **Fora da fatia:** várias regiões, névoa de exploração, zoom e arrasto, anotações, viagem rápida.
 - **Quem decide:** nada do mapa é regra de jogo; o servidor só envia as posições da presença, o client desenha. Se algum dia houver viagem rápida, ela será validada pelo servidor.
@@ -305,9 +310,9 @@ Os eventos saem depois das mensagens de rede da mesma mudança (`EstadoDaCidade`
 ### Em aberto (dúvidas ao grupo)
 
 - [x] ~~Raio do minimapa (40 m) e se ele gira com a câmera ou fica fixo ao norte.~~ Decidido em 2026-10-11: 40 m, norte fixo.
-- [ ] Mostrar inimigos no minimapa sempre ou só em combate? Pode tirar o susto do telegrafado. Enquanto isso, o ícone não existe; o modelo só aparece se a câmera de cima já o vê.
-- [ ] Aliados em outra área aparecem no mapa-múndi (e o servidor envia a instância do grupo)?
-- [ ] O mapa da dungeon revela salões só depois de visitados?
+- [x] Mostrar inimigos no minimapa sempre ou só em combate? Decidido em 2026-10-16: sempre.
+- [x] Aliados em outra área aparecem no mapa-múndi (e o servidor envia a instância do grupo)? Decidido em 2026-10-16: sim.
+- [x] O mapa da dungeon revela salões só depois de visitados? Decidido em 2026-10-16: não; mostra todos.
 - [x] Viagem rápida existe depois da fatia? Com custo, só a pontos descobertos? Decidido em 2026-10-16: não (veja [Definido](#definido)).
 
 - **Ajuste da luz para os modelos (2026-10-11, issue #311):** o ambiente padrão (campo, mata e colinas) ficou mais claro (céu, horizonte e solo) e o sol um pouco mais forte, o preenchimento subiu para 40% do sol e a sombra do sol ficou mais leve (0,55), para o lado do personagem e das criaturas fora do sol, de textura escura, continuar legível sem perder o volume. Horizonte e solo da lava e do pântano subiram um pouco. A névoa, o céu e o ângulo do sol não mudaram, e não há Volume no mundo (o URP não liga pós-processamento na câmera do Core), então não há tonemapping. Para conferir: `npm run unity:executar -- JogoDoGrupo.Client.Features.Mundo.Editor.CapturaDaIluminacao.Capturar` (editor fechado) salva em `%TEMP%` uma folha com o personagem e as criaturas vistos de quatro lados; exemplos em `docs/arte/renders/`.
