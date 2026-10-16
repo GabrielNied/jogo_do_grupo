@@ -6,129 +6,207 @@ using UnityEngine.Rendering;
 namespace JogoDoGrupo.Client.Features.Mundo.Hub
 {
     /// <summary>
-    /// Malha do túnel da primeira caverna (piso, paredes e teto de rocha), montada a partir do
-    /// contorno, do piso e do teto de <see cref="PrimeiraCaverna"/>: o mesmo que o servidor usa
-    /// para julgar o movimento. O contorno é varrido numa grade de <see cref="Celula"/> metros;
-    /// as paredes seguem as bordas da grade (rocha em blocos, de estilo simples).
+    /// Malha contínua da primeira caverna. Em vez de preencher a passagem com cubos de uma
+    /// grade, varre seções em arco pela curva que o shared já usa para o movimento. Assim a boca
+    /// fica aberta, a parede é vista pelo lado de dentro e o colisor é a própria superfície.
     /// </summary>
     public static class GeometriaDaCaverna
     {
-        /// <summary>Lado de cada célula da grade que varre o contorno do túnel (m).</summary>
-        public const float Celula = 0.5f;
+        /// <summary>Distância entre seções do túnel (m): suave sem criar geometria excessiva.</summary>
+        public const float PassoDasSecoes = 1.25f;
 
-        /// <summary>Quanto as paredes descem abaixo do piso, para não deixar fresta (m).</summary>
-        public const float AfundamentoDaParede = 0.6f;
+        private const int LadosDoArco = 10;
 
-        /// <summary>Cria a malha do túnel, nas coordenadas do mundo.</summary>
+        /// <summary>Cria a malha da galeria, câmara final e beco lateral nas coordenadas do mundo.</summary>
         public static Mesh CriarMalha()
         {
-            PrimeiraCaverna.Limites(out var minX, out var minZ, out var maxX, out var maxZ);
-            var colunas = Mathf.CeilToInt((maxX - minX) / Celula);
-            var linhas = Mathf.CeilToInt((maxZ - minZ) / Celula);
-            var tetos = new float[colunas * linhas];
-            var dentro = new bool[colunas * linhas];
-            for (var j = 0; j < linhas; j++)
-            {
-                for (var i = 0; i < colunas; i++)
-                {
-                    var teto = PrimeiraCaverna.TetoEm(
-                        minX + ((i + 0.5f) * Celula),
-                        minZ + ((j + 0.5f) * Celula)
-                    );
-                    dentro[(j * colunas) + i] = teto.HasValue;
-                    tetos[(j * colunas) + i] = teto ?? 0f;
-                }
-            }
-
             var construtor = new ConstrutorDeFaces();
-            for (var j = 0; j < linhas; j++)
-            {
-                for (var i = 0; i < colunas; i++)
-                {
-                    if (!dentro[(j * colunas) + i])
-                    {
-                        continue;
-                    }
-
-                    var x0 = minX + (i * Celula);
-                    var x1 = x0 + Celula;
-                    var z0 = minZ + (j * Celula);
-                    var z1 = z0 + Celula;
-                    var teto = tetos[(j * colunas) + i];
-                    var y00 = PrimeiraCaverna.PisoProximo(x0, z0);
-                    var y01 = PrimeiraCaverna.PisoProximo(x0, z1);
-                    var y10 = PrimeiraCaverna.PisoProximo(x1, z0);
-                    var y11 = PrimeiraCaverna.PisoProximo(x1, z1);
-
-                    // Piso (visto de cima) e teto (visto de baixo).
-                    construtor.Face(
-                        new Vector3(x0, y00, z0),
-                        new Vector3(x0, y01, z1),
-                        new Vector3(x1, y11, z1),
-                        new Vector3(x1, y10, z0),
-                        Vector3.up
-                    );
-                    construtor.Face(
-                        new Vector3(x0, teto, z0),
-                        new Vector3(x0, teto, z1),
-                        new Vector3(x1, teto, z1),
-                        new Vector3(x1, teto, z0),
-                        Vector3.down
-                    );
-
-                    // Paredes onde a vizinha é rocha.
-                    if (!Dentro(dentro, colunas, linhas, i - 1, j))
-                    {
-                        Parede(construtor, x0, y00, z0, x0, y01, z1, teto, Vector3.right);
-                    }
-
-                    if (!Dentro(dentro, colunas, linhas, i + 1, j))
-                    {
-                        Parede(construtor, x1, y10, z0, x1, y11, z1, teto, Vector3.left);
-                    }
-
-                    if (!Dentro(dentro, colunas, linhas, i, j - 1))
-                    {
-                        Parede(construtor, x0, y00, z0, x1, y10, z0, teto, Vector3.forward);
-                    }
-
-                    if (!Dentro(dentro, colunas, linhas, i, j + 1))
-                    {
-                        Parede(construtor, x0, y01, z1, x1, y11, z1, teto, Vector3.back);
-                    }
-                }
-            }
-
+            AdicionarPercursoPrincipal(construtor);
+            AdicionarBeco(construtor);
             return construtor.CriarMalha("TunelDaCaverna");
         }
 
-        private static bool Dentro(bool[] dentro, int colunas, int linhas, int i, int j) =>
-            i >= 0 && j >= 0 && i < colunas && j < linhas && dentro[(j * colunas) + i];
-
-        // Parede vertical sobre a aresta (ax, az)-(bx, bz), do piso (afundado) até o teto,
-        // virada para <paramref name="paraDentro"/>.
-        private static void Parede(
-            ConstrutorDeFaces construtor,
-            float ax,
-            float yA,
-            float az,
-            float bx,
-            float yB,
-            float bz,
-            float teto,
-            Vector3 paraDentro
-        )
+        private static void AdicionarPercursoPrincipal(ConstrutorDeFaces construtor)
         {
-            construtor.Face(
-                new Vector3(ax, yA - AfundamentoDaParede, az),
-                new Vector3(ax, teto, az),
-                new Vector3(bx, teto, bz),
-                new Vector3(bx, yB - AfundamentoDaParede, bz),
-                paraDentro
-            );
+            var secoes = new List<Secao>();
+            var comprimento = PrimeiraCaverna.ComprimentoDoPercurso;
+            for (var d = 0f; d < comprimento; d += PassoDasSecoes)
+            {
+                secoes.Add(SecaoPrincipal(d));
+            }
+
+            secoes.Add(SecaoPrincipal(comprimento));
+            AdicionarGaleria(construtor, secoes, false, true);
         }
 
-        // Junta faces planas (quatro vértices cada, com normal própria) numa malha só.
+        private static void AdicionarBeco(ConstrutorDeFaces construtor)
+        {
+            var secoes = new List<Secao>();
+            var quantidade = Mathf.CeilToInt(24f / PassoDasSecoes);
+            for (var i = 0; i <= quantidade; i++)
+            {
+                secoes.Add(SecaoDoBeco(i / (float)quantidade));
+            }
+
+            // A raiz do beco se mistura com o corredor; só sua ponta é fechada.
+            AdicionarGaleria(construtor, secoes, false, true);
+        }
+
+        private static Secao SecaoPrincipal(float distancia)
+        {
+            PrimeiraCaverna.SecaoDoPercurso(
+                distancia,
+                out var x,
+                out var z,
+                out var meiaLargura,
+                out var piso,
+                out var altura,
+                out var direcaoX,
+                out var direcaoZ
+            );
+            return new Secao(x, piso, z, meiaLargura, altura, direcaoX, direcaoZ);
+        }
+
+        private static Secao SecaoDoBeco(float fracao)
+        {
+            PrimeiraCaverna.SecaoDoBeco(
+                fracao,
+                out var x,
+                out var z,
+                out var meiaLargura,
+                out var piso,
+                out var altura,
+                out var direcaoX,
+                out var direcaoZ
+            );
+            return new Secao(x, piso, z, meiaLargura, altura, direcaoX, direcaoZ);
+        }
+
+        private static void AdicionarGaleria(
+            ConstrutorDeFaces construtor,
+            List<Secao> secoes,
+            bool tamparInicio,
+            bool tamparFim
+        )
+        {
+            for (var i = 0; i < secoes.Count - 1; i++)
+            {
+                AdicionarTrecho(construtor, secoes[i], secoes[i + 1]);
+            }
+
+            if (tamparInicio)
+            {
+                Tampar(construtor, secoes[0], -1f);
+            }
+
+            if (tamparFim)
+            {
+                Tampar(construtor, secoes[secoes.Count - 1], 1f);
+            }
+        }
+
+        private static void AdicionarTrecho(
+            ConstrutorDeFaces construtor,
+            Secao anterior,
+            Secao atual
+        )
+        {
+            // Piso em duas metades: além de manter uma rampa plana no eixo, o vértice central é
+            // útil para aferir que o piso renderizado coincide com o contrato do shared.
+            construtor.Face(
+                anterior.PontoDoChao(0f),
+                atual.PontoDoChao(0f),
+                atual.PontoDoChao(0.5f),
+                anterior.PontoDoChao(0.5f),
+                Vector3.up
+            );
+            construtor.Face(
+                anterior.PontoDoChao(0.5f),
+                atual.PontoDoChao(0.5f),
+                atual.PontoDoChao(1f),
+                anterior.PontoDoChao(1f),
+                Vector3.up
+            );
+
+            for (var lado = 0; lado < LadosDoArco; lado++)
+            {
+                var t0 = lado / (float)LadosDoArco;
+                var t1 = (lado + 1) / (float)LadosDoArco;
+                var a = anterior.PontoDoArco(t0);
+                var b = atual.PontoDoArco(t0);
+                var c = atual.PontoDoArco(t1);
+                var d = anterior.PontoDoArco(t1);
+                var dentro = (
+                    (anterior.Centro + atual.Centro) * 0.5f - ((a + b + c + d) * 0.25f)
+                ).normalized;
+                construtor.Face(a, b, c, d, dentro);
+            }
+        }
+
+        private static void Tampar(ConstrutorDeFaces construtor, Secao secao, float sentido)
+        {
+            var centro = secao.Centro + (Vector3.up * (secao.Altura * 0.42f));
+            var normalParaDentro = new Vector3(
+                -secao.DirecaoX * sentido,
+                0f,
+                -secao.DirecaoZ * sentido
+            );
+            var anterior = secao.PontoDoChao(0f);
+            for (var lado = 0; lado <= LadosDoArco; lado++)
+            {
+                var proximo =
+                    lado == LadosDoArco
+                        ? secao.PontoDoChao(1f)
+                        : secao.PontoDoArco((lado + 1) / (float)LadosDoArco);
+                construtor.Triangulo(centro, anterior, proximo, normalParaDentro);
+                anterior = proximo;
+            }
+        }
+
+        private readonly struct Secao
+        {
+            public Secao(
+                float x,
+                float piso,
+                float z,
+                float meiaLargura,
+                float altura,
+                float direcaoX,
+                float direcaoZ
+            )
+            {
+                Centro = new Vector3(x, piso, z);
+                MeiaLargura = meiaLargura;
+                Altura = altura;
+                DirecaoX = direcaoX;
+                DirecaoZ = direcaoZ;
+            }
+
+            public Vector3 Centro { get; }
+            public float MeiaLargura { get; }
+            public float Altura { get; }
+            public float DirecaoX { get; }
+            public float DirecaoZ { get; }
+
+            public Vector3 PontoDoChao(float t)
+            {
+                var lateral = (t - 0.5f) * 2f * MeiaLargura;
+                return Centro + new Vector3(-DirecaoZ * lateral, 0f, DirecaoX * lateral);
+            }
+
+            public Vector3 PontoDoArco(float t)
+            {
+                var angulo = Mathf.PI * t;
+                var lateral = Mathf.Cos(angulo) * MeiaLargura;
+                return Centro
+                    + new Vector3(
+                        -DirecaoZ * lateral,
+                        Mathf.Sin(angulo) * Altura,
+                        DirecaoX * lateral
+                    );
+            }
+        }
+
         private sealed class ConstrutorDeFaces
         {
             private readonly List<Vector3> _vertices = new List<Vector3>();
@@ -136,31 +214,48 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
             private readonly List<Vector2> _uvs = new List<Vector2>();
             private readonly List<int> _triangulos = new List<int>();
 
-            // Quatro cantos em volta da face; a ordem dos triângulos é a que olha para
-            // <paramref name="paraOnde"/> (o lado da frente, que o Unity desenha).
-            public void Face(Vector3 a, Vector3 b, Vector3 c, Vector3 d, Vector3 paraOnde)
+            public void Face(Vector3 a, Vector3 b, Vector3 c, Vector3 d, Vector3 paraDentro)
             {
-                var normal = Vector3.Cross(b - a, c - a);
-                var inverter = Vector3.Dot(normal, paraOnde) < 0f;
-                var primeiro = _vertices.Count;
-                var cantos = new[] { a, b, c, d };
-                for (var k = 0; k < 4; k++)
+                var normal = Vector3.Cross(b - a, c - a).normalized;
+                if (Vector3.Dot(normal, paraDentro) < 0f)
                 {
-                    _vertices.Add(cantos[k]);
-                    _normais.Add(paraOnde);
-                    _uvs.Add(new Vector2(cantos[k].x + cantos[k].z, cantos[k].y));
+                    var troca = b;
+                    b = d;
+                    d = troca;
+                    normal = -normal;
                 }
 
-                if (inverter)
+                var primeiro = _vertices.Count;
+                AdicionarVertice(a, normal);
+                AdicionarVertice(b, normal);
+                AdicionarVertice(c, normal);
+                AdicionarVertice(d, normal);
+                _triangulos.Add(primeiro);
+                _triangulos.Add(primeiro + 1);
+                _triangulos.Add(primeiro + 2);
+                _triangulos.Add(primeiro);
+                _triangulos.Add(primeiro + 2);
+                _triangulos.Add(primeiro + 3);
+            }
+
+            public void Triangulo(Vector3 a, Vector3 b, Vector3 c, Vector3 paraDentro)
+            {
+                var normal = Vector3.Cross(b - a, c - a).normalized;
+                if (Vector3.Dot(normal, paraDentro) < 0f)
                 {
-                    Triangulo(primeiro, 2, 1, 0);
-                    Triangulo(primeiro, 3, 2, 0);
+                    var troca = b;
+                    b = c;
+                    c = troca;
+                    normal = -normal;
                 }
-                else
-                {
-                    Triangulo(primeiro, 0, 1, 2);
-                    Triangulo(primeiro, 0, 2, 3);
-                }
+
+                var primeiro = _vertices.Count;
+                AdicionarVertice(a, normal);
+                AdicionarVertice(b, normal);
+                AdicionarVertice(c, normal);
+                _triangulos.Add(primeiro);
+                _triangulos.Add(primeiro + 1);
+                _triangulos.Add(primeiro + 2);
             }
 
             public Mesh CriarMalha(string nome)
@@ -174,11 +269,11 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
                 return malha;
             }
 
-            private void Triangulo(int primeiro, int a, int b, int c)
+            private void AdicionarVertice(Vector3 vertice, Vector3 normal)
             {
-                _triangulos.Add(primeiro + a);
-                _triangulos.Add(primeiro + b);
-                _triangulos.Add(primeiro + c);
+                _vertices.Add(vertice);
+                _normais.Add(normal);
+                _uvs.Add(new Vector2(vertice.x * 0.25f, (vertice.y + vertice.z) * 0.25f));
             }
         }
     }
