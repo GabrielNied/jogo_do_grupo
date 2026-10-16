@@ -1,7 +1,7 @@
 # Árvore de atributos (talentos)
 
 **Responsável:**
-**Status:** estrutura decidida por Gabriel em 2026-10-12; árvore, compra e tela implementadas (#625); redistribuição paga e perfis de build implementados (#626); números propostos pela simulação e custo de redistribuição por nível implementados (#627, #910), aguardando a aprovação de Gabriel no review; falta só o bônus por categoria de skill. **Prioridade alta**, épico [#621](https://github.com/GabrielNied/jogo_do_grupo/issues/621)
+**Status:** estrutura decidida por Gabriel em 2026-10-12; árvore, compra e tela implementadas (#625); redistribuição paga e perfis de build implementados (#626); números da simulação e custo de redistribuição por nível implementados (#627, #910). **Gabriel aprovou os números como base de jogo** em 2026-10-16 (quiz 5); calibrar depois na Sintonia (F10) sem reabrir design. Falta só o bônus por categoria de skill. **Prioridade alta**, épico [#621](https://github.com/GabrielNied/jogo_do_grupo/issues/621)
 **Faixa de IDs de mensagem:** 5000–5999
 
 ## Resumo
@@ -37,7 +37,7 @@ Decidido por Gabriel em 2026-10-12:
 
 ### Números propostos ([#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627))
 
-**Decidido por Gabriel em 2026-10-16:** **1 ponto por nível** (99 no nível 100); redistribuir custa **coroas, escalando com o nível** ([economia](economia.md#definido)); o resto foi **proposto pela IA** a partir de uma simulação em C# com o `shared` ([ADR 0043](../decisoes/0043-simulacoes-em-csharp-e-scripts-em-node.md), `tools/JogoDoGrupo.Simulacoes`) e vira definitivo com a **aprovação de Gabriel no review do PR** da [#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627) (quiz 4). Tudo está em constantes nomeadas (regra 17): trocar um número é mexer em `ArvoreDoJogo`, `ConfigRedistribuicao`, `RegrasRecursos`, `RegrasAtaque`, `ConfigAtributosSecundarios` ou `ConfigAtributosItem`. A tabela completa está em [Implementação da #627](#implementação-da-627-números-da-árvore-e-dos-atributos).
+**Decidido por Gabriel em 2026-10-16:** **1 ponto por nível** (99 no nível 100); redistribuir custa **coroas, escalando com o nível** ([economia](economia.md#definido)). **Quiz 4:** o resto veio da simulação em C# ([ADR 0043](../decisoes/0043-simulacoes-em-csharp-e-scripts-em-node.md), `tools/JogoDoGrupo.Simulacoes`). **Quiz 5:** Gabriel **aprova as constantes atuais como base**; ajuste fino na Sintonia (F10), não bloqueia fechar [#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627). Tudo está em constantes nomeadas (regra 17): trocar um número é mexer em `ArvoreDoJogo`, `ConfigRedistribuicao`, `RegrasRecursos`, `RegrasAtaque`, `ConfigAtributosSecundarios` ou `ConfigAtributosItem`. A tabela completa está em [Implementação da #627](#implementação-da-627-números-da-árvore-e-dos-atributos).
 
 Continua em aberto (não trava o jogo, nenhum nó depende disso):
 
@@ -177,7 +177,7 @@ Decisões de design tomadas pela IA ao implementar, sem esperar resposta (mudam 
 
 ## Implementação da #627 (números da árvore e dos atributos)
 
-Propostos pela simulação `tools/JogoDoGrupo.Simulacoes` ([ADR 0043](../decisoes/0043-simulacoes-em-csharp-e-scripts-em-node.md); `dotnet run --project tools/JogoDoGrupo.Simulacoes` refaz todas as tabelas) e regredidos por `NumerosDaArvoreTestes`. **Para a aprovação de Gabriel no review do PR.**
+Propostos pela simulação `tools/JogoDoGrupo.Simulacoes` ([ADR 0043](../decisoes/0043-simulacoes-em-csharp-e-scripts-em-node.md); `dotnet run --project tools/JogoDoGrupo.Simulacoes` refaz todas as tabelas) e regredidos por `NumerosDaArvoreTestes`. **Aprovados como base em 2026-10-16 (quiz 5).**
 
 ### Fórmulas dos cinco atributos (`RegrasRecursos`, `RegrasAtaque`)
 
