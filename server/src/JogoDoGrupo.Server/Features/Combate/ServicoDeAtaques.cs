@@ -10,7 +10,7 @@ namespace JogoDoGrupo.Server.Features.Combate;
 /// O ataque da primeira arma, do pedido ao acerto (docs/features/fatia-jogavel.md, seção 2).
 /// O client só envia a intenção: o servidor confere ação em andamento (fila de 1 pedido),
 /// queda e stamina, avisa o preparo a quem está na área, e no momento do acerto decide quem está
-/// no cone (posição histórica dentro de <see cref="RegrasCompensacaoDeLag.JanelaMs"/>, ver ADR
+/// no arco da lâmina (posição histórica dentro de <see cref="RegrasCompensacaoDeLag.JanelaMs"/>, ver ADR
 /// 0039) e quanto cada um leva. O mesmo golpe acerta cada alvo uma vez só.
 /// <para>
 /// O manipulador roda no laço de rede e não bloqueia: a conferência de recursos (banco) e a
@@ -271,20 +271,37 @@ public sealed class ServicoDeAtaques : IHostedService, IDisposable
                 posicao.RotacaoY,
                 acao.PreparoMs / 1000.0
             );
+        var arco = ArcosDosGolpes.Obter(acao.Pedido.Tipo, acao.Passo);
         var vistos = new HashSet<long>();
         var acertos = new List<AcertoDeAtaque>();
         var interrompidos = new List<long>();
         foreach (var fonte in _fontes)
         {
-            var alvos = fonte.AlvosNoVolume(
+            var candidatos = fonte.AlvosProximos(
                 posicao.Area,
                 posicao.X,
                 posicao.Z,
-                direcao,
+                arco.AlcanceMetros,
                 instanteTeste
             );
-            foreach (var alvo in alvos)
+            foreach (var alvo in candidatos)
             {
+                // O golpe só acerta se a lâmina passa pela cápsula do corpo (arco do golpe).
+                if (
+                    !arco.Alcanca(
+                        posicao.X,
+                        posicao.Z,
+                        direcao,
+                        alvo.X,
+                        alvo.Z,
+                        alvo.Raio,
+                        alvo.Altura
+                    )
+                )
+                {
+                    continue;
+                }
+
                 var danoNoAlvo = dano;
                 if (_efeitos != null)
                 {

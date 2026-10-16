@@ -482,6 +482,64 @@ public sealed partial class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulado
         }
     }
 
+    public IReadOnlyList<AlvoDeCombate> AlvosProximos(
+        string area,
+        double origemX,
+        double origemZ,
+        double alcanceMetros,
+        long instanteReferenciaMs = 0
+    )
+    {
+        if (area != Area)
+        {
+            return [];
+        }
+
+        lock (_trava)
+        {
+            var alvos = new List<AlvoDeCombate>();
+            foreach (var inimigo in _inimigos)
+            {
+                var alvoX = inimigo.X;
+                var alvoZ = inimigo.Z;
+                if (
+                    instanteReferenciaMs > 0
+                    && _historico?.TentarObterEm(
+                        inimigo.Id,
+                        instanteReferenciaMs,
+                        out var posicaoHistorica
+                    ) == true
+                )
+                {
+                    alvoX = posicaoHistorica.X;
+                    alvoZ = posicaoHistorica.Z;
+                }
+
+                var dx = alvoX - origemX;
+                var dz = alvoZ - origemZ;
+                if (
+                    RegrasInimigo.EstaVivo(inimigo.Estado)
+                    && Math.Sqrt(dx * dx + dz * dz) - RegrasInimigo.RaioDoCorpoMetros
+                        <= alcanceMetros
+                )
+                {
+                    alvos.Add(
+                        new AlvoDeCombate(
+                            inimigo.Id,
+                            alvoX,
+                            alvoZ,
+                            RegrasInimigo.RaioDoCorpoMetros,
+                            inimigo.Vida,
+                            inimigo.Criatura.VidaMaxima
+                        )
+                    );
+                }
+            }
+
+            return alvos;
+        }
+    }
+
     public bool TentarAplicarDano(
         long alvoId,
         int dano,
@@ -511,7 +569,7 @@ public sealed partial class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulado
 
             var aplicado = Math.Min(dano, inimigo.Vida);
             inimigo.Vida -= aplicado;
-            inimigo.Atacantes.Add(atacanteId);
+            inimigo.Participantes.Add(atacanteId);
             inimigo.Ameacas.AdicionarDano(atacanteId, aplicado);
             inimigo.VidaMudou = true;
             resultado = new ResultadoDeDano(
@@ -874,13 +932,20 @@ public sealed partial class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulado
             distancias[i] = RegrasInimigo.Distancia(inimigo.X, inimigo.Z, jogador.X, jogador.Z);
         }
 
-        return inimigo.Ameacas.EscolherAlvo(
+        var escolhido = inimigo.Ameacas.EscolherAlvo(
             inimigo.Alvo,
             candidatos,
             distancias,
             RegrasInimigo.AlcanceDeAtaqueMetros,
             agora
         );
+        // Ser o alvo do inimigo conta como participar da luta (#909).
+        if (escolhido != RegrasInimigo.SemAlvo)
+        {
+            inimigo.Participantes.Add(escolhido);
+        }
+
+        return escolhido;
     }
 
     /// <summary>
@@ -902,7 +967,35 @@ public sealed partial class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulado
 
             inimigo.Ameacas.Provocar(provocadorId, _relogioMs());
             inimigo.Alvo = provocadorId;
+            inimigo.Participantes.Add(provocadorId);
             return true;
+        }
+    }
+
+    /// <summary>
+    /// Quem curou um aliado que já está na luta com o inimigo passa a participar dela (#909): loot
+    /// e experiência também são dele. Inimigo que voltou para casa (imune) ou morto não conta.
+    /// </summary>
+    public void RegistrarCura(long curadorId, long curadoId)
+    {
+        if (curadorId == curadoId || curadorId == RegrasInimigo.SemAlvo)
+        {
+            return;
+        }
+
+        lock (_trava)
+        {
+            foreach (var inimigo in _inimigos)
+            {
+                if (
+                    RegrasInimigo.EstaVivo(inimigo.Estado)
+                    && inimigo.Estado != EstadoDeInimigo.Retorno
+                    && inimigo.Participantes.Contains(curadoId)
+                )
+                {
+                    inimigo.Participantes.Add(curadorId);
+                }
+            }
         }
     }
 

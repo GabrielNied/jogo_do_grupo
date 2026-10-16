@@ -616,7 +616,7 @@ Valores em `RegrasLoot`, todos **proposta a calibrar**:
 
 **No servidor (#368):**
 
-- Quem **participou** é quem o evento de morte de Mobs lista (`InimigoDerrotado.Participantes`: dano, cura em combate ou ter sido alvo; [fatia, seção 5](fatia-jogavel.md#5-loot-no-chão), [mobs](mobs.md#inimigo-comum-da-fatia-issue-63)). Cada um tem um sorteio próprio; a variante e o nível do inimigo mudam as rolagens dos valores e o grau (veja [Loot dos inimigos](#loot-dos-inimigos-493)). Até a [#909](https://github.com/GabrielNied/jogo_do_grupo/issues/909), o servidor ainda só inclui quem causou dano.
+- Quem **participou** é quem o evento de morte de Mobs lista (`InimigoDerrotado.Participantes`: dano, cura em combate ou ter sido alvo; [fatia, seção 5](fatia-jogavel.md#5-loot-no-chão), [mobs](mobs.md#inimigo-comum-da-fatia-issue-63)). Cada um tem um sorteio próprio; a variante e o nível do inimigo mudam as rolagens dos valores e o grau (veja [Loot dos inimigos](#loot-dos-inimigos-493)). Dano e ser alvo já entram (#909); a cura entra assim que existir quem a publique.
 - O chão fica **em memória**: se o servidor reinicia, o que estava no chão some (o inventário não, ele é do banco).
 - A coleta confere, nesta ordem: o item existe e é do jogador (senão `LootNaoEncontrado`), está ao alcance com a posição que o Mundo aceitou (senão `LongeDemais`) e cabe no inventário (senão `InventarioCheio`). O item só sai do chão depois de gravado.
 - Dois pedidos do mesmo item ao mesmo tempo: um coleta, o outro recebe `LootNaoEncontrado`.

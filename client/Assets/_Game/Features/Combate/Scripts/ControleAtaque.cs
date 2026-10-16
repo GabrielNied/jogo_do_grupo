@@ -317,7 +317,7 @@ namespace JogoDoGrupo.Client.Features.Combate
             _tipoEmCurso = tipo;
             _giroDoCorpo = direcao;
             _sequenciaEmCurso = sequencia;
-            _golpes.Registrar(sequencia, tipo, direcao, agora);
+            _golpes.Registrar(sequencia, tipo, direcao, agora, passo);
 
             var jogador = EntradaNoJogo.Jogador;
             if (jogador != null)
@@ -325,6 +325,12 @@ namespace JogoDoGrupo.Client.Features.Combate
                 // O corpo começa virado para a mira; dali só gira até o teto do ataque.
                 jogador.transform.rotation = Quaternion.Euler(0f, _giroDoCorpo, 0f);
                 AnimadorDeAtaque.Tocar(jogador.GetComponentInChildren<Animator>(), tipo, passo);
+                // Depuração do arco (F10): mostra o arco da lâmina que o servidor vai testar.
+                RastroDoGolpe.DesenharGizmo(
+                    jogador.transform.position,
+                    _giroDoCorpo,
+                    ArcosDosGolpes.Obter(tipo, passo)
+                );
             }
         }
 
@@ -343,7 +349,11 @@ namespace JogoDoGrupo.Client.Features.Combate
                 var jogador = EntradaNoJogo.Jogador;
                 if (jogador != null)
                 {
-                    _impacto?.GolpeNoVazio(jogador.transform.position, golpe.DirecaoY);
+                    _impacto?.GolpeNoVazio(
+                        jogador.transform.position,
+                        golpe.DirecaoY,
+                        ArcosDosGolpes.Obter(golpe.Tipo, golpe.Passo)
+                    );
                 }
             }
         }

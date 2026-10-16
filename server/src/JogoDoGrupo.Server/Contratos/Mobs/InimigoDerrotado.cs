@@ -8,9 +8,10 @@ namespace JogoDoGrupo.Server.Contratos.Mobs;
 /// contam a variante e o <see cref="Nivel"/> do inimigo (0: quem publicou não informou o
 /// nível). A posição é no plano do chão, onde ele caiu.
 /// <para>
-/// <see cref="Participantes"/> são os personagens que causaram dano ao inimigo desde que ele
-/// apareceu (a lista zera quando ele desiste e volta), em ordem crescente de id. Quem só foi
-/// alvo dele, sem causar dano, não participa.
+/// <see cref="Participantes"/> são os personagens que participaram da luta desde que ele
+/// apareceu (a lista zera quando ele desiste e volta), em ordem crescente de id: quem causou
+/// dano, quem foi alvo dele e quem curou um aliado que já estava na luta
+/// (<c>PersonagemCurouAliado</c>).
 /// </para>
 /// <para>
 /// Sai do laço de IA de Mobs, não do laço de rede: o assinante precisa ser seguro entre threads

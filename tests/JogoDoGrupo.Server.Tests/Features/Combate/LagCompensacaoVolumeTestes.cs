@@ -40,6 +40,34 @@ public class LagCompensacaoVolumeTestes
     }
 
     [Fact]
+    public void Arco_testa_a_posicao_historica_e_nao_a_atual_do_alvo()
+    {
+        var historico = new HistoricoDePosicoesDoMundo();
+        var relogio = 5_000L;
+        var grupo = new GrupoDeInimigos(
+            Javali,
+            new SorteadorDeCriaturas(),
+            1,
+            () => relogio,
+            pontoX: 0,
+            pontoZ: 0,
+            primeiroId: InimigoId,
+            historico: historico
+        );
+        var arco = ArcosDosGolpes.Leve1;
+
+        // No instante visto o inimigo estava a 2 m, à frente; hoje está em outro lugar.
+        historico.Registrar(InimigoId, new PosicaoNoMundo(Area, 0f, 0f, 2f, 0f), relogio - 100);
+        var proximos = grupo.AlvosProximos(Area, 0, 0, arco.AlcanceMetros, relogio - 100);
+
+        var alvo = Assert.Single(proximos);
+        Assert.Equal(2.0, alvo.Z, 3);
+        Assert.True(arco.Alcanca(0, 0, 0, alvo.X, alvo.Z, alvo.Raio, alvo.Altura));
+        // De costas para ele o arco não pega, mesmo ele estando entre os candidatos.
+        Assert.False(arco.Alcanca(0, 0, 180, alvo.X, alvo.Z, alvo.Raio, alvo.Altura));
+    }
+
+    [Fact]
     public void Esquiva_com_tempo_visto_abre_invulnerabilidade_no_passado()
     {
         var controle = new ControleDeAcoes();

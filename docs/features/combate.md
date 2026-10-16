@@ -20,16 +20,27 @@ Cálculo de dano, seleção de alvo e efeitos de status. Usado por PvE e PvP.
   - **Cura:** vai no aliado da mira, como o cajado de vida do New World; algumas skills curam em área no chão. Sem alvo selecionado e sem cura automática no mais ferido.
   - **Sair de combate:** 5 s sem dar nem levar dano. Fora de combate a vida regenera, e stamina e mana regeneram mais rápido. Montar só fora de combate ([montarias](montarias.md)).
 - **Decisões do Gabriel em 2026-10-16** (quiz de definições 2; números em constante nomeada):
-  - **Golpe realista:** o golpe só dá dano se a arma passar pelo corpo do alvo. Cada golpe de cada arma vira dados no shared (o arco que a lâmina percorre: ângulo inicial e final, alcance igual ao comprimento da arma, altura e tempo), e o **servidor** testa esse arco contra a cápsula do corpo do alvo. A animação do client segue os mesmos dados. Substitui o cone de 2,5 m e 90° (falta implementar). Skills de **área** usam a própria área, e a área visível é a área real de acerto.
+  - **Golpe realista:** o golpe só dá dano se a arma passar pelo corpo do alvo. Cada golpe de cada arma vira dados no shared (o arco que a lâmina percorre: ângulo inicial e final, alcance igual ao comprimento da arma, altura e tempo), e o **servidor** testa esse arco contra a cápsula do corpo do alvo. A animação do client segue os mesmos dados. Substitui o cone de 2,5 m e 90° (implementado na #914, veja "Arco da lâmina"). Skills de **área** usam a própria área, e a área visível é a área real de acerto.
   - **Buffs de grupo vêm das skills** (ex.: Manto Protetor, Fonte Arcana), não de uma aura do papel. O mesmo tipo de buff **não acumula**: vale o mais forte.
   - **Trocar de papel** é trocar de equipamento, o que pode ser feito a qualquer momento **fora de combate**, inclusive no meio da dungeon.
   - **Recuperação:** fora de combate, vida e mana regeneram (a stamina já regenerava), e **sentar** acelera em qualquer lugar. **Poções** do Alquimista têm **recarga compartilhada** (proposta: 30 s). **Comida** dá um buff longo (30 a 60 min por receita), só uma por vez ([profissões](profissoes.md#definido)).
   - **Sem reações elementais nem combos entre skills** (#343 fechada).
 - **Ataques telegrafados** (decidido em 2026-10-10): bosses e inimigos fortes avisam antes de bater (área marcada no chão, brilho ou animação de preparo) e o jogador tem tempo de esquivar ou sair da área. Base: Final Fantasy XIV e WoW
 - **Decisões do Gabriel em 2026-10-11** (estavam só em comentário de issue):
-  - **Ataque (#61):** cone de **2,5 m e 90°** (a ser substituído pelo arco da lâmina, decidido em 2026-10-16) à frente do atacante; boneco de treino na cidade (compensação de lag no servidor desde #172). Os números moram em `RegrasAtaque`.
+  - **Ataque (#61):** golpe pelo **arco da lâmina** (#914, veja abaixo; o cone de 2,5 m e 90° de `RegrasAtaque.EstaNoVolume` ficou só para skills e inimigos); boneco de treino na cidade (compensação de lag no servidor desde #172). Os números moram em `RegrasAtaque`.
   - **Esquiva (#62):** o dono do código é **Combate** (a stamina é dele); a tecla é ~~o Alt esquerdo~~ o Shift desde 2026-10-16 ([interface.md](interface.md)).
   - **Caído (#125):** o dono do estado é **Combate**, que já é dono da vida; [Personagem](personagem.md#morte-e-caído-issue-97) só mostra a tela.
+
+## Arco da lâmina (#914)
+
+O golpe comum (leve 1, 2 e 3 da cadeia, e o pesado) acerta pelo arco que a lâmina percorre, não pelo cone.
+
+- **Dados:** `ArcoDoGolpe` e `ArcosDosGolpes` (shared): ângulo inicial e final (graus à frente da direção do golpe, positivo para +X), alcance (comprimento da arma), faixa de altura da lâmina e janela de tempo (ms em volta do contato). Leve 1: 70° a -70°, 2,2 m; leve 2: de volta, -70° a 70°; leve 3: 35° a -35°, 2,6 m (golpe de cima, estreito); pesado: 110° a -110°, 2,4 m. Valores de proposta, a calibrar.
+- **Teste:** `ArcoDoGolpe.Alcanca`: a lâmina varre o leque no plano do chão e a faixa de altura precisa cruzar a cápsula do corpo do alvo (círculo de raio do corpo e altura 1,8 m por padrão, `AlvoDeCombate.Altura`). Todo alvo no leque leva o golpe (dois em fila levam os dois, como no volume antigo).
+- **Servidor:** `ServicoDeAtaques` pede aos alvos os vizinhos ao alcance (`IAlvosDeCombate.AlvosProximos`, posição rebobinada pela compensação de lag, ADR 0039) e filtra pelo arco. Skills continuam com `AlvosNoVolume` (cone/área própria).
+- **Decisão de design:** o arco é testado no instante do contato (rebobinado), como o cone era; a janela de tempo (`InicioMs`/`FimMs`) dá a duração visível do corte para animação e gizmo, e não vira vários testes por golpe. O giro do corpo continua limitado por `DirecaoDoGolpe`; como os arcos são largos, quem virou meia-volta ainda acerta o que ficou a até 70° (pesado, 110°) da direção final.
+- **Client:** o rastro do golpe no vazio desenha o arco dos mesmos dados. Gizmo de depuração: `Combate.ArcoGizmo = 1` no F10 (Sintonia) desenha o arco de cada golpe seu (linhas, `ArcoGizmoSegundos`) para conferir contra a animação; ajustes viram mudança nos dados do shared.
+- **Armas futuras:** martelo, arco e cajado entram com os seus arcos na tarefa de cada arma.
 
 ## Em aberto
 
@@ -177,7 +188,7 @@ Esquiva (tempo real; regras e números em [fatia-jogavel.md](fatia-jogavel.md), 
 ### Ataque no servidor (#215)
 
 - Quem recebe: `AtaqueIniciado` e `AtaqueAcertou` vão a todos que o Mundo diz estarem na área do atacante (`IPosicoesDoMundo`); `AtaqueRecusado` só ao atacante; `RecursosMudaram` só ao dono, e só quando o ataque gasta stamina (o pesado; o leve não gasta nada).
-- O servidor mede o cone no **momento do acerto** (preparo depois do pedido). Com `TempoVistoMs` na intenção, o instante de teste rebobina até 250 ms (`RegrasCompensacaoDeLag`); inimigos usam `IHistoricoDePosicoesDoMundo`. A direção é a `RotacaoY` que o Mundo tem do personagem naquele instante, limitada pelo giro desde a direção do pedido (`RegrasAtaque.DirecaoDoGolpe`: leve 240°/s, pesado 60°/s, pelo menor caminho). O client vira o corpo para a mira dentro do mesmo teto (#571).
+- O servidor mede o arco da lâmina no **momento do acerto** (preparo depois do pedido). Com `TempoVistoMs` na intenção, o instante de teste rebobina até 250 ms (`RegrasCompensacaoDeLag`); inimigos usam `IHistoricoDePosicoesDoMundo`. A direção é a `RotacaoY` que o Mundo tem do personagem naquele instante, limitada pelo giro desde a direção do pedido (`RegrasAtaque.DirecaoDoGolpe`: leve 240°/s, pesado 60°/s, pelo menor caminho). O client vira o corpo para a mira dentro do mesmo teto (#571).
 - **Um relógio só (#477):** a ação nasce no pedido; o acerto sai em `InicioMs + PreparoMs` e o fim da ação vem depois do acerto, mesmo que o banco demore. A cobrança da stamina e a leitura da Força acontecem dentro do preparo (o acerto não volta ao banco; veja [Recursos em memória](#recursos-em-memória-478)), e a fila só avança depois do acerto resolvido. Banco mais lento que o preparo atrasa o acerto, mas não o perde.
 - Fila: um pedido feito nos últimos 0,3 s da ação espera e começa no fim dela (stamina e queda são conferidos nessa hora, e a recusa sai com a `Sequencia` dele). Pedido durante a ação fora da janela, ou com a fila ocupada, é recusado com `AcaoEmAndamento`.
 - Caído (vida 0) é recusado com `VoceEstaCaido`; o pesado gasta 20 de stamina uma vez só (trava do personagem em memória) e é recusado sem stamina.
@@ -315,6 +326,7 @@ Quem decide: **servidor**. O dono é [Mobs](mobs.md), que já escolhe o alvo; Co
 - **Primeiro alvo:** como hoje, o jogador mais próximo que ele viu. Enquanto ninguém tem ameaça nele, vale a regra antiga de não trocar.
 - **Com ameaça:** o alvo é quem tem mais ameaça, mas o inimigo só troca quando outro passa da margem (110% perto, 130% longe). Empate fica com o alvo atual; entre outros, o de menor id. Isso evita que ele fique pulando de alvo.
 - **Provocar** (skill de item de tank, [skills.md](skills.md)): o inimigo vira para quem provocou na hora, e a ameaça dele passa a ser igual à maior da tabela. Durante os 4 s o alvo não troca, nem por margem.
+- **Cura e participação:** a cura também deve publicar `PersonagemCurouAliado` (`Contratos/Combate/EventosDeCura.cs`) para o curador entrar na lista de participantes do inimigo ([Mobs, #909](mobs.md#mobs)).
 - **Sai da tabela** quem cai, sai da área ou desconecta. A tabela **zera** quando o inimigo desiste e volta para casa (junto com a vida e os participantes) e quando ele reaparece.
 - **Sem decaimento** com o tempo nesta versão.
 - **Chefe:** usa a mesma tabela no lugar do "mais próximo" (`ChefeDaDungeon`). Ataques de área do chefe (investida) continuam mirando como estão descritos em [mobs.md](mobs.md).

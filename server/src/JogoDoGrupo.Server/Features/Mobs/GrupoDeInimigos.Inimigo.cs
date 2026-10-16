@@ -78,8 +78,11 @@ public sealed partial class GrupoDeInimigos
         /// <summary>Quanto do passo do golpe ainda falta andar, em metros.</summary>
         public double PassoRestante;
 
-        /// <summary>Quem causou dano desde que ele apareceu ou voltou da desistência.</summary>
-        public readonly HashSet<long> Atacantes = [];
+        /// <summary>
+        /// Quem participa da luta desde que ele apareceu ou voltou da desistência: quem causou
+        /// dano, quem foi alvo dele e quem curou um aliado que já participava (#909).
+        /// </summary>
+        public readonly HashSet<long> Participantes = [];
 
         /// <summary>Tabela de ameaça individual deste inimigo.</summary>
         public readonly TabelaDeAmeaca Ameacas = new();

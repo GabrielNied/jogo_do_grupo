@@ -63,6 +63,16 @@ namespace JogoDoGrupo.Client.Features.Combate
         /// <summary>Quanto o rastro do golpe que não pegou fica no chão, em segundos.</summary>
         public static float RastroSegundos = 0.22f;
 
+        /// <summary>
+        /// Gizmo do arco da lâmina (depuração): 1 desenha, a cada golpe seu, o arco que o servidor
+        /// testa (linhas na Scene e na Game com Gizmos ligados); 0 desliga. Serve para calibrar os
+        /// dados de <see cref="ArcosDosGolpes"/> contra a animação.
+        /// </summary>
+        public static float ArcoGizmo = 0f;
+
+        /// <summary>Quanto o gizmo do arco fica desenhado, em segundos.</summary>
+        public static float ArcoGizmoSegundos = 1.5f;
+
         /// <summary>Quanto o número de dano fica na tela, em segundos.</summary>
         public static float NumeroSegundos = 1f;
 
@@ -279,6 +289,24 @@ namespace JogoDoGrupo.Client.Features.Combate
                 0.05f,
                 1f,
                 "s do rastro do golpe no vazio"
+            );
+            Sintonia.Registrar(
+                Grupo,
+                nameof(ArcoGizmo),
+                () => ArcoGizmo,
+                v => ArcoGizmo = v,
+                0f,
+                1f,
+                "1 desenha o arco da lâmina de cada golpe (depuração)"
+            );
+            Sintonia.Registrar(
+                Grupo,
+                nameof(ArcoGizmoSegundos),
+                () => ArcoGizmoSegundos,
+                v => ArcoGizmoSegundos = v,
+                0.2f,
+                5f,
+                "s que o gizmo do arco fica desenhado"
             );
             Sintonia.Registrar(
                 Grupo,

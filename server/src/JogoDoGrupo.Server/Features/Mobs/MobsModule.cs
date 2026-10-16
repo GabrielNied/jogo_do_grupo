@@ -115,6 +115,7 @@ public sealed class MobsModule : IFeatureModule
     public void Inicializar(ServerContext contexto)
     {
         contexto.Eventos.Assinar<JogadorEntrouNaArea>(evento => _inimigos?.AoEntrarNaArea(evento));
+        contexto.Eventos.Assinar<PersonagemCurouAliado>(evento => _inimigos?.AoCurar(evento));
         contexto.Eventos.Assinar<JogadorSaiuDaArea>(evento => _inimigos?.AoSairDaArea(evento));
         contexto.AoPasso(
             TimeSpan.FromSeconds(RegrasInimigo.PassoSegundos),

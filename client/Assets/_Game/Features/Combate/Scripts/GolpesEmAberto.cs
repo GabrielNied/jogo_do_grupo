@@ -19,17 +19,27 @@ namespace JogoDoGrupo.Client.Features.Combate
 
         public readonly struct Golpe
         {
-            public Golpe(int sequencia, TipoDeAtaque tipo, float direcaoY, double prazo)
+            public Golpe(
+                int sequencia,
+                TipoDeAtaque tipo,
+                float direcaoY,
+                double prazo,
+                int passo = 0
+            )
             {
                 Sequencia = sequencia;
                 Tipo = tipo;
                 DirecaoY = direcaoY;
                 Prazo = prazo;
+                Passo = passo;
             }
 
             public int Sequencia { get; }
             public TipoDeAtaque Tipo { get; }
             public float DirecaoY { get; }
+
+            /// <summary>O passo da cadeia de leves: escolhe o arco do golpe.</summary>
+            public int Passo { get; }
 
             /// <summary>Quando o golpe passa a contar como errado, no relógio do client.</summary>
             public double Prazo { get; }
@@ -40,7 +50,13 @@ namespace JogoDoGrupo.Client.Features.Combate
         public int Quantidade => _golpes.Count;
 
         /// <summary>Anota um golpe que começou em <paramref name="agora"/>.</summary>
-        public void Registrar(int sequencia, TipoDeAtaque tipo, float direcaoY, double agora)
+        public void Registrar(
+            int sequencia,
+            TipoDeAtaque tipo,
+            float direcaoY,
+            double agora,
+            int passo = 0
+        )
         {
             if (_golpes.Count >= Maximo)
             {
@@ -52,7 +68,8 @@ namespace JogoDoGrupo.Client.Features.Combate
                     sequencia,
                     tipo,
                     direcaoY,
-                    agora + RegrasAtaque.PreparoSegundos(tipo) + ToleranciaDeRedeSegundos
+                    agora + RegrasAtaque.PreparoSegundos(tipo) + ToleranciaDeRedeSegundos,
+                    passo
                 )
             );
         }

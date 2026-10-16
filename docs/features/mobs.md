@@ -128,7 +128,7 @@ O que o servidor acrescentou ao implementar (issue #268; **proposta**, decidido 
 - **Onde:** o centro do grupo fica em (0, 190), 150 m ao norte do portão (que está em (0, 40)), com os pontos de origem num círculo de 4 m de raio. O campo faz parte da área `cidade`. Este é o primeiro de vários pontos: veja "Mais mobs no campo" (o tamanho do grupo é sorteado de novo a cada reaparição). O comando de teste `spawn` ([Desenvolvimento](desenvolvimento.md)) acrescenta um inimigo a mais no maior grupo da área, sem esperar a volta.
 - **Id do inimigo:** começa em 1.000.000.000.000 e soma 1; cada volta depois de morto é um inimigo novo, com id novo. Nunca coincide com id de personagem nem com o boneco de treino.
 - **Dano no jogador:** Mobs decide **quem** o golpe pegou e publica `GolpeDeInimigoAcertou`; tirar a vida é de quem é dono dela ([Combate](combate.md)), que assina o evento e tira a vida.
-- **Quem participou da morte:** quem causou dano, **curou alguém em combate com o inimigo** ou **foi alvo dele** ([fatia, seção 5](fatia-jogavel.md#5-loot-no-chão)), em ordem crescente de id (`InimigoDerrotado.Participantes`). A lista zera quando ele desiste e volta (a vida também volta ao máximo) e quando ele reaparece. **Falta implementar** ([#909](https://github.com/GabrielNied/jogo_do_grupo/issues/909)): hoje o código só conta dano.
+- **Quem participou da morte:** quem causou dano, **curou alguém em combate com o inimigo** ou **foi alvo dele** ([fatia, seção 5](fatia-jogavel.md#5-loot-no-chão)), em ordem crescente de id (`InimigoDerrotado.Participantes`). A lista zera quando ele desiste e volta (a vida também volta ao máximo) e quando ele reaparece. Implementado na [#909](https://github.com/GabrielNied/jogo_do_grupo/issues/909): dano entra em `TentarAplicarDano`; **ser alvo** entra quando o inimigo (ou o chefe de dungeon) escolhe ou é forçado (provocar) a atacar a pessoa; **curar** entra por `PersonagemCurouAliado` (`Contratos/Combate/EventosDeCura.cs`, publicado por quem aplicar a cura): o curador participa se o curado já participava da luta com aquele inimigo (cura em si mesmo ou em quem não lutava não conta). Hoje nada publica o evento, porque não há skill de cura; quando existir, quem a aplicar publica o evento. Loot, XP e (quando existir) missão leem `Participantes` do mesmo evento de morte.
 
 ### Contato do golpe
 
@@ -243,7 +243,7 @@ Do "Livro de ideias" do [FigJam](../brainstorm/figjam.md) (seções 05, 09 e 10)
 
 - ~~Ainda nada no código. A IA, o dano e a posição no mundo dependem de [Combate](combate.md) (alvo e dano) e de [Mundo](mundo.md) (posição dos jogadores), que as issues #61 e #119 preparam.~~ Substituído em 2026-10-11: os dois contratos já existem no servidor (`Contratos/Combate/IAlvosDeCombate` e `Contratos/Mundo/IPosicoesDoMundo`). O inimigo da issue #63 vai usá-los; o contrato do shared (abaixo) ainda não depende de nenhuma outra funcionalidade.
 - **Mundo** (desde a issue #268): a posição dos jogadores da área por `IPosicoesDoMundo`, o evento `JogadorEntrouNaArea` (para mandar `InimigosDaArea`) e a altura do chão por `MapaDoMundo.AlturaEm`.
-- **Combate** (desde a issue #268): o grupo de inimigos é um `IAlvosDeCombate` (o `InimigoId` é o `AlvoId`) e usa o cone de `RegrasAtaque.EstaNoVolume`.
+- **Combate** (desde a issue #268): o grupo de inimigos é um `IAlvosDeCombate` (o `InimigoId` é o `AlvoId`) e responde ao golpe comum por `AlvosProximos` (o arco da lâmina de Combate decide o acerto, #914) e às skills por `AlvosNoVolume`.
 
 ## Expõe
 

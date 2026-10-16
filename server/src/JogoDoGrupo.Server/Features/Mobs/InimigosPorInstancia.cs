@@ -39,6 +39,26 @@ public sealed class InimigosPorInstancia(ISorteadorDeCriaturas sorteador, IEstad
 
     public bool Remover(string areaId) => areaId != null && _porArea.TryRemove(areaId, out _);
 
+    public IReadOnlyList<AlvoDeCombate> AlvosProximos(
+        string area,
+        double origemX,
+        double origemZ,
+        double alcanceMetros,
+        long instanteReferenciaMs = 0
+    )
+    {
+        if (!_porArea.TryGetValue(area, out var grupos))
+        {
+            return [];
+        }
+
+        return grupos
+            .SelectMany(g =>
+                g.AlvosProximos(area, origemX, origemZ, alcanceMetros, instanteReferenciaMs)
+            )
+            .ToArray();
+    }
+
     public IReadOnlyList<AlvoDeCombate> AlvosNoVolume(
         string area,
         double origemX,
