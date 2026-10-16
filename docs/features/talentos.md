@@ -33,7 +33,7 @@ Decidido por Gabriel em 2026-10-12:
 - [x] ~~Dá para resetar a árvore? Qual o custo?~~ Decidido em 2026-10-12: dá, com custo em recursos. Os números estão em [Pendente](#pendente).
 - [x] ~~Documento mestre x adiada x fatia (#618)~~ Decidido em 2026-10-12 por esta especificação: a árvore volta e DEC-001 vale ([itens](itens.md#invariantes)).
 - [x] ~~Proposta da IA na #194 (1 ponto por nível a partir do 10, reset grátis)~~ Substituída em 2026-10-12: redistribuir custa. Pontos por nível seguem em [Pendente](#pendente).
-- [ ] O livro de Asterra ([seções 04, 09 e 10](../brainstorm/figjam.md#09--personagem-cooperação-e-rotina)) pede que a evolução do personagem não ensine skills nem mude o orçamento de preparação. A árvore respeita: não ensina skill. Se algum nó for mexer no orçamento de preparação ([skills.md](skills.md#preparação-de-skills-proposta-do-board-2026-10-11)), é decisão explícita.
+- [x] Respondido em 2026-10-16: não há orçamento de preparação (#339 fechada), então a árvore não tem o que mexer nele. O livro de Asterra ([seções 04, 09 e 10](../brainstorm/figjam.md#09--personagem-cooperação-e-rotina)) pede que a evolução do personagem não ensine skills nem mude o orçamento de preparação. A árvore respeita: não ensina skill. Se algum nó for mexer no orçamento de preparação ([skills.md](skills.md#preparação-de-skills-proposta-do-board-2026-10-11)), é decisão explícita.
 
 ### Pendente
 

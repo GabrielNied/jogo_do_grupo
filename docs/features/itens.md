@@ -23,6 +23,8 @@ Inventário, equipamentos, tier calculado pelos atributos e fusão determinísti
 - **Durabilidade** (decidido por Gabriel em 2026-10-16): o equipamento perde durabilidade pelo uso em combate; reparar custa coroas ([economia](economia.md#definido)). Quebrado deixa de dar atributos, mas não some. Cair não tira durabilidade extra. Números a propor.
 - **Inventário de jogo, não de formulário** (decidido por Gabriel em 2026-10-12): bolsa em grade de casas **1×1** para todos os tipos, paperdoll, tooltip, clique direito e arrastar e soltar, com a base pronta para inventário grande. Veja [Interface do inventário](#interface-do-inventário-560).
 
+- **Decidido por Gabriel em 2026-10-16** (quiz de definições 2): o **inventário grande** com busca, filtros e favoritos entra ([#334](https://github.com/GabrielNied/jogo_do_grupo/issues/334)); **transmog fica fora** por ora (#333 fechada).
+
 ## Em aberto
 
 - [x] ~~Cinco raridades confirmadas para #166: comum, incomum, raro, épico e lendário.~~ Substituído em 2026-10-12: tier D a S+ calculado pelos atributos. Grau continua um eixo separado (veja Equipamentos abaixo).

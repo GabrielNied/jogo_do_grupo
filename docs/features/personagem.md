@@ -14,6 +14,7 @@ Raças, atributos e progressão de nível. Sem classes: o estilo de jogo vem da 
 - Recursos, XP e nível da primeira fatia jogável (números em proposta): [fatia-jogavel.md](fatia-jogavel.md)
 - ~~Raças com características únicas; cada raça dá uma **skill base** própria~~ Substituído em 2026-10-16 (Gabriel, quiz de definições): **raça é só visual**. Não dá traço, skill racial nem bônus, e a história é a mesma para todas ([missões](missoes.md#definido)).
 - **Sempre correndo** (decidido por Gabriel em 2026-10-16): a velocidade normal do personagem é a de corrida de hoje (5,5 m/s). Não há tecla de correr; uma tecla de **andar devagar** (Ctrl esquerdo, segurar) usa a velocidade de andar. A esquiva vai para o **Shift** e o pulo continua no Espaço ([teclas](interface.md#teclas-e-atalhos)).
+- **Natação e dano de queda** (decidido por Gabriel em 2026-10-16): rios e lagos se atravessam a nado (sem atacar, gastando stamina), e cair de muito alto tira vida. O servidor valida profundidade e altura. Escalada segue em aberto (#349).
 - **Renomear não pode** (decidido por Gabriel em 2026-10-16): o nome escolhido na criação é permanente.
 - **Sem classes** (D2 da [validação de 2026-10-10](../brainstorm/validacao.md)): ~~a combinação de itens define o estilo de jogo~~ desde 2026-10-12, a especialização vem de atributos, [árvore](talentos.md), equipamentos e skills
 - Progressão por nível (leveling) faz parte do loop principal (D5)
@@ -166,7 +167,7 @@ O teto 100 e os pontos da árvore por nível (valor de teste: 1) estão em `Conf
 - [x] ~~Aparência e customização na criação (rosto, corpo, cores...)?~~ Decidido na #182: customização básica com tom de pele (4 opções), cabelo (4 estilos) e cor de cabelo (5 opções). Servidor valida limites e persiste; client aplica prévia e material.
 - [x] ~~Excluir personagem: pode? Tem confirmação (ex.: digitar o nome) ou tempo de espera antes de apagar de vez?~~ Decidido na #182: exclusão com confirmação digitando o nome exato. Nome fica reservado para a mesma conta por 7 dias, bloqueando outras contas.
 - [x] Renomear personagem: pode? Tem custo ou limite? Decidido em 2026-10-16: não pode.
-- [ ] Aceitar letras acentuadas no nome (ç, ã, é...) no futuro? Hoje o grupo decidiu só A–Z (veja [Regras](#regras))
+- [x] Decidido em 2026-10-16 (quiz de definições 2): não; só A–Z. Aceitar letras acentuadas no nome (ç, ã, é...) no futuro? Hoje o grupo decidiu só A–Z (veja [Regras](#regras))
 - [x] Morte e caído (#97), decisões do grupo (regras em proposta em [Morte e caído](#morte-e-caído-issue-97)):
   - [x] A contagem de 45 s **para enquanto um aliado está levantando** (proposta) ou continua correndo? O servidor (#423) implementou **continua correndo**; trocar é mudança em `ControleDeQueda`. Decidido em 2026-10-16: **para**.
   - [x] "Voltar à cidade" antes do fim da contagem: **pode, depois de 5 s caído**; ao fim dos 45 s volta sozinho; voltar = vida cheia no ponto de nascimento da cidade, sem perder nada. **Decidido em 2026-10-11 (coordenador, autonomia dada pelo Gabriel)**

@@ -53,6 +53,8 @@ Do "Livro de ideias de Asterra" ([seções 04 e 13](../brainstorm/figjam.md#04--
 
 ### Preparação de skills (proposta do board, 2026-10-11)
 
+> **Não será implementada** (Gabriel, 2026-10-16): vale o Definido, com as 3 skills da arma ativa direto nas teclas 1, 2 e 3, sem orçamento nem biblioteca (#339 fechada).
+
 - A skill continua **fixa no item** (sorteada na geração; ~~ou ajustada por fusão~~ desde 2026-10-12 a fusão preserva as skills do item principal, [itens](itens.md#invariantes)); o personagem não aprende a skill ao usar a arma. Sem o item equipado (inclusive no inventário, banco ou baú), a skill fica indisponível.
 - **Biblioteca** com todas as skills dos itens equipados (filtro por origem, elemento e função); o jogador arrasta para a barra.
 - **Orçamento de preparação:** 12 pontos iniciais, **+1 a cada 5 níveis** ([personagem.md](personagem.md#nível-atributos-e-rotina-proposta-do-board-2026-10-11)). Cada skill custa de **1 a 4 pontos**; reservado ao pôr na barra, devolvido ao tirar. É um custo diferente do vigor ou da energia gasto ao usar.
@@ -75,6 +77,8 @@ Cada raça dá uma skill própria; descrição curta de cada uma em [personagem.
 - **Chamado da Clareira** (Silvanos, 60 s): atrai ou desvia manadas; bosses percebem mas não obedecem.
 
 ### Catálogo inicial: 25 skills para montar funções (proposta do board, 2026-10-11)
+
+> **Adotado em 2026-10-16** (Gabriel): as 25 viram o catálogo dos **pools por tipo de arma** (ex.: escudo = tanque, cajado = mago, arco = arqueiro; [#340](https://github.com/GabrielNied/jogo_do_grupo/issues/340)). Sai o custo de preparação, ficam o recurso (stamina ou mana, SKILL-005) e a recarga. Sem reações elementais entre elas.
 
 Cinco por função. Custo de preparação em pontos, uso e recarga; os efeitos completos estão no [livro, seção 13](../brainstorm/figjam.md#13--25-skills-para-montar-funções).
 

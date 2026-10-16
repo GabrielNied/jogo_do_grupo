@@ -42,15 +42,15 @@ Esta página detalha o **grupo** (convite, lista, líder, sair e expulsar; issue
 - [x] Bloquear convites (modo "não aceitar grupo") fica fora da primeira versão? ~~E a fila automática de grupo?~~ A fila entra (decidido em 2026-10-16). Decidido em 2026-10-16: fica fora.
 - [x] Raid de 10: é um grupo maior ou dois grupos de 5 juntos? (veja [instancias.md](instancias.md)) Decidido em 2026-10-16: um grupo só, até 10.
 - [x] O grupo desfaz ao ficar com 1 pessoa? (proposta: sim) Decidido em 2026-10-16: sim.
-- [ ] Chat (#95), decisões do grupo:
-  - [ ] Aprovar os três canais (Cidade, Grupo, Sussurro) e os números da tabela de limites (proposta)
+- [x] Chat (#95), decisões do grupo:
+  - [x] Aprovar os três canais (Cidade, Grupo, Sussurro) e os números da tabela de limites (proposta). Decidido em 2026-10-16 (quiz de definições 2): aprovados.
   - [x] O canal **Cidade** vale só para quem está dentro dos muros (decidido, #500; veja [Canais](#canais)); não chega à dungeon nem ao terreno em volta.
-  - [ ] Filtro de palavrões: fica fora da primeira versão (proposta) ou entra uma lista simples?
+  - [x] Respondido em 2026-10-16: entra com a ferramenta de GM (#187). Filtro de palavrões: fica fora da primeira versão (proposta) ou entra uma lista simples?
   - [x] **Ignorar jogador** gravado neste computador (proposta) ou na conta, pelo servidor? Decidido em 2026-10-16: na conta, pelo servidor.
   - [x] O servidor guarda as mensagens em algum lugar para moderação? (proposta: não guarda; só o histórico curto da Cidade em memória) Decidido em 2026-10-16: não guarda; a denúncia leva as últimas mensagens do denunciado.
   - [x] Denunciar jogador e silenciar por um moderador: ficam para depois? Decidido em 2026-10-16: junto com a #187.
-  - [ ] Sussurro para quem está em outra área (ex.: você na cidade e a pessoa na dungeon): pode? (proposta: sim)
-- [ ] Amigos e ignorar (#180), decisões do grupo:
+  - [x] Decidido em 2026-10-16 (quiz de definições 2): pode (já é assim). Sussurro para quem está em outra área (ex.: você na cidade e a pessoa na dungeon): pode? (proposta: sim)
+- [x] Amigos e ignorar (#180), decisões do grupo:
   - [x] Aprovar amizade e ignorar **por conta** (proposta) em vez de por personagem, e os números da tabela de [Amigos e ignorar](#amigos-e-ignorar-issue-180). Decidido em 2026-10-16: por conta.
   - [x] Quem foi ignorado recebe a mesma resposta de "não encontrado" (proposta) ou um aviso claro de que foi ignorado? Decidido em 2026-10-16: "não encontrado".
   - [x] O amigo vê **em que área** o outro está (cidade, dungeon)? (proposta: não na primeira versão; só online e o nome do personagem) Decidido em 2026-10-16: vê a área.
@@ -193,7 +193,7 @@ Código em `server/src/JogoDoGrupo.Server/Features/Social/`: as regras vivem em 
 
 ### Chat de texto (issue #95)
 
-Tudo aqui é **proposta**; nada é decisão ainda. Base: chat do [World of Warcraft](../referencias.md) (canais com cor, sussurro por nome, comandos com barra). Igual: canal da área, canal do grupo, sussurro e abrir a caixa com Enter. Diferente: só três canais, sem canais criados por jogadores, sem canal de comércio e sem guilda por enquanto.
+~~Tudo aqui é **proposta**; nada é decisão ainda.~~ Aprovado por Gabriel em 2026-10-16 (canais e limites). Base: chat do [World of Warcraft](../referencias.md) (canais com cor, sussurro por nome, comandos com barra). Igual: canal da área, canal do grupo, sussurro e abrir a caixa com Enter. Diferente: só três canais, sem canais criados por jogadores, sem canal de comércio e sem guilda por enquanto.
 
 Quem decide: **servidor**. O client envia o texto e o canal; o servidor valida, define quem recebe, carimba a hora e repassa. O nome de quem falou vem da **sessão autenticada**, nunca de um campo do client.
 
