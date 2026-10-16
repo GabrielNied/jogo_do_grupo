@@ -1,16 +1,14 @@
 # Guia de uso do criador de mapas
 
-Este guia ensina a usar as ferramentas de mapa dentro do **editor Unity**. Ele é permanente: cada nova operação deve ganhar aqui um passo a passo antes de ser considerada entregue. As regras do mundo ficam em [Mundo](features/mundo.md); a situação provisória do desenvolvimento fica na [retomada](../client/Assets/_Game/Features/Mundo/MapaEmDesenvolvimento/RETOMADA.md).
+Este guia ensina a usar as ferramentas de mapa dentro do **editor Unity**. Ele é permanente: cada nova operação deve ganhar aqui um passo a passo antes de ser considerada entregue. As regras do mundo ficam em [Mundo](features/mundo.md). O contexto provisório de trabalho fica fora do repositório.
 
 ## Direção da ferramenta
 
-O objetivo é **desenhar o mapa**, sem montar cada trecho manualmente com código. Você escolhe uma operação, desenha sua forma no mapa, ajusta parâmetros, vê o resultado em tempo real e salva para continuar editando depois. A ordem confirmada de desenvolvimento e de uso é:
+O objetivo é **pintar o mundo**, sem montar árvore, textura e morro um a um nem editar código. Você escolhe uma receita, marca sua forma no mapa, ajusta poucos controles, vê a prévia e salva quando ela ficar jogável. A receita reúne as regras do lugar: solo, relevo, vegetação, pedras e limites de passagem.
 
-1. **Biomas:** desenhar as regiões; cada uma recebe relevo base, texturas e vegetação conforme suas regras, não apenas uma cor.
-2. **Lagos:** desenhar a área da água; a ferramenta forma a bacia e as margens junto com a superfície da água.
-3. **Estradas:** desenhar linhas em qualquer ponto do mapa; a ferramenta cria o piso, acomoda o terreno e deixa a passagem livre.
+O primeiro foco foi fazer a receita **Mata** realmente boa. Ela tem solo de floresta, relevo suave, troncos com espaço para caminhar e copas que formam uma massa vista de cima; foi aprovada no Unity. O próximo passo será escolhido conforme a necessidade real do mapa: outra receita de bioma, lago ou estrada.
 
-A estrada Cidade central → Passo descrita abaixo é um **protótipo já disponível**, criado antes da definição dessa ordem. Com os biomas disponíveis, as próximas entregas são lagos e depois estradas livres.
+A ferramenta deve crescer como um único **Pintor do Mundo**. Lago e estrada, quando necessários, serão modos da mesma experiência: área fechada para lago e linha para estrada. A estrada Cidade central → Passo descrita abaixo continua como um **protótipo já disponível**, mas não está em expansão nesta fase.
 
 ## Desenhar biomas
 
@@ -70,9 +68,7 @@ Se um clique não adicionar ponto, confira se **Adicionar ponto por clique** est
 
 | Operação | Situação |
 |---|---|
-| Desenhar biomas com relevo, texturas e vegetação próprios | Disponível no Unity; primeira mata salva no mapa. |
-| Desenhar lagos com bacia, água e margens | Depois dos biomas. |
-| Criar várias estradas independentes | Depois dos lagos. A janela atual só altera a rota do Passo. |
-| Desenhar rios com leito e água corrente | Ideia separada dos lagos; ordem ainda não definida. |
+| Pintar e aprovar uma receita Mata jogável | Concluído. A primeira mata está salva no mapa como base. |
+| Outras receitas de bioma, lagos, estradas e rios | A decidir após usar a Mata. Nenhuma delas deve ser construída antecipadamente. |
 
 Ao concluir cada tarefa ou funcionalidade do criador de mapas, atualizar esta página com o caminho da tela, os controles, como salvar, como conferir o resultado e as limitações atuais. Se a tarefa não mudar as ações na interface, registrar seu efeito e indicar que o procedimento continua igual.
