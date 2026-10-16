@@ -388,6 +388,58 @@ public sealed class PoderesNoCombateTestes
     }
 
     [Fact]
+    public async Task Marco_de_2_pecas_da_ritmo_e_a_proxima_fisica_gasta()
+    {
+        // O set de 2 peças dá Ritmo ao usar skill física e gasta Ritmo na física seguinte: a
+        // primeira skill não se fortalece com a carga que ela mesma deu (sem encadeamento).
+        _efeitos.Vestir(PosicaoEquipamento.Peito, Peito);
+        _efeitos.Vestir(PosicaoEquipamento.Luvas, Luvas);
+
+        var primeira = await UsarAsync(1);
+        Assert.DoesNotContain(AcaoDePoder.AmplificarDano, Acoes(primeira));
+        Assert.Contains(AcaoDePoder.GanharCarga, Acoes(primeira));
+
+        var segunda = await UsarAsync(2);
+        var aviso = Assert.Single(segunda.Poderes!, p => p.Acao == AcaoDePoder.AmplificarDano);
+        Assert.Equal((int)Math.Round(ConfigPoderes.RitmoBonusPorCarga * 100), aviso.Valor);
+        Assert.Equal(
+            RegrasSkills.ComPoderes(DanoBase(Lamina), 1 + ConfigPoderes.RitmoBonusPorCarga),
+            segunda.Acertos!.Acertos[0].Dano
+        );
+    }
+
+    [Fact]
+    public async Task Perder_o_marco_do_set_ao_tirar_uma_peca_desliga_o_bonus()
+    {
+        _efeitos.Vestir(PosicaoEquipamento.Peito, Peito);
+        var luvas = _efeitos.Vestir(PosicaoEquipamento.Luvas, Luvas);
+        await UsarAsync(1);
+
+        luvas.Posicao = PosicaoEquipamento.Inventario;
+        MudarEquipamento();
+        var depois = await UsarAsync(2);
+
+        Assert.Empty(depois.Poderes!);
+        Assert.Equal(DanoBase(Lamina), depois.Acertos!.Acertos[0].Dano);
+    }
+
+    [Fact]
+    public async Task Marco_de_4_pecas_tira_recarga_das_outras_skills_fisicas()
+    {
+        _efeitos.Vestir(PosicaoEquipamento.Peito, Peito);
+        _efeitos.Vestir(PosicaoEquipamento.Luvas, Luvas);
+        _efeitos.Vestir(PosicaoEquipamento.Botas, Botas);
+        _efeitos.Vestir(PosicaoEquipamento.Anel1, Anel);
+        await UsarAsync(0);
+        _agoraMs += ConfigPoderes.FolegoIntervaloMs;
+
+        var corte = await UsarAsync(1);
+
+        Assert.True(corte.BarraMudou);
+        Assert.Contains(AcaoDePoder.ReduzirRecarga, Acoes(corte));
+    }
+
+    [Fact]
     public async Task Falha_ao_ler_os_efeitos_nao_derruba_a_skill()
     {
         var motor = new MotorDePoderes(new EfeitosQueFalham(), () => _agoraMs);

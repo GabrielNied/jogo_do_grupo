@@ -328,6 +328,13 @@ Skills de investida hoje: Avanço Devastador (espada) e Avanço de Muralha (escu
 
 **Pendente de Combate:** os gatilhos de **golpe comum** e **esquiva** (Embalo e Esquiva Impetuosa) esperam Combate publicar `Contratos/Combate/GolpeComumAcertou` e `PersonagemEsquivou` (já definidos e escutados por Skills; nada publica ainda). Até lá esses dois poderes ficam parados e os de marca e recarga funcionam só com skills.
 
+**Sets (#630)**
+
+- **Contagem (SET-001):** modelos **distintos** vestidos do set; só a arma do conjunto ativo conta. Duas peças iguais nos encaixes de par (anel 1 e 2) contam **uma**; peça na bolsa não conta; tier não interfere. Cada marco liga uma vez (2, 4 e, onde houver, 6).
+- **Marcos usam o mesmo motor:** as regras do marco são `RegraDePoder`, com origem `set:<id>:<peças>`. Perder a peça abaixo do marco desliga o bônus e apaga o estado dele.
+- **Set de exemplo, "Caçada do Predador"** (peito, luvas, botas, anel e brinco do Predador variante A, peças sem poder): **2 peças**, Ritmo de caça (usar skill física dá 1 carga de Ritmo, até 2, 6 s; a próxima skill física gasta as cargas e causa +8% de dano por carga); **4 peças**, Fôlego do predador (skill física que acerta tira 1,5 s da recarga das outras físicas, folga de 4 s).
+- **Nenhum set é obrigatório (SET-002):** a maioria dos modelos não está em set (conferido por teste), peça de set mantém atributos e poder, e o set de exemplo só dá cadência de skills físicas, sem superioridade para outras builds. O tooltip da peça mostra "Set <nome> · vestidas/total peças" e cada marco com "(ativo)" quando ligado.
+
 #### Pendente
 
 Precisa de decisão do Gabriel. Até lá, vale a proposta indicada.

@@ -60,7 +60,7 @@ namespace JogoDoGrupo.Client.Features.Itens
         /// </param>
         public static DadosTooltip Montar(EntradaInventario entrada, EquipamentosResponse estado)
         {
-            var dados = Basico(entrada);
+            var dados = Basico(entrada, estado);
             var item = RegrasEquipamentos.DadosDe(entrada);
             if (item != null && estado != null)
             {
@@ -82,7 +82,11 @@ namespace JogoDoGrupo.Client.Features.Itens
             return dados;
         }
 
-        private static DadosTooltip Basico(EntradaInventario entrada)
+        // O estado (opcional) dá a contagem do set, que depende das outras peças vestidas.
+        private static DadosTooltip Basico(
+            EntradaInventario entrada,
+            EquipamentosResponse estado = null
+        )
         {
             var dados = new DadosTooltip { Nome = entrada.Nome };
             var item = RegrasEquipamentos.DadosDe(entrada);
@@ -131,6 +135,7 @@ namespace JogoDoGrupo.Client.Features.Itens
                 );
             }
             AdicionarPoder(dados, item);
+            AdicionarSet(dados, item, estado);
             Adicionar(
                 dados.Linhas,
                 "Fusão +" + item.NivelFusao + "/" + ConfigFusao.NivelMaximo,
@@ -161,6 +166,45 @@ namespace JogoDoGrupo.Client.Features.Itens
             Adicionar(dados.Linhas, "Poder lendário: " + poder.Nome, EstiloLinha.Fixo);
             Adicionar(dados.Linhas, poder.Descricao, EstiloLinha.Normal);
             Adicionar(dados.Linhas, "Afeta: " + poder.Afeta, EstiloLinha.Suave);
+        }
+
+        /// <summary>
+        /// O set da peça: nome, quantas peças estão vestidas e os marcos, com os ativos em
+        /// destaque. Peça fora de set, ou sem o estado do inventário, não ganha linha.
+        /// </summary>
+        public static void AdicionarSet(
+            DadosTooltip dados,
+            Equipamento item,
+            EquipamentosResponse estado
+        )
+        {
+            if (estado == null)
+                return;
+            var resumo = RegrasDeSets.Resumir(
+                item.ModeloId,
+                estado.Equipados,
+                estado.ConjuntoAtivo
+            );
+            if (resumo == null)
+                return;
+            Adicionar(
+                dados.Linhas,
+                "Set " + resumo.Set.Nome + " · " + resumo.Vestidas + "/" + resumo.Total + " peças",
+                EstiloLinha.Fixo
+            );
+            foreach (var marco in resumo.Marcos)
+            {
+                Adicionar(
+                    dados.Linhas,
+                    marco.Marco.Pecas
+                        + " peças · "
+                        + marco.Marco.Nome
+                        + (marco.Ativo ? " (ativo)" : "")
+                        + ": "
+                        + marco.Marco.Descricao,
+                    marco.Ativo ? EstiloLinha.Ganho : EstiloLinha.Suave
+                );
+            }
         }
 
         /// <summary>"N doadores na bolsa": peças que a fusão aceitaria como material desta.</summary>
@@ -199,7 +243,7 @@ namespace JogoDoGrupo.Client.Features.Itens
             var atual = RegrasEquipamentos.DadosDe(equipado);
             if (atual != null)
             {
-                dados.Equipado = Basico(equipado);
+                dados.Equipado = Basico(equipado, estado);
                 dados.Equipado.Cabecalho = "Equipado · " + TextosEquipamento.NomePosicao(encaixe);
             }
             dados.TituloComparacao =

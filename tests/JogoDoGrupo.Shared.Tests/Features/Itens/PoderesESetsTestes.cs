@@ -36,7 +36,7 @@ public class PoderesESetsTestes
         RegrasDePoderes.Ativos(pecas, conjunto).Select(e => e.Origem).Distinct().ToArray();
 
     [Fact]
-    public void Toda_regra_do_catalogo_e_valida_e_declara_o_que_afeta()
+    public void Toda_regra_do_catalogo_e_de_set_e_valida_e_declara_o_que_afeta()
     {
         foreach (var poder in CatalogoDePoderes.Poderes)
         {
@@ -44,6 +44,15 @@ public class PoderesESetsTestes
             Assert.NotEmpty(poder.Afeta);
             Assert.NotEmpty(poder.Regras);
             Assert.All(poder.Regras, r => Assert.True(r.Valida, poder.Id + "/" + r.Id));
+        }
+
+        foreach (var set in CatalogoDeSets.Sets)
+        {
+            Assert.All(set.Marcos, m => Assert.Contains(m.Pecas, new[] { 2, 4, 6 }));
+            Assert.All(
+                set.Marcos.SelectMany(m => m.Regras),
+                r => Assert.True(r.Valida, set.Id + "/" + r.Id)
+            );
         }
     }
 
@@ -70,6 +79,7 @@ public class PoderesESetsTestes
         Assert.Equal(EtiquetasDeSkill.Fisica, CatalogoDePoderes.EtiquetaFisica);
         var usadas = CatalogoDePoderes
             .Poderes.SelectMany(p => p.Regras)
+            .Concat(CatalogoDeSets.Sets.SelectMany(s => s.Marcos).SelectMany(m => m.Regras))
             .SelectMany(r => new[] { r.Skill.Etiqueta, r.AlvoDaAcao.Etiqueta })
             .Where(e => e != "")
             .Distinct();
@@ -128,14 +138,162 @@ public class PoderesESetsTestes
     }
 
     [Fact]
-    public void Poder_nao_muda_o_tier()
+    public void Marco_de_2_liga_com_duas_pecas_e_o_de_4_com_quatro()
     {
+        var set = CatalogoDeSets.Obter(CatalogoDeSets.SetCacadaDoPredador)!;
+        var pecas = new List<EntradaInventario>
+        {
+            Peca(PosicaoEquipamento.Peito, Peito),
+            Peca(PosicaoEquipamento.Luvas, Luvas),
+        };
+
+        Assert.Equal(2, RegrasDeSets.Contar(set, pecas, 1));
+        Assert.Equal(new[] { 2 }, RegrasDeSets.MarcosAtivos(set, 2).Select(m => m.Pecas));
+        Assert.Contains("set:" + set.Id + ":2", Origens(pecas));
+        Assert.DoesNotContain("set:" + set.Id + ":4", Origens(pecas));
+
+        pecas.Add(Peca(PosicaoEquipamento.Botas, Botas));
+        pecas.Add(Peca(PosicaoEquipamento.Anel1, Anel));
+        Assert.Equal(4, RegrasDeSets.Contar(set, pecas, 1));
+        Assert.Equal(new[] { 2, 4 }, RegrasDeSets.MarcosAtivos(set, 4).Select(m => m.Pecas));
+        Assert.Contains("set:" + set.Id + ":4", Origens(pecas));
+    }
+
+    [Fact]
+    public void Tirar_uma_peca_abaixo_do_marco_desliga_o_bonus()
+    {
+        var set = CatalogoDeSets.Obter(CatalogoDeSets.SetCacadaDoPredador)!;
+        var pecas = new List<EntradaInventario>
+        {
+            Peca(PosicaoEquipamento.Peito, Peito),
+            Peca(PosicaoEquipamento.Luvas, Luvas),
+            Peca(PosicaoEquipamento.Botas, Botas),
+            Peca(PosicaoEquipamento.Anel1, Anel),
+        };
+        Assert.Contains("set:" + set.Id + ":4", Origens(pecas));
+
+        pecas[3].Posicao = PosicaoEquipamento.Inventario;
+        Assert.DoesNotContain("set:" + set.Id + ":4", Origens(pecas));
+        Assert.Contains("set:" + set.Id + ":2", Origens(pecas));
+
+        pecas[2].Posicao = PosicaoEquipamento.Inventario;
+        Assert.Contains("set:" + set.Id + ":2", Origens(pecas));
+
+        pecas[1].Posicao = PosicaoEquipamento.Inventario;
+        Assert.DoesNotContain("set:" + set.Id + ":2", Origens(pecas));
+        Assert.Empty(RegrasDePoderes.Ativos(pecas, 1));
+    }
+
+    [Fact]
+    public void Duas_pecas_iguais_nos_encaixes_de_par_contam_uma_so()
+    {
+        var set = CatalogoDeSets.Obter(CatalogoDeSets.SetCacadaDoPredador)!;
+        var aneis = new[]
+        {
+            Peca(PosicaoEquipamento.Anel1, Anel),
+            Peca(PosicaoEquipamento.Anel2, Anel),
+        };
+
+        Assert.Equal(1, RegrasDeSets.Contar(set, aneis, 1));
+        Assert.Empty(RegrasDePoderes.Ativos(aneis, 1));
+
+        var comBrinco = aneis.Append(Peca(PosicaoEquipamento.Brinco1, Brinco));
+        Assert.Equal(2, RegrasDeSets.Contar(set, comBrinco, 1));
+    }
+
+    [Fact]
+    public void So_a_arma_do_conjunto_ativo_conta_para_o_set()
+    {
+        var set = new DefinicaoDeSet
+        {
+            Id = "set.teste",
+            Modelos = new[] { Peito, 100 },
+            Marcos = new[] { new MarcoDeSet { Pecas = 2 } },
+        };
+        var pecas = new[]
+        {
+            Peca(PosicaoEquipamento.Peito, Peito),
+            Peca(PosicaoEquipamento.Arma2, 100),
+        };
+
+        Assert.Equal(1, RegrasDeSets.Contar(set, pecas, 1));
+        Assert.Empty(RegrasDeSets.MarcosAtivos(set, RegrasDeSets.Contar(set, pecas, 1)));
+        Assert.Equal(2, RegrasDeSets.Contar(set, pecas, 2));
+        Assert.Single(RegrasDeSets.MarcosAtivos(set, RegrasDeSets.Contar(set, pecas, 2)));
+    }
+
+    [Fact]
+    public void Peca_na_bolsa_nao_conta_para_o_set()
+    {
+        var set = CatalogoDeSets.Obter(CatalogoDeSets.SetCacadaDoPredador)!;
+        var pecas = new[]
+        {
+            Peca(PosicaoEquipamento.Inventario, Peito),
+            Peca(PosicaoEquipamento.Inventario, Luvas),
+        };
+
+        Assert.Equal(0, RegrasDeSets.Contar(set, pecas, 1));
+    }
+
+    [Fact]
+    public void Tier_nao_muda_nada_no_set_nem_no_poder_e_poder_nao_muda_o_tier()
+    {
+        var fraco = new[]
+        {
+            Peca(PosicaoEquipamento.Peito, Peito, valor: 5),
+            Peca(PosicaoEquipamento.Luvas, Luvas, valor: 5),
+        };
+        var forte = new[]
+        {
+            Peca(PosicaoEquipamento.Peito, Peito, valor: 95),
+            Peca(PosicaoEquipamento.Luvas, Luvas, valor: 95),
+        };
+        Assert.NotEqual(
+            RegrasTier.TierDe(fraco[0].Equipamento),
+            RegrasTier.TierDe(forte[0].Equipamento)
+        );
+        Assert.Equal(Origens(fraco), Origens(forte));
+
         var item = CatalogoEquipamentos.Obter(111)!;
         foreach (var atributo in item.Atributos)
             atributo.Valor = 70;
         var tierSemPoder = RegrasTier.TierDe(item);
         item.PoderId = CatalogoDePoderes.PoderPeito;
         Assert.Equal(tierSemPoder, RegrasTier.TierDe(item));
+    }
+
+    [Fact]
+    public void Nenhum_set_e_obrigatorio_a_maioria_dos_modelos_nao_tem_set()
+    {
+        var modelos = Enumerable.Range(
+            CatalogoEquipamentos.PrimeiroModelo,
+            CatalogoEquipamentos.QuantidadeModelos
+        );
+        var semSet = modelos.Count(m => CatalogoDeSets.DoModelo(m) == null);
+
+        Assert.True(semSet > CatalogoEquipamentos.QuantidadeModelos / 2);
+        Assert.Empty(RegrasDePoderes.Ativos(Array.Empty<EntradaInventario>(), 1));
+        // Peça fora de set mantém o poder e não precisa de set.
+        var sozinha = Peca(PosicaoEquipamento.Peito, 111, CatalogoDePoderes.PoderPeito);
+        Assert.Single(Origens(new[] { sozinha }));
+    }
+
+    [Fact]
+    public void Resumo_do_set_diz_quantas_pecas_e_quais_marcos_estao_ativos()
+    {
+        var pecas = new[]
+        {
+            Peca(PosicaoEquipamento.Peito, Peito),
+            Peca(PosicaoEquipamento.Luvas, Luvas),
+            Peca(PosicaoEquipamento.Botas, Botas),
+        };
+
+        var resumo = RegrasDeSets.Resumir(Peito, pecas, 1)!;
+
+        Assert.Equal(3, resumo.Vestidas);
+        Assert.Equal(5, resumo.Total);
+        Assert.Equal(new[] { true, false }, resumo.Marcos.Select(m => m.Ativo));
+        Assert.Null(RegrasDeSets.Resumir(111, pecas, 1));
     }
 
     [Fact]

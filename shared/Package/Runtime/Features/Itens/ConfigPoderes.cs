@@ -21,5 +21,14 @@ namespace JogoDoGrupo.Shared.Features.Itens
         /// <summary>Recarga tirada ao acertar um alvo marcado e a folga entre duas ativações.</summary>
         public const int CacadorReducaoDeRecargaMs = 2000;
         public const int CacadorIntervaloMs = 4000;
+
+        /// <summary>Set de exemplo, marco de 2 peças: cargas de Ritmo, duração e dano extra por carga.</summary>
+        public const int RitmoMaximoDeCargas = 2;
+        public const int RitmoDuracaoMs = 6000;
+        public const double RitmoBonusPorCarga = 0.08;
+
+        /// <summary>Set de exemplo, marco de 4 peças: recarga tirada e folga entre ativações.</summary>
+        public const int FolegoReducaoDeRecargaMs = 1500;
+        public const int FolegoIntervaloMs = 4000;
     }
 }

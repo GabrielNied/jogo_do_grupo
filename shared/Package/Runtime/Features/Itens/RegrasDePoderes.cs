@@ -50,6 +50,28 @@ namespace JogoDoGrupo.Shared.Features.Itens
                 }
             }
 
+            foreach (var set in CatalogoDeSets.Sets)
+            {
+                var pecas = RegrasDeSets.Contar(set, lista, conjunto);
+                foreach (var marco in RegrasDeSets.MarcosAtivos(set, pecas))
+                {
+                    foreach (var regra in marco.Regras)
+                    {
+                        if (regra.Valida)
+                        {
+                            efeitos.Add(
+                                new EfeitoAtivo
+                                {
+                                    Origem = "set:" + set.Id + ":" + marco.Pecas,
+                                    Nome = set.Nome + " (" + marco.Pecas + ")",
+                                    Regra = regra,
+                                }
+                            );
+                        }
+                    }
+                }
+            }
+
             return efeitos;
         }
     }
