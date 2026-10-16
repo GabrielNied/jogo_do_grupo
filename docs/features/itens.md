@@ -24,7 +24,8 @@ Inventário, equipamentos, tier calculado pelos atributos e fusão determinísti
 - **Decisões do Gabriel em 2026-10-16** (quiz de definições 4): **aura de tier no mundo 3D** entra no MVP junto com a UI — brilho no **chão** e no **equipamento visível no modelo** quando houver mesh (não só bolsa/paperdoll); paleta e intensidade em constante no client ([#926](https://github.com/GabrielNied/jogo_do_grupo/issues/926); encaixe 3D em [#665](https://github.com/GabrielNied/jogo_do_grupo/issues/665)).
 - **Inventário de jogo, não de formulário** (decidido por Gabriel em 2026-10-12): bolsa em grade de casas **1×1** para todos os tipos, paperdoll, tooltip, clique direito e arrastar e soltar, com a base pronta para inventário grande. Veja [Interface do inventário](#interface-do-inventário-560).
 
-- **Decidido por Gabriel em 2026-10-16** (quiz de definições 2): o **inventário grande** com busca, filtros e favoritos entra ([#334](https://github.com/GabrielNied/jogo_do_grupo/issues/334)); **transmog fica fora** por ora (#333 fechada).
+- **Decidido por Gabriel em 2026-10-16** (quiz de definições 2; **timing** no quiz 5): **inventário grande** (busca, filtros, favoritos) entra **depois do [marco atual](fatia-jogavel.md#foco-atual)** ([#334](https://github.com/GabrielNied/jogo_do_grupo/issues/334)); **transmog fica fora** (#333 fechada).
+- **Decidido por Gabriel em 2026-10-16** (quiz de definições 5): na fatia/MVP **nenhuma vinculação nova de equipamento** — tudo negociável; materiais de raid +9/+10 continuam como no [Vínculo](#definido) acima.
 
 ## Em aberto
 
@@ -353,7 +354,7 @@ Precisa de decisão do Gabriel. Até lá, vale a proposta indicada.
 - ~~**Atributos de cada categoria de peça** e a conversão de cada um para o combate~~ decidido em 2026-10-12: [Atributos dos equipamentos](#atributos-dos-equipamentos). Os números da conversão seguem na [#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627); a implementação é a [#623](https://github.com/GabrielNied/jogo_do_grupo/issues/623).
 - ~~**Poderes e sets:** poder fixo ou sorteado, foco do Cinto e do Brinco, marcos dos sets, Adorno como amuleto, quem tem poder~~ decididos em 2026-10-12 (PODER-006, PODER-007, SET-001, tabela de foco). O conteúdo de cada set vem na criação dos sets ([#630](https://github.com/GabrielNied/jogo_do_grupo/issues/630)).
 - **Materiais:** representação e fontes decididas em [Materiais de fusão](#materiais-de-fusão-617); quantidades e nomes de exibição seguem **proposta** em `ConfigFusao`. A raid ainda não tem issue de conteúdo.
-- **Venda, negociação e vinculação**, e fontes de coroas ([#173](https://github.com/GabrielNied/jogo_do_grupo/issues/173)).
+- ~~**Vinculação na fatia**~~ Decidido em 2026-10-16 (quiz 5): nenhuma além do já definido (materiais raid). **Venda e fontes de coroas** seguem [#173](https://github.com/GabrielNied/jogo_do_grupo/issues/173).
 
 #### Depreciado em 2026-10-12
 
