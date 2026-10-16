@@ -17,7 +17,7 @@ Telas e menus do client que não pertencem a uma funcionalidade do jogo. Por enq
   - **Teclas:** não existe mais tecla de correr, porque o personagem está sempre correndo ([personagem](personagem.md#definido)). **Ctrl esquerdo** (segurar) anda devagar, a **esquiva vai para o Shift** e o pulo continua no Espaço.
   - **Quiz de definições 2:** novos atalhos de janela **K** skills, **N** talentos, **O** social e **P** profissões; a barra de atalhos fica **sempre visível**; remapear para uma tecla ocupada **troca as duas ações**. O layout do HUD e o áudio propostos em [HUD do jogo](#hud-do-jogo) e [Áudio](#áudio) viram regra. Os **outros jogadores** soam no espaço: golpes, acertos e passos, até 25 m. Os textos do livro compatíveis com as regras atuais entram ([#352](https://github.com/GabrielNied/jogo_do_grupo/issues/352)); sai o "Maior dano: você" e o texto que fala de raça.
   - **Alvo sem tab target:** o HUD mostra o inimigo sob a mira ou o último que você acertou. Não há tecla de travar alvo.
-  - **Quiz de definições 4 (refino):** tecla **U** abre a janela **Companheiros** com abas **Pets** e **Montarias** (mesmo estilo de coleção WoW). Em cada aba o jogador vê os companheiros **registrados na conta**, escolhe um e **ativa ou desativa** (pet: chamar/dispensar; montaria: equipar visual e invocar/desmontar conforme [montarias](montarias.md#definido)). ~~U alternava pet direto~~ substituído neste refino. **P** continua profissões. ~~**B** só montarias~~ substituído por **U** ([montarias](montarias.md#definido)).
+  - **Quiz de definições 4 (refino):** tecla **U** abre a janela **Companheiros** com abas **Pets** e **Montarias** (estilo diário/coleção WoW). Regras de UI em [Companheiros (U)](#companheiros-u). ~~U alternava pet direto~~ substituído neste refino. **P** continua profissões. ~~**B** só montarias~~ substituído por **U** ([montarias](montarias.md#definido)).
   - **HUD:** mostra também o **dano dos aliados** (além do meu e do que recebo; a cura que faço sempre aparece), a **vida exata dos aliados** (número junto da barra) e tem a opção de **esconder o HUD inteiro** já na primeira versão. O aviso de ataque no HUD continua **só para o boss**.
 - As teclas atuais podem ser ajustadas em **Opções > Teclas**; os padrões e limites estão em [Teclas e atalhos](#teclas-e-atalhos).
 - Na abertura, o client carrega o tema e verifica a disponibilidade e a versão da API em `/saude` antes de mostrar o login; falha mostra "Servidor fora do ar" e **Tentar de novo**. Ao escolher personagem, a tela Lumora mostra **Cenário**, **Conexão** e **Posição** conforme o trabalho real, sem porcentagem simulada. O mundo só aparece depois de aplicar a primeira posição do servidor; até lá, HUD e input ficam bloqueados. A espera por conexão e posição expira em 20 s. A falha oferece **Tentar de novo** e **Voltar à seleção**, desmontando a tentativa parcial antes de outra entrada.
@@ -86,7 +86,16 @@ Decidido por Gabriel em 2026-10-11 (#134); é **provisório** e o grupo pode aju
 | **L** | Missões | [Missões](missoes.md) | aviso "Em construção" (as missões ainda não existem) |
 | **M** | Mapa | [Mundo](mundo.md#mapa-múndi) | aviso "Em construção" (o mapa é a decisão #92) |
 | **N** | Árvore de atributos | [Talentos](talentos.md#implementação-da-625-árvore-compra-e-tela) | a árvore radial, o painel do nó e a compra de ranks |
-| **U** | Companheiros (abas Pets · Montarias) | [Pets](pets.md#definido) · [Montarias](montarias.md#definido) | coleção na conta, escolha e ativar/desativar; falta implementar ([#925](https://github.com/GabrielNied/jogo_do_grupo/issues/925)) |
+| **U** | Companheiros (abas Pets · Montarias) | [Pets](pets.md#definido) · [Montarias](montarias.md#definido) | catálogo completo + coleção na conta; falta implementar ([#925](https://github.com/GabrielNied/jogo_do_grupo/issues/925)) |
+
+#### Companheiros (U)
+
+Decidido por Gabriel em 2026-10-16 (refino pós quiz 4). **Base:** diário de montarias/pets do WoW (lista completa, bloqueados visíveis).
+
+- **Catálogo inteiro:** cada aba lista **todos** os pets ou montarias **definidos no jogo** (dados em catálogo no `shared`, mesma fonte do drop e do item de registro). Não esconde os que faltam.
+- **Na conta vs bloqueado:** os **registrados na conta** aparecem em cor normal; os **não obtidos** aparecem **em cinza** (silhueta ou ícone desaturado). Só os obtidos podem **ativar/desativar** (pet: chamar/dispensar; montaria: equipar visual e montar/desmontar — [montarias](montarias.md#definido)).
+- **Onde conseguir:** ao selecionar um bloqueado (clique permitido, sem ativar), o painel mostra texto fixo de **origem**, vindo do catálogo, por exemplo: drop raro de **criatura X** na **região Y**; item de **chefe Z** (campo, dungeon ou raid nomeada). O client **não inventa** a dica: copia o campo de origem declarado junto da entrada (alinhado à tabela de loot em [mobs](mobs.md#definido) / [itens](itens.md)).
+- **Progresso opcional:** contador "X de Y" na aba é permitido; não substitui o bestiário de espécies ([#323](https://github.com/GabrielNied/jogo_do_grupo/issues/323)).
 
 - **A tecla alterna:** abre a janela; apertar de novo fecha.
 - **Uma janela por vez:** abrir outra fecha a que estava aberta.

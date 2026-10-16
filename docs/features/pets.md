@@ -14,7 +14,7 @@ Decidido em 2026-10-12 (#161) e **revisto em 2026-10-16** (quiz de definições 
 
 - **Modelo alvo:** pets vêm de **drop raro** de mobs ([mobs](mobs.md#definido)), como **item negociável** (estilo WoW). **Usar o item registra o pet na conta**; não há captura pelo bestiário. A conta pode **colecionar vários**; só **um pet ativo** (chamado) por vez.
 - O **cervo jovem** que já vem com o personagem (#161) é **legado até alinhar** com drops; não é a regra final.
-- **Menu (tecla U):** janela [Companheiros](interface.md#janelas-do-jogo), aba **Pets** — lista os registrados, escolhe qual usar e **ativa ou desativa** (chamar/dispensar). Mesma janela que [montarias](montarias.md#definido), outra aba.
+- **Menu (tecla U):** janela [Companheiros](interface.md#companheiros-u), aba **Pets** — **catálogo completo** (não obtidos em cinza, sem ativar), origem ao selecionar bloqueado; obtidos: **ativa ou desativa** (chamar/dispensar). Mesma janela que [montarias](montarias.md#definido), outra aba.
 - Um pet chamado por vez. Chamar de novo no mesmo pet não duplica.
 - Ele anda até o dono e para a **2 m** (`DistanciaDeSeguidaMetros`). Não fica em cima do dono. Se passar de **20 m** (`DistanciaParaAlcancarMetros`), o servidor o coloca de volta na distância de seguida.
 - Não luta, não é alvo e não é montaria. Não tem bolsa própria.
