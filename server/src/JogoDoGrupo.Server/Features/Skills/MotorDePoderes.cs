@@ -65,7 +65,9 @@ public sealed class MotorDePoderes
     /// <summary>Os efeitos mudaram (equipar, desequipar, trocar de conjunto): relê na próxima vez.</summary>
     public void Invalidar(long personagemId)
     {
-        var estado = _estados.GetOrAdd(personagemId, _ => new EstadoDoPersonagem());
+        // Sem estado não há cache a invalidar; criar aqui vazaria a entrada de quem já saiu.
+        if (!_estados.TryGetValue(personagemId, out var estado))
+            return;
         lock (estado.Trava)
         {
             estado.Versao++;
