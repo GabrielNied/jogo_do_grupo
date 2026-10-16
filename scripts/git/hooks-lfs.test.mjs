@@ -9,6 +9,7 @@ import { tmpdir } from "node:os";
 import { delimiter, join } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
+import { encontrarDiretoriosGit, obterExecutavelSh } from "./localizar-sh.mjs";
 
 const RAIZ = fileURLToPath(new URL("../..", import.meta.url));
 const SHA = "1".repeat(40);
@@ -21,11 +22,14 @@ function rodarPrePush(t, entrada) {
   writeFileSync(join(falsos, "git"), registro, { mode: 0o755 });
   writeFileSync(join(falsos, "git-lfs"), registro, { mode: 0o755 });
 
-  const resultado = spawnSync("sh", [".husky/pre-push", "origin", "https://exemplo/repo.git"], {
+  const sh = obterExecutavelSh();
+  const dirsGit = process.platform === "win32" ? encontrarDiretoriosGit() : [];
+  const pathGit = dirsGit.length > 0 ? `${dirsGit.join(delimiter)}${delimiter}` : "";
+  const resultado = spawnSync(sh, [".husky/pre-push", "origin", "https://exemplo/repo.git"], {
     cwd: RAIZ,
     input: entrada,
     encoding: "utf8",
-    env: { ...process.env, PATH: `${falsos}${delimiter}${process.env.PATH}` },
+    env: { ...process.env, PATH: `${falsos}${delimiter}${pathGit}${process.env.PATH}` },
   });
   const ler = (nome) => (existsSync(join(falsos, nome)) ? readFileSync(join(falsos, nome), "utf8") : null);
   return { status: resultado.status, args: ler("args"), stdin: ler("stdin") };
