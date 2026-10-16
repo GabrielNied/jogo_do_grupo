@@ -17,4 +17,10 @@ public interface IInimigosSimulados
 
     /// <summary>Retrato dos inimigos vivos agora (o que vai em <c>InimigosDaArea</c>).</summary>
     InimigoNoMundo[] Vivos();
+
+    /// <summary>
+    /// Um personagem curou um aliado: se o curado participa da luta com algum inimigo daqui, o
+    /// curador passa a participar dela também (loot e experiência, #909). Sem efeito por padrão.
+    /// </summary>
+    void RegistrarCura(long curadorId, long curadoId) { }
 }

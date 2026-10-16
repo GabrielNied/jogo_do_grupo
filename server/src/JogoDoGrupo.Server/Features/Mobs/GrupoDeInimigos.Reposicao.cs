@@ -64,7 +64,7 @@ public sealed partial class GrupoDeInimigos
                 Area,
                 inimigo.X,
                 inimigo.Z,
-                inimigo.Atacantes.Order().ToArray(),
+                inimigo.Participantes.Order().ToArray(),
                 _proximaMorte++,
                 inimigo.Criatura.Nivel
             )

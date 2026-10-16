@@ -326,6 +326,7 @@ Quem decide: **servidor**. O dono é [Mobs](mobs.md), que já escolhe o alvo; Co
 - **Primeiro alvo:** como hoje, o jogador mais próximo que ele viu. Enquanto ninguém tem ameaça nele, vale a regra antiga de não trocar.
 - **Com ameaça:** o alvo é quem tem mais ameaça, mas o inimigo só troca quando outro passa da margem (110% perto, 130% longe). Empate fica com o alvo atual; entre outros, o de menor id. Isso evita que ele fique pulando de alvo.
 - **Provocar** (skill de item de tank, [skills.md](skills.md)): o inimigo vira para quem provocou na hora, e a ameaça dele passa a ser igual à maior da tabela. Durante os 4 s o alvo não troca, nem por margem.
+- **Cura e participação:** a cura também deve publicar `PersonagemCurouAliado` (`Contratos/Combate/EventosDeCura.cs`) para o curador entrar na lista de participantes do inimigo ([Mobs, #909](mobs.md#mobs)).
 - **Sai da tabela** quem cai, sai da área ou desconecta. A tabela **zera** quando o inimigo desiste e volta para casa (junto com a vida e os participantes) e quando ele reaparece.
 - **Sem decaimento** com o tempo nesta versão.
 - **Chefe:** usa a mesma tabela no lugar do "mais próximo" (`ChefeDaDungeon`). Ataques de área do chefe (investida) continuam mirando como estão descritos em [mobs.md](mobs.md).

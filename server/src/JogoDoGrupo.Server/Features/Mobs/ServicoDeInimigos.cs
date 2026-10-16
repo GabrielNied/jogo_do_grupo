@@ -597,6 +597,21 @@ public sealed class ServicoDeInimigos(
         return vivos;
     }
 
+    /// <summary>
+    /// Quem cura um aliado em combate com um inimigo passa a participar da morte dele (#909).
+    /// Pode vir de qualquer thread: cada grupo se protege com a sua trava.
+    /// </summary>
+    public void AoCurar(PersonagemCurouAliado evento)
+    {
+        foreach (var grupo in Simulados())
+        {
+            if (grupo.Area == evento.Area)
+            {
+                grupo.RegistrarCura(evento.CuradorId, evento.CuradoId);
+            }
+        }
+    }
+
     /// <summary>Quem sai da área limpa o estado de interesse de inimigos.</summary>
     public void AoSairDaArea(JogadorSaiuDaArea evento)
     {

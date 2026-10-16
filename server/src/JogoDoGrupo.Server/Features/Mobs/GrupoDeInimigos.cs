@@ -569,7 +569,7 @@ public sealed partial class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulado
 
             var aplicado = Math.Min(dano, inimigo.Vida);
             inimigo.Vida -= aplicado;
-            inimigo.Atacantes.Add(atacanteId);
+            inimigo.Participantes.Add(atacanteId);
             inimigo.Ameacas.AdicionarDano(atacanteId, aplicado);
             inimigo.VidaMudou = true;
             resultado = new ResultadoDeDano(
@@ -932,13 +932,20 @@ public sealed partial class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulado
             distancias[i] = RegrasInimigo.Distancia(inimigo.X, inimigo.Z, jogador.X, jogador.Z);
         }
 
-        return inimigo.Ameacas.EscolherAlvo(
+        var escolhido = inimigo.Ameacas.EscolherAlvo(
             inimigo.Alvo,
             candidatos,
             distancias,
             RegrasInimigo.AlcanceDeAtaqueMetros,
             agora
         );
+        // Ser o alvo do inimigo conta como participar da luta (#909).
+        if (escolhido != RegrasInimigo.SemAlvo)
+        {
+            inimigo.Participantes.Add(escolhido);
+        }
+
+        return escolhido;
     }
 
     /// <summary>
@@ -960,7 +967,35 @@ public sealed partial class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulado
 
             inimigo.Ameacas.Provocar(provocadorId, _relogioMs());
             inimigo.Alvo = provocadorId;
+            inimigo.Participantes.Add(provocadorId);
             return true;
+        }
+    }
+
+    /// <summary>
+    /// Quem curou um aliado que já está na luta com o inimigo passa a participar dela (#909): loot
+    /// e experiência também são dele. Inimigo que voltou para casa (imune) ou morto não conta.
+    /// </summary>
+    public void RegistrarCura(long curadorId, long curadoId)
+    {
+        if (curadorId == curadoId || curadorId == RegrasInimigo.SemAlvo)
+        {
+            return;
+        }
+
+        lock (_trava)
+        {
+            foreach (var inimigo in _inimigos)
+            {
+                if (
+                    RegrasInimigo.EstaVivo(inimigo.Estado)
+                    && inimigo.Estado != EstadoDeInimigo.Retorno
+                    && inimigo.Participantes.Contains(curadoId)
+                )
+                {
+                    inimigo.Participantes.Add(curadorId);
+                }
+            }
         }
     }
 

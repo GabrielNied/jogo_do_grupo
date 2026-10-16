@@ -52,7 +52,7 @@ public sealed class ChefeDaDungeon : IAlvosDeCombate, IInimigosSimulados
     private readonly Func<long> _relogioMs;
     private readonly double _origemX;
     private readonly double _origemZ;
-    private readonly HashSet<long> _atacantes = [];
+    private readonly HashSet<long> _participantes = [];
     private readonly List<AreaDoChefe> _areas = [];
     private readonly TabelaDeAmeaca _ameacas = new();
 
@@ -172,7 +172,7 @@ public sealed class ChefeDaDungeon : IAlvosDeCombate, IInimigosSimulados
             _indiceDoAtaque = 0;
             _rodizioDosRaios = 0;
             _expostoAteMs = 0;
-            _atacantes.Clear();
+            _participantes.Clear();
             _pendente.Aparicoes.Add(new InimigoApareceu { Inimigo = Retrato() });
             return _id;
         }
@@ -228,7 +228,7 @@ public sealed class ChefeDaDungeon : IAlvosDeCombate, IInimigosSimulados
                 case EstadoDeInimigo.Repouso:
                     if (engajados.Length > 0)
                     {
-                        _alvo = EscolherAlvo(engajados, agora);
+                        DefinirAlvo(EscolherAlvo(engajados, agora));
                         _alertaAteMs = agora + AlertaMs;
                         Mudar(EstadoDeInimigo.Alerta);
                         OlharPara(engajados);
@@ -404,7 +404,7 @@ public sealed class ChefeDaDungeon : IAlvosDeCombate, IInimigosSimulados
                 : dano;
             var aplicado = Math.Min(recebido, _vida);
             _vida -= aplicado;
-            _atacantes.Add(atacanteId);
+            _participantes.Add(atacanteId);
             _ameacas.AdicionarDano(atacanteId, aplicado);
             _vidaMudou = true;
             resultado = new ResultadoDeDano(_id, aplicado, _vida, ConfigChefeDaDungeon.VidaMaxima);
@@ -428,7 +428,7 @@ public sealed class ChefeDaDungeon : IAlvosDeCombate, IInimigosSimulados
         var alvoId = EscolherAlvo(engajados, agora);
         var idx = Array.FindIndex(engajados, j => j.PersonagemId == alvoId);
         var alvo = idx >= 0 ? engajados[idx] : MaisProximo(engajados);
-        _alvo = alvo.PersonagemId;
+        DefinirAlvo(alvo.PersonagemId);
         OlharPara(engajados);
 
         _areas.Clear();
@@ -579,7 +579,7 @@ public sealed class ChefeDaDungeon : IAlvosDeCombate, IInimigosSimulados
     private void Retornar()
     {
         _alvo = RegrasInimigo.SemAlvo;
-        _atacantes.Clear();
+        _participantes.Clear();
         _ameacas.Limpar();
         _expostoAteMs = 0;
         _areas.Clear();
@@ -636,7 +636,7 @@ public sealed class ChefeDaDungeon : IAlvosDeCombate, IInimigosSimulados
                 Area,
                 _x,
                 _z,
-                _atacantes.Order().ToArray(),
+                _participantes.Order().ToArray(),
                 _proximaMorte++
             )
         );
@@ -712,8 +712,41 @@ public sealed class ChefeDaDungeon : IAlvosDeCombate, IInimigosSimulados
             }
 
             _ameacas.Provocar(provocadorId, _relogioMs());
-            _alvo = provocadorId;
+            DefinirAlvo(provocadorId);
             return true;
+        }
+    }
+
+    /// <summary>
+    /// Quem curou um aliado que já está na luta com o boss passa a participar dela (#909).
+    /// </summary>
+    public void RegistrarCura(long curadorId, long curadoId)
+    {
+        if (curadorId == curadoId || curadorId == RegrasInimigo.SemAlvo)
+        {
+            return;
+        }
+
+        lock (_trava)
+        {
+            if (
+                RegrasInimigo.EstaVivo(_estado)
+                && _estado != EstadoDeInimigo.Retorno
+                && _participantes.Contains(curadoId)
+            )
+            {
+                _participantes.Add(curadorId);
+            }
+        }
+    }
+
+    // Ser o alvo do boss conta como participar da luta (#909). Chamado com a trava.
+    private void DefinirAlvo(long alvoId)
+    {
+        _alvo = alvoId;
+        if (alvoId != RegrasInimigo.SemAlvo)
+        {
+            _participantes.Add(alvoId);
         }
     }
 

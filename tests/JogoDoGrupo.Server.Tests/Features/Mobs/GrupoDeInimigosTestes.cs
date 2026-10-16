@@ -849,6 +849,66 @@ public class GrupoDeInimigosTestes
     }
 
     [Fact]
+    public void Quem_foi_alvo_do_inimigo_participa_mesmo_sem_causar_dano()
+    {
+        var campo = new Campo();
+        campo.Por(Jogador, 0, 14);
+        campo.AteOEstado(EstadoDeInimigo.Perseguicao, 2);
+        Assert.Equal(Jogador, campo.Unico.AlvoId);
+
+        Assert.True(campo.Grupo.TentarAplicarDano(PrimeiroId, 1000, 7, out _));
+
+        Assert.Equal(new[] { 7L, Jogador }, Assert.Single(campo.Passo().Derrotas).Participantes);
+    }
+
+    [Fact]
+    public void Quem_curou_um_aliado_em_luta_com_o_inimigo_participa()
+    {
+        var campo = new Campo();
+        Assert.True(campo.Grupo.TentarAplicarDano(PrimeiroId, 10, 7, out _));
+
+        campo.Grupo.RegistrarCura(curadorId: 3, curadoId: 7);
+        Assert.True(campo.Grupo.TentarAplicarDano(PrimeiroId, 1000, 7, out _));
+
+        Assert.Equal(new[] { 3L, 7L }, Assert.Single(campo.Passo().Derrotas).Participantes);
+    }
+
+    [Fact]
+    public void Cura_em_quem_nao_esta_na_luta_ou_em_si_mesmo_nao_conta()
+    {
+        var campo = new Campo();
+        Assert.True(campo.Grupo.TentarAplicarDano(PrimeiroId, 10, 7, out _));
+
+        campo.Grupo.RegistrarCura(curadorId: 3, curadoId: 50); // 50 não está na luta
+        campo.Grupo.RegistrarCura(curadorId: 7, curadoId: 7);
+        campo.Grupo.RegistrarCura(curadorId: 0, curadoId: 7);
+        Assert.True(campo.Grupo.TentarAplicarDano(PrimeiroId, 1000, 7, out _));
+
+        Assert.Equal(new[] { 7L }, Assert.Single(campo.Passo().Derrotas).Participantes);
+    }
+
+    [Fact]
+    public void Curador_e_alvo_zeram_quando_o_inimigo_desiste_e_volta()
+    {
+        var campo = new Campo();
+        campo.Por(Jogador, 0, 14);
+        campo.AteOEstado(EstadoDeInimigo.Perseguicao, 2);
+        Assert.True(campo.Grupo.TentarAplicarDano(campo.Unico.InimigoId, 50, 4, out _));
+        campo.Grupo.RegistrarCura(curadorId: 3, curadoId: 4);
+        campo.Por(Jogador, 0, 200);
+        campo.Avancar(6);
+        campo.AteOEstado(EstadoDeInimigo.Retorno, 4);
+        for (var i = 0; i < 100 && campo.Unico.Estado == EstadoDeInimigo.Retorno; i++)
+        {
+            campo.Passo();
+        }
+
+        Assert.True(campo.Grupo.TentarAplicarDano(PrimeiroId, 1000, 7, out _));
+
+        Assert.Equal(new[] { 7L }, Assert.Single(campo.Passo().Derrotas).Participantes);
+    }
+
+    [Fact]
     public void Lista_de_atacantes_zera_quando_o_inimigo_reaparece()
     {
         var campo = new Campo();

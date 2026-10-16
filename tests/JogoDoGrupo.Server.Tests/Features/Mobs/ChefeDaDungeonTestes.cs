@@ -532,6 +532,26 @@ public class ChefeDaDungeonTestes
     }
 
     [Fact]
+    public void Quem_foi_alvo_do_boss_ou_curou_quem_lutava_participa_da_morte()
+    {
+        var luta = new Luta();
+        var jogadores = new[] { new JogadorNoCampo(7, 10, 0), new JogadorNoCampo(3, 12, 0) };
+        luta.Passo(100, jogadores);
+
+        // O boss escolheu um alvo ao acordar: ele entra, mesmo sem dar dano.
+        luta.Bater(1000, 9);
+        luta.Boss.RegistrarCura(curadorId: 4, curadoId: 9);
+        luta.Boss.RegistrarCura(curadorId: 6, curadoId: 50); // 50 não lutava
+        luta.Bater(ConfigChefeDaDungeon.VidaMaxima, 9);
+
+        var derrota = Assert.Single(luta.Passo(100, jogadores).Derrotas);
+        Assert.Contains(4L, derrota.Participantes);
+        Assert.Contains(9L, derrota.Participantes);
+        Assert.DoesNotContain(6L, derrota.Participantes);
+        Assert.Single(derrota.Participantes.Intersect([7L, 3L]));
+    }
+
+    [Fact]
     public void Ataque_comecado_vai_ate_o_fim_mesmo_se_a_sala_esvaziar()
     {
         var luta = new Luta();

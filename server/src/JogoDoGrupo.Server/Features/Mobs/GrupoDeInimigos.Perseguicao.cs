@@ -387,7 +387,7 @@ public sealed partial class GrupoDeInimigos
         inimigo.Preparando = false;
         inimigo.Vagando = false;
         inimigo.SegundosSemAtacar = 0.0;
-        inimigo.Atacantes.Clear();
+        inimigo.Participantes.Clear();
         inimigo.Ameacas.Limpar();
         if (inimigo.Vida != inimigo.Criatura.VidaMaxima)
         {
