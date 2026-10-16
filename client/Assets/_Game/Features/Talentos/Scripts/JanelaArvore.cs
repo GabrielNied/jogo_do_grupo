@@ -45,6 +45,7 @@ namespace JogoDoGrupo.Client.Features.Talentos
         private VisualElement _detalhes;
         private Button _comprar;
         private Button _redistribuir;
+        private Label _textoConfirmarRedistribuir;
         private VisualElement _confirmacaoRedistribuir;
         private VisualElement _painelPerfis;
         private VisualElement _containerSalvarPerfil;
@@ -174,10 +175,7 @@ namespace JogoDoGrupo.Client.Features.Talentos
             linhaBotoes.Add(_comprar);
 
             _redistribuir = ComponentesVisuais.Botao(
-                TextosTalentos.Redistribuir
-                    + " ("
-                    + ConfigRedistribuicao.CustoPadraoCoroas
-                    + " coroas)",
+                TextosTalentos.Redistribuir,
                 IniciarRedistribuicao
             );
             _redistribuir.style.marginLeft = ConfigVisual.Espacamento.Medio;
@@ -195,10 +193,8 @@ namespace JogoDoGrupo.Client.Features.Talentos
                 ConfigVisual.Cores.BordaDiscreta
             );
 
-            var textoConfirmar = ComponentesVisuais.Texto(
-                TextosTalentos.ConfirmarRedistribuicao(ConfigRedistribuicao.CustoPadraoCoroas)
-            );
-            _confirmacaoRedistribuir.Add(textoConfirmar);
+            _textoConfirmarRedistribuir = ComponentesVisuais.Texto(string.Empty);
+            _confirmacaoRedistribuir.Add(_textoConfirmarRedistribuir);
 
             var linhaBotoesConfirma = new VisualElement();
             linhaBotoesConfirma.style.flexDirection = FlexDirection.Row;
@@ -422,6 +418,12 @@ namespace JogoDoGrupo.Client.Features.Talentos
             }
 
             _pontos.text = "Pontos livres: " + _estado.PontosLivres;
+            _redistribuir.text = TextosTalentos.RedistribuirComCusto(
+                _estado.CustoRedistribuicaoCoroas
+            );
+            _textoConfirmarRedistribuir.text = TextosTalentos.ConfirmarRedistribuicao(
+                _estado.CustoRedistribuicaoCoroas
+            );
             _atributos.text = TextoDosAtributos(_estado.Atributos);
             foreach (var no in _estado.Configuracao.Nos)
             {

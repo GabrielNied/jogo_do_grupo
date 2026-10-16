@@ -11,8 +11,11 @@ public interface IPontosDeNivel
     /// <summary>Pontos livres. Zero se o personagem não existe.</summary>
     Task<int> ObterAsync(long personagemId, CancellationToken cancelamento);
 
+    /// <summary>Nível do personagem. 1 se ele não existe.</summary>
+    Task<int> ObterNivelAsync(long personagemId, CancellationToken cancelamento);
+
     /// <summary>
-    /// Tira <paramref name="quantidade"/> dos pontos livres de uma vez só: falso, sem mudar
+    /// Tira<paramref name="quantidade"/> dos pontos livres de uma vez só: falso, sem mudar
     /// nada, se o personagem não existe ou tem menos que isso. A baixa vale já na transação
     /// aberta do chamador (não precisa de <c>SaveChanges</c>) e some junto se ele desfizer.
     /// </summary>

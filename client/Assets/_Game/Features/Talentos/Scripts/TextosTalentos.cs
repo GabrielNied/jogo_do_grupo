@@ -43,6 +43,9 @@ namespace JogoDoGrupo.Client.Features.Talentos
         public const string NomePerfilInvalido =
             "Nome de perfil inválido (deve ter entre 1 e 32 caracteres).";
 
+        public static string RedistribuirComCusto(long custo) =>
+            Redistribuir + " (" + custo + " coroas)";
+
         public static string ConfirmarRedistribuicao(long custo) =>
             "Deseja redistribuir todos os pontos por "
             + custo

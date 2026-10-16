@@ -23,7 +23,7 @@ public class TalentosRotasTestes(ServidorDeTeste servidor) : IClassFixture<Servi
     private static readonly string Forca2 = ArvoreDeTeste.IdPequeno(AtributoPrincipal.Forca, 1);
     private static readonly string Vigor1 = ArvoreDeTeste.IdPequeno(AtributoPrincipal.Vigor, 0);
 
-    private async Task<(HttpClient Cliente, long Id)> NovoPersonagemAsync(int pontos)
+    private async Task<(HttpClient Cliente, long Id)> NovoPersonagemAsync(int pontos, int nivel = 1)
     {
         var cliente = await servidor.CriarClienteLogadoAsync();
         var resposta = await ServidorDeTeste.PostJsonAsync(
@@ -39,6 +39,7 @@ public class TalentosRotasTestes(ServidorDeTeste servidor) : IClassFixture<Servi
         var personagem = await db.Set<JogoDoGrupo.Server.Features.Personagem.Personagem>()
             .SingleAsync(p => p.Id == id);
         personagem.PontosLivres = pontos;
+        personagem.Nivel = nivel;
         await db.SaveChangesAsync();
         return (cliente, id);
     }
@@ -447,12 +448,51 @@ public class TalentosRotasTestes(ServidorDeTeste servidor) : IClassFixture<Servi
         Assert.Empty(arvore.Ranks);
         Assert.Equal(0, arvore.Atributos.Forca);
 
-        // Confere que debitou 100 coroas
+        // Confere que debitou o custo do nível 1
         await using (var escopo = servidor.Services.CreateAsyncScope())
         {
             var carteira = escopo.ServiceProvider.GetRequiredService<ICarteiraCoroas>();
-            Assert.Equal(400, await carteira.SaldoAsync(id, default));
+            Assert.Equal(
+                500 - ConfigRedistribuicao.CustoEmCoroas(1),
+                await carteira.SaldoAsync(id, default)
+            );
         }
+    }
+
+    [Fact]
+    public async Task Redistribuir_custa_mais_em_nivel_alto_e_a_arvore_mostra_o_custo()
+    {
+        var (cliente, id) = await NovoPersonagemAsync(5, nivel: 50);
+        (await ComprarAsync(cliente, id, Forca1, 1)).EnsureSuccessStatusCode();
+        var custo = ConfigRedistribuicao.CustoEmCoroas(50);
+        Assert.True(custo > ConfigRedistribuicao.CustoEmCoroas(1));
+        Assert.Equal(custo, (await LerArvoreAsync(cliente, id)).CustoRedistribuicaoCoroas);
+
+        // Um a menos que o custo: recusa e nada muda.
+        await CreditarCoroasAsync(id, custo - 1);
+        var recusada = await ServidorDeTeste.PostJsonAsync(
+            cliente,
+            RotasTalentos.RedistribuirDe(id),
+            new RedistribuirRequest { VersaoConfiguracao = ArvoreDeTeste.Versao }
+        );
+        await AssertErroAsync(
+            recusada,
+            HttpStatusCode.Conflict,
+            CodigosErroTalentos.SaldoInsuficiente
+        );
+        Assert.Equal(1, (await LerArvoreAsync(cliente, id)).PontosGastos);
+
+        // Com o custo exato: cobra tudo.
+        await CreditarCoroasAsync(id, 1);
+        var aceita = await ServidorDeTeste.PostJsonAsync(
+            cliente,
+            RotasTalentos.RedistribuirDe(id),
+            new RedistribuirRequest { VersaoConfiguracao = ArvoreDeTeste.Versao }
+        );
+        Assert.Equal(HttpStatusCode.OK, aceita.StatusCode);
+        await using var escopo = servidor.Services.CreateAsyncScope();
+        var carteira = escopo.ServiceProvider.GetRequiredService<ICarteiraCoroas>();
+        Assert.Equal(0, await carteira.SaldoAsync(id, default));
     }
 
     [Fact]

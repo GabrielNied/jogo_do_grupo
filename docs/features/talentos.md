@@ -153,7 +153,7 @@ Decisões de design tomadas pela IA ao implementar, sem esperar resposta (mudam 
 ## Implementação da #626 (redistribuição paga e perfis de build)
 
 - **Redistribuição Paga:**
-  - Custo configurável em `ConfigRedistribuicao.CustoPadraoCoroas` (100 coroas, valor de teste).
+  - Custo em coroas que **escala com o nível** do personagem (#910): `ConfigRedistribuicao.CustoEmCoroas(nivel)` = 50 + 0,5 × nível², arredondado a 10 (nível 1: 50; 10: 100; 20: 250; 50: 1.300; 100: 5.050). O servidor lê o nível por `IPontosDeNivel.ObterNivelAsync` e devolve o custo previsto em `ArvoreResponse.CustoRedistribuicaoCoroas`; o botão e a confirmação da tela só mostram esse número.
   - Consulta `IEstadoDeCombate` (ADR 0016): se o personagem estiver em combate, a ação é recusada com `EmCombate` (409 Conflict).
   - Valida se `PontosGastos > 0`: se nenhum ponto foi gasto, recusa com `NenhumPontoGasto` (400 Bad Request).
   - Valida saldo e cobra via `ICarteiraCoroas` na mesma transação atômica serializável; saldo insuficiente recusa com `SaldoInsuficiente` (409 Conflict).

@@ -17,6 +17,16 @@ public sealed class PontosDeNivel(JogoDbContext db) : IPontosDeNivel
             .Select(p => p.PontosLivres)
             .FirstOrDefaultAsync(cancelamento);
 
+    public async Task<int> ObterNivelAsync(long personagemId, CancellationToken cancelamento)
+    {
+        var nivel = await db.Set<Personagem>()
+            .AsNoTracking()
+            .Where(p => p.Id == personagemId)
+            .Select(p => p.Nivel)
+            .FirstOrDefaultAsync(cancelamento);
+        return nivel > 0 ? nivel : Personagem.NivelInicial;
+    }
+
     public async Task<bool> TentarGastarAsync(
         long personagemId,
         int quantidade,

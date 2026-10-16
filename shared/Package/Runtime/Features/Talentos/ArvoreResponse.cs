@@ -16,6 +16,13 @@ namespace JogoDoGrupo.Shared.Features.Talentos
         /// <summary>Pontos já pagos em nós (o que a redistribuição devolveria).</summary>
         public int PontosGastos = 0;
 
+        /// <summary>
+        /// Coroas que a redistribuição custaria agora, no nível do personagem
+        /// (<see cref="ConfigRedistribuicao.CustoEmCoroas"/>). O servidor cobra este valor; a tela
+        /// só o mostra.
+        /// </summary>
+        public long CustoRedistribuicaoCoroas = 0;
+
         public RankDoNo[] Ranks = new RankDoNo[0];
 
         /// <summary>Soma dos atributos principais que os nós comprados dão.</summary>

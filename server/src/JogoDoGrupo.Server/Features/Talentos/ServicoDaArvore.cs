@@ -46,7 +46,7 @@ public sealed class ServicoDaArvore(
             .Where(n => n.PersonagemId == personagemId)
             .ToListAsync(cancelamento);
         var livres = await pontos.ObterAsync(personagemId, cancelamento);
-        return Montar(cabecalho, nos, livres);
+        return Montar(cabecalho, nos, livres, await CustoAsync(personagemId, cancelamento));
     }
 
     /// <summary>
@@ -95,7 +95,10 @@ public sealed class ServicoDaArvore(
 
         if (avaliacao.JaComprado)
         {
-            return new ResultadoDaCompra(Montar(cabecalho, nos, livres), null);
+            return new ResultadoDaCompra(
+                Montar(cabecalho, nos, livres, await CustoAsync(personagemId, cancelamento)),
+                null
+            );
         }
 
         if (!await pontos.TentarGastarAsync(personagemId, avaliacao.Custo, cancelamento))
@@ -127,7 +130,15 @@ public sealed class ServicoDaArvore(
 
         await db.SaveChangesAsync(cancelamento);
         await transacao.CommitAsync(cancelamento);
-        return new ResultadoDaCompra(Montar(cabecalho, nos, livres - avaliacao.Custo), null);
+        return new ResultadoDaCompra(
+            Montar(
+                cabecalho,
+                nos,
+                livres - avaliacao.Custo,
+                await CustoAsync(personagemId, cancelamento)
+            ),
+            null
+        );
     }
 
     /// <summary>
@@ -171,11 +182,8 @@ public sealed class ServicoDaArvore(
             return new ResultadoDaRedistribuicao(null, CodigosErroTalentos.NenhumPontoGasto);
         }
 
-        var cobrou = await carteira.DebitarAsync(
-            personagemId,
-            ConfigRedistribuicao.CustoPadraoCoroas,
-            cancelamento
-        );
+        var custo = await CustoAsync(personagemId, cancelamento);
+        var cobrou = await carteira.DebitarAsync(personagemId, custo, cancelamento);
         if (!cobrou)
         {
             return new ResultadoDaRedistribuicao(null, CodigosErroTalentos.SaldoInsuficiente);
@@ -201,7 +209,7 @@ public sealed class ServicoDaArvore(
         await transacao.CommitAsync(cancelamento);
 
         var livres = await pontos.ObterAsync(personagemId, cancelamento);
-        return new ResultadoDaRedistribuicao(Montar(cabecalho, nos, livres), null);
+        return new ResultadoDaRedistribuicao(Montar(cabecalho, nos, livres, custo), null);
     }
 
     /// <summary>Lista todos os perfis de build salvos do personagem.</summary>
@@ -459,7 +467,12 @@ public sealed class ServicoDaArvore(
         await db.SaveChangesAsync(cancelamento);
         await transacao.CommitAsync(cancelamento);
 
-        var respostaArvore = Montar(cabecalho, nos, livres - diferenca);
+        var respostaArvore = Montar(
+            cabecalho,
+            nos,
+            livres - diferenca,
+            await CustoAsync(personagemId, cancelamento)
+        );
         return new ResultadoCarregarPerfil(
             new CarregarPerfilResponse
             {
@@ -500,7 +513,18 @@ public sealed class ServicoDaArvore(
             .Select(n => new RankDoNo { NoId = n.NoId, Rank = n.Rank })
             .ToArray();
 
-    private ArvoreResponse Montar(ArvoreDoPersonagem? cabecalho, List<NoComprado> nos, int livres)
+    /// <summary>Coroas da redistribuição no nível atual do personagem (a regra é do shared).</summary>
+    private async Task<long> CustoAsync(long personagemId, CancellationToken cancelamento) =>
+        ConfigRedistribuicao.CustoEmCoroas(
+            await pontos.ObterNivelAsync(personagemId, cancelamento)
+        );
+
+    private ArvoreResponse Montar(
+        ArvoreDoPersonagem? cabecalho,
+        List<NoComprado> nos,
+        int livres,
+        long custoRedistribuicao
+    )
     {
         var ranks = Ranks(nos);
         return new ArvoreResponse
@@ -508,6 +532,7 @@ public sealed class ServicoDaArvore(
             Configuracao = configuracao,
             PontosLivres = livres,
             PontosGastos = cabecalho?.PontosGastos ?? 0,
+            CustoRedistribuicaoCoroas = custoRedistribuicao,
             Ranks = ranks,
             Atributos = RegrasDaArvore.SomarAtributos(
                 configuracao,
