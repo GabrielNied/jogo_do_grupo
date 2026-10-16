@@ -61,25 +61,25 @@ namespace JogoDoGrupo.Client.Core.Tests
         }
 
         [Test]
-        public void Andar_UsaVelocidadeDeAndar()
+        public void AndarDevagar_UsaVelocidadeDeAndar()
         {
             var movimento = new MovimentoTerceiraPessoa();
 
             Assert.AreEqual(
                 movimento.VelocidadeAndar,
-                movimento.VelocidadeAlvo(Vector2.up, false),
+                movimento.VelocidadeAlvo(Vector2.up, true),
                 Tolerancia
             );
         }
 
         [Test]
-        public void Correr_UsaVelocidadeDeCorrer()
+        public void SemTecla_SempreCorre()
         {
             var movimento = new MovimentoTerceiraPessoa();
 
             Assert.AreEqual(
                 movimento.VelocidadeCorrer,
-                movimento.VelocidadeAlvo(Vector2.up, true),
+                movimento.VelocidadeAlvo(Vector2.up, false),
                 Tolerancia
             );
             Assert.Greater(movimento.VelocidadeCorrer, movimento.VelocidadeAndar);
@@ -91,7 +91,7 @@ namespace JogoDoGrupo.Client.Core.Tests
             var movimento = new MovimentoTerceiraPessoa();
 
             Assert.AreEqual(
-                movimento.VelocidadeAndar,
+                movimento.VelocidadeCorrer,
                 movimento.VelocidadeAlvo(new Vector2(1f, 1f), false),
                 Tolerancia
             );
@@ -104,7 +104,7 @@ namespace JogoDoGrupo.Client.Core.Tests
 
             Assert.AreEqual(
                 movimento.VelocidadeCorrer * 0.5f,
-                movimento.VelocidadeAlvo(new Vector2(0f, 0.5f), true),
+                movimento.VelocidadeAlvo(new Vector2(0f, 0.5f), false),
                 Tolerancia
             );
         }
@@ -274,8 +274,8 @@ namespace JogoDoGrupo.Client.Core.Tests
 
             movimento.VelocidadeCorrer = 12f;
 
-            Assert.AreEqual(12f, movimento.VelocidadeAlvo(Vector2.up, true), Tolerancia);
-            Assert.AreEqual(2f, movimento.VelocidadeAlvo(Vector2.up, false), Tolerancia);
+            Assert.AreEqual(12f, movimento.VelocidadeAlvo(Vector2.up, false), Tolerancia);
+            Assert.AreEqual(2f, movimento.VelocidadeAlvo(Vector2.up, true), Tolerancia);
         }
 
         [Test]

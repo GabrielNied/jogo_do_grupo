@@ -57,10 +57,10 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
         /// <summary>Buffer de pulo (s): janela para pulo antes de tocar o chão.</summary>
         public float BufferDePulo { get; set; } = BufferDePuloPadrao;
 
-        /// <summary>Velocidade de andar, em m/s.</summary>
+        /// <summary>Velocidade de andar devagar (Ctrl esquerdo segurado), em m/s.</summary>
         public float VelocidadeAndar { get; set; } = VelocidadeAndarPadrao;
 
-        /// <summary>Velocidade de correr (Shift), em m/s.</summary>
+        /// <summary>Velocidade normal: o personagem está sempre correndo (#894), em m/s.</summary>
         public float VelocidadeCorrer { get; set; } = VelocidadeCorrerPadrao;
 
         /// <summary>Quanto a velocidade muda por segundo ao acelerar ou frear, em m/s².</summary>
@@ -137,12 +137,12 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
         }
 
         /// <summary>
-        /// Velocidade horizontal desejada, em m/s: andar ou correr vezes a intensidade do input.
-        /// Correr sem input continua parado.
+        /// Velocidade horizontal desejada, em m/s: correr (padrão) ou andar devagar vezes a
+        /// intensidade do input. Sem input continua parado.
         /// </summary>
-        public float VelocidadeAlvo(Vector2 entrada, bool correndo)
+        public float VelocidadeAlvo(Vector2 entrada, bool devagar)
         {
-            var maxima = correndo ? VelocidadeCorrer : VelocidadeAndar;
+            var maxima = devagar ? VelocidadeAndar : VelocidadeCorrer;
             return maxima * Intensidade(entrada);
         }
 

@@ -14,7 +14,7 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
         private readonly InputAction _mover;
         private readonly InputAction _olharMouse;
         private readonly InputAction _zoom;
-        private readonly InputAction _correr;
+        private readonly InputAction _andarDevagar;
         private readonly InputAction _pular;
         private readonly InputAction _subir;
         private readonly InputAction _menu;
@@ -53,8 +53,11 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
                 expectedControlType: "Axis"
             );
 
-            _correr = new InputAction("Correr", InputActionType.Button, "<Keyboard>/leftShift");
-            _correr.AddBinding("<Keyboard>/rightShift");
+            _andarDevagar = new InputAction(
+                "AndarDevagar",
+                InputActionType.Button,
+                "<Keyboard>/leftCtrl"
+            );
 
             _pular = new InputAction("Pular", InputActionType.Button, "<Keyboard>/space");
 
@@ -76,7 +79,7 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
             _mover.ApplyBindingOverride(2, TeclasDoJogo.Caminho(TeclasDoJogo.Tras));
             _mover.ApplyBindingOverride(3, TeclasDoJogo.Caminho(TeclasDoJogo.Esquerda));
             _mover.ApplyBindingOverride(4, TeclasDoJogo.Caminho(TeclasDoJogo.Direita));
-            _correr.ApplyBindingOverride(0, TeclasDoJogo.Caminho(TeclasDoJogo.Correr));
+            _andarDevagar.ApplyBindingOverride(0, TeclasDoJogo.Caminho(TeclasDoJogo.AndarDevagar));
             _pular.ApplyBindingOverride(0, TeclasDoJogo.Caminho(TeclasDoJogo.Pular));
             _subir.ApplyBindingOverride(1, TeclasDoJogo.Caminho(TeclasDoJogo.Pular));
         }
@@ -105,8 +108,8 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
         /// <summary>Analógico direito; zero enquanto gamepad estiver fora do escopo (#508).</summary>
         public Vector2 OlharControle => Vector2.zero;
 
-        /// <summary>Se o botão de correr está pressionado.</summary>
-        public bool Correr => _correr.IsPressed();
+        /// <summary>Se o botão de andar devagar (Ctrl esquerdo) está pressionado; sem ele, corre.</summary>
+        public bool AndarDevagar => _andarDevagar.IsPressed();
 
         /// <summary>Se o botão de pular (Espaço) foi apertado neste frame.</summary>
         public bool PularApertado => _pular.WasPressedThisFrame();
@@ -122,7 +125,7 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
             _mover.Enable();
             _olharMouse.Enable();
             _zoom.Enable();
-            _correr.Enable();
+            _andarDevagar.Enable();
             _pular.Enable();
             _subir.Enable();
             _menu.Enable();
@@ -133,7 +136,7 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
             _mover.Disable();
             _olharMouse.Disable();
             _zoom.Disable();
-            _correr.Disable();
+            _andarDevagar.Disable();
             _pular.Disable();
             _subir.Disable();
             _menu.Disable();
@@ -145,7 +148,7 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
             _mover.Dispose();
             _olharMouse.Dispose();
             _zoom.Dispose();
-            _correr.Dispose();
+            _andarDevagar.Dispose();
             _pular.Dispose();
             _subir.Dispose();
             _menu.Dispose();
