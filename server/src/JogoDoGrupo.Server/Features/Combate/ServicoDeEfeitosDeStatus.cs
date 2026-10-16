@@ -175,6 +175,14 @@ public sealed class ServicoDeEfeitosDeStatus : IHostedService, IDisposable
     {
         try
         {
+            if (
+                _queda?.EstaCaido(dano.EntidadeId) == true
+                || _queda?.EstaImuneAposLevantar(dano.EntidadeId) == true
+            )
+            {
+                return;
+            }
+
             var recursos = await RecursosDoAtaque.TirarVidaAsync(
                 _escopos,
                 dano.EntidadeId,

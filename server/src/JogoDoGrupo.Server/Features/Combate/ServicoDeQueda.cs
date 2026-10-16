@@ -64,6 +64,11 @@ public sealed class ServicoDeQueda : IEstadoDeQueda, IHostedService, IDisposable
         _tempoReal.SessaoEncerrada += AoEncerrar;
     }
 
+    internal ControleDeQueda Controle => _controle;
+
+    internal void LimparGravandoParaTeste(long personagemId) =>
+        _gravando.TryRemove(personagemId, out _);
+
     public Task StartAsync(CancellationToken cancelamento) => Task.CompletedTask;
 
     public Task StopAsync(CancellationToken cancelamento)
@@ -85,6 +90,19 @@ public sealed class ServicoDeQueda : IEstadoDeQueda, IHostedService, IDisposable
     /// </summary>
     public bool EstaCaido(long personagemId) =>
         _controle.EstaCaido(personagemId) || _gravando.ContainsKey(personagemId);
+
+    /// <summary>
+    /// Verdadeiro durante os primeiros 2 s após ser levantado por um aliado. Nesse intervalo
+    /// o personagem não recebe dano.
+    /// </summary>
+    public bool EstaImuneAposLevantar(long personagemId, long agoraMs) =>
+        _controle.EstaImuneAposLevantar(personagemId, agoraMs);
+
+    /// <summary>
+    /// Verdadeiro durante os primeiros 2 s após ser levantado por um aliado no instante atual.
+    /// </summary>
+    public bool EstaImuneAposLevantar(long personagemId) =>
+        _controle.EstaImuneAposLevantar(personagemId, _relogioMs());
 
     // ── Entradas vindas de Combate ────────────────────────────────────────────────
 

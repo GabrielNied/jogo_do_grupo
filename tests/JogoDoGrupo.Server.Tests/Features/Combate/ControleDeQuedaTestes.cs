@@ -86,12 +86,23 @@ public class ControleDeQuedaTestes
     }
 
     [Fact]
-    public void A_contagem_continua_correndo_enquanto_o_aliado_levanta()
+    public void A_contagem_pausa_enquanto_o_aliado_levanta_e_retoma_se_interrompido()
     {
         AnaCai();
+        // Aos 10 s (35 s restantes), Beto começa a levantar
         Levantar(Beto, Ana, Inicio + 10_000);
 
-        Assert.Equal(25_000, _controle.Situacao(Ana, Inicio + 20_000).RestanteMs);
+        // Enquanto Beto levanta, o tempo restante permanece pausado em 35 s
+        Assert.Equal(35_000, _controle.Situacao(Ana, Inicio + 12_000).RestanteMs);
+
+        // Beto é interrompido aos 12 s (após 2 s de interação)
+        _controle.Interromper(Beto, Inicio + 12_000, out _);
+
+        // A contagem retoma: aos 12 s ainda restam 35 s
+        Assert.Equal(35_000, _controle.Situacao(Ana, Inicio + 12_000).RestanteMs);
+
+        // 10 s após a interrupção (aos 22 s), restam 25 s
+        Assert.Equal(25_000, _controle.Situacao(Ana, Inicio + 22_000).RestanteMs);
     }
 
     [Fact]
@@ -336,14 +347,35 @@ public class ControleDeQuedaTestes
     }
 
     [Fact]
-    public void Interacao_que_passaria_do_fim_do_tempo_nao_levanta()
+    public void Interacao_que_comeca_perto_do_fim_do_tempo_pausa_a_contagem_e_completa()
     {
         AnaCai();
-        Levantar(Beto, Ana, Inicio + 43_000); // completaria em 46 s, depois dos 45 s
+        // Aos 43 s faltavam 2 s para acabar a contagem
+        Levantar(Beto, Ana, Inicio + 43_000);
 
-        var saida = _controle.Resolver(Ana, Inicio + 45_000);
+        // Aos 45 s a contagem estaria em 0 se não pausasse, mas com a pausa Beto continua levantando
+        Assert.False(_controle.Resolver(Ana, Inicio + 45_000).Houve);
+        Assert.True(_controle.EstaCaido(Ana));
 
-        Assert.Equal(new SaidaDaQueda(TipoDeSaida.Retorno, Ana, Beto), saida);
+        // Aos 46 s (3 s de ajuda completados), Ana levanta com sucesso
+        var saida = _controle.Resolver(Ana, Inicio + 46_000);
+        Assert.Equal(new SaidaDaQueda(TipoDeSaida.Levantou, Ana, Beto), saida);
+        Assert.False(_controle.EstaCaido(Ana));
+    }
+
+    [Fact]
+    public void Ao_levantar_personagem_fica_imune_a_dano_por_2_segundos()
+    {
+        AnaCai();
+        Levantar(Beto, Ana, Inicio + 1_000);
+        var saida = _controle.Resolver(Ana, Inicio + 4_000);
+        Assert.Equal(TipoDeSaida.Levantou, saida.Tipo);
+
+        // 1,999 s após levantar ainda está imune
+        Assert.True(_controle.EstaImuneAposLevantar(Ana, Inicio + 4_000 + 1_999));
+
+        // Exatamente 2,0 s a imunidade acaba
+        Assert.False(_controle.EstaImuneAposLevantar(Ana, Inicio + 4_000 + 2_000));
     }
 
     [Fact]

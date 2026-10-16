@@ -108,8 +108,11 @@ public sealed class ServicoDeDanoRecebido : IHostedService
                 return;
             }
 
-            // Quem está caído não recebe dano.
-            if (_queda?.EstaCaido(golpe.PersonagemId) == true)
+            // Quem está caído ou com imunidade temporária após levantar não recebe dano.
+            if (
+                _queda?.EstaCaido(golpe.PersonagemId) == true
+                || _queda?.EstaImuneAposLevantar(golpe.PersonagemId, _relogioMs()) == true
+            )
             {
                 return;
             }

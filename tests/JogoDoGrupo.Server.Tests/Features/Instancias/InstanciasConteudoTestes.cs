@@ -382,4 +382,94 @@ public sealed class InstanciasConteudoTestes
         Assert.Equal(ResultadoDungeon.Derrota, encerrada.Resultado);
         Assert.Equal(0, f.Instancias.CorridasAtivas);
     }
+
+    [Fact]
+    public async Task Membro_que_retornou_a_cidade_reentra_na_dungeon_enquanto_grupo_continua_la()
+    {
+        using var f = new InstanciasFixture();
+        using var lider = await f.EntrarAsync();
+        using var membro = await f.EntrarAsync();
+        f.Grupos.Definir(100, lider.PersonagemId, lider.PersonagemId, membro.PersonagemId);
+
+        lider.Cliente.Enviar(InstanciasMessageIds.EntrarNaDungeon, new EntrarNaDungeon());
+        var inicio = await lider.Cliente.ReceberAsync<DungeonIniciada>(
+            InstanciasMessageIds.DungeonIniciada
+        );
+        await membro.Cliente.ReceberAsync<DungeonIniciada>(InstanciasMessageIds.DungeonIniciada);
+
+        // Membro cai e retorna à cidade perto da entrada da dungeon
+        f.Queda.Derrubar(membro.PersonagemId);
+        var transicoes = f.Fabrica.Services.GetRequiredService<ITransicoesDeAreaDoMundo>();
+        var posPortaCidade = new PosicaoNoMundo(
+            AreasDoMundo.Cidade,
+            LayoutDaMinaDoReflexo.EntradaX,
+            0f,
+            LayoutDaMinaDoReflexo.EntradaZ,
+            0f
+        );
+        transicoes.TentarMoverParaArea(membro.PersonagemId, posPortaCidade);
+        f.Posicoes.Definir(membro.PersonagemId, posPortaCidade);
+        f.Queda.Levantar(membro.PersonagemId); // Já retornou / ressuscitou na cidade
+
+        // A instância continua aberta porque o líder continua de pé na dungeon
+        f.Relogio.Advance(TimeSpan.FromSeconds(5));
+        f.Instancias.VarrerDerrota();
+        Assert.Equal(1, f.Instancias.CorridasAtivas);
+
+        // Membro pede para entrar na dungeon novamente a partir da porta da cidade
+        membro.Cliente.Enviar(InstanciasMessageIds.EntrarNaDungeon, new EntrarNaDungeon());
+        var reentrada = await membro.Cliente.ReceberAsync<DungeonIniciada>(
+            InstanciasMessageIds.DungeonIniciada
+        );
+        Assert.Equal(inicio.IdInstancia, reentrada.IdInstancia);
+        Assert.Equal(inicio.Area, reentrada.Area);
+
+        // Posição do membro foi movida para o spawn da instância
+        var posicoes = f.Fabrica.Services.GetRequiredService<IPosicoesDoMundo>();
+        Assert.True(posicoes.TentarObter(membro.PersonagemId, out var dentro));
+        Assert.Equal(inicio.Area, dentro.Area);
+    }
+
+    [Fact]
+    public async Task Instancia_fechada_recusa_reentrada()
+    {
+        using var f = new InstanciasFixture();
+        using var lider = await f.EntrarAsync();
+        using var membro = await f.EntrarAsync();
+        f.Grupos.Definir(100, lider.PersonagemId, lider.PersonagemId, membro.PersonagemId);
+
+        lider.Cliente.Enviar(InstanciasMessageIds.EntrarNaDungeon, new EntrarNaDungeon());
+        await lider.Cliente.ReceberAsync<DungeonIniciada>(InstanciasMessageIds.DungeonIniciada);
+        await membro.Cliente.ReceberAsync<DungeonIniciada>(InstanciasMessageIds.DungeonIniciada);
+
+        // Membro retorna para a cidade
+        var transicoes = f.Fabrica.Services.GetRequiredService<ITransicoesDeAreaDoMundo>();
+        var posPortaCidade = new PosicaoNoMundo(
+            AreasDoMundo.Cidade,
+            LayoutDaMinaDoReflexo.EntradaX,
+            0f,
+            LayoutDaMinaDoReflexo.EntradaZ,
+            0f
+        );
+        transicoes.TentarMoverParaArea(membro.PersonagemId, posPortaCidade);
+        f.Posicoes.Definir(membro.PersonagemId, posPortaCidade);
+
+        // Instância encerra por derrota (líder também cai após carência)
+        f.Relogio.Advance(TimeSpan.FromSeconds(5));
+        f.Queda.Derrubar(lider.PersonagemId);
+        f.Instancias.VarrerDerrota();
+        var encerrada = await lider.Cliente.ReceberAsync<DungeonEncerrada>(
+            InstanciasMessageIds.DungeonEncerrada
+        );
+        Assert.Equal(ResultadoDungeon.Derrota, encerrada.Resultado);
+        Assert.Equal(0, f.Instancias.CorridasAtivas);
+
+        // Membro tenta entrar na dungeon que já foi encerrada
+        membro.Cliente.Enviar(InstanciasMessageIds.EntrarNaDungeon, new EntrarNaDungeon());
+        var recusa = await membro.Cliente.ReceberAsync<EntradaRecusada>(
+            InstanciasMessageIds.EntradaRecusada
+        );
+        Assert.NotNull(recusa);
+        Assert.Equal(CodigosErroInstancias.NaoELider, recusa.Codigo);
+    }
 }

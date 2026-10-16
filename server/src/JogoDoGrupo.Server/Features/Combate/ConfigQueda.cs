@@ -17,6 +17,9 @@ public sealed record ConfigQueda
     /// <summary>Tempo caído antes de poder pedir para voltar à cidade.</summary>
     public int MinimoParaVoltarMs { get; init; } = RegrasQueda.MinimoParaVoltarMs;
 
+    /// <summary>Tempo de imunidade a dano após ser levantado por um aliado.</summary>
+    public int ImunidadeAposLevantarMs { get; init; } = RegrasQueda.ImunidadeAposLevantarMs;
+
     /// <summary>De quanto em quanto tempo o servidor confere o alcance do ajudante.</summary>
     public int IntervaloDeConferenciaMs { get; init; } = 100;
 }

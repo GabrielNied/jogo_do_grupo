@@ -26,6 +26,9 @@ namespace JogoDoGrupo.Shared.Features.Combate
         /// <summary>Segundos caído antes de poder pedir para voltar à cidade (5,0 já vale).</summary>
         public const double MinimoParaVoltarSegundos = 5.0;
 
+        /// <summary>Segundos sem receber dano após ser levantado por um aliado.</summary>
+        public const double ImunidadeAposLevantarSegundos = 2.0;
+
         // ── Regras ────────────────────────────────────────────────────────────────
 
         public static int DuracaoCaidoMs => Milissegundos(DuracaoCaidoSegundos);
@@ -33,6 +36,8 @@ namespace JogoDoGrupo.Shared.Features.Combate
         public static int TempoParaLevantarMs => Milissegundos(TempoParaLevantarSegundos);
 
         public static int MinimoParaVoltarMs => Milissegundos(MinimoParaVoltarSegundos);
+
+        public static int ImunidadeAposLevantarMs => Milissegundos(ImunidadeAposLevantarSegundos);
 
         /// <summary>Vida com que o personagem levanta: 20% do máximo, arredondado para cima, no mínimo 1.</summary>
         public static int VidaAoLevantar(int vidaMaxima)

@@ -392,10 +392,28 @@ public class QuedaTestes(ServidorDeQueda servidor) : IClassFixture<ServidorDeQue
         Levantar(beto, ana);
         await EstadoAsync(ana, FaseDeQueda.Vivo);
 
+        // Espera a imunidade temporária de 2 s expirar antes do próximo golpe
+        await Task.Delay(RegrasQueda.ImunidadeAposLevantarMs + 50);
+
         await DerrubarAsync(ana);
 
         Assert.True(servidor.Queda.EstaCaido(ana.Id));
         Assert.Equal(2, servidor.Eventos<PersonagemCaiu>(ana.Id));
+    }
+
+    [Fact]
+    public async Task Golpe_durante_a_imunidade_apos_levantar_e_ignorado()
+    {
+        using var ana = await NovoJogadorAsync();
+        using var beto = await NovoJogadorAsync(1f, 0f);
+        await DerrubarAsync(ana);
+        Levantar(beto, ana);
+        await EstadoAsync(ana, FaseDeQueda.Vivo);
+
+        // Golpe imediatamente após levantar (dentro dos 2 s de imunidade) não causa dano
+        Golpear(ana, 100_000);
+        await Task.Delay(200);
+        Assert.False(servidor.Queda.EstaCaido(ana.Id));
     }
 
     [Fact]
