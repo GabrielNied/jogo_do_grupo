@@ -63,4 +63,4 @@ Se o `puxar` avisar **REVISAR RELEVÂNCIA**, o dono confere pelo `git diff` most
 
 ## 6. Fechar
 
-Antes do relatório, a [reflexão de custo](../../../docs/agentes.md#custo-de-ia): corte que cabe entra num PR; sem corte, silêncio. Relatório curto: PRs (links) por lote, como testar, decisões de design, o que ficou de fora e por quê, o que o `/decida` precisa destravar. Só diga "pronto para merge" com o CI verde (e o revisor, se rodou). Merge é humano; a limpeza é automática.
+Antes do relatório, a [reflexão de custo](../../../docs/agentes.md#custo-de-ia): corte que cabe entra num PR; sem corte, silêncio. Relatório curto: PRs (links) por lote, como testar, decisões de design, o que ficou de fora e por quê, o que o `/decida` precisa destravar. Relate assim que o último lote abrir PR, com o estado do CI naquele momento (verde, vermelho ou rodando); nunca feche o turno esperando CI ou notificação sem o relatório. Só diga "pronto para merge" com o CI verde (e o revisor, se rodou). Merge é humano; a limpeza é automática.
