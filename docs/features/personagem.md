@@ -52,13 +52,13 @@ Estas funções não concedem prêmios nem persistem dados. Integração com ser
 
 ## Atributos do personagem
 
-Decidido por Gabriel em 2026-10-12 (especificação de atributos; entrada em [arvore-de-atributos.md](../brainstorm/arvore-de-atributos.md)). **Prioridade alta**, épico [#621](https://github.com/GabrielNied/jogo_do_grupo/issues/621). A estrutura está definida; as fórmulas e os valores estão **propostos** na [#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627) e viram definitivos com a aprovação de Gabriel no review do PR (tabela em [talentos](talentos.md#implementação-da-627-números-da-árvore-e-dos-atributos)). Esta seção é a fonte do que cada atributo faz; a árvore que distribui os pontos está em [talentos.md](talentos.md).
+Decidido por Gabriel em 2026-10-12 (especificação de atributos; entrada em [arvore-de-atributos.md](../brainstorm/arvore-de-atributos.md)). **Prioridade alta**, épico [#621](https://github.com/GabrielNied/jogo_do_grupo/issues/621). A estrutura está definida; fórmulas e valores da [#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627) foram **aprovados como base** em 2026-10-16 (quiz 5; tabela em [talentos](talentos.md#implementação-da-627-números-da-árvore-e-dos-atributos); calibrar na Sintonia). Esta seção é a fonte do que cada atributo faz; a árvore que distribui os pontos está em [talentos.md](talentos.md).
 
 **Princípio:** os atributos do personagem e os atributos dos equipamentos são **sistemas independentes**. A árvore é a progressão do personagem; os equipamentos têm atributos e progressão próprios ([itens](itens.md)). Os dois se encontram no combate, pelas fórmulas, mas não dividem pontos, e um não muda a progressão do outro (DEC-001, [itens](itens.md#invariantes)).
 
 ### Atributos principais
 
-| Atributo | Responsabilidade | O que faz | Valor por ponto (proposto na #627) |
+| Atributo | Responsabilidade | O que faz | Valor por ponto (#627, base aprovada) |
 |---|---|---|---|
 | Força | Dano físico | Aumenta o dano físico, conforme a arma e a skill usadas | +1,5% do dano |
 | Vigor | Vida | Aumenta a vida máxima | +12 de vida (base 500) |
@@ -101,7 +101,7 @@ Refinam a especialização e complementam os principais. Cada um é independente
 
 ### Números da #627
 
-Os valores de recursos e dano por ponto, os secundários, a árvore e o custo de redistribuir foram propostos pela simulação da [#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627) (tabelas em [talentos](talentos.md#implementação-da-627-números-da-árvore-e-dos-atributos)) e aguardam a aprovação de Gabriel no review do PR. Eles substituem os "valores de teste" da [fatia, seção 1](fatia-jogavel.md#1-atributos-e-recursos). Nenhum atributo principal dá regeneração, esquiva ou velocidade sem decisão registrada.
+Os valores de recursos e dano por ponto, os secundários, a árvore e o custo de redistribuir vêm da simulação da [#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627) (tabelas em [talentos](talentos.md#implementação-da-627-números-da-árvore-e-dos-atributos)), **aprovados como base** em 2026-10-16 (quiz 5). Eles substituem os "valores de teste" da [fatia, seção 1](fatia-jogavel.md#1-atributos-e-recursos). Nenhum atributo principal dá regeneração, esquiva ou velocidade sem decisão registrada.
 
 ### Transição
 

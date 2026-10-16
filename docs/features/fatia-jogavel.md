@@ -63,7 +63,7 @@ Quem decide: **servidor** (calcula, valida e envia o resultado; o client só mos
 | Vida | base 500, +12 por ponto de Vigor. Chegar a 0 leva ao estado caído (seção 7) | proposto na #627 |
 | Stamina | base 100, +2 por ponto de Agilidade. Paga esquiva, ataque pesado e guarda. | proposto na #627 |
 | Mana | base 100, +2 por ponto de Espírito. Paga as skills dos itens. | proposto na #627 |
-| Regeneração | após 2 s sem atacar, esquivar ou segurar a guarda: +10 stamina/s e +5 mana/s. Segurar a guarda pausa a espera mesmo antes de um golpe gastar stamina. Vida não regenera sozinha na fatia. Regeneração é atributo secundário próprio de cada recurso ([personagem](personagem.md#atributos-secundários)); Agilidade e Espírito não a aumentam (decidido) | base proposta na #627 |
+| Regeneração | após 2 s sem atacar, esquivar ou segurar a guarda: +10 stamina/s e +5 mana/s. Segurar a guarda pausa a espera mesmo antes de um golpe gastar stamina. Vida não regenera sozinha na fatia. Regeneração é atributo secundário próprio de cada recurso ([personagem](personagem.md#atributos-secundários)); Agilidade e Espírito não a aumentam (decidido) | base #627 (quiz 5) |
 | Cálculo | recalcular ao equipar ou desequipar; nunca somar o mesmo bônus duas vezes | proposta |
 | Limites | valor atual nunca passa do máximo nem fica negativo; reduzir o máximo não cura | proposta |
 
