@@ -58,6 +58,9 @@ namespace JogoDoGrupo.Shared.Features.Combate
         /// <summary>Servidor → quem está na área: um acerto interrompeu uma ação.</summary>
         public const ushort AcaoInterrompida = 6033;
 
+        /// <summary>Servidor → dono: a defesa foi insuficiente para anular o impacto do golpe.</summary>
+        public const ushort DefesaInsuficiente = 6034;
+
         /// <summary>Servidor → dono e área: os efeitos de status de uma entidade mudaram.</summary>
         public const ushort EfeitosDeStatusMudaram = 6040;
 

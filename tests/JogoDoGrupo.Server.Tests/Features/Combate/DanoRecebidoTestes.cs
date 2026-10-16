@@ -8,6 +8,7 @@ using JogoDoGrupo.Server.Tests.Infra;
 using JogoDoGrupo.Shared.Features.Combate;
 using JogoDoGrupo.Shared.Features.Itens;
 using JogoDoGrupo.Shared.Features.Mobs;
+using JogoDoGrupo.Shared.Features.Mundo;
 using JogoDoGrupo.Shared.Features.Personagem;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -261,5 +262,97 @@ public class DanoRecebidoTestes(ServidorDeAtaque servidor) : IClassFixture<Servi
         );
         Assert.True(interrompida.Jogador);
         Assert.Equal(ana.Id, interrompida.AlvoId);
+    }
+
+    private static void Guardar(Jogador j, bool segurando) =>
+        j.Cliente.Enviar(
+            CombateMessageIds.IntencaoDeGuarda,
+            new IntencaoDeGuarda { Segurando = segurando }
+        );
+
+    private async Task DefinirStaminaAsync(Jogador j, int stamina)
+    {
+        await RecursosAsync(j);
+        var memoria = servidor.Falso.Services.GetRequiredService<RecursosEmMemoria>();
+        await memoria.GravarAsync(j.Id);
+        using var escopo = servidor.Falso.Services.CreateScope();
+        var db = escopo.ServiceProvider.GetRequiredService<JogoDbContext>();
+        var r = await db.Set<RecursosPersonagem>().SingleAsync(x => x.PersonagemId == j.Id);
+        r.Stamina = stamina;
+        await db.SaveChangesAsync();
+        memoria.Descartar(j.Id);
+    }
+
+    [Fact]
+    public async Task Defesa_maior_ou_igual_a_um_e_meio_da_potencia_anula_o_dano_direto()
+    {
+        using var ana = await NovoJogadorAsync();
+        servidor.Bonus.Equipamentos = new AtributosDosEquipamentos { DefesaFisica = 45 };
+        var antes = await RecursosAsync(ana);
+
+        Golpear(ana.Id, 30);
+
+        var aviso = await MudouAsync(ana);
+        Assert.Equal(antes.VidaAtual, aviso.VidaAtual);
+        Assert.Equal(antes.VidaAtual, (await RecursosAsync(ana)).VidaAtual);
+        Assert.False(ana.Recebeu(CombateMessageIds.DefesaInsuficiente));
+    }
+
+    [Fact]
+    public async Task Defesa_parcial_reduz_o_dano_proporcionalmente()
+    {
+        using var ana = await NovoJogadorAsync();
+        // 22.5 é 50% de 45 (1.5 * 30). Redução de 50% de 80% = 40%. Dano 30 * 0.60 = 18.
+        servidor.Bonus.Equipamentos = new AtributosDosEquipamentos { DefesaFisica = 22.5 };
+        var antes = await RecursosAsync(ana);
+
+        Golpear(ana.Id, 30);
+
+        var aviso = await MudouAsync(ana);
+        Assert.Equal(antes.VidaAtual - 18, aviso.VidaAtual);
+        Assert.Equal(antes.VidaAtual - 18, (await RecursosAsync(ana)).VidaAtual);
+    }
+
+    [Fact]
+    public async Task Guarda_quebrada_com_defesa_insuficiente_emite_aviso_ao_cliente()
+    {
+        using var ana = await NovoJogadorAsync();
+        ana.Cliente.Enviar(MundoMessageIds.EntrarNaCidade, new EntrarNaCidade());
+        await ana.Cliente.ReceberAsync<EstadoDaCidade>(MundoMessageIds.EstadoDaCidade);
+
+        await DefinirStaminaAsync(ana, 10);
+        servidor.Bonus.Equipamentos = new AtributosDosEquipamentos { DefesaFisica = 15 };
+
+        Guardar(ana, true);
+        await ana.Cliente.ReceberAsync<GuardaMudou>(CombateMessageIds.GuardaMudou);
+
+        Golpear(ana.Id, 30);
+
+        var quebrou = await ana.Cliente.ReceberAsync<GuardaMudou>(CombateMessageIds.GuardaMudou);
+        Assert.True(quebrou.Quebrou);
+
+        var avisoDefesa = await ana.Cliente.ReceberAsync<DefesaInsuficiente>(
+            CombateMessageIds.DefesaInsuficiente
+        );
+        Assert.Equal(ana.Id, avisoDefesa.PersonagemId);
+        Assert.True(avisoDefesa.DanoResidual > 0);
+        Assert.Equal(30, avisoDefesa.DanoOriginal);
+    }
+
+    [Fact]
+    public async Task Golpe_magico_raios_mitiga_pela_defesa_magica()
+    {
+        using var ana = await NovoJogadorAsync();
+        servidor.Bonus.Equipamentos = new AtributosDosEquipamentos
+        {
+            DefesaMagica = 45,
+            DefesaFisica = 0,
+        };
+        var antes = await RecursosAsync(ana);
+
+        Golpear(ana.Id, 30, TipoDeAtaqueDeInimigo.Raios);
+
+        var aviso = await MudouAsync(ana);
+        Assert.Equal(antes.VidaAtual, aviso.VidaAtual);
     }
 }
