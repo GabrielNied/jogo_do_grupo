@@ -10,9 +10,10 @@ A pessoa chama um pet, ele segue por perto e some quando é dispensado. O servid
 
 ## Definido
 
-Decidido em 2026-10-12, a partir da proposta da #161 e do cervo jovem do livro:
+Decidido em 2026-10-12 (#161) e **revisto em 2026-10-16** (quiz de definições 3):
 
-- O primeiro pet é o **cervo jovem**. Ele já vem com o personagem; a captura pelo bestiário, que obtém outros, continua proposta em [mobs](mobs.md).
+- **Modelo alvo:** pets vêm de **drop raro** de mobs ([mobs](mobs.md#definido)), como **item negociável** (estilo WoW). **Usar o item registra o pet na conta**; não há captura pelo bestiário.
+- O **cervo jovem** que já vem com o personagem (#161) é **legado até alinhar** com drops; não é a regra final.
 - Um pet chamado por vez. Chamar de novo no mesmo pet não duplica.
 - Ele anda até o dono e para a **2 m** (`DistanciaDeSeguidaMetros`). Não fica em cima do dono. Se passar de **20 m** (`DistanciaParaAlcancarMetros`), o servidor o coloca de volta na distância de seguida.
 - Não luta, não é alvo e não é montaria. Não tem bolsa própria.

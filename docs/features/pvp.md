@@ -15,6 +15,7 @@ Arenas, PvP no mundo aberto e guerra de guildas.
   - **Sem perda na morte em PvP**, igual ao PvE ([personagem](personagem.md#morte-e-caído-issue-97)).
   - **Territórios (futuro):** guildas disputam os pontos marcados do mapa (os das bases, [mundo](mundo.md)) em guerra agendada e cobram imposto nas estações de lá. Sem facção de jogador.
 - ~~Arenas: tema ainda sem regra.~~ **Decidido por Gabriel em 2026-10-16** (quiz de definições): o primeiro PvP é **duelo 1v1** (pedido e aceite entre jogadores próximos) e **arena 3v3 com o equipamento real**, sem normalizar atributos, com ranking por temporada ([#193](https://github.com/GabrielNied/jogo_do_grupo/issues/193)).
+- **Decisões do Gabriel em 2026-10-16** (quiz de definições 3): **primeiro só bandeira opcional** no mundo aberto; **zonas PvP forçadas** entram depois, no mesmo épico PvP (#193).
 
 ## Em aberto
 

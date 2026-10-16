@@ -29,6 +29,10 @@ Moedas, mercado, comércio entre jogadores, saídas de recursos e taxas.
     - **Vendedor offline:** a pessoa contrata um manequim com a aparência do personagem, que fica na praça com ela deslogada e cobra uma **diária em coroas** (outra saída de moeda). As ofertas também entram no leilão.
     - Vem depois do leilão ([#176](https://github.com/GabrielNied/jogo_do_grupo/issues/176)).
   - **Redistribuir a árvore** custa coroas, escalando com o nível ([talentos](talentos.md#pendente)).
+- **Decisões do Gabriel em 2026-10-16** (quiz de definições 3):
+  - **Baú compartilhado:** só **banco pessoal entre personagens da conta** (já definido) e **banco de guilda** ([#338](https://github.com/GabrielNied/jogo_do_grupo/issues/338) refocada); **sem baú de party**.
+  - **Banco de guilda:** todos **depositam**; só **líder e oficial retiram** (membro e recruta só depositam).
+  - **Leilão (#176):** abre **interagindo com o NPC leiloeiro** na cidade (não de qualquer lugar).
 
 ## Em aberto
 
@@ -52,7 +56,7 @@ Proposta do board em 2026-10-11, **não validada pelo grupo** (seções 07, 08 e
 
 - **Cidade pronta (Brasa Mansa):** serviços já construídos: forja, cozinha, banco, mercado, vendedores. Construção de bases é "em breve", fora do MVP. NPCs e mapa: veja as docs de mundo e npcs.
 - **Banco pessoal:** armazenamento próprio na cidade; item depositado não fornece skills (só o equipado entra na preparação).
-- **Baú compartilhado:** grupo ou guilda compra acesso; permissões separadas de depositar e retirar (proposta).
+- ~~**Baú compartilhado:** grupo ou guilda compra acesso~~ Substituído em 2026-10-16 (quiz 3): só **guilda** (party saiu); banco pessoal por conta continua em Definido.
 - **Mercado:** ~~listagem simples a preço fixo, compra direta~~ (substituído em 2026-10-11 pelo leilão de ordens, veja Definido); filtros; o equipamento mantém atributos, raridade, skills e infusões. Troca direta mostra os dois lados antes de confirmar.
 - **Saídas de moeda:** o board não define custos; vale o Definido (custo em coroas na infusão, reparo, taxas).
 - **Expansão futura:** contratos de coleta (depósito do contratante; vencido, devolve) e Caravana da Forja (carga fora do inventário, rota segura ou contestada com +50% e aviso de PvP). Vêm depois da troca direta e do leilão.

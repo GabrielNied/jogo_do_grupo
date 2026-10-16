@@ -15,11 +15,12 @@ Craft e coleta, conectados à economia.
 - **Pontos de coleta compartilhados** (decidido por Gabriel em 2026-10-16): quem coleta primeiro leva, e o ponto some para todos até voltar, como no New World.
 - Decidido em 2026-10-12: seis profissões, no estilo do World of Warcraft (coleta separada de produção) e sem limite por personagem, como no New World. Coleta: Lenhador, Minerador e Curtidor. Produção: Ferreiro, Alquimista e Cozinheiro. Um personagem pode aprender as seis. Fora da [fatia jogável](fatia-jogavel.md#fora-desta-fatia).
 - **Comida dá buff, sem fome** (decidido por Gabriel em 2026-10-16): comer dá um efeito temporário (por exemplo, regeneração maior); não comer não pune. Não há barra de saciedade. Desde 2026-10-16 (quiz 2): **uma comida ativa por vez**, com buff de **30 a 60 min** conforme a receita; comer outra troca o buff, e cair não o tira.
+- **Decisões do Gabriel em 2026-10-16** (quiz de definições 3): a **tabela de materiais e receitas** do Livro vira **roteiro de conteúdo** (#192, #335). **Coleta e craft não dão XP**; XP de profissão vem só de missões quando aplicável ([missões](missoes.md#definido)).
 
 ## Em aberto
 
 - [x] ~~Quais profissões existem, e quantas por personagem?~~ Decidido em 2026-10-12: as seis, todas no mesmo personagem.
-- [ ] ~~Saciedade~~, receitas e a forja da cidade continuam proposta do board (abaixo). Saciedade saiu em 2026-10-16: comida só dá buff.
+- [x] ~~Saciedade~~, receitas e a forja da cidade continuam proposta do board (abaixo). Saciedade saiu em 2026-10-16: comida só dá buff. Receitas do board **adotadas** como roteiro em 2026-10-16 (quiz 3); detalhes na seção Proposta abaixo.
 
 ## Regras
 

@@ -29,6 +29,9 @@ Tipos de mobs, comportamento por região e bosses com mecânicas marcantes.
   - **"Fortalecida" passa a se chamar Elite** (texto na tela, docs e código; a regra não muda).
   - **Respawn dinâmico pela lotação:** quanto mais jogadores perto do ponto, mais curto o intervalo de reposição. O agente de mobs calibra a curva e o limite, em constante nomeada; o teto de vivos da área continua.
   - **Chefe raro:** **avisa na área** quando aparece, **some depois de 30 min** se ninguém o matar (volta ao sorteio) e tem **loot próprio** (item que só ele larga, na tabela de [itens](itens.md)). **Não** aparece em dungeon.
+- **Decisões do Gabriel em 2026-10-16** (quiz de definições 3):
+  - **Bestiário:** UI com **progresso por espécie** (observação/morte preenche fichas); implementação separada de [#323](https://github.com/GabrielNied/jogo_do_grupo/issues/323).
+  - **Pets:** ~~captura do cervo~~ substituído: mobs têm **chance rara** de dropar **item de pet negociável** (estilo WoW); **usar o item registra o pet na conta** ([pets](pets.md#definido)).
 
 ## Em aberto
 
@@ -123,7 +126,7 @@ O que o servidor acrescentou ao implementar (issue #268; **proposta**, decidido 
 - **Onde:** o centro do grupo fica em (0, 190), 150 m ao norte do portão (que está em (0, 40)), com os pontos de origem num círculo de 4 m de raio. O campo faz parte da área `cidade`. Este é o primeiro de vários pontos: veja "Mais mobs no campo" (o tamanho do grupo é sorteado de novo a cada reaparição). O comando de teste `spawn` ([Desenvolvimento](desenvolvimento.md)) acrescenta um inimigo a mais no maior grupo da área, sem esperar a volta.
 - **Id do inimigo:** começa em 1.000.000.000.000 e soma 1; cada volta depois de morto é um inimigo novo, com id novo. Nunca coincide com id de personagem nem com o boneco de treino.
 - **Dano no jogador:** Mobs decide **quem** o golpe pegou e publica `GolpeDeInimigoAcertou`; tirar a vida é de quem é dono dela ([Combate](combate.md)), que assina o evento e tira a vida.
-- **Quem participou da morte:** quem causou dano ao inimigo desde que ele apareceu, em ordem crescente de id (`InimigoDerrotado.Participantes`; o Combate informa o atacante em `IAlvosDeCombate.TentarAplicarDano`). A lista zera quando ele desiste e volta (a vida também volta ao máximo) e quando ele reaparece. Quem só foi alvo do inimigo, sem causar dano, não participa.
+- **Quem participou da morte:** quem causou dano, **curou alguém em combate com o inimigo** ou **foi alvo dele** ([fatia, seção 5](fatia-jogavel.md#5-loot-no-chão)), em ordem crescente de id (`InimigoDerrotado.Participantes`). A lista zera quando ele desiste e volta (a vida também volta ao máximo) e quando ele reaparece. **Falta implementar** ([#909](https://github.com/GabrielNied/jogo_do_grupo/issues/909)): hoje o código só conta dano.
 
 ### Contato do golpe
 

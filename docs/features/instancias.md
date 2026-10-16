@@ -27,7 +27,8 @@ Conteúdo instanciado para grupos pequenos: dungeons e raids, com foco em derrot
   - **Fila automática:** a pessoa escolhe o papel sem conferência do servidor, e o servidor monta 1 tank, 1 healer e 3 DPS ([social](social.md#definido)).
 - **Decisões do Gabriel em 2026-10-16** (quiz de definições):
   - **A Mina do Reflexo é a dungeon do MVP** (conteúdo da #800, abaixo).
-  - **Voltar à dungeon depois de cair:** quem retornou à cidade pode entrar de novo na mesma instância enquanto ela estiver aberta e o grupo continuar lá ([personagem](personagem.md#retorno-à-cidade)).
+  - **Voltar à dungeon depois de cair:** quem retornou à **entrada da instância** (quiz 3) permanece na mesma corrida; quem foi à cidade pode reentrar enquanto a instância estiver aberta ([personagem](personagem.md#retorno-à-cidade)).
+- **Decisões do Gabriel em 2026-10-16** (quiz de definições 3): retorno por queda (manual ou 45 s) na dungeon = **safe zone na entrada da instância**, vida cheia, **sem** expulsar ao hub da cidade.
 
 ## Em aberto
 

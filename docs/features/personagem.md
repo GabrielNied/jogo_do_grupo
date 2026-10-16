@@ -14,7 +14,10 @@ Raças, atributos e progressão de nível. Sem classes: o estilo de jogo vem da 
 - Recursos, XP e nível da primeira fatia jogável (números em proposta): [fatia-jogavel.md](fatia-jogavel.md)
 - ~~Raças com características únicas; cada raça dá uma **skill base** própria~~ Substituído em 2026-10-16 (Gabriel, quiz de definições): **raça é só visual**. Não dá traço, skill racial nem bônus, e a história é a mesma para todas ([missões](missoes.md#definido)).
 - **Sempre correndo** (decidido por Gabriel em 2026-10-16): a velocidade normal do personagem é a de corrida de hoje (5,5 m/s). Não há tecla de correr; uma tecla de **andar devagar** (Ctrl esquerdo, segurar) usa a velocidade de andar. A esquiva vai para o **Shift** e o pulo continua no Espaço ([teclas](interface.md#teclas-e-atalhos)).
-- **Natação e dano de queda** (decidido por Gabriel em 2026-10-16): rios e lagos se atravessam a nado (sem atacar, gastando stamina), e cair de muito alto tira vida. O servidor valida profundidade e altura. Escalada segue em aberto (#349).
+- **Natação e dano de queda** (decidido por Gabriel em 2026-10-16): rios e lagos se atravessam a nado (sem atacar, gastando stamina), e cair de muito alto tira vida. O servidor valida profundidade e altura.
+- **Escalada limitada** (decidido por Gabriel em 2026-10-16, quiz 3): só **vias marcadas** (bordas, trechos de dungeon ou mundo), estilo New World — sem parkour livre ([#349](https://github.com/GabrielNied/jogo_do_grupo/issues/349)).
+- **Decisões do Gabriel em 2026-10-16** (quiz de definições 3):
+  - **Sem teleporte jogável** por enquanto ([mundo](mundo.md#definido)). Retorno ao cair/morrer: no **mapa aberto**, à **cidade mais próxima** (com várias cidades no futuro; hoje só Brasa Mansa); na **dungeon**, à **entrada/safe zone da instância** (vida cheia, grupo continua), não ao hub da cidade.
 - **Renomear não pode** (decidido por Gabriel em 2026-10-16): o nome escolhido na criação é permanente.
 - **Sem classes** (D2 da [validação de 2026-10-10](../brainstorm/validacao.md)): ~~a combinação de itens define o estilo de jogo~~ desde 2026-10-12, a especialização vem de atributos, [árvore](talentos.md), equipamentos e skills
 - Progressão por nível (leveling) faz parte do loop principal (D5)
@@ -319,8 +322,10 @@ Quem decide: **servidor** (quando cai, a contagem, quem está levantando, a vida
 
 #### Retorno à cidade
 
-- A pessoa reaparece no **ponto de nascimento da cidade** ([mundo.md](mundo.md)), com vida, stamina e mana cheios.
-- **Fora da dungeon** (decidido por Gabriel em 2026-10-16): quem não é levantado volta ao **ponto de retorno descoberto** mais próximo, ou à cidade se não descobriu nenhum ([mundo](mundo.md#definido)). No mundo aberto **qualquer jogador vivo** pode levantar, não só o do grupo; na dungeon continua só o grupo.
+- **Mundo aberto:** reaparece na **cidade mais próxima** (hoje só Brasa Mansa; ver [mundo](mundo.md#definido)), com vida, stamina e mana cheios.
+- **Dungeon:** reaparece na **entrada/safe zone da instância**, com vida, stamina e mana cheios, sem sair do grupo (quiz 3, 2026-10-16).
+- **Fora da dungeon** (decidido por Gabriel em 2026-10-16; retorno refinado no quiz 3): quem não é levantado volta à **cidade mais próxima** ([mundo](mundo.md#definido)). No mundo aberto **qualquer jogador vivo** pode levantar, não só o do grupo; na dungeon continua só o grupo.
+- **Na dungeon** (quiz 3): retorno manual ou fim dos 45 s leva à **entrada da instância** (safe zone), com vida cheia, sem sair do grupo — ~~hub da cidade~~ substituído em 2026-10-16 (quiz 3) pela entrada da instância.
 - Não perde item, XP, moeda nem nível. O loot que já era dela continua no chão da instância pelo tempo normal ([fatia-jogavel.md](fatia-jogavel.md), seção 5).
 - Continua **membro do grupo** ([social.md](social.md)); só sai da instância. Pode voltar a entrar na mesma dungeon enquanto ela estiver aberta (decidido em 2026-10-16, [instâncias](instancias.md#definido)).
 - **Todos caídos ao mesmo tempo** (inclusive quem joga sozinho): é a derrota da fatia. Não espera os 45 s: a tela de derrota aparece por **5 s** e todos voltam à cidade; a instância fecha.
