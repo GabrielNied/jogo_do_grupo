@@ -10,9 +10,10 @@ const tres = [
   { numero: 4, labels: ["personagem"], branch: null },
 ];
 
-test("o quarto lote de jogo é recusado", () => {
+test("o quarto lote de jogo avisa mas não é recusado", () => {
   const decisao = podePuxarLote(["social"], tres, "feature/social/amigos");
-  assert.equal(decisao.ok, false);
+  assert.equal(decisao.ok, true);
+  assert.equal(decisao.acimaDoRecomendado, true);
   assert.deepEqual(decisao.emCurso, ["#4", "feature/itens/bau", "feature/mobs/lote"]);
 });
 

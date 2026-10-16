@@ -48,7 +48,7 @@ Tarefas livres que mexem no **mesmo código**: mesmos arquivos ou fluxo, uma dep
 
 - **Dono:** `itens` ou `economia` se o lote é só deles; `funcionalidade` se cruza funcionalidades; `server-core` ou `client-core` se é Core. Core não entra em lote de funcionalidade.
 - **Entrega:** `npm run tarefa -- puxar <N> <M> ... <branch>`, uma branch, um commit por issue, um PR com um `Closes #` por issue. Passou de ~1500 linhas: o mesmo dono divide em PRs empilhados por caso de uso ([Leva empilhada](git.md#leva-empilhada)).
-- **Paralelo:** lotes que não dividem arquivos. No máximo 3 lotes de jogo em andamento (o `puxar` recusa o quarto); Core e desenvolvimento não ocupam vaga. Trava sem branch no `origin` e sem PR sai sozinha em **24 h** (`soltar-travas`).
+- **Paralelo:** lotes que não dividem arquivos. **Recomendado** até 3 lotes de jogo em andamento ([ADR 0037](decisoes/0037-lotes-de-tarefas.md), emenda 2026-10-16); o `puxar` **avisa** se passar disso, mas não bloqueia. Core e desenvolvimento não entram na contagem. Trava sem branch no `origin` e sem PR sai sozinha em **24 h** (`soltar-travas`).
 - **Pequeno:** lote só de docs, config ou mudanças de até ~50 linhas o coordenador faz direto, sem agente.
 
 ## Segure (reserva manual)

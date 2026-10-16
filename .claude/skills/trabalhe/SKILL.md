@@ -30,7 +30,7 @@ Tarefa sem ficha: se for pequena e clara, escreva a [ficha](../../../docs/agente
 
 - A **semente** é a melhor tarefa livre ainda sem lote.
 - Entram junto **todas** as livres com afinidade de código com ela: mesmos arquivos ou fluxo, dependência, "Lote sugerido" da ficha. Pode cruzar funcionalidades e não tem limite; tarefa de prioridade menor entra se mexe no mesmo código (reabrir depois custa mais).
-- O próximo lote parte da melhor que sobrou e não pode dividir arquivos com os já montados. Pare em N lotes ou no limite de 3 lotes de jogo em andamento.
+- O próximo lote parte da melhor que sobrou e não pode dividir arquivos com os já montados. Pare em N lotes ou quando passar de **3 lotes de jogo** recomendados (o `puxar` avisa, não bloqueia).
 - Dono e regras do lote: [Lote](../../../docs/agentes.md#lote). Lote pequeno (docs, config, até ~50 linhas cada) você faz direto, sem agente.
 
 Mostre a tabela (lote, issues, funcionalidades, dono, por que) e siga no mesmo turno. O que a doc deixa em aberto, o dono decide ([Decisões de design](../../../docs/agentes.md#decisões-de-design)). Decisão que mudaria algo **Definido**: tire a issue do lote, comente nela e siga.
