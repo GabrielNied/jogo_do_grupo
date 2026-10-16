@@ -66,6 +66,9 @@ public sealed partial class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulado
 
     /// <summary>Quem atacou um vizinho da mesma espécie e deve ser visto por este grupo (#915).</summary>
     private readonly HashSet<long> _puxados = [];
+
+    /// <summary>Jogadores perto do ponto no último passo (respawn dinâmico, #897).</summary>
+    private int _lotacao;
     private long _proximoId;
     private long _proximaMorte = 1;
     private long? _ultimoPassoMs;
@@ -291,6 +294,7 @@ public sealed partial class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulado
                 )
                 : 0.0;
             _ultimoPassoMs = agora;
+            _lotacao = ContarLotacao(jogadores);
 
             if (_aparicao != null)
             {
@@ -1096,6 +1100,26 @@ public sealed partial class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulado
         RegrasInimigo.NoAlcanceDeAtaque(
             RegrasInimigo.Distancia(inimigo.X, inimigo.Z, alvo.X, alvo.Z)
         );
+
+    // Quem está a até ConfigRespawn.RaioDaLotacaoMetros do ponto do grupo e de pé.
+    private int ContarLotacao(IReadOnlyList<JogadorNoCampo> jogadores)
+    {
+        var total = 0;
+        foreach (var jogador in jogadores)
+        {
+            if (
+                jogador.PersonagemId != RegrasInimigo.SemAlvo
+                && !_queda.EstaCaido(jogador.PersonagemId)
+                && RegrasInimigo.Distancia(_pontoX, _pontoZ, jogador.X, jogador.Z)
+                    <= ConfigRespawn.RaioDaLotacaoMetros
+            )
+            {
+                total++;
+            }
+        }
+
+        return total;
+    }
 
     private static bool ForaDeLuta(Inimigo inimigo) =>
         inimigo.Estado
