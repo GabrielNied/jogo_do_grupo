@@ -111,6 +111,7 @@ Mudou tela ou HUD: `CapturaDaTelaComando.Capturar` via `unity:executar` (1280/19
 - **Fora da área:** pare e descreva no relatório para o agente certo.
 - **Autorização:** pedir a implementação autoriza commit, push e PR. Merge é humano.
 - **Shell no worktree:** um comando por chamada, sem heredoc; arquivos pela ferramenta de escrita. `dotnet test` com 10 min de limite e sem duas execuções no mesmo worktree. Hook bloqueou o shell: não repita, use `git -C <caminho>` pelo coordenador.
+- **Script avulso em Node** (`.mjs`); não há Python. Simulação de balanceamento em C# com o `shared` ([ADR 0043](decisoes/0043-simulacoes-em-csharp-e-scripts-em-node.md)).
 
 ### Custo de IA
 
