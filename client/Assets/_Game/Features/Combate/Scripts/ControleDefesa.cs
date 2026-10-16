@@ -326,6 +326,12 @@ namespace JogoDoGrupo.Client.Features.Combate
             }
 
             AnimadorDeDefesa.DefinirCaido(animator, caido);
+
+            var controle = jogador.GetComponent<ControleTerceiraPessoa>();
+            if (controle != null)
+            {
+                controle.InputAtivo = !caido;
+            }
         }
 
         private void AoInterromper(AcaoInterrompida interrupcao)

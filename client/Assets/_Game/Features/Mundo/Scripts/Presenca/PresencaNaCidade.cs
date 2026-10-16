@@ -1,5 +1,6 @@
 using System;
 using JogoDoGrupo.Client.Core.TempoReal;
+using JogoDoGrupo.Shared.Features.Combate;
 using JogoDoGrupo.Shared.Features.Mundo;
 using UnityEngine;
 
@@ -27,6 +28,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Presenca
         private float _idadeDosAliados;
         private bool _posicionado;
         private bool _descartado;
+        private bool _estaCaido;
 
         public PresencaNaCidade(IConexaoDePresenca conexao, long meuPersonagemId)
         {
@@ -51,6 +53,10 @@ namespace JogoDoGrupo.Client.Features.Mundo.Presenca
                 _conexao.Assinar<VelocidadesDeMovimento>(
                     MundoMessageIds.VelocidadesDeMovimento,
                     AoReceberVelocidades
+                ),
+                _conexao.Assinar<EstadoDeQueda>(
+                    CombateMessageIds.EstadoDeQueda,
+                    AoReceberEstadoDeQueda
                 ),
             };
 
@@ -93,6 +99,12 @@ namespace JogoDoGrupo.Client.Features.Mundo.Presenca
         /// </summary>
         public event Action<float, float> VelocidadesDoServidor;
 
+        /// <summary>Se o jogador local está caído ou sendo levantado (não pode andar).</summary>
+        public bool EstaCaido => _estaCaido;
+
+        /// <summary>Disparado quando o estado de queda do jogador local muda.</summary>
+        public event Action<bool> EstadoDeQuedaMudou;
+
         /// <summary>
         /// Pede ao servidor outras velocidades, para testar (só vale com o servidor em
         /// desenvolvimento; se recusar, nada muda). Falso se não está conectado.
@@ -119,7 +131,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Presenca
                 _aliadosLonge = Array.Empty<AliadoLonge>();
             }
 
-            if (!_conexao.Conectado || !_limitador.Deve(delta))
+            if (!_conexao.Conectado || !_limitador.Deve(delta) || _estaCaido)
             {
                 return;
             }
@@ -308,6 +320,22 @@ namespace JogoDoGrupo.Client.Features.Mundo.Presenca
             }
 
             Avatares.Mover(posicao);
+        }
+
+        private void AoReceberEstadoDeQueda(EstadoDeQueda queda)
+        {
+            if (queda == null || queda.PersonagemId != Avatares.MeuPersonagemId)
+            {
+                return;
+            }
+
+            var anterior = _estaCaido;
+            _estaCaido =
+                queda.Estado == FaseDeQueda.Caido || queda.Estado == FaseDeQueda.Levantando;
+            if (anterior != _estaCaido)
+            {
+                EstadoDeQuedaMudou?.Invoke(_estaCaido);
+            }
         }
     }
 }

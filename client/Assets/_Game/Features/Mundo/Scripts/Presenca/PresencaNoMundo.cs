@@ -63,6 +63,16 @@ namespace JogoDoGrupo.Client.Features.Mundo.Presenca
             }
 
             LigarControle(jogador);
+            if (
+                _presenca != null
+                && _presenca.EstaCaido
+                && _controle != null
+                && _controle.InputAtivo
+            )
+            {
+                _controle.InputAtivo = false;
+            }
+
             if (_correcaoPendente)
             {
                 if (
@@ -130,6 +140,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Presenca
             _presenca.Avatares.Criado += CriarVisual;
             _presenca.Avatares.Removido += RemoverVisual;
             _presenca.Avatares.IdentidadeMudou += RecriarVisual;
+            _presenca.EstadoDeQuedaMudou += AoMudarQueda;
             _presenca.VelocidadesDoServidor += (andar, correr) =>
             {
                 _velocidades = new Vector2(andar, correr);
@@ -175,10 +186,22 @@ namespace JogoDoGrupo.Client.Features.Mundo.Presenca
             if (_controle != null)
             {
                 _controle.VelocidadesPedidasNoInspector += PedirVelocidade;
-                if (_velocidades is { } v)
+                if (_presenca != null && _presenca.EstaCaido)
+                {
+                    _controle.InputAtivo = false;
+                }
+                else if (_velocidades is { } v)
                 {
                     _controle.AplicarVelocidadesDoServidor(v.x, v.y);
                 }
+            }
+        }
+
+        private void AoMudarQueda(bool estaCaido)
+        {
+            if (_controle != null)
+            {
+                _controle.InputAtivo = !estaCaido;
             }
         }
 

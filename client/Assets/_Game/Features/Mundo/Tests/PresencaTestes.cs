@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using JogoDoGrupo.Client.Core.TempoReal;
 using JogoDoGrupo.Client.Features.Mundo.Presenca;
+using JogoDoGrupo.Shared.Features.Combate;
 using JogoDoGrupo.Shared.Features.Mundo;
 using NUnit.Framework;
 using UnityEngine;
@@ -577,6 +578,72 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
             Assert.IsFalse(avatar.AdicionarAmostra(new Vector3(0.5f, 0f, 0f), 0f, 9, 90));
             Assert.IsTrue(avatar.AdicionarAmostra(new Vector3(2f, 0f, 0f), 0f, 11, 200));
             Assert.AreEqual(new Vector3(2f, 0f, 0f), avatar.Alvo);
+        }
+
+        [Test]
+        public void EstadoDeQueda_AtualizaEstaCaidoENaoEnviaMovimento()
+        {
+            var conexao = new ConexaoFalsa { Conectado = true };
+            using var presenca = new PresencaNaCidade(conexao, 1);
+
+            // Antes de cair, envia movimento normalmente
+            presenca.Atualizar(0.1f, new Vector3(1f, 0f, 1f), 0f);
+            Assert.AreEqual(1, conexao.Contar(MundoMessageIds.IntencaoDeMovimento));
+
+            var eventoDisparado = false;
+            var estadoEvento = false;
+            presenca.EstadoDeQuedaMudou += caido =>
+            {
+                eventoDisparado = true;
+                estadoEvento = caido;
+            };
+
+            // Recebe aviso de que o jogador caiu
+            conexao.Receber(
+                CombateMessageIds.EstadoDeQueda,
+                new EstadoDeQueda { PersonagemId = 1, Estado = FaseDeQueda.Caido }
+            );
+
+            Assert.IsTrue(presenca.EstaCaido);
+            Assert.IsTrue(eventoDisparado);
+            Assert.IsTrue(estadoEvento);
+
+            // Enquanto caído, Atualizar não envia IntencaoDeMovimento
+            presenca.Atualizar(0.1f, new Vector3(2f, 0f, 2f), 0f);
+            Assert.AreEqual(1, conexao.Contar(MundoMessageIds.IntencaoDeMovimento));
+
+            // Sendo levantado também não envia
+            conexao.Receber(
+                CombateMessageIds.EstadoDeQueda,
+                new EstadoDeQueda { PersonagemId = 1, Estado = FaseDeQueda.Levantando }
+            );
+            Assert.IsTrue(presenca.EstaCaido);
+            presenca.Atualizar(0.1f, new Vector3(3f, 0f, 3f), 0f);
+            Assert.AreEqual(1, conexao.Contar(MundoMessageIds.IntencaoDeMovimento));
+
+            // Ao retornar a vivo, volta a enviar
+            conexao.Receber(
+                CombateMessageIds.EstadoDeQueda,
+                new EstadoDeQueda { PersonagemId = 1, Estado = FaseDeQueda.Vivo }
+            );
+            Assert.IsFalse(presenca.EstaCaido);
+
+            presenca.Atualizar(0.1f, new Vector3(4f, 0f, 4f), 0f);
+            Assert.AreEqual(2, conexao.Contar(MundoMessageIds.IntencaoDeMovimento));
+        }
+
+        [Test]
+        public void EstadoDeQueda_DeOutroPersonagemNaoAfetaEstaCaido()
+        {
+            var conexao = new ConexaoFalsa { Conectado = true };
+            using var presenca = new PresencaNaCidade(conexao, 1);
+
+            conexao.Receber(
+                CombateMessageIds.EstadoDeQueda,
+                new EstadoDeQueda { PersonagemId = 2, Estado = FaseDeQueda.Caido }
+            );
+
+            Assert.IsFalse(presenca.EstaCaido);
         }
     }
 }

@@ -31,6 +31,15 @@ public sealed class MundoModule
     private ServidorTempoReal? _tempoReal;
     private EventosDoServidor? _eventos;
     private IHistoricoDePosicoesDoMundo? _historico;
+    private IEstadoDeQueda? _queda;
+
+    public MundoModule()
+        : this(null) { }
+
+    public MundoModule(IEstadoDeQueda? queda)
+    {
+        _queda = queda;
+    }
 
     // Criado pelo contêiner quando o app sobe (hosted service); o manipulador de rede só o usa
     // depois que uma sessão se autentica.
@@ -80,6 +89,7 @@ public sealed class MundoModule
         var servicos = rotas.ServiceProvider;
         // Personagem pode não estar carregada (testes só do Mundo): sem ela, nome e raça vão vazios.
         _diretorio = servicos.GetService<IDiretorioDePersonagens>();
+        _queda ??= servicos.GetService<IEstadoDeQueda>();
         _permitirVelocidadeDeTeste = PoliticaDeVelocidadeDeTeste.Ligada(
             servicos.GetRequiredService<IConfiguration>(),
             servicos.GetRequiredService<IHostEnvironment>(),
@@ -216,6 +226,34 @@ public sealed class MundoModule
         }
 
         var (area, estadoArea) = localizado.Value;
+
+        // Enquanto o personagem está caído ou sendo levantado, não pode andar (personagem.md).
+        if (_queda?.EstaCaido(sessao.PersonagemId) == true)
+        {
+            if (estadoArea.Obter(sessao.PersonagemId) is { } avatarCaido)
+            {
+                var distancia = ValidadorDeMovimento.DistanciaHorizontal(
+                    avatarCaido.Posicao,
+                    desejada
+                );
+                if (
+                    distancia > 0.01f
+                    && estadoArea.PosicaoForcadaPendente(sessao.PersonagemId) is not { }
+                )
+                {
+                    if (
+                        estadoArea.ForcarPosicao(sessao.PersonagemId, avatarCaido.Posicao) is
+                        { } sequencia
+                    )
+                    {
+                        EnviarPosicaoForcada(sessao, avatarCaido, sequencia);
+                    }
+                }
+            }
+
+            return;
+        }
+
         var (resultado, avatar) = estadoArea.Mover(sessao.PersonagemId, sessao, desejada);
         if (avatar == null)
         {
