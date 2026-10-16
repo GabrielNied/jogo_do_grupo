@@ -326,25 +326,16 @@ public sealed partial class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulado
                 }
             }
 
-            _vistos.RemoveWhere(id =>
+            Func<long, bool> deveEsquecer = id =>
                 _queda.EstaCaido(id)
                 || !presentes.TryGetValue(id, out var visto)
-                || NaZonaUrbana(visto.X, visto.Z)
-            );
+                || NaZonaUrbana(visto.X, visto.Z);
+
+            _vistos.RemoveWhere(deveEsquecer.Invoke);
 
             foreach (var inimigo in _inimigos)
             {
-                foreach (var id in inimigo.Ameacas.Personagens.ToArray())
-                {
-                    if (
-                        _queda.EstaCaido(id)
-                        || !presentes.TryGetValue(id, out var visto)
-                        || NaZonaUrbana(visto.X, visto.Z)
-                    )
-                    {
-                        inimigo.Ameacas.Remover(id);
-                    }
-                }
+                inimigo.Ameacas.RemoverOnde(deveEsquecer);
             }
             if (_inimigos.All(ForaDeLuta))
             {

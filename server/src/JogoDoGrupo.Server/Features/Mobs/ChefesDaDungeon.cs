@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using JogoDoGrupo.Server.Contratos.Combate;
 using JogoDoGrupo.Server.Contratos.Mobs;
+using JogoDoGrupo.Server.Contratos.Mundo;
 
 namespace JogoDoGrupo.Server.Features.Mobs;
 
@@ -9,9 +10,10 @@ namespace JogoDoGrupo.Server.Features.Mobs;
 /// <see cref="IChefesDaDungeon"/> para a instância e é o <see cref="IAlvosDeCombate"/> deles:
 /// o Combate acha o boss pela área do golpe. Seguro para várias threads.
 /// </summary>
-public sealed class ChefesDaDungeon(Func<long>? relogioMs = null)
-    : IChefesDaDungeon,
-        IAlvosDeCombate
+public sealed class ChefesDaDungeon(
+    Func<long>? relogioMs = null,
+    IHistoricoDePosicoesDoMundo? historico = null
+) : IChefesDaDungeon, IAlvosDeCombate
 {
     private readonly ConcurrentDictionary<string, ChefeDaDungeon> _porArea = new();
     private long _ultimoId = ConfigChefeDaDungeon.PrimeiroIdDoChefe - 1;
@@ -24,7 +26,8 @@ public sealed class ChefesDaDungeon(Func<long>? relogioMs = null)
             x,
             z,
             () => Interlocked.Increment(ref _ultimoId),
-            relogioMs
+            relogioMs,
+            historico
         );
         _porArea[areaId] = chefe;
         return chefe.InimigoId;

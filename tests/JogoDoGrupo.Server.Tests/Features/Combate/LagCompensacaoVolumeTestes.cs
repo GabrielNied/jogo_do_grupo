@@ -98,4 +98,58 @@ public class LagCompensacaoVolumeTestes
             RegrasCompensacaoDeLag.InstanteParaTeste(tempoVistoMs, inicioMs)
         );
     }
+
+    [Fact]
+    public void Chefe_da_dungeon_no_volume_usa_posicao_historica_e_nao_a_atual()
+    {
+        var historico = new HistoricoDePosicoesDoMundo();
+        var relogio = 5_000L;
+        const string area = "dungeon-teste";
+        const long chefeId = 100L;
+        var chefe = new ChefeDaDungeon(
+            area,
+            origemX: 0,
+            origemZ: 10,
+            proximoId: () => chefeId,
+            relogioMs: () => relogio,
+            historico: historico
+        );
+
+        historico.Registrar(chefeId, new PosicaoNoMundo(area, 0f, 0f, 2f, 0f), relogio - 100);
+
+        var alvosSemRewind = chefe.AlvosNoVolume(area, 0, 0, 0, 0);
+        Assert.Empty(alvosSemRewind);
+
+        var alvosComRewind = chefe.AlvosNoVolume(area, 0, 0, 0, relogio - 100);
+        var alvo = Assert.Single(alvosComRewind);
+        Assert.Equal(chefeId, alvo.Id);
+        Assert.Equal(2.0, alvo.Z, 3);
+    }
+
+    [Fact]
+    public void Chefe_da_dungeon_alvos_proximos_usa_posicao_historica_e_nao_a_atual()
+    {
+        var historico = new HistoricoDePosicoesDoMundo();
+        var relogio = 5_000L;
+        const string area = "dungeon-teste";
+        const long chefeId = 101L;
+        var chefe = new ChefeDaDungeon(
+            area,
+            origemX: 0,
+            origemZ: 20,
+            proximoId: () => chefeId,
+            relogioMs: () => relogio,
+            historico: historico
+        );
+
+        historico.Registrar(chefeId, new PosicaoNoMundo(area, 0f, 0f, 2f, 0f), relogio - 150);
+
+        var semRewind = chefe.AlvosProximos(area, 0, 0, 3.0, 0);
+        Assert.Empty(semRewind);
+
+        var comRewind = chefe.AlvosProximos(area, 0, 0, 3.0, relogio - 150);
+        var alvo = Assert.Single(comRewind);
+        Assert.Equal(chefeId, alvo.Id);
+        Assert.Equal(2.0, alvo.Z, 3);
+    }
 }
