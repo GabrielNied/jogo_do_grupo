@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using JogoDoGrupo.Shared.Features.Itens;
 using JogoDoGrupo.Shared.Features.Skills;
 
 namespace JogoDoGrupo.Client.Features.Skills
@@ -15,6 +17,9 @@ namespace JogoDoGrupo.Client.Features.Skills
 
         /// <summary>Se a barra já chegou do servidor ao menos uma vez.</summary>
         public bool Recebida { get; private set; }
+
+        /// <summary>Lista de leitura de todas as skills da barra atual.</summary>
+        public IReadOnlyList<SkillDaBarra> Skills => _skills;
 
         /// <summary>Se há ao menos uma skill (com arma equipada).</summary>
         public bool TemSkills
@@ -36,6 +41,62 @@ namespace JogoDoGrupo.Client.Features.Skills
         /// <summary>A skill do espaço, ou <c>null</c> se vazio.</summary>
         public SkillDaBarra Skill(int espaco) =>
             espaco >= 0 && espaco < _skills.Length ? _skills[espaco] : null;
+
+        /// <summary>Identifica a qual tipo de arma as skills ativas pertencem, ou nulo se sem arma.</summary>
+        public TipoEquipamento? TipoDaArmaAtiva()
+        {
+            foreach (var skill in _skills)
+            {
+                if (skill != null && !string.IsNullOrEmpty(skill.Id))
+                {
+                    var tipo = CatalogoDeSkills.TipoDaSkill(skill.Id);
+                    if (tipo.HasValue)
+                    {
+                        return tipo.Value;
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>Se a skill com esse ID está atualmente na barra ativa.</summary>
+        public bool ContemSkill(string skillId)
+        {
+            if (string.IsNullOrEmpty(skillId))
+            {
+                return false;
+            }
+
+            foreach (var skill in _skills)
+            {
+                if (skill != null && skill.Id == skillId)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>Espaço de atalho (0, 1 ou 2) da skill na barra, ou -1 se não estiver na barra.</summary>
+        public int EspacoDaSkill(string skillId)
+        {
+            if (string.IsNullOrEmpty(skillId))
+            {
+                return -1;
+            }
+
+            foreach (var skill in _skills)
+            {
+                if (skill != null && skill.Id == skillId)
+                {
+                    return skill.Espaco;
+                }
+            }
+
+            return -1;
+        }
 
         public void Aplicar(BarraDeSkillsMudou barra, double agora)
         {

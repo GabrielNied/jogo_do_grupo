@@ -37,6 +37,23 @@ namespace JogoDoGrupo.Client.Features.Skills
         private readonly EstadoDaBarra _estado = new EstadoDaBarra();
         private readonly Dictionary<long, GameObject> _alvos = new Dictionary<long, GameObject>();
 
+        public static ControleSkills Instancia { get; private set; }
+
+        public EstadoDaBarra Estado => _estado;
+
+        public event Action<BarraDeSkillsMudou> BarraMudou;
+
+        private void Awake()
+        {
+            if (Instancia != null && Instancia != this)
+            {
+                Destroy(this);
+                return;
+            }
+
+            Instancia = this;
+        }
+
         private long _personagemId;
         private PainelSkills _painel;
         private InputAction[] _teclas;
@@ -119,6 +136,11 @@ namespace JogoDoGrupo.Client.Features.Skills
 
         private void OnDestroy()
         {
+            if (Instancia == this)
+            {
+                Instancia = null;
+            }
+
             foreach (var assinatura in _assinaturas)
             {
                 assinatura.Dispose();
@@ -212,8 +234,11 @@ namespace JogoDoGrupo.Client.Features.Skills
             return jogador != null ? jogador.transform.eulerAngles.y : 0f;
         }
 
-        private void AoReceberBarra(BarraDeSkillsMudou barra) =>
+        private void AoReceberBarra(BarraDeSkillsMudou barra)
+        {
             _estado.Aplicar(barra, Time.unscaledTimeAsDouble);
+            BarraMudou?.Invoke(barra);
+        }
 
         private void AoUsar(SkillUsada usada)
         {

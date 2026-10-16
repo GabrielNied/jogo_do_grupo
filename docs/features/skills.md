@@ -1,7 +1,7 @@
 # Skills (magias)
 
 **Responsável:**
-**Status:** skills ativas de arma implementadas ([#167](https://github.com/GabrielNied/jogo_do_grupo/issues/167)); o resto em definição
+**Status:** skills ativas de arma implementadas ([#167](https://github.com/GabrielNied/jogo_do_grupo/issues/167)); tela de consulta de skills por conjunto/arma implementada ([#921](https://github.com/GabrielNied/jogo_do_grupo/issues/921)); o resto em definição
 **Faixa de IDs de mensagem:** 4000–4999
 
 ## Resumo
@@ -46,6 +46,7 @@ Decisões de design da implementação (valores de teste, em `ConfigSkills` e `C
   - **Aviso:** `PoderDisparou` (4006) vai ao dono a cada efeito aplicado: nome do poder ou do set, ação e valor.
   - **Estado:** cargas, marcas e folga ficam em memória por personagem, somem ao sair e são apagados quando a origem (peça, marco) deixa de valer.
 - **Barra no client:** no centro de baixo da tela, três espaços com tecla, nome, custo e a recarga que falta (cobertura e segundos). Sem arma, a barra some e aparece o aviso para equipar uma. Um uso recusado mostra o motivo na tela. O dano aparece como número sobre o alvo.
+- **Tela de consulta de skills (K, [#921](https://github.com/GabrielNied/jogo_do_grupo/issues/921)):** janela somente leitura registrada nas `JanelasDoJogo` (tecla K). Exibe o catálogo completo de skills por tipo de arma, destacando a arma ativa no conjunto atual e as 3 skills presentes na barra de combate. Trocar de conjunto (R) atualiza o destaque na hora.
 
 ## Proposta do board: preparação, raciais e catálogo (2026-10-11)
 
@@ -112,7 +113,7 @@ Skills de utilidade que continuam no catálogo anterior (não fazem parte das 25
 - [x] ~~Quantas magias por classe?~~ Não há classes (D2).
 - [x] ~~Recurso usado?~~ Decidido em 2026-10-14 (SKILL-005): **mana** ou **stamina** por skill; não "energia" genérica.
 - [x] ~~Pools de skills de armas de regiões avançadas além do Vale ([#340](https://github.com/GabrielNied/jogo_do_grupo/issues/340)).~~ Substituído em 2026-10-16 (quiz 3): **não existe** segundo pool por região; #340 **not planned**. Sorteio continua só pelo **tipo de arma** (Vale).
-- [x] ~~Orçamento da aba Preparação ([#339](https://github.com/GabrielNied/jogo_do_grupo/issues/339)).~~ Decidido em 2026-10-16 (quiz 3): **sem orçamento**; só as **3 skills da arma equipada**. Tela somente leitura para ver skills **por conjunto/arma** (issue nova).
+- [x] ~~Orçamento da aba Preparação ([#339](https://github.com/GabrielNied/jogo_do_grupo/issues/339)).~~ Decidido em 2026-10-16 (quiz 3): **sem orçamento**; só as **3 skills da arma equipada**. Tela somente leitura para ver skills **por conjunto/arma** implementada na [#921](https://github.com/GabrielNied/jogo_do_grupo/issues/921) (tecla **K**).
 
 ## Regras
 

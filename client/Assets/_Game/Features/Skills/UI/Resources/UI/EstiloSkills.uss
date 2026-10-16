@@ -130,3 +130,164 @@
     margin-left: var(--lumora-espacamento-minimo);
     margin-right: var(--lumora-espacamento-minimo);
 }
+
+/* =======================================================
+   Janela de Skills (K) - Somente leitura por conjunto/arma
+   ======================================================= */
+
+.skills-janela-banner {
+    background-color: var(--lumora-cores-painel);
+    border-width: var(--lumora-bordas-fina);
+    border-color: var(--lumora-cores-borda-botao);
+    border-radius: var(--lumora-bordas-raio-cartao);
+    padding: 8px 12px;
+    margin-bottom: var(--lumora-espacamento-curto);
+}
+
+.skills-janela-banner-titulo {
+    font-size: 12.5px;
+    color: var(--lumora-cores-ouro);
+    -unity-font-style: bold;
+}
+
+.skills-janela-banner-sub {
+    font-size: 11px;
+    color: #9aa5b5;
+    margin-top: 2px;
+}
+
+.skills-janela-banner-chips {
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin-top: 6px;
+}
+
+.skills-janela-chip {
+    background-color: rgba(20, 28, 38, 0.9);
+    border-width: 1px;
+    border-color: var(--lumora-cores-ouro);
+    border-radius: 4px;
+    padding: 3px 8px;
+    margin-right: 6px;
+    margin-bottom: 4px;
+    font-size: 11px;
+    color: var(--lumora-cores-ouro);
+}
+
+.skills-janela-seletor-armas {
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin-bottom: var(--lumora-espacamento-curto);
+}
+
+.skills-janela-aba-arma {
+    margin-right: 6px;
+    margin-bottom: 4px;
+    padding: 6px 12px;
+    border-radius: var(--lumora-bordas-raio-botao);
+    border-width: 1px;
+    border-color: var(--lumora-cores-borda-botao);
+    background-color: var(--lumora-cores-painel);
+    color: var(--lumora-cores-marfim);
+    font-size: 12px;
+}
+
+.skills-janela-aba-arma:hover {
+    border-color: var(--lumora-cores-essencia);
+}
+
+.skills-janela-aba-arma-selecionada {
+    border-color: var(--lumora-cores-ouro);
+    background-color: rgba(220, 175, 75, 0.18);
+    color: var(--lumora-cores-ouro);
+    -unity-font-style: bold;
+}
+
+.skills-janela-aba-arma-ativa {
+    border-color: var(--lumora-cores-essencia);
+}
+
+.skills-janela-scroll {
+    max-height: 380px;
+    min-height: 240px;
+}
+
+.skills-janela-cartao {
+    background-color: var(--lumora-cores-painel);
+    border-width: 1px;
+    border-color: var(--lumora-cores-borda-botao);
+    border-radius: var(--lumora-bordas-raio-cartao);
+    padding: 9px 12px;
+    margin-bottom: 7px;
+}
+
+.skills-janela-cartao-ativo {
+    border-width: 1.5px;
+    border-color: var(--lumora-cores-ouro);
+    background-color: rgba(30, 42, 54, 0.95);
+}
+
+.skills-janela-cartao-cabecalho {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+}
+
+.skills-janela-cartao-nome {
+    font-size: 13.5px;
+    -unity-font-style: bold;
+    color: var(--lumora-cores-marfim);
+}
+
+.skills-janela-cartao-badge-ativa {
+    background-color: rgba(220, 175, 75, 0.25);
+    border-width: 1px;
+    border-color: var(--lumora-cores-ouro);
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 10px;
+    color: var(--lumora-cores-ouro);
+    -unity-font-style: bold;
+}
+
+.skills-janela-cartao-custo {
+    font-size: 11.5px;
+    -unity-font-style: bold;
+}
+
+.skills-janela-cartao-custo-stamina {
+    color: #98d05a;
+}
+
+.skills-janela-cartao-custo-mana {
+    color: #4dc5d8;
+}
+
+.skills-janela-cartao-detalhes {
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin-top: 3px;
+    margin-bottom: 3px;
+}
+
+.skills-janela-cartao-detalhe {
+    font-size: 11px;
+    color: #b0b8c6;
+    margin-right: 14px;
+}
+
+.skills-janela-cartao-tags {
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin-top: 3px;
+}
+
+.skills-janela-cartao-tag {
+    font-size: 9.5px;
+    background-color: rgba(255, 255, 255, 0.06);
+    border-radius: 3px;
+    padding: 1px 5px;
+    margin-right: 4px;
+    color: #8e9aab;
+}

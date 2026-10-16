@@ -94,4 +94,22 @@ public class RegrasSkillsTestes
         Assert.Equal((int)Math.Round(2.4 * (20 + 6)), RegrasSkills.Dano(hibrida, 20, 4, 8));
         Assert.Equal(1, RegrasSkills.Dano(fisica, 0, 0, 0)); // Nunca menos que 1.
     }
+
+    [Fact]
+    public void TiposComSkills_lista_todas_as_armas_e_TipoDaSkill_identifica_corretamente()
+    {
+        Assert.Equal(Armas, CatalogoDeSkills.TiposComSkills);
+
+        foreach (var tipo in CatalogoDeSkills.TiposComSkills)
+        {
+            var pool = CatalogoDeSkills.Pool(tipo);
+            foreach (var skill in pool)
+            {
+                Assert.Equal(tipo, CatalogoDeSkills.TipoDaSkill(skill.Id));
+            }
+        }
+
+        Assert.Null(CatalogoDeSkills.TipoDaSkill("skill.inexistente"));
+        Assert.Null(CatalogoDeSkills.TipoDaSkill(null!));
+    }
 }

@@ -83,6 +83,7 @@ Decidido por Gabriel em 2026-10-11 (#134); é **provisório** e o grupo pode aju
 |---|---|---|---|
 | **C** | Personagem | [Personagem](personagem.md) | nome, raça e nível, como o servidor informa. Atributos e equipamentos entram quando existirem |
 | **I** | Inventário | [Itens](itens.md) | o inventário do personagem; aberta pelo baú (E), mostra também os ganhos |
+| **K** | Skills | [Skills](skills.md#skills-de-arma-implementado-167) | catálogo de skills por conjunto e arma, com o conjunto ativo em destaque ([#921](https://github.com/GabrielNied/jogo_do_grupo/issues/921)) |
 | **L** | Missões | [Missões](missoes.md) | aviso "Em construção" (as missões ainda não existem) |
 | **M** | Mapa | [Mundo](mundo.md#mapa-múndi) | aviso "Em construção" (o mapa é a decisão #92) |
 | **N** | Árvore de atributos | [Talentos](talentos.md#implementação-da-625-árvore-compra-e-tela) | a árvore radial, o painel do nó e a compra de ranks |
