@@ -100,6 +100,7 @@ public sealed class ServidorDeAtaque : IDisposable
 
     public ServidorDeTeste Real { get; } = new();
     public RelogioFalso Relogio { get; } = new();
+    public RelogioDeCombateControlado RelogioCombate { get; } = new();
     public BonusFalso Bonus { get; } = new();
     public BonecoDeTreino Boneco { get; }
     public LimiteDeVelocidadeFalso Limite { get; } = new();
@@ -115,6 +116,8 @@ public sealed class ServidorDeAtaque : IDisposable
             b.ConfigureServices(s =>
             {
                 s.AddSingleton<TimeProvider>(Relogio);
+                s.RemoveAll<RelogioDeCombate>();
+                s.AddSingleton<RelogioDeCombate>(RelogioCombate);
                 s.AddSingleton<IBonusDeAtributos>(Bonus);
                 s.AddSingleton<IAtributosDosEquipamentos>(Bonus);
                 s.AddSingleton<ILimiteDeVelocidadeDoMundo>(Limite);
@@ -166,16 +169,47 @@ public sealed class Jogador(HttpClient http, ClienteTempoRealDeTeste cliente, lo
 /// </summary>
 public class AtaqueTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDeAtaque>
 {
-    private static readonly TimeSpan Margem = TimeSpan.FromMilliseconds(500);
+    private RelogioDeCombateControlado Tempo => servidor.RelogioCombate;
+
+    private Task EsperarFilaAsync(Jogador j) =>
+        TempoRealFixture.EsperarAsync(
+            () =>
+                servidor.Falso.Services.GetRequiredService<ControleDeAcoes>().TemPedidoNaFila(j.Id),
+            "o pedido na fila"
+        );
+
+    private int _sequenciaDeMovimento = 100;
 
     /// <summary>
-    /// Espera até <paramref name="ms"/> depois de <paramref name="desde"/>; se a máquina carregada já
-    /// passou desse ponto, segue na hora (um Delay negativo quebraria o teste).
+    /// Anda o personagem até <paramref name="x"/> sem esperar tempo fixo: o validador de movimento do
+    /// Mundo (relógio real) só aceita o que dá correndo, então reenvia até a posição chegar.
     /// </summary>
-    private static Task AteAsync(DateTime desde, int ms)
+    private async Task MoverAsync(Jogador j, float x)
     {
-        var falta = TimeSpan.FromMilliseconds(ms) - (DateTime.UtcNow - desde);
-        return falta > TimeSpan.Zero ? Task.Delay(falta) : Task.CompletedTask;
+        var fim = Environment.TickCount64 + 10_000;
+        while (true)
+        {
+            j.Cliente.Enviar(
+                MundoMessageIds.IntencaoDeMovimento,
+                new IntencaoDeMovimento
+                {
+                    X = x,
+                    Z = ValidadorDeMovimento.Nascimento.Z,
+                    Sequencia = _sequenciaDeMovimento++,
+                }
+            );
+            try
+            {
+                await PosicaoNoServidor.EsperarAsync(
+                    servidor.Falso.Services,
+                    j.Id,
+                    p => p.X == x,
+                    limiteMs: 200
+                );
+                return;
+            }
+            catch (TimeoutException) when (Environment.TickCount64 < fim) { }
+        }
     }
 
     private async Task<Jogador> NovoJogadorAsync(bool naCidade = true)
@@ -185,6 +219,7 @@ public class AtaqueTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDeA
         servidor.Extra.Ativo = false;
         servidor.RepetidoDoBoneco.Ativo = false;
         servidor.ResetarBoneco();
+        servidor.RelogioCombate.Soltar(); // cada teste decide se controla o tempo
 
         var http = await ServidorDeTeste.CriarClienteLogadoEmAsync(servidor.Falso);
         var resposta = await ServidorDeTeste.PostJsonAsync(
@@ -324,16 +359,16 @@ public class AtaqueTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDeA
     public async Task Preparo_so_vale_depois_do_tempo_de_preparo()
     {
         using var ana = await NovoJogadorAsync();
+        Tempo.Controlar();
 
         Atacar(ana);
         await ana.Cliente.ReceberAsync<AtaqueIniciado>(CombateMessageIds.AtaqueIniciado);
-        var inicio = DateTime.UtcNow;
-        await Task.Delay(150);
+        await Tempo.AvancarQuandoEsperarAsync(RegrasAtaque.PreparoMs(TipoDeAtaque.Leve) - 1);
         Assert.False(ana.Recebeu(CombateMessageIds.AtaqueAcertou));
         Assert.Equal(ConfigBonecoDeTreino.Vida, servidor.Boneco.VidaAtual);
 
+        await Tempo.AvancarQuandoEsperarAsync(1);
         await ana.Cliente.ReceberAsync<AtaqueAcertou>(CombateMessageIds.AtaqueAcertou);
-        Assert.True(DateTime.UtcNow - inicio >= TimeSpan.FromMilliseconds(300));
     }
 
     [Fact]
@@ -464,7 +499,9 @@ public class AtaqueTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDeA
     {
         using var ana = await NovoJogadorAsync();
 
+        Tempo.Controlar();
         Atacar(ana, sequencia: 1);
+        await Tempo.AvancarQuandoEsperarAsync(2_000);
         var primeiro = await ana.Cliente.ReceberAsync<AtaqueAcertou>(
             CombateMessageIds.AtaqueAcertou
         );
@@ -478,9 +515,9 @@ public class AtaqueTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDeA
             DanoDaArma = 30,
         };
         servidor.Relogio.Avancar(ConfigRecursos.ValidadeDosAtributosSegundos + 0.1);
-        await Task.Delay(TimeSpan.FromMilliseconds(500)); // Fim do golpe anterior.
 
         Atacar(ana, sequencia: 2);
+        await Tempo.AvancarQuandoEsperarAsync(2_000);
         var segundo = await ana.Cliente.ReceberAsync<AtaqueAcertou>(
             CombateMessageIds.AtaqueAcertou
         );
@@ -621,6 +658,7 @@ public class AtaqueTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDeA
     {
         using var ana = await NovoJogadorAsync();
 
+        Tempo.Controlar();
         Atacar(ana, TipoDeAtaque.Pesado, direcao: 0f); // do nascimento o boneco está na frente
         await ana.Cliente.ReceberAsync<AtaqueIniciado>(CombateMessageIds.AtaqueIniciado);
         ana.Cliente.Enviar(
@@ -639,7 +677,7 @@ public class AtaqueTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDeA
             p => p.RotacaoY == 180f
         );
 
-        await Task.Delay(RegrasAtaque.PreparoMs(TipoDeAtaque.Pesado) + Margem.Milliseconds);
+        await Tempo.AvancarQuandoEsperarAsync(RegrasAtaque.PreparoMs(TipoDeAtaque.Pesado));
 
         // Limitado a 60° em 1 s, o corpo ainda deixa o boneco dentro do arco largo do pesado
         // (110° de cada lado); o teto de giro em si é testado no shared (DirecaoDoGolpe).
@@ -652,9 +690,10 @@ public class AtaqueTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDeA
         using var ana = await NovoJogadorAsync();
         await VirarDeCostasAsync(ana);
 
+        Tempo.Controlar();
         Atacar(ana, direcao: 180f); // de costas para o boneco
         await ana.Cliente.ReceberAsync<AtaqueIniciado>(CombateMessageIds.AtaqueIniciado);
-        await Task.Delay(RegrasAtaque.PreparoMs(TipoDeAtaque.Leve) + Margem.Milliseconds);
+        await Tempo.AvancarQuandoEsperarAsync(RegrasAtaque.PreparoMs(TipoDeAtaque.Leve));
 
         Assert.False(ana.Recebeu(CombateMessageIds.AtaqueAcertou));
         Assert.Equal(ConfigBonecoDeTreino.Vida, servidor.Boneco.VidaAtual);
@@ -664,25 +703,16 @@ public class AtaqueTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDeA
     public async Task Fora_do_alcance_nao_acerta_e_vale_a_posicao_do_momento_do_acerto()
     {
         using var ana = await NovoJogadorAsync();
-        await Task.Delay(700); // o validador de movimento só deixa andar o que dá correndo
         // Mesma direção para o boneco antes e depois; só a distância muda.
         const float DirecaoParaOBoneco = -56.3f; // de (3, -24) até (0, -22)
 
-        ana.Cliente.Enviar(
-            MundoMessageIds.IntencaoDeMovimento,
-            new IntencaoDeMovimento
-            {
-                X = 3f,
-                Z = ValidadorDeMovimento.Nascimento.Z,
-                Sequencia = 1,
-            }
-        );
         // O servidor não devolve a posição ao dono (ADR 0024): confere a dele.
-        await PosicaoNoServidor.EsperarAsync(servidor.Falso.Services, ana.Id, p => p.X == 3f); // o movimento foi aceito
+        await MoverAsync(ana, 3f);
 
+        Tempo.Controlar();
         Atacar(ana, direcao: DirecaoParaOBoneco);
         await ana.Cliente.ReceberAsync<AtaqueIniciado>(CombateMessageIds.AtaqueIniciado);
-        await Task.Delay(RegrasAtaque.PreparoMs(TipoDeAtaque.Leve) + Margem.Milliseconds);
+        await Tempo.AvancarQuandoEsperarAsync(RegrasAtaque.PreparoMs(TipoDeAtaque.Leve));
 
         Assert.False(ana.Recebeu(CombateMessageIds.AtaqueAcertou));
         Assert.Equal(ConfigBonecoDeTreino.Vida, servidor.Boneco.VidaAtual);
@@ -692,22 +722,12 @@ public class AtaqueTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDeA
     public async Task Quem_sai_do_alcance_durante_o_preparo_erra_porque_vale_o_momento_do_acerto()
     {
         using var ana = await NovoJogadorAsync();
-        await Task.Delay(700); // deixa o validador de movimento permitir 3 m
-
+        Tempo.Controlar();
         Atacar(ana, TipoDeAtaque.Pesado, direcao: 0f); // do nascimento o boneco está na frente
         await ana.Cliente.ReceberAsync<AtaqueIniciado>(CombateMessageIds.AtaqueIniciado);
-        ana.Cliente.Enviar(
-            MundoMessageIds.IntencaoDeMovimento,
-            new IntencaoDeMovimento
-            {
-                X = 3f,
-                Z = ValidadorDeMovimento.Nascimento.Z,
-                Sequencia = 1,
-            }
-        );
-        await PosicaoNoServidor.EsperarAsync(servidor.Falso.Services, ana.Id, p => p.X == 3f);
+        await MoverAsync(ana, 3f);
 
-        await Task.Delay(RegrasAtaque.PreparoMs(TipoDeAtaque.Pesado) + Margem.Milliseconds);
+        await Tempo.AvancarQuandoEsperarAsync(RegrasAtaque.PreparoMs(TipoDeAtaque.Pesado));
 
         Assert.False(ana.Recebeu(CombateMessageIds.AtaqueAcertou));
         Assert.Equal(ConfigBonecoDeTreino.Vida, servidor.Boneco.VidaAtual);
@@ -717,33 +737,14 @@ public class AtaqueTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDeA
     public async Task Quem_chega_ao_alcance_durante_o_preparo_acerta_porque_vale_o_momento_do_acerto()
     {
         using var ana = await NovoJogadorAsync();
-        await Task.Delay(700);
-        ana.Cliente.Enviar(
-            MundoMessageIds.IntencaoDeMovimento,
-            new IntencaoDeMovimento
-            {
-                X = 3f,
-                Z = ValidadorDeMovimento.Nascimento.Z,
-                Sequencia = 1,
-            }
-        );
-        await PosicaoNoServidor.EsperarAsync(servidor.Falso.Services, ana.Id, p => p.X == 3f);
-        await Task.Delay(700);
+        await MoverAsync(ana, 3f);
 
         // De X = 3 o boneco está fora do alcance e do cone (direção 0).
+        Tempo.Controlar();
         Atacar(ana, TipoDeAtaque.Pesado, direcao: 0f);
         await ana.Cliente.ReceberAsync<AtaqueIniciado>(CombateMessageIds.AtaqueIniciado);
-        await Task.Delay(400);
-        ana.Cliente.Enviar(
-            MundoMessageIds.IntencaoDeMovimento,
-            new IntencaoDeMovimento
-            {
-                X = 0f,
-                Z = ValidadorDeMovimento.Nascimento.Z,
-                Sequencia = 2,
-            }
-        );
-        await PosicaoNoServidor.EsperarAsync(servidor.Falso.Services, ana.Id, p => p.X == 0f);
+        await MoverAsync(ana, 0f);
+        await Tempo.AvancarQuandoEsperarAsync(RegrasAtaque.PreparoMs(TipoDeAtaque.Pesado));
 
         var acertou = await ana.Cliente.ReceberAsync<AtaqueAcertou>(
             CombateMessageIds.AtaqueAcertou
@@ -774,25 +775,26 @@ public class AtaqueTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDeA
     public async Task Pedido_nos_ultimos_0_3_s_da_acao_espera_na_fila_e_comeca_no_fim()
     {
         using var ana = await NovoJogadorAsync();
+        Tempo.Controlar();
 
         Atacar(ana, sequencia: 1);
-        var primeiro = DateTime.UtcNow;
         await ana.Cliente.ReceberAsync<AtaqueIniciado>(CombateMessageIds.AtaqueIniciado);
         // Leve: 0,5 s de preparo + 0,3 s de recuperação = 0,8 s. Em 0,6 s faltam 0,2 s.
-        await AteAsync(primeiro, 600);
-        Atacar(ana, sequencia: 2);
-
+        await Tempo.AvancarQuandoEsperarAsync(600);
         await ana.Cliente.ReceberAsync<AtaqueAcertou>(CombateMessageIds.AtaqueAcertou);
+        Atacar(ana, sequencia: 2);
+        await EsperarFilaAsync(ana);
+
+        // Com o tempo parado o pedido da fila não pode ter começado.
+        Assert.Equal(1, ana.Recebidas(CombateMessageIds.AtaqueIniciado));
+
+        await Tempo.AvancarQuandoEsperarAsync(200);
         await ana.Cliente.ReceberAsync<AtaqueIniciado>(CombateMessageIds.AtaqueIniciado);
-        var comecouDepois = DateTime.UtcNow - primeiro;
+        await Tempo.AvancarQuandoEsperarAsync(RegrasAtaque.PreparoMs(TipoDeAtaque.Leve));
         var segundo = await ana.Cliente.ReceberAsync<AtaqueAcertou>(
             CombateMessageIds.AtaqueAcertou
         );
 
-        Assert.True(
-            comecouDepois >= TimeSpan.FromMilliseconds(700),
-            $"O pedido da fila começou cedo demais ({comecouDepois.TotalMilliseconds:0} ms)."
-        );
         Assert.Equal(ConfigBonecoDeTreino.Vida - 40, Assert.Single(segundo.Acertos).VidaRestante);
         Assert.False(ana.Recebeu(CombateMessageIds.AtaqueRecusado));
     }
@@ -801,36 +803,36 @@ public class AtaqueTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDeA
     public async Task Banco_lento_nao_perde_o_acerto_nem_o_da_fila_e_o_acerto_sai_no_preparo()
     {
         using var ana = await NovoJogadorAsync();
+        Tempo.Controlar();
         // O banco demora mais que a recuperação do leve (0,3 s): antes, o golpe da fila virava
         // a ação atual e o acerto do primeiro era descartado.
         servidor.Bonus.AtrasoMs = 400;
         var leiturasAntes = servidor.Bonus.Leituras;
         servidor.Bonus.InicioDasLeituras.Clear();
-        servidor.Extra.Consultas.Clear();
         try
         {
             Atacar(ana, sequencia: 1);
-            var primeiro = DateTime.UtcNow;
+            await TempoRealFixture.EsperarAsync(
+                () => !servidor.Bonus.InicioDasLeituras.IsEmpty,
+                "a ida ao banco"
+            );
+            Tempo.Avancar(400); // o banco demorou 0,4 s do tempo do jogo
             await ana.Cliente.ReceberAsync<AtaqueIniciado>(CombateMessageIds.AtaqueIniciado);
-            await AteAsync(primeiro, 600); // o AtaqueIniciado só sai depois do banco
-            Atacar(ana, sequencia: 2); // 0,2 s antes do fim: entra na fila
 
+            // O acerto sai em início + preparo (0,5 s), não em 'depois do banco' + preparo (0,9 s).
+            await Tempo.AvancarQuandoEsperarAsync(RegrasAtaque.PreparoMs(TipoDeAtaque.Leve) - 400);
             var acerto1 = await ana.Cliente.ReceberAsync<AtaqueAcertou>(
                 CombateMessageIds.AtaqueAcertou
-            );
-            // Medido no servidor (da ida ao banco até a procura de alvos), para a carga da máquina
-            // não somar a rede e o client: no preparo é ~500 ms; esperando o banco seriam ~900 ms.
-            Assert.True(servidor.Bonus.InicioDasLeituras.TryPeek(out var inicio));
-            Assert.True(servidor.Extra.Consultas.TryPeek(out var acerto));
-            var preparo = RegrasAtaque.PreparoMs(TipoDeAtaque.Leve);
-            Assert.True(
-                acerto - inicio < preparo + 300,
-                $"O acerto saiu tarde ({acerto - inicio} ms depois do pedido)."
             );
             Assert.Equal(
                 ConfigBonecoDeTreino.Vida - 20,
                 Assert.Single(acerto1.Acertos).VidaRestante
             );
+
+            Atacar(ana, sequencia: 2); // 0,3 s antes do fim: entra na fila
+            await EsperarFilaAsync(ana);
+            await Tempo.AvancarQuandoEsperarAsync(300);
+            await Tempo.AvancarQuandoEsperarAsync(RegrasAtaque.PreparoMs(TipoDeAtaque.Leve));
 
             await TempoRealFixture.EsperarAsync(
                 () => ana.Recebidas(CombateMessageIds.AtaqueAcertou) >= 2,
@@ -852,12 +854,12 @@ public class AtaqueTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDeA
     {
         using var ana = await NovoJogadorAsync();
 
+        Tempo.Controlar();
         Atacar(ana, sequencia: 1);
-        var primeiro = DateTime.UtcNow;
         await ana.Cliente.ReceberAsync<AtaqueIniciado>(CombateMessageIds.AtaqueIniciado);
-        await AteAsync(primeiro, 600);
+        await Tempo.AvancarQuandoEsperarAsync(600);
         Atacar(ana, sequencia: 2); // entra na fila
-        await Task.Delay(50);
+        await EsperarFilaAsync(ana);
         Atacar(ana, sequencia: 3); // a fila está ocupada
 
         var recusa = await ana.Cliente.ReceberAsync<AtaqueRecusado>(
@@ -865,6 +867,8 @@ public class AtaqueTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDeA
         );
         Assert.Equal(3, recusa.Sequencia);
         Assert.Equal(CodigosErroCombate.AcaoEmAndamento, recusa.Codigo);
+        await Tempo.AvancarQuandoEsperarAsync(200);
+        await Tempo.AvancarQuandoEsperarAsync(RegrasAtaque.PreparoMs(TipoDeAtaque.Leve));
         // O pedido 2 não se perde: o boneco leva dois golpes.
         await TempoRealFixture.EsperarAsync(
             () => ana.Recebidas(CombateMessageIds.AtaqueAcertou) >= 2,
@@ -879,11 +883,14 @@ public class AtaqueTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDeA
     {
         using var ana = await NovoJogadorAsync();
 
+        Tempo.Controlar();
         Atacar(ana, TipoDeAtaque.Leve, sequencia: 7);
-        var inicio = DateTime.UtcNow;
         await ana.Cliente.ReceberAsync<AtaqueIniciado>(CombateMessageIds.AtaqueIniciado);
-        await AteAsync(inicio, 600);
+        await Tempo.AvancarQuandoEsperarAsync(600);
         Atacar(ana, TipoDeAtaque.Pesado, sequencia: 8); // entra na fila
+        await EsperarFilaAsync(ana);
+        await Tempo.AvancarQuandoEsperarAsync(200);
+        await Tempo.AvancarQuandoEsperarAsync(RegrasAtaque.PreparoMs(TipoDeAtaque.Pesado));
 
         var primeiro = await ana.Cliente.ReceberAsync<AtaqueAcertou>(
             CombateMessageIds.AtaqueAcertou
@@ -906,11 +913,13 @@ public class AtaqueTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDeA
         using var ana = await NovoJogadorAsync();
         await DefinirRecursosAsync(ana, stamina: 0);
 
+        Tempo.Controlar();
         Atacar(ana, TipoDeAtaque.Leve, sequencia: 1);
-        var primeiro = DateTime.UtcNow;
         await ana.Cliente.ReceberAsync<AtaqueIniciado>(CombateMessageIds.AtaqueIniciado);
-        await AteAsync(primeiro, 600);
+        await Tempo.AvancarQuandoEsperarAsync(600);
         Atacar(ana, TipoDeAtaque.Pesado, sequencia: 2);
+        await EsperarFilaAsync(ana);
+        await Tempo.AvancarQuandoEsperarAsync(200);
 
         var recusa = await ana.Cliente.ReceberAsync<AtaqueRecusado>(
             CombateMessageIds.AtaqueRecusado
@@ -976,7 +985,9 @@ public class AtaqueTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDeA
         using var ana = await NovoJogadorAsync(naCidade: false);
 
         Atacar(ana);
-        await Task.Delay(900);
+        // Um pedido conhecido depois: quando a resposta dele chega, o ataque já foi tratado.
+        ana.Cliente.Enviar(MundoMessageIds.EntrarNaCidade, new EntrarNaCidade());
+        await ana.Cliente.ReceberAsync<EstadoDaCidade>(MundoMessageIds.EstadoDaCidade);
 
         Assert.False(ana.Recebeu(CombateMessageIds.AtaqueIniciado));
         Assert.False(ana.Recebeu(CombateMessageIds.AtaqueRecusado));
@@ -991,15 +1002,19 @@ public class AtaqueTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDeA
         using var ana = await NovoJogadorAsync();
 
         Atacar(ana, (TipoDeAtaque)tipo);
-        await Task.Delay(900);
 
-        Assert.False(ana.Recebeu(CombateMessageIds.AtaqueIniciado));
-        Assert.False(ana.Recebeu(CombateMessageIds.RecursosMudaram));
-        Assert.Equal(ConfigBonecoDeTreino.Vida, servidor.Boneco.VidaAtual);
-
-        // E não prendeu o personagem: um ataque válido logo em seguida funciona.
+        // E não prendeu o personagem: um ataque válido logo em seguida funciona (os pedidos de uma
+        // conexão são tratados em ordem, então o descartado já foi tratado quando o válido acerta).
         Atacar(ana, TipoDeAtaque.Leve, sequencia: 2);
         await ana.Cliente.ReceberAsync<AtaqueAcertou>(CombateMessageIds.AtaqueAcertou);
+
+        Assert.Equal(1, ana.Recebidas(CombateMessageIds.AtaqueIniciado));
+        Assert.False(ana.Recebeu(CombateMessageIds.RecursosMudaram));
+        Assert.False(ana.Recebeu(CombateMessageIds.AtaqueRecusado));
+        Assert.Equal(
+            ConfigBonecoDeTreino.Vida - RegrasAtaque.Dano(TipoDeAtaque.Leve, 0),
+            servidor.Boneco.VidaAtual
+        );
     }
 
     [Fact]
@@ -1008,10 +1023,16 @@ public class AtaqueTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDeA
         using var ana = await NovoJogadorAsync();
         using var beto = await NovoJogadorAsync();
 
+        Tempo.Controlar();
         Atacar(ana);
         await beto.Cliente.ReceberAsync<AtaqueIniciado>(CombateMessageIds.AtaqueIniciado);
         ana.Cliente.Sair();
-        await Task.Delay(RegrasAtaque.PreparoMs(TipoDeAtaque.Leve) + Margem.Milliseconds);
+        var posicoes = servidor.Falso.Services.GetRequiredService<IPosicoesDoMundo>();
+        await TempoRealFixture.EsperarAsync(
+            () => !posicoes.TentarObter(ana.Id, out _),
+            "o servidor tratar a saída"
+        );
+        await Tempo.AvancarQuandoEsperarAsync(RegrasAtaque.PreparoMs(TipoDeAtaque.Leve));
 
         Assert.False(beto.Recebeu(CombateMessageIds.AtaqueAcertou));
         Assert.Equal(ConfigBonecoDeTreino.Vida, servidor.Boneco.VidaAtual);
@@ -1023,7 +1044,9 @@ public class AtaqueTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDeA
         using var ana = await NovoJogadorAsync();
         Assert.True(servidor.Boneco.TentarAplicarDano(ConfigBonecoDeTreino.AlvoId, 170, 1, out _));
 
+        Tempo.Controlar();
         Atacar(ana); // sobram 10 de vida: o golpe leva só o que resta
+        await Tempo.AvancarQuandoEsperarAsync(2_000);
         var acertou = await ana.Cliente.ReceberAsync<AtaqueAcertou>(
             CombateMessageIds.AtaqueAcertou
         );
@@ -1032,10 +1055,9 @@ public class AtaqueTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDeA
         Assert.Equal(0, acerto.VidaRestante);
 
         // Derrubado, não há mais alvo: o golpe seguinte erra.
-        await Task.Delay(400); // fim da ação
         Atacar(ana, sequencia: 2);
         await ana.Cliente.ReceberAsync<AtaqueIniciado>(CombateMessageIds.AtaqueIniciado);
-        await Task.Delay(RegrasAtaque.PreparoMs(TipoDeAtaque.Leve) + Margem.Milliseconds);
+        await Tempo.AvancarQuandoEsperarAsync(2_000);
         Assert.Equal(1, ana.Recebidas(CombateMessageIds.AtaqueAcertou));
 
         servidor.ResetarBoneco();
@@ -1059,9 +1081,12 @@ public class AtaqueTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDeA
             }
         });
 
+        Tempo.Controlar();
+
         // 1. Golpe na direção do boneco (0 graus): acerta e publica GolpeComumAcertou
         Atacar(ana, TipoDeAtaque.Leve, sequencia: 1, direcao: 0f);
         await ana.Cliente.ReceberAsync<AtaqueIniciado>(CombateMessageIds.AtaqueIniciado);
+        await Tempo.AvancarQuandoEsperarAsync(2_000);
         await ana.Cliente.ReceberAsync<AtaqueAcertou>(CombateMessageIds.AtaqueAcertou);
         await TempoRealFixture.EsperarAsync(
             () =>
@@ -1079,14 +1104,11 @@ public class AtaqueTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDeA
             Assert.Contains(ConfigBonecoDeTreino.AlvoId, acertos[0].AlvoIds);
         }
 
-        // Espera a recuperação do golpe leve terminar antes do próximo
-        await Task.Delay(400);
-
         // 2. Golpe de costas para o boneco (180 graus): erra (não envia AtaqueAcertou) e não publica
         await VirarDeCostasAsync(ana, sequencia: 2);
         Atacar(ana, TipoDeAtaque.Leve, sequencia: 2, direcao: 180f);
         await ana.Cliente.ReceberAsync<AtaqueIniciado>(CombateMessageIds.AtaqueIniciado);
-        await Task.Delay(RegrasAtaque.PreparoMs(TipoDeAtaque.Leve) + Margem.Milliseconds);
+        await Tempo.AvancarQuandoEsperarAsync(2_000);
 
         Assert.Equal(1, ana.Recebidas(CombateMessageIds.AtaqueAcertou));
         lock (acertos)

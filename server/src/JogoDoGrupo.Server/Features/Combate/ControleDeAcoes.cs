@@ -388,6 +388,15 @@ public sealed class ControleDeAcoes
         }
     }
 
+    /// <summary>Se há um pedido esperando na fila do personagem (começa no fim da ação em curso).</summary>
+    public bool TemPedidoNaFila(long personagemId)
+    {
+        lock (_trava)
+        {
+            return _estados.TryGetValue(personagemId, out var estado) && estado.Fila != null;
+        }
+    }
+
     /// <summary>Se a ação ainda é a atual do personagem (não foi trocada nem esquecida).</summary>
     public bool EstaAtiva(long personagemId, long acaoId)
     {

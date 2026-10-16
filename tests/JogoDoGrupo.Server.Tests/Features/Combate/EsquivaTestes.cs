@@ -25,6 +25,7 @@ public class EsquivaTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDe
     {
         servidor.Bonus.Equipamentos = new AtributosDosEquipamentos();
         servidor.Bonus.Efeitos = new AtributosCombate();
+        servidor.RelogioCombate.Soltar(); // cada teste decide se controla o tempo
 
         var http = await ServidorDeTeste.CriarClienteLogadoEmAsync(servidor.Falso);
         var resposta = await ServidorDeTeste.PostJsonAsync(
@@ -220,10 +221,11 @@ public class EsquivaTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDe
     {
         using var ana = await NovoJogadorAsync();
         await DefinirRecursosAsync(ana, stamina: 100);
+        servidor.RelogioCombate.Controlar();
 
         Esquivar(ana, sequencia: 1);
         await IniciadaAsync(ana);
-        await Task.Delay(RegrasEsquiva.DuracaoMs + 100);
+        servidor.RelogioCombate.Avancar(RegrasEsquiva.DuracaoMs + 100);
         Esquivar(ana, sequencia: 2);
         await IniciadaAsync(ana);
 
@@ -294,9 +296,8 @@ public class EsquivaTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDe
 
         Esquivar(ana);
         await IniciadaAsync(ana);
-        await Task.Delay(300);
 
-        // 2,8 m em pouco mais de 0,3 s: correndo não dá (5,5 m/s), na esquiva dá (8,3 m/s).
+        // 2,8 m logo no começo da esquiva: correndo não dá (5,5 m/s), na esquiva dá (8,3 m/s).
         ana.Cliente.Enviar(
             MundoMessageIds.IntencaoDeMovimento,
             new IntencaoDeMovimento { Z = z + 2.8f, Sequencia = 2 }
@@ -364,8 +365,7 @@ public class EsquivaTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDe
         // 2. Sem stamina para esquivar: recusa e não publica novo evento
         await DefinirRecursosAsync(ana, stamina: 0);
         Esquivar(ana, sequencia: 2);
-        await RecusadaAsync(ana);
-        await Task.Delay(100);
+        await RecusadaAsync(ana); // a recusa chega depois de a esquiva ser tratada
 
         lock (esquivou)
         {
