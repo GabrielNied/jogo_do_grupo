@@ -118,5 +118,16 @@ namespace JogoDoGrupo.Shared.Features.Social
             }
             return maisAntigoOffline;
         }
+
+        /// <summary>Fração de vida máxima abaixo da qual a barra é considerada crítica e pisca para o healer.</summary>
+        public const double LimiarVidaCritica = 0.30;
+
+        /// <summary>Se a vida está abaixo de 30% da vida máxima.</summary>
+        public static bool VidaEstaCritica(int vida, int vidaMaxima) =>
+            vidaMaxima > 0 && vida >= 0 && (double)vida / vidaMaxima < LimiarVidaCritica;
+
+        /// <summary>Formatação do texto de vida exata: "{vida}/{vidaMaxima}".</summary>
+        public static string TextoVidaExata(int vida, int vidaMaxima) =>
+            $"{Math.Max(0, vida)}/{Math.Max(0, vidaMaxima)}";
     }
 }

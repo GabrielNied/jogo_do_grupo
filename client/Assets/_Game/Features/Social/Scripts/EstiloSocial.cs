@@ -42,6 +42,18 @@ namespace JogoDoGrupo.Client.Features.Social
         /// <summary>Aviso por cima do jogo (use junto com <c>EstiloCore.Dica</c>).</summary>
         public const string AvisoNaTela = "social-aviso-tela";
 
+        /// <summary>Lista de membros no HUD da lateral esquerda.</summary>
+        public const string ListaGrupoHud = "lista-grupo-hud";
+
+        /// <summary>Linha de um aliado no HUD.</summary>
+        public const string LinhaAliadoHud = "linha-aliado-hud";
+
+        /// <summary>Aliado offline no HUD.</summary>
+        public const string AliadoOffline = "aliado-offline";
+
+        /// <summary>Vida crítica (&lt; 30%) com destaque visual.</summary>
+        public const string VidaCritica = "vida-critica";
+
         /// <summary>Adiciona o USS de Social à raiz da interface.</summary>
         public static void Aplicar(VisualElement raiz)
         {

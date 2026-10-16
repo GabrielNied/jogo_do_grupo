@@ -388,14 +388,21 @@ namespace JogoDoGrupo.Client.Features.Combate
         private void AoAcertarAtaque(AtaqueAcertou ataque)
         {
             if (
-                !ApresentacaoAtaque.MostraODano(ataque.AtacanteId, _personagemId)
+                !ApresentacaoAtaque.MostraODano(
+                    ataque.AtacanteId,
+                    _personagemId,
+                    AliadosDoJogo.ConsultarEhAliado
+                )
                 || ataque.Acertos == null
             )
             {
                 return;
             }
 
-            _golpes.Confirmar(ataque.Sequencia, out _);
+            if (ataque.AtacanteId == _personagemId)
+            {
+                _golpes.Confirmar(ataque.Sequencia, out _);
+            }
 
             // O pesado e o 3º leve da cadeia aparecem maiores: o tipo e o passo vêm no acerto.
             var forte = ApresentacaoAtaque.GolpeForte(ataque.Tipo, ataque.Passo);

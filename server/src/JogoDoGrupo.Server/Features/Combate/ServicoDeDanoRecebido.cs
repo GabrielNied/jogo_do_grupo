@@ -1,6 +1,8 @@
+using JogoDoGrupo.Server.Contratos.Combate;
 using JogoDoGrupo.Server.Contratos.Itens;
 using JogoDoGrupo.Server.Contratos.Mobs;
 using JogoDoGrupo.Server.Contratos.Mundo;
+using JogoDoGrupo.Server.Core.Eventos;
 using JogoDoGrupo.Server.Core.TempoReal;
 using JogoDoGrupo.Shared.Features.Combate;
 using JogoDoGrupo.Shared.Features.Mobs;
@@ -28,6 +30,7 @@ public sealed class ServicoDeDanoRecebido : IHostedService
     private readonly AvisosNaArea? _avisos;
     private readonly GerenciadorDeEfeitosDeStatus? _efeitos;
     private readonly IAtributosDosEquipamentos? _equipamentos;
+    private readonly EventosDoServidor? _eventos;
     private readonly CancellationTokenSource _parada = new();
 
     public ServicoDeDanoRecebido(
@@ -41,7 +44,8 @@ public sealed class ServicoDeDanoRecebido : IHostedService
         IPosicoesDoMundo? posicoes = null,
         GerenciadorDeEfeitosDeStatus? efeitos = null,
         IVizinhanca? vizinhanca = null,
-        IAtributosDosEquipamentos? equipamentos = null
+        IAtributosDosEquipamentos? equipamentos = null,
+        EventosDoServidor? eventos = null
     )
     {
         _equipamentos = equipamentos;
@@ -54,6 +58,7 @@ public sealed class ServicoDeDanoRecebido : IHostedService
         _tempoReal = tempoReal;
         _escopos = escopos;
         _log = log;
+        _eventos = eventos;
     }
 
     public Task StartAsync(CancellationToken cancelamento) => Task.CompletedTask;
@@ -196,6 +201,14 @@ public sealed class ServicoDeDanoRecebido : IHostedService
             {
                 _tempoReal.Enviar(sessao, CombateMessageIds.RecursosMudaram, recursos);
             }
+
+            _eventos?.Publicar(
+                new VidaDoPersonagemMudou(
+                    golpe.PersonagemId,
+                    recursos.VidaAtual,
+                    recursos.VidaMaxima
+                )
+            );
 
             // Vida 0 leva a caído; vida acima de 0 interrompe quem este personagem levantava.
             _queda?.AoDano(golpe.PersonagemId, recursos.VidaAtual);

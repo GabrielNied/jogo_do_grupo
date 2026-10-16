@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using JogoDoGrupo.Server.Contratos.Personagem;
+using JogoDoGrupo.Server.Core.Eventos;
 using JogoDoGrupo.Server.Core.TempoReal;
 using JogoDoGrupo.Server.Tests.Core.TempoReal;
 using JogoDoGrupo.Server.Tests.Infra;
@@ -301,5 +302,25 @@ public class GrupoTempoRealTestes(GrupoFixture f) : IClassFixture<GrupoFixture>
         var offline = await AvisoAsync(a);
         Assert.Equal(TipoDeAvisoDoGrupo.MembroOffline, offline.Tipo);
         Assert.Equal(b.PersonagemId, offline.PersonagemId);
+    }
+
+    [Fact]
+    public async Task Mudanca_de_vida_notifica_os_membros_do_grupo_em_tempo_real()
+    {
+        using var a = await f.EntrarAsync();
+        using var b = await f.EntrarAsync();
+        await JuntarAsync(a, b);
+
+        var eventos = f.Fabrica.Services.GetRequiredService<EventosDoServidor>();
+        eventos.Publicar(
+            new JogoDoGrupo.Server.Contratos.Combate.VidaDoPersonagemMudou(b.PersonagemId, 45, 100)
+        );
+
+        var msg = await a.Cliente.ReceberAsync<VidaDoMembroMudou>(
+            SocialMessageIds.VidaDoMembroMudou
+        );
+        Assert.Equal(b.PersonagemId, msg.PersonagemId);
+        Assert.Equal(45, msg.Vida);
+        Assert.Equal(100, msg.VidaMaxima);
     }
 }

@@ -188,6 +188,11 @@ namespace JogoDoGrupo.Client.Core.Jogo
                 return;
             }
 
+            if (_acoes.EsconderHudApertado)
+            {
+                Hud.AlternarVisivel();
+            }
+
             var chave = _atalhos?.ChaveApertada();
             if (chave != null)
             {

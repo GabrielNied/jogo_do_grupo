@@ -53,6 +53,18 @@ namespace JogoDoGrupo.Client.Core.Jogo
         /// <summary>Elemento raiz do HUD, ou <c>null</c> fora do mundo.</summary>
         internal static VisualElement Raiz => _raiz;
 
+        private static bool _ocultoPeloUsuario;
+
+        /// <summary>Se o jogador escolheu esconder o HUD pelo atalho.</summary>
+        public static bool OcultoPeloUsuario => _ocultoPeloUsuario;
+
+        /// <summary>Alterna a exibição do HUD pelo atalho do jogador.</summary>
+        public static void AlternarVisivel()
+        {
+            _ocultoPeloUsuario = !_ocultoPeloUsuario;
+            DefinirVisivel(!_ocultoPeloUsuario);
+        }
+
         /// <summary>
         /// Mostra ou esconde o HUD (entrada até posição confirmada, janelas de tela inteira, etc.).
         /// </summary>
@@ -60,7 +72,8 @@ namespace JogoDoGrupo.Client.Core.Jogo
         {
             if (_raiz != null)
             {
-                _raiz.style.display = visivel ? DisplayStyle.Flex : DisplayStyle.None;
+                _raiz.style.display =
+                    (visivel && !_ocultoPeloUsuario) ? DisplayStyle.Flex : DisplayStyle.None;
             }
         }
 
@@ -133,6 +146,7 @@ namespace JogoDoGrupo.Client.Core.Jogo
             _raiz = null;
             _avisos = null;
             _conexao = null;
+            _ocultoPeloUsuario = false;
             _regioes.Clear();
         }
 
@@ -184,6 +198,7 @@ namespace JogoDoGrupo.Client.Core.Jogo
             _conexao = null;
             _raiz = null;
             _avisos = null;
+            _ocultoPeloUsuario = false;
             _regioes.Clear();
         }
     }

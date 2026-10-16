@@ -148,6 +148,7 @@ public sealed class SocialModule : IFeatureModule, IConsultaDeGrupo
         _limites = _servicos!.GetRequiredService<LimitesDoChat>();
         _historico = _servicos!.GetRequiredService<HistoricoDaCidadeDoChat>();
         contexto.Eventos.Assinar<JogadorEntrouNaArea>(AoEntrarNaArea);
+        contexto.Eventos.Assinar<VidaDoPersonagemMudou>(AoMudarVida);
         _log = _servicos!.GetRequiredService<ILogger<SocialModule>>();
 
         contexto.TempoReal.SessaoAutenticada += sessao =>
@@ -203,6 +204,41 @@ public sealed class SocialModule : IFeatureModule, IConsultaDeGrupo
                 SocialMessageIds.HistoricoDaCidade,
                 new HistoricoDaCidade { Mensagens = mensagens }
             );
+        }
+    }
+
+    private void AoMudarVida(VidaDoPersonagemMudou mudou)
+    {
+        if (_grupos == null)
+        {
+            return;
+        }
+
+        var grupo = _grupos.Consultar(mudou.PersonagemId);
+        if (grupo == null)
+        {
+            return;
+        }
+
+        _grupos.AtualizarVida(mudou.PersonagemId, mudou.VidaAtual, mudou.VidaMaxima);
+
+        var msg = new VidaDoMembroMudou
+        {
+            PersonagemId = mudou.PersonagemId,
+            Vida = mudou.VidaAtual,
+            VidaMaxima = mudou.VidaMaxima,
+        };
+
+        foreach (var membroId in grupo.Membros)
+        {
+            if (
+                _tempoReal != null
+                && _tempoReal.TentarObterSessao(membroId, out var sessao)
+                && sessao != null
+            )
+            {
+                _tempoReal.Enviar(sessao, SocialMessageIds.VidaDoMembroMudou, msg);
+            }
         }
     }
 

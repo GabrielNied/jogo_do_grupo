@@ -193,5 +193,26 @@ namespace JogoDoGrupo.Client.Core.Tests
             Assert.IsTrue(linha.ClassListContains(EstiloCore.AvisoErro));
             Assert.AreEqual(PickingMode.Ignore, linha.pickingMode);
         }
+
+        [Test]
+        public void AlternarVisivel_OcultaEMostraOHud_ERespeitaAlternancia()
+        {
+            Montar();
+            Assert.IsTrue(Hud.Visivel);
+
+            // Alternar oculta
+            Hud.AlternarVisivel();
+            Assert.IsFalse(Hud.Visivel);
+            Assert.AreEqual(DisplayStyle.None, Hud.Raiz.style.display.value);
+
+            // DefinirVisivel(true) não força se o usuário ocultou
+            Hud.DefinirVisivel(true);
+            Assert.IsFalse(Hud.Visivel);
+
+            // Alternar novamente volta a mostrar
+            Hud.AlternarVisivel();
+            Assert.IsTrue(Hud.Visivel);
+            Assert.AreEqual(DisplayStyle.Flex, Hud.Raiz.style.display.value);
+        }
     }
 }

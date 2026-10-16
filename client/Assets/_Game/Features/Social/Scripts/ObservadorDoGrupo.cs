@@ -21,6 +21,8 @@ namespace JogoDoGrupo.Client.Features.Social
         private static ObservadorDoGrupo _instancia;
 
         private GameObject _jogadorAtendido;
+        private PainelListaGrupoHud _painelHud;
+        private VisualElement _regiaoAtendida;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void Iniciar()
@@ -39,7 +41,13 @@ namespace JogoDoGrupo.Client.Features.Social
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void Reiniciar()
         {
+            _instancia?.DescartarHud();
             _instancia = null;
+        }
+
+        private void OnDestroy()
+        {
+            DescartarHud();
         }
 
         private void Update()
@@ -51,11 +59,13 @@ namespace JogoDoGrupo.Client.Features.Social
                 // Fora do mundo não há grupo: esquece o do personagem que saiu.
                 _jogadorAtendido = null;
                 estado.DefinirPersonagem(0);
+                DescartarHud();
                 return;
             }
 
             estado.DefinirPersonagem(EntradaNoJogo.PersonagemId);
             estado.Atualizar(Time.unscaledDeltaTime);
+            GarantirHud(estado);
 
             if (jogador == _jogadorAtendido)
             {
@@ -101,6 +111,31 @@ namespace JogoDoGrupo.Client.Features.Social
         {
             // Abaixo da interface do Core (ordem 0), para o menu do Esc ficar por cima.
             return EstiloCore.CriarConfiguracaoDoPainel("PainelSocial", -1f);
+        }
+
+        private void GarantirHud(EstadoDoGrupo estado)
+        {
+            var regiao = Hud.Regiao(RegiaoDoHud.LateralEsquerda);
+            if (regiao == null)
+            {
+                return;
+            }
+
+            if (_regiaoAtendida == regiao && _painelHud != null)
+            {
+                return;
+            }
+
+            DescartarHud();
+            _painelHud = new PainelListaGrupoHud(regiao, estado);
+            _regiaoAtendida = regiao;
+        }
+
+        private void DescartarHud()
+        {
+            _painelHud?.Descartar();
+            _painelHud = null;
+            _regiaoAtendida = null;
         }
     }
 }

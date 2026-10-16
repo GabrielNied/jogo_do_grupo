@@ -1,3 +1,4 @@
+using JogoDoGrupo.Client.Core.Jogo;
 using UnityEngine;
 
 namespace JogoDoGrupo.Client.Features.Social
@@ -18,6 +19,7 @@ namespace JogoDoGrupo.Client.Features.Social
                 if (_estado == null)
                 {
                     _estado = new EstadoDoGrupo(new ConexaoDoGrupoReal());
+                    AliadosDoJogo.EhAliado = id => _estado.EhAliado(id);
                 }
 
                 return _estado;
@@ -35,6 +37,7 @@ namespace JogoDoGrupo.Client.Features.Social
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void Reiniciar()
         {
+            AliadosDoJogo.EhAliado = null;
             _estado?.Dispose();
             _estado = null;
         }

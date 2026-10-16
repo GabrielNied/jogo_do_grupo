@@ -387,6 +387,14 @@ Código em `client/Assets/_Game/Features/Social/`. O client só envia intençõe
 - **Avisos e recusas** (`AvisoDoGrupo`, `OperacaoDoGrupoRecusada`) viram uma mensagem por 6 s, na janela e por cima do jogo.
 - Trocar de personagem ou sair do mundo esquece o grupo na tela; o do próximo personagem chega pelo servidor.
 
+#### HUD do grupo e sincronização de vida (#900)
+
+- **Lista de membros no HUD:** na lateral esquerda (`RegiaoDoHud.LateralEsquerda`), exibe até 4 aliados (excluindo o jogador local). Sem grupo ou sozinho, o painel fica oculto.
+- **Informações do membro:** nome, indicador se é líder (★), barra de vida proporcional com percentual e vida exata no formato `"{Vida}/{VidaMaxima}"`.
+- **Vida crítica:** quando a vida estiver abaixo de 30% (`RegrasGrupo.LimiarVidaCritica`), a linha e a barra recebem destaque visual (`.vida-critica`).
+- **Membro offline:** exibido com indicação visual (`.aliado-offline`, texto "(Offline)").
+- **Sincronização em tempo real:** o servidor sincroniza alterações de vida (dano, cura, renascimento) através de `VidaDoMembroMudou` (ID 13014: `PersonagemId`, `Vida`, `VidaMaxima`).
+
 ### Contrato do chat
 
 Código em `shared/Package/Runtime/Features/Social/`. Tempo real, entrega confiável; quem falou vem sempre da sessão.

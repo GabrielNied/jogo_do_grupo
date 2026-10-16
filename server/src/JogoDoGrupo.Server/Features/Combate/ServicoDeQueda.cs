@@ -332,6 +332,10 @@ public sealed class ServicoDeQueda : IEstadoDeQueda, IHostedService, IDisposable
             {
                 PublicarSemFalhar(new PersonagemVoltouParaACidade(id, area));
             }
+
+            PublicarSemFalhar(
+                new VidaDoPersonagemMudou(id, recursos.VidaAtual, recursos.VidaMaxima)
+            );
         }
         catch (Exception e)
         {

@@ -20,6 +20,7 @@ namespace JogoDoGrupo.Client.Core.Jogo
         public const string Defesa = "defesa";
         public const string Interagir = "interagir";
         public const string Coletar = "coletar";
+        public const string EsconderHud = "esconder-hud";
 
         private static readonly Dictionary<string, string> _padroes = new Dictionary<string, string>
         {
@@ -34,6 +35,7 @@ namespace JogoDoGrupo.Client.Core.Jogo
             [Defesa] = "<Mouse>/rightButton",
             [Interagir] = "<Keyboard>/e",
             [Coletar] = "<Keyboard>/f",
+            [EsconderHud] = "<Keyboard>/f11",
         };
 
         // Ações que saíram do jogo: a preferência salva delas é descartada e a tecla volta ao
@@ -234,7 +236,14 @@ namespace JogoDoGrupo.Client.Core.Jogo
                 || tecla == "downArrow"
                 || tecla == "leftArrow"
                 || tecla == "rightArrow"
-                || tecla == "tab";
+                || tecla == "tab"
+                || (
+                    tecla.Length >= 2
+                    && tecla[0] == 'f'
+                    && int.TryParse(tecla.Substring(1), out var fn)
+                    && fn >= 1
+                    && fn <= 12
+                );
         }
     }
 }
