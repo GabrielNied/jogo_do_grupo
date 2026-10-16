@@ -15,6 +15,12 @@ public static class ConfigInimigosDoCampo
     /// </summary>
     public const double LimiteSemAtacarSegundos = 8.0;
 
+    /// <summary>
+    /// Raio, em metros, da puxada em cadeia: atacar um inimigo puxa os grupos da mesma espécie
+    /// a até esta distância dele (#915; decidido no quiz de definições 2).
+    /// </summary>
+    public const double RaioDaPuxadaEmCadeiaMetros = 10.0;
+
     /// <summary>Área do mundo em que o grupo vive (o campo faz parte da área da cidade).</summary>
     public const string Area = AreasDoMundo.Cidade;
 
