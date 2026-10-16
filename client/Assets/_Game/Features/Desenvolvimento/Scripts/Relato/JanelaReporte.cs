@@ -22,12 +22,15 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
         private const string Tecla = "J";
         private const int OrdemNaBarra = 900;
         private const int ReportsNoHistorico = 5;
+        private const float OrdemDoPainel = 60f;
 
         // Espera a tecla que abriu a janela (J) passar antes de dar foco ao campo, senão ela
         // vira a primeira letra da frase.
         private const long AtrasoDoFocoMs = 100;
 
         private static int _fecharDepoisDoQuadro = -1;
+        private static GameObject _objetoDoPainel;
+        private static UIDocument _documento;
 
         private Momento _momento;
         private int _frameDaAbertura;
@@ -46,6 +49,8 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
                 return;
             }
 
+            Application.quitting += LimparPainel;
+
             JanelasDoJogo.Registrar(
                 new DefinicaoDeJanela(
                     Chave,
@@ -61,6 +66,42 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
         private static void Reiniciar()
         {
             _fecharDepoisDoQuadro = -1;
+            LimparPainel();
+        }
+
+        private static void LimparPainel()
+        {
+            if (_objetoDoPainel != null)
+            {
+                if (_documento != null && _documento.panelSettings != null)
+                {
+                    UnityEngine.Object.Destroy(_documento.panelSettings);
+                }
+
+                UnityEngine.Object.Destroy(_objetoDoPainel);
+                _objetoDoPainel = null;
+                _documento = null;
+            }
+        }
+
+        private static void GarantirDocumento()
+        {
+            if (_documento != null && _objetoDoPainel != null)
+            {
+                return;
+            }
+
+            _objetoDoPainel = new GameObject("Desenvolvimento.Reporte.Painel");
+            UnityEngine.Object.DontDestroyOnLoad(_objetoDoPainel);
+            _objetoDoPainel.SetActive(false);
+            _documento = _objetoDoPainel.AddComponent<UIDocument>();
+            _documento.panelSettings = EstiloCore.CriarConfiguracaoDoPainel(
+                "PainelReporte",
+                OrdemDoPainel
+            );
+            _objetoDoPainel.SetActive(true);
+            EstiloCore.Aplicar(_documento.rootVisualElement);
+            _documento.rootVisualElement.pickingMode = PickingMode.Ignore;
         }
 
         /// <summary>F9: abre por cima da janela que estiver aberta, ou fecha o report.</summary>
@@ -147,11 +188,22 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
             EnvioDeReporte.Mudou += MostrarHistorico;
 
             _frase.schedule.Execute(() => _frase.Focus()).ExecuteLater(AtrasoDoFocoMs);
+
+            if (Application.isPlaying)
+            {
+                var raiz = conteudo.parent?.parent;
+                if (raiz != null)
+                {
+                    GarantirDocumento();
+                    _documento.rootVisualElement.Add(raiz);
+                }
+            }
         }
 
         protected override void AoFechar()
         {
             EnvioDeReporte.Mudou -= MostrarHistorico;
+            _documento?.rootVisualElement.Clear();
             _momento?.Liberar();
             _momento = null;
             GravadorDeMomento.Instancia?.DefinirGravando(true);
