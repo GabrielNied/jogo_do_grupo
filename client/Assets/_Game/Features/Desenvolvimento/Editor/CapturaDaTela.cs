@@ -174,7 +174,7 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Editor
             {
                 if (JanelasDoJogo.EstaRegistrada(chave))
                 {
-                    var apresentador = new ApresentadorDeJanelas(container, () => { });
+                    var apresentador = new ApresentadorDeJanelas(container, _ => { });
                     gerente = new GerenteDeJanelas(
                         JanelasDoJogo.Registro,
                         apresentador.Mostrar,
@@ -204,7 +204,7 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Editor
             {
                 if (gerente != null)
                 {
-                    gerente.Fechar();
+                    gerente.FecharTodas();
                     JanelasDoJogo.Desligar(gerente);
                 }
 

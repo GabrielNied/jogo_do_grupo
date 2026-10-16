@@ -47,6 +47,15 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
         /// <summary>Se lê o input (falso com o menu aberto).</summary>
         public bool InputAtivo { get; set; } = true;
 
+        /// <summary>
+        /// Se o mouse não gira a câmera agora: com janela aberta, ela só gira segurando o botão
+        /// direito. Quem decide é a sessão no mundo, a cada frame.
+        /// </summary>
+        internal bool GiroBloqueado { get; set; }
+
+        /// <summary>Se a roda do mouse não aproxima agora (o mouse está sobre uma janela).</summary>
+        internal bool ZoomBloqueado { get; set; }
+
         /// <summary>Ângulo horizontal da câmera, em graus: a "frente" do movimento.</summary>
         public float Horizontal => _orbita.Horizontal;
 
@@ -75,11 +84,18 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
 
             if (InputAtivo && _acoes != null)
             {
-                var delta =
-                    _acoes.OlharMouse * _sensibilidadeMouse * OpcoesLocais.Atual.Sensibilidade
-                    + _acoes.OlharControle * (_velocidadeControle * Time.deltaTime);
-                _orbita.Girar(delta);
-                _orbita.Zoom(_acoes.ZoomCliques);
+                if (!GiroBloqueado)
+                {
+                    var delta =
+                        _acoes.OlharMouse * _sensibilidadeMouse * OpcoesLocais.Atual.Sensibilidade
+                        + _acoes.OlharControle * (_velocidadeControle * Time.deltaTime);
+                    _orbita.Girar(delta);
+                }
+
+                if (!ZoomBloqueado)
+                {
+                    _orbita.Zoom(_acoes.ZoomCliques);
+                }
             }
 
             Posicionar(Time.deltaTime);

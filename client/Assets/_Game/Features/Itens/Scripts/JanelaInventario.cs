@@ -201,7 +201,7 @@ namespace JogoDoGrupo.Client.Features.Itens
                     }
                     else if (bau.CodigoErro == CodigosErroCliente.Cancelada)
                     {
-                        JanelasDoJogo.Fechar();
+                        JanelasDoJogo.Fechar(Chave);
                         return;
                     }
                     else
@@ -232,7 +232,7 @@ namespace JogoDoGrupo.Client.Features.Itens
 
                 if (resposta.CodigoErro == CodigosErroCliente.Cancelada)
                 {
-                    JanelasDoJogo.Fechar();
+                    JanelasDoJogo.Fechar(Chave);
                     return;
                 }
 

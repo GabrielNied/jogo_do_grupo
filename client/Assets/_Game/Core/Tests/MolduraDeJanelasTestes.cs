@@ -60,7 +60,7 @@ namespace JogoDoGrupo.Client.Core.Tests
         [Test]
         public void MolduraSocial_RolaConteudoEPreservaFecharSemDependerDaFeature()
         {
-            var presenter = new ApresentadorDeJanelas(new VisualElement(), () => { });
+            var presenter = new ApresentadorDeJanelas(new VisualElement(), _ => { });
             presenter.Mostrar(Definicao(() => new JanelaDeTeste { Social = true }));
             var painel = presenter.Raiz.Q<ScrollView>(null, EstiloCore.Painel);
             Assert.IsNotNull(painel);
@@ -100,8 +100,13 @@ namespace JogoDoGrupo.Client.Core.Tests
             apresentador.Mostrar(Definicao(() => janela));
 
             Assert.AreEqual(1, container.childCount);
-            Assert.AreSame(apresentador.Raiz, container[0]);
-            Assert.IsTrue(apresentador.Raiz.ClassListContains(EstiloCore.TelaSobreJogo));
+            Assert.AreSame(apresentador.Area, container[0]);
+            Assert.AreSame(apresentador.Area, apresentador.Raiz.parent);
+            Assert.IsTrue(apresentador.Raiz.ClassListContains(EstiloCore.JanelaRaiz));
+            Assert.IsFalse(
+                apresentador.Raiz.ClassListContains(EstiloCore.TelaSobreJogo),
+                "Sem véu: o jogo segue à vista para andar com a janela aberta."
+            );
             Assert.AreEqual("Inventário", apresentador.Raiz.Q<Label>(null, EstiloCore.Titulo).text);
             Assert.AreEqual(
                 "I ou Esc: fechar",
@@ -135,7 +140,7 @@ namespace JogoDoGrupo.Client.Core.Tests
         }
 
         [Test]
-        public void Mostrar_OutraJanela_FechaAAnterior_SoUmaNaTela()
+        public void Mostrar_AMesmaDeNovo_TrocaAAnterior_SoUmaNaTela()
         {
             var container = new VisualElement();
             var primeira = new JanelaDeTeste();
@@ -145,9 +150,48 @@ namespace JogoDoGrupo.Client.Core.Tests
             apresentador.Mostrar(Definicao(() => primeira));
             apresentador.Mostrar(Definicao(() => segunda));
 
-            Assert.AreEqual(1, container.childCount);
+            Assert.AreEqual(1, apresentador.Area.childCount);
             Assert.IsFalse(primeira.Aberta);
             Assert.IsTrue(segunda.Aberta);
+        }
+
+        [Test]
+        public void Mostrar_OutraJanela_FicamAsDuasLadoALado_ComAUltimaEmDestaque()
+        {
+            var container = new VisualElement();
+            var inventario = new JanelaDeTeste();
+            var ficha = new JanelaDeTeste();
+            var apresentador = new ApresentadorDeJanelas(container, null);
+            var definicaoInventario = Definicao(() => inventario);
+            var definicaoFicha = new DefinicaoDeJanela(
+                "personagem.ficha",
+                "Personagem",
+                "C",
+                10,
+                () => ficha
+            );
+
+            apresentador.Mostrar(definicaoInventario);
+            apresentador.Mostrar(definicaoFicha);
+
+            Assert.AreEqual(1, container.childCount, "As duas ficam na mesma área.");
+            Assert.AreEqual(2, apresentador.Area.childCount);
+            Assert.IsTrue(inventario.Aberta);
+            Assert.IsTrue(ficha.Aberta);
+            Assert.AreEqual(1, container.Query(null, EstiloCore.JanelaFocada).ToList().Count);
+            Assert.IsNotNull(apresentador.Raiz.Q<VisualElement>("personagem.ficha"));
+
+            apresentador.Focar(definicaoInventario);
+            Assert.IsNotNull(apresentador.Raiz.Q<VisualElement>("itens.inventario"));
+
+            apresentador.Esconder(definicaoInventario);
+            Assert.IsFalse(inventario.Aberta);
+            Assert.IsTrue(ficha.Aberta);
+            Assert.IsNotNull(apresentador.Raiz.Q<VisualElement>("personagem.ficha"));
+
+            apresentador.Esconder(definicaoFicha);
+            Assert.AreEqual(0, container.childCount);
+            Assert.IsNull(apresentador.Raiz);
         }
 
         [Test]

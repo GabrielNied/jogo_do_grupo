@@ -6,8 +6,8 @@ namespace JogoDoGrupo.Client.Core.Jogo.Janelas
     /// <summary>
     /// Janelas do jogo abertas por atalho (C personagem, I inventário, L missões, M mapa).
     /// Cada funcionalidade registra a sua, sem conhecer as outras; o Core cuida do atalho, da
-    /// moldura, do Esc, do cursor e da barra de atalhos. Uma janela por vez, e com janela
-    /// aberta o personagem fica parado. Regras em <c>docs/features/interface.md</c>.
+    /// moldura, do Esc, do cursor e da barra de atalhos. Várias janelas abrem ao mesmo tempo e
+    /// o personagem anda com elas; o Esc fecha a de cima. Regras em <c>docs/features/interface.md</c>.
     /// </summary>
     /// <remarks>
     /// Registre num método com
@@ -28,14 +28,26 @@ namespace JogoDoGrupo.Client.Core.Jogo.Janelas
 
         private static GerenteDeJanelas _gerente;
 
-        /// <summary>Chave da janela aberta agora, ou <c>null</c> (também fora do mundo).</summary>
+        /// <summary>
+        /// Chave da janela de cima (a última aberta ou focada), ou <c>null</c> (também fora do
+        /// mundo). Para saber se uma janela específica está aberta, use <see cref="EstaAberta"/>.
+        /// </summary>
         public static string ChaveAberta => _gerente?.ChaveAberta;
 
         /// <summary>
-        /// Se há janela ou menu do Esc na tela (o personagem está parado e o cursor, livre).
-        /// Falso fora do mundo.
+        /// Se há janela ou menu do Esc na tela (o cursor está livre e o clique não é golpe).
+        /// Com só janelas abertas o personagem anda; com o menu, fica parado. Falso fora do mundo.
         /// </summary>
         public static bool AlgoAberto => _gerente != null && _gerente.AlgoAberto;
+
+        /// <summary>Se há ao menos uma janela aberta (sem contar o menu do Esc).</summary>
+        public static bool JanelaAberta => _gerente != null && _gerente.JanelaAberta;
+
+        /// <summary>Se a janela com essa chave está aberta. Falso fora do mundo.</summary>
+        public static bool EstaAberta(string chave)
+        {
+            return _gerente != null && _gerente.EstaAberta(chave);
+        }
 
         /// <summary>Registra a janela de uma funcionalidade.</summary>
         /// <exception cref="ArgumentNullException">Definição ou fábrica nula.</exception>
@@ -56,7 +68,7 @@ namespace JogoDoGrupo.Client.Core.Jogo.Janelas
 
         /// <summary>
         /// Abre a janela pela chave, como se a pessoa tivesse apertado a tecla (ex.: o baú abre
-        /// o inventário). Não abre fora do mundo, com o menu do Esc aberto ou sem registro.
+        /// o inventário). Abre por cima das outras; se já está aberta, só sobe. Não abre fora do mundo, com o menu do Esc aberto ou sem registro.
         /// </summary>
         /// <returns><c>true</c> se a janela está aberta ao final.</returns>
         public static bool Abrir(string chave)
@@ -77,11 +89,18 @@ namespace JogoDoGrupo.Client.Core.Jogo.Janelas
             return _gerente.Abrir(chave);
         }
 
-        /// <summary>Fecha a janela aberta.</summary>
+        /// <summary>Fecha a janela de cima.</summary>
         /// <returns><c>true</c> se havia uma janela aberta.</returns>
         public static bool Fechar()
         {
             return _gerente != null && _gerente.Fechar();
+        }
+
+        /// <summary>Fecha a janela com essa chave, esteja ela em cima ou não.</summary>
+        /// <returns><c>true</c> se ela estava aberta.</returns>
+        public static bool Fechar(string chave)
+        {
+            return _gerente != null && _gerente.Fechar(chave);
         }
 
         /// <summary>Janelas registradas, usadas pela sessão no mundo.</summary>

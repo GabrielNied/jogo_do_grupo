@@ -492,6 +492,31 @@
     color: var(--lumora-cores-texto-secundario);
 }
 
+.janelas-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    padding: var(--lumora-espacamento-padrao);
+}
+
+.janela-raiz {
+    flex-shrink: 1;
+    min-width: 0;
+    max-height: 100%;
+    margin-left: var(--lumora-espacamento-pequeno);
+    margin-right: var(--lumora-espacamento-pequeno);
+}
+
+.janela-focada {
+    border-width: var(--lumora-bordas-fina);
+    border-color: var(--lumora-cores-ouro);
+}
+
 .janela-raiz-tela-inteira {
     padding: 0;
     background-image: none;

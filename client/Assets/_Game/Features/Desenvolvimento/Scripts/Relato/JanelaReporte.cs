@@ -107,9 +107,9 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
         /// <summary>F9: abre por cima da janela que estiver aberta, ou fecha o report.</summary>
         public static void Alternar()
         {
-            if (JanelasDoJogo.ChaveAberta == Chave)
+            if (JanelasDoJogo.EstaAberta(Chave))
             {
-                JanelasDoJogo.Fechar();
+                JanelasDoJogo.Fechar(Chave);
                 return;
             }
 
@@ -128,9 +128,9 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
             if (_fecharDepoisDoQuadro >= 0 && Time.frameCount > _fecharDepoisDoQuadro)
             {
                 _fecharDepoisDoQuadro = -1;
-                if (JanelasDoJogo.ChaveAberta == Chave)
+                if (JanelasDoJogo.EstaAberta(Chave))
                 {
-                    JanelasDoJogo.Fechar();
+                    JanelasDoJogo.Fechar(Chave);
                 }
             }
         }
@@ -179,7 +179,7 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
             var botoes = new VisualElement();
             botoes.AddToClassList(EstiloCore.LinhaBotoes);
             botoes.Add(Botao("Enviar", Enviar, true));
-            botoes.Add(Botao("Cancelar", () => JanelasDoJogo.Fechar(), false));
+            botoes.Add(Botao("Cancelar", () => JanelasDoJogo.Fechar(Chave), false));
             conteudo.Add(botoes);
 
             _historico = new VisualElement();
@@ -297,7 +297,7 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
                 case KeyCode.Escape:
                     evento.StopPropagation();
                     BloqueioDeEntradaPorTexto.EscConsumidoNesteFrame = true;
-                    JanelasDoJogo.Fechar();
+                    JanelasDoJogo.Fechar(Chave);
                     break;
             }
         }

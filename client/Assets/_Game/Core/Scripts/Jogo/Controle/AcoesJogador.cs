@@ -18,6 +18,7 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
         private readonly InputAction _pular;
         private readonly InputAction _subir;
         private readonly InputAction _menu;
+        private readonly InputAction _girarCamera;
 
         public AcoesJogador()
         {
@@ -69,6 +70,11 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
 
             _menu = new InputAction("Menu", InputActionType.Button, "<Keyboard>/escape");
             _menu.AddBinding("<Gamepad>/start");
+            _girarCamera = new InputAction(
+                "GirarCamera",
+                InputActionType.Button,
+                "<Mouse>/rightButton"
+            );
             TeclasDoJogo.Mudou += AtualizarTeclas;
             AtualizarTeclas();
         }
@@ -120,6 +126,19 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
         /// <summary>Se o botão do menu (Esc) foi apertado neste frame.</summary>
         public bool MenuApertado => _menu.WasPressedThisFrame();
 
+        /// <summary>
+        /// Se o botão direito do mouse foi apertado neste frame: com janela aberta, começa a
+        /// girar a câmera.
+        /// </summary>
+        public bool GirarCameraApertado => _girarCamera.WasPressedThisFrame();
+
+        /// <summary>Se o botão direito do mouse está segurado.</summary>
+        public bool GirarCameraSegurado => _girarCamera.IsPressed();
+
+        /// <summary>Posição do mouse na tela, em pixels (origem embaixo à esquerda).</summary>
+        public Vector2 PosicaoDoMouse =>
+            Mouse.current != null ? Mouse.current.position.ReadValue() : Vector2.zero;
+
         public void Ativar()
         {
             _mover.Enable();
@@ -129,6 +148,7 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
             _pular.Enable();
             _subir.Enable();
             _menu.Enable();
+            _girarCamera.Enable();
         }
 
         public void Desativar()
@@ -140,6 +160,7 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
             _pular.Disable();
             _subir.Disable();
             _menu.Disable();
+            _girarCamera.Disable();
         }
 
         public void Dispose()
@@ -152,6 +173,7 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
             _pular.Dispose();
             _subir.Dispose();
             _menu.Dispose();
+            _girarCamera.Dispose();
         }
     }
 }
