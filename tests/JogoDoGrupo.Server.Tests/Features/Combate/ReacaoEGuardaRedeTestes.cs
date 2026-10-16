@@ -24,6 +24,7 @@ public class ReacaoEGuardaRedeTestes(ServidorDeAtaque servidor) : IClassFixture<
     {
         servidor.Bonus.Equipamentos = new AtributosDosEquipamentos();
         servidor.Bonus.Efeitos = new AtributosCombate();
+        servidor.RelogioCombate.Soltar(); // cada teste decide se controla o tempo
 
         var http = await ServidorDeTeste.CriarClienteLogadoEmAsync(servidor.Falso);
         var resposta = await ServidorDeTeste.PostJsonAsync(
@@ -219,6 +220,7 @@ public class ReacaoEGuardaRedeTestes(ServidorDeAtaque servidor) : IClassFixture<
     public async Task Guarda_sem_stamina_quebra_toma_o_dano_e_fica_300_ms_sem_agir()
     {
         using var ana = await NovoJogadorAsync();
+        servidor.RelogioCombate.Controlar(); // os 300 ms só passam quando o teste manda
         await DefinirStaminaAsync(ana, 10);
         var vida = (await ConsultarAsync(ana)).VidaAtual;
         Guardar(ana, true);
@@ -242,6 +244,17 @@ public class ReacaoEGuardaRedeTestes(ServidorDeAtaque servidor) : IClassFixture<
             CombateMessageIds.EsquivaRecusada
         );
         Assert.Equal(CodigosErroCombate.AcaoEmAndamento, recusa.Codigo);
+
+        // Passados os 300 ms o personagem volta a agir: a esquiva agora só falha por falta de stamina.
+        servidor.RelogioCombate.Avancar(RegrasReacao.AtordoamentoNoAcertoMs);
+        ana.Cliente.Enviar(
+            CombateMessageIds.IntencaoDeEsquiva,
+            new IntencaoDeEsquiva { DirecaoY = 0f, Sequencia = 2 }
+        );
+        var semStamina = await ana.Cliente.ReceberAsync<EsquivaRecusada>(
+            CombateMessageIds.EsquivaRecusada
+        );
+        Assert.NotEqual(CodigosErroCombate.AcaoEmAndamento, semStamina.Codigo);
     }
 
     [Fact]
