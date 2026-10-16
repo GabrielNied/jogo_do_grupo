@@ -26,6 +26,9 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
         /// <summary>Teto de materiais distintos de toda a vegetação (um por tipo de superfície e bioma).</summary>
         public const int LimiteDeMateriais = 80;
 
+        /// <summary>Escala das árvores nas regiões de mata desenhadas pelo criador de mapas.</summary>
+        public const float EscalaDaArvoreNaMataAutoral = 2f;
+
         /// <summary>Peças pequenas somem mais perto: arbusto, cacto e pedras pequenas.</summary>
         public static bool EhPequena(string nome)
         {
