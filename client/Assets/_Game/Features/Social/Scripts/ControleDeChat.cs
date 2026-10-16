@@ -105,8 +105,9 @@ namespace JogoDoGrupo.Client.Features.Social
 
             if (_painel.Aberta)
             {
-                // Uma janela ou o menu abriu por cima: larga a caixa e deixa o Core cuidar do cursor.
-                if (JanelasDoJogo.AlgoAberto)
+                // O menu do Esc abriu por cima: larga a caixa e deixa o Core cuidar do cursor.
+                // Janelas comuns convivem com o chat (interface.md, Janelas do jogo).
+                if (JanelasDoJogo.MenuAberto)
                 {
                     Fechar(false);
                 }
@@ -114,16 +115,16 @@ namespace JogoDoGrupo.Client.Features.Social
             // Outra caixa de texto aberta (ex.: o relato F9) fica com o Enter.
             else if (
                 _enter.WasPressedThisFrame()
-                && !JanelasDoJogo.AlgoAberto
+                && !JanelasDoJogo.MenuAberto
                 && !BloqueioDeEntradaPorTexto.AtalhosDoJogoBloqueados()
             )
             {
                 Abrir();
             }
 
-            if (!JanelasDoJogo.AlgoAberto && _paginaAcima.WasPressedThisFrame())
+            if (!JanelasDoJogo.MenuAberto && _paginaAcima.WasPressedThisFrame())
                 _painel.RolarPagina(true);
-            if (!JanelasDoJogo.AlgoAberto && _paginaAbaixo.WasPressedThisFrame())
+            if (!JanelasDoJogo.MenuAberto && _paginaAbaixo.WasPressedThisFrame())
                 _painel.RolarPagina(false);
 
             _painel.Esmaecer(_atividade.Esmaecido(Agora(), _painel.Aberta));
@@ -136,7 +137,7 @@ namespace JogoDoGrupo.Client.Features.Social
 
         private void AlternarCaixa()
         {
-            if (_painel == null || !EntradaNoJogo.NoJogo || JanelasDoJogo.AlgoAberto)
+            if (_painel == null || !EntradaNoJogo.NoJogo || JanelasDoJogo.MenuAberto)
             {
                 return;
             }
@@ -152,7 +153,7 @@ namespace JogoDoGrupo.Client.Features.Social
 
         private void AbrirComTexto(string textoInicial)
         {
-            if (_painel == null || !EntradaNoJogo.NoJogo || JanelasDoJogo.AlgoAberto)
+            if (_painel == null || !EntradaNoJogo.NoJogo || JanelasDoJogo.MenuAberto)
             {
                 return;
             }
@@ -174,11 +175,15 @@ namespace JogoDoGrupo.Client.Features.Social
         {
             _painel.Fechar();
             _atividade.Registrar(Agora());
-            if (devolverOJogo && !JanelasDoJogo.AlgoAberto)
+            if (devolverOJogo && !JanelasDoJogo.MenuAberto)
             {
                 DefinirJogoAtivo(true);
-                Cursor.lockState = CursorLockMode.Locked;
-                Cursor.visible = false;
+                // Com janela aberta o cursor continua livre; o clique no mundo prende de novo.
+                if (!JanelasDoJogo.JanelaAberta)
+                {
+                    Cursor.lockState = CursorLockMode.Locked;
+                    Cursor.visible = false;
+                }
             }
         }
 

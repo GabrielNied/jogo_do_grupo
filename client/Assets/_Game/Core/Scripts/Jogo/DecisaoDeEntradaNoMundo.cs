@@ -51,5 +51,19 @@ namespace JogoDoGrupo.Client.Core.Jogo
         /// </summary>
         internal static bool ComecaAGirar(bool botaoApertado, bool sobreJanela) =>
             botaoApertado && !sobreJanela;
+
+        /// <summary>
+        /// Com janela aberta, se o clique esquerdo começa no mundo (fora da interface): ao
+        /// soltar, entra no modo combate (cursor preso). Clique na interface não ataca.
+        /// </summary>
+        internal static bool ComecaCliqueNoMundo(bool botaoApertado, bool sobreInterface) =>
+            botaoApertado && !sobreInterface;
+
+        /// <summary>
+        /// Se o Esc só sai do modo combate (solta o cursor) em vez de fechar a janela de cima:
+        /// um Esc nunca faz as duas coisas.
+        /// </summary>
+        internal static bool EscSaiDoModoCombate(bool modoCombate, bool janelaAberta) =>
+            modoCombate && janelaAberta;
     }
 }

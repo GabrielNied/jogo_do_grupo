@@ -73,16 +73,18 @@ namespace JogoDoGrupo.Client.Features.Itens
         }
 
         /// <summary>
-        /// Abre a janela pedindo ao servidor para abrir o baú. Sem efeito se outra janela ou
-        /// o menu estiver aberto.
+        /// Abre a janela pedindo ao servidor para abrir o baú, mesmo com outras janelas abertas.
+        /// Se o inventário já está aberto, reabre como baú. Sem efeito com o menu do Esc aberto.
         /// </summary>
         internal static void AbrirComBau()
         {
-            if (JanelasDoJogo.AlgoAberto)
+            if (JanelasDoJogo.MenuAberto)
             {
                 return;
             }
 
+            // A abertura do baú vem do AoAbrir: a janela já aberta só subiria.
+            JanelasDoJogo.Fechar(Chave);
             _abrirBau = true;
             JanelasDoJogo.Abrir(Chave);
             _abrirBau = false;

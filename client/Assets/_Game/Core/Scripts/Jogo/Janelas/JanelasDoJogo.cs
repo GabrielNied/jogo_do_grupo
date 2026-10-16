@@ -35,10 +35,17 @@ namespace JogoDoGrupo.Client.Core.Jogo.Janelas
         public static string ChaveAberta => _gerente?.ChaveAberta;
 
         /// <summary>
-        /// Se há janela ou menu do Esc na tela (o cursor está livre e o clique não é golpe).
-        /// Com só janelas abertas o personagem anda; com o menu, fica parado. Falso fora do mundo.
+        /// Se há janela ou menu do Esc na tela. Não use para bloquear ações: com janelas comuns
+        /// abertas, E, F, montaria, chat e portal seguem valendo (estilo WoW). Para o que para
+        /// no menu, use <see cref="MenuAberto"/>; o combate segue o cursor preso. Falso fora do mundo.
         /// </summary>
         public static bool AlgoAberto => _gerente != null && _gerente.AlgoAberto;
+
+        /// <summary>
+        /// Se o menu do Esc está aberto: o personagem para e nenhuma ação do jogo dispara.
+        /// Falso fora do mundo.
+        /// </summary>
+        public static bool MenuAberto => _gerente != null && _gerente.MenuAberto;
 
         /// <summary>Se há ao menos uma janela aberta (sem contar o menu do Esc).</summary>
         public static bool JanelaAberta => _gerente != null && _gerente.JanelaAberta;

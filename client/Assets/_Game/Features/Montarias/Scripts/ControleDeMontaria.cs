@@ -112,7 +112,7 @@ namespace JogoDoGrupo.Client.Features.Montarias
             if (
                 Keyboard.current != null
                 && Keyboard.current.tKey.wasPressedThisFrame
-                && !JanelasDoJogo.AlgoAberto
+                && !JanelasDoJogo.MenuAberto
             )
             {
                 AlternarMontaria();

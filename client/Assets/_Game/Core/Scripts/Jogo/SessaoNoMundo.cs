@@ -26,6 +26,15 @@ namespace JogoDoGrupo.Client.Core.Jogo
         private BarraDeAtalhos _barra;
         private bool _girando;
 
+        // Com janela aberta: o clique esquerdo começou no mundo (fora da interface) e, ao
+        // soltar, prende o cursor. O clique que entra não vira golpe (o combate só ataca no
+        // aperto com o cursor já preso).
+        private bool _cliqueNoMundo;
+
+        // Modo combate com janelas abertas: cursor preso como sem janela, golpe, guarda,
+        // esquiva, skills e troca de arma valem e a câmera gira livre.
+        private bool _modoCombate;
+
         public bool MenuAberto => _menu != null && _menu.Aberto;
 
         public void Configurar(
@@ -102,6 +111,8 @@ namespace JogoDoGrupo.Client.Core.Jogo
 
             _menu?.Fechar();
             _girando = false;
+            _cliqueNoMundo = false;
+            _modoCombate = false;
             Hud.DefinirVisivel(true);
             // Sai da tela já: a cena do mundo só termina de descarregar depois.
             _barra?.Remover();
@@ -176,6 +187,12 @@ namespace JogoDoGrupo.Client.Core.Jogo
                 {
                     _menu.VoltarDoSubmenu();
                 }
+                else if (
+                    DecisaoDeEntradaNoMundo.EscSaiDoModoCombate(_modoCombate, _janelas.JanelaAberta)
+                )
+                {
+                    SairDoModoCombate();
+                }
                 else
                 {
                     _janelas.ApertarEsc();
@@ -246,8 +263,30 @@ namespace JogoDoGrupo.Client.Core.Jogo
                     PararDeGirar();
                 }
 
+                _cliqueNoMundo = false;
+                _modoCombate = false;
                 _camera.GiroBloqueado = false;
                 _camera.ZoomBloqueado = false;
+                return;
+            }
+
+            if (_modoCombate)
+            {
+                // Outra coisa soltou o cursor (ex.: o chat abriu): volta ao modo de cursor.
+                if (Cursor.lockState != CursorLockMode.Locked)
+                {
+                    SairDoModoCombate();
+                }
+                else
+                {
+                    _camera.GiroBloqueado = false;
+                    _camera.ZoomBloqueado = false;
+                    return;
+                }
+            }
+
+            if (AtualizarCliqueNoMundo())
+            {
                 return;
             }
 
@@ -270,6 +309,51 @@ namespace JogoDoGrupo.Client.Core.Jogo
 
             _camera.GiroBloqueado = !_girando;
             _camera.ZoomBloqueado = sobreJanela && !_girando;
+        }
+
+        /// <summary>
+        /// Clique esquerdo que começa no mundo, fora da interface: ao soltar, prende o cursor e
+        /// entra no modo combate, com as janelas ainda abertas.
+        /// </summary>
+        /// <returns><c>true</c> se entrou no modo combate neste frame.</returns>
+        private bool AtualizarCliqueNoMundo()
+        {
+            if (_acoes.ClicarApertado)
+            {
+                _cliqueNoMundo =
+                    !_girando
+                    && !EntradaDeTextoAtiva(Navegacao.Container)
+                    && DecisaoDeEntradaNoMundo.ComecaCliqueNoMundo(
+                        true,
+                        _apresentador.SobreInterface(_acoes.PosicaoDoMouse)
+                    );
+            }
+
+            if (!_cliqueNoMundo || !_acoes.ClicarSolto)
+            {
+                return false;
+            }
+
+            _cliqueNoMundo = false;
+            _girando = false;
+            _modoCombate = true;
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+            _camera.GiroBloqueado = false;
+            _camera.ZoomBloqueado = false;
+            return true;
+        }
+
+        private void SairDoModoCombate()
+        {
+            _modoCombate = false;
+            _cliqueNoMundo = false;
+            if (_camera != null)
+            {
+                _camera.GiroBloqueado = true;
+            }
+
+            LiberarCursor();
         }
 
         private void PararDeGirar()
@@ -321,7 +405,10 @@ namespace JogoDoGrupo.Client.Core.Jogo
                     ConexaoTempoReal.Conectado
                 )
             );
+            // Abrir, fechar ou subir janela solta o cursor do modo combate.
             _girando = false;
+            _cliqueNoMundo = false;
+            _modoCombate = false;
             if (_camera != null)
             {
                 _camera.GiroBloqueado = _janelas.JanelaAberta;

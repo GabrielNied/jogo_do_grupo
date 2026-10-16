@@ -113,7 +113,7 @@ namespace JogoDoGrupo.Client.Features.Instancias
                 return;
             }
 
-            if (_estado.NaInstancia && _estado.VitoriaAlcancada && !JanelasDoJogo.AlgoAberto)
+            if (_estado.NaInstancia && _estado.VitoriaAlcancada && !JanelasDoJogo.MenuAberto)
             {
                 MostrarDica(true);
                 _dica.text = TeclasDoJogo.Rotulo(TeclasDoJogo.Interagir) + ": sair da dungeon";
@@ -127,7 +127,7 @@ namespace JogoDoGrupo.Client.Features.Instancias
             var posicao = _jogador.transform.position;
             var perto =
                 !_estado.NaInstancia
-                && !JanelasDoJogo.AlgoAberto
+                && !JanelasDoJogo.MenuAberto
                 && LayoutDaMinaDoReflexo.PertoDaEntrada(posicao.x, posicao.z);
             MostrarDica(perto);
             if (perto)
