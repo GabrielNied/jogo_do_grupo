@@ -53,8 +53,8 @@ namespace JogoDoGrupo.Client.Features.Combate
 
         // Botão do ataque: soltar antes de SegurarParaPesadoSegundos é o leve; segurar até lá
         // começa o pesado (docs/features/interface.md, Teclas e atalhos).
-        private double _segurandoDesde = -1d;
-        private bool _pesadoDoClique;
+        private readonly ProcessadorDeCliqueAtaque _processadorClique =
+            new ProcessadorDeCliqueAtaque();
 
         public void Configurar(
             long personagemId,
@@ -189,41 +189,17 @@ namespace JogoDoGrupo.Client.Features.Combate
                 return;
             }
 
-            if (_leve.WasPressedThisFrame() && PodeAtacar())
-            {
-                _segurandoDesde = agora;
-                _pesadoDoClique = false;
-            }
-
-            if (_segurandoDesde < 0d)
-            {
-                return;
-            }
-
-            if (!PodeAtacar())
-            {
-                _segurandoDesde = -1d; // Abriu um menu no meio do clique: o clique é descartado.
-                return;
-            }
-
             if (
-                !_pesadoDoClique
-                && _leve.IsPressed()
-                && agora - _segurandoDesde >= RegrasAtaque.SegurarParaPesadoSegundos
+                _processadorClique.Atualizar(
+                    _leve.WasPressedThisFrame(),
+                    _leve.IsPressed(),
+                    PodeAtacar(),
+                    agora,
+                    out var golpeDisparado
+                ) && golpeDisparado.HasValue
             )
             {
-                _pesadoDoClique = true;
-                Pedir(TipoDeAtaque.Pesado, agora);
-            }
-            else if (!_leve.IsPressed())
-            {
-                // Soltou: antes dos 0,3 s é o leve; o pesado já saiu enquanto segurava.
-                if (!_pesadoDoClique)
-                {
-                    Pedir(TipoDeAtaque.Leve, agora);
-                }
-
-                _segurandoDesde = -1d;
+                Pedir(golpeDisparado.Value, agora);
             }
         }
 
