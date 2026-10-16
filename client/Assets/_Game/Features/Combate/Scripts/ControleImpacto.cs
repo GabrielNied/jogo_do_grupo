@@ -226,11 +226,11 @@ namespace JogoDoGrupo.Client.Features.Combate
 
         /// <summary>
         /// Retorno do golpe do próprio jogador que o servidor não confirmou (errou o alvo): o rastro
-        /// no chão, no volume do golpe, e o som de ar cortado.
+        /// no chão, no arco da lâmina, e o som de ar cortado.
         /// </summary>
-        public void GolpeNoVazio(Vector3 pes, float direcaoYGraus)
+        public void GolpeNoVazio(Vector3 pes, float direcaoYGraus, ArcoDoGolpe arco)
         {
-            RastroDoGolpe.Criar(pes, direcaoYGraus);
+            RastroDoGolpe.Criar(pes, direcaoYGraus, arco);
             Tocar(SomDeCombate.GolpeNoVazio, 0.5f);
         }
 

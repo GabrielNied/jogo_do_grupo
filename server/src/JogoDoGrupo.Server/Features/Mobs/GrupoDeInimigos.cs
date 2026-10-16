@@ -482,6 +482,64 @@ public sealed partial class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulado
         }
     }
 
+    public IReadOnlyList<AlvoDeCombate> AlvosProximos(
+        string area,
+        double origemX,
+        double origemZ,
+        double alcanceMetros,
+        long instanteReferenciaMs = 0
+    )
+    {
+        if (area != Area)
+        {
+            return [];
+        }
+
+        lock (_trava)
+        {
+            var alvos = new List<AlvoDeCombate>();
+            foreach (var inimigo in _inimigos)
+            {
+                var alvoX = inimigo.X;
+                var alvoZ = inimigo.Z;
+                if (
+                    instanteReferenciaMs > 0
+                    && _historico?.TentarObterEm(
+                        inimigo.Id,
+                        instanteReferenciaMs,
+                        out var posicaoHistorica
+                    ) == true
+                )
+                {
+                    alvoX = posicaoHistorica.X;
+                    alvoZ = posicaoHistorica.Z;
+                }
+
+                var dx = alvoX - origemX;
+                var dz = alvoZ - origemZ;
+                if (
+                    RegrasInimigo.EstaVivo(inimigo.Estado)
+                    && Math.Sqrt(dx * dx + dz * dz) - RegrasInimigo.RaioDoCorpoMetros
+                        <= alcanceMetros
+                )
+                {
+                    alvos.Add(
+                        new AlvoDeCombate(
+                            inimigo.Id,
+                            alvoX,
+                            alvoZ,
+                            RegrasInimigo.RaioDoCorpoMetros,
+                            inimigo.Vida,
+                            inimigo.Criatura.VidaMaxima
+                        )
+                    );
+                }
+            }
+
+            return alvos;
+        }
+    }
+
     public bool TentarAplicarDano(
         long alvoId,
         int dano,

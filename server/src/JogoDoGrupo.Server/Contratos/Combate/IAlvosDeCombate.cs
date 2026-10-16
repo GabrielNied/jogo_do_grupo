@@ -1,3 +1,5 @@
+using JogoDoGrupo.Shared.Features.Combate;
+
 namespace JogoDoGrupo.Server.Contratos.Combate;
 
 /// <summary>
@@ -6,7 +8,8 @@ namespace JogoDoGrupo.Server.Contratos.Combate;
 /// os ids são únicos entre todas as implementações de <see cref="IAlvosDeCombate"/> (o boneco de
 /// treino usa um id negativo fixo). <see cref="PersonagemId"/> é o personagem que o alvo
 /// representa quando é um jogador (0 para boneco, inimigo e chefe); é por ele que o golpe poupa
-/// o próprio atacante e os aliados. A posição é no plano do chão (a altura não conta).
+/// o próprio atacante e os aliados. A posição é no plano do chão; o corpo é uma cápsula de raio
+/// <see cref="Raio"/> e <see cref="Altura"/> (o arco da lâmina testa contra ela).
 /// </summary>
 public readonly record struct AlvoDeCombate(
     long Id,
@@ -15,7 +18,8 @@ public readonly record struct AlvoDeCombate(
     double Raio,
     int VidaAtual,
     int VidaMaxima,
-    long PersonagemId = 0
+    long PersonagemId = 0,
+    double Altura = ArcosDosGolpes.AlturaPadraoDoCorpoMetros
 );
 
 /// <summary>O que um golpe fez num alvo: o dano que ele realmente levou e a vida que sobrou.</summary>
@@ -44,6 +48,21 @@ public interface IAlvosDeCombate
         double origemX,
         double origemZ,
         double direcaoYGraus,
+        long instanteReferenciaMs = 0
+    );
+
+    /// <summary>
+    /// Os alvos <b>vivos</b> da área cujo corpo chega a até <paramref name="alcanceMetros"/> da origem
+    /// (distância ao centro menos o raio), sem filtro de direção: o golpe comum do Combate testa
+    /// aqui o arco da lâmina (<c>ArcoDoGolpe</c>). A posição é a do instante
+    /// <paramref name="instanteReferenciaMs"/> (compensação de lag, ADR 0039). Vazio se a área não é
+    /// desta implementação.
+    /// </summary>
+    IReadOnlyList<AlvoDeCombate> AlvosProximos(
+        string area,
+        double origemX,
+        double origemZ,
+        double alcanceMetros,
         long instanteReferenciaMs = 0
     );
 

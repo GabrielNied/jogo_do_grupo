@@ -243,7 +243,7 @@ Do "Livro de ideias" do [FigJam](../brainstorm/figjam.md) (seções 05, 09 e 10)
 
 - ~~Ainda nada no código. A IA, o dano e a posição no mundo dependem de [Combate](combate.md) (alvo e dano) e de [Mundo](mundo.md) (posição dos jogadores), que as issues #61 e #119 preparam.~~ Substituído em 2026-10-11: os dois contratos já existem no servidor (`Contratos/Combate/IAlvosDeCombate` e `Contratos/Mundo/IPosicoesDoMundo`). O inimigo da issue #63 vai usá-los; o contrato do shared (abaixo) ainda não depende de nenhuma outra funcionalidade.
 - **Mundo** (desde a issue #268): a posição dos jogadores da área por `IPosicoesDoMundo`, o evento `JogadorEntrouNaArea` (para mandar `InimigosDaArea`) e a altura do chão por `MapaDoMundo.AlturaEm`.
-- **Combate** (desde a issue #268): o grupo de inimigos é um `IAlvosDeCombate` (o `InimigoId` é o `AlvoId`) e usa o cone de `RegrasAtaque.EstaNoVolume`.
+- **Combate** (desde a issue #268): o grupo de inimigos é um `IAlvosDeCombate` (o `InimigoId` é o `AlvoId`) e responde ao golpe comum por `AlvosProximos` (o arco da lâmina de Combate decide o acerto, #914) e às skills por `AlvosNoVolume`.
 
 ## Expõe
 

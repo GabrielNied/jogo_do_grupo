@@ -79,6 +79,45 @@ public sealed class BonecoDeTreino(Func<long> relogioMs) : IAlvosDeCombate
         ];
     }
 
+    public IReadOnlyList<AlvoDeCombate> AlvosProximos(
+        string area,
+        double origemX,
+        double origemZ,
+        double alcanceMetros,
+        long instanteReferenciaMs = 0
+    )
+    {
+        if (area != AreasDoMundo.Cidade)
+        {
+            return [];
+        }
+
+        int vida;
+        lock (_trava)
+        {
+            vida = Recuperar();
+        }
+
+        var dx = ConfigBonecoDeTreino.X - origemX;
+        var dz = ConfigBonecoDeTreino.Z - origemZ;
+        if (vida <= 0 || Math.Sqrt(dx * dx + dz * dz) - ConfigBonecoDeTreino.Raio > alcanceMetros)
+        {
+            return [];
+        }
+
+        return
+        [
+            new AlvoDeCombate(
+                ConfigBonecoDeTreino.AlvoId,
+                ConfigBonecoDeTreino.X,
+                ConfigBonecoDeTreino.Z,
+                ConfigBonecoDeTreino.Raio,
+                vida,
+                ConfigBonecoDeTreino.Vida
+            ),
+        ];
+    }
+
     public bool TentarAplicarDano(
         long alvoId,
         int dano,

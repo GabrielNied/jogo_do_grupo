@@ -47,6 +47,14 @@ public sealed class AlvoFalso(long id) : IAlvosDeCombate
         return Ativo ? [new AlvoDeCombate(id, origemX, origemZ, 0.5, 100, 100)] : [];
     }
 
+    public IReadOnlyList<AlvoDeCombate> AlvosProximos(
+        string area,
+        double origemX,
+        double origemZ,
+        double alcanceMetros,
+        long instanteReferenciaMs = 0
+    ) => AlvosNoVolume(area, origemX, origemZ, 0, instanteReferenciaMs);
+
     public bool TentarAplicarDano(
         long alvoId,
         int dano,
@@ -201,6 +209,26 @@ public class AtaqueTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDeA
         }
 
         return jogador;
+    }
+
+    // O corpo do jogador vira de costas para o boneco (a mira e o corpo juntos, sem giro por limitar).
+    private async Task VirarDeCostasAsync(Jogador jogador, int sequencia = 1)
+    {
+        jogador.Cliente.Enviar(
+            MundoMessageIds.IntencaoDeMovimento,
+            new IntencaoDeMovimento
+            {
+                X = ValidadorDeMovimento.Nascimento.X,
+                Z = ValidadorDeMovimento.Nascimento.Z,
+                RotacaoY = 180f,
+                Sequencia = sequencia,
+            }
+        );
+        await PosicaoNoServidor.EsperarAsync(
+            servidor.Falso.Services,
+            jogador.Id,
+            p => p.RotacaoY == 180f
+        );
     }
 
     private static void Atacar(
@@ -589,7 +617,7 @@ public class AtaqueTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDeA
     }
 
     [Fact]
-    public async Task Pesado_cuja_mira_girou_180_graus_so_gira_60_e_erra_o_boneco_que_estava_na_frente()
+    public async Task Pesado_cuja_mira_girou_180_graus_so_gira_60_e_o_arco_largo_ainda_pega_o_boneco()
     {
         using var ana = await NovoJogadorAsync();
 
@@ -613,15 +641,16 @@ public class AtaqueTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDeA
 
         await Task.Delay(RegrasAtaque.PreparoMs(TipoDeAtaque.Pesado) + Margem.Milliseconds);
 
-        // Limitado a 60° em 1 s, o cone (45° de cada lado) já não pega o boneco a 0°.
-        Assert.False(ana.Recebeu(CombateMessageIds.AtaqueAcertou));
-        Assert.Equal(ConfigBonecoDeTreino.Vida, servidor.Boneco.VidaAtual);
+        // Limitado a 60° em 1 s, o corpo ainda deixa o boneco dentro do arco largo do pesado
+        // (110° de cada lado); o teto de giro em si é testado no shared (DirecaoDoGolpe).
+        await ana.Cliente.ReceberAsync<AtaqueAcertou>(CombateMessageIds.AtaqueAcertou);
     }
 
     [Fact]
-    public async Task Fora_do_cone_nao_acerta_mas_o_ataque_acontece()
+    public async Task Fora_do_arco_nao_acerta_mas_o_ataque_acontece()
     {
         using var ana = await NovoJogadorAsync();
+        await VirarDeCostasAsync(ana);
 
         Atacar(ana, direcao: 180f); // de costas para o boneco
         await ana.Cliente.ReceberAsync<AtaqueIniciado>(CombateMessageIds.AtaqueIniciado);
@@ -1054,6 +1083,7 @@ public class AtaqueTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDeA
         await Task.Delay(400);
 
         // 2. Golpe de costas para o boneco (180 graus): erra (não envia AtaqueAcertou) e não publica
+        await VirarDeCostasAsync(ana, sequencia: 2);
         Atacar(ana, TipoDeAtaque.Leve, sequencia: 2, direcao: 180f);
         await ana.Cliente.ReceberAsync<AtaqueIniciado>(CombateMessageIds.AtaqueIniciado);
         await Task.Delay(RegrasAtaque.PreparoMs(TipoDeAtaque.Leve) + Margem.Milliseconds);

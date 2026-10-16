@@ -335,6 +335,46 @@ public sealed class ChefeDaDungeon : IAlvosDeCombate, IInimigosSimulados
         }
     }
 
+    public IReadOnlyList<AlvoDeCombate> AlvosProximos(
+        string area,
+        double origemX,
+        double origemZ,
+        double alcanceMetros,
+        long instanteReferenciaMs = 0
+    )
+    {
+        if (area != Area)
+        {
+            return [];
+        }
+
+        lock (_trava)
+        {
+            var dx = _x - origemX;
+            var dz = _z - origemZ;
+            if (
+                RegrasInimigo.EstaVivo(_estado)
+                && Math.Sqrt(dx * dx + dz * dz) - ConfigChefeDaDungeon.RaioDoCorpoMetros
+                    <= alcanceMetros
+            )
+            {
+                return
+                [
+                    new AlvoDeCombate(
+                        _id,
+                        _x,
+                        _z,
+                        ConfigChefeDaDungeon.RaioDoCorpoMetros,
+                        _vida,
+                        ConfigChefeDaDungeon.VidaMaxima
+                    ),
+                ];
+            }
+
+            return [];
+        }
+    }
+
     public bool TentarAplicarDano(
         long alvoId,
         int dano,

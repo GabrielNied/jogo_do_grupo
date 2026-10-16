@@ -49,6 +49,16 @@ public sealed class ChefesDaDungeon(Func<long>? relogioMs = null)
         Obter(area)?.AlvosNoVolume(area, origemX, origemZ, direcaoYGraus, instanteReferenciaMs)
         ?? [];
 
+    public IReadOnlyList<AlvoDeCombate> AlvosProximos(
+        string area,
+        double origemX,
+        double origemZ,
+        double alcanceMetros,
+        long instanteReferenciaMs = 0
+    ) =>
+        Obter(area)?.AlvosProximos(area, origemX, origemZ, alcanceMetros, instanteReferenciaMs)
+        ?? [];
+
     public bool TentarAplicarDano(
         long alvoId,
         int dano,
