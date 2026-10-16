@@ -102,3 +102,93 @@
     width: 100%;
     margin-top: var(--lumora-espacamento-pequeno);
 }
+
+/* Lista de aliados no HUD (lateral esquerda) */
+.lista-grupo-hud {
+    width: 200px;
+    max-width: 100%;
+}
+
+.linha-aliado-hud {
+    padding: var(--lumora-espacamento-curto);
+    margin-bottom: var(--lumora-espacamento-curto);
+    background-color: var(--lumora-cores-painel);
+    border-radius: var(--lumora-bordas-raio-campo);
+    border-width: var(--lumora-bordas-fina);
+    border-color: var(--lumora-cores-borda-discreta);
+}
+
+.linha-aliado-topo {
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 2px;
+}
+
+.aliado-nome {
+    font-size: var(--lumora-tipografia-leitura);
+    color: var(--lumora-cores-marfim);
+    -unity-font-style: bold;
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-width: 0;
+}
+
+.aliado-lider {
+    color: var(--lumora-cores-ouro);
+    font-size: var(--lumora-tipografia-controle);
+    margin-left: var(--lumora-espacamento-curto);
+}
+
+.aliado-status {
+    color: var(--lumora-cores-texto-secundario);
+    font-size: var(--lumora-tipografia-nota);
+    margin-left: var(--lumora-espacamento-curto);
+}
+
+.barra-vida-fundo {
+    width: 100%;
+    height: 16px;
+    background-color: var(--lumora-cores-trilho);
+    border-width: var(--lumora-bordas-fina);
+    border-color: var(--lumora-cores-borda-botao);
+    border-radius: var(--lumora-bordas-raio-campo);
+    overflow: hidden;
+    justify-content: center;
+}
+
+.barra-vida-preenchimento {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 0;
+    background-color: var(--lumora-cores-vida);
+}
+
+.aliado-vida-texto {
+    font-size: var(--lumora-tipografia-nota);
+    color: var(--lumora-cores-marfim);
+    -unity-text-align: middle-center;
+    width: 100%;
+}
+
+.linha-aliado-hud.aliado-offline {
+    opacity: 0.5;
+}
+
+.linha-aliado-hud.aliado-offline .barra-vida-preenchimento {
+    background-color: var(--lumora-cores-trilho);
+}
+
+.linha-aliado-hud.vida-critica {
+    border-left-width: 3px;
+    border-left-color: var(--lumora-cores-erro);
+}
+
+.barra-vida-fundo.vida-critica {
+    border-color: var(--lumora-cores-erro);
+}
+
+.barra-vida-preenchimento.vida-critica {
+    background-color: var(--lumora-cores-erro);
+}

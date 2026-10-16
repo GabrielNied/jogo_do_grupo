@@ -79,11 +79,16 @@ namespace JogoDoGrupo.Client.Features.Combate.Tests
         }
 
         [Test]
-        public void MostraODano_SoDoProprioJogador()
+        public void MostraODano_ProprioJogadorEOuAliado()
         {
             Assert.IsTrue(ApresentacaoAtaque.MostraODano(7, 7));
             Assert.IsFalse(ApresentacaoAtaque.MostraODano(8, 7));
             Assert.IsFalse(ApresentacaoAtaque.MostraODano(0, 0));
+
+            // Com consulta de aliado
+            Assert.IsTrue(ApresentacaoAtaque.MostraODano(8, 7, atacanteId => atacanteId == 8));
+            Assert.IsFalse(ApresentacaoAtaque.MostraODano(9, 7, atacanteId => atacanteId == 8));
+            Assert.IsFalse(ApresentacaoAtaque.MostraODano(8, 7, null));
         }
 
         // ── Números de dano ────────────────────────────────────────────────────

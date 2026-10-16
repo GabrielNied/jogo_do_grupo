@@ -74,5 +74,15 @@ namespace JogoDoGrupo.Client.Core.Tests
             TeclasDoJogo.RestaurarTudo();
             Assert.AreEqual("<Mouse>/leftButton", TeclasDoJogo.Caminho(TeclasDoJogo.Ataque));
         }
+
+        [Test]
+        public void EsconderHud_PadraoEF11EPodeSerRemapeado()
+        {
+            Assert.AreEqual("<Keyboard>/f11", TeclasDoJogo.Caminho(TeclasDoJogo.EsconderHud));
+            Assert.IsTrue(
+                TeclasDoJogo.TentarTrocar(TeclasDoJogo.EsconderHud, "<Keyboard>/f12", out _)
+            );
+            Assert.AreEqual("<Keyboard>/f12", TeclasDoJogo.Caminho(TeclasDoJogo.EsconderHud));
+        }
     }
 }

@@ -19,6 +19,7 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
         private readonly InputAction _subir;
         private readonly InputAction _menu;
         private readonly InputAction _girarCamera;
+        private readonly InputAction _esconderHud;
 
         public AcoesJogador()
         {
@@ -75,6 +76,7 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
                 InputActionType.Button,
                 "<Mouse>/rightButton"
             );
+            _esconderHud = new InputAction("EsconderHud", InputActionType.Button, "<Keyboard>/f11");
             TeclasDoJogo.Mudou += AtualizarTeclas;
             AtualizarTeclas();
         }
@@ -88,6 +90,7 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
             _andarDevagar.ApplyBindingOverride(0, TeclasDoJogo.Caminho(TeclasDoJogo.AndarDevagar));
             _pular.ApplyBindingOverride(0, TeclasDoJogo.Caminho(TeclasDoJogo.Pular));
             _subir.ApplyBindingOverride(1, TeclasDoJogo.Caminho(TeclasDoJogo.Pular));
+            _esconderHud.ApplyBindingOverride(0, TeclasDoJogo.Caminho(TeclasDoJogo.EsconderHud));
         }
 
         /// <summary>Movimento (x = lado, y = frente), de -1 a 1.</summary>
@@ -126,6 +129,9 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
         /// <summary>Se o botão do menu (Esc) foi apertado neste frame.</summary>
         public bool MenuApertado => _menu.WasPressedThisFrame();
 
+        /// <summary>Se o botão de alternar a visibilidade do HUD (F11) foi apertado neste frame.</summary>
+        public bool EsconderHudApertado => _esconderHud.WasPressedThisFrame();
+
         /// <summary>
         /// Se o botão direito do mouse foi apertado neste frame: com janela aberta, começa a
         /// girar a câmera.
@@ -149,6 +155,7 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
             _subir.Enable();
             _menu.Enable();
             _girarCamera.Enable();
+            _esconderHud.Enable();
         }
 
         public void Desativar()
@@ -161,6 +168,7 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
             _subir.Disable();
             _menu.Disable();
             _girarCamera.Disable();
+            _esconderHud.Disable();
         }
 
         public void Dispose()
@@ -174,6 +182,7 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
             _subir.Dispose();
             _menu.Dispose();
             _girarCamera.Dispose();
+            _esconderHud.Dispose();
         }
     }
 }

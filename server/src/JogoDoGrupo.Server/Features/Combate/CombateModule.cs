@@ -109,7 +109,8 @@ public sealed class CombateModule : IFeatureModule
                 posicoes: sp.GetRequiredService<IPosicoesDoMundo>(),
                 efeitos: sp.GetRequiredService<GerenciadorDeEfeitosDeStatus>(),
                 vizinhanca: sp.GetService<IVizinhanca>(),
-                equipamentos: sp.GetService<IAtributosDosEquipamentos>()
+                equipamentos: sp.GetService<IAtributosDosEquipamentos>(),
+                eventos: sp.GetService<EventosDoServidor>()
             );
             _danoRecebido = servico;
             return servico;

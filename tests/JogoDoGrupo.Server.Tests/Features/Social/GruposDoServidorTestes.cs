@@ -868,4 +868,23 @@ public class GruposDoServidorTestes
 
         Assert.Equal(["Ana", "Bia"], membros.Select(m => m.Nome));
     }
+
+    [Fact]
+    public void AtualizarVida_atualiza_vida_e_vida_maxima_do_membro_na_lista()
+    {
+        _a.FormarGrupo(A, B);
+
+        _a.Grupos.AtualizarVida(B, 75, 120);
+
+        var membros = _a.Grupos.ListaDe(A).Membros;
+        var membroB = Assert.Single(membros, m => m.PersonagemId == B);
+        Assert.Equal(75, membroB.Vida);
+        Assert.Equal(120, membroB.VidaMaxima);
+    }
+
+    [Fact]
+    public void AtualizarVida_sem_grupo_nao_lanca_excecao()
+    {
+        _a.Grupos.AtualizarVida(A, 50, 100);
+    }
 }

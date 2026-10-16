@@ -38,6 +38,9 @@ namespace JogoDoGrupo.Shared.Features.Social
         /// <summary>Servidor → quem pediu: a operação de grupo foi recusada.</summary>
         public const ushort OperacaoDoGrupoRecusada = 13013;
 
+        /// <summary>Servidor → membros: a vida atual e máxima de um membro mudou.</summary>
+        public const ushort VidaDoMembroMudou = 13014;
+
         // ── Chat (13100 a 13199) ──────────────────────────────────────────────────
 
         /// <summary>Client → servidor: envia uma mensagem de chat em um canal.</summary>

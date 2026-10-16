@@ -101,12 +101,20 @@ namespace JogoDoGrupo.Client.Features.Social.Tests
             UnityEngine.Object.DestroyImmediate(_configuracao);
         }
 
-        private static MembroDoGrupo Membro(long id, string nome, bool online = true) =>
+        private static MembroDoGrupo Membro(
+            long id,
+            string nome,
+            bool online = true,
+            int vida = 100,
+            int vidaMaxima = 100
+        ) =>
             new MembroDoGrupo
             {
                 PersonagemId = id,
                 Nome = nome,
                 Online = online,
+                Vida = vida,
+                VidaMaxima = vidaMaxima,
             };
 
         private void ReceberLista(long liderId, params MembroDoGrupo[] membros) =>
@@ -780,6 +788,115 @@ namespace JogoDoGrupo.Client.Features.Social.Tests
                 evento.target = botao;
                 botao.SendEvent(evento);
             }
+        }
+
+        [Test]
+        public void Estado_EhAliado_IdentificaMembrosAliados()
+        {
+            ReceberLista(Eu, Membro(Eu, "Ana"), Membro(2, "Bia"), Membro(3, "Caio"));
+
+            Assert.IsTrue(_estado.EhAliado(2));
+            Assert.IsTrue(_estado.EhAliado(3));
+            Assert.IsFalse(_estado.EhAliado(Eu));
+            Assert.IsFalse(_estado.EhAliado(4));
+            Assert.IsFalse(_estado.EhAliado(0));
+        }
+
+        [Test]
+        public void Estado_VidaDoMembroMudou_AtualizaVidaEMaxima()
+        {
+            ReceberLista(Eu, Membro(Eu, "Ana"), Membro(2, "Bia", true, 100, 100));
+            var mudouDisparado = false;
+            _estado.Mudou += () => mudouDisparado = true;
+
+            _conexao.Receber(
+                SocialMessageIds.VidaDoMembroMudou,
+                new VidaDoMembroMudou
+                {
+                    PersonagemId = 2,
+                    Vida = 45,
+                    VidaMaxima = 150,
+                }
+            );
+
+            Assert.IsTrue(mudouDisparado);
+            var bia = _estado.Membros.First(m => m.PersonagemId == 2);
+            Assert.AreEqual(45, bia.Vida);
+            Assert.AreEqual(150, bia.VidaMaxima);
+        }
+
+        [Test]
+        public void PainelHud_SemGrupoOuSozinho_EscondeOPainel()
+        {
+            var painel = new PainelListaGrupoHud(_raiz, _estado);
+            Assert.AreEqual(DisplayStyle.None, painel.ElementoRaiz.style.display.value);
+
+            // Grupo com apenas o jogador local
+            ReceberLista(Eu, Membro(Eu, "Ana"));
+            Assert.AreEqual(DisplayStyle.None, painel.ElementoRaiz.style.display.value);
+
+            painel.Dispose();
+        }
+
+        [Test]
+        public void PainelHud_ComAliados_MostraLinhasComVidaExataEPercentual()
+        {
+            var painel = new PainelListaGrupoHud(_raiz, _estado);
+            ReceberLista(
+                2,
+                Membro(Eu, "Ana", true, 100, 100),
+                Membro(2, "Bia", true, 80, 100),
+                Membro(3, "Caio", true, 20, 100)
+            );
+
+            Assert.AreEqual(DisplayStyle.Flex, painel.ElementoRaiz.style.display.value);
+            var linhaBia = painel.Linhas[0];
+            Assert.AreEqual(DisplayStyle.Flex, linhaBia.Raiz.style.display.value);
+            Assert.AreEqual("Bia", linhaBia.Nome.text);
+            Assert.AreEqual(DisplayStyle.Flex, linhaBia.IndicadorLider.style.display.value);
+            Assert.AreEqual("80/100 (80%)", linhaBia.TextoVida.text);
+            Assert.IsFalse(linhaBia.Raiz.ClassListContains(PainelListaGrupoHud.ClasseCritica));
+
+            var linhaCaio = painel.Linhas[1];
+            Assert.AreEqual(DisplayStyle.Flex, linhaCaio.Raiz.style.display.value);
+            Assert.AreEqual("Caio", linhaCaio.Nome.text);
+            Assert.AreEqual(DisplayStyle.None, linhaCaio.IndicadorLider.style.display.value);
+            Assert.AreEqual("20/100 (20%)", linhaCaio.TextoVida.text);
+            Assert.IsTrue(linhaCaio.Raiz.ClassListContains(PainelListaGrupoHud.ClasseCritica));
+
+            // Demais linhas vazias ficam escondidas
+            Assert.AreEqual(DisplayStyle.None, painel.Linhas[2].Raiz.style.display.value);
+            Assert.AreEqual(DisplayStyle.None, painel.Linhas[3].Raiz.style.display.value);
+
+            painel.Dispose();
+        }
+
+        [Test]
+        public void PainelHud_AliadoOffline_AplicaClasseOfflineENaoCritica()
+        {
+            var painel = new PainelListaGrupoHud(_raiz, _estado);
+            ReceberLista(
+                Eu,
+                Membro(Eu, "Ana"),
+                Membro(2, "Bia", false, 10, 100) // offline com vida baixa
+            );
+
+            var linhaBia = painel.Linhas[0];
+            Assert.IsTrue(linhaBia.Raiz.ClassListContains(PainelListaGrupoHud.ClasseOffline));
+            Assert.AreEqual(DisplayStyle.Flex, linhaBia.StatusOffline.style.display.value);
+            Assert.IsFalse(linhaBia.Raiz.ClassListContains(PainelListaGrupoHud.ClasseCritica));
+
+            painel.Dispose();
+        }
+
+        [Test]
+        public void PainelHud_Descartar_RemoveDaHierarquia()
+        {
+            var painel = new PainelListaGrupoHud(_raiz, _estado);
+            Assert.IsTrue(_raiz.Contains(painel.ElementoRaiz));
+
+            painel.Descartar();
+            Assert.IsFalse(_raiz.Contains(painel.ElementoRaiz));
         }
     }
 }

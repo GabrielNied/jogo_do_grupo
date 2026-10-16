@@ -733,9 +733,28 @@ public sealed class GruposDoServidor(
                     PersonagemId = m.PersonagemId,
                     Nome = m.Nome,
                     Online = m.Online,
+                    Vida = m.Vida,
+                    VidaMaxima = m.VidaMaxima,
                 })
                 .ToArray(),
         };
+
+    /// <summary>Atualiza a vida conhecida de um membro do grupo em memória.</summary>
+    public void AtualizarVida(long personagemId, int vida, int vidaMaxima)
+    {
+        lock (_trava)
+        {
+            if (_grupoDe.TryGetValue(personagemId, out var grupo))
+            {
+                var membro = Membro(grupo, personagemId);
+                if (membro != null)
+                {
+                    membro.Vida = vida;
+                    membro.VidaMaxima = vidaMaxima;
+                }
+            }
+        }
+    }
 
     private static AvisoDoGrupo NovoAviso(TipoDeAvisoDoGrupo tipo, MembroEmGrupo membro) =>
         new()
@@ -802,6 +821,8 @@ public sealed class GruposDoServidor(
         public string Nome = "";
         public bool Online;
         public long OfflineDesdeMs;
+        public int Vida;
+        public int VidaMaxima;
     }
 
     private sealed class Convite

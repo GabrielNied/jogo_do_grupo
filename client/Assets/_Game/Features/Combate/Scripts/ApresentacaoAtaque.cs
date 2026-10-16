@@ -36,11 +36,27 @@ namespace JogoDoGrupo.Client.Features.Combate
         }
 
         /// <summary>
-        /// Se o dano de um golpe aparece na tela: só o que o próprio jogador causou (dano entre
-        /// outras pessoas e inimigos não envolve você e não aparece).
+        /// Se o dano de um golpe aparece na tela: o próprio jogador ou um aliado
+        /// (docs/features/interface.md, "Texto flutuante de dano").
         /// </summary>
-        public static bool MostraODano(long atacanteId, long meuPersonagemId) =>
-            meuPersonagemId != 0 && atacanteId == meuPersonagemId;
+        public static bool MostraODano(
+            long atacanteId,
+            long meuPersonagemId,
+            System.Func<long, bool> ehAliado = null
+        )
+        {
+            if (meuPersonagemId == 0 || atacanteId == 0)
+            {
+                return false;
+            }
+
+            if (atacanteId == meuPersonagemId)
+            {
+                return true;
+            }
+
+            return ehAliado != null && ehAliado(atacanteId);
+        }
 
         /// <summary>
         /// Onde o número de dano está no mundo: sobe de <paramref name="origem"/> (sobre a cabeça do

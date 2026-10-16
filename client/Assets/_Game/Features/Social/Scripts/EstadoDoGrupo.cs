@@ -46,6 +46,12 @@ namespace JogoDoGrupo.Client.Features.Social
                     AoReceberRecusa
                 )
             );
+            _assinaturas.Add(
+                _conexao.Assinar<VidaDoMembroMudou>(
+                    SocialMessageIds.VidaDoMembroMudou,
+                    AoReceberVidaDoMembro
+                )
+            );
         }
 
         /// <summary>Disparado quando a lista, os convites ou a mensagem mudam.</summary>
@@ -73,6 +79,34 @@ namespace JogoDoGrupo.Client.Features.Social
 
         /// <summary>Quem não tem grupo ou lidera um convida; membro comum não.</summary>
         public bool PodeConvidar => !EmGrupo || SouLider;
+
+        /// <summary>
+        /// Diz se o personagem é um aliado no mesmo grupo (excluindo o próprio jogador local).
+        /// </summary>
+        public bool EhAliado(long personagemId)
+        {
+            if (!EmGrupo || personagemId == 0 || personagemId == PersonagemLocalId)
+            {
+                return false;
+            }
+
+            var membros = _lista?.Membros;
+            if (membros == null)
+            {
+                return false;
+            }
+
+            for (var i = 0; i < membros.Length; i++)
+            {
+                var membro = membros[i];
+                if (membro != null && membro.PersonagemId == personagemId)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
 
         /// <summary>Última mensagem para a pessoa; vazia depois de <see cref="DuracaoDaMensagemSegundos"/>.</summary>
         public string Mensagem { get; private set; } = "";
@@ -308,6 +342,32 @@ namespace JogoDoGrupo.Client.Features.Social
         private void AoReceberRecusa(OperacaoDoGrupoRecusada recusa)
         {
             Informar(TextosGrupo.Recusa(recusa?.Codigo), true);
+        }
+
+        private void AoReceberVidaDoMembro(VidaDoMembroMudou msg)
+        {
+            if (msg == null || _lista?.Membros == null)
+            {
+                return;
+            }
+
+            var achou = false;
+            for (var i = 0; i < _lista.Membros.Length; i++)
+            {
+                var membro = _lista.Membros[i];
+                if (membro != null && membro.PersonagemId == msg.PersonagemId)
+                {
+                    membro.Vida = msg.Vida;
+                    membro.VidaMaxima = msg.VidaMaxima;
+                    achou = true;
+                    break;
+                }
+            }
+
+            if (achou)
+            {
+                Mudou?.Invoke();
+            }
         }
     }
 

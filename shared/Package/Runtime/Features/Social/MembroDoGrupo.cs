@@ -9,5 +9,8 @@ namespace JogoDoGrupo.Shared.Features.Social
 
         /// <summary>Falso para quem desconectou e ainda tem a vaga guardada.</summary>
         public bool Online = false;
+
+        public int Vida = 0;
+        public int VidaMaxima = 0;
     }
 }

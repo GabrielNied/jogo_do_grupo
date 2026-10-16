@@ -161,4 +161,35 @@ public class RegrasGrupoTestes
     [Fact]
     public void Herdeiro_aceita_lista_alem_de_vetor() =>
         Assert.Equal(1, RegrasGrupo.PosicaoDoHerdeiro(new List<bool> { true, true }, 0));
+
+    // ── Vida e estado crítico ──────────────────────────────────────────────────
+
+    [Fact]
+    public void Limiar_de_vida_critica_e_30_porcento()
+    {
+        Assert.Equal(0.30, RegrasGrupo.LimiarVidaCritica, 2);
+    }
+
+    [Theory]
+    [InlineData(29, 100, true)]
+    [InlineData(30, 100, false)]
+    [InlineData(50, 100, false)]
+    [InlineData(1, 10, true)]
+    [InlineData(3, 10, false)]
+    [InlineData(0, 100, true)]
+    [InlineData(-5, 100, false)]
+    [InlineData(50, 0, false)]
+    public void VidaEstaCritica_retorna_verdadeiro_abaixo_de_30_porcento(
+        int vida,
+        int vidaMaxima,
+        bool esperado
+    ) => Assert.Equal(esperado, RegrasGrupo.VidaEstaCritica(vida, vidaMaxima));
+
+    [Theory]
+    [InlineData(100, 100, "100/100")]
+    [InlineData(25, 100, "25/100")]
+    [InlineData(0, 100, "0/100")]
+    [InlineData(-5, 50, "0/50")]
+    public void TextoVidaExata_formata_com_barra(int vida, int vidaMaxima, string esperado) =>
+        Assert.Equal(esperado, RegrasGrupo.TextoVidaExata(vida, vidaMaxima));
 }
