@@ -198,20 +198,21 @@ namespace JogoDoGrupo.Client.Core.Tests
         public void AlternarVisivel_OcultaEMostraOHud_ERespeitaAlternancia()
         {
             Montar();
-            Assert.IsTrue(Hud.Visivel);
+            Assert.IsFalse(Hud.OcultoPeloUsuario);
 
             // Alternar oculta
             Hud.AlternarVisivel();
-            Assert.IsFalse(Hud.Visivel);
+            Assert.IsTrue(Hud.OcultoPeloUsuario);
             Assert.AreEqual(DisplayStyle.None, Hud.Raiz.style.display.value);
 
             // DefinirVisivel(true) não força se o usuário ocultou
             Hud.DefinirVisivel(true);
-            Assert.IsFalse(Hud.Visivel);
+            Assert.IsTrue(Hud.OcultoPeloUsuario);
+            Assert.AreEqual(DisplayStyle.None, Hud.Raiz.style.display.value);
 
             // Alternar novamente volta a mostrar
             Hud.AlternarVisivel();
-            Assert.IsTrue(Hud.Visivel);
+            Assert.IsFalse(Hud.OcultoPeloUsuario);
             Assert.AreEqual(DisplayStyle.Flex, Hud.Raiz.style.display.value);
         }
     }
