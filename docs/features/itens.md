@@ -20,7 +20,8 @@ Inventário, equipamentos, tier calculado pelos atributos e fusão determinísti
 - Itens negociáveis, inclusive os fundidos (fomentar a economia)
 - **Vínculo** (decidido por Gabriel em 2026-10-16): equipamento é sempre negociável. Só os materiais de fusão de raid (+9 e +10) vinculam ao personagem ao coletar, para a raid continuar necessária.
 - **Troca do loot da luta** (decidido por Gabriel em 2026-10-16): por 2 h, o loot pode ser passado a quem participou da mesma luta, mesmo o material vinculado.
-- **Durabilidade** (decidido por Gabriel em 2026-10-16): o equipamento perde durabilidade pelo uso em combate; reparar custa coroas ([economia](economia.md#definido)). Quebrado deixa de dar atributos, mas não some. Cair não tira durabilidade extra. Números a propor.
+- **Durabilidade** (decidido por Gabriel em 2026-10-16): o equipamento perde durabilidade pelo uso em combate; reparar custa coroas com sink **leve** ([economia](economia.md#definido), quiz 4). Quebrado deixa de dar atributos, mas não some. Cair não tira durabilidade extra. Números a propor pelo agente economia.
+- **Decisões do Gabriel em 2026-10-16** (quiz de definições 4): **aura de tier no mundo 3D** entra no MVP junto com a UI — brilho no **chão** e no **equipamento visível no modelo** quando houver mesh (não só bolsa/paperdoll); paleta e intensidade em constante no client ([#926](https://github.com/GabrielNied/jogo_do_grupo/issues/926); encaixe 3D em [#665](https://github.com/GabrielNied/jogo_do_grupo/issues/665)).
 - **Inventário de jogo, não de formulário** (decidido por Gabriel em 2026-10-12): bolsa em grade de casas **1×1** para todos os tipos, paperdoll, tooltip, clique direito e arrastar e soltar, com a base pronta para inventário grande. Veja [Interface do inventário](#interface-do-inventário-560).
 
 - **Decidido por Gabriel em 2026-10-16** (quiz de definições 2): o **inventário grande** com busca, filtros e favoritos entra ([#334](https://github.com/GabrielNied/jogo_do_grupo/issues/334)); **transmog fica fora** por ora (#333 fechada).
@@ -167,7 +168,7 @@ Decisões de quem implementou (propostas, ajustáveis em `ConfigTier` e `ConfigL
 - **Combate (desde a #623):** o bônus das peças não soma mais nos atributos do personagem. `RegrasEquipamentos.Somar` e a conversão provisória `ParaEscalaLegada` saíram; a conversão linear por atributo e categoria (ATRIB-003) está em `ConfigAtributosItem`.
 - **`RaridadeItem` é legado:** `Equipamento.Raridade` continua no exemplar só como histórico (a fusão da #616 também não a lê); peças novas nascem `Comum` e nada decide por ela. Saíram `LootNoChao.Raridade`, os pesos de raridade e a promoção por sorteio.
 - **Pontuação do loot** (`TabelaDeLoot.Pontuacao`, só para dizer qual peça é "melhor"): soma dos valores × (1 + `BonusDePontuacaoPorTier` × degrau do tier atual), com 10% por degrau de D a S+. Antes o degrau era o da raridade.
-- **Na tela:** bolsa, paperdoll, tooltip e avisos de loot seguem [Visual de tier](#visual-de-tier) (UI implementada; aura no mundo ainda não).
+- **Na tela:** bolsa, paperdoll, tooltip e avisos de loot seguem [Visual de tier](#visual-de-tier) (UI implementada; aura no mundo 3D falta implementar).
 
 ##### Visual de tier
 
@@ -175,7 +176,7 @@ Decidido por Gabriel em 2026-10-13 ([#670](https://github.com/GabrielNied/jogo_d
 
 **Interface (implementado):** a casa da bolsa e do paperdoll mostram a **letra do tier** no canto e a cor dele na borda e no ícone, via tokens Lumora em `EstiloItens.uss` (D cinza, C verde, B turquesa, A rosa, S ouro, S+ ouro claro com borda grossa). O tooltip traz "Tier A" (e "Tier B (origem D)" quando o tier atual difere do de origem), o nome na cor do tier e cada atributo como `valor/máximo` com o efeito convertido ("Força 72/100 · +14,4% de dano físico"). O aviso diz "Você pegou Elmo do Vigia (tier B)."; a **cor** no aviso depende do HUD do Core (os avisos só têm as cores de informação, aviso e erro e não aceitam texto colorido).
 
-**Mundo 3D (pendente):** brilho ao redor da peça no chão e, depois, no personagem equipado — no estilo de drops raros em MMORPGs clássicos (outline, glow ou rim light pulsante em URP). **Complementa** a letra na UI; não a substitui. A paleta da aura **pode divergir** das cores da bolsa, desde que a ordem B < A < S < S+ seja óbvia à distância.
+**Mundo 3D (decidido em 2026-10-16, quiz 4; falta implementar):** brilho ao redor da peça **no chão** e no **equipamento no modelo 3D** — no estilo de drops raros em MMORPGs clássicos (outline, glow ou rim light pulsante em URP). **Complementa** a letra na UI; não a substitui. A paleta da aura **pode divergir** das cores da bolsa, desde que a ordem B < A < S < S+ seja óbvia à distância.
 
 | Tier | Aura no mundo | Intensidade (referência) |
 |---|---|---|

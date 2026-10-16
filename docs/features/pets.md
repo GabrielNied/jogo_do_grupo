@@ -12,8 +12,9 @@ A pessoa chama um pet, ele segue por perto e some quando é dispensado. O servid
 
 Decidido em 2026-10-12 (#161) e **revisto em 2026-10-16** (quiz de definições 3):
 
-- **Modelo alvo:** pets vêm de **drop raro** de mobs ([mobs](mobs.md#definido)), como **item negociável** (estilo WoW). **Usar o item registra o pet na conta**; não há captura pelo bestiário.
+- **Modelo alvo:** pets vêm de **drop raro** de mobs ([mobs](mobs.md#definido)), como **item negociável** (estilo WoW). **Usar o item registra o pet na conta**; não há captura pelo bestiário. A conta pode **colecionar vários**; só **um pet ativo** (chamado) por vez.
 - O **cervo jovem** que já vem com o personagem (#161) é **legado até alinhar** com drops; não é a regra final.
+- **Menu (tecla U):** janela [Companheiros](interface.md#companheiros-u), aba **Pets** — **catálogo completo** (não obtidos em cinza, sem ativar), origem ao selecionar bloqueado; obtidos: **ativa ou desativa** (chamar/dispensar). Mesma janela que [montarias](montarias.md#definido), outra aba.
 - Um pet chamado por vez. Chamar de novo no mesmo pet não duplica.
 - Ele anda até o dono e para a **2 m** (`DistanciaDeSeguidaMetros`). Não fica em cima do dono. Se passar de **20 m** (`DistanciaParaAlcancarMetros`), o servidor o coloca de volta na distância de seguida.
 - Não luta, não é alvo e não é montaria. Não tem bolsa própria.
@@ -25,7 +26,7 @@ Decidido em 2026-10-12 (#161) e **revisto em 2026-10-16** (quiz de definições 
 ## Decidido na implementação (2026-10-15, #161)
 
 - **Entrar e sair de caverna ou dungeon:** o pet vai junto. Ao trocar de área ele some para quem via na área antiga e reaparece a 2 m do dono na nova (a mesma publicação por vizinhança); `/pet` e a busca de loot funcionam lá. Sair do jogo ou cair o remove.
-- **Como chamar:** o comando de chat `/pet` (alterna: chama, ou dispensa se já está com você), `/pet chamar` e `/pet dispensar`. Aparece em `/comandos`. Sem botão nem tecla nesta versão.
+- **Como chamar:** preferencialmente pela janela **U** (aba Pets); comando de chat `/pet` (alterna), `/pet chamar` e `/pet dispensar` permanecem. Aparece em `/comandos`. **P** fica reservada a profissões ([#134](https://github.com/GabrielNied/jogo_do_grupo/issues/134)). UI: [#925](https://github.com/GabrielNied/jogo_do_grupo/issues/925).
 - **Posição:** o servidor move o pet 10 vezes por segundo, como a IA dos mobs, a 6,5 m/s (acima da corrida do jogador, 5,5). Publica a quem vê o dono (a mesma área de interesse dos mobs): `PetApareceu` ao entrar no campo de visão, `PetMudou` sequenciado enquanto anda ou para, `PetSumiu` ao sair. O pet nasce atrás do dono, a 2 m.
 - **Parar sem tremer:** parado, o pet só volta a andar se o dono passar de 2,5 m (`FolgaDeSeguidaMetros`).
 - **Loot:** o pet procura o item a cada 0,5 s, a até 8 m **dele** (não do dono). "Que o dono poderia coletar" quer dizer: o item é do dono, está no prazo e livre; a distância de 12 m da tecla F não vale para o pet. O servidor de Itens faz a coleta pelo mesmo caminho da tecla F (um só vencedor por item, espaço conferido na gravação) e o dono recebe o `LootColetado` normal. Se o pet e o dono pedirem o mesmo item juntos, um deles leva e o outro não recebe nada.
@@ -36,7 +37,8 @@ Decidido em 2026-10-12 (#161) e **revisto em 2026-10-16** (quiz de definições 
 
 ## Em aberto
 
-- [ ] Animação de verdade (esqueleto) do cervo e um jeito de chamar além do comando de chat.
+- [x] Animação de verdade (esqueleto) do cervo e um jeito de chamar além do comando de chat. Decidido em 2026-10-16 (quiz 4, refino): janela **U** com coleção e ativar/desativar; esqueleto continua em aberto.
+- [ ] Animação de verdade (esqueleto) do cervo.
 
 ## Regras
 

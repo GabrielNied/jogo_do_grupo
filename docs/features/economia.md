@@ -33,6 +33,9 @@ Moedas, mercado, comércio entre jogadores, saídas de recursos e taxas.
   - **Baú compartilhado:** só **banco pessoal entre personagens da conta** (já definido) e **banco de guilda** ([#338](https://github.com/GabrielNied/jogo_do_grupo/issues/338) refocada); **sem baú de party**.
   - **Banco de guilda:** todos **depositam**; só **líder e oficial retiram** (membro e recruta só depositam).
   - **Leilão (#176):** abre **interagindo com o NPC leiloeiro** na cidade (não de qualquer lugar).
+- **Decisões do Gabriel em 2026-10-16** (quiz de definições 4):
+  - **Reparo de durabilidade:** sink **leve** (referência New World): reparo barato, desgaste lento; quebrado tira atributos mas é raro numa sessão típica da fatia. Números finos em constante nomeada (agente economia, [#173](https://github.com/GabrielNied/jogo_do_grupo/issues/173)).
+  - **Loja de NPC (#173):** o vendedor **compra qualquer item** do inventário por preço **baixo fixo por tier** (sink de lixo); também vende. Preços em `ConfigEconomia`.
 
 ## Em aberto
 
@@ -40,7 +43,7 @@ Moedas, mercado, comércio entre jogadores, saídas de recursos e taxas.
 - [x] Lojas de jogadores? Decidido em 2026-10-16: barraca presencial e vendedor offline, espelhados no leilão (veja Definido).
 - [x] Carteira e custo inicial da infusão entregues na #174; valores e configuração em [Itens — Infusão](itens.md#infusão-de-equipamentos-174).
 - [x] Desde 2026-10-12 a fusão cobra coroas **por nível** (+1 a +10) e, de +6 em diante, materiais de dungeon e de raid; custos iniciais em [Itens — Fusão](itens.md#fusão) (#616, #617). O "ouro" do [documento mestre](../brainstorm/documento-mestre.md) são as coroas. Itens não são desmontados (DEC-005): a economia não conta com materiais vindos de desmontagem.
-- [ ] Custo em coroas do reparo e das taxas: a propor (agente economia).
+- [x] Custo em coroas do reparo e das taxas: política **leve** decidida em 2026-10-16 (quiz 4); valores a propor pelo agente economia em constante ([#173](https://github.com/GabrielNied/jogo_do_grupo/issues/173)).
 
 ## Regras
 
