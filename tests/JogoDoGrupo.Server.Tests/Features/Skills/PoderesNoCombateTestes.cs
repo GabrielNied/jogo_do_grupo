@@ -454,6 +454,36 @@ public sealed class PoderesNoCombateTestes
         Assert.Empty(resultado.Avisos);
     }
 
+    [Fact]
+    public async Task Disparos_consecutivos_reutilizam_buffers_sem_vazar_avisos_nem_reducoes()
+    {
+        _efeitos.Vestir(PosicaoEquipamento.Luvas, LuvasB, CatalogoDePoderes.PoderLuvas);
+        _efeitos.Vestir(PosicaoEquipamento.Botas, BotasB, CatalogoDePoderes.PoderBotas);
+
+        var r1 = await _motor.AoGolpeComumAsync(Personagem, [10], CancellationToken.None);
+        Assert.Single(r1.Avisos);
+        Assert.Equal(AcaoDePoder.GanharCarga, r1.Avisos[0].Acao);
+        Assert.Empty(r1.Reducoes);
+
+        var r2 = await _motor.AoGolpeComumAsync(Personagem, [10], CancellationToken.None);
+        Assert.Single(r2.Avisos);
+        Assert.Equal(2, r2.Avisos[0].Valor);
+        Assert.Empty(r2.Reducoes);
+
+        var r3 = await _motor.AoEsquivarAsync(Personagem, CancellationToken.None);
+        Assert.Single(r3.Avisos);
+        Assert.Equal(AcaoDePoder.GanharCarga, r3.Avisos[0].Acao);
+        Assert.Empty(r3.Reducoes);
+
+        var r4 = await _motor.AoAcertarComSkillAsync(
+            Personagem,
+            CatalogoDeSkills.Obter(Corte)!,
+            [10],
+            CancellationToken.None
+        );
+        Assert.Same(ResultadoDosPoderes.Nenhum, r4);
+    }
+
     private sealed class EfeitosQueFalham : IEfeitosDoEquipamento
     {
         public Task<IReadOnlyList<EfeitoAtivo>> ObterAsync(

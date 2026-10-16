@@ -1,3 +1,5 @@
+using JogoDoGrupo.Server.Contratos.Combate;
+using JogoDoGrupo.Server.Core.Eventos;
 using JogoDoGrupo.Server.Core.Persistencia;
 using JogoDoGrupo.Server.Features.Combate;
 using JogoDoGrupo.Server.Features.Mundo;
@@ -322,5 +324,52 @@ public class EsquivaTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDe
         Assert.False(ana.Recebeu(CombateMessageIds.EsquivaIniciada));
         Assert.False(ana.Recebeu(CombateMessageIds.EsquivaRecusada));
         Assert.Equal(100, await StaminaAsync(ana));
+    }
+
+    [Fact]
+    public async Task Esquiva_valida_publica_PersonagemEsquivou_e_recusada_nao_publica()
+    {
+        using var ana = await NovoJogadorAsync();
+        var eventos = servidor.Falso.Services.GetRequiredService<EventosDoServidor>();
+        var esquivou = new List<PersonagemEsquivou>();
+        eventos.Assinar<PersonagemEsquivou>(e =>
+        {
+            if (e.PersonagemId == ana.Id)
+            {
+                lock (esquivou)
+                {
+                    esquivou.Add(e);
+                }
+            }
+        });
+
+        // 1. Esquiva válida: publica PersonagemEsquivou
+        Esquivar(ana, sequencia: 1);
+        await IniciadaAsync(ana);
+        await TempoRealFixture.EsperarAsync(
+            () =>
+            {
+                lock (esquivou)
+                    return esquivou.Count == 1;
+            },
+            "PersonagemEsquivou"
+        );
+
+        lock (esquivou)
+        {
+            Assert.Single(esquivou);
+            Assert.Equal(ana.Id, esquivou[0].PersonagemId);
+        }
+
+        // 2. Sem stamina para esquivar: recusa e não publica novo evento
+        await DefinirRecursosAsync(ana, stamina: 0);
+        Esquivar(ana, sequencia: 2);
+        await RecusadaAsync(ana);
+        await Task.Delay(100);
+
+        lock (esquivou)
+        {
+            Assert.Single(esquivou);
+        }
     }
 }

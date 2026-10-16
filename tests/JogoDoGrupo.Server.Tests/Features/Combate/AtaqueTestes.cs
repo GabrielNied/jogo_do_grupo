@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using JogoDoGrupo.Server.Contratos.Combate;
 using JogoDoGrupo.Server.Contratos.Itens;
 using JogoDoGrupo.Server.Contratos.Mundo;
+using JogoDoGrupo.Server.Core.Eventos;
 using JogoDoGrupo.Server.Core.Persistencia;
 using JogoDoGrupo.Server.Core.TempoReal;
 using JogoDoGrupo.Server.Features.Combate;
@@ -1010,5 +1011,57 @@ public class AtaqueTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDeA
 
         servidor.ResetarBoneco();
         Assert.Equal(ConfigBonecoDeTreino.Vida, servidor.Boneco.VidaAtual);
+    }
+
+    [Fact]
+    public async Task Golpe_que_acerta_publica_GolpeComumAcertou_e_golpe_que_erra_nao_publica()
+    {
+        using var ana = await NovoJogadorAsync();
+        var eventos = servidor.Falso.Services.GetRequiredService<EventosDoServidor>();
+        var acertos = new List<GolpeComumAcertou>();
+        eventos.Assinar<GolpeComumAcertou>(e =>
+        {
+            if (e.PersonagemId == ana.Id)
+            {
+                lock (acertos)
+                {
+                    acertos.Add(e);
+                }
+            }
+        });
+
+        // 1. Golpe na direção do boneco (0 graus): acerta e publica GolpeComumAcertou
+        Atacar(ana, TipoDeAtaque.Leve, sequencia: 1, direcao: 0f);
+        await ana.Cliente.ReceberAsync<AtaqueIniciado>(CombateMessageIds.AtaqueIniciado);
+        await ana.Cliente.ReceberAsync<AtaqueAcertou>(CombateMessageIds.AtaqueAcertou);
+        await TempoRealFixture.EsperarAsync(
+            () =>
+            {
+                lock (acertos)
+                    return acertos.Count == 1;
+            },
+            "GolpeComumAcertou"
+        );
+
+        lock (acertos)
+        {
+            Assert.Single(acertos);
+            Assert.Equal(ana.Id, acertos[0].PersonagemId);
+            Assert.Contains(ConfigBonecoDeTreino.AlvoId, acertos[0].AlvoIds);
+        }
+
+        // Espera a recuperação do golpe leve terminar antes do próximo
+        await Task.Delay(400);
+
+        // 2. Golpe de costas para o boneco (180 graus): erra (não envia AtaqueAcertou) e não publica
+        Atacar(ana, TipoDeAtaque.Leve, sequencia: 2, direcao: 180f);
+        await ana.Cliente.ReceberAsync<AtaqueIniciado>(CombateMessageIds.AtaqueIniciado);
+        await Task.Delay(RegrasAtaque.PreparoMs(TipoDeAtaque.Leve) + Margem.Milliseconds);
+
+        Assert.Equal(1, ana.Recebidas(CombateMessageIds.AtaqueAcertou));
+        lock (acertos)
+        {
+            Assert.Single(acertos);
+        }
     }
 }
