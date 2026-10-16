@@ -68,7 +68,24 @@ namespace JogoDoGrupo.Shared.Features.Skills
                 Fisica("escudo.desafio-do-guardiao", "Desafio do Guardião", 25, 18, 1.6),
                 Fisica("escudo.postura-de-ferro", "Postura de Ferro", 20, 20, 1.4)
             );
+
+            // Skills que levam o personagem até o alvo (os poderes de investida se ligam a elas).
+            Etiquetar("espada.avanco-devastador", EtiquetasDeSkill.Investida);
+            Etiquetar("escudo.avanco-de-muralha", EtiquetasDeSkill.Investida);
         }
+
+        private static void Etiquetar(string id, string etiqueta)
+        {
+            var skill = PorId[id];
+            var etiquetas = new List<string>(skill.Etiquetas) { etiqueta };
+            skill.Etiquetas = etiquetas.ToArray();
+        }
+
+        // A etiqueta de dano sai da categoria; a híbrida leva as duas.
+        private static string[] EtiquetasDaCategoria(CategoriaDeDano categoria) =>
+            categoria == CategoriaDeDano.Fisica ? new[] { EtiquetasDeSkill.Fisica }
+            : categoria == CategoriaDeDano.Magica ? new[] { EtiquetasDeSkill.Magica }
+            : new[] { EtiquetasDeSkill.Fisica, EtiquetasDeSkill.Magica };
 
         /// <summary>O conjunto do modelo-base de um tipo de arma; vazio se o tipo não tem skills.</summary>
         public static IReadOnlyList<DefinicaoDeSkill> Pool(TipoEquipamento tipo) =>
@@ -162,6 +179,7 @@ namespace JogoDoGrupo.Shared.Features.Skills
                 Custo = custo,
                 RecargaMs = Math.Max(ConfigSkills.RecargaMinimaMs, recargaSegundos * 1000),
                 Multiplicador = multiplicador,
+                Etiquetas = EtiquetasDaCategoria(categoria),
                 Propriedades = new PropriedadesDaSkill
                 {
                     Id = id,

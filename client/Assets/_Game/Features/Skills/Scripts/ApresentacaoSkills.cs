@@ -1,3 +1,4 @@
+using JogoDoGrupo.Shared.Features.Itens;
 using JogoDoGrupo.Shared.Features.Skills;
 
 namespace JogoDoGrupo.Client.Features.Skills
@@ -39,6 +40,35 @@ namespace JogoDoGrupo.Client.Features.Skills
 
             var fracao = (float)restanteMs / recargaMs;
             return fracao > 1f ? 1f : fracao;
+        }
+
+        /// <summary>
+        /// O aviso de que um poder ou bônus de set disparou ("Investida Marcante: alvo marcado",
+        /// "Embalo de Golpes: +20% de dano"). Só formata o que o servidor mandou.
+        /// </summary>
+        public static string TextoDoPoder(PoderDisparou aviso)
+        {
+            string efeito;
+            switch (aviso.Acao)
+            {
+                case AcaoDePoder.MarcarAlvos:
+                    efeito = aviso.Valor == 1 ? "alvo marcado" : aviso.Valor + " alvos marcados";
+                    break;
+                case AcaoDePoder.GanharCarga:
+                    efeito = aviso.Valor + (aviso.Valor == 1 ? " carga" : " cargas");
+                    break;
+                case AcaoDePoder.AmplificarDano:
+                    efeito = "+" + aviso.Valor + "% de dano";
+                    break;
+                case AcaoDePoder.ReduzirRecarga:
+                    efeito = "-" + (aviso.Valor / 1000f).ToString("0.#") + " s de recarga";
+                    break;
+                default:
+                    efeito = "ativo";
+                    break;
+            }
+
+            return aviso.Nome + ": " + efeito;
         }
 
         /// <summary>A mensagem de uma recusa do servidor, em português para o jogador.</summary>

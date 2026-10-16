@@ -43,6 +43,10 @@ namespace JogoDoGrupo.Client.Features.Skills
         private int _sequencia;
         private double _proximoPedido;
         private double _avisoAte;
+        private double _poderAte;
+
+        /// <summary>Tempo que o aviso de poder disparado fica na tela.</summary>
+        public const double DuracaoDoPoderSegundos = 1.4;
 
         public void Configurar(long personagemId, PainelSkills painel)
         {
@@ -78,6 +82,12 @@ namespace JogoDoGrupo.Client.Features.Skills
             );
             _assinaturas.Add(
                 ConexaoTempoReal.Assinar<SkillRecusada>(SkillsMessageIds.SkillRecusada, AoRecusar)
+            );
+            _assinaturas.Add(
+                ConexaoTempoReal.Assinar<PoderDisparou>(
+                    SkillsMessageIds.PoderDisparou,
+                    AoDispararPoder
+                )
             );
         }
 
@@ -159,6 +169,12 @@ namespace JogoDoGrupo.Client.Features.Skills
                 _painel.EsconderAviso();
             }
 
+            if (_poderAte > 0 && agora >= _poderAte)
+            {
+                _poderAte = 0;
+                _painel.EsconderPoder();
+            }
+
             _painel.Mostrar(_estado, agora);
             _painel.AtualizarNumeros(Time.unscaledDeltaTime);
         }
@@ -205,6 +221,17 @@ namespace JogoDoGrupo.Client.Features.Skills
             {
                 _estado.Usada(usada.Espaco, usada.RecargaMs, Time.unscaledTimeAsDouble);
             }
+        }
+
+        private void AoDispararPoder(PoderDisparou aviso)
+        {
+            if (aviso == null)
+            {
+                return;
+            }
+
+            _painel.MostrarPoder(ApresentacaoSkills.TextoDoPoder(aviso));
+            _poderAte = Time.unscaledTimeAsDouble + DuracaoDoPoderSegundos;
         }
 
         private void AoRecusar(SkillRecusada recusa)

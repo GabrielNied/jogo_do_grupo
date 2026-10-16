@@ -82,6 +82,9 @@ public sealed class GeradorEquipamentos(ConfigEquipamentos config)
         item.NivelPersonagemMinimo = TabelaDeLoot.NivelMinimoDoGrau(grau);
         item.VersaoDosAtributos = RegrasTier.VersaoAtual;
         item.TierOrigem = RegrasTier.TierDe(item);
+        // O sorteio do poder vem por último: não muda nenhum valor sorteado antes e não entra no
+        // tier (DEC-004). Só o modelo que declara categorias de poder recebe um (PODER-007).
+        item.PoderId = CatalogoDePoderes.Sortear(item, aleatorio.Next);
         return item;
     }
 }

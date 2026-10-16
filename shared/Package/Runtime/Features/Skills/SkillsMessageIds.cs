@@ -24,5 +24,8 @@ namespace JogoDoGrupo.Shared.Features.Skills
 
         /// <summary>Servidor → dono: o pedido de uso foi recusado. Nada foi gasto.</summary>
         public const ushort SkillRecusada = 4005;
+
+        /// <summary>Servidor → dono: um poder lendário ou bônus de set disparou na skill.</summary>
+        public const ushort PoderDisparou = 4006;
     }
 }

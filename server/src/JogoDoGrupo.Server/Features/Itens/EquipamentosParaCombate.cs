@@ -17,7 +17,8 @@ namespace JogoDoGrupo.Server.Features.Itens;
 internal sealed class EquipamentosParaCombate(IServiceScopeFactory escopos)
     : IAtributosDosEquipamentos,
         IFonteDeModificadores,
-        IArmaEquipada
+        IArmaEquipada,
+        IEfeitosDoEquipamento
 {
     /// <summary>Grupo de acúmulo das parcelas de equipamento (somas; o grupo é só obrigatório).</summary>
     public const string Grupo = "equipamento";
@@ -44,6 +45,16 @@ internal sealed class EquipamentosParaCombate(IServiceScopeFactory escopos)
                 arma.Equipamento.Tipo,
                 conjunto
             );
+    }
+
+    /// <summary>Os poderes das peças vestidas e os marcos de set atingidos (só o conjunto ativo).</summary>
+    async Task<IReadOnlyList<EfeitoAtivo>> IEfeitosDoEquipamento.ObterAsync(
+        long personagemId,
+        CancellationToken c
+    )
+    {
+        var (entradas, conjunto) = await LerAsync(personagemId, c);
+        return RegrasDePoderes.Ativos(entradas, conjunto);
     }
 
     async Task<IReadOnlyList<Modificador>> IFonteDeModificadores.ObterAsync(

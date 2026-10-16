@@ -19,6 +19,7 @@ namespace JogoDoGrupo.Client.Features.Skills
         private readonly VisualElement _barra;
         private readonly Label _vazio;
         private readonly Label _aviso;
+        private readonly Label _poder;
         private readonly VisualElement _numeros;
         private readonly List<Espaco> _espacos = new List<Espaco>();
         private readonly List<Numero> _vivos = new List<Numero>();
@@ -66,12 +67,18 @@ namespace JogoDoGrupo.Client.Features.Skills
             _aviso.AddToClassList("skills-aviso");
             _aviso.style.display = DisplayStyle.None;
 
+            _poder = new Label();
+            _poder.pickingMode = PickingMode.Ignore;
+            _poder.AddToClassList("skills-poder");
+            _poder.style.display = DisplayStyle.None;
+
             _numeros = new VisualElement { name = "skills.numeros" };
             _numeros.pickingMode = PickingMode.Ignore;
             _numeros.AddToClassList("skills-numeros");
 
             raiz.Add(_numeros);
             raiz.Add(_aviso);
+            raiz.Add(_poder);
             raiz.Add(_vazio);
             raiz.Add(_barra);
         }
@@ -146,6 +153,15 @@ namespace JogoDoGrupo.Client.Features.Skills
         }
 
         public void EsconderAviso() => _aviso.style.display = DisplayStyle.None;
+
+        /// <summary>O aviso de que um poder de equipamento ou bônus de set disparou.</summary>
+        public void MostrarPoder(string texto)
+        {
+            _poder.text = texto;
+            _poder.style.display = DisplayStyle.Flex;
+        }
+
+        public void EsconderPoder() => _poder.style.display = DisplayStyle.None;
 
         /// <summary>Nasce um número de dano da skill sobre <paramref name="origem"/> (mundo).</summary>
         public void AdicionarNumero(string texto, Vector3 origem)

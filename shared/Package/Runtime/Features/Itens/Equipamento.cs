@@ -181,6 +181,12 @@ namespace JogoDoGrupo.Shared.Features.Itens
         /// <see cref="NivelFusao"/> e zera (<see cref="MigracaoDeTier"/>). Nada novo grava aqui.
         /// </summary>
         public int InfusoesUsadas;
+
+        /// <summary>
+        /// O poder lendário sorteado na geração (PODER-006): vazio é "sem poder". Fixo no exemplar,
+        /// a fusão preserva (DEC-003) e não entra no tier (DEC-004). Exemplar antigo lê vazio.
+        /// </summary>
+        public string PoderId = "";
         public bool Favorito;
         public bool Lixo;
     }

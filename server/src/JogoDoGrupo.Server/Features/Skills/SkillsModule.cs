@@ -23,6 +23,15 @@ public sealed class SkillsModule : IFeatureModule
         servicos.AddSingleton(sp =>
         {
             var relogio = sp.GetService<TimeProvider>() ?? TimeProvider.System;
+            return new MotorDePoderes(
+                sp.GetRequiredService<IEfeitosDoEquipamento>(),
+                () => relogio.GetUtcNow().ToUnixTimeMilliseconds(),
+                sp.GetService<ILogger<MotorDePoderes>>()
+            );
+        });
+        servicos.AddSingleton(sp =>
+        {
+            var relogio = sp.GetService<TimeProvider>() ?? TimeProvider.System;
             return new NucleoDeSkills(
                 sp.GetRequiredService<IArmaEquipada>(),
                 sp.GetRequiredService<IArmazemDeSkills>(),
@@ -31,7 +40,8 @@ public sealed class SkillsModule : IFeatureModule
                 sp.GetRequiredService<IPosicoesDoMundo>(),
                 sp.GetServices<IAlvosDeCombate>(),
                 () => relogio.GetUtcNow().ToUnixTimeMilliseconds(),
-                sp.GetService<ITrocaDeArma>()
+                sp.GetService<ITrocaDeArma>(),
+                sp.GetRequiredService<MotorDePoderes>()
             );
         });
         servicos.AddSingleton(sp =>
@@ -55,6 +65,11 @@ public sealed class SkillsModule : IFeatureModule
                 (sessao, _) => _servico?.AoPedirBarra(sessao)
             );
 
-    public void Inicializar(ServerContext contexto) =>
+    public void Inicializar(ServerContext contexto)
+    {
         contexto.Eventos.Assinar<EquipamentoMudou>(evento => _servico?.AoEquipamentoMudar(evento));
+        // Combate publica; sem ele publicando, os poderes de golpe comum e de esquiva ficam parados.
+        contexto.Eventos.Assinar<GolpeComumAcertou>(evento => _servico?.AoGolpeComum(evento));
+        contexto.Eventos.Assinar<PersonagemEsquivou>(evento => _servico?.AoEsquivar(evento));
+    }
 }
