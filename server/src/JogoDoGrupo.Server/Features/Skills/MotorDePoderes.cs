@@ -56,6 +56,11 @@ public sealed class MotorDePoderes
         public readonly Dictionary<string, Carga> Cargas = [];
         public readonly Dictionary<(long Alvo, string Estado), Marca> Marcas = [];
         public readonly Dictionary<string, long> UltimaAtivacao = [];
+        public readonly List<(EfeitoAtivo Efeito, int CargasAntes)> Decididos = [];
+        public readonly List<PoderDisparou> AvisosBuffer = [];
+        public readonly List<ReducaoDeRecarga> ReducoesBuffer = [];
+        public readonly List<string> ChavesExpiradasCargas = [];
+        public readonly List<(long Alvo, string Estado)> ChavesExpiradasMarcas = [];
     }
 
     private readonly record struct Carga(int Quantidade, long ExpiraMs, string Origem);
@@ -204,7 +209,8 @@ public sealed class MotorDePoderes
             gatilho == GatilhoDePoder.AoUsarSkill || gatilho == GatilhoDePoder.AoAcertarComSkill;
 
         // 1. Decide tudo pelo estado de antes do evento: nenhuma ação influencia outra condição.
-        var decididos = new List<(EfeitoAtivo Efeito, int CargasAntes)>();
+        var decididos = estado.Decididos;
+        decididos.Clear();
         foreach (var efeito in efeitos)
         {
             var regra = efeito.Regra;
@@ -226,8 +232,15 @@ public sealed class MotorDePoderes
             decididos.Add((efeito, cargas));
         }
 
-        var avisos = new List<PoderDisparou>();
-        var reducoes = new List<ReducaoDeRecarga>();
+        if (decididos.Count == 0)
+        {
+            return ResultadoDosPoderes.Nenhum;
+        }
+
+        var avisos = estado.AvisosBuffer;
+        avisos.Clear();
+        var reducoes = estado.ReducoesBuffer;
+        reducoes.Clear();
         var bonus = 0.0;
 
         // 2. Gasta as cargas antes de dar novas: a carga que esta mesma skill dá fica para a próxima.
@@ -296,7 +309,9 @@ public sealed class MotorDePoderes
             estado.UltimaAtivacao[efeito.Chave] = agora;
         }
 
-        return new ResultadoDosPoderes(1.0 + bonus, reducoes, avisos);
+        var reducoesSaida = reducoes.Count == 0 ? [] : reducoes.ToArray();
+        var avisosSaida = avisos.Count == 0 ? [] : avisos.ToArray();
+        return new ResultadoDosPoderes(1.0 + bonus, reducoesSaida, avisosSaida);
     }
 
     private static bool CondicaoVale(
@@ -331,20 +346,31 @@ public sealed class MotorDePoderes
 
     private static void Expirar(EstadoDoPersonagem estado, long agora)
     {
-        foreach (
-            var chave in estado
-                .Cargas.Where(p => p.Value.ExpiraMs <= agora)
-                .Select(p => p.Key)
-                .ToList()
-        )
-            estado.Cargas.Remove(chave);
-        foreach (
-            var chave in estado
-                .Marcas.Where(p => p.Value.ExpiraMs <= agora)
-                .Select(p => p.Key)
-                .ToList()
-        )
-            estado.Marcas.Remove(chave);
+        if (estado.Cargas.Count > 0)
+        {
+            var expiradas = estado.ChavesExpiradasCargas;
+            expiradas.Clear();
+            foreach (var (chave, carga) in estado.Cargas)
+            {
+                if (carga.ExpiraMs <= agora)
+                    expiradas.Add(chave);
+            }
+            foreach (var chave in expiradas)
+                estado.Cargas.Remove(chave);
+        }
+
+        if (estado.Marcas.Count > 0)
+        {
+            var expiradas = estado.ChavesExpiradasMarcas;
+            expiradas.Clear();
+            foreach (var (chave, marca) in estado.Marcas)
+            {
+                if (marca.ExpiraMs <= agora)
+                    expiradas.Add(chave);
+            }
+            foreach (var chave in expiradas)
+                estado.Marcas.Remove(chave);
+        }
     }
 
     private static PoderDisparou Aviso(EfeitoAtivo efeito, AcaoDePoder acao, int valor) =>
