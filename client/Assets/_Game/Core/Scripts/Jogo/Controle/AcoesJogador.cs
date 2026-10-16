@@ -20,6 +20,7 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
         private readonly InputAction _menu;
         private readonly InputAction _girarCamera;
         private readonly InputAction _esconderHud;
+        private readonly InputAction _clicar;
 
         public AcoesJogador()
         {
@@ -77,6 +78,7 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
                 "<Mouse>/rightButton"
             );
             _esconderHud = new InputAction("EsconderHud", InputActionType.Button, "<Keyboard>/f11");
+            _clicar = new InputAction("Clicar", InputActionType.Button, "<Mouse>/leftButton");
             TeclasDoJogo.Mudou += AtualizarTeclas;
             AtualizarTeclas();
         }
@@ -141,6 +143,15 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
         /// <summary>Se o botão direito do mouse está segurado.</summary>
         public bool GirarCameraSegurado => _girarCamera.IsPressed();
 
+        /// <summary>
+        /// Se o botão esquerdo do mouse foi apertado neste frame: com janela aberta, um clique
+        /// no mundo entra no modo combate.
+        /// </summary>
+        public bool ClicarApertado => _clicar.WasPressedThisFrame();
+
+        /// <summary>Se o botão esquerdo do mouse foi solto neste frame.</summary>
+        public bool ClicarSolto => _clicar.WasReleasedThisFrame();
+
         /// <summary>Posição do mouse na tela, em pixels (origem embaixo à esquerda).</summary>
         public Vector2 PosicaoDoMouse =>
             Mouse.current != null ? Mouse.current.position.ReadValue() : Vector2.zero;
@@ -156,6 +167,7 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
             _menu.Enable();
             _girarCamera.Enable();
             _esconderHud.Enable();
+            _clicar.Enable();
         }
 
         public void Desativar()
@@ -169,6 +181,7 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
             _menu.Disable();
             _girarCamera.Disable();
             _esconderHud.Disable();
+            _clicar.Disable();
         }
 
         public void Dispose()
@@ -183,6 +196,7 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
             _menu.Dispose();
             _girarCamera.Dispose();
             _esconderHud.Dispose();
+            _clicar.Dispose();
         }
     }
 }

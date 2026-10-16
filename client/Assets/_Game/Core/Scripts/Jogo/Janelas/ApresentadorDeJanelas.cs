@@ -99,6 +99,32 @@ namespace JogoDoGrupo.Client.Core.Jogo.Janelas
             return false;
         }
 
+        /// <summary>
+        /// Se o ponto da tela (em pixels, origem embaixo à esquerda) está sobre a interface: uma
+        /// janela aberta ou qualquer elemento que recebe clique (chat, convite, botões). Fora
+        /// disso o clique é no mundo.
+        /// </summary>
+        public bool SobreInterface(Vector2 ponto)
+        {
+            if (ContemPontoDaTela(ponto))
+            {
+                return true;
+            }
+
+            var painel = _container?.panel;
+            if (painel == null)
+            {
+                return false;
+            }
+
+            var noPainel = RuntimePanelUtils.ScreenToPanel(
+                painel,
+                new Vector2(ponto.x, Screen.height - ponto.y)
+            );
+            var tocado = painel.Pick(noPainel);
+            return tocado != null && tocado != _container && tocado != painel.visualTree;
+        }
+
         public void Mostrar(DefinicaoDeJanela definicao)
         {
             if (_container == null || definicao == null)

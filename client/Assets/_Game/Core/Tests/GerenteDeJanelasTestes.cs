@@ -468,6 +468,17 @@ namespace JogoDoGrupo.Client.Core.Tests
             Assert.IsFalse(DecisaoDeEntradaNoMundo.ComecaAGirar(false, false));
         }
 
+        [Test]
+        public void ModoCombate_ComJanela_CliqueNoMundoEntraEEscSaiAntesDeFechar()
+        {
+            Assert.IsTrue(DecisaoDeEntradaNoMundo.ComecaCliqueNoMundo(true, false));
+            Assert.IsFalse(DecisaoDeEntradaNoMundo.ComecaCliqueNoMundo(true, true));
+            Assert.IsFalse(DecisaoDeEntradaNoMundo.ComecaCliqueNoMundo(false, false));
+            Assert.IsTrue(DecisaoDeEntradaNoMundo.EscSaiDoModoCombate(true, true));
+            Assert.IsFalse(DecisaoDeEntradaNoMundo.EscSaiDoModoCombate(false, true));
+            Assert.IsFalse(DecisaoDeEntradaNoMundo.EscSaiDoModoCombate(true, false));
+        }
+
         [TestCase(true, false, false, false, DecisaoDoEsc.IgnorarPorEntradaDeTexto)]
         [TestCase(false, true, false, false, DecisaoDoEsc.IgnorarPorEntradaDeTexto)]
         [TestCase(false, false, true, false, DecisaoDoEsc.IgnorarPorConsumoAnterior)]

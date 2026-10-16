@@ -90,9 +90,9 @@ namespace JogoDoGrupo.Client.Features.Itens
                 return;
             }
 
-            // Com janela ou menu do Esc aberto, não mostra a dica nem abre o baú por baixo.
+            // Com o menu do Esc aberto, não mostra a dica nem abre o baú; janelas comuns não bloqueiam.
             var perto =
-                !JanelasDoJogo.AlgoAberto
+                !JanelasDoJogo.MenuAberto
                 && BauNoMundo.EstaPerto(_jogador.transform.position, _bau.position);
             MostrarDica(perto);
 

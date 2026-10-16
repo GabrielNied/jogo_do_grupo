@@ -163,11 +163,11 @@ namespace JogoDoGrupo.Client.Features.Itens.Loot
                 }
             }
 
-            // Com janela ou menu do Esc aberto, nem dica nem coleta por baixo.
+            // Com o menu do Esc aberto, nem dica nem coleta; janelas comuns não bloqueiam.
             ItemNoChao maisProximo = null;
             var totalAoAlcance = 0;
             var aoAlcance =
-                !JanelasDoJogo.AlgoAberto
+                !JanelasDoJogo.MenuAberto
                 && _registro.ObterAoAlcance(
                     posicao.x,
                     posicao.z,
