@@ -391,15 +391,15 @@ namespace JogoDoGrupo.Client.Features.Mobs.Tests
         }
 
         [Test]
-        public void Inimigo_Fortalecido_UsaEscalaDasRegras()
+        public void Inimigo_Elite_UsaEscalaDasRegras()
         {
             var dados = Dados(1);
-            dados.Variante = VarianteDeCriatura.Fortalecida;
+            dados.Variante = VarianteDeCriatura.Elite;
 
             var inimigo = new InimigoNoClient(dados);
 
-            Assert.IsTrue(inimigo.Fortalecido);
-            Assert.AreEqual(RegrasCriaturas.EscalaFortalecida, inimigo.Escala);
+            Assert.IsTrue(inimigo.Elite);
+            Assert.AreEqual(RegrasCriaturas.EscalaElite, inimigo.Escala);
             Assert.AreEqual(1f, new InimigoNoClient(Dados(2)).Escala);
         }
 

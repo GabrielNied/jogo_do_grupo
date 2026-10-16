@@ -36,8 +36,8 @@ namespace JogoDoGrupo.Shared.Features.Itens
         /// <summary>Inimigo comum sem variante: uma rolagem por atributo.</summary>
         public const int RolagensDoInimigoComum = 1;
 
-        /// <summary>Inimigo comum fortalecido (elite): melhor de duas.</summary>
-        public const int RolagensDoInimigoFortalecido = 2;
+        /// <summary>Inimigo comum elite (elite): melhor de duas.</summary>
+        public const int RolagensDoInimigoElite = 2;
 
         /// <summary>Chefe raro: melhor de três.</summary>
         public const int RolagensDoChefeRaro = 3;

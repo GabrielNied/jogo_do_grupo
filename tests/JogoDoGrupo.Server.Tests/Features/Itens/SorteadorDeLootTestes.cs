@@ -80,7 +80,7 @@ public class SorteadorDeLootTestes
 
     [Theory]
     [InlineData(OrigemDoLoot.Comum)]
-    [InlineData(OrigemDoLoot.Fortalecida)]
+    [InlineData(OrigemDoLoot.Elite)]
     [InlineData(OrigemDoLoot.ChefeRaro)]
     [InlineData(OrigemDoLoot.Chefe)]
     public void A_queda_guarda_a_origem_do_inimigo(OrigemDoLoot origem)
@@ -131,7 +131,7 @@ public class SorteadorDeLootTestes
             2000,
             _ =>
                 Assert.InRange(
-                    sorteador.Sortear(OrigemDoLoot.Fortalecida, 12).Length,
+                    sorteador.Sortear(OrigemDoLoot.Elite, 12).Length,
                     0,
                     RegrasLoot.MaximoPorInimigo
                 )

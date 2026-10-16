@@ -45,7 +45,7 @@ public class GeradorEquipamentosTestes
         var gerador = new GeradorEquipamentos(new ConfigEquipamentos());
         foreach (var id in Modelos)
         {
-            var item = gerador.Gerar(id, new Random(id), OrigemDoLoot.Fortalecida)!;
+            var item = gerador.Gerar(id, new Random(id), OrigemDoLoot.Elite)!;
 
             Assert.Equal(RegrasTier.VersaoAtual, item.VersaoDosAtributos);
             Assert.Equal(RegrasTier.TierDe(item), item.TierOrigem);
@@ -81,12 +81,12 @@ public class GeradorEquipamentosTestes
         }
 
         var comum = Media(OrigemDoLoot.Comum);
-        var fortalecida = Media(OrigemDoLoot.Fortalecida);
+        var elite = Media(OrigemDoLoot.Elite);
         var chefeRaro = Media(OrigemDoLoot.ChefeRaro);
         var chefe = Media(OrigemDoLoot.Chefe);
 
-        Assert.True(comum.Valor < fortalecida.Valor, $"{comum} {fortalecida}");
-        Assert.True(fortalecida.Valor < chefeRaro.Valor, $"{fortalecida} {chefeRaro}");
+        Assert.True(comum.Valor < elite.Valor, $"{comum} {elite}");
+        Assert.True(elite.Valor < chefeRaro.Valor, $"{elite} {chefeRaro}");
         Assert.True(chefeRaro.Valor < chefe.Valor, $"{chefeRaro} {chefe}");
         Assert.True(comum.Tier < chefe.Tier, $"{comum} {chefe}");
     }

@@ -4,7 +4,7 @@ namespace JogoDoGrupo.Server.Features.Mobs;
 /// Quanto o nível do mob conta em vida, dano e experiência (proposta, a calibrar). O nível de
 /// referência é o da ficha da criatura (<c>DefinicaoDeCriatura.Nivel</c>): nele os valores são
 /// os da ficha; cada nível acima soma o percentual abaixo (e cada nível abaixo tira). Vale só
-/// para a criatura comum: chefes têm força fixa. A variante fortalecida já está nos valores
+/// para a criatura comum: chefes têm força fixa. A variante elite já está nos valores
 /// que chegam, e o nível multiplica por cima.
 /// </summary>
 public static class ConfigNivelDeMobs

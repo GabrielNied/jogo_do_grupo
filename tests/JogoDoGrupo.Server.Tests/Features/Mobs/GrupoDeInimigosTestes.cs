@@ -429,22 +429,19 @@ public class GrupoDeInimigosTestes
     }
 
     [Fact]
-    public void Fortalecida_bate_mais_forte_e_tem_mais_vida()
+    public void Elite_bate_mais_forte_e_tem_mais_vida()
     {
-        var campo = new Campo(variante: VarianteDeCriatura.Fortalecida);
+        var campo = new Campo(variante: VarianteDeCriatura.Elite);
         campo.Por(Jogador, 0, 14);
 
-        Assert.Equal(VarianteDeCriatura.Fortalecida, campo.Unico.Variante);
+        Assert.Equal(VarianteDeCriatura.Elite, campo.Unico.Variante);
         Assert.Equal(
-            RegrasCriaturas.VidaMaxima(Javali.VidaBase, VarianteDeCriatura.Fortalecida),
+            RegrasCriaturas.VidaMaxima(Javali.VidaBase, VarianteDeCriatura.Elite),
             campo.Unico.VidaMaxima
         );
 
         var golpe = Assert.Single(campo.Ate(p => p.Golpes.Count > 0, 8).Golpes);
-        Assert.Equal(
-            RegrasCriaturas.Dano(Javali.DanoBase, VarianteDeCriatura.Fortalecida),
-            golpe.Dano
-        );
+        Assert.Equal(RegrasCriaturas.Dano(Javali.DanoBase, VarianteDeCriatura.Elite), golpe.Dano);
     }
 
     [Fact]
@@ -688,7 +685,7 @@ public class GrupoDeInimigosTestes
     [Fact]
     public void Morte_publica_a_derrota_com_a_recompensa_e_so_quem_deu_dano()
     {
-        var campo = new Campo(variante: VarianteDeCriatura.Fortalecida);
+        var campo = new Campo(variante: VarianteDeCriatura.Elite);
         campo.Por(Jogador, 0, 6);
         campo.Por(4, 1, 6);
         campo.Por(50, 0, 100);
@@ -699,13 +696,13 @@ public class GrupoDeInimigosTestes
         var derrota = Assert.Single(campo.Passo().Derrotas);
         Assert.Equal(PrimeiroId, derrota.InimigoId);
         Assert.Equal(Javali.Id, derrota.CriaturaId);
-        Assert.Equal(VarianteDeCriatura.Fortalecida, derrota.Variante);
+        Assert.Equal(VarianteDeCriatura.Elite, derrota.Variante);
         Assert.Equal(
-            RegrasCriaturas.Experiencia(Javali.ExperienciaBase, VarianteDeCriatura.Fortalecida),
+            RegrasCriaturas.Experiencia(Javali.ExperienciaBase, VarianteDeCriatura.Elite),
             derrota.Experiencia
         );
         Assert.Equal(
-            RegrasCriaturas.MultiplicadorDeRecompensaFortalecida,
+            RegrasCriaturas.MultiplicadorDeRecompensaElite,
             derrota.MultiplicadorDeRecompensa
         );
         Assert.Equal(Area, derrota.Area);

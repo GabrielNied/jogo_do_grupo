@@ -26,12 +26,12 @@ public class SorteadorDeCriaturasTestes
     }
 
     [Fact]
-    public void Comum_vem_fortalecida_perto_de_5_por_cento_das_vezes()
+    public void Comum_vem_elite_perto_de_5_por_cento_das_vezes()
     {
         var criaturas = Sortear(Javali, 20000, semente: 1);
 
-        var fortalecidas = criaturas.Count(c => c.Variante == VarianteDeCriatura.Fortalecida);
-        Assert.InRange(fortalecidas / 20000.0, 0.04, 0.06);
+        var elites = criaturas.Count(c => c.Variante == VarianteDeCriatura.Elite);
+        Assert.InRange(elites / 20000.0, 0.04, 0.06);
     }
 
     [Fact]
@@ -49,20 +49,20 @@ public class SorteadorDeCriaturasTestes
     }
 
     [Fact]
-    public void Fortalecida_sai_mais_forte_maior_e_com_mais_recompensa()
+    public void Elite_sai_mais_forte_maior_e_com_mais_recompensa()
     {
         var criaturas = Sortear(Javali, 2000, semente: 3);
-        var fortalecida = criaturas.First(c => c.Variante == VarianteDeCriatura.Fortalecida);
+        var elite = criaturas.First(c => c.Variante == VarianteDeCriatura.Elite);
 
-        Assert.Equal(360, fortalecida.VidaMaxima);
-        Assert.Equal(60, fortalecida.Dano);
-        Assert.Equal(40, fortalecida.Experiencia);
-        Assert.Equal(2.0, fortalecida.MultiplicadorDeRecompensa);
-        Assert.Equal(1.3f, fortalecida.Escala);
+        Assert.Equal(360, elite.VidaMaxima);
+        Assert.Equal(60, elite.Dano);
+        Assert.Equal(40, elite.Experiencia);
+        Assert.Equal(2.0, elite.MultiplicadorDeRecompensa);
+        Assert.Equal(1.3f, elite.Escala);
     }
 
     [Fact]
-    public void Chefe_e_chefe_raro_nunca_saem_fortalecidos()
+    public void Chefe_e_chefe_raro_nunca_saem_elites()
     {
         var chefes = Sortear(Chefe, 5000, semente: 4).Concat(Sortear(Raro, 5000, semente: 5));
 
@@ -113,25 +113,25 @@ public class SorteadorDeCriaturasTestes
     {
         var sorteador = new SorteadorDeCriaturas(new Random(9));
 
-        int ContarFortalecidas()
+        int ContarElites()
         {
-            var fortalecidas = 0;
+            var elites = 0;
             for (var i = 0; i < 5000; i++)
             {
-                if (sorteador.Sortear(Javali).Variante == VarianteDeCriatura.Fortalecida)
+                if (sorteador.Sortear(Javali).Variante == VarianteDeCriatura.Elite)
                 {
-                    fortalecidas++;
+                    elites++;
                 }
             }
 
-            return fortalecidas;
+            return elites;
         }
 
-        var tarefas = Enumerable.Range(0, 8).Select(_ => Task.Run(ContarFortalecidas));
+        var tarefas = Enumerable.Range(0, 8).Select(_ => Task.Run(ContarElites));
         var total = (await Task.WhenAll(tarefas)).Sum();
 
         // Um Random usado sem trava por várias threads degenera e passa a devolver só zero:
-        // todo sorteio viraria fortalecida.
+        // todo sorteio viraria elite.
         Assert.InRange(total / 40000.0, 0.04, 0.06);
     }
 }
