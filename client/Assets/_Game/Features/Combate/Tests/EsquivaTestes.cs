@@ -10,7 +10,7 @@ namespace JogoDoGrupo.Client.Features.Combate.Tests
         [Test]
         public void Tecla_EhOAltEsquerdo()
         {
-            Assert.AreEqual("<Keyboard>/leftAlt", ApresentacaoEsquiva.TeclaPadrao);
+            Assert.AreEqual("<Keyboard>/leftShift", ApresentacaoEsquiva.TeclaPadrao);
         }
 
         [Test]

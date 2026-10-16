@@ -5,7 +5,7 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
 {
     /// <summary>
     /// Move o jogador local com o <see cref="CharacterController"/>: anda na direção da câmera,
-    /// corre com Shift, pula com Espaço (só no chão), vira para onde anda, cai com gravidade e alimenta o Animator do visual.
+    /// sempre correndo (Ctrl esquerdo segurado anda devagar), pula com Espaço (só no chão), vira para onde anda, cai com gravidade e alimenta o Animator do visual.
     /// Os valores do movimento e o voo de desenvolvimento aparecem no Inspector e valem na hora,
     /// também com o Play aberto. O cálculo fica em <see cref="MovimentoTerceiraPessoa"/>. Criado pela
     /// <see cref="EntradaNoJogo"/>; não precisa ser montado em cena.
@@ -195,7 +195,7 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
 
             var dt = Time.deltaTime;
             var entrada = InputAtivo ? _acoes.Mover : Vector2.zero;
-            var correndo = InputAtivo && _acoes.Correr;
+            var devagar = InputAtivo && _acoes.AndarDevagar;
             var anguloCamera = _camera != null ? _camera.Horizontal : transform.eulerAngles.y;
 
             var direcao = MovimentoTerceiraPessoa.DirecaoNoMundo(entrada, anguloCamera);
@@ -213,7 +213,7 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
             var noAr = !_corpo.isGrounded;
             _velocidadeHorizontal = _movimento.Acelerar(
                 _velocidadeHorizontal,
-                _movimento.VelocidadeAlvo(entrada, correndo),
+                _movimento.VelocidadeAlvo(entrada, devagar),
                 dt,
                 noAr
             );

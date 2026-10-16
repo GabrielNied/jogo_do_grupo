@@ -208,7 +208,7 @@ namespace JogoDoGrupo.Client.Core.Jogo
             CriarLinhaTecla("Andar para trás", TeclasDoJogo.Tras);
             CriarLinhaTecla("Andar à esquerda", TeclasDoJogo.Esquerda);
             CriarLinhaTecla("Andar à direita", TeclasDoJogo.Direita);
-            CriarLinhaTecla("Correr", TeclasDoJogo.Correr);
+            CriarLinhaTecla("Andar devagar", TeclasDoJogo.AndarDevagar);
             CriarLinhaTecla("Pular", TeclasDoJogo.Pular);
             CriarLinhaTecla("Esquiva", TeclasDoJogo.Esquiva);
             CriarLinhaTecla("Ataque leve / pesado", TeclasDoJogo.Ataque);

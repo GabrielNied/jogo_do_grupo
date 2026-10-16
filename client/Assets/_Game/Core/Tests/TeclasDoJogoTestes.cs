@@ -46,6 +46,25 @@ namespace JogoDoGrupo.Client.Core.Tests
         }
 
         [Test]
+        public void PadroesSempreCorrendo_CtrlAndaDevagarEShiftEsquiva()
+        {
+            Assert.AreEqual("<Keyboard>/leftCtrl", TeclasDoJogo.Caminho(TeclasDoJogo.AndarDevagar));
+            Assert.AreEqual("<Keyboard>/leftShift", TeclasDoJogo.Caminho(TeclasDoJogo.Esquiva));
+        }
+
+        [Test]
+        public void PreferenciaAntigaDeCorrer_VoltaAoPadraoNovo()
+        {
+            // Antes do #894: correr no Alt e esquiva no Shift (trocadas pelo jogador).
+            TeclasDoJogo.Carregar(
+                "tecla.correr=<Keyboard>/leftAlt\ntecla.esquiva=<Keyboard>/leftShift"
+            );
+            Assert.AreEqual("<Keyboard>/leftCtrl", TeclasDoJogo.Caminho(TeclasDoJogo.AndarDevagar));
+            Assert.AreEqual("<Keyboard>/leftShift", TeclasDoJogo.Caminho(TeclasDoJogo.Esquiva));
+            Assert.AreEqual("", TeclasDoJogo.Gravar());
+        }
+
+        [Test]
         public void RestaurarUmaEReporTodasAsTeclas()
         {
             TeclasDoJogo.TentarTrocar(TeclasDoJogo.Frente, "<Keyboard>/g", out _);

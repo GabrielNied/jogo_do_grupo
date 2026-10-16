@@ -11,7 +11,9 @@ namespace JogoDoGrupo.Client.Core.Jogo
         public const string Tras = "tras";
         public const string Esquerda = "esquerda";
         public const string Direita = "direita";
-        public const string Correr = "correr";
+
+        /// <summary>Segurar anda devagar; sem ela o personagem está sempre correndo (#894).</summary>
+        public const string AndarDevagar = "andar-devagar";
         public const string Pular = "pular";
         public const string Esquiva = "esquiva";
         public const string Ataque = "ataque";
@@ -25,14 +27,18 @@ namespace JogoDoGrupo.Client.Core.Jogo
             [Tras] = "<Keyboard>/s",
             [Esquerda] = "<Keyboard>/a",
             [Direita] = "<Keyboard>/d",
-            [Correr] = "<Keyboard>/leftShift",
+            [AndarDevagar] = "<Keyboard>/leftCtrl",
             [Pular] = "<Keyboard>/space",
-            [Esquiva] = "<Keyboard>/leftAlt",
+            [Esquiva] = "<Keyboard>/leftShift",
             [Ataque] = "<Mouse>/leftButton",
             [Defesa] = "<Mouse>/rightButton",
             [Interagir] = "<Keyboard>/e",
             [Coletar] = "<Keyboard>/f",
         };
+
+        // Ações que saíram do jogo: a preferência salva delas é descartada e a tecla volta ao
+        // padrão novo (#894: "correr" virou "andar-devagar" no Ctrl, e a esquiva foi para o Shift).
+        private static readonly HashSet<string> _obsoletas = new HashSet<string> { "correr" };
 
         private static readonly Dictionary<string, string> _alteradas =
             new Dictionary<string, string>();
@@ -168,7 +174,7 @@ namespace JogoDoGrupo.Client.Core.Jogo
                     if (!linha.StartsWith("tecla.", StringComparison.Ordinal))
                         continue;
                     var partes = linha.Substring(6).Split('=');
-                    if (partes.Length == 2)
+                    if (partes.Length == 2 && !_obsoletas.Contains(partes[0]))
                         _pendentes[partes[0]] = partes[1];
                 }
             }

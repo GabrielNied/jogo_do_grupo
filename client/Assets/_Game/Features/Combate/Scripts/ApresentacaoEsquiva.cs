@@ -10,7 +10,7 @@ namespace JogoDoGrupo.Client.Features.Combate
     internal static class ApresentacaoEsquiva
     {
         /// <summary>Tecla padrão da esquiva (docs/features/interface.md, Teclas e atalhos).</summary>
-        public const string TeclaPadrao = "<Keyboard>/leftAlt";
+        public const string TeclaPadrao = "<Keyboard>/leftShift";
 
         public const string TextoStaminaInsuficiente = "Stamina insuficiente";
         public const string TextoAcaoEmAndamento = "Aguarde o golpe terminar";
