@@ -1,7 +1,7 @@
 # 0021. Hospedagem gratuita: PC do grupo agora, Oracle Cloud em São Paulo depois
 
 **Data:** 2026-10-11
-**Status:** proposta
+**Status:** aceito
 
 ## Contexto
 
@@ -27,6 +27,14 @@ Opções avaliadas em out/2026:
 - **Client** gerado no CI e distribuído numa página restrita do itch.io.
 - **Reserva:** Google Cloud e2-micro, se não houver capacidade na Oracle em São Paulo.
 - As tarefas estão no plano da issue #197.
+
+### Prontidão para produção (implementada em out/2026)
+
+- **Portas e Proxy:** HTTP (porta 5080) atrás de proxy reverso Caddy com repasse de cabeçalhos `X-Forwarded-For` e `X-Forwarded-Proto` via `ForwardedHeadersOptions`; UDP 5081 direto no host.
+- **Segredos:** Segredos de desenvolvimento (ex.: chave JWT padrão) são terminantemente recusados fora de `Development`; variáveis de ambiente (`Jwt__Chave`, `ConnectionStrings__Jogo`) são obrigatórias.
+- **Saúde e Diagnóstico:** Endpoint público `GET /saude` reporta status 200 OK com `Banco: conectado` ou 503 Service Unavailable com `Banco: indisponivel`.
+- **Logs:** Suporte a logs estruturados no console em formato JSON compacto (`Observabilidade:ConsoleEstruturado` ou padrão em `Production`) para captura direta por `systemd` / `journald`.
+- **Publicação:** Alvo de publicação self-contained documentado para `linux-arm64` e `linux-x64` via `npm run server:publicar`.
 
 ## Consequências
 
