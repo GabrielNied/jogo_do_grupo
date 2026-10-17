@@ -148,8 +148,8 @@ namespace JogoDoGrupo.Client.Features.Itens.Visual
                         return (posMartelo, rotMartelo);
 
                     case TipoEquipamento.Arco:
-                        // Empunhado pelo centro (y = 0.45m): haste vertical, corda voltada para trás.
-                        var rotArco = Quaternion.Euler(0f, 90f, 0f);
+                        // Empunhado pelo centro (y = 0.45m): haste vertical; corda no -X do modelo → -Z (costas).
+                        var rotArco = Quaternion.Euler(0f, -90f, 0f);
                         var posArco = rotArco * new Vector3(0f, -0.45f, 0f);
                         return (posArco, rotArco);
 
