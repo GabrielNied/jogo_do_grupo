@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using JogoDoGrupo.Shared.Core;
 using JogoDoGrupo.Shared.Core.Api;
@@ -187,8 +188,10 @@ public sealed class ServidorTempoReal : BackgroundService
     /// <summary>Sessões autenticadas neste momento, em uma coleção sem alocar cópias.</summary>
     public ICollection<SessaoTempoReal> Sessoes => _autenticadas.Keys;
 
-    public bool TentarObterSessao(long personagemId, out SessaoTempoReal? sessao) =>
-        _porPersonagem.TryGetValue(personagemId, out sessao);
+    public bool TentarObterSessao(
+        long personagemId,
+        [NotNullWhen(true)] out SessaoTempoReal? sessao
+    ) => _porPersonagem.TryGetValue(personagemId, out sessao);
 
     /// <summary>
     /// Agenda uma ação para rodar novamente no laço principal do servidor, em um passo fixo.
