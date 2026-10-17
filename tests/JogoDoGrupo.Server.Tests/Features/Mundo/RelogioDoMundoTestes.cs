@@ -38,11 +38,11 @@ public class RelogioDoMundoTestes
         var tempo = new RelogioFalso();
         var mundo = new RelogioDoMundo(tempo);
 
-        tempo.Avancar(Dia / 2);
-        Assert.Equal(RegrasDiaENoite.HoraInicial + 12, mundo.Hora(), 3);
+        tempo.Avancar(UmaHora * 15); // 8h + 15h = 23h (noite)
+        Assert.Equal(23f, mundo.Hora(), 3);
         Assert.True(RegrasDiaENoite.EhNoite(mundo.Hora()));
 
-        tempo.Avancar(Dia / 2);
+        tempo.Avancar(UmaHora * 9); // 23h + 9h = 32h = 8h (dia seguinte)
         Assert.Equal(RegrasDiaENoite.HoraInicial, mundo.Hora(), 3);
         Assert.False(RegrasDiaENoite.EhNoite(mundo.Hora()));
     }

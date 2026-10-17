@@ -10,7 +10,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.DiaENoite
 
         /// <summary>
         /// Horas que a troca entre dia e noite leva, centradas no início e no fim da noite (das
-        /// 19h às 21h e das 4h às 6h). As lanternas mudam no meio da troca.
+        /// 21h às 23h e das 5h às 7h). As lanternas mudam no meio da troca.
         /// </summary>
         public const float DuracaoDoCrepusculoHoras = 2f;
 

@@ -10,10 +10,10 @@ public class RegrasDiaENoiteTestes
     public void Valores_padrao_de_balanceamento()
     {
         Assert.Equal(24f, RegrasDiaENoite.HorasPorDia);
-        Assert.Equal(1200f, RegrasDiaENoite.DuracaoDoDiaSegundos);
+        Assert.Equal(3600f, RegrasDiaENoite.DuracaoDoDiaSegundos);
         Assert.Equal(8f, RegrasDiaENoite.HoraInicial);
-        Assert.Equal(20f, RegrasDiaENoite.InicioDaNoite);
-        Assert.Equal(5f, RegrasDiaENoite.FimDaNoite);
+        Assert.Equal(22f, RegrasDiaENoite.InicioDaNoite);
+        Assert.Equal(6f, RegrasDiaENoite.FimDaNoite);
     }
 
     [Fact]
@@ -64,7 +64,7 @@ public class RegrasDiaENoiteTestes
 
     [Theory]
     [InlineData(8.0, 0.0, 8f)]
-    [InlineData(8.0, Dia / 24, 9f)] // uma hora do mundo = 50 s reais
+    [InlineData(8.0, Dia / 24, 9f)] // uma hora do mundo = 150 s reais
     [InlineData(8.0, Dia / 2, 20f)]
     [InlineData(20.0, Dia / 2, 8f)] // dá a volta à meia-noite
     [InlineData(23.0, Dia / 12, 1f)]
@@ -114,16 +114,16 @@ public class RegrasDiaENoiteTestes
     }
 
     [Theory]
-    [InlineData(20.0, true)] // as lanternas acendem
+    [InlineData(22.0, true)] // as lanternas acendem
     [InlineData(23.5, true)]
     [InlineData(0.0, true)]
-    [InlineData(4.99, true)]
-    [InlineData(5.0, false)] // e apagam de manhã
+    [InlineData(5.99, true)]
+    [InlineData(6.0, false)] // e apagam de manhã
     [InlineData(12.0, false)]
-    [InlineData(19.99, false)]
-    [InlineData(44.0, true)] // 20h do dia seguinte
-    [InlineData(-2.0, true)] // 22h
-    public void EhNoite_vale_das_20h_as_5h(double hora, bool esperado) =>
+    [InlineData(21.99, false)]
+    [InlineData(46.0, true)] // 22h do dia seguinte
+    [InlineData(-1.0, true)] // 23h
+    public void EhNoite_vale_das_22h_as_6h(double hora, bool esperado) =>
         Assert.Equal(esperado, RegrasDiaENoite.EhNoite(hora));
 
     [Theory]
