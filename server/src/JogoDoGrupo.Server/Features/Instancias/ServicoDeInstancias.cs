@@ -45,6 +45,7 @@ public sealed class ServicoDeInstancias(
     private readonly Dictionary<string, Corrida> _corridas = new(StringComparer.Ordinal);
     private readonly Dictionary<long, Corrida> _corridaDoPersonagem = [];
     private readonly Dictionary<long, Corrida> _corridaDoGrupo = [];
+    private readonly List<long> _desconectadosExpiradosBuffer = [];
 
     /// <summary>Quantidade de corridas que ainda aceitam participantes.</summary>
     public int CorridasAtivas
@@ -224,33 +225,39 @@ public sealed class ServicoDeInstancias(
     public void Varrer()
     {
         var agora = AgoraMs();
-        List<(string Id, ResultadoDungeon Resultado)> encerramentos = [];
+        List<(string Id, ResultadoDungeon Resultado)>? encerramentos = null;
         lock (_trava)
         {
-            foreach (var corrida in _corridas.Values.ToArray())
+            foreach (var corrida in _corridas.Values)
             {
                 if (corrida.VitoriaDesdeMs is { } vitoriaDesde)
                 {
                     if (agora - vitoriaDesde >= _prazoColetaLoot.TotalMilliseconds)
                     {
-                        encerramentos.Add((corrida.Id, ResultadoDungeon.Vitoria));
+                        (encerramentos ??= []).Add((corrida.Id, ResultadoDungeon.Vitoria));
                         continue;
                     }
                 }
 
-                foreach (
-                    var personagemId in corrida
-                        .DesconectadosDesde.Where(par =>
-                            agora - par.Value >= PrazoDeReconexao.TotalMilliseconds
-                        )
-                        .Select(par => par.Key)
-                        .ToArray()
-                )
+                if (corrida.DesconectadosDesde.Count > 0)
                 {
-                    corrida.DesconectadosDesde.Remove(personagemId);
-                    corrida.Participantes.Remove(personagemId);
-                    corrida.PosicoesDeRetorno.Remove(personagemId);
-                    _corridaDoPersonagem.Remove(personagemId);
+                    _desconectadosExpiradosBuffer.Clear();
+                    var limiteReconexaoMs = PrazoDeReconexao.TotalMilliseconds;
+                    foreach (var (personagemId, desconectadoDesdeMs) in corrida.DesconectadosDesde)
+                    {
+                        if (agora - desconectadoDesdeMs >= limiteReconexaoMs)
+                        {
+                            _desconectadosExpiradosBuffer.Add(personagemId);
+                        }
+                    }
+
+                    foreach (var personagemId in _desconectadosExpiradosBuffer)
+                    {
+                        corrida.DesconectadosDesde.Remove(personagemId);
+                        corrida.Participantes.Remove(personagemId);
+                        corrida.PosicoesDeRetorno.Remove(personagemId);
+                        _corridaDoPersonagem.Remove(personagemId);
+                    }
                 }
 
                 if (posicoes.PersonagensNaArea(corrida.Area).Count == 0)
@@ -258,7 +265,7 @@ public sealed class ServicoDeInstancias(
                     corrida.VaziaDesde ??= agora;
                     if (agora - corrida.VaziaDesde.Value >= PrazoVazia.TotalMilliseconds)
                     {
-                        encerramentos.Add((corrida.Id, ResultadoDungeon.InstanciaVazia));
+                        (encerramentos ??= []).Add((corrida.Id, ResultadoDungeon.InstanciaVazia));
                     }
                 }
                 else
@@ -268,9 +275,12 @@ public sealed class ServicoDeInstancias(
             }
         }
 
-        foreach (var (id, resultado) in encerramentos)
+        if (encerramentos is not null)
         {
-            EncerrarNoLaco(id, resultado);
+            foreach (var (id, resultado) in encerramentos)
+            {
+                EncerrarNoLaco(id, resultado);
+            }
         }
     }
 
