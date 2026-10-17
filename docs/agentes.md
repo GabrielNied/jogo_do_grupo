@@ -17,7 +17,7 @@ Sonnet é o padrão; Opus em Core e PRs de risco. Comandos: `/trabalhe` implemen
 
 ## Doc e regras atuais
 
-No `/trabalhe`, `/decida` e `/melhore`: **`git fetch origin main`** antes de ler doc, escrever ficha ou decidir. `AGENTS.md`, `docs/features/` e ADRs valem **`origin/main`**, não a branch velha (`git show origin/main:<arquivo>`, `git grep … origin/main -- <pastas>`). O `puxar` refaz fetch ao criar a branch; não substitui o fetch do início da leva.
+No `/trabalhe`, `/decida` e `/melhore`: **`git fetch origin main`** antes de ler doc, escrever ficha ou decidir. `AGENTS.md`, `docs/features/` e ADRs valem **`origin/main`**, não a branch local (`git show origin/main:<arquivo>`). O `puxar` refaz fetch ao criar a branch, mas não substitui o fetch inicial.
 
 ## Worktree ao puxar
 
@@ -44,83 +44,83 @@ Corpo da issue que o agente lê (/decida, /melhore ou coordenador). Template com
 
 ## Lote
 
-Tarefas livres que mexem no **mesmo código**: mesmos arquivos ou fluxo, uma depende da outra, ou estão no "Lote sugerido". Pode cruzar funcionalidades e não tem limite de tarefas: cada agente custa 50–80 mil tokens fixos e cada PR uma rodada de CI, então juntar é mais barato ([ADR 0037](decisoes/0037-lotes-de-tarefas.md)).
+Tarefas livres que mexem no **mesmo código**: mesmos arquivos, fluxo, dependência ou "Lote sugerido". Pode cruzar features e não tem limite de tarefas: juntar economiza tokens e rodadas de CI ([ADR 0037](decisoes/0037-lotes-de-tarefas.md)).
 
-- **Dono:** `itens` ou `economia` se o lote é só deles; `funcionalidade` se cruza funcionalidades; `server-core` ou `client-core` se é Core. Core não entra em lote de funcionalidade.
-- **Entrega:** `npm run tarefa -- puxar <N> <M> ... <branch>`, uma branch, um commit por issue, um PR com um `Closes #` por issue. Passou de ~1500 linhas: o mesmo dono divide em PRs empilhados por caso de uso ([Leva empilhada](git.md#leva-empilhada)).
-- **Paralelo:** lotes que não dividem arquivos. **Recomendado** até 3 lotes de jogo em andamento ([ADR 0037](decisoes/0037-lotes-de-tarefas.md), emenda 2026-10-16); o `puxar` **avisa** se passar disso, mas não bloqueia. Core e desenvolvimento não entram na contagem. Trava sem branch no `origin` e sem PR sai sozinha em **24 h** (`soltar-travas`).
-- **Pequeno:** lote só de docs, config ou mudanças de até ~50 linhas o coordenador faz direto, sem agente.
+- **Dono:** `itens` ou `economia` se exclusivo deles; `funcionalidade` se cruza; `server-core` ou `client-core` para Core (Core não entra em lote de feature).
+- **Entrega:** `npm run tarefa -- puxar <N> ... <branch>`, uma branch, um commit por issue, PR com `Closes #` por issue. Acima de ~1500 linhas: PRs empilhados por caso de uso ([Leva empilhada](git.md#leva-empilhada)).
+- **Paralelo:** lotes sem arquivos comuns. **Recomendado** até 3 lotes de jogo em andamento ([ADR 0037](decisoes/0037-lotes-de-tarefas.md)); o `puxar` avisa se passar, sem bloquear. Core e desenvolvimento não contam. Trava sem branch no `origin` e sem PR expira em **24 h** (`soltar-travas`).
+- **Pequeno:** lote de docs, config ou até ~50 linhas o coordenador faz direto, sem agente.
 
 ## Segure (reserva manual)
 
-Reserva manual de **todas** as tarefas livres de um escopo (sem concorrência de agente): `npm run tarefa -- segure <escopo>` (`rotular <N>`, `liberar <escopo>`).
+Reserva de tarefas livres de um escopo (sem concorrência de agente): `npm run tarefa -- segure <escopo>` (`rotular <N>`, `liberar <escopo>`).
 
 - Escopo = prefixo do título (`[Mundo]` → `mundo`, alinhado ao commitlint).
-- Só rotula issues **livres**; `em-andamento` de outro segue até liberar, merge ou trava de 24 h.
-- Dono = login do `gh`; só esse login `puxa`. Vários segures em paralelo são permitidos; o `/decida` não remove `segure:*`. Registro na issue `[Desenvolvimento] Registro segure`. Detalhe na skill [segure](../../.claude/skills/segure/SKILL.md).
+- Só rotula livres; `em-andamento` segue até liberar, merge ou 24 h.
+- Dono = login do `gh` (só ele puxa). Múltiplos segures permitidos; `/decida` não remove `segure:*`. Detalhes na skill [segure](../../.claude/skills/segure/SKILL.md).
 
 ## Entrega da funcionalidade
 
-A tarefa de jogo termina na **cena** que o jogador usa, a partir do jogo aberto, com **ponto de entrada** (tecla, botão do HUD, NPC, aproximar). Contrato, servidor e teste são o caminho. `Closes` vai no PR da cena; "Como testar" diz o que a pessoa faz e o que aparece. No merge, aba faltando, texto provisório ou tela fora do visual voltam para a branch.
+Termina na **cena** que o jogador usa, a partir do jogo aberto, com **ponto de entrada** (tecla, HUD, NPC, aproximar). Contrato, servidor e testes são o caminho. `Closes` vai no PR da cena; "Como testar" detalha o que o jogador faz e vê.
 
 ### Como o dono trabalha
 
-1. Lê as fichas do lote, a doc da funcionalidade e o código que vai mudar.
-2. Puxa o lote (`puxar <N> <M> ... <branch> --agente <papel> --worktree .`) e escreve o plano em cada issue.
-3. Por issue, um commit: contrato no shared, servidor com testes, client com a cena e o ponto de entrada. Migração EF por comando no servidor, nunca à mão.
-4. Verifica com a skill `preparar-pr`, abre o PR e termina com o relatório (abaixo).
+1. Lê as fichas do lote, doc da feature e código a mudar.
+2. Puxa o lote (`puxar <N> ... <branch> --agente <papel> --worktree .`) e registra o plano na issue antes de codar.
+3. Por issue, um commit: contrato no shared, servidor com testes, client com cena e ponto de entrada. Migração EF por comando, nunca à mão.
+4. Confere com `preparar-pr`, abre o PR e relata.
 
 ### Plano da tarefa
 
 Quem puxa escreve na issue, antes de codar, e segue sem esperar:
 
 - **Casos de uso:** do ponto de entrada até o resultado.
-- **Estados:** os itens da checklist que se aplicam, e o que aparece em cada um.
-- **Decisões de design** que tomou.
-- **Testes:** os casos que mudam contrato ou resultado (xUnit). A tela é conferida pelo "Como testar".
+- **Estados:** itens da checklist que se aplicam e visual em cada um.
+- **Decisões de design** tomadas.
+- **Testes:** casos que mudam contrato ou resultado (xUnit). Tela conferida pelo "Como testar".
 
-**Checklist de experiência:** vazio/erro/limite, espera do servidor, multiplayer, reconexão, entrada (rebind/ESC), retorno, descoberta, visual [Lumora](../design/interface/GUIA-DE-ESTILO.md) — detalhe na skill [preparar-pr](../../.claude/skills/preparar-pr/SKILL.md).
+Checklist de experiência (vazio/erro/limite, espera, rede, rebind/ESC, [Lumora](../design/interface/GUIA-DE-ESTILO.md)): skill [preparar-pr](../../.claude/skills/preparar-pr/SKILL.md).
 
 ### Decisões de design
 
-Quem implementa decide o que a doc não fecha, sem esperar ([ADR 0030](decisoes/0030-processo-v2-dono-da-funcionalidade.md)): escolhe o que serve à [visão](visao-geral.md) e ao foco, prefere o fácil de mudar (regra 17), registra em `docs/features/<x>.md` e no PR. **Definido** pelo grupo não se reabre: escreva a proposta na doc e siga com o definido. Quem discordar abre PR mudando doc e código.
+Quem implementa decide o que a doc não fecha, sem esperar ([ADR 0030](decisoes/0030-processo-v2-dono-da-funcionalidade.md)): escolhe o que serve à [visão](visao-geral.md) e ao foco, prefere o fácil de mudar (regra 17), registra em `docs/features/<x>.md` e no PR. **Definido** pelo grupo não se reabre: proponha na doc e siga com o definido. Quem discordar abre PR mudando doc e código.
 
 ## Usar o Unity
 
-- **HUD:** UI Toolkit por código (`JanelasDoJogo.Registrar`); sem cena/prefab de tela.
+- **HUD:** UI Toolkit por código (`JanelasDoJogo.Registrar`); sem prefab/cena de tela.
 - **Cena/prefab/asset:** editor em `Features/<X>/Editor/` + `unity:executar`; YAML/`.meta` à mão o hook barra. Comandos `unity:importar`, `unity:recompilar`, `unity:editor`.
 - **Um Unity por máquina:** trava em [trava.mjs](../scripts/unity/trava.mjs) (`UNITY_ESPERA_MIN`).
 - **Commit:** assets gerados no PR; `conferir-unity`. `ProjectSettings/` e cenas Core: pare e avise.
-- **Sem editor:** só `unity:*` sem janela; editor/Play Mode se pedirem. Ao vivo: a pessoa ([F9](features/desenvolvimento.md#report-beta-e-ajuste-ao-vivo)).
+- **Sem editor:** `unity:*` sem janela. Ao vivo: a pessoa ([F9](features/desenvolvimento.md#report-beta-e-ajuste-ao-vivo)).
 - **Nuvem:** `unity:*` pulam; falta vira `pendencia-unity` ([ADR 0019](decisoes/0019-unity-no-ci.md)).
 
 ### Prints da tela
 
-Mudou tela ou HUD: `CapturaDaTelaComando.Capturar` via `unity:executar` (1280/1920/2560, pasta `prints/`). Variáveis `PRINT_CENA`, `PRINT_PAINEL`, `PRINT_SAIDA`: [client/Assets/_Game/AGENTS.md](../client/Assets/_Game/AGENTS.md).
+Mudou tela ou HUD: `CapturaDaTelaComando.Capturar` via `unity:executar` (1280/1920/2560, pasta `prints/`). Variáveis e opções em [client/Assets/_Game/AGENTS.md](../client/Assets/_Game/AGENTS.md).
 
 ## Fechamento: o coordenador integra e limpa o que criou
 
-- O worktree do agente parte do commit do checkout principal: o que o coordenador não commitou não chega. Commite antes e ponha no prompt `git merge <branch>` como passo 0.
-- O coordenador que codifica trabalha num worktree próprio ([Worktree ao puxar](#worktree-ao-puxar)), não no checkout compartilhado.
-- Agente que não abre PR commita local e informa branch e hash; integre com `git cherry-pick <hash>` (nunca `git merge` da branch dele) e confira `git show --stat`.
-- Worktrees e branches saem sozinhos depois do merge ([ADR 0031](decisoes/0031-limpeza-automatica.md)); o motivo do que ficou está em `.git/limpar-agentes.log`.
+- Worktree do agente parte do commit do checkout principal: commite antes de lançar.
+- Coordenador que codifica usa worktree próprio ([Worktree ao puxar](#worktree-ao-puxar)).
+- Agente sem PR commita local e informa branch e hash: integre com `git cherry-pick <hash>` e confira `git show --stat`.
+- Worktrees e branches saem sozinhos após merge ([ADR 0031](decisoes/0031-limpeza-automatica.md)); log em `.git/limpar-agentes.log`.
 
 ## Regras para todos os agentes
 
-- **Relatório** de até 15 linhas: o que fez (do ponto de vista do jogador), PR e branch, decisões de design, verificações ("ok" ou o que falhou), o que outros precisam fazer e o corte de custo, se houver.
+- **Relatório** de até 15 linhas: o que fez (visão do jogador), PR/branch, decisões de design, verificações, pendências e corte de custo.
 - **Fora da área:** pare e descreva no relatório para o agente certo.
 - **Autorização:** pedir a implementação autoriza commit, push e PR. Merge é humano.
-- **Shell no worktree:** um comando por chamada, sem heredoc; arquivos pela ferramenta de escrita. `dotnet test` com 10 min de limite e sem duas execuções no mesmo worktree. Hook bloqueou o shell: não repita, use `git -C <caminho>` pelo coordenador.
-- **Script avulso em Node** (`.mjs`); não há Python. Simulação de balanceamento em C# com o `shared` ([ADR 0043](decisoes/0043-simulacoes-em-csharp-e-scripts-em-node.md)).
+- **Shell no worktree:** um comando por chamada, sem heredoc; escrita por ferramenta de arquivo. `dotnet test` com 10 min de limite e sem concorrência no mesmo worktree. Bloqueio de hook: use `git -C <caminho>` pelo coordenador.
+- **Scripts:** Node (`.mjs`); sem Python. Simulações em C# com shared ([ADR 0043](decisoes/0043-simulacoes-em-csharp-e-scripts-em-node.md)).
 
 ### Custo de IA
 
-Regra 16: antes do PR, pergunte se a próxima vez desta tarefa sai mais barata. Espera que vai se repetir (agente relançado, comando que falha, releitura de issue, script/hook que faltou) vira corte neste PR ou num de processo (sem ampliar o jogo nem polir fora da tarefa). Tropeço de processo vira regra, script ou hook; o [licoes.md](licoes.md) guarda só o que ainda não virou.
+Regra 16: pergunte se a próxima vez desta tarefa sai mais barata. Espera repetida vira corte no PR atual ou de processo. Tropeço vira regra, script ou hook; [licoes.md](licoes.md) guarda só o que ainda não virou.
 
 ### Orçamento de contexto
 
-AGENTS.md, este arquivo, cada agente e cada skill são reenviados em todas as rodadas. `npm run contexto` mede e falha acima do teto (7 / 11 / 3 / 6 mil caracteres). Para crescer, enxugue outro trecho ou mova o detalhe para um doc lido só quando preciso.
+AGENTS.md, este arquivo, agente e skill são reenviados a cada rodada. `npm run contexto` mede e falha acima do teto (7 / 11 / 3 / 6 mil caracteres). Para crescer, enxugue ou mova detalhe para doc linkada.
 
 ### Trocar de assunto sem perder o fio
 
-Sessão longa encarece mensagens curtas. Ao fechar um assunto, registre o pendente (PR: numa issue; próxima pergunta: `node scripts/agentes/retomar.mjs gravar "<texto>"`) e dê `/clear`. O hook de início mostra o bilhete e o apaga.
+Ao fechar um assunto, registre o pendente (issue ou `node scripts/agentes/retomar.mjs gravar "<texto>"`) e dê `/clear`. O hook de início mostra o bilhete e o apaga.
