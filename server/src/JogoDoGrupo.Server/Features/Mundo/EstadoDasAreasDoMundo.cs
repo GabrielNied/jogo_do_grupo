@@ -150,6 +150,24 @@ internal sealed class EstadoDasAreasDoMundo<TSessao>(Func<long> relogioMs)
         }
     }
 
+    /// <summary>Todos os avatares presentes em qualquer canal da cidade.</summary>
+    public AvatarNaCidade<TSessao>[] PresentesNasCidades()
+    {
+        lock (_trava)
+        {
+            var lista = new List<AvatarNaCidade<TSessao>>();
+            foreach (var (area, estado) in _areas)
+            {
+                if (AreasDoMundo.EhCidade(area))
+                {
+                    lista.AddRange(estado.Presentes());
+                }
+            }
+
+            return lista.ToArray();
+        }
+    }
+
     public (string Area, AvatarNaCidade<TSessao> Avatar)? Obter(long personagemId)
     {
         lock (_trava)
@@ -167,7 +185,7 @@ internal sealed class EstadoDasAreasDoMundo<TSessao>(Func<long> relogioMs)
     private void RemoverAreaVazia(string area)
     {
         if (
-            area != AreasDoMundo.Cidade
+            !AreasDoMundo.EhCidade(area)
             && _areas.TryGetValue(area, out var estado)
             && estado.Quantidade == 0
         )

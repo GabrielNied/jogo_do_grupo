@@ -4,6 +4,7 @@ using JogoDoGrupo.Server.Contratos.Mundo;
 using JogoDoGrupo.Server.Contratos.Personagem;
 using JogoDoGrupo.Server.Contratos.Social;
 using JogoDoGrupo.Server.Core;
+using JogoDoGrupo.Server.Core.Canais;
 using JogoDoGrupo.Server.Core.Eventos;
 using JogoDoGrupo.Server.Core.TempoReal;
 using JogoDoGrupo.Shared.Features.Mundo;
@@ -24,7 +25,9 @@ public sealed class MundoModule
     private readonly EstadoDasAreasDoMundo<SessaoTempoReal> _areas = new(() =>
         Environment.TickCount64
     );
-    private readonly GradeDeInteresse _grade = new();
+    private readonly ConcurrentDictionary<string, GradeDeInteresse> _grades = new(
+        StringComparer.Ordinal
+    );
     private readonly ConcurrentDictionary<long, (string Nome, int Raca)> _identidades = new();
     private IDiretorioDePersonagens? _diretorio;
     private bool _permitirVelocidadeDeTeste;
@@ -32,13 +35,39 @@ public sealed class MundoModule
     private EventosDoServidor? _eventos;
     private IHistoricoDePosicoesDoMundo? _historico;
     private IEstadoDeQueda? _queda;
+    private IGerenciadorDeCanais? _gerenciadorCanais;
+    private IConsultaDeGrupo? _consultaGrupo;
+    private IEstadoDeCombate? _combate;
+    private IGerenciadorDeCanais Gerenciador => _gerenciadorCanais ??= new GerenciadorDeCanais();
+
+    private GradeDeInteresse ObterGrade(string area) =>
+        _grades.GetOrAdd(area, _ => new GradeDeInteresse());
+
+    private HashSet<long> ObterVistos(long personagemId)
+    {
+        var localizado = _areas.Localizar(personagemId);
+        if (localizado is null || !AreasDoMundo.EhCidade(localizado.Value.Area))
+        {
+            return [];
+        }
+
+        return ObterGrade(localizado.Value.Area).Vistos(personagemId);
+    }
 
     public MundoModule()
-        : this(null) { }
+        : this(null, null, null, null) { }
 
-    public MundoModule(IEstadoDeQueda? queda)
+    public MundoModule(
+        IEstadoDeQueda? queda = null,
+        IGerenciadorDeCanais? gerenciadorCanais = null,
+        IEstadoDeCombate? combate = null,
+        IConsultaDeGrupo? consultaGrupo = null
+    )
     {
         _queda = queda;
+        _gerenciadorCanais = gerenciadorCanais;
+        _combate = combate;
+        _consultaGrupo = consultaGrupo;
     }
 
     // Criado pelo contêiner quando o app sobe (hosted service); o manipulador de rede só o usa
@@ -52,7 +81,9 @@ public sealed class MundoModule
     public void ConfigurarServicos(IServiceCollection servicos, IConfiguration configuracao)
     {
         servicos.AddSingleton<IPosicoesDoMundo>(new PosicoesDoMundo<SessaoTempoReal>(_areas));
-        servicos.AddSingleton<IVizinhanca>(new VizinhancaDoMundo<SessaoTempoReal>(_areas, _grade));
+        servicos.AddSingleton<IVizinhanca>(
+            new VizinhancaDoMundo<SessaoTempoReal>(_areas, ObterGrade)
+        );
         servicos.AddSingleton<ITransicoesDeAreaDoMundo>(this);
         servicos.AddSingleton<IControleDeVelocidadeDoMundo>(this);
         servicos.AddSingleton<ITeleporteDeTeste>(sp => new TeleporteDeTeste(
@@ -69,7 +100,7 @@ public sealed class MundoModule
             var servico = new ServicoDaHoraDoMundo(
                 sp.GetRequiredService<RelogioDoMundo>(),
                 sp.GetRequiredService<ServidorTempoReal>(),
-                () => _areas.Cidade.Presentes().Select(a => a.Sessao).ToArray(),
+                () => _areas.PresentesNasCidades().Select(a => a.Sessao).ToArray(),
                 sp.GetRequiredService<ILogger<ServicoDaHoraDoMundo>>()
             );
             _hora = servico;
@@ -79,7 +110,7 @@ public sealed class MundoModule
         // Posição do grupo para o mapa (#789): o grupo vem do contrato do Social, se carregado.
         servicos.AddSingleton(sp => new ServicoDePosicaoDoGrupo(
             () => _areas.PresentesEmTodasAsAreas(),
-            _grade.Vistos,
+            id => ObterVistos(id),
             () => sp.GetService<IConsultaDeGrupo>(),
             sp.GetRequiredService<IPosicoesDoMundo>(),
             sp.GetRequiredService<ServidorTempoReal>(),
@@ -89,7 +120,7 @@ public sealed class MundoModule
         servicos.AddSingleton(sp =>
         {
             var servico = new ServicoDePerigosDoMundo(
-                () => _areas.Cidade.Presentes(),
+                () => _areas.PresentesNasCidades(),
                 sp.GetRequiredService<ILimiteDeVelocidadeDoMundo>(),
                 sp.GetService<IDanoAoPersonagem>(),
                 sp.GetService<EventosDoServidor>(),
@@ -105,7 +136,7 @@ public sealed class MundoModule
             var servico = new ServicoDeClimaDoMundo(
                 sp.GetRequiredService<ClimaDoServidor>(),
                 sp.GetRequiredService<ServidorTempoReal>(),
-                () => _areas.Cidade.Presentes(),
+                () => _areas.PresentesNasCidades(),
                 sp.GetRequiredService<ILimiteDeVelocidadeDoMundo>(),
                 log: sp.GetService<ILogger<ServicoDeClimaDoMundo>>()
             );
@@ -121,6 +152,9 @@ public sealed class MundoModule
         // Personagem pode não estar carregada (testes só do Mundo): sem ela, nome e raça vão vazios.
         _diretorio = servicos.GetService<IDiretorioDePersonagens>();
         _queda ??= servicos.GetService<IEstadoDeQueda>();
+        _gerenciadorCanais ??= servicos.GetService<IGerenciadorDeCanais>();
+        _combate ??= servicos.GetService<IEstadoDeCombate>();
+        _consultaGrupo ??= servicos.GetService<IConsultaDeGrupo>();
         _permitirVelocidadeDeTeste = PoliticaDeVelocidadeDeTeste.Ligada(
             servicos.GetRequiredService<IConfiguration>(),
             servicos.GetRequiredService<IHostEnvironment>(),
@@ -142,7 +176,9 @@ public sealed class MundoModule
             .Ao<PedirVelocidadeDeTeste>(
                 MundoMessageIds.PedirVelocidadeDeTeste,
                 AoPedirVelocidadeDeTeste
-            );
+            )
+            .Ao<PedirTrocaDeCanal>(MundoMessageIds.PedirTrocaDeCanal, AoPedirTrocaDeCanal)
+            .Ao<ConsultarCanais>(MundoMessageIds.ConsultarCanais, AoConsultarCanais);
 
     public void Inicializar(ServerContext contexto)
     {
@@ -158,13 +194,21 @@ public sealed class MundoModule
     /// </summary>
     private void AoVoltarDaQueda(PersonagemVoltouParaACidade evento)
     {
+        var canal =
+            Gerenciador.ObterCanalDoPersonagem(evento.PersonagemId)
+            ?? Gerenciador.EscolherCanalDeEntrada(
+                evento.PersonagemId,
+                _consultaGrupo?.Consultar(evento.PersonagemId)?.Membros
+            )
+            ?? 1;
+        var areaCidade = AreasDoMundo.CidadeDoCanal(canal);
         var nascimento = ValidadorDeMovimento.Nascimento;
-        if (evento.Area != AreasDoMundo.Cidade)
+        if (evento.Area != areaCidade)
         {
             TentarMoverParaArea(
                 evento.PersonagemId,
                 new PosicaoNoMundo(
-                    AreasDoMundo.Cidade,
+                    areaCidade,
                     nascimento.X,
                     nascimento.Y,
                     nascimento.Z,
@@ -174,23 +218,40 @@ public sealed class MundoModule
             return;
         }
 
-        if (_areas.Cidade.ForcarPosicao(evento.PersonagemId, nascimento) is not { } sequencia)
+        var estadoArea = _areas.ObterOuCriar(areaCidade);
+        if (estadoArea.ForcarPosicao(evento.PersonagemId, nascimento) is not { } sequencia)
         {
             return;
         }
 
-        if (_areas.Cidade.Obter(evento.PersonagemId) is not { } avatar)
+        if (estadoArea.Obter(evento.PersonagemId) is not { } avatar)
         {
             return;
         }
 
         EnviarPosicaoForcada(avatar.Sessao, avatar, sequencia);
-        Replicar(AreasDoMundo.Cidade, avatar.Sessao, avatar);
+        Replicar(areaCidade, avatar.Sessao, avatar);
     }
 
     private void AoEntrar(SessaoTempoReal sessao, EntrarNaCidade _)
     {
-        if (_areas.Obter(sessao.PersonagemId) is { } atual && atual.Area != AreasDoMundo.Cidade)
+        var membros = _consultaGrupo?.Consultar(sessao.PersonagemId)?.Membros;
+        var canalEscolhido = Gerenciador.EscolherCanalDeEntrada(sessao.PersonagemId, membros);
+        if (canalEscolhido is null)
+        {
+            _tempoReal!.Enviar(
+                sessao,
+                MundoMessageIds.RecusaTrocaDeCanal,
+                new RecusaTrocaDeCanal { Motivo = CodigosErroMundo.CanalLotado, CanalAtual = 0 }
+            );
+            return;
+        }
+
+        var canal = canalEscolhido.Value;
+        Gerenciador.RegistrarEntrada(sessao.PersonagemId, canal);
+        var areaCidade = AreasDoMundo.CidadeDoCanal(canal);
+
+        if (_areas.Obter(sessao.PersonagemId) is { } atual && atual.Area != areaCidade)
         {
             // A reconexão pode trocar a sessão antes do pedido de entrada na cidade. Atualiza a
             // sessão mantendo a posição da área atual; a transição abaixo remove a presença velha.
@@ -198,7 +259,7 @@ public sealed class MundoModule
             TentarMoverParaArea(
                 sessao.PersonagemId,
                 new PosicaoNoMundo(
-                    AreasDoMundo.Cidade,
+                    areaCidade,
                     ValidadorDeMovimento.Nascimento.X,
                     ValidadorDeMovimento.Nascimento.Y,
                     ValidadorDeMovimento.Nascimento.Z,
@@ -211,19 +272,25 @@ public sealed class MundoModule
         var (novo, eu, outros) = _areas.Entrar(
             sessao.PersonagemId,
             sessao,
-            AreasDoMundo.Cidade,
+            areaCidade,
             ValidadorDeMovimento.Nascimento
         );
+        var grade = ObterGrade(areaCidade);
         // Na cidade cada um recebe só quem está dentro do raio de visão (#500).
-        var mudanca = _grade.Atualizar(eu.PersonagemId, eu.Posicao.X, eu.Posicao.Z);
-        var vistos = _grade.Vistos(eu.PersonagemId);
+        var mudanca = grade.Atualizar(eu.PersonagemId, eu.Posicao.X, eu.Posicao.Z);
+        var vistos = grade.Vistos(eu.PersonagemId);
         var proximos = outros.Where(o => vistos.Contains(o.PersonagemId)).ToArray();
         _tempoReal!.Enviar(
             sessao,
             MundoMessageIds.EstadoDaCidade,
             new EstadoDaCidade { Eu = Visivel(eu), Outros = proximos.Select(Visivel).ToArray() }
         );
-        if (_areas.Cidade.Velocidades(sessao.PersonagemId) is { } velocidades)
+        _tempoReal.Enviar(
+            sessao,
+            MundoMessageIds.CanalAlterado,
+            new CanalAlterado { Canal = canal, TotalCanais = Gerenciador.QuantidadeCanais }
+        );
+        if (_areas.ObterOuCriar(areaCidade).Velocidades(sessao.PersonagemId) is { } velocidades)
         {
             EnviarVelocidades(sessao, velocidades);
         }
@@ -240,10 +307,67 @@ public sealed class MundoModule
 
         if (novo)
         {
-            _eventos!.Publicar(new JogadorEntrouNaArea(sessao.PersonagemId, AreasDoMundo.Cidade));
+            _eventos!.Publicar(new JogadorEntrouNaArea(sessao.PersonagemId, areaCidade));
         }
 
-        RegistrarPosicaoDoJogador(AreasDoMundo.Cidade, eu);
+        RegistrarPosicaoDoJogador(areaCidade, eu);
+    }
+
+    private void AoPedirTrocaDeCanal(SessaoTempoReal sessao, PedirTrocaDeCanal pedido)
+    {
+        var localizado = _areas.Localizar(sessao.PersonagemId);
+        if (localizado is null || !AreasDoMundo.EhCidade(localizado.Value.Area))
+        {
+            return;
+        }
+
+        var emCombate = _combate?.EmCombate(sessao.PersonagemId) == true;
+        var resultado = Gerenciador.TentarTrocarCanal(
+            sessao.PersonagemId,
+            pedido.CanalDestino,
+            emCombate
+        );
+
+        if (!resultado.Sucesso)
+        {
+            _tempoReal!.Enviar(
+                sessao,
+                MundoMessageIds.RecusaTrocaDeCanal,
+                new RecusaTrocaDeCanal
+                {
+                    Motivo = resultado.CodigoErro ?? CodigosErroMundo.CanalInvalido,
+                    CanalAtual = resultado.CanalAtual,
+                }
+            );
+            return;
+        }
+
+        var novaArea = AreasDoMundo.CidadeDoCanal(resultado.CanalDestino);
+        var avatarAtual = localizado.Value.Estado.Obter(sessao.PersonagemId);
+        var pos = avatarAtual?.Posicao ?? ValidadorDeMovimento.Nascimento;
+
+        TentarMoverParaArea(
+            sessao.PersonagemId,
+            new PosicaoNoMundo(novaArea, pos.X, pos.Y, pos.Z, pos.RotacaoY)
+        );
+    }
+
+    private void AoConsultarCanais(SessaoTempoReal sessao, ConsultarCanais _)
+    {
+        var canalAtual =
+            Gerenciador.ObterCanalDoPersonagem(sessao.PersonagemId)
+            ?? (
+                _areas.Localizar(sessao.PersonagemId) is { } loc && AreasDoMundo.EhCidade(loc.Area)
+                    ? AreasDoMundo.CanalDaArea(loc.Area)
+                    : 1
+            );
+
+        var status = Gerenciador.ObterStatusDosCanais();
+        _tempoReal!.Enviar(
+            sessao,
+            MundoMessageIds.RespostaCanais,
+            new RespostaCanais { CanalAtual = canalAtual, Canais = status.ToArray() }
+        );
     }
 
     // O client é dono da própria posição (ADR 0024): o servidor valida e repassa aos outros,
@@ -303,7 +427,7 @@ public sealed class MundoModule
                 return;
             case ResultadoMovimento.Aceito:
             case ResultadoMovimento.AceitoComSuspeita:
-                if (area == AreasDoMundo.Cidade)
+                if (AreasDoMundo.EhCidade(area))
                 {
                     _perigos?.VerificarPasso(
                         sessao.PersonagemId,
@@ -322,11 +446,12 @@ public sealed class MundoModule
 
     private void Replicar(string area, SessaoTempoReal dono, AvatarNaCidade<SessaoTempoReal> avatar)
     {
-        if (area == AreasDoMundo.Cidade)
+        if (AreasDoMundo.EhCidade(area))
         {
             NotificarMudanca(
+                area,
                 avatar,
-                _grade.Atualizar(avatar.PersonagemId, avatar.Posicao.X, avatar.Posicao.Z)
+                ObterGrade(area).Atualizar(avatar.PersonagemId, avatar.Posicao.X, avatar.Posicao.Z)
             );
         }
 
@@ -362,24 +487,26 @@ public sealed class MundoModule
     private AvatarNaCidade<SessaoTempoReal>[] Observadores(string area, long personagemId)
     {
         var presentes = _areas.ObterOuCriar(area).Presentes();
-        if (area != AreasDoMundo.Cidade)
+        if (!AreasDoMundo.EhCidade(area))
         {
             return presentes.Where(a => a.PersonagemId != personagemId).ToArray();
         }
 
-        var vistos = _grade.Vistos(personagemId);
+        var vistos = ObterGrade(area).Vistos(personagemId);
         return presentes.Where(a => vistos.Contains(a.PersonagemId)).ToArray();
     }
 
     // Quem passou a se ver recebe a entrada um do outro; quem deixou de se ver, a saída.
     private void NotificarMudanca(
+        string area,
         AvatarNaCidade<SessaoTempoReal> avatar,
         MudancaDeInteresse mudanca
     )
     {
+        var estadoArea = _areas.ObterOuCriar(area);
         foreach (var id in mudanca.Entraram)
         {
-            if (_areas.Cidade.Obter(id) is not { } outro)
+            if (estadoArea.Obter(id) is not { } outro)
             {
                 continue;
             }
@@ -398,7 +525,7 @@ public sealed class MundoModule
 
         foreach (var id in mudanca.Sairam)
         {
-            if (_areas.Cidade.Obter(id) is { } outro)
+            if (estadoArea.Obter(id) is { } outro)
             {
                 _tempoReal!.Enviar(
                     outro.Sessao,
@@ -518,6 +645,7 @@ public sealed class MundoModule
         _areas.RegistrarSaida(sessao.PersonagemId, area);
         _perigos?.RemoverJogador(sessao.PersonagemId);
         _clima?.RemoverJogador(sessao.PersonagemId);
+        Gerenciador.RegistrarSaida(sessao.PersonagemId);
 
         var aviso = new JogadorSaiu { PersonagemId = sessao.PersonagemId };
         foreach (var outro in AosQueViam(area, sessao.PersonagemId, estadoArea.Presentes()))
@@ -562,14 +690,11 @@ public sealed class MundoModule
 
         var sessao = transicao.Eu.Sessao;
         var vizinhos = transicao.OutrosNoDestino;
-        if (destino.Area == AreasDoMundo.Cidade)
+        if (AreasDoMundo.EhCidade(destino.Area))
         {
             // Entrar na cidade pelo portão ou pela queda: só quem está no raio de visão.
-            var mudanca = _grade.Atualizar(
-                personagemId,
-                transicao.Eu.Posicao.X,
-                transicao.Eu.Posicao.Z
-            );
+            var mudanca = ObterGrade(destino.Area)
+                .Atualizar(personagemId, transicao.Eu.Posicao.X, transicao.Eu.Posicao.Z);
             vizinhos = vizinhos.Where(o => mudanca.Entraram.Contains(o.PersonagemId)).ToArray();
         }
 
@@ -584,7 +709,7 @@ public sealed class MundoModule
 
         _eventos.Publicar(new JogadorSaiuDaArea(personagemId, transicao.Origem));
 
-        if (destino.Area == AreasDoMundo.Cidade)
+        if (AreasDoMundo.EhCidade(destino.Area))
         {
             _tempoReal.Enviar(
                 sessao,
@@ -594,6 +719,12 @@ public sealed class MundoModule
                     Eu = Visivel(transicao.Eu),
                     Outros = vizinhos.Select(Visivel).ToArray(),
                 }
+            );
+            var canal = AreasDoMundo.CanalDaArea(destino.Area);
+            _tempoReal.Enviar(
+                sessao,
+                MundoMessageIds.CanalAlterado,
+                new CanalAlterado { Canal = canal, TotalCanais = Gerenciador.QuantidadeCanais }
             );
         }
         else
@@ -624,7 +755,7 @@ public sealed class MundoModule
         }
 
         _eventos.Publicar(new JogadorEntrouNaArea(personagemId, destino.Area));
-        if (destino.Area == AreasDoMundo.Cidade)
+        if (AreasDoMundo.EhCidade(destino.Area))
         {
             _hora?.Enviar(sessao);
             _clima?.Enviar(sessao);
@@ -640,12 +771,12 @@ public sealed class MundoModule
         AvatarNaCidade<SessaoTempoReal>[] presentes
     )
     {
-        if (area != AreasDoMundo.Cidade)
+        if (!AreasDoMundo.EhCidade(area))
         {
             return presentes.Where(a => a.PersonagemId != personagemId).ToArray();
         }
 
-        var viam = _grade.Remover(personagemId);
+        var viam = ObterGrade(area).Remover(personagemId);
         return presentes.Where(a => viam.Contains(a.PersonagemId)).ToArray();
     }
 

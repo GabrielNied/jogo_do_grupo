@@ -2,6 +2,7 @@ using System.Reflection;
 using JogoDoGrupo.Server.Core;
 using JogoDoGrupo.Server.Core.Api;
 using JogoDoGrupo.Server.Core.Autenticacao;
+using JogoDoGrupo.Server.Core.Canais;
 using JogoDoGrupo.Server.Core.Contas;
 using JogoDoGrupo.Server.Core.Eventos;
 using JogoDoGrupo.Server.Core.Observabilidade;
@@ -59,6 +60,7 @@ builder.Services.AddDbContext<JogoDbContext>(opcoes =>
 builder.Services.AdicionarAutenticacaoJwt(builder.Configuration, builder.Environment);
 builder.Services.AdicionarContas();
 builder.Services.AdicionarTempoReal(builder.Configuration);
+builder.Services.AdicionarCanais(builder.Configuration);
 builder.Services.AddSingleton<EventosDoServidor>();
 
 foreach (var modulo in modulos)
