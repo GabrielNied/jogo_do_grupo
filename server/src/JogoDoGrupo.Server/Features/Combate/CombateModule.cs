@@ -150,6 +150,9 @@ public sealed class CombateModule : IFeatureModule
         });
         servicos.AddHostedService(sp => sp.GetRequiredService<ServicoDeAtaques>());
         servicos.AddHostedService(sp => sp.GetRequiredService<ServicoDeDanoRecebido>());
+        servicos.AddSingleton<IDanoAoPersonagem>(sp =>
+            sp.GetRequiredService<ServicoDeDanoRecebido>()
+        );
         servicos.AddHostedService(sp => sp.GetRequiredService<ServicoDeQueda>());
         servicos.AddSingleton(sp => new ServicoDeEfeitosDeStatus(
             sp.GetRequiredService<GerenciadorDeEfeitosDeStatus>(),
