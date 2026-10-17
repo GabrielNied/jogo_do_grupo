@@ -10,26 +10,26 @@ namespace JogoDoGrupo.Shared.Features.Mundo
     /// </summary>
     public static class RegrasDiaENoite
     {
-        // Valores a calibrar. A proposta do livro (40 min de dia e 20 de noite) segue em aberto
-        // em docs/features/mundo.md.
+        // Valores de balanceamento. Adotado o ciclo do livro: 40 min de dia e 20 min de noite
+        // (total de 60 min reais = 3600 s; docs/features/mundo.md).
 
         /// <summary>Horas de um dia do mundo.</summary>
         public const float HorasPorDia = 24f;
 
         /// <summary>
-        /// Segundos reais de um dia inteiro do mundo (20 minutos). Diminuir faz o sol andar mais
-        /// depressa.
+        /// Segundos reais de um dia inteiro do mundo (60 minutos = 40 min de dia e 20 min de noite).
+        /// Diminuir faz o sol andar mais depressa.
         /// </summary>
-        public const float DuracaoDoDiaSegundos = 1200f;
+        public const float DuracaoDoDiaSegundos = 3600f;
 
         /// <summary>Hora do mundo quando o servidor liga (manhã).</summary>
         public const float HoraInicial = 8f;
 
-        /// <summary>Hora em que a noite começa e as lanternas acendem.</summary>
-        public const float InicioDaNoite = 20f;
+        /// <summary>Hora em que a noite começa e as lanternas acendem (22h; 16h de dia = 40 min).</summary>
+        public const float InicioDaNoite = 22f;
 
-        /// <summary>Hora em que a noite acaba e as lanternas apagam.</summary>
-        public const float FimDaNoite = 5f;
+        /// <summary>Hora em que a noite acaba e as lanternas apagam (6h; 8h de noite = 20 min).</summary>
+        public const float FimDaNoite = 6f;
 
         /// <summary>
         /// Traz qualquer hora para a faixa de 0 até menos de 24 (25 vira 1; -1 vira 23). Valor

@@ -248,25 +248,25 @@ Um relógio só, do servidor: todos na área veem a mesma hora, e entrar no meio
 
 O servidor manda `HoraDoMundo` ao entrar na área e repete de tempos em tempos para corrigir o relógio do client; entre as mensagens o client avança a hora com `RegrasDiaENoite.HoraApos` e escreve o resultado em `AmbienteDosBiomas.Hora`.
 
-Valores em `RegrasDiaENoite`, **a calibrar**:
+Valores em `RegrasDiaENoite`:
 
 | Valor | Constante | Hoje |
 |---|---|---|
-| Duração de um dia inteiro | `DuracaoDoDiaSegundos` | 1200 s (20 min reais; uma hora do mundo = 50 s) |
+| Duração de um dia inteiro | `DuracaoDoDiaSegundos` | 3600 s (60 min reais; uma hora do mundo = 150 s; 40 min de dia e 20 min de noite) |
 | Hora quando o servidor liga | `HoraInicial` | 8h |
-| Noite (lanternas acesas) | `InicioDaNoite`, `FimDaNoite` | das 20h às 5h |
+| Noite (lanternas acesas) | `InicioDaNoite`, `FimDaNoite` | das 22h às 6h |
 
 **No servidor (#381):** o `RelogioDoMundo` começa às 8h quando o servidor liga e fica em memória (reiniciar o servidor volta às 8h). Quem entra na cidade recebe `HoraDoMundo` logo depois de `EstadoDaCidade`; a cada 30 s (`ConfigDiaENoiteServidor.IntervaloDeSincroniaSegundos`) todos os presentes recebem a mesma hora de novo. Quem não está na área não recebe.
 
 **No client (#382):** o `CicloDoDia` (na cena do mundo) ouve `HoraDoMundo`, avança a hora entre as mensagens e escreve em `AmbienteDosBiomas.Hora`. Antes da primeira mensagem o client não inventa hora (fica o meio-dia de sempre). Com a hora:
 
-- **Escuridão:** a troca é suave no crepúsculo, de 1 h antes a 1 h depois do início e do fim da noite (19h–21h e 4h–6h). O céu, a luz ambiente, a névoa e o sol escurecem; à noite a luz principal vira a lua, azul e fraca.
-- **Sol e lua:** a luz principal gira no céu. Ao meio do dia (12h30) fica no ângulo calibrado da luz de dia (42°); ao nascer e ao se pôr desce a 8°; à noite a lua faz o mesmo caminho do outro lado, até 35°. O giro dá a volta sem pular. A luz de preenchimento fica sempre do lado oposto.
-- **Lanternas:** acendem às 20h e apagam às 5h (`RegrasDiaENoite.EhNoite`), no meio do crepúsculo.
+- **Escuridão:** a troca é suave no crepúsculo, de 1 h antes a 1 h depois do início e do fim da noite (21h–23h e 5h–7h). O céu, a luz ambiente, a névoa e o sol escurecem; à noite a luz principal vira a lua, azul e fraca.
+- **Sol e lua:** a luz principal gira no céu. Ao meio do dia (14h) fica no ângulo calibrado da luz de dia (42°); ao nascer e ao se pôr desce a 8°; à noite a lua faz o mesmo caminho do outro lado, até 35°. O giro dá a volta sem pular. A luz de preenchimento fica sempre do lado oposto.
+- **Lanternas:** acendem às 22h e apagam às 6h (`RegrasDiaENoite.EhNoite`), no meio do crepúsculo.
 
 Valores em `ConfigDiaENoite` (client), **a calibrar** no editor.
 
-A hora anda no mesmo ritmo o dia todo, então a noite dura 7,5 min de cada 20. A proposta do livro (40 min de dia e 20 de noite) foi adotada em 2026-10-16 ([Definido](#definido)) e falta implementar; adotá-la é mudar constante e, se o ritmo da noite for diferente do dia, a função `HoraApos`.
+O ciclo segue a proposta do livro adotada em 2026-10-16 ([Definido](#definido)): dura 60 min reais (3600 s), com 16 horas de dia (das 6h às 22h = 40 min) e 8 horas de noite (das 22h às 6h = 20 min), em ritmo linear no relógio compartilhado.
 
 ### Eventos e consulta para outras funcionalidades do servidor (#119)
 

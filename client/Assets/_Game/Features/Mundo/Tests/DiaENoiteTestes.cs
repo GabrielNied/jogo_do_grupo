@@ -9,7 +9,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
 {
     public class DiaENoiteTestes
     {
-        private static HoraDoMundo Hora(float hora, float duracao = 1200f) =>
+        private static HoraDoMundo Hora(float hora, float duracao = 3600f) =>
             new HoraDoMundo { Hora = hora, DuracaoDoDiaSegundos = duracao };
 
         // ----- Relógio -----
@@ -42,9 +42,9 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
         public void Entre_mensagens_a_hora_anda_no_ritmo_do_servidor()
         {
             var relogio = new RelogioDoMundoNoClient();
-            relogio.Receber(Hora(8f, 1200f));
+            relogio.Receber(Hora(8f, 3600f));
 
-            relogio.Avancar(50f); // uma hora do mundo num dia de 20 min
+            relogio.Avancar(150f); // uma hora do mundo num dia de 60 min
             Assert.AreEqual(9f, relogio.Hora, 1e-3f);
         }
 
@@ -95,9 +95,9 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
         public void Dia_claro_noite_fechada_e_troca_suave_no_crepusculo()
         {
             Assert.AreEqual(0f, CicloVisual.Escuridao(12f));
-            Assert.AreEqual(0f, CicloVisual.Escuridao(7f));
+            Assert.AreEqual(0f, CicloVisual.Escuridao(8f));
             Assert.AreEqual(1f, CicloVisual.Escuridao(0f));
-            Assert.AreEqual(1f, CicloVisual.Escuridao(22f));
+            Assert.AreEqual(1f, CicloVisual.Escuridao(23.5f));
             Assert.AreEqual(1f, CicloVisual.Escuridao(3f));
 
             Assert.AreEqual(0.5f, CicloVisual.Escuridao(RegrasDiaENoite.InicioDaNoite), 1e-3f);
@@ -105,14 +105,14 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
 
             // Anoitecer só escurece; amanhecer só clareia.
             var anterior = 0f;
-            for (var h = 18.5f; h <= 21.5f; h += 0.25f)
+            for (var h = 20.5f; h <= 23.5f; h += 0.25f)
             {
                 var agora = CicloVisual.Escuridao(h);
                 Assert.GreaterOrEqual(agora, anterior, $"Clareou às {h}h.");
                 anterior = agora;
             }
 
-            for (var h = 3.5f; h <= 6.5f; h += 0.25f)
+            for (var h = 4.5f; h <= 7.5f; h += 0.25f)
             {
                 var agora = CicloVisual.Escuridao(h);
                 Assert.LessOrEqual(agora, anterior, $"Escureceu às {h}h.");
@@ -124,19 +124,19 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
         public void Lanterna_acesa_so_na_noite()
         {
             Assert.IsFalse(LuzDaLanterna.Acesa(12f));
-            Assert.IsFalse(LuzDaLanterna.Acesa(19.9f));
-            Assert.IsTrue(LuzDaLanterna.Acesa(20f));
+            Assert.IsFalse(LuzDaLanterna.Acesa(21.9f));
+            Assert.IsTrue(LuzDaLanterna.Acesa(22f));
             Assert.IsTrue(LuzDaLanterna.Acesa(0f));
-            Assert.IsTrue(LuzDaLanterna.Acesa(4.9f));
-            Assert.IsFalse(LuzDaLanterna.Acesa(5f));
+            Assert.IsTrue(LuzDaLanterna.Acesa(5.9f));
+            Assert.IsFalse(LuzDaLanterna.Acesa(6f));
         }
 
         [Test]
         public void Crepusculo_escurece_ceu_e_nevoa_aos_poucos()
         {
             var dia = AmbienteDosBiomas.ComHora(AmbienteDosBiomas.Padrao, 12f);
-            var crepusculo = AmbienteDosBiomas.ComHora(AmbienteDosBiomas.Padrao, 19.6f);
-            var noite = AmbienteDosBiomas.ComHora(AmbienteDosBiomas.Padrao, 23f);
+            var crepusculo = AmbienteDosBiomas.ComHora(AmbienteDosBiomas.Padrao, 21.6f);
+            var noite = AmbienteDosBiomas.ComHora(AmbienteDosBiomas.Padrao, 23.5f);
 
             Assert.Less(crepusculo.Ceu.grayscale, dia.Ceu.grayscale);
             Assert.Greater(crepusculo.Ceu.grayscale, noite.Ceu.grayscale);
