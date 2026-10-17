@@ -1,0 +1,49 @@
+name: "Agente: Decida"
+
+on:
+  schedule:
+    - cron: '0 */4 * * *' # A cada 4 horas
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  decida:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout do repositório
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Instalar Antigravity CLI (agy)
+        run: |
+          curl -fsSL https://antigravity.google/cli/install.sh | bash
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Configurar Provider Gemini
+        run: |
+          mkdir -p ~/.gemini/antigravity-cli
+          echo '{"modelProvider": "gemini"}' > ~/.gemini/antigravity-cli/settings.json
+
+      - name: Configurar Git
+        run: |
+          git config --global user.name "Agente Decida"
+          git config --global user.email "agente@jogodogrupo.local"
+
+      - name: Preparar ambiente na nuvem
+        run: |
+          npm ci
+          npm run nuvem:preparar
+
+      - name: Executar /decida
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GH_TOKEN: ${{ secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
+        run: |
+          agy -p "Execute a skill decida: revise as issues livres com 'npm run tarefa -- revisar 15', feche o que for obsoleto ou feito, ajuste prioridades e garanta fichas completas para o trabalhe implementar." --model "models/gemini-3.8-flash" --effort high --dangerously-skip-permissions
