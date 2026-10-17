@@ -36,7 +36,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
                         && peca.X <= 900f
                         && peca.Z >= -500f
                         && peca.Z <= -300f
-                        && peca.Prefab.StartsWith("Arvore")
+                        && PecasDosBiomas.EhArvore(peca.Prefab)
                     )
                     {
                         total++;
