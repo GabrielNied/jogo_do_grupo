@@ -1,14 +1,9 @@
 using System.Collections.Concurrent;
-using System.Data;
 using JogoDoGrupo.Server.Contratos.Combate;
 using JogoDoGrupo.Server.Contratos.Itens;
 using JogoDoGrupo.Server.Contratos.Talentos;
-using JogoDoGrupo.Server.Core.Persistencia;
 using JogoDoGrupo.Server.Core.TempoReal;
 using JogoDoGrupo.Shared.Features.Combate;
-using JogoDoGrupo.Shared.Features.Itens;
-using Microsoft.Data.Sqlite;
-using Microsoft.EntityFrameworkCore;
 
 namespace JogoDoGrupo.Server.Features.Combate;
 
@@ -26,23 +21,13 @@ namespace JogoDoGrupo.Server.Features.Combate;
 /// </summary>
 public sealed class RecursosEmMemoria : IHostedService, IDisposable
 {
-    // Mesma espera pela trava do banco da rota de recursos (o client desiste em 10 s).
-    private const int EsperaTravaSegundos = 5;
-
-    private readonly IServiceScopeFactory _escopos;
-    private readonly IBonusDeAtributos _bonus;
-    private readonly IAtributosDosEquipamentos _equipamentos;
-    private readonly IAtributosDaArvore _pontos;
-    private readonly IReadOnlyList<IFonteDeModificadores> _fontes;
+    private readonly PersistenciaDeRecursos _persistencia;
+    private readonly ResolvedorDeAtributosDeCombate _resolvedor;
+    private readonly InvalidadorDeEquipamento _invalidador;
     private readonly ServidorTempoReal _tempoReal;
     private readonly TimeProvider _relogio;
     private readonly ILogger<RecursosEmMemoria> _log;
-    private readonly ConcurrentDictionary<long, Entrada> _entradas = new();
-
-    // Personagens cujos atributos do equipamento mudaram e precisam ser relidos. A flag é
-    // setada pelo manipulador de EquipamentoMudou (sem trava, thread-safe) e consumida na
-    // próxima leitura de AtributosDaEntradaAsync.
-    private readonly ConcurrentDictionary<long, byte> _equipamentosInvalidados = new();
+    private readonly ConcurrentDictionary<long, EntradaRecursosPersonagem> _entradas = new();
     private readonly SemaphoreSlim _gravacao = new(1, 1);
     private readonly CancellationTokenSource _parada = new();
     private Task _laco = Task.CompletedTask;
@@ -57,12 +42,27 @@ public sealed class RecursosEmMemoria : IHostedService, IDisposable
         TimeProvider relogio,
         ILogger<RecursosEmMemoria> log
     )
+        : this(
+            new PersistenciaDeRecursos(escopos),
+            new ResolvedorDeAtributosDeCombate(bonus, equipamentos, pontos, fontes, log),
+            new InvalidadorDeEquipamento(),
+            tempoReal,
+            relogio,
+            log
+        ) { }
+
+    internal RecursosEmMemoria(
+        PersistenciaDeRecursos persistencia,
+        ResolvedorDeAtributosDeCombate resolvedor,
+        InvalidadorDeEquipamento invalidador,
+        ServidorTempoReal tempoReal,
+        TimeProvider relogio,
+        ILogger<RecursosEmMemoria> log
+    )
     {
-        _escopos = escopos;
-        _bonus = bonus;
-        _equipamentos = equipamentos;
-        _pontos = pontos;
-        _fontes = fontes.OrderBy(f => f.Fonte).ToList();
+        _persistencia = persistencia;
+        _resolvedor = resolvedor;
+        _invalidador = invalidador;
         _tempoReal = tempoReal;
         _relogio = relogio;
         _log = log;
@@ -355,7 +355,7 @@ public sealed class RecursosEmMemoria : IHostedService, IDisposable
                     return;
                 }
 
-                copia = Copiar(entrada.Recursos);
+                copia = PersistenciaDeRecursos.Copiar(entrada.Recursos);
                 entrada.Sujo = false;
             }
             finally
@@ -365,20 +365,7 @@ public sealed class RecursosEmMemoria : IHostedService, IDisposable
 
             try
             {
-                using var escopo = _escopos.CreateScope();
-                var db = escopo.ServiceProvider.GetRequiredService<JogoDbContext>();
-                var linha = await db.Set<RecursosPersonagem>()
-                    .FirstOrDefaultAsync(r => r.PersonagemId == personagemId);
-                if (linha == null)
-                {
-                    db.Set<RecursosPersonagem>().Add(copia);
-                }
-                else
-                {
-                    Copiar(copia, linha);
-                }
-
-                await db.SaveChangesAsync();
+                await _persistencia.SalvarAsync(personagemId, copia);
             }
             catch (Exception e)
             {
@@ -413,11 +400,11 @@ public sealed class RecursosEmMemoria : IHostedService, IDisposable
     /// equipamento em vez de usar o cache. Não bloqueia — seguro para chamar do manipulador de
     /// <see cref="EquipamentoMudou"/> (ADR 0016).
     /// </summary>
-    public void AoEquipamentoMudar(long personagemId) => _equipamentosInvalidados[personagemId] = 0;
+    public void AoEquipamentoMudar(long personagemId) => _invalidador.Invalidar(personagemId);
 
     private DateTime Agora() => _relogio.GetUtcNow().UtcDateTime;
 
-    private RecursosPersonagem Regenerado(Entrada entrada)
+    private RecursosPersonagem Regenerado(EntradaRecursosPersonagem entrada)
     {
         var recursos = entrada.Recursos!;
         if (entrada.Guardando)
@@ -455,13 +442,13 @@ public sealed class RecursosEmMemoria : IHostedService, IDisposable
     // Com a trava da entrada na mão: atributos guardados, ou lidos de novo se venceram ou se
     // EquipamentoMudou foi sinalizado. Na primeira vez do personagem, lê (ou cria) a linha do banco.
     private async Task<AtributosCombate> AtributosDaEntradaAsync(
-        Entrada entrada,
+        EntradaRecursosPersonagem entrada,
         CancellationToken cancelamento
     )
     {
         var agora = _relogio.GetUtcNow();
         entrada.UltimoUso = agora;
-        var equipamentoMudou = _equipamentosInvalidados.TryRemove(entrada.PersonagemId, out _);
+        var equipamentoMudou = _invalidador.ConsumirSeInvalido(entrada.PersonagemId);
         if (
             !equipamentoMudou
             && entrada.Recursos != null
@@ -473,90 +460,31 @@ public sealed class RecursosEmMemoria : IHostedService, IDisposable
             return entrada.Atributos;
         }
 
-        var lidos = CalculadoraRecursos.AtributosFinais(
-            await _bonus.EfeitosAsync(entrada.PersonagemId, cancelamento),
-            await _pontos.ObterAsync(entrada.PersonagemId, cancelamento)
-        );
-        // O equipamento é uma fonte à parte: nunca soma nos cinco atributos do personagem.
-        var equipamento = await _equipamentos.ObterAsync(entrada.PersonagemId, cancelamento);
-        var maximos = CalculadoraRecursos.Maximos(lidos, equipamento);
-        var secundarios = RegrasSecundarios.Calcular(
-            await ModificadoresAsync(entrada.PersonagemId, cancelamento)
-        );
+        var snapshot = await _resolvedor.ResolverAsync(entrada.PersonagemId, cancelamento);
         if (entrada.Recursos == null)
         {
-            entrada.Recursos = await CarregarAsync(entrada.PersonagemId, maximos, cancelamento);
+            entrada.Recursos = await _persistencia.CarregarAsync(
+                entrada.PersonagemId,
+                snapshot.Maximos,
+                Agora(),
+                cancelamento
+            );
             entrada.VidaContadaAte = Agora();
         }
 
-        entrada.Maximos = maximos;
-        entrada.Dano = CalculadoraRecursos.ParcelasDoDano(lidos, equipamento);
-        entrada.LinhasDoEquipamento = equipamento.Linhas.Select(l => l.Texto).ToArray();
-        entrada.Atributos = lidos;
-        entrada.Secundarios = secundarios;
-        entrada.Valores = RegrasSecundarios.Valores(secundarios);
-        entrada.AtributosEm = agora;
-        return lidos;
+        entrada.Aplicar(snapshot, agora);
+        return snapshot.Atributos;
     }
 
-    // Junta o que as fontes publicam. Quem declara outra fonte que não a sua, ou a Base, é
-    // recusado e registrado; falha de uma fonte não derruba a conta (o jogador fica sem aquela
-    // fonte até a próxima leitura).
-    private async Task<List<Modificador>> ModificadoresAsync(
+    // Devolve a entrada com a trava tomada.
+    private async Task<EntradaRecursosPersonagem> EntrarAsync(
         long personagemId,
         CancellationToken cancelamento
     )
     {
-        var todos = new List<Modificador>();
-        foreach (var fonte in _fontes)
-        {
-            try
-            {
-                foreach (var m in await fonte.ObterAsync(personagemId, cancelamento))
-                {
-                    if (m.Fonte != fonte.Fonte || m.Fonte == FonteDeModificador.Base)
-                    {
-                        _log.LogWarning(
-                            "Modificador {Origem} recusado: a fonte {Fonte} declarou {Declarada}.",
-                            m.Origem,
-                            fonte.Fonte,
-                            m.Fonte
-                        );
-                        continue;
-                    }
-
-                    if (!PipelineDeModificadores.EhValido(m))
-                    {
-                        _log.LogWarning(
-                            "Modificador {Origem} recusado: sem grupo de acúmulo ou valor inválido.",
-                            m.Origem
-                        );
-                        continue;
-                    }
-
-                    todos.Add(m);
-                }
-            }
-            catch (Exception e) when (e is not OperationCanceledException)
-            {
-                _log.LogError(
-                    e,
-                    "Erro ao ler os modificadores da fonte {Fonte} do personagem {Personagem}.",
-                    fonte.Fonte,
-                    personagemId
-                );
-            }
-        }
-
-        return todos;
-    }
-
-    // Devolve a entrada com a trava tomada.
-    private async Task<Entrada> EntrarAsync(long personagemId, CancellationToken cancelamento)
-    {
         while (true)
         {
-            var entrada = _entradas.GetOrAdd(personagemId, id => new Entrada(id));
+            var entrada = _entradas.GetOrAdd(personagemId, id => new EntradaRecursosPersonagem(id));
             await entrada.Trava.WaitAsync(cancelamento);
             if (!entrada.Descartada)
             {
@@ -565,66 +493,6 @@ public sealed class RecursosEmMemoria : IHostedService, IDisposable
 
             entrada.Trava.Release();
         }
-    }
-
-    // Uma ida ao banco por personagem: na transação Serializable (BEGIN IMMEDIATE no SQLite),
-    // como a rota sempre fez, porque cria a linha quando ela não existe.
-    private async Task<RecursosPersonagem> CarregarAsync(
-        long personagemId,
-        MaximosDeRecursos maximos,
-        CancellationToken cancelamento
-    )
-    {
-        using var escopo = _escopos.CreateScope();
-        var db = escopo.ServiceProvider.GetRequiredService<JogoDbContext>();
-
-        var sqlite = db.Database.GetDbConnection() as SqliteConnection;
-        var esperaAnterior = sqlite?.DefaultTimeout;
-        if (sqlite != null)
-        {
-            sqlite.DefaultTimeout = EsperaTravaSegundos;
-        }
-
-        try
-        {
-            await using var transacao = await db.Database.BeginTransactionAsync(
-                IsolationLevel.Serializable,
-                cancelamento
-            );
-            var linha = await db.Set<RecursosPersonagem>()
-                .FirstOrDefaultAsync(r => r.PersonagemId == personagemId, cancelamento);
-            if (linha == null)
-            {
-                linha = CalculadoraRecursos.Novo(personagemId, maximos, Agora());
-                db.Set<RecursosPersonagem>().Add(linha);
-                await db.SaveChangesAsync(cancelamento);
-            }
-
-            await transacao.CommitAsync(cancelamento);
-            return Copiar(linha);
-        }
-        finally
-        {
-            if (sqlite != null && esperaAnterior != null)
-            {
-                sqlite.DefaultTimeout = esperaAnterior.Value;
-            }
-        }
-    }
-
-    private static RecursosPersonagem Copiar(RecursosPersonagem origem) =>
-        Copiar(origem, new RecursosPersonagem { PersonagemId = origem.PersonagemId });
-
-    private static RecursosPersonagem Copiar(RecursosPersonagem origem, RecursosPersonagem destino)
-    {
-        destino.Vida = origem.Vida;
-        destino.Stamina = origem.Stamina;
-        destino.Mana = origem.Mana;
-        destino.UltimoGastoStaminaEm = origem.UltimoGastoStaminaEm;
-        destino.UltimoGastoManaEm = origem.UltimoGastoManaEm;
-        destino.StaminaContadaAte = origem.StaminaContadaAte;
-        destino.ManaContadaAte = origem.ManaContadaAte;
-        return destino;
     }
 
     // O personagem saiu do jogo de vez (não foi só troca de sessão): grava e libera a memória.
@@ -696,26 +564,5 @@ public sealed class RecursosEmMemoria : IHostedService, IDisposable
             }
         }
         catch (OperationCanceledException) { }
-    }
-
-    private sealed class Entrada(long personagemId)
-    {
-        public long PersonagemId { get; } = personagemId;
-        public SemaphoreSlim Trava { get; } = new(1, 1);
-        public RecursosPersonagem? Recursos;
-        public AtributosCombate? Atributos;
-        public MaximosDeRecursos Maximos;
-        public ParcelasDeDano? Dano;
-        public string[] LinhasDoEquipamento = [];
-        public SecundarioCalculado[]? Secundarios;
-        public AtributosSecundarios? Valores;
-
-        // Só em memória (sem migração): até onde a regeneração de vida já foi paga.
-        public DateTime VidaContadaAte;
-        public DateTimeOffset? AtributosEm;
-        public DateTimeOffset UltimoUso = DateTimeOffset.UnixEpoch;
-        public bool Sujo;
-        public bool Guardando;
-        public bool Descartada;
     }
 }
