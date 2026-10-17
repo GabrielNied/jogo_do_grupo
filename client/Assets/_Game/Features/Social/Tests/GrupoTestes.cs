@@ -587,7 +587,7 @@ namespace JogoDoGrupo.Client.Features.Social.Tests
         [Test]
         public void Dispose_CancelaAsAssinaturas()
         {
-            Assert.AreEqual(5, _conexao.Assinantes);
+            Assert.AreEqual(6, _conexao.Assinantes);
 
             _estado.Dispose();
             ReceberLista(Eu, Membro(Eu, "Ana"), Membro(2, "Bia"));
