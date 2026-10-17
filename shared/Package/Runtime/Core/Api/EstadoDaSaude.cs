@@ -8,5 +8,6 @@ namespace JogoDoGrupo.Shared.Core.Api
 
         public string Estado = "";
         public int Versao;
+        public string Banco = "";
     }
 }

@@ -9,6 +9,7 @@ using JogoDoGrupo.Server.Core.Observabilidade;
 using JogoDoGrupo.Server.Core.Persistencia;
 using JogoDoGrupo.Server.Core.TempoReal;
 using JogoDoGrupo.Shared.Core.Api;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using Serilog.Formatting.Compact;
@@ -19,10 +20,26 @@ var metricas = new MetricasDoServidor();
 builder.Services.AddSingleton(metricas);
 builder.Host.UseSerilog(
     (contexto, configuracao) =>
+    {
+        var consoleEstruturado =
+            contexto.Configuration.GetValue<bool>("Observabilidade:ConsoleEstruturado")
+            || contexto.HostingEnvironment.IsProduction();
+
         configuracao
             .MinimumLevel.Information()
             .Enrich.With(new FiltroDadosSensiveis())
-            .WriteTo.Console()
+            .Enrich.FromLogContext();
+
+        if (consoleEstruturado)
+        {
+            configuracao.WriteTo.Console(new CompactJsonFormatter());
+        }
+        else
+        {
+            configuracao.WriteTo.Console();
+        }
+
+        configuracao
             .WriteTo.File(
                 new CompactJsonFormatter(),
                 Path.GetFullPath(
@@ -32,7 +49,8 @@ builder.Host.UseSerilog(
                 rollingInterval: RollingInterval.Day,
                 retainedFileCountLimit: 14
             )
-            .WriteTo.Sink(new ContadorDeErrosSink(metricas))
+            .WriteTo.Sink(new ContadorDeErrosSink(metricas));
+    }
 );
 
 var modulos = Assembly
@@ -54,6 +72,15 @@ builder.Services.ConfigureHttpJsonOptions(opcoes =>
 
 // Corpo ausente ou JSON malformado lança exceção, e o TratamentoErrosMiddleware responde 400.
 builder.Services.Configure<RouteHandlerOptions>(opcoes => opcoes.ThrowOnBadRequest = true);
+
+// Proxy reverso em produção (Caddy/Nginx) repassa X-Forwarded-For e X-Forwarded-Proto.
+builder.Services.Configure<ForwardedHeadersOptions>(opcoes =>
+{
+    opcoes.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    opcoes.KnownIPNetworks.Clear();
+    opcoes.KnownProxies.Clear();
+});
+
 builder.Services.AdicionarBancoDeDados(builder.Configuration);
 builder.Services.AdicionarAutenticacaoJwt(builder.Configuration, builder.Environment);
 builder.Services.AdicionarContas();
@@ -75,11 +102,37 @@ if (app.Configuration.GetValue<bool?>("Banco:MigrarAoIniciar") ?? app.Environmen
     escopo.ServiceProvider.GetRequiredService<JogoDbContext>().Database.Migrate();
 }
 
+app.UseForwardedHeaders();
 app.UsarErrosApi();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapGet("/saude", () => Results.Ok(new { Estado = "ok", Versao = EstadoDaSaude.VersaoAtual }));
+app.MapGet(
+    "/saude",
+    async (JogoDbContext dbContext, CancellationToken ct) =>
+    {
+        var conectado = false;
+        try
+        {
+            conectado = await dbContext.Database.CanConnectAsync(ct);
+        }
+        catch
+        {
+            conectado = false;
+        }
+
+        var resposta = new EstadoDaSaude
+        {
+            Estado = conectado ? "ok" : "erro",
+            Versao = EstadoDaSaude.VersaoAtual,
+            Banco = conectado ? "conectado" : "indisponivel",
+        };
+
+        return conectado
+            ? Results.Ok(resposta)
+            : Results.Json(resposta, statusCode: StatusCodes.Status503ServiceUnavailable);
+    }
+);
 app.MapGet(
         "/admin/metricas",
         (MetricasDoServidor observabilidade) => Results.Ok(observabilidade.Obter())
