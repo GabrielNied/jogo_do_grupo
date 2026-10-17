@@ -422,6 +422,73 @@ public sealed class InstanciasTempoRealTestes
             Assert.Equal(CodigosErroInstancias.GrupoEmOutraDungeon, recusa.Codigo);
         }
     }
+
+    [Fact]
+    public async Task Varrer_com_multiplos_desconectados_expira_apenas_os_vencidos()
+    {
+        using var f = new InstanciasFixture();
+        using var lider = await f.EntrarAsync();
+        using var membro1 = await f.EntrarAsync();
+        using var membro2 = await f.EntrarAsync();
+        f.Grupos.Definir(
+            50,
+            lider.PersonagemId,
+            lider.PersonagemId,
+            membro1.PersonagemId,
+            membro2.PersonagemId
+        );
+        lider.Cliente.Enviar(InstanciasMessageIds.EntrarNaDungeon, new EntrarNaDungeon());
+        await lider.Cliente.ReceberAsync<DungeonIniciada>(InstanciasMessageIds.DungeonIniciada);
+        await membro1.Cliente.ReceberAsync<DungeonIniciada>(InstanciasMessageIds.DungeonIniciada);
+        await membro2.Cliente.ReceberAsync<DungeonIniciada>(InstanciasMessageIds.DungeonIniciada);
+
+        // Desconecta membro 1
+        membro1.Cliente.Sair();
+        membro1.Cliente.Dispose();
+        await InstanciasFixture.EsperarAsync(() =>
+            !f.TempoReal.TentarObterSessao(membro1.PersonagemId, out _)
+        );
+
+        // Passa 60s e desconecta membro 2
+        f.Relogio.Advance(TimeSpan.FromSeconds(60));
+        membro2.Cliente.Sair();
+        membro2.Cliente.Dispose();
+        await InstanciasFixture.EsperarAsync(() =>
+            !f.TempoReal.TentarObterSessao(membro2.PersonagemId, out _)
+        );
+
+        // Passa mais 60s (membro 1 atingiu 120s, membro 2 atingiu 60s)
+        f.Relogio.Advance(TimeSpan.FromSeconds(60));
+        f.Instancias.Varrer();
+
+        // Membro 1 expirou
+        var reconectado1 = await f.ReconectarAsync(membro1);
+        using (reconectado1)
+        {
+            reconectado1.Cliente.Enviar(
+                InstanciasMessageIds.EntrarNaDungeon,
+                new EntrarNaDungeon()
+            );
+            var recusa = await reconectado1.Cliente.ReceberAsync<EntradaRecusada>(
+                InstanciasMessageIds.EntradaRecusada
+            );
+            Assert.Equal(CodigosErroInstancias.GrupoEmOutraDungeon, recusa.Codigo);
+        }
+
+        // Membro 2 ainda consegue reconectar (ainda dentro do prazo de 120s)
+        var reconectado2 = await f.ReconectarAsync(membro2);
+        using (reconectado2)
+        {
+            reconectado2.Cliente.Enviar(
+                InstanciasMessageIds.EntrarNaDungeon,
+                new EntrarNaDungeon()
+            );
+            var inicio = await reconectado2.Cliente.ReceberAsync<DungeonIniciada>(
+                InstanciasMessageIds.DungeonIniciada
+            );
+            Assert.NotNull(inicio.IdInstancia);
+        }
+    }
 }
 
 public sealed class QuedaDeTeste : IEstadoDeQueda
