@@ -45,6 +45,26 @@ namespace JogoDoGrupo.Client.Features.Mundo.Presenca
         /// <summary>Identificador da área atual do jogador local.</summary>
         public string AreaAtual => _presenca?.AreaAtual ?? RotulosDeArea.IdCidade;
 
+        /// <summary>Canal atual do jogador local no mundo.</summary>
+        public int CanalAtual => _presenca?.CanalAtual ?? 1;
+
+        /// <summary>Total de canais disponíveis no mundo.</summary>
+        public int TotalCanais => _presenca?.TotalCanais ?? 1;
+
+        /// <summary>Disparado quando o canal atual muda.</summary>
+        public event System.Action<int, int> CanalMudou;
+
+        /// <summary>Disparado quando a troca de canal é recusada.</summary>
+        public event System.Action<string, int> TrocaDeCanalRecusada;
+
+        /// <summary>Disparado quando a resposta de consulta de canais chega.</summary>
+        public event System.Action<RespostaCanais> CanaisRecebidos;
+
+        public bool PedirTrocaDeCanal(int canalDestino) =>
+            _presenca?.PedirTrocaDeCanal(canalDestino) ?? false;
+
+        public bool ConsultarCanais() => _presenca?.ConsultarCanais() ?? false;
+
         /// <summary>Aliados do grupo em outra área (#903).</summary>
         public System.Collections.Generic.IReadOnlyList<AliadoEmOutraArea> AliadosEmOutraArea =>
             _presenca?.AliadosEmOutraArea ?? System.Array.Empty<AliadoEmOutraArea>();
@@ -200,6 +220,10 @@ namespace JogoDoGrupo.Client.Features.Mundo.Presenca
                 _posicaoCorrigida = posicao;
                 _rotacaoCorrigida = rotacao;
             };
+            _presenca.CanalMudou += (canal, total) => CanalMudou?.Invoke(canal, total);
+            _presenca.TrocaDeCanalRecusada += (motivo, canalAtual) =>
+                TrocaDeCanalRecusada?.Invoke(motivo, canalAtual);
+            _presenca.CanaisRecebidos += resposta => CanaisRecebidos?.Invoke(resposta);
 
             // Se já havia conexão, o construtor já entrou na cidade; senão, conecta agora.
             if (!ConexaoTempoReal.Conectado)

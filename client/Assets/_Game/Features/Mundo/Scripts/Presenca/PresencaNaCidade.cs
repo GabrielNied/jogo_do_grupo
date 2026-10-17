@@ -60,6 +60,18 @@ namespace JogoDoGrupo.Client.Features.Mundo.Presenca
                     CombateMessageIds.EstadoDeQueda,
                     AoReceberEstadoDeQueda
                 ),
+                _conexao.Assinar<CanalAlterado>(
+                    MundoMessageIds.CanalAlterado,
+                    AoReceberCanalAlterado
+                ),
+                _conexao.Assinar<RecusaTrocaDeCanal>(
+                    MundoMessageIds.RecusaTrocaDeCanal,
+                    AoReceberRecusaTrocaDeCanal
+                ),
+                _conexao.Assinar<RespostaCanais>(
+                    MundoMessageIds.RespostaCanais,
+                    AoReceberRespostaCanais
+                ),
             };
 
             // Já conectado ao criar: entra agora, sem esperar uma mudança de estado.
@@ -124,6 +136,43 @@ namespace JogoDoGrupo.Client.Features.Mundo.Presenca
                 && _conexao.Enviar(
                     MundoMessageIds.PedirVelocidadeDeTeste,
                     new PedirVelocidadeDeTeste { Andar = andar, Correr = correr },
+                    EntregaTempoReal.Confiavel
+                );
+        }
+
+        /// <summary>Canal atual do jogador local no mundo persistente (ADR 0045).</summary>
+        public int CanalAtual { get; private set; } = 1;
+
+        /// <summary>Total de canais disponíveis no mundo.</summary>
+        public int TotalCanais { get; private set; } = ConfigCanais.QuantidadeCanaisPadrao;
+
+        /// <summary>Disparado quando o canal atual do jogador muda.</summary>
+        public event Action<int, int> CanalMudou;
+
+        /// <summary>Disparado quando o servidor recusa a troca de canal.</summary>
+        public event Action<string, int> TrocaDeCanalRecusada;
+
+        /// <summary>Disparado quando a lista de status dos canais é recebida.</summary>
+        public event Action<RespostaCanais> CanaisRecebidos;
+
+        /// <summary>Pede ao servidor a troca para o canal especificado.</summary>
+        public bool PedirTrocaDeCanal(int canalDestino)
+        {
+            return _conexao.Conectado
+                && _conexao.Enviar(
+                    MundoMessageIds.PedirTrocaDeCanal,
+                    new PedirTrocaDeCanal { CanalDestino = canalDestino },
+                    EntregaTempoReal.Confiavel
+                );
+        }
+
+        /// <summary>Pede ao servidor a lista de status dos canais.</summary>
+        public bool ConsultarCanais()
+        {
+            return _conexao.Conectado
+                && _conexao.Enviar(
+                    MundoMessageIds.ConsultarCanais,
+                    new ConsultarCanais(),
                     EntregaTempoReal.Confiavel
                 );
         }
@@ -356,6 +405,48 @@ namespace JogoDoGrupo.Client.Features.Mundo.Presenca
             {
                 EstadoDeQuedaMudou?.Invoke(_estaCaido);
             }
+        }
+
+        private void AoReceberCanalAlterado(CanalAlterado msg)
+        {
+            if (msg == null)
+            {
+                return;
+            }
+
+            CanalAtual = msg.Canal;
+            TotalCanais = msg.TotalCanais;
+            CanalMudou?.Invoke(msg.Canal, msg.TotalCanais);
+        }
+
+        private void AoReceberRecusaTrocaDeCanal(RecusaTrocaDeCanal msg)
+        {
+            if (msg == null)
+            {
+                return;
+            }
+
+            if (msg.CanalAtual > 0)
+            {
+                CanalAtual = msg.CanalAtual;
+            }
+
+            TrocaDeCanalRecusada?.Invoke(msg.Motivo, msg.CanalAtual);
+        }
+
+        private void AoReceberRespostaCanais(RespostaCanais msg)
+        {
+            if (msg == null)
+            {
+                return;
+            }
+
+            if (msg.CanalAtual > 0)
+            {
+                CanalAtual = msg.CanalAtual;
+            }
+
+            CanaisRecebidos?.Invoke(msg);
         }
     }
 }
