@@ -284,6 +284,12 @@ namespace JogoDoGrupo.Shared.Features.Mundo
         /// </summary>
         public static Bioma BiomaEm(float x, float z)
         {
+            if (_regioesDePrevia != null && CoberturaDaAutoriaEm(x, z) > 0f)
+            {
+                Calcular(x, z, false, out var pesosPrevia);
+                return pesosPrevia.Dominante;
+            }
+
             if (DadosDoMapaFeitoAMao.Disponivel)
             {
                 DadosDoMapaFeitoAMao.TentarAmostrar(
@@ -307,6 +313,12 @@ namespace JogoDoGrupo.Shared.Features.Mundo
         /// <summary>Quanto de cada bioma existe em (<paramref name="x"/>, <paramref name="z"/>).</summary>
         public static PesosDosBiomas PesosEm(float x, float z)
         {
+            if (_regioesDePrevia != null && CoberturaDaAutoriaEm(x, z) > 0f)
+            {
+                Calcular(x, z, false, out var pesosPrevia);
+                return pesosPrevia;
+            }
+
             if (DadosDoMapaFeitoAMao.Disponivel)
             {
                 return PesosDoBioma(BiomaEm(x, z));
@@ -332,14 +344,19 @@ namespace JogoDoGrupo.Shared.Features.Mundo
         /// </summary>
         public static float AmostrarNaGrade(int i, int j, out PesosDosBiomas pesos)
         {
+            var x = CoordenadaDaGrade(Limitar(i, 0, CelulasPorLado));
+            var z = CoordenadaDaGrade(Limitar(j, 0, CelulasPorLado));
+            if (_regioesDePrevia != null && CoberturaDaAutoriaEm(x, z) > 0f)
+            {
+                return Calcular(x, z, true, out pesos);
+            }
+
             if (DadosDoMapaFeitoAMao.TentarAmostrar(i, j, out var altura, out var bioma, out _))
             {
                 pesos = PesosDoBioma(bioma);
                 return altura;
             }
 
-            var x = CoordenadaDaGrade(Limitar(i, 0, CelulasPorLado));
-            var z = CoordenadaDaGrade(Limitar(j, 0, CelulasPorLado));
             return Calcular(x, z, true, out pesos);
         }
 
