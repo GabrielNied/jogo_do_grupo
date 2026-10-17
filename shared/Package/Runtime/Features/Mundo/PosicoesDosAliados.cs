@@ -11,5 +11,8 @@ namespace JogoDoGrupo.Shared.Features.Mundo
     public class PosicoesDosAliados
     {
         public AliadoLonge[] Aliados = System.Array.Empty<AliadoLonge>();
+
+        /// <summary>Membros do grupo em outra área ou instância (#903).</summary>
+        public AliadoEmOutraArea[] EmOutraArea = System.Array.Empty<AliadoEmOutraArea>();
     }
 }

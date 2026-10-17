@@ -1,6 +1,8 @@
+using JogoDoGrupo.Server.Contratos.Mundo;
 using JogoDoGrupo.Server.Core.TempoReal;
 using JogoDoGrupo.Server.Features.Mundo;
 using JogoDoGrupo.Server.Tests.Infra;
+using JogoDoGrupo.Shared.Features.Instancias;
 using JogoDoGrupo.Shared.Features.Mundo;
 using JogoDoGrupo.Shared.Features.Personagem;
 using JogoDoGrupo.Shared.Features.Social;
@@ -117,6 +119,36 @@ public class PosicaoDoGrupoTestes(ServidorDeTeste servidor) : IClassFixture<Serv
         // Quem não é do grupo nunca recebe a posição de ninguém.
         Assert.DoesNotContain(MundoMessageIds.PosicoesDosAliados, c.IdsRecebidos);
         Assert.NotEqual(idA, idB);
+    }
+
+    [Fact]
+    public async Task Aliado_em_outra_area_so_chega_a_membros_do_grupo()
+    {
+        var (a, idA, nomeA) = await ConectarAsync();
+        using var _a = a;
+        var (b, idB, nomeB) = await ConectarAsync();
+        using var _b = b;
+        var (c, _, _) = await ConectarAsync();
+        using var _c = c;
+        await FormarGrupoAsync(a, b, idB, nomeB);
+
+        var transicoes = servidor.Services.GetRequiredService<ITransicoesDeAreaDoMundo>();
+        var destino = new PosicaoNoMundo(
+            AreasDoMundo.Instancia("mapa-teste"),
+            LayoutDaMinaDoReflexo.SpawnX,
+            LayoutDaMinaDoReflexo.SpawnY,
+            LayoutDaMinaDoReflexo.SpawnZ,
+            LayoutDaMinaDoReflexo.SpawnRotacaoY
+        );
+        Assert.True(transicoes.TentarMoverParaArea(idB, destino));
+        await Task.Delay(300);
+        servidor.Services.GetRequiredService<ServicoDePosicaoDoGrupo>().Sincronizar();
+
+        var paraA = await UltimaAsync(a, m => m.EmOutraArea.Length == 1);
+        var remoto = Assert.Single(paraA.EmOutraArea);
+        Assert.Equal(idB, remoto.PersonagemId);
+        Assert.Equal(RotulosDeArea.Dungeon, remoto.Rotulo);
+        Assert.DoesNotContain(MundoMessageIds.PosicoesDosAliados, c.IdsRecebidos);
     }
 
     [Fact]

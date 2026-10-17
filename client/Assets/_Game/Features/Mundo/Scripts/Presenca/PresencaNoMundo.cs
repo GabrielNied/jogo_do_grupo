@@ -3,6 +3,7 @@ using JogoDoGrupo.Client.Core.Jogo;
 using JogoDoGrupo.Client.Core.Jogo.Controle;
 using JogoDoGrupo.Client.Core.TempoReal;
 using JogoDoGrupo.Client.Features.Mundo;
+using JogoDoGrupo.Shared.Features.Mundo;
 using UnityEngine;
 
 namespace JogoDoGrupo.Client.Features.Mundo.Presenca
@@ -38,6 +39,13 @@ namespace JogoDoGrupo.Client.Features.Mundo.Presenca
 
         /// <summary>A presença da cena do mundo, ou <c>null</c> fora dela. O mapa lê os outros jogadores daqui.</summary>
         public static PresencaNoMundo Atual { get; private set; }
+
+        /// <summary>Identificador da área atual do jogador local.</summary>
+        public string AreaAtual => _presenca?.AreaAtual ?? RotulosDeArea.IdCidade;
+
+        /// <summary>Aliados do grupo em outra área (#903).</summary>
+        public System.Collections.Generic.IReadOnlyList<AliadoEmOutraArea> AliadosEmOutraArea =>
+            _presenca?.AliadosEmOutraArea ?? System.Array.Empty<AliadoEmOutraArea>();
 
         private void OnEnable()
         {

@@ -135,6 +135,21 @@ internal sealed class EstadoDasAreasDoMundo<TSessao>(Func<long> relogioMs)
         }
     }
 
+    /// <summary>Todos os avatares presentes em qualquer área (mapa do grupo, #903).</summary>
+    public AvatarNaCidade<TSessao>[] PresentesEmTodasAsAreas()
+    {
+        lock (_trava)
+        {
+            var lista = new List<AvatarNaCidade<TSessao>>();
+            foreach (var estado in _areas.Values)
+            {
+                lista.AddRange(estado.Presentes());
+            }
+
+            return lista.ToArray();
+        }
+    }
+
     public (string Area, AvatarNaCidade<TSessao> Avatar)? Obter(long personagemId)
     {
         lock (_trava)

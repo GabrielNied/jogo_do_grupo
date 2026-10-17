@@ -1,4 +1,6 @@
 using JogoDoGrupo.Client.Core.Jogo.Janelas;
+using JogoDoGrupo.Client.Features.Mundo.Presenca;
+using JogoDoGrupo.Shared.Features.Mundo;
 using UnityEngine;
 
 namespace JogoDoGrupo.Client.Features.Mundo
@@ -27,7 +29,18 @@ namespace JogoDoGrupo.Client.Features.Mundo
 
         internal static DefinicaoDeJanela CriarDefinicao()
         {
-            return new DefinicaoDeJanela(Chave, Titulo, Tecla, Ordem, () => new JanelaDoMapa());
+            return new DefinicaoDeJanela(Chave, Titulo, Tecla, Ordem, CriarConteudo);
+        }
+
+        private static JanelaDoJogo CriarConteudo()
+        {
+            var area = PresencaNoMundo.Atual?.AreaAtual ?? RotulosDeArea.IdCidade;
+            if (area.StartsWith(RotulosDeArea.PrefixoInstancia, System.StringComparison.Ordinal))
+            {
+                return new JanelaDoMapaDaDungeon();
+            }
+
+            return new JanelaDoMapa();
         }
     }
 }
