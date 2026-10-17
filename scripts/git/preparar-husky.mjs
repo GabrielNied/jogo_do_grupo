@@ -5,8 +5,7 @@
 
 import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import husky from "husky";
-import { encontrarDiretoriosGit, raizDoGit } from "./localizar-sh.mjs";
+import { raizDoGit } from "./localizar-sh.mjs";
 
 /**
  * Ajusta os arquivos gerados pelo Husky em .husky/_ para suportar Windows PowerShell.
@@ -56,7 +55,18 @@ fi
   }
 }
 
-export function prepararHusky(pastaHusky = ".husky") {
+export async function prepararHusky(pastaHusky = ".husky") {
+  let husky;
+  try {
+    const modulo = await import("husky");
+    husky = modulo.default ?? modulo;
+  } catch (erro) {
+    if (erro?.code === "ERR_MODULE_NOT_FOUND") {
+      return;
+    }
+    throw erro;
+  }
+
   const retorno = husky(pastaHusky);
   if (retorno && retorno.length > 0) {
     console.error(retorno);
@@ -66,5 +76,5 @@ export function prepararHusky(pastaHusky = ".husky") {
 
 // Execução direta via CLI (npm run prepare)
 if (process.argv[1]?.endsWith("preparar-husky.mjs")) {
-  prepararHusky();
+  await prepararHusky();
 }

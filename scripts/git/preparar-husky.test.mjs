@@ -3,7 +3,7 @@ import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "nod
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
-import { ajustarShimsHusky } from "./preparar-husky.mjs";
+import { ajustarShimsHusky, prepararHusky } from "./preparar-husky.mjs";
 
 test("ajustarShimsHusky substitui shebang por #!/bin/sh e injeta caminho do Git em h", (t) => {
   const tempDir = mkdtempSync(join(tmpdir(), "husky-test-"));
@@ -34,3 +34,13 @@ test("ajustarShimsHusky substitui shebang por #!/bin/sh e injeta caminho do Git 
   const ocorrencias = (hRepetido.match(/Garante utilitários POSIX/g) || []).length;
   assert.equal(ocorrencias, 1, "bloco não deve ser duplicado");
 });
+
+test("prepararHusky conclui sem lançar exceção mesmo se husky não estiver instalado", async (t) => {
+  const tempDir = mkdtempSync(join(tmpdir(), "husky-test-prep-"));
+  t.after(() => rmSync(tempDir, { recursive: true, force: true }));
+
+  await assert.doesNotReject(async () => {
+    await prepararHusky(tempDir);
+  });
+});
+
