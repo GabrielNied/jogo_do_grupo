@@ -85,6 +85,36 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
         }
 
         [Test]
+        public void Regiao_define_o_enterro_das_arvores()
+        {
+            const float x = 700f;
+            const float z = -400f;
+            MapaDoMundo.DefinirRegioesDePrevia(
+                new[]
+                {
+                    new RegiaoDeBioma(
+                        "Mata de teste",
+                        Bioma.Mata,
+                        new[]
+                        {
+                            new RegiaoDeBioma.Ponto(650f, -450f),
+                            new RegiaoDeBioma.Ponto(750f, -450f),
+                            new RegiaoDeBioma.Ponto(750f, -350f),
+                            new RegiaoDeBioma.Ponto(650f, -350f),
+                        },
+                        20f,
+                        1f,
+                        1f,
+                        0.35f
+                    ),
+                }
+            );
+
+            Assert.AreEqual(0.35f, MapaDoMundo.EnterroDaVegetacaoEm(x, z), 0.001f);
+            Assert.AreEqual(0.15f, MapaDoMundo.EnterroDaVegetacaoEm(300f, 300f), 0.001f);
+        }
+
+        [Test]
         public void Altura_da_previa_e_a_mesma_na_grade_e_no_chao_interpolado()
         {
             MapaDoMundo.DefinirRegioesDePrevia(

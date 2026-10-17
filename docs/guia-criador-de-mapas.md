@@ -6,7 +6,7 @@ Este guia ensina a usar as ferramentas de mapa dentro do **editor Unity**. Ele �
 
 O objetivo é **pintar o mundo**, sem montar árvore, textura e morro um a um nem editar código. Você escolhe uma receita, marca sua forma no mapa, ajusta poucos controles, vê a prévia e salva quando ela ficar jogável. A receita reúne as regras do lugar: solo, relevo, vegetação, pedras e limites de passagem.
 
-O primeiro foco foi fazer a receita **Mata** realmente boa. Ela tem solo de floresta, relevo suave, troncos com espaço para caminhar e copas que formam uma massa vista de cima; foi aprovada no Unity. O próximo passo será escolhido conforme a necessidade real do mapa: outra receita de bioma, lago ou estrada.
+O primeiro foco foi fazer a receita **Mata** realmente boa. Ela tem solo de floresta, relevo suave, troncos com espaço para caminhar e copas que formam uma massa vista de cima; foi aprovada no Unity. A próxima versão do mapa passa a usar o **Terrain nativo**: o relevo atual é exportado como ponto de partida editável no Unity, sem apagar a montagem procedural enquanto a conversão é validada.
 
 A ferramenta deve crescer como um único **Pintor do Mundo**. Lago e estrada, quando necessários, serão modos da mesma experiência: área fechada para lago e linha para estrada. A estrada Cidade central → Passo descrita abaixo continua como um **protótipo já disponível**, mas não está em expansão nesta fase.
 
@@ -17,12 +17,18 @@ No Unity, abra **Jogo do Grupo > Mundo > Autoria de biomas**. A janela **Biomas 
 1. Escolha uma região na lista ou clique em **Nova região**. Dê um nome e escolha um dos sete biomas: campo, mata, colinas, deserto, neve, lava ou pântano.
 2. Ative **Adicionar ponto por clique** e clique no chão da vista **Scene** em pelo menos três lugares. A ferramenta fecha o contorno entre o último ponto e o primeiro. Use **Enquadrar região** para aproximar a câmera.
 3. Desative **Adicionar ponto por clique**. Arraste as alças amarelas na vista 3D, altere as coordenadas na janela ou use **×** para tirar um ponto. A prévia é refeita após parar de arrastar.
-4. Ajuste **Mistura da borda** para suavizar a passagem entre biomas, **Intensidade do relevo** para aumentar ou reduzir a forma do chão e **Densidade da vegetação** para mudar a quantidade de árvores e peças naturais.
+4. Ajuste **Mistura da borda** para suavizar a passagem entre biomas, **Intensidade do relevo** para aumentar ou reduzir a forma do chão, **Densidade da vegetação** para mudar a quantidade de árvores e peças naturais e **Enterrar árvores** para rebaixar levemente os troncos no terreno. Árvores não nascem em inclinações fortes e permanecem em pé.
 5. Se duas regiões se cruzarem, a que estiver mais à frente na lista redefine o centro da área; a borda mistura o resultado com a região anterior. Use **Trazer para frente** e **Enviar para trás** para mudar essa ordem.
 6. Observe o relevo, o material do solo e a vegetação de perto e de longe. O editor mantém os pátios das cidades e suas transições protegidos, sem deslocar as cidades.
 7. Clique em **Salvar regiões no mapa compartilhado** para tornar o desenho oficial. Aguarde a recompilação. Entre no mundo pelo fluxo normal e visite a região para conferir o resultado. A altura salva é a mesma que o cliente desenha e o servidor usa.
 
 A prévia não é salva na cena. **Reverter** descarta o rascunho atual e recarrega as regiões salvas; se ainda não houver nenhuma, mostra a mata de exemplo. Para recuperar uma versão antiga depois de salvar, use o histórico do projeto. O mapa inteiro aparece na prévia, mas as malhas editadas são atualizadas por região; em máquinas mais lentas, a resposta pode levar alguns segundos. O desenho não altera rios ou cria lagos e estradas: essas são operações posteriores.
+
+## Criar o Terrain nativo inicial
+
+No menu do Unity, abra **Jogo do Grupo > Mundo > Gerar Terrain nativo a partir do mapa**. O comando cria ou atualiza `TerrenoDoMundo.asset` a partir da altura atual do mundo de 3 km. Ele é o ponto de partida da edição manual: gerar de novo substitui somente essa cópia pelo relevo procedural mais recente; não altera o mapa compartilhado, o servidor ou a montagem atual.
+
+Para comparar visualmente sem trocar o mapa do jogo, use **Jogo do Grupo > Mundo > Montar prévia do Terrain nativo**. A prévia recebe colisor nativo e é criada na cena aberta; use **Remover prévia do Terrain nativo** ao terminar. Não salve essa cena: o asset do Terrain é a única saída persistente desse passo.
 
 ## Protótipo da estrada do Passo
 
@@ -69,6 +75,7 @@ Se um clique não adicionar ponto, confira se **Adicionar ponto por clique** est
 | Operação | Situação |
 |---|---|
 | Pintar e aprovar uma receita Mata jogável | Concluído. A primeira mata está salva no mapa como base. |
-| Outras receitas de bioma, lagos, estradas e rios | A decidir após usar a Mata. Nenhuma delas deve ser construída antecipadamente. |
+| Converter o relevo atual para Terrain nativo | Em andamento. O heightmap inicial já pode ser gerado e pré-visualizado no Unity; a edição manual ainda não substitui a altura compartilhada. |
+| Outras receitas de bioma, lagos, estradas e rios | Esperam a validação e a migração gradual para o Terrain nativo. |
 
 Ao concluir cada tarefa ou funcionalidade do criador de mapas, atualizar esta página com o caminho da tela, os controles, como salvar, como conferir o resultado e as limitações atuais. Se a tarefa não mudar as ações na interface, registrar seu efeito e indicar que o procedimento continua igual.

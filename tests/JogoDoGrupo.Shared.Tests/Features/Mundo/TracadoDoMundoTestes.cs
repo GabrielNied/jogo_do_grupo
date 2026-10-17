@@ -24,6 +24,17 @@ public class TracadoDoMundoTestes
     [Fact]
     public void Altura_oficial_da_grade_aplica_o_mesmo_tracado_salvo()
     {
+        if (DadosDoMapaFeitoAMao.Disponivel)
+        {
+            // A publicação já assa a acomodação da estrada no relevo editado do Unity.
+            Assert.Equal(
+                MapaDoMundo.AlturaBaseDaAutoriaEm(-200f, 150f),
+                MapaDoMundo.AlturaEm(-200f, 150f),
+                0.001f
+            );
+            return;
+        }
+
         const float x = -200f;
         const float z = 150f;
         var baseY = MapaDoMundo.AlturaBaseDaAutoriaEm(x, z);

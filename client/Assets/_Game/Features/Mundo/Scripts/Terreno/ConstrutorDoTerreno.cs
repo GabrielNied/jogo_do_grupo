@@ -165,6 +165,29 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
             }
         }
 
+        /// <summary>
+        /// Monta somente as camadas que ficam por cima do chão: estrada, líquidos e barreiras.
+        /// O relevo e a colisão ficam a cargo de um <see cref="Terrain"/> nativo já criado.
+        /// </summary>
+        public static void ConstruirSobreTerrenoNativo(Transform terreno, Material modelo)
+        {
+            GeradorDeTexturasDoTerreno.LimparCache();
+            var amostras = AmostrasDoTerreno.Gerar();
+            MontarSobreposicoes(terreno, modelo, amostras);
+        }
+
+        /// <summary>Versão em quadros da montagem das camadas sobre o Terrain nativo.</summary>
+        public static async Awaitable ConstruirSobreTerrenoNativoAsync(
+            Transform terreno,
+            Material modelo,
+            CancellationToken cancelar
+        )
+        {
+            var amostras = await AmostrasDoTerreno.GerarAsync(cancelar);
+            cancelar.ThrowIfCancellationRequested();
+            MontarSobreposicoes(terreno, modelo, amostras);
+        }
+
         private static IEnumerable<int> MontarEmEtapas(
             Transform terreno,
             Material modelo,
@@ -233,6 +256,34 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
                 MateriaisDosLiquidos.Lava(modelo)
             );
 
+            CriarBarreiras(terreno);
+        }
+
+        private static void MontarSobreposicoes(
+            Transform terreno,
+            Material modelo,
+            AmostrasDoTerreno amostras
+        )
+        {
+            MontadorDaEstrada.Criar(terreno);
+            CriarLiquido(
+                NomeAgua,
+                terreno,
+                CriarMalhaDoLiquido(amostras, false),
+                MateriaisDosLiquidos.Agua(modelo)
+            );
+            CriarLiquido(
+                NomeRiosAltos,
+                terreno,
+                CriarMalhaDosRiosAltos(),
+                MateriaisDosLiquidos.Agua(modelo)
+            );
+            CriarLiquido(
+                NomeLava,
+                terreno,
+                CriarMalhaDoLiquido(amostras, true),
+                MateriaisDosLiquidos.Lava(modelo)
+            );
             CriarBarreiras(terreno);
         }
 
@@ -680,7 +731,11 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
             if (shaderTerreno != null)
             {
                 material = new Material(shaderTerreno);
-                material.SetTexture("_GrassTex", GeradorDeTexturasDoTerreno.ObterGrama());
+                material.SetTexture(
+                    "_GrassTex",
+                    Resources.Load<Texture2D>("Terreno/Grama")
+                        ?? GeradorDeTexturasDoTerreno.ObterGrama()
+                );
                 material.SetTexture("_DirtTex", GeradorDeTexturasDoTerreno.ObterTerra());
                 material.SetTexture("_SandTex", GeradorDeTexturasDoTerreno.ObterAreia());
                 material.SetTexture("_RockTex", GeradorDeTexturasDoTerreno.ObterRocha());

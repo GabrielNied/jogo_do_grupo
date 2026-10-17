@@ -201,7 +201,8 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
         public void Chao_colide_na_altura_que_o_mapa_diz_em_todos_os_biomas()
         {
             var terreno = ConstruirTerreno();
-            var blocos = terreno.Find(ConstrutorDoTerreno.NomeBlocos);
+            var chaoNativo = terreno.Find(TerrenoNativoDoMundo.Nome);
+            Assert.IsNotNull(chaoNativo, "O Terrain nativo deveria existir.");
             var pontos = new[]
             {
                 new Vector2(0f, 250f),
@@ -225,7 +226,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
                 var origem = new Vector3(ponto.x, MapaDoMundo.AlturaMaxima + 20f, ponto.y);
                 var noChao = Physics
                     .RaycastAll(origem, Vector3.down, MapaDoMundo.AlturaMaxima + 60f)
-                    .Where(b => b.collider.transform.IsChildOf(blocos))
+                    .Where(b => b.collider.transform.IsChildOf(chaoNativo))
                     .ToArray();
 
                 Assert.AreEqual(1, noChao.Length, $"Chão em {ponto}: esperava uma batida só.");

@@ -91,7 +91,13 @@ namespace JogoDoGrupo.Shared.Features.Mundo
                 }
             }
 
-            // 2. Modificadores dinâmicos (estradas e terraplanagem do jogador)
+            return AplicarDinamicos(x, z, altura);
+        }
+
+        /// <summary>Aplica só as alterações transitórias sobre uma altura já publicada pelo Unity.</summary>
+        public static float AplicarDinamicos(float x, float z, float alturaOriginal)
+        {
+            var altura = alturaOriginal;
             lock (Trava)
             {
                 for (var i = 0; i < ModificadoresDinamicos.Count; i++)

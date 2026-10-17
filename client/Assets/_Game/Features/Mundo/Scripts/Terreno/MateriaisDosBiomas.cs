@@ -45,6 +45,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
                 name = $"{original.name}_{bioma}",
                 enableInstancing = true,
             };
+            ConfigurarRecorteDaFolhagem(copia);
             if (copia.HasProperty("_BaseColor"))
             {
                 copia.SetColor("_BaseColor", copia.GetColor("_BaseColor") * cor);
@@ -56,6 +57,44 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
 
             _cache[chave] = copia;
             return copia;
+        }
+
+        // O MegaKit traz folhas e flores em cartões com canal alpha. O material FBX padrão vem
+        // opaco no URP e desenha o fundo preto desses cartões; aqui convertemos só esses mapas
+        // para Lit com alpha clip, que também continua compatível com instancing.
+        private static void ConfigurarRecorteDaFolhagem(Material material)
+        {
+            var textura = material.HasProperty("_BaseMap")
+                ? material.GetTexture("_BaseMap")
+                : material.mainTexture;
+            if (textura == null || !UsaTransparencia(textura.name))
+            {
+                return;
+            }
+
+            var cor = material.HasProperty("_BaseColor")
+                ? material.GetColor("_BaseColor")
+                : material.color;
+            var lit = Shader.Find("Universal Render Pipeline/Lit");
+            if (lit == null)
+            {
+                return;
+            }
+
+            material.shader = lit;
+            material.SetTexture("_BaseMap", textura);
+            material.SetColor("_BaseColor", cor);
+            material.SetFloat("_AlphaClip", 1f);
+            material.SetFloat("_Cutoff", 0.45f);
+            material.EnableKeyword("_ALPHATEST_ON");
+        }
+
+        private static bool UsaTransparencia(string nomeDaTextura)
+        {
+            return nomeDaTextura.StartsWith("Leaves")
+                || nomeDaTextura == "Flowers"
+                || nomeDaTextura == "Grass"
+                || nomeDaTextura == "Mushrooms";
         }
     }
 }

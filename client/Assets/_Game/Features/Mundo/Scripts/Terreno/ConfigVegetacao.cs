@@ -29,9 +29,33 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
         /// <summary>Escala das árvores nas regiões de mata desenhadas pelo criador de mapas.</summary>
         public const float EscalaDaArvoreNaMataAutoral = 2f;
 
+        /// <summary>Quanto os arbustos importados entram no chão, para assentar a base irregular.</summary>
+        public const float EnterroExtraDosArbustos = 0.45f;
+
+        /// <summary>Proporção visual dos arbustos importados, em relação ao modelo original.</summary>
+        public const float EscalaDosArbustos = 0.6f;
+
+        /// <summary>Cogumelos são detalhe de chão e devem ficar abaixo do personagem.</summary>
+        public const float EscalaDosCogumelos = 0.2f;
+
+        public static bool EhArbusto(string nome)
+        {
+            return nome.StartsWith("MataEstilizada/Bush_") || nome == "Arbusto";
+        }
+
+        public static bool EhCogumelo(string nome)
+        {
+            return nome.StartsWith("MataEstilizada/Mushroom_");
+        }
+
         /// <summary>Peças pequenas somem mais perto: arbusto, cacto e pedras pequenas.</summary>
         public static bool EhPequena(string nome)
         {
+            if (EhArbusto(nome) || EhCogumelo(nome))
+            {
+                return true;
+            }
+
             switch (nome)
             {
                 case "Arbusto":

@@ -62,8 +62,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
 
             var verdeRaiz = new Color(0.18f, 0.34f, 0.11f);
             var verdeBase = new Color(0.30f, 0.56f, 0.18f);
-            var verdePonta = new Color(0.48f, 0.74f, 0.24f);
-            var verdeTrevo = new Color(0.38f, 0.66f, 0.16f);
+            var verdePonta = new Color(0.39f, 0.63f, 0.21f);
 
             for (var y = 0; y < tamanho; y++)
             {
@@ -75,23 +74,18 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
                     // 1. Manchas isotrópicas amplas de fertilidade do prado
                     var clareira = FbmPeriodico(u, v, 4, 3, 101u);
 
-                    // 2. Tufos de grama isotrópicos sem inclinação diagonal artificial
+                    // Tufos largos e pouco contrastados: o chão lê como grama, não como bolinhas.
                     var tufo1 = FbmPeriodico(u, v, 12, 4, 211u);
-                    var tufo2 = FbmPeriodico(u, v, 24, 3, 317u);
-                    var tufo = tufo1 * 0.6f + tufo2 * 0.4f;
+                    var tufo2 = FbmPeriodico(u, v, 20, 3, 317u);
+                    var tufo = tufo1 * 0.7f + tufo2 * 0.3f;
 
                     // 3. Fibras finas de lâminas de alta frequência para nitidez de perto
                     var fibras = FbmPeriodico(u, v, 48, 2, 431u);
 
-                    // 4. Manchas orgânicas de trevos
-                    var trevoRuido = FbmPeriodico(u, v, 16, 2, 523u);
-                    var trevo = Mathf.Pow(Mathf.Clamp01(trevoRuido - 0.35f) * 1.5f, 2f);
-
-                    var t = tufo * 0.65f + fibras * 0.35f;
+                    var t = tufo * 0.8f + fibras * 0.2f;
                     var cor = Color.Lerp(verdeRaiz, verdeBase, t);
-                    cor = Color.Lerp(cor, verdePonta, Mathf.Pow(tufo, 2.2f) * 0.6f);
-                    cor = Color.Lerp(cor, verdeTrevo, trevo * 0.4f);
-                    cor = Color.Lerp(cor, verdeBase, clareira * 0.2f);
+                    cor = Color.Lerp(cor, verdePonta, Mathf.Pow(tufo, 2.2f) * 0.28f);
+                    cor = Color.Lerp(cor, verdeBase, clareira * 0.12f);
 
                     pixels[y * tamanho + x] = cor;
                 }

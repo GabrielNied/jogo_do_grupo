@@ -26,6 +26,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
             public float Borda = 30f;
             public float Relevo = 1f;
             public float Vegetacao = 1f;
+            public float EnterroDaVegetacao = 0.15f;
 
             public Rascunho() { }
 
@@ -36,6 +37,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
                 Borda = regiao.LarguraDaBorda;
                 Relevo = regiao.IntensidadeDoRelevo;
                 Vegetacao = regiao.DensidadeDaVegetacao;
+                EnterroDaVegetacao = regiao.EnterroDaVegetacao;
                 foreach (var ponto in regiao.Pontos)
                 {
                     Pontos.Add(new Vector2(ponto.X, ponto.Z));
@@ -50,7 +52,15 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
                     pontos[i] = new RegiaoDeBioma.Ponto(Pontos[i].x, Pontos[i].y);
                 }
 
-                return new RegiaoDeBioma(Nome, Bioma, pontos, Borda, Relevo, Vegetacao);
+                return new RegiaoDeBioma(
+                    Nome,
+                    Bioma,
+                    pontos,
+                    Borda,
+                    Relevo,
+                    Vegetacao,
+                    EnterroDaVegetacao
+                );
             }
         }
 
@@ -351,6 +361,12 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
                 regiao.Vegetacao,
                 0f,
                 2f
+            );
+            regiao.EnterroDaVegetacao = EditorGUILayout.Slider(
+                "Enterrar árvores (m)",
+                regiao.EnterroDaVegetacao,
+                0f,
+                0.5f
             );
             if (EditorGUI.EndChangeCheck())
             {
@@ -772,6 +788,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
                         Borda = 70f,
                         Relevo = 1.1f,
                         Vegetacao = 2f,
+                        EnterroDaVegetacao = 0.15f,
                     }
                 );
             }
@@ -882,6 +899,10 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
                     texto
                         .Append("                ")
                         .Append(Numero(regiao.Vegetacao))
+                        .AppendLine(",");
+                    texto
+                        .Append("                ")
+                        .Append(Numero(regiao.EnterroDaVegetacao))
                         .AppendLine("),");
                 }
 
