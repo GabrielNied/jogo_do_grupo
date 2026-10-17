@@ -121,6 +121,12 @@ Validação adicional `ValidacaoLocomocaoPlayground.Retarget(pasta)` exercita tr
 
 Priorize o MCP na instância aberta: executar `ValidacaoCharacterPlayground.Executar()` em Edit Mode; entrar em Play e aguardar `ValidacaoRuntimePlayground.Executar(pasta)` (Task assíncrona). O teste usa teclas padrão, dispositivos virtuais e tempo de simulação mínimo equivalente a 60 Hz; neutraliza teclas físicas retidas, desabilita temporariamente os dispositivos físicos do Input System e os restaura em finally, inclusive em falha. Injeta eventos no update Dynamic para que o ciclo Editor não os consuma antes do jogo. Não altera bindings salvos. Capturas reutilizam o mecanismo da v1.
 
+Na regressão do jogo normal, chegar à seleção não confirma entrada no mundo. Acionar Entrar, aguardar carregamento e autenticação UDP, então executar `ValidacaoFluxosPlayground.VerificarMundo()`; conferir captura legível e movimento com outra janela em foco. Preservar os prefabs de raça originais: Human Male continua exclusivo do sandbox.
+
+Automações de Play normal devem **aguardar** `ValidacaoFluxosPlayground.EncerrarTesteNormal()` para fechar a tela pelo fluxo de navegação antes de Stop. A prévia usa HideAndDontSave e pode sobreviver à interrupção direta; suas luzes órfãs alteram o mundo mesmo com a raiz ausente de FindObjectsByType. `Verificar` agora conta também essas raízes por Resources e reprova resíduos. O encerramento é uma chamada explícita dos testes, sem callback global ou alteração no runtime original.
+
+Não restaurar caches SDF no disco enquanto a interface usa os mesmos assets em memória: atlas e tabelas podem divergir e deixar textos ilegíveis. Evitar salvar esses caches nos testes; se a divergência já ocorreu, reconstruir o cache pela API FontAsset da Unity e regenerar os textos antes de validar capturas. Não confundir restauração de bytes no Git com recuperação visual do Editor.
+
 Alternativa para geração/CI com Editor já fechado, na raiz do worktree:
 
 ```text

@@ -1,5 +1,8 @@
 using System;
 using System.Linq;
+using System.Threading.Tasks;
+using JogoDoGrupo.Client.Core.Jogo;
+using JogoDoGrupo.Client.Core.TempoReal;
 using JogoDoGrupo.Client.Core.UI;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -12,6 +15,58 @@ namespace JogoDoGrupo.Client.Features.Personagem.Editor.Playground
     /// <summary>Verificacoes de regressao chamadas via MCP entre transicoes reais do Editor.</summary>
     public static class ValidacaoFluxosPlayground
     {
+        // Chamada explicita do teste, nunca um callback global do jogo normal.
+        public static async Task EncerrarTesteNormal()
+        {
+            if (!Application.isPlaying || AcessoCharacterPlayground.Contexto)
+                throw new InvalidOperationException(
+                    "Encerre somente o teste do jogo normal em Play."
+                );
+            if (EntradaNoJogo.NoJogo)
+                EntradaNoJogo.Sair();
+            const string chave = "personagem.playground.fim-validacao";
+            Navegacao.Registrar(chave, () => new TelaFimValidacao());
+            // Fechar pela navegacao executa Dispose da previa antes de Stop. Objetos
+            // HideAndDontSave podem sobreviver quando se interrompe a tela diretamente.
+            Navegacao.Abrir(chave);
+            await Awaitable.NextFrameAsync();
+            await Awaitable.NextFrameAsync();
+            EditorApplication.isPlaying = false;
+        }
+
+        sealed class TelaFimValidacao : Tela
+        {
+            protected override void Montar(UnityEngine.UIElements.VisualElement raiz) { }
+        }
+
+        static int ContarPrevias() =>
+            Resources
+                .FindObjectsOfTypeAll<GameObject>()
+                .Count(g => g.name == "Prévia de personagem" && !EditorUtility.IsPersistent(g));
+
+        public static string VerificarMundo()
+        {
+            var jogador = EntradaNoJogo.Jogador;
+            if (
+                !Application.isPlaying
+                || AcessoCharacterPlayground.Contexto
+                || !EntradaNoJogo.NoJogo
+                || EntradaNoJogo.EntradaPendente
+                || !ConexaoTempoReal.Conectado
+                || jogador == null
+                || Navegacao.TelaAtual != null
+            )
+                throw new InvalidOperationException("Entrada autenticada no mundo nao concluida.");
+            var visual = jogador.GetComponentInChildren<SkinnedMeshRenderer>();
+            if (visual == null || !visual.enabled || Camera.main == null || !Camera.main.enabled)
+                throw new InvalidOperationException("Visual/camera original ausente.");
+            if (ContarPrevias() != 0)
+                throw new InvalidOperationException(
+                    "Previas residuais podem interferir na luz do mundo."
+                );
+            return $"PASSOU: mundo autenticado, primeira posicao aplicada e visual {visual.name}. Conferir captura e input separadamente.";
+        }
+
         public static string Verificar(bool playground, bool play)
         {
             void Exigir(bool ok, string motivo)
@@ -20,6 +75,19 @@ namespace JogoDoGrupo.Client.Features.Personagem.Editor.Playground
                     throw new InvalidOperationException(motivo);
             }
             Exigir(Application.isPlaying == play, "Modo do Editor inesperado.");
+            // FindObjectsByType ignora a raiz HideAndDontSave, mas suas luzes ainda
+            // afetam a renderizacao. Inspecionar tambem objetos fora de cenas validas.
+            var telaComPrevia =
+                play
+                && !playground
+                && (
+                    Navegacao.TelaAtual?.GetType().Name == "TelaSelecaoPersonagem"
+                    || Navegacao.TelaAtual?.GetType().Name == "TelaCriacaoPersonagem"
+                );
+            Exigir(
+                ContarPrevias() <= (telaComPrevia ? 1 : 0),
+                "Previa temporaria residual entre testes."
+            );
             Exigir(AcessoCharacterPlayground.Contexto == playground, "Cena/contexto inesperado.");
             Exigir(
                 RuntimeCharacterPlayground.Ativo == (playground && play),
