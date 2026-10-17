@@ -96,6 +96,9 @@ namespace JogoDoGrupo.Shared.Features.Itens
         /// <summary>Modelo de equipamento exclusivo que só o chefe raro larga.</summary>
         public const int ModeloExclusivoDoChefeRaro = CatalogoEquipamentos.AdornoPresaVelha;
 
+        /// <summary>Item de montaria que chefe ou chefe raro pode largar como drop raro.</summary>
+        public const int ItemMontariaChefe = CatalogoItens.RedeasDoCorcelNoturno;
+
         /// <summary>
         /// Sorteia uma peça: modelo uniforme entre os 72 do catálogo (ou o modelo exclusivo se chefe raro),
         /// grau pelo nível do inimigo e a origem guardada. Cada chamada gasta números de <paramref name="aleatorio"/>.

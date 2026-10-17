@@ -3,6 +3,7 @@ using JogoDoGrupo.Server.Contratos.Mundo;
 using JogoDoGrupo.Server.Features.Montarias;
 using JogoDoGrupo.Shared.Features.Montarias;
 using JogoDoGrupo.Shared.Features.Mundo;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace JogoDoGrupo.Server.Tests.Features.Montarias;
@@ -132,5 +133,220 @@ public class MontariasServicoTestes
 
         servico.EquiparMontaria(personagemId, RegrasMontaria.TipoNoturno);
         Assert.Equal(RegrasMontaria.TipoNoturno, servico.TipoDaMontaria(personagemId));
+    }
+
+    private static (
+        IServiceScopeFactory ScopeFactory,
+        Microsoft.Data.Sqlite.SqliteConnection Conexao
+    ) CriarBancoTeste()
+    {
+        var conexao = new Microsoft.Data.Sqlite.SqliteConnection("DataSource=:memory:");
+        conexao.Open();
+        var services = new Microsoft.Extensions.DependencyInjection.ServiceCollection();
+        services.AddDbContext<JogoDoGrupo.Server.Core.Persistencia.JogoDbContext>(o =>
+            Microsoft.EntityFrameworkCore.SqliteDbContextOptionsBuilderExtensions.UseSqlite(
+                o,
+                conexao
+            )
+        );
+        var sp = services.BuildServiceProvider();
+        using (var scope = sp.CreateScope())
+        {
+            scope
+                .ServiceProvider.GetRequiredService<JogoDoGrupo.Server.Core.Persistencia.JogoDbContext>()
+                .Database.EnsureCreated();
+        }
+        return (
+            sp.GetRequiredService<Microsoft.Extensions.DependencyInjection.IServiceScopeFactory>(),
+            conexao
+        );
+    }
+
+    private static void CriarPersonagem(
+        JogoDoGrupo.Server.Core.Persistencia.JogoDbContext db,
+        long personagemId,
+        long contaId
+    )
+    {
+        db.Set<JogoDoGrupo.Server.Features.Personagem.Personagem>()
+            .Add(
+                new JogoDoGrupo.Server.Features.Personagem.Personagem
+                {
+                    Id = personagemId,
+                    ContaId = contaId,
+                    Nome = "Heroi" + personagemId,
+                    NomeNormalizado = "heroi" + personagemId,
+                    Raca = JogoDoGrupo.Shared.Features.Personagem.Raca.Valdren,
+                    CriadoEm = DateTime.UtcNow,
+                }
+            );
+    }
+
+    [Fact]
+    public async Task UsarItemMontaria_ForaDeCombate_ConsomeItem_E_DesbloqueiaNaConta()
+    {
+        var (scopeFactory, conexao) = CriarBancoTeste();
+        using (conexao)
+        {
+            var servico = new ServicoDeMontarias(scopeFactory: scopeFactory);
+            long contaId = 100;
+            long personagemId = 200;
+
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var db =
+                    scope.ServiceProvider.GetRequiredService<JogoDoGrupo.Server.Core.Persistencia.JogoDbContext>();
+                CriarPersonagem(db, personagemId, contaId);
+                db.Set<JogoDoGrupo.Server.Features.Itens.ItemInventario>()
+                    .Add(
+                        new JogoDoGrupo.Server.Features.Itens.ItemInventario
+                        {
+                            Id = 555,
+                            PersonagemId = personagemId,
+                            ItemId = JogoDoGrupo
+                                .Shared
+                                .Features
+                                .Itens
+                                .CatalogoItens
+                                .RedeasDoCorcelNoturno,
+                        }
+                    );
+                await db.SaveChangesAsync();
+            }
+
+            Assert.False(servico.PossuiMontaria(contaId, RegrasMontaria.TipoNoturno));
+
+            var usou = await servico.UsarItemMontariaAsync(contaId, personagemId, 555);
+
+            Assert.True(usou);
+            Assert.True(servico.PossuiMontaria(contaId, RegrasMontaria.TipoNoturno));
+            Assert.Contains(RegrasMontaria.TipoNoturno, servico.ObterColecao(contaId));
+
+            // Item foi consumido do banco
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var db =
+                    scope.ServiceProvider.GetRequiredService<JogoDoGrupo.Server.Core.Persistencia.JogoDbContext>();
+                var itemNoBanco =
+                    await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.SingleOrDefaultAsync(
+                        db.Set<JogoDoGrupo.Server.Features.Itens.ItemInventario>(),
+                        i => i.Id == 555
+                    );
+                Assert.Null(itemNoBanco);
+            }
+        }
+    }
+
+    [Fact]
+    public async Task UsarItemMontaria_EmCombate_Recusa_E_NaoConsome()
+    {
+        var (scopeFactory, conexao) = CriarBancoTeste();
+        using (conexao)
+        {
+            var combate = new CombateMock(emCombate: true);
+            var servico = new ServicoDeMontarias(combate: combate, scopeFactory: scopeFactory);
+            long contaId = 100;
+            long personagemId = 200;
+
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var db =
+                    scope.ServiceProvider.GetRequiredService<JogoDoGrupo.Server.Core.Persistencia.JogoDbContext>();
+                CriarPersonagem(db, personagemId, contaId);
+                db.Set<JogoDoGrupo.Server.Features.Itens.ItemInventario>()
+                    .Add(
+                        new JogoDoGrupo.Server.Features.Itens.ItemInventario
+                        {
+                            Id = 777,
+                            PersonagemId = personagemId,
+                            ItemId = JogoDoGrupo
+                                .Shared
+                                .Features
+                                .Itens
+                                .CatalogoItens
+                                .RedeasDoCorcelNoturno,
+                        }
+                    );
+                await db.SaveChangesAsync();
+            }
+
+            var usou = await servico.UsarItemMontariaAsync(contaId, personagemId, 777);
+
+            Assert.False(usou);
+            Assert.False(servico.PossuiMontaria(contaId, RegrasMontaria.TipoNoturno));
+
+            // Item permanece intacto
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var db =
+                    scope.ServiceProvider.GetRequiredService<JogoDoGrupo.Server.Core.Persistencia.JogoDbContext>();
+                var itemNoBanco =
+                    await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.SingleOrDefaultAsync(
+                        db.Set<JogoDoGrupo.Server.Features.Itens.ItemInventario>(),
+                        i => i.Id == 777
+                    );
+                Assert.NotNull(itemNoBanco);
+            }
+        }
+    }
+
+    [Fact]
+    public async Task UsarItemMontaria_QuandoJaPossui_Recusa_E_PreservaItemParaNegociar()
+    {
+        var (scopeFactory, conexao) = CriarBancoTeste();
+        using (conexao)
+        {
+            var servico = new ServicoDeMontarias(scopeFactory: scopeFactory);
+            long contaId = 100;
+            long personagemId = 200;
+
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var db =
+                    scope.ServiceProvider.GetRequiredService<JogoDoGrupo.Server.Core.Persistencia.JogoDbContext>();
+                CriarPersonagem(db, personagemId, contaId);
+                db.Set<MontariaDaConta>()
+                    .Add(
+                        new MontariaDaConta
+                        {
+                            ContaId = contaId,
+                            TipoMontaria = RegrasMontaria.TipoNoturno,
+                            DesbloqueadaEm = DateTime.UtcNow,
+                        }
+                    );
+                db.Set<JogoDoGrupo.Server.Features.Itens.ItemInventario>()
+                    .Add(
+                        new JogoDoGrupo.Server.Features.Itens.ItemInventario
+                        {
+                            Id = 888,
+                            PersonagemId = personagemId,
+                            ItemId = JogoDoGrupo
+                                .Shared
+                                .Features
+                                .Itens
+                                .CatalogoItens
+                                .RedeasDoCorcelNoturno,
+                        }
+                    );
+                await db.SaveChangesAsync();
+            }
+
+            var usou = await servico.UsarItemMontariaAsync(contaId, personagemId, 888);
+
+            Assert.False(usou);
+
+            // Item negociável permanece na bolsa
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var db =
+                    scope.ServiceProvider.GetRequiredService<JogoDoGrupo.Server.Core.Persistencia.JogoDbContext>();
+                var itemNoBanco =
+                    await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.SingleOrDefaultAsync(
+                        db.Set<JogoDoGrupo.Server.Features.Itens.ItemInventario>(),
+                        i => i.Id == 888
+                    );
+                Assert.NotNull(itemNoBanco);
+            }
+        }
     }
 }

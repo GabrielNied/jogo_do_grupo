@@ -61,7 +61,27 @@ namespace JogoDoGrupo.Client.Features.Montarias.Tests
         }
 
         [Test]
-        public void EquiparMontaria_AlteraMontariaEquipada()
+        public void Colecao_PossuiMontariaPadraoInicialmente()
+        {
+            var objeto = new GameObject("ControleTeste");
+            try
+            {
+                var controle = objeto.AddComponent<ControleDeMontaria>();
+                Assert.IsTrue(controle.PossuiMontaria(RegrasMontaria.TipoCastanho));
+                Assert.IsFalse(controle.PossuiMontaria(RegrasMontaria.TipoNoturno));
+                CollectionAssert.Contains(
+                    controle.ColecaoDesbloqueada,
+                    RegrasMontaria.TipoCastanho
+                );
+            }
+            finally
+            {
+                Object.DestroyImmediate(objeto);
+            }
+        }
+
+        [Test]
+        public void EquiparMontaria_BloqueadaNaoEquipa_DesbloqueadaAlteraEquipada()
         {
             var objeto = new GameObject("ControleTeste");
             try
@@ -72,9 +92,60 @@ namespace JogoDoGrupo.Client.Features.Montarias.Tests
 
                 Assert.AreEqual(RegrasMontaria.TipoPadrao, controle.MontariaEquipada);
 
+                // Tentar equipar bloqueada não deve mudar nada
+                controle.EquiparMontaria(RegrasMontaria.TipoNoturno);
+                Assert.AreEqual(RegrasMontaria.TipoPadrao, controle.MontariaEquipada);
+                Assert.AreEqual(0, equipadaNotificada);
+
+                // Desbloqueia na coleção
+                var colecaoNotificada = false;
+                controle.ColecaoMudou += () => colecaoNotificada = true;
+                controle.AoReceberMontariaDesbloqueada(
+                    new MontariaDesbloqueada
+                    {
+                        TipoMontaria = RegrasMontaria.TipoNoturno,
+                        Nome = "Corcel Noturno",
+                    }
+                );
+
+                Assert.IsTrue(controle.PossuiMontaria(RegrasMontaria.TipoNoturno));
+                Assert.IsTrue(colecaoNotificada);
+
+                // Agora equipar deve funcionar
                 controle.EquiparMontaria(RegrasMontaria.TipoNoturno);
                 Assert.AreEqual(RegrasMontaria.TipoNoturno, controle.MontariaEquipada);
                 Assert.AreEqual(RegrasMontaria.TipoNoturno, equipadaNotificada);
+            }
+            finally
+            {
+                Object.DestroyImmediate(objeto);
+            }
+        }
+
+        [Test]
+        public void AoReceberColecaoMontarias_AtualizaColecaoENotifica()
+        {
+            var objeto = new GameObject("ControleTeste");
+            try
+            {
+                var controle = objeto.AddComponent<ControleDeMontaria>();
+                var mudou = false;
+                controle.ColecaoMudou += () => mudou = true;
+
+                controle.AoReceberColecaoMontarias(
+                    new ColecaoMontarias
+                    {
+                        MontariasDesbloqueadas = new[]
+                        {
+                            RegrasMontaria.TipoCastanho,
+                            RegrasMontaria.TipoNoturno,
+                        },
+                    }
+                );
+
+                Assert.IsTrue(mudou);
+                Assert.IsTrue(controle.PossuiMontaria(RegrasMontaria.TipoNoturno));
+                CollectionAssert.Contains(controle.ColecaoDesbloqueada, RegrasMontaria.TipoNoturno);
             }
             finally
             {

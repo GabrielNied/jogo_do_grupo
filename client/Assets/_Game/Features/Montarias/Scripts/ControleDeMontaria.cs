@@ -21,12 +21,21 @@ namespace JogoDoGrupo.Client.Features.Montarias
         private readonly Dictionary<long, VisualDaMontaria> _visuaisAtivos =
             new Dictionary<long, VisualDaMontaria>();
         private readonly Dictionary<long, int> _estadosPendentes = new Dictionary<long, int>();
+        private readonly HashSet<int> _colecaoDesbloqueada = new HashSet<int>
+        {
+            RegrasMontaria.TipoCastanho,
+        };
+
         private IDisposable _assinatura;
         private IDisposable _assinaturaEquipada;
+        private IDisposable _assinaturaColecao;
+        private IDisposable _assinaturaDesbloqueada;
+        private IDisposable _assinaturaRecusada;
         private Vector3 _posicaoInicioInvocacao;
 
         public bool MontadoLocal { get; private set; }
         public int MontariaEquipada { get; private set; } = RegrasMontaria.TipoPadrao;
+        public IReadOnlyCollection<int> ColecaoDesbloqueada => _colecaoDesbloqueada;
 
         public bool Invocando { get; private set; }
         public float TempoInvocacaoAtual { get; private set; }
@@ -34,6 +43,7 @@ namespace JogoDoGrupo.Client.Features.Montarias
 
         public event Action<bool> EstadoMudou;
         public event Action<int> MontariaEquipadaMudou;
+        public event Action ColecaoMudou;
         public event Action<bool, float, float> InvocacaoProgresso;
 
         private void Awake()
@@ -68,6 +78,9 @@ namespace JogoDoGrupo.Client.Features.Montarias
             DesassinarRede();
             LimparVisuais();
             MontadoLocal = false;
+            _colecaoDesbloqueada.Clear();
+            _colecaoDesbloqueada.Add(RegrasMontaria.TipoCastanho);
+            ColecaoMudou?.Invoke();
         }
 
         private void AssinarRede()
@@ -87,6 +100,30 @@ namespace JogoDoGrupo.Client.Features.Montarias
                     AoReceberMontariaEquipada
                 );
             }
+
+            if (_assinaturaColecao == null)
+            {
+                _assinaturaColecao = ConexaoTempoReal.Assinar<ColecaoMontarias>(
+                    MontariasMessageIds.ColecaoMontarias,
+                    AoReceberColecaoMontarias
+                );
+            }
+
+            if (_assinaturaDesbloqueada == null)
+            {
+                _assinaturaDesbloqueada = ConexaoTempoReal.Assinar<MontariaDesbloqueada>(
+                    MontariasMessageIds.MontariaDesbloqueada,
+                    AoReceberMontariaDesbloqueada
+                );
+            }
+
+            if (_assinaturaRecusada == null)
+            {
+                _assinaturaRecusada = ConexaoTempoReal.Assinar<MontariaRecusada>(
+                    MontariasMessageIds.MontariaRecusada,
+                    AoReceberMontariaRecusada
+                );
+            }
         }
 
         private void DesassinarRede()
@@ -95,6 +132,12 @@ namespace JogoDoGrupo.Client.Features.Montarias
             _assinatura = null;
             _assinaturaEquipada?.Dispose();
             _assinaturaEquipada = null;
+            _assinaturaColecao?.Dispose();
+            _assinaturaColecao = null;
+            _assinaturaDesbloqueada?.Dispose();
+            _assinaturaDesbloqueada = null;
+            _assinaturaRecusada?.Dispose();
+            _assinaturaRecusada = null;
         }
 
         private void Update()
@@ -205,10 +248,25 @@ namespace JogoDoGrupo.Client.Features.Montarias
             }
         }
 
+        public bool PossuiMontaria(int tipo)
+        {
+            return RegrasMontaria.DesbloqueadaPorPadrao(tipo)
+                || _colecaoDesbloqueada.Contains(tipo);
+        }
+
         public void EquiparMontaria(int tipo)
         {
             if (!RegrasMontaria.TipoValido(tipo))
             {
+                return;
+            }
+
+            if (!PossuiMontaria(tipo))
+            {
+                AvisosDoJogo.Mostrar(
+                    "Essa montaria ainda não foi desbloqueada.",
+                    TipoDeAviso.Aviso
+                );
                 return;
             }
 
@@ -223,6 +281,19 @@ namespace JogoDoGrupo.Client.Features.Montarias
             AvisosDoJogo.Mostrar(
                 $"Montaria equipada: {RegrasMontaria.ObterNome(tipo)}",
                 TipoDeAviso.Informacao
+            );
+        }
+
+        public void UsarItemMontaria(long instanciaId)
+        {
+            if (instanciaId <= 0)
+            {
+                return;
+            }
+
+            ConexaoTempoReal.Enviar(
+                MontariasMessageIds.UsarItemMontaria,
+                new UsarItemMontaria { InstanciaId = instanciaId }
             );
         }
 
@@ -253,6 +324,48 @@ namespace JogoDoGrupo.Client.Features.Montarias
                 MontariaEquipada = msg.TipoMontaria;
                 MontariaEquipadaMudou?.Invoke(msg.TipoMontaria);
             }
+        }
+
+        public void AoReceberColecaoMontarias(ColecaoMontarias msg)
+        {
+            if (msg?.MontariasDesbloqueadas == null)
+            {
+                return;
+            }
+
+            _colecaoDesbloqueada.Clear();
+            _colecaoDesbloqueada.Add(RegrasMontaria.TipoCastanho);
+            foreach (var tipo in msg.MontariasDesbloqueadas)
+            {
+                if (RegrasMontaria.TipoValido(tipo))
+                {
+                    _colecaoDesbloqueada.Add(tipo);
+                }
+            }
+
+            ColecaoMudou?.Invoke();
+        }
+
+        public void AoReceberMontariaDesbloqueada(MontariaDesbloqueada msg)
+        {
+            if (msg == null || !RegrasMontaria.TipoValido(msg.TipoMontaria))
+            {
+                return;
+            }
+
+            _colecaoDesbloqueada.Add(msg.TipoMontaria);
+            AvisosDoJogo.Mostrar($"Montaria desbloqueada: {msg.Nome}!", TipoDeAviso.Informacao);
+            ColecaoMudou?.Invoke();
+        }
+
+        public void AoReceberMontariaRecusada(MontariaRecusada msg)
+        {
+            if (msg == null)
+            {
+                return;
+            }
+
+            AvisosDoJogo.Mostrar(msg.Motivo, TipoDeAviso.Aviso);
         }
 
         public void AoReceberEstadoMontaria(EstadoMontaria msg)
@@ -389,8 +502,7 @@ namespace JogoDoGrupo.Client.Features.Montarias
 
         private void OnDestroy()
         {
-            _assinatura?.Dispose();
-            _assinatura = null;
+            DesassinarRede();
             LimparVisuais();
             if (Instancia == this)
             {

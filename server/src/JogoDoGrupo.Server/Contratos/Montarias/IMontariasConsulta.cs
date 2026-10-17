@@ -13,4 +13,10 @@ public interface IMontariasConsulta
 
     /// <summary>Tipo da montaria atualmente equipada pelo personagem.</summary>
     int ObterMontariaEquipada(long personagemId);
+
+    /// <summary>Verifica se a conta possui a montaria indicada desbloqueada.</summary>
+    bool PossuiMontaria(long contaId, int tipoMontaria);
+
+    /// <summary>Retorna a coleção de montarias desbloqueadas da conta.</summary>
+    IReadOnlyCollection<int> ObterColecao(long contaId);
 }
