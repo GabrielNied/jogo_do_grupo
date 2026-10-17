@@ -284,6 +284,18 @@ namespace JogoDoGrupo.Shared.Features.Mundo
         /// </summary>
         public static Bioma BiomaEm(float x, float z)
         {
+            if (DadosDoMapaFeitoAMao.Disponivel)
+            {
+                DadosDoMapaFeitoAMao.TentarAmostrar(
+                    IndiceDaGrade(x),
+                    IndiceDaGrade(z),
+                    out _,
+                    out var biomaExportado,
+                    out _
+                );
+                return biomaExportado;
+            }
+
             if (Math.Abs(x) <= MetadeDaCidade && Math.Abs(z) <= MetadeDaCidade)
             {
                 return Bioma.Cidade;
@@ -295,6 +307,11 @@ namespace JogoDoGrupo.Shared.Features.Mundo
         /// <summary>Quanto de cada bioma existe em (<paramref name="x"/>, <paramref name="z"/>).</summary>
         public static PesosDosBiomas PesosEm(float x, float z)
         {
+            if (DadosDoMapaFeitoAMao.Disponivel)
+            {
+                return PesosDoBioma(BiomaEm(x, z));
+            }
+
             Calcular(x, z, false, out var pesos);
             return pesos;
         }
@@ -315,6 +332,12 @@ namespace JogoDoGrupo.Shared.Features.Mundo
         /// </summary>
         public static float AmostrarNaGrade(int i, int j, out PesosDosBiomas pesos)
         {
+            if (DadosDoMapaFeitoAMao.TentarAmostrar(i, j, out var altura, out var bioma, out _))
+            {
+                pesos = PesosDoBioma(bioma);
+                return altura;
+            }
+
             var x = CoordenadaDaGrade(Limitar(i, 0, CelulasPorLado));
             var z = CoordenadaDaGrade(Limitar(j, 0, CelulasPorLado));
             return Calcular(x, z, true, out pesos);
@@ -357,14 +380,21 @@ namespace JogoDoGrupo.Shared.Features.Mundo
 
             var leste = AlturaNaGrade(i + 1, j);
             var norte = AlturaNaGrade(i, j + 1);
+            float altura;
             if (fx + fz <= 1f)
             {
                 var origem = AlturaNaGrade(i, j);
-                return origem + (leste - origem) * fx + (norte - origem) * fz;
+                altura = origem + (leste - origem) * fx + (norte - origem) * fz;
+            }
+            else
+            {
+                var oposto = AlturaNaGrade(i + 1, j + 1);
+                altura = oposto + (norte - oposto) * (1f - fx) + (leste - oposto) * (1f - fz);
             }
 
-            var oposto = AlturaNaGrade(i + 1, j + 1);
-            return oposto + (norte - oposto) * (1f - fx) + (leste - oposto) * (1f - fz);
+            return DadosDoMapaFeitoAMao.Disponivel
+                ? ModificadoresDoMapa.AplicarDinamicos(x, z, altura)
+                : altura;
         }
 
         // Pesos dos biomas e, se pedida, a altura do chão sem interpolar. As fronteiras são
@@ -495,7 +525,70 @@ namespace JogoDoGrupo.Shared.Features.Mundo
         /// <summary>Altura anterior ao tracado autoral, para a previa da ferramenta no editor.</summary>
         public static float AlturaBaseDaAutoriaEm(float x, float z)
         {
+            if (DadosDoMapaFeitoAMao.Disponivel)
+            {
+                return AlturaEm(x, z);
+            }
+
             return Calcular(x, z, true, out _, false);
+        }
+
+        /// <summary>Áreas especiais do ponto mais próximo da grade publicada.</summary>
+        public static AreaEspecialDoMapa AreasEspeciaisEm(float x, float z)
+        {
+            if (DadosDoMapaFeitoAMao.Disponivel)
+            {
+                DadosDoMapaFeitoAMao.TentarAmostrar(
+                    IndiceDaGrade(x),
+                    IndiceDaGrade(z),
+                    out _,
+                    out _,
+                    out var areas
+                );
+                return areas;
+            }
+
+            var bioma = BiomaEm(x, z);
+            var areasPadrao =
+                bioma == Bioma.Cidade ? AreaEspecialDoMapa.Cidade : AreaEspecialDoMapa.Nenhuma;
+            if (bioma == Bioma.Pantano && AlturaEm(x, z) < NivelDaAgua)
+            {
+                areasPadrao |= AreaEspecialDoMapa.Agua | AreaEspecialDoMapa.Pantano;
+            }
+
+            if (bioma == Bioma.Lava && AlturaEm(x, z) < NivelDaLava)
+            {
+                areasPadrao |= AreaEspecialDoMapa.Lava;
+            }
+
+            return areasPadrao;
+        }
+
+        private static int IndiceDaGrade(float coordenada)
+        {
+            return Limitar(
+                (int)Math.Round((coordenada + Metade) / PassoDaGrade),
+                0,
+                CelulasPorLado
+            );
+        }
+
+        private static PesosDosBiomas PesosDoBioma(Bioma bioma)
+        {
+            if (bioma == Bioma.Cidade)
+            {
+                return new PesosDosBiomas(1f, 0f, 0f, 0f, 0f, 0f, 0f);
+            }
+
+            return new PesosDosBiomas(
+                bioma == Bioma.Campo ? 1f : 0f,
+                bioma == Bioma.Mata ? 1f : 0f,
+                bioma == Bioma.Colinas ? 1f : 0f,
+                bioma == Bioma.Deserto ? 1f : 0f,
+                bioma == Bioma.Neve ? 1f : 0f,
+                bioma == Bioma.Lava ? 1f : 0f,
+                bioma == Bioma.Pantano ? 1f : 0f
+            );
         }
 
         /// <summary>Densidade autoral relativa da vegetação no ponto (1 é a distribuição padrão).</summary>
@@ -511,6 +604,21 @@ namespace JogoDoGrupo.Shared.Features.Mundo
             }
 
             return densidade;
+        }
+
+        /// <summary>Quanto as árvores entram no chão no ponto, misturado pelas regiões autorais.</summary>
+        public static float EnterroDaVegetacaoEm(float x, float z)
+        {
+            var enterro = 0.15f;
+            var regioes = RegioesAtivas;
+            for (var indice = 0; indice < regioes.Length; indice++)
+            {
+                var regiao = regioes[indice];
+                var cobertura = CoberturaPermitida(regiao, x, z);
+                enterro += (regiao.EnterroDaVegetacao - enterro) * cobertura;
+            }
+
+            return enterro;
         }
 
         /// <summary>Parte já redesenhada por alguma região autoral, inclusive na transição.</summary>

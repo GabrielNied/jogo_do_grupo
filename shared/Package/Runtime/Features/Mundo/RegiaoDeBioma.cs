@@ -29,7 +29,8 @@ namespace JogoDoGrupo.Shared.Features.Mundo
             Ponto[] pontos,
             float larguraDaBorda,
             float intensidadeDoRelevo,
-            float densidadeDaVegetacao
+            float densidadeDaVegetacao,
+            float enterroDaVegetacao = 0.15f
         )
         {
             if (string.IsNullOrWhiteSpace(nome))
@@ -60,6 +61,11 @@ namespace JogoDoGrupo.Shared.Features.Mundo
             if (!Valido(densidadeDaVegetacao, 0f, 2f))
             {
                 throw new ArgumentOutOfRangeException(nameof(densidadeDaVegetacao));
+            }
+
+            if (!Valido(enterroDaVegetacao, 0f, 0.5f))
+            {
+                throw new ArgumentOutOfRangeException(nameof(enterroDaVegetacao));
             }
 
             _pontos = (Ponto[])pontos.Clone();
@@ -97,6 +103,7 @@ namespace JogoDoGrupo.Shared.Features.Mundo
             LarguraDaBorda = larguraDaBorda;
             IntensidadeDoRelevo = intensidadeDoRelevo;
             DensidadeDaVegetacao = densidadeDaVegetacao;
+            EnterroDaVegetacao = enterroDaVegetacao;
             _minX = minX - larguraDaBorda / 2f;
             _maxX = maxX + larguraDaBorda / 2f;
             _minZ = minZ - larguraDaBorda / 2f;
@@ -108,6 +115,7 @@ namespace JogoDoGrupo.Shared.Features.Mundo
         public float LarguraDaBorda { get; }
         public float IntensidadeDoRelevo { get; }
         public float DensidadeDaVegetacao { get; }
+        public float EnterroDaVegetacao { get; }
         public Ponto[] Pontos => (Ponto[])_pontos.Clone();
 
         /// <summary>1 no interior, 0 fora e transição suave na largura escolhida.</summary>

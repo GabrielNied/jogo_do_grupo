@@ -91,12 +91,17 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
 
         private static readonly string[] PecasDaMata =
         {
-            "Arvore",
-            "Arvore_Alta",
-            "Arvore_Alta",
-            "Arvore_Torta",
-            "Arvore_Redonda",
-            "Arbusto",
+            "MataEstilizada/CommonTree_1",
+            "MataEstilizada/CommonTree_2",
+            "MataEstilizada/CommonTree_2",
+            "MataEstilizada/CommonTree_3",
+            "MataEstilizada/CommonTree_4",
+            "MataEstilizada/CommonTree_5",
+            "MataEstilizada/Bush_Common",
+            "MataEstilizada/Bush_Common_Flowers",
+            "MataEstilizada/Rock_Medium_1",
+            "MataEstilizada/Rock_Medium_2",
+            "MataEstilizada/Mushroom_Common",
         };
 
         private static readonly string[] PecasDasColinas =
@@ -191,7 +196,23 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
         /// <summary>Se o prefab é uma pedra (o resto é planta).</summary>
         public static bool EhPedra(string prefab)
         {
-            return prefab.StartsWith("Pedra") || prefab.StartsWith("Rocha");
+            return prefab.StartsWith("Pedra")
+                || prefab.StartsWith("Rocha")
+                || prefab.StartsWith("MataEstilizada/Rock_");
+        }
+
+        /// <summary>Árvores ficam em pé e só nascem em terreno que as comporta.</summary>
+        public static bool EhArvore(string prefab)
+        {
+            return prefab.StartsWith("Arvore")
+                || prefab == "Pinheiro"
+                || prefab.StartsWith("MataEstilizada/CommonTree_");
+        }
+
+        /// <summary>Evita troncos em encostas onde a raiz ficaria solta.</summary>
+        public static bool ArvoreCabeNaInclinacao(float x, float z)
+        {
+            return Declive(x, z) <= DecliveMaximoDeArvore;
         }
 
         /// <summary>
@@ -422,7 +443,10 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
                             continue;
                         }
 
-                        var prefab = sorteio.Proximo() < 0.65f ? "Arvore_Alta" : "Arvore_Redonda";
+                        var prefab =
+                            sorteio.Proximo() < 0.65f
+                                ? "MataEstilizada/CommonTree_2"
+                                : "MataEstilizada/CommonTree_4";
                         var y = MapaDoMundo.AlturaEm(x, z);
                         if (!Cabe(prefab, Bioma.Mata, x, y, z))
                         {
@@ -523,6 +547,16 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
         // Pedras variam mais de tamanho (até 2,6 vezes); árvores, de 0,9 a 1,5.
         private static float Escala(string prefab, float sorteado)
         {
+            if (ConfigVegetacao.EhArbusto(prefab))
+            {
+                return (0.9f + 0.6f * sorteado) * ConfigVegetacao.EscalaDosArbustos;
+            }
+
+            if (ConfigVegetacao.EhCogumelo(prefab))
+            {
+                return (0.9f + 0.6f * sorteado) * ConfigVegetacao.EscalaDosCogumelos;
+            }
+
             if (EhPedra(prefab))
             {
                 return 1f + 1.6f * sorteado * sorteado;

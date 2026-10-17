@@ -191,7 +191,9 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
                     var parametros = new RenderParams(grupo.Material)
                     {
                         camera = camera,
-                        shadowCastingMode = ShadowCastingMode.On,
+                        shadowCastingMode = grupo.Pequena
+                            ? ShadowCastingMode.Off
+                            : ShadowCastingMode.On,
                         receiveShadows = true,
                         lightProbeUsage = LightProbeUsage.Off,
                         worldBounds = grupo.Limites,

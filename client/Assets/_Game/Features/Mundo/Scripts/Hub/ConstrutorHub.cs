@@ -36,6 +36,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
         public const string PrefabDaLanterna = "Lanterna";
 
         private const string PastaPrefabs = "Mundo/";
+        private const string PrefabDoMapaPublicado = "Mundo/MapaPublicado";
 
         // Os prefabs em Resources foram gerados com o módulo de 2 m. Enquanto o chão medido
         // for menor que LayoutDoHub.Lado, as peças são ampliadas para acompanhar o layout.
@@ -128,6 +129,12 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
 
         private static async Awaitable<GameObject> MontarAsync(CancellationToken cancelar)
         {
+            var publicado = InstanciarMapaPublicado();
+            if (publicado != null)
+            {
+                return publicado;
+            }
+
             var raiz = new GameObject(NomeRaiz);
             _escalaDasPecas = MedirEscalaDasPecas();
             CriarChao(raiz.transform);
@@ -135,7 +142,8 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
 
             var terreno = new GameObject(NomeTerreno);
             terreno.transform.SetParent(raiz.transform, false);
-            await ConstrutorDoTerreno.ConstruirAsync(
+            TerrenoNativoDoMundo.Criar(terreno.transform);
+            await ConstrutorDoTerreno.ConstruirSobreTerrenoNativoAsync(
                 terreno.transform,
                 MaterialDoTerreno(),
                 cancelar
@@ -158,6 +166,12 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
         /// </summary>
         public static GameObject Montar()
         {
+            var publicado = InstanciarMapaPublicado();
+            if (publicado != null)
+            {
+                return publicado;
+            }
+
             return MontarComOrcamento(float.MaxValue, out _);
         }
 
@@ -207,6 +221,24 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
             var sol = CriarLuz(raiz);
             var preenchimento = CriarPreenchimento(raiz);
             ConfigurarAmbiente(raiz, sol, preenchimento);
+        }
+
+        private static GameObject InstanciarMapaPublicado()
+        {
+            if (!Application.isPlaying)
+            {
+                return null;
+            }
+
+            var modelo = Resources.Load<GameObject>(PrefabDoMapaPublicado);
+            if (modelo == null)
+            {
+                return null;
+            }
+
+            var mapa = Object.Instantiate(modelo);
+            mapa.name = NomeRaiz;
+            return mapa;
         }
 
         /// <summary>
@@ -278,7 +310,8 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
         {
             var terreno = new GameObject(NomeTerreno);
             terreno.transform.SetParent(pai, false);
-            ConstrutorDoTerreno.Construir(terreno.transform, MaterialDoTerreno());
+            TerrenoNativoDoMundo.Criar(terreno.transform);
+            ConstrutorDoTerreno.ConstruirSobreTerrenoNativo(terreno.transform, MaterialDoTerreno());
         }
 
         // Placa plana e colorida do terreno antigo e, logo abaixo, a barreira dele. O jogo não
@@ -549,14 +582,24 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
                 }
 
                 var altura = MapaDoMundo.AlturaEm(peca.X, peca.Z);
-                if (altura < MapaDoMundo.NivelDaAgua)
+                if (
+                    altura < MapaDoMundo.NivelDaAgua
+                    || (
+                        PecasDosBiomas.EhArvore(peca.Prefab)
+                        && !PecasDosBiomas.ArvoreCabeNaInclinacao(peca.X, peca.Z)
+                    )
+                )
                 {
                     continue;
                 }
 
+                var enterro = PecasDosBiomas.EhArvore(peca.Prefab)
+                    ? MapaDoMundo.EnterroDaVegetacaoEm(peca.X, peca.Z)
+                    : 0f;
+
                 var instancia = Instanciar(
                     peca.Prefab,
-                    new Vector3(peca.X, altura, peca.Z),
+                    new Vector3(peca.X, altura - enterro, peca.Z),
                     peca.Guinada,
                     props
                 );

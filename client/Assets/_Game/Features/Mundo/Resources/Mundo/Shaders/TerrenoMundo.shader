@@ -191,17 +191,13 @@ Shader "JogoDoGrupo/TerrenoMundo"
                 // Encostas e paredões usam rocha com relevo modelado
                 chao = lerp(chao, rock, fatorParedao);
 
-                // Micro-relevo sutil (30% de intensidade) centrado em 0.5
-                half4 detail = SAMPLE_TEXTURE2D(_DetailAlbedoMap, sampler_DetailAlbedoMap, input.positionWS.xz * 0.5);
-                half3 microRelevo = lerp(half3(1.0, 1.0, 1.0), detail.rgb * 2.0, 0.30);
-
                 // Tint suave do bioma: preserva a rocha natural pura em paredões e tinge o chão plano
                 half3 tintBioma = lerp(half3(1.0, 1.0, 1.0), macroColor.rgb * 1.35, 0.45 * (1.0 - fatorParedao * 0.88));
 
                 // Realce sutil da quina geológica no topo da encosta
                 half realceQuina = pesoQuina * smoothstep(0.15, 0.60, fatorParedao) * 0.12;
 
-                half3 albedo = (chao.rgb * tintBioma * microRelevo) + realceQuina;
+                half3 albedo = (chao.rgb * tintBioma) + realceQuina;
 
                 // Iluminação URP com sombras e relevo modelado
                 float4 shadowCoord = TransformWorldToShadowCoord(input.positionWS);

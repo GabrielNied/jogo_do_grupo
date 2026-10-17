@@ -344,24 +344,14 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
             var terreno = _hub.transform.Find(ConstrutorHub.NomeTerreno);
             Assert.IsNotNull(terreno, "O hub deveria ter o terreno de fora.");
 
-            // Até 2026-10-11 era um colisor só na raiz, de 1 km, com a face de cima em zero. Agora
-            // o chão é uma malha com relevo em blocos, cada um com o seu colisor: juntos cobrem
-            // o mundo de 3 km. Logo fora dos muros ele sobe devagar (a faixa inicial, até 5 m):
-            // o laço abaixo confere a face de cima contra MapaDoMundo.AlturaEm.
-            var blocos = terreno.Find(ConstrutorDoTerreno.NomeBlocos);
-            Assert.IsNotNull(blocos, "O terreno precisa dos blocos do chão.");
-            // O remendo da boca da caverna também mora em "blocos" e tem colisor, mas não é bloco.
-            var colisores = blocos
-                .GetComponentsInChildren<MeshCollider>()
-                .Where(c => c.name != ConstrutorDoTerreno.NomeFuroDaCaverna)
-                .ToArray();
-            var total = ConstrutorDoTerreno.BlocosPorLado * ConstrutorDoTerreno.BlocosPorLado;
-            Assert.AreEqual(total, colisores.Length);
-            var chao = colisores[0].bounds;
-            foreach (var colisor in colisores)
-            {
-                chao.Encapsulate(colisor.bounds);
-            }
+            // O chão agora é um Terrain editável, com um TerrainCollider só para todo o mundo.
+            // Logo fora dos muros ele sobe devagar (a faixa inicial, até 5 m): o laço abaixo
+            // confere a face de cima contra MapaDoMundo.AlturaEm.
+            var chaoNativo = terreno.Find(TerrenoNativoDoMundo.Nome);
+            Assert.IsNotNull(chaoNativo, "O terreno precisa do chão nativo.");
+            var colisorNativo = chaoNativo.GetComponent<TerrainCollider>();
+            Assert.IsNotNull(colisorNativo, "O Terrain precisa do próprio colisor.");
+            var chao = colisorNativo.bounds;
 
             Assert.GreaterOrEqual(chao.size.x, MapaDoMundo.Lado - 0.01f);
             Assert.GreaterOrEqual(chao.size.z, MapaDoMundo.Lado - 0.01f);
@@ -717,7 +707,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
 
             Construir();
             var terreno = _hub.transform.Find(ConstrutorHub.NomeTerreno);
-            Assert.IsNotNull(terreno.Find(ConstrutorDoTerreno.NomeBlocos));
+            Assert.IsNotNull(terreno.Find(TerrenoNativoDoMundo.Nome));
         }
 
         [Test]
