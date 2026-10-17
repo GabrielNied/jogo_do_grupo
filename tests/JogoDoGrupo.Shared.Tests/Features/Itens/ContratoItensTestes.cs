@@ -6,14 +6,15 @@ namespace JogoDoGrupo.Shared.Tests.Features.Itens;
 public class ContratoItensTestes
 {
     [Fact]
-    public void Catalogo_tem_exatamente_os_5_ids_combinados()
+    public void Catalogo_tem_os_ids_combinados()
     {
-        Assert.Equal(new[] { 1, 2, 3, 4, 11 }, CatalogoItens.Todos);
-        Assert.Equal(5, CatalogoItens.Todos.Distinct().Count());
+        Assert.Equal(new[] { 1, 2, 3, 4, 10, 11 }, CatalogoItens.Todos);
+        Assert.Equal(6, CatalogoItens.Todos.Distinct().Count());
         Assert.Equal(1, CatalogoItens.EspadaDeTeste);
         Assert.Equal(2, CatalogoItens.EscudoDeTeste);
         Assert.Equal(3, CatalogoItens.PocaoDeTeste);
         Assert.Equal(4, CatalogoItens.MoedaDeTeste);
+        Assert.Equal(10, CatalogoItens.RedeasDoCorcelNoturno);
         Assert.Equal(11, CatalogoItens.SinoDoCervoJovem);
     }
 
@@ -22,6 +23,7 @@ public class ContratoItensTestes
     [InlineData(2, "Escudo de teste")]
     [InlineData(3, "Poção de teste")]
     [InlineData(4, "Moeda de teste")]
+    [InlineData(10, "Rédeas do Corcel Noturno")]
     [InlineData(11, "Sino do Cervo Jovem")]
     public void ObterNome_devolve_o_nome_exibido(int itemId, string esperado) =>
         Assert.Equal(esperado, CatalogoItens.ObterNome(itemId));

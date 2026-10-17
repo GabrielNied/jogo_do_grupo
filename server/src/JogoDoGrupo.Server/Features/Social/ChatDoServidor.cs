@@ -84,7 +84,7 @@ public sealed class ChatDoServidor(
                 }
 
                 destinatarios = posicoes
-                    .PersonagensNaArea(AreasDoMundo.Cidade)
+                    .PersonagensNaArea(posicaoDoRemetente.Area)
                     .Where(id =>
                         posicoes.TentarObter(id, out var posicao)
                         && AreasDoMundo.DentroDosMuros(posicao)

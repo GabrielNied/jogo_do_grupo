@@ -141,4 +141,14 @@ public class TabelaDeLootTestes
             Enum.GetValues<RaridadeItem>().Select(RegrasEquipamentos.NomeDaRaridade)
         );
     }
+
+    [Fact]
+    public void Item_de_montaria_do_chefe_esta_definido_e_tem_nome()
+    {
+        Assert.Equal(CatalogoItens.RedeasDoCorcelNoturno, TabelaDeLoot.ItemMontariaChefe);
+        Assert.Equal(
+            "Rédeas do Corcel Noturno",
+            CatalogoItens.ObterNome(TabelaDeLoot.ItemMontariaChefe)
+        );
+    }
 }

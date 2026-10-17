@@ -77,7 +77,8 @@ public sealed partial class GrupoDeInimigos
     private void ReporMortos(long agora, List<InimigoApareceu> aparicoes)
     {
         if (
-            _ondaEmMs != null
+            !PeriodoAtivo()
+            || _ondaEmMs != null
             || !_inimigos.Any(i => i.ReporEmMs is { } quando && agora >= quando)
             || !_inimigos.Any(i => RegrasInimigo.EstaVivo(i.Estado))
             || !_inimigos.All(ForaDeLuta)
@@ -121,6 +122,13 @@ public sealed partial class GrupoDeInimigos
     // de novo daqui a pouco.
     private void MontarGrupo(long agora, List<InimigoApareceu>? aparicoes)
     {
+        if (!PeriodoAtivo())
+        {
+            _inimigos = [];
+            _ondaEmMs = agora + EmMs(ConfigInimigosDoCampo.TentativaDeVagaSegundos);
+            return;
+        }
+
         var desejado =
             _tamanhoMinimo == Capacidade
                 ? Capacidade

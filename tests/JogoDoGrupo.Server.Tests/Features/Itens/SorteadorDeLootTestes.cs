@@ -173,4 +173,26 @@ public class SorteadorDeLootTestes
             q => q.ModeloId == TabelaDeLoot.ItemPetRaro
         );
     }
+
+    [Theory]
+    [InlineData(OrigemDoLoot.Chefe)]
+    [InlineData(OrigemDoLoot.ChefeRaro)]
+    public void Chefes_podem_dropar_item_raro_de_montaria(OrigemDoLoot origem)
+    {
+        var sorteios = Sortear(1000, semente: 42, origem: origem);
+        var modelos = sorteios.SelectMany(q => q).Select(q => q.ModeloId).ToHashSet();
+
+        Assert.Contains(TabelaDeLoot.ItemMontariaChefe, modelos);
+    }
+
+    [Theory]
+    [InlineData(OrigemDoLoot.Comum)]
+    [InlineData(OrigemDoLoot.Elite)]
+    public void Comum_e_elite_nunca_dropam_montaria(OrigemDoLoot origem)
+    {
+        var sorteios = Sortear(1000, semente: 42, origem: origem);
+        var modelos = sorteios.SelectMany(q => q).Select(q => q.ModeloId).ToHashSet();
+
+        Assert.DoesNotContain(TabelaDeLoot.ItemMontariaChefe, modelos);
+    }
 }

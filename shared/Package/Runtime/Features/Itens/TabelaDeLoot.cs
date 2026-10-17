@@ -99,6 +99,9 @@ namespace JogoDoGrupo.Shared.Features.Itens
         /// <summary>Item consumível de pet raro que criaturas comuns e elites podem largar.</summary>
         public const int ItemPetRaro = CatalogoItens.SinoDoCervoJovem;
 
+        /// <summary>Item de montaria que chefe ou chefe raro pode largar como drop raro.</summary>
+        public const int ItemMontariaChefe = CatalogoItens.RedeasDoCorcelNoturno;
+
         /// <summary>
         /// Sorteia uma peça: modelo uniforme entre os 72 do catálogo (ou o modelo exclusivo se chefe raro),
         /// grau pelo nível do inimigo e a origem guardada. Cada chamada gasta números de <paramref name="aleatorio"/>.

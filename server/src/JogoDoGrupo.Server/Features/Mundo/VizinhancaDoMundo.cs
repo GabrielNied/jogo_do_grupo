@@ -3,22 +3,34 @@ using JogoDoGrupo.Server.Contratos.Mundo;
 namespace JogoDoGrupo.Server.Features.Mundo;
 
 /// <summary>A consulta de vizinhança: a grade na cidade, a área inteira nas instâncias.</summary>
-internal sealed class VizinhancaDoMundo<TSessao>(
-    EstadoDasAreasDoMundo<TSessao> areas,
-    GradeDeInteresse grade
-) : IVizinhanca
+internal sealed class VizinhancaDoMundo<TSessao> : IVizinhanca
     where TSessao : class
 {
+    private readonly EstadoDasAreasDoMundo<TSessao> _areas;
+    private readonly Func<string, GradeDeInteresse> _obterGrade;
+
+    public VizinhancaDoMundo(EstadoDasAreasDoMundo<TSessao> areas, GradeDeInteresse grade)
+        : this(areas, _ => grade) { }
+
+    public VizinhancaDoMundo(
+        EstadoDasAreasDoMundo<TSessao> areas,
+        Func<string, GradeDeInteresse> obterGrade
+    )
+    {
+        _areas = areas;
+        _obterGrade = obterGrade;
+    }
+
     public IReadOnlyCollection<long> QuemVe(long personagemId)
     {
-        if (areas.Obter(personagemId) is not { } atual)
+        if (_areas.Obter(personagemId) is not { } atual)
         {
             return [];
         }
 
-        return atual.Area == AreasDoMundo.Cidade
-            ? grade.Vistos(personagemId)
-            : areas.PersonagensNaArea(atual.Area).Where(id => id != personagemId).ToArray();
+        return AreasDoMundo.EhCidade(atual.Area)
+            ? _obterGrade(atual.Area).Vistos(personagemId)
+            : _areas.PersonagensNaArea(atual.Area).Where(id => id != personagemId).ToArray();
     }
 
     public IReadOnlyCollection<long> PersonagensPerto(
@@ -28,15 +40,15 @@ internal sealed class VizinhancaDoMundo<TSessao>(
         float raioMetros
     )
     {
-        if (area == AreasDoMundo.Cidade)
+        if (AreasDoMundo.EhCidade(area))
         {
-            return grade.Perto(x, z, raioMetros);
+            return _obterGrade(area).Perto(x, z, raioMetros);
         }
 
         var perto = new List<long>();
-        foreach (var id in areas.PersonagensNaArea(area))
+        foreach (var id in _areas.PersonagensNaArea(area))
         {
-            if (areas.Obter(id) is { } a && a.Area == area)
+            if (_areas.Obter(id) is { } a && a.Area == area)
             {
                 var dx = a.Avatar.Posicao.X - x;
                 var dz = a.Avatar.Posicao.Z - z;

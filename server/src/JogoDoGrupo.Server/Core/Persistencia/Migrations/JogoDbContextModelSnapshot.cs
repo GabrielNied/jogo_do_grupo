@@ -176,6 +176,29 @@ namespace JogoDoGrupo.Server.Core.Persistencia.Migrations
                         });
                 });
 
+            modelBuilder.Entity("JogoDoGrupo.Server.Features.Montarias.MontariaDaConta", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("ContaId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("DesbloqueadaEm")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("TipoMontaria")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ContaId", "TipoMontaria")
+                        .IsUnique();
+
+                    b.ToTable("MontariasDaConta", (string)null);
+                });
+
             modelBuilder.Entity("JogoDoGrupo.Server.Features.Personagem.NomeReservado", b =>
                 {
                     b.Property<long>("Id")

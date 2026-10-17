@@ -21,5 +21,17 @@ namespace JogoDoGrupo.Shared.Features.Montarias
 
         /// <summary>Servidor → client: confirmação da montaria equipada.</summary>
         public const ushort MontariaEquipada = 16004;
+
+        /// <summary>Client → servidor: usa um item consumível de montaria para registrar na conta.</summary>
+        public const ushort UsarItemMontaria = 16005;
+
+        /// <summary>Servidor → client: lista de montarias desbloqueadas pela conta.</summary>
+        public const ushort ColecaoMontarias = 16006;
+
+        /// <summary>Servidor → client: notifica desbloqueio de nova montaria na conta.</summary>
+        public const ushort MontariaDesbloqueada = 16007;
+
+        /// <summary>Servidor → client: notifica recusa ao tentar usar ou equipar montaria.</summary>
+        public const ushort MontariaRecusada = 16008;
     }
 }

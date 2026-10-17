@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using JogoDoGrupo.Shared.Features.Itens;
+using JogoDoGrupo.Shared.Features.Montarias;
 using JogoDoGrupo.Shared.Features.Pets;
 
 namespace JogoDoGrupo.Client.Features.Itens
@@ -273,7 +274,10 @@ namespace JogoDoGrupo.Client.Features.Itens
             var tipo = TipoDe(entrada);
             if (tipo == null)
             {
-                if (RegrasPets.EspecieDoItem(entrada.ItemId) > 0)
+                if (
+                    RegrasPets.EspecieDoItem(entrada.ItemId) > 0
+                    || RegrasMontaria.TipoMontariaDoItem(entrada.ItemId) > 0
+                )
                 {
                     return new AcaoDoInventario
                     {

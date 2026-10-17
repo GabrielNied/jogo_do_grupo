@@ -63,6 +63,14 @@ Esse modelo evita `lock` espalhado por `Combate`, `Mobs` e `Itens`, reduz a chan
 
 **Compensação de lag:** o Core expõe `IHistoricoDePosicoesDoMundo` (amostras podadas a 250 ms). Mundo e Mobs registram posição; Combate consulta no acerto e na esquiva ([ADR 0039](decisoes/0039-compensacao-de-lag-no-servidor.md)).
 
+### Canais do mundo persistente (ADR 0045)
+
+Para suportar capacidade escalável sem sharding geográfico complexo, cada processo de servidor roda múltiplos **canais** lógicos do mundo (`ConfigCanais.QuantidadeCanaisPadrao = 3`, configurável via `Canais:Quantidade`; capacidade de 80 jogadores por canal, `ConfigCanais.CapacidadePorCanal` / `Canais:Capacidade`).
+
+- **Instanciação:** áreas da cidade são particionadas por canal (`cidade`, `cidade:2`, `cidade:3`...) com grades de interesse (`GradeDeInteresse`) independentes e chat de cidade isolado por canal.
+- **Entrada:** membros do mesmo grupo são direcionados para o canal dos aliados se houver vaga; jogadores avulsos são alocados no canal menos cheio.
+- **Troca de canal:** o client pode consultar (`ConsultarCanais`, `/canais`) e solicitar troca (`PedirTrocaDeCanal`, `/canal <N>`). A troca é permitida fora de combate e recusada em combate (`EmCombate`), se o canal for inválido (`CanalInvalido`), se for o mesmo canal (`MesmoCanal`) ou se o canal estiver lotado (`CanalLotado`). Ao trocar, as coordenadas são mantidas na nova instância e os observadores antigos/novos são atualizados de forma atômica.
+
 ## Servidor: como uma funcionalidade se pluga
 
 ### Observabilidade

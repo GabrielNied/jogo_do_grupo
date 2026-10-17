@@ -1,3 +1,4 @@
+using JogoDoGrupo.Server.Contratos.Mundo;
 using JogoDoGrupo.Shared.Features.Mundo;
 
 namespace JogoDoGrupo.Server.Features.Mundo;
@@ -8,7 +9,7 @@ namespace JogoDoGrupo.Server.Features.Mundo;
 /// lê a hora que está valendo; ninguém a reinicia. Fica em memória: reiniciar o servidor volta
 /// à hora inicial. Pode ser lido de qualquer thread.
 /// </summary>
-public sealed class RelogioDoMundo(TimeProvider relogio)
+public sealed class RelogioDoMundo(TimeProvider relogio) : IRelogioDoMundo
 {
     private readonly DateTimeOffset _ligadoEm = relogio.GetUtcNow();
 
@@ -18,6 +19,9 @@ public sealed class RelogioDoMundo(TimeProvider relogio)
             RegrasDiaENoite.HoraInicial,
             (relogio.GetUtcNow() - _ligadoEm).TotalSeconds
         );
+
+    /// <summary>Se é noite no momento atual.</summary>
+    public bool EhNoite() => RegrasDiaENoite.EhNoite(Hora());
 
     /// <summary>A hora de agora, pronta para enviar.</summary>
     public HoraDoMundo Mensagem() =>

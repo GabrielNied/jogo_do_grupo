@@ -11,6 +11,7 @@ namespace JogoDoGrupo.Shared.Features.Itens
         public const int EscudoDeTeste = 2;
         public const int PocaoDeTeste = 3;
         public const int MoedaDeTeste = 4;
+        public const int RedeasDoCorcelNoturno = 10;
         public const int SinoDoCervoJovem = 11;
 
         /// <summary>Todos os ids do catálogo, em ordem crescente.</summary>
@@ -20,6 +21,7 @@ namespace JogoDoGrupo.Shared.Features.Itens
             EscudoDeTeste,
             PocaoDeTeste,
             MoedaDeTeste,
+            RedeasDoCorcelNoturno,
             SinoDoCervoJovem,
         };
 
@@ -38,6 +40,8 @@ namespace JogoDoGrupo.Shared.Features.Itens
                     return "Poção de teste";
                 case MoedaDeTeste:
                     return "Moeda de teste";
+                case RedeasDoCorcelNoturno:
+                    return "Rédeas do Corcel Noturno";
                 case SinoDoCervoJovem:
                     return "Sino do Cervo Jovem";
                 default:

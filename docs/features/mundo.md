@@ -133,13 +133,23 @@ Quatro lugares fixos (issue #157), sempre nas mesmas coordenadas, montados pelo 
 - ~~**Peças provisórias:** enquanto o pacote CC0 novo não entra (cactos, pinheiros com neve, rochas vulcânicas), os quatro biomas de fora usam as árvores e pedras do Kenney Fantasy Town Kit, com a cor multiplicada pela do bioma (seca no deserto, fria na neve, queimada na lava, musgosa no pântano).~~ Substituído em 2026-10-11: cacto e árvore seca só no deserto, pinheiro só na neve (até 85 m), rocha vulcânica na lava, árvore de pântano nas ilhas, arbusto no campo e na mata. São malhas geradas no client (`VegetacaoProcedural`), apoiadas no chão, com colisor de cápsula no tronco desde 2026-10-14 (#502). Campo, mata e colinas continuam com as árvores do Kenney. Um pacote CC0 pode trocar essas malhas depois, sem mudar a posição.
 - **Ambiente:** o `AmbienteDosBiomas` troca a luz ambiente, a cor e a força do sol e a névoa conforme o bioma em que o jogador está, misturando perto das fronteiras: dia claro em volta da cidade, ar quente no deserto, branco frio na neve, vermelho escuro na lava e névoa verde e fechada no pântano. A névoa também esconde o fim do alcance da câmera (500 m, do Core). O fundo da câmera é o céu do bioma; a névoa fica na frente dele.
 
+### Clima dinâmico (issue #902)
+
+O clima é sorteado e sincronizado pelo servidor (`ClimaDoServidor`, `ServicoDeClimaDoMundo`, mensagem `ClimaDoMundo` ID 1014); todos na área recebem o mesmo clima. Os efeitos mudam conforme o bioma (`ConfigClima`):
+
+- **Tempo Limpo (`TipoDeClima.Limpo`):** visão padrão de 500 m (`DistanciaVisaoLimpo`) e velocidade plena (100%) em todos os biomas.
+- **Chuva (`TipoDeClima.Chuva`):** afeta campo, mata, colinas e arredores da cidade; alcance de visão reduzido para 250 m (`DistanciaVisaoChuva`). Velocidade de corrida permanece em 100%.
+- **Neblina (`TipoDeClima.Neblina`):** afeta pântano, mata e colinas; névoa densa fecha o alcance de visão para 80 m (`DistanciaVisaoNeblina`). Velocidade permanece em 100%.
+- **Nevasca (`TipoDeClima.Nevasca`):** afeta as montanhas de neve; visão severamente reduzida para 60 m (`DistanciaVisaoNevasca`) e velocidade de corrida limitada autoritativamente pelo servidor para 70% (`FatorVelocidadeNevasca = 0.70`). Nos demais biomas a velocidade não é afetada.
+- **Ritmo e duração:** cada período de clima dura entre 3 e 7 minutos (`DuracaoMinimaSegundos = 180`, `DuracaoMaximaSegundos = 420`, padrão 5 min / 300 s); o servidor sorteia o próximo período e sincroniza periodicamente a cada 30 s ou imediatamente na troca de clima e na entrada do jogador.
+
 ### Céu e clima visual
 
 Por bioma (issue #164), escurecendo com a hora do servidor ([Dia e noite](#dia-e-noite-163-contrato-da-380)).
 
 - **Céu:** cor própria por bioma, mais escura à noite. A névoa não pinta o fundo.
-- **Névoa:** aberta no campo, um pouco mais densa e quente no deserto, curta na neve, fechada no pântano. À noite escurece junto com o céu (menos que ele, para o horizonte não sumir).
-- **Efeito leve,** poucas partículas em volta do jogador: poeira no deserto, neve caindo na montanha, brasa na lava, névoa rasteira no pântano, vaga-lume na mata só de noite. O efeito do deserto não aparece na neve. Chuva, tempestade e qualquer clima que mude regra ficam de fora.
+- **Névoa:** aberta no campo, um pouco mais densa e quente no deserto, curta na neve, fechada no pântano. À noite escurece junto com o céu (menos que ele, para o horizonte não sumir). Sob neblina ou nevasca, o `CicloDoClima` fecha a densidade da névoa.
+- **Efeito leve:** partículas em volta do jogador acompanham o bioma e o clima ativo (poeira no deserto, neve caindo na montanha e sob nevasca, brasa na lava, névoa rasteira no pântano e sob neblina, vaga-lume na mata só de noite).
 
 ### Primeira caverna
 
@@ -232,8 +242,8 @@ Campos: `PersonagemId` (long), `X`, `Y`, `Z`, `RotacaoY` (float), `Nome` (string
 - **Instâncias** (dungeons) são pequenas e isoladas: seguem replicando para todos da área, sem grade.
 - **Contrato `IVizinhanca`** (`Contratos/Mundo`): `QuemVe(personagemId)` e `PersonagensPerto(area, x, z, raio)`, para Mobs e Combate não varrerem a área inteira. Na cidade responde pela grade; em instância, pela área toda. Mobs e Combate ainda não usam: o interesse deles é outra tarefa.
 - **Efeitos para quem usa a presença:** o modelo 3D, a etiqueta de nome e a réplica de movimento existem só para quem está perto. Aliados do grupo longe chegam por outro caminho, abaixo.
-- **Aliados do grupo a qualquer distância (#789):** o **Mundo publica** (é dono das posições e do mapa), lendo o grupo pelo contrato `IConsultaDeGrupo` do Social ([ADR 0016](../decisoes/0016-eventos-entre-funcionalidades-do-servidor.md)); o client do Mundo só recebe mensagem do Mundo. A cada **1 s** (`ServicoDePosicaoDoGrupo.IntervaloEmSegundos`), cada membro de grupo na cidade recebe `PosicoesDosAliados` (`MundoMessageIds.PosicoesDosAliados`) com `PersonagemId`, `X` e `Z` dos membros do grupo que estão na cidade e que ele **não** vê pela grade (fora de 180 m). Lista vazia é válida e substitui a anterior. Quem não é do grupo, solo ou em instância não recebe. O client desenha só ponto no mapa e no minimapa; aliado além do raio de 40 m do minimapa aparece na borda, na direção dele. Sem mensagem por 3 s o ponto some (saiu do grupo ou da cidade). Posição é informação de mapa, não revela mais que o grupo já sabe.
-- **Fora do escopo:** canais do mundo e lotação (#188); trocar JSON por binário.
+- **Canais do mundo e lotação (#188, [ADR 0045](../decisoes/0045-canais-do-mundo-persistente.md)):** a cidade é particionada em instâncias lógicas por canal (`cidade`, `cidade:2`, etc.) com capacidade padrão de 80 jogadores por canal (`ConfigCanais`). A entrada prioriza o canal dos membros do grupo (se houver vaga) ou o canal menos cheio. A troca de canal (`PedirTrocaDeCanal`, `/canal <N>`) é permitida fora de combate e recusada em combate (`EmCombate`), se o canal for inválido (`CanalInvalido`), se já for o mesmo (`MesmoCanal`) ou se estiver lotado (`CanalLotado`). O jogador consulta a lotação com `ConsultarCanais` (`/canais`). O minimapa exibe o canal atual junto das coordenadas.
+- **Fora do escopo:** trocar JSON por binário.
 
 **Outros jogadores com a raça, o nome e a animação (#498):**
 - O client cria o modelo pelo gancho `EntradaNoJogo.DefinirVisualDeOutroJogador` (Core), que Personagem preenche com o prefab da raça (`RegistroVisualJogador.CarregarVisualDaRaca`). Raça desconhecida ou sem prefab usa o prefab de reserva (Valdren); sem prefab nenhum, o Core devolve a cápsula. O Mundo não referencia Personagem.

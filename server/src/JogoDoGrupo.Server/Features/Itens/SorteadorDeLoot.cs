@@ -58,6 +58,21 @@ public sealed class SorteadorDeLoot(Random aleatorio) : ISorteadorDeLoot
                 );
             }
 
+            if (
+                (origem == OrigemDoLoot.Chefe || origem == OrigemDoLoot.ChefeRaro)
+                && aleatorio.NextDouble() < ConfigLoot.ChanceDeMontariaDoChefe
+            )
+            {
+                quedas.Add(
+                    new QuedaDeLoot
+                    {
+                        ModeloId = TabelaDeLoot.ItemMontariaChefe,
+                        Origem = origem,
+                        Grau = TabelaDeLoot.GrauDoNivel(nivelDoInimigo),
+                    }
+                );
+            }
+
             return quedas.ToArray();
         }
     }

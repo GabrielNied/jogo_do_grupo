@@ -26,6 +26,12 @@ namespace JogoDoGrupo.Shared.Features.Itens
         /// </summary>
         public const double ChanceDePetRaro = 0.02;
 
+        /// <summary>
+        /// Chance de uma queda do chefe ou chefe raro conter um item raro de montaria
+        /// (<see cref="TabelaDeLoot.ItemMontariaChefe"/>).
+        /// </summary>
+        public const double ChanceDeMontariaDoChefe = 0.05;
+
         // Faixas de nível do inimigo para o grau da peça: 1-9 Inicial, 10-19 Médio, 20+ Forte.
         // O requisito de nível para equipar é o piso da faixa do grau (1, 10 ou 20).
 
