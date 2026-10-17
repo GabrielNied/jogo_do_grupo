@@ -57,9 +57,9 @@ public class TabelaDeLootTestes
     public void Sortear_guarda_origem_e_grau_e_gasta_um_numero()
     {
         var aleatorio = new Random(5);
-        var queda = TabelaDeLoot.Sortear(aleatorio, OrigemDoLoot.ChefeRaro, 12);
+        var queda = TabelaDeLoot.Sortear(aleatorio, OrigemDoLoot.Comum, 12);
 
-        Assert.Equal(OrigemDoLoot.ChefeRaro, queda.Origem);
+        Assert.Equal(OrigemDoLoot.Comum, queda.Origem);
         Assert.Equal(GrauEquipamento.Medio, queda.Grau);
         Assert.InRange(
             queda.ModeloId,
@@ -69,6 +69,40 @@ public class TabelaDeLootTestes
         var referencia = new Random(5);
         referencia.Next(CatalogoEquipamentos.QuantidadeModelos);
         Assert.Equal(referencia.Next(), aleatorio.Next());
+    }
+
+    [Fact]
+    public void Chefe_raro_pode_largar_item_exclusivo()
+    {
+        var modelos = new HashSet<int>();
+        var aleatorio = new Random(42);
+        for (var i = 0; i < 100; i++)
+        {
+            var queda = TabelaDeLoot.Sortear(aleatorio, OrigemDoLoot.ChefeRaro, 10);
+            modelos.Add(queda.ModeloId);
+        }
+
+        Assert.Contains(TabelaDeLoot.ModeloExclusivoDoChefeRaro, modelos);
+        Assert.True(modelos.Count > 1);
+    }
+
+    [Theory]
+    [InlineData(OrigemDoLoot.Comum)]
+    [InlineData(OrigemDoLoot.Elite)]
+    [InlineData(OrigemDoLoot.Chefe)]
+    public void Outras_origens_nunca_largam_o_item_exclusivo_do_chefe_raro(OrigemDoLoot origem)
+    {
+        var aleatorio = new Random(123);
+        for (var i = 0; i < 200; i++)
+        {
+            var queda = TabelaDeLoot.Sortear(aleatorio, origem, 10);
+            Assert.NotEqual(TabelaDeLoot.ModeloExclusivoDoChefeRaro, queda.ModeloId);
+            Assert.InRange(
+                queda.ModeloId,
+                CatalogoEquipamentos.PrimeiroModelo,
+                CatalogoEquipamentos.PrimeiroModelo + CatalogoEquipamentos.QuantidadeModelos - 1
+            );
+        }
     }
 
     [Fact]

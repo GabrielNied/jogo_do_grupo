@@ -229,6 +229,12 @@ public sealed partial class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulado
     /// <summary>Área do mundo em que o grupo vive.</summary>
     public string Area { get; }
 
+    /// <summary>Definição da criatura base deste grupo.</summary>
+    public DefinicaoDeCriatura Definicao => _definicao;
+
+    /// <summary>Categoria da criatura do grupo.</summary>
+    public CategoriaDeCriatura Categoria => _definicao.Categoria;
+
     /// <summary>O maior número de inimigos que o grupo pode ter de uma vez.</summary>
     public int Capacidade { get; }
 
@@ -300,15 +306,29 @@ public sealed partial class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulado
             {
                 for (var i = 0; i < _inimigos.Length; i++)
                 {
-                    var morto = _inimigos[i];
-                    if (
-                        morto.Estado == EstadoDeInimigo.Morto
-                        && _aparicao.Atualizar(Instante(agora))
-                    )
+                    var inimigo = _inimigos[i];
+                    if (inimigo.Estado == EstadoDeInimigo.Morto)
                     {
-                        var chefe = Criar(morto.OrigemX, morto.OrigemZ, false);
-                        _inimigos[i] = chefe;
-                        passo.Aparicoes.Add(new InimigoApareceu { Inimigo = Retrato(chefe) });
+                        if (_aparicao.Atualizar(Instante(agora), emCombate: false, out _))
+                        {
+                            var chefe = Criar(inimigo.OrigemX, inimigo.OrigemZ, false);
+                            _inimigos[i] = chefe;
+                            passo.Aparicoes.Add(new InimigoApareceu { Inimigo = Retrato(chefe) });
+                        }
+                    }
+                    else
+                    {
+                        var emCombate = !ForaDeLuta(inimigo);
+                        _aparicao.Atualizar(Instante(agora), emCombate, out var sumiu);
+                        if (sumiu)
+                        {
+                            inimigo.Estado = EstadoDeInimigo.Morto;
+                            inimigo.Alvo = RegrasInimigo.SemAlvo;
+                            inimigo.Preparando = false;
+                            inimigo.Ameacas.Limpar();
+                            inimigo.Participantes.Clear();
+                            passo.Mortes.Add(new InimigoMorreu { InimigoId = inimigo.Id });
+                        }
                     }
                 }
             }

@@ -14,16 +14,23 @@ public sealed class AparicaoDeChefeRaro
     private readonly object _trava = new();
     private readonly ISorteadorDeCriaturas _sorteador;
     private readonly TimeSpan _intervalo;
+    private readonly TimeSpan _tempoDePermanencia;
     private DateTimeOffset _proximoSorteio;
+    private DateTimeOffset _ultimoInstante;
+    private TimeSpan _tempoRestante;
     private bool _presente;
 
     /// <param name="definicao">Ficha de um <see cref="CategoriaDeCriatura.ChefeRaro"/>.</param>
     /// <param name="sorteador">Quem sorteia a aparição.</param>
     /// <param name="inicio">Momento do primeiro sorteio (o servidor subindo).</param>
+    /// <param name="tempoDePermanencia">
+    /// Tempo máximo no mundo antes de sumir se não for morto (padrão <see cref="ConfigChefeRaro.TempoDePermanenciaSegundos"/>).
+    /// </param>
     public AparicaoDeChefeRaro(
         DefinicaoDeCriatura definicao,
         ISorteadorDeCriaturas sorteador,
-        DateTimeOffset inicio
+        DateTimeOffset inicio,
+        TimeSpan? tempoDePermanencia = null
     )
     {
         if (definicao.Categoria != CategoriaDeCriatura.ChefeRaro)
@@ -44,7 +51,11 @@ public sealed class AparicaoDeChefeRaro
         Definicao = definicao;
         _sorteador = sorteador;
         _intervalo = TimeSpan.FromSeconds(definicao.IntervaloDeAparicaoSegundos);
+        _tempoDePermanencia =
+            tempoDePermanencia ?? TimeSpan.FromSeconds(ConfigChefeRaro.TempoDePermanenciaSegundos);
+        _tempoRestante = _tempoDePermanencia;
         _proximoSorteio = inicio;
+        _ultimoInstante = inicio;
     }
 
     public DefinicaoDeCriatura Definicao { get; }
@@ -61,23 +72,74 @@ public sealed class AparicaoDeChefeRaro
         }
     }
 
+    /// <summary>Tempo restante antes de sumir por tempo (pausado enquanto em combate).</summary>
+    public TimeSpan TempoRestante
+    {
+        get
+        {
+            lock (_trava)
+            {
+                return _tempoRestante;
+            }
+        }
+    }
+
     /// <summary>
     /// Avança o controle até <paramref name="agora"/>. Devolve <c>true</c> só na chamada em
-    /// que o chefe apareceu. Faz no máximo um sorteio por chamada: intervalos que passaram
-    /// sem ninguém chamar não viram sorteios acumulados.
+    /// que o chefe apareceu.
     /// </summary>
-    public bool Atualizar(DateTimeOffset agora)
+    public bool Atualizar(DateTimeOffset agora) => Atualizar(agora, emCombate: false, out _);
+
+    /// <summary>
+    /// Avança o controle até <paramref name="agora"/>. Devolve <c>true</c> só na chamada em
+    /// que o chefe apareceu. <paramref name="sumiu"/> indica se o chefe sumiu por tempo esgotado.
+    /// Enquanto <paramref name="emCombate"/> for <c>true</c>, o timer de 30 min fica pausado.
+    /// </summary>
+    public bool Atualizar(DateTimeOffset agora, bool emCombate, out bool sumiu)
     {
+        sumiu = false;
         lock (_trava)
         {
-            if (_presente || agora < _proximoSorteio)
+            if (_presente)
             {
+                var delta = agora - _ultimoInstante;
+                if (delta > TimeSpan.Zero)
+                {
+                    if (!emCombate)
+                    {
+                        _tempoRestante -= delta;
+                        if (_tempoRestante <= TimeSpan.Zero)
+                        {
+                            _tempoRestante = TimeSpan.Zero;
+                            _presente = false;
+                            sumiu = true;
+                            _proximoSorteio = agora + _intervalo;
+                        }
+                    }
+
+                    _ultimoInstante = agora;
+                }
+
+                return false;
+            }
+
+            if (agora < _proximoSorteio)
+            {
+                _ultimoInstante = agora;
                 return false;
             }
 
             _proximoSorteio = agora + _intervalo;
             _presente = _sorteador.Aparece(Definicao);
-            return _presente;
+            if (_presente)
+            {
+                _tempoRestante = _tempoDePermanencia;
+                _ultimoInstante = agora;
+                return true;
+            }
+
+            _ultimoInstante = agora;
+            return false;
         }
     }
 
@@ -95,7 +157,9 @@ public sealed class AparicaoDeChefeRaro
             }
 
             _presente = false;
+            _tempoRestante = TimeSpan.Zero;
             _proximoSorteio = agora + _intervalo;
+            _ultimoInstante = agora;
             return true;
         }
     }

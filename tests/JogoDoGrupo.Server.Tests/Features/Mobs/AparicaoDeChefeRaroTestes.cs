@@ -74,9 +74,90 @@ public class AparicaoDeChefeRaroTestes
         var aparicao = new AparicaoDeChefeRaro(Raro, sorteador, Inicio);
         aparicao.Atualizar(Inicio);
 
-        Assert.False(aparicao.Atualizar(Inicio + Intervalo * 10));
+        Assert.False(aparicao.Atualizar(Inicio + TimeSpan.FromMinutes(15)));
         Assert.True(aparicao.Presente);
         Assert.Equal(1, sorteador.Sorteios);
+
+        Assert.False(aparicao.Atualizar(Inicio + Intervalo * 10, emCombate: true, out var sumiu));
+        Assert.False(sumiu);
+        Assert.True(aparicao.Presente);
+        Assert.Equal(1, sorteador.Sorteios);
+    }
+
+    [Fact]
+    public void Chefe_raro_com_29m59s_sem_combate_continua_vivo()
+    {
+        var sorteador = new SorteadorCombinado(true);
+        var aparicao = new AparicaoDeChefeRaro(Raro, sorteador, Inicio);
+        Assert.True(aparicao.Atualizar(Inicio));
+
+        Assert.False(
+            aparicao.Atualizar(
+                Inicio + TimeSpan.FromMinutes(30) - TimeSpan.FromSeconds(1),
+                emCombate: false,
+                out var sumiu
+            )
+        );
+        Assert.False(sumiu);
+        Assert.True(aparicao.Presente);
+        Assert.Equal(TimeSpan.FromSeconds(1), aparicao.TempoRestante);
+    }
+
+    [Fact]
+    public void Chefe_raro_ao_zerar_30m_sem_combate_some_e_volta_ao_sorteio()
+    {
+        var sorteador = new SorteadorCombinado(true, true);
+        var aparicao = new AparicaoDeChefeRaro(Raro, sorteador, Inicio);
+        Assert.True(aparicao.Atualizar(Inicio));
+
+        Assert.False(
+            aparicao.Atualizar(Inicio + TimeSpan.FromMinutes(30), emCombate: false, out var sumiu)
+        );
+        Assert.True(sumiu);
+        Assert.False(aparicao.Presente);
+        Assert.Equal(TimeSpan.Zero, aparicao.TempoRestante);
+
+        Assert.False(
+            aparicao.Atualizar(
+                Inicio + TimeSpan.FromMinutes(30) + Intervalo - TimeSpan.FromSeconds(1)
+            )
+        );
+        Assert.Equal(1, sorteador.Sorteios);
+
+        Assert.True(aparicao.Atualizar(Inicio + TimeSpan.FromMinutes(30) + Intervalo));
+        Assert.Equal(2, sorteador.Sorteios);
+        Assert.True(aparicao.Presente);
+    }
+
+    [Fact]
+    public void Combate_ativo_pausa_timer_e_retoma_tempo_restante_ao_sair_de_combate()
+    {
+        var sorteador = new SorteadorCombinado(true);
+        var aparicao = new AparicaoDeChefeRaro(Raro, sorteador, Inicio);
+        Assert.True(aparicao.Atualizar(Inicio));
+
+        aparicao.Atualizar(Inicio + TimeSpan.FromMinutes(10), emCombate: false, out var sumiu1);
+        Assert.False(sumiu1);
+        Assert.Equal(TimeSpan.FromMinutes(20), aparicao.TempoRestante);
+
+        aparicao.Atualizar(Inicio + TimeSpan.FromMinutes(25), emCombate: true, out var sumiu2);
+        Assert.False(sumiu2);
+        Assert.Equal(TimeSpan.FromMinutes(20), aparicao.TempoRestante);
+        Assert.True(aparicao.Presente);
+
+        aparicao.Atualizar(
+            Inicio + TimeSpan.FromMinutes(45) - TimeSpan.FromSeconds(1),
+            emCombate: false,
+            out var sumiu3
+        );
+        Assert.False(sumiu3);
+        Assert.Equal(TimeSpan.FromSeconds(1), aparicao.TempoRestante);
+        Assert.True(aparicao.Presente);
+
+        aparicao.Atualizar(Inicio + TimeSpan.FromMinutes(45), emCombate: false, out var sumiu4);
+        Assert.True(sumiu4);
+        Assert.False(aparicao.Presente);
+        Assert.Equal(TimeSpan.Zero, aparicao.TempoRestante);
     }
 
     [Fact]

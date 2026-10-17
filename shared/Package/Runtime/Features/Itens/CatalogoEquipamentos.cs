@@ -16,6 +16,9 @@ namespace JogoDoGrupo.Shared.Features.Itens
         /// <summary>Espada, Arco, Cajado, Escudo e Foco de teste, só para o botão de equipamento de teste.</summary>
         public const int QuantidadeModelosDeArma = 5;
 
+        /// <summary>Item exclusivo que só o chefe raro Presa-Velha pode largar.</summary>
+        public const int AdornoPresaVelha = 200;
+
         private static readonly string[] Familias =
         {
             "Vigia/Bastião",
@@ -134,6 +137,24 @@ namespace JogoDoGrupo.Shared.Features.Itens
                 return Arma(id, CatalogoItens.ObterNome(id), TipoEquipamento.Escudo);
             if (id == 100)
                 return Arma(id, "Martelo Ressonante", TipoEquipamento.Martelo);
+            if (id == AdornoPresaVelha)
+            {
+                var atributosAdorno = new List<AtributoItem>();
+                atributosAdorno.Add(Fixo(StatusItem.DanoFisico, 0));
+                atributosAdorno.Add(Fixo(StatusItem.ChanceCritica, 0));
+                atributosAdorno.Add(Fixo(StatusItem.VidaMaxima, 0));
+                atributosAdorno.Add(Fixo(StatusItem.DefesaFisica, 0));
+                return new Equipamento
+                {
+                    ModeloId = id,
+                    Nome = "Adorno da Presa-Velha",
+                    Familia = "Predador/Ruptor",
+                    Variacao = "A",
+                    Regiao = "Vale",
+                    Tipo = TipoEquipamento.Adorno,
+                    Atributos = atributosAdorno.ToArray(),
+                };
+            }
             if (id >= PrimeiroModeloDeArma && id < PrimeiroModeloDeArma + QuantidadeModelosDeArma)
             {
                 var tipo = ArmasDeTeste[id - PrimeiroModeloDeArma];

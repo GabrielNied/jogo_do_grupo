@@ -93,15 +93,30 @@ namespace JogoDoGrupo.Shared.Features.Itens
             }
         }
 
+        /// <summary>Modelo de equipamento exclusivo que só o chefe raro larga.</summary>
+        public const int ModeloExclusivoDoChefeRaro = CatalogoEquipamentos.AdornoPresaVelha;
+
         /// <summary>
-        /// Sorteia uma peça: modelo uniforme entre os 72 do catálogo, grau pelo nível do inimigo e
-        /// a origem guardada. Cada chamada gasta um número de <paramref name="aleatorio"/>.
+        /// Sorteia uma peça: modelo uniforme entre os 72 do catálogo (ou o modelo exclusivo se chefe raro),
+        /// grau pelo nível do inimigo e a origem guardada. Cada chamada gasta números de <paramref name="aleatorio"/>.
         /// </summary>
         public static QuedaDeLoot Sortear(Random aleatorio, OrigemDoLoot origem, int nivelDoInimigo)
         {
-            var modelo =
-                CatalogoEquipamentos.PrimeiroModelo
-                + aleatorio.Next(CatalogoEquipamentos.QuantidadeModelos);
+            int modelo;
+            if (
+                origem == OrigemDoLoot.ChefeRaro
+                && aleatorio.NextDouble() < ConfigLoot.ChanceDeItemExclusivoDoChefeRaro
+            )
+            {
+                modelo = ModeloExclusivoDoChefeRaro;
+            }
+            else
+            {
+                modelo =
+                    CatalogoEquipamentos.PrimeiroModelo
+                    + aleatorio.Next(CatalogoEquipamentos.QuantidadeModelos);
+            }
+
             return new QuedaDeLoot
             {
                 ModeloId = modelo,

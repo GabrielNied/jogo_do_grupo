@@ -76,8 +76,8 @@ Só a criatura **comum**. O sorteio acontece uma vez, quando ela aparece (inclus
 - **Chefe:** sempre aparece (chance 100%), com os valores de base. O de dungeon não volta sozinho: só numa instância nova.
 - **Chefe raro:** tem um ponto de aparição no mundo. A cada **intervalo** o servidor sorteia a **chance** de ele aparecer.
   - Não apareceu: só tenta de novo no intervalo seguinte.
-  - Apareceu: fica no mundo até morrer; enquanto isso não há sorteio.
-  - Morreu: a espera recomeça a partir da morte.
+  - Apareceu: emite aviso na área e marca no mapa/minimapa. Fica no mundo até morrer ou até 30 minutos sem combate (`ConfigChefeRaro`); em combate ativo, o timer de sumiço congela e retoma ao sair da luta. Ao sumir por tempo, não há derrota/XP/loot, e a espera recomeça.
+  - Morreu: a espera recomeça a partir da morte, com chance de loot exclusivo na tabela de itens.
   - O primeiro sorteio é quando o servidor sobe. Se o servidor ficar um tempo sem sortear, os intervalos perdidos **não** acumulam: é um sorteio só.
 - Com chance de 20% e intervalo de 30 minutos, o chefe raro aparece em média a cada 2 h 30 min, mas pode vir em sequência ou demorar bem mais.
 

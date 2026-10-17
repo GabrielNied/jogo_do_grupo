@@ -124,10 +124,58 @@ public class ChefeRaroNoCampoTestes
 
         for (var i = 0; i < 3; i++)
         {
-            Assert.Empty(campo.Passo(IntervaloMs).Aparicoes);
+            Assert.Empty(campo.Passo(IntervaloMs / 6).Aparicoes);
         }
 
         Assert.Equal(1, campo.Sorteador.Tentativas);
+        Assert.Single(campo.Grupo.Vivos());
+    }
+
+    [Fact]
+    public void Sem_combate_chefe_some_apos_30_min_e_recomeca_espera()
+    {
+        var campo = new Campo(aparece: true);
+        var id = Assert.Single(campo.Passo().Aparicoes).Inimigo.InimigoId;
+
+        // Com 29m59s continua vivo
+        Assert.Empty(campo.Passo(IntervaloMs - 1000).Mortes);
+        Assert.Single(campo.Grupo.Vivos());
+
+        // Ao completar 30 minutos sem combate: some sem derrota e emite morte para os clientes
+        var passo = campo.Passo(1000);
+        Assert.Equal(id, Assert.Single(passo.Mortes).InimigoId);
+        Assert.Empty(passo.Derrotas);
+        Assert.Empty(campo.Grupo.Vivos());
+
+        // Intervalo recomeça após o sumiço
+        Assert.Empty(campo.Passo(IntervaloMs - 1000).Aparicoes);
+        Assert.Equal(1, campo.Sorteador.Tentativas);
+        Assert.Single(campo.Passo(1000).Aparicoes);
+        Assert.Equal(2, campo.Sorteador.Tentativas);
+    }
+
+    [Fact]
+    public void Em_combate_timer_de_sumico_pausa_e_continua_vivo()
+    {
+        var campo = new Campo(aparece: true);
+        var id = Assert.Single(campo.Passo().Aparicoes).Inimigo.InimigoId;
+
+        var jogadorPerto = new JogadorNoCampo(
+            Jogador,
+            ConfigInimigosDoCampo.PontoDoChefeRaroX,
+            ConfigInimigosDoCampo.PontoDoChefeRaroZ
+                + ConfigInimigosDoCampo.RaioDoEspalhamentoMetros
+                + 3
+        );
+
+        // Mesmo passando mais de 30 minutos em combate ativo, não some
+        for (var i = 0; i < 35; i++)
+        {
+            campo.AgoraMs += 60_000;
+            var passo = campo.Grupo.Passo([jogadorPerto]);
+            Assert.Empty(passo.Mortes);
+        }
+
         Assert.Single(campo.Grupo.Vivos());
     }
 

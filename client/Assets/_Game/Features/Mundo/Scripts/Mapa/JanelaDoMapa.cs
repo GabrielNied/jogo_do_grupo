@@ -27,6 +27,7 @@ namespace JogoDoGrupo.Client.Features.Mundo
         private IVisualElementScheduledItem _agenda;
         private IVisualElementScheduledItem _agendaGeracao;
         private readonly List<MarcadorDoMapa> _outros = new List<MarcadorDoMapa>();
+        private readonly List<MarcadorDoMapa> _chefesRaros = new List<MarcadorDoMapa>();
 
         public override bool TelaInteira => true;
 
@@ -182,6 +183,7 @@ namespace JogoDoGrupo.Client.Features.Mundo
             }
 
             PresencaNoMundo.Atual?.CopiarOutros(_outros);
+            InimigosConhecidosNoMapa.Atual?.CopiarChefesRaros(_chefesRaros);
             _marcadores?.MarkDirtyRepaint();
             AtualizarPosicao();
         }
@@ -302,6 +304,31 @@ namespace JogoDoGrupo.Client.Features.Mundo
                     outro.Z,
                     ConfigVisual.Dimensoes.MarcadorAliado,
                     EstiloVisual.Cor(ConfigVisual.Cores.Marfim)
+                );
+            }
+
+            foreach (var chefe in _chefesRaros)
+            {
+                if (!ProjecaoDoMapa.NaAreaAtual(chefe.Area, ProjecaoDoMapa.AreaDaCidade))
+                {
+                    continue;
+                }
+
+                Ponto(
+                    pincel,
+                    ret,
+                    chefe.X,
+                    chefe.Z,
+                    ConfigVisual.Dimensoes.MarcadorAliado * 1.6f,
+                    EstiloVisual.Cor(ConfigVisual.Cores.Perigo)
+                );
+                Ponto(
+                    pincel,
+                    ret,
+                    chefe.X,
+                    chefe.Z,
+                    ConfigVisual.Dimensoes.MarcadorAliado * 0.7f,
+                    EstiloVisual.Cor(ConfigVisual.Cores.Ouro)
                 );
             }
 
