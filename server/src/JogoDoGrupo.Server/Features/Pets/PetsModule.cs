@@ -1,3 +1,4 @@
+using JogoDoGrupo.Server.Contratos.Combate;
 using JogoDoGrupo.Server.Contratos.Itens;
 using JogoDoGrupo.Server.Contratos.Mundo;
 using JogoDoGrupo.Server.Core;
@@ -23,7 +24,9 @@ public sealed class PetsModule : IFeatureModule
                 sp.GetRequiredService<IPosicoesDoMundo>(),
                 sp.GetRequiredService<IVizinhanca>(),
                 sp.GetService<ILootDoDono>(),
-                sp.GetRequiredService<ILogger<ServicoDePets>>()
+                sp.GetRequiredService<ILogger<ServicoDePets>>(),
+                sp.GetService<IServiceScopeFactory>(),
+                sp.GetService<IEstadoDeCombate>()
             );
             _pets = servico;
             return servico;
@@ -41,6 +44,16 @@ public sealed class PetsModule : IFeatureModule
             .Ao<DispensarPet>(
                 PetsMessageIds.DispensarPet,
                 (sessao, _) => _pets?.AoDispensar(sessao)
+            )
+            .Ao<UsarItemPet>(
+                PetsMessageIds.UsarItemPet,
+                (sessao, pedido) =>
+                    _ = _pets?.UsarItemPetAsync(
+                        sessao.ContaId,
+                        sessao.PersonagemId,
+                        pedido.InstanciaId,
+                        sessao
+                    )
             );
 
     public void Inicializar(ServerContext contexto)

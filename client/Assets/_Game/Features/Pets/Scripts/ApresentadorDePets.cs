@@ -36,11 +36,44 @@ namespace JogoDoGrupo.Client.Features.Pets
         private static ApresentadorDePets _instancia;
 
         private readonly Dictionary<long, PetNoClient> _pets = new Dictionary<long, PetNoClient>();
+        private readonly HashSet<int> _colecao = new HashSet<int>();
         private readonly List<System.IDisposable> _assinaturas = new List<System.IDisposable>();
+
+        /// <summary>Evento disparado quando a coleção de pets desbloqueados muda.</summary>
+        public static event System.Action ColecaoMudou;
+
+        /// <summary>Cópia do conjunto de espécies de pets desbloqueadas para a conta.</summary>
+        public static HashSet<int> Colecao =>
+            _instancia != null ? new HashSet<int>(_instancia._colecao) : new HashSet<int>();
+
+        /// <summary>Se a conta possui a espécie de pet desbloqueada.</summary>
+        public static bool Possui(EspecieDePet especie) =>
+            _instancia != null && _instancia._colecao.Contains((int)especie);
 
         /// <summary>Se o pet do jogador local está no mundo agora (o <c>/pet</c> alterna por isso).</summary>
         public static bool TemPetProprio =>
             _instancia != null && _instancia._pets.ContainsKey(EntradaNoJogo.PersonagemId);
+
+        /// <summary>Envia intenção de chamar o pet da espécie indicada.</summary>
+        public static void Chamar(EspecieDePet especie)
+        {
+            ConexaoTempoReal.Enviar(PetsMessageIds.ChamarPet, new ChamarPet { Especie = especie });
+        }
+
+        /// <summary>Envia intenção de dispensar o pet ativo.</summary>
+        public static void Dispensar()
+        {
+            ConexaoTempoReal.Enviar(PetsMessageIds.DispensarPet, new DispensarPet());
+        }
+
+        /// <summary>Envia intenção de usar o item de pet da bolsa.</summary>
+        public static void UsarItem(long instanciaId)
+        {
+            ConexaoTempoReal.Enviar(
+                PetsMessageIds.UsarItemPet,
+                new UsarItemPet { InstanciaId = instanciaId }
+            );
+        }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void Reiniciar()
@@ -70,6 +103,15 @@ namespace JogoDoGrupo.Client.Features.Pets
             _assinaturas.Add(ConexaoTempoReal.Assinar<PetSumiu>(PetsMessageIds.PetSumiu, AoSumir));
             _assinaturas.Add(
                 ConexaoTempoReal.Assinar<PetRecusado>(PetsMessageIds.PetRecusado, AoRecusar)
+            );
+            _assinaturas.Add(
+                ConexaoTempoReal.Assinar<ColecaoPets>(PetsMessageIds.ColecaoPets, AoReceberColecao)
+            );
+            _assinaturas.Add(
+                ConexaoTempoReal.Assinar<PetDesbloqueado>(
+                    PetsMessageIds.PetDesbloqueado,
+                    AoDesbloquearPet
+                )
             );
         }
 
@@ -152,6 +194,34 @@ namespace JogoDoGrupo.Client.Features.Pets
             }
         }
 
+        private void AoReceberColecao(ColecaoPets dados)
+        {
+            if (dados == null || dados.EspeciesDesbloqueadas == null)
+            {
+                return;
+            }
+
+            _colecao.Clear();
+            foreach (var especie in dados.EspeciesDesbloqueadas)
+            {
+                _colecao.Add(especie);
+            }
+
+            ColecaoMudou?.Invoke();
+        }
+
+        private void AoDesbloquearPet(PetDesbloqueado dados)
+        {
+            if (dados == null)
+            {
+                return;
+            }
+
+            _colecao.Add(dados.Especie);
+            ChatDoJogo.AdicionarLinhaSistema($"Pet desbloqueado: {dados.Nome}!");
+            ColecaoMudou?.Invoke();
+        }
+
         private static void AoRecusar(PetRecusado dados)
         {
             if (dados == null)
@@ -170,6 +240,16 @@ namespace JogoDoGrupo.Client.Features.Pets
                     return "Entre no mundo para chamar o pet.";
                 case CodigosErroPets.SemPet:
                     return "Você não está com um pet.";
+                case CodigosErroPets.EmCombate:
+                    return "Não é possível usar item de pet em combate.";
+                case CodigosErroPets.JaPossuiPet:
+                    return "Você já possui este pet em sua coleção.";
+                case CodigosErroPets.PetNaoDesbloqueado:
+                    return "Você ainda não desbloqueou este pet.";
+                case CodigosErroPets.ItemNaoEncontrado:
+                    return "Item de pet não encontrado no inventário.";
+                case CodigosErroPets.ItemNaoEPet:
+                    return "Este item não é um pet consumível.";
                 default:
                     return "Não foi possível mexer no pet agora.";
             }

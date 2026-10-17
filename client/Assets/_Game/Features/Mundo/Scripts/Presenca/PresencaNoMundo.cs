@@ -1,6 +1,6 @@
+using System.Collections.Generic;
 using JogoDoGrupo.Client.Core.Jogo;
 using JogoDoGrupo.Client.Core.Jogo.Controle;
-using JogoDoGrupo.Client.Core.Jogo.Hud;
 using JogoDoGrupo.Client.Core.TempoReal;
 using JogoDoGrupo.Client.Features.Mundo;
 using JogoDoGrupo.Shared.Features.Mundo;

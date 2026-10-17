@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using JogoDoGrupo.Shared.Features.Itens;
+using JogoDoGrupo.Shared.Features.Pets;
 
 namespace JogoDoGrupo.Client.Features.Itens
 {
@@ -60,6 +61,7 @@ namespace JogoDoGrupo.Client.Features.Itens
         DescartarLote,
         Favoritar,
         Lixo,
+        Usar,
 
         /// <summary>Não envia nada: mostra <see cref="AcaoDoInventario.Aviso"/>.</summary>
         Recusada,
@@ -270,7 +272,19 @@ namespace JogoDoGrupo.Client.Features.Itens
 
             var tipo = TipoDe(entrada);
             if (tipo == null)
+            {
+                if (RegrasPets.EspecieDoItem(entrada.ItemId) > 0)
+                {
+                    return new AcaoDoInventario
+                    {
+                        Tipo = TipoAcao.Usar,
+                        InstanciaId = entrada.InstanciaId,
+                    };
+                }
+
                 return AcaoDoInventario.Recusa(AvisoNaoEquipavel);
+            }
+
             return new AcaoDoInventario
             {
                 Tipo = TipoAcao.Equipar,

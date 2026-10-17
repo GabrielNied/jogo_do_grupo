@@ -33,7 +33,7 @@ public sealed class SorteadorDeLoot(Random aleatorio) : ISorteadorDeLoot
     {
         lock (_trava)
         {
-            var quedas = new List<QuedaDeLoot>(RegrasLoot.MaximoPorInimigo);
+            var quedas = new List<QuedaDeLoot>(RegrasLoot.MaximoPorInimigo + 1);
             var quantidade = RegrasLoot.QuantidadeSorteada(aleatorio.NextDouble());
             for (var i = 0; i < quantidade; i++)
             {
@@ -41,6 +41,21 @@ public sealed class SorteadorDeLoot(Random aleatorio) : ISorteadorDeLoot
                 {
                     quedas.Add(TabelaDeLoot.Sortear(aleatorio, origem, nivelDoInimigo));
                 }
+            }
+
+            if (
+                (origem == OrigemDoLoot.Comum || origem == OrigemDoLoot.Elite)
+                && aleatorio.NextDouble() < ConfigLoot.ChanceDePetRaro
+            )
+            {
+                quedas.Add(
+                    new QuedaDeLoot
+                    {
+                        ModeloId = TabelaDeLoot.ItemPetRaro,
+                        Origem = origem,
+                        Grau = TabelaDeLoot.GrauDoNivel(nivelDoInimigo),
+                    }
+                );
             }
 
             return quedas.ToArray();

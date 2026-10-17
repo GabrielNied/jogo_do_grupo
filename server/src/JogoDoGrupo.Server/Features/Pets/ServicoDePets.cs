@@ -1,8 +1,14 @@
+using System.Collections.Concurrent;
+using JogoDoGrupo.Server.Contratos.Combate;
 using JogoDoGrupo.Server.Contratos.Itens;
 using JogoDoGrupo.Server.Contratos.Mundo;
+using JogoDoGrupo.Server.Core.Persistencia;
 using JogoDoGrupo.Server.Core.TempoReal;
+using JogoDoGrupo.Server.Features.Itens;
 using JogoDoGrupo.Shared.Core.TempoReal;
 using JogoDoGrupo.Shared.Features.Pets;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace JogoDoGrupo.Server.Features.Pets;
 
@@ -20,11 +26,13 @@ namespace JogoDoGrupo.Server.Features.Pets;
 /// </para>
 /// </summary>
 public sealed class ServicoDePets(
-    ServidorTempoReal tempoReal,
-    IPosicoesDoMundo posicoes,
-    IVizinhanca vizinhanca,
-    ILootDoDono? loot,
-    ILogger<ServicoDePets> log
+    ServidorTempoReal? tempoReal = null,
+    IPosicoesDoMundo? posicoes = null,
+    IVizinhanca? vizinhanca = null,
+    ILootDoDono? loot = null,
+    ILogger<ServicoDePets>? log = null,
+    IServiceScopeFactory? scopeFactory = null,
+    IEstadoDeCombate? combate = null
 ) : IHostedService
 {
     /// <summary>
@@ -35,6 +43,7 @@ public sealed class ServicoDePets(
     public const int DeslocamentoDoCanal = TransporteTempoReal.Canais / 2;
 
     private readonly Dictionary<long, PetDoDono> _pets = [];
+    private readonly ConcurrentDictionary<long, HashSet<int>> _colecoesPorConta = new();
 
     /// <summary>Entidade do canal sequenciado do pet de <paramref name="donoId"/>.</summary>
     public static long EntidadeDoPet(long donoId) => donoId + DeslocamentoDoCanal;
@@ -46,6 +55,189 @@ public sealed class ServicoDePets(
     /// <summary>Quantos pets existem agora.</summary>
     public int Quantidade => _pets.Count;
 
+    /// <summary>Obtém a lista de espécies desbloqueadas pela conta.</summary>
+    public HashSet<int> ObterColecao(long contaId)
+    {
+        if (contaId <= 0)
+        {
+            return [];
+        }
+
+        if (_colecoesPorConta.TryGetValue(contaId, out var existente))
+        {
+            return existente;
+        }
+
+        var novaColecao = new HashSet<int>();
+        if (scopeFactory != null)
+        {
+            using var escopo = scopeFactory.CreateScope();
+            var db = escopo.ServiceProvider.GetRequiredService<JogoDbContext>();
+            var salvos = db.Set<PetDaConta>()
+                .Where(p => p.ContaId == contaId)
+                .Select(p => p.Especie)
+                .ToList();
+
+            foreach (var sp in salvos)
+            {
+                novaColecao.Add(sp);
+            }
+        }
+
+        return _colecoesPorConta.GetOrAdd(contaId, novaColecao);
+    }
+
+    /// <summary>Verifica se a conta possui a espécie de pet desbloqueada.</summary>
+    public bool PossuiPet(long contaId, EspecieDePet especie)
+    {
+        if (RegrasPets.DesbloqueadoPorPadrao(especie))
+        {
+            return true;
+        }
+
+        var colecao = ObterColecao(contaId);
+        lock (colecao)
+        {
+            return colecao.Contains((int)especie);
+        }
+    }
+
+    /// <summary>Desbloqueia uma espécie diretamente em memória para testes de integração.</summary>
+    public void DesbloquearParaTeste(long contaId, EspecieDePet especie)
+    {
+        var colecao = _colecoesPorConta.GetOrAdd(contaId, _ => new HashSet<int>());
+        lock (colecao)
+        {
+            colecao.Add((int)especie);
+        }
+    }
+
+    /// <summary>Envia a coleção de pets desbloqueados para a sessão do jogador.</summary>
+    public void EnviarColecao(SessaoTempoReal sessao)
+    {
+        if (sessao == null)
+        {
+            return;
+        }
+
+        var colecao = ObterColecao(sessao.ContaId);
+        int[] lista;
+        lock (colecao)
+        {
+            lista = colecao.ToArray();
+        }
+
+        tempoReal.Enviar(
+            sessao,
+            PetsMessageIds.ColecaoPets,
+            new ColecaoPets { EspeciesDesbloqueadas = lista }
+        );
+    }
+
+    /// <summary>
+    /// Consome um item consumível de pet do inventário e registra o pet na conta do jogador.
+    /// </summary>
+    public async Task<bool> UsarItemPetAsync(
+        long contaId,
+        long personagemId,
+        long instanciaId,
+        SessaoTempoReal? sessao = null
+    )
+    {
+        if (combate?.EmCombate(personagemId) == true)
+        {
+            if (sessao != null)
+            {
+                Recusar(sessao, CodigosErroPets.EmCombate);
+            }
+            return false;
+        }
+
+        if (scopeFactory == null)
+        {
+            return false;
+        }
+
+        using var escopo = scopeFactory.CreateScope();
+        var db = escopo.ServiceProvider.GetRequiredService<JogoDbContext>();
+
+        var item = await db.Set<ItemInventario>()
+            .SingleOrDefaultAsync(i => i.Id == instanciaId && i.PersonagemId == personagemId);
+
+        if (item == null)
+        {
+            if (sessao != null)
+            {
+                Recusar(sessao, CodigosErroPets.ItemNaoEncontrado);
+            }
+            return false;
+        }
+
+        var especie = RegrasPets.EspecieDoItem(item.ItemId);
+        if (especie == 0)
+        {
+            if (sessao != null)
+            {
+                Recusar(sessao, CodigosErroPets.ItemNaoEPet);
+            }
+            return false;
+        }
+
+        if (PossuiPet(contaId, especie))
+        {
+            if (sessao != null)
+            {
+                Recusar(sessao, CodigosErroPets.JaPossuiPet);
+            }
+            return false;
+        }
+
+        db.Set<ItemInventario>().Remove(item);
+
+        var registro = new PetDaConta
+        {
+            ContaId = contaId,
+            Especie = (int)especie,
+            DesbloqueadoEm = DateTime.UtcNow,
+        };
+        db.Set<PetDaConta>().Add(registro);
+        await db.SaveChangesAsync();
+
+        var colecao = _colecoesPorConta.GetOrAdd(contaId, _ => new HashSet<int>());
+        lock (colecao)
+        {
+            colecao.Add((int)especie);
+        }
+
+        if (tempoReal != null)
+        {
+            tempoReal.NoLaco(() =>
+            {
+                if (sessao != null)
+                {
+                    tempoReal.Enviar(
+                        sessao,
+                        PetsMessageIds.PetDesbloqueado,
+                        new PetDesbloqueado
+                        {
+                            Especie = (int)especie,
+                            Nome = RegrasPets.ObterNome(especie),
+                        }
+                    );
+
+                    EnviarColecao(sessao);
+
+                    if (!_pets.ContainsKey(personagemId))
+                    {
+                        AoChamar(sessao, new ChamarPet { Especie = especie });
+                    }
+                }
+            });
+        }
+
+        return true;
+    }
+
     /// <summary>Trata <see cref="ChamarPet"/> (laço de rede).</summary>
     public void AoChamar(SessaoTempoReal sessao, ChamarPet pedido)
     {
@@ -55,9 +247,19 @@ public sealed class ServicoDePets(
             return;
         }
 
-        if (!posicoes.TentarObter(donoId, out var dono) || !Enum.IsDefined(pedido.Especie))
+        if (
+            posicoes == null
+            || !posicoes.TentarObter(donoId, out var dono)
+            || !Enum.IsDefined(pedido.Especie)
+        )
         {
             Recusar(sessao, CodigosErroPets.SemPosicao);
+            return;
+        }
+
+        if (!PossuiPet(sessao.ContaId, pedido.Especie))
+        {
+            Recusar(sessao, CodigosErroPets.PetNaoDesbloqueado);
             return;
         }
 
@@ -87,7 +289,7 @@ public sealed class ServicoDePets(
     {
         if (
             _pets.TryGetValue(saida.PersonagemId, out var pet)
-            && !posicoes.TentarObter(saida.PersonagemId, out _)
+            && (posicoes == null || !posicoes.TentarObter(saida.PersonagemId, out _))
         )
         {
             Remover(pet);
@@ -101,22 +303,35 @@ public sealed class ServicoDePets(
     public void AoEntrarNaArea(JogadorEntrouNaArea entrada)
     {
         if (
+            tempoReal != null
+            && tempoReal.TentarObterSessao(entrada.PersonagemId, out var sessaoEntrou)
+            && sessaoEntrou != null
+        )
+        {
+            EnviarColecao(sessaoEntrou);
+        }
+
+        if (
             !_pets.TryGetValue(entrada.PersonagemId, out var pet)
+            || posicoes == null
             || !posicoes.TentarObter(entrada.PersonagemId, out var dono)
         )
         {
             return;
         }
 
-        foreach (var id in pet.Vistos)
+        if (tempoReal != null)
         {
-            if (tempoReal.TentarObterSessao(id, out var sessao) && sessao != null)
+            foreach (var id in pet.Vistos)
             {
-                tempoReal.Enviar(
-                    sessao,
-                    PetsMessageIds.PetSumiu,
-                    new PetSumiu { DonoId = pet.DonoId }
-                );
+                if (tempoReal.TentarObterSessao(id, out var sessao) && sessao != null)
+                {
+                    tempoReal.Enviar(
+                        sessao,
+                        PetsMessageIds.PetSumiu,
+                        new PetSumiu { DonoId = pet.DonoId }
+                    );
+                }
             }
         }
 
@@ -134,7 +349,7 @@ public sealed class ServicoDePets(
     /// <summary>Um passo de <paramref name="segundos"/> para todos os pets (laço do tempo real).</summary>
     public void Avancar(float segundos)
     {
-        if (_pets.Count == 0)
+        if (_pets.Count == 0 || posicoes == null)
         {
             return;
         }
@@ -147,7 +362,7 @@ public sealed class ServicoDePets(
             }
             catch (Exception erro)
             {
-                log.LogError(erro, "Erro ao mover o pet do personagem {Dono}.", pet.DonoId);
+                log?.LogError(erro, "Erro ao mover o pet do personagem {Dono}.", pet.DonoId);
             }
         }
     }
@@ -299,6 +514,11 @@ public sealed class ServicoDePets(
     // o aparecimento; quem saiu recebe o sumiço; os demais recebem o movimento, se houve.
     private void Publicar(PetDoDono pet, bool mudou)
     {
+        if (vizinhanca == null || tempoReal == null)
+        {
+            return;
+        }
+
         var vendo = new HashSet<long>(vizinhanca.QuemVe(pet.DonoId)) { pet.DonoId };
         foreach (var id in pet.Vistos.Where(id => !vendo.Contains(id)).ToArray())
         {
@@ -368,21 +588,33 @@ public sealed class ServicoDePets(
     private void Remover(PetDoDono pet)
     {
         _pets.Remove(pet.DonoId);
-        foreach (var id in pet.Vistos)
+        if (tempoReal != null)
         {
-            if (tempoReal.TentarObterSessao(id, out var sessao) && sessao != null)
+            foreach (var id in pet.Vistos)
             {
-                tempoReal.Enviar(
-                    sessao,
-                    PetsMessageIds.PetSumiu,
-                    new PetSumiu { DonoId = pet.DonoId }
-                );
+                if (tempoReal.TentarObterSessao(id, out var sessao) && sessao != null)
+                {
+                    tempoReal.Enviar(
+                        sessao,
+                        PetsMessageIds.PetSumiu,
+                        new PetSumiu { DonoId = pet.DonoId }
+                    );
+                }
             }
         }
 
         pet.Vistos.Clear();
     }
 
-    private void Recusar(SessaoTempoReal sessao, string codigo) =>
-        tempoReal.Enviar(sessao, PetsMessageIds.PetRecusado, new PetRecusado { Codigo = codigo });
+    private void Recusar(SessaoTempoReal? sessao, string codigo)
+    {
+        if (sessao != null && tempoReal != null)
+        {
+            tempoReal.Enviar(
+                sessao,
+                PetsMessageIds.PetRecusado,
+                new PetRecusado { Codigo = codigo }
+            );
+        }
+    }
 }
