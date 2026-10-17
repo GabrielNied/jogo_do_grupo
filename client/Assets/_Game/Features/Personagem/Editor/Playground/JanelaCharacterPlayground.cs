@@ -60,11 +60,14 @@ namespace JogoDoGrupo.Client.Features.Personagem.Editor.Playground
             raiz.Add(painel);
             painel.style.flexGrow = 1;
             painel.Add(ComponentesVisuais.Texto("Character Playground", titulo: true));
-            painel.Add(ComponentesVisuais.Texto("Desenvolvimento • Movimento e câmera v2"));
+            painel.Add(ComponentesVisuais.Texto("Desenvolvimento • Locomoção v3"));
+            painel.Add(
+                ComponentesVisuais.Texto("Abrir Playground → Escolher personagem → Spawn → Play")
+            );
             var mensagem = ComponentesVisuais.Texto("");
             painel.Add(mensagem);
             var abrir = ComponentesVisuais.Botao(
-                "Abrir cena",
+                "Abrir Playground",
                 () => Acao(CharacterPlayground.Abrir)
             );
             painel.Add(abrir);
@@ -194,7 +197,7 @@ namespace JogoDoGrupo.Client.Features.Personagem.Editor.Playground
                             ? "Contexto local: clique no Game View para controlar."
                         : !pode ? "Abra a cena pelo botão acima."
                         : !valido ? "Catálogo vazio ou prefab ausente. Edite o catálogo."
-                        : "Cena de desenvolvimento • sem gameplay ou animação local."
+                        : "Cena de desenvolvimento • Spawn e Play para testar locomoção."
                     );
                 diagnostico.text = Diagnosticar();
                 runtime.text = RuntimeCharacterPlayground.Diagnosticar();

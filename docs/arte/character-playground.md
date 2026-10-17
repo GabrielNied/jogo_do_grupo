@@ -1,6 +1,6 @@
-# Character Playground v2
+# Character Playground v3
 
-Ferramenta de **Editor** para inspecionar e controlar prefabs de personagens sem servidor. Menu **Jogo do Grupo → Personagem → Character Playground → Abrir ferramenta**, depois **Abrir cena**. Inspeção em Edit Mode; movimento e câmera reais em Play Mode, sem iniciar o fluxo do jogo.
+Ferramenta de **Editor** para inspecionar e controlar prefabs de personagens. Menu **Jogo do Grupo → Personagem → Character Playground → Abrir Playground** abre a cena e foca a ferramenta; depois **Escolher personagem → Spawn → Play**. Inspeção em Edit Mode; movimento, câmera e locomoção visual em Play Mode. O acesso antigo por Abrir ferramenta continua disponível.
 
 ## Operação
 
@@ -54,9 +54,9 @@ Novas seções podem ser acrescentadas à janela conforme casos reais. A v1 não
 
 ## Dependências e limites
 
-Reutiliza `Art/HumanMaleUnityTest/HumanMaleHumanoid.prefab`, o FBX, Avatar e material URP da [TASK 03](human-male-unity03.md), sem alterá-los. O assembly de Editor referencia Unity, Input System já existente, Visual e Core; nenhum desses assemblies foi alterado. **Old Man Idle/ValidacaoLocal não é dependência** da cena ou catálogo: a versão publicada funciona em T-pose sem ela.
+Reutiliza `Art/HumanMaleUnityTest/HumanMaleHumanoid.prefab`, o FBX, Avatar e material URP da [TASK 03](human-male-unity03.md), sem alterá-los. O assembly de Editor referencia Unity, Input System já existente, Visual e Core; nenhum desses assemblies foi alterado. **Old Man Idle/ValidacaoLocal não é dependência** da cena ou catálogo. A v3 conecta o novo controller apenas na instância temporária que usa o Avatar do Human Male original.
 
-Sem animação de locomoção, rede, combate, equipamentos, face ou otimização nesta etapa. Gizmos aparecem somente na Scene View em Edit Mode com a janela aberta e seleção no personagem; não são objetos exportados. O catálogo é fixo no caminho da ferramenta, mas suas entradas são editáveis. A captura automatizada do painel usa a mesma árvore visual num UIDocument temporário; não representa a moldura nativa do Editor.
+Sem integração de rede, combate, equipamentos, face ou otimização nesta etapa. Gizmos aparecem somente na Scene View em Edit Mode com a janela aberta e seleção no personagem; não são objetos exportados. O catálogo é fixo no caminho da ferramenta, mas suas entradas são editáveis. A captura automatizada do painel usa a mesma árvore visual num UIDocument temporário; não representa a moldura nativa do Editor.
 
 A janela usa cópias temporárias das fontes SDF compartilhadas, incluindo material e atlas: salvar a cena não deve gravar o cache de glifos em Core. A validação confere os hashes dessas fontes após salvar os assets; não versionar caches produzidos por uma inspeção.
 
@@ -73,11 +73,39 @@ Inventário pelo AssetDatabase/MCP: 77 clips em 14 modelos com animações; some
 | Generic de mobs | GuardiaoDoReflexo: Morrer, AtacarInvestida, Atacar, AtacarRaios, AtacarPisada, Andar, Idle; JavaliDoCampo, LoboDoCampo, PresaVelha, TatuRochoso: Andar, Idle, Atacar, Morrer | Não adotados para locomoção do personagem; ataques/mortes também fora de escopo. |
 | Inadequados ao humano bípede | Pig: Armature/Idle e Jump; Dragon: Dragon_Attack, Hit, Death, Flying, Attack2 (prefixo DragonArmature) | Rigs de animais/monstro, Generic. |
 
-Providenciar para a próxima etapa Idle neutra, Walk e Run **Humanoid**, in-place e com licença/proveniência estabelecida. Pulo só precisará de animação se for parte do conjunto escolhido; a mecânica já funciona. Até lá, a T-pose permite validar Input → Movimento → Chão → Câmera separadamente do Animator.
+Esse inventário registra o estado da TASK 05. A TASK 06 acrescentou os três FBXs fornecidos pelo usuário, conforme abaixo; não reutilizou nem converteu os candidatos antigos.
+
+## Locomotion Animation Set v1 (TASK 06)
+
+Fonte fornecida pelo usuário: `J:/BlenderAssetsAI/Human_Male_Base_v1_UnityTest/{Idle,Walking,Running}.fbx`. Cópias em `Personagem/Dev/CharacterPlayground/Locomotion/`, sem modificar os bytes dos FBXs. [Proveniência Mixamo](licencas.md#animações-mixamo-fornecidas-pelo-usuário--protótipo-do-playground); sem pesquisa externa de licença nesta task.
+
+| Arquivo/clip final | Duração original → final | FPS | Threshold (m/s) | Time scale |
+|---|---|---|---|---|
+| Idle.fbx / Idle | 8,133334 → 8,166667 s | 30 | 0 | 1 |
+| Walking.fbx / Walking | 1,033333 → 1,033333 s | 30 | 2 | 1,10 |
+| Running.fbx / Running | 0,700000 → 0,700000 s | 30 | 5,5 | 1,15 |
+
+Os três imports originais eram Generic, clip `mixamo.com`, sem Avatar/mesh e sem loop. Cada import agora cria seu próprio Avatar Humanoid Mixamo válido, preservando o mapeamento de origem; Mecanim retargeta para o Avatar original do Human Male, sem copiar Avatar entre skeletons diferentes. Optimize Game Objects desligado; materiais/câmeras/luzes do import desabilitados. O frame adicional da Idle é o intervalo exposto pelo import Humanoid.
+
+Loop Time e Loop Pose ligados. Rotação e Y baked into pose, orientação original e altura baseada nos pés; XZ extraído para o root e descartado por Apply Root Motion OFF. Walking/Running já são in-place: variação líquida de Hips nos arquivos originais aproximadamente zero, além do balanço cíclico. Idle tem apenas ~2 mm de variação líquida. Sem edição de keyframes.
+
+`Locomotion.controller`: estado único Locomocao com Blend Tree Simple 1D; `Velocidade` float em m/s e `NoChao` bool respeitam o contrato real de AnimadorDoVisual. Thresholds 0/2/5,5. Cadência visual de apoio estimada no retarget original: Walking ~1,798 m/s, Running ~4,818 m/s. Multipliers conservadores 1,10 e 1,15 aproximam 1,978 e 5,541 m/s sem mudar as velocidades físicas. Isso reduz discrepância evidente; não promete eliminar todo foot sliding.
+
+Não há animação aérea: durante pulo o Blend Tree mantém a representação baseada na velocidade horizontal e NoChao continua diagnosticável. **Jump/Fall/Land e locomoção direcional pendentes.** Sem novos estados, strafe, backward ou IK.
+
+## Acesso e isolamento do Play (TASK 06)
+
+Abrir Playground respeita SaveCurrentModifiedScenesIfUserWantsTo antes de trocar de cena, abre/foca a ferramenta e não inicia Play. Se a cena já está aberta, apenas foca a ferramenta, sem reabrir nem descartar alterações.
+
+A auditoria encontrou `playModeStartScene=null` e nenhum hook de redirecionamento de cena. O problema visível era `InicializadorClient`: a abertura global se sobrepõe a qualquer cena em Play. `AcessoCharacterPlayground`, somente Editor, abre uma tela vazia pela API pública de Navegacao e desativa a interface normal apenas no Playground. Fechar a tela anterior faz sua continuação assíncrona respeitar Aberta=false. O bootstrap de Core permanece intacto; sua inicialização e requisição inicial de saúde ainda podem ocorrer antes do isolamento. Não se exige servidor para controlar o Playground, não se inicia sessão de mundo e não se altera login gravado.
+
+Se existir playModeStartScene configurada no Editor, o hook usa temporariamente a cena explícita do Playground para esse Play e restaura o valor anterior no Stop, inclusive após domain reload por SessionState. Em cenas normais não altera esse valor nem a UI. Build Settings continuam intactos. O contexto de movimento e a câmera temporários são descartados no Stop.
+
+Validação adicional `ValidacaoLocomocaoPlayground.Retarget(pasta)` exercita três ciclos por clip com Playables Humanoid antes do Blend Tree; `Executar(pasta)` testa as transições com input real e captura o painel. Ambas devem ser aguardadas via MCP. Reutilizam a captura e espera da TASK 05.
 
 ## Verificação reproduzível
 
-Priorize o MCP na instância aberta: executar `ValidacaoCharacterPlayground.Executar()` em Edit Mode; entrar em Play e aguardar `ValidacaoRuntimePlayground.Executar(pasta)` (Task assíncrona). O teste usa teclas padrão, dispositivos virtuais e tempo de simulação mínimo equivalente a 60 Hz; desabilita temporariamente os dispositivos físicos do Input System e os restaura em finally, inclusive em falha. Não altera bindings salvos. Capturas reutilizam o mecanismo da v1.
+Priorize o MCP na instância aberta: executar `ValidacaoCharacterPlayground.Executar()` em Edit Mode; entrar em Play e aguardar `ValidacaoRuntimePlayground.Executar(pasta)` (Task assíncrona). O teste usa teclas padrão, dispositivos virtuais e tempo de simulação mínimo equivalente a 60 Hz; neutraliza teclas físicas retidas, desabilita temporariamente os dispositivos físicos do Input System e os restaura em finally, inclusive em falha. Injeta eventos no update Dynamic para que o ciclo Editor não os consuma antes do jogo. Não altera bindings salvos. Capturas reutilizam o mecanismo da v1.
 
 Alternativa para geração/CI com Editor já fechado, na raiz do worktree:
 

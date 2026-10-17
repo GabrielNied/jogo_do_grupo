@@ -43,9 +43,31 @@ namespace JogoDoGrupo.Client.Features.Personagem.Editor.Playground
                 .devices.Where(d => d.enabled && (d is Keyboard || d is Mouse))
                 .ToArray();
             foreach (var dispositivo in fisicos)
+            {
+                // Disabled devices continuam nos bindings de compositos. Neutralizar
+                // teclas retidas antes de criar novas acoes durante Reset.
+                if (dispositivo is Keyboard)
+                    InputSystem.ResetDevice(dispositivo);
                 InputSystem.DisableDevice(dispositivo);
+            }
             var teclado = InputSystem.AddDevice<Keyboard>("PlaygroundValidacaoTeclado");
             var mouse = InputSystem.AddDevice<Mouse>("PlaygroundValidacaoMouse");
+            var estadoTeclado = new KeyboardState();
+            MouseState? estadoMouse = null;
+            // Eventos disparados por continuacoes async podem ser consumidos pelo
+            // update Editor. Injetar no Dynamic preserva as acoes reais do Play.
+            Action injetar = () =>
+            {
+                if (InputState.currentUpdateType != InputUpdateType.Dynamic)
+                    return;
+                InputSystem.QueueStateEvent(teclado, estadoTeclado);
+                if (estadoMouse.HasValue)
+                {
+                    InputSystem.QueueStateEvent(mouse, estadoMouse.Value);
+                    estadoMouse = null;
+                }
+            };
+            InputSystem.onBeforeUpdate += injetar;
             Application.LogCallback registrar = (texto, pilha, tipo) =>
             {
                 if (tipo == LogType.Error || tipo == LogType.Exception || tipo == LogType.Warning)
@@ -66,9 +88,9 @@ namespace JogoDoGrupo.Client.Features.Personagem.Editor.Playground
                     "Contexto conecta os componentes reais sem sessao"
                 );
                 // Clique virtual e o gesto existente para retomar input depois do Esc.
-                InputSystem.QueueStateEvent(mouse, new MouseState().WithButton(MouseButton.Left));
+                estadoMouse = new MouseState().WithButton(MouseButton.Left);
                 await Quadros(3);
-                InputSystem.QueueStateEvent(mouse, new MouseState());
+                estadoMouse = new MouseState();
                 await Quadros(3);
                 Exigir(RuntimeCharacterPlayground.Controle.InputAtivo, "Input ativo no Game View");
                 var casos = new[]
@@ -82,13 +104,13 @@ namespace JogoDoGrupo.Client.Features.Personagem.Editor.Playground
                 };
                 foreach (var (nome, teclas, direcao) in casos)
                 {
-                    InputSystem.QueueStateEvent(teclado, new KeyboardState());
+                    estadoTeclado = new KeyboardState();
                     CharacterPlayground.Reset(0);
                     game.Focus();
                     await Quadros(4);
                     var antes = CharacterPlayground.Atual.transform.position;
                     var cameraAntes = RuntimeCharacterPlayground.Camera.transform.position;
-                    InputSystem.QueueStateEvent(teclado, new KeyboardState(teclas));
+                    estadoTeclado = new KeyboardState(teclas);
                     await Quadros(22);
                     var delta = CharacterPlayground.Atual.transform.position - antes;
                     delta.y = 0;
@@ -122,13 +144,13 @@ namespace JogoDoGrupo.Client.Features.Personagem.Editor.Playground
                     if (nome == "frente" || nome == "diagonal-direita")
                         Capturar(pasta, nome);
                 }
-                InputSystem.QueueStateEvent(teclado, new KeyboardState(Key.S));
+                estadoTeclado = new KeyboardState(Key.S);
                 await Quadros(24);
                 Exigir(
                     Vector3.Dot(CharacterPlayground.Atual.transform.forward, Vector3.back) > 0.9f,
                     "Mudanca rapida de direcao"
                 );
-                InputSystem.QueueStateEvent(teclado, new KeyboardState());
+                estadoTeclado = new KeyboardState();
                 await Quadros(35);
                 Exigir(
                     RuntimeCharacterPlayground.Controle.VelocidadeHorizontal < 0.02f,
@@ -136,7 +158,7 @@ namespace JogoDoGrupo.Client.Features.Personagem.Editor.Playground
                 );
                 CharacterPlayground.Reset(0);
                 await Quadros(5);
-                InputSystem.QueueStateEvent(teclado, new KeyboardState(Key.W, Key.LeftCtrl));
+                estadoTeclado = new KeyboardState(Key.W, Key.LeftCtrl);
                 await Quadros(22);
                 Exigir(
                     Mathf.Abs(
@@ -145,7 +167,7 @@ namespace JogoDoGrupo.Client.Features.Personagem.Editor.Playground
                     ) < 0.05f,
                     "Ctrl reutiliza caminhada a 2 m/s"
                 );
-                InputSystem.QueueStateEvent(teclado, new KeyboardState());
+                estadoTeclado = new KeyboardState();
                 CharacterPlayground.Reset(0);
                 await Quadros(6);
                 Exigir(
@@ -153,9 +175,9 @@ namespace JogoDoGrupo.Client.Features.Personagem.Editor.Playground
                     "Grounded pelo CharacterController no collider local"
                 );
                 var yInicial = CharacterPlayground.Atual.transform.position.y;
-                InputSystem.QueueStateEvent(teclado, new KeyboardState(Key.Space));
+                estadoTeclado = new KeyboardState(Key.Space);
                 await Quadros(6);
-                InputSystem.QueueStateEvent(teclado, new KeyboardState());
+                estadoTeclado = new KeyboardState();
                 Exigir(
                     CharacterPlayground.Atual.transform.position.y > yInicial + 0.1f
                         && !RuntimeCharacterPlayground.Controle.NoChao,
@@ -170,7 +192,7 @@ namespace JogoDoGrupo.Client.Features.Personagem.Editor.Playground
                     "Gravidade retorna ao chao"
                 );
                 var horizontal = RuntimeCharacterPlayground.Camera.Horizontal;
-                InputSystem.QueueStateEvent(mouse, new MouseState { delta = new Vector2(300, 20) });
+                estadoMouse = new MouseState { delta = new Vector2(300, 20) };
                 await Quadros(4);
                 Exigir(
                     Mathf.Abs(
@@ -179,7 +201,7 @@ namespace JogoDoGrupo.Client.Features.Personagem.Editor.Playground
                     "Orbita real responde ao mouse virtual"
                 );
                 var distancia = RuntimeCharacterPlayground.Camera.Orbita.Distancia;
-                InputSystem.QueueStateEvent(mouse, new MouseState { scroll = new Vector2(0, 120) });
+                estadoMouse = new MouseState { scroll = new Vector2(0, 120) };
                 await Quadros(4);
                 Exigir(
                     RuntimeCharacterPlayground.Camera.Orbita.Distancia < distancia,
@@ -225,8 +247,8 @@ namespace JogoDoGrupo.Client.Features.Personagem.Editor.Playground
                     "Quatro sockets preservados em runtime"
                 );
                 Exigir(
-                    animator.runtimeAnimatorController == null,
-                    "T-pose sem dependencia da Idle local"
+                    animator.runtimeAnimatorController != null && !animator.applyRootMotion,
+                    "Locomocao local sem root motion e sem dependencia da Idle antiga"
                 );
                 Exigir(
                     originais.All(p => Hash(p.Key) == p.Value),
@@ -243,17 +265,17 @@ namespace JogoDoGrupo.Client.Features.Personagem.Editor.Playground
                         ) == 1,
                     "Somente a camera de gameplay fica ativa em Play Mode"
                 );
-                InputSystem.QueueStateEvent(teclado, new KeyboardState(Key.Escape));
+                estadoTeclado = new KeyboardState(Key.Escape);
                 await Quadros(3);
-                InputSystem.QueueStateEvent(teclado, new KeyboardState());
+                estadoTeclado = new KeyboardState();
                 Exigir(
                     !RuntimeCharacterPlayground.Controle.InputAtivo
                         && Cursor.lockState == CursorLockMode.None,
                     "Esc libera cursor e suspende input"
                 );
-                InputSystem.QueueStateEvent(mouse, new MouseState().WithButton(MouseButton.Left));
+                estadoMouse = new MouseState().WithButton(MouseButton.Left);
                 await Quadros(3);
-                InputSystem.QueueStateEvent(mouse, new MouseState());
+                estadoMouse = new MouseState();
                 Exigir(
                     RuntimeCharacterPlayground.Controle.InputAtivo,
                     "Clique no Game View retoma input"
@@ -284,8 +306,9 @@ namespace JogoDoGrupo.Client.Features.Personagem.Editor.Playground
             }
             finally
             {
-                InputSystem.QueueStateEvent(teclado, new KeyboardState());
-                InputSystem.QueueStateEvent(mouse, new MouseState());
+                InputSystem.onBeforeUpdate -= injetar;
+                estadoTeclado = new KeyboardState();
+                estadoMouse = new MouseState();
                 InputSystem.RemoveDevice(teclado);
                 InputSystem.RemoveDevice(mouse);
                 foreach (var dispositivo in fisicos)
@@ -304,7 +327,7 @@ namespace JogoDoGrupo.Client.Features.Personagem.Editor.Playground
             }
         }
 
-        static async Task Quadros(int quantidade)
+        internal static async Task Quadros(int quantidade)
         {
             var final = Time.frameCount + quantidade;
             var tempoFinal = Time.timeAsDouble + quantidade / 60.0;
@@ -329,7 +352,7 @@ namespace JogoDoGrupo.Client.Features.Personagem.Editor.Playground
             return BitConverter.ToString(sha.ComputeHash(File.ReadAllBytes(caminho)));
         }
 
-        static void Capturar(string pasta, string nome)
+        internal static void Capturar(string pasta, string nome)
         {
             var camera = RuntimeCharacterPlayground.Camera.GetComponent<Camera>();
             var rt = RenderTexture.GetTemporary(1280, 720, 24);

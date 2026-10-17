@@ -10,6 +10,12 @@ Todo asset que entra em `client/Assets/ThirdParty/` precisa de uma linha aqui, n
 
 Nunito Sans e Source Sans 3 foram escolhidas explicitamente para Lumora. Suas licenças são **SIL OFL 1.1**, preservadas com as fontes em `design/tipografia/fontes/` e nas cópias geradas para `Core/UI/Visual/Resources/Lumora/Fontes/`. As instâncias estáticas usam nomes internos próprios `LumoraNunito` e `LumoraSource`; avisos de autoria e licenças acompanham a distribuição. Origem: Google Fonts, [Nunito Sans](https://github.com/google/fonts/tree/main/ofl/nunitosans) e [Source Sans 3](https://github.com/google/fonts/tree/main/ofl/sourcesans3). Procedimento de derivação e fonte única: [guia visual](../../design/interface/GUIA-DE-ESTILO.md).
 
+## Animações Mixamo fornecidas pelo usuário — protótipo do Playground
+
+Em 2026-10-17 o usuário forneceu `Idle.fbx`, `Walking.fbx` e `Running.fbx` e informou origem Mixamo. Originais em `J:/BlenderAssetsAI/Human_Male_Base_v1_UnityTest/`; cópias byte a byte em `client/Assets/_Game/Features/Personagem/Dev/CharacterPlayground/Locomotion/`. Uso autorizado nesta TASK 06 para o teste de locomoção; sem pesquisa externa de licença nem declaração de CC0/CC-BY. Antes de distribuição definitiva, conservar/verificar os termos e comprovantes aplicáveis com quem forneceu os arquivos. Não confundir com `OldManIdle.fbx`, que continua local, ignorado e sem dependência da ferramenta.
+
+Configuração, Avatars, clips e retarget: [Character Playground](character-playground.md#locomotion-animation-set-v1-task-06).
+
 ## Modelos de terceiros
 
 | Pacote / modelo | Fonte | Licença | Link | Pasta | Crédito | Data | Quem baixou |

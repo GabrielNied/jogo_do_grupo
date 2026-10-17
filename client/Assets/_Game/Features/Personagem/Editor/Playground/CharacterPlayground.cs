@@ -50,11 +50,7 @@ namespace JogoDoGrupo.Client.Features.Personagem.Editor.Playground
 
         public static void Abrir()
         {
-            if (EditorApplication.isPlayingOrWillChangePlaymode)
-                return;
-            if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
-                return;
-            EditorSceneManager.OpenScene(Cena);
+            AcessoCharacterPlayground.Abrir();
         }
 
         public static GameObject Spawn(int indice)

@@ -16,4 +16,10 @@ A v2 precisa validar input, movimento e câmera sem servidor. Os componentes rea
 
 ## Consequências
 
+### Extensão local na TASK 06
+
+O acesso direto abre a cena/ferramenta com confirmação normal de salvamento. O bootstrap global permanece intacto: no Playground, o adaptador de Editor troca a tela de abertura por uma tela vazia usando a API pública de Navegacao, fechando a anterior e impedindo sua continuação assíncrona de navegar. A interface normal fica inativa somente nesse contexto. Isso não impede a inicialização/requisição de saúde inicial do bootstrap; evita a sobreposição e não exige rede para movimentar.
+
+Um playModeStartScene previamente definido é substituído apenas durante um Play explícito na cena do Playground e restaurado no Stop; não muda Build Settings nem cenas normais. O controller de locomoção e Apply Root Motion OFF são atribuídos somente à instância temporária com o Avatar do Human Male, preservando o prefab original. Não há novos contratos ou alterações em Core.
+
 Sem diferenças funcionais no jogo principal e sem lógica de movimento duplicada. A reflexão depende de detalhes internos: se Core mudar, a validação de assinatura falha explicitamente e o adaptador deverá ser revisto. Não é um contrato de extensão para builds; fica restrito à ferramenta de desenvolvimento. Operação e testes: [Character Playground](../arte/character-playground.md).

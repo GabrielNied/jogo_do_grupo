@@ -139,6 +139,24 @@ namespace JogoDoGrupo.Client.Features.Personagem.Editor.Playground
             _cursorVisivelAnterior = Cursor.visible;
             _cursorSolto = false;
             var bounds = CharacterPlayground.Medir(personagem);
+            var animator = personagem.GetComponentInChildren<Animator>();
+            // Configurar somente a instancia local; prefab e Avatar originais intactos.
+            var original = AssetDatabase.LoadAssetAtPath<GameObject>(
+                CharacterPlayground.PrefabInicial
+            );
+            if (
+                animator != null
+                && original != null
+                && animator.avatar == original.GetComponentInChildren<Animator>().avatar
+            )
+            {
+                animator.runtimeAnimatorController =
+                    AssetDatabase.LoadAssetAtPath<RuntimeAnimatorController>(
+                        CharacterPlayground.Pasta + "/Locomotion/Locomotion.controller"
+                    );
+                animator.applyRootMotion = false;
+                animator.Rebind();
+            }
             var corpo = personagem.GetComponent<CharacterController>();
             if (corpo == null)
                 corpo = personagem.AddComponent<CharacterController>();
@@ -253,8 +271,38 @@ namespace JogoDoGrupo.Client.Features.Personagem.Editor.Playground
             var animacao =
                 animator == null ? "ausente"
                 : animator.runtimeAnimatorController == null ? "T-pose (sem clips de locomoção)"
+                : animator.GetCurrentAnimatorStateInfo(0).IsName("Locomocao")
+                    ? "Locomocao (Blend Tree)"
                 : animator.GetCurrentAnimatorStateInfo(0).fullPathHash.ToString();
-            return $"Play Mode: sim\nControlado: {Controle.name}\nGrounded: {Controle.NoChao}\nVelocidade alvo: {Controle.VelocidadeHorizontal:F3} m/s\nVelocidade real: {corpo.velocity.magnitude:F3} m/s\nDireção real: {corpo.velocity.normalized}\nAnimator: {animacao}\nCâmera real: {Camera.name}\nInput ativo: {Controle.InputAtivo}\nWASD/setas • Ctrl: andar • Espaço: pular\nMouse: órbita • roda: zoom • Esc: liberar cursor\nClique no Game View para retomar.";
+            var clips =
+                animator == null || animator.runtimeAnimatorController == null
+                    ? ""
+                    : string.Join(
+                        " • ",
+                        System.Linq.Enumerable.Select(
+                            animator.GetCurrentAnimatorClipInfo(0),
+                            c => $"{c.clip.name}: {c.weight:P0}"
+                        )
+                    );
+            var temParametros =
+                animator != null
+                && animator.runtimeAnimatorController != null
+                && System.Linq.Enumerable.Any(
+                    animator.parameters,
+                    p =>
+                        p.name == AnimadorDoVisual.ParametroVelocidade
+                        && p.type == AnimatorControllerParameterType.Float
+                )
+                && System.Linq.Enumerable.Any(
+                    animator.parameters,
+                    p =>
+                        p.name == AnimadorDoVisual.ParametroNoChao
+                        && p.type == AnimatorControllerParameterType.Bool
+                );
+            var parametros = !temParametros
+                ? ""
+                : $"\nVelocidade: {animator.GetFloat(AnimadorDoVisual.ParametroVelocidade):F3} m/s\nNoChao: {animator.GetBool(AnimadorDoVisual.ParametroNoChao)}\nClips: {clips}";
+            return $"Play Mode: sim\nControlado: {Controle.name}\nGrounded: {Controle.NoChao}\nVelocidade alvo: {Controle.VelocidadeHorizontal:F3} m/s\nVelocidade real: {corpo.velocity.magnitude:F3} m/s\nDireção real: {corpo.velocity.normalized}\nAnimator: {animacao}\nController: {animator?.runtimeAnimatorController?.name}{parametros}\nCâmera real: {Camera.name}\nInput ativo: {Controle.InputAtivo}\nWASD/setas • Ctrl: andar • Espaço: pular\nMouse: órbita • roda: zoom • Esc: liberar cursor\nClique no Game View para retomar.";
         }
     }
 }
