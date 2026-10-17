@@ -2,7 +2,7 @@ name: "Agente: Decida"
 
 on:
   schedule:
-    - cron: '0 */4 * * *' # A cada 4 horas
+    - cron: '15 * * * *' # A cada 1 hora (minuto 15)
   workflow_dispatch:
 
 permissions:

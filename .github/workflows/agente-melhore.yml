@@ -2,7 +2,7 @@ name: "Agente: Melhore"
 
 on:
   schedule:
-    - cron: '0 3 * * *' # Diário às 03:00 UTC (00:00 Horário de Brasília)
+    - cron: '0 */2 * * *' # A cada 2 horas
   workflow_dispatch:
 
 permissions:
