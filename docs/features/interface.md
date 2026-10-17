@@ -89,7 +89,7 @@ Decidido por Gabriel em 2026-10-11 (#134); é **provisório** e o grupo pode aju
 | **L** | Missões | [Missões](missoes.md) | aviso "Em construção" (as missões ainda não existem) |
 | **M** | Mapa | [Mundo](mundo.md#mapa-múndi) | aviso "Em construção" (o mapa é a decisão #92) |
 | **N** | Árvore de atributos | [Talentos](talentos.md#implementação-da-625-árvore-compra-e-tela) | a árvore radial, o painel do nó e a compra de ranks |
-| **U** | Companheiros (abas Pets · Montarias) | [Pets](pets.md#definido) · [Montarias](montarias.md#definido) | catálogo completo + coleção na conta; falta implementar ([#925](https://github.com/GabrielNied/jogo_do_grupo/issues/925)) |
+| **U** | Companheiros (abas Pets · Montarias) | [Pets](pets.md#definido) · [Montarias](montarias.md#definido) | catálogo completo + coleção na conta; chamar/dispensar pet ativo e origem de bloqueados ([#925](https://github.com/GabrielNied/jogo_do_grupo/issues/925)) |
 
 #### Companheiros (U)
 

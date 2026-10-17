@@ -44,6 +44,21 @@ public sealed class SorteadorDeLoot(Random aleatorio) : ISorteadorDeLoot
             }
 
             if (
+                (origem == OrigemDoLoot.Comum || origem == OrigemDoLoot.Elite)
+                && aleatorio.NextDouble() < ConfigLoot.ChanceDePetRaro
+            )
+            {
+                quedas.Add(
+                    new QuedaDeLoot
+                    {
+                        ModeloId = TabelaDeLoot.ItemPetRaro,
+                        Origem = origem,
+                        Grau = TabelaDeLoot.GrauDoNivel(nivelDoInimigo),
+                    }
+                );
+            }
+
+            if (
                 (origem == OrigemDoLoot.Chefe || origem == OrigemDoLoot.ChefeRaro)
                 && aleatorio.NextDouble() < ConfigLoot.ChanceDeMontariaDoChefe
             )

@@ -279,5 +279,19 @@ namespace JogoDoGrupo.Client.Features.Itens.Tests
                 LogicaInventario.InstanciasEnvolvidas(acao, estado)
             );
         }
+
+        [Test]
+        public void CliqueDireitoEmItemDePetRetornaAcaoUsar()
+        {
+            var sino = new EntradaInventario
+            {
+                InstanciaId = 99,
+                ItemId = CatalogoItens.SinoDoCervoJovem,
+                Posicao = PosicaoEquipamento.Inventario,
+            };
+            var acao = LogicaInventario.CliqueDireito(sino, new EquipamentosResponse());
+            Assert.AreEqual(TipoAcao.Usar, acao.Tipo);
+            Assert.AreEqual(99, acao.InstanciaId);
+        }
     }
 }

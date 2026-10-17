@@ -80,6 +80,15 @@ public class PetsTestes(ServidorDePets servidor) : IClassFixture<ServidorDePets>
         Assert.True(resultado.Aceita, resultado.Codigo);
         cliente.Enviar(MundoMessageIds.EntrarNaCidade, new EntrarNaCidade());
         await cliente.ReceberAsync<EstadoDaCidade>(MundoMessageIds.EstadoDaCidade);
+        using (var escopo = servidor.Falso.Services.CreateScope())
+        {
+            var db = escopo.ServiceProvider.GetRequiredService<JogoDbContext>();
+            var p = db.Set<JogoDoGrupo.Server.Features.Personagem.Personagem>()
+                .First(x => x.Id == personagem.Id);
+            servidor
+                .Servico<ServicoDePets>()
+                .DesbloquearParaTeste(p.ContaId, EspecieDePet.CervoJovem);
+        }
         return new Jogador(http, cliente, personagem.Id);
     }
 
