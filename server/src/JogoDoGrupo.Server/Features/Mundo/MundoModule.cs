@@ -44,6 +44,7 @@ public sealed class MundoModule
     // Criado pelo contêiner quando o app sobe (hosted service); o manipulador de rede só o usa
     // depois que uma sessão se autentica.
     private volatile ServicoDaHoraDoMundo? _hora;
+    private volatile ServicoDePerigosDoMundo? _perigos;
 
     public string Nome => "Mundo";
 
@@ -83,6 +84,19 @@ public sealed class MundoModule
             sp.GetRequiredService<ILogger<ServicoDePosicaoDoGrupo>>()
         ));
         servicos.AddHostedService(sp => sp.GetRequiredService<ServicoDePosicaoDoGrupo>());
+        servicos.AddSingleton(sp =>
+        {
+            var servico = new ServicoDePerigosDoMundo(
+                () => _areas.Cidade.Presentes(),
+                sp.GetRequiredService<ILimiteDeVelocidadeDoMundo>(),
+                sp.GetService<IDanoAoPersonagem>(),
+                sp.GetService<EventosDoServidor>(),
+                log: sp.GetService<ILogger<ServicoDePerigosDoMundo>>()
+            );
+            _perigos = servico;
+            return servico;
+        });
+        servicos.AddHostedService(sp => sp.GetRequiredService<ServicoDePerigosDoMundo>());
     }
 
     public void MapearRotas(IEndpointRouteBuilder rotas)
@@ -272,6 +286,15 @@ public sealed class MundoModule
                 return;
             case ResultadoMovimento.Aceito:
             case ResultadoMovimento.AceitoComSuspeita:
+                if (area == AreasDoMundo.Cidade)
+                {
+                    _perigos?.VerificarPasso(
+                        sessao.PersonagemId,
+                        avatar.Posicao.X,
+                        avatar.Posicao.Z
+                    );
+                }
+
                 Replicar(area, sessao, avatar);
                 return;
             default:
@@ -475,6 +498,7 @@ public sealed class MundoModule
         }
 
         _areas.RegistrarSaida(sessao.PersonagemId, area);
+        _perigos?.RemoverJogador(sessao.PersonagemId);
 
         var aviso = new JogadorSaiu { PersonagemId = sessao.PersonagemId };
         foreach (var outro in AosQueViam(area, sessao.PersonagemId, estadoArea.Presentes()))

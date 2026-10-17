@@ -1,6 +1,6 @@
-using System.Collections.Generic;
 using JogoDoGrupo.Client.Core.Jogo;
 using JogoDoGrupo.Client.Core.Jogo.Controle;
+using JogoDoGrupo.Client.Core.Jogo.Hud;
 using JogoDoGrupo.Client.Core.TempoReal;
 using JogoDoGrupo.Client.Features.Mundo;
 using JogoDoGrupo.Shared.Features.Mundo;
@@ -36,6 +36,8 @@ namespace JogoDoGrupo.Client.Features.Mundo.Presenca
         private bool _posicaoInicialPendente;
         private Vector3 _posicaoCorrigida;
         private float _rotacaoCorrigida;
+        private float _tempoAvisoLava;
+        private float _tempoAvisoPantano;
 
         /// <summary>A presença da cena do mundo, ou <c>null</c> fora dela. O mapa lê os outros jogadores daqui.</summary>
         public static PresencaNoMundo Atual { get; private set; }
@@ -128,6 +130,37 @@ namespace JogoDoGrupo.Client.Features.Mundo.Presenca
 
             _nomes ??= EtiquetasDeNomes.Criar(transform);
             _nomes.Mostrar(_presenca.Avatares.Todos, Camera.main);
+            AtualizarAvisosDeTerreno(jogador.transform.position, Time.deltaTime);
+        }
+
+        private void AtualizarAvisosDeTerreno(Vector3 posicao, float delta)
+        {
+            _tempoAvisoLava -= delta;
+            _tempoAvisoPantano -= delta;
+
+            if (ConfigPerigosDoMundo.EstaNaLava(posicao.x, posicao.z))
+            {
+                if (_tempoAvisoLava <= 0f)
+                {
+                    _tempoAvisoLava = 3f;
+                    AvisosDoJogo.Mostrar(
+                        "A lava queima! Saia dela rapidamente.",
+                        TipoDeAviso.Aviso
+                    );
+                }
+            }
+
+            if (ConfigPerigosDoMundo.EstaNoPantano(posicao.x, posicao.z))
+            {
+                if (_tempoAvisoPantano <= 0f)
+                {
+                    _tempoAvisoPantano = 5f;
+                    AvisosDoJogo.Mostrar(
+                        "A água do pântano reduz sua velocidade.",
+                        TipoDeAviso.Informacao
+                    );
+                }
+            }
         }
 
         private void OnDestroy()

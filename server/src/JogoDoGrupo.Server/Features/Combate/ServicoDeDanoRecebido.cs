@@ -18,7 +18,7 @@ namespace JogoDoGrupo.Server.Features.Combate;
 /// e o aviso ao dono sai pelo <see cref="ServidorTempoReal"/> (seguro para qualquer thread).
 /// </para>
 /// </summary>
-public sealed class ServicoDeDanoRecebido : IHostedService
+public sealed class ServicoDeDanoRecebido : IHostedService, IDanoAoPersonagem
 {
     private readonly ServidorTempoReal _tempoReal;
     private readonly IServiceScopeFactory _escopos;
@@ -88,6 +88,60 @@ public sealed class ServicoDeDanoRecebido : IHostedService
 
     /// <summary>Trata <see cref="GolpeDeInimigoAcertou"/> sem bloquear quem publica.</summary>
     public void AoGolpeDeInimigo(GolpeDeInimigoAcertou golpe) => _ = AplicarAsync(golpe);
+
+    /// <summary>Aplica dano de ambiente (como lava) sem bloquear quem chama.</summary>
+    public void AplicarDanoDeAmbiente(long personagemId, int dano, string origem, string area) =>
+        _ = AplicarAmbienteAsync(personagemId, dano, origem, area);
+
+    private async Task AplicarAmbienteAsync(long personagemId, int dano, string origem, string area)
+    {
+        try
+        {
+            if (dano <= 0)
+            {
+                return;
+            }
+
+            if (
+                _queda?.EstaCaido(personagemId) == true
+                || _queda?.EstaImuneAposLevantar(personagemId, _relogioMs()) == true
+            )
+            {
+                return;
+            }
+
+            _tempoReal.TentarObterSessao(personagemId, out var sessao);
+
+            var recursos = await RecursosDoAtaque.TirarVidaAsync(
+                _escopos,
+                personagemId,
+                dano,
+                _parada.Token
+            );
+
+            if (sessao != null)
+            {
+                _tempoReal.Enviar(sessao, CombateMessageIds.RecursosMudaram, recursos);
+            }
+
+            _eventos?.Publicar(
+                new VidaDoPersonagemMudou(personagemId, recursos.VidaAtual, recursos.VidaMaxima)
+            );
+
+            _eventos?.Publicar(new DanoDeAmbienteAcertou(personagemId, dano, origem, area));
+
+            _queda?.AoDano(personagemId, recursos.VidaAtual);
+        }
+        catch (OperationCanceledException) { }
+        catch (Exception ex)
+        {
+            _log.LogError(
+                ex,
+                "Erro ao aplicar dano de ambiente no personagem {Personagem}.",
+                personagemId
+            );
+        }
+    }
 
     private async Task AplicarAsync(GolpeDeInimigoAcertou golpe)
     {
