@@ -87,21 +87,19 @@ namespace JogoDoGrupo.Client.Features.Montarias.UI
         {
             if (ControleDeMontaria.Instancia != null)
             {
-                ControleDeMontaria.Instancia.MontariaEquipadaMudou += AtualizarCartoes;
+                ControleDeMontaria.Instancia.MontariaEquipadaMudou += AtualizarCartoesPorEquipada;
+                ControleDeMontaria.Instancia.ColecaoMudou += AtualizarTodosOsCartoes;
             }
 
-            AtualizarCartoes(
-                ControleDeMontaria.Instancia != null
-                    ? ControleDeMontaria.Instancia.MontariaEquipada
-                    : RegrasMontaria.TipoPadrao
-            );
+            AtualizarTodosOsCartoes();
         }
 
         protected override void AoFechar()
         {
             if (ControleDeMontaria.Instancia != null)
             {
-                ControleDeMontaria.Instancia.MontariaEquipadaMudou -= AtualizarCartoes;
+                ControleDeMontaria.Instancia.MontariaEquipadaMudou -= AtualizarCartoesPorEquipada;
+                ControleDeMontaria.Instancia.ColecaoMudou -= AtualizarTodosOsCartoes;
             }
         }
 
@@ -118,14 +116,25 @@ namespace JogoDoGrupo.Client.Features.Montarias.UI
             {
                 ControleDeMontaria.Instancia.EquiparMontaria(tipo);
             }
-            AtualizarCartoes(tipo);
+            AtualizarTodosOsCartoes();
         }
 
-        private void AtualizarCartoes(int tipoEquipado)
+        private void AtualizarCartoesPorEquipada(int _)
         {
+            AtualizarTodosOsCartoes();
+        }
+
+        private void AtualizarTodosOsCartoes()
+        {
+            var controle = ControleDeMontaria.Instancia;
+            var equipada = controle != null ? controle.MontariaEquipada : RegrasMontaria.TipoPadrao;
+
             for (var i = 0; i < _cartoes.Count; i++)
             {
-                _cartoes[i].DefinirEquipado(_cartoes[i].Tipo == tipoEquipado);
+                var tipo = _cartoes[i].Tipo;
+                var desbloqueada = controle == null || controle.PossuiMontaria(tipo);
+                var ehEquipada = desbloqueada && tipo == equipada;
+                _cartoes[i].AtualizarEstado(desbloqueada, ehEquipada);
             }
         }
 
@@ -139,6 +148,8 @@ namespace JogoDoGrupo.Client.Features.Montarias.UI
 
             private readonly Button _botaoEquipar;
             private readonly VisualElement _seloEquipado;
+            private readonly VisualElement _seloBloqueado;
+            private readonly Label _rotuloOrigem;
             private readonly Action<int> _aoEquipar;
 
             public CartaoMontaria(int tipo, Action<int> aoEquipar)
@@ -310,31 +321,93 @@ namespace JogoDoGrupo.Client.Features.Montarias.UI
                 _seloEquipado.Add(rotuloEquipado);
                 Elemento.Add(_seloEquipado);
 
-                DefinirEquipado(false);
+                // Selo de montaria bloqueada
+                _seloBloqueado = new VisualElement();
+                _seloBloqueado.style.flexDirection = FlexDirection.Row;
+                _seloBloqueado.style.justifyContent = Justify.Center;
+                _seloBloqueado.style.alignItems = Align.Center;
+                _seloBloqueado.style.paddingTop = 6f;
+                _seloBloqueado.style.paddingBottom = 6f;
+                _seloBloqueado.style.marginTop = 4f;
+                _seloBloqueado.style.backgroundColor = new Color(0.12f, 0.13f, 0.16f, 0.9f);
+                _seloBloqueado.style.borderLeftColor = new Color(0.28f, 0.30f, 0.36f, 0.7f);
+                _seloBloqueado.style.borderRightColor = new Color(0.28f, 0.30f, 0.36f, 0.7f);
+                _seloBloqueado.style.borderTopColor = new Color(0.28f, 0.30f, 0.36f, 0.7f);
+                _seloBloqueado.style.borderBottomColor = new Color(0.28f, 0.30f, 0.36f, 0.7f);
+                _seloBloqueado.style.borderLeftWidth = 1f;
+                _seloBloqueado.style.borderRightWidth = 1f;
+                _seloBloqueado.style.borderTopWidth = 1f;
+                _seloBloqueado.style.borderBottomWidth = 1f;
+                _seloBloqueado.style.borderTopLeftRadius = 4f;
+                _seloBloqueado.style.borderTopRightRadius = 4f;
+                _seloBloqueado.style.borderBottomLeftRadius = 4f;
+                _seloBloqueado.style.borderBottomRightRadius = 4f;
+
+                var rotuloBloqueado = new Label("🔒 BLOQUEADA");
+                rotuloBloqueado.style.fontSize = 11.5f;
+                rotuloBloqueado.style.unityFontStyleAndWeight = FontStyle.Bold;
+                rotuloBloqueado.style.color = new Color(0.60f, 0.63f, 0.70f);
+                _seloBloqueado.Add(rotuloBloqueado);
+                Elemento.Add(_seloBloqueado);
+
+                // Origem da montaria
+                var origem = RegrasMontaria.ObterOrigem(tipo);
+                _rotuloOrigem = new Label(string.IsNullOrEmpty(origem) ? "" : $"Origem: {origem}");
+                _rotuloOrigem.style.fontSize = 10f;
+                _rotuloOrigem.style.color = new Color(0.68f, 0.72f, 0.80f);
+                _rotuloOrigem.style.marginTop = 6f;
+                _rotuloOrigem.style.unityFontStyleAndWeight = FontStyle.Italic;
+                Elemento.Add(_rotuloOrigem);
+
+                AtualizarEstado(true, false);
+            }
+
+            public void AtualizarEstado(bool desbloqueada, bool equipado)
+            {
+                if (!desbloqueada)
+                {
+                    Elemento.style.opacity = 0.55f;
+                    Elemento.style.backgroundColor = new Color(0.08f, 0.09f, 0.12f, 0.85f);
+                    Elemento.style.borderLeftColor = new Color(0.20f, 0.22f, 0.28f, 0.5f);
+                    Elemento.style.borderRightColor = new Color(0.20f, 0.22f, 0.28f, 0.5f);
+                    Elemento.style.borderTopColor = new Color(0.20f, 0.22f, 0.28f, 0.5f);
+                    Elemento.style.borderBottomColor = new Color(0.20f, 0.22f, 0.28f, 0.5f);
+                    _botaoEquipar.style.display = DisplayStyle.None;
+                    _seloEquipado.style.display = DisplayStyle.None;
+                    _seloBloqueado.style.display = DisplayStyle.Flex;
+                    _rotuloOrigem.style.display = DisplayStyle.Flex;
+                }
+                else
+                {
+                    Elemento.style.opacity = 1f;
+                    _seloBloqueado.style.display = DisplayStyle.None;
+
+                    if (equipado)
+                    {
+                        Elemento.style.backgroundColor = new Color(0.14f, 0.17f, 0.23f, 0.96f);
+                        Elemento.style.borderLeftColor = new Color(0.85f, 0.70f, 0.28f, 0.9f);
+                        Elemento.style.borderRightColor = new Color(0.85f, 0.70f, 0.28f, 0.9f);
+                        Elemento.style.borderTopColor = new Color(0.85f, 0.70f, 0.28f, 0.9f);
+                        Elemento.style.borderBottomColor = new Color(0.85f, 0.70f, 0.28f, 0.9f);
+                        _botaoEquipar.style.display = DisplayStyle.None;
+                        _seloEquipado.style.display = DisplayStyle.Flex;
+                    }
+                    else
+                    {
+                        Elemento.style.backgroundColor = new Color(0.10f, 0.12f, 0.16f, 0.92f);
+                        Elemento.style.borderLeftColor = new Color(0.24f, 0.28f, 0.36f, 0.6f);
+                        Elemento.style.borderRightColor = new Color(0.24f, 0.28f, 0.36f, 0.6f);
+                        Elemento.style.borderTopColor = new Color(0.24f, 0.28f, 0.36f, 0.6f);
+                        Elemento.style.borderBottomColor = new Color(0.24f, 0.28f, 0.36f, 0.6f);
+                        _botaoEquipar.style.display = DisplayStyle.Flex;
+                        _seloEquipado.style.display = DisplayStyle.None;
+                    }
+                }
             }
 
             public void DefinirEquipado(bool equipado)
             {
-                if (equipado)
-                {
-                    Elemento.style.backgroundColor = new Color(0.14f, 0.17f, 0.23f, 0.96f);
-                    Elemento.style.borderLeftColor = new Color(0.85f, 0.70f, 0.28f, 0.9f);
-                    Elemento.style.borderRightColor = new Color(0.85f, 0.70f, 0.28f, 0.9f);
-                    Elemento.style.borderTopColor = new Color(0.85f, 0.70f, 0.28f, 0.9f);
-                    Elemento.style.borderBottomColor = new Color(0.85f, 0.70f, 0.28f, 0.9f);
-                    _botaoEquipar.style.display = DisplayStyle.None;
-                    _seloEquipado.style.display = DisplayStyle.Flex;
-                }
-                else
-                {
-                    Elemento.style.backgroundColor = new Color(0.10f, 0.12f, 0.16f, 0.92f);
-                    Elemento.style.borderLeftColor = new Color(0.24f, 0.28f, 0.36f, 0.6f);
-                    Elemento.style.borderRightColor = new Color(0.24f, 0.28f, 0.36f, 0.6f);
-                    Elemento.style.borderTopColor = new Color(0.24f, 0.28f, 0.36f, 0.6f);
-                    Elemento.style.borderBottomColor = new Color(0.24f, 0.28f, 0.36f, 0.6f);
-                    _botaoEquipar.style.display = DisplayStyle.Flex;
-                    _seloEquipado.style.display = DisplayStyle.None;
-                }
+                AtualizarEstado(true, equipado);
             }
         }
     }

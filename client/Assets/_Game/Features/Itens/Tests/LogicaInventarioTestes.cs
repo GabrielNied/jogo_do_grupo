@@ -228,6 +228,21 @@ namespace JogoDoGrupo.Client.Features.Itens.Tests
         }
 
         [Test]
+        public void CliqueDireitoEmItemDeMontariaRetornaUsar()
+        {
+            var redeas = new EntradaInventario
+            {
+                InstanciaId = 42,
+                ItemId = CatalogoItens.RedeasDoCorcelNoturno,
+                Aba = 0,
+                Casa = 1,
+            };
+            var acao = LogicaInventario.CliqueDireito(redeas, new EquipamentosResponse());
+            Assert.AreEqual(TipoAcao.Usar, acao.Tipo);
+            Assert.AreEqual(42, acao.InstanciaId);
+        }
+
+        [Test]
         public void CliqueDireitoUsaOConjuntoAtivoParaArmas()
         {
             var estado = new EquipamentosResponse { ConjuntoAtivo = 2 };

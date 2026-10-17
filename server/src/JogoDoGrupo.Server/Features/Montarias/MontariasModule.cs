@@ -4,6 +4,7 @@ using JogoDoGrupo.Server.Contratos.Mundo;
 using JogoDoGrupo.Server.Core;
 using JogoDoGrupo.Server.Core.TempoReal;
 using JogoDoGrupo.Shared.Features.Montarias;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace JogoDoGrupo.Server.Features.Montarias;
@@ -11,6 +12,7 @@ namespace JogoDoGrupo.Server.Features.Montarias;
 public sealed class MontariasModule : IFeatureModule
 {
     private ServicoDeMontarias? _servico;
+    private ServerContext? _contexto;
 
     public string Nome => "Montarias";
 
@@ -22,6 +24,7 @@ public sealed class MontariasModule : IFeatureModule
             combate: sp.GetService<IEstadoDeCombate>(),
             posicoes: sp.GetService<IPosicoesDoMundo>(),
             vizinhanca: sp.GetService<IVizinhanca>(),
+            scopeFactory: sp.GetService<IServiceScopeFactory>(),
             logger: sp.GetService<ILogger<ServicoDeMontarias>>()
         ));
         servicos.AddSingleton<IMontariasConsulta>(sp =>
@@ -39,12 +42,15 @@ public sealed class MontariasModule : IFeatureModule
             .Faixa(MontariasMessageIds.Faixa)
             .Ao<ChamarMontaria>(MontariasMessageIds.ChamarMontaria, AoChamarMontaria)
             .Ao<Desmontar>(MontariasMessageIds.Desmontar, AoDesmontar)
-            .Ao<EquiparMontaria>(MontariasMessageIds.EquiparMontaria, AoEquiparMontaria);
+            .Ao<EquiparMontaria>(MontariasMessageIds.EquiparMontaria, AoEquiparMontaria)
+            .Ao<UsarItemMontaria>(MontariasMessageIds.UsarItemMontaria, AoUsarItemMontaria);
 
     public void Inicializar(ServerContext contexto)
     {
+        _contexto = contexto;
         contexto.TempoReal.SessaoEncerrada += AoEncerrar;
         contexto.Eventos.Assinar<PersonagemCaiu>(AoPersonagemCair);
+        contexto.Eventos.Assinar<JogadorEntrouNaArea>(AoJogadorEntrarNaArea);
     }
 
     private void AoChamarMontaria(SessaoTempoReal sessao, ChamarMontaria pedido)
@@ -60,6 +66,33 @@ public sealed class MontariasModule : IFeatureModule
     private void AoEquiparMontaria(SessaoTempoReal sessao, EquiparMontaria pedido)
     {
         _servico?.EquiparMontaria(sessao.PersonagemId, pedido.TipoMontaria, sessao);
+    }
+
+    private void AoUsarItemMontaria(SessaoTempoReal sessao, UsarItemMontaria pedido)
+    {
+        _ = _servico?.UsarItemMontariaAsync(
+            sessao.ContaId,
+            sessao.PersonagemId,
+            pedido.InstanciaId,
+            sessao
+        );
+    }
+
+    private void AoJogadorEntrarNaArea(JogadorEntrouNaArea evento)
+    {
+        if (_contexto == null || _servico == null)
+        {
+            return;
+        }
+
+        foreach (var sessao in _contexto.TempoReal.Sessoes)
+        {
+            if (sessao.PersonagemId == evento.PersonagemId)
+            {
+                _servico.EnviarColecao(sessao);
+                break;
+            }
+        }
     }
 
     private void AoEncerrar(SessaoTempoReal sessao)

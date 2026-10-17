@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using JogoDoGrupo.Client.Core.Api;
 using JogoDoGrupo.Client.Core.Jogo;
 using JogoDoGrupo.Client.Core.Jogo.Janelas;
+using JogoDoGrupo.Client.Core.TempoReal;
 using JogoDoGrupo.Shared.Features.Itens;
+using JogoDoGrupo.Shared.Features.Montarias;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -50,6 +52,7 @@ namespace JogoDoGrupo.Client.Features.Itens
         private HashSet<long> _novos = new HashSet<long>();
         private HashSet<long> _pendentes = new HashSet<long>();
         private bool _ocupado;
+        private IDisposable _assinaturaMontaria;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void Registrar()
@@ -149,11 +152,23 @@ namespace JogoDoGrupo.Client.Features.Itens
             var abrindoBau = _abrirBau;
             _abrirBau = false;
             DefinirTitulo(abrindoBau ? TituloBau : Titulo);
+            _assinaturaMontaria = ConexaoTempoReal.Assinar<MontariaDesbloqueada>(
+                MontariasMessageIds.MontariaDesbloqueada,
+                msg =>
+                {
+                    if (Aberta && EntradaNoJogo.NoJogo)
+                    {
+                        _ = Recarregar(EntradaNoJogo.PersonagemId);
+                    }
+                }
+            );
             _ = Carregar(abrindoBau);
         }
 
         protected override void AoFechar()
         {
+            _assinaturaMontaria?.Dispose();
+            _assinaturaMontaria = null;
             _painel?.Encerrar();
         }
 
@@ -467,6 +482,12 @@ namespace JogoDoGrupo.Client.Features.Itens
                             Lixo = acao.ValorBooleano,
                         },
                         pendentes
+                    );
+                    break;
+                case TipoAcao.Usar:
+                    ConexaoTempoReal.Enviar(
+                        MontariasMessageIds.UsarItemMontaria,
+                        new UsarItemMontaria { InstanciaId = acao.InstanciaId }
                     );
                     break;
             }

@@ -1,3 +1,5 @@
+using JogoDoGrupo.Shared.Features.Itens;
+
 namespace JogoDoGrupo.Shared.Features.Montarias
 {
     /// <summary>
@@ -21,6 +23,25 @@ namespace JogoDoGrupo.Shared.Features.Montarias
         public const float TempoInvocacaoSegundos = 1.5f;
 
         public static bool TipoValido(int tipo) => tipo == TipoCastanho || tipo == TipoNoturno;
+
+        /// <summary>Retorna o tipo de montaria desbloqueado pelo item, ou 0 se não for item de montaria.</summary>
+        public static int TipoMontariaDoItem(int itemId) =>
+            itemId switch
+            {
+                CatalogoItens.RedeasDoCorcelNoturno => TipoNoturno,
+                _ => 0,
+            };
+
+        /// <summary>Indica se a montaria já vem desbloqueada por padrão na conta.</summary>
+        public static bool DesbloqueadaPorPadrao(int tipo) => tipo == TipoCastanho;
+
+        /// <summary>Origem de obtenção descrita para exibição na coleção / catálogo.</summary>
+        public static string ObterOrigem(int tipo) =>
+            tipo switch
+            {
+                TipoNoturno => "Drop raro de chefes (5%)",
+                _ => "Montaria inicial de Asterra",
+            };
 
         public static string ObterNome(int tipo) =>
             tipo switch

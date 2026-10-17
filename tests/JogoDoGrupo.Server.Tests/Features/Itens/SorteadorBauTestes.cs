@@ -51,10 +51,12 @@ public class SorteadorBauTestes
         var aberturas = Sortear(4000, semente: 3);
         var todos = aberturas.SelectMany(itens => itens).ToList();
 
+        var proporcaoEsperada = 1.0 / CatalogoItens.Todos.Length;
+        var tolerancia = 0.03;
         foreach (var id in CatalogoItens.Todos)
         {
             var fracao = todos.Count(x => x == id) / (double)todos.Count;
-            Assert.InRange(fracao, 0.22, 0.28);
+            Assert.InRange(fracao, proporcaoEsperada - tolerancia, proporcaoEsperada + tolerancia);
         }
 
         Assert.Contains(aberturas, itens => itens.Distinct().Count() < itens.Length);
