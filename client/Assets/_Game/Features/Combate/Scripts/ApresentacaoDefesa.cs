@@ -1,3 +1,4 @@
+using JogoDoGrupo.Client.Core.UI;
 using JogoDoGrupo.Shared.Features.Combate;
 
 namespace JogoDoGrupo.Client.Features.Combate
@@ -5,8 +6,7 @@ namespace JogoDoGrupo.Client.Features.Combate
     /// <summary>Os números da defesa como o client os usa (a regra e o custo são do servidor).</summary>
     internal static class ApresentacaoDefesa
     {
-        public const string TextoDefesaInsuficientePadrao =
-            "Defesa insuficiente para bloquear completamente este impacto.";
+        public const string TextoDefesaInsuficientePadrao = TextosDoLivro.DefesaInsuficiente;
 
         /// <summary>A fração da corrida permitida com a guarda segurada (0,4).</summary>
         public static float FatorDaGuarda => (float)RegrasGuarda.VelocidadeComGuarda;

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using JogoDoGrupo.Client.Core.Api;
+using JogoDoGrupo.Client.Core.UI;
 using JogoDoGrupo.Shared.Features.Personagem;
 
 namespace JogoDoGrupo.Client.Features.Personagem
@@ -10,6 +11,7 @@ namespace JogoDoGrupo.Client.Features.Personagem
     /// </summary>
     internal static class TextosPersonagem
     {
+        public const string DicaDistribuicao = TextosDoLivro.AtributosOrientacao;
         public const string Generica = "Algo deu errado. Tente de novo.";
 
         public const string SemConexao =

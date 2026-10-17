@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Text;
+using JogoDoGrupo.Client.Core.UI;
 using JogoDoGrupo.Shared.Features.Talentos;
 
 namespace JogoDoGrupo.Client.Features.Talentos
@@ -8,6 +9,7 @@ namespace JogoDoGrupo.Client.Features.Talentos
     internal static class TextosTalentos
     {
         public const string Titulo = "Árvore de atributos";
+        public const string DicaDistribuicao = TextosDoLivro.AtributosOrientacao;
         public const string Carregando = "Carregando a árvore...";
         public const string ErroAoCarregar =
             "Não foi possível carregar a árvore. Feche e abra de novo.";

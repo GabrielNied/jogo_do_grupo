@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using JogoDoGrupo.Client.Core.UI;
 using JogoDoGrupo.Shared.Features.Mobs;
 using UnityEngine;
 
@@ -7,6 +8,8 @@ namespace JogoDoGrupo.Client.Features.Mobs
     /// <summary>Projeta inimigos na tela e acha quem está sob a mira (centro da viewport).</summary>
     internal static class MiraDeCombate
     {
+        public const string TextoAjuda = TextosDoLivro.AjudaMira;
+
         /// <summary>Altura acima do chão para mirar no tronco (mesma ordem de grandeza das etiquetas).</summary>
         private const float AlturaNaTela = 1.4f;
 

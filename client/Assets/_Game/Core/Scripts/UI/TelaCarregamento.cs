@@ -32,6 +32,11 @@ namespace JogoDoGrupo.Client.Core.UI
             titulo.AddToClassList(EstiloCore.Titulo);
             painel.Add(titulo);
 
+            var lema = new Label(TextosDoLivro.EntradaNoMundo);
+            lema.AddToClassList(EstiloCore.Texto);
+            lema.AddToClassList("entrada-mundo-lema");
+            painel.Add(lema);
+
             _estado = new Label();
             _estado.AddToClassList(EstiloCore.Subtitulo);
             _estado.AddToClassList("entrada-mundo-estado");
