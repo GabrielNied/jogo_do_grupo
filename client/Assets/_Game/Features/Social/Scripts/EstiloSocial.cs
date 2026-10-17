@@ -51,6 +51,9 @@ namespace JogoDoGrupo.Client.Features.Social
         /// <summary>Aliado offline no HUD.</summary>
         public const string AliadoOffline = "aliado-offline";
 
+        /// <summary>Aliado em outra área (longe) no HUD (#351).</summary>
+        public const string AliadoLonge = "aliado-longe";
+
         /// <summary>Vida crítica (&lt; 30%) com destaque visual.</summary>
         public const string VidaCritica = "vida-critica";
 

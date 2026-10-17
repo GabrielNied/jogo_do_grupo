@@ -5,6 +5,7 @@ using JogoDoGrupo.Server.Contratos.Personagem;
 using JogoDoGrupo.Server.Contratos.Social;
 using JogoDoGrupo.Server.Core;
 using JogoDoGrupo.Server.Core.TempoReal;
+using JogoDoGrupo.Shared.Features.Mundo;
 using JogoDoGrupo.Shared.Features.Social;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -140,7 +141,8 @@ public sealed class SocialModule : IFeatureModule, IConsultaDeGrupo
             _diretorio,
             saida,
             () => Environment.TickCount64,
-            _amigos.ContatoBarradoEntrePersonagens
+            _amigos.ContatoBarradoEntrePersonagens,
+            () => _servicos!.GetService<IPosicoesDoMundo>()
         );
         _grupos = grupos;
 
@@ -190,6 +192,7 @@ public sealed class SocialModule : IFeatureModule, IConsultaDeGrupo
     private void AoEntrarNaArea(JogadorEntrouNaArea evento)
     {
         _amigos?.AoMudarArea(evento.PersonagemId);
+        AoMudarAreaDoGrupo(evento.PersonagemId);
         if (
             evento.Area != AreasDoMundo.Cidade
             || !_online.TryGetValue(evento.PersonagemId, out var sessao)
@@ -206,6 +209,48 @@ public sealed class SocialModule : IFeatureModule, IConsultaDeGrupo
                 SocialMessageIds.HistoricoDaCidade,
                 new HistoricoDaCidade { Mensagens = mensagens }
             );
+        }
+    }
+
+    private void AoMudarAreaDoGrupo(long personagemId)
+    {
+        if (_grupos == null)
+        {
+            return;
+        }
+
+        var grupo = _grupos.Consultar(personagemId);
+        if (grupo == null)
+        {
+            return;
+        }
+
+        var area = "";
+        if (
+            _servicos?.GetService<IPosicoesDoMundo>()?.TentarObter(personagemId, out var pos)
+            == true
+        )
+        {
+            area = RotulosDeArea.Descricao(pos.Area, pos.X, pos.Z);
+        }
+
+        if (!_grupos.AtualizarArea(personagemId, area))
+        {
+            return;
+        }
+
+        var msg = new AreaDoMembroMudou { PersonagemId = personagemId, Area = area };
+
+        foreach (var membroId in grupo.Membros)
+        {
+            if (
+                _tempoReal != null
+                && _tempoReal.TentarObterSessao(membroId, out var sessao)
+                && sessao != null
+            )
+            {
+                _tempoReal.Enviar(sessao, SocialMessageIds.AreaDoMembroMudou, msg);
+            }
         }
     }
 

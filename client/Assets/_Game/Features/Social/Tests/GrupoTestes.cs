@@ -106,7 +106,8 @@ namespace JogoDoGrupo.Client.Features.Social.Tests
             string nome,
             bool online = true,
             int vida = 100,
-            int vidaMaxima = 100
+            int vidaMaxima = 100,
+            string area = ""
         ) =>
             new MembroDoGrupo
             {
@@ -115,6 +116,7 @@ namespace JogoDoGrupo.Client.Features.Social.Tests
                 Online = online,
                 Vida = vida,
                 VidaMaxima = vidaMaxima,
+                Area = area,
             };
 
         private void ReceberLista(long liderId, params MembroDoGrupo[] membros) =>
@@ -887,6 +889,94 @@ namespace JogoDoGrupo.Client.Features.Social.Tests
             Assert.IsFalse(linhaBia.Raiz.ClassListContains(PainelListaGrupoHud.ClasseCritica));
 
             painel.Dispose();
+        }
+
+        [Test]
+        public void PainelHud_AliadoEmOutraArea_AplicaClasseLongeENaoMostraBarraDeVida()
+        {
+            var painel = new PainelListaGrupoHud(_raiz, _estado);
+            ReceberLista(
+                Eu,
+                Membro(Eu, "Ana", true, 100, 100, "Cidade"),
+                Membro(2, "Bia", true, 80, 100, "Campo"),
+                Membro(3, "Caio", true, 50, 100, "Cidade")
+            );
+
+            var linhaBia = painel.Linhas[0];
+            Assert.IsTrue(linhaBia.Raiz.ClassListContains(PainelListaGrupoHud.ClasseLonge));
+            Assert.IsFalse(linhaBia.Raiz.ClassListContains(PainelListaGrupoHud.ClasseOffline));
+            Assert.IsFalse(linhaBia.Raiz.ClassListContains(PainelListaGrupoHud.ClasseCritica));
+            Assert.AreEqual("(Campo)", linhaBia.StatusOffline.text);
+            Assert.AreEqual(DisplayStyle.Flex, linhaBia.StatusOffline.style.display.value);
+            Assert.AreEqual(DisplayStyle.None, linhaBia.BarraFundo.style.display.value);
+
+            var linhaCaio = painel.Linhas[1];
+            Assert.IsFalse(linhaCaio.Raiz.ClassListContains(PainelListaGrupoHud.ClasseLonge));
+            Assert.IsFalse(linhaCaio.Raiz.ClassListContains(PainelListaGrupoHud.ClasseOffline));
+            Assert.AreEqual(DisplayStyle.None, linhaCaio.StatusOffline.style.display.value);
+            Assert.AreEqual(DisplayStyle.Flex, linhaCaio.BarraFundo.style.display.value);
+
+            painel.Dispose();
+        }
+
+        [Test]
+        public void PainelHud_AliadoMudaDeAreaEmTempoReal_AlternaEntreLongeENormal()
+        {
+            var painel = new PainelListaGrupoHud(_raiz, _estado);
+            ReceberLista(
+                Eu,
+                Membro(Eu, "Ana", true, 100, 100, "Cidade"),
+                Membro(2, "Bia", true, 80, 100, "Cidade")
+            );
+
+            var linhaBia = painel.Linhas[0];
+            Assert.IsFalse(linhaBia.Raiz.ClassListContains(PainelListaGrupoHud.ClasseLonge));
+            Assert.AreEqual(DisplayStyle.Flex, linhaBia.BarraFundo.style.display.value);
+
+            // Bia vai para uma Dungeon
+            _conexao.Receber(
+                SocialMessageIds.AreaDoMembroMudou,
+                new AreaDoMembroMudou { PersonagemId = 2, Area = "Dungeon" }
+            );
+
+            Assert.IsTrue(linhaBia.Raiz.ClassListContains(PainelListaGrupoHud.ClasseLonge));
+            Assert.AreEqual("(Dungeon)", linhaBia.StatusOffline.text);
+            Assert.AreEqual(DisplayStyle.Flex, linhaBia.StatusOffline.style.display.value);
+            Assert.AreEqual(DisplayStyle.None, linhaBia.BarraFundo.style.display.value);
+
+            // Bia volta para a Cidade
+            _conexao.Receber(
+                SocialMessageIds.AreaDoMembroMudou,
+                new AreaDoMembroMudou { PersonagemId = 2, Area = "Cidade" }
+            );
+
+            Assert.IsFalse(linhaBia.Raiz.ClassListContains(PainelListaGrupoHud.ClasseLonge));
+            Assert.AreEqual(DisplayStyle.None, linhaBia.StatusOffline.style.display.value);
+            Assert.AreEqual(DisplayStyle.Flex, linhaBia.BarraFundo.style.display.value);
+
+            painel.Dispose();
+        }
+
+        [Test]
+        public void EstadoDoGrupo_AreaDoMembroMudou_AtualizaAreaDoMembroEDisparaMudou()
+        {
+            ReceberLista(
+                Eu,
+                Membro(Eu, "Ana", true, 100, 100, "Cidade"),
+                Membro(2, "Bia", true, 100, 100, "Cidade")
+            );
+
+            var disparou = false;
+            _estado.Mudou += () => disparou = true;
+
+            _conexao.Receber(
+                SocialMessageIds.AreaDoMembroMudou,
+                new AreaDoMembroMudou { PersonagemId = 2, Area = "Campo" }
+            );
+
+            Assert.IsTrue(disparou);
+            var bia = _estado.Membros.First(m => m.PersonagemId == 2);
+            Assert.AreEqual("Campo", bia.Area);
         }
 
         [Test]

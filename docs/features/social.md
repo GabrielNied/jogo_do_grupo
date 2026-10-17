@@ -370,9 +370,11 @@ Código em `shared/Package/Runtime/Features/Social/` (fonte dos nomes e tipos ex
 | 13003 | `ExpulsarDoGrupo` | client → servidor | `PersonagemId` |
 | 13004 | `PassarLideranca` | client → servidor | `PersonagemId` |
 | 13010 | `ConviteRecebido` | servidor → convidado | `ConviteId`, `NomeDoConvidante`, `ValidadeSegundos` |
-| 13011 | `ListaDoGrupo` | servidor → membros | `GrupoId`, `LiderId`, `Membros[]` (`MembroDoGrupo`: `PersonagemId`, `Nome`, `Online`); lista vazia = sem grupo |
+| 13011 | `ListaDoGrupo` | servidor → membros | `GrupoId`, `LiderId`, `Membros[]` (`MembroDoGrupo`: `PersonagemId`, `Nome`, `Online`, `Vida`, `VidaMaxima`, `Area`); lista vazia = sem grupo |
 | 13012 | `AvisoDoGrupo` | servidor → client | `Tipo` (`TipoDeAvisoDoGrupo`), `PersonagemId`, `Nome` |
 | 13013 | `OperacaoDoGrupoRecusada` | servidor → quem pediu | `Codigo` (`CodigosErroSocial`) |
+| 13014 | `VidaDoMembroMudou` | servidor → membros | `PersonagemId`, `Vida`, `VidaMaxima` |
+| 13015 | `AreaDoMembroMudou` | servidor → membros | `PersonagemId`, `Area` |
 
 - `TipoDeAvisoDoGrupo`: os avisos da lista acima que não têm mensagem própria (`ConviteRecusado`, `ConviteExpirou`, `EntrouNoGrupo`, `SaiuDoGrupo`, `LiderMudou`, `ExpulsoDoGrupo`, `GrupoDesfeito`, `MembroOffline`, `MembroVoltou`). `ConviteRecebido` e `ListaDoGrupo` são mensagens.
 - `CodigosErroSocial`: os 16 códigos da tabela de erros.
@@ -398,8 +400,8 @@ Código em `client/Assets/_Game/Features/Social/`. O client só envia intençõe
 
 #### Localização/área na lista ([#351](https://github.com/GabrielNied/jogo_do_grupo/issues/351))
 
-- **Escopo da issue:** nome da **área** ou estado **longe** (aliado em outra instância/área), conforme [HUD do jogo](interface.md#hud-do-jogo); não repete o trabalho de vida da #900.
-- **Fonte:** servidor envia área atual ou flag de distância; o client pinta a linha apagada com o nome da área quando **longe**.
+- **Exibição no HUD:** quando o aliado estiver em área diferente da do jogador local, a linha é exibida no estado **longe** (`.aliado-longe`: opacidade 0.5, rótulo de status com `({Area})` e barra de vida oculta, conforme [HUD do jogo](interface.md#hud-do-jogo)). Aliados na mesma área exibem vida exata, percentual e barra completa.
+- **Sincronização em tempo real:** o servidor propaga a área de cada membro em `ListaDoGrupo` (campo `Area` de `MembroDoGrupo`, resolvido via `RotulosDeArea.Descricao`) e atualiza mudanças de área/instância através de `AreaDoMembroMudou` (ID 13015: `PersonagemId`, `Area`).
 
 ### Contrato do chat
 

@@ -17,6 +17,7 @@ namespace JogoDoGrupo.Client.Features.Social
         public const string ClassePainel = "lista-grupo-hud";
         public const string ClasseLinha = "linha-aliado-hud";
         public const string ClasseOffline = "aliado-offline";
+        public const string ClasseLonge = "aliado-longe";
         public const string ClasseCritica = "vida-critica";
         public const string ClasseTopo = "linha-aliado-topo";
         public const string ClasseNome = "aliado-nome";
@@ -84,6 +85,7 @@ namespace JogoDoGrupo.Client.Features.Social
             var membros = _estado.Membros;
             var localId = _estado.PersonagemLocalId;
             var liderId = _estado.LiderId;
+            var areaLocal = _estado.AreaLocal;
 
             var indiceAliado = 0;
             for (var i = 0; i < membros.Count && indiceAliado < _linhas.Count; i++)
@@ -94,7 +96,7 @@ namespace JogoDoGrupo.Client.Features.Social
                     continue;
                 }
 
-                _linhas[indiceAliado].Atualizar(membro, liderId);
+                _linhas[indiceAliado].Atualizar(membro, liderId, areaLocal);
                 indiceAliado++;
             }
 
@@ -122,6 +124,8 @@ namespace JogoDoGrupo.Client.Features.Social
             public readonly VisualElement BarraFundo;
             public readonly VisualElement BarraPreenchimento;
             public readonly Label TextoVida;
+
+            public Label StatusTexto => StatusOffline;
 
             public ItemAliado()
             {
@@ -174,7 +178,7 @@ namespace JogoDoGrupo.Client.Features.Social
                 Raiz.style.display = DisplayStyle.None;
             }
 
-            public void Atualizar(MembroDoGrupo membro, long liderId)
+            public void Atualizar(MembroDoGrupo membro, long liderId, string areaLocal = "")
             {
                 Raiz.style.display = DisplayStyle.Flex;
                 Nome.text = membro.Nome ?? "";
@@ -183,16 +187,20 @@ namespace JogoDoGrupo.Client.Features.Social
                 IndicadorLider.style.display = ehLider ? DisplayStyle.Flex : DisplayStyle.None;
 
                 var offline = !membro.Online;
-                StatusOffline.style.display = offline ? DisplayStyle.Flex : DisplayStyle.None;
-
-                if (offline)
-                {
-                    Raiz.AddToClassList(ClasseOffline);
-                }
-                else
-                {
-                    Raiz.RemoveFromClassList(ClasseOffline);
-                }
+                var longe =
+                    !offline
+                    && (
+                        string.Equals(membro.Area, "Longe", StringComparison.OrdinalIgnoreCase)
+                        || (
+                            !string.IsNullOrEmpty(membro.Area)
+                            && !string.IsNullOrEmpty(areaLocal)
+                            && !string.Equals(
+                                membro.Area,
+                                areaLocal,
+                                StringComparison.OrdinalIgnoreCase
+                            )
+                        )
+                    );
 
                 var fracao =
                     membro.VidaMaxima > 0
@@ -204,19 +212,52 @@ namespace JogoDoGrupo.Client.Features.Social
                 TextoVida.text =
                     $"{RegrasGrupo.TextoVidaExata(membro.Vida, membro.VidaMaxima)} ({percentual}%)";
 
-                var critica =
-                    !offline && RegrasGrupo.VidaEstaCritica(membro.Vida, membro.VidaMaxima);
-                if (critica)
+                if (offline)
                 {
-                    Raiz.AddToClassList(ClasseCritica);
-                    BarraFundo.AddToClassList(ClasseCritica);
-                    BarraPreenchimento.AddToClassList(ClasseCritica);
-                }
-                else
-                {
+                    StatusOffline.text = "(Offline)";
+                    StatusOffline.style.display = DisplayStyle.Flex;
+                    Raiz.AddToClassList(ClasseOffline);
+                    Raiz.RemoveFromClassList(ClasseLonge);
                     Raiz.RemoveFromClassList(ClasseCritica);
                     BarraFundo.RemoveFromClassList(ClasseCritica);
                     BarraPreenchimento.RemoveFromClassList(ClasseCritica);
+                    BarraFundo.style.display = DisplayStyle.None;
+                }
+                else if (longe)
+                {
+                    var textoArea = string.IsNullOrEmpty(membro.Area) ? "Longe" : membro.Area;
+                    StatusOffline.text =
+                        (textoArea.StartsWith("(") && textoArea.EndsWith(")"))
+                            ? textoArea
+                            : $"({textoArea})";
+                    StatusOffline.style.display = DisplayStyle.Flex;
+                    Raiz.AddToClassList(ClasseLonge);
+                    Raiz.RemoveFromClassList(ClasseOffline);
+                    Raiz.RemoveFromClassList(ClasseCritica);
+                    BarraFundo.RemoveFromClassList(ClasseCritica);
+                    BarraPreenchimento.RemoveFromClassList(ClasseCritica);
+                    BarraFundo.style.display = DisplayStyle.None;
+                }
+                else
+                {
+                    StatusOffline.style.display = DisplayStyle.None;
+                    Raiz.RemoveFromClassList(ClasseOffline);
+                    Raiz.RemoveFromClassList(ClasseLonge);
+                    BarraFundo.style.display = DisplayStyle.Flex;
+
+                    var critica = RegrasGrupo.VidaEstaCritica(membro.Vida, membro.VidaMaxima);
+                    if (critica)
+                    {
+                        Raiz.AddToClassList(ClasseCritica);
+                        BarraFundo.AddToClassList(ClasseCritica);
+                        BarraPreenchimento.AddToClassList(ClasseCritica);
+                    }
+                    else
+                    {
+                        Raiz.RemoveFromClassList(ClasseCritica);
+                        BarraFundo.RemoveFromClassList(ClasseCritica);
+                        BarraPreenchimento.RemoveFromClassList(ClasseCritica);
+                    }
                 }
             }
         }

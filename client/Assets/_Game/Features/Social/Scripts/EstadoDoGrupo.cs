@@ -52,13 +52,61 @@ namespace JogoDoGrupo.Client.Features.Social
                     AoReceberVidaDoMembro
                 )
             );
+            _assinaturas.Add(
+                _conexao.Assinar<AreaDoMembroMudou>(
+                    SocialMessageIds.AreaDoMembroMudou,
+                    AoReceberAreaDoMembro
+                )
+            );
         }
+
+        private string _areaLocalPersonalizada;
 
         /// <summary>Disparado quando a lista, os convites ou a mensagem mudam.</summary>
         public event Action Mudou;
 
         /// <summary>O personagem que está no mundo (para saber quem é "você" na lista).</summary>
         public long PersonagemLocalId { get; private set; }
+
+        /// <summary>Área atual do personagem local (calculada da lista ou definida localmente; #351).</summary>
+        public string AreaLocal
+        {
+            get
+            {
+                if (!string.IsNullOrEmpty(_areaLocalPersonalizada))
+                {
+                    return _areaLocalPersonalizada;
+                }
+
+                if (_lista?.Membros == null || PersonagemLocalId == 0)
+                {
+                    return "";
+                }
+
+                for (var i = 0; i < _lista.Membros.Length; i++)
+                {
+                    var m = _lista.Membros[i];
+                    if (m != null && m.PersonagemId == PersonagemLocalId)
+                    {
+                        return m.Area ?? "";
+                    }
+                }
+
+                return "";
+            }
+        }
+
+        /// <summary>Define a área do jogador local (útil para testes ou atualização manual).</summary>
+        public void DefinirAreaLocal(string area)
+        {
+            if (_areaLocalPersonalizada == area)
+            {
+                return;
+            }
+
+            _areaLocalPersonalizada = area;
+            Mudou?.Invoke();
+        }
 
         /// <summary>Identificador do grupo (0 sem grupo).</summary>
         public long GrupoId => _lista.GrupoId;
@@ -132,6 +180,7 @@ namespace JogoDoGrupo.Client.Features.Social
         {
             _lista = new ListaDoGrupo();
             _convites.Clear();
+            _areaLocalPersonalizada = null;
             Mensagem = "";
             MensagemEhErro = false;
             MensagemRestante = 0f;
@@ -359,6 +408,31 @@ namespace JogoDoGrupo.Client.Features.Social
                 {
                     membro.Vida = msg.Vida;
                     membro.VidaMaxima = msg.VidaMaxima;
+                    achou = true;
+                    break;
+                }
+            }
+
+            if (achou)
+            {
+                Mudou?.Invoke();
+            }
+        }
+
+        private void AoReceberAreaDoMembro(AreaDoMembroMudou msg)
+        {
+            if (msg == null || _lista?.Membros == null)
+            {
+                return;
+            }
+
+            var achou = false;
+            for (var i = 0; i < _lista.Membros.Length; i++)
+            {
+                var membro = _lista.Membros[i];
+                if (membro != null && membro.PersonagemId == msg.PersonagemId)
+                {
+                    membro.Area = msg.Area ?? "";
                     achou = true;
                     break;
                 }
