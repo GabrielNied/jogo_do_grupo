@@ -10,6 +10,12 @@ namespace JogoDoGrupo.Shared.Features.Mobs
         public const int JavaliDoCampo = 1;
         public const int LoboDoCampo = 2;
         public const int TatuRochoso = 3;
+        public const int CervoDeGalhadaOca = 4;
+        public const int MariposaDeBreu = 5;
+        public const int LoboDeGeada = 6;
+        public const int CarapacaDeBrasa = 7;
+        public const int JavaliFerrugem = 8;
+        public const int MorcegoDasSombras = 9;
         public const int GuardiaoDoReflexo = 100;
         public const int PresaVelha = 200;
 

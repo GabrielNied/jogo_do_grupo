@@ -18,7 +18,8 @@ public sealed record PontoDeSpawn(
     int TamanhoMinimo,
     int TamanhoMaximo,
     long PrimeiroId,
-    RotaDaManada? Rota = null
+    RotaDaManada? Rota = null,
+    PeriodoDeAparicao Periodo = PeriodoDeAparicao.Sempre
 );
 
 /// <summary>
@@ -83,14 +84,58 @@ public static class PontosDeSpawnDoCampo
         Ponto(7, "campo-portao-oeste", -80, 150, CatalogoCriaturas.JavaliDoCampo, 2, 3, 2, 3),
         Ponto(8, "campo-portao-leste", 80, 150, CatalogoCriaturas.LoboDoCampo, 2, 3, 2, 3),
         Ponto(9, "campo-oeste-perto", -180, 110, CatalogoCriaturas.LoboDoCampo, 3, 4, 2, 3),
-        Ponto(10, "campo-leste-perto", 180, 100, CatalogoCriaturas.JavaliDoCampo, 3, 4, 2, 3),
-        Ponto(11, "campo-norte-meio", 0, 260, CatalogoCriaturas.JavaliDoCampo, 4, 5, 3, 4),
-        Ponto(12, "campo-oeste-meio", -90, 260, CatalogoCriaturas.LoboDoCampo, 4, 5, 2, 3),
+        Ponto(
+            10,
+            "campo-leste-perto",
+            180,
+            100,
+            CatalogoCriaturas.JavaliDoCampo,
+            3,
+            4,
+            2,
+            3,
+            PeriodoDeAparicao.Dia
+        ),
+        Ponto(
+            11,
+            "campo-norte-meio",
+            0,
+            260,
+            CatalogoCriaturas.JavaliDoCampo,
+            4,
+            5,
+            3,
+            4,
+            PeriodoDeAparicao.Dia
+        ),
+        Ponto(
+            12,
+            "campo-oeste-meio",
+            -90,
+            260,
+            CatalogoCriaturas.LoboDoCampo,
+            4,
+            5,
+            2,
+            3,
+            PeriodoDeAparicao.Noite
+        ),
         Ponto(13, "campo-leste-meio", 95, 255, CatalogoCriaturas.TatuRochoso, 4, 5, 2, 3),
         Ponto(3, "campo-norte-longe", 0, 330, CatalogoCriaturas.JavaliDoCampo, 6, 8, 3, 5),
         Ponto(4, "campo-leste-longe", 200, 300, CatalogoCriaturas.LoboDoCampo, 8, 10, 2, 4),
         Ponto(5, "campo-oeste-longe", -220, 280, CatalogoCriaturas.TatuRochoso, 7, 9, 2, 3),
-        Ponto(14, "campo-noroeste-longe", -100, 330, CatalogoCriaturas.LoboDoCampo, 6, 8, 2, 3),
+        Ponto(
+            14,
+            "campo-noroeste-longe",
+            -100,
+            330,
+            CatalogoCriaturas.LoboDoCampo,
+            6,
+            8,
+            2,
+            3,
+            PeriodoDeAparicao.Noite
+        ),
     ];
 
     // Uma manada nasce no primeiro ponto da rota.
@@ -102,7 +147,8 @@ public static class PontosDeSpawnDoCampo
         int nivelMaximo,
         int tamanhoMinimo,
         int tamanhoMaximo,
-        RotaDaManada rota
+        RotaDaManada rota,
+        PeriodoDeAparicao periodo = PeriodoDeAparicao.Sempre
     ) =>
         Ponto(
             indice,
@@ -113,7 +159,8 @@ public static class PontosDeSpawnDoCampo
             nivelMinimo,
             nivelMaximo,
             tamanhoMinimo,
-            tamanhoMaximo
+            tamanhoMaximo,
+            periodo
         ) with
         {
             Rota = rota,
@@ -128,7 +175,8 @@ public static class PontosDeSpawnDoCampo
         int nivelMinimo,
         int nivelMaximo,
         int tamanhoMinimo,
-        int tamanhoMaximo
+        int tamanhoMaximo,
+        PeriodoDeAparicao periodo = PeriodoDeAparicao.Sempre
     ) =>
         new(
             nome,
@@ -140,6 +188,7 @@ public static class PontosDeSpawnDoCampo
             nivelMaximo,
             tamanhoMinimo,
             tamanhoMaximo,
-            ConfigInimigosDoCampo.PrimeiroInimigoId + (indice * EspacoDeIdsPorPonto)
+            ConfigInimigosDoCampo.PrimeiroInimigoId + (indice * EspacoDeIdsPorPonto),
+            Periodo: periodo
         );
 }

@@ -189,6 +189,48 @@ O servidor manda a posição a cerca de 10 Hz (`InimigoMudou`, com perda). A rot
 - **Limite de vivos:** no máximo **40** inimigos comuns do campo vivos ao mesmo tempo, somando todos os pontos. Os máximos dos pontos somam mais que isso (57), então o teto age: na subida do servidor os pontos enchem na ordem da lista (perto do portão primeiro) e os últimos esperam vaga. Sem vaga, o grupo (ou a parte que couber) espera e tenta de novo a cada 5 s. O chefe raro e os inimigos do comando de teste não contam.
 - **Cuidados de experiência:** jogadores de qualquer número no mesmo grupo dividem o mesmo alvo (o grupo divide o que vê); quem cai ou desconecta deixa de ser alvo e o grupo volta ao repouso; o grupo reaparece nos pontos de origem, que são fixos (quem fica parado em cima de um ponto o vê reaparecer ao lado dele, como qualquer reaparição). Quem está caído ou sendo levantado não entra em `_vistos`, não é escolhido como alvo e não recebe `GolpeDeInimigoAcertou` (consulta `IEstadoDeQueda` do Combate).
 
+### Tabela de inimigos por bioma e horário (#916)
+
+**Proposta** do agente, a calibrar. Tabela definida em `ConfigInimigosPorBioma` (shared) e chaveamento autoritativo por `IRelogioDoMundo` (servidor).
+
+- **Dia e Noite:** o dia corre das 6h às 22h e a noite das 22h às 6h ([mundo](mundo.md#dia-e-noite-163)). Cada ponto de spawn tem um `PeriodoDeAparicao` (`Sempre`, `Dia`, `Noite`).
+- **Comportamento na virada:**
+  - Ao virar a noite, os pontos noturnos passam a repor espécies da noite. Os pontos de dia param de repor (os membros vivos permanecem vivos no mundo até serem derrotados).
+  - Ao amanhecer, os pontos de dia voltam a repor normalmente; os noturnos param de repor (os vivos da noite continuam vivos até a derrota).
+  - Grupos que forem completamente derrotados durante seu período inativo só voltam a reaparecer quando o período ativo retornar.
+- **Força fixa:** espécies noturnas aparecem sem escalar atributos (a regra de não escalar atributos com horário ou jogadores continua).
+
+#### Tabela de distribuição bioma × espécie × nível
+
+| Bioma | Espécie | Nível | Horário | Descrição / Hábitos |
+|---|---|---|---|---|
+| Campo | Javali do Campo | 1–5 | Dia | Manadas e grupos no pasto e campo aberto |
+| Campo | Lobo do Campo | 2–5 | Sempre | Caçadores rápidos perto das bordas |
+| Campo | Tatu Rochoso | 4–6 | Sempre | Defensores lentos nas encostas |
+| Campo | Lobo do Campo | 5–8 | Noite | Matilhas que rondam sob o luar |
+| Campo | Mariposa de Breu | 8–10 | Noite | Enxames noturnos atraídos por postes e fogueiras |
+| Mata | Cervo de Galhada Oca | 10–14 | Dia | Manadas pacíficas e esquivas nas clareiras |
+| Mata | Javali Ferrugem | 12–16 | Dia | Grupos agressivos na mata densa |
+| Mata | Lobo do Campo | 10–15 | Sempre | Predadores da floresta |
+| Mata | Mariposa de Breu | 10–15 | Noite | Enxames bioluminescentes na copa das árvores |
+| Mata | Lobo do Campo | 14–18 | Noite | Alcateia noturna da mata fechada |
+| Colinas | Tatu Rochoso | 12–18 | Sempre | Tocas e ninhos nas escarpas |
+| Colinas | Javali Ferrugem | 15–20 | Dia | Bandos patrulhando os vales rochosos |
+| Colinas | Lobo do Campo | 16–22 | Noite | Caçadores do cume ao anoitecer |
+| Colinas | Mariposa de Breu | 15–20 | Noite | Enxames nas fendas sombrias |
+| Deserto | Tatu Rochoso | 18–24 | Dia | Carapaças duras adaptadas ao sol das dunas |
+| Deserto | Javali Ferrugem | 20–25 | Dia | Grupos em oásis e desfiladeiros |
+| Deserto | Lobo do Campo | 22–28 | Noite | Predadores do frio noturno das dunas |
+| Neve | Cervo de Galhada Oca | 22–26 | Dia | Manadas de pelagem espessa na nevasca |
+| Neve | Lobo de Geada | 25–30 | Sempre | Feras glaciais adaptadas ao gelo |
+| Neve | Lobo de Geada | 28–35 | Noite | Matilhas ferozes sob as auroras boreais |
+| Lava | Carapaça de Brasa | 30–36 | Sempre | Casca mineral incandescente |
+| Lava | Carapaça de Brasa | 32–40 | Noite | Placas ardentes resfriando sob o céu escuro |
+| Pântano | Tatu Rochoso | 20–25 | Dia | Blindados atolados nas margens |
+| Pântano | Javali do Campo | 18–24 | Dia | Bandos enlameados |
+| Pântano | Mariposa de Breu | 22–28 | Noite | Enxames luminescentes sobre águas paradas |
+| Pântano | Lobo do Campo | 24–30 | Noite | Caçadores espreitando no nevoeiro |
+
 ### Manadas com rota (#321)
 
 **Proposta** do agente, a calibrar; números em `RegrasManada` (shared) e dados em `PontosDeSpawnDoCampo` e `RotaDaManada` (servidor). Faz a parte "manadas com rota" do Livro de Asterra para a criatura comum do campo.

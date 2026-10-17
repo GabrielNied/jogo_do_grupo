@@ -46,6 +46,8 @@ public sealed partial class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulado
     private readonly RotaDaManada? _rota;
     private readonly IEstadoDeQueda _queda;
     private readonly bool _semReposicao;
+    private readonly PeriodoDeAparicao _periodo;
+    private readonly IRelogioDoMundo? _relogioDoMundo;
 
     private int _pontoDaRota;
     private bool _andando;
@@ -115,7 +117,9 @@ public sealed partial class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulado
         RotaDaManada? rota = null,
         IEstadoDeQueda? queda = null,
         bool semReposicao = false,
-        IHistoricoDePosicoesDoMundo? historico = null
+        IHistoricoDePosicoesDoMundo? historico = null,
+        PeriodoDeAparicao periodo = PeriodoDeAparicao.Sempre,
+        IRelogioDoMundo? relogioDoMundo = null
     )
     {
         ArgumentNullException.ThrowIfNull(definicao);
@@ -140,6 +144,8 @@ public sealed partial class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulado
         _queda = queda ?? QuedaIgnorada.Instancia;
         _semReposicao = semReposicao;
         _historico = historico;
+        _periodo = periodo;
+        _relogioDoMundo = relogioDoMundo;
         Area = area;
         Capacidade = tamanho;
 
@@ -160,6 +166,26 @@ public sealed partial class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulado
         _tetoDeTeste = tamanho + AparicoesExtrasDeTeste;
     }
 
+    /// <summary>Período em que o grupo é ativo (dia, noite ou sempre).</summary>
+    public PeriodoDeAparicao Periodo => _periodo;
+
+    /// <summary>Se o grupo está no período ativo de aparição e reposição.</summary>
+    public bool PeriodoAtivo()
+    {
+        if (_relogioDoMundo == null || _periodo == PeriodoDeAparicao.Sempre)
+        {
+            return true;
+        }
+
+        var ehNoite = _relogioDoMundo.EhNoite();
+        return _periodo switch
+        {
+            PeriodoDeAparicao.Dia => !ehNoite,
+            PeriodoDeAparicao.Noite => ehNoite,
+            _ => true,
+        };
+    }
+
     /// <summary>
     /// Um grupo para o ponto de spawn, com o tamanho e o nível sorteados nas faixas dele.
     /// </summary>
@@ -169,7 +195,8 @@ public sealed partial class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulado
         LimiteDeInimigosVivos? limite = null,
         Func<long>? relogioMs = null,
         IEstadoDeQueda? queda = null,
-        IHistoricoDePosicoesDoMundo? historico = null
+        IHistoricoDePosicoesDoMundo? historico = null,
+        IRelogioDoMundo? relogioDoMundo = null
     ) =>
         new(
             CatalogoCriaturas.Obter(ponto.CriaturaId)
@@ -189,7 +216,9 @@ public sealed partial class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulado
             limite,
             ponto.Rota,
             queda,
-            historico: historico
+            historico: historico,
+            periodo: ponto.Periodo,
+            relogioDoMundo: relogioDoMundo
         );
 
     /// <summary>
