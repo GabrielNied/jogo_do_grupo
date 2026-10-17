@@ -109,7 +109,9 @@ namespace JogoDoGrupo.Client.Features.Mundo
             _camera.enabled = !_sobOChao;
             if (_coordenadas != null)
             {
-                _coordenadas.text = ProjecaoDoMapa.Coordenadas(posicao.x, posicao.z);
+                var canal = PresencaNoMundo.Atual?.CanalAtual ?? 1;
+                _coordenadas.text =
+                    $"Canal {canal} · {ProjecaoDoMapa.Coordenadas(posicao.x, posicao.z)}";
             }
 
             if (_vista != null)

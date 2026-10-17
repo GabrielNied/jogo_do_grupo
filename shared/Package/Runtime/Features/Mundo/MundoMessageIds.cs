@@ -51,5 +51,20 @@ namespace JogoDoGrupo.Shared.Features.Mundo
 
         /// <summary>Servidor → client: clima atual do mundo (<see cref="Mundo.ClimaDoMundo"/>).</summary>
         public const ushort ClimaDoMundo = 1014;
+
+        /// <summary>Client → servidor: solicita troca para um canal específico (<see cref="Mundo.PedirTrocaDeCanal"/>).</summary>
+        public const ushort PedirTrocaDeCanal = 1015;
+
+        /// <summary>Servidor → client: confirma a mudança de canal ou o canal atual (<see cref="Mundo.CanalAlterado"/>).</summary>
+        public const ushort CanalAlterado = 1016;
+
+        /// <summary>Servidor → client: recusa a troca de canal (<see cref="Mundo.RecusaTrocaDeCanal"/>).</summary>
+        public const ushort RecusaTrocaDeCanal = 1017;
+
+        /// <summary>Client → servidor: solicita a lista e lotação dos canais (<see cref="Mundo.ConsultarCanais"/>).</summary>
+        public const ushort ConsultarCanais = 1018;
+
+        /// <summary>Servidor → client: lista dos canais e lotação atual (<see cref="Mundo.RespostaCanais"/>).</summary>
+        public const ushort RespostaCanais = 1019;
     }
 }
