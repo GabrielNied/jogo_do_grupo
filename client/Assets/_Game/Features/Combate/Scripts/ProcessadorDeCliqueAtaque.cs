@@ -10,6 +10,9 @@ namespace JogoDoGrupo.Client.Features.Combate
     /// </summary>
     internal sealed class ProcessadorDeCliqueAtaque
     {
+        /// <summary>Margem para <c>inicio + 0,3</c> não ficar abaixo do limiar por arredondamento.</summary>
+        private const double MargemSegurarPesadoSegundos = 1e-9;
+
         private double _segurandoDesde = -1d;
         private bool _pesadoDoClique;
 
@@ -55,7 +58,10 @@ namespace JogoDoGrupo.Client.Features.Combate
             if (
                 !_pesadoDoClique
                 && segurandoBotao
-                && agora - _segurandoDesde >= RegrasAtaque.SegurarParaPesadoSegundos
+                && agora
+                    >= _segurandoDesde
+                        + RegrasAtaque.SegurarParaPesadoSegundos
+                        - MargemSegurarPesadoSegundos
             )
             {
                 _pesadoDoClique = true;
