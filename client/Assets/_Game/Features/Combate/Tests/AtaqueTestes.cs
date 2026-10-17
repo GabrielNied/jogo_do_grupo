@@ -416,7 +416,13 @@ namespace JogoDoGrupo.Client.Features.Combate.Tests
 
             // Segundo clique: mantido até pesado
             proc.Atualizar(true, true, true, 2.0, out _);
-            var segundo = proc.Atualizar(false, true, true, 2.3, out var golpe2);
+            var segundo = proc.Atualizar(
+                false,
+                true,
+                true,
+                2.0 + RegrasAtaque.SegurarParaPesadoSegundos,
+                out var golpe2
+            );
             Assert.IsTrue(segundo);
             Assert.AreEqual(TipoDeAtaque.Pesado, golpe2);
 

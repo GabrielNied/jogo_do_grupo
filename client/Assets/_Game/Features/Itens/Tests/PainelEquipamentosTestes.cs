@@ -62,8 +62,8 @@ namespace JogoDoGrupo.Client.Features.Itens.Tests
             StringAssert.Contains("nível 1/10", texto);
             StringAssert.Contains("personagem nível 20", texto);
             StringAssert.Contains("Tier D", texto);
-            // Valor/máximo da faixa e o efeito convertido (martelo: Dano físico 0 a 25; 20 vale 5).
-            StringAssert.Contains("Dano físico 20/100 · +5 de dano físico", texto);
+            // Valor/máximo da faixa e o efeito convertido (martelo: Dano físico 0 a 10; 20 vale 2).
+            StringAssert.Contains("Dano físico 20/100 · +2 de dano físico", texto);
             // Vida não tem faixa (legado): só o valor.
             StringAssert.Contains("Vida +30", texto);
             StringAssert.Contains("Fusão +3/10", texto);
