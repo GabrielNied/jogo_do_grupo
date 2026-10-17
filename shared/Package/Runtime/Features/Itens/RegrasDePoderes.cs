@@ -31,7 +31,9 @@ namespace JogoDoGrupo.Shared.Features.Itens
                 if (!RegrasEquipamentos.EstaAtiva(entrada, conjunto))
                     continue;
                 var item = RegrasEquipamentos.DadosDe(entrada);
-                var poder = item == null ? null : CatalogoDePoderes.Obter(item.PoderId);
+                if (item == null)
+                    continue;
+                var poder = CatalogoDePoderes.Obter(item.PoderId);
                 if (poder == null || !poder.Aceita(item.Tipo) || !poderesVistos.Add(poder.Id))
                     continue;
                 foreach (var regra in poder.Regras)

@@ -116,8 +116,10 @@ namespace JogoDoGrupo.Shared.Features.Itens
 
         public static IReadOnlyList<DefinicaoDeSet> Sets => Todos;
 
-        public static DefinicaoDeSet Obter(string id)
+        public static DefinicaoDeSet? Obter(string? id)
         {
+            if (id == null)
+                return null;
             foreach (var set in Todos)
             {
                 if (set.Id == id)
@@ -127,7 +129,7 @@ namespace JogoDoGrupo.Shared.Features.Itens
         }
 
         /// <summary>O set a que o modelo pertence, ou <c>null</c> (a maioria das peças não tem set).</summary>
-        public static DefinicaoDeSet DoModelo(int modeloId)
+        public static DefinicaoDeSet? DoModelo(int modeloId)
         {
             foreach (var set in Todos)
             {
@@ -202,7 +204,7 @@ namespace JogoDoGrupo.Shared.Features.Itens
         }
 
         /// <summary>O resumo do set de um modelo (para o tooltip), ou <c>null</c> se o modelo não tem set.</summary>
-        public static ResumoDoSet Resumir(
+        public static ResumoDoSet? Resumir(
             int modeloId,
             IEnumerable<EntradaInventario> entradas,
             int conjunto

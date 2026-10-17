@@ -103,7 +103,7 @@ namespace JogoDoGrupo.Shared.Features.Skills
             PorTipo.TryGetValue(tipo, out var pool) ? pool : Array.Empty<DefinicaoDeSkill>();
 
         /// <summary>A skill pelo id, ou <c>null</c> se o id não existe no catálogo.</summary>
-        public static DefinicaoDeSkill Obter(string id) =>
+        public static DefinicaoDeSkill? Obter(string? id) =>
             id != null && PorId.TryGetValue(id, out var skill) ? skill : null;
 
         /// <summary>Identifica a qual tipo de arma a skill pertence, ou <c>null</c> se não encontrada.</summary>

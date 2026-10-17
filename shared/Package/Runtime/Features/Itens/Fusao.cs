@@ -75,7 +75,7 @@ namespace JogoDoGrupo.Shared.Features.Itens
         /// motivo (<see cref="CodigosErroItens"/>). Quem chama confere antes que o material não
         /// está equipado e que não é o próprio principal.
         /// </summary>
-        public static string Validar(Equipamento principal, Equipamento material)
+        public static string? Validar(Equipamento? principal, Equipamento? material)
         {
             if (principal == null || material == null)
                 return CodigosErroItens.ItemNaoEncontrado;
@@ -151,7 +151,7 @@ namespace JogoDoGrupo.Shared.Features.Itens
             return lista.ToArray();
         }
 
-        public static AtributoItem Procurar(Equipamento item, StatusItem status)
+        public static AtributoItem? Procurar(Equipamento? item, StatusItem status)
         {
             if (item?.Atributos == null)
                 return null;

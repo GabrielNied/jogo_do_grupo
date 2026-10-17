@@ -20,11 +20,11 @@ namespace JogoDoGrupo.Shared.Features.Itens
         /// A arma vestida na mão principal do conjunto da <paramref name="posicao"/>, ou
         /// <c>null</c> (sem arma, ou encaixe que não é mão secundária).
         /// </param>
-        public static string Recusa(
+        public static string? Recusa(
             Equipamento item,
             PosicaoEquipamento posicao,
             int nivelPersonagem,
-            Equipamento principalDoConjunto
+            Equipamento? principalDoConjunto
         )
         {
             if (item == null)
