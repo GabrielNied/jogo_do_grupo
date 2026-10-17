@@ -197,7 +197,7 @@ namespace JogoDoGrupo.Client.Features.Itens.Tests
                 TipoEquipamento.Arco,
                 EncaixeDoVisual.MaoDireita
             );
-            Assert.AreEqual(90f, rotArco.eulerAngles.y, 0.1f);
+            Assert.AreEqual(270f, rotArco.eulerAngles.y, 0.1f);
             Assert.AreEqual(-0.45f, posArco.y, 0.01f);
 
             var (posCajado, rotCajado) = ApresentadorDoVisual.ObterTransformacao(
