@@ -82,12 +82,39 @@ namespace JogoDoGrupo.Shared.Features.Mobs
             double maxDeslocamentoMetros = double.MaxValue
         )
         {
-            novoX = x;
-            novoZ = z;
             if (vizinhosX == null || vizinhosZ == null)
             {
+                novoX = x;
+                novoZ = z;
                 return;
             }
+
+            Afastar(
+                x,
+                z,
+                vizinhosX.AsSpan(),
+                vizinhosZ.AsSpan(),
+                out novoX,
+                out novoZ,
+                maxDeslocamentoMetros
+            );
+        }
+
+        /// <summary>
+        /// Sobrecarga baseada em spans para evitar alocações temporárias no laço de tick.
+        /// </summary>
+        public static void Afastar(
+            double x,
+            double z,
+            ReadOnlySpan<double> vizinhosX,
+            ReadOnlySpan<double> vizinhosZ,
+            out double novoX,
+            out double novoZ,
+            double maxDeslocamentoMetros = double.MaxValue
+        )
+        {
+            novoX = x;
+            novoZ = z;
             int quantidade = Math.Min(vizinhosX.Length, vizinhosZ.Length);
             for (int i = 0; i < quantidade; i++)
             {

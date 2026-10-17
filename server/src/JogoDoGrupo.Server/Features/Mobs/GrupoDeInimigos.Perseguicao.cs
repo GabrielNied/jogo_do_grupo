@@ -138,14 +138,31 @@ public sealed partial class GrupoDeInimigos
         double maxDeslocamento = double.MaxValue
     )
     {
-        var vizinhos = _inimigos
-            .Where(i => i != inimigo && RegrasInimigo.EstaVivo(i.Estado))
-            .ToArray();
+        Span<double> vizinhosX =
+            _inimigos.Length <= 64
+                ? stackalloc double[_inimigos.Length]
+                : new double[_inimigos.Length];
+        Span<double> vizinhosZ =
+            _inimigos.Length <= 64
+                ? stackalloc double[_inimigos.Length]
+                : new double[_inimigos.Length];
+        int count = 0;
+        for (int i = 0; i < _inimigos.Length; i++)
+        {
+            var outro = _inimigos[i];
+            if (outro != inimigo && RegrasInimigo.EstaVivo(outro.Estado))
+            {
+                vizinhosX[count] = outro.X;
+                vizinhosZ[count] = outro.Z;
+                count++;
+            }
+        }
+
         RegrasCerco.Afastar(
             x,
             z,
-            vizinhos.Select(i => i.X).ToArray(),
-            vizinhos.Select(i => i.Z).ToArray(),
+            vizinhosX.Slice(0, count),
+            vizinhosZ.Slice(0, count),
             out novoX,
             out novoZ,
             maxDeslocamento
