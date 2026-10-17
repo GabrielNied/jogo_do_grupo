@@ -266,13 +266,38 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
             return fora;
         }
 
-        /// <summary>Ambiente em (<paramref name="x"/>, <paramref name="z"/>), na <see cref="Hora"/> atual.</summary>
+        /// <summary>
+        /// Clima atual do mundo, recebido do servidor pelo <c>CicloDoClima</c> (issue #902).
+        /// </summary>
+        public static TipoDeClima ClimaAtual = TipoDeClima.Limpo;
+
+        /// <summary>Ambiente em (<paramref name="x"/>, <paramref name="z"/>), na <see cref="Hora"/> atual e sob <see cref="ClimaAtual"/>.</summary>
         public static Ambiente Em(float x, float z)
         {
             var ambiente = ComHora(Misturar(MapaDoMundo.PesosEm(x, z)), Hora);
-            if (MapaDoMundo.BiomaEm(x, z) == Bioma.Mata && EhNoite(Hora))
+            var bioma = MapaDoMundo.BiomaEm(x, z);
+
+            if (bioma == Bioma.Mata && EhNoite(Hora))
             {
                 ambiente.Efeito = EfeitoDoClima.Vagalume;
+            }
+
+            if (ClimaAtual != TipoDeClima.Limpo)
+            {
+                var densidadeClima = ConfigClima.ObterDensidadeNevoa(ClimaAtual, bioma);
+                ambiente.Densidade = Mathf.Max(ambiente.Densidade, densidadeClima);
+
+                if (ClimaAtual == TipoDeClima.Nevasca && bioma == Bioma.Neve)
+                {
+                    ambiente.Efeito = EfeitoDoClima.NeveCaindo;
+                }
+                else if (
+                    ClimaAtual == TipoDeClima.Neblina
+                    && ConfigClima.AfetaVisao(ClimaAtual, bioma)
+                )
+                {
+                    ambiente.Efeito = EfeitoDoClima.NevoaRasteira;
+                }
             }
 
             return ambiente;

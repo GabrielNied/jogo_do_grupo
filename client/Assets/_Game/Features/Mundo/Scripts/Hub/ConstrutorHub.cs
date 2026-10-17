@@ -927,6 +927,8 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
             objeto.AddComponent<AmbienteDosBiomas>().Configurar(sol, preenchimento);
             // A hora do servidor (#163): escurece o ambiente, gira o sol e acende as lanternas.
             objeto.AddComponent<CicloDoDia>();
+            // O clima do servidor (#902): altera visão, névoa e partículas conforme o clima atual.
+            objeto.AddComponent<Clima.CicloDoClima>();
         }
 
         private static GameObject Instanciar(

@@ -48,5 +48,8 @@ namespace JogoDoGrupo.Shared.Features.Mundo
 
         /// <summary>Servidor → client: posições dos aliados do grupo fora da área de interesse (<see cref="Mundo.PosicoesDosAliados"/>).</summary>
         public const ushort PosicoesDosAliados = 1013;
+
+        /// <summary>Servidor → client: clima atual do mundo (<see cref="Mundo.ClimaDoMundo"/>).</summary>
+        public const ushort ClimaDoMundo = 1014;
     }
 }

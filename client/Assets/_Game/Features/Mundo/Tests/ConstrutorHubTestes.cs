@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Reflection;
 using JogoDoGrupo.Client.Core.Jogo;
@@ -234,6 +234,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
             var ambiente = _hub.transform.Find(ConstrutorHub.NomeAmbiente);
             Assert.IsNotNull(ambiente);
             Assert.IsNotNull(ambiente.GetComponent<DiaENoite.CicloDoDia>());
+            Assert.IsNotNull(ambiente.GetComponent<Clima.CicloDoClima>());
         }
 
         [Test]

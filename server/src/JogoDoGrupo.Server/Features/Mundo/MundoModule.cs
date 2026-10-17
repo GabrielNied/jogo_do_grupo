@@ -45,6 +45,7 @@ public sealed class MundoModule
     // depois que uma sessão se autentica.
     private volatile ServicoDaHoraDoMundo? _hora;
     private volatile ServicoDePerigosDoMundo? _perigos;
+    private volatile ServicoDeClimaDoMundo? _clima;
 
     public string Nome => "Mundo";
 
@@ -97,6 +98,20 @@ public sealed class MundoModule
             return servico;
         });
         servicos.AddHostedService(sp => sp.GetRequiredService<ServicoDePerigosDoMundo>());
+        servicos.AddSingleton<ClimaDoServidor>();
+        servicos.AddSingleton(sp =>
+        {
+            var servico = new ServicoDeClimaDoMundo(
+                sp.GetRequiredService<ClimaDoServidor>(),
+                sp.GetRequiredService<ServidorTempoReal>(),
+                () => _areas.Cidade.Presentes(),
+                sp.GetRequiredService<ILimiteDeVelocidadeDoMundo>(),
+                log: sp.GetService<ILogger<ServicoDeClimaDoMundo>>()
+            );
+            _clima = servico;
+            return servico;
+        });
+        servicos.AddHostedService(sp => sp.GetRequiredService<ServicoDeClimaDoMundo>());
     }
 
     public void MapearRotas(IEndpointRouteBuilder rotas)
@@ -213,6 +228,7 @@ public sealed class MundoModule
         }
 
         _hora?.Enviar(sessao);
+        _clima?.Enviar(sessao);
 
         // Quem passou a ver o recém-chegado (ou voltou a ver, numa sessão nova) recebe a entrada.
         var aviso = new JogadorEntrou { Jogador = Visivel(eu) };
@@ -293,6 +309,7 @@ public sealed class MundoModule
                         avatar.Posicao.X,
                         avatar.Posicao.Z
                     );
+                    _clima?.VerificarPasso(sessao.PersonagemId, avatar.Posicao.X, avatar.Posicao.Z);
                 }
 
                 Replicar(area, sessao, avatar);
@@ -499,6 +516,7 @@ public sealed class MundoModule
 
         _areas.RegistrarSaida(sessao.PersonagemId, area);
         _perigos?.RemoverJogador(sessao.PersonagemId);
+        _clima?.RemoverJogador(sessao.PersonagemId);
 
         var aviso = new JogadorSaiu { PersonagemId = sessao.PersonagemId };
         foreach (var outro in AosQueViam(area, sessao.PersonagemId, estadoArea.Presentes()))
@@ -608,6 +626,7 @@ public sealed class MundoModule
         if (destino.Area == AreasDoMundo.Cidade)
         {
             _hora?.Enviar(sessao);
+            _clima?.Enviar(sessao);
         }
 
         return true;
