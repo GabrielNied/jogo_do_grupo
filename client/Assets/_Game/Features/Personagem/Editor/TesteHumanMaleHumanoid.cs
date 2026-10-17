@@ -386,6 +386,8 @@ namespace JogoDoGrupo.Client.Features.Personagem.Editor
                 .Concat(AssetDatabase.FindAssets("t:Model", new[] { "Assets" }))
                 .Select(AssetDatabase.GUIDToAssetPath)
                 .Distinct()
+                // Animacoes fornecidas para teste local nao sao dependencias do prefab publicado.
+                .Where(p => !p.Contains("/ValidacaoLocal/"))
                 .OrderBy(p => p);
             var candidatos = new List<AnimationClip>();
             foreach (var caminho in caminhos)
