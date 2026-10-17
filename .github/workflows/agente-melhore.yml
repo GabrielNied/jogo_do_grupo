@@ -46,4 +46,4 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY || secrets.JOGO_DO_GRUPO_GEMINI_KEY }}
           GH_TOKEN: ${{ secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
         run: |
-          agy -p "Execute a skill melhore: inspecione a origin/main (regras de produto, código, desempenho e custo de IA), verifique evidências concretas e abra até 5 issues no GitHub com fichas completas para o trabalhe, seguindo as regras do AGENTS.md." --model "models/gemini-3.8-flash" --effort high --dangerously-skip-permissions
+          agy -p "Execute a skill melhore: inspecione a origin/main (regras de produto, código, desempenho e custo de IA), verifique evidências concretas e abra até 5 issues no GitHub com fichas completas para o trabalhe, seguindo as regras do AGENTS.md." --model gemini-3.8-flash-high --dangerously-skip-permissions
