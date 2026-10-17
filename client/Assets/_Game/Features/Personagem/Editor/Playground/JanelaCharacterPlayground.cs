@@ -63,7 +63,7 @@ namespace JogoDoGrupo.Client.Features.Personagem.Editor.Playground
             painel.Add(ComponentesVisuais.Texto("Desenvolvimento • Locomoção v3"));
             painel.Add(
                 ComponentesVisuais.Texto(
-                    "Human Male: retarget candidato • aprovação visual pendente"
+                    "Human Male: locomoção aprovada visualmente para o protótipo"
                 )
             );
             painel.Add(
@@ -76,6 +76,13 @@ namespace JogoDoGrupo.Client.Features.Personagem.Editor.Playground
                 () => Acao(CharacterPlayground.Abrir)
             );
             painel.Add(abrir);
+            var contexto = ComponentesVisuais.Texto("");
+            painel.Add(contexto);
+            var voltar = ComponentesVisuais.Botao(
+                "Voltar ao Jogo",
+                () => Acao(AcessoCharacterPlayground.VoltarAoJogo)
+            );
+            painel.Add(voltar);
             painel.Add(ComponentesVisuais.Texto("Character", subtitulo: true));
             var lista = CharacterPlayground.Lista;
             var nomes =
@@ -186,6 +193,10 @@ namespace JogoDoGrupo.Client.Features.Personagem.Editor.Playground
                     && _indice < lista.Personagens.Count
                     && lista.Personagens[_indice]?.Prefab != null;
                 abrir.SetEnabled(!EditorApplication.isPlayingOrWillChangePlaymode);
+                contexto.text = AcessoCharacterPlayground.Contexto
+                    ? "Playground ativo"
+                    : "Playground inativo • Play executa o fluxo normal da cena aberta.";
+                voltar.SetEnabled(AcessoCharacterPlayground.Contexto);
                 selecao.SetEnabled(pode && nomes.Count > 0);
                 catalogo.SetEnabled(
                     !EditorApplication.isPlayingOrWillChangePlaymode && lista != null
@@ -198,7 +209,7 @@ namespace JogoDoGrupo.Client.Features.Personagem.Editor.Playground
                 mensagem.text =
                     _erro
                     ?? (
-                        Application.isPlaying
+                        RuntimeCharacterPlayground.Ativo
                             ? "Contexto local: clique no Game View para controlar."
                         : !pode ? "Abra a cena pelo botão acima."
                         : !valido ? "Catálogo vazio ou prefab ausente. Edite o catálogo."
