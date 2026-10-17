@@ -131,4 +131,36 @@ public class RegrasPetsTestes
         Assert.Equal(0f, RegrasPets.Direcao(0, 1), 3);
         Assert.Equal(90f, RegrasPets.Direcao(1, 0), 3);
     }
+
+    [Fact]
+    public void Catalogo_de_pets_reconhece_cervo_jovem_do_sino()
+    {
+        Assert.Equal(
+            EspecieDePet.CervoJovem,
+            RegrasPets.EspecieDoItem(
+                JogoDoGrupo.Shared.Features.Itens.CatalogoItens.SinoDoCervoJovem
+            )
+        );
+        Assert.Equal((EspecieDePet)0, RegrasPets.EspecieDoItem(999));
+        Assert.True(RegrasPets.EspecieValida(EspecieDePet.CervoJovem));
+        Assert.False(RegrasPets.EspecieValida((EspecieDePet)999));
+        Assert.False(RegrasPets.DesbloqueadoPorPadrao(EspecieDePet.CervoJovem));
+        Assert.Equal("Cervo Jovem", RegrasPets.ObterNome(EspecieDePet.CervoJovem));
+        Assert.Contains("Drop raro", RegrasPets.ObterOrigem(EspecieDePet.CervoJovem));
+        Assert.NotEmpty(RegrasPets.ObterDescricao(EspecieDePet.CervoJovem));
+    }
+
+    [Fact]
+    public void Mensagens_e_erros_de_pets_estao_definidos()
+    {
+        Assert.Equal(17006, PetsMessageIds.UsarItemPet);
+        Assert.Equal(17007, PetsMessageIds.ColecaoPets);
+        Assert.Equal(17008, PetsMessageIds.PetDesbloqueado);
+
+        Assert.Equal("EmCombate", CodigosErroPets.EmCombate);
+        Assert.Equal("JaPossuiPet", CodigosErroPets.JaPossuiPet);
+        Assert.Equal("PetNaoDesbloqueado", CodigosErroPets.PetNaoDesbloqueado);
+        Assert.Equal("ItemNaoEncontrado", CodigosErroPets.ItemNaoEncontrado);
+        Assert.Equal("ItemNaoEPet", CodigosErroPets.ItemNaoEPet);
+    }
 }

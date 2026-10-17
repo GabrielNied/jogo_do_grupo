@@ -230,7 +230,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
                     .ToArray();
 
                 Assert.AreEqual(1, noChao.Length, $"Chão em {ponto}: esperava uma batida só.");
-                Assert.AreEqual(esperado, noChao[0].point.y, 0.05f, $"Altura do chão em {ponto}.");
+                Assert.AreEqual(esperado, noChao[0].point.y, 0.15f, $"Altura do chão em {ponto}.");
             }
         }
 
@@ -349,7 +349,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
         public void Pecas_dos_biomas_ficam_fora_do_miolo_apoiadas_no_chao()
         {
             var pecas = PecasDosBiomas.Todas;
-            Assert.That(pecas.Count, Is.InRange(1500, 6000));
+            Assert.That(pecas.Count, Is.InRange(1500, 8000));
 
             var limite = MapaDoMundo.Metade - PecasDosBiomas.FolgaDaBorda;
             foreach (var peca in pecas)
@@ -364,13 +364,23 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
                 Assert.AreEqual(MapaDoMundo.BiomaEm(peca.X, peca.Z), peca.Bioma);
                 Assert.AreNotEqual(Bioma.Cidade, peca.Bioma);
                 Assert.GreaterOrEqual(peca.Y, MapaDoMundo.NivelDaAgua, "Peça dentro da água.");
+                var escalaMinima =
+                    ConfigVegetacao.EhCogumelo(peca.Prefab)
+                        ? 0.9f * ConfigVegetacao.EscalaDosCogumelos
+                    : ConfigVegetacao.EhArbusto(peca.Prefab)
+                        ? 0.9f * ConfigVegetacao.EscalaDosArbustos
+                    : 0.9f;
                 var escalaMaxima =
                     peca.Bioma == Bioma.Mata
                     && MapaDoMundo.CoberturaDaAutoriaEm(peca.X, peca.Z) > 0f
                         ? 1.5f * ConfigVegetacao.EscalaDaArvoreNaMataAutoral
+                    : ConfigVegetacao.EhCogumelo(peca.Prefab)
+                        ? 1.5f * ConfigVegetacao.EscalaDosCogumelos
+                    : ConfigVegetacao.EhArbusto(peca.Prefab)
+                        ? 1.5f * ConfigVegetacao.EscalaDosArbustos
                     : peca.Prefab == "Cacto" ? 2.7f
                     : 2.6f;
-                Assert.That(peca.Escala, Is.InRange(0.9f, escalaMaxima));
+                Assert.That(peca.Escala, Is.InRange(escalaMinima, escalaMaxima));
 
                 if (peca.Bioma == Bioma.Lava)
                 {

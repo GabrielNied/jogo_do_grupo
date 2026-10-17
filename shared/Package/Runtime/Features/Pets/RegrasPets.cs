@@ -139,5 +139,46 @@ namespace JogoDoGrupo.Shared.Features.Pets
             var dz = (alvoZ - petZ) / distancia;
             return new PassoDoPet(petX + dx * anda, petZ + dz * anda, Direcao(dx, dz), true, false);
         }
+
+        /// <summary>Qual espécie de pet o item consumível desbloqueia, ou 0 se não for pet.</summary>
+        public static EspecieDePet EspecieDoItem(int itemId) =>
+            itemId switch
+            {
+                JogoDoGrupo.Shared.Features.Itens.CatalogoItens.SinoDoCervoJovem =>
+                    EspecieDePet.CervoJovem,
+                _ => (EspecieDePet)0,
+            };
+
+        /// <summary>Se a espécie é válida no catálogo do jogo.</summary>
+        public static bool EspecieValida(EspecieDePet especie) =>
+            especie == EspecieDePet.CervoJovem;
+
+        /// <summary>Se a espécie já começa desbloqueada em toda conta nova.</summary>
+        public static bool DesbloqueadoPorPadrao(EspecieDePet especie) => false;
+
+        /// <summary>Nome de exibição da espécie.</summary>
+        public static string ObterNome(EspecieDePet especie) =>
+            especie switch
+            {
+                EspecieDePet.CervoJovem => "Cervo Jovem",
+                _ => "Desconhecido",
+            };
+
+        /// <summary>Texto informativo sobre onde obter o pet.</summary>
+        public static string ObterOrigem(EspecieDePet especie) =>
+            especie switch
+            {
+                EspecieDePet.CervoJovem => "Drop raro de criaturas no campo (2%)",
+                _ => string.Empty,
+            };
+
+        /// <summary>Descrição de apresentação do pet.</summary>
+        public static string ObterDescricao(EspecieDePet especie) =>
+            especie switch
+            {
+                EspecieDePet.CervoJovem =>
+                    "Um filhote dócil de cervo que o segue pelo mundo e ajuda a recolher tesouros caídos ao chão.",
+                _ => string.Empty,
+            };
     }
 }

@@ -21,6 +21,12 @@ namespace JogoDoGrupo.Shared.Features.Itens
         public const double ChanceDeItemExclusivoDoChefeRaro = 0.50;
 
         /// <summary>
+        /// Chance de um mob comum ou elite largar o item de pet raro
+        /// (<see cref="TabelaDeLoot.ItemPetRaro"/>).
+        /// </summary>
+        public const double ChanceDePetRaro = 0.02;
+
+        /// <summary>
         /// Chance de uma queda do chefe ou chefe raro conter um item raro de montaria
         /// (<see cref="TabelaDeLoot.ItemMontariaChefe"/>).
         /// </summary>

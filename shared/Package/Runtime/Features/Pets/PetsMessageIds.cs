@@ -24,5 +24,14 @@ namespace JogoDoGrupo.Shared.Features.Pets
 
         /// <summary>Servidor → o dono: o pedido foi recusado (<see cref="Pets.PetRecusado"/>).</summary>
         public const ushort PetRecusado = 17005;
+
+        /// <summary>Client → servidor: usa item consumível de pet (<see cref="Pets.UsarItemPet"/>).</summary>
+        public const ushort UsarItemPet = 17006;
+
+        /// <summary>Servidor → client: lista de pets desbloqueados na conta (<see cref="Pets.ColecaoPets"/>).</summary>
+        public const ushort ColecaoPets = 17007;
+
+        /// <summary>Servidor → client: notifica novo pet desbloqueado na conta (<see cref="Pets.PetDesbloqueado"/>).</summary>
+        public const ushort PetDesbloqueado = 17008;
     }
 }

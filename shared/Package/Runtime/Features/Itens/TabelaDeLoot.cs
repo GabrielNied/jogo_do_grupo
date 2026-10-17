@@ -96,6 +96,9 @@ namespace JogoDoGrupo.Shared.Features.Itens
         /// <summary>Modelo de equipamento exclusivo que só o chefe raro larga.</summary>
         public const int ModeloExclusivoDoChefeRaro = CatalogoEquipamentos.AdornoPresaVelha;
 
+        /// <summary>Item consumível de pet raro que criaturas comuns e elites podem largar.</summary>
+        public const int ItemPetRaro = CatalogoItens.SinoDoCervoJovem;
+
         /// <summary>Item de montaria que chefe ou chefe raro pode largar como drop raro.</summary>
         public const int ItemMontariaChefe = CatalogoItens.RedeasDoCorcelNoturno;
 

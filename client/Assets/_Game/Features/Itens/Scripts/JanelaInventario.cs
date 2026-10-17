@@ -6,6 +6,7 @@ using JogoDoGrupo.Client.Core.Jogo.Janelas;
 using JogoDoGrupo.Client.Core.TempoReal;
 using JogoDoGrupo.Shared.Features.Itens;
 using JogoDoGrupo.Shared.Features.Montarias;
+using JogoDoGrupo.Shared.Features.Pets;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -52,6 +53,7 @@ namespace JogoDoGrupo.Client.Features.Itens
         private HashSet<long> _novos = new HashSet<long>();
         private HashSet<long> _pendentes = new HashSet<long>();
         private bool _ocupado;
+        private IDisposable _assinaturaPetDesbloqueado;
         private IDisposable _assinaturaMontaria;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
@@ -152,6 +154,16 @@ namespace JogoDoGrupo.Client.Features.Itens
             var abrindoBau = _abrirBau;
             _abrirBau = false;
             DefinirTitulo(abrindoBau ? TituloBau : Titulo);
+            _assinaturaPetDesbloqueado = ConexaoTempoReal.Assinar<PetDesbloqueado>(
+                PetsMessageIds.PetDesbloqueado,
+                msg =>
+                {
+                    if (Aberta && EntradaNoJogo.NoJogo)
+                    {
+                        _ = Recarregar(EntradaNoJogo.PersonagemId);
+                    }
+                }
+            );
             _assinaturaMontaria = ConexaoTempoReal.Assinar<MontariaDesbloqueada>(
                 MontariasMessageIds.MontariaDesbloqueada,
                 msg =>
@@ -167,6 +179,8 @@ namespace JogoDoGrupo.Client.Features.Itens
 
         protected override void AoFechar()
         {
+            _assinaturaPetDesbloqueado?.Dispose();
+            _assinaturaPetDesbloqueado = null;
             _assinaturaMontaria?.Dispose();
             _assinaturaMontaria = null;
             _painel?.Encerrar();
@@ -485,10 +499,26 @@ namespace JogoDoGrupo.Client.Features.Itens
                     );
                     break;
                 case TipoAcao.Usar:
-                    ConexaoTempoReal.Enviar(
-                        MontariasMessageIds.UsarItemMontaria,
-                        new UsarItemMontaria { InstanciaId = acao.InstanciaId }
-                    );
+                    var item = ProcurarNaBolsa(acao.InstanciaId);
+                    if (item == null)
+                    {
+                        break;
+                    }
+
+                    if (RegrasPets.EspecieDoItem(item.ItemId) > 0)
+                    {
+                        ConexaoTempoReal.Enviar(
+                            PetsMessageIds.UsarItemPet,
+                            new UsarItemPet { InstanciaId = acao.InstanciaId }
+                        );
+                    }
+                    else if (RegrasMontaria.TipoMontariaDoItem(item.ItemId) > 0)
+                    {
+                        ConexaoTempoReal.Enviar(
+                            MontariasMessageIds.UsarItemMontaria,
+                            new UsarItemMontaria { InstanciaId = acao.InstanciaId }
+                        );
+                    }
                     break;
             }
         }

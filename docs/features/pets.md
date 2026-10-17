@@ -1,7 +1,7 @@
 # Pets
 
 **Responsável:**
-**Status:** em desenvolvimento (cervo jovem implementado; fora da fatia jogável)
+**Status:** em desenvolvimento (drop raro, item consumível negociável, registro na conta e janela U implementados; fora da fatia jogável)
 **Faixa de IDs de mensagem:** 17000–17999
 
 ## Resumo
@@ -37,7 +37,7 @@ Decidido em 2026-10-12 (#161) e **revisto em 2026-10-16** (quiz de definições 
 
 ## Em aberto
 
-- [x] Animação de verdade (esqueleto) do cervo e um jeito de chamar além do comando de chat. Decidido em 2026-10-16 (quiz 4, refino): janela **U** com coleção e ativar/desativar; esqueleto continua em aberto.
+- [x] Janela **U** com coleção, catálogo, bloqueados com origem e chamar/dispensar (#925). Drop raro negociável e registro na conta (#923).
 - [ ] Animação de verdade (esqueleto) do cervo.
 
 ## Regras

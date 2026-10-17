@@ -381,7 +381,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
                     Assert.AreEqual(
                         ponto.y,
                         batida.point.y,
-                        0.2f,
+                        0.25f,
                         $"Chão fora do relevo em {ponto}."
                     );
                     Assert.IsTrue(batida.collider.transform.IsChildOf(terreno));

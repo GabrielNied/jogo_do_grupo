@@ -17,9 +17,12 @@ public class SorteadorDeLootTestes
     }
 
     private static bool EhPecaDoCatalogo(QuedaDeLoot q) =>
-        q.ModeloId >= CatalogoEquipamentos.PrimeiroModelo
-        && q.ModeloId
-            < CatalogoEquipamentos.PrimeiroModelo + CatalogoEquipamentos.QuantidadeModelos;
+        (
+            q.ModeloId >= CatalogoEquipamentos.PrimeiroModelo
+            && q.ModeloId
+                < CatalogoEquipamentos.PrimeiroModelo + CatalogoEquipamentos.QuantidadeModelos
+        )
+        || q.ModeloId == TabelaDeLoot.ItemPetRaro;
 
     [Fact]
     public void Cada_sorteio_da_de_zero_ao_maximo_de_pecas_do_catalogo()
@@ -30,7 +33,7 @@ public class SorteadorDeLootTestes
             sorteios,
             quedas =>
             {
-                Assert.InRange(quedas.Length, 0, RegrasLoot.MaximoPorInimigo);
+                Assert.InRange(quedas.Length, 0, RegrasLoot.MaximoPorInimigo + 1);
                 Assert.All(quedas, q => Assert.True(EhPecaDoCatalogo(q), $"modelo {q.ModeloId}"));
             }
         );
@@ -46,7 +49,11 @@ public class SorteadorDeLootTestes
 
         Assert.DoesNotContain(CatalogoItens.PocaoDeTeste, modelos);
         Assert.DoesNotContain(CatalogoItens.MoedaDeTeste, modelos);
-        Assert.Equal(CatalogoEquipamentos.QuantidadeModelos, modelos.Count);
+        Assert.Contains(TabelaDeLoot.ItemPetRaro, modelos);
+        Assert.Equal(
+            CatalogoEquipamentos.QuantidadeModelos,
+            modelos.Count(id => id != TabelaDeLoot.ItemPetRaro)
+        );
     }
 
     [Fact]
@@ -133,8 +140,37 @@ public class SorteadorDeLootTestes
                 Assert.InRange(
                     sorteador.Sortear(OrigemDoLoot.Elite, 12).Length,
                     0,
-                    RegrasLoot.MaximoPorInimigo
+                    RegrasLoot.MaximoPorInimigo + 1
                 )
+        );
+    }
+
+    [Theory]
+    [InlineData(OrigemDoLoot.Comum)]
+    [InlineData(OrigemDoLoot.Elite)]
+    public void Mobs_comuns_e_elites_podem_dropar_pet_raro(OrigemDoLoot origem)
+    {
+        const int vezes = 10000;
+        var sorteios = Sortear(vezes, semente: 42, origem: origem);
+        var quedasPet = sorteios
+            .SelectMany(q => q)
+            .Count(q => q.ModeloId == TabelaDeLoot.ItemPetRaro);
+        var fracao = quedasPet / (double)vezes;
+
+        Assert.InRange(
+            fracao,
+            ConfigLoot.ChanceDePetRaro - 0.01,
+            ConfigLoot.ChanceDePetRaro + 0.01
+        );
+    }
+
+    [Fact]
+    public void Chefes_nao_dropam_pet_raro_de_campo()
+    {
+        var sorteios = Sortear(1000, semente: 43, origem: OrigemDoLoot.Chefe);
+        Assert.DoesNotContain(
+            sorteios.SelectMany(q => q),
+            q => q.ModeloId == TabelaDeLoot.ItemPetRaro
         );
     }
 
