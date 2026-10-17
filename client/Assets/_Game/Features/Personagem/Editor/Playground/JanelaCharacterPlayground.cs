@@ -62,6 +62,11 @@ namespace JogoDoGrupo.Client.Features.Personagem.Editor.Playground
             painel.Add(ComponentesVisuais.Texto("Character Playground", titulo: true));
             painel.Add(ComponentesVisuais.Texto("Desenvolvimento • Locomoção v3"));
             painel.Add(
+                ComponentesVisuais.Texto(
+                    "Human Male: retarget candidato • aprovação visual pendente"
+                )
+            );
+            painel.Add(
                 ComponentesVisuais.Texto("Abrir Playground → Escolher personagem → Spawn → Play")
             );
             var mensagem = ComponentesVisuais.Texto("");

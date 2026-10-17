@@ -22,4 +22,6 @@ O acesso direto abre a cena/ferramenta com confirmação normal de salvamento. O
 
 Um playModeStartScene previamente definido é substituído apenas durante um Play explícito na cena do Playground e restaurado no Stop; não muda Build Settings nem cenas normais. O controller de locomoção e Apply Root Motion OFF são atribuídos somente à instância temporária com o Avatar do Human Male, preservando o prefab original. Não há novos contratos ou alterações em Core.
 
+O adendo visual mantém a aprovação do retarget separada dos testes técnicos. Avatars de calibração candidatos existem como assets próprios do Playground; o Avatar/FBX original não é sobrescrito. Calibração de origem e amplitude de Shoulder são reproduzíveis por ferramenta Editor, com pendências visuais documentadas na [operação](../arte/character-playground.md#locomotion-animation-set-v1-task-06).
+
 Sem diferenças funcionais no jogo principal e sem lógica de movimento duplicada. A reflexão depende de detalhes internos: se Core mudar, a validação de assinatura falha explicitamente e o adaptador deverá ser revisto. Não é um contrato de extensão para builds; fica restrito à ferramenta de desenvolvimento. Operação e testes: [Character Playground](../arte/character-playground.md).

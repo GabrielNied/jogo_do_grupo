@@ -150,6 +150,13 @@ namespace JogoDoGrupo.Client.Features.Personagem.Editor.Playground
                 && animator.avatar == original.GetComponentInChildren<Animator>().avatar
             )
             {
+                // Candidato de calibracao do retarget. O Avatar embutido no FBX e o
+                // prefab permanecem intactos; a revisao visual e independente dos testes.
+                var avatarLocal = AssetDatabase.LoadAssetAtPath<Avatar>(
+                    CharacterPlayground.Pasta + "/Locomotion/HumanMaleLocomotionAvatar.asset"
+                );
+                if (avatarLocal != null)
+                    animator.avatar = avatarLocal;
                 animator.runtimeAnimatorController =
                     AssetDatabase.LoadAssetAtPath<RuntimeAnimatorController>(
                         CharacterPlayground.Pasta + "/Locomotion/Locomotion.controller"

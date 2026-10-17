@@ -20,6 +20,7 @@ namespace JogoDoGrupo.Client.Features.Personagem.Editor.Playground
         [Serializable]
         sealed class Relatorio
         {
+            public string escopo = "VALIDACAO TECNICA; aprovacao visual independente e pendente";
             public string status = "EM_EXECUCAO";
             public string erro;
             public List<string> verificacoes = new List<string>();

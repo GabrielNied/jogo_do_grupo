@@ -1,5 +1,7 @@
 # Character Playground v3
 
+**Retarget em revisão visual após o adendo da TASK 06.** As verificações técnicas não aprovam pés/tornozelos ou clavículas. O candidato atual melhora o apoio, mas a passagem e a silhueta dos ombros ainda precisam de avaliação visual conclusiva; não classificar esses pontos como simples foot sliding.
+
 Ferramenta de **Editor** para inspecionar e controlar prefabs de personagens. Menu **Jogo do Grupo → Personagem → Character Playground → Abrir Playground** abre a cena e foca a ferramenta; depois **Escolher personagem → Spawn → Play**. Inspeção em Edit Mode; movimento, câmera e locomoção visual em Play Mode. O acesso antigo por Abrir ferramenta continua disponível.
 
 ## Operação
@@ -86,6 +88,14 @@ Fonte fornecida pelo usuário: `J:/BlenderAssetsAI/Human_Male_Base_v1_UnityTest/
 | Running.fbx / Running | 0,700000 → 0,700000 s | 30 | 5,5 | 1,15 |
 
 Os três imports originais eram Generic, clip `mixamo.com`, sem Avatar/mesh e sem loop. Cada import agora cria seu próprio Avatar Humanoid Mixamo válido, preservando o mapeamento de origem; Mecanim retargeta para o Avatar original do Human Male, sem copiar Avatar entre skeletons diferentes. Optimize Game Objects desligado; materiais/câmeras/luzes do import desabilitados. O frame adicional da Idle é o intervalo exposto pelo import Humanoid.
+
+Esse parágrafo descreve a primeira configuração. Após o adendo, o candidato usa `IdleReference`, `WalkingReference` e `RunningReference` via Copy From Other Avatar **nas respectivas fontes Mixamo**. `CalibracaoRetargetPlayground.Gerar()` reproduz os assets: preserva a referência do tronco/braços de cada fonte, neutraliza UpperLeg/LowerLeg e usa pé de referência inclinado -47,5° no segmento tornozelo→dedos, alinhado em Z e sem roll lateral. O valor vem do apoio da fonte (tornozelo ~0,128 m, segmento 0,173 m). Não modifica curvas nem bytes dos FBXs.
+
+A instância do Human Male recebe um Avatar derivado separado `HumanMaleLocomotionAvatar`, com o mesmo mapeamento/skeleton/referência e limites de Shoulder Front-Back ±10°, Down-Up -10°/+20° (antes ±15° e -15°/+30°). É um ensaio de amplitude de retarget, não uma correção comprovada de bone placement. O Avatar embutido no Human Male e o prefab permanecem intactos.
+
+O A/B amostrou as curvas Generic originais, o roundtrip no próprio Avatar Mixamo e o destino no mesmo frame. As fontes não têm mesh: a coluna original mostra skeleton real, sem inventar malha. No apoio esquerdo, Running mudou de aproximadamente -44° para -6° no destino (original -3°); Walking de +14° para -1° (original -2°). Na passagem de Walking há diferença residual de heading (~15°) e em Running o vetor fica quase vertical, tornando yaw isolado pouco confiável. **Não usar os bons contatos para aprovar o ciclo inteiro.**
+
+Remover Toes, remover Shoulders e alinhar a T-pose do destino foram testados em Avatars descartáveis, sem editar o original; não foram adotados. Não foi comprovada necessidade de refazer pesos ou skeleton. A auditoria de pesos não encontrou influência cruzada de membros nas regiões agregadas analisadas, mas isso não equivale a aprovação completa de skinning. Evidências detalhadas ficam no relatório local do adendo. O status visual continua pendente.
 
 Loop Time e Loop Pose ligados. Rotação e Y baked into pose, orientação original e altura baseada nos pés; XZ extraído para o root e descartado por Apply Root Motion OFF. Walking/Running já são in-place: variação líquida de Hips nos arquivos originais aproximadamente zero, além do balanço cíclico. Idle tem apenas ~2 mm de variação líquida. Sem edição de keyframes.
 
