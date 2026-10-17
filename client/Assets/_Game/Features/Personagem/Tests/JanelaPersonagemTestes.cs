@@ -22,6 +22,15 @@ namespace JogoDoGrupo.Client.Features.Personagem.Tests
         }
 
         [Test]
+        public void DicaDistribuicao_UsaOrientacaoSemMencaoARaca()
+        {
+            Assert.AreEqual(
+                "Distribua seus pontos. Seus equipamentos dão possibilidades.",
+                TextosPersonagem.DicaDistribuicao
+            );
+        }
+
+        [Test]
         public void ProcurarPorId_AchaOPersonagemQueEstaNoMundo()
         {
             var lista = new[]

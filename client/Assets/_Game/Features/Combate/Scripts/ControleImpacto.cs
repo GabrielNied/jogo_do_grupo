@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using JogoDoGrupo.Client.Core.Jogo;
 using JogoDoGrupo.Client.Core.TempoReal;
+using JogoDoGrupo.Client.Core.UI;
 using JogoDoGrupo.Shared.Features.Combate;
 using JogoDoGrupo.Shared.Features.Mobs;
 using UnityEngine;
@@ -32,6 +33,7 @@ namespace JogoDoGrupo.Client.Features.Combate
         public const float IntervaloDoAlertaSegundos = 1.2f;
         public const string TextoEsquivou = "Esquivou!";
         public const string TextoSaiaDaArea = "Saia da área!";
+        public const string TextoAjudaMira = TextosDoLivro.AjudaMira;
 
         private static readonly int CorBase = Shader.PropertyToID("_BaseColor");
         private static readonly int CorSimples = Shader.PropertyToID("_Color");

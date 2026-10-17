@@ -87,6 +87,9 @@ namespace JogoDoGrupo.Client.Features.Talentos
             _atributos = ComponentesVisuais.Texto("");
             _atributos.style.color = EstiloVisual.Cor(ConfigVisual.Cores.TextoSecundario);
             _corpo.Add(_atributos);
+            var orientacao = ComponentesVisuais.Texto(TextosTalentos.DicaDistribuicao);
+            orientacao.style.color = EstiloVisual.Cor(ConfigVisual.Cores.TextoSecundario);
+            _corpo.Add(orientacao);
 
             _arvore = new VisualElement { name = "talentos.arvore" };
             _arvore.style.width = Length.Percent(100);

@@ -10,6 +10,8 @@ namespace JogoDoGrupo.Client.Features.Combate
     internal sealed class PainelDefesa
     {
         public const string TextoGuarda = "Guarda";
+        public const string TextoDefesaInsuficiente =
+            ApresentacaoDefesa.TextoDefesaInsuficientePadrao;
 
         private readonly Label _indicador;
 

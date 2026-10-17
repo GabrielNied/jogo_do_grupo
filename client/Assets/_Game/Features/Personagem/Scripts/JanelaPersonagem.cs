@@ -79,6 +79,9 @@ namespace JogoDoGrupo.Client.Features.Personagem
             conteudo.Add(_equipamento);
             conteudo.Add(_secundariosTitulo);
             conteudo.Add(_secundarios);
+            var orientacao = new Label(TextosPersonagem.DicaDistribuicao);
+            orientacao.AddToClassList(EstiloCore.Texto);
+            conteudo.Add(orientacao);
             conteudo.Add(_nota);
         }
 

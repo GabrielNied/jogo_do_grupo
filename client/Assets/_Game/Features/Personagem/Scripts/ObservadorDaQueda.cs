@@ -186,6 +186,17 @@ namespace JogoDoGrupo.Client.Features.Personagem
                     _recebidoEm
                     - Math.Max(0.0, RegrasQueda.DuracaoCaidoSegundos - _segundosRecebidos);
             }
+            else if (
+                _fase == FaseDeQueda.Vivo
+                && (anterior == FaseDeQueda.Caido || anterior == FaseDeQueda.Levantando)
+            )
+            {
+                AvisosDoJogo.Mostrar(
+                    TextosQueda.Levantado,
+                    TipoDeAviso.Aviso,
+                    CategoriaDeAviso.Combate
+                );
+            }
 
             AtualizarPainel(estado);
         }
@@ -330,7 +341,10 @@ namespace JogoDoGrupo.Client.Features.Personagem
 
             _aviso = new Label();
             _aviso.AddToClassList(EstiloCore.MensagemAviso);
+            var subtituloAjuda = new Label(TextosQueda.SubtituloAjuda);
+            subtituloAjuda.AddToClassList(EstiloCore.Subtitulo);
             caixa.Add(titulo);
+            caixa.Add(subtituloAjuda);
             caixa.Add(_contagem);
             caixa.Add(_estado);
             caixa.Add(_trilho);
@@ -459,6 +473,8 @@ namespace JogoDoGrupo.Client.Features.Personagem
     internal static class TextosQueda
     {
         internal const string Titulo = "Você caiu";
+        internal const string SubtituloAjuda = TextosDoLivro.CaidoAjuda;
+        internal const string Levantado = TextosDoLivro.Levantado;
         internal const string AguardandoAliado = "Aguardando um aliado";
         internal const string EstaoLevantandoVoce = "Um aliado está levantando você";
         internal const string BotaoVoltar = "Segure para voltar à cidade";

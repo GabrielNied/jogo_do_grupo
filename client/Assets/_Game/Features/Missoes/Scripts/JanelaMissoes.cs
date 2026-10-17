@@ -1,4 +1,5 @@
 using JogoDoGrupo.Client.Core.Jogo.Janelas;
+using JogoDoGrupo.Client.Core.UI;
 using UnityEngine;
 
 namespace JogoDoGrupo.Client.Features.Missoes
@@ -15,7 +16,8 @@ namespace JogoDoGrupo.Client.Features.Missoes
         public const string Tecla = "L";
         public const int Ordem = 30;
 
-        public const string Texto =
+        public const string Texto = TextosDoLivro.DiarioMissoes;
+        public const string TextoEmConstrucao =
             "As missões aceitas e o progresso de cada uma vão aparecer aqui.";
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
