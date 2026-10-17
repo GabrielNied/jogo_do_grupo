@@ -530,13 +530,11 @@ internal static class ItensRotas
         CancellationToken cancelamento
     )
     {
-        var contaId = usuario.ObterContaId();
-        if (!await PersonagemDaContaAsync(personagemId, contaId, db, cancelamento))
+        var id = ParaId(personagemId);
+        if (id <= 0)
         {
             return PersonagemNaoEncontrado();
         }
-
-        var id = ParaId(personagemId);
 
         // O servidor decide: a posição é a que o Mundo aceitou, nunca a que o client diz.
         if (
@@ -552,7 +550,7 @@ internal static class ItensRotas
         }
 
         // Reserva atômica: dois pedidos simultâneos nunca passam os dois. Devolvida se nada
-        // foi aberto (bolsa cheia, banco ocupado).
+        // foi aberto (bolsa cheia, banco ocupado, personagem inexistente).
         if (!recarga.TentarReservar(id))
         {
             return RespostasApi.Erro(
@@ -560,6 +558,13 @@ internal static class ItensRotas
                 CodigosErroItens.BauEmRecarga,
                 "O baú ainda está recarregando."
             );
+        }
+
+        var contaId = usuario.ObterContaId();
+        if (!await PersonagemDaContaAsync(personagemId, contaId, db, cancelamento))
+        {
+            recarga.Liberar(id);
+            return PersonagemNaoEncontrado();
         }
 
         var sorteados = sorteador.Sortear();
