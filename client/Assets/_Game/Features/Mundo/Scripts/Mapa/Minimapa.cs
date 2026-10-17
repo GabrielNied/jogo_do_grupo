@@ -225,12 +225,20 @@ namespace JogoDoGrupo.Client.Features.Mundo
                         continue;
                     }
 
-                    Losango(
-                        pincel,
-                        new Vector2(centro.x + x * escala, centro.y - y * escala),
-                        ConfigVisual.Dimensoes.MarcadorAliado,
-                        EstiloVisual.Cor(ConfigVisual.Cores.Perigo)
-                    );
+                    var raio = inimigo.ChefeRaro
+                        ? ConfigVisual.Dimensoes.MarcadorAliado * 1.5f
+                        : ConfigVisual.Dimensoes.MarcadorAliado;
+                    var posMarcador = new Vector2(centro.x + x * escala, centro.y - y * escala);
+                    Losango(pincel, posMarcador, raio, EstiloVisual.Cor(ConfigVisual.Cores.Perigo));
+                    if (inimigo.ChefeRaro)
+                    {
+                        Losango(
+                            pincel,
+                            posMarcador,
+                            raio * 0.45f,
+                            EstiloVisual.Cor(ConfigVisual.Cores.Ouro)
+                        );
+                    }
                 }
             }
 

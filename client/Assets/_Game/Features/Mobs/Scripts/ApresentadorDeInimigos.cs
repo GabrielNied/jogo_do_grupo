@@ -285,6 +285,15 @@ namespace JogoDoGrupo.Client.Features.Mobs
             if (novo != null)
             {
                 CriarVisual(novo);
+
+                var def = CatalogoCriaturas.Obter(novo.CriaturaId);
+                if (def?.Categoria == CategoriaDeCriatura.ChefeRaro)
+                {
+                    AvisosDoJogo.Mostrar(
+                        $"Um chefe raro apareceu na área: {def.Nome}!",
+                        TipoDeAviso.Aviso
+                    );
+                }
             }
         }
 
@@ -479,6 +488,16 @@ namespace JogoDoGrupo.Client.Features.Mobs
             _reacoes.Remove(inimigo.InimigoId);
             _poses.Remove(inimigo.InimigoId);
             _velocidadesDoGolpe.Remove(inimigo.InimigoId);
+
+            var def = CatalogoCriaturas.Obter(inimigo.CriaturaId);
+            if (def?.Categoria == CategoriaDeCriatura.ChefeRaro)
+            {
+                AvisosDoJogo.Mostrar(
+                    $"O chefe raro {def.Nome} foi derrotado!",
+                    TipoDeAviso.Informacao
+                );
+            }
+
             if (visual == null)
             {
                 return;

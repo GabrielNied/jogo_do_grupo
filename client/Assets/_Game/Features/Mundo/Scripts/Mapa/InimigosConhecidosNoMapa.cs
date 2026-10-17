@@ -83,7 +83,32 @@ namespace JogoDoGrupo.Client.Features.Mundo
                         0f,
                         ProjecaoDoMapa.AreaDaCidade,
                         false,
-                        par.Value.Longe
+                        par.Value.Longe,
+                        par.Value.ChefeRaro
+                    )
+                );
+            }
+        }
+
+        public void CopiarChefesRaros(List<MarcadorDoMapa> destino)
+        {
+            destino.Clear();
+            foreach (var par in _conhecidos)
+            {
+                if (!par.Value.Vivo || !par.Value.ChefeRaro)
+                {
+                    continue;
+                }
+
+                destino.Add(
+                    new MarcadorDoMapa(
+                        par.Value.X,
+                        par.Value.Z,
+                        0f,
+                        ProjecaoDoMapa.AreaDaCidade,
+                        false,
+                        par.Value.Longe,
+                        true
                     )
                 );
             }
@@ -130,12 +155,16 @@ namespace JogoDoGrupo.Client.Features.Mundo
                 return;
             }
 
+            var def = CatalogoCriaturas.Obter(dados.CriaturaId);
+            var ehChefeRaro = def?.Categoria == CategoriaDeCriatura.ChefeRaro;
+
             _conhecidos[dados.InimigoId] = new Marcador
             {
                 X = dados.X,
                 Z = dados.Z,
                 Vivo = true,
                 Longe = false,
+                ChefeRaro = ehChefeRaro,
             };
         }
 
@@ -161,6 +190,7 @@ namespace JogoDoGrupo.Client.Features.Mundo
             public float Z;
             public bool Vivo;
             public bool Longe;
+            public bool ChefeRaro;
         }
     }
 }

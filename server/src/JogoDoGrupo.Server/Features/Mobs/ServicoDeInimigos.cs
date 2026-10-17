@@ -298,8 +298,11 @@ public sealed class ServicoDeInimigos(
         foreach (var aparicao in passo.Aparicoes)
         {
             var dados = aparicao.Inimigo;
+            var definicao = CatalogoCriaturas.Obter(dados.CriaturaId);
+            var ehChefeRaro = definicao?.Categoria == CategoriaDeCriatura.ChefeRaro;
             if (
-                !AplicarInteresse(
+                !ehChefeRaro
+                && !AplicarInteresse(
                     sessao,
                     grupo,
                     dados.InimigoId,
@@ -360,7 +363,9 @@ public sealed class ServicoDeInimigos(
     )
     {
         var podeEnviar = false;
-        if (grupo.Area != AreasDoMundo.Cidade)
+        var ehChefeRaro =
+            grupo is GrupoDeInimigos g && g.Categoria == CategoriaDeCriatura.ChefeRaro;
+        if (grupo.Area != AreasDoMundo.Cidade || ehChefeRaro)
         {
             podeEnviar = true;
         }
@@ -638,22 +643,37 @@ public sealed class ServicoDeInimigos(
         if (vizinhanca != null && grupo.Area == AreasDoMundo.Cidade)
         {
             _pertoIdsBuffer.Clear();
-            foreach (var (inimigoId, (ix, iz)) in posicoesInimigos)
-            {
-                _pertoIdsBuffer.UnionWith(
-                    vizinhanca.PersonagensPerto(
-                        grupo.Area,
-                        ix,
-                        iz,
-                        (float)RegrasInteresseDeInimigos.SaidaMetros
-                    )
-                );
-                _pertoIdsBuffer.UnionWith(_interesse.QuemJaRecebia(inimigoId));
-            }
 
-            foreach (var morte in passo.Mortes)
+            var temChefeRaro =
+                (grupo is GrupoDeInimigos g && g.Categoria == CategoriaDeCriatura.ChefeRaro)
+                || passo.Aparicoes.Any(a =>
+                    CatalogoCriaturas.Obter(a.Inimigo.CriaturaId)?.Categoria
+                    == CategoriaDeCriatura.ChefeRaro
+                );
+
+            if (temChefeRaro)
             {
-                _pertoIdsBuffer.UnionWith(_interesse.QuemJaRecebia(morte.InimigoId));
+                _pertoIdsBuffer.UnionWith(posicoes.PersonagensNaArea(grupo.Area));
+            }
+            else
+            {
+                foreach (var (inimigoId, (ix, iz)) in posicoesInimigos)
+                {
+                    _pertoIdsBuffer.UnionWith(
+                        vizinhanca.PersonagensPerto(
+                            grupo.Area,
+                            ix,
+                            iz,
+                            (float)RegrasInteresseDeInimigos.SaidaMetros
+                        )
+                    );
+                    _pertoIdsBuffer.UnionWith(_interesse.QuemJaRecebia(inimigoId));
+                }
+
+                foreach (var morte in passo.Mortes)
+                {
+                    _pertoIdsBuffer.UnionWith(_interesse.QuemJaRecebia(morte.InimigoId));
+                }
             }
 
             _sessoesAlvoBuffer.Clear();

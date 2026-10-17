@@ -14,7 +14,8 @@ namespace JogoDoGrupo.Client.Features.Mundo
             float rotacaoY,
             string area,
             bool eu,
-            bool longe = false
+            bool longe = false,
+            bool chefeRaro = false
         )
         {
             Longe = longe;
@@ -23,6 +24,7 @@ namespace JogoDoGrupo.Client.Features.Mundo
             RotacaoY = rotacaoY;
             Area = area;
             Eu = eu;
+            ChefeRaro = chefeRaro;
         }
 
         public float X { get; }
@@ -33,6 +35,9 @@ namespace JogoDoGrupo.Client.Features.Mundo
 
         /// <summary>Aliado do grupo fora da área de interesse (#789): só ponto no mapa, sem corpo 3D.</summary>
         public bool Longe { get; }
+
+        /// <summary>Se o marcador representa um chefe raro no mapa/minimapa (#896).</summary>
+        public bool ChefeRaro { get; }
     }
 
     /// <summary>

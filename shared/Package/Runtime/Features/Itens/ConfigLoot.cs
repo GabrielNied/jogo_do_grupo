@@ -14,6 +14,12 @@ namespace JogoDoGrupo.Shared.Features.Itens
         /// </summary>
         public const double ChanceDeEquipamento = 1.0;
 
+        /// <summary>
+        /// Chance de uma queda do chefe raro ser o seu item de equipamento exclusivo
+        /// (<see cref="TabelaDeLoot.ModeloExclusivoDoChefeRaro"/>).
+        /// </summary>
+        public const double ChanceDeItemExclusivoDoChefeRaro = 0.50;
+
         // Faixas de nível do inimigo para o grau da peça: 1-9 Inicial, 10-19 Médio, 20+ Forte.
         // O requisito de nível para equipar é o piso da faixa do grau (1, 10 ou 20).
 
