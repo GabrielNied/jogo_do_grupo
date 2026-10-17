@@ -54,9 +54,7 @@ builder.Services.ConfigureHttpJsonOptions(opcoes =>
 
 // Corpo ausente ou JSON malformado lança exceção, e o TratamentoErrosMiddleware responde 400.
 builder.Services.Configure<RouteHandlerOptions>(opcoes => opcoes.ThrowOnBadRequest = true);
-builder.Services.AddDbContext<JogoDbContext>(opcoes =>
-    opcoes.UseSqlite(builder.Configuration.GetConnectionString("Jogo"))
-);
+builder.Services.AdicionarBancoDeDados(builder.Configuration);
 builder.Services.AdicionarAutenticacaoJwt(builder.Configuration, builder.Environment);
 builder.Services.AdicionarContas();
 builder.Services.AdicionarTempoReal(builder.Configuration);

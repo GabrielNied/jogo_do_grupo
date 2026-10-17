@@ -31,10 +31,25 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: jogodogrupo_teste
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgrespassword
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     env:
       DOTNET_NOLOGO: "true"
       DOTNET_CLI_TELEMETRY_OPTOUT: "true"
       NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
+      TESTE_POSTGRES_CONEXAO: "Host=localhost;Port=5432;Database=jogodogrupo_teste;Username=postgres;Password=postgrespassword"
     steps:
       - uses: actions/checkout@v4
         with:
