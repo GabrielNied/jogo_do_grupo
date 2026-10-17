@@ -1,0 +1,7 @@
+{
+  "name": "JogoDoGrupo.Client.Personagem.Playground.Editor",
+  "rootNamespace": "JogoDoGrupo.Client.Features.Personagem.Editor.Playground",
+  "references": ["JogoDoGrupo.Client.Visual", "JogoDoGrupo.Client.Core"],
+  "includePlatforms": ["Editor"],
+  "autoReferenced": false
+}
