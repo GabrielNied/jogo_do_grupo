@@ -1,5 +1,7 @@
+using JogoDoGrupo.Server.Contratos.Mundo;
 using JogoDoGrupo.Server.Contratos.Personagem;
 using JogoDoGrupo.Server.Contratos.Social;
+using JogoDoGrupo.Shared.Features.Mundo;
 using JogoDoGrupo.Shared.Features.Social;
 
 namespace JogoDoGrupo.Server.Features.Social;
@@ -21,7 +23,8 @@ public sealed class GruposDoServidor(
     IDiretorioDePersonagens diretorio,
     ISaidaDoGrupo saida,
     Func<long> relogioMs,
-    Func<long, long, bool>? contatoBarradoEntrePersonagens = null
+    Func<long, long, bool>? contatoBarradoEntrePersonagens = null,
+    Func<IPosicoesDoMundo?>? posicoes = null
 ) : IConsultaDeGrupo
 {
     private readonly Lock _trava = new();
@@ -35,8 +38,12 @@ public sealed class GruposDoServidor(
     private long _proximoGrupo;
     private long _proximoConvite;
 
-    public GruposDoServidor(IDiretorioDePersonagens diretorio, ISaidaDoGrupo saida)
-        : this(diretorio, saida, () => Environment.TickCount64, null) { }
+    public GruposDoServidor(
+        IDiretorioDePersonagens diretorio,
+        ISaidaDoGrupo saida,
+        Func<IPosicoesDoMundo?>? posicoes = null
+    )
+        : this(diretorio, saida, () => Environment.TickCount64, null, posicoes) { }
 
     // ── Consultas ───────────────────────────────────────────────────────────────
 
@@ -112,6 +119,7 @@ public sealed class GruposDoServidor(
 
             var membro = grupo.Membros.First(m => m.PersonagemId == personagemId);
             membro.Online = true;
+            membro.Area = AreaDoPersonagem(personagemId);
             AvisarMembros(
                 grupo.Membros.Where(m => m.PersonagemId != personagemId),
                 NovoAviso(TipoDeAvisoDoGrupo.MembroVoltou, membro)
@@ -152,6 +160,7 @@ public sealed class GruposDoServidor(
 
             var membro = grupo.Membros.First(m => m.PersonagemId == personagemId);
             membro.Online = false;
+            membro.Area = "";
             membro.OfflineDesdeMs = agora;
             AvisarMembros(grupo.Membros, NovoAviso(TipoDeAvisoDoGrupo.MembroOffline, membro));
             EnviarLista(grupo);
@@ -490,6 +499,7 @@ public sealed class GruposDoServidor(
                     PersonagemId = convite.De,
                     Nome = convite.NomeDe,
                     Online = true,
+                    Area = AreaDoPersonagem(convite.De),
                 }
             );
             _grupos[grupo.Id] = grupo;
@@ -501,6 +511,7 @@ public sealed class GruposDoServidor(
             PersonagemId = quem,
             Nome = convite.NomePara,
             Online = true,
+            Area = AreaDoPersonagem(quem),
         };
         grupo.Membros.Add(novo);
         _grupoDe[quem] = grupo;
@@ -722,7 +733,7 @@ public sealed class GruposDoServidor(
 
     // ── Pequenos ajudantes ──────────────────────────────────────────────────────
 
-    private static ListaDoGrupo Lista(Grupo grupo) =>
+    private ListaDoGrupo Lista(Grupo grupo) =>
         new()
         {
             GrupoId = grupo.Id,
@@ -735,9 +746,64 @@ public sealed class GruposDoServidor(
                     Online = m.Online,
                     Vida = m.Vida,
                     VidaMaxima = m.VidaMaxima,
+                    Area = m.Online
+                        ? (
+                            !string.IsNullOrEmpty(m.Area)
+                                ? m.Area
+                                : AreaDoPersonagem(m.PersonagemId)
+                        )
+                        : "",
                 })
                 .ToArray(),
         };
+
+    private string AreaDoPersonagem(long personagemId)
+    {
+        if (posicoes?.Invoke()?.TentarObter(personagemId, out var posicao) != true)
+        {
+            return "";
+        }
+
+        return RotulosDeArea.Descricao(posicao.Area, posicao.X, posicao.Z);
+    }
+
+    /// <summary>Atualiza a área conhecida de um membro do grupo em memória e retorna true se mudou.</summary>
+    public bool AtualizarArea(long personagemId, string area)
+    {
+        lock (_trava)
+        {
+            if (_grupoDe.TryGetValue(personagemId, out var grupo))
+            {
+                var membro = Membro(grupo, personagemId);
+                if (membro != null)
+                {
+                    var mudou = membro.Area != area;
+                    membro.Area = area;
+                    return mudou;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>Retorna a área conhecida de um membro do grupo.</summary>
+    public string ObterArea(long personagemId)
+    {
+        lock (_trava)
+        {
+            if (_grupoDe.TryGetValue(personagemId, out var grupo))
+            {
+                var membro = Membro(grupo, personagemId);
+                if (membro != null && !string.IsNullOrEmpty(membro.Area))
+                {
+                    return membro.Area;
+                }
+            }
+        }
+
+        return AreaDoPersonagem(personagemId);
+    }
 
     /// <summary>Atualiza a vida conhecida de um membro do grupo em memória.</summary>
     public void AtualizarVida(long personagemId, int vida, int vidaMaxima)
@@ -823,6 +889,7 @@ public sealed class GruposDoServidor(
         public long OfflineDesdeMs;
         public int Vida;
         public int VidaMaxima;
+        public string Area = "";
     }
 
     private sealed class Convite

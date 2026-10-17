@@ -176,6 +176,10 @@
     opacity: 0.5;
 }
 
+.linha-aliado-hud.aliado-longe {
+    opacity: 0.5;
+}
+
 .linha-aliado-hud.aliado-offline .barra-vida-preenchimento {
     background-color: var(--lumora-cores-trilho);
 }

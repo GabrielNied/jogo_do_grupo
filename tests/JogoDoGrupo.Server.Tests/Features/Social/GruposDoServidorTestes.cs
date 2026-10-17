@@ -1,3 +1,4 @@
+using JogoDoGrupo.Server.Features.Social;
 using JogoDoGrupo.Shared.Features.Social;
 using static JogoDoGrupo.Server.Tests.Features.Social.AmbienteDeGrupo;
 
@@ -886,5 +887,53 @@ public class GruposDoServidorTestes
     public void AtualizarVida_sem_grupo_nao_lanca_excecao()
     {
         _a.Grupos.AtualizarVida(A, 50, 100);
+    }
+
+    [Fact]
+    public void AtualizarArea_atualiza_area_do_membro_na_lista_e_retorna_mudanca()
+    {
+        _a.FormarGrupo(A, B);
+
+        var mudou = _a.Grupos.AtualizarArea(B, "Dungeon");
+        Assert.True(mudou);
+
+        var membros = _a.Grupos.ListaDe(A).Membros;
+        var membroB = Assert.Single(membros, m => m.PersonagemId == B);
+        Assert.Equal("Dungeon", membroB.Area);
+
+        Assert.False(_a.Grupos.AtualizarArea(B, "Dungeon"));
+    }
+
+    [Fact]
+    public void AtualizarArea_sem_grupo_retorna_false()
+    {
+        Assert.False(_a.Grupos.AtualizarArea(A, "Cidade"));
+    }
+
+    [Fact]
+    public void Lista_com_posicoes_preenche_area_dos_membros()
+    {
+        var posicoes = new PosicoesFalsas();
+        posicoes.NaCidade.Add(A);
+        posicoes.NaCidade.Add(B);
+
+        var grupos = new GruposDoServidor(
+            _a.Diretorio,
+            _a.Saida,
+            () => 1_000_000,
+            null,
+            () => posicoes
+        );
+        grupos.AoConectar(A);
+        grupos.AoConectar(B);
+
+        grupos.Convidar(A, "Bia");
+        var convite = Assert.Single(_a.Saida.De<ConviteRecebido>(B));
+        grupos.Responder(B, convite.ConviteId, true);
+
+        var lista = grupos.ListaDe(A);
+        Assert.Equal(2, lista.Membros.Length);
+        Assert.Equal("Cidade", lista.Membros[0].Area);
+        Assert.Equal("Cidade", lista.Membros[1].Area);
     }
 }

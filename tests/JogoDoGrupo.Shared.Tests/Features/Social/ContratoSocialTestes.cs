@@ -15,6 +15,8 @@ public class ContratoSocialTestes
         SocialMessageIds.ListaDoGrupo,
         SocialMessageIds.AvisoDoGrupo,
         SocialMessageIds.OperacaoDoGrupoRecusada,
+        SocialMessageIds.VidaDoMembroMudou,
+        SocialMessageIds.AreaDoMembroMudou,
     };
 
     private static readonly string[] _codigos =
@@ -59,6 +61,8 @@ public class ContratoSocialTestes
         Assert.Equal(13011, SocialMessageIds.ListaDoGrupo);
         Assert.Equal(13012, SocialMessageIds.AvisoDoGrupo);
         Assert.Equal(13013, SocialMessageIds.OperacaoDoGrupoRecusada);
+        Assert.Equal(13014, SocialMessageIds.VidaDoMembroMudou);
+        Assert.Equal(13015, SocialMessageIds.AreaDoMembroMudou);
     }
 
     [Fact]
@@ -130,6 +134,17 @@ public class ContratoSocialTestes
         Assert.Equal(0L, membro.PersonagemId);
         Assert.Equal("", membro.Nome);
         Assert.False(membro.Online);
+        Assert.Equal(0, membro.Vida);
+        Assert.Equal(0, membro.VidaMaxima);
+        Assert.Equal("", membro.Area);
+    }
+
+    [Fact]
+    public void AreaDoMembroMudou_campos_padrao()
+    {
+        var msg = new AreaDoMembroMudou();
+        Assert.Equal(0L, msg.PersonagemId);
+        Assert.Equal("", msg.Area);
     }
 
     [Fact]

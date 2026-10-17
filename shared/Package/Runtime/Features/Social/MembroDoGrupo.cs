@@ -12,5 +12,8 @@ namespace JogoDoGrupo.Shared.Features.Social
 
         public int Vida = 0;
         public int VidaMaxima = 0;
+
+        /// <summary>Área resumida do membro (Cidade, Campo, Dungeon; #351).</summary>
+        public string Area = "";
     }
 }

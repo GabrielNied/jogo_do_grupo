@@ -41,6 +41,9 @@ namespace JogoDoGrupo.Shared.Features.Social
         /// <summary>Servidor → membros: a vida atual e máxima de um membro mudou.</summary>
         public const ushort VidaDoMembroMudou = 13014;
 
+        /// <summary>Servidor → membros: a área atual de um membro mudou (#351).</summary>
+        public const ushort AreaDoMembroMudou = 13015;
+
         // ── Chat (13100 a 13199) ──────────────────────────────────────────────────
 
         /// <summary>Client → servidor: envia uma mensagem de chat em um canal.</summary>
