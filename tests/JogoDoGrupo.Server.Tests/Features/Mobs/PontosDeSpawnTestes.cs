@@ -1,3 +1,4 @@
+using JogoDoGrupo.Server.Contratos.Mundo;
 using JogoDoGrupo.Server.Features.Mobs;
 using JogoDoGrupo.Shared.Features.Mobs;
 using JogoDoGrupo.Shared.Features.Mundo;
@@ -674,5 +675,137 @@ public class PontosDeSpawnTestes
         }
 
         Assert.True(inicio.ElapsedMilliseconds / 50.0 < 50, "um passo do laço passou de 50 ms");
+    }
+
+    private sealed class RelogioDoMundoFalso : IRelogioDoMundo
+    {
+        public float HoraAtual { get; set; } = 12f;
+        public bool Noite { get; set; } = false;
+
+        public float Hora() => HoraAtual;
+
+        public bool EhNoite() => Noite;
+    }
+
+    [Fact]
+    public void Ao_virar_a_noite_os_pontos_noturnos_passam_a_repor_so_especies_da_noite_e_os_de_dia_param_de_repor()
+    {
+        var relogio = new Relogio { Ms = 10_000 };
+        var relogioMundo = new RelogioDoMundoFalso { Noite = false, HoraAtual = 12f };
+        var sorteador = new Sorteador { Padrao = 0.5 };
+
+        var pontoDia = new PontoDeSpawn(
+            "ponto-teste-dia",
+            AreasDoMundo.Cidade,
+            0,
+            190,
+            CatalogoCriaturas.JavaliDoCampo,
+            2,
+            4,
+            2,
+            2,
+            1_000_000_000_000,
+            Periodo: PeriodoDeAparicao.Dia
+        );
+
+        var pontoNoite = new PontoDeSpawn(
+            "ponto-teste-noite",
+            AreasDoMundo.Cidade,
+            50,
+            190,
+            CatalogoCriaturas.LoboDoCampo,
+            4,
+            6,
+            2,
+            2,
+            1_000_000_001_000,
+            Periodo: PeriodoDeAparicao.Noite
+        );
+
+        var grupoDia = GrupoDeInimigos.DoPonto(
+            pontoDia,
+            sorteador,
+            relogioMs: () => relogio.Ms,
+            relogioDoMundo: relogioMundo
+        );
+
+        var grupoNoite = GrupoDeInimigos.DoPonto(
+            pontoNoite,
+            sorteador,
+            relogioMs: () => relogio.Ms,
+            relogioDoMundo: relogioMundo
+        );
+
+        // De dia: o ponto diurno monta e tem vivos; o noturno está vazio aguardando a noite
+        Assert.Equal(2, grupoDia.Vivos().Length);
+        Assert.All(
+            grupoDia.Vivos(),
+            v => Assert.Equal(CatalogoCriaturas.JavaliDoCampo, v.CriaturaId)
+        );
+        Assert.Empty(grupoNoite.Vivos());
+
+        // Mata 1 membro do grupo diurno de dia e confere reposição normal de dia
+        var javaliMorto = grupoDia.Vivos()[0];
+        grupoDia.TentarAplicarDano(javaliMorto.InimigoId, 9999, 1, out _);
+        Assert.Single(grupoDia.Vivos());
+
+        // Passa o tempo do respawn de dia: repõe
+        relogio.Ms += 200_000;
+        grupoDia.Passo([]);
+        Assert.Equal(2, grupoDia.Vivos().Length);
+
+        // ── Virada para a Noite ──
+        relogioMundo.Noite = true;
+        relogioMundo.HoraAtual = 23f;
+
+        // Ao virar a noite, o ponto noturno monta e repõe só espécies da noite
+        relogio.Ms += 10_000;
+        grupoNoite.Passo([]);
+        Assert.Equal(2, grupoNoite.Vivos().Length);
+        Assert.All(
+            grupoNoite.Vivos(),
+            v => Assert.Equal(CatalogoCriaturas.LoboDoCampo, v.CriaturaId)
+        );
+
+        // Os vivos do ponto de dia continuam vivos!
+        Assert.Equal(2, grupoDia.Vivos().Length);
+
+        // Mata 1 membro do grupo de dia durante a noite
+        var javaliMortoDeNoite = grupoDia.Vivos()[0];
+        grupoDia.TentarAplicarDano(javaliMortoDeNoite.InimigoId, 9999, 1, out _);
+        Assert.Single(grupoDia.Vivos());
+
+        // Passa o tempo do respawn durante a noite: o de dia NÃO repõe (os vivos ficam)
+        relogio.Ms += 200_000;
+        grupoDia.Passo([]);
+        Assert.Single(grupoDia.Vivos()); // Não repôs! Permanece 1 vivo
+
+        // Já o ponto noturno repõe mortos normalmente durante a noite
+        var loboMorto = grupoNoite.Vivos()[0];
+        grupoNoite.TentarAplicarDano(loboMorto.InimigoId, 9999, 1, out _);
+        Assert.Single(grupoNoite.Vivos());
+        relogio.Ms += 200_000;
+        grupoNoite.Passo([]);
+        Assert.Equal(2, grupoNoite.Vivos().Length); // Ponto noturno repôs lobo da noite
+
+        // ── Amanhecer ──
+        relogioMundo.Noite = false;
+        relogioMundo.HoraAtual = 8f;
+
+        // Ao voltar o dia, o ponto de dia volta a repor o javali morto
+        relogio.Ms += 10_000;
+        grupoDia.Passo([]);
+        Assert.Equal(2, grupoDia.Vivos().Length);
+
+        // E no ponto noturno, os lobos vivos continuam vivos
+        Assert.Equal(2, grupoNoite.Vivos().Length);
+
+        // Mas se um lobo morrer de dia, o ponto noturno para de repor
+        var loboMortoDeDia = grupoNoite.Vivos()[0];
+        grupoNoite.TentarAplicarDano(loboMortoDeDia.InimigoId, 9999, 1, out _);
+        Assert.Single(grupoNoite.Vivos());
+        relogio.Ms += 200_000;
+        grupoNoite.Passo([]);
+        Assert.Single(grupoNoite.Vivos()); // Não repôs durante o dia
     }
 }

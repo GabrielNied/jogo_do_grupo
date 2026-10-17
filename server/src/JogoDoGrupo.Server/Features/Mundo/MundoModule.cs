@@ -63,6 +63,7 @@ public sealed class MundoModule
         servicos.AddSingleton<IDeslocamentosDoMundo>(new DeslocamentosDaCidade(_areas));
         servicos.AddSingleton<ILimiteDeVelocidadeDoMundo>(new LimiteDeVelocidadeDaCidade(_areas));
         servicos.AddSingleton(sp => new RelogioDoMundo(sp.GetRequiredService<TimeProvider>()));
+        servicos.AddSingleton<IRelogioDoMundo>(sp => sp.GetRequiredService<RelogioDoMundo>());
         servicos.AddSingleton(sp =>
         {
             var servico = new ServicoDaHoraDoMundo(
