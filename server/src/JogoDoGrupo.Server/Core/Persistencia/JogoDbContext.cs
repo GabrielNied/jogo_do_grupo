@@ -9,7 +9,7 @@ namespace JogoDoGrupo.Server.Core.Persistencia;
 /// As funcionalidades recebem o contexto por injeção e acessam as tabelas com
 /// <c>db.Set&lt;MinhaEntidade&gt;()</c>.
 /// </summary>
-public sealed class JogoDbContext(DbContextOptions<JogoDbContext> opcoes) : DbContext(opcoes)
+public class JogoDbContext(DbContextOptions opcoes) : DbContext(opcoes)
 {
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
