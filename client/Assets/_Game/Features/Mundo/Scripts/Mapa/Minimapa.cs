@@ -23,6 +23,7 @@ namespace JogoDoGrupo.Client.Features.Mundo
         private VisualElement _marcadores;
         private Label _coordenadas;
         private readonly List<MarcadorDoMapa> _outros = new List<MarcadorDoMapa>();
+        private readonly List<MarcadorDoMapa> _inimigos = new List<MarcadorDoMapa>();
         private float _rotacao;
         private bool _sobOChao;
 
@@ -125,6 +126,7 @@ namespace JogoDoGrupo.Client.Features.Mundo
             }
 
             PresencaNoMundo.Atual?.CopiarOutros(_outros);
+            InimigosConhecidosNoMapa.Atual?.CopiarVivos(_inimigos);
             _marcadores?.MarkDirtyRepaint();
         }
 
@@ -195,6 +197,39 @@ namespace JogoDoGrupo.Client.Features.Mundo
                         new Vector2(centro.x + x * escala, centro.y - y * escala),
                         ConfigVisual.Dimensoes.MarcadorAliado,
                         EstiloVisual.Cor(ConfigVisual.Cores.Marfim)
+                    );
+                }
+
+                foreach (var inimigo in _inimigos)
+                {
+                    float x;
+                    float y;
+                    if (inimigo.Longe)
+                    {
+                        ProjecaoDoMapa.NaBordaDoMinimapa(
+                            inimigo.X - origem.x,
+                            inimigo.Z - origem.z,
+                            out x,
+                            out y
+                        );
+                    }
+                    else if (
+                        !ProjecaoDoMapa.NoMinimapa(
+                            inimigo.X - origem.x,
+                            inimigo.Z - origem.z,
+                            out x,
+                            out y
+                        )
+                    )
+                    {
+                        continue;
+                    }
+
+                    Losango(
+                        pincel,
+                        new Vector2(centro.x + x * escala, centro.y - y * escala),
+                        ConfigVisual.Dimensoes.MarcadorAliado,
+                        EstiloVisual.Cor(ConfigVisual.Cores.Perigo)
                     );
                 }
             }

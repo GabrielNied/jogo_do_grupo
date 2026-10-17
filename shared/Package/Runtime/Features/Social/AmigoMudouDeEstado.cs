@@ -14,5 +14,8 @@ namespace JogoDoGrupo.Shared.Features.Social
 
         /// <summary>Nome do personagem que o amigo está usando agora; vazio se offline.</summary>
         public string PersonagemOnline = "";
+
+        /// <summary>Área resumida quando online (#904).</summary>
+        public string Area = "";
     }
 }

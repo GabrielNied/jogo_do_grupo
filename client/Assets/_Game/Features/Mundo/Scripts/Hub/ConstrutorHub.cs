@@ -102,6 +102,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
             var presenca = new GameObject("Presenca");
             presenca.AddComponent<PresencaNoMundo>();
             presenca.AddComponent<Minimapa>();
+            presenca.AddComponent<InimigosConhecidosNoMapa>();
             presenca.transform.SetParent(raiz.transform, false);
             return new PosicaoInicial(
                 LayoutDoHub.PontoDeNascimento,
@@ -117,6 +118,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
             var presenca = new GameObject("Presenca");
             presenca.AddComponent<PresencaNoMundo>();
             presenca.AddComponent<Minimapa>();
+            presenca.AddComponent<InimigosConhecidosNoMapa>();
             presenca.transform.SetParent(raiz.transform, false);
             return new PosicaoInicial(
                 LayoutDoHub.PontoDeNascimento,

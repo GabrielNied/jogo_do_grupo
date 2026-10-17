@@ -22,6 +22,7 @@ namespace JogoDoGrupo.Client.Features.Mundo
         private Label _posicao;
         private Label _preparando;
         private Label _lugarEmFoco;
+        private Label _aliadosLonge;
         private Vector2? _sobMouse;
         private IVisualElementScheduledItem _agenda;
         private IVisualElementScheduledItem _agendaGeracao;
@@ -80,6 +81,11 @@ namespace JogoDoGrupo.Client.Features.Mundo
             _posicao.AddToClassList(EstiloCore.Texto);
             _posicao.AddToClassList("mundo-mapa-posicao");
             _mapa.Add(_posicao);
+
+            _aliadosLonge = new Label();
+            _aliadosLonge.AddToClassList(EstiloCore.Texto);
+            _aliadosLonge.AddToClassList("mundo-mapa-legenda");
+            _mapa.Add(_aliadosLonge);
 
             _preparando = new Label("Preparando mapa...");
             _preparando.AddToClassList(EstiloCore.Texto);
@@ -216,6 +222,31 @@ namespace JogoDoGrupo.Client.Features.Mundo
             }
 
             _posicao.text = texto;
+            var presenca = PresencaNoMundo.Atual;
+            if (presenca == null || presenca.AliadosEmOutraArea.Count == 0)
+            {
+                _aliadosLonge.text = "";
+                _aliadosLonge.style.display = DisplayStyle.None;
+                return;
+            }
+
+            var linhas = new System.Text.StringBuilder("Aliados em outra área: ");
+            for (var i = 0; i < presenca.AliadosEmOutraArea.Count; i++)
+            {
+                var aliado = presenca.AliadosEmOutraArea[i];
+                if (i > 0)
+                {
+                    linhas.Append(" · ");
+                }
+
+                linhas.Append('#');
+                linhas.Append(aliado.PersonagemId);
+                linhas.Append(' ');
+                linhas.Append(aliado.Rotulo);
+            }
+
+            _aliadosLonge.text = linhas.ToString();
+            _aliadosLonge.style.display = DisplayStyle.Flex;
         }
 
         private void DesenharMarcadores(MeshGenerationContext contexto)

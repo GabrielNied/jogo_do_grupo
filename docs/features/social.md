@@ -308,7 +308,7 @@ Quem decide: **servidor** (quem é amigo de quem, quem está online, o que o ign
 - **Aceitar** cria a amizade nos dois lados; **recusar** apaga o pedido sem avisar quem pediu. Quem pediu pode **cancelar** enquanto não houver resposta.
 - **Pedido cruzado:** pedir amizade a quem já tinha pedido a você vale como aceitar o pedido dele.
 - **Remover** acaba com a amizade para os dois; o outro só recebe a lista nova, sem aviso.
-- Cada linha da lista mostra o nome do personagem pelo qual a amizade foi feita, se a conta está online e, se estiver, com qual personagem.
+- Cada linha da lista mostra o nome do personagem pelo qual a amizade foi feita, se a conta está online e, se estiver, com qual personagem e em qual **área** (Cidade, Campo ou Dungeon; #904).
 - O servidor envia a lista inteira ao entrar no jogo e a cada mudança de amigos ou pedidos. Entrar, sair e trocar de personagem de um amigo chegam num aviso curto, só daquela linha.
 
 #### Ignorar

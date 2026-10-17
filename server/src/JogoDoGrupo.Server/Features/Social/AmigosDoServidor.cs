@@ -1,5 +1,7 @@
+using JogoDoGrupo.Server.Contratos.Mundo;
 using JogoDoGrupo.Server.Contratos.Personagem;
 using JogoDoGrupo.Server.Core.Persistencia;
+using JogoDoGrupo.Shared.Features.Mundo;
 using JogoDoGrupo.Shared.Features.Social;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,7 +16,8 @@ public sealed class AmigosDoServidor(
     IDiretorioDePersonagens diretorio,
     ISaidaAmigos saida,
     IServiceScopeFactory escopos,
-    Func<double> relogioSegundos
+    Func<double> relogioSegundos,
+    Func<IPosicoesDoMundo?> posicoes
 )
 {
     private readonly Lock _trava = new();
@@ -107,6 +110,49 @@ public sealed class AmigosDoServidor(
         EnviarListasDaConta(contaId, personagemId);
     }
 
+    /// <summary>Atualiza a área exibida para amigos quando o personagem muda de área (#904).</summary>
+    public void AoMudarArea(long personagemId)
+    {
+        GarantirCarregado();
+        if (!ContaDe(personagemId, out var contaId))
+        {
+            return;
+        }
+
+        if (
+            !_onlinePorConta.TryGetValue(contaId, out var online)
+            || online.PersonagemId != personagemId
+        )
+        {
+            return;
+        }
+
+        var area = AreaDoPersonagem(personagemId);
+        foreach (var amigoConta in AmigosDe(contaId))
+        {
+            if (!_onlinePorConta.TryGetValue(amigoConta, out var sessaoAmigo))
+            {
+                continue;
+            }
+
+            if (!TryAmigoId(amigoConta, contaId, out var amigoId))
+            {
+                continue;
+            }
+
+            saida.AmigoMudouDeEstado(
+                sessaoAmigo.PersonagemId,
+                new AmigoMudouDeEstado
+                {
+                    AmigoId = amigoId,
+                    Online = true,
+                    PersonagemOnline = online.Nome,
+                    Area = area,
+                }
+            );
+        }
+    }
+
     public void RemoverOnline(long contaId, long personagemId)
     {
         GarantirCarregado();
@@ -141,6 +187,7 @@ public sealed class AmigosDoServidor(
                         AmigoId = amigoId,
                         Online = false,
                         PersonagemOnline = "",
+                        Area = "",
                     }
                 );
             }
@@ -596,6 +643,7 @@ public sealed class AmigosDoServidor(
                     Nome = nome,
                     Online = online,
                     PersonagemOnline = online ? sessao.Nome : "",
+                    Area = online ? AreaDoPersonagem(sessao.PersonagemId) : "",
                 }
             );
         }
@@ -669,9 +717,20 @@ public sealed class AmigosDoServidor(
                     AmigoId = amigoId,
                     Online = true,
                     PersonagemOnline = nome,
+                    Area = AreaDoPersonagem(personagemId),
                 }
             );
         }
+    }
+
+    private string AreaDoPersonagem(long personagemId)
+    {
+        if (posicoes()?.TentarObter(personagemId, out var posicao) != true)
+        {
+            return "";
+        }
+
+        return RotulosDeArea.Descricao(posicao.Area, posicao.X, posicao.Z);
     }
 
     private bool ContaDe(long personagemId, out long contaId) =>

@@ -133,6 +133,7 @@ namespace JogoDoGrupo.Client.Features.Social
 
                 _amigos[i].Online = mudanca.Online;
                 _amigos[i].PersonagemOnline = mudanca.PersonagemOnline ?? "";
+                _amigos[i].Area = mudanca.Area ?? "";
                 Mudou?.Invoke();
                 return;
             }
@@ -218,6 +219,7 @@ namespace JogoDoGrupo.Client.Features.Social
                 Nome = amigo.Nome ?? "",
                 Online = amigo.Online,
                 PersonagemOnline = amigo.PersonagemOnline ?? "",
+                Area = amigo.Area ?? "",
             };
 
         private static PedidoDeAmizade CopiarPedido(PedidoDeAmizade pedido) =>

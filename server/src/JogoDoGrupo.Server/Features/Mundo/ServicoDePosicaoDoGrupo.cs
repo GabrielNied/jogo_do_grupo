@@ -1,3 +1,4 @@
+using JogoDoGrupo.Server.Contratos.Mundo;
 using JogoDoGrupo.Server.Contratos.Social;
 using JogoDoGrupo.Server.Core.TempoReal;
 using JogoDoGrupo.Shared.Features.Mundo;
@@ -5,16 +6,14 @@ using JogoDoGrupo.Shared.Features.Mundo;
 namespace JogoDoGrupo.Server.Features.Mundo;
 
 /// <summary>
-/// Posição do grupo para o mapa (#789). Desde a #500 a presença só chega a quem está perto, e
-/// um aliado do outro lado da cidade sumia do mapa e do minimapa. Aqui, a cada
-/// <see cref="IntervaloEmSegundos"/>, cada membro de grupo na cidade recebe a posição dos
-/// aliados da cidade que ele não vê pela grade. Quem não é do grupo não recebe nada, e o
-/// modelo 3D continua só perto. O grupo vem do contrato do Social (<see cref="IConsultaDeGrupo"/>).
+/// Posição do grupo para o mapa (#789, #903): aliados longe na mesma área e aliados em outra área
+/// ou instância. Quem não é do grupo não recebe.
 /// </summary>
 public sealed class ServicoDePosicaoDoGrupo(
     Func<IReadOnlyList<AvatarNaCidade<SessaoTempoReal>>> presentes,
     Func<long, HashSet<long>> vistos,
     Func<IConsultaDeGrupo?> grupos,
+    IPosicoesDoMundo posicoes,
     ServidorTempoReal tempoReal,
     ILogger<ServicoDePosicaoDoGrupo> log
 ) : BackgroundService
@@ -45,7 +44,7 @@ public sealed class ServicoDePosicaoDoGrupo(
         }
     }
 
-    /// <summary>Manda a cada membro de grupo na cidade os aliados que ele não vê. O laço e os testes chamam.</summary>
+    /// <summary>Manda a cada membro de grupo online os aliados que ele não vê pela presença.</summary>
     public void Sincronizar()
     {
         if (grupos() is not { } consulta)
@@ -53,30 +52,63 @@ public sealed class ServicoDePosicaoDoGrupo(
             return;
         }
 
-        var naCidade = presentes().ToDictionary(a => a.PersonagemId);
-        foreach (var eu in naCidade.Values)
+        var online = presentes().ToDictionary(a => a.PersonagemId);
+        foreach (var eu in online.Values)
         {
             if (consulta.Consultar(eu.PersonagemId) is not { } grupo)
             {
                 continue;
             }
 
-            var perto = vistos(eu.PersonagemId);
+            if (!posicoes.TentarObter(eu.PersonagemId, out var posicaoEu))
+            {
+                continue;
+            }
+
+            var perto = posicaoEu.Area == AreasDoMundo.Cidade ? vistos(eu.PersonagemId) : null;
             var longe = new List<AliadoLonge>();
+            var outraArea = new List<AliadoEmOutraArea>();
             foreach (var membro in grupo.Membros)
             {
-                if (
-                    membro != eu.PersonagemId
-                    && !perto.Contains(membro)
-                    && naCidade.TryGetValue(membro, out var aliado)
-                )
+                if (membro == eu.PersonagemId)
+                {
+                    continue;
+                }
+
+                if (!posicoes.TentarObter(membro, out var posicaoAliado))
+                {
+                    continue;
+                }
+
+                if (posicaoAliado.Area != posicaoEu.Area)
+                {
+                    outraArea.Add(
+                        new AliadoEmOutraArea
+                        {
+                            PersonagemId = membro,
+                            Rotulo = RotulosDeArea.Descricao(
+                                posicaoAliado.Area,
+                                posicaoAliado.X,
+                                posicaoAliado.Z
+                            ),
+                        }
+                    );
+                    continue;
+                }
+
+                if (posicaoEu.Area != AreasDoMundo.Cidade)
+                {
+                    continue;
+                }
+
+                if (perto != null && !perto.Contains(membro))
                 {
                     longe.Add(
                         new AliadoLonge
                         {
                             PersonagemId = membro,
-                            X = aliado.Posicao.X,
-                            Z = aliado.Posicao.Z,
+                            X = posicaoAliado.X,
+                            Z = posicaoAliado.Z,
                         }
                     );
                 }
@@ -85,7 +117,7 @@ public sealed class ServicoDePosicaoDoGrupo(
             tempoReal.Enviar(
                 eu.Sessao,
                 MundoMessageIds.PosicoesDosAliados,
-                new PosicoesDosAliados { Aliados = [.. longe] }
+                new PosicoesDosAliados { Aliados = [.. longe], EmOutraArea = [.. outraArea] }
             );
         }
     }

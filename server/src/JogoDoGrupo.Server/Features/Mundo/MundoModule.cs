@@ -75,9 +75,10 @@ public sealed class MundoModule
         servicos.AddHostedService(sp => sp.GetRequiredService<ServicoDaHoraDoMundo>());
         // Posição do grupo para o mapa (#789): o grupo vem do contrato do Social, se carregado.
         servicos.AddSingleton(sp => new ServicoDePosicaoDoGrupo(
-            () => _areas.Cidade.Presentes(),
+            () => _areas.PresentesEmTodasAsAreas(),
             _grade.Vistos,
             () => sp.GetService<IConsultaDeGrupo>(),
+            sp.GetRequiredService<IPosicoesDoMundo>(),
             sp.GetRequiredService<ServidorTempoReal>(),
             sp.GetRequiredService<ILogger<ServicoDePosicaoDoGrupo>>()
         ));

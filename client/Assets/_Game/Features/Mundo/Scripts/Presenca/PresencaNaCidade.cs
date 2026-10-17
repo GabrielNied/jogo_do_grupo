@@ -25,6 +25,8 @@ namespace JogoDoGrupo.Client.Features.Mundo.Presenca
         private Vector3 _ultimaPosicaoLocal;
         private bool _temPosicaoLocal;
         private AliadoLonge[] _aliadosLonge = Array.Empty<AliadoLonge>();
+        private AliadoEmOutraArea[] _aliadosEmOutraArea = Array.Empty<AliadoEmOutraArea>();
+        private string _areaAtual = RotulosDeArea.IdCidade;
         private float _idadeDosAliados;
         private bool _posicionado;
         private bool _descartado;
@@ -81,6 +83,13 @@ namespace JogoDoGrupo.Client.Features.Mundo.Presenca
         /// </summary>
         public System.Collections.Generic.IReadOnlyList<AliadoLonge> AliadosLonge => _aliadosLonge;
 
+        /// <summary>Membros do grupo em outra área ou instância (#903).</summary>
+        public System.Collections.Generic.IReadOnlyList<AliadoEmOutraArea> AliadosEmOutraArea =>
+            _aliadosEmOutraArea;
+
+        /// <summary>Identificador da área atual (<see cref="EstadoDaArea.Area"/>).</summary>
+        public string AreaAtual => _areaAtual;
+
         /// <summary>
         /// Onde o jogador local nasce: só no primeiro <c>EstadoDaCidade</c>. Na reconexão o
         /// jogador continua onde está (ADR 0024).
@@ -126,9 +135,17 @@ namespace JogoDoGrupo.Client.Features.Mundo.Presenca
             _ultimaPosicaoLocal = posicaoLocal;
             _temPosicaoLocal = true;
             _idadeDosAliados += delta;
-            if (_idadeDosAliados > ValidadeDosAliadosLonge && _aliadosLonge.Length > 0)
+            if (_idadeDosAliados > ValidadeDosAliadosLonge)
             {
-                _aliadosLonge = Array.Empty<AliadoLonge>();
+                if (_aliadosLonge.Length > 0)
+                {
+                    _aliadosLonge = Array.Empty<AliadoLonge>();
+                }
+
+                if (_aliadosEmOutraArea.Length > 0)
+                {
+                    _aliadosEmOutraArea = Array.Empty<AliadoEmOutraArea>();
+                }
             }
 
             if (!_conexao.Conectado || !_limitador.Deve(delta) || _estaCaido)
@@ -188,6 +205,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Presenca
         private void AoReceberAliados(PosicoesDosAliados mensagem)
         {
             _aliadosLonge = mensagem?.Aliados ?? Array.Empty<AliadoLonge>();
+            _aliadosEmOutraArea = mensagem?.EmOutraArea ?? Array.Empty<AliadoEmOutraArea>();
             _idadeDosAliados = 0f;
         }
 
@@ -207,6 +225,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Presenca
                 return;
             }
 
+            _areaAtual = RotulosDeArea.IdCidade;
             Avatares.Aplicar(estado);
             if (estado.Eu != null && !_posicionado)
             {
@@ -234,6 +253,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Presenca
                 return;
             }
 
+            _areaAtual = string.IsNullOrEmpty(estado.Area) ? RotulosDeArea.IdCidade : estado.Area;
             Avatares.Aplicar(new EstadoDaCidade { Eu = estado.Eu, Outros = estado.Outros });
             _posicionado = true;
             AplicarMudancaDeArea(estado.Eu);
