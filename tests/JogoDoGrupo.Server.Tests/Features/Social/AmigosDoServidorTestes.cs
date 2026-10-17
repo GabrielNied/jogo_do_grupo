@@ -1,5 +1,7 @@
+using JogoDoGrupo.Server.Contratos.Mundo;
 using JogoDoGrupo.Server.Core.Persistencia;
 using JogoDoGrupo.Server.Features.Social;
+using JogoDoGrupo.Shared.Features.Mundo;
 using JogoDoGrupo.Shared.Features.Social;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
@@ -50,6 +52,17 @@ public sealed class AmigosDoServidorTestes
         _a.Amigos.PedirAmizade(AmbienteDeAmigos.B, "Ana");
         Assert.Single(_a.Saida.ListaAmigos(AmbienteDeAmigos.A).Amigos);
         Assert.Single(_a.Saida.ListaAmigos(AmbienteDeAmigos.B).Amigos);
+    }
+
+    [Fact]
+    public void Amigo_online_mostra_area_no_campo()
+    {
+        _a.Posicoes.ForaDosMuros.Add(AmbienteDeAmigos.B);
+        var pedidoId = _a.Pedir(AmbienteDeAmigos.A, AmbienteDeAmigos.B);
+        _a.Amigos.ResponderPedido(AmbienteDeAmigos.B, pedidoId, true);
+        var lista = _a.Saida.ListaAmigos(AmbienteDeAmigos.A);
+        var amigo = Assert.Single(lista.Amigos);
+        Assert.Equal(RotulosDeArea.Campo, amigo.Area);
     }
 
     [Fact]
@@ -180,6 +193,8 @@ internal sealed class AmbienteDeAmigos
     private readonly SqliteConnection _conexao;
     private double _agora;
 
+    public PosicoesFalsas Posicoes { get; } = new();
+
     public AmbienteDeAmigos()
     {
         _conexao = new SqliteConnection("Data Source=:memory:");
@@ -196,6 +211,8 @@ internal sealed class AmbienteDeAmigos
         Diretorio.Adicionar(A, "Ana", 1);
         Diretorio.Adicionar(B, "Bia", 2);
         Saida = new SaidaAmigosGravada();
+        Posicoes.NaCidade.Add(A);
+        Posicoes.NaCidade.Add(B);
         Amigos = CriarAmigos();
         Amigos.Carregar();
         Amigos.RegistrarOnline(1, A);
@@ -231,7 +248,13 @@ internal sealed class AmbienteDeAmigos
     }
 
     private AmigosDoServidor CriarAmigos() =>
-        new(Diretorio, Saida, _provedor.GetRequiredService<IServiceScopeFactory>(), () => _agora);
+        new(
+            Diretorio,
+            Saida,
+            _provedor.GetRequiredService<IServiceScopeFactory>(),
+            () => _agora,
+            () => Posicoes
+        );
 
     private void Avancar(double segundos) => _agora += segundos;
 }

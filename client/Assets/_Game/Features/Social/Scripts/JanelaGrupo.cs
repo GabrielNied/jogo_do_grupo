@@ -147,6 +147,10 @@ namespace JogoDoGrupo.Client.Features.Social
                         ? "Online"
                         : "Online — " + amigo.PersonagemOnline
                     : "Offline";
+                if (amigo.Online && !string.IsNullOrEmpty(amigo.Area))
+                {
+                    estado += " · " + amigo.Area;
+                }
                 var alvo =
                     amigo.Online && !string.IsNullOrEmpty(amigo.PersonagemOnline)
                         ? amigo.PersonagemOnline

@@ -132,7 +132,8 @@ public sealed class SocialModule : IFeatureModule, IConsultaDeGrupo
             _diretorio,
             saida,
             escopos,
-            () => TimeProvider.System.GetUtcNow().ToUnixTimeSeconds()
+            () => TimeProvider.System.GetUtcNow().ToUnixTimeSeconds(),
+            () => _servicos!.GetService<IPosicoesDoMundo>()
         );
         // Carrega do banco no primeiro uso: na subida o banco pode não estar migrado ainda.
         var grupos = new GruposDoServidor(
@@ -188,6 +189,7 @@ public sealed class SocialModule : IFeatureModule, IConsultaDeGrupo
     // Quem entra na cidade recebe o que foi dito há pouco no canal Cidade (se houver algo).
     private void AoEntrarNaArea(JogadorEntrouNaArea evento)
     {
+        _amigos?.AoMudarArea(evento.PersonagemId);
         if (
             evento.Area != AreasDoMundo.Cidade
             || !_online.TryGetValue(evento.PersonagemId, out var sessao)
