@@ -2,7 +2,7 @@ name: "Agente: Decida"
 
 on:
   schedule:
-    - cron: '0 */4 * * *' # A cada 4 horas
+    - cron: '15 * * * *' # A cada 1 hora (minuto 15)
   workflow_dispatch:
 
 permissions:
@@ -46,4 +46,4 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY || secrets.JOGO_DO_GRUPO_GEMINI_KEY }}
           GH_TOKEN: ${{ secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
         run: |
-          agy -p "Execute a skill decida: revise as issues livres com 'npm run tarefa -- revisar 15', feche o que for obsoleto ou feito, ajuste prioridades e garanta fichas completas para o trabalhe implementar." --model "models/gemini-3.8-flash" --effort high --dangerously-skip-permissions
+          agy -p "Execute a skill decida: revise as issues livres com 'npm run tarefa -- revisar 15', feche o que for obsoleto ou feito, ajuste prioridades e garanta fichas completas para o trabalhe implementar." --model gemini-3.8-flash-high --dangerously-skip-permissions
