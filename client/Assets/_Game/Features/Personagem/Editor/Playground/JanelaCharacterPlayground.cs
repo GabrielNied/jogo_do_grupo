@@ -60,7 +60,7 @@ namespace JogoDoGrupo.Client.Features.Personagem.Editor.Playground
             raiz.Add(painel);
             painel.style.flexGrow = 1;
             painel.Add(ComponentesVisuais.Texto("Character Playground", titulo: true));
-            painel.Add(ComponentesVisuais.Texto("Desenvolvimento • Fundação v1"));
+            painel.Add(ComponentesVisuais.Texto("Desenvolvimento • Movimento e câmera v2"));
             var mensagem = ComponentesVisuais.Texto("");
             painel.Add(mensagem);
             var abrir = ComponentesVisuais.Botao(
@@ -79,7 +79,11 @@ namespace JogoDoGrupo.Client.Features.Personagem.Editor.Playground
             _indice = Mathf.Clamp(_indice, 0, Math.Max(0, nomes.Count - 1));
             var selecao = new DropdownField("Personagem", nomes, nomes.Count > 0 ? _indice : -1);
             selecao.AddToClassList("campo");
-            selecao.RegisterValueChangedCallback(_ => _indice = selecao.index);
+            selecao.RegisterValueChangedCallback(_ =>
+            {
+                _indice = selecao.index;
+                RuntimeCharacterPlayground.Indice = _indice;
+            });
             painel.Add(selecao);
             var catalogo = ComponentesVisuais.Botao(
                 "Editar catálogo",
@@ -157,6 +161,9 @@ namespace JogoDoGrupo.Client.Features.Personagem.Editor.Playground
             painel.Add(ComponentesVisuais.Texto("Diagnóstico", subtitulo: true));
             var diagnostico = ComponentesVisuais.Texto("");
             painel.Add(diagnostico);
+            painel.Add(ComponentesVisuais.Texto("Runtime", subtitulo: true));
+            var runtime = ComponentesVisuais.Texto("");
+            painel.Add(runtime);
             painel.Add(
                 ComponentesVisuais.Texto(
                     "Grid: 1 m • Régua: 2 m • Barra: 1 m\nTarget Test Area: área dourada ao fundo.\nNavegação livre: Scene View do Unity.\nSalvar a cena mantém a instância e a câmera."
@@ -164,7 +171,7 @@ namespace JogoDoGrupo.Client.Features.Personagem.Editor.Playground
             );
             void Atualizar()
             {
-                var pode = CharacterPlayground.PodeEditar;
+                var pode = CharacterPlayground.PodeOperar;
                 var valido =
                     lista != null
                     && _indice >= 0
@@ -177,17 +184,20 @@ namespace JogoDoGrupo.Client.Features.Personagem.Editor.Playground
                 );
                 spawn.SetEnabled(pode && valido);
                 reset.SetEnabled(pode && valido);
-                ferramentas.SetEnabled(pode && CharacterPlayground.Atual != null);
+                ferramentas.SetEnabled(
+                    CharacterPlayground.PodeEditar && CharacterPlayground.Atual != null
+                );
                 mensagem.text =
                     _erro
                     ?? (
-                        EditorApplication.isPlayingOrWillChangePlaymode
-                            ? "Saia do Play Mode para editar."
+                        Application.isPlaying
+                            ? "Contexto local: clique no Game View para controlar."
                         : !pode ? "Abra a cena pelo botão acima."
                         : !valido ? "Catálogo vazio ou prefab ausente. Edite o catálogo."
                         : "Cena de desenvolvimento • sem gameplay ou animação local."
                     );
                 diagnostico.text = Diagnosticar();
+                runtime.text = RuntimeCharacterPlayground.Diagnosticar();
                 zoom.SetValueWithoutNotify(_zoom);
             }
             void Acao(Action acao)

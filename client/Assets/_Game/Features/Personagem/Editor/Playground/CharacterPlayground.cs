@@ -27,6 +27,10 @@ namespace JogoDoGrupo.Client.Features.Personagem.Editor.Playground
             && SceneManager.GetActiveScene().path == Cena;
         public static CatalogoPlayground Lista =>
             AssetDatabase.LoadAssetAtPath<CatalogoPlayground>(Catalogo);
+        public static bool PodeOperar =>
+            SceneManager.GetActiveScene().path == Cena
+            && !EditorApplication.isCompiling
+            && (!EditorApplication.isPlayingOrWillChangePlaymode || Application.isPlaying);
 
         public static Transform Raiz(string nome)
         {
@@ -38,7 +42,10 @@ namespace JogoDoGrupo.Client.Features.Personagem.Editor.Playground
 
         public static GameObject Atual =>
             Raiz("PersonagemAtual") is Transform raiz && raiz.childCount > 0
-                ? raiz.GetChild(0).gameObject
+                ? Enumerable
+                    .Range(0, raiz.childCount)
+                    .Select(i => raiz.GetChild(i).gameObject)
+                    .FirstOrDefault(o => o.activeSelf)
                 : null;
 
         public static void Abrir()
@@ -52,7 +59,7 @@ namespace JogoDoGrupo.Client.Features.Personagem.Editor.Playground
 
         public static GameObject Spawn(int indice)
         {
-            if (!PodeEditar)
+            if (!PodeOperar)
                 throw new InvalidOperationException(
                     "Abra a cena Character Playground fora do Play Mode."
                 );
@@ -77,6 +84,9 @@ namespace JogoDoGrupo.Client.Features.Personagem.Editor.Playground
                 throw new InvalidOperationException(
                     "Spawn Point ou PersonagemAtual ausente na cena."
                 );
+            if (Application.isPlaying)
+                return SpawnRuntime(indice, prefab, spawn, container);
+            RuntimeCharacterPlayground.Indice = indice;
             Undo.IncrementCurrentGroup();
             var grupo = Undo.GetCurrentGroup();
             Undo.SetCurrentGroupName("Spawn personagem no Playground");
@@ -90,6 +100,29 @@ namespace JogoDoGrupo.Client.Features.Personagem.Editor.Playground
             Selection.activeGameObject = novo;
             EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
             Undo.CollapseUndoOperations(grupo);
+            return novo;
+        }
+
+        static GameObject SpawnRuntime(
+            int indice,
+            GameObject prefab,
+            Transform spawn,
+            Transform container
+        )
+        {
+            RuntimeCharacterPlayground.Liberar();
+            var novo = UnityEngine.Object.Instantiate(prefab, container);
+            novo.transform.SetPositionAndRotation(spawn.position, spawn.rotation);
+            for (var i = container.childCount - 1; i >= 0; i--)
+            {
+                var anterior = container.GetChild(i).gameObject;
+                if (anterior == novo)
+                    continue;
+                anterior.SetActive(false);
+                UnityEngine.Object.Destroy(anterior);
+            }
+            RuntimeCharacterPlayground.Indice = indice;
+            RuntimeCharacterPlayground.Conectar(novo);
             return novo;
         }
 

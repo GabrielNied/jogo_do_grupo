@@ -310,7 +310,7 @@ namespace JogoDoGrupo.Client.Features.Personagem.Editor.Playground
             }
         }
 
-        static void FotografarPainel(
+        internal static void FotografarPainel(
             JanelaCharacterPlayground janela,
             string pasta,
             Vector2Int tamanho,
