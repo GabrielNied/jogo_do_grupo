@@ -96,4 +96,15 @@ public class RegrasCercoTestes
         Assert.Equal(1.3, x, 9);
         Assert.Equal(1.0, z, 9);
     }
+
+    [Fact]
+    public void Afastar_com_spans_produz_mesmo_resultado()
+    {
+        ReadOnlySpan<double> vx = stackalloc double[] { 0.5, 5.0 };
+        ReadOnlySpan<double> vz = stackalloc double[] { 0.0, 0.0 };
+        RegrasCerco.Afastar(0, 0, vx, vz, out var x, out var z);
+
+        Assert.Equal(-RegrasCerco.SeparacaoMinimaMetros + 0.5, x, 9);
+        Assert.Equal(0.0, z, 9);
+    }
 }

@@ -27,6 +27,9 @@ public sealed class ServicoDeInimigos(
 {
     private readonly ControleInteresseDeInimigos _interesse = new();
     private readonly List<JogadorNoCampo> _jogadoresBuffer = new(32);
+    private readonly Dictionary<long, (float X, float Z)> _posicoesInimigosBuffer = new(32);
+    private readonly HashSet<long> _pertoIdsBuffer = new(32);
+    private readonly List<SessaoTempoReal> _sessoesAlvoBuffer = new(32);
 
     protected override async Task ExecuteAsync(CancellationToken parada)
     {
@@ -167,18 +170,26 @@ public sealed class ServicoDeInimigos(
         }
     }
 
-    private static Dictionary<long, (float X, float Z)> PosicoesAtuais(
+    private Dictionary<long, (float X, float Z)> PosicoesAtuais(
         IInimigosSimulados grupo,
         PassoDosInimigos passo
     )
     {
-        var map = grupo.Vivos().ToDictionary(i => i.InimigoId, i => (i.X, i.Z));
-        foreach (var mudanca in passo.Mudancas)
+        _posicoesInimigosBuffer.Clear();
+        foreach (var i in grupo.Vivos())
         {
-            map[mudanca.Mensagem.InimigoId] = (mudanca.Mensagem.X, mudanca.Mensagem.Z);
+            _posicoesInimigosBuffer[i.InimigoId] = (i.X, i.Z);
         }
 
-        return map;
+        foreach (var mudanca in passo.Mudancas)
+        {
+            _posicoesInimigosBuffer[mudanca.Mensagem.InimigoId] = (
+                mudanca.Mensagem.X,
+                mudanca.Mensagem.Z
+            );
+        }
+
+        return _posicoesInimigosBuffer;
     }
 
     private void EnviarPasso(
@@ -626,10 +637,10 @@ public sealed class ServicoDeInimigos(
     {
         if (vizinhanca != null && grupo.Area == AreasDoMundo.Cidade)
         {
-            var pertoIds = new HashSet<long>();
+            _pertoIdsBuffer.Clear();
             foreach (var (inimigoId, (ix, iz)) in posicoesInimigos)
             {
-                pertoIds.UnionWith(
+                _pertoIdsBuffer.UnionWith(
                     vizinhanca.PersonagensPerto(
                         grupo.Area,
                         ix,
@@ -637,24 +648,24 @@ public sealed class ServicoDeInimigos(
                         (float)RegrasInteresseDeInimigos.SaidaMetros
                     )
                 );
-                pertoIds.UnionWith(_interesse.QuemJaRecebia(inimigoId));
+                _pertoIdsBuffer.UnionWith(_interesse.QuemJaRecebia(inimigoId));
             }
 
             foreach (var morte in passo.Mortes)
             {
-                pertoIds.UnionWith(_interesse.QuemJaRecebia(morte.InimigoId));
+                _pertoIdsBuffer.UnionWith(_interesse.QuemJaRecebia(morte.InimigoId));
             }
 
-            var lista = new List<SessaoTempoReal>(pertoIds.Count);
-            foreach (var id in pertoIds)
+            _sessoesAlvoBuffer.Clear();
+            foreach (var id in _pertoIdsBuffer)
             {
                 if (tempoReal.TentarObterSessao(id, out var s) && s != null)
                 {
-                    lista.Add(s);
+                    _sessoesAlvoBuffer.Add(s);
                 }
             }
 
-            return lista;
+            return _sessoesAlvoBuffer;
         }
 
         return tempoReal.Sessoes;
