@@ -30,6 +30,12 @@ namespace JogoDoGrupo.Shared.Features.Mobs
         /// <summary>Postos igualmente espaçados em cada anel (o maior grupo comum cabe num anel).</summary>
         public const int PostosPorAnel = RegrasInimigo.TamanhoMaximoDoGrupo;
 
+        /// <summary>Velocidade lateral do strafe orbital ao redor do alvo para quem ronda à espera de vaga.</summary>
+        public const double VelocidadeStrafeRondaMetrosPorSegundo = 1.2;
+
+        /// <summary>Distância de recuo suave ao concluir o ataque para ceder a vaga interna.</summary>
+        public const double DistanciaRecuoPosGolpeMetros = 1.0;
+
         // ── Regras ────────────────────────────────────────────────────────────────
 
         /// <summary>
@@ -64,6 +70,121 @@ namespace JogoDoGrupo.Shared.Features.Mobs
             double radianos = graus * Math.PI / 180.0;
             postoX = alvoX + Math.Sin(radianos) * raio;
             postoZ = alvoZ + Math.Cos(radianos) * raio;
+        }
+
+        /// <summary>
+        /// Seleciona dinamicamente o slot livre mais próximo do vetor de aproximação do inimigo
+        /// (menor desvio angular), eliminando corridas circulares desnecessárias ao redor do alvo.
+        /// </summary>
+        public static void CalcularMelhorPosto(
+            double alvoX,
+            double alvoZ,
+            double inimigoX,
+            double inimigoZ,
+            ReadOnlySpan<bool> slotsOcupados,
+            bool ronda,
+            out double postoX,
+            out double postoZ,
+            out int slotEscolhido
+        )
+        {
+            double dx = inimigoX - alvoX;
+            double dz = inimigoZ - alvoZ;
+            double anguloInimigo = Math.Atan2(dx, dz) * 180.0 / Math.PI;
+            if (anguloInimigo < 0.0)
+            {
+                anguloInimigo += 360.0;
+            }
+
+            double passo = 360.0 / PostosPorAnel;
+            slotEscolhido = -1;
+            double menorDiferenca = double.MaxValue;
+
+            int totalSlots = Math.Min(PostosPorAnel, slotsOcupados.Length);
+            for (int i = 0; i < totalSlots; i++)
+            {
+                if (slotsOcupados[i])
+                {
+                    continue;
+                }
+
+                double anguloSlot = (i % PostosPorAnel) * passo;
+                double diff = Math.Abs(anguloInimigo - anguloSlot);
+                if (diff > 180.0)
+                {
+                    diff = 360.0 - diff;
+                }
+
+                if (diff < menorDiferenca)
+                {
+                    menorDiferenca = diff;
+                    slotEscolhido = i;
+                }
+            }
+
+            if (slotEscolhido < 0)
+            {
+                slotEscolhido = 0;
+            }
+
+            Posto(alvoX, alvoZ, slotEscolhido, ronda, out postoX, out postoZ);
+        }
+
+        /// <summary>
+        /// Calcula a movimentação lateral (strafe orbital) ao redor do alvo para quem ronda à espera de vaga.
+        /// </summary>
+        public static void PassoOrbital(
+            double alvoX,
+            double alvoZ,
+            double inimigoX,
+            double inimigoZ,
+            double velocidadeMetrosPorSegundo,
+            double deltaSegundos,
+            bool sentidoHorario,
+            out double novoX,
+            out double novoZ
+        )
+        {
+            double dx = inimigoX - alvoX;
+            double dz = inimigoZ - alvoZ;
+            double distanciaAtual = Math.Sqrt(dx * dx + dz * dz);
+            double raio = Math.Max(RaioDaRondaMetros, distanciaAtual);
+
+            double anguloAtual = Math.Atan2(dx, dz);
+            double velocidadeAngular = velocidadeMetrosPorSegundo / Math.Max(0.1, raio);
+            double direcao = sentidoHorario ? 1.0 : -1.0;
+            double novoAngulo = anguloAtual + direcao * velocidadeAngular * deltaSegundos;
+
+            novoX = alvoX + Math.Sin(novoAngulo) * RaioDaRondaMetros;
+            novoZ = alvoZ + Math.Cos(novoAngulo) * RaioDaRondaMetros;
+        }
+
+        /// <summary>
+        /// Calcula o recuo suave em direção ao anel de espera ao término do golpe, cedendo a vaga interna.
+        /// </summary>
+        public static void CalcularRecuoPosGolpe(
+            double alvoX,
+            double alvoZ,
+            double inimigoX,
+            double inimigoZ,
+            double distanciaRecuo,
+            out double novoX,
+            out double novoZ
+        )
+        {
+            double dx = inimigoX - alvoX;
+            double dz = inimigoZ - alvoZ;
+            double dist = Math.Sqrt(dx * dx + dz * dz);
+            if (dist <= 0.0001)
+            {
+                novoX = inimigoX;
+                novoZ = inimigoZ + distanciaRecuo;
+                return;
+            }
+
+            double novoRaio = Math.Min(RaioDaRondaMetros, dist + distanciaRecuo);
+            novoX = alvoX + (dx / dist) * novoRaio;
+            novoZ = alvoZ + (dz / dist) * novoRaio;
         }
 
         /// <summary>
@@ -116,23 +237,26 @@ namespace JogoDoGrupo.Shared.Features.Mobs
             novoX = x;
             novoZ = z;
             int quantidade = Math.Min(vizinhosX.Length, vizinhosZ.Length);
-            for (int i = 0; i < quantidade; i++)
+            for (int iter = 0; iter < 2; iter++)
             {
-                double dx = novoX - vizinhosX[i];
-                double dz = novoZ - vizinhosZ[i];
-                double distancia = Math.Sqrt(dx * dx + dz * dz);
-                if (distancia >= SeparacaoMinimaMetros)
+                for (int i = 0; i < quantidade; i++)
                 {
-                    continue;
+                    double dx = novoX - vizinhosX[i];
+                    double dz = novoZ - vizinhosZ[i];
+                    double distancia = Math.Sqrt(dx * dx + dz * dz);
+                    if (distancia >= SeparacaoMinimaMetros)
+                    {
+                        continue;
+                    }
+                    if (distancia <= 0.0)
+                    {
+                        novoX += SeparacaoMinimaMetros;
+                        continue;
+                    }
+                    double falta = SeparacaoMinimaMetros - distancia;
+                    novoX += dx / distancia * falta;
+                    novoZ += dz / distancia * falta;
                 }
-                if (distancia <= 0.0)
-                {
-                    novoX += SeparacaoMinimaMetros;
-                    continue;
-                }
-                double falta = SeparacaoMinimaMetros - distancia;
-                novoX += dx / distancia * falta;
-                novoZ += dz / distancia * falta;
             }
 
             if (maxDeslocamentoMetros < double.MaxValue)

@@ -51,6 +51,8 @@ public sealed partial class GrupoDeInimigos
         public long Alvo = RegrasInimigo.SemAlvo;
         public int Vida = criatura.VidaMaxima;
         public int Sequencia;
+        public int SlotCerco = -1;
+        public bool SentidoOrbitalHorario = (id % 2 == 0);
 
         /// <summary>Destino atual do passo de vagar em repouso.</summary>
         public double DestinoVagarX = origemX;

@@ -75,16 +75,43 @@ public sealed partial class GrupoDeInimigos
             return;
         }
 
-        // Vai ao posto dele no anel em volta do alvo (o de atacante, ou o de ronda se não há
-        // vaga), em vez de em linha reta até o alvo, sem entrar no corpo dos outros.
+        if (inimigo.SlotCerco < 0 || inimigo.SlotCerco >= RegrasCerco.PostosPorAnel)
+        {
+            inimigo.SlotCerco = Array.IndexOf(_inimigos, inimigo) % RegrasCerco.PostosPorAnel;
+        }
+
         RegrasCerco.Posto(
             alvo.X,
             alvo.Z,
-            Array.IndexOf(_inimigos, inimigo),
+            inimigo.SlotCerco,
             !podeAtacar,
             out var postoX,
             out var postoZ
         );
+
+        if (!podeAtacar)
+        {
+            double distAoAlvo = RegrasInimigo.Distancia(inimigo.X, inimigo.Z, alvo.X, alvo.Z);
+            if (distAoAlvo <= RegrasCerco.RaioDaRondaMetros + 0.6)
+            {
+                RegrasCerco.PassoOrbital(
+                    alvo.X,
+                    alvo.Z,
+                    inimigo.X,
+                    inimigo.Z,
+                    RegrasCerco.VelocidadeStrafeRondaMetrosPorSegundo,
+                    segundos,
+                    true,
+                    out var orbX,
+                    out var orbZ
+                );
+                if (PodeIrPara(inimigo, inimigo.X, inimigo.Z, orbX, orbZ))
+                {
+                    postoX = orbX;
+                    postoZ = orbZ;
+                }
+            }
+        }
         RegrasInimigo.Avancar(
             inimigo.X,
             inimigo.Z,
@@ -96,14 +123,7 @@ public sealed partial class GrupoDeInimigos
             out var novoX,
             out var novoZ
         );
-        Afastar(
-            inimigo,
-            novoX,
-            novoZ,
-            out novoX,
-            out novoZ,
-            _comportamento.VelocidadeDePerseguicaoMetrosPorSegundo * segundos
-        );
+        Afastar(inimigo, novoX, novoZ, out novoX, out novoZ);
         if (NaZonaUrbana(novoX, novoZ))
         {
             // A borda da cidade: a manada não passa. Encerra a perseguição e volta.
@@ -307,6 +327,10 @@ public sealed partial class GrupoDeInimigos
             {
                 AvancarNoPreparo(inimigo, segundos);
             }
+            else
+            {
+                // Em recuperação
+            }
 
             return;
         }
@@ -401,6 +425,7 @@ public sealed partial class GrupoDeInimigos
     private static void Retornar(Inimigo inimigo)
     {
         inimigo.Alvo = RegrasInimigo.SemAlvo;
+        inimigo.SlotCerco = -1;
         inimigo.Preparando = false;
         inimigo.Vagando = false;
         inimigo.SegundosSemAtacar = 0.0;
