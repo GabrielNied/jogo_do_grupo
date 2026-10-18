@@ -42,11 +42,43 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
         [Range(0f, 1f), Tooltip("Cobertura nativa de grama, de 0 a 1; não é uma contagem por m².")]
         public float CoberturaDeGrama = 0.7f;
 
+        [
+            Range(1f, 5f),
+            Tooltip(
+                "Densidade nativa do protótipo; afeta esta espécie em todo o Terrain ao pintar."
+            )
+        ]
+        public float DensidadeDePlantas = 1f;
+
+        [
+            Range(1f, 5f),
+            Tooltip(
+                "Densidade nativa do protótipo; 4 produz grama mais cheia. Afeta esta espécie em todo o Terrain ao pintar."
+            )
+        ]
+        public float DensidadeDeGrama = 4f;
+
         [Range(0f, 45f)]
         public float InclinacaoMaxima = 35f;
 
         [Range(0.1f, 20f)]
         public float DistanciaEntreArvores = 3f;
+
+        [
+            Range(0f, 20f),
+            Tooltip(
+                "Espaçamento aproximado entre plantas. Zero usa cobertura nativa livre; não afeta árvores nem grama."
+            )
+        ]
+        public float DistanciaEntrePlantas;
+
+        [
+            Range(0f, 20f),
+            Tooltip(
+                "Espaçamento aproximado entre tufos de grama. Zero permite cobertura nativa livre, inclusive sob árvores."
+            )
+        ]
+        public float DistanciaEntreGramas;
         public int Semente = 12345;
         public List<EspecieDoPincel> Arvores = new List<EspecieDoPincel>();
         public List<EspecieDoPincel> Plantas = new List<EspecieDoPincel>();

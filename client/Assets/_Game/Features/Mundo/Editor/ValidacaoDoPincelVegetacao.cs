@@ -74,6 +74,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
                 );
 
                 var centro = new Vector3(16f, 0f, 16f);
+                ValidacaoDoEspacamentoVegetacao.Executar(conjunto, centro);
                 Undo.IncrementCurrentGroup();
                 var grupo = Undo.GetCurrentGroup();
                 PinturaDeVegetacao.Aplicar(

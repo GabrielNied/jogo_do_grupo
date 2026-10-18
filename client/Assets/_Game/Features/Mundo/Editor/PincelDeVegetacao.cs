@@ -121,19 +121,30 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
                     _edicao = new SerializedObject(_conjunto);
                 _edicao.Update();
                 Campo("Raio", "Raio (m)");
-                Campo("ArvoresPorCemMetros", "Árvores / 100 m²");
-                Percentual("CoberturaDePlantas", "Plantas (%)");
-                Percentual("CoberturaDeGrama", "Grama (%)");
-                Campo("DistanciaEntreArvores", "Espaçamento (m)");
                 Campo("InclinacaoMaxima", "Inclinação máx. (°)");
                 Campo("Semente", "Semente (detalhes)");
                 EditorGUILayout.HelpBox(
-                    "Árvores são contadas por área. Plantas e grama usam cobertura relativa da grade nativa; não são unidades por m². Peso 0 desativa uma espécie. Os pesos são normalizados dentro de cada grupo.",
+                    "Cada grupo tem sua densidade e espaçamento. Para grama contínua, use espaçamento 0 e aumente a cobertura. Detalhes são distribuídos pela Unity: a distância é aproximada e limitada pelo modo e resolução do Terrain. Peso 0 desativa uma espécie.",
                     MessageType.None
                 );
-                Campo("Arvores", "Árvores — prefabs com LOD Group");
-                Campo("Plantas", "Plantas — modelo ou textura");
-                Campo("Gramas", "Grama — textura ou modelo");
+                EditorGUILayout.LabelField("Árvores", EditorStyles.boldLabel);
+                Campo("ArvoresPorCemMetros", "Árvores / 100 m²");
+                Campo("DistanciaEntreArvores", "Distância mínima (m)");
+                Campo("Arvores", "Espécies de árvores");
+                EditorGUILayout.LabelField("Plantas", EditorStyles.boldLabel);
+                Percentual("CoberturaDePlantas", "Cobertura (%)");
+                Campo("DensidadeDePlantas", "Densidade nativa");
+                Campo("DistanciaEntrePlantas", "Espaçamento aprox. (m)");
+                Campo("Plantas", "Espécies de plantas");
+                EditorGUILayout.LabelField("Grama", EditorStyles.boldLabel);
+                Percentual("CoberturaDeGrama", "Cobertura (%)");
+                Campo("DensidadeDeGrama", "Densidade nativa");
+                EditorGUILayout.HelpBox(
+                    "Para grama cheia: cobertura 100%, densidade 4 e espaçamento 0. Ao pintar, a densidade altera a espécie em todo o Terrain; Ctrl+Z desfaz.",
+                    MessageType.None
+                );
+                Campo("DistanciaEntreGramas", "Espaçamento aprox. (m)");
+                Campo("Gramas", "Espécies de grama");
                 _edicao.ApplyModifiedProperties();
             }
             EditorGUILayout.EndScrollView();
