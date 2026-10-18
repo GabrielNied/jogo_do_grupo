@@ -29,7 +29,7 @@ Sistema de montarias: a pessoa chama uma montaria, anda com velocidade aumentada
   - Ao registrar, notifica `MontariaDesbloqueada` (16007), envia a coleção atualizada `ColecaoMontarias` (16006) e equipa a montaria automaticamente.
 
 - **Todas as montarias são iguais e só muda o visual** (decidido por Gabriel em 2026-10-16): sem bônus, sem habilidade utilitária e sem voo.
-- **Atalho da coleção:** a janela de montarias abre com **R**. A tecla **M** permanece reservada ao mapa e **T** à invocação da montaria ativa.
+- **Atalho da coleção:** a janela de montarias abre com **P**. A tecla **M** permanece reservada ao mapa e **T** à invocação da montaria ativa.
 
 ## Em aberto
 
