@@ -17,11 +17,13 @@ public sealed class ConfiguracaoJwt
     public string Emissor { get; set; } = "";
     public string Audiencia { get; set; } = "";
 
+    /// <summary>Nome da claim contendo o carimbo de segurança da conta (#517).</summary>
+    public const string ClaimCarimbo = "carimbo";
+
     /// <summary>
-    /// O JWT precisa de uma data de expiração. 100 anos: para quem joga, a sessão dura até
-    /// "Sair da conta", não uma janela curta de site.
+    /// O JWT precisa de uma data de expiração. Validade padrão de 7 dias (168 horas), configurável (#517).
     /// </summary>
-    public const int ValidadePadraoHoras = 24 * 365 * 100;
+    public const int ValidadePadraoHoras = 24 * 7;
 
     public int ValidadeHoras { get; set; } = ValidadePadraoHoras;
 

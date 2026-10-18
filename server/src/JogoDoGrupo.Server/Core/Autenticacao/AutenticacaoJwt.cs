@@ -1,4 +1,5 @@
 using JogoDoGrupo.Server.Core.Api;
+using JogoDoGrupo.Server.Core.Contas;
 using JogoDoGrupo.Shared.Core.Api;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.JsonWebTokens;
@@ -32,6 +33,39 @@ internal static class AutenticacaoJwt
                 opcoes.TokenValidationParameters = jwt.ParametrosDeValidacao();
                 opcoes.Events = new JwtBearerEvents
                 {
+                    OnTokenValidated = async contexto =>
+                    {
+                        var sub = contexto.Principal?.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+                        if (long.TryParse(sub, out var contaId) && contaId > 0)
+                        {
+                            var carimbo = contexto
+                                .Principal?.FindFirst(ConfiguracaoJwt.ClaimCarimbo)
+                                ?.Value;
+
+                            if (string.IsNullOrEmpty(carimbo))
+                            {
+                                contexto.Fail("Token sem carimbo de segurança.");
+                                contexto.Principal = null;
+                                return;
+                            }
+
+                            var verificador =
+                                contexto.HttpContext.RequestServices.GetService<IVerificadorCarimboConta>();
+                            if (verificador != null)
+                            {
+                                var valido = await verificador.CarimboValidoAsync(
+                                    contaId,
+                                    carimbo,
+                                    contexto.HttpContext.RequestAborted
+                                );
+                                if (!valido)
+                                {
+                                    contexto.Fail("Sessão revogada.");
+                                    contexto.Principal = null;
+                                }
+                            }
+                        }
+                    },
                     OnForbidden = contexto =>
                         RespostasApi.EscreverErroAsync(
                             contexto.HttpContext,

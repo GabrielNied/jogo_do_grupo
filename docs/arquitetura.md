@@ -50,7 +50,7 @@ Assim, cada pessoa trabalha em pastas diferentes e os conflitos de merge ficam r
 
 | Canal | Usado para | Contrato |
 |---|---|---|
-| **API HTTP** (JSON, token JWT) | Conta, login, seleção e criação de personagem | DTOs e rotas em `shared/Package/Runtime/{Core,Features/<X>}/` ([ADR 0009](decisoes/0009-api-http-para-conta-e-personagens.md)) |
+| **API HTTP** (JSON, token JWT) | Conta, login, seleção e criação de personagem | DTOs e rotas em `shared/Package/Runtime/{Core,Features/<X>}/` ([ADR 0009](decisoes/0009-api-http-para-conta-e-personagens.md), [ADR 0049](decisoes/0049-rate-limiting-e-tokens-revogaveis.md)) |
 | ~~**Tempo real** (UDP, a decidir)~~ **Tempo real** (UDP, LiteNetLib, [ADR 0015](decisoes/0015-litenetlib-para-o-tempo-real.md)) | Movimento, combate, presença no mundo | Mensagens com IDs na faixa de cada funcionalidade ([Servidor: tempo real](#servidor-tempo-real-udp)) |
 
 Telas do client: UI Toolkit montada em código ([ADR 0011](decisoes/0011-telas-com-ui-toolkit-em-codigo.md)).

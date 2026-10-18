@@ -13,17 +13,22 @@ internal sealed class GeradorTokens(ConfiguracaoJwt jwt, TimeProvider relogio)
         SecurityAlgorithms.HmacSha256
     );
 
-    public (string Token, DateTimeOffset ExpiraEm) Gerar(long contaId)
+    public (string Token, DateTimeOffset ExpiraEm) Gerar(long contaId, string carimboSeguranca = "")
     {
         var agora = relogio.GetUtcNow();
         var expiraEm = agora.AddHours(jwt.ValidadeHoras);
 
+        var claims = new List<Claim> { new(JwtRegisteredClaimNames.Sub, contaId.ToString()) };
+
+        if (!string.IsNullOrEmpty(carimboSeguranca))
+        {
+            claims.Add(new(ConfiguracaoJwt.ClaimCarimbo, carimboSeguranca));
+        }
+
         var token = _handler.CreateToken(
             new SecurityTokenDescriptor
             {
-                Subject = new ClaimsIdentity([
-                    new Claim(JwtRegisteredClaimNames.Sub, contaId.ToString()),
-                ]),
+                Subject = new ClaimsIdentity(claims),
                 Issuer = jwt.Emissor,
                 Audience = jwt.Audiencia,
                 IssuedAt = agora.UtcDateTime,

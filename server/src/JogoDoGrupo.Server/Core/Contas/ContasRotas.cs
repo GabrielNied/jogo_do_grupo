@@ -18,12 +18,19 @@ internal static class ContasRotas
     );
 
     public static IServiceCollection AdicionarContas(this IServiceCollection servicos) =>
-        servicos.AddSingleton<IPasswordHasher<Conta>, PasswordHasher<Conta>>();
+        servicos
+            .AddSingleton<IPasswordHasher<Conta>, PasswordHasher<Conta>>()
+            .AddSingleton<ControleDeFalhasLogin>()
+            .AddSingleton<IVerificadorCarimboConta, VerificadorCarimboConta>();
 
     public static IEndpointRouteBuilder MapearContas(this IEndpointRouteBuilder rotas)
     {
-        rotas.MapPost(RotasContas.Registrar, RegistrarAsync);
-        rotas.MapPost(RotasContas.Login, LoginAsync);
+        rotas
+            .MapPost(RotasContas.Registrar, RegistrarAsync)
+            .RequireRateLimiting(RateLimitContas.PoliticaRateLimitContas);
+        rotas
+            .MapPost(RotasContas.Login, LoginAsync)
+            .RequireRateLimiting(RateLimitContas.PoliticaRateLimitContas);
         return rotas;
     }
 
@@ -76,6 +83,7 @@ internal static class ContasRotas
         JogoDbContext db,
         IPasswordHasher<Conta> hasher,
         GeradorTokens tokens,
+        ControleDeFalhasLogin controleFalhas,
         CancellationToken cancelamento
     )
     {
@@ -97,18 +105,31 @@ internal static class ContasRotas
         }
 
         var normalizado = Conta.Normalizar(requisicao.Usuario);
+
+        if (controleFalhas.EstaBloqueado(normalizado, out var tempoRestante))
+        {
+            var segundos = Math.Max(1, (int)Math.Ceiling(tempoRestante.TotalSeconds));
+            return RespostasApi.Erro(
+                StatusCodes.Status429TooManyRequests,
+                CodigosErro.MuitasTentativas,
+                $"Muitas tentativas falhas. Aguarde {segundos} segundo(s) antes de tentar novamente."
+            );
+        }
+
         var conta = await db.Set<Conta>()
             .FirstOrDefaultAsync(c => c.UsuarioNormalizado == normalizado, cancelamento);
         if (conta == null)
         {
             // Calcula um hash mesmo assim, para o tempo de resposta não revelar se o usuário existe.
             hasher.VerifyHashedPassword(ContaFicticia, HashFicticio.Value, requisicao.Senha);
+            await controleFalhas.RegistrarFalhaAsync(normalizado, cancelamento);
             return falha;
         }
 
         var resultado = hasher.VerifyHashedPassword(conta, conta.SenhaHash, requisicao.Senha);
         if (resultado == PasswordVerificationResult.Failed)
         {
+            await controleFalhas.RegistrarFalhaAsync(normalizado, cancelamento);
             return falha;
         }
 
@@ -118,7 +139,9 @@ internal static class ContasRotas
             await db.SaveChangesAsync(cancelamento);
         }
 
-        var (token, expiraEm) = tokens.Gerar(conta.Id);
+        controleFalhas.RegistrarSucesso(normalizado);
+
+        var (token, expiraEm) = tokens.Gerar(conta.Id, conta.CarimboSeguranca);
         return Results.Ok(
             new LoginResponse { Token = token, ExpiraEmUnix = expiraEm.ToUnixTimeSeconds() }
         );

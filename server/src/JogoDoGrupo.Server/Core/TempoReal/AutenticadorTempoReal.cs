@@ -1,5 +1,6 @@
 using System.Globalization;
 using JogoDoGrupo.Server.Core.Autenticacao;
+using JogoDoGrupo.Server.Core.Contas;
 using JogoDoGrupo.Shared.Core.Api;
 using JogoDoGrupo.Shared.Core.TempoReal;
 using Microsoft.IdentityModel.JsonWebTokens;
@@ -55,12 +56,35 @@ internal sealed class AutenticadorTempoReal(
             return new(CodigosErro.NaoAutenticado, 0, 0);
         }
 
+        if (
+            !validacao.Claims.TryGetValue(ConfiguracaoJwt.ClaimCarimbo, out var carimboObj)
+            || carimboObj is not string carimbo
+            || string.IsNullOrEmpty(carimbo)
+        )
+        {
+            return new(CodigosErro.NaoAutenticado, 0, 0);
+        }
+
+        using var escopo = escopos.CreateScope();
+        var verificadorCarimbo = escopo.ServiceProvider.GetService<IVerificadorCarimboConta>();
+        if (verificadorCarimbo != null)
+        {
+            var carimboValido = await verificadorCarimbo.CarimboValidoAsync(
+                contaId,
+                carimbo,
+                cancelamento
+            );
+            if (!carimboValido)
+            {
+                return new(CodigosErro.NaoAutenticado, 0, 0);
+            }
+        }
+
         if (pedido.PersonagemId <= 0)
         {
             return new(CodigosErro.AcessoNegado, contaId, 0);
         }
 
-        using var escopo = escopos.CreateScope();
         var verificador = escopo.ServiceProvider.GetService<IVerificadorPersonagem>();
         if (verificador == null)
         {

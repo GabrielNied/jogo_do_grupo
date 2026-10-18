@@ -15,5 +15,12 @@ public sealed class Conta
 
     public DateTime CriadaEm { get; set; }
 
+    /// <summary>
+    /// Carimbo aleatório alterado ao trocar senha ou revogar sessões; tokens emitidos antes perdem a validade (#517).
+    /// </summary>
+    public string CarimboSeguranca { get; set; } = Guid.NewGuid().ToString("N");
+
+    public void RenovarCarimboSeguranca() => CarimboSeguranca = Guid.NewGuid().ToString("N");
+
     public static string Normalizar(string usuario) => usuario.ToUpperInvariant();
 }

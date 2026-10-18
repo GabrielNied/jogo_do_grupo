@@ -18,5 +18,6 @@ internal sealed class ContaConfiguracao : IEntityTypeConfiguration<Conta>
         conta.HasIndex(c => c.UsuarioNormalizado).IsUnique();
         conta.Property(c => c.SenhaHash).IsRequired();
         conta.Property(c => c.CriadaEm).IsRequired();
+        conta.Property(c => c.CarimboSeguranca).HasMaxLength(64).IsRequired().HasDefaultValue("");
     }
 }

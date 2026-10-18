@@ -35,5 +35,6 @@ public class CodigosErroTestes
         Assert.Contains("MetodoNaoPermitido", nomes);
         Assert.Contains("AcessoNegado", nomes);
         Assert.Contains("ServidorOcupado", nomes);
+        Assert.Contains("MuitasTentativas", nomes);
     }
 }
