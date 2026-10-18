@@ -10,7 +10,9 @@ A pessoa chama um pet, ele segue por perto e some quando é dispensado. O servid
 
 ## Definido
 
-- **Cuidador de pets na Brasa Mansa** (decidido por Gabriel em 2026-10-18): vende de 2 a 3 **pets comuns** por coroas (por exemplo cachorro, gato, galinha), como item que registra o pet na conta. Os pets bonitos continuam no drop raro ([npcs](npcs.md#elenco-da-brasa-mansa), [#1068](https://github.com/GabrielNied/jogo_do_grupo/issues/1068)).
+- **Cuidador de pets na Brasa Mansa** (decidido por Gabriel em 2026-10-18): vende 3 **pets comuns** por coroas (`GalinhaComum` por 50 coroas, `GatoComum` por 75 coroas e `CachorroComum` por 100 coroas) no NPC Cuidadora Mirna (id 9, posição `(-14f, 0f, 14f)` em Brasa Mansa). A compra registra o pet diretamente na conta (idempotente e segura contra concorrência por `(ContaId, Especie)`). Os pets bonitos/exóticos continuam no drop raro ([npcs](npcs.md#elenco-da-brasa-mansa), [#1068](https://github.com/GabrielNied/jogo_do_grupo/issues/1068)).
+  - **Mensagens e rotas:** `ConsultarCuidador` (17009), `RespostaCuidador` (17010), `ComprarPetCuidador` (17011), `RespostaCompraPet` (17012). REST: `GET /api/pets/cuidador`, `POST /api/personagens/{personagemId}/pets/cuidador/comprar`.
+  - **Interface:** tecla [E] no Cuidador abre `pets.cuidador` (`JanelaCuidadorDePets`), desacoplada via `JanelasDoJogo`. Pet comprado aparece imediatamente na janela [U] (aba Pets).
 
 Decidido em 2026-10-12 (#161) e **revisto em 2026-10-16** (quiz de definições 3):
 
@@ -73,6 +75,9 @@ Convenção de nome de item: **Sino do/da …**, **Colar …** ou **Frasco …**
 | 8 | Lobo de Geada Filhote | Sino do Lobo de Geada | Drop raro do Lobo de Geada (2%) | **Lobo de Geada** |
 | 9 | Carapaça Jovem | Colar da Carapaça Jovem | Drop raro da Carapaça (2%) | **Carapaça de Brasa** |
 | 10 | Mosquito do Pântano | Frasco do Mosquito do Pântano | Drop raro no pântano (2%) | **Mariposa de Breu** e mobs do pântano ([tabela bioma × espécie](mobs.md#tabela-de-distribuição-bioma--espécie--nível)) |
+| 11 | Cachorro Comum | — (compra direta) | Cuidadora Mirna na Brasa Mansa (100 coroas) | Venda NPC |
+| 12 | Gato Comum | — (compra direta) | Cuidadora Mirna na Brasa Mansa (75 coroas) | Venda NPC |
+| 13 | Galinha Comum | — (compra direta) | Cuidadora Mirna na Brasa Mansa (50 coroas) | Venda NPC |
 
 Todas as entradas: **só visual e loot helper**; mesma mecânica do Cervo Jovem. Sem pet de chefe, sem captura pelo bestiário, sem combate.
 

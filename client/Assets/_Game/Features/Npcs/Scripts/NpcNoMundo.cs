@@ -150,6 +150,10 @@ namespace JogoDoGrupo.Client.Features.Npcs
                 {
                     JanelasDoJogo.Abrir("montarias.estabulo");
                 }
+                else if (_definicao.Papel == PapelNpc.CuidadorDePets)
+                {
+                    JanelasDoJogo.Abrir("pets.cuidador");
+                }
             }
         }
 
@@ -194,6 +198,7 @@ namespace JogoDoGrupo.Client.Features.Npcs
                 PapelNpc.Leiloeiro => new Color(0.25f, 0.65f, 0.95f), // Safira / Azul Claro
                 PapelNpc.DadorDeMissao => new Color(0.75f, 0.35f, 0.9f), // Ametista / Roxo
                 PapelNpc.Cavalarico => new Color(0.60f, 0.40f, 0.20f), // Couro / Marrom
+                PapelNpc.CuidadorDePets => new Color(0.35f, 0.80f, 0.50f), // Verde Natureza / Pets
                 _ => new Color(0.85f, 0.85f, 0.85f), // Neutro
             };
 
@@ -210,6 +215,7 @@ namespace JogoDoGrupo.Client.Features.Npcs
                 PapelNpc.Leiloeiro => "Leiloeiro",
                 PapelNpc.DadorDeMissao => "Missões",
                 PapelNpc.Cavalarico => "Estábulo",
+                PapelNpc.CuidadorDePets => "Cuidador de Pets",
                 _ => "Habitante",
             };
     }

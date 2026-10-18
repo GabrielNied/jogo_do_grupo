@@ -33,5 +33,17 @@ namespace JogoDoGrupo.Shared.Features.Pets
 
         /// <summary>Servidor → client: notifica novo pet desbloqueado na conta (<see cref="Pets.PetDesbloqueado"/>).</summary>
         public const ushort PetDesbloqueado = 17008;
+
+        /// <summary>Client → servidor: consulta as ofertas do cuidador de pets (<see cref="Pets.ConsultarCuidador"/>).</summary>
+        public const ushort ConsultarCuidador = 17009;
+
+        /// <summary>Servidor → client: catálogo de pets à venda no cuidador (<see cref="Pets.RespostaCuidador"/>).</summary>
+        public const ushort RespostaCuidador = 17010;
+
+        /// <summary>Client → servidor: compra de pet no cuidador com coroas (<see cref="Pets.ComprarPetCuidador"/>).</summary>
+        public const ushort ComprarPetCuidador = 17011;
+
+        /// <summary>Servidor → client: resultado da compra no cuidador (<see cref="Pets.RespostaCompraPet"/>).</summary>
+        public const ushort RespostaCompraPet = 17012;
     }
 }
