@@ -41,7 +41,7 @@ Decidido em 2026-10-18 (veja [Definido](#definido)). É o fluxo clássico de MMO
 
 - Cada missão é um **dado** (não é código): id, tipo, região, NPC que dá, NPC que recebe, **pré-requisitos**, objetivos e recompensas.
 - **Pré-requisitos:** as missões que precisam estar concluídas e o **nível mínimo**. Uma missão com os pré-requisitos cumpridos fica **disponível**.
-- **Principal:** uma linha só, dividida em **capítulos**. Concluir uma etapa entrega a próxima **já aceita**, e o jogador nunca fica sem a próxima missão principal. O capítulo 1 é a [primeira hora](#livro-de-asterra-chegada-ao-mundo-proposta-do-board-2026-10-11) (#328).
+- **Principal:** uma linha só, dividida em **capítulos**. Concluir uma etapa entrega a próxima **já aceita**, e o jogador nunca fica sem a próxima missão principal. O capítulo 1 está em [Capítulo 1: a cidade](#capítulo-1-a-cidade) (#328).
 - **Secundárias:** cada etapa da principal abre um conjunto de secundárias na região dela, e cada uma pode pedir um nível mínimo. Uma secundária também pode abrir outra (pequenas cadeias dentro da região).
 - **Diárias e semanais:** pedem só nível e a região já aberta pela principal. Renovam no reset (horário de Brasília), que é o mesmo das [raids](instancias.md#definido).
 
@@ -91,6 +91,17 @@ Decidido em 2026-10-18 (veja [Definido](#definido)). É o fluxo clássico de MMO
 
 - O servidor decide os pré-requisitos, o progresso, a entrega, a escolha do item e o reset. O client só envia intenções (aceitar, abandonar, entregar com a escolha, compartilhar, acompanhar) e mostra o resultado.
 - A entrega é **uma vez só**: entregar duas vezes ao mesmo tempo não pode dar a recompensa em dobro (teste de concorrência).
+
+### Capítulo 1: a cidade
+
+Decidido por Gabriel em 2026-10-18. É o primeiro capítulo da principal e funciona como o tutorial do jogo. Vem **depois das implementações pendentes** (o [marco atual](fatia-jogavel.md#foco-atual) e os serviços dos NPCs). As falas, os nomes e a ordem fina saem do roteiro ([#1058](https://github.com/GabrielNied/jogo_do_grupo/issues/1058)).
+
+1. **Explorar a cidade:** a principal leva o jogador pela Brasa Mansa, apresenta o lugar e um **NPC por vez**. Cada NPC explica o que faz, e o jogador usa o serviço uma vez: vendedor (comprar e vender), ferreiro (forja e fusão), banqueiro (banco), leiloeiro (mercado), cozinha, teleporte e dadores de missão. Só entra o NPC cujo serviço já existe no jogo.
+2. **Ensinar o básico:** junto com os NPCs, as etapas ensinam o combate (leve, pesado e esquiva), o inventário e o equipamento, a skill da arma, subir de nível e gastar pontos na [árvore](talentos.md).
+3. **Mobs perto da cidade:** sair pela primeira vez e enfrentar os inimigos fracos da área em volta da Brasa Mansa (matar e coletar).
+4. **Chefe:** fechar o capítulo derrotando um **chefe perto da cidade** ([#1059](https://github.com/GabrielNied/jogo_do_grupo/issues/1059)). A entrega dá o item à escolha e libera as secundárias da região ([#1060](https://github.com/GabrielNied/jogo_do_grupo/issues/1060)).
+
+A lista do Livro abaixo serve de inspiração para as etapas, mas não é obrigatória.
 
 ### Livro de Asterra: chegada ao mundo (proposta do board, 2026-10-11)
 
