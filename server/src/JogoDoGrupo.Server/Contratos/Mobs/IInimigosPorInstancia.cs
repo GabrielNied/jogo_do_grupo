@@ -10,7 +10,9 @@ public sealed record GrupoDeInstancia(
     double Z,
     int Quantidade,
     int NivelMinimo,
-    int NivelMaximo
+    int NivelMaximo,
+    double MultiplicadorVida = 1.0,
+    double MultiplicadorDano = 1.0
 );
 
 /// <summary>

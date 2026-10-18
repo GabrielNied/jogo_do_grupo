@@ -9,5 +9,11 @@ namespace JogoDoGrupo.Shared.Features.Instancias
 
         /// <summary>Área isolada do Mundo para a corrida.</summary>
         public string Area = string.Empty;
+
+        /// <summary>Nível de dificuldade da corrida (mínimo 1).</summary>
+        public int Nivel = 1;
+
+        /// <summary>Tempo limite para vencer no tempo em segundos.</summary>
+        public int TempoLimiteSegundos = RegrasDificuldadeSemFim.TempoLimitePadraoSegundos;
     }
 }

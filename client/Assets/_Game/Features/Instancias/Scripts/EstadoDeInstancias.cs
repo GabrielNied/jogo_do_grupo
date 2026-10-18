@@ -26,6 +26,9 @@ namespace JogoDoGrupo.Client.Features.Instancias
                     {
                         AreaAtual = m.Area;
                         IdInstancia = m.IdInstancia;
+                        NivelAtual = m.Nivel;
+                        TempoLimiteSegundos = m.TempoLimiteSegundos;
+                        InicioLocal = UnityEngine.Time.unscaledTime;
                         VitoriaAlcancada = false;
                         DungeonIniciada?.Invoke(m);
                     }
@@ -39,6 +42,9 @@ namespace JogoDoGrupo.Client.Features.Instancias
                     m =>
                     {
                         VitoriaAlcancada = true;
+                        NivelAtual = m.Nivel;
+                        TempoTotalSegundos = m.TempoTotalSegundos;
+                        NoTempo = m.NoTempo;
                         ChefeDerrotado?.Invoke(m);
                     }
                 ),
@@ -46,6 +52,10 @@ namespace JogoDoGrupo.Client.Features.Instancias
                     InstanciasMessageIds.DungeonEncerrada,
                     m =>
                     {
+                        NivelAtual = m.Nivel;
+                        TempoTotalSegundos = m.TempoTotalSegundos;
+                        NoTempo = m.NoTempo;
+                        ProximoNivelLiberado = m.ProximoNivelLiberado;
                         DungeonEncerrada?.Invoke(m);
                         AreaAtual = string.Empty;
                         IdInstancia = string.Empty;
@@ -61,6 +71,22 @@ namespace JogoDoGrupo.Client.Features.Instancias
 
         public bool VitoriaAlcancada { get; private set; }
 
+        public int NivelAtual { get; private set; } = 1;
+
+        public int TempoLimiteSegundos { get; private set; } =
+            RegrasDificuldadeSemFim.TempoLimitePadraoSegundos;
+
+        public int TempoTotalSegundos { get; private set; }
+
+        public bool NoTempo { get; private set; }
+
+        public int ProximoNivelLiberado { get; private set; } = 1;
+
+        public float InicioLocal { get; private set; }
+
+        public float SegundosRestantesNoCronometro =>
+            Math.Max(0f, TempoLimiteSegundos - (UnityEngine.Time.unscaledTime - InicioLocal));
+
         public bool NaInstancia =>
             !string.IsNullOrEmpty(AreaAtual)
             && AreaAtual.StartsWith("instancia:", StringComparison.Ordinal);
@@ -72,6 +98,13 @@ namespace JogoDoGrupo.Client.Features.Instancias
         public event Action<ChefeDerrotadoNaDungeon> ChefeDerrotado;
 
         public event Action<DungeonEncerrada> DungeonEncerrada;
+
+        public bool PedirEntrar(int nivel = 1) =>
+            _conexao.Enviar(
+                InstanciasMessageIds.EntrarNaDungeon,
+                new EntrarNaDungeon { Nivel = Math.Max(1, nivel) },
+                EntregaTempoReal.Confiavel
+            );
 
         public bool PedirSair() =>
             _conexao.Enviar(

@@ -46,6 +46,14 @@ public sealed class ServicoDeInstancias(
     private readonly Dictionary<long, Corrida> _corridaDoPersonagem = [];
     private readonly Dictionary<long, Corrida> _corridaDoGrupo = [];
     private readonly List<long> _desconectadosExpiradosBuffer = [];
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<
+        long,
+        int
+    > _maiorNivelPorPersonagem = new();
+
+    /// <summary>Maior nível de dungeon vencido no tempo pelo personagem.</summary>
+    public int ObterMaiorNivelVencido(long personagemId) =>
+        _maiorNivelPorPersonagem.TryGetValue(personagemId, out var nivel) ? nivel : 0;
 
     /// <summary>Quantidade de corridas que ainda aceitam participantes.</summary>
     public int CorridasAtivas
@@ -60,7 +68,7 @@ public sealed class ServicoDeInstancias(
     }
 
     /// <summary>Trata o pedido de um jogador solo, líder ou membro do grupo.</summary>
-    public void AoEntrar(SessaoTempoReal sessao)
+    public void AoEntrar(SessaoTempoReal sessao, EntrarNaDungeon? pedido = null)
     {
         var grupo = grupos.Consultar(sessao.PersonagemId);
         var membros = grupo?.Membros.Distinct().ToArray() ?? [sessao.PersonagemId];
@@ -135,8 +143,19 @@ public sealed class ServicoDeInstancias(
             return;
         }
 
+        var nivelRequisitado = Math.Max(1, pedido?.Nivel ?? 1);
+        var recordeLider = ObterMaiorNivelVencido(sessao.PersonagemId);
+        if (!RegrasDificuldadeSemFim.NivelPermitido(nivelRequisitado, recordeLider))
+        {
+            Recusar(sessao, CodigosErroInstancias.NivelNaoDesbloqueado);
+            return;
+        }
+
         var id = Guid.NewGuid().ToString("N");
-        var corrida = new Corrida(id, grupo?.GrupoId, membros) { IniciadaEmMs = AgoraMs() };
+        var corrida = new Corrida(id, grupo?.GrupoId, membros, nivelRequisitado)
+        {
+            IniciadaEmMs = AgoraMs(),
+        };
         lock (_trava)
         {
             if (
@@ -161,7 +180,7 @@ public sealed class ServicoDeInstancias(
         }
 
         var area = AreasDoMundo.Instancia(id);
-        populador.AoAbrir(area);
+        populador.AoAbrir(area, corrida.Nivel);
         var spawn = PosicaoDeSpawn();
         foreach (var membro in membros)
         {
@@ -381,7 +400,15 @@ public sealed class ServicoDeInstancias(
             tempoReal.Enviar(
                 sessao,
                 InstanciasMessageIds.DungeonEncerrada,
-                new DungeonEncerrada { IdInstancia = corrida.Id, Resultado = resultado }
+                new DungeonEncerrada
+                {
+                    IdInstancia = corrida.Id,
+                    Resultado = resultado,
+                    Nivel = corrida.Nivel,
+                    TempoTotalSegundos = corrida.TempoTotalSegundos,
+                    NoTempo = corrida.NoTempo,
+                    ProximoNivelLiberado = ObterMaiorNivelVencido(personagemId) + 1,
+                }
             );
 
             if (
@@ -420,11 +447,32 @@ public sealed class ServicoDeInstancias(
                 return;
             }
 
-            corrida.VitoriaDesdeMs = AgoraMs();
+            var agora = AgoraMs();
+            corrida.VitoriaDesdeMs = agora;
+            var tempoDecorrido = (int)Math.Max(0, (agora - corrida.IniciadaEmMs) / 1000);
+            var noTempo = RegrasDificuldadeSemFim.VenceuNoTempo(tempoDecorrido);
+            corrida.TempoTotalSegundos = tempoDecorrido;
+            corrida.NoTempo = noTempo;
+
+            if (noTempo)
+            {
+                foreach (var participante in corrida.Participantes)
+                {
+                    _maiorNivelPorPersonagem.AddOrUpdate(
+                        participante,
+                        corrida.Nivel,
+                        (_, anterior) => Math.Max(anterior, corrida.Nivel)
+                    );
+                }
+            }
+
             var aviso = new ChefeDerrotadoNaDungeon
             {
                 IdInstancia = corrida.Id,
                 SegundosParaColeta = (int)_prazoColetaLoot.TotalSeconds,
+                Nivel = corrida.Nivel,
+                TempoTotalSegundos = tempoDecorrido,
+                NoTempo = noTempo,
             };
             foreach (var participante in corrida.Participantes)
             {
@@ -507,7 +555,15 @@ public sealed class ServicoDeInstancias(
         tempoReal.Enviar(
             sessao,
             InstanciasMessageIds.DungeonEncerrada,
-            new DungeonEncerrada { IdInstancia = corrida.Id, Resultado = ResultadoDungeon.Vitoria }
+            new DungeonEncerrada
+            {
+                IdInstancia = corrida.Id,
+                Resultado = ResultadoDungeon.Vitoria,
+                Nivel = corrida.Nivel,
+                TempoTotalSegundos = corrida.TempoTotalSegundos,
+                NoTempo = corrida.NoTempo,
+                ProximoNivelLiberado = ObterMaiorNivelVencido(personagemId) + 1,
+            }
         );
 
         if (posicoes.TentarObter(personagemId, out var atual) && atual.Area == corrida.Area)
@@ -567,7 +623,13 @@ public sealed class ServicoDeInstancias(
         tempoReal.Enviar(
             sessao,
             InstanciasMessageIds.DungeonIniciada,
-            new DungeonIniciada { IdInstancia = corrida.Id, Area = corrida.Area }
+            new DungeonIniciada
+            {
+                IdInstancia = corrida.Id,
+                Area = corrida.Area,
+                Nivel = corrida.Nivel,
+                TempoLimiteSegundos = RegrasDificuldadeSemFim.TempoLimitePadraoSegundos,
+            }
         );
 
     private void Recusar(SessaoTempoReal sessao, string codigo) =>
@@ -633,16 +695,24 @@ public sealed class ServicoDeInstancias(
 
     private long AgoraMs() => relogio.GetUtcNow().ToUnixTimeMilliseconds();
 
-    private sealed class Corrida(string id, long? grupoId, IEnumerable<long> participantes)
+    private sealed class Corrida(
+        string id,
+        long? grupoId,
+        IEnumerable<long> participantes,
+        int nivel = 1
+    )
     {
         public string Id { get; } = id;
         public long? GrupoId { get; } = grupoId;
         public string Area { get; } = AreasDoMundo.Instancia(id);
+        public int Nivel { get; } = Math.Max(1, nivel);
         public HashSet<long> Participantes { get; } = participantes.ToHashSet();
         public Dictionary<long, PosicaoNoMundo> PosicoesDeRetorno { get; } = [];
         public Dictionary<long, long> DesconectadosDesde { get; } = [];
         public long? VaziaDesde { get; set; }
         public long? VitoriaDesdeMs { get; set; }
         public long IniciadaEmMs { get; set; }
+        public int TempoTotalSegundos { get; set; }
+        public bool NoTempo { get; set; }
     }
 }

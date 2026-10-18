@@ -46,6 +46,8 @@ public sealed partial class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulado
     private readonly RotaDaManada? _rota;
     private readonly IEstadoDeQueda _queda;
     private readonly bool _semReposicao;
+    private readonly double _multiplicadorVida;
+    private readonly double _multiplicadorDano;
     private readonly PeriodoDeAparicao _periodo;
     private readonly IRelogioDoMundo? _relogioDoMundo;
 
@@ -119,7 +121,9 @@ public sealed partial class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulado
         bool semReposicao = false,
         IHistoricoDePosicoesDoMundo? historico = null,
         PeriodoDeAparicao periodo = PeriodoDeAparicao.Sempre,
-        IRelogioDoMundo? relogioDoMundo = null
+        IRelogioDoMundo? relogioDoMundo = null,
+        double multiplicadorVida = 1.0,
+        double multiplicadorDano = 1.0
     )
     {
         ArgumentNullException.ThrowIfNull(definicao);
@@ -143,6 +147,8 @@ public sealed partial class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulado
         _rota = rota;
         _queda = queda ?? QuedaIgnorada.Instancia;
         _semReposicao = semReposicao;
+        _multiplicadorVida = multiplicadorVida;
+        _multiplicadorDano = multiplicadorDano;
         _historico = historico;
         _periodo = periodo;
         _relogioDoMundo = relogioDoMundo;
@@ -249,7 +255,9 @@ public sealed partial class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulado
             nivelMinimo: pedido.NivelMinimo,
             nivelMaximo: pedido.NivelMaximo,
             queda: queda,
-            semReposicao: true
+            semReposicao: true,
+            multiplicadorVida: pedido.MultiplicadorVida,
+            multiplicadorDano: pedido.MultiplicadorDano
         );
 
     /// <summary>Quantos inimigos a mais o comando de teste pode acrescentar neste grupo.</summary>
@@ -591,6 +599,14 @@ public sealed partial class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulado
                 ? _nivelMinimo
                 : EscalaPorNivel.Sortear(_nivelMinimo, _nivelMaximo, _sorteador.Proximo());
         var criatura = EscalaPorNivel.Aplicar(_sorteador.Sortear(_definicao), nivel);
+        if (_multiplicadorVida != 1.0 || _multiplicadorDano != 1.0)
+        {
+            criatura = criatura with
+            {
+                VidaMaxima = (int)Math.Max(1, Math.Round(criatura.VidaMaxima * _multiplicadorVida)),
+                Dano = (int)Math.Max(1, Math.Round(criatura.Dano * _multiplicadorDano)),
+            };
+        }
         var inimigo = new Inimigo(_proximoId++, criatura, origemX, origemZ, contaNoLimite)
         {
             DesvioX = origemX - _pontoX,

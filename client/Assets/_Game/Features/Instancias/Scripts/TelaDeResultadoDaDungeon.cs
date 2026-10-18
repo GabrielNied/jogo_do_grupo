@@ -60,6 +60,29 @@ namespace JogoDoGrupo.Client.Features.Instancias
             _fechaEm = Time.unscaledTime + SegundosNaTela;
         }
 
+        public void Mostrar(DungeonEncerrada encerrada)
+        {
+            if (encerrada == null)
+            {
+                return;
+            }
+
+            _titulo.text = TextosInstancias.TituloDoResultado(
+                encerrada.Resultado,
+                encerrada.Nivel,
+                encerrada.NoTempo
+            );
+            _detalhe.text = TextosInstancias.DetalheDoResultado(
+                encerrada.Resultado,
+                encerrada.Nivel,
+                encerrada.TempoTotalSegundos,
+                encerrada.NoTempo,
+                encerrada.ProximoNivelLiberado
+            );
+            _painel.style.display = DisplayStyle.Flex;
+            _fechaEm = Time.unscaledTime + SegundosNaTela;
+        }
+
         public void Fechar() => _painel.style.display = DisplayStyle.None;
 
         public void Atualizar()

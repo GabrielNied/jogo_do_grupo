@@ -14,5 +14,8 @@ namespace JogoDoGrupo.Shared.Features.Instancias
 
         /// <summary>O personagem não está numa posição válida para entrar.</summary>
         public const string LongeDemais = "LongeDemais";
+
+        /// <summary>O nível requisitado ainda não foi desbloqueado pelo líder.</summary>
+        public const string NivelNaoDesbloqueado = "NivelNaoDesbloqueado";
     }
 }
