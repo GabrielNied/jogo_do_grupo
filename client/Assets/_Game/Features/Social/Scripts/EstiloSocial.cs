@@ -57,6 +57,21 @@ namespace JogoDoGrupo.Client.Features.Social
         /// <summary>Vida crítica (&lt; 30%) com destaque visual.</summary>
         public const string VidaCritica = "vida-critica";
 
+        /// <summary>Camada invisível de tela cheia que abriga todos os balões de fala.</summary>
+        public const string BalaoCamada = "social-balao-camada";
+
+        /// <summary>Contêiner visual de um balão de fala individual.</summary>
+        public const string BalaoFala = "social-balao-fala";
+
+        /// <summary>Rótulo com o nome do autor da mensagem no balão.</summary>
+        public const string BalaoAutor = "social-balao-autor";
+
+        /// <summary>Rótulo com o texto da mensagem no balão.</summary>
+        public const string BalaoTexto = "social-balao-texto";
+
+        /// <summary>Ponta triangular voltada para a cabeça do avatar.</summary>
+        public const string BalaoPonta = "social-balao-ponta";
+
         /// <summary>Adiciona o USS de Social à raiz da interface.</summary>
         public static void Aplicar(VisualElement raiz)
         {

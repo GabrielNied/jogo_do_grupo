@@ -1,4 +1,5 @@
 using System;
+using JogoDoGrupo.Shared.Features.Itens;
 
 namespace JogoDoGrupo.Shared.Features.Combate
 {
@@ -97,6 +98,16 @@ namespace JogoDoGrupo.Shared.Features.Combate
         /// para a latência não fazer o servidor ver o pedido cedo demais.
         /// </summary>
         public const double MargemDoEnvioSegundos = 0.05;
+
+        /// <summary>Campo de visão padrão da câmera em terceira pessoa.</summary>
+        public const float FovPadraoCamera = 60.0f;
+
+        /// <summary>Campo de visão reduzido (zoom sutil) durante a carga do ataque pesado de longo alcance.</summary>
+        public const float FovZoomPesadoLongoAlcance = 50.0f;
+
+        /// <summary>Identifica se a categoria do equipamento opera com projéteis e mira à distância.</summary>
+        public static bool EhArmaDeLongoAlcance(TipoEquipamento tipo) =>
+            tipo == TipoEquipamento.Arco || tipo == TipoEquipamento.Cajado;
 
         /// <summary>Duração do clipe <c>Atacar</c> do personagem, em segundos (26 quadros a 30 por segundo).</summary>
         public const double DuracaoDoClipeSegundos = 26.0 / 30.0;

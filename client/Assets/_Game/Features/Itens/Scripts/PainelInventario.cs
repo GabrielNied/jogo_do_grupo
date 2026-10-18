@@ -855,7 +855,21 @@ namespace JogoDoGrupo.Client.Features.Itens
                         _tooltip.Esconder();
                         if (e.ctrlKey)
                         {
-                            AlternarSelecao(entrada.InstanciaId);
+                            if (JanelaBanco.EstaAberta)
+                            {
+                                AcaoPedida?.Invoke(
+                                    new AcaoDoInventario
+                                    {
+                                        Tipo = TipoAcao.DepositarBanco,
+                                        InstanciaId = entrada.InstanciaId,
+                                        TemDestino = false,
+                                    }
+                                );
+                            }
+                            else
+                            {
+                                AlternarSelecao(entrada.InstanciaId);
+                            }
                         }
                         else if (e.altKey && dados != null)
                         {

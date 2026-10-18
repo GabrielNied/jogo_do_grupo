@@ -130,6 +130,8 @@ namespace JogoDoGrupo.Client.Features.Social
             SceneManager.MoveGameObjectToScene(raiz, jogador.scene);
             var controle = raiz.AddComponent<ControleDeChat>();
             controle.Configurar(_servico, new PainelDeChat(regiao));
+
+            GerenciadorBaloesDeFala.Criar(jogador.scene, _servico);
         }
     }
 }

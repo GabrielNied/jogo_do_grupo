@@ -50,6 +50,9 @@ namespace JogoDoGrupo.Client.Features.Social
         /// <summary>Algo novo no histórico ou nos ignorados: a tela deve se redesenhar.</summary>
         public event Action Mudou;
 
+        /// <summary>Disparado quando uma mensagem válida de chat é recebida do servidor.</summary>
+        public event Action<MensagemDeChat> MensagemRecebida;
+
         public void Dispose()
         {
             Amigos.Mudou -= AoMudarAmigos;
@@ -134,6 +137,7 @@ namespace JogoDoGrupo.Client.Features.Social
                 Estado.UltimoSussurroRecebido = mensagem.NomeDoRemetente;
             }
 
+            MensagemRecebida?.Invoke(mensagem);
             Mudou?.Invoke();
         }
 

@@ -18,8 +18,9 @@ public class CatalogoCriaturasTestes
         Assert.Equal(7, CatalogoCriaturas.CarapacaDeBrasa);
         Assert.Equal(8, CatalogoCriaturas.JavaliFerrugem);
         Assert.Equal(9, CatalogoCriaturas.MorcegoDasSombras);
+        Assert.Equal(10, CatalogoCriaturas.ArqueiroDoCampo);
         Assert.Equal(
-            new[] { 1, 2, 3, 100, 200 },
+            new[] { 1, 2, 3, 10, 100, 200 },
             CatalogoCriaturas.Todas.Select(c => c.Id).ToArray()
         );
     }

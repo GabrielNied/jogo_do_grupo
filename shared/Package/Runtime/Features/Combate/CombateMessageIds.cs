@@ -76,6 +76,12 @@ namespace JogoDoGrupo.Shared.Features.Combate
         /// <summary>Servidor → dono: o pedido de troca de arma foi recusado.</summary>
         public const ushort TrocaDeArmaRecusada = 6052;
 
+        /// <summary>Servidor → dono: qual arma está equipada no conjunto ativo.</summary>
+        public const ushort ArmaAtivaInformada = 6053;
+
+        /// <summary>Client → servidor: consulta qual arma está equipada no conjunto ativo.</summary>
+        public const ushort ConsultarArmaAtiva = 6054;
+
         /// <summary>Servidor → quem está na área: um projétil foi disparado no mundo.</summary>
         public const ushort ProjetilLancado = 6060;
     }

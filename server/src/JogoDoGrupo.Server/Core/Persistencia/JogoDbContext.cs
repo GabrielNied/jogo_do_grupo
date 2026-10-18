@@ -16,3 +16,21 @@ public class JogoDbContext(DbContextOptions opcoes) : DbContext(opcoes)
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(JogoDbContext).Assembly);
     }
 }
+
+/// <summary>
+/// Fábrica de tempo de design para o comando <c>dotnet ef</c> ao gerar migrações do SQLite.
+/// </summary>
+public sealed class JogoDbContextFactory
+    : Microsoft.EntityFrameworkCore.Design.IDesignTimeDbContextFactory<JogoDbContext>
+{
+    public JogoDbContext CreateDbContext(string[] args)
+    {
+        var opcoes = new DbContextOptionsBuilder<JogoDbContext>()
+            .UseSqlite(
+                "Data Source=jogodogrupo.db",
+                sqlite => sqlite.MigrationsAssembly(typeof(JogoDbContext).Assembly.GetName().Name)
+            )
+            .Options;
+        return new JogoDbContext(opcoes);
+    }
+}
