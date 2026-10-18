@@ -1,5 +1,6 @@
 using JogoDoGrupo.Server.Features.Itens;
 using JogoDoGrupo.Shared.Features.Itens;
+using JogoDoGrupo.Shared.Features.Mobs;
 
 namespace JogoDoGrupo.Server.Tests.Features.Itens;
 
@@ -9,20 +10,25 @@ public class SorteadorDeLootTestes
         int vezes,
         int semente,
         OrigemDoLoot origem = OrigemDoLoot.Comum,
-        int nivel = 3
+        int nivel = 3,
+        int criaturaId = CatalogoCriaturas.JavaliDoCampo
     )
     {
         var sorteador = new SorteadorDeLoot(new Random(semente));
-        return Enumerable.Range(0, vezes).Select(_ => sorteador.Sortear(origem, nivel)).ToList();
+        return Enumerable
+            .Range(0, vezes)
+            .Select(_ => sorteador.Sortear(origem, nivel, criaturaId))
+            .ToList();
     }
 
-    private static bool EhPecaDoCatalogo(QuedaDeLoot q) =>
+    private static bool EhLootValido(QuedaDeLoot q) =>
         (
             q.ModeloId >= CatalogoEquipamentos.PrimeiroModelo
             && q.ModeloId
                 < CatalogoEquipamentos.PrimeiroModelo + CatalogoEquipamentos.QuantidadeModelos
         )
-        || q.ModeloId == TabelaDeLoot.ItemPetRaro;
+        || RegrasLootCompanheiros.EhItemDePet(q.ModeloId)
+        || RegrasLootCompanheiros.EhItemDeMontaria(q.ModeloId);
 
     [Fact]
     public void Cada_sorteio_da_de_zero_ao_maximo_de_pecas_do_catalogo()
@@ -34,7 +40,7 @@ public class SorteadorDeLootTestes
             quedas =>
             {
                 Assert.InRange(quedas.Length, 0, RegrasLoot.MaximoPorInimigo + 1);
-                Assert.All(quedas, q => Assert.True(EhPecaDoCatalogo(q), $"modelo {q.ModeloId}"));
+                Assert.All(quedas, q => Assert.True(EhLootValido(q), $"modelo {q.ModeloId}"));
             }
         );
     }
@@ -49,10 +55,10 @@ public class SorteadorDeLootTestes
 
         Assert.DoesNotContain(CatalogoItens.PocaoDeTeste, modelos);
         Assert.DoesNotContain(CatalogoItens.MoedaDeTeste, modelos);
-        Assert.Contains(TabelaDeLoot.ItemPetRaro, modelos);
+        Assert.Contains(CatalogoItens.SinoDoFilhoteDeJavali, modelos);
         Assert.Equal(
             CatalogoEquipamentos.QuantidadeModelos,
-            modelos.Count(id => id != TabelaDeLoot.ItemPetRaro)
+            modelos.Count(id => !RegrasLootCompanheiros.EhItemDePet(id))
         );
     }
 
@@ -92,7 +98,13 @@ public class SorteadorDeLootTestes
     [InlineData(OrigemDoLoot.Chefe)]
     public void A_queda_guarda_a_origem_do_inimigo(OrigemDoLoot origem)
     {
-        var quedas = Sortear(500, semente: 5, origem).SelectMany(q => q).ToList();
+        var criatura =
+            origem == OrigemDoLoot.Chefe ? CatalogoCriaturas.GuardiaoDoReflexo
+            : origem == OrigemDoLoot.ChefeRaro ? CatalogoCriaturas.PresaVelha
+            : CatalogoCriaturas.JavaliDoCampo;
+        var quedas = Sortear(500, semente: 5, origem, criaturaId: criatura)
+            .SelectMany(q => q)
+            .ToList();
 
         Assert.NotEmpty(quedas);
         Assert.All(quedas, q => Assert.Equal(origem, q.Origem));
@@ -113,12 +125,14 @@ public class SorteadorDeLootTestes
     [Fact]
     public void Cada_chamada_e_um_sorteio_individual_e_novo()
     {
-        // Dois participantes do mesmo inimigo não recebem o mesmo resultado em bloco.
         var sorteador = new SorteadorDeLoot(new Random(8));
         var pares = Enumerable
             .Range(0, 500)
             .Select(_ =>
-                (sorteador.Sortear(OrigemDoLoot.Comum, 3), sorteador.Sortear(OrigemDoLoot.Comum, 3))
+                (
+                    sorteador.Sortear(OrigemDoLoot.Comum, 3, CatalogoCriaturas.JavaliDoCampo),
+                    sorteador.Sortear(OrigemDoLoot.Comum, 3, CatalogoCriaturas.JavaliDoCampo)
+                )
             )
             .ToList();
 
@@ -138,7 +152,7 @@ public class SorteadorDeLootTestes
             2000,
             _ =>
                 Assert.InRange(
-                    sorteador.Sortear(OrigemDoLoot.Elite, 12).Length,
+                    sorteador.Sortear(OrigemDoLoot.Elite, 12, CatalogoCriaturas.LoboDoCampo).Length,
                     0,
                     RegrasLoot.MaximoPorInimigo + 1
                 )
@@ -154,7 +168,7 @@ public class SorteadorDeLootTestes
         var sorteios = Sortear(vezes, semente: 42, origem: origem);
         var quedasPet = sorteios
             .SelectMany(q => q)
-            .Count(q => q.ModeloId == TabelaDeLoot.ItemPetRaro);
+            .Count(q => RegrasLootCompanheiros.EhItemDePet(q.ModeloId));
         var fracao = quedasPet / (double)vezes;
 
         Assert.InRange(
@@ -167,22 +181,44 @@ public class SorteadorDeLootTestes
     [Fact]
     public void Chefes_nao_dropam_pet_raro_de_campo()
     {
-        var sorteios = Sortear(1000, semente: 43, origem: OrigemDoLoot.Chefe);
+        var sorteios = Sortear(
+            1000,
+            semente: 43,
+            origem: OrigemDoLoot.Chefe,
+            criaturaId: CatalogoCriaturas.GuardiaoDoReflexo
+        );
         Assert.DoesNotContain(
             sorteios.SelectMany(q => q),
-            q => q.ModeloId == TabelaDeLoot.ItemPetRaro
+            q => RegrasLootCompanheiros.EhItemDePet(q.ModeloId)
         );
     }
 
-    [Theory]
-    [InlineData(OrigemDoLoot.Chefe)]
-    [InlineData(OrigemDoLoot.ChefeRaro)]
-    public void Chefes_podem_dropar_item_raro_de_montaria(OrigemDoLoot origem)
+    [Fact]
+    public void Presa_velha_pode_dropar_redeas_do_lobo_de_presa()
     {
-        var sorteios = Sortear(1000, semente: 42, origem: origem);
+        var sorteios = Sortear(
+            1000,
+            semente: 42,
+            origem: OrigemDoLoot.ChefeRaro,
+            criaturaId: CatalogoCriaturas.PresaVelha
+        );
         var modelos = sorteios.SelectMany(q => q).Select(q => q.ModeloId).ToHashSet();
 
-        Assert.Contains(TabelaDeLoot.ItemMontariaChefe, modelos);
+        Assert.Contains(CatalogoItens.RedeasDoLoboDePresa, modelos);
+    }
+
+    [Fact]
+    public void Guardiao_pode_dropar_redeas_do_corcel_de_cristal()
+    {
+        var sorteios = Sortear(
+            1000,
+            semente: 42,
+            origem: OrigemDoLoot.Chefe,
+            criaturaId: CatalogoCriaturas.GuardiaoDoReflexo
+        );
+        var modelos = sorteios.SelectMany(q => q).Select(q => q.ModeloId).ToHashSet();
+
+        Assert.Contains(CatalogoItens.RedeasDoCorcelDeCristal, modelos);
     }
 
     [Theory]
@@ -193,6 +229,22 @@ public class SorteadorDeLootTestes
         var sorteios = Sortear(1000, semente: 42, origem: origem);
         var modelos = sorteios.SelectMany(q => q).Select(q => q.ModeloId).ToHashSet();
 
-        Assert.DoesNotContain(TabelaDeLoot.ItemMontariaChefe, modelos);
+        Assert.DoesNotContain(modelos, id => RegrasLootCompanheiros.EhItemDeMontaria(id));
+    }
+
+    [Fact]
+    public void Criatura_sem_pet_no_catalogo_nao_adiciona_item_de_pet_mesmo_com_sorteio()
+    {
+        const int vezes = 5000;
+        var sorteador = new SorteadorDeLoot(new Random(99));
+        for (var i = 0; i < vezes; i++)
+        {
+            var quedas = sorteador.Sortear(
+                OrigemDoLoot.Comum,
+                3,
+                CatalogoCriaturas.GuardiaoDoReflexo
+            );
+            Assert.DoesNotContain(quedas, q => RegrasLootCompanheiros.EhItemDePet(q.ModeloId));
+        }
     }
 }

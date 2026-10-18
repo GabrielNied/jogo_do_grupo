@@ -96,11 +96,11 @@ namespace JogoDoGrupo.Shared.Features.Itens
         /// <summary>Modelo de equipamento exclusivo que só o chefe raro larga.</summary>
         public const int ModeloExclusivoDoChefeRaro = CatalogoEquipamentos.AdornoPresaVelha;
 
-        /// <summary>Item consumível de pet raro que criaturas comuns e elites podem largar.</summary>
+        /// <summary>Exemplo de item de pet (cervo); o sorteio real usa <see cref="RegrasLootCompanheiros"/>.</summary>
         public const int ItemPetRaro = CatalogoItens.SinoDoCervoJovem;
 
-        /// <summary>Item de montaria que chefe ou chefe raro pode largar como drop raro.</summary>
-        public const int ItemMontariaChefe = CatalogoItens.RedeasDoCorcelNoturno;
+        /// <summary>Exemplo de montaria de chefe; o sorteio real usa <see cref="RegrasLootCompanheiros"/>.</summary>
+        public const int ItemMontariaChefe = CatalogoItens.RedeasDoLoboDePresa;
 
         /// <summary>
         /// Sorteia uma peça: modelo uniforme entre os 72 do catálogo (ou o modelo exclusivo se chefe raro),

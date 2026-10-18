@@ -83,6 +83,11 @@ namespace JogoDoGrupo.Shared.Features.Economia
                 CatalogoItens.ObterNome(CatalogoItens.SinoDoCervoJovem) ?? "Pet",
                 500
             ),
+            new ItemLojaDto(
+                CatalogoItens.RedeasDaMulaDeCarga,
+                CatalogoItens.ObterNome(CatalogoItens.RedeasDaMulaDeCarga) ?? "Mula",
+                80
+            ),
         };
 
         /// <summary>

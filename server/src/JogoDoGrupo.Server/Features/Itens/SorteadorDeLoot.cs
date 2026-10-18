@@ -13,7 +13,7 @@ public interface ISorteadorDeLoot
     /// A raridade pesa pela <paramref name="origem"/> e o grau vem do nível do inimigo. Cada
     /// chamada é um sorteio novo.
     /// </summary>
-    QuedaDeLoot[] Sortear(OrigemDoLoot origem, int nivelDoInimigo);
+    QuedaDeLoot[] Sortear(OrigemDoLoot origem, int nivelDoInimigo, int criaturaId);
 }
 
 /// <summary>
@@ -29,7 +29,7 @@ public sealed class SorteadorDeLoot(Random aleatorio) : ISorteadorDeLoot
     public SorteadorDeLoot()
         : this(Random.Shared) { }
 
-    public QuedaDeLoot[] Sortear(OrigemDoLoot origem, int nivelDoInimigo)
+    public QuedaDeLoot[] Sortear(OrigemDoLoot origem, int nivelDoInimigo, int criaturaId)
     {
         lock (_trava)
         {
@@ -48,14 +48,18 @@ public sealed class SorteadorDeLoot(Random aleatorio) : ISorteadorDeLoot
                 && aleatorio.NextDouble() < ConfigLoot.ChanceDePetRaro
             )
             {
-                quedas.Add(
-                    new QuedaDeLoot
-                    {
-                        ModeloId = TabelaDeLoot.ItemPetRaro,
-                        Origem = origem,
-                        Grau = TabelaDeLoot.GrauDoNivel(nivelDoInimigo),
-                    }
-                );
+                var itemPet = RegrasLootCompanheiros.SortearItemDePet(criaturaId, aleatorio);
+                if (itemPet > 0)
+                {
+                    quedas.Add(
+                        new QuedaDeLoot
+                        {
+                            ModeloId = itemPet,
+                            Origem = origem,
+                            Grau = TabelaDeLoot.GrauDoNivel(nivelDoInimigo),
+                        }
+                    );
+                }
             }
 
             if (
@@ -63,14 +67,18 @@ public sealed class SorteadorDeLoot(Random aleatorio) : ISorteadorDeLoot
                 && aleatorio.NextDouble() < ConfigLoot.ChanceDeMontariaDoChefe
             )
             {
-                quedas.Add(
-                    new QuedaDeLoot
-                    {
-                        ModeloId = TabelaDeLoot.ItemMontariaChefe,
-                        Origem = origem,
-                        Grau = TabelaDeLoot.GrauDoNivel(nivelDoInimigo),
-                    }
-                );
+                var itemMontaria = RegrasLootCompanheiros.ItemDeMontariaDoChefe(criaturaId);
+                if (itemMontaria > 0)
+                {
+                    quedas.Add(
+                        new QuedaDeLoot
+                        {
+                            ModeloId = itemMontaria,
+                            Origem = origem,
+                            Grau = TabelaDeLoot.GrauDoNivel(nivelDoInimigo),
+                        }
+                    );
+                }
             }
 
             return quedas.ToArray();

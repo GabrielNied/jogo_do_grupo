@@ -68,9 +68,10 @@ namespace JogoDoGrupo.Client.Features.Montarias.UI
             _cartoesContainer.style.flexWrap = Wrap.Wrap;
             conteudo.Add(_cartoesContainer);
 
-            // Cria cartões das montarias catalogadas
-            CriarCartao(RegrasMontaria.TipoCastanho);
-            CriarCartao(RegrasMontaria.TipoNoturno);
+            foreach (var tipo in RegrasMontaria.TiposDoCatalogo)
+            {
+                CriarCartao(tipo);
+            }
 
             // Rodapé informativo
             var rodape = new Label(

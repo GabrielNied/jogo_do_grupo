@@ -145,9 +145,9 @@ public class TabelaDeLootTestes
     [Fact]
     public void Item_de_montaria_do_chefe_esta_definido_e_tem_nome()
     {
-        Assert.Equal(CatalogoItens.RedeasDoCorcelNoturno, TabelaDeLoot.ItemMontariaChefe);
+        Assert.Equal(CatalogoItens.RedeasDoLoboDePresa, TabelaDeLoot.ItemMontariaChefe);
         Assert.Equal(
-            "Rédeas do Corcel Noturno",
+            "Rédeas do Lobo de Presa",
             CatalogoItens.ObterNome(TabelaDeLoot.ItemMontariaChefe)
         );
     }

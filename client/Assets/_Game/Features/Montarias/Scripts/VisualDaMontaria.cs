@@ -45,10 +45,7 @@ namespace JogoDoGrupo.Client.Features.Montarias
         private void Construir(int tipo)
         {
             Tipo = tipo;
-            var corPelo = tipo == 2 ? PeloNoturno : PeloCastanho;
-            var corSecundaria = tipo == 2 ? SecundariaNoturno : SecundariaCastanho;
-            var corSela = tipo == 2 ? SelaNoturno : SelaCastanho;
-            var corDetalhe = tipo == 2 ? DetalheNoturno : DetalheCastanho;
+            ObterPaleta(tipo, out var corPelo, out var corSecundaria, out var corSela, out var corDetalhe);
 
             _raizVisual = new GameObject("Modelo").transform;
             _raizVisual.SetParent(transform, false);
@@ -120,8 +117,7 @@ namespace JogoDoGrupo.Client.Features.Montarias
                 corPelo
             );
 
-            // Elemento especial do Corcel Noturno: chifre / adereço místico na fronte
-            if (tipo == 2)
+            if (tipo == 2 || tipo == 7)
             {
                 Parte(
                     PrimitiveType.Cylinder,
@@ -130,6 +126,17 @@ namespace JogoDoGrupo.Client.Features.Montarias
                     new Vector3(0.07f, 0.22f, 0.07f),
                     corDetalhe
                 ).localRotation = Quaternion.Euler(45f, 0f, 0f);
+            }
+
+            if (tipo == 4)
+            {
+                Parte(
+                    PrimitiveType.Cube,
+                    "Cristal",
+                    new Vector3(0f, 1.05f, 0.2f),
+                    new Vector3(0.15f, 0.35f, 0.15f),
+                    corDetalhe
+                );
             }
 
             // 4 Patas
@@ -146,6 +153,67 @@ namespace JogoDoGrupo.Client.Features.Montarias
                 new Vector3(0.12f, 0.4f, 0.12f),
                 corSecundaria
             ).localRotation = Quaternion.Euler(-35f, 0f, 0f);
+        }
+
+        private static void ObterPaleta(
+            int tipo,
+            out Color corPelo,
+            out Color corSecundaria,
+            out Color corSela,
+            out Color corDetalhe
+        )
+        {
+            switch (tipo)
+            {
+                case 2:
+                    corPelo = PeloNoturno;
+                    corSecundaria = SecundariaNoturno;
+                    corSela = SelaNoturno;
+                    corDetalhe = DetalheNoturno;
+                    return;
+                case 3:
+                    corPelo = new Color(0.45f, 0.44f, 0.42f);
+                    corSecundaria = new Color(0.32f, 0.30f, 0.28f);
+                    corSela = new Color(0.22f, 0.18f, 0.14f);
+                    corDetalhe = new Color(0.75f, 0.72f, 0.65f);
+                    return;
+                case 4:
+                    corPelo = new Color(0.20f, 0.22f, 0.28f);
+                    corSecundaria = new Color(0.35f, 0.38f, 0.45f);
+                    corSela = SelaNoturno;
+                    corDetalhe = new Color(0.55f, 0.85f, 0.95f);
+                    return;
+                case 5:
+                    corPelo = new Color(0.75f, 0.82f, 0.92f);
+                    corSecundaria = new Color(0.55f, 0.65f, 0.78f);
+                    corSela = new Color(0.28f, 0.32f, 0.38f);
+                    corDetalhe = new Color(0.90f, 0.95f, 1f);
+                    return;
+                case 6:
+                    corPelo = new Color(0.35f, 0.33f, 0.32f);
+                    corSecundaria = new Color(0.48f, 0.42f, 0.38f);
+                    corSela = new Color(0.25f, 0.22f, 0.20f);
+                    corDetalhe = new Color(0.95f, 0.45f, 0.20f);
+                    return;
+                case 7:
+                    corPelo = new Color(0.14f, 0.15f, 0.22f);
+                    corSecundaria = new Color(0.22f, 0.24f, 0.35f);
+                    corSela = SelaNoturno;
+                    corDetalhe = new Color(0.95f, 0.85f, 0.35f);
+                    return;
+                case 8:
+                    corPelo = new Color(0.52f, 0.48f, 0.40f);
+                    corSecundaria = new Color(0.40f, 0.36f, 0.30f);
+                    corSela = SelaCastanho;
+                    corDetalhe = DetalheCastanho;
+                    return;
+                default:
+                    corPelo = PeloCastanho;
+                    corSecundaria = SecundariaCastanho;
+                    corSela = SelaCastanho;
+                    corDetalhe = DetalheCastanho;
+                    return;
+            }
         }
 
         private void CriarPata(string nome, Vector3 posicao, Color corPata, Color corCasco)

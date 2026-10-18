@@ -72,7 +72,8 @@ public sealed class ServicoDeLoot(
         var nivel = derrota.Nivel > 0 ? derrota.Nivel : ficha?.Nivel ?? 1;
         foreach (var donoId in derrota.Participantes.Distinct())
         {
-            var quedas = sorteador.Sortear(origem, nivel);
+            var criaturaId = derrota.CriaturaId;
+            var quedas = sorteador.Sortear(origem, nivel, criaturaId);
             if (quedas.Length == 0)
             {
                 continue;
