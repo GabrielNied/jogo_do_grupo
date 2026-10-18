@@ -45,7 +45,13 @@ namespace JogoDoGrupo.Client.Features.Montarias
         private void Construir(int tipo)
         {
             Tipo = tipo;
-            ObterPaleta(tipo, out var corPelo, out var corSecundaria, out var corSela, out var corDetalhe);
+            ObterPaleta(
+                tipo,
+                out var corPelo,
+                out var corSecundaria,
+                out var corSela,
+                out var corDetalhe
+            );
 
             _raizVisual = new GameObject("Modelo").transform;
             _raizVisual.SetParent(transform, false);
