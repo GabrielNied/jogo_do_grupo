@@ -110,6 +110,13 @@ namespace JogoDoGrupo.Client.Core.Jogo.Janelas
             return _gerente != null && _gerente.Fechar(chave);
         }
 
+        /// <summary>Traz a janela aberta para cima (a próxima que o Esc fecha).</summary>
+        /// <returns><c>true</c> se a janela está aberta.</returns>
+        public static bool Focar(string chave)
+        {
+            return _gerente != null && _gerente.Focar(chave);
+        }
+
         /// <summary>Janelas registradas, usadas pela sessão no mundo.</summary>
         internal static RegistroDeJanelas Registro => _registro;
 

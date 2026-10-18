@@ -68,14 +68,28 @@ namespace JogoDoGrupo.Client.Core.Jogo
                 RecalcularPendentes();
         }
 
-        public static string Caminho(string id) =>
-            _alteradas.TryGetValue(id, out var caminho) ? caminho : _padroes[id];
+        public static bool Tem(string id) => _alteradas.ContainsKey(id) || _padroes.ContainsKey(id);
 
-        public static string Rotulo(string id) => RotuloDoCaminho(Caminho(id));
+        public static string Caminho(string id) =>
+            _alteradas.TryGetValue(id, out var caminho)
+                ? caminho
+                : (_padroes.TryGetValue(id, out var padrao) ? padrao : null);
+
+        public static string Rotulo(string id)
+        {
+            var caminho = Caminho(id);
+            return string.IsNullOrEmpty(caminho) ? string.Empty : RotuloDoCaminho(caminho);
+        }
 
         public static string RotuloDoCaminho(string caminho)
         {
-            var tecla = caminho.Substring(caminho.IndexOf('/') + 1);
+            if (string.IsNullOrEmpty(caminho))
+            {
+                return string.Empty;
+            }
+
+            var index = caminho.IndexOf('/');
+            var tecla = index >= 0 ? caminho.Substring(index + 1) : caminho;
             switch (tecla)
             {
                 case "leftButton":

@@ -76,6 +76,7 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
 
         internal static void GarantirRegistroDeBloqueio()
         {
+            _bloqueioRegistrado = false;
             RegistrarBloqueio();
         }
 

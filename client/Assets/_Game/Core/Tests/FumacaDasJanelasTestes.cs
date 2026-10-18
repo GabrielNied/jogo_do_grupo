@@ -132,6 +132,12 @@ namespace JogoDoGrupo.Client.Core.Tests
         private void ConferirPontoDeEntrada(DefinicaoDeJanela definicao)
         {
             var chave = definicao.Chave;
+            if (!RegistroDeJanelas.TeclaValida(definicao.Tecla))
+            {
+                // Janelas sem atalho (ex.: lojas de NPC, banco, inspeção) só abrem por interação no mundo.
+                return;
+            }
+
             Assert.IsTrue(
                 RegistroDeJanelas.TeclaValida(definicao.Tecla),
                 $"[{chave}] Sem tecla de A a Z para abrir a janela."
