@@ -10,6 +10,7 @@ Sistema de montarias: a pessoa chama uma montaria, anda com velocidade aumentada
 
 ## Definido
 
+- **Estábulo na Brasa Mansa** (decidido por Gabriel em 2026-10-18): o cavalariço vende as montarias básicas por coroas, a **Mula de Carga** (que sai da loja geral) e um **cavalo comum**. As montarias de chefe continuam só no drop ([npcs](npcs.md#elenco-da-brasa-mansa), [#1067](https://github.com/GabrielNied/jogo_do_grupo/issues/1067)).
 - **Modelo alvo (implementado #928):** montarias entram como **item raro negociável** largado por **chefes** (campo, chefe raro, dungeon/raid — tabela de bosses, 5% de chance com `ConfigLoot.ChanceDeMontariaDoChefe`). **Usar o item registra a montaria na conta** (`MontariaDaConta` / tabela `MontariasDaConta`); a conta **coleciona várias**; só **uma montada** por vez. O *Corcel Noturno* é obtido via item consumível negociável (*Rédeas do Corcel Noturno*, ID 10); o *Corcel Castanho* (Tipo 1) é desbloqueado por padrão em todas as contas.
 - **Coleção e menu:** janela [Companheiros](interface.md#companheiros-u) (tecla **U**), aba **Montarias**: **catálogo completo**, bloqueados em cinza com texto de origem (ex.: "Drop raro do Guardião do Reflexo (5%)"); obtidas: equipar visual e atalhos de montar/desmontar.
 - **Modelos disponíveis:**

@@ -36,6 +36,7 @@ Moedas, mercado, comércio entre jogadores, saídas de recursos e taxas.
 - **Decisões do Gabriel em 2026-10-16** (quiz de definições 4):
   - **Reparo de durabilidade:** sink **leve** (referência New World): reparo barato, desgaste lento; quebrado tira atributos mas é raro numa sessão típica da fatia. Números finos em constante nomeada (agente economia, [#173](https://github.com/GabrielNied/jogo_do_grupo/issues/173)).
   - **Loja de NPC (#173):** o vendedor **compra qualquer item** do inventário por preço **baixo fixo por tier** (sink de lixo); também vende. Preços em `ConfigEconomia`.
+  - **Uma loja por categoria** (decidido por Gabriel em 2026-10-18): armeiro (armas), armadureiro (armaduras), taverneiro (comida e bebida) e merceeiro (consumíveis e materiais básicos) substituem o vendedor geral; cada um com catálogo próprio, e todos compram qualquer item pelo preço por tier ([npcs](npcs.md#elenco-da-brasa-mansa), [#1066](https://github.com/GabrielNied/jogo_do_grupo/issues/1066)).
 
 ## Em aberto
 
