@@ -17,6 +17,13 @@ namespace JogoDoGrupo.Shared.Features.Combate
         public float DirecaoY = 0f;
 
         /// <summary>
+        /// Elevação vertical da mira em graus (Pitch), onde 0 é paralelo ao chão, positivo aponta
+        /// para cima (+Y) e negativo aponta para baixo (-Y). Clampeado no servidor a
+        /// <see cref="RegrasProjetil.ElevacaoMinimaGraus"/> e <see cref="RegrasProjetil.ElevacaoMaximaGraus"/>.
+        /// </summary>
+        public float ElevacaoGraus = 0f;
+
+        /// <summary>
         /// Número crescente gerado pelo client; volta em <see cref="AtaqueRecusado.Sequencia"/>
         /// quando o pedido é recusado.
         /// </summary>

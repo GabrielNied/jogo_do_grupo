@@ -56,6 +56,10 @@ namespace JogoDoGrupo.Client.Features.Combate
         private readonly ProcessadorDeCliqueAtaque _processadorClique =
             new ProcessadorDeCliqueAtaque();
 
+        private bool _armaLongoAlcance;
+
+        public bool ArmaLongoAlcance => _armaLongoAlcance;
+
         public void Configurar(
             long personagemId,
             PainelAtaque painelAtaque,
@@ -107,6 +111,19 @@ namespace JogoDoGrupo.Client.Features.Combate
                     AoMudarRecursos
                 )
             );
+            _assinaturas.Add(
+                ConexaoTempoReal.Assinar<ArmaAtivaInformada>(
+                    CombateMessageIds.ArmaAtivaInformada,
+                    AoInformarArmaAtiva
+                )
+            );
+            _assinaturas.Add(
+                ConexaoTempoReal.Assinar<TrocaDeArmaIniciada>(
+                    CombateMessageIds.TrocaDeArmaIniciada,
+                    AoTrocarArma
+                )
+            );
+            ConexaoTempoReal.Enviar(CombateMessageIds.ConsultarArmaAtiva, new ConsultarArmaAtiva());
         }
 
         private void OnEnable()
@@ -121,6 +138,10 @@ namespace JogoDoGrupo.Client.Features.Combate
         {
             SoltarVelocidade();
             _leve?.Disable();
+            if (Camera.main != null)
+            {
+                Camera.main.fieldOfView = RegrasAtaque.FovPadraoCamera;
+            }
         }
 
         // Depois do Update do ControleTerceiraPessoa (que vira o corpo para onde anda): durante
@@ -183,6 +204,33 @@ namespace JogoDoGrupo.Client.Features.Combate
             var agora = Time.unscaledTimeAsDouble;
             AvancarFilaEBuffer(agora);
             ConferirGolpesSemResposta(agora);
+
+            float progressoCarga = 0f;
+            bool pesadoPronto = false;
+            if (_armaLongoAlcance && _processadorClique.Segurando)
+            {
+                var decorrido = agora - _processadorClique.SegurandoDesde;
+                progressoCarga = Mathf.Clamp01(
+                    (float)(decorrido / RegrasAtaque.SegurarParaPesadoSegundos)
+                );
+                pesadoPronto = _processadorClique.PesadoDoClique || progressoCarga >= 1f;
+            }
+
+            _painelAtaque?.AtualizarReticulo(_armaLongoAlcance, progressoCarga, pesadoPronto);
+
+            var cam = Camera.main;
+            if (cam != null)
+            {
+                float fovAlvo =
+                    (_armaLongoAlcance && progressoCarga > 0f)
+                        ? Mathf.Lerp(
+                            RegrasAtaque.FovPadraoCamera,
+                            RegrasAtaque.FovZoomPesadoLongoAlcance,
+                            progressoCarga
+                        )
+                        : RegrasAtaque.FovPadraoCamera;
+                cam.fieldOfView = Mathf.Lerp(cam.fieldOfView, fovAlvo, Time.deltaTime * 10f);
+            }
 
             if (_leve == null)
             {
@@ -272,7 +320,7 @@ namespace JogoDoGrupo.Client.Features.Combate
         private IntencaoDeAtaque Enviar(TipoDeAtaque tipo)
         {
             ControleDefesa.LargarParaAgir(_prontidao); // Atacar solta a guarda, antes do pedido.
-            var intencao = _gerador.Criar(tipo, DirecaoDaMira());
+            var intencao = _gerador.Criar(tipo, DirecaoDaMira(), ElevacaoDaMira());
             ConexaoTempoReal.Enviar(CombateMessageIds.IntencaoDeAtaque, intencao);
             return intencao;
         }
@@ -346,6 +394,25 @@ namespace JogoDoGrupo.Client.Features.Combate
             var jogador = EntradaNoJogo.Jogador;
             return jogador != null ? jogador.transform.eulerAngles.y : 0f;
         }
+
+        /// <summary>Elevação vertical da mira em graus (positivo para cima, negativo para baixo).</summary>
+        private static float ElevacaoDaMira()
+        {
+            var camera = Camera.main;
+            if (camera != null)
+            {
+                var forward = camera.transform.forward;
+                return Mathf.Asin(Mathf.Clamp(forward.y, -1f, 1f)) * Mathf.Rad2Deg;
+            }
+
+            return 0f;
+        }
+
+        private void AoInformarArmaAtiva(ArmaAtivaInformada info) =>
+            _armaLongoAlcance = RegrasAtaque.EhArmaDeLongoAlcance(info.TipoArma);
+
+        private void AoTrocarArma(TrocaDeArmaIniciada troca) =>
+            _armaLongoAlcance = RegrasAtaque.EhArmaDeLongoAlcance(troca.TipoArma);
 
         private void AoIniciarAtaque(AtaqueIniciado ataque)
         {

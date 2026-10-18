@@ -85,6 +85,40 @@ public sealed class ServicoDeAtaques : IHostedService, IDisposable
         _tempoReal.SessaoEncerrada += AoEncerrar;
     }
 
+    /// <summary>Client pediu para saber qual arma está ativa.</summary>
+    public void AoConsultarArmaAtiva(SessaoTempoReal sessao)
+    {
+        if (_armas == null)
+        {
+            return;
+        }
+
+        _ = EnviarArmaAtivaAsync(sessao);
+    }
+
+    private async Task EnviarArmaAtivaAsync(SessaoTempoReal sessao)
+    {
+        try
+        {
+            var arma = await _armas!.ObterAsync(sessao.PersonagemId, _parada.Token);
+            var tipo = arma?.Tipo ?? TipoEquipamento.Espada;
+            _tempoReal.Enviar(
+                sessao,
+                CombateMessageIds.ArmaAtivaInformada,
+                new ArmaAtivaInformada { TipoArma = tipo, Conjunto = arma?.Conjunto ?? 1 }
+            );
+        }
+        catch (OperationCanceledException) { }
+        catch (Exception e)
+        {
+            _log.LogDebug(
+                e,
+                "Não enviou ArmaAtivaInformada para {Personagem}.",
+                sessao.PersonagemId
+            );
+        }
+    }
+
     // Sem relógio de combate injetado: dorme o que falta na escala do próprio relógio do serviço.
     private Task EsperaReal(long instanteMs, CancellationToken cancelamento)
     {
@@ -132,6 +166,18 @@ public sealed class ServicoDeAtaques : IHostedService, IDisposable
             return;
         }
 
+        if (!float.IsFinite(intencao.ElevacaoGraus))
+        {
+            intencao.ElevacaoGraus = 0f;
+        }
+        else
+        {
+            intencao.ElevacaoGraus = Math.Max(
+                RegrasProjetil.ElevacaoMinimaGraus,
+                Math.Min(RegrasProjetil.ElevacaoMaximaGraus, intencao.ElevacaoGraus)
+            );
+        }
+
         var personagemId = sessao.PersonagemId;
         if (!_posicoes.TentarObter(personagemId, out _))
         {
@@ -150,7 +196,8 @@ public sealed class ServicoDeAtaques : IHostedService, IDisposable
             intencao.Tipo,
             intencao.DirecaoY,
             intencao.Sequencia,
-            intencao.TempoVistoMs
+            intencao.TempoVistoMs,
+            intencao.ElevacaoGraus
         );
         switch (_controle.Pedir(personagemId, pedido, _relogioMs(), out var acao))
         {
@@ -209,6 +256,7 @@ public sealed class ServicoDeAtaques : IHostedService, IDisposable
                     AtacanteId = personagemId,
                     Tipo = acao.Pedido.Tipo,
                     DirecaoY = acao.Pedido.DirecaoY,
+                    ElevacaoGraus = acao.Pedido.ElevacaoGraus,
                     PreparoMs = RegrasAtaque.PreparoMs(acao.Pedido.Tipo),
                     Passo = acao.Passo,
                 }

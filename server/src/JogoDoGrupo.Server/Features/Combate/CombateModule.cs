@@ -83,7 +83,8 @@ public sealed class CombateModule : IFeatureModule
                 sp.GetService<ITrocaDeConjunto>(),
                 sp.GetRequiredService<ILogger<ServicoDeTrocaDeArma>>(),
                 queda: sp.GetRequiredService<ServicoDeQueda>(),
-                relogioMs: () => sp.GetRequiredService<RelogioDeCombate>().AgoraMs
+                relogioMs: () => sp.GetRequiredService<RelogioDeCombate>().AgoraMs,
+                armas: sp.GetService<IArmaEquipada>()
             );
             _troca = servico;
             return servico;
@@ -216,6 +217,10 @@ public sealed class CombateModule : IFeatureModule
             .Ao<VoltarParaACidade>(
                 CombateMessageIds.VoltarParaACidade,
                 (sessao, _) => _queda?.AoVoltarParaACidade(sessao)
+            )
+            .Ao<ConsultarArmaAtiva>(
+                CombateMessageIds.ConsultarArmaAtiva,
+                (sessao, _) => _ataques?.AoConsultarArmaAtiva(sessao)
             );
 
     public void Inicializar(ServerContext contexto)
