@@ -46,5 +46,58 @@ namespace JogoDoGrupo.Client.Core.Tests
 
             Assert.IsTrue(BloqueioDeEntradaPorTexto.AtalhosDoJogoBloqueados());
         }
+
+        [Test]
+        public void DigitacaoAtiva_QuandoCondicaoRegistrada_RetornaVerdadeiro()
+        {
+            Assert.IsFalse(BloqueioDeEntradaPorTexto.DigitacaoAtiva());
+            BloqueioDeEntradaPorTexto.RegistrarBloqueioDeAtalhos(() => true);
+            Assert.IsTrue(BloqueioDeEntradaPorTexto.DigitacaoAtiva());
+        }
+
+        [Test]
+        public void DigitacaoMudou_NotificaMudancaDeEstado()
+        {
+            var notificou = false;
+            var novoEstado = false;
+
+            BloqueioDeEntradaPorTexto.DigitacaoMudou += ativa =>
+            {
+                notificou = true;
+                novoEstado = ativa;
+            };
+
+            BloqueioDeEntradaPorTexto.AtualizarEstado(true);
+            Assert.IsTrue(notificou);
+            Assert.IsTrue(novoEstado);
+
+            notificou = false;
+            BloqueioDeEntradaPorTexto.AtualizarEstado(true);
+            Assert.IsFalse(notificou, "Não deve notificar se o estado não mudou");
+
+            BloqueioDeEntradaPorTexto.AtualizarEstado(false);
+            Assert.IsTrue(notificou);
+            Assert.IsFalse(novoEstado);
+        }
+
+        [Test]
+        public void RegistrarEDesregistrarRaiz_NaoGeraExcecaoETemCampoComFocoFunciona()
+        {
+            var raizExtra = new VisualElement();
+            var campo = new TextField();
+            raizExtra.Add(campo);
+
+            BloqueioDeEntradaPorTexto.RegistrarRaiz(raizExtra);
+            Assert.IsFalse(FocoEmCampoDeTexto.TemCampoComFoco());
+
+            BloqueioDeEntradaPorTexto.DesregistrarRaiz(raizExtra);
+            Assert.IsFalse(FocoEmCampoDeTexto.TemCampoComFoco());
+        }
+
+        [Test]
+        public void SoltarFoco_SemElementosFocados_NaoLancaExcecao()
+        {
+            Assert.DoesNotThrow(() => FocoEmCampoDeTexto.SoltarFoco());
+        }
     }
 }
