@@ -3,6 +3,7 @@ using JogoDoGrupo.Client.Core.Jogo;
 using JogoDoGrupo.Client.Core.Jogo.Janelas;
 using JogoDoGrupo.Shared.Features.Npcs;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace JogoDoGrupo.Client.Features.Npcs
 {
@@ -143,7 +144,11 @@ namespace JogoDoGrupo.Client.Features.Npcs
                 AtualizarTextoPlaca(_jogadorNoAlcance);
             }
 
-            if (_jogadorNoAlcance && Input.GetKeyDown(KeyCode.E))
+            if (
+                _jogadorNoAlcance
+                && Keyboard.current != null
+                && Keyboard.current.eKey.wasPressedThisFrame
+            )
             {
                 InteragiuComNpc?.Invoke(_definicao);
                 if (_definicao.Papel == PapelNpc.Cavalarico)
