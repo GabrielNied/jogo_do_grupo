@@ -28,6 +28,12 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
         [MenuItem("Jogo do Grupo/Mundo/Criar cena de autoria do mapa")]
         public static void CriarCenaDeAutoria()
         {
+            if (File.Exists(CaminhoDaCena))
+            {
+                EditorSceneManager.OpenScene(CaminhoDaCena, OpenSceneMode.Single);
+                return;
+            }
+
             var dados = AssetDatabase.LoadAssetAtPath<TerrainData>(CaminhoDoTerrain);
             if (dados == null)
             {
@@ -67,6 +73,30 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
             EditorSceneManager.SaveScene(cena, CaminhoDaCena);
             SalvarPrefabPublicado();
             Selection.activeGameObject = terreno.gameObject;
+        }
+
+        [MenuItem("Jogo do Grupo/Mundo/Limpar vegetação procedural antiga")]
+        public static void LimparVegetacaoAntiga()
+        {
+            if (
+                !Application.isBatchMode
+                && !EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()
+            )
+            {
+                return;
+            }
+            var cena = EditorSceneManager.OpenScene(CaminhoDaCena, OpenSceneMode.Single);
+            var mapa = GameObject.Find(ConstrutorHub.NomeRaiz);
+            if (mapa == null)
+            {
+                throw new InvalidOperationException("A cena de autoria precisa ter a raiz 'Hub'.");
+            }
+            ConstrutorHub.RemoverVegetacaoProcedural(mapa.transform);
+            SalvarPrefabPublicado();
+            EditorSceneManager.SaveScene(cena);
+            AssetDatabase.SaveAssets();
+            Selection.activeGameObject = mapa.GetComponentInChildren<Terrain>().gameObject;
+            Debug.Log("[Mundo] Vegetação antiga removida. Pinte árvores e detalhes no Terrain.");
         }
 
         [MenuItem("Jogo do Grupo/Mundo/Publicar mapa feito à mão")]
@@ -319,7 +349,10 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
                 }
             }
 
+            ConstrutorHub.RemoverVegetacaoProcedural(mapa.transform);
+            EditorSceneManager.MarkSceneDirty(mapa.scene);
             PrefabUtility.SaveAsPrefabAsset(mapa, CaminhoDoPrefabPublicado);
+            AssetDatabase.SaveAssets();
         }
 
         private static void GarantirPastaDaCena()

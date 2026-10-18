@@ -249,7 +249,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
             var mapa = Object.Instantiate(modelo);
             mapa.name = NomeRaiz;
             RestaurarTerrenoPublicado(mapa);
-            RestaurarVegetacaoPublicada(mapa);
+            RemoverVegetacaoProcedural(mapa.transform);
             return mapa;
         }
 
@@ -274,29 +274,20 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
             }
         }
 
-        // O prefab publicado só consegue guardar os GameObjects dos colisores. As matrizes que
-        // BlocosDeVegetacao desenha por instancing vivem em memória e somem ao salvar; portanto
-        // a vegetação deve sempre ser reconstruída ao carregar o mapa.
-        private static void RestaurarVegetacaoPublicada(GameObject mapa)
+        /// <summary>Remove somente as raízes reservadas à vegetação procedural antiga.</summary>
+        public static void RemoverVegetacaoProcedural(Transform raiz)
         {
-            var antiga = mapa.transform.Find(NomePecasDosBiomas);
-            if (antiga != null)
+            foreach (var nome in new[] { NomePecasDosBiomas, NomePropsFora })
             {
+                var antiga = raiz.Find(nome);
+                if (antiga == null)
+                    continue;
+                antiga.gameObject.SetActive(false);
                 if (Application.isPlaying)
-                {
-                    // Desativar remove os colisores imediatamente; a destruição evita carregar
-                    // milhares de objetos inertes pelo restante da sessão.
-                    antiga.gameObject.SetActive(false);
                     Object.Destroy(antiga.gameObject);
-                }
                 else
-                {
                     Object.DestroyImmediate(antiga.gameObject);
-                }
             }
-
-            _escalaDasPecas = MedirEscalaDasPecas();
-            CriarPecasDosBiomas(mapa.transform);
         }
 
         /// <summary>
@@ -317,17 +308,6 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
             }
 
             foreach (var passo in CriarProps(raiz, orcamento))
-            {
-                yield return passo;
-            }
-
-            foreach (var passo in CriarPropsFora(raiz, orcamento))
-            {
-                yield return passo;
-            }
-
-            var pecas = CriarRaizDasPecasDosBiomas(raiz);
-            foreach (var passo in MontadorDaVegetacao.Montar(pecas, _escalaDasPecas, orcamento))
             {
                 yield return passo;
             }
@@ -619,56 +599,6 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
             luz.shadows = LightShadows.None;
         }
 
-        private static IEnumerable<int> CriarPropsFora(Transform pai, OrcamentoDeQuadro orcamento)
-        {
-            var props = new GameObject(NomePropsFora).transform;
-            props.SetParent(pai, false);
-
-            // As peças do miolo ficam apoiadas no relevo. As que cairiam dentro da água ou da
-            // lava (onde um bioma de fora avança sobre o miolo) são puladas.
-            foreach (var peca in LayoutDoHub.PropsFora)
-            {
-                if (
-                    MapaDoMundo.PertoDeCidadeSecundaria(peca.X, peca.Z, 8f)
-                    || CaminhosDoMundo.LivreDeVegetacao(peca.X, peca.Z)
-                    || PertoDeBairroFlorestal(peca.X, peca.Z)
-                    || PertoDeEstrutura(peca.X, peca.Z)
-                    || !PecasDosBiomas.ManterPecaAntiga(peca.X, peca.Z)
-                )
-                {
-                    continue;
-                }
-
-                var altura = MapaDoMundo.AlturaEm(peca.X, peca.Z);
-                if (
-                    altura < MapaDoMundo.NivelDaAgua
-                    || (
-                        PecasDosBiomas.EhArvore(peca.Prefab)
-                        && !PecasDosBiomas.ArvoreCabeNaInclinacao(peca.X, peca.Z)
-                    )
-                )
-                {
-                    continue;
-                }
-
-                var enterro = PecasDosBiomas.EhArvore(peca.Prefab)
-                    ? MapaDoMundo.EnterroDaVegetacaoEm(peca.X, peca.Z)
-                    : 0f;
-
-                var instancia = Instanciar(
-                    peca.Prefab,
-                    new Vector3(peca.X, altura - enterro, peca.Z),
-                    peca.Guinada,
-                    props
-                );
-                Tingir(instancia, MapaDoMundo.BiomaEm(peca.X, peca.Z));
-                if (orcamento.Esgotou())
-                {
-                    yield return 0;
-                }
-            }
-        }
-
         internal static bool PertoDeBairroFlorestal(float x, float z)
         {
             foreach (var peca in BairrosDaFloresta)
@@ -833,45 +763,10 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
             }
         }
 
-        // Árvores e pedras além do miolo de 1 km, por bioma, na altura do chão e na cor do bioma.
-        // Não são um objeto por peça: o MontadorDaVegetacao registra cada uma no desenho por
-        // blocos (malha e material divididos) e cria só o colisor.
-        private static Transform CriarRaizDasPecasDosBiomas(Transform pai)
-        {
-            var pecas = new GameObject(NomePecasDosBiomas).transform;
-            pecas.SetParent(pai, false);
-            return pecas;
-        }
-
-        private static void CriarPecasDosBiomas(Transform pai)
-        {
-            var pecas = CriarRaizDasPecasDosBiomas(pai);
-            foreach (var _ in MontadorDaVegetacao.Montar(pecas, _escalaDasPecas)) { }
-        }
-
-        /// <summary>Refaz só as peças naturais da prévia depois de editar uma região.</summary>
+        /// <summary>A edição de biomas preserva a vegetação pintada no Terrain.</summary>
         public static void AtualizarVegetacaoDaPrevia(Transform raiz)
         {
-            var antigas = raiz.Find(NomePropsFora);
-            if (antigas != null)
-            {
-                foreach (Transform peca in antigas)
-                {
-                    var x = peca.localPosition.x;
-                    var z = peca.localPosition.z;
-                    peca.gameObject.SetActive(PecasDosBiomas.ManterPecaAntiga(x, z));
-                    peca.localPosition = new Vector3(x, MapaDoMundo.AlturaEm(x, z), z);
-                }
-            }
-
-            var atual = raiz.Find(NomePecasDosBiomas);
-            if (atual != null)
-            {
-                Object.DestroyImmediate(atual.gameObject);
-            }
-
-            PecasDosBiomas.LimparCache();
-            CriarPecasDosBiomas(raiz);
+            RemoverVegetacaoProcedural(raiz);
         }
 
         // Troca os materiais da peça por cópias multiplicadas pela cor do bioma. Branco (campo,

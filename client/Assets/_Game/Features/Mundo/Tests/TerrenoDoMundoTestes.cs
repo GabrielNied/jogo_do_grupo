@@ -471,11 +471,13 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
         };
 
         [Test]
-        public void Hub_desenha_toda_peca_dos_biomas_por_instancias_com_poucos_materiais()
+        public void Montador_legado_desenha_pecas_por_instancias_com_poucos_materiais()
         {
             ConstruirTerreno();
-            var raiz = _hub.transform.Find(ConstrutorHub.NomePecasDosBiomas);
-            Assert.IsNotNull(raiz, "O hub deveria ter as peças dos biomas.");
+            var objeto = new GameObject("VegetacaoDeTeste");
+            objeto.transform.SetParent(_hub.transform, false);
+            var raiz = objeto.transform;
+            foreach (var _ in MontadorDaVegetacao.Montar(raiz, 1f)) { }
             var blocos = raiz.GetComponent<BlocosDeVegetacao>();
             Assert.IsNotNull(blocos);
 
@@ -594,9 +596,10 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
         public void Corte_por_distancia_tira_blocos_longe_e_pecas_pequenas_mais_perto()
         {
             ConstruirTerreno();
-            var blocos = _hub
-                .transform.Find(ConstrutorHub.NomePecasDosBiomas)
-                .GetComponent<BlocosDeVegetacao>();
+            var raiz = new GameObject("VegetacaoDeTeste");
+            raiz.transform.SetParent(_hub.transform, false);
+            foreach (var _ in MontadorDaVegetacao.Montar(raiz.transform, 1f)) { }
+            var blocos = raiz.GetComponent<BlocosDeVegetacao>();
 
             var peca = PecasDosBiomas.Todas[0];
             var junto = new Vector3(peca.X, peca.Y, peca.Z);
@@ -816,6 +819,36 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
         }
 
         [Test]
+        public void Limpeza_legada_preserva_terrain_e_objetos_manuais_e_pode_repetir()
+        {
+            _hub = new GameObject("MapaDeTeste");
+            var manual = new GameObject("ArvoreManual");
+            manual.transform.SetParent(_hub.transform, false);
+            var dados = new TerrainData();
+            var terreno = Terrain.CreateTerrainGameObject(dados);
+            terreno.transform.SetParent(_hub.transform, false);
+            foreach (
+                var nome in new[] { ConstrutorHub.NomePropsFora, ConstrutorHub.NomePecasDosBiomas }
+            )
+            {
+                new GameObject(nome).transform.SetParent(_hub.transform, false);
+            }
+            try
+            {
+                ConstrutorHub.AtualizarVegetacaoDaPrevia(_hub.transform);
+                ConstrutorHub.AtualizarVegetacaoDaPrevia(_hub.transform);
+                Assert.IsNull(_hub.transform.Find(ConstrutorHub.NomePropsFora));
+                Assert.IsNull(_hub.transform.Find(ConstrutorHub.NomePecasDosBiomas));
+                Assert.AreSame(manual.transform, _hub.transform.Find("ArvoreManual"));
+                Assert.AreSame(dados, terreno.GetComponent<Terrain>().terrainData);
+            }
+            finally
+            {
+                Object.DestroyImmediate(dados);
+            }
+        }
+
+        [Test]
         public void Mapa_publicado_restaura_terrain_data_e_colisor_no_chao_nativo()
         {
             var mapa = ConstrutorHub.InstanciarMapaPublicadoParaTeste();
@@ -843,22 +876,18 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
                 Assert.AreSame(terrain.terrainData, colisor.terrainData);
                 Assert.AreEqual(MapaDoMundo.Lado, terrain.terrainData.size.x, 0.01f);
 
-                var vegetacao = mapa
-                    .transform.Find(ConstrutorHub.NomePecasDosBiomas)
-                    .GetComponent<BlocosDeVegetacao>();
-                Assert.IsNotNull(
-                    vegetacao,
-                    "A vegetação do mapa publicado precisa ser reconstruída ao carregar."
+                Assert.IsNull(mapa.transform.Find(ConstrutorHub.NomePecasDosBiomas));
+                Assert.IsNull(mapa.transform.Find(ConstrutorHub.NomePropsFora));
+                Assert.IsEmpty(mapa.GetComponentsInChildren<BlocosDeVegetacao>());
+                var origem = Resources.Load<TerrainData>("Mundo/TerrenoDoMundo");
+                Assert.AreEqual(origem.treeInstanceCount, terrain.terrainData.treeInstanceCount);
+                CollectionAssert.AreEqual(
+                    origem.treePrototypes,
+                    terrain.terrainData.treePrototypes
                 );
-                Assert.Greater(
-                    vegetacao.Instancias,
-                    0,
-                    "A vegetação reconstruída precisa registrar instâncias para desenhar."
-                );
-                Assert.AreEqual(
-                    1,
-                    mapa.GetComponentsInChildren<BlocosDeVegetacao>().Length,
-                    "O mapa não pode conservar a vegetação serializada sem desenho."
+                CollectionAssert.AreEqual(
+                    origem.detailPrototypes,
+                    terrain.terrainData.detailPrototypes
                 );
             }
             finally
