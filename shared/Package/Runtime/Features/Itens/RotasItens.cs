@@ -64,6 +64,31 @@ namespace JogoDoGrupo.Shared.Features.Itens
         /// </summary>
         public const string Expandir = "/api/personagens/{personagemId}/inventario/expandir";
 
+        /// <summary>
+        /// Modelo da rota. <c>GET</c> responde 200 <see cref="BancoResponse"/> com itens do banco da conta.
+        /// </summary>
+        public const string Banco = "/api/personagens/{personagemId}/banco";
+
+        /// <summary>
+        /// Modelo da rota. <c>POST</c> com <see cref="PedidoDepositarBanco"/> transfere um item da bolsa para o banco.
+        /// </summary>
+        public const string BancoDepositar = "/api/personagens/{personagemId}/banco/depositar";
+
+        /// <summary>
+        /// Modelo da rota. <c>POST</c> com <see cref="PedidoRetirarBanco"/> transfere um item do banco para a bolsa.
+        /// </summary>
+        public const string BancoRetirar = "/api/personagens/{personagemId}/banco/retirar";
+
+        /// <summary>
+        /// Modelo da rota. <c>POST</c> com <see cref="PedidoMoverBanco"/> move/troca itens entre casas do banco.
+        /// </summary>
+        public const string BancoMover = "/api/personagens/{personagemId}/banco/mover";
+
+        /// <summary>
+        /// Modelo da rota. <c>POST</c> sem corpo desbloqueia uma nova aba no banco da conta cobrando coroas.
+        /// </summary>
+        public const string BancoExpandir = "/api/personagens/{personagemId}/banco/expandir";
+
         /// <summary>Caminho de <see cref="DescartarLote"/> para um personagem (uso do client).</summary>
         public static string DescartarLoteDe(long personagemId) =>
             "/api/personagens/" + personagemId + "/inventario/descartar-lote";
@@ -99,5 +124,25 @@ namespace JogoDoGrupo.Shared.Features.Itens
         /// <summary>Caminho de <see cref="Bau"/> para um personagem (uso do client).</summary>
         public static string BauDe(long personagemId) =>
             "/api/personagens/" + personagemId + "/bau";
+
+        /// <summary>Caminho de <see cref="Banco"/> para um personagem (uso do client).</summary>
+        public static string BancoDe(long personagemId) =>
+            "/api/personagens/" + personagemId + "/banco";
+
+        /// <summary>Caminho de <see cref="BancoDepositar"/> para um personagem (uso do client).</summary>
+        public static string BancoDepositarDe(long personagemId) =>
+            "/api/personagens/" + personagemId + "/banco/depositar";
+
+        /// <summary>Caminho de <see cref="BancoRetirar"/> para um personagem (uso do client).</summary>
+        public static string BancoRetirarDe(long personagemId) =>
+            "/api/personagens/" + personagemId + "/banco/retirar";
+
+        /// <summary>Caminho de <see cref="BancoMover"/> para um personagem (uso do client).</summary>
+        public static string BancoMoverDe(long personagemId) =>
+            "/api/personagens/" + personagemId + "/banco/mover";
+
+        /// <summary>Caminho de <see cref="BancoExpandir"/> para um personagem (uso do client).</summary>
+        public static string BancoExpandirDe(long personagemId) =>
+            "/api/personagens/" + personagemId + "/banco/expandir";
     }
 }
