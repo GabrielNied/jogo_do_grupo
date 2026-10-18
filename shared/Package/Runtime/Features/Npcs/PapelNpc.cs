@@ -17,5 +17,6 @@ namespace JogoDoGrupo.Shared.Features.Npcs
         CuidadorDePets = 11,
         Guarda = 12,
         Morador = 13,
+        Cavalarico = 14,
     }
 }
