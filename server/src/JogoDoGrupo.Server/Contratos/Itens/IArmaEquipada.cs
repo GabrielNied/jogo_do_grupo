@@ -7,7 +7,8 @@ public readonly record struct ArmaEquipada(
     long InstanciaId,
     int ModeloId,
     TipoEquipamento Tipo,
-    int Conjunto
+    int Conjunto,
+    ElementoDaArma Elemento = ElementoDaArma.Nenhum
 );
 
 /// <summary>

@@ -16,6 +16,15 @@ namespace JogoDoGrupo.Shared.Features.Itens
         /// <summary>Espada, Arco, Cajado, Escudo e Foco de teste, só para o botão de equipamento de teste.</summary>
         public const int QuantidadeModelosDeArma = 5;
 
+        /// <summary>Cajado de teste com afinidade de Fogo.</summary>
+        public const int CajadoDeFogoDeTeste = 180;
+
+        /// <summary>Cajado de teste com afinidade de Gelo.</summary>
+        public const int CajadoDeGeloDeTeste = 181;
+
+        /// <summary>Cajado de teste com afinidade de Cura.</summary>
+        public const int CajadoDeCuraDeTeste = 182;
+
         /// <summary>Item exclusivo que só o chefe raro Presa-Velha pode largar.</summary>
         public const int AdornoPresaVelha = 200;
 
@@ -155,6 +164,27 @@ namespace JogoDoGrupo.Shared.Features.Itens
                     Atributos = atributosAdorno.ToArray(),
                 };
             }
+            if (id == CajadoDeFogoDeTeste)
+                return Arma(
+                    id,
+                    "Cajado de Fogo Ressonante",
+                    TipoEquipamento.Cajado,
+                    ElementoDaArma.Fogo
+                );
+            if (id == CajadoDeGeloDeTeste)
+                return Arma(
+                    id,
+                    "Cajado de Gelo Ressonante",
+                    TipoEquipamento.Cajado,
+                    ElementoDaArma.Gelo
+                );
+            if (id == CajadoDeCuraDeTeste)
+                return Arma(
+                    id,
+                    "Cajado de Cura Ressonante",
+                    TipoEquipamento.Cajado,
+                    ElementoDaArma.Cura
+                );
             if (id >= PrimeiroModeloDeArma && id < PrimeiroModeloDeArma + QuantidadeModelosDeArma)
             {
                 var tipo = ArmasDeTeste[id - PrimeiroModeloDeArma];
@@ -194,9 +224,30 @@ namespace JogoDoGrupo.Shared.Features.Itens
             TipoEquipamento.Foco,
         };
 
+        /// <summary>Cria um exemplar de cajado de teste com o elemento especificado.</summary>
+        public static Equipamento CriarCajado(ElementoDaArma elemento)
+        {
+            switch (elemento)
+            {
+                case ElementoDaArma.Fogo:
+                    return Obter(CajadoDeFogoDeTeste);
+                case ElementoDaArma.Gelo:
+                    return Obter(CajadoDeGeloDeTeste);
+                case ElementoDaArma.Cura:
+                    return Obter(CajadoDeCuraDeTeste);
+                default:
+                    return Obter(PrimeiroModeloDeArma + 2);
+            }
+        }
+
         // Arma ou mão secundária de teste: os atributos do modelo são os da matriz que dão o golpe
         // (dano da arma e o principal) ou a defesa.
-        private static Equipamento Arma(int id, string nome, TipoEquipamento tipo)
+        private static Equipamento Arma(
+            int id,
+            string nome,
+            TipoEquipamento tipo,
+            ElementoDaArma elemento = ElementoDaArma.Nenhum
+        )
         {
             var atributos = new List<AtributoItem>();
             foreach (var status in ConfigAtributosItem.Elegiveis(tipo))
@@ -210,6 +261,7 @@ namespace JogoDoGrupo.Shared.Features.Itens
                 Nome = nome,
                 Regiao = "Vale",
                 Tipo = tipo,
+                Elemento = elemento,
                 DuasMaos = tipo == TipoEquipamento.Martelo,
                 Atributos = atributos.ToArray(),
             };

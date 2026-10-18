@@ -45,7 +45,8 @@ internal sealed class EquipamentosParaCombate(IServiceScopeFactory escopos)
                 arma.InstanciaId,
                 arma.Equipamento!.ModeloId,
                 arma.Equipamento.Tipo,
-                conjunto
+                conjunto,
+                arma.Equipamento.Elemento
             );
     }
 
