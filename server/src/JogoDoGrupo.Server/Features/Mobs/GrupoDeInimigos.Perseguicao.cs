@@ -456,9 +456,10 @@ public sealed partial class GrupoDeInimigos
 
             if (inimigo.Preparando)
             {
-                if (_projeteis != null)
+                var disparador = _projeteis?.Invoke();
+                if (disparador != null)
                 {
-                    _projeteis.Disparar(
+                    disparador.Disparar(
                         inimigo.Id,
                         Area,
                         TipoDeProjetil.Flecha,

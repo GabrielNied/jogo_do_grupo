@@ -48,7 +48,7 @@ public sealed partial class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulado
     private readonly bool _semReposicao;
     private readonly PeriodoDeAparicao _periodo;
     private readonly IRelogioDoMundo? _relogioDoMundo;
-    private readonly IDisparoDeProjeteis? _projeteis;
+    private readonly Func<IDisparoDeProjeteis?>? _projeteis;
     private readonly int? _criaturaRetaguardaId;
 
     private int _pontoDaRota;
@@ -122,7 +122,7 @@ public sealed partial class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulado
         IHistoricoDePosicoesDoMundo? historico = null,
         PeriodoDeAparicao periodo = PeriodoDeAparicao.Sempre,
         IRelogioDoMundo? relogioDoMundo = null,
-        IDisparoDeProjeteis? projeteis = null,
+        Func<IDisparoDeProjeteis?>? projeteis = null,
         int? criaturaRetaguardaId = null
     )
     {
@@ -203,7 +203,7 @@ public sealed partial class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulado
         IEstadoDeQueda? queda = null,
         IHistoricoDePosicoesDoMundo? historico = null,
         IRelogioDoMundo? relogioDoMundo = null,
-        IDisparoDeProjeteis? projeteis = null
+        Func<IDisparoDeProjeteis?>? projeteis = null
     ) =>
         new(
             CatalogoCriaturas.Obter(ponto.CriaturaId)

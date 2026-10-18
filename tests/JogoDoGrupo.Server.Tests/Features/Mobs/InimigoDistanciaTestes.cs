@@ -85,7 +85,7 @@ public class InimigoDistanciaTestes
                 pontoX: x,
                 pontoZ: z,
                 queda: new QuedaMock(),
-                projeteis: Disparos
+                projeteis: () => Disparos
             );
         }
 
