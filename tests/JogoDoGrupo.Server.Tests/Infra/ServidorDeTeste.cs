@@ -32,7 +32,7 @@ public sealed class ServidorDeTeste : WebApplicationFactory<Program>
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Development");
-        builder.UseSetting("ConnectionStrings:Jogo", $"Data Source={_arquivoBanco}");
+        builder.UseSetting("ConnectionStrings:Jogo", $"Data Source={_arquivoBanco};Pooling=False");
         // Cada servidor de teste escuta o UDP numa porta livre, só no loopback.
         builder.UseSetting("TempoReal:Porta", "0");
         builder.UseSetting("TempoReal:Endereco", "127.0.0.1");
