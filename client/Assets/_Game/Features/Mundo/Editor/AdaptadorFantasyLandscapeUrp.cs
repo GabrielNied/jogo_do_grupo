@@ -15,6 +15,10 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
         private const string ShaderLit = "Universal Render Pipeline/Lit";
         private const string ShaderParticulas = "Universal Render Pipeline/Particles/Unlit";
 
+        // Uma malha 3D até ocupar menos de 2% da altura da tela; depois é ocultada.
+        // Não são geradas malhas simplificadas nem usado o billboard Tree Creator antigo.
+        private const float AlturaRelativaDeCorte = 0.02f;
+
         [MenuItem("Jogo do Grupo/Mundo/Adaptar Fantasy Landscape para URP")]
         public static void Converter()
         {
@@ -135,6 +139,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
                 convertidos++;
             }
 
+            AdaptarLodDasArvores();
             AssetDatabase.SaveAssets();
             foreach (var terreno in Terrain.activeTerrains)
             {
@@ -210,6 +215,57 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
             if (quantidade == 0)
                 throw new InvalidOperationException("Nenhum material do pack foi encontrado.");
             Debug.Log($"[Mundo] {quantidade} materiais URP validados.");
+            foreach (var caminho in CaminhosDasArvores())
+            {
+                var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(caminho);
+                var grupo = prefab.GetComponent<LODGroup>();
+                if (grupo == null || grupo.GetLODs().Length == 0)
+                {
+                    throw new InvalidOperationException("Árvore sem LOD Group na raiz: " + caminho);
+                }
+            }
+        }
+
+        private static string[] CaminhosDasArvores()
+        {
+            var pasta = PastaDoPack + "/Environments/Ambient-Occlusion-Trees/Prefabs";
+            var guids = AssetDatabase.FindAssets("t:Prefab", new[] { pasta });
+            return Array.ConvertAll(guids, AssetDatabase.GUIDToAssetPath);
+        }
+
+        private static void AdaptarLodDasArvores()
+        {
+            var adaptadas = 0;
+            foreach (var caminho in CaminhosDasArvores())
+            {
+                var raiz = PrefabUtility.LoadPrefabContents(caminho);
+                try
+                {
+                    // Respeitar LODs que o artista tenha configurado depois da adaptação.
+                    if (raiz.GetComponent<LODGroup>() != null)
+                        continue;
+                    var renderers = raiz.GetComponentsInChildren<MeshRenderer>(true);
+                    if (renderers.Length == 0)
+                    {
+                        throw new InvalidOperationException(
+                            "Árvore sem malha para LOD: " + caminho
+                        );
+                    }
+                    var grupo = raiz.AddComponent<LODGroup>();
+                    grupo.fadeMode = LODFadeMode.None;
+                    grupo.SetLODs(new[] { new LOD(AlturaRelativaDeCorte, renderers) });
+                    grupo.RecalculateBounds();
+                    PrefabUtility.SaveAsPrefabAsset(raiz, caminho);
+                    adaptadas++;
+                }
+                finally
+                {
+                    PrefabUtility.UnloadPrefabContents(raiz);
+                }
+            }
+            Debug.Log(
+                $"[Mundo] {adaptadas} árvores adaptadas com LOD Group na raiz, sem billboard legado e com suporte à rotação do Terrain."
+            );
         }
 
         public static void CapturarPrevia()
