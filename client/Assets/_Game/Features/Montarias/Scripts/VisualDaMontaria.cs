@@ -213,6 +213,12 @@ namespace JogoDoGrupo.Client.Features.Montarias
                     corSela = SelaCastanho;
                     corDetalhe = DetalheCastanho;
                     return;
+                case 9:
+                    corPelo = new Color(0.60f, 0.42f, 0.25f);
+                    corSecundaria = new Color(0.25f, 0.18f, 0.12f);
+                    corSela = SelaCastanho;
+                    corDetalhe = new Color(0.80f, 0.65f, 0.22f);
+                    return;
                 default:
                     corPelo = PeloCastanho;
                     corSecundaria = SecundariaCastanho;

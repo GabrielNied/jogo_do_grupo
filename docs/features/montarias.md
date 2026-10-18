@@ -68,7 +68,8 @@ Convenção: **Rédeas do/da …**. Cada linha reserva um `TipoMontaria` (1–99
 | 5 | Corcel da Geada | Rédeas do Corcel da Geada | Drop raro de chefe de neve (5%) | Chefe de raid/neve *(ficha FUTURO)* |
 | 6 | Basalto Vivente | Rédeas do Basalto Vivente | Drop raro do Colosso Basáltico (5%) | **Colosso Basáltico** *(FUTURO, [mobs](mobs.md#livro-de-asterra-bestiário-proposta-do-board-2026-10-11))* |
 | 7 | Tempestário | Rédeas do Tempestário | Drop raro do Ancião Trovejante (5%) | **Ancião Trovejante** *(FUTURO)* |
-| 8 | Mula de Carga | Rédeas da Mula de Carga | Comerciante ou missão *(sem drop de chefe)* | Opcional: cosmético acessível, negociável |
+| 8 | Mula de Carga | Rédeas da Mula de Carga | Estábulo da Brasa Mansa (80 Coroas) | Cavalariço Roderic / Estábulo |
+| 9 | Cavalo Comum | — | Estábulo da Brasa Mansa (150 Coroas) | Cavalariço Roderic / Estábulo |
 
 Sem voo, sem bônus de velocidade ou utilidade. Pets: [pets.md — Catálogo (proposta)](pets.md#catálogo-proposta).
 
@@ -76,7 +77,7 @@ Sem voo, sem bônus de velocidade ou utilidade. Pets: [pets.md — Catálogo (pr
 
 1. Separar **Presa-Velha** (Lobo de Presa) e **Guardião do Reflexo** (Corcel de Cristal ou renomear Noturno só para um deles).
 2. Endgame quando existirem chefes de mundo do livro.
-3. Mula de Carga só se economia/missões pedirem montaria barata fora do loop de boss.
+3. Mula de Carga e Cavalo Comum disponíveis no Estábulo da Brasa Mansa por coroas (#1067).
 
 ## Regras
 
@@ -102,12 +103,18 @@ Ao montar, o servidor envia `VelocidadesDeMovimento` com `Correr = 9.0f` e notif
 | 16006 | `ColecaoMontarias` | servidor → client | `MontariasDesbloqueadas` (int[]) |
 | 16007 | `MontariaDesbloqueada` | servidor → client | `TipoMontaria` (int), `Nome` (string) |
 | 16008 | `MontariaRecusada` | servidor → client | `Codigo` (string), `Motivo` (string) |
+| 16009 | `ConsultarEstabulo` | client → servidor | _(vazia)_ |
+| 16010 | `RespostaEstabulo` | servidor → client | `Ofertas` (`MontariaEstabuloDto[]`) |
+| 16011 | `ComprarMontariaEstabulo` | client → servidor | `TipoMontaria` (int) |
+| 16012 | `RespostaCompraEstabulo` | servidor → client | `Sucesso` (bool), `TipoMontaria` (int), `SaldoRestante` (long), `CodigoErro` (string), `Mensagem` (string) |
 
 ## Depende de
 
 - `Mundo`: `IVelocidadesAutoritativasDoMundo` para atualização de velocidades autoritativas no servidor e validação de deslocamento.
 - `Combate`: `IEstadoDeCombate` para consulta de combate ativo e evento `PersonagemCaiu` para desmontar na queda.
 - `Itens`: `CatalogoItens` para rédeas consumíveis negociáveis e consumo de exemplar na bolsa.
+- `Economia`: `ICarteiraCoroas` para débito autoritativo de coroas na compra do estábulo (#1067).
+- `NPCs`: `CatalogoNpcs` e `PapelNpc.Cavalarico` para validação autoritativa de alcance/proximidade do estábulo (#1067).
 
 ## Expõe
 

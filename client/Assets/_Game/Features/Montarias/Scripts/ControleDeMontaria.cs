@@ -31,6 +31,8 @@ namespace JogoDoGrupo.Client.Features.Montarias
         private IDisposable _assinaturaColecao;
         private IDisposable _assinaturaDesbloqueada;
         private IDisposable _assinaturaRecusada;
+        private IDisposable _assinaturaRespostaEstabulo;
+        private IDisposable _assinaturaRespostaCompra;
         private Vector3 _posicaoInicioInvocacao;
 
         public bool MontadoLocal { get; private set; }
@@ -45,6 +47,8 @@ namespace JogoDoGrupo.Client.Features.Montarias
         public event Action<int> MontariaEquipadaMudou;
         public event Action ColecaoMudou;
         public event Action<bool, float, float> InvocacaoProgresso;
+        public event Action<MontariaEstabuloDto[]> OfertasEstabuloRecebidas;
+        public event Action<RespostaCompraEstabulo> CompraEstabuloRecebida;
 
         private void Awake()
         {
@@ -124,6 +128,22 @@ namespace JogoDoGrupo.Client.Features.Montarias
                     AoReceberMontariaRecusada
                 );
             }
+
+            if (_assinaturaRespostaEstabulo == null)
+            {
+                _assinaturaRespostaEstabulo = ConexaoTempoReal.Assinar<RespostaEstabulo>(
+                    MontariasMessageIds.RespostaEstabulo,
+                    AoReceberRespostaEstabulo
+                );
+            }
+
+            if (_assinaturaRespostaCompra == null)
+            {
+                _assinaturaRespostaCompra = ConexaoTempoReal.Assinar<RespostaCompraEstabulo>(
+                    MontariasMessageIds.RespostaCompraEstabulo,
+                    AoReceberRespostaCompraEstabulo
+                );
+            }
         }
 
         private void DesassinarRede()
@@ -138,6 +158,10 @@ namespace JogoDoGrupo.Client.Features.Montarias
             _assinaturaDesbloqueada = null;
             _assinaturaRecusada?.Dispose();
             _assinaturaRecusada = null;
+            _assinaturaRespostaEstabulo?.Dispose();
+            _assinaturaRespostaEstabulo = null;
+            _assinaturaRespostaCompra?.Dispose();
+            _assinaturaRespostaCompra = null;
         }
 
         private void Update()
@@ -381,6 +405,61 @@ namespace JogoDoGrupo.Client.Features.Montarias
             }
 
             AvisosDoJogo.Mostrar(msg.Motivo, TipoDeAviso.Aviso);
+        }
+
+        public void AoReceberRespostaEstabulo(RespostaEstabulo msg)
+        {
+            if (msg?.Ofertas == null)
+            {
+                return;
+            }
+
+            OfertasEstabuloRecebidas?.Invoke(msg.Ofertas);
+        }
+
+        public void AoReceberRespostaCompraEstabulo(RespostaCompraEstabulo msg)
+        {
+            if (msg == null)
+            {
+                return;
+            }
+
+            if (msg.Sucesso)
+            {
+                _colecaoDesbloqueada.Add(msg.TipoMontaria);
+                AvisosDoJogo.Mostrar(
+                    $"Montaria adquirida no estábulo: {RegrasMontaria.ObterNome(msg.TipoMontaria)}!",
+                    TipoDeAviso.Informacao
+                );
+                ColecaoMudou?.Invoke();
+            }
+            else
+            {
+                AvisosDoJogo.Mostrar(
+                    msg.Mensagem ?? "Falha ao comprar montaria.",
+                    TipoDeAviso.Aviso
+                );
+            }
+
+            CompraEstabuloRecebida?.Invoke(msg);
+        }
+
+        public void ConsultarEstabulo()
+        {
+            ConexaoTempoReal.Enviar(MontariasMessageIds.ConsultarEstabulo, new ConsultarEstabulo());
+        }
+
+        public void ComprarMontariaEstabulo(int tipoMontaria)
+        {
+            if (!RegrasMontaria.TipoValido(tipoMontaria))
+            {
+                return;
+            }
+
+            ConexaoTempoReal.Enviar(
+                MontariasMessageIds.ComprarMontariaEstabulo,
+                new ComprarMontariaEstabulo(tipoMontaria)
+            );
         }
 
         public void AoReceberEstadoMontaria(EstadoMontaria msg)
