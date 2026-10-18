@@ -6,6 +6,7 @@ using System.Text;
 using JogoDoGrupo.Client.Core.Jogo;
 using JogoDoGrupo.Client.Core.Jogo.Janelas;
 using JogoDoGrupo.Client.Core.TempoReal;
+using JogoDoGrupo.Client.Features.Desenvolvimento.Admin;
 using JogoDoGrupo.Shared.Core;
 using JogoDoGrupo.Shared.Features.Combate;
 using UnityEngine;
@@ -56,7 +57,9 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
         private Dictionary<ushort, string> _nomes;
         private InputAction _f9;
         private InputAction _f10;
+        private InputAction _f8;
         private PainelDeAjustes _ajustes;
+        private PainelDeAdmin _admin;
 
         /// <summary>O gravador da sessão, ou <c>null</c> (build de release, ou antes de iniciar).</summary>
         public static GravadorDeMomento Instancia => _instancia;
@@ -99,10 +102,14 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
             _nomes = NomesDasMensagens();
             _f9 = new InputAction("Relato", InputActionType.Button, "<Keyboard>/f9");
             _f10 = new InputAction("Ajustes", InputActionType.Button, "<Keyboard>/f10");
+            _f8 = new InputAction("Admin", InputActionType.Button, "<Keyboard>/f8");
             _f9.Enable();
             _f10.Enable();
+            _f8.Enable();
             _ajustes = new PainelDeAjustes(this);
+            _admin = new PainelDeAdmin();
             BloqueioDeEntradaPorTexto.RegistrarBloqueioDeAtalhos(() => _ajustes.Aberto);
+            BloqueioDeEntradaPorTexto.RegistrarBloqueioDeAtalhos(() => _admin.Aberto);
             JanelaReporte.GarantirRegistroDeBloqueio();
         }
 
@@ -127,7 +134,9 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
         {
             _f9?.Dispose();
             _f10?.Dispose();
+            _f8?.Dispose();
             _ajustes?.Destruir();
+            _admin?.Destruir();
             foreach (var textura in _anel)
             {
                 Liberar(textura);
@@ -151,6 +160,7 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
 
             var esc = Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame;
             _ajustes.Atualizar(esc);
+            _admin.Atualizar(esc);
             JanelaReporte.Atualizar(esc);
             if (_f9.WasPressedThisFrame())
             {
@@ -159,6 +169,10 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
             else if (_f10.WasPressedThisFrame())
             {
                 _ajustes.Alternar();
+            }
+            else if (_f8.WasPressedThisFrame())
+            {
+                _admin.Alternar();
             }
         }
 
@@ -563,7 +577,12 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
             {
                 foreach (var tecla in teclado.allKeys)
                 {
-                    Anotar(tecla, tecla.keyCode == Key.F9 || tecla.keyCode == Key.F10);
+                    Anotar(
+                        tecla,
+                        tecla.keyCode == Key.F8
+                            || tecla.keyCode == Key.F9
+                            || tecla.keyCode == Key.F10
+                    );
                 }
             }
 

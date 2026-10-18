@@ -1280,4 +1280,47 @@ public class GrupoDeInimigosTestes
         var houveGolpe = passos.Any(p => p.Golpes.Any(g => g.PersonagemId == Jogador));
         Assert.True(houveGolpe, "o ataque alinhado deve acertar o jogador");
     }
+
+    [Fact]
+    public void ForcarAparicao_com_especie_nasce_da_especie_escolhida()
+    {
+        var campo = new Campo();
+        var lobo = CatalogoCriaturas.Obter(CatalogoCriaturas.LoboDoCampo);
+
+        var apareceu = campo.Grupo.ForcarAparicao(3, 4, lobo);
+
+        Assert.NotNull(apareceu);
+        Assert.Equal(CatalogoCriaturas.LoboDoCampo, apareceu.CriaturaId);
+        Assert.Equal(Javali.Id, campo.Grupo.ForcarAparicao(1, 1)!.CriaturaId);
+    }
+
+    [Fact]
+    public void MatarVivosSemRecompensa_mata_sem_derrota_e_o_grupo_volta_depois()
+    {
+        var campo = new Campo(tamanho: 2);
+
+        Assert.Equal(2, campo.Grupo.MatarVivosSemRecompensa());
+        var passo = campo.Passo();
+
+        Assert.Equal(2, passo.Mortes.Count);
+        Assert.Empty(passo.Derrotas);
+        Assert.Empty(campo.Grupo.Vivos());
+        Assert.Equal(0, campo.Grupo.MatarVivosSemRecompensa());
+
+        campo.AgoraMs += Javali.IntervaloDeAparicaoSegundos * 2000L;
+        Assert.NotEmpty(campo.Passo().Aparicoes);
+    }
+
+    [Fact]
+    public void MatarVivosSemRecompensa_nao_apaga_a_derrota_de_verdade_pendente()
+    {
+        var campo = new Campo(tamanho: 2);
+        Assert.True(campo.Grupo.TentarAplicarDano(PrimeiroId, 1000, Jogador, out _));
+
+        Assert.Equal(1, campo.Grupo.MatarVivosSemRecompensa());
+        var passo = campo.Passo();
+
+        Assert.Equal(2, passo.Mortes.Count);
+        Assert.Equal(PrimeiroId, Assert.Single(passo.Derrotas).InimigoId);
+    }
 }

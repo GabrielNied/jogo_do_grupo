@@ -20,6 +20,10 @@ public sealed class EconomiaModule : IFeatureModule
         servicos.AddSingleton(opcoesNpc);
         servicos.AddScoped<JogoDoGrupo.Server.Contratos.Economia.ICarteiraCoroas, CarteiraCoroas>();
         servicos.AddScoped<ServicoDeEconomia>();
+        servicos.AddScoped<
+            JogoDoGrupo.Server.Contratos.Economia.IAjusteDeCoroasDeTeste,
+            AjusteDeCoroasDeTeste
+        >();
     }
 
     public void MapearRotas(IEndpointRouteBuilder rotas)

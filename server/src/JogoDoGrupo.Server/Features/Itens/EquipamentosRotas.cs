@@ -255,9 +255,43 @@ internal static class EquipamentosRotas
         CancellationToken c
     )
     {
+        var recusa = await EquiparPecaAsync(
+            db,
+            itens,
+            item,
+            posicao,
+            personagemId,
+            capacidade,
+            gerador,
+            c
+        );
+        if (recusa == null)
+            return null;
+        var invalida =
+            recusa == CodigosErroItens.ItemNaoEquipavel
+            || recusa == CodigosErroItens.PosicaoInvalida;
+        return Erro(recusa, invalida ? 400 : 409);
+    }
+
+    /// <summary>
+    /// A regra de <see cref="EquiparAsync"/> sem a resposta HTTP: devolve o código da recusa
+    /// (<see cref="CodigosErroItens"/>) ou <c>null</c> se vestiu. A tela de teste usa a mesma
+    /// regra, então nível, encaixe, duas mãos e espaço da bolsa valem para ela também.
+    /// </summary>
+    internal static async Task<string?> EquiparPecaAsync(
+        JogoDbContext db,
+        List<ItemInventario> itens,
+        ItemInventario item,
+        PosicaoEquipamento posicao,
+        long personagemId,
+        CapacidadeBolsa capacidade,
+        GeradorEquipamentos? gerador,
+        CancellationToken c
+    )
+    {
         var dados = item.LerEquipamento() ?? gerador?.Gerar(item.ItemId, Random.Shared);
         if (dados == null)
-            return Erro(CodigosErroItens.ItemNaoEquipavel, 400);
+            return CodigosErroItens.ItemNaoEquipavel;
         var numero = RegrasEquipamentos.Conjunto(posicao);
         // A regra de recusa é a do shared: a mesma que a tela usa antes do clique.
         var principalDoConjunto =
@@ -273,10 +307,7 @@ internal static class EquipamentosRotas
             principalDoConjunto
         );
         if (recusaDaRegra != null)
-            return Erro(
-                recusaDaRegra,
-                recusaDaRegra == CodigosErroItens.PosicaoInvalida ? 400 : 409
-            );
+            return recusaDaRegra;
         var deslocados = itens.Where(i => i.Id != item.Id && i.Posicao == posicao).ToList();
         if (dados.DuasMaos)
             deslocados.AddRange(
@@ -285,7 +316,7 @@ internal static class EquipamentosRotas
         deslocados = deslocados.Distinct().ToList();
         var vinhaDaBolsa = Bolsa.EstaNaBolsa(item);
         if (deslocados.Count > Bolsa.Livres(itens, capacidade) + (vinhaDaBolsa ? 1 : 0))
-            return Erro(CodigosErroItens.InventarioCheio);
+            return CodigosErroItens.InventarioCheio;
 
         (int Aba, int Casa)? casaLiberada =
             vinhaDaBolsa && item.Aba is int aba && item.Casa is int casa ? (aba, casa) : null;

@@ -30,6 +30,11 @@ public sealed class ItensModule : IFeatureModule
             JogoDoGrupo.Server.Contratos.Itens.ISaldosMateriaisFusao,
             SaldosMateriaisFusao
         >();
+        servicos.AddSingleton<MemoriaDeItensDeTeste>();
+        servicos.AddScoped<
+            JogoDoGrupo.Server.Contratos.Itens.IFerramentasDeItensDeTeste,
+            FerramentasDeItensDeTeste
+        >();
         servicos.AddSingleton<EquipamentosParaCombate>();
         servicos.AddSingleton<JogoDoGrupo.Server.Contratos.Itens.IAtributosDosEquipamentos>(sp =>
             sp.GetRequiredService<EquipamentosParaCombate>()

@@ -15,5 +15,14 @@ namespace JogoDoGrupo.Shared.Features.Desenvolvimento
         /// Sem a chave de desenvolvimento, o servidor não responde.
         /// </summary>
         public const ushort ResultadoDeComandoDeTeste = 15001;
+
+        /// <summary>Client → servidor: ação da tela de admin (<see cref="PedirAcaoDeAdmin"/>).</summary>
+        public const ushort PedirAcaoDeAdmin = 15002;
+
+        /// <summary>
+        /// Servidor → client: o que a ação da tela de admin fez (<see cref="ResultadoDeAcaoDeAdmin"/>).
+        /// Sem a chave de desenvolvimento, o servidor não responde.
+        /// </summary>
+        public const ushort ResultadoDeAcaoDeAdmin = 15003;
     }
 }
