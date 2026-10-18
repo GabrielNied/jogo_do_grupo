@@ -2,7 +2,12 @@
 
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { corpoReempilhado, dependenciasDoCorpo, git } from "./reempilhar.mjs";
+import {
+  corpoReempilhado,
+  dependenciasDoCorpo,
+  git,
+  repoDaUrl,
+} from "./reempilhar.mjs";
 
 test("comando Git com saída herdada conclui sem falso conflito", () => {
   assert.match(git(["--version"]), /git version/);
@@ -14,14 +19,20 @@ test("lê os PRs da linha Depende de", () => {
   assert.deepEqual(dependenciasDoCorpo("Closes #1"), []);
 });
 
-test("o corpo novo cita o PR antigo e só as levas ainda abertas", () => {
-  const corpo = corpoReempilhado("Depende de #597 e #607.\n\nCloses #475\n", 610, [607]);
-  assert.match(corpo, /^Substitui o #610/);
-  assert.match(corpo, /Depende de #607 \(mergear antes\)/);
+test("depois de reempilhar, a linha Depende de cita só as levas abertas", () => {
+  const corpo = corpoReempilhado("Depende de #597 e #607.\n\nCloses #475\n", [607]);
+  assert.match(corpo, /^Depende de #607 \(mergear antes\)/);
   assert.doesNotMatch(corpo, /#597/);
   assert.match(corpo, /Closes #475/);
 });
 
-test("sem levas abertas, a linha Depende de some", () => {
-  assert.doesNotMatch(corpoReempilhado("Depende de #597.\nCloses #1", 602, []), /Depende/);
+test("sem levas abertas, a linha Depende de some e o resto fica", () => {
+  assert.equal(corpoReempilhado("Depende de #597.\n\nCloses #1", []), "Closes #1");
+  assert.equal(corpoReempilhado("Closes #1", []), "Closes #1");
+});
+
+test("lê dono/repo do remoto origin", () => {
+  assert.equal(repoDaUrl("https://github.com/GabrielNied/jogo_do_grupo"), "GabrielNied/jogo_do_grupo");
+  assert.equal(repoDaUrl("git@github.com:GabrielNied/jogo_do_grupo.git"), "GabrielNied/jogo_do_grupo");
+  assert.throws(() => repoDaUrl("https://gitlab.com/x/y"));
 });

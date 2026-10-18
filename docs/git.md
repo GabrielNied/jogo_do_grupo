@@ -155,7 +155,9 @@ O script commita o que já está no stage (`git commit -F`, corpo quebrado em li
 
 ### Leva empilhada
 
-Um PR que parte de outro ainda aberto nasce com `npm run tarefa -- puxar <N> <branch> --base <branch-do-PR-de-baixo>` e diz no topo do corpo `Depende de #<PR de baixo> (mergear antes)`. Quando o de baixo entra por squash, o de cima conflita consigo mesmo: ainda carrega os commits originais, que na `main` viraram outro hash. Não resolva os conflitos à mão nem force o push:
+Um PR que parte de outro ainda aberto nasce com `npm run tarefa -- puxar <N> <branch> --base <branch-do-PR-de-baixo>` e diz no topo do corpo `Depende de #<PR de baixo> (mergear antes)`. Quando o de baixo entra por squash, o de cima conflita consigo mesmo: ainda carrega os commits originais, que na `main` viraram outro hash. Não resolva os conflitos à mão.
+
+**O CI reempilha sozinho** ([`reempilhar.yml`](../.github/workflows/reempilhar.yml)): no merge de um PR, todo PR aberto que cita ele em `Depende de` é refeito sobre a `main` **na mesma branch e no mesmo PR**. Se o cherry-pick der conflito de verdade, o job comenta no PR como resolver e não publica nada. À mão (ou quando o job falhou):
 
 ```
 npm run reempilhar -- <PR de cima>
@@ -163,7 +165,11 @@ npm run reempilhar -- <PR de cima>
 
   A [lição do falso conflito](licoes.md#2026-10-13--reempilhar-informava-conflito-falso) registra a falha que interrompia a publicação depois de um cherry-pick concluído.
 
-O script lê a linha `Depende de`, leva só os commits próprios do PR (cherry-pick) para uma branch `<nome>-segue` a partir de `origin/main`, abre o PR novo com o mesmo título e corpo e fecha o antigo.
+O script lê a linha `Depende de`, aplica só os commits próprios do PR (cherry-pick) sobre `origin/main`, atualiza a branch com `--force-with-lease` preso à ponta que leu (a única exceção ao push forçado, [ADR 0049](decisoes/0049-reempilhar-com-push-forcado.md)), tira da linha `Depende de` as levas já mergeadas e comenta a ponta anterior. Tem a branch local? `git pull --rebase` depois. Usa só a API REST (`gh api`), que funciona também nas sessões na nuvem.
+
+Os checks obrigatórios só rodam depois do push do job se o segredo `REEMPILHAR_TOKEN` existir (token fine-grained deste repo com escrita em Contents e Pull requests); com o token padrão do Actions, o GitHub não dispara workflows.
+
+Empilhe só quando o PR de cima usa de fato o código do de baixo; funcionalidades independentes saem da `origin/main`.
 
 Os commits dentro da branch podem ser pequenos e frequentes. Como o merge é por squash, o que entra na `main` é **o título do PR**.
 

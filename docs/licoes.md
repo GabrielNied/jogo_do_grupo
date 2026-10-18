@@ -37,3 +37,9 @@ Formato: `### AAAA-MM-DD · título` com **O que houve**, **Regra** e **Origem**
 - **O que houve:** "mobs parados e saltando" virou `fix(mobs)` e `fix(core)` em série (#725, #732) até o #826 achar a causa: o client Unity ficou com 1 canal da LiteNetLib e o servidor mandava em 32 (hoje barrado por `npm run conferir-contratos-rede`). No mesmo padrão, atributos que "não atualizavam" eram um evento (`EquipamentoMudou`) que Combate não assinava (#720).
 - **Regra:** quando um `fix(<feature>)` volta, olhe primeiro o contrato com o outro lado (canal, DTO, evento assinado, cache que o evento devia invalidar) e prove com teste que cruza os dois lados.
 - **Origem:** PRs #720, #826 e #846.
+
+### 2026-10-18 · Leva empilhada conflitou em cascata
+
+- **O que houve:** #1077, #1078 e #1080 estavam empilhados sobre o #1075. A cada squash, o PR de cima conflitava consigo mesmo e alguém precisou pedir o reempilhamento (#1082, #1085, #1086). O `reempilhar` usava `gh pr view` (GraphQL), que não responde na nuvem, e foi refeito à mão.
+- **Regra:** o reempilhamento roda sozinho no merge (`reempilhar.yml`), no mesmo PR com `--force-with-lease` ([ADR 0049](decisoes/0049-reempilhar-com-push-forcado.md)), e o script só usa `gh api` (REST). Empilhe só quando o PR de cima usa o código do de baixo.
+- **Origem:** PRs #1077 a #1086.

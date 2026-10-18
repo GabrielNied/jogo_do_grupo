@@ -1,0 +1,42 @@
+name: Reempilhar leva
+
+# Quando um PR entra por squash, os PRs que citam ele em "Depende de" passam a conflitar consigo
+# mesmos. Este job refaz cada um sobre a main na mesma branch, com --force-with-lease
+# (scripts/git/reempilhar.mjs, docs/git.md#leva-empilhada, ADR 0049).
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+concurrency:
+  group: reempilhar
+  cancel-in-progress: false
+
+jobs:
+  reempilhar:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      # Push feito com o github.token não dispara os checks obrigatórios; o REEMPILHAR_TOKEN
+      # (fine-grained: Contents e Pull requests de escrita neste repo) dispara.
+      GH_TOKEN: ${{ secrets.REEMPILHAR_TOKEN || github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.REEMPILHAR_TOKEN || github.token }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Reempilha os PRs que dependiam deste
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          node scripts/git/reempilhar.mjs --depois-do-merge ${{ github.event.pull_request.number }}

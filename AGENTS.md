@@ -29,7 +29,7 @@ Outros: `npm run tarefa -- ajuda`, [README](README.md#dia-a-dia), [git.md](docs/
 
 ## Regras
 
-0. **Nunca apague nada do Figma** (arquivo, página, nó, componente, variável, comentário, script). Sujeira ou obsoleto pode sair: confira antes, cite no commit e ajuste links. Push forçado, apagar branch de PR aberto, repositório, release ou projeto: só com quem decide ([ADR 0026](docs/decisoes/0026-ia-pode-apagar-menos-o-figma.md)).
+0. **Nunca apague nada do Figma** (arquivo, página, nó, componente, variável, comentário, script). Sujeira ou obsoleto pode sair: confira antes, cite no commit e ajuste links. Push forçado, apagar branch de PR aberto, repositório, release ou projeto: só com quem decide ([ADR 0026](docs/decisoes/0026-ia-pode-apagar-menos-o-figma.md)); exceção: o `reempilhar` na branch do PR ([ADR 0049](docs/decisoes/0049-reempilhar-com-push-forcado.md)).
 1. **Fique nas pastas da tarefa** (`Features/<X>/` em client, server e shared, e `docs/features/<x>.md`). Um lote pode tocar várias funcionalidades ([Lote](docs/agentes.md#lote)). `Core/` fora do pedido: pare e avise.
 2. **Funcionalidades não se referenciam.** Contratos: `shared/.../Features/<dono>/` (se o client usa) ou `server/.../Contratos/<Dono>/` (só servidor; [ADR 0016](docs/decisoes/0016-eventos-entre-funcionalidades-do-servidor.md)). Sem referência entre `.asmdef` de features.
 3. **Servidor autoritativo:** dano, drop, fusão, preço e economia no servidor; o client envia intenção e mostra resultado.
