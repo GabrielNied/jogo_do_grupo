@@ -1,10 +1,12 @@
 using System.Collections.Concurrent;
 using JogoDoGrupo.Server.Contratos.Combate;
+using JogoDoGrupo.Server.Contratos.Mobs;
 using JogoDoGrupo.Server.Contratos.Mundo;
 using JogoDoGrupo.Server.Core.Eventos;
 using JogoDoGrupo.Server.Core.TempoReal;
 using JogoDoGrupo.Shared.Features.Combate;
 using JogoDoGrupo.Shared.Features.Itens;
+using JogoDoGrupo.Shared.Features.Mobs;
 
 namespace JogoDoGrupo.Server.Features.Combate;
 
@@ -43,7 +45,7 @@ public sealed class InstanciaDeProjetil
 /// Serviço autoritativo de projéteis: gerencia o ciclo de vida, deslocamento físico e detecção
 /// de colisão contra alvos no mundo com compensação de lag.
 /// </summary>
-public sealed class ServicoDeProjeteis : IHostedService, IDisposable
+public sealed class ServicoDeProjeteis : IHostedService, IDisposable, IDisparoDeProjeteis
 {
     private readonly ServidorTempoReal _tempoReal;
     private readonly IPosicoesDoMundo _posicoes;
@@ -604,6 +606,100 @@ public sealed class ServicoDeProjeteis : IHostedService, IDisposable
 
                     if (acertou)
                     {
+                        break;
+                    }
+                }
+            }
+
+            if (!acertou && _posicoes != null)
+            {
+                var personagens = _posicoes.PersonagensNaArea(proj.Area);
+                for (var i = 0; i < personagens.Count; i++)
+                {
+                    var persId = personagens[i];
+                    if (persId == proj.AtacanteId)
+                    {
+                        continue;
+                    }
+
+                    if (_aliados != null && _aliados.SaoAliados(proj.AtacanteId, persId))
+                    {
+                        continue;
+                    }
+
+                    if (!_posicoes.TentarObter(persId, out var pos))
+                    {
+                        continue;
+                    }
+
+                    if (
+                        RegrasProjetil.ColideComAlvo(
+                            x0,
+                            y0,
+                            z0,
+                            x1,
+                            y1,
+                            z1,
+                            proj.Raio,
+                            pos.X,
+                            pos.Z,
+                            0.4,
+                            1.8
+                        )
+                    )
+                    {
+                        if (!proj.AlvosAtingidos.Add(persId))
+                        {
+                            continue;
+                        }
+
+                        var danoFinal = proj.Dano;
+                        if (_efeitos != null)
+                        {
+                            danoFinal = Math.Max(
+                                1,
+                                (int)
+                                    Math.Round(
+                                        danoFinal * _efeitos.MultiplicadorDanoRecebido(persId)
+                                    )
+                            );
+                        }
+
+                        _eventos?.Publicar(
+                            new GolpeDeInimigoAcertou(
+                                proj.AtacanteId,
+                                CriaturaId: 0,
+                                PersonagemId: persId,
+                                Dano: danoFinal,
+                                Area: proj.Area,
+                                Tipo: TipoDeAtaqueDeInimigo.Disparo
+                            )
+                        );
+
+                        _avisos.Enviar(
+                            proj.Area,
+                            proj.AtacanteId,
+                            CombateMessageIds.AtaqueAcertou,
+                            new AtaqueAcertou
+                            {
+                                AtacanteId = proj.AtacanteId,
+                                Tipo = proj.TipoAtaque,
+                                Sequencia = proj.Sequencia,
+                                Passo = proj.Passo,
+                                Acertos =
+                                [
+                                    new AcertoDeAtaque
+                                    {
+                                        AlvoId = persId,
+                                        Dano = danoFinal,
+                                        VidaRestante = 0,
+                                        VidaMaxima = 0,
+                                    },
+                                ],
+                            }
+                        );
+
+                        acertou = true;
                         break;
                     }
                 }

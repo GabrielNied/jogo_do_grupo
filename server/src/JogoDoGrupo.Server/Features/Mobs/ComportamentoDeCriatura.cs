@@ -11,7 +11,12 @@ public sealed record ComportamentoDeCriatura(
     double VisaoMetros,
     double VelocidadeDePerseguicaoMetrosPorSegundo,
     double PreparoSegundos,
-    double RecuperacaoSegundos
+    double RecuperacaoSegundos,
+    bool EhDistancia = false,
+    double DistanciaTaticaMinimaMetros = 10.0,
+    double DistanciaTaticaMaximaMetros = 16.0,
+    double DistanciaRecuoMetros = 4.0,
+    double VelocidadeRecuoMetrosPorSegundo = 3.5
 )
 {
     /// <summary>O comportamento do Javali do Campo: os números de <c>RegrasInimigo</c>.</summary>
@@ -28,12 +33,26 @@ public sealed record ComportamentoDeCriatura(
     /// <summary>Tatu Rochoso: vê pouco e anda devagar, mas golpeia forte e demora a recuperar.</summary>
     public static readonly ComportamentoDeCriatura Tatu = new(8.0, 2.5, 1.4, 2.0);
 
+    /// <summary>Arqueiro do Campo: mantém distância tática (10-16m), recua se aproximar a menos de 4m e dispara flechas telegrafadas.</summary>
+    public static readonly ComportamentoDeCriatura Arqueiro = new(
+        VisaoMetros: 18.0,
+        VelocidadeDePerseguicaoMetrosPorSegundo: 4.0,
+        PreparoSegundos: 1.0,
+        RecuperacaoSegundos: 1.5,
+        EhDistancia: true,
+        DistanciaTaticaMinimaMetros: 10.0,
+        DistanciaTaticaMaximaMetros: 16.0,
+        DistanciaRecuoMetros: 4.0,
+        VelocidadeRecuoMetrosPorSegundo: 3.5
+    );
+
     /// <summary>Comportamento da criatura; as que não têm um próprio usam o padrão.</summary>
     public static ComportamentoDeCriatura Obter(int criaturaId) =>
         criaturaId switch
         {
             CatalogoCriaturas.LoboDoCampo => Lobo,
             CatalogoCriaturas.TatuRochoso => Tatu,
+            CatalogoCriaturas.ArqueiroDoCampo => Arqueiro,
             _ => Padrao,
         };
 

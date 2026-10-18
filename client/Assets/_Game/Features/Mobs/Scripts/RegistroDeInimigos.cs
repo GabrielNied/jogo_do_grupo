@@ -124,7 +124,10 @@ namespace JogoDoGrupo.Client.Features.Mobs
             inimigo.GolpesPreparados++;
             inimigo.PreparoDoGolpeSegundos = mensagem.PreparoMs / MilissegundosPorSegundo;
             inimigo.TipoDoGolpe = mensagem.Tipo;
-            if (mensagem.Tipo == TipoDeAtaqueDeInimigo.Golpe)
+            if (
+                mensagem.Tipo == TipoDeAtaqueDeInimigo.Golpe
+                || mensagem.Tipo == TipoDeAtaqueDeInimigo.Disparo
+            )
             {
                 inimigo.Aviso = null;
                 return true;
