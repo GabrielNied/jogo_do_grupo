@@ -45,6 +45,26 @@ namespace JogoDoGrupo.Client.Features.Itens
         private static EquipamentosResponse _ultimo;
         private static long _personagemDoUltimo;
 
+        internal static JanelaInventario InstanciaAtiva { get; private set; }
+
+        internal static void AtualizarCom(
+            EquipamentosResponse bolsa,
+            string aviso = null,
+            bool erro = false
+        )
+        {
+            if (InstanciaAtiva != null && InstanciaAtiva.Aberta && bolsa != null)
+            {
+                InstanciaAtiva.Aplicar(
+                    bolsa,
+                    EntradaNoJogo.PersonagemId,
+                    new HashSet<long>(),
+                    aviso,
+                    erro
+                );
+            }
+        }
+
         private PainelInventario _painel;
         private VisualElement _areaPrincipal;
         private VisualElement _areaFusao;
@@ -75,6 +95,7 @@ namespace JogoDoGrupo.Client.Features.Itens
             _personagemDosConhecidos = 0;
             _ultimo = null;
             _personagemDoUltimo = 0;
+            InstanciaAtiva = null;
         }
 
         /// <summary>
@@ -151,6 +172,7 @@ namespace JogoDoGrupo.Client.Features.Itens
 
         protected override void AoAbrir()
         {
+            InstanciaAtiva = this;
             var abrindoBau = _abrirBau;
             _abrirBau = false;
             DefinirTitulo(abrindoBau ? TituloBau : Titulo);
@@ -179,6 +201,11 @@ namespace JogoDoGrupo.Client.Features.Itens
 
         protected override void AoFechar()
         {
+            if (InstanciaAtiva == this)
+            {
+                InstanciaAtiva = null;
+            }
+
             _assinaturaPetDesbloqueado?.Dispose();
             _assinaturaPetDesbloqueado = null;
             _assinaturaMontaria?.Dispose();
@@ -388,6 +415,12 @@ namespace JogoDoGrupo.Client.Features.Itens
 
                     _painel.MostrarAviso(null, false);
                     _painel.PedirConfirmacaoDescarte(item, () => Executar(acao), null);
+                    return;
+                case TipoAcao.DepositarBanco:
+                    JanelaBanco.DepositarItem(acao.InstanciaId);
+                    return;
+                case TipoAcao.RetirarBanco:
+                    JanelaBanco.RetirarItem(acao.InstanciaId);
                     return;
                 default:
                     Executar(acao);
