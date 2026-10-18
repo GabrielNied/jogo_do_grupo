@@ -9,7 +9,7 @@ using UnityEngine.UIElements;
 namespace JogoDoGrupo.Client.Features.Montarias.UI
 {
     /// <summary>
-    /// Janela de coleção de montarias (tecla R), registrada nas <see cref="JanelasDoJogo"/>:
+    /// Janela de coleção de montarias (tecla P), registrada nas <see cref="JanelasDoJogo"/>:
     /// exibe os companheiros disponíveis, detalhes visuais e permite equipar a montaria
     /// ativa a ser invocada com [T].
     /// </summary>
@@ -17,7 +17,7 @@ namespace JogoDoGrupo.Client.Features.Montarias.UI
     {
         public const string Chave = "montarias.colecao";
         public const string Titulo = "Montarias";
-        public const string Tecla = "R";
+        public const string Tecla = "P";
         public const int Ordem = 50;
 
         private VisualElement _cartoesContainer;
