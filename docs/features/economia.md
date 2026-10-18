@@ -59,9 +59,11 @@ Entregue na [#173](https://github.com/GabrielNied/jogo_do_grupo/issues/173):
   - Equipamentos possuem `DurabilidadeMaxima` (100) e `DurabilidadeAtual`.
   - Item com durabilidade zero é considerado `Quebrado` e deixa de fornecer atributos ou poderes (arma quebrada não concede ataque).
   - Ao cair em combate (`PersonagemCaiu`), os equipamentos vestidos sofrem desgaste leve (`ConfigEconomia.DesgasteAoCair = 5`).
-  - O reparo na loja de NPC custa `ConfigEconomia.CustoReparoPorPontoPerdido = 1` coroa por ponto de durabilidade restaurado.
-- **Interface e Atalhos:**
-  - Tecla `L` ou comando `/loja` no chat abre a janela de loja (`JanelaLoja`) registrada em `JanelasDoJogo` (ordem 100).
+  - O reparo no ferreiro custa `ConfigEconomia.CustoReparoPorPontoPerdido = 1` coroa por ponto de durabilidade restaurado.
+- **Interface e interação:**
+  - Compra e venda: interagir (**E**) com o **vendedor** na cidade (`ConfigNpcEconomia`, marcador no client). Abre `JanelaVendedor` (`economia.vendedor`), sem tecla na barra de atalhos.
+  - Reparo: interagir com o **ferreiro** (`JanelaFerreiro`, `economia.ferreiro`). O inventário continua sendo a forma de escolher o item a reparar.
+  - O servidor recusa compra, venda, catálogo e reparo se o personagem estiver longe do NPC correspondente (`CodigosErroEconomia.LongeDoNpc`), pela posição aceita pelo Mundo.
 - **Mensageria e Rotas:**
   - Faixa de IDs de tempo real: `9000–9999` (`EconomiaMessageIds`).
   - Rotas HTTP REST em `RotasEconomia`: `/api/economia/saldo`, `/api/economia/loja/catalogo`, `/api/economia/loja/comprar`, `/api/economia/loja/vender`, `/api/economia/itens/reparar`.

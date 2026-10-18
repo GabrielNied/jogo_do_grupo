@@ -221,7 +221,14 @@ namespace JogoDoGrupo.Client.Core.Jogo
             janelas.AddToClassList(EstiloCore.Subtitulo);
             _conteudoOpcoes.Add(janelas);
             foreach (var definicao in JanelasDoJogo.Registro.Definicoes)
+            {
+                if (!RegistroDeJanelas.TeclaValida(definicao.Tecla))
+                {
+                    continue;
+                }
+
                 CriarLinhaTecla(definicao.Titulo, TeclasDoJogo.Janela(definicao.Chave));
+            }
 
             _avisoTeclas = new Label("Clique em Trocar e aperte uma tecla. Esc cancela.");
             _avisoTeclas.AddToClassList(EstiloCore.Mensagem);

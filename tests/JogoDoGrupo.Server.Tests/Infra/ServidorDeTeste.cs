@@ -40,6 +40,7 @@ public sealed class ServidorDeTeste : WebApplicationFactory<Program>
         // itens abrem sem posição nem espera. Os de posição e recarga ligam de novo.
         builder.UseSetting("Itens:Bau:ExigirPosicao", "false");
         builder.UseSetting("Itens:Bau:RecargaSegundos", "0");
+        builder.UseSetting("Economia:Npc:ExigirProximidade", "false");
         // Nos testes de integração comuns os jogadores avulsos precisam estar no mesmo canal.
         builder.UseSetting("Canais:Quantidade", "1");
         // O hash de senha de produção (PBKDF2, 100 mil iterações) custa dezenas de ms de CPU por

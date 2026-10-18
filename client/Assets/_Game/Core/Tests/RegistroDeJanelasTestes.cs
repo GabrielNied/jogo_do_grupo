@@ -115,8 +115,6 @@ namespace JogoDoGrupo.Client.Core.Tests
             Assert.Throws<ArgumentException>(() => registro.Registrar(Janela("x.janela", tecla)));
         }
 
-        [TestCase(null)]
-        [TestCase("")]
         [TestCase("IJ")]
         [TestCase("1")]
         [TestCase("Ç")]
@@ -144,6 +142,16 @@ namespace JogoDoGrupo.Client.Core.Tests
                 registro.Registrar(new DefinicaoDeJanela("x.janela", "Título", "I", 0, null))
             );
             Assert.AreEqual(0, registro.Definicoes.Count);
+        }
+
+        [Test]
+        public void Registrar_SemTecla_AceitaVariasJanelasSoPorInteracao()
+        {
+            var registro = new RegistroDeJanelas();
+            registro.Registrar(Janela("economia.vendedor", null));
+            registro.Registrar(Janela("economia.ferreiro", ""));
+
+            Assert.AreEqual(2, registro.Definicoes.Count);
         }
 
         [Test]

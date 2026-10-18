@@ -14,7 +14,10 @@ namespace JogoDoGrupo.Client.Core.Jogo.Janelas
         /// (ex.: <c>"itens.inventario"</c>).
         /// </param>
         /// <param name="titulo">Título mostrado na moldura e na barra de atalhos.</param>
-        /// <param name="tecla">Uma letra de A a Z (ex.: <c>"I"</c>). Veja <see cref="Tecla"/>.</param>
+        /// <param name="tecla">
+        /// Uma letra de A a Z (ex.: <c>"I"</c>), ou <c>null</c>/<c>""</c> quando a janela só
+        /// abre por interação no mundo. Veja <see cref="Tecla"/>.
+        /// </param>
         /// <param name="ordem">Posição na barra de atalhos: menor fica à esquerda.</param>
         /// <param name="criar">
         /// Chamado a cada abertura; deve devolver uma instância nova de <see cref="JanelaDoJogo"/>.
@@ -41,8 +44,8 @@ namespace JogoDoGrupo.Client.Core.Jogo.Janelas
         public string Titulo { get; }
 
         /// <summary>
-        /// Tecla que abre e fecha a janela, em maiúscula (ex.: <c>"I"</c>). As teclas padrão
-        /// ficam em <c>docs/features/interface.md</c>, seção "Teclas e atalhos".
+        /// Tecla que abre e fecha a janela, em maiúscula (ex.: <c>"I"</c>), ou <c>null</c> se
+        /// não há atalho. As teclas padrão ficam em <c>docs/features/interface.md</c>.
         /// </summary>
         public string Tecla { get; }
 

@@ -53,6 +53,11 @@ namespace JogoDoGrupo.Client.Core.Jogo
 
         public static void RegistrarJanela(string chave, string tecla)
         {
+            if (string.IsNullOrEmpty(tecla))
+            {
+                return;
+            }
+
             var id = Janela(chave);
             if (!_padroes.ContainsKey(id))
             {

@@ -1,3 +1,4 @@
+using JogoDoGrupo.Server.Contratos.Mundo;
 using JogoDoGrupo.Server.Core;
 using JogoDoGrupo.Server.Core.TempoReal;
 using JogoDoGrupo.Shared.Features.Economia;
@@ -14,6 +15,9 @@ public sealed class EconomiaModule : IFeatureModule
 
     public void ConfigurarServicos(IServiceCollection servicos, IConfiguration configuracao)
     {
+        var opcoesNpc = new OpcoesNpcEconomia();
+        configuracao.GetSection("Economia:Npc").Bind(opcoesNpc);
+        servicos.AddSingleton(opcoesNpc);
         servicos.AddScoped<JogoDoGrupo.Server.Contratos.Economia.ICarteiraCoroas, CarteiraCoroas>();
         servicos.AddScoped<ServicoDeEconomia>();
     }
@@ -68,8 +72,21 @@ public sealed class EconomiaModule : IFeatureModule
 
     private void AoConsultarCatalogo(SessaoTempoReal sessao, ConsultarCatalogoLoja _)
     {
-        if (_tempoReal == null)
+        if (_scopeFactory == null || _tempoReal == null)
             return;
+
+        using (var escopo = _scopeFactory.CreateScope())
+        {
+            if (!PodeUsarVendedor(sessao.PersonagemId, escopo.ServiceProvider))
+            {
+                _tempoReal.Enviar(
+                    sessao,
+                    EconomiaMessageIds.EconomiaRecusada,
+                    new EconomiaRecusada(CodigosErroEconomia.LongeDoNpc)
+                );
+                return;
+            }
+        }
 
         var catalogo = ConfigEconomia.CatalogoPadrao;
         _tempoReal.Enviar(
@@ -89,6 +106,16 @@ public sealed class EconomiaModule : IFeatureModule
             try
             {
                 await using var escopo = _scopeFactory.CreateAsyncScope();
+                if (!PodeUsarVendedor(sessao.PersonagemId, escopo.ServiceProvider))
+                {
+                    _tempoReal.Enviar(
+                        sessao,
+                        EconomiaMessageIds.EconomiaRecusada,
+                        new EconomiaRecusada(CodigosErroEconomia.LongeDoNpc)
+                    );
+                    return;
+                }
+
                 var servico = escopo.ServiceProvider.GetRequiredService<ServicoDeEconomia>();
                 var (sucesso, erro, resultado) = await servico.ComprarItemAsync(
                     sessao.PersonagemId,
@@ -136,6 +163,16 @@ public sealed class EconomiaModule : IFeatureModule
             try
             {
                 await using var escopo = _scopeFactory.CreateAsyncScope();
+                if (!PodeUsarVendedor(sessao.PersonagemId, escopo.ServiceProvider))
+                {
+                    _tempoReal.Enviar(
+                        sessao,
+                        EconomiaMessageIds.EconomiaRecusada,
+                        new EconomiaRecusada(CodigosErroEconomia.LongeDoNpc)
+                    );
+                    return;
+                }
+
                 var servico = escopo.ServiceProvider.GetRequiredService<ServicoDeEconomia>();
                 var (sucesso, erro, resultado) = await servico.VenderItemAsync(
                     sessao.PersonagemId,
@@ -182,6 +219,16 @@ public sealed class EconomiaModule : IFeatureModule
             try
             {
                 await using var escopo = _scopeFactory.CreateAsyncScope();
+                if (!PodeUsarFerreiro(sessao.PersonagemId, escopo.ServiceProvider))
+                {
+                    _tempoReal.Enviar(
+                        sessao,
+                        EconomiaMessageIds.EconomiaRecusada,
+                        new EconomiaRecusada(CodigosErroEconomia.LongeDoNpc)
+                    );
+                    return;
+                }
+
                 var servico = escopo.ServiceProvider.GetRequiredService<ServicoDeEconomia>();
                 var (sucesso, erro, resultado) = await servico.RepararItemAsync(
                     sessao.PersonagemId,
@@ -217,4 +264,20 @@ public sealed class EconomiaModule : IFeatureModule
             }
         });
     }
+
+    private static bool PodeUsarVendedor(long personagemId, IServiceProvider servicos) =>
+        ValidacaoNpcEconomia.EstaPerto(
+            servicos.GetRequiredService<IPosicoesDoMundo>(),
+            personagemId,
+            PontoNpcEconomia.Vendedor,
+            servicos.GetRequiredService<OpcoesNpcEconomia>()
+        );
+
+    private static bool PodeUsarFerreiro(long personagemId, IServiceProvider servicos) =>
+        ValidacaoNpcEconomia.EstaPerto(
+            servicos.GetRequiredService<IPosicoesDoMundo>(),
+            personagemId,
+            PontoNpcEconomia.Ferreiro,
+            servicos.GetRequiredService<OpcoesNpcEconomia>()
+        );
 }
