@@ -33,5 +33,17 @@ namespace JogoDoGrupo.Shared.Features.Montarias
 
         /// <summary>Servidor → client: notifica recusa ao tentar usar ou equipar montaria.</summary>
         public const ushort MontariaRecusada = 16008;
+
+        /// <summary>Client → servidor: consulta as ofertas do estábulo.</summary>
+        public const ushort ConsultarEstabulo = 16009;
+
+        /// <summary>Servidor → client: lista de ofertas disponíveis no estábulo.</summary>
+        public const ushort RespostaEstabulo = 16010;
+
+        /// <summary>Client → servidor: solicita a compra de uma montaria no estábulo.</summary>
+        public const ushort ComprarMontariaEstabulo = 16011;
+
+        /// <summary>Servidor → client: resposta ao pedido de compra no estábulo.</summary>
+        public const ushort RespostaCompraEstabulo = 16012;
     }
 }

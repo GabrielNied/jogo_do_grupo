@@ -11,7 +11,7 @@ public class CatalogoNpcsTestes
     {
         Assert.NotEmpty(CatalogoNpcs.Todos);
         var cidadeNpcs = CatalogoNpcs.PorArea(CatalogoNpcs.AreaCidade);
-        Assert.Equal(7, cidadeNpcs.Length);
+        Assert.Equal(8, cidadeNpcs.Length);
 
         var vendedor = CatalogoNpcs.Obter(CatalogoNpcs.IdVendedor);
         Assert.NotNull(vendedor);
@@ -47,6 +47,11 @@ public class CatalogoNpcsTestes
         Assert.NotNull(merceeiro);
         Assert.Equal("Merceeiro Tomas", merceeiro.Nome);
         Assert.Equal(PapelNpc.Merceeiro, merceeiro.Papel);
+
+        var cavalarico = CatalogoNpcs.Obter(CatalogoNpcs.IdCavalarico);
+        Assert.NotNull(cavalarico);
+        Assert.Equal("Cavalariço Roderic", cavalarico.Nome);
+        Assert.Equal(PapelNpc.Cavalarico, cavalarico.Papel);
     }
 
     [Fact]

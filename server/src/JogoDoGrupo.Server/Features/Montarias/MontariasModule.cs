@@ -1,4 +1,5 @@
 using JogoDoGrupo.Server.Contratos.Combate;
+using JogoDoGrupo.Server.Contratos.Economia;
 using JogoDoGrupo.Server.Contratos.Montarias;
 using JogoDoGrupo.Server.Contratos.Mundo;
 using JogoDoGrupo.Server.Core;
@@ -35,6 +36,7 @@ public sealed class MontariasModule : IFeatureModule
     public void MapearRotas(IEndpointRouteBuilder rotas)
     {
         _servico = rotas.ServiceProvider.GetRequiredService<ServicoDeMontarias>();
+        MontariasRotas.Mapear(rotas);
     }
 
     public void RegistrarMensagens(MensagensTempoReal mensagens) =>
@@ -43,7 +45,12 @@ public sealed class MontariasModule : IFeatureModule
             .Ao<ChamarMontaria>(MontariasMessageIds.ChamarMontaria, AoChamarMontaria)
             .Ao<Desmontar>(MontariasMessageIds.Desmontar, AoDesmontar)
             .Ao<EquiparMontaria>(MontariasMessageIds.EquiparMontaria, AoEquiparMontaria)
-            .Ao<UsarItemMontaria>(MontariasMessageIds.UsarItemMontaria, AoUsarItemMontaria);
+            .Ao<UsarItemMontaria>(MontariasMessageIds.UsarItemMontaria, AoUsarItemMontaria)
+            .Ao<ConsultarEstabulo>(MontariasMessageIds.ConsultarEstabulo, AoConsultarEstabulo)
+            .Ao<ComprarMontariaEstabulo>(
+                MontariasMessageIds.ComprarMontariaEstabulo,
+                AoComprarMontariaEstabulo
+            );
 
     public void Inicializar(ServerContext contexto)
     {
@@ -74,6 +81,24 @@ public sealed class MontariasModule : IFeatureModule
             sessao.ContaId,
             sessao.PersonagemId,
             pedido.InstanciaId,
+            sessao
+        );
+    }
+
+    private void AoConsultarEstabulo(SessaoTempoReal sessao, ConsultarEstabulo pedido)
+    {
+        _contexto?.TempoReal.Enviar(
+            sessao,
+            MontariasMessageIds.RespostaEstabulo,
+            new RespostaEstabulo { Ofertas = ConfigEstabulo.Ofertas }
+        );
+    }
+
+    private void AoComprarMontariaEstabulo(SessaoTempoReal sessao, ComprarMontariaEstabulo pedido)
+    {
+        _ = _servico?.ComprarMontariaEstabuloAsync(
+            sessao.PersonagemId,
+            pedido.TipoMontaria,
             sessao
         );
     }

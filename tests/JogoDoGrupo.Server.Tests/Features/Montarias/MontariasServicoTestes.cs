@@ -1,8 +1,10 @@
 using JogoDoGrupo.Server.Contratos.Combate;
+using JogoDoGrupo.Server.Contratos.Economia;
 using JogoDoGrupo.Server.Contratos.Mundo;
 using JogoDoGrupo.Server.Features.Montarias;
 using JogoDoGrupo.Shared.Features.Montarias;
 using JogoDoGrupo.Shared.Features.Mundo;
+using JogoDoGrupo.Shared.Features.Npcs;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
@@ -10,6 +12,54 @@ namespace JogoDoGrupo.Server.Tests.Features.Montarias;
 
 public class MontariasServicoTestes
 {
+    private sealed class CarteiraCoroasMock : ICarteiraCoroas
+    {
+        private long _saldo;
+
+        public CarteiraCoroasMock(long saldoInicial)
+        {
+            _saldo = saldoInicial;
+        }
+
+        public Task<long> SaldoAsync(long personagemId, CancellationToken c) =>
+            Task.FromResult(Interlocked.Read(ref _saldo));
+
+        public Task<bool> DebitarAsync(long personagemId, long valor, CancellationToken c)
+        {
+            while (true)
+            {
+                var atual = Interlocked.Read(ref _saldo);
+                if (atual < valor)
+                {
+                    return Task.FromResult(false);
+                }
+
+                if (Interlocked.CompareExchange(ref _saldo, atual - valor, atual) == atual)
+                {
+                    return Task.FromResult(true);
+                }
+            }
+        }
+
+        public Task CreditarAsync(long personagemId, long valor, CancellationToken c)
+        {
+            Interlocked.Add(ref _saldo, valor);
+            return Task.CompletedTask;
+        }
+    }
+
+    private sealed class PosicoesDoMundoMock : IPosicoesDoMundo
+    {
+        private readonly Dictionary<long, PosicaoNoMundo> _posicoes = new();
+
+        public void Definir(long personagemId, PosicaoNoMundo pos) => _posicoes[personagemId] = pos;
+
+        public bool TentarObter(long personagemId, out PosicaoNoMundo posicao) =>
+            _posicoes.TryGetValue(personagemId, out posicao);
+
+        public IReadOnlyList<long> PersonagensNaArea(string area) => Array.Empty<long>();
+    }
+
     private sealed class ControleVelocidadeSpy : IControleDeVelocidadeDoMundo
     {
         public long UltimoPersonagemId { get; private set; }
@@ -347,6 +397,251 @@ public class MontariasServicoTestes
                     );
                 Assert.NotNull(itemNoBanco);
             }
+        }
+    }
+
+    [Fact]
+    public async Task ComprarMontariaEstabulo_SemCoroas_Recusa_E_NaoDesbloqueia()
+    {
+        var (scopeFactory, conexao) = CriarBancoTeste();
+        using (conexao)
+        {
+            var carteira = new CarteiraCoroasMock(saldoInicial: 10);
+            var posicoes = new PosicoesDoMundoMock();
+            long personagemId = 300;
+            long contaId = 400;
+            posicoes.Definir(
+                personagemId,
+                new PosicaoNoMundo(
+                    CatalogoNpcs.AreaCidade,
+                    CatalogoNpcs.Cavalarico.X,
+                    CatalogoNpcs.Cavalarico.Y,
+                    CatalogoNpcs.Cavalarico.Z,
+                    0f
+                )
+            );
+
+            var servico = new ServicoDeMontarias(
+                posicoes: posicoes,
+                carteiraCoroas: carteira,
+                scopeFactory: scopeFactory
+            );
+
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var db =
+                    scope.ServiceProvider.GetRequiredService<JogoDoGrupo.Server.Core.Persistencia.JogoDbContext>();
+                CriarPersonagem(db, personagemId, contaId);
+                await db.SaveChangesAsync();
+            }
+
+            var (sucesso, codigoErro, _, _) = await servico.ComprarMontariaEstabuloAsync(
+                personagemId,
+                RegrasMontaria.TipoMulaDeCarga
+            );
+
+            Assert.False(sucesso);
+            Assert.Equal(CodigosErroMontarias.SaldoInsuficiente, codigoErro);
+            Assert.False(servico.PossuiMontaria(contaId, RegrasMontaria.TipoMulaDeCarga));
+            Assert.Equal(10, await carteira.SaldoAsync(personagemId, default));
+        }
+    }
+
+    [Fact]
+    public async Task ComprarMontariaEstabulo_ComSaldoEPerto_DebitaCoroas_E_Desbloqueia()
+    {
+        var (scopeFactory, conexao) = CriarBancoTeste();
+        using (conexao)
+        {
+            var carteira = new CarteiraCoroasMock(saldoInicial: 200);
+            var posicoes = new PosicoesDoMundoMock();
+            long personagemId = 301;
+            long contaId = 401;
+            posicoes.Definir(
+                personagemId,
+                new PosicaoNoMundo(
+                    CatalogoNpcs.AreaCidade,
+                    CatalogoNpcs.Cavalarico.X,
+                    CatalogoNpcs.Cavalarico.Y,
+                    CatalogoNpcs.Cavalarico.Z,
+                    0f
+                )
+            );
+
+            var servico = new ServicoDeMontarias(
+                posicoes: posicoes,
+                carteiraCoroas: carteira,
+                scopeFactory: scopeFactory
+            );
+
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var db =
+                    scope.ServiceProvider.GetRequiredService<JogoDoGrupo.Server.Core.Persistencia.JogoDbContext>();
+                CriarPersonagem(db, personagemId, contaId);
+                await db.SaveChangesAsync();
+            }
+
+            var (sucesso, _, _, saldoRestante) = await servico.ComprarMontariaEstabuloAsync(
+                personagemId,
+                RegrasMontaria.TipoCavaloComum
+            );
+
+            Assert.True(sucesso);
+            Assert.Equal(50, saldoRestante); // 200 - 150
+            Assert.Equal(50, await carteira.SaldoAsync(personagemId, default));
+            Assert.True(servico.PossuiMontaria(contaId, RegrasMontaria.TipoCavaloComum));
+            Assert.Contains(RegrasMontaria.TipoCavaloComum, servico.ObterColecao(contaId));
+        }
+    }
+
+    [Fact]
+    public async Task ComprarMontariaEstabulo_LongeDoNpc_Recusa()
+    {
+        var (scopeFactory, conexao) = CriarBancoTeste();
+        using (conexao)
+        {
+            var carteira = new CarteiraCoroasMock(saldoInicial: 500);
+            var posicoes = new PosicoesDoMundoMock();
+            long personagemId = 302;
+            long contaId = 402;
+            posicoes.Definir(
+                personagemId,
+                new PosicaoNoMundo(CatalogoNpcs.AreaCidade, 100f, 0f, 100f, 0f) // longe de -14, 8
+            );
+
+            var servico = new ServicoDeMontarias(
+                posicoes: posicoes,
+                carteiraCoroas: carteira,
+                scopeFactory: scopeFactory
+            );
+
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var db =
+                    scope.ServiceProvider.GetRequiredService<JogoDoGrupo.Server.Core.Persistencia.JogoDbContext>();
+                CriarPersonagem(db, personagemId, contaId);
+                await db.SaveChangesAsync();
+            }
+
+            var (sucesso, codigoErro, _, _) = await servico.ComprarMontariaEstabuloAsync(
+                personagemId,
+                RegrasMontaria.TipoMulaDeCarga
+            );
+
+            Assert.False(sucesso);
+            Assert.Equal(CodigosErroMontarias.LongeDoNpc, codigoErro);
+            Assert.False(servico.PossuiMontaria(contaId, RegrasMontaria.TipoMulaDeCarga));
+            Assert.Equal(500, await carteira.SaldoAsync(personagemId, default));
+        }
+    }
+
+    [Fact]
+    public async Task ComprarMontariaEstabulo_JaPossui_Recusa_E_NaoCobraSegundaVez()
+    {
+        var (scopeFactory, conexao) = CriarBancoTeste();
+        using (conexao)
+        {
+            var carteira = new CarteiraCoroasMock(saldoInicial: 200);
+            var posicoes = new PosicoesDoMundoMock();
+            long personagemId = 303;
+            long contaId = 403;
+            posicoes.Definir(
+                personagemId,
+                new PosicaoNoMundo(
+                    CatalogoNpcs.AreaCidade,
+                    CatalogoNpcs.Cavalarico.X,
+                    CatalogoNpcs.Cavalarico.Y,
+                    CatalogoNpcs.Cavalarico.Z,
+                    0f
+                )
+            );
+
+            var servico = new ServicoDeMontarias(
+                posicoes: posicoes,
+                carteiraCoroas: carteira,
+                scopeFactory: scopeFactory
+            );
+
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var db =
+                    scope.ServiceProvider.GetRequiredService<JogoDoGrupo.Server.Core.Persistencia.JogoDbContext>();
+                CriarPersonagem(db, personagemId, contaId);
+                await db.SaveChangesAsync();
+            }
+
+            var (sucesso1, _, _, _) = await servico.ComprarMontariaEstabuloAsync(
+                personagemId,
+                RegrasMontaria.TipoMulaDeCarga
+            );
+            Assert.True(sucesso1);
+            Assert.Equal(120, await carteira.SaldoAsync(personagemId, default)); // 200 - 80
+
+            var (sucesso2, codigoErro2, _, _) = await servico.ComprarMontariaEstabuloAsync(
+                personagemId,
+                RegrasMontaria.TipoMulaDeCarga
+            );
+            Assert.False(sucesso2);
+            Assert.Equal(CodigosErroMontarias.JaPossuiMontaria, codigoErro2);
+            Assert.Equal(120, await carteira.SaldoAsync(personagemId, default)); // Saldo preservado
+        }
+    }
+
+    [Fact]
+    public async Task ComprarMontariaEstabulo_Concorrente_CobraEDesbloqueiaUmaVez()
+    {
+        var (scopeFactory, conexao) = CriarBancoTeste();
+        using (conexao)
+        {
+            var carteira = new CarteiraCoroasMock(saldoInicial: 150);
+            var posicoes = new PosicoesDoMundoMock();
+            long personagemId = 304;
+            long contaId = 404;
+            posicoes.Definir(
+                personagemId,
+                new PosicaoNoMundo(
+                    CatalogoNpcs.AreaCidade,
+                    CatalogoNpcs.Cavalarico.X,
+                    CatalogoNpcs.Cavalarico.Y,
+                    CatalogoNpcs.Cavalarico.Z,
+                    0f
+                )
+            );
+
+            var servico = new ServicoDeMontarias(
+                posicoes: posicoes,
+                carteiraCoroas: carteira,
+                scopeFactory: scopeFactory
+            );
+
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var db =
+                    scope.ServiceProvider.GetRequiredService<JogoDoGrupo.Server.Core.Persistencia.JogoDbContext>();
+                CriarPersonagem(db, personagemId, contaId);
+                await db.SaveChangesAsync();
+            }
+
+            var tarefas = Enumerable
+                .Range(0, 10)
+                .Select(_ =>
+                    servico.ComprarMontariaEstabuloAsync(
+                        personagemId,
+                        RegrasMontaria.TipoCavaloComum
+                    )
+                )
+                .ToArray();
+
+            var resultados = await Task.WhenAll(tarefas);
+
+            var sucessos = resultados.Count(r => r.Sucesso);
+            var falhas = resultados.Count(r => !r.Sucesso);
+
+            Assert.Equal(1, sucessos);
+            Assert.Equal(9, falhas);
+            Assert.Equal(0, await carteira.SaldoAsync(personagemId, default)); // 150 - 150
+            Assert.True(servico.PossuiMontaria(contaId, RegrasMontaria.TipoCavaloComum));
         }
     }
 }

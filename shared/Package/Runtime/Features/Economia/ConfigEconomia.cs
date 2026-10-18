@@ -109,16 +109,6 @@ namespace JogoDoGrupo.Shared.Features.Economia
                 25
             ),
             new ItemLojaDto(
-                CatalogoItens.RedeasDaMulaDeCarga,
-                CatalogoItens.ObterNome(CatalogoItens.RedeasDaMulaDeCarga) ?? "Mula",
-                80
-            ),
-            new ItemLojaDto(
-                CatalogoItens.RedeasDoCorcelNoturno,
-                CatalogoItens.ObterNome(CatalogoItens.RedeasDoCorcelNoturno) ?? "Montaria",
-                500
-            ),
-            new ItemLojaDto(
                 CatalogoItens.SinoDoCervoJovem,
                 CatalogoItens.ObterNome(CatalogoItens.SinoDoCervoJovem) ?? "Pet",
                 500
@@ -146,19 +136,9 @@ namespace JogoDoGrupo.Shared.Features.Economia
                 50
             ),
             new ItemLojaDto(
-                CatalogoItens.RedeasDoCorcelNoturno,
-                CatalogoItens.ObterNome(CatalogoItens.RedeasDoCorcelNoturno) ?? "Montaria",
-                500
-            ),
-            new ItemLojaDto(
                 CatalogoItens.SinoDoCervoJovem,
                 CatalogoItens.ObterNome(CatalogoItens.SinoDoCervoJovem) ?? "Pet",
                 500
-            ),
-            new ItemLojaDto(
-                CatalogoItens.RedeasDaMulaDeCarga,
-                CatalogoItens.ObterNome(CatalogoItens.RedeasDaMulaDeCarga) ?? "Mula",
-                80
             ),
             new ItemLojaDto(50, "Pão da Taverna", 5),
             new ItemLojaDto(51, "Caneca de Cerveja", 8),

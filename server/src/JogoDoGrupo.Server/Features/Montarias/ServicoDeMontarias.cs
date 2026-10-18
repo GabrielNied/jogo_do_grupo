@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using JogoDoGrupo.Server.Contratos.Combate;
+using JogoDoGrupo.Server.Contratos.Economia;
 using JogoDoGrupo.Server.Contratos.Montarias;
 using JogoDoGrupo.Server.Contratos.Mundo;
 using JogoDoGrupo.Server.Core.Persistencia;
@@ -7,6 +8,7 @@ using JogoDoGrupo.Server.Core.TempoReal;
 using JogoDoGrupo.Server.Features.Itens;
 using JogoDoGrupo.Shared.Features.Montarias;
 using JogoDoGrupo.Shared.Features.Mundo;
+using JogoDoGrupo.Shared.Features.Npcs;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -27,6 +29,7 @@ public sealed class ServicoDeMontarias : IMontariasConsulta
     private readonly IEstadoDeCombate? _combate;
     private readonly IPosicoesDoMundo? _posicoes;
     private readonly IVizinhanca? _vizinhanca;
+    private readonly ICarteiraCoroas? _carteiraCoroas;
     private readonly IServiceScopeFactory? _scopeFactory;
     private readonly ILogger<ServicoDeMontarias>? _logger;
 
@@ -36,6 +39,7 @@ public sealed class ServicoDeMontarias : IMontariasConsulta
         IEstadoDeCombate? combate = null,
         IPosicoesDoMundo? posicoes = null,
         IVizinhanca? vizinhanca = null,
+        ICarteiraCoroas? carteiraCoroas = null,
         IServiceScopeFactory? scopeFactory = null,
         ILogger<ServicoDeMontarias>? logger = null
     )
@@ -45,6 +49,7 @@ public sealed class ServicoDeMontarias : IMontariasConsulta
         _combate = combate;
         _posicoes = posicoes;
         _vizinhanca = vizinhanca;
+        _carteiraCoroas = carteiraCoroas;
         _scopeFactory = scopeFactory;
         _logger = logger;
     }
@@ -331,6 +336,217 @@ public sealed class ServicoDeMontarias : IMontariasConsulta
 
         EquiparMontaria(personagemId, tipoMontaria, sessao);
         return true;
+    }
+
+    /// <summary>
+    /// Compra uma montaria básica no estábulo da cidade com coroas, garantindo atomicidade e proximidade (#1067).
+    /// </summary>
+    public async Task<(
+        bool Sucesso,
+        string? CodigoErro,
+        string? Mensagem,
+        long SaldoRestante
+    )> ComprarMontariaEstabuloAsync(
+        long personagemId,
+        int tipoMontaria,
+        SessaoTempoReal? sessao = null,
+        CancellationToken ct = default
+    )
+    {
+        if (!ConfigEstabulo.EstaAVenda(tipoMontaria))
+        {
+            var erro = CodigosErroMontarias.MontariaNaoAVenda;
+            var msg = "Esta montaria não está à venda no estábulo.";
+            NotificarRecusaCompra(sessao, tipoMontaria, erro, msg);
+            return (false, erro, msg, 0);
+        }
+
+        if (_combate?.EmCombate(personagemId) == true)
+        {
+            var erro = CodigosErroMontarias.EmCombate;
+            var msg = "Não é possível comprar montarias durante o combate.";
+            NotificarRecusaCompra(sessao, tipoMontaria, erro, msg);
+            return (false, erro, msg, 0);
+        }
+
+        if (_posicoes != null && _posicoes.TentarObter(personagemId, out var pos))
+        {
+            var npc = CatalogoNpcs.Cavalarico;
+            if (pos.Area != npc.Area || !npc.Alcanca(pos.X, pos.Z))
+            {
+                var erro = CodigosErroMontarias.LongeDoNpc;
+                var msg = "Você está muito longe do estábulo para comprar montarias.";
+                NotificarRecusaCompra(sessao, tipoMontaria, erro, msg);
+                return (false, erro, msg, 0);
+            }
+        }
+
+        long contaId = sessao?.ContaId ?? 0;
+
+        if (_scopeFactory == null && _carteiraCoroas == null)
+        {
+            return (false, CodigosErroMontarias.MontariaNaoAVenda, "Serviço indisponível.", 0);
+        }
+
+        if (_scopeFactory != null)
+        {
+            using var escopo = _scopeFactory.CreateScope();
+            var db = escopo.ServiceProvider.GetRequiredService<JogoDbContext>();
+            var carteira = _carteiraCoroas ?? escopo.ServiceProvider.GetService<ICarteiraCoroas>();
+
+            if (contaId <= 0)
+            {
+                var p = await db.Set<JogoDoGrupo.Server.Features.Personagem.Personagem>()
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(x => x.Id == personagemId, ct);
+                if (p != null)
+                {
+                    contaId = p.ContaId;
+                }
+            }
+
+            if (contaId > 0 && PossuiMontaria(contaId, tipoMontaria))
+            {
+                var erro = CodigosErroMontarias.JaPossuiMontaria;
+                var msg = "Você já possui esta montaria registrada em sua conta.";
+                NotificarRecusaCompra(sessao, tipoMontaria, erro, msg);
+                return (false, erro, msg, 0);
+            }
+
+            var preco = ConfigEstabulo.ObterPreco(tipoMontaria);
+
+            await using var tx = await db.Database.BeginTransactionAsync(ct);
+
+            var jaTemNoBanco = await db.Set<MontariaDaConta>()
+                .AnyAsync(m => m.ContaId == contaId && m.TipoMontaria == tipoMontaria, ct);
+            if (jaTemNoBanco)
+            {
+                var erro = CodigosErroMontarias.JaPossuiMontaria;
+                var msg = "Você já possui esta montaria registrada em sua conta.";
+                NotificarRecusaCompra(sessao, tipoMontaria, erro, msg);
+                return (false, erro, msg, 0);
+            }
+
+            if (carteira != null)
+            {
+                var debitou = await carteira.DebitarAsync(personagemId, preco, ct);
+                if (!debitou)
+                {
+                    var erro = CodigosErroMontarias.SaldoInsuficiente;
+                    var msg = "Você não possui coroas suficientes para comprar esta montaria.";
+                    NotificarRecusaCompra(sessao, tipoMontaria, erro, msg);
+                    return (false, erro, msg, 0);
+                }
+            }
+
+            var registro = new MontariaDaConta
+            {
+                ContaId = contaId,
+                TipoMontaria = tipoMontaria,
+                DesbloqueadaEm = DateTime.UtcNow,
+            };
+            db.Set<MontariaDaConta>().Add(registro);
+            await db.SaveChangesAsync(ct);
+            await tx.CommitAsync(ct);
+
+            var colecao = _colecoesPorConta.GetOrAdd(
+                contaId,
+                _ => new HashSet<int> { RegrasMontaria.TipoCastanho }
+            );
+            lock (colecao)
+            {
+                colecao.Add(tipoMontaria);
+            }
+
+            long saldoRestante = carteira != null ? await carteira.SaldoAsync(personagemId, ct) : 0;
+
+            if (sessao != null && _tempoReal != null)
+            {
+                _tempoReal.Enviar(
+                    sessao,
+                    MontariasMessageIds.MontariaDesbloqueada,
+                    new MontariaDesbloqueada
+                    {
+                        TipoMontaria = tipoMontaria,
+                        Nome = RegrasMontaria.ObterNome(tipoMontaria),
+                    }
+                );
+
+                EnviarColecao(sessao);
+
+                _tempoReal.Enviar(
+                    sessao,
+                    MontariasMessageIds.RespostaCompraEstabulo,
+                    new RespostaCompraEstabulo(
+                        sucesso: true,
+                        tipoMontaria: tipoMontaria,
+                        saldoRestante: saldoRestante
+                    )
+                );
+            }
+
+            EquiparMontaria(personagemId, tipoMontaria, sessao);
+            return (true, null, null, saldoRestante);
+        }
+        else
+        {
+            if (contaId > 0 && PossuiMontaria(contaId, tipoMontaria))
+            {
+                var erro = CodigosErroMontarias.JaPossuiMontaria;
+                var msg = "Você já possui esta montaria registrada em sua conta.";
+                NotificarRecusaCompra(sessao, tipoMontaria, erro, msg);
+                return (false, erro, msg, 0);
+            }
+
+            var preco = ConfigEstabulo.ObterPreco(tipoMontaria);
+            if (_carteiraCoroas != null)
+            {
+                var debitou = await _carteiraCoroas.DebitarAsync(personagemId, preco, ct);
+                if (!debitou)
+                {
+                    var erro = CodigosErroMontarias.SaldoInsuficiente;
+                    var msg = "Você não possui coroas suficientes para comprar esta montaria.";
+                    NotificarRecusaCompra(sessao, tipoMontaria, erro, msg);
+                    return (false, erro, msg, 0);
+                }
+            }
+
+            var colecao = _colecoesPorConta.GetOrAdd(
+                contaId,
+                _ => new HashSet<int> { RegrasMontaria.TipoCastanho }
+            );
+            lock (colecao)
+            {
+                colecao.Add(tipoMontaria);
+            }
+
+            long saldoRestante =
+                _carteiraCoroas != null ? await _carteiraCoroas.SaldoAsync(personagemId, ct) : 0;
+            return (true, null, null, saldoRestante);
+        }
+    }
+
+    private void NotificarRecusaCompra(
+        SessaoTempoReal? sessao,
+        int tipoMontaria,
+        string codigo,
+        string motivo
+    )
+    {
+        if (sessao != null && _tempoReal != null)
+        {
+            _tempoReal.Enviar(
+                sessao,
+                MontariasMessageIds.RespostaCompraEstabulo,
+                new RespostaCompraEstabulo(
+                    sucesso: false,
+                    tipoMontaria: tipoMontaria,
+                    saldoRestante: 0,
+                    codigoErro: codigo,
+                    mensagem: motivo
+                )
+            );
+        }
     }
 
     /// <summary>

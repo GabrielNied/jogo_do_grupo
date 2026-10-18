@@ -1,5 +1,6 @@
 using System;
 using JogoDoGrupo.Client.Core.Jogo;
+using JogoDoGrupo.Client.Core.Jogo.Janelas;
 using JogoDoGrupo.Shared.Features.Npcs;
 using UnityEngine;
 
@@ -145,6 +146,10 @@ namespace JogoDoGrupo.Client.Features.Npcs
             if (_jogadorNoAlcance && Input.GetKeyDown(KeyCode.E))
             {
                 InteragiuComNpc?.Invoke(_definicao);
+                if (_definicao.Papel == PapelNpc.Cavalarico)
+                {
+                    JanelasDoJogo.Abrir("montarias.estabulo");
+                }
             }
         }
 
@@ -188,6 +193,7 @@ namespace JogoDoGrupo.Client.Features.Npcs
                 PapelNpc.Banqueiro => new Color(0.2f, 0.75f, 0.45f), // Esmeralda
                 PapelNpc.Leiloeiro => new Color(0.25f, 0.65f, 0.95f), // Safira / Azul Claro
                 PapelNpc.DadorDeMissao => new Color(0.75f, 0.35f, 0.9f), // Ametista / Roxo
+                PapelNpc.Cavalarico => new Color(0.60f, 0.40f, 0.20f), // Couro / Marrom
                 _ => new Color(0.85f, 0.85f, 0.85f), // Neutro
             };
 
@@ -203,6 +209,7 @@ namespace JogoDoGrupo.Client.Features.Npcs
                 PapelNpc.Banqueiro => "Banqueiro",
                 PapelNpc.Leiloeiro => "Leiloeiro",
                 PapelNpc.DadorDeMissao => "Missões",
+                PapelNpc.Cavalarico => "Estábulo",
                 _ => "Habitante",
             };
     }
