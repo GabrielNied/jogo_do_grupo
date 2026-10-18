@@ -1,11 +1,13 @@
 using System.Collections.Concurrent;
 using JogoDoGrupo.Server.Contratos.Combate;
+using JogoDoGrupo.Server.Contratos.Economia;
 using JogoDoGrupo.Server.Contratos.Itens;
 using JogoDoGrupo.Server.Contratos.Mundo;
 using JogoDoGrupo.Server.Core.Persistencia;
 using JogoDoGrupo.Server.Core.TempoReal;
 using JogoDoGrupo.Server.Features.Itens;
 using JogoDoGrupo.Shared.Core.TempoReal;
+using JogoDoGrupo.Shared.Features.Npcs;
 using JogoDoGrupo.Shared.Features.Pets;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -32,7 +34,8 @@ public sealed class ServicoDePets(
     ILootDoDono? loot = null,
     ILogger<ServicoDePets>? log = null,
     IServiceScopeFactory? scopeFactory = null,
-    IEstadoDeCombate? combate = null
+    IEstadoDeCombate? combate = null,
+    ICarteiraCoroas? carteiraCoroas = null
 ) : IHostedService
 {
     /// <summary>
@@ -127,10 +130,25 @@ public sealed class ServicoDePets(
             lista = colecao.ToArray();
         }
 
-        tempoReal.Enviar(
+        tempoReal?.Enviar(
             sessao,
             PetsMessageIds.ColecaoPets,
             new ColecaoPets { EspeciesDesbloqueadas = lista }
+        );
+    }
+
+    /// <summary>Envia o catálogo de ofertas do cuidador de pets à sessão (#1068).</summary>
+    public void ConsultarCuidador(SessaoTempoReal sessao)
+    {
+        if (sessao == null || tempoReal == null)
+        {
+            return;
+        }
+
+        tempoReal.Enviar(
+            sessao,
+            PetsMessageIds.RespostaCuidador,
+            new RespostaCuidador(ConfigCuidadorDePets.Ofertas)
         );
     }
 
@@ -236,6 +254,212 @@ public sealed class ServicoDePets(
         }
 
         return true;
+    }
+
+    /// <summary>
+    /// Compra um pet vendido pela Cuidadora Mirna na Brasa Mansa por coroas (#1068).
+    /// </summary>
+    public async Task<(
+        bool Sucesso,
+        string? CodigoErro,
+        string Mensagem,
+        long SaldoRestante
+    )> ComprarPetCuidadorAsync(
+        long personagemId,
+        int especie,
+        SessaoTempoReal? sessao = null,
+        CancellationToken ct = default
+    )
+    {
+        if (!ConfigCuidadorDePets.EstaAVenda(especie))
+        {
+            var erro = CodigosErroPets.PetNaoAVenda;
+            var msg = "Esta espécie de pet não está à venda no cuidador.";
+            NotificarRecusaCompra(sessao, especie, erro, msg);
+            return (false, erro, msg, 0);
+        }
+
+        if (combate?.EmCombate(personagemId) == true)
+        {
+            var erro = CodigosErroPets.EmCombate;
+            var msg = "Não é possível comprar pets durante o combate.";
+            NotificarRecusaCompra(sessao, especie, erro, msg);
+            return (false, erro, msg, 0);
+        }
+
+        if (posicoes != null && posicoes.TentarObter(personagemId, out var pos))
+        {
+            var npc = CatalogoNpcs.CuidadorDePets;
+            if (pos.Area != npc.Area || !npc.Alcanca(pos.X, pos.Z))
+            {
+                var erro = CodigosErroPets.LongeDoNpc;
+                var msg = "Você está muito longe do cuidador de pets para comprar.";
+                NotificarRecusaCompra(sessao, especie, erro, msg);
+                return (false, erro, msg, 0);
+            }
+        }
+
+        long contaId = sessao?.ContaId ?? 0;
+
+        if (scopeFactory == null && carteiraCoroas == null)
+        {
+            return (false, CodigosErroPets.PetNaoAVenda, "Serviço indisponível.", 0);
+        }
+
+        if (scopeFactory != null)
+        {
+            using var escopo = scopeFactory.CreateScope();
+            var db = escopo.ServiceProvider.GetRequiredService<JogoDbContext>();
+            var carteira = carteiraCoroas ?? escopo.ServiceProvider.GetService<ICarteiraCoroas>();
+
+            if (contaId <= 0)
+            {
+                var p = await db.Set<JogoDoGrupo.Server.Features.Personagem.Personagem>()
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(x => x.Id == personagemId, ct);
+                if (p != null)
+                {
+                    contaId = p.ContaId;
+                }
+            }
+
+            if (contaId > 0 && PossuiPet(contaId, (EspecieDePet)especie))
+            {
+                var erro = CodigosErroPets.JaPossuiPet;
+                var msg = "Você já possui este pet registrado em sua conta.";
+                NotificarRecusaCompra(sessao, especie, erro, msg);
+                return (false, erro, msg, 0);
+            }
+
+            var preco = ConfigCuidadorDePets.ObterPreco(especie);
+
+            await using var tx = await db.Database.BeginTransactionAsync(ct);
+
+            var jaTemNoBanco = await db.Set<PetDaConta>()
+                .AnyAsync(p => p.ContaId == contaId && p.Especie == especie, ct);
+            if (jaTemNoBanco)
+            {
+                var erro = CodigosErroPets.JaPossuiPet;
+                var msg = "Você já possui este pet registrado em sua conta.";
+                NotificarRecusaCompra(sessao, especie, erro, msg);
+                return (false, erro, msg, 0);
+            }
+
+            if (carteira != null)
+            {
+                var debitou = await carteira.DebitarAsync(personagemId, preco, ct);
+                if (!debitou)
+                {
+                    var erro = CodigosErroPets.SaldoInsuficiente;
+                    var msg = "Você não possui coroas suficientes para comprar este pet.";
+                    NotificarRecusaCompra(sessao, especie, erro, msg);
+                    return (false, erro, msg, 0);
+                }
+            }
+
+            var registro = new PetDaConta
+            {
+                ContaId = contaId,
+                Especie = especie,
+                DesbloqueadoEm = DateTime.UtcNow,
+            };
+            db.Set<PetDaConta>().Add(registro);
+            await db.SaveChangesAsync(ct);
+            await tx.CommitAsync(ct);
+
+            if (contaId > 0)
+            {
+                var colecao = ObterColecao(contaId);
+                lock (colecao)
+                {
+                    colecao.Add(especie);
+                }
+            }
+
+            long saldoRestante = 0;
+            if (carteira != null)
+            {
+                saldoRestante = await carteira.SaldoAsync(personagemId, ct);
+            }
+
+            if (sessao != null && tempoReal != null)
+            {
+                tempoReal.Enviar(
+                    sessao,
+                    PetsMessageIds.PetDesbloqueado,
+                    new PetDesbloqueado
+                    {
+                        Especie = especie,
+                        Nome = RegrasPets.ObterNome((EspecieDePet)especie),
+                    }
+                );
+                tempoReal.Enviar(
+                    sessao,
+                    PetsMessageIds.RespostaCompraPet,
+                    new RespostaCompraPet(
+                        true,
+                        especie,
+                        null,
+                        "Pet adquirido com sucesso!",
+                        saldoRestante
+                    )
+                );
+            }
+
+            return (true, null, "Pet adquirido com sucesso!", saldoRestante);
+        }
+
+        // Testes isolados com mock sem banco
+        if (contaId > 0 && PossuiPet(contaId, (EspecieDePet)especie))
+        {
+            var erro = CodigosErroPets.JaPossuiPet;
+            var msg = "Você já possui este pet registrado em sua conta.";
+            NotificarRecusaCompra(sessao, especie, erro, msg);
+            return (false, erro, msg, 0);
+        }
+
+        var precoMem = ConfigCuidadorDePets.ObterPreco(especie);
+        if (carteiraCoroas != null)
+        {
+            var debitou = await carteiraCoroas.DebitarAsync(personagemId, precoMem, ct);
+            if (!debitou)
+            {
+                var erro = CodigosErroPets.SaldoInsuficiente;
+                var msg = "Você não possui coroas suficientes para comprar este pet.";
+                NotificarRecusaCompra(sessao, especie, erro, msg);
+                return (false, erro, msg, 0);
+            }
+        }
+
+        if (contaId > 0)
+        {
+            var colecao = ObterColecao(contaId);
+            lock (colecao)
+            {
+                colecao.Add(especie);
+            }
+        }
+
+        long saldoRestanteMem =
+            carteiraCoroas != null ? await carteiraCoroas.SaldoAsync(personagemId, ct) : 0;
+        return (true, null, "Pet adquirido com sucesso!", saldoRestanteMem);
+    }
+
+    private void NotificarRecusaCompra(
+        SessaoTempoReal? sessao,
+        int especie,
+        string codigoErro,
+        string mensagem
+    )
+    {
+        if (sessao != null && tempoReal != null)
+        {
+            tempoReal.Enviar(
+                sessao,
+                PetsMessageIds.RespostaCompraPet,
+                new RespostaCompraPet(false, especie, codigoErro, mensagem, 0)
+            );
+        }
     }
 
     /// <summary>Trata <see cref="ChamarPet"/> (laço de rede).</summary>

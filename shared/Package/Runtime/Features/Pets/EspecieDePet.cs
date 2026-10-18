@@ -13,5 +13,8 @@ namespace JogoDoGrupo.Shared.Features.Pets
         LoboDeGeadaFilhote = 8,
         CarapacaJovem = 9,
         MosquitoDoPantano = 10,
+        CachorroComum = 11,
+        GatoComum = 12,
+        GalinhaComum = 13,
     }
 }

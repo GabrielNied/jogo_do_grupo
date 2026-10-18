@@ -133,9 +133,9 @@ public class RegrasPetsTestes
     }
 
     [Fact]
-    public void Catalogo_de_pets_tem_dez_especies_com_item_e_textos()
+    public void Catalogo_de_pets_tem_treze_especies_com_item_e_textos()
     {
-        Assert.Equal(10, RegrasPets.EspeciesDoCatalogo.Length);
+        Assert.Equal(13, RegrasPets.EspeciesDoCatalogo.Length);
         Assert.Equal(
             EspecieDePet.CervoJovem,
             RegrasPets.EspecieDoItem(
@@ -148,9 +148,18 @@ public class RegrasPetsTestes
             Assert.True(RegrasPets.EspecieValida(especie));
             Assert.False(RegrasPets.DesbloqueadoPorPadrao(especie));
             Assert.NotEmpty(RegrasPets.ObterNome(especie));
-            Assert.Contains("Drop raro", RegrasPets.ObterOrigem(especie));
+            Assert.NotEmpty(RegrasPets.ObterOrigem(especie));
             Assert.NotEmpty(RegrasPets.ObterDescricao(especie));
         }
+
+        Assert.Equal(3, ConfigCuidadorDePets.Ofertas.Length);
+        Assert.Equal(50, ConfigCuidadorDePets.PrecoGalinhaComum);
+        Assert.Equal(75, ConfigCuidadorDePets.PrecoGatoComum);
+        Assert.Equal(100, ConfigCuidadorDePets.PrecoCachorroComum);
+        Assert.True(ConfigCuidadorDePets.EstaAVenda((int)EspecieDePet.GalinhaComum));
+        Assert.True(ConfigCuidadorDePets.EstaAVenda((int)EspecieDePet.GatoComum));
+        Assert.True(ConfigCuidadorDePets.EstaAVenda((int)EspecieDePet.CachorroComum));
+        Assert.False(ConfigCuidadorDePets.EstaAVenda((int)EspecieDePet.CervoJovem));
     }
 
     [Fact]
@@ -159,11 +168,18 @@ public class RegrasPetsTestes
         Assert.Equal(17006, PetsMessageIds.UsarItemPet);
         Assert.Equal(17007, PetsMessageIds.ColecaoPets);
         Assert.Equal(17008, PetsMessageIds.PetDesbloqueado);
+        Assert.Equal(17009, PetsMessageIds.ConsultarCuidador);
+        Assert.Equal(17010, PetsMessageIds.RespostaCuidador);
+        Assert.Equal(17011, PetsMessageIds.ComprarPetCuidador);
+        Assert.Equal(17012, PetsMessageIds.RespostaCompraPet);
 
         Assert.Equal("EmCombate", CodigosErroPets.EmCombate);
         Assert.Equal("JaPossuiPet", CodigosErroPets.JaPossuiPet);
         Assert.Equal("PetNaoDesbloqueado", CodigosErroPets.PetNaoDesbloqueado);
         Assert.Equal("ItemNaoEncontrado", CodigosErroPets.ItemNaoEncontrado);
         Assert.Equal("ItemNaoEPet", CodigosErroPets.ItemNaoEPet);
+        Assert.Equal("SaldoInsuficiente", CodigosErroPets.SaldoInsuficiente);
+        Assert.Equal("LongeDoNpc", CodigosErroPets.LongeDoNpc);
+        Assert.Equal("PetNaoAVenda", CodigosErroPets.PetNaoAVenda);
     }
 }
