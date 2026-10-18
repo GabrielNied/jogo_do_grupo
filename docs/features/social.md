@@ -439,3 +439,31 @@ Código em `shared/Package/Runtime/Features/Social/`. Tempo real, entrega confi�
 - `CodigosErroSocial` ganhou os 13 códigos de amigos e ignorados da seção de recusas; `AlvoNaoEncontrado` é o mesmo do grupo.
 - `RegrasAmigos`: os números da tabela de limites como constantes e as decisões puras (`VagasLivres`, `TemVaga`, `AlvoComPedidosDemais`, `CabeMaisUmIgnorado`, `PedidoRapidoDemais`, `PedidoViraAceite`, `RecusaDoPedido`, `RecusaDoAceite`, `RecusaDeIgnorar`, `ContatoBarrado`). `RelacaoDeAmizade` é a entrada de `RecusaDoPedido`.
 - Amigos e ignorados ficam com os IDs 13200 a 13299.
+
+### Inspeção de jogador (issue #1016)
+
+Permite visualizar equipamentos equipados, tiers, raridades e atributos de outros jogadores presentes no mundo (na mesma área) ou membros do mesmo grupo.
+
+#### Regras de inspeção
+
+- **Quem pode ser inspecionado:** jogadores online presentes na mesma área que o solicitante ou membros do mesmo grupo (mesmo que estejam distantes ou em outra área). Inspecionar a si mesmo sempre é permitido.
+- **Validações no servidor:**
+  - Alvo inexistente ou nome não encontrado: recusa com `CodigoErroInspecao.AlvoNaoEncontrado`.
+  - Alvo offline: recusa com `CodigoErroInspecao.AlvoOffline`.
+  - Alvo em outra área e fora do grupo: recusa com `CodigoErroInspecao.AlvoForaDoAlcance`.
+- **Acesso no client:**
+  - Pelo quadro de grupo na janela Social (botão "Inspecionar" ao lado de cada membro).
+  - Pelo clique no retrato do aliado no HUD lateral esquerdo.
+  - Pelo comando de barra no chat: `/inspecionar <nome>` ou `/inspect <nome>`.
+- **Janela de inspeção (`JanelaInspecao`):** interface modal somente leitura (estilo Lumora) exibindo o conjunto ativo, peças de equipamento equipadas com seus tiers (S+, A, etc.), raridade, nível, atributos base do personagem e atributos de combate acumulados pelo equipamento. Nenhuma ação de modificação ou transferência de item é permitida.
+
+#### Contrato de inspeção
+
+Código em `shared/Package/Runtime/Features/Social/`. Tempo real, entrega confiável.
+
+| ID | Mensagem | Direção | Campos |
+|---|---|---|---|
+| 13300 | `PedirInspecao` | client → servidor | `PersonagemId` (opcional se nome informado), `Nome` |
+| 13310 | `RetratoInspecaoResponse` | servidor → client | `PersonagemId`, `Nome`, `Raca`, `Nivel`, `ConjuntoAtivo`, `Equipados[]` (`EntradaInventario`), `Atributos` (`AtributosDosEquipamentos`), `Forca`, `Vigor`, `Agilidade`, `Intelecto`, `Espirito` |
+| 13311 | `InspecaoRecusada` | servidor → quem pediu | `PersonagemId`, `Motivo` (`CodigoErroInspecao`: `AlvoNaoEncontrado` 1, `AlvoOffline` 2, `AlvoForaDoAlcance` 3) |
+
