@@ -92,5 +92,11 @@ client/servidor.json
 # Corpo do PR para o npm run entregar (docs/git.md#entregar).
 /pr-corpo.md
 
+# Fantasy Landscape (Asset Store): cópia licenciada local, sem redistribuição de fontes.
+/client/Assets/FantasyEnvironments/
+/client/Assets/FantasyEnvironments.meta
+/client/Assets/ThirdParty/Pxltiger/
+/client/Assets/ThirdParty/Pxltiger.meta
+
 # Saída das simulações (tools/JogoDoGrupo.Simulacoes)
 tools/JogoDoGrupo.Simulacoes/saida/
