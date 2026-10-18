@@ -6,7 +6,7 @@
 
 ## Resumo
 
-Comandos para testar no editor do Unity e no build de desenvolvimento. O client só envia o texto. Experiência, posição e spawn continuam no servidor. Não é a ferramenta de GM de produção ([#187](https://github.com/GabrielNied/jogo_do_grupo/issues/187)).
+Comandos e tela de admin (F8) para testar no editor do Unity e no build de desenvolvimento. O client só envia a intenção. Item, experiência, moeda, posição e spawn continuam no servidor. Não é a ferramenta de GM de produção ([#187](https://github.com/GabrielNied/jogo_do_grupo/issues/187)).
 
 ## Definido
 
@@ -31,9 +31,33 @@ O servidor continua lendo o texto **sem barra** (`xp 10`, `tp …`); o client ti
 
 Números usam ponto decimal. O texto tem no máximo 80 caracteres.
 
+### Tela de admin (F8)
+
+Pedido do Gabriel em 2026-10-18 ([#1099](https://github.com/GabrielNied/jogo_do_grupo/issues/1099)): escolher o que testar com cliques, em vez de digitar comando. **F8** abre e fecha, Esc fecha; o personagem fica parado e o cursor livre, como no F10. Só existe onde os comandos de teste existem (editor e build de desenvolvimento) e atrás da mesma trava do servidor (`PermitirComandos` + Development + `Desenvolvimento:Contas`). Os comandos do chat continuam valendo.
+
+A tela manda `PedirAcaoDeAdmin` (id 15002), tipado, e recebe `ResultadoDeAcaoDeAdmin` (15003) com o texto, que aparece na linha de status do painel (verde aceito, vermelho recusa) e no chat. Os botões ficam desabilitados esperando a resposta (até 5 s). O servidor valida cada campo com `RegrasAdmin.Validar` (shared) antes de executar; o client valida com a mesma regra, só para recusar antes de enviar.
+
+| Aba | O que faz |
+|---|---|
+| Item | Tipo, modelo daquele tipo, grau (Inicial, Médio, Forte), origem do inimigo (comum, elite, chefe raro, chefe) e quantidade (1 a 20). Gera pelo mesmo `GeradorEquipamentos` do loot e guarda na primeira casa livre da bolsa; os que não couberem ficam de fora e o texto diz quantos. O texto traz o tier calculado e o nível que a peça pede. |
+| Personagem | Experiência (± 1.000.000), coroas (± 1.000.000; tirar demais para no zero), essências de dungeon e de raid (1 a 100 de cada) e teleporte por X, Y e Z (mesmas recusas do `/tp`). |
+| Mobs | Espécie (do catálogo de criaturas) e quantidade (1 a 10) perto de quem pediu, no maior grupo da área e dentro do teto de spawns de teste (20 a mais por grupo); matar os inimigos vivos da área. |
+| Inventário | Limpar a bolsa (dois cliques; favoritos ficam), vestir o último item que a tela gerou, quebrar e consertar a durabilidade do que está vestido (sem custo). |
+
+Decisões desta entrega:
+
+- **O servidor segue sendo quem sorteia.** A tela escolhe modelo, grau e origem; os valores dos atributos saem do gerador, gravados uma vez, e o tier é o calculado. Nenhuma [invariante de itens](itens.md#invariantes) muda: o que muda é só quem pede.
+- **Vestir usa a regra normal** (`RegrasEquipar`): peça de grau Forte recusa se o nível do personagem for menor que o exigido. Para testar uma peça forte, suba o nível pela aba Personagem antes.
+- **Matar a área não dá experiência nem loot** e os inimigos voltam pela reposição de sempre: é um botão de limpar a tela, não de farmar. Derrota de verdade que já estava pendente não se perde.
+- **Cada funcionalidade dona expõe um contrato de teste** (`IFerramentasDeItensDeTeste`, `IAjusteDeCoroasDeTeste`, `IInimigosDeTeste`); Desenvolvimento não referencia nenhuma delas.
+- Cada ação executada é registrada no log com a conta, o personagem e os campos pedidos. Limites em `ConfigAdmin`.
+
 ## Em aberto
 
-- Mais comandos (item, moeda, matar o inimigo) quando fizer falta para testar.
+- **Curar tudo e restaurar recursos** ficaram fora da tela de admin: exigem um contrato de teste em Combate, dono da vida.
+- Poder lendário, nível de fusão e tier alvo na geração do item (a tela só escolhe tipo, modelo, grau e origem).
+- Pontos nomeados de teleporte (cidade, campo, dungeon) em vez de coordenadas.
+- Mais comandos de chat quando fizer falta para testar.
 - A ferramenta de GM de produção, com permissão de conta, continua na #187.
 - Report de jogador comum, fora do grupo: [proposta](#report-de-jogador-comum-futuro), sem issue até haver testador de fora.
 
@@ -74,7 +98,9 @@ Script de editor que grava a cena ou um painel em três resoluções para o agen
 
 - [Personagem](personagem.md): `IAjusteDeExperienciaDeTeste`
 - [Mundo](mundo.md): `ITeleporteDeTeste`
-- [Mobs](mobs.md): `ISpawnDeTeste`
+- [Mobs](mobs.md): `ISpawnDeTeste`, `IInimigosDeTeste`
+- [Itens](itens.md): `IFerramentasDeItensDeTeste`
+- [Economia](economia.md): `IAjusteDeCoroasDeTeste`
 
 ## Expõe
 
@@ -82,3 +108,5 @@ Script de editor que grava a cena ou um painel em três resoluções para o agen
 |---|---|---|---|
 | 15000 | `PedirComandoDeTeste` | client → servidor | `Texto` |
 | 15001 | `ResultadoDeComandoDeTeste` | servidor → client | `Aceito`, `Texto` |
+| 15002 | `PedirAcaoDeAdmin` | client → servidor | `Acao`, `ModeloId`, `Grau`, `Origem`, `Quantidade`, `Valor`, `EspecieId`, `X`, `Y`, `Z` |
+| 15003 | `ResultadoDeAcaoDeAdmin` | servidor → client | `Acao`, `Aceito`, `Texto` |

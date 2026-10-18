@@ -289,9 +289,10 @@ public sealed partial class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulado
 
     /// <summary>
     /// Acrescenta um inimigo vivo em (x, z), para o comando de teste. Nulo se a posição não é
-    /// finita ou se o grupo já ganhou <see cref="AparicoesExtrasDeTeste"/>.
+    /// finita ou se o grupo já ganhou <see cref="AparicoesExtrasDeTeste"/>. Com
+    /// <paramref name="especie"/>, nasce dessa espécie em vez da do grupo.
     /// </summary>
-    public InimigoNoMundo? ForcarAparicao(double x, double z)
+    public InimigoNoMundo? ForcarAparicao(double x, double z, DefinicaoDeCriatura? especie = null)
     {
         if (!double.IsFinite(x) || !double.IsFinite(z))
         {
@@ -305,7 +306,7 @@ public sealed partial class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulado
                 return null;
             }
 
-            var novo = Criar(x, z, false);
+            var novo = Criar(x, z, false, especie);
             novo.Segue = false; // o de teste fica onde nasceu: não acompanha a rota
             novo.Reponivel = false; // nem volta depois de morto
             var maior = new Inimigo[_inimigos.Length + 1];
@@ -313,6 +314,36 @@ public sealed partial class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulado
             maior[^1] = novo;
             _inimigos = maior;
             return Retrato(novo);
+        }
+    }
+
+    /// <summary>
+    /// Mata os inimigos vivos pelo mesmo caminho da morte de verdade (some do mundo, volta pela
+    /// reposição), mas sem <see cref="InimigoDerrotado"/>: não dá experiência nem loot. Só para
+    /// a tela de teste. Devolve quantos morreram.
+    /// </summary>
+    public int MatarVivosSemRecompensa()
+    {
+        lock (_trava)
+        {
+            var derrotasAntes = _pendente.Derrotas.Count;
+            var mortos = 0;
+            foreach (var inimigo in _inimigos)
+            {
+                if (
+                    !RegrasInimigo.EstaVivo(inimigo.Estado)
+                    || !RegrasInimigo.TransicaoValida(inimigo.Estado, EstadoDeInimigo.Morto)
+                )
+                {
+                    continue;
+                }
+
+                Matar(inimigo);
+                mortos++;
+            }
+
+            _pendente.Derrotas.RemoveRange(derrotasAntes, _pendente.Derrotas.Count - derrotasAntes);
+            return mortos;
         }
     }
 

@@ -23,7 +23,7 @@ public sealed class ServicoDeInimigos(
     ChefesDaDungeon? chefes = null,
     InimigosPorInstancia? instancias = null,
     IVizinhanca? vizinhanca = null
-) : BackgroundService, ISpawnDeTeste
+) : BackgroundService, ISpawnDeTeste, IInimigosDeTeste
 {
     private readonly ControleInteresseDeInimigos _interesse = new();
     private readonly List<JogadorNoCampo> _jogadoresBuffer = new(32);
@@ -502,6 +502,9 @@ public sealed class ServicoDeInimigos(
     /// <summary>A que distância, no eixo X, o spawn de teste nasce do personagem.</summary>
     public const double DistanciaDoSpawnDeTeste = 2;
 
+    /// <summary>Folga no eixo X entre dois inimigos do mesmo pedido de spawn de teste.</summary>
+    public const double FolgaEntreSpawnsDeTeste = 1.5;
+
     /// <summary>
     /// Põe um inimigo a mais no maior grupo da área do personagem (o comum, não o chefe raro
     /// de um só) e avisa quem está na área.
@@ -513,20 +516,108 @@ public sealed class ServicoDeInimigos(
             return (false, "Você não está no mundo.");
         }
 
-        var grupo = grupos
-            .OfType<GrupoDeInimigos>()
-            .Where(g => g.Area == posicao.Area)
-            .OrderByDescending(g => g.Capacidade)
-            .FirstOrDefault();
+        var grupo = GrupoParaSpawnDeTeste(posicao.Area);
         if (grupo == null)
         {
             return (false, "Não há inimigos nesta área.");
         }
 
-        var inimigo = grupo.ForcarAparicao(posicao.X + DistanciaDoSpawnDeTeste, posicao.Z);
-        if (inimigo == null)
+        return SpawnarUmDeTeste(grupo, posicao, DistanciaDoSpawnDeTeste, null)
+            ? (true, "Inimigo spawnado.")
+            : (false, "Limite de spawn de teste.");
+    }
+
+    /// <summary>
+    /// Põe <paramref name="quantidade"/> inimigos da espécie escolhida perto do personagem, no
+    /// maior grupo da área, até o teto de spawns de teste do grupo.
+    /// </summary>
+    public (bool Aceito, string Texto) SpawnarEspecie(
+        long personagemId,
+        int especieId,
+        int quantidade
+    )
+    {
+        var especie = CatalogoCriaturas.Obter(especieId);
+        if (especie == null)
+        {
+            return (false, "Espécie desconhecida.");
+        }
+
+        if (!posicoes.TentarObter(personagemId, out var posicao))
+        {
+            return (false, "Você não está no mundo.");
+        }
+
+        var grupo = GrupoParaSpawnDeTeste(posicao.Area);
+        if (grupo == null)
+        {
+            return (false, "Não há inimigos nesta área.");
+        }
+
+        var criados = 0;
+        for (var i = 0; i < quantidade; i++)
+        {
+            var deslocamento = DistanciaDoSpawnDeTeste + (i * FolgaEntreSpawnsDeTeste);
+            if (!SpawnarUmDeTeste(grupo, posicao, deslocamento, especie))
+            {
+                break;
+            }
+
+            criados++;
+        }
+
+        if (criados == 0)
         {
             return (false, "Limite de spawn de teste.");
+        }
+
+        return (
+            true,
+            criados == quantidade
+                ? $"{criados} × {especie.Nome} spawnado(s)."
+                : $"{criados} de {quantidade} × {especie.Nome} spawnado(s) (limite de spawn de teste)."
+        );
+    }
+
+    /// <summary>
+    /// Mata os inimigos vivos dos grupos da área do personagem, sem experiência nem loot (eles
+    /// voltam pela reposição de sempre). Só para a tela de teste.
+    /// </summary>
+    public (bool Aceito, string Texto) MatarDaArea(long personagemId)
+    {
+        if (!posicoes.TentarObter(personagemId, out var posicao))
+        {
+            return (false, "Você não está no mundo.");
+        }
+
+        var mortos = grupos
+            .OfType<GrupoDeInimigos>()
+            .Where(g => g.Area == posicao.Area)
+            .Sum(g => g.MatarVivosSemRecompensa());
+        return (
+            true,
+            mortos == 0 ? "Nenhum inimigo vivo na área." : $"{mortos} inimigo(s) morto(s)."
+        );
+    }
+
+    private GrupoDeInimigos? GrupoParaSpawnDeTeste(string area) =>
+        grupos
+            .OfType<GrupoDeInimigos>()
+            .Where(g => g.Area == area)
+            .OrderByDescending(g => g.Capacidade)
+            .FirstOrDefault();
+
+    private bool SpawnarUmDeTeste(
+        GrupoDeInimigos grupo,
+        PosicaoNoMundo posicao,
+        double deslocamentoX,
+        DefinicaoDeCriatura? especie
+    )
+    {
+        var inimigo = grupo.ForcarAparicao(posicao.X + deslocamentoX, posicao.Z, especie);
+        if (inimigo == null)
+        {
+            return false;
         }
 
         var mensagem = new InimigoApareceu { Inimigo = inimigo };
@@ -563,7 +654,7 @@ public sealed class ServicoDeInimigos(
             }
         }
 
-        return (true, "Inimigo spawnado.");
+        return true;
     }
 
     /// <summary>Quem entra na área do grupo recebe os inimigos vivos no raio de interesse.</summary>
