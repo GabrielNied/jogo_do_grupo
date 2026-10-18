@@ -23,6 +23,10 @@ public sealed class ItensModule : IFeatureModule
         servicos.AddSingleton<GeradorEquipamentos>();
         servicos.AddSingleton<AssinadorFusao>();
         servicos.AddScoped<
+            JogoDoGrupo.Server.Contratos.Itens.IInventarioEconomia,
+            InventarioEconomia
+        >();
+        servicos.AddScoped<
             JogoDoGrupo.Server.Contratos.Itens.ISaldosMateriaisFusao,
             SaldosMateriaisFusao
         >();
@@ -80,7 +84,13 @@ public sealed class ItensModule : IFeatureModule
         );
     }
 
-    public void MapearRotas(IEndpointRouteBuilder rotas) => ItensRotas.Mapear(rotas);
+    private IServiceScopeFactory? _scopeFactory;
+
+    public void MapearRotas(IEndpointRouteBuilder rotas)
+    {
+        _scopeFactory = rotas.ServiceProvider.GetService<IServiceScopeFactory>();
+        ItensRotas.Mapear(rotas);
+    }
 
     public void RegistrarMensagens(MensagensTempoReal mensagens) =>
         mensagens
@@ -95,5 +105,26 @@ public sealed class ItensModule : IFeatureModule
         contexto.Eventos.Assinar<InimigoDerrotado>(evento => _loot?.AoInimigoDerrotado(evento));
         contexto.Eventos.Assinar<JogadorEntrouNaArea>(evento => _loot?.AoEntrarNaArea(evento));
         contexto.Eventos.Assinar<JogadorEntrouNaArea>(evento => _visual?.AoEntrarNaArea(evento));
+        contexto.Eventos.Assinar<JogoDoGrupo.Server.Contratos.Combate.PersonagemCaiu>(evento =>
+        {
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    if (_scopeFactory != null)
+                    {
+                        await using var escopo = _scopeFactory.CreateAsyncScope();
+                        var inventario =
+                            escopo.ServiceProvider.GetRequiredService<JogoDoGrupo.Server.Contratos.Itens.IInventarioEconomia>();
+                        await inventario.DesgastarItensEquipadosAsync(
+                            evento.PersonagemId,
+                            JogoDoGrupo.Shared.Features.Economia.ConfigEconomia.DesgasteAoCair,
+                            CancellationToken.None
+                        );
+                    }
+                }
+                catch { }
+            });
+        });
     }
 }
