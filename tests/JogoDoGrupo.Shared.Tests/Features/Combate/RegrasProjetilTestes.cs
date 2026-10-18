@@ -27,6 +27,70 @@ public class RegrasProjetilTestes
     }
 
     [Fact]
+    public void Velocidades_raios_e_alcances_dos_projeteis_elementais_estao_configurados()
+    {
+        // Bola de Fogo
+        Assert.Equal(
+            RegrasProjetil.VelocidadeBolaDeFogoLeve,
+            RegrasProjetil.Velocidade(TipoDeProjetil.BolaDeFogo, TipoDeAtaque.Leve)
+        );
+        Assert.Equal(
+            RegrasProjetil.VelocidadeBolaDeFogoPesada,
+            RegrasProjetil.Velocidade(TipoDeProjetil.BolaDeFogo, TipoDeAtaque.Pesado)
+        );
+        Assert.Equal(
+            RegrasProjetil.AlcanceMaximoBolaDeFogoLeve,
+            RegrasProjetil.AlcanceMaximo(TipoDeProjetil.BolaDeFogo, TipoDeAtaque.Leve)
+        );
+        Assert.Equal(
+            RegrasProjetil.AlcanceMaximoBolaDeFogoPesada,
+            RegrasProjetil.AlcanceMaximo(TipoDeProjetil.BolaDeFogo, TipoDeAtaque.Pesado)
+        );
+        Assert.Equal(RegrasProjetil.RaioBolaDeFogo, RegrasProjetil.Raio(TipoDeProjetil.BolaDeFogo));
+
+        // Esfera de Gelo
+        Assert.Equal(
+            RegrasProjetil.VelocidadeEsferaDeGeloLeve,
+            RegrasProjetil.Velocidade(TipoDeProjetil.EsferaDeGelo, TipoDeAtaque.Leve)
+        );
+        Assert.Equal(
+            RegrasProjetil.VelocidadeEsferaDeGeloPesada,
+            RegrasProjetil.Velocidade(TipoDeProjetil.EsferaDeGelo, TipoDeAtaque.Pesado)
+        );
+        Assert.Equal(
+            RegrasProjetil.AlcanceMaximoEsferaDeGeloLeve,
+            RegrasProjetil.AlcanceMaximo(TipoDeProjetil.EsferaDeGelo, TipoDeAtaque.Leve)
+        );
+        Assert.Equal(
+            RegrasProjetil.AlcanceMaximoEsferaDeGeloPesada,
+            RegrasProjetil.AlcanceMaximo(TipoDeProjetil.EsferaDeGelo, TipoDeAtaque.Pesado)
+        );
+        Assert.Equal(
+            RegrasProjetil.RaioEsferaDeGelo,
+            RegrasProjetil.Raio(TipoDeProjetil.EsferaDeGelo)
+        );
+
+        // Orbe de Cura
+        Assert.Equal(
+            RegrasProjetil.VelocidadeOrbeDeCuraLeve,
+            RegrasProjetil.Velocidade(TipoDeProjetil.OrbeDeCura, TipoDeAtaque.Leve)
+        );
+        Assert.Equal(
+            RegrasProjetil.VelocidadeOrbeDeCuraPesada,
+            RegrasProjetil.Velocidade(TipoDeProjetil.OrbeDeCura, TipoDeAtaque.Pesado)
+        );
+        Assert.Equal(
+            RegrasProjetil.AlcanceMaximoOrbeDeCuraLeve,
+            RegrasProjetil.AlcanceMaximo(TipoDeProjetil.OrbeDeCura, TipoDeAtaque.Leve)
+        );
+        Assert.Equal(
+            RegrasProjetil.AlcanceMaximoOrbeDeCuraPesada,
+            RegrasProjetil.AlcanceMaximo(TipoDeProjetil.OrbeDeCura, TipoDeAtaque.Pesado)
+        );
+        Assert.Equal(RegrasProjetil.RaioOrbeDeCura, RegrasProjetil.Raio(TipoDeProjetil.OrbeDeCura));
+    }
+
+    [Fact]
     public void DirecaoVetorial_converte_graus_corretamente()
     {
         // 0 graus = +Z

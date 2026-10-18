@@ -16,6 +16,12 @@ namespace JogoDoGrupo.Client.Features.Combate
         GolpeNoVazio,
         DisparoFlecha,
         ImpactoFlecha,
+        DisparoFogo,
+        ImpactoFogo,
+        DisparoGelo,
+        ImpactoGelo,
+        DisparoCura,
+        ImpactoCura,
     }
 
     /// <summary>De onde vem o impacto (decide só a intensidade).</summary>

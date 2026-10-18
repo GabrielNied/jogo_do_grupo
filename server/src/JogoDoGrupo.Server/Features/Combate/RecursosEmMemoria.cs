@@ -261,6 +261,28 @@ public sealed class RecursosEmMemoria : IHostedService, IDisposable
         }
     }
 
+    /// <summary>Cura vida (nunca acima do máximo); curas simultâneas somam.</summary>
+    public async Task<RecursosMudaram> CurarVidaAsync(
+        long personagemId,
+        int cura,
+        CancellationToken cancelamento
+    )
+    {
+        var entrada = await EntrarAsync(personagemId, cancelamento);
+        try
+        {
+            await AtributosDaEntradaAsync(entrada, cancelamento);
+            var recursos = Regenerado(entrada);
+            recursos.Vida = Math.Min(entrada.Maximos.Vida, recursos.Vida + Math.Max(0, cura));
+            entrada.Sujo = true;
+            return Estado(recursos, entrada.Maximos, entrada.Valores!);
+        }
+        finally
+        {
+            entrada.Trava.Release();
+        }
+    }
+
     /// <summary>Regenera até agora e deixa <paramref name="mudar"/> alterar os recursos (queda).</summary>
     public async Task<RecursosMudaram> AtualizarAsync(
         long personagemId,

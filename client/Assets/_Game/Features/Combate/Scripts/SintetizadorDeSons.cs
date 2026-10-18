@@ -36,6 +36,18 @@ namespace JogoDoGrupo.Client.Features.Combate
                     return Ruido(0.18f, 5f, 0.45f, 1200f, 2600f);
                 case SomDeCombate.ImpactoFlecha:
                     return Impacto(0.15f, 180f, 0.7f, 0.4f);
+                case SomDeCombate.DisparoFogo:
+                    return Ruido(0.24f, 4f, 0.6f, 300f, 1600f);
+                case SomDeCombate.ImpactoFogo:
+                    return Impacto(0.32f, 65f, 0.95f, 0.75f);
+                case SomDeCombate.DisparoGelo:
+                    return Ruido(0.20f, 5.5f, 0.45f, 2400f, 900f);
+                case SomDeCombate.ImpactoGelo:
+                    return Impacto(0.22f, 320f, 0.85f, 0.9f);
+                case SomDeCombate.DisparoCura:
+                    return Tom(0.26f, 523f, 784f, 0.45f);
+                case SomDeCombate.ImpactoCura:
+                    return Tom(0.32f, 659f, 880f, 0.55f);
                 default:
                     return Array.Empty<float>();
             }

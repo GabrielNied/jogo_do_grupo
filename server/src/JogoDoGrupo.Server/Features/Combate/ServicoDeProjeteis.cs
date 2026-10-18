@@ -4,6 +4,7 @@ using JogoDoGrupo.Server.Contratos.Mundo;
 using JogoDoGrupo.Server.Core.Eventos;
 using JogoDoGrupo.Server.Core.TempoReal;
 using JogoDoGrupo.Shared.Features.Combate;
+using JogoDoGrupo.Shared.Features.Itens;
 
 namespace JogoDoGrupo.Server.Features.Combate;
 
@@ -55,6 +56,7 @@ public sealed class ServicoDeProjeteis : IHostedService, IDisposable
     private readonly EventosDoServidor? _eventos;
     private readonly ControleDeAcoes? _controle;
     private readonly ServicoDeQueda? _queda;
+    private readonly IServiceScopeFactory? _escopos;
 
     private readonly List<InstanciaDeProjetil> _projeteis = [];
     private readonly Lock _travaProjeteis = new();
@@ -76,6 +78,7 @@ public sealed class ServicoDeProjeteis : IHostedService, IDisposable
         EventosDoServidor? eventos = null,
         ControleDeAcoes? controle = null,
         ServicoDeQueda? queda = null,
+        IServiceScopeFactory? escopos = null,
         Func<long>? relogioMs = null
     )
     {
@@ -89,6 +92,7 @@ public sealed class ServicoDeProjeteis : IHostedService, IDisposable
         _eventos = eventos;
         _controle = controle;
         _queda = queda;
+        _escopos = escopos;
         _relogioMs = relogioMs ?? (() => Environment.TickCount64);
     }
 
@@ -207,6 +211,72 @@ public sealed class ServicoDeProjeteis : IHostedService, IDisposable
             atacanteId: atacanteId,
             area: posicao.Area,
             tipoProjetil: TipoDeProjetil.Flecha,
+            tipoAtaque: acao.Pedido.Tipo,
+            origemX: (float)posicao.X,
+            origemY: (float)posicao.Y + RegrasProjetil.AlturaOrigemDisparo,
+            origemZ: (float)posicao.Z,
+            direcaoYGraus: direcao,
+            dano: dano,
+            sequencia: acao.Pedido.Sequencia,
+            passo: acao.Passo,
+            instanteVistoMs: acao.Pedido.TempoVistoMs
+        );
+    }
+
+    /// <summary>
+    /// Dispara um projétil elemental como resultado de um ataque com cajado no momento do disparo.
+    /// O elemento do cajado define se é BolaDeFogo, EsferaDeGelo ou OrbeDeCura.
+    /// </summary>
+    public long DispararCajado(
+        long atacanteId,
+        AcaoDeAtaque acao,
+        ParcelasDeDano parcelas,
+        ElementoDaArma elemento
+    )
+    {
+        if (
+            (
+                _controle != null
+                && (
+                    !_controle.EstaAtiva(atacanteId, acao.Id)
+                    || _controle.FoiInterrompida(atacanteId, acao.Id)
+                )
+            )
+            || (_queda != null && _queda.EstaCaido(atacanteId))
+            || !_posicoes.TentarObter(atacanteId, out var posicao)
+        )
+        {
+            return 0;
+        }
+
+        var dano = RegrasAtaque.Dano(acao.Pedido.Tipo, parcelas, acao.Passo);
+        if (_efeitos != null)
+        {
+            dano = Math.Max(
+                1,
+                (int)Math.Round(dano * _efeitos.MultiplicadorDanoCausado(atacanteId))
+            );
+        }
+
+        var direcao = (float)
+            RegrasAtaque.DirecaoDoGolpe(
+                acao.Pedido.Tipo,
+                acao.Pedido.DirecaoY,
+                posicao.RotacaoY,
+                acao.PreparoMs / 1000.0
+            );
+
+        var tipoProjetil = elemento switch
+        {
+            ElementoDaArma.Gelo => TipoDeProjetil.EsferaDeGelo,
+            ElementoDaArma.Cura => TipoDeProjetil.OrbeDeCura,
+            _ => TipoDeProjetil.BolaDeFogo,
+        };
+
+        return Disparar(
+            atacanteId: atacanteId,
+            area: posicao.Area,
+            tipoProjetil: tipoProjetil,
             tipoAtaque: acao.Pedido.Tipo,
             origemX: (float)posicao.X,
             origemY: (float)posicao.Y + RegrasProjetil.AlturaOrigemDisparo,
@@ -349,108 +419,184 @@ public sealed class ServicoDeProjeteis : IHostedService, IDisposable
             var raioBusca = Math.Max(2.0, proj.Raio + passoDistancia);
             bool acertou = false;
 
-            foreach (var fonte in _fontes)
+            // Orbe de cura colide primeiro com aliados do grupo na área
+            if (proj.TipoProjetil == TipoDeProjetil.OrbeDeCura)
             {
-                var candidatos = fonte.AlvosProximos(proj.Area, x1, z1, raioBusca, instanteTeste);
-                foreach (var alvo in candidatos)
+                var personagensNaArea = _posicoes.PersonagensNaArea(proj.Area);
+                foreach (var aliadoId in personagensNaArea)
                 {
-                    if (alvo.Id == proj.AtacanteId)
+                    if (aliadoId == proj.AtacanteId)
                     {
                         continue;
                     }
 
-                    if (!SelecaoDeAlvos.PodeAcertar(proj.AtacanteId, alvo, _aliados))
+                    if (!_aliados.SaoAliados(proj.AtacanteId, aliadoId))
                     {
                         continue;
                     }
 
-                    if (
-                        RegrasProjetil.ColideComAlvo(
-                            x0,
-                            y0,
-                            z0,
-                            x1,
-                            y1,
-                            z1,
-                            proj.Raio,
-                            alvo.X,
-                            alvo.Z,
-                            alvo.Raio,
-                            alvo.Altura
+                    if (_posicoes.TentarObter(aliadoId, out var posAliado))
+                    {
+                        if (
+                            RegrasProjetil.ColideComAlvo(
+                                x0,
+                                y0,
+                                z0,
+                                x1,
+                                y1,
+                                z1,
+                                proj.Raio,
+                                posAliado.X,
+                                posAliado.Y,
+                                posAliado.Z,
+                                0.4,
+                                1.8
+                            )
                         )
-                    )
+                        {
+                            if (proj.AlvosAtingidos.Add(aliadoId))
+                            {
+                                AplicarCuraEmAliado(proj, aliadoId);
+                                acertou = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (!acertou)
+            {
+                foreach (var fonte in _fontes)
+                {
+                    var candidatos = fonte.AlvosProximos(
+                        proj.Area,
+                        x1,
+                        z1,
+                        raioBusca,
+                        instanteTeste
+                    );
+                    foreach (var alvo in candidatos)
                     {
-                        if (!proj.AlvosAtingidos.Add(alvo.Id))
+                        if (alvo.Id == proj.AtacanteId)
                         {
                             continue;
                         }
 
-                        var danoFinal = proj.Dano;
-                        if (_efeitos != null)
+                        if (!SelecaoDeAlvos.PodeAcertar(proj.AtacanteId, alvo, _aliados))
                         {
-                            danoFinal = Math.Max(
-                                1,
-                                (int)
-                                    Math.Round(
-                                        danoFinal * _efeitos.MultiplicadorDanoRecebido(alvo.Id)
-                                    )
-                            );
+                            continue;
                         }
 
-                        if (fonte.TentarAplicarDano(alvo.Id, danoFinal, proj.AtacanteId, out var r))
+                        if (
+                            RegrasProjetil.ColideComAlvo(
+                                x0,
+                                y0,
+                                z0,
+                                x1,
+                                y1,
+                                z1,
+                                proj.Raio,
+                                alvo.X,
+                                alvo.Z,
+                                alvo.Raio,
+                                alvo.Altura
+                            )
+                        )
                         {
-                            _avisos.Enviar(
-                                proj.Area,
-                                proj.AtacanteId,
-                                CombateMessageIds.AtaqueAcertou,
-                                new AtaqueAcertou
-                                {
-                                    AtacanteId = proj.AtacanteId,
-                                    Tipo = proj.TipoAtaque,
-                                    Sequencia = proj.Sequencia,
-                                    Passo = proj.Passo,
-                                    Acertos =
-                                    [
-                                        new AcertoDeAtaque
-                                        {
-                                            AlvoId = r.AlvoId,
-                                            Dano = r.Dano,
-                                            VidaRestante = r.VidaRestante,
-                                            VidaMaxima = r.VidaMaxima,
-                                        },
-                                    ],
-                                }
-                            );
+                            if (!proj.AlvosAtingidos.Add(alvo.Id))
+                            {
+                                continue;
+                            }
 
-                            _eventos?.Publicar(new GolpeComumAcertou(proj.AtacanteId, [r.AlvoId]));
+                            var danoFinal = proj.Dano;
+                            if (_efeitos != null)
+                            {
+                                danoFinal = Math.Max(
+                                    1,
+                                    (int)
+                                        Math.Round(
+                                            danoFinal * _efeitos.MultiplicadorDanoRecebido(alvo.Id)
+                                        )
+                                );
+                            }
 
                             if (
-                                alvo.PersonagemId == 0
-                                && TentarInterromper(fonte, alvo.Id, agoraMs)
+                                fonte.TentarAplicarDano(
+                                    alvo.Id,
+                                    danoFinal,
+                                    proj.AtacanteId,
+                                    out var r
+                                )
                             )
                             {
                                 _avisos.Enviar(
                                     proj.Area,
                                     proj.AtacanteId,
-                                    CombateMessageIds.AcaoInterrompida,
-                                    new AcaoInterrompida
+                                    CombateMessageIds.AtaqueAcertou,
+                                    new AtaqueAcertou
                                     {
-                                        AlvoId = alvo.Id,
-                                        Jogador = false,
-                                        DuracaoMs = RegrasReacao.AtordoamentoNoAcertoMs,
+                                        AtacanteId = proj.AtacanteId,
+                                        Tipo = proj.TipoAtaque,
+                                        Sequencia = proj.Sequencia,
+                                        Passo = proj.Passo,
+                                        Acertos =
+                                        [
+                                            new AcertoDeAtaque
+                                            {
+                                                AlvoId = r.AlvoId,
+                                                Dano = r.Dano,
+                                                VidaRestante = r.VidaRestante,
+                                                VidaMaxima = r.VidaMaxima,
+                                            },
+                                        ],
                                     }
                                 );
-                            }
 
-                            acertou = true;
-                            break;
+                                _eventos?.Publicar(
+                                    new GolpeComumAcertou(proj.AtacanteId, [r.AlvoId])
+                                );
+
+                                if (
+                                    proj.TipoProjetil == TipoDeProjetil.BolaDeFogo
+                                    && proj.TipoAtaque == TipoDeAtaque.Pesado
+                                )
+                                {
+                                    _efeitos?.Aplicar(alvo.Id, TipoEfeitoDeStatus.Queimadura);
+                                }
+                                else if (proj.TipoProjetil == TipoDeProjetil.EsferaDeGelo)
+                                {
+                                    _efeitos?.Aplicar(alvo.Id, TipoEfeitoDeStatus.Lentidao);
+                                }
+
+                                if (
+                                    alvo.PersonagemId == 0
+                                    && TentarInterromper(fonte, alvo.Id, agoraMs)
+                                )
+                                {
+                                    _avisos.Enviar(
+                                        proj.Area,
+                                        proj.AtacanteId,
+                                        CombateMessageIds.AcaoInterrompida,
+                                        new AcaoInterrompida
+                                        {
+                                            AlvoId = alvo.Id,
+                                            Jogador = false,
+                                            DuracaoMs = RegrasReacao.AtordoamentoNoAcertoMs,
+                                        }
+                                    );
+                                }
+
+                                acertou = true;
+                                break;
+                            }
                         }
                     }
-                }
 
-                if (acertou)
-                {
-                    break;
+                    if (acertou)
+                    {
+                        break;
+                    }
                 }
             }
 
@@ -500,6 +646,63 @@ public sealed class ServicoDeProjeteis : IHostedService, IDisposable
 
             _folgaDosAlvos[alvoId] = RegrasReacao.FimDaFolgaMs(agoraMs);
             return true;
+        }
+    }
+
+    private void AplicarCuraEmAliado(InstanciaDeProjetil proj, long aliadoId)
+    {
+        _avisos.Enviar(
+            proj.Area,
+            proj.AtacanteId,
+            CombateMessageIds.AtaqueAcertou,
+            new AtaqueAcertou
+            {
+                AtacanteId = proj.AtacanteId,
+                Tipo = proj.TipoAtaque,
+                Sequencia = proj.Sequencia,
+                Passo = proj.Passo,
+                Acertos =
+                [
+                    new AcertoDeAtaque
+                    {
+                        AlvoId = aliadoId,
+                        Dano = -proj.Dano,
+                        VidaRestante = 0,
+                        VidaMaxima = 0,
+                    },
+                ],
+            }
+        );
+
+        _eventos?.Publicar(new PersonagemCurouAliado(proj.AtacanteId, aliadoId, proj.Area));
+
+        if (_escopos != null)
+        {
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    var recursos = await RecursosDoAtaque.CurarVidaAsync(
+                        _escopos,
+                        aliadoId,
+                        proj.Dano,
+                        _parada.Token
+                    );
+
+                    if (_tempoReal.TentarObterSessao(aliadoId, out var sessao))
+                    {
+                        _tempoReal.Enviar(sessao, CombateMessageIds.RecursosMudaram, recursos);
+                    }
+
+                    _eventos?.Publicar(
+                        new VidaDoPersonagemMudou(aliadoId, recursos.VidaAtual, recursos.VidaMaxima)
+                    );
+                }
+                catch (Exception ex)
+                {
+                    _log.LogError(ex, "Erro ao curar aliado {Aliado} com orbe de cura.", aliadoId);
+                }
+            });
         }
     }
 }
