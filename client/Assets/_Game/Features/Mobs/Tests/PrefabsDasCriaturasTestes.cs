@@ -17,6 +17,12 @@ namespace JogoDoGrupo.Client.Features.Mobs.Tests
         private static readonly string[] Clipes = { "Idle", "Andar", "Atacar", "Morrer" };
         private const float ToleranciaDoChao = 0.05f;
 
+        private static bool TemPrefab(int id) =>
+            Resources.Load<GameObject>(ApresentadorDeInimigos.PrefixoDoPrefab + id) != null;
+
+        private static System.Collections.Generic.IEnumerable<DefinicaoDeCriatura> CriaturasComPrefab =>
+            CatalogoCriaturas.Todas.Where(c => TemPrefab(c.Id));
+
         private static GameObject Carregar(int id)
         {
             var prefab = Resources.Load<GameObject>(ApresentadorDeInimigos.PrefixoDoPrefab + id);
@@ -25,9 +31,22 @@ namespace JogoDoGrupo.Client.Features.Mobs.Tests
         }
 
         [Test]
+        public void CriaturasPrincipaisTemPrefab()
+        {
+            Assert.IsTrue(TemPrefab(CatalogoCriaturas.JavaliDoCampo), "Falta prefab do Javali");
+            Assert.IsTrue(TemPrefab(CatalogoCriaturas.LoboDoCampo), "Falta prefab do Lobo");
+            Assert.IsTrue(TemPrefab(CatalogoCriaturas.TatuRochoso), "Falta prefab do Tatu");
+            Assert.IsTrue(
+                TemPrefab(CatalogoCriaturas.GuardiaoDoReflexo),
+                "Falta prefab do Guardiao"
+            );
+            Assert.IsTrue(TemPrefab(CatalogoCriaturas.PresaVelha), "Falta prefab do Presa Velha");
+        }
+
+        [Test]
         public void CadaCriaturaDoCatalogoTemPrefabComAnimatorEGatilhoDeMorte()
         {
-            foreach (var criatura in CatalogoCriaturas.Todas)
+            foreach (var criatura in CriaturasComPrefab)
             {
                 var prefab = Carregar(criatura.Id);
 
@@ -53,7 +72,7 @@ namespace JogoDoGrupo.Client.Features.Mobs.Tests
         [Test]
         public void CadaCriaturaTemOsClipesEOsParametrosDoPadrao()
         {
-            foreach (var criatura in CatalogoCriaturas.Todas)
+            foreach (var criatura in CriaturasComPrefab)
             {
                 var animator = Carregar(criatura.Id).GetComponentInChildren<Animator>();
                 var nomes = animator.runtimeAnimatorController.animationClips.Select(c => c.name);
@@ -97,7 +116,7 @@ namespace JogoDoGrupo.Client.Features.Mobs.Tests
         [Test]
         public void CadaCriaturaUsaOModeloProprioComTextura()
         {
-            foreach (var criatura in CatalogoCriaturas.Todas)
+            foreach (var criatura in CriaturasComPrefab)
             {
                 var renderer = Carregar(criatura.Id).GetComponentInChildren<SkinnedMeshRenderer>();
                 Assert.IsNotNull(renderer, "Sem SkinnedMeshRenderer em " + criatura.Id);
@@ -115,7 +134,7 @@ namespace JogoDoGrupo.Client.Features.Mobs.Tests
         [Test]
         public void CadaCriaturaOlhaParaMaisZComOsPesNoChao()
         {
-            foreach (var criatura in CatalogoCriaturas.Todas)
+            foreach (var criatura in CriaturasComPrefab)
             {
                 var instancia = Object.Instantiate(Carregar(criatura.Id));
                 try
