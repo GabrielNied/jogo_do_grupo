@@ -8,6 +8,7 @@ namespace JogoDoGrupo.Client.Features.Itens.Visual
     {
         public PosicaoEquipamento Posicao;
         public EncaixeDoVisual Encaixe;
+        public TierItem Tier = TierItem.D;
     }
 
     /// <summary>
@@ -68,10 +69,28 @@ namespace JogoDoGrupo.Client.Features.Itens.Visual
                 var marca = modelo.AddComponent<ArmaNoAvatar>();
                 marca.Posicao = arma.Posicao;
                 marca.Encaixe = encaixe.Value;
+                marca.Tier = arma.Tier;
+
+                if (ConfigAuraTier.TemAura(arma.Tier))
+                {
+                    AuraDeTierVisual.Aplicar(modelo, arma.Tier, noChao: false);
+                    AplicarEmissaoNoModelo(modelo, ConfigAuraTier.Cor(arma.Tier));
+                }
+
                 postos++;
             }
 
             return postos;
+        }
+
+        private static void AplicarEmissaoNoModelo(GameObject modelo, Color cor)
+        {
+            var propBlock = new MaterialPropertyBlock();
+            propBlock.SetColor(Shader.PropertyToID("_EmissionColor"), cor * 1.5f);
+            foreach (var renderizador in modelo.GetComponentsInChildren<Renderer>(true))
+            {
+                renderizador.SetPropertyBlock(propBlock);
+            }
         }
 
         /// <summary>Tira todos os modelos de arma do avatar.</summary>

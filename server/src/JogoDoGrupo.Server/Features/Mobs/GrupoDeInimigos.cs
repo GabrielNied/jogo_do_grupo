@@ -125,7 +125,7 @@ public sealed partial class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulado
         PeriodoDeAparicao periodo = PeriodoDeAparicao.Sempre,
         IRelogioDoMundo? relogioDoMundo = null,
         double multiplicadorVida = 1.0,
-        double multiplicadorDano = 1.0
+        double multiplicadorDano = 1.0,
         Func<IDisparoDeProjeteis?>? projeteis = null,
         int? criaturaRetaguardaId = null
     )
@@ -613,7 +613,7 @@ public sealed partial class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulado
             _nivelMinimo == _nivelMaximo
                 ? _nivelMinimo
                 : EscalaPorNivel.Sortear(_nivelMinimo, _nivelMaximo, _sorteador.Proximo());
-        var criatura = EscalaPorNivel.Aplicar(_sorteador.Sortear(_definicao), nivel);
+        var criatura = EscalaPorNivel.Aplicar(_sorteador.Sortear(definicao), nivel);
         if (_multiplicadorVida != 1.0 || _multiplicadorDano != 1.0)
         {
             criatura = criatura with
@@ -622,7 +622,6 @@ public sealed partial class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulado
                 Dano = (int)Math.Max(1, Math.Round(criatura.Dano * _multiplicadorDano)),
             };
         }
-        var criatura = EscalaPorNivel.Aplicar(_sorteador.Sortear(definicao), nivel);
         var inimigo = new Inimigo(_proximoId++, criatura, origemX, origemZ, contaNoLimite)
         {
             DesvioX = origemX - _pontoX,

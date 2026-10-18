@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using JogoDoGrupo.Client.Core.Jogo;
 using JogoDoGrupo.Client.Core.Jogo.Janelas;
 using JogoDoGrupo.Client.Core.UI;
+using JogoDoGrupo.Client.Features.Itens.Visual;
 using JogoDoGrupo.Shared.Features.Itens;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -26,19 +27,12 @@ namespace JogoDoGrupo.Client.Features.Itens.Loot
                 return CorNeutra;
             }
 
-            switch (tier)
+            if (ConfigAuraTier.TemAura(tier))
             {
-                case TierItem.B:
-                    return CorTierB;
-                case TierItem.A:
-                    return CorTierA;
-                case TierItem.S:
-                    return CorTierS;
-                case TierItem.SMais:
-                    return CorTierSMais;
-                default:
-                    return CorNeutra;
+                return ConfigAuraTier.Cor(tier);
             }
+
+            return CorNeutra;
         }
     }
 
@@ -212,6 +206,13 @@ namespace JogoDoGrupo.Client.Features.Itens.Loot
             var cor = CoresMarcadorDeLoot.Para(item.TemTier, item.Tier);
             propriedades.SetColor(CorBaseDoMaterial, cor);
             propriedades.SetColor(CorDoMaterial, cor);
+
+            if (item.TemTier && ConfigAuraTier.TemAura(item.Tier))
+            {
+                AuraDeTierVisual.Aplicar(marcador, item.Tier, noChao: true);
+                propriedades.SetColor(Shader.PropertyToID("_EmissionColor"), cor * 1.5f);
+            }
+
             renderizador.SetPropertyBlock(propriedades);
             marcador.SetActive(false);
             _marcadores[item.LootId] = marcador;

@@ -13,6 +13,9 @@ namespace JogoDoGrupo.Shared.Features.Itens
 
         /// <summary>Modelo-base da peça (escolhe o desenho quando houver um por modelo).</summary>
         public int ModeloId;
+
+        /// <summary>Tier da arma equipada (D a S+), determina aura no mundo 3D para B+.</summary>
+        public TierItem Tier = TierItem.D;
     }
 
     /// <summary>
