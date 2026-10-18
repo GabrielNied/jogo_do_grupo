@@ -36,7 +36,9 @@ internal sealed class EquipamentosParaCombate(IServiceScopeFactory escopos)
     {
         var (entradas, conjunto) = await LerAsync(personagemId, c);
         var principal = RegrasEquipamentos.Principal(conjunto);
-        var arma = entradas.FirstOrDefault(e => e.Posicao == principal && e.Equipamento != null);
+        var arma = entradas.FirstOrDefault(e =>
+            e.Posicao == principal && e.Equipamento != null && !e.Equipamento.Quebrado
+        );
         return arma == null
             ? null
             : new ArmaEquipada(

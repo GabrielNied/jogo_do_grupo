@@ -189,6 +189,15 @@ namespace JogoDoGrupo.Shared.Features.Itens
         public string PoderId = "";
         public bool Favorito;
         public bool Lixo;
+
+        /// <summary>Durabilidade máxima da peça de equipamento (padrão 100).</summary>
+        public int DurabilidadeMaxima = 100;
+
+        /// <summary>Durabilidade atual da peça de equipamento. Chegar a 0 torna o item quebrado.</summary>
+        public int DurabilidadeAtual = 100;
+
+        /// <summary>Verdadeiro se a durabilidade estiver zerada (item não concede bônus no combate).</summary>
+        public bool Quebrado => DurabilidadeMaxima > 0 && DurabilidadeAtual <= 0;
     }
 
     [Serializable]
@@ -338,7 +347,11 @@ namespace JogoDoGrupo.Shared.Features.Itens
         /// </summary>
         public static bool EstaAtiva(EntradaInventario entrada, int conjunto)
         {
-            if (entrada?.Equipamento == null || entrada.Posicao == PosicaoEquipamento.Inventario)
+            if (
+                entrada?.Equipamento == null
+                || entrada.Posicao == PosicaoEquipamento.Inventario
+                || entrada.Equipamento.Quebrado
+            )
                 return false;
             var origem = Conjunto(entrada.Posicao);
             return origem == 0 || origem == conjunto;

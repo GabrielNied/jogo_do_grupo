@@ -43,9 +43,28 @@ Moedas, mercado, comércio entre jogadores, saídas de recursos e taxas.
 - [x] Lojas de jogadores? Decidido em 2026-10-16: barraca presencial e vendedor offline, espelhados no leilão (veja Definido).
 - [x] Carteira e custo inicial da infusão entregues na #174; valores e configuração em [Itens — Infusão](itens.md#infusão-de-equipamentos-174).
 - [x] Desde 2026-10-12 a fusão cobra coroas **por nível** (+1 a +10) e, de +6 em diante, materiais de dungeon e de raid; custos iniciais em [Itens — Fusão](itens.md#fusão) (#616, #617). O "ouro" do [documento mestre](../brainstorm/documento-mestre.md) são as coroas. Itens não são desmontados (DEC-005): a economia não conta com materiais vindos de desmontagem.
-- [x] Custo em coroas do reparo e das taxas: política **leve** decidida em 2026-10-16 (quiz 4); valores a propor pelo agente economia em constante ([#173](https://github.com/GabrielNied/jogo_do_grupo/issues/173)).
+- [x] Custo em coroas do reparo e das taxas: política **leve** decidida em 2026-10-16 (quiz 4); valores e loja de NPC entregues na [#173](https://github.com/GabrielNied/jogo_do_grupo/issues/173) em `ConfigEconomia`.
 
 ## Regras
+
+### Loja de NPC, Venda de Itens e Reparo de Durabilidade (#173)
+
+Entregue na [#173](https://github.com/GabrielNied/jogo_do_grupo/issues/173):
+- **Carteira de coroas:** persistida na tabela `SaldosCoroas` por personagem. Contrato `ICarteiraCoroas` permite consulta, crédito e débito atômico.
+- **Loja de NPC:**
+  - Catálogo de compra definido em `ConfigEconomia.CatalogoPadrao` (espadas, cajados, arcos, armaduras e anéis).
+  - Venda de itens do inventário para o NPC com preço fixo por tier (`ConfigEconomia.PrecoVendaPorTier`: D=10, C=25, B=60, A=150, S=400, S+=1000 coroas).
+  - Itens equipados ou marcados como favoritos não podem ser vendidos.
+- **Durabilidade e Reparo:**
+  - Equipamentos possuem `DurabilidadeMaxima` (100) e `DurabilidadeAtual`.
+  - Item com durabilidade zero é considerado `Quebrado` e deixa de fornecer atributos ou poderes (arma quebrada não concede ataque).
+  - Ao cair em combate (`PersonagemCaiu`), os equipamentos vestidos sofrem desgaste leve (`ConfigEconomia.DesgasteAoCair = 5`).
+  - O reparo na loja de NPC custa `ConfigEconomia.CustoReparoPorPontoPerdido = 1` coroa por ponto de durabilidade restaurado.
+- **Interface e Atalhos:**
+  - Tecla `L` ou comando `/loja` no chat abre a janela de loja (`JanelaLoja`) registrada em `JanelasDoJogo` (ordem 100).
+- **Mensageria e Rotas:**
+  - Faixa de IDs de tempo real: `9000–9999` (`EconomiaMessageIds`).
+  - Rotas HTTP REST em `RotasEconomia`: `/api/economia/saldo`, `/api/economia/loja/catalogo`, `/api/economia/loja/comprar`, `/api/economia/loja/vender`, `/api/economia/itens/reparar`.
 
 ### Carteira de coroas para infusão (#174)
 
@@ -66,4 +85,9 @@ Proposta do board em 2026-10-11, **não validada pelo grupo** (seções 07, 08 e
 
 ## Depende de
 
+- [itens](itens.md) para inventário e equipamentos
+
 ## Expõe
+
+- `ICarteiraCoroas` em `server/src/JogoDoGrupo.Server/Contratos/Economia/`
+- Catálogo e compra/venda de NPC em `RotasEconomia` e `EconomiaMessageIds`
