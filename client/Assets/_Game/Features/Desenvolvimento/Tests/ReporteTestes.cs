@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using JogoDoGrupo.Client.Core.Jogo;
+using JogoDoGrupo.Client.Core.Jogo.Janelas;
 using JogoDoGrupo.Client.Features.Desenvolvimento.Relato;
 using NUnit.Framework;
 using UnityEngine;
@@ -166,6 +168,42 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Tests
             StringAssert.DoesNotContain("pilha do aviso", texto);
             StringAssert.Contains("há 1.0 s  Exception  quebrou\n    A.B()\n    C.D()\n", texto);
             Assert.AreEqual("", EstadoDoMomento.Console(new List<LinhaDoConsole>(), 0));
+        }
+
+        [Test]
+        public void JanelaReporte_BloqueiaAtalhosQuandoAberta()
+        {
+            BloqueioDeEntradaPorTexto.LimparRegistros();
+            JanelaReporte.GarantirRegistroDeBloqueio();
+
+            Assert.IsFalse(BloqueioDeEntradaPorTexto.AtalhosDoJogoBloqueados());
+
+            var registro = new RegistroDeJanelas();
+            registro.Registrar(
+                new DefinicaoDeJanela(
+                    JanelaReporte.Chave,
+                    "Report",
+                    "J",
+                    900,
+                    () => new JanelaReporte()
+                )
+            );
+            var gerente = new GerenteDeJanelas(registro, _ => { }, _ => { });
+            JanelasDoJogo.Ligar(gerente);
+
+            try
+            {
+                JanelasDoJogo.Abrir(JanelaReporte.Chave);
+                Assert.IsTrue(BloqueioDeEntradaPorTexto.AtalhosDoJogoBloqueados());
+
+                JanelasDoJogo.Fechar(JanelaReporte.Chave);
+                Assert.IsFalse(BloqueioDeEntradaPorTexto.AtalhosDoJogoBloqueados());
+            }
+            finally
+            {
+                JanelasDoJogo.Desligar(gerente);
+                BloqueioDeEntradaPorTexto.LimparRegistros();
+            }
         }
     }
 }

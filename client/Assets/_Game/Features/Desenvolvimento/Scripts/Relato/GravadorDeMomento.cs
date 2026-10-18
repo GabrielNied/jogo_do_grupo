@@ -103,6 +103,7 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
             _f10.Enable();
             _ajustes = new PainelDeAjustes(this);
             BloqueioDeEntradaPorTexto.RegistrarBloqueioDeAtalhos(() => _ajustes.Aberto);
+            JanelaReporte.GarantirRegistroDeBloqueio();
         }
 
         private void OnEnable()
@@ -150,7 +151,7 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
 
             var esc = Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame;
             _ajustes.Atualizar(esc);
-            JanelaReporte.Atualizar();
+            JanelaReporte.Atualizar(esc);
             if (_f9.WasPressedThisFrame())
             {
                 JanelaReporte.Alternar();

@@ -22,13 +22,14 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
         private const string Tecla = "J";
         private const int OrdemNaBarra = 900;
         private const int ReportsNoHistorico = 5;
-        private const float OrdemDoPainel = 60f;
+        private const float OrdemDoPainel = 100f;
 
         // Espera a tecla que abriu a janela (J) passar antes de dar foco ao campo, senão ela
         // vira a primeira letra da frase.
         private const long AtrasoDoFocoMs = 100;
 
         private static int _fecharDepoisDoQuadro = -1;
+        private static bool _bloqueioRegistrado;
         private static GameObject _objetoDoPainel;
         private static UIDocument _documento;
 
@@ -40,6 +41,7 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
         private DropdownField _area;
         private Label _mensagem;
         private VisualElement _historico;
+        private VisualElement _raiz;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void Registrar()
@@ -60,13 +62,34 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
                     () => new JanelaReporte()
                 )
             );
+
+            RegistrarBloqueio();
         }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void Reiniciar()
         {
             _fecharDepoisDoQuadro = -1;
+            _bloqueioRegistrado = false;
             LimparPainel();
+        }
+
+        internal static void GarantirRegistroDeBloqueio()
+        {
+            RegistrarBloqueio();
+        }
+
+        private static void RegistrarBloqueio()
+        {
+            if (_bloqueioRegistrado)
+            {
+                return;
+            }
+
+            BloqueioDeEntradaPorTexto.RegistrarBloqueioDeAtalhos(() =>
+                JanelasDoJogo.EstaAberta(Chave)
+            );
+            _bloqueioRegistrado = true;
         }
 
         private static void LimparPainel()
@@ -102,6 +125,9 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
             _objetoDoPainel.SetActive(true);
             EstiloCore.Aplicar(_documento.rootVisualElement);
             _documento.rootVisualElement.pickingMode = PickingMode.Ignore;
+            _documento.rootVisualElement.AddToClassList(EstiloCore.JanelasArea);
+            _documento.rootVisualElement.style.alignItems = Align.Center;
+            _documento.rootVisualElement.style.justifyContent = Justify.Center;
         }
 
         /// <summary>F9: abre por cima da janela que estiver aberta, ou fecha o report.</summary>
@@ -120,11 +146,18 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
         }
 
         /// <summary>
-        /// Chamado todo quadro pelo gravador: fecha o report enviado no quadro anterior (o Enter
-        /// daquele quadro não pode abrir o chat ao mesmo tempo).
+        /// Chamado todo quadro pelo gravador: fecha o report no Esc ou fecha o report enviado
+        /// no quadro anterior (o Enter daquele quadro não pode abrir o chat ao mesmo tempo).
         /// </summary>
-        public static void Atualizar()
+        public static void Atualizar(bool escApertado = false)
         {
+            if (escApertado && JanelasDoJogo.EstaAberta(Chave))
+            {
+                BloqueioDeEntradaPorTexto.EscConsumidoNesteFrame = true;
+                JanelasDoJogo.Fechar(Chave);
+                return;
+            }
+
             if (_fecharDepoisDoQuadro >= 0 && Time.frameCount > _fecharDepoisDoQuadro)
             {
                 _fecharDepoisDoQuadro = -1;
@@ -191,11 +224,15 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
 
             if (Application.isPlaying)
             {
-                var raiz = conteudo.parent?.parent;
-                if (raiz != null)
+                _raiz = conteudo.parent?.parent;
+                if (_raiz != null)
                 {
                     GarantirDocumento();
-                    _documento.rootVisualElement.Add(raiz);
+                    _documento.rootVisualElement.Add(_raiz);
+                    _raiz.RegisterCallback<KeyDownEvent>(
+                        AoApertarTeclaJanela,
+                        TrickleDown.TrickleDown
+                    );
                 }
             }
         }
@@ -203,6 +240,15 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
         protected override void AoFechar()
         {
             EnvioDeReporte.Mudou -= MostrarHistorico;
+            if (_raiz != null)
+            {
+                _raiz.UnregisterCallback<KeyDownEvent>(
+                    AoApertarTeclaJanela,
+                    TrickleDown.TrickleDown
+                );
+                _raiz = null;
+            }
+
             _documento?.rootVisualElement.Clear();
             _momento?.Liberar();
             _momento = null;
@@ -299,6 +345,16 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
                     BloqueioDeEntradaPorTexto.EscConsumidoNesteFrame = true;
                     JanelasDoJogo.Fechar(Chave);
                     break;
+            }
+        }
+
+        private void AoApertarTeclaJanela(KeyDownEvent evento)
+        {
+            if (evento.keyCode == KeyCode.Escape)
+            {
+                evento.StopPropagation();
+                BloqueioDeEntradaPorTexto.EscConsumidoNesteFrame = true;
+                JanelasDoJogo.Fechar(Chave);
             }
         }
 
