@@ -52,6 +52,20 @@ O disparo com arco (`TipoEquipamento.Arco`) não usa o arco da lâmina, mas sim 
 - **Servidor:** `ServicoDeProjeteis` autoritativo simulando em ticks em segundo plano (`IHostedService`). Ao receber ataque com arco equipado, `ServicoDeAtaques` delega para `ServicoDeProjeteis.DispararArco`. A cada tick, testa colisão do segmento percorrido contra os alvos de combate (`IAlvosDeCombate`) com compensação de latência (rebobinamento temporal). Ao atingir o primeiro alvo válido, aplica dano físico autoritativo via `AtaqueAcertou`, interrompe inimigos quando aplicável e remove o projétil. Projéteis que atingem o alcance máximo ou expiram o tempo de vida são descartados.
 - **Client:** `GerenciadorDeProjeteis` assina `ProjetilLancado` e instancia `ProjetilVisual` em 3D procedural (haste cilíndrica de madeira, ponta metálica, penas traseiras e `TrailRenderer` para rastro visual nítido). Desloca na velocidade e direção do projétil, sincronizando o impacto em `AtaqueAcertou` ou no alcance máximo com efeito de partículas/poeira. Emite som sintetizado procedural no disparo (`SomDeCombate.DisparoFlecha`) e no impacto (`SomDeCombate.ImpactoFlecha`). Parâmetros de sensação ajustáveis no F10 (`VolumeDisparoFlecha`, `VolumeImpactoFlecha`, `DuracaoRastroProjetil`).
 
+## Projéteis mágicos de cajado e apresentação elemental (#1008, #1009)
+
+O cajado (`TipoEquipamento.Cajado`) dispara projéteis mágicos lineares autoritativos com base no seu elemento (`ElementoDaArma` de `IArmaEquipada`):
+
+- **Shared:** `RegrasProjetil` parametriza velocidades, raios e alcances para `BolaDeFogo` (leve 22 m/s, pesado 30 m/s; raio 0,45 m; alcance 28/34 m), `EsferaDeGelo` (leve 25 m/s, pesado 32 m/s; raio 0,35 m; alcance 30/36 m) e `OrbeDeCura` (leve 20 m/s, pesado 26 m/s; raio 0,50 m; alcance 26/32 m).
+- **Servidor:** `ServicoDeAtaques` delega o golpe de cajado para `ServicoDeProjeteis.DispararCajado`:
+  - **Fogo:** dispara `BolaDeFogo`. Dano mágico ao colidir. No ataque pesado, aplica status `Queimadura` (`TipoEfeitoDeStatus.Queimadura`) pelo `GerenciadorDeEfeitosDeStatus`.
+  - **Gelo:** dispara `EsferaDeGelo`. Dano mágico e aplica status `Lentidao` (`TipoEfeitoDeStatus.Lentidao`).
+  - **Cura:** dispara `OrbeDeCura`. Colide prioritariamente com aliados do grupo (`IAliadosDeCombate.SaoAliados`) ao longo da trajetória linear. Ao colidir com aliado, recupera a vida dele autoritativamente (`RecursosDoAtaque.CurarVidaAsync`) e publica `PersonagemCurouAliado` (para participação de loot/XP de mobs em combate). Ao atingir inimigos, aplica dano mágico comum sem curar. Não atinge o próprio atacante.
+- **Client:** `VisualProjetilElemental` e `ProjetilVisual` criam a apresentação procedural de cada projétil:
+  - **Fogo:** núcleo incandescente emissivo laranja/amarelo, rastro largo de fogo e fuligem (`TrailRenderer`), estouro de faíscas/brasa no impacto, sons sintetizados de disparo (`DisparoFogo`) e explosão abafada (`ImpactoFogo`).
+  - **Gelo:** cristal/esfera ciano translúcido, rastro de névoa fria/geada, estilhaços cristalinos no impacto, som sibilante (`DisparoGelo`) e estalo de quebra de gelo (`ImpactoGelo`).
+  - **Cura:** orbe duplo verde-esmeralda e núcleo dourado, rastro suave de luz, anel ascendente de partículas de cura no aliado, e sinfonia harmônica suave (`DisparoCura`, `ImpactoCura`).
+
 ## Em aberto
 
 - [x] ~~Combate com alvo fixo (tab target) ou mira livre (action)?~~ Decidido: action (D4)

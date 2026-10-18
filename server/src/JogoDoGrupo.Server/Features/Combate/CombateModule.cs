@@ -135,6 +135,7 @@ public sealed class CombateModule : IFeatureModule
             eventos: sp.GetService<EventosDoServidor>(),
             controle: sp.GetService<ControleDeAcoes>(),
             queda: sp.GetService<ServicoDeQueda>(),
+            escopos: sp.GetService<IServiceScopeFactory>(),
             relogioMs: () => sp.GetRequiredService<RelogioDeCombate>().AgoraMs
         ));
         servicos.AddHostedService(sp => sp.GetRequiredService<ServicoDeProjeteis>());

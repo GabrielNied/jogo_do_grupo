@@ -58,8 +58,8 @@ namespace JogoDoGrupo.Client.Features.Combate
             }
 
             _impacto?.TocarSom(
-                SomDeCombate.DisparoFlecha,
-                ConfigSensacaoCombate.VolumeDisparoFlecha
+                VisualProjetilElemental.ObterSomDisparo(msg.TipoProjetil),
+                VisualProjetilElemental.ObterVolumeDisparo(msg.TipoProjetil)
             );
 
             var visual = ProjetilVisual.Criar(msg, _impacto, AoDestruirProjetil);

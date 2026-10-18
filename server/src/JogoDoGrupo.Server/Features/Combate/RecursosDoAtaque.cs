@@ -55,6 +55,17 @@ internal static class RecursosDoAtaque
     ) => Recursos(escopos).TirarVidaAsync(personagemId, dano, cancelamento);
 
     /// <summary>
+    /// Cura <paramref name="cura"/> da vida do personagem (nunca acima do máximo): curas simultâneas
+    /// rodam uma depois da outra e somam. Devolve o novo estado para o dono.
+    /// </summary>
+    public static Task<RecursosMudaram> CurarVidaAsync(
+        IServiceScopeFactory escopos,
+        long personagemId,
+        int cura,
+        CancellationToken cancelamento
+    ) => Recursos(escopos).CurarVidaAsync(personagemId, cura, cancelamento);
+
+    /// <summary>
     /// Cobra da stamina o golpe contra a guarda segurada (ou quebra a guarda se não há stamina).
     /// </summary>
     public static Task<(bool Bloqueou, int StaminaGasto, RecursosMudaram Recursos)> BloquearAsync(

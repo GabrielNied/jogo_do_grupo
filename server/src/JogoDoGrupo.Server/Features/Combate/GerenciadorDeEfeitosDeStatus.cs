@@ -267,17 +267,20 @@ public sealed class GerenciadorDeEfeitosDeStatus
         }
     }
 
-    /// <summary>Se a entidade tem Lentidão ativa.</summary>
-    public bool TemLentidao(long entidadeId)
+    /// <summary>Se a entidade tem o efeito de status especificado ativo.</summary>
+    public bool TemEfeito(long entidadeId, TipoEfeitoDeStatus tipo)
     {
         var agora = _relogioMs();
         lock (_trava)
         {
             return _entidades.TryGetValue(entidadeId, out var status)
-                && status.Efeitos.TryGetValue(TipoEfeitoDeStatus.Lentidao, out var e)
+                && status.Efeitos.TryGetValue(tipo, out var e)
                 && agora < e.ExpiraEmMs;
         }
     }
+
+    /// <summary>Se a entidade tem Lentidão ativa.</summary>
+    public bool TemLentidao(long entidadeId) => TemEfeito(entidadeId, TipoEfeitoDeStatus.Lentidao);
 
     /// <summary>Se a entidade tem Vulnerável ativo (+15% de dano recebido).</summary>
     public bool TemVulneravel(long entidadeId)

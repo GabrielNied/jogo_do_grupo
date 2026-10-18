@@ -230,6 +230,10 @@ public sealed class ServicoDeAtaques : IHostedService, IDisposable
             {
                 _projeteis.DispararArco(personagemId, acao, inicio.Dano);
             }
+            else if (arma?.Tipo == TipoEquipamento.Cajado && _projeteis != null)
+            {
+                _projeteis.DispararCajado(personagemId, acao, inicio.Dano, arma.Value.Elemento);
+            }
             else
             {
                 Acertar(personagemId, acao, inicio.Dano);

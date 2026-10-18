@@ -25,6 +25,53 @@ namespace JogoDoGrupo.Shared.Features.Combate
         /// <summary>Alcance máximo do disparo de flecha pesada (metros).</summary>
         public const float AlcanceMaximoFlechaPesada = 40.0f;
 
+        // ── Balanceamento dos Projéteis Mágicos (Cajados) ─────────────────────────
+
+        /// <summary>Velocidade linear da bola de fogo disparada em ataque leve (m/s).</summary>
+        public const float VelocidadeBolaDeFogoLeve = 22.0f;
+
+        /// <summary>Velocidade linear da bola de fogo disparada em ataque pesado (m/s).</summary>
+        public const float VelocidadeBolaDeFogoPesada = 30.0f;
+
+        /// <summary>Raio da esfera de colisão da bola de fogo em metros.</summary>
+        public const float RaioBolaDeFogo = 0.45f;
+
+        /// <summary>Alcance máximo da bola de fogo em ataque leve (metros).</summary>
+        public const float AlcanceMaximoBolaDeFogoLeve = 28.0f;
+
+        /// <summary>Alcance máximo da bola de fogo em ataque pesado (metros).</summary>
+        public const float AlcanceMaximoBolaDeFogoPesada = 34.0f;
+
+        /// <summary>Velocidade linear da esfera de gelo disparada em ataque leve (m/s).</summary>
+        public const float VelocidadeEsferaDeGeloLeve = 25.0f;
+
+        /// <summary>Velocidade linear da esfera de gelo disparada em ataque pesado (m/s).</summary>
+        public const float VelocidadeEsferaDeGeloPesada = 32.0f;
+
+        /// <summary>Raio da esfera de colisão do gelo em metros.</summary>
+        public const float RaioEsferaDeGelo = 0.35f;
+
+        /// <summary>Alcance máximo da esfera de gelo em ataque leve (metros).</summary>
+        public const float AlcanceMaximoEsferaDeGeloLeve = 30.0f;
+
+        /// <summary>Alcance máximo da esfera de gelo em ataque pesado (metros).</summary>
+        public const float AlcanceMaximoEsferaDeGeloPesada = 36.0f;
+
+        /// <summary>Velocidade linear do orbe de cura disparado em ataque leve (m/s).</summary>
+        public const float VelocidadeOrbeDeCuraLeve = 20.0f;
+
+        /// <summary>Velocidade linear do orbe de cura disparado em ataque pesado (m/s).</summary>
+        public const float VelocidadeOrbeDeCuraPesada = 26.0f;
+
+        /// <summary>Raio da esfera de colisão do orbe de cura em metros (mais permissivo para aliados).</summary>
+        public const float RaioOrbeDeCura = 0.50f;
+
+        /// <summary>Alcance máximo do orbe de cura em ataque leve (metros).</summary>
+        public const float AlcanceMaximoOrbeDeCuraLeve = 26.0f;
+
+        /// <summary>Alcance máximo do orbe de cura em ataque pesado (metros).</summary>
+        public const float AlcanceMaximoOrbeDeCuraPesada = 32.0f;
+
         /// <summary>Altura padrão de spawn do projétil a partir do chão/pés do atacante (metros).</summary>
         public const float AlturaOrigemDisparo = 1.2f;
 
@@ -37,6 +84,18 @@ namespace JogoDoGrupo.Shared.Features.Combate
                     return tipoAtaque == TipoDeAtaque.Pesado
                         ? VelocidadeFlechaPesada
                         : VelocidadeFlechaLeve;
+                case TipoDeProjetil.BolaDeFogo:
+                    return tipoAtaque == TipoDeAtaque.Pesado
+                        ? VelocidadeBolaDeFogoPesada
+                        : VelocidadeBolaDeFogoLeve;
+                case TipoDeProjetil.EsferaDeGelo:
+                    return tipoAtaque == TipoDeAtaque.Pesado
+                        ? VelocidadeEsferaDeGeloPesada
+                        : VelocidadeEsferaDeGeloLeve;
+                case TipoDeProjetil.OrbeDeCura:
+                    return tipoAtaque == TipoDeAtaque.Pesado
+                        ? VelocidadeOrbeDeCuraPesada
+                        : VelocidadeOrbeDeCuraLeve;
                 default:
                     return tipoAtaque == TipoDeAtaque.Pesado ? 30.0f : 20.0f;
             }
@@ -49,6 +108,12 @@ namespace JogoDoGrupo.Shared.Features.Combate
             {
                 case TipoDeProjetil.Flecha:
                     return RaioFlecha;
+                case TipoDeProjetil.BolaDeFogo:
+                    return RaioBolaDeFogo;
+                case TipoDeProjetil.EsferaDeGelo:
+                    return RaioEsferaDeGelo;
+                case TipoDeProjetil.OrbeDeCura:
+                    return RaioOrbeDeCura;
                 default:
                     return 0.35f;
             }
@@ -63,6 +128,18 @@ namespace JogoDoGrupo.Shared.Features.Combate
                     return tipoAtaque == TipoDeAtaque.Pesado
                         ? AlcanceMaximoFlechaPesada
                         : AlcanceMaximoFlechaLeve;
+                case TipoDeProjetil.BolaDeFogo:
+                    return tipoAtaque == TipoDeAtaque.Pesado
+                        ? AlcanceMaximoBolaDeFogoPesada
+                        : AlcanceMaximoBolaDeFogoLeve;
+                case TipoDeProjetil.EsferaDeGelo:
+                    return tipoAtaque == TipoDeAtaque.Pesado
+                        ? AlcanceMaximoEsferaDeGeloPesada
+                        : AlcanceMaximoEsferaDeGeloLeve;
+                case TipoDeProjetil.OrbeDeCura:
+                    return tipoAtaque == TipoDeAtaque.Pesado
+                        ? AlcanceMaximoOrbeDeCuraPesada
+                        : AlcanceMaximoOrbeDeCuraLeve;
                 default:
                     return 30.0f;
             }
