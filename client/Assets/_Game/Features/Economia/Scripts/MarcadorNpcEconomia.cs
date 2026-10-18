@@ -8,6 +8,10 @@ namespace JogoDoGrupo.Client.Features.Economia
     {
         Vendedor,
         Ferreiro,
+        Armeiro,
+        Armadureiro,
+        Taverneiro,
+        Merceeiro,
     }
 
     /// <summary>
@@ -23,12 +27,32 @@ namespace JogoDoGrupo.Client.Features.Economia
         {
             return tipo switch
             {
-                TipoNpcEconomia.Vendedor => new Vector3(
-                    ConfigNpcEconomia.VendedorX,
+                TipoNpcEconomia.Armeiro => new Vector3(
+                    ConfigNpcEconomia.ArmeiroX,
                     altura,
-                    ConfigNpcEconomia.VendedorZ
+                    ConfigNpcEconomia.ArmeiroZ
                 ),
-                _ => new Vector3(ConfigNpcEconomia.FerreiroX, altura, ConfigNpcEconomia.FerreiroZ),
+                TipoNpcEconomia.Armadureiro => new Vector3(
+                    ConfigNpcEconomia.ArmadureiroX,
+                    altura,
+                    ConfigNpcEconomia.ArmadureiroZ
+                ),
+                TipoNpcEconomia.Taverneiro => new Vector3(
+                    ConfigNpcEconomia.TaverneiroX,
+                    altura,
+                    ConfigNpcEconomia.TaverneiroZ
+                ),
+                TipoNpcEconomia.Merceeiro => new Vector3(
+                    ConfigNpcEconomia.MerceeiroX,
+                    altura,
+                    ConfigNpcEconomia.MerceeiroZ
+                ),
+                TipoNpcEconomia.Ferreiro => new Vector3(
+                    ConfigNpcEconomia.FerreiroX,
+                    altura,
+                    ConfigNpcEconomia.FerreiroZ
+                ),
+                _ => new Vector3(ConfigNpcEconomia.VendedorX, altura, ConfigNpcEconomia.VendedorZ),
             };
         }
 
@@ -41,11 +65,24 @@ namespace JogoDoGrupo.Client.Features.Economia
 
         public static GameObject Criar(Vector3 posicao, TipoNpcEconomia tipo)
         {
-            var nome = tipo == TipoNpcEconomia.Vendedor ? "NpcVendedor" : "NpcFerreiro";
-            var cor =
-                tipo == TipoNpcEconomia.Vendedor
-                    ? new Color(0.25f, 0.55f, 0.85f)
-                    : new Color(0.55f, 0.35f, 0.22f);
+            var nome = tipo switch
+            {
+                TipoNpcEconomia.Armeiro => "NpcArmeiro",
+                TipoNpcEconomia.Armadureiro => "NpcArmadureiro",
+                TipoNpcEconomia.Taverneiro => "NpcTaverneiro",
+                TipoNpcEconomia.Merceeiro => "NpcMerceeiro",
+                TipoNpcEconomia.Ferreiro => "NpcFerreiro",
+                _ => "NpcVendedor",
+            };
+            var cor = tipo switch
+            {
+                TipoNpcEconomia.Armeiro => new Color(0.85f, 0.30f, 0.25f),
+                TipoNpcEconomia.Armadureiro => new Color(0.40f, 0.55f, 0.70f),
+                TipoNpcEconomia.Taverneiro => new Color(0.85f, 0.60f, 0.20f),
+                TipoNpcEconomia.Merceeiro => new Color(0.95f, 0.75f, 0.25f),
+                TipoNpcEconomia.Ferreiro => new Color(0.55f, 0.35f, 0.22f),
+                _ => new Color(0.25f, 0.55f, 0.85f),
+            };
 
             var raiz = new GameObject(nome);
             raiz.transform.position = posicao;

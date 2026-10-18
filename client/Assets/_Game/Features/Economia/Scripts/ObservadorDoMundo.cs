@@ -65,19 +65,41 @@ namespace JogoDoGrupo.Client.Features.Economia
             raiz.SetActive(false);
             SceneManager.MoveGameObjectToScene(raiz, cena);
 
-            var posVendedor = PosicaoNoChao(
-                MarcadorNpcEconomia.Posicao(TipoNpcEconomia.Vendedor, jogador.transform.position.y)
-            );
+            var y = jogador.transform.position.y;
             var posFerreiro = PosicaoNoChao(
-                MarcadorNpcEconomia.Posicao(TipoNpcEconomia.Ferreiro, jogador.transform.position.y)
+                MarcadorNpcEconomia.Posicao(TipoNpcEconomia.Ferreiro, y)
+            );
+            var posArmeiro = PosicaoNoChao(MarcadorNpcEconomia.Posicao(TipoNpcEconomia.Armeiro, y));
+            var posArmadureiro = PosicaoNoChao(
+                MarcadorNpcEconomia.Posicao(TipoNpcEconomia.Armadureiro, y)
+            );
+            var posTaverneiro = PosicaoNoChao(
+                MarcadorNpcEconomia.Posicao(TipoNpcEconomia.Taverneiro, y)
+            );
+            var posMerceeiro = PosicaoNoChao(
+                MarcadorNpcEconomia.Posicao(TipoNpcEconomia.Merceeiro, y)
             );
 
-            var vendedor = MarcadorNpcEconomia.Criar(posVendedor, TipoNpcEconomia.Vendedor);
             var ferreiro = MarcadorNpcEconomia.Criar(posFerreiro, TipoNpcEconomia.Ferreiro);
-            SceneManager.MoveGameObjectToScene(vendedor, cena);
+            var armeiro = MarcadorNpcEconomia.Criar(posArmeiro, TipoNpcEconomia.Armeiro);
+            var armadureiro = MarcadorNpcEconomia.Criar(
+                posArmadureiro,
+                TipoNpcEconomia.Armadureiro
+            );
+            var taverneiro = MarcadorNpcEconomia.Criar(posTaverneiro, TipoNpcEconomia.Taverneiro);
+            var merceeiro = MarcadorNpcEconomia.Criar(posMerceeiro, TipoNpcEconomia.Merceeiro);
+
             SceneManager.MoveGameObjectToScene(ferreiro, cena);
-            vendedor.transform.SetParent(raiz.transform, true);
+            SceneManager.MoveGameObjectToScene(armeiro, cena);
+            SceneManager.MoveGameObjectToScene(armadureiro, cena);
+            SceneManager.MoveGameObjectToScene(taverneiro, cena);
+            SceneManager.MoveGameObjectToScene(merceeiro, cena);
+
             ferreiro.transform.SetParent(raiz.transform, true);
+            armeiro.transform.SetParent(raiz.transform, true);
+            armadureiro.transform.SetParent(raiz.transform, true);
+            taverneiro.transform.SetParent(raiz.transform, true);
+            merceeiro.transform.SetParent(raiz.transform, true);
 
             var documento = raiz.AddComponent<UIDocument>();
             documento.panelSettings = EstiloCore.CriarConfiguracaoDoPainel("PainelEconomia", -1f);
@@ -91,7 +113,35 @@ namespace JogoDoGrupo.Client.Features.Economia
             documento.rootVisualElement.Add(container);
 
             var controle = raiz.AddComponent<ControleInteracaoEconomia>();
-            controle.Configurar(jogador, vendedor.transform, ferreiro.transform, container);
+            controle.Configurar(
+                jogador,
+                container,
+                new PontoInteracaoEconomia(
+                    ferreiro.transform,
+                    "falar com o ferreiro",
+                    UI.JanelaFerreiro.Chave
+                ),
+                new PontoInteracaoEconomia(
+                    armeiro.transform,
+                    "falar com o armeiro",
+                    UI.JanelaVendedor.ChaveArmeiro
+                ),
+                new PontoInteracaoEconomia(
+                    armadureiro.transform,
+                    "falar com a armadureira",
+                    UI.JanelaVendedor.ChaveArmadureiro
+                ),
+                new PontoInteracaoEconomia(
+                    taverneiro.transform,
+                    "falar com o taverneiro",
+                    UI.JanelaVendedor.ChaveTaverneiro
+                ),
+                new PontoInteracaoEconomia(
+                    merceeiro.transform,
+                    "falar com o merceeiro",
+                    UI.JanelaVendedor.ChaveMerceeiro
+                )
+            );
         }
 
         private static Vector3 PosicaoNoChao(Vector3 posicao)

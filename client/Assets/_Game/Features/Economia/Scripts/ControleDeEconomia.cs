@@ -96,11 +96,27 @@ namespace JogoDoGrupo.Client.Features.Economia
             );
         }
 
-        public static void Comprar(int itemId, int quantidade = 1)
+        public static void ConsultarCatalogo(
+            CategoriaLoja categoria = CategoriaLoja.Nenhuma,
+            int npcId = 0
+        )
+        {
+            ConexaoTempoReal.Enviar(
+                EconomiaMessageIds.ConsultarCatalogoLoja,
+                new ConsultarCatalogoLoja(categoria, npcId)
+            );
+        }
+
+        public static void Comprar(
+            int itemId,
+            int quantidade = 1,
+            CategoriaLoja categoria = CategoriaLoja.Nenhuma,
+            int npcId = 0
+        )
         {
             ConexaoTempoReal.Enviar(
                 EconomiaMessageIds.ComprarItemDaLoja,
-                new ComprarItemDaLoja(itemId, quantidade)
+                new ComprarItemDaLoja(itemId, quantidade, categoria, npcId)
             );
         }
 
