@@ -7,58 +7,19 @@ using UnityEngine;
 namespace JogoDoGrupo.Client.Features.Combate
 {
     /// <summary>
-    /// Componente que anima a trajetória visual do projétil até atingir o alcance máximo.
-    /// </summary>
-    internal sealed class ProjetilVisual : MonoBehaviour
-    {
-        private Vector3 _direcao;
-        private float _velocidade;
-        private float _alcanceMaximo;
-        private float _distanciaPercorrida;
-        private ControleImpacto _impacto;
-
-        public void Configurar(
-            Vector3 direcao,
-            float velocidade,
-            float alcanceMaximo,
-            ControleImpacto impacto
-        )
-        {
-            _direcao = direcao.sqrMagnitude > 0.0001f ? direcao.normalized : Vector3.forward;
-            _velocidade = Math.Max(1f, velocidade);
-            _alcanceMaximo = Math.Max(1f, alcanceMaximo);
-            _impacto = impacto;
-            transform.rotation = Quaternion.LookRotation(_direcao);
-        }
-
-        private void Update()
-        {
-            float passo = _velocidade * Time.deltaTime;
-            transform.position += _direcao * passo;
-            _distanciaPercorrida += passo;
-
-            if (_distanciaPercorrida >= _alcanceMaximo)
-            {
-                Destruir();
-            }
-        }
-
-        private void Destruir()
-        {
-            _impacto?.TocarSom(SomDeCombate.ImpactoFlecha, 0.4f);
-            Destroy(gameObject);
-        }
-    }
-
-    /// <summary>
     /// Gerencia a apresentação visual e sonora de projéteis (como flechas e projéteis mágicos).
     /// Ouve <see cref="CombateMessageIds.ProjetilLancado"/> e instancia as flechas com rastro.
+    /// Responde a <see cref="CombateMessageIds.AtaqueAcertou"/> para sincronizar o impacto visual.
     /// </summary>
     internal sealed class GerenciadorDeProjeteis : MonoBehaviour
     {
         private readonly List<IDisposable> _assinaturas = new List<IDisposable>();
+        private readonly Dictionary<long, ProjetilVisual> _projeteis =
+            new Dictionary<long, ProjetilVisual>();
         private ControleImpacto _impacto;
         private long _personagemId;
+
+        public int QuantidadeAtivos => _projeteis.Count;
 
         public void Configurar(long personagemId, ControleImpacto impacto)
         {
@@ -71,6 +32,12 @@ namespace JogoDoGrupo.Client.Features.Combate
                     AoLancarProjetil
                 )
             );
+            _assinaturas.Add(
+                ConexaoTempoReal.Assinar<AtaqueAcertou>(
+                    CombateMessageIds.AtaqueAcertou,
+                    AoAcertarAtaque
+                )
+            );
         }
 
         private void OnDestroy()
@@ -80,6 +47,7 @@ namespace JogoDoGrupo.Client.Features.Combate
                 assinatura?.Dispose();
             }
             _assinaturas.Clear();
+            _projeteis.Clear();
         }
 
         private void AoLancarProjetil(ProjetilLancado msg)
@@ -89,43 +57,55 @@ namespace JogoDoGrupo.Client.Features.Combate
                 return;
             }
 
-            _impacto?.TocarSom(SomDeCombate.DisparoFlecha, 0.7f);
+            _impacto?.TocarSom(
+                SomDeCombate.DisparoFlecha,
+                ConfigSensacaoCombate.VolumeDisparoFlecha
+            );
 
-            var origem = new Vector3(msg.OrigemX, msg.OrigemY, msg.OrigemZ);
-            var direcao = new Vector3(msg.DirecaoX, msg.DirecaoY, msg.DirecaoZ);
+            var visual = ProjetilVisual.Criar(msg, _impacto, AoDestruirProjetil);
+            _projeteis[msg.ProjetilId] = visual;
+        }
 
-            var go = new GameObject("Projetil_" + msg.ProjetilId);
-            go.transform.position = origem;
-
-            // Corpo da flecha (cilindro fino alinhado com o eixo Z)
-            var haste = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-            var col = haste.GetComponent<Collider>();
-            if (col != null)
+        private void AoAcertarAtaque(AtaqueAcertou msg)
+        {
+            if (msg == null || msg.Acertos == null || msg.Acertos.Length == 0)
             {
-                Destroy(col);
+                return;
             }
 
-            haste.transform.SetParent(go.transform, false);
-            haste.transform.localScale = new Vector3(0.04f, 0.4f, 0.04f);
-            haste.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+            // Procura projétil ativo deste atacante para colidir no alvo
+            long? idParaImpactar = null;
+            ProjetilVisual projetilParaImpactar = null;
 
-            var renderer = haste.GetComponent<Renderer>();
-            if (renderer != null)
+            foreach (var kvp in _projeteis)
             {
-                renderer.material.color = new Color(0.6f, 0.4f, 0.2f);
+                if (kvp.Value != null && kvp.Value.AtacanteId == msg.AtacanteId)
+                {
+                    idParaImpactar = kvp.Key;
+                    projetilParaImpactar = kvp.Value;
+                    break;
+                }
             }
 
-            // Rastro visual
-            var trail = go.AddComponent<TrailRenderer>();
-            trail.time = 0.25f;
-            trail.startWidth = 0.08f;
-            trail.endWidth = 0.01f;
-            trail.material = new Material(Shader.Find("Sprites/Default"));
-            trail.startColor = new Color(0.9f, 0.9f, 0.9f, 0.7f);
-            trail.endColor = new Color(0.8f, 0.8f, 0.8f, 0f);
+            if (projetilParaImpactar != null)
+            {
+                var alvo = RegistroDeAlvos.Achar(msg.Acertos[0].AlvoId);
+                var pos =
+                    alvo != null
+                        ? alvo.transform.position + Vector3.up * 1f
+                        : projetilParaImpactar.transform.position;
 
-            var visual = go.AddComponent<ProjetilVisual>();
-            visual.Configurar(direcao, msg.Velocidade, msg.AlcanceMaximo, _impacto);
+                projetilParaImpactar.Impactar(pos);
+                if (idParaImpactar.HasValue)
+                {
+                    _projeteis.Remove(idParaImpactar.Value);
+                }
+            }
+        }
+
+        private void AoDestruirProjetil(long id)
+        {
+            _projeteis.Remove(id);
         }
     }
 }
