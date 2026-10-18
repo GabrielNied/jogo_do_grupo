@@ -16,6 +16,7 @@ Sistema de montarias: a pessoa chama uma montaria, anda com velocidade aumentada
   - *Corcel Castanho* (Tipo 1): montaria clássica em tons acolhedores e arreios tradicionais de couro com detalhes dourados (desbloqueada por padrão).
   - *Corcel Noturno* (Tipo 2): montaria mística com pelagem ébano, tons de índigo, sela prateada, detalhes luminescentes e chifre estrelado (drop raro de chefe).
 - **Tempo de espera para montar:** subir na montaria exige 1,5 segundo de invocação parado (`RegrasMontaria.TempoInvocacaoSegundos`). Deslocar-se, sofrer dano ou cancelar interrompe a barra de progresso. Desmontar é instantâneo.
+- **Atalho de montaria (T):** alterna montar e desmontar. O atalho é ignorado quando o menu do Esc estiver aberto ou quando houver digitação de texto ativa (chat, busca, janela de reporte F9).
 - **Velocidade:** a velocidade montada é autoritativa no servidor (`VelocidadesDeMovimento`), com corrida padrão de 9,0 m/s (`RegrasMontaria.VelocidadeMontariaPadrao`), contra os 5,5 m/s da corrida padrão a pé.
 - **Validação de movimento:** o `ValidadorDeMovimento` aceita o teto da montaria enquanto a pessoa estiver montada.
 - **Multiplayer:** quem está na cidade ou no mundo aberto vê os outros jogadores montados e desmontados em tempo real (`EstadoMontaria`), refletindo o tipo e o modelo equipado pelo jogador.
@@ -28,6 +29,7 @@ Sistema de montarias: a pessoa chama uma montaria, anda com velocidade aumentada
   - Ao registrar, notifica `MontariaDesbloqueada` (16007), envia a coleção atualizada `ColecaoMontarias` (16006) e equipa a montaria automaticamente.
 
 - **Todas as montarias são iguais e só muda o visual** (decidido por Gabriel em 2026-10-16): sem bônus, sem habilidade utilitária e sem voo.
+- **Atalho da coleção:** a janela de montarias abre com **P**. A tecla **M** permanece reservada ao mapa e **T** à invocação da montaria ativa.
 
 ## Em aberto
 

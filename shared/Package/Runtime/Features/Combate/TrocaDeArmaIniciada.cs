@@ -13,5 +13,13 @@ namespace JogoDoGrupo.Shared.Features.Combate
 
         /// <summary>Quanto dura o bloqueio, em milissegundos (<see cref="RegrasTrocaDeArma.DuracaoMs"/>).</summary>
         public int DuracaoMs = 0;
+
+        /// <summary>Tipo da arma equipada no conjunto ativo que ficou selecionado.</summary>
+        public JogoDoGrupo.Shared.Features.Itens.TipoEquipamento TipoArma = JogoDoGrupo
+            .Shared
+            .Features
+            .Itens
+            .TipoEquipamento
+            .Espada;
     }
 }

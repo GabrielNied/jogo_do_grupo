@@ -57,6 +57,41 @@ namespace JogoDoGrupo.Client.Features.Social
         /// <summary>Vida crítica (&lt; 30%) com destaque visual.</summary>
         public const string VidaCritica = "vida-critica";
 
+        /// <summary>Camada overlay de marcadores táticos.</summary>
+        public const string MarcadorCamada = "social-marcador-camada";
+
+        /// <summary>Elemento visual do marcador tático de alvo.</summary>
+        public const string MarcadorTatico = "social-marcador-tatico";
+
+        /// <summary>Estilo de foco primário (Caveira).</summary>
+        public const string MarcadorCaveira = "marcador-caveira";
+
+        /// <summary>Estilo de foco secundário (Cruz).</summary>
+        public const string MarcadorCruz = "marcador-cruz";
+
+        /// <summary>Estilo de foco do tank (Escudo).</summary>
+        public const string MarcadorEscudo = "marcador-escudo";
+
+        /// <summary>Estilo de controle de grupo (Lua).</summary>
+        public const string MarcadorLua = "marcador-lua";
+
+        /// <summary>Estilo de marcador especial (Estrela).</summary>
+        public const string MarcadorEstrela = "marcador-estrela";
+        /// <summary>Camada invisível de tela cheia que abriga todos os balões de fala.</summary>
+        public const string BalaoCamada = "social-balao-camada";
+
+        /// <summary>Contêiner visual de um balão de fala individual.</summary>
+        public const string BalaoFala = "social-balao-fala";
+
+        /// <summary>Rótulo com o nome do autor da mensagem no balão.</summary>
+        public const string BalaoAutor = "social-balao-autor";
+
+        /// <summary>Rótulo com o texto da mensagem no balão.</summary>
+        public const string BalaoTexto = "social-balao-texto";
+
+        /// <summary>Ponta triangular voltada para a cabeça do avatar.</summary>
+        public const string BalaoPonta = "social-balao-ponta";
+
         /// <summary>Adiciona o USS de Social à raiz da interface.</summary>
         public static void Aplicar(VisualElement raiz)
         {

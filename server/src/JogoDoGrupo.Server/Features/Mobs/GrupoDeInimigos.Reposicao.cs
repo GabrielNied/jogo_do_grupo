@@ -110,7 +110,7 @@ public sealed partial class GrupoDeInimigos
                 lugarZ = _rota.Pontos[_pontoDaRota].Z + morto.DesvioZ;
             }
 
-            var novo = Criar(lugarX, lugarZ, _limite != null);
+            var novo = Criar(lugarX, lugarZ, _limite != null, morto.Criatura.Definicao);
             novo.DesvioX = morto.DesvioX;
             novo.DesvioZ = morto.DesvioZ;
             _inimigos[i] = novo;
@@ -144,7 +144,11 @@ public sealed partial class GrupoDeInimigos
         var novos = new Inimigo[vagas];
         for (var i = 0; i < vagas; i++)
         {
-            novos[i] = CriarNoCirculo(i, vagas, _limite != null);
+            var def =
+                (i == vagas - 1 && _criaturaRetaguardaId != null && vagas >= 2)
+                    ? (CatalogoCriaturas.Obter(_criaturaRetaguardaId.Value) ?? _definicao)
+                    : _definicao;
+            novos[i] = CriarNoCirculo(i, vagas, _limite != null, def);
         }
 
         _inimigos = novos;
@@ -164,13 +168,19 @@ public sealed partial class GrupoDeInimigos
     }
 
     // Os pontos de origem ficam num círculo em volta do centro, a distâncias iguais.
-    private Inimigo CriarNoCirculo(int indice, int total, bool contaNoLimite)
+    private Inimigo CriarNoCirculo(
+        int indice,
+        int total,
+        bool contaNoLimite,
+        DefinicaoDeCriatura? def = null
+    )
     {
         var angulo = 2.0 * Math.PI * indice / total;
         return Criar(
             _pontoX + (Math.Sin(angulo) * ConfigInimigosDoCampo.RaioDoEspalhamentoMetros),
             _pontoZ + (Math.Cos(angulo) * ConfigInimigosDoCampo.RaioDoEspalhamentoMetros),
-            contaNoLimite
+            contaNoLimite,
+            def
         );
     }
 }

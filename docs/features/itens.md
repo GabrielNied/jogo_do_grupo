@@ -470,9 +470,20 @@ Decidido por Gabriel em 2026-10-12. Substitui a lista com dropdown e botões das
 - **Dados de equipamento no client:** `JsonUtility` troca `"Equipamento": null` por um objeto vazio (tipo `Capacete`); use sempre `RegrasEquipamentos.DadosDe(entrada)`, nunca `entrada.Equipamento != null` (causa do 400 `PosicaoInvalida` da #585).
 - **Bancada de fusão:** aberta por **Bancada** (`PainelFusao`); veja [Entregue na #616](#entregue-na-616-fusão-v2).
 - **Expansão em abas (#564, 2026-10-14):** a bolsa suporta até 4 abas de 40 casas cada (`ConfigBolsa.AbasMaximas = 4`, total de até 160 espaços). O personagem começa com 1 aba (`RegrasItens.AbasBolsaInicial = 1`) e pode desbloquear novas abas com coroas pela rota `POST /api/personagens/{id}/inventario/expandir` (`RotasItens.Expandir`, sem corpo, resposta `EquipamentosResponse`). Custos progressivos: Aba 2 = 100 coroas, Aba 3 = 250 coroas, Aba 4 = 500 coroas (`ConfigBolsa.CustoPorAba`). A cobrança é atômica via `ICarteiraCoroas.DebitarAsync` em transação Serializable; sem saldo responde 409 `CoroasInsuficientes`, no limite de abas responde 400 `BolsaNoLimite`. A quantidade de abas é persistida em `EstadoEquipamentos.AbasBolsa`. Na UI (`PainelInventario`), a barra de abas mostra as abas desbloqueadas e, enquanto houver abas bloqueadas, um botão `+` com tooltip de custo; ao clicar, exibe confirmação na própria janela antes de enviar, e ao concluir seleciona a nova aba liberada.
-- **Fora do ambiente de teste do agente:** a conferência visual da janela (capturas 1280x720 a 2560x1440, texto 20 e máximo) fica como pendência de Unity.
+- **Banco pessoal da conta na cidade (#177, 2026-10-18):**
+  - **Compartilhado na conta:** armazém compartilhado entre todos os personagens da mesma conta (`ContaId`), acessível na cidade. Itens depositados no banco não concedem bônus nem atributos e não entram nas fórmulas de combate.
+  - **Capacidade e expansão:** capacidade inicial de 1 aba de 40 casas (`RegrasBanco.CasasPorAba = 40`, `RegrasBanco.AbasIniciais = 1`), expansível até 4 abas (160 casas, `RegrasBanco.AbasMaximas = 4`). Cada expansão custa 500 coroas (`RegrasBanco.CustoExpansaoBancoCoroas`), debitadas atomicamente da conta via `ICarteiraCoroas`.
+  - **Rotas:**
+    - `GET /api/personagens/{id}/banco` (`RotasItens.Banco`): retorna `BancoResponse` contendo a lista de itens no banco, capacidade atual, saldo de coroas e os itens/capacidade da bolsa para sincronização.
+    - `POST /api/personagens/{id}/banco/depositar` (`RotasItens.DepositarBanco`, `PedidoDepositarBanco { InstanciaId, Aba, Casa }`): move item da bolsa para o banco (para a aba/casa indicada ou primeira livre). Recusa se equipado (409 `ItemEquipado`) ou banco cheio (400 `BancoCheio`).
+    - `POST /api/personagens/{id}/banco/retirar` (`RotasItens.RetirarBanco`, `PedidoRetirarBanco { InstanciaId, Aba, Casa }`): move item do banco para a bolsa (para a aba/casa indicada ou primeira livre). Recusa se bolsa cheia (400 `InventarioCheio`).
+    - `POST /api/personagens/{id}/banco/mover` (`RotasItens.MoverBanco`, `PedidoMoverBanco { InstanciaId, Aba, Casa }`): reorganiza ou troca itens entre casas do banco da conta.
+    - `POST /api/personagens/{id}/banco/expandir` (`RotasItens.ExpandirBanco`): desbloqueia a próxima aba do banco debitando coroas. Recusa com 409 `CoroasInsuficientes` ou 400 `BancoNoLimite`.
+  - **Persistência e integridade:** entidades EF Core `ItemBanco` e `EstadoBanco` por `ContaId`, com transações Serializable e índice único em `(ContaId, Aba, Casa)` para garantir isolamento contra duplicações concorrentes.
+  - **Atalho Ctrl+clique (#566, 2026-10-18):** com a janela do banco aberta, Ctrl+clique num item da bolsa envia o item para a primeira casa livre do banco (`DepositarBanco`); Ctrl+clique ou clique com botão direito num item do banco retira para a primeira casa livre da bolsa (`RetirarBanco`).
+  - **Interface do banco no client (`JanelaBanco`):** tela Lumora com moldura, grade de 40 casas 8×5, navegação por abas, botão `+` para desbloquear abas com confirmação e custo, atalho de teclado `B`, estilos visuais de tier e sincronização bidirecional em tempo real com a bolsa aberta.
 
-**Na sequência:** busca e filtros (#334), Ctrl+clique entre contêineres (#566).
+**Na sequência:** busca e filtros (#334).
 
 ### Catálogo de modelos-base (#330, confirmado pelo usuário em 2026-10-11)
 

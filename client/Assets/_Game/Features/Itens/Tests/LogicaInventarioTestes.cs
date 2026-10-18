@@ -293,5 +293,48 @@ namespace JogoDoGrupo.Client.Features.Itens.Tests
             Assert.AreEqual(TipoAcao.Usar, acao.Tipo);
             Assert.AreEqual(99, acao.InstanciaId);
         }
+
+        [Test]
+        public void CtrlClique_com_banco_aberto_em_item_da_bolsa_retorna_DepositarBanco()
+        {
+            var item = NaBolsa(42, Anel, 0);
+            var acao = LogicaInventario.CtrlClique(item, bancoAberto: true);
+            Assert.AreEqual(TipoAcao.DepositarBanco, acao.Tipo);
+            Assert.AreEqual(42, acao.InstanciaId);
+            Assert.IsFalse(acao.TemDestino);
+        }
+
+        [Test]
+        public void CtrlClique_com_banco_aberto_em_item_do_banco_retorna_RetirarBanco()
+        {
+            var item = new EntradaInventario
+            {
+                InstanciaId = 77,
+                ItemId = Anel,
+                Conteiner = ConteinerItem.Banco,
+                Aba = 0,
+                Casa = 5,
+            };
+            var acao = LogicaInventario.CtrlClique(item, bancoAberto: true);
+            Assert.AreEqual(TipoAcao.RetirarBanco, acao.Tipo);
+            Assert.AreEqual(77, acao.InstanciaId);
+            Assert.IsFalse(acao.TemDestino);
+        }
+
+        [Test]
+        public void CtrlClique_com_banco_fechado_retorna_Nenhuma()
+        {
+            var item = NaBolsa(42, Anel, 0);
+            var acao = LogicaInventario.CtrlClique(item, bancoAberto: false);
+            Assert.AreEqual(TipoAcao.Nada, acao.Tipo);
+        }
+
+        [Test]
+        public void CtrlClique_em_item_equipado_retorna_Nenhuma()
+        {
+            var item = Vestido(42, Anel, PosicaoEquipamento.Anel1);
+            var acao = LogicaInventario.CtrlClique(item, bancoAberto: true);
+            Assert.AreEqual(TipoAcao.Nada, acao.Tipo);
+        }
     }
 }

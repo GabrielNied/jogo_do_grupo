@@ -28,7 +28,10 @@ public static class ConfigDaMinaDoReflexo
 public sealed class PopuladorDeInstancia(IInimigosPorInstancia inimigos, IChefesDaDungeon chefes)
 {
     /// <summary>Os grupos dos salões comuns, no mundo (plano do chão).</summary>
-    public static IReadOnlyList<GrupoDeInstancia> GruposDosSaloes()
+    public static IReadOnlyList<GrupoDeInstancia> GruposDosSaloes(
+        double multVida = 1.0,
+        double multDano = 1.0
+    )
     {
         var saloes = LayoutDaMinaDoReflexo.SaloesComuns();
         var grupos = new List<GrupoDeInstancia>(saloes.Length);
@@ -42,7 +45,9 @@ public sealed class PopuladorDeInstancia(IInimigosPorInstancia inimigos, IChefes
                     LayoutDaMinaDoReflexo.OrigemZ,
                     conteudo.Quantidade,
                     conteudo.NivelMinimo,
-                    conteudo.NivelMaximo
+                    conteudo.NivelMaximo,
+                    multVida,
+                    multDano
                 )
             );
         }
@@ -50,11 +55,19 @@ public sealed class PopuladorDeInstancia(IInimigosPorInstancia inimigos, IChefes
         return grupos;
     }
 
-    public void AoAbrir(string areaId)
+    public void AoAbrir(string areaId, int nivel = 1)
     {
         ArgumentException.ThrowIfNullOrEmpty(areaId);
-        inimigos.Criar(areaId, GruposDosSaloes());
-        chefes.Criar(areaId, LayoutDaMinaDoReflexo.BossCentroX, LayoutDaMinaDoReflexo.BossCentroZ);
+        var multVida = RegrasDificuldadeSemFim.CalcularMultiplicadorVida(nivel);
+        var multDano = RegrasDificuldadeSemFim.CalcularMultiplicadorDano(nivel);
+        inimigos.Criar(areaId, GruposDosSaloes(multVida, multDano));
+        chefes.Criar(
+            areaId,
+            LayoutDaMinaDoReflexo.BossCentroX,
+            LayoutDaMinaDoReflexo.BossCentroZ,
+            multVida,
+            multDano
+        );
     }
 
     public void AoFechar(string areaId)

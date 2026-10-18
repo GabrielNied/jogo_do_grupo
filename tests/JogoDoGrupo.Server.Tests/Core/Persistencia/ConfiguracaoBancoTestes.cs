@@ -102,6 +102,7 @@ public class ConfiguracaoBancoTestes
         Assert.NotEmpty(migracoes);
         Assert.Contains(migracoes, m => m.Contains("InicialPostgres"));
         Assert.Contains(migracoes, m => m.Contains("PetsColecaoDaConta"));
+        Assert.Contains(migracoes, m => m.Contains("BancoPessoalDaContaPostgres"));
     }
 
     [Fact]

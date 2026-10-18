@@ -1,3 +1,4 @@
+using System;
 using JogoDoGrupo.Shared.Features.Combate;
 
 namespace JogoDoGrupo.Client.Features.Combate
@@ -105,13 +106,18 @@ namespace JogoDoGrupo.Client.Features.Combate
     {
         private int _sequencia;
 
-        public IntencaoDeAtaque Criar(TipoDeAtaque tipo, float direcaoYGraus)
+        public IntencaoDeAtaque Criar(
+            TipoDeAtaque tipo,
+            float direcaoYGraus,
+            float elevacaoGraus = 0f
+        )
         {
             _sequencia++;
             return new IntencaoDeAtaque
             {
                 Tipo = tipo,
                 DirecaoY = NormalizarDirecao(direcaoYGraus),
+                ElevacaoGraus = NormalizarElevacao(elevacaoGraus),
                 Sequencia = _sequencia,
             };
         }
@@ -126,6 +132,20 @@ namespace JogoDoGrupo.Client.Features.Combate
 
             var resto = graus % 360f;
             return resto < 0f ? resto + 360f : resto;
+        }
+
+        /// <summary>Clampeia a elevação vertical da mira entre os limites permitidos. Valor inválido vira 0.</summary>
+        public static float NormalizarElevacao(float graus)
+        {
+            if (float.IsNaN(graus) || float.IsInfinity(graus))
+            {
+                return 0f;
+            }
+
+            return Math.Max(
+                RegrasProjetil.ElevacaoMinimaGraus,
+                Math.Min(RegrasProjetil.ElevacaoMaximaGraus, graus)
+            );
         }
     }
 

@@ -92,18 +92,39 @@ namespace JogoDoGrupo.Shared.Features.Social
         /// <summary>Servidor → quem pediu: a operação de amigos ou ignorados foi recusada.</summary>
         public const ushort OperacaoDeAmizadeRecusada = 13213;
 
-        // ── Fila de grupo para dungeon (13300 a 13319) ───────────────────────────
+        // ── Marcadores táticos de alvo do grupo (13320 a 13329) ───────────────────
+
+        /// <summary>Client → servidor: define ou remove um marcador tático em um alvo.</summary>
+        public const ushort DefinirMarcadorDeAlvo = 13320;
+
+        /// <summary>Servidor → membros: a lista de alvos marcados taticamente pelo grupo mudou.</summary>
+        public const ushort MarcadoresDeAlvoMudaram = 13321;
+
+        /// <summary>Servidor → solicitante: o pedido de definir marcador foi recusado.</summary>
+        public const ushort DefinirMarcadorRecusado = 13322;
+        // ── Inspeção de jogador (13300 a 13319) ───────────────────────────────────
+
+        /// <summary>Client → servidor: pede para inspecionar um personagem alvo.</summary>
+        public const ushort PedirInspecao = 13300;
+
+        /// <summary>Servidor → client: retrato completo do equipamento e atributos do alvo inspecionado.</summary>
+        public const ushort RetratoInspecaoResponse = 13310;
+
+        /// <summary>Servidor → quem pediu: o pedido de inspeção foi recusado.</summary>
+        public const ushort InspecaoRecusada = 13311;
+      
+      // ── Fila de grupo para dungeon (13330 a 13339) ───────────────────────────
 
         /// <summary>Client → servidor: pede para entrar na fila de dungeon com um papel.</summary>
-        public const ushort EntrarNaFilaDeGrupo = 13300;
+        public const ushort EntrarNaFilaDeGrupo = 13330;
 
         /// <summary>Client → servidor: cancela a inscrição na fila de dungeon.</summary>
-        public const ushort SairDaFilaDeGrupo = 13301;
+        public const ushort SairDaFilaDeGrupo = 13331;
 
         /// <summary>Servidor → client: status da fila de dungeon para o personagem.</summary>
-        public const ushort StatusDaFilaDeGrupo = 13310;
+        public const ushort StatusDaFilaDeGrupo = 13332;
 
         /// <summary>Servidor → membros: o grupo da fila foi formado com sucesso.</summary>
-        public const ushort GrupoDeFilaFormado = 13311;
+        public const ushort GrupoDeFilaFormado = 13333;
     }
 }

@@ -63,6 +63,8 @@ namespace JogoDoGrupo.Client.Features.Itens
         Favoritar,
         Lixo,
         Usar,
+        DepositarBanco,
+        RetirarBanco,
 
         /// <summary>Não envia nada: mostra <see cref="AcaoDoInventario.Aviso"/>.</summary>
         Recusada,
@@ -295,6 +297,42 @@ namespace JogoDoGrupo.Client.Features.Itens
                 InstanciaId = entrada.InstanciaId,
                 Posicao = EncaixeAutomatico(tipo.Value, estado),
             };
+        }
+
+        /// <summary>
+        /// Ação ao clicar com Ctrl em um item (issue #566).
+        /// Se o banco estiver aberto:
+        /// - Se clicado em item do banco: retira para a primeira casa livre da bolsa.
+        /// - Se clicado em item da bolsa (não equipado): deposita na primeira casa livre do banco.
+        /// </summary>
+        public static AcaoDoInventario CtrlClique(EntradaInventario entrada, bool bancoAberto)
+        {
+            if (entrada == null || !bancoAberto)
+            {
+                return AcaoDoInventario.Nenhuma;
+            }
+
+            if (entrada.Conteiner == ConteinerItem.Banco)
+            {
+                return new AcaoDoInventario
+                {
+                    Tipo = TipoAcao.RetirarBanco,
+                    InstanciaId = entrada.InstanciaId,
+                    TemDestino = false,
+                };
+            }
+
+            if (entrada.Posicao == PosicaoEquipamento.Inventario)
+            {
+                return new AcaoDoInventario
+                {
+                    Tipo = TipoAcao.DepositarBanco,
+                    InstanciaId = entrada.InstanciaId,
+                    TemDestino = false,
+                };
+            }
+
+            return AcaoDoInventario.Nenhuma;
         }
 
         public static PosicaoEquipamento EncaixeAutomatico(

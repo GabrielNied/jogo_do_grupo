@@ -77,6 +77,8 @@ public sealed class ChefeDaDungeon : IAlvosDeCombate, IInimigosSimulados
     private int _rodizioDosRaios;
     private long _expostoAteMs;
     private long? _ultimoPassoMs;
+    private readonly int _vidaMaxima;
+    private readonly double _multiplicadorDano;
     private long _proximaMorte = 1;
 
     /// <param name="area">Área do mundo em que o boss vive.</param>
@@ -85,13 +87,17 @@ public sealed class ChefeDaDungeon : IAlvosDeCombate, IInimigosSimulados
     /// <param name="proximoId">Dá o id do boss, e um novo a cada <see cref="Reiniciar"/>.</param>
     /// <param name="relogioMs">Relógio em milissegundos; os testes trocam por um controlado.</param>
     /// <param name="historico">Histórico de posições no mundo para compensação de lag/rewind.</param>
+    /// <param name="multiplicadorVida">Multiplicador de vida da dificuldade sem fim.</param>
+    /// <param name="multiplicadorDano">Multiplicador de dano da dificuldade sem fim.</param>
     public ChefeDaDungeon(
         string area,
         double origemX,
         double origemZ,
         Func<long> proximoId,
         Func<long>? relogioMs = null,
-        IHistoricoDePosicoesDoMundo? historico = null
+        IHistoricoDePosicoesDoMundo? historico = null,
+        double multiplicadorVida = 1.0,
+        double multiplicadorDano = 1.0
     )
     {
         ArgumentException.ThrowIfNullOrEmpty(area);
@@ -106,7 +112,10 @@ public sealed class ChefeDaDungeon : IAlvosDeCombate, IInimigosSimulados
         _x = origemX;
         _z = origemZ;
         _id = proximoId();
-        _vida = ConfigChefeDaDungeon.VidaMaxima;
+        _vidaMaxima = (int)
+            Math.Max(1, Math.Round(ConfigChefeDaDungeon.VidaMaxima * multiplicadorVida));
+        _multiplicadorDano = multiplicadorDano;
+        _vida = _vidaMaxima;
         RegistrarPosicao(_relogioMs());
     }
 
@@ -179,7 +188,7 @@ public sealed class ChefeDaDungeon : IAlvosDeCombate, IInimigosSimulados
             _rotacao = 180.0;
             _estado = EstadoDeInimigo.Repouso;
             _alvo = RegrasInimigo.SemAlvo;
-            _vida = ConfigChefeDaDungeon.VidaMaxima;
+            _vida = _vidaMaxima;
             _sequencia = 0;
             _vidaMudou = false;
             _fase = Fase.Pausa;
@@ -349,7 +358,7 @@ public sealed class ChefeDaDungeon : IAlvosDeCombate, IInimigosSimulados
                         alvoZ,
                         ConfigChefeDaDungeon.RaioDoCorpoMetros,
                         _vida,
-                        ConfigChefeDaDungeon.VidaMaxima
+                        _vidaMaxima
                     ),
                 ];
             }
@@ -401,7 +410,7 @@ public sealed class ChefeDaDungeon : IAlvosDeCombate, IInimigosSimulados
                         alvoZ,
                         ConfigChefeDaDungeon.RaioDoCorpoMetros,
                         _vida,
-                        ConfigChefeDaDungeon.VidaMaxima
+                        _vidaMaxima
                     ),
                 ];
             }
@@ -442,7 +451,7 @@ public sealed class ChefeDaDungeon : IAlvosDeCombate, IInimigosSimulados
             _participantes.Add(atacanteId);
             _ameacas.AdicionarDano(atacanteId, aplicado);
             _vidaMudou = true;
-            resultado = new ResultadoDeDano(_id, aplicado, _vida, ConfigChefeDaDungeon.VidaMaxima);
+            resultado = new ResultadoDeDano(_id, aplicado, _vida, _vidaMaxima);
             if (_vida <= 0)
             {
                 Matar();
@@ -569,7 +578,8 @@ public sealed class ChefeDaDungeon : IAlvosDeCombate, IInimigosSimulados
     // O acerto: pega quem está numa das áreas agora, um evento por personagem.
     private void Acertar(long agora, JogadorNoCampo[] presentes, PassoDosInimigos passo)
     {
-        var dano = ConfigChefeDaDungeon.DanoDe(_tipo);
+        var dano = (int)
+            Math.Max(1, Math.Round(ConfigChefeDaDungeon.DanoDe(_tipo) * _multiplicadorDano));
         foreach (var jogador in presentes)
         {
             if (_areas.Any(a => RegrasInimigo.Distancia(a.X, a.Z, jogador.X, jogador.Z) <= a.Raio))
@@ -618,9 +628,9 @@ public sealed class ChefeDaDungeon : IAlvosDeCombate, IInimigosSimulados
         _ameacas.Limpar();
         _expostoAteMs = 0;
         _areas.Clear();
-        if (_vida != ConfigChefeDaDungeon.VidaMaxima)
+        if (_vida != _vidaMaxima)
         {
-            _vida = ConfigChefeDaDungeon.VidaMaxima;
+            _vida = _vidaMaxima;
             _vidaMudou = true;
         }
 
@@ -814,7 +824,7 @@ public sealed class ChefeDaDungeon : IAlvosDeCombate, IInimigosSimulados
             Z = (float)_z,
             RotacaoY = (float)_rotacao,
             Vida = _vida,
-            VidaMaxima = ConfigChefeDaDungeon.VidaMaxima,
+            VidaMaxima = _vidaMaxima,
             Estado = _estado,
             AlvoId = _alvo,
         };

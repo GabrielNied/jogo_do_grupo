@@ -95,6 +95,21 @@ namespace JogoDoGrupo.Server.Core.Persistencia.Migrations
                         });
                 });
 
+            modelBuilder.Entity("JogoDoGrupo.Server.Features.Itens.EstadoBanco", b =>
+                {
+                    b.Property<long>("ContaId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Abas")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(1);
+
+                    b.HasKey("ContaId");
+
+                    b.ToTable("EstadoBanco", (string)null);
+                });
+
             modelBuilder.Entity("JogoDoGrupo.Server.Features.Itens.EstadoEquipamentos", b =>
                 {
                     b.Property<long>("PersonagemId")
@@ -111,6 +126,38 @@ namespace JogoDoGrupo.Server.Core.Persistencia.Migrations
                     b.HasKey("PersonagemId");
 
                     b.ToTable("EstadoEquipamentos", (string)null);
+                });
+
+            modelBuilder.Entity("JogoDoGrupo.Server.Features.Itens.ItemBanco", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("Aba")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("Casa")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("ContaId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("EquipamentoJson")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("ItemId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ContaId");
+
+                    b.HasIndex("ContaId", "Aba", "Casa")
+                        .IsUnique()
+                        .HasFilter("\"Casa\" IS NOT NULL");
+
+                    b.ToTable("ItensBanco", (string)null);
                 });
 
             modelBuilder.Entity("JogoDoGrupo.Server.Features.Itens.ItemInventario", b =>

@@ -124,13 +124,21 @@ namespace JogoDoGrupo.Client.Features.Social
             public readonly VisualElement BarraFundo;
             public readonly VisualElement BarraPreenchimento;
             public readonly Label TextoVida;
+            private long _personagemId;
 
             public Label StatusTexto => StatusOffline;
 
             public ItemAliado()
             {
                 Raiz = new VisualElement();
-                Raiz.pickingMode = PickingMode.Ignore;
+                Raiz.pickingMode = PickingMode.Position;
+                Raiz.RegisterCallback<ClickEvent>(evt =>
+                {
+                    if (_personagemId > 0)
+                    {
+                        EstadoInspecao.Instancia.Pedir(_personagemId);
+                    }
+                });
                 Raiz.AddToClassList(ClasseLinha);
 
                 var linhaTopo = new VisualElement();
@@ -181,6 +189,7 @@ namespace JogoDoGrupo.Client.Features.Social
             public void Atualizar(MembroDoGrupo membro, long liderId, string areaLocal = "")
             {
                 Raiz.style.display = DisplayStyle.Flex;
+                _personagemId = membro.PersonagemId;
                 Nome.text = membro.Nome ?? "";
 
                 var ehLider = membro.PersonagemId == liderId;

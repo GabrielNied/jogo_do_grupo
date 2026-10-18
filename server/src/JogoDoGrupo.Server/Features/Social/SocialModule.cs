@@ -1,8 +1,10 @@
 using System.Collections.Concurrent;
 using JogoDoGrupo.Server.Contratos.Combate;
+using JogoDoGrupo.Server.Contratos.Itens;
 using JogoDoGrupo.Server.Contratos.Mundo;
 using JogoDoGrupo.Server.Contratos.Personagem;
 using JogoDoGrupo.Server.Contratos.Social;
+using JogoDoGrupo.Server.Contratos.Talentos;
 using JogoDoGrupo.Server.Core;
 using JogoDoGrupo.Server.Core.TempoReal;
 using JogoDoGrupo.Shared.Features.Mundo;
@@ -24,6 +26,8 @@ public sealed class SocialModule : IFeatureModule, IConsultaDeGrupo
     private GruposDoServidor? _grupos;
     private AmigosDoServidor? _amigos;
     private FilaDeGrupoDoServidor? _filaGrupo;
+    private ControleDeMarcadoresDeGrupo? _marcadores;
+    private ServicoDeInspecao? _inspecao;
 
     /// <summary>Quem tem sessão de tempo real agora, por personagem (para entregar o chat).</summary>
     private readonly ConcurrentDictionary<long, SessaoTempoReal> _online = new();
@@ -132,12 +136,36 @@ public sealed class SocialModule : IFeatureModule, IConsultaDeGrupo
             .Ao<SairDaFilaDeGrupo>(
                 SocialMessageIds.SairDaFilaDeGrupo,
                 (sessao, _) => _filaGrupo!.Sair(sessao.PersonagemId)
+            )    
+            .Ao<DefinirMarcadorDeAlvo>(
+                SocialMessageIds.DefinirMarcadorDeAlvo,
+                (sessao, pedido) => _marcadores?.DefinirMarcador(sessao.PersonagemId, pedido)
+             )   
+            .Ao<PedirInspecao>(
+                SocialMessageIds.PedirInspecao,
+                (sessao, pedido) =>
+                    _ = _inspecao!.ProcessarPedidoAsync(
+                        sessao.PersonagemId,
+                        pedido,
+                        CancellationToken.None
+                    )
             );
 
     public void Inicializar(ServerContext contexto)
     {
         var saida = new SaidaTempoReal(contexto.TempoReal);
         var escopos = _servicos!.GetRequiredService<IServiceScopeFactory>();
+        _inspecao = new ServicoDeInspecao(
+            _diretorio,
+            _servicos!.GetRequiredService<IConsultaInspecaoEquipamento>(),
+            escopos,
+            saida,
+            id => _online.ContainsKey(id),
+            this,
+            () => _servicos!.GetService<IPosicoesDoMundo>(),
+            () => _servicos!.GetService<IAtributosDaArvore>(),
+            _servicos!.GetRequiredService<ILogger<ServicoDeInspecao>>()
+        );
         _amigos = new AmigosDoServidor(
             _diretorio,
             saida,
@@ -168,6 +196,10 @@ public sealed class SocialModule : IFeatureModule, IConsultaDeGrupo
                 }
             },
             () => Environment.TickCount64
+        _marcadores = new ControleDeMarcadoresDeGrupo(
+            this,
+            saida,
+            _servicos!.GetRequiredService<ILogger<ControleDeMarcadoresDeGrupo>>()
         );
 
         _tempoReal = contexto.TempoReal;

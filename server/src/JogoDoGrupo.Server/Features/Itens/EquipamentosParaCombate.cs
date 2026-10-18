@@ -18,7 +18,8 @@ internal sealed class EquipamentosParaCombate(IServiceScopeFactory escopos)
     : IAtributosDosEquipamentos,
         IFonteDeModificadores,
         IArmaEquipada,
-        IEfeitosDoEquipamento
+        IEfeitosDoEquipamento,
+        IConsultaInspecaoEquipamento
 {
     /// <summary>Grupo de acúmulo das parcelas de equipamento (somas; o grupo é só obrigatório).</summary>
     public const string Grupo = "equipamento";
@@ -29,6 +30,17 @@ internal sealed class EquipamentosParaCombate(IServiceScopeFactory escopos)
     {
         var (entradas, conjunto) = await LerAsync(personagemId, c);
         return RegrasAtributosDeItem.Resumir(entradas, conjunto);
+    }
+
+    async Task<(
+        IReadOnlyList<EntradaInventario> Equipados,
+        int ConjuntoAtivo,
+        AtributosDosEquipamentos Atributos
+    )> IConsultaInspecaoEquipamento.ObterAsync(long personagemId, CancellationToken c)
+    {
+        var (entradas, conjunto) = await LerAsync(personagemId, c);
+        var atributos = RegrasAtributosDeItem.Resumir(entradas, conjunto);
+        return (entradas, conjunto, atributos);
     }
 
     /// <summary>A arma principal do conjunto ativo (de onde Skills tira a barra), ou nulo sem arma.</summary>

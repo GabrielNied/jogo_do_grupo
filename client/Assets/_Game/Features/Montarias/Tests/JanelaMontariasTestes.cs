@@ -13,7 +13,7 @@ namespace JogoDoGrupo.Client.Features.Montarias.Tests
             Assert.IsNotNull(definicao);
             Assert.AreEqual("montarias.colecao", definicao.Chave);
             Assert.AreEqual("Montarias", definicao.Titulo);
-            Assert.AreEqual("B", definicao.Tecla);
+            Assert.AreEqual("P", definicao.Tecla);
             Assert.AreEqual(50, definicao.Ordem);
 
             var janela = definicao.Criar();

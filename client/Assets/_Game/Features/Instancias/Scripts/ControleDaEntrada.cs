@@ -19,6 +19,7 @@ namespace JogoDoGrupo.Client.Features.Instancias
     {
         private InputAction _interagir;
         private Label _dica;
+        private Label _indicadorDungeon;
         private GameObject _jogador;
         private EstadoDeInstancias _estado;
         private TelaDeResultadoDaDungeon _tela;
@@ -37,6 +38,20 @@ namespace JogoDoGrupo.Client.Features.Instancias
             _dica.AddToClassList(EstiloCore.Dica);
             raizDaInterface.Add(_dica);
             MostrarDica(false);
+
+            _indicadorDungeon = new Label();
+            _indicadorDungeon.pickingMode = PickingMode.Ignore;
+            _indicadorDungeon.AddToClassList(EstiloCore.Texto);
+            _indicadorDungeon.style.position = Position.Absolute;
+            _indicadorDungeon.style.top = 10;
+            _indicadorDungeon.style.left = 10;
+            _indicadorDungeon.style.paddingLeft = 8;
+            _indicadorDungeon.style.paddingRight = 8;
+            _indicadorDungeon.style.paddingTop = 4;
+            _indicadorDungeon.style.paddingBottom = 4;
+            _indicadorDungeon.style.backgroundColor = new Color(0f, 0f, 0f, 0.6f);
+            raizDaInterface.Add(_indicadorDungeon);
+            _indicadorDungeon.style.display = DisplayStyle.None;
 
             _tela = new TelaDeResultadoDaDungeon(
                 raizDaInterface,
@@ -96,13 +111,32 @@ namespace JogoDoGrupo.Client.Features.Instancias
                 TipoDeAviso.Informacao
             );
 
-        private void AoEncerrar(DungeonEncerrada encerrada) => _tela?.Mostrar(encerrada.Resultado);
+        private void AoEncerrar(DungeonEncerrada encerrada) => _tela?.Mostrar(encerrada);
 
         private void Update()
         {
             if (_dica == null || _jogador == null || !EntradaNoJogo.NoJogo)
             {
                 return;
+            }
+
+            if (_indicadorDungeon != null)
+            {
+                if (_estado.NaInstancia)
+                {
+                    _indicadorDungeon.style.display = DisplayStyle.Flex;
+                    var restantes = Mathf.Max(
+                        0,
+                        Mathf.CeilToInt((float)_estado.SegundosRestantesNoCronometro)
+                    );
+                    var tempoStr = TextosInstancias.FormatarTempo(restantes);
+                    _indicadorDungeon.text =
+                        $"🏰 {TextosInstancias.NomeDaDungeon} (Nível {_estado.NivelAtual}) | ⏱️ {tempoStr}";
+                }
+                else
+                {
+                    _indicadorDungeon.style.display = DisplayStyle.None;
+                }
             }
 
             _tela.Atualizar();
