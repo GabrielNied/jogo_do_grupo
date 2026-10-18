@@ -26,11 +26,13 @@ public sealed class SorteadorDeLootFalso : ISorteadorDeLoot
 
     public volatile OrigemDoLoot UltimaOrigem;
     public volatile int UltimoNivel;
+    public volatile int UltimaCriaturaId;
 
-    public QuedaDeLoot[] Sortear(OrigemDoLoot origem, int nivelDoInimigo)
+    public QuedaDeLoot[] Sortear(OrigemDoLoot origem, int nivelDoInimigo, int criaturaId)
     {
         UltimaOrigem = origem;
         UltimoNivel = nivelDoInimigo;
+        UltimaCriaturaId = criaturaId;
         return Quedas ?? Resultado.Select(id => new QuedaDeLoot { ModeloId = id }).ToArray();
     }
 }

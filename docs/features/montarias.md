@@ -11,7 +11,7 @@ Sistema de montarias: a pessoa chama uma montaria, anda com velocidade aumentada
 ## Definido
 
 - **Modelo alvo (implementado #928):** montarias entram como **item raro negociável** largado por **chefes** (campo, chefe raro, dungeon/raid — tabela de bosses, 5% de chance com `ConfigLoot.ChanceDeMontariaDoChefe`). **Usar o item registra a montaria na conta** (`MontariaDaConta` / tabela `MontariasDaConta`); a conta **coleciona várias**; só **uma montada** por vez. O *Corcel Noturno* é obtido via item consumível negociável (*Rédeas do Corcel Noturno*, ID 10); o *Corcel Castanho* (Tipo 1) é desbloqueado por padrão em todas as contas.
-- **Coleção e menu:** janela de [Montarias] (tecla **B** / atalho): **catálogo completo**, bloqueados em cinza com texto de origem (ex.: "Drop raro do Senhor das Sombras (5%)"); obtidas: equipar visual e atalhos de montar/desmontar.
+- **Coleção e menu:** janela [Companheiros](interface.md#companheiros-u) (tecla **U**), aba **Montarias**: **catálogo completo**, bloqueados em cinza com texto de origem (ex.: "Drop raro do Guardião do Reflexo (5%)"); obtidas: equipar visual e atalhos de montar/desmontar.
 - **Modelos disponíveis:**
   - *Corcel Castanho* (Tipo 1): montaria clássica em tons acolhedores e arreios tradicionais de couro com detalhes dourados (desbloqueada por padrão).
   - *Corcel Noturno* (Tipo 2): montaria mística com pelagem ébano, tons de índigo, sela prateada, detalhes luminescentes e chifre estrelado (drop raro de chefe).
@@ -35,6 +35,45 @@ Sistema de montarias: a pessoa chama uma montaria, anda com velocidade aumentada
 - [x] Drop raro de chefe, item consumível negociável e registro na conta (#928)
 - [x] Decidido em 2026-10-16 (quiz de definições 2): não. Montarias com bônus ou habilidades utilitárias
 - [x] Decidido em 2026-10-16 (quiz de definições 2): não. Voo e montarias voadoras
+- [x] Demais tipos e rédeas do [catálogo proposto](#catálogo-proposta) no `shared` e loot **por chefe** (Presa-Velha e Guardião; endgame e mula na loja).
+
+## Catálogo (proposta)
+
+**Proposta** alinhada a [mobs](mobs.md#chefe-e-chefe-raro) e `ConfigLoot.ChanceDeMontariaDoChefe`. Implementado em `RegrasMontaria`, `CatalogoItens` e `RegrasLootCompanheiros` (Presa-Velha → Lobo de Presa; Guardião → Corcel de Cristal; tipos 5–7 no catálogo U aguardam chefes; Mula na loja).
+
+### Drop e item
+
+| Regra | Valor |
+|---|---|
+| Quem dropa | **Chefe** ou **chefe raro** |
+| Quem **não** dropa | Comum, elite |
+| Chance | **5%** por participante por morte (`ConfigLoot.ChanceDeMontariaDoChefe`) |
+| Item | Rédeas consumíveis **negociáveis**; registrar fora de combate |
+| Stats | **Todas iguais** (corrida 9 m/s); só muda o visual |
+| Sorteio futuro | **Uma montaria rara por chefe** (ou tabela fixa por `CriaturaId` de chefe), em vez de um único item para todos os chefes |
+
+Convenção: **Rédeas do/da …**. Cada linha reserva um `TipoMontaria` (1–99) e id em `CatalogoItens`. Tipo **1** = inicial (desbloqueado por padrão).
+
+### Lista por progressão
+
+| Tipo | Nome | Item (proposto) | Origem (texto na UI) | Chefe / fonte |
+|---|---|---|---|---|
+| 1 | Corcel Castanho | — *(implementado)* | Montaria inicial de Asterra | Conta nova |
+| 2 | Corcel Noturno | Rédeas do Corcel Noturno *(id 10, implementado)* | Drop raro de chefes (5%) | Hoje: **qualquer** chefe/chefe raro; alvo: ver linhas 3–4 |
+| 3 | Lobo de Presa | Rédeas do Lobo de Presa | Drop raro da Presa-Velha (5%) | **Presa-Velha** (id 200) |
+| 4 | Corcel de Cristal | Rédeas do Corcel de Cristal | Drop raro do Guardião do Reflexo (5%) | **Guardião do Reflexo** (id 100, dungeon) |
+| 5 | Corcel da Geada | Rédeas do Corcel da Geada | Drop raro de chefe de neve (5%) | Chefe de raid/neve *(ficha FUTURO)* |
+| 6 | Basalto Vivente | Rédeas do Basalto Vivente | Drop raro do Colosso Basáltico (5%) | **Colosso Basáltico** *(FUTURO, [mobs](mobs.md#livro-de-asterra-bestiário-proposta-do-board-2026-10-11))* |
+| 7 | Tempestário | Rédeas do Tempestário | Drop raro do Ancião Trovejante (5%) | **Ancião Trovejante** *(FUTURO)* |
+| 8 | Mula de Carga | Rédeas da Mula de Carga | Comerciante ou missão *(sem drop de chefe)* | Opcional: cosmético acessível, negociável |
+
+Sem voo, sem bônus de velocidade ou utilidade. Pets: [pets.md — Catálogo (proposta)](pets.md#catálogo-proposta).
+
+### Prioridade sugerida
+
+1. Separar **Presa-Velha** (Lobo de Presa) e **Guardião do Reflexo** (Corcel de Cristal ou renomear Noturno só para um deles).
+2. Endgame quando existirem chefes de mundo do livro.
+3. Mula de Carga só se economia/missões pedirem montaria barata fora do loop de boss.
 
 ## Regras
 

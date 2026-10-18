@@ -87,8 +87,10 @@ namespace JogoDoGrupo.Client.Features.Pets.UI
             _cartoesContainer.style.flexWrap = Wrap.Wrap;
             conteudo.Add(_cartoesContainer);
 
-            // Cria cartões de pets definidos no catálogo
-            CriarCartao(EspecieDePet.CervoJovem);
+            foreach (var especie in RegrasPets.EspeciesDoCatalogo)
+            {
+                CriarCartao(especie);
+            }
 
             // Rodapé informativo
             var rodape = new Label(

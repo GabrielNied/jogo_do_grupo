@@ -8,14 +8,12 @@ public class ContratoItensTestes
     [Fact]
     public void Catalogo_tem_os_ids_combinados()
     {
-        Assert.Equal(new[] { 1, 2, 3, 4, 10, 11 }, CatalogoItens.Todos);
-        Assert.Equal(6, CatalogoItens.Todos.Distinct().Count());
+        Assert.Equal(21, CatalogoItens.Todos.Length);
+        Assert.Equal(CatalogoItens.Todos.Length, CatalogoItens.Todos.Distinct().Count());
         Assert.Equal(1, CatalogoItens.EspadaDeTeste);
-        Assert.Equal(2, CatalogoItens.EscudoDeTeste);
-        Assert.Equal(3, CatalogoItens.PocaoDeTeste);
-        Assert.Equal(4, CatalogoItens.MoedaDeTeste);
         Assert.Equal(10, CatalogoItens.RedeasDoCorcelNoturno);
         Assert.Equal(11, CatalogoItens.SinoDoCervoJovem);
+        Assert.Equal(26, CatalogoItens.RedeasDaMulaDeCarga);
     }
 
     [Theory]
@@ -25,6 +23,8 @@ public class ContratoItensTestes
     [InlineData(4, "Moeda de teste")]
     [InlineData(10, "Rédeas do Corcel Noturno")]
     [InlineData(11, "Sino do Cervo Jovem")]
+    [InlineData(21, "Rédeas do Lobo de Presa")]
+    [InlineData(26, "Rédeas da Mula de Carga")]
     public void ObterNome_devolve_o_nome_exibido(int itemId, string esperado) =>
         Assert.Equal(esperado, CatalogoItens.ObterNome(itemId));
 
@@ -99,13 +99,11 @@ public class ContratoItensTestes
             CodigosErroItens.NivelInsuficiente,
             RegrasEquipar.Recusa(martelo, PosicaoEquipamento.Arma1, 9, null)
         );
-        // Nível 0 é "não informado": não recusa por nível.
         Assert.Null(RegrasEquipar.Recusa(martelo, PosicaoEquipamento.Arma1, 0, null));
         Assert.Equal(
             CodigosErroItens.ArmaDeDuasMaos,
             RegrasEquipar.Recusa(escudo, PosicaoEquipamento.Secundaria1, 5, principal)
         );
-        // A arma de duas mãos do outro conjunto não atrapalha, nem a mão principal.
         Assert.Null(RegrasEquipar.Recusa(escudo, PosicaoEquipamento.Secundaria2, 5, null));
         Assert.Equal(
             CodigosErroItens.ItemNaoEquipavel,

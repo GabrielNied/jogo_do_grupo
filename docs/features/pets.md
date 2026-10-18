@@ -39,6 +39,48 @@ Decidido em 2026-10-12 (#161) e **revisto em 2026-10-16** (quiz de definições 
 
 - [x] Janela **U** com coleção, catálogo, bloqueados com origem e chamar/dispensar (#925). Drop raro negociável e registro na conta (#923).
 - [ ] Animação de verdade (esqueleto) do cervo.
+- [x] Demais espécies e itens do [catálogo proposto](#catálogo-proposta) no `shared` e no loot por criatura.
+
+## Catálogo (proposta)
+
+**Proposta** alinhada ao loot em [itens](itens.md) e [mobs](mobs.md#definido). Implementado em `RegrasPets`, `CatalogoItens` e `RegrasLootCompanheiros` (drop por `CriaturaId`).
+
+### Drop e item
+
+| Regra | Valor |
+|---|---|
+| Quem dropa | Criatura **comum** ou **elite** ([mobs](mobs.md#criatura-elite)) |
+| Quem **não** dropa | **Chefe**, chefe raro, dungeon isolada sem mob comum elegível |
+| Chance | **2%** por participante por morte (`ConfigLoot.ChanceDePetRaro`) |
+| Item | Consumível **negociável**; **usar** fora de combate registra na conta (não consome se já possui) |
+| Sorteio futuro | Depois de passar nos 2%, sortear **só** entre pets cuja **espécie de origem** coincide com a criatura morta (estilo WoW) |
+
+Convenção de nome de item: **Sino do/da …**, **Colar …** ou **Frasco …** quando fizer sentido. Cada linha reserva um `EspecieDePet` (1–99) e um id estável em `CatalogoItens` (a partir de 12; ids publicados não mudam).
+
+### Lista por progressão
+
+| `EspecieDePet` | Nome | Item (proposto) | Origem (texto na UI) | Espécies de mob |
+|---|---|---|---|---|
+| 1 | Cervo Jovem | Sino do Cervo Jovem *(id 11, implementado)* | Drop raro de criaturas no campo (2%) | Campo genérico hoje; alvo: **Cervo de Galhada Oca** |
+| 2 | Filhote de Javali | Sino do Filhote de Javali | Drop raro do Javali (2%) | **Javali do Campo**, **Javali Ferrugem** |
+| 3 | Lobo Filhote | Sino do Lobo Filhote | Drop raro do Lobo (2%) | **Lobo do Campo** |
+| 4 | Tatu Pequeno | Sino do Tatu Pequeno | Drop raro do Tatu (2%) | **Tatu Rochoso** |
+| 5 | Coruja da Clareira | Sino da Coruja da Clareira | Drop raro na mata (2%) | **Cervo de Galhada Oca** ou pontos de mata |
+| 6 | Mariposa-luz | Frasco da Mariposa-luz | Drop raro da Mariposa (2%) | **Mariposa de Breu** |
+| 7 | Coelho do Pasto | Sino do Coelho do Pasto | Drop raro no pasto (2%) | Manada do pasto / javalis nível 1–2 |
+| 8 | Lobo de Geada Filhote | Sino do Lobo de Geada | Drop raro do Lobo de Geada (2%) | **Lobo de Geada** |
+| 9 | Carapaça Jovem | Colar da Carapaça Jovem | Drop raro da Carapaça (2%) | **Carapaça de Brasa** |
+| 10 | Mosquito do Pântano | Frasco do Mosquito do Pântano | Drop raro no pântano (2%) | **Mariposa de Breu** e mobs do pântano ([tabela bioma × espécie](mobs.md#tabela-de-distribuição-bioma--espécie--nível)) |
+
+Todas as entradas: **só visual e loot helper**; mesma mecânica do Cervo Jovem. Sem pet de chefe, sem captura pelo bestiário, sem combate.
+
+### Prioridade sugerida
+
+1. Campo: Filhote de Javali, Lobo Filhote, Tatu Pequeno (com [mais mobs no campo](mobs.md#mais-mobs-no-campo-452)).
+2. Amarrar origem por espécie no loot (substituir um único `ItemPetRaro` global).
+3. Mata/colinas e biomas altos quando as fichas existirem no catálogo de criaturas.
+
+Montarias correspondentes: [montarias.md — Catálogo (proposta)](montarias.md#catálogo-proposta).
 
 ## Regras
 

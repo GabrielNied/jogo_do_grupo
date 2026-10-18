@@ -133,8 +133,9 @@ public class RegrasPetsTestes
     }
 
     [Fact]
-    public void Catalogo_de_pets_reconhece_cervo_jovem_do_sino()
+    public void Catalogo_de_pets_tem_dez_especies_com_item_e_textos()
     {
+        Assert.Equal(10, RegrasPets.EspeciesDoCatalogo.Length);
         Assert.Equal(
             EspecieDePet.CervoJovem,
             RegrasPets.EspecieDoItem(
@@ -142,12 +143,14 @@ public class RegrasPetsTestes
             )
         );
         Assert.Equal((EspecieDePet)0, RegrasPets.EspecieDoItem(999));
-        Assert.True(RegrasPets.EspecieValida(EspecieDePet.CervoJovem));
-        Assert.False(RegrasPets.EspecieValida((EspecieDePet)999));
-        Assert.False(RegrasPets.DesbloqueadoPorPadrao(EspecieDePet.CervoJovem));
-        Assert.Equal("Cervo Jovem", RegrasPets.ObterNome(EspecieDePet.CervoJovem));
-        Assert.Contains("Drop raro", RegrasPets.ObterOrigem(EspecieDePet.CervoJovem));
-        Assert.NotEmpty(RegrasPets.ObterDescricao(EspecieDePet.CervoJovem));
+        foreach (var especie in RegrasPets.EspeciesDoCatalogo)
+        {
+            Assert.True(RegrasPets.EspecieValida(especie));
+            Assert.False(RegrasPets.DesbloqueadoPorPadrao(especie));
+            Assert.NotEmpty(RegrasPets.ObterNome(especie));
+            Assert.Contains("Drop raro", RegrasPets.ObterOrigem(especie));
+            Assert.NotEmpty(RegrasPets.ObterDescricao(especie));
+        }
     }
 
     [Fact]

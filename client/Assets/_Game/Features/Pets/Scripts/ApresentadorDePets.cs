@@ -146,6 +146,13 @@ namespace JogoDoGrupo.Client.Features.Pets
             var prefab = Resources.Load<GameObject>(PrefixoDoPrefab + (int)dados.Especie);
             if (prefab == null)
             {
+                prefab = Resources.Load<GameObject>(
+                    PrefixoDoPrefab + (int)EspecieDePet.CervoJovem
+                );
+            }
+
+            if (prefab == null)
+            {
                 Debug.LogWarning(
                     "Pets: falta o prefab Resources/" + PrefixoDoPrefab + (int)dados.Especie
                 );

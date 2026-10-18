@@ -1,4 +1,5 @@
 using System;
+using JogoDoGrupo.Shared.Features.Itens;
 
 namespace JogoDoGrupo.Shared.Features.Pets
 {
@@ -140,18 +141,54 @@ namespace JogoDoGrupo.Shared.Features.Pets
             return new PassoDoPet(petX + dx * anda, petZ + dz * anda, Direcao(dx, dz), true, false);
         }
 
+        /// <summary>Todas as espécies do catálogo (tecla U), em ordem.</summary>
+        public static readonly EspecieDePet[] EspeciesDoCatalogo =
+        {
+            EspecieDePet.CervoJovem,
+            EspecieDePet.FilhoteDeJavali,
+            EspecieDePet.LoboFilhote,
+            EspecieDePet.TatuPequeno,
+            EspecieDePet.CorujaDaClareira,
+            EspecieDePet.MariposaLuz,
+            EspecieDePet.CoelhoDoPasto,
+            EspecieDePet.LoboDeGeadaFilhote,
+            EspecieDePet.CarapacaJovem,
+            EspecieDePet.MosquitoDoPantano,
+        };
+
         /// <summary>Qual espécie de pet o item consumível desbloqueia, ou 0 se não for pet.</summary>
         public static EspecieDePet EspecieDoItem(int itemId) =>
             itemId switch
             {
-                JogoDoGrupo.Shared.Features.Itens.CatalogoItens.SinoDoCervoJovem =>
-                    EspecieDePet.CervoJovem,
+                CatalogoItens.SinoDoCervoJovem => EspecieDePet.CervoJovem,
+                CatalogoItens.SinoDoFilhoteDeJavali => EspecieDePet.FilhoteDeJavali,
+                CatalogoItens.SinoDoLoboFilhote => EspecieDePet.LoboFilhote,
+                CatalogoItens.SinoDoTatuPequeno => EspecieDePet.TatuPequeno,
+                CatalogoItens.SinoDaCorujaDaClareira => EspecieDePet.CorujaDaClareira,
+                CatalogoItens.FrascoDaMariposaLuz => EspecieDePet.MariposaLuz,
+                CatalogoItens.SinoDoCoelhoDoPasto => EspecieDePet.CoelhoDoPasto,
+                CatalogoItens.SinoDoLoboDeGeadaFilhote => EspecieDePet.LoboDeGeadaFilhote,
+                CatalogoItens.ColarDaCarapacaJovem => EspecieDePet.CarapacaJovem,
+                CatalogoItens.FrascoDoMosquitoDoPantano => EspecieDePet.MosquitoDoPantano,
                 _ => (EspecieDePet)0,
             };
 
+        /// <summary>Se o item é consumível de pet.</summary>
+        public static bool EhItemDePet(int itemId) => EspecieDoItem(itemId) != 0;
+
         /// <summary>Se a espécie é válida no catálogo do jogo.</summary>
-        public static bool EspecieValida(EspecieDePet especie) =>
-            especie == EspecieDePet.CervoJovem;
+        public static bool EspecieValida(EspecieDePet especie)
+        {
+            for (var i = 0; i < EspeciesDoCatalogo.Length; i++)
+            {
+                if (EspeciesDoCatalogo[i] == especie)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
 
         /// <summary>Se a espécie já começa desbloqueada em toda conta nova.</summary>
         public static bool DesbloqueadoPorPadrao(EspecieDePet especie) => false;
@@ -161,6 +198,15 @@ namespace JogoDoGrupo.Shared.Features.Pets
             especie switch
             {
                 EspecieDePet.CervoJovem => "Cervo Jovem",
+                EspecieDePet.FilhoteDeJavali => "Filhote de Javali",
+                EspecieDePet.LoboFilhote => "Lobo Filhote",
+                EspecieDePet.TatuPequeno => "Tatu Pequeno",
+                EspecieDePet.CorujaDaClareira => "Coruja da Clareira",
+                EspecieDePet.MariposaLuz => "Mariposa-luz",
+                EspecieDePet.CoelhoDoPasto => "Coelho do Pasto",
+                EspecieDePet.LoboDeGeadaFilhote => "Lobo de Geada Filhote",
+                EspecieDePet.CarapacaJovem => "Carapaça Jovem",
+                EspecieDePet.MosquitoDoPantano => "Mosquito do Pântano",
                 _ => "Desconhecido",
             };
 
@@ -168,7 +214,16 @@ namespace JogoDoGrupo.Shared.Features.Pets
         public static string ObterOrigem(EspecieDePet especie) =>
             especie switch
             {
-                EspecieDePet.CervoJovem => "Drop raro de criaturas no campo (2%)",
+                EspecieDePet.CervoJovem => "Drop raro do Cervo de Galhada Oca (2%)",
+                EspecieDePet.FilhoteDeJavali => "Drop raro do Javali do Campo ou Ferrugem (2%)",
+                EspecieDePet.LoboFilhote => "Drop raro do Lobo do Campo (2%)",
+                EspecieDePet.TatuPequeno => "Drop raro do Tatu Rochoso (2%)",
+                EspecieDePet.CorujaDaClareira => "Drop raro do Morcego das Sombras (2%)",
+                EspecieDePet.MariposaLuz => "Drop raro da Mariposa de Breu (2%)",
+                EspecieDePet.CoelhoDoPasto => "Drop raro do Javali do Campo (2%)",
+                EspecieDePet.LoboDeGeadaFilhote => "Drop raro do Lobo de Geada (2%)",
+                EspecieDePet.CarapacaJovem => "Drop raro da Carapaça de Brasa (2%)",
+                EspecieDePet.MosquitoDoPantano => "Drop raro do Morcego das Sombras (2%)",
                 _ => string.Empty,
             };
 
@@ -178,6 +233,24 @@ namespace JogoDoGrupo.Shared.Features.Pets
             {
                 EspecieDePet.CervoJovem =>
                     "Um filhote dócil de cervo que o segue pelo mundo e ajuda a recolher tesouros caídos ao chão.",
+                EspecieDePet.FilhoteDeJavali =>
+                    "Porquinho teimoso que imita o javali do campo; ajuda a recolher loot como os demais pets.",
+                EspecieDePet.LoboFilhote =>
+                    "Filhote esguio que corre atrás do dono e busca itens caídos por perto.",
+                EspecieDePet.TatuPequeno =>
+                    "Filhote blindado, passos pesados no visual; mesma regra de coleta automática.",
+                EspecieDePet.CorujaDaClareira =>
+                    "Ave silenciosa, boa companhia para quem caça de noite.",
+                EspecieDePet.MariposaLuz =>
+                    "Enxame miniatura bioluminescente; um pet só, visual de enxame.",
+                EspecieDePet.CoelhoDoPasto =>
+                    "Companheiro leve do pasto; ideal como troféu de farm no campo.",
+                EspecieDePet.LoboDeGeadaFilhote =>
+                    "Filhote de pelagem gelada; segue e recolhe loot como os outros.",
+                EspecieDePet.CarapacaJovem =>
+                    "Réplica pequena da criatura de lava; só visual, sem combate.",
+                EspecieDePet.MosquitoDoPantano =>
+                    "Enxame irritante do pântano; mesmo comportamento de coleta.",
                 _ => string.Empty,
             };
     }

@@ -1,8 +1,17 @@
 namespace JogoDoGrupo.Shared.Features.Pets
 {
-    /// <summary>Qual pet é. Só o cervo jovem existe nesta versão.</summary>
+    /// <summary>Espécies de pet definidas no jogo (catálogo U e drops).</summary>
     public enum EspecieDePet
     {
         CervoJovem = 1,
+        FilhoteDeJavali = 2,
+        LoboFilhote = 3,
+        TatuPequeno = 4,
+        CorujaDaClareira = 5,
+        MariposaLuz = 6,
+        CoelhoDoPasto = 7,
+        LoboDeGeadaFilhote = 8,
+        CarapacaJovem = 9,
+        MosquitoDoPantano = 10,
     }
 }

@@ -36,7 +36,7 @@ public class RitmoDeLootTestes
             var minuto = mobs / ConfigExperiencia.MobsPorMinutoDeReferencia;
             var variante = RegrasCriaturas.SortearVariante(mob.Categoria, aleatorio.NextDouble());
             var origem = TabelaDeLoot.OrigemDe(mob.Categoria, variante);
-            foreach (var queda in sorteador.Sortear(origem, mob.Nivel))
+            foreach (var queda in sorteador.Sortear(origem, mob.Nivel, mob.Id))
             {
                 var peca = gerador.Gerar(queda.ModeloId, aleatorio, queda.Origem, queda.Grau);
                 if (
