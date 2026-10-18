@@ -7,7 +7,8 @@ public readonly record struct PedidoDeAtaque(
     TipoDeAtaque Tipo,
     float DirecaoY,
     int Sequencia,
-    long TempoVistoMs = 0
+    long TempoVistoMs = 0,
+    float ElevacaoGraus = 0f
 );
 
 /// <summary>

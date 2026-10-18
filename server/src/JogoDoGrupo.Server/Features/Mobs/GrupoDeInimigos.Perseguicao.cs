@@ -75,6 +75,74 @@ public sealed partial class GrupoDeInimigos
             return;
         }
 
+        var comp = ComportamentoDeCriatura.Obter(inimigo.Criatura.Definicao.Id);
+        if (comp.EhDistancia)
+        {
+            double distAoAlvo = RegrasInimigo.Distancia(inimigo.X, inimigo.Z, alvo.X, alvo.Z);
+            double distX = inimigo.X;
+            double distZ = inimigo.Z;
+
+            if (distAoAlvo < comp.DistanciaRecuoMetros)
+            {
+                // Jogador se aproximou a menos de 4 metros: recua para trás do jogador
+                var dirFuga = RegrasInimigo.DirecaoPara(
+                    alvo.X,
+                    alvo.Z,
+                    inimigo.X,
+                    inimigo.Z,
+                    inimigo.Rotacao
+                );
+                var rad = dirFuga * Math.PI / 180.0;
+                var andar = comp.VelocidadeRecuoMetrosPorSegundo * segundos;
+                var fugaX = inimigo.X + (Math.Sin(rad) * andar);
+                var fugaZ = inimigo.Z + (Math.Cos(rad) * andar);
+                Afastar(inimigo, fugaX, fugaZ, out fugaX, out fugaZ);
+                if (
+                    !NaZonaUrbana(fugaX, fugaZ)
+                    && PodeIrPara(inimigo, inimigo.X, inimigo.Z, fugaX, fugaZ)
+                )
+                {
+                    distX = fugaX;
+                    distZ = fugaZ;
+                }
+            }
+            else if (distAoAlvo > comp.DistanciaTaticaMaximaMetros)
+            {
+                // Jogador além da faixa máxima tática (> 16m): aproxima-se até a faixa ideal
+                RegrasInimigo.Avancar(
+                    inimigo.X,
+                    inimigo.Z,
+                    alvo.X,
+                    alvo.Z,
+                    comp.VelocidadeDePerseguicaoMetrosPorSegundo,
+                    segundos,
+                    comp.DistanciaTaticaMinimaMetros,
+                    out var avX,
+                    out var avZ
+                );
+                Afastar(inimigo, avX, avZ, out avX, out avZ);
+                if (!NaZonaUrbana(avX, avZ) && PodeIrPara(inimigo, inimigo.X, inimigo.Z, avX, avZ))
+                {
+                    distX = avX;
+                    distZ = avZ;
+                }
+            }
+
+            inimigo.X = distX;
+            inimigo.Z = distZ;
+            OlharParaOAlvo(inimigo, presentes, segundos);
+
+            if (
+                podeAtacar
+                && distAoAlvo >= comp.DistanciaRecuoMetros
+                && distAoAlvo <= comp.DistanciaTaticaMaximaMetros
+            )
+            {
+                ComecarAtaqueDistancia(inimigo, alvo, agora, passo, comp);
+            }
+            return;
+        }
+
         if (inimigo.SlotCerco < 0 || inimigo.SlotCerco >= RegrasCerco.PostosPorAnel)
         {
             inimigo.SlotCerco = Array.IndexOf(_inimigos, inimigo) % RegrasCerco.PostosPorAnel;
@@ -250,6 +318,44 @@ public sealed partial class GrupoDeInimigos
         return true;
     }
 
+    private bool ComecarAtaqueDistancia(
+        Inimigo inimigo,
+        JogadorNoCampo alvo,
+        long agora,
+        PassoDosInimigos passo,
+        ComportamentoDeCriatura comp
+    )
+    {
+        var direcao = RegrasInimigo.DirecaoPara(
+            inimigo.X,
+            inimigo.Z,
+            alvo.X,
+            alvo.Z,
+            inimigo.Rotacao
+        );
+        inimigo.SegundosSemAtacar = 0.0;
+        inimigo.Rotacao = direcao;
+        inimigo.DirecaoDoGolpe = direcao;
+        inimigo.PassoRestante = 0.0;
+        inimigo.Preparando = true;
+        inimigo.FaseAteMs = agora + comp.PreparoMs;
+        Mudar(inimigo, EstadoDeInimigo.Ataque);
+        passo.Preparos.Add(
+            new InimigoPreparaAtaque
+            {
+                InimigoId = inimigo.Id,
+                PreparoMs = (int)comp.PreparoMs,
+                CentroX = (float)inimigo.X,
+                CentroZ = (float)inimigo.Z,
+                Raio = 0f,
+                DirecaoY = (float)direcao,
+                Tipo = TipoDeAtaqueDeInimigo.Disparo,
+                Areas = [],
+            }
+        );
+        return true;
+    }
+
     // Quanto do passo do golpe cabe na direção travada: para antes da borda da cidade (a
     // parede do campo) e antes de chegar a menos de 1,2 m de outro inimigo.
     private double PassoLivre(Inimigo inimigo, double direcao, double maximo) =>
@@ -321,6 +427,100 @@ public sealed partial class GrupoDeInimigos
         PassoDosInimigos passo
     )
     {
+        var comp = ComportamentoDeCriatura.Obter(inimigo.Criatura.Definicao.Id);
+        if (comp.EhDistancia)
+        {
+            if (agora < inimigo.FaseAteMs)
+            {
+                if (inimigo.Preparando)
+                {
+                    // Trava de mira nos últimos 0,3 s (300 ms) para telegrafia
+                    if (
+                        agora < inimigo.FaseAteMs - 300
+                        && presentes.TryGetValue(inimigo.Alvo, out var alvoAtual)
+                    )
+                    {
+                        var dir = RegrasInimigo.DirecaoPara(
+                            inimigo.X,
+                            inimigo.Z,
+                            alvoAtual.X,
+                            alvoAtual.Z,
+                            inimigo.Rotacao
+                        );
+                        inimigo.Rotacao = dir;
+                        inimigo.DirecaoDoGolpe = dir;
+                    }
+                }
+                return;
+            }
+
+            if (inimigo.Preparando)
+            {
+                var disparador = _projeteis?.Invoke();
+                if (disparador != null)
+                {
+                    disparador.Disparar(
+                        inimigo.Id,
+                        Area,
+                        TipoDeProjetil.Flecha,
+                        TipoDeAtaque.Leve,
+                        (float)inimigo.X,
+                        1.0f,
+                        (float)inimigo.Z,
+                        (float)inimigo.DirecaoDoGolpe,
+                        inimigo.Criatura.Dano
+                    );
+                }
+                else if (presentes.TryGetValue(inimigo.Alvo, out var alvoTeste))
+                {
+                    var rad = inimigo.DirecaoDoGolpe * Math.PI / 180.0;
+                    var dx = alvoTeste.X - inimigo.X;
+                    var dz = alvoTeste.Z - inimigo.Z;
+                    var dist = Math.Sqrt((dx * dx) + (dz * dz));
+                    var dot = ((dx * Math.Sin(rad)) + (dz * Math.Cos(rad))) / Math.Max(0.001, dist);
+                    if (
+                        dot > 0.8
+                        && dist <= comp.DistanciaTaticaMaximaMetros
+                        && !_queda.EstaCaido(alvoTeste.PersonagemId)
+                    )
+                    {
+                        passo.Golpes.Add(
+                            new GolpeDeInimigoAcertou(
+                                inimigo.Id,
+                                inimigo.Criatura.Definicao.Id,
+                                alvoTeste.PersonagemId,
+                                inimigo.Criatura.Dano,
+                                Area,
+                                TipoDeAtaqueDeInimigo.Disparo
+                            )
+                        );
+                        passo.Acertos.Add(
+                            new InimigoAcertou
+                            {
+                                InimigoId = inimigo.Id,
+                                AlvoId = alvoTeste.PersonagemId,
+                            }
+                        );
+                    }
+                }
+
+                inimigo.Preparando = false;
+                inimigo.FaseAteMs = agora + comp.RecuperacaoMs;
+                return;
+            }
+
+            inimigo.Alvo = Escolher(inimigo, candidatos, presentes, agora);
+            if (inimigo.Alvo == RegrasInimigo.SemAlvo)
+            {
+                Retornar(inimigo);
+            }
+            else
+            {
+                Mudar(inimigo, EstadoDeInimigo.Perseguicao);
+            }
+            return;
+        }
+
         if (agora < inimigo.FaseAteMs)
         {
             if (inimigo.Preparando)

@@ -12,6 +12,7 @@ public sealed class SaidaTempoReal(ServidorTempoReal tempoReal)
     : ISaidaDoGrupo,
         ISaidaAmigos,
         ISaidaDeMarcadores
+        ISaidaDeInspecao
 {
     private readonly ConcurrentDictionary<long, SessaoTempoReal> _sessoes = new();
 
@@ -23,6 +24,14 @@ public sealed class SaidaTempoReal(ServidorTempoReal tempoReal)
     /// </summary>
     public bool Remover(SessaoTempoReal sessao) =>
         _sessoes.TryRemove(new KeyValuePair<long, SessaoTempoReal>(sessao.PersonagemId, sessao));
+
+    public bool EstaOnline(long personagemId) => _sessoes.ContainsKey(personagemId);
+
+    public void Retrato(long personagemId, RetratoInspecaoResponse retrato) =>
+        Enviar(personagemId, SocialMessageIds.RetratoInspecaoResponse, retrato);
+
+    public void Recusada(long personagemId, InspecaoRecusada recusa) =>
+        Enviar(personagemId, SocialMessageIds.InspecaoRecusada, recusa);
 
     public void Lista(long personagemId, ListaDoGrupo lista) =>
         Enviar(personagemId, SocialMessageIds.ListaDoGrupo, lista);

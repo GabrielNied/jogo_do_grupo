@@ -223,3 +223,63 @@
 .quebra-boss-vulneravel {
     background-color: var(--lumora-cores-erro);
 }
+
+/* Retículo dinâmico de mira (armas de longo alcance) */
+.reticulo-mira {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    translate: -50% -50%;
+    width: 48px;
+    height: 48px;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.85;
+}
+
+.reticulo-ponto {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background-color: var(--lumora-cores-ouro);
+    border-radius: 2px;
+}
+
+.reticulo-marca {
+    position: absolute;
+    background-color: var(--lumora-cores-ouro);
+    opacity: 0.75;
+}
+
+.reticulo-marca-topo {
+    top: 6px;
+    width: 2px;
+    height: 8px;
+}
+
+.reticulo-marca-baixo {
+    bottom: 6px;
+    width: 2px;
+    height: 8px;
+}
+
+.reticulo-marca-esquerda {
+    left: 6px;
+    width: 8px;
+    height: 2px;
+}
+
+.reticulo-marca-direita {
+    right: 6px;
+    width: 8px;
+    height: 2px;
+}
+
+.reticulo-carregando {
+    opacity: 1;
+}
+
+.reticulo-pronto {
+    opacity: 1;
+}
+

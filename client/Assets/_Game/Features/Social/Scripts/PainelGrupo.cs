@@ -184,6 +184,11 @@ namespace JogoDoGrupo.Client.Features.Social
                 nome.EnableInClassList(EstiloSocial.Offline, !membro.Online);
 
                 var acoes = linha.Q(className: EstiloSocial.Acoes);
+                if (id != _estado.PersonagemLocalId)
+                {
+                    acoes.Add(NovoBotao("Inspecionar", () => EstadoInspecao.Instancia.Pedir(id)));
+                }
+
                 if (membro.PodePassarLideranca)
                 {
                     acoes.Add(NovoBotao(TextoPassarLideranca, () => _estado.PassarLideranca(id)));

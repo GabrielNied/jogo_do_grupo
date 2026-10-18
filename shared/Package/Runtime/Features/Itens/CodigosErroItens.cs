@@ -41,6 +41,18 @@ namespace JogoDoGrupo.Shared.Features.Itens
         /// </summary>
         public const string BolsaNoLimite = "BolsaNoLimite";
 
+        /// <summary>409: o banco pessoal da conta está cheio.</summary>
+        public const string BancoCheio = "BancoCheio";
+
+        /// <summary>400: o banco já atingiu o limite máximo de abas.</summary>
+        public const string BancoNoLimite = "BancoNoLimite";
+
+        /// <summary>404: o exemplar especificado não foi encontrado no banco da conta.</summary>
+        public const string ItemNaoNoBanco = "ItemNaoNoBanco";
+
+        /// <summary>404: o exemplar especificado não foi encontrado na bolsa do personagem.</summary>
+        public const string ItemNaoNaBolsa = "ItemNaoNaBolsa";
+
         /// <summary>409, fusão: o material não é da mesma categoria de peça do principal.</summary>
         public const string MaterialIncompativel = "MaterialIncompativel";
 

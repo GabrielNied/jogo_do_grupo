@@ -190,8 +190,8 @@ Ataque da primeira arma (tempo real; regras e números em [fatia-jogavel.md](fat
 
 | ID | Mensagem | Direção | Campos |
 |---|---|---|---|
-| 6000 | `IntencaoDeAtaque` | client → servidor | `Tipo` (`TipoDeAtaque`: Leve 0, Pesado 1), `DirecaoY` (graus, mesma convenção de `IntencaoDeMovimento.RotacaoY`), `Sequencia` |
-| 6001 | `AtaqueIniciado` | servidor → quem está na área | `AtacanteId`, `Tipo`, `DirecaoY`, `PreparoMs`, `Passo` (0 a 2, da cadeia de leves) |
+| 6000 | `IntencaoDeAtaque` | client → servidor | `Tipo` (`TipoDeAtaque`: Leve 0, Pesado 1), `DirecaoY` (graus Yaw), `ElevacaoGraus` (graus Pitch [-60°, +60°]), `Sequencia`, `TempoVistoMs` |
+| 6001 | `AtaqueIniciado` | servidor → quem está na área | `AtacanteId`, `Tipo`, `DirecaoY`, `ElevacaoGraus`, `PreparoMs`, `Passo` (0 a 2, da cadeia de leves) |
 | 6002 | `AtaqueAcertou` | servidor → quem está na área | `AtacanteId`, `Acertos[]` (`AcertoDeAtaque`: `AlvoId`, `Dano`, `VidaRestante`, `VidaMaxima`), `Tipo`, `Sequencia` (a da `IntencaoDeAtaque`), `Passo` |
 | 6003 | `AtaqueRecusado` | servidor → atacante | `Sequencia`, `Codigo` (`CodigosErroCombate.StaminaInsuficiente`, `AcaoEmAndamento`, `VoceEstaCaido` ou `VoceEstaAtordoado`) |
 | 6004 | `RecursosMudaram` | servidor → dono | vida, stamina e mana atuais e máximos |
@@ -379,3 +379,15 @@ Adotado em 2026-10-11 (/decida), a partir da proposta da issue; é valor inicial
   - **Servidor:** `GerenciadorDeEfeitosDeStatus` autoritativo gerencia durações, acúmulos, ticks de DoT, período de 6 s de imunidade pós-atordoamento e barra de quebra de chefes; integrado ao `ControleDeAcoes` (bloqueia ataques, esquivas e guarda quando atordoado; `ServicoDeAtaques`, `ServicoDeEsquivas` e `ServicoDeGuarda` recusam com `VoceEstaAtordoado`), `ServicoDeAtaques` (multiplica dano causado por Fortalecido e dano no alvo por Vulnerável), `ServicoDeDanoRecebido` (multiplica dano recebido por Vulnerável) e `ServicoDeEfeitosDeStatus` (#751: envia 6040 e 6041 em tempo real, retrato na conexão e laço de ticks de DoT).
   - **Client:** `ControleEfeitosDeStatus`, `ControleBarraDeQuebra` e `ApresentacaoEfeitosDeStatus` integrados ao HUD via `PainelEfeitosDeStatus` e `PainelBarraDeQuebra` (UI Toolkit, tokens Lumora, montados por `ObservadorDoMundo` nas regiões InferiorEsquerda e TopoCentro; ocultam quando inativos, #751); `ApresentacaoAtaque`, `ApresentacaoEsquiva` e `ControleDefesa` mostram "Você está atordoado" ao tentar agir atordoado.
 - **Testes:** `RegrasEfeitosDeStatusTestes` (shared), `GerenciadorDeEfeitosDeStatusTestes` (servidor), `ApresentacaoEfeitosDeStatusTestes` (client), recusa de ações em `ControleDeAcoesTestes`, `AtaqueTestes`, `EsquivaTestes` e `ReacaoEGuardaRedeTestes`.
+
+### Mira 3D, retículo dinâmico e carga de ataque pesado (#1010)
+
+Implementado em 2026-10-18 para armas de longo alcance (Arco e Cajado) no padrão New World:
+
+- **Mira Tridimensional (Pitch e Yaw):** o client envia a elevação vertical `ElevacaoGraus` na `IntencaoDeAtaque` junto com a rotação horizontal `DirecaoY`. O servidor valida e clampeia o pitch entre `RegrasProjetil.ElevacaoMinimaGraus` (-60°) e `RegrasProjetil.ElevacaoMaximaGraus` (+60°). A trajetória linear do projétil autoritativo avança em 3D (`dx, dy, dz`) calculada por `RegrasProjetil.DirecaoVetorial3D`.
+- **Retículo Dinâmico no HUD (Crosshair):** ao empunhar arma de longo alcance (`RegrasAtaque.EhArmaDeLongoAlcance`), o HUD de combate exibe retículo centralizado no estilo Lumora (`EstiloCombate.uss`). Em armas corpo a corpo ou desarmado, o retículo permanece oculto.
+- **Mecânica Leve vs Pesado:**
+  - *Ataque leve (clique rápido):* disparo imediato na direção 3D sem zoom de câmera.
+  - *Ataque pesado (segurar botão > 0,3 s):* a câmera de terceira pessoa aplica zoom sutil (FOV transiciona suavemente de 60° para 50°), e as marcas do retículo convergem para o centro indicando prontidão máxima. O projétil pesado viaja com velocidade e alcance maiores e causa dano elevado.
+- **Consulta e Notificação de Arma Ativa:** o client consulta o tipo de arma empunhado no conjunto ativo via `ConsultarArmaAtiva` (6054) e recebe `ArmaAtivaInformada` (6053); ao trocar de arma no jogo, recebe `TrocaDeArmaIniciada.TipoArma` (6051).
+

@@ -187,4 +187,95 @@ public class RegrasProjetilTestes
         );
         Assert.False(altoDemais);
     }
+
+    [Fact]
+    public void DirecaoVetorial3D_converte_yaw_e_pitch_em_vetor_unitario()
+    {
+        // 0 graus yaw, 0 pitch = (0, 0, 1)
+        RegrasProjetil.DirecaoVetorial3D(0f, 0f, out var dx, out var dy, out var dz);
+        Assert.Equal(0f, dx, 0.001f);
+        Assert.Equal(0f, dy, 0.001f);
+        Assert.Equal(1f, dz, 0.001f);
+
+        // 30 graus pitch para cima (yaw 0): dirY = sin(30) = 0.5, dirZ = cos(30) = 0.866
+        RegrasProjetil.DirecaoVetorial3D(0f, 30f, out dx, out dy, out dz);
+        Assert.Equal(0f, dx, 0.001f);
+        Assert.Equal(0.5f, dy, 0.001f);
+        Assert.Equal(0.866f, dz, 0.001f);
+
+        // 45 graus pitch para baixo (yaw 90 -> aponta para +X)
+        RegrasProjetil.DirecaoVetorial3D(90f, -45f, out dx, out dy, out dz);
+        Assert.True(dx > 0.7f);
+        Assert.Equal(-0.7071f, dy, 0.001f);
+        Assert.Equal(0f, dz, 0.001f);
+
+        // Comprimento do vetor é unitário
+        float compQuadrado = dx * dx + dy * dy + dz * dz;
+        Assert.Equal(1.0f, compQuadrado, 0.001f);
+    }
+
+    [Fact]
+    public void DirecaoVetorial3D_clampeia_pitch_nos_limites_permitidos()
+    {
+        // Pitch acima do máximo (+60) é clampeado em 60
+        RegrasProjetil.DirecaoVetorial3D(0f, 85f, out _, out var dyMax, out _);
+        Assert.Equal((float)Math.Sin(60.0 * Math.PI / 180.0), dyMax, 0.001f);
+
+        // Pitch abaixo do mínimo (-60) é clampeado em -60
+        RegrasProjetil.DirecaoVetorial3D(0f, -90f, out _, out var dyMin, out _);
+        Assert.Equal((float)Math.Sin(-60.0 * Math.PI / 180.0), dyMin, 0.001f);
+    }
+
+    [Fact]
+    public void Avanco_de_trajetoria_3D_com_pitch_positivo_sobe_em_y()
+    {
+        RegrasProjetil.DirecaoVetorial3D(0f, 30f, out var dirX, out var dirY, out var dirZ);
+        RegrasProjetil.AvancarPosicao(
+            0f,
+            1.2f,
+            0f,
+            dirX,
+            dirY,
+            dirZ,
+            velocidade: 20f,
+            dt: 0.5f,
+            out var nx,
+            out var ny,
+            out var nz
+        );
+
+        Assert.True(ny > 1.2f);
+        Assert.Equal(1.2f + 20f * 0.5f * 0.5f, ny, 0.01f); // subiu 5 metros
+        Assert.True(nz > 0f);
+    }
+
+    [Fact]
+    public void EhArmaDeLongoAlcance_identifica_corretamente_arco_e_cajado()
+    {
+        Assert.True(
+            RegrasAtaque.EhArmaDeLongoAlcance(
+                JogoDoGrupo.Shared.Features.Itens.TipoEquipamento.Arco
+            )
+        );
+        Assert.True(
+            RegrasAtaque.EhArmaDeLongoAlcance(
+                JogoDoGrupo.Shared.Features.Itens.TipoEquipamento.Cajado
+            )
+        );
+        Assert.False(
+            RegrasAtaque.EhArmaDeLongoAlcance(
+                JogoDoGrupo.Shared.Features.Itens.TipoEquipamento.Espada
+            )
+        );
+        Assert.False(
+            RegrasAtaque.EhArmaDeLongoAlcance(
+                JogoDoGrupo.Shared.Features.Itens.TipoEquipamento.Martelo
+            )
+        );
+        Assert.False(
+            RegrasAtaque.EhArmaDeLongoAlcance(
+                JogoDoGrupo.Shared.Features.Itens.TipoEquipamento.Escudo
+            )
+        );
+    }
 }

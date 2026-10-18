@@ -251,6 +251,13 @@ Quem decide: **servidor**. O client envia o texto e o canal; o servidor valida, 
 - ~~A tecla Enter para abrir o chat entra na tabela de teclas e atalhos quando o chat for implementado.~~ A tecla Enter já está na tabela de [teclas e atalhos](interface.md#teclas-e-atalhos) (client do chat, #240).
 - No client, o histórico de 100 linhas vale enquanto o jogo está aberto; a lista de ignorados vem do servidor. A Social copia os avisos do HUD para o canal Sistema. Convites pendentes mostram **Aceitar (Y)** e **Recusar (N)** no próprio aviso sobre o jogo, além da janela do grupo. Os atalhos funcionam com o cursor travado e não disparam enquanto a pessoa digita no chat.
 
+#### Balões de fala no mundo (Speech Bubbles, #1017)
+
+- **Gatilho e Canais:** ao receber `MensagemDeChat` válida nos canais públicos (**Cidade** ou **Grupo**), o client projeta um balão de fala sobre o topo da cabeça do avatar (`Jogador_<id>` ou o próprio avatar local). Mensagens em **Sussurro** e linhas de **Sistema** são privadas e **nunca** exibem balão público no mundo.
+- **Apresentação Lumora:** renderizado via UI Toolkit no painel overlay de mundo (`social-balao-camada`, classe `.social-balao-fala`), com fundo translúcido escuro, borda fina ouro e tipografia Marfim com quebra automática de linha.
+- **Ancoragem e Visibilidade:** ancorado a 2,4 m acima da base dos pés do avatar (acima da etiqueta de nome). Só aparece se o ponto estiver à frente da câmera e a uma distância máxima de **25 metros** (`RegrasBaloesDeFala.DistanciaMaximaMetros`).
+- **Duração e Transição:** duração proporcional de **4,0 s a 7,0 s** (`RegrasBaloesDeFala.CalcularDuracao`), com fade-out suave nos últimos **0,8 s** (`RegrasBaloesDeFala.TempoFadeOutSegundos`). Se o mesmo avatar enviar outra mensagem antes do término, o texto é atualizado, a opacidade reseta para 100% e o temporizador é renovado.
+
 #### O que o servidor decide e valida
 
 - Quem falou (pela sessão), a hora, o canal e quem recebe.
@@ -458,4 +465,30 @@ Marcadores visuais colocados sobre alvos (mobs, chefes ou jogadores) visíveis p
   - ID 13322 `DefinirMarcadorRecusado` (servidor → remetente): `Motivo` (`CodigoErroMarcador`).
 - **Comandos no chat:** `/marcar <caveira|x|escudo|lua|estrela> [id]` e `/desmarcar [id]`. Se o ID não for informado, busca automaticamente o alvo mais próximo do jogador.
 - **Apresentação visual:** `ApresentadorDeMarcadoresTaticos` projeta o ícone no mundo 3D acima da cabeça do alvo com limite de distância e estilos do padrão Lumora.
+### Inspeção de jogador (issue #1016)
+
+Permite visualizar equipamentos equipados, tiers, raridades e atributos de outros jogadores presentes no mundo (na mesma área) ou membros do mesmo grupo.
+
+#### Regras de inspeção
+
+- **Quem pode ser inspecionado:** jogadores online presentes na mesma área que o solicitante ou membros do mesmo grupo (mesmo que estejam distantes ou em outra área). Inspecionar a si mesmo sempre é permitido.
+- **Validações no servidor:**
+  - Alvo inexistente ou nome não encontrado: recusa com `CodigoErroInspecao.AlvoNaoEncontrado`.
+  - Alvo offline: recusa com `CodigoErroInspecao.AlvoOffline`.
+  - Alvo em outra área e fora do grupo: recusa com `CodigoErroInspecao.AlvoForaDoAlcance`.
+- **Acesso no client:**
+  - Pelo quadro de grupo na janela Social (botão "Inspecionar" ao lado de cada membro).
+  - Pelo clique no retrato do aliado no HUD lateral esquerdo.
+  - Pelo comando de barra no chat: `/inspecionar <nome>` ou `/inspect <nome>`.
+- **Janela de inspeção (`JanelaInspecao`):** interface modal somente leitura (estilo Lumora) exibindo o conjunto ativo, peças de equipamento equipadas com seus tiers (S+, A, etc.), raridade, nível, atributos base do personagem e atributos de combate acumulados pelo equipamento. Nenhuma ação de modificação ou transferência de item é permitida.
+
+#### Contrato de inspeção
+
+Código em `shared/Package/Runtime/Features/Social/`. Tempo real, entrega confiável.
+
+| ID | Mensagem | Direção | Campos |
+|---|---|---|---|
+| 13300 | `PedirInspecao` | client → servidor | `PersonagemId` (opcional se nome informado), `Nome` |
+| 13310 | `RetratoInspecaoResponse` | servidor → client | `PersonagemId`, `Nome`, `Raca`, `Nivel`, `ConjuntoAtivo`, `Equipados[]` (`EntradaInventario`), `Atributos` (`AtributosDosEquipamentos`), `Forca`, `Vigor`, `Agilidade`, `Intelecto`, `Espirito` |
+| 13311 | `InspecaoRecusada` | servidor → quem pediu | `PersonagemId`, `Motivo` (`CodigoErroInspecao`: `AlvoNaoEncontrado` 1, `AlvoOffline` 2, `AlvoForaDoAlcance` 3) |
 

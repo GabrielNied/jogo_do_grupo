@@ -102,6 +102,21 @@ namespace JogoDoGrupo.Server.Core.Persistencia.Migrations.Postgres
                         });
                 });
 
+            modelBuilder.Entity("JogoDoGrupo.Server.Features.Itens.EstadoBanco", b =>
+                {
+                    b.Property<long>("ContaId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("Abas")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1);
+
+                    b.HasKey("ContaId");
+
+                    b.ToTable("EstadoBanco", (string)null);
+                });
+
             modelBuilder.Entity("JogoDoGrupo.Server.Features.Itens.EstadoEquipamentos", b =>
                 {
                     b.Property<long>("PersonagemId")
@@ -118,6 +133,40 @@ namespace JogoDoGrupo.Server.Core.Persistencia.Migrations.Postgres
                     b.HasKey("PersonagemId");
 
                     b.ToTable("EstadoEquipamentos", (string)null);
+                });
+
+            modelBuilder.Entity("JogoDoGrupo.Server.Features.Itens.ItemBanco", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<int?>("Aba")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("Casa")
+                        .HasColumnType("integer");
+
+                    b.Property<long>("ContaId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("EquipamentoJson")
+                        .HasColumnType("text");
+
+                    b.Property<int>("ItemId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ContaId");
+
+                    b.HasIndex("ContaId", "Aba", "Casa")
+                        .IsUnique()
+                        .HasFilter("\"Casa\" IS NOT NULL");
+
+                    b.ToTable("ItensBanco", (string)null);
                 });
 
             modelBuilder.Entity("JogoDoGrupo.Server.Features.Itens.ItemInventario", b =>

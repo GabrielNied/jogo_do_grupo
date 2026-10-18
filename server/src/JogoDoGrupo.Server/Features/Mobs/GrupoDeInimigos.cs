@@ -48,6 +48,8 @@ public sealed partial class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulado
     private readonly bool _semReposicao;
     private readonly PeriodoDeAparicao _periodo;
     private readonly IRelogioDoMundo? _relogioDoMundo;
+    private readonly Func<IDisparoDeProjeteis?>? _projeteis;
+    private readonly int? _criaturaRetaguardaId;
 
     private int _pontoDaRota;
     private bool _andando;
@@ -119,7 +121,9 @@ public sealed partial class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulado
         bool semReposicao = false,
         IHistoricoDePosicoesDoMundo? historico = null,
         PeriodoDeAparicao periodo = PeriodoDeAparicao.Sempre,
-        IRelogioDoMundo? relogioDoMundo = null
+        IRelogioDoMundo? relogioDoMundo = null,
+        Func<IDisparoDeProjeteis?>? projeteis = null,
+        int? criaturaRetaguardaId = null
     )
     {
         ArgumentNullException.ThrowIfNull(definicao);
@@ -146,6 +150,8 @@ public sealed partial class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulado
         _historico = historico;
         _periodo = periodo;
         _relogioDoMundo = relogioDoMundo;
+        _projeteis = projeteis;
+        _criaturaRetaguardaId = criaturaRetaguardaId;
         Area = area;
         Capacidade = tamanho;
 
@@ -196,7 +202,8 @@ public sealed partial class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulado
         Func<long>? relogioMs = null,
         IEstadoDeQueda? queda = null,
         IHistoricoDePosicoesDoMundo? historico = null,
-        IRelogioDoMundo? relogioDoMundo = null
+        IRelogioDoMundo? relogioDoMundo = null,
+        Func<IDisparoDeProjeteis?>? projeteis = null
     ) =>
         new(
             CatalogoCriaturas.Obter(ponto.CriaturaId)
@@ -218,7 +225,9 @@ public sealed partial class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulado
             queda,
             historico: historico,
             periodo: ponto.Periodo,
-            relogioDoMundo: relogioDoMundo
+            relogioDoMundo: relogioDoMundo,
+            projeteis: projeteis,
+            criaturaRetaguardaId: ponto.CriaturaRetaguardaId
         );
 
     /// <summary>
@@ -584,13 +593,19 @@ public sealed partial class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulado
 
     // Rotas de manada, repouso e zona urbana em GrupoDeInimigos.Repouso.cs.
 
-    private Inimigo Criar(double origemX, double origemZ, bool contaNoLimite)
+    private Inimigo Criar(
+        double origemX,
+        double origemZ,
+        bool contaNoLimite,
+        DefinicaoDeCriatura? def = null
+    )
     {
+        var definicao = def ?? _definicao;
         var nivel =
             _nivelMinimo == _nivelMaximo
                 ? _nivelMinimo
                 : EscalaPorNivel.Sortear(_nivelMinimo, _nivelMaximo, _sorteador.Proximo());
-        var criatura = EscalaPorNivel.Aplicar(_sorteador.Sortear(_definicao), nivel);
+        var criatura = EscalaPorNivel.Aplicar(_sorteador.Sortear(definicao), nivel);
         var inimigo = new Inimigo(_proximoId++, criatura, origemX, origemZ, contaNoLimite)
         {
             DesvioX = origemX - _pontoX,

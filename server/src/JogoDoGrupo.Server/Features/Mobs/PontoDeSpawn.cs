@@ -19,7 +19,8 @@ public sealed record PontoDeSpawn(
     int TamanhoMaximo,
     long PrimeiroId,
     RotaDaManada? Rota = null,
-    PeriodoDeAparicao Periodo = PeriodoDeAparicao.Sempre
+    PeriodoDeAparicao Periodo = PeriodoDeAparicao.Sempre,
+    int? CriaturaRetaguardaId = null
 );
 
 /// <summary>
@@ -106,7 +107,8 @@ public static class PontosDeSpawnDoCampo
             5,
             3,
             4,
-            PeriodoDeAparicao.Dia
+            PeriodoDeAparicao.Dia,
+            criaturaRetaguardaId: CatalogoCriaturas.ArqueiroDoCampo
         ),
         Ponto(
             12,
@@ -176,7 +178,8 @@ public static class PontosDeSpawnDoCampo
         int nivelMaximo,
         int tamanhoMinimo,
         int tamanhoMaximo,
-        PeriodoDeAparicao periodo = PeriodoDeAparicao.Sempre
+        PeriodoDeAparicao periodo = PeriodoDeAparicao.Sempre,
+        int? criaturaRetaguardaId = null
     ) =>
         new(
             nome,
@@ -189,6 +192,7 @@ public static class PontosDeSpawnDoCampo
             tamanhoMinimo,
             tamanhoMaximo,
             ConfigInimigosDoCampo.PrimeiroInimigoId + (indice * EspacoDeIdsPorPonto),
-            Periodo: periodo
+            Periodo: periodo,
+            CriaturaRetaguardaId: criaturaRetaguardaId
         );
 }

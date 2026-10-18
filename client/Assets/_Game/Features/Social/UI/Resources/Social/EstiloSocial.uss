@@ -199,6 +199,8 @@
 
 /* Marcadores Táticos de Grupo */
 .social-marcador-camada {
+/* Balões de fala no mundo (Speech Bubbles) */
+.social-balao-camada {
     position: absolute;
     left: 0;
     top: 0;
@@ -246,5 +248,44 @@
 .marcador-estrela {
     border-color: var(--lumora-cores-aviso);
     color: var(--lumora-cores-aviso);
+.social-balao-fala {
+    position: absolute;
+    min-width: 60px;
+    max-width: 280px;
+    background-color: var(--lumora-cores-painel);
+    border-width: var(--lumora-bordas-fina);
+    border-color: var(--lumora-cores-ouro);
+    border-radius: var(--lumora-bordas-raio-cartao);
+    padding: var(--lumora-espacamento-curto) var(--lumora-espacamento-pequeno);
+    align-items: center;
+    justify-content: center;
+    translate: -50% -100%;
+}
+
+.social-balao-autor {
+    font-size: var(--lumora-tipografia-nota);
+    color: var(--lumora-cores-ouro);
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    margin-bottom: 2px;
+}
+
+.social-balao-texto {
+    font-size: var(--lumora-tipografia-leitura);
+    color: var(--lumora-cores-marfim);
+    white-space: normal;
+    -unity-text-align: middle-center;
+}
+
+.social-balao-ponta {
+    position: absolute;
+    bottom: -6px;
+    width: 10px;
+    height: 6px;
+    background-color: var(--lumora-cores-painel);
+    border-bottom-width: var(--lumora-bordas-fina);
+    border-right-width: var(--lumora-bordas-fina);
+    border-color: var(--lumora-cores-ouro);
+    rotate: 45deg;
 }
 
