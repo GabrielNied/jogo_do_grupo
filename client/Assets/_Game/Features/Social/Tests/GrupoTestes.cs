@@ -550,7 +550,7 @@ namespace JogoDoGrupo.Client.Features.Social.Tests
                 .Where(c => !doChat.Contains(c) && !doAmigos.Contains(c))
                 .ToArray();
 
-            Assert.AreEqual(16, codigos.Length);
+            Assert.AreEqual(19, codigos.Length);
             foreach (var codigo in codigos)
             {
                 Assert.AreNotEqual(

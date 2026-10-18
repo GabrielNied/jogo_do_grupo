@@ -50,6 +50,12 @@ namespace JogoDoGrupo.Client.Features.Social
                     return "O líder não pode ser expulso. Use Sair do grupo.";
                 case CodigosErroSocial.ReconviteBloqueado:
                     return "Esse personagem foi expulso há pouco. Espere para convidar de novo.";
+                case CodigosErroSocial.PapelInvalido:
+                    return "Papel de grupo inválido.";
+                case CodigosErroSocial.JaEstaNaFila:
+                    return "Você já está na fila de grupo.";
+                case CodigosErroSocial.NaoEstaNaFila:
+                    return "Você não está na fila de grupo.";
                 default:
                     return RecusaGenerica;
             }

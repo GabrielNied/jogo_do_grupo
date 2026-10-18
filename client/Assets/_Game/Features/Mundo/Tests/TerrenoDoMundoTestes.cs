@@ -498,6 +498,9 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
         public void Todo_tronco_gerado_tem_colisor_de_capsula_no_lugar_da_peca()
         {
             ConstruirTerreno();
+            var raiz = new GameObject("VegetacaoDeTeste");
+            raiz.transform.SetParent(_hub.transform, false);
+            foreach (var _ in MontadorDaVegetacao.Montar(raiz.transform, 1f)) { }
             foreach (var nome in TiposComTronco)
             {
                 var modelo = VegetacaoProcedural.Modelo(nome);
