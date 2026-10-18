@@ -63,6 +63,15 @@ namespace JogoDoGrupo.Client.Features.Combate
         /// <summary>Quanto o rastro do golpe que não pegou fica no chão, em segundos.</summary>
         public static float RastroSegundos = 0.22f;
 
+        /// <summary>Volume do som do disparo da flecha pelo arco.</summary>
+        public static float VolumeDisparoFlecha = 0.7f;
+
+        /// <summary>Volume do impacto da flecha cravando no alvo ou obstáculo.</summary>
+        public static float VolumeImpactoFlecha = 0.6f;
+
+        /// <summary>Duração em segundos do rastro da flecha (TrailRenderer).</summary>
+        public static float DuracaoRastroProjetil = 0.18f;
+
         /// <summary>
         /// Gizmo do arco da lâmina (depuração): 1 desenha, a cada golpe seu, o arco que o servidor
         /// testa (linhas na Scene e na Game com Gizmos ligados); 0 desliga. Serve para calibrar os
@@ -334,6 +343,33 @@ namespace JogoDoGrupo.Client.Features.Combate
                 0f,
                 300f,
                 "px que o número sobe na mira"
+            );
+            Sintonia.Registrar(
+                Grupo,
+                nameof(VolumeDisparoFlecha),
+                () => VolumeDisparoFlecha,
+                v => VolumeDisparoFlecha = v,
+                0f,
+                1f,
+                "volume do disparo da flecha"
+            );
+            Sintonia.Registrar(
+                Grupo,
+                nameof(VolumeImpactoFlecha),
+                () => VolumeImpactoFlecha,
+                v => VolumeImpactoFlecha = v,
+                0f,
+                1f,
+                "volume do impacto da flecha"
+            );
+            Sintonia.Registrar(
+                Grupo,
+                nameof(DuracaoRastroProjetil),
+                () => DuracaoRastroProjetil,
+                v => DuracaoRastroProjetil = v,
+                0.05f,
+                1f,
+                "s do rastro da flecha"
             );
         }
     }
