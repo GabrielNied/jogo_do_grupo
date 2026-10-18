@@ -61,7 +61,7 @@ Do "Livro de ideias de Asterra" ([seções 04 e 13](../brainstorm/figjam.md#04--
 - **Orçamento de preparação:** 12 pontos iniciais, **+1 a cada 5 níveis** ([personagem.md](personagem.md#nível-atributos-e-rotina-proposta-do-board-2026-10-11)). Cada skill custa de **1 a 4 pontos**; reservado ao pôr na barra, devolvido ao tirar. É um custo diferente do vigor ou da energia gasto ao usar.
 - **Três abas de 8 posições**, todas dividindo o mesmo orçamento. Repetir a mesma skill em duas posições não duplica custo e **compartilha a recarga**.
 - Desequipar a origem libera o orçamento e apaga o atalho (proposta: manter esmaecido para restaurar ao reequipar, se houver orçamento). Trocar de equipamento durante uma ação espera a ação acabar.
-- **Sorteio:** o equipamento sorteia skills compatíveis com **tipo, região e família**; armaduras e acessórios também dão skills, não só armas. Funções (tanque, dano físico, suporte, mago, arqueiro) são rótulos que orientam os pools de loot, não classes.
+- **Sorteio:** o equipamento sorteia skills compatíveis com **tipo, região e família**; armaduras e acessórios também dão skills, não só armas. Funções (tanque, dano físico, suporte, cajado/foco, arqueiro) são rótulos que orientam os pools de loot, **não classes jogáveis**.
 - As skills usam **mira manual** com áreas generosas; a área visível deve ser a área real de acerto (veja [combate.md](combate.md)).
 - Recurso por skill: **vigor** (físico, movimento) ou **energia** (magia). Isso responde a "Recurso usado" em aberto, como proposta.
 
@@ -77,23 +77,25 @@ Cada raça dá uma skill própria; descrição curta de cada uma em [personagem.
 - **Sopro de Cinzas** (Cinéreos, 65 s): as cinzas **inflamam** com fogo (Linha Incendiária) e fazem uma frente de chamas, como o Óleo de Cerco.
 - **Chamado da Clareira** (Silvanos, 60 s): atrai ou desvia manadas; bosses percebem mas não obedecem.
 
-### Catálogo inicial: 25 skills para montar funções (proposta do board, 2026-10-11)
+### Catálogo por tipo de arma (referência do board, 2026-10-11)
 
-> **Adotado em 2026-10-16** (Gabriel): as 25 viram referência do **catálogo por tipo de arma** ([#167](https://github.com/GabrielNied/jogo_do_grupo/issues/167)); **não há pool extra por região** (#340 not planned, quiz 3). Sai o custo de preparação, ficam o recurso (stamina ou mana, SKILL-005) e a recarga. Sem reações elementais entre elas.
+> **Adotado em 2026-10-16** (Gabriel): nomes do [livro, seção 13](../brainstorm/figjam.md#13--25-skills-para-montar-funções) viram referência do **catálogo por tipo de arma** em `CatalogoDeSkills` ([#167](https://github.com/GabrielNied/jogo_do_grupo/issues/167)); **não há pool extra por região** ([#340](https://github.com/GabrielNied/jogo_do_grupo/issues/340) not planned, quiz 3). Sai o custo de preparação; ficam stamina ou mana (SKILL-005) e recarga. **Sem reações elementais** entre skills nesta fatia.
 
-Cinco por função. Custo de preparação em pontos, uso e recarga; os efeitos completos estão no [livro, seção 13](../brainstorm/figjam.md#13--25-skills-para-montar-funções).
+> **Revogado em 2026-10-18** (Gabriel): a [#342](https://github.com/GabrielNied/jogo_do_grupo/issues/342) (Pequeno Sol ritual coletivo, Tempestade do Horizonte como evento, Ponte de Geada ligada a região) **não será implementada**. Não há **classe de mago** — só **tipo de arma** (cajado, foco, etc.). Rituais de área, magias gated por evento/região e travessia especial ficam fora do escopo; o prólogo de [missões](missoes.md) pode mostrar efeito parecido **só como cena de NPC**.
 
-| Função | Skills (pontos, uso, recarga) |
+O jogo sorteia **3 skills ativas** do pool do **tipo da arma equipada** (5 entradas por tipo, 4 no escudo). A tabela abaixo agrupa nomes do board por **função de combate** (rótulo de loot, não classe). O código canônico é `CatalogoDeSkills`.
+
+| Função (rótulo) | Exemplos no pool (stamina ou mana, recarga em s) |
 |---|---|
-| Tanque | Guarda Ressonante (2, 20 vigor, 12 s); Postura de Ferro (2, 20 vigor, 20 s); Avanço de Muralha (2, 30 vigor, 16 s); Desafio do Guardião (2, 25 vigor, 18 s); Muralha Viva (3, 35 energia, 30 s) |
-| Dano físico | Martelada Sísmica (2, 25 vigor, 12 s); Ruptura Sangrenta (2, 20 vigor, 12 s); Lâmina Giratória (2, 30 vigor, 14 s); Golpe do Carrasco (3, 40 vigor, 22 s); Avanço Devastador (2, 25 vigor, 15 s) |
-| Suporte | Vínculo Vital (2, 25 energia, 18 s); Hino do Recomeço (3, 40 energia, 35 s); Manto Protetor (3, 35 energia, 25 s); Pulso de Vida (2, 30 energia, 15 s); Fonte Arcana (2, 30 energia, 30 s) |
-| Mago | Orbes da Aurora (2, 35 energia, 30 s); Estilhaço Glacial (2, 20 energia, 10 s); Pequeno Sol (4, canalização, 45 s); Ponte de Geada (2, 50 energia, 45 s); Tempestade do Horizonte (4, energia contínua, 60 s) |
-| Arqueiro | Flecha-Sinal (1, 10 vigor, 8 s); Disparo Perfurante (2, 25 vigor, 14 s); Chuva de Brasas (3, 40 vigor, 25 s); Recuo do Caçador (1, 20 vigor, 12 s); Linha Incendiária (2, 30 vigor, 18 s) |
+| Tanque / escudo | Guarda Ressonante; Postura de Ferro; Avanço de Muralha; Desafio do Guardião; Pancada de Escudo |
+| Dano físico corpo a corpo | Martelada Sísmica; Ruptura Sangrenta; Lâmina Giratória; Golpe do Carrasco; Avanço Devastador; Corte Veloz |
+| Suporte | Vínculo Vital; Hino do Recomeço; Manto Protetor; Pulso de Vida; Fonte Arcana *(ainda não no catálogo de armas)* |
+| Cajado / foco (mana) | Estilhaço Glacial; Orbes da Aurora; Raio Arcano; Nova de Fogo; Surto Solar; Pulso Arcano; Vórtice; … |
+| Arqueiro | Flecha-Sinal; Disparo Perfurante; Chuva de Brasas; Recuo do Caçador; Linha Incendiária |
 
-Skills de utilidade que continuam no catálogo anterior (não fazem parte das 25): Trompa dos Mil Passos, Óleo de Cerco, Névoa e as raciais.
+Skills de utilidade citadas no board (Trompa dos Mil Passos, Óleo de Cerco, Névoa) e **skills raciais** não entram no catálogo de armas ([#341](https://github.com/GabrielNied/jogo_do_grupo/issues/341) fechada).
 
-**Combinações e reações** (pedem o sistema de estados de [combate.md](combate.md)): frio + frio congela (mobs comuns, 3 s) e a Martelada contra congelado estilhaça (12 m); óleo + fogo inflama a poça toda; água apaga fogo e remove óleo; chuva molha e permite reação elétrica; o Pequeno Sol soma energia de vários jogadores (a cada 100, +2 m de raio e +10% de dano-base) e o iniciador lança; dano e efeitos pertencem a quem executou (conta para o loot).
+**Combinações e reações** (proposta do board, **não implementadas**; pedem estados em [combate.md](combate.md)): frio + frio congela; Martelada contra congelado estilhaça; óleo + fogo inflama; água apaga fogo; chuva + elétrica. Sem magia coletiva nem atribuição proporcional de dano por ritual.
 
 ### Perguntas que o board abre
 
@@ -114,6 +116,7 @@ Skills de utilidade que continuam no catálogo anterior (não fazem parte das 25
 - [x] ~~Recurso usado?~~ Decidido em 2026-10-14 (SKILL-005): **mana** ou **stamina** por skill; não "energia" genérica.
 - [x] ~~Pools de skills de armas de regiões avançadas além do Vale ([#340](https://github.com/GabrielNied/jogo_do_grupo/issues/340)).~~ Substituído em 2026-10-16 (quiz 3): **não existe** segundo pool por região; #340 **not planned**. Sorteio continua só pelo **tipo de arma** (Vale).
 - [x] ~~Orçamento da aba Preparação ([#339](https://github.com/GabrielNied/jogo_do_grupo/issues/339)).~~ Decidido em 2026-10-16 (quiz 3): **sem orçamento**; só as **3 skills da arma equipada**. Tela somente leitura para ver skills **por conjunto/arma** implementada na [#921](https://github.com/GabrielNied/jogo_do_grupo/issues/921) (tecla **K**).
+- [x] ~~Skills de área especial do livro ([#342](https://github.com/GabrielNied/jogo_do_grupo/issues/342)).~~ Revogado em 2026-10-18: sem classe mago; skills só da **arma**; sem ritual/região/evento dedicado.
 
 ## Regras
 

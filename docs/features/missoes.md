@@ -96,7 +96,7 @@ Decidido em 2026-10-18 (veja [Definido](#definido)). É o fluxo clássico de MMO
 
 Do "Livro de ideias" do [FigJam](../brainstorm/figjam.md) (seção 11). **Proposta do board, não validada pelo grupo**; o nome Asterra e o título do jogo continuam a escolher.
 
-- **Prólogo "o sol que nasceu na estrada":** cena jogável curta; o personagem chega a uma parada perto da cidade, vê quatro magos lançarem o "Pequeno Sol" e eliminarem uma manada. Os magos são NPCs de cena (funciona sem outros jogadores). Pode ser **pulado**; não dá loot nem mata o recém-chegado. Termina com o controle devolvido, indo à cidade.
+- **Prólogo "o sol que nasceu na estrada":** cena jogável curta; o personagem chega a uma parada perto da cidade, vê **NPCs** sustentarem uma esfera de luz coletiva e eliminarem uma manada (só encenação, **não** é skill do jogador). Funciona sem outros jogadores conectados. Pode ser **pulado**; não dá loot nem mata o recém-chegado. Termina com o controle devolvido, indo à cidade.
 - **Primeira hora (guia de missões iniciais):** receber arma e aprender golpes leve e pesado; comer na cozinha e achar banco e teleporte; ir ao primeiro ponto de coleta e achar os primeiros javalis; obter uma peça com skill, abrir Preparação e usar a skill num grupo; subir de nível, distribuir pontos e infundir uma peça na forja; ajudar um aliado caído (a primeira expedição não perde nada por morte).
 - Depende de [personagem](personagem.md), [skills](skills.md), [itens](itens.md), [combate](combate.md) e [npcs](npcs.md); as missões só encadeiam.
 

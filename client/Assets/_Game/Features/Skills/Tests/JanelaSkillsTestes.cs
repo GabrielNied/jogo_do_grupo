@@ -91,7 +91,7 @@ namespace JogoDoGrupo.Client.Features.Skills.Tests
             Assert.AreEqual(TipoEquipamento.Espada, estado.TipoDaArmaAtiva());
             Assert.IsTrue(estado.ContemSkill("espada.corte-veloz"));
             Assert.IsTrue(estado.ContemSkill("espada.lamina-giratoria"));
-            Assert.IsFalse(estado.ContemSkill("cajado.pequeno-sol"));
+            Assert.IsFalse(estado.ContemSkill("cajado.surto-solar"));
             Assert.AreEqual(0, estado.EspacoDaSkill("espada.corte-veloz"));
             Assert.AreEqual(2, estado.EspacoDaSkill("espada.lamina-giratoria"));
             Assert.AreEqual(-1, estado.EspacoDaSkill("inexistente"));
