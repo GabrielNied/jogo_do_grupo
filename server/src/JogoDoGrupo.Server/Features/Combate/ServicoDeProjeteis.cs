@@ -217,6 +217,7 @@ public sealed class ServicoDeProjeteis : IHostedService, IDisposable
             origemZ: (float)posicao.Z,
             direcaoYGraus: direcao,
             dano: dano,
+            elevacaoGraus: acao.Pedido.ElevacaoGraus,
             sequencia: acao.Pedido.Sequencia,
             passo: acao.Passo,
             instanteVistoMs: acao.Pedido.TempoVistoMs
@@ -283,6 +284,7 @@ public sealed class ServicoDeProjeteis : IHostedService, IDisposable
             origemZ: (float)posicao.Z,
             direcaoYGraus: direcao,
             dano: dano,
+            elevacaoGraus: acao.Pedido.ElevacaoGraus,
             sequencia: acao.Pedido.Sequencia,
             passo: acao.Passo,
             instanteVistoMs: acao.Pedido.TempoVistoMs
@@ -302,12 +304,19 @@ public sealed class ServicoDeProjeteis : IHostedService, IDisposable
         float origemZ,
         float direcaoYGraus,
         int dano,
+        float elevacaoGraus = 0f,
         int sequencia = 0,
         int passo = 0,
         long instanteVistoMs = 0
     )
     {
-        RegrasProjetil.DirecaoVetorial(direcaoYGraus, out var dirX, out var dirY, out var dirZ);
+        RegrasProjetil.DirecaoVetorial3D(
+            direcaoYGraus,
+            elevacaoGraus,
+            out var dirX,
+            out var dirY,
+            out var dirZ
+        );
         var velocidade = RegrasProjetil.Velocidade(tipoProjetil, tipoAtaque);
         var raio = RegrasProjetil.Raio(tipoProjetil);
         var alcanceMaximo = RegrasProjetil.AlcanceMaximo(tipoProjetil, tipoAtaque);

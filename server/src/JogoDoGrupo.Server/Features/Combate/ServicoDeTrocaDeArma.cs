@@ -4,6 +4,7 @@ using JogoDoGrupo.Server.Contratos.Itens;
 using JogoDoGrupo.Server.Contratos.Mundo;
 using JogoDoGrupo.Server.Core.TempoReal;
 using JogoDoGrupo.Shared.Features.Combate;
+using JogoDoGrupo.Shared.Features.Itens;
 
 namespace JogoDoGrupo.Server.Features.Combate;
 
@@ -21,6 +22,7 @@ public sealed class ServicoDeTrocaDeArma : ITrocaDeArma
     private readonly IPosicoesDoMundo _posicoes;
     private readonly ControleDeAcoes _controle;
     private readonly ITrocaDeConjunto? _conjuntos;
+    private readonly IArmaEquipada? _armas;
     private readonly ILogger<ServicoDeTrocaDeArma>? _log;
     private readonly Func<long> _relogioMs;
     private readonly ServicoDeQueda? _queda;
@@ -33,13 +35,15 @@ public sealed class ServicoDeTrocaDeArma : ITrocaDeArma
         ITrocaDeConjunto? conjuntos,
         ILogger<ServicoDeTrocaDeArma>? log = null,
         Func<long>? relogioMs = null,
-        ServicoDeQueda? queda = null
+        ServicoDeQueda? queda = null,
+        IArmaEquipada? armas = null
     )
     {
         _tempoReal = tempoReal;
         _posicoes = posicoes;
         _controle = controle;
         _conjuntos = conjuntos;
+        _armas = armas;
         _log = log;
         _relogioMs = relogioMs ?? (() => Environment.TickCount64);
         _queda = queda;
@@ -133,6 +137,12 @@ public sealed class ServicoDeTrocaDeArma : ITrocaDeArma
                 return;
             }
 
+            var arma =
+                _armas != null
+                    ? await _armas.ObterAsync(personagemId, CancellationToken.None)
+                    : null;
+            var tipoArma = arma?.Tipo ?? TipoEquipamento.Espada;
+
             _tempoReal.Enviar(
                 sessao,
                 CombateMessageIds.TrocaDeArmaIniciada,
@@ -140,6 +150,7 @@ public sealed class ServicoDeTrocaDeArma : ITrocaDeArma
                 {
                     Conjunto = ativo,
                     DuracaoMs = RegrasTrocaDeArma.DuracaoMs,
+                    TipoArma = tipoArma,
                 }
             );
         }

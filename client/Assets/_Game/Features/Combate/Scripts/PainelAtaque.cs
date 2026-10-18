@@ -18,6 +18,15 @@ namespace JogoDoGrupo.Client.Features.Combate
         private readonly Label _aviso;
         private readonly List<Label> _rotulos = new List<Label>();
 
+        private readonly VisualElement _reticulo;
+        private readonly VisualElement _pontoCentral;
+        private readonly VisualElement _marcaTopo;
+        private readonly VisualElement _marcaBaixo;
+        private readonly VisualElement _marcaEsquerda;
+        private readonly VisualElement _marcaDireita;
+
+        public VisualElement Reticulo => _reticulo;
+
         public PainelAtaque(VisualElement raiz)
         {
             // Cobre a tela inteira: os números se posicionam em pixels do painel.
@@ -30,8 +39,44 @@ namespace JogoDoGrupo.Client.Features.Combate
             _aviso.AddToClassList("aviso-de-ataque");
             _aviso.style.display = DisplayStyle.None;
 
+            _reticulo = new VisualElement { name = "combate.reticulo" };
+            _reticulo.pickingMode = PickingMode.Ignore;
+            _reticulo.AddToClassList("reticulo-mira");
+            _reticulo.style.display = DisplayStyle.None;
+
+            _pontoCentral = new VisualElement { name = "reticulo.ponto" };
+            _pontoCentral.pickingMode = PickingMode.Ignore;
+            _pontoCentral.AddToClassList("reticulo-ponto");
+
+            _marcaTopo = new VisualElement { name = "reticulo.marca-topo" };
+            _marcaTopo.pickingMode = PickingMode.Ignore;
+            _marcaTopo.AddToClassList("reticulo-marca");
+            _marcaTopo.AddToClassList("reticulo-marca-topo");
+
+            _marcaBaixo = new VisualElement { name = "reticulo.marca-baixo" };
+            _marcaBaixo.pickingMode = PickingMode.Ignore;
+            _marcaBaixo.AddToClassList("reticulo-marca");
+            _marcaBaixo.AddToClassList("reticulo-marca-baixo");
+
+            _marcaEsquerda = new VisualElement { name = "reticulo.marca-esquerda" };
+            _marcaEsquerda.pickingMode = PickingMode.Ignore;
+            _marcaEsquerda.AddToClassList("reticulo-marca");
+            _marcaEsquerda.AddToClassList("reticulo-marca-esquerda");
+
+            _marcaDireita = new VisualElement { name = "reticulo.marca-direita" };
+            _marcaDireita.pickingMode = PickingMode.Ignore;
+            _marcaDireita.AddToClassList("reticulo-marca");
+            _marcaDireita.AddToClassList("reticulo-marca-direita");
+
+            _reticulo.Add(_pontoCentral);
+            _reticulo.Add(_marcaTopo);
+            _reticulo.Add(_marcaBaixo);
+            _reticulo.Add(_marcaEsquerda);
+            _reticulo.Add(_marcaDireita);
+
             raiz.Add(_numeros);
             raiz.Add(_aviso);
+            raiz.Add(_reticulo);
         }
 
         public void Mostrar(FilaDeNumeros fila, AvisoTemporario aviso)
@@ -77,6 +122,34 @@ namespace JogoDoGrupo.Client.Features.Combate
             {
                 _aviso.text = aviso.Texto;
             }
+        }
+
+        /// <summary>
+        /// Atualiza a visibilidade e o fechamento/convergência do retículo de mira no HUD.
+        /// </summary>
+        public void AtualizarReticulo(
+            bool armaLongoAlcance,
+            float progressoCarga,
+            bool pesadoPronto
+        )
+        {
+            if (!armaLongoAlcance)
+            {
+                _reticulo.style.display = DisplayStyle.None;
+                return;
+            }
+
+            _reticulo.style.display = DisplayStyle.Flex;
+            _reticulo.EnableInClassList("reticulo-carregando", progressoCarga > 0f);
+            _reticulo.EnableInClassList("reticulo-pronto", pesadoPronto);
+
+            // A convergência move as marcas em direção ao centro conforme a carga (0 a 1).
+            // Em repouso (0), distância das marcas ao centro é maior. Em carga total (1), fecha sutilmente.
+            float offset = Mathf.Lerp(8f, 3f, Mathf.Clamp01(progressoCarga));
+            _marcaTopo.style.top = 18f - offset;
+            _marcaBaixo.style.bottom = 18f - offset;
+            _marcaEsquerda.style.left = 18f - offset;
+            _marcaDireita.style.right = 18f - offset;
         }
 
         // Leva o rótulo ao ponto do número na tela; false se o ponto está atrás da câmera.
