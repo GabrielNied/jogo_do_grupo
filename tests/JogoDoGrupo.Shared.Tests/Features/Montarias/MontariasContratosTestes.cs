@@ -32,6 +32,34 @@ public class MontariasContratosTestes
         Assert.True(MontariasMessageIds.Faixa.Contem(MontariasMessageIds.ColecaoMontarias));
         Assert.True(MontariasMessageIds.Faixa.Contem(MontariasMessageIds.MontariaDesbloqueada));
         Assert.True(MontariasMessageIds.Faixa.Contem(MontariasMessageIds.MontariaRecusada));
+        Assert.True(MontariasMessageIds.Faixa.Contem(MontariasMessageIds.ConsultarEstabulo));
+        Assert.True(MontariasMessageIds.Faixa.Contem(MontariasMessageIds.RespostaEstabulo));
+        Assert.True(MontariasMessageIds.Faixa.Contem(MontariasMessageIds.ComprarMontariaEstabulo));
+        Assert.True(MontariasMessageIds.Faixa.Contem(MontariasMessageIds.RespostaCompraEstabulo));
+    }
+
+    [Fact]
+    public void ConfigEstabulo_TemPrecosEOfertasValidas()
+    {
+        Assert.True(ConfigEstabulo.EstaAVenda(RegrasMontaria.TipoMulaDeCarga));
+        Assert.True(ConfigEstabulo.EstaAVenda(RegrasMontaria.TipoCavaloComum));
+        Assert.False(ConfigEstabulo.EstaAVenda(RegrasMontaria.TipoNoturno));
+
+        Assert.Equal(80, ConfigEstabulo.ObterPreco(RegrasMontaria.TipoMulaDeCarga));
+        Assert.Equal(150, ConfigEstabulo.ObterPreco(RegrasMontaria.TipoCavaloComum));
+
+        Assert.NotNull(ConfigEstabulo.ObterOferta(RegrasMontaria.TipoCavaloComum));
+        Assert.NotNull(ConfigEstabulo.ObterOferta(RegrasMontaria.TipoMulaDeCarga));
+    }
+
+    [Fact]
+    public void CavaloComum_EstaNoCatalogo_E_TemMetadados()
+    {
+        Assert.Contains(RegrasMontaria.TipoCavaloComum, RegrasMontaria.TiposDoCatalogo);
+        Assert.Equal("Cavalo Comum", RegrasMontaria.ObterNome(RegrasMontaria.TipoCavaloComum));
+        Assert.Equal("Comum", RegrasMontaria.ObterRaridade(RegrasMontaria.TipoCavaloComum));
+        Assert.Contains("Estábulo", RegrasMontaria.ObterOrigem(RegrasMontaria.TipoCavaloComum));
+        Assert.Contains("Estábulo", RegrasMontaria.ObterOrigem(RegrasMontaria.TipoMulaDeCarga));
     }
 
     [Fact]

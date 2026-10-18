@@ -18,6 +18,7 @@ namespace JogoDoGrupo.Shared.Features.Npcs
         public const int IdArmadureiro = 5;
         public const int IdTaverneiro = 6;
         public const int IdMerceeiro = 7;
+        public const int IdCavalarico = 8;
 
         public static readonly DefinicaoNpc Vendedor = new DefinicaoNpc(
             id: IdVendedor,
@@ -103,6 +104,18 @@ namespace JogoDoGrupo.Shared.Features.Npcs
             raioInteracao: 4f
         );
 
+        public static readonly DefinicaoNpc Cavalarico = new DefinicaoNpc(
+            id: IdCavalarico,
+            nome: "Cavalariço Roderic",
+            papel: PapelNpc.Cavalarico,
+            area: AreaCidade,
+            x: -14f,
+            y: 0f,
+            z: 8f,
+            rotacaoY: 90f,
+            raioInteracao: 4f
+        );
+
         public static readonly DefinicaoNpc[] Todos =
         {
             Vendedor,
@@ -112,6 +125,7 @@ namespace JogoDoGrupo.Shared.Features.Npcs
             Armadureiro,
             Taverneiro,
             Merceeiro,
+            Cavalarico,
         };
 
         private static readonly Dictionary<int, DefinicaoNpc> _porId = new Dictionary<
@@ -126,6 +140,7 @@ namespace JogoDoGrupo.Shared.Features.Npcs
             { IdArmadureiro, Armadureiro },
             { IdTaverneiro, Taverneiro },
             { IdMerceeiro, Merceeiro },
+            { IdCavalarico, Cavalarico },
         };
 
         public static DefinicaoNpc Obter(int id)

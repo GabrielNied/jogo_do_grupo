@@ -37,6 +37,9 @@ namespace JogoDoGrupo.Shared.Features.Montarias
         /// <summary>Identificador da Mula de Carga.</summary>
         public const int TipoMulaDeCarga = 8;
 
+        /// <summary>Identificador do Cavalo Comum vendido no estábulo.</summary>
+        public const int TipoCavaloComum = 9;
+
         /// <summary>Tempo de espera / canalização para subir na montaria em segundos.</summary>
         public const float TempoInvocacaoSegundos = 1.5f;
 
@@ -51,6 +54,7 @@ namespace JogoDoGrupo.Shared.Features.Montarias
             TipoBasaltoVivente,
             TipoTempestario,
             TipoMulaDeCarga,
+            TipoCavaloComum,
         };
 
         public static bool TipoValido(int tipo)
@@ -93,7 +97,8 @@ namespace JogoDoGrupo.Shared.Features.Montarias
                 TipoCorcelDaGeada => "Drop raro de chefe de neve (5%) — em breve",
                 TipoBasaltoVivente => "Drop raro do Colosso Basáltico (5%) — em breve",
                 TipoTempestario => "Drop raro do Ancião Trovejante (5%) — em breve",
-                TipoMulaDeCarga => "Comerciante de Asterra",
+                TipoMulaDeCarga => "Estábulo da Brasa Mansa (80 Coroas)",
+                TipoCavaloComum => "Estábulo da Brasa Mansa (150 Coroas)",
                 _ => "Montaria inicial de Asterra",
             };
 
@@ -107,6 +112,7 @@ namespace JogoDoGrupo.Shared.Features.Montarias
                 TipoBasaltoVivente => "Basalto Vivente",
                 TipoTempestario => "Tempestário",
                 TipoMulaDeCarga => "Mula de Carga",
+                TipoCavaloComum => "Cavalo Comum",
                 _ => "Corcel Castanho",
             };
 
@@ -127,6 +133,8 @@ namespace JogoDoGrupo.Shared.Features.Montarias
                     "Montaria escura com detalhes elétricos; sem habilidade, só aparência.",
                 TipoMulaDeCarga =>
                     "Companheiro rústico e barato para viagens curtas; mesma velocidade das demais.",
+                TipoCavaloComum =>
+                    "Cavalo dócil e resistente, criado e treinado no estábulo da Brasa Mansa para cavalgadas e patrulhas.",
                 _ =>
                     "Companheiro rústico e veloz para longas viagens pelas planícies e trilhas de Asterra. Pelagem castanha aconchegante com arreios de couro.",
             };
@@ -141,6 +149,7 @@ namespace JogoDoGrupo.Shared.Features.Montarias
                 or TipoBasaltoVivente
                 or TipoTempestario => "Raro",
                 TipoMulaDeCarga => "Comum",
+                TipoCavaloComum => "Comum",
                 _ => "Comum",
             };
     }
