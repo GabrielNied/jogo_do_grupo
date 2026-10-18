@@ -6,6 +6,14 @@ Todo asset que entra em `client/Assets/ThirdParty/` precisa de uma linha aqui, n
 - **CC-BY:** uso livre com **crédito ao autor** no jogo (tela de créditos). Preencha a coluna "Crédito".
 - **Outras licenças** (Asset Store, pagas, "só uso pessoal"): não entram sem decisão do grupo.
 
+## Fantasy Landscape — cópia licenciada local
+
+Gabriel autorizou em 2026-10-18 a adaptação do pack **Fantasy Landscape 2.0**, de **Pxltiger**, para uso local com URP ([ADR 0048](../decisoes/0048-fantasy-landscape-local-com-urp.md)). Fonte: [Unity Asset Store, 103573](https://assetstore.unity.com/packages/3d/environments/fantasy-landscape-103573). Licença: [Standard Unity Asset Store EULA](https://unity.com/legal/as-terms), **não CC0 nem CC-BY**. Obtido/importado pelo Gabriel; sem declaração de crédito CC-BY. Preservar README e avisos do fornecedor.
+
+O conteúdo fica apenas local em `client/Assets/ThirdParty/Pxltiger/FantasyLandscape/`; tanto essa pasta quanto `Assets/FantasyEnvironments/` são ignoradas pelo Git. Não incluir modelos, texturas, prefabs ou materiais do pacote no repositório público. Cada integrante deve adquirir/importar sua cópia no Package Manager antes de usar os mapas que a referenciam.
+
+Após importar, use **Jogo do Grupo → Mundo → Adaptar Fantasy Landscape para URP**. O comando move a pasta pelo Unity, preserva GUIDs e converte os materiais no lugar. Árvores já pintadas continuam referenciando os mesmos prefabs. Para reimportar, faça pela própria pasta organizada; se surgirem duas cópias, o conversor interrompe sem mesclá-las. O vento Tree Creator não é mantido; a vegetação usa materiais URP estáticos.
+
 ## Fontes da identidade visual aprovadas pelo usuário
 
 Nunito Sans e Source Sans 3 foram escolhidas explicitamente para Lumora. Suas licenças são **SIL OFL 1.1**, preservadas com as fontes em `design/tipografia/fontes/` e nas cópias geradas para `Core/UI/Visual/Resources/Lumora/Fontes/`. As instâncias estáticas usam nomes internos próprios `LumoraNunito` e `LumoraSource`; avisos de autoria e licenças acompanham a distribuição. Origem: Google Fonts, [Nunito Sans](https://github.com/google/fonts/tree/main/ofl/nunitosans) e [Source Sans 3](https://github.com/google/fonts/tree/main/ofl/sourcesans3). Procedimento de derivação e fonte única: [guia visual](../../design/interface/GUIA-DE-ESTILO.md).
