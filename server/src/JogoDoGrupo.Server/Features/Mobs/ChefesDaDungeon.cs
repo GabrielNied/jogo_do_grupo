@@ -18,7 +18,13 @@ public sealed class ChefesDaDungeon(
     private readonly ConcurrentDictionary<string, ChefeDaDungeon> _porArea = new();
     private long _ultimoId = ConfigChefeDaDungeon.PrimeiroIdDoChefe - 1;
 
-    public long Criar(string areaId, double x, double z)
+    public long Criar(
+        string areaId,
+        double x,
+        double z,
+        double multiplicadorVida = 1.0,
+        double multiplicadorDano = 1.0
+    )
     {
         ArgumentException.ThrowIfNullOrEmpty(areaId);
         var chefe = new ChefeDaDungeon(
@@ -27,7 +33,9 @@ public sealed class ChefesDaDungeon(
             z,
             () => Interlocked.Increment(ref _ultimoId),
             relogioMs,
-            historico
+            historico,
+            multiplicadorVida,
+            multiplicadorDano
         );
         _porArea[areaId] = chefe;
         return chefe.InimigoId;

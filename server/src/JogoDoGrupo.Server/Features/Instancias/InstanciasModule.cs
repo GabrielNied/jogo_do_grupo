@@ -38,7 +38,7 @@ public sealed class InstanciasModule : IFeatureModule
             .Faixa(InstanciasMessageIds.Faixa)
             .Ao<EntrarNaDungeon>(
                 InstanciasMessageIds.EntrarNaDungeon,
-                (sessao, _) => _servico?.AoEntrar(sessao)
+                (sessao, msg) => _servico?.AoEntrar(sessao, msg)
             )
             .Ao<SairDaDungeon>(
                 InstanciasMessageIds.SairDaDungeon,

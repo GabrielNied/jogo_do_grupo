@@ -64,6 +64,7 @@ Entrada, ciclo de vida e isolamento das corridas de dungeon no servidor autorita
 - **Vitória do chefe e prazo de coleta (issue #809):** ao derrotar o Guardião do Reflexo, o servidor não expulsa o grupo imediatamente. Ele envia `ChefeDerrotadoNaDungeon` aos participantes e mantém a instância ativa durante um prazo de coleta de **20 s** (`PrazoParaColetaDeLoot`), permitindo que os participantes coletem o loot gerado no chão da sala do chefe. Jogadores que desejarem podem enviar `SairDaDungeon` para sair antes do fim do prazo.
 - **Caído e socorro na dungeon (issue #809):** quando a vida de um participante chega a 0, ele entra em `FaseDeQueda.Caido` por 45 s. Um aliado próximo (até 2 m) pode segurar a tecla de interagir por 3 s para levantá-lo (`FaseDeQueda.Vivo` com 20% da vida máxima); dano ao socorrista cancela o canal. Esgotado o prazo de 45 s, o jogador retorna à cidade sem perder itens. Se todos os membros da dungeon estiverem caídos ou tiverem saído, a instância encerra em **derrota**.
 - **Conteúdo da Mina do Reflexo (issue #800):** ao abrir a corrida o servidor popula a área com três salões de Javali do Campo **sem respawn** e o Guardião do Reflexo no salão final (`LayoutDaMinaDoReflexo`, shared). A entrada física fica na colina oeste (~200 m da cidade); o client monta a entrada e os salões por código e mostra recusas e resultado na tela.
+- **Dificuldade sem fim e cronômetro (issue #189):** o líder seleciona o nível da corrida (`Nivel` em `EntrarNaDungeon`, padrão 1, até 1 acima do maior nível já vencido pelo líder). Cada nível adiciona autoritativamente **+8% de vida e de dano** a todos os inimigos comuns e ao chefe (`RegrasDificuldadeSemFim.CalcularMultiplicadorVida` e `CalcularMultiplicadorDano`: `1.0 + 0.08 * (nivel - 1)`). A dungeon possui um cronômetro com tempo limite padrão de **15 minutos (900 s)**; derrotar o chefe dentro do tempo qualifica como vitória "no tempo" e desbloqueia o próximo nível de dificuldade. Tentativas de entrar num nível não liberado são recusadas com `CodigosErroInstancias.NivelNaoDesbloqueado`.
 
 ## Depende de
 
@@ -74,10 +75,11 @@ Entrada, ciclo de vida e isolamento das corridas de dungeon no servidor autorita
 ## Expõe
 
 - Mensagens de tempo real (`InstanciasMessageIds`, faixa 12000–12999):
-  - `EntrarNaDungeon` (12000): cliente solicita entrar na dungeon
-  - `DungeonIniciada` (12001): servidor confirma início/entrada na corrida com ID e área
-  - `EntradaRecusada` (12002): servidor recusa com código (`NaoELider`, `GrupoEmOutraDungeon`, `LongeDemais`)
-  - `DungeonEncerrada` (12003): servidor avisa encerramento com `ResultadoDungeon` (`Vitoria`, `Derrota`, `InstanciaVazia`)
-  - `ChefeDerrotadoNaDungeon` (12004): servidor avisa que o chefe caiu e que o prazo para coleta de loot começou
+  - `EntrarNaDungeon` (12000): cliente solicita entrar na dungeon (informa `Nivel`)
+  - `DungeonIniciada` (12001): servidor confirma início/entrada na corrida com ID, área, `Nivel` e `TempoLimiteSegundos`
+  - `EntradaRecusada` (12002): servidor recusa com código (`NaoELider`, `GrupoEmOutraDungeon`, `LongeDemais`, `NivelNaoDesbloqueado`)
+  - `DungeonEncerrada` (12003): servidor avisa encerramento com `ResultadoDungeon`, `Nivel`, `TempoTotalSegundos`, `NoTempo` e `ProximoNivelLiberado`
+  - `ChefeDerrotadoNaDungeon` (12004): servidor avisa que o chefe caiu, prazo para coleta, `Nivel`, `TempoTotalSegundos` e `NoTempo`
   - `SairDaDungeon` (12005): cliente pede saída antecipada da corrida após a vitória
-- Serviço server-side `ServicoDeInstancias`: gerencia criação, entrada, varredura periódica e encerramento de corridas
+- Regras de balanceamento compartilhadas (`RegrasDificuldadeSemFim`): multiplicadores de vida/dano, validação de cronômetro e progressão de recorde de nível
+- Serviço server-side `ServicoDeInstancias`: gerencia criação, entrada, validação de nível, varredura periódica e encerramento de corridas
