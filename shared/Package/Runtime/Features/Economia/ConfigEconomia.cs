@@ -12,6 +12,9 @@ namespace JogoDoGrupo.Shared.Features.Economia
         /// <summary>Preço base de venda para itens genéricos que não possuem tier de equipamento.</summary>
         public const long PrecoBaseItemGenerico = 1;
 
+        /// <summary>Custo de referência de reparo por ponto de durabilidade restaurado.</summary>
+        public const long CustoReparoPorPontoPerdido = 1;
+
         /// <summary>Perda de durabilidade ao cair em combate (desgaste leve, ref. New World).</summary>
         public const int DesgasteAoCair = 5;
 
