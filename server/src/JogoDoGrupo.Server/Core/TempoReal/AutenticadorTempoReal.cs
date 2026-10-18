@@ -11,7 +11,8 @@ namespace JogoDoGrupo.Server.Core.TempoReal;
 internal readonly record struct ResultadoAutenticacao(
     string Codigo,
     long ContaId,
-    long PersonagemId
+    long PersonagemId,
+    bool EhGm = false
 )
 {
     public bool Aceita => Codigo.Length == 0;
@@ -80,6 +81,40 @@ internal sealed class AutenticadorTempoReal(
             }
         }
 
+        var ehGm = false;
+        var db = escopo.ServiceProvider.GetService<Persistencia.JogoDbContext>();
+        if (db != null)
+        {
+            var dadosConta =
+                await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.FirstOrDefaultAsync(
+                    System.Linq.Queryable.Select(
+                        System.Linq.Queryable.Where(
+                            Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.AsNoTracking(
+                                db.Set<Conta>()
+                            ),
+                            c => c.Id == contaId
+                        ),
+                        c => new { c.EhGm, c.BanidaAte }
+                    ),
+                    cancelamento
+                );
+
+            if (dadosConta != null)
+            {
+                if (dadosConta.BanidaAte is { } banidaAte && banidaAte > DateTime.UtcNow)
+                {
+                    log.LogWarning(
+                        "Conexão UDP recusada: conta {ContaId} banida até {BanidaAte}.",
+                        contaId,
+                        banidaAte
+                    );
+                    return new(CodigosErro.ContaBanida, contaId, 0, false);
+                }
+
+                ehGm = dadosConta.EhGm;
+            }
+        }
+
         if (pedido.PersonagemId <= 0)
         {
             return new(CodigosErro.AcessoNegado, contaId, 0);
@@ -95,7 +130,7 @@ internal sealed class AutenticadorTempoReal(
         }
 
         return await verificador.PertenceAContaAsync(contaId, pedido.PersonagemId, cancelamento)
-            ? new("", contaId, pedido.PersonagemId)
-            : new(CodigosErro.AcessoNegado, contaId, 0);
+            ? new("", contaId, pedido.PersonagemId, ehGm)
+            : new(CodigosErro.AcessoNegado, contaId, 0, false);
     }
 }

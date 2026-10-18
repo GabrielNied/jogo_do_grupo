@@ -43,4 +43,7 @@ public sealed class SessaoTempoReal
 
     /// <summary>Personagem com que a conta entrou. Zero antes de autenticar.</summary>
     public long PersonagemId { get; internal set; }
+
+    /// <summary>Indica se a conta conectada possui permissão de Game Master (#187).</summary>
+    public bool EhGm { get; internal set; }
 }

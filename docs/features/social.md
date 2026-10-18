@@ -509,3 +509,22 @@ Código em `shared/Package/Runtime/Features/Social/`. Tempo real, entrega confi�
 | 13310 | `RetratoInspecaoResponse` | servidor → client | `PersonagemId`, `Nome`, `Raca`, `Nivel`, `ConjuntoAtivo`, `Equipados[]` (`EntradaInventario`), `Atributos` (`AtributosDosEquipamentos`), `Forca`, `Vigor`, `Agilidade`, `Intelecto`, `Espirito` |
 | 13311 | `InspecaoRecusada` | servidor → quem pediu | `PersonagemId`, `Motivo` (`CodigoErroInspecao`: `AlvoNaoEncontrado` 1, `AlvoOffline` 2, `AlvoForaDoAlcance` 3) |
 
+### Moderação e ferramentas de GM (issue #187)
+
+Ferramentas administrativas autoritativas no servidor para moderação e auditoria, além de recepção e persistência de denúncias de jogadores.
+
+#### Regras de moderação
+- **Autoridade:** permissão de Game Master fica no banco na entidade `Conta.EhGm`. Contas sem `EhGm = true` têm qualquer comando de GM rejeitado com aviso estruturado de segurança no log.
+- **Auditoria estruturada:** cada comando de GM executado gera registro persistente na tabela `AuditoriaGm` (`RegistroAuditoriaGm`) e log estruturado com prefixo `[GM-AUDIT]` contendo a conta do GM, personagem, ação, alvo e detalhes.
+- **Comandos de GM no chat:**
+  - `/tp <x y z>` ou `/tp <jogador>`: teleporte autoritativo.
+  - `/puxar <jogador>`: puxa o jogador alvo até as coordenadas do GM.
+  - `/silenciar <jogador> [minutos]`: silencia temporariamente o jogador no chat via `ISilenciadorDoChat` (padrão 10 minutos).
+  - `/expulsar <jogador> [motivo]`: desconecta imediatamente o personagem da sessão de tempo real.
+  - `/banir <jogador> [dias] [motivo]`: aplica banimento temporário na `Conta.BanidaAte` do jogador e encerra sua conexão de tempo real.
+- **Denúncia de jogadores:**
+  - Comando `/denunciar <jogador> <motivo> [detalhes]`.
+  - Motivos válidos: `ofensa`, `trapaca`, `spam`, `comportamento`, `outro`.
+  - Denúncias são persistidas na tabela `Denuncias` com autor, alvo, motivo, detalhes e data UTC para posterior análise da moderação.
+- **Bloqueio de contas banidas:** contas com `BanidaAte > DateTime.UtcNow` têm tentativa de login HTTP recusada com 403 Forbidden (`CodigosErro.ContaBanida`) e autenticação UDP no tempo real recusada.
+

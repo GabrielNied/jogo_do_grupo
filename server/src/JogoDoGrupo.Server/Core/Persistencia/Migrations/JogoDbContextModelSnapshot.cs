@@ -23,6 +23,9 @@ namespace JogoDoGrupo.Server.Core.Persistencia.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<DateTime?>("BanidaAte")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("CarimboSeguranca")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
@@ -31,6 +34,15 @@ namespace JogoDoGrupo.Server.Core.Persistencia.Migrations
                         .HasDefaultValue("");
 
                     b.Property<DateTime>("CriadaEm")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("EhGm")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(false);
+
+                    b.Property<string>("MotivoBanimento")
+                        .HasMaxLength(256)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("SenhaHash")
@@ -53,6 +65,97 @@ namespace JogoDoGrupo.Server.Core.Persistencia.Migrations
                         .IsUnique();
 
                     b.ToTable("Contas", (string)null);
+                });
+
+            modelBuilder.Entity("JogoDoGrupo.Server.Core.Moderacao.Denuncia", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long?>("AlvoContaId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("AlvoNome")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("TEXT");
+
+                    b.Property<long?>("AlvoPersonagemId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("AutorContaId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("AutorPersonagemId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CriadaEm")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Detalhes")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("MetadadosContexto")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Motivo")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AlvoPersonagemId");
+
+                    b.HasIndex("AutorContaId");
+
+                    b.HasIndex("CriadaEm");
+
+                    b.ToTable("Denuncias", (string)null);
+                });
+
+            modelBuilder.Entity("JogoDoGrupo.Server.Core.Moderacao.RegistroAuditoriaGm", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Acao")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Alvo")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Detalhes")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("ExecutadaEm")
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("GmContaId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("GmPersonagemId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExecutadaEm");
+
+                    b.HasIndex("GmContaId");
+
+                    b.ToTable("AuditoriaGm", (string)null);
                 });
 
             modelBuilder.Entity("JogoDoGrupo.Server.Features.Combate.RecursosPersonagem", b =>

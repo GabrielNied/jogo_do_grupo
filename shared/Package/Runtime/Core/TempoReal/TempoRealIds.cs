@@ -12,5 +12,17 @@ namespace JogoDoGrupo.Shared.Core.TempoReal
 
         /// <summary>Servidor → client: resultado da autenticação UDP.</summary>
         public const ushort ResultadoAutenticacaoTempoReal = 2;
+
+        /// <summary>Client → servidor: comando administrativo de GM.</summary>
+        public const ushort PedirComandoGm = 10;
+
+        /// <summary>Servidor → client: resposta de comando administrativo de GM.</summary>
+        public const ushort ResultadoComandoGm = 11;
+
+        /// <summary>Client → servidor: denúncia de jogador.</summary>
+        public const ushort DenunciarJogador = 12;
+
+        /// <summary>Servidor → client: resposta do envio de denúncia.</summary>
+        public const ushort ResultadoDenuncia = 13;
     }
 }

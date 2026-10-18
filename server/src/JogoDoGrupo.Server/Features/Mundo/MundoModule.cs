@@ -86,11 +86,13 @@ public sealed class MundoModule
         );
         servicos.AddSingleton<ITransicoesDeAreaDoMundo>(this);
         servicos.AddSingleton<IControleDeVelocidadeDoMundo>(this);
-        servicos.AddSingleton<ITeleporteDeTeste>(sp => new TeleporteDeTeste(
+        servicos.AddSingleton(sp => new TeleporteDeTeste(
             _areas,
             sp.GetRequiredService<ServidorTempoReal>(),
             (area, avatar) => Replicar(area, avatar.Sessao, avatar)
         ));
+        servicos.AddSingleton<ITeleporteDeTeste>(sp => sp.GetRequiredService<TeleporteDeTeste>());
+        servicos.AddSingleton<ITeleporteMundo>(sp => sp.GetRequiredService<TeleporteDeTeste>());
         servicos.AddSingleton<IDeslocamentosDoMundo>(new DeslocamentosDaCidade(_areas));
         servicos.AddSingleton<ILimiteDeVelocidadeDoMundo>(new LimiteDeVelocidadeDaCidade(_areas));
         servicos.AddSingleton(sp => new RelogioDoMundo(sp.GetRequiredService<TimeProvider>()));

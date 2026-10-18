@@ -15,5 +15,6 @@ namespace JogoDoGrupo.Shared.Core.TempoReal
     {
         public bool Aceita = false;
         public string Codigo = "";
+        public bool EhGm = false;
     }
 }

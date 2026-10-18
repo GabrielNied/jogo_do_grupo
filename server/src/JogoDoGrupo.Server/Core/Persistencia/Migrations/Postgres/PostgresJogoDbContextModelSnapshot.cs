@@ -30,6 +30,9 @@ namespace JogoDoGrupo.Server.Core.Persistencia.Migrations.Postgres
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
+                    b.Property<DateTime?>("BanidaAte")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("CarimboSeguranca")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
@@ -39,6 +42,15 @@ namespace JogoDoGrupo.Server.Core.Persistencia.Migrations.Postgres
 
                     b.Property<DateTime>("CriadaEm")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("EhGm")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.Property<string>("MotivoBanimento")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
 
                     b.Property<string>("SenhaHash")
                         .IsRequired()
@@ -60,6 +72,101 @@ namespace JogoDoGrupo.Server.Core.Persistencia.Migrations.Postgres
                         .IsUnique();
 
                     b.ToTable("Contas", (string)null);
+                });
+
+            modelBuilder.Entity("JogoDoGrupo.Server.Core.Moderacao.Denuncia", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<long?>("AlvoContaId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("AlvoNome")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<long?>("AlvoPersonagemId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("AutorContaId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("AutorPersonagemId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("CriadaEm")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Detalhes")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("MetadadosContexto")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<string>("Motivo")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AlvoPersonagemId");
+
+                    b.HasIndex("AutorContaId");
+
+                    b.HasIndex("CriadaEm");
+
+                    b.ToTable("Denuncias", (string)null);
+                });
+
+            modelBuilder.Entity("JogoDoGrupo.Server.Core.Moderacao.RegistroAuditoriaGm", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Acao")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("Alvo")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("Detalhes")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<DateTime>("ExecutadaEm")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<long>("GmContaId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("GmPersonagemId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExecutadaEm");
+
+                    b.HasIndex("GmContaId");
+
+                    b.ToTable("AuditoriaGm", (string)null);
                 });
 
             modelBuilder.Entity("JogoDoGrupo.Server.Features.Combate.RecursosPersonagem", b =>
