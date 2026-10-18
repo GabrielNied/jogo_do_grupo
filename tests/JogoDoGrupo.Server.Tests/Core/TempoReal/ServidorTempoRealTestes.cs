@@ -393,7 +393,7 @@ public class ServidorTempoRealTestes(TempoRealFixture f)
 
     [Theory]
     [InlineData(999)] // faixa do Core, sem uso
-    [InlineData(2000)] // faixa de outra funcionalidade, ainda não registrada
+    [InlineData(8000)] // faixa de outra funcionalidade, ainda não registrada (Profissões)
     [InlineData(59999)]
     [InlineData(60100)]
     [InlineData(ushort.MaxValue)]
