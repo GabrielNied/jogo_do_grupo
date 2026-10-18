@@ -42,6 +42,22 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
         [Range(0f, 1f), Tooltip("Cobertura nativa de grama, de 0 a 1; não é uma contagem por m².")]
         public float CoberturaDeGrama = 0.7f;
 
+        [
+            Range(1f, 5f),
+            Tooltip(
+                "Densidade nativa do protótipo; afeta esta espécie em todo o Terrain ao pintar."
+            )
+        ]
+        public float DensidadeDePlantas = 1f;
+
+        [
+            Range(1f, 5f),
+            Tooltip(
+                "Densidade nativa do protótipo; 4 produz grama mais cheia. Afeta esta espécie em todo o Terrain ao pintar."
+            )
+        ]
+        public float DensidadeDeGrama = 4f;
+
         [Range(0f, 45f)]
         public float InclinacaoMaxima = 35f;
 

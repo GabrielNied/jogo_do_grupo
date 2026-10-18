@@ -19,6 +19,8 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
                 || !NoIntervalo(conjunto.ArvoresPorCemMetros, 0f, 25f)
                 || !NoIntervalo(conjunto.CoberturaDePlantas, 0f, 1f)
                 || !NoIntervalo(conjunto.CoberturaDeGrama, 0f, 1f)
+                || !NoIntervalo(conjunto.DensidadeDePlantas, 1f, 5f)
+                || !NoIntervalo(conjunto.DensidadeDeGrama, 1f, 5f)
                 || !NoIntervalo(conjunto.InclinacaoMaxima, 0f, 45f)
                 || !NoIntervalo(conjunto.DistanciaEntreArvores, 0.1f, 20f)
                 || !NoIntervalo(conjunto.DistanciaEntrePlantas, 0f, 20f)
@@ -140,6 +142,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
                 conjunto,
                 conjunto.Plantas,
                 conjunto.CoberturaDePlantas,
+                conjunto.DensidadeDePlantas,
                 conjunto.DistanciaEntrePlantas,
                 local,
                 apagar
@@ -149,6 +152,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
                 conjunto,
                 conjunto.Gramas,
                 conjunto.CoberturaDeGrama,
+                conjunto.DensidadeDeGrama,
                 conjunto.DistanciaEntreGramas,
                 local,
                 apagar
@@ -338,6 +342,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
             ConjuntoDeVegetacao conjunto,
             List<EspecieDoPincel> especies,
             float cobertura,
+            float densidade,
             float espacamento,
             Vector3 centro,
             bool apagar
@@ -403,6 +408,23 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
                         }
                     );
                     dados.detailPrototypes = prototipos.ToArray();
+                }
+                if (!apagar)
+                {
+                    var prototipo = prototipos[indice];
+                    if (prototipo.density != densidade || prototipo.noiseSeed == 0)
+                    {
+                        prototipo.density = densidade;
+                        // Camadas antigas do pincel usavam a mesma semente zero.
+                        if (prototipo.noiseSeed == 0)
+                            prototipo.noiseSeed =
+                                1
+                                + (int)(
+                                    (uint)(indice * 83492791 ^ conjunto.Semente) % int.MaxValue
+                                );
+                        prototipos[indice] = prototipo;
+                        dados.detailPrototypes = prototipos.ToArray();
+                    }
                 }
                 var esperado = apagar
                     ? 0f

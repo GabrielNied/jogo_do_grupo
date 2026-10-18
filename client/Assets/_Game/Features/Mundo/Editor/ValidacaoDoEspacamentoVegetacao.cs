@@ -53,6 +53,28 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
                     var plantas = Total(dados, 0);
                     var grama = Total(dados, 1);
                     Verificar(
+                        dados.detailPrototypes[1].density == 4f,
+                        "Grama perdeu a densidade nativa inicial."
+                    );
+                    Verificar(
+                        dados.detailPrototypes[0].density == 1f,
+                        "Densidade de plantas foi alterada pela grama."
+                    );
+                    Verificar(
+                        dados.detailPrototypes[0].noiseSeed != dados.detailPrototypes[1].noiseSeed,
+                        "Camadas compartilham a mesma semente."
+                    );
+                    var coberturaDensa = dados.ComputeDetailCoverage(1);
+                    receita.DensidadeDeGrama = 1f;
+                    PinturaDeVegetacao.Aplicar(terreno, receita, centro, false, false);
+                    if (modo == DetailScatterMode.CoverageMode)
+                        Verificar(
+                            coberturaDensa > dados.ComputeDetailCoverage(1) * 3f,
+                            "A densidade nativa não aumentou a quantidade renderizada."
+                        );
+                    receita.DensidadeDeGrama = 4f;
+                    PinturaDeVegetacao.Aplicar(terreno, receita, centro, false, false);
+                    Verificar(
                         dados.GetDetailLayer(16, 16, 1, 1, 1)[0, 0] == dados.maxDetailScatterPerRes,
                         "Cobertura 100% não atingiu o limite correto de " + modo
                     );

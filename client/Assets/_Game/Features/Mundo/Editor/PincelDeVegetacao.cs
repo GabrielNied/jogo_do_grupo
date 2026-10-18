@@ -133,10 +133,16 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
                 Campo("Arvores", "Espécies de árvores");
                 EditorGUILayout.LabelField("Plantas", EditorStyles.boldLabel);
                 Percentual("CoberturaDePlantas", "Cobertura (%)");
+                Campo("DensidadeDePlantas", "Densidade nativa");
                 Campo("DistanciaEntrePlantas", "Espaçamento aprox. (m)");
                 Campo("Plantas", "Espécies de plantas");
                 EditorGUILayout.LabelField("Grama", EditorStyles.boldLabel);
                 Percentual("CoberturaDeGrama", "Cobertura (%)");
+                Campo("DensidadeDeGrama", "Densidade nativa");
+                EditorGUILayout.HelpBox(
+                    "Para grama cheia: cobertura 100%, densidade 4 e espaçamento 0. Ao pintar, a densidade altera a espécie em todo o Terrain; Ctrl+Z desfaz.",
+                    MessageType.None
+                );
                 Campo("DistanciaEntreGramas", "Espaçamento aprox. (m)");
                 Campo("Gramas", "Espécies de grama");
                 _edicao.ApplyModifiedProperties();
