@@ -18,6 +18,7 @@ internal static class TempoRealServicos
         servicos.AddSingleton(ConfiguracaoTempoReal.Ler(configuracao));
         servicos.AddSingleton<MensagensTempoReal>();
         servicos.AddSingleton<AutenticadorTempoReal>();
+        servicos.AddSingleton<IRegistroDeRecusasTempoReal, RegistroDeRecusasTempoReal>();
         servicos.AddSingleton(sp => new ServidorTempoReal(
             sp.GetRequiredService<ConfiguracaoTempoReal>(),
             sp.GetRequiredService<MensagensTempoReal>(),

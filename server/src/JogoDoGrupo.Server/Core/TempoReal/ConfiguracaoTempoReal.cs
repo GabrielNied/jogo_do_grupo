@@ -39,6 +39,12 @@ public sealed class ConfiguracaoTempoReal
     public int MaximoTentativasAutenticacao { get; set; } = 3;
     public int MaximoConexoesPendentesPorIp { get; set; } = 32;
 
+    /// <summary>Janela em minutos para agregação de recusas de tempo real por conta para o GM (#523).</summary>
+    public int JanelaRecusasMinutos { get; set; } = 10;
+
+    /// <summary>Quantidade de recusas na janela para disparar alerta de suspeita para o GM (#523).</summary>
+    public int LimiteAlertaRecusasConta { get; set; } = 5;
+
     /// <summary>Lê e valida a seção; configuração inválida impede o servidor de subir.</summary>
     public static ConfiguracaoTempoReal Ler(IConfiguration configuracao)
     {
@@ -89,6 +95,8 @@ public sealed class ConfiguracaoTempoReal
             || tempoReal.MaximoExcecoesPorSessao <= 0
             || tempoReal.MaximoTentativasAutenticacao <= 0
             || tempoReal.MaximoConexoesPendentesPorIp <= 0
+            || tempoReal.JanelaRecusasMinutos <= 0
+            || tempoReal.LimiteAlertaRecusasConta <= 0
         )
             throw new InvalidOperationException(
                 "TempoReal: limites do protocolo precisam ser positivos e o pacote precisa comportar o cabe�alho."

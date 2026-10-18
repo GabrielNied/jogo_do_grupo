@@ -10,8 +10,16 @@ public sealed class MetricasDoServidor
 {
     private readonly ConcurrentQueue<DateTimeOffset> _erros = new();
     private ServidorTempoReal? _tempoReal;
+    private IRegistroDeRecusasTempoReal? _registroRecusas;
 
-    public void Observar(ServidorTempoReal tempoReal) => _tempoReal = tempoReal;
+    public void Observar(
+        ServidorTempoReal tempoReal,
+        IRegistroDeRecusasTempoReal? registroRecusas = null
+    )
+    {
+        _tempoReal = tempoReal;
+        _registroRecusas = registroRecusas;
+    }
 
     public void RegistrarErro(DateTimeOffset quando)
     {
@@ -26,7 +34,9 @@ public sealed class MetricasDoServidor
         return new MetricasServidor(
             _tempoReal?.Sessoes.Count ?? 0,
             _erros.Count,
-            _tempoReal?.Passos.Resumir() ?? new ResumoDosPassos(0, 0, 0, 0, 0)
+            _tempoReal?.Passos.Resumir() ?? new ResumoDosPassos(0, 0, 0, 0, 0),
+            _registroRecusas?.TotalContasComRecusas ?? 0,
+            _registroRecusas?.TotalContasEmAlerta ?? 0
         );
     }
 
@@ -43,7 +53,9 @@ public sealed class MetricasDoServidor
 public sealed record MetricasServidor(
     int JogadoresOnline,
     int ErrosNoUltimoMinuto,
-    ResumoDosPassos Passos
+    ResumoDosPassos Passos,
+    int ContasComRecusasTempoReal = 0,
+    int ContasEmAlertaTempoReal = 0
 );
 
 /// <summary>Mascara segredos e conteúdo de conversa sem perder o evento.</summary>
