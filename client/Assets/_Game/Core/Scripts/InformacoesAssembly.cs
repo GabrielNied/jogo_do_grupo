@@ -5,3 +5,4 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("JogoDoGrupo.Client.Social")]
 [assembly: InternalsVisibleTo("JogoDoGrupo.Client.Desenvolvimento")]
 [assembly: InternalsVisibleTo("JogoDoGrupo.Client.Desenvolvimento.Editor")]
+[assembly: InternalsVisibleTo("JogoDoGrupo.Client.Desenvolvimento.Tests")]

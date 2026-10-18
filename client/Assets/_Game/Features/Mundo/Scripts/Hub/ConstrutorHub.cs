@@ -230,6 +230,16 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
                 return null;
             }
 
+            return InstanciarMapaPublicadoInterno();
+        }
+
+        internal static GameObject InstanciarMapaPublicadoParaTeste()
+        {
+            return InstanciarMapaPublicadoInterno();
+        }
+
+        private static GameObject InstanciarMapaPublicadoInterno()
+        {
             var modelo = Resources.Load<GameObject>(PrefabDoMapaPublicado);
             if (modelo == null)
             {
@@ -238,7 +248,29 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
 
             var mapa = Object.Instantiate(modelo);
             mapa.name = NomeRaiz;
+            RestaurarTerrenoPublicado(mapa);
             return mapa;
+        }
+
+        private static void RestaurarTerrenoPublicado(GameObject mapa)
+        {
+            var terrain = mapa.GetComponentInChildren<Terrain>();
+            if (terrain != null)
+            {
+                TerrenoNativoDoMundo.GarantirDados(terrain);
+            }
+            else
+            {
+                var terreno = mapa.transform.Find(NomeTerreno);
+                if (terreno == null)
+                {
+                    var objetoTerreno = new GameObject(NomeTerreno);
+                    objetoTerreno.transform.SetParent(mapa.transform, false);
+                    terreno = objetoTerreno.transform;
+                }
+
+                TerrenoNativoDoMundo.Criar(terreno);
+            }
         }
 
         /// <summary>

@@ -41,6 +41,47 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
             return terrain;
         }
 
+        /// <summary>
+        /// Garante que o Terrain tenha o TerrainData com relevo, biomas e a entrada da caverna
+        /// aberta, atualizando também o TerrainCollider.
+        /// </summary>
+        public static void GarantirDados(Terrain terrain)
+        {
+            if (terrain == null)
+            {
+                return;
+            }
+
+            if (terrain.terrainData != null && terrain.terrainData.name.EndsWith("(Clone)"))
+            {
+                return;
+            }
+
+            var origem =
+                terrain.terrainData != null
+                    ? terrain.terrainData
+                    : Resources.Load<TerrainData>(CaminhoNosResources);
+
+            if (origem == null)
+            {
+                throw new System.InvalidOperationException(
+                    "TerrainData do mundo não encontrado em Resources/Mundo/TerrenoDoMundo."
+                );
+            }
+
+            var dados = Object.Instantiate(origem);
+            AbrirEntradaDaCaverna(dados);
+            terrain.terrainData = dados;
+            var colisor = terrain.GetComponent<TerrainCollider>();
+            if (colisor != null)
+            {
+                colisor.terrainData = dados;
+            }
+
+            terrain.drawTreesAndFoliage = true;
+            terrain.detailObjectDensity = 1f;
+        }
+
         private static void AbrirEntradaDaCaverna(TerrainData dados)
         {
             var resolucao = dados.holesResolution;
