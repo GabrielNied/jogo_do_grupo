@@ -101,7 +101,8 @@ namespace JogoDoGrupo.Shared.Features.Social
         public static bool CanalValido(CanalDeChat canal) =>
             canal == CanalDeChat.Cidade
             || canal == CanalDeChat.Grupo
-            || canal == CanalDeChat.Sussurro;
+            || canal == CanalDeChat.Sussurro
+            || canal == CanalDeChat.ProcurarGrupo;
 
         // ── Limites ───────────────────────────────────────────────────────────────
 

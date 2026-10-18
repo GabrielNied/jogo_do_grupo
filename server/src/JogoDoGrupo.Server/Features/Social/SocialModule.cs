@@ -25,6 +25,7 @@ public sealed class SocialModule : IFeatureModule, IConsultaDeGrupo
     private readonly DiretorioTardio _diretorio = new();
     private GruposDoServidor? _grupos;
     private AmigosDoServidor? _amigos;
+    private FilaDeGrupoDoServidor? _filaGrupo;
     private ControleDeMarcadoresDeGrupo? _marcadores;
     private ServicoDeInspecao? _inspecao;
 
@@ -128,9 +129,18 @@ public sealed class SocialModule : IFeatureModule, IConsultaDeGrupo
                 SocialMessageIds.DeixarDeIgnorar,
                 (sessao, pedido) => _amigos!.DeixarDeIgnorar(sessao.PersonagemId, pedido.IgnoradoId)
             )
+            .Ao<EntrarNaFilaDeGrupo>(
+                SocialMessageIds.EntrarNaFilaDeGrupo,
+                (sessao, pedido) => _filaGrupo!.Entrar(sessao.PersonagemId, pedido.Papel)
+            )
+            .Ao<SairDaFilaDeGrupo>(
+                SocialMessageIds.SairDaFilaDeGrupo,
+                (sessao, _) => _filaGrupo!.Sair(sessao.PersonagemId)
+            )    
             .Ao<DefinirMarcadorDeAlvo>(
                 SocialMessageIds.DefinirMarcadorDeAlvo,
                 (sessao, pedido) => _marcadores?.DefinirMarcador(sessao.PersonagemId, pedido)
+             )   
             .Ao<PedirInspecao>(
                 SocialMessageIds.PedirInspecao,
                 (sessao, pedido) =>
@@ -172,6 +182,20 @@ public sealed class SocialModule : IFeatureModule, IConsultaDeGrupo
             () => _servicos!.GetService<IPosicoesDoMundo>()
         );
         _grupos = grupos;
+        _filaGrupo = new FilaDeGrupoDoServidor(
+            grupos,
+            (personagemId, idMsg, corpo) =>
+            {
+                if (
+                    _tempoReal != null
+                    && _tempoReal.TentarObterSessao(personagemId, out var sessao)
+                    && sessao != null
+                )
+                {
+                    _tempoReal.Enviar(sessao, idMsg, corpo);
+                }
+            },
+            () => Environment.TickCount64
         _marcadores = new ControleDeMarcadoresDeGrupo(
             this,
             saida,
@@ -198,6 +222,7 @@ public sealed class SocialModule : IFeatureModule, IConsultaDeGrupo
             // Só tira se ainda for esta sessão: reconectar troca a sessão antes de a antiga acabar.
             _online.TryRemove(new KeyValuePair<long, SessaoTempoReal>(sessao.PersonagemId, sessao));
             _limites!.Esquecer(sessao.PersonagemId);
+            _filaGrupo?.AoDesconectar(sessao.PersonagemId);
             // Sessão já substituída por outra do mesmo personagem: ele continua online.
             _amigos!.RemoverOnline(sessao.ContaId, sessao.PersonagemId);
             if (saida.Remover(sessao))
@@ -343,7 +368,8 @@ public sealed class SocialModule : IFeatureModule, IConsultaDeGrupo
                 pedido,
                 _online.ContainsKey,
                 _grupos!.ListaDe,
-                _amigos!.ContatoBarradoEntrePersonagens
+                _amigos!.ContatoBarradoEntrePersonagens,
+                () => _online.Keys.ToArray()
             );
             if (resultado.Recusa != null)
             {

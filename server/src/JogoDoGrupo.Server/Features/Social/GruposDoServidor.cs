@@ -531,6 +531,61 @@ public sealed class GruposDoServidor(
         EnviarLista(grupo);
     }
 
+    /// <summary>
+    /// Cria um grupo de 5 membros automaticamente formado pela fila (Dungeon Finder).
+    /// </summary>
+    public long? FormarGrupoDeFila(IReadOnlyList<long> membrosIds)
+    {
+        if (membrosIds == null || membrosIds.Count == 0)
+        {
+            return null;
+        }
+
+        lock (_trava)
+        {
+            var agora = relogioMs();
+            Manutencao(agora);
+
+            // Verifica se todos estão válidos e sem grupo
+            foreach (var id in membrosIds)
+            {
+                if (_grupoDe.ContainsKey(id) || !_online.Contains(id))
+                {
+                    return null;
+                }
+            }
+
+            var liderId = membrosIds[0];
+            var grupo = new Grupo { Id = ++_proximoGrupo, LiderId = liderId };
+
+            foreach (var id in membrosIds)
+            {
+                var nome = _nomes.TryGetValue(id, out var n) ? n : id.ToString();
+                var membro = new MembroEmGrupo
+                {
+                    PersonagemId = id,
+                    Nome = nome,
+                    Online = true,
+                    Area = AreaDoPersonagem(id),
+                };
+                grupo.Membros.Add(membro);
+                _grupoDe[id] = grupo;
+
+                // Cancela convites pendentes
+                foreach (var outro in Pendentes().Where(c => c.Para == id).ToList())
+                {
+                    Encerrar(outro, MotivoFim.AlvoJaEmGrupo, agora);
+                }
+
+                CancelarConvitesDe(id);
+            }
+
+            _grupos[grupo.Id] = grupo;
+            EnviarLista(grupo);
+            return grupo.Id;
+        }
+    }
+
     /// <summary>Tira um membro (saiu, foi expulso ou perdeu a vaga) e arruma o que sobrou.</summary>
     private void Desligar(Grupo grupo, MembroEmGrupo saiu, FormaDeSair motivo)
     {

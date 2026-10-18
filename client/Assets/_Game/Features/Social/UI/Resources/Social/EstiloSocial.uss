@@ -197,6 +197,13 @@
     background-color: var(--lumora-cores-erro);
 }
 
+/* Fila de Dungeon (LFG) */
+.botao.selecionado {
+    background-color: var(--lumora-cores-ouro);
+    color: var(--lumora-cores-fundo);
+    -unity-font-style: bold;
+    border-color: var(--lumora-cores-ouro);
+}
 /* Marcadores Táticos de Grupo */
 .social-marcador-camada {
 /* Balões de fala no mundo (Speech Bubbles) */
@@ -248,6 +255,7 @@
 .marcador-estrela {
     border-color: var(--lumora-cores-aviso);
     color: var(--lumora-cores-aviso);
+ }   
 .social-balao-fala {
     position: absolute;
     min-width: 60px;

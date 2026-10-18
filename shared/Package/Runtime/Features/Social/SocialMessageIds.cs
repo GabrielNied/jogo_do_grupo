@@ -112,5 +112,19 @@ namespace JogoDoGrupo.Shared.Features.Social
 
         /// <summary>Servidor → quem pediu: o pedido de inspeção foi recusado.</summary>
         public const ushort InspecaoRecusada = 13311;
+      
+      // ── Fila de grupo para dungeon (13330 a 13339) ───────────────────────────
+
+        /// <summary>Client → servidor: pede para entrar na fila de dungeon com um papel.</summary>
+        public const ushort EntrarNaFilaDeGrupo = 13330;
+
+        /// <summary>Client → servidor: cancela a inscrição na fila de dungeon.</summary>
+        public const ushort SairDaFilaDeGrupo = 13331;
+
+        /// <summary>Servidor → client: status da fila de dungeon para o personagem.</summary>
+        public const ushort StatusDaFilaDeGrupo = 13332;
+
+        /// <summary>Servidor → membros: o grupo da fila foi formado com sucesso.</summary>
+        public const ushort GrupoDeFilaFormado = 13333;
     }
 }

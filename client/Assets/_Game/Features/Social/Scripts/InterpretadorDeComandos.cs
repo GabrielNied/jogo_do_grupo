@@ -109,6 +109,10 @@ namespace JogoDoGrupo.Client.Features.Social
                 case "g":
                 case "grupo":
                     return NoCanal(CanalDeChat.Grupo, "", resto);
+                case "pg":
+                case "lfg":
+                case "procurargrupo":
+                    return NoCanal(CanalDeChat.ProcurarGrupo, "", resto);
                 case "s":
                 case "w":
                 case "sussurrar":

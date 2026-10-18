@@ -17,11 +17,21 @@ namespace JogoDoGrupo.Client.Features.Social
         public const string Tecla = "O";
         public const int Ordem = 50;
 
+        private enum AbaSocial
+        {
+            Grupo,
+            ProcurarGrupo,
+            Amigos,
+        }
+
         private PainelGrupo _painelGrupo;
+        private PainelFilaGrupo _painelFila;
         private PainelAmigos _painelAmigos;
         private VisualElement _conteudoGrupo;
+        private VisualElement _conteudoFila;
         private VisualElement _conteudoAmigos;
-        private bool _amigosAtivos;
+        private AbaSocial _abaAtiva = AbaSocial.Grupo;
+        private EstadoDaFilaDeGrupo _estadoFila;
 
         public override bool MolduraSocial => true;
 
@@ -41,45 +51,75 @@ namespace JogoDoGrupo.Client.Features.Social
             EstiloSocial.Aplicar(conteudo);
             var abas = new VisualElement();
             abas.AddToClassList(EstiloCore.LinhaBotoes);
-            var grupo = new Button(() => SelecionarAba(false)) { text = "Grupo" };
+            var grupo = new Button(() => SelecionarAba(AbaSocial.Grupo)) { text = "Grupo" };
             grupo.AddToClassList(EstiloCore.Botao);
-            var amigos = new Button(() => SelecionarAba(true)) { text = "Amigos" };
+            var fila = new Button(() => SelecionarAba(AbaSocial.ProcurarGrupo))
+            {
+                text = "Dungeon Finder",
+            };
+            fila.AddToClassList(EstiloCore.Botao);
+            var amigos = new Button(() => SelecionarAba(AbaSocial.Amigos)) { text = "Amigos" };
             amigos.AddToClassList(EstiloCore.Botao);
             abas.Add(grupo);
+            abas.Add(fila);
             abas.Add(amigos);
             conteudo.Add(abas);
 
             _conteudoGrupo = new VisualElement();
+            _conteudoFila = new VisualElement();
             _conteudoAmigos = new VisualElement();
             var rolagemDeAmigos = new ScrollView(ScrollViewMode.Vertical);
             rolagemDeAmigos.style.flexGrow = 1f;
             _conteudoAmigos.style.flexGrow = 1f;
             conteudo.Add(_conteudoGrupo);
+            conteudo.Add(_conteudoFila);
             rolagemDeAmigos.Add(_conteudoAmigos);
             conteudo.Add(rolagemDeAmigos);
+
+            _estadoFila = new EstadoDaFilaDeGrupo();
             _painelGrupo = new PainelGrupo(
                 _conteudoGrupo,
                 GrupoDoClient.Estado,
-                titulo => DefinirTitulo(_amigosAtivos ? "Amigos" : titulo)
+                titulo =>
+                    DefinirTitulo(_abaAtiva == AbaSocial.Grupo ? titulo : TituloDaAba(_abaAtiva))
             );
+            _painelFila = new PainelFilaGrupo(_conteudoFila, _estadoFila);
             _painelAmigos = new PainelAmigos(_conteudoAmigos, EstadoDeAmigos.DoClient);
-            SelecionarAba(false);
+            SelecionarAba(AbaSocial.Grupo);
         }
 
         protected override void AoFechar()
         {
             _painelGrupo?.Dispose();
             _painelGrupo = null;
+            _painelFila?.Dispose();
+            _painelFila = null;
+            _estadoFila?.Dispose();
+            _estadoFila = null;
             _painelAmigos?.Dispose();
             _painelAmigos = null;
         }
 
-        private void SelecionarAba(bool amigos)
+        private void SelecionarAba(AbaSocial aba)
         {
-            _amigosAtivos = amigos;
-            EstiloSocial.Mostrar(_conteudoGrupo, !amigos);
-            EstiloSocial.Mostrar(_conteudoAmigos, amigos);
-            DefinirTitulo(amigos ? "Amigos" : _painelGrupo?.TituloAtual ?? Titulo);
+            _abaAtiva = aba;
+            EstiloSocial.Mostrar(_conteudoGrupo, aba == AbaSocial.Grupo);
+            EstiloSocial.Mostrar(_conteudoFila, aba == AbaSocial.ProcurarGrupo);
+            EstiloSocial.Mostrar(_conteudoAmigos, aba == AbaSocial.Amigos);
+            DefinirTitulo(TituloDaAba(aba));
+        }
+
+        private string TituloDaAba(AbaSocial aba)
+        {
+            switch (aba)
+            {
+                case AbaSocial.ProcurarGrupo:
+                    return "Procurar Grupo";
+                case AbaSocial.Amigos:
+                    return "Amigos";
+                default:
+                    return _painelGrupo?.TituloAtual ?? Titulo;
+            }
         }
     }
 

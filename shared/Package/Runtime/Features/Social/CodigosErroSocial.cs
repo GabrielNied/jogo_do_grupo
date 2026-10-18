@@ -122,5 +122,16 @@ namespace JogoDoGrupo.Shared.Features.Social
 
         /// <summary>Deixar de ignorar quem não está na sua lista de ignorados.</summary>
         public const string IgnoradoNaoEncontrado = "IgnoradoNaoEncontrado";
+
+        // ── Fila de grupo / LFG ──────────────────────────────────────────────────
+
+        /// <summary>Tentou entrar na fila com papel não reconhecido (não é Tank, Healer ou Dps).</summary>
+        public const string PapelInvalido = "PapelInvalido";
+
+        /// <summary>O personagem já está na fila de busca de grupo.</summary>
+        public const string JaEstaNaFila = "JaEstaNaFila";
+
+        /// <summary>Tentou sair da fila sem estar nela.</summary>
+        public const string NaoEstaNaFila = "NaoEstaNaFila";
     }
 }

@@ -14,5 +14,8 @@ namespace JogoDoGrupo.Shared.Features.Social
 
         /// <summary>Só o personagem indicado (e o remetente vê a própria mensagem).</summary>
         Sussurro = 2,
+
+        /// <summary>Canal do servidor para procurar grupos e membros de dungeon.</summary>
+        ProcurarGrupo = 3,
     }
 }

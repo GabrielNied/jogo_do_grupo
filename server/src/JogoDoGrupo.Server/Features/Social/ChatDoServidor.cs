@@ -47,7 +47,8 @@ public sealed class ChatDoServidor(
         EnviarMensagemDeChat pedido,
         Func<long, bool> estaOnline,
         Func<long, ListaDoGrupo>? grupoDe = null,
-        Func<long, long, bool>? contatoBarradoEntrePersonagens = null
+        Func<long, long, bool>? contatoBarradoEntrePersonagens = null,
+        Func<IReadOnlyList<long>>? todosOnline = null
     )
     {
         if (!RegrasChat.CanalValido(pedido.Canal))
@@ -90,6 +91,10 @@ public sealed class ChatDoServidor(
                         && AreasDoMundo.DentroDosMuros(posicao)
                     )
                     .ToArray();
+                break;
+
+            case CanalDeChat.ProcurarGrupo:
+                destinatarios = todosOnline != null ? todosOnline() : [remetenteId];
                 break;
 
             case CanalDeChat.Sussurro:
