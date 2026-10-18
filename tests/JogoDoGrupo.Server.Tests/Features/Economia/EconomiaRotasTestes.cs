@@ -108,6 +108,80 @@ public class EconomiaRotasTestes(ServidorDeTeste servidor) : IClassFixture<Servi
     }
 
     [Fact]
+    public async Task Catalogo_ComCategoria_RetornaApenasItensDaquelaLoja()
+    {
+        var (cliente, id) = await NovoPersonagemAsync();
+
+        var resArmeiro = await cliente.GetAsync($"{RotasEconomia.LojaDe(id)}?categoria=Armeiro");
+        resArmeiro.EnsureSuccessStatusCode();
+        var catalogoArmeiro = await ServidorDeTeste.LerJsonAsync<RespostaCatalogoLoja>(resArmeiro);
+        Assert.Contains(catalogoArmeiro.Itens, i => i.ItemId == CatalogoItens.EspadaDeTeste);
+        Assert.DoesNotContain(catalogoArmeiro.Itens, i => i.ItemId == CatalogoItens.PocaoDeTeste);
+
+        var resMerceeiro = await cliente.GetAsync(
+            $"{RotasEconomia.LojaDe(id)}?categoria=Merceeiro"
+        );
+        resMerceeiro.EnsureSuccessStatusCode();
+        var catalogoMerceeiro = await ServidorDeTeste.LerJsonAsync<RespostaCatalogoLoja>(
+            resMerceeiro
+        );
+        Assert.Contains(catalogoMerceeiro.Itens, i => i.ItemId == CatalogoItens.PocaoDeTeste);
+        Assert.DoesNotContain(
+            catalogoMerceeiro.Itens,
+            i => i.ItemId == CatalogoItens.EspadaDeTeste
+        );
+    }
+
+    [Fact]
+    public async Task Compra_ItemForaDoCatalogoDaLoja_Retorna409ItemNaoAVenda()
+    {
+        var (cliente, id) = await NovoPersonagemAsync();
+        await CreditarCoroasAsync(id, 200);
+
+        // Tenta comprar Poção no Armeiro (só vende armas)
+        var resArmeiro = await ServidorDeTeste.PostJsonAsync(
+            cliente,
+            RotasEconomia.ComprarDe(id),
+            new PedidoComprarItem(CatalogoItens.PocaoDeTeste, 1, CategoriaLoja.Armeiro)
+        );
+
+        Assert.Equal(HttpStatusCode.Conflict, resArmeiro.StatusCode);
+        var erroArmeiro = await ServidorDeTeste.LerJsonAsync<ErroApi>(resArmeiro);
+        Assert.Equal(CodigosErroEconomia.ItemNaoAVenda, erroArmeiro.Codigo);
+
+        // Tenta comprar Espada no Taverneiro (só vende comida/bebida)
+        var resTaverneiro = await ServidorDeTeste.PostJsonAsync(
+            cliente,
+            RotasEconomia.ComprarDe(id),
+            new PedidoComprarItem(CatalogoItens.EspadaDeTeste, 1, CategoriaLoja.Taverneiro)
+        );
+
+        Assert.Equal(HttpStatusCode.Conflict, resTaverneiro.StatusCode);
+        var erroTaverneiro = await ServidorDeTeste.LerJsonAsync<ErroApi>(resTaverneiro);
+        Assert.Equal(CodigosErroEconomia.ItemNaoAVenda, erroTaverneiro.Codigo);
+    }
+
+    [Fact]
+    public async Task Compra_PrecoAutoritativoDoServidor_DeduzPrecoConfigurado()
+    {
+        var (cliente, id) = await NovoPersonagemAsync();
+        await CreditarCoroasAsync(id, 100);
+
+        // O cliente envia apenas ItemId e Quantidade, sem valor de preço.
+        // O servidor consulta ConfigEconomia.ObterItemLoja(Armeiro, EspadaDeTeste) = 50 coroas.
+        var resCompra = await ServidorDeTeste.PostJsonAsync(
+            cliente,
+            RotasEconomia.ComprarDe(id),
+            new PedidoComprarItem(CatalogoItens.EspadaDeTeste, 1, CategoriaLoja.Armeiro)
+        );
+        resCompra.EnsureSuccessStatusCode();
+
+        var compra = await ServidorDeTeste.LerJsonAsync<ItemCompradoDaLoja>(resCompra);
+        Assert.Equal(50, compra.CustoTotal);
+        Assert.Equal(50, compra.SaldoAtualizado);
+    }
+
+    [Fact]
     public async Task Venda_ItemValido_CreditaCoroasPorTierERemoveItem()
     {
         var (cliente, id) = await NovoPersonagemAsync();

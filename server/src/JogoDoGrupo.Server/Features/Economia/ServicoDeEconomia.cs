@@ -16,19 +16,28 @@ public sealed class ServicoDeEconomia(
     public async Task<long> ObterSaldoAsync(long personagemId, CancellationToken c) =>
         await carteira.SaldoAsync(personagemId, c);
 
-    public ItemLojaDto[] ObterCatalogo() => ConfigEconomia.CatalogoPadrao;
+    public ItemLojaDto[] ObterCatalogo(CategoriaLoja categoria = CategoriaLoja.Nenhuma) =>
+        ConfigEconomia.ObterCatalogo(categoria);
+
+    public Task<(bool Sucesso, string? Erro, ItemCompradoDaLoja? Resultado)> ComprarItemAsync(
+        long personagemId,
+        int itemId,
+        int quantidade,
+        CancellationToken c
+    ) => ComprarItemAsync(personagemId, itemId, quantidade, CategoriaLoja.Nenhuma, c);
 
     public async Task<(bool Sucesso, string? Erro, ItemCompradoDaLoja? Resultado)> ComprarItemAsync(
         long personagemId,
         int itemId,
         int quantidade,
+        CategoriaLoja categoria,
         CancellationToken c
     )
     {
         if (quantidade <= 0)
             return (false, CodigosErroEconomia.QuantidadeInvalida, null);
 
-        var itemLoja = ConfigEconomia.ObterItemLoja(itemId);
+        var itemLoja = ConfigEconomia.ObterItemLoja(categoria, itemId);
         if (itemLoja == null)
             return (false, CodigosErroEconomia.ItemNaoAVenda, null);
 

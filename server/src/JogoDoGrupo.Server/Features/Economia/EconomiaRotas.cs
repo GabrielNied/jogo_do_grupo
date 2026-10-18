@@ -41,6 +41,8 @@ internal static class EconomiaRotas
 
     private static async Task<IResult> ObterCatalogoAsync(
         string personagemId,
+        CategoriaLoja? categoria,
+        int? npcId,
         ClaimsPrincipal usuario,
         ServicoDeEconomia servico,
         JogoDbContext db,
@@ -53,12 +55,19 @@ internal static class EconomiaRotas
         if (!await PersonagemDaContaAsync(personagemId, contaId, db, c))
             return PersonagemNaoEncontrado();
 
+        var cat = categoria ?? CategoriaLoja.Nenhuma;
+        var nid = npcId ?? 0;
+        if (nid > 0 && cat == CategoriaLoja.Nenhuma)
+        {
+            cat = ConfigEconomia.ObterCategoria(nid);
+        }
+
         var id = ParaId(personagemId);
-        if (RecusarSeLonge(id, PontoNpcEconomia.Vendedor, posicoes, opcoesNpc) is { } recusa)
+        if (RecusarSeLongeDaLoja(id, cat, nid, posicoes, opcoesNpc) is { } recusa)
             return recusa;
 
-        var itens = servico.ObterCatalogo();
-        return Results.Ok(new RespostaCatalogoLoja(itens));
+        var itens = servico.ObterCatalogo(cat);
+        return Results.Ok(new RespostaCatalogoLoja(itens, cat, nid));
     }
 
     private static async Task<IResult> ComprarItemAsync(
@@ -76,14 +85,22 @@ internal static class EconomiaRotas
         if (!await PersonagemDaContaAsync(personagemId, contaId, db, c))
             return PersonagemNaoEncontrado();
 
+        var cat = pedido.Categoria;
+        var nid = pedido.NpcId;
+        if (nid > 0 && cat == CategoriaLoja.Nenhuma)
+        {
+            cat = ConfigEconomia.ObterCategoria(nid);
+        }
+
         var id = ParaId(personagemId);
-        if (RecusarSeLonge(id, PontoNpcEconomia.Vendedor, posicoes, opcoesNpc) is { } recusaCompra)
+        if (RecusarSeLongeDaLoja(id, cat, nid, posicoes, opcoesNpc) is { } recusaCompra)
             return recusaCompra;
 
         var (sucesso, erro, resultado) = await servico.ComprarItemAsync(
             id,
             pedido.ItemId,
             pedido.Quantidade,
+            cat,
             c
         );
 
@@ -109,7 +126,10 @@ internal static class EconomiaRotas
             return PersonagemNaoEncontrado();
 
         var id = ParaId(personagemId);
-        if (RecusarSeLonge(id, PontoNpcEconomia.Vendedor, posicoes, opcoesNpc) is { } recusaVenda)
+        if (
+            RecusarSeLongeDaLoja(id, CategoriaLoja.Nenhuma, pedido.NpcId, posicoes, opcoesNpc) is
+            { } recusaVenda
+        )
             return recusaVenda;
 
         var (sucesso, erro, resultado) = await servico.VenderItemAsync(id, pedido.InstanciaId, c);
@@ -210,6 +230,26 @@ internal static class EconomiaRotas
 
     private static long ParaId(string valor) =>
         long.Parse(valor, NumberStyles.None, CultureInfo.InvariantCulture);
+
+    private static IResult? RecusarSeLongeDaLoja(
+        long personagemId,
+        CategoriaLoja categoria,
+        int npcId,
+        IPosicoesDoMundo posicoes,
+        OpcoesNpcEconomia opcoes
+    )
+    {
+        if (ValidacaoNpcEconomia.EstaPertoDaLoja(posicoes, personagemId, categoria, npcId, opcoes))
+        {
+            return null;
+        }
+
+        return RespostasApi.Erro(
+            StatusCodes.Status409Conflict,
+            CodigosErroEconomia.LongeDoNpc,
+            "Chegue mais perto do NPC."
+        );
+    }
 
     private static IResult? RecusarSeLonge(
         long personagemId,

@@ -70,14 +70,21 @@ public sealed class EconomiaModule : IFeatureModule
         });
     }
 
-    private void AoConsultarCatalogo(SessaoTempoReal sessao, ConsultarCatalogoLoja _)
+    private void AoConsultarCatalogo(SessaoTempoReal sessao, ConsultarCatalogoLoja pedido)
     {
         if (_scopeFactory == null || _tempoReal == null)
             return;
 
+        var cat = pedido.Categoria;
+        var nid = pedido.NpcId;
+        if (nid > 0 && cat == CategoriaLoja.Nenhuma)
+        {
+            cat = ConfigEconomia.ObterCategoria(nid);
+        }
+
         using (var escopo = _scopeFactory.CreateScope())
         {
-            if (!PodeUsarVendedor(sessao.PersonagemId, escopo.ServiceProvider))
+            if (!PodeUsarLoja(sessao.PersonagemId, cat, nid, escopo.ServiceProvider))
             {
                 _tempoReal.Enviar(
                     sessao,
@@ -88,11 +95,11 @@ public sealed class EconomiaModule : IFeatureModule
             }
         }
 
-        var catalogo = ConfigEconomia.CatalogoPadrao;
+        var catalogo = ConfigEconomia.ObterCatalogo(cat);
         _tempoReal.Enviar(
             sessao,
             EconomiaMessageIds.RespostaCatalogoLoja,
-            new RespostaCatalogoLoja(catalogo)
+            new RespostaCatalogoLoja(catalogo, cat, nid)
         );
     }
 
@@ -101,12 +108,19 @@ public sealed class EconomiaModule : IFeatureModule
         if (_scopeFactory == null || _tempoReal == null)
             return;
 
+        var cat = pedido.Categoria;
+        var nid = pedido.NpcId;
+        if (nid > 0 && cat == CategoriaLoja.Nenhuma)
+        {
+            cat = ConfigEconomia.ObterCategoria(nid);
+        }
+
         _ = Task.Run(async () =>
         {
             try
             {
                 await using var escopo = _scopeFactory.CreateAsyncScope();
-                if (!PodeUsarVendedor(sessao.PersonagemId, escopo.ServiceProvider))
+                if (!PodeUsarLoja(sessao.PersonagemId, cat, nid, escopo.ServiceProvider))
                 {
                     _tempoReal.Enviar(
                         sessao,
@@ -121,6 +135,7 @@ public sealed class EconomiaModule : IFeatureModule
                     sessao.PersonagemId,
                     pedido.ItemId,
                     pedido.Quantidade,
+                    cat,
                     CancellationToken.None
                 );
 
@@ -163,7 +178,7 @@ public sealed class EconomiaModule : IFeatureModule
             try
             {
                 await using var escopo = _scopeFactory.CreateAsyncScope();
-                if (!PodeUsarVendedor(sessao.PersonagemId, escopo.ServiceProvider))
+                if (!PodeVenderEmLoja(sessao.PersonagemId, escopo.ServiceProvider))
                 {
                     _tempoReal.Enviar(
                         sessao,
@@ -265,11 +280,26 @@ public sealed class EconomiaModule : IFeatureModule
         });
     }
 
-    private static bool PodeUsarVendedor(long personagemId, IServiceProvider servicos) =>
-        ValidacaoNpcEconomia.EstaPerto(
+    private static bool PodeUsarLoja(
+        long personagemId,
+        CategoriaLoja categoria,
+        int npcId,
+        IServiceProvider servicos
+    ) =>
+        ValidacaoNpcEconomia.EstaPertoDaLoja(
             servicos.GetRequiredService<IPosicoesDoMundo>(),
             personagemId,
-            PontoNpcEconomia.Vendedor,
+            categoria,
+            npcId,
+            servicos.GetRequiredService<OpcoesNpcEconomia>()
+        );
+
+    private static bool PodeVenderEmLoja(long personagemId, IServiceProvider servicos) =>
+        ValidacaoNpcEconomia.EstaPertoDaLoja(
+            servicos.GetRequiredService<IPosicoesDoMundo>(),
+            personagemId,
+            CategoriaLoja.Nenhuma,
+            0,
             servicos.GetRequiredService<OpcoesNpcEconomia>()
         );
 

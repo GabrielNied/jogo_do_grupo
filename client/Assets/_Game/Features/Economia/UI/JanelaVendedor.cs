@@ -9,14 +9,21 @@ using UnityEngine.UIElements;
 namespace JogoDoGrupo.Client.Features.Economia.UI
 {
     /// <summary>
-    /// Compra e venda com o NPC vendedor na cidade (sem atalho de tecla; abre com E no marcador).
+    /// Compra e venda com os comerciantes na cidade (sem atalho de tecla; abre com E no marcador/NPC) (#173, #1066).
+    /// Suporta Armeiro, Armadureiro, Taverneiro, Merceeiro e Comerciante geral.
     /// </summary>
     public sealed class JanelaVendedor : JanelaDoJogo
     {
         public const string Chave = "economia.vendedor";
+        public const string ChaveArmeiro = "economia.armeiro";
+        public const string ChaveArmadureiro = "economia.armadureiro";
+        public const string ChaveTaverneiro = "economia.taverneiro";
+        public const string ChaveMerceeiro = "economia.merceeiro";
+
         public const string Titulo = "Comerciante";
         public const int Ordem = 100;
 
+        private readonly CategoriaLoja _categoria;
         private Label _rotuloSaldo;
         private Label _rotuloAviso;
         private VisualElement _painelComprar;
@@ -24,15 +31,62 @@ namespace JogoDoGrupo.Client.Features.Economia.UI
         private Button _abaComprar;
         private Button _abaVender;
 
+        public JanelaVendedor(CategoriaLoja categoria = CategoriaLoja.Nenhuma)
+        {
+            _categoria = categoria;
+        }
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void Registrar()
         {
             JanelasDoJogo.Registrar(CriarDefinicao());
+            JanelasDoJogo.Registrar(
+                new DefinicaoDeJanela(
+                    ChaveArmeiro,
+                    "Armeiro",
+                    null,
+                    Ordem,
+                    () => new JanelaVendedor(CategoriaLoja.Armeiro)
+                )
+            );
+            JanelasDoJogo.Registrar(
+                new DefinicaoDeJanela(
+                    ChaveArmadureiro,
+                    "Armadureiro",
+                    null,
+                    Ordem,
+                    () => new JanelaVendedor(CategoriaLoja.Armadureiro)
+                )
+            );
+            JanelasDoJogo.Registrar(
+                new DefinicaoDeJanela(
+                    ChaveTaverneiro,
+                    "Taverneiro",
+                    null,
+                    Ordem,
+                    () => new JanelaVendedor(CategoriaLoja.Taverneiro)
+                )
+            );
+            JanelasDoJogo.Registrar(
+                new DefinicaoDeJanela(
+                    ChaveMerceeiro,
+                    "Merceeiro",
+                    null,
+                    Ordem,
+                    () => new JanelaVendedor(CategoriaLoja.Merceeiro)
+                )
+            );
         }
 
         public static DefinicaoDeJanela CriarDefinicao()
         {
-            return new DefinicaoDeJanela(Chave, Titulo, null, Ordem, () => new JanelaVendedor());
+            return new DefinicaoDeJanela(
+                Chave,
+                Titulo,
+                null,
+                Ordem,
+                () => new JanelaVendedor(CategoriaLoja.Nenhuma)
+            );
         }
 
         protected override void Montar(VisualElement conteudo)
@@ -53,7 +107,15 @@ namespace JogoDoGrupo.Client.Features.Economia.UI
             topo.style.borderBottomWidth = 1f;
             topo.style.borderBottomColor = new Color(0.25f, 0.28f, 0.35f, 0.8f);
 
-            var titulo = new Label("Comerciante da Cidade");
+            var textoTitulo = _categoria switch
+            {
+                CategoriaLoja.Armeiro => "Armeiro da Cidade (Armas)",
+                CategoriaLoja.Armadureiro => "Armadureira da Cidade (Armaduras)",
+                CategoriaLoja.Taverneiro => "Taverneiro da Cidade (Comida e Bebida)",
+                CategoriaLoja.Merceeiro => "Merceeiro da Cidade (Consumíveis)",
+                _ => "Comerciante da Cidade",
+            };
+            var titulo = new Label(textoTitulo);
             titulo.AddToClassList(EstiloCore.Titulo);
             titulo.style.fontSize = 15f;
             titulo.style.unityFontStyleAndWeight = FontStyle.Bold;
@@ -105,7 +167,15 @@ namespace JogoDoGrupo.Client.Features.Economia.UI
 
         private void MontarPainelComprar(VisualElement painel)
         {
-            var desc = new Label("Itens e provisões disponíveis para compra:");
+            var textoDesc = _categoria switch
+            {
+                CategoriaLoja.Armeiro => "Armas forjadas e prontas para combate:",
+                CategoriaLoja.Armadureiro => "Armaduras e peças defensivas para proteção:",
+                CategoriaLoja.Taverneiro => "Comidas e bebidas nutritivas da taverna:",
+                CategoriaLoja.Merceeiro => "Poções, consumíveis e provisões essenciais:",
+                _ => "Itens e provisões disponíveis para compra:",
+            };
+            var desc = new Label(textoDesc);
             desc.AddToClassList(EstiloCore.Texto);
             desc.style.fontSize = 11.5f;
             desc.style.color = new Color(0.72f, 0.76f, 0.84f);
@@ -115,7 +185,7 @@ namespace JogoDoGrupo.Client.Features.Economia.UI
             var lista = new ScrollView();
             lista.style.maxHeight = 280f;
 
-            foreach (var item in ConfigEconomia.CatalogoPadrao)
+            foreach (var item in ConfigEconomia.ObterCatalogo(_categoria))
             {
                 var linha = new VisualElement();
                 linha.style.flexDirection = FlexDirection.Row;
@@ -239,7 +309,12 @@ namespace JogoDoGrupo.Client.Features.Economia.UI
 
         private void AoClicarComprar(int itemId)
         {
-            ControleDeEconomia.Comprar(itemId, 1);
+            ControleDeEconomia.Comprar(
+                itemId,
+                1,
+                _categoria,
+                ConfigEconomia.ObterNpcId(_categoria)
+            );
         }
 
         protected override void AoAbrir()

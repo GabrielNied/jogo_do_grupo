@@ -48,26 +48,34 @@ Moedas, mercado, comércio entre jogadores, saídas de recursos e taxas.
 
 ## Regras
 
-### Loja de NPC, Venda de Itens e Reparo de Durabilidade (#173)
+### Loja de NPC, Venda de Itens e Reparo de Durabilidade (#173, #1066)
 
-Entregue na [#173](https://github.com/GabrielNied/jogo_do_grupo/issues/173):
+Entregue na [#173](https://github.com/GabrielNied/jogo_do_grupo/issues/173) e expandido na [#1066](https://github.com/GabrielNied/jogo_do_grupo/issues/1066):
 - **Carteira de coroas:** persistida na tabela `SaldosCoroas` por personagem. Contrato `ICarteiraCoroas` permite consulta, crédito e débito atômico.
-- **Loja de NPC:**
-  - Catálogo de compra definido em `ConfigEconomia.CatalogoPadrao` (espadas, cajados, arcos, armaduras e anéis).
-  - Venda de itens do inventário para o NPC com preço fixo por tier (`ConfigEconomia.PrecoVendaPorTier`: D=10, C=25, B=60, A=150, S=400, S+=1000 coroas).
+- **Lojas de NPC por categoria (#1066):**
+  - Quatro lojas especializadas substituem o vendedor geral:
+    - **Armeiro (Gareth):** armas (`ConfigEconomia.CatalogoArmeiro`).
+    - **Armadureiro (Bruna):** armaduras e itens defensivos (`ConfigEconomia.CatalogoArmadureiro`).
+    - **Taverneiro (Barnabé):** comidas e bebidas (`ConfigEconomia.CatalogoTaverneiro`).
+    - **Merceeiro (Tomas):** poções, consumíveis e materiais básicos (`ConfigEconomia.CatalogoMerceeiro`).
+  - Todas compram qualquer item do inventário pelo preço fixo por tier (`ConfigEconomia.PrecoVendaPorTier`: D=2, C=5, B=10, A=25, S=60, S+=100 coroas).
   - Itens equipados ou marcados como favoritos não podem ser vendidos.
+  - A tentativa de comprar um item fora do catálogo daquela loja é recusada pelo servidor (`CodigosErroEconomia.ItemNaoAVenda`).
+  - Preço da compra é autoritativo pelo servidor (o client envia apenas o ID e a quantidade).
+  - Proximidade com o NPC autoritativo de cada loja (`CatalogoNpcs`) é exigida tanto em tempo real quanto via REST (`CodigosErroEconomia.LongeDoNpc`).
 - **Durabilidade e Reparo:**
   - Equipamentos possuem `DurabilidadeMaxima` (100) e `DurabilidadeAtual`.
   - Item com durabilidade zero é considerado `Quebrado` e deixa de fornecer atributos ou poderes (arma quebrada não concede ataque).
   - Ao cair em combate (`PersonagemCaiu`), os equipamentos vestidos sofrem desgaste leve (`ConfigEconomia.DesgasteAoCair = 5`).
   - O reparo no ferreiro custa `ConfigEconomia.CustoReparoPorPontoPerdido = 1` coroa por ponto de durabilidade restaurado.
 - **Interface e interação:**
-  - Compra e venda: interagir (**E**) com o **vendedor** na cidade (`ConfigNpcEconomia`, marcador no client). Abre `JanelaVendedor` (`economia.vendedor`), sem tecla na barra de atalhos.
+  - Compra e venda: interagir (**E**) com o comerciante correspondente na cidade (`ConfigNpcEconomia`, marcadores e corpos no client). Abre a `JanelaVendedor` com o título e catálogo da loja (`economia.armeiro`, `economia.armadureiro`, `economia.taverneiro`, `economia.merceeiro` ou `economia.vendedor`), sem tecla na barra de atalhos.
   - Reparo: interagir com o **ferreiro** (`JanelaFerreiro`, `economia.ferreiro`). O inventário continua sendo a forma de escolher o item a reparar.
   - O servidor recusa compra, venda, catálogo e reparo se o personagem estiver longe do NPC correspondente (`CodigosErroEconomia.LongeDoNpc`), pela posição aceita pelo Mundo.
 - **Mensageria e Rotas:**
   - Faixa de IDs de tempo real: `9000–9999` (`EconomiaMessageIds`).
-  - Rotas HTTP REST em `RotasEconomia`: `/api/economia/saldo`, `/api/economia/loja/catalogo`, `/api/economia/loja/comprar`, `/api/economia/loja/vender`, `/api/economia/itens/reparar`.
+  - Mensagens: `ConsultarCatalogoLoja`, `RespostaCatalogoLoja`, `ComprarItemDaLoja` (agora com `CategoriaLoja` e `NpcId`).
+  - Rotas HTTP REST em `RotasEconomia`: `/api/economia/saldo`, `/api/economia/loja/catalogo` (aceita `?categoria=...`), `/api/economia/loja/comprar`, `/api/economia/loja/vender`, `/api/economia/itens/reparar`.
 
 ### Carteira de coroas para infusão (#174)
 
