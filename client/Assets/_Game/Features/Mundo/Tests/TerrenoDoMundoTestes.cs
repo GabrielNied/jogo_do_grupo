@@ -842,6 +842,24 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
                 );
                 Assert.AreSame(terrain.terrainData, colisor.terrainData);
                 Assert.AreEqual(MapaDoMundo.Lado, terrain.terrainData.size.x, 0.01f);
+
+                var vegetacao = mapa
+                    .transform.Find(ConstrutorHub.NomePecasDosBiomas)
+                    .GetComponent<BlocosDeVegetacao>();
+                Assert.IsNotNull(
+                    vegetacao,
+                    "A vegetação do mapa publicado precisa ser reconstruída ao carregar."
+                );
+                Assert.Greater(
+                    vegetacao.Instancias,
+                    0,
+                    "A vegetação reconstruída precisa registrar instâncias para desenhar."
+                );
+                Assert.AreEqual(
+                    1,
+                    mapa.GetComponentsInChildren<BlocosDeVegetacao>().Length,
+                    "O mapa não pode conservar a vegetação serializada sem desenho."
+                );
             }
             finally
             {
