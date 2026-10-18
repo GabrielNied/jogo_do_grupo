@@ -34,6 +34,12 @@ public sealed class PetsModule : IFeatureModule
         servicos.AddHostedService(sp => sp.GetRequiredService<ServicoDePets>());
     }
 
+    public void MapearRotas(IEndpointRouteBuilder rotas)
+    {
+        _pets = rotas.ServiceProvider.GetRequiredService<ServicoDePets>();
+        PetsRotas.Mapear(rotas);
+    }
+
     public void RegistrarMensagens(MensagensTempoReal mensagens) =>
         mensagens
             .Faixa(PetsMessageIds.Faixa)
@@ -54,6 +60,15 @@ public sealed class PetsModule : IFeatureModule
                         pedido.InstanciaId,
                         sessao
                     )
+            )
+            .Ao<ConsultarCuidador>(
+                PetsMessageIds.ConsultarCuidador,
+                (sessao, _) => _pets?.ConsultarCuidador(sessao)
+            )
+            .Ao<ComprarPetCuidador>(
+                PetsMessageIds.ComprarPetCuidador,
+                (sessao, pedido) =>
+                    _ = _pets?.ComprarPetCuidadorAsync(sessao.PersonagemId, pedido.Especie, sessao)
             );
 
     public void Inicializar(ServerContext contexto)

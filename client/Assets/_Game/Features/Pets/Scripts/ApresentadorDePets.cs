@@ -42,6 +42,9 @@ namespace JogoDoGrupo.Client.Features.Pets
         /// <summary>Evento disparado quando a coleção de pets desbloqueados muda.</summary>
         public static event System.Action ColecaoMudou;
 
+        /// <summary>Evento disparado com o resultado da compra de um pet no cuidador.</summary>
+        public static event System.Action<RespostaCompraPet> CompraPetResultado;
+
         /// <summary>Cópia do conjunto de espécies de pets desbloqueadas para a conta.</summary>
         public static HashSet<int> Colecao =>
             _instancia != null ? new HashSet<int>(_instancia._colecao) : new HashSet<int>();
@@ -64,6 +67,15 @@ namespace JogoDoGrupo.Client.Features.Pets
         public static void Dispensar()
         {
             ConexaoTempoReal.Enviar(PetsMessageIds.DispensarPet, new DispensarPet());
+        }
+
+        /// <summary>Envia intenção de comprar pet do cuidador por coroas (#1068).</summary>
+        public static void ComprarPetCuidador(int especie)
+        {
+            ConexaoTempoReal.Enviar(
+                PetsMessageIds.ComprarPetCuidador,
+                new ComprarPetCuidador { Especie = especie }
+            );
         }
 
         /// <summary>Envia intenção de usar o item de pet da bolsa.</summary>
@@ -113,6 +125,12 @@ namespace JogoDoGrupo.Client.Features.Pets
                     AoDesbloquearPet
                 )
             );
+            _assinaturas.Add(
+                ConexaoTempoReal.Assinar<RespostaCompraPet>(
+                    PetsMessageIds.RespostaCompraPet,
+                    AoReceberRespostaCompraPet
+                )
+            );
         }
 
         private void OnDestroy()
@@ -160,6 +178,7 @@ namespace JogoDoGrupo.Client.Features.Pets
             var posicao = new Vector3(dados.X, dados.Y, dados.Z);
             var raiz = Instantiate(prefab, posicao, Quaternion.Euler(0f, dados.RotacaoY, 0f));
             raiz.name = "Pet_" + dados.DonoId;
+            AplicarAparenciaDaEspecie(raiz, dados.Especie);
             _pets[dados.DonoId] = new PetNoClient
             {
                 DonoId = dados.DonoId,
@@ -255,8 +274,72 @@ namespace JogoDoGrupo.Client.Features.Pets
                     return "Item de pet não encontrado no inventário.";
                 case CodigosErroPets.ItemNaoEPet:
                     return "Este item não é um pet consumível.";
+                case CodigosErroPets.SaldoInsuficiente:
+                    return "Você não possui coroas suficientes para comprar este pet.";
+                case CodigosErroPets.LongeDoNpc:
+                    return "Você está muito longe do cuidador de pets.";
+                case CodigosErroPets.PetNaoAVenda:
+                    return "Este pet não está à venda.";
                 default:
                     return "Não foi possível mexer no pet agora.";
+            }
+        }
+
+        private void AoReceberRespostaCompraPet(RespostaCompraPet dados)
+        {
+            if (dados == null)
+                return;
+
+            if (dados.Sucesso)
+            {
+                _colecao.Add(dados.Especie);
+                ChatDoJogo.AdicionarLinhaSistema(
+                    $"Pet adquirido com sucesso: {RegrasPets.ObterNome((EspecieDePet)dados.Especie)}!"
+                );
+                ColecaoMudou?.Invoke();
+            }
+            else
+            {
+                ChatDoJogo.AdicionarLinhaSistema(
+                    $"Não foi possível comprar o pet: {dados.Mensagem}"
+                );
+            }
+
+            CompraPetResultado?.Invoke(dados);
+        }
+
+        private static void AplicarAparenciaDaEspecie(GameObject raiz, EspecieDePet especie)
+        {
+            var modelo = raiz.transform.Find(NomeDoModelo);
+            if (modelo == null)
+                return;
+
+            switch (especie)
+            {
+                case EspecieDePet.CachorroComum:
+                    modelo.localScale = new Vector3(0.65f, 0.65f, 0.65f);
+                    AjustarCorDosRenderers(modelo, new Color(0.70f, 0.45f, 0.20f));
+                    break;
+                case EspecieDePet.GatoComum:
+                    modelo.localScale = new Vector3(0.48f, 0.48f, 0.48f);
+                    AjustarCorDosRenderers(modelo, new Color(0.35f, 0.35f, 0.38f));
+                    break;
+                case EspecieDePet.GalinhaComum:
+                    modelo.localScale = new Vector3(0.38f, 0.38f, 0.38f);
+                    AjustarCorDosRenderers(modelo, new Color(0.92f, 0.88f, 0.78f));
+                    break;
+            }
+        }
+
+        private static void AjustarCorDosRenderers(Transform modelo, Color cor)
+        {
+            var renderers = modelo.GetComponentsInChildren<Renderer>();
+            foreach (var r in renderers)
+            {
+                if (r != null && r.material != null)
+                {
+                    r.material.color = cor;
+                }
             }
         }
 

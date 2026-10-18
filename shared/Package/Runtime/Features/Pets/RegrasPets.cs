@@ -154,6 +154,9 @@ namespace JogoDoGrupo.Shared.Features.Pets
             EspecieDePet.LoboDeGeadaFilhote,
             EspecieDePet.CarapacaJovem,
             EspecieDePet.MosquitoDoPantano,
+            EspecieDePet.CachorroComum,
+            EspecieDePet.GatoComum,
+            EspecieDePet.GalinhaComum,
         };
 
         /// <summary>Qual espécie de pet o item consumível desbloqueia, ou 0 se não for pet.</summary>
@@ -207,6 +210,9 @@ namespace JogoDoGrupo.Shared.Features.Pets
                 EspecieDePet.LoboDeGeadaFilhote => "Lobo de Geada Filhote",
                 EspecieDePet.CarapacaJovem => "Carapaça Jovem",
                 EspecieDePet.MosquitoDoPantano => "Mosquito do Pântano",
+                EspecieDePet.CachorroComum => "Cachorro Doméstico",
+                EspecieDePet.GatoComum => "Gato Rajado",
+                EspecieDePet.GalinhaComum => "Galinha do Vilarejo",
                 _ => "Desconhecido",
             };
 
@@ -224,6 +230,12 @@ namespace JogoDoGrupo.Shared.Features.Pets
                 EspecieDePet.LoboDeGeadaFilhote => "Drop raro do Lobo de Geada (2%)",
                 EspecieDePet.CarapacaJovem => "Drop raro da Carapaça de Brasa (2%)",
                 EspecieDePet.MosquitoDoPantano => "Drop raro do Morcego das Sombras (2%)",
+                EspecieDePet.CachorroComum =>
+                    "Comprado com a Cuidadora Mirna na Brasa Mansa (100 coroas)",
+                EspecieDePet.GatoComum =>
+                    "Comprado com a Cuidadora Mirna na Brasa Mansa (75 coroas)",
+                EspecieDePet.GalinhaComum =>
+                    "Comprado com a Cuidadora Mirna na Brasa Mansa (50 coroas)",
                 _ => string.Empty,
             };
 
@@ -251,6 +263,12 @@ namespace JogoDoGrupo.Shared.Features.Pets
                     "Réplica pequena da criatura de lava; só visual, sem combate.",
                 EspecieDePet.MosquitoDoPantano =>
                     "Enxame irritante do pântano; mesmo comportamento de coleta.",
+                EspecieDePet.CachorroComum =>
+                    "Companheiro fiel e leal que fareja tesouros caídos e segue o dono em qualquer jornada.",
+                EspecieDePet.GatoComum =>
+                    "Felino ágil e curioso que vagueia ao seu lado e ajuda a recolher espólios pelo chão.",
+                EspecieDePet.GalinhaComum =>
+                    "Galinha dócil e veloz do vilarejo que cisca e busca itens pelo chão.",
                 _ => string.Empty,
             };
     }

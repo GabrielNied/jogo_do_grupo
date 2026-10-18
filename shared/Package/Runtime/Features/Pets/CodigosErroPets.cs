@@ -23,5 +23,14 @@ namespace JogoDoGrupo.Shared.Features.Pets
 
         /// <summary>A espécie de pet ainda não foi desbloqueada na conta.</summary>
         public const string PetNaoDesbloqueado = "PetNaoDesbloqueado";
+
+        /// <summary>Não possui coroas suficientes para comprar o pet.</summary>
+        public const string SaldoInsuficiente = "SaldoInsuficiente";
+
+        /// <summary>O jogador está muito longe do cuidador de pets para comprar.</summary>
+        public const string LongeDoNpc = "LongeDoNpc";
+
+        /// <summary>A espécie de pet solicitada não está à venda no cuidador.</summary>
+        public const string PetNaoAVenda = "PetNaoAVenda";
     }
 }
