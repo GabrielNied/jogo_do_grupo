@@ -4,6 +4,7 @@ using JogoDoGrupo.Server.Tests.Features.Combate;
 using JogoDoGrupo.Server.Tests.Infra;
 using JogoDoGrupo.Shared.Core.Api;
 using JogoDoGrupo.Shared.Features.Economia;
+using JogoDoGrupo.Shared.Features.Itens;
 using JogoDoGrupo.Shared.Features.Personagem;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -79,6 +80,94 @@ public class NpcEconomiaProximidadeTestes(ServidorDeEconomiaProximidade servidor
         );
 
         var res = await cliente.GetAsync(RotasEconomia.LojaDe(id));
+
+        res.EnsureSuccessStatusCode();
+    }
+
+    [Fact]
+    public async Task Catalogo_LongeDoArmeiro_Retorna409()
+    {
+        var (cliente, id) = await NovoPersonagemAsync();
+        servidor.Posicoes.Colocar(
+            id,
+            ConfigNpcEconomia.Area,
+            ConfigNpcEconomia.ArmeiroX + 30f,
+            ConfigNpcEconomia.ArmeiroZ
+        );
+
+        var res = await cliente.GetAsync($"{RotasEconomia.LojaDe(id)}?categoria=Armeiro");
+
+        Assert.Equal(HttpStatusCode.Conflict, res.StatusCode);
+        var erro = await ServidorDeTeste.LerJsonAsync<ErroApi>(res);
+        Assert.Equal(CodigosErroEconomia.LongeDoNpc, erro.Codigo);
+    }
+
+    [Fact]
+    public async Task Catalogo_PertoDoArmeiro_RetornaOk()
+    {
+        var (cliente, id) = await NovoPersonagemAsync();
+        servidor.Posicoes.Colocar(
+            id,
+            ConfigNpcEconomia.Area,
+            ConfigNpcEconomia.ArmeiroX,
+            ConfigNpcEconomia.ArmeiroZ
+        );
+
+        var res = await cliente.GetAsync($"{RotasEconomia.LojaDe(id)}?categoria=Armeiro");
+
+        res.EnsureSuccessStatusCode();
+    }
+
+    [Fact]
+    public async Task Compra_LongeDoNPC_Retorna409()
+    {
+        var (cliente, id) = await NovoPersonagemAsync();
+        servidor.Posicoes.Colocar(
+            id,
+            ConfigNpcEconomia.Area,
+            ConfigNpcEconomia.ArmeiroX + 30f,
+            ConfigNpcEconomia.ArmeiroZ
+        );
+
+        var res = await ServidorDeTeste.PostJsonAsync(
+            cliente,
+            RotasEconomia.ComprarDe(id),
+            new PedidoComprarItem(CatalogoItens.EspadaDeTeste, 1, CategoriaLoja.Armeiro)
+        );
+
+        Assert.Equal(HttpStatusCode.Conflict, res.StatusCode);
+        var erro = await ServidorDeTeste.LerJsonAsync<ErroApi>(res);
+        Assert.Equal(CodigosErroEconomia.LongeDoNpc, erro.Codigo);
+    }
+
+    [Fact]
+    public async Task Compra_PertoDoArmeiro_ComSaldo_RetornaOk()
+    {
+        var (cliente, id) = await NovoPersonagemAsync();
+        servidor.Posicoes.Colocar(
+            id,
+            ConfigNpcEconomia.Area,
+            ConfigNpcEconomia.ArmeiroX,
+            ConfigNpcEconomia.ArmeiroZ
+        );
+
+        // Credita saldo suficiente
+        await using (var escopo = servidor.Servidor.Services.CreateAsyncScope())
+        {
+            var db =
+                escopo.ServiceProvider.GetRequiredService<JogoDoGrupo.Server.Core.Persistencia.JogoDbContext>();
+            await using var tx = await db.Database.BeginTransactionAsync();
+            var carteira =
+                escopo.ServiceProvider.GetRequiredService<JogoDoGrupo.Server.Contratos.Economia.ICarteiraCoroas>();
+            await carteira.CreditarAsync(id, 100, default);
+            await tx.CommitAsync();
+        }
+
+        var res = await ServidorDeTeste.PostJsonAsync(
+            cliente,
+            RotasEconomia.ComprarDe(id),
+            new PedidoComprarItem(CatalogoItens.EspadaDeTeste, 1, CategoriaLoja.Armeiro)
+        );
 
         res.EnsureSuccessStatusCode();
     }

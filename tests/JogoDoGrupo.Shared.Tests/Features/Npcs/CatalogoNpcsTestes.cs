@@ -11,7 +11,7 @@ public class CatalogoNpcsTestes
     {
         Assert.NotEmpty(CatalogoNpcs.Todos);
         var cidadeNpcs = CatalogoNpcs.PorArea(CatalogoNpcs.AreaCidade);
-        Assert.Equal(3, cidadeNpcs.Length);
+        Assert.Equal(7, cidadeNpcs.Length);
 
         var vendedor = CatalogoNpcs.Obter(CatalogoNpcs.IdVendedor);
         Assert.NotNull(vendedor);
@@ -27,6 +27,26 @@ public class CatalogoNpcsTestes
         Assert.NotNull(banqueiro);
         Assert.Equal("Banqueiro Cassian", banqueiro.Nome);
         Assert.Equal(PapelNpc.Banqueiro, banqueiro.Papel);
+
+        var armeiro = CatalogoNpcs.Obter(CatalogoNpcs.IdArmeiro);
+        Assert.NotNull(armeiro);
+        Assert.Equal("Armeiro Gareth", armeiro.Nome);
+        Assert.Equal(PapelNpc.Armeiro, armeiro.Papel);
+
+        var armadureiro = CatalogoNpcs.Obter(CatalogoNpcs.IdArmadureiro);
+        Assert.NotNull(armadureiro);
+        Assert.Equal("Armadureira Bruna", armadureiro.Nome);
+        Assert.Equal(PapelNpc.Armadureiro, armadureiro.Papel);
+
+        var taverneiro = CatalogoNpcs.Obter(CatalogoNpcs.IdTaverneiro);
+        Assert.NotNull(taverneiro);
+        Assert.Equal("Taverneiro Barnabé", taverneiro.Nome);
+        Assert.Equal(PapelNpc.Taverneiro, taverneiro.Papel);
+
+        var merceeiro = CatalogoNpcs.Obter(CatalogoNpcs.IdMerceeiro);
+        Assert.NotNull(merceeiro);
+        Assert.Equal("Merceeiro Tomas", merceeiro.Nome);
+        Assert.Equal(PapelNpc.Merceeiro, merceeiro.Papel);
     }
 
     [Fact]
@@ -85,9 +105,52 @@ public class CatalogoNpcsTestes
         Assert.Equal(vendedor.Z, ConfigNpcEconomia.VendedorZ);
         Assert.Equal(ferreiro.X, ConfigNpcEconomia.FerreiroX);
         Assert.Equal(ferreiro.Z, ConfigNpcEconomia.FerreiroZ);
+        Assert.Equal(CatalogoNpcs.Armeiro.X, ConfigNpcEconomia.ArmeiroX);
+        Assert.Equal(CatalogoNpcs.Armeiro.Z, ConfigNpcEconomia.ArmeiroZ);
+        Assert.Equal(CatalogoNpcs.Armadureiro.X, ConfigNpcEconomia.ArmadureiroX);
+        Assert.Equal(CatalogoNpcs.Armadureiro.Z, ConfigNpcEconomia.ArmadureiroZ);
+        Assert.Equal(CatalogoNpcs.Taverneiro.X, ConfigNpcEconomia.TaverneiroX);
+        Assert.Equal(CatalogoNpcs.Taverneiro.Z, ConfigNpcEconomia.TaverneiroZ);
+        Assert.Equal(CatalogoNpcs.Merceeiro.X, ConfigNpcEconomia.MerceeiroX);
+        Assert.Equal(CatalogoNpcs.Merceeiro.Z, ConfigNpcEconomia.MerceeiroZ);
 
         Assert.True(ConfigNpcEconomia.DentroDoRaioVendedor(vendedor.X, vendedor.Z));
         Assert.True(ConfigNpcEconomia.DentroDoRaioFerreiro(ferreiro.X, ferreiro.Z));
+        Assert.True(
+            ConfigNpcEconomia.DentroDoRaioArmeiro(CatalogoNpcs.Armeiro.X, CatalogoNpcs.Armeiro.Z)
+        );
+        Assert.True(
+            ConfigNpcEconomia.DentroDoRaioArmadureiro(
+                CatalogoNpcs.Armadureiro.X,
+                CatalogoNpcs.Armadureiro.Z
+            )
+        );
+        Assert.True(
+            ConfigNpcEconomia.DentroDoRaioTaverneiro(
+                CatalogoNpcs.Taverneiro.X,
+                CatalogoNpcs.Taverneiro.Z
+            )
+        );
+        Assert.True(
+            ConfigNpcEconomia.DentroDoRaioMerceeiro(
+                CatalogoNpcs.Merceeiro.X,
+                CatalogoNpcs.Merceeiro.Z
+            )
+        );
+        Assert.True(
+            ConfigNpcEconomia.DentroDoRaioLoja(
+                CategoriaLoja.Armeiro,
+                CatalogoNpcs.Armeiro.X,
+                CatalogoNpcs.Armeiro.Z
+            )
+        );
+        Assert.False(
+            ConfigNpcEconomia.DentroDoRaioLoja(
+                CategoriaLoja.Armeiro,
+                CatalogoNpcs.Taverneiro.X,
+                CatalogoNpcs.Taverneiro.Z
+            )
+        );
         Assert.False(ConfigNpcEconomia.DentroDoRaioVendedor(100f, 100f));
     }
 }

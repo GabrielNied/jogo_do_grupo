@@ -65,6 +65,53 @@ public class ConfigEconomiaTestes
     }
 
     [Fact]
+    public void ObterCatalogo_PorCategoria_RetornaItensEspecificosDaLoja()
+    {
+        var armeiro = ConfigEconomia.ObterCatalogo(CategoriaLoja.Armeiro);
+        Assert.NotEmpty(armeiro);
+        Assert.Contains(armeiro, i => i.ItemId == CatalogoItens.EspadaDeTeste);
+        Assert.DoesNotContain(armeiro, i => i.ItemId == CatalogoItens.PocaoDeTeste);
+
+        var armadureiro = ConfigEconomia.ObterCatalogo(CategoriaLoja.Armadureiro);
+        Assert.NotEmpty(armadureiro);
+        Assert.Contains(armadureiro, i => i.ItemId == CatalogoItens.EscudoDeTeste);
+        Assert.DoesNotContain(armadureiro, i => i.ItemId == CatalogoItens.PocaoDeTeste);
+
+        var taverneiro = ConfigEconomia.ObterCatalogo(CategoriaLoja.Taverneiro);
+        Assert.NotEmpty(taverneiro);
+        Assert.Contains(taverneiro, i => i.ItemId == 50); // Pão
+        Assert.DoesNotContain(taverneiro, i => i.ItemId == CatalogoItens.EspadaDeTeste);
+
+        var merceeiro = ConfigEconomia.ObterCatalogo(CategoriaLoja.Merceeiro);
+        Assert.NotEmpty(merceeiro);
+        Assert.Contains(merceeiro, i => i.ItemId == CatalogoItens.PocaoDeTeste);
+        Assert.DoesNotContain(merceeiro, i => i.ItemId == CatalogoItens.EspadaDeTeste);
+    }
+
+    [Fact]
+    public void ObterItemLoja_PorCategoria_RecusaItensDeOutrasLojas()
+    {
+        // Espada está no Armeiro, mas não no Merceeiro nem no Taverneiro
+        Assert.NotNull(
+            ConfigEconomia.ObterItemLoja(CategoriaLoja.Armeiro, CatalogoItens.EspadaDeTeste)
+        );
+        Assert.Null(
+            ConfigEconomia.ObterItemLoja(CategoriaLoja.Merceeiro, CatalogoItens.EspadaDeTeste)
+        );
+        Assert.Null(
+            ConfigEconomia.ObterItemLoja(CategoriaLoja.Taverneiro, CatalogoItens.EspadaDeTeste)
+        );
+
+        // Poção está no Merceeiro, mas não no Armeiro
+        Assert.NotNull(
+            ConfigEconomia.ObterItemLoja(CategoriaLoja.Merceeiro, CatalogoItens.PocaoDeTeste)
+        );
+        Assert.Null(
+            ConfigEconomia.ObterItemLoja(CategoriaLoja.Armeiro, CatalogoItens.PocaoDeTeste)
+        );
+    }
+
+    [Fact]
     public void Equipamento_DurabilidadePadraoECalculoQuebrado()
     {
         var eq = new Equipamento();

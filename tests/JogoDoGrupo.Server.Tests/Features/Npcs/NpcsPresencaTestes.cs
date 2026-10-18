@@ -19,7 +19,7 @@ public class NpcsPresencaTestes(TempoRealFixture f) : IClassFixture<TempoRealFix
         Assert.NotNull(npcsDaArea);
         Assert.Equal("cidade", npcsDaArea.Area);
         Assert.NotNull(npcsDaArea.Npcs);
-        Assert.Equal(3, npcsDaArea.Npcs.Length);
+        Assert.Equal(7, npcsDaArea.Npcs.Length);
         Assert.Contains(
             npcsDaArea.Npcs,
             n => n.Nome == "Mercador Alden" && n.Papel == PapelNpc.Vendedor
@@ -31,6 +31,22 @@ public class NpcsPresencaTestes(TempoRealFixture f) : IClassFixture<TempoRealFix
         Assert.Contains(
             npcsDaArea.Npcs,
             n => n.Nome == "Banqueiro Cassian" && n.Papel == PapelNpc.Banqueiro
+        );
+        Assert.Contains(
+            npcsDaArea.Npcs,
+            n => n.Nome == "Armeiro Gareth" && n.Papel == PapelNpc.Armeiro
+        );
+        Assert.Contains(
+            npcsDaArea.Npcs,
+            n => n.Nome == "Armadureira Bruna" && n.Papel == PapelNpc.Armadureiro
+        );
+        Assert.Contains(
+            npcsDaArea.Npcs,
+            n => n.Nome == "Taverneiro Barnabé" && n.Papel == PapelNpc.Taverneiro
+        );
+        Assert.Contains(
+            npcsDaArea.Npcs,
+            n => n.Nome == "Merceeiro Tomas" && n.Papel == PapelNpc.Merceeiro
         );
     }
 
@@ -45,6 +61,6 @@ public class NpcsPresencaTestes(TempoRealFixture f) : IClassFixture<TempoRealFix
         var npcsDaArea = await cliente.ReceberAsync<NpcsDaArea>(NpcsMessageIds.NpcsDaArea);
         Assert.NotNull(npcsDaArea);
         Assert.Equal("cidade", npcsDaArea.Area);
-        Assert.Equal(3, npcsDaArea.Npcs.Length);
+        Assert.Equal(7, npcsDaArea.Npcs.Length);
     }
 }

@@ -180,6 +180,10 @@ namespace JogoDoGrupo.Client.Features.Npcs
             papel switch
             {
                 PapelNpc.Vendedor => new Color(0.95f, 0.78f, 0.25f), // Ouro
+                PapelNpc.Merceeiro => new Color(0.95f, 0.78f, 0.25f), // Ouro
+                PapelNpc.Armeiro => new Color(0.85f, 0.30f, 0.25f), // Vermelho / Ferro
+                PapelNpc.Armadureiro => new Color(0.40f, 0.55f, 0.70f), // Aço
+                PapelNpc.Taverneiro => new Color(0.85f, 0.60f, 0.20f), // Âmbar / Mel
                 PapelNpc.Ferreiro => new Color(0.9f, 0.45f, 0.18f), // Bronze / Laranja
                 PapelNpc.Banqueiro => new Color(0.2f, 0.75f, 0.45f), // Esmeralda
                 PapelNpc.Leiloeiro => new Color(0.25f, 0.65f, 0.95f), // Safira / Azul Claro
@@ -191,6 +195,10 @@ namespace JogoDoGrupo.Client.Features.Npcs
             papel switch
             {
                 PapelNpc.Vendedor => "Comerciante",
+                PapelNpc.Merceeiro => "Merceeiro",
+                PapelNpc.Armeiro => "Armeiro",
+                PapelNpc.Armadureiro => "Armadureiro",
+                PapelNpc.Taverneiro => "Taverneiro",
                 PapelNpc.Ferreiro => "Ferreiro",
                 PapelNpc.Banqueiro => "Banqueiro",
                 PapelNpc.Leiloeiro => "Leiloeiro",

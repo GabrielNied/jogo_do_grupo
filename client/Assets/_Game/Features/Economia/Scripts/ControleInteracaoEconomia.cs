@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using JogoDoGrupo.Client.Core.Jogo;
 using JogoDoGrupo.Client.Core.Jogo.Janelas;
 using JogoDoGrupo.Client.Core.UI;
@@ -8,27 +9,42 @@ using UnityEngine.UIElements;
 
 namespace JogoDoGrupo.Client.Features.Economia
 {
+    internal struct PontoInteracaoEconomia
+    {
+        public Transform Transform;
+        public string Rotulo;
+        public string ChaveJanela;
+
+        public PontoInteracaoEconomia(Transform transform, string rotulo, string chaveJanela)
+        {
+            Transform = transform;
+            Rotulo = rotulo;
+            ChaveJanela = chaveJanela;
+        }
+    }
+
     /// <summary>
-    /// Dicas e tecla E nos marcadores de vendedor e ferreiro; abre as janelas correspondentes.
+    /// Dicas e tecla E nos marcadores dos comerciantes e ferreiro; abre as janelas correspondentes (#173, #1066).
     /// </summary>
     internal sealed class ControleInteracaoEconomia : MonoBehaviour
     {
         private InputAction _interagir;
         private Label _dica;
         private GameObject _jogador;
-        private Transform _vendedor;
-        private Transform _ferreiro;
+        private readonly List<PontoInteracaoEconomia> _pontos = new List<PontoInteracaoEconomia>();
 
         public void Configurar(
             GameObject jogador,
-            Transform vendedor,
-            Transform ferreiro,
-            VisualElement raizDaInterface
+            VisualElement raizDaInterface,
+            params PontoInteracaoEconomia[] pontos
         )
         {
             _jogador = jogador;
-            _vendedor = vendedor;
-            _ferreiro = ferreiro;
+            _pontos.Clear();
+            if (pontos != null)
+            {
+                _pontos.AddRange(pontos);
+            }
 
             _dica = new Label("");
             _dica.pickingMode = PickingMode.Ignore;
@@ -48,6 +64,38 @@ namespace JogoDoGrupo.Client.Features.Economia
             {
                 _interagir.Enable();
             }
+        }
+
+        public void Configurar(
+            GameObject jogador,
+            Transform vendedor,
+            Transform ferreiro,
+            VisualElement raizDaInterface
+        )
+        {
+            var pontos = new List<PontoInteracaoEconomia>();
+            if (vendedor != null)
+            {
+                pontos.Add(
+                    new PontoInteracaoEconomia(
+                        vendedor,
+                        "falar com o comerciante",
+                        JanelaVendedor.Chave
+                    )
+                );
+            }
+            if (ferreiro != null)
+            {
+                pontos.Add(
+                    new PontoInteracaoEconomia(
+                        ferreiro,
+                        "falar com o ferreiro",
+                        JanelaFerreiro.Chave
+                    )
+                );
+            }
+
+            Configurar(jogador, raizDaInterface, pontos.ToArray());
         }
 
         private void OnEnable()
@@ -72,7 +120,7 @@ namespace JogoDoGrupo.Client.Features.Economia
 
         private void Update()
         {
-            if (_dica == null || _jogador == null || _vendedor == null || _ferreiro == null)
+            if (_dica == null || _jogador == null || _pontos.Count == 0)
             {
                 return;
             }
@@ -84,61 +132,41 @@ namespace JogoDoGrupo.Client.Features.Economia
             }
 
             var pos = _jogador.transform.position;
-            var pertoVendedor = MarcadorNpcEconomia.EstaPerto(pos, _vendedor.position);
-            var pertoFerreiro = MarcadorNpcEconomia.EstaPerto(pos, _ferreiro.position);
+            PontoInteracaoEconomia? maisProximo = null;
+            float menorDistanciaSq = float.MaxValue;
 
-            if (!pertoVendedor && !pertoFerreiro)
+            for (var i = 0; i < _pontos.Count; i++)
+            {
+                var ponto = _pontos[i];
+                if (ponto.Transform == null)
+                {
+                    continue;
+                }
+
+                if (MarcadorNpcEconomia.EstaPerto(pos, ponto.Transform.position))
+                {
+                    var dSq = DistanciaHorizontal(pos, ponto.Transform.position);
+                    if (dSq < menorDistanciaSq)
+                    {
+                        menorDistanciaSq = dSq;
+                        maisProximo = ponto;
+                    }
+                }
+            }
+
+            if (!maisProximo.HasValue)
             {
                 MostrarDica(false);
                 return;
             }
 
-            var rotulo = TeclasDoJogo.Rotulo(TeclasDoJogo.Interagir);
-            if (pertoVendedor && pertoFerreiro)
-            {
-                var dv = DistanciaHorizontal(pos, _vendedor.position);
-                var df = DistanciaHorizontal(pos, _ferreiro.position);
-                _dica.text =
-                    dv <= df
-                        ? rotulo + ": falar com o comerciante"
-                        : rotulo + ": falar com o ferreiro";
-            }
-            else if (pertoVendedor)
-            {
-                _dica.text = rotulo + ": falar com o comerciante";
-            }
-            else
-            {
-                _dica.text = rotulo + ": falar com o ferreiro";
-            }
-
+            var rotuloTecla = TeclasDoJogo.Rotulo(TeclasDoJogo.Interagir);
+            _dica.text = $"{rotuloTecla}: {maisProximo.Value.Rotulo}";
             MostrarDica(true);
 
-            if (!_interagir.WasPressedThisFrame())
+            if (_interagir != null && _interagir.WasPressedThisFrame())
             {
-                return;
-            }
-
-            if (pertoVendedor && pertoFerreiro)
-            {
-                var dv = DistanciaHorizontal(pos, _vendedor.position);
-                var df = DistanciaHorizontal(pos, _ferreiro.position);
-                if (dv <= df)
-                {
-                    JanelasDoJogo.Abrir(JanelaVendedor.Chave);
-                }
-                else
-                {
-                    JanelasDoJogo.Abrir(JanelaFerreiro.Chave);
-                }
-            }
-            else if (pertoVendedor)
-            {
-                JanelasDoJogo.Abrir(JanelaVendedor.Chave);
-            }
-            else
-            {
-                JanelasDoJogo.Abrir(JanelaFerreiro.Chave);
+                JanelasDoJogo.Abrir(maisProximo.Value.ChaveJanela);
             }
         }
 

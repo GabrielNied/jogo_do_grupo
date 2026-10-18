@@ -14,6 +14,10 @@ namespace JogoDoGrupo.Shared.Features.Npcs
         public const int IdVendedor = 1;
         public const int IdFerreiro = 2;
         public const int IdBanqueiro = 3;
+        public const int IdArmeiro = 4;
+        public const int IdArmadureiro = 5;
+        public const int IdTaverneiro = 6;
+        public const int IdMerceeiro = 7;
 
         public static readonly DefinicaoNpc Vendedor = new DefinicaoNpc(
             id: IdVendedor,
@@ -51,7 +55,64 @@ namespace JogoDoGrupo.Shared.Features.Npcs
             raioInteracao: 4f
         );
 
-        public static readonly DefinicaoNpc[] Todos = { Vendedor, Ferreiro, Banqueiro };
+        public static readonly DefinicaoNpc Armeiro = new DefinicaoNpc(
+            id: IdArmeiro,
+            nome: "Armeiro Gareth",
+            papel: PapelNpc.Armeiro,
+            area: AreaCidade,
+            x: 10f,
+            y: 0f,
+            z: -4f,
+            rotacaoY: 180f,
+            raioInteracao: 4f
+        );
+
+        public static readonly DefinicaoNpc Armadureiro = new DefinicaoNpc(
+            id: IdArmadureiro,
+            nome: "Armadureira Bruna",
+            papel: PapelNpc.Armadureiro,
+            area: AreaCidade,
+            x: 14f,
+            y: 0f,
+            z: -4f,
+            rotacaoY: 180f,
+            raioInteracao: 4f
+        );
+
+        public static readonly DefinicaoNpc Taverneiro = new DefinicaoNpc(
+            id: IdTaverneiro,
+            nome: "Taverneiro Barnabé",
+            papel: PapelNpc.Taverneiro,
+            area: AreaCidade,
+            x: -6f,
+            y: 0f,
+            z: -12f,
+            rotacaoY: 90f,
+            raioInteracao: 4f
+        );
+
+        public static readonly DefinicaoNpc Merceeiro = new DefinicaoNpc(
+            id: IdMerceeiro,
+            nome: "Merceeiro Tomas",
+            papel: PapelNpc.Merceeiro,
+            area: AreaCidade,
+            x: 12f,
+            y: 0f,
+            z: -8f,
+            rotacaoY: 180f,
+            raioInteracao: 4f
+        );
+
+        public static readonly DefinicaoNpc[] Todos =
+        {
+            Vendedor,
+            Ferreiro,
+            Banqueiro,
+            Armeiro,
+            Armadureiro,
+            Taverneiro,
+            Merceeiro,
+        };
 
         private static readonly Dictionary<int, DefinicaoNpc> _porId = new Dictionary<
             int,
@@ -61,6 +122,10 @@ namespace JogoDoGrupo.Shared.Features.Npcs
             { IdVendedor, Vendedor },
             { IdFerreiro, Ferreiro },
             { IdBanqueiro, Banqueiro },
+            { IdArmeiro, Armeiro },
+            { IdArmadureiro, Armadureiro },
+            { IdTaverneiro, Taverneiro },
+            { IdMerceeiro, Merceeiro },
         };
 
         public static DefinicaoNpc Obter(int id)
