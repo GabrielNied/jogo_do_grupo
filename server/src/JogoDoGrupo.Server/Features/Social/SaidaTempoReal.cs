@@ -11,6 +11,7 @@ namespace JogoDoGrupo.Server.Features.Social;
 public sealed class SaidaTempoReal(ServidorTempoReal tempoReal)
     : ISaidaDoGrupo,
         ISaidaAmigos,
+        ISaidaDeMarcadores
         ISaidaDeInspecao
 {
     private readonly ConcurrentDictionary<long, SessaoTempoReal> _sessoes = new();
@@ -63,6 +64,12 @@ public sealed class SaidaTempoReal(ServidorTempoReal tempoReal)
             SocialMessageIds.OperacaoDeAmizadeRecusada,
             new OperacaoDeAmizadeRecusada { Codigo = codigo }
         );
+
+    public void Marcadores(long personagemId, MarcadoresDeAlvoMudaram mensagem) =>
+        Enviar(personagemId, SocialMessageIds.MarcadoresDeAlvoMudaram, mensagem);
+
+    public void Recusada(long personagemId, DefinirMarcadorRecusado recusa) =>
+        Enviar(personagemId, SocialMessageIds.DefinirMarcadorRecusado, recusa);
 
     private void Enviar<T>(long personagemId, ushort id, T mensagem)
     {

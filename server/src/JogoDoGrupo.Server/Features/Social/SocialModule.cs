@@ -25,6 +25,7 @@ public sealed class SocialModule : IFeatureModule, IConsultaDeGrupo
     private readonly DiretorioTardio _diretorio = new();
     private GruposDoServidor? _grupos;
     private AmigosDoServidor? _amigos;
+    private ControleDeMarcadoresDeGrupo? _marcadores;
     private ServicoDeInspecao? _inspecao;
 
     /// <summary>Quem tem sessão de tempo real agora, por personagem (para entregar o chat).</summary>
@@ -127,6 +128,9 @@ public sealed class SocialModule : IFeatureModule, IConsultaDeGrupo
                 SocialMessageIds.DeixarDeIgnorar,
                 (sessao, pedido) => _amigos!.DeixarDeIgnorar(sessao.PersonagemId, pedido.IgnoradoId)
             )
+            .Ao<DefinirMarcadorDeAlvo>(
+                SocialMessageIds.DefinirMarcadorDeAlvo,
+                (sessao, pedido) => _marcadores?.DefinirMarcador(sessao.PersonagemId, pedido)
             .Ao<PedirInspecao>(
                 SocialMessageIds.PedirInspecao,
                 (sessao, pedido) =>
@@ -168,6 +172,11 @@ public sealed class SocialModule : IFeatureModule, IConsultaDeGrupo
             () => _servicos!.GetService<IPosicoesDoMundo>()
         );
         _grupos = grupos;
+        _marcadores = new ControleDeMarcadoresDeGrupo(
+            this,
+            saida,
+            _servicos!.GetRequiredService<ILogger<ControleDeMarcadoresDeGrupo>>()
+        );
 
         _tempoReal = contexto.TempoReal;
         _chat = _servicos!.GetRequiredService<ChatDoServidor>();

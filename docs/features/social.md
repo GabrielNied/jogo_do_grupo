@@ -447,6 +447,24 @@ Código em `shared/Package/Runtime/Features/Social/`. Tempo real, entrega confi�
 - `RegrasAmigos`: os números da tabela de limites como constantes e as decisões puras (`VagasLivres`, `TemVaga`, `AlvoComPedidosDemais`, `CabeMaisUmIgnorado`, `PedidoRapidoDemais`, `PedidoViraAceite`, `RecusaDoPedido`, `RecusaDoAceite`, `RecusaDeIgnorar`, `ContatoBarrado`). `RelacaoDeAmizade` é a entrada de `RecusaDoPedido`.
 - Amigos e ignorados ficam com os IDs 13200 a 13299.
 
+### Marcadores táticos de grupo (Target Markers - issue #1020)
+
+Marcadores visuais colocados sobre alvos (mobs, chefes ou jogadores) visíveis para todos os membros do grupo.
+
+- **Ícones disponíveis (`TipoMarcadorDeAlvo`):**
+  - `Nenhum` (0): remove o marcador.
+  - `Caveira` (1): foco primário (dano prioritário).
+  - `Cruz` (2): foco secundário.
+  - `Escudo` (3): alvo do tank.
+  - `Lua` (4): controle de grupo (CC / atordoamento / silêncio).
+  - `Estrela` (5): alvo especial / utilitário.
+- **Autoridade e exclusividade:** gerenciado exclusivamente pelo servidor (`ControleDeMarcadoresDeGrupo`). Apenas o líder do grupo pode definir marcadores. Cada marcador só pode estar em um alvo por vez no grupo (ao marcar outro alvo com o mesmo ícone, o anterior perde o marcador).
+- **Sincronização em tempo real:**
+  - ID 13320 `DefinirMarcadorDeAlvo` (client → servidor): `AlvoId`, `Marcador`.
+  - ID 13321 `MarcadoresDeAlvoMudaram` (servidor → grupo): `Marcadores[]` (`MarcadorAlvoDto`).
+  - ID 13322 `DefinirMarcadorRecusado` (servidor → remetente): `Motivo` (`CodigoErroMarcador`).
+- **Comandos no chat:** `/marcar <caveira|x|escudo|lua|estrela> [id]` e `/desmarcar [id]`. Se o ID não for informado, busca automaticamente o alvo mais próximo do jogador.
+- **Apresentação visual:** `ApresentadorDeMarcadoresTaticos` projeta o ícone no mundo 3D acima da cabeça do alvo com limite de distância e estilos do padrão Lumora.
 ### Inspeção de jogador (issue #1016)
 
 Permite visualizar equipamentos equipados, tiers, raridades e atributos de outros jogadores presentes no mundo (na mesma área) ou membros do mesmo grupo.

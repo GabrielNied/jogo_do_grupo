@@ -351,6 +351,11 @@ namespace JogoDoGrupo.Client.Features.Social
                 _lista.Membros = Array.Empty<MembroDoGrupo>();
             }
 
+            if (_lista.Membros.Length == 0)
+            {
+                EstadoMarcadoresTaticos.Instancia?.Limpar();
+            }
+
             Mudou?.Invoke();
         }
 

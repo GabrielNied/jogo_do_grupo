@@ -43,6 +43,7 @@ namespace JogoDoGrupo.Client.Features.Social
         {
             _instancia?.DescartarHud();
             _instancia = null;
+            EstadoMarcadoresTaticos.Instancia?.Limpar();
         }
 
         private void OnDestroy()
@@ -59,6 +60,7 @@ namespace JogoDoGrupo.Client.Features.Social
                 // Fora do mundo não há grupo: esquece o do personagem que saiu.
                 _jogadorAtendido = null;
                 estado.DefinirPersonagem(0);
+                EstadoMarcadoresTaticos.Instancia.Limpar();
                 DescartarHud();
                 return;
             }
@@ -105,6 +107,8 @@ namespace JogoDoGrupo.Client.Features.Social
 
             var aviso = raiz.AddComponent<AvisoDoGrupoNaTela>();
             aviso.Configurar(container, configuracao);
+
+            ApresentadorDeMarcadoresTaticos.Criar(jogador.scene);
         }
 
         private static PanelSettings CriarConfiguracaoDoPainel()

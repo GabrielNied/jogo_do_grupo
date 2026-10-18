@@ -197,6 +197,8 @@
     background-color: var(--lumora-cores-erro);
 }
 
+/* Marcadores Táticos de Grupo */
+.social-marcador-camada {
 /* Balões de fala no mundo (Speech Bubbles) */
 .social-balao-camada {
     position: absolute;
@@ -207,6 +209,45 @@
     pointer-events: none;
 }
 
+.social-marcador-tatico {
+    position: absolute;
+    translate: -50% -100%;
+    width: 32px;
+    height: 32px;
+    border-radius: 16px;
+    background-color: var(--lumora-cores-painel);
+    border-width: var(--lumora-bordas-fina);
+    border-color: var(--lumora-cores-ouro);
+    align-items: center;
+    justify-content: center;
+    font-size: var(--lumora-tipografia-leitura);
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+}
+
+.marcador-caveira {
+    border-color: var(--lumora-cores-erro);
+    color: var(--lumora-cores-erro);
+}
+
+.marcador-cruz {
+    border-color: var(--lumora-cores-essencia);
+    color: var(--lumora-cores-essencia);
+}
+
+.marcador-escudo {
+    border-color: var(--lumora-cores-ouro);
+    color: var(--lumora-cores-ouro);
+}
+
+.marcador-lua {
+    border-color: var(--lumora-cores-sussurro);
+    color: var(--lumora-cores-sussurro);
+}
+
+.marcador-estrela {
+    border-color: var(--lumora-cores-aviso);
+    color: var(--lumora-cores-aviso);
 .social-balao-fala {
     position: absolute;
     min-width: 60px;
