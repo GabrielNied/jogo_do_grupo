@@ -11,7 +11,7 @@ namespace JogoDoGrupo.Server.Features.Social;
 public sealed class SaidaTempoReal(ServidorTempoReal tempoReal)
     : ISaidaDoGrupo,
         ISaidaAmigos,
-        ISaidaDeMarcadores
+        ISaidaDeMarcadores,
         ISaidaDeInspecao
 {
     private readonly ConcurrentDictionary<long, SessaoTempoReal> _sessoes = new();

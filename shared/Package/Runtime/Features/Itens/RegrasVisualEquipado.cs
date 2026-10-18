@@ -49,6 +49,7 @@ namespace JogoDoGrupo.Shared.Features.Itens
                         Posicao = entrada.Posicao,
                         Tipo = dados.Tipo,
                         ModeloId = dados.ModeloId,
+                        Tier = RegrasTier.TierDe(dados),
                     }
                 );
             }

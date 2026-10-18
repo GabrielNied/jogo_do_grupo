@@ -136,11 +136,11 @@ public sealed class SocialModule : IFeatureModule, IConsultaDeGrupo
             .Ao<SairDaFilaDeGrupo>(
                 SocialMessageIds.SairDaFilaDeGrupo,
                 (sessao, _) => _filaGrupo!.Sair(sessao.PersonagemId)
-            )    
+            )
             .Ao<DefinirMarcadorDeAlvo>(
                 SocialMessageIds.DefinirMarcadorDeAlvo,
                 (sessao, pedido) => _marcadores?.DefinirMarcador(sessao.PersonagemId, pedido)
-             )   
+            )
             .Ao<PedirInspecao>(
                 SocialMessageIds.PedirInspecao,
                 (sessao, pedido) =>
@@ -196,6 +196,7 @@ public sealed class SocialModule : IFeatureModule, IConsultaDeGrupo
                 }
             },
             () => Environment.TickCount64
+        );
         _marcadores = new ControleDeMarcadoresDeGrupo(
             this,
             saida,

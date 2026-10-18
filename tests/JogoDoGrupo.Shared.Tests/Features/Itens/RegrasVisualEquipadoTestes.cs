@@ -61,4 +61,30 @@ public class RegrasVisualEquipadoTestes
         );
         Assert.Equal("EncaixeCostas", RegrasVisualEquipado.NomeDoEncaixe(EncaixeDoVisual.Costas));
     }
+
+    [Fact]
+    public void Montar_CalculaTierDeCadaArma()
+    {
+        var espada = new Equipamento
+        {
+            ModeloId = 173,
+            Tipo = TipoEquipamento.Espada,
+            Atributos = new[]
+            {
+                new AtributoItem { Status = StatusItem.DanoFisico, Valor = 100 },
+            },
+        };
+
+        var visual = RegrasVisualEquipado.Montar(
+            1,
+            1,
+            new[]
+            {
+                new EntradaInventario { Posicao = PosicaoEquipamento.Arma1, Equipamento = espada },
+            }
+        );
+
+        Assert.Single(visual.Armas);
+        Assert.True(visual.Armas[0].Tier >= TierItem.A);
+    }
 }
