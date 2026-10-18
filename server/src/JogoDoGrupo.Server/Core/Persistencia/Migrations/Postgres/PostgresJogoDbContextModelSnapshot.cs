@@ -307,6 +307,31 @@ namespace JogoDoGrupo.Server.Core.Persistencia.Migrations.Postgres
                     b.ToTable("Personagens", (string)null);
                 });
 
+            modelBuilder.Entity("JogoDoGrupo.Server.Features.Pets.PetDaConta", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("ContaId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("DesbloqueadoEm")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Especie")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ContaId", "Especie")
+                        .IsUnique();
+
+                    b.ToTable("PetsDaConta", (string)null);
+                });
+
             modelBuilder.Entity("JogoDoGrupo.Server.Features.Skills.SkillsDoExemplar", b =>
                 {
                     b.Property<long>("InstanciaId")
