@@ -84,6 +84,7 @@ builder.Services.Configure<ForwardedHeadersOptions>(opcoes =>
 builder.Services.AdicionarBancoDeDados(builder.Configuration);
 builder.Services.AdicionarAutenticacaoJwt(builder.Configuration, builder.Environment);
 builder.Services.AdicionarContas();
+builder.Services.AdicionarRateLimiting(builder.Configuration);
 builder.Services.AdicionarTempoReal(builder.Configuration);
 builder.Services.AdicionarCanais(builder.Configuration);
 builder.Services.AddSingleton<EventosDoServidor>();
@@ -104,6 +105,7 @@ if (app.Configuration.GetValue<bool?>("Banco:MigrarAoIniciar") ?? app.Environmen
 
 app.UseForwardedHeaders();
 app.UsarErrosApi();
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 

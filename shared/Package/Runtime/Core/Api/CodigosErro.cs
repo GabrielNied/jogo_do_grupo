@@ -48,6 +48,9 @@ namespace JogoDoGrupo.Shared.Core.Api
         /// <summary>503: banco ou servidor ocupado; o client pode tentar de novo.</summary>
         public const string ServidorOcupado = "ServidorOcupado";
 
+        /// <summary>429: limite de tentativas excedido; aguarde antes de tentar novamente.</summary>
+        public const string MuitasTentativas = "MuitasTentativas";
+
         /// <summary>500: falha inesperada no servidor.</summary>
         public const string ErroInterno = "ErroInterno";
     }
