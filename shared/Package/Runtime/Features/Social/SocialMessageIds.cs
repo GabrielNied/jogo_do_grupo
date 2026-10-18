@@ -91,5 +91,16 @@ namespace JogoDoGrupo.Shared.Features.Social
 
         /// <summary>Servidor → quem pediu: a operação de amigos ou ignorados foi recusada.</summary>
         public const ushort OperacaoDeAmizadeRecusada = 13213;
+
+        // ── Marcadores táticos de alvo do grupo (13320 a 13329) ───────────────────
+
+        /// <summary>Client → servidor: define ou remove um marcador tático em um alvo.</summary>
+        public const ushort DefinirMarcadorDeAlvo = 13320;
+
+        /// <summary>Servidor → membros: a lista de alvos marcados taticamente pelo grupo mudou.</summary>
+        public const ushort MarcadoresDeAlvoMudaram = 13321;
+
+        /// <summary>Servidor → solicitante: o pedido de definir marcador foi recusado.</summary>
+        public const ushort DefinirMarcadorRecusado = 13322;
     }
 }

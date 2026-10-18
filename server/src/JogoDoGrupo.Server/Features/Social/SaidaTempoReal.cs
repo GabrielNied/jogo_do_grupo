@@ -8,7 +8,10 @@ namespace JogoDoGrupo.Server.Features.Social;
 /// Leva as mensagens do grupo pelo tempo real (UDP), todas confiáveis e em ordem. Guarda a sessão
 /// de cada personagem online para achar o destino pelo id do personagem.
 /// </summary>
-public sealed class SaidaTempoReal(ServidorTempoReal tempoReal) : ISaidaDoGrupo, ISaidaAmigos
+public sealed class SaidaTempoReal(ServidorTempoReal tempoReal)
+    : ISaidaDoGrupo,
+        ISaidaAmigos,
+        ISaidaDeMarcadores
 {
     private readonly ConcurrentDictionary<long, SessaoTempoReal> _sessoes = new();
 
@@ -52,6 +55,12 @@ public sealed class SaidaTempoReal(ServidorTempoReal tempoReal) : ISaidaDoGrupo,
             SocialMessageIds.OperacaoDeAmizadeRecusada,
             new OperacaoDeAmizadeRecusada { Codigo = codigo }
         );
+
+    public void Marcadores(long personagemId, MarcadoresDeAlvoMudaram mensagem) =>
+        Enviar(personagemId, SocialMessageIds.MarcadoresDeAlvoMudaram, mensagem);
+
+    public void Recusada(long personagemId, DefinirMarcadorRecusado recusa) =>
+        Enviar(personagemId, SocialMessageIds.DefinirMarcadorRecusado, recusa);
 
     private void Enviar<T>(long personagemId, ushort id, T mensagem)
     {
