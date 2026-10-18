@@ -53,7 +53,7 @@ namespace JogoDoGrupo.Shared.Features.Skills
                 Magica("cajado.raio-arcano", "Raio Arcano", 25, 12, 2.0, true),
                 Magica("cajado.nova-de-fogo", "Nova de Fogo", 30, 16, 2.4),
                 Magica("cajado.orbes-da-aurora", "Orbes da Aurora", 35, 20, 2.6),
-                Magica("cajado.pequeno-sol", "Pequeno Sol", 50, 30, 4.0)
+                Magica("cajado.surto-solar", "Surto Solar", 50, 30, 4.0)
             );
             Registrar(
                 TipoEquipamento.Foco,
