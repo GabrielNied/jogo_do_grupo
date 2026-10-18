@@ -123,6 +123,29 @@ namespace JogoDoGrupo.Client.Core.Tests
         }
 
         [Test]
+        public void Mostrar_JanelaSemAtalho_MostraDicaSoComEsc()
+        {
+            var container = new VisualElement();
+            var janela = new JanelaDeTeste();
+            var apresentador = new ApresentadorDeJanelas(container, null);
+
+            var definicaoSemAtalho = new DefinicaoDeJanela(
+                "teste.sem_atalho",
+                "Sem Atalho",
+                "",
+                50,
+                () => janela
+            );
+            apresentador.Mostrar(definicaoSemAtalho);
+
+            Assert.AreEqual(
+                "Esc: fechar",
+                apresentador.Raiz.Q<Label>(null, EstiloCore.JanelaRodape).text
+            );
+            apresentador.Esconder();
+        }
+
+        [Test]
         public void Esconder_FechaAJanela_ETiraDaTela()
         {
             var container = new VisualElement();

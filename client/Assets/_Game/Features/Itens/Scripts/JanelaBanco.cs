@@ -45,6 +45,7 @@ namespace JogoDoGrupo.Client.Features.Itens
         private BancoResponse _estado;
         private int _abaAtiva;
         private bool _ocupado;
+        private bool _abriuInventario;
 
         private Label _rotuloSaldo;
         private Label _rotuloCapacidade;
@@ -199,7 +200,9 @@ namespace JogoDoGrupo.Client.Features.Itens
             // Abre o inventário junto para permitir ver bolsa e banco simultaneamente
             if (!JanelasDoJogo.EstaAberta(JanelaInventario.Chave))
             {
+                _abriuInventario = true;
                 JanelasDoJogo.Abrir(JanelaInventario.Chave);
+                JanelasDoJogo.Focar(Chave);
             }
 
             _ = Carregar();
@@ -210,6 +213,12 @@ namespace JogoDoGrupo.Client.Features.Itens
             if (Instancia == this)
             {
                 Instancia = null;
+            }
+
+            if (_abriuInventario)
+            {
+                _abriuInventario = false;
+                JanelasDoJogo.Fechar(JanelaInventario.Chave);
             }
         }
 

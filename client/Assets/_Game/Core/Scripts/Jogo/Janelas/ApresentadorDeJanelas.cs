@@ -69,7 +69,7 @@ namespace JogoDoGrupo.Client.Core.Jogo.Janelas
         /// <summary>Texto da dica do rodapé (ex.: "I ou Esc: fechar").</summary>
         internal static string TextoDoRodape(string tecla)
         {
-            return $"{tecla} ou Esc: fechar";
+            return string.IsNullOrEmpty(tecla) ? "Esc: fechar" : $"{tecla} ou Esc: fechar";
         }
 
         /// <summary>

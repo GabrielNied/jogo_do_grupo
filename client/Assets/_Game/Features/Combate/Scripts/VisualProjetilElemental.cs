@@ -286,7 +286,14 @@ namespace JogoDoGrupo.Client.Features.Combate
             }
 
             ps.Play();
-            GameObject.Destroy(efeito, main.duration + 0.15f);
+            if (Application.isPlaying)
+            {
+                GameObject.Destroy(efeito, main.duration + 0.15f);
+            }
+            else
+            {
+                GameObject.DestroyImmediate(efeito);
+            }
         }
 
         public static SomDeCombate ObterSomDisparo(TipoDeProjetil tipo)
@@ -385,7 +392,14 @@ namespace JogoDoGrupo.Client.Features.Combate
             var col = objeto.GetComponent<Collider>();
             if (col != null)
             {
-                GameObject.Destroy(col);
+                if (Application.isPlaying)
+                {
+                    GameObject.Destroy(col);
+                }
+                else
+                {
+                    GameObject.DestroyImmediate(col);
+                }
             }
         }
     }

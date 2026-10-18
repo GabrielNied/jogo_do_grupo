@@ -149,8 +149,14 @@ namespace JogoDoGrupo.Client.Features.Combate
                 VisualProjetilElemental.ObterVolumeImpacto(_tipoProjetil)
             );
             _aoDestruir?.Invoke(_id);
-            _aoDestruir = null;
-            Destroy(gameObject);
+            if (Application.isPlaying)
+            {
+                Destroy(gameObject);
+            }
+            else
+            {
+                DestroyImmediate(gameObject);
+            }
         }
 
         /// <summary>
