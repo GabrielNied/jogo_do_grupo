@@ -786,5 +786,67 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
             Assert.Less(dentro.Ceu.grayscale, fora.Ceu.grayscale);
             Assert.Greater(dentro.Densidade, 0f);
         }
+
+        [Test]
+        public void GarantirDados_conecta_terrain_data_e_colisor_quando_nulos()
+        {
+            var objeto = new GameObject("TesteTerrenoSemDados");
+            try
+            {
+                var terrain = objeto.AddComponent<Terrain>();
+                var colisor = objeto.AddComponent<TerrainCollider>();
+                Assert.IsNull(terrain.terrainData);
+                Assert.IsNull(colisor.terrainData);
+
+                TerrenoNativoDoMundo.GarantirDados(terrain);
+
+                Assert.IsNotNull(terrain.terrainData, "TerrainData deveria ser restaurado.");
+                Assert.AreSame(
+                    terrain.terrainData,
+                    colisor.terrainData,
+                    "Colisor deve usar o mesmo TerrainData."
+                );
+                Assert.IsTrue(terrain.drawTreesAndFoliage);
+                Assert.AreEqual(1f, terrain.detailObjectDensity);
+            }
+            finally
+            {
+                Object.DestroyImmediate(objeto);
+            }
+        }
+
+        [Test]
+        public void Mapa_publicado_restaura_terrain_data_e_colisor_no_chao_nativo()
+        {
+            var mapa = ConstrutorHub.InstanciarMapaPublicadoParaTeste();
+            if (mapa == null)
+            {
+                Assert.Ignore("Prefab do mapa publicado não presente nos Resources.");
+                return;
+            }
+
+            try
+            {
+                var terrain = mapa.GetComponentInChildren<Terrain>();
+                Assert.IsNotNull(terrain, "O mapa publicado precisa conter um Terrain.");
+                Assert.IsNotNull(
+                    terrain.terrainData,
+                    "O Terrain do mapa publicado precisa ter TerrainData atribuído."
+                );
+
+                var colisor = terrain.GetComponent<TerrainCollider>();
+                Assert.IsNotNull(colisor, "O Terrain precisa de TerrainCollider.");
+                Assert.IsNotNull(
+                    colisor.terrainData,
+                    "O TerrainCollider precisa de TerrainData atribuído."
+                );
+                Assert.AreSame(terrain.terrainData, colisor.terrainData);
+                Assert.AreEqual(MapaDoMundo.Lado, terrain.terrainData.size.x, 0.01f);
+            }
+            finally
+            {
+                Object.DestroyImmediate(mapa);
+            }
+        }
     }
 }

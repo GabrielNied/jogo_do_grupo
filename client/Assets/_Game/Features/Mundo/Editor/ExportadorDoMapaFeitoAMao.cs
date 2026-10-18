@@ -47,6 +47,13 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
                 );
             }
 
+            terreno.terrainData = dados;
+            var colisor = terreno.GetComponent<TerrainCollider>();
+            if (colisor != null)
+            {
+                colisor.terrainData = dados;
+            }
+
             terreno.gameObject.AddComponent<ConfiguracaoDeAutoriaDoMapa>();
             new GameObject("Áreas do mapa");
             var pontos = new GameObject("Pontos do mapa");
@@ -292,6 +299,24 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
             if (mapa == null)
             {
                 throw new InvalidOperationException("A cena de autoria precisa ter a raiz 'Hub'.");
+            }
+
+            var terrain = mapa.GetComponentInChildren<Terrain>();
+            if (
+                terrain != null
+                && (terrain.terrainData == null || !AssetDatabase.Contains(terrain.terrainData))
+            )
+            {
+                var asset = AssetDatabase.LoadAssetAtPath<TerrainData>(CaminhoDoTerrain);
+                if (asset != null)
+                {
+                    terrain.terrainData = asset;
+                    var colisor = terrain.GetComponent<TerrainCollider>();
+                    if (colisor != null)
+                    {
+                        colisor.terrainData = asset;
+                    }
+                }
             }
 
             PrefabUtility.SaveAsPrefabAsset(mapa, CaminhoDoPrefabPublicado);
