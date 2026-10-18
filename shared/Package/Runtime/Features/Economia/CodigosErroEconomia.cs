@@ -16,5 +16,6 @@ namespace JogoDoGrupo.Shared.Features.Economia
         public const string ItemNaoReparavel = "item_nao_reparavel";
         public const string QuantidadeInvalida = "quantidade_invalida";
         public const string PersonagemNaoEncontrado = "personagem_nao_encontrado";
+        public const string LongeDoNpc = "longe_do_npc";
     }
 }

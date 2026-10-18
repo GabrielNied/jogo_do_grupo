@@ -30,6 +30,11 @@ namespace JogoDoGrupo.Client.Core.Jogo.Janelas
             {
                 foreach (var definicao in definicoes)
                 {
+                    if (!RegistroDeJanelas.TeclaValida(definicao.Tecla))
+                    {
+                        continue;
+                    }
+
                     var item = CriarItem(
                         TeclasDoJogo.Rotulo(TeclasDoJogo.Janela(definicao.Chave)),
                         definicao.Titulo

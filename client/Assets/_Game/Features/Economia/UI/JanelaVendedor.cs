@@ -1,7 +1,6 @@
 using System;
 using JogoDoGrupo.Client.Core.Jogo.Janelas;
 using JogoDoGrupo.Client.Core.UI;
-using JogoDoGrupo.Client.Features.Economia;
 using JogoDoGrupo.Shared.Features.Economia;
 using JogoDoGrupo.Shared.Features.Itens;
 using UnityEngine;
@@ -10,24 +9,20 @@ using UnityEngine.UIElements;
 namespace JogoDoGrupo.Client.Features.Economia.UI
 {
     /// <summary>
-    /// Janela de Loja de NPC e Reparo de Equipamentos (tecla L), registrada nas <see cref="JanelasDoJogo"/>.
-    /// Permite comprar itens do catálogo, vender itens do inventário por preço de tier e reparar durabilidade.
+    /// Compra e venda com o NPC vendedor na cidade (sem atalho de tecla; abre com E no marcador).
     /// </summary>
-    public sealed class JanelaLoja : JanelaDoJogo
+    public sealed class JanelaVendedor : JanelaDoJogo
     {
-        public const string Chave = "economia.loja";
-        public const string Titulo = "Loja & Reparo";
-        public const string Tecla = "L";
+        public const string Chave = "economia.vendedor";
+        public const string Titulo = "Comerciante";
         public const int Ordem = 100;
 
         private Label _rotuloSaldo;
         private Label _rotuloAviso;
         private VisualElement _painelComprar;
         private VisualElement _painelVender;
-        private VisualElement _painelReparo;
         private Button _abaComprar;
         private Button _abaVender;
-        private Button _abaReparo;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void Registrar()
@@ -37,7 +32,7 @@ namespace JogoDoGrupo.Client.Features.Economia.UI
 
         public static DefinicaoDeJanela CriarDefinicao()
         {
-            return new DefinicaoDeJanela(Chave, Titulo, Tecla, Ordem, () => new JanelaLoja());
+            return new DefinicaoDeJanela(Chave, Titulo, null, Ordem, () => new JanelaVendedor());
         }
 
         protected override void Montar(VisualElement conteudo)
@@ -49,7 +44,6 @@ namespace JogoDoGrupo.Client.Features.Economia.UI
             conteudo.style.paddingTop = 10f;
             conteudo.style.paddingBottom = 12f;
 
-            // Barra superior com Saldo de Coroas
             var topo = new VisualElement();
             topo.style.flexDirection = FlexDirection.Row;
             topo.style.justifyContent = Justify.SpaceBetween;
@@ -75,7 +69,6 @@ namespace JogoDoGrupo.Client.Features.Economia.UI
 
             conteudo.Add(topo);
 
-            // Barra de navegação por Abas
             var barraAbas = new VisualElement();
             barraAbas.style.flexDirection = FlexDirection.Row;
             barraAbas.style.marginBottom = 10f;
@@ -87,16 +80,10 @@ namespace JogoDoGrupo.Client.Features.Economia.UI
 
             _abaVender = new Button(() => SelecionarAba(1)) { text = "Vender (Lixo)" };
             _abaVender.AddToClassList(EstiloCore.Botao);
-            _abaVender.style.marginRight = 6f;
             barraAbas.Add(_abaVender);
-
-            _abaReparo = new Button(() => SelecionarAba(2)) { text = "Reparo" };
-            _abaReparo.AddToClassList(EstiloCore.Botao);
-            barraAbas.Add(_abaReparo);
 
             conteudo.Add(barraAbas);
 
-            // Aviso de status / mensagem de retorno
             _rotuloAviso = new Label("");
             _rotuloAviso.AddToClassList(EstiloCore.Mensagem);
             _rotuloAviso.style.fontSize = 11f;
@@ -105,20 +92,13 @@ namespace JogoDoGrupo.Client.Features.Economia.UI
             _rotuloAviso.style.display = DisplayStyle.None;
             conteudo.Add(_rotuloAviso);
 
-            // Painel Comprar
             _painelComprar = new VisualElement();
             MontarPainelComprar(_painelComprar);
             conteudo.Add(_painelComprar);
 
-            // Painel Vender
             _painelVender = new VisualElement();
             MontarPainelVender(_painelVender);
             conteudo.Add(_painelVender);
-
-            // Painel Reparo
-            _painelReparo = new VisualElement();
-            MontarPainelReparo(_painelReparo);
-            conteudo.Add(_painelReparo);
 
             SelecionarAba(0);
         }
@@ -245,39 +225,16 @@ namespace JogoDoGrupo.Client.Features.Economia.UI
             container.Add(badge);
         }
 
-        private void MontarPainelReparo(VisualElement painel)
-        {
-            var desc = new Label(
-                "Reparo de durabilidade leve (referência New World): conserte seus equipamentos desgastados."
-            );
-            desc.AddToClassList(EstiloCore.Texto);
-            desc.style.fontSize = 11.5f;
-            desc.style.color = new Color(0.72f, 0.76f, 0.84f);
-            desc.style.marginBottom = 8f;
-            painel.Add(desc);
-
-            var info = new Label(
-                "Equipamentos quebrados (durabilidade 0) não concedem atributos no combate até serem restaurados."
-            );
-            info.AddToClassList(EstiloCore.Texto);
-            info.style.fontSize = 11f;
-            info.style.color = new Color(0.95f, 0.65f, 0.45f);
-            info.style.marginBottom = 12f;
-            painel.Add(info);
-        }
-
         private void SelecionarAba(int indice)
         {
             _painelComprar.style.display = indice == 0 ? DisplayStyle.Flex : DisplayStyle.None;
             _painelVender.style.display = indice == 1 ? DisplayStyle.Flex : DisplayStyle.None;
-            _painelReparo.style.display = indice == 2 ? DisplayStyle.Flex : DisplayStyle.None;
 
             Color corAtiva = new Color(0.20f, 0.28f, 0.42f);
             Color corInativa = new Color(0.14f, 0.15f, 0.18f);
 
             _abaComprar.style.backgroundColor = indice == 0 ? corAtiva : corInativa;
             _abaVender.style.backgroundColor = indice == 1 ? corAtiva : corInativa;
-            _abaReparo.style.backgroundColor = indice == 2 ? corAtiva : corInativa;
         }
 
         private void AoClicarComprar(int itemId)
@@ -290,7 +247,6 @@ namespace JogoDoGrupo.Client.Features.Economia.UI
             ControleDeEconomia.SaldoMudou += AtualizarSaldo;
             ControleDeEconomia.ItemComprado += AoItemComprado;
             ControleDeEconomia.ItemVendido += AoItemVendido;
-            ControleDeEconomia.ItemReparado += AoItemReparado;
             ControleDeEconomia.OperacaoRecusada += AoOperacaoRecusada;
 
             ControleDeEconomia.ConsultarSaldo();
@@ -302,7 +258,6 @@ namespace JogoDoGrupo.Client.Features.Economia.UI
             ControleDeEconomia.SaldoMudou -= AtualizarSaldo;
             ControleDeEconomia.ItemComprado -= AoItemComprado;
             ControleDeEconomia.ItemVendido -= AoItemVendido;
-            ControleDeEconomia.ItemReparado -= AoItemReparado;
             ControleDeEconomia.OperacaoRecusada -= AoOperacaoRecusada;
         }
 
@@ -320,11 +275,6 @@ namespace JogoDoGrupo.Client.Features.Economia.UI
         private void AoItemVendido(ItemVendidoParaNpc msg)
         {
             ExibirAviso($"Item vendido! Você recebeu {msg.CoroasRecebidas} coroas.");
-        }
-
-        private void AoItemReparado(ItemReparado msg)
-        {
-            ExibirAviso($"Item reparado com sucesso! Custo: {msg.CustoCoroas} coroas.");
         }
 
         private void AoOperacaoRecusada(string motivo)

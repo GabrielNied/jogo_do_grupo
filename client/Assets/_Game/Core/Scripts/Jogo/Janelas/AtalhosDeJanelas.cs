@@ -17,6 +17,11 @@ namespace JogoDoGrupo.Client.Core.Jogo.Janelas
         {
             foreach (var definicao in definicoes)
             {
+                if (!RegistroDeJanelas.TeclaValida(definicao.Tecla))
+                {
+                    continue;
+                }
+
                 var acao = new InputAction(
                     "Janela." + definicao.Chave,
                     InputActionType.Button,

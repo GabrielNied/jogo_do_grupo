@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Security.Claims;
+using JogoDoGrupo.Server.Contratos.Mundo;
 using JogoDoGrupo.Server.Core.Api;
 using JogoDoGrupo.Server.Core.Autenticacao;
 using JogoDoGrupo.Server.Core.Persistencia;
@@ -43,12 +44,18 @@ internal static class EconomiaRotas
         ClaimsPrincipal usuario,
         ServicoDeEconomia servico,
         JogoDbContext db,
+        IPosicoesDoMundo posicoes,
+        OpcoesNpcEconomia opcoesNpc,
         CancellationToken c
     )
     {
         var contaId = usuario.ObterContaId();
         if (!await PersonagemDaContaAsync(personagemId, contaId, db, c))
             return PersonagemNaoEncontrado();
+
+        var id = ParaId(personagemId);
+        if (RecusarSeLonge(id, PontoNpcEconomia.Vendedor, posicoes, opcoesNpc) is { } recusa)
+            return recusa;
 
         var itens = servico.ObterCatalogo();
         return Results.Ok(new RespostaCatalogoLoja(itens));
@@ -60,6 +67,8 @@ internal static class EconomiaRotas
         ClaimsPrincipal usuario,
         ServicoDeEconomia servico,
         JogoDbContext db,
+        IPosicoesDoMundo posicoes,
+        OpcoesNpcEconomia opcoesNpc,
         CancellationToken c
     )
     {
@@ -68,6 +77,9 @@ internal static class EconomiaRotas
             return PersonagemNaoEncontrado();
 
         var id = ParaId(personagemId);
+        if (RecusarSeLonge(id, PontoNpcEconomia.Vendedor, posicoes, opcoesNpc) is { } recusaCompra)
+            return recusaCompra;
+
         var (sucesso, erro, resultado) = await servico.ComprarItemAsync(
             id,
             pedido.ItemId,
@@ -87,6 +99,8 @@ internal static class EconomiaRotas
         ClaimsPrincipal usuario,
         ServicoDeEconomia servico,
         JogoDbContext db,
+        IPosicoesDoMundo posicoes,
+        OpcoesNpcEconomia opcoesNpc,
         CancellationToken c
     )
     {
@@ -95,6 +109,9 @@ internal static class EconomiaRotas
             return PersonagemNaoEncontrado();
 
         var id = ParaId(personagemId);
+        if (RecusarSeLonge(id, PontoNpcEconomia.Vendedor, posicoes, opcoesNpc) is { } recusaVenda)
+            return recusaVenda;
+
         var (sucesso, erro, resultado) = await servico.VenderItemAsync(id, pedido.InstanciaId, c);
 
         if (!sucesso)
@@ -109,6 +126,8 @@ internal static class EconomiaRotas
         ClaimsPrincipal usuario,
         ServicoDeEconomia servico,
         JogoDbContext db,
+        IPosicoesDoMundo posicoes,
+        OpcoesNpcEconomia opcoesNpc,
         CancellationToken c
     )
     {
@@ -117,6 +136,9 @@ internal static class EconomiaRotas
             return PersonagemNaoEncontrado();
 
         var id = ParaId(personagemId);
+        if (RecusarSeLonge(id, PontoNpcEconomia.Ferreiro, posicoes, opcoesNpc) is { } recusaReparo)
+            return recusaReparo;
+
         var (sucesso, erro, resultado) = await servico.RepararItemAsync(id, pedido.InstanciaId, c);
 
         if (!sucesso)
@@ -130,6 +152,8 @@ internal static class EconomiaRotas
         ClaimsPrincipal usuario,
         ServicoDeEconomia servico,
         JogoDbContext db,
+        IPosicoesDoMundo posicoes,
+        OpcoesNpcEconomia opcoesNpc,
         CancellationToken c
     )
     {
@@ -138,6 +162,9 @@ internal static class EconomiaRotas
             return PersonagemNaoEncontrado();
 
         var id = ParaId(personagemId);
+        if (RecusarSeLonge(id, PontoNpcEconomia.Ferreiro, posicoes, opcoesNpc) is { } recusaTudo)
+            return recusaTudo;
+
         var (sucesso, erro, custoTotal, saldoRestante, totalReparados) =
             await servico.RepararTudoAsync(id, c);
 
@@ -183,4 +210,23 @@ internal static class EconomiaRotas
 
     private static long ParaId(string valor) =>
         long.Parse(valor, NumberStyles.None, CultureInfo.InvariantCulture);
+
+    private static IResult? RecusarSeLonge(
+        long personagemId,
+        PontoNpcEconomia ponto,
+        IPosicoesDoMundo posicoes,
+        OpcoesNpcEconomia opcoes
+    )
+    {
+        if (ValidacaoNpcEconomia.EstaPerto(posicoes, personagemId, ponto, opcoes))
+        {
+            return null;
+        }
+
+        return RespostasApi.Erro(
+            StatusCodes.Status409Conflict,
+            CodigosErroEconomia.LongeDoNpc,
+            "Chegue mais perto do NPC."
+        );
+    }
 }

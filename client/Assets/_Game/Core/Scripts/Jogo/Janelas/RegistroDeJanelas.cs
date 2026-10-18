@@ -49,14 +49,15 @@ namespace JogoDoGrupo.Client.Core.Jogo.Janelas
                 );
             }
 
-            if (!TeclaValida(definicao.Tecla))
+            var comTecla = TeclaValida(definicao.Tecla);
+            if (!comTecla && !string.IsNullOrEmpty(definicao.Tecla))
             {
                 throw new ArgumentException(
-                    $"A tecla da janela \"{definicao.Chave}\" deve ser uma letra de A a Z."
+                    $"A tecla da janela \"{definicao.Chave}\" deve ser uma letra de A a Z, ou vazia para abrir só por interação."
                 );
             }
 
-            if (TeclasReservadas.IndexOf(definicao.Tecla[0]) >= 0)
+            if (comTecla && TeclasReservadas.IndexOf(definicao.Tecla[0]) >= 0)
             {
                 throw new ArgumentException(
                     $"A tecla {definicao.Tecla} é reservada e não pode abrir \"{definicao.Chave}\"."
@@ -72,7 +73,7 @@ namespace JogoDoGrupo.Client.Core.Jogo.Janelas
                     );
                 }
 
-                if (outra.Tecla == definicao.Tecla)
+                if (comTecla && TeclaValida(outra.Tecla) && outra.Tecla == definicao.Tecla)
                 {
                     throw new ArgumentException(
                         $"A tecla {definicao.Tecla} já abre \"{outra.Chave}\"; "
