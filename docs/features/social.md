@@ -251,6 +251,13 @@ Quem decide: **servidor**. O client envia o texto e o canal; o servidor valida, 
 - ~~A tecla Enter para abrir o chat entra na tabela de teclas e atalhos quando o chat for implementado.~~ A tecla Enter já está na tabela de [teclas e atalhos](interface.md#teclas-e-atalhos) (client do chat, #240).
 - No client, o histórico de 100 linhas vale enquanto o jogo está aberto; a lista de ignorados vem do servidor. A Social copia os avisos do HUD para o canal Sistema. Convites pendentes mostram **Aceitar (Y)** e **Recusar (N)** no próprio aviso sobre o jogo, além da janela do grupo. Os atalhos funcionam com o cursor travado e não disparam enquanto a pessoa digita no chat.
 
+#### Balões de fala no mundo (Speech Bubbles, #1017)
+
+- **Gatilho e Canais:** ao receber `MensagemDeChat` válida nos canais públicos (**Cidade** ou **Grupo**), o client projeta um balão de fala sobre o topo da cabeça do avatar (`Jogador_<id>` ou o próprio avatar local). Mensagens em **Sussurro** e linhas de **Sistema** são privadas e **nunca** exibem balão público no mundo.
+- **Apresentação Lumora:** renderizado via UI Toolkit no painel overlay de mundo (`social-balao-camada`, classe `.social-balao-fala`), com fundo translúcido escuro, borda fina ouro e tipografia Marfim com quebra automática de linha.
+- **Ancoragem e Visibilidade:** ancorado a 2,4 m acima da base dos pés do avatar (acima da etiqueta de nome). Só aparece se o ponto estiver à frente da câmera e a uma distância máxima de **25 metros** (`RegrasBaloesDeFala.DistanciaMaximaMetros`).
+- **Duração e Transição:** duração proporcional de **4,0 s a 7,0 s** (`RegrasBaloesDeFala.CalcularDuracao`), com fade-out suave nos últimos **0,8 s** (`RegrasBaloesDeFala.TempoFadeOutSegundos`). Se o mesmo avatar enviar outra mensagem antes do término, o texto é atualizado, a opacidade reseta para 100% e o temporizador é renovado.
+
 #### O que o servidor decide e valida
 
 - Quem falou (pela sessão), a hora, o canal e quem recebe.
