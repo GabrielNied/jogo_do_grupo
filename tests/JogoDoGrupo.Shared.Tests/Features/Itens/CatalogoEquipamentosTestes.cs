@@ -127,4 +127,55 @@ public class CatalogoEquipamentosTestes
         Assert.Null(CatalogoEquipamentos.Obter(-1));
         Assert.Equal(Enumerable.Range(100, 78), CatalogoEquipamentos.ModelosDeTeste);
     }
+
+    [Theory]
+    [InlineData(
+        CatalogoEquipamentos.CajadoDeFogoDeTeste,
+        ElementoDaArma.Fogo,
+        "Cajado de Fogo Ressonante"
+    )]
+    [InlineData(
+        CatalogoEquipamentos.CajadoDeGeloDeTeste,
+        ElementoDaArma.Gelo,
+        "Cajado de Gelo Ressonante"
+    )]
+    [InlineData(
+        CatalogoEquipamentos.CajadoDeCuraDeTeste,
+        ElementoDaArma.Cura,
+        "Cajado de Cura Ressonante"
+    )]
+    public void CajadosElementaisDeTesteTemTipoCajadoElementoCorretoEAtributosMagicos(
+        int id,
+        ElementoDaArma elemento,
+        string nomeEsperado
+    )
+    {
+        var item = CatalogoEquipamentos.Obter(id);
+        Assert.NotNull(item);
+        Assert.Equal(nomeEsperado, item.Nome);
+        Assert.Equal(TipoEquipamento.Cajado, item.Tipo);
+        Assert.Equal(elemento, item.Elemento);
+        var status = item.Atributos.Select(a => a.Status).ToArray();
+        Assert.Contains(StatusItem.DanoDaArma, status);
+        Assert.Contains(StatusItem.DanoMagico, status);
+    }
+
+    [Fact]
+    public void CriarCajado_RetornaExemplarComElementoCorrespondente()
+    {
+        var fogo = CatalogoEquipamentos.CriarCajado(ElementoDaArma.Fogo);
+        var gelo = CatalogoEquipamentos.CriarCajado(ElementoDaArma.Gelo);
+        var cura = CatalogoEquipamentos.CriarCajado(ElementoDaArma.Cura);
+        var neutro = CatalogoEquipamentos.CriarCajado(ElementoDaArma.Nenhum);
+
+        Assert.Equal(ElementoDaArma.Fogo, fogo.Elemento);
+        Assert.Equal(ElementoDaArma.Gelo, gelo.Elemento);
+        Assert.Equal(ElementoDaArma.Cura, cura.Elemento);
+        Assert.Equal(ElementoDaArma.Nenhum, neutro.Elemento);
+
+        Assert.Equal(TipoEquipamento.Cajado, fogo.Tipo);
+        Assert.Equal(TipoEquipamento.Cajado, gelo.Tipo);
+        Assert.Equal(TipoEquipamento.Cajado, cura.Tipo);
+        Assert.Equal(TipoEquipamento.Cajado, neutro.Tipo);
+    }
 }

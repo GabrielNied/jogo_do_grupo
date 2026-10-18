@@ -156,6 +156,7 @@ namespace JogoDoGrupo.Shared.Features.Itens
         public int Nivel = 1;
         public int NivelPersonagemMinimo = 1;
         public bool DuasMaos;
+        public ElementoDaArma Elemento = ElementoDaArma.Nenhum;
 
         /// <summary>
         /// Valores inteiros de 0 a 100 (<see cref="ConfigTier"/>) desde a versão 1; no legado,
