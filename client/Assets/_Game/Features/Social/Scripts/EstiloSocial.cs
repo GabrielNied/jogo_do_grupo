@@ -77,6 +77,7 @@ namespace JogoDoGrupo.Client.Features.Social
 
         /// <summary>Estilo de marcador especial (Estrela).</summary>
         public const string MarcadorEstrela = "marcador-estrela";
+
         /// <summary>Camada invisível de tela cheia que abriga todos os balões de fala.</summary>
         public const string BalaoCamada = "social-balao-camada";
 

@@ -60,6 +60,7 @@ public class InimigoDistanciaTestes
             float origemZ,
             float direcaoYGraus,
             int dano,
+            float elevacaoGraus = 0f,
             int sequencia = 0,
             int passo = 0,
             long instanteVistoMs = 0
