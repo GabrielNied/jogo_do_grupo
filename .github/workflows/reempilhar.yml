@@ -1,7 +1,8 @@
 name: Reempilhar leva
 
 # Quando um PR entra por squash, os PRs que citam ele em "Depende de" passam a conflitar consigo
-# mesmos. Este job refaz cada um sobre a main (scripts/git/reempilhar.mjs, docs/git.md#leva-empilhada).
+# mesmos. Este job refaz cada um sobre a main na mesma branch, com --force-with-lease
+# (scripts/git/reempilhar.mjs, docs/git.md#leva-empilhada, ADR 0049).
 
 on:
   pull_request:
@@ -23,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
-      # PR aberto com o github.token não dispara os checks obrigatórios; o REEMPILHAR_TOKEN
+      # Push feito com o github.token não dispara os checks obrigatórios; o REEMPILHAR_TOKEN
       # (fine-grained: Contents e Pull requests de escrita neste repo) dispara.
       GH_TOKEN: ${{ secrets.REEMPILHAR_TOKEN || github.token }}
     steps:

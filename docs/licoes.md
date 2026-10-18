@@ -41,5 +41,5 @@ Formato: `### AAAA-MM-DD · título` com **O que houve**, **Regra** e **Origem**
 ### 2026-10-18 · Leva empilhada conflitou em cascata
 
 - **O que houve:** #1077, #1078 e #1080 estavam empilhados sobre o #1075. A cada squash, o PR de cima conflitava consigo mesmo e alguém precisou pedir o reempilhamento (#1082, #1085, #1086). O `reempilhar` usava `gh pr view` (GraphQL), que não responde na nuvem, e foi refeito à mão.
-- **Regra:** o reempilhamento roda sozinho no merge (`reempilhar.yml`) e o script só usa `gh api` (REST). Empilhe só quando o PR de cima usa o código do de baixo.
+- **Regra:** o reempilhamento roda sozinho no merge (`reempilhar.yml`), no mesmo PR com `--force-with-lease` ([ADR 0049](decisoes/0049-reempilhar-com-push-forcado.md)), e o script só usa `gh api` (REST). Empilhe só quando o PR de cima usa o código do de baixo.
 - **Origem:** PRs #1077 a #1086.

@@ -1,9 +1,8 @@
 // Refaz sobre a main o PR de uma leva empilhada depois que a leva de baixo entrou por squash.
 // O squash dá outro hash ao conteúdo da leva de baixo, e o PR de cima, que ainda carrega os
-// commits originais, passa a conflitar consigo mesmo. Push forçado é barrado (regra 0), então
-// os commits próprios do PR vão por cherry-pick para uma branch `<nome>-segue` a partir de
-// origin/main, o PR novo herda título e corpo, o antigo é fechado (a branch dele fica) e os PRs
-// que dependiam do antigo passam a citar o novo.
+// commits originais, passa a conflitar consigo mesmo. Os commits próprios do PR vão por
+// cherry-pick para cima de origin/main e a branch do PR é atualizada com push forçado
+// `--force-with-lease` (exceção à regra 0, ADR 0049): o PR, o review e as aprovações continuam.
 //
 // As levas de baixo são os PRs citados na linha "Depende de" do corpo, já mergeados ou fechados.
 // Só usa a API REST do GitHub (`gh api`): o GraphQL não responde nas sessões na nuvem.
@@ -15,7 +14,6 @@ import { execFileSync } from "node:child_process";
 import { writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
-import { nomeDaBranchSeguinte } from "./entregar.mjs";
 
 /** Números dos PRs citados na linha "Depende de ..." do corpo. */
 export function dependenciasDoCorpo(corpo) {
@@ -24,25 +22,13 @@ export function dependenciasDoCorpo(corpo) {
   return [...linha[1].matchAll(/#(\d+)/g)].map((m) => Number(m[1]));
 }
 
-/** Corpo do PR novo: a linha "Depende de" passa a citar só as levas ainda abertas. */
-export function corpoReempilhado(corpo, prAntigo, abertas) {
-  const aviso = `Substitui o #${prAntigo}, refeito sobre a main depois do squash da leva de baixo.`;
-  const dependencia = abertas.length
-    ? `Depende de ${abertas.map((n) => `#${n}`).join(" e ")} (mergear antes).`
-    : "";
-  const semLinhas = String(corpo ?? "")
-    .replace(/^[^\n]*depende de[^\n]*\n?/im, "")
-    .replace(/^Substitui o #\d+[^\n]*\n?/im, "");
-  return [aviso, dependencia, semLinhas.trim()].filter(Boolean).join("\n\n") + "\n";
-}
-
-/** Troca, na linha "Depende de", o PR antigo pelo novo. Devolve null se o corpo não cita o antigo. */
-export function corpoComDependenciaTrocada(corpo, antigo, novo) {
+/** Corpo depois de reempilhar: a linha "Depende de" passa a citar só as levas ainda abertas. */
+export function corpoReempilhado(corpo, abertas) {
   const texto = String(corpo ?? "");
-  if (!dependenciasDoCorpo(texto).includes(antigo)) return null;
-  return texto.replace(/^([^\n]*depende de[^\n]*)$/im, (linha) =>
-    linha.replace(new RegExp(`#${antigo}(?!\\d)`, "g"), `#${novo}`),
-  );
+  const nova = abertas.length ? `Depende de ${abertas.map((n) => `#${n}`).join(" e ")} (mergear antes).` : null;
+  if (!/^[^\n]*depende de/im.test(texto)) return texto;
+  const resultado = texto.replace(/^[^\n]*depende de[^\n]*(\n\n?|$)/im, nova ? `${nova}$1` : "");
+  return resultado.trimStart();
 }
 
 /** "dono/repo" do remoto origin (https ou ssh). */
@@ -83,7 +69,7 @@ function prsAbertos() {
   }
 }
 
-/** Refaz o PR sobre a main. Devolve o número do PR novo; lança erro se não der. */
+/** Refaz o PR sobre a main, na mesma branch. Lança erro se não der. */
 export function reempilhar(numero) {
   const pr = lerPr(numero);
   if (pr.state !== "open") throw new Error(`O PR #${numero} está ${pr.state}.`);
@@ -92,10 +78,12 @@ export function reempilhar(numero) {
   const fora = estados.filter((d) => !d.aberto).map((d) => d.n);
   const abertas = estados.filter((d) => d.aberto).map((d) => d.n);
   if (!fora.length) throw new Error(`Nenhuma leva de baixo já mergeada ou fechada na linha "Depende de" do #${numero}.`);
+  if (pr.head.repo?.full_name !== repo()) throw new Error("PR de fork: reempilhe na branch do fork.");
 
   // A ponta de cada leva de baixo marca onde terminam os commits que não são deste PR.
   const refs = fora.map((n) => `refs/reempilhar/${n}`);
   const branch = pr.head.ref;
+  const pontaAntiga = pr.head.sha;
   git([
     "fetch", "origin",
     "+refs/heads/main:refs/remotes/origin/main",
@@ -103,42 +91,38 @@ export function reempilhar(numero) {
     ...fora.map((n, i) => `+pull/${n}/head:${refs[i]}`),
   ]);
   const proprios = git([
-    "rev-list", "--reverse", "--no-merges", `origin/${branch}`, "^origin/main", ...refs.map((r) => `^${r}`),
+    "rev-list", "--reverse", "--no-merges", pontaAntiga, "^origin/main", ...refs.map((r) => `^${r}`),
   ]).split("\n").filter(Boolean);
+  for (const ref of refs) git(["update-ref", "-d", ref]);
   if (!proprios.length) throw new Error("Nenhum commit próprio sobrou depois de tirar as levas de baixo.");
 
-  const nova = nomeDaBranchSeguinte(branch);
-  console.log(`🌿 ${nova} a partir de origin/main com ${proprios.length} commit(s) do #${numero}...`);
-  git(["switch", "--no-track", "-c", nova, "origin/main"]);
+  console.log(`🌿 ${branch}: ${proprios.length} commit(s) do #${numero} sobre origin/main...`);
+  git(["switch", "--detach", "origin/main"]);
   try {
     git(["cherry-pick", ...proprios], { stdio: "inherit" });
   } catch {
-    throw new Error("O cherry-pick parou num conflito de verdade. Resolva, `git cherry-pick --continue` e rode de novo.");
-  } finally {
-    for (const ref of refs) git(["update-ref", "-d", ref]);
+    try { git(["cherry-pick", "--abort"]); } catch { /* nada em andamento */ }
+    throw new Error(
+      `O cherry-pick parou num conflito de verdade. Resolva à mão: \`git switch --detach origin/main\`, ` +
+        `\`git cherry-pick ${proprios.join(" ")}\`, e publique com ` +
+        `\`git push --force-with-lease=${branch}:${pontaAntiga} origin HEAD:${branch}\`.`,
+    );
   }
-  git(["push", "-u", "origin", nova], { stdio: "inherit" });
+  // Só sobrescreve se a branch remota ainda estiver onde o script a leu.
+  git(["push", `--force-with-lease=refs/heads/${branch}:${pontaAntiga}`, "origin", `HEAD:refs/heads/${branch}`], {
+    stdio: "inherit",
+  });
 
   const arquivo = join(git(["rev-parse", "--git-dir"]), "pr-reempilhado.md");
-  writeFileSync(arquivo, corpoReempilhado(pr.body, numero, abertas));
-  const novo = api("pulls", {
-    metodo: "POST",
-    campos: { title: pr.title, head: nova, base: pr.base.ref },
-    arquivos: { body: arquivo },
-  }).number;
-  comentar(numero, `Substituído por #${novo}: o mesmo conteúdo refeito sobre a main.`);
-  api(`pulls/${numero}`, { metodo: "PATCH", campos: { state: "closed" } });
-
-  // Quem dependia do antigo passa a depender do novo.
-  for (const acima of prsAbertos()) {
-    const corpo = corpoComDependenciaTrocada(acima.body, numero, novo);
-    if (!corpo) continue;
-    writeFileSync(arquivo, corpo);
-    api(`pulls/${acima.number}`, { metodo: "PATCH", arquivos: { body: arquivo } });
-    console.log(`↪ #${acima.number} agora depende de #${novo}.`);
-  }
-  console.log(`✔ #${novo} substitui o #${numero} (fechado; a branch dele fica).`);
-  return novo;
+  writeFileSync(arquivo, corpoReempilhado(pr.body, abertas));
+  api(`pulls/${numero}`, { metodo: "PATCH", arquivos: { body: arquivo } });
+  comentar(
+    numero,
+    `Reempilhado sobre a main depois do squash de ${fora.map((n) => `#${n}`).join(" e ")}: ` +
+      `${proprios.length} commit(s) próprios aplicados, branch atualizada com \`--force-with-lease\` ` +
+      `(ponta anterior \`${pontaAntiga.slice(0, 7)}\`, [ADR 0049](docs/decisoes/0049-reempilhar-com-push-forcado.md)).`,
+  );
+  console.log(`✔ #${numero} reempilhado na mesma branch.`);
 }
 
 /** Reempilha todo PR aberto cuja linha "Depende de" cita o PR que acabou de entrar. */
@@ -152,7 +136,6 @@ function depoisDoMerge(mergeado) {
     } catch (erro) {
       falhou = true;
       console.error(`✖ #${p.number}: ${erro.message}`);
-      try { git(["cherry-pick", "--abort"]); } catch { /* não havia cherry-pick em andamento */ }
       comentar(
         p.number,
         `O #${mergeado} entrou por squash, mas não deu para reempilhar este PR sozinho: ${erro.message}\n\n` +
