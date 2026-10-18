@@ -102,6 +102,7 @@ namespace JogoDoGrupo.Shared.Features.Social
 
         /// <summary>Servidor → solicitante: o pedido de definir marcador foi recusado.</summary>
         public const ushort DefinirMarcadorRecusado = 13322;
+
         // ── Inspeção de jogador (13300 a 13319) ───────────────────────────────────
 
         /// <summary>Client → servidor: pede para inspecionar um personagem alvo.</summary>
@@ -112,8 +113,8 @@ namespace JogoDoGrupo.Shared.Features.Social
 
         /// <summary>Servidor → quem pediu: o pedido de inspeção foi recusado.</summary>
         public const ushort InspecaoRecusada = 13311;
-      
-      // ── Fila de grupo para dungeon (13330 a 13339) ───────────────────────────
+
+        // ── Fila de grupo para dungeon (13330 a 13339) ───────────────────────────
 
         /// <summary>Client → servidor: pede para entrar na fila de dungeon com um papel.</summary>
         public const ushort EntrarNaFilaDeGrupo = 13330;
