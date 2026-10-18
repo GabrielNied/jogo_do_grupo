@@ -1,3 +1,5 @@
+#nullable enable annotations
+
 namespace JogoDoGrupo.Shared.Features.Itens
 {
     /// <summary>

@@ -206,6 +206,14 @@
 }
 /* Marcadores Táticos de Grupo */
 .social-marcador-camada {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+}
+
 /* Balões de fala no mundo (Speech Bubbles) */
 .social-balao-camada {
     position: absolute;
