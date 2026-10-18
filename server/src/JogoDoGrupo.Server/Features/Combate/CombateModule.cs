@@ -139,6 +139,9 @@ public sealed class CombateModule : IFeatureModule
             relogioMs: () => sp.GetRequiredService<RelogioDeCombate>().AgoraMs
         ));
         servicos.AddHostedService(sp => sp.GetRequiredService<ServicoDeProjeteis>());
+        servicos.AddSingleton<IDisparoDeProjeteis>(sp =>
+            sp.GetRequiredService<ServicoDeProjeteis>()
+        );
         servicos.AddSingleton(sp =>
         {
             var servico = new ServicoDeAtaques(

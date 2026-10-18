@@ -47,10 +47,10 @@ namespace JogoDoGrupo.Shared.Features.Combate
 
         /// <summary>
         /// Se um ataque de inimigo interrompe a ação e atordoa o jogador.
-        /// Golpes comuns (<see cref="TipoDeAtaqueDeInimigo.Golpe"/>) não atordoam nem interrompem o jogador;
+        /// Golpes comuns (<see cref="TipoDeAtaqueDeInimigo.Golpe"/>) e disparos (<see cref="TipoDeAtaqueDeInimigo.Disparo"/>) não atordoam nem interrompem o jogador;
         /// golpes especiais (investida, pisada, raios, etc.) interrompem (#795).
         /// </summary>
         public static bool InterrompeJogador(TipoDeAtaqueDeInimigo tipo) =>
-            tipo != TipoDeAtaqueDeInimigo.Golpe;
+            tipo != TipoDeAtaqueDeInimigo.Golpe && tipo != TipoDeAtaqueDeInimigo.Disparo;
     }
 }

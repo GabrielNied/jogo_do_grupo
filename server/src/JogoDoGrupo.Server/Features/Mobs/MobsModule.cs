@@ -38,6 +38,7 @@ public sealed class MobsModule : IFeatureModule
             var queda = sp.GetRequiredService<IEstadoDeQueda>();
             var historico = sp.GetRequiredService<IHistoricoDePosicoesDoMundo>();
             var relogioDoMundo = sp.GetService<IRelogioDoMundo>();
+            var projeteis = sp.GetService<IDisparoDeProjeteis>();
             GrupoDeInimigos[] grupos =
             [
                 .. PontosDeSpawnDoCampo.Todos.Select(ponto =>
@@ -47,7 +48,8 @@ public sealed class MobsModule : IFeatureModule
                         limite,
                         queda: queda,
                         historico: historico,
-                        relogioDoMundo: relogioDoMundo
+                        relogioDoMundo: relogioDoMundo,
+                        projeteis: projeteis
                     )
                 ),
             ];
