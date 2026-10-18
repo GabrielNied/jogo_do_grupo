@@ -1,0 +1,21 @@
+namespace JogoDoGrupo.Shared.Features.Npcs
+{
+    /// <summary>Papel funcional ou social do NPC no mundo (#1063).</summary>
+    public enum PapelNpc
+    {
+        Nenhum = 0,
+        Vendedor = 1,
+        Ferreiro = 2,
+        Banqueiro = 3,
+        Leiloeiro = 4,
+        DadorDeMissao = 5,
+        Taverneiro = 6,
+        Armeiro = 7,
+        Armadureiro = 8,
+        Merceeiro = 9,
+        Estalajadeiro = 10,
+        CuidadorDePets = 11,
+        Guarda = 12,
+        Morador = 13,
+    }
+}

@@ -54,7 +54,17 @@ Do "Livro de ideias" do [FigJam](../brainstorm/figjam.md) (seções 07 e 11). **
 - A cidade (nome proposto: Brasa Mansa) já vem com **vendedores**, cozinha, forja, banco e mercado; os serviços de forja, banco e mercado são de [itens](itens.md) e [economia](economia.md). Aqui entra o NPC que atende cada um.
 - No prólogo, os **quatro magos** e o viajante são NPCs **de cena**, para a introdução funcionar sem outros jogadores conectados (veja [missões](missoes.md)).
 - Moradores e comerciantes não podem ser atacados por criaturas no MVP: manadas não entram na cidade ([mobs](mobs.md)).
+- **Catálogo autoritativo (`CatalogoNpcs`):** fonte canônica de coordenadas, identidade e alcance de interação dos NPCs por área (#1063). Economia e demais módulos alinham suas posições a ele.
+- **Presença e rede:** servidor publica `NpcsDaArea` (ID 2001) ao jogador entrar na área ou mediante `SolicitarNpcs` (ID 2002).
+- **Corpo e placa:** no client, cada NPC possui cápsula com colisor estático (imune a dano e empurrões), cor temática por papel, placa de nome/papel voltada para a câmera e prompt `[E] Falar` ao alcance.
 
 ## Depende de
 
+- `Core` (rede tempo real)
+- `Mundo` (área do jogador)
+
 ## Expõe
+
+- `CatalogoNpcs`: consulta de posições, papéis e alcance dos NPCs no mundo.
+- `NpcsDaArea`: pacote com a lista de NPCs da área.
+
