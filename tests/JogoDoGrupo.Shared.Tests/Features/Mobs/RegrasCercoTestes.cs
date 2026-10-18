@@ -107,4 +107,81 @@ public class RegrasCercoTestes
         Assert.Equal(-RegrasCerco.SeparacaoMinimaMetros + 0.5, x, 9);
         Assert.Equal(0.0, z, 9);
     }
+
+    [Fact]
+    public void CalcularMelhorPosto_escolhe_slot_mais_proximo_angularmente()
+    {
+        // Alvo em (0,0). Inimigo em (0, 5) -> angulo ~ 0 graus (+Z)
+        Span<bool> ocupados = stackalloc bool[RegrasCerco.PostosPorAnel];
+        ocupados.Clear();
+
+        RegrasCerco.CalcularMelhorPosto(
+            0,
+            0,
+            0,
+            5,
+            ocupados,
+            false,
+            out var px,
+            out var pz,
+            out var slot
+        );
+
+        // Slot 0 tem angulo 0 graus (+Z)
+        Assert.Equal(0, slot);
+        Assert.Equal(0.0, px, 3);
+        Assert.True(pz > 0);
+
+        // Se slot 0 estiver ocupado, deve escolher slot adjacente (1 ou PostosPorAnel - 1)
+        ocupados[0] = true;
+        RegrasCerco.CalcularMelhorPosto(0, 0, 0, 5, ocupados, false, out px, out pz, out slot);
+        Assert.True(slot == 1 || slot == RegrasCerco.PostosPorAnel - 1);
+    }
+
+    [Fact]
+    public void PassoOrbital_mantem_raio_de_ronda_ao_redor_do_alvo()
+    {
+        double alvoX = 10,
+            alvoZ = 20;
+        double iniX = alvoX + RegrasCerco.RaioDaRondaMetros,
+            iniZ = alvoZ;
+
+        RegrasCerco.PassoOrbital(
+            alvoX,
+            alvoZ,
+            iniX,
+            iniZ,
+            RegrasCerco.VelocidadeStrafeRondaMetrosPorSegundo,
+            1.0,
+            true,
+            out var nx,
+            out var nz
+        );
+
+        double dist = RegrasInimigo.Distancia(nx, nz, alvoX, alvoZ);
+        Assert.True(Math.Abs(dist - RegrasCerco.RaioDaRondaMetros) < 1e-4);
+    }
+
+    [Fact]
+    public void CalcularRecuoPosGolpe_afasta_em_direcao_ao_raio_de_ronda()
+    {
+        double alvoX = 0,
+            alvoZ = 0;
+        double iniX = 0,
+            iniZ = RegrasCerco.RaioDoAnelMetros;
+
+        RegrasCerco.CalcularRecuoPosGolpe(
+            alvoX,
+            alvoZ,
+            iniX,
+            iniZ,
+            RegrasCerco.DistanciaRecuoPosGolpeMetros,
+            out var nx,
+            out var nz
+        );
+
+        double dist = RegrasInimigo.Distancia(nx, nz, alvoX, alvoZ);
+        Assert.True(dist > RegrasCerco.RaioDoAnelMetros);
+        Assert.True(dist <= RegrasCerco.RaioDaRondaMetros + 1e-4);
+    }
 }
