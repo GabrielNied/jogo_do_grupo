@@ -249,6 +249,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
             var mapa = Object.Instantiate(modelo);
             mapa.name = NomeRaiz;
             RestaurarTerrenoPublicado(mapa);
+            RestaurarVegetacaoPublicada(mapa);
             return mapa;
         }
 
@@ -271,6 +272,31 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
 
                 TerrenoNativoDoMundo.Criar(terreno);
             }
+        }
+
+        // O prefab publicado só consegue guardar os GameObjects dos colisores. As matrizes que
+        // BlocosDeVegetacao desenha por instancing vivem em memória e somem ao salvar; portanto
+        // a vegetação deve sempre ser reconstruída ao carregar o mapa.
+        private static void RestaurarVegetacaoPublicada(GameObject mapa)
+        {
+            var antiga = mapa.transform.Find(NomePecasDosBiomas);
+            if (antiga != null)
+            {
+                if (Application.isPlaying)
+                {
+                    // Desativar remove os colisores imediatamente; a destruição evita carregar
+                    // milhares de objetos inertes pelo restante da sessão.
+                    antiga.gameObject.SetActive(false);
+                    Object.Destroy(antiga.gameObject);
+                }
+                else
+                {
+                    Object.DestroyImmediate(antiga.gameObject);
+                }
+            }
+
+            _escalaDasPecas = MedirEscalaDasPecas();
+            CriarPecasDosBiomas(mapa.transform);
         }
 
         /// <summary>
