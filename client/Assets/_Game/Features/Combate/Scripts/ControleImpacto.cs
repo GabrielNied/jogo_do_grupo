@@ -531,6 +531,8 @@ namespace JogoDoGrupo.Client.Features.Combate
             }
         }
 
+        internal void TocarSom(SomDeCombate som, float volume = 1f) => Tocar(som, volume);
+
         private void Tocar(SomDeCombate som, float volume)
         {
             if (

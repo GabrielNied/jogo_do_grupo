@@ -44,6 +44,14 @@ O golpe comum (leve 1, 2 e 3 da cadeia, e o pesado) acerta pelo arco que a lâmi
 - **Client:** o rastro do golpe no vazio desenha o arco dos mesmos dados. Gizmo de depuração: `Combate.ArcoGizmo = 1` no F10 (Sintonia) desenha o arco de cada golpe seu (linhas, `ArcoGizmoSegundos`) para conferir contra a animação; ajustes viram mudança nos dados do shared.
 - **Armas futuras:** martelo, arco e cajado entram com os seus arcos na tarefa de cada arma.
 
+## Projéteis autoritativos e disparo com arco (#1005)
+
+O disparo com arco (`TipoEquipamento.Arco`) não usa o arco da lâmina, mas sim o sistema autoritativo de projéteis lineares físicos:
+
+- **Shared:** `TipoDeProjetil` (`Flecha`, `BolaDeFogo`, `EsferaDeGelo`, `OrbeDeCura`), `RegrasProjetil` (velocidades de flecha: leve 35 m/s, pesado 50 m/s; raio 0,25 m; alcance 35 m leve, 40 m pesado; detecção de colisão contínua segmento-contra-cilindro sem tunneling) e mensagem de rede `ProjetilLancado` (ID 6060).
+- **Servidor:** `ServicoDeProjeteis` autoritativo simulando em ticks em segundo plano (`IHostedService`). Ao receber ataque com arco equipado, `ServicoDeAtaques` delega para `ServicoDeProjeteis.DispararArco`. A cada tick, testa colisão do segmento percorrido contra os alvos de combate (`IAlvosDeCombate`) com compensação de latência (rebobinamento temporal). Ao atingir o primeiro alvo válido, aplica dano físico autoritativo via `AtaqueAcertou`, interrompe inimigos quando aplicável e remove o projétil. Projéteis que atingem o alcance máximo ou expiram o tempo de vida são descartados.
+- **Client:** `GerenciadorDeProjeteis` assina `ProjetilLancado` e instancia `ProjetilVisual` em 3D procedural (haste cilíndrica de madeira, ponta metálica, penas traseiras e `TrailRenderer` para rastro visual nítido). Desloca na velocidade e direção do projétil, sincronizando o impacto em `AtaqueAcertou` ou no alcance máximo com efeito de partículas/poeira. Emite som sintetizado procedural no disparo (`SomDeCombate.DisparoFlecha`) e no impacto (`SomDeCombate.ImpactoFlecha`). Parâmetros de sensação ajustáveis no F10 (`VolumeDisparoFlecha`, `VolumeImpactoFlecha`, `DuracaoRastroProjetil`).
+
 ## Em aberto
 
 - [x] ~~Combate com alvo fixo (tab target) ou mira livre (action)?~~ Decidido: action (D4)
