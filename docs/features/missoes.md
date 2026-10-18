@@ -78,7 +78,7 @@ Decidido em 2026-10-18 (veja [Definido](#definido)). É o fluxo clássico de MMO
 - Toda missão dá **XP e coroas**, em valor fixo definido no dado da missão. A principal e as secundárias dão o maior XP. A coroa entra na [economia](economia.md#definido) como fonte de valor fixo.
 - **Item à escolha:** algumas missões oferecem de 2 a 4 itens, e o jogador escolhe um ao entregar. O servidor confere se a escolha está na lista e cria o item.
 - **Reputação** de facção ([NPCs](npcs.md#definido)) vem das diárias e das secundárias da facção.
-- Concluir uma missão pode também **liberar** algo: a próxima missão, um NPC, um ponto de teleporte ou uma receita.
+- Concluir uma missão pode também **liberar** algo: a próxima missão, um NPC ou uma receita.
 
 **Interface**
 
@@ -96,7 +96,7 @@ Decidido em 2026-10-18 (veja [Definido](#definido)). É o fluxo clássico de MMO
 
 Decidido por Gabriel em 2026-10-18. É o primeiro capítulo da principal e funciona como o tutorial do jogo. Vem **depois das implementações pendentes** (o [marco atual](fatia-jogavel.md#foco-atual) e os serviços dos NPCs). As falas, os nomes e a ordem fina saem do roteiro ([#1058](https://github.com/GabrielNied/jogo_do_grupo/issues/1058)).
 
-1. **Explorar a cidade:** a principal leva o jogador pela Brasa Mansa, apresenta o lugar e um **NPC por vez**. Cada NPC explica o que faz, e o jogador usa o serviço uma vez: vendedor (comprar e vender), ferreiro (forja e fusão), banqueiro (banco), leiloeiro (mercado), cozinha, teleporte e dadores de missão. Só entra o NPC cujo serviço já existe no jogo.
+1. **Explorar a cidade:** a principal leva o jogador pela Brasa Mansa, apresenta o lugar e um **NPC por vez**. Cada NPC explica o que faz, e o jogador usa o serviço uma vez: os do [elenco da Brasa Mansa](npcs.md#elenco-da-brasa-mansa) (lojas, ferreiro, banqueiro, leiloeiro, estábulo, cuidador de pets, taverna com a cozinha e dadores de missão). Só entra o NPC cujo serviço já existe no jogo.
 2. **Ensinar o básico:** junto com os NPCs, as etapas ensinam o combate (leve, pesado e esquiva), o inventário e o equipamento, a skill da arma, subir de nível e gastar pontos na [árvore](talentos.md).
 3. **Mobs perto da cidade:** sair pela primeira vez e enfrentar os inimigos fracos da área em volta da Brasa Mansa (matar e coletar).
 4. **Chefe:** fechar o capítulo derrotando um **chefe perto da cidade** ([#1059](https://github.com/GabrielNied/jogo_do_grupo/issues/1059)). A entrega dá o item à escolha e libera as secundárias da região ([#1060](https://github.com/GabrielNied/jogo_do_grupo/issues/1060)).

@@ -10,6 +10,8 @@ A pessoa chama um pet, ele segue por perto e some quando é dispensado. O servid
 
 ## Definido
 
+- **Cuidador de pets na Brasa Mansa** (decidido por Gabriel em 2026-10-18): vende de 2 a 3 **pets comuns** por coroas (por exemplo cachorro, gato, galinha), como item que registra o pet na conta. Os pets bonitos continuam no drop raro ([npcs](npcs.md#elenco-da-brasa-mansa), [#1068](https://github.com/GabrielNied/jogo_do_grupo/issues/1068)).
+
 Decidido em 2026-10-12 (#161) e **revisto em 2026-10-16** (quiz de definições 3):
 
 - **Modelo alvo:** pets vêm de **drop raro** de mobs ([mobs](mobs.md#definido)), como **item negociável** (estilo WoW). **Usar o item registra o pet na conta**; não há captura pelo bestiário. A conta pode **colecionar vários**; só **um pet ativo** (chamado) por vez.
