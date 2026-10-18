@@ -153,9 +153,11 @@ namespace JogoDoGrupo.Client.Features.Montarias
 
             // Tecla T alterna montar / desmontar
             if (
-                Keyboard.current != null
-                && Keyboard.current.tKey.wasPressedThisFrame
-                && !JanelasDoJogo.MenuAberto
+                DeveProcessarAtalhoMontaria(
+                    Keyboard.current != null && Keyboard.current.tKey.wasPressedThisFrame,
+                    JanelasDoJogo.MenuAberto,
+                    BloqueioDeEntradaPorTexto.EntradaDeTextoAtiva()
+                )
             )
             {
                 AlternarMontaria();
@@ -195,6 +197,19 @@ namespace JogoDoGrupo.Client.Features.Montarias
 
             // Tenta aplicar visuais pendentes para avatares que acabaram de ser instanciados na cena
             AplicarPendentes();
+        }
+
+        /// <summary>
+        /// Avalia se a tecla de montaria (T) deve acionar a montaria, ignorando quando o menu do Esc
+        /// estiver aberto ou quando houver digitação de texto ativa (chat, busca, reporte, etc.).
+        /// </summary>
+        public static bool DeveProcessarAtalhoMontaria(
+            bool teclaApertada,
+            bool menuAberto,
+            bool entradaDeTextoAtiva
+        )
+        {
+            return teclaApertada && !menuAberto && !entradaDeTextoAtiva;
         }
 
         public void AlternarMontaria()

@@ -91,5 +91,16 @@ namespace JogoDoGrupo.Shared.Features.Social
 
         /// <summary>Servidor → quem pediu: a operação de amigos ou ignorados foi recusada.</summary>
         public const ushort OperacaoDeAmizadeRecusada = 13213;
+
+        // ── Inspeção de jogador (13300 a 13319) ───────────────────────────────────
+
+        /// <summary>Client → servidor: pede para inspecionar um personagem alvo.</summary>
+        public const ushort PedirInspecao = 13300;
+
+        /// <summary>Servidor → client: retrato completo do equipamento e atributos do alvo inspecionado.</summary>
+        public const ushort RetratoInspecaoResponse = 13310;
+
+        /// <summary>Servidor → quem pediu: o pedido de inspeção foi recusado.</summary>
+        public const ushort InspecaoRecusada = 13311;
     }
 }

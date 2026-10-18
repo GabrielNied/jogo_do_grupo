@@ -75,6 +75,12 @@ namespace JogoDoGrupo.Shared.Features.Combate
         /// <summary>Altura padrão de spawn do projétil a partir do chão/pés do atacante (metros).</summary>
         public const float AlturaOrigemDisparo = 1.2f;
 
+        /// <summary>Elevação vertical mínima em graus (pitch para baixo).</summary>
+        public const float ElevacaoMinimaGraus = -60.0f;
+
+        /// <summary>Elevação vertical máxima em graus (pitch para cima).</summary>
+        public const float ElevacaoMaximaGraus = 60.0f;
+
         /// <summary>Devolve a velocidade linear de acordo com o projétil e o tipo de ataque.</summary>
         public static float Velocidade(TipoDeProjetil tipoProjetil, TipoDeAtaque tipoAtaque)
         {
@@ -159,6 +165,32 @@ namespace JogoDoGrupo.Shared.Features.Combate
         }
 
         /// <summary>
+        /// Converte a rotação horizontal Yaw (graus, 0 = +Z, 90 = +X) e elevação vertical Pitch
+        /// (graus, positivo para cima, negativo para baixo) em vetor unitário 3D (dirX, dirY, dirZ).
+        /// Clampeia a elevação a [<see cref="ElevacaoMinimaGraus"/>, <see cref="ElevacaoMaximaGraus"/>].
+        /// </summary>
+        public static void DirecaoVetorial3D(
+            float yawGraus,
+            float pitchGraus,
+            out float dirX,
+            out float dirY,
+            out float dirZ
+        )
+        {
+            float pitchClampeado = Math.Max(
+                ElevacaoMinimaGraus,
+                Math.Min(ElevacaoMaximaGraus, pitchGraus)
+            );
+            double radYaw = yawGraus * Math.PI / 180.0;
+            double radPitch = pitchClampeado * Math.PI / 180.0;
+
+            float cosPitch = (float)Math.Cos(radPitch);
+            dirX = (float)Math.Sin(radYaw) * cosPitch;
+            dirY = (float)Math.Sin(radPitch);
+            dirZ = (float)Math.Cos(radYaw) * cosPitch;
+        }
+
+        /// <summary>
         /// Converte a rotação horizontal DirecaoY em graus (0 = +Z, 90 = +X) em vetor unitário (dirX, dirY, dirZ).
         /// </summary>
         public static void DirecaoVetorial(
@@ -166,13 +198,7 @@ namespace JogoDoGrupo.Shared.Features.Combate
             out float dirX,
             out float dirY,
             out float dirZ
-        )
-        {
-            double radianos = direcaoYGraus * Math.PI / 180.0;
-            dirX = (float)Math.Sin(radianos);
-            dirY = 0f;
-            dirZ = (float)Math.Cos(radianos);
-        }
+        ) => DirecaoVetorial3D(direcaoYGraus, 0f, out dirX, out dirY, out dirZ);
 
         /// <summary>
         /// Avança a posição linear do projétil dado o deslocamento pelo delta time.

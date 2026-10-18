@@ -332,4 +332,84 @@ public class ProjeteisElementaisTestes(TempoRealFixture f) : IClassFixture<Tempo
 
         Assert.Null(eventoCura);
     }
+
+    [Fact]
+    public void Disparo_com_elevacao_positiva_viaja_em_y_e_acerta_alvo_elevado()
+    {
+        var posicoes = new PosicoesFalsas();
+        posicoes.Colocar(1, "cidade", 0f, 0f);
+
+        // Alvo elevado em Y=4.5, Z=4.0
+        var alvoElevado = new AlvoLocal(10, 0f, 4.0, 4.0);
+
+        long agora = 1000;
+        using var servico = new ServicoDeProjeteis(
+            _tempoReal,
+            posicoes,
+            [alvoElevado],
+            NullLogger<ServicoDeProjeteis>.Instance,
+            relogioMs: () => agora
+        );
+
+        // Disparo com elevação de 45 graus para cima (apontando para +Z)
+        servico.Disparar(
+            atacanteId: 1,
+            area: "cidade",
+            tipoProjetil: TipoDeProjetil.BolaDeFogo,
+            tipoAtaque: TipoDeAtaque.Leve,
+            origemX: 0f,
+            origemY: 1.2f,
+            origemZ: 0f,
+            direcaoYGraus: 0f,
+            dano: 60,
+            elevacaoGraus: 45f
+        );
+
+        // Velocidade leve = 22 m/s. Em 0.25s viaja ~5.5m (dx=0, dy=3.89, dz=3.89)
+        // Chegando perto de Y = 1.2 + 3.89 = 5.09, Z = 3.89 (perto do alvo em Y=4.0, Z=4.0 com altura 2.0)
+        agora += 250;
+        servico.Atualizar(agora, 0.25);
+
+        Assert.True(alvoElevado.DanoRecebido > 0);
+    }
+
+    [Fact]
+    public void Disparo_com_elevacao_negativa_desce_em_y()
+    {
+        var posicoes = new PosicoesFalsas();
+        posicoes.Colocar(1, "cidade", 0f, 0f);
+
+        // Alvo no chão (Y=0, Z=5.0)
+        var alvoNoChao = new AlvoLocal(20, 0f, 0.0, 5.0);
+
+        long agora = 1000;
+        using var servico = new ServicoDeProjeteis(
+            _tempoReal,
+            posicoes,
+            [alvoNoChao],
+            NullLogger<ServicoDeProjeteis>.Instance,
+            relogioMs: () => agora
+        );
+
+        // Disparado de uma plataforma elevada (origemY = 4.0m) apontando para baixo (-30 graus)
+        servico.Disparar(
+            atacanteId: 1,
+            area: "cidade",
+            tipoProjetil: TipoDeProjetil.Flecha,
+            tipoAtaque: TipoDeAtaque.Leve,
+            origemX: 0f,
+            origemY: 4.0f,
+            origemZ: 0f,
+            direcaoYGraus: 0f,
+            dano: 50,
+            elevacaoGraus: -30f
+        );
+
+        // Flecha a 35 m/s. Em 0.15s viaja 5.25m (dz = 5.25 * cos(30) = 4.54, dy = 5.25 * sin(-30) = -2.62)
+        // Posição final: Y = 4.0 - 2.62 = 1.38m (atinge a faixa do alvo no chão: 0 a 2.0m)
+        agora += 150;
+        servico.Atualizar(agora, 0.15);
+
+        Assert.True(alvoNoChao.DanoRecebido > 0);
+    }
 }

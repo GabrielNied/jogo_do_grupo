@@ -17,5 +17,8 @@ namespace JogoDoGrupo.Shared.Features.Mobs
 
         /// <summary>Boss: raios que caem em pontos marcados no chão (um círculo por raio).</summary>
         Raios = 3,
+
+        /// <summary>Atirador: disparo de projétil telegrafado à distância.</summary>
+        Disparo = 4,
     }
 }

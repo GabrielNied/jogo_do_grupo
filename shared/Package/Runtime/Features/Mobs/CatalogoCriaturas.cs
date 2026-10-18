@@ -16,6 +16,7 @@ namespace JogoDoGrupo.Shared.Features.Mobs
         public const int CarapacaDeBrasa = 7;
         public const int JavaliFerrugem = 8;
         public const int MorcegoDasSombras = 9;
+        public const int ArqueiroDoCampo = 10;
         public const int GuardiaoDoReflexo = 100;
         public const int PresaVelha = 200;
 
@@ -54,6 +55,17 @@ namespace JogoDoGrupo.Shared.Features.Mobs
                 experienciaBase: 30,
                 chanceDeAparecer: 1.0,
                 intervaloDeAparicaoSegundos: 150
+            ),
+            new DefinicaoDeCriatura(
+                id: ArqueiroDoCampo,
+                nome: "Arqueiro do Campo",
+                categoria: CategoriaDeCriatura.Comum,
+                nivel: 4,
+                vidaBase: 120,
+                danoBase: 35,
+                experienciaBase: 22,
+                chanceDeAparecer: 1.0,
+                intervaloDeAparicaoSegundos: 120
             ),
             new DefinicaoDeCriatura(
                 id: GuardiaoDoReflexo,
