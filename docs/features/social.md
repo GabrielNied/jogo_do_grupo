@@ -439,3 +439,21 @@ Código em `shared/Package/Runtime/Features/Social/`. Tempo real, entrega confi�
 - `CodigosErroSocial` ganhou os 13 códigos de amigos e ignorados da seção de recusas; `AlvoNaoEncontrado` é o mesmo do grupo.
 - `RegrasAmigos`: os números da tabela de limites como constantes e as decisões puras (`VagasLivres`, `TemVaga`, `AlvoComPedidosDemais`, `CabeMaisUmIgnorado`, `PedidoRapidoDemais`, `PedidoViraAceite`, `RecusaDoPedido`, `RecusaDoAceite`, `RecusaDeIgnorar`, `ContatoBarrado`). `RelacaoDeAmizade` é a entrada de `RecusaDoPedido`.
 - Amigos e ignorados ficam com os IDs 13200 a 13299.
+
+### Contrato da fila de dungeon (LFG / Procurar Grupo) (issue #209)
+
+Código em `shared/Package/Runtime/Features/Social/`. Tempo real, entrega confiável.
+
+- **Composição de grupo:** cada grupo de 5 para dungeon é formado estritamente por **1 Tanque, 1 Healer e 3 DPS** (`RegrasFilaGrupo`).
+- **Escolha livre de papel:** o jogador seleciona seu papel (`PapelNoGrupo`: `Tank = 1`, `Healer = 2`, `Dps = 3`) ao entrar na fila; o servidor não valida equipamento (o grupo resolve papéis errados).
+- **Canal de chat Procurar Grupo:** `CanalDeChat.ProcurarGrupo = 3` (comandos `/pg`, `/lfg`, `/procurargrupo`), broadcast global no servidor para buscar membros e grupos.
+
+| ID | Mensagem | Direção | Campos |
+|---|---|---|---|
+| 13300 | `EntrarNaFilaDeGrupo` | client → servidor | `Papel` (`PapelNoGrupo`: Tank 1, Healer 2, Dps 3) |
+| 13301 | `SairDaFilaDeGrupo` | client → servidor | (vazio) |
+| 13310 | `StatusDaFilaDeGrupo` | servidor → client | `EmFila`, `Papel`, `Tanques` (0 a 1), `Healers` (0 a 1), `Dps` (0 a 3), `SegundosNaFila` |
+| 13311 | `GrupoDeFilaFormado` | servidor → membros | `GrupoId`, `SeuPapel`, `Mensagem` |
+
+- Ao atingir a composição completa (1 Tanque, 1 Healer, 3 DPS), o servidor cria o grupo automaticamente através de `GruposDoServidor.FormarGrupoDeFila`, remove os 5 jogadores da fila, envia `GrupoDeFilaFormado` e dispara a `ListaDoGrupo` completa sincronizada a todos os membros.
+- Fila de dungeon fica com os IDs 13300 a 13319.

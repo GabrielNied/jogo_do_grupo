@@ -22,6 +22,8 @@ namespace JogoDoGrupo.Client.Features.Social
                     return "Grupo";
                 case CanalDeChat.Sussurro:
                     return "Sussurro";
+                case CanalDeChat.ProcurarGrupo:
+                    return "Procurar Grupo";
                 default:
                     return "Cidade";
             }
@@ -34,7 +36,7 @@ namespace JogoDoGrupo.Client.Features.Social
         {
             var texto = new StringBuilder();
             texto.AppendLine(
-                "Chat: /c texto (cidade), /g texto (grupo), /s Nome texto (sussurro),"
+                "Chat: /c texto (cidade), /g texto (grupo), /pg texto (procurar grupo), /s Nome texto (sussurro),"
             );
             texto.Append("/r texto (responder), /ignorar Nome, /designorar Nome.");
             var extras = ComandosDeBarraNoChat.LinhasDoCatalogo();

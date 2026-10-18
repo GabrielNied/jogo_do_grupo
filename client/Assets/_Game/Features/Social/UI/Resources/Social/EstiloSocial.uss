@@ -196,3 +196,11 @@
 .barra-vida-preenchimento.vida-critica {
     background-color: var(--lumora-cores-erro);
 }
+
+/* Fila de Dungeon (LFG) */
+.botao.selecionado {
+    background-color: var(--lumora-cores-ouro);
+    color: var(--lumora-cores-fundo);
+    -unity-font-style: bold;
+    border-color: var(--lumora-cores-ouro);
+}

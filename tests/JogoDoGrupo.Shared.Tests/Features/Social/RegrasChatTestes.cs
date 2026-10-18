@@ -29,15 +29,17 @@ public class RegrasChatTestes
         Assert.Equal(0, (int)CanalDeChat.Cidade);
         Assert.Equal(1, (int)CanalDeChat.Grupo);
         Assert.Equal(2, (int)CanalDeChat.Sussurro);
+        Assert.Equal(3, (int)CanalDeChat.ProcurarGrupo);
     }
 
     [Theory]
     [InlineData(0, true)]
     [InlineData(1, true)]
     [InlineData(2, true)]
-    [InlineData(3, false)]
+    [InlineData(3, true)]
+    [InlineData(4, false)]
     [InlineData(-1, false)]
-    public void CanalValido_so_aceita_os_tres_canais(int valor, bool esperado) =>
+    public void CanalValido_so_aceita_canais_conhecidos(int valor, bool esperado) =>
         Assert.Equal(esperado, RegrasChat.CanalValido((CanalDeChat)valor));
 
     [Fact]

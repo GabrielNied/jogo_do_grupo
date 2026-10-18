@@ -23,6 +23,7 @@ public sealed class SocialModule : IFeatureModule, IConsultaDeGrupo
     private readonly DiretorioTardio _diretorio = new();
     private GruposDoServidor? _grupos;
     private AmigosDoServidor? _amigos;
+    private FilaDeGrupoDoServidor? _filaGrupo;
 
     /// <summary>Quem tem sessão de tempo real agora, por personagem (para entregar o chat).</summary>
     private readonly ConcurrentDictionary<long, SessaoTempoReal> _online = new();
@@ -123,6 +124,14 @@ public sealed class SocialModule : IFeatureModule, IConsultaDeGrupo
             .Ao<DeixarDeIgnorar>(
                 SocialMessageIds.DeixarDeIgnorar,
                 (sessao, pedido) => _amigos!.DeixarDeIgnorar(sessao.PersonagemId, pedido.IgnoradoId)
+            )
+            .Ao<EntrarNaFilaDeGrupo>(
+                SocialMessageIds.EntrarNaFilaDeGrupo,
+                (sessao, pedido) => _filaGrupo!.Entrar(sessao.PersonagemId, pedido.Papel)
+            )
+            .Ao<SairDaFilaDeGrupo>(
+                SocialMessageIds.SairDaFilaDeGrupo,
+                (sessao, _) => _filaGrupo!.Sair(sessao.PersonagemId)
             );
 
     public void Inicializar(ServerContext contexto)
@@ -145,6 +154,21 @@ public sealed class SocialModule : IFeatureModule, IConsultaDeGrupo
             () => _servicos!.GetService<IPosicoesDoMundo>()
         );
         _grupos = grupos;
+        _filaGrupo = new FilaDeGrupoDoServidor(
+            grupos,
+            (personagemId, idMsg, corpo) =>
+            {
+                if (
+                    _tempoReal != null
+                    && _tempoReal.TentarObterSessao(personagemId, out var sessao)
+                    && sessao != null
+                )
+                {
+                    _tempoReal.Enviar(sessao, idMsg, corpo);
+                }
+            },
+            () => Environment.TickCount64
+        );
 
         _tempoReal = contexto.TempoReal;
         _chat = _servicos!.GetRequiredService<ChatDoServidor>();
@@ -166,6 +190,7 @@ public sealed class SocialModule : IFeatureModule, IConsultaDeGrupo
             // Só tira se ainda for esta sessão: reconectar troca a sessão antes de a antiga acabar.
             _online.TryRemove(new KeyValuePair<long, SessaoTempoReal>(sessao.PersonagemId, sessao));
             _limites!.Esquecer(sessao.PersonagemId);
+            _filaGrupo?.AoDesconectar(sessao.PersonagemId);
             // Sessão já substituída por outra do mesmo personagem: ele continua online.
             _amigos!.RemoverOnline(sessao.ContaId, sessao.PersonagemId);
             if (saida.Remover(sessao))
@@ -311,7 +336,8 @@ public sealed class SocialModule : IFeatureModule, IConsultaDeGrupo
                 pedido,
                 _online.ContainsKey,
                 _grupos!.ListaDe,
-                _amigos!.ContatoBarradoEntrePersonagens
+                _amigos!.ContatoBarradoEntrePersonagens,
+                () => _online.Keys.ToArray()
             );
             if (resultado.Recusa != null)
             {

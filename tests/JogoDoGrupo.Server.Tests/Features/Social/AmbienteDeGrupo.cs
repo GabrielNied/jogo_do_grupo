@@ -164,6 +164,7 @@ public sealed class AmbienteDeGrupo
     public DiretorioFalso Diretorio { get; } = new();
     public SaidaGravada Saida { get; } = new();
     public GruposDoServidor Grupos { get; }
+    public long AgoraMs => Interlocked.Read(ref _agoraMs);
 
     public static string Nome(long id) => Nomes[id - 1];
 
