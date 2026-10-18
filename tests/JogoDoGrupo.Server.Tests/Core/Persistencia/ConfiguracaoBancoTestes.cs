@@ -122,8 +122,7 @@ public class ConfiguracaoBancoTestes
 
         await using var db = new PostgresJogoDbContext(opcoes);
 
-        // Garante banco limpo e roda migrações do zero
-        await db.Database.EnsureDeletedAsync();
+        // Aplica as migrações do zero no banco de dados de teste
         await db.Database.MigrateAsync();
 
         var usuario = "teste" + Guid.NewGuid().ToString("N")[..8];
