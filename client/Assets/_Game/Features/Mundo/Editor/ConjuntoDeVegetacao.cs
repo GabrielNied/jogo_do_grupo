@@ -47,6 +47,22 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
 
         [Range(0.1f, 20f)]
         public float DistanciaEntreArvores = 3f;
+
+        [
+            Range(0f, 20f),
+            Tooltip(
+                "Espaçamento aproximado entre plantas. Zero usa cobertura nativa livre; não afeta árvores nem grama."
+            )
+        ]
+        public float DistanciaEntrePlantas;
+
+        [
+            Range(0f, 20f),
+            Tooltip(
+                "Espaçamento aproximado entre tufos de grama. Zero permite cobertura nativa livre, inclusive sob árvores."
+            )
+        ]
+        public float DistanciaEntreGramas;
         public int Semente = 12345;
         public List<EspecieDoPincel> Arvores = new List<EspecieDoPincel>();
         public List<EspecieDoPincel> Plantas = new List<EspecieDoPincel>();

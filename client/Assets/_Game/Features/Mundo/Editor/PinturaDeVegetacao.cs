@@ -8,7 +8,6 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
     /// <summary>Escreve somente nas instâncias e camadas nativas de TerrainData.</summary>
     public static class PinturaDeVegetacao
     {
-        private const int CoberturaNativaMaxima = 16;
         private const int TentativasPorArvore = 12;
 
         public static string Validar(ConjuntoDeVegetacao conjunto)
@@ -22,6 +21,8 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
                 || !NoIntervalo(conjunto.CoberturaDeGrama, 0f, 1f)
                 || !NoIntervalo(conjunto.InclinacaoMaxima, 0f, 45f)
                 || !NoIntervalo(conjunto.DistanciaEntreArvores, 0.1f, 20f)
+                || !NoIntervalo(conjunto.DistanciaEntrePlantas, 0f, 20f)
+                || !NoIntervalo(conjunto.DistanciaEntreGramas, 0f, 20f)
             )
                 return "Há valores fora dos limites do pincel.";
             var erro = ValidarGrupo(conjunto.Arvores, true, "Árvores");
@@ -139,6 +140,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
                 conjunto,
                 conjunto.Plantas,
                 conjunto.CoberturaDePlantas,
+                conjunto.DistanciaEntrePlantas,
                 local,
                 apagar
             );
@@ -147,6 +149,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
                 conjunto,
                 conjunto.Gramas,
                 conjunto.CoberturaDeGrama,
+                conjunto.DistanciaEntreGramas,
                 local,
                 apagar
             );
@@ -335,6 +338,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
             ConjuntoDeVegetacao conjunto,
             List<EspecieDoPincel> especies,
             float cobertura,
+            float espacamento,
             Vector3 centro,
             bool apagar
         )
@@ -400,6 +404,15 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
                     );
                     dados.detailPrototypes = prototipos.ToArray();
                 }
+                var esperado = apagar
+                    ? 0f
+                    : IntensidadeDosDetalhes(
+                        dados,
+                        indice,
+                        cobertura,
+                        especie.Peso / soma,
+                        espacamento
+                    );
                 var camada = dados.GetDetailLayer(x0, z0, x1 - x0 + 1, z1 - z0 + 1, indice);
                 for (var z = z0; z <= z1; z++)
                 for (var x = x0; x <= x1; x++)
@@ -421,7 +434,6 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
                     }
                     if (!PodePintar(dados, nx, nz, conjunto.InclinacaoMaxima))
                         continue;
-                    var esperado = cobertura * CoberturaNativaMaxima * especie.Peso / soma;
                     var inteiro = Mathf.FloorToInt(esperado);
                     var hash = unchecked(
                         (uint)(x * 73856093 ^ z * 19349663 ^ indice * 83492791 ^ conjunto.Semente)
@@ -442,6 +454,32 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
             var hx = Mathf.Clamp((int)(x * dados.holesResolution), 0, dados.holesResolution - 1);
             var hz = Mathf.Clamp((int)(z * dados.holesResolution), 0, dados.holesResolution - 1);
             return !dados.IsHole(hx, hz) && dados.GetSteepness(x, z) <= inclinacao;
+        }
+
+        private static float IntensidadeDosDetalhes(
+            TerrainData dados,
+            int indice,
+            float cobertura,
+            float proporcao,
+            float espacamento
+        )
+        {
+            var maximo = dados.maxDetailScatterPerRes;
+            if (espacamento <= 0f)
+                return cobertura * maximo * proporcao;
+            var porMetroQuadrado = cobertura * proporcao / (espacamento * espacamento);
+            if (dados.detailScatterMode == DetailScatterMode.CoverageMode)
+            {
+                var coberturaNativa = dados.ComputeDetailCoverage(indice);
+                return coberturaNativa > 0f
+                    ? Mathf.Min(maximo, maximo * porMetroQuadrado / coberturaNativa)
+                    : 0f;
+            }
+            var areaDaCelula =
+                dados.size.x
+                * dados.size.z
+                / (dados.detailResolution * (float)dados.detailResolution);
+            return Mathf.Min(maximo, porMetroQuadrado * areaDaCelula);
         }
     }
 }
