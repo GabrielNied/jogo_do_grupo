@@ -40,11 +40,25 @@ namespace JogoDoGrupo.Client.Core.Jogo
         ) => !algoAberto && !entradaPendente && conectado;
 
         /// <summary>
-        /// Se o personagem e a câmera leem o input: com janelas abertas, sim (anda com elas); só o
-        /// menu do Esc, a entrada pendente ou a queda param tudo.
+        /// Se o personagem lê o input de movimento: com janelas abertas, sim (anda com elas); só o
+        /// menu do Esc, a entrada pendente, a queda ou a digitação de texto param o movimento.
         /// </summary>
-        internal static bool DeveLerInput(bool menuAberto, bool entradaPendente, bool conectado) =>
-            !menuAberto && !entradaPendente && conectado;
+        internal static bool DeveLerInput(
+            bool menuAberto,
+            bool entradaPendente,
+            bool conectado,
+            bool entradaDeTextoAtiva = false
+        ) => !menuAberto && !entradaPendente && conectado && !entradaDeTextoAtiva;
+
+        /// <summary>
+        /// Fornece decisão explícita sobre a leitura de input de movimento do avatar.
+        /// </summary>
+        internal static bool DeveLerInputDeMovimento(
+            bool menuAberto,
+            bool entradaPendente,
+            bool conectado,
+            bool entradaDeTextoAtiva
+        ) => DeveLerInput(menuAberto, entradaPendente, conectado, entradaDeTextoAtiva);
 
         /// <summary>
         /// Com janela aberta, se o botão direito começa a girar a câmera: só fora das janelas.

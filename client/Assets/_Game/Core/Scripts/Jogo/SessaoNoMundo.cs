@@ -147,9 +147,22 @@ namespace JogoDoGrupo.Client.Core.Jogo
                 return;
             }
 
+            var hud = Navegacao.Container;
+            var textoAtivo = BloqueioDeEntradaPorTexto.EntradaDeTextoAtiva(hud);
+            BloqueioDeEntradaPorTexto.AtualizarEstado(textoAtivo);
+
+            if (_controle != null)
+            {
+                _controle.InputAtivo = DecisaoDeEntradaNoMundo.DeveLerInputDeMovimento(
+                    _janelas.MenuAberto,
+                    EntradaNoJogo.EntradaPendente,
+                    ConexaoTempoReal.Conectado,
+                    textoAtivo
+                );
+            }
+
             AtualizarGiroComJanela();
 
-            var hud = Navegacao.Container;
             if (_acoes.MenuApertado)
             {
                 if (_menu != null && (_menu.CapturaAtiva || _menu.CancelouCapturaNesteFrame))
@@ -200,7 +213,7 @@ namespace JogoDoGrupo.Client.Core.Jogo
                 return;
             }
 
-            if (EntradaDeTextoAtiva(hud))
+            if (textoAtivo)
             {
                 return;
             }
@@ -217,14 +230,8 @@ namespace JogoDoGrupo.Client.Core.Jogo
             }
         }
 
-        private static bool EntradaDeTextoAtiva(VisualElement hud)
-        {
-            var campoComFoco = FocoEmCampoDeTexto.TemCampoComFoco(hud);
-            return !DecisaoDeEntradaNoMundo.PodeExecutarAtalho(
-                campoComFoco,
-                !campoComFoco && BloqueioDeEntradaPorTexto.AtalhosDoJogoBloqueados()
-            );
-        }
+        private static bool EntradaDeTextoAtiva(VisualElement hud) =>
+            BloqueioDeEntradaPorTexto.EntradaDeTextoAtiva(hud);
 
         private void AoMudarConexao(EstadoTempoReal _) => Sincronizar();
 
@@ -397,12 +404,16 @@ namespace JogoDoGrupo.Client.Core.Jogo
             );
             Hud.DefinirVisivel(!_apresentador.TelaInteiraAberta);
 
-            // Com janelas abertas o personagem anda; só o menu, a entrada e a queda param.
+            var textoAtivo = BloqueioDeEntradaPorTexto.EntradaDeTextoAtiva(Navegacao.Container);
+            BloqueioDeEntradaPorTexto.AtualizarEstado(textoAtivo);
+
+            // Com janelas abertas o personagem anda; só o menu, a entrada, a queda ou a digitação param.
             DefinirInputAtivo(
                 DecisaoDeEntradaNoMundo.DeveLerInput(
                     _janelas.MenuAberto,
                     EntradaNoJogo.EntradaPendente,
-                    ConexaoTempoReal.Conectado
+                    ConexaoTempoReal.Conectado,
+                    textoAtivo
                 )
             );
             // Abrir, fechar ou subir janela solta o cursor do modo combate.

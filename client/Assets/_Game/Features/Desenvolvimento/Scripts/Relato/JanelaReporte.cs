@@ -96,9 +96,13 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
         {
             if (_objetoDoPainel != null)
             {
-                if (_documento != null && _documento.panelSettings != null)
+                if (_documento != null)
                 {
-                    UnityEngine.Object.Destroy(_documento.panelSettings);
+                    BloqueioDeEntradaPorTexto.DesregistrarDocumento(_documento);
+                    if (_documento.panelSettings != null)
+                    {
+                        UnityEngine.Object.Destroy(_documento.panelSettings);
+                    }
                 }
 
                 UnityEngine.Object.Destroy(_objetoDoPainel);
@@ -118,6 +122,7 @@ namespace JogoDoGrupo.Client.Features.Desenvolvimento.Relato
             UnityEngine.Object.DontDestroyOnLoad(_objetoDoPainel);
             _objetoDoPainel.SetActive(false);
             _documento = _objetoDoPainel.AddComponent<UIDocument>();
+            BloqueioDeEntradaPorTexto.RegistrarDocumento(_documento);
             _documento.panelSettings = EstiloCore.CriarConfiguracaoDoPainel(
                 "PainelReporte",
                 OrdemDoPainel

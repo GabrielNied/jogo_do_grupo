@@ -151,7 +151,7 @@ namespace JogoDoGrupo.Client.Features.Combate
             _dica.text =
                 "Segure " + TeclasDoJogo.Rotulo(TeclasDoJogo.Interagir) + ": levantar aliado";
 
-            if (_interagir.IsPressed())
+            if (!BloqueioDeEntradaPorTexto.EntradaDeTextoAtiva() && _interagir.IsPressed())
             {
                 if (!_canalizando)
                 {
