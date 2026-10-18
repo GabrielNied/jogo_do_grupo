@@ -220,7 +220,9 @@ namespace JogoDoGrupo.Client.Features.Combate
             var efeito = new GameObject("Impacto_" + tipo);
             efeito.transform.position = posicao;
             var ps = efeito.AddComponent<ParticleSystem>();
+            ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
             var main = ps.main;
+            main.playOnAwake = false;
             main.loop = false;
 
             var shape = ps.shape;

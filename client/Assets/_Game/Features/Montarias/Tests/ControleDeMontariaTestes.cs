@@ -178,5 +178,24 @@ namespace JogoDoGrupo.Client.Features.Montarias.Tests
                 Object.DestroyImmediate(objeto);
             }
         }
+
+        [Test]
+        public void DeveProcessarAtalhoMontaria_QuandoDigitandoTextoOuMenuAberto_IgnoraAtalho()
+        {
+            // Tecla apertada, sem menu e sem digitação -> processa
+            Assert.IsTrue(ControleDeMontaria.DeveProcessarAtalhoMontaria(true, false, false));
+
+            // Tecla não apertada -> não processa
+            Assert.IsFalse(ControleDeMontaria.DeveProcessarAtalhoMontaria(false, false, false));
+
+            // Menu do Esc aberto -> não processa
+            Assert.IsFalse(ControleDeMontaria.DeveProcessarAtalhoMontaria(true, true, false));
+
+            // Digitando em campo de texto (chat, reporte, busca) -> não processa
+            Assert.IsFalse(ControleDeMontaria.DeveProcessarAtalhoMontaria(true, false, true));
+
+            // Menu aberto E digitando -> não processa
+            Assert.IsFalse(ControleDeMontaria.DeveProcessarAtalhoMontaria(true, true, true));
+        }
     }
 }

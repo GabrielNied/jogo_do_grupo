@@ -47,7 +47,8 @@ public sealed class MobsModule : IFeatureModule
                         limite,
                         queda: queda,
                         historico: historico,
-                        relogioDoMundo: relogioDoMundo
+                        relogioDoMundo: relogioDoMundo,
+                        projeteis: () => sp.GetService<IDisparoDeProjeteis>()
                     )
                 ),
             ];

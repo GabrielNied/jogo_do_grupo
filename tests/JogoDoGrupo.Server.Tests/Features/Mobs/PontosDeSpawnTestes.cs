@@ -573,7 +573,11 @@ public class PontosDeSpawnTestes
                 grupos[i].Vivos(),
                 v =>
                 {
-                    Assert.Equal(ponto.CriaturaId, v.CriaturaId);
+                    Assert.True(
+                        v.CriaturaId == ponto.CriaturaId
+                            || v.CriaturaId == ponto.CriaturaRetaguardaId,
+                        $"Criatura {v.CriaturaId} inesperada no ponto {ponto.Nome}"
+                    );
                     Assert.Equal(ponto.NivelMaximo, v.Nivel);
                     Assert.Equal(
                         ponto.X,

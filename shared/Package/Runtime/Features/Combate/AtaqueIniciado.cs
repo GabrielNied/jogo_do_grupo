@@ -15,6 +15,9 @@ namespace JogoDoGrupo.Shared.Features.Combate
         /// <summary>Direção do golpe, em graus (mesma convenção de <see cref="IntencaoDeAtaque.DirecaoY"/>).</summary>
         public float DirecaoY = 0f;
 
+        /// <summary>Elevação vertical do golpe em graus (Pitch), para orientar armas de longo alcance.</summary>
+        public float ElevacaoGraus = 0f;
+
         /// <summary>Milissegundos entre o começo do ataque e o momento de acerto.</summary>
         public int PreparoMs = 0;
 

@@ -116,5 +116,25 @@ namespace JogoDoGrupo.Client.Features.Combate.Tests
             Assert.IsNotNull(amostrasImpacto);
             Assert.Greater(amostrasImpacto.Length, 100);
         }
+
+        [Test]
+        public void CriarEfeitoImpacto_InstanciaParticleSystemSemExcecaoParaTodosOsTipos()
+        {
+            var tipos = new[]
+            {
+                TipoDeProjetil.BolaDeFogo,
+                TipoDeProjetil.EsferaDeGelo,
+                TipoDeProjetil.OrbeDeCura,
+                TipoDeProjetil.Flecha,
+            };
+
+            foreach (var tipo in tipos)
+            {
+                Assert.DoesNotThrow(() =>
+                {
+                    VisualProjetilElemental.CriarEfeitoImpacto(Vector3.zero, tipo);
+                });
+            }
+        }
     }
 }
