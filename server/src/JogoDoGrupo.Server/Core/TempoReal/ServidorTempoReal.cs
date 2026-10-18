@@ -193,6 +193,33 @@ public sealed class ServidorTempoReal : BackgroundService
         [NotNullWhen(true)] out SessaoTempoReal? sessao
     ) => _porPersonagem.TryGetValue(personagemId, out sessao);
 
+    public bool TentarObterSessaoPorConta(
+        long contaId,
+        [NotNullWhen(true)] out SessaoTempoReal? sessao
+    ) => _porConta.TryGetValue(contaId, out sessao);
+
+    public bool DesconectarPersonagem(long personagemId)
+    {
+        if (_porPersonagem.TryGetValue(personagemId, out var sessao))
+        {
+            Encerrar(sessao, desconectar: true);
+            return true;
+        }
+
+        return false;
+    }
+
+    public bool DesconectarConta(long contaId)
+    {
+        if (_porConta.TryGetValue(contaId, out var sessao))
+        {
+            Encerrar(sessao, desconectar: true);
+            return true;
+        }
+
+        return false;
+    }
+
     /// <summary>
     /// Agenda uma ação para rodar novamente no laço principal do servidor, em um passo fixo.
     /// A ação recebe a duração do intervalo e fica em ordem de inscrição.
@@ -613,25 +640,32 @@ public sealed class ServidorTempoReal : BackgroundService
 
         sessao.ContaId = resultado.ContaId;
         sessao.PersonagemId = resultado.PersonagemId;
+        sessao.EhGm = resultado.EhGm;
         sessao.Autenticada = true;
         _porConta[sessao.ContaId] = sessao;
         _porPersonagem[sessao.PersonagemId] = sessao;
         _autenticadas[sessao] = 0;
 
-        ResponderAutenticacao(sessao, "");
+        ResponderAutenticacao(sessao, "", resultado.EhGm);
         _log.LogInformation(
-            "Tempo real: conta {Conta} entrou com o personagem {Personagem}.",
+            "Tempo real: conta {Conta} entrou com o personagem {Personagem} (GM: {EhGm}).",
             sessao.ContaId,
-            sessao.PersonagemId
+            sessao.PersonagemId,
+            sessao.EhGm
         );
         Avisar(SessaoAutenticada, sessao);
     }
 
-    private void ResponderAutenticacao(SessaoTempoReal sessao, string codigo) =>
+    private void ResponderAutenticacao(SessaoTempoReal sessao, string codigo, bool ehGm = false) =>
         Enviar(
             sessao,
             TempoRealIds.ResultadoAutenticacaoTempoReal,
-            new ResultadoAutenticacaoTempoReal { Aceita = codigo.Length == 0, Codigo = codigo }
+            new ResultadoAutenticacaoTempoReal
+            {
+                Aceita = codigo.Length == 0,
+                Codigo = codigo,
+                EhGm = ehGm,
+            }
         );
 
     private void ExpirarNaoAutenticadas()

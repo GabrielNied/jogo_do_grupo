@@ -141,6 +141,19 @@ internal static class ContasRotas
 
         controleFalhas.RegistrarSucesso(normalizado);
 
+        var agora = DateTime.UtcNow;
+        if (conta.BanidaAte is { } banidaAte && banidaAte > agora)
+        {
+            var motivo = string.IsNullOrWhiteSpace(conta.MotivoBanimento)
+                ? "Violação das regras do jogo."
+                : conta.MotivoBanimento;
+            return RespostasApi.Erro(
+                StatusCodes.Status403Forbidden,
+                CodigosErro.ContaBanida,
+                $"Conta suspensa até {banidaAte:yyyy-MM-dd HH:mm:ss} UTC. Motivo: {motivo}"
+            );
+        }
+
         var (token, expiraEm) = tokens.Gerar(conta.Id, conta.CarimboSeguranca);
         return Results.Ok(
             new LoginResponse { Token = token, ExpiraEmUnix = expiraEm.ToUnixTimeSeconds() }

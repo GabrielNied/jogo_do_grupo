@@ -20,6 +20,15 @@ public sealed class Conta
     /// </summary>
     public string CarimboSeguranca { get; set; } = Guid.NewGuid().ToString("N");
 
+    /// <summary>Indica se a conta possui permissão administrativa de Game Master (#187).</summary>
+    public bool EhGm { get; set; }
+
+    /// <summary>Data UTC até a qual a conta está temporariamente banida, ou nulo se ativa (#187).</summary>
+    public DateTime? BanidaAte { get; set; }
+
+    /// <summary>Motivo descritivo do banimento para auditoria e aviso (#187).</summary>
+    public string? MotivoBanimento { get; set; }
+
     public void RenovarCarimboSeguranca() => CarimboSeguranca = Guid.NewGuid().ToString("N");
 
     public static string Normalizar(string usuario) => usuario.ToUpperInvariant();

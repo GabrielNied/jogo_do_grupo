@@ -72,6 +72,22 @@ public sealed class MensagensTempoReal
         return new FaixaTempoReal(this, faixa);
     }
 
+    /// <summary>
+    /// Permite ao Core registrar mensagens na faixa reservada do Core (<see cref="CoreMessageIds.Faixa"/>).
+    /// </summary>
+    public FaixaTempoReal FaixaCore()
+    {
+        lock (_trava)
+        {
+            if (!_faixas.Contains(CoreMessageIds.Faixa))
+            {
+                _faixas.Add(CoreMessageIds.Faixa);
+            }
+        }
+
+        return new FaixaTempoReal(this, CoreMessageIds.Faixa);
+    }
+
     internal void Registrar<T>(
         MessageIdRange faixa,
         ushort id,

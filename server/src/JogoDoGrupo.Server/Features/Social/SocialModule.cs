@@ -54,6 +54,7 @@ public sealed class SocialModule : IFeatureModule, IConsultaDeGrupo
         servicos.AddSingleton<IConsultaDeGrupo>(this);
         servicos.AddSingleton<IAliadosDeCombate, AliadosDeCombateDoSocial>();
         servicos.AddSingleton<LimitesDoChat>();
+        servicos.AddSingleton<ISilenciadorDoChat>(sp => sp.GetRequiredService<LimitesDoChat>());
         servicos.AddSingleton<ChatDoServidor>();
         servicos.AddSingleton<HistoricoDaCidadeDoChat>();
 

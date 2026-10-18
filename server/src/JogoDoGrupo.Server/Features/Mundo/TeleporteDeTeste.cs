@@ -12,7 +12,7 @@ internal sealed class TeleporteDeTeste(
     EstadoDasAreasDoMundo<SessaoTempoReal> areas,
     ServidorTempoReal tempoReal,
     Action<string, AvatarNaCidade<SessaoTempoReal>> replicar
-) : ITeleporteDeTeste
+) : ITeleporteDeTeste, ITeleporteMundo
 {
     /// <summary>Abaixo disto o comando recusa, para um número solto não enterrar o personagem.</summary>
     public const float AlturaMinima = -50f;

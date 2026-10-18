@@ -1,3 +1,4 @@
+using JogoDoGrupo.Server.Contratos.Social;
 using JogoDoGrupo.Shared.Features.Social;
 
 namespace JogoDoGrupo.Server.Features.Social;
@@ -21,14 +22,14 @@ public readonly record struct ResultadoDosLimites(
 /// quando. Nada vai para o banco: reiniciar o servidor limpa tudo. Pode ser chamado de qualquer
 /// thread.
 /// </summary>
-public sealed class LimitesDoChat(TimeProvider relogio)
+public sealed class LimitesDoChat(TimeProvider relogio) : ISilenciadorDoChat
 {
     private sealed class Estado
     {
         public readonly Queue<DateTimeOffset> Aceitas = new();
         public readonly Queue<DateTimeOffset> Estouros = new();
         public readonly Dictionary<CanalDeChat, (string Chave, DateTimeOffset Em)> Ultimas = [];
-        public DateTimeOffset? SilenciadoEm;
+        public DateTimeOffset? SilenciadoAte;
     }
 
     private readonly Lock _trava = new();
@@ -47,17 +48,16 @@ public sealed class LimitesDoChat(TimeProvider relogio)
             var estado = Obter(personagemId);
             Podar(estado, agora);
 
-            if (estado.SilenciadoEm is { } silenciadoEm)
+            if (estado.SilenciadoAte is { } silenciadoAte)
             {
-                var restante = RegrasChat.SilencioRestanteSegundos(
-                    (agora - silenciadoEm).TotalSeconds
-                );
-                if (restante > 0)
+                if (agora < silenciadoAte)
                 {
+                    var restante = (int)
+                        Math.Max(1, Math.Ceiling((silenciadoAte - agora).TotalSeconds));
                     return new(CodigosErroSocial.Silenciado, restante, "");
                 }
 
-                estado.SilenciadoEm = null;
+                estado.SilenciadoAte = null;
             }
 
             var limpo = RegrasChat.Limpar(texto);
@@ -76,7 +76,7 @@ public sealed class LimitesDoChat(TimeProvider relogio)
                 }
 
                 estado.Estouros.Clear();
-                estado.SilenciadoEm = agora;
+                estado.SilenciadoAte = agora + TimeSpan.FromSeconds(RegrasChat.SilencioSegundos);
                 return new(CodigosErroSocial.Silenciado, RegrasChat.SilencioSegundos, "");
             }
 
@@ -90,6 +90,26 @@ public sealed class LimitesDoChat(TimeProvider relogio)
             }
 
             return new(null, 0, limpo);
+        }
+    }
+
+    /// <summary>Silencia o personagem por uma duração explícita (ex.: moderação/GM).</summary>
+    public void Silenciar(long personagemId, TimeSpan duracao)
+    {
+        if (duracao <= TimeSpan.Zero)
+        {
+            return;
+        }
+
+        var agora = relogio.GetUtcNow();
+        lock (_trava)
+        {
+            var estado = Obter(personagemId);
+            var ate = agora + duracao;
+            if (estado.SilenciadoAte == null || ate > estado.SilenciadoAte.Value)
+            {
+                estado.SilenciadoAte = ate;
+            }
         }
     }
 
@@ -120,9 +140,7 @@ public sealed class LimitesDoChat(TimeProvider relogio)
             }
 
             Podar(estado, agora);
-            var silenciado =
-                estado.SilenciadoEm is { } em
-                && RegrasChat.SilencioRestanteSegundos((agora - em).TotalSeconds) > 0;
+            var silenciado = estado.SilenciadoAte is { } ate && agora < ate;
             if (!silenciado && estado.Estouros.Count == 0 && estado.Aceitas.Count == 0)
             {
                 _estados.Remove(personagemId);
