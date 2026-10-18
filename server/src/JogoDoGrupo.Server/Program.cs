@@ -141,6 +141,35 @@ app.MapGet(
     )
     .RequireAuthorization(policy => policy.RequireClaim("permissao", "administrar"));
 
+app.MapGet(
+        "/admin/recusas-tempo-real",
+        (long? contaId, bool? somenteAlertas, IRegistroDeRecusasTempoReal registro) =>
+        {
+            if (contaId.HasValue)
+            {
+                var relatorio = registro.Obter(contaId.Value);
+                return relatorio != null
+                    ? Results.Ok(new[] { relatorio })
+                    : Results.Ok(Array.Empty<RelatorioRecusasContaDto>());
+            }
+
+            var lista =
+                somenteAlertas == true ? registro.ListarSuspeitas() : registro.ListarTodas();
+            return Results.Ok(lista);
+        }
+    )
+    .RequireAuthorization(policy => policy.RequireClaim("permissao", "administrar"));
+
+app.MapDelete(
+        "/admin/recusas-tempo-real/{contaId:long}",
+        (long contaId, IRegistroDeRecusasTempoReal registro) =>
+        {
+            var limpou = registro.Limpar(contaId);
+            return Results.Ok(new { ContaId = contaId, Limpou = limpou });
+        }
+    )
+    .RequireAuthorization(policy => policy.RequireClaim("permissao", "administrar"));
+
 app.MapearContas();
 foreach (var modulo in modulos)
 {
@@ -148,11 +177,11 @@ foreach (var modulo in modulos)
 }
 
 var mensagens = app.Services.GetRequiredService<MensagensTempoReal>();
-metricas.Observar(app.Services.GetRequiredService<ServidorTempoReal>());
-var contexto = new ServerContext(
-    app.Services.GetRequiredService<ServidorTempoReal>(),
-    app.Services.GetRequiredService<EventosDoServidor>()
-);
+var tempoReal = app.Services.GetRequiredService<ServidorTempoReal>();
+var registroRecusas = app.Services.GetRequiredService<IRegistroDeRecusasTempoReal>();
+registroRecusas.Observar(tempoReal);
+metricas.Observar(tempoReal, registroRecusas);
+var contexto = new ServerContext(tempoReal, app.Services.GetRequiredService<EventosDoServidor>());
 
 foreach (var modulo in modulos)
 {
