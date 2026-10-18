@@ -14,6 +14,8 @@ namespace JogoDoGrupo.Client.Features.Combate
         GolpeRecebido,
         AlertaDeArea,
         GolpeNoVazio,
+        DisparoFlecha,
+        ImpactoFlecha,
     }
 
     /// <summary>De onde vem o impacto (decide só a intensidade).</summary>

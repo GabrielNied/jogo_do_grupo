@@ -1,8 +1,10 @@
 using JogoDoGrupo.Server.Contratos.Combate;
+using JogoDoGrupo.Server.Contratos.Itens;
 using JogoDoGrupo.Server.Contratos.Mundo;
 using JogoDoGrupo.Server.Core.Eventos;
 using JogoDoGrupo.Server.Core.TempoReal;
 using JogoDoGrupo.Shared.Features.Combate;
+using JogoDoGrupo.Shared.Features.Itens;
 
 namespace JogoDoGrupo.Server.Features.Combate;
 
@@ -34,6 +36,8 @@ public sealed class ServicoDeAtaques : IHostedService, IDisposable
     private readonly GerenciadorDeEfeitosDeStatus? _efeitos;
     private readonly IVizinhanca? _vizinhanca;
     private readonly EventosDoServidor? _eventos;
+    private readonly IArmaEquipada? _armas;
+    private readonly ServicoDeProjeteis? _projeteis;
     private readonly Dictionary<long, SessaoTempoReal> _sessoes = [];
     private readonly Lock _travaSessoes = new();
 
@@ -56,9 +60,13 @@ public sealed class ServicoDeAtaques : IHostedService, IDisposable
         GerenciadorDeEfeitosDeStatus? efeitos = null,
         IVizinhanca? vizinhanca = null,
         EventosDoServidor? eventos = null,
-        Func<long, CancellationToken, Task>? esperarAte = null
+        Func<long, CancellationToken, Task>? esperarAte = null,
+        IArmaEquipada? armas = null,
+        ServicoDeProjeteis? projeteis = null
     )
     {
+        _armas = armas;
+        _projeteis = projeteis;
         _eventos = eventos;
         _vizinhanca = vizinhanca;
         _efeitos = efeitos;
@@ -216,8 +224,16 @@ public sealed class ServicoDeAtaques : IHostedService, IDisposable
 
             // Um relógio só: o acerto sai em InicioMs + PreparoMs (a ida ao banco já correu
             // dentro desse tempo) e a fila só avança depois que o acerto foi resolvido.
+            var arma = _armas != null ? await _armas.ObterAsync(personagemId, _parada.Token) : null;
             await EsperarAteAsync(acao.AcertoMs);
-            Acertar(personagemId, acao, inicio.Dano);
+            if (arma?.Tipo == TipoEquipamento.Arco && _projeteis != null)
+            {
+                _projeteis.DispararArco(personagemId, acao, inicio.Dano);
+            }
+            else
+            {
+                Acertar(personagemId, acao, inicio.Dano);
+            }
             await EsperarAteAsync(acao.FimMs);
             AvancarFila(personagemId, acao);
         }

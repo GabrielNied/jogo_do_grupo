@@ -124,6 +124,20 @@ public sealed class CombateModule : IFeatureModule
             _danoRecebido = servico;
             return servico;
         });
+        servicos.AddSingleton(sp => new ServicoDeProjeteis(
+            sp.GetRequiredService<ServidorTempoReal>(),
+            sp.GetRequiredService<IPosicoesDoMundo>(),
+            sp.GetServices<IAlvosDeCombate>(),
+            sp.GetRequiredService<ILogger<ServicoDeProjeteis>>(),
+            aliados: sp.GetService<IAliadosDeCombate>(),
+            vizinhanca: sp.GetService<IVizinhanca>(),
+            efeitos: sp.GetService<GerenciadorDeEfeitosDeStatus>(),
+            eventos: sp.GetService<EventosDoServidor>(),
+            controle: sp.GetService<ControleDeAcoes>(),
+            queda: sp.GetService<ServicoDeQueda>(),
+            relogioMs: () => sp.GetRequiredService<RelogioDeCombate>().AgoraMs
+        ));
+        servicos.AddHostedService(sp => sp.GetRequiredService<ServicoDeProjeteis>());
         servicos.AddSingleton(sp =>
         {
             var servico = new ServicoDeAtaques(
@@ -140,7 +154,9 @@ public sealed class CombateModule : IFeatureModule
                 vizinhanca: sp.GetService<IVizinhanca>(),
                 eventos: sp.GetService<EventosDoServidor>(),
                 relogioMs: () => sp.GetRequiredService<RelogioDeCombate>().AgoraMs,
-                esperarAte: sp.GetRequiredService<RelogioDeCombate>().EsperarAteAsync
+                esperarAte: sp.GetRequiredService<RelogioDeCombate>().EsperarAteAsync,
+                armas: sp.GetService<IArmaEquipada>(),
+                projeteis: sp.GetService<ServicoDeProjeteis>()
             );
             _ataques = servico;
             _esquivas = sp.GetRequiredService<ServicoDeEsquivas>();
