@@ -489,12 +489,11 @@ async function listarTarefas() {
     disponiveis.sort(compararDisponiveis);
     for (const { issue, labels, sinais } of disponiveis) {
       const agentesTags = labels.filter((l) => l.startsWith("agente:")).join(", ") || "geral";
-      const foco = labels.includes("foco") ? " | foco" : "";
       const avisos = sinais.length > 0 ? ` | ${sinais.join(" · ")}` : "";
       const ativo = blocoAtivoParaIssue({ titulo: issue.title, labels, blocos: blocosSegure });
       const segure = ativo ? ` | segure @${ativo.dono}` : "";
       console.log(`   #${issue.number} - ${issue.title}`);
-      console.log(`     ${textoDaPrioridade(labels)}${foco} | Recomendado para: [${agentesTags}]${avisos}${segure}`);
+      console.log(`     ${textoDaPrioridade(labels)} | Recomendado para: [${agentesTags}]${avisos}${segure}`);
     }
   }
 

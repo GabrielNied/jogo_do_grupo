@@ -16,7 +16,7 @@
 3. **Ordem:** `prio:*`, depois a issue mais antiga. Quem espera dependência aberta vai para o fim da faixa. O `/decida` ajusta `prio:*`. ~~Rótulo `foco` entre os dois~~ removido em 2026-10-19.
 4. **Ficha no corpo da issue:** o `/decida`, o `/melhore` e o coordenador reescrevem o corpo no formato de [Ficha da tarefa](../agentes.md#ficha-da-tarefa), com o texto original num `<details>`. O `/decida` confere as issues da mais antiga para a mais nova (`npm run tarefa -- revisar`).
 5. **Agentes por camada saem:** `shared-contratos`, `server-funcionalidade`, `client-funcionalidade` e `regras-do-jogo` já eram exceção pelo ADR 0030; fatia grande se divide por caso de uso com o próprio dono. O `orquestrar-tarefa` entra no `/trabalhe`.
-6. **Orçamento de contexto:** AGENTS.md até 7 mil caracteres, docs/agentes.md até 11 mil, cada agente até 3 mil e cada skill até 6 mil, conferidos por `npm run contexto` no CI. O detalhe mora no doc que só se lê quando preciso. Lição que vira script, hook ou regra sai do `licoes.md`.
+6. **Orçamento de contexto:** AGENTS.md, docs/agentes.md, cada agente e cada skill têm teto em caracteres, conferido por `npm run contexto` no CI. Os valores ficam em [orcamento-contexto.mjs](../../scripts/agentes/orcamento-contexto.mjs), não aqui. O detalhe mora no doc que só se lê quando preciso. Lição que vira script, hook ou regra sai do `licoes.md`.
 
 ## Consequências
 

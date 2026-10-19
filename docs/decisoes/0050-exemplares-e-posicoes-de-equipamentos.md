@@ -1,4 +1,4 @@
-# 0030. Exemplares e posições persistentes de equipamentos
+# 0050. Exemplares e posições persistentes de equipamentos
 
 **Data:** 2026-10-11
 **Status:** proposta

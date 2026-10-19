@@ -163,7 +163,7 @@ Um PR que parte de outro ainda aberto nasce com `npm run tarefa -- puxar <N> <br
 npm run reempilhar -- <PR de cima>
 ```
 
-  A [lição do falso conflito](licoes.md#2026-10-13--reempilhar-informava-conflito-falso) registra a falha que interrompia a publicação depois de um cherry-pick concluído.
+  Um falso conflito que interrompia a publicação depois de um cherry-pick concluído foi corrigido no script: comando com `stdio: inherit` aceita retorno vazio.
 
 O script lê a linha `Depende de`, aplica só os commits próprios do PR (cherry-pick) sobre `origin/main`, atualiza a branch com `--force-with-lease` preso à ponta que leu (a única exceção ao push forçado, [ADR 0049](decisoes/0049-reempilhar-com-push-forcado.md)), tira da linha `Depende de` as levas já mergeadas e comenta a ponta anterior. Tem a branch local? `git pull --rebase` depois. Usa só a API REST (`gh api`), que funciona também nas sessões na nuvem.
 
@@ -182,7 +182,7 @@ Os commits dentro da branch podem ser pequenos e frequentes. Como o merge é por
   - **checks verdes: `csharpier`, `build` (que também roda os testes) e `padrao-git`**;
   - **branch atualizada com a `main`** (botão "Update branch" no PR);
   - **todas as conversas do review resolvidas**;
-  - testes do que mudou, no próprio PR (PR de código sem teste não entra);
+  - testes do que mudou, no próprio PR (contrato, servidor e shared; client não tem teste obrigatório, veja [convenções](convencoes.md#testes));
   - PR de client: olhe o check "Testes EditMode (Unity)" antes de mesclar;
   - PR que entrega uma funcionalidade de jogo: a cena está no PR e "Como testar" diz o que a pessoa faz e o que aparece ([Entrega da funcionalidade](agentes.md#entrega-da-funcionalidade));
   - aprovação não é obrigatória; PR que mexe em `Core/` ou na pasta de outra pessoa pede review ao responsável (veja [docs/responsaveis.md](responsaveis.md)).

@@ -26,3 +26,20 @@ Sistema de conquistas da conta baseadas em marcos do jogo (exploração, combate
 | 4 | O Fim do Predador | Combate | Derrotar o chefe Presa-Velha | 25 | "Caçador de Lobos" |
 | 5 | Fortuna Acumulada | Economia | Acumular 1.000 coroas | 20 | "O Próspero" |
 | 6 | Membro de Guilda | Geral | Fundar ou ingressar em uma guilda | 15 | "O Companheiro" |
+
+## Em aberto
+
+Nenhum registrado nesta versão.
+
+## Regras
+
+As regras estão em **Definido** e o catálogo da v1 acima; números novos entram no catálogo, não em outro lugar.
+
+## Depende de
+
+- Mundo: `JogadorEntrouNaArea` (área visitada, para a conquista de exploração).
+- Mobs: `InimigoDerrotado` (monstros e chefes derrotados).
+
+## Expõe
+
+Nada de contrato para outras funcionalidades por enquanto.

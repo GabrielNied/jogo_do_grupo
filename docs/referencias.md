@@ -7,7 +7,7 @@ Ao definir um sistema novo, comece pela referência dele, descreva o que muda e 
 ## Preferências do grupo
 
 - **Combate (2026-10-10):** o grupo gosta do equilíbrio do **New World**: ação, mas **não frenético e sem spam de skills**. Poucas skills, com recarga que pesa, e o resto do tempo ataques básicos, esquiva e posicionamento.
-- **Troca de arma:** decidida em 2026-10-12, duas armas como o New World. A fatia atual joga com uma espada ([combate](features/combate.md#duas-armas-depois-desta-fatia)).
+- **Troca de arma:** decidida em 2026-10-12, duas armas como o New World. A fatia atual joga com uma espada ([combate](features/combate.md#duas-armas-580)).
 
 ## Referência por sistema
 

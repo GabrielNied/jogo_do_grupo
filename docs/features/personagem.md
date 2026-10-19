@@ -131,7 +131,7 @@ O Humano provisório virou **Valdren** (decisão do Gabriel, 2026-10-11; mesmo v
 
 Do "Livro de ideias de Asterra" ([seções 10 e 09](../brainstorm/figjam.md#10--regras-da-primeira-versão)). **Proposta do board (2026-10-11), não validada pelo grupo**, salvo o nível máximo, decidido na [fatia](fatia-jogavel.md#6-experiência-e-nível). Os atributos seguem [Atributos do personagem](#atributos-do-personagem).
 
-- **Nível do personagem** é separado do nível e da raridade dos itens. O teto é **100**. ~~Subir de nível não dá ponto de atributo.~~ Revisto em 2026-10-12: subir de nível dá pontos da árvore, a única fonte deles; quantos por nível está pendente ([talentos](talentos.md#pendente)).
+- **Nível do personagem** é separado do nível e da raridade dos itens. O teto é **100**. ~~Subir de nível não dá ponto de atributo.~~ Revisto em 2026-10-12: subir de nível dá pontos da árvore, a única fonte deles; quantos por nível está pendente ([talentos](talentos.md#em-aberto)).
 - ~~**Cinco atributos**, só nos itens: Força, Destreza, Intelecto, Vitalidade e Espírito~~ (substituído em 2026-10-12 por [Atributos do personagem](#atributos-do-personagem): os atributos vêm da árvore, e DEC-001 separa os atributos dos itens).
 - **Fontes de XP:** derrotar inimigos, explorar pontos novos, coletar, produzir receitas e concluir objetivos.
 - **Skills não são aprendidas:** continuar dos itens. O orçamento de preparação segue fora desta fatia ([skills.md](skills.md#preparação-de-skills-proposta-do-board-2026-10-11)). Os atributos não mudam esse orçamento.
