@@ -12,8 +12,9 @@ Vários agentes de IA implementam ao mesmo tempo, cada um num worktree e num **l
 | `artista-mundo`, `-personagens`, `-itens` | A pasta da funcionalidade, `ThirdParty/`, `docs/arte/` | Conteúdo 3D pelo Unity ([ADR 0014](decisoes/0014-conteudo-3d-e-agentes-artistas.md)) |
 | `designer-docs` | `docs/features/`, visão, referências | Decisão de design que precisa virar regra escrita |
 | `revisor` | Só leitura | PR de risco: Core, segurança, regra de dano, preço ou fusão que a doc não fechou |
+| `conferente` | Só leitura | No `/decida`: confere issues contra doc e código e propõe o veredito |
 
-Sonnet é o padrão; Opus em Core e PRs de risco. Comandos: `/trabalhe` implementa; `/decida`, `/melhore` e `/segure` não implementam (conferem, sugerem ou reservam).
+Sonnet é o padrão; Opus em Core e PRs de risco; Haiku no `conferente`, onde o trabalho é ler e citar. Comandos: `/trabalhe` implementa; `/decida`, `/melhore` e `/segure` não implementam (conferem, sugerem ou reservam).
 
 ## Doc e regras atuais
 
