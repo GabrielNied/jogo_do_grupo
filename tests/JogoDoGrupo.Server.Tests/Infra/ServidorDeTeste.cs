@@ -41,6 +41,7 @@ public sealed class ServidorDeTeste : WebApplicationFactory<Program>
         builder.UseSetting("Itens:Bau:ExigirPosicao", "false");
         builder.UseSetting("Itens:Bau:RecargaSegundos", "0");
         builder.UseSetting("Economia:Npc:ExigirProximidade", "false");
+        builder.UseSetting("Profissoes:ExigirProximidade", "false");
         builder.UseSetting("Contas:RateLimit:Ativo", "false");
         // Nos testes de integração comuns os jogadores avulsos precisam estar no mesmo canal.
         builder.UseSetting("Canais:Quantidade", "1");

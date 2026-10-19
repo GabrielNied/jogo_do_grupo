@@ -525,6 +525,38 @@ namespace JogoDoGrupo.Server.Core.Persistencia.Migrations
                     b.ToTable("PetsDaConta", (string)null);
                 });
 
+            modelBuilder.Entity("JogoDoGrupo.Server.Features.Profissoes.ProfissaoAprendida", b =>
+                {
+                    b.Property<long>("PersonagemId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Profissao")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("PersonagemId", "Profissao");
+
+                    b.ToTable("ProfissoesAprendidas", (string)null);
+                });
+
+            modelBuilder.Entity("JogoDoGrupo.Server.Features.Profissoes.SaldoDeMaterialDeProfissao", b =>
+                {
+                    b.Property<long>("PersonagemId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("MaterialId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Quantidade")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("PersonagemId", "MaterialId");
+
+                    b.ToTable("SaldosMateriaisProfissao", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_SaldosMateriaisProfissao_Quantidade", "\"Quantidade\" >= 0");
+                        });
+                });
+
             modelBuilder.Entity("JogoDoGrupo.Server.Features.Skills.SkillsDoExemplar", b =>
                 {
                     b.Property<long>("InstanciaId")
@@ -728,6 +760,24 @@ namespace JogoDoGrupo.Server.Core.Persistencia.Migrations
                 });
 
             modelBuilder.Entity("JogoDoGrupo.Server.Features.Itens.SaldoMateriaisFusao", b =>
+                {
+                    b.HasOne("JogoDoGrupo.Server.Features.Personagem.Personagem", null)
+                        .WithMany()
+                        .HasForeignKey("PersonagemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("JogoDoGrupo.Server.Features.Profissoes.ProfissaoAprendida", b =>
+                {
+                    b.HasOne("JogoDoGrupo.Server.Features.Personagem.Personagem", null)
+                        .WithMany()
+                        .HasForeignKey("PersonagemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("JogoDoGrupo.Server.Features.Profissoes.SaldoDeMaterialDeProfissao", b =>
                 {
                     b.HasOne("JogoDoGrupo.Server.Features.Personagem.Personagem", null)
                         .WithMany()
