@@ -30,6 +30,17 @@ No menu do Unity, abra **Jogo do Grupo > Mundo > Gerar Terrain nativo a partir d
 
 Para comparar visualmente sem trocar o mapa do jogo, use **Jogo do Grupo > Mundo > Montar prévia do Terrain nativo**. A prévia recebe colisor nativo e é criada na cena aberta; use **Remover prévia do Terrain nativo** ao terminar. Não salve essa cena: o asset do Terrain é a única saída persistente desse passo.
 
+## Reunir texturas para pintar o Terrain
+
+As imagens dos pacotes ficam nos locais de origem. A pintura usa **Terrain Layers**, que associam a textura do chao aos seus mapas de detalhes; texturas de personagens, objetos e mapas de altura nao entram nessa lista.
+
+1. Abra **Jogo do Grupo > Mundo > Texturas do terreno > Reunir e abrir pasta**. A janela **Project** destaca `Assets/_Game/Features/Mundo/Art/CamadasDeTerreno`, com copias das camadas prontas agrupadas por pacote. A reuniao tambem acontece ao carregar os scripts do editor. Os arquivos originais e as imagens nao sao movidos.
+2. Para escolher poucas camadas, selecione **Hub/TerrenoFora/ChaoNativo** na **Hierarchy**. No **Inspector**, abra **Paint Terrain > Paint Texture > Edit Terrain Layers > Add Layer** e escolha as camadas desejadas.
+3. Para disponibilizar todas de uma vez, com esse mesmo objeto selecionado, abra **Jogo do Grupo > Mundo > Texturas do terreno > Adicionar ao terreno selecionado**. As camadas existentes e sua pintura sao preservadas; camadas ja presentes nao sao adicionadas novamente. **Ctrl+Z** desfaz a adicao. Muitas camadas podem aumentar o custo de renderizacao: acrescente somente as necessarias ao mapa quando possivel.
+4. Escolha uma camada na lista de pintura e pinte normalmente. Salve o projeto depois de editar e use o fluxo de publicacao do mapa.
+
+Repetir a reuniao nao cria copias extras nem sobrescreve ajustes feitos nas copias. Depois de importar outro pacote, execute novamente **Reunir e abrir pasta**. O sufixo no nome identifica a origem e evita confundir camadas de nomes iguais. As copias continuam dependendo das texturas dos pacotes originais: mantenha esses pacotes instalados e respeite suas licencas.
+
 ## Protótipo da estrada do Passo
 
 A ferramenta permite **redesenhar a estrada Cidade central → Passo**. Você pode clicar pontos no terreno 3D, mover os pontos intermediários e ajustar a aparência da passagem enquanto vê uma prévia. A largura inicial é de **7 m**.
