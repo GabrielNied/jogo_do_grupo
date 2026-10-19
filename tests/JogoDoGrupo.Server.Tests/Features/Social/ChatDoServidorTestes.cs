@@ -349,4 +349,34 @@ public class ChatDoServidorTestes
         AssertRecusada(CodigosErroSocial.Silenciado, resultado);
         Assert.Equal(50, resultado.Recusa!.SegundosRestantes);
     }
+
+    [Fact]
+    public void Mensagem_na_guilda_chega_aos_membros_online_e_remetente()
+    {
+        var online = new HashSet<long> { Ana, Bia };
+        var membrosGuilda = new List<long> { Ana, Bia, Caio }; // Caio offline
+
+        var resultado = _chat.Processar(
+            Ana,
+            new EnviarMensagemDeChat { Canal = CanalDeChat.Guilda, Texto = "Ola guilda" },
+            online.Contains,
+            guildaDe: id => membrosGuilda.Contains(id) ? membrosGuilda : []
+        );
+
+        Assert.Null(resultado.Recusa);
+        Assert.Equal([Ana, Bia], resultado.Destinatarios.OrderBy(x => x));
+    }
+
+    [Fact]
+    public void Mensagem_na_guilda_sem_pertencer_a_guilda_recusa()
+    {
+        var resultado = _chat.Processar(
+            Ana,
+            new EnviarMensagemDeChat { Canal = CanalDeChat.Guilda, Texto = "Ola guilda" },
+            _ => true,
+            guildaDe: _ => []
+        );
+
+        AssertRecusada(CodigosErroSocial.NaoEstaEmGuilda, resultado);
+    }
 }
