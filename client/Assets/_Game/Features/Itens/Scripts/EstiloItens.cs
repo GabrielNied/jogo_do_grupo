@@ -29,6 +29,12 @@ namespace JogoDoGrupo.Client.Features.Itens
         public const string SlotFavorito = "item-slot-favorito";
         public const string SlotLixo = "item-slot-lixo";
         public const string SlotSelecionado = "item-slot-selecionado";
+        public const string SlotFiltrado = "item-slot-filtrado";
+        public const string BarraFiltro = "itens-barra-filtro";
+        public const string BarraFiltroAtiva = "itens-barra-filtro-ativa";
+        public const string FiltroBusca = "itens-filtro-busca";
+        public const string FiltroSeletor = "itens-filtro-seletor";
+        public const string FiltroResultado = "itens-filtro-resultado";
         public const string Icone = "item-icone";
         public const string Sigla = "item-sigla";
         public const string SeloNovo = "item-selo-novo";

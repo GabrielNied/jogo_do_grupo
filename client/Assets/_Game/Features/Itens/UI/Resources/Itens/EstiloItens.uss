@@ -98,6 +98,11 @@
     background-color: var(--lumora-cores-selecionado);
 }
 
+/* Fora do filtro de busca (#334): some do foco sem sair do lugar. */
+.item-slot.item-slot-filtrado {
+    opacity: 0.2;
+}
+
 .item-slot.item-slot-pendente {
     opacity: 0.45;
 }
@@ -490,4 +495,36 @@
     flex-wrap: wrap;
     align-items: center;
     margin-top: var(--lumora-espacamento-pequeno);
+}
+
+/* ---- busca e filtros da bolsa (#334) ---- */
+
+.itens-barra-filtro {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    margin: 0 var(--lumora-espacamento-pequeno) var(--lumora-espacamento-minimo);
+    padding: var(--lumora-espacamento-minimo);
+    border-width: 1px;
+    border-color: transparent;
+    border-radius: var(--lumora-bordas-raio-campo);
+}
+
+.itens-barra-filtro-ativa {
+    border-color: var(--lumora-cores-essencia);
+}
+
+.itens-filtro-busca {
+    width: 180px;
+    margin: 2px var(--lumora-espacamento-minimo) 2px 0;
+}
+
+.itens-filtro-seletor {
+    min-width: 130px;
+    margin: 2px var(--lumora-espacamento-minimo) 2px 0;
+}
+
+.itens-filtro-resultado {
+    margin: 0 var(--lumora-espacamento-pequeno);
+    color: var(--lumora-cores-texto-secundario);
 }

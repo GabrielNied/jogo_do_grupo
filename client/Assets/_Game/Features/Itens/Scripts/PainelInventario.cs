@@ -51,6 +51,15 @@ namespace JogoDoGrupo.Client.Features.Itens
         private int _aba;
         private readonly HashSet<long> _selecionados = new HashSet<long>();
 
+        // Busca e filtros da bolsa (#334): a barra vive fora da bolsa (não é refeita a cada
+        // estado do servidor, então o campo de texto não perde o foco) e só apaga as casas.
+        private readonly FiltroDoInventario _filtro = new FiltroDoInventario();
+        private readonly VisualElement _barraFiltro;
+        private readonly Label _resultadoFiltro;
+        private readonly Button _limparFiltro;
+        private readonly List<(Button botao, string texto, int aba)> _botoesAba =
+            new List<(Button, string, int)>();
+
         public event Action<AcaoDoInventario> AcaoPedida;
         public event Action<int> ConjuntoPedido;
         public event Action BancadaPedida;
@@ -87,7 +96,14 @@ namespace JogoDoGrupo.Client.Features.Itens
             _rodape.AddToClassList(EstiloCore.LinhaBotoes);
             _rodape.AddToClassList(EstiloItens.RodapeBotoes);
 
+            _barraFiltro = new VisualElement { name = "itens.filtro" };
+            _barraFiltro.AddToClassList(EstiloItens.BarraFiltro);
+            _resultadoFiltro = new Label();
+            _limparFiltro = new Button(LimparFiltro) { text = "Limpar filtros" };
+            MontarBarraFiltro();
+
             conteudo.Add(_aviso);
+            conteudo.Add(_barraFiltro);
             conteudo.Add(_corpo);
             conteudo.Add(_resumo);
             conteudo.Add(_confirmacao);
@@ -531,6 +547,7 @@ namespace JogoDoGrupo.Client.Features.Itens
                 )
             );
 
+            _botoesAba.Clear();
             if (capacidade.Abas > 1 || capacidade.Abas < ConfigBolsa.AbasMaximas)
             {
                 var abas = new VisualElement();
@@ -548,6 +565,7 @@ namespace JogoDoGrupo.Client.Features.Itens
                     );
                     aba.AddToClassList(EstiloItens.Aba);
                     aba.EnableInClassList(EstiloItens.AbaAtiva, i == _aba);
+                    _botoesAba.Add((aba, aba.text, i));
                     abas.Add(aba);
                 }
 
@@ -589,7 +607,138 @@ namespace JogoDoGrupo.Client.Features.Itens
                 _grade.Add(slot);
             }
             coluna.Add(_grade);
+            AplicarFiltro();
             return coluna;
+        }
+
+        // ---- busca e filtros (#334) ----
+
+        private void MontarBarraFiltro()
+        {
+            var busca = new TextField { name = "itens.filtro.busca", maxLength = 40 };
+            busca.AddToClassList(EstiloCore.Campo);
+            busca.AddToClassList(EstiloItens.FiltroBusca);
+            busca.tooltip =
+                "Busca por nome, tipo ou tier (ex.: espada, anel b, calça). Esc sai do campo.";
+            busca.RegisterValueChangedCallback(e =>
+            {
+                _filtro.Texto = e.newValue;
+                AplicarFiltro();
+            });
+            _barraFiltro.Add(busca);
+
+            var tier = new DropdownField(
+                new List<string>(FiltroDoInventario.RotulosDeTier),
+                (int)_filtro.TierMinimo
+            )
+            {
+                name = "itens.filtro.tier",
+            };
+            tier.AddToClassList(EstiloCore.Campo);
+            tier.AddToClassList(EstiloItens.FiltroSeletor);
+            tier.RegisterValueChangedCallback(_ =>
+            {
+                _filtro.TierMinimo = (TierItem)tier.index;
+                AplicarFiltro();
+            });
+            _barraFiltro.Add(tier);
+
+            var tipos = new List<string> { FiltroDoInventario.RotuloQualquerTipo };
+            var valoresDeTipo = (TipoEquipamento[])Enum.GetValues(typeof(TipoEquipamento));
+            foreach (var tipoPeca in valoresDeTipo)
+                tipos.Add(TextosEquipamento.NomeDoTipo(tipoPeca));
+            var tipo = new DropdownField(tipos, 0) { name = "itens.filtro.tipo" };
+            tipo.AddToClassList(EstiloCore.Campo);
+            tipo.AddToClassList(EstiloItens.FiltroSeletor);
+            tipo.RegisterValueChangedCallback(_ =>
+            {
+                _filtro.Tipo =
+                    tipo.index <= 0 ? (TipoEquipamento?)null : valoresDeTipo[tipo.index - 1];
+                AplicarFiltro();
+            });
+            _barraFiltro.Add(tipo);
+
+            var escopo = new DropdownField(new List<string>(FiltroDoInventario.RotulosDeEscopo), 0)
+            {
+                name = "itens.filtro.escopo",
+            };
+            escopo.AddToClassList(EstiloCore.Campo);
+            escopo.AddToClassList(EstiloItens.FiltroSeletor);
+            escopo.tooltip = "Favoritos são os itens travados (Alt+clique na casa)";
+            escopo.RegisterValueChangedCallback(_ =>
+            {
+                _filtro.Escopo = (EscopoDoFiltro)escopo.index;
+                AplicarFiltro();
+            });
+            _barraFiltro.Add(escopo);
+
+            _resultadoFiltro.AddToClassList(EstiloCore.Texto);
+            _resultadoFiltro.AddToClassList(EstiloItens.FiltroResultado);
+            _barraFiltro.Add(_resultadoFiltro);
+
+            _limparFiltro.AddToClassList(EstiloCore.Botao);
+            _limparFiltro.style.display = DisplayStyle.None;
+            _barraFiltro.Add(_limparFiltro);
+        }
+
+        private void LimparFiltro()
+        {
+            _filtro.Limpar();
+            _barraFiltro.Q<TextField>("itens.filtro.busca").SetValueWithoutNotify("");
+            _barraFiltro.Q<DropdownField>("itens.filtro.tier").index = 0;
+            _barraFiltro.Q<DropdownField>("itens.filtro.tipo").index = 0;
+            _barraFiltro.Q<DropdownField>("itens.filtro.escopo").index = 0;
+            AplicarFiltro();
+        }
+
+        /// <summary>
+        /// Apaga as casas da aba aberta que não passam no filtro, atualiza o contador e a
+        /// contagem por aba. Não refaz a bolsa: as casas ficam onde estão, então arrastar,
+        /// equipar e favoritar seguem iguais.
+        /// </summary>
+        private void AplicarFiltro()
+        {
+            var ativo = _filtro.Ativo;
+            var porAba = new Dictionary<int, int>();
+            var total = 0;
+            var passam = 0;
+            if (_estado?.Inventario != null)
+            {
+                foreach (var entrada in _estado.Inventario)
+                {
+                    total++;
+                    if (!_filtro.Passa(entrada, _novos.Contains(entrada.InstanciaId)))
+                        continue;
+                    passam++;
+                    porAba.TryGetValue(entrada.Aba, out var n);
+                    porAba[entrada.Aba] = n + 1;
+                }
+            }
+
+            foreach (var kvp in _casas)
+            {
+                var entrada = LogicaInventario.NaCasa(_estado, kvp.Key.Item1, kvp.Key.Item2);
+                var passa =
+                    !ativo
+                    || (
+                        entrada != null
+                        && _filtro.Passa(entrada, _novos.Contains(entrada.InstanciaId))
+                    );
+                kvp.Value.EnableInClassList(EstiloItens.SlotFiltrado, !passa);
+            }
+
+            foreach (var (botao, texto, aba) in _botoesAba)
+            {
+                porAba.TryGetValue(aba, out var n);
+                botao.text = ativo ? texto + " (" + n + ")" : texto;
+            }
+
+            _barraFiltro.EnableInClassList(EstiloItens.BarraFiltroAtiva, ativo);
+            _limparFiltro.style.display = ativo ? DisplayStyle.Flex : DisplayStyle.None;
+            _resultadoFiltro.text =
+                !ativo ? ""
+                : passam == 0 ? "Nada encontrado"
+                : passam + " de " + total;
         }
 
         private void MontarResumo()
