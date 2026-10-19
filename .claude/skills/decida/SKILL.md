@@ -13,7 +13,7 @@ Argumentos (opcionais): **N** issues a conferir (padrão 15) e um **filtro** de 
 
 - [Doc e regras atuais](../../../docs/agentes.md#doc-e-regras-atuais): `git fetch origin main` antes de conferir issues ou editar doc. Vereditos e fichas seguem a `origin/main` (`git show`); trechos de `docs/features/` que você citar ou reescrever vêm dali.
 - `npm run tarefa -- revisar <N>`: as livres há mais tempo sem conferência, com idade, prioridade e sinais (`sem ficha`, `rótulos v1`, `⏳ depende de`, `doc mudou Nx`, `decisao`, `bloqueada`).
-- `gh pr list` (PR aberto que já cumpre uma issue), o [foco atual](../../../docs/features/fatia-jogavel.md#foco-atual) e a [visão](../../../docs/visao-geral.md).
+- `gh pr list` (PR aberto que já cumpre uma issue) e a [visão](../../../docs/visao-geral.md).
 - Por issue: o corpo, e o `git diff` que o `relevancia <N>` mostra quando a doc mudou. Abra a doc da funcionalidade ou o código só para decidir o veredito.
 
 ## 2. Veredito, uma issue por vez
@@ -23,7 +23,7 @@ Argumentos (opcionais): **N** issues a conferir (padrão 15) e um **filtro** de 
 - **Duplicada:** `--reason "not planned"` com "Duplicada de #M"; o que só ela tinha vai para a que fica.
 - **Válida:**
   - Reescreva o corpo como [ficha](../../../docs/agentes.md#ficha-da-tarefa) (`gh issue edit <N> --body-file`), com o original num `<details>` no fim. A doc atual vence a issue.
-  - `prio:*` pela [ordem](../../../docs/agentes.md#prioridade-das-tarefas); `foco` se está no foco do marco, sem ele se não está.
+  - `prio:*` pela [ordem](../../../docs/agentes.md#prioridade-das-tarefas); não há rótulo `foco` (sem foco de marco desde 2026-10-19).
   - Rótulos `agente:shared-contratos`, `server-funcionalidade`, `client-funcionalidade`, `regras-do-jogo` saem; entra o dono (`agente:funcionalidade`, `itens`, `economia`, `server-core`, `client-core` ou `artista-*`). Tarefa só de pessoa leva `pessoa`.
   - `Depende de:` e `Lote sugerido:` (issues que mexem no mesmo código) na ficha.
 - **Épico grande:** fica como épico, com "Tarefas, nesta ordem". Sem recorte jogável aberto, crie o próximo (`gh issue create`, já com ficha e `prio:*`).
@@ -34,7 +34,7 @@ Argumentos (opcionais): **N** issues a conferir (padrão 15) e um **filtro** de 
 Para `bloqueada`, `decisao` ou dúvida em aberto que muda o resultado, nesta ordem:
 
 1. A doc ou um ADR já respondeu: comente o trecho e tire o rótulo.
-2. A issue traz proposta alinhada à visão e ao foco: adote, registre em `docs/features/<x>.md` (fonte única), comente o que vale e tire o rótulo.
+2. A issue traz proposta alinhada à visão: adote, registre em `docs/features/<x>.md` (fonte única), comente o que vale e tire o rótulo.
 3. Mudaria algo **Definido**: não mude; deixe a proposta escrita e siga com o definido.
 
 Prefira o que é fácil de mudar (constante nomeada, regra 17). `bloqueada` cuja dependência fechou: tire o rótulo.
