@@ -488,7 +488,14 @@ public sealed class ServicoDePets(
         }
 
         RegrasPets.PontoDeChegada(dono.X, dono.Z, dono.RotacaoY, out var x, out var z);
-        var pet = new PetDoDono(donoId, pedido.Especie, x, dono.Y, z, dono.RotacaoY);
+        var pet = new PetDoDono(
+            donoId,
+            pedido.Especie,
+            x,
+            RegrasPets.AlturaDoPet(x, z, dono.X, dono.Z, dono.Y),
+            z,
+            dono.RotacaoY
+        );
         _pets[donoId] = pet;
         Publicar(pet, mudou: false);
     }
@@ -562,7 +569,7 @@ public sealed class ServicoDePets(
         pet.Vistos.Clear();
         RegrasPets.PontoDeChegada(dono.X, dono.Z, dono.RotacaoY, out var x, out var z);
         pet.X = x;
-        pet.Y = dono.Y;
+        pet.Y = RegrasPets.AlturaDoPet(x, z, dono.X, dono.Z, dono.Y);
         pet.Z = z;
         pet.RotacaoY = dono.RotacaoY;
         pet.Andando = false;
@@ -602,7 +609,6 @@ public sealed class ServicoDePets(
         var xAntes = pet.X;
         var zAntes = pet.Z;
         var andavaAntes = pet.Andando;
-        pet.Y = dono.Y;
 
         if (
             RegrasPets.Distancia(pet.X, pet.Z, dono.X, dono.Z)
@@ -633,6 +639,7 @@ public sealed class ServicoDePets(
             }
         }
 
+        pet.Y = RegrasPets.AlturaDoPet(pet.X, pet.Z, dono.X, dono.Z, dono.Y);
         var mudou = pet.X != xAntes || pet.Z != zAntes || pet.Andando != andavaAntes;
         Publicar(pet, mudou);
     }

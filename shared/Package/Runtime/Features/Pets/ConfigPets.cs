@@ -6,6 +6,9 @@ namespace JogoDoGrupo.Shared.Features.Pets
         /// <summary>O pet para a esta distância do dono, sem ficar em cima dele.</summary>
         public const float DistanciaDeSeguidaMetros = 2f;
 
+        /// <summary>Quanto o dono pode estar acima ou abaixo do chão do mapa e ainda contar como "no chão".</summary>
+        public const float ToleranciaDoChaoMetros = 1.5f;
+
         /// <summary>
         /// Folga para o pet voltar a andar: parado, só recomeça se o dono passar de
         /// seguida + folga. Evita o pet tremer na borda.

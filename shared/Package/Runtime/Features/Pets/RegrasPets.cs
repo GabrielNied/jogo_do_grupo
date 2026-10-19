@@ -1,5 +1,6 @@
 using System;
 using JogoDoGrupo.Shared.Features.Itens;
+using JogoDoGrupo.Shared.Features.Mundo;
 
 namespace JogoDoGrupo.Shared.Features.Pets
 {
@@ -47,6 +48,18 @@ namespace JogoDoGrupo.Shared.Features.Pets
             var dx = bx - ax;
             var dz = bz - az;
             return (float)Math.Sqrt(dx * dx + dz * dz);
+        }
+
+        /// <summary>
+        /// Altura do pet em (<paramref name="x"/>, <paramref name="z"/>): acompanha o chão do mapa
+        /// quando o dono está no chão; se o dono está fora dele (ponte, dungeon), usa a do dono.
+        /// </summary>
+        public static float AlturaDoPet(float x, float z, float donoX, float donoZ, float donoY)
+        {
+            var chaoDoDono = MapaDoMundo.AlturaEm(donoX, donoZ);
+            return Math.Abs(donoY - chaoDoDono) <= ConfigPets.ToleranciaDoChaoMetros
+                ? MapaDoMundo.AlturaEm(x, z)
+                : donoY;
         }
 
         /// <summary>
