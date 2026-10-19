@@ -600,7 +600,7 @@ public sealed class ServicoDePets(
 
     private void Avancar(PetDoDono pet, float dt)
     {
-        if (!posicoes.TentarObter(pet.DonoId, out var dono))
+        if (posicoes == null || !posicoes.TentarObter(pet.DonoId, out var dono))
         {
             Remover(pet);
             return;
@@ -714,10 +714,10 @@ public sealed class ServicoDePets(
         }
         catch (Exception erro)
         {
-            log.LogError(erro, "Erro ao coletar loot pelo pet do personagem {Dono}.", pet.DonoId);
+            log?.LogError(erro, "Erro ao coletar loot pelo pet do personagem {Dono}.", pet.DonoId);
         }
 
-        tempoReal.NoLaco(() =>
+        tempoReal?.NoLaco(() =>
         {
             // O pet pode ter sido dispensado enquanto a coleta rodava.
             if (!_pets.TryGetValue(pet.DonoId, out var atual) || !ReferenceEquals(atual, pet))

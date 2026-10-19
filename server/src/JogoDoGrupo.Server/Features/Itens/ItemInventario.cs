@@ -41,7 +41,10 @@ public sealed class ItemInventario
         if (EquipamentoJson == null)
             return null;
         var item = JsonSerializer.Deserialize<Equipamento>(EquipamentoJson, Json);
-        MigracaoDeTier.Migrar(item);
+        if (item != null)
+        {
+            MigracaoDeTier.Migrar(item);
+        }
         return item;
     }
 

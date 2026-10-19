@@ -96,6 +96,10 @@ internal sealed class EquipamentosParaCombate(IServiceScopeFactory escopos)
             if (!RegrasEquipamentos.EstaAtiva(entrada, conjunto))
                 continue;
             var item = entrada.Equipamento;
+            if (item == null)
+            {
+                continue;
+            }
             foreach (var atributo in item.Atributos)
             {
                 if (SecundarioDe(atributo.Status) is not { } secundario)

@@ -515,4 +515,12 @@ public class PetsServicoTestes
             Assert.True(servico.PossuiPet(contaId, EspecieDePet.GalinhaComum));
         }
     }
+
+    [Fact]
+    public void Avancar_com_posicoes_nulo_nao_lanca_excecao()
+    {
+        var servico = new ServicoDePets();
+        var excecao = Record.Exception(() => servico.Avancar(0.1f));
+        Assert.Null(excecao);
+    }
 }

@@ -156,7 +156,7 @@ public sealed class DesenvolvimentoModule : IFeatureModule
         }
         catch (Exception e)
         {
-            _log.LogError(e, "Comando de teste do personagem {Personagem} falhou.", personagemId);
+            _log?.LogError(e, "Comando de teste do personagem {Personagem} falhou.", personagemId);
             resultado = (false, "Comando falhou.");
         }
 
@@ -194,7 +194,7 @@ public sealed class DesenvolvimentoModule : IFeatureModule
         }
         catch (Exception e)
         {
-            _log.LogError(
+            _log?.LogError(
                 e,
                 "Ação de admin {Acao} do personagem {Personagem} falhou.",
                 pedido.Acao,

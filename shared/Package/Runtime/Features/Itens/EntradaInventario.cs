@@ -23,7 +23,7 @@ namespace JogoDoGrupo.Shared.Features.Itens
         /// </summary>
         public int Casa = RegrasItens.SemCasa;
 
-        public Equipamento Equipamento;
+        public Equipamento? Equipamento;
 
         /// <summary>Id do item em <see cref="CatalogoItens"/>.</summary>
         public int ItemId;

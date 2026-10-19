@@ -33,7 +33,10 @@ public sealed class ItemBanco
         }
 
         var item = JsonSerializer.Deserialize<Equipamento>(EquipamentoJson, Json);
-        MigracaoDeTier.Migrar(item);
+        if (item != null)
+        {
+            MigracaoDeTier.Migrar(item);
+        }
         return item;
     }
 
