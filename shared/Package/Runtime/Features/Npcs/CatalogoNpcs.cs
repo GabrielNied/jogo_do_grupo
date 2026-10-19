@@ -164,6 +164,8 @@ namespace JogoDoGrupo.Shared.Features.Npcs
             return def;
         }
 
+        public static DefinicaoNpc Buscar(int id) => Obter(id);
+
         public static DefinicaoNpc[] PorArea(string area)
         {
             if (string.IsNullOrEmpty(area))

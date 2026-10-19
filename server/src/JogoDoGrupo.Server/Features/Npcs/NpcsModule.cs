@@ -31,7 +31,12 @@ public sealed class NpcsModule : IFeatureModule
     public void RegistrarMensagens(MensagensTempoReal mensagens) =>
         mensagens
             .Faixa(NpcsMessageIds.Faixa)
-            .Ao<SolicitarNpcs>(NpcsMessageIds.SolicitarNpcs, AoSolicitarNpcs);
+            .Ao<SolicitarNpcs>(NpcsMessageIds.SolicitarNpcs, AoSolicitarNpcs)
+            .Ao<FalarComNpc>(NpcsMessageIds.FalarComNpc, AoFalarComNpc)
+            .Ao<ExecutarOpcaoDeDialogo>(
+                NpcsMessageIds.ExecutarOpcaoDeDialogo,
+                AoExecutarOpcaoDeDialogo
+            );
 
     public void Inicializar(ServerContext contexto)
     {
@@ -69,6 +74,113 @@ public sealed class NpcsModule : IFeatureModule
         }
 
         EnviarNpcsDaArea(sessao, area);
+    }
+
+    private void AoFalarComNpc(SessaoTempoReal sessao, FalarComNpc pedido)
+    {
+        if (_contexto == null)
+        {
+            return;
+        }
+
+        var npc = CatalogoNpcs.Buscar(pedido.NpcId);
+        if (npc == null)
+        {
+            _contexto.TempoReal.Enviar(
+                sessao,
+                NpcsMessageIds.DialogoRecusado,
+                new DialogoRecusado(pedido.NpcId, MotivoRecusaDialogo.NpcNaoEncontrado)
+            );
+            return;
+        }
+
+        if (_posicoes != null && _posicoes.TentarObter(sessao.PersonagemId, out var pos))
+        {
+            if (!string.Equals(pos.Area, npc.Area, StringComparison.OrdinalIgnoreCase))
+            {
+                _contexto.TempoReal.Enviar(
+                    sessao,
+                    NpcsMessageIds.DialogoRecusado,
+                    new DialogoRecusado(pedido.NpcId, MotivoRecusaDialogo.LongeDemais)
+                );
+                return;
+            }
+
+            var dx = pos.X - npc.X;
+            var dz = pos.Z - npc.Z;
+            var distSq = dx * dx + dz * dz;
+            var raioMax = npc.RaioInteracao > 0f ? npc.RaioInteracao : 4f;
+            if (distSq > raioMax * raioMax)
+            {
+                _contexto.TempoReal.Enviar(
+                    sessao,
+                    NpcsMessageIds.DialogoRecusado,
+                    new DialogoRecusado(pedido.NpcId, MotivoRecusaDialogo.LongeDemais)
+                );
+                return;
+            }
+        }
+
+        var dialogo = CatalogoDialogosNpc.ObterDialogo(npc);
+        _contexto.TempoReal.Enviar(sessao, NpcsMessageIds.DialogoDoNpc, dialogo);
+    }
+
+    private void AoExecutarOpcaoDeDialogo(SessaoTempoReal sessao, ExecutarOpcaoDeDialogo pedido)
+    {
+        if (_contexto == null)
+        {
+            return;
+        }
+
+        var npc = CatalogoNpcs.Buscar(pedido.NpcId);
+        if (npc == null)
+        {
+            _contexto.TempoReal.Enviar(
+                sessao,
+                NpcsMessageIds.DialogoRecusado,
+                new DialogoRecusado(pedido.NpcId, MotivoRecusaDialogo.NpcNaoEncontrado)
+            );
+            return;
+        }
+
+        if (_posicoes != null && _posicoes.TentarObter(sessao.PersonagemId, out var pos))
+        {
+            var dx = pos.X - npc.X;
+            var dz = pos.Z - npc.Z;
+            var distSq = dx * dx + dz * dz;
+            var raioMax = npc.RaioInteracao > 0f ? npc.RaioInteracao : 4f;
+            if (distSq > raioMax * raioMax)
+            {
+                _contexto.TempoReal.Enviar(
+                    sessao,
+                    NpcsMessageIds.DialogoRecusado,
+                    new DialogoRecusado(pedido.NpcId, MotivoRecusaDialogo.LongeDemais)
+                );
+                return;
+            }
+        }
+
+        var dialogo = CatalogoDialogosNpc.ObterDialogo(npc);
+        var opcao = Array.Find(
+            dialogo.Opcoes,
+            o => string.Equals(o.Id, pedido.OpcaoId, StringComparison.OrdinalIgnoreCase)
+        );
+
+        if (opcao == null)
+        {
+            _contexto.TempoReal.Enviar(
+                sessao,
+                NpcsMessageIds.DialogoRecusado,
+                new DialogoRecusado(pedido.NpcId, MotivoRecusaDialogo.OpcaoInvalida)
+            );
+            return;
+        }
+
+        _contexto.TempoReal.Enviar(
+            sessao,
+            NpcsMessageIds.DialogoRecusado,
+            new DialogoRecusado(pedido.NpcId, MotivoRecusaDialogo.Nenhum)
+        );
     }
 
     private void EnviarNpcsDaArea(SessaoTempoReal sessao, string area)
