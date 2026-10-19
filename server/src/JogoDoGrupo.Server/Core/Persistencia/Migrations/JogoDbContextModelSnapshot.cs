@@ -258,6 +258,45 @@ namespace JogoDoGrupo.Server.Core.Persistencia.Migrations
                         });
                 });
 
+            modelBuilder.Entity("JogoDoGrupo.Server.Features.Economia.VendedorOfflineEntidade", b =>
+                {
+                    b.Property<long>("PersonagemId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("Ativo")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("ContratadoEm")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("DiariasPagas")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("ExpiraEm")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("NomeDono")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<float>("PosicaoX")
+                        .HasColumnType("REAL");
+
+                    b.Property<float>("PosicaoZ")
+                        .HasColumnType("REAL");
+
+                    b.Property<string>("Titulo")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("PersonagemId");
+
+                    b.HasIndex("Ativo", "ExpiraEm");
+
+                    b.ToTable("VendedoresOffline", (string)null);
+                });
+
             modelBuilder.Entity("JogoDoGrupo.Server.Features.Itens.EstadoBanco", b =>
                 {
                     b.Property<long>("ContaId")

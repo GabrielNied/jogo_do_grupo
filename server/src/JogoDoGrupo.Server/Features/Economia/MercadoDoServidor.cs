@@ -126,6 +126,8 @@ public sealed class MercadoDoServidor(
         await using var escopo = escopos.CreateAsyncScope();
         var servico = escopo.ServiceProvider.GetRequiredService<ServicoDoMercado>();
         Avisar(await servico.ExpirarVencidasAsync(c));
+        var barracas = escopo.ServiceProvider.GetRequiredService<ServicoDeBarracas>();
+        await barracas.VerificarExpiracoesAsync(c);
     }
 
     private void Operar(
@@ -178,7 +180,7 @@ public sealed class MercadoDoServidor(
     /// Avisa as pessoas online do que mudou (venda, compra, vencimento, devolução) e reenvia o
     /// saldo de quem recebeu ou pagou coroas.
     /// </summary>
-    private void Avisar(ResultadoDoMercado resultado)
+    public void Avisar(ResultadoDoMercado resultado)
     {
         foreach (var negocio in resultado.Negocios)
         {

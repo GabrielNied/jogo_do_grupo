@@ -26,5 +26,14 @@ namespace JogoDoGrupo.Shared.Features.Economia
         public const string OrdemPropria = "ordem_propria";
         public const string ItemNaoNegociavel = "item_nao_negociavel";
         public const string LongeDoLeiloeiro = "longe_do_leiloeiro";
+
+        // Barracas e Vendedor Offline (#905)
+        public const string ForaDaPraca = "fora_da_praca";
+        public const string BarracaJaAberta = "barraca_ja_aberta";
+        public const string BarracaNaoEncontrada = "barraca_nao_encontrada";
+        public const string VendedorOfflineJaAtivo = "vendedor_offline_ja_ativo";
+        public const string VendedorOfflineNaoAtivo = "vendedor_offline_nao_ativo";
+        public const string DiariaInvalida = "diaria_invalida";
+        public const string LongeDaBarraca = "longe_da_barraca";
     }
 }

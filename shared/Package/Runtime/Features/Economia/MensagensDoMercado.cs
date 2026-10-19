@@ -52,6 +52,11 @@ namespace JogoDoGrupo.Shared.Features.Economia
 
         public string Anunciante = "";
 
+        /// <summary>
+        /// Se o vendedor possui barraca montada na praça, indica o nome para o selo 'na barraca de <nome>'.
+        /// </summary>
+        public string BarracaDe = "";
+
         /// <summary>O exemplar à venda (atributos, tier); nulo nas ordens de compra.</summary>
         public EntradaInventario Item;
     }
