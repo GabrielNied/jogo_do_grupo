@@ -24,6 +24,11 @@ namespace JogoDoGrupo.Client.Features.Economia
         public static event Action<ItemReparado> ItemReparado;
         public static event Action<string> OperacaoRecusada;
 
+        /// <summary>O último estado do mercado (#176) que o servidor mandou; nulo antes do primeiro.</summary>
+        public static EstadoDoMercado Mercado { get; private set; }
+
+        public static event Action MercadoMudou;
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void Reiniciar()
         {
@@ -34,6 +39,8 @@ namespace JogoDoGrupo.Client.Features.Economia
             ItemVendido = null;
             ItemReparado = null;
             OperacaoRecusada = null;
+            Mercado = null;
+            MercadoMudou = null;
         }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
@@ -71,6 +78,18 @@ namespace JogoDoGrupo.Client.Features.Economia
                 ConexaoTempoReal.Assinar<ItemReparado>(
                     EconomiaMessageIds.ItemReparado,
                     AoItemReparado
+                )
+            );
+            _assinaturas.Add(
+                ConexaoTempoReal.Assinar<EstadoDoMercado>(
+                    EconomiaMessageIds.EstadoDoMercado,
+                    AoEstadoDoMercado
+                )
+            );
+            _assinaturas.Add(
+                ConexaoTempoReal.Assinar<AvisoDoMercado>(
+                    EconomiaMessageIds.AvisoDoMercado,
+                    AoAvisoDoMercado
                 )
             );
             _assinaturas.Add(
@@ -131,6 +150,69 @@ namespace JogoDoGrupo.Client.Features.Economia
         public static void Reparar(long instanciaId)
         {
             ConexaoTempoReal.Enviar(EconomiaMessageIds.RepararItem, new RepararItem(instanciaId));
+        }
+
+        public static void ConsultarMercado(int itemId = 0, string filtro = "")
+        {
+            ConexaoTempoReal.Enviar(
+                EconomiaMessageIds.ConsultarMercado,
+                new ConsultarMercado { ItemId = itemId, Filtro = filtro ?? "" }
+            );
+        }
+
+        public static void OferecerVenda(long instanciaId, long precoCoroas)
+        {
+            ConexaoTempoReal.Enviar(
+                EconomiaMessageIds.OferecerVenda,
+                new OferecerVenda { InstanciaId = instanciaId, PrecoCoroas = precoCoroas }
+            );
+        }
+
+        public static void OferecerCompra(int itemId, int quantidade, long precoUnitario)
+        {
+            ConexaoTempoReal.Enviar(
+                EconomiaMessageIds.OferecerCompra,
+                new OferecerCompra
+                {
+                    ItemId = itemId,
+                    Quantidade = quantidade,
+                    PrecoUnitario = precoUnitario,
+                }
+            );
+        }
+
+        public static void ComprarOrdem(long ordemId)
+        {
+            ConexaoTempoReal.Enviar(
+                EconomiaMessageIds.ComprarOrdem,
+                new ComprarOrdem { OrdemId = ordemId }
+            );
+        }
+
+        public static void CancelarOrdem(long ordemId)
+        {
+            ConexaoTempoReal.Enviar(
+                EconomiaMessageIds.CancelarOrdem,
+                new CancelarOrdem { OrdemId = ordemId }
+            );
+        }
+
+        public static void ReceberDevolucoes()
+        {
+            ConexaoTempoReal.Enviar(EconomiaMessageIds.ReceberDevolucoes, new ReceberDevolucoes());
+        }
+
+        private void AoEstadoDoMercado(EstadoDoMercado msg)
+        {
+            Mercado = msg;
+            SaldoCoroas = msg.Saldo;
+            SaldoMudou?.Invoke();
+            MercadoMudou?.Invoke();
+        }
+
+        private void AoAvisoDoMercado(AvisoDoMercado msg)
+        {
+            AvisosDoJogo.Mostrar(UI.TextosMercado.Aviso(msg), TipoDeAviso.Informacao);
         }
 
         private void AoSaldoAlterado(SaldoCoroasAlterado msg)

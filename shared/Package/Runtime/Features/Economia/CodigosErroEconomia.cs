@@ -17,5 +17,14 @@ namespace JogoDoGrupo.Shared.Features.Economia
         public const string QuantidadeInvalida = "quantidade_invalida";
         public const string PersonagemNaoEncontrado = "personagem_nao_encontrado";
         public const string LongeDoNpc = "longe_do_npc";
+
+        // Mercado (#176)
+        public const string PrecoInvalido = "preco_invalido";
+        public const string LimiteDeOrdens = "limite_de_ordens";
+        public const string OrdemNaoEncontrada = "ordem_nao_encontrada";
+        public const string OrdemIndisponivel = "ordem_indisponivel";
+        public const string OrdemPropria = "ordem_propria";
+        public const string ItemNaoNegociavel = "item_nao_negociavel";
+        public const string LongeDoLeiloeiro = "longe_do_leiloeiro";
     }
 }

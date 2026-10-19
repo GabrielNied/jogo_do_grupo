@@ -12,6 +12,7 @@ namespace JogoDoGrupo.Client.Features.Economia
         Armadureiro,
         Taverneiro,
         Merceeiro,
+        Leiloeiro,
     }
 
     /// <summary>
@@ -52,6 +53,11 @@ namespace JogoDoGrupo.Client.Features.Economia
                     altura,
                     ConfigNpcEconomia.FerreiroZ
                 ),
+                TipoNpcEconomia.Leiloeiro => new Vector3(
+                    ConfigMercado.LeiloeiroX,
+                    altura,
+                    ConfigMercado.LeiloeiroZ
+                ),
                 _ => new Vector3(ConfigNpcEconomia.VendedorX, altura, ConfigNpcEconomia.VendedorZ),
             };
         }
@@ -72,6 +78,7 @@ namespace JogoDoGrupo.Client.Features.Economia
                 TipoNpcEconomia.Taverneiro => "NpcTaverneiro",
                 TipoNpcEconomia.Merceeiro => "NpcMerceeiro",
                 TipoNpcEconomia.Ferreiro => "NpcFerreiro",
+                TipoNpcEconomia.Leiloeiro => "NpcLeiloeiro",
                 _ => "NpcVendedor",
             };
             var cor = tipo switch
@@ -81,6 +88,7 @@ namespace JogoDoGrupo.Client.Features.Economia
                 TipoNpcEconomia.Taverneiro => new Color(0.85f, 0.60f, 0.20f),
                 TipoNpcEconomia.Merceeiro => new Color(0.95f, 0.75f, 0.25f),
                 TipoNpcEconomia.Ferreiro => new Color(0.55f, 0.35f, 0.22f),
+                TipoNpcEconomia.Leiloeiro => new Color(0.25f, 0.65f, 0.95f),
                 _ => new Color(0.25f, 0.55f, 0.85f),
             };
 

@@ -1,3 +1,4 @@
+using JogoDoGrupo.Server.Contratos.Economia;
 using JogoDoGrupo.Server.Contratos.Mundo;
 using JogoDoGrupo.Server.Core;
 using JogoDoGrupo.Server.Core.TempoReal;
@@ -10,6 +11,7 @@ public sealed class EconomiaModule : IFeatureModule
 {
     private IServiceScopeFactory? _scopeFactory;
     private ServidorTempoReal? _tempoReal;
+    private MercadoDoServidor? _mercado;
 
     public string Nome => "Economia";
 
@@ -20,6 +22,10 @@ public sealed class EconomiaModule : IFeatureModule
         servicos.AddSingleton(opcoesNpc);
         servicos.AddScoped<JogoDoGrupo.Server.Contratos.Economia.ICarteiraCoroas, CarteiraCoroas>();
         servicos.AddScoped<ServicoDeEconomia>();
+        servicos.AddSingleton<RelogioDoMercado>();
+        servicos.AddScoped<ServicoDoMercado>();
+        servicos.AddSingleton<MercadoDoServidor>();
+        servicos.AddHostedService<VarreduraDoMercado>();
         servicos.AddScoped<
             JogoDoGrupo.Server.Contratos.Economia.IAjusteDeCoroasDeTeste,
             AjusteDeCoroasDeTeste
@@ -29,6 +35,7 @@ public sealed class EconomiaModule : IFeatureModule
     public void MapearRotas(IEndpointRouteBuilder rotas)
     {
         _scopeFactory = rotas.ServiceProvider.GetService<IServiceScopeFactory>();
+        _mercado = rotas.ServiceProvider.GetRequiredService<MercadoDoServidor>();
         EconomiaRotas.Mapear(rotas);
     }
 
@@ -42,11 +49,51 @@ public sealed class EconomiaModule : IFeatureModule
             )
             .Ao<ComprarItemDaLoja>(EconomiaMessageIds.ComprarItemDaLoja, AoComprarItem)
             .Ao<VenderItemParaNpc>(EconomiaMessageIds.VenderItemParaNpc, AoVenderItem)
-            .Ao<RepararItem>(EconomiaMessageIds.RepararItem, AoRepararItem);
+            .Ao<RepararItem>(EconomiaMessageIds.RepararItem, AoRepararItem)
+            .Ao<ConsultarMercado>(
+                EconomiaMessageIds.ConsultarMercado,
+                (sessao, pedido) => _mercado!.AoConsultar(sessao, pedido)
+            )
+            .Ao<OferecerVenda>(
+                EconomiaMessageIds.OferecerVenda,
+                (sessao, pedido) => _mercado!.AoOferecerVenda(sessao, pedido)
+            )
+            .Ao<OferecerCompra>(
+                EconomiaMessageIds.OferecerCompra,
+                (sessao, pedido) => _mercado!.AoOferecerCompra(sessao, pedido)
+            )
+            .Ao<ComprarOrdem>(
+                EconomiaMessageIds.ComprarOrdem,
+                (sessao, pedido) => _mercado!.AoComprarOrdem(sessao, pedido)
+            )
+            .Ao<CancelarOrdem>(
+                EconomiaMessageIds.CancelarOrdem,
+                (sessao, pedido) => _mercado!.AoCancelarOrdem(sessao, pedido)
+            )
+            .Ao<ReceberDevolucoes>(
+                EconomiaMessageIds.ReceberDevolucoes,
+                (sessao, pedido) => _mercado!.AoReceberDevolucoes(sessao, pedido)
+            );
 
     public void Inicializar(ServerContext contexto)
     {
         _tempoReal = contexto.TempoReal;
+        contexto.Eventos.Assinar<CoroasMovimentadas>(AoCoroasMovimentadas);
+        _mercado!.Ligar(contexto.TempoReal);
+        contexto.TempoReal.SessaoAutenticada += sessao => _mercado.AoAutenticar(sessao);
+    }
+
+    /// <summary>Quem mexeu em coroas fora da Economia (troca direta) avisa; o client vê o saldo novo.</summary>
+    private void AoCoroasMovimentadas(CoroasMovimentadas evento)
+    {
+        if (
+            _tempoReal == null
+            || !_tempoReal.TentarObterSessao(evento.PersonagemId, out var sessao)
+            || sessao == null
+        )
+            return;
+
+        AoConsultarSaldo(sessao, new ConsultarSaldoCoroas());
     }
 
     private void AoConsultarSaldo(SessaoTempoReal sessao, ConsultarSaldoCoroas pedido)

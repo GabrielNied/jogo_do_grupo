@@ -93,6 +93,24 @@ namespace JogoDoGrupo.Client.Features.Social
         /// <summary>Ponta triangular voltada para a cabeça do avatar.</summary>
         public const string BalaoPonta = "social-balao-ponta";
 
+        /// <summary>As duas colunas da janela de troca (a minha oferta e a do outro).</summary>
+        public const string TrocaColunas = "social-troca-colunas";
+
+        /// <summary>Uma coluna da troca.</summary>
+        public const string TrocaLado = "social-troca-lado";
+
+        /// <summary>Lista de rolagem da bolsa na troca.</summary>
+        public const string TrocaBolsa = "social-troca-bolsa";
+
+        /// <summary>Um item na oferta ou na bolsa da troca.</summary>
+        public const string TrocaItem = "social-troca-item";
+
+        /// <summary>Item da bolsa que já está na oferta.</summary>
+        public const string TrocaItemOferecido = "social-troca-item-oferecido";
+
+        /// <summary>Convite de troca por cima do jogo.</summary>
+        public const string ConviteDeTrocaNaTela = "social-convite-troca";
+
         /// <summary>Adiciona o USS de Social à raiz da interface.</summary>
         public static void Aplicar(VisualElement raiz)
         {

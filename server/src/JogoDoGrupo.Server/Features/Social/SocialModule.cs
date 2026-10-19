@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using JogoDoGrupo.Server.Contratos.Combate;
+using JogoDoGrupo.Server.Contratos.Economia;
 using JogoDoGrupo.Server.Contratos.Itens;
 using JogoDoGrupo.Server.Contratos.Mundo;
 using JogoDoGrupo.Server.Contratos.Personagem;
@@ -28,6 +29,7 @@ public sealed class SocialModule : IFeatureModule, IConsultaDeGrupo
     private FilaDeGrupoDoServidor? _filaGrupo;
     private ControleDeMarcadoresDeGrupo? _marcadores;
     private ServicoDeInspecao? _inspecao;
+    private TrocaDiretaDoServidor? _troca;
 
     /// <summary>Quem tem sessão de tempo real agora, por personagem (para entregar o chat).</summary>
     private readonly ConcurrentDictionary<long, SessaoTempoReal> _online = new();
@@ -57,6 +59,7 @@ public sealed class SocialModule : IFeatureModule, IConsultaDeGrupo
         servicos.AddSingleton<ISilenciadorDoChat>(sp => sp.GetRequiredService<LimitesDoChat>());
         servicos.AddSingleton<ChatDoServidor>();
         servicos.AddSingleton<HistoricoDaCidadeDoChat>();
+        servicos.AddSingleton<IExecutorDaTroca, ExecutorDaTroca>();
 
         // O módulo não recebe o provedor de serviços; o host cria este serviço antes de abrir a
         // porta UDP, então o diretório já está ligado quando a primeira mensagem chegar.
@@ -142,6 +145,50 @@ public sealed class SocialModule : IFeatureModule, IConsultaDeGrupo
                 SocialMessageIds.DefinirMarcadorDeAlvo,
                 (sessao, pedido) => _marcadores?.DefinirMarcador(sessao.PersonagemId, pedido)
             )
+            .Ao<PedirTroca>(
+                SocialMessageIds.PedirTroca,
+                (sessao, pedido) => Proteger(_troca!.PedirAsync(sessao.PersonagemId, pedido.Nome))
+            )
+            .Ao<ResponderConviteDeTroca>(
+                SocialMessageIds.ResponderConviteDeTroca,
+                (sessao, pedido) =>
+                    Proteger(
+                        _troca!.ResponderAsync(sessao.PersonagemId, pedido.TrocaId, pedido.Aceitar)
+                    )
+            )
+            .Ao<AtualizarOfertaDeTroca>(
+                SocialMessageIds.AtualizarOfertaDeTroca,
+                (sessao, pedido) =>
+                    Proteger(
+                        _troca!.AtualizarOfertaAsync(
+                            sessao.PersonagemId,
+                            pedido.TrocaId,
+                            pedido.Coroas,
+                            pedido.InstanciaIds
+                        )
+                    )
+            )
+            .Ao<ConfirmarTroca>(
+                SocialMessageIds.ConfirmarTroca,
+                (sessao, pedido) =>
+                    Proteger(
+                        _troca!.ConfirmarAsync(
+                            sessao.PersonagemId,
+                            pedido.TrocaId,
+                            pedido.VersaoDaOferta
+                        )
+                    )
+            )
+            .Ao<CancelarTroca>(
+                SocialMessageIds.CancelarTroca,
+                (sessao, pedido) =>
+                    Proteger(_troca!.CancelarAsync(sessao.PersonagemId, pedido.TrocaId))
+            )
+            .Ao<ConsultarBolsaParaTroca>(
+                SocialMessageIds.ConsultarBolsaParaTroca,
+                (sessao, pedido) =>
+                    Proteger(_troca!.ConsultarBolsaAsync(sessao.PersonagemId, pedido.TrocaId))
+            )
             .Ao<PedirInspecao>(
                 SocialMessageIds.PedirInspecao,
                 (sessao, pedido) =>
@@ -166,6 +213,17 @@ public sealed class SocialModule : IFeatureModule, IConsultaDeGrupo
             () => _servicos!.GetService<IPosicoesDoMundo>(),
             () => _servicos!.GetService<IAtributosDaArvore>(),
             _servicos!.GetRequiredService<ILogger<ServicoDeInspecao>>()
+        );
+        _troca = new TrocaDiretaDoServidor(
+            _diretorio,
+            saida,
+            _servicos!.GetRequiredService<IExecutorDaTroca>(),
+            id => _online.ContainsKey(id),
+            () => _servicos!.GetService<IPosicoesDoMundo>(),
+            () => _servicos!.GetService<IEstadoDeCombate>(),
+            (a, b) => _amigos?.ContatoBarradoEntrePersonagens(a, b) ?? false,
+            () => Environment.TickCount64,
+            id => contexto.Eventos.Publicar(new CoroasMovimentadas(id))
         );
         _amigos = new AmigosDoServidor(
             _diretorio,
@@ -225,6 +283,11 @@ public sealed class SocialModule : IFeatureModule, IConsultaDeGrupo
             _online.TryRemove(new KeyValuePair<long, SessaoTempoReal>(sessao.PersonagemId, sessao));
             _limites!.Esquecer(sessao.PersonagemId);
             _filaGrupo?.AoDesconectar(sessao.PersonagemId);
+            // Sessão já substituída por outra: o personagem continua online e a troca segue.
+            if (!_online.ContainsKey(sessao.PersonagemId))
+            {
+                Proteger(_troca!.AoDesconectarAsync(sessao.PersonagemId));
+            }
             // Sessão já substituída por outra do mesmo personagem: ele continua online.
             _amigos!.RemoverOnline(sessao.ContaId, sessao.PersonagemId);
             if (saida.Remover(sessao))
@@ -240,6 +303,16 @@ public sealed class SocialModule : IFeatureModule, IConsultaDeGrupo
             grupos.AoConectar(sessao.PersonagemId);
         }
     }
+
+    /// <summary>
+    /// Deixa a tarefa da troca correr sem travar o laço de rede e registra falha em vez de
+    /// perdê-la. A troca entra na fila já na chamada, então a ordem dos pedidos se mantém.
+    /// </summary>
+    private void Proteger(Task tarefa) =>
+        _ = tarefa.ContinueWith(
+            t => _log?.LogWarning(t.Exception, "Falha na troca direta"),
+            TaskContinuationOptions.OnlyOnFaulted
+        );
 
     /// <summary>Expõe a consulta Social; os grupos existem após a inicialização do módulo.</summary>
     public GrupoAtual? Consultar(long personagemId) =>

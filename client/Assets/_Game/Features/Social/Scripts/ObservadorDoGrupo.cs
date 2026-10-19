@@ -61,6 +61,7 @@ namespace JogoDoGrupo.Client.Features.Social
                 _jogadorAtendido = null;
                 estado.DefinirPersonagem(0);
                 EstadoMarcadoresTaticos.Instancia.Limpar();
+                EstadoDaTrocaDoClient.Instancia.Limpar();
                 DescartarHud();
                 return;
             }
@@ -107,6 +108,7 @@ namespace JogoDoGrupo.Client.Features.Social
 
             var aviso = raiz.AddComponent<AvisoDoGrupoNaTela>();
             aviso.Configurar(container, configuracao);
+            raiz.AddComponent<ConviteDeTrocaNaTela>().Configurar(container);
 
             ApresentadorDeMarcadoresTaticos.Criar(jogador.scene);
         }

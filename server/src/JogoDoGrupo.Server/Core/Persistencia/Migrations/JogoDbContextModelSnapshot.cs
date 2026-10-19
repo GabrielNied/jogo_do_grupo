@@ -189,6 +189,59 @@ namespace JogoDoGrupo.Server.Core.Persistencia.Migrations
                     b.ToTable("RecursosPersonagem", (string)null);
                 });
 
+            modelBuilder.Entity("JogoDoGrupo.Server.Features.Economia.OrdemMercado", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("CriadaEm")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long?>("EncerradaEm")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("EquipamentoJson")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Estado")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("ExpiraEm")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("ItemEmCustodia")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ItemId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("PersonagemId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("PrecoUnitario")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Quantidade")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("Venda")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Estado", "ExpiraEm");
+
+                    b.HasIndex("PersonagemId", "Estado");
+
+                    b.HasIndex("ItemId", "Venda", "Estado", "PrecoUnitario");
+
+                    b.ToTable("OrdensMercado", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_OrdensMercado_PrecoUnitario", "\"PrecoUnitario\" > 0");
+                        });
+                });
+
             modelBuilder.Entity("JogoDoGrupo.Server.Features.Economia.SaldoCoroas", b =>
                 {
                     b.Property<long>("PersonagemId")
@@ -630,6 +683,15 @@ namespace JogoDoGrupo.Server.Core.Persistencia.Migrations
                 });
 
             modelBuilder.Entity("JogoDoGrupo.Server.Features.Combate.RecursosPersonagem", b =>
+                {
+                    b.HasOne("JogoDoGrupo.Server.Features.Personagem.Personagem", null)
+                        .WithMany()
+                        .HasForeignKey("PersonagemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("JogoDoGrupo.Server.Features.Economia.OrdemMercado", b =>
                 {
                     b.HasOne("JogoDoGrupo.Server.Features.Personagem.Personagem", null)
                         .WithMany()
