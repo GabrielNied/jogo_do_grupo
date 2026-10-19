@@ -39,13 +39,7 @@ namespace JogoDoGrupo.Client.Features.Economia.UI
         private static void Registrar()
         {
             JanelasDoJogo.Registrar(
-                new DefinicaoDeJanela(
-                    Chave,
-                    TituloPadrao,
-                    KeyCode.F8,
-                    Ordem,
-                    () => new JanelaBarraca()
-                )
+                new DefinicaoDeJanela(Chave, TituloPadrao, null, Ordem, () => new JanelaBarraca())
             );
         }
 

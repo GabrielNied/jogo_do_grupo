@@ -211,9 +211,9 @@ namespace JogoDoGrupo.Client.Features.Npcs.UI
             _rotuloAviso.text = aviso;
         }
 
-        protected override void FecharJanela()
+        protected override void AoFechar()
         {
-            base.FecharJanela();
+            base.AoFechar();
             if (InstanciaAtual == this)
             {
                 InstanciaAtual = null;

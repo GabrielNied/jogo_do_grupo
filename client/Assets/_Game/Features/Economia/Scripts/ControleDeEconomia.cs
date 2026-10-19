@@ -1,9 +1,12 @@
 using System;
 using System.Collections.Generic;
 using JogoDoGrupo.Client.Core.Jogo;
+using JogoDoGrupo.Client.Core.Jogo.Janelas;
 using JogoDoGrupo.Client.Core.TempoReal;
+using JogoDoGrupo.Client.Features.Economia.UI;
 using JogoDoGrupo.Shared.Features.Economia;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace JogoDoGrupo.Client.Features.Economia
 {
@@ -52,6 +55,26 @@ namespace JogoDoGrupo.Client.Features.Economia
             var objeto = new GameObject("Economia.Controle");
             DontDestroyOnLoad(objeto);
             _instancia = objeto.AddComponent<ControleDeEconomia>();
+        }
+
+        // O registro compartilhado aceita apenas letras; F8 pertence ao controle de Economia.
+        private void Update()
+        {
+            if (
+                !Application.isFocused
+                || !EntradaNoJogo.NoJogo
+                || EntradaNoJogo.EntradaPendente
+                || JanelasDoJogo.MenuAberto
+            )
+                return;
+
+            if (Keyboard.current?.f8Key.wasPressedThisFrame != true)
+                return;
+
+            if (JanelasDoJogo.EstaAberta(JanelaBarraca.Chave))
+                JanelasDoJogo.Fechar(JanelaBarraca.Chave);
+            else
+                JanelasDoJogo.Abrir(JanelaBarraca.Chave);
         }
 
         private void Awake()

@@ -143,7 +143,7 @@ namespace JogoDoGrupo.Client.Features.Social
             var infoCusto = new Label(
                 $"Custo de fundação: {RegrasGuilda.CustoCriacaoCoroas:N0} coroas"
             );
-            infoCusto.AddToClassList(EstiloCore.TextoSecundario);
+            infoCusto.AddToClassList(EstiloCore.Texto);
             secaoCriar.Add(infoCusto);
 
             var linhaNome = new VisualElement();
@@ -176,7 +176,7 @@ namespace JogoDoGrupo.Client.Features.Social
             var infoGeral = new Label(
                 $"Membros: {dados.Membros.Length}/{RegrasGuilda.MaximoDeMembros} | Seu Cargo: {dados.MeuCargo}"
             );
-            infoGeral.AddToClassList(EstiloCore.TextoSecundario);
+            infoGeral.AddToClassList(EstiloCore.Texto);
             cabecalho.Add(infoGeral);
 
             container.Add(cabecalho);

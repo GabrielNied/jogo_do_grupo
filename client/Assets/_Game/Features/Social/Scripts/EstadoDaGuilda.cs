@@ -66,7 +66,7 @@ namespace JogoDoGrupo.Client.Features.Social
             _conexao?.Enviar(
                 SocialMessageIds.ConsultarGuilda,
                 new ConsultarGuilda(),
-                EntregaTempoReal.Conviavel
+                EntregaTempoReal.Confiavel
             );
         }
 
@@ -76,7 +76,7 @@ namespace JogoDoGrupo.Client.Features.Social
             _conexao?.Enviar(
                 SocialMessageIds.CriarGuilda,
                 new CriarGuilda { Nome = nome ?? "" },
-                EntregaTempoReal.Conviavel
+                EntregaTempoReal.Confiavel
             );
         }
 
@@ -86,7 +86,7 @@ namespace JogoDoGrupo.Client.Features.Social
             _conexao?.Enviar(
                 SocialMessageIds.ConvidarParaGuilda,
                 new ConvidarParaGuilda { NomeDoPersonagem = nomeDoAlvo ?? "" },
-                EntregaTempoReal.Conviavel
+                EntregaTempoReal.Confiavel
             );
         }
 
@@ -97,7 +97,7 @@ namespace JogoDoGrupo.Client.Features.Social
             _conexao?.Enviar(
                 SocialMessageIds.ResponderConviteDeGuilda,
                 new ResponderConviteDeGuilda { GuildaId = guildaId, Aceitar = aceitar },
-                EntregaTempoReal.Conviavel
+                EntregaTempoReal.Confiavel
             );
             Mudou?.Invoke();
         }
@@ -108,7 +108,7 @@ namespace JogoDoGrupo.Client.Features.Social
             _conexao?.Enviar(
                 SocialMessageIds.ExpulsarDaGuilda,
                 new ExpulsarDaGuilda { PersonagemId = personagemId },
-                EntregaTempoReal.Conviavel
+                EntregaTempoReal.Confiavel
             );
         }
 
@@ -118,7 +118,7 @@ namespace JogoDoGrupo.Client.Features.Social
             _conexao?.Enviar(
                 SocialMessageIds.AlterarCargoDaGuilda,
                 new AlterarCargoDaGuilda { PersonagemId = personagemId, NovoCargo = novoCargo },
-                EntregaTempoReal.Conviavel
+                EntregaTempoReal.Confiavel
             );
         }
 
@@ -128,7 +128,7 @@ namespace JogoDoGrupo.Client.Features.Social
             _conexao?.Enviar(
                 SocialMessageIds.PassarLiderancaDaGuilda,
                 new PassarLiderancaDaGuilda { NovoLiderId = novoLiderId },
-                EntregaTempoReal.Conviavel
+                EntregaTempoReal.Confiavel
             );
         }
 
@@ -138,7 +138,7 @@ namespace JogoDoGrupo.Client.Features.Social
             _conexao?.Enviar(
                 SocialMessageIds.SairDaGuilda,
                 new SairDaGuilda(),
-                EntregaTempoReal.Conviavel
+                EntregaTempoReal.Confiavel
             );
         }
 
