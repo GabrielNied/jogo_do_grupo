@@ -18,6 +18,8 @@ Argumentos (opcionais): **N** issues a conferir (padrão 15) e um **filtro** de 
 
 ## 2. Veredito, uma issue por vez
 
+**Conferente:** com mais de 3 issues, lance o agente [`conferente`](../../agents/conferente.md) (Haiku, só leitura) em lotes de até 5, em paralelo. Ele traz veredito, evidência e ajuste da ficha; você não relê doc nem código, só abre a evidência citada quando o veredito fecha a issue ou parece errado, e aplica.
+
 - **Feita** (PR ou commit já entregou): `gh issue close <N> --reason completed` com o link.
 - **Obsoleta** (a doc, um ADR ou a visão mudou o que ela pede): `--reason "not planned"` com o trecho ou commit.
 - **Duplicada:** `--reason "not planned"` com "Duplicada de #M"; o que só ela tinha vai para a que fica.

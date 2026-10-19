@@ -33,6 +33,12 @@ Agentes que escrevem nunca dividem a cópia do repositório: crie os worktrees a
 
 Reconhece o `AGENTS.md` e as skills em [.agents/skills/](../.agents/skills/). Os perfis ficam em [.agents/agents/](../.agents/agents/) e mandam ler a definição canônica. Habilite o hook [.agents/hooks.json](../.agents/hooks.json) em **Customizations > Hooks** (ou `/hooks` no CLI). No IDE que ainda não lista agentes personalizados, peça o papel no prompt. Escrita em paralelo só em worktrees isolados.
 
+## OpenCode
+
+Lê o `AGENTS.md` e as skills de [.claude/skills/](../.claude/skills/). Os hooks e os agentes de [.claude/agents/](../.claude/agents/) não valem: peça o papel no prompt, como em "Outras IAs" abaixo. No Windows, instale com `npm install -g --allow-scripts=@opencode/cli @opencode/cli`: sem o `--allow-scripts`, o binário não é baixado.
+
+Os modelos `opencode/*-free` (`opencode models`) são grátis por tempo limitado e alguns guardam os dados para treino; o repo é público, mas não cole segredo. Servem para quem não tem Claude contribuir. Para cortar custo dentro do Claude Code, prefira um agente em Haiku, como o `conferente`.
+
 ## Outras IAs (Cursor, Copilot, Gemini...)
 
 Uma sessão por agente, cada uma no seu worktree:
