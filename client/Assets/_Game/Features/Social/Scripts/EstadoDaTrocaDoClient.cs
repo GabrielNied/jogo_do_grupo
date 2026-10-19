@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using JogoDoGrupo.Client.Core.Jogo;
 using JogoDoGrupo.Client.Core.Jogo.Janelas;
 using JogoDoGrupo.Client.Core.TempoReal;
 using JogoDoGrupo.Shared.Features.Social;
@@ -314,6 +315,8 @@ namespace JogoDoGrupo.Client.Features.Social
             Mensagem = texto;
             MensagemEhErro = erro;
             MensagemRestante = SegundosDaMensagem;
+            // Também vai para o HUD e o chat de sistema: a janela pode estar fechada.
+            AvisosDoJogo.Mostrar(texto, erro ? TipoDeAviso.Aviso : TipoDeAviso.Informacao);
             Mudou?.Invoke();
         }
 

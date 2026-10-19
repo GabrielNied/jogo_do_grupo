@@ -39,5 +39,31 @@ namespace JogoDoGrupo.Shared.Features.Economia
 
         /// <summary>Servidor → client: recusa de operação de economia com código de erro.</summary>
         public const ushort EconomiaRecusada = 9010;
+
+        // ── Mercado (leilão por ordens, #176): 9100 a 9199 ────────────────────────
+
+        /// <summary>Client → servidor: abre ou atualiza o mercado (perto do leiloeiro).</summary>
+        public const ushort ConsultarMercado = 9100;
+
+        /// <summary>Client → servidor: anuncia um exemplar da bolsa por um preço.</summary>
+        public const ushort OferecerVenda = 9101;
+
+        /// <summary>Client → servidor: pede unidades de um modelo por até um preço cada.</summary>
+        public const ushort OferecerCompra = 9102;
+
+        /// <summary>Client → servidor: compra já uma ordem de venda específica.</summary>
+        public const ushort ComprarOrdem = 9103;
+
+        /// <summary>Client → servidor: cancela uma ordem aberta própria.</summary>
+        public const ushort CancelarOrdem = 9104;
+
+        /// <summary>Client → servidor: pede os itens de ordens vencidas que não couberam na bolsa.</summary>
+        public const ushort ReceberDevolucoes = 9105;
+
+        /// <summary>Servidor → client: o mercado inteiro como o jogador o vê.</summary>
+        public const ushort EstadoDoMercado = 9110;
+
+        /// <summary>Servidor → client: uma ordem do jogador casou, venceu ou o item voltou.</summary>
+        public const ushort AvisoDoMercado = 9111;
     }
 }

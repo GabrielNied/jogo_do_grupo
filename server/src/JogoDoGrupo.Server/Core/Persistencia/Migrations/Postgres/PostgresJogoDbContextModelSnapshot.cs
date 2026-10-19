@@ -200,6 +200,61 @@ namespace JogoDoGrupo.Server.Core.Persistencia.Migrations.Postgres
                     b.ToTable("RecursosPersonagem", (string)null);
                 });
 
+            modelBuilder.Entity("JogoDoGrupo.Server.Features.Economia.OrdemMercado", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("CriadaEm")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("EncerradaEm")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("EquipamentoJson")
+                        .HasColumnType("text");
+
+                    b.Property<int>("Estado")
+                        .HasColumnType("integer");
+
+                    b.Property<long>("ExpiraEm")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("ItemEmCustodia")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("ItemId")
+                        .HasColumnType("integer");
+
+                    b.Property<long>("PersonagemId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("PrecoUnitario")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("Quantidade")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("Venda")
+                        .HasColumnType("boolean");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Estado", "ExpiraEm");
+
+                    b.HasIndex("PersonagemId", "Estado");
+
+                    b.HasIndex("ItemId", "Venda", "Estado", "PrecoUnitario");
+
+                    b.ToTable("OrdensMercado", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_OrdensMercado_PrecoUnitario", "\"PrecoUnitario\" > 0");
+                        });
+                });
+
             modelBuilder.Entity("JogoDoGrupo.Server.Features.Economia.SaldoCoroas", b =>
                 {
                     b.Property<long>("PersonagemId")
@@ -661,6 +716,15 @@ namespace JogoDoGrupo.Server.Core.Persistencia.Migrations.Postgres
                 });
 
             modelBuilder.Entity("JogoDoGrupo.Server.Features.Combate.RecursosPersonagem", b =>
+                {
+                    b.HasOne("JogoDoGrupo.Server.Features.Personagem.Personagem", null)
+                        .WithMany()
+                        .HasForeignKey("PersonagemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("JogoDoGrupo.Server.Features.Economia.OrdemMercado", b =>
                 {
                     b.HasOne("JogoDoGrupo.Server.Features.Personagem.Personagem", null)
                         .WithMany()

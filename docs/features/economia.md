@@ -83,6 +83,34 @@ Saldo persistente inteiro por personagem, inicialmente zero. `Contratos/Economia
 
 O crédito de teste é acessível pela bancada de Itens somente em Development. Ganho normal de coroas, loja e demais saídas seguem na #173.
 
+### Mercado (leilão por ordens, #176)
+
+Feito em 2026-10-18. O leilão é **um livro de ordens só** (a barraca de jogador e o vendedor offline, [#905](https://github.com/GabrielNied/jogo_do_grupo/issues/905), vão espelhar nele). Abre com **E no NPC leiloeiro** da cidade (marcador em `ConfigMercado.LeiloeiroX/Z`; o servidor recusa a mais de 4 m). Constantes em `ConfigMercado` (shared); a regra vive em `ServicoDoMercado` (servidor).
+
+| Constante | Valor | Observação |
+|---|---|---|
+| `TaxaVendaPercentual` | 5 | **só na venda**; **anunciar é grátis** ([decisão de 2026-10-16](#definido); a ficha original previa 1% ao abrir, que saiu) |
+| `ExpiracaoDias` | 7 | a ordem vence; coroas e item voltam |
+| `PrecoMinimo` / `PrecoMaximo` | 2 / 1.000.000.000 | por unidade; com o mínimo, a taxa arredondada para cima ainda deixa 1 coroa ao vendedor |
+| `QuantidadeMaximaDaCompra` | 99 | unidades por ordem de compra |
+| `OrdensAbertasMaximas` | 20 | por personagem (compra e venda juntas) |
+
+- **Ordem de venda:** um exemplar da bolsa e o preço. O item sai da bolsa e **fica guardado na ordem** enquanto ela está aberta (cópia do exemplar, com os mesmos atributos; só entra o que a bolsa negocia: equipado e favorito não entram). **Ordem de compra:** um modelo, a quantidade e o **preço máximo por unidade**; as coroas de todas as unidades ficam **guardadas na ordem** (debitadas ao abrir).
+- **Casamento automático pelo melhor preço:** a ordem nova casa com a melhor ordem oposta (a venda mais barata, ou a compra que paga mais; **empate: a mais antiga**), pelo **preço de quem já estava no livro**, e continua casando até acabar a quantidade ou os preços deixarem de se cruzar. O que sobra fica aberto. **Nunca casa com ordem do mesmo personagem.** Quem compra pagando menos que o máximo recebe a diferença de volta na hora.
+- **Compra direta:** além do pedido, dá para comprar já uma ordem de venda específica (o equipamento tem atributos próprios), pelo preço dela.
+- **Taxa:** `ceil(preço × 5%)` por venda, **uma vez só**, tirada do vendedor e **destruída** (saída de moeda). O comprador paga o preço cheio.
+- **Bolsa cheia do comprador:** na compra direta a operação inteira é desfeita (`InventarioCheio`); no casamento automático, a ordem de quem está com a bolsa cheia é **pulada** e segue aberta.
+- **Devolução (decisão de design, enquanto o correio [#212](https://github.com/GabrielNied/jogo_do_grupo/issues/212) não existe):** ao **cancelar** ou **vencer**, as coroas de uma compra voltam direto à carteira e o item de uma venda **volta direto à bolsa**. Se a bolsa está cheia, a venda fica cancelada ou vencida **com o item ainda guardado** ("aguardando devolução") e é entregue **no próximo login** ou no botão "Receber itens devolvidos". Nada se perde e nada se entrega duas vezes. **Para mudar para o correio:** trocar só `ServicoDoMercado.TentarDevolverAsync` (hoje põe na bolsa) por um envio de correio; o resto não muda.
+- **Expiração:** uma varredura (`VarreduraDoMercado`, a cada 60 s) vence as ordens passadas da validade, e uma ordem vencida **nunca casa**, mesmo antes da varredura. O jogador online recebe um aviso quando a ordem vence ou casa.
+- **Servidor autoritativo e atômico:** cada operação roda numa transação Serializable, uma de cada vez no processo; item e moeda nunca duplicam. Apagar um personagem apaga as ordens dele (e o que elas guardam), como apaga o inventário.
+- **Contrato** (`shared/.../Features/Economia/MensagensDoMercado.cs`, faixa 9100–9199): `ConsultarMercado` 9100, `OferecerVenda` 9101, `OferecerCompra` 9102, `ComprarOrdem` 9103, `CancelarOrdem` 9104, `ReceberDevolucoes` 9105 (client → servidor); `EstadoDoMercado` 9110 (o livro, as minhas ordens, a bolsa e a lista de modelos, depois de cada pedido) e `AvisoDoMercado` 9111 (servidor → client). Recusas vêm em `EconomiaRecusada` com os códigos novos de `CodigosErroEconomia` (`preco_invalido`, `limite_de_ordens`, `ordem_indisponivel`...).
+- **Na tela:** `JanelaLeilao` com três abas: **Comprar** (busca por nome, ordens à venda, pedidos abertos, formulário de pedido), **Vender** (escolher o item da bolsa e o preço, mostrando quanto o vendedor recebe) e **Minhas ordens** (cancelar, receber devoluções).
+- **Testes:** casamento pelo melhor preço e por antiguidade, taxa uma vez, custódia e devolução, bolsa cheia, expiração, e concorrência (vários compradores para uma venda; vendas e compras ao mesmo tempo conservam itens e coroas) em `MercadoTestes`, `MercadoExpiracaoTestes` e `MercadoTempoRealTestes`; contas puras em `ConfigMercadoTestes`.
+
+### Troca direta (#175)
+
+Feita em 2026-10-18; regras, contrato e testes em [social](social.md#troca-direta-issue-175). A troca de dono do item e das coroas roda no servidor numa transação só (`ExecutorDaTroca`), e Social avisa Economia (`CoroasMovimentadas`) para o client ver o saldo novo.
+
 ### Proposta do board (2026-10-11, não validada)
 
 Proposta do board em 2026-10-11, **não validada pelo grupo** (seções 07, 08 e 03 do [Livro de ideias](../brainstorm/figjam.md#asterra--livro-de-ideias-do-jogo)):

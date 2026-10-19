@@ -1,0 +1,91 @@
+/* Lumora do mercado (leilão por ordens, #176): abas, listas e formulários. */
+.mercado-janela {
+    min-width: var(--lumora-dimensoes-chat-largura);
+}
+
+.mercado-topo {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--lumora-espacamento-pequeno);
+}
+
+.mercado-saldo {
+    color: var(--lumora-cores-ouro);
+    -unity-font-style: bold;
+}
+
+.mercado-abas {
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin-bottom: var(--lumora-espacamento-pequeno);
+}
+
+.mercado-aba {
+    min-height: var(--lumora-dimensoes-alvo-minimo);
+    margin-right: var(--lumora-espacamento-curto);
+}
+
+.mercado-aba-ativa {
+    background-color: var(--lumora-cores-ouro);
+    color: var(--lumora-cores-fundo);
+    -unity-font-style: bold;
+}
+
+.mercado-secao {
+    margin-bottom: var(--lumora-espacamento-medio);
+}
+
+.mercado-lista {
+    max-height: var(--lumora-dimensoes-chat-largura);
+}
+
+.mercado-linha {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    padding: var(--lumora-espacamento-curto);
+    margin-bottom: var(--lumora-espacamento-curto);
+    border-width: var(--lumora-bordas-fina);
+    border-color: var(--lumora-cores-borda-discreta);
+    border-radius: var(--lumora-bordas-raio-cartao);
+}
+
+.mercado-linha-minha {
+    border-color: var(--lumora-cores-ouro);
+}
+
+.mercado-linha-selecionada {
+    border-color: var(--lumora-cores-ouro);
+    background-color: var(--lumora-cores-painel);
+}
+
+.mercado-texto {
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-width: 0;
+    white-space: normal;
+}
+
+.mercado-detalhe {
+    color: var(--lumora-cores-texto-secundario);
+    font-size: var(--lumora-tipografia-nota);
+}
+
+.mercado-botao {
+    flex-grow: 0;
+    min-height: var(--lumora-dimensoes-alvo-minimo);
+    margin-top: 0;
+    margin-left: var(--lumora-espacamento-curto);
+}
+
+.mercado-formulario {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: flex-end;
+}
+
+.mercado-formulario > * {
+    margin-right: var(--lumora-espacamento-pequeno);
+    margin-bottom: var(--lumora-espacamento-curto);
+}

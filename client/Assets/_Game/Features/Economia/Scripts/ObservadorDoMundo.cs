@@ -88,18 +88,24 @@ namespace JogoDoGrupo.Client.Features.Economia
             );
             var taverneiro = MarcadorNpcEconomia.Criar(posTaverneiro, TipoNpcEconomia.Taverneiro);
             var merceeiro = MarcadorNpcEconomia.Criar(posMerceeiro, TipoNpcEconomia.Merceeiro);
+            var posLeiloeiro = PosicaoNoChao(
+                MarcadorNpcEconomia.Posicao(TipoNpcEconomia.Leiloeiro, y)
+            );
+            var leiloeiro = MarcadorNpcEconomia.Criar(posLeiloeiro, TipoNpcEconomia.Leiloeiro);
 
             SceneManager.MoveGameObjectToScene(ferreiro, cena);
             SceneManager.MoveGameObjectToScene(armeiro, cena);
             SceneManager.MoveGameObjectToScene(armadureiro, cena);
             SceneManager.MoveGameObjectToScene(taverneiro, cena);
             SceneManager.MoveGameObjectToScene(merceeiro, cena);
+            SceneManager.MoveGameObjectToScene(leiloeiro, cena);
 
             ferreiro.transform.SetParent(raiz.transform, true);
             armeiro.transform.SetParent(raiz.transform, true);
             armadureiro.transform.SetParent(raiz.transform, true);
             taverneiro.transform.SetParent(raiz.transform, true);
             merceeiro.transform.SetParent(raiz.transform, true);
+            leiloeiro.transform.SetParent(raiz.transform, true);
 
             var documento = raiz.AddComponent<UIDocument>();
             documento.panelSettings = EstiloCore.CriarConfiguracaoDoPainel("PainelEconomia", -1f);
@@ -140,6 +146,11 @@ namespace JogoDoGrupo.Client.Features.Economia
                     merceeiro.transform,
                     "falar com o merceeiro",
                     UI.JanelaVendedor.ChaveMerceeiro
+                ),
+                new PontoInteracaoEconomia(
+                    leiloeiro.transform,
+                    "falar com o leiloeiro",
+                    UI.JanelaLeilao.Chave
                 )
             );
         }
