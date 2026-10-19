@@ -10,7 +10,7 @@ namespace JogoDoGrupo.Server.Features.Combate;
 /// </summary>
 public static class SelecaoDeAlvos
 {
-    public static bool PodeAcertar(long atacanteId, AlvoDeCombate alvo, IAliadosDeCombate aliados)
+    public static bool PodeAcertar(long atacanteId, AlvoDeCombate alvo, IAliadosDeCombate? aliados)
     {
         if (alvo.PersonagemId == 0)
         {
@@ -18,6 +18,6 @@ public static class SelecaoDeAlvos
         }
 
         return alvo.PersonagemId != atacanteId
-            && !aliados.SaoAliados(atacanteId, alvo.PersonagemId);
+            && (aliados == null || !aliados.SaoAliados(atacanteId, alvo.PersonagemId));
     }
 }

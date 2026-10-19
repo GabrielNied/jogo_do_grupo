@@ -611,7 +611,7 @@ public sealed class ServicoDeProjeteis : IHostedService, IDisposable, IDisparoDe
                 }
             }
 
-            if (!acertou && _posicoes != null)
+            if (!acertou)
             {
                 var personagens = _posicoes.PersonagensNaArea(proj.Area);
                 for (var i = 0; i < personagens.Count; i++)
@@ -622,7 +622,7 @@ public sealed class ServicoDeProjeteis : IHostedService, IDisposable, IDisparoDe
                         continue;
                     }
 
-                    if (_aliados != null && _aliados.SaoAliados(proj.AtacanteId, persId))
+                    if (_aliados.SaoAliados(proj.AtacanteId, persId))
                     {
                         continue;
                     }

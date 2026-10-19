@@ -47,4 +47,11 @@ public class SelecaoDeAlvosTestes
         Assert.True(SelecaoDeAlvos.PodeAcertar(1, Jogador(2), new NinguemEAliado()));
         Assert.False(new NinguemEAliado().SaoAliados(1, 2));
     }
+
+    [Fact]
+    public void Quando_aliados_for_nulo_jogador_de_fora_continua_alvo_sem_lancar_excecao()
+    {
+        Assert.True(SelecaoDeAlvos.PodeAcertar(1, Jogador(2), null));
+        Assert.False(SelecaoDeAlvos.PodeAcertar(1, Jogador(1), null));
+    }
 }

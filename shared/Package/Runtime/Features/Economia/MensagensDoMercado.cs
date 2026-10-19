@@ -53,7 +53,7 @@ namespace JogoDoGrupo.Shared.Features.Economia
         public string Anunciante = "";
 
         /// <summary>O exemplar à venda (atributos, tier); nulo nas ordens de compra.</summary>
-        public EntradaInventario Item;
+        public EntradaInventario? Item;
     }
 
     /// <summary>
