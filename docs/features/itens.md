@@ -645,3 +645,15 @@ Valores em `RegrasLoot`, todos **proposta a calibrar**:
 ## Ícones de equipamento
 
 Silhuetas brancas com alpha (128 px), um por `TipoEquipamento`, para a UI tingir pelo tier. Para achar o ícone, use `IconesEquipamento.Carregar(tipo)` (`Resources/Itens/Icones/<TipoEquipamento>`). Origem e crédito em [licencas.md](../arte/licencas.md).
+
+## Visual equipado no mundo 3D (#497, #665)
+
+O servidor avisa a área inteira sobre o que o personagem veste e se vê no modelo 3D através da mensagem `VisualEquipado` (Id: `ItensMessageIds.VisualEquipado`). A mensagem envia o estado inteiro (não o delta) e é transmitida sempre que um jogador equipa, desequipa, troca de conjunto ou entra numa área.
+
+- **Armas (#497):** a arma do conjunto ativo vai para a mão direita (`EncaixeMaoDireita`), e a arma do conjunto inativo vai para as costas (`EncaixeCostas`).
+- **Armadura e acessórios (#665):**
+  - **Capacete (`TipoEquipamento.Capacete`):** posicionado na cabeça do personagem (`EncaixeCabeca` ou osso `Cabeca`/`Head`). Modelo com cúpula metálica, visor frontal e crista superior.
+  - **Peitoral (`TipoEquipamento.Peito`):** posicionado no tronco do personagem (`EncaixeTronco` ou osso `Tronco`/`Chest`/`Spine`). Modelo com peitoral de metal, placa dorsal e ombreiras decorativas.
+  - Quando um avatar não possui rig esqueletal (ex.: cápsula de visualização ou dummy), encaixes de fallback são criados nas alturas relativas correspondentes (`CabecaNaRaiz = 1.65m`, `TroncoNaRaiz = 1.15m`).
+  - As peças refletem materiais URP estilizados e recebem emissão correspondente a auras de tier alto (`ConfigAuraTier`).
+

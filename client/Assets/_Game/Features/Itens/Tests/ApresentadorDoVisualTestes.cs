@@ -15,6 +15,8 @@ namespace JogoDoGrupo.Client.Features.Itens.Tests
         private GameObject _avatar;
         private Transform _mao;
         private Transform _costas;
+        private Transform _cabeca;
+        private Transform _tronco;
 
         [SetUp]
         public void Montar()
@@ -23,6 +25,8 @@ namespace JogoDoGrupo.Client.Features.Itens.Tests
             _avatar = new GameObject("Jogador_Teste");
             _mao = Encaixe("EncaixeMaoDireita");
             _costas = Encaixe("EncaixeCostas");
+            _cabeca = Encaixe("EncaixeCabeca");
+            _tronco = Encaixe("EncaixeTronco");
         }
 
         [TearDown]
@@ -51,8 +55,28 @@ namespace JogoDoGrupo.Client.Features.Itens.Tests
                     .ToArray(),
             };
 
+        private static VisualEquipado VisualCompleto(
+            int conjunto,
+            (PosicaoEquipamento, TipoEquipamento)[] armas,
+            (PosicaoEquipamento, TipoEquipamento)[] armaduras
+        ) =>
+            new VisualEquipado
+            {
+                PersonagemId = 1,
+                ConjuntoAtivo = conjunto,
+                Armas = (armas ?? new (PosicaoEquipamento, TipoEquipamento)[0])
+                    .Select(a => new ArmaVisual { Posicao = a.Item1, Tipo = a.Item2 })
+                    .ToArray(),
+                Armaduras = (armaduras ?? new (PosicaoEquipamento, TipoEquipamento)[0])
+                    .Select(a => new ArmaduraVisual { Posicao = a.Item1, Tipo = a.Item2 })
+                    .ToArray(),
+            };
+
         private static int Armas(Transform encaixe) =>
             encaixe.GetComponentsInChildren<ArmaNoAvatar>(true).Length;
+
+        private static int Armaduras(Transform encaixe) =>
+            encaixe.GetComponentsInChildren<ArmaduraNoAvatar>(true).Length;
 
         [Test]
         public void ArmaDoConjuntoAtivo_VaiParaAMaoDireita()
@@ -264,6 +288,113 @@ namespace JogoDoGrupo.Client.Features.Itens.Tests
             Assert.AreEqual(arcoPosEsperada.x, arco.transform.localPosition.x, 0.001f);
             Assert.AreEqual(arcoPosEsperada.y, arco.transform.localPosition.y, 0.001f);
             Assert.AreEqual(arcoPosEsperada.z, arco.transform.localPosition.z, 0.001f);
+        }
+
+        [Test]
+        public void CapaceteEPeito_VaoParaCabecaETronco()
+        {
+            var visual = VisualCompleto(
+                1,
+                armas: null,
+                armaduras: new[]
+                {
+                    (PosicaoEquipamento.Capacete, TipoEquipamento.Capacete),
+                    (PosicaoEquipamento.Peito, TipoEquipamento.Peito),
+                }
+            );
+
+            var postos = ApresentadorDoVisual.Aplicar(_avatar.transform, visual);
+
+            Assert.AreEqual(2, postos);
+            Assert.AreEqual(1, Armaduras(_cabeca));
+            Assert.AreEqual(1, Armaduras(_tronco));
+            Assert.AreEqual(
+                "Armadura_Capacete",
+                _cabeca.GetComponentInChildren<ArmaduraNoAvatar>().name
+            );
+            Assert.AreEqual(
+                "Armadura_Peito",
+                _tronco.GetComponentInChildren<ArmaduraNoAvatar>().name
+            );
+        }
+
+        [Test]
+        public void DesequiparArmadura_RemoveOModelo()
+        {
+            var comArmadura = VisualCompleto(
+                1,
+                armas: null,
+                armaduras: new[]
+                {
+                    (PosicaoEquipamento.Capacete, TipoEquipamento.Capacete),
+                    (PosicaoEquipamento.Peito, TipoEquipamento.Peito),
+                }
+            );
+            ApresentadorDoVisual.Aplicar(_avatar.transform, comArmadura);
+            Assert.AreEqual(2, _avatar.GetComponentsInChildren<ArmaduraNoAvatar>(true).Length);
+
+            var semArmadura = VisualCompleto(1, armas: null, armaduras: null);
+            var postos = ApresentadorDoVisual.Aplicar(_avatar.transform, semArmadura);
+
+            Assert.AreEqual(0, postos);
+            Assert.AreEqual(0, _avatar.GetComponentsInChildren<ArmaduraNoAvatar>(true).Length);
+        }
+
+        [Test]
+        public void SemEncaixeArmaduraNoAvatar_CriaPresoARaiz()
+        {
+            var capsula = new GameObject("Jogador_Capsula_Armadura");
+            try
+            {
+                var visual = VisualCompleto(
+                    1,
+                    armas: null,
+                    armaduras: new[]
+                    {
+                        (PosicaoEquipamento.Capacete, TipoEquipamento.Capacete),
+                        (PosicaoEquipamento.Peito, TipoEquipamento.Peito),
+                    }
+                );
+                ApresentadorDoVisual.Aplicar(capsula.transform, visual);
+
+                var encaixeCabeca = capsula.transform.Find("EncaixeCabeca");
+                var encaixeTronco = capsula.transform.Find("EncaixeTronco");
+
+                Assert.IsNotNull(encaixeCabeca);
+                Assert.IsNotNull(encaixeTronco);
+                Assert.AreEqual(1, Armaduras(encaixeCabeca));
+                Assert.AreEqual(1, Armaduras(encaixeTronco));
+                Assert.AreEqual(ApresentadorDoVisual.CabecaNaRaiz, encaixeCabeca.localPosition);
+                Assert.AreEqual(ApresentadorDoVisual.TroncoNaRaiz, encaixeTronco.localPosition);
+            }
+            finally
+            {
+                Object.DestroyImmediate(capsula);
+            }
+        }
+
+        [Test]
+        public void ModelosDeArmadura_TemCapaceteEPeito()
+        {
+            Assert.IsTrue(ModelosDeArmadura.Tem(TipoEquipamento.Capacete));
+            Assert.IsTrue(ModelosDeArmadura.Tem(TipoEquipamento.Peito));
+            Assert.IsFalse(ModelosDeArmadura.Tem(TipoEquipamento.Espada));
+            Assert.IsFalse(ModelosDeArmadura.Tem(TipoEquipamento.Luvas));
+
+            var capacete = ModelosDeArmadura.Criar(TipoEquipamento.Capacete);
+            var peito = ModelosDeArmadura.Criar(TipoEquipamento.Peito);
+            try
+            {
+                Assert.IsNotNull(capacete);
+                Assert.IsNotNull(peito);
+                Assert.AreEqual("Armadura_Capacete", capacete.name);
+                Assert.AreEqual("Armadura_Peito", peito.name);
+            }
+            finally
+            {
+                Object.DestroyImmediate(capacete);
+                Object.DestroyImmediate(peito);
+            }
         }
     }
 }
