@@ -26,7 +26,7 @@ Não pergunte. Resolva no PR:
 - ficha que contradiz a doc (comente na issue: a doc vence);
 - épico com todas as subtarefas fechadas (feche).
 
-Ordem: foco atual e o que trava uma cadeia de issues primeiro; depois por funcionalidade, juntando as perguntas da mesma área numa rodada.
+Ordem: o que trava uma cadeia de issues primeiro; depois por funcionalidade, juntando as perguntas da mesma área numa rodada.
 
 ## 3. Quiz
 

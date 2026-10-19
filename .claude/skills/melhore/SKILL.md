@@ -12,7 +12,7 @@ Argumentos (opcionais): **filtro** de funcionalidade (`itens`) ou de lente (`pro
 ## 1. Olhar, lente por lente
 
 - [Doc e regras atuais](../../../docs/agentes.md#doc-e-regras-atuais): `git fetch origin main` antes de qualquer lente. Doc e regras: `git show origin/main:…`. Código: `git grep` em `origin/main` (build local só se o checkout já estiver alinhado).
-- Leia só as fontes da lente. O [foco atual](../../../docs/features/fatia-jogavel.md#foco-atual) vem primeiro (pela `origin/main`). Ideia sem código não entra.
+- Leia só as fontes da lente. Ideia sem código não entra.
 
 - **Produto:** funcionalidades com cena no jogo contra a [entrega](../../../docs/agentes.md#entrega-da-funcionalidade) e a checklist de experiência. Busque, nesta ordem: o jogador não completa o que a doc diz que existe; tela crua ou sem estado; fluxo que quebra num canto da própria regra.
 - **Código:**

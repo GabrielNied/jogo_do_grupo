@@ -28,7 +28,7 @@ Ao definir um sistema novo, comece pela referência dele, descreva o que muda e 
 | Fusão e utilidade de todo item | Runescape | Black Desert (aprimoramento com risco), Ragnarok (cartas) | A fusão tem teto e custo crescente |
 | Economia entre jogadores | Albion Online | Runescape (Grand Exchange) | A decidir durante a construção |
 | PvP no mundo aberto | New World (bandeira e zonas) | RYL (nações), Albion Online (perda) | Sem perda na morte; territórios de guilda depois |
-| Sobrevivência e construção | Valheim | — | Ainda não decidido; fica para depois da fatia jogável |
+| Sobrevivência e construção | Valheim | — | Ainda não decidido |
 
 ## No que cada jogo é famoso
 
@@ -136,7 +136,7 @@ Ao definir um sistema novo, comece pela referência dele, descreva o que muda e 
 ### Valheim (Iron Gate, 2021)
 
 - **Famoso por:** sobrevivência e construção livre em grupo pequeno, com bosses que marcam a progressão.
-- **Pegar (depois da fatia jogável):** construção e sobrevivência para grupo pequeno, se o grupo decidir por elas (S5 e S7 da [validação](brainstorm/validacao.md)).
+- **Pegar:** construção e sobrevivência para grupo pequeno, se o grupo decidir por elas (S5 e S7 da [validação](brainstorm/validacao.md)).
 
 ## Como usar uma referência
 

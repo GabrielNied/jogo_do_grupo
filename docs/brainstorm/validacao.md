@@ -11,7 +11,7 @@ As **sugestões** marcadas com 💡 são só um ponto de partida para a conversa
 3. Leve a decisão para o `docs/features/<x>.md` das funcionalidades afetadas ("Definido" ou "Em aberto"). Se for técnica, crie um ADR.
 4. Ideia rejeitada também fica registrada: status **❌ descartada**, com o motivo.
 
-Status possíveis: 🟡 aberta · ✅ decidida · ❌ descartada · ⏸️ adiada (para depois da fatia jogável).
+Status possíveis: 🟡 aberta · ✅ decidida · ❌ descartada · ⏸️ sem prazo.
 
 > **2026-10-10:** o grupo decidiu as cinco decisões de base (D1 a D5). As decisões de sistemas (S1 a S9) serão tomadas conforme o jogo for sendo construído, usando [jogos de referência](../referencias.md) como base e modificando a partir deles.
 >
@@ -163,7 +163,7 @@ Sair da área segura → enfrentar hordas numa região perigosa → coletar muit
 
 ## Decisões de sistemas
 
-Podem ser decididas depois das de base. Várias ficam para depois da fatia jogável (⏸️).
+Podem ser decididas depois das de base. Várias não têm prazo (⏸️).
 
 ### S1. Loot e inventário
 
@@ -211,7 +211,7 @@ Com a D1 opção A (2026-10-11), o PvP no mundo aberto volta ao formato do jogo.
 
 ### S5. Construção e cidades de jogadores
 
-**Status:** ⏸️ sugestão: adiar para depois da fatia jogável
+**Status:** ⏸️ sem prazo
 
 **O que o board diz:** sistema de construção; jogadores criam cidades do zero com grupo ou guilda, com mapas procedurais que se adaptam ao crescimento da cidade.
 

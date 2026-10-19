@@ -24,7 +24,7 @@ Inventário, equipamentos, tier calculado pelos atributos e fusão determinísti
 - **Decisões do Gabriel em 2026-10-16** (quiz de definições 4): **aura de tier no mundo 3D** entra no MVP junto com a UI — brilho no **chão** e no **equipamento visível no modelo** quando houver mesh (não só bolsa/paperdoll); paleta e intensidade em constante no client ([#926](https://github.com/GabrielNied/jogo_do_grupo/issues/926); encaixe 3D em [#665](https://github.com/GabrielNied/jogo_do_grupo/issues/665)).
 - **Inventário de jogo, não de formulário** (decidido por Gabriel em 2026-10-12): bolsa em grade de casas **1×1** para todos os tipos, paperdoll, tooltip, clique direito e arrastar e soltar, com a base pronta para inventário grande. Veja [Interface do inventário](#interface-do-inventário-560).
 
-- **Decidido por Gabriel em 2026-10-16** (quiz de definições 2; **timing** no quiz 5): **inventário grande** (busca, filtros, favoritos) entra **depois do [marco atual](fatia-jogavel.md#foco-atual)** ([#334](https://github.com/GabrielNied/jogo_do_grupo/issues/334)); **transmog fica fora** (#333 fechada).
+- **Decidido por Gabriel em 2026-10-16** (quiz de definições 2; **timing** no quiz 5): **inventário grande** (busca, filtros, favoritos) entra na fila por prioridade ([#334](https://github.com/GabrielNied/jogo_do_grupo/issues/334)); **transmog fica fora** (#333 fechada).
 - **Decidido por Gabriel em 2026-10-16** (quiz de definições 5): na fatia/MVP **nenhuma vinculação nova de equipamento** — tudo negociável; materiais de raid +9/+10 continuam como no [Vínculo](#definido) acima.
 
 ## Em aberto
