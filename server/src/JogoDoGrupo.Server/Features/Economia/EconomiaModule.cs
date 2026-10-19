@@ -1,7 +1,10 @@
 using JogoDoGrupo.Server.Contratos.Economia;
+using JogoDoGrupo.Server.Contratos.Itens;
 using JogoDoGrupo.Server.Contratos.Mundo;
 using JogoDoGrupo.Server.Contratos.Personagem;
+using JogoDoGrupo.Server.Contratos.Social;
 using JogoDoGrupo.Server.Core;
+using JogoDoGrupo.Server.Core.Persistencia;
 using JogoDoGrupo.Server.Core.TempoReal;
 using JogoDoGrupo.Shared.Features.Economia;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,6 +16,7 @@ public sealed class EconomiaModule : IFeatureModule
     private IServiceScopeFactory? _scopeFactory;
     private ServidorTempoReal? _tempoReal;
     private MercadoDoServidor? _mercado;
+    private BancoGuildaDoServidor? _bancoGuilda;
 
     public string Nome => "Economia";
 
@@ -32,6 +36,23 @@ public sealed class EconomiaModule : IFeatureModule
         servicos.AddScoped<ServicoDeBarracas>();
         servicos.AddSingleton<MercadoDoServidor>();
         servicos.AddHostedService<VarreduraDoMercado>();
+        servicos.AddScoped<ServicoDeBancoGuilda>(sp => new ServicoDeBancoGuilda(
+            sp.GetRequiredService<JogoDbContext>(),
+            sp.GetRequiredService<IConsultaDeGuilda>(),
+            sp.GetRequiredService<ICustodiaDeItens>(),
+            sp.GetRequiredService<ICarteiraCoroas>(),
+            sp.GetRequiredService<IDiretorioDePersonagens>(),
+            id =>
+                sp.GetService<IPosicoesDoMundo>()?.TentarObter(id, out var pos) == true
+                    ? (pos.X, pos.Z)
+                    : null,
+            id =>
+            {
+                if (sp.GetService<ServerContext>() is { } ctx)
+                    ctx.Eventos.Publicar(new CoroasMovimentadas(id));
+            }
+        ));
+        servicos.AddSingleton<BancoGuildaDoServidor>();
         servicos.AddScoped<
             JogoDoGrupo.Server.Contratos.Economia.IAjusteDeCoroasDeTeste,
             AjusteDeCoroasDeTeste
@@ -42,6 +63,7 @@ public sealed class EconomiaModule : IFeatureModule
     {
         _scopeFactory = rotas.ServiceProvider.GetService<IServiceScopeFactory>();
         _mercado = rotas.ServiceProvider.GetRequiredService<MercadoDoServidor>();
+        _bancoGuilda = rotas.ServiceProvider.GetRequiredService<BancoGuildaDoServidor>();
         EconomiaRotas.Mapear(rotas);
     }
 
@@ -91,13 +113,34 @@ public sealed class EconomiaModule : IFeatureModule
                 AoEncerrarVendedorOffline
             )
             .Ao<ConsultarBarraca>(EconomiaMessageIds.ConsultarBarraca, AoConsultarBarraca)
-            .Ao<ComprarDaBarraca>(EconomiaMessageIds.ComprarDaBarraca, AoComprarDaBarraca);
+            .Ao<ComprarDaBarraca>(EconomiaMessageIds.ComprarDaBarraca, AoComprarDaBarraca)
+            .Ao<ConsultarBancoGuilda>(
+                EconomiaMessageIds.ConsultarBancoGuilda,
+                (sessao, pedido) => _bancoGuilda!.AoConsultar(sessao, pedido)
+            )
+            .Ao<DepositarItemBancoGuilda>(
+                EconomiaMessageIds.DepositarItemBancoGuilda,
+                (sessao, pedido) => _bancoGuilda!.AoDepositarItem(sessao, pedido)
+            )
+            .Ao<RetirarItemBancoGuilda>(
+                EconomiaMessageIds.RetirarItemBancoGuilda,
+                (sessao, pedido) => _bancoGuilda!.AoRetirarItem(sessao, pedido)
+            )
+            .Ao<DepositarCoroasBancoGuilda>(
+                EconomiaMessageIds.DepositarCoroasBancoGuilda,
+                (sessao, pedido) => _bancoGuilda!.AoDepositarCoroas(sessao, pedido)
+            )
+            .Ao<RetirarCoroasBancoGuilda>(
+                EconomiaMessageIds.RetirarCoroasBancoGuilda,
+                (sessao, pedido) => _bancoGuilda!.AoRetirarCoroas(sessao, pedido)
+            );
 
     public void Inicializar(ServerContext contexto)
     {
         _tempoReal = contexto.TempoReal;
         contexto.Eventos.Assinar<CoroasMovimentadas>(AoCoroasMovimentadas);
         _mercado!.Ligar(contexto.TempoReal);
+        _bancoGuilda!.Ligar(contexto.TempoReal);
         contexto.TempoReal.SessaoAutenticada += sessao => _mercado.AoAutenticar(sessao);
         contexto.TempoReal.SessaoEncerrada += AoSessaoEncerrada;
     }

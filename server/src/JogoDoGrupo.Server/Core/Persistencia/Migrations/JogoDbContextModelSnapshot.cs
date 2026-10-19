@@ -189,6 +189,44 @@ namespace JogoDoGrupo.Server.Core.Persistencia.Migrations
                     b.ToTable("RecursosPersonagem", (string)null);
                 });
 
+            modelBuilder.Entity("JogoDoGrupo.Server.Features.Economia.ItemBancoGuildaEntidade", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Aba")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Casa")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("DataDepositoUnix")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("DepositadoPorNome")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("EquipamentoJson")
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("GuildaId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ItemId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GuildaId");
+
+                    b.HasIndex("GuildaId", "Aba", "Casa")
+                        .IsUnique();
+
+                    b.ToTable("ItensBancoGuilda", (string)null);
+                });
+
             modelBuilder.Entity("JogoDoGrupo.Server.Features.Economia.OrdemMercado", b =>
                 {
                     b.Property<long>("Id")
@@ -240,6 +278,20 @@ namespace JogoDoGrupo.Server.Core.Persistencia.Migrations
                         {
                             t.HasCheckConstraint("CK_OrdensMercado_PrecoUnitario", "\"PrecoUnitario\" > 0");
                         });
+                });
+
+            modelBuilder.Entity("JogoDoGrupo.Server.Features.Economia.SaldoBancoGuildaEntidade", b =>
+                {
+                    b.Property<long>("GuildaId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("Coroas")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("GuildaId");
+
+                    b.ToTable("SaldosBancoGuilda", (string)null);
                 });
 
             modelBuilder.Entity("JogoDoGrupo.Server.Features.Economia.SaldoCoroas", b =>

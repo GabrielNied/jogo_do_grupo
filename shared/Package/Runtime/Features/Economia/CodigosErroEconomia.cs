@@ -35,5 +35,13 @@ namespace JogoDoGrupo.Shared.Features.Economia
         public const string VendedorOfflineNaoAtivo = "vendedor_offline_nao_ativo";
         public const string DiariaInvalida = "diaria_invalida";
         public const string LongeDaBarraca = "longe_da_barraca";
+
+        // Banco de Guilda (#338)
+        public const string SemGuilda = "sem_guilda";
+        public const string SemPermissaoBancoGuilda = "sem_permissao_banco_guilda";
+        public const string BancoGuildaCheio = "banco_guilda_cheio";
+        public const string ItemNaoEncontradoNoBanco = "item_nao_encontrado_no_banco";
+        public const string CoroasInsuficientesNoBanco = "coroas_insuficientes_no_banco";
+        public const string LongeDoBancoGuilda = "longe_do_banco_guilda";
     }
 }
