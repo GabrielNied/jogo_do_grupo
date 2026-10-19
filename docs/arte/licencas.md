@@ -38,3 +38,13 @@ Configuração, Avatars, clips e retarget: [Character Playground](character-play
 | Poly Haven: Forest Ground 04, Mud Forest, Sand 01, Rock Face 03 (difuso e normal), Snow 02 e Dark Rock | Poly Haven | CC0 | https://polyhaven.com | `client/Assets/ThirdParty/PolyHaven/Resources/Terreno/` | não obrigatório | 2026-10-17 | agente Mundo |
 | game-icons.net, 15 ícones de silhueta (SVG rasterizado em PNG 128 px, branco sobre transparente, um por `TipoEquipamento`): `sbed/helmet`, `lorc/breastplate`, `delapouite/gloves`, `lorc/trousers`, `lorc/boots`, `lucasms/belt`, `delapouite/ring`, `delapouite/earrings`, `lorc/gem-pendant`, `lorc/broadsword`, `delapouite/warhammer`, `delapouite/bow-arrow`, `lorc/wizard-staff`, `sbed/shield`, `lorc/crystal-ball` | game-icons.net | CC-BY 3.0 | https://game-icons.net (repositório https://github.com/game-icons/icons) | `client/Assets/ThirdParty/GameIcons/Resources/Itens/Icones/` | **obrigatório** na tela de créditos: "Ícones de itens: Lorc, Delapouite, sbed e lucasms, game-icons.net, CC BY 3.0" | 2026-10-12 | agente artista-itens |
 | OpenGameArt "Deer Low Poly (rigged)" de crownjoshua (só `Deer.obj`, `Deer.mtl` e `License.txt`; ~40 KB; base do cervo jovem dos Pets, com materiais URP refeitos pelo gerador de editor `GeradorDosPets`) | OpenGameArt (crownjoshua) | CC0 | https://opengameart.org/content/deer-low-poly-rigged | `client/Assets/ThirdParty/OpenGameArt/DeerLowPoly/` | não obrigatório | 2026-10-15 | agente funcionalidade (Pets) |
+
+## Pacotes do mapa autoral autorizados em 2026-10-19
+
+O usuário confirmou origem na Unity Asset Store e autorizou explicitamente a inclusão de
+`3D Haven/Free Fantasy Terrain Textures`, `Rowlan/Terrain` e `TerrainSampleAssets`
+no repositório, como exceção à regra geral de CC0/CC-BY. Esta autorização não os
+reclassifica como CC0 ou CC-BY nem substitui os termos dos respectivos fornecedores.
+As pastas e os GUIDs originais de importação foram preservados para manter as referências
+do terreno. Os recursos `HDRPDefaultResources` foram gerados pelo Unity após a importação.
+Entrega e revisão das configurações gráficas: issue #1111.
