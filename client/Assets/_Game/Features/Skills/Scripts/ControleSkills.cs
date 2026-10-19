@@ -30,11 +30,17 @@ namespace JogoDoGrupo.Client.Features.Skills
         /// <summary>Folga, em metros, entre o topo do alvo e a origem do número de dano.</summary>
         public const float FolgaDoNumero = 0.35f;
 
+        /// <summary>Volume do som de preparo e de cancelamento.</summary>
+        public const float VolumeDoSom = 0.5f;
+
         private const string NomeDoBoneco = "Boneco de treino";
         private const string NomeDoInimigo = "Inimigo ";
 
         private readonly List<IDisposable> _assinaturas = new List<IDisposable>();
         private readonly EstadoDaBarra _estado = new EstadoDaBarra();
+        private readonly EstadoDoPreparo _preparo = new EstadoDoPreparo();
+        private readonly Dictionary<SomDeSkill, AudioClip> _clipes =
+            new Dictionary<SomDeSkill, AudioClip>();
         private readonly Dictionary<long, GameObject> _alvos = new Dictionary<long, GameObject>();
 
         public static ControleSkills Instancia { get; private set; }
@@ -57,6 +63,7 @@ namespace JogoDoGrupo.Client.Features.Skills
         private long _personagemId;
         private PainelSkills _painel;
         private InputAction[] _teclas;
+        private AudioSource _fonte;
         private int _sequencia;
         private double _proximoPedido;
         private double _avisoAte;
@@ -69,6 +76,9 @@ namespace JogoDoGrupo.Client.Features.Skills
         {
             _personagemId = personagemId;
             _painel = painel;
+            _fonte = gameObject.AddComponent<AudioSource>();
+            _fonte.playOnAwake = false;
+            _fonte.spatialBlend = 0f;
 
             var caminhos = new[] { BotaoDoEspaco1, BotaoDoEspaco2, BotaoDoEspaco3 };
             _teclas = new InputAction[ConfigSkills.SkillsPorArma];
@@ -99,6 +109,18 @@ namespace JogoDoGrupo.Client.Features.Skills
             );
             _assinaturas.Add(
                 ConexaoTempoReal.Assinar<SkillRecusada>(SkillsMessageIds.SkillRecusada, AoRecusar)
+            );
+            _assinaturas.Add(
+                ConexaoTempoReal.Assinar<SkillPreparoIniciado>(
+                    SkillsMessageIds.SkillPreparoIniciado,
+                    AoIniciarPreparo
+                )
+            );
+            _assinaturas.Add(
+                ConexaoTempoReal.Assinar<SkillCancelada>(
+                    SkillsMessageIds.SkillCancelada,
+                    AoCancelar
+                )
             );
             _assinaturas.Add(
                 ConexaoTempoReal.Assinar<PoderDisparou>(
@@ -178,9 +200,22 @@ namespace JogoDoGrupo.Client.Features.Skills
             {
                 for (var i = 0; i < _teclas.Length; i++)
                 {
-                    if (_teclas[i].WasPressedThisFrame())
+                    if (!_teclas[i].WasPressedThisFrame())
+                    {
+                        continue;
+                    }
+
+                    if (!_preparo.Ativo)
                     {
                         Pedir(i);
+                    }
+                    else if (i == _preparo.Espaco)
+                    {
+                        // A mesma tecla de novo cancela o preparo; o servidor cobra a parte do custo.
+                        ConexaoTempoReal.Enviar(
+                            SkillsMessageIds.CancelarSkill,
+                            new CancelarSkill()
+                        );
                     }
                 }
             }
@@ -197,7 +232,20 @@ namespace JogoDoGrupo.Client.Features.Skills
                 _painel.EsconderPoder();
             }
 
-            _painel.Mostrar(_estado, agora);
+            if (_preparo.Expirou(agora))
+            {
+                EncerrarPreparo();
+            }
+
+            if (_preparo.Ativo)
+            {
+                _painel.MostrarPreparo(
+                    ApresentacaoSkills.TextoDoPreparo(_preparo.Nome, _preparo.Espaco),
+                    _preparo.Fracao(agora)
+                );
+            }
+
+            _painel.Mostrar(_estado, agora, _preparo.Ativo ? _preparo.Espaco : -1);
             _painel.AtualizarNumeros(Time.unscaledDeltaTime);
         }
 
@@ -240,8 +288,97 @@ namespace JogoDoGrupo.Client.Features.Skills
             BarraMudou?.Invoke(barra);
         }
 
+        private void AoIniciarPreparo(SkillPreparoIniciado preparo)
+        {
+            if (preparo == null)
+            {
+                return;
+            }
+
+            _preparo.Iniciar(
+                preparo.Espaco,
+                preparo.Sequencia,
+                _estado.Skill(preparo.Espaco)?.Nome ?? preparo.Id,
+                preparo.PreparoMs,
+                Time.unscaledTimeAsDouble
+            );
+            Tocar(SomDeSkill.Preparo, preparo.PreparoMs / 1000f);
+        }
+
+        private void AoCancelar(SkillCancelada cancelada)
+        {
+            if (cancelada == null)
+            {
+                return;
+            }
+
+            if (_preparo.Ativo && _preparo.Sequencia == cancelada.Sequencia)
+            {
+                EncerrarPreparo();
+            }
+
+            Tocar(SomDeSkill.Cancelado, 0f);
+            _painel.MostrarAviso(
+                ApresentacaoSkills.TextoDoCancelamento(
+                    cancelada,
+                    CatalogoDeSkills.Obter(cancelada.Id)
+                )
+            );
+            _avisoAte = Time.unscaledTimeAsDouble + DuracaoDoAvisoSegundos;
+        }
+
+        // O preparo acabou (efeito, recusa, cancelamento ou o servidor não avisou): some a barra e o som.
+        private void EncerrarPreparo()
+        {
+            _preparo.Encerrar();
+            _painel.EsconderPreparo();
+            if (_fonte != null)
+            {
+                _fonte.Stop();
+            }
+        }
+
+        private void Tocar(SomDeSkill som, float segundosDoPreparo)
+        {
+            if (_fonte == null)
+            {
+                return;
+            }
+
+            if (som == SomDeSkill.Cancelado)
+            {
+                _fonte.Stop();
+            }
+
+            // O do preparo muda de tamanho com o tempo da skill, então não fica guardado.
+            AudioClip clipe;
+            if (som == SomDeSkill.Preparo || !_clipes.TryGetValue(som, out clipe))
+            {
+                var amostras = SonsDeSkills.Gerar(som, segundosDoPreparo);
+                clipe = AudioClip.Create(
+                    "Skills." + som,
+                    amostras.Length,
+                    1,
+                    SonsDeSkills.TaxaDeAmostragem,
+                    false
+                );
+                clipe.SetData(amostras, 0);
+                if (som != SomDeSkill.Preparo)
+                {
+                    _clipes[som] = clipe;
+                }
+            }
+
+            _fonte.PlayOneShot(clipe, VolumeDoSom);
+        }
+
         private void AoUsar(SkillUsada usada)
         {
+            if (usada != null && _preparo.Ativo && _preparo.Sequencia == usada.Sequencia)
+            {
+                EncerrarPreparo();
+            }
+
             if (usada != null)
             {
                 _estado.Usada(usada.Espaco, usada.RecargaMs, Time.unscaledTimeAsDouble);
@@ -264,6 +401,11 @@ namespace JogoDoGrupo.Client.Features.Skills
             if (recusa == null)
             {
                 return;
+            }
+
+            if (_preparo.Ativo && _preparo.Sequencia == recusa.Sequencia)
+            {
+                EncerrarPreparo();
             }
 
             _painel.MostrarAviso(ApresentacaoSkills.TextoDaRecusa(recusa.Codigo));

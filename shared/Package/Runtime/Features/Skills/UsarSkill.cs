@@ -19,6 +19,14 @@ namespace JogoDoGrupo.Shared.Features.Skills
     }
 
     /// <summary>
+    /// Client cancela o preparo da skill forte em curso. O servidor cobra
+    /// <see cref="ConfigSkills.FracaoDoCustoAoCancelar"/> do custo, uma vez só.
+    /// Id: <see cref="SkillsMessageIds.CancelarSkill"/>.
+    /// </summary>
+    [System.Serializable]
+    public class CancelarSkill { }
+
+    /// <summary>
     /// Client pede a barra atual (ao entrar no mundo). O servidor responde com
     /// <see cref="BarraDeSkillsMudou"/>. Id: <see cref="SkillsMessageIds.PedirBarraDeSkills"/>.
     /// </summary>

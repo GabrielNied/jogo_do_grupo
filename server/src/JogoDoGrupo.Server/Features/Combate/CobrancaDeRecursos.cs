@@ -13,6 +13,32 @@ namespace JogoDoGrupo.Server.Features.Combate;
 internal sealed class CobrancaDeRecursos(RecursosEmMemoria recursos, TimeProvider relogio)
     : ICobrancaDeRecursos
 {
+    public async Task<ResultadoDaCobranca> PodeCobrarAsync(
+        long personagemId,
+        RecursoCobravel recurso,
+        int custo,
+        CancellationToken cancelamento
+    )
+    {
+        var resultado = ResultadoDaCobranca.Cobrado;
+        await recursos.AtualizarAsync(
+            personagemId,
+            (r, _) =>
+            {
+                if (r.Vida <= 0)
+                {
+                    resultado = ResultadoDaCobranca.Caido;
+                }
+                else if ((recurso == RecursoCobravel.Mana ? r.Mana : r.Stamina) < custo)
+                {
+                    resultado = ResultadoDaCobranca.Insuficiente;
+                }
+            },
+            cancelamento
+        );
+        return resultado;
+    }
+
     public async Task<(ResultadoDaCobranca Resultado, RecursosMudaram? Recursos)> TentarCobrarAsync(
         long personagemId,
         RecursoCobravel recurso,

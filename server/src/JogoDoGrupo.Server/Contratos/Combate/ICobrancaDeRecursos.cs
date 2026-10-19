@@ -40,4 +40,16 @@ public interface ICobrancaDeRecursos
         int custo,
         CancellationToken cancelamento
     );
+
+    /// <summary>
+    /// Confere sem cobrar se <paramref name="custo"/> cabe no recurso agora (preparo de skill forte:
+    /// recusa cedo; a cobrança só vem ao concluir ou cancelar). Devolve <see cref="ResultadoDaCobranca.Cobrado"/>
+    /// se cabe, sem descontar nada.
+    /// </summary>
+    Task<ResultadoDaCobranca> PodeCobrarAsync(
+        long personagemId,
+        RecursoCobravel recurso,
+        int custo,
+        CancellationToken cancelamento
+    );
 }

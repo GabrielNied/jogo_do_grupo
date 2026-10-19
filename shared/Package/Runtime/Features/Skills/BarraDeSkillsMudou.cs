@@ -11,6 +11,9 @@ namespace JogoDoGrupo.Shared.Features.Skills
         public int Custo = 0;
         public int RecargaMs = 0;
 
+        /// <summary>Preparo em ms (0 se instantânea); skill com preparo pode ser cancelada.</summary>
+        public int PreparoMs = 0;
+
         /// <summary>Quanto falta da recarga, em ms (0 se pronta). O client conta a partir daqui.</summary>
         public int RestanteMs = 0;
     }

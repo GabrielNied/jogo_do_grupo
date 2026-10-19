@@ -64,45 +64,101 @@ public sealed class ServicoDeSkills : IHostedService, IDisposable
             async () =>
             {
                 var resultado = await _nucleo.UsarAsync(sessao.PersonagemId, pedido, _parada.Token);
-                if (resultado.Recusa != null)
+                await EntregarAsync(sessao, resultado);
+                if (resultado.Preparo != null)
                 {
-                    _tempoReal.Enviar(
+                    _ = ExecutarAsync(
                         sessao,
-                        SkillsMessageIds.SkillRecusada,
-                        new SkillRecusada
-                        {
-                            Sequencia = pedido.Sequencia,
-                            Espaco = pedido.Espaco,
-                            Codigo = resultado.Recusa,
-                        }
+                        () => ConcluirDepoisDoPreparoAsync(sessao, resultado.Preparo)
                     );
-                    return;
-                }
-
-                if (resultado.Recursos != null)
-                {
-                    // A mensagem é de Combate: as barras de vida, stamina e mana dele a mostram.
-                    _tempoReal.Enviar(
-                        sessao,
-                        CombateMessageIds.RecursosMudaram,
-                        resultado.Recursos
-                    );
-                }
-
-                _tempoReal.Enviar(sessao, SkillsMessageIds.SkillUsada, resultado.Usada);
-                if (resultado.Acertos is { Acertos.Length: > 0 })
-                {
-                    EnviarParaArea(resultado.Area, sessao.PersonagemId, resultado.Acertos);
-                }
-
-                EnviarAvisos(sessao, resultado.Poderes);
-                if (resultado.BarraMudou)
-                {
-                    // Um poder tirou recarga de outra skill: o dono recebe os tempos novos.
-                    await EnviarBarraAsync(sessao);
                 }
             }
         );
+
+    /// <summary>Trata um <c>CancelarSkill</c> (laço de rede).</summary>
+    public void AoCancelar(SessaoTempoReal sessao) =>
+        _ = ExecutarAsync(
+            sessao,
+            async () =>
+            {
+                var resultado = await _nucleo.CancelarPreparoAsync(
+                    sessao.PersonagemId,
+                    _parada.Token
+                );
+                if (resultado != null)
+                {
+                    await EntregarAsync(sessao, resultado);
+                }
+            }
+        );
+
+    // O preparo acaba no relógio do servidor; cancelar antes tira o preparo do núcleo e o fim vira nada.
+    private async Task ConcluirDepoisDoPreparoAsync(
+        SessaoTempoReal sessao,
+        SkillPreparoIniciado preparo
+    )
+    {
+        await Task.Delay(preparo.PreparoMs, _parada.Token);
+        var resultado = await _nucleo.ConcluirPreparoAsync(
+            sessao.PersonagemId,
+            preparo.Sequencia,
+            _parada.Token
+        );
+        if (resultado != null)
+        {
+            await EntregarAsync(sessao, resultado);
+        }
+    }
+
+    // Manda ao dono (e à área) o que o núcleo decidiu: recusa, preparo, cancelamento ou uso.
+    private async Task EntregarAsync(SessaoTempoReal sessao, ResultadoDoUso resultado)
+    {
+        if (resultado.Recusa != null)
+        {
+            _tempoReal.Enviar(
+                sessao,
+                SkillsMessageIds.SkillRecusada,
+                new SkillRecusada
+                {
+                    Sequencia = resultado.Sequencia,
+                    Espaco = resultado.Espaco,
+                    Codigo = resultado.Recusa,
+                }
+            );
+            return;
+        }
+
+        if (resultado.Preparo != null)
+        {
+            _tempoReal.Enviar(sessao, SkillsMessageIds.SkillPreparoIniciado, resultado.Preparo);
+            return;
+        }
+
+        if (resultado.Recursos != null)
+        {
+            // A mensagem é de Combate: as barras de vida, stamina e mana dele a mostram.
+            _tempoReal.Enviar(sessao, CombateMessageIds.RecursosMudaram, resultado.Recursos);
+        }
+
+        if (resultado.Cancelada != null)
+        {
+            _tempoReal.Enviar(sessao, SkillsMessageIds.SkillCancelada, resultado.Cancelada);
+            return;
+        }
+
+        _tempoReal.Enviar(sessao, SkillsMessageIds.SkillUsada, resultado.Usada);
+        if (resultado.Acertos is { Acertos.Length: > 0 })
+        {
+            EnviarParaArea(resultado.Area, sessao.PersonagemId, resultado.Acertos);
+        }
+
+        EnviarAvisos(sessao, resultado.Poderes);
+        if (resultado.BarraMudou)
+        {
+            // Um poder tirou recarga de outra skill: o dono recebe os tempos novos.
+            await EnviarBarraAsync(sessao);
+        }
+    }
 
     /// <summary>Trata um <c>PedirBarraDeSkills</c> (laço de rede).</summary>
     public void AoPedirBarra(SessaoTempoReal sessao) =>

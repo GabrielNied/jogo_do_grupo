@@ -27,5 +27,14 @@ namespace JogoDoGrupo.Shared.Features.Skills
 
         /// <summary>Servidor → dono: um poder lendário ou bônus de set disparou na skill.</summary>
         public const ushort PoderDisparou = 4006;
+
+        /// <summary>Servidor → dono: o preparo de uma skill forte começou (nada foi cobrado ainda).</summary>
+        public const ushort SkillPreparoIniciado = 4007;
+
+        /// <summary>Client → servidor: cancela o preparo em curso (custa parte do recurso).</summary>
+        public const ushort CancelarSkill = 4008;
+
+        /// <summary>Servidor → dono: o preparo foi cancelado e o custo do cancelamento cobrado.</summary>
+        public const ushort SkillCancelada = 4009;
     }
 }

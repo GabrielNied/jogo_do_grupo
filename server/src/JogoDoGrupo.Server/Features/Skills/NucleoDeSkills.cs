@@ -19,7 +19,20 @@ public sealed record ResultadoDoUso(
     SkillAcertou? Acertos = null,
     string Area = "",
     IReadOnlyList<PoderDisparou>? Poderes = null,
-    bool BarraMudou = false
+    bool BarraMudou = false,
+    SkillPreparoIniciado? Preparo = null,
+    SkillCancelada? Cancelada = null,
+    int Espaco = 0,
+    int Sequencia = 0
+);
+
+/// <summary>O preparo de skill forte em curso de um personagem (nada cobrado ainda).</summary>
+internal sealed record PreparoEmCurso(
+    long ArmaId,
+    int Espaco,
+    string SkillId,
+    int Sequencia,
+    float DirecaoY
 );
 
 /// <summary>
@@ -44,6 +57,9 @@ public sealed class NucleoDeSkills
     // Fim da recarga (ms) por (exemplar da arma, espaço).
     private readonly ConcurrentDictionary<(long Arma, int Espaco), long> _recargas = new();
     private readonly ConcurrentDictionary<long, SemaphoreSlim> _travas = new();
+
+    // Um preparo por personagem; só muda sob a trava dele, então concluir e cancelar nunca valem os dois.
+    private readonly ConcurrentDictionary<long, PreparoEmCurso> _preparos = new();
 
     public NucleoDeSkills(
         IArmaEquipada armas,
@@ -97,6 +113,7 @@ public sealed class NucleoDeSkills
                     Recurso = definicao.Recurso,
                     Custo = definicao.Custo,
                     RecargaMs = definicao.RecargaMs,
+                    PreparoMs = definicao.PreparoMs,
                     RestanteMs = RestanteMs(equipada.InstanciaId, espaco, agora),
                 }
             );
@@ -125,7 +142,134 @@ public sealed class NucleoDeSkills
     }
 
     /// <summary>Esquece o que é só do personagem na memória (a recarga é da arma e fica).</summary>
-    public void Esquecer(long personagemId) => _travas.TryRemove(personagemId, out _);
+    public void Esquecer(long personagemId)
+    {
+        _travas.TryRemove(personagemId, out _);
+        _preparos.TryRemove(personagemId, out _);
+    }
+
+    /// <summary>Se o personagem está no preparo de uma skill forte.</summary>
+    public bool EmPreparo(long personagemId) => _preparos.ContainsKey(personagemId);
+
+    /// <summary>
+    /// O fim do preparo (o temporizador do serviço chama): cobra o custo inteiro uma vez e aplica a
+    /// skill. Devolve <c>null</c> se o preparo já não existe (foi cancelado) ou é de outro pedido.
+    /// Com a arma trocada, vira cancelamento sem cobrança.
+    /// </summary>
+    public async Task<ResultadoDoUso?> ConcluirPreparoAsync(
+        long personagemId,
+        int sequencia,
+        CancellationToken c
+    )
+    {
+        var trava = _travas.GetOrAdd(personagemId, _ => new SemaphoreSlim(1, 1));
+        await trava.WaitAsync(c);
+        try
+        {
+            if (
+                !_preparos.TryGetValue(personagemId, out var preparo)
+                || preparo.Sequencia != sequencia
+            )
+            {
+                return null;
+            }
+
+            _preparos.TryRemove(personagemId, out _);
+            var skill = CatalogoDeSkills.Obter(preparo.SkillId);
+            var arma = await _armas.ObterAsync(personagemId, c);
+            if (
+                skill == null
+                || arma is not { } equipada
+                || equipada.InstanciaId != preparo.ArmaId
+                || !_posicoes.TentarObter(personagemId, out var posicao)
+            )
+            {
+                return Cancelado(preparo, 0, null);
+            }
+
+            return await ExecutarAsync(
+                personagemId,
+                equipada,
+                await _armazem.ObterOuSortearAsync(equipada, c),
+                skill,
+                preparo.Espaco,
+                preparo.Sequencia,
+                preparo.DirecaoY,
+                posicao,
+                c
+            );
+        }
+        finally
+        {
+            trava.Release();
+        }
+    }
+
+    /// <summary>
+    /// Cancela o preparo em curso e cobra <see cref="RegrasSkills.CustoAoCancelar"/> (50% do custo),
+    /// sem dano e sem recarga. Sem recurso para o cancelamento, cancela sem cobrar. Devolve
+    /// <c>null</c> se não há preparo (já concluiu ou nunca houve).
+    /// </summary>
+    public async Task<ResultadoDoUso?> CancelarPreparoAsync(long personagemId, CancellationToken c)
+    {
+        var trava = _travas.GetOrAdd(personagemId, _ => new SemaphoreSlim(1, 1));
+        await trava.WaitAsync(c);
+        try
+        {
+            if (!_preparos.TryRemove(personagemId, out var preparo))
+            {
+                return null;
+            }
+
+            var skill = CatalogoDeSkills.Obter(preparo.SkillId);
+            if (skill == null)
+            {
+                return Cancelado(preparo, 0, null);
+            }
+
+            var custo = RegrasSkills.CustoAoCancelar(skill.Custo);
+            var (resultado, recursos) = await _cobranca.TentarCobrarAsync(
+                personagemId,
+                RecursoDa(skill),
+                custo,
+                c
+            );
+            return resultado == ResultadoDaCobranca.Cobrado
+                ? Cancelado(preparo, custo, recursos)
+                : Cancelado(preparo, 0, null);
+        }
+        finally
+        {
+            trava.Release();
+        }
+    }
+
+    private static RecursoCobravel RecursoDa(DefinicaoDeSkill skill) =>
+        skill.Recurso == RecursoDeSkill.Mana ? RecursoCobravel.Mana : RecursoCobravel.Stamina;
+
+    private static ResultadoDoUso Cancelado(
+        PreparoEmCurso preparo,
+        int custo,
+        RecursosMudaram? recursos
+    ) =>
+        new(
+            null,
+            Recursos: recursos,
+            Cancelada: new SkillCancelada
+            {
+                Espaco = preparo.Espaco,
+                Id = preparo.SkillId,
+                Sequencia = preparo.Sequencia,
+                CustoCobrado = custo,
+            },
+            Espaco: preparo.Espaco,
+            Sequencia: preparo.Sequencia
+        );
+
+    private static string CodigoDaCobranca(ResultadoDaCobranca resultado) =>
+        resultado == ResultadoDaCobranca.Caido
+            ? CodigosErroSkills.VoceEstaCaido
+            : CodigosErroSkills.RecursoInsuficiente;
 
     private async Task<ResultadoDoUso> UsarSobTravaAsync(
         long personagemId,
@@ -140,6 +284,12 @@ public sealed class NucleoDeSkills
 
         // Nos 0,4 s da troca de arma não sai skill, como golpe, esquiva e guarda.
         if (_troca?.EmTroca(personagemId) == true)
+        {
+            return Recusar(CodigosErroSkills.AcaoEmAndamento);
+        }
+
+        // Um preparo por vez: até acabar ou ser cancelado, nenhuma outra skill sai.
+        if (_preparos.ContainsKey(personagemId))
         {
             return Recusar(CodigosErroSkills.AcaoEmAndamento);
         }
@@ -168,22 +318,86 @@ public sealed class NucleoDeSkills
             return Recusar(CodigosErroSkills.EmRecarga);
         }
 
+        if (skill.PreparoMs > 0)
+        {
+            // Skill forte: só confere o recurso agora; a cobrança vem ao concluir ou cancelar.
+            var cabe = await _cobranca.PodeCobrarAsync(
+                personagemId,
+                RecursoDa(skill),
+                skill.Custo,
+                c
+            );
+            if (cabe != ResultadoDaCobranca.Cobrado)
+            {
+                return Recusar(CodigoDaCobranca(cabe));
+            }
+
+            _preparos[personagemId] = new PreparoEmCurso(
+                equipada.InstanciaId,
+                pedido.Espaco,
+                skill.Id,
+                pedido.Sequencia,
+                pedido.DirecaoY
+            );
+            return new ResultadoDoUso(
+                null,
+                Preparo: new SkillPreparoIniciado
+                {
+                    Espaco = pedido.Espaco,
+                    Id = skill.Id,
+                    Sequencia = pedido.Sequencia,
+                    PreparoMs = skill.PreparoMs,
+                },
+                Espaco: pedido.Espaco,
+                Sequencia: pedido.Sequencia
+            );
+        }
+
+        return await ExecutarAsync(
+            personagemId,
+            equipada,
+            ids,
+            skill,
+            pedido.Espaco,
+            pedido.Sequencia,
+            pedido.DirecaoY,
+            posicao,
+            c
+        );
+
+        ResultadoDoUso Recusar(string codigo) =>
+            new(codigo, Espaco: pedido.Espaco, Sequencia: pedido.Sequencia);
+    }
+
+    // Cobra o custo inteiro, começa a recarga e aplica a skill (uso instantâneo ou fim do preparo).
+    private async Task<ResultadoDoUso> ExecutarAsync(
+        long personagemId,
+        ArmaEquipada equipada,
+        IReadOnlyList<string> ids,
+        DefinicaoDeSkill skill,
+        int espaco,
+        int sequencia,
+        float direcaoY,
+        PosicaoNoMundo posicao,
+        CancellationToken c
+    )
+    {
         var (resultado, recursos) = await _cobranca.TentarCobrarAsync(
             personagemId,
-            skill.Recurso == RecursoDeSkill.Mana ? RecursoCobravel.Mana : RecursoCobravel.Stamina,
+            RecursoDa(skill),
             skill.Custo,
             c
         );
         if (resultado != ResultadoDaCobranca.Cobrado)
         {
-            return Recusar(
-                resultado == ResultadoDaCobranca.Caido
-                    ? CodigosErroSkills.VoceEstaCaido
-                    : CodigosErroSkills.RecursoInsuficiente
+            return new ResultadoDoUso(
+                CodigoDaCobranca(resultado),
+                Espaco: espaco,
+                Sequencia: sequencia
             );
         }
 
-        _recargas[(equipada.InstanciaId, pedido.Espaco)] = _agoraMs() + skill.RecargaMs;
+        _recargas[(equipada.InstanciaId, espaco)] = _agoraMs() + skill.RecargaMs;
 
         // Os poderes de equipamento mexem na skill depois do custo cobrado: o dano extra vem das
         // cargas gastas agora e as marcas e reduções vêm do que a skill acertou.
@@ -197,7 +411,7 @@ public sealed class NucleoDeSkills
         var acertos = await AplicarDanoAsync(
             personagemId,
             skill,
-            pedido,
+            direcaoY,
             posicao,
             uso.MultiplicadorDoDano,
             c
@@ -208,16 +422,16 @@ public sealed class NucleoDeSkills
             var alvos = acertos.Select(a => a.AlvoId).ToArray();
             var acerto = await _poderes.AoAcertarComSkillAsync(personagemId, skill, alvos, c);
             avisos.AddRange(acerto.Avisos);
-            barraMudou = ReduzirRecargas(equipada.InstanciaId, ids, pedido.Espaco, acerto.Reducoes);
+            barraMudou = ReduzirRecargas(equipada.InstanciaId, ids, espaco, acerto.Reducoes);
         }
 
         return new ResultadoDoUso(
             null,
             new SkillUsada
             {
-                Espaco = pedido.Espaco,
+                Espaco = espaco,
                 Id = skill.Id,
-                Sequencia = pedido.Sequencia,
+                Sequencia = sequencia,
                 RecargaMs = skill.RecargaMs,
             },
             recursos,
@@ -226,15 +440,15 @@ public sealed class NucleoDeSkills
                 AtacanteId = personagemId,
                 Id = skill.Id,
                 Nome = skill.Nome,
-                Sequencia = pedido.Sequencia,
+                Sequencia = sequencia,
                 Acertos = acertos,
             },
             posicao.Area,
             avisos,
-            barraMudou
+            barraMudou,
+            Espaco: espaco,
+            Sequencia: sequencia
         );
-
-        ResultadoDoUso Recusar(string codigo) => new(codigo);
     }
 
     // O volume é o cone do golpe básico (cada dono de alvo o mede); o mesmo alvo leva a skill
@@ -242,7 +456,7 @@ public sealed class NucleoDeSkills
     private async Task<AcertoDeAtaque[]> AplicarDanoAsync(
         long personagemId,
         DefinicaoDeSkill skill,
-        UsarSkill pedido,
+        float direcaoY,
         PosicaoNoMundo posicao,
         double multiplicadorDosPoderes,
         CancellationToken c
@@ -262,9 +476,7 @@ public sealed class NucleoDeSkills
         var acertos = new List<AcertoDeAtaque>();
         foreach (var fonte in _alvos)
         {
-            foreach (
-                var alvo in fonte.AlvosNoVolume(posicao.Area, posicao.X, posicao.Z, pedido.DirecaoY)
-            )
+            foreach (var alvo in fonte.AlvosNoVolume(posicao.Area, posicao.X, posicao.Z, direcaoY))
             {
                 if (
                     alvo.PersonagemId == 0
