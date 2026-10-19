@@ -1,3 +1,4 @@
+using JogoDoGrupo.Shared.Features.Mundo;
 using JogoDoGrupo.Shared.Features.Pets;
 
 namespace JogoDoGrupo.Shared.Tests.Features.Pets;
@@ -181,5 +182,23 @@ public class RegrasPetsTestes
         Assert.Equal("SaldoInsuficiente", CodigosErroPets.SaldoInsuficiente);
         Assert.Equal("LongeDoNpc", CodigosErroPets.LongeDoNpc);
         Assert.Equal("PetNaoAVenda", CodigosErroPets.PetNaoAVenda);
+    }
+
+    [Fact]
+    public void Altura_do_pet_acompanha_o_chao_quando_o_dono_esta_no_chao()
+    {
+        var chaoDoDono = MapaDoMundo.AlturaEm(-101f, 134f);
+        var altura = RegrasPets.AlturaDoPet(-103f, 134f, -101f, 134f, chaoDoDono);
+
+        Assert.Equal(MapaDoMundo.AlturaEm(-103f, 134f), altura);
+    }
+
+    [Fact]
+    public void Altura_do_pet_usa_a_do_dono_quando_ele_esta_fora_do_chao()
+    {
+        var chaoDoDono = MapaDoMundo.AlturaEm(-101f, 134f);
+        var noAlto = chaoDoDono + ConfigPets.ToleranciaDoChaoMetros + 5f;
+
+        Assert.Equal(noAlto, RegrasPets.AlturaDoPet(-103f, 134f, -101f, 134f, noAlto));
     }
 }
