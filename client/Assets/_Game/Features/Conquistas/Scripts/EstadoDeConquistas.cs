@@ -62,7 +62,7 @@ namespace JogoDoGrupo.Client.Features.Conquistas
             ConexaoTempoReal.Enviar(
                 ConquistasMessageIds.ConsultarConquistas,
                 new ConsultarConquistas(),
-                EntregaTempoReal.Conviavel
+                EntregaTempoReal.Confiavel
             );
         }
 
@@ -72,7 +72,7 @@ namespace JogoDoGrupo.Client.Features.Conquistas
             ConexaoTempoReal.Enviar(
                 ConquistasMessageIds.EquiparTitulo,
                 new EquiparTitulo { Titulo = titulo ?? "" },
-                EntregaTempoReal.Conviavel
+                EntregaTempoReal.Confiavel
             );
         }
 

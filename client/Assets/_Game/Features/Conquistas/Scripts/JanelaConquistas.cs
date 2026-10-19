@@ -85,13 +85,13 @@ namespace JogoDoGrupo.Client.Features.Conquistas
             if (dados == null)
             {
                 var carregando = new Label("Carregando conquistas...");
-                carregando.AddToClassList(EstiloCore.TextoSecundario);
+                carregando.AddToClassList(EstiloCore.Texto);
                 _corpo.Add(carregando);
                 return;
             }
 
             var cabecalho = new VisualElement();
-            cabecalho.AddToClassList(EstiloCore.Linha);
+            cabecalho.AddToClassList(EstiloCore.LinhaLista);
 
             var pontos = new Label($"Pontos de Conquista: {dados.PontosTotais}");
             pontos.AddToClassList(EstiloCore.Titulo);
@@ -101,7 +101,7 @@ namespace JogoDoGrupo.Client.Features.Conquistas
                 ? "Nenhum"
                 : dados.TituloAtivo;
             var rotuloTitulo = new Label($"Título Ativo: {tituloTexto}");
-            rotuloTitulo.AddToClassList(EstiloCore.TextoSecundario);
+            rotuloTitulo.AddToClassList(EstiloCore.Texto);
             cabecalho.Add(rotuloTitulo);
 
             _corpo.Add(cabecalho);
@@ -109,7 +109,7 @@ namespace JogoDoGrupo.Client.Features.Conquistas
             if (dados.TitulosDesbloqueados != null && dados.TitulosDesbloqueados.Length > 0)
             {
                 var secaoTitulos = new VisualElement();
-                secaoTitulos.AddToClassList(EstiloCore.Linha);
+                secaoTitulos.AddToClassList(EstiloCore.LinhaLista);
 
                 var tituloSecao = new Label("Títulos Disponíveis:");
                 tituloSecao.AddToClassList(EstiloCore.Subtitulo);
@@ -141,7 +141,7 @@ namespace JogoDoGrupo.Client.Features.Conquistas
             }
 
             var scroll = new ScrollView();
-            scroll.AddToClassList(EstiloCore.ConteudoRolavel);
+            scroll.AddToClassList(EstiloCore.Lista);
 
             var progressosPorId = new System.Collections.Generic.Dictionary<
                 int,
@@ -158,7 +158,7 @@ namespace JogoDoGrupo.Client.Features.Conquistas
             foreach (var def in CatalogoDeConquistas.Todas)
             {
                 var card = new VisualElement();
-                card.AddToClassList(EstiloCore.Linha);
+                card.AddToClassList(EstiloCore.LinhaLista);
 
                 var concluida = progressosPorId.TryGetValue(def.Id, out var p) && p.Concluida;
                 var progressoAtual = p != null ? p.ProgressoAtual : 0;
@@ -169,17 +169,17 @@ namespace JogoDoGrupo.Client.Features.Conquistas
                 card.Add(nome);
 
                 var desc = new Label(def.Descricao);
-                desc.AddToClassList(EstiloCore.TextoSecundario);
+                desc.AddToClassList(EstiloCore.Texto);
                 card.Add(desc);
 
                 var status = new Label($"Progresso: {progressoAtual}/{def.Meta}");
-                status.AddToClassList(EstiloCore.TextoSecundario);
+                status.AddToClassList(EstiloCore.Texto);
                 card.Add(status);
 
                 if (!string.IsNullOrEmpty(def.TituloRecompensa))
                 {
                     var recompensa = new Label($"Recompensa: título \"{def.TituloRecompensa}\"");
-                    recompensa.AddToClassList(EstiloCore.TextoDestaque);
+                    recompensa.AddToClassList(EstiloCore.TextoGanho);
                     card.Add(recompensa);
                 }
 
