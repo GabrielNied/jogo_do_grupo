@@ -82,13 +82,12 @@ namespace JogoDoGrupo.Shared.Features.Mundo
             new[] { -218f, 3f, 1.5f, 6.0f, 3.4f },
         };
 
-        private static readonly float _entradaY = MapaDoMundo.AlturaEm(EntradaX, EntradaZ);
+        /// <summary>Altura do chão do mundo na boca.</summary>
+        public static float EntradaY => MapaDoMundo.AlturaEm(EntradaX, EntradaZ);
+        private static float _entradaY => EntradaY;
         private static readonly Curva _percurso = new Curva(NosDoPercurso);
         private static readonly Curva _beco = new Curva(NosDoBeco);
         private static readonly float[] _limites = CalcularLimites();
-
-        /// <summary>Altura do chão do mundo na boca.</summary>
-        public static float EntradaY => _entradaY;
 
         /// <summary>
         /// Quanto o morro soma ao relevo em (<paramref name="x"/>, <paramref name="z"/>), em

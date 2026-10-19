@@ -123,7 +123,7 @@ public static class PontosDeSpawnDoCampo
             PeriodoDeAparicao.Noite
         ),
         Ponto(13, "campo-leste-meio", 95, 255, CatalogoCriaturas.TatuRochoso, 4, 5, 2, 3),
-        Ponto(3, "campo-norte-longe", 0, 330, CatalogoCriaturas.JavaliDoCampo, 6, 8, 3, 5),
+        Ponto(3, "campo-norte-longe", -20, 330, CatalogoCriaturas.JavaliDoCampo, 6, 8, 3, 5),
         Ponto(4, "campo-leste-longe", 200, 300, CatalogoCriaturas.LoboDoCampo, 8, 10, 2, 4),
         Ponto(5, "campo-oeste-longe", -220, 280, CatalogoCriaturas.TatuRochoso, 7, 9, 2, 3),
         Ponto(

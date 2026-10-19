@@ -1,10 +1,21 @@
+using System;
 using JogoDoGrupo.Shared.Features.Instancias;
 using JogoDoGrupo.Shared.Features.Mundo;
 
 namespace JogoDoGrupo.Shared.Tests.Features.Instancias;
 
-public sealed class LayoutDaMinaDoReflexoTestes
+public sealed class LayoutDaMinaDoReflexoTestes : IDisposable
 {
+    public LayoutDaMinaDoReflexoTestes()
+    {
+        DadosDoMapaFeitoAMao.DesativadoEmTestes = true;
+    }
+
+    public void Dispose()
+    {
+        DadosDoMapaFeitoAMao.DesativadoEmTestes = false;
+    }
+
     [Fact]
     public void Entrada_fica_na_colina_oeste_a_uns_200_m_da_cidade()
     {

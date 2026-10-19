@@ -1,9 +1,23 @@
+using System;
 using JogoDoGrupo.Shared.Features.Mundo;
+using Xunit;
+
+[assembly: CollectionBehavior(DisableTestParallelization = true)]
 
 namespace JogoDoGrupo.Shared.Tests.Features.Mundo;
 
-public class MapaDoMundoTestes
+public class MapaDoMundoTestes : IDisposable
 {
+    public MapaDoMundoTestes()
+    {
+        DadosDoMapaFeitoAMao.DesativadoEmTestes = true;
+    }
+
+    public void Dispose()
+    {
+        DadosDoMapaFeitoAMao.DesativadoEmTestes = false;
+    }
+
     [Theory]
     [InlineData(28.13f)]
     [InlineData(-200f)]

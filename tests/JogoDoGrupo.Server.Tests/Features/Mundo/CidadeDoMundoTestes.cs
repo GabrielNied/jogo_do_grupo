@@ -34,7 +34,7 @@ public class CidadeDoMundoTestes
         var a = new Conexao();
         cidade.Entrar(1, a);
         _agora += 1000;
-        cidade.Mover(1, a, new(3f, 0, -24f, 0));
+        cidade.Mover(1, a, new(3f, ValidadorDeMovimento.Nascimento.Y, -24f, 0));
 
         var (novo, eu, _) = cidade.Entrar(1, a);
 
@@ -49,13 +49,14 @@ public class CidadeDoMundoTestes
         var a = new Conexao();
         cidade.Entrar(1, a);
 
+        var y = ValidadorDeMovimento.Nascimento.Y;
         _agora += 1000;
-        var (ok, av) = cidade.Mover(1, a, new(4f, 0, -24f, 1f));
+        var (ok, av) = cidade.Mover(1, a, new(4f, y, -24f, 1f));
         Assert.Equal(ResultadoMovimento.Aceito, ok);
         Assert.Equal(4f, av!.Posicao.X);
 
         _agora += 100;
-        var (aceito, andou) = cidade.Mover(1, a, new(40f, 0, -24f, 0));
+        var (aceito, andou) = cidade.Mover(1, a, new(40f, y, -24f, 0));
         Assert.Equal(ResultadoMovimento.AceitoComSuspeita, aceito);
         Assert.Equal(40f, andou!.Posicao.X);
         Assert.Null(cidade.PosicaoForcadaPendente(1));

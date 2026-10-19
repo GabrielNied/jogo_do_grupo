@@ -5,7 +5,7 @@ namespace JogoDoGrupo.Server.Tests.Features.Mundo;
 
 public class ValidadorDeMovimentoTestes
 {
-    private static readonly PosicaoNaCidade Origem = new(0, 0, 0, 0);
+    private static readonly PosicaoNaCidade Origem = ValidadorDeMovimento.Nascimento;
 
     [Fact]
     public void Nasce_no_ponto_publicado_compartilhado()
@@ -23,23 +23,41 @@ public class ValidadorDeMovimentoTestes
 
     [Fact]
     public void Correr_e_permitido() =>
-        Assert.True(ValidadorDeMovimento.Permitido(Origem, new(5f, 0, 0, 90), 1000));
+        Assert.True(
+            ValidadorDeMovimento.Permitido(
+                Origem,
+                Origem with
+                {
+                    X = Origem.X + 5f,
+                    RotacaoY = 90,
+                },
+                1000
+            )
+        );
 
     [Fact]
     public void Deslocamento_alem_de_correr_e_recusado() =>
-        Assert.False(ValidadorDeMovimento.Permitido(Origem, new(20f, 0, 0, 0), 1000));
+        Assert.False(
+            ValidadorDeMovimento.Permitido(Origem, Origem with { X = Origem.X + 20f }, 1000)
+        );
 
     [Fact]
     public void Teletransporte_logo_apos_o_ultimo_passo_e_recusado() =>
-        Assert.False(ValidadorDeMovimento.Permitido(Origem, new(10f, 0, 0, 0), 50));
+        Assert.False(
+            ValidadorDeMovimento.Permitido(Origem, Origem with { X = Origem.X + 10f }, 50)
+        );
 
     [Fact]
     public void Tempo_parado_nao_acumula_alem_do_limite() =>
-        Assert.False(ValidadorDeMovimento.Permitido(Origem, new(30f, 0, 0, 0), 60_000));
+        Assert.False(
+            ValidadorDeMovimento.Permitido(Origem, Origem with { X = Origem.X + 30f }, 60_000)
+        );
 
     [Fact]
     public void Altura_nao_conta_no_deslocamento() =>
-        Assert.True(ValidadorDeMovimento.Permitido(Origem, new(0, 10f, 0, 0), 100));
+        Assert.True(
+            ValidadorDeMovimento.Permitido(Origem, Origem with { Y = Origem.Y + 10f }, 100)
+        );
 
     [Theory]
     [InlineData(float.NaN, 0, 0, 0)]
@@ -49,8 +67,8 @@ public class ValidadorDeMovimentoTestes
     [InlineData(1501f, 0, 0, 0)]
     [InlineData(0, 0, -1501f, 0)]
     [InlineData(0, -6f, 0, 0)]
-    [InlineData(0, 91f, 0, 0)]
-    [InlineData(0, 400f, 0, 0)]
+    [InlineData(0, 130f, -24f, 0)]
+    [InlineData(0, 500f, 0, 0)]
     public void Valores_invalidos_ou_fora_do_terreno_sao_recusados(
         float x,
         float y,
@@ -146,5 +164,7 @@ public class ValidadorDeMovimentoTestes
 
     [Fact]
     public void Tempo_negativo_nao_da_folga_extra() =>
-        Assert.False(ValidadorDeMovimento.Permitido(Origem, new(2f, 0, 0, 0), -1000));
+        Assert.False(
+            ValidadorDeMovimento.Permitido(Origem, Origem with { X = Origem.X + 2f }, -1000)
+        );
 }

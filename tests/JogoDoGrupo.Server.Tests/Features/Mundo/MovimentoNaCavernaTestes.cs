@@ -3,8 +3,18 @@ using JogoDoGrupo.Shared.Features.Mundo;
 
 namespace JogoDoGrupo.Server.Tests.Features.Mundo;
 
-public class MovimentoNaCavernaTestes
+public class MovimentoNaCavernaTestes : IDisposable
 {
+    public MovimentoNaCavernaTestes()
+    {
+        DadosDoMapaFeitoAMao.DesativadoEmTestes = true;
+    }
+
+    public void Dispose()
+    {
+        DadosDoMapaFeitoAMao.DesativadoEmTestes = false;
+    }
+
     private const float PassoDoTeste = 3f;
 
     private static PosicaoNaCidade NoPercurso(float distancia)

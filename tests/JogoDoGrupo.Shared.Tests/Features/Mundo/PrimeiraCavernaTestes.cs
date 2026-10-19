@@ -1,9 +1,20 @@
+using System;
 using JogoDoGrupo.Shared.Features.Mundo;
 
 namespace JogoDoGrupo.Shared.Tests.Features.Mundo;
 
-public class PrimeiraCavernaTestes
+public class PrimeiraCavernaTestes : IDisposable
 {
+    public PrimeiraCavernaTestes()
+    {
+        DadosDoMapaFeitoAMao.DesativadoEmTestes = true;
+    }
+
+    public void Dispose()
+    {
+        DadosDoMapaFeitoAMao.DesativadoEmTestes = false;
+    }
+
     private const float Passo = 0.5f;
 
     [Fact]

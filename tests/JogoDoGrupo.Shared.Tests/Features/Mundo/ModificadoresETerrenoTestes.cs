@@ -8,12 +8,14 @@ public class ModificadoresETerrenoTestes : IDisposable
 {
     public ModificadoresETerrenoTestes()
     {
+        DadosDoMapaFeitoAMao.DesativadoEmTestes = true;
         ModificadoresDoMapa.LimparDinamicos();
     }
 
     public void Dispose()
     {
         ModificadoresDoMapa.LimparDinamicos();
+        DadosDoMapaFeitoAMao.DesativadoEmTestes = false;
     }
 
     [Fact]
