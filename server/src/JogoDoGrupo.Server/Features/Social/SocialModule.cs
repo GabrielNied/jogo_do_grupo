@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Data;
 using JogoDoGrupo.Server.Contratos.Combate;
 using JogoDoGrupo.Server.Contratos.Economia;
 using JogoDoGrupo.Server.Contratos.Itens;
@@ -7,9 +8,11 @@ using JogoDoGrupo.Server.Contratos.Personagem;
 using JogoDoGrupo.Server.Contratos.Social;
 using JogoDoGrupo.Server.Contratos.Talentos;
 using JogoDoGrupo.Server.Core;
+using JogoDoGrupo.Server.Core.Persistencia;
 using JogoDoGrupo.Server.Core.TempoReal;
 using JogoDoGrupo.Shared.Features.Mundo;
 using JogoDoGrupo.Shared.Features.Social;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace JogoDoGrupo.Server.Features.Social;
@@ -26,6 +29,7 @@ public sealed class SocialModule : IFeatureModule, IConsultaDeGrupo
     private readonly DiretorioTardio _diretorio = new();
     private GruposDoServidor? _grupos;
     private AmigosDoServidor? _amigos;
+    private GuildasDoServidor? _guildas;
     private FilaDeGrupoDoServidor? _filaGrupo;
     private ControleDeMarcadoresDeGrupo? _marcadores;
     private ServicoDeInspecao? _inspecao;
@@ -197,6 +201,45 @@ public sealed class SocialModule : IFeatureModule, IConsultaDeGrupo
                         pedido,
                         CancellationToken.None
                     )
+            )
+            .Ao<ConsultarGuilda>(
+                SocialMessageIds.ConsultarGuilda,
+                (sessao, _) => _guildas!.Consultar(sessao.PersonagemId)
+            )
+            .Ao<CriarGuilda>(
+                SocialMessageIds.CriarGuilda,
+                (sessao, pedido) => Proteger(_guildas!.CriarAsync(sessao.PersonagemId, pedido.Nome))
+            )
+            .Ao<ConvidarParaGuilda>(
+                SocialMessageIds.ConvidarParaGuilda,
+                (sessao, pedido) => _guildas!.Convidar(sessao.PersonagemId, pedido.NomeDoPersonagem)
+            )
+            .Ao<ResponderConviteDeGuilda>(
+                SocialMessageIds.ResponderConviteDeGuilda,
+                (sessao, pedido) =>
+                    _guildas!.ResponderConvite(sessao.PersonagemId, pedido.GuildaId, pedido.Aceitar)
+            )
+            .Ao<ExpulsarDaGuilda>(
+                SocialMessageIds.ExpulsarDaGuilda,
+                (sessao, pedido) => _guildas!.Expulsar(sessao.PersonagemId, pedido.PersonagemId)
+            )
+            .Ao<PassarLiderancaDaGuilda>(
+                SocialMessageIds.PassarLiderancaDaGuilda,
+                (sessao, pedido) =>
+                    _guildas!.PassarLideranca(sessao.PersonagemId, pedido.NovoLiderId)
+            )
+            .Ao<AlterarCargoDaGuilda>(
+                SocialMessageIds.AlterarCargoDaGuilda,
+                (sessao, pedido) =>
+                    _guildas!.AlterarCargo(
+                        sessao.PersonagemId,
+                        pedido.PersonagemId,
+                        pedido.NovoCargo
+                    )
+            )
+            .Ao<SairDaGuilda>(
+                SocialMessageIds.SairDaGuilda,
+                (sessao, _) => _guildas!.Sair(sessao.PersonagemId)
             );
 
     public void Inicializar(ServerContext contexto)
@@ -261,6 +304,29 @@ public sealed class SocialModule : IFeatureModule, IConsultaDeGrupo
             saida,
             _servicos!.GetRequiredService<ILogger<ControleDeMarcadoresDeGrupo>>()
         );
+        _guildas = new GuildasDoServidor(
+            _diretorio,
+            saida,
+            async (personagemId, valor) =>
+            {
+                await using var escopo = escopos.CreateAsyncScope();
+                var db = escopo.ServiceProvider.GetRequiredService<JogoDbContext>();
+                var carteira = escopo.ServiceProvider.GetRequiredService<ICarteiraCoroas>();
+                await using var transacao = await db.Database.BeginTransactionAsync(
+                    IsolationLevel.Serializable,
+                    CancellationToken.None
+                );
+                if (!await carteira.DebitarAsync(personagemId, valor, CancellationToken.None))
+                {
+                    return false;
+                }
+                await db.SaveChangesAsync(CancellationToken.None);
+                await transacao.CommitAsync(CancellationToken.None);
+                return true;
+            },
+            id => contexto.Eventos.Publicar(new CoroasMovimentadas(id)),
+            (a, b) => _amigos?.ContatoBarradoEntrePersonagens(a, b) ?? false
+        );
 
         _tempoReal = contexto.TempoReal;
         _chat = _servicos!.GetRequiredService<ChatDoServidor>();
@@ -276,6 +342,7 @@ public sealed class SocialModule : IFeatureModule, IConsultaDeGrupo
             saida.Registrar(sessao);
             _amigos!.RegistrarOnline(sessao.ContaId, sessao.PersonagemId);
             grupos.AoConectar(sessao.PersonagemId);
+            _guildas.AoConectar(sessao.PersonagemId);
         };
         contexto.TempoReal.SessaoEncerrada += sessao =>
         {
@@ -293,6 +360,7 @@ public sealed class SocialModule : IFeatureModule, IConsultaDeGrupo
             if (saida.Remover(sessao))
             {
                 grupos.AoDesconectar(sessao.PersonagemId);
+                _guildas.AoDesconectar(sessao.PersonagemId);
             }
         };
         foreach (var sessao in contexto.TempoReal.Sessoes)
@@ -301,6 +369,7 @@ public sealed class SocialModule : IFeatureModule, IConsultaDeGrupo
             saida.Registrar(sessao);
             _amigos!.RegistrarOnline(sessao.ContaId, sessao.PersonagemId);
             grupos.AoConectar(sessao.PersonagemId);
+            _guildas.AoConectar(sessao.PersonagemId);
         }
     }
 
@@ -444,7 +513,8 @@ public sealed class SocialModule : IFeatureModule, IConsultaDeGrupo
                 _online.ContainsKey,
                 _grupos!.ListaDe,
                 _amigos!.ContatoBarradoEntrePersonagens,
-                () => _online.Keys.ToArray()
+                () => _online.Keys.ToArray(),
+                _guildas!.ObterMembrosDaGuildaDoPersonagem
             );
             if (resultado.Recusa != null)
             {

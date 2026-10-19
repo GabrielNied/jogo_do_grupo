@@ -48,7 +48,8 @@ public sealed class ChatDoServidor(
         Func<long, bool> estaOnline,
         Func<long, ListaDoGrupo>? grupoDe = null,
         Func<long, long, bool>? contatoBarradoEntrePersonagens = null,
-        Func<IReadOnlyList<long>>? todosOnline = null
+        Func<IReadOnlyList<long>>? todosOnline = null,
+        Func<long, IReadOnlyList<long>>? guildaDe = null
     )
     {
         if (!RegrasChat.CanalValido(pedido.Canal))
@@ -122,7 +123,19 @@ public sealed class ChatDoServidor(
                 destinatarios = [alvoId, remetenteId];
                 break;
 
-            default:
+            case CanalDeChat.Guilda:
+                var membrosGuilda = guildaDe?.Invoke(remetenteId) ?? [];
+                if (!membrosGuilda.Contains(remetenteId))
+                {
+                    return ResultadoDoChat.Recusar(CodigosErroSocial.NaoEstaEmGuilda);
+                }
+
+                destinatarios = membrosGuilda
+                    .Where(id => estaOnline(id) || id == remetenteId)
+                    .ToArray();
+                break;
+
+            case CanalDeChat.Grupo:
                 var membros = grupoDe?.Invoke(remetenteId).Membros ?? [];
                 if (membros.All(membro => membro.PersonagemId != remetenteId))
                 {
@@ -135,6 +148,9 @@ public sealed class ChatDoServidor(
                     .Select(membro => membro.PersonagemId)
                     .ToArray();
                 break;
+
+            default:
+                return ResultadoDoChat.Recusar(CodigosErroSocial.CanalIndisponivel);
         }
 
         limites.Registrar(remetenteId, pedido.Canal, limite.Texto);

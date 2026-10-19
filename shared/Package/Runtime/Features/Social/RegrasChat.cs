@@ -102,7 +102,8 @@ namespace JogoDoGrupo.Shared.Features.Social
             canal == CanalDeChat.Cidade
             || canal == CanalDeChat.Grupo
             || canal == CanalDeChat.Sussurro
-            || canal == CanalDeChat.ProcurarGrupo;
+            || canal == CanalDeChat.ProcurarGrupo
+            || canal == CanalDeChat.Guilda;
 
         // ── Limites ───────────────────────────────────────────────────────────────
 

@@ -133,5 +133,49 @@ namespace JogoDoGrupo.Shared.Features.Social
 
         /// <summary>Tentou sair da fila sem estar nela.</summary>
         public const string NaoEstaNaFila = "NaoEstaNaFila";
+
+        // ── Guilda ───────────────────────────────────────────────────────────────
+
+        /// <summary>A guilda pedida não existe ou foi desfeita.</summary>
+        public const string GuildaNaoEncontrada = "GuildaNaoEncontrada";
+
+        /// <summary>O personagem já pertence a uma guilda.</summary>
+        public const string JaPossuiGuilda = "JaPossuiGuilda";
+
+        /// <summary>O personagem não pertence a nenhuma guilda.</summary>
+        public const string NaoPossuiGuilda = "NaoPossuiGuilda";
+
+        /// <summary>Sinônimo para NaoPossuiGuilda.</summary>
+        public const string NaoEstaEmGuilda = NaoPossuiGuilda;
+
+        /// <summary>O alvo não pertence a esta guilda.</summary>
+        public const string AlvoNaoEstaNaGuilda = "AlvoNaoEstaNaGuilda";
+
+        /// <summary>Resposta a convite de guilda inexistente ou expirado.</summary>
+        public const string ConviteInvalido = "ConviteInvalido";
+
+        /// <summary>Nome de guilda inválido (tamanho ou caracteres proibidos).</summary>
+        public const string NomeDeGuildaInvalido = "NomeDeGuildaInvalido";
+
+        /// <summary>Já existe uma guilda com este nome (comparação sem diferenciar maiúsculas).</summary>
+        public const string NomeDeGuildaEmUso = "NomeDeGuildaEmUso";
+
+        /// <summary>Saldo de coroas insuficiente para fundar a guilda.</summary>
+        public const string CoroasInsuficientes = "CoroasInsuficientes";
+
+        /// <summary>A guilda já atingiu o limite de 100 membros.</summary>
+        public const string GuildaCheia = "GuildaCheia";
+
+        /// <summary>O cargo do executor não tem permissão para realizar esta ação.</summary>
+        public const string SemPermissaoNaGuilda = "SemPermissaoNaGuilda";
+
+        /// <summary>O alvo convidado já pertence a uma guilda.</summary>
+        public const string AlvoJaPossuiGuilda = "AlvoJaPossuiGuilda";
+
+        /// <summary>O líder não pode sair da guilda enquanto houver outros membros sem transferir a liderança.</summary>
+        public const string LiderNaoPodeSair = "LiderNaoPodeSair";
+
+        /// <summary>Cargo inválido para a operação solicitada.</summary>
+        public const string CargoInvalido = "CargoInvalido";
     }
 }

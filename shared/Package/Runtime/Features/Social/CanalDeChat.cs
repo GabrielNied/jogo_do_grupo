@@ -17,5 +17,8 @@ namespace JogoDoGrupo.Shared.Features.Social
 
         /// <summary>Canal do servidor para procurar grupos e membros de dungeon.</summary>
         ProcurarGrupo = 3,
+
+        /// <summary>Os membros da guilda, em qualquer área.</summary>
+        Guilda = 4,
     }
 }

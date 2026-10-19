@@ -164,5 +164,42 @@ namespace JogoDoGrupo.Shared.Features.Social
 
         /// <summary>Servidor → membros: o grupo da fila foi formado com sucesso.</summary>
         public const ushort GrupoDeFilaFormado = 13333;
+
+        // ── Guilda: pedidos do client (13500 a 13519) ────────────────────────────
+
+        /// <summary>Client → servidor: funda uma nova guilda com custo em coroas.</summary>
+        public const ushort CriarGuilda = 13500;
+
+        /// <summary>Client → servidor: convida um personagem para a guilda.</summary>
+        public const ushort ConvidarParaGuilda = 13501;
+
+        /// <summary>Client → servidor: aceita ou recusa convite de guilda.</summary>
+        public const ushort ResponderConviteDeGuilda = 13502;
+
+        /// <summary>Client → servidor: sai da guilda atual.</summary>
+        public const ushort SairDaGuilda = 13503;
+
+        /// <summary>Client → servidor: expulsa um membro da guilda.</summary>
+        public const ushort ExpulsarDaGuilda = 13504;
+
+        /// <summary>Client → servidor: passa a liderança da guilda para outro membro.</summary>
+        public const ushort PassarLiderancaDaGuilda = 13505;
+
+        /// <summary>Client → servidor: altera o cargo de um membro da guilda.</summary>
+        public const ushort AlterarCargoDaGuilda = 13506;
+
+        /// <summary>Client → servidor: consulta os dados atualizados da guilda.</summary>
+        public const ushort ConsultarGuilda = 13507;
+
+        // ── Guilda: respostas do servidor (13520 a 13549) ────────────────────────
+
+        /// <summary>Servidor → convidado: chegou um convite para ingressar na guilda.</summary>
+        public const ushort ConviteDeGuildaRecebido = 13520;
+
+        /// <summary>Servidor → membro: dados completos da guilda e lista de membros.</summary>
+        public const ushort DadosDaGuilda = 13521;
+
+        /// <summary>Servidor → quem pediu: a operação de guilda foi recusada.</summary>
+        public const ushort OperacaoDeGuildaRecusada = 13522;
     }
 }

@@ -570,3 +570,24 @@ Ferramentas administrativas autoritativas no servidor para moderação e auditor
   - Denúncias são persistidas na tabela `Denuncias` com autor, alvo, motivo, detalhes e data UTC para posterior análise da moderação.
 - **Bloqueio de contas banidas:** contas com `BanidaAte > DateTime.UtcNow` têm tentativa de login HTTP recusada com 403 Forbidden (`CodigosErro.ContaBanida`) e autenticação UDP no tempo real recusada.
 
+### Guildas (issue #181)
+
+Sistema autoritativo de guildas para grupos permanentes de jogadores, com criação, convites, cargos hierárquicos e canal de chat dedicado.
+
+#### Regras de negócio
+- **Fundação:** custo de 1.000 coroas debitado autoritativamente via `ICarteiraCoroas`. O criador se torna o `Lider` da guilda.
+- **Nome da guilda:** entre 3 e 24 caracteres alfanuméricos e espaços internos (sem espaços nas pontas nem múltiplos seguidos). Único no servidor (comparação sem diferenciar maiúsculas/minúsculas).
+- **Limite de membros:** até 100 membros simultâneos por guilda na v1 (`RegrasGuilda.MaximoDeMembros`).
+- **Cargos e permissões:**
+  - `Lider` (1): controle total, pode convidar, expulsar qualquer membro, promover/rebaixar até Oficial, passar a liderança e dissolver a guilda se for o único membro. Não pode sair enquanto houver outros membros sem passar a liderança antes.
+  - `Oficial` (2): pode convidar novos membros, expulsar Membros e Recrutas, e alterar cargos entre Membro e Recruta.
+  - `Veterano` (3): membro sênior de confiança.
+  - `Membro` (4): membro efetivo com acesso às interações da guilda.
+  - `Recruta` (5): cargo inicial para quem aceita um convite.
+- **Canal de Chat da Guilda (`CanalDeChat.Guilda` = 4):**
+  - Mensagens transmitidas em tempo real apenas para membros online da mesma guilda e para o remetente.
+  - Jogadores sem guilda têm mensagens no canal recusadas com `CodigosErroSocial.NaoEstaEmGuilda`.
+- **Interface Lumora (`JanelaGuilda` - atalho 'G'):**
+  - Sem guilda: exibe convite pendente (se houver, com Aceitar/Recusar) e formulário para fundação de nova guilda (com custo de 1.000 coroas).
+  - Com guilda: cabeçalho com nome, contagem de membros, cargo atual, linha para convidar (se tiver permissão), lista de membros com status online e botões contextuais (Promover, Rebaixar, Expulsar, Liderar) e botão Sair da Guilda.
+
