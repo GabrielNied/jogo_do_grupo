@@ -375,13 +375,13 @@ public class GruposDoServidorTestes
     }
 
     [Fact]
-    public void GrupoCheio_com_cinco_membros()
+    public void GrupoCheio_com_dez_membros()
     {
-        _a.FormarGrupo(A, B, C, D, E);
+        _a.FormarGrupo(A, B, C, D, E, F, G, H, I, J);
         var antes = _a.Foto();
         _a.Avancar(1);
 
-        _a.Grupos.Convidar(A, "Fabi");
+        _a.Grupos.Convidar(A, "Kaka");
 
         _a.AssertSoRecusa(A, CodigosErroSocial.GrupoCheio);
         Assert.Equal(antes, _a.Foto());
@@ -390,22 +390,22 @@ public class GruposDoServidorTestes
     [Fact]
     public void GrupoCheio_conta_as_vagas_ja_prometidas_em_convites()
     {
-        _a.FormarGrupo(A, B, C, D);
-        _a.Convidar(A, E);
+        _a.FormarGrupo(A, B, C, D, E, F, G, H, I);
+        _a.Convidar(A, J);
         var antes = _a.Foto();
         _a.Avancar(1);
         _a.Saida.Limpar();
 
-        _a.Grupos.Convidar(A, "Fabi");
+        _a.Grupos.Convidar(A, "Kaka");
 
         _a.AssertSoRecusa(A, CodigosErroSocial.GrupoCheio);
         Assert.Equal(antes, _a.Foto());
     }
 
     [Fact]
-    public void GrupoCheio_quem_nao_tem_grupo_so_faz_quatro_convites_pendentes()
+    public void GrupoCheio_quem_nao_tem_grupo_so_faz_nove_convites_pendentes()
     {
-        foreach (var alvo in new[] { B, C, D, E })
+        foreach (var alvo in new[] { B, C, D, E, F, G, H, I, J })
         {
             _a.Convidar(A, alvo);
         }
@@ -414,7 +414,7 @@ public class GruposDoServidorTestes
         _a.Saida.Limpar();
         var antes = _a.Foto();
 
-        _a.Grupos.Convidar(A, "Fabi");
+        _a.Grupos.Convidar(A, "Kaka");
 
         _a.AssertSoRecusa(A, CodigosErroSocial.GrupoCheio);
         Assert.Equal(antes, _a.Foto());
@@ -707,9 +707,9 @@ public class GruposDoServidorTestes
     // ── Limites ─────────────────────────────────────────────────────────────────
 
     [Fact]
-    public void Exatamente_cinco_membros_e_aceito()
+    public void Exatamente_dez_membros_e_aceito()
     {
-        _a.FormarGrupo(A, B, C, D, E);
+        _a.FormarGrupo(A, B, C, D, E, F, G, H, I, J);
 
         Assert.Equal(RegrasGrupo.MaximoDeMembros, _a.Ids(A).Count);
     }

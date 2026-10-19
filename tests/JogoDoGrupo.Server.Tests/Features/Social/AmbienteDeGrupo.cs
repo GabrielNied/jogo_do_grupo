@@ -117,7 +117,7 @@ public sealed class SaidaGravada : ISaidaDoGrupo
 }
 
 /// <summary>
-/// Oito personagens online (A a H) e um relógio que só anda quando o teste manda. Sempre espera
+/// Doze personagens online (A a L) e um relógio que só anda quando o teste manda. Sempre espera
 /// o intervalo mínimo entre convites do mesmo convidante, a não ser que o teste peça o contrário.
 /// </summary>
 public sealed class AmbienteDeGrupo
@@ -129,9 +129,13 @@ public sealed class AmbienteDeGrupo
         E = 5,
         F = 6,
         G = 7,
-        H = 8;
+        H = 8,
+        I = 9,
+        J = 10,
+        K = 11,
+        L = 12;
 
-    public static readonly long[] Todos = [A, B, C, D, E, F, G, H];
+    public static readonly long[] Todos = [A, B, C, D, E, F, G, H, I, J, K, L];
 
     private static readonly string[] Nomes =
     [
@@ -143,6 +147,10 @@ public sealed class AmbienteDeGrupo
         "Fabi",
         "Gabi",
         "Hugo",
+        "Igor",
+        "Joca",
+        "Kaka",
+        "Lia",
     ];
 
     private long _agoraMs = 1_000_000;

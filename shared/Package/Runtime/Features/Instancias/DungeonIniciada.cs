@@ -15,5 +15,8 @@ namespace JogoDoGrupo.Shared.Features.Instancias
 
         /// <summary>Tempo limite para vencer no tempo em segundos.</summary>
         public int TempoLimiteSegundos = RegrasDificuldadeSemFim.TempoLimitePadraoSegundos;
+
+        /// <summary>Se a corrida é de raid (grupo com mais de 5 membros).</summary>
+        public bool Raid;
     }
 }

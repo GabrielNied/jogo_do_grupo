@@ -11,8 +11,8 @@ namespace JogoDoGrupo.Shared.Features.Social
     {
         // ── Balanceamento ─────────────────────────────────────────────────────────
 
-        /// <summary>Tamanho máximo do grupo, contando o líder.</summary>
-        public const int MaximoDeMembros = 5;
+        /// <summary>Tamanho máximo do grupo, contando o líder (grupo de raid: 10; dungeon: 5).</summary>
+        public const int MaximoDeMembros = 10;
 
         /// <summary>Com menos membros que isto o grupo se desfaz.</summary>
         public const int MinimoDeMembros = 2;

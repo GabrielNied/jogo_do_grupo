@@ -9,25 +9,25 @@ public class RegrasGrupoTestes
     [Fact]
     public void Valores_padrao_do_grupo()
     {
-        Assert.Equal(5, RegrasGrupo.MaximoDeMembros);
+        Assert.Equal(10, RegrasGrupo.MaximoDeMembros);
         Assert.Equal(2, RegrasGrupo.MinimoDeMembros);
         Assert.Equal(60, RegrasGrupo.ValidadeDoConviteSegundos);
         Assert.Equal(60, RegrasGrupo.VagaGuardadaSegundos);
         Assert.Equal(30, RegrasGrupo.BloqueioDeReconviteSegundos);
         Assert.Equal(1.0, RegrasGrupo.IntervaloEntreConvitesSegundos);
         Assert.Equal(5, RegrasGrupo.MaximoDeConvitesPorAlvo);
-        Assert.Equal(4, RegrasGrupo.MaximoDeConvitesPorConvidante);
+        Assert.Equal(9, RegrasGrupo.MaximoDeConvitesPorConvidante);
     }
 
     // ── Vagas ─────────────────────────────────────────────────────────────────
 
     [Theory]
-    [InlineData(1, 0, 4)]
-    [InlineData(1, 4, 0)]
-    [InlineData(4, 0, 1)]
-    [InlineData(4, 1, 0)]
-    [InlineData(5, 0, 0)]
-    [InlineData(3, 1, 1)]
+    [InlineData(1, 0, 9)]
+    [InlineData(1, 9, 0)]
+    [InlineData(9, 0, 1)]
+    [InlineData(9, 1, 0)]
+    [InlineData(10, 0, 0)]
+    [InlineData(8, 1, 1)]
     public void VagasLivres_desconta_membros_e_convites_pendentes(
         int membros,
         int pendentes,
@@ -35,35 +35,35 @@ public class RegrasGrupoTestes
     ) => Assert.Equal(esperado, RegrasGrupo.VagasLivres(membros, pendentes));
 
     [Theory]
-    [InlineData(6, 0)]
-    [InlineData(5, 3)]
+    [InlineData(11, 0)]
+    [InlineData(10, 3)]
     [InlineData(int.MaxValue, int.MaxValue)]
     public void VagasLivres_nunca_e_negativo(int membros, int pendentes) =>
         Assert.Equal(0, RegrasGrupo.VagasLivres(membros, pendentes));
 
     [Fact]
     public void VagasLivres_trata_numero_negativo_como_zero() =>
-        Assert.Equal(5, RegrasGrupo.VagasLivres(-3, -1));
+        Assert.Equal(10, RegrasGrupo.VagasLivres(-3, -1));
 
     [Fact]
-    public void Grupo_de_4_so_tem_um_convite_pendente_por_vez()
+    public void Grupo_de_9_so_tem_um_convite_pendente_por_vez()
     {
-        Assert.True(RegrasGrupo.CabeMaisUmConvite(4, 0));
-        Assert.False(RegrasGrupo.CabeMaisUmConvite(4, 1));
+        Assert.True(RegrasGrupo.CabeMaisUmConvite(9, 0));
+        Assert.False(RegrasGrupo.CabeMaisUmConvite(9, 1));
     }
 
     [Fact]
-    public void Convidante_sem_grupo_tem_ate_4_convites_pendentes()
+    public void Convidante_sem_grupo_tem_ate_9_convites_pendentes()
     {
-        Assert.True(RegrasGrupo.CabeMaisUmConvite(1, 3));
-        Assert.False(RegrasGrupo.CabeMaisUmConvite(1, 4));
+        Assert.True(RegrasGrupo.CabeMaisUmConvite(1, 8));
+        Assert.False(RegrasGrupo.CabeMaisUmConvite(1, 9));
     }
 
     [Theory]
-    [InlineData(4, true)]
-    [InlineData(5, false)]
-    [InlineData(6, false)]
-    public void Quinto_membro_entra_e_o_sexto_nao(int membros, bool esperado) =>
+    [InlineData(9, true)]
+    [InlineData(10, false)]
+    [InlineData(11, false)]
+    public void Decimo_membro_entra_e_o_11o_nao(int membros, bool esperado) =>
         Assert.Equal(esperado, RegrasGrupo.CabeMaisUmMembro(membros));
 
     [Theory]
