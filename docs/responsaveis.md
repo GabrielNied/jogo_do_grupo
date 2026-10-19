@@ -18,6 +18,7 @@ Cada funcionalidade tem um responsável, que revisa os PRs das pastas dela. Depo
 | Mobs e bosses | | `Features/Mobs/` |
 | Dungeons e raids | | `Features/Instancias/` |
 | Social | | `Features/Social/` |
+| Laboratório visual | | `Features/LaboratorioVisual/` |
 | PvP | | `Features/Pvp/` |
 | Desenvolvimento | | `Features/Desenvolvimento/` |
 | Pets | | `Features/Pets/` |

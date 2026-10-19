@@ -1,4 +1,4 @@
-# 0049. Rate limiting e tokens revogáveis na autenticação
+# 0052. Rate limiting e tokens revogáveis na autenticação
 
 **Data:** 2026-10-18
 **Status:** aceita

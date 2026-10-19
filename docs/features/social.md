@@ -354,7 +354,7 @@ Servidor (#394, implementado): pedido duplicado não cria outro; aceite cria a a
 - Tempo real ([#77](https://github.com/GabrielNied/jogo_do_grupo/issues/77) e [arquitetura](../arquitetura.md#servidor-tempo-real-udp)): sessão autenticada por personagem e aviso de desconexão.
 - Personagem ([personagem.md](personagem.md)): nome único do personagem.
 - Dungeons ([instancias.md](instancias.md), #66): entrada em dungeon com o grupo (só ponteiro aqui).
-- Mundo ([mundo.md](mundo.md)): presença na cidade, que define quem está no canal Cidade (por evento ou contrato do shared, sem referência direta entre funcionalidades). O Mundo também lê o grupo por `IConsultaDeGrupo` para mandar a posição dos aliados longe ao mapa e ao minimapa (#789, [área de interesse](mundo.md#área-de-interesse-na-cidade-500)); o Social só publica o grupo, não envia posição.
+- Mundo ([mundo.md](mundo.md)): presença na cidade, que define quem está no canal Cidade (por evento ou contrato do shared, sem referência direta entre funcionalidades). O Mundo também lê o grupo por `IConsultaDeGrupo` para mandar a posição dos aliados longe ao mapa e ao minimapa (#789, [área de interesse](mundo.md)); o Social só publica o grupo, não envia posição.
 - Interface ([interface.md](interface.md)): mensagens de sistema do HUD e regra de teclas com painel aberto.
 
 ## Expõe

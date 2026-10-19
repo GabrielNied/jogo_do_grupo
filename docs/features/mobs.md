@@ -202,7 +202,7 @@ Primeiro mob de combate à distância do jogo (Arqueiro do Campo, id 10, nível 
 
 **Proposta** do agente, a calibrar. Tabela definida em `ConfigInimigosPorBioma` (shared) e chaveamento autoritativo por `IRelogioDoMundo` (servidor).
 
-- **Dia e Noite:** o dia corre das 6h às 22h e a noite das 22h às 6h ([mundo](mundo.md#dia-e-noite-163)). Cada ponto de spawn tem um `PeriodoDeAparicao` (`Sempre`, `Dia`, `Noite`).
+- **Dia e Noite:** o dia corre das 6h às 22h e a noite das 22h às 6h ([mundo](mundo.md#dia-e-noite-163-contrato-da-380)). Cada ponto de spawn tem um `PeriodoDeAparicao` (`Sempre`, `Dia`, `Noite`).
 - **Comportamento na virada:**
   - Ao virar a noite, os pontos noturnos passam a repor espécies da noite. Os pontos de dia param de repor (os membros vivos permanecem vivos no mundo até serem derrotados).
   - Ao amanhecer, os pontos de dia voltam a repor normalmente; os noturnos param de repor (os vivos da noite continuam vivos até a derrota).

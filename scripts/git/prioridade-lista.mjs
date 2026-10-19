@@ -63,14 +63,13 @@ export function sinaisDaIssue({ labels, corpo, abertas }) {
 }
 
 /**
- * Ordem da fila livre: prio:* menor, depois quem não espera dependência, depois `foco`,
+ * Ordem da fila livre: prio:* menor, depois quem não espera dependência,
  * depois a issue mais antiga. `esperando` vem do listar (dependência aberta).
  */
 export function compararDisponiveis(a, b) {
   return (
     ordemDaPrioridade(a.labels) - ordemDaPrioridade(b.labels) ||
     Number(Boolean(a.esperando)) - Number(Boolean(b.esperando)) ||
-    Number(!a.labels.includes("foco")) - Number(!b.labels.includes("foco")) ||
     a.issue.number - b.issue.number
   );
 }

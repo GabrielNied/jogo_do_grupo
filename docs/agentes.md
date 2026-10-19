@@ -41,7 +41,7 @@ Dentro da faixa: a issue mais antiga primeiro. Não há foco de marco (Gabriel, 
 
 ## Ficha da tarefa
 
-Corpo da issue que o agente lê (/decida, /melhore ou coordenador). Template completo: skill [decida](../../.claude/skills/decida/SKILL.md). Texto original antigo fica em `<details><summary>Texto original</summary>`.
+Corpo da issue que o agente lê (/decida, /melhore ou coordenador). Template completo: skill [decida](../.claude/skills/decida/SKILL.md). Texto original antigo fica em `<details><summary>Texto original</summary>`.
 
 ## Lote
 
@@ -58,7 +58,7 @@ Reserva de tarefas livres de um escopo (sem concorrência de agente): `npm run t
 
 - Escopo = prefixo do título (`[Mundo]` → `mundo`, alinhado ao commitlint).
 - Só rotula livres; `em-andamento` segue até liberar, merge ou 24 h.
-- Dono = login do `gh` (só ele puxa). Múltiplos segures permitidos; `/decida` não remove `segure:*`. Detalhes na skill [segure](../../.claude/skills/segure/SKILL.md).
+- Dono = login do `gh` (só ele puxa). Múltiplos segures permitidos; `/decida` não remove `segure:*`. Detalhes na skill [segure](../.claude/skills/segure/SKILL.md).
 
 ## Entrega da funcionalidade
 
@@ -80,7 +80,7 @@ Quem puxa escreve na issue, antes de codar, e segue sem esperar:
 - **Decisões de design** tomadas.
 - **Testes:** casos que mudam contrato ou resultado (xUnit). Tela conferida pelo "Como testar".
 
-Checklist de experiência (vazio/erro/limite, espera, rede, rebind/ESC, [Lumora](../design/interface/GUIA-DE-ESTILO.md)): skill [preparar-pr](../../.claude/skills/preparar-pr/SKILL.md).
+Checklist de experiência (vazio/erro/limite, espera, rede, rebind/ESC, [Lumora](../design/interface/GUIA-DE-ESTILO.md)): skill [preparar-pr](../.claude/skills/preparar-pr/SKILL.md).
 
 ### Decisões de design
 
@@ -120,7 +120,7 @@ Regra 16: pergunte se a próxima vez desta tarefa sai mais barata. Espera repeti
 
 ### Orçamento de contexto
 
-AGENTS.md, este arquivo, agente e skill são reenviados a cada rodada. `npm run contexto` mede e falha acima do teto (7 / 11 / 3 / 6 mil caracteres). Para crescer, enxugue ou mova detalhe para doc linkada.
+AGENTS.md, este arquivo, agente e skill são reenviados a cada rodada. `npm run contexto` mede e falha acima do teto de cada tipo, definido em [orcamento-contexto.mjs](../scripts/agentes/orcamento-contexto.mjs). Para crescer, enxugue ou mova detalhe para doc linkada.
 
 ### Trocar de assunto sem perder o fio
 

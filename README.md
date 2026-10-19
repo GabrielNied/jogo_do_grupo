@@ -102,7 +102,7 @@ npm run server:rodar        # o mesmo que dotnet run --project server/src/JogoDo
 O build termina com `0 Warning(s)` e `0 Error(s)`. O servidor lista os módulos, cria o banco local (`server/src/JogoDoGrupo.Server/jogodogrupo.db`, fora do git) e fica rodando:
 
 ```
-Servidor iniciado com 14 funcionalidades.
+Servidor iniciado com 18 funcionalidades.
 Now listening on: http://localhost:5080
 ```
 
@@ -156,7 +156,7 @@ git commit -m "feat(itens): adiciona minha tarefa"  # <tipo>(<escopo>): <descri�
 git push -u origin feature/itens/minha-tarefa
 ```
 
-Depois, abra o PR no GitHub com o título no mesmo padrão do commit e preencha o template. Peça review ao responsável pela pasta (Reviewers, no PR). O combinado é fazer o merge só com os checks verdes (`csharpier`, `build`, `padrao-git`) e a aprovação de outra pessoa. Detalhes em [docs/git.md](docs/git.md).
+Depois, abra o PR no GitHub com o título no mesmo padrão do commit e preencha o template. Peça review ao responsável pela pasta (Reviewers, no PR). O combinado é fazer o merge só com os checks verdes (`csharpier`, `build`, `padrao-git`) e a revisão do responsável pela pasta, quando o PR pede. Aprovação não é obrigatória ([ADR 0029](docs/decisoes/0029-main-protegida-com-repo-publico.md)). Detalhes em [docs/git.md](docs/git.md).
 
 ## Dia a dia
 
@@ -241,6 +241,7 @@ A regra principal: **cada funcionalidade vive na própria pasta, nas três parte
 | Montarias | `Montarias` | 16000–16999 | Chamada de montaria, velocidade aumentada autoritativa e estado montado compartilhado. |
 | Pets | `Pets` | 17000–17999 | Pet que segue o dono (cervo jovem), junta o loot dele e aparece para quem está por perto. |
 | Conquistas | `Conquistas` | 18000–18999 | Sistema de conquistas da conta e títulos desbloqueáveis para exibição. |
+| Laboratório visual | `LaboratorioVisual` | — | Ferramenta do editor (Lumora → Design) para testar a direção visual. Sem gameplay e sem rede. |
 
 Responsáveis por cada uma: [docs/responsaveis.md](docs/responsaveis.md).
 
@@ -262,7 +263,7 @@ Qualquer assistente (Claude, ChatGPT/Codex, Copilot, Cursor, Gemini...) deve seg
 
 Estrutura do repo, projeto Unity, CI (build, CSharpier, commitlint), hooks do git e documentação base prontos e publicados. Falta:
 
-1. ~~Proteger a `main` com ruleset~~ decidido: repo privado com proteção local ([ADR 0007](docs/decisoes/0007-protecao-local-da-main.md)). Opções de merge já aplicadas.
+1. ~~Proteger a `main` com ruleset~~ decidido: repo público com a `main` protegida por ruleset ([ADR 0029](docs/decisoes/0029-main-protegida-com-repo-publico.md)). Opções de merge já aplicadas.
 2. Preencher [docs/responsaveis.md](docs/responsaveis.md) e o [.github/CODEOWNERS](.github/CODEOWNERS); convites de collaborator enviados (aguardando aceite).
 3. Decidir como integrar o Cursor ao Unity (o Unity não gera `.csproj` para ele).
 4. ~~Decidir a biblioteca de rede~~ decidido: LiteNetLib por UDP ([ADR 0015](docs/decisoes/0015-litenetlib-para-o-tempo-real.md)). Ainda em aberto: divisão do mundo entre servidores. ~~Banco de dados e testes~~ já foram decididos nos ADRs 0010 e 0013.

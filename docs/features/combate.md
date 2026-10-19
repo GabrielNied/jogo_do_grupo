@@ -128,7 +128,7 @@ Decidido em 2026-10-12 e revisto no mesmo dia: a luta segue o New World. A sensa
 
 - **Parry.** Segurar a guarda não tem janela de timing. Acertar o instante certo não abre contra-ataque.
 - **Combo que prende.** A reação ao acerto não renova ([abaixo](#reação-ao-acerto)).
-- **Duas armas nesta fatia.** O desenho está [abaixo](#duas-armas-depois-desta-fatia); a espada sozinha vale até lá.
+- **Duas armas nesta fatia.** O desenho está [abaixo](#duas-armas-580); a espada sozinha vale até lá.
 
 Para implementar sem refazer a leitura:
 
@@ -230,7 +230,7 @@ Esquiva (tempo real; regras e números em [fatia-jogavel.md](fatia-jogavel.md), 
 ### Golpe de inimigo tira vida (#278)
 
 - Combate, dono da vida, assina `GolpeDeInimigoAcertou` (`Contratos/Mobs/`, ADR 0016). Mobs decide quem estava no círculo; um evento por personagem atingido.
-- A vida cai em `Dano` (sem defesa por enquanto; a conta fica em `ServicoDeDanoRecebido.DanoFinal`, onde a defesa entra depois), **nunca abaixo de 0**, e o dono recebe `RecursosMudaram` (só ele). Vida 0 leva ao estado caído ([abaixo](#estado-caído-no-servidor-125)); quem já está caído não recebe dano (o golpe é ignorado).
+- A vida cai em `Dano` (sem defesa por enquanto; a conta fica em `ServicoDeDanoRecebido.DanoFinal`, onde a defesa entra depois), **nunca abaixo de 0**, e o dono recebe `RecursosMudaram` (só ele). Vida 0 leva ao estado caído ([abaixo](#estado-caído-no-servidor-125-subtarefa-423)); quem já está caído não recebe dano (o golpe é ignorado).
 - O assinante não bloqueia (o evento sai do laço de IA de Mobs): a conta roda numa tarefa, sob a mesma trava dos outros recursos, então golpes simultâneos no mesmo personagem somam. Personagem sem recursos criados começa da vida cheia; um que não existe só registra erro no log.
 
 ### Ritmo do golpe no servidor (#569, #571, #570, #578)
@@ -305,7 +305,7 @@ O client só reage ao que o servidor confirmou (`AtaqueAcertou`, vida menor em `
 Decidido em 2026-10-12 pelo dono de Combate, fácil de mudar (constantes nomeadas em `RegrasAtaque`, `RegrasReacao`, `ProntidaoLocal` e `RastroDoGolpe`). Código em `Features/Combate/Scripts/`. O client só mostra; nada aqui muda dano, custo ou acerto.
 
 - **Contrato novo:** `AtaqueAcertou` ganhou `Tipo`, `Sequencia` e `Passo` no fim (o acerto é do golpe certo mesmo com leve e pesado na fila). `RegrasBonecoDeTreino` (shared) guarda posição, raio, vida e tempo de recuperação do boneco; `ConfigBonecoDeTreino` só repete os nomes. `RegrasAtaque` ganhou `JanelaDoBufferSegundos`, `MargemDoEnvioSegundos`, `VelocidadeDoClipe` e `QuandoEnviarOCliqueGuardado`; `RegrasReacao`, `PausaVisualNoAcertoMs` (70).
-- **Animações (#475):** golpe, guarda e dano tocam numa **camada de tronco** (`Golpe`) do controller; as pernas seguem o movimento. Três leves (um por `Passo` da cadeia, o 2º espelhado), um pesado, a guarda enquanto segurada, o dano no `Interrompido` e o caído (`Caido`). O contato do clipe `Atacar` (quadro 11 de 26 a 30 por segundo) cai em `RegrasAtaque.PreparoSegundos` pela velocidade do clipe (`VelocidadeDoGolpe`). O passo local segue `RegrasAtaque.PassoDoGolpe` e o `AtaqueIniciado` do servidor corrige. O blend tree corre a 5,5 m/s (o do Core), com o clipe a 1,1x. Tabela dos parâmetros em [personagem.md](personagem.md#parâmetros-do-animator).
+- **Animações (#475):** golpe, guarda e dano tocam numa **camada de tronco** (`Golpe`) do controller; as pernas seguem o movimento. Três leves (um por `Passo` da cadeia, o 2º espelhado), um pesado, a guarda enquanto segurada, o dano no `Interrompido` e o caído (`Caido`). O contato do clipe `Atacar` (quadro 11 de 26 a 30 por segundo) cai em `RegrasAtaque.PreparoSegundos` pela velocidade do clipe (`VelocidadeDoGolpe`). O passo local segue `RegrasAtaque.PassoDoGolpe` e o `AtaqueIniciado` do servidor corrige. O blend tree corre a 5,5 m/s (o do Core), com o clipe a 1,1x. Tabela dos parâmetros em [personagem.md](personagem.md).
 - **Clipes que faltam (fica com o `artista-personagens`):** a guarda usa o quadro de preparo do `Atacar` parado, e o 2º leve é o `Atacar` espelhado. Trocar por clipes de verdade é só apontar o estado do controller no gerador; o tempo já está ligado.
 - **Pausa no acerto (70 ms):** no acerto confirmado o `Animator` de quem bateu e de quem levou fica parado por `PausaVisualNoAcertoMs` (no jogador recebendo dano, só em golpe forte que aciona hit-stop, #795). O relógio do servidor não para. Cada funcionalidade cuida do `speed` dos seus animadores (#812): Combate segura a pose do jogador e do boneco de treino (`ControleImpacto.SegurarPose`, por `ConfigSensacaoCombate.PausaDaPoseNoAcerto`, ajustável no F10), enquanto Mobs segura a pose dos inimigos (`ApresentadorDeInimigos._poses`) ao receber `AtaqueAcertou` e `InimigoAcertou`.
 - **Boneco (#476):** `BonecoDeTreinoVisual` monta em código um poste com tronco e cabeça de palha na posição do shared, sobre o chão, com barra de vida que olha para a câmera. A vida vem de `AtaqueAcertou` e a volta à vida cheia (`SegundosParaRecuperar`) é a mesma conta do servidor. Flash e recuo são do `ControleImpacto`, que acha o alvo pelo `RegistroDeAlvos` (o boneco se registra; os inimigos de Mobs são achados uma vez por nome e guardados).
@@ -322,7 +322,7 @@ Decidido em 2026-10-12 pelo dono de Combate, fácil de mudar (constantes nomeada
 Decidido em 2026-10-13 pelo dono de Combate. O `AtaqueIniciado` e o `EsquivaIniciada` de outro personagem tocam no avatar dele (`AnimacaoDeOutros`): vira o corpo para a `DirecaoY`, dispara o Trigger do Animator (os mesmos animadores do próprio jogador) e o `ControleImpacto` toca o som a `VolumeDeOutros` (0,2, contra 0,5 a 0,8 dos seus). O próprio jogador não passa por aqui (já animou ao apertar, ADR 0024). Números de dano de aliados do mesmo grupo aparecem na cena (#900); para outros jogadores desconhecidos, permanece sem número de dano, flash ou rastro para evitar poluição visual.
 
 - **Achar o avatar:** o Mundo ainda não publica um contrato id do personagem para visual. Até lá o Combate usa a convenção de nome que o Mundo já cria (`Jogador_<id>`, mesmo padrão do `Inimigo <id>` em `RegistroDeAlvos`), atrás de `AnimacaoDeOutros.Buscar`, que troca por um contrato sem mexer no resto.
-- **Limite atual:** o avatar remoto do Mundo é uma cápsula sem Animator, então só o giro e o som aparecem até o Mundo trocá-la pelo modelo animado das raças (issue do modelo dos outros jogadores). O Trigger já toca assim que houver Animator com os parâmetros da [tabela](personagem.md#parâmetros-do-animator). O Mundo reaplica a `RotacaoY` do servidor a cada quadro, então o giro do golpe dura só até a próxima posição.
+- **Limite atual:** o avatar remoto do Mundo é uma cápsula sem Animator, então só o giro e o som aparecem até o Mundo trocá-la pelo modelo animado das raças (issue do modelo dos outros jogadores). O Trigger já toca assim que houver Animator com os parâmetros da [tabela](personagem.md). O Mundo reaplica a `RotacaoY` do servidor a cada quadro, então o giro do golpe dura só até a próxima posição.
 
 ### Sem dano entre aliados (#346)
 
@@ -352,7 +352,7 @@ Quem decide: **servidor**. O dono é [Mobs](mobs.md), que já escolhe o alvo; Co
 - **Primeiro alvo:** como hoje, o jogador mais próximo que ele viu. Enquanto ninguém tem ameaça nele, vale a regra antiga de não trocar.
 - **Com ameaça:** o alvo é quem tem mais ameaça, mas o inimigo só troca quando outro passa da margem (110% perto, 130% longe). Empate fica com o alvo atual; entre outros, o de menor id. Isso evita que ele fique pulando de alvo.
 - **Provocar** (skill de item de tank, [skills.md](skills.md)): o inimigo vira para quem provocou na hora, e a ameaça dele passa a ser igual à maior da tabela. Durante os 4 s o alvo não troca, nem por margem.
-- **Cura e participação:** a cura também deve publicar `PersonagemCurouAliado` (`Contratos/Combate/EventosDeCura.cs`) para o curador entrar na lista de participantes do inimigo ([Mobs, #909](mobs.md#mobs)).
+- **Cura e participação:** a cura também deve publicar `PersonagemCurouAliado` (`Contratos/Combate/EventosDeCura.cs`) para o curador entrar na lista de participantes do inimigo ([Mobs, #909](mobs.md)).
 - **Sai da tabela** quem cai, sai da área ou desconecta. A tabela **zera** quando o inimigo desiste e volta para casa (junto com a vida e os participantes) e quando ele reaparece.
 - **Sem decaimento** com o tempo nesta versão.
 - **Chefe:** usa a mesma tabela no lugar do "mais próximo" (`ChefeDaDungeon`). Ataques de área do chefe (investida) continuam mirando como estão descritos em [mobs.md](mobs.md).

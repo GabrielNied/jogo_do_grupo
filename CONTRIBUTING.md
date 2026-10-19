@@ -19,7 +19,7 @@ A `main` é protegida: ninguém envia direto para ela, nem os admins. Todo traba
 - **Commit:** `<tipo>(<escopo>): <descrição em minúsculas>` → `feat(itens): adiciona limite de fusões por raridade`.
 - **PR:** o título segue o mesmo padrão do commit e vira o commit na `main` (squash merge). Um PR = uma funcionalidade.
 - **Antes de abrir o PR:** siga a verificação proporcional da skill `preparar-pr`: documentação e configuração não exigem build/testes globais; código C# exige os testes da camada alterada (client: também `npm run unity:compilar`). Detalhes em [docs/convencoes.md](docs/convencoes.md#testes).
-- **Testes junto com o código:** todo PR de código traz os testes do que mudou, na mesma branch. PR de código sem teste não entra.
+- **Testes junto com o código:** PR que muda contrato, servidor ou shared traz os testes do que mudou, na mesma branch. Client não tem teste obrigatório ([convenções](docs/convencoes.md#testes)).
 - **Para entrar na main:** o GitHub exige os checks `csharpier`, `build` e `padrao-git` verdes com a branch atualizada; aprovação não é obrigatória ([ADR 0029](docs/decisoes/0029-main-protegida-com-repo-publico.md), regras em [docs/git.md](docs/git.md)).
 
 ## Unity: evitando conflitos em cenas e prefabs
@@ -49,7 +49,7 @@ Procedimentos prontos (skills) ficam em `.claude/skills/<nome>/SKILL.md`, no for
 
 Regras:
 
-- **A IA nunca apaga nada do Figma.** O resto (arquivos, docs, assets, branches) ela pode apagar quando for sujeira ou estiver obsoleto, e o commit explica o que saiu e por quê. Push forçado e apagar repositório, release ou projeto no GitHub ficam com uma pessoa. É a regra 0 do [AGENTS.md](AGENTS.md) ([ADR 0026](docs/decisoes/0026-ia-pode-apagar-menos-o-figma.md)). Worktrees e branches temporários dos agentes saem depois do merge com `npm run limpar-agentes -- --aplicar` ([ADR 0018](docs/decisoes/0018-limpeza-do-que-os-agentes-criam.md)).
+- **Apagar e push forçado:** a IA nunca apaga nada do Figma e não faz push forçado fora do `reempilhar`. As regras completas estão na regra 0 do [AGENTS.md](AGENTS.md) ([ADR 0026](docs/decisoes/0026-ia-pode-apagar-menos-o-figma.md), exceção do [ADR 0049](docs/decisoes/0049-reempilhar-com-push-forcado.md)). Worktrees e branches dos agentes são limpos sozinhos depois do merge ([ADR 0031](docs/decisoes/0031-limpeza-automatica.md)).
 - **Não edite o `CLAUDE.md`** nem crie arquivos de instrução específicos de uma ferramenta (`.cursorrules`, `GEMINI.md`, `.github/copilot-instructions.md`...). Regra nova vai no `AGENTS.md`, para valer em todas.
 - Skill nova: crie `.claude/skills/<nome>/SKILL.md` (nome em minúsculas com hífen, igual ao da pasta, e `description` dizendo quando usar) e adicione na tabela de procedimentos do `AGENTS.md`.
 - Configurações pessoais ficam fora do git (`.claude/settings.local.json`, `CLAUDE.local.md`, `AGENTS.local.md`).

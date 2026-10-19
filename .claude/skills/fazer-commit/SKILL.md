@@ -5,7 +5,7 @@ description: Escreve commits e títulos de PR no padrão do commitlint do repo (
 
 # Fazer commit
 
-Regras completas: `docs/git.md#commits`. Tipos e escopos válidos: `commitlint.config.mjs` (leia o arquivo; ele é a fonte da verdade).
+Regras completas: [docs/git.md#commits](../../../docs/git.md#commits). Tipos e escopos válidos: `commitlint.config.mjs` (ele é a fonte da verdade).
 
 ## 1. Conferir a branch
 
@@ -26,20 +26,9 @@ Os testes vão **no mesmo commit** (ou no mesmo PR) do código que eles cobrem. 
 
 ## 3. Escrever a mensagem
 
-```
-<tipo>(<escopo>): <descrição>
+Formato `<tipo>(<escopo>): <descrição>`, com corpo e rodapé opcionais. Tipos, escopo, descrição, limite de caracteres e quebra de compatibilidade estão em [docs/git.md#commits](../../../docs/git.md#commits), a fonte única. Escopo `core` vale para infraestrutura, ferramentas e docs gerais.
 
-<corpo opcional: por que a mudança foi feita>
-
-<rodapé opcional: Closes #12 / BREAKING CHANGE: ...>
-```
-
-- **tipo:** `feat` (comportamento novo), `fix` (bug), `docs`, `refactor` (sem mudar comportamento), `perf`, `test`, `build`, `ci`, `chore`, `revert`.
-- **escopo (obrigatório):** a funcionalidade dos arquivos alterados, em minúsculas (`itens`, `economia`...), ou `core` para infraestrutura, ferramentas e docs gerais. Se a mudança cobre duas funcionalidades, ela provavelmente deveria ser dois commits/PRs: avise a pessoa.
-- **descrição:** português, começa com **minúscula**, verbo no presente da 3ª pessoa ("adiciona", "corrige", "remove", "atualiza"), sem ponto final. Cabeçalho inteiro com até 100 caracteres.
-- **corpo:** só quando o porquê não é óbvio. Linhas de até 100 caracteres.
-- **quebra de compatibilidade** (ex.: formato de mensagem de rede mudou): `feat(itens)!: ...` e rodapé `BREAKING CHANGE: <o que quebra>`.
-- Se a ferramenta exigir linha de coautoria (ex.: `Co-Authored-By:`), ela vai no rodapé, depois de uma linha em branco.
+Se a mudança cobre duas funcionalidades, ela provavelmente deveria ser dois commits ou PRs: avise a pessoa.
 
 Exemplos:
 
