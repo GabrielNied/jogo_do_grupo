@@ -3,7 +3,7 @@ using JogoDoGrupo.Shared.Features.Mobs;
 namespace JogoDoGrupo.Server.Features.Mobs;
 
 /// <summary>
-/// Controla um ponto de aparição de chefe raro: a cada intervalo da ficha o servidor sorteia
+/// Controla um ponto de aparição de chefe raro (ou de mundo, com permanência sem limite): a cada intervalo da ficha o servidor sorteia
 /// se ele aparece; se não aparecer, só tenta de novo no intervalo seguinte. Enquanto ele está
 /// no mundo não há sorteio, e a morte recomeça a espera. Quem chama <see cref="Atualizar"/> e
 /// <see cref="RegistrarMorte"/> é o laço do mundo; a classe só guarda o estado e é segura
@@ -33,10 +33,10 @@ public sealed class AparicaoDeChefeRaro
         TimeSpan? tempoDePermanencia = null
     )
     {
-        if (definicao.Categoria != CategoriaDeCriatura.ChefeRaro)
+        if (!RegrasCriaturas.AvisaNaArea(definicao.Categoria))
         {
             throw new ArgumentException(
-                $"A criatura {definicao.Id} não é chefe raro.",
+                $"A criatura {definicao.Id} não é chefe raro nem chefe de mundo.",
                 nameof(definicao)
             );
         }

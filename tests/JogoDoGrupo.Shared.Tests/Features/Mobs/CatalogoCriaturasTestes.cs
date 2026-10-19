@@ -19,8 +19,10 @@ public class CatalogoCriaturasTestes
         Assert.Equal(8, CatalogoCriaturas.JavaliFerrugem);
         Assert.Equal(9, CatalogoCriaturas.MorcegoDasSombras);
         Assert.Equal(10, CatalogoCriaturas.ArqueiroDoCampo);
+        Assert.Equal(300, CatalogoCriaturas.AnciaoTrovejante);
+        Assert.Equal(301, CatalogoCriaturas.ColossoBasaltico);
         Assert.Equal(
-            new[] { 1, 2, 3, 4, 5, 6, 7, 8, 10, 100, 200 },
+            new[] { 1, 2, 3, 4, 5, 6, 7, 8, 10, 100, 200, 300, 301 },
             CatalogoCriaturas.Todas.Select(c => c.Id).ToArray()
         );
     }
@@ -76,6 +78,27 @@ public class CatalogoCriaturasTestes
         Assert.True(ferrugem.DanoBase < campo.DanoBase);
     }
 
+    [Theory]
+    [InlineData(CatalogoCriaturas.AnciaoTrovejante, "Ancião Trovejante", 45, 250_000)]
+    [InlineData(CatalogoCriaturas.ColossoBasaltico, "Colosso Basáltico", 50, 350_000)]
+    public void Chefes_de_mundo_tem_os_numeros_do_livro_e_so_aparecem_por_sorteio(
+        int id,
+        string nome,
+        int nivel,
+        int vida
+    )
+    {
+        var ficha = CatalogoCriaturas.Obter(id);
+
+        Assert.Equal(nome, ficha.Nome);
+        Assert.Equal(CategoriaDeCriatura.ChefeDeMundo, ficha.Categoria);
+        Assert.Equal(nivel, ficha.Nivel);
+        Assert.Equal(vida, ficha.VidaBase);
+        Assert.InRange(ficha.ChanceDeAparecer, 0.0001, 0.9999);
+        Assert.True(RegrasCriaturas.AvisaNaArea(ficha.Categoria));
+        Assert.False(RegrasCriaturas.PodeSerElite(ficha.Categoria));
+    }
+
     [Fact]
     public void Chefe_sempre_aparece_e_chefe_raro_nem_sempre()
     {
@@ -118,6 +141,11 @@ public class CatalogoCriaturasTestes
                         Assert.InRange(criatura.ChanceDeAparecer, 0.0001, 0.9999);
                         Assert.True(criatura.IntervaloDeAparicaoSegundos > 0);
                         Assert.InRange(criatura.Id, 200, 299);
+                        break;
+                    case CategoriaDeCriatura.ChefeDeMundo:
+                        Assert.InRange(criatura.ChanceDeAparecer, 0.0001, 0.9999);
+                        Assert.True(criatura.IntervaloDeAparicaoSegundos > 0);
+                        Assert.InRange(criatura.Id, 300, 399);
                         break;
                     default:
                         Assert.Fail($"Categoria sem regra no teste: {criatura.Categoria}");

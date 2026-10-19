@@ -21,9 +21,23 @@ namespace JogoDoGrupo.Shared.Features.Mobs
         /// <summary>Tamanho do modelo em relação ao normal (1 = igual).</summary>
         public const float EscalaElite = 1.3f;
 
+        /// <summary>
+        /// Tamanho do modelo do chefe de mundo (proposta, a calibrar): ele reaproveita o modelo de
+        /// outra criatura, só maior.
+        /// </summary>
+        public const float EscalaDoChefeDeMundo = 2.5f;
+
         /// <summary>Só a criatura comum pode vir elite; chefes têm força fixa.</summary>
         public static bool PodeSerElite(CategoriaDeCriatura categoria) =>
             categoria == CategoriaDeCriatura.Comum;
+
+        /// <summary>
+        /// Chefe raro e chefe de mundo avisam na área toda quando aparecem e ficam marcados no
+        /// mapa e no minimapa, mesmo longe (o raio de interesse dos comuns não vale para eles).
+        /// </summary>
+        public static bool AvisaNaArea(CategoriaDeCriatura categoria) =>
+            categoria == CategoriaDeCriatura.ChefeRaro
+            || categoria == CategoriaDeCriatura.ChefeDeMundo;
 
         /// <summary>Variante de uma criatura que acabou de aparecer.</summary>
         public static VarianteDeCriatura SortearVariante(

@@ -33,6 +33,12 @@ public sealed record ComportamentoDeCriatura(
     /// <summary>Tatu Rochoso: vê pouco e anda devagar, mas golpeia forte e demora a recuperar.</summary>
     public static readonly ComportamentoDeCriatura Tatu = new(8.0, 2.5, 1.4, 2.0);
 
+    /// <summary>Ancião Trovejante: enxerga longe, anda devagar e golpeia com peso (chefe de mundo).</summary>
+    public static readonly ComportamentoDeCriatura Anciao = new(25.0, 3.5, 2.0, 2.5);
+
+    /// <summary>Colosso Basáltico: ainda mais lento e pesado que o Ancião (chefe de mundo).</summary>
+    public static readonly ComportamentoDeCriatura Colosso = new(20.0, 2.5, 2.5, 3.0);
+
     /// <summary>Arqueiro do Campo: mantém distância tática (10-16m), recua se aproximar a menos de 4m e dispara flechas telegrafadas.</summary>
     public static readonly ComportamentoDeCriatura Arqueiro = new(
         VisaoMetros: 18.0,
@@ -53,6 +59,8 @@ public sealed record ComportamentoDeCriatura(
             CatalogoCriaturas.LoboDoCampo => Lobo,
             CatalogoCriaturas.LoboDeGeada => Lobo,
             CatalogoCriaturas.CarapacaDeBrasa => Tatu,
+            CatalogoCriaturas.AnciaoTrovejante => Anciao,
+            CatalogoCriaturas.ColossoBasaltico => Colosso,
             CatalogoCriaturas.TatuRochoso => Tatu,
             CatalogoCriaturas.ArqueiroDoCampo => Arqueiro,
             _ => Padrao,

@@ -19,6 +19,8 @@ namespace JogoDoGrupo.Shared.Features.Mobs
         public const int ArqueiroDoCampo = 10;
         public const int GuardiaoDoReflexo = 100;
         public const int PresaVelha = 200;
+        public const int AnciaoTrovejante = 300;
+        public const int ColossoBasaltico = 301;
 
         /// <summary>Todas as criaturas do catálogo, em ordem crescente de id.</summary>
         public static readonly DefinicaoDeCriatura[] Todas =
@@ -143,6 +145,28 @@ namespace JogoDoGrupo.Shared.Features.Mobs
                 experienciaBase: 200,
                 chanceDeAparecer: 0.2,
                 intervaloDeAparicaoSegundos: 1800
+            ),
+            new DefinicaoDeCriatura(
+                id: AnciaoTrovejante,
+                nome: "Ancião Trovejante",
+                categoria: CategoriaDeCriatura.ChefeDeMundo,
+                nivel: 45,
+                vidaBase: 250000,
+                danoBase: 900,
+                experienciaBase: 20000,
+                chanceDeAparecer: 0.25,
+                intervaloDeAparicaoSegundos: 3600
+            ),
+            new DefinicaoDeCriatura(
+                id: ColossoBasaltico,
+                nome: "Colosso Basáltico",
+                categoria: CategoriaDeCriatura.ChefeDeMundo,
+                nivel: 50,
+                vidaBase: 350000,
+                danoBase: 1200,
+                experienciaBase: 30000,
+                chanceDeAparecer: 0.25,
+                intervaloDeAparicaoSegundos: 3600
             ),
         };
 

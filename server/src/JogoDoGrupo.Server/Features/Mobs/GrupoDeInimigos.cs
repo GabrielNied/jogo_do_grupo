@@ -36,8 +36,8 @@ public sealed partial class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulado
     private readonly int _tamanhoMinimo;
     private readonly int _nivelMinimo;
     private readonly int _nivelMaximo;
-    private readonly double _pontoX;
-    private readonly double _pontoZ;
+    private double _pontoX;
+    private double _pontoZ;
     private readonly LimiteDeInimigosVivos? _limite;
     private readonly IHistoricoDePosicoesDoMundo? _historico;
     private Inimigo[] _inimigos;
@@ -65,6 +65,9 @@ public sealed partial class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulado
 
     /// <summary>Só no chefe raro: decide quando ele aparece; nulo nas outras categorias.</summary>
     private readonly AparicaoDeChefeRaro? _aparicao;
+
+    /// <summary>Só no chefe de mundo: os lugares em que ele pode aparecer (um é sorteado).</summary>
+    private readonly IReadOnlyList<LugarDeChefeDeMundo>? _lugares;
 
     /// <summary>Jogadores que o grupo viu e que continuam na área.</summary>
     private readonly HashSet<long> _vistos = [];
@@ -127,7 +130,8 @@ public sealed partial class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulado
         double multiplicadorVida = 1.0,
         double multiplicadorDano = 1.0,
         Func<IDisparoDeProjeteis?>? projeteis = null,
-        int? criaturaRetaguardaId = null
+        int? criaturaRetaguardaId = null,
+        IReadOnlyList<LugarDeChefeDeMundo>? lugares = null
     )
     {
         ArgumentNullException.ThrowIfNull(definicao);
@@ -161,7 +165,33 @@ public sealed partial class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulado
         Area = area;
         Capacidade = tamanho;
 
-        if (definicao.Categoria == CategoriaDeCriatura.ChefeRaro)
+        if (definicao.Categoria == CategoriaDeCriatura.ChefeDeMundo)
+        {
+            // Chefe de mundo: um só, fora do mundo até o sorteio; o lugar também é sorteado. O
+            // primeiro sorteio só vem depois de um intervalo cheio (sem chefe de mundo logo ao
+            // subir o servidor) e ele fica até morrer.
+            ArgumentOutOfRangeException.ThrowIfNotEqual(tamanho, 1);
+            if (lugares == null || lugares.Count == 0)
+            {
+                throw new ArgumentException(
+                    "O chefe de mundo precisa de pelo menos um lugar.",
+                    nameof(lugares)
+                );
+            }
+
+            _lugares = lugares;
+            _pontoX = lugares[0].X;
+            _pontoZ = lugares[0].Z;
+            _aparicao = new AparicaoDeChefeRaro(
+                definicao,
+                sorteador,
+                Instante(_relogioMs()).AddSeconds(definicao.IntervaloDeAparicaoSegundos),
+                TimeSpan.FromSeconds(ConfigChefeDeMundo.PermanenciaSegundos)
+            );
+            _inimigos = [Criar(_pontoX, _pontoZ, false)];
+            _inimigos[0].Estado = EstadoDeInimigo.Morto;
+        }
+        else if (definicao.Categoria == CategoriaDeCriatura.ChefeRaro)
         {
             // Um chefe raro é um só e começa fora do mundo: quem o traz é o sorteio.
             ArgumentOutOfRangeException.ThrowIfNotEqual(tamanho, 1);
@@ -388,6 +418,22 @@ public sealed partial class GrupoDeInimigos : IAlvosDeCombate, IInimigosSimulado
                     {
                         if (_aparicao.Atualizar(Instante(agora), emCombate: false, out _))
                         {
+                            if (_lugares != null)
+                            {
+                                // O lugar do chefe de mundo é sorteado a cada aparição.
+                                var lugar = _lugares[
+                                    EscalaPorNivel.Sortear(
+                                        0,
+                                        _lugares.Count - 1,
+                                        _sorteador.Proximo()
+                                    )
+                                ];
+                                _pontoX = lugar.X;
+                                _pontoZ = lugar.Z;
+                                inimigo.OrigemX = lugar.X;
+                                inimigo.OrigemZ = lugar.Z;
+                            }
+
                             var chefe = Criar(inimigo.OrigemX, inimigo.OrigemZ, false);
                             _inimigos[i] = chefe;
                             passo.Aparicoes.Add(new InimigoApareceu { Inimigo = Retrato(chefe) });

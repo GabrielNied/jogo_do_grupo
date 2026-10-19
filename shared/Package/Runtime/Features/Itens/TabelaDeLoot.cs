@@ -37,7 +37,10 @@ namespace JogoDoGrupo.Shared.Features.Itens
             VarianteDeCriatura variante
         )
         {
-            if (categoria == CategoriaDeCriatura.Chefe)
+            if (
+                categoria == CategoriaDeCriatura.Chefe
+                || categoria == CategoriaDeCriatura.ChefeDeMundo
+            )
             {
                 return OrigemDoLoot.Chefe;
             }

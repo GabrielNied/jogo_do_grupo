@@ -156,7 +156,7 @@ namespace JogoDoGrupo.Client.Features.Mundo
             }
 
             var def = CatalogoCriaturas.Obter(dados.CriaturaId);
-            var ehChefeRaro = def?.Categoria == CategoriaDeCriatura.ChefeRaro;
+            var ehChefeRaro = def != null && RegrasCriaturas.AvisaNaArea(def.Categoria);
 
             _conhecidos[dados.InimigoId] = new Marcador
             {

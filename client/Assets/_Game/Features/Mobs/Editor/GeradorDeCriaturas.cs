@@ -81,12 +81,27 @@ namespace JogoDoGrupo.Client.Features.Mobs.Editor
             new Receita { Id = CatalogoCriaturas.PresaVelha, Nome = "PresaVelha" },
             new Receita { Id = CatalogoCriaturas.LoboDoCampo, Nome = "LoboDoCampo" },
             new Receita { Id = CatalogoCriaturas.TatuRochoso, Nome = "TatuRochoso" },
-            // Reaproveitam modelos que ja existem, com outra cor: Javali Ferrugem (#322).
+            // Reaproveitam modelos que ja existem, com outra cor: Javali Ferrugem (#322), Anciao
+            // Trovejante e Colosso Basaltico (#191, chefes de mundo; o tamanho vem do client).
             new Receita
             {
                 Id = CatalogoCriaturas.JavaliFerrugem,
                 Nome = "JavaliDoCampo",
                 Tinta = new Color(0.82f, 0.45f, 0.28f),
+            },
+            new Receita
+            {
+                Id = CatalogoCriaturas.AnciaoTrovejante,
+                Nome = "PresaVelha",
+                Tinta = new Color(0.55f, 0.7f, 1.0f),
+            },
+            new Receita
+            {
+                Id = CatalogoCriaturas.ColossoBasaltico,
+                Nome = "GuardiaoDoReflexo",
+                TemBrilho = true,
+                TemEmissao = true,
+                Tinta = new Color(0.45f, 0.4f, 0.4f),
             },
         };
 

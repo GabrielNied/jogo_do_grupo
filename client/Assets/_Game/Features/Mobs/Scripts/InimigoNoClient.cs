@@ -198,7 +198,13 @@ namespace JogoDoGrupo.Client.Features.Mobs
 
         public bool Elite => Variante == VarianteDeCriatura.Elite;
 
-        public float Escala => RegrasCriaturas.Escala(Variante);
+        public float Escala =>
+            RegrasCriaturas.Escala(Variante)
+            * (
+                CatalogoCriaturas.Obter(CriaturaId)?.Categoria == CategoriaDeCriatura.ChefeDeMundo
+                    ? RegrasCriaturas.EscalaDoChefeDeMundo
+                    : 1f
+            );
 
         /// <summary>Nome e nível do <see cref="CatalogoCriaturas"/>; criatura desconhecida cai no id.</summary>
         public string Rotulo
