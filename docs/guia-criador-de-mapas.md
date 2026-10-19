@@ -34,12 +34,12 @@ Para comparar visualmente sem trocar o mapa do jogo, use **Jogo do Grupo > Mundo
 
 As imagens dos pacotes ficam nos locais de origem. A pintura usa **Terrain Layers**, que associam a textura do chao aos seus mapas de detalhes; texturas de personagens, objetos e mapas de altura nao entram nessa lista.
 
-1. Abra **Jogo do Grupo > Mundo > Texturas do terreno > Reunir e abrir pasta**. A janela **Project** destaca `Assets/_Game/Features/Mundo/Art/CamadasDeTerreno`, com copias das camadas prontas agrupadas por pacote. A reuniao tambem acontece ao carregar os scripts do editor. Os arquivos originais e as imagens nao sao movidos.
+1. Abra **Jogo do Grupo > Mundo > Texturas do terreno > Selecionar camadas disponiveis**. A janela **Project** seleciona as camadas originais dos pacotes. Nenhum arquivo e criado, copiado ou movido, e nada e executado automaticamente ao carregar os scripts.
 2. Para escolher poucas camadas, selecione **Hub/TerrenoFora/ChaoNativo** na **Hierarchy**. No **Inspector**, abra **Paint Terrain > Paint Texture > Edit Terrain Layers > Add Layer** e escolha as camadas desejadas.
 3. Para disponibilizar todas de uma vez, com esse mesmo objeto selecionado, abra **Jogo do Grupo > Mundo > Texturas do terreno > Adicionar ao terreno selecionado**. As camadas existentes e sua pintura sao preservadas; camadas ja presentes nao sao adicionadas novamente. **Ctrl+Z** desfaz a adicao. Muitas camadas podem aumentar o custo de renderizacao: acrescente somente as necessarias ao mapa quando possivel.
 4. Escolha uma camada na lista de pintura e pinte normalmente. Salve o projeto depois de editar e use o fluxo de publicacao do mapa.
 
-Repetir a reuniao nao cria copias extras nem sobrescreve ajustes feitos nas copias. Depois de importar outro pacote, execute novamente **Reunir e abrir pasta**. O sufixo no nome identifica a origem e evita confundir camadas de nomes iguais. As copias continuam dependendo das texturas dos pacotes originais: mantenha esses pacotes instalados e respeite suas licencas.
+Se usou a primeira versao do organizador, saia do Play e execute **Jogo do Grupo > Mundo > Texturas do terreno > Corrigir copias criadas pelo organizador**. O comando identifica apenas as copias intactas daquela ferramenta, troca suas referencias pelas originais e soma os pesos de pintura quando a mesma camada aparecia duas vezes. Copias editadas ou ainda usadas por outros assets ou terrenos nao salvos sao preservadas. Antes de modificar TerrainData ou remover copias, grava os arquivos e metadados em `client/Library/BackupCamadasDeTerreno/<instante>/Assets/`; o Console informa o caminho. A limpeza nao tem Undo: a recuperacao usa esse backup com o editor fechado. Os pacotes originais continuam instalados e suas licencas permanecem aplicaveis.
 
 ## Protótipo da estrada do Passo
 

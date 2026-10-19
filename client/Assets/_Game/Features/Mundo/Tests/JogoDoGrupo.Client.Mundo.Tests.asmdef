@@ -4,6 +4,7 @@
   "references": [
     "JogoDoGrupo.Client.Core",
     "JogoDoGrupo.Client.Mundo",
+    "JogoDoGrupo.Client.Mundo.Editor",
     "JogoDoGrupo.Shared",
     "UnityEngine.TestRunner",
     "UnityEditor.TestRunner"
