@@ -299,7 +299,7 @@ public sealed class ServicoDeInimigos(
         {
             var dados = aparicao.Inimigo;
             var definicao = CatalogoCriaturas.Obter(dados.CriaturaId);
-            var ehChefeRaro = definicao?.Categoria == CategoriaDeCriatura.ChefeRaro;
+            var ehChefeRaro = definicao != null && RegrasCriaturas.AvisaNaArea(definicao.Categoria);
             if (
                 !ehChefeRaro
                 && !AplicarInteresse(
@@ -363,8 +363,7 @@ public sealed class ServicoDeInimigos(
     )
     {
         var podeEnviar = false;
-        var ehChefeRaro =
-            grupo is GrupoDeInimigos g && g.Categoria == CategoriaDeCriatura.ChefeRaro;
+        var ehChefeRaro = grupo is GrupoDeInimigos g && RegrasCriaturas.AvisaNaArea(g.Categoria);
         if (grupo.Area != AreasDoMundo.Cidade || ehChefeRaro)
         {
             podeEnviar = true;
@@ -676,17 +675,27 @@ public sealed class ServicoDeInimigos(
             return;
         }
 
-        var filtrados = _interesse.FiltrarEntrada(
-            evento.PersonagemId,
-            evento.Area,
-            posicao.X,
-            posicao.Z,
-            vivos
-        );
+        var filtrados = _interesse
+            .FiltrarEntrada(evento.PersonagemId, evento.Area, posicao.X, posicao.Z, vivos)
+            .ToList();
+        // Chefe raro e chefe de mundo avisam na área toda: quem entra depois da aparição também
+        // os recebe (marca no mapa), mesmo longe do raio de interesse.
+        foreach (var vivo in vivos)
+        {
+            if (
+                CatalogoCriaturas.Obter(vivo.CriaturaId) is { } ficha
+                && RegrasCriaturas.AvisaNaArea(ficha.Categoria)
+                && !filtrados.Any(i => i.InimigoId == vivo.InimigoId)
+            )
+            {
+                filtrados.Add(vivo);
+            }
+        }
+
         tempoReal.Enviar(
             sessao,
             MobsMessageIds.InimigosDaArea,
-            new InimigosDaArea { Inimigos = filtrados }
+            new InimigosDaArea { Inimigos = [.. filtrados] }
         );
     }
 
@@ -736,10 +745,10 @@ public sealed class ServicoDeInimigos(
             _pertoIdsBuffer.Clear();
 
             var temChefeRaro =
-                (grupo is GrupoDeInimigos g && g.Categoria == CategoriaDeCriatura.ChefeRaro)
+                (grupo is GrupoDeInimigos g && RegrasCriaturas.AvisaNaArea(g.Categoria))
                 || passo.Aparicoes.Any(a =>
-                    CatalogoCriaturas.Obter(a.Inimigo.CriaturaId)?.Categoria
-                    == CategoriaDeCriatura.ChefeRaro
+                    CatalogoCriaturas.Obter(a.Inimigo.CriaturaId) is { } ficha
+                    && RegrasCriaturas.AvisaNaArea(ficha.Categoria)
                 );
 
             if (temChefeRaro)

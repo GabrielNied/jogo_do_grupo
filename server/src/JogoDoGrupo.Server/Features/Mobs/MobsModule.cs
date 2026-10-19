@@ -23,6 +23,11 @@ public sealed class MobsModule : IFeatureModule
     /// <summary>Chave do grupo do chefe raro no contêiner.</summary>
     public const string ChaveDoChefeRaro = "chefe-raro";
 
+    /// <summary>Chaves dos grupos dos chefes de mundo (um grupo por chefe) no contêiner.</summary>
+    public const string ChaveDoAnciao = "chefe-de-mundo-anciao";
+
+    public const string ChaveDoColosso = "chefe-de-mundo-colosso";
+
     public string Nome => "Mobs e bosses";
 
     public void ConfigurarServicos(IServiceCollection servicos, IConfiguration configuracao)
@@ -82,6 +87,10 @@ public sealed class MobsModule : IFeatureModule
             sp.GetRequiredKeyedService<GrupoDeInimigos>(ChaveDoChefeRaro)
         );
 
+        // Os chefes de mundo: um grupo de um por chefe, lugar e hora sorteados pelo grupo.
+        AdicionarChefeDeMundo(servicos, ChaveDoAnciao, CatalogoCriaturas.AnciaoTrovejante, 0);
+        AdicionarChefeDeMundo(servicos, ChaveDoColosso, CatalogoCriaturas.ColossoBasaltico, 1);
+
         // Os bosses de dungeon: um por área, criados pela instância (IChefesDaDungeon). Enquanto
         // a instância não existe, sobe um de teste fora da cidade.
         servicos.AddSingleton(sp => new ChefesDaDungeon(
@@ -100,6 +109,8 @@ public sealed class MobsModule : IFeatureModule
                 [
                     .. sp.GetRequiredService<GruposDoCampo>().Grupos,
                     sp.GetRequiredKeyedService<GrupoDeInimigos>(ChaveDoChefeRaro),
+                    sp.GetRequiredKeyedService<GrupoDeInimigos>(ChaveDoAnciao),
+                    sp.GetRequiredKeyedService<GrupoDeInimigos>(ChaveDoColosso),
                 ],
                 sp.GetRequiredService<ServidorTempoReal>(),
                 sp.GetRequiredService<IPosicoesDoMundo>(),
@@ -116,6 +127,32 @@ public sealed class MobsModule : IFeatureModule
         servicos.AddHostedService(sp => sp.GetRequiredService<ServicoDeInimigos>());
         servicos.AddSingleton<ISpawnDeTeste>(sp => sp.GetRequiredService<ServicoDeInimigos>());
         servicos.AddSingleton<IInimigosDeTeste>(sp => sp.GetRequiredService<ServicoDeInimigos>());
+    }
+
+    private static void AdicionarChefeDeMundo(
+        IServiceCollection servicos,
+        string chave,
+        int criaturaId,
+        int indice
+    )
+    {
+        servicos.AddKeyedSingleton(
+            chave,
+            (sp, _) =>
+                new GrupoDeInimigos(
+                    CatalogoCriaturas.Obter(criaturaId)!,
+                    sp.GetRequiredService<ISorteadorDeCriaturas>(),
+                    1,
+                    primeiroId: ConfigChefeDeMundo.PrimeiroId
+                        + (indice * ConfigChefeDeMundo.EspacoDeIdsPorChefe),
+                    queda: sp.GetRequiredService<IEstadoDeQueda>(),
+                    historico: sp.GetRequiredService<IHistoricoDePosicoesDoMundo>(),
+                    lugares: ConfigChefeDeMundo.Lugares
+                )
+        );
+        servicos.AddSingleton<IAlvosDeCombate>(sp =>
+            sp.GetRequiredKeyedService<GrupoDeInimigos>(chave)
+        );
     }
 
     public void Inicializar(ServerContext contexto)

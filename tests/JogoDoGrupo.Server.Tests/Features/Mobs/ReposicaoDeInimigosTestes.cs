@@ -337,9 +337,9 @@ public class ReposicaoDeInimigosTestes
     // ── Pontos ───────────────────────────────────────────────────────────────
 
     [Fact]
-    public void Ha_de_12_a_15_pontos_de_spawn_no_campo()
+    public void Ha_de_12_a_16_pontos_de_spawn_no_campo()
     {
-        Assert.InRange(PontosDeSpawnDoCampo.Todos.Count, 12, 15);
+        Assert.InRange(PontosDeSpawnDoCampo.Todos.Count, 12, 16);
     }
 
     [Fact]

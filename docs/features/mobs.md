@@ -92,7 +92,7 @@ Só a criatura **comum**. O sorteio acontece uma vez, quando ela aparece (inclus
 | 200 | Presa-Velha | chefe raro | 5 | 1500 | 80 | 200 | 20% por sorteio | sorteio a cada 30 min |
 
 - O Javali do Campo usa os números do inimigo comum da fatia (seção 4 e ficha da issue #63).
-- Faixas de id: comuns de 1 a 99, chefes de 100 a 199, chefes raros de 200 a 299. Id publicado não muda nem é reaproveitado.
+- Faixas de id: comuns de 1 a 99, chefes de 100 a 199, chefes raros de 200 a 299, chefes de mundo de 300 a 399. Id publicado não muda nem é reaproveitado.
 
 ### Inimigo comum da fatia (issue #63)
 
@@ -195,7 +195,7 @@ Primeiro mob de combate à distância do jogo (Arqueiro do Campo, id 10, nível 
 - **Respawn dinâmico pela lotação (#897, proposta do agente, a calibrar):** o intervalo da ficha é multiplicado por uma fração que cai com os jogadores de pé a até **60 m** do ponto do grupo (`ConfigRespawn.RaioDaLotacaoMetros`): **−15% por jogador** (`ReducaoPorJogador`), com piso em **40%** do intervalo (`FracaoMinimaDoIntervalo`, alcançado com 4 jogadores). Zero jogadores: intervalo base. Ex.: javali, base 120 s: 1 jogador 102 s, 3 jogadores 66 s, 4 ou mais 48 s. A lotação é a do último passo antes da morte; a folga da variação soma por cima, e o teto de vivos da área continua mandando (sem vaga, espera). Chefe raro, chefe da dungeon e salões de instância não usam.
 - **Variação:** cada intervalo ganha uma folga sorteada de **0 a 25%** a mais (`ConfigReposicaoDeInimigos.VariacaoDoIntervalo`), para os grupos e os membros não voltarem juntos; o intervalo da ficha é o mínimo.
 - **Nível conta** (só a criatura comum; chefes têm força fixa): em relação ao nível da ficha, cada nível acima soma **15%** de vida, **10%** de dano e **20%** de experiência (abaixo, tira; piso de 40%). A variante elite multiplica por cima. O `InimigoNoMundo.Nivel` e o `InimigoDerrotado.Nivel` levam o nível; `InimigoDerrotado.Experiencia` já vem escalada (o ajuste por diferença de nível entre jogador e mob é de [Personagem](personagem.md)).
-- **Limite de vivos:** no máximo **40** inimigos comuns do campo vivos ao mesmo tempo, somando todos os pontos. Os máximos dos pontos somam mais que isso (57), então o teto age: na subida do servidor os pontos enchem na ordem da lista (perto do portão primeiro) e os últimos esperam vaga. Sem vaga, o grupo (ou a parte que couber) espera e tenta de novo a cada 5 s. O chefe raro e os inimigos do comando de teste não contam.
+- **Limite de vivos:** no máximo **50** inimigos comuns do campo vivos ao mesmo tempo, somando todos os pontos (subiu de 40 com o bando do Javali Ferrugem, #322). Os máximos dos pontos somam mais que isso (72), então o teto age: na subida do servidor os pontos enchem na ordem da lista (perto do portão primeiro) e os últimos esperam vaga. Sem vaga, o grupo (ou a parte que couber) espera e tenta de novo a cada 5 s. O chefe raro, os chefes de mundo e os inimigos do comando de teste não contam.
 - **Cuidados de experiência:** jogadores de qualquer número no mesmo grupo dividem o mesmo alvo (o grupo divide o que vê); quem cai ou desconecta deixa de ser alvo e o grupo volta ao repouso; o grupo reaparece nos pontos de origem, que são fixos (quem fica parado em cima de um ponto o vê reaparecer ao lado dele, como qualquer reaparição). Quem está caído ou sendo levantado não entra em `_vistos`, não é escolhido como alvo e não recebe `GolpeDeInimigoAcertou` (consulta `IEstadoDeQueda` do Combate).
 
 ### Tabela de inimigos por bioma e horário (#916)
@@ -251,6 +251,19 @@ Primeiro mob de combate à distância do jogo (Arqueiro do Campo, id 10, nível 
 - **Só a manada** tem rota e zona urbana: os outros grupos do campo seguem como antes. Os inimigos do comando de teste (`spawn`) não acompanham a rota.
 - Fora desta tarefa: reação a luz e som, ponte de gelo, bestiário e captura (continuam proposta do livro).
 
+### Chefe de mundo (#191)
+
+Decisões do agente em 2026-10-19 (proposta, a calibrar), dentro do Definido: **lugar e hora sorteados, força fixa, aviso na área, loot individual**. Ficha na [tabela do livro](#livro-de-asterra-bestiário-proposta-do-board-2026-10-11): categoria nova `ChefeDeMundo` (id de 300 a 399), com `Ancião Trovejante` (300; nível 45, vida 250.000) e `Colosso Basáltico` (301; nível 50, vida 350.000), dano 900 e 1.200 e experiência 20.000 e 30.000 (os números de vida e nível são do livro; dano e experiência são proposta). Código em `ConfigChefeDeMundo` (servidor) e `GrupoDeInimigos` com `lugares`.
+
+- **Hora:** a mesma conta do chefe raro, com a chance e o intervalo da ficha (**25% a cada 1 h**, em média 4 h). Diferença: o primeiro sorteio só vem **um intervalo depois** de o servidor subir (nunca um chefe de mundo logo ao ligar), e depois de uma morte a espera recomeça da morte. Intervalos perdidos não acumulam.
+- **Lugar:** sorteado a cada aparição entre os `Lugares` da config: planície norte (0, 700), colinas oeste (-700, 150) e mata leste (700, 150). Todos em chão firme, a mais de 500 m da cidade e fora da visão de qualquer ponto do campo (um teste confere).
+- **Força fixa:** os valores da ficha, nunca escala (nem por nível, nem por jogador), nunca elite. A IA é a do inimigo comum, com visão e velocidade próprias (`ComportamentoDeCriatura.Anciao`, `Colosso`).
+- **Fica até morrer:** **não some por tempo**; o sumiço de 30 min, a marca-pausa em combate e o loot próprio são do chefe raro (#896). Com os dois chefes de mundo no ar ao mesmo tempo, um não ataca o outro (hostilidade entre gigantes segue proposta do livro).
+- **Aviso na área:** como o chefe raro (`RegrasCriaturas.AvisaNaArea`): `InimigoApareceu` vai a **toda a área**, sem o corte do raio de interesse, quem entra depois também recebe o chefe vivo, o minimapa o marca, o client mostra "Um chefe de mundo apareceu na área" e "O chefe de mundo ... foi derrotado". A barra larga de boss do HUD vale para ele.
+- **Loot individual:** `InimigoDerrotado` leva os participantes (dano, cura em combate ou ser alvo); a origem do loot é a de **chefe** (`TabelaDeLoot.OrigemDe`), com um sorteio por participante e a chance de item de montaria de chefe ([itens](itens.md), [montarias](montarias.md)).
+- **Modelo:** reaproveita modelos que já existem, só mais claros ou escuros e **2,5x maior** (`RegrasCriaturas.EscalaDoChefeDeMundo`): o Ancião usa o modelo da Presa-Velha e o Colosso, o do Guardião do Reflexo. A arte própria entra com a do livro. O corpo de acerto segue o raio padrão do inimigo comum (0,6 m).
+- **Fora desta entrega:** eventos de bioma (sem duração nem aviso definidos), meteoros, invasão de cidade, o confronto entre gigantes e o chefe raro (#896).
+
 ### Boss da dungeon (#66)
 
 O Guardião do Reflexo (id 100), o boss da primeira dungeon ([fatia-jogavel.md](fatia-jogavel.md), seção 7). Tudo abaixo é **proposta a calibrar**, em `ConfigChefeDaDungeon` (servidor); vida, XP e nível vêm da ficha da tabela de criaturas.
@@ -282,6 +295,20 @@ Além das etiquetas no mundo (`PainelDeInimigos`), o client monta barras na regi
 
 ### Livro de Asterra: bestiário (proposta do board, 2026-10-11)
 
+**Fichas feitas (#322, 2026-10-19; dano e experiência são proposta do agente, a calibrar):** as cinco espécies do livro são fichas fixas no `CatalogoCriaturas` (shared), como criatura **comum**, nunca escalando com jogadores:
+
+| Id | Espécie | Nível | Vida | Dano | XP | Volta em |
+|---|---|---|---|---|---|---|
+| 4 | Cervo de Galhada Oca | 12 | 650 | 22 | 40 | 120 s |
+| 5 | Mariposa de Breu | 10 | 90 | 14 | 16 | 90 s |
+| 6 | Lobo de Geada | 22 | 1.400 | 95 | 160 | 150 s |
+| 7 | Carapaça de Brasa | 30 | 3.200 | 180 | 320 | 180 s |
+| 8 | Javali Ferrugem | 3 | 180 | 18 | 12 | 120 s |
+
+- **Entra no campo agora só o Javali Ferrugem:** bando de **8 a 15**, nível 4 a 5, **só de dia**, em (60, 290) ("campo-ferrugem"), com a IA do inimigo comum. O Javali do Campo continua como está. O teto de vivos do campo subiu para 50. A perseguição de 180 m do livro não entrou (a desistência segue a regra comum).
+- **Só ficha, sem spawn ainda:** Lobo de Geada, Carapaça de Brasa, Cervo e Mariposa (aparecem na tabela por bioma em `ConfigInimigosPorBioma`, que ainda não aciona spawn). O Lobo de Geada anda como o Lobo e a Carapaça como o Tatu; o comportamento do Cervo (não hostil, foge de ruído) e da Mariposa (atraída pela luz) fica com a reação a luz e som ([#320](https://github.com/GabrielNied/jogo_do_grupo/issues/320)).
+- **Modelo do Javali Ferrugem:** o do Javali do Campo com material ferrugem. Os outros esperam a arte do livro (sem prefab o client mostra uma cápsula).
+
 Do "Livro de ideias" do [FigJam](../brainstorm/figjam.md) (seções 05, 09 e 10). **Proposta do board**; não troca nenhuma ficha acima. Decisões de espécies em [Em aberto](#em-aberto) (#322, /decida 2026-10-15). Implementação das fichas, bestiário, captura e reação a luz/som (**#320**, **#322**, **#323**) segue a fila por prioridade. Os números do livro são só referência.
 
 - **Conflito com o já implementado:** o livro descreve o **Javali Ferrugem** (nível 3, vida 180, ataque-base 18, grupos de 8 a 15, perseguição de 180 m) como a primeira grande puxada. O **Javali do Campo** acima tem nível 3 e vida 180 como ele, mas dano 40 e grupo de 3 a 5. Não foi trocado; veja "Em aberto".
@@ -302,7 +329,7 @@ Do "Livro de ideias" do [FigJam](../brainstorm/figjam.md) (seções 05, 09 e 10)
 
 Código em `shared/Package/Runtime/Features/Mobs/` (regras e números acima, não copiados aqui). ~~Ainda **não há mensagens de rede**: as criaturas ainda não aparecem no mundo (issue #63).~~ Substituído em 2026-10-11: o contrato do inimigo comum está abaixo; o servidor e o client que o usam são as issues #268 e #269.
 
-- `CategoriaDeCriatura`: `Comum`, `Chefe`, `ChefeRaro`.
+- `CategoriaDeCriatura`: `Comum`, `Chefe`, `ChefeRaro`, `ChefeDeMundo`.
 - `VarianteDeCriatura`: `Normal`, `Elite`.
 - `DefinicaoDeCriatura` e `CatalogoCriaturas`: a ficha fixa de cada criatura e `Obter` por id.
 - `RegrasCriaturas`: fórmulas puras (variante, aparição, vida, dano, experiência, multiplicador de recompensa e tamanho).

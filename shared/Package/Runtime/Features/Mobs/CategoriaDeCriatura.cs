@@ -14,5 +14,11 @@ namespace JogoDoGrupo.Shared.Features.Mobs
 
         /// <summary>Chefe raro: força fixa como a do chefe, mas pode aparecer ou não.</summary>
         ChefeRaro = 2,
+
+        /// <summary>
+        /// Chefe de mundo: força fixa, aparece em lugar e hora sorteados, avisa na área toda e
+        /// fica até morrer (sem sumiço por tempo; isso é do chefe raro). Ids de 300 a 399.
+        /// </summary>
+        ChefeDeMundo = 3,
     }
 }

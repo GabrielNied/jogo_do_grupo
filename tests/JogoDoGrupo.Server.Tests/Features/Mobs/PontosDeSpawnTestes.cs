@@ -118,6 +118,30 @@ public class PontosDeSpawnTestes
     }
 
     [Fact]
+    public void O_bando_do_javali_ferrugem_tem_de_8_a_15_com_o_dano_da_ficha()
+    {
+        var ponto = Assert.Single(
+            PontosDeSpawnDoCampo.Todos,
+            p => p.CriaturaId == CatalogoCriaturas.JavaliFerrugem
+        );
+        Assert.Equal(8, ponto.TamanhoMinimo);
+        Assert.Equal(15, ponto.TamanhoMaximo);
+
+        var grupo = GrupoDeInimigos.DoPonto(ponto, new SorteadorDeCriaturas(new Random(1)));
+        var vivos = grupo.Vivos();
+
+        Assert.InRange(vivos.Length, 8, 15);
+        Assert.All(
+            vivos,
+            v =>
+            {
+                Assert.Equal(CatalogoCriaturas.JavaliFerrugem, v.CriaturaId);
+                Assert.InRange(v.Nivel, ponto.NivelMinimo, ponto.NivelMaximo);
+            }
+        );
+    }
+
+    [Fact]
     public void Quanto_mais_longe_da_cidade_mais_forte_e_o_ponto()
     {
         var porDistancia = PontosDeSpawnDoCampo

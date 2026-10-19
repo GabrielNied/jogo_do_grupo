@@ -61,7 +61,7 @@ namespace JogoDoGrupo.Shared.Features.Mobs
             }
 
             return ficha.Categoria == CategoriaDeCriatura.Chefe
-                || ficha.Categoria == CategoriaDeCriatura.ChefeRaro;
+                || RegrasCriaturas.AvisaNaArea(ficha.Categoria);
         }
 
         /// <summary>
