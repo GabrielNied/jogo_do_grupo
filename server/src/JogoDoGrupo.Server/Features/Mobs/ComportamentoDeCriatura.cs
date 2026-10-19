@@ -51,6 +51,8 @@ public sealed record ComportamentoDeCriatura(
         criaturaId switch
         {
             CatalogoCriaturas.LoboDoCampo => Lobo,
+            CatalogoCriaturas.LoboDeGeada => Lobo,
+            CatalogoCriaturas.CarapacaDeBrasa => Tatu,
             CatalogoCriaturas.TatuRochoso => Tatu,
             CatalogoCriaturas.ArqueiroDoCampo => Arqueiro,
             _ => Padrao,

@@ -57,6 +57,61 @@ namespace JogoDoGrupo.Shared.Features.Mobs
                 intervaloDeAparicaoSegundos: 150
             ),
             new DefinicaoDeCriatura(
+                id: CervoDeGalhadaOca,
+                nome: "Cervo de Galhada Oca",
+                categoria: CategoriaDeCriatura.Comum,
+                nivel: 12,
+                vidaBase: 650,
+                danoBase: 22,
+                experienciaBase: 40,
+                chanceDeAparecer: 1.0,
+                intervaloDeAparicaoSegundos: 120
+            ),
+            new DefinicaoDeCriatura(
+                id: MariposaDeBreu,
+                nome: "Mariposa de Breu",
+                categoria: CategoriaDeCriatura.Comum,
+                nivel: 10,
+                vidaBase: 90,
+                danoBase: 14,
+                experienciaBase: 16,
+                chanceDeAparecer: 1.0,
+                intervaloDeAparicaoSegundos: 90
+            ),
+            new DefinicaoDeCriatura(
+                id: LoboDeGeada,
+                nome: "Lobo de Geada",
+                categoria: CategoriaDeCriatura.Comum,
+                nivel: 22,
+                vidaBase: 1400,
+                danoBase: 95,
+                experienciaBase: 160,
+                chanceDeAparecer: 1.0,
+                intervaloDeAparicaoSegundos: 150
+            ),
+            new DefinicaoDeCriatura(
+                id: CarapacaDeBrasa,
+                nome: "Carapaça de Brasa",
+                categoria: CategoriaDeCriatura.Comum,
+                nivel: 30,
+                vidaBase: 3200,
+                danoBase: 180,
+                experienciaBase: 320,
+                chanceDeAparecer: 1.0,
+                intervaloDeAparicaoSegundos: 180
+            ),
+            new DefinicaoDeCriatura(
+                id: JavaliFerrugem,
+                nome: "Javali Ferrugem",
+                categoria: CategoriaDeCriatura.Comum,
+                nivel: 3,
+                vidaBase: 180,
+                danoBase: 18,
+                experienciaBase: 12,
+                chanceDeAparecer: 1.0,
+                intervaloDeAparicaoSegundos: 120
+            ),
+            new DefinicaoDeCriatura(
                 id: ArqueiroDoCampo,
                 nome: "Arqueiro do Campo",
                 categoria: CategoriaDeCriatura.Comum,

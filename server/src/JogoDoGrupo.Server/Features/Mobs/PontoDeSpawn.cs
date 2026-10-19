@@ -36,7 +36,7 @@ public static class PontosDeSpawnDoCampo
     /// Quantos inimigos comuns do campo podem estar vivos ao mesmo tempo, somando todos os
     /// pontos.
     /// </summary>
-    public const int LimiteDeInimigosVivos = 40;
+    public const int LimiteDeInimigosVivos = 50;
 
     /// <summary>
     /// A manada de javalis do pasto: uma volta fechada entre a cidade e o campo (pasto, rio,
@@ -80,6 +80,20 @@ public static class PontosDeSpawnDoCampo
             5,
             8,
             RotaDaManadaDoPasto
+        ),
+        // O bando do Javali Ferrugem do livro (#322): 8 a 15 de dano baixo, só de dia, a leste do
+        // caminho do portão, fora da visão dos grupos vizinhos.
+        Ponto(
+            15,
+            "campo-ferrugem",
+            60,
+            290,
+            CatalogoCriaturas.JavaliFerrugem,
+            4,
+            5,
+            8,
+            15,
+            PeriodoDeAparicao.Dia
         ),
         // Pontos pequenos entre os grandes e ao lado do caminho do portão (issue #489).
         Ponto(7, "campo-portao-oeste", -80, 150, CatalogoCriaturas.JavaliDoCampo, 2, 3, 2, 3),

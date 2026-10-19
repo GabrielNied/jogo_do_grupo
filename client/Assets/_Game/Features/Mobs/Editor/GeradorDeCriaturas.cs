@@ -62,6 +62,9 @@ namespace JogoDoGrupo.Client.Features.Mobs.Editor
 
             // Clipes de preparo por ataque (investida, raios, pisada): so o chefe de dungeon.
             public bool AtaquesDoChefe;
+
+            // Especie que reaproveita o modelo de outra: so o material muda (cor por cima).
+            public Color Tinta = Color.white;
         }
 
         static readonly Receita[] Receitas =
@@ -78,6 +81,13 @@ namespace JogoDoGrupo.Client.Features.Mobs.Editor
             new Receita { Id = CatalogoCriaturas.PresaVelha, Nome = "PresaVelha" },
             new Receita { Id = CatalogoCriaturas.LoboDoCampo, Nome = "LoboDoCampo" },
             new Receita { Id = CatalogoCriaturas.TatuRochoso, Nome = "TatuRochoso" },
+            // Reaproveitam modelos que ja existem, com outra cor: Javali Ferrugem (#322).
+            new Receita
+            {
+                Id = CatalogoCriaturas.JavaliFerrugem,
+                Nome = "JavaliDoCampo",
+                Tinta = new Color(0.82f, 0.45f, 0.28f),
+            },
         };
 
         public static string CaminhoPrefab(int id) =>
@@ -91,8 +101,12 @@ namespace JogoDoGrupo.Client.Features.Mobs.Editor
         /// <summary>Caminho do FBX de cada criatura gerada.</summary>
         public static IEnumerable<string> Modelos()
         {
+            var vistos = new HashSet<string>();
             foreach (var receita in Receitas)
-                yield return CaminhoModelo(receita.Nome);
+            {
+                if (vistos.Add(receita.Nome))
+                    yield return CaminhoModelo(receita.Nome);
+            }
         }
 
         [MenuItem("Jogo do Grupo/Mobs/Gerar criaturas")]
@@ -218,7 +232,7 @@ namespace JogoDoGrupo.Client.Features.Mobs.Editor
             );
             material.SetTexture("_BaseMap", cor);
             material.mainTexture = cor;
-            material.SetColor("_BaseColor", Color.white);
+            material.SetColor("_BaseColor", receita.Tinta);
             material.SetFloat("_Metallic", 0f);
             material.SetFloat("_Smoothness", LisuraPelo);
 
