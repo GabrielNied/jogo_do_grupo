@@ -104,8 +104,27 @@ Feito em 2026-10-18. O leilão é **um livro de ordens só** (a barraca de jogad
 - **Expiração:** uma varredura (`VarreduraDoMercado`, a cada 60 s) vence as ordens passadas da validade, e uma ordem vencida **nunca casa**, mesmo antes da varredura. O jogador online recebe um aviso quando a ordem vence ou casa.
 - **Servidor autoritativo e atômico:** cada operação roda numa transação Serializable, uma de cada vez no processo; item e moeda nunca duplicam. Apagar um personagem apaga as ordens dele (e o que elas guardam), como apaga o inventário.
 - **Contrato** (`shared/.../Features/Economia/MensagensDoMercado.cs`, faixa 9100–9199): `ConsultarMercado` 9100, `OferecerVenda` 9101, `OferecerCompra` 9102, `ComprarOrdem` 9103, `CancelarOrdem` 9104, `ReceberDevolucoes` 9105 (client → servidor); `EstadoDoMercado` 9110 (o livro, as minhas ordens, a bolsa e a lista de modelos, depois de cada pedido) e `AvisoDoMercado` 9111 (servidor → client). Recusas vêm em `EconomiaRecusada` com os códigos novos de `CodigosErroEconomia` (`preco_invalido`, `limite_de_ordens`, `ordem_indisponivel`...).
-- **Na tela:** `JanelaLeilao` com três abas: **Comprar** (busca por nome, ordens à venda, pedidos abertos, formulário de pedido), **Vender** (escolher o item da bolsa e o preço, mostrando quanto o vendedor recebe) e **Minhas ordens** (cancelar, receber devoluções).
+- **Na tela:** `JanelaLeilao` com três abas: **Comprar** (busca por nome, ordens à venda, pedidos abertos, formulário de pedido), **Vender** (escolher o item da bolsa e o preço, mostrando quanto o vendedor recebe) e **Minhas ordens** (cancelar, receber devoluções). As ordens de quem possui barraca ativa na praça ganham o selo `[na barraca de <nome>]`.
 - **Testes:** casamento pelo melhor preço e por antiguidade, taxa uma vez, custódia e devolução, bolsa cheia, expiração, e concorrência (vários compradores para uma venda; vendas e compras ao mesmo tempo conservam itens e coroas) em `MercadoTestes`, `MercadoExpiracaoTestes` e `MercadoTempoRealTestes`; contas puras em `ConfigMercadoTestes`.
+
+### Barracas de Jogador e Vendedor Offline (#905)
+
+Entregue na [#905](https://github.com/GabrielNied/jogo_do_grupo/issues/905), conforme decisão de 2026-10-16:
+
+| Constante | Valor | Observação |
+|---|---|---|
+| `TaxaVendaBarracaPercentual` | 3 | taxa presencial reduzida (no leilão geral é 5%) |
+| `DiariaVendedorOfflineCoroas` | 50 | saída de coroas por diária (24 h) do manequim offline |
+| `RaioPracaMetros` | 20 m | raio ao redor da praça central da cidade (`0, -10`) |
+| `RaioInteracaoBarracaMetros` | 4 m | proximidade para interagir com a barraca |
+
+- **Espelhamento no livro único do leilão:** o mercado continua tendo um único livro de ordens. Quando o vendedor tem uma barraca ativa, suas ofertas à venda no leilão recebem o selo `[na barraca de <nome>]`.
+- **Taxa presencial reduzida (3%):** quem vai até a praça da cidade e compra diretamente na barraca (presencial ou do manequim) paga taxa reduzida de **3%** (arredondada para cima), beneficiando tanto quem compra quanto quem vende.
+- **Barraca presencial:** montada na praça da cidade (`ConfigBarraca.DentroDaPraca`). Enquanto com a barraca ativa, o personagem fica visível e livre de desconexão por inatividade. Ao desconectar, a barraca presencial é desmontada.
+- **Vendedor offline (manequim):** o jogador contrata um manequim com sua aparência por N diárias mediante cobrança atômica em coroas (`ICarteiraCoroas`). Permanece na praça atendendo compradores mesmo com a pessoa deslogada. A varredura periódica desativa manequins cujo prazo expirou.
+- **Concorrência e atomicidade:** a compra presencial consome a ordem diretamente no `ServicoDoMercado` sob transação Serializable e trava de escrita (`Trava`), garantindo que uma ordem seja vendida exatamente uma vez, sem duplicação de itens ou saldo.
+- **Mensagens (faixa 9120–9127):** `MontarBarraca`, `DesmontarBarraca`, `ContratarVendedorOffline`, `EncerrarVendedorOffline`, `ConsultarBarraca`, `DadosDaBarraca`, `BarracasNaArea` e `ComprarDaBarraca`.
+- **Interface:** `JanelaBarraca` (F8) para gestão de barraca própria e exploração das barracas da praça; selo integrado na `JanelaLeilao`.
 
 ### Troca direta (#175)
 

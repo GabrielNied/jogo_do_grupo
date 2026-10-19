@@ -56,9 +56,12 @@ namespace JogoDoGrupo.Client.Features.Economia.UI
         {
             var nome = ordem.Item != null ? NomeDoItem(ordem.Item) : ordem.Nome;
             var quem = string.IsNullOrEmpty(ordem.Anunciante) ? "" : $" — {ordem.Anunciante}";
+            var selo = string.IsNullOrEmpty(ordem.BarracaDe)
+                ? ""
+                : $" [na barraca de {ordem.BarracaDe}]";
             if (ordem.Venda)
             {
-                return $"{nome}: {ordem.PrecoUnitario} coroas{quem}";
+                return $"{nome}: {ordem.PrecoUnitario} coroas{selo}{quem}";
             }
 
             return $"{ordem.Quantidade}x {nome}: até {ordem.PrecoUnitario} coroas cada{quem}";
@@ -103,6 +106,16 @@ namespace JogoDoGrupo.Client.Features.Economia.UI
                     return "Esse item não pode ser negociado.";
                 case CodigosErroEconomia.LongeDoLeiloeiro:
                     return "Chegue perto do leiloeiro.";
+                case CodigosErroEconomia.ForaDaPraca:
+                    return "Você precisa estar na praça da cidade para armar a barraca.";
+                case CodigosErroEconomia.BarracaNaoEncontrada:
+                    return "Esta barraca não está aberta.";
+                case CodigosErroEconomia.VendedorOfflineNaoAtivo:
+                    return "Você não possui um vendedor offline ativo.";
+                case CodigosErroEconomia.DiariaInvalida:
+                    return "Quantidade de diárias inválida.";
+                case CodigosErroEconomia.LongeDaBarraca:
+                    return "Chegue mais perto da barraca.";
                 default:
                     return "Operação recusada.";
             }

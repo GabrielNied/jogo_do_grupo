@@ -65,5 +65,31 @@ namespace JogoDoGrupo.Shared.Features.Economia
 
         /// <summary>Servidor → client: uma ordem do jogador casou, venceu ou o item voltou.</summary>
         public const ushort AvisoDoMercado = 9111;
+
+        // ── Barracas de Jogador e Vendedor Offline (#905): 9120 a 9129 ───────────
+
+        /// <summary>Client → servidor: monta a barraca presencial na praça.</summary>
+        public const ushort MontarBarraca = 9120;
+
+        /// <summary>Client → servidor: desmonta a barraca presencial.</summary>
+        public const ushort DesmontarBarraca = 9121;
+
+        /// <summary>Client → servidor: contrata o manequim vendedor offline.</summary>
+        public const ushort ContratarVendedorOffline = 9122;
+
+        /// <summary>Client → servidor: encerra o vendedor offline.</summary>
+        public const ushort EncerrarVendedorOffline = 9123;
+
+        /// <summary>Client → servidor: consulta as ofertas e dados de uma barraca.</summary>
+        public const ushort ConsultarBarraca = 9124;
+
+        /// <summary>Servidor → client: vitrine e ofertas da barraca consultada.</summary>
+        public const ushort DadosDaBarraca = 9125;
+
+        /// <summary>Servidor → client: lista de barracas ativas na praça da cidade.</summary>
+        public const ushort BarracasNaArea = 9126;
+
+        /// <summary>Client → servidor: compra presencialmente um item da barraca (taxa de 3%).</summary>
+        public const ushort ComprarDaBarraca = 9127;
     }
 }

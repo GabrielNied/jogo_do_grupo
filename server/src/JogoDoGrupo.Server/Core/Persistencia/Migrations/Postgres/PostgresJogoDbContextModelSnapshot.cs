@@ -271,6 +271,47 @@ namespace JogoDoGrupo.Server.Core.Persistencia.Migrations.Postgres
                         });
                 });
 
+            modelBuilder.Entity("JogoDoGrupo.Server.Features.Economia.VendedorOfflineEntidade", b =>
+                {
+                    b.Property<long>("PersonagemId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("PersonagemId"));
+
+                    b.Property<bool>("Ativo")
+                        .HasColumnType("boolean");
+
+                    b.Property<long>("ContratadoEm")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("DiariasPagas")
+                        .HasColumnType("integer");
+
+                    b.Property<long>("ExpiraEm")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("NomeDono")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<float>("PosicaoX")
+                        .HasColumnType("real");
+
+                    b.Property<float>("PosicaoZ")
+                        .HasColumnType("real");
+
+                    b.Property<string>("Titulo")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("PersonagemId");
+
+                    b.HasIndex("Ativo", "ExpiraEm");
+
+                    b.ToTable("VendedoresOffline", (string)null);
+                });
+
             modelBuilder.Entity("JogoDoGrupo.Server.Features.Itens.EstadoBanco", b =>
                 {
                     b.Property<long>("ContaId")

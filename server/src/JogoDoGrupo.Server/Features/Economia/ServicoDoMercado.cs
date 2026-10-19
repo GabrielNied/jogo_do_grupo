@@ -66,7 +66,8 @@ public sealed class ServicoDoMercado(
     ICarteiraCoroas carteira,
     ICustodiaDeItens custodia,
     IDiretorioDePersonagens diretorio,
-    RelogioDoMercado relogio
+    RelogioDoMercado relogio,
+    IResolvedorDeBarracas? resolvedorBarracas = null
 )
 {
     /// <summary>
@@ -149,6 +150,15 @@ public sealed class ServicoDoMercado(
     private OrdemDeMercado Para(OrdemMercado o, long personagemId)
     {
         diretorio.TentarObterNome(o.PersonagemId, out var anunciante);
+        var barracaDe = "";
+        if (
+            resolvedorBarracas != null
+            && resolvedorBarracas.TentarObterNomeBarraca(o.PersonagemId, out var nomeBarraca)
+        )
+        {
+            barracaDe = nomeBarraca;
+        }
+
         return new OrdemDeMercado
         {
             Id = o.Id,
@@ -162,11 +172,33 @@ public sealed class ServicoDoMercado(
             Minha = o.PersonagemId == personagemId,
             AguardaDevolucao = o.ItemEmCustodia && o.Estado != EstadoDaOrdemDeMercado.Aberta,
             Anunciante = anunciante,
+            BarracaDe = barracaDe,
             Item =
                 o.Venda && o.ItemEmCustodia
                     ? custodia.Descrever(new ItemEmCustodia(o.ItemId, o.EquipamentoJson), o.Id)
                     : null,
         };
+    }
+
+    public async Task<List<OrdemDeMercado>> ListarOrdensDaBarracaAsync(
+        long vendedorId,
+        CancellationToken c
+    )
+    {
+        var agora = relogio.AgoraSegundos;
+        var vendas = await db.Set<OrdemMercado>()
+            .AsNoTracking()
+            .Where(o =>
+                o.PersonagemId == vendedorId
+                && o.Venda
+                && o.Estado == EstadoDaOrdemDeMercado.Aberta
+                && o.ExpiraEm > agora
+            )
+            .OrderBy(o => o.PrecoUnitario)
+            .ThenBy(o => o.Id)
+            .ToListAsync(c);
+
+        return vendas.Select(o => Para(o, vendedorId)).ToList();
     }
 
     // ── Ordens ────────────────────────────────────────────────────────────────────
@@ -361,6 +393,49 @@ public sealed class ServicoDoMercado(
             c
         );
 
+    public async Task<ResultadoDoMercado> ComprarOrdemNaBarracaAsync(
+        long compradorId,
+        long ordemId,
+        long vendedorId,
+        CancellationToken c
+    ) =>
+        await ExecutarAsync(
+            async resultado =>
+            {
+                var venda = await db.Set<OrdemMercado>()
+                    .SingleOrDefaultAsync(o => o.Id == ordemId && o.Venda, c);
+                if (venda == null)
+                    return CodigosErroEconomia.OrdemNaoEncontrada;
+                if (
+                    venda.Estado != EstadoDaOrdemDeMercado.Aberta
+                    || venda.ExpiraEm <= relogio.AgoraSegundos
+                )
+                    return CodigosErroEconomia.OrdemIndisponivel;
+                if (venda.PersonagemId != vendedorId)
+                    return CodigosErroEconomia.OrdemNaoEncontrada;
+                if (venda.PersonagemId == compradorId)
+                    return CodigosErroEconomia.OrdemPropria;
+
+                if (!await carteira.DebitarAsync(compradorId, venda.PrecoUnitario, c))
+                    return CodigosErroEconomia.SaldoInsuficiente;
+                if (
+                    !await LiquidarAsync(
+                        venda,
+                        compradorId,
+                        venda.PrecoUnitario,
+                        0,
+                        resultado,
+                        c,
+                        ConfigBarraca.TaxaVendaBarracaPercentual
+                    )
+                )
+                    return CodigosErroEconomia.InventarioCheio;
+
+                return null;
+            },
+            c
+        );
+
     public async Task<ResultadoDoMercado> CancelarAsync(
         long personagemId,
         long ordemId,
@@ -483,7 +558,8 @@ public sealed class ServicoDoMercado(
         long precoUnitario,
         long reembolsoAoComprador,
         ResultadoDoMercado resultado,
-        CancellationToken c
+        CancellationToken c,
+        int taxaPercentual = ConfigMercado.TaxaVendaPercentual
     )
     {
         var entregue = await custodia.DevolverAsync(
@@ -494,7 +570,7 @@ public sealed class ServicoDoMercado(
         if (!entregue)
             return false;
 
-        var taxa = ConfigMercado.TaxaDaVenda(precoUnitario);
+        var taxa = (precoUnitario * taxaPercentual + 99) / 100;
         var liquido = precoUnitario - taxa;
         if (liquido > 0)
             await carteira.CreditarAsync(venda.PersonagemId, liquido, c);
