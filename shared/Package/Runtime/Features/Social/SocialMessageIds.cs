@@ -114,6 +114,43 @@ namespace JogoDoGrupo.Shared.Features.Social
         /// <summary>Servidor → quem pediu: o pedido de inspeção foi recusado.</summary>
         public const ushort InspecaoRecusada = 13311;
 
+        // ── Troca direta: pedidos do client (13400 a 13409) ──────────────────────
+
+        /// <summary>Client → servidor: convida um personagem, pelo nome, para trocar.</summary>
+        public const ushort PedirTroca = 13400;
+
+        /// <summary>Client → servidor: aceita ou recusa um convite de troca.</summary>
+        public const ushort ResponderConviteDeTroca = 13401;
+
+        /// <summary>Client → servidor: troca a oferta (coroas e itens); desfaz os aceites.</summary>
+        public const ushort AtualizarOfertaDeTroca = 13402;
+
+        /// <summary>Client → servidor: aceita a troca como está.</summary>
+        public const ushort ConfirmarTroca = 13403;
+
+        /// <summary>Client → servidor: cancela a troca ou o convite.</summary>
+        public const ushort CancelarTroca = 13404;
+
+        /// <summary>Client → servidor: pede de novo a bolsa e o saldo para a oferta.</summary>
+        public const ushort ConsultarBolsaParaTroca = 13405;
+
+        // ── Troca direta: respostas do servidor (13410 a 13419) ──────────────────
+
+        /// <summary>Servidor → convidado: chegou um convite de troca.</summary>
+        public const ushort ConviteDeTroca = 13410;
+
+        /// <summary>Servidor → os dois: o estado completo da troca.</summary>
+        public const ushort EstadoDaTroca = 13411;
+
+        /// <summary>Servidor → jogador: a bolsa negociável e o saldo.</summary>
+        public const ushort BolsaParaTroca = 13412;
+
+        /// <summary>Servidor → os dois: a troca acabou (concluída ou cancelada).</summary>
+        public const ushort TrocaEncerrada = 13413;
+
+        /// <summary>Servidor → quem pediu: o pedido de troca foi recusado.</summary>
+        public const ushort TrocaRecusada = 13414;
+
         // ── Fila de grupo para dungeon (13330 a 13339) ───────────────────────────
 
         /// <summary>Client → servidor: pede para entrar na fila de dungeon com um papel.</summary>

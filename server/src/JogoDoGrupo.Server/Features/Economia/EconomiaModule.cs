@@ -1,3 +1,4 @@
+using JogoDoGrupo.Server.Contratos.Economia;
 using JogoDoGrupo.Server.Contratos.Mundo;
 using JogoDoGrupo.Server.Core;
 using JogoDoGrupo.Server.Core.TempoReal;
@@ -47,6 +48,20 @@ public sealed class EconomiaModule : IFeatureModule
     public void Inicializar(ServerContext contexto)
     {
         _tempoReal = contexto.TempoReal;
+        contexto.Eventos.Assinar<CoroasMovimentadas>(AoCoroasMovimentadas);
+    }
+
+    /// <summary>Quem mexeu em coroas fora da Economia (troca direta) avisa; o client vê o saldo novo.</summary>
+    private void AoCoroasMovimentadas(CoroasMovimentadas evento)
+    {
+        if (
+            _tempoReal == null
+            || !_tempoReal.TentarObterSessao(evento.PersonagemId, out var sessao)
+            || sessao == null
+        )
+            return;
+
+        AoConsultarSaldo(sessao, new ConsultarSaldoCoroas());
     }
 
     private void AoConsultarSaldo(SessaoTempoReal sessao, ConsultarSaldoCoroas pedido)

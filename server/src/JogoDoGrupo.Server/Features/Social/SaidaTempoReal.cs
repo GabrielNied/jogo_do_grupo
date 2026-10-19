@@ -12,7 +12,8 @@ public sealed class SaidaTempoReal(ServidorTempoReal tempoReal)
     : ISaidaDoGrupo,
         ISaidaAmigos,
         ISaidaDeMarcadores,
-        ISaidaDeInspecao
+        ISaidaDeInspecao,
+        ISaidaDeTroca
 {
     private readonly ConcurrentDictionary<long, SessaoTempoReal> _sessoes = new();
 
@@ -70,6 +71,21 @@ public sealed class SaidaTempoReal(ServidorTempoReal tempoReal)
 
     public void Recusada(long personagemId, DefinirMarcadorRecusado recusa) =>
         Enviar(personagemId, SocialMessageIds.DefinirMarcadorRecusado, recusa);
+
+    public void Convite(long personagemId, ConviteDeTroca convite) =>
+        Enviar(personagemId, SocialMessageIds.ConviteDeTroca, convite);
+
+    public void Estado(long personagemId, EstadoDaTroca estado) =>
+        Enviar(personagemId, SocialMessageIds.EstadoDaTroca, estado);
+
+    public void Bolsa(long personagemId, BolsaParaTroca bolsa) =>
+        Enviar(personagemId, SocialMessageIds.BolsaParaTroca, bolsa);
+
+    public void Encerrada(long personagemId, TrocaEncerrada encerrada) =>
+        Enviar(personagemId, SocialMessageIds.TrocaEncerrada, encerrada);
+
+    public void Recusada(long personagemId, TrocaRecusada recusa) =>
+        Enviar(personagemId, SocialMessageIds.TrocaRecusada, recusa);
 
     private void Enviar<T>(long personagemId, ushort id, T mensagem)
     {

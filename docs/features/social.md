@@ -509,6 +509,48 @@ Código em `shared/Package/Runtime/Features/Social/`. Tempo real, entrega confi�
 | 13310 | `RetratoInspecaoResponse` | servidor → client | `PersonagemId`, `Nome`, `Raca`, `Nivel`, `ConjuntoAtivo`, `Equipados[]` (`EntradaInventario`), `Atributos` (`AtributosDosEquipamentos`), `Forca`, `Vigor`, `Agilidade`, `Intelecto`, `Espirito` |
 | 13311 | `InspecaoRecusada` | servidor → quem pediu | `PersonagemId`, `Motivo` (`CodigoErroInspecao`: `AlvoNaoEncontrado` 1, `AlvoOffline` 2, `AlvoForaDoAlcance` 3) |
 
+### Troca direta (issue #175)
+
+Itens e coroas entre dois jogadores, com os dois lados vendo a oferta antes de aceitar ([economia](economia.md#definido)). Feito em 2026-10-18; os números são constantes em `RegrasTroca` (shared).
+
+#### Regras
+
+- **Quem pode:** os dois online, **na mesma área, a até 10 m** (distância em 3D, posição que o servidor aceitou), **fora de combate**, e nenhum ignora o outro (quem ignora recebe "não encontrado"). Cada jogador tem **uma troca por vez**.
+- **Convite:** `/trocar <nome>` (ou `/trade`). O convidado aceita ou recusa na tela (Y/N); o convite vale **30 s** e não prende ninguém se vencer.
+- **Oferta:** cada lado põe **coroas** e **até 8 itens** da bolsa. Só entra o que a bolsa negocia: **equipado e favorito não entram** (o mesmo critério de vender ao NPC). O servidor confere saldo e itens a cada mudança.
+- **Dupla confirmação:** cada lado aceita a oferta que vê. **Qualquer mudança de oferta, de qualquer lado, desfaz os dois aceites** (versão da oferta: um aceite de uma versão velha é ignorado). Quando os dois aceitaram, o servidor confere distância e combate de novo e troca tudo de uma vez.
+- **Atomicidade:** uma transação só. Debita os dois lados antes de creditar, tira os itens dos dois e só depois entrega cruzado (então uma troca de um item por outro funciona com a bolsa cheia). Qualquer falha desfaz tudo e a troca **reabre sem aceites**, com o motivo (`SaldoInsuficiente`, `ItemIndisponivel`, `BolsaCheia`). O exemplar atravessa inteiro, com os mesmos atributos.
+- **Cancelamento sem perda:** cancelar, fechar a janela, desconectar, afastar-se além de 10 m ou entrar em combate antes do último aceite cancelam a troca. Nada muda de dono antes do commit, então não há o que devolver.
+- **Decisão de design:** o servidor guarda a troca só na memória (cai com o servidor, sem perda pelo mesmo motivo); a troca de dono do item é "retirar e devolver" na mesma transação (`ICustodiaDeItens`, de Itens), o molde do banco pessoal. Isso é um destino novo para o item além dos de [ITEM-002](itens.md#modelo-de-itens-v2-documento-mestre-2026-10-12): a troca entre jogadores já estava **Definida** em economia.md (2026-10-16), e o exemplar nunca duplica.
+
+#### Contrato da troca
+
+Código em `shared/Package/Runtime/Features/Social/` (`MensagensDeTroca.cs`, `RegrasTroca.cs`). Tempo real, entrega confiável.
+
+| ID | Mensagem | Direção | Campos |
+|---|---|---|---|
+| 13400 | `PedirTroca` | client → servidor | `Nome` |
+| 13401 | `ResponderConviteDeTroca` | client → servidor | `TrocaId`, `Aceitar` |
+| 13402 | `AtualizarOfertaDeTroca` | client → servidor | `TrocaId`, `Coroas`, `InstanciaIds[]` (substitui a oferta) |
+| 13403 | `ConfirmarTroca` | client → servidor | `TrocaId`, `VersaoDaOferta` |
+| 13404 | `CancelarTroca` | client → servidor | `TrocaId` (0 = o convite que enviei) |
+| 13405 | `ConsultarBolsaParaTroca` | client → servidor | `TrocaId` |
+| 13410 | `ConviteDeTroca` | servidor → convidado | `TrocaId`, `NomeDe`, `ValidadeSegundos` |
+| 13411 | `EstadoDaTroca` | servidor → os dois | `TrocaId`, `NomeDoOutro`, `VersaoDaOferta`, `Minha`/`Dele` (`Coroas`, `Itens[]`), `MeuAceite`, `AceiteDele` |
+| 13412 | `BolsaParaTroca` | servidor → jogador | `TrocaId`, `Coroas` (saldo), `Itens[]` negociáveis |
+| 13413 | `TrocaEncerrada` | servidor → os dois | `TrocaId`, `Motivo` (`Concluida`, `CanceladaPorVoce`, `CanceladaPeloOutro`, `ConviteRecusado`, `Desconectou`, `LongeDemais`, `EmCombate`...), `NomeDoOutro` |
+| 13414 | `TrocaRecusada` | servidor → quem pediu | `TrocaId`, `Codigo` (`CodigosErroTroca`) |
+
+Depois de uma troca concluída, Social publica `Contratos/Economia/CoroasMovimentadas` para cada lado e Economia reenvia o saldo (`SaldoCoroasAlterado`).
+
+#### Na tela (client)
+
+`JanelaTroca` (abre sozinha quando a troca começa; fechar cancela): "Você oferece" com campo de coroas e a lista da oferta (clicar tira), "<nome> oferece" só leitura, a bolsa negociável (clicar oferece) e os botões Aceitar e Cancelar com a situação dos aceites. O convite aparece por cima do jogo (Y/N).
+
+#### Testes (servidor)
+
+Regras sem banco (`TrocaDiretaDoServidorTestes`): mudança de oferta desfaz os aceites, aceite de versão velha ignorado, distância e combate no pedido e no último aceite, desconectar cancela sem executar, convite vencido. Banco real (`ExecutorDaTrocaTestes`): troca completa, falha no meio desfaz tudo (saldo, item sumido, bolsa cheia), concorrência (mesmo item ou mesmas coroas em várias trocas nunca duplicam).
+
 ### Moderação e ferramentas de GM (issue #187)
 
 Ferramentas administrativas autoritativas no servidor para moderação e auditoria, além de recepção e persistência de denúncias de jogadores.
