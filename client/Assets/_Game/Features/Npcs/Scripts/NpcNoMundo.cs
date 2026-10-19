@@ -1,6 +1,8 @@
 using System;
 using JogoDoGrupo.Client.Core.Jogo;
 using JogoDoGrupo.Client.Core.Jogo.Janelas;
+using JogoDoGrupo.Client.Core.TempoReal;
+using JogoDoGrupo.Client.Features.Npcs.UI;
 using JogoDoGrupo.Shared.Features.Npcs;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -151,13 +153,21 @@ namespace JogoDoGrupo.Client.Features.Npcs
             )
             {
                 InteragiuComNpc?.Invoke(_definicao);
-                if (_definicao.Papel == PapelNpc.Cavalarico)
+                if (ConexaoTempoReal.Conectado)
                 {
-                    JanelasDoJogo.Abrir("montarias.estabulo");
+                    ConexaoTempoReal.Enviar(
+                        NpcsMessageIds.FalarComNpc,
+                        new FalarComNpc(_definicao.Id)
+                    );
                 }
-                else if (_definicao.Papel == PapelNpc.CuidadorDePets)
+                else
                 {
-                    JanelasDoJogo.Abrir("pets.cuidador");
+                    var dialogo = CatalogoDialogosNpc.ObterDialogo(_definicao);
+                    JanelasDoJogo.Abrir(JanelaDialogoNpc.Chave);
+                    if (JanelaDialogoNpc.InstanciaAtual != null)
+                    {
+                        JanelaDialogoNpc.InstanciaAtual.Atualizar(dialogo);
+                    }
                 }
             }
         }

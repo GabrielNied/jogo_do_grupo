@@ -66,5 +66,8 @@ Do "Livro de ideias" do [FigJam](../brainstorm/figjam.md) (seções 07 e 11). **
 ## Expõe
 
 - `CatalogoNpcs`: consulta de posições, papéis e alcance dos NPCs no mundo.
+- `CatalogoDialogosNpc`: catálogo de diálogos, falas e opções por papel de NPC.
 - `NpcsDaArea`: pacote com a lista de NPCs da área.
+- `FalarComNpc`, `DialogoDoNpc`, `ExecutarOpcaoDeDialogo`, `DialogoRecusado`: fluxo autoritativo de diálogo (IDs 2010 a 2013).
+
 
