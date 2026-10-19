@@ -18,6 +18,7 @@ namespace JogoDoGrupo.Client.Features.Instancias
                     + " para entrar.",
                 CodigosErroInstancias.NivelNaoDesbloqueado =>
                     "Nível ainda não desbloqueado. Vença o nível anterior dentro do tempo para liberar.",
+                CodigosErroInstancias.GrupoGrandeDemais => "O grupo passa de 10 jogadores.",
                 _ => "Não foi possível entrar na dungeon.",
             };
 

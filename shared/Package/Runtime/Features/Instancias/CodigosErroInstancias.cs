@@ -17,5 +17,8 @@ namespace JogoDoGrupo.Shared.Features.Instancias
 
         /// <summary>O nível requisitado ainda não foi desbloqueado pelo líder.</summary>
         public const string NivelNaoDesbloqueado = "NivelNaoDesbloqueado";
+
+        /// <summary>O grupo tem mais membros que a raid comporta (10).</summary>
+        public const string GrupoGrandeDemais = "GrupoGrandeDemais";
     }
 }

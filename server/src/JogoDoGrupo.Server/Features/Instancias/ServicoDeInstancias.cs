@@ -118,6 +118,12 @@ public sealed class ServicoDeInstancias(
             return;
         }
 
+        if (!RegrasRaid.Cabe(membros.Length))
+        {
+            Recusar(sessao, CodigosErroInstancias.GrupoGrandeDemais);
+            return;
+        }
+
         var posicaoDoSolicitante = ObterPosicao(sessao.PersonagemId);
         if (posicaoDoSolicitante is not { } posicao || posicao.Area != AreasDoMundo.Cidade)
         {
@@ -629,6 +635,7 @@ public sealed class ServicoDeInstancias(
                 Area = corrida.Area,
                 Nivel = corrida.Nivel,
                 TempoLimiteSegundos = RegrasDificuldadeSemFim.TempoLimitePadraoSegundos,
+                Raid = RegrasRaid.EhRaid(corrida.Participantes.Count),
             }
         );
 

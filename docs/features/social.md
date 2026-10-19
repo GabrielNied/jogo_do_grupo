@@ -70,7 +70,7 @@ Quem decide: **servidor**. O client só envia intenções (convidar, aceitar, re
 #### Estado e limites
 
 - Um personagem está em **no máximo um grupo** por vez. Quem não está em grupo está "sozinho" (não existe grupo de 1 guardado: o grupo nasce quando o primeiro convite é aceito, com 2 membros).
-- Tamanho máximo: **5 membros**, contando o líder (decidido em 2026-10-10).
+- Tamanho máximo: **10 membros**, contando o líder (`RegrasGrupo.MaximoDeMembros`): até 5 é grupo de dungeon, acima disso é grupo de raid ([instâncias](instancias.md#raid-de-10-grupo-de-raid-issue-190-recorte-1)). A fila automática segue montando grupos de 5.
 - Cada grupo tem **1 líder** e a lista de membros em **ordem de entrada** (o líder fundador é o primeiro).
 - O identificador do grupo é gerado pelo servidor; o client só o recebe.
 - O grupo vale só **enquanto o servidor está no ar**. Reiniciar o servidor desfaz todos os grupos (**proposta**: o grupo não é salvo no banco).

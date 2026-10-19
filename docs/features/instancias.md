@@ -66,6 +66,11 @@ Entrada, ciclo de vida e isolamento das corridas de dungeon no servidor autorita
 - **Conteúdo da Mina do Reflexo (issue #800):** ao abrir a corrida o servidor popula a área com três salões de Javali do Campo **sem respawn** e o Guardião do Reflexo no salão final (`LayoutDaMinaDoReflexo`, shared). A entrada física fica na colina oeste (~200 m da cidade); o client monta a entrada e os salões por código e mostra recusas e resultado na tela.
 - **Dificuldade sem fim e cronômetro (issue #189):** o líder seleciona o nível da corrida (`Nivel` em `EntrarNaDungeon`, padrão 1, até 1 acima do maior nível já vencido pelo líder). Cada nível adiciona autoritativamente **+8% de vida e de dano** a todos os inimigos comuns e ao chefe (`RegrasDificuldadeSemFim.CalcularMultiplicadorVida` e `CalcularMultiplicadorDano`: `1.0 + 0.08 * (nivel - 1)`). A dungeon possui um cronômetro com tempo limite padrão de **15 minutos (900 s)**; derrotar o chefe dentro do tempo qualifica como vitória "no tempo" e desbloqueia o próximo nível de dificuldade. Tentativas de entrar num nível não liberado são recusadas com `CodigosErroInstancias.NivelNaoDesbloqueado`.
 
+### Raid de 10: grupo de raid (issue #190, recorte 1)
+
+- O grupo que passa de 5 membros é **de raid**, até **10** (`RegrasRaid`), com um líder só. O líder envia o mesmo `EntrarNaDungeon`; o servidor abre a corrida como raid (`DungeonIniciada.Raid`) e recusa acima de 10 com `GrupoGrandeDemais`. Membro não líder segue recusado (`NaoELider`).
+- Neste recorte a raid reaproveita a Mina do Reflexo; as **três etapas com boss** e a **trava semanal de loot** vêm no próximo recorte da #190.
+
 ## Depende de
 
 - [Social](social.md): consulta de grupo e líder (`IConsultaDeGrupo`)
@@ -80,6 +85,7 @@ Entrada, ciclo de vida e isolamento das corridas de dungeon no servidor autorita
   - `EntradaRecusada` (12002): servidor recusa com código (`NaoELider`, `GrupoEmOutraDungeon`, `LongeDemais`, `NivelNaoDesbloqueado`)
   - `DungeonEncerrada` (12003): servidor avisa encerramento com `ResultadoDungeon`, `Nivel`, `TempoTotalSegundos`, `NoTempo` e `ProximoNivelLiberado`
   - `ChefeDerrotadoNaDungeon` (12004): servidor avisa que o chefe caiu, prazo para coleta, `Nivel`, `TempoTotalSegundos` e `NoTempo`
+  - `GrupoGrandeDemais` (código de `EntradaRecusada`): grupo com mais de 10 membros
   - `SairDaDungeon` (12005): cliente pede saída antecipada da corrida após a vitória
 - Regras de balanceamento compartilhadas (`RegrasDificuldadeSemFim`): multiplicadores de vida/dano, validação de cronômetro e progressão de recorde de nível
 - Serviço server-side `ServicoDeInstancias`: gerencia criação, entrada, validação de nível, varredura periódica e encerramento de corridas
