@@ -425,6 +425,44 @@ namespace JogoDoGrupo.Server.Core.Persistencia.Migrations
                         });
                 });
 
+            modelBuilder.Entity("JogoDoGrupo.Server.Features.Missoes.MissaoPersonagemEntidade", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("AceitaEm")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("Acompanhada")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long?>("ConcluidaEm")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Estado")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("MissaoId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("ObjetivosJson")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("PersonagemId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PersonagemId", "Estado");
+
+                    b.HasIndex("PersonagemId", "MissaoId")
+                        .IsUnique();
+
+                    b.ToTable("MissoesPersonagem", (string)null);
+                });
+
             modelBuilder.Entity("JogoDoGrupo.Server.Features.Montarias.MontariaDaConta", b =>
                 {
                     b.Property<long>("Id")
@@ -799,6 +837,15 @@ namespace JogoDoGrupo.Server.Core.Persistencia.Migrations
                 });
 
             modelBuilder.Entity("JogoDoGrupo.Server.Features.Itens.SaldoMateriaisFusao", b =>
+                {
+                    b.HasOne("JogoDoGrupo.Server.Features.Personagem.Personagem", null)
+                        .WithMany()
+                        .HasForeignKey("PersonagemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("JogoDoGrupo.Server.Features.Missoes.MissaoPersonagemEntidade", b =>
                 {
                     b.HasOne("JogoDoGrupo.Server.Features.Personagem.Personagem", null)
                         .WithMany()

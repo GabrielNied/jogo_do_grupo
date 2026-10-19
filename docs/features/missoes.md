@@ -1,7 +1,7 @@
 # Missões
 
 **Responsável:**
-**Status:** em definição
+**Status:** em andamento
 **Faixa de IDs de mensagem:** 10000–10999
 
 ## Resumo
@@ -113,4 +113,19 @@ Do "Livro de ideias" do [FigJam](../brainstorm/figjam.md) (seção 11). **Propos
 
 ## Depende de
 
+- `Economia`: `ICarteiraCoroas` (recompensa de coroas)
+- `Itens`: `IInventarioEconomia` (recompensa de itens por escolha)
+- `Personagem`: `IPontosDeNivel`, `IAjusteDeExperienciaDeTeste` (nível mínimo e concessão de XP)
+- `Mundo`: `IPosicoesDoMundo` (validação de alcance de interação)
+- `Social`: `IConsultaDeGrupo` (compartilhamento com membros do grupo)
+- `Mobs`: `InimigoDerrotado` (progresso de objetivos de derrotar criaturas)
+- `Npcs`: `CatalogoNpcs` (posições e identidades de NPCs doadores e entregadores)
+
 ## Expõe
+
+- `ControleDeMissoes` (client): registro e acompanhamento de missões ativas
+- `ServicoDeMissoes` (servidor): autoridade de pré-requisitos, aceitação, abandono, progresso e entrega atômica
+- `JanelaMissoes`: diário e registro de missões no atalho L
+- `RastreadorDeMissoesHud`: visualização de objetivos acompanhados na tela
+- `MarcadoresDeMissaoNpc`: lógica de indicadores visuais (! e ?) sobre NPCs e mapa
+- `MissoesMessageIds`: faixa 10000–10999 e DTOs em `shared/Package/Runtime/Features/Missoes/`
