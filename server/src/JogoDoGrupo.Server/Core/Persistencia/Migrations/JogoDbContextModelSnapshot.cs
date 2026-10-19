@@ -463,6 +463,37 @@ namespace JogoDoGrupo.Server.Core.Persistencia.Migrations
                     b.ToTable("MissoesPersonagem", (string)null);
                 });
 
+            modelBuilder.Entity("JogoDoGrupo.Server.Features.Mobs.BestiarioPersonagemEntidade", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("CriaturaId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Derrotas")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("PersonagemId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("PrimeiroRegistroEm")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("UltimoRegistroEm")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PersonagemId");
+
+                    b.HasIndex("PersonagemId", "CriaturaId")
+                        .IsUnique();
+
+                    b.ToTable("BestiarioPersonagem", (string)null);
+                });
+
             modelBuilder.Entity("JogoDoGrupo.Server.Features.Montarias.MontariaDaConta", b =>
                 {
                     b.Property<long>("Id")
@@ -846,6 +877,15 @@ namespace JogoDoGrupo.Server.Core.Persistencia.Migrations
                 });
 
             modelBuilder.Entity("JogoDoGrupo.Server.Features.Missoes.MissaoPersonagemEntidade", b =>
+                {
+                    b.HasOne("JogoDoGrupo.Server.Features.Personagem.Personagem", null)
+                        .WithMany()
+                        .HasForeignKey("PersonagemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("JogoDoGrupo.Server.Features.Mobs.BestiarioPersonagemEntidade", b =>
                 {
                     b.HasOne("JogoDoGrupo.Server.Features.Personagem.Personagem", null)
                         .WithMany()

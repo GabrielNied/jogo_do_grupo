@@ -30,5 +30,14 @@ namespace JogoDoGrupo.Shared.Features.Mobs
 
         /// <summary>Servidor → jogador: inimigo saiu do raio de interesse (sumir no client).</summary>
         public const ushort InimigoSaiuDoInteresse = 11007;
+
+        /// <summary>Client → servidor: pede o estado do bestiário do personagem.</summary>
+        public const ushort ConsultarBestiario = 11010;
+
+        /// <summary>Servidor → client: lista completa das entradas do bestiário.</summary>
+        public const ushort EstadoDoBestiario = 11011;
+
+        /// <summary>Servidor → client: notificação de incremento de progresso em uma espécie.</summary>
+        public const ushort ProgressoDoBestiarioAtualizado = 11012;
     }
 }
