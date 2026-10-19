@@ -107,7 +107,14 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
         public const string PrefabEstrada = "Estrada";
 
         /// <summary>Onde o jogador nasce: pés no chão, ao sul da fonte, olhando para ela (+Z).</summary>
-        public static readonly Vector3 PontoDeNascimento = new Vector3(0f, 0f, -24f);
+        public static Vector3 PontoDeNascimento
+        {
+            get
+            {
+                var ponto = NascimentoDoMapa.Atual;
+                return new Vector3(ponto.X, ponto.Y.GetValueOrDefault(), ponto.Z);
+            }
+        }
 
         /// <summary>Para onde o jogador olha ao nascer (+Z).</summary>
         public static readonly Quaternion RotacaoDeNascimento = Quaternion.identity;

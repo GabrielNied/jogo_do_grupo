@@ -4,6 +4,33 @@ namespace JogoDoGrupo.Shared.Tests.Features.Mundo;
 
 public class MapaDoMundoTestes
 {
+    [Theory]
+    [InlineData(28.13f)]
+    [InlineData(-200f)]
+    public void Nascimento_preserva_marcador_sem_enterrar_no_terreno(float y)
+    {
+        var marcador = new PontoMarcadoDoMapa(
+            "nascimento",
+            TipoDePontoMarcadoDoMapa.Nascimento,
+            30f,
+            -40f,
+            y
+        );
+        var nascimento = NascimentoDoMapa.Resolver(new[] { marcador });
+        Assert.Equal(30f, nascimento.X);
+        Assert.Equal(-40f, nascimento.Z);
+        Assert.Equal(Math.Max(y, MapaDoMundo.AlturaEm(30f, -40f)), nascimento.Y);
+    }
+
+    [Fact]
+    public void Nascimento_sem_marcador_usa_ponto_padrao_sobre_o_chao()
+    {
+        var nascimento = NascimentoDoMapa.Resolver(Array.Empty<PontoMarcadoDoMapa>());
+        Assert.Equal(0f, nascimento.X);
+        Assert.Equal(-24f, nascimento.Z);
+        Assert.Equal(MapaDoMundo.AlturaEm(0f, -24f), nascimento.Y);
+    }
+
     // Um ponto da grade a cada 30 m: 101 x 101 pontos cobrem o mundo inteiro.
     private const int Salto = 3;
 

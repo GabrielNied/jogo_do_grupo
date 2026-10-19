@@ -25,7 +25,14 @@ public enum JulgamentoDoPasso
 public static class ValidadorDeMovimento
 {
     /// <summary>Ponto de nascimento do hub (docs/features/mundo.md, "Nascimento").</summary>
-    public static readonly PosicaoNaCidade Nascimento = new(0f, 0f, -24f, 0f);
+    public static PosicaoNaCidade Nascimento
+    {
+        get
+        {
+            var ponto = NascimentoDoMapa.Atual;
+            return new(ponto.X, ponto.Y.GetValueOrDefault(), ponto.Z, 0f);
+        }
+    }
 
     /// <summary>
     /// Velocidade de corrida de quem acabou de entrar (m/s). A de cada personagem é do servidor
