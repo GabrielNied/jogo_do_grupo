@@ -1,0 +1,64 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8725c4d66cbe447d912ef707e57dc4c6, type: 3}
+  m_Name: matateste
+  m_EditorClassIdentifier: JogoDoGrupo.Client.Mundo.Editor::JogoDoGrupo.Client.Features.Mundo.Editor.ConjuntoDeVegetacao
+  Raio: 5.2
+  ArvoresPorCemMetros: 0
+  CoberturaDePlantas: 0.229
+  CoberturaDeGrama: 0.705
+  DensidadeDePlantas: 1
+  DensidadeDeGrama: 4
+  InclinacaoMaxima: 35
+  DistanciaEntreArvores: 19
+  DistanciaEntrePlantas: 0
+  DistanciaEntreGramas: 0
+  Semente: 12345
+  Arvores:
+  - Modelo: {fileID: 1235048213169736, guid: fb24df3494aa71744879dafcedcc0b86, type: 3}
+    Textura: {fileID: 0}
+    Peso: 10
+    Tamanho: {x: 2, y: 2}
+  - Modelo: {fileID: 1387113753911058, guid: dc20bf501e8161b40859eb66568d49f6, type: 3}
+    Textura: {fileID: 0}
+    Peso: 3
+    Tamanho: {x: 2, y: 2}
+  - Modelo: {fileID: 1501239254383666, guid: f68e891b21d164a4bbe322e20e50633b, type: 3}
+    Textura: {fileID: 0}
+    Peso: 10
+    Tamanho: {x: 2, y: 2}
+  Plantas:
+  - Modelo: {fileID: 4522537107456461547, guid: 7f72c76c87dff5149967072a8aabddef, type: 3}
+    Textura: {fileID: 0}
+    Peso: 1
+    Tamanho: {x: 1, y: 1}
+  - Modelo: {fileID: 6590975227295379492, guid: 6f67d1c79c9b196459c5de7ea6ce6077, type: 3}
+    Textura: {fileID: 0}
+    Peso: 10.89
+    Tamanho: {x: 1, y: 1}
+  Gramas:
+  - Modelo: {fileID: 8812584711120714047, guid: 91d8d8ad5c541394c80f7cc7e1fd253b, type: 3}
+    Textura: {fileID: 0}
+    Peso: 50
+    Tamanho: {x: 1, y: 1}
+  - Modelo: {fileID: 5982839853698224172, guid: c00784b589bee494b831054cc54dbf7b, type: 3}
+    Textura: {fileID: 0}
+    Peso: 50
+    Tamanho: {x: 1, y: 1}
+  - Modelo: {fileID: 7045990119674233780, guid: 8e20bb73d6781f047a846b8e13553d15, type: 3}
+    Textura: {fileID: 0}
+    Peso: 10
+    Tamanho: {x: 1, y: 1}
+  - Modelo: {fileID: 7182954667185978330, guid: b33ce8376149eb040be6057eed2bd12f, type: 3}
+    Textura: {fileID: 0}
+    Peso: 10
+    Tamanho: {x: 1, y: 1}
