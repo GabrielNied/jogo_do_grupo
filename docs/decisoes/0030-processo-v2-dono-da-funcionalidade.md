@@ -12,7 +12,7 @@ Outros sinais: 91 issues abertas, quase todas marcadas por camada; 32 issues de 
 ## Decisão
 
 1. **Fatia vertical com dono único.** Uma issue de jogo descreve algo que o jogador faz. Um agente `funcionalidade` é dono dela por inteiro: contrato no shared, servidor, client (inclusive cena, prefab e asset pelo Unity), testes e doc, num worktree e num PR. Os donos fixos que já existiam (`itens`, `economia`) seguem o mesmo modelo. Os agentes por camada (`shared-contratos`, `server-funcionalidade`, `client-funcionalidade`, `regras-do-jogo`) ficam para Core e para o caso raro de uma fatia grande demais para um PR.
-2. **Paralelismo entre funcionalidades, não entre camadas.** No máximo **3 funcionalidades de jogo em andamento** ao mesmo tempo, escolhidas pelo foco do marco ([fatia jogável](../features/fatia-jogavel.md#foco-atual)). Hoje o foco é: mais mobs no mapa, combate mais refinado e progressão balanceada.
+2. **Paralelismo entre funcionalidades, não entre camadas.** No máximo **3 funcionalidades de jogo em andamento** ao mesmo tempo, escolhidas pelo foco do marco ([fatia jogável](../features/fatia-jogavel.md#histórico-do-marco)). Hoje o foco é: mais mobs no mapa, combate mais refinado e progressão balanceada.
 3. **Quem implementa decide o design.** Todo mundo decide, inclusive o agente, sem esperar input humano. A decisão segue a visão do jogo, fica na `docs/features/<x>.md` (fonte única) e é listada no PR. Qualquer pessoa ou agente pode rever depois, com um PR. Confirmação humana continua só no que o AGENTS.md já exige (regra 0 e ações que não voltam).
 
 ## Consequências

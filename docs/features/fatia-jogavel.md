@@ -8,20 +8,18 @@
 
 Regras mínimas para jogar o [primeiro marco](../visao-geral.md#primeiro-marco-fatia-jogável): atributos e recursos, um ataque (primeira arma), esquiva, um inimigo comum em grupo, loot no chão, experiência e nível, e uma dungeon de até 5 com um boss. Esta página é a **fonte** dessas regras; as páginas de cada funcionalidade apontam para cá.
 
-## Foco atual
+## Histórico do marco
 
-**Encerrado em 2026-10-19 (Gabriel):** não há mais foco de marco; qualquer tarefa livre pode ser puxada (só ficam de fora as que esperam uma pessoa ou issue aberta). A lista abaixo é histórico do marco.
+Não há foco de marco desde 2026-10-19 (Gabriel): qualquer tarefa livre pode ser puxada, na ordem de prioridade (só ficam de fora as que esperam uma pessoa ou issue aberta). A lista abaixo é o que o marco entregou ou priorizou ([ADR 0030](../decisoes/0030-processo-v2-dono-da-funcionalidade.md), 2026-10-11):
 
-Decidido pelo grupo em 2026-10-11 ([ADR 0030](../decisoes/0030-processo-v2-dono-da-funcionalidade.md)). Tarefa de jogo nova sai daqui; **recomendado** até 3 lotes de jogo em andamento ([ADR 0037](../decisoes/0037-lotes-de-tarefas.md), emenda 2026-10-16):
-
-0. **Prioridade alta** (decidido por Gabriel em 2026-10-12), antes dos outros itens deste foco:
+0. **Prioridade alta** (decidido por Gabriel em 2026-10-12), antes dos outros itens:
    - **Modelo de itens v2:** tier, fusão e atributos próprios dos equipamentos entregues ([#615](https://github.com/GabrielNied/jogo_do_grupo/issues/615), [#616](https://github.com/GabrielNied/jogo_do_grupo/issues/616), [#623](https://github.com/GabrielNied/jogo_do_grupo/issues/623)). **Próximo de Itens:** [#617](https://github.com/GabrielNied/jogo_do_grupo/issues/617) materiais de fusão (regras em [itens — Materiais de fusão](itens.md#materiais-de-fusão-617); épico [#619](https://github.com/GabrielNied/jogo_do_grupo/issues/619)). Poderes e sets ([#629](https://github.com/GabrielNied/jogo_do_grupo/issues/629), [#630](https://github.com/GabrielNied/jogo_do_grupo/issues/630)) ficam depois das skills na arma ([#167](https://github.com/GabrielNied/jogo_do_grupo/issues/167)).
    - **Atributos do personagem e árvore:** nomes, secundários, pipeline, árvore com tela e compra no servidor entregues ([#622](https://github.com/GabrielNied/jogo_do_grupo/issues/622)–[#625](https://github.com/GabrielNied/jogo_do_grupo/issues/625)). **Próximo de Talentos:** [#626](https://github.com/GabrielNied/jogo_do_grupo/issues/626) redistribuição e perfis; números finais na [#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627) (épico [#621](https://github.com/GabrielNied/jogo_do_grupo/issues/621); regras em [personagem](personagem.md#atributos-do-personagem) e [talentos](talentos.md)).
 1. **Mais mobs no mapa:** grupos de inimigos espalhados pela área, com respawn, para o jogador sempre ter o que enfrentar (seção 4 abaixo e [mobs](mobs.md)).
 2. **Combate mais refinado:** cadeia de leves e pesado no ritmo do New World, esquiva, telegrafia e resposta visual de acerto (seções 2 e 3 abaixo e [combate](combate.md)).
 3. **Progressão balanceada:** XP por mob e por nível que faça subir de nível num ritmo bom, e itens que melhoram de fato (seções 5 e 6 abaixo, [personagem](personagem.md) e [itens](itens.md)).
 
-O ciclo que o marco precisa fechar: sair do hub, enfrentar mobs, ganhar XP e loot, subir de nível e sentir o personagem mais forte.
+O ciclo que o marco fechava: sair do hub, enfrentar mobs, ganhar XP e loot, subir de nível e sentir o personagem mais forte.
 
 ## Definido
 
@@ -48,8 +46,8 @@ Várias regiões, dezenas de jogadores na mesma área, cinco raças, 25 skills, 
   - **Coincide** com as seções 1, 2, 3 e 7: 100 stamina e 100 mana, regeneração 10 e 5 por s após 2 s, caído 45 s, levantar em 3 s com 20% de vida. **Conflito (nível):** o livro pedia nível 1 a 30 com 5 pontos por nível; a seção 6, em 2026-10-12, adotou teto 100 e nenhum ponto de atributo por nível. Vale a seção 6. **Conflito (esquiva):** o livro pedia esquiva sem invulnerabilidade; a seção 3, em 2026-10-12, adotou a janela curta do New World. Vale a seção 3.
   - **Conflito (loot):** o livro dá os itens a quem causou mais dano, com empate para o primeiro atacante; a seção 5 decidiu loot individual por participação. Vale a seção 5.
   - **Conflito (escala):** o livro fala em instâncias de 20 jogadores; a seção 7 é para 1 a 5. Fica em "Fora desta fatia".
-  - **Novidade para depois da fatia (histórico):** ~~teleporte descoberto~~ (sem teleporte, quiz 3); escalada limitada ([#349](https://github.com/GabrielNied/jogo_do_grupo/issues/349)); ~~orçamento de preparação~~ (#339 not planned); cinco raças, catálogo de skills (#167), cinco espécies de inimigos; cidade com forja, banco e mercado.
-  - **Chegada ao mundo (seção 11):** prólogo e primeira hora **adiados** até pós-marco ([#327](https://github.com/GabrielNied/jogo_do_grupo/issues/327), [#328](https://github.com/GabrielNied/jogo_do_grupo/issues/328); [missões](missoes.md#definido)).
+  - **Novidade do livro (histórico):** ~~teleporte descoberto~~ (sem teleporte, quiz 3); escalada limitada ([#349](https://github.com/GabrielNied/jogo_do_grupo/issues/349)); ~~orçamento de preparação~~ (#339 not planned); cinco raças, catálogo de skills (#167), cinco espécies de inimigos; cidade com forja, banco e mercado.
+  - **Chegada ao mundo (seção 11):** prólogo e primeira hora na fila por prioridade ([#327](https://github.com/GabrielNied/jogo_do_grupo/issues/327), [#328](https://github.com/GabrielNied/jogo_do_grupo/issues/328); [missões](missoes.md#definido)).
 
 ## Regras
 

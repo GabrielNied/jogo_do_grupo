@@ -21,7 +21,7 @@ Papel dos NPCs no mundo, comerciantes e reputação.
 
 ## Em aberto
 
-- [x] Quais tipos de NPC existem? Decidido em 2026-10-16 (quiz 3): lista acima; prólogo adiado.
+- [x] Quais tipos de NPC existem? Decidido em 2026-10-16 (quiz 3): lista acima.
 - [x] Como a reputação é perdida? (ganha por missões e diárias, decidido em 2026-10-16) Decidido em 2026-10-16: não é perdida.
 
 ## Regras
