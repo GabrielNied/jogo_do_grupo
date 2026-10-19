@@ -36,7 +36,7 @@ Cada issue tem um rótulo `prio:*` (decisão do grupo de 2026-10-11). Quebrado n
 5. `prio:5-features`: funcionalidades novas.
 6. `prio:6-seguranca`: limites, anti-abuso, ferramentas de GM.
 
-Dentro da faixa: `foco` ([foco do marco](features/fatia-jogavel.md#foco-atual)) primeiro, depois a issue mais antiga. O `listar` já sai nessa ordem. O /trabalhe não pega: `em-andamento`, `bloqueada`, `decisao`, `pessoa`, `pendente-unity` (só quem tem Unity) e quem `Depende de` issue aberta. Quem ajusta a ordem é o /decida, pelos rótulos `prio:*` e `foco`.
+Dentro da faixa: a issue mais antiga primeiro. Não há foco de marco (Gabriel, 2026-10-19): toda tarefa livre pode ser puxada, na ordem de `prio:*`. O `listar` já sai nessa ordem. O /trabalhe não pega: `em-andamento`, `bloqueada`, `decisao`, `pessoa`, `pendente-unity` (só quem tem Unity) e quem `Depende de` issue aberta. `bloqueada` vale só para o que espera uma pessoa ou uma decisão; a ordem entre issues é o `Depende de:`. Quem ajusta a ordem é o /decida, pelo rótulo `prio:*`.
 
 ## Ficha da tarefa
 
@@ -83,7 +83,7 @@ Checklist de experiência (vazio/erro/limite, espera, rede, rebind/ESC, [Lumora]
 
 ### Decisões de design
 
-Quem implementa decide o que a doc não fecha, sem esperar ([ADR 0030](decisoes/0030-processo-v2-dono-da-funcionalidade.md)): escolhe o que serve à [visão](visao-geral.md) e ao foco, prefere o fácil de mudar (regra 17), registra em `docs/features/<x>.md` e no PR. **Definido** pelo grupo não se reabre: proponha na doc e siga com o definido. Quem discordar abre PR mudando doc e código.
+Quem implementa decide o que a doc não fecha, sem esperar ([ADR 0030](decisoes/0030-processo-v2-dono-da-funcionalidade.md)): escolhe o que serve à [visão](visao-geral.md), prefere o fácil de mudar (regra 17), registra em `docs/features/<x>.md` e no PR. **Definido** pelo grupo não se reabre: proponha na doc e siga com o definido. Quem discordar abre PR mudando doc e código.
 
 ## Usar o Unity
 
