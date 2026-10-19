@@ -5,6 +5,9 @@ using JogoDoGrupo.Server.Core;
 using JogoDoGrupo.Server.Core.Eventos;
 using JogoDoGrupo.Server.Core.TempoReal;
 using JogoDoGrupo.Shared.Features.Mobs;
+using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace JogoDoGrupo.Server.Features.Mobs;
 
@@ -19,6 +22,8 @@ public sealed class MobsModule : IFeatureModule
     // Criado pelo contêiner quando o app sobe (hosted service); o evento de entrada na área só
     // chega depois que uma sessão se autentica.
     private volatile ServicoDeInimigos? _inimigos;
+    private IServiceScopeFactory? _scopeFactory;
+    private ServidorTempoReal? _tempoReal;
 
     /// <summary>Chave do grupo do chefe raro no contêiner.</summary>
     public const string ChaveDoChefeRaro = "chefe-raro";
@@ -32,6 +37,7 @@ public sealed class MobsModule : IFeatureModule
 
     public void ConfigurarServicos(IServiceCollection servicos, IConfiguration configuracao)
     {
+        servicos.AddScoped<ServicoDeBestiario>();
         servicos.AddSingleton<ISorteadorDeCriaturas>(new SorteadorDeCriaturas());
 
         // Um grupo por ponto de spawn (dados em PontosDeSpawnDoCampo), todos sob o mesmo teto
@@ -155,15 +161,80 @@ public sealed class MobsModule : IFeatureModule
         );
     }
 
+    public void MapearRotas(IEndpointRouteBuilder rotas)
+    {
+        _scopeFactory = rotas.ServiceProvider.GetService<IServiceScopeFactory>();
+    }
+
+    public void RegistrarMensagens(MensagensTempoReal mensagens) =>
+        mensagens
+            .Faixa(MobsMessageIds.Faixa)
+            .Ao<ConsultarBestiario>(MobsMessageIds.ConsultarBestiario, AoConsultarBestiario);
+
     public void Inicializar(ServerContext contexto)
     {
+        _tempoReal = contexto.TempoReal;
         contexto.Eventos.Assinar<JogadorEntrouNaArea>(evento => _inimigos?.AoEntrarNaArea(evento));
         contexto.Eventos.Assinar<PersonagemCurouAliado>(evento => _inimigos?.AoCurar(evento));
         contexto.Eventos.Assinar<JogadorSaiuDaArea>(evento => _inimigos?.AoSairDaArea(evento));
+        contexto.Eventos.Assinar<InimigoDerrotado>(AoInimigoDerrotado);
         contexto.AoPasso(
             TimeSpan.FromSeconds(RegrasInimigo.PassoSegundos),
             _ => _inimigos?.Avancar(),
             "Mobs"
         );
+    }
+
+    private void AoConsultarBestiario(SessaoTempoReal sessao, ConsultarBestiario pedido)
+    {
+        if (_scopeFactory == null || _tempoReal == null)
+            return;
+
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await using var escopo = _scopeFactory.CreateAsyncScope();
+                var servico = escopo.ServiceProvider.GetRequiredService<ServicoDeBestiario>();
+                var estado = await servico.ObterBestiarioAsync(sessao.PersonagemId);
+                _tempoReal.Enviar(sessao, MobsMessageIds.EstadoDoBestiario, estado);
+            }
+            catch { }
+        });
+    }
+
+    private void AoInimigoDerrotado(InimigoDerrotado evento)
+    {
+        if (_scopeFactory == null || _tempoReal == null || evento.Participantes.Count == 0)
+            return;
+
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await using var escopo = _scopeFactory.CreateAsyncScope();
+                var servico = escopo.ServiceProvider.GetRequiredService<ServicoDeBestiario>();
+                foreach (var participanteId in evento.Participantes)
+                {
+                    var atualizado = await servico.RegistrarDerrotaAsync(
+                        participanteId,
+                        evento.CriaturaId
+                    );
+                    if (
+                        atualizado != null
+                        && _tempoReal.TentarObterSessao(participanteId, out var sessao)
+                        && sessao != null
+                    )
+                    {
+                        _tempoReal.Enviar(
+                            sessao,
+                            MobsMessageIds.ProgressoDoBestiarioAtualizado,
+                            new ProgressoDoBestiarioAtualizado(atualizado)
+                        );
+                    }
+                }
+            }
+            catch { }
+        });
     }
 }

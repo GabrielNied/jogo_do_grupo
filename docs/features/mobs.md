@@ -316,7 +316,13 @@ Do "Livro de ideias" do [FigJam](../brainstorm/figjam.md) (seções 05, 09 e 10)
 - **Cinco espécies, um boss e uma dungeon** é o escopo do MVP no livro; o boss é o mineral da Mina do Reflexo (veja [instâncias](instancias.md)).
 - **Reação a luz e som (proposta):** cada espécie tem resposta própria (mariposa busca luz, lobo exposto hesita, gigante vê clarões de longe, cervo foge de ruído).
 - **Manadas com rota:** a primeira manada do campo está em "Manadas com rota (#321)". O resto do livro (perseguição de 180/240 m por espécie, ponte de gelo, confronto entre gigantes) continua proposta.
-- **Bestiário (proposta):** o primeiro encontro libera silhueta, região e comportamento; derrotas e observações revelam ataques e fraquezas (ex.: 5 derrotas de javali revelam o sinal da investida, 20 o ponto fraco). Cada jogador registra as próprias observações. **Captura (proposta):** só espécies marcadas como capturáveis, com conhecimento avançado e isca. O primeiro companheiro, que segue e não luta, está em [pets](pets.md). Captura não vira pet de boss.
+- **Bestiário (#922):** UI aberta pela tecla **B** com progresso de conhecimento por espécie através de derrotas. Cada jogador registra suas próprias observações no servidor autoritativo (`BestiarioPersonagemEntidade`).
+  - **Níveis de Conhecimento:**
+    - **Desconhecido (0 derrotas):** silhueta, pontos de interrogação e categoria genérica.
+    - **Avistado (1 derrota):** revela nome da espécie, categoria, nível de força e região/habitat.
+    - **Estudado (5 derrotas comuns ou 3 chefes):** revela vida base, dano base e sinais/padrões de ataque.
+    - **Mestre (20 derrotas comuns ou 5 chefes):** revela fraquezas táticas comprovadas, catálogo de drops conhecidos e frase de lore do bestiário.
+  - **Eventos e Rede:** ao morrer (`InimigoDerrotado`), o servidor incrementa atomicamente o progresso de todos os participantes e envia `ProgressoDoBestiarioAtualizado` (11012). A consulta completa é feita via `ConsultarBestiario` (11010) e respondida com `EstadoDoBestiario` (11011).
 - **Loot por dano (proposta):** o item de cada mob vai a quem causou mais dano (empate: o primeiro atacante); não há prioridade de loot para cura ou tanque. Depende de [itens](itens.md) e é regra de combate/loot, não de Mobs.
 
 ## Depende de
