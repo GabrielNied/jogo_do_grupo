@@ -10,6 +10,8 @@ Regras mínimas para jogar o [primeiro marco](../visao-geral.md#primeiro-marco-f
 
 ## Foco atual
 
+**Encerrado em 2026-10-19 (Gabriel):** não há mais foco de marco; qualquer tarefa livre pode ser puxada (só ficam de fora as que esperam uma pessoa ou issue aberta). A lista abaixo é histórico do marco.
+
 Decidido pelo grupo em 2026-10-11 ([ADR 0030](../decisoes/0030-processo-v2-dono-da-funcionalidade.md)). Tarefa de jogo nova sai daqui; **recomendado** até 3 lotes de jogo em andamento ([ADR 0037](../decisoes/0037-lotes-de-tarefas.md), emenda 2026-10-16):
 
 0. **Prioridade alta** (decidido por Gabriel em 2026-10-12), antes dos outros itens deste foco:
