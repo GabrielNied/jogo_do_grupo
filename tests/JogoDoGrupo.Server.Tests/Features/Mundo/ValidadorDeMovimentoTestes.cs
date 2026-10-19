@@ -8,8 +8,14 @@ public class ValidadorDeMovimentoTestes
     private static readonly PosicaoNaCidade Origem = new(0, 0, 0, 0);
 
     [Fact]
-    public void Nasce_no_ponto_do_hub() =>
-        Assert.Equal(new PosicaoNaCidade(0, 0, -24, 0), ValidadorDeMovimento.Nascimento);
+    public void Nasce_no_ponto_publicado_compartilhado()
+    {
+        var ponto = NascimentoDoMapa.Atual;
+        Assert.Equal(
+            new PosicaoNaCidade(ponto.X, ponto.Y.GetValueOrDefault(), ponto.Z, 0),
+            ValidadorDeMovimento.Nascimento
+        );
+    }
 
     [Fact]
     public void Parado_e_permitido() =>

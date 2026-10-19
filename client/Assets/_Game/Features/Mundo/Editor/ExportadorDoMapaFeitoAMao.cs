@@ -127,11 +127,6 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
                             ) * 100f
                         );
                     var bioma = BiomaDoTerrain(terrain, configuracao, mundoX, mundoZ);
-                    if (bioma == Bioma.Cidade)
-                    {
-                        alturas[indice] = 0;
-                    }
-
                     var area = AreasPadrao(bioma, alturas[indice] / 100f);
                     foreach (var marcador in marcadoresDeArea)
                     {
@@ -270,7 +265,13 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
 
                 var posicao = marcador.transform.position;
                 pontos.Add(
-                    new PontoMarcadoDoMapa(marcador.Id.Trim(), marcador.Tipo, posicao.x, posicao.z)
+                    new PontoMarcadoDoMapa(
+                        marcador.Id.Trim(),
+                        marcador.Tipo,
+                        posicao.x,
+                        posicao.z,
+                        posicao.y
+                    )
                 );
             }
 
@@ -314,6 +315,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
                 texto.Append(ponto.Id.Replace("\\", "\\\\").Replace("\"", "\\\""));
                 texto.Append("\", TipoDePontoMarcadoDoMapa.").Append(ponto.Tipo);
                 texto.Append(", ").Append(Numero(ponto.X)).Append(", ").Append(Numero(ponto.Z));
+                texto.Append(", ").Append(Numero(ponto.Y.GetValueOrDefault()));
                 texto.AppendLine("),");
             }
 
