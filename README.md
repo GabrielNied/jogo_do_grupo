@@ -240,6 +240,7 @@ A regra principal: **cada funcionalidade vive na própria pasta, nas três parte
 | Desenvolvimento | `Desenvolvimento` | 15000–15999 | Comandos de teste no editor e no build de desenvolvimento (experiência, teleporte, spawn). |
 | Montarias | `Montarias` | 16000–16999 | Chamada de montaria, velocidade aumentada autoritativa e estado montado compartilhado. |
 | Pets | `Pets` | 17000–17999 | Pet que segue o dono (cervo jovem), junta o loot dele e aparece para quem está por perto. |
+| Conquistas | `Conquistas` | 18000–18999 | Sistema de conquistas da conta e títulos desbloqueáveis para exibição. |
 
 Responsáveis por cada uma: [docs/responsaveis.md](docs/responsaveis.md).
 

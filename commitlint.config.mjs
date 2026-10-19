@@ -37,6 +37,7 @@ export const escopos = [
   "desenvolvimento",
   "pets",
   "montarias",
+  "conquistas",
 ];
 
 export default {
