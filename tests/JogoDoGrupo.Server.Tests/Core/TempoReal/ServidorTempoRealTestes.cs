@@ -631,7 +631,9 @@ public class ServidorTempoRealTestes(TempoRealFixture f)
         );
 
         await TempoRealFixture.EsperarAsync(
-            () => f.TempoReal.UltimoPassoLento != null,
+            () =>
+                f.TempoReal.UltimoPassoLento != null
+                && f.TempoReal.UltimoPassoLento.EtapasPassos.Any(e => e.Nome == "ModuloLentoTeste"),
             "detalhes do passo lento gravados"
         );
 

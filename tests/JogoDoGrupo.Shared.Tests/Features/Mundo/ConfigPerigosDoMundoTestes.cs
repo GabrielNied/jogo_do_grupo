@@ -1,11 +1,22 @@
+using System;
 using System.Linq;
 using JogoDoGrupo.Shared.Features.Mundo;
 using Xunit;
 
 namespace JogoDoGrupo.Shared.Tests.Features.Mundo;
 
-public class ConfigPerigosDoMundoTestes
+public class ConfigPerigosDoMundoTestes : IDisposable
 {
+    public ConfigPerigosDoMundoTestes()
+    {
+        DadosDoMapaFeitoAMao.DesativadoEmTestes = true;
+    }
+
+    public void Dispose()
+    {
+        DadosDoMapaFeitoAMao.DesativadoEmTestes = false;
+    }
+
     [Fact]
     public void Constantes_de_perigos_possuem_valores_calibrados()
     {

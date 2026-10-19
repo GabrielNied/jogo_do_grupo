@@ -70,7 +70,7 @@ namespace JogoDoGrupo.Shared.Features.Mundo
         public const float AlturaMinima = -2f;
 
         /// <summary>Nenhum ponto do chão fica acima desta altura, em metros.</summary>
-        public const float AlturaMaxima = 220f;
+        public const float AlturaMaxima = 350f;
 
         private static RegiaoDeBioma[] _regioesDePrevia;
 

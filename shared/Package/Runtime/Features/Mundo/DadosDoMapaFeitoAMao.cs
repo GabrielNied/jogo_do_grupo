@@ -12,8 +12,14 @@ namespace JogoDoGrupo.Shared.Features.Mundo
         public static readonly byte[] Areas = DadosPublicadosDoMapa.Areas;
         public static readonly PontoMarcadoDoMapa[] Pontos = DadosPublicadosDoMapa.Pontos;
 
+        /// <summary>
+        /// Quando verdadeiro, desativa temporariamente os dados publicados (usado em testes das fórmulas procedurais).
+        /// </summary>
+        public static bool DesativadoEmTestes { get; set; }
+
         public static bool Disponivel =>
-            AlturasEmCentimetros.Length == MapaDoMundo.PontosPorLado * MapaDoMundo.PontosPorLado
+            !DesativadoEmTestes
+            && AlturasEmCentimetros.Length == MapaDoMundo.PontosPorLado * MapaDoMundo.PontosPorLado
             && Biomas.Length == AlturasEmCentimetros.Length
             && Areas.Length == AlturasEmCentimetros.Length;
 

@@ -8,7 +8,7 @@ using Xunit;
 
 namespace JogoDoGrupo.Server.Tests.Features.Mundo;
 
-public class PerigosDoMundoTestes
+public class PerigosDoMundoTestes : IDisposable
 {
     private sealed class Conexao;
 
@@ -32,6 +32,7 @@ public class PerigosDoMundoTestes
 
     public PerigosDoMundoTestes()
     {
+        DadosDoMapaFeitoAMao.DesativadoEmTestes = true;
         _cidade = new CidadeDoMundo<Conexao>(() => _agora);
         _perigos = new ServicoDePerigosDoMundo(
             () =>
@@ -194,5 +195,10 @@ public class PerigosDoMundoTestes
 
         Assert.Equal(ResultadoMovimento.Aceito, rNeve);
         Assert.Equal(ResultadoMovimento.Aceito, rDeserto);
+    }
+
+    public void Dispose()
+    {
+        DadosDoMapaFeitoAMao.DesativadoEmTestes = false;
     }
 }
