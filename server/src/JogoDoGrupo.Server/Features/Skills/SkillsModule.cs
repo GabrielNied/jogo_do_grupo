@@ -60,6 +60,10 @@ public sealed class SkillsModule : IFeatureModule
                 SkillsMessageIds.UsarSkill,
                 (sessao, pedido) => _servico?.AoUsar(sessao, pedido)
             )
+            .Ao<CancelarSkill>(
+                SkillsMessageIds.CancelarSkill,
+                (sessao, _) => _servico?.AoCancelar(sessao)
+            )
             .Ao<PedirBarraDeSkills>(
                 SkillsMessageIds.PedirBarraDeSkills,
                 (sessao, _) => _servico?.AoPedirBarra(sessao)

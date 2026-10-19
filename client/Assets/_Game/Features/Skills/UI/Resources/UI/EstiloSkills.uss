@@ -26,6 +26,45 @@
     border-color: var(--lumora-cores-borda-discreta);
 }
 
+.skill-em-preparo {
+    border-color: var(--lumora-cores-ouro);
+}
+
+.skills-preparo {
+    position: absolute;
+    left: 50%;
+    bottom: 190px;
+    width: var(--lumora-dimensoes-recursos-largura);
+    max-width: var(--lumora-dimensoes-dialogo-percentual);
+    height: 28px;
+    translate: -50% 0;
+    background-color: var(--lumora-cores-trilho);
+    border-width: var(--lumora-bordas-fina);
+    border-color: var(--lumora-cores-ouro);
+}
+
+.skills-preparo-barra {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 0;
+    background-color: var(--lumora-cores-ouro);
+    opacity: 0.55;
+}
+
+.skills-preparo-texto {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    font-size: var(--lumora-tipografia-controle);
+    color: var(--lumora-cores-marfim);
+    -unity-text-align: middle-center;
+    white-space: nowrap;
+}
+
 .skill-cobertura {
     position: absolute;
     left: 0;

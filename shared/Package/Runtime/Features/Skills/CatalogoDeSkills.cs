@@ -214,6 +214,10 @@ namespace JogoDoGrupo.Shared.Features.Skills
                 Custo = custo,
                 RecargaMs = Math.Max(ConfigSkills.RecargaMinimaMs, recargaSegundos * 1000),
                 Multiplicador = multiplicador,
+                PreparoMs =
+                    multiplicador >= ConfigSkills.MultiplicadorDeSkillForte
+                        ? ConfigSkills.PreparoDaSkillForteMs
+                        : 0,
                 Etiquetas = EtiquetasDaCategoria(categoria),
                 Propriedades = new PropriedadesDaSkill
                 {

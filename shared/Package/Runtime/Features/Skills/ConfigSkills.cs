@@ -13,5 +13,14 @@ namespace JogoDoGrupo.Shared.Features.Skills
 
         /// <summary>Quanto tempo o número de dano da skill fica na tela do client, em segundos.</summary>
         public const float DuracaoDoNumeroSegundos = 1.1f;
+
+        /// <summary>A skill com multiplicador a partir daqui é forte: tem preparo e pode ser cancelada.</summary>
+        public const double MultiplicadorDeSkillForte = 2.5;
+
+        /// <summary>Duração do preparo de uma skill forte, em ms (servidor e client usam o mesmo valor).</summary>
+        public const int PreparoDaSkillForteMs = 1200;
+
+        /// <summary>Parte do custo cobrada ao cancelar o preparo (#345: 50% do recurso).</summary>
+        public const double FracaoDoCustoAoCancelar = 0.5;
     }
 }

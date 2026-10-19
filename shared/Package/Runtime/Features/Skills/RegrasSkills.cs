@@ -71,6 +71,13 @@ namespace JogoDoGrupo.Shared.Features.Skills
         }
 
         /// <summary>
+        /// O custo de cancelar o preparo: <see cref="ConfigSkills.FracaoDoCustoAoCancelar"/> do custo,
+        /// arredondado para cima (custo positivo nunca sai de graça).
+        /// </summary>
+        public static int CustoAoCancelar(int custo) =>
+            custo <= 0 ? 0 : (int)Math.Ceiling(custo * ConfigSkills.FracaoDoCustoAoCancelar);
+
+        /// <summary>
         /// O dano depois dos poderes de equipamento: o multiplicador (1 sem poder; 1 mais a soma
         /// dos bônus), arredondado, nunca menor que 1 e sem mudar o dano quando não há bônus.
         /// </summary>

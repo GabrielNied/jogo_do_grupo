@@ -23,6 +23,9 @@ namespace JogoDoGrupo.Shared.Features.Skills
         public int Custo;
         public int RecargaMs;
 
+        /// <summary>Preparo em ms antes do efeito; 0 é instantânea. Só skill forte tem (cancelável).</summary>
+        public int PreparoMs;
+
         /// <summary>Vezes o dano de base (dano da arma mais o flat dos itens) que a skill causa.</summary>
         public double Multiplicador = 1.0;
 

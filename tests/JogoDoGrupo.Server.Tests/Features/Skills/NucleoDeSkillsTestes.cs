@@ -22,13 +22,16 @@ public sealed class ArmazemEmMemoria : IArmazemDeSkills
 {
     private readonly Dictionary<long, IReadOnlyList<string>> _ids = [];
 
+    /// <summary>Ids fixos para todas as armas (o teste escolhe skills específicas); null sorteia.</summary>
+    public string[]? Fixos { get; init; }
+
     public Task<IReadOnlyList<string>> ObterOuSortearAsync(ArmaEquipada arma, CancellationToken c)
     {
         lock (_ids)
         {
             if (!_ids.TryGetValue(arma.InstanciaId, out var ids))
             {
-                ids = RegrasSkills.Sortear(arma.Tipo, _ => 0);
+                ids = Fixos ?? RegrasSkills.Sortear(arma.Tipo, _ => 0);
                 _ids[arma.InstanciaId] = ids;
             }
 
@@ -57,6 +60,24 @@ public sealed class CobrancaFalsa : ICobrancaDeRecursos
     public int Mana = 100;
     public bool Caido;
     public int Cobrancas => Volatile.Read(ref _cobrancas);
+
+    public Task<ResultadoDaCobranca> PodeCobrarAsync(
+        long personagemId,
+        RecursoCobravel recurso,
+        int custo,
+        CancellationToken c
+    )
+    {
+        lock (this)
+        {
+            if (Caido)
+                return Task.FromResult(ResultadoDaCobranca.Caido);
+            var saldo = recurso == RecursoCobravel.Mana ? Mana : Stamina;
+            return Task.FromResult(
+                saldo < custo ? ResultadoDaCobranca.Insuficiente : ResultadoDaCobranca.Cobrado
+            );
+        }
+    }
 
     public async Task<(ResultadoDaCobranca, RecursosMudaram?)> TentarCobrarAsync(
         long personagemId,

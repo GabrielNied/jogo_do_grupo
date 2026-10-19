@@ -139,6 +139,29 @@ namespace JogoDoGrupo.Client.Features.Skills
             return aviso.Nome + ": " + efeito;
         }
 
+        /// <summary>O texto da barra de preparo: nome e a dica de como cancelar e o que custa.</summary>
+        public static string TextoDoPreparo(string nome, int espaco) =>
+            nome
+            + " - "
+            + Tecla(espaco)
+            + " cancela (custa "
+            + (int)(ConfigSkills.FracaoDoCustoAoCancelar * 100)
+            + "%)";
+
+        /// <summary>O aviso depois de cancelar: o que custou ("Preparo cancelado: -20 Stamina").</summary>
+        public static string TextoDoCancelamento(SkillCancelada cancelada, DefinicaoDeSkill skill)
+        {
+            if (cancelada == null || cancelada.CustoCobrado <= 0 || skill == null)
+            {
+                return "Preparo cancelado";
+            }
+
+            return "Preparo cancelado: -"
+                + cancelada.CustoCobrado
+                + " "
+                + (skill.Recurso == RecursoDeSkill.Mana ? RotuloMana : RotuloStamina);
+        }
+
         /// <summary>A mensagem de uma recusa do servidor, em português para o jogador.</summary>
         public static string TextoDaRecusa(string codigo)
         {
@@ -151,7 +174,7 @@ namespace JogoDoGrupo.Client.Features.Skills
                 case CodigosErroSkills.VoceEstaCaido:
                     return "Você está caído";
                 case CodigosErroSkills.AcaoEmAndamento:
-                    return "Trocando de arma";
+                    return "Ação em andamento";
                 default:
                     return "Sem skill nesse espaço";
             }

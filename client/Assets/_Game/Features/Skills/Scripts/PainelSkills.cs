@@ -20,6 +20,9 @@ namespace JogoDoGrupo.Client.Features.Skills
         private readonly Label _vazio;
         private readonly Label _aviso;
         private readonly Label _poder;
+        private readonly VisualElement _preparo;
+        private readonly VisualElement _preparoBarra;
+        private readonly Label _preparoTexto;
         private readonly VisualElement _numeros;
         private readonly List<Espaco> _espacos = new List<Espaco>();
         private readonly List<Numero> _vivos = new List<Numero>();
@@ -72,6 +75,19 @@ namespace JogoDoGrupo.Client.Features.Skills
             _poder.AddToClassList("skills-poder");
             _poder.style.display = DisplayStyle.None;
 
+            _preparo = new VisualElement { name = "skills.preparo" };
+            _preparo.pickingMode = PickingMode.Ignore;
+            _preparo.AddToClassList("skills-preparo");
+            _preparo.style.display = DisplayStyle.None;
+            _preparoBarra = new VisualElement();
+            _preparoBarra.pickingMode = PickingMode.Ignore;
+            _preparoBarra.AddToClassList("skills-preparo-barra");
+            _preparoTexto = new Label();
+            _preparoTexto.pickingMode = PickingMode.Ignore;
+            _preparoTexto.AddToClassList("skills-preparo-texto");
+            _preparo.Add(_preparoBarra);
+            _preparo.Add(_preparoTexto);
+
             _numeros = new VisualElement { name = "skills.numeros" };
             _numeros.pickingMode = PickingMode.Ignore;
             _numeros.AddToClassList("skills-numeros");
@@ -79,6 +95,7 @@ namespace JogoDoGrupo.Client.Features.Skills
             raiz.Add(_numeros);
             raiz.Add(_aviso);
             raiz.Add(_poder);
+            raiz.Add(_preparo);
             raiz.Add(_vazio);
             raiz.Add(_barra);
         }
@@ -120,7 +137,7 @@ namespace JogoDoGrupo.Client.Features.Skills
         }
 
         /// <summary>Desenha a barra: nome, custo, e a recarga que falta de cada skill.</summary>
-        public void Mostrar(EstadoDaBarra estado, double agora)
+        public void Mostrar(EstadoDaBarra estado, double agora, int preparandoEspaco = -1)
         {
             var tem = estado.TemSkills;
             _barra.style.display = tem ? DisplayStyle.Flex : DisplayStyle.None;
@@ -143,8 +160,19 @@ namespace JogoDoGrupo.Client.Features.Skills
                     ApresentacaoSkills.FracaoDaRecarga(restante, skill.RecargaMs) * 100f
                 );
                 espaco.Caixa.EnableInClassList("skill-em-recarga", restante > 0);
+                espaco.Caixa.EnableInClassList("skill-em-preparo", preparandoEspaco == i);
             }
         }
+
+        /// <summary>A barra de preparo da skill forte: texto e quanto já encheu (0 a 1).</summary>
+        public void MostrarPreparo(string texto, float fracao)
+        {
+            _preparoTexto.text = texto;
+            _preparoBarra.style.width = Length.Percent(Mathf.Clamp01(fracao) * 100f);
+            _preparo.style.display = DisplayStyle.Flex;
+        }
+
+        public void EsconderPreparo() => _preparo.style.display = DisplayStyle.None;
 
         public void MostrarAviso(string texto)
         {
