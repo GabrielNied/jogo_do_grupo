@@ -48,7 +48,7 @@ namespace JogoDoGrupo.Client.Features.Profissoes.UI
 
             _materiais = Secao(conteudo, "Materiais");
             _profissoes = Secao(conteudo, "Profissões");
-            _receitas = Secao(conteudo, "Forja do Ferreiro");
+            _receitas = Secao(conteudo, "Receitas de Produção");
             Redesenhar();
         }
 
@@ -130,19 +130,30 @@ namespace JogoDoGrupo.Client.Features.Profissoes.UI
         private void DesenharReceitas()
         {
             _receitas.Clear();
-            var ferreiro = ControleDeProfissoes.Aprendeu(Profissao.Ferreiro);
-            if (!ferreiro)
-            {
-                _receitas.Add(Detalhe("Aprenda Ferreiro para produzir equipamentos."));
-            }
 
             foreach (var receita in ConfigProfissoes.Receitas)
             {
+                var temProfissao = ControleDeProfissoes.Aprendeu(receita.Profissao);
                 var linha = Linha();
                 var texto = new VisualElement();
                 texto.AddToClassList("profissoes-texto");
                 texto.Add(ComponentesVisuais.Texto(TextosProfissoes.NomeDoProduto(receita)));
-                texto.Add(Detalhe(Custo(receita, out var faltaMaterial), faltaMaterial));
+
+                var custoTexto = Custo(receita, out var faltaMaterial);
+                if (!temProfissao)
+                {
+                    custoTexto =
+                        "Requer "
+                        + ConfigProfissoes.NomeDaProfissao(receita.Profissao)
+                        + " · "
+                        + custoTexto;
+                }
+                else if (receita.DuracaoBuffMinutos > 0)
+                {
+                    custoTexto += " · Buff: " + receita.DuracaoBuffMinutos + " min";
+                }
+
+                texto.Add(Detalhe(custoTexto, faltaMaterial || !temProfissao));
                 linha.Add(texto);
 
                 var alvo = receita.Id;
@@ -152,7 +163,7 @@ namespace JogoDoGrupo.Client.Features.Profissoes.UI
                     principal: true
                 );
                 botao.AddToClassList("profissoes-botao");
-                botao.SetEnabled(ferreiro && !faltaMaterial);
+                botao.SetEnabled(temProfissao && !faltaMaterial);
                 linha.Add(botao);
                 _receitas.Add(linha);
             }

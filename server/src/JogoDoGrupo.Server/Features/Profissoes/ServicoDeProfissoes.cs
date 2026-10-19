@@ -123,7 +123,12 @@ public sealed class ServicoDeProfissoes(
             return (CodigosErroProfissoes.ReceitaInexistente, null);
         if (!await Aprendeu(personagemId, receita.Profissao, c))
             return (CodigosErroProfissoes.ProfissaoNaoAprendida, null);
-        if (!EstaPerto(personagemId, p => ConfigProfissoes.PertoDaForja(p.X, p.Z)))
+        if (
+            !EstaPerto(
+                personagemId,
+                p => ConfigProfissoes.PertoDaEstacao(receita.Profissao, p.X, p.Z)
+            )
+        )
             return (CodigosErroProfissoes.Longe, null);
 
         await using var transacao = await db.Database.BeginTransactionAsync(
