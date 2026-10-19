@@ -1,0 +1,50 @@
+/* Lumora das profissões (#192): janela da forja com materiais, profissões e receitas. */
+.profissoes-janela {
+    min-width: var(--lumora-dimensoes-chat-largura);
+}
+
+.profissoes-ajuda {
+    white-space: normal;
+    margin-bottom: var(--lumora-espacamento-pequeno);
+}
+
+.profissoes-secao {
+    margin-bottom: var(--lumora-espacamento-medio);
+}
+
+.profissoes-linha {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--lumora-espacamento-curto);
+    margin-bottom: var(--lumora-espacamento-curto);
+    border-width: var(--lumora-bordas-fina);
+    border-color: var(--lumora-cores-borda-discreta);
+    border-radius: var(--lumora-bordas-raio-cartao);
+}
+
+.profissoes-texto {
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-width: 0;
+    white-space: normal;
+}
+
+.profissoes-detalhe {
+    color: var(--lumora-cores-texto-secundario);
+    white-space: normal;
+}
+
+.profissoes-falta {
+    color: var(--lumora-cores-ouro);
+}
+
+.profissoes-botao {
+    min-height: var(--lumora-dimensoes-alvo-minimo);
+}
+
+.profissoes-aviso {
+    white-space: normal;
+    margin-bottom: var(--lumora-espacamento-pequeno);
+}
