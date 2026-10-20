@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using JogoDoGrupo.Shared.Features.Itens;
 using JogoDoGrupo.Shared.Features.Missoes;
 using Xunit;
 
@@ -67,7 +68,7 @@ namespace JogoDoGrupo.Shared.Tests.Features.Missoes
             var ok = RegrasMissoes.PodeAceitar(
                 def,
                 nivelPersonagem: 5,
-                missoesConcluidas: new int[] { CatalogoDeMissoes.Missao1Chegada },
+                missoesConcluidas: new int[] { CatalogoDeMissoes.Missao7OSenhorDaColinaDoVigia },
                 missoesAtivas: ativas,
                 out var erro
             );
@@ -156,7 +157,7 @@ namespace JogoDoGrupo.Shared.Tests.Features.Missoes
                     new ProgressoDeObjetivo
                     {
                         ObjetivoId = 1,
-                        QuantidadeAtual = 4,
+                        QuantidadeAtual = 1,
                         Concluido = true,
                     },
                 },
@@ -181,13 +182,18 @@ namespace JogoDoGrupo.Shared.Tests.Features.Missoes
                     new ProgressoDeObjetivo
                     {
                         ObjetivoId = 1,
-                        QuantidadeAtual = 4,
+                        QuantidadeAtual = 1,
                         Concluido = true,
                     },
                 },
             };
 
-            var ok = RegrasMissoes.PodeEntregar(def, progresso, itemIdEscolhido: 1, out var erro);
+            var ok = RegrasMissoes.PodeEntregar(
+                def,
+                progresso,
+                itemIdEscolhido: CatalogoEquipamentos.PrimeiroModeloDeArma,
+                out var erro
+            );
 
             Assert.True(ok);
             Assert.Null(erro);

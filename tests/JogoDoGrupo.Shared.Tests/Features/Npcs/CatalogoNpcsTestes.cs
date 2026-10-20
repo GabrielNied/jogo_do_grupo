@@ -11,7 +11,7 @@ public class CatalogoNpcsTestes
     {
         Assert.NotEmpty(CatalogoNpcs.Todos);
         var cidadeNpcs = CatalogoNpcs.PorArea(CatalogoNpcs.AreaCidade);
-        Assert.Equal(9, cidadeNpcs.Length);
+        Assert.Equal(10, cidadeNpcs.Length);
 
         var vendedor = CatalogoNpcs.Obter(CatalogoNpcs.IdVendedor);
         Assert.NotNull(vendedor);
@@ -57,6 +57,13 @@ public class CatalogoNpcsTestes
         Assert.NotNull(cuidador);
         Assert.Equal("Cuidadora Mirna", cuidador.Nome);
         Assert.Equal(PapelNpc.CuidadorDePets, cuidador.Papel);
+
+        var valeria = CatalogoNpcs.Obter(CatalogoNpcs.IdValeria);
+        Assert.NotNull(valeria);
+        Assert.Equal("Capitã Valéria", valeria.Nome);
+        Assert.Equal(PapelNpc.DadorDeMissao, valeria.Papel);
+        Assert.Equal(0f, valeria.X);
+        Assert.Equal(-35f, valeria.Z);
     }
 
     [Fact]
@@ -80,7 +87,11 @@ public class CatalogoNpcsTestes
         Assert.NotNull(vendedor);
         Assert.Equal(CatalogoNpcs.IdVendedor, vendedor.Id);
 
-        var inexistente = CatalogoNpcs.PorPapel(PapelNpc.DadorDeMissao);
+        var dador = CatalogoNpcs.PorPapel(PapelNpc.DadorDeMissao);
+        Assert.NotNull(dador);
+        Assert.Equal(CatalogoNpcs.IdValeria, dador.Id);
+
+        var inexistente = CatalogoNpcs.PorPapel(PapelNpc.Leiloeiro);
         Assert.Null(inexistente);
     }
 

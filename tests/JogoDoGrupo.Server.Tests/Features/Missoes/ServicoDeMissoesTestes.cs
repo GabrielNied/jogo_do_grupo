@@ -106,24 +106,84 @@ public sealed class ServicoDeMissoesTestes(ServidorDeTeste servidor)
     {
         var id = await _ambiente.NovoPersonagemAsync();
         await ComServicoAsync(s => s.GarantirMissaoInicialAsync(id, default));
+        // Etapa 1 -> Alden
         await ComServicoAsync(s => s.RegistrarInteracaoNpcAsync(id, 1, default));
         await ComServicoAsync(s =>
             s.EntregarMissaoAsync(id, CatalogoDeMissoes.Missao1Chegada, null, default)
         );
 
-        // Agora a Missão 2 está em andamento (Derrotar 4 Javalis, CriaturaId = 1)
+        // Etapa 2 -> Gareth
+        await ComServicoAsync(s =>
+            s.RegistrarInteracaoNpcAsync(
+                id,
+                JogoDoGrupo.Shared.Features.Npcs.CatalogoNpcs.IdArmeiro,
+                default
+            )
+        );
+        await ComServicoAsync(s =>
+            s.EntregarMissaoAsync(
+                id,
+                CatalogoDeMissoes.Missao2PrimeiraFerramenta,
+                JogoDoGrupo.Shared.Features.Itens.CatalogoEquipamentos.PrimeiroModeloDeArma,
+                default
+            )
+        );
+
+        // Etapa 3 -> Brom
+        await ComServicoAsync(s =>
+            s.RegistrarInteracaoNpcAsync(
+                id,
+                JogoDoGrupo.Shared.Features.Npcs.CatalogoNpcs.IdFerreiro,
+                default
+            )
+        );
+        await ComServicoAsync(s =>
+            s.EntregarMissaoAsync(
+                id,
+                CatalogoDeMissoes.Missao3CascaDeFerroECouro,
+                JogoDoGrupo.Shared.Features.Itens.CatalogoEquipamentos.PrimeiroModelo,
+                default
+            )
+        );
+
+        // Etapa 4 -> Barnabé e Cassian
+        await ComServicoAsync(s =>
+            s.RegistrarInteracaoNpcAsync(
+                id,
+                JogoDoGrupo.Shared.Features.Npcs.CatalogoNpcs.IdTaverneiro,
+                default
+            )
+        );
+        await ComServicoAsync(s =>
+            s.RegistrarInteracaoNpcAsync(
+                id,
+                JogoDoGrupo.Shared.Features.Npcs.CatalogoNpcs.IdBanqueiro,
+                default
+            )
+        );
+        await ComServicoAsync(s =>
+            s.EntregarMissaoAsync(
+                id,
+                CatalogoDeMissoes.Missao4ProvisoesEGuardaVolumes,
+                null,
+                default
+            )
+        );
+
+        // Agora a Missão 5 está em andamento (Derrotar 6 Javalis do Campo, CriaturaId = 1)
         var mortes1 = await ComServicoAsync(s => s.RegistrarMorteInimigoAsync(id, 1, default));
         Assert.Single(mortes1);
         Assert.Equal(1, mortes1[0].Objetivos[0].QuantidadeAtual);
         Assert.False(mortes1[0].Objetivos[0].Concluido);
 
-        // Mais 3 mortes para completar
-        await ComServicoAsync(s => s.RegistrarMorteInimigoAsync(id, 1, default));
-        await ComServicoAsync(s => s.RegistrarMorteInimigoAsync(id, 1, default));
+        for (int i = 0; i < 4; i++)
+        {
+            await ComServicoAsync(s => s.RegistrarMorteInimigoAsync(id, 1, default));
+        }
         var mortesFinal = await ComServicoAsync(s => s.RegistrarMorteInimigoAsync(id, 1, default));
 
         Assert.Single(mortesFinal);
-        Assert.Equal(4, mortesFinal[0].Objetivos[0].QuantidadeAtual);
+        Assert.Equal(6, mortesFinal[0].Objetivos[0].QuantidadeAtual);
         Assert.True(mortesFinal[0].Objetivos[0].Concluido);
         Assert.Equal(EstadoDaMissao.ProntaParaEntregar, mortesFinal[0].Estado);
     }

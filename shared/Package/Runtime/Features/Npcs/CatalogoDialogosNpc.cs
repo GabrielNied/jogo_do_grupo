@@ -42,6 +42,8 @@ namespace JogoDoGrupo.Shared.Features.Npcs
                     "Nenhum guerreiro precisa caminhar a pé pelas vastidões de Asterra. Conheça minhas montarias.",
                 PapelNpc.CuidadorDePets =>
                     "Esses pequenos companheiros são fiéis e trazem ânimo nas horas sombrias.",
+                PapelNpc.DadorDeMissao =>
+                    "Mantenha a guarda alta. A guarnição de Brasa Mansa precisa de combatentes disciplinados.",
                 _ => "Olá, viajante! Bem-vindo à Brasa Mansa.",
             };
 
@@ -145,6 +147,16 @@ namespace JogoDoGrupo.Shared.Features.Npcs
                         "Ver Mascotes",
                         AcaoDeDialogo.AbrirServico,
                         "pets.cuidador"
+                    ),
+                    new OpcaoDeDialogo("sair", "Até logo", AcaoDeDialogo.Fechar),
+                },
+                PapelNpc.DadorDeMissao => new[]
+                {
+                    new OpcaoDeDialogo(
+                        "missoes",
+                        "Ver Missões",
+                        AcaoDeDialogo.AbrirServico,
+                        "missoes.painel"
                     ),
                     new OpcaoDeDialogo("sair", "Até logo", AcaoDeDialogo.Fechar),
                 },

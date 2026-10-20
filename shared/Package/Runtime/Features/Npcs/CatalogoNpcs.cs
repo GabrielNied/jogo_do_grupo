@@ -20,6 +20,20 @@ namespace JogoDoGrupo.Shared.Features.Npcs
         public const int IdMerceeiro = 7;
         public const int IdCavalarico = 8;
         public const int IdCuidadorDePets = 9;
+        public const int IdValeria = 10;
+        public const int IdDadorDeMissao = IdValeria;
+
+        public static readonly DefinicaoNpc Valeria = new DefinicaoNpc(
+            id: IdValeria,
+            nome: "Capitã Valéria",
+            papel: PapelNpc.DadorDeMissao,
+            area: AreaCidade,
+            x: 0f,
+            y: 0f,
+            z: -35f,
+            rotacaoY: 0f,
+            raioInteracao: 4f
+        );
 
         public static readonly DefinicaoNpc Vendedor = new DefinicaoNpc(
             id: IdVendedor,
@@ -140,6 +154,7 @@ namespace JogoDoGrupo.Shared.Features.Npcs
             Merceeiro,
             Cavalarico,
             CuidadorDePets,
+            Valeria,
         };
 
         private static readonly Dictionary<int, DefinicaoNpc> _porId = new Dictionary<
@@ -156,6 +171,7 @@ namespace JogoDoGrupo.Shared.Features.Npcs
             { IdMerceeiro, Merceeiro },
             { IdCavalarico, Cavalarico },
             { IdCuidadorDePets, CuidadorDePets },
+            { IdValeria, Valeria },
         };
 
         public static DefinicaoNpc Obter(int id)
