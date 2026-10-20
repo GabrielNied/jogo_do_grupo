@@ -30,20 +30,20 @@ Papel dos NPCs no mundo, comerciantes e reputação.
 
 Decidido por Gabriel em 2026-10-18. Todo NPC tem corpo, nome sobre a cabeça, ícone do papel (também no minimapa) e um lugar fixo ([#1063](https://github.com/GabrielNied/jogo_do_grupo/issues/1063)), além do visual do papel ([#1064](https://github.com/GabrielNied/jogo_do_grupo/issues/1064)). O lugar de cada serviço na cidade está na [#1065](https://github.com/GabrielNied/jogo_do_grupo/issues/1065). A conversa e o menu do serviço são da [#178](https://github.com/GabrielNied/jogo_do_grupo/issues/178). Nomes, personalidades e falas saem do roteiro ([#1058](https://github.com/GabrielNied/jogo_do_grupo/issues/1058)). NPC não pode ser atacado nem empurrado.
 
-| NPC | O que faz | Dono do serviço | Situação |
-|---|---|---|---|
-| Banqueiro | Banco | [Itens](itens.md) | serviço pronto (#177) |
-| Ferreiro | Forja, fusão e reparo | [Itens](itens.md), [Economia](economia.md) | serviço pronto |
-| Leiloeiro | Mercado (leilão) | [Economia](economia.md) | [#176](https://github.com/GabrielNied/jogo_do_grupo/issues/176) |
-| Armeiro | Vende armas | [Economia](economia.md) | [#1066](https://github.com/GabrielNied/jogo_do_grupo/issues/1066) |
-| Armadureiro | Vende armaduras | [Economia](economia.md) | [#1066](https://github.com/GabrielNied/jogo_do_grupo/issues/1066) |
-| Taverneiro | Vende comida e bebida; a cozinha fica na taverna | [Economia](economia.md), [Profissões](profissoes.md) | [#1066](https://github.com/GabrielNied/jogo_do_grupo/issues/1066) |
-| Merceeiro | Vende consumíveis e materiais básicos | [Economia](economia.md) | [#1066](https://github.com/GabrielNied/jogo_do_grupo/issues/1066) |
-| Cavalariço (estábulo) | Vende montarias básicas | [Montarias](montarias.md) | [#1067](https://github.com/GabrielNied/jogo_do_grupo/issues/1067) |
-| Cuidador de pets | Vende pets comuns | [Pets](pets.md) | [#1068](https://github.com/GabrielNied/jogo_do_grupo/issues/1068) |
-| Dadores de missão | Dão e recebem missões; quadro de diárias | [Missões](missoes.md) | [#179](https://github.com/GabrielNied/jogo_do_grupo/issues/179) |
-| Guardas | Portões e patrulha, sem combate | NPCs | [#1069](https://github.com/GabrielNied/jogo_do_grupo/issues/1069) |
-| Moradores | Andam, conversam, falas curtas ao passar | NPCs | [#1069](https://github.com/GabrielNied/jogo_do_grupo/issues/1069) |
+| NPC | Nome Canônico | O que faz | Dono do serviço | Situação |
+|---|---|---|---|---|
+| Banqueiro | Cassian | Banco | [Itens](itens.md) | serviço pronto (#177) |
+| Ferreiro | Brom | Forja, fusão e reparo | [Itens](itens.md), [Economia](economia.md) | serviço pronto |
+| Leiloeiro | — | Mercado (leilão) | [Economia](economia.md) | [#176](https://github.com/GabrielNied/jogo_do_grupo/issues/176) |
+| Armeiro | Gareth | Vende armas | [Economia](economia.md) | [#1066](https://github.com/GabrielNied/jogo_do_grupo/issues/1066) |
+| Armadureiro | Bruna | Vende armaduras | [Economia](economia.md) | [#1066](https://github.com/GabrielNied/jogo_do_grupo/issues/1066) |
+| Taverneiro | Barnabé | Vende comida e bebida; a cozinha fica na taverna | [Economia](economia.md), [Profissões](profissoes.md) | [#1066](https://github.com/GabrielNied/jogo_do_grupo/issues/1066) |
+| Merceeiro | Tomas | Vende consumíveis e materiais básicos | [Economia](economia.md) | [#1066](https://github.com/GabrielNied/jogo_do_grupo/issues/1066) |
+| Cavalariço (estábulo) | Roderic | Vende montarias básicas | [Montarias](montarias.md) | [#1067](https://github.com/GabrielNied/jogo_do_grupo/issues/1067) |
+| Cuidador de pets | Mirna | Vende pets comuns | [Pets](pets.md) | [#1068](https://github.com/GabrielNied/jogo_do_grupo/issues/1068) |
+| Dadores de missão | Capitã Valéria e Alden | Dão e recebem missões; roteiro em [missões](missoes.md#capítulo-1-a-brasa-mansa-e-a-serra-do-vidro-frio-roteiro-completo-issue-1058) | [Missões](missoes.md) | [#179](https://github.com/GabrielNied/jogo_do_grupo/issues/179), [#1058](https://github.com/GabrielNied/jogo_do_grupo/issues/1058) |
+| Guardas | Guarnição | Portões e patrulha, sem combate | NPCs | [#1069](https://github.com/GabrielNied/jogo_do_grupo/issues/1069) |
+| Moradores | Cidadãos | Andam, conversam, falas curtas ao passar | NPCs | [#1069](https://github.com/GabrielNied/jogo_do_grupo/issues/1069) |
 
 **Futuro** (entra quando o serviço existir): intendente de facção (troca [reputação](#definido) por receitas, descontos e aparências), mestres de [profissão](profissoes.md), registrador de [guilda](social.md) e treinador da [árvore](talentos.md).
 
