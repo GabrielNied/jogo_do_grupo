@@ -77,6 +77,7 @@ public class PetsServicoTestes
                 o => o.MigrationsAssembly(typeof(JogoDbContext).Assembly.FullName)
             )
         );
+        services.AddScoped<JogoDoGrupo.Server.Contratos.Itens.ICustodiaDeItens, CustodiaDeItens>();
         var sp = services.BuildServiceProvider();
         using (var scope = sp.CreateScope())
         {
