@@ -16,5 +16,7 @@ namespace JogoDoGrupo.Shared.Features.Missoes
         public const string ApenasLiderCompartilha = "apenas_lider_compartilha";
         public const string LongeDoLider = "longe_do_lider";
         public const string LimiteRastreadorAtingido = "limite_rastreador_atingido";
+        public const string MissaoJaConcluidaNoCiclo = "missao_ja_concluida_no_ciclo";
+        public const string MissaoForaDaRotacao = "missao_fora_da_rotacao";
     }
 }

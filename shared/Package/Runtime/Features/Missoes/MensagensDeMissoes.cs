@@ -46,6 +46,10 @@ namespace JogoDoGrupo.Shared.Features.Missoes
     {
         public ProgressoDeMissaoDto[] Ativas = System.Array.Empty<ProgressoDeMissaoDto>();
         public int[] Concluidas = System.Array.Empty<int>();
+        public int[] RotacaoDiariaIds = System.Array.Empty<int>();
+        public int[] RotacaoSemanalIds = System.Array.Empty<int>();
+        public long ProximoResetDiarioSegundos;
+        public long ProximoResetSemanalSegundos;
     }
 
     /// <summary>Servidor → client: atualização de uma missão específica (progresso de objetivo ou estado).</summary>

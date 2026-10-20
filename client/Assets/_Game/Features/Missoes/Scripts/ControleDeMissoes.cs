@@ -17,6 +17,8 @@ namespace JogoDoGrupo.Client.Features.Missoes
         private static readonly List<ProgressoDeMissaoDto> _ativas =
             new List<ProgressoDeMissaoDto>();
         private static readonly HashSet<int> _concluidas = new HashSet<int>();
+        private static readonly HashSet<int> _rotacaoDiaria = new HashSet<int>();
+        private static readonly HashSet<int> _rotacaoSemanal = new HashSet<int>();
 
         private readonly List<IDisposable> _assinaturas = new List<IDisposable>();
 
@@ -25,6 +27,8 @@ namespace JogoDoGrupo.Client.Features.Missoes
 
         public static IReadOnlyList<ProgressoDeMissaoDto> Ativas => _ativas;
         public static IReadOnlyCollection<int> Concluidas => _concluidas;
+        public static IReadOnlyCollection<int> RotacaoDiaria => _rotacaoDiaria;
+        public static IReadOnlyCollection<int> RotacaoSemanal => _rotacaoSemanal;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void Reiniciar()
@@ -32,6 +36,8 @@ namespace JogoDoGrupo.Client.Features.Missoes
             _instancia = null;
             _ativas.Clear();
             _concluidas.Clear();
+            _rotacaoDiaria.Clear();
+            _rotacaoSemanal.Clear();
             EstadoMudou = null;
             AvisoRecebido = null;
         }
@@ -180,6 +186,24 @@ namespace JogoDoGrupo.Client.Features.Missoes
                 for (int i = 0; i < estado.Concluidas.Length; i++)
                 {
                     _concluidas.Add(estado.Concluidas[i]);
+                }
+            }
+
+            _rotacaoDiaria.Clear();
+            if (estado.RotacaoDiariaIds != null)
+            {
+                for (int i = 0; i < estado.RotacaoDiariaIds.Length; i++)
+                {
+                    _rotacaoDiaria.Add(estado.RotacaoDiariaIds[i]);
+                }
+            }
+
+            _rotacaoSemanal.Clear();
+            if (estado.RotacaoSemanalIds != null)
+            {
+                for (int i = 0; i < estado.RotacaoSemanalIds.Length; i++)
+                {
+                    _rotacaoSemanal.Add(estado.RotacaoSemanalIds[i]);
                 }
             }
 

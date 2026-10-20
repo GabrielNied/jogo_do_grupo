@@ -38,7 +38,9 @@ namespace JogoDoGrupo.Client.Features.Missoes
             int npcId,
             int nivelJogador,
             IReadOnlyCollection<ProgressoDeMissaoDto> ativas,
-            IReadOnlyCollection<int> concluidas
+            IReadOnlyCollection<int> concluidas,
+            IReadOnlyCollection<int>? rotacaoDiaria = null,
+            IReadOnlyCollection<int>? rotacaoSemanal = null
         )
         {
             if (npcId <= 0)
@@ -100,6 +102,20 @@ namespace JogoDoGrupo.Client.Features.Missoes
             foreach (var def in CatalogoDeMissoes.Todas)
             {
                 if (def.NpcDoadorId != npcId)
+                    continue;
+
+                if (
+                    def.Tipo == TipoDeMissao.Diaria
+                    && rotacaoDiaria != null
+                    && !rotacaoDiaria.Contains(def.Id)
+                )
+                    continue;
+
+                if (
+                    def.Tipo == TipoDeMissao.Semanal
+                    && rotacaoSemanal != null
+                    && !rotacaoSemanal.Contains(def.Id)
+                )
                     continue;
 
                 if (

@@ -17,13 +17,34 @@ namespace JogoDoGrupo.Shared.Features.Missoes
             out string? erro
         )
         {
+            return PodeAceitar(
+                definicao,
+                nivelPersonagem,
+                missoesConcluidas,
+                missoesAtivas,
+                missoesConcluidasNoCiclo: null,
+                missoesRotacaoAtiva: null,
+                out erro
+            );
+        }
+
+        public static bool PodeAceitar(
+            DefinicaoDeMissao definicao,
+            int nivelPersonagem,
+            IReadOnlyCollection<int> missoesConcluidas,
+            IReadOnlyCollection<int> missoesAtivas,
+            IReadOnlyCollection<int>? missoesConcluidasNoCiclo,
+            IReadOnlyCollection<int>? missoesRotacaoAtiva,
+            out string? erro
+        )
+        {
             if (definicao == null)
             {
                 erro = CodigosErroMissoes.MissaoNaoEncontrada;
                 return false;
             }
 
-            if (missoesAtivas.Contains(definicao.Id))
+            if (missoesAtivas != null && missoesAtivas.Contains(definicao.Id))
             {
                 erro = CodigosErroMissoes.MissaoJaAceita;
                 return false;
@@ -31,9 +52,28 @@ namespace JogoDoGrupo.Shared.Features.Missoes
 
             if (definicao.Tipo != TipoDeMissao.Diaria && definicao.Tipo != TipoDeMissao.Semanal)
             {
-                if (missoesConcluidas.Contains(definicao.Id))
+                if (missoesConcluidas != null && missoesConcluidas.Contains(definicao.Id))
                 {
                     erro = CodigosErroMissoes.MissaoJaConcluida;
+                    return false;
+                }
+            }
+            else
+            {
+                // Missão Diária ou Semanal: confere se já foi concluída no ciclo atual (#1062)
+                if (
+                    missoesConcluidasNoCiclo != null
+                    && missoesConcluidasNoCiclo.Contains(definicao.Id)
+                )
+                {
+                    erro = CodigosErroMissoes.MissaoJaConcluidaNoCiclo;
+                    return false;
+                }
+
+                // Se houver rotação ativa informada, deve pertencer a ela
+                if (missoesRotacaoAtiva != null && !missoesRotacaoAtiva.Contains(definicao.Id))
+                {
+                    erro = CodigosErroMissoes.MissaoForaDaRotacao;
                     return false;
                 }
             }
@@ -48,7 +88,7 @@ namespace JogoDoGrupo.Shared.Features.Missoes
             {
                 foreach (var req in definicao.RequisitosMissaoIds)
                 {
-                    if (!missoesConcluidas.Contains(req))
+                    if (missoesConcluidas == null || !missoesConcluidas.Contains(req))
                     {
                         erro = CodigosErroMissoes.PreRequisitosNaoCumpridos;
                         return false;
@@ -58,6 +98,7 @@ namespace JogoDoGrupo.Shared.Features.Missoes
 
             if (
                 definicao.Tipo != TipoDeMissao.Principal
+                && missoesAtivas != null
                 && missoesAtivas.Count >= ConfigMissoes.LimiteMissoesEmAndamento
             )
             {
