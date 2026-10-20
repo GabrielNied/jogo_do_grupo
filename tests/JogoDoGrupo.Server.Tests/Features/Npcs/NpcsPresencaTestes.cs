@@ -19,7 +19,7 @@ public class NpcsPresencaTestes(TempoRealFixture f) : IClassFixture<TempoRealFix
         Assert.NotNull(npcsDaArea);
         Assert.Equal("cidade", npcsDaArea.Area);
         Assert.NotNull(npcsDaArea.Npcs);
-        Assert.Equal(9, npcsDaArea.Npcs.Length);
+        Assert.Equal(15, npcsDaArea.Npcs.Length);
         Assert.Contains(
             npcsDaArea.Npcs,
             n => n.Nome == "Mercador Alden" && n.Papel == PapelNpc.Vendedor
@@ -56,6 +56,30 @@ public class NpcsPresencaTestes(TempoRealFixture f) : IClassFixture<TempoRealFix
             npcsDaArea.Npcs,
             n => n.Nome == "Cuidadora Mirna" && n.Papel == PapelNpc.CuidadorDePets
         );
+        Assert.Contains(
+            npcsDaArea.Npcs,
+            n => n.Nome == "Leiloeiro Dumas" && n.Papel == PapelNpc.Leiloeiro
+        );
+        Assert.Contains(
+            npcsDaArea.Npcs,
+            n => n.Nome == "Capitã Valéria" && n.Papel == PapelNpc.Guarda
+        );
+        Assert.Contains(
+            npcsDaArea.Npcs,
+            n => n.Nome == "Guarda Kael" && n.Papel == PapelNpc.Guarda
+        );
+        Assert.Contains(
+            npcsDaArea.Npcs,
+            n => n.Nome == "Quadro de Diárias" && n.Papel == PapelNpc.DadorDeMissao
+        );
+        Assert.Contains(
+            npcsDaArea.Npcs,
+            n => n.Nome == "Morador Elric" && n.Papel == PapelNpc.Morador
+        );
+        Assert.Contains(
+            npcsDaArea.Npcs,
+            n => n.Nome == "Moradora Lyra" && n.Papel == PapelNpc.Morador
+        );
     }
 
     [Fact]
@@ -69,6 +93,6 @@ public class NpcsPresencaTestes(TempoRealFixture f) : IClassFixture<TempoRealFix
         var npcsDaArea = await cliente.ReceberAsync<NpcsDaArea>(NpcsMessageIds.NpcsDaArea);
         Assert.NotNull(npcsDaArea);
         Assert.Equal("cidade", npcsDaArea.Area);
-        Assert.Equal(9, npcsDaArea.Npcs.Length);
+        Assert.Equal(15, npcsDaArea.Npcs.Length);
     }
 }
