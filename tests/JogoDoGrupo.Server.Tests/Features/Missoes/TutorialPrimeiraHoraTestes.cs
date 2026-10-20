@@ -225,7 +225,7 @@ public sealed class TutorialPrimeiraHoraTestes(ServidorDeTeste servidor)
 
         // 1. No nível 1, falha por nível insuficiente
         var (okNivel1, erroNivel1, _) = await ComServicoAsync(s =>
-            s.AceitarMissaoAsync(id, CatalogoDeMissoes.Missao101CaldeiraoDaLareira, default)
+            s.AceitarMissaoAsync(id, CatalogoDeMissoes.Missao108GuardaDeHonraDaBrasa, default)
         );
         Assert.False(okNivel1);
         Assert.Equal(CodigosErroMissoes.NivelInsuficiente, erroNivel1);
@@ -239,7 +239,7 @@ public sealed class TutorialPrimeiraHoraTestes(ServidorDeTeste servidor)
         }
 
         var (sucessoAntes, erroAntes, _) = await ComServicoAsync(s =>
-            s.AceitarMissaoAsync(id, CatalogoDeMissoes.Missao101CaldeiraoDaLareira, default)
+            s.AceitarMissaoAsync(id, CatalogoDeMissoes.Missao108GuardaDeHonraDaBrasa, default)
         );
         Assert.False(sucessoAntes);
         Assert.Equal(CodigosErroMissoes.PreRequisitosNaoCumpridos, erroAntes);
