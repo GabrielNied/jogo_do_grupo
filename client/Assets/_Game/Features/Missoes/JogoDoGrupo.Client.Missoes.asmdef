@@ -3,6 +3,7 @@
   "rootNamespace": "JogoDoGrupo.Client.Features.Missoes",
   "references": [
     "JogoDoGrupo.Client.Core",
+    "JogoDoGrupo.Client.Visual",
     "JogoDoGrupo.Shared"
   ],
   "includePlatforms": [],
