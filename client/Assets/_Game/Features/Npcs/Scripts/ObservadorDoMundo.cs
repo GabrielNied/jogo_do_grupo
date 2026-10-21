@@ -58,6 +58,7 @@ namespace JogoDoGrupo.Client.Features.Npcs
             var raiz = new GameObject(NomeRaiz);
             SceneManager.MoveGameObjectToScene(raiz, jogador.scene);
             raiz.AddComponent<ApresentadorDeNpcs>();
+            EtiquetasDeNpcs.Criar(jogador.scene);
         }
     }
 }

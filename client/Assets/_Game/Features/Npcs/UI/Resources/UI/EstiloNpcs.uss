@@ -1,0 +1,47 @@
+/* Etiquetas de nome dos NPCs (sobre a cabeça). */
+.npcs-camada {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.npc-etiqueta {
+    position: absolute;
+    align-items: center;
+    translate: -50% -100%;
+}
+
+.npc-nome {
+    font-size: var(--lumora-tipografia-hud-nome);
+    color: var(--lumora-cores-nome-amigo);
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    -unity-text-outline-width: 1px;
+    -unity-text-outline-color: var(--lumora-cores-contorno);
+    text-shadow: 1px 1px 2px var(--lumora-cores-contorno);
+    white-space: nowrap;
+}
+
+.npc-titulo {
+    font-size: var(--lumora-tipografia-hud-pequeno);
+    color: var(--lumora-cores-ouro);
+    -unity-text-align: middle-center;
+    -unity-text-outline-width: 1px;
+    -unity-text-outline-color: var(--lumora-cores-contorno);
+    text-shadow: 1px 1px 2px var(--lumora-cores-contorno);
+    white-space: nowrap;
+}
+
+.npc-falar {
+    margin-top: var(--lumora-espacamento-fino);
+    padding: 1px var(--lumora-espacamento-pequeno);
+    font-size: var(--lumora-tipografia-hud-pequeno);
+    color: var(--lumora-cores-marfim);
+    -unity-font-style: bold;
+    background-color: var(--lumora-cores-hud-fundo);
+    border-width: 1px;
+    border-color: var(--lumora-cores-borda-botao);
+    border-radius: 3px;
+}

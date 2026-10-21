@@ -3,6 +3,7 @@ using JogoDoGrupo.Client.Core.Jogo;
 using JogoDoGrupo.Client.Core.Jogo.Janelas;
 using JogoDoGrupo.Client.Core.TempoReal;
 using JogoDoGrupo.Client.Features.Npcs.UI;
+using JogoDoGrupo.Shared.Features.Mundo;
 using JogoDoGrupo.Shared.Features.Npcs;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -28,6 +29,14 @@ namespace JogoDoGrupo.Client.Features.Npcs
         private TextMesh _textoPlaca;
         private bool _jogadorNoAlcance;
 
+        private static readonly System.Collections.Generic.List<NpcNoMundo> _ativos =
+            new System.Collections.Generic.List<NpcNoMundo>();
+
+        /// <summary>NPCs no mundo agora (para as etiquetas de nome).</summary>
+        public static System.Collections.Generic.IReadOnlyList<NpcNoMundo> Ativos => _ativos;
+
+        public static bool EstaAtivo(NpcNoMundo npc) => _ativos.Contains(npc);
+
         public DefinicaoNpc Definicao => _definicao;
         public bool JogadorNoAlcance => _jogadorNoAlcance;
 
@@ -46,7 +55,7 @@ namespace JogoDoGrupo.Client.Features.Npcs
 
             ConfigurarColisor();
             CriarCorpoVisual();
-            CriarPlacaDeNome();
+            // O nome e o papel aparecem em EtiquetasDeNpcs (UI nítida), não mais em texto 3D.
         }
 
         private void ConfigurarColisor()
@@ -112,6 +121,23 @@ namespace JogoDoGrupo.Client.Features.Npcs
             }
         }
 
+        private void OnEnable()
+        {
+            if (!_ativos.Contains(this))
+                _ativos.Add(this);
+        }
+
+        private void OnDisable()
+        {
+            _ativos.Remove(this);
+        }
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ReiniciarAtivos()
+        {
+            _ativos.Clear();
+        }
+
         private void Update()
         {
             if (_definicao == null)
@@ -172,6 +198,15 @@ namespace JogoDoGrupo.Client.Features.Npcs
 
         private static Vector3 AjustarPosicaoNoChao(Vector3 posicao)
         {
+            // O catálogo guarda Y = 0 (a cidade antiga era plana); no mapa publicado o chão da
+            // cidade fica mais alto. Procura a partir do relevo do mapa, não só do Y do catálogo,
+            // senão o NPC fica enterrado sob a praça (#1179).
+            var relevo = MapaDoMundo.AlturaEm(posicao.x, posicao.z);
+            if (relevo > posicao.y)
+            {
+                posicao.y = relevo;
+            }
+
             var origem = posicao + Vector3.up * AlturaBuscaChao;
             if (
                 Physics.Raycast(

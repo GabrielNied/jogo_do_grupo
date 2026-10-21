@@ -105,9 +105,9 @@ namespace JogoDoGrupo.Shared.Features.Npcs
             nome: "Merceeiro Tomas",
             papel: PapelNpc.Merceeiro,
             area: AreaCidade,
-            x: 12f,
+            x: 16f,
             y: 0f,
-            z: -8f,
+            z: -10f,
             rotacaoY: 180f,
             raioInteracao: 4f
         );
