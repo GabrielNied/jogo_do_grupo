@@ -49,11 +49,13 @@ namespace JogoDoGrupo.Client.Features.Personagem
         {
             EstiloPersonagem.Aplicar(raiz);
 
-            var painel = EstiloCore.CriarPainel(social: true);
-            painel.AddToClassList(EstiloPersonagem.PainelSelecao);
+            // Tela cheia, como a seleção do WoW: o personagem grande no centro, a lista à
+            // direita e o Entrar embaixo. Sem moldura em volta de tudo.
+            var painel = new VisualElement();
+            painel.AddToClassList("personagem-tela");
             painel.AddToClassList("personagem-painel-selecao-visual");
 
-            var titulo = new Label("Personagens");
+            var titulo = new Label("Escolha seu personagem");
             titulo.AddToClassList(EstiloCore.Titulo);
 
             _subtitulo = new Label();
@@ -70,10 +72,11 @@ namespace JogoDoGrupo.Client.Features.Personagem
             _vazio = new Label("Sua jornada começa com um personagem. Crie o primeiro.");
             _vazio.AddToClassList(EstiloCore.Texto);
 
-            _criar = new Button(AoClicarCriar) { text = "Criar" };
+            _criar = new Button(AoClicarCriar) { text = "Criar novo personagem" };
             _criar.AddToClassList(EstiloCore.Botao);
 
-            _entrar = new Button(AoClicarEntrar) { text = "Entrar" };
+            _entrar = new Button(AoClicarEntrar) { text = "Entrar no mundo" };
+            _entrar.AddToClassList("personagem-entrar");
             _entrar.AddToClassList(EstiloCore.Botao);
             _entrar.AddToClassList(EstiloCore.BotaoPrincipal);
 
@@ -100,21 +103,16 @@ namespace JogoDoGrupo.Client.Features.Personagem
 
             var centro = new VisualElement();
             centro.AddToClassList("personagem-selecao-centro");
-            var tituloPrevia = new Label("Visual do personagem");
-            tituloPrevia.AddToClassList(EstiloCore.Subtitulo);
-            centro.Add(tituloPrevia);
             _imagem = new Image { scaleMode = ScaleMode.ScaleToFit };
             _imagem.AddToClassList("personagem-selecao-imagem");
-            centro.Add(_imagem);
+            PreviaVisualPersonagem.LigarArrasto(_imagem, () => _previsao);
+            centro.Add(PreviaVisualPersonagem.CriarPalco(_imagem));
             _previsaoIndisponivel = new Label("Escolha um personagem");
             _previsaoIndisponivel.AddToClassList(EstiloCore.Mensagem);
             centro.Add(_previsaoIndisponivel);
 
             var resumo = new VisualElement();
             resumo.AddToClassList("personagem-selecao-resumo");
-            var tituloResumo = new Label("Sua jornada");
-            tituloResumo.AddToClassList(EstiloCore.Subtitulo);
-            resumo.Add(tituloResumo);
             _resumoNome = new Label();
             _resumoNome.AddToClassList(EstiloPersonagem.ItemNome);
             resumo.Add(_resumoNome);
