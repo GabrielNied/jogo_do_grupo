@@ -1,4 +1,3 @@
-using JogoDoGrupo.Server.Features.Personagem;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -26,8 +25,9 @@ internal sealed class BestiarioPersonagemConfiguracao
         builder.HasKey(b => b.Id);
         builder.HasIndex(b => new { b.PersonagemId, b.CriaturaId }).IsUnique();
         builder.HasIndex(b => b.PersonagemId);
+        // Relacionamento de persistência, sem uso das regras de Personagem.
         builder
-            .HasOne<Personagem.Personagem>()
+            .HasOne<JogoDoGrupo.Server.Features.Personagem.Personagem>()
             .WithMany()
             .HasForeignKey(b => b.PersonagemId)
             .OnDelete(DeleteBehavior.Cascade);
