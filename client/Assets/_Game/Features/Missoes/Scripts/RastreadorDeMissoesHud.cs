@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using JogoDoGrupo.Client.Core.Jogo;
+using JogoDoGrupo.Client.Core.UI;
 using JogoDoGrupo.Client.Core.Visual;
 using JogoDoGrupo.Shared.Features.Missoes;
 using UnityEngine;

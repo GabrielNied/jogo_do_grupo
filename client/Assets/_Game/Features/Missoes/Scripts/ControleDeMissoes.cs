@@ -250,8 +250,7 @@ namespace JogoDoGrupo.Client.Features.Missoes
         private static void AoAvisoDeMissao(AvisoDeMissao aviso)
         {
             AvisoRecebido?.Invoke(aviso);
-            var tipo =
-                aviso.TipoAviso == "concluida" ? TipoDeAviso.Sucesso : TipoDeAviso.Informacao;
+            var tipo = aviso.TipoAviso == "concluida" ? TipoDeAviso.Aviso : TipoDeAviso.Informacao;
             AvisosDoJogo.Mostrar(aviso.Mensagem, tipo);
         }
 

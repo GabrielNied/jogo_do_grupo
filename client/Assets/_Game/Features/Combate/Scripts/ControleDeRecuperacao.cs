@@ -193,10 +193,7 @@ namespace JogoDoGrupo.Client.Features.Combate
 
         private void AoDescansoMudou(DescansoMudou msg)
         {
-            if (
-                EntradaNoJogo.Jogador != null
-                && msg.PersonagemId == EntradaNoJogo.Jogador.PersonagemId
-            )
+            if (EntradaNoJogo.Jogador != null && msg.PersonagemId == EntradaNoJogo.PersonagemId)
             {
                 _descansando = msg.Descansando;
                 if (_descansando)

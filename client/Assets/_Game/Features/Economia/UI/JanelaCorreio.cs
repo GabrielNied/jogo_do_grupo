@@ -68,12 +68,12 @@ namespace JogoDoGrupo.Client.Features.Economia.UI
             abas.style.flexDirection = FlexDirection.Row;
             abas.style.marginBottom = 10f;
 
-            _botaoAbaEntrada = ComponentesVisuais.BotaoAba(
+            _botaoAbaEntrada = CriarBotaoAba(
                 "Caixa de Entrada",
                 true,
                 () => TrocarAba(Aba.Entrada)
             );
-            _botaoAbaEscrever = ComponentesVisuais.BotaoAba(
+            _botaoAbaEscrever = CriarBotaoAba(
                 "Escrever Carta",
                 false,
                 () => TrocarAba(Aba.Escrever)
@@ -86,7 +86,7 @@ namespace JogoDoGrupo.Client.Features.Economia.UI
             espacador.style.flexGrow = 1f;
             abas.Add(espacador);
 
-            var botaoAtualizar = ComponentesVisuais.BotaoSecundario(
+            var botaoAtualizar = CriarBotao(
                 "Atualizar",
                 () => ControleDeEconomia.ConsultarCorreio()
             );
@@ -130,11 +130,33 @@ namespace JogoDoGrupo.Client.Features.Economia.UI
             ControleDeEconomia.OperacaoRecusada -= MostrarErro;
         }
 
+        private static Button CriarBotao(string texto, Action acao)
+        {
+            var botao = new Button(acao) { text = texto };
+            botao.AddToClassList(EstiloCore.Botao);
+            return botao;
+        }
+
+        private static Button CriarBotaoPrincipal(string texto, Action acao)
+        {
+            var botao = CriarBotao(texto, acao);
+            botao.AddToClassList(EstiloCore.BotaoPrincipal);
+            return botao;
+        }
+
+        private static Button CriarBotaoAba(string texto, bool ativa, Action acao)
+        {
+            var botao = CriarBotao(texto, acao);
+            botao.EnableInClassList(EstiloCore.BotaoPrincipal, ativa);
+            botao.style.marginRight = 6f;
+            return botao;
+        }
+
         private void TrocarAba(Aba novaAba)
         {
             _abaAtual = novaAba;
-            _botaoAbaEntrada.EnableInClassList(EstiloCore.AbaAtiva, novaAba == Aba.Entrada);
-            _botaoAbaEscrever.EnableInClassList(EstiloCore.AbaAtiva, novaAba == Aba.Escrever);
+            _botaoAbaEntrada.EnableInClassList(EstiloCore.BotaoPrincipal, novaAba == Aba.Entrada);
+            _botaoAbaEscrever.EnableInClassList(EstiloCore.BotaoPrincipal, novaAba == Aba.Escrever);
 
             _painelEntrada.style.display =
                 novaAba == Aba.Entrada ? DisplayStyle.Flex : DisplayStyle.None;
@@ -210,7 +232,7 @@ namespace JogoDoGrupo.Client.Features.Economia.UI
                 textoBox.Add(subtitulo);
                 linha.Add(textoBox);
 
-                var botaoLer = ComponentesVisuais.BotaoSecundario(
+                var botaoLer = CriarBotao(
                     "Ler",
                     () =>
                     {
@@ -279,9 +301,7 @@ namespace JogoDoGrupo.Client.Features.Economia.UI
 
                 foreach (var anexo in carta.Itens)
                 {
-                    var nome = anexo.Item.HasValue
-                        ? anexo.Item.Value.Nome
-                        : $"Item #{anexo.ItemId}";
+                    var nome = anexo.Item != null ? anexo.Item.Nome : $"Item #{anexo.ItemId}";
                     boxAnexos.Add(new Label($"• {nome}"));
                 }
 
@@ -295,7 +315,7 @@ namespace JogoDoGrupo.Client.Features.Economia.UI
 
             if (temAnexos)
             {
-                var botaoColetar = ComponentesVisuais.BotaoPrincipal(
+                var botaoColetar = CriarBotaoPrincipal(
                     "Coletar Anexos",
                     () =>
                     {
@@ -307,7 +327,7 @@ namespace JogoDoGrupo.Client.Features.Economia.UI
             }
             else
             {
-                var botaoExcluir = ComponentesVisuais.BotaoSecundario(
+                var botaoExcluir = CriarBotao(
                     "Excluir Carta",
                     () =>
                     {
@@ -349,7 +369,7 @@ namespace JogoDoGrupo.Client.Features.Economia.UI
             _rotuloCusto.style.marginBottom = 10f;
             _painelEscrever.Add(_rotuloCusto);
 
-            _botaoEnviar = ComponentesVisuais.BotaoPrincipal("Enviar Carta", ExecutarEnvio);
+            _botaoEnviar = CriarBotaoPrincipal("Enviar Carta", ExecutarEnvio);
             _painelEscrever.Add(_botaoEnviar);
         }
 
