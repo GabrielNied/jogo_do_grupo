@@ -98,6 +98,18 @@ namespace JogoDoGrupo.Shared.Features.Instancias
             return lista.ToArray();
         }
 
+        /// <summary>Ponto central (X, Z) da arena do chefe de cada etapa da raid.</summary>
+        public static (float X, float Z) CentroDoChefeDaEtapa(int etapa)
+        {
+            var saloes = SaloesComuns();
+            return etapa switch
+            {
+                1 => (saloes.Length > 0 ? CentroX(saloes[0]) : OrigemX + 43f, OrigemZ),
+                2 => (saloes.Length > 1 ? CentroX(saloes[1]) : OrigemX + 85f, OrigemZ),
+                _ => (BossCentroX, BossCentroZ),
+            };
+        }
+
         /// <summary>Distância horizontal entre dois pontos no plano XZ.</summary>
         public static float Distancia(float x, float z, float outroX, float outroZ)
         {

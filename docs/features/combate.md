@@ -66,6 +66,15 @@ O cajado (`TipoEquipamento.Cajado`) dispara projéteis mágicos lineares autorit
   - **Gelo:** cristal/esfera ciano translúcido, rastro de névoa fria/geada, estilhaços cristalinos no impacto, som sibilante (`DisparoGelo`) e estalo de quebra de gelo (`ImpactoGelo`).
   - **Cura:** orbe duplo verde-esmeralda e núcleo dourado, rastro suave de luz, anel ascendente de partículas de cura no aliado, e sinfonia harmônica suave (`DisparoCura`, `ImpactoCura`).
 
+## Recuperação por poção, refeição e descanso (#347)
+
+- **Estado de combate:** 5 s sem dar nem levar dano (`ConfigRecuperacao.TempoParaSairDeCombateSegundos`). Implementa autoritativamente o contrato `IEstadoDeCombate` (`server/.../Contratos/Combate/IEstadoDeCombate.cs`), consultado por outras funcionalidades para bloquear ações proibidas em combate (como redistribuição de talentos, troca de papel, descanso ou consumo de refeições).
+- **Fora de combate:** vida regenera a +5 HP/s (`ConfigRecuperacao.RegeneracaoVidaForaDeCombate`) pelos secundários da pipeline única de modificadores (`FonteDeModificador.Efeito`), e stamina e mana regeneram com multiplicador 2x (`ConfigRecuperacao.MultiplicadorForaDeCombate`).
+- **Descanso / sentar:** acelera a regeneração de vida, stamina e mana em 3x (`ConfigRecuperacao.MultiplicadorDescanso`). O descanso só pode ser iniciado fora de combate; sofrer ou causar dano cancela o descanso imediatamente e difunde `DescansoMudou` para a área.
+- **Poções:** consomem poção da bolsa via contrato `IConsumoDeItens` (`Contratos/Itens/`), curam fixa (50) + 25% da vida máxima (`ConfigRecuperacao.CuraFixaPocao` e `CuraPercentualPocao`) e ativam recarga compartilhada de 30 s (`ConfigRecuperacao.RecargaPocaoSegundos`). Consumo com vida cheia é recusado com `VidaCheia`.
+- **Refeições:** consumidas fora de combate, concedem buff longo de regeneração de vida (Caldo dos Errantes +10 HP/s por 30 min, Assado de Galhada +15 HP/s por 45 min, Ensopado da Fornalha +20 HP/s por 60 min). Apenas uma refeição ativa por vez (a mais recente substitui a anterior).
+- **Mensagens de rede (faixa 6000–6999):** `ConsumirPocao` (6070), `PocaoConsumida` (6071), `ConsumirRefeicao` (6072), `RefeicaoConsumida` (6073), `IntencaoDeDescanso` (6074), `DescansoMudou` (6075), `ConsultarEstadoDeRecuperacao` (6076), `EstadoDeRecuperacao` (6077), `RecuperacaoRecusada` (6078).
+
 ## Em aberto
 
 - [x] ~~Combate com alvo fixo (tab target) ou mira livre (action)?~~ Decidido: action (D4)

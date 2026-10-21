@@ -18,5 +18,11 @@ namespace JogoDoGrupo.Shared.Features.Instancias
 
         /// <summary>Se a corrida é de raid (grupo com mais de 5 membros).</summary>
         public bool Raid;
+
+        /// <summary>Etapa atual da corrida (1 a TotalEtapas).</summary>
+        public int EtapaAtual = 1;
+
+        /// <summary>Total de etapas da corrida (1 para dungeons comuns, 3 para raids).</summary>
+        public int TotalEtapas = 1;
     }
 }

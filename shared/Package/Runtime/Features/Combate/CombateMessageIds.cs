@@ -84,5 +84,32 @@ namespace JogoDoGrupo.Shared.Features.Combate
 
         /// <summary>Servidor → quem está na área: um projétil foi disparado no mundo.</summary>
         public const ushort ProjetilLancado = 6060;
+
+        /// <summary>Client → servidor: pedido para consumir uma poção de recuperação.</summary>
+        public const ushort ConsumirPocao = 6070;
+
+        /// <summary>Servidor → dono: poção de recuperação consumida.</summary>
+        public const ushort PocaoConsumida = 6071;
+
+        /// <summary>Client → servidor: pedido para consumir uma refeição da bolsa.</summary>
+        public const ushort ConsumirRefeicao = 6072;
+
+        /// <summary>Servidor → dono: refeição consumida e buff aplicado.</summary>
+        public const ushort RefeicaoConsumida = 6073;
+
+        /// <summary>Client → servidor: intenção de descanso/sentar.</summary>
+        public const ushort IntencaoDeDescanso = 6074;
+
+        /// <summary>Servidor → área: o estado de descanso de um personagem mudou.</summary>
+        public const ushort DescansoMudou = 6075;
+
+        /// <summary>Client → servidor: consulta o estado atual de recuperação.</summary>
+        public const ushort ConsultarEstadoDeRecuperacao = 6076;
+
+        /// <summary>Servidor → dono: estado de recuperação e recarga.</summary>
+        public const ushort EstadoDeRecuperacao = 6077;
+
+        /// <summary>Servidor → dono: o pedido de recuperação foi recusado.</summary>
+        public const ushort RecuperacaoRecusada = 6078;
     }
 }

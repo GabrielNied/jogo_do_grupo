@@ -189,6 +189,87 @@ namespace JogoDoGrupo.Server.Core.Persistencia.Migrations
                     b.ToTable("RecursosPersonagem", (string)null);
                 });
 
+            modelBuilder.Entity("JogoDoGrupo.Server.Features.Economia.AnexoItemCorreioEntidade", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("CartaId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("EquipamentoJson")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("ItemId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CartaId");
+
+                    b.ToTable("AnexosItensCorreio", (string)null);
+                });
+
+            modelBuilder.Entity("JogoDoGrupo.Server.Features.Economia.CartaCorreio", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("AnexosColetados")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Assunto")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("Coroas")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("DestinatarioId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("Devolvida")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("DoSistema")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("EnviadaEm")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("ExpiraEm")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("Lida")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Mensagem")
+                        .IsRequired()
+                        .HasMaxLength(1500)
+                        .HasColumnType("TEXT");
+
+                    b.Property<long?>("RemetenteId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("RemetenteNome")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DestinatarioId");
+
+                    b.HasIndex("ExpiraEm");
+
+                    b.HasIndex("DestinatarioId", "Lida");
+
+                    b.ToTable("CartasCorreio", (string)null);
+                });
+
             modelBuilder.Entity("JogoDoGrupo.Server.Features.Economia.OrdemMercado", b =>
                 {
                     b.Property<long>("Id")
@@ -295,6 +376,26 @@ namespace JogoDoGrupo.Server.Core.Persistencia.Migrations
                     b.HasIndex("Ativo", "ExpiraEm");
 
                     b.ToTable("VendedoresOffline", (string)null);
+                });
+
+            modelBuilder.Entity("JogoDoGrupo.Server.Features.Instancias.BloqueioSemanalRaid", b =>
+                {
+                    b.Property<long>("PersonagemId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("ChaveSemana")
+                        .HasMaxLength(32)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Etapa")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTimeOffset>("ConcluidoEm")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("PersonagemId", "ChaveSemana", "Etapa");
+
+                    b.ToTable("BloqueiosSemanaisRaid", (string)null);
                 });
 
             modelBuilder.Entity("JogoDoGrupo.Server.Features.Itens.EstadoBanco", b =>
@@ -831,6 +932,17 @@ namespace JogoDoGrupo.Server.Core.Persistencia.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("JogoDoGrupo.Server.Features.Economia.AnexoItemCorreioEntidade", b =>
+                {
+                    b.HasOne("JogoDoGrupo.Server.Features.Economia.CartaCorreio", "Carta")
+                        .WithMany("Itens")
+                        .HasForeignKey("CartaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Carta");
+                });
+
             modelBuilder.Entity("JogoDoGrupo.Server.Features.Economia.OrdemMercado", b =>
                 {
                     b.HasOne("JogoDoGrupo.Server.Features.Personagem.Personagem", null)
@@ -910,6 +1022,11 @@ namespace JogoDoGrupo.Server.Core.Persistencia.Migrations
                         .HasForeignKey("PersonagemId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("JogoDoGrupo.Server.Features.Economia.CartaCorreio", b =>
+                {
+                    b.Navigation("Itens");
                 });
 #pragma warning restore 612, 618
         }
