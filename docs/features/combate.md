@@ -403,6 +403,8 @@ Decisões de design (2026-10-21, do agente da funcionalidade; ajustáveis em `Co
 
 - **Quem recebe:** quem usa e os membros do mesmo grupo na mesma área a até **12 m** (`AlcanceDoApoioMetros`). Sem grupo, só quem usa. Quem está caído não recebe.
 - **Escudo:** absorve o dano **antes da vida**, depois da defesa e da guarda; vale para golpe de inimigo, dano de ambiente e DoT. O dano que passa do escudo tira vida; um golpe que o escudo cobre inteiro não interrompe a ação. **Não acumula:** reaplicar mantém o mais forte e renova os 8 s. Expira no tempo; some ao sair do jogo.
+- **Cair:** o escudo **continua** até expirar (some só ao sair do jogo); quem está caído não recebe dano nem escudo novo, e levantar não o renova. Regra simples e fácil de mudar.
+- **Protegido** reduz só o **golpe direto de inimigo**, não o dano de ambiente nem o DoT (igual ao Vulnerável). O escudo absorve os três.
 - **Buffs:** o mesmo tipo não acumula (reaplicar renova a duração), como os demais [efeitos de status](#efeitos-de-status-171); buffs diferentes valem juntos.
 - **Servidor:** `GerenciadorDeEscudos` (absorção, expiração) e `ServicoDeApoio` (aplica, avisa, laço de expiração) em Combate; Skills pede pelo contrato `IApoioDeCombate` (`Contratos/Combate/`) e escolhe os alvos (`IConsultaDeGrupo` + posições). Mensagem `EscudoMudou` (6042) ao dono e à área.
 - **Client:** o escudo (`Escudo atual / máximo` e tempo) e o Protegido aparecem no painel de status do HUD (`PainelEfeitosDeStatus`).

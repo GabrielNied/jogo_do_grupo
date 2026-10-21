@@ -102,6 +102,12 @@ public sealed class ServicoDeApoio : IHostedService, IApoioDeCombate, IDisposabl
             return false;
         }
 
+        // Quem caiu durante a leitura da vida não recebe: confere de novo antes de aplicar.
+        if (_queda?.EstaCaido(personagemId) == true)
+        {
+            return false;
+        }
+
         _escudos.Aplicar(personagemId, absorcao, duracaoSegundos);
         return true;
     }

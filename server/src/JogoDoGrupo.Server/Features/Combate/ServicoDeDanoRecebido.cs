@@ -240,6 +240,9 @@ public sealed class ServicoDeDanoRecebido : IHostedService, IDanoAoPersonagem
 
             var danoFinal = DanoFinal(dano, defesa, golpe.PotenciaBloqueio);
 
+            // O escudo absorve antes da vida (depois da defesa e da guarda).
+            danoFinal = _escudos?.Absorver(golpe.PersonagemId, danoFinal) ?? danoFinal;
+
             if (sessao != null && quebrouGuarda && danoFinal > 0)
             {
                 _tempoReal.Enviar(
@@ -253,9 +256,6 @@ public sealed class ServicoDeDanoRecebido : IHostedService, IDanoAoPersonagem
                     }
                 );
             }
-
-            // O escudo absorve antes da vida (depois da defesa e da guarda).
-            danoFinal = _escudos?.Absorver(golpe.PersonagemId, danoFinal) ?? danoFinal;
 
             var recursos = await RecursosDoAtaque.TirarVidaAsync(
                 _escopos,
@@ -276,6 +276,13 @@ public sealed class ServicoDeDanoRecebido : IHostedService, IDanoAoPersonagem
                     recursos.VidaMaxima
                 )
             );
+
+            // Golpe coberto inteiro pelo escudo: nada chegou à vida, então não interrompe a ação
+            // nem passa por AoDano (o aviso dos recursos ao dono já saiu).
+            if (danoFinal <= 0)
+            {
+                return;
+            }
 
             // Vida 0 leva a caído; vida acima de 0 interrompe quem este personagem levantava.
             _queda?.AoDano(golpe.PersonagemId, recursos.VidaAtual);
