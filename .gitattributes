@@ -12,6 +12,8 @@
 *.anim merge=unityyamlmerge eol=lf
 *.controller merge=unityyamlmerge eol=lf
 *.meta merge=unityyamlmerge eol=lf whitespace=-blank-at-eol
+# Materiais importados do Unity mantêm espaços em campos vazios, como os .meta.
+client/Assets/ThirdParty/Pxltiger/**/*.mat whitespace=-blank-at-eol
 
 # Binários via Git LFS ("lockable" = use git lfs lock antes de editar)
 *.psd filter=lfs diff=lfs merge=lfs -text lockable
