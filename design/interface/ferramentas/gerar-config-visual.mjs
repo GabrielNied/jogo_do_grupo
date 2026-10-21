@@ -70,7 +70,7 @@ export function executar(conferir = false) {
     [pastaVisual + "ConfigVisual.cs", saida.cs],
     [pastaVisual + "Resources/Lumora/TokensVisuais.uss", saida.uss],
   ]);
-  for (const fonte of ["LumoraNunito-800.ttf", "LumoraSource-500.ttf", "LumoraSource-600.ttf", "LumoraSource-700.ttf", "nunitosans-OFL.txt", "sourcesans3-OFL.txt"])
+  for (const fonte of ["LumoraNunito-800.ttf", "LumoraSource-500.ttf", "LumoraSource-600.ttf", "LumoraSource-700.ttf", "LumoraCinzel-700.ttf", "nunitosans-OFL.txt", "sourcesans3-OFL.txt", "cinzel-OFL.txt"])
     arquivos.set(pastaVisual + "Resources/Lumora/Fontes/" + fonte, readFileSync(resolve(raiz, "design/laboratorio-unity/fontes/" + fonte)));
   for (const [origem, nome] of [
     ["design/marca/logo-horizontal.png", "logo-horizontal.png"],
