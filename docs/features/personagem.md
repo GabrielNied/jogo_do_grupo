@@ -15,7 +15,7 @@ Raças, atributos e progressão de nível. Sem classes: o estilo de jogo vem da 
 - ~~Raças com características únicas; cada raça dá uma **skill base** própria~~ Substituído em 2026-10-16 (Gabriel, quiz de definições): **raça é só visual**. Não dá traço, skill racial nem bônus, e a história é a mesma para todas ([missões](missoes.md#definido)).
 - **Sempre correndo** (decidido por Gabriel em 2026-10-16): a velocidade normal do personagem é a de corrida de hoje (5,5 m/s). Não há tecla de correr; uma tecla de **andar devagar** (Ctrl esquerdo, segurar) usa a velocidade de andar. A esquiva vai para o **Shift** e o pulo continua no Espaço ([teclas](interface.md#teclas-e-atalhos)).
 - **Natação e dano de queda** (decidido por Gabriel em 2026-10-16): rios e lagos se atravessam a nado (sem atacar, gastando stamina), e cair de muito alto tira vida. O servidor valida profundidade e altura.
-- **Escalada limitada** (decidido por Gabriel em 2026-10-16, quiz 3): só **vias marcadas** (bordas, trechos de dungeon ou mundo), estilo New World — sem parkour livre ([#349](https://github.com/GabrielNied/jogo_do_grupo/issues/349)).
+- **Escalada limitada** (decidido por Gabriel em 2026-10-16, quiz 3): só **vias marcadas** (bordas, trechos de dungeon ou mundo), estilo New World — sem parkour livre ([#349](https://github.com/GabrielNied/jogo_do_grupo/issues/349)). Números e marcador em [Natação, queda e escalada](#natação-queda-e-escalada-349).
 - **Decisões do Gabriel em 2026-10-16** (quiz de definições 3):
   - **Sem teleporte jogável** por enquanto ([mundo](mundo.md#definido)). Retorno ao cair/morrer: no **mapa aberto**, à **cidade mais próxima** (com várias cidades no futuro; hoje só Brasa Mansa); na **dungeon**, à **entrada/safe zone da instância** (vida cheia, grupo continua), não ao hub da cidade.
 - **Renomear não pode** (decidido por Gabriel em 2026-10-16): o nome escolhido na criação é permanente.
@@ -37,6 +37,25 @@ Decidido pelo grupo em 2026-10-10. É **provisório**: serve para implementar a 
 - Na criação, nome e cinco raças ficam junto da prévia do prefab escolhido e dos textos definidos para essa raça. A habilidade racial aparece identificada como **em desenvolvimento**; escolher a raça ainda não concede uma habilidade jogável. Em largura compacta, as três áreas se empilham e rolam.
 - Comunicação pela API HTTP do [ADR 0009](../decisoes/0009-api-http-para-conta-e-personagens.md) (veja [Expõe](#expõe)).
 - O **servidor decide**: valida o nome, a unicidade, a raça e o limite de 4. O client só confere o formato do nome para dar retorno rápido.
+
+## Natação, queda e escalada (#349)
+
+Regras de [Definido](#definido), implementadas em `ConfigMovimentoEspecial` e `RegrasMovimentoEspecial` (shared; client e servidor usam as mesmas), com o servidor decidindo.
+
+- **Natação:** há água para nadar onde a profundidade é de pelo menos **1,3 m** e os pés estão ao menos 0,2 m abaixo da superfície. O personagem **boia** (pés 0,9 m abaixo da superfície), nada a **3 m/s**, sem pulo e **sem atacar** (o servidor recusa o ataque com `VoceEstaNadando`). Gasta **4 de stamina por segundo**; sem stamina continua nadando, a **50%** da velocidade (teto de velocidade do Mundo). Não há afogamento.
+- **Onde há água:** rios, lagos e pântano do terreno valem sozinhos (o chão abaixo do nível da água do `MapaDoMundo`, ou da superfície do rio alto). Fora do terreno (poça de dungeon) e em lagos marcados à mão, vale um volume marcado de água. A lava não conta.
+- **Queda:** o servidor mede a altura caída (soma da descida em queda livre, comparando as posições que ele aceitou a cada 100 ms; descer rampa de até 45° a pé não conta). Até **4 m** não machuca (o pulo chega a 1,25 m). Acima disso, **40 de vida por metro** além dos 4 m, no máximo **300**. Cair em **água de 2 m ou mais** não machuca; em água mais rasa machuca como no chão. Teleporte, volta à cidade e mudança de área reiniciam a medição, e quem está caído não leva dano de queda. A vida e o evento de dano ambiental são de Combate.
+- **Escalada:** só dentro de uma **via marcada**. Espaço dentro da via agarra (o servidor confere o volume, a stamina para o primeiro segundo e que não está nadando nem caído), W/S sobem e descem, A/D andam de lado, Espaço solta com um pulinho para trás e, ao chegar no topo, o personagem passa para cima. Gasta **6 de stamina por segundo**; sem stamina, sai da via e cai (com o dano de queda se for alto). Sai da via sozinho ao deixar o volume. Não ataca na parede (`VoceEstaEscalando`).
+- **Só cidade e mundo aberto:** nas instâncias (dungeon) ainda não há natação, queda nem escalada; fica para quando as instâncias tiverem terreno e volumes próprios.
+
+### Marcador de água e de via de escalada
+
+Um `MarcadorDeVolume` (client, Personagem) é um cubo na cena: a **posição é o centro**, a **escala é o tamanho** (use o cubo de 1 m) e o **giro em Y** vale. Na água, o topo da caixa é a superfície e o fundo é o chão do lago. Na via, a **frente (+Z, a seta laranja no Scene)** aponta para a parede, e a caixa deve cobrir a parede de baixo a cima mais o espaço onde o personagem fica. O marcador tem **Tipo**, **Id** único e **Exportar**.
+
+- **Exportar ligado:** o menu `Jogo do Grupo/Personagem/Exportar volumes marcados` copia todos os marcadores exportáveis das cenas abertas para `VolumesMarcados.Todos` (shared). É essa lista que o servidor confere e que o client usa. A exportação reescreve a lista inteira, então abra todas as cenas com marcadores antes de exportar; depois rode `dotnet csharpier format .` e commite.
+- **Exportar desligado:** o volume vale só no client, para a cena de validação (`Features/Personagem/Dev/Movimento/ValidacaoMovimentoEspecial.unity`, gerada pelo menu `Criar cena de validação de movimento` ou por `unity:executar`: piscina de 3 m, torre de 12 m com via e plataformas de 3, 7 e 12 m para a queda). Como o servidor não conhece esses volumes, ele recusa a escalada ali; a cena serve para ver o movimento do client.
+- **Decisão:** o catálogo vive no shared (e não só na cena) porque o servidor não lê cenas; assim servidor e client conferem o mesmo dado. O mapa do mundo e o Terrain não foram tocados.
+- **Pendente:** animações de nadar e escalar (hoje o Animator usa a corrida e a queda), efeito visual da água na tela e vias de escalada de verdade no mundo (dependem do mapa que o Gabriel desenha).
 
 ## Regras puras de experiência (#136)
 
