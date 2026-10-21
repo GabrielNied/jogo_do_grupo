@@ -196,7 +196,18 @@ public sealed class ServicoDeMissoes
 
         if (_posicoes.TentarObter(personagemId, out var pos))
         {
-            if (!CatalogoNpcs.DentroDoAlcance(def.NpcDoadorId, (float)pos.X, (float)pos.Z))
+            // Diária e semanal também saem do Quadro de Diárias (RegrasMissoes.OfereceNoNpc).
+            var pertoDeQuemOferece =
+                CatalogoNpcs.DentroDoAlcance(def.NpcDoadorId, (float)pos.X, (float)pos.Z)
+                || (
+                    RegrasMissoes.OfereceNoNpc(def, CatalogoNpcs.IdQuadroDeDiarias)
+                    && CatalogoNpcs.DentroDoAlcance(
+                        CatalogoNpcs.IdQuadroDeDiarias,
+                        (float)pos.X,
+                        (float)pos.Z
+                    )
+                );
+            if (!pertoDeQuemOferece)
             {
                 return (false, CodigosErroMissoes.LongeDoNpc, null);
             }

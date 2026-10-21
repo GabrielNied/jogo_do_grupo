@@ -119,3 +119,141 @@
 .missao-marca-trivial {
     color: var(--lumora-cores-texto-desabilitado);
 }
+
+/* Missões na conversa com o NPC (quadro de missão do WoW), ao lado do diálogo. */
+.missao-conversa {
+    width: 460px;
+    max-width: 100%;
+}
+
+.missao-conversa-lista {
+    flex-grow: 1;
+    max-height: 560px;
+}
+
+.missao-conversa-item {
+    margin-bottom: var(--lumora-espacamento-medio);
+    padding: var(--lumora-espacamento-medio) var(--lumora-espacamento-padrao);
+    background-color: var(--lumora-cores-hud-fundo-leve);
+    border-width: 1px;
+    border-color: var(--lumora-cores-borda-discreta);
+    border-radius: var(--lumora-bordas-raio-cartao);
+}
+
+.missao-conversa-topo {
+    flex-direction: row;
+    align-items: center;
+}
+
+.missao-conversa-simbolo {
+    width: 26px;
+    margin-right: var(--lumora-espacamento-pequeno);
+    font-size: 28px;
+    color: var(--lumora-cores-ouro);
+    -unity-font-definition: url("../../../../../Core/UI/Visual/Resources/Lumora/Fontes/LumoraCinzel-700-SDF.asset");
+    -unity-text-align: middle-center;
+    text-shadow: 1px 2px 2px var(--lumora-cores-contorno);
+}
+
+.missao-conversa-simbolo-pendente {
+    color: var(--lumora-cores-texto-secundario);
+}
+
+.missao-conversa-titulo {
+    flex-shrink: 1;
+    font-size: var(--lumora-tipografia-subtitulo);
+    color: var(--lumora-cores-ouro);
+    -unity-font-definition: url("../../../../../Core/UI/Visual/Resources/Lumora/Fontes/LumoraCinzel-700-SDF.asset");
+    white-space: normal;
+    text-shadow: 1px 1px 2px var(--lumora-cores-contorno);
+}
+
+.missao-conversa-situacao {
+    margin: var(--lumora-espacamento-minimo) 0 var(--lumora-espacamento-pequeno);
+    font-size: var(--lumora-tipografia-nota);
+    color: var(--lumora-cores-texto-secundario);
+}
+
+.missao-conversa-texto {
+    margin-bottom: var(--lumora-espacamento-pequeno);
+    font-size: var(--lumora-tipografia-leitura);
+    color: var(--lumora-cores-marfim);
+    white-space: normal;
+}
+
+.missao-conversa-secao {
+    margin-top: var(--lumora-espacamento-medio);
+    margin-bottom: var(--lumora-espacamento-curto);
+    padding-bottom: var(--lumora-espacamento-minimo);
+    font-size: var(--lumora-tipografia-controle);
+    color: var(--lumora-cores-ouro);
+    -unity-font-definition: url("../../../../../Core/UI/Visual/Resources/Lumora/Fontes/LumoraCinzel-700-SDF.asset");
+    border-bottom-width: 1px;
+    border-bottom-color: var(--lumora-cores-borda-botao);
+}
+
+.missao-conversa-objetivo {
+    margin-bottom: var(--lumora-espacamento-minimo);
+    font-size: var(--lumora-tipografia-leitura);
+    color: var(--lumora-cores-marfim);
+    white-space: normal;
+}
+
+.missao-conversa-objetivo-feito {
+    color: var(--lumora-cores-verde);
+}
+
+.missao-conversa-recompensa {
+    font-size: var(--lumora-tipografia-leitura);
+    color: var(--lumora-cores-brilho-ouro);
+    white-space: normal;
+}
+
+.missao-conversa-rotulo {
+    margin-top: var(--lumora-espacamento-pequeno);
+    font-size: var(--lumora-tipografia-nota);
+    color: var(--lumora-cores-texto-secundario);
+}
+
+.missao-conversa-escolhas {
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin-top: var(--lumora-espacamento-minimo);
+}
+
+.missao-conversa-escolha {
+    flex-grow: 0;
+    min-width: 128px;
+    margin: 0 var(--lumora-espacamento-pequeno) var(--lumora-espacamento-pequeno) 0;
+}
+
+.missao-conversa-escolha-marcada {
+    color: var(--lumora-cores-ouro);
+    border-color: var(--lumora-cores-ouro);
+    background-color: var(--lumora-cores-selecionado);
+}
+
+.missao-conversa-premio {
+    margin: 0 var(--lumora-espacamento-pequeno) var(--lumora-espacamento-pequeno) 0;
+    padding: var(--lumora-espacamento-curto) var(--lumora-espacamento-medio);
+    font-size: var(--lumora-tipografia-leitura);
+    color: var(--lumora-cores-raridade-incomum);
+    border-width: 1px;
+    border-color: var(--lumora-cores-borda-discreta);
+    border-radius: var(--lumora-bordas-raio-cartao);
+    background-color: var(--lumora-cores-campo);
+}
+
+.missao-conversa-acao {
+    min-height: 44px;
+    margin-top: var(--lumora-espacamento-medio);
+}
+
+/* A fonte de título precisa vencer o ".lumora-ui .unity-text-element" do tema (dois seletores
+   de classe), por isso os três seletores aqui. */
+.lumora-ui .rastreador .rastreador-cabecalho,
+.lumora-ui .missao-conversa .missao-conversa-simbolo,
+.lumora-ui .missao-conversa .missao-conversa-titulo,
+.lumora-ui .missao-conversa .missao-conversa-secao {
+    -unity-font-definition: url("../../../../../Core/UI/Visual/Resources/Lumora/Fontes/LumoraCinzel-700-SDF.asset");
+}

@@ -9,6 +9,24 @@ namespace JogoDoGrupo.Shared.Features.Missoes
     /// </summary>
     public static class RegrasMissoes
     {
+        /// <summary>
+        /// Se a missão é oferecida por este NPC: o doador dela e, para diária e semanal, também o
+        /// Quadro de Diárias da praça.
+        /// </summary>
+        public static bool OfereceNoNpc(DefinicaoDeMissao definicao, int npcId)
+        {
+            if (definicao == null || npcId <= 0)
+                return false;
+
+            if (definicao.NpcDoadorId == npcId)
+                return true;
+
+            var repetivel =
+                definicao.Tipo == TipoDeMissao.Diaria || definicao.Tipo == TipoDeMissao.Semanal;
+            return repetivel
+                && npcId == JogoDoGrupo.Shared.Features.Npcs.CatalogoNpcs.IdQuadroDeDiarias;
+        }
+
         public static bool PodeAceitar(
             DefinicaoDeMissao definicao,
             int nivelPersonagem,

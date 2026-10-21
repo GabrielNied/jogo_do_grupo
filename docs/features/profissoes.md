@@ -39,6 +39,7 @@ As seis profissões completas e integradas em `ConfigProfissoes` (shared), com r
   - *Cozinheiro (Cozinha: X=-10, Z=-8):* Caldo dos Errantes (buff de 30 min), Assado de Galhada (buff de 45 min), Ensopado da Fornalha (buff de 60 min), respeitando a regra de uma comida ativa por vez.
 - **Transação:** gasto de materiais e adição à bolsa executados na mesma transação atômica serializável (`IInventarioEconomia`).
 - **Mensagens (8000–8009):** `ConsultarProfissoes`/`EstadoDasProfissoes`, `AprenderProfissao`, `ColetarNo`/`ColetaConcluida`, `ProduzirReceita`/`ProducaoConcluida`, `ProfissoesRecusada`, `ConsultarNos`/`EstadoDosNos`.
+- **Evento de servidor:** cada coleta aceita publica `MaterialColetado` (`Contratos/Profissoes`, material e quantidade da coleta); as [missões](missoes.md) contam o objetivo **Coletar** por ele.
 - **Persistência:** `ProfissoesAprendidas` e `SaldosMateriaisProfissao`.
 
 ## Regras

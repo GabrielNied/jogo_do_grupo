@@ -1,4 +1,5 @@
 using JogoDoGrupo.Server.Contratos.Mundo;
+using JogoDoGrupo.Server.Contratos.Npcs;
 using JogoDoGrupo.Server.Core;
 using JogoDoGrupo.Server.Core.TempoReal;
 using JogoDoGrupo.Shared.Features.Npcs;
@@ -94,9 +95,10 @@ public sealed class NpcsModule : IFeatureModule
             return;
         }
 
+        var posicaoConferida = false;
         if (_posicoes != null && _posicoes.TentarObter(sessao.PersonagemId, out var pos))
         {
-            if (!string.Equals(pos.Area, npc.Area, StringComparison.OrdinalIgnoreCase))
+            if (!MesmaArea(pos.Area, npc.Area))
             {
                 _contexto.TempoReal.Enviar(
                     sessao,
@@ -119,11 +121,24 @@ public sealed class NpcsModule : IFeatureModule
                 );
                 return;
             }
+
+            posicaoConferida = true;
         }
 
         var dialogo = CatalogoDialogosNpc.ObterDialogo(npc);
         _contexto.TempoReal.Enviar(sessao, NpcsMessageIds.DialogoDoNpc, dialogo);
+
+        // Só conversa conferida com a posição do servidor conta para quem escuta (missões).
+        if (posicaoConferida)
+        {
+            _contexto.Eventos.Publicar(new JogadorFalouComNpc(sessao.PersonagemId, npc.Id));
+        }
     }
+
+    // Os canais da cidade ("cidade:2"...) têm os mesmos NPCs da cidade do canal 1.
+    private static bool MesmaArea(string? areaDoJogador, string areaDoNpc) =>
+        string.Equals(areaDoJogador, areaDoNpc, StringComparison.OrdinalIgnoreCase)
+        || (AreasDoMundo.EhCidade(areaDoJogador) && AreasDoMundo.EhCidade(areaDoNpc));
 
     private void AoExecutarOpcaoDeDialogo(SessaoTempoReal sessao, ExecutarOpcaoDeDialogo pedido)
     {
@@ -190,7 +205,7 @@ public sealed class NpcsModule : IFeatureModule
             return;
         }
 
-        var npcs = CatalogoNpcs.PorArea(area);
+        var npcs = CatalogoNpcs.PorArea(AreasDoMundo.EhCidade(area) ? AreasDoMundo.Cidade : area);
         var mensagem = new NpcsDaArea { Area = area, Npcs = npcs.ToArray() };
 
         _contexto.TempoReal.Enviar(sessao, NpcsMessageIds.NpcsDaArea, mensagem);
