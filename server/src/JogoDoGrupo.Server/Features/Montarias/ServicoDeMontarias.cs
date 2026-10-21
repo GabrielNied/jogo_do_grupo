@@ -1,11 +1,11 @@
 using System.Collections.Concurrent;
 using JogoDoGrupo.Server.Contratos.Combate;
 using JogoDoGrupo.Server.Contratos.Economia;
+using JogoDoGrupo.Server.Contratos.Itens;
 using JogoDoGrupo.Server.Contratos.Montarias;
 using JogoDoGrupo.Server.Contratos.Mundo;
 using JogoDoGrupo.Server.Core.Persistencia;
 using JogoDoGrupo.Server.Core.TempoReal;
-using JogoDoGrupo.Server.Features.Itens;
 using JogoDoGrupo.Shared.Features.Montarias;
 using JogoDoGrupo.Shared.Features.Mundo;
 using JogoDoGrupo.Shared.Features.Npcs;
@@ -239,10 +239,9 @@ public sealed class ServicoDeMontarias : IMontariasConsulta
         }
 
         using var escopo = _scopeFactory.CreateScope();
-        var db = escopo.ServiceProvider.GetRequiredService<JogoDbContext>();
+        var custodia = escopo.ServiceProvider.GetRequiredService<ICustodiaDeItens>();
 
-        var item = await db.Set<ItemInventario>()
-            .SingleOrDefaultAsync(i => i.Id == instanciaId && i.PersonagemId == personagemId);
+        var item = await custodia.ObterAsync(personagemId, instanciaId, CancellationToken.None);
 
         if (item == null)
         {
@@ -297,9 +296,18 @@ public sealed class ServicoDeMontarias : IMontariasConsulta
         }
 
         // Consome o item da bolsa
-        db.Set<ItemInventario>().Remove(item);
+        var retirado = await custodia.RetirarAsync(
+            personagemId,
+            instanciaId,
+            CancellationToken.None
+        );
+        if (retirado == null)
+        {
+            return false;
+        }
 
         // Registra a montaria na conta
+        var db = escopo.ServiceProvider.GetRequiredService<JogoDbContext>();
         var registro = new MontariaDaConta
         {
             ContaId = contaId,

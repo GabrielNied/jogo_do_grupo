@@ -24,5 +24,14 @@ namespace JogoDoGrupo.Shared.Features.Instancias
 
         /// <summary>Client → servidor: participante solicita saída da dungeon antecipadamente após a vitória.</summary>
         public const ushort SairDaDungeon = 12005;
+
+        /// <summary>Servidor → participantes: uma etapa/portão da raid foi concluída.</summary>
+        public const ushort EtapaRaidConcluida = 12006;
+
+        /// <summary>Client → servidor: consulta etapas de raid já concluídas pelo personagem na semana atual.</summary>
+        public const ushort ConsultarBloqueioSemanalRaid = 12007;
+
+        /// <summary>Servidor → client: resposta com as etapas de raid concluídas na semana atual.</summary>
+        public const ushort RespostaBloqueioSemanalRaid = 12008;
     }
 }

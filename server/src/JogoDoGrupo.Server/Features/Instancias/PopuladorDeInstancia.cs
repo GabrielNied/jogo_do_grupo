@@ -55,19 +55,38 @@ public sealed class PopuladorDeInstancia(IInimigosPorInstancia inimigos, IChefes
         return grupos;
     }
 
-    public void AoAbrir(string areaId, int nivel = 1)
+    public void AoAbrir(string areaId, int nivel = 1, bool raid = false)
     {
         ArgumentException.ThrowIfNullOrEmpty(areaId);
         var multVida = RegrasDificuldadeSemFim.CalcularMultiplicadorVida(nivel);
         var multDano = RegrasDificuldadeSemFim.CalcularMultiplicadorDano(nivel);
-        inimigos.Criar(areaId, GruposDosSaloes(multVida, multDano));
-        chefes.Criar(
-            areaId,
-            LayoutDaMinaDoReflexo.BossCentroX,
-            LayoutDaMinaDoReflexo.BossCentroZ,
-            multVida,
-            multDano
-        );
+        if (!raid)
+        {
+            inimigos.Criar(areaId, GruposDosSaloes(multVida, multDano));
+            chefes.Criar(
+                areaId,
+                LayoutDaMinaDoReflexo.BossCentroX,
+                LayoutDaMinaDoReflexo.BossCentroZ,
+                multVida,
+                multDano
+            );
+        }
+        else
+        {
+            CriarChefeDaEtapaRaid(areaId, 1, multVida, multDano);
+        }
+    }
+
+    public void CriarChefeDaEtapaRaid(
+        string areaId,
+        int etapa,
+        double multVida = 1.0,
+        double multDano = 1.0
+    )
+    {
+        var criaturaId = RegrasRaid.ObterChefeDaEtapa(etapa);
+        var ponto = LayoutDaMinaDoReflexo.CentroDoChefeDaEtapa(etapa);
+        chefes.Criar(areaId, ponto.X, ponto.Z, multVida, multDano, criaturaId);
     }
 
     public void AoFechar(string areaId)

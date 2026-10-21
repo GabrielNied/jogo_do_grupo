@@ -18,10 +18,25 @@ namespace JogoDoGrupo.Shared.Features.Itens
         public TierItem Tier = TierItem.D;
     }
 
+    /// <summary>Uma peça de armadura ou acessório que aparece no corpo do personagem.</summary>
+    [Serializable]
+    public class ArmaduraVisual
+    {
+        public PosicaoEquipamento Posicao;
+
+        public TipoEquipamento Tipo;
+
+        /// <summary>Modelo-base da peça.</summary>
+        public int ModeloId;
+
+        /// <summary>Tier da armadura equipada (D a S+).</summary>
+        public TierItem Tier = TierItem.D;
+    }
+
     /// <summary>
     /// Servidor avisa a área do que um personagem veste e se vê: o <b>estado inteiro</b>, não a
     /// diferença. Sai quando ele equipa, desequipa ou troca de conjunto, e quando alguém entra na
-    /// área. Lista vazia = sem arma nenhuma. Id: <see cref="ItensMessageIds.VisualEquipado"/>.
+    /// área. Id: <see cref="ItensMessageIds.VisualEquipado"/>.
     /// </summary>
     [Serializable]
     public class VisualEquipado
@@ -32,5 +47,8 @@ namespace JogoDoGrupo.Shared.Features.Itens
         public int ConjuntoAtivo = 1;
 
         public ArmaVisual[] Armas = new ArmaVisual[0];
+
+        /// <summary>Peças de armadura visíveis no corpo (capacete, peito, etc.).</summary>
+        public ArmaduraVisual[] Armaduras = new ArmaduraVisual[0];
     }
 }

@@ -52,7 +52,8 @@ namespace JogoDoGrupo.Shared.Tests.Features.Npcs
         [InlineData(CatalogoNpcs.IdMerceeiro, "economia.merceeiro")]
         [InlineData(CatalogoNpcs.IdCavalarico, "montarias.estabulo")]
         [InlineData(CatalogoNpcs.IdCuidadorDePets, "pets.cuidador")]
-        [InlineData(CatalogoNpcs.IdValeria, "missoes.painel")]
+        [InlineData(CatalogoNpcs.IdLeiloeiro, "economia.leilao")]
+        [InlineData(CatalogoNpcs.IdQuadroDeDiarias, "missoes.quadro")]
         public void NpcDeServico_PossuiOpcaoDeAbrirServicoCorrespondente(
             int npcId,
             string servicoEsperado

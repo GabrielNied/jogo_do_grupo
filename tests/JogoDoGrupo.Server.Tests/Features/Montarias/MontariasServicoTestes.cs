@@ -199,6 +199,10 @@ public class MontariasServicoTestes
                 conexao
             )
         );
+        services.AddScoped<
+            JogoDoGrupo.Server.Contratos.Itens.ICustodiaDeItens,
+            JogoDoGrupo.Server.Features.Itens.CustodiaDeItens
+        >();
         var sp = services.BuildServiceProvider();
         using (var scope = sp.CreateScope())
         {

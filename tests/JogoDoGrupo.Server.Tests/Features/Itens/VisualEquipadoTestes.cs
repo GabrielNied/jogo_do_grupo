@@ -56,7 +56,11 @@ public class VisualEquipadoTestes(ServidorDeTeste servidor) : IClassFixture<Serv
         return jogador;
     }
 
-    private async Task<long> ItemAsync(long personagemId, int modelo)
+    private async Task<long> ItemAsync(
+        long personagemId,
+        int modelo,
+        TipoEquipamento? tipoOverride = null
+    )
     {
         using var escopo = servidor.Services.CreateScope();
         var db = escopo.ServiceProvider.GetRequiredService<JogoDbContext>();
@@ -64,6 +68,10 @@ public class VisualEquipadoTestes(ServidorDeTeste servidor) : IClassFixture<Serv
         var dados = new GeradorEquipamentos(
             new ConfigEquipamentos { QuantidadeAleatorios = 0 }
         ).Gerar(modelo, new Random(1));
+        if (tipoOverride.HasValue && dados != null)
+        {
+            dados.Tipo = tipoOverride.Value;
+        }
         item.GravarEquipamento(dados!);
         db.Add(item);
         await db.SaveChangesAsync();
@@ -197,5 +205,38 @@ public class VisualEquipadoTestes(ServidorDeTeste servidor) : IClassFixture<Serv
         await Task.Delay(200);
         Assert.Equal(antes, Quantas(dono));
         dono.Cliente.Dispose();
+    }
+
+    [Fact]
+    public async Task EquiparArmadura_AvisaAreaComArmaduraVisual_EQuemEntraDepoisRecebe()
+    {
+        var dono = await NovoNaCidadeAsync();
+        var outro = await NovoNaCidadeAsync();
+        await DeAsync(dono, outro.Id);
+
+        var capacete = await ItemAsync(dono.Id, 101);
+        var peito = await ItemAsync(dono.Id, 102);
+
+        await EquiparAsync(dono, capacete, PosicaoEquipamento.Capacete);
+        var v1 = await DeAsync(outro, dono.Id);
+        Assert.Single(v1.Armaduras);
+        Assert.Equal(PosicaoEquipamento.Capacete, v1.Armaduras[0].Posicao);
+        Assert.Equal(TipoEquipamento.Capacete, v1.Armaduras[0].Tipo);
+
+        await EquiparAsync(dono, peito, PosicaoEquipamento.Peito);
+        var v2 = await DeAsync(outro, dono.Id);
+        Assert.Equal(2, v2.Armaduras.Length);
+        Assert.Equal(PosicaoEquipamento.Capacete, v2.Armaduras[0].Posicao);
+        Assert.Equal(PosicaoEquipamento.Peito, v2.Armaduras[1].Posicao);
+
+        // Quem entra depois recebe as armaduras do dono
+        var (httpNovo, idNovo) = await NovoPersonagemAsync();
+        var novo = new Jogador(httpNovo, await ConectarAsync(httpNovo, idNovo), idNovo);
+        var doDono = await DeAsync(novo, dono.Id);
+        Assert.Equal(2, doDono.Armaduras.Length);
+
+        novo.Cliente.Dispose();
+        dono.Cliente.Dispose();
+        outro.Cliente.Dispose();
     }
 }
