@@ -1,11 +1,12 @@
 namespace JogoDoGrupo.Shared.Features.Npcs
 {
+    [System.Serializable]
     public sealed class OpcaoDeDialogo
     {
-        public string Id { get; set; } = string.Empty;
-        public string Texto { get; set; } = string.Empty;
-        public AcaoDeDialogo Acao { get; set; }
-        public string? Parametro { get; set; }
+        public string Id = string.Empty;
+        public string Texto = string.Empty;
+        public AcaoDeDialogo Acao;
+        public string? Parametro;
 
         public OpcaoDeDialogo() { }
 

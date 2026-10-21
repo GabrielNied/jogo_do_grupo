@@ -1,4 +1,5 @@
 using System;
+using JogoDoGrupo.Client.Core.Audio;
 using JogoDoGrupo.Client.Core.Jogo;
 using JogoDoGrupo.Client.Core.TempoReal;
 using JogoDoGrupo.Shared.Features.Itens;
@@ -78,6 +79,7 @@ namespace JogoDoGrupo.Client.Features.Itens.Loot
                     peca == null ? (TierItem?)null : RegrasTier.TierDe(peca)
                 )
             );
+            AudioDoJogo.TocarInterface(SomDeInterface.Item);
         }
 
         private static void AoRecusar(ColetaRecusada mensagem)

@@ -101,5 +101,6 @@ Do "Livro de ideias" do [FigJam](../brainstorm/figjam.md) (seções 07 e 11). **
 - `CatalogoDialogosNpc`: catálogo de diálogos, falas e opções por papel de NPC.
 - `NpcsDaArea`: pacote com a lista de NPCs da área.
 - `FalarComNpc`, `DialogoDoNpc`, `ExecutarOpcaoDeDialogo`, `DialogoRecusado`: fluxo autoritativo de diálogo (IDs 2010 a 2013).
+- Conversa aceita (NPC existe, mesma área e dentro do raio, pela posição do servidor) publica o evento de servidor `JogadorFalouComNpc` (`Contratos/Npcs`); é por ele que as [missões](missoes.md) contam o objetivo **Falar**. Os canais da cidade (`cidade:2`...) têm os mesmos NPCs da cidade.
 
 

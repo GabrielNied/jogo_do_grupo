@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using JogoDoGrupo.Client.Core.Jogo.Janelas;
 using JogoDoGrupo.Client.Core.UI;
+using JogoDoGrupo.Client.Core.Visual;
 using JogoDoGrupo.Shared.Features.Montarias;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -57,7 +58,7 @@ namespace JogoDoGrupo.Client.Features.Montarias.UI
             );
             descricao.AddToClassList(EstiloCore.Texto);
             descricao.style.fontSize = 11.5f;
-            descricao.style.color = new Color(0.72f, 0.76f, 0.84f);
+            descricao.style.color = EstiloVisual.Cor(ConfigVisual.Cores.TextoSecundario);
             descricao.style.marginBottom = 12f;
             conteudo.Add(descricao);
 
@@ -80,7 +81,7 @@ namespace JogoDoGrupo.Client.Features.Montarias.UI
             rodape.AddToClassList(EstiloCore.Mensagem);
             rodape.style.fontSize = 11f;
             rodape.style.marginTop = 12f;
-            rodape.style.color = new Color(0.60f, 0.66f, 0.75f);
+            rodape.style.color = EstiloVisual.Cor(ConfigVisual.Cores.TextoDesabilitado);
             conteudo.Add(rodape);
         }
 
@@ -256,7 +257,7 @@ namespace JogoDoGrupo.Client.Features.Montarias.UI
                 // Atributos / Estatísticas
                 var atributos = new VisualElement();
                 atributos.style.marginBottom = 10f;
-                atributos.style.backgroundColor = new Color(0.08f, 0.09f, 0.12f, 0.6f);
+                atributos.style.backgroundColor = EstiloVisual.Cor(ConfigVisual.Cores.Trilho);
                 atributos.style.paddingLeft = 8f;
                 atributos.style.paddingRight = 8f;
                 atributos.style.paddingTop = 6f;
@@ -289,7 +290,7 @@ namespace JogoDoGrupo.Client.Features.Montarias.UI
                 _botaoEquipar.style.marginTop = 4f;
                 _botaoEquipar.style.fontSize = 12f;
                 _botaoEquipar.style.unityFontStyleAndWeight = FontStyle.Bold;
-                _botaoEquipar.style.backgroundColor = new Color(0.18f, 0.22f, 0.30f);
+                _botaoEquipar.style.backgroundColor = EstiloVisual.Cor(ConfigVisual.Cores.Hover);
                 _botaoEquipar.style.color = new Color(0.90f, 0.94f, 1.0f);
                 Elemento.Add(_botaoEquipar);
 
@@ -330,11 +331,21 @@ namespace JogoDoGrupo.Client.Features.Montarias.UI
                 _seloBloqueado.style.paddingTop = 6f;
                 _seloBloqueado.style.paddingBottom = 6f;
                 _seloBloqueado.style.marginTop = 4f;
-                _seloBloqueado.style.backgroundColor = new Color(0.12f, 0.13f, 0.16f, 0.9f);
-                _seloBloqueado.style.borderLeftColor = new Color(0.28f, 0.30f, 0.36f, 0.7f);
-                _seloBloqueado.style.borderRightColor = new Color(0.28f, 0.30f, 0.36f, 0.7f);
-                _seloBloqueado.style.borderTopColor = new Color(0.28f, 0.30f, 0.36f, 0.7f);
-                _seloBloqueado.style.borderBottomColor = new Color(0.28f, 0.30f, 0.36f, 0.7f);
+                _seloBloqueado.style.backgroundColor = EstiloVisual.Cor(
+                    ConfigVisual.Cores.Desabilitado
+                );
+                _seloBloqueado.style.borderLeftColor = EstiloVisual.Cor(
+                    ConfigVisual.Cores.BordaDiscreta
+                );
+                _seloBloqueado.style.borderRightColor = EstiloVisual.Cor(
+                    ConfigVisual.Cores.BordaDiscreta
+                );
+                _seloBloqueado.style.borderTopColor = EstiloVisual.Cor(
+                    ConfigVisual.Cores.BordaDiscreta
+                );
+                _seloBloqueado.style.borderBottomColor = EstiloVisual.Cor(
+                    ConfigVisual.Cores.BordaDiscreta
+                );
                 _seloBloqueado.style.borderLeftWidth = 1f;
                 _seloBloqueado.style.borderRightWidth = 1f;
                 _seloBloqueado.style.borderTopWidth = 1f;
@@ -368,11 +379,19 @@ namespace JogoDoGrupo.Client.Features.Montarias.UI
                 if (!desbloqueada)
                 {
                     Elemento.style.opacity = 0.55f;
-                    Elemento.style.backgroundColor = new Color(0.08f, 0.09f, 0.12f, 0.85f);
-                    Elemento.style.borderLeftColor = new Color(0.20f, 0.22f, 0.28f, 0.5f);
-                    Elemento.style.borderRightColor = new Color(0.20f, 0.22f, 0.28f, 0.5f);
-                    Elemento.style.borderTopColor = new Color(0.20f, 0.22f, 0.28f, 0.5f);
-                    Elemento.style.borderBottomColor = new Color(0.20f, 0.22f, 0.28f, 0.5f);
+                    Elemento.style.backgroundColor = EstiloVisual.Cor(ConfigVisual.Cores.Trilho);
+                    Elemento.style.borderLeftColor = EstiloVisual.Cor(
+                        ConfigVisual.Cores.BordaDiscreta
+                    );
+                    Elemento.style.borderRightColor = EstiloVisual.Cor(
+                        ConfigVisual.Cores.BordaDiscreta
+                    );
+                    Elemento.style.borderTopColor = EstiloVisual.Cor(
+                        ConfigVisual.Cores.BordaDiscreta
+                    );
+                    Elemento.style.borderBottomColor = EstiloVisual.Cor(
+                        ConfigVisual.Cores.BordaDiscreta
+                    );
                     _botaoEquipar.style.display = DisplayStyle.None;
                     _seloEquipado.style.display = DisplayStyle.None;
                     _seloBloqueado.style.display = DisplayStyle.Flex;
@@ -385,7 +404,9 @@ namespace JogoDoGrupo.Client.Features.Montarias.UI
 
                     if (equipado)
                     {
-                        Elemento.style.backgroundColor = new Color(0.14f, 0.17f, 0.23f, 0.96f);
+                        Elemento.style.backgroundColor = EstiloVisual.Cor(
+                            ConfigVisual.Cores.Selecionado
+                        );
                         Elemento.style.borderLeftColor = new Color(0.85f, 0.70f, 0.28f, 0.9f);
                         Elemento.style.borderRightColor = new Color(0.85f, 0.70f, 0.28f, 0.9f);
                         Elemento.style.borderTopColor = new Color(0.85f, 0.70f, 0.28f, 0.9f);
@@ -395,11 +416,19 @@ namespace JogoDoGrupo.Client.Features.Montarias.UI
                     }
                     else
                     {
-                        Elemento.style.backgroundColor = new Color(0.10f, 0.12f, 0.16f, 0.92f);
-                        Elemento.style.borderLeftColor = new Color(0.24f, 0.28f, 0.36f, 0.6f);
-                        Elemento.style.borderRightColor = new Color(0.24f, 0.28f, 0.36f, 0.6f);
-                        Elemento.style.borderTopColor = new Color(0.24f, 0.28f, 0.36f, 0.6f);
-                        Elemento.style.borderBottomColor = new Color(0.24f, 0.28f, 0.36f, 0.6f);
+                        Elemento.style.backgroundColor = EstiloVisual.Cor(ConfigVisual.Cores.Campo);
+                        Elemento.style.borderLeftColor = EstiloVisual.Cor(
+                            ConfigVisual.Cores.BordaDiscreta
+                        );
+                        Elemento.style.borderRightColor = EstiloVisual.Cor(
+                            ConfigVisual.Cores.BordaDiscreta
+                        );
+                        Elemento.style.borderTopColor = EstiloVisual.Cor(
+                            ConfigVisual.Cores.BordaDiscreta
+                        );
+                        Elemento.style.borderBottomColor = EstiloVisual.Cor(
+                            ConfigVisual.Cores.BordaDiscreta
+                        );
                         _botaoEquipar.style.display = DisplayStyle.Flex;
                         _seloEquipado.style.display = DisplayStyle.None;
                     }

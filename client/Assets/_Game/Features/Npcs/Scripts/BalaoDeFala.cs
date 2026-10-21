@@ -1,21 +1,29 @@
+using JogoDoGrupo.Client.Core.UI;
 using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.UIElements;
 
 namespace JogoDoGrupo.Client.Features.Npcs
 {
     /// <summary>
-    /// Balão de fala curto sobre a cabeça de um NPC ambiente (#1069). Texto 3D com fundo escuro,
-    /// sempre virado para a câmera; some sozinho depois da duração pedida.
+    /// Balão de fala curto sobre a cabeça de um NPC ambiente (#1069), em UI Toolkit como as
+    /// etiquetas de nome: texto nítido na fonte da interface, menor e mais apagado de longe, e
+    /// some sozinho depois da duração pedida. Todos os balões dividem uma camada só.
     /// </summary>
     public sealed class BalaoDeFala : MonoBehaviour
     {
         private const float AlturaPadrao = 2.7f;
-        private const int LarguraDaLinha = 26;
+        private const float DistanciaMaxima = 30f;
+        private const string CaminhoEstilo = "UI/EstiloNpcs";
 
-        private TextMesh _texto;
-        private GameObject _fundo;
+        private static UIDocument _documento;
+        private static VisualElement _camada;
+
+        private Label _rotulo;
         private float _fimEm;
+        private bool _visivel;
 
-        public bool Visivel => _texto != null && _texto.gameObject.activeSelf;
+        public bool Visivel => _visivel;
 
         public static BalaoDeFala Criar(Transform pai, float altura = AlturaPadrao)
         {
@@ -23,93 +31,72 @@ namespace JogoDoGrupo.Client.Features.Npcs
             objeto.transform.SetParent(pai, false);
             objeto.transform.localPosition = new Vector3(0f, altura, 0f);
             var balao = objeto.AddComponent<BalaoDeFala>();
-            balao.Montar();
             balao.Esconder();
             return balao;
         }
 
-        private void Montar()
+        // A camada nasce na cena de quem fala e some com ela.
+        private static VisualElement Camada(Scene cena)
         {
-            var objetoTexto = new GameObject("Texto");
-            objetoTexto.transform.SetParent(transform, false);
-            _texto = objetoTexto.AddComponent<TextMesh>();
-            _texto.alignment = TextAlignment.Center;
-            _texto.anchor = TextAnchor.MiddleCenter;
-            _texto.characterSize = 0.07f;
-            _texto.fontSize = 36;
-            _texto.color = new Color(1f, 0.97f, 0.88f);
-
-            _fundo = GameObject.CreatePrimitive(PrimitiveType.Quad);
-            _fundo.name = "Fundo";
-            var colisor = _fundo.GetComponent<Collider>();
-            if (colisor != null)
+            if (_documento != null && _camada != null)
             {
-                Destroy(colisor);
+                return _camada;
             }
 
-            _fundo.transform.SetParent(transform, false);
-            _fundo.transform.localPosition = new Vector3(0f, 0f, 0.02f);
-            var renderer = _fundo.GetComponent<Renderer>();
-            if (renderer != null)
+            var objeto = new GameObject("Npcs.Baloes");
+            SceneManager.MoveGameObjectToScene(objeto, cena);
+            objeto.SetActive(false);
+            _documento = objeto.AddComponent<UIDocument>();
+            _documento.panelSettings = EstiloCore.CriarConfiguracaoDoPainel("PainelBaloes", -3.4f);
+            objeto.SetActive(true);
+            var raiz = _documento.rootVisualElement;
+            EstiloCore.Aplicar(raiz);
+            var estilo = Resources.Load<StyleSheet>(CaminhoEstilo);
+            if (estilo != null)
             {
-                renderer.material.color = new Color(0.1f, 0.09f, 0.08f);
+                raiz.styleSheets.Add(estilo);
             }
+
+            _camada = new VisualElement { name = "npcs.baloes", pickingMode = PickingMode.Ignore };
+            _camada.AddToClassList("npcs-camada");
+            raiz.Add(_camada);
+            return _camada;
         }
 
         /// <summary>Mostra o texto por <paramref name="duracao"/> segundos.</summary>
         public void Mostrar(string fala, float duracao)
         {
-            if (_texto == null || string.IsNullOrEmpty(fala))
+            if (string.IsNullOrEmpty(fala))
             {
                 return;
             }
 
-            var quebrado = Quebrar(fala, LarguraDaLinha);
-            _texto.text = quebrado;
-            var linhas = 1;
-            for (var i = 0; i < quebrado.Length; i++)
+            if (_rotulo == null || _rotulo.panel == null)
             {
-                if (quebrado[i] == '\n')
-                {
-                    linhas++;
-                }
+                _rotulo = new Label { pickingMode = PickingMode.Ignore };
+                _rotulo.AddToClassList("npc-balao");
+                Camada(gameObject.scene).Add(_rotulo);
             }
 
-            var maior = 0;
-            foreach (var linha in quebrado.Split('\n'))
-            {
-                maior = Mathf.Max(maior, linha.Length);
-            }
-
-            // Largura e altura aproximadas do texto em metros (fonte padrão do TextMesh).
-            _fundo.transform.localScale = new Vector3(
-                maior * 0.088f + 0.25f,
-                linhas * 0.2f + 0.15f,
-                1f
-            );
-            _texto.gameObject.SetActive(true);
-            _fundo.SetActive(true);
+            _rotulo.text = fala;
+            _rotulo.style.display = DisplayStyle.None;
+            _visivel = true;
             _fimEm = Time.time + duracao;
         }
 
         public void Esconder()
         {
-            if (_texto != null)
-            {
-                _texto.gameObject.SetActive(false);
-            }
-
-            if (_fundo != null)
-            {
-                _fundo.SetActive(false);
-            }
-
+            _visivel = false;
             _fimEm = 0f;
+            if (_rotulo != null)
+            {
+                _rotulo.style.display = DisplayStyle.None;
+            }
         }
 
         private void LateUpdate()
         {
-            if (!Visivel)
+            if (!_visivel || _rotulo == null)
             {
                 return;
             }
@@ -120,10 +107,40 @@ namespace JogoDoGrupo.Client.Features.Npcs
                 return;
             }
 
-            if (Camera.main != null)
+            var camera = Camera.main;
+            var painel = _rotulo.panel;
+            var mundo = transform.position;
+            var viewport = camera != null ? camera.WorldToViewportPoint(mundo) : Vector3.zero;
+            var distancia =
+                camera != null ? Vector3.Distance(camera.transform.position, mundo) : 0f;
+            if (camera == null || painel == null || viewport.z <= 0f || distancia > DistanciaMaxima)
             {
-                transform.rotation = Camera.main.transform.rotation;
+                _rotulo.style.display = DisplayStyle.None;
+                return;
             }
+
+            var ponto = RuntimePanelUtils.CameraTransformWorldToPanel(painel, mundo, camera);
+            _rotulo.style.display = DisplayStyle.Flex;
+            _rotulo.style.left = ponto.x;
+            _rotulo.style.top = ponto.y;
+            var proximidade = 1f - Mathf.Clamp01((distancia - 6f) / (DistanciaMaxima - 6f));
+            _rotulo.style.opacity = Mathf.Lerp(0.45f, 1f, proximidade);
+            var escala = Mathf.Lerp(0.75f, 1f, proximidade);
+            _rotulo.style.scale = new Scale(new Vector3(escala, escala, 1f));
+        }
+
+        private void OnDisable()
+        {
+            if (_rotulo != null)
+            {
+                _rotulo.style.display = DisplayStyle.None;
+            }
+        }
+
+        private void OnDestroy()
+        {
+            _rotulo?.RemoveFromHierarchy();
+            _rotulo = null;
         }
 
         /// <summary>Quebra o texto em linhas de até <paramref name="largura"/> caracteres, nas palavras.</summary>

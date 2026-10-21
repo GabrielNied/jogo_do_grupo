@@ -8,8 +8,10 @@ namespace JogoDoGrupo.Client.Features.Personagem
     internal sealed class PreviaVisualPersonagem : IDisposable
     {
         private const int CamadaDaPrevia = 30;
-        private const int Largura = 384;
-        private const int Altura = 512;
+
+        // Grande para a seleção e a criação em tela cheia (o personagem no centro, como no WoW).
+        private const int Largura = 720;
+        private const int Altura = 1080;
 
         private GameObject _raiz;
         private GameObject _modelo;
@@ -55,13 +57,13 @@ namespace JogoDoGrupo.Client.Features.Personagem
                     limites.Encapsulate(renderizadores[i].bounds);
                 }
 
-                _camera.orthographicSize = Mathf.Max(
-                    limites.extents.y * 1.25f,
-                    limites.extents.x * Altura / Largura * 1.25f,
-                    0.8f
-                );
-                _camera.transform.position = limites.center + new Vector3(0.6f, 0.2f, 5f);
-                _camera.transform.LookAt(limites.center);
+                // Perspectiva fechada (teleobjetiva): enquadra de corpo inteiro, de leve de baixo.
+                var altura =
+                    Mathf.Max(limites.size.y, limites.size.x * Altura / Largura, 1.6f) * 1.18f;
+                var distancia =
+                    altura * 0.5f / Mathf.Tan(_camera.fieldOfView * 0.5f * Mathf.Deg2Rad);
+                _camera.transform.position = limites.center + new Vector3(0.35f, -0.05f, distancia);
+                _camera.transform.LookAt(limites.center + Vector3.up * 0.02f);
                 _raca = raca;
             }
 
@@ -78,16 +80,25 @@ namespace JogoDoGrupo.Client.Features.Personagem
                 return;
             }
 
+            // Objeto da cena (só escondido): some junto com ela. Com DontSave sobrevivia ao fim do
+            // Play no editor e o modelo esquecido aparecia misturado na prévia seguinte.
             _raiz = new GameObject("Prévia de personagem")
             {
-                hideFlags = HideFlags.HideAndDontSave,
+                hideFlags = HideFlags.HideInHierarchy,
             };
             _raiz.transform.position = new Vector3(10000f, 10000f, 10000f);
+
+            if (_textura != null)
+            {
+                _textura.Release();
+                Destruir(_textura);
+            }
 
             _textura = new RenderTexture(Largura, Altura, 24, RenderTextureFormat.ARGB32)
             {
                 name = "Prévia de personagem",
                 filterMode = FilterMode.Bilinear,
+                antiAliasing = 4,
                 hideFlags = HideFlags.HideAndDontSave,
             };
             _textura.Create();
@@ -96,19 +107,104 @@ namespace JogoDoGrupo.Client.Features.Personagem
             objetoCamera.transform.SetParent(_raiz.transform, false);
             _camera = objetoCamera.AddComponent<Camera>();
             _camera.enabled = true;
-            _camera.orthographic = true;
+            _camera.orthographic = false;
+            _camera.fieldOfView = 20f;
             _camera.clearFlags = CameraClearFlags.SolidColor;
             _camera.backgroundColor = Color.clear;
             _camera.cullingMask = 1 << CamadaDaPrevia;
             _camera.targetTexture = _textura;
 
-            var objetoLuz = new GameObject("Luz da prévia");
+            // Luz de estúdio: principal quente, contraluz fria para recortar a silhueta do fundo
+            // escuro e um preenchimento fraco.
+            CriarLuz(
+                "Luz da prévia",
+                new Vector3(30f, -40f, 0f),
+                new Color(1f, 0.92f, 0.8f),
+                1.35f
+            );
+            CriarLuz(
+                "Contraluz da prévia",
+                new Vector3(15f, 160f, 0f),
+                new Color(0.62f, 0.75f, 1f),
+                1.1f
+            );
+            CriarLuz(
+                "Preenchimento da prévia",
+                new Vector3(10f, 60f, 0f),
+                new Color(1f, 0.85f, 0.7f),
+                0.35f
+            );
+        }
+
+        private void CriarLuz(string nome, Vector3 angulos, Color cor, float intensidade)
+        {
+            var objetoLuz = new GameObject(nome);
             objetoLuz.transform.SetParent(_raiz.transform, false);
-            objetoLuz.transform.localRotation = Quaternion.Euler(35f, -35f, 0f);
+            objetoLuz.transform.localRotation = Quaternion.Euler(angulos);
             var luz = objetoLuz.AddComponent<Light>();
             luz.type = LightType.Directional;
-            luz.intensity = 1.5f;
+            luz.color = cor;
+            luz.intensity = intensidade;
             luz.cullingMask = 1 << CamadaDaPrevia;
+        }
+
+        /// <summary>
+        /// Monta o palco da prévia: o pedestal (sombra e anel sob os pés) atrás da imagem do
+        /// personagem, para ele não flutuar sobre o fundo.
+        /// </summary>
+        public static UnityEngine.UIElements.VisualElement CriarPalco(
+            UnityEngine.UIElements.Image imagem
+        )
+        {
+            var palco = new UnityEngine.UIElements.VisualElement();
+            palco.AddToClassList("personagem-palco");
+            var pedestal = new UnityEngine.UIElements.VisualElement
+            {
+                pickingMode = UnityEngine.UIElements.PickingMode.Ignore,
+            };
+            pedestal.AddToClassList("personagem-pedestal");
+            palco.Add(pedestal);
+            palco.Add(imagem);
+            return palco;
+        }
+
+        /// <summary>
+        /// Liga o arrastar do mouse sobre <paramref name="alvo"/> ao giro do personagem, como na
+        /// seleção do WoW. Vale para a prévia que estiver no campo quando o arrasto acontecer.
+        /// </summary>
+        public static void LigarArrasto(
+            UnityEngine.UIElements.VisualElement alvo,
+            System.Func<PreviaVisualPersonagem> previa
+        )
+        {
+            var arrastando = false;
+            alvo.pickingMode = UnityEngine.UIElements.PickingMode.Position;
+            alvo.RegisterCallback<UnityEngine.UIElements.PointerDownEvent>(e =>
+            {
+                arrastando = true;
+                UnityEngine.UIElements.PointerCaptureHelper.CapturePointer(alvo, e.pointerId);
+            });
+            alvo.RegisterCallback<UnityEngine.UIElements.PointerMoveEvent>(e =>
+            {
+                if (arrastando)
+                    previa()?.Girar(-e.deltaPosition.x * GrausPorPixel);
+            });
+            alvo.RegisterCallback<UnityEngine.UIElements.PointerUpEvent>(e =>
+            {
+                arrastando = false;
+                UnityEngine.UIElements.PointerCaptureHelper.ReleasePointer(alvo, e.pointerId);
+            });
+        }
+
+        private const float GrausPorPixel = 0.6f;
+
+        /// <summary>Gira o personagem da prévia (arrastar com o mouse na seleção e na criação).</summary>
+        public void Girar(float graus)
+        {
+            if (_modelo != null)
+            {
+                _modelo.transform.Rotate(0f, graus, 0f, Space.World);
+            }
         }
 
         private static void DefinirCamada(Transform objeto)

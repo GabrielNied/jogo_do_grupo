@@ -77,7 +77,10 @@ namespace JogoDoGrupo.Client.Features.Skills
             documento.rootVisualElement.Add(container);
 
             raiz.AddComponent<ControleSkills>()
-                .Configurar(personagemId, new PainelSkills(container));
+                .Configurar(
+                    personagemId,
+                    new PainelSkills(container, Hud.Regiao(RegiaoDoHud.BarraDeAcao))
+                );
         }
     }
 }

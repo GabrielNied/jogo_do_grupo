@@ -1,13 +1,13 @@
 using System.Collections.Generic;
+using JogoDoGrupo.Client.Core.Jogo;
 using JogoDoGrupo.Shared.Features.Itens;
 using UnityEngine;
 
 namespace JogoDoGrupo.Client.Features.Itens
 {
     /// <summary>
-    /// O baú de teste no mundo: um marcador feito em código (dois blocos, sem asset, porque
-    /// ainda não há modelo de baú em <c>ThirdParty</c>) e as contas de onde ele fica e de
-    /// quando está perto o bastante para abrir.
+    /// O baú de teste no mundo: o baú do Survival Kit do Kenney (CC0) e as contas de onde ele
+    /// fica e de quando está perto o bastante para abrir. Sem o modelo, dois blocos de reserva.
     /// </summary>
     public static class BauNoMundo
     {
@@ -46,6 +46,11 @@ namespace JogoDoGrupo.Client.Features.Itens
             var colisor = raiz.AddComponent<BoxCollider>();
             colisor.size = Tamanho;
             colisor.center = new Vector3(0f, Tamanho.y / 2f, 0f);
+
+            if (PropsDoMundo.Instanciar("Props/chest", raiz.transform, Tamanho.y, 180f) != null)
+            {
+                return raiz;
+            }
 
             var materiais = raiz.AddComponent<MateriaisDoBau>();
             var corpo = Tamanho.y * 0.6f;

@@ -3,6 +3,7 @@ using JogoDoGrupo.Client.Core.Jogo;
 using JogoDoGrupo.Client.Core.Jogo.Janelas;
 using JogoDoGrupo.Client.Core.TempoReal;
 using JogoDoGrupo.Client.Features.Npcs.UI;
+using JogoDoGrupo.Shared.Features.Mundo;
 using JogoDoGrupo.Shared.Features.Npcs;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -28,6 +29,14 @@ namespace JogoDoGrupo.Client.Features.Npcs
         private TextMesh _textoPlaca;
         private bool _jogadorNoAlcance;
 
+        private static readonly System.Collections.Generic.List<NpcNoMundo> _ativos =
+            new System.Collections.Generic.List<NpcNoMundo>();
+
+        /// <summary>NPCs no mundo agora (para as etiquetas de nome).</summary>
+        public static System.Collections.Generic.IReadOnlyList<NpcNoMundo> Ativos => _ativos;
+
+        public static bool EstaAtivo(NpcNoMundo npc) => _ativos.Contains(npc);
+
         public DefinicaoNpc Definicao => _definicao;
         public bool JogadorNoAlcance => _jogadorNoAlcance;
 
@@ -46,7 +55,7 @@ namespace JogoDoGrupo.Client.Features.Npcs
 
             ConfigurarColisor();
             CriarCorpoVisual();
-            CriarPlacaDeNome();
+            // O nome e o papel aparecem em EtiquetasDeNpcs (UI nítida), não mais em texto 3D.
         }
 
         private void ConfigurarColisor()
@@ -112,6 +121,23 @@ namespace JogoDoGrupo.Client.Features.Npcs
             }
         }
 
+        private void OnEnable()
+        {
+            if (!_ativos.Contains(this))
+                _ativos.Add(this);
+        }
+
+        private void OnDisable()
+        {
+            _ativos.Remove(this);
+        }
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ReiniciarAtivos()
+        {
+            _ativos.Clear();
+        }
+
         private void Update()
         {
             if (_definicao == null)
@@ -140,6 +166,7 @@ namespace JogoDoGrupo.Client.Features.Npcs
                 _jogadorNoAlcance
                 && Keyboard.current != null
                 && Keyboard.current.eKey.wasPressedThisFrame
+                && EhOMaisPerto(posJogador)
             )
             {
                 InteragiuComNpc?.Invoke(_definicao);
@@ -162,6 +189,33 @@ namespace JogoDoGrupo.Client.Features.Npcs
             }
         }
 
+        // Com dois NPCs no alcance, só o mais perto responde ao E (antes os dois abriam conversa).
+        private bool EhOMaisPerto(Vector3 posJogador)
+        {
+            var minha = DistanciaHorizontal(posJogador);
+            foreach (var outro in _ativos)
+            {
+                if (
+                    outro != null
+                    && outro != this
+                    && outro._jogadorNoAlcance
+                    && outro.DistanciaHorizontal(posJogador) < minha
+                )
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private float DistanciaHorizontal(Vector3 posicao)
+        {
+            var dx = transform.position.x - posicao.x;
+            var dz = transform.position.z - posicao.z;
+            return dx * dx + dz * dz;
+        }
+
         private void LateUpdate()
         {
             if (_placaObjeto != null && Camera.main != null)
@@ -172,19 +226,45 @@ namespace JogoDoGrupo.Client.Features.Npcs
 
         private static Vector3 AjustarPosicaoNoChao(Vector3 posicao)
         {
-            var origem = posicao + Vector3.up * AlturaBuscaChao;
-            if (
-                Physics.Raycast(
-                    origem,
-                    Vector3.down,
-                    out var batida,
-                    AlcanceBuscaChao,
-                    ~0,
-                    QueryTriggerInteraction.Ignore
-                )
-            )
+            // O catálogo guarda Y = 0 (a cidade antiga era plana); no mapa publicado o chão da
+            // cidade fica mais alto. Procura a partir do relevo do mapa, não só do Y do catálogo,
+            // senão o NPC fica enterrado sob a praça (#1179).
+            var relevo = MapaDoMundo.AlturaEm(posicao.x, posicao.z);
+            if (relevo > posicao.y)
             {
-                posicao.y = batida.point.y;
+                posicao.y = relevo;
+            }
+
+            // Só conta como chão o terreno e as malhas do mapa. Cápsulas e caixas ficam de fora:
+            // a do próprio NPC (Configurar roda de novo a cada lista da área e ele subia 1,8 m
+            // por vez) e as dos pontos de serviço da Economia, no mesmo lugar dos NPCs.
+            var origem = posicao + Vector3.up * AlturaBuscaChao;
+            var batidas = Physics.RaycastAll(
+                origem,
+                Vector3.down,
+                AlcanceBuscaChao,
+                ~0,
+                QueryTriggerInteraction.Ignore
+            );
+            var achouChao = false;
+            var alturaDoChao = 0f;
+            foreach (var batida in batidas)
+            {
+                if (!(batida.collider is TerrainCollider) && !(batida.collider is MeshCollider))
+                {
+                    continue;
+                }
+
+                if (!achouChao || batida.point.y > alturaDoChao)
+                {
+                    alturaDoChao = batida.point.y;
+                    achouChao = true;
+                }
+            }
+
+            if (achouChao)
+            {
+                posicao.y = alturaDoChao;
             }
 
             return posicao;

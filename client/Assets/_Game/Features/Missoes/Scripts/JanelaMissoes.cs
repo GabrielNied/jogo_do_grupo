@@ -27,6 +27,9 @@ namespace JogoDoGrupo.Client.Features.Missoes
         private AbaAtual _aba = AbaAtual.Ativas;
         private int _missaoSelecionadaId = 0;
 
+        // Item escolhido por missão para a entrega (missões com recompensa à escolha).
+        private readonly Dictionary<int, int> _escolhas = new Dictionary<int, int>();
+
         private VisualElement _cabecalhoAbas;
         private ScrollView _listaMissoes;
         private VisualElement _painelDetalhes;
@@ -344,14 +347,14 @@ namespace JogoDoGrupo.Client.Features.Missoes
 
             if (def.RecompensaXp > 0)
             {
-                var xp = ComponentesVisuais.Texto($"⭐ {def.RecompensaXp} XP");
+                var xp = ComponentesVisuais.Texto($"{def.RecompensaXp} de experiência");
                 xp.style.marginRight = 12;
                 recs.Add(xp);
             }
 
             if (def.RecompensaCoroas > 0)
             {
-                var coroas = ComponentesVisuais.Texto($"💰 {def.RecompensaCoroas} Coroas");
+                var coroas = ComponentesVisuais.Texto($"{def.RecompensaCoroas} coroas");
                 coroas.style.marginRight = 12;
                 recs.Add(coroas);
             }
@@ -359,12 +362,62 @@ namespace JogoDoGrupo.Client.Features.Missoes
             if (!string.IsNullOrEmpty(def.ReputacaoFaccao))
             {
                 var rep = ComponentesVisuais.Texto(
-                    $"🛡 +{def.ReputacaoValor} Reputação ({def.ReputacaoFaccao})"
+                    $"+{def.ReputacaoValor} de reputação ({def.ReputacaoFaccao})"
                 );
                 recs.Add(rep);
             }
 
             _painelDetalhes.Add(recs);
+
+            // Itens da recompensa: na entrega com mais de um, o jogador escolhe aqui.
+            var itens = def.ItensParaEscolha ?? Array.Empty<int>();
+            var escolherAgora =
+                prog != null
+                && !concluida
+                && prog.Estado == EstadoDaMissao.ProntaParaEntregar
+                && itens.Length > 1;
+            if (itens.Length > 0)
+            {
+                var rotuloItens = ComponentesVisuais.Texto(
+                    itens.Length > 1 ? "Escolha uma recompensa ao entregar:" : "Você também recebe:"
+                );
+                rotuloItens.style.marginBottom = 6;
+                _painelDetalhes.Add(rotuloItens);
+
+                var linhaItens = new VisualElement();
+                linhaItens.style.flexDirection = FlexDirection.Row;
+                linhaItens.style.flexWrap = Wrap.Wrap;
+                linhaItens.style.marginBottom = 16;
+                foreach (var itemId in itens)
+                {
+                    var id = itemId;
+                    var nome = JanelaConversaDeMissao.NomeDoItem(id);
+                    if (escolherAgora)
+                    {
+                        var marcado = _escolhas.TryGetValue(def.Id, out var atual) && atual == id;
+                        var opcao = ComponentesVisuais.Botao(
+                            nome,
+                            () =>
+                            {
+                                _escolhas[def.Id] = id;
+                                Redesenhar();
+                            },
+                            principal: marcado
+                        );
+                        opcao.style.marginRight = 8;
+                        opcao.style.marginBottom = 6;
+                        linhaItens.Add(opcao);
+                    }
+                    else
+                    {
+                        var rotulo = ComponentesVisuais.Texto(nome);
+                        rotulo.style.marginRight = 12;
+                        linhaItens.Add(rotulo);
+                    }
+                }
+
+                _painelDetalhes.Add(linhaItens);
+            }
 
             // Ações (somente se ativa)
             if (prog != null && !concluida)
@@ -377,11 +430,22 @@ namespace JogoDoGrupo.Client.Features.Missoes
                 // Entregar (se pronta)
                 if (prog.Estado == EstadoDaMissao.ProntaParaEntregar)
                 {
+                    var escolhido = 0;
+                    if (itens.Length == 1)
+                    {
+                        escolhido = itens[0];
+                    }
+                    else if (itens.Length > 1)
+                    {
+                        _escolhas.TryGetValue(def.Id, out escolhido);
+                    }
+
                     var btnEntregar = ComponentesVisuais.Botao(
                         "Entregar Missão",
-                        () => ControleDeMissoes.Entregar(def.Id),
+                        () => ControleDeMissoes.Entregar(def.Id, escolhido),
                         principal: true
                     );
+                    btnEntregar.SetEnabled(itens.Length == 0 || escolhido != 0);
                     btnEntregar.style.marginRight = 8;
                     acoes.Add(btnEntregar);
                 }

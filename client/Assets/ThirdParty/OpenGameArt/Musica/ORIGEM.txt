@@ -1,0 +1,7 @@
+Músicas de OpenGameArt.org. Todas CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/),
+conferido na página de cada faixa em 2026-10-21. Renomeadas para o uso no jogo (Resources/Audio/Musica):
+
+abertura.mp3 <- "Fantasy Orchestral Theme", Joth: https://opengameart.org/content/fantasy-orchestral-theme (FantasyOrchestralTheme_1.mp3)
+cidade.ogg   <- "Shakkar", Chris Murphy (zesona): https://opengameart.org/content/shakkar (Shakkar.ogg)
+dungeon.ogg  <- "Dungeon Ambience", yd: https://opengameart.org/content/dungeon-ambience (dungeon002.ogg)
+chefe.mp3    <- "Battle Theme", wolfgang: https://opengameart.org/content/battle-theme-0 (Battle.mp3)

@@ -3,6 +3,7 @@ using JogoDoGrupo.Server.Tests.Infra;
 using JogoDoGrupo.Shared.Features.Itens;
 using JogoDoGrupo.Shared.Features.Missoes;
 using JogoDoGrupo.Shared.Features.Npcs;
+using JogoDoGrupo.Shared.Features.Profissoes;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
@@ -83,7 +84,12 @@ public sealed class MissoesSecundariasTestes(ServidorDeTeste servidor)
 
         // Coleta parcial de carne (2 de 4)
         var atualizacao1 = await ComServicoAsync(s =>
-            s.RegistrarColetaItemAsync(id, itemId: 1, quantidade: 2, default)
+            s.RegistrarColetaItemAsync(
+                id,
+                itemId: ConfigProfissoes.MaterialCarneDeCaca,
+                quantidade: 2,
+                default
+            )
         );
         Assert.Single(atualizacao1);
         Assert.Equal(2, atualizacao1[0].Objetivos[0].QuantidadeAtual);
@@ -92,7 +98,12 @@ public sealed class MissoesSecundariasTestes(ServidorDeTeste servidor)
 
         // Coleta restante (mais 2 de 4)
         var atualizacao2 = await ComServicoAsync(s =>
-            s.RegistrarColetaItemAsync(id, itemId: 1, quantidade: 2, default)
+            s.RegistrarColetaItemAsync(
+                id,
+                itemId: ConfigProfissoes.MaterialCarneDeCaca,
+                quantidade: 2,
+                default
+            )
         );
         Assert.Single(atualizacao2);
         Assert.Equal(4, atualizacao2[0].Objetivos[0].QuantidadeAtual);

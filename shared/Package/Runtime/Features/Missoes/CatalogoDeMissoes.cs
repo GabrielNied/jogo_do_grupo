@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using JogoDoGrupo.Shared.Features.Itens;
 using JogoDoGrupo.Shared.Features.Npcs;
+using JogoDoGrupo.Shared.Features.Profissoes;
 
 namespace JogoDoGrupo.Shared.Features.Missoes
 {
@@ -383,9 +384,10 @@ namespace JogoDoGrupo.Shared.Features.Missoes
                         new ObjetivoMissao
                         {
                             Id = 1,
-                            Descricao = "Colete 4 Carnes Frescas com os caçadores nos campos",
+                            Descricao =
+                                "Colete 4 Carnes de Caça nos rastros de caça ao norte (profissão Curtidor)",
                             Tipo = TipoDeObjetivo.Coletar,
-                            AlvoId = 1,
+                            AlvoId = ConfigProfissoes.MaterialCarneDeCaca,
                             QuantidadeTotal = 4,
                             RegiaoAlvo = "campo",
                             CoordenadaX = 0f,
@@ -422,9 +424,10 @@ namespace JogoDoGrupo.Shared.Features.Missoes
                         new ObjetivoMissao
                         {
                             Id = 1,
-                            Descricao = "Colete 6 Minérios de Ferro nos afloramentos rochosos",
+                            Descricao =
+                                "Colete 6 Minérios de Ferro nos veios ao norte (profissão Minerador)",
                             Tipo = TipoDeObjetivo.Coletar,
-                            AlvoId = 2,
+                            AlvoId = ConfigProfissoes.MaterialMinerioDeFerro,
                             QuantidadeTotal = 6,
                             RegiaoAlvo = "campo",
                             CoordenadaX = 20f,
@@ -512,14 +515,15 @@ namespace JogoDoGrupo.Shared.Features.Missoes
                         new ObjetivoMissao
                         {
                             Id = 1,
-                            Descricao = "Colete a Pasta de Ordens Mercantis no vale",
-                            Tipo = TipoDeObjetivo.Coletar,
-                            AlvoId = 3,
+                            Descricao =
+                                "Encontre a Pasta de Ordens Mercantis caída na estrada do vale",
+                            Tipo = TipoDeObjetivo.IrA,
+                            AlvoId = 0,
                             QuantidadeTotal = 1,
                             RegiaoAlvo = "campo",
                             CoordenadaX = 15f,
                             CoordenadaZ = 70f,
-                            RaioAreaMetros = 30f,
+                            RaioAreaMetros = 8f,
                         },
                     },
                     RecompensaXp = 190,
@@ -577,7 +581,7 @@ namespace JogoDoGrupo.Shared.Features.Missoes
                     Id = Missao106RemedioDasSombras,
                     Titulo = "Remédio das Sombras",
                     Descricao =
-                        "O Merceeiro Tomas precisa de fungos bioluminescentes colhidos na mata fria para a infusão de tônicos medicinais.",
+                        "O Merceeiro Tomas precisa de ervas medicinais colhidas nos arbustos ao norte para a infusão de tônicos medicinais.",
                     Tipo = TipoDeMissao.Secundaria,
                     Regiao = CatalogoNpcs.AreaCidade,
                     NivelRecomendado = 3,
@@ -602,9 +606,10 @@ namespace JogoDoGrupo.Shared.Features.Missoes
                         new ObjetivoMissao
                         {
                             Id = 2,
-                            Descricao = "Colete 5 Fungos Luminescentes nos troncos da mata",
+                            Descricao =
+                                "Colha 5 Ervas Medicinais nos arbustos ao norte (profissão Lenhador)",
                             Tipo = TipoDeObjetivo.Coletar,
-                            AlvoId = 5,
+                            AlvoId = ConfigProfissoes.MaterialErvaMedicinal,
                             QuantidadeTotal = 5,
                             RegiaoAlvo = "campo",
                             CoordenadaX = 45f,
@@ -763,9 +768,10 @@ namespace JogoDoGrupo.Shared.Features.Missoes
                         new ObjetivoMissao
                         {
                             Id = 1,
-                            Descricao = "Colete 4 Carnes Frescas nos pastos",
+                            Descricao =
+                                "Colete 4 Carnes de Caça nos rastros de caça dos pastos (profissão Curtidor)",
                             Tipo = TipoDeObjetivo.Coletar,
-                            AlvoId = 1,
+                            AlvoId = ConfigProfissoes.MaterialCarneDeCaca,
                             QuantidadeTotal = 4,
                             RegiaoAlvo = "campo",
                             CoordenadaX = 0f,
@@ -802,9 +808,10 @@ namespace JogoDoGrupo.Shared.Features.Missoes
                         new ObjetivoMissao
                         {
                             Id = 1,
-                            Descricao = "Colete 5 Minérios de Ferro nos afloramentos",
+                            Descricao =
+                                "Colete 5 Minérios de Ferro nos veios ao norte (profissão Minerador)",
                             Tipo = TipoDeObjetivo.Coletar,
-                            AlvoId = 2,
+                            AlvoId = ConfigProfissoes.MaterialMinerioDeFerro,
                             QuantidadeTotal = 5,
                             RegiaoAlvo = "campo",
                             CoordenadaX = 20f,
@@ -880,9 +887,10 @@ namespace JogoDoGrupo.Shared.Features.Missoes
                         new ObjetivoMissao
                         {
                             Id = 1,
-                            Descricao = "Colete 4 Fungos Luminescentes na ravina",
+                            Descricao =
+                                "Colha 4 Ervas Medicinais nos arbustos ao norte (profissão Lenhador)",
                             Tipo = TipoDeObjetivo.Coletar,
-                            AlvoId = 5,
+                            AlvoId = ConfigProfissoes.MaterialErvaMedicinal,
                             QuantidadeTotal = 4,
                             RegiaoAlvo = "campo",
                             CoordenadaX = 45f,
@@ -1013,9 +1021,10 @@ namespace JogoDoGrupo.Shared.Features.Missoes
                         new ObjetivoMissao
                         {
                             Id = 1,
-                            Descricao = "Colete 15 Minérios de Ferro nos afloramentos",
+                            Descricao =
+                                "Colete 15 Minérios de Ferro nos veios ao norte (profissão Minerador)",
                             Tipo = TipoDeObjetivo.Coletar,
-                            AlvoId = 2,
+                            AlvoId = ConfigProfissoes.MaterialMinerioDeFerro,
                             QuantidadeTotal = 15,
                             RegiaoAlvo = "campo",
                             CoordenadaX = 20f,

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using JogoDoGrupo.Client.Core.Jogo.Janelas;
 using JogoDoGrupo.Client.Core.UI;
+using JogoDoGrupo.Client.Core.Visual;
 using JogoDoGrupo.Shared.Features.Montarias;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -44,13 +45,13 @@ namespace JogoDoGrupo.Client.Features.Montarias.UI
             topo.style.marginBottom = 10f;
             topo.style.paddingBottom = 6f;
             topo.style.borderBottomWidth = 1f;
-            topo.style.borderBottomColor = new Color(0.25f, 0.28f, 0.35f, 0.8f);
+            topo.style.borderBottomColor = EstiloVisual.Cor(ConfigVisual.Cores.BordaDiscreta);
 
             var titulo = new Label("Estábulo da Brasa Mansa");
             titulo.AddToClassList(EstiloCore.Titulo);
             titulo.style.fontSize = 16f;
             titulo.style.unityFontStyleAndWeight = FontStyle.Bold;
-            titulo.style.color = new Color(0.92f, 0.94f, 0.98f);
+            titulo.style.color = EstiloVisual.Cor(ConfigVisual.Cores.Marfim);
             topo.Add(titulo);
 
             var subtitulo = new Label("Cavalariço Roderic · Montarias Básicas de Asterra");
@@ -67,7 +68,7 @@ namespace JogoDoGrupo.Client.Features.Montarias.UI
             );
             descricao.AddToClassList(EstiloCore.Texto);
             descricao.style.fontSize = 11.5f;
-            descricao.style.color = new Color(0.72f, 0.76f, 0.84f);
+            descricao.style.color = EstiloVisual.Cor(ConfigVisual.Cores.TextoSecundario);
             descricao.style.marginBottom = 12f;
             conteudo.Add(descricao);
 
@@ -83,7 +84,7 @@ namespace JogoDoGrupo.Client.Features.Montarias.UI
             rodape.AddToClassList(EstiloCore.Mensagem);
             rodape.style.fontSize = 11f;
             rodape.style.marginTop = 12f;
-            rodape.style.color = new Color(0.60f, 0.66f, 0.75f);
+            rodape.style.color = EstiloVisual.Cor(ConfigVisual.Cores.TextoDesabilitado);
             conteudo.Add(rodape);
         }
 
@@ -166,15 +167,19 @@ namespace JogoDoGrupo.Client.Features.Montarias.UI
                 Elemento.style.paddingLeft = 10f;
                 Elemento.style.paddingRight = 10f;
                 Elemento.style.marginBottom = 6f;
-                Elemento.style.backgroundColor = new Color(0.12f, 0.14f, 0.18f, 0.9f);
+                Elemento.style.backgroundColor = EstiloVisual.Cor(ConfigVisual.Cores.Campo);
                 Elemento.style.borderTopWidth = 1f;
                 Elemento.style.borderBottomWidth = 1f;
                 Elemento.style.borderLeftWidth = 1f;
                 Elemento.style.borderRightWidth = 1f;
-                Elemento.style.borderTopColor = new Color(0.24f, 0.28f, 0.36f, 0.6f);
-                Elemento.style.borderBottomColor = new Color(0.24f, 0.28f, 0.36f, 0.6f);
-                Elemento.style.borderLeftColor = new Color(0.24f, 0.28f, 0.36f, 0.6f);
-                Elemento.style.borderRightColor = new Color(0.24f, 0.28f, 0.36f, 0.6f);
+                Elemento.style.borderTopColor = EstiloVisual.Cor(ConfigVisual.Cores.BordaDiscreta);
+                Elemento.style.borderBottomColor = EstiloVisual.Cor(
+                    ConfigVisual.Cores.BordaDiscreta
+                );
+                Elemento.style.borderLeftColor = EstiloVisual.Cor(ConfigVisual.Cores.BordaDiscreta);
+                Elemento.style.borderRightColor = EstiloVisual.Cor(
+                    ConfigVisual.Cores.BordaDiscreta
+                );
                 Elemento.style.borderTopLeftRadius = 4f;
                 Elemento.style.borderTopRightRadius = 4f;
                 Elemento.style.borderBottomLeftRadius = 4f;
@@ -192,7 +197,7 @@ namespace JogoDoGrupo.Client.Features.Montarias.UI
                 rotuloNome.AddToClassList(EstiloCore.Texto);
                 rotuloNome.style.fontSize = 13.5f;
                 rotuloNome.style.unityFontStyleAndWeight = FontStyle.Bold;
-                rotuloNome.style.color = new Color(0.92f, 0.94f, 0.98f);
+                rotuloNome.style.color = EstiloVisual.Cor(ConfigVisual.Cores.Marfim);
                 linhaNome.Add(rotuloNome);
 
                 var rotuloPreco = new Label($" · {oferta.PrecoCoroas} Coroas");

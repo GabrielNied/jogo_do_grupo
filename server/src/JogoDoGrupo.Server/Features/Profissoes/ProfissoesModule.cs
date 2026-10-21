@@ -1,4 +1,6 @@
+using JogoDoGrupo.Server.Contratos.Profissoes;
 using JogoDoGrupo.Server.Core;
+using JogoDoGrupo.Server.Core.Eventos;
 using JogoDoGrupo.Server.Core.TempoReal;
 using JogoDoGrupo.Shared.Features.Profissoes;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,6 +15,7 @@ public sealed class ProfissoesModule : IFeatureModule
 {
     private IServiceScopeFactory? _scopeFactory;
     private ServidorTempoReal? _tempoReal;
+    private EventosDoServidor? _eventos;
 
     public string Nome => "Profissões";
 
@@ -53,7 +56,11 @@ public sealed class ProfissoesModule : IFeatureModule
                 (sessao, pedido) => Executar(sessao, s => AoProduzir(sessao, pedido, s))
             );
 
-    public void Inicializar(ServerContext contexto) => _tempoReal = contexto.TempoReal;
+    public void Inicializar(ServerContext contexto)
+    {
+        _tempoReal = contexto.TempoReal;
+        _eventos = contexto.Eventos;
+    }
 
     private void Executar(SessaoTempoReal sessao, Func<ServicoDeProfissoes, Task> acao)
     {
@@ -131,6 +138,9 @@ public sealed class ProfissoesModule : IFeatureModule
         }
 
         _tempoReal!.Enviar(sessao, ProfissoesMessageIds.ColetaConcluida, resultado);
+        _eventos?.Publicar(
+            new MaterialColetado(sessao.PersonagemId, resultado.MaterialId, resultado.Quantidade)
+        );
         EnviarEstado(
             sessao,
             await servico.ObterEstadoAsync(sessao.PersonagemId, CancellationToken.None)

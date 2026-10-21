@@ -47,6 +47,7 @@ namespace JogoDoGrupo.Client.Features.Social
         private readonly Button _irAoFim;
         private readonly DropdownField _filtro;
         private readonly TextField _campo;
+        private readonly List<Button> _abas = new List<Button>();
         private bool _primeiraRenderizacao = true;
 
         public PainelDeChat(VisualElement regiao)
@@ -60,30 +61,52 @@ namespace JogoDoGrupo.Client.Features.Social
                 _raiz.styleSheets.Add(estilo);
             }
 
-            _abrirPainel = new Button(() => DefinirOculto(false)) { text = "Mostrar chat" };
+            _abrirPainel = new Button(() => DefinirOculto(false)) { text = "Chat" };
             _abrirPainel.AddToClassList(EstiloCore.Botao);
             _abrirPainel.AddToClassList("chat-abrir");
             _raiz.Add(_abrirPainel);
 
             _painel = new VisualElement();
             _painel.AddToClassList("chat-painel");
-            var cabecalho = new VisualElement();
-            cabecalho.AddToClassList("chat-cabecalho");
-            var titulo = new Label("Chat");
-            titulo.AddToClassList(EstiloCore.Subtitulo);
-            cabecalho.Add(titulo);
-            _filtro = new DropdownField(
-                new List<string> { "Todos", "Cidade", "Grupo", "Sussurro", "Sistema" },
-                0
-            );
+
+            // Abas como as do World of Warcraft; o seletor continua sendo a fonte do filtro.
+            var nomesDasAbas = new List<string>
+            {
+                "Geral",
+                "Cidade",
+                "Grupo",
+                "Sussurro",
+                "Sistema",
+            };
+            _filtro = new DropdownField(nomesDasAbas, 0);
             _filtro.name = "social.chat.filtro";
             _filtro.AddToClassList("chat-filtro");
-            _filtro.RegisterValueChangedCallback(_ => ConfiguracaoMudou?.Invoke());
+            _filtro.RegisterValueChangedCallback(_ =>
+            {
+                AtualizarAbas();
+                ConfiguracaoMudou?.Invoke();
+            });
+
+            var cabecalho = new VisualElement();
+            cabecalho.AddToClassList("chat-cabecalho");
+            for (var i = 0; i < nomesDasAbas.Count; i++)
+            {
+                var indice = i;
+                var aba = new Button(() => _filtro.index = indice) { text = nomesDasAbas[i] };
+                aba.AddToClassList("chat-aba");
+                _abas.Add(aba);
+                cabecalho.Add(aba);
+            }
+
+            var espaco = new VisualElement();
+            espaco.AddToClassList("chat-espaco");
+            cabecalho.Add(espaco);
             cabecalho.Add(_filtro);
-            var ocultar = new Button(() => DefinirOculto(true)) { text = "Ocultar" };
-            ocultar.AddToClassList(EstiloCore.Botao);
+            var ocultar = new Button(() => DefinirOculto(true)) { text = "−" };
+            ocultar.AddToClassList("chat-ocultar");
             cabecalho.Add(ocultar);
             _painel.Add(cabecalho);
+            AtualizarAbas();
 
             var opcoes = new VisualElement();
             opcoes.AddToClassList("chat-opcoes");
@@ -109,8 +132,7 @@ namespace JogoDoGrupo.Client.Features.Social
             _rolagem.AddToClassList("chat-linhas");
             _conteudo = _rolagem.contentContainer;
             _painel.Add(_rolagem);
-            _irAoFim = new Button(IrAoFim) { text = "Ir ao fim" };
-            _irAoFim.AddToClassList(EstiloCore.Botao);
+            _irAoFim = new Button(IrAoFim) { text = "▼" };
             _irAoFim.AddToClassList("chat-ir-ao-fim");
             _rolagem.verticalScroller.valueChanged += _ =>
                 _irAoFim.style.display =
@@ -128,6 +150,12 @@ namespace JogoDoGrupo.Client.Features.Social
             _raiz.Add(_painel);
             regiao.Add(_raiz);
             DefinirOculto(PlayerPrefs.GetInt(ChaveOculto, 0) != 0, gravar: false);
+        }
+
+        private void AtualizarAbas()
+        {
+            for (var i = 0; i < _abas.Count; i++)
+                _abas[i].EnableInClassList("chat-aba-ativa", i == _filtro.index);
         }
 
         /// <summary>Enter apertado com a caixa aberta.</summary>

@@ -160,7 +160,7 @@ namespace JogoDoGrupo.Shared.Features.Npcs
                         "missoes",
                         "Ver Quadro de Missões",
                         AcaoDeDialogo.AbrirServico,
-                        "missoes.quadro"
+                        "missoes.conversa"
                     ),
                     new OpcaoDeDialogo("sair", "Até logo", AcaoDeDialogo.Fechar),
                 },

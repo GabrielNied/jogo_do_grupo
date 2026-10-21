@@ -1,8 +1,10 @@
 using System.Collections.Generic;
 using JogoDoGrupo.Client.Core.Jogo;
+using JogoDoGrupo.Client.Core.TempoReal;
 using JogoDoGrupo.Client.Core.UI;
 using JogoDoGrupo.Client.Core.Visual;
 using JogoDoGrupo.Client.Features.Mundo.Presenca;
+using JogoDoGrupo.Client.Features.Mundo.Terreno;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -22,6 +24,9 @@ namespace JogoDoGrupo.Client.Features.Mundo
         private VisualElement _vista;
         private VisualElement _marcadores;
         private Label _coordenadas;
+        private VisualElement _grupo;
+        private Label _zona;
+        private Label _info;
         private readonly List<MarcadorDoMapa> _outros = new List<MarcadorDoMapa>();
         private readonly List<MarcadorDoMapa> _inimigos = new List<MarcadorDoMapa>();
         private float _rotacao;
@@ -53,6 +58,21 @@ namespace JogoDoGrupo.Client.Features.Mundo
                 return;
             }
 
+            // Grupo do minimapa, como o do World of Warcraft: nome da zona em cima, o disco com
+            // o anel dourado e, embaixo, hora do mundo, canal, latência e coordenadas.
+            _grupo = new VisualElement { name = "mundo.minimapa-grupo" };
+            _grupo.pickingMode = PickingMode.Ignore;
+            _grupo.AddToClassList("mundo-minimapa-grupo");
+
+            _zona = new Label();
+            _zona.pickingMode = PickingMode.Ignore;
+            _zona.AddToClassList("mundo-minimapa-zona");
+            _grupo.Add(_zona);
+
+            var moldura = new VisualElement();
+            moldura.pickingMode = PickingMode.Ignore;
+            moldura.AddToClassList("mundo-minimapa-moldura");
+
             _raiz = new VisualElement { name = "mundo.minimapa" };
             _raiz.pickingMode = PickingMode.Ignore;
             _raiz.AddToClassList("mundo-minimapa");
@@ -76,23 +96,30 @@ namespace JogoDoGrupo.Client.Features.Mundo
             _marcadores.style.bottom = 0;
             _marcadores.generateVisualContent += DesenharMarcadores;
             _raiz.Add(_marcadores);
+            moldura.Add(_raiz);
+
+            var anel = new VisualElement();
+            anel.pickingMode = PickingMode.Ignore;
+            anel.AddToClassList("mundo-minimapa-anel");
+            moldura.Add(anel);
 
             var norte = new Label("N");
             norte.pickingMode = PickingMode.Ignore;
             norte.AddToClassList("mundo-minimapa-norte");
-            _raiz.Add(norte);
+            moldura.Add(norte);
+            _grupo.Add(moldura);
+
+            _info = new Label();
+            _info.pickingMode = PickingMode.Ignore;
+            _info.AddToClassList("mundo-minimapa-info");
+            _grupo.Add(_info);
 
             _coordenadas = new Label();
             _coordenadas.pickingMode = PickingMode.Ignore;
-            _coordenadas.AddToClassList(EstiloCore.Texto);
-            _coordenadas.style.position = Position.Absolute;
-            _coordenadas.style.left = 0;
-            _coordenadas.style.right = 0;
-            _coordenadas.style.bottom = 2;
-            _coordenadas.style.unityTextAlign = TextAnchor.LowerCenter;
-            _raiz.Add(_coordenadas);
+            _coordenadas.AddToClassList("mundo-minimapa-coordenadas");
+            _grupo.Add(_coordenadas);
 
-            regiao.Add(_raiz);
+            regiao.Add(_grupo);
         }
 
         private void LateUpdate()
@@ -110,8 +137,23 @@ namespace JogoDoGrupo.Client.Features.Mundo
             if (_coordenadas != null)
             {
                 var canal = PresencaNoMundo.Atual?.CanalAtual ?? 1;
-                _coordenadas.text =
-                    $"Canal {canal} · {ProjecaoDoMapa.Coordenadas(posicao.x, posicao.z)}";
+                _coordenadas.text = ProjecaoDoMapa.Coordenadas(posicao.x, posicao.z);
+                _zona.text = NomesDasZonas.Nome(posicao.x, posicao.z);
+                var latencia = ConexaoTempoReal.Latencia;
+                var hora = AmbienteDosBiomas.Hora;
+                var relogio =
+                    hora >= 0f
+                        ? Mathf.FloorToInt(hora).ToString("00")
+                            + ":"
+                            + Mathf.FloorToInt((hora % 1f) * 60f).ToString("00")
+                            + "  ·  "
+                        : string.Empty;
+                _info.text =
+                    relogio
+                    + "Canal "
+                    + canal
+                    + (latencia >= 0 ? "  ·  " + latencia + " ms" : string.Empty);
+                _info.EnableInClassList("mundo-minimapa-latencia-alta", latencia > 150);
             }
 
             if (_vista != null)
@@ -146,6 +188,7 @@ namespace JogoDoGrupo.Client.Features.Mundo
             }
 
             _raiz?.RemoveFromHierarchy();
+            _grupo?.RemoveFromHierarchy();
         }
 
         private void DesenharMarcadores(MeshGenerationContext contexto)

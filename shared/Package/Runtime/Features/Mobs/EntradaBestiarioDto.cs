@@ -3,6 +3,7 @@ namespace JogoDoGrupo.Shared.Features.Mobs
     /// <summary>
     /// Entrada de progresso de uma espécie no bestiário de um jogador (#922).
     /// </summary>
+    [System.Serializable]
     public sealed class EntradaBestiarioDto
     {
         public EntradaBestiarioDto() { }
@@ -14,8 +15,8 @@ namespace JogoDoGrupo.Shared.Features.Mobs
             Nivel = nivel;
         }
 
-        public int CriaturaId { get; set; }
-        public int Derrotas { get; set; }
-        public NivelDeConhecimentoBestiario Nivel { get; set; }
+        public int CriaturaId;
+        public int Derrotas;
+        public NivelDeConhecimentoBestiario Nivel;
     }
 }

@@ -273,5 +273,20 @@ namespace JogoDoGrupo.Shared.Tests.Features.Missoes
             Assert.Equal(TipoDeMissao.Principal, inicial.Tipo);
             Assert.Equal(1, inicial.NivelMinimo);
         }
+
+        [Fact]
+        public void OfereceNoNpc_DiariaSaiDoDoadorEDoQuadro_PrincipalSoDoDoador()
+        {
+            var diaria = CatalogoDeMissoes.Obter(CatalogoDeMissoes.Missao201PatrulhaDiaria)!;
+            var principal = CatalogoDeMissoes.Obter(CatalogoDeMissoes.Missao1PortoesDaBrasaMansa)!;
+            var quadro = JogoDoGrupo.Shared.Features.Npcs.CatalogoNpcs.IdQuadroDeDiarias;
+
+            Assert.Equal(TipoDeMissao.Diaria, diaria.Tipo);
+            Assert.True(RegrasMissoes.OfereceNoNpc(diaria, diaria.NpcDoadorId));
+            Assert.True(RegrasMissoes.OfereceNoNpc(diaria, quadro));
+            Assert.True(RegrasMissoes.OfereceNoNpc(principal, principal.NpcDoadorId));
+            Assert.False(RegrasMissoes.OfereceNoNpc(principal, quadro));
+            Assert.False(RegrasMissoes.OfereceNoNpc(principal, 0));
+        }
     }
 }

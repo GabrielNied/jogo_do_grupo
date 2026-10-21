@@ -1,3 +1,4 @@
+using JogoDoGrupo.Client.Core.Jogo;
 using JogoDoGrupo.Shared.Features.Economia;
 using UnityEngine;
 
@@ -116,12 +117,35 @@ namespace JogoDoGrupo.Client.Features.Economia
             colisor.radius = Tamanho.x * 0.5f;
             colisor.center = new Vector3(0f, Tamanho.y / 2f, 0f);
 
-            var corpo = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+            // Os vendedores, ferreiro, taverneiro e leiloeiro já têm corpo e nome pela
+            // funcionalidade NPCs no mesmo ponto: aqui só fica o colisor. A caixa de correio e o
+            // cofre da guilda, que não são pessoas, ganham uma peça baixa em vez da cápsula.
+            if (tipo != TipoNpcEconomia.Correio && tipo != TipoNpcEconomia.BancoGuilda)
+            {
+                return raiz;
+            }
+
+            // Correio é a caixa grande do Survival Kit do Kenney (CC0); o cofre da guilda, o baú
+            // em tamanho maior. Sem os modelos, a peça simples de reserva.
+            var modelo =
+                tipo == TipoNpcEconomia.Correio
+                    ? PropsDoMundo.Instanciar("Props/box-large", raiz.transform, 0.9f, 90f)
+                    : PropsDoMundo.Instanciar("Props/chest", raiz.transform, 1.2f, 180f);
+            if (modelo != null)
+            {
+                return raiz;
+            }
+
+            var corpo = GameObject.CreatePrimitive(PrimitiveType.Cube);
             corpo.name = "Corpo";
             corpo.transform.SetParent(raiz.transform, false);
-            corpo.transform.localScale = Tamanho;
-            corpo.transform.localPosition = new Vector3(0f, Tamanho.y / 2f, 0f);
-            Object.Destroy(corpo.GetComponent<CapsuleCollider>());
+            var tamanhoPeca =
+                tipo == TipoNpcEconomia.Correio
+                    ? new Vector3(0.6f, 1.2f, 0.5f)
+                    : new Vector3(1.2f, 0.8f, 0.8f);
+            corpo.transform.localScale = tamanhoPeca;
+            corpo.transform.localPosition = new Vector3(0f, tamanhoPeca.y / 2f, 0f);
+            Object.Destroy(corpo.GetComponent<BoxCollider>());
 
             var renderer = corpo.GetComponent<Renderer>();
             if (renderer != null)

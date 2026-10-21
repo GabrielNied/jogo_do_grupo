@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using JogoDoGrupo.Client.Core.Jogo.Janelas;
 using JogoDoGrupo.Client.Core.UI;
+using JogoDoGrupo.Client.Core.Visual;
 using JogoDoGrupo.Shared.Features.Combate;
 using JogoDoGrupo.Shared.Features.Itens;
 using JogoDoGrupo.Shared.Features.Skills;
@@ -77,7 +78,7 @@ namespace JogoDoGrupo.Client.Features.Skills.UI
             );
             descricao.AddToClassList(EstiloCore.Texto);
             descricao.style.fontSize = 11.5f;
-            descricao.style.color = new Color(0.72f, 0.76f, 0.84f);
+            descricao.style.color = EstiloVisual.Cor(ConfigVisual.Cores.TextoSecundario);
             descricao.style.marginBottom = 10f;
             conteudo.Add(descricao);
 
@@ -130,7 +131,7 @@ namespace JogoDoGrupo.Client.Features.Skills.UI
             rodape.AddToClassList(EstiloCore.Mensagem);
             rodape.style.fontSize = 11f;
             rodape.style.marginTop = 10f;
-            rodape.style.color = new Color(0.60f, 0.66f, 0.75f);
+            rodape.style.color = EstiloVisual.Cor(ConfigVisual.Cores.TextoDesabilitado);
             conteudo.Add(rodape);
         }
 

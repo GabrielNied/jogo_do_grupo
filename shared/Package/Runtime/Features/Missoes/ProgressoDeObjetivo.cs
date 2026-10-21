@@ -1,9 +1,10 @@
 namespace JogoDoGrupo.Shared.Features.Missoes
 {
+    [System.Serializable]
     public class ProgressoDeObjetivo
     {
-        public int ObjetivoId { get; set; }
-        public int QuantidadeAtual { get; set; }
-        public bool Concluido { get; set; }
+        public int ObjetivoId;
+        public int QuantidadeAtual;
+        public bool Concluido;
     }
 }

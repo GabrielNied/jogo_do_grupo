@@ -4,6 +4,7 @@ using JogoDoGrupo.Client.Core.Api;
 using JogoDoGrupo.Client.Core.Jogo;
 using JogoDoGrupo.Client.Core.Jogo.Janelas;
 using JogoDoGrupo.Client.Core.UI;
+using JogoDoGrupo.Client.Core.Visual;
 using JogoDoGrupo.Shared.Features.Itens;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -103,14 +104,14 @@ namespace JogoDoGrupo.Client.Features.Itens
             topo.style.marginBottom = 6f;
             topo.style.paddingBottom = 6f;
             topo.style.borderBottomWidth = 1f;
-            topo.style.borderBottomColor = new Color(0.25f, 0.28f, 0.35f, 0.8f);
+            topo.style.borderBottomColor = EstiloVisual.Cor(ConfigVisual.Cores.BordaDiscreta);
 
             var info = new VisualElement();
             var titulo = new Label("Banco da Conta");
             titulo.AddToClassList(EstiloCore.Titulo);
             titulo.style.fontSize = 15f;
             titulo.style.unityFontStyleAndWeight = FontStyle.Bold;
-            titulo.style.color = new Color(0.92f, 0.94f, 0.98f);
+            titulo.style.color = EstiloVisual.Cor(ConfigVisual.Cores.Marfim);
             info.Add(titulo);
 
             var subtitulo = new Label("Itens compartilhados entre todos os personagens");
@@ -182,7 +183,7 @@ namespace JogoDoGrupo.Client.Features.Itens
             rodape.style.marginTop = 8f;
             rodape.style.paddingTop = 6f;
             rodape.style.borderTopWidth = 1f;
-            rodape.style.borderTopColor = new Color(0.20f, 0.22f, 0.28f, 0.8f);
+            rodape.style.borderTopColor = EstiloVisual.Cor(ConfigVisual.Cores.BordaDiscreta);
 
             var dicaCtrl = new Label(
                 "Dica: Ctrl+Clique move instantaneamente entre a bolsa e o banco."

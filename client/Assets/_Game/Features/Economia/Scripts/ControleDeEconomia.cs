@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using JogoDoGrupo.Client.Core.Audio;
 using JogoDoGrupo.Client.Core.Jogo;
 using JogoDoGrupo.Client.Core.Jogo.Janelas;
 using JogoDoGrupo.Client.Core.TempoReal;
@@ -378,6 +379,7 @@ namespace JogoDoGrupo.Client.Features.Economia
         {
             SaldoCoroas = msg.SaldoAtualizado;
             SaldoMudou?.Invoke();
+            AudioDoJogo.TocarInterface(SomDeInterface.Moedas);
             ItemComprado?.Invoke(msg);
         }
 
@@ -385,6 +387,7 @@ namespace JogoDoGrupo.Client.Features.Economia
         {
             SaldoCoroas = msg.SaldoAtualizado;
             SaldoMudou?.Invoke();
+            AudioDoJogo.TocarInterface(SomDeInterface.Moedas);
             ItemVendido?.Invoke(msg);
         }
 

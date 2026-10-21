@@ -102,7 +102,7 @@ namespace JogoDoGrupo.Client.Features.Missoes
 
             foreach (var def in CatalogoDeMissoes.Todas)
             {
-                if (def.NpcDoadorId != npcId)
+                if (!RegrasMissoes.OfereceNoNpc(def, npcId))
                     continue;
 
                 if (

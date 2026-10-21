@@ -320,7 +320,7 @@ namespace JogoDoGrupo.Client.Core.Tests
         }
 
         [Test]
-        public void BarraDeAtalhos_NaoRecebeClique()
+        public void BarraDeAtalhos_SoOsBotoesRecebemClique()
         {
             var registro = new RegistroDeJanelas();
             registro.Registrar(
@@ -329,10 +329,19 @@ namespace JogoDoGrupo.Client.Core.Tests
 
             var barra = new BarraDeAtalhos(new VisualElement(), registro.Definicoes);
 
+            // Como o micro menu do WoW: cada atalho é um botão; o espaço entre eles e os rótulos
+            // não seguram o clique do mundo.
             Assert.AreEqual(PickingMode.Ignore, barra.Raiz.pickingMode);
-            foreach (var elemento in barra.Raiz.Query<VisualElement>().ToList())
+            var atalhos = barra.Raiz.Query<VisualElement>(null, EstiloCore.Atalho).ToList();
+            Assert.IsNotEmpty(atalhos);
+            foreach (var atalho in atalhos)
             {
-                Assert.AreEqual(PickingMode.Ignore, elemento.pickingMode);
+                Assert.AreEqual(PickingMode.Position, atalho.pickingMode);
+            }
+
+            foreach (var rotulo in barra.Raiz.Query<Label>().ToList())
+            {
+                Assert.AreEqual(PickingMode.Ignore, rotulo.pickingMode);
             }
         }
 

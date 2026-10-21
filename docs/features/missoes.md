@@ -43,7 +43,7 @@ Decidido em 2026-10-18 (veja [Definido](#definido)). É o fluxo clássico de MMO
 - **Pré-requisitos:** as missões que precisam estar concluídas e o **nível mínimo**. Uma missão com os pré-requisitos cumpridos fica **disponível**.
 - **Principal:** uma linha só, dividida em **capítulos**. Concluir uma etapa entrega a próxima **já aceita**, e o jogador nunca fica sem a próxima missão principal. O capítulo 1 está em [Capítulo 1: a cidade](#capítulo-1-a-cidade) (#328).
 - **Secundárias:** cada etapa da principal abre um conjunto de secundárias na região dela, e cada uma pode pedir um nível mínimo. Uma secundária também pode abrir outra (pequenas cadeias dentro da região).
-- **Diárias e semanais:** pedem só nível e a região já aberta pela principal. Renovam no reset (horário de Brasília), que é o mesmo das [raids](instancias.md#definido).
+- **Diárias e semanais:** pedem só nível e a região já aberta pela principal. Renovam no reset (horário de Brasília), que é o mesmo das [raids](instancias.md#definido). Saem do NPC que dá cada uma e também do **Quadro de Diárias** da praça (`RegrasMissoes.OfereceNoNpc`): a opção "Ver Quadro de Missões" abre a janela de missões do quadro com as do ciclo, e o servidor aceita perto de qualquer um dos dois.
 
 **Começo do jogo**
 
@@ -67,9 +67,9 @@ Decidido em 2026-10-18 (veja [Definido](#definido)). É o fluxo clássico de MMO
 **Objetivos (v1)**
 
 - **Matar** N inimigos de um tipo, numa área ou em qualquer lugar. Conta com a regra de [quem participou](fatia-jogavel.md#5-loot-no-chão).
-- **Coletar** N itens: drop de missão (só cai para quem tem a missão e não ocupa o inventário) ou ponto de coleta.
-- **Falar** com um NPC.
-- **Ir** a um lugar (área marcada no mapa).
+- **Coletar** N materiais nos pontos de coleta das [Profissões](profissoes.md) (carne de caça, minério de ferro, erva medicinal): o `AlvoId` é o material de `ConfigProfissoes` e conta o que entra a cada coleta aceita (evento `MaterialColetado`), por isso pede a profissão do ponto (o texto do objetivo diz qual). Drop de missão ainda não existe.
+- **Falar** com um NPC: conta quando os [NPCs](npcs.md) aceitam a conversa (mesma área, dentro do raio, pela posição do servidor; evento `JogadorFalouComNpc`). O client não avisa nada.
+- **Ir** a um lugar (área marcada no mapa): conta pela posição autoritativa. O laço confere a cada 0,5 s (`MissoesModule.IntervaloDasChegadas`) quem está no mundo aberto dentro do raio de um objetivo aberto e só então vai ao banco.
 - **Concluir uma dungeon** (ou derrotar o chefe dela).
 - Uma missão pode ter vários objetivos ao mesmo tempo ("mate 6 javalis **e** colete 4 presas").
 
@@ -85,11 +85,11 @@ Decidido em 2026-10-18 (veja [Definido](#definido)). É o fluxo clássico de MMO
 - **Registro (L):** lista por tipo (principal no topo), com objetivos, recompensas e os botões de acompanhar, abandonar e compartilhar.
 - **Rastreador no HUD:** a principal e até 4 missões acompanhadas, com o progresso dos objetivos.
 - **Mapa e minimapa:** **!** e **?** dos NPCs e a área do objetivo das missões acompanhadas ([mundo](mundo.md)).
-- **Conversa com o NPC:** texto da missão, objetivos, recompensas e os botões aceitar ou entregar. Usa o diálogo de NPC ([#178](https://github.com/GabrielNied/jogo_do_grupo/issues/178)).
+- **Conversa com o NPC:** ao abrir o diálogo ([#178](https://github.com/GabrielNied/jogo_do_grupo/issues/178)), a janela de missões do NPC (`missoes.conversa`, como o quadro de missão do WoW) abre ao lado quando ele tem missão para entregar ou para aceitar: texto, objetivos, recompensas, a escolha do item e o botão **Aceitar** ou **Entregar**. Fecha sozinha quando não sobra nada a fazer com ele.
 
 **Servidor autoritativo**
 
-- O servidor decide os pré-requisitos, o progresso, a entrega, a escolha do item e o reset. O client só envia intenções (aceitar, abandonar, entregar com a escolha, compartilhar, acompanhar) e mostra o resultado.
+- O servidor decide os pré-requisitos, o progresso, a entrega, a escolha do item e o reset. As contas de progresso de um personagem rodam uma de cada vez (duas mortes seguidas não se apagam). O client só envia intenções (aceitar, abandonar, entregar com a escolha, compartilhar, acompanhar) e mostra o resultado.
 - A entrega é **uma vez só**: entregar duas vezes ao mesmo tempo não pode dar a recompensa em dobro (teste de concorrência).
 
 ### Capítulo 1: A Brasa Mansa e a Serra do Vidro Frio (Roteiro Completo, issue #1058)
@@ -192,13 +192,13 @@ Todas as etapas seguem objetivos estritamente verificáveis pelo motor autoritat
 
 O Capítulo 1 destrava progressivamente 8 missões secundárias na região da cidade e campos, com variedade de objetivos (Coletar, IrA, Falar, Matar), uma cadeia curta e reputação de facção:
 
-1. **Caldeirão da Lareira** (ID 101, Taverneiro Barnabé, Nível 1, Requer Etapa 4): Coletar 4x Carnes Frescas de javali nos pastos para abastecer a estalagem. Recompensa: 180 XP, 35 Coroas, +25 Reputação Mercadores.
-2. **Minério para a Bigorna** (ID 102, Ferreiro Brom, Nível 2, Requer Etapa 5): Coletar 6x Minérios de Ferro nos afloramentos rochosos para reforçar a forja. Inicia a cadeia curta de ferreiro. Recompensa: 220 XP, 45 Coroas, +30 Reputação Forja.
+1. **Caldeirão da Lareira** (ID 101, Taverneiro Barnabé, Nível 1, Requer Etapa 4): Coletar 4x Carnes de Caça nos rastros de caça ao norte (profissão Curtidor) para abastecer a estalagem. Recompensa: 180 XP, 35 Coroas, +25 Reputação Mercadores.
+2. **Minério para a Bigorna** (ID 102, Ferreiro Brom, Nível 2, Requer Etapa 5): Coletar 6x Minérios de Ferro nos veios ao norte (profissão Minerador) para reforçar a forja. Inicia a cadeia curta de ferreiro. Recompensa: 220 XP, 45 Coroas, +30 Reputação Forja.
 3. **Reforço da Paliçada** (ID 107, Ferreiro Brom -> Capitã Valéria, Nível 2, Requer Missão 102): Cadeia curta da missão 102. Entregar as chapas forjadas à Capitã Valéria no portão sul. Recompensa: 240 XP, 50 Coroas, +25 Reputação Forja.
 4. **O Mascote Fugitivo** (ID 103, Cuidadora Mirna, Nível 2, Requer Etapa 5): Ir até o Moinho Decrépito no campo norte (área) e falar com Mirna na cidade. Recompensa: 200 XP, 40 Coroas, +25 Reputação Mercadores.
-5. **Correspondência Extraviada** (ID 104, Banqueiro Cassian, Nível 1, Requer Etapa 4): Coletar a Pasta de Ordens Mercantis extraviada na trilha após emboscada. Recompensa: 190 XP, 40 Coroas, +35 Reputação Mercadores.
+5. **Correspondência Extraviada** (ID 104, Banqueiro Cassian, Nível 1, Requer Etapa 4): Encontrar a Pasta de Ordens Mercantis caída na estrada do vale (objetivo **Ir**, raio de 8 m: a pasta não é item de lugar nenhum). Recompensa: 190 XP, 40 Coroas, +35 Reputação Mercadores.
 6. **Vigilância no Portão Leste** (ID 105, Capitã Valéria, Nível 2, Requer Etapa 6): Abater 5x Lobos Selvagens que rondam a paliçada oriental na névoa. Recompensa: 260 XP, 55 Coroas, +40 Reputação Guarda.
-7. **Remédio das Sombras** (ID 106, Merceeiro Tomas, Nível 3, Requer Etapa 7): Ir até a Ravina Sombria na mata fria e coletar 5x Fungos Luminescentes nos troncos. Recompensa: 300 XP, 70 Coroas, +40 Reputação Mercadores.
+7. **Remédio das Sombras** (ID 106, Merceeiro Tomas, Nível 3, Requer Etapa 7): Ir até a Ravina Sombria na mata fria e colher 5x Ervas Medicinais nos arbustos ao norte (profissão Lenhador). Recompensa: 300 XP, 70 Coroas, +40 Reputação Mercadores.
 8. **Guarda de Honra da Brasa** (ID 108, Capitã Valéria, Nível 3, Requer Etapa 7): Eliminar 8x Javalis Selvagens remanescentes no platô norte após a derrota do Presa Velha. Recompensa: 320 XP, 75 Coroas, +50 Reputação Guarda.
 
 #### 6. Missões Diárias e Semanais (#1062)

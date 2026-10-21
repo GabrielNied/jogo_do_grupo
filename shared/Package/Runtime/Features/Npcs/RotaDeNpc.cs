@@ -6,6 +6,7 @@ namespace JogoDoGrupo.Shared.Features.Npcs
     /// Rota fixa de um NPC ambiente: pontos, pausas e velocidade. A posição é uma função pura do
     /// tempo (<see cref="Amostrar"/>), então todo client calcula o mesmo lugar sem rede (#1069).
     /// </summary>
+    [System.Serializable]
     public sealed class RotaDeNpc
     {
         private readonly PontoDeRota[] _etapas;

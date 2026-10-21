@@ -1,32 +1,84 @@
-/* Lumora: seleção e criação, complementa os componentes compartilhados. */
+/* Seleção e criação em tela cheia, como as do World of Warcraft: o personagem grande no
+   centro, painéis com moldura nas laterais e a ação principal embaixo. */
+.personagem-tela {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.personagem-tela > .titulo {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 34px;
+    font-size: 40px;
+    letter-spacing: 3px;
+    -unity-text-align: middle-center;
+    text-shadow: 0 3px 4px var(--lumora-cores-contorno);
+}
+
+.personagem-tela > .subtitulo {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 92px;
+    font-size: var(--lumora-tipografia-controle);
+    color: var(--lumora-cores-texto-secundario);
+    -unity-text-align: middle-center;
+}
+
+.personagem-tela > .mensagem {
+    position: absolute;
+    left: 30%;
+    right: 30%;
+    top: 46%;
+}
+
 .personagem-painel-selecao {
     width: var(--lumora-dimensoes-painel-largo);
 }
 
-.personagem-painel-selecao-visual {
-    width: var(--lumora-dimensoes-painel-selecao-personagem);
-}
-
+/* Corpo da seleção: as três partes ficam soltas na tela. */
 .personagem-selecao-corpo {
-    flex-direction: row;
-    min-width: 0;
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
 }
 
 .personagem-selecao-vagas {
-    width: 29%;
-    min-width: 0;
-    padding-right: var(--lumora-espacamento-medio);
+    position: absolute;
+    right: 48px;
+    top: 130px;
+    width: 400px;
+    padding: var(--lumora-espacamento-grande);
+    background-image: url("../../../../../Core/UI/Visual/Resources/Lumora/Arte/Hud/janela.png");
+    -unity-slice-left: var(--lumora-ornamentos-fatia-janela);
+    -unity-slice-right: var(--lumora-ornamentos-fatia-janela);
+    -unity-slice-top: var(--lumora-ornamentos-fatia-janela);
+    -unity-slice-bottom: var(--lumora-ornamentos-fatia-janela);
 }
 
 .personagem-selecao-centro {
-    width: 40%;
-    min-width: 0;
-    padding-right: var(--lumora-espacamento-medio);
+    position: absolute;
+    left: 28%;
+    right: 28%;
+    top: 120px;
+    bottom: 285px;
+    align-items: center;
+    justify-content: center;
 }
 
 .personagem-selecao-resumo {
-    width: 31%;
-    min-width: 0;
+    position: absolute;
+    left: 50%;
+    bottom: 36px;
+    width: 560px;
+    translate: -50% 0;
+    align-items: center;
 }
 
 .personagem-selecao-corpo .subtitulo {
@@ -36,34 +88,68 @@
 
 .personagem-selecao-imagem {
     width: 100%;
-    height: var(--lumora-dimensoes-comparacao-altura);
-    background-color: var(--lumora-cores-campo);
-    border-width: var(--lumora-bordas-fina);
-    border-color: var(--lumora-cores-borda-discreta);
-    border-radius: var(--lumora-bordas-raio-cartao);
+    height: 100%;
+    background-color: var(--lumora-cores-transparente);
+    border-width: 0;
 }
 
 .personagem-selecao-resumo .personagem-item-nome {
-    margin-bottom: var(--lumora-espacamento-pequeno);
+    font-size: 34px;
+    margin-bottom: 0;
+    -unity-text-align: middle-center;
+    text-shadow: 0 2px 3px var(--lumora-cores-contorno);
 }
 
 .personagem-selecao-resumo .personagem-item-detalhes {
-    margin-bottom: var(--lumora-espacamento-amplo);
+    margin-bottom: var(--lumora-espacamento-pequeno);
+    -unity-text-align: middle-center;
+    text-shadow: 0 1px 2px var(--lumora-cores-contorno);
 }
 
-.personagem-selecao-vagas > .botao,
-.personagem-selecao-resumo > .botao {
+.personagem-entrar {
+    width: 340px;
+    min-height: 58px;
+    font-size: 22px;
+    margin: var(--lumora-espacamento-pequeno) 0 var(--lumora-espacamento-minimo);
+}
+
+.personagem-selecao-vagas > .botao {
+    flex-grow: 0;
     margin: var(--lumora-espacamento-pequeno) 0 0;
 }
 
+.personagem-painel-selecao-visual > .subtitulo {
+    display: none;
+}
+
+.personagem-selecao-resumo > .personagem-botao-perigo {
+    min-height: 34px;
+    padding: 2px var(--lumora-espacamento-medio);
+    font-size: var(--lumora-tipografia-leitura);
+    margin-top: var(--lumora-espacamento-minimo);
+}
+
 .personagem-selecao-rodape {
+    position: absolute;
+    left: 48px;
+    bottom: 40px;
     flex-direction: row;
-    justify-content: flex-end;
-    margin-top: var(--lumora-espacamento-medio);
 }
 
 .personagem-selecao-rodape > .botao {
     flex-grow: 0;
+    min-width: 140px;
+}
+
+.personagem-confirmacao-exclusao {
+    width: 100%;
+    margin-top: var(--lumora-espacamento-pequeno);
+    padding: var(--lumora-espacamento-medio);
+    background-image: url("../../../../../Core/UI/Visual/Resources/Lumora/Arte/Hud/dica.png");
+    -unity-slice-left: var(--lumora-ornamentos-fatia-dica);
+    -unity-slice-right: var(--lumora-ornamentos-fatia-dica);
+    -unity-slice-top: var(--lumora-ornamentos-fatia-dica);
+    -unity-slice-bottom: var(--lumora-ornamentos-fatia-dica);
 }
 
 .personagem-vaga-livre {
@@ -74,19 +160,8 @@
     border-color: var(--lumora-cores-borda-discreta);
     border-radius: var(--lumora-bordas-raio-cartao);
     color: var(--lumora-cores-texto-secundario);
+    -unity-font-style: italic;
     white-space: normal;
-}
-
-.lumora-compacto .personagem-selecao-corpo {
-    flex-direction: column;
-}
-
-.lumora-compacto .personagem-selecao-vagas,
-.lumora-compacto .personagem-selecao-centro,
-.lumora-compacto .personagem-selecao-resumo {
-    width: 100%;
-    padding-right: 0;
-    margin-bottom: var(--lumora-espacamento-padrao);
 }
 
 .personagem-lista {
@@ -104,6 +179,7 @@
     border-width: var(--lumora-bordas-fina);
     border-color: var(--lumora-cores-borda-discreta);
     background-color: var(--lumora-cores-campo);
+    background-image: none;
     color: var(--lumora-cores-marfim);
     white-space: normal;
     font-size: var(--lumora-tipografia-controle);
@@ -119,13 +195,13 @@
 }
 
 .personagem-item:focus {
-    border-color: var(--lumora-cores-essencia);
+    border-color: var(--lumora-cores-ouro);
     border-width: var(--lumora-bordas-destaque);
 }
 
 .personagem-item.personagem-item-selecionado {
     background-color: var(--lumora-cores-selecionado);
-    border-color: var(--lumora-cores-essencia);
+    border-color: var(--lumora-cores-ouro);
     border-left-width: var(--lumora-bordas-selecao);
 }
 
@@ -147,33 +223,82 @@
     color: var(--lumora-cores-texto-secundario);
 }
 
+/* Criação. */
 .personagem-escolha-raca {
-    flex-direction: row;
-    margin-bottom: var(--lumora-espacamento-pequeno);
-    min-width: 0;
-}
-
-.personagem-painel-criacao-visual {
-    width: var(--lumora-dimensoes-painel-selecao-personagem);
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
 }
 
 .personagem-criacao-corpo .personagem-criacao-escolhas {
-    width: 29%;
-    min-width: 0;
-    margin-right: 0;
-    padding-right: var(--lumora-espacamento-medio);
+    position: absolute;
+    left: 48px;
+    top: 130px;
+    bottom: 120px;
+    width: 380px;
+    margin: 0;
+    padding: var(--lumora-espacamento-grande);
+    background-image: url("../../../../../Core/UI/Visual/Resources/Lumora/Arte/Hud/janela.png");
+    -unity-slice-left: var(--lumora-ornamentos-fatia-janela);
+    -unity-slice-right: var(--lumora-ornamentos-fatia-janela);
+    -unity-slice-top: var(--lumora-ornamentos-fatia-janela);
+    -unity-slice-bottom: var(--lumora-ornamentos-fatia-janela);
 }
 
 .personagem-criacao-centro {
-    width: 40%;
-    min-width: 0;
-    padding-right: var(--lumora-espacamento-medio);
+    position: absolute;
+    left: 470px;
+    right: 490px;
+    top: 120px;
+    bottom: 36px;
+    align-items: center;
+}
+
+/* Palco da prévia: o pedestal fica atrás do personagem, na altura dos pés (a câmera deixa
+   cerca de 7,5% de margem embaixo do modelo). */
+.personagem-palco {
+    flex-grow: 1;
+    width: 100%;
+}
+
+.personagem-palco > .personagem-selecao-imagem {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: auto;
+    height: auto;
+}
+
+.personagem-pedestal {
+    position: absolute;
+    left: 50%;
+    bottom: 1.5%;
+    width: 360px;
+    height: 12%;
+    translate: -50% 0;
+    background-image: url("../../../../../Core/UI/Visual/Resources/Lumora/Arte/Hud/pedestal.png");
+    -unity-background-scale-mode: stretch-to-fill;
 }
 
 .personagem-criacao-corpo .personagem-criacao-informacoes {
-    width: 31%;
-    min-width: 0;
+    position: absolute;
+    right: 48px;
+    top: 130px;
+    bottom: 120px;
+    width: 420px;
     flex-grow: 0;
+    padding: var(--lumora-espacamento-grande);
+    background-color: var(--lumora-cores-transparente);
+    background-image: url("../../../../../Core/UI/Visual/Resources/Lumora/Arte/Hud/janela.png");
+    -unity-slice-left: var(--lumora-ornamentos-fatia-janela);
+    -unity-slice-right: var(--lumora-ornamentos-fatia-janela);
+    -unity-slice-top: var(--lumora-ornamentos-fatia-janela);
+    -unity-slice-bottom: var(--lumora-ornamentos-fatia-janela);
+    border-width: 0;
 }
 
 .personagem-criacao-corpo .subtitulo {
@@ -185,23 +310,38 @@
     margin: var(--lumora-espacamento-pequeno) 0 0;
 }
 
+.personagem-criacao-informacoes > .botao-principal {
+    flex-grow: 0;
+    min-height: 56px;
+    font-size: 22px;
+    margin-top: auto;
+}
+
 .personagem-criacao-erro-nome {
     -unity-text-align: middle-left;
     margin-top: 0;
     margin-bottom: var(--lumora-espacamento-medio);
 }
 
-.lumora-compacto .personagem-criacao-corpo {
-    flex-direction: column;
+.personagem-criacao-aparencia {
+    width: 100%;
+    max-width: 640px;
+    padding: var(--lumora-espacamento-medio) var(--lumora-espacamento-grande);
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-around;
+    background-image: url("../../../../../Core/UI/Visual/Resources/Lumora/Arte/Hud/placa.png");
+    -unity-slice-left: var(--lumora-ornamentos-fatia-placa);
+    -unity-slice-right: var(--lumora-ornamentos-fatia-placa);
+    -unity-slice-top: var(--lumora-ornamentos-fatia-placa);
+    -unity-slice-bottom: var(--lumora-ornamentos-fatia-placa);
 }
 
-.lumora-compacto .personagem-criacao-escolhas,
-.lumora-compacto .personagem-criacao-centro,
-.lumora-compacto .personagem-criacao-informacoes {
+.personagem-criacao-aparencia > .subtitulo {
     width: 100%;
-    margin-right: 0;
-    padding-right: 0;
-    margin-bottom: var(--lumora-espacamento-padrao);
+    -unity-text-align: middle-center;
+    margin-bottom: var(--lumora-espacamento-pequeno);
+    font-size: var(--lumora-tipografia-controle);
 }
 
 .personagem-lista-racas {
@@ -211,21 +351,17 @@
 }
 
 .personagem-raca-botao {
-    min-height: var(--lumora-dimensoes-alvo-minimo);
+    min-height: 52px;
     margin-bottom: var(--lumora-espacamento-minimo);
     padding: var(--lumora-espacamento-pequeno) var(--lumora-espacamento-medio);
     -unity-text-align: middle-left;
+    font-size: var(--lumora-tipografia-controle);
 }
 
 .personagem-cartao-raca {
     flex-grow: 1;
     flex-shrink: 1;
     min-width: 0;
-    padding: var(--lumora-espacamento-controle) var(--lumora-espacamento-padrao);
-    background-color: var(--lumora-cores-campo);
-    border-width: var(--lumora-bordas-fina);
-    border-color: var(--lumora-cores-borda-discreta);
-    border-radius: var(--lumora-bordas-raio-cartao);
 }
 
 .personagem-cartao-texto, .personagem-cartao-citacao {
@@ -238,45 +374,76 @@
 .personagem-cartao-citacao {
     margin-top: var(--lumora-espacamento-controle);
     color: var(--lumora-cores-ouro);
+    -unity-font-style: italic;
 }
 
-.lumora-estreito .personagem-escolha-raca {
-    flex-direction: column;
+.lumora-compacto .personagem-selecao-vagas {
+    width: 320px;
+    right: 16px;
 }
 
-.lumora-estreito .personagem-lista-racas {
-    width: 100%;
-    margin-right: 0;
+.lumora-compacto .personagem-criacao-corpo .personagem-criacao-escolhas {
+    left: 16px;
+    width: 300px;
+}
+
+.lumora-compacto .personagem-criacao-corpo .personagem-criacao-informacoes {
+    right: 16px;
+    width: 320px;
+}
+
+.lumora-compacto .personagem-criacao-centro {
+    left: 330px;
+    right: 350px;
 }
 
 .personagem-hud-barra-xp {
-    width: 100%;
-    margin-bottom: var(--lumora-espacamento-pequeno);
-}
-
-.personagem-hud-barra-xp-rotulo {
-    margin-bottom: var(--lumora-espacamento-curto);
-    font-size: var(--lumora-tipografia-leitura);
-    color: var(--lumora-cores-marfim);
-    -unity-text-align: middle-left;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
 }
 
 .personagem-hud-barra-xp-trilho {
-    min-height: var(--lumora-dimensoes-barra);
-    background-color: var(--lumora-cores-trilho);
-    border-width: var(--lumora-bordas-fina);
-    border-color: var(--lumora-cores-borda-discreta);
-    border-radius: var(--lumora-bordas-raio-campo);
-    overflow: hidden;
+    flex-grow: 1;
+    padding: 2px;
+    background-image: url("../../../../../Core/UI/Visual/Resources/Lumora/Arte/Hud/barra-fundo.png");
+    -unity-slice-left: var(--lumora-ornamentos-fatia-barra);
+    -unity-slice-right: var(--lumora-ornamentos-fatia-barra);
+    -unity-slice-top: var(--lumora-ornamentos-fatia-barra);
+    -unity-slice-bottom: var(--lumora-ornamentos-fatia-barra);
+    justify-content: center;
 }
 
 .personagem-hud-barra-xp-preenchimento {
     position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
+    left: 2px;
+    top: 2px;
+    bottom: 2px;
     width: 0;
-    background-color: var(--lumora-cores-essencia);
+    background-image: url("../../../../../Core/UI/Visual/Resources/Lumora/Arte/Hud/barra-preenchimento.png");
+    -unity-background-scale-mode: stretch-to-fill;
+    -unity-background-image-tint-color: var(--lumora-cores-experiencia);
+}
+
+.personagem-hud-barra-xp-marca {
+    position: absolute;
+    top: 3px;
+    bottom: 3px;
+    width: 1px;
+    background-color: var(--lumora-cores-contorno);
+    opacity: 0.6;
+}
+
+.personagem-hud-barra-xp-rotulo {
+    font-size: var(--lumora-tipografia-tecla);
+    color: var(--lumora-cores-marfim);
+    -unity-text-align: middle-center;
+    -unity-font-style: bold;
+    text-shadow: 1px 1px 1px var(--lumora-cores-contorno);
+    margin: 0;
+    padding: 0;
 }
 
 .personagem-painel-queda {

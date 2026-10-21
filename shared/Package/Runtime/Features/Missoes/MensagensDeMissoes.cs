@@ -35,7 +35,10 @@ namespace JogoDoGrupo.Shared.Features.Missoes
         public bool Acompanhada;
     }
 
-    /// <summary>Client → servidor: avisa interação com NPC para progresso de objetivo "Falar".</summary>
+    /// <summary>
+    /// Sem uso: o servidor não trata mais este pedido (ele não conferia a distância). A conversa
+    /// conta para as missões quando os NPCs aceitam o <c>FalarComNpc</c>. O id fica reservado.
+    /// </summary>
     public class InteragirComNpcMissao
     {
         public int NpcId;

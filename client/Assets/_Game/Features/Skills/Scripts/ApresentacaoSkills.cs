@@ -8,7 +8,8 @@ namespace JogoDoGrupo.Client.Features.Skills
     /// </summary>
     internal static class ApresentacaoSkills
     {
-        public const string TextoSemArma = "Equipe uma arma para ter skills";
+        public const string TextoSemArma =
+            "Equipe uma arma para ter skills (I, botão direito na arma)";
         public const string RotuloStamina = "Stamina";
         public const string RotuloMana = "Mana";
 

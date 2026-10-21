@@ -1,19 +1,26 @@
+using JogoDoGrupo.Client.Core.Jogo;
+using JogoDoGrupo.Client.Core.UI;
 using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace JogoDoGrupo.Client.Features.Combate
 {
     /// <summary>
-    /// As barras de vida, stamina e mana no canto da tela (UI Toolkit montada em código).
-    /// Só mostra o que recebe; o visual está em <c>EstiloCombate.uss</c>.
+    /// Quadro do personagem no alto à esquerda, como o "player frame" do World of Warcraft:
+    /// retrato com o nível, nome e as barras de vida, mana e stamina com os números. Só mostra
+    /// o que recebe; nome e nível vêm de <see cref="PerfilDoJogador"/>. Visual em
+    /// <c>EstiloCombate.uss</c> e nos componentes do HUD do Core.
     /// </summary>
     internal sealed class PainelRecursos
     {
         public const string CaminhoEstilo = "UI/EstiloCombate";
 
-        private readonly Barra _vida;
-        private readonly Barra _stamina;
-        private readonly Barra _mana;
+        private readonly VisualElement _quadro;
+        private readonly RetratoHud _retrato;
+        private readonly Label _nome;
+        private readonly BarraHud _vida;
+        private readonly BarraHud _mana;
+        private readonly BarraHud _stamina;
 
         public PainelRecursos(VisualElement raiz)
         {
@@ -23,69 +30,72 @@ namespace JogoDoGrupo.Client.Features.Combate
                 raiz.styleSheets.Add(estilo);
             }
 
-            var caixa = new VisualElement { name = "combate.recursos" };
-            caixa.pickingMode = PickingMode.Ignore;
-            caixa.AddToClassList("recursos");
+            _quadro = new VisualElement { name = "combate.recursos" };
+            _quadro.pickingMode = PickingMode.Ignore;
+            _quadro.AddToClassList("recursos");
             if (raiz.name == "CombateInterface")
             {
-                caixa.AddToClassList("recursos-soltos");
+                _quadro.AddToClassList("recursos-soltos");
             }
 
-            _vida = new Barra(caixa, "barra-vida");
-            _stamina = new Barra(caixa, "barra-stamina");
-            _mana = new Barra(caixa, "barra-mana");
-            raiz.Insert(0, caixa);
+            _retrato = new RetratoHud();
+            _quadro.Add(_retrato.Raiz);
+
+            var coluna = new VisualElement { pickingMode = PickingMode.Ignore };
+            coluna.AddToClassList("recursos-coluna");
+            _nome = ComponentesHud.Texto(string.Empty, "recursos-nome");
+            coluna.Add(_nome);
+
+            _vida = new BarraHud("hud-barra-vida");
+            _vida.Raiz.AddToClassList("recursos-barra-vida");
+            _mana = new BarraHud("hud-barra-mana");
+            _mana.Raiz.AddToClassList("recursos-barra-mana");
+            _stamina = new BarraHud("hud-barra-stamina", fina: true);
+            _stamina.Raiz.AddToClassList("recursos-barra-stamina");
+            coluna.Add(_vida.Raiz);
+            coluna.Add(_mana.Raiz);
+            coluna.Add(_stamina.Raiz);
+            _quadro.Add(coluna);
+
+            raiz.Insert(0, _quadro);
+
+            PerfilDoJogador.Mudou += AtualizarPerfil;
+            _quadro.RegisterCallback<DetachFromPanelEvent>(_ =>
+                PerfilDoJogador.Mudou -= AtualizarPerfil
+            );
+            AtualizarPerfil();
         }
 
         public void Mostrar(BarraRecurso vida, BarraRecurso stamina, BarraRecurso mana)
         {
-            _vida.Mostrar(vida);
-            _stamina.Mostrar(stamina);
-            _mana.Mostrar(mana);
+            _vida.Definir(vida.Atual, vida.Maximo);
+            _vida.Raiz.EnableInClassList(
+                "hud-barra-vida-baixa",
+                vida.Maximo > 0 && vida.Fracao <= ConfigCombateHud.FracaoVidaBaixa
+            );
+            _mana.Definir(mana.Atual, mana.Maximo);
+            _stamina.Definir(stamina.Atual, stamina.Maximo, null);
+            _quadro.EnableInClassList(
+                "recursos-vida-baixa",
+                vida.Maximo > 0 && vida.Fracao <= ConfigCombateHud.FracaoVidaBaixa
+            );
         }
 
-        private sealed class Barra
+        private void AtualizarPerfil()
         {
-            private readonly VisualElement _preenchimento;
-            private readonly Label _rotulo;
-            private readonly Label _valor;
-
-            public Barra(VisualElement pai, string classeDaCor)
-            {
-                var linha = new VisualElement();
-                linha.pickingMode = PickingMode.Ignore;
-                linha.AddToClassList("recurso-linha");
-
-                _rotulo = new Label();
-                _rotulo.pickingMode = PickingMode.Ignore;
-                _rotulo.AddToClassList("recurso-rotulo");
-
-                var barra = new VisualElement();
-                barra.pickingMode = PickingMode.Ignore;
-                barra.AddToClassList("recurso-barra");
-
-                _preenchimento = new VisualElement();
-                _preenchimento.pickingMode = PickingMode.Ignore;
-                _preenchimento.AddToClassList("recurso-preenchimento");
-                _preenchimento.AddToClassList(classeDaCor);
-
-                _valor = new Label();
-                _valor.pickingMode = PickingMode.Ignore;
-                _valor.AddToClassList("recurso-valor");
-
-                barra.Add(_preenchimento);
-                linha.Add(_rotulo);
-                linha.Add(barra);
-                linha.Add(_valor);
-                pai.Add(linha);
-            }
-
-            public void Mostrar(BarraRecurso dados)
-            {
-                _preenchimento.style.width = Length.Percent(dados.Fracao * 100f);
-                _rotulo.text = dados.Rotulo;
-                _valor.text = dados.Atual + "/" + dados.Maximo;
-            }
+            _nome.text = PerfilDoJogador.Nome;
+            _retrato.Definir(
+                PerfilDoJogador.Nome,
+                PerfilDoJogador.Nivel,
+                PerfilDoJogador.CorDaRaca(PerfilDoJogador.Raca)
+            );
         }
+    }
+
+    /// <summary>Valores de leitura do quadro do personagem.</summary>
+    internal static class ConfigCombateHud
+    {
+        /// <summary>Abaixo desta fração a vida fica em alerta (barra e moldura avermelhadas).</summary>
+        public const float FracaoVidaBaixa = 0.3f;
     }
 }

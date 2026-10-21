@@ -45,11 +45,13 @@ namespace JogoDoGrupo.Client.Features.Personagem
         {
             EstiloPersonagem.Aplicar(raiz);
 
-            var painel = EstiloCore.CriarPainel(social: true);
-            painel.AddToClassList(EstiloPersonagem.PainelSelecao);
+            // Tela cheia, como a criação do WoW: raças à esquerda, o personagem no centro com a
+            // aparência embaixo e o cartão da raça com o Criar à direita.
+            var painel = new VisualElement();
+            painel.AddToClassList("personagem-tela");
             painel.AddToClassList("personagem-painel-criacao-visual");
 
-            var titulo = new Label("Novo personagem");
+            var titulo = new Label("Criar personagem");
             titulo.AddToClassList(EstiloCore.Titulo);
 
             var subtitulo = new Label("Escolha o nome e a raça");
@@ -141,12 +143,10 @@ namespace JogoDoGrupo.Client.Features.Personagem
 
             var centro = new VisualElement();
             centro.AddToClassList("personagem-criacao-centro");
-            var tituloPrevia = new Label("Visual da raça");
-            tituloPrevia.AddToClassList(EstiloCore.Subtitulo);
-            centro.Add(tituloPrevia);
             _imagem = new Image { scaleMode = ScaleMode.ScaleToFit };
             _imagem.AddToClassList("personagem-selecao-imagem");
-            centro.Add(_imagem);
+            PreviaVisualPersonagem.LigarArrasto(_imagem, () => _previsao);
+            centro.Add(PreviaVisualPersonagem.CriarPalco(_imagem));
             _avisoPrevia = new Label();
             _avisoPrevia.AddToClassList(EstiloCore.Mensagem);
             centro.Add(_avisoPrevia);

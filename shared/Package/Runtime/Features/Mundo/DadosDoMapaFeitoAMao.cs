@@ -17,6 +17,33 @@ namespace JogoDoGrupo.Shared.Features.Mundo
         /// </summary>
         public static bool DesativadoEmTestes { get; set; }
 
+        /// <summary>
+        /// Desliga os dados publicados até o escopo devolvido ser descartado, voltando ao valor
+        /// anterior. Teste que liga o desvio sem desligar contamina os seguintes (#1174).
+        /// </summary>
+        public static System.IDisposable Desativar()
+        {
+            var anterior = DesativadoEmTestes;
+            DesativadoEmTestes = true;
+            return new EscopoDesativado(anterior);
+        }
+
+        private sealed class EscopoDesativado : System.IDisposable
+        {
+            private readonly bool _anterior;
+            private bool _descartado;
+
+            public EscopoDesativado(bool anterior) => _anterior = anterior;
+
+            public void Dispose()
+            {
+                if (_descartado)
+                    return;
+                _descartado = true;
+                DesativadoEmTestes = _anterior;
+            }
+        }
+
         public static bool Disponivel =>
             !DesativadoEmTestes
             && AlturasEmCentimetros.Length == MapaDoMundo.PontosPorLado * MapaDoMundo.PontosPorLado

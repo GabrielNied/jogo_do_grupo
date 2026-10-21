@@ -1,3 +1,5 @@
+/* Componentes compartilhados da interface Asterra (molduras em Arte/Hud, geradas por
+   design/interface/ferramentas/gerar-texturas.mjs). Cores e medidas só por token. */
 .lumora-ui {
     font-size: var(--lumora-tipografia-leitura);
     color: var(--lumora-cores-marfim);
@@ -9,12 +11,15 @@
     font-size: var(--lumora-tipografia-titulo);
     color: var(--lumora-cores-ouro);
     white-space: normal;
+    text-shadow: 0 2px 2px var(--lumora-cores-contorno);
+    letter-spacing: 1px;
 }
 
 .lumora-ui .ui-subtitulo, .lumora-ui .subtitulo {
     font-size: var(--lumora-tipografia-subtitulo);
     color: var(--lumora-cores-ouro);
     white-space: normal;
+    text-shadow: 0 1px 2px var(--lumora-cores-contorno);
 }
 
 .lumora-ui .ui-texto, .lumora-ui .texto {
@@ -28,63 +33,76 @@
     min-width: 0;
 }
 
+/* Painel / janela: moldura dourada com cantos em losango. */
 .lumora-ui .ui-painel, .lumora-ui .painel {
-    background-color: var(--lumora-cores-painel);
+    background-color: var(--lumora-cores-transparente);
+    background-image: url("Arte/Hud/janela.png");
+    -unity-slice-left: var(--lumora-ornamentos-fatia-janela);
+    -unity-slice-right: var(--lumora-ornamentos-fatia-janela);
+    -unity-slice-top: var(--lumora-ornamentos-fatia-janela);
+    -unity-slice-bottom: var(--lumora-ornamentos-fatia-janela);
     padding: var(--lumora-espacamento-grande);
-    border-width: var(--lumora-bordas-fina);
-    border-color: var(--lumora-cores-ouro);
-    border-radius: var(--lumora-bordas-raio-painel);
+    border-width: 0;
     min-width: 0;
 }
 
+/* Botões: bronze escuro; o principal é carmim com borda dourada. */
 .lumora-ui .ui-botao, .lumora-ui .botao {
     font-size: var(--lumora-tipografia-controle);
     min-height: var(--lumora-dimensoes-alvo-minimo);
     white-space: normal;
-    padding: var(--lumora-espacamento-medio) var(--lumora-espacamento-intermediario);
-    background-color: var(--lumora-cores-petroleo);
+    padding: var(--lumora-espacamento-pequeno) var(--lumora-espacamento-intermediario);
+    background-color: var(--lumora-cores-transparente);
+    background-image: url("Arte/Hud/botao.png");
+    -unity-slice-left: var(--lumora-ornamentos-fatia-botao);
+    -unity-slice-right: var(--lumora-ornamentos-fatia-botao);
+    -unity-slice-top: var(--lumora-ornamentos-fatia-botao);
+    -unity-slice-bottom: var(--lumora-ornamentos-fatia-botao);
     color: var(--lumora-cores-marfim);
-    border-width: var(--lumora-bordas-fina);
-    border-color: var(--lumora-cores-borda-botao);
-    border-radius: var(--lumora-bordas-raio-botao);
+    border-width: 0;
+    border-radius: 0;
+    text-shadow: 0 1px 1px var(--lumora-cores-contorno);
+    transition-property: scale;
+    transition-duration: 0.06s;
 }
 
 .lumora-ui .ui-botao:hover, .lumora-ui .botao:hover {
-    background-color: var(--lumora-cores-hover);
-    border-color: var(--lumora-cores-essencia);
+    background-image: url("Arte/Hud/botao-hover.png");
+    color: var(--lumora-cores-hover-primario);
 }
 
 .lumora-ui .ui-botao:focus, .lumora-ui .botao:focus {
-    border-color: var(--lumora-cores-essencia);
-    border-width: var(--lumora-bordas-destaque);
+    background-image: url("Arte/Hud/botao-hover.png");
 }
 
 .lumora-ui .ui-botao:active, .lumora-ui .botao:active {
-    background-color: var(--lumora-cores-pressionado);
+    background-image: url("Arte/Hud/botao-ativo.png");
+    scale: 0.98 0.98;
 }
 
 .lumora-ui .ui-botao:disabled, .lumora-ui .botao:disabled {
-    background-color: var(--lumora-cores-desabilitado);
+    background-image: url("Arte/Hud/botao-desabilitado.png");
     color: var(--lumora-cores-texto-desabilitado);
-    border-color: var(--lumora-cores-borda-desabilitado);
 }
 
 .lumora-ui .ui-primario, .lumora-ui .botao-principal {
-    background-color: var(--lumora-cores-ouro);
-    color: var(--lumora-cores-petroleo);
+    background-image: url("Arte/Hud/botao-principal.png");
+    color: var(--lumora-cores-texto-principal);
 }
 
-.lumora-ui .ui-primario:hover, .lumora-ui .botao-principal:hover {
-    background-color: var(--lumora-cores-hover-primario);
+.lumora-ui .ui-primario:hover, .lumora-ui .botao-principal:hover,
+.lumora-ui .ui-primario:focus, .lumora-ui .botao-principal:focus {
+    background-image: url("Arte/Hud/botao-principal-hover.png");
+    color: var(--lumora-cores-texto-principal);
 }
 
 .lumora-ui .ui-primario:active, .lumora-ui .botao-principal:active {
-    background-color: var(--lumora-cores-borda-primario);
-    color: var(--lumora-cores-petroleo);
+    background-image: url("Arte/Hud/botao-principal-ativo.png");
+    color: var(--lumora-cores-texto-principal);
 }
 
 .lumora-ui .ui-primario:disabled, .lumora-ui .botao-principal:disabled {
-    background-color: var(--lumora-cores-desabilitado);
+    background-image: url("Arte/Hud/botao-desabilitado.png");
     color: var(--lumora-cores-texto-desabilitado);
 }
 
@@ -114,13 +132,14 @@
     flex-shrink: 0;
 }
 
+/* A moldura "social" segue a mesma moldura das janelas, com mais respiro. */
 .lumora-ui .ui-painel-social {
-    background-image: url("Arte/moldura-folhas-calcada.png");
-    -unity-slice-left: var(--lumora-ornamentos-fatia-horizontal);
-    -unity-slice-right: var(--lumora-ornamentos-fatia-horizontal);
-    -unity-slice-top: var(--lumora-ornamentos-fatia-vertical);
-    -unity-slice-bottom: var(--lumora-ornamentos-fatia-vertical);
-    padding: var(--lumora-ornamentos-topo) var(--lumora-ornamentos-lateral) var(--lumora-ornamentos-base);
+    background-image: url("Arte/Hud/janela.png");
+    -unity-slice-left: var(--lumora-ornamentos-fatia-janela);
+    -unity-slice-right: var(--lumora-ornamentos-fatia-janela);
+    -unity-slice-top: var(--lumora-ornamentos-fatia-janela);
+    -unity-slice-bottom: var(--lumora-ornamentos-fatia-janela);
+    padding: var(--lumora-espacamento-extra);
     border-width: 0;
 }
 
@@ -134,6 +153,7 @@
     -unity-background-scale-mode: scale-to-fit;
 }
 
+/* Campos de texto. */
 .lumora-ui .campo {
     flex-direction: column;
     min-width: 0;
@@ -165,7 +185,7 @@
 }
 
 .lumora-ui .campo .unity-base-text-field__input:focus, .lumora-ui .chat-campo .unity-base-text-field__input:focus {
-    border-color: var(--lumora-cores-essencia);
+    border-color: var(--lumora-cores-ouro);
     border-width: var(--lumora-bordas-destaque);
 }
 
@@ -179,5 +199,136 @@
 }
 
 .lumora-ui.lumora-estreito .ui-painel.ui-painel-social {
-    padding: var(--lumora-ornamentos-topo) var(--lumora-ornamentos-lateral) var(--lumora-ornamentos-base);
+    padding: var(--lumora-espacamento-padrao);
+}
+
+/* Controles nativos do UI Toolkit no tema escuro (todas as telas, sem tocar em cada uma). */
+.lumora-ui .unity-base-text-field__input {
+    background-color: var(--lumora-cores-campo);
+    color: var(--lumora-cores-marfim);
+    border-color: var(--lumora-cores-borda-campo);
+}
+
+.lumora-ui .unity-base-popup-field__input, .lumora-ui .unity-popup-field__input {
+    background-color: var(--lumora-cores-campo);
+    color: var(--lumora-cores-marfim);
+    border-width: var(--lumora-bordas-fina);
+    border-color: var(--lumora-cores-borda-campo);
+    border-radius: var(--lumora-bordas-raio-campo);
+}
+
+.lumora-ui .unity-base-popup-field__input:hover {
+    border-color: var(--lumora-cores-ouro);
+}
+
+.lumora-ui .unity-base-popup-field__arrow {
+    -unity-background-image-tint-color: var(--lumora-cores-ouro);
+}
+
+.lumora-ui .unity-base-field__label {
+    color: var(--lumora-cores-texto-secundario);
+}
+
+.lumora-ui .unity-toggle__checkmark {
+    background-color: var(--lumora-cores-campo);
+    border-color: var(--lumora-cores-borda-botao);
+    -unity-background-image-tint-color: var(--lumora-cores-ouro);
+}
+
+.lumora-ui .unity-toggle:hover .unity-toggle__checkmark {
+    border-color: var(--lumora-cores-ouro);
+}
+
+/* Barra de rolagem fina, sem setas. */
+.lumora-ui .unity-scroller--vertical {
+    width: 10px;
+    border-width: 0;
+    background-color: var(--lumora-cores-transparente);
+}
+
+.lumora-ui .unity-scroller--horizontal {
+    height: 10px;
+    border-width: 0;
+    background-color: var(--lumora-cores-transparente);
+}
+
+.lumora-ui .unity-scroller__low-button, .lumora-ui .unity-scroller__high-button {
+    display: none;
+}
+
+.lumora-ui .unity-scroller--vertical > .unity-scroller__slider {
+    margin: 0;
+    width: 10px;
+}
+
+.lumora-ui .unity-scroller--horizontal > .unity-scroller__slider {
+    margin: 0;
+    height: 10px;
+}
+
+.lumora-ui .unity-scroller .unity-base-slider__tracker {
+    background-color: var(--lumora-cores-trilho);
+    border-width: 0;
+    border-radius: 4px;
+    opacity: 0.8;
+}
+
+.lumora-ui .unity-scroller .unity-base-slider__dragger {
+    background-color: var(--lumora-cores-borda-botao);
+    border-width: 0;
+    border-radius: 4px;
+}
+
+.lumora-ui .unity-scroller--vertical .unity-base-slider__dragger {
+    left: 1px;
+    width: 8px;
+}
+
+.lumora-ui .unity-scroller--horizontal .unity-base-slider__dragger {
+    top: 1px;
+    height: 8px;
+}
+
+.lumora-ui .unity-scroller .unity-base-slider__dragger:hover {
+    background-color: var(--lumora-cores-ouro);
+}
+
+/* Lista suspensa aberta (fica num painel próprio, por isso o tema vai no seletor geral). */
+.unity-base-dropdown__container-outer {
+    background-color: var(--lumora-cores-campo);
+    border-color: var(--lumora-cores-borda-botao);
+}
+
+/* Separador decorativo. */
+.lumora-ui .ui-separador {
+    height: 16px;
+    margin: var(--lumora-espacamento-pequeno) 0;
+    background-image: url("Arte/Hud/separador.png");
+    -unity-background-scale-mode: stretch-to-fill;
+    flex-shrink: 0;
+}
+
+/* Abas. */
+.lumora-ui .ui-aba {
+    min-height: var(--lumora-dimensoes-campo);
+    padding: var(--lumora-espacamento-curto) var(--lumora-espacamento-padrao);
+    margin: 0 var(--lumora-espacamento-minimo) 0 0;
+    background-color: var(--lumora-cores-transparente);
+    background-image: url("Arte/Hud/aba.png");
+    -unity-slice-left: var(--lumora-ornamentos-fatia-aba);
+    -unity-slice-right: var(--lumora-ornamentos-fatia-aba);
+    -unity-slice-top: var(--lumora-ornamentos-fatia-aba);
+    -unity-slice-bottom: var(--lumora-ornamentos-fatia-aba);
+    border-width: 0;
+    color: var(--lumora-cores-texto-secundario);
+    font-size: var(--lumora-tipografia-leitura);
+}
+
+.lumora-ui .ui-aba:hover {
+    color: var(--lumora-cores-marfim);
+}
+
+.lumora-ui .ui-aba-ativa {
+    background-image: url("Arte/Hud/aba-ativa.png");
+    color: var(--lumora-cores-ouro);
 }

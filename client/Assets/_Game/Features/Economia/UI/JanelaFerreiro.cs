@@ -1,5 +1,6 @@
 using JogoDoGrupo.Client.Core.Jogo.Janelas;
 using JogoDoGrupo.Client.Core.UI;
+using JogoDoGrupo.Client.Core.Visual;
 using JogoDoGrupo.Shared.Features.Economia;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -45,13 +46,13 @@ namespace JogoDoGrupo.Client.Features.Economia.UI
             topo.style.marginBottom = 10f;
             topo.style.paddingBottom = 6f;
             topo.style.borderBottomWidth = 1f;
-            topo.style.borderBottomColor = new Color(0.25f, 0.28f, 0.35f, 0.8f);
+            topo.style.borderBottomColor = EstiloVisual.Cor(ConfigVisual.Cores.BordaDiscreta);
 
             var titulo = new Label("Ferreiro da Cidade");
             titulo.AddToClassList(EstiloCore.Titulo);
             titulo.style.fontSize = 15f;
             titulo.style.unityFontStyleAndWeight = FontStyle.Bold;
-            titulo.style.color = new Color(0.92f, 0.94f, 0.98f);
+            titulo.style.color = EstiloVisual.Cor(ConfigVisual.Cores.Marfim);
             topo.Add(titulo);
 
             _rotuloSaldo = new Label($"Coroas: {ControleDeEconomia.SaldoCoroas}");
@@ -77,7 +78,7 @@ namespace JogoDoGrupo.Client.Features.Economia.UI
             );
             desc.AddToClassList(EstiloCore.Texto);
             desc.style.fontSize = 11.5f;
-            desc.style.color = new Color(0.72f, 0.76f, 0.84f);
+            desc.style.color = EstiloVisual.Cor(ConfigVisual.Cores.TextoSecundario);
             desc.style.marginBottom = 8f;
             conteudo.Add(desc);
 

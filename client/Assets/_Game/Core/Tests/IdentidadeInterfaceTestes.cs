@@ -154,7 +154,9 @@ namespace JogoDoGrupo.Client.Core.Tests
                 Assert.AreEqual(2, campos.Count);
                 Assert.IsFalse(campos[0].isPasswordField);
                 Assert.IsTrue(campos[1].isPasswordField);
-                Assert.AreEqual(2, raiz.Query<Button>(null, EstiloCore.Botao).ToList().Count);
+                // Entrar, Criar conta e, no rodapé, Sair do jogo.
+                Assert.AreEqual(3, raiz.Query<Button>(null, EstiloCore.Botao).ToList().Count);
+                Assert.IsNotNull(raiz.Q<Button>(null, "login-sair"));
                 Assert.IsNotNull(raiz.Q("lumora.marca"));
                 Assert.IsNotNull(raiz.Q<ScrollView>(null, EstiloCore.Painel));
             }

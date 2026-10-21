@@ -69,6 +69,7 @@ namespace JogoDoGrupo.Shared.Features.Itens
     /// Escolhe skills de forma explícita (PODER-003): pelo id ou por uma etiqueta que a skill declara.
     /// Seletor sem nenhum dos dois é inválido, então nada vale "para tudo da arma".
     /// </summary>
+    [System.Serializable]
     public sealed class SeletorDeSkill
     {
         public string[] Ids = Array.Empty<string>();
@@ -99,6 +100,7 @@ namespace JogoDoGrupo.Shared.Features.Itens
     /// que faz, com que valor, por quanto tempo e com que limites. O servidor interpreta; nada é
     /// código por poder.
     /// </summary>
+    [System.Serializable]
     public sealed class RegraDePoder
     {
         public string Id = "";

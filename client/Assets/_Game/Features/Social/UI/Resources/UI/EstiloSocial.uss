@@ -1,6 +1,7 @@
-/* Chat: mantém o comportamento de esmaecer, com a tipografia Lumora. */
+/* Chat (embaixo à esquerda), como o do World of Warcraft: abas, fundo translúcido e linhas com
+   sombra; esmaece sem atividade. */
 .chat {
-    width: var(--lumora-dimensoes-chat-largura);
+    width: 100%;
     max-width: 100%;
     min-width: 0;
 }
@@ -11,23 +12,113 @@
 }
 
 .chat-esmaecido {
-    opacity: 0.3;
+    opacity: 0.35;
+}
+
+.chat-cabecalho {
+    flex-direction: row;
+    align-items: flex-end;
+    padding: 0 var(--lumora-espacamento-minimo);
+}
+
+.chat-aba {
+    min-height: 26px;
+    height: 26px;
+    padding: 0 var(--lumora-espacamento-pequeno);
+    margin: 0 2px 0 0;
+    font-size: var(--lumora-tipografia-hud-pequeno);
+    color: var(--lumora-cores-texto-secundario);
+    background-color: var(--lumora-cores-transparente);
+    background-image: url("../../../../../Core/UI/Visual/Resources/Lumora/Arte/Hud/aba.png");
+    -unity-slice-left: var(--lumora-ornamentos-fatia-aba);
+    -unity-slice-right: var(--lumora-ornamentos-fatia-aba);
+    -unity-slice-top: var(--lumora-ornamentos-fatia-aba);
+    -unity-slice-bottom: var(--lumora-ornamentos-fatia-aba);
+    border-width: 0;
+    opacity: 0.8;
+}
+
+.chat-aba:hover {
+    color: var(--lumora-cores-marfim);
+    opacity: 1;
+}
+
+.chat-aba-ativa {
+    background-image: url("../../../../../Core/UI/Visual/Resources/Lumora/Arte/Hud/aba-ativa.png");
+    color: var(--lumora-cores-ouro);
+    opacity: 1;
+}
+
+.chat-espaco {
+    flex-grow: 1;
+}
+
+.chat-filtro {
+    display: none;
+}
+
+.chat-ocultar, .chat-ir-ao-fim {
+    width: 26px;
+    height: 26px;
+    min-height: 26px;
+    padding: 0;
+    margin: 0;
+    font-size: var(--lumora-tipografia-hud);
+    -unity-text-align: middle-center;
+    color: var(--lumora-cores-texto-secundario);
+    background-color: var(--lumora-cores-hud-fundo-leve);
+    border-width: 1px;
+    border-color: var(--lumora-cores-borda-discreta);
+    border-radius: 3px;
+}
+
+.chat-ocultar:hover, .chat-ir-ao-fim:hover {
+    color: var(--lumora-cores-ouro);
+    border-color: var(--lumora-cores-ouro);
+}
+
+.chat-opcoes {
+    flex-direction: row;
+    align-items: center;
+    padding: 2px var(--lumora-espacamento-pequeno);
+    background-color: var(--lumora-cores-chat-fundo);
+}
+
+.chat-opcoes > Toggle {
+    color: var(--lumora-cores-texto-secundario);
+    margin-right: var(--lumora-espacamento-medio);
+    font-size: var(--lumora-tipografia-hud-pequeno);
+}
+
+.chat-opcoes .unity-toggle__checkmark {
+    width: 14px;
+    height: 14px;
+}
+
+.chat-opcoes .unity-label {
+    font-size: var(--lumora-tipografia-hud-pequeno);
+    min-width: 0;
+    margin-right: var(--lumora-espacamento-minimo);
+    color: var(--lumora-cores-texto-secundario);
 }
 
 .chat-linhas {
     height: var(--lumora-dimensoes-chat-altura);
     min-height: 0;
-    padding: var(--lumora-espacamento-curto) var(--lumora-espacamento-pequeno);
-    background-color: var(--lumora-cores-painel);
-    border-width: var(--lumora-bordas-fina);
+    padding: var(--lumora-espacamento-minimo) var(--lumora-espacamento-pequeno);
+    background-color: var(--lumora-cores-chat-fundo);
+    border-width: 0;
+    border-top-width: 1px;
     border-color: var(--lumora-cores-borda-discreta);
-    border-radius: var(--lumora-bordas-raio-cartao);
 }
 
 .chat-linha {
-    font-size: var(--lumora-tipografia-leitura);
+    font-size: var(--lumora-tipografia-hud);
     white-space: normal;
     color: var(--lumora-cores-marfim);
+    text-shadow: 1px 1px 1px var(--lumora-cores-contorno);
+    margin: 0;
+    padding: 1px 0;
 }
 
 .chat-cidade {
@@ -35,7 +126,7 @@
 }
 
 .chat-grupo {
-    color: var(--lumora-cores-essencia);
+    color: var(--lumora-cores-nome-jogador);
 }
 
 .chat-sussurro {
@@ -43,84 +134,32 @@
 }
 
 .chat-sistema {
-    color: var(--lumora-cores-ouro);
+    color: var(--lumora-cores-aviso);
 }
 
 .chat-campo {
     margin: var(--lumora-espacamento-minimo) 0 0;
 }
 
-.chat-cabecalho, .chat-opcoes {
-    flex-direction: row;
-    flex-wrap: wrap;
-    align-items: center;
-    background-color: var(--lumora-cores-painel);
-    padding: var(--lumora-espacamento-curto);
-    border-width: var(--lumora-bordas-fina);
-    border-color: var(--lumora-cores-borda-discreta);
+.chat-abrir {
+    align-self: flex-start;
+    min-height: 30px;
+    padding: 2px var(--lumora-espacamento-medio);
+    font-size: var(--lumora-tipografia-hud-pequeno);
 }
 
-.chat-cabecalho > .subtitulo {
-    flex-grow: 1;
-    margin: 0;
+.chat-ir-ao-fim {
+    position: absolute;
+    right: 14px;
+    bottom: 50px;
 }
-
-.chat-cabecalho > .botao, .chat-abrir, .chat-ir-ao-fim {
-    min-height: var(--lumora-dimensoes-alvo-minimo);
-    margin: 0 0 0 var(--lumora-espacamento-curto);
-}
-
-.chat-filtro {
-    min-width: 110px;
-    flex-shrink: 1;
-    color: var(--lumora-cores-marfim);
-    background-color: var(--lumora-cores-painel);
-}
-
-.chat-filtro .unity-base-popup-field__input {
-    background-color: var(--lumora-cores-campo);
-    color: var(--lumora-cores-marfim);
-    border-width: var(--lumora-bordas-fina);
-    border-color: var(--lumora-cores-borda-discreta);
-}
-
-.chat-filtro .unity-base-popup-field__text {
-    color: var(--lumora-cores-marfim);
-}
-
-.chat-filtro .unity-base-popup-field__arrow {
-    -unity-background-image-tint-color: var(--lumora-cores-ouro);
-}
-
-.chat-opcoes .unity-toggle__input {
-    background-color: var(--lumora-cores-campo);
-    border-width: var(--lumora-bordas-fina);
-    border-color: var(--lumora-cores-borda-discreta);
-}
-
-.chat-linhas .unity-scroller {
-    background-color: var(--lumora-cores-campo);
-}
-
-.chat-linhas .unity-scroller__slider {
-    background-color: var(--lumora-cores-borda-discreta);
-}
-
-.chat-opcoes > Toggle {
-    color: var(--lumora-cores-marfim);
-    margin-right: var(--lumora-espacamento-pequeno);
-    min-height: var(--lumora-dimensoes-alvo-minimo);
-}
-
-.chat-abrir { align-self: flex-start; }
-.chat-ir-ao-fim { align-self: flex-end; }
 
 .chat-vazio {
     color: var(--lumora-cores-texto-secundario);
-    font-size: var(--lumora-tipografia-leitura);
+    font-size: var(--lumora-tipografia-hud-pequeno);
+    -unity-font-style: italic;
 }
 
-.lumora-estreito .chat-cabecalho {
-    flex-direction: column;
-    align-items: stretch;
+.lumora-estreito .chat-aba {
+    padding: 0 var(--lumora-espacamento-minimo);
 }

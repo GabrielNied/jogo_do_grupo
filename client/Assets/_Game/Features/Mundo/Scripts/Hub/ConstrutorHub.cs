@@ -248,6 +248,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
 
             var mapa = Object.Instantiate(modelo);
             mapa.name = NomeRaiz;
+            ReparoDoMapaPublicado.Reparar(mapa);
             RestaurarTerrenoPublicado(mapa);
             RemoverVegetacaoProcedural(mapa.transform);
             return mapa;

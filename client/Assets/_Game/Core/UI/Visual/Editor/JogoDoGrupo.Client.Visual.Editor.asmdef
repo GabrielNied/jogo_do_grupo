@@ -1,7 +1,11 @@
 {
   "name": "JogoDoGrupo.Client.Visual.Editor",
   "rootNamespace": "JogoDoGrupo.Client.Core.Visual.Editor",
-  "references": ["JogoDoGrupo.Client.Visual"],
+  "references": [
+    "JogoDoGrupo.Client.Visual",
+    "UnityEditor.TestRunner",
+    "UnityEngine.TestRunner"
+  ],
   "includePlatforms": [
     "Editor"
   ],

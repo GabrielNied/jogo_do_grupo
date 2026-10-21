@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using JogoDoGrupo.Client.Core.Audio;
 using JogoDoGrupo.Client.Core.Jogo;
 using JogoDoGrupo.Client.Core.TempoReal;
 using JogoDoGrupo.Shared.Features.Missoes;
@@ -118,14 +119,6 @@ namespace JogoDoGrupo.Client.Features.Missoes
             ConexaoTempoReal.Enviar(
                 MissoesMessageIds.CompartilharMissao,
                 new CompartilharMissao { MissaoId = missaoId }
-            );
-        }
-
-        public static void InteragirComNpc(int npcId)
-        {
-            ConexaoTempoReal.Enviar(
-                MissoesMessageIds.InteragirComNpcMissao,
-                new InteragirComNpcMissao { NpcId = npcId }
             );
         }
 
@@ -250,6 +243,19 @@ namespace JogoDoGrupo.Client.Features.Missoes
         private static void AoAvisoDeMissao(AvisoDeMissao aviso)
         {
             AvisoRecebido?.Invoke(aviso);
+            switch (aviso.TipoAviso)
+            {
+                case "concluida":
+                    AudioDoJogo.TocarInterface(SomDeInterface.MissaoConcluida);
+                    break;
+                case "aceita":
+                    AudioDoJogo.TocarInterface(SomDeInterface.Livro);
+                    break;
+                case "pronta_para_entregar":
+                    AudioDoJogo.TocarInterface(SomDeInterface.Confirmar);
+                    break;
+            }
+
             var tipo = aviso.TipoAviso == "concluida" ? TipoDeAviso.Aviso : TipoDeAviso.Informacao;
             AvisosDoJogo.Mostrar(aviso.Mensagem, tipo);
         }
@@ -276,6 +282,8 @@ namespace JogoDoGrupo.Client.Features.Missoes
                     return "Objetivos da missão ainda não foram concluídos.";
                 case CodigosErroMissoes.LongeDoNpc:
                     return "Aproxime-se do NPC para interagir.";
+                case CodigosErroMissoes.ItemEscolhaInvalido:
+                    return "Escolha um dos itens da recompensa.";
                 case CodigosErroMissoes.ApenasLiderCompartilha:
                     return "Apenas o líder do grupo pode compartilhar missões.";
                 case CodigosErroMissoes.LimiteRastreadorAtingido:

@@ -1,4 +1,6 @@
 using System;
+using JogoDoGrupo.Client.Core.Api;
+using JogoDoGrupo.Client.Core.Audio;
 using JogoDoGrupo.Client.Core.Jogo;
 using JogoDoGrupo.Client.Core.TempoReal;
 using JogoDoGrupo.Shared.Features.Personagem;
@@ -63,6 +65,7 @@ namespace JogoDoGrupo.Client.Features.Personagem
             }
 
             AvisosDoJogo.Mostrar(TextosPersonagem.AvisoSubiuDeNivel(aviso.Nivel));
+            AudioDoJogo.TocarInterface(SomDeInterface.SubirNivel);
         }
 
         private void Update()
@@ -86,7 +89,7 @@ namespace JogoDoGrupo.Client.Features.Personagem
 
         private void Montar(GameObject jogador)
         {
-            var regiao = Hud.Regiao(RegiaoDoHud.InferiorEsquerda);
+            var regiao = Hud.Regiao(RegiaoDoHud.Experiencia);
             if (regiao == null)
             {
                 Debug.LogWarning(
@@ -97,6 +100,30 @@ namespace JogoDoGrupo.Client.Features.Personagem
 
             _painel?.Descartar();
             _painel = new PainelBarraXp(regiao);
+            // A barra começa com o progresso do servidor, sem esperar o primeiro ganho de XP.
+            _ = CarregarProgresso(EntradaNoJogo.PersonagemId);
+        }
+
+        private static async Awaitable CarregarProgresso(long personagemId)
+        {
+            try
+            {
+                var resposta = await ClienteApi.Get<ProgressoResponse>(
+                    RotasPersonagem.ProgressoDe(personagemId)
+                );
+                if (
+                    resposta.Sucesso
+                    && resposta.Corpo != null
+                    && EntradaNoJogo.PersonagemId == personagemId
+                )
+                {
+                    ProgressoDoClient.Estado.Aplicar(resposta.Corpo);
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+            }
         }
     }
 }

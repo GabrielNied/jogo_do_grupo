@@ -77,6 +77,8 @@ namespace JogoDoGrupo.Client.Core.UI
             if (!raiz.styleSheets.Contains(estilo))
                 raiz.styleSheets.Add(estilo);
             NaoBloquearCliques(raiz);
+            // Todo painel do jogo passa por aqui: é onde o clique dos botões ganha som.
+            JogoDoGrupo.Client.Core.Audio.AudioDoJogo.LigarCliques(raiz);
         }
 
         /// <summary>Painel com rolagem vertical, limitado à área disponível.</summary>
@@ -232,6 +234,24 @@ namespace JogoDoGrupo.Client.Core.UI
 
         /// <summary>Região do canto superior direito (minimapa).</summary>
         public const string HudSuperiorDireita = "hud-superior-direita";
+
+        /// <summary>Região do canto superior esquerdo (quadro do personagem).</summary>
+        public const string HudQuadroJogador = "hud-quadro-jogador";
+
+        /// <summary>Região de baixo, centro (barra de ação).</summary>
+        public const string HudBarraDeAcao = "hud-barra-de-acao";
+
+        /// <summary>Faixa da experiência, na borda de baixo.</summary>
+        public const string HudExperiencia = "hud-experiencia";
+
+        /// <summary>Região de baixo à direita (menu rápido).</summary>
+        public const string HudMenuRapido = "hud-menu-rapido";
+
+        /// <summary>Região da direita, abaixo do minimapa (rastreador de missões).</summary>
+        public const string HudRastreador = "hud-rastreador";
+
+        /// <summary>Região do topo, centro (bússola).</summary>
+        public const string HudBussola = "hud-bussola";
 
         /// <summary>Lista das mensagens de sistema do HUD.</summary>
         public const string Avisos = "avisos";

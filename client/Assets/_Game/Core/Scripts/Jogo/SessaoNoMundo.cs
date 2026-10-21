@@ -65,7 +65,12 @@ namespace JogoDoGrupo.Client.Core.Jogo
             _atalhos = new AtalhosDeJanelas(registro.Definicoes);
             if (Navegacao.Container != null)
             {
-                _barra = new BarraDeAtalhos(Navegacao.Container, registro.Definicoes);
+                _barra = new BarraDeAtalhos(
+                    Navegacao.Container,
+                    registro.Definicoes,
+                    chave => _janelas?.Alternar(chave),
+                    () => _janelas?.DefinirMenuAberto(!_janelas.MenuAberto)
+                );
             }
 
             controle.Configurar(_acoes, camera, animador);

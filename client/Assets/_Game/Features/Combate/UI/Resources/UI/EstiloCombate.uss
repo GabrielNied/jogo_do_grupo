@@ -1,78 +1,114 @@
+/* Quadro do personagem (alto à esquerda). */
 .recursos {
-    width: 100%;
-    padding: var(--lumora-espacamento-pequeno);
-    background-color: var(--lumora-cores-painel);
-    border-width: var(--lumora-bordas-fina);
-    border-color: var(--lumora-cores-borda-botao);
-    border-radius: var(--lumora-bordas-raio-cartao);
+    flex-direction: row;
+    align-items: center;
+    padding: var(--lumora-espacamento-pequeno) var(--lumora-espacamento-medio) var(--lumora-espacamento-pequeno) var(--lumora-espacamento-pequeno);
+    background-image: url("../../../../../Core/UI/Visual/Resources/Lumora/Arte/Hud/placa.png");
+    -unity-slice-left: var(--lumora-ornamentos-fatia-placa);
+    -unity-slice-right: var(--lumora-ornamentos-fatia-placa);
+    -unity-slice-top: var(--lumora-ornamentos-fatia-placa);
+    -unity-slice-bottom: var(--lumora-ornamentos-fatia-placa);
 }
 
 .recursos-soltos {
     position: absolute;
     left: var(--lumora-espacamento-grande);
     top: var(--lumora-espacamento-grande);
-    width: var(--lumora-dimensoes-recursos-largura);
-    max-width: var(--lumora-dimensoes-dialogo-percentual);
+    width: var(--lumora-dimensoes-quadro-largura);
 }
 
-.recurso-linha {
-    min-height: var(--lumora-dimensoes-barra);
-    margin-bottom: var(--lumora-espacamento-curto);
-    flex-direction: row;
-    align-items: center;
+.recursos-vida-baixa {
+    -unity-background-image-tint-color: var(--lumora-cores-erro);
 }
 
-.recurso-rotulo {
-    width: 24%;
-    flex-shrink: 0;
-    font-size: var(--lumora-tipografia-leitura);
-    color: var(--lumora-cores-marfim);
-    white-space: normal;
-}
-
-.recurso-barra {
-    min-height: var(--lumora-dimensoes-barra);
-    min-width: var(--lumora-espacamento-extra);
-    margin-left: var(--lumora-espacamento-curto);
-    margin-right: var(--lumora-espacamento-curto);
+.recursos-coluna {
     flex-grow: 1;
     flex-shrink: 1;
-    background-color: var(--lumora-cores-trilho);
-    border-width: var(--lumora-bordas-fina);
-    border-color: var(--lumora-cores-borda-discreta);
-    border-radius: var(--lumora-bordas-raio-campo);
+    min-width: 0;
+    margin-left: var(--lumora-espacamento-pequeno);
+}
+
+.recursos-nome {
+    font-size: var(--lumora-tipografia-hud-nome);
+    color: var(--lumora-cores-ouro);
+    -unity-font-style: bold;
+    margin-bottom: var(--lumora-espacamento-fino);
+    text-shadow: 1px 1px 1px var(--lumora-cores-contorno);
+    white-space: nowrap;
     overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-.recurso-preenchimento {
+.recursos-barra-vida {
+    height: 22px;
+    margin-bottom: var(--lumora-espacamento-fino);
+}
+
+.recursos-barra-mana {
+    height: 16px;
+    margin-bottom: var(--lumora-espacamento-fino);
+}
+
+.recursos-barra-mana .hud-barra-texto {
+    font-size: var(--lumora-tipografia-tecla);
+}
+
+/* Efeitos de status: ícones sob o quadro. */
+.painel-status {
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin-top: var(--lumora-espacamento-curto);
+    margin-left: var(--lumora-espacamento-pequeno);
+}
+
+.item-status-coluna {
+    align-items: center;
+    margin-right: var(--lumora-espacamento-minimo);
+    margin-bottom: var(--lumora-espacamento-minimo);
+}
+
+.item-status {
+    width: var(--lumora-dimensoes-efeito);
+    height: var(--lumora-dimensoes-efeito);
+    padding: 3px;
+    border-width: 2px;
+    border-radius: 3px;
+    border-color: var(--lumora-cores-borda-botao);
+    background-color: var(--lumora-cores-fundo);
+}
+
+.item-status-benefico {
+    border-color: var(--lumora-cores-ganho);
+}
+
+.item-status-nocivo {
+    border-color: var(--lumora-cores-erro);
+}
+
+.item-status-icone {
+    flex-grow: 1;
+    -unity-background-scale-mode: scale-to-fit;
+    -unity-background-image-tint-color: var(--lumora-cores-marfim);
+}
+
+.item-status-acumulos {
     position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    width: 0;
-}
-
-.barra-vida {
-    background-color: var(--lumora-cores-vida);
-}
-
-.barra-stamina {
-    background-color: var(--lumora-cores-ouro);
-}
-
-.barra-mana {
-    background-color: var(--lumora-cores-essencia);
-}
-
-.recurso-valor {
-    width: 25%;
-    flex-shrink: 0;
-    font-size: var(--lumora-tipografia-leitura);
-    -unity-text-align: middle-right;
+    right: 1px;
+    bottom: -2px;
+    font-size: var(--lumora-tipografia-tecla);
     color: var(--lumora-cores-marfim);
-    white-space: normal;
+    -unity-font-style: bold;
+    text-shadow: 1px 1px 1px var(--lumora-cores-contorno);
 }
 
+.status-tempo {
+    font-size: var(--lumora-tipografia-tecla);
+    color: var(--lumora-cores-marfim);
+    -unity-text-align: upper-center;
+    text-shadow: 1px 1px 1px var(--lumora-cores-contorno);
+}
+
+/* Números de dano no mundo. */
 .numeros-de-dano {
     position: absolute;
     left: 0;
@@ -87,14 +123,17 @@
     translate: -50% 0;
     top: 0;
     width: var(--lumora-dimensoes-dano-largura);
-    font-size: var(--lumora-tipografia-titulo);
+    font-size: var(--lumora-tipografia-dano);
     -unity-text-align: middle-center;
+    -unity-font-style: bold;
     color: var(--lumora-cores-marfim);
-    text-shadow: var(--lumora-bordas-fina) var(--lumora-bordas-fina) var(--lumora-cores-sombra);
+    text-shadow: 2px 2px 2px var(--lumora-cores-contorno);
+    -unity-text-outline-width: 1px;
+    -unity-text-outline-color: var(--lumora-cores-contorno);
 }
 
 .dano-pesado {
-    font-size: var(--lumora-tipografia-dano-pesado);
+    font-size: var(--lumora-tipografia-critico);
     color: var(--lumora-cores-ouro);
 }
 
@@ -105,126 +144,87 @@
     right: 0;
     bottom: 0;
     border-width: var(--lumora-espacamento-grande);
-    border-color: var(--lumora-cores-erro);
+    border-color: var(--lumora-cores-perigo-preenchimento);
 }
 
 .aviso-de-ataque {
     position: absolute;
     left: 50%;
-    top: 58%;
-    width: var(--lumora-dimensoes-recursos-largura);
+    top: 62%;
     translate: -50% 0;
+    padding: var(--lumora-espacamento-fino) var(--lumora-espacamento-medio);
     font-size: var(--lumora-tipografia-controle);
     -unity-text-align: middle-center;
+    -unity-font-style: bold;
     color: var(--lumora-cores-erro);
-    background-color: var(--lumora-cores-painel);
+    background-color: var(--lumora-cores-hud-fundo-leve);
+    border-radius: var(--lumora-bordas-raio-campo);
+    text-shadow: 1px 1px 2px var(--lumora-cores-contorno);
     white-space: normal;
-}
-
-.lumora-estreito .recursos {
-    width: 100%;
-}
-
-.lumora-estreito .recursos-soltos {
-    left: var(--lumora-espacamento-pequeno);
-    top: var(--lumora-espacamento-pequeno);
-    width: var(--lumora-dimensoes-ferramentas);
 }
 
 .guarda-indicador {
     position: absolute;
     left: 50%;
-    top: 52%;
-    width: var(--lumora-dimensoes-recursos-largura);
+    top: 56%;
     translate: -50% 0;
-    font-size: var(--lumora-tipografia-controle);
+    padding: var(--lumora-espacamento-fino) var(--lumora-espacamento-medio);
+    font-size: var(--lumora-tipografia-hud);
     -unity-text-align: middle-center;
+    -unity-font-style: bold;
     color: var(--lumora-cores-ouro);
-    background-color: var(--lumora-cores-painel);
+    background-color: var(--lumora-cores-hud-fundo-leve);
+    border-radius: var(--lumora-bordas-raio-campo);
+    text-shadow: 1px 1px 2px var(--lumora-cores-contorno);
 }
 
 .guarda-fraca {
     color: var(--lumora-cores-erro);
 }
 
-/* Efeitos de status */
-.painel-status {
-    flex-direction: row;
-    flex-wrap: wrap;
-    margin-top: var(--lumora-espacamento-curto);
-    max-width: var(--lumora-dimensoes-recursos-largura);
-}
-
-.item-status {
-    flex-direction: row;
-    align-items: center;
-    background-color: var(--lumora-cores-painel);
-    border-width: var(--lumora-bordas-fina);
-    border-color: var(--lumora-cores-borda-botao);
-    border-radius: var(--lumora-bordas-raio-cartao);
-    padding: var(--lumora-espacamento-minimo) var(--lumora-espacamento-curto);
-    margin-right: var(--lumora-espacamento-curto);
-    margin-bottom: var(--lumora-espacamento-curto);
-}
-
-.status-rotulo {
-    font-size: var(--lumora-tipografia-leitura);
-    color: var(--lumora-cores-marfim);
-    white-space: nowrap;
-}
-
-.status-tempo {
-    font-size: var(--lumora-tipografia-leitura);
-    color: var(--lumora-cores-ouro);
-    margin-left: var(--lumora-espacamento-curto);
-}
-
-/* Barra de quebra (chefe) */
+/* Barra de quebra (chefe), abaixo da barra de vida do chefe. */
 .painel-quebra-boss {
-    position: absolute;
-    top: 14%;
-    left: 50%;
-    translate: -50% 0;
-    width: var(--lumora-dimensoes-recursos-largura);
-    background-color: var(--lumora-cores-painel);
-    border-width: var(--lumora-bordas-fina);
-    border-color: var(--lumora-cores-borda-botao);
-    border-radius: var(--lumora-bordas-raio-cartao);
-    padding: var(--lumora-espacamento-curto);
-    align-items: center;
+    width: 100%;
+    margin-top: var(--lumora-espacamento-minimo);
+    align-items: stretch;
 }
 
 .quebra-boss-rotulo {
-    font-size: var(--lumora-tipografia-leitura);
-    color: var(--lumora-cores-marfim);
+    font-size: var(--lumora-tipografia-tecla);
+    color: var(--lumora-cores-texto-secundario);
     -unity-text-align: middle-center;
-    margin-bottom: var(--lumora-espacamento-curto);
+    margin-bottom: var(--lumora-espacamento-fino);
+    text-shadow: 1px 1px 1px var(--lumora-cores-contorno);
 }
 
 .quebra-boss-trilho {
     width: 100%;
-    min-height: var(--lumora-dimensoes-barra);
-    background-color: var(--lumora-cores-trilho);
-    border-width: var(--lumora-bordas-fina);
-    border-color: var(--lumora-cores-borda-discreta);
-    border-radius: var(--lumora-bordas-raio-campo);
+    height: var(--lumora-dimensoes-barra-hud-fina);
+    padding: 1px;
+    background-image: url("../../../../../Core/UI/Visual/Resources/Lumora/Arte/Hud/barra-fundo.png");
+    -unity-slice-left: var(--lumora-ornamentos-fatia-barra);
+    -unity-slice-right: var(--lumora-ornamentos-fatia-barra);
+    -unity-slice-top: var(--lumora-ornamentos-fatia-barra);
+    -unity-slice-bottom: var(--lumora-ornamentos-fatia-barra);
     overflow: hidden;
 }
 
 .quebra-boss-preenchimento {
     position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
+    left: 1px;
+    top: 1px;
+    bottom: 1px;
     width: 0;
-    background-color: var(--lumora-cores-ouro);
+    background-image: url("../../../../../Core/UI/Visual/Resources/Lumora/Arte/Hud/barra-preenchimento.png");
+    -unity-background-scale-mode: stretch-to-fill;
+    -unity-background-image-tint-color: var(--lumora-cores-ouro);
 }
 
 .quebra-boss-vulneravel {
-    background-color: var(--lumora-cores-erro);
+    -unity-background-image-tint-color: var(--lumora-cores-erro);
 }
 
-/* Retículo dinâmico de mira (armas de longo alcance) */
+/* Retículo dinâmico de mira (armas de longo alcance). */
 .reticulo-mira {
     position: absolute;
     left: 50%;
@@ -282,4 +282,3 @@
 .reticulo-pronto {
     opacity: 1;
 }
-
