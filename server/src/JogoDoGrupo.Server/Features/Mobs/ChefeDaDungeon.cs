@@ -47,6 +47,7 @@ public sealed class ChefeDaDungeon : IAlvosDeCombate, IInimigosSimulados
 
     private readonly Lock _trava = new();
     private readonly DefinicaoDeCriatura _definicao;
+    private readonly double? _intervaloRespawnSegundos;
     private readonly Func<long> _proximoId;
     private readonly Func<long> _relogioMs;
     private readonly IHistoricoDePosicoesDoMundo? _historico;
@@ -75,6 +76,7 @@ public sealed class ChefeDaDungeon : IAlvosDeCombate, IInimigosSimulados
     private int _rodizioDosRaios;
     private long _expostoAteMs;
     private long? _ultimoPassoMs;
+    private long? _reporEmMs;
     private readonly int _vidaMaxima;
     private readonly double _multiplicadorDano;
     private long _proximaMorte = 1;
@@ -87,7 +89,8 @@ public sealed class ChefeDaDungeon : IAlvosDeCombate, IInimigosSimulados
     /// <param name="historico">Histórico de posições no mundo para compensação de lag/rewind.</param>
     /// <param name="multiplicadorVida">Multiplicador de vida da dificuldade sem fim.</param>
     /// <param name="multiplicadorDano">Multiplicador de dano da dificuldade sem fim.</param>
-    /// <param name="criaturaId">Id opcional do catálogo de criaturas para este chefe.</param>
+    /// <param name="criaturaId">Id da criatura no catálogo (padrão é o Guardião do Reflexo).</param>
+    /// <param name="intervaloRespawnSegundos">Intervalo de respawn automático em segundos, ou null para boss de dungeon sem volta.</param>
     public ChefeDaDungeon(
         string area,
         double origemX,
@@ -97,7 +100,8 @@ public sealed class ChefeDaDungeon : IAlvosDeCombate, IInimigosSimulados
         IHistoricoDePosicoesDoMundo? historico = null,
         double multiplicadorVida = 1.0,
         double multiplicadorDano = 1.0,
-        int? criaturaId = null
+        int? criaturaId = null,
+        double? intervaloRespawnSegundos = null
     )
     {
         ArgumentException.ThrowIfNullOrEmpty(area);
@@ -112,6 +116,7 @@ public sealed class ChefeDaDungeon : IAlvosDeCombate, IInimigosSimulados
         _proximoId = proximoId;
         _relogioMs = relogioMs ?? (() => Environment.TickCount64);
         _historico = historico;
+        _intervaloRespawnSegundos = intervaloRespawnSegundos;
         _x = origemX;
         _z = origemZ;
         _id = proximoId();
@@ -198,6 +203,7 @@ public sealed class ChefeDaDungeon : IAlvosDeCombate, IInimigosSimulados
             _indiceDoAtaque = 0;
             _rodizioDosRaios = 0;
             _expostoAteMs = 0;
+            _reporEmMs = null;
             _participantes.Clear();
             RegistrarPosicao(_relogioMs());
             _pendente.Aparicoes.Add(new InimigoApareceu { Inimigo = Retrato() });
@@ -211,17 +217,25 @@ public sealed class ChefeDaDungeon : IAlvosDeCombate, IInimigosSimulados
         lock (_trava)
         {
             var agora = _relogioMs();
+            if (_estado == EstadoDeInimigo.Morto)
+            {
+                if (_reporEmMs != null && agora >= _reporEmMs.Value)
+                {
+                    _reporEmMs = null;
+                    Reiniciar();
+                }
+
+                var p = _pendente;
+                _pendente = new PassoDosInimigos();
+                return p;
+            }
+
             var passo = _pendente;
             _pendente = new PassoDosInimigos();
             var segundos = _ultimoPassoMs is { } ultimo
                 ? Math.Clamp((agora - ultimo) / 1000.0, 0.0, PassoMaximoSegundos)
                 : 0.0;
             _ultimoPassoMs = agora;
-
-            if (_estado == EstadoDeInimigo.Morto)
-            {
-                return passo;
-            }
 
             if (_expostoAteMs != 0 && agora >= _expostoAteMs)
             {
@@ -671,6 +685,10 @@ public sealed class ChefeDaDungeon : IAlvosDeCombate, IInimigosSimulados
         _expostoAteMs = 0;
         _areas.Clear();
         _ameacas.Limpar();
+        if (_intervaloRespawnSegundos is { } respawn)
+        {
+            _reporEmMs = _relogioMs() + EmMs(respawn);
+        }
 
         _pendente.Mortes.Add(new InimigoMorreu { InimigoId = _id });
         _pendente.Derrotas.Add(

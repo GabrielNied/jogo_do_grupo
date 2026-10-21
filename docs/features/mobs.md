@@ -289,6 +289,16 @@ O Guardião do Reflexo (id 100), o boss da primeira dungeon ([fatia-jogavel.md](
 - **Onde:** a instância cria o boss pelo contrato `IChefesDaDungeon` (`server/.../Contratos/Mobs/`), um por área. O boss de teste na cidade está desligado (`ConfigChefeDaDungeon.CriarChefeDeTesteAoSubir = false`): o boss só nasce na corrida. Os inimigos comuns dos salões vêm do contrato `IInimigosPorInstancia` (`Criar(areaId, grupos)` ao abrir a corrida e `Remover(areaId)` ao encerrar), sem reposição (#800).
 - Fora desta tarefa: o desenho do salão, o client (aviso no chão e janela exposta) e loot próprio do boss.
 
+### Chefe do capítulo 1 perto da cidade (#1059)
+
+Decidido na issue #1059 e no roteiro da história principal ([#1058](https://github.com/GabrielNied/jogo_do_grupo/issues/1058), [missoes.md](missoes.md#capítulo-1-a-cidade)). Um chefe **fixo no mundo aberto, perto da Brasa Mansa**, que fecha a etapa 4 do capítulo 1.
+
+- **Onde:** na Colina do Vigia, em volta de `(0, 160)` na área da cidade (`ConfigChefeDoCapitulo.PontoX`, `PontoZ`), platô rochoso com vista para o vale.
+- **Criatura:** Presa-Velha (`CatalogoCriaturas.PresaVelha`, id 200, nível 5, 1.500 de vida base, 80 de dano base e 200 de XP).
+- **Mecânica:** reaproveita a IA autoritativa e telegrafada de `ChefeDaDungeon` (fases de alerta, perseguição em combate, ataques telegrafados de investida, raios e pisada com áreas no chão, e janela exposta multiplicando dano).
+- **Respawn curto:** volta sozinho em **60 segundos** (`ConfigChefeDoCapitulo.IntervaloRespawnSegundos`), permitindo que múltiplos jogadores e grupos completem a etapa da principal sem longa fila de espera.
+- **Crédito compartilhado:** o evento `InimigoDerrotado` é publicado com todos os personagens que participaram da luta (dano causado, provocação/ser alvo ou cura em aliados que estavam combatendo), garantindo XP e cumprimento de objetivos da missão para todo o grupo.
+
 ### Barra do alvo e do boss no HUD (#660)
 
 Além das etiquetas no mundo (`PainelDeInimigos`), o client monta barras na região `TopoCentro` do HUD (`PainelBarraAlvoTopo`, Lumora em `EstiloMobs.uss`). A escolha do alvo comum segue a proposta de [interface.md](interface.md): inimigo comum vivo a até **30 m**, primeiro sob a mira (centro da tela), senão o último que você acertou ou que acertou você nos últimos **5 s** (`RegrasAlvoDoHud` no shared). Chefe ou chefe raro vivo em luta (perto, perseguindo você ou contato recente) usa a barra larga de boss; um alvo comum diferente pode aparecer abaixo, menor. Vida 0 ou sem alvo: a região fica vazia. Não muda o cone de acerto do servidor.

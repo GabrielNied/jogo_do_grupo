@@ -33,6 +33,9 @@ public sealed class MobsModule : IFeatureModule
 
     public const string ChaveDoColosso = "chefe-de-mundo-colosso";
 
+    /// <summary>Chave do chefe fixo do capítulo 1 perto da cidade.</summary>
+    public const string ChaveDoChefeDoCapitulo = "chefe-do-capitulo";
+
     public string Nome => "Mobs e bosses";
 
     public void ConfigurarServicos(IServiceCollection servicos, IConfiguration configuracao)
@@ -97,6 +100,31 @@ public sealed class MobsModule : IFeatureModule
         AdicionarChefeDeMundo(servicos, ChaveDoAnciao, CatalogoCriaturas.AnciaoTrovejante, 0);
         AdicionarChefeDeMundo(servicos, ChaveDoColosso, CatalogoCriaturas.ColossoBasaltico, 1);
 
+        // O chefe fixo do capítulo 1 perto da cidade, com respawn curto.
+        servicos.AddKeyedSingleton(
+            ChaveDoChefeDoCapitulo,
+            (sp, _) =>
+            {
+                var proximoId = ConfigChefeDoCapitulo.PrimeiroId;
+                var def = CatalogoCriaturas.Obter(ConfigChefeDoCapitulo.CriaturaId);
+                var multDano = (double)def.DanoBase / 120.0;
+                return new ChefeDaDungeon(
+                    ConfigChefeDoCapitulo.Area,
+                    ConfigChefeDoCapitulo.PontoX,
+                    ConfigChefeDoCapitulo.PontoZ,
+                    () => Interlocked.Increment(ref proximoId),
+                    historico: sp.GetService<IHistoricoDePosicoesDoMundo>(),
+                    multiplicadorVida: 1.0,
+                    multiplicadorDano: multDano,
+                    criaturaId: ConfigChefeDoCapitulo.CriaturaId,
+                    intervaloRespawnSegundos: ConfigChefeDoCapitulo.IntervaloRespawnSegundos
+                );
+            }
+        );
+        servicos.AddSingleton<IAlvosDeCombate>(sp =>
+            sp.GetRequiredKeyedService<ChefeDaDungeon>(ChaveDoChefeDoCapitulo)
+        );
+
         // Os bosses de dungeon: um por área, criados pela instância (IChefesDaDungeon). Enquanto
         // a instância não existe, sobe um de teste fora da cidade.
         servicos.AddSingleton(sp => new ChefesDaDungeon(
@@ -117,6 +145,7 @@ public sealed class MobsModule : IFeatureModule
                     sp.GetRequiredKeyedService<GrupoDeInimigos>(ChaveDoChefeRaro),
                     sp.GetRequiredKeyedService<GrupoDeInimigos>(ChaveDoAnciao),
                     sp.GetRequiredKeyedService<GrupoDeInimigos>(ChaveDoColosso),
+                    sp.GetRequiredKeyedService<ChefeDaDungeon>(ChaveDoChefeDoCapitulo),
                 ],
                 sp.GetRequiredService<ServidorTempoReal>(),
                 sp.GetRequiredService<IPosicoesDoMundo>(),
