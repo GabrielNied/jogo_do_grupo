@@ -158,9 +158,13 @@ public sealed class ServicoDeInstancias(
         }
 
         var id = Guid.NewGuid().ToString("N");
+        var ehRaid = RegrasRaid.EhRaid(membros.Length);
         var corrida = new Corrida(id, grupo?.GrupoId, membros, nivelRequisitado)
         {
             IniciadaEmMs = AgoraMs(),
+            Raid = ehRaid,
+            EtapaAtual = 1,
+            TotalEtapas = ehRaid ? RegrasRaid.TotalEtapas : 1,
         };
         lock (_trava)
         {
@@ -186,7 +190,7 @@ public sealed class ServicoDeInstancias(
         }
 
         var area = AreasDoMundo.Instancia(id);
-        populador.AoAbrir(area, corrida.Nivel);
+        populador.AoAbrir(area, corrida.Nivel, ehRaid);
         var spawn = PosicaoDeSpawn();
         foreach (var membro in membros)
         {
@@ -428,18 +432,207 @@ public sealed class ServicoDeInstancias(
         }
     }
 
-    /// <summary>Encerra por vitória quando o boss da instância morre, agendando a carência para loot.</summary>
+    /// <summary>Processa a derrota de chefes na instância, avançando etapas de raid ou agendando a vitória.</summary>
     public void AoInimigoDerrotado(InimigoDerrotado derrota)
     {
-        if (
-            derrota.CriaturaId != CatalogoCriaturas.GuardiaoDoReflexo
-            || !TryParseInstancia(derrota.Area, out var id)
-        )
+        if (!TryParseInstancia(derrota.Area, out var id))
         {
             return;
         }
 
-        AgendarVitoria(id);
+        Corrida? corrida;
+        lock (_trava)
+        {
+            if (!_corridas.TryGetValue(id, out corrida))
+            {
+                return;
+            }
+        }
+
+        if (!corrida.Raid)
+        {
+            if (derrota.CriaturaId == CatalogoCriaturas.GuardiaoDoReflexo)
+            {
+                AgendarVitoria(id);
+            }
+            return;
+        }
+
+        // Fluxo de Raid:
+        var chefeEsperado = RegrasRaid.ObterChefeDaEtapa(corrida.EtapaAtual);
+        if (derrota.CriaturaId != chefeEsperado)
+        {
+            return;
+        }
+
+        AvancarEtapaRaid(id, corrida, derrota.CriaturaId);
+    }
+
+    private void AvancarEtapaRaid(string idInstancia, Corrida corrida, int criaturaIdDerrotada)
+    {
+        int etapaConcluida;
+        int proximaEtapa;
+        bool etapaFinal;
+        long[] participantes;
+
+        lock (_trava)
+        {
+            etapaConcluida = corrida.EtapaAtual;
+            corrida.EtapasConcluidas.Add(etapaConcluida);
+            etapaFinal = etapaConcluida >= corrida.TotalEtapas;
+            proximaEtapa = etapaFinal ? etapaConcluida : etapaConcluida + 1;
+            participantes = corrida.Participantes.ToArray();
+
+            if (!etapaFinal)
+            {
+                corrida.EtapaAtual = proximaEtapa;
+                var multVida = RegrasDificuldadeSemFim.CalcularMultiplicadorVida(corrida.Nivel);
+                var multDano = RegrasDificuldadeSemFim.CalcularMultiplicadorDano(corrida.Nivel);
+                populador.CriarChefeDaEtapaRaid(
+                    corrida.Area,
+                    corrida.EtapaAtual,
+                    multVida,
+                    multDano
+                );
+            }
+        }
+
+        if (scopeFactory != null)
+        {
+            var chaveSemana = RegrasRaid.ObterChaveSemana(relogio.GetUtcNow());
+            var momento = relogio.GetUtcNow();
+
+            _ = Task.Run(async () =>
+            {
+                var resultadosLoot = new Dictionary<long, bool>();
+                try
+                {
+                    using var scope = scopeFactory.CreateScope();
+                    var db = scope.ServiceProvider.GetRequiredService<JogoDbContext>();
+                    var bloqueios = scope.ServiceProvider.GetService<IBloqueioSemanalRaidServico>();
+                    var materiais = scope.ServiceProvider.GetService<ISaldosMateriaisFusao>();
+
+                    if (bloqueios != null && materiais != null)
+                    {
+                        await using var transacao = await db.Database.BeginTransactionAsync();
+                        foreach (var participante in participantes)
+                        {
+                            var jaConcluiu = await bloqueios.JaConcluiuEtapaAsync(
+                                participante,
+                                chaveSemana,
+                                etapaConcluida,
+                                CancellationToken.None
+                            );
+
+                            if (!jaConcluiu)
+                            {
+                                await bloqueios.RegistrarConclusaoAsync(
+                                    participante,
+                                    chaveSemana,
+                                    etapaConcluida,
+                                    momento,
+                                    CancellationToken.None
+                                );
+                                await materiais.CreditarRaidAsync(
+                                    participante,
+                                    1,
+                                    CancellationToken.None
+                                );
+                                resultadosLoot[participante] = true;
+                            }
+                            else
+                            {
+                                resultadosLoot[participante] = false;
+                            }
+                        }
+                        await transacao.CommitAsync();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger?.LogError(
+                        ex,
+                        "Erro ao processar loot e trava semanal da raid {Id} etapa {Etapa}",
+                        corrida.Id,
+                        etapaConcluida
+                    );
+                }
+
+                foreach (var participante in participantes)
+                {
+                    resultadosLoot.TryGetValue(participante, out var ganhouLoot);
+                    if (tempoReal.TentarObterSessao(participante, out var sessao) && sessao != null)
+                    {
+                        tempoReal.Enviar(
+                            sessao,
+                            InstanciasMessageIds.EtapaRaidConcluida,
+                            new EtapaRaidConcluida
+                            {
+                                IdInstancia = corrida.Id,
+                                EtapaConcluida = etapaConcluida,
+                                TotalEtapas = corrida.TotalEtapas,
+                                ProximaEtapa = proximaEtapa,
+                                CriaturaIdDerrotada = criaturaIdDerrotada,
+                                EtapaFinal = etapaFinal,
+                                GanhouLootSemanal = ganhouLoot,
+                            }
+                        );
+                    }
+                }
+
+                if (etapaFinal)
+                {
+                    AgendarVitoria(idInstancia);
+                }
+            });
+        }
+        else if (etapaFinal)
+        {
+            AgendarVitoria(idInstancia);
+        }
+    }
+
+    public void AoConsultarBloqueioSemanal(SessaoTempoReal sessao)
+    {
+        if (scopeFactory == null)
+        {
+            return;
+        }
+
+        var chaveSemana = RegrasRaid.ObterChaveSemana(relogio.GetUtcNow());
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                using var scope = scopeFactory.CreateScope();
+                var bloqueios = scope.ServiceProvider.GetService<IBloqueioSemanalRaidServico>();
+                var etapas =
+                    bloqueios != null
+                        ? await bloqueios.ObterEtapasConcluidasAsync(
+                            sessao.PersonagemId,
+                            chaveSemana
+                        )
+                        : (IReadOnlyCollection<int>)Array.Empty<int>();
+
+                tempoReal.Enviar(
+                    sessao,
+                    InstanciasMessageIds.RespostaBloqueioSemanalRaid,
+                    new RespostaBloqueioSemanalRaid
+                    {
+                        ChaveSemana = chaveSemana,
+                        EtapasConcluidas = etapas.ToArray(),
+                    }
+                );
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(
+                    ex,
+                    "Erro ao consultar bloqueio semanal de raid para personagem {PersonagemId}",
+                    sessao.PersonagemId
+                );
+            }
+        });
     }
 
     /// <summary>Registra a vitória e avisa os participantes com a carência para pegar loot.</summary>
@@ -489,7 +682,7 @@ public sealed class ServicoDeInstancias(
             }
         }
 
-        if (scopeFactory != null && corrida != null)
+        if (scopeFactory != null && corrida != null && !corrida.Raid)
         {
             var participantes = corrida.Participantes.ToArray();
             _ = Task.Run(async () =>
@@ -635,7 +828,9 @@ public sealed class ServicoDeInstancias(
                 Area = corrida.Area,
                 Nivel = corrida.Nivel,
                 TempoLimiteSegundos = RegrasDificuldadeSemFim.TempoLimitePadraoSegundos,
-                Raid = RegrasRaid.EhRaid(corrida.Participantes.Count),
+                Raid = corrida.Raid,
+                EtapaAtual = corrida.EtapaAtual,
+                TotalEtapas = corrida.TotalEtapas,
             }
         );
 
@@ -721,5 +916,9 @@ public sealed class ServicoDeInstancias(
         public long IniciadaEmMs { get; set; }
         public int TempoTotalSegundos { get; set; }
         public bool NoTempo { get; set; }
+        public bool Raid { get; init; }
+        public int EtapaAtual { get; set; } = 1;
+        public int TotalEtapas { get; init; } = 1;
+        public HashSet<int> EtapasConcluidas { get; } = [];
     }
 }

@@ -107,13 +107,15 @@ public sealed class ChefeDaDungeon : IAlvosDeCombate, IInimigosSimulados
         ArgumentException.ThrowIfNullOrEmpty(area);
         ArgumentNullException.ThrowIfNull(proximoId);
 
+        _definicao =
+            CatalogoCriaturas.Obter(criaturaId ?? ConfigChefeDaDungeon.CriaturaId)
+            ?? CatalogoCriaturas.Obter(ConfigChefeDaDungeon.CriaturaId);
         Area = area;
         _origemX = origemX;
         _origemZ = origemZ;
         _proximoId = proximoId;
         _relogioMs = relogioMs ?? (() => Environment.TickCount64);
         _historico = historico;
-        _definicao = CatalogoCriaturas.Obter(criaturaId ?? ConfigChefeDaDungeon.CriaturaId);
         _intervaloRespawnSegundos = intervaloRespawnSegundos;
         _x = origemX;
         _z = origemZ;

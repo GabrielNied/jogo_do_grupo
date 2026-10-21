@@ -92,16 +92,110 @@ Decidido em 2026-10-18 (veja [Definido](#definido)). É o fluxo clássico de MMO
 - O servidor decide os pré-requisitos, o progresso, a entrega, a escolha do item e o reset. O client só envia intenções (aceitar, abandonar, entregar com a escolha, compartilhar, acompanhar) e mostra o resultado.
 - A entrega é **uma vez só**: entregar duas vezes ao mesmo tempo não pode dar a recompensa em dobro (teste de concorrência).
 
-### Capítulo 1: a cidade
+### Capítulo 1: A Brasa Mansa e a Serra do Vidro Frio (Roteiro Completo, issue #1058)
 
-Decidido por Gabriel em 2026-10-18. É o primeiro capítulo da principal e funciona como o tutorial do jogo. Depende dos serviços dos NPCs que já existem. As falas, os nomes e a ordem fina saem do roteiro ([#1058](https://github.com/GabrielNied/jogo_do_grupo/issues/1058)).
+Roteiro da história principal pronto para virar dado de missão no `CatalogoDeMissoes`. Encadeia a introdução ao mundo, aprendizado dos serviços da cidade, combate básico e o primeiro grande desafio.
 
-1. **Explorar a cidade:** a principal leva o jogador pela Brasa Mansa, apresenta o lugar e um **NPC por vez**. Cada NPC explica o que faz, e o jogador usa o serviço uma vez: os do [elenco da Brasa Mansa](npcs.md#elenco-da-brasa-mansa) (lojas, ferreiro, banqueiro, leiloeiro, estábulo, cuidador de pets, taverna com a cozinha e dadores de missão). Só entra o NPC cujo serviço já existe no jogo.
-2. **Ensinar o básico:** junto com os NPCs, as etapas ensinam o combate (leve, pesado e esquiva), o inventário e o equipamento, a skill da arma, subir de nível e gastar pontos na [árvore](talentos.md).
-3. **Mobs perto da cidade:** sair pela primeira vez e enfrentar os inimigos fracos da área em volta da Brasa Mansa (matar e coletar).
-4. **Chefe:** fechar o capítulo derrotando um **chefe perto da cidade** ([#1059](https://github.com/GabrielNied/jogo_do_grupo/issues/1059)). A entrega dá o item à escolha e libera as secundárias da região ([#1060](https://github.com/GabrielNied/jogo_do_grupo/issues/1060)).
+#### 1. Gancho da História
+- **Quem é o personagem:** Um viajante/aventureiro sobrevivente da travessia pelas encostas da Serra do Vidro Frio, após a caravana mercantil em que viajava ter sido dispersada por javalis ferais e tempestades de gelo. O personagem chega a pé e sem recursos diante dos portões fortificados da Brasa Mansa. É uma premissa universal para qualquer raça ou combinação de equipamentos.
+- **Por que ele fica:** A Brasa Mansa é a única fortaleza aquecida pelas forjas arcanas na região e vive sob constante pressão de monstros que descem da serra. A guarnição da cidade precisa de braços fortes para assegurar as rotas de coleta e proteger os comboios. Em troca de abrigo, equipamento e coroas, a capitã da guarda e os artesãos locais acolhem o viajante na guilda da cidade.
 
-A lista do Livro abaixo serve de inspiração para as etapas, mas não é obrigatória.
+#### 2. NPCs de Serviço da Brasa Mansa
+Cada NPC possui papel específico, localização fixa registrada em [npcs.md](npcs.md#elenco-da-brasa-mansa) e diálogo de apresentação:
+
+1. **Capitã Valéria** (Comandante da Guarda / Dadora da Principal, Portão Sul): Firme, vigilante e pragmática. Avalia os recém-chegados e comanda a defesa da muralha.
+   - *Fala de apresentação:* *"A Brasa Mansa não tem espaço para turistas. Se você sobreviveu à estrada, prove que sabe empunhar uma lâmina antes de cruzar nossos portões."*
+   - *O que ensina:* Introduz a cidade, a missão principal e direciona o fluxo entre os bairros.
+2. **Mercador Alden** (Comerciante Geral, Praça Central, Id 1): Negociante sagaz e bem-humorado.
+   - *Fala de apresentação:* *"Tudo tem seu valor sob este teto, viajante. Traga o que recolher nos campos e garanto que suas coroas valerão o peso em provisões."*
+   - *O que ensina:* Uso do inventário, venda de espólios e compra de consumíveis básicos.
+3. **Armeiro Gareth** (Vendedor de Armas, Beco das Forjas, Id 4): Especialista paciente em metais e balística.
+   - *Fala de apresentação:* *"Uma espada precisa ser a extensão do seu braço; um arco, o foco dos seus olhos. Escolha sua primeira ferramenta com sabedoria."*
+   - *O que ensina:* Diferentes tipos de armas (espada, arco, cajado), arcos de corte e alcances de ataque.
+4. **Armadureira Bruna** (Vendedora de Armaduras, Beco das Forjas, Id 5): Minuciosa e focada em sobrevivência prática.
+   - *Fala de apresentação:* *"Ataque sem proteção é apenas bravata com plateia. Deixe-me ajustar essas tiras de couro ao seu peito antes que um javali o atravesse."*
+   - *O que ensina:* Tipos de armadura (tecido, couro, placas), mitigação e defesa física contra dano direto.
+5. **Ferreiro Brom** (Forja, Fusão e Reparo, Forja Central, Id 2): Rude, vigoroso e coberto de fuligem.
+   - *Fala de apresentação:* *"O ferro frio não tem compaixão de quem bate frouxo. Mantenha o fio das suas armas polido ou terminará servindo de almoço aos lobos."*
+   - *O que ensina:* Reparo de durabilidade de equipamentos e introdução à forja e fusão de essências.
+6. **Banqueiro Cassian** (Guarda-Volumes e Cofre, Salão Comercial, Id 3): Educado, metódico e incorruptível.
+   - *Fala de apresentação:* *"Seus tesouros descansam muito mais seguros nos cofres de pedra da cidade do que numa mochila rasgada durante uma emboscada na serra."*
+   - *O que ensina:* Banco pessoal, cofre de conta e preservação de itens excedentes.
+7. **Taverneiro Barnabé** (Cozinha e Hospedagem, Taverna da Lareira, Id 6): Acolhedor e generoso.
+   - *Fala de apresentação:* *"Puxe um banco junto ao fogo e aqueça essas mãos trêmulas. Um estômago vazio é a pior fraqueza quando se enfrenta o vento cortante."*
+   - *O que ensina:* O valor das refeições preparadas (buffs de longa duração de 30–60 min) e poções de alívio rápido.
+8. **Merceeiro Tomas** (Insumos e Ferramentas, Mercado, Id 7): Curioso e perspicaz.
+   - *Fala de apresentação:* *"Um punhado de ervas certas ou uma picareta reforçada valem mais do que um saco de ouro na hora do aperto nas cavernas."*
+   - *O que ensina:* Ferramentas de coleta (picareta, foice) e insumos para profissões de produção.
+9. **Cavalariço Roderic** (Estábulo, Cercado Norte, Id 8): Direto e dedicado aos animais de carga.
+   - *Fala de apresentação:* *"Um bom cavalo encurta o caminho entre você e a vitória. Mas lembre-se: nada de galopar enquanto lâminas estiverem tinindo!"*
+   - *O que ensina:* Aquisição e uso de montarias para travessias rápidas em terrenos abertos fora de combate.
+10. **Cuidadora Mirna** (Criadouro de Pets, Alameda Oeste, Id 9): Carinhosa e atenta aos pequenos seres.
+    - *Fala de apresentação:* *"Esses bichinhos possuem uma lealdade que ouro nenhum compra. Trate-os bem e você nunca caminhará solitário sob a névoa."*
+    - *O que ensina:* Companheiros e mascotes colecionáveis no mundo.
+
+#### 3. Etapas da Missão Principal (Capítulo 1)
+Todas as etapas seguem objetivos estritamente verificáveis pelo motor autoritativo (`TipoDeObjetivo` em `shared/Package/Runtime/Features/Missoes/`):
+
+1. **Etapa 1: Portões da Brasa Mansa**
+   - *NPC Dador:* Capitã Valéria (Portão Sul) | *NPC Entregador:* Mercador Alden (Praça Central)
+   - *Texto Aceitar:* *"Você conseguiu atravessar a estrada da serra, mas está em farrapos. Entre na cidadela e procure Alden no mercado da praça; ele fornecerá suas primeiras informações."*
+   - *Objetivo:* `IrA` Praça Central (`Regiao: cidade`, X: 12, Z: -8, Raio: 4m) e `Falar` com Mercador Alden.
+   - *Texto Entregar:* *"Vejo que Valéria mandou mais um sobrevivente. Bem-vindo à Brasa Mansa; aqui todo trabalho honesto é recompensado."*
+   - *Recompensa:* 100 XP, 25 Coroas. Próxima missão desbloqueada: Etapa 2.
+2. **Etapa 2: A Primeira Ferramenta**
+   - *NPC Dador:* Mercador Alden | *NPC Entregador:* Armeiro Gareth
+   - *Texto Aceitar:* *"Você não durará cinco minutos além das paliçadas desarmado. Vá até Gareth no beco das forjas e escolha a arma que melhor se adapta às suas mãos."*
+   - *Objetivo:* `Falar` com Armeiro Gareth.
+   - *Texto Entregar:* *"Chegou na hora certa. Espada de lâmina larga, arco recurvo ou cajado esculpido? A escolha é sua, novato."*
+   - *Recompensa:* 120 XP, 30 Coroas. Item à escolha: `Espada de Ferro Curta`, `Arco de Caça Simples` ou `Cajado de Madeira Polida`.
+3. **Etapa 3: Casca de Ferro e Couro**
+   - *NPC Dador:* Armeiro Gareth | *NPC Entregador:* Ferreiro Brom
+   - *Texto Aceitar:* *"Uma boa arma exige um corpo protegido. Leve este lingote inicial até a forja de Brom e peça a ele para reforçar sua veste."*
+   - *Objetivo:* `Falar` com Ferreiro Brom.
+   - *Texto Entregar:* *"Gareth mandou você? Deixe-me ver esse metal. Nada mau. Aqui está uma peça reforçada para manter suas costelas inteiras."*
+   - *Recompensa:* 140 XP, 35 Coroas, Peitoral de Couro Batido.
+4. **Etapa 4: Provisões e Guarda-Volumes**
+   - *NPC Dador:* Ferreiro Brom | *NPC Entregador:* Banqueiro Cassian
+   - *Texto Aceitar:* *"Antes de marchar para o descampado, passe na taverna de Barnabé para encher o cantil e depois deixe suas sobras no banco com Cassian."*
+   - *Objetivo:* `Falar` com Taverneiro Barnabé e `Falar` com Banqueiro Cassian.
+   - *Texto Entregar:* *"Um aventureiro que sabe onde guardar seus pertences é um aventureiro que vive para gastá-los. Seu baú está pronto."*
+   - *Recompensa:* 160 XP, 40 Coroas, 3x Poções Menores de Vida e 1x Caldo Quente da Taverna.
+5. **Etapa 5: Limpando a Trilha Norte**
+   - *NPC Dador:* Capitã Valéria | *NPC Entregador:* Capitã Valéria
+   - *Texto Aceitar:* *"Chega de passeios pela praça. Uma vara de javalis selvagens está revirando os fardos dos comboios a norte da muralha. Vá lá e elimine a ameaça."*
+   - *Objetivo:* `Matar` 6x Javali do Campo (`AlvoId: 1`, Região: `campo`).
+   - *Texto Entregar:* *"O sangue na sua lâmina prova sua utilidade. Os carroceiros já conseguem avistar a estrada sem pavor."*
+   - *Recompensa:* 280 XP, 65 Coroas, Luvas do Desbravador.
+6. **Etapa 6: O Enxame na Mata Fria**
+   - *NPC Dador:* Capitã Valéria | *NPC Entregador:* Capitã Valéria
+   - *Texto Aceitar:* *"Os javalis eram apenas o começo. Os lobos cinzentos desceram das ravinas e estão encurralando nossos lenhadores. Derrube as feras e traga suas peles para nossos agasalhos."*
+   - *Objetivo:* `Matar` 5x Lobo Cinzento (`AlvoId: 2`) e `Coletar` 4x Peles Espessas.
+   - *Texto Entregar:* *"Excelente trabalho. Essas peles manterão nossos vigias aquecidos durante as noites de geada."*
+   - *Recompensa:* 360 XP, 85 Coroas, Botas Resistentes da Guarda.
+7. **Etapa 7: O Senhor da Colina do Vigia (Clímax do Capítulo 1)**
+   - *NPC Dador:* Capitã Valéria | *NPC Entregador:* Capitã Valéria
+   - *Texto Aceitar:* *"Descobrimos o que está empurrando as feras contra nossos muros. O Presa Velha, um javali colossal com presas de obsidiana, estabeleceu território no topo da Colina do Vigia. Ele já esmagou duas patrulhas. Suba a colina e acabe com o monstro!"*
+   - *Objetivo:* `Matar` 1x Presa Velha (`AlvoId: 200`, Chefe do Campo/Colina do Vigia).
+   - *Texto Entregar:* *"Você abateu a lenda das ravinas! O silêncio voltou à Colina do Vigia. A Brasa Mansa tem uma dívida eterna com você, aventureiro. Considere-se um membro de honra da nossa cidadela."*
+   - *Recompensa:* 750 XP, 200 Coroas, Acesso às Missões Secundárias da Região (#1060) e Item Raro à Escolha: `Amuleto da Chama Viva`, `Anel de Presa Afiada` ou `Manto do Vigia da Serra`.
+
+#### 4. O Chefe do Capítulo 1: Presa Velha (CriaturaId: 200)
+- **Identidade e Visual:** Um javali alfa de porte colossal, com pelagem prateada encrostada em minérios da serra e um par de presas recurvadas de obsidiana.
+- **Motivo de estar ali:** Desalojado das galerias superiores da Serra do Vidro Frio pela atividade sísmica na Mina do Reflexo, desceu para os planaltos da Colina do Vigia em busca de pasto fértil, atacando qualquer comboio que tente cruzar a garganta rochosa.
+- **Mecânica em Combate:** Investidas lineares telegrafadas em área com rastro de poeira, batida no chão provocando atordoamento leve e aumento de ferocidade ao atingir 30% de vida.
+- **Falas do NPC:**
+  - *Antes do confronto (Valéria):* *"Não o enfrente de frente sem esquivar. O peso daquele bicho quebra escudos como gravetos secos."*
+  - *Após a vitória (Valéria):* *"O troféu das presas dele já está fincado no portão. Nenhuma fera ousará desafiar este marco novamente."*
+
+#### 5. Esboço das Missões Secundárias da Brasa Mansa (#1060)
+Concluir o Capítulo 1 destrava as seguintes missões secundárias na região da cidade e campos:
+1. **Caldeirão da Lareira** (Taverneiro Barnabé): Coletar 8x Ervas da Manhã e 4x Carnes Frescas nos campos norte para repor o ensopado comunitário.
+2. **Minério para a Bigorna** (Ferreiro Brom): Extrair 6x Minérios de Ferro nas encostas rochosas da ravina leste.
+3. **O Mascote Fugitivo** (Cuidadora Mirna): Encontrar o filhote assustado escondido perto do moinho decrépito e escoltá-lo até a segurança da cidade.
+4. **Correspondência Extraviada** (Banqueiro Cassian): Recuperar a bolsa de ordens mercantis caída no vale após o ataque de salteadores.
+5. **Vigilância no Portão Leste** (Guarda do Portão): Abater 5x Lobos Selvagens que rondam a cerca leste durante a névoa.
+6. **Remédio das Sombras** (Merceeiro Tomas): Colher 5x Fungos Luminescentes nos troncos caídos da mata fria para a produção de tônicos medicinais.
 
 ### Livro de Asterra: chegada ao mundo (proposta do board, 2026-10-11)
 

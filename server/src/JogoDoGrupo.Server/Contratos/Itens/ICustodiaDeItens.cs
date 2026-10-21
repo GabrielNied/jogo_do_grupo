@@ -20,6 +20,11 @@ public interface ICustodiaDeItens
     Task<List<EntradaInventario>> ListarNegociaveisAsync(long personagemId, CancellationToken c);
 
     /// <summary>
+    /// Consulta um item da bolsa sem retirá-lo. Nulo se ele não existe ou não está na bolsa.
+    /// </summary>
+    Task<ItemEmCustodia?> ObterAsync(long personagemId, long instanciaId, CancellationToken c);
+
+    /// <summary>
     /// Tira o item da bolsa do personagem. Nulo se ele não existe, não é do personagem, está
     /// equipado ou é favorito (nada muda nesse caso).
     /// </summary>

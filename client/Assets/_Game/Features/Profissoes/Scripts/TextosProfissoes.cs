@@ -7,9 +7,9 @@ namespace JogoDoGrupo.Client.Features.Profissoes
     internal static class TextosProfissoes
     {
         public const string Titulo = "Profissões";
-        public const string RotuloDaForja = "usar a forja";
+        public const string RotuloDaForja = "usar a oficina de produção";
         public const string AjudaDaForja =
-            "Aprenda as profissões aqui, de graça, e produza equipamentos com o que coletar no campo, ao norte do portão.";
+            "Aprenda as profissões aqui, de graça, e produza equipamentos e refeições com o que coletar no campo, ao norte do portão.";
 
         public static string Recusa(string codigo)
         {
@@ -20,7 +20,7 @@ namespace JogoDoGrupo.Client.Features.Profissoes
                 case CodigosErroProfissoes.JaAprendida:
                     return "Você já aprendeu essa profissão.";
                 case CodigosErroProfissoes.ProfissaoNaoAprendida:
-                    return "Aprenda a profissão na forja da cidade.";
+                    return "Aprenda a profissão na oficina da cidade.";
                 case CodigosErroProfissoes.NoInexistente:
                     return "Não há nada para coletar aqui.";
                 case CodigosErroProfissoes.NoEsgotado:
@@ -55,14 +55,22 @@ namespace JogoDoGrupo.Client.Features.Profissoes
 
         public static string NomeDoProduto(ReceitaDeProducao receita)
         {
+            if (receita == null)
+                return "Item";
+            if (!string.IsNullOrEmpty(receita.Nome))
+                return receita.Nome;
             var modelo = CatalogoEquipamentos.Obter(receita.ModeloId);
             return modelo != null ? modelo.Nome : "Item";
         }
 
         public static string Producao(ProducaoConcluida producao)
         {
-            var modelo = CatalogoEquipamentos.Obter(producao.ModeloId);
-            return (modelo != null ? modelo.Nome : "Item") + " na bolsa. Equipe pelo inventário.";
+            var receita = ConfigProfissoes.ObterReceita(producao.ReceitaId);
+            var nome =
+                receita != null && !string.IsNullOrEmpty(receita.Nome)
+                    ? receita.Nome
+                    : (CatalogoEquipamentos.Obter(producao.ModeloId)?.Nome ?? "Item");
+            return nome + " na bolsa. Equipe pelo inventário.";
         }
     }
 }
