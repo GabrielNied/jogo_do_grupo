@@ -76,7 +76,7 @@ namespace JogoDoGrupo.Client.Features.Combate
             container.pickingMode = PickingMode.Ignore;
             documento.rootVisualElement.Add(container);
 
-            var regiaoRecursos = Hud.Regiao(RegiaoDoHud.InferiorEsquerda) ?? container;
+            var regiaoRecursos = Hud.Regiao(RegiaoDoHud.QuadroJogador) ?? container;
             var painel = new PainelRecursos(regiaoRecursos);
             var painelStatus = new PainelEfeitosDeStatus(regiaoRecursos);
             var controleStatus = raiz.AddComponent<ControleEfeitosDeStatus>();

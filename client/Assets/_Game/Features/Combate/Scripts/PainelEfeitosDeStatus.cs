@@ -1,23 +1,38 @@
 using System.Collections.Generic;
+using System.Globalization;
+using JogoDoGrupo.Client.Core.UI;
+using JogoDoGrupo.Shared.Features.Combate;
 using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace JogoDoGrupo.Client.Features.Combate
 {
     /// <summary>
-    /// Exibição dos efeitos de status ativos e tempo de imunidade no HUD (UI Toolkit).
-    /// Oculta automaticamente quando não há nenhum efeito ativo (#171, combate.md).
+    /// Efeitos de status ativos (e a imunidade a atordoar) como ícones abaixo do quadro do
+    /// personagem, como os buffs e debuffs do World of Warcraft: borda verde para o que ajuda,
+    /// vermelha para o que atrapalha, tempo embaixo, acúmulos no canto e o nome na dica.
+    /// Some quando não há nada (#171, combate.md). Os ícones são reaproveitados a cada quadro.
     /// </summary>
     internal sealed class PainelEfeitosDeStatus
     {
         private readonly VisualElement _raiz;
-        private readonly VisualElement _pai;
+        private readonly List<Icone> _icones = new List<Icone>();
 
         public VisualElement Raiz => _raiz;
 
+        private sealed class Icone
+        {
+            public VisualElement Coluna;
+            public VisualElement Caixa;
+            public VisualElement Imagem;
+            public Label Tempo;
+            public Label Acumulos;
+            public string Titulo;
+            public string Descricao;
+        }
+
         public PainelEfeitosDeStatus(VisualElement pai)
         {
-            _pai = pai;
             var estilo = Resources.Load<StyleSheet>(PainelRecursos.CaminhoEstilo);
             if (estilo != null && !pai.styleSheets.Contains(estilo))
             {
@@ -38,99 +53,178 @@ namespace JogoDoGrupo.Client.Features.Combate
             ItemDeEscudo escudo = default
         )
         {
-            var temEfeitos = efeitos != null && efeitos.Count > 0;
-            var temImunidade = imunidadeRestante > 0f;
-
-            if (!temEfeitos && !temImunidade && !escudo.Ativo)
-            {
-                _raiz.style.display = DisplayStyle.None;
-                _raiz.Clear();
-                return;
-            }
-
-            _raiz.style.display = DisplayStyle.Flex;
-            _raiz.Clear();
-
+            var usados = 0;
             if (escudo.Ativo)
             {
-                var itemEscudo = new VisualElement();
-                itemEscudo.pickingMode = PickingMode.Ignore;
-                itemEscudo.AddToClassList("item-status");
-
-                var rotuloEscudo = new Label(escudo.Texto);
-                rotuloEscudo.pickingMode = PickingMode.Ignore;
-                rotuloEscudo.AddToClassList("status-rotulo");
-
-                var tempoEscudo = new Label(
-                    escudo.DuracaoRestante.ToString(
-                        "0.0",
-                        System.Globalization.CultureInfo.InvariantCulture
-                    ) + "s"
+                Preencher(
+                    usados++,
+                    "protegido",
+                    "Escudo",
+                    escudo.Texto + ": absorve dano antes da vida.",
+                    escudo.DuracaoRestante,
+                    1,
+                    true
                 );
-                tempoEscudo.pickingMode = PickingMode.Ignore;
-                tempoEscudo.AddToClassList("status-tempo");
-
-                itemEscudo.Add(rotuloEscudo);
-                itemEscudo.Add(tempoEscudo);
-                _raiz.Add(itemEscudo);
             }
 
-            if (temEfeitos)
+            if (efeitos != null)
             {
-                for (int i = 0; i < efeitos.Count; i++)
+                for (var i = 0; i < efeitos.Count; i++)
                 {
                     var e = efeitos[i];
-                    var item = new VisualElement();
-                    item.pickingMode = PickingMode.Ignore;
-                    item.AddToClassList("item-status");
-
-                    var rotulo = new Label(e.Nome + (e.Acumulos > 1 ? " x" + e.Acumulos : ""));
-                    rotulo.pickingMode = PickingMode.Ignore;
-                    rotulo.AddToClassList("status-rotulo");
-
-                    var tempo = new Label(
-                        e.DuracaoRestante.ToString(
-                            "0.0",
-                            System.Globalization.CultureInfo.InvariantCulture
-                        ) + "s"
+                    Preencher(
+                        usados++,
+                        NomeDoIcone(e.Tipo),
+                        e.Nome,
+                        Descricao(e.Tipo),
+                        e.DuracaoRestante,
+                        e.Acumulos,
+                        EhBenefico(e.Tipo)
                     );
-                    tempo.pickingMode = PickingMode.Ignore;
-                    tempo.AddToClassList("status-tempo");
-
-                    item.Add(rotulo);
-                    item.Add(tempo);
-                    _raiz.Add(item);
                 }
             }
 
-            if (temImunidade)
+            if (imunidadeRestante > 0f)
             {
-                var itemImune = new VisualElement();
-                itemImune.pickingMode = PickingMode.Ignore;
-                itemImune.AddToClassList("item-status");
-
-                var rotuloImune = new Label("Imune a Atordoado");
-                rotuloImune.pickingMode = PickingMode.Ignore;
-                rotuloImune.AddToClassList("status-rotulo");
-
-                var tempoImune = new Label(
-                    imunidadeRestante.ToString(
-                        "0.0",
-                        System.Globalization.CultureInfo.InvariantCulture
-                    ) + "s"
+                Preencher(
+                    usados++,
+                    "atordoado",
+                    "Imune a Atordoado",
+                    "Não pode ser atordoado de novo por enquanto.",
+                    imunidadeRestante,
+                    1,
+                    true
                 );
-                tempoImune.pickingMode = PickingMode.Ignore;
-                tempoImune.AddToClassList("status-tempo");
-
-                itemImune.Add(rotuloImune);
-                itemImune.Add(tempoImune);
-                _raiz.Add(itemImune);
             }
+
+            for (var i = usados; i < _icones.Count; i++)
+            {
+                _icones[i].Coluna.style.display = DisplayStyle.None;
+            }
+
+            _raiz.style.display = usados > 0 ? DisplayStyle.Flex : DisplayStyle.None;
         }
 
         public void Descartar()
         {
             _raiz.RemoveFromHierarchy();
+        }
+
+        private void Preencher(
+            int indice,
+            string icone,
+            string titulo,
+            string descricao,
+            float segundos,
+            int acumulos,
+            bool benefico
+        )
+        {
+            while (_icones.Count <= indice)
+            {
+                _icones.Add(Criar());
+            }
+
+            var item = _icones[indice];
+            item.Coluna.style.display = DisplayStyle.Flex;
+            item.Caixa.EnableInClassList("item-status-benefico", benefico);
+            item.Caixa.EnableInClassList("item-status-nocivo", !benefico);
+            var textura = ComponentesHud.Icone("Efeitos", icone);
+            item.Imagem.style.backgroundImage =
+                textura != null ? new StyleBackground(textura) : null;
+            item.Tempo.text = TextoDoTempo(segundos);
+            item.Acumulos.text = acumulos > 1 ? acumulos.ToString() : string.Empty;
+            item.Titulo = titulo;
+            item.Descricao = descricao;
+        }
+
+        private Icone Criar()
+        {
+            var item = new Icone();
+            item.Caixa = new VisualElement();
+            item.Caixa.AddToClassList("item-status");
+            item.Imagem = new VisualElement { pickingMode = PickingMode.Ignore };
+            item.Imagem.AddToClassList("item-status-icone");
+            item.Acumulos = ComponentesHud.Texto(string.Empty, "item-status-acumulos");
+            item.Tempo = ComponentesHud.Texto(string.Empty, "status-tempo");
+            item.Caixa.Add(item.Imagem);
+            item.Caixa.Add(item.Acumulos);
+            var coluna = new VisualElement { pickingMode = PickingMode.Ignore };
+            coluna.AddToClassList("item-status-coluna");
+            coluna.Add(item.Caixa);
+            coluna.Add(item.Tempo);
+            _raiz.Add(coluna);
+            ComponentesHud.ComDica(
+                item.Caixa,
+                () =>
+                    new ConteudoDaDica
+                    {
+                        Titulo = item.Titulo,
+                        Texto = item.Descricao,
+                        Rodape = item.Tempo.text + " restantes",
+                    }
+            );
+            item.Coluna = coluna;
+            item.Coluna.style.display = DisplayStyle.None;
+            return item;
+        }
+
+        private static string TextoDoTempo(float segundos)
+        {
+            if (segundos >= 60f)
+                return Mathf.CeilToInt(segundos / 60f) + "m";
+            if (segundos >= 10f)
+                return Mathf.CeilToInt(segundos) + "s";
+            return segundos.ToString("0.0", CultureInfo.InvariantCulture);
+        }
+
+        private static string NomeDoIcone(TipoEfeitoDeStatus tipo)
+        {
+            switch (tipo)
+            {
+                case TipoEfeitoDeStatus.Lentidao:
+                    return "lentidao";
+                case TipoEfeitoDeStatus.Atordoado:
+                    return "atordoado";
+                case TipoEfeitoDeStatus.Sangramento:
+                    return "sangramento";
+                case TipoEfeitoDeStatus.Queimadura:
+                    return "queimadura";
+                case TipoEfeitoDeStatus.Vulneravel:
+                    return "vulneravel";
+                case TipoEfeitoDeStatus.Fortalecido:
+                    return "fortalecido";
+                case TipoEfeitoDeStatus.Protegido:
+                    return "protegido";
+                default:
+                    return null;
+            }
+        }
+
+        private static bool EhBenefico(TipoEfeitoDeStatus tipo) =>
+            tipo == TipoEfeitoDeStatus.Fortalecido || tipo == TipoEfeitoDeStatus.Protegido;
+
+        private static string Descricao(TipoEfeitoDeStatus tipo)
+        {
+            switch (tipo)
+            {
+                case TipoEfeitoDeStatus.Lentidao:
+                    return "Movimento 30% mais lento.";
+                case TipoEfeitoDeStatus.Atordoado:
+                    return "Não pode agir.";
+                case TipoEfeitoDeStatus.Sangramento:
+                    return "Perde vida a cada segundo. Acumula até 3 vezes.";
+                case TipoEfeitoDeStatus.Queimadura:
+                    return "Perde vida a cada segundo. Acumula até 3 vezes.";
+                case TipoEfeitoDeStatus.Vulneravel:
+                    return "Recebe 15% mais dano.";
+                case TipoEfeitoDeStatus.Fortalecido:
+                    return "Causa 15% mais dano.";
+                case TipoEfeitoDeStatus.Protegido:
+                    return "Recebe 15% menos dano.";
+                default:
+                    return string.Empty;
+            }
         }
     }
 }
