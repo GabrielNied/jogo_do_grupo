@@ -1,3 +1,4 @@
+using JogoDoGrupo.Client.Core.Jogo;
 using JogoDoGrupo.Shared.Features.Profissoes;
 using UnityEngine;
 
@@ -138,6 +139,11 @@ namespace JogoDoGrupo.Client.Features.Profissoes
         {
             var raiz = new GameObject("Profissoes.Forja");
             raiz.transform.position = posicao;
+            if (PropsDoMundo.Instanciar("Props/workbench-anvil", raiz.transform, 1.1f) != null)
+            {
+                return raiz;
+            }
+
             var ferro = new Color(0.25f, 0.26f, 0.30f);
             Parte(
                 raiz,
@@ -167,6 +173,11 @@ namespace JogoDoGrupo.Client.Features.Profissoes
         {
             var raiz = new GameObject("Profissoes.Curtume");
             raiz.transform.position = posicao;
+            if (PropsDoMundo.Instanciar("Props/workbench", raiz.transform, 1.0f) != null)
+            {
+                return raiz;
+            }
+
             Parte(
                 raiz,
                 PrimitiveType.Cube,
@@ -188,6 +199,11 @@ namespace JogoDoGrupo.Client.Features.Profissoes
         {
             var raiz = new GameObject("Profissoes.Caldeirao");
             raiz.transform.position = posicao;
+            if (PropsDoMundo.Instanciar("Props/campfire-stand", raiz.transform, 1.0f) != null)
+            {
+                return raiz;
+            }
+
             Parte(
                 raiz,
                 PrimitiveType.Cylinder,
@@ -209,6 +225,11 @@ namespace JogoDoGrupo.Client.Features.Profissoes
         {
             var raiz = new GameObject("Profissoes.Cozinha");
             raiz.transform.position = posicao;
+            if (PropsDoMundo.Instanciar("Props/campfire-pit", raiz.transform, 0.6f) != null)
+            {
+                return raiz;
+            }
+
             Parte(
                 raiz,
                 PrimitiveType.Cube,

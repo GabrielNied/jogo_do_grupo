@@ -1,0 +1,7 @@
+Survival Kit 2.0, de Kenney (https://kenney.nl/assets/survival-kit), licença CC0 1.0
+(https://creativecommons.org/publicdomain/zero/1.0/). Baixado em 2026-10-21.
+Só os modelos usados (Resources/Props) e a textura de cores do pacote (Props/Textures/colormap.png):
+chest, box-large, barrel, bucket, signpost-single, workbench, workbench-anvil, workbench-grind,
+campfire-stand, campfire-pit, resource-wood, resource-stone.
+Usos: baú e cofre da guilda (chest), correio (box-large), forja (workbench-anvil),
+curtume (workbench), caldeirão (campfire-stand) e cozinha (campfire-pit).

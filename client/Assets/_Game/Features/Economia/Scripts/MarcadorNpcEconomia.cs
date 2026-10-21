@@ -1,3 +1,4 @@
+using JogoDoGrupo.Client.Core.Jogo;
 using JogoDoGrupo.Shared.Features.Economia;
 using UnityEngine;
 
@@ -120,6 +121,17 @@ namespace JogoDoGrupo.Client.Features.Economia
             // funcionalidade NPCs no mesmo ponto: aqui só fica o colisor. A caixa de correio e o
             // cofre da guilda, que não são pessoas, ganham uma peça baixa em vez da cápsula.
             if (tipo != TipoNpcEconomia.Correio && tipo != TipoNpcEconomia.BancoGuilda)
+            {
+                return raiz;
+            }
+
+            // Correio é a caixa grande do Survival Kit do Kenney (CC0); o cofre da guilda, o baú
+            // em tamanho maior. Sem os modelos, a peça simples de reserva.
+            var modelo =
+                tipo == TipoNpcEconomia.Correio
+                    ? PropsDoMundo.Instanciar("Props/box-large", raiz.transform, 0.9f, 90f)
+                    : PropsDoMundo.Instanciar("Props/chest", raiz.transform, 1.2f, 180f);
+            if (modelo != null)
             {
                 return raiz;
             }
