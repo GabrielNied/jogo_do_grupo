@@ -5,6 +5,7 @@ using JogoDoGrupo.Client.Core.Jogo;
 using JogoDoGrupo.Client.Features.Mundo.Hub;
 using JogoDoGrupo.Client.Features.Mundo.Terreno;
 using JogoDoGrupo.Shared.Features.Mundo;
+using JogoDoGrupo.Shared.Features.Npcs;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -729,6 +730,97 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
                 picado.Objetos,
                 "Dividir em quadros não pode mudar o mundo montado."
             );
+        }
+
+        [Test]
+        public void Setores_do_hub_abrigam_os_servicos_e_npcs_canonicos()
+        {
+            Assert.AreEqual(
+                LayoutDoHub.SetorPracaCentral,
+                LayoutDoHub.SetorDoHubEm(
+                    CatalogoNpcs.QuadroDeDiarias.X,
+                    CatalogoNpcs.QuadroDeDiarias.Z
+                )
+            );
+            Assert.AreEqual(
+                LayoutDoHub.SetorDistritoComercial,
+                LayoutDoHub.SetorDoHubEm(CatalogoNpcs.Banqueiro.X, CatalogoNpcs.Banqueiro.Z)
+            );
+            Assert.AreEqual(
+                LayoutDoHub.SetorDistritoComercial,
+                LayoutDoHub.SetorDoHubEm(CatalogoNpcs.Leiloeiro.X, CatalogoNpcs.Leiloeiro.Z)
+            );
+            Assert.AreEqual(
+                LayoutDoHub.SetorDistritoComercial,
+                LayoutDoHub.SetorDoHubEm(CatalogoNpcs.Armeiro.X, CatalogoNpcs.Armeiro.Z)
+            );
+            Assert.AreEqual(
+                LayoutDoHub.SetorDistritoComercial,
+                LayoutDoHub.SetorDoHubEm(CatalogoNpcs.Armadureiro.X, CatalogoNpcs.Armadureiro.Z)
+            );
+            Assert.AreEqual(
+                LayoutDoHub.SetorDistritoComercial,
+                LayoutDoHub.SetorDoHubEm(CatalogoNpcs.Merceeiro.X, CatalogoNpcs.Merceeiro.Z)
+            );
+            Assert.AreEqual(
+                LayoutDoHub.SetorDistritoComercial,
+                LayoutDoHub.SetorDoHubEm(CatalogoNpcs.Vendedor.X, CatalogoNpcs.Vendedor.Z)
+            );
+            Assert.AreEqual(
+                LayoutDoHub.SetorDistritoForjasTaverna,
+                LayoutDoHub.SetorDoHubEm(CatalogoNpcs.Ferreiro.X, CatalogoNpcs.Ferreiro.Z)
+            );
+            Assert.AreEqual(
+                LayoutDoHub.SetorDistritoForjasTaverna,
+                LayoutDoHub.SetorDoHubEm(CatalogoNpcs.Taverneiro.X, CatalogoNpcs.Taverneiro.Z)
+            );
+            Assert.AreEqual(
+                LayoutDoHub.SetorDistritoForjasTaverna,
+                LayoutDoHub.SetorDoHubEm(CatalogoNpcs.MoradoraLyra.X, CatalogoNpcs.MoradoraLyra.Z)
+            );
+            Assert.AreEqual(
+                LayoutDoHub.SetorDistritoAnimais,
+                LayoutDoHub.SetorDoHubEm(CatalogoNpcs.Cavalarico.X, CatalogoNpcs.Cavalarico.Z)
+            );
+            Assert.AreEqual(
+                LayoutDoHub.SetorDistritoAnimais,
+                LayoutDoHub.SetorDoHubEm(
+                    CatalogoNpcs.CuidadorDePets.X,
+                    CatalogoNpcs.CuidadorDePets.Z
+                )
+            );
+            Assert.AreEqual(
+                LayoutDoHub.SetorPortaoNorte,
+                LayoutDoHub.SetorDoHubEm(CatalogoNpcs.GuardaNorte.X, CatalogoNpcs.GuardaNorte.Z)
+            );
+            Assert.AreEqual(
+                LayoutDoHub.SetorPortaoSul,
+                LayoutDoHub.SetorDoHubEm(CatalogoNpcs.Valeria.X, CatalogoNpcs.Valeria.Z)
+            );
+            Assert.AreEqual(
+                LayoutDoHub.SetorDistritoResidencial,
+                LayoutDoHub.SetorDoHubEm(CatalogoNpcs.MoradorElric.X, CatalogoNpcs.MoradorElric.Z)
+            );
+        }
+
+        [Test]
+        public void Todos_os_npcs_da_cidade_ficam_dentro_da_area_andavel()
+        {
+            var npcs = CatalogoNpcs.PorArea(CatalogoNpcs.AreaCidade);
+            Assert.IsNotEmpty(npcs);
+            foreach (var npc in npcs)
+            {
+                var pos = new Vector3(npc.X, 0f, npc.Z);
+                Assert.IsTrue(
+                    LayoutDoHub.DentroDaAreaAndavel(pos, 1f),
+                    $"NPC {npc.Nome} em {pos} fica fora da área andável ou encostado no muro."
+                );
+                Assert.Greater(
+                    Vector3.Distance(pos, LayoutDoHub.PontoDeNascimento),
+                    2.5f,
+                    $"NPC {npc.Nome} em {pos} fica colado no ponto de nascimento."
+                );
+            }
         }
     }
 }
