@@ -7,7 +7,10 @@ public class CatalogoEquipamentosTestes
     [Fact]
     public void CatalogoContemQuatroFamiliasDuasVariantesENoveCategoriasSemRepeticao()
     {
-        var modelos = Enumerable.Range(101, 72).Select(CatalogoEquipamentos.Obter).ToArray();
+        var modelos = Enumerable
+            .Range(101, 72)
+            .Select(id => CatalogoEquipamentos.Obter(id)!)
+            .ToArray();
         Assert.All(modelos, Assert.NotNull);
         Assert.Equal(72, modelos.Select(m => m.Nome).Distinct().Count());
         Assert.Equal(4, modelos.Select(m => m.Familia).Distinct().Count());
@@ -35,7 +38,7 @@ public class CatalogoEquipamentosTestes
     {
         foreach (var id in CatalogoEquipamentos.ModelosDeTeste)
         {
-            var modelo = CatalogoEquipamentos.Obter(id);
+            var modelo = CatalogoEquipamentos.Obter(id)!;
             Assert.NotEmpty(modelo.Atributos);
             Assert.All(
                 modelo.Atributos,
@@ -80,7 +83,7 @@ public class CatalogoEquipamentosTestes
     )]
     public void AtributosDoModelo(int id, string nome, StatusItem[] esperados)
     {
-        var item = CatalogoEquipamentos.Obter(id);
+        var item = CatalogoEquipamentos.Obter(id)!;
         Assert.Equal(nome, item.Nome);
         Assert.Equal(esperados, item.Atributos.Select(a => a.Status));
     }
@@ -91,7 +94,7 @@ public class CatalogoEquipamentosTestes
     [InlineData(151, StatusItem.RegeneracaoMana)] // Tempestade B (cinto)
     [InlineData(110, StatusItem.DefesaMagica)] // Bastião B (capacete)
     public void VariantesBTemEspecializacao(int id, StatusItem status) =>
-        Assert.Contains(CatalogoEquipamentos.Obter(id).Atributos, a => a.Status == status);
+        Assert.Contains(CatalogoEquipamentos.Obter(id)!.Atributos, a => a.Status == status);
 
     [Theory]
     [InlineData(CatalogoEquipamentos.PrimeiroModeloDeArma, TipoEquipamento.Espada)]
@@ -101,7 +104,7 @@ public class CatalogoEquipamentosTestes
     [InlineData(CatalogoEquipamentos.PrimeiroModeloDeArma + 4, TipoEquipamento.Foco)]
     public void ArmasDeTesteTemODanoDaArmaEOPrincipalDaCategoria(int id, TipoEquipamento tipo)
     {
-        var item = CatalogoEquipamentos.Obter(id);
+        var item = CatalogoEquipamentos.Obter(id)!;
         Assert.Equal(tipo, item.Tipo);
         var status = item.Atributos.Select(a => a.Status).ToArray();
         Assert.Equal(ConfigAtributosItem.EhArma(tipo), status.Contains(StatusItem.DanoDaArma));
@@ -114,17 +117,17 @@ public class CatalogoEquipamentosTestes
     [Fact]
     public void ExemplaresIndependentesEIdsLegadosPreservados()
     {
-        var item = CatalogoEquipamentos.Obter(101);
+        var item = CatalogoEquipamentos.Obter(101)!;
         item.Atributos[0].Valor = 999;
-        Assert.Equal(0, CatalogoEquipamentos.Obter(101).Atributos[0].Valor);
-        Assert.Equal("Insígnia do Vigia", CatalogoEquipamentos.Obter(109).Nome);
-        Assert.True(CatalogoEquipamentos.Obter(100).DuasMaos);
-        Assert.NotNull(CatalogoEquipamentos.Obter(1));
-        Assert.NotNull(CatalogoEquipamentos.Obter(2));
-        Assert.Null(CatalogoEquipamentos.Obter(3));
-        Assert.NotNull(CatalogoEquipamentos.Obter(173));
-        Assert.Null(CatalogoEquipamentos.Obter(178));
-        Assert.Null(CatalogoEquipamentos.Obter(-1));
+        Assert.Equal(0, CatalogoEquipamentos.Obter(101)!.Atributos[0].Valor);
+        Assert.Equal("Insígnia do Vigia", CatalogoEquipamentos.Obter(109)!.Nome);
+        Assert.True(CatalogoEquipamentos.Obter(100)!.DuasMaos);
+        Assert.NotNull(CatalogoEquipamentos.Obter(1)!);
+        Assert.NotNull(CatalogoEquipamentos.Obter(2)!);
+        Assert.Null(CatalogoEquipamentos.Obter(3)!);
+        Assert.NotNull(CatalogoEquipamentos.Obter(173)!);
+        Assert.Null(CatalogoEquipamentos.Obter(178)!);
+        Assert.Null(CatalogoEquipamentos.Obter(-1)!);
         Assert.Equal(Enumerable.Range(100, 78), CatalogoEquipamentos.ModelosDeTeste);
     }
 
@@ -150,7 +153,7 @@ public class CatalogoEquipamentosTestes
         string nomeEsperado
     )
     {
-        var item = CatalogoEquipamentos.Obter(id);
+        var item = CatalogoEquipamentos.Obter(id)!;
         Assert.NotNull(item);
         Assert.Equal(nomeEsperado, item.Nome);
         Assert.Equal(TipoEquipamento.Cajado, item.Tipo);

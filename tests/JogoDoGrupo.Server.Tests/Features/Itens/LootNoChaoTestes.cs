@@ -538,7 +538,7 @@ public class LootNoChaoTestes(ServidorDeLoot servidor) : IClassFixture<ServidorD
         Assert.Equal(RegrasTier.VersaoAtual, peca.VersaoDosAtributos);
         Assert.All(peca.Atributos, a => Assert.InRange(a.Valor, 20, 80));
         Assert.Equal(RegrasTier.TierDe(peca), peca.TierOrigem);
-        Assert.Equal(10, coletado.Entrada.Equipamento.NivelPersonagemMinimo);
+        Assert.Equal(10, coletado.Entrada.Equipamento!.NivelPersonagemMinimo);
     }
 
     [Fact]

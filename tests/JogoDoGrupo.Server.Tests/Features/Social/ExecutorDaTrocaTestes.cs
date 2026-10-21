@@ -54,8 +54,8 @@ public sealed class ExecutorDaTrocaTestes(ServidorDeTeste servidor) : IClassFixt
         Assert.Equal(CatalogoItens.EspadaDeTeste, bolsaA.Single().ItemId);
         Assert.Equal(CatalogoItens.PocaoDeTeste, bolsaB.Single().ItemId);
         // O exemplar atravessou inteiro: os atributos sorteados da espada são os mesmos.
-        Assert.Equal(espada.Equipamento.Nome, bolsaA.Single().Equipamento.Nome);
-        Assert.Equal(espada.Equipamento.TierOrigem, bolsaA.Single().Equipamento.TierOrigem);
+        Assert.Equal(espada.Equipamento!.Nome, bolsaA.Single().Equipamento!.Nome);
+        Assert.Equal(espada.Equipamento!.TierOrigem, bolsaA.Single().Equipamento!.TierOrigem);
     }
 
     [Fact]

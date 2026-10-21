@@ -1,3 +1,4 @@
+#nullable enable annotations
 using System;
 
 namespace JogoDoGrupo.Shared.Features.Mobs
@@ -196,8 +197,8 @@ namespace JogoDoGrupo.Shared.Features.Mobs
         public static void Afastar(
             double x,
             double z,
-            double[] vizinhosX,
-            double[] vizinhosZ,
+            double[]? vizinhosX,
+            double[]? vizinhosZ,
             out double novoX,
             out double novoZ,
             double maxDeslocamentoMetros = double.MaxValue

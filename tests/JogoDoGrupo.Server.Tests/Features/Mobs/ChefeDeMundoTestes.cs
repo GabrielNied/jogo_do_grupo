@@ -12,7 +12,7 @@ public class ChefeDeMundoTestes
 
     private static readonly DefinicaoDeCriatura Anciao = CatalogoCriaturas.Obter(
         CatalogoCriaturas.AnciaoTrovejante
-    );
+    )!;
 
     private static readonly long IntervaloMs = Anciao.IntervaloDeAparicaoSegundos * 1000L;
 

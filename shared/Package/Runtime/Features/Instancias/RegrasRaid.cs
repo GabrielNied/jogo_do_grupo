@@ -1,3 +1,4 @@
+#nullable enable annotations
 using System;
 using System.Collections.Generic;
 
@@ -76,7 +77,7 @@ namespace JogoDoGrupo.Shared.Features.Instancias
 
         /// <summary>Se o jogador já realizou a etapa nessa semana.</summary>
         public static bool JaColetouLootDaEtapa(
-            IEnumerable<int> etapasConcluidasNaSemana,
+            IEnumerable<int>? etapasConcluidasNaSemana,
             int etapa
         )
         {

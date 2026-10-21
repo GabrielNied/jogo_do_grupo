@@ -250,7 +250,7 @@ O Core cria a moldura do HUD com as regiões da tabela e entrega um contêiner p
 
 ### Áudio
 
-Tudo aqui é **proposta** (issue #96). **Base:** World of Warcraft (uma música por área, com troca suave ao mudar de área) e New World (golpes com som pesado, que dão a sensação do acerto). **Igual:** música por área e sons de combate posicionados no mundo. **Diferente:** poucas faixas, todas CC0, e nada de dublagem.
+Regras **decididas em 2026-10-16** (quiz de definições 2; implementação na [#123](https://github.com/GabrielNied/jogo_do_grupo/issues/123), a #96 está fechada); os números (2 s, 50%, 16 efeitos, 25 m) seguem a calibrar. **Base:** World of Warcraft (uma música por área, com troca suave ao mudar de área) e New World (golpes com som pesado, que dão a sensação do acerto). **Igual:** música por área e sons de combate posicionados no mundo. **Diferente:** poucas faixas, todas CC0, e nada de dublagem.
 
 O áudio é só do client: o servidor não envia "toque este som". Os sons tocam em resposta ao que o client já recebe (acerto confirmado, aviso de ataque, mensagem de sistema).
 

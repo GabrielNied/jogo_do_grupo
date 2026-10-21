@@ -1,3 +1,4 @@
+#nullable enable annotations
 using System;
 using System.Collections.Generic;
 using JogoDoGrupo.Shared.Features.Itens;
@@ -87,7 +88,7 @@ namespace JogoDoGrupo.Shared.Features.Economia
 
         // ── Itens negociáveis ─────────────────────────────────────────────────────
 
-        private static Dictionary<int, string> _nomes;
+        private static Dictionary<int, string>? _nomes;
 
         /// <summary>Id e nome de cada item que o mercado conhece (para pedir uma compra).</summary>
         public static IReadOnlyDictionary<int, string> ItensConhecidos
@@ -144,7 +145,7 @@ namespace JogoDoGrupo.Shared.Features.Economia
         }
 
         /// <summary>O nome do item, ou <c>null</c> se o mercado não o conhece.</summary>
-        public static string NomeDoItem(int itemId) =>
+        public static string? NomeDoItem(int itemId) =>
             ItensConhecidos.TryGetValue(itemId, out var nome) ? nome : null;
     }
 }

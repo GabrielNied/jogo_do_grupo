@@ -1,3 +1,4 @@
+#nullable enable annotations
 using System;
 
 namespace JogoDoGrupo.Shared.Features.Itens
@@ -12,6 +13,6 @@ namespace JogoDoGrupo.Shared.Features.Itens
         public CapacidadeBolsa Capacidade = RegrasBanco.CapacidadeBancoInicial();
         public long Coroas;
         public string Aviso = "";
-        public EquipamentosResponse Bolsa;
+        public EquipamentosResponse? Bolsa;
     }
 }

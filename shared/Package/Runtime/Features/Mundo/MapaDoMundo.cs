@@ -1,3 +1,4 @@
+#nullable enable annotations
 using System;
 
 namespace JogoDoGrupo.Shared.Features.Mundo
@@ -72,7 +73,7 @@ namespace JogoDoGrupo.Shared.Features.Mundo
         /// <summary>Nenhum ponto do chão fica acima desta altura, em metros.</summary>
         public const float AlturaMaxima = 350f;
 
-        private static RegiaoDeBioma[] _regioesDePrevia;
+        private static RegiaoDeBioma[]? _regioesDePrevia;
 
         /// <summary>Mostra um desenho ainda não salvo somente no editor Unity.</summary>
         public static void DefinirRegioesDePrevia(RegiaoDeBioma[] regioes)

@@ -1,3 +1,4 @@
+#nullable enable annotations
 using System;
 
 namespace JogoDoGrupo.Shared.Features.Npcs
@@ -88,7 +89,7 @@ namespace JogoDoGrupo.Shared.Features.Npcs
         public static float DuracaoTotal => Falas[Falas.Length - 1].Fim;
 
         /// <summary>A fala do instante <paramref name="tempo"/>, ou <c>null</c> depois do fim.</summary>
-        public static FalaDoPrologo FalaEm(float tempo)
+        public static FalaDoPrologo? FalaEm(float tempo)
         {
             for (var i = 0; i < Falas.Length; i++)
             {

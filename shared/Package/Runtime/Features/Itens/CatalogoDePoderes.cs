@@ -1,3 +1,4 @@
+#nullable enable annotations
 using System;
 using System.Collections.Generic;
 
@@ -170,7 +171,7 @@ namespace JogoDoGrupo.Shared.Features.Itens
         public static IReadOnlyList<DefinicaoDePoder> Poderes => Todos;
 
         /// <summary>O poder pelo id, ou <c>null</c> se não existe (id vazio é "sem poder").</summary>
-        public static DefinicaoDePoder Obter(string id) =>
+        public static DefinicaoDePoder? Obter(string id) =>
             !string.IsNullOrEmpty(id) && PorId.TryGetValue(id, out var poder) ? poder : null;
 
         /// <summary>

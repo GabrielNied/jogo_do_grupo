@@ -1,3 +1,4 @@
+#nullable enable annotations
 using System;
 using System.Collections.Generic;
 
@@ -299,7 +300,7 @@ namespace JogoDoGrupo.Shared.Features.Itens
         public int MateriaisDungeon;
         public int MateriaisRaid;
         public bool ModoFusao;
-        public PreviaFusao Previa;
+        public PreviaFusao? Previa;
         public string Aviso = "";
     }
 
@@ -366,7 +367,7 @@ namespace JogoDoGrupo.Shared.Features.Itens
         /// com <c>JsonUtility</c>, que troca <c>"Equipamento": null</c> por um objeto vazio (tipo
         /// <c>Capacete</c>, modelo 0); só um modelo real conta como equipamento.
         /// </summary>
-        public static Equipamento DadosDe(EntradaInventario entrada)
+        public static Equipamento? DadosDe(EntradaInventario entrada)
         {
             var dados = entrada?.Equipamento;
             return dados != null && dados.ModeloId != 0 ? dados : null;

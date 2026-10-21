@@ -1,3 +1,4 @@
+#nullable enable annotations
 namespace JogoDoGrupo.Shared.Features.Itens
 {
     /// <summary>
@@ -58,7 +59,7 @@ namespace JogoDoGrupo.Shared.Features.Itens
         /// <summary>
         /// Nome exibido do item, ou <c>null</c> se <paramref name="itemId"/> não está no catálogo.
         /// </summary>
-        public static string ObterNome(int itemId)
+        public static string? ObterNome(int itemId)
         {
             switch (itemId)
             {

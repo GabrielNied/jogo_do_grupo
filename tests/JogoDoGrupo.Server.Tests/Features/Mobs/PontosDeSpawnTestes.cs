@@ -12,7 +12,7 @@ public class PontosDeSpawnTestes
 
     private static readonly DefinicaoDeCriatura Javali = CatalogoCriaturas.Obter(
         CatalogoCriaturas.JavaliDoCampo
-    );
+    )!;
 
     /// <summary>Sempre a variante normal; os números de "Proximo" saem da fila do teste.</summary>
     private sealed class Sorteador : ISorteadorDeCriaturas
@@ -100,10 +100,10 @@ public class PontosDeSpawnTestes
             pontos,
             p =>
             {
-                Assert.NotNull(CatalogoCriaturas.Obter(p.CriaturaId));
+                Assert.NotNull(CatalogoCriaturas.Obter(p.CriaturaId)!);
                 Assert.Equal(
                     CategoriaDeCriatura.Comum,
-                    CatalogoCriaturas.Obter(p.CriaturaId).Categoria
+                    CatalogoCriaturas.Obter(p.CriaturaId)!.Categoria
                 );
                 Assert.InRange(p.NivelMinimo, 1, p.NivelMaximo);
                 Assert.InRange(p.TamanhoMinimo, 1, p.TamanhoMaximo);
@@ -229,7 +229,7 @@ public class PontosDeSpawnTestes
                 new Sorteador(),
                 relogio,
                 1,
-                ficha: CatalogoCriaturas.Obter(criatura)
+                ficha: CatalogoCriaturas.Obter(criatura)!
             );
             // O inimigo único nasce 4 m ao norte do centro: (0, 4).
             relogio.Ms += 100;
@@ -251,7 +251,7 @@ public class PontosDeSpawnTestes
                 new Sorteador(),
                 relogio,
                 1,
-                ficha: CatalogoCriaturas.Obter(criatura)
+                ficha: CatalogoCriaturas.Obter(criatura)!
             );
             var jogador = new JogadorNoCampo(Jogador, 0, 6);
             InimigoPreparaAtaque? preparo = null;
@@ -298,7 +298,7 @@ public class PontosDeSpawnTestes
     [Fact]
     public void Chefe_e_chefe_raro_nao_escalam_com_o_nivel()
     {
-        var chefe = CatalogoCriaturas.Obter(CatalogoCriaturas.GuardiaoDoReflexo);
+        var chefe = CatalogoCriaturas.Obter(CatalogoCriaturas.GuardiaoDoReflexo)!;
         var criatura = new Sorteador().Sortear(chefe);
 
         var escalada = EscalaPorNivel.Aplicar(criatura, 40);

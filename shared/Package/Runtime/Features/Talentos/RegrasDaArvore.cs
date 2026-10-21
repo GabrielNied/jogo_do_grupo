@@ -1,3 +1,4 @@
+#nullable enable annotations
 using System.Collections.Generic;
 
 namespace JogoDoGrupo.Shared.Features.Talentos
@@ -6,7 +7,7 @@ namespace JogoDoGrupo.Shared.Features.Talentos
     public sealed class AvaliacaoDeCompra
     {
         /// <summary>Código de <see cref="CodigosErroTalentos"/>, ou <c>null</c> se o pedido vale.</summary>
-        public string Erro;
+        public string? Erro;
 
         /// <summary>O nó já está no rank pedido ou acima: sucesso sem cobrar (pedido repetido).</summary>
         public bool JaComprado;
@@ -21,7 +22,7 @@ namespace JogoDoGrupo.Shared.Features.Talentos
     /// </summary>
     public static class RegrasDaArvore
     {
-        public static NoDaArvore Procurar(ConfiguracaoDaArvore configuracao, string noId)
+        public static NoDaArvore? Procurar(ConfiguracaoDaArvore configuracao, string noId)
         {
             if (configuracao == null || configuracao.Nos == null || noId == null)
             {
@@ -342,7 +343,7 @@ namespace JogoDoGrupo.Shared.Features.Talentos
     public sealed class ValidacaoDePerfil
     {
         /// <summary>Código de erro, ou <c>null</c> se o perfil pode ser aplicado.</summary>
-        public string Erro;
+        public string? Erro;
 
         /// <summary>Ranks finais válidos e que cumprem todos os requisitos.</summary>
         public Dictionary<string, int> RanksAplicaveis = new Dictionary<string, int>();

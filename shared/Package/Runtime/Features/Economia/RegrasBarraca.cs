@@ -1,3 +1,4 @@
+#nullable enable annotations
 namespace JogoDoGrupo.Shared.Features.Economia
 {
     /// <summary>
@@ -5,7 +6,7 @@ namespace JogoDoGrupo.Shared.Features.Economia
     /// </summary>
     public static class RegrasBarraca
     {
-        public static bool PodeMontarBarraca(float x, float z, out string codigoErro)
+        public static bool PodeMontarBarraca(float x, float z, out string? codigoErro)
         {
             if (!ConfigBarraca.DentroDaPraca(x, z))
             {
@@ -22,7 +23,7 @@ namespace JogoDoGrupo.Shared.Features.Economia
             float x,
             float z,
             long saldoCoroas,
-            out string codigoErro,
+            out string? codigoErro,
             out long custoTotal
         )
         {

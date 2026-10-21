@@ -57,7 +57,7 @@ public class FusaoRotasTestes(ServidorDeTeste servidor) : IClassFixture<Servidor
     {
         using var escopo = servidor.Services.CreateScope();
         var db = escopo.ServiceProvider.GetRequiredService<JogoDbContext>();
-        var dados = CatalogoEquipamentos.Obter(100);
+        var dados = CatalogoEquipamentos.Obter(100)!;
         dados.Atributos = new[]
         {
             new AtributoItem
@@ -122,7 +122,7 @@ public class FusaoRotasTestes(ServidorDeTeste servidor) : IClassFixture<Servidor
     {
         var resposta = await Post(cliente, id, "previa", Pedido(principal, material, status));
         resposta.EnsureSuccessStatusCode();
-        return (await ServidorDeTeste.LerJsonAsync<EquipamentosResponse>(resposta)).Previa;
+        return (await ServidorDeTeste.LerJsonAsync<EquipamentosResponse>(resposta)).Previa!;
     }
 
     private static Task<HttpResponseMessage> Confirmar(
@@ -150,7 +150,7 @@ public class FusaoRotasTestes(ServidorDeTeste servidor) : IClassFixture<Servidor
         estado
             .Inventario.Concat(estado.Equipados)
             .Single(e => e.InstanciaId == instancia)
-            .Equipamento;
+            .Equipamento!;
 
     /// <summary>Tudo do exemplar, menos o valor do atributo e o nível de fusão.</summary>
     private static string SemOQueMuda(Equipamento dados, StatusItem status)
@@ -224,7 +224,7 @@ public class FusaoRotasTestes(ServidorDeTeste servidor) : IClassFixture<Servidor
         var depois = await Estado(cliente, id);
         Assert.Equal(Saldo - 100, depois.Coroas);
         Assert.Empty(depois.Inventario);
-        var item = Assert.Single(depois.Equipados).Equipamento;
+        var item = Assert.Single(depois.Equipados).Equipamento!;
         Assert.Equal(30, item.Atributos[0].Valor);
         Assert.Equal(1, item.NivelFusao);
         Assert.Equal(30, item.Atributos[1].Valor);
@@ -456,7 +456,7 @@ public class FusaoRotasTestes(ServidorDeTeste servidor) : IClassFixture<Servidor
         var estado = await Estado(cliente, id);
         Assert.Equal(99, estado.Coroas);
         Assert.Equal(2, estado.Inventario.Length);
-        Assert.All(estado.Inventario, e => Assert.Equal(0, e.Equipamento.NivelFusao));
+        Assert.All(estado.Inventario, e => Assert.Equal(0, e.Equipamento!.NivelFusao));
         Assert.Equal(20, Dados(estado, principal).Atributos[0].Valor);
     }
 
@@ -522,7 +522,7 @@ public class FusaoRotasTestes(ServidorDeTeste servidor) : IClassFixture<Servidor
         var previa = await Previa(cliente, id, principal, material);
         (await Confirmar(cliente, id, previa)).EnsureSuccessStatusCode();
 
-        var item = Assert.Single((await Estado(cliente, id)).Equipados).Equipamento;
+        var item = Assert.Single((await Estado(cliente, id)).Equipados).Equipamento!;
         Assert.Equal(30, item.Atributos[0].Valor);
         Assert.True(item.Favorito);
     }
@@ -638,7 +638,7 @@ public class FusaoRotasTestes(ServidorDeTeste servidor) : IClassFixture<Servidor
         var estado = await Estado(cliente, id);
         Assert.Equal(Saldo - 100, estado.Coroas);
         Assert.Equal(2, estado.Inventario.Length);
-        Assert.Equal(1, estado.Inventario.Sum(e => e.Equipamento.NivelFusao));
+        Assert.Equal(1, estado.Inventario.Sum(e => e.Equipamento!.NivelFusao));
     }
 
     [Fact]
@@ -670,6 +670,7 @@ public class FusaoRotasTestes(ServidorDeTeste servidor) : IClassFixture<Servidor
         using var escopo = servidor.Services.CreateScope();
         var db = escopo.ServiceProvider.GetRequiredService<JogoDbContext>();
         var nomeTrigger = "FalhaFusao" + material;
+#pragma warning disable EF1002 // DDL de teste: o gatilho nao aceita parametro e o id vem do proprio teste
         await db.Database.ExecuteSqlRawAsync(
             $"CREATE TRIGGER {nomeTrigger} BEFORE DELETE ON ItensInventario WHEN OLD.Id = {material} BEGIN SELECT RAISE(ABORT, 'falha simulada'); END;"
         );
@@ -682,13 +683,14 @@ public class FusaoRotasTestes(ServidorDeTeste servidor) : IClassFixture<Servidor
             var estado = await Estado(cliente, id);
             Assert.Equal(Saldo, estado.Coroas);
             Assert.Equal(2, estado.Inventario.Length);
-            Assert.All(estado.Inventario, e => Assert.Equal(0, e.Equipamento.NivelFusao));
+            Assert.All(estado.Inventario, e => Assert.Equal(0, e.Equipamento!.NivelFusao));
             Assert.Equal(20, Dados(estado, principal).Atributos[0].Valor);
         }
         finally
         {
             await db.Database.ExecuteSqlRawAsync($"DROP TRIGGER {nomeTrigger};");
         }
+#pragma warning restore EF1002
     }
 
     [Fact]

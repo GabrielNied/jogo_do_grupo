@@ -5,7 +5,7 @@ namespace JogoDoGrupo.Shared.Features.Talentos
     /// <summary>Resultado de carregar um perfil de build na árvore de talentos.</summary>
     public sealed class CarregarPerfilResponse
     {
-        public ArvoreResponse Arvore { get; set; }
+        public ArvoreResponse Arvore { get; set; } = null!;
 
         /// <summary>
         /// Avisos gerados na aplicação do perfil (ex.: nós que não existem mais na versão atual

@@ -9,9 +9,9 @@ namespace JogoDoGrupo.Shared.Features.Npcs
     public class DefinicaoNpc
     {
         public int Id;
-        public string Nome;
+        public string Nome = "";
         public PapelNpc Papel;
-        public string Area;
+        public string Area = "";
         public float X;
         public float Y;
         public float Z;

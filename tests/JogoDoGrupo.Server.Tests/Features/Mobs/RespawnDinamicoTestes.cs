@@ -10,7 +10,7 @@ public class RespawnDinamicoTestes
     private const long IdA = ConfigInimigosDoCampo.PrimeiroInimigoId;
     private const double CentroZ = 190.0;
     private static readonly double Base = CatalogoCriaturas
-        .Obter(CatalogoCriaturas.JavaliDoCampo)
+        .Obter(CatalogoCriaturas.JavaliDoCampo)!
         .IntervaloDeAparicaoSegundos;
 
     private sealed class Sorteador : ISorteadorDeCriaturas
@@ -56,7 +56,7 @@ public class RespawnDinamicoTestes
     {
         var agora = 10_000L;
         var grupo = new GrupoDeInimigos(
-            CatalogoCriaturas.Obter(CatalogoCriaturas.JavaliDoCampo),
+            CatalogoCriaturas.Obter(CatalogoCriaturas.JavaliDoCampo)!,
             new Sorteador(),
             2,
             () => agora,
@@ -116,7 +116,7 @@ public class RespawnDinamicoTestes
     {
         var agora = 10_000L;
         var grupo = new GrupoDeInimigos(
-            CatalogoCriaturas.Obter(CatalogoCriaturas.JavaliDoCampo),
+            CatalogoCriaturas.Obter(CatalogoCriaturas.JavaliDoCampo)!,
             new Sorteador(),
             2,
             () => agora,

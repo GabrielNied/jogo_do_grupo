@@ -1,3 +1,4 @@
+#nullable enable annotations
 namespace JogoDoGrupo.Shared.Features.Mobs
 {
     /// <summary>
@@ -126,7 +127,7 @@ namespace JogoDoGrupo.Shared.Features.Mobs
             ),
         };
 
-        public static FichaDeLoreBestiario Obter(int criaturaId)
+        public static FichaDeLoreBestiario? Obter(int criaturaId)
         {
             for (int i = 0; i < Fichas.Length; i++)
             {

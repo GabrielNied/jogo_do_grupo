@@ -6,9 +6,9 @@ namespace JogoDoGrupo.Shared.Features.Montarias
     public sealed class MontariaEstabuloDto
     {
         public int TipoMontaria { get; set; }
-        public string Nome { get; set; }
+        public string Nome { get; set; } = "";
         public long PrecoCoroas { get; set; }
-        public string Descricao { get; set; }
+        public string Descricao { get; set; } = "";
 
         public MontariaEstabuloDto() { }
 

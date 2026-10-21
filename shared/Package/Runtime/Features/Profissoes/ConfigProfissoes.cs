@@ -1,3 +1,4 @@
+#nullable enable annotations
 using System;
 
 namespace JogoDoGrupo.Shared.Features.Profissoes
@@ -57,7 +58,7 @@ namespace JogoDoGrupo.Shared.Features.Profissoes
         public readonly int ModeloId;
         public readonly int[] MateriaisIds;
         public readonly int[] MateriaisQuantidades;
-        public readonly string Nome;
+        public readonly string? Nome;
         public readonly int DuracaoBuffMinutos;
 
         public ReceitaDeProducao(
@@ -75,7 +76,7 @@ namespace JogoDoGrupo.Shared.Features.Profissoes
             int modeloId,
             int[] materiaisIds,
             int[] materiaisQuantidades,
-            string nome,
+            string? nome,
             int duracaoBuffMinutos
         )
         {
@@ -455,7 +456,7 @@ namespace JogoDoGrupo.Shared.Features.Profissoes
         public static bool PodeAprender(Profissao profissao) =>
             Array.IndexOf(Disponiveis, profissao) >= 0;
 
-        public static PontoDeColeta ObterPonto(int id)
+        public static PontoDeColeta? ObterPonto(int id)
         {
             for (var i = 0; i < Pontos.Length; i++)
             {
@@ -465,7 +466,7 @@ namespace JogoDoGrupo.Shared.Features.Profissoes
             return null;
         }
 
-        public static ReceitaDeProducao ObterReceita(int id)
+        public static ReceitaDeProducao? ObterReceita(int id)
         {
             for (var i = 0; i < Receitas.Length; i++)
             {
@@ -475,7 +476,7 @@ namespace JogoDoGrupo.Shared.Features.Profissoes
             return null;
         }
 
-        public static string NomeDoMaterial(int materialId)
+        public static string? NomeDoMaterial(int materialId)
         {
             for (var i = 0; i < Materiais.Length; i++)
             {
@@ -485,7 +486,7 @@ namespace JogoDoGrupo.Shared.Features.Profissoes
             return null;
         }
 
-        public static string NomeDaProfissao(Profissao profissao)
+        public static string? NomeDaProfissao(Profissao profissao)
         {
             switch (profissao)
             {

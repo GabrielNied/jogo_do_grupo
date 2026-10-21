@@ -15,7 +15,7 @@ public class ChefeDoCapituloTestes
 
         public AmbienteDoChefe()
         {
-            var def = CatalogoCriaturas.Obter(ConfigChefeDoCapitulo.CriaturaId);
+            var def = CatalogoCriaturas.Obter(ConfigChefeDoCapitulo.CriaturaId)!;
             var multDano = (double)def.DanoBase / 120.0;
             Boss = new ChefeDaDungeon(
                 ConfigChefeDoCapitulo.Area,
@@ -58,7 +58,7 @@ public class ChefeDoCapituloTestes
         var retrato = vivos[0];
 
         Assert.Equal(CatalogoCriaturas.PresaVelha, retrato.CriaturaId);
-        var def = CatalogoCriaturas.Obter(CatalogoCriaturas.PresaVelha);
+        var def = CatalogoCriaturas.Obter(CatalogoCriaturas.PresaVelha)!;
         Assert.Equal(def.VidaBase, retrato.VidaMaxima);
         Assert.Equal(def.VidaBase, retrato.Vida);
         Assert.Equal((float)ConfigChefeDoCapitulo.PontoX, retrato.X);
@@ -80,7 +80,7 @@ public class ChefeDoCapituloTestes
     {
         var ambiente = new AmbienteDoChefe();
         var chefe = ambiente.Boss;
-        var def = CatalogoCriaturas.Obter(ConfigChefeDoCapitulo.CriaturaId);
+        var def = CatalogoCriaturas.Obter(ConfigChefeDoCapitulo.CriaturaId)!;
 
         // Jogador 1 ataca e causa dano
         var bateu1 = ambiente.Bater(100, atacanteId: 10, out _);
@@ -109,7 +109,7 @@ public class ChefeDoCapituloTestes
     {
         var ambiente = new AmbienteDoChefe();
         var chefe = ambiente.Boss;
-        var def = CatalogoCriaturas.Obter(ConfigChefeDoCapitulo.CriaturaId);
+        var def = CatalogoCriaturas.Obter(ConfigChefeDoCapitulo.CriaturaId)!;
         var idOriginal = chefe.InimigoId;
 
         // Mata o chefe

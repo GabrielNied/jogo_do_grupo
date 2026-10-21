@@ -15,7 +15,7 @@ public class ReposicaoDeInimigosTestes
 
     private static readonly DefinicaoDeCriatura Javali = CatalogoCriaturas.Obter(
         CatalogoCriaturas.JavaliDoCampo
-    );
+    )!;
 
     private static readonly long IntervaloMs = Javali.IntervaloDeAparicaoSegundos * 1000L;
 
@@ -332,7 +332,7 @@ public class ReposicaoDeInimigosTestes
     }
 
     private static DefinicaoDeCriatura Tatu() =>
-        CatalogoCriaturas.Obter(CatalogoCriaturas.TatuRochoso);
+        CatalogoCriaturas.Obter(CatalogoCriaturas.TatuRochoso)!;
 
     // ── Pontos ───────────────────────────────────────────────────────────────
 

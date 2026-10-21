@@ -1,3 +1,4 @@
+#nullable enable annotations
 using System;
 using System.Collections.Generic;
 using JogoDoGrupo.Shared.Features.Itens;
@@ -165,7 +166,7 @@ namespace JogoDoGrupo.Shared.Features.Economia
         /// Procura um item no catálogo de uma loja específica.
         /// Retorna null se o item não fizer parte daquela categoria de loja.
         /// </summary>
-        public static ItemLojaDto ObterItemLoja(CategoriaLoja categoria, int itemId)
+        public static ItemLojaDto? ObterItemLoja(CategoriaLoja categoria, int itemId)
         {
             var catalogo = ObterCatalogo(categoria);
             for (int i = 0; i < catalogo.Length; i++)
@@ -181,7 +182,7 @@ namespace JogoDoGrupo.Shared.Features.Economia
         /// <summary>
         /// Procura um item no catálogo unificado da loja por ID.
         /// </summary>
-        public static ItemLojaDto ObterItemLoja(int itemId)
+        public static ItemLojaDto? ObterItemLoja(int itemId)
         {
             return ObterItemLoja(CategoriaLoja.Nenhuma, itemId);
         }

@@ -58,7 +58,7 @@ public class AreaDeInteresseTestes(TempoRealFixture f) : IClassFixture<TempoReal
 
         var comuns = snapshot
             .Inimigos.Where(i =>
-                CatalogoCriaturas.Obter(i.CriaturaId).Categoria == CategoriaDeCriatura.Comum
+                CatalogoCriaturas.Obter(i.CriaturaId)!.Categoria == CategoriaDeCriatura.Comum
             )
             .ToArray();
         Assert.Empty(comuns);
@@ -74,7 +74,7 @@ public class AreaDeInteresseTestes(TempoRealFixture f) : IClassFixture<TempoReal
         Assert.NotNull(apareceu.Inimigo);
         Assert.Equal(
             CategoriaDeCriatura.Comum,
-            CatalogoCriaturas.Obter(apareceu.Inimigo.CriaturaId).Categoria
+            CatalogoCriaturas.Obter(apareceu.Inimigo.CriaturaId)!.Categoria
         );
     }
 

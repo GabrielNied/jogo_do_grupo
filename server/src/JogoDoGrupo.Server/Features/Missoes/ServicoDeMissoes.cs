@@ -218,16 +218,17 @@ public sealed class ServicoDeMissoes
             .ToHashSet();
 
         var concluidasNoCiclo = existentes
-            .Where(m => m.Estado == EstadoDaMissao.Concluida && m.ConcluidaEm.HasValue)
             .Where(m =>
             {
+                if (m.Estado != EstadoDaMissao.Concluida || m.ConcluidaEm is not { } concluidaEm)
+                    return false;
                 var defM = CatalogoDeMissoes.Obter(m.MissaoId);
                 if (defM == null)
                     return false;
                 if (defM.Tipo == TipoDeMissao.Diaria)
-                    return RegrasCicloReset.MesmoCicloDiario(m.ConcluidaEm.Value, agoraSecs);
+                    return RegrasCicloReset.MesmoCicloDiario(concluidaEm, agoraSecs);
                 if (defM.Tipo == TipoDeMissao.Semanal)
-                    return RegrasCicloReset.MesmoCicloSemanal(m.ConcluidaEm.Value, agoraSecs);
+                    return RegrasCicloReset.MesmoCicloSemanal(concluidaEm, agoraSecs);
                 return true;
             })
             .Select(m => m.MissaoId)
