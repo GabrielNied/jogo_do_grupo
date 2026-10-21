@@ -1,7 +1,10 @@
 {
   "name": "JogoDoGrupo.Client.Personagem.Editor",
   "rootNamespace": "JogoDoGrupo.Client.Features.Personagem.Editor",
-  "references": [],
+  "references": [
+    "JogoDoGrupo.Client.Personagem",
+    "JogoDoGrupo.Shared"
+  ],
   "includePlatforms": [
     "Editor"
   ],

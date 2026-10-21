@@ -1,3 +1,4 @@
+using JogoDoGrupo.Shared.Features.Personagem;
 using UnityEngine;
 
 namespace JogoDoGrupo.Client.Core.Jogo.Controle
@@ -32,6 +33,12 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
         /// <summary>Frenagem para inverter a direção (m/s²).</summary>
         public const float FrenagemPadrao = 15f;
 
+        /// <summary>Quão forte a água puxa os pés para a altura de boiar (1/s).</summary>
+        public const float RigidezDaBoia = 4f;
+
+        /// <summary>Velocidade vertical máxima de quem sobe ou afunda até boiar, em m/s.</summary>
+        public const float VelocidadeVerticalDaBoiaMaxima = 4f;
+
         /// <summary>Aceleração no ar (m/s²).</summary>
         public const float AceleracaoNoArPadrao = 8f;
 
@@ -56,6 +63,9 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
 
         /// <summary>Buffer de pulo (s): janela para pulo antes de tocar o chão.</summary>
         public float BufferDePulo { get; set; } = BufferDePuloPadrao;
+
+        /// <summary>Velocidade horizontal a nado, em m/s (#349).</summary>
+        public float VelocidadeNado { get; set; } = ConfigMovimentoEspecial.VelocidadeNado;
 
         /// <summary>Velocidade de andar devagar (Ctrl esquerdo segurado), em m/s.</summary>
         public float VelocidadeAndar { get; set; } = VelocidadeAndarPadrao;
@@ -144,6 +154,48 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
         {
             var maxima = devagar ? VelocidadeAndar : VelocidadeCorrer;
             return maxima * Intensidade(entrada);
+        }
+
+        /// <summary>
+        /// Velocidade horizontal desejada a nado, em m/s: a <see cref="VelocidadeNado"/> vezes a
+        /// intensidade do input, e só uma fração (<see cref="ConfigMovimentoEspecial.FatorSemStamina"/>)
+        /// se a stamina acabou. Nadar não tem andar devagar.
+        /// </summary>
+        public float VelocidadeAlvoNadando(Vector2 entrada, bool semStamina)
+        {
+            var fator = semStamina ? (float)ConfigMovimentoEspecial.FatorSemStamina : 1f;
+            return VelocidadeNado * fator * Intensidade(entrada);
+        }
+
+        /// <summary>
+        /// Velocidade vertical de quem boia: sobe ou afunda suave até <paramref name="alturaAlvo"/>
+        /// (a superfície menos o afundamento), sem gravidade nem pulo.
+        /// </summary>
+        public static float VelocidadeVerticalDeBoia(float alturaAtual, float alturaAlvo)
+        {
+            return Mathf.Clamp(
+                (alturaAlvo - alturaAtual) * RigidezDaBoia,
+                -VelocidadeVerticalDaBoiaMaxima,
+                VelocidadeVerticalDaBoiaMaxima
+            );
+        }
+
+        /// <summary>
+        /// Deslocamento na via de escalada (m/s): <paramref name="entrada"/>.y sobe e desce, .x anda
+        /// de lado. Devolve (lateral, vertical); dentro da <see cref="ZonaMorta"/> fica parado.
+        /// </summary>
+        public static Vector2 VelocidadeNaVia(Vector2 entrada)
+        {
+            if (Intensidade(entrada) <= 0f)
+            {
+                return Vector2.zero;
+            }
+
+            return new Vector2(
+                Mathf.Clamp(entrada.x, -1f, 1f)
+                    * ConfigMovimentoEspecial.VelocidadeLateralDeEscalada,
+                Mathf.Clamp(entrada.y, -1f, 1f) * ConfigMovimentoEspecial.VelocidadeDeEscalada
+            );
         }
 
         /// <summary>Aproxima a velocidade atual da alvo, limitada pela <see cref="Aceleracao"/> ou <see cref="Frenagem"/>.</summary>

@@ -213,6 +213,10 @@ namespace JogoDoGrupo.Client.Features.Personagem
 
         public static string AvisoSubiuDeNivel(int nivel) => "Subiu para o nível " + nivel + ".";
 
+        public static string AvisoDanoDeQueda(int dano) => "A queda tirou " + dano + " de vida.";
+
+        public const string AvisoSemStaminaNoMovimento = "Sem stamina: você perde o fôlego.";
+
         public const string NivelMaximo = "Nível máximo";
     }
 }

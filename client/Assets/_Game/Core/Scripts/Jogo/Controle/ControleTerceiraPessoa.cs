@@ -1,4 +1,5 @@
 using System;
+using JogoDoGrupo.Shared.Features.Personagem;
 using UnityEngine;
 
 namespace JogoDoGrupo.Client.Core.Jogo.Controle
@@ -82,6 +83,13 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
         private Vector3 _direcao;
         private float _velocidadeHorizontal;
         private float _velocidadeVertical;
+
+        // Natação e escalada (#349): previsão local; o servidor confere e pode soltar a via.
+        private bool _nadando;
+        private bool _escalando;
+        private VolumeMarcado _via;
+        private float _frenteDaViaX;
+        private float _frenteDaViaZ;
 
         // Velocidades do servidor (andar, correr); null enquanto offline: vale o Inspector.
         private Vector2? _velocidadesDoServidor;
@@ -210,28 +218,44 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
                 );
             }
 
-            var noAr = !_corpo.isGrounded;
-            _velocidadeHorizontal = _movimento.Acelerar(
-                _velocidadeHorizontal,
-                _movimento.VelocidadeAlvo(entrada, devagar),
-                dt,
-                noAr
-            );
-            _velocidadeVertical = _movimento.VelocidadeVertical(
-                _velocidadeVertical,
-                _corpo.isGrounded,
-                dt,
-                InputAtivo ? _acoes.Subir : 0f
-            );
-            _velocidadeVertical = _movimento.Pular(
-                _velocidadeVertical,
-                _corpo.isGrounded,
-                InputAtivo && _acoes.PularApertado,
-                dt
-            );
+            var posicao = transform.position;
+            AtualizarModosEspeciais(posicao, entrada);
 
-            var deslocamento =
-                (_direcao * _velocidadeHorizontal + Vector3.up * _velocidadeVertical) * dt;
+            Vector3 deslocamento;
+            if (_escalando)
+            {
+                deslocamento = MoverNaVia(entrada, dt);
+            }
+            else if (_nadando)
+            {
+                deslocamento = MoverNadando(posicao, entrada, dt);
+            }
+            else
+            {
+                var noAr = !_corpo.isGrounded;
+                _velocidadeHorizontal = _movimento.Acelerar(
+                    _velocidadeHorizontal,
+                    _movimento.VelocidadeAlvo(entrada, devagar),
+                    dt,
+                    noAr
+                );
+                _velocidadeVertical = _movimento.VelocidadeVertical(
+                    _velocidadeVertical,
+                    _corpo.isGrounded,
+                    dt,
+                    InputAtivo ? _acoes.Subir : 0f
+                );
+                _velocidadeVertical = _movimento.Pular(
+                    _velocidadeVertical,
+                    _corpo.isGrounded,
+                    InputAtivo && _acoes.PularApertado,
+                    dt
+                );
+
+                deslocamento =
+                    (_direcao * _velocidadeHorizontal + Vector3.up * _velocidadeVertical) * dt;
+            }
+
             var colisao = _corpo.Move(deslocamento);
 
             // Bateu num teto subindo: começa a cair.
@@ -249,7 +273,147 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
             // Velocidade real no plano (parede freia a animação também).
             var real = _corpo.velocity;
             real.y = 0f;
-            _animador?.Atualizar(real.magnitude, _corpo.isGrounded);
+            _animador?.Atualizar(real.magnitude, _corpo.isGrounded && !_escalando);
+        }
+
+        // Decide se o jogador nada ou escala neste quadro (mesmas regras do servidor).
+        private void AtualizarModosEspeciais(Vector3 posicao, Vector2 entrada)
+        {
+            if (_movimento.Voando)
+            {
+                SoltarVia(false);
+                _nadando = false;
+                AmbienteDeMovimento.DefinirEstadoLocal(false, false);
+                return;
+            }
+
+            var volumes = AmbienteDeMovimento.Volumes;
+            if (AmbienteDeMovimento.ConsumirSoltarEscalada())
+            {
+                SoltarVia(false);
+            }
+
+            if (_escalando)
+            {
+                var via = RegrasMovimentoEspecial.ProcurarVia(
+                    posicao.x,
+                    posicao.y,
+                    posicao.z,
+                    volumes
+                );
+                var noTopo = _via != null && posicao.y >= _via.Topo - 0.3f && entrada.y > 0f;
+                var noChaoDescendo = _corpo.isGrounded && entrada.y < 0f;
+                var pulou = InputAtivo && _acoes.PularApertado;
+                if (via == null || noTopo || noChaoDescendo || pulou)
+                {
+                    SoltarVia(pulou || noTopo);
+                }
+            }
+            else if (InputAtivo && _acoes.PularApertado && !_nadando)
+            {
+                var via = RegrasMovimentoEspecial.ProcurarVia(
+                    posicao.x,
+                    posicao.y,
+                    posicao.z,
+                    volumes
+                );
+                if (via != null)
+                {
+                    _escalando = true;
+                    _via = via;
+                    via.Frente(out _frenteDaViaX, out _frenteDaViaZ);
+                    _velocidadeVertical = 0f;
+                    _velocidadeHorizontal = 0f;
+                    AmbienteDeMovimento.PedirEscalada(true);
+                }
+            }
+
+            _nadando =
+                !_escalando
+                && RegrasMovimentoEspecial.EstaNadando(posicao.x, posicao.y, posicao.z, volumes);
+            AmbienteDeMovimento.DefinirEstadoLocal(_nadando, _escalando);
+        }
+
+        // Larga a via. Com impulso, dá um pulinho para o lado de onde veio (ou por cima do topo).
+        private void SoltarVia(bool impulso)
+        {
+            if (!_escalando)
+            {
+                return;
+            }
+
+            _escalando = false;
+            AmbienteDeMovimento.PedirEscalada(false);
+            if (_via != null && impulso)
+            {
+                _direcao = new Vector3(_frenteDaViaX, 0f, _frenteDaViaZ);
+                var noTopo = transform.position.y >= _via.Topo - 0.4f;
+                _velocidadeHorizontal = noTopo ? 3f : -2f;
+                _velocidadeVertical = noTopo ? 4f : 3f;
+            }
+
+            _via = null;
+        }
+
+        // Sobe, desce e anda de lado na via, virado para a parede.
+        private Vector3 MoverNaVia(Vector2 entrada, float dt)
+        {
+            var frente = new Vector3(_frenteDaViaX, 0f, _frenteDaViaZ);
+            if (frente != Vector3.zero)
+            {
+                transform.rotation = Quaternion.RotateTowards(
+                    transform.rotation,
+                    Quaternion.LookRotation(frente, Vector3.up),
+                    _velocidadeVirar * dt
+                );
+            }
+
+            var lado = new Vector3(frente.z, 0f, -frente.x);
+            var velocidade = MovimentoTerceiraPessoa.VelocidadeNaVia(entrada);
+            _velocidadeHorizontal = 0f;
+            _velocidadeVertical = 0f;
+            return (lado * velocidade.x + Vector3.up * velocidade.y) * dt;
+        }
+
+        // Boia na superfície e anda devagar: sem gravidade, sem pulo.
+        private Vector3 MoverNadando(Vector3 posicao, Vector2 entrada, float dt)
+        {
+            _velocidadeHorizontal = _movimento.Acelerar(
+                _velocidadeHorizontal,
+                _movimento.VelocidadeAlvoNadando(entrada, AmbienteDeMovimento.SemStamina),
+                dt,
+                false
+            );
+
+            _velocidadeVertical = 0f;
+            if (
+                RegrasMovimentoEspecial.TentarObterAgua(
+                    posicao.x,
+                    posicao.y,
+                    posicao.z,
+                    AmbienteDeMovimento.Volumes,
+                    out var superficie,
+                    out _
+                )
+            )
+            {
+                _velocidadeVertical = MovimentoTerceiraPessoa.VelocidadeVerticalDeBoia(
+                    posicao.y,
+                    RegrasMovimentoEspecial.AlturaDeQuemBoia(superficie)
+                );
+            }
+
+            return (_direcao * _velocidadeHorizontal + Vector3.up * _velocidadeVertical) * dt;
+        }
+
+        private void OnDisable()
+        {
+            if (_escalando)
+            {
+                SoltarVia(false);
+            }
+
+            AmbienteDeMovimento.DefinirEstadoLocal(false, false);
         }
     }
 }
