@@ -109,7 +109,7 @@ Decidido por Gabriel em 2026-10-16 (refino pós quiz 4). **Base:** diário de mo
 - Com **foco no chat** (quiz 3): atalhos de janela e combate por tecla ficam bloqueados.
 - Com o **menu do Esc aberto**, os atalhos de janela não disparam.
 - Toda janela tem a mesma moldura: título, botão de fechar (X) no canto e, no pé, a dica de como fechar (ex.: "I ou Esc: fechar").
-- **Barra de atalhos:** no canto inferior direito, mostra a tecla de cada janela e a do menu, com as janelas abertas em destaque. Só mostra, não recebe clique. Quando a moldura do HUD existir (#122), a barra passa a ser uma região dela.
+- **Barra de atalhos (menu rápido):** no canto inferior direito, um botão com ícone para cada janela e um para o menu, como o micro menu do World of Warcraft: clicar abre ou fecha a janela, a dica mostra o nome e a tecla, e as janelas abertas ficam em destaque. Só os botões recebem clique; o espaço entre eles e os rótulos não seguram o clique do mundo (2026-10-21; antes só mostrava as teclas).
 - Janela com defeito mostra "Não foi possível abrir esta janela." e continua fechável; o jogo não trava.
   - **Teclas que uma janela não pode usar por padrão:** as de outra ação da tabela de [Teclas e atalhos](#teclas-e-atalhos) (W, A, S, D, Q, E, F, R) e a de outra janela. O client recusa o registro na inicialização.
   - Trocar as teclas das janelas é a tela de **Opções > Teclas** (#124); a tabela mostra os padrões.
