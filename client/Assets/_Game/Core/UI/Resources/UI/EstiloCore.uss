@@ -16,13 +16,14 @@
     align-items: center;
     justify-content: center;
     padding: var(--lumora-espacamento-padrao);
-    background-color: var(--lumora-cores-petroleo);
-    background-image: url("../../Visual/Resources/Lumora/Arte/fundo-petrol.png");
+    background-color: var(--lumora-cores-fundo);
+    background-image: url("../../Visual/Resources/Lumora/Arte/Hud/vinheta.png");
+    -unity-background-scale-mode: stretch-to-fill;
 }
 
 .tela-sobre-jogo {
     background-color: var(--lumora-cores-veu);
-    background-image: none;
+    background-image: url("../../Visual/Resources/Lumora/Arte/Hud/vinheta.png");
 }
 
 .tela-com-transicao {
@@ -454,13 +455,19 @@
     text-shadow: var(--lumora-bordas-fina) var(--lumora-bordas-fina) var(--lumora-cores-sombra);
 }
 
+/* ---------- Janelas do jogo ---------- */
 .janela-cabecalho {
     flex-direction: row;
     align-items: center;
-    margin-bottom: var(--lumora-espacamento-padrao);
-    padding-bottom: var(--lumora-espacamento-medio);
-    border-bottom-width: var(--lumora-bordas-fina);
-    border-bottom-color: var(--lumora-cores-borda-botao);
+    margin: -18px -18px var(--lumora-espacamento-medio) -18px;
+    padding: var(--lumora-espacamento-medio) var(--lumora-espacamento-medio) var(--lumora-espacamento-pequeno) var(--lumora-espacamento-grande);
+    min-height: 52px;
+    background-image: url("../../Visual/Resources/Lumora/Arte/Hud/cabecalho.png");
+    -unity-slice-left: var(--lumora-ornamentos-fatia-cabecalho);
+    -unity-slice-right: var(--lumora-ornamentos-fatia-cabecalho);
+    -unity-slice-top: var(--lumora-ornamentos-fatia-cabecalho);
+    -unity-slice-bottom: var(--lumora-ornamentos-fatia-cabecalho);
+    border-width: 0;
 }
 
 .janela-titulo {
@@ -468,15 +475,22 @@
     flex-shrink: 1;
     min-width: 0;
     margin-bottom: 0;
+    font-size: var(--lumora-tipografia-subtitulo);
     -unity-text-align: middle-left;
+    letter-spacing: 2px;
 }
 
 .janela-fechar {
     flex-grow: 0;
     flex-shrink: 0;
-    width: var(--lumora-dimensoes-alvo-minimo);
-    min-height: var(--lumora-dimensoes-alvo-minimo);
+    width: 34px;
+    height: 34px;
+    min-height: 34px;
+    min-width: 34px;
+    margin: 0;
     padding: 0;
+    font-size: var(--lumora-tipografia-leitura);
+    -unity-text-align: middle-center;
 }
 
 .janela-conteudo {
@@ -485,11 +499,12 @@
 }
 
 .janela-rodape {
-    margin-top: var(--lumora-espacamento-padrao);
-    font-size: var(--lumora-tipografia-leitura);
+    margin-top: var(--lumora-espacamento-medio);
+    font-size: var(--lumora-tipografia-hud-pequeno);
     white-space: normal;
-    -unity-text-align: middle-center;
+    -unity-text-align: middle-right;
     color: var(--lumora-cores-texto-secundario);
+    opacity: 0.8;
 }
 
 .janelas-area {
@@ -501,7 +516,7 @@
     flex-direction: row;
     align-items: center;
     justify-content: center;
-    padding: var(--lumora-espacamento-padrao);
+    padding: var(--lumora-espacamento-extra) var(--lumora-espacamento-grande) 96px;
 }
 
 .janela-raiz {
@@ -512,15 +527,14 @@
     margin-right: var(--lumora-espacamento-pequeno);
 }
 
-.janela-focada {
-    border-width: var(--lumora-bordas-fina);
-    border-color: var(--lumora-cores-ouro);
+.janela-focada .janela-titulo {
+    color: var(--lumora-cores-hover-primario);
 }
 
 .janela-raiz-tela-inteira {
     padding: 0;
     background-image: none;
-    background-color: var(--lumora-cores-petroleo);
+    background-color: var(--lumora-cores-fundo);
 }
 
 .janela-tela-inteira {
@@ -531,6 +545,8 @@
     bottom: 0;
     min-width: 0;
     min-height: 0;
+    background-image: none;
+    padding: 0;
 }
 
 .janela-tela-inteira .janela-conteudo {
@@ -548,10 +564,9 @@
     left: var(--lumora-espacamento-padrao);
     right: var(--lumora-espacamento-padrao);
     top: var(--lumora-espacamento-padrao);
-    padding: var(--lumora-espacamento-pequeno) var(--lumora-espacamento-medio);
+    margin: 0;
+    padding: var(--lumora-espacamento-pequeno) var(--lumora-espacamento-medio) var(--lumora-espacamento-pequeno) var(--lumora-espacamento-grande);
     background-color: var(--lumora-cores-topo);
-    border-width: 0;
-    border-radius: var(--lumora-bordas-raio-cartao);
 }
 
 .janela-tela-inteira .janela-rodape {
@@ -564,52 +579,85 @@
     border-radius: var(--lumora-bordas-raio-cartao);
 }
 
+/* ---------- Menu rápido (embaixo à direita) ---------- */
 .barra-atalhos {
     position: absolute;
-    left: var(--lumora-espacamento-grande);
-    right: var(--lumora-espacamento-grande);
-    bottom: var(--lumora-espacamento-grande);
+    right: var(--lumora-dimensoes-borda-hud);
+    bottom: 24px;
     flex-direction: row;
     flex-wrap: wrap;
     justify-content: flex-end;
+    align-items: center;
+    max-width: 46%;
+    padding: var(--lumora-espacamento-minimo) var(--lumora-espacamento-pequeno);
+    background-image: url("../../Visual/Resources/Lumora/Arte/Hud/placa.png");
+    -unity-slice-left: var(--lumora-ornamentos-fatia-placa);
+    -unity-slice-right: var(--lumora-ornamentos-fatia-placa);
+    -unity-slice-top: var(--lumora-ornamentos-fatia-placa);
+    -unity-slice-bottom: var(--lumora-ornamentos-fatia-placa);
 }
 
 .atalho {
-    flex-direction: row;
+    width: var(--lumora-dimensoes-micro-botao);
+    height: var(--lumora-dimensoes-micro-botao);
+    margin: var(--lumora-espacamento-fino);
     align-items: center;
-    margin-left: var(--lumora-espacamento-medio);
-    margin-top: var(--lumora-espacamento-minimo);
-    padding: var(--lumora-espacamento-minimo);
-    background-color: var(--lumora-cores-painel);
-    border-radius: var(--lumora-bordas-raio-campo);
+    justify-content: center;
+    background-image: url("../../Visual/Resources/Lumora/Arte/Hud/slot.png");
+    -unity-slice-left: var(--lumora-ornamentos-fatia-slot);
+    -unity-slice-right: var(--lumora-ornamentos-fatia-slot);
+    -unity-slice-top: var(--lumora-ornamentos-fatia-slot);
+    -unity-slice-bottom: var(--lumora-ornamentos-fatia-slot);
+}
+
+.atalho:hover {
+    background-image: url("../../Visual/Resources/Lumora/Arte/Hud/slot-hover.png");
+}
+
+.atalho-icone {
+    width: var(--lumora-dimensoes-icone-micro);
+    height: var(--lumora-dimensoes-icone-micro);
+    -unity-background-image-tint-color: var(--lumora-cores-texto-secundario);
+}
+
+.atalho:hover .atalho-icone {
+    -unity-background-image-tint-color: var(--lumora-cores-hover-primario);
+}
+
+.atalho-inicial {
+    font-size: var(--lumora-tipografia-hud-nome);
+    color: var(--lumora-cores-texto-secundario);
+    -unity-text-align: middle-center;
 }
 
 .atalho-tecla {
-    min-width: var(--lumora-dimensoes-barra);
-    min-height: var(--lumora-dimensoes-barra);
-    padding: 0 var(--lumora-espacamento-curto);
-    margin-right: var(--lumora-espacamento-curto);
-    font-size: var(--lumora-tipografia-leitura);
-    -unity-text-align: middle-center;
+    position: absolute;
+    right: 3px;
+    bottom: 1px;
+    font-size: var(--lumora-tipografia-tecla);
     color: var(--lumora-cores-marfim);
-    border-width: var(--lumora-bordas-fina);
-    border-color: var(--lumora-cores-borda-botao);
+    -unity-text-align: lower-right;
+    text-shadow: 1px 1px 1px var(--lumora-cores-contorno);
+    -unity-font-style: bold;
 }
 
 .atalho-nome {
-    font-size: var(--lumora-tipografia-leitura);
-    color: var(--lumora-cores-marfim);
+    display: none;
 }
 
-.atalho-ativo > .atalho-tecla {
-    color: var(--lumora-cores-petroleo);
-    background-color: var(--lumora-cores-ouro);
+.atalho-ativo {
+    background-image: url("../../Visual/Resources/Lumora/Arte/Hud/slot-hover.png");
 }
 
-.atalho-ativo > .atalho-nome {
-    color: var(--lumora-cores-ouro);
+.atalho-ativo > .atalho-icone {
+    -unity-background-image-tint-color: var(--lumora-cores-ouro);
 }
 
+.atalho-menu {
+    margin-left: var(--lumora-espacamento-pequeno);
+}
+
+/* ---------- HUD: regiões ---------- */
 .hud {
     position: absolute;
     left: 0;
@@ -623,70 +671,124 @@
     max-width: var(--lumora-dimensoes-dialogo-percentual);
 }
 
+/* Livre (avisos de funcionalidade), acima do chat. */
 .hud-inferior-esquerda {
-    left: var(--lumora-espacamento-grande);
-    bottom: var(--lumora-dimensoes-status);
-    width: var(--lumora-dimensoes-recursos-largura);
-    max-width: 42%;
+    left: var(--lumora-dimensoes-borda-hud);
+    bottom: 262px;
+    width: var(--lumora-dimensoes-chat-largura);
+    max-width: 30%;
     align-items: flex-start;
 }
 
 .hud-chat {
-    left: var(--lumora-espacamento-grande);
-    bottom: var(--lumora-dimensoes-hud-chat-base);
+    left: var(--lumora-dimensoes-borda-hud);
+    bottom: 24px;
     width: var(--lumora-dimensoes-chat-largura);
-    max-width: 42%;
-    align-items: flex-start;
+    max-width: 30%;
+    align-items: stretch;
+}
+
+.hud-quadro-jogador {
+    left: var(--lumora-dimensoes-borda-hud);
+    top: var(--lumora-dimensoes-borda-hud);
+    width: var(--lumora-dimensoes-quadro-largura);
+    align-items: stretch;
 }
 
 .hud-lateral-esquerda {
-    left: var(--lumora-espacamento-grande);
-    bottom: 50%;
-    align-items: flex-start;
-    justify-content: flex-end;
+    left: var(--lumora-dimensoes-borda-hud);
+    top: 210px;
+    width: 250px;
+    align-items: stretch;
+    justify-content: flex-start;
+}
+
+.hud-bussola {
+    left: 50%;
+    top: var(--lumora-espacamento-pequeno);
+    width: var(--lumora-dimensoes-bussola-largura);
+    translate: -50% 0;
+    max-width: none;
+    align-items: stretch;
 }
 
 .hud-topo-centro {
-    left: calc(var(--lumora-dimensoes-minimapa) + var(--lumora-espacamento-grande));
-    right: calc(var(--lumora-dimensoes-minimapa) + var(--lumora-espacamento-grande));
-    top: var(--lumora-espacamento-grande);
+    left: 50%;
+    top: 64px;
+    width: var(--lumora-dimensoes-alvo-largura);
+    translate: -50% 0;
     max-width: none;
-    align-items: center;
+    align-items: stretch;
 }
 
 .hud-centro-avisos {
-    left: calc(var(--lumora-dimensoes-minimapa) + var(--lumora-espacamento-grande));
-    right: calc(var(--lumora-dimensoes-minimapa) + var(--lumora-espacamento-grande));
+    left: 25%;
+    right: 25%;
     top: var(--lumora-dimensoes-avisos-topo);
     max-width: none;
     align-items: center;
 }
 
 .hud-inferior-centro {
-    left: 0;
-    right: 0;
+    left: 25%;
+    right: 25%;
     bottom: var(--lumora-dimensoes-avisos-base);
+    max-width: none;
     align-items: center;
 }
 
-.hud-superior-direita {
-    right: var(--lumora-espacamento-grande);
-    top: var(--lumora-espacamento-grande);
+.hud-barra-de-acao {
+    left: 50%;
+    bottom: 20px;
+    translate: -50% 0;
+    max-width: none;
+    flex-direction: row;
     align-items: flex-end;
 }
 
+.hud-experiencia {
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: var(--lumora-dimensoes-xp);
+    max-width: none;
+}
+
+.hud-menu-rapido {
+    right: var(--lumora-dimensoes-borda-hud);
+    bottom: 76px;
+    align-items: flex-end;
+}
+
+.hud-superior-direita {
+    right: var(--lumora-dimensoes-borda-hud);
+    top: var(--lumora-dimensoes-borda-hud);
+    align-items: flex-end;
+}
+
+.hud-rastreador {
+    right: var(--lumora-dimensoes-borda-hud);
+    top: 372px;
+    width: var(--lumora-dimensoes-rastreador-largura);
+    align-items: stretch;
+}
+
+/* ---------- Mensagens de sistema ---------- */
 .avisos {
     align-items: center;
     max-width: 100%;
 }
 
 .aviso {
-    margin-top: var(--lumora-espacamento-minimo);
-    padding: var(--lumora-espacamento-minimo) var(--lumora-espacamento-medio);
+    margin-top: var(--lumora-espacamento-fino);
+    padding: var(--lumora-espacamento-fino) var(--lumora-espacamento-medio);
     font-size: var(--lumora-tipografia-controle);
     white-space: normal;
     -unity-text-align: middle-center;
-    background-color: var(--lumora-cores-painel);
+    background-color: var(--lumora-cores-hud-fundo-leve);
+    border-radius: var(--lumora-bordas-raio-campo);
+    text-shadow: 1px 1px 2px var(--lumora-cores-contorno);
+    -unity-font-style: bold;
 }
 
 .aviso-informacao {
@@ -694,7 +796,7 @@
 }
 
 .aviso-aviso {
-    color: var(--lumora-cores-ouro);
+    color: var(--lumora-cores-aviso);
 }
 
 .aviso-erro {
@@ -709,46 +811,96 @@
     width: 100%;
 }
 
-.lumora-estreito .atalho-nome {
+.lumora-compacto .hud-rastreador {
     display: none;
 }
 
-.lumora-estreito .hud-inferior-esquerda {
-    left: var(--lumora-espacamento-pequeno);
-    width: var(--lumora-dimensoes-ferramentas);
-    max-width: 55%;
+.lumora-compacto .barra-atalhos {
+    max-width: 40%;
 }
 
-.lumora-estreito .hud-chat {
-    left: var(--lumora-espacamento-pequeno);
-    width: var(--lumora-dimensoes-ferramentas);
-    max-width: 55%;
+/* ---------- Minimapa e mapa ---------- */
+.mundo-minimapa-grupo {
+    align-items: center;
+    width: 228px;
 }
 
-.lumora-estreito .hud-superior-direita {
-    right: var(--lumora-espacamento-pequeno);
-    top: var(--lumora-espacamento-pequeno);
+.mundo-minimapa-zona {
+    max-width: 260px;
+    margin-bottom: var(--lumora-espacamento-minimo);
+    padding: 1px var(--lumora-espacamento-medio);
+    background-color: var(--lumora-cores-hud-fundo);
+    border-radius: var(--lumora-bordas-raio-cartao);
+    font-size: var(--lumora-tipografia-hud-nome);
+    color: var(--lumora-cores-ouro);
+    -unity-text-align: middle-center;
+    -unity-font-definition: url("../../Visual/Resources/Lumora/Fontes/LumoraCinzel-700-SDF.asset");
+    text-shadow: 1px 1px 2px var(--lumora-cores-contorno);
+    white-space: nowrap;
+}
+
+.mundo-minimapa-moldura {
+    width: 228px;
+    height: 228px;
+    align-items: center;
+    justify-content: center;
 }
 
 .mundo-minimapa {
     width: var(--lumora-dimensoes-minimapa);
     height: var(--lumora-dimensoes-minimapa);
     border-radius: var(--lumora-dimensoes-minimapa-raio);
-    border-width: var(--lumora-bordas-destaque);
-    border-color: var(--lumora-cores-ouro);
+    border-width: 0;
     overflow: hidden;
     background-color: var(--lumora-cores-trilho);
 }
 
+.mundo-minimapa-anel {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background-image: url("../../Visual/Resources/Lumora/Arte/Hud/minimapa.png");
+    -unity-background-scale-mode: stretch-to-fill;
+}
+
 .mundo-minimapa-norte {
     position: absolute;
-    top: var(--lumora-espacamento-minimo);
+    top: 18px;
     left: 0;
     right: 0;
     -unity-text-align: upper-center;
-    font-size: var(--lumora-tipografia-leitura);
+    font-size: var(--lumora-tipografia-hud-pequeno);
+    color: var(--lumora-cores-hover-primario);
+    -unity-font-style: bold;
+    text-shadow: 1px 1px 1px var(--lumora-cores-contorno);
+}
+
+.mundo-minimapa-info {
+    margin-top: var(--lumora-espacamento-fino);
+    padding: 1px var(--lumora-espacamento-pequeno);
+    font-size: var(--lumora-tipografia-hud-pequeno);
     color: var(--lumora-cores-marfim);
-    text-shadow: var(--lumora-bordas-fina) var(--lumora-bordas-fina) var(--lumora-cores-sombra);
+    -unity-text-align: middle-center;
+    background-color: var(--lumora-cores-hud-fundo-leve);
+    border-radius: var(--lumora-bordas-raio-campo);
+    text-shadow: 1px 1px 1px var(--lumora-cores-contorno);
+}
+
+.mundo-minimapa-latencia-alta {
+    color: var(--lumora-cores-erro);
+}
+
+.mundo-minimapa-coordenadas {
+    font-size: var(--lumora-tipografia-tecla);
+    color: var(--lumora-cores-texto-secundario);
+    -unity-text-align: middle-center;
+    text-shadow: 1px 1px 1px var(--lumora-cores-contorno);
+}
+
+.hud-superior-direita > .conexao-latencia {
+    display: none;
 }
 
 .mundo-mapa {
@@ -759,4 +911,491 @@
     align-self: center;
     border-width: var(--lumora-bordas-destaque);
     border-color: var(--lumora-cores-ouro);
+}
+
+/* ---------- HUD: componentes (ComponentesHud) ---------- */
+.hud-icone {
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+/* Barra de recurso. */
+.hud-barra {
+    height: var(--lumora-dimensoes-barra-hud);
+    min-width: 40px;
+    background-image: url("../../Visual/Resources/Lumora/Arte/Hud/barra-fundo.png");
+    -unity-slice-left: var(--lumora-ornamentos-fatia-barra);
+    -unity-slice-right: var(--lumora-ornamentos-fatia-barra);
+    -unity-slice-top: var(--lumora-ornamentos-fatia-barra);
+    -unity-slice-bottom: var(--lumora-ornamentos-fatia-barra);
+    padding: 2px;
+    overflow: hidden;
+    justify-content: center;
+}
+
+.hud-barra-fina {
+    height: var(--lumora-dimensoes-barra-hud-fina);
+    padding: 1px;
+}
+
+.hud-barra-rastro, .hud-barra-preenchimento {
+    position: absolute;
+    left: 2px;
+    top: 2px;
+    bottom: 2px;
+    width: 0;
+    border-radius: 2px;
+    background-image: url("../../Visual/Resources/Lumora/Arte/Hud/barra-preenchimento.png");
+    -unity-background-scale-mode: stretch-to-fill;
+}
+
+.hud-barra-fina .hud-barra-rastro, .hud-barra-fina .hud-barra-preenchimento {
+    left: 1px;
+    top: 1px;
+    bottom: 1px;
+}
+
+.hud-barra-rastro {
+    -unity-background-image-tint-color: var(--lumora-cores-marfim);
+    opacity: 0.55;
+}
+
+.hud-barra-texto {
+    font-size: var(--lumora-tipografia-hud-pequeno);
+    color: var(--lumora-cores-marfim);
+    -unity-text-align: middle-center;
+    text-shadow: 1px 1px 1px var(--lumora-cores-contorno);
+    -unity-font-style: bold;
+    margin: 0;
+    padding: 0;
+}
+
+.hud-barra-vida .hud-barra-preenchimento {
+    -unity-background-image-tint-color: var(--lumora-cores-vida);
+}
+
+.hud-barra-vida-baixa .hud-barra-preenchimento {
+    -unity-background-image-tint-color: var(--lumora-cores-vida-baixa);
+}
+
+.hud-barra-amigo .hud-barra-preenchimento {
+    -unity-background-image-tint-color: var(--lumora-cores-nome-amigo);
+}
+
+.hud-barra-mana .hud-barra-preenchimento {
+    -unity-background-image-tint-color: var(--lumora-cores-mana);
+}
+
+.hud-barra-stamina .hud-barra-preenchimento {
+    -unity-background-image-tint-color: var(--lumora-cores-stamina);
+}
+
+.hud-barra-xp .hud-barra-preenchimento {
+    -unity-background-image-tint-color: var(--lumora-cores-experiencia);
+}
+
+.hud-barra-inimigo .hud-barra-preenchimento {
+    -unity-background-image-tint-color: var(--lumora-cores-vida);
+}
+
+.hud-barra-neutro .hud-barra-preenchimento {
+    -unity-background-image-tint-color: var(--lumora-cores-nome-neutro);
+}
+
+.hud-barra-quebra .hud-barra-preenchimento {
+    -unity-background-image-tint-color: var(--lumora-cores-ouro);
+}
+
+.hud-barra-escudo .hud-barra-preenchimento {
+    -unity-background-image-tint-color: var(--lumora-cores-escudo);
+}
+
+/* Slot (barra de ação, efeitos). */
+.hud-slot {
+    width: var(--lumora-dimensoes-slot-acao);
+    height: var(--lumora-dimensoes-slot-acao);
+    margin: 0 var(--lumora-espacamento-fino);
+    padding: 5px;
+    background-image: url("../../Visual/Resources/Lumora/Arte/Hud/slot.png");
+    -unity-slice-left: var(--lumora-ornamentos-fatia-slot);
+    -unity-slice-right: var(--lumora-ornamentos-fatia-slot);
+    -unity-slice-top: var(--lumora-ornamentos-fatia-slot);
+    -unity-slice-bottom: var(--lumora-ornamentos-fatia-slot);
+    overflow: hidden;
+}
+
+.hud-slot-pequeno {
+    width: var(--lumora-dimensoes-slot-acao-pequeno);
+    height: var(--lumora-dimensoes-slot-acao-pequeno);
+    padding: 4px;
+}
+
+.hud-slot-vazio {
+    background-image: url("../../Visual/Resources/Lumora/Arte/Hud/slot-vazio.png");
+}
+
+.hud-slot-icone {
+    position: absolute;
+    left: 6px;
+    top: 6px;
+    right: 6px;
+    bottom: 6px;
+    -unity-background-scale-mode: scale-to-fit;
+    -unity-background-image-tint-color: var(--lumora-cores-marfim);
+}
+
+.hud-slot-pequeno .hud-slot-icone {
+    left: 5px;
+    top: 5px;
+    right: 5px;
+    bottom: 5px;
+}
+
+.hud-icone-fisico {
+    -unity-background-image-tint-color: var(--lumora-cores-hover-primario);
+}
+
+.hud-icone-magico {
+    -unity-background-image-tint-color: var(--lumora-cores-essencia);
+}
+
+.hud-icone-apoio {
+    -unity-background-image-tint-color: var(--lumora-cores-ganho);
+}
+
+.hud-icone-neutro {
+    -unity-background-image-tint-color: var(--lumora-cores-marfim);
+}
+
+.hud-slot-relogio {
+    position: absolute;
+    left: 4px;
+    top: 4px;
+    right: 4px;
+    bottom: 4px;
+}
+
+.hud-slot-brilho {
+    position: absolute;
+    left: 2px;
+    top: 2px;
+    right: 2px;
+    bottom: 2px;
+    border-width: 2px;
+    border-color: var(--lumora-cores-ouro);
+    border-radius: 3px;
+    opacity: 0;
+    transition-property: opacity;
+    transition-duration: 0.3s;
+}
+
+.hud-slot-brilho-visivel {
+    opacity: 1;
+    transition-duration: 0.05s;
+}
+
+.hud-slot-ativo {
+    background-image: url("../../Visual/Resources/Lumora/Arte/Hud/slot-hover.png");
+}
+
+.hud-slot-sem-recurso .hud-slot-icone {
+    -unity-background-image-tint-color: var(--lumora-cores-erro);
+    opacity: 0.6;
+}
+
+.hud-slot-em-recarga .hud-slot-icone {
+    opacity: 0.75;
+}
+
+.hud-slot-recarga {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    font-size: var(--lumora-tipografia-hud-titulo);
+    color: var(--lumora-cores-marfim);
+    -unity-text-align: middle-center;
+    text-shadow: 1px 1px 2px var(--lumora-cores-contorno);
+    -unity-font-style: bold;
+}
+
+.hud-slot-tecla {
+    position: absolute;
+    left: 4px;
+    top: 2px;
+    font-size: var(--lumora-tipografia-tecla);
+    color: var(--lumora-cores-marfim);
+    text-shadow: 1px 1px 1px var(--lumora-cores-contorno);
+    -unity-font-style: bold;
+}
+
+.hud-slot-rodape {
+    position: absolute;
+    right: 4px;
+    bottom: 1px;
+    font-size: var(--lumora-tipografia-tecla);
+    color: var(--lumora-cores-essencia);
+    text-shadow: 1px 1px 1px var(--lumora-cores-contorno);
+    -unity-font-style: bold;
+}
+
+/* Retrato. */
+.hud-retrato {
+    width: var(--lumora-dimensoes-retrato-hud);
+    height: var(--lumora-dimensoes-retrato-hud);
+    flex-shrink: 0;
+}
+
+.hud-retrato-pequeno {
+    width: 44px;
+    height: 44px;
+}
+
+.hud-retrato-fundo {
+    position: absolute;
+    left: 6px;
+    top: 6px;
+    right: 6px;
+    bottom: 6px;
+    border-radius: 50%;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.hud-retrato-inicial {
+    font-size: 30px;
+    color: var(--lumora-cores-hover-primario);
+    -unity-text-align: middle-center;
+    text-shadow: 1px 2px 2px var(--lumora-cores-contorno);
+}
+
+.hud-retrato-pequeno .hud-retrato-inicial {
+    font-size: 18px;
+}
+
+.hud-retrato-anel {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background-image: url("../../Visual/Resources/Lumora/Arte/Hud/retrato.png");
+    -unity-background-scale-mode: stretch-to-fill;
+}
+
+.hud-retrato-nivel {
+    position: absolute;
+    left: -2px;
+    bottom: -2px;
+    min-width: 26px;
+    height: 26px;
+    padding: 0 4px;
+    border-radius: 13px;
+    border-width: 2px;
+    border-color: var(--lumora-cores-borda-primario);
+    background-color: var(--lumora-cores-fundo);
+    font-size: var(--lumora-tipografia-hud-pequeno);
+    color: var(--lumora-cores-ouro);
+    -unity-text-align: middle-center;
+    -unity-font-style: bold;
+}
+
+/* Dica flutuante. */
+.hud-dica {
+    position: absolute;
+    max-width: var(--lumora-dimensoes-dica-largura);
+    padding: var(--lumora-espacamento-pequeno) var(--lumora-espacamento-medio);
+    background-image: url("../../Visual/Resources/Lumora/Arte/Hud/dica.png");
+    -unity-slice-left: var(--lumora-ornamentos-fatia-dica);
+    -unity-slice-right: var(--lumora-ornamentos-fatia-dica);
+    -unity-slice-top: var(--lumora-ornamentos-fatia-dica);
+    -unity-slice-bottom: var(--lumora-ornamentos-fatia-dica);
+}
+
+.hud-dica-titulo {
+    font-size: var(--lumora-tipografia-hud-nome);
+    color: var(--lumora-cores-ouro);
+    -unity-font-style: bold;
+    white-space: normal;
+}
+
+.hud-dica-subtitulo {
+    font-size: var(--lumora-tipografia-hud-pequeno);
+    color: var(--lumora-cores-texto-secundario);
+    white-space: normal;
+}
+
+.hud-dica-texto {
+    margin-top: var(--lumora-espacamento-minimo);
+    font-size: var(--lumora-tipografia-hud);
+    color: var(--lumora-cores-marfim);
+    white-space: normal;
+}
+
+.hud-dica-rodape {
+    margin-top: var(--lumora-espacamento-minimo);
+    font-size: var(--lumora-tipografia-hud-pequeno);
+    color: var(--lumora-cores-ganho);
+    white-space: normal;
+}
+
+.raridade-comum {
+    color: var(--lumora-cores-raridade-comum);
+}
+
+.raridade-incomum {
+    color: var(--lumora-cores-raridade-incomum);
+}
+
+.raridade-rara {
+    color: var(--lumora-cores-raridade-rara);
+}
+
+.raridade-epica {
+    color: var(--lumora-cores-raridade-epica);
+}
+
+.raridade-lendaria {
+    color: var(--lumora-cores-raridade-lendaria);
+}
+
+/* Bússola. */
+.hud-bussola-corpo {
+    height: var(--lumora-dimensoes-bussola-altura);
+    background-image: url("../../Visual/Resources/Lumora/Arte/Hud/bussola.png");
+    -unity-background-scale-mode: stretch-to-fill;
+}
+
+.hud-bussola-faixa {
+    position: absolute;
+    left: 40px;
+    right: 40px;
+    top: 0;
+    bottom: 0;
+    overflow: hidden;
+}
+
+.hud-bussola-cardeal {
+    position: absolute;
+    top: 3px;
+    width: 40px;
+    margin-left: -20px;
+    font-size: var(--lumora-tipografia-hud-nome);
+    color: var(--lumora-cores-marfim);
+    -unity-text-align: middle-center;
+    -unity-font-style: bold;
+    text-shadow: 1px 1px 1px var(--lumora-cores-contorno);
+}
+
+.hud-bussola-colateral {
+    font-size: var(--lumora-tipografia-hud-pequeno);
+    color: var(--lumora-cores-texto-secundario);
+    top: 6px;
+}
+
+.hud-bussola-norte {
+    color: var(--lumora-cores-erro);
+}
+
+.hud-bussola-marca {
+    position: absolute;
+    top: 12px;
+    width: 2px;
+    height: 10px;
+    margin-left: -1px;
+    background-color: var(--lumora-cores-borda-amostra);
+}
+
+.hud-bussola-centro {
+    position: absolute;
+    left: 50%;
+    top: -2px;
+    width: 2px;
+    height: 10px;
+    margin-left: -1px;
+    background-color: var(--lumora-cores-ouro);
+}
+
+.hud-bussola-graus {
+    position: absolute;
+    left: 50%;
+    top: 32px;
+    width: 60px;
+    margin-left: -30px;
+    font-size: var(--lumora-tipografia-tecla);
+    color: var(--lumora-cores-texto-secundario);
+    -unity-text-align: upper-center;
+    text-shadow: 1px 1px 1px var(--lumora-cores-contorno);
+}
+
+.hud-bussola-marcador {
+    position: absolute;
+    top: 6px;
+    width: 14px;
+    height: 14px;
+    margin-left: -7px;
+    border-radius: 7px;
+    border-width: 2px;
+    border-color: var(--lumora-cores-contorno);
+    background-color: var(--lumora-cores-ouro);
+    font-size: 1px;
+}
+
+.hud-bussola-missao {
+    background-color: var(--lumora-cores-aviso);
+    rotate: 45deg;
+    border-radius: 2px;
+}
+
+.hud-bussola-grupo {
+    background-color: var(--lumora-cores-nome-jogador);
+}
+
+.hud-bussola-lugar {
+    background-color: var(--lumora-cores-marfim);
+    width: 10px;
+    height: 10px;
+    margin-left: -5px;
+    top: 8px;
+}
+
+/* Barra de canalização (montaria, coleta, retorno) e ações extras ao lado da barra de ação. */
+.hud-canalizacao {
+    width: 320px;
+    height: 24px;
+    margin-bottom: var(--lumora-espacamento-pequeno);
+    padding: 3px;
+    background-image: url("../../Visual/Resources/Lumora/Arte/Hud/barra-fundo.png");
+    -unity-slice-left: var(--lumora-ornamentos-fatia-barra);
+    -unity-slice-right: var(--lumora-ornamentos-fatia-barra);
+    -unity-slice-top: var(--lumora-ornamentos-fatia-barra);
+    -unity-slice-bottom: var(--lumora-ornamentos-fatia-barra);
+    justify-content: center;
+}
+
+.hud-canalizacao-preenchimento {
+    position: absolute;
+    left: 3px;
+    top: 3px;
+    bottom: 3px;
+    width: 0;
+    background-image: url("../../Visual/Resources/Lumora/Arte/Hud/barra-preenchimento.png");
+    -unity-background-scale-mode: stretch-to-fill;
+    -unity-background-image-tint-color: var(--lumora-cores-essencia);
+}
+
+.hud-canalizacao-texto {
+    font-size: var(--lumora-tipografia-hud-pequeno);
+    color: var(--lumora-cores-marfim);
+    -unity-text-align: middle-center;
+    -unity-font-style: bold;
+    text-shadow: 1px 1px 1px var(--lumora-cores-contorno);
+}
+
+.hud-acao-extra {
+    flex-direction: row;
+    align-items: flex-end;
+    margin-left: var(--lumora-espacamento-pequeno);
+    margin-bottom: 14px;
 }

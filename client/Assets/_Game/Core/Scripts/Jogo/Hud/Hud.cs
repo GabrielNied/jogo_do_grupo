@@ -37,6 +37,10 @@ namespace JogoDoGrupo.Client.Core.Jogo
         private static VisualElement _raiz;
         private static PainelDeAvisos _avisos;
         private static ApresentadorDaConexao _conexao;
+        private static Bussola _bussola;
+
+        /// <summary>Bússola do topo (marcadores de missão, grupo e lugares), ou <c>null</c> fora do mundo.</summary>
+        public static Bussola Bussola => _bussola;
 
         /// <summary>Se o HUD está na tela (entre a entrada e a saída do mundo).</summary>
         public static bool Montado => _raiz != null;
@@ -111,18 +115,20 @@ namespace JogoDoGrupo.Client.Core.Jogo
                 _raiz.Add(elemento);
             }
 
-            // Chat acompanha a altura real das barras e da XP, inclusive com texto ampliado.
-            _regioes[RegiaoDoHud.InferiorEsquerda]
-                .RegisterCallback<GeometryChangedEvent>(AoMudarAlturaDoStatus);
+            _bussola = new Bussola(_regioes[RegiaoDoHud.Bussola]);
 
             var lista = new ListaDeAvisos(relogio ?? (() => Time.realtimeSinceStartupAsDouble));
             _avisos = new PainelDeAvisos(_regioes[RegiaoDoHud.InferiorCentro], lista);
             _raiz.schedule.Execute(_avisos.Atualizar).Every(IntervaloAtualizacaoMs);
 
+            // A latência aparece no grupo do minimapa (Mundo); o rótulo do Core fica guardado.
+            var latenciaGuardada = new VisualElement { name = "core.hud.latencia" };
+            latenciaGuardada.style.display = DisplayStyle.None;
+            _regioes[RegiaoDoHud.SuperiorDireita].Add(latenciaGuardada);
             _conexao = new ApresentadorDaConexao(
                 new FonteDaConexaoReal(),
                 container,
-                _regioes[RegiaoDoHud.SuperiorDireita],
+                latenciaGuardada,
                 () => ConexaoTempoReal.Conectar(EntradaNoJogo.PersonagemId),
                 EntradaNoJogo.Sair
             );
@@ -146,6 +152,7 @@ namespace JogoDoGrupo.Client.Core.Jogo
             _raiz = null;
             _avisos = null;
             _conexao = null;
+            _bussola = null;
             _ocultoPeloUsuario = false;
             _regioes.Clear();
         }
@@ -153,17 +160,6 @@ namespace JogoDoGrupo.Client.Core.Jogo
         internal static string NomeDaRegiao(RegiaoDoHud regiao)
         {
             return $"core.hud.{regiao}";
-        }
-
-        private static void AoMudarAlturaDoStatus(GeometryChangedEvent evento)
-        {
-            if (_regioes.TryGetValue(RegiaoDoHud.Chat, out var chat))
-            {
-                chat.style.bottom =
-                    ConfigVisual.Dimensoes.Status
-                    + evento.newRect.height
-                    + ConfigVisual.Espacamento.Medio;
-            }
         }
 
         internal static string ClasseDaRegiao(RegiaoDoHud regiao)
@@ -184,6 +180,18 @@ namespace JogoDoGrupo.Client.Core.Jogo
                     return EstiloCore.HudInferiorCentro;
                 case RegiaoDoHud.SuperiorDireita:
                     return EstiloCore.HudSuperiorDireita;
+                case RegiaoDoHud.QuadroJogador:
+                    return EstiloCore.HudQuadroJogador;
+                case RegiaoDoHud.BarraDeAcao:
+                    return EstiloCore.HudBarraDeAcao;
+                case RegiaoDoHud.Experiencia:
+                    return EstiloCore.HudExperiencia;
+                case RegiaoDoHud.MenuRapido:
+                    return EstiloCore.HudMenuRapido;
+                case RegiaoDoHud.Rastreador:
+                    return EstiloCore.HudRastreador;
+                case RegiaoDoHud.Bussola:
+                    return EstiloCore.HudBussola;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(regiao), regiao, null);
             }
@@ -198,6 +206,7 @@ namespace JogoDoGrupo.Client.Core.Jogo
             _conexao = null;
             _raiz = null;
             _avisos = null;
+            _bussola = null;
             _ocultoPeloUsuario = false;
             _regioes.Clear();
         }
