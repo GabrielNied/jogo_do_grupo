@@ -57,12 +57,12 @@ public sealed class ProfissoesTestes(ServidorDeTeste servidor) : IClassFixture<S
     }
 
     [Fact]
-    public async Task Aprender_e_de_graca_vale_para_as_quatro_e_nao_repete()
+    public async Task Aprender_e_de_graca_vale_para_as_seis_e_nao_repete()
     {
         var id = await NovoAprendizAsync(ConfigProfissoes.Disponiveis);
 
         var estado = await ComServicoAsync(s => s.ObterEstadoAsync(id, default));
-        Assert.Equal(4, estado.Aprendidas.Length);
+        Assert.Equal(6, estado.Aprendidas.Length);
         Assert.Equal(
             CodigosErroProfissoes.JaAprendida,
             await ComServicoAsync(s => s.AprenderAsync(id, Profissao.Ferreiro, default))
@@ -70,10 +70,9 @@ public sealed class ProfissoesTestes(ServidorDeTeste servidor) : IClassFixture<S
     }
 
     [Theory]
-    [InlineData(Profissao.Alquimista)]
-    [InlineData(Profissao.Cozinheiro)]
     [InlineData(Profissao.Nenhuma)]
-    public async Task Profissao_que_ainda_nao_existe_para_aprender_e_recusada(Profissao profissao)
+    [InlineData((Profissao)99)]
+    public async Task Profissao_invalida_para_aprender_e_recusada(Profissao profissao)
     {
         var id = await _ambiente.NovoPersonagemAsync();
 
@@ -274,5 +273,113 @@ public sealed class ProfissoesTestes(ServidorDeTeste servidor) : IClassFixture<S
         );
 
         await Assert.ThrowsAsync<DbUpdateException>(() => db.SaveChangesAsync());
+    }
+
+    [Fact]
+    public async Task Coletar_novos_materiais_de_erva_cristal_graos_e_carne()
+    {
+        LiberarOsPontos();
+        var id = await NovoAprendizAsync(
+            Profissao.Lenhador,
+            Profissao.Minerador,
+            Profissao.Curtidor
+        );
+
+        await ColetarAsync(
+            id,
+            ConfigProfissoes.NoArbustoErvas1,
+            ConfigProfissoes.NoGeodoCristal1,
+            ConfigProfissoes.NoPlantacaoGraos1,
+            ConfigProfissoes.NoCaca1
+        );
+
+        Assert.Equal(2, await SaldoAsync(id, ConfigProfissoes.MaterialErvaMedicinal));
+        Assert.Equal(2, await SaldoAsync(id, ConfigProfissoes.MaterialCristalArcano));
+        Assert.Equal(2, await SaldoAsync(id, ConfigProfissoes.MaterialGraos));
+        Assert.Equal(2, await SaldoAsync(id, ConfigProfissoes.MaterialCarneDeCaca));
+    }
+
+    [Fact]
+    public async Task Produzir_curtidor_gasta_materiais_e_entrega_equipamento()
+    {
+        LiberarOsPontos();
+        var id = await NovoAprendizAsync(Profissao.Curtidor, Profissao.Lenhador);
+        await ColetarAsync(
+            id,
+            ConfigProfissoes.NoCarcaca1,
+            ConfigProfissoes.NoCarcaca2,
+            ConfigProfissoes.NoArvore1
+        );
+
+        var (erro, resultado) = await ComServicoAsync(s =>
+            s.ProduzirAsync(id, ConfigProfissoes.ReceitaColete, default)
+        );
+
+        Assert.Null(erro);
+        Assert.Equal(111, resultado!.ModeloId);
+        Assert.Equal(0, await SaldoAsync(id, ConfigProfissoes.MaterialCouroCru));
+        Assert.Equal(0, await SaldoAsync(id, ConfigProfissoes.MaterialMadeira));
+        var bolsa = await _ambiente.BolsaAsync(id);
+        Assert.Single(bolsa);
+        Assert.Equal(111, bolsa[0].Equipamento!.ModeloId);
+    }
+
+    [Fact]
+    public async Task Produzir_alquimista_gasta_materiais_e_entrega_foco()
+    {
+        LiberarOsPontos();
+        var id = await NovoAprendizAsync(
+            Profissao.Alquimista,
+            Profissao.Minerador,
+            Profissao.Lenhador
+        );
+        await ColetarAsync(
+            id,
+            ConfigProfissoes.NoGeodoCristal1,
+            ConfigProfissoes.NoGeodoCristal2,
+            ConfigProfissoes.NoArvore1
+        );
+
+        var (erro, resultado) = await ComServicoAsync(s =>
+            s.ProduzirAsync(id, ConfigProfissoes.ReceitaFocoArcano, default)
+        );
+
+        Assert.Null(erro);
+        Assert.Equal(177, resultado!.ModeloId);
+        Assert.Equal(1, await SaldoAsync(id, ConfigProfissoes.MaterialCristalArcano));
+        Assert.Equal(0, await SaldoAsync(id, ConfigProfissoes.MaterialMadeira));
+        var bolsa = await _ambiente.BolsaAsync(id);
+        Assert.Single(bolsa);
+        Assert.Equal(177, bolsa[0].Equipamento!.ModeloId);
+    }
+
+    [Fact]
+    public async Task Produzir_cozinheiro_gasta_materiais_e_entrega_refeicao()
+    {
+        LiberarOsPontos();
+        var id = await NovoAprendizAsync(
+            Profissao.Cozinheiro,
+            Profissao.Lenhador,
+            Profissao.Curtidor
+        );
+        await ColetarAsync(
+            id,
+            ConfigProfissoes.NoPlantacaoGraos1,
+            ConfigProfissoes.NoCaca1,
+            ConfigProfissoes.NoArbustoErvas1
+        );
+
+        var (erro, resultado) = await ComServicoAsync(s =>
+            s.ProduzirAsync(id, ConfigProfissoes.ReceitaCaldoDosErrantes, default)
+        );
+
+        Assert.Null(erro);
+        Assert.Equal(109, resultado!.ModeloId);
+        Assert.Equal(0, await SaldoAsync(id, ConfigProfissoes.MaterialGraos));
+        Assert.Equal(0, await SaldoAsync(id, ConfigProfissoes.MaterialCarneDeCaca));
+        Assert.Equal(1, await SaldoAsync(id, ConfigProfissoes.MaterialErvaMedicinal));
+        var bolsa = await _ambiente.BolsaAsync(id);
+        Assert.Single(bolsa);
+        Assert.Equal(109, bolsa[0].Equipamento!.ModeloId);
     }
 }
