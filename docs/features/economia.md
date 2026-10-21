@@ -130,6 +130,30 @@ Entregue na [#905](https://github.com/GabrielNied/jogo_do_grupo/issues/905), con
 
 Feita em 2026-10-18; regras, contrato e testes em [social](social.md#troca-direta-issue-175). A troca de dono do item e das coroas roda no servidor numa transação só (`ExecutorDaTroca`), e Social avisa Economia (`CoroasMovimentadas`) para o client ver o saldo novo.
 
+### Banco de guilda (#338)
+
+Entregue na [#338](https://github.com/GabrielNied/jogo_do_grupo/issues/338), conforme a decisão de 2026-10-16 (quiz de definições 3): baú compartilhado da guilda onde **todos os membros depositam** (líder, oficial, membro, recruta) e **apenas líder e oficial retiram** itens e coroas. Não há baú de party.
+
+| Constante | Valor | Observação |
+|---|---|---|
+| `CasasPorAba` | 40 | quantidade de espaços em cada aba |
+| `AbasDisponiveis` | 2 | abas disponíveis no cofre da guilda (total de 80 casas) |
+| `CapacidadeMaxima` | 80 | limite máximo de itens armazenados |
+| `BancoGuildaX` / `BancoGuildaZ` | 3 / -14 | localização do Cofre da Guilda em Brasa Mansa |
+| `RaioInteracaoMetros` | 4 m | proximidade para interagir com o cofre |
+
+- **Permissões por Cargo:**
+  - `RegrasGuilda.PodeDepositarNoBanco(cargo)`: permitido para todos os membros da guilda.
+  - `RegrasGuilda.PodeRetirarDoBanco(cargo)`: permitido exclusivamente para `CargoDaGuilda.Lider` e `CargoDaGuilda.Oficial`. Membro e recruta recebem recusa com `CodigosErroEconomia.SemPermissaoBancoGuilda`.
+- **Atomicidade e Concorrência:**
+  - Depósito e retirada operam sob transação Serializable isolada.
+  - O item transita diretamente entre a bolsa do jogador e a tabela `ItensBancoGuilda` via `ICustodiaDeItens`: se a bolsa estiver cheia na tentativa de retirada, o servidor executa rollback e o item permanece preservado no cofre sem se perder.
+  - Depósito e retirada de coroas são integrados à carteira (`ICarteiraCoroas`) e sincronizados com a tabela `SaldosBancoGuilda`.
+- **Mensagens (faixa 9220–9229 em `EconomiaMessageIds`):**
+  - `ConsultarBancoGuilda` (9220), `EstadoDoBancoGuilda` (9221), `DepositarItemBancoGuilda` (9222), `RetirarItemBancoGuilda` (9223), `DepositarCoroasBancoGuilda` (9224), `RetirarCoroasBancoGuilda` (9225) e `AvisoBancoGuilda` (9226).
+- **Interface e Interação:**
+  - Acessado pelo marcador "Cofre da Guilda" na cidade (`MarcadorNpcEconomia.BancoGuilda`). Abre a `JanelaBancoGuilda` exibindo saldo do cofre, lista de itens com autor do depósito e controles de retirada bloqueados para membros sem permissão.
+
 ### Correio entre jogadores (#212)
 
 Entregue na [#212](https://github.com/GabrielNied/jogo_do_grupo/issues/212), permitindo o envio de mensagens, coroas e itens para jogadores mesmo que estejam offline:

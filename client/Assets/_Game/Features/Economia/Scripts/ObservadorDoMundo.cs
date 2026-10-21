@@ -92,6 +92,13 @@ namespace JogoDoGrupo.Client.Features.Economia
                 MarcadorNpcEconomia.Posicao(TipoNpcEconomia.Leiloeiro, y)
             );
             var leiloeiro = MarcadorNpcEconomia.Criar(posLeiloeiro, TipoNpcEconomia.Leiloeiro);
+            var posBancoGuilda = PosicaoNoChao(
+                MarcadorNpcEconomia.Posicao(TipoNpcEconomia.BancoGuilda, y)
+            );
+            var bancoGuilda = MarcadorNpcEconomia.Criar(
+                posBancoGuilda,
+                TipoNpcEconomia.BancoGuilda
+            );
             var posCorreio = PosicaoNoChao(MarcadorNpcEconomia.Posicao(TipoNpcEconomia.Correio, y));
             var correio = MarcadorNpcEconomia.Criar(posCorreio, TipoNpcEconomia.Correio);
 
@@ -101,6 +108,7 @@ namespace JogoDoGrupo.Client.Features.Economia
             SceneManager.MoveGameObjectToScene(taverneiro, cena);
             SceneManager.MoveGameObjectToScene(merceeiro, cena);
             SceneManager.MoveGameObjectToScene(leiloeiro, cena);
+            SceneManager.MoveGameObjectToScene(bancoGuilda, cena);
             SceneManager.MoveGameObjectToScene(correio, cena);
 
             ferreiro.transform.SetParent(raiz.transform, true);
@@ -109,6 +117,7 @@ namespace JogoDoGrupo.Client.Features.Economia
             taverneiro.transform.SetParent(raiz.transform, true);
             merceeiro.transform.SetParent(raiz.transform, true);
             leiloeiro.transform.SetParent(raiz.transform, true);
+            bancoGuilda.transform.SetParent(raiz.transform, true);
             correio.transform.SetParent(raiz.transform, true);
 
             var documento = raiz.AddComponent<UIDocument>();
@@ -155,6 +164,11 @@ namespace JogoDoGrupo.Client.Features.Economia
                     leiloeiro.transform,
                     "falar com o leiloeiro",
                     UI.JanelaLeilao.Chave
+                ),
+                new PontoInteracaoEconomia(
+                    bancoGuilda.transform,
+                    "abrir o banco da guilda",
+                    UI.JanelaBancoGuilda.Chave
                 ),
                 new PontoInteracaoEconomia(
                     correio.transform,

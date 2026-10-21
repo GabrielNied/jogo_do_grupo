@@ -92,6 +92,29 @@ namespace JogoDoGrupo.Shared.Features.Economia
         /// <summary>Client → servidor: compra presencialmente um item da barraca (taxa de 3%).</summary>
         public const ushort ComprarDaBarraca = 9127;
 
+        // ── Banco de Guilda (#338): 9220 a 9229 ─────────────────────────────────
+
+        /// <summary>Client → servidor: consulta o saldo e itens do banco da guilda.</summary>
+        public const ushort ConsultarBancoGuilda = 9220;
+
+        /// <summary>Servidor → client: estado atualizado do banco da guilda.</summary>
+        public const ushort EstadoDoBancoGuilda = 9221;
+
+        /// <summary>Client → servidor: deposita item da bolsa no cofre da guilda.</summary>
+        public const ushort DepositarItemBancoGuilda = 9222;
+
+        /// <summary>Client → servidor: retira item do cofre da guilda para a bolsa.</summary>
+        public const ushort RetirarItemBancoGuilda = 9223;
+
+        /// <summary>Client → servidor: deposita coroas da carteira no cofre da guilda.</summary>
+        public const ushort DepositarCoroasBancoGuilda = 9224;
+
+        /// <summary>Client → servidor: retira coroas do cofre da guilda para a carteira.</summary>
+        public const ushort RetirarCoroasBancoGuilda = 9225;
+
+        /// <summary>Servidor → client: aviso ou evento sobre o banco da guilda.</summary>
+        public const ushort AvisoBancoGuilda = 9226;
+
         // ── Correio entre jogadores (#212): 9200 a 9215 ──────────────────────────
 
         /// <summary>Client → servidor: consulta as cartas da caixa de correio.</summary>

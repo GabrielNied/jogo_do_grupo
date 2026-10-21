@@ -13,6 +13,7 @@ namespace JogoDoGrupo.Client.Features.Economia
         Taverneiro,
         Merceeiro,
         Leiloeiro,
+        BancoGuilda,
         Correio,
     }
 
@@ -59,6 +60,11 @@ namespace JogoDoGrupo.Client.Features.Economia
                     altura,
                     ConfigMercado.LeiloeiroZ
                 ),
+                TipoNpcEconomia.BancoGuilda => new Vector3(
+                    ConfigBancoGuilda.BancoGuildaX,
+                    altura,
+                    ConfigBancoGuilda.BancoGuildaZ
+                ),
                 TipoNpcEconomia.Correio => new Vector3(
                     ConfigCorreio.CorreioX,
                     altura,
@@ -85,6 +91,7 @@ namespace JogoDoGrupo.Client.Features.Economia
                 TipoNpcEconomia.Merceeiro => "NpcMerceeiro",
                 TipoNpcEconomia.Ferreiro => "NpcFerreiro",
                 TipoNpcEconomia.Leiloeiro => "NpcLeiloeiro",
+                TipoNpcEconomia.BancoGuilda => "NpcBancoGuilda",
                 TipoNpcEconomia.Correio => "CaixaDeCorreio",
                 _ => "NpcVendedor",
             };
@@ -96,6 +103,7 @@ namespace JogoDoGrupo.Client.Features.Economia
                 TipoNpcEconomia.Merceeiro => new Color(0.95f, 0.75f, 0.25f),
                 TipoNpcEconomia.Ferreiro => new Color(0.55f, 0.35f, 0.22f),
                 TipoNpcEconomia.Leiloeiro => new Color(0.25f, 0.65f, 0.95f),
+                TipoNpcEconomia.BancoGuilda => new Color(0.95f, 0.80f, 0.20f),
                 TipoNpcEconomia.Correio => new Color(0.95f, 0.45f, 0.15f),
                 _ => new Color(0.25f, 0.55f, 0.85f),
             };
