@@ -1,10 +1,12 @@
 using JogoDoGrupo.Server.Contratos.Combate;
 using JogoDoGrupo.Server.Contratos.Itens;
 using JogoDoGrupo.Server.Contratos.Mundo;
+using JogoDoGrupo.Server.Contratos.Personagem;
 using JogoDoGrupo.Server.Core.Eventos;
 using JogoDoGrupo.Server.Core.TempoReal;
 using JogoDoGrupo.Shared.Features.Combate;
 using JogoDoGrupo.Shared.Features.Itens;
+using JogoDoGrupo.Shared.Features.Personagem;
 
 namespace JogoDoGrupo.Server.Features.Combate;
 
@@ -38,6 +40,7 @@ public sealed class ServicoDeAtaques : IHostedService, IDisposable
     private readonly EventosDoServidor? _eventos;
     private readonly IArmaEquipada? _armas;
     private readonly ServicoDeProjeteis? _projeteis;
+    private readonly IEstadoDeMovimento? _movimento;
     private readonly Dictionary<long, SessaoTempoReal> _sessoes = [];
     private readonly Lock _travaSessoes = new();
 
@@ -62,9 +65,11 @@ public sealed class ServicoDeAtaques : IHostedService, IDisposable
         EventosDoServidor? eventos = null,
         Func<long, CancellationToken, Task>? esperarAte = null,
         IArmaEquipada? armas = null,
-        ServicoDeProjeteis? projeteis = null
+        ServicoDeProjeteis? projeteis = null,
+        IEstadoDeMovimento? movimento = null
     )
     {
+        _movimento = movimento;
         _armas = armas;
         _projeteis = projeteis;
         _eventos = eventos;
@@ -190,6 +195,19 @@ public sealed class ServicoDeAtaques : IHostedService, IDisposable
         lock (_travaSessoes)
         {
             _sessoes[personagemId] = sessao;
+        }
+
+        // Quem nada ou escala não ataca (#349); a posição é a que o Mundo aceitou.
+        if (_movimento?.EstaNadando(personagemId) == true)
+        {
+            Recusar(personagemId, intencao.Sequencia, CodigosErroPersonagem.VoceEstaNadando);
+            return;
+        }
+
+        if (_movimento?.EstaEscalando(personagemId) == true)
+        {
+            Recusar(personagemId, intencao.Sequencia, CodigosErroPersonagem.VoceEstaEscalando);
+            return;
         }
 
         var pedido = new PedidoDeAtaque(

@@ -253,10 +253,12 @@ namespace JogoDoGrupo.Client.Features.Combate
 
         /// <summary>
         /// Só ataca com o jogo no mundo, conectado e sem janela ou menu aberto (o cursor fica
-        /// preso à câmera só quando nada está aberto).
+        /// preso à câmera só quando nada está aberto). A nado ou na parede não ataca (#349).
         /// </summary>
         private static bool PodeAtacar() =>
-            ConexaoTempoReal.Conectado && Cursor.lockState == CursorLockMode.Locked;
+            ConexaoTempoReal.Conectado
+            && Cursor.lockState == CursorLockMode.Locked
+            && !AmbienteDeMovimento.ImpedeAtaque;
 
         // O que a fila e o buffer pedem a cada quadro: o golpe da fila começa quando a ação em
         // curso acaba, e o clique guardado sai quando cabe na fila do servidor.

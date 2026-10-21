@@ -1,8 +1,11 @@
+using JogoDoGrupo.Server.Contratos.Combate;
 using JogoDoGrupo.Server.Contratos.Mobs;
 using JogoDoGrupo.Server.Contratos.Mundo;
 using JogoDoGrupo.Server.Contratos.Personagem;
 using JogoDoGrupo.Server.Core;
 using JogoDoGrupo.Server.Core.TempoReal;
+using JogoDoGrupo.Shared.Features.Combate;
+using JogoDoGrupo.Shared.Features.Personagem;
 
 namespace JogoDoGrupo.Server.Features.Personagem;
 
@@ -10,6 +13,7 @@ public sealed class PersonagemModule : IFeatureModule
 {
     // O contêiner cria o serviço quando o app sobe; a morte só chega depois, no laço de IA.
     private volatile ExperienciaDoPersonagem? _experiencia;
+    private volatile ServicoDeMovimentoEspecial? _movimento;
 
     public string Nome => "Personagem";
 
@@ -33,9 +37,58 @@ public sealed class PersonagemModule : IFeatureModule
             sp.GetRequiredService<ExperienciaDoPersonagem>()
         );
         servicos.AddHostedService<IniciarExperiencia>();
+        servicos.AddSingleton(sp =>
+        {
+            var tempoReal = sp.GetRequiredService<ServidorTempoReal>();
+            var servico = new ServicoDeMovimentoEspecial(
+                sp.GetRequiredService<IPosicoesDoMundo>(),
+                () => tempoReal.Sessoes.Select(s => s.PersonagemId).Where(id => id > 0).ToList(),
+                (id, estado) =>
+                    EnviarAoDono(tempoReal, id, PersonagemMessageIds.EstadoDoMovimento, estado),
+                (id, dano) => EnviarAoDono(tempoReal, id, PersonagemMessageIds.DanoDeQueda, dano),
+                (id, recursos) =>
+                    EnviarAoDono(tempoReal, id, CombateMessageIds.RecursosMudaram, recursos),
+                sp.GetService<ICobrancaDeRecursos>(),
+                sp.GetService<IDanoAoPersonagem>(),
+                sp.GetService<ILimiteDeVelocidadeDoMundo>(),
+                sp.GetService<IEstadoDeQueda>(),
+                log: sp.GetService<ILogger<ServicoDeMovimentoEspecial>>()
+            );
+            _movimento = servico;
+            tempoReal.SessaoEncerrada += sessao => servico.Remover(sessao.PersonagemId);
+            return servico;
+        });
+        servicos.AddSingleton<IEstadoDeMovimento>(sp =>
+            sp.GetRequiredService<ServicoDeMovimentoEspecial>()
+        );
+        servicos.AddHostedService(sp => sp.GetRequiredService<ServicoDeMovimentoEspecial>());
     }
 
     public void MapearRotas(IEndpointRouteBuilder rotas) => PersonagensRotas.Mapear(rotas);
+
+    public void RegistrarMensagens(MensagensTempoReal mensagens) =>
+        mensagens
+            .Faixa(PersonagemMessageIds.Faixa)
+            .Ao<IntencaoDeEscalada>(
+                PersonagemMessageIds.IntencaoDeEscalada,
+                (sessao, pedido) => _movimento?.AoEscalar(sessao.PersonagemId, pedido)
+            );
+
+    private static void EnviarAoDono<T>(
+        ServidorTempoReal tempoReal,
+        long personagemId,
+        ushort id,
+        T mensagem
+    )
+    {
+        foreach (var sessao in tempoReal.Sessoes)
+        {
+            if (sessao.PersonagemId == personagemId)
+            {
+                tempoReal.Enviar(sessao, id, mensagem);
+            }
+        }
+    }
 
     public void Inicializar(ServerContext contexto) =>
         contexto.Eventos.Assinar<InimigoDerrotado>(derrota => _experiencia?.Agendar(derrota));

@@ -12,5 +12,14 @@ namespace JogoDoGrupo.Shared.Features.Personagem
 
         /// <summary>Servidor → quem está na área: um personagem subiu de nível.</summary>
         public const ushort SubiuDeNivel = 3001;
+
+        /// <summary>Client → servidor: começar ou parar de escalar (<see cref="IntencaoDeEscalada"/>).</summary>
+        public const ushort IntencaoDeEscalada = 3002;
+
+        /// <summary>Servidor → dono: nado e escalada mudaram (<see cref="EstadoDoMovimento"/>).</summary>
+        public const ushort EstadoDoMovimento = 3003;
+
+        /// <summary>Servidor → dono: uma queda tirou vida (<see cref="DanoDeQueda"/>).</summary>
+        public const ushort DanoDeQueda = 3004;
     }
 }
