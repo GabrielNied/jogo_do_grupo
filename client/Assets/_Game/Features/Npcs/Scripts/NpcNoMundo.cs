@@ -23,6 +23,7 @@ namespace JogoDoGrupo.Client.Features.Npcs
 
         private DefinicaoNpc _definicao;
         private GameObject _corpo;
+        private Animator _animator;
         private GameObject _placaObjeto;
         private TextMesh _textoPlaca;
         private bool _jogadorNoAlcance;
@@ -69,6 +70,7 @@ namespace JogoDoGrupo.Client.Features.Npcs
             }
 
             _corpo = FabricaDeCorpoDeNpc.Criar(_definicao.Papel, _definicao.Id, transform);
+            _animator = _corpo.GetComponentInChildren<Animator>();
         }
 
         private void CriarPlacaDeNome()
@@ -128,6 +130,10 @@ namespace JogoDoGrupo.Client.Features.Npcs
             {
                 _jogadorNoAlcance = estaNoAlcance;
                 AtualizarTextoPlaca(_jogadorNoAlcance);
+                if (_animator != null && _animator.runtimeAnimatorController != null)
+                {
+                    _animator.SetBool(ParametrosDeNpc.Falando, _jogadorNoAlcance);
+                }
             }
 
             if (

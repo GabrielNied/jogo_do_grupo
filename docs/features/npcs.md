@@ -59,6 +59,16 @@ Decidido por quem implementou a [#1069](https://github.com/GabrielNied/jogo_do_g
 - **Sem alvo:** sem colisor, sem vida e sem dano: não aparecem para o combate nem empurram o jogador.
 - **Ajuste:** velocidades, raio e tempo do balão em `ConfigPopulacaoDaCidade`.
 
+### Visual dos NPCs
+
+Decidido por quem implementou a [#1064](https://github.com/GabrielNied/jogo_do_grupo/issues/1064).
+
+- **Base única:** o Monk do Quaternius (CC0, [licenças](../arte/licencas.md)), de 1,8 m, com um prefab por papel em `Resources/Npcs/Npc_<Papel>`, gerado por `GeradorDeVisualDeNpcs` (menu Jogo do Grupo/Npcs, ou `npm run unity:executar`). Papel sem prefab (estalajadeiro) cai na cápsula colorida.
+- **Reconhecível de longe:** túnica ou tabardo na cor do papel mais um acessório: ferreiro (avental de couro e martelo), guarda (elmo, peitoral e lança), armeiro (tabardo vermelho e espada), armadureiro (peitoral de aço e martelinho), taverneiro (avental e gorro brancos, panela), merceeiro e vendedor (chapéu de aba e bolsa), banqueiro (cartola verde e livro), leiloeiro (cartola azul e martelete), cavalariço (chapéu de palha e forcado), cuidador de pets (lenço verde e cesto), dador de missão (capa roxa e selo) e mago de cena do prólogo (chapéu pontudo, capa e cajado com orbe).
+- **Animação:** parado, andar (guardas e moradores), falar (acende quando o jogador está ao alcance ou o balão aparece) e trabalhar (martelar para ferreiro e armadureiro, mexer para taverneiro). Falar e trabalhar são o Idle do pacote com os braços trocados por script, sem animação nova de terceiros.
+- **Variação:** todo NPC tem altura de 93% a 107% pela semente; moradores sorteiam também cabelo (3 estilos ou nenhum), barba (2 ou nenhuma), cor da túnica e tom do corpo (`AparenciaDeNpc`). A mesma semente dá o mesmo rosto em qualquer client.
+- **Limite conhecido:** cabelo e rosto são formas simples sobre o Monk; modelos próprios por papel ficam para quando a arte do grupo chegar.
+
 ### Livro de Asterra: NPCs da cidade (proposta do board, 2026-10-11)
 
 Do "Livro de ideias" do [FigJam](../brainstorm/figjam.md) (seções 07 e 11). **Proposta do board, não validada pelo grupo.**

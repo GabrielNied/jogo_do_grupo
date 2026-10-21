@@ -1,0 +1,16 @@
+{
+  "name": "JogoDoGrupo.Client.Npcs.Editor",
+  "rootNamespace": "JogoDoGrupo.Client.Features.Npcs.Editor",
+  "references": ["JogoDoGrupo.Shared", "JogoDoGrupo.Client.Npcs"],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": false,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

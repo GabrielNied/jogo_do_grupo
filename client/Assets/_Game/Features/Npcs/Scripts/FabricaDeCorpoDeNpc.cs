@@ -8,16 +8,34 @@ namespace JogoDoGrupo.Client.Features.Npcs
     {
         public const string Andando = "Andando";
         public const string Falando = "Falando";
-        public const string Trabalhando = "Trabalhando";
     }
 
     /// <summary>
-    /// Cria o corpo visual de um NPC (sem colisor): cápsula tingida pelo papel enquanto não há
-    /// prefab (#1069); o visual por papel entra na #1064.
+    /// Cria o corpo visual de um NPC, sem colisor (#1064). Usa o prefab do papel em
+    /// <c>Resources/Npcs/Npc_&lt;Papel&gt;</c> (gerado por <c>GeradorDeVisualDeNpcs</c>); sem prefab para
+    /// o papel, cai na cápsula tingida pela cor do papel.
     /// </summary>
     public static class FabricaDeCorpoDeNpc
     {
+        public const string PrefixoDoPrefab = "Npcs/Npc_";
+
         public static GameObject Criar(PapelNpc papel, int semente, Transform pai)
+        {
+            var prefab = Resources.Load<GameObject>(PrefixoDoPrefab + papel);
+            if (prefab != null)
+            {
+                var corpo = Object.Instantiate(prefab, pai, false);
+                corpo.name = "CorpoVisual";
+                corpo.transform.localPosition = Vector3.zero;
+                corpo.transform.localRotation = Quaternion.identity;
+                AparenciaDeNpc.Aplicar(corpo, papel, semente);
+                return corpo;
+            }
+
+            return CriarCapsula(papel, pai);
+        }
+
+        private static GameObject CriarCapsula(PapelNpc papel, Transform pai)
         {
             var corpo = GameObject.CreatePrimitive(PrimitiveType.Capsule);
             corpo.name = "CorpoVisual";
