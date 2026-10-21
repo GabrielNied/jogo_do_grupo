@@ -99,6 +99,31 @@ public sealed class GuildasDoServidor(
         }
     }
 
+    public string ObterNomeGuilda(long guildaId)
+    {
+        lock (_trava)
+        {
+            return _guildasPorId.TryGetValue(guildaId, out var guilda) ? guilda.Nome : "";
+        }
+    }
+
+    public CargoDaGuilda? ObterCargo(long personagemId)
+    {
+        lock (_trava)
+        {
+            if (
+                _guildaDoPersonagem.TryGetValue(personagemId, out var guildaId)
+                && _guildasPorId.TryGetValue(guildaId, out var guilda)
+                && guilda.Membros.TryGetValue(personagemId, out var membro)
+            )
+            {
+                return membro.Cargo;
+            }
+
+            return null;
+        }
+    }
+
     public void Consultar(long personagemId)
     {
         lock (_trava)

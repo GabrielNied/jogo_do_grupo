@@ -24,7 +24,7 @@ namespace JogoDoGrupo.Server.Features.Social;
 /// O chat de texto (canais Cidade e Sussurro) segue o mesmo molde, com as regras em
 /// <see cref="ChatDoServidor"/>.
 /// </summary>
-public sealed class SocialModule : IFeatureModule, IConsultaDeGrupo
+public sealed class SocialModule : IFeatureModule, IConsultaDeGrupo, IConsultaDeGuilda
 {
     private readonly DiretorioTardio _diretorio = new();
     private GruposDoServidor? _grupos;
@@ -58,6 +58,7 @@ public sealed class SocialModule : IFeatureModule, IConsultaDeGrupo
     public void ConfigurarServicos(IServiceCollection servicos, IConfiguration configuracao)
     {
         servicos.AddSingleton<IConsultaDeGrupo>(this);
+        servicos.AddSingleton<IConsultaDeGuilda>(this);
         servicos.AddSingleton<IAliadosDeCombate, AliadosDeCombateDoSocial>();
         servicos.AddSingleton<LimitesDoChat>();
         servicos.AddSingleton<ISilenciadorDoChat>(sp => sp.GetRequiredService<LimitesDoChat>());
@@ -388,6 +389,15 @@ public sealed class SocialModule : IFeatureModule, IConsultaDeGrupo
         (
             _grupos ?? throw new InvalidOperationException("Social ainda não foi inicializado.")
         ).Consultar(personagemId);
+
+    long IConsultaDeGuilda.ObterGuildaId(long personagemId) =>
+        _guildas?.ObterGuildaId(personagemId) ?? 0;
+
+    string IConsultaDeGuilda.ObterNomeGuilda(long guildaId) =>
+        _guildas?.ObterNomeGuilda(guildaId) ?? "";
+
+    CargoDaGuilda? IConsultaDeGuilda.ObterCargo(long personagemId) =>
+        _guildas?.ObterCargo(personagemId);
 
     // Quem entra na cidade recebe o que foi dito há pouco no canal Cidade (se houver algo).
     private void AoEntrarNaArea(JogadorEntrouNaArea evento)

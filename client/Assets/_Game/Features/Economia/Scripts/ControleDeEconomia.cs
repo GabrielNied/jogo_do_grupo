@@ -32,6 +32,11 @@ namespace JogoDoGrupo.Client.Features.Economia
 
         public static event Action MercadoMudou;
 
+        /// <summary>O último estado do banco da guilda (#338) recebido do servidor.</summary>
+        public static EstadoDoBancoGuilda BancoGuilda { get; private set; }
+
+        public static event Action BancoGuildaMudou;
+
         /// <summary>O último estado do correio (#212) enviado pelo servidor.</summary>
         public static EstadoDoCorreio Correio { get; private set; }
 
@@ -56,6 +61,8 @@ namespace JogoDoGrupo.Client.Features.Economia
             OperacaoRecusada = null;
             Mercado = null;
             MercadoMudou = null;
+            BancoGuilda = null;
+            BancoGuildaMudou = null;
             Correio = null;
             CartaAberta = null;
             CorreioMudou = null;
@@ -138,6 +145,18 @@ namespace JogoDoGrupo.Client.Features.Economia
                 ConexaoTempoReal.Assinar<EconomiaRecusada>(
                     EconomiaMessageIds.EconomiaRecusada,
                     AoRecusado
+                )
+            );
+            _assinaturas.Add(
+                ConexaoTempoReal.Assinar<EstadoDoBancoGuilda>(
+                    EconomiaMessageIds.EstadoDoBancoGuilda,
+                    AoEstadoDoBancoGuilda
+                )
+            );
+            _assinaturas.Add(
+                ConexaoTempoReal.Assinar<AvisoBancoGuilda>(
+                    EconomiaMessageIds.AvisoBancoGuilda,
+                    AoAvisoBancoGuilda
                 )
             );
             _assinaturas.Add(
@@ -278,6 +297,62 @@ namespace JogoDoGrupo.Client.Features.Economia
         public static void ReceberDevolucoes()
         {
             ConexaoTempoReal.Enviar(EconomiaMessageIds.ReceberDevolucoes, new ReceberDevolucoes());
+        }
+
+        public static void ConsultarBancoGuilda()
+        {
+            ConexaoTempoReal.Enviar(
+                EconomiaMessageIds.ConsultarBancoGuilda,
+                new ConsultarBancoGuilda()
+            );
+        }
+
+        public static void DepositarItemBancoGuilda(long instanciaId, int aba = 0, int casa = 0)
+        {
+            ConexaoTempoReal.Enviar(
+                EconomiaMessageIds.DepositarItemBancoGuilda,
+                new DepositarItemBancoGuilda
+                {
+                    InstanciaId = instanciaId,
+                    Aba = aba,
+                    Casa = casa,
+                }
+            );
+        }
+
+        public static void RetirarItemBancoGuilda(long itemBancoId)
+        {
+            ConexaoTempoReal.Enviar(
+                EconomiaMessageIds.RetirarItemBancoGuilda,
+                new RetirarItemBancoGuilda { ItemBancoId = itemBancoId }
+            );
+        }
+
+        public static void DepositarCoroasBancoGuilda(long quantidade)
+        {
+            ConexaoTempoReal.Enviar(
+                EconomiaMessageIds.DepositarCoroasBancoGuilda,
+                new DepositarCoroasBancoGuilda { Quantidade = quantidade }
+            );
+        }
+
+        public static void RetirarCoroasBancoGuilda(long quantidade)
+        {
+            ConexaoTempoReal.Enviar(
+                EconomiaMessageIds.RetirarCoroasBancoGuilda,
+                new RetirarCoroasBancoGuilda { Quantidade = quantidade }
+            );
+        }
+
+        private void AoEstadoDoBancoGuilda(EstadoDoBancoGuilda msg)
+        {
+            BancoGuilda = msg;
+            BancoGuildaMudou?.Invoke();
+        }
+
+        private void AoAvisoBancoGuilda(AvisoBancoGuilda msg)
+        {
+            AvisosDoJogo.Mostrar(msg.Mensagem, TipoDeAviso.Informacao);
         }
 
         private void AoEstadoDoMercado(EstadoDoMercado msg)
