@@ -58,6 +58,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
             var relatorio = new List<string>();
             RepararCamadas(dados, relatorio);
             RepararArvores(dados, relatorio);
+            MateriaisDasArvoresDaMata.Consertar(relatorio);
 
             if (relatorio.Count == 0)
             {

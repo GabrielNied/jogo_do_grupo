@@ -80,7 +80,17 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
 
             terrain.drawTreesAndFoliage = true;
             terrain.detailObjectDensity = 1f;
+            // O URP não tem o billboard de árvore do terreno: a 50 m as árvores viravam
+            // silhuetas azul-escuras. Malha até onde a névoa já esconde.
+            terrain.treeBillboardDistance = Mathf.Max(
+                terrain.treeBillboardDistance,
+                DistanciaDasArvoresEmMalha
+            );
+            terrain.treeMaximumFullLODCount = Mathf.Max(terrain.treeMaximumFullLODCount, 2000);
         }
+
+        /// <summary>Até onde as árvores do terreno são desenhadas como malha (m).</summary>
+        public const float DistanciaDasArvoresEmMalha = 320f;
 
         private static void AbrirEntradaDaCaverna(TerrainData dados)
         {
@@ -88,8 +98,23 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
             var superficie = new bool[resolucao, resolucao];
             for (var z = 0; z < resolucao; z++)
             {
-                var mundoZ = CoordenadaDoMundo(z, resolucao);
                 for (var x = 0; x < resolucao; x++)
+                {
+                    superficie[z, x] = true;
+                }
+            }
+
+            // Só a área da caverna pode ter furo: testar o mapa inteiro (um milhão de pontos)
+            // travava a entrada no mundo por uns 15 s e a conexão caía por falta de resposta.
+            PrimeiraCaverna.Limites(out var minX, out var minZ, out var maxX, out var maxZ);
+            var x0 = IndiceDaGrade(minX - MargemDaCaverna, resolucao);
+            var x1 = IndiceDaGrade(maxX + MargemDaCaverna, resolucao);
+            var z0 = IndiceDaGrade(minZ - MargemDaCaverna, resolucao);
+            var z1 = IndiceDaGrade(maxZ + MargemDaCaverna, resolucao);
+            for (var z = z0; z <= z1; z++)
+            {
+                var mundoZ = CoordenadaDoMundo(z, resolucao);
+                for (var x = x0; x <= x1; x++)
                 {
                     superficie[z, x] = !PrimeiraCaverna.FuraOTerreno(
                         CoordenadaDoMundo(x, resolucao),
@@ -99,6 +124,17 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
             }
 
             dados.SetHoles(0, 0, superficie);
+        }
+
+        // Folga em volta dos limites da caverna (m), para o contorno do túnel caber inteiro.
+        private const float MargemDaCaverna = 8f;
+
+        private static int IndiceDaGrade(float coordenada, int resolucao)
+        {
+            var indice = Mathf.FloorToInt(
+                (coordenada + MapaDoMundo.Metade) / MapaDoMundo.Lado * resolucao
+            );
+            return Mathf.Clamp(indice, 0, resolucao - 1);
         }
 
         private static float CoordenadaDoMundo(int indice, int resolucao)
