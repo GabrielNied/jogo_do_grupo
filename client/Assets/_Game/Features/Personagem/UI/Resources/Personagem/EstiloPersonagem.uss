@@ -250,33 +250,52 @@
 }
 
 .personagem-hud-barra-xp {
-    width: 100%;
-    margin-bottom: var(--lumora-espacamento-pequeno);
-}
-
-.personagem-hud-barra-xp-rotulo {
-    margin-bottom: var(--lumora-espacamento-curto);
-    font-size: var(--lumora-tipografia-leitura);
-    color: var(--lumora-cores-marfim);
-    -unity-text-align: middle-left;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
 }
 
 .personagem-hud-barra-xp-trilho {
-    min-height: var(--lumora-dimensoes-barra);
-    background-color: var(--lumora-cores-trilho);
-    border-width: var(--lumora-bordas-fina);
-    border-color: var(--lumora-cores-borda-discreta);
-    border-radius: var(--lumora-bordas-raio-campo);
-    overflow: hidden;
+    flex-grow: 1;
+    padding: 2px;
+    background-image: url("../../../../../Core/UI/Visual/Resources/Lumora/Arte/Hud/barra-fundo.png");
+    -unity-slice-left: var(--lumora-ornamentos-fatia-barra);
+    -unity-slice-right: var(--lumora-ornamentos-fatia-barra);
+    -unity-slice-top: var(--lumora-ornamentos-fatia-barra);
+    -unity-slice-bottom: var(--lumora-ornamentos-fatia-barra);
+    justify-content: center;
 }
 
 .personagem-hud-barra-xp-preenchimento {
     position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
+    left: 2px;
+    top: 2px;
+    bottom: 2px;
     width: 0;
-    background-color: var(--lumora-cores-essencia);
+    background-image: url("../../../../../Core/UI/Visual/Resources/Lumora/Arte/Hud/barra-preenchimento.png");
+    -unity-background-scale-mode: stretch-to-fill;
+    -unity-background-image-tint-color: var(--lumora-cores-experiencia);
+}
+
+.personagem-hud-barra-xp-marca {
+    position: absolute;
+    top: 3px;
+    bottom: 3px;
+    width: 1px;
+    background-color: var(--lumora-cores-contorno);
+    opacity: 0.6;
+}
+
+.personagem-hud-barra-xp-rotulo {
+    font-size: var(--lumora-tipografia-tecla);
+    color: var(--lumora-cores-marfim);
+    -unity-text-align: middle-center;
+    -unity-font-style: bold;
+    text-shadow: 1px 1px 1px var(--lumora-cores-contorno);
+    margin: 0;
+    padding: 0;
 }
 
 .personagem-painel-queda {

@@ -559,6 +559,13 @@ namespace JogoDoGrupo.Client.Features.Personagem
                 return;
             }
 
+            // O HUD (quadro do personagem) já nasce com nome, raça e nível.
+            var escolhido = _personagens.Find(p => p.Id == _idSelecionado.Value);
+            if (escolhido != null)
+            {
+                PerfilDoJogador.Definir(escolhido.Nome, (int)escolhido.Raca, escolhido.Nivel);
+            }
+
             // O Core monta o mundo, cria o jogador com o visual registrado e deixa esta tela.
             EntradaNoJogo.Entrar(_idSelecionado.Value);
         }
