@@ -15,7 +15,7 @@ namespace JogoDoGrupo.Client.Features.Mobs
     {
         public const string Chave = "mobs.bestiario";
         public const string Titulo = "Bestiário de Asterra";
-        public const string Tecla = "B";
+        public const string Tecla = "H";
         public const int Ordem = 40;
 
         private enum FiltroCategoria

@@ -1,3 +1,4 @@
+/* Etiquetas sobre a cabeça dos inimigos (nameplates). */
 .inimigos-camada {
     position: absolute;
     left: 0;
@@ -14,115 +15,149 @@
 }
 
 .inimigo-nome {
-    font-size: var(--lumora-tipografia-leitura);
-    color: var(--lumora-cores-marfim);
-    -unity-text-outline-width: var(--lumora-bordas-fina);
-    -unity-text-outline-color: var(--lumora-cores-trilho);
-    white-space: normal;
+    font-size: var(--lumora-tipografia-hud);
+    color: var(--lumora-cores-nome-inimigo);
+    -unity-font-style: bold;
+    -unity-text-outline-width: 1px;
+    -unity-text-outline-color: var(--lumora-cores-contorno);
+    text-shadow: 1px 1px 2px var(--lumora-cores-contorno);
+    white-space: nowrap;
     -unity-text-align: middle-center;
 }
 
 .inimigo-etiqueta-elite .inimigo-nome {
-    color: var(--lumora-cores-erro);
+    color: var(--lumora-cores-raridade-lendaria);
 }
 
-.inimigo-etiqueta-alvo {
-    border-width: var(--lumora-bordas-fina);
+.inimigo-etiqueta-alvo .inimigo-barra {
+    border-width: 1px;
     border-color: var(--lumora-cores-erro);
-    border-radius: var(--lumora-bordas-raio-campo);
-    padding: var(--lumora-espacamento-minimo);
 }
 
 .inimigo-alerta {
-    font-size: var(--lumora-tipografia-subtitulo);
+    font-size: var(--lumora-tipografia-hud-titulo);
     color: var(--lumora-cores-erro);
-    -unity-text-outline-width: var(--lumora-bordas-fina);
-    -unity-text-outline-color: var(--lumora-cores-trilho);
+    -unity-text-outline-width: 1px;
+    -unity-text-outline-color: var(--lumora-cores-contorno);
     -unity-font-style: bold;
     -unity-text-align: middle-center;
-    margin-bottom: calc(var(--lumora-espacamento-minimo) * -0.5);
+    margin-bottom: -2px;
 }
 
 .inimigo-barra {
     width: var(--lumora-dimensoes-inimigo-barra);
-    height: var(--lumora-dimensoes-inimigo-barra-altura);
-    margin-top: var(--lumora-espacamento-minimo);
-    background-color: var(--lumora-cores-trilho);
-    border-width: var(--lumora-bordas-fina);
-    border-color: var(--lumora-cores-borda-botao);
+    height: 10px;
+    margin-top: var(--lumora-espacamento-fino);
+    padding: 1px;
+    background-image: url("../../../../../Core/UI/Visual/Resources/Lumora/Arte/Hud/barra-fundo.png");
+    -unity-slice-left: var(--lumora-ornamentos-fatia-barra);
+    -unity-slice-right: var(--lumora-ornamentos-fatia-barra);
+    -unity-slice-top: var(--lumora-ornamentos-fatia-barra);
+    -unity-slice-bottom: var(--lumora-ornamentos-fatia-barra);
     overflow: hidden;
 }
 
 .inimigo-preenchimento {
     height: 100%;
     width: 100%;
-    background-color: var(--lumora-cores-vida);
+    border-radius: 1px;
+    background-image: url("../../../../../Core/UI/Visual/Resources/Lumora/Arte/Hud/barra-preenchimento.png");
+    -unity-background-scale-mode: stretch-to-fill;
+    -unity-background-image-tint-color: var(--lumora-cores-vida);
 }
 
 .inimigo-exposto {
-    font-size: var(--lumora-tipografia-leitura);
+    font-size: var(--lumora-tipografia-hud-pequeno);
     color: var(--lumora-cores-ganho);
-    -unity-text-outline-width: var(--lumora-bordas-fina);
-    -unity-text-outline-color: var(--lumora-cores-trilho);
+    -unity-text-outline-width: 1px;
+    -unity-text-outline-color: var(--lumora-cores-contorno);
     -unity-font-style: bold;
     -unity-text-align: middle-center;
 }
 
+/* Quadro do alvo e do chefe (topo, centro). */
 .hud-alvo-coluna {
     flex-direction: column;
-    align-items: center;
-    max-width: 90%;
+    align-items: stretch;
+    width: 100%;
+}
+
+.hud-barra-boss, .hud-barra-alvo {
+    align-items: stretch;
+    padding: var(--lumora-espacamento-pequeno) var(--lumora-espacamento-extra) var(--lumora-espacamento-medio);
+    margin-bottom: var(--lumora-espacamento-pequeno);
+    background-image: url("../../../../../Core/UI/Visual/Resources/Lumora/Arte/Hud/placa-alvo.png");
+    -unity-slice-left: 26;
+    -unity-slice-right: 26;
+    -unity-slice-top: 16;
+    -unity-slice-bottom: 16;
 }
 
 .hud-barra-boss {
-    width: var(--lumora-dimensoes-dialogo-percentual);
-    max-width: 560px;
-    align-items: center;
-    margin-bottom: var(--lumora-espacamento-pequeno);
+    background-image: url("../../../../../Core/UI/Visual/Resources/Lumora/Arte/Hud/placa-alvo-chefe.png");
+    padding-top: var(--lumora-espacamento-medio);
 }
 
-.hud-barra-alvo {
-    width: var(--lumora-dimensoes-inimigo-largura);
-    max-width: 360px;
+.hud-alvo-elite {
+    background-image: url("../../../../../Core/UI/Visual/Resources/Lumora/Arte/Hud/placa-alvo-elite.png");
+}
+
+.hud-alvo-cabecalho {
+    flex-direction: row;
+    justify-content: center;
     align-items: center;
+    margin-bottom: var(--lumora-espacamento-minimo);
+}
+
+.hud-alvo-caveira {
+    width: 22px;
+    height: 22px;
+    margin-right: var(--lumora-espacamento-pequeno);
+    -unity-background-image-tint-color: var(--lumora-cores-erro);
 }
 
 .hud-alvo-nome {
-    font-size: var(--lumora-tipografia-titulo);
-    color: var(--lumora-cores-marfim);
+    font-size: var(--lumora-tipografia-hud-nome);
+    color: var(--lumora-cores-nome-inimigo);
+    -unity-font-style: bold;
     -unity-text-align: middle-center;
-    margin-bottom: var(--lumora-espacamento-minimo);
-    white-space: normal;
+    text-shadow: 1px 1px 2px var(--lumora-cores-contorno);
+    white-space: nowrap;
+}
+
+.hud-alvo-elite .hud-alvo-nome {
+    color: var(--lumora-cores-raridade-lendaria);
 }
 
 .hud-barra-boss .hud-alvo-nome {
-    -unity-font-style: bold;
+    font-size: var(--lumora-tipografia-hud-titulo);
     color: var(--lumora-cores-ouro);
 }
 
+.hud-alvo-nivel {
+    margin-left: var(--lumora-espacamento-pequeno);
+    font-size: var(--lumora-tipografia-hud-pequeno);
+    color: var(--lumora-cores-texto-secundario);
+    -unity-text-align: middle-center;
+    text-shadow: 1px 1px 1px var(--lumora-cores-contorno);
+}
+
 .hud-alvo-trilho {
-    width: 100%;
-    height: var(--lumora-dimensoes-barra);
-    background-color: var(--lumora-cores-trilho);
-    border-width: var(--lumora-bordas-fina);
-    border-color: var(--lumora-cores-borda-botao);
-    border-radius: var(--lumora-bordas-raio-campo);
-    overflow: hidden;
+    height: 20px;
 }
 
 .hud-barra-boss .hud-alvo-trilho {
-    height: calc(var(--lumora-dimensoes-barra) * 1.35);
-}
-
-.hud-alvo-preenchimento {
-    height: 100%;
-    width: 0;
-    background-color: var(--lumora-cores-vida);
+    height: 26px;
 }
 
 .hud-alvo-percentual {
-    font-size: var(--lumora-tipografia-leitura);
+    position: absolute;
+    right: 8px;
+    top: 0;
+    bottom: 0;
+    font-size: var(--lumora-tipografia-hud-pequeno);
     color: var(--lumora-cores-marfim);
-    -unity-text-align: middle-center;
-    margin-top: var(--lumora-espacamento-minimo);
+    -unity-text-align: middle-right;
+    -unity-font-style: bold;
+    text-shadow: 1px 1px 1px var(--lumora-cores-contorno);
 }

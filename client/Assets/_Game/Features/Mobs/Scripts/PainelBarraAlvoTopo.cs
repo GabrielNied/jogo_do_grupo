@@ -1,10 +1,15 @@
+using JogoDoGrupo.Client.Core.UI;
+using JogoDoGrupo.Shared.Features.Mobs;
 using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace JogoDoGrupo.Client.Features.Mobs
 {
     /// <summary>
-    /// Barras de vida do boss e do alvo comum no topo do HUD (<see cref="RegiaoDoHud.TopoCentro"/>).
+    /// Quadro do alvo e barra do chefe no topo, ao centro (<see cref="RegiaoDoHud.TopoCentro"/>),
+    /// como o "target frame" do World of Warcraft: placa com o nome (vermelho para hostil,
+    /// dourado para chefe), o nível e a vida com números e porcentagem. O chefe ganha a placa
+    /// larga com caveira. O alvo é o inimigo sob a mira ou o último atingido (sem tab target).
     /// </summary>
     internal sealed class PainelBarraAlvoTopo
     {
@@ -32,12 +37,12 @@ namespace JogoDoGrupo.Client.Features.Mobs
             _coluna.pickingMode = PickingMode.Ignore;
             _coluna.AddToClassList(ClasseColuna);
 
-            _boss = new Bloco(ClasseBarraBoss);
-            _alvo = new Bloco(ClasseBarraAlvo);
+            _boss = new Bloco(ClasseBarraBoss, true);
+            _alvo = new Bloco(ClasseBarraAlvo, false);
 
             _coluna.Add(_boss.Raiz);
             _coluna.Add(_alvo.Raiz);
-            regiao.Add(_coluna);
+            regiao.Insert(0, _coluna);
 
             EsconderTudo();
         }
@@ -81,35 +86,43 @@ namespace JogoDoGrupo.Client.Features.Mobs
         private sealed class Bloco
         {
             private readonly Label _nome;
+            private readonly Label _nivel;
             private readonly Label _percentual;
-            private readonly VisualElement _preenchimento;
+            private readonly BarraHud _barra;
+            private readonly bool _chefe;
+            private long _ultimoId;
 
-            public Bloco(string classeBarra)
+            public Bloco(string classeBarra, bool chefe)
             {
+                _chefe = chefe;
                 Raiz = new VisualElement();
                 Raiz.pickingMode = PickingMode.Ignore;
                 Raiz.AddToClassList(classeBarra);
 
-                _nome = new Label();
-                _nome.pickingMode = PickingMode.Ignore;
-                _nome.AddToClassList(ClasseNome);
+                var cabecalho = new VisualElement { pickingMode = PickingMode.Ignore };
+                cabecalho.AddToClassList("hud-alvo-cabecalho");
+                if (chefe)
+                {
+                    cabecalho.Add(
+                        ComponentesHud.Imagem(
+                            ComponentesHud.Icone("Icones", "chefe"),
+                            "hud-alvo-caveira"
+                        )
+                    );
+                }
 
-                var trilho = new VisualElement();
-                trilho.pickingMode = PickingMode.Ignore;
-                trilho.AddToClassList(ClasseTrilho);
+                _nome = ComponentesHud.Texto(string.Empty, ClasseNome);
+                _nivel = ComponentesHud.Texto(string.Empty, "hud-alvo-nivel");
+                cabecalho.Add(_nome);
+                cabecalho.Add(_nivel);
 
-                _preenchimento = new VisualElement();
-                _preenchimento.pickingMode = PickingMode.Ignore;
-                _preenchimento.AddToClassList(ClassePreenchimento);
+                _barra = new BarraHud(chefe ? "hud-barra-inimigo" : "hud-barra-inimigo");
+                _barra.Raiz.AddToClassList(ClasseTrilho);
+                _percentual = ComponentesHud.Texto(string.Empty, ClassePercentual);
+                _barra.Raiz.Add(_percentual);
 
-                _percentual = new Label();
-                _percentual.pickingMode = PickingMode.Ignore;
-                _percentual.AddToClassList(ClassePercentual);
-
-                trilho.Add(_preenchimento);
-                Raiz.Add(_nome);
-                Raiz.Add(trilho);
-                Raiz.Add(_percentual);
+                Raiz.Add(cabecalho);
+                Raiz.Add(_barra.Raiz);
             }
 
             public VisualElement Raiz { get; }
@@ -119,10 +132,22 @@ namespace JogoDoGrupo.Client.Features.Mobs
             public void Mostrar(InimigoNoClient inimigo)
             {
                 Raiz.style.display = DisplayStyle.Flex;
-                _nome.text = inimigo.Rotulo;
+                var ficha = CatalogoCriaturas.Obter(inimigo.CriaturaId);
+                _nome.text = ficha != null ? ficha.Nome : inimigo.Rotulo;
+                var nivel = inimigo.Nivel > 0 ? inimigo.Nivel : ficha?.Nivel ?? 0;
+                _nivel.text = nivel > 0 ? "Nv " + nivel : string.Empty;
+                Raiz.EnableInClassList("hud-alvo-elite", inimigo.Elite && !_chefe);
                 var fracao = inimigo.FracaoDeVida;
-                _preenchimento.style.width = Length.Percent(fracao * 100f);
+                _barra.Definir(
+                    inimigo.Vida,
+                    inimigo.VidaMaxima,
+                    inimigo.Vida + " / " + inimigo.VidaMaxima
+                );
                 _percentual.text = Mathf.RoundToInt(fracao * 100f) + "%";
+                if (_ultimoId != inimigo.InimigoId)
+                {
+                    _ultimoId = inimigo.InimigoId;
+                }
             }
         }
     }
