@@ -1,5 +1,4 @@
 using System;
-using JogoDoGrupo.Client.Core.Jogo.Janelas;
 using JogoDoGrupo.Client.Core.UI;
 using JogoDoGrupo.Shared.Features.Montarias;
 using UnityEngine;
@@ -8,157 +7,71 @@ using UnityEngine.UIElements;
 namespace JogoDoGrupo.Client.Features.Montarias.UI
 {
     /// <summary>
-    /// Componente de montaria no HUD (padrão Lumora): exibe o botão de invocação [T],
-    /// a barra de progresso / espera durante a canalização e o botão de acesso à coleção [B].
+    /// A montaria no HUD: um slot com a ferradura e a tecla [T] ao lado da barra de ação (como
+    /// a montaria na barra do World of Warcraft) e, enquanto ela é chamada, a barra de
+    /// canalização logo acima. Clicar (com o cursor livre) monta ou desmonta. A coleção abre
+    /// pelo menu rápido ou pela tecla da janela.
     /// </summary>
     public sealed class BotaoMontariaHud : IDisposable
     {
         private readonly VisualElement _raiz;
-        private readonly VisualElement _linhaBotoes;
-        private readonly Button _botaoMontar;
-        private readonly Label _rotuloMontar;
-        private readonly Label _atalhoMontar;
-        private readonly Button _botaoColecao;
+        private readonly SlotHud _slot;
 
-        // Barra de espera / canalização de montaria
+        // Barra de canalização da chamada.
         private readonly VisualElement _painelInvocacao;
         private readonly Label _rotuloInvocacao;
-        private readonly VisualElement _trilhoInvocacao;
         private readonly VisualElement _preenchimentoInvocacao;
 
-        public BotaoMontariaHud(VisualElement regiao)
+        /// <param name="regiao">Ao lado da barra de ação (<c>RegiaoDoHud.BarraDeAcao</c>).</param>
+        /// <param name="regiaoDaCanalizacao">Onde a barra de chamada aparece (acima da barra de ação); nula usa <paramref name="regiao"/>.</param>
+        public BotaoMontariaHud(VisualElement regiao, VisualElement regiaoDaCanalizacao = null)
         {
             _raiz = new VisualElement { name = "montarias.hud-raiz" };
-            _raiz.style.flexDirection = FlexDirection.Column;
-            _raiz.style.alignItems = Align.FlexStart;
-            _raiz.style.marginBottom = 8f;
-            _raiz.style.marginRight = 8f;
+            _raiz.AddToClassList("hud-acao-extra");
 
-            // Painel da Barra de Invocação (acima dos botões)
             _painelInvocacao = new VisualElement { name = "montarias.hud-invocacao" };
+            _painelInvocacao.AddToClassList("hud-canalizacao");
             _painelInvocacao.style.display = DisplayStyle.None;
-            _painelInvocacao.style.marginBottom = 6f;
-            _painelInvocacao.style.paddingLeft = 8f;
-            _painelInvocacao.style.paddingRight = 8f;
-            _painelInvocacao.style.paddingTop = 5f;
-            _painelInvocacao.style.paddingBottom = 5f;
-            _painelInvocacao.style.backgroundColor = new Color(0.10f, 0.12f, 0.16f, 0.95f);
-            _painelInvocacao.style.borderLeftColor = new Color(0.85f, 0.65f, 0.25f, 0.8f);
-            _painelInvocacao.style.borderRightColor = new Color(0.85f, 0.65f, 0.25f, 0.8f);
-            _painelInvocacao.style.borderTopColor = new Color(0.85f, 0.65f, 0.25f, 0.8f);
-            _painelInvocacao.style.borderBottomColor = new Color(0.85f, 0.65f, 0.25f, 0.8f);
-            _painelInvocacao.style.borderLeftWidth = 1f;
-            _painelInvocacao.style.borderRightWidth = 1f;
-            _painelInvocacao.style.borderTopWidth = 1f;
-            _painelInvocacao.style.borderBottomWidth = 1f;
-            _painelInvocacao.style.borderTopLeftRadius = 6f;
-            _painelInvocacao.style.borderTopRightRadius = 6f;
-            _painelInvocacao.style.borderBottomLeftRadius = 6f;
-            _painelInvocacao.style.borderBottomRightRadius = 6f;
-
-            _rotuloInvocacao = new Label("Invocando montaria...");
-            _rotuloInvocacao.style.fontSize = 11f;
-            _rotuloInvocacao.style.unityFontStyleAndWeight = FontStyle.Bold;
-            _rotuloInvocacao.style.color = new Color(0.95f, 0.90f, 0.70f);
-            _rotuloInvocacao.style.marginBottom = 4f;
+            _painelInvocacao.pickingMode = PickingMode.Ignore;
+            _preenchimentoInvocacao = new VisualElement { pickingMode = PickingMode.Ignore };
+            _preenchimentoInvocacao.AddToClassList("hud-canalizacao-preenchimento");
+            _rotuloInvocacao = ComponentesHud.Texto(
+                "Invocando montaria...",
+                "hud-canalizacao-texto"
+            );
+            _painelInvocacao.Add(_preenchimentoInvocacao);
             _painelInvocacao.Add(_rotuloInvocacao);
 
-            _trilhoInvocacao = new VisualElement { name = "TrilhoInvocacao" };
-            _trilhoInvocacao.AddToClassList(EstiloCore.BarraCarregamento);
-            _trilhoInvocacao.style.width = 170f;
-            _trilhoInvocacao.style.height = 8f;
-            _trilhoInvocacao.style.backgroundColor = new Color(0.06f, 0.08f, 0.10f, 0.9f);
+            _slot = new SlotHud(pequeno: true);
+            _slot.Raiz.name = "montarias.hud-botao";
+            _slot.Raiz.AddToClassList("montaria-hud-slot");
+            _slot.DefinirVazio(false);
+            _slot.DefinirIcone(ComponentesHud.Icone("Icones", "montar"));
+            _slot.DefinirCorDoIcone("hud-icone-neutro");
+            _slot.DefinirTecla("T");
+            _slot.Raiz.RegisterCallback<ClickEvent>(_ => AoClicarMontar());
+            ComponentesHud.ComDica(
+                _slot.Raiz,
+                () =>
+                {
+                    var controle = ControleDeMontaria.Instancia;
+                    var montado = controle != null && controle.MontadoLocal;
+                    var tipo =
+                        controle != null ? controle.MontariaEquipada : RegrasMontaria.TipoPadrao;
+                    return new ConteudoDaDica
+                    {
+                        Titulo = montado ? "Desmontar" : "Montar",
+                        Subtitulo = RegrasMontaria.ObterNome(tipo),
+                        Texto =
+                            "Chama a montaria equipada para viajar mais rápido. Em combate não dá para montar.",
+                        Rodape = "Atalho: T",
+                    };
+                }
+            );
 
-            _preenchimentoInvocacao = new VisualElement { name = "PreenchimentoInvocacao" };
-            _preenchimentoInvocacao.AddToClassList(EstiloCore.BarraCarregamentoPreenchimento);
-            _preenchimentoInvocacao.style.width = Length.Percent(0f);
-            _preenchimentoInvocacao.style.backgroundColor = new Color(0.90f, 0.70f, 0.25f);
-            _trilhoInvocacao.Add(_preenchimentoInvocacao);
-            _painelInvocacao.Add(_trilhoInvocacao);
-
-            _raiz.Add(_painelInvocacao);
-
-            // Linha com os botões de ação
-            _linhaBotoes = new VisualElement();
-            _linhaBotoes.style.flexDirection = FlexDirection.Row;
-            _linhaBotoes.style.alignItems = Align.Center;
-
-            // Botão principal de montar/desmontar
-            _botaoMontar = new Button();
-            _botaoMontar.style.flexDirection = FlexDirection.Row;
-            _botaoMontar.style.alignItems = Align.Center;
-            _botaoMontar.style.paddingLeft = 10f;
-            _botaoMontar.style.paddingRight = 10f;
-            _botaoMontar.style.paddingTop = 6f;
-            _botaoMontar.style.paddingBottom = 6f;
-            _botaoMontar.style.backgroundColor = new Color(0.12f, 0.14f, 0.18f, 0.88f);
-            _botaoMontar.style.borderLeftColor = new Color(0.35f, 0.40f, 0.50f, 0.6f);
-            _botaoMontar.style.borderRightColor = new Color(0.35f, 0.40f, 0.50f, 0.6f);
-            _botaoMontar.style.borderTopColor = new Color(0.35f, 0.40f, 0.50f, 0.6f);
-            _botaoMontar.style.borderBottomColor = new Color(0.35f, 0.40f, 0.50f, 0.6f);
-            _botaoMontar.style.borderTopLeftRadius = 6f;
-            _botaoMontar.style.borderTopRightRadius = 6f;
-            _botaoMontar.style.borderBottomLeftRadius = 6f;
-            _botaoMontar.style.borderBottomRightRadius = 6f;
-            _botaoMontar.style.borderLeftWidth = 1f;
-            _botaoMontar.style.borderRightWidth = 1f;
-            _botaoMontar.style.borderTopWidth = 1f;
-            _botaoMontar.style.borderBottomWidth = 1f;
-
-            _rotuloMontar = new Label("Montar");
-            _rotuloMontar.style.color = new Color(0.92f, 0.94f, 0.96f);
-            _rotuloMontar.style.fontSize = 12f;
-            _rotuloMontar.style.unityFontStyleAndWeight = FontStyle.Bold;
-            _rotuloMontar.style.marginRight = 6f;
-
-            _atalhoMontar = new Label("[T]");
-            _atalhoMontar.style.color = new Color(0.65f, 0.75f, 0.88f);
-            _atalhoMontar.style.fontSize = 11f;
-
-            _botaoMontar.Add(_rotuloMontar);
-            _botaoMontar.Add(_atalhoMontar);
-            _botaoMontar.clicked += AoClicarMontar;
-            _linhaBotoes.Add(_botaoMontar);
-
-            // Botão secundário para abrir a coleção de montarias
-            _botaoColecao = new Button();
-            _botaoColecao.style.flexDirection = FlexDirection.Row;
-            _botaoColecao.style.alignItems = Align.Center;
-            _botaoColecao.style.marginLeft = 6f;
-            _botaoColecao.style.paddingLeft = 8f;
-            _botaoColecao.style.paddingRight = 8f;
-            _botaoColecao.style.paddingTop = 6f;
-            _botaoColecao.style.paddingBottom = 6f;
-            _botaoColecao.style.backgroundColor = new Color(0.14f, 0.16f, 0.22f, 0.85f);
-            _botaoColecao.style.borderLeftColor = new Color(0.30f, 0.35f, 0.46f, 0.6f);
-            _botaoColecao.style.borderRightColor = new Color(0.30f, 0.35f, 0.46f, 0.6f);
-            _botaoColecao.style.borderTopColor = new Color(0.30f, 0.35f, 0.46f, 0.6f);
-            _botaoColecao.style.borderBottomColor = new Color(0.30f, 0.35f, 0.46f, 0.6f);
-            _botaoColecao.style.borderTopLeftRadius = 6f;
-            _botaoColecao.style.borderTopRightRadius = 6f;
-            _botaoColecao.style.borderBottomLeftRadius = 6f;
-            _botaoColecao.style.borderBottomRightRadius = 6f;
-            _botaoColecao.style.borderLeftWidth = 1f;
-            _botaoColecao.style.borderRightWidth = 1f;
-            _botaoColecao.style.borderTopWidth = 1f;
-            _botaoColecao.style.borderBottomWidth = 1f;
-
-            var rotuloColecao = new Label("Coleção");
-            rotuloColecao.style.color = new Color(0.85f, 0.88f, 0.94f);
-            rotuloColecao.style.fontSize = 11.5f;
-            rotuloColecao.style.marginRight = 4f;
-
-            var atalhoColecao = new Label("[B]");
-            atalhoColecao.style.color = new Color(0.85f, 0.70f, 0.30f);
-            atalhoColecao.style.fontSize = 11f;
-
-            _botaoColecao.Add(rotuloColecao);
-            _botaoColecao.Add(atalhoColecao);
-            _botaoColecao.clicked += AoClicarColecao;
-            _linhaBotoes.Add(_botaoColecao);
-
-            _raiz.Add(_linhaBotoes);
+            _raiz.Add(_slot.Raiz);
             regiao.Add(_raiz);
+            (regiaoDaCanalizacao ?? regiao).Add(_painelInvocacao);
 
             if (ControleDeMontaria.Instancia != null)
             {
@@ -171,21 +84,6 @@ namespace JogoDoGrupo.Client.Features.Montarias.UI
         private void AoClicarMontar()
         {
             ControleDeMontaria.Instancia?.AlternarMontaria();
-        }
-
-        private void AoClicarColecao()
-        {
-            if (JanelasDoJogo.EstaRegistrada(JanelaMontarias.Chave))
-            {
-                if (JanelasDoJogo.EstaAberta(JanelaMontarias.Chave))
-                {
-                    JanelasDoJogo.Fechar(JanelaMontarias.Chave);
-                }
-                else
-                {
-                    JanelasDoJogo.Abrir(JanelaMontarias.Chave);
-                }
-            }
         }
 
         public void AtualizarInvocacao(bool invocando, float tempoAtual, float duracao)
@@ -203,13 +101,7 @@ namespace JogoDoGrupo.Client.Features.Montarias.UI
 
                 var progresso = Mathf.Clamp01(tempoAtual / Mathf.Max(0.01f, duracao));
                 _preenchimentoInvocacao.style.width = Length.Percent(progresso * 100f);
-
-                _rotuloMontar.text = "Cancelar";
-                _botaoMontar.style.backgroundColor = new Color(0.28f, 0.14f, 0.14f, 0.95f);
-                _botaoMontar.style.borderLeftColor = new Color(0.85f, 0.35f, 0.35f, 0.9f);
-                _botaoMontar.style.borderRightColor = new Color(0.85f, 0.35f, 0.35f, 0.9f);
-                _botaoMontar.style.borderTopColor = new Color(0.85f, 0.35f, 0.35f, 0.9f);
-                _botaoMontar.style.borderBottomColor = new Color(0.85f, 0.35f, 0.35f, 0.9f);
+                _slot.DefinirAtivo(true);
             }
             else
             {
@@ -229,24 +121,8 @@ namespace JogoDoGrupo.Client.Features.Montarias.UI
                 return;
             }
 
-            if (montado)
-            {
-                _rotuloMontar.text = "Desmontar";
-                _botaoMontar.style.backgroundColor = new Color(0.24f, 0.18f, 0.12f, 0.95f);
-                _botaoMontar.style.borderLeftColor = new Color(0.85f, 0.65f, 0.25f, 0.9f);
-                _botaoMontar.style.borderRightColor = new Color(0.85f, 0.65f, 0.25f, 0.9f);
-                _botaoMontar.style.borderTopColor = new Color(0.85f, 0.65f, 0.25f, 0.9f);
-                _botaoMontar.style.borderBottomColor = new Color(0.85f, 0.65f, 0.25f, 0.9f);
-            }
-            else
-            {
-                _rotuloMontar.text = "Montar";
-                _botaoMontar.style.backgroundColor = new Color(0.12f, 0.14f, 0.18f, 0.88f);
-                _botaoMontar.style.borderLeftColor = new Color(0.35f, 0.40f, 0.50f, 0.6f);
-                _botaoMontar.style.borderRightColor = new Color(0.35f, 0.40f, 0.50f, 0.6f);
-                _botaoMontar.style.borderTopColor = new Color(0.35f, 0.40f, 0.50f, 0.6f);
-                _botaoMontar.style.borderBottomColor = new Color(0.35f, 0.40f, 0.50f, 0.6f);
-            }
+            _slot.DefinirAtivo(montado);
+            _slot.DefinirCorDoIcone(montado ? "hud-icone-fisico" : "hud-icone-neutro");
         }
 
         public void Dispose()
@@ -258,6 +134,7 @@ namespace JogoDoGrupo.Client.Features.Montarias.UI
             }
 
             _raiz.RemoveFromHierarchy();
+            _painelInvocacao.RemoveFromHierarchy();
         }
     }
 }

@@ -71,14 +71,14 @@ namespace JogoDoGrupo.Client.Features.Montarias
         private void MontarHud()
         {
             var regiao =
-                Hud.Regiao(RegiaoDoHud.InferiorEsquerda) ?? Hud.Regiao(RegiaoDoHud.InferiorCentro);
+                Hud.Regiao(RegiaoDoHud.BarraDeAcao) ?? Hud.Regiao(RegiaoDoHud.InferiorCentro);
             if (regiao == null)
             {
                 return;
             }
 
             _botaoHud?.Dispose();
-            _botaoHud = new BotaoMontariaHud(regiao);
+            _botaoHud = new BotaoMontariaHud(regiao, Hud.Regiao(RegiaoDoHud.InferiorCentro));
         }
 
         private void OnDestroy()
