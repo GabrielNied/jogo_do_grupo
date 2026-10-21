@@ -690,7 +690,8 @@ public class TalentosRotasTestes(ServidorDeTeste servidor) : IClassFixture<Servi
         // Renomear
         var renomear = await cliente.PutAsJsonAsync(
             RotasTalentos.PerfilDe(id, dto.Id),
-            new RenomearPerfilRequest { Nome = "Depois" }
+            new RenomearPerfilRequest { Nome = "Depois" },
+            ServidorDeTeste.Json
         );
         Assert.Equal(HttpStatusCode.OK, renomear.StatusCode);
 

@@ -5,13 +5,14 @@ namespace JogoDoGrupo.Shared.Features.Pets
     /// <summary>
     /// Resposta do servidor sobre a compra de pet no cuidador (PetsMessageIds.RespostaCompraPet).
     /// </summary>
+    [System.Serializable]
     public sealed class RespostaCompraPet
     {
-        public bool Sucesso { get; set; }
-        public int Especie { get; set; }
-        public string? CodigoErro { get; set; }
-        public string? Mensagem { get; set; }
-        public long SaldoRestante { get; set; }
+        public bool Sucesso;
+        public int Especie;
+        public string? CodigoErro;
+        public string? Mensagem;
+        public long SaldoRestante;
 
         public RespostaCompraPet() { }
 

@@ -9,6 +9,7 @@ namespace JogoDoGrupo.Shared.Features.Itens
     /// Um marco de set (SET-001): com <see cref="Pecas"/> peças vestidas, as
     /// <see cref="Regras"/> ligam. Usa o mesmo motor de efeitos dos poderes.
     /// </summary>
+    [System.Serializable]
     public sealed class MarcoDeSet
     {
         public int Pecas;
@@ -18,6 +19,7 @@ namespace JogoDoGrupo.Shared.Features.Itens
     }
 
     /// <summary>Um set: peças próprias (por modelo-base) e os bônus dos marcos.</summary>
+    [System.Serializable]
     public sealed class DefinicaoDeSet
     {
         public string Id = "";
@@ -157,6 +159,7 @@ namespace JogoDoGrupo.Shared.Features.Itens
         public List<MarcoDoResumo> Marcos = new List<MarcoDoResumo>();
     }
 
+    [System.Serializable]
     public sealed class MarcoDoResumo
     {
         public MarcoDeSet Marco = null!;

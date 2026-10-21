@@ -1,9 +1,10 @@
 namespace JogoDoGrupo.Shared.Features.Npcs
 {
+    [System.Serializable]
     public sealed class DialogoRecusado
     {
-        public int NpcId { get; set; }
-        public MotivoRecusaDialogo Motivo { get; set; }
+        public int NpcId;
+        public MotivoRecusaDialogo Motivo;
 
         public DialogoRecusado() { }
 

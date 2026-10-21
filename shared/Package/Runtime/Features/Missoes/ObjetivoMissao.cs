@@ -1,5 +1,6 @@
 namespace JogoDoGrupo.Shared.Features.Missoes
 {
+    [System.Serializable]
     public class ObjetivoMissao
     {
         public int Id;

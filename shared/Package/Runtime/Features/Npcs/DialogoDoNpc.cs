@@ -2,13 +2,14 @@ using System;
 
 namespace JogoDoGrupo.Shared.Features.Npcs
 {
+    [System.Serializable]
     public sealed class DialogoDoNpc
     {
-        public int NpcId { get; set; }
-        public string Nome { get; set; } = string.Empty;
-        public PapelNpc Papel { get; set; }
-        public string Fala { get; set; } = string.Empty;
-        public OpcaoDeDialogo[] Opcoes { get; set; } = Array.Empty<OpcaoDeDialogo>();
+        public int NpcId;
+        public string Nome = string.Empty;
+        public PapelNpc Papel;
+        public string Fala = string.Empty;
+        public OpcaoDeDialogo[] Opcoes = Array.Empty<OpcaoDeDialogo>();
 
         public DialogoDoNpc() { }
 

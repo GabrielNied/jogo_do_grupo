@@ -3,11 +3,12 @@ namespace JogoDoGrupo.Shared.Features.Combate
     /// <summary>
     /// Servidor → quem está na área: a barra de quebra (stagger) de um chefe mudou.
     /// </summary>
+    [System.Serializable]
     public class BarraDeQuebraMudou
     {
-        public long EntidadeId { get; set; }
-        public int ValorAtual { get; set; }
-        public int CapacidadeMax { get; set; }
-        public bool Quebrado { get; set; }
+        public long EntidadeId;
+        public int ValorAtual;
+        public int CapacidadeMax;
+        public bool Quebrado;
     }
 }

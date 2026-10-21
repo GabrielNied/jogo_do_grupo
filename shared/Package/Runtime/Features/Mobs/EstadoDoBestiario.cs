@@ -3,6 +3,7 @@ namespace JogoDoGrupo.Shared.Features.Mobs
     /// <summary>
     /// Resposta do servidor contendo o estado completo das entradas do bestiário do jogador (#922).
     /// </summary>
+    [System.Serializable]
     public sealed class EstadoDoBestiario
     {
         public EstadoDoBestiario()
@@ -15,6 +16,6 @@ namespace JogoDoGrupo.Shared.Features.Mobs
             Entradas = entradas;
         }
 
-        public EntradaBestiarioDto[] Entradas { get; set; }
+        public EntradaBestiarioDto[] Entradas;
     }
 }

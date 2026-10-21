@@ -1,8 +1,9 @@
 namespace JogoDoGrupo.Shared.Features.Npcs
 {
+    [System.Serializable]
     public sealed class FalarComNpc
     {
-        public int NpcId { get; set; }
+        public int NpcId;
 
         public FalarComNpc() { }
 

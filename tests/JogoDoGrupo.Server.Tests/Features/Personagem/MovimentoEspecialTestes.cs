@@ -9,7 +9,7 @@ using Xunit;
 namespace JogoDoGrupo.Server.Tests.Features.Personagem;
 
 /// <summary>Natação, dano de queda e escalada no servidor (#349), com posições aceitas falsas.</summary>
-public sealed class MovimentoEspecialTestes
+public sealed class MovimentoEspecialTestes : IDisposable
 {
     private const long Id = 7;
 
@@ -140,11 +140,16 @@ public sealed class MovimentoEspecialTestes
     private ServicoDeMovimentoEspecial _servico;
     private long _agora = 1_000_000;
 
+    // Desliga o mapa publicado só durante cada teste desta classe (#1174).
+    private readonly IDisposable _mapaDesligado;
+
     public MovimentoEspecialTestes()
     {
-        DadosDoMapaFeitoAMao.DesativadoEmTestes = true;
+        _mapaDesligado = DadosDoMapaFeitoAMao.Desativar();
         _servico = Criar([PiscinaFunda, Via, ViaNaAgua]);
     }
+
+    public void Dispose() => _mapaDesligado.Dispose();
 
     private ServicoDeMovimentoEspecial Criar(IReadOnlyList<VolumeMarcado> volumes)
     {
@@ -182,7 +187,7 @@ public sealed class MovimentoEspecialTestes
 
     private static (float X, float Z, float Chao) AcharTerra()
     {
-        DadosDoMapaFeitoAMao.DesativadoEmTestes = true;
+        using var _ = DadosDoMapaFeitoAMao.Desativar();
         for (var x = -200f; x <= 200f; x += 10f)
         {
             for (var z = -200f; z <= 200f; z += 10f)

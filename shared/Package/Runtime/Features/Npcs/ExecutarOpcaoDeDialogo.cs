@@ -1,9 +1,10 @@
 namespace JogoDoGrupo.Shared.Features.Npcs
 {
+    [System.Serializable]
     public sealed class ExecutarOpcaoDeDialogo
     {
-        public int NpcId { get; set; }
-        public string OpcaoId { get; set; } = string.Empty;
+        public int NpcId;
+        public string OpcaoId = string.Empty;
 
         public ExecutarOpcaoDeDialogo() { }
 

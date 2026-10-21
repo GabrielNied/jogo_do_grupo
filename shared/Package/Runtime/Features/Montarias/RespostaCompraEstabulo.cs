@@ -4,13 +4,14 @@ namespace JogoDoGrupo.Shared.Features.Montarias
     /// <summary>
     /// Servidor → Client: resultado da solicitação de compra no estábulo (#1067).
     /// </summary>
+    [System.Serializable]
     public sealed class RespostaCompraEstabulo
     {
-        public bool Sucesso { get; set; }
-        public int TipoMontaria { get; set; }
-        public long SaldoRestante { get; set; }
-        public string? CodigoErro { get; set; }
-        public string? Mensagem { get; set; }
+        public bool Sucesso;
+        public int TipoMontaria;
+        public long SaldoRestante;
+        public string? CodigoErro;
+        public string? Mensagem;
 
         public RespostaCompraEstabulo() { }
 

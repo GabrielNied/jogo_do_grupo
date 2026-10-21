@@ -1,13 +1,14 @@
 namespace JogoDoGrupo.Shared.Features.Pets
 {
     /// <summary>Informações de um pet à venda no cuidador de pets (#1068).</summary>
+    [System.Serializable]
     public sealed class PetCuidadorDto
     {
-        public int Especie { get; set; }
-        public string Nome { get; set; } = string.Empty;
-        public long PrecoCoroas { get; set; }
-        public string Descricao { get; set; } = string.Empty;
-        public string Origem { get; set; } = string.Empty;
+        public int Especie;
+        public string Nome = string.Empty;
+        public long PrecoCoroas;
+        public string Descricao = string.Empty;
+        public string Origem = string.Empty;
 
         public PetCuidadorDto() { }
 
