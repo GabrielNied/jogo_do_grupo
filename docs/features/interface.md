@@ -278,14 +278,16 @@ O áudio é só do client: o servidor não envia "toque este som". Os sons tocam
 
 #### Volumes e mixer
 
-- Um mixer com três grupos: **Geral**, com **Música** e **Efeitos** dentro dele. São os três volumes do [menu de opções](#opções-iniciais) (0 a 100, padrões 80 / 70 / 80). Sons de interface entram em Efeitos.
+- Três volumes: **Geral**, com **Música** e **Efeitos** dentro dele. São os três volumes do [menu de opções](#opções-iniciais) (0 a 100, padrões 80 / 70 / 80). Sons de interface entram em Efeitos. Sem `AudioMixer`: o Geral vale no `AudioListener` e Música e Efeitos multiplicam cada fonte (`VolumesDoJogo`, [ADR 0053](../decisoes/0053-volumes-de-audio-sem-mixer.md)).
 - Volume 0 silencia o grupo. A escala do controle é percebida como linear pela pessoa (o client converte para decibéis).
 - Com a janela do jogo sem foco, o som continua (o jogo é online e não pausa).
 - O mixer e as fontes de áudio são criados pelo Unity (script de editor ou em tempo de execução), nunca escritos à mão ([ADR 0014](../decisoes/0014-conteudo-3d-e-agentes-artistas.md)).
 
 #### Fontes CC0 sugeridas
 
-Só entram arquivos **CC0** (ou CC-BY com crédito), em `client/Assets/ThirdParty/`, com uma linha em [licenças](../arte/licencas.md) **no mesmo PR que traz o arquivo**. Esta lista indica onde procurar; nenhuma faixa foi escolhida nem baixada ainda, e a licença de cada arquivo precisa ser conferida na página dele na hora de baixar.
+Só entram arquivos **CC0** (ou CC-BY com crédito), em `client/Assets/ThirdParty/`, com uma linha em [licenças](../arte/licencas.md) **no mesmo PR que traz o arquivo**. A licença de cada arquivo precisa ser conferida na página dele na hora de baixar.
+
+**No jogo (2026-10-21, `Core/Scripts/Audio`):** abertura "Fantasy Orchestral Theme" (Joth), cidade "Shakkar" (Chris Murphy), dungeon "Dungeon Ambience" (yd) e chefe "Battle Theme" (wolfgang), todas CC0 do OpenGameArt; vitória, missão concluída e subir de nível com jingles do Kenney; clique, abrir e fechar janela, erro, convite, moedas, item coletado e passos (pedra dentro dos muros, grama fora) dos pacotes do Kenney; os acertos leve, pesado e o golpe recebido trocaram o som sintetizado por gravações do Kenney (o resto do combate segue sintetizado). A faixa do chefe ainda não tem gatilho (falta saber no client quando a luta do chefe começa).
 
 | Para quê | Onde procurar | Observação |
 |---|---|---|

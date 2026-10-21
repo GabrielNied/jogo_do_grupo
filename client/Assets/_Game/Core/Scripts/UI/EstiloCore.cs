@@ -77,6 +77,8 @@ namespace JogoDoGrupo.Client.Core.UI
             if (!raiz.styleSheets.Contains(estilo))
                 raiz.styleSheets.Add(estilo);
             NaoBloquearCliques(raiz);
+            // Todo painel do jogo passa por aqui: é onde o clique dos botões ganha som.
+            JogoDoGrupo.Client.Core.Audio.AudioDoJogo.LigarCliques(raiz);
         }
 
         /// <summary>Painel com rolagem vertical, limitado à área disponível.</summary>

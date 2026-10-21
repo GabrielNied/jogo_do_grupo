@@ -28,6 +28,12 @@ namespace JogoDoGrupo.Client.Core.Jogo.Janelas
 
         private static GerenteDeJanelas _gerente;
 
+        /// <summary>Uma janela abriu (chave). Para reações gerais, como o som da interface.</summary>
+        public static event Action<string> Abriu;
+
+        /// <summary>Uma janela fechou (chave).</summary>
+        public static event Action<string> Fechou;
+
         /// <summary>
         /// Chave da janela de cima (a última aberta ou focada), ou <c>null</c> (também fora do
         /// mundo). Para saber se uma janela específica está aberta, use <see cref="EstaAberta"/>.
@@ -124,6 +130,8 @@ namespace JogoDoGrupo.Client.Core.Jogo.Janelas
         internal static void Ligar(GerenteDeJanelas gerente)
         {
             _gerente = gerente;
+            gerente.Abriu += AoAbrir;
+            gerente.Fechou += AoFechar;
         }
 
         /// <summary>Chamado pela sessão no mundo ao sair.</summary>
@@ -131,9 +139,15 @@ namespace JogoDoGrupo.Client.Core.Jogo.Janelas
         {
             if (_gerente == gerente)
             {
+                gerente.Abriu -= AoAbrir;
+                gerente.Fechou -= AoFechar;
                 _gerente = null;
             }
         }
+
+        private static void AoAbrir(string chave) => Abriu?.Invoke(chave);
+
+        private static void AoFechar(string chave) => Fechou?.Invoke(chave);
 
         // Com "Enter Play Mode Options" sem recarregar o domínio, os campos estáticos
         // sobrevivem entre execuções; limpa antes de qualquer registro.
@@ -142,6 +156,8 @@ namespace JogoDoGrupo.Client.Core.Jogo.Janelas
         {
             _registro.Limpar();
             _gerente = null;
+            Abriu = null;
+            Fechou = null;
         }
     }
 }

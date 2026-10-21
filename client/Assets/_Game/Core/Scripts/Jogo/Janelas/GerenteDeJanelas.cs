@@ -52,6 +52,12 @@ namespace JogoDoGrupo.Client.Core.Jogo.Janelas
         /// <summary>Disparado depois de qualquer mudança (janela ou menu abriu, fechou ou subiu).</summary>
         public event Action Mudou;
 
+        /// <summary>Uma janela que estava fechada abriu (trazer para cima não conta).</summary>
+        public event Action<string> Abriu;
+
+        /// <summary>Uma janela fechou pelo <see cref="Fechar(string)"/> (uma a uma).</summary>
+        public event Action<string> Fechou;
+
         /// <summary>Chave da janela de cima (a última aberta ou focada), ou <c>null</c>.</summary>
         public string ChaveAberta => _abertas.Count > 0 ? _abertas[_abertas.Count - 1].Chave : null;
 
@@ -100,6 +106,7 @@ namespace JogoDoGrupo.Client.Core.Jogo.Janelas
             _chaves.Add(definicao.Chave);
             _mostrar?.Invoke(definicao);
             Mudou?.Invoke();
+            Abriu?.Invoke(definicao.Chave);
             return true;
         }
 
@@ -154,6 +161,7 @@ namespace JogoDoGrupo.Client.Core.Jogo.Janelas
             }
 
             Mudou?.Invoke();
+            Fechou?.Invoke(definicao.Chave);
             return true;
         }
 
