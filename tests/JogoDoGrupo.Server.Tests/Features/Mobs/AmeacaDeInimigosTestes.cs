@@ -9,7 +9,7 @@ public class AmeacaDeInimigosTestes
 {
     private static readonly DefinicaoDeCriatura Javali = CatalogoCriaturas.Obter(
         CatalogoCriaturas.JavaliDoCampo
-    );
+    )!;
 
     private sealed class QuedaFalsa : IEstadoDeQueda
     {

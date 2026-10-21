@@ -6,22 +6,22 @@ public class EventosDoServidorTestes
 {
     private sealed class Chegou
     {
-        public int Numero;
+        public int Numero = 0;
     }
 
     private sealed class Saiu
     {
-        public int Numero;
+        public int Numero = 0;
     }
 
     private class Base
     {
-        public int Numero;
+        public int Numero = 0;
     }
 
     private sealed class Derivado : Base
     {
-        public int Outro;
+        public int Outro = 0;
     }
 
     [Fact]

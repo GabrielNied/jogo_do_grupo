@@ -82,12 +82,12 @@ public class MigracaoDeEquipamentosTestes(ServidorDeTeste servidor) : IClassFixt
 
         var estado = await Ler(cliente, id);
 
-        var pecaInicial = estado.Inventario.Single(e => e.InstanciaId == inicial).Equipamento;
+        var pecaInicial = estado.Inventario.Single(e => e.InstanciaId == inicial).Equipamento!;
         Assert.Equal(new double[] { 20, 16, 20, 20 }, pecaInicial.Atributos.Select(a => a.Valor));
         Assert.Equal(TierItem.D, pecaInicial.TierOrigem);
         Assert.Equal(TierItem.D, RegrasTier.TierDe(pecaInicial));
         Assert.Equal(RegrasTier.VersaoAtual, pecaInicial.VersaoDosAtributos);
-        var pecaForte = estado.Inventario.Single(e => e.InstanciaId == forte).Equipamento;
+        var pecaForte = estado.Inventario.Single(e => e.InstanciaId == forte).Equipamento!;
         Assert.Equal(new double[] { 80, 63, 80, 80 }, pecaForte.Atributos.Select(a => a.Valor));
         Assert.Equal(TierItem.A, pecaForte.TierOrigem);
         Assert.Equal(GrauEquipamento.Forte, pecaForte.Grau);
@@ -131,7 +131,7 @@ public class MigracaoDeEquipamentosTestes(ServidorDeTeste servidor) : IClassFixt
 
         var lida = (await Ler(cliente, id)).Inventario.Single(e => e.InstanciaId == peca);
 
-        var atributos = lida.Equipamento.Atributos;
+        var atributos = lida.Equipamento!.Atributos;
         Assert.Equal(
             new[] { StatusItem.RegeneracaoStamina, StatusItem.VidaMaxima },
             atributos.Select(a => a.Status)
@@ -186,7 +186,7 @@ public class MigracaoDeEquipamentosTestes(ServidorDeTeste servidor) : IClassFixt
 
         var lida = (await Ler(cliente, id))
             .Inventario.Single(e => e.InstanciaId == peca)
-            .Equipamento;
+            .Equipamento!;
         Assert.Equal(TierItem.A, lida.TierOrigem);
         Assert.Equal(TierItem.SMais, RegrasTier.TierDe(lida));
     }
@@ -199,7 +199,7 @@ public class MigracaoDeEquipamentosTestes(ServidorDeTeste servidor) : IClassFixt
 
         var lida = (await Ler(cliente, id)).Inventario.Single(e => e.InstanciaId == peca);
 
-        Assert.Equal(10, lida.Equipamento.NivelFusao);
+        Assert.Equal(10, lida.Equipamento!.NivelFusao);
         Assert.Equal(0, lida.Equipamento.InfusoesUsadas);
         var migrador = new MigradorDeEquipamentos(
             servidor.Services.GetRequiredService<IServiceScopeFactory>(),
@@ -230,7 +230,7 @@ public class MigracaoDeEquipamentosTestes(ServidorDeTeste servidor) : IClassFixt
 
         Assert.Contains("\"NivelFusao\":0", gravado);
         var lida = (await Ler(cliente, id)).Inventario.Single(e => e.InstanciaId == peca);
-        Assert.Equal(55, lida.Equipamento.Atributos[0].Valor);
+        Assert.Equal(55, lida.Equipamento!.Atributos[0].Valor);
         Assert.Equal(TierItem.B, lida.Equipamento.TierOrigem);
     }
 }

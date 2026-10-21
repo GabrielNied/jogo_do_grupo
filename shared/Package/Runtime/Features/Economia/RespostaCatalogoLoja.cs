@@ -11,7 +11,7 @@ namespace JogoDoGrupo.Shared.Features.Economia
     {
         public CategoriaLoja Categoria;
         public int NpcId;
-        public ItemLojaDto[] Itens;
+        public ItemLojaDto[] Itens = new ItemLojaDto[0];
 
         public RespostaCatalogoLoja() { }
 

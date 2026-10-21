@@ -1,3 +1,4 @@
+#nullable enable annotations
 using System;
 using System.Collections.Generic;
 using JogoDoGrupo.Shared.Features.Mundo;
@@ -26,7 +27,7 @@ namespace JogoDoGrupo.Shared.Features.Personagem
             float x,
             float y,
             float z,
-            IReadOnlyList<VolumeMarcado> volumes,
+            IReadOnlyList<VolumeMarcado>? volumes,
             out float superficie,
             out float profundidade
         )
@@ -100,7 +101,7 @@ namespace JogoDoGrupo.Shared.Features.Personagem
             float x,
             float y,
             float z,
-            IReadOnlyList<VolumeMarcado> volumes
+            IReadOnlyList<VolumeMarcado>? volumes
         )
         {
             return TentarObterAgua(x, y, z, volumes, out var superficie, out var profundidade)
@@ -120,7 +121,7 @@ namespace JogoDoGrupo.Shared.Features.Personagem
             float x,
             float y,
             float z,
-            IReadOnlyList<VolumeMarcado> volumes
+            IReadOnlyList<VolumeMarcado>? volumes
         )
         {
             return TentarObterAgua(x, y, z, volumes, out var superficie, out var profundidade)
@@ -157,11 +158,11 @@ namespace JogoDoGrupo.Shared.Features.Personagem
         /// Procura a via de escalada que contém o ponto (com a
         /// <see cref="ConfigMovimentoEspecial.MargemDaVia"/>); <c>null</c> se não há.
         /// </summary>
-        public static VolumeMarcado ProcurarVia(
+        public static VolumeMarcado? ProcurarVia(
             float x,
             float y,
             float z,
-            IReadOnlyList<VolumeMarcado> volumes
+            IReadOnlyList<VolumeMarcado>? volumes
         )
         {
             if (volumes == null)

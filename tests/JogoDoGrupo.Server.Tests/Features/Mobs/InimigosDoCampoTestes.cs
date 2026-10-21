@@ -26,7 +26,7 @@ public class InimigosDoCampoTestes(TempoRealFixture f) : IClassFixture<TempoReal
         var todos = await cliente.ReceberAsync<InimigosDaArea>(MobsMessageIds.InimigosDaArea);
         var comuns = todos
             .Inimigos.Where(i =>
-                CatalogoCriaturas.Obter(i.CriaturaId).Categoria == CategoriaDeCriatura.Comum
+                CatalogoCriaturas.Obter(i.CriaturaId)!.Categoria == CategoriaDeCriatura.Comum
             )
             .ToArray();
 
@@ -69,7 +69,7 @@ public class InimigosDoCampoTestes(TempoRealFixture f) : IClassFixture<TempoReal
         var todos = await cliente.ReceberAsync<InimigosDaArea>(MobsMessageIds.InimigosDaArea);
         var comuns = todos
             .Inimigos.Where(i =>
-                CatalogoCriaturas.Obter(i.CriaturaId).Categoria == CategoriaDeCriatura.Comum
+                CatalogoCriaturas.Obter(i.CriaturaId)!.Categoria == CategoriaDeCriatura.Comum
             )
             .ToArray();
 
@@ -83,7 +83,7 @@ public class InimigosDoCampoTestes(TempoRealFixture f) : IClassFixture<TempoReal
                     && i.InimigoId < ponto.PrimeiroId + PontosDeSpawnDoCampo.EspacoDeIdsPorPonto
                 )
                 .ToArray();
-            var ficha = CatalogoCriaturas.Obter(ponto.CriaturaId);
+            var ficha = CatalogoCriaturas.Obter(ponto.CriaturaId)!;
 
             Assert.InRange(doPonto.Length, 0, ponto.TamanhoMaximo);
             var (centroX, centroZ) =
@@ -154,7 +154,7 @@ public class InimigosDoCampoTestes(TempoRealFixture f) : IClassFixture<TempoReal
         Assert.NotNull(apareceu.Inimigo);
         Assert.Equal(
             CategoriaDeCriatura.Comum,
-            CatalogoCriaturas.Obter(apareceu.Inimigo.CriaturaId).Categoria
+            CatalogoCriaturas.Obter(apareceu.Inimigo.CriaturaId)!.Categoria
         );
     }
 

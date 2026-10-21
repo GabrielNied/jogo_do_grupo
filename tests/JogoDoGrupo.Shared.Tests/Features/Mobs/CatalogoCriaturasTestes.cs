@@ -30,7 +30,7 @@ public class CatalogoCriaturasTestes
     [Fact]
     public void Javali_do_campo_tem_os_numeros_da_proposta()
     {
-        var javali = CatalogoCriaturas.Obter(CatalogoCriaturas.JavaliDoCampo);
+        var javali = CatalogoCriaturas.Obter(CatalogoCriaturas.JavaliDoCampo)!;
 
         Assert.Equal("Javali do Campo", javali.Nome);
         Assert.Equal(CategoriaDeCriatura.Comum, javali.Categoria);
@@ -56,7 +56,7 @@ public class CatalogoCriaturasTestes
         int dano
     )
     {
-        var ficha = CatalogoCriaturas.Obter(id);
+        var ficha = CatalogoCriaturas.Obter(id)!;
 
         Assert.Equal(nome, ficha.Nome);
         Assert.Equal(CategoriaDeCriatura.Comum, ficha.Categoria);
@@ -69,8 +69,8 @@ public class CatalogoCriaturasTestes
     [Fact]
     public void Javali_ferrugem_convive_com_o_javali_do_campo_sem_mexer_nele()
     {
-        var campo = CatalogoCriaturas.Obter(CatalogoCriaturas.JavaliDoCampo);
-        var ferrugem = CatalogoCriaturas.Obter(CatalogoCriaturas.JavaliFerrugem);
+        var campo = CatalogoCriaturas.Obter(CatalogoCriaturas.JavaliDoCampo)!;
+        var ferrugem = CatalogoCriaturas.Obter(CatalogoCriaturas.JavaliFerrugem)!;
 
         Assert.Equal(40, campo.DanoBase);
         Assert.Equal(campo.Nivel, ferrugem.Nivel);
@@ -88,7 +88,7 @@ public class CatalogoCriaturasTestes
         int vida
     )
     {
-        var ficha = CatalogoCriaturas.Obter(id);
+        var ficha = CatalogoCriaturas.Obter(id)!;
 
         Assert.Equal(nome, ficha.Nome);
         Assert.Equal(CategoriaDeCriatura.ChefeDeMundo, ficha.Categoria);
@@ -102,8 +102,8 @@ public class CatalogoCriaturasTestes
     [Fact]
     public void Chefe_sempre_aparece_e_chefe_raro_nem_sempre()
     {
-        var chefe = CatalogoCriaturas.Obter(CatalogoCriaturas.GuardiaoDoReflexo);
-        var raro = CatalogoCriaturas.Obter(CatalogoCriaturas.PresaVelha);
+        var chefe = CatalogoCriaturas.Obter(CatalogoCriaturas.GuardiaoDoReflexo)!;
+        var raro = CatalogoCriaturas.Obter(CatalogoCriaturas.PresaVelha)!;
 
         Assert.Equal(CategoriaDeCriatura.Chefe, chefe.Categoria);
         Assert.Equal(1.0, chefe.ChanceDeAparecer);
@@ -160,5 +160,5 @@ public class CatalogoCriaturasTestes
     [InlineData(9)]
     [InlineData(-1)]
     public void Obter_devolve_null_fora_do_catalogo(int criaturaId) =>
-        Assert.Null(CatalogoCriaturas.Obter(criaturaId));
+        Assert.Null(CatalogoCriaturas.Obter(criaturaId)!);
 }

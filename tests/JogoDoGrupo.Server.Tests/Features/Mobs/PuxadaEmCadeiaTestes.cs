@@ -42,7 +42,7 @@ public class PuxadaEmCadeiaTestes
 
     private GrupoDeInimigos Grupo(int criatura, double x, long primeiroId) =>
         new(
-            CatalogoCriaturas.Obter(criatura),
+            CatalogoCriaturas.Obter(criatura)!,
             new Sorteador(),
             1,
             () => _agora,

@@ -1,3 +1,4 @@
+#nullable enable annotations
 namespace JogoDoGrupo.Shared.Features.Mobs
 {
     /// <summary>
@@ -174,7 +175,7 @@ namespace JogoDoGrupo.Shared.Features.Mobs
         /// Ficha da criatura, ou <c>null</c> se <paramref name="criaturaId"/> não está no
         /// catálogo.
         /// </summary>
-        public static DefinicaoDeCriatura Obter(int criaturaId)
+        public static DefinicaoDeCriatura? Obter(int criaturaId)
         {
             for (int i = 0; i < Todas.Length; i++)
             {

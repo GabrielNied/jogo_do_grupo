@@ -7,13 +7,13 @@ public class SorteadorDeCriaturasTestes
 {
     private static readonly DefinicaoDeCriatura Javali = CatalogoCriaturas.Obter(
         CatalogoCriaturas.JavaliDoCampo
-    );
+    )!;
     private static readonly DefinicaoDeCriatura Chefe = CatalogoCriaturas.Obter(
         CatalogoCriaturas.GuardiaoDoReflexo
-    );
+    )!;
     private static readonly DefinicaoDeCriatura Raro = CatalogoCriaturas.Obter(
         CatalogoCriaturas.PresaVelha
-    );
+    )!;
 
     private static List<CriaturaSorteada> Sortear(
         DefinicaoDeCriatura definicao,

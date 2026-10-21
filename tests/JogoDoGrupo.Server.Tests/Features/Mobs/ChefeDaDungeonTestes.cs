@@ -86,7 +86,7 @@ public class ChefeDaDungeonTestes
         Assert.Equal(ConfigChefeDaDungeon.VidaMaxima, retrato.VidaMaxima);
         Assert.Equal(ConfigChefeDaDungeon.VidaMaxima, retrato.Vida);
         Assert.Equal(
-            CatalogoCriaturas.Obter(ConfigChefeDaDungeon.CriaturaId).VidaBase,
+            CatalogoCriaturas.Obter(ConfigChefeDaDungeon.CriaturaId)!.VidaBase,
             retrato.Vida
         );
         Assert.Equal(ConfigChefeDaDungeon.CriaturaId, retrato.CriaturaId);
@@ -429,7 +429,7 @@ public class ChefeDaDungeonTestes
         Assert.Equal(AreaDoBoss, derrota.Area);
         Assert.Equal(VarianteDeCriatura.Normal, derrota.Variante);
         Assert.Equal(
-            CatalogoCriaturas.Obter(ConfigChefeDaDungeon.CriaturaId).ExperienciaBase,
+            CatalogoCriaturas.Obter(ConfigChefeDaDungeon.CriaturaId)!.ExperienciaBase,
             derrota.Experiencia
         );
         Assert.Equal(1.0, derrota.MultiplicadorDeRecompensa);

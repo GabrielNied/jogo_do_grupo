@@ -1,3 +1,4 @@
+#nullable enable annotations
 using System;
 using System.Collections.Generic;
 
@@ -138,12 +139,12 @@ namespace JogoDoGrupo.Shared.Features.Itens
         /// TIER-007); os valores de 0 a 100 saem do sorteio do gerador. Atributo do modelo vem
         /// marcado como fixo (<see cref="AtributoItem.Fixo"/>).
         /// </summary>
-        public static Equipamento Obter(int id)
+        public static Equipamento? Obter(int id)
         {
             if (id == CatalogoItens.EspadaDeTeste)
-                return Arma(id, CatalogoItens.ObterNome(id), TipoEquipamento.Espada);
+                return Arma(id, CatalogoItens.ObterNome(id)!, TipoEquipamento.Espada);
             if (id == CatalogoItens.EscudoDeTeste)
-                return Arma(id, CatalogoItens.ObterNome(id), TipoEquipamento.Escudo);
+                return Arma(id, CatalogoItens.ObterNome(id)!, TipoEquipamento.Escudo);
             if (id == 100)
                 return Arma(id, "Martelo Ressonante", TipoEquipamento.Martelo);
             if (id == AdornoPresaVelha)
@@ -230,13 +231,13 @@ namespace JogoDoGrupo.Shared.Features.Itens
             switch (elemento)
             {
                 case ElementoDaArma.Fogo:
-                    return Obter(CajadoDeFogoDeTeste);
+                    return Obter(CajadoDeFogoDeTeste)!;
                 case ElementoDaArma.Gelo:
-                    return Obter(CajadoDeGeloDeTeste);
+                    return Obter(CajadoDeGeloDeTeste)!;
                 case ElementoDaArma.Cura:
-                    return Obter(CajadoDeCuraDeTeste);
+                    return Obter(CajadoDeCuraDeTeste)!;
                 default:
-                    return Obter(PrimeiroModeloDeArma + 2);
+                    return Obter(PrimeiroModeloDeArma + 2)!;
             }
         }
 

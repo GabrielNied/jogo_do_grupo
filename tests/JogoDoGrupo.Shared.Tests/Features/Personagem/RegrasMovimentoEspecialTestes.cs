@@ -81,7 +81,7 @@ public class RegrasMovimentoEspecialTestes
     {
         // Parede girada 90 graus: o volume é largo em Z (4) e estreito em X (2).
         var dentro = RegrasMovimentoEspecial.ProcurarVia(0.5f, 3f, 1.5f, new[] { Parede });
-        Assert.Equal("parede", dentro.Id);
+        Assert.Equal("parede", dentro!.Id);
 
         Assert.Null(RegrasMovimentoEspecial.ProcurarVia(3f, 3f, 0f, new[] { Parede }));
         Assert.Null(RegrasMovimentoEspecial.ProcurarVia(0f, 11f, 0f, new[] { Parede }));

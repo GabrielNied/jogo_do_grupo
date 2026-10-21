@@ -136,7 +136,7 @@ namespace JogoDoGrupo.Shared.Features.Profissoes
     [Serializable]
     public class ProfissoesRecusada
     {
-        public string Codigo;
+        public string Codigo = "";
 
         public ProfissoesRecusada() { }
 

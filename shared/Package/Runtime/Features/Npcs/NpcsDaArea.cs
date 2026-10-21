@@ -6,7 +6,7 @@ namespace JogoDoGrupo.Shared.Features.Npcs
     [Serializable]
     public class NpcsDaArea
     {
-        public string Area;
-        public DefinicaoNpc[] Npcs;
+        public string Area = "";
+        public DefinicaoNpc[] Npcs = new DefinicaoNpc[0];
     }
 }

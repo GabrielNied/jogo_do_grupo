@@ -14,7 +14,7 @@ public class ManadaComRotaTestes
 
     private static readonly DefinicaoDeCriatura Javali = CatalogoCriaturas.Obter(
         CatalogoCriaturas.JavaliDoCampo
-    );
+    )!;
 
     private sealed class SorteadorFixo : ISorteadorDeCriaturas
     {

@@ -249,8 +249,8 @@ public class PoderesESetsTestes
             Peca(PosicaoEquipamento.Luvas, Luvas, valor: 95),
         };
         Assert.NotEqual(
-            RegrasTier.TierDe(fraco[0].Equipamento),
-            RegrasTier.TierDe(forte[0].Equipamento)
+            RegrasTier.TierDe(fraco[0].Equipamento!),
+            RegrasTier.TierDe(forte[0].Equipamento!)
         );
         Assert.Equal(Origens(fraco), Origens(forte));
 

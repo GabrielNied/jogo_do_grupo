@@ -9,7 +9,7 @@ namespace JogoDoGrupo.Shared.Features.Economia
     public class ItemLojaDto
     {
         public int ItemId;
-        public string Nome;
+        public string Nome = "";
         public long PrecoCoroas;
 
         public ItemLojaDto() { }

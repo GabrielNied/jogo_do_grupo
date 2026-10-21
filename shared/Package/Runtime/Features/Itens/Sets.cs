@@ -145,7 +145,7 @@ namespace JogoDoGrupo.Shared.Features.Itens
     /// <summary>O estado de um set para o tooltip: quantas peças e quais marcos estão ligados.</summary>
     public sealed class ResumoDoSet
     {
-        public DefinicaoDeSet Set;
+        public DefinicaoDeSet Set = null!;
 
         /// <summary>Quantos modelos distintos do set estão vestidos e ativos.</summary>
         public int Vestidas;
@@ -159,7 +159,7 @@ namespace JogoDoGrupo.Shared.Features.Itens
 
     public sealed class MarcoDoResumo
     {
-        public MarcoDeSet Marco;
+        public MarcoDeSet Marco = null!;
         public bool Ativo;
     }
 

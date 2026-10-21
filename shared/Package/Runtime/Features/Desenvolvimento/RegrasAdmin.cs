@@ -1,3 +1,4 @@
+#nullable enable annotations
 using System;
 using System.Collections.Generic;
 using JogoDoGrupo.Shared.Features.Itens;
@@ -16,7 +17,7 @@ namespace JogoDoGrupo.Shared.Features.Desenvolvimento
         public static readonly int[] TodosOsModelos = ListarModelos();
 
         /// <summary>Texto da recusa, ou <c>null</c> se o pedido é válido para a ação.</summary>
-        public static string Validar(PedirAcaoDeAdmin pedido)
+        public static string? Validar(PedirAcaoDeAdmin pedido)
         {
             if (pedido == null || !Enum.IsDefined(typeof(AcaoDeAdmin), pedido.Acao))
             {
@@ -58,7 +59,7 @@ namespace JogoDoGrupo.Shared.Features.Desenvolvimento
             return lista;
         }
 
-        private static string ValidarItem(PedirAcaoDeAdmin pedido)
+        private static string? ValidarItem(PedirAcaoDeAdmin pedido)
         {
             if (CatalogoEquipamentos.Obter(pedido.ModeloId) == null)
             {
@@ -78,7 +79,7 @@ namespace JogoDoGrupo.Shared.Features.Desenvolvimento
             return Quantidade(pedido.Quantidade, ConfigAdmin.QuantidadeMaximaDeItens);
         }
 
-        private static string ValidarInimigo(PedirAcaoDeAdmin pedido)
+        private static string? ValidarInimigo(PedirAcaoDeAdmin pedido)
         {
             if (CatalogoCriaturas.Obter(pedido.EspecieId) == null)
             {
@@ -88,7 +89,7 @@ namespace JogoDoGrupo.Shared.Features.Desenvolvimento
             return Quantidade(pedido.Quantidade, ConfigAdmin.QuantidadeMaximaDeInimigos);
         }
 
-        private static string ValidarDestino(PedirAcaoDeAdmin pedido)
+        private static string? ValidarDestino(PedirAcaoDeAdmin pedido)
         {
             if (!float.IsFinite(pedido.X) || !float.IsFinite(pedido.Y) || !float.IsFinite(pedido.Z))
             {
@@ -98,7 +99,7 @@ namespace JogoDoGrupo.Shared.Features.Desenvolvimento
             return null;
         }
 
-        private static string Quantidade(int quantidade, int maximo)
+        private static string? Quantidade(int quantidade, int maximo)
         {
             if (quantidade < 1 || quantidade > maximo)
             {
@@ -108,7 +109,7 @@ namespace JogoDoGrupo.Shared.Features.Desenvolvimento
             return null;
         }
 
-        private static string Faixa(long valor, long maximo, string nome, bool aceitaNegativo)
+        private static string? Faixa(long valor, long maximo, string nome, bool aceitaNegativo)
         {
             var minimo = aceitaNegativo ? -maximo : 1;
             if (valor == 0 || valor < minimo || valor > maximo)

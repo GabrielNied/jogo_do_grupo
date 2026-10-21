@@ -16,7 +16,7 @@ public static class ConfigChefeDaDungeon
     public const int CriaturaId = CatalogoCriaturas.GuardiaoDoReflexo;
 
     /// <summary>Vida máxima, a mesma para 1 a 5 jogadores (da ficha da criatura).</summary>
-    public static readonly int VidaMaxima = CatalogoCriaturas.Obter(CriaturaId).VidaBase;
+    public static readonly int VidaMaxima = CatalogoCriaturas.Obter(CriaturaId)!.VidaBase;
 
     /// <summary>
     /// Se o servidor já sobe com um boss de teste no mundo, enquanto a instância da dungeon não

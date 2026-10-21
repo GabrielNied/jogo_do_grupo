@@ -199,7 +199,7 @@ public sealed class ServicoDeInspecaoTestes
         Assert.Equal(10, retrato.Forca);
         Assert.Equal(30, retrato.Atributos.DefesaFisica);
         Assert.Single(retrato.Equipados);
-        Assert.Equal(TierItem.S, retrato.Equipados[0].Equipamento.TierOrigem);
+        Assert.Equal(TierItem.S, retrato.Equipados[0].Equipamento!.TierOrigem);
     }
 
     [Fact]

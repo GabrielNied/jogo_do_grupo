@@ -13,7 +13,7 @@ public class InimigoDistanciaTestes
 
     private static readonly DefinicaoDeCriatura Arqueiro = CatalogoCriaturas.Obter(
         CatalogoCriaturas.ArqueiroDoCampo
-    );
+    )!;
 
     private sealed class QuedaMock : IEstadoDeQueda
     {

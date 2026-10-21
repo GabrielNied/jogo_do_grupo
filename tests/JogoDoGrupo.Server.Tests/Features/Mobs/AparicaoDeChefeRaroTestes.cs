@@ -8,7 +8,7 @@ public class AparicaoDeChefeRaroTestes
     private static readonly DateTimeOffset Inicio = new(2026, 10, 11, 12, 0, 0, TimeSpan.Zero);
     private static readonly DefinicaoDeCriatura Raro = CatalogoCriaturas.Obter(
         CatalogoCriaturas.PresaVelha
-    );
+    )!;
     private static readonly TimeSpan Intervalo = TimeSpan.FromSeconds(
         Raro.IntervaloDeAparicaoSegundos
     );
@@ -222,7 +222,7 @@ public class AparicaoDeChefeRaroTestes
     [InlineData(CatalogoCriaturas.GuardiaoDoReflexo)]
     public void Recusa_criatura_que_nao_e_chefe_raro(int criaturaId)
     {
-        var definicao = CatalogoCriaturas.Obter(criaturaId);
+        var definicao = CatalogoCriaturas.Obter(criaturaId)!;
 
         Assert.Throws<ArgumentException>(() =>
             new AparicaoDeChefeRaro(definicao, new SorteadorCombinado(), Inicio)

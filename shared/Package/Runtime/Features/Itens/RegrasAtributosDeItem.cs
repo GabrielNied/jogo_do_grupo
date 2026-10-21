@@ -27,6 +27,11 @@ namespace JogoDoGrupo.Shared.Features.Itens
                 }
 
                 var item = entrada.Equipamento;
+                if (item == null)
+                {
+                    continue;
+                }
+
                 var ehArmaPrincipal =
                     entrada.Posicao == RegrasEquipamentos.Principal(conjunto)
                     && ConfigAtributosItem.EhArma(item.Tipo);
