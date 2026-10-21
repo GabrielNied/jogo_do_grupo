@@ -21,7 +21,7 @@ Sempre `git diff --check`. Depois, **só** a linha da alteração; o CI é a con
 | Instruções de IA (`AGENTS.md`, `.claude/`, `.codex/`, `.agents/`) | `npm run contexto` e o formato alterado (`node --check` no hook, parse de JSON/TOML). |
 | Script Node | `node --check` e `npm run testar-scripts`. |
 | C# de servidor ou shared | `dotnet csharpier format .` e `dotnet test JogoDoGrupo.slnx -c Release` (já compila). |
-| C# de client | `dotnet csharpier format .`, `npm run unity:compilar` e `npm run conferir-unity`. Tela ou HUD: [prints](../../../docs/agentes.md#prints-da-tela). Os testes EditMode ficam com o CI. |
+| C# de client | `dotnet csharpier format .`, `npm run conferir-asmdef`, `npm run unity:compilar` e `npm run conferir-unity`. Tela ou HUD: [prints](../../../docs/agentes.md#prints-da-tela). Os testes EditMode ficam com o CI. |
 | Shared usado pelo client | A linha de server/shared e `npm run unity:compilar`. |
 | Conteúdo Unity (cena, prefab, asset) | O comando que gerou, `npm run conferir-unity` e `unity:recompilar` (aberto) ou `unity:compilar` (fechado). |
 | CI, dependência, build | O comando que usa a configuração e o teste afetado. |

@@ -20,6 +20,7 @@
     "testar-scripts": "node --test \"scripts/**/*.test.mjs\"",
     "contexto": "node scripts/agentes/orcamento-contexto.mjs",
     "conferir-unity": "node scripts/git/conferir-arquivos-unity.mjs",
+    "conferir-asmdef": "node scripts/unity/conferir-asmdef.mjs",
     "conferir-contratos-rede": "node scripts/agentes/conferir-contratos-rede.mjs",
     "arte:referencias": "node scripts/arte/conferir-referencias.mjs",
     "arte:baixar-referencias": "node scripts/arte/baixar-referencias.mjs",

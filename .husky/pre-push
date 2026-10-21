@@ -16,6 +16,7 @@ printf '%s\n' "$entrada" | while read -r local_ref local_sha remote_ref remote_s
       if [ "$local_sha" = "$(git rev-parse HEAD)" ]; then
         node scripts/git/conferir-arquivos-unity.mjs origin/main --so-geraveis || exit 1
         node scripts/agentes/conferir-contratos-rede.mjs || exit 1
+        node scripts/unity/conferir-asmdef.mjs || exit 1
       fi
       ;;
   esac
