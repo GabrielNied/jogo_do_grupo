@@ -17,13 +17,15 @@
     justify-content: center;
     padding: var(--lumora-espacamento-padrao);
     background-color: var(--lumora-cores-fundo);
-    background-image: url("../../Visual/Resources/Lumora/Arte/Hud/vinheta.png");
-    -unity-background-scale-mode: stretch-to-fill;
+    /* Vista do mundo no entardecer, já desfocada e com as bordas escuras. */
+    background-image: url("../../Visual/Resources/Lumora/Arte/fundo-mundo.jpg");
+    -unity-background-scale-mode: scale-and-crop;
 }
 
 .tela-sobre-jogo {
     background-color: var(--lumora-cores-veu);
     background-image: url("../../Visual/Resources/Lumora/Arte/Hud/vinheta.png");
+    -unity-background-scale-mode: stretch-to-fill;
 }
 
 .tela-com-transicao {
@@ -200,7 +202,7 @@
 }
 
 .login-composicao {
-    width: var(--lumora-dimensoes-painel-entrada);
+    width: 480px;
     max-width: 100%;
     max-height: 100%;
     min-height: 0;
@@ -209,7 +211,24 @@
 }
 
 .login-marca {
-    margin-bottom: var(--lumora-espacamento-padrao);
+    margin-bottom: var(--lumora-espacamento-grande);
+}
+
+.login-versao {
+    position: absolute;
+    left: 32px;
+    bottom: 24px;
+    font-size: var(--lumora-tipografia-hud-pequeno);
+    color: var(--lumora-cores-texto-secundario);
+    text-shadow: 1px 1px 1px var(--lumora-cores-contorno);
+}
+
+.login-sair {
+    position: absolute;
+    right: 32px;
+    bottom: 24px;
+    flex-grow: 0;
+    min-width: 160px;
 }
 
 .login-painel {

@@ -77,6 +77,15 @@ namespace JogoDoGrupo.Client.Core.Contas
             composicao.Add(titulo);
             composicao.Add(painel);
             raiz.Add(composicao);
+
+            // Rodapé como o das telas de entrada dos MMOs: versão à esquerda, sair à direita.
+            var versao = new Label("Versão " + Application.version);
+            versao.AddToClassList("login-versao");
+            raiz.Add(versao);
+            var sair = new Button(Application.Quit) { text = "Sair do jogo" };
+            sair.AddToClassList(EstiloCore.Botao);
+            sair.AddToClassList("login-sair");
+            raiz.Add(sair);
         }
 
         protected override void AoAbrir()

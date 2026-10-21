@@ -273,6 +273,22 @@ function vinheta() {
   return t;
 }
 
+// Pedestal da seleção e da criação: sombra elíptica sob os pés e um anel dourado fraco, para o
+// personagem não flutuar sobre o fundo.
+function pedestal() {
+  const t = tela(512, 128);
+  const tudo = (x, y) => dRet(x, y, 0, 0, 512, 128, 0);
+  preencher(t, tudo, (x, y) => {
+    const d = Math.hypot((x - 256) / 256, (y - 64) / 64);
+    return cor("#000000", limitar(1 - d) ** 1.3 * 0.78);
+  });
+  preencher(t, tudo, (x, y) => {
+    const d = Math.hypot((x - 256) / 236, (y - 64) / 54);
+    return cor("#C99E52", limitar(1 - Math.abs(d - 0.9) / 0.04) * 0.42);
+  });
+  return t;
+}
+
 // Separador decorativo: filete que some nas pontas e losango no meio.
 function separador() {
   const t = tela(256, 16);
@@ -349,6 +365,7 @@ export const texturas = {
   "aba.png": () => aba(false),
   "aba-ativa.png": () => aba(true),
   "vinheta.png": vinheta,
+  "pedestal.png": pedestal,
   "separador.png": separador,
   "bussola.png": bussola,
   "placa.png": placa,
