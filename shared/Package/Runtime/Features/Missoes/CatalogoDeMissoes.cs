@@ -39,10 +39,22 @@ namespace JogoDoGrupo.Shared.Features.Missoes
         public const int Missao108GuardaDeHonraDaBrasa = 108;
 
         // =========================================================================
-        // MISSÕES DIÁRIAS (#1061)
+        // MISSÕES DIÁRIAS (#1061, #1062)
         // =========================================================================
         public const int Missao201PatrulhaDiaria = 201;
         public const int Missao4PatrulhaDiaria = Missao201PatrulhaDiaria; // compatibilidade
+        public const int Missao202AbastecerATaverna = 202;
+        public const int Missao203MinerioParaAForja = 203;
+        public const int Missao204VigilanciaNaMataFria = 204;
+        public const int Missao205ErvasMedicinais = 205;
+        public const int Missao206InspecaoDasDefesas = 206;
+
+        // =========================================================================
+        // MISSÕES SEMANAIS (#1062)
+        // =========================================================================
+        public const int Missao301CacadaSemanalOEliteDoPlato = 301;
+        public const int Missao302GrandeRemessaDeFerro = 302;
+        public const int Missao303CaravanaMercantilDaBrasa = 303;
 
         private static readonly Dictionary<int, DefinicaoDeMissao> _porId =
             new Dictionary<int, DefinicaoDeMissao>();
@@ -689,18 +701,20 @@ namespace JogoDoGrupo.Shared.Features.Missoes
             );
 
             // =====================================================================
-            // MISSÃO DIÁRIA (#1061)
+            // MISSÕES DIÁRIAS (#1061, #1062)
             // =====================================================================
+
+            // 1. Patrulha Diária dos Campos
             Registrar(
                 new DefinicaoDeMissao
                 {
                     Id = Missao201PatrulhaDiaria,
                     Titulo = "Patrulha Diária dos Campos",
                     Descricao =
-                        "Mantenha a segurança das estradas derrotando criaturas perigosas ao norte da Brasa Mansa hoje.",
+                        "A Capitã Valéria solicita patrulha regular na trilha norte da cidade para abater javalis ferais.",
                     Tipo = TipoDeMissao.Diaria,
                     Regiao = "campo",
-                    NivelRecomendado = 3,
+                    NivelRecomendado = 2,
                     NivelMinimo = 2,
                     NpcDoadorId = CatalogoNpcs.IdValeria,
                     NpcEntregadorId = CatalogoNpcs.IdValeria,
@@ -720,10 +734,350 @@ namespace JogoDoGrupo.Shared.Features.Missoes
                             RaioAreaMetros = 60f,
                         },
                     },
-                    RecompensaXp = 200,
-                    RecompensaCoroas = 30,
-                    ReputacaoFaccao = "BrasaMansa",
+                    RecompensaXp = 220,
+                    RecompensaCoroas = 35,
+                    ReputacaoFaccao = "Guarda",
                     ReputacaoValor = 50,
+                    ItensParaEscolha = System.Array.Empty<int>(),
+                    ProximaMissaoPrincipalId = 0,
+                }
+            );
+
+            // 2. Provisões para o Caldeirão
+            Registrar(
+                new DefinicaoDeMissao
+                {
+                    Id = Missao202AbastecerATaverna,
+                    Titulo = "Provisões para o Caldeirão",
+                    Descricao =
+                        "O Taverneiro Barnabé precisa de carnes frescas colhidas nos pastos para alimentar viajantes da estalagem.",
+                    Tipo = TipoDeMissao.Diaria,
+                    Regiao = "campo",
+                    NivelRecomendado = 2,
+                    NivelMinimo = 1,
+                    NpcDoadorId = CatalogoNpcs.IdTaverneiro,
+                    NpcEntregadorId = CatalogoNpcs.IdTaverneiro,
+                    RequisitosMissaoIds = new int[] { Missao4ProvisoesEGuardaVolumes },
+                    Objetivos = new ObjetivoMissao[]
+                    {
+                        new ObjetivoMissao
+                        {
+                            Id = 1,
+                            Descricao = "Colete 4 Carnes Frescas nos pastos",
+                            Tipo = TipoDeObjetivo.Coletar,
+                            AlvoId = 1,
+                            QuantidadeTotal = 4,
+                            RegiaoAlvo = "campo",
+                            CoordenadaX = 0f,
+                            CoordenadaZ = 80f,
+                            RaioAreaMetros = 50f,
+                        },
+                    },
+                    RecompensaXp = 200,
+                    RecompensaCoroas = 35,
+                    ReputacaoFaccao = "Mercadores",
+                    ReputacaoValor = 45,
+                    ItensParaEscolha = System.Array.Empty<int>(),
+                    ProximaMissaoPrincipalId = 0,
+                }
+            );
+
+            // 3. Minério para a Bigorna Diária
+            Registrar(
+                new DefinicaoDeMissao
+                {
+                    Id = Missao203MinerioParaAForja,
+                    Titulo = "Minério para a Bigorna Diária",
+                    Descricao =
+                        "O Ferreiro Brom necessita de minérios de ferro diários para forjar cravos e reforçar escudos.",
+                    Tipo = TipoDeMissao.Diaria,
+                    Regiao = "campo",
+                    NivelRecomendado = 2,
+                    NivelMinimo = 2,
+                    NpcDoadorId = CatalogoNpcs.IdFerreiro,
+                    NpcEntregadorId = CatalogoNpcs.IdFerreiro,
+                    RequisitosMissaoIds = new int[] { Missao5LimpandoATrilhaNorte },
+                    Objetivos = new ObjetivoMissao[]
+                    {
+                        new ObjetivoMissao
+                        {
+                            Id = 1,
+                            Descricao = "Colete 5 Minérios de Ferro nos afloramentos",
+                            Tipo = TipoDeObjetivo.Coletar,
+                            AlvoId = 2,
+                            QuantidadeTotal = 5,
+                            RegiaoAlvo = "campo",
+                            CoordenadaX = 20f,
+                            CoordenadaZ = 60f,
+                            RaioAreaMetros = 40f,
+                        },
+                    },
+                    RecompensaXp = 210,
+                    RecompensaCoroas = 40,
+                    ReputacaoFaccao = "Forja",
+                    ReputacaoValor = 50,
+                    ItensParaEscolha = System.Array.Empty<int>(),
+                    ProximaMissaoPrincipalId = 0,
+                }
+            );
+
+            // 4. Vigilância na Mata Fria
+            Registrar(
+                new DefinicaoDeMissao
+                {
+                    Id = Missao204VigilanciaNaMataFria,
+                    Titulo = "Vigilância na Mata Fria",
+                    Descricao =
+                        "A Capitã Valéria envia caçadores regulares para conter a proliferação de lobos na mata fria.",
+                    Tipo = TipoDeMissao.Diaria,
+                    Regiao = "campo",
+                    NivelRecomendado = 3,
+                    NivelMinimo = 2,
+                    NpcDoadorId = CatalogoNpcs.IdValeria,
+                    NpcEntregadorId = CatalogoNpcs.IdValeria,
+                    RequisitosMissaoIds = new int[] { Missao6OEnxameNaMataFria },
+                    Objetivos = new ObjetivoMissao[]
+                    {
+                        new ObjetivoMissao
+                        {
+                            Id = 1,
+                            Descricao = "Derrote 5 Lobos Selvagens na mata fria",
+                            Tipo = TipoDeObjetivo.Matar,
+                            AlvoId = 2,
+                            QuantidadeTotal = 5,
+                            RegiaoAlvo = "campo",
+                            CoordenadaX = 10f,
+                            CoordenadaZ = 85f,
+                            RaioAreaMetros = 40f,
+                        },
+                    },
+                    RecompensaXp = 250,
+                    RecompensaCoroas = 45,
+                    ReputacaoFaccao = "Guarda",
+                    ReputacaoValor = 50,
+                    ItensParaEscolha = System.Array.Empty<int>(),
+                    ProximaMissaoPrincipalId = 0,
+                }
+            );
+
+            // 5. Fungos e Ervas Medicinais
+            Registrar(
+                new DefinicaoDeMissao
+                {
+                    Id = Missao205ErvasMedicinais,
+                    Titulo = "Fungos e Ervas Medicinais",
+                    Descricao =
+                        "O Merceeiro Tomas encomenda fungos luminescentes da ravina sombria para abastecer a botica da cidade.",
+                    Tipo = TipoDeMissao.Diaria,
+                    Regiao = "campo",
+                    NivelRecomendado = 3,
+                    NivelMinimo = 3,
+                    NpcDoadorId = CatalogoNpcs.IdMerceeiro,
+                    NpcEntregadorId = CatalogoNpcs.IdMerceeiro,
+                    RequisitosMissaoIds = new int[] { Missao7OSenhorDaColinaDoVigia },
+                    Objetivos = new ObjetivoMissao[]
+                    {
+                        new ObjetivoMissao
+                        {
+                            Id = 1,
+                            Descricao = "Colete 4 Fungos Luminescentes na ravina",
+                            Tipo = TipoDeObjetivo.Coletar,
+                            AlvoId = 5,
+                            QuantidadeTotal = 4,
+                            RegiaoAlvo = "campo",
+                            CoordenadaX = 45f,
+                            CoordenadaZ = 120f,
+                            RaioAreaMetros = 25f,
+                        },
+                    },
+                    RecompensaXp = 260,
+                    RecompensaCoroas = 45,
+                    ReputacaoFaccao = "Mercadores",
+                    ReputacaoValor = 50,
+                    ItensParaEscolha = System.Array.Empty<int>(),
+                    ProximaMissaoPrincipalId = 0,
+                }
+            );
+
+            // 6. Inspeção dos Postos de Vigia
+            Registrar(
+                new DefinicaoDeMissao
+                {
+                    Id = Missao206InspecaoDasDefesas,
+                    Titulo = "Inspeção dos Postos de Vigia",
+                    Descricao =
+                        "A Capitã Valéria requer a verificação rápida da rota até o moinho decrépito para assegurar a passagem segura de comboios.",
+                    Tipo = TipoDeMissao.Diaria,
+                    Regiao = "campo",
+                    NivelRecomendado = 2,
+                    NivelMinimo = 2,
+                    NpcDoadorId = CatalogoNpcs.IdValeria,
+                    NpcEntregadorId = CatalogoNpcs.IdValeria,
+                    RequisitosMissaoIds = new int[] { Missao5LimpandoATrilhaNorte },
+                    Objetivos = new ObjetivoMissao[]
+                    {
+                        new ObjetivoMissao
+                        {
+                            Id = 1,
+                            Descricao = "Vá até o Moinho Decrépito nos campos norte",
+                            Tipo = TipoDeObjetivo.IrA,
+                            AlvoId = 0,
+                            QuantidadeTotal = 1,
+                            RegiaoAlvo = "campo",
+                            CoordenadaX = 25f,
+                            CoordenadaZ = 65f,
+                            RaioAreaMetros = 20f,
+                        },
+                    },
+                    RecompensaXp = 190,
+                    RecompensaCoroas = 30,
+                    ReputacaoFaccao = "Guarda",
+                    ReputacaoValor = 40,
+                    ItensParaEscolha = System.Array.Empty<int>(),
+                    ProximaMissaoPrincipalId = 0,
+                }
+            );
+
+            // =====================================================================
+            // MISSÕES SEMANAIS (#1062)
+            // =====================================================================
+
+            // 1. Grande Caçada Semanal: O Platô Norte
+            Registrar(
+                new DefinicaoDeMissao
+                {
+                    Id = Missao301CacadaSemanalOEliteDoPlato,
+                    Titulo = "Grande Caçada Semanal: O Platô Norte",
+                    Descricao =
+                        "A Guarda da Brasa Mansa organiza o expurgo semanal das feras agressivas que ameaçam as fronteiras setentrionais.",
+                    Tipo = TipoDeMissao.Semanal,
+                    Regiao = "campo",
+                    NivelRecomendado = 3,
+                    NivelMinimo = 3,
+                    NpcDoadorId = CatalogoNpcs.IdValeria,
+                    NpcEntregadorId = CatalogoNpcs.IdValeria,
+                    RequisitosMissaoIds = new int[] { Missao7OSenhorDaColinaDoVigia },
+                    Objetivos = new ObjetivoMissao[]
+                    {
+                        new ObjetivoMissao
+                        {
+                            Id = 1,
+                            Descricao = "Derrote 10 Javalis Selvagens no platô",
+                            Tipo = TipoDeObjetivo.Matar,
+                            AlvoId = 1,
+                            QuantidadeTotal = 10,
+                            RegiaoAlvo = "campo",
+                            CoordenadaX = 20f,
+                            CoordenadaZ = 100f,
+                            RaioAreaMetros = 50f,
+                        },
+                        new ObjetivoMissao
+                        {
+                            Id = 2,
+                            Descricao = "Derrote 8 Lobos Selvagens na mata fria",
+                            Tipo = TipoDeObjetivo.Matar,
+                            AlvoId = 2,
+                            QuantidadeTotal = 8,
+                            RegiaoAlvo = "campo",
+                            CoordenadaX = 10f,
+                            CoordenadaZ = 85f,
+                            RaioAreaMetros = 40f,
+                        },
+                    },
+                    RecompensaXp = 650,
+                    RecompensaCoroas = 140,
+                    ReputacaoFaccao = "Guarda",
+                    ReputacaoValor = 120,
+                    ItensParaEscolha = System.Array.Empty<int>(),
+                    ProximaMissaoPrincipalId = 0,
+                }
+            );
+
+            // 2. Grande Remessa Semanal da Forja
+            Registrar(
+                new DefinicaoDeMissao
+                {
+                    Id = Missao302GrandeRemessaDeFerro,
+                    Titulo = "Grande Remessa Semanal da Forja",
+                    Descricao =
+                        "O Ferreiro Brom precisa de suprimentos maciços de minério de ferro para manter os fornos da cidade abastecidos para a semana.",
+                    Tipo = TipoDeMissao.Semanal,
+                    Regiao = "campo",
+                    NivelRecomendado = 3,
+                    NivelMinimo = 2,
+                    NpcDoadorId = CatalogoNpcs.IdFerreiro,
+                    NpcEntregadorId = CatalogoNpcs.IdFerreiro,
+                    RequisitosMissaoIds = new int[] { Missao5LimpandoATrilhaNorte },
+                    Objetivos = new ObjetivoMissao[]
+                    {
+                        new ObjetivoMissao
+                        {
+                            Id = 1,
+                            Descricao = "Colete 15 Minérios de Ferro nos afloramentos",
+                            Tipo = TipoDeObjetivo.Coletar,
+                            AlvoId = 2,
+                            QuantidadeTotal = 15,
+                            RegiaoAlvo = "campo",
+                            CoordenadaX = 20f,
+                            CoordenadaZ = 60f,
+                            RaioAreaMetros = 40f,
+                        },
+                    },
+                    RecompensaXp = 580,
+                    RecompensaCoroas = 130,
+                    ReputacaoFaccao = "Forja",
+                    ReputacaoValor = 120,
+                    ItensParaEscolha = System.Array.Empty<int>(),
+                    ProximaMissaoPrincipalId = 0,
+                }
+            );
+
+            // 3. Caravana Mercantil Semanal
+            Registrar(
+                new DefinicaoDeMissao
+                {
+                    Id = Missao303CaravanaMercantilDaBrasa,
+                    Titulo = "Caravana Mercantil Semanal",
+                    Descricao =
+                        "O Banqueiro Cassian coordena uma expedição de reconhecimento na ravina sombria e prestação de contas à capitã.",
+                    Tipo = TipoDeMissao.Semanal,
+                    Regiao = "campo",
+                    NivelRecomendado = 3,
+                    NivelMinimo = 2,
+                    NpcDoadorId = CatalogoNpcs.IdBanqueiro,
+                    NpcEntregadorId = CatalogoNpcs.IdValeria,
+                    RequisitosMissaoIds = new int[] { Missao6OEnxameNaMataFria },
+                    Objetivos = new ObjetivoMissao[]
+                    {
+                        new ObjetivoMissao
+                        {
+                            Id = 1,
+                            Descricao = "Faça a ronda na Ravina Sombria",
+                            Tipo = TipoDeObjetivo.IrA,
+                            AlvoId = 0,
+                            QuantidadeTotal = 1,
+                            RegiaoAlvo = "campo",
+                            CoordenadaX = 45f,
+                            CoordenadaZ = 120f,
+                            RaioAreaMetros = 20f,
+                        },
+                        new ObjetivoMissao
+                        {
+                            Id = 2,
+                            Descricao = "Relate o estado das trilhas à Capitã Valéria",
+                            Tipo = TipoDeObjetivo.Falar,
+                            AlvoId = CatalogoNpcs.IdValeria,
+                            QuantidadeTotal = 1,
+                            RegiaoAlvo = CatalogoNpcs.AreaCidade,
+                            CoordenadaX = 0f,
+                            CoordenadaZ = -35f,
+                            RaioAreaMetros = 4f,
+                        },
+                    },
+                    RecompensaXp = 600,
+                    RecompensaCoroas = 150,
+                    ReputacaoFaccao = "Mercadores",
+                    ReputacaoValor = 130,
                     ItensParaEscolha = System.Array.Empty<int>(),
                     ProximaMissaoPrincipalId = 0,
                 }

@@ -201,6 +201,36 @@ O Capítulo 1 destrava progressivamente 8 missões secundárias na região da ci
 7. **Remédio das Sombras** (ID 106, Merceeiro Tomas, Nível 3, Requer Etapa 7): Ir até a Ravina Sombria na mata fria e coletar 5x Fungos Luminescentes nos troncos. Recompensa: 300 XP, 70 Coroas, +40 Reputação Mercadores.
 8. **Guarda de Honra da Brasa** (ID 108, Capitã Valéria, Nível 3, Requer Etapa 7): Eliminar 8x Javalis Selvagens remanescentes no platô norte após a derrota do Presa Velha. Recompensa: 320 XP, 75 Coroas, +50 Reputação Guarda.
 
+#### 6. Missões Diárias e Semanais (#1062)
+
+Missões rotativas para engajamento contínuo e progressão de reputação de facções:
+
+- **Rotação:** 3 missões diárias sorteadas por dia e 1 missão semanal por semana (`ConfigMissoes`), filtradas pelo nível do personagem e regiões já abertas pela história principal.
+- **Semente determinística (`RegrasCicloReset`):** a rotação é calculada a partir do ciclo civil no horário de Brasília (UTC-3), garantindo que todos os jogadores com o mesmo nível e região vejam o mesmo conjunto diário/semanal sem necessidade de persistência ou crons no servidor.
+- **Horários de Reset (Horário de Brasília, UTC-3):**
+  - **Reset Diário:** Meia-noite (00:00 BRT / 03:00 UTC).
+  - **Reset Semanal:** Terça-feira às 00:00 BRT (03:00 UTC), alinhado com o ciclo de instâncias e raids.
+- **Regras de conclusão e concorrência:**
+  - A mesma missão diária ou semanal não pode ser realizada mais de uma vez dentro do mesmo ciclo de reset (`missao_ja_concluida_no_ciclo`).
+  - Ao virar o ciclo de Brasília, o histórico do ciclo anterior é desconsiderado e a missão volta a ficar disponível se entrar na rotação.
+  - A entrega no servidor possui trava por `(PersonagemId, MissaoId)` e transação atômica, impedindo duplicidade de recompensas (XP e Coroas) em requisições simultâneas.
+- **Indicadores no Client:**
+  - O marcador visual (**!**) nos NPCs só aparece para missões diárias e semanais que estão ativas na rotação do ciclo atual e que ainda não foram concluídas no ciclo.
+
+##### Catálogo de Missões Diárias (IDs 201 a 206)
+1. **Patrulha dos Javalis** (ID 201, Capitã Valéria, Nível 1): Matar 4x Javali do Campo. Recompensa: 120 XP, 20 Coroas, +15 Reputação Guarda.
+2. **Suprimentos de Carne** (ID 202, Taverneiro Barnabé, Nível 1): Coletar 3x Carne Fresca. Recompensa: 100 XP, 25 Coroas, +10 Reputação Mercadores.
+3. **Ferro para as Lâminas** (ID 203, Ferreiro Brom, Nível 2): Coletar 4x Minério de Ferro. Recompensa: 150 XP, 30 Coroas, +20 Reputação Forja.
+4. **Caçada aos Lobos** (ID 204, Capitã Valéria, Nível 2): Matar 3x Lobo Cinzento. Recompensa: 180 XP, 35 Coroas, +20 Reputação Guarda.
+5. **Entrega de Provisões** (ID 205, Banqueiro Cassian -> Taverneiro Barnabé, Nível 1): Falar com Barnabé. Recompensa: 80 XP, 15 Coroas, +15 Reputação Mercadores.
+6. **Manutenção das Bigornas** (ID 206, Ferreiro Brom, Nível 2): Ir até a Forja Central [28, 48]. Recompensa: 100 XP, 20 Coroas, +15 Reputação Forja.
+
+##### Catálogo de Missões Semanais (IDs 301 a 303)
+1. **Grande Expedição de Caça** (ID 301, Capitã Valéria, Nível 2): Matar 10x Javali do Campo e 8x Lobo Cinzento. Recompensa: 600 XP, 120 Coroas, +60 Reputação Guarda.
+2. **Estoque de Emergência da Taverna** (ID 302, Taverneiro Barnabé, Nível 2): Coletar 10x Carne Fresca e 10x Minério de Ferro. Recompensa: 500 XP, 150 Coroas, +50 Reputação Mercadores.
+3. **Mestre da Forja da Brasa** (ID 303, Ferreiro Brom, Nível 3): Coletar 15x Minério de Ferro. Recompensa: 700 XP, 180 Coroas, +70 Reputação Forja.
+
+
 ### Livro de Asterra: chegada ao mundo (proposta do board, 2026-10-11)
 
 Do "Livro de ideias" do [FigJam](../brainstorm/figjam.md) (seção 11). **Proposta do board, não validada pelo grupo**; o nome Asterra e o título do jogo continuam a escolher.

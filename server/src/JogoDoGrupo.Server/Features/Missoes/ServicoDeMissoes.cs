@@ -1,4 +1,6 @@
+using System.Collections.Concurrent;
 using System.Text.Json;
+using System.Threading;
 using JogoDoGrupo.Server.Contratos.Economia;
 using JogoDoGrupo.Server.Contratos.Itens;
 using JogoDoGrupo.Server.Contratos.Mundo;
@@ -22,6 +24,15 @@ public sealed class ServicoDeMissoes
         IncludeFields = true,
         PropertyNameCaseInsensitive = true,
     };
+
+    private static readonly ConcurrentDictionary<string, SemaphoreSlim> _travasEntrega = new();
+
+    private Func<DateTimeOffset> _relogioUtc = () => DateTimeOffset.UtcNow;
+
+    public void DefinirRelogioDeTeste(Func<DateTimeOffset>? relogio)
+    {
+        _relogioUtc = relogio ?? (() => DateTimeOffset.UtcNow);
+    }
 
     private readonly JogoDbContext _db;
     private readonly ICarteiraCoroas _carteira;
@@ -58,6 +69,7 @@ public sealed class ServicoDeMissoes
 
     public async Task<EstadoDasMissoes> GarantirMissaoInicialAsync(
         long personagemId,
+        DateTimeOffset? momentoUtc = null,
         CancellationToken c = default
     )
     {
@@ -77,21 +89,25 @@ public sealed class ServicoDeMissoes
                     Estado = EstadoDaMissao.EmAndamento,
                     Acompanhada = true,
                     ObjetivosJson = JsonSerializer.Serialize(objs, _jsonOpcoes),
-                    AceitaEm = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+                    AceitaEm = (momentoUtc ?? _relogioUtc()).ToUnixTimeSeconds(),
                 };
                 _db.Set<MissaoPersonagemEntidade>().Add(ent);
                 await _db.SaveChangesAsync(c);
             }
         }
 
-        return await ObterEstadoDasMissoesAsync(personagemId, c);
+        return await ObterEstadoDasMissoesAsync(personagemId, momentoUtc, c);
     }
 
     public async Task<EstadoDasMissoes> ObterEstadoDasMissoesAsync(
         long personagemId,
+        DateTimeOffset? momentoUtc = null,
         CancellationToken c = default
     )
     {
+        var momento = momentoUtc ?? _relogioUtc();
+        var agoraSecs = momento.ToUnixTimeSeconds();
+
         var todas = await _db.Set<MissaoPersonagemEntidade>()
             .Where(m => m.PersonagemId == personagemId)
             .ToListAsync(c);
@@ -103,18 +119,77 @@ public sealed class ServicoDeMissoes
 
         var concluidas = todas
             .Where(m => m.Estado == EstadoDaMissao.Concluida)
+            .Where(m =>
+            {
+                var def = CatalogoDeMissoes.Obter(m.MissaoId);
+                if (def == null)
+                    return false;
+                if (def.Tipo == TipoDeMissao.Diaria)
+                    return m.ConcluidaEm.HasValue
+                        && RegrasCicloReset.MesmoCicloDiario(m.ConcluidaEm.Value, agoraSecs);
+                if (def.Tipo == TipoDeMissao.Semanal)
+                    return m.ConcluidaEm.HasValue
+                        && RegrasCicloReset.MesmoCicloSemanal(m.ConcluidaEm.Value, agoraSecs);
+                return true;
+            })
             .Select(m => m.MissaoId)
             .ToArray();
 
-        return new EstadoDasMissoes { Ativas = ativas, Concluidas = concluidas };
+        var concluidasPermanentes = todas
+            .Where(m => m.Estado == EstadoDaMissao.Concluida)
+            .Where(m =>
+            {
+                var def = CatalogoDeMissoes.Obter(m.MissaoId);
+                return def != null
+                    && (def.Tipo == TipoDeMissao.Principal || def.Tipo == TipoDeMissao.Secundaria);
+            })
+            .Select(m => m.MissaoId)
+            .ToHashSet();
+
+        var nivel = await _pontosDeNivel.ObterNivelAsync(personagemId, c);
+
+        var rotDiaria = RegrasCicloReset.ObterIdsRotacaoDiaria(
+            CatalogoDeMissoes.Todas,
+            nivel,
+            concluidasPermanentes,
+            momento
+        );
+
+        var rotSemanal = RegrasCicloReset.ObterIdsRotacaoSemanal(
+            CatalogoDeMissoes.Todas,
+            nivel,
+            concluidasPermanentes,
+            momento
+        );
+
+        var proxDiario = RegrasCicloReset.ObterProximoResetDiario(momento).ToUnixTimeSeconds();
+        var proxSemanal = RegrasCicloReset.ObterProximoResetSemanal(momento).ToUnixTimeSeconds();
+
+        return new EstadoDasMissoes
+        {
+            Ativas = ativas,
+            Concluidas = concluidas,
+            RotacaoDiariaIds = rotDiaria.ToArray(),
+            RotacaoSemanalIds = rotSemanal.ToArray(),
+            ProximoResetDiarioSegundos = proxDiario,
+            ProximoResetSemanalSegundos = proxSemanal,
+        };
     }
 
     public async Task<(
         bool Sucesso,
         string? Erro,
         ProgressoDeMissaoDto? Missao
-    )> AceitarMissaoAsync(long personagemId, int missaoId, CancellationToken c = default)
+    )> AceitarMissaoAsync(
+        long personagemId,
+        int missaoId,
+        DateTimeOffset? momentoUtc = null,
+        CancellationToken c = default
+    )
     {
+        var momento = momentoUtc ?? _relogioUtc();
+        var agoraSecs = momento.ToUnixTimeSeconds();
+
         var def = CatalogoDeMissoes.Obter(missaoId);
         if (def == null)
             return (false, CodigosErroMissoes.MissaoNaoEncontrada, null);
@@ -142,7 +217,66 @@ public sealed class ServicoDeMissoes
             .Select(m => m.MissaoId)
             .ToHashSet();
 
-        if (!RegrasMissoes.PodeAceitar(def, nivel, concluidas, ativas, out var erro))
+        var concluidasNoCiclo = existentes
+            .Where(m => m.Estado == EstadoDaMissao.Concluida && m.ConcluidaEm.HasValue)
+            .Where(m =>
+            {
+                var defM = CatalogoDeMissoes.Obter(m.MissaoId);
+                if (defM == null)
+                    return false;
+                if (defM.Tipo == TipoDeMissao.Diaria)
+                    return RegrasCicloReset.MesmoCicloDiario(m.ConcluidaEm.Value, agoraSecs);
+                if (defM.Tipo == TipoDeMissao.Semanal)
+                    return RegrasCicloReset.MesmoCicloSemanal(m.ConcluidaEm.Value, agoraSecs);
+                return true;
+            })
+            .Select(m => m.MissaoId)
+            .ToHashSet();
+
+        var concluidasPermanentes = existentes
+            .Where(m => m.Estado == EstadoDaMissao.Concluida)
+            .Where(m =>
+            {
+                var defM = CatalogoDeMissoes.Obter(m.MissaoId);
+                return defM != null
+                    && (
+                        defM.Tipo == TipoDeMissao.Principal || defM.Tipo == TipoDeMissao.Secundaria
+                    );
+            })
+            .Select(m => m.MissaoId)
+            .ToHashSet();
+
+        HashSet<int>? rotacao = null;
+        if (def.Tipo == TipoDeMissao.Diaria)
+        {
+            rotacao = RegrasCicloReset.ObterIdsRotacaoDiaria(
+                CatalogoDeMissoes.Todas,
+                nivel,
+                concluidasPermanentes,
+                momento
+            );
+        }
+        else if (def.Tipo == TipoDeMissao.Semanal)
+        {
+            rotacao = RegrasCicloReset.ObterIdsRotacaoSemanal(
+                CatalogoDeMissoes.Todas,
+                nivel,
+                concluidasPermanentes,
+                momento
+            );
+        }
+
+        if (
+            !RegrasMissoes.PodeAceitar(
+                def,
+                nivel,
+                concluidas,
+                ativas,
+                concluidasNoCiclo,
+                rotacao,
+                out var erro
+            )
+        )
         {
             return (false, erro, null);
         }
@@ -163,7 +297,7 @@ public sealed class ServicoDeMissoes
                 Estado = EstadoDaMissao.EmAndamento,
                 Acompanhada = acompanhada,
                 ObjetivosJson = JsonSerializer.Serialize(objs, _jsonOpcoes),
-                AceitaEm = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+                AceitaEm = agoraSecs,
             };
             _db.Set<MissaoPersonagemEntidade>().Add(ent);
         }
@@ -172,7 +306,7 @@ public sealed class ServicoDeMissoes
             ent.Estado = EstadoDaMissao.EmAndamento;
             ent.Acompanhada = acompanhada;
             ent.ObjetivosJson = JsonSerializer.Serialize(objs, _jsonOpcoes);
-            ent.AceitaEm = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            ent.AceitaEm = agoraSecs;
             ent.ConcluidaEm = null;
         }
 
@@ -221,86 +355,120 @@ public sealed class ServicoDeMissoes
         long personagemId,
         int missaoId,
         int? itemIdEscolhido,
+        DateTimeOffset? momentoUtc = null,
         CancellationToken c = default
     )
     {
-        var ent = await _db.Set<MissaoPersonagemEntidade>()
-            .FirstOrDefaultAsync(
-                m =>
-                    m.PersonagemId == personagemId
-                    && m.MissaoId == missaoId
-                    && m.Estado != EstadoDaMissao.Concluida,
-                c
-            );
+        var momento = momentoUtc ?? _relogioUtc();
+        var agoraSecs = momento.ToUnixTimeSeconds();
 
-        if (ent == null)
-            return (false, CodigosErroMissoes.MissaoNaoEncontrada, null, null);
-
-        var def = CatalogoDeMissoes.Obter(missaoId);
-        if (def == null)
-            return (false, CodigosErroMissoes.MissaoNaoEncontrada, null, null);
-
-        if (_posicoes.TentarObter(personagemId, out var pos))
+        var trava = _travasEntrega.GetOrAdd(
+            $"entrega:{personagemId}:{missaoId}",
+            _ => new SemaphoreSlim(1, 1)
+        );
+        await trava.WaitAsync(c);
+        try
         {
-            if (!CatalogoNpcs.DentroDoAlcance(def.NpcEntregadorId, (float)pos.X, (float)pos.Z))
+            var ent = await _db.Set<MissaoPersonagemEntidade>()
+                .FirstOrDefaultAsync(
+                    m =>
+                        m.PersonagemId == personagemId
+                        && m.MissaoId == missaoId
+                        && m.Estado != EstadoDaMissao.Concluida,
+                    c
+                );
+
+            if (ent == null)
+                return (false, CodigosErroMissoes.MissaoNaoEncontrada, null, null);
+
+            var def = CatalogoDeMissoes.Obter(missaoId);
+            if (def == null)
+                return (false, CodigosErroMissoes.MissaoNaoEncontrada, null, null);
+
+            if (_posicoes.TentarObter(personagemId, out var pos))
             {
-                return (false, CodigosErroMissoes.LongeDoNpc, null, null);
-            }
-        }
-
-        var dto = MapearParaDto(ent);
-        if (!RegrasMissoes.PodeEntregar(def, dto, itemIdEscolhido, out var erro))
-        {
-            return (false, erro, null, null);
-        }
-
-        // Concessão de XP (possui escopo próprio de banco em Personagem)
-        if (def.RecompensaXp > 0)
-        {
-            await _experiencia.AjustarAsync(personagemId, def.RecompensaXp, c);
-        }
-
-        await using var tx = await _db.Database.BeginTransactionAsync(c);
-
-        ent.Estado = EstadoDaMissao.Concluida;
-        ent.ConcluidaEm = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-        ent.Acompanhada = false;
-
-        if (def.RecompensaCoroas > 0)
-        {
-            await _carteira.CreditarAsync(personagemId, def.RecompensaCoroas, c);
-        }
-
-        if (itemIdEscolhido.HasValue && itemIdEscolhido.Value > 0)
-        {
-            await _inventario.AdicionarItemCompradoAsync(personagemId, itemIdEscolhido.Value, 1, c);
-        }
-
-        // Cadeia principal: se há próxima missão principal, cria automaticamente
-        ProgressoDeMissaoDto? proxima = null;
-        if (def.ProximaMissaoPrincipalId > 0)
-        {
-            var defProx = CatalogoDeMissoes.Obter(def.ProximaMissaoPrincipalId);
-            if (defProx != null)
-            {
-                var proxObjs = CriarProgressoInicial(defProx);
-                var proxEnt = new MissaoPersonagemEntidade
+                if (!CatalogoNpcs.DentroDoAlcance(def.NpcEntregadorId, (float)pos.X, (float)pos.Z))
                 {
-                    PersonagemId = personagemId,
-                    MissaoId = defProx.Id,
-                    Estado = EstadoDaMissao.EmAndamento,
-                    Acompanhada = true,
-                    ObjetivosJson = JsonSerializer.Serialize(proxObjs, _jsonOpcoes),
-                    AceitaEm = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
-                };
-                _db.Set<MissaoPersonagemEntidade>().Add(proxEnt);
-                proxima = MapearParaDto(proxEnt);
+                    return (false, CodigosErroMissoes.LongeDoNpc, null, null);
+                }
             }
-        }
 
-        await _db.SaveChangesAsync(c);
-        await tx.CommitAsync(c);
-        return (true, null, MapearParaDto(ent), proxima);
+            var dto = MapearParaDto(ent);
+            if (!RegrasMissoes.PodeEntregar(def, dto, itemIdEscolhido, out var erro))
+            {
+                return (false, erro, null, null);
+            }
+
+            // Transação que envolve _db (entidade de missão, carteira e inventário usam o mesmo DbContext)
+            await using var tx = await _db.Database.BeginTransactionAsync(c);
+
+            ent.Estado = EstadoDaMissao.Concluida;
+            ent.ConcluidaEm = agoraSecs;
+            ent.Acompanhada = false;
+
+            if (def.RecompensaCoroas > 0)
+            {
+                await _carteira.CreditarAsync(personagemId, def.RecompensaCoroas, c);
+            }
+
+            if (itemIdEscolhido.HasValue && itemIdEscolhido.Value > 0)
+            {
+                await _inventario.AdicionarItemCompradoAsync(
+                    personagemId,
+                    itemIdEscolhido.Value,
+                    1,
+                    c
+                );
+            }
+
+            // Cadeia principal: se há próxima missão principal, cria junto
+            ProgressoDeMissaoDto? proxima = null;
+            if (def.ProximaMissaoPrincipalId > 0)
+            {
+                var defProx = CatalogoDeMissoes.Obter(def.ProximaMissaoPrincipalId);
+                if (defProx != null)
+                {
+                    var proxObjs = CriarProgressoInicial(defProx);
+                    var proxEnt = new MissaoPersonagemEntidade
+                    {
+                        PersonagemId = personagemId,
+                        MissaoId = defProx.Id,
+                        Estado = EstadoDaMissao.EmAndamento,
+                        Acompanhada = true,
+                        ObjetivosJson = JsonSerializer.Serialize(proxObjs, _jsonOpcoes),
+                        AceitaEm = agoraSecs,
+                    };
+                    _db.Set<MissaoPersonagemEntidade>().Add(proxEnt);
+                    proxima = MapearParaDto(proxEnt);
+                }
+            }
+
+            await _db.SaveChangesAsync(c);
+            await tx.CommitAsync(c);
+
+            // Concessão de XP fora da transação de _db (possui escopo próprio de banco em Personagem)
+            if (def.RecompensaXp > 0)
+            {
+                await _experiencia.AjustarAsync(personagemId, def.RecompensaXp, c);
+            }
+
+            if (!string.IsNullOrEmpty(def.ReputacaoFaccao) && def.ReputacaoValor > 0)
+            {
+                _logger.LogInformation(
+                    "Personagem {PersonagemId} recebeu +{Valor} reputação com {Faccao} na entrega da missão {MissaoId}",
+                    personagemId,
+                    def.ReputacaoValor,
+                    def.ReputacaoFaccao,
+                    missaoId
+                );
+            }
+
+            return (true, null, MapearParaDto(ent), proxima);
+        }
+        finally
+        {
+            trava.Release();
+        }
     }
 
     public async Task<(bool Sucesso, string? Erro)> AlternarAcompanhamentoAsync(
