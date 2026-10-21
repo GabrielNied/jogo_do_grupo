@@ -60,6 +60,57 @@ public class RegrasVisualEquipadoTestes
             RegrasVisualEquipado.NomeDoEncaixe(EncaixeDoVisual.MaoDireita)
         );
         Assert.Equal("EncaixeCostas", RegrasVisualEquipado.NomeDoEncaixe(EncaixeDoVisual.Costas));
+        Assert.Equal("EncaixeCabeca", RegrasVisualEquipado.NomeDoEncaixe(EncaixeDoVisual.Cabeca));
+        Assert.Equal("EncaixeTronco", RegrasVisualEquipado.NomeDoEncaixe(EncaixeDoVisual.Tronco));
+    }
+
+    [Theory]
+    [InlineData(PosicaoEquipamento.Capacete, EncaixeDoVisual.Cabeca)]
+    [InlineData(PosicaoEquipamento.Peito, EncaixeDoVisual.Tronco)]
+    public void ArmaduraTemEncaixeDefinido(PosicaoEquipamento posicao, EncaixeDoVisual esperado) =>
+        Assert.Equal(esperado, RegrasVisualEquipado.EncaixeArmaduraDe(posicao));
+
+    [Theory]
+    [InlineData(PosicaoEquipamento.Luvas)]
+    [InlineData(PosicaoEquipamento.Calca)]
+    [InlineData(PosicaoEquipamento.Botas)]
+    [InlineData(PosicaoEquipamento.Anel1)]
+    public void OutrasPosicoes_NaoTemEncaixeArmadura(PosicaoEquipamento posicao) =>
+        Assert.Null(RegrasVisualEquipado.EncaixeArmaduraDe(posicao));
+
+    [Fact]
+    public void Montar_TrazArmasEArmadurasOrdenadasPorPosicao()
+    {
+        EntradaInventario Peca(PosicaoEquipamento posicao, TipoEquipamento tipo) =>
+            new EntradaInventario
+            {
+                Posicao = posicao,
+                Equipamento = new Equipamento { ModeloId = 100, Tipo = tipo },
+            };
+
+        var visual = RegrasVisualEquipado.Montar(
+            7,
+            2,
+            new[]
+            {
+                Peca(PosicaoEquipamento.Peito, TipoEquipamento.Peito),
+                Peca(PosicaoEquipamento.Capacete, TipoEquipamento.Capacete),
+                Peca(PosicaoEquipamento.Arma2, TipoEquipamento.Arco),
+                Peca(PosicaoEquipamento.Secundaria1, TipoEquipamento.Escudo),
+                Peca(PosicaoEquipamento.Arma1, TipoEquipamento.Espada),
+            }
+        );
+
+        Assert.Equal(7, visual.PersonagemId);
+        Assert.Equal(2, visual.ConjuntoAtivo);
+        Assert.Equal(
+            new[] { PosicaoEquipamento.Arma1, PosicaoEquipamento.Arma2 },
+            visual.Armas.Select(a => a.Posicao)
+        );
+        Assert.Equal(
+            new[] { PosicaoEquipamento.Capacete, PosicaoEquipamento.Peito },
+            visual.Armaduras.Select(a => a.Posicao)
+        );
     }
 
     [Fact]

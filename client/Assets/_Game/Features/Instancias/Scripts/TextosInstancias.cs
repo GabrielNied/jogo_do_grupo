@@ -90,5 +90,21 @@ namespace JogoDoGrupo.Client.Features.Instancias
 
             return $"A {NomeDaDungeon} foi fechada. Você voltou para a entrada.";
         }
+
+        public static string EtapaRaid(
+            int etapaConcluida,
+            int totalEtapas,
+            bool etapaFinal,
+            bool ganhouLootSemanal
+        )
+        {
+            var textoLoot = ganhouLootSemanal
+                ? " Você recebeu o material de fusão semanal da Raid!"
+                : " Você já havia recebido o loot desta etapa nesta semana.";
+
+            return etapaFinal
+                ? $"Raid finalizada! Todos os {totalEtapas} portões foram superados.{textoLoot}"
+                : $"Portão {etapaConcluida} de {totalEtapas} superado!{textoLoot} Próximo portão liberado!";
+        }
     }
 }

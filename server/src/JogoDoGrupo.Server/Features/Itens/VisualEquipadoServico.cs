@@ -70,7 +70,7 @@ public sealed class VisualEquipadoServico(
                 }
 
                 var visual = await LerAsync(db, outroId);
-                if (visual.Armas.Length > 0)
+                if (visual.Armas.Length > 0 || visual.Armaduras.Length > 0)
                 {
                     tempoReal.Enviar(novo, ItensMessageIds.VisualEquipado, visual);
                 }

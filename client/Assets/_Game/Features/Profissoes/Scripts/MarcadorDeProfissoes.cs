@@ -14,9 +14,9 @@ namespace JogoDoGrupo.Client.Features.Profissoes
             var raiz = new GameObject("Coleta." + ponto.Nome + "." + ponto.Id);
             raiz.transform.position = posicao;
 
-            switch (ponto.Profissao)
+            switch (ponto.MaterialId)
             {
-                case Profissao.Lenhador:
+                case ConfigProfissoes.MaterialMadeira:
                     Parte(
                         raiz,
                         PrimitiveType.Cylinder,
@@ -32,7 +32,55 @@ namespace JogoDoGrupo.Client.Features.Profissoes
                         new Color(0.20f, 0.50f, 0.22f)
                     );
                     break;
-                case Profissao.Minerador:
+                case ConfigProfissoes.MaterialErvaMedicinal:
+                    Parte(
+                        raiz,
+                        PrimitiveType.Sphere,
+                        new Vector3(1.2f, 0.8f, 1.2f),
+                        new Vector3(0f, 0.4f, 0f),
+                        new Color(0.25f, 0.65f, 0.35f)
+                    );
+                    Parte(
+                        raiz,
+                        PrimitiveType.Sphere,
+                        new Vector3(0.4f, 0.4f, 0.4f),
+                        new Vector3(0.2f, 0.8f, 0.1f),
+                        new Color(0.85f, 0.45f, 0.80f)
+                    );
+                    break;
+                case ConfigProfissoes.MaterialGraos:
+                    Parte(
+                        raiz,
+                        PrimitiveType.Cylinder,
+                        new Vector3(0.3f, 0.9f, 0.3f),
+                        new Vector3(-0.2f, 0.45f, 0f),
+                        new Color(0.88f, 0.75f, 0.30f)
+                    );
+                    Parte(
+                        raiz,
+                        PrimitiveType.Cylinder,
+                        new Vector3(0.3f, 0.9f, 0.3f),
+                        new Vector3(0.2f, 0.45f, 0f),
+                        new Color(0.92f, 0.80f, 0.35f)
+                    );
+                    break;
+                case ConfigProfissoes.MaterialCristalArcano:
+                    Parte(
+                        raiz,
+                        PrimitiveType.Cube,
+                        new Vector3(0.6f, 1.4f, 0.6f),
+                        new Vector3(0f, 0.7f, 0f),
+                        new Color(0.25f, 0.75f, 0.95f)
+                    );
+                    Parte(
+                        raiz,
+                        PrimitiveType.Cube,
+                        new Vector3(0.4f, 0.9f, 0.4f),
+                        new Vector3(0.3f, 0.45f, 0.2f),
+                        new Color(0.70f, 0.40f, 0.95f)
+                    );
+                    break;
+                case ConfigProfissoes.MaterialMinerioDeFerro:
                     Parte(
                         raiz,
                         PrimitiveType.Sphere,
@@ -46,6 +94,22 @@ namespace JogoDoGrupo.Client.Features.Profissoes
                         new Vector3(0.6f, 0.5f, 0.6f),
                         new Vector3(0.5f, 1.0f, 0.2f),
                         new Color(0.80f, 0.50f, 0.25f)
+                    );
+                    break;
+                case ConfigProfissoes.MaterialCarneDeCaca:
+                    Parte(
+                        raiz,
+                        PrimitiveType.Cube,
+                        new Vector3(1.0f, 0.3f, 0.7f),
+                        new Vector3(0f, 0.15f, 0f),
+                        new Color(0.60f, 0.25f, 0.20f)
+                    );
+                    Parte(
+                        raiz,
+                        PrimitiveType.Cylinder,
+                        new Vector3(0.2f, 0.6f, 0.2f),
+                        new Vector3(0.2f, 0.4f, 0.1f),
+                        new Color(0.85f, 0.85f, 0.80f)
                     );
                     break;
                 default:
@@ -87,6 +151,69 @@ namespace JogoDoGrupo.Client.Features.Profissoes
                 new Vector3(0.45f, 0.3f, 0.45f),
                 new Vector3(0.9f, 0.2f, 0f),
                 new Color(0.95f, 0.45f, 0.15f)
+            );
+            return raiz;
+        }
+
+        public static GameObject CriarCurtume(Vector3 posicao)
+        {
+            var raiz = new GameObject("Profissoes.Curtume");
+            raiz.transform.position = posicao;
+            Parte(
+                raiz,
+                PrimitiveType.Cube,
+                new Vector3(1.4f, 0.8f, 0.8f),
+                new Vector3(0f, 0.4f, 0f),
+                new Color(0.48f, 0.32f, 0.18f)
+            );
+            Parte(
+                raiz,
+                PrimitiveType.Cube,
+                new Vector3(1.6f, 0.15f, 1.0f),
+                new Vector3(0f, 0.85f, 0f),
+                new Color(0.62f, 0.45f, 0.28f)
+            );
+            return raiz;
+        }
+
+        public static GameObject CriarCaldeirao(Vector3 posicao)
+        {
+            var raiz = new GameObject("Profissoes.Caldeirao");
+            raiz.transform.position = posicao;
+            Parte(
+                raiz,
+                PrimitiveType.Cylinder,
+                new Vector3(1.0f, 0.6f, 1.0f),
+                new Vector3(0f, 0.35f, 0f),
+                new Color(0.20f, 0.22f, 0.25f)
+            );
+            Parte(
+                raiz,
+                PrimitiveType.Sphere,
+                new Vector3(0.8f, 0.3f, 0.8f),
+                new Vector3(0f, 0.65f, 0f),
+                new Color(0.25f, 0.85f, 0.70f)
+            );
+            return raiz;
+        }
+
+        public static GameObject CriarCozinha(Vector3 posicao)
+        {
+            var raiz = new GameObject("Profissoes.Cozinha");
+            raiz.transform.position = posicao;
+            Parte(
+                raiz,
+                PrimitiveType.Cube,
+                new Vector3(1.4f, 0.8f, 0.9f),
+                new Vector3(0f, 0.4f, 0f),
+                new Color(0.65f, 0.60f, 0.55f)
+            );
+            Parte(
+                raiz,
+                PrimitiveType.Cylinder,
+                new Vector3(0.6f, 0.3f, 0.6f),
+                new Vector3(0.2f, 0.95f, 0f),
+                new Color(0.85f, 0.45f, 0.20f)
             );
             return raiz;
         }
