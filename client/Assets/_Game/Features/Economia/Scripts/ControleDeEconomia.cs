@@ -37,6 +37,18 @@ namespace JogoDoGrupo.Client.Features.Economia
 
         public static event Action BancoGuildaMudou;
 
+        /// <summary>O último estado do correio (#212) enviado pelo servidor.</summary>
+        public static EstadoDoCorreio Correio { get; private set; }
+
+        /// <summary>Detalhes da carta atualmente aberta e inspecionada.</summary>
+        public static DetalhesDaCarta CartaAberta { get; private set; }
+
+        public static event Action CorreioMudou;
+        public static event Action CartaAbertaMudou;
+        public static event Action<CartaEnviada> CartaEnviada;
+        public static event Action<AnexosColetados> AnexosColetados;
+        public static event Action<CartaExcluida> CartaExcluida;
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void Reiniciar()
         {
@@ -51,6 +63,13 @@ namespace JogoDoGrupo.Client.Features.Economia
             MercadoMudou = null;
             BancoGuilda = null;
             BancoGuildaMudou = null;
+            Correio = null;
+            CartaAberta = null;
+            CorreioMudou = null;
+            CartaAbertaMudou = null;
+            CartaEnviada = null;
+            AnexosColetados = null;
+            CartaExcluida = null;
         }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
@@ -138,6 +157,42 @@ namespace JogoDoGrupo.Client.Features.Economia
                 ConexaoTempoReal.Assinar<AvisoBancoGuilda>(
                     EconomiaMessageIds.AvisoBancoGuilda,
                     AoAvisoBancoGuilda
+                )
+            );
+            _assinaturas.Add(
+                ConexaoTempoReal.Assinar<EstadoDoCorreio>(
+                    EconomiaMessageIds.EstadoDoCorreio,
+                    AoEstadoDoCorreio
+                )
+            );
+            _assinaturas.Add(
+                ConexaoTempoReal.Assinar<DetalhesDaCarta>(
+                    EconomiaMessageIds.DetalhesDaCarta,
+                    AoDetalhesDaCarta
+                )
+            );
+            _assinaturas.Add(
+                ConexaoTempoReal.Assinar<CartaEnviada>(
+                    EconomiaMessageIds.CartaEnviada,
+                    AoCartaEnviada
+                )
+            );
+            _assinaturas.Add(
+                ConexaoTempoReal.Assinar<AnexosColetados>(
+                    EconomiaMessageIds.AnexosColetados,
+                    AoAnexosColetados
+                )
+            );
+            _assinaturas.Add(
+                ConexaoTempoReal.Assinar<CartaExcluida>(
+                    EconomiaMessageIds.CartaExcluida,
+                    AoCartaExcluida
+                )
+            );
+            _assinaturas.Add(
+                ConexaoTempoReal.Assinar<AvisoNovoCorreio>(
+                    EconomiaMessageIds.AvisoNovoCorreio,
+                    AoAvisoNovoCorreio
                 )
             );
         }
@@ -343,6 +398,111 @@ namespace JogoDoGrupo.Client.Features.Economia
         private void AoRecusado(EconomiaRecusada msg)
         {
             OperacaoRecusada?.Invoke(msg.Motivo);
+        }
+
+        public static void ConsultarCorreio()
+        {
+            ConexaoTempoReal.Enviar(EconomiaMessageIds.ConsultarCorreio, new ConsultarCorreio());
+        }
+
+        public static void LerCarta(long cartaId)
+        {
+            ConexaoTempoReal.Enviar(
+                EconomiaMessageIds.LerCarta,
+                new LerCarta { CartaId = cartaId }
+            );
+        }
+
+        public static void EnviarCarta(
+            string destinatario,
+            string assunto,
+            string mensagem,
+            long coroas,
+            long[] itensInstancias
+        )
+        {
+            ConexaoTempoReal.Enviar(
+                EconomiaMessageIds.EnviarCarta,
+                new EnviarCarta
+                {
+                    Destinatario = destinatario,
+                    Assunto = assunto,
+                    Mensagem = mensagem,
+                    Coroas = coroas,
+                    InstanciasItens = itensInstancias ?? Array.Empty<long>(),
+                }
+            );
+        }
+
+        public static void ColetarAnexos(long cartaId)
+        {
+            ConexaoTempoReal.Enviar(
+                EconomiaMessageIds.ColetarAnexos,
+                new ColetarAnexos { CartaId = cartaId }
+            );
+        }
+
+        public static void ExcluirCarta(long cartaId)
+        {
+            ConexaoTempoReal.Enviar(
+                EconomiaMessageIds.ExcluirCarta,
+                new ExcluirCarta { CartaId = cartaId }
+            );
+        }
+
+        private void AoEstadoDoCorreio(EstadoDoCorreio msg)
+        {
+            Correio = msg;
+            CorreioMudou?.Invoke();
+        }
+
+        private void AoDetalhesDaCarta(DetalhesDaCarta msg)
+        {
+            CartaAberta = msg;
+            CartaAbertaMudou?.Invoke();
+        }
+
+        private void AoCartaEnviada(CartaEnviada msg)
+        {
+            CartaEnviada?.Invoke(msg);
+            ConsultarSaldo();
+            ConsultarCorreio();
+            AvisosDoJogo.Mostrar("Carta enviada com sucesso!", TipoDeAviso.Informacao);
+        }
+
+        private void AoAnexosColetados(AnexosColetados msg)
+        {
+            AnexosColetados?.Invoke(msg);
+            ConsultarSaldo();
+            ConsultarCorreio();
+            if (CartaAberta != null && CartaAberta.Id == msg.CartaId)
+            {
+                CartaAberta.AnexosColetados = true;
+                CartaAberta.Coroas = 0;
+                CartaAberta.Itens = Array.Empty<AnexoItemCorreio>();
+                CartaAbertaMudou?.Invoke();
+            }
+            AvisosDoJogo.Mostrar("Anexos recolhidos para a sua bolsa!", TipoDeAviso.Informacao);
+        }
+
+        private void AoCartaExcluida(CartaExcluida msg)
+        {
+            CartaExcluida?.Invoke(msg);
+            if (CartaAberta != null && CartaAberta.Id == msg.CartaId)
+            {
+                CartaAberta = null;
+                CartaAbertaMudou?.Invoke();
+            }
+            ConsultarCorreio();
+        }
+
+        private void AoAvisoNovoCorreio(AvisoNovoCorreio msg)
+        {
+            AvisosDoJogo.Mostrar(
+                $"Novo correio de {msg.Remetente}: {msg.Assunto}",
+                TipoDeAviso.Informacao
+            );
+            ConsultarCorreio();
         }
     }
 }

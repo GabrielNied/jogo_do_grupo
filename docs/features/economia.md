@@ -154,6 +154,33 @@ Entregue na [#338](https://github.com/GabrielNied/jogo_do_grupo/issues/338), con
 - **Interface e Interação:**
   - Acessado pelo marcador "Cofre da Guilda" na cidade (`MarcadorNpcEconomia.BancoGuilda`). Abre a `JanelaBancoGuilda` exibindo saldo do cofre, lista de itens com autor do depósito e controles de retirada bloqueados para membros sem permissão.
 
+### Correio entre jogadores (#212)
+
+Entregue na [#212](https://github.com/GabrielNied/jogo_do_grupo/issues/212), permitindo o envio de mensagens, coroas e itens para jogadores mesmo que estejam offline:
+
+| Constante | Valor | Observação |
+|---|---|---|
+| `TaxaEnvioCoroas` | 5 | taxa cobrada ao enviar uma carta (saída de moeda) |
+| `MaximoItensAnexados` | 5 | limite de itens anexados por mensagem |
+| `DiasParaExpirar` | 30 | validade da carta na caixa postal antes de expirar |
+| `CorreioX` / `CorreioZ` | -3 / -14 | localização da Caixa de Correio em Brasa Mansa |
+| `RaioInteracaoMetros` | 4 m | distância máxima para consultar ou enviar cartas |
+
+- **Envio e Custódia:**
+  - O remetente informa o nome do destinatário (resolvido por `IDiretorioDePersonagens`), assunto, mensagem e pode anexar até 5 itens e quantia de coroas.
+  - A taxa de envio (5 coroas) e os anexos (coroas e itens) são debitados atomicamente da carteira e do inventário do remetente, ficando sob custódia segura do servidor nas tabelas `CartasCorreio` e `AnexosItensCorreio`.
+- **Recebimento e Coleta:**
+  - O destinatário recebe notificação em tempo real (`AvisoNovoCorreio`) se estiver online, ou encontra as mensagens na caixa de entrada ao consultar o correio.
+  - Abrir a carta marca como lida (`DataLeitura`).
+  - Coletar anexos credita as coroas na carteira e transfere os itens anexados para o inventário do destinatário. Se o inventário estiver cheio, a transação falha com `CodigosErroItens.InventarioCheio` e nenhum item ou coroa é perdido.
+- **Proteção contra Exclusão e Expiração:**
+  - Cartas com anexos pendentes não podem ser excluídas pelo destinatário (`CodigosErroEconomia.CartaComAnexos`).
+  - Após 30 dias sem leitura ou coleta, a carta expira: a rotina `VarreduraDoCorreio` (executada em segundo plano no servidor) processa a expiração e, caso haja anexos não coletados, gera uma carta de devolução automática para o remetente original.
+- **Mensagens (faixa 9200–9210):**
+  - `ConsultarCorreio` (9200), `EstadoDoCorreio` (9201), `LerCarta` (9202), `EnviarCarta` (9203), `ColetarAnexos` (9204), `ExcluirCarta` (9205) e `AvisoNovoCorreio` (9206).
+- **Interface e Interação:**
+  - Interação com a Caixa de Correio na cidade (`MarcadorNpcEconomia.Correio`) abre a `JanelaCorreio` no client, com abas de Caixa de Entrada e Enviar Carta.
+
 
 ### Proposta do board (2026-10-11, não validada)
 

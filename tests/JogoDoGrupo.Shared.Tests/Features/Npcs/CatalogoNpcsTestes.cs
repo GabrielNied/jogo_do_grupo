@@ -11,7 +11,7 @@ public class CatalogoNpcsTestes
     {
         Assert.NotEmpty(CatalogoNpcs.Todos);
         var cidadeNpcs = CatalogoNpcs.PorArea(CatalogoNpcs.AreaCidade);
-        Assert.Equal(9, cidadeNpcs.Length);
+        Assert.Equal(15, cidadeNpcs.Length);
 
         var vendedor = CatalogoNpcs.Obter(CatalogoNpcs.IdVendedor);
         Assert.NotNull(vendedor);
@@ -57,6 +57,36 @@ public class CatalogoNpcsTestes
         Assert.NotNull(cuidador);
         Assert.Equal("Cuidadora Mirna", cuidador.Nome);
         Assert.Equal(PapelNpc.CuidadorDePets, cuidador.Papel);
+
+        var leiloeiro = CatalogoNpcs.Obter(CatalogoNpcs.IdLeiloeiro);
+        Assert.NotNull(leiloeiro);
+        Assert.Equal("Leiloeiro Dumas", leiloeiro.Nome);
+        Assert.Equal(PapelNpc.Leiloeiro, leiloeiro.Papel);
+
+        var valeria = CatalogoNpcs.Obter(CatalogoNpcs.IdValeria);
+        Assert.NotNull(valeria);
+        Assert.Equal("Capitã Valéria", valeria.Nome);
+        Assert.Equal(PapelNpc.Guarda, valeria.Papel);
+
+        var guardaNorte = CatalogoNpcs.Obter(CatalogoNpcs.IdGuardaNorte);
+        Assert.NotNull(guardaNorte);
+        Assert.Equal("Guarda Kael", guardaNorte.Nome);
+        Assert.Equal(PapelNpc.Guarda, guardaNorte.Papel);
+
+        var quadro = CatalogoNpcs.Obter(CatalogoNpcs.IdQuadroDeDiarias);
+        Assert.NotNull(quadro);
+        Assert.Equal("Quadro de Diárias", quadro.Nome);
+        Assert.Equal(PapelNpc.DadorDeMissao, quadro.Papel);
+
+        var elric = CatalogoNpcs.Obter(CatalogoNpcs.IdMoradorElric);
+        Assert.NotNull(elric);
+        Assert.Equal("Morador Elric", elric.Nome);
+        Assert.Equal(PapelNpc.Morador, elric.Papel);
+
+        var lyra = CatalogoNpcs.Obter(CatalogoNpcs.IdMoradoraLyra);
+        Assert.NotNull(lyra);
+        Assert.Equal("Moradora Lyra", lyra.Nome);
+        Assert.Equal(PapelNpc.Morador, lyra.Papel);
     }
 
     [Fact]
@@ -80,7 +110,7 @@ public class CatalogoNpcsTestes
         Assert.NotNull(vendedor);
         Assert.Equal(CatalogoNpcs.IdVendedor, vendedor.Id);
 
-        var inexistente = CatalogoNpcs.PorPapel(PapelNpc.DadorDeMissao);
+        var inexistente = CatalogoNpcs.PorPapel(PapelNpc.Estalajadeiro);
         Assert.Null(inexistente);
     }
 

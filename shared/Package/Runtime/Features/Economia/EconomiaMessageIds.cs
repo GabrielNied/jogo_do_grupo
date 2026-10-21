@@ -114,5 +114,40 @@ namespace JogoDoGrupo.Shared.Features.Economia
 
         /// <summary>Servidor → client: aviso ou evento sobre o banco da guilda.</summary>
         public const ushort AvisoBancoGuilda = 9226;
+
+        // ── Correio entre jogadores (#212): 9200 a 9215 ──────────────────────────
+
+        /// <summary>Client → servidor: consulta as cartas da caixa de correio.</summary>
+        public const ushort ConsultarCorreio = 9200;
+
+        /// <summary>Servidor → client: lista resumida de cartas do personagem.</summary>
+        public const ushort EstadoDoCorreio = 9201;
+
+        /// <summary>Client → servidor: pede a leitura detalhada de uma carta.</summary>
+        public const ushort LerCarta = 9202;
+
+        /// <summary>Servidor → client: detalhes completos da carta e seus anexos.</summary>
+        public const ushort DetalhesDaCarta = 9203;
+
+        /// <summary>Client → servidor: envia uma carta com coroas e itens.</summary>
+        public const ushort EnviarCarta = 9204;
+
+        /// <summary>Servidor → client: notifica carta enviada com sucesso.</summary>
+        public const ushort CartaEnviada = 9205;
+
+        /// <summary>Client → servidor: coleta anexos (coroas e itens) da carta.</summary>
+        public const ushort ColetarAnexos = 9206;
+
+        /// <summary>Servidor → client: notifica anexos coletados com sucesso.</summary>
+        public const ushort AnexosColetados = 9207;
+
+        /// <summary>Client → servidor: exclui uma carta sem anexos.</summary>
+        public const ushort ExcluirCarta = 9208;
+
+        /// <summary>Servidor → client: notifica carta excluída com sucesso.</summary>
+        public const ushort CartaExcluida = 9209;
+
+        /// <summary>Servidor → client: aviso de que uma nova carta foi recebida.</summary>
+        public const ushort AvisoNovoCorreio = 9210;
     }
 }

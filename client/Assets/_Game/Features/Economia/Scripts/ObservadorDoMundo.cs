@@ -99,6 +99,8 @@ namespace JogoDoGrupo.Client.Features.Economia
                 posBancoGuilda,
                 TipoNpcEconomia.BancoGuilda
             );
+            var posCorreio = PosicaoNoChao(MarcadorNpcEconomia.Posicao(TipoNpcEconomia.Correio, y));
+            var correio = MarcadorNpcEconomia.Criar(posCorreio, TipoNpcEconomia.Correio);
 
             SceneManager.MoveGameObjectToScene(ferreiro, cena);
             SceneManager.MoveGameObjectToScene(armeiro, cena);
@@ -107,6 +109,7 @@ namespace JogoDoGrupo.Client.Features.Economia
             SceneManager.MoveGameObjectToScene(merceeiro, cena);
             SceneManager.MoveGameObjectToScene(leiloeiro, cena);
             SceneManager.MoveGameObjectToScene(bancoGuilda, cena);
+            SceneManager.MoveGameObjectToScene(correio, cena);
 
             ferreiro.transform.SetParent(raiz.transform, true);
             armeiro.transform.SetParent(raiz.transform, true);
@@ -115,6 +118,7 @@ namespace JogoDoGrupo.Client.Features.Economia
             merceeiro.transform.SetParent(raiz.transform, true);
             leiloeiro.transform.SetParent(raiz.transform, true);
             bancoGuilda.transform.SetParent(raiz.transform, true);
+            correio.transform.SetParent(raiz.transform, true);
 
             var documento = raiz.AddComponent<UIDocument>();
             documento.panelSettings = EstiloCore.CriarConfiguracaoDoPainel("PainelEconomia", -1f);
@@ -165,6 +169,11 @@ namespace JogoDoGrupo.Client.Features.Economia
                     bancoGuilda.transform,
                     "abrir o banco da guilda",
                     UI.JanelaBancoGuilda.Chave
+                ),
+                new PontoInteracaoEconomia(
+                    correio.transform,
+                    "abrir o correio",
+                    UI.JanelaCorreio.Chave
                 )
             );
         }

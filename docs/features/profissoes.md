@@ -1,7 +1,7 @@
 # Profissões
 
 **Responsável:**
-**Status:** primeira entrega jogável (coleta e Ferreiro); demais profissões na #335
+**Status:** todas as seis profissões jogáveis e integradas (coleta e produção) (#192, #335)
 **Faixa de IDs de mensagem:** 8000–8999
 
 ## Resumo
@@ -22,18 +22,24 @@ Craft e coleta, conectados à economia.
 - [x] ~~Quais profissões existem, e quantas por personagem?~~ Decidido em 2026-10-12: as seis, todas no mesmo personagem.
 - [x] ~~Saciedade~~, receitas e a forja da cidade continuam proposta do board (abaixo). Saciedade saiu em 2026-10-16: comida só dá buff. Receitas do board **adotadas** como roteiro em 2026-10-16 (quiz 3); detalhes na seção Proposta abaixo.
 
-## Primeira entrega jogável (#192, 2026-10-19)
+## Entregas jogáveis (#192, #335, 2026-10-19)
 
-Decisões de design do dono da issue, onde a doc não fechava. Valores iniciais de teste em `ConfigProfissoes` (shared); o balanceamento final e as outras duas profissões são da [#335](https://github.com/GabrielNied/jogo_do_grupo/issues/335).
+As seis profissões completas e integradas em `ConfigProfissoes` (shared), com regras no servidor e marcadores/janela no client:
 
-- **Aprender:** de graça e na hora, na janela da **forja da cidade** (E no marcador, rua oeste, perto do ferreiro). Pode aprender as quatro que existem hoje (Lenhador, Minerador, Curtidor, Ferreiro), sem limite; Alquimista e Cozinheiro aparecem como "Em breve". Sem nível, sem XP (coleta e craft não dão XP).
-- **Coleta:** seis pontos no **campo ao norte do portão** (duas árvores, dois veios de ferro, duas carcaças), tecla **E** a até 3 m (o servidor aceita 4 m). Exige a profissão do ponto. Cada coleta rende 2 do material e o ponto some para todos por **60 s**; quem chega primeiro leva, decidido no servidor por uma trava (dois pedidos juntos: um leva, o outro recebe `NoEsgotado`). O estado dos pontos é por área (cada canal da cidade tem os seus) e fica só na memória: reiniciar o servidor devolve todos.
-- **Materiais são saldo por personagem**, fora da bolsa (Madeira, Minério de ferro, Couro cru), como os [materiais de fusão](itens.md) (MAT-001): a bolsa é 1×1 e não empilha, e isso é invariante de Itens.
-- **Produção (Ferreiro), na forja:** Espada (4 minério, 2 madeira), Escudo (3 minério, 1 madeira, 2 couro) e Peitoral do Vigia (3 minério, 3 couro). Entrega um equipamento real do catálogo no nível +0, pelo mesmo caminho da loja (`IInventarioEconomia`); atributos sorteados como no loot comum. Gasto de material e item gravados na mesma transação: sem material ou com a bolsa cheia, nada muda. O jogador equipa pelo inventário (I).
-- **Mensagens (8000–8009):** `ConsultarProfissoes`/`EstadoDasProfissoes`, `AprenderProfissao`, `ColetarNo`/`ColetaConcluida`, `ProduzirReceita`/`ProducaoConcluida`, `ProfissoesRecusada` (código em `CodigosErroProfissoes`, sem efeito) e `ConsultarNos`/`EstadoDosNos` (pontos esgotados e segundos para voltar; o client os esconde e consulta a cada 15 s).
-- **Persistência:** `ProfissoesAprendidas` e `SaldosMateriaisProfissao` (quantidade nunca negativa).
-- **No jogo:** pontos e forja são marcadores procedurais até haver modelo; a janela segue a Lumora UI v1. A dica de E mostra "requer <profissão>" para quem ainda não aprendeu.
-- **Fora desta entrega:** Alquimista, Cozinheiro e o buff de comida, forja de fusão, receitas que atravessam níveis e nível de profissão ([#335](https://github.com/GabrielNied/jogo_do_grupo/issues/335)).
+- **Aprender:** de graça e na hora na oficina da cidade (rua oeste, polo de produção). O personagem pode aprender todas as 6 profissões sem limite (Lenhador, Minerador, Curtidor, Ferreiro, Alquimista, Cozinheiro). Sem nível, sem XP (coleta e craft não dão XP).
+- **Coleta (14 pontos):** no campo ao norte do portão da cidade, tecla **E** a até 3 m (o servidor aceita 4 m). Exige a profissão correspondente. Cada coleta rende 2 do material e o ponto esgota por **60 s** com trava atômica no servidor.
+  - *Lenhador:* Árvores (Madeira), Arbustos medicinais (Erva medicinal), Plantações (Grãos).
+  - *Minerador:* Veios de ferro (Minério de ferro), Geodos arcanos (Cristal arcano).
+  - *Curtidor:* Carcaças (Couro cru), Rastros de caça (Carne de caça).
+- **Materiais como saldo por personagem:** 7 materiais guardados fora da bolsa (Madeira, Minério de ferro, Couro cru, Erva medicinal, Cristal arcano, Grãos, Carne de caça), compatível com MAT-001 (a bolsa é 1×1 e não empilha).
+- **Produção (15 receitas) nas estações da cidade:**
+  - *Ferreiro (Forja: X=-14, Z=-11):* Espada Ressonante (173), Escudo Ressonante (176), Peitoral do Vigia (102), Martelo Ressonante (100).
+  - *Curtidor (Curtume: X=-14, Z=-8):* Colete do Predador (111), Luvas do Predador (112), Botas do Predador (114), Capuz do Predador (110).
+  - *Alquimista (Caldeirão: X=-12, Z=-8):* Foco Ressonante (177), Anel da Aurora (125), Brinco da Aurora (126), Manto da Aurora (120).
+  - *Cozinheiro (Cozinha: X=-10, Z=-8):* Caldo dos Errantes (buff de 30 min), Assado de Galhada (buff de 45 min), Ensopado da Fornalha (buff de 60 min), respeitando a regra de uma comida ativa por vez.
+- **Transação:** gasto de materiais e adição à bolsa executados na mesma transação atômica serializável (`IInventarioEconomia`).
+- **Mensagens (8000–8009):** `ConsultarProfissoes`/`EstadoDasProfissoes`, `AprenderProfissao`, `ColetarNo`/`ColetaConcluida`, `ProduzirReceita`/`ProducaoConcluida`, `ProfissoesRecusada`, `ConsultarNos`/`EstadoDosNos`.
+- **Persistência:** `ProfissoesAprendidas` e `SaldosMateriaisProfissao`.
 
 ## Regras
 

@@ -71,6 +71,7 @@ namespace JogoDoGrupo.Client.Features.Instancias
             }
 
             _estado.EntradaRecusada += AoRecusar;
+            _estado.EtapaConcluida += AoEtapaConcluida;
             _estado.ChefeDerrotado += AoChefeDerrotado;
             _estado.DungeonEncerrada += AoEncerrar;
         }
@@ -90,6 +91,7 @@ namespace JogoDoGrupo.Client.Features.Instancias
             if (_estado != null)
             {
                 _estado.EntradaRecusada -= AoRecusar;
+                _estado.EtapaConcluida -= AoEtapaConcluida;
                 _estado.ChefeDerrotado -= AoChefeDerrotado;
                 _estado.DungeonEncerrada -= AoEncerrar;
             }
@@ -104,6 +106,17 @@ namespace JogoDoGrupo.Client.Features.Instancias
 
         private static void AoRecusar(EntradaRecusada recusa) =>
             AvisosDoJogo.Mostrar(TextosInstancias.Recusa(recusa.Codigo), TipoDeAviso.Aviso);
+
+        private static void AoEtapaConcluida(EtapaRaidConcluida etapa) =>
+            AvisosDoJogo.Mostrar(
+                TextosInstancias.EtapaRaid(
+                    etapa.EtapaConcluida,
+                    etapa.TotalEtapas,
+                    etapa.EtapaFinal,
+                    etapa.GanhouLootSemanal
+                ),
+                TipoDeAviso.Informacao
+            );
 
         private static void AoChefeDerrotado(ChefeDerrotadoNaDungeon _) =>
             AvisosDoJogo.Mostrar(
@@ -130,8 +143,16 @@ namespace JogoDoGrupo.Client.Features.Instancias
                         Mathf.CeilToInt((float)_estado.SegundosRestantesNoCronometro)
                     );
                     var tempoStr = TextosInstancias.FormatarTempo(restantes);
-                    _indicadorDungeon.text =
-                        $"🏰 {TextosInstancias.NomeDaDungeon} (Nível {_estado.NivelAtual}) | ⏱️ {tempoStr}";
+                    if (_estado.EhRaid)
+                    {
+                        _indicadorDungeon.text =
+                            $"⚔️ Raid 10 — Portão {_estado.EtapaAtual}/{_estado.TotalEtapas} | ⏱️ {tempoStr}";
+                    }
+                    else
+                    {
+                        _indicadorDungeon.text =
+                            $"🏰 {TextosInstancias.NomeDaDungeon} (Nível {_estado.NivelAtual}) | ⏱️ {tempoStr}";
+                    }
                 }
                 else
                 {

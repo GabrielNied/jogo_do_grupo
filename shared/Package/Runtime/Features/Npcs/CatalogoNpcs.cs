@@ -20,6 +20,12 @@ namespace JogoDoGrupo.Shared.Features.Npcs
         public const int IdMerceeiro = 7;
         public const int IdCavalarico = 8;
         public const int IdCuidadorDePets = 9;
+        public const int IdLeiloeiro = 10;
+        public const int IdValeria = 11;
+        public const int IdGuardaNorte = 12;
+        public const int IdQuadroDeDiarias = 13;
+        public const int IdMoradorElric = 14;
+        public const int IdMoradoraLyra = 15;
 
         public static readonly DefinicaoNpc Vendedor = new DefinicaoNpc(
             id: IdVendedor,
@@ -129,6 +135,78 @@ namespace JogoDoGrupo.Shared.Features.Npcs
             raioInteracao: 4f
         );
 
+        public static readonly DefinicaoNpc Leiloeiro = new DefinicaoNpc(
+            id: IdLeiloeiro,
+            nome: "Leiloeiro Dumas",
+            papel: PapelNpc.Leiloeiro,
+            area: AreaCidade,
+            x: 4f,
+            y: 0f,
+            z: -14f,
+            rotacaoY: 0f,
+            raioInteracao: 4f
+        );
+
+        public static readonly DefinicaoNpc Valeria = new DefinicaoNpc(
+            id: IdValeria,
+            nome: "Capitã Valéria",
+            papel: PapelNpc.Guarda,
+            area: AreaCidade,
+            x: 0f,
+            y: 0f,
+            z: -32f,
+            rotacaoY: 0f,
+            raioInteracao: 4f
+        );
+
+        public static readonly DefinicaoNpc GuardaNorte = new DefinicaoNpc(
+            id: IdGuardaNorte,
+            nome: "Guarda Kael",
+            papel: PapelNpc.Guarda,
+            area: AreaCidade,
+            x: -2f,
+            y: 0f,
+            z: 32f,
+            rotacaoY: 180f,
+            raioInteracao: 4f
+        );
+
+        public static readonly DefinicaoNpc QuadroDeDiarias = new DefinicaoNpc(
+            id: IdQuadroDeDiarias,
+            nome: "Quadro de Diárias",
+            papel: PapelNpc.DadorDeMissao,
+            area: AreaCidade,
+            x: 4f,
+            y: 0f,
+            z: 4f,
+            rotacaoY: 225f,
+            raioInteracao: 4f
+        );
+
+        public static readonly DefinicaoNpc MoradorElric = new DefinicaoNpc(
+            id: IdMoradorElric,
+            nome: "Morador Elric",
+            papel: PapelNpc.Morador,
+            area: AreaCidade,
+            x: 16f,
+            y: 0f,
+            z: 12f,
+            rotacaoY: 270f,
+            raioInteracao: 4f
+        );
+
+        public static readonly DefinicaoNpc MoradoraLyra = new DefinicaoNpc(
+            id: IdMoradoraLyra,
+            nome: "Moradora Lyra",
+            papel: PapelNpc.Morador,
+            area: AreaCidade,
+            x: -10f,
+            y: 0f,
+            z: -14f,
+            rotacaoY: 90f,
+            raioInteracao: 4f
+        );
+
         public static readonly DefinicaoNpc[] Todos =
         {
             Vendedor,
@@ -140,6 +218,12 @@ namespace JogoDoGrupo.Shared.Features.Npcs
             Merceeiro,
             Cavalarico,
             CuidadorDePets,
+            Leiloeiro,
+            Valeria,
+            GuardaNorte,
+            QuadroDeDiarias,
+            MoradorElric,
+            MoradoraLyra,
         };
 
         private static readonly Dictionary<int, DefinicaoNpc> _porId = new Dictionary<
@@ -156,6 +240,12 @@ namespace JogoDoGrupo.Shared.Features.Npcs
             { IdMerceeiro, Merceeiro },
             { IdCavalarico, Cavalarico },
             { IdCuidadorDePets, CuidadorDePets },
+            { IdLeiloeiro, Leiloeiro },
+            { IdValeria, Valeria },
+            { IdGuardaNorte, GuardaNorte },
+            { IdQuadroDeDiarias, QuadroDeDiarias },
+            { IdMoradorElric, MoradorElric },
+            { IdMoradoraLyra, MoradoraLyra },
         };
 
         public static DefinicaoNpc Obter(int id)

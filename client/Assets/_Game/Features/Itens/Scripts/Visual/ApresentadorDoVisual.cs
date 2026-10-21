@@ -11,12 +11,20 @@ namespace JogoDoGrupo.Client.Features.Itens.Visual
         public TierItem Tier = TierItem.D;
     }
 
+    /// <summary>Marca a peça de armadura que a Itens pôs num avatar (para tirar na próxima troca).</summary>
+    public sealed class ArmaduraNoAvatar : MonoBehaviour
+    {
+        public PosicaoEquipamento Posicao;
+        public EncaixeDoVisual Encaixe;
+        public TierItem Tier = TierItem.D;
+    }
+
     /// <summary>
-    /// Põe, troca e tira os modelos de arma no corpo de um avatar, a partir do estado inteiro que o
-    /// servidor mandou (<see cref="VisualEquipado"/>). O encaixe é achado pelo nome no visual do
-    /// personagem (<see cref="RegrasVisualEquipado.NomeDoEncaixe"/>, criados pelo gerador do
-    /// Personagem). Avatar sem encaixe (a cápsula dos outros jogadores, por enquanto) ganha um
-    /// encaixe criado aqui, preso ao objeto raiz, na altura do peito.
+    /// Põe, troca e tira os modelos de arma e armadura no corpo de um avatar, a partir do estado
+    /// inteiro que o servidor mandou (<see cref="VisualEquipado"/>). O encaixe é achado pelo nome
+    /// no visual do personagem (<see cref="RegrasVisualEquipado.NomeDoEncaixe"/>, criados pelo
+    /// gerador do Personagem). Avatar sem encaixe (a cápsula dos outros jogadores, por enquanto)
+    /// ganha um encaixe criado aqui, preso ao objeto raiz.
     /// </summary>
     public static class ApresentadorDoVisual
     {
@@ -24,6 +32,10 @@ namespace JogoDoGrupo.Client.Features.Itens.Visual
         public static readonly Vector3 MaoDireitaNaRaiz = new Vector3(0.45f, 0.95f, 0.15f);
 
         public static readonly Vector3 CostasNaRaiz = new Vector3(0f, 1.25f, -0.3f);
+
+        public static readonly Vector3 CabecaNaRaiz = new Vector3(0f, 1.65f, 0f);
+
+        public static readonly Vector3 TroncoNaRaiz = new Vector3(0f, 1.15f, 0f);
 
         /// <summary>
         /// Giro do modelo nas costas, em graus no eixo Z do encaixe: a arma fica na diagonal, não
@@ -41,43 +53,84 @@ namespace JogoDoGrupo.Client.Features.Itens.Visual
 
             Limpar(avatar);
             var postos = 0;
-            if (visual?.Armas == null)
+            if (visual == null)
             {
                 return 0;
             }
 
-            foreach (var arma in visual.Armas)
+            if (visual.Armas != null)
             {
-                var encaixe = RegrasVisualEquipado.EncaixeDe(arma.Posicao, visual.ConjuntoAtivo);
-                if (encaixe == null)
+                foreach (var arma in visual.Armas)
                 {
-                    continue;
-                }
+                    var encaixe = RegrasVisualEquipado.EncaixeDe(
+                        arma.Posicao,
+                        visual.ConjuntoAtivo
+                    );
+                    if (encaixe == null)
+                    {
+                        continue;
+                    }
 
-                var modelo = ModelosDeArma.Criar(arma.Tipo);
-                if (modelo == null)
+                    var modelo = ModelosDeArma.Criar(arma.Tipo);
+                    if (modelo == null)
+                    {
+                        continue;
+                    }
+
+                    var pai = AcharOuCriarEncaixe(avatar, encaixe.Value);
+                    modelo.transform.SetParent(pai, false);
+                    var (posLocal, rotLocal) = ObterTransformacao(arma.Tipo, encaixe.Value);
+                    modelo.transform.localPosition = posLocal;
+                    modelo.transform.localRotation = rotLocal;
+
+                    var marca = modelo.AddComponent<ArmaNoAvatar>();
+                    marca.Posicao = arma.Posicao;
+                    marca.Encaixe = encaixe.Value;
+                    marca.Tier = arma.Tier;
+
+                    if (ConfigAuraTier.TemAura(arma.Tier))
+                    {
+                        AuraDeTierVisual.Aplicar(modelo, arma.Tier, noChao: false);
+                        AplicarEmissaoNoModelo(modelo, ConfigAuraTier.Cor(arma.Tier));
+                    }
+
+                    postos++;
+                }
+            }
+
+            if (visual.Armaduras != null)
+            {
+                foreach (var armadura in visual.Armaduras)
                 {
-                    continue;
+                    var encaixe = RegrasVisualEquipado.EncaixeArmaduraDe(armadura.Posicao);
+                    if (encaixe == null)
+                    {
+                        continue;
+                    }
+
+                    var modelo = ModelosDeArmadura.Criar(armadura.Tipo);
+                    if (modelo == null)
+                    {
+                        continue;
+                    }
+
+                    var pai = AcharOuCriarEncaixe(avatar, encaixe.Value);
+                    modelo.transform.SetParent(pai, false);
+                    modelo.transform.localPosition = Vector3.zero;
+                    modelo.transform.localRotation = Quaternion.identity;
+
+                    var marca = modelo.AddComponent<ArmaduraNoAvatar>();
+                    marca.Posicao = armadura.Posicao;
+                    marca.Encaixe = encaixe.Value;
+                    marca.Tier = armadura.Tier;
+
+                    if (ConfigAuraTier.TemAura(armadura.Tier))
+                    {
+                        AplicarEmissaoNoModelo(modelo, ConfigAuraTier.Cor(armadura.Tier));
+                    }
+
+                    postos++;
                 }
-
-                var pai = AcharOuCriarEncaixe(avatar, encaixe.Value);
-                modelo.transform.SetParent(pai, false);
-                var (posLocal, rotLocal) = ObterTransformacao(arma.Tipo, encaixe.Value);
-                modelo.transform.localPosition = posLocal;
-                modelo.transform.localRotation = rotLocal;
-
-                var marca = modelo.AddComponent<ArmaNoAvatar>();
-                marca.Posicao = arma.Posicao;
-                marca.Encaixe = encaixe.Value;
-                marca.Tier = arma.Tier;
-
-                if (ConfigAuraTier.TemAura(arma.Tier))
-                {
-                    AuraDeTierVisual.Aplicar(modelo, arma.Tier, noChao: false);
-                    AplicarEmissaoNoModelo(modelo, ConfigAuraTier.Cor(arma.Tier));
-                }
-
-                postos++;
             }
 
             return postos;
@@ -93,9 +146,14 @@ namespace JogoDoGrupo.Client.Features.Itens.Visual
             }
         }
 
-        /// <summary>Tira todos os modelos de arma do avatar.</summary>
+        /// <summary>Tira todos os modelos de arma e armadura do avatar.</summary>
         public static void Limpar(Transform avatar)
         {
+            if (avatar == null)
+            {
+                return;
+            }
+
             foreach (var arma in avatar.GetComponentsInChildren<ArmaNoAvatar>(true))
             {
                 // Destroy só vale no fim do frame: solta antes, para a conta e a busca não a verem.
@@ -110,9 +168,23 @@ namespace JogoDoGrupo.Client.Features.Itens.Visual
                     Object.DestroyImmediate(arma.gameObject);
                 }
             }
+
+            foreach (var armadura in avatar.GetComponentsInChildren<ArmaduraNoAvatar>(true))
+            {
+                armadura.transform.SetParent(null, false);
+                armadura.gameObject.SetActive(false);
+                if (Application.isPlaying)
+                {
+                    Object.Destroy(armadura.gameObject);
+                }
+                else
+                {
+                    Object.DestroyImmediate(armadura.gameObject);
+                }
+            }
         }
 
-        /// <summary>O encaixe pelo nome (em qualquer profundidade), ou um novo preso à raiz.</summary>
+        /// <summary>O encaixe pelo nome (em qualquer profundidade), ou um novo preso à raiz ou osso.</summary>
         public static Transform AcharOuCriarEncaixe(Transform avatar, EncaixeDoVisual encaixe)
         {
             var nome = RegrasVisualEquipado.NomeDoEncaixe(encaixe);
@@ -122,11 +194,57 @@ namespace JogoDoGrupo.Client.Features.Itens.Visual
                 return achado;
             }
 
+            // Tenta ancorar no osso do esqueleto antes de criar na raiz
+            Transform osso = null;
+            switch (encaixe)
+            {
+                case EncaixeDoVisual.Cabeca:
+                    osso = Procurar(avatar, "Cabeca") ?? Procurar(avatar, "Head");
+                    break;
+                case EncaixeDoVisual.Tronco:
+                    osso =
+                        Procurar(avatar, "Tronco")
+                        ?? Procurar(avatar, "Chest")
+                        ?? Procurar(avatar, "Spine");
+                    break;
+                case EncaixeDoVisual.Costas:
+                    osso = Procurar(avatar, "Costas");
+                    break;
+                case EncaixeDoVisual.MaoDireita:
+                    osso = Procurar(avatar, "Weapon.R") ?? Procurar(avatar, "RightHand");
+                    break;
+            }
+
+            if (osso != null)
+            {
+                var filhoDoOsso = new GameObject(nome).transform;
+                filhoDoOsso.SetParent(osso, false);
+                filhoDoOsso.localPosition = Vector3.zero;
+                filhoDoOsso.localRotation = Quaternion.identity;
+                return filhoDoOsso;
+            }
+
             var criado = new GameObject(nome).transform;
             criado.SetParent(avatar, false);
-            criado.localPosition =
-                encaixe == EncaixeDoVisual.MaoDireita ? MaoDireitaNaRaiz : CostasNaRaiz;
+            criado.localPosition = PosicaoNaRaiz(encaixe);
             return criado;
+        }
+
+        public static Vector3 PosicaoNaRaiz(EncaixeDoVisual encaixe)
+        {
+            switch (encaixe)
+            {
+                case EncaixeDoVisual.MaoDireita:
+                    return MaoDireitaNaRaiz;
+                case EncaixeDoVisual.Costas:
+                    return CostasNaRaiz;
+                case EncaixeDoVisual.Cabeca:
+                    return CabecaNaRaiz;
+                case EncaixeDoVisual.Tronco:
+                    return TroncoNaRaiz;
+                default:
+                    return Vector3.zero;
+            }
         }
 
         private static Transform Procurar(Transform raiz, string nome)

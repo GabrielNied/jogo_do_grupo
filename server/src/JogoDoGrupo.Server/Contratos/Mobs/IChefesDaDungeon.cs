@@ -17,7 +17,8 @@ public interface IChefesDaDungeon
         double x,
         double z,
         double multiplicadorVida = 1.0,
-        double multiplicadorDano = 1.0
+        double multiplicadorDano = 1.0,
+        int? criaturaId = null
     );
 
     /// <summary>Tira o boss da área, vivo ou morto. Falso se a área não tinha boss.</summary>

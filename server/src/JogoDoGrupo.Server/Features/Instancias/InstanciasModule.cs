@@ -15,6 +15,7 @@ public sealed class InstanciasModule : IFeatureModule
 
     public void ConfigurarServicos(IServiceCollection servicos, IConfiguration configuracao)
     {
+        servicos.AddScoped<IBloqueioSemanalRaidServico, BloqueioSemanalRaidServico>();
         servicos.AddSingleton<PopuladorDeInstancia>();
         servicos.AddSingleton(sp => new ServicoDeInstancias(
             sp.GetRequiredService<JogoDoGrupo.Server.Contratos.Social.IConsultaDeGrupo>(),
@@ -43,6 +44,10 @@ public sealed class InstanciasModule : IFeatureModule
             .Ao<SairDaDungeon>(
                 InstanciasMessageIds.SairDaDungeon,
                 (sessao, _) => _servico?.AoPedirSair(sessao)
+            )
+            .Ao<ConsultarBloqueioSemanalRaid>(
+                InstanciasMessageIds.ConsultarBloqueioSemanalRaid,
+                (sessao, _) => _servico?.AoConsultarBloqueioSemanal(sessao)
             );
 
     public void Inicializar(ServerContext contexto)

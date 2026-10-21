@@ -17,6 +17,7 @@ public sealed class EconomiaModule : IFeatureModule
     private ServidorTempoReal? _tempoReal;
     private MercadoDoServidor? _mercado;
     private BancoGuildaDoServidor? _bancoGuilda;
+    private CorreioDoServidor? _correio;
 
     public string Nome => "Economia";
 
@@ -53,6 +54,9 @@ public sealed class EconomiaModule : IFeatureModule
             }
         ));
         servicos.AddSingleton<BancoGuildaDoServidor>();
+        servicos.AddScoped<ServicoDeCorreio>();
+        servicos.AddSingleton<CorreioDoServidor>();
+        servicos.AddHostedService<VarreduraDoCorreio>();
         servicos.AddScoped<
             JogoDoGrupo.Server.Contratos.Economia.IAjusteDeCoroasDeTeste,
             AjusteDeCoroasDeTeste
@@ -64,6 +68,7 @@ public sealed class EconomiaModule : IFeatureModule
         _scopeFactory = rotas.ServiceProvider.GetService<IServiceScopeFactory>();
         _mercado = rotas.ServiceProvider.GetRequiredService<MercadoDoServidor>();
         _bancoGuilda = rotas.ServiceProvider.GetRequiredService<BancoGuildaDoServidor>();
+        _correio = rotas.ServiceProvider.GetRequiredService<CorreioDoServidor>();
         EconomiaRotas.Mapear(rotas);
     }
 
@@ -133,6 +138,26 @@ public sealed class EconomiaModule : IFeatureModule
             .Ao<RetirarCoroasBancoGuilda>(
                 EconomiaMessageIds.RetirarCoroasBancoGuilda,
                 (sessao, pedido) => _bancoGuilda!.AoRetirarCoroas(sessao, pedido)
+            )
+            .Ao<ConsultarCorreio>(
+                EconomiaMessageIds.ConsultarCorreio,
+                (sessao, pedido) => _correio!.AoConsultar(sessao, pedido)
+            )
+            .Ao<LerCarta>(
+                EconomiaMessageIds.LerCarta,
+                (sessao, pedido) => _correio!.AoLer(sessao, pedido)
+            )
+            .Ao<EnviarCarta>(
+                EconomiaMessageIds.EnviarCarta,
+                (sessao, pedido) => _correio!.AoEnviar(sessao, pedido)
+            )
+            .Ao<ColetarAnexos>(
+                EconomiaMessageIds.ColetarAnexos,
+                (sessao, pedido) => _correio!.AoColetar(sessao, pedido)
+            )
+            .Ao<ExcluirCarta>(
+                EconomiaMessageIds.ExcluirCarta,
+                (sessao, pedido) => _correio!.AoExcluir(sessao, pedido)
             );
 
     public void Inicializar(ServerContext contexto)
@@ -141,6 +166,7 @@ public sealed class EconomiaModule : IFeatureModule
         contexto.Eventos.Assinar<CoroasMovimentadas>(AoCoroasMovimentadas);
         _mercado!.Ligar(contexto.TempoReal);
         _bancoGuilda!.Ligar(contexto.TempoReal);
+        _correio!.Ligar(contexto.TempoReal);
         contexto.TempoReal.SessaoAutenticada += sessao => _mercado.AoAutenticar(sessao);
         contexto.TempoReal.SessaoEncerrada += AoSessaoEncerrada;
     }
