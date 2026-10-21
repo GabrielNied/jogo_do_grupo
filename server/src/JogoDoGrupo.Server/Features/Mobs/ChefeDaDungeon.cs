@@ -46,9 +46,7 @@ public sealed class ChefeDaDungeon : IAlvosDeCombate, IInimigosSimulados
     private readonly record struct AreaDoChefe(double X, double Z, double Raio);
 
     private readonly Lock _trava = new();
-    private readonly DefinicaoDeCriatura _definicao = CatalogoCriaturas.Obter(
-        ConfigChefeDaDungeon.CriaturaId
-    );
+    private readonly DefinicaoDeCriatura _definicao;
     private readonly Func<long> _proximoId;
     private readonly Func<long> _relogioMs;
     private readonly IHistoricoDePosicoesDoMundo? _historico;
@@ -89,6 +87,7 @@ public sealed class ChefeDaDungeon : IAlvosDeCombate, IInimigosSimulados
     /// <param name="historico">Histórico de posições no mundo para compensação de lag/rewind.</param>
     /// <param name="multiplicadorVida">Multiplicador de vida da dificuldade sem fim.</param>
     /// <param name="multiplicadorDano">Multiplicador de dano da dificuldade sem fim.</param>
+    /// <param name="criaturaId">Id opcional do catálogo de criaturas para este chefe.</param>
     public ChefeDaDungeon(
         string area,
         double origemX,
@@ -97,12 +96,16 @@ public sealed class ChefeDaDungeon : IAlvosDeCombate, IInimigosSimulados
         Func<long>? relogioMs = null,
         IHistoricoDePosicoesDoMundo? historico = null,
         double multiplicadorVida = 1.0,
-        double multiplicadorDano = 1.0
+        double multiplicadorDano = 1.0,
+        int? criaturaId = null
     )
     {
         ArgumentException.ThrowIfNullOrEmpty(area);
         ArgumentNullException.ThrowIfNull(proximoId);
 
+        _definicao =
+            CatalogoCriaturas.Obter(criaturaId ?? ConfigChefeDaDungeon.CriaturaId)
+            ?? CatalogoCriaturas.Obter(ConfigChefeDaDungeon.CriaturaId);
         Area = area;
         _origemX = origemX;
         _origemZ = origemZ;
@@ -112,8 +115,7 @@ public sealed class ChefeDaDungeon : IAlvosDeCombate, IInimigosSimulados
         _x = origemX;
         _z = origemZ;
         _id = proximoId();
-        _vidaMaxima = (int)
-            Math.Max(1, Math.Round(ConfigChefeDaDungeon.VidaMaxima * multiplicadorVida));
+        _vidaMaxima = (int)Math.Max(1, Math.Round(_definicao.VidaBase * multiplicadorVida));
         _multiplicadorDano = multiplicadorDano;
         _vida = _vidaMaxima;
         RegistrarPosicao(_relogioMs());

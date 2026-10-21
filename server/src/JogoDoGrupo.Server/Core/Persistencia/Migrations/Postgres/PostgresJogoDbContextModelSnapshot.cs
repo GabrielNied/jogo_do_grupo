@@ -397,6 +397,26 @@ namespace JogoDoGrupo.Server.Core.Persistencia.Migrations.Postgres
                     b.ToTable("VendedoresOffline", (string)null);
                 });
 
+            modelBuilder.Entity("JogoDoGrupo.Server.Features.Instancias.BloqueioSemanalRaid", b =>
+                {
+                    b.Property<long>("PersonagemId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("ChaveSemana")
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<int>("Etapa")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset>("ConcluidoEm")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("PersonagemId", "ChaveSemana", "Etapa");
+
+                    b.ToTable("BloqueiosSemanaisRaid", (string)null);
+                });
+
             modelBuilder.Entity("JogoDoGrupo.Server.Features.Itens.EstadoBanco", b =>
                 {
                     b.Property<long>("ContaId")
