@@ -10,6 +10,24 @@ namespace JogoDoGrupo.Shared.Features.Skills
     }
 
     /// <summary>
+    /// O apoio que a skill dá ao grupo no lugar do dano (#170): em área ao redor de quem usa, sem
+    /// alvo escolhido. <see cref="Nenhum"/> é a skill de dano.
+    /// </summary>
+    public enum TipoDeApoio
+    {
+        Nenhum = 0,
+
+        /// <summary>Escudo de absorção em quem usa e no grupo.</summary>
+        Escudo = 1,
+
+        /// <summary>Buff Fortalecido (+dano causado) no grupo.</summary>
+        Fortalecer = 2,
+
+        /// <summary>Buff Protegido (-dano recebido) no grupo.</summary>
+        Proteger = 3,
+    }
+
+    /// <summary>
     /// Uma skill do catálogo: o que o jogador vê (nome, custo, recarga) e o que o servidor usa
     /// para decidir (multiplicador do dano). <see cref="Propriedades"/> são as categorias e
     /// flags que os poderes e a árvore usam para se ligar à skill (SKILL-006).
@@ -30,6 +48,9 @@ namespace JogoDoGrupo.Shared.Features.Skills
         public double Multiplicador = 1.0;
 
         public PropriedadesDaSkill Propriedades = new PropriedadesDaSkill();
+
+        /// <summary>O apoio de grupo da skill; <see cref="TipoDeApoio.Nenhum"/> se ela causa dano.</summary>
+        public TipoDeApoio Apoio = TipoDeApoio.Nenhum;
 
         /// <summary>
         /// As etiquetas que a skill declara (<see cref="EtiquetasDeSkill"/>): é por elas que os

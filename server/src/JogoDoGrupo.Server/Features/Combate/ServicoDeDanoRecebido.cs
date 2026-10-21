@@ -31,6 +31,7 @@ public sealed class ServicoDeDanoRecebido : IHostedService, IDanoAoPersonagem
     private readonly GerenciadorDeEfeitosDeStatus? _efeitos;
     private readonly IAtributosDosEquipamentos? _equipamentos;
     private readonly EventosDoServidor? _eventos;
+    private readonly GerenciadorDeEscudos? _escudos;
     private readonly CancellationTokenSource _parada = new();
 
     public ServicoDeDanoRecebido(
@@ -45,9 +46,11 @@ public sealed class ServicoDeDanoRecebido : IHostedService, IDanoAoPersonagem
         GerenciadorDeEfeitosDeStatus? efeitos = null,
         IVizinhanca? vizinhanca = null,
         IAtributosDosEquipamentos? equipamentos = null,
-        EventosDoServidor? eventos = null
+        EventosDoServidor? eventos = null,
+        GerenciadorDeEscudos? escudos = null
     )
     {
+        _escudos = escudos;
         _equipamentos = equipamentos;
         _efeitos = efeitos;
         _guarda = guarda;
@@ -106,6 +109,13 @@ public sealed class ServicoDeDanoRecebido : IHostedService, IDanoAoPersonagem
                 _queda?.EstaCaido(personagemId) == true
                 || _queda?.EstaImuneAposLevantar(personagemId, _relogioMs()) == true
             )
+            {
+                return;
+            }
+
+            // O escudo absorve antes da vida; o que ele cobre inteiro não tira nada.
+            dano = _escudos?.Absorver(personagemId, dano) ?? dano;
+            if (dano <= 0)
             {
                 return;
             }
@@ -243,6 +253,9 @@ public sealed class ServicoDeDanoRecebido : IHostedService, IDanoAoPersonagem
                     }
                 );
             }
+
+            // O escudo absorve antes da vida (depois da defesa e da guarda).
+            danoFinal = _escudos?.Absorver(golpe.PersonagemId, danoFinal) ?? danoFinal;
 
             var recursos = await RecursosDoAtaque.TirarVidaAsync(
                 _escopos,

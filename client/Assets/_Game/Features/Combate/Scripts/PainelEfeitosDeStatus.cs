@@ -32,12 +32,16 @@ namespace JogoDoGrupo.Client.Features.Combate
             pai.Add(_raiz);
         }
 
-        public void Atualizar(IReadOnlyList<ItemDeStatus> efeitos, float imunidadeRestante)
+        public void Atualizar(
+            IReadOnlyList<ItemDeStatus> efeitos,
+            float imunidadeRestante,
+            ItemDeEscudo escudo = default
+        )
         {
             var temEfeitos = efeitos != null && efeitos.Count > 0;
             var temImunidade = imunidadeRestante > 0f;
 
-            if (!temEfeitos && !temImunidade)
+            if (!temEfeitos && !temImunidade && !escudo.Ativo)
             {
                 _raiz.style.display = DisplayStyle.None;
                 _raiz.Clear();
@@ -46,6 +50,30 @@ namespace JogoDoGrupo.Client.Features.Combate
 
             _raiz.style.display = DisplayStyle.Flex;
             _raiz.Clear();
+
+            if (escudo.Ativo)
+            {
+                var itemEscudo = new VisualElement();
+                itemEscudo.pickingMode = PickingMode.Ignore;
+                itemEscudo.AddToClassList("item-status");
+
+                var rotuloEscudo = new Label(escudo.Texto);
+                rotuloEscudo.pickingMode = PickingMode.Ignore;
+                rotuloEscudo.AddToClassList("status-rotulo");
+
+                var tempoEscudo = new Label(
+                    escudo.DuracaoRestante.ToString(
+                        "0.0",
+                        System.Globalization.CultureInfo.InvariantCulture
+                    ) + "s"
+                );
+                tempoEscudo.pickingMode = PickingMode.Ignore;
+                tempoEscudo.AddToClassList("status-tempo");
+
+                itemEscudo.Add(rotuloEscudo);
+                itemEscudo.Add(tempoEscudo);
+                _raiz.Add(itemEscudo);
+            }
 
             if (temEfeitos)
             {

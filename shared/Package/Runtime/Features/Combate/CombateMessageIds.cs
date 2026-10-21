@@ -67,6 +67,9 @@ namespace JogoDoGrupo.Shared.Features.Combate
         /// <summary>Servidor → quem está na área: a barra de quebra de um chefe mudou.</summary>
         public const ushort BarraDeQuebraMudou = 6041;
 
+        /// <summary>Servidor → dono e área: o escudo de uma entidade mudou.</summary>
+        public const ushort EscudoMudou = 6042;
+
         /// <summary>Client → servidor: pedido de troca de arma (tecla R).</summary>
         public const ushort IntencaoDeTrocaDeArma = 6050;
 

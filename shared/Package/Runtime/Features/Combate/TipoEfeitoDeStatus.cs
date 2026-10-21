@@ -22,5 +22,8 @@ namespace JogoDoGrupo.Shared.Features.Combate
 
         /// <summary>+15% de dano causado; não acumula; reaplicar renova a duração.</summary>
         Fortalecido = 6,
+
+        /// <summary>−15% de dano recebido; não acumula; reaplicar renova a duração.</summary>
+        Protegido = 7,
     }
 }

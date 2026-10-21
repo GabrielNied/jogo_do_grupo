@@ -310,9 +310,19 @@ public sealed class GerenciadorDeEfeitosDeStatus
     public double MultiplicadorDanoCausado(long entidadeId) =>
         RegrasEfeitosDeStatus.MultiplicadorDanoCausado(TemFortalecido(entidadeId));
 
-    /// <summary>Multiplicador no dano recebido pelo defensor (1,15 se vulnerável, 1,0 normal).</summary>
+    /// <summary>Se a entidade tem Protegido ativo (-15% de dano recebido).</summary>
+    public bool TemProtegido(long entidadeId) =>
+        TemEfeito(entidadeId, TipoEfeitoDeStatus.Protegido);
+
+    /// <summary>
+    /// Multiplicador no dano recebido pelo defensor (+15% se vulnerável, -15% se protegido, 1,0
+    /// normal).
+    /// </summary>
     public double MultiplicadorDanoRecebido(long entidadeId) =>
-        RegrasEfeitosDeStatus.MultiplicadorDanoRecebido(TemVulneravel(entidadeId));
+        RegrasEfeitosDeStatus.MultiplicadorDanoRecebido(
+            TemVulneravel(entidadeId),
+            TemProtegido(entidadeId)
+        );
 
     /// <summary>Modificador de velocidade da entidade (0,70 se lentidão, 1,0 normal).</summary>
     public double ModificadorVelocidade(long entidadeId) =>

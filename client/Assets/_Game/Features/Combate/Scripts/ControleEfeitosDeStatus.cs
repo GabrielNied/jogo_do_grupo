@@ -17,10 +17,12 @@ namespace JogoDoGrupo.Client.Features.Combate
         private PainelEfeitosDeStatus _painel;
         private float _imunidadeAtordoadoRestante;
         private long _entidadeId;
+        private ItemDeEscudo _escudo;
 
         public long EntidadeId => _entidadeId;
         public float ImunidadeAtordoadoRestante => _imunidadeAtordoadoRestante;
         public IReadOnlyList<ItemDeStatus> Efeitos => _efeitos;
+        public ItemDeEscudo Escudo => _escudo;
 
         public void Configurar(long entidadeId, PainelEfeitosDeStatus painel = null)
         {
@@ -34,7 +36,35 @@ namespace JogoDoGrupo.Client.Features.Combate
                 )
             );
 
-            _painel?.Atualizar(_efeitos, _imunidadeAtordoadoRestante);
+            _assinaturas.Add(
+                ConexaoTempoReal.Assinar<EscudoMudou>(CombateMessageIds.EscudoMudou, AoMudarEscudo)
+            );
+
+            _painel?.Atualizar(_efeitos, _imunidadeAtordoadoRestante, _escudo);
+        }
+
+        private void AoMudarEscudo(EscudoMudou msg)
+        {
+            if (msg != null && msg.EntidadeId == _entidadeId)
+            {
+                AplicarEscudoDoServidor(msg);
+            }
+        }
+
+        /// <summary>Aplica o escudo recebido do servidor (absorção 0 tira o escudo).</summary>
+        public void AplicarEscudoDoServidor(EscudoMudou msg)
+        {
+            if (msg == null || msg.EntidadeId != _entidadeId)
+            {
+                return;
+            }
+
+            _escudo = new ItemDeEscudo(
+                msg.Absorcao,
+                msg.AbsorcaoMaxima,
+                msg.DuracaoRestanteSegundos
+            );
+            _painel?.Atualizar(_efeitos, _imunidadeAtordoadoRestante, _escudo);
         }
 
         private void AoMudarEfeitos(EfeitosDeStatusMudaram msg)
@@ -64,7 +94,7 @@ namespace JogoDoGrupo.Client.Features.Combate
                 }
             }
             _imunidadeAtordoadoRestante = Math.Max(0f, msg.ImunidadeAtordoadoRestanteSegundos);
-            _painel?.Atualizar(_efeitos, _imunidadeAtordoadoRestante);
+            _painel?.Atualizar(_efeitos, _imunidadeAtordoadoRestante, _escudo);
         }
 
         /// <summary>Se o efeito de status está ativo.</summary>
@@ -82,7 +112,7 @@ namespace JogoDoGrupo.Client.Features.Combate
 
         private void Update()
         {
-            var tinhaAlgo = _efeitos.Count > 0 || _imunidadeAtordoadoRestante > 0f;
+            var tinhaAlgo = _efeitos.Count > 0 || _imunidadeAtordoadoRestante > 0f || _escudo.Ativo;
             if (!tinhaAlgo)
             {
                 return;
@@ -92,6 +122,15 @@ namespace JogoDoGrupo.Client.Features.Combate
             if (_imunidadeAtordoadoRestante > 0f)
             {
                 _imunidadeAtordoadoRestante = Math.Max(0f, _imunidadeAtordoadoRestante - dt);
+            }
+
+            if (_escudo.Ativo)
+            {
+                _escudo = new ItemDeEscudo(
+                    _escudo.Absorcao,
+                    _escudo.AbsorcaoMaxima,
+                    _escudo.DuracaoRestante - dt
+                );
             }
 
             for (int i = _efeitos.Count - 1; i >= 0; i--)
@@ -108,7 +147,7 @@ namespace JogoDoGrupo.Client.Features.Combate
                 }
             }
 
-            _painel?.Atualizar(_efeitos, _imunidadeAtordoadoRestante);
+            _painel?.Atualizar(_efeitos, _imunidadeAtordoadoRestante, _escudo);
         }
 
         private void OnDestroy()

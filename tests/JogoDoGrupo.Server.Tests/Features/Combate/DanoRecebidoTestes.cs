@@ -1,3 +1,4 @@
+using JogoDoGrupo.Server.Contratos.Combate;
 using JogoDoGrupo.Server.Contratos.Mobs;
 using JogoDoGrupo.Server.Core.Eventos;
 using JogoDoGrupo.Server.Core.Persistencia;
@@ -127,6 +128,27 @@ public class DanoRecebidoTestes(ServidorDeAtaque servidor) : IClassFixture<Servi
 
         Assert.Equal(0, (await MudouAsync(ana)).VidaAtual);
         Assert.Equal(0, (await RecursosAsync(ana)).VidaAtual);
+    }
+
+    [Fact]
+    public async Task Escudo_absorve_o_golpe_antes_da_vida_e_o_resto_passa()
+    {
+        using var ana = await NovoJogadorAsync();
+        var antes = await RecursosAsync(ana);
+        var apoio = servidor.Falso.Services.GetRequiredService<IApoioDeCombate>();
+
+        Assert.True(await apoio.AplicarEscudoAsync(ana.Id, 0.20, 8, CancellationToken.None));
+        var escudo = await ana.Cliente.ReceberAsync<EscudoMudou>(CombateMessageIds.EscudoMudou);
+        Assert.Equal(RegrasEscudo.Absorcao(antes.VidaMaxima, 0.20), escudo.Absorcao);
+
+        // Golpe menor que o escudo: a vida não muda.
+        Golpear(ana.Id, escudo.Absorcao - 1);
+        Assert.Equal(antes.VidaAtual, (await MudouAsync(ana)).VidaAtual);
+
+        // O que passa do escudo restante (1) tira vida.
+        Golpear(ana.Id, 11);
+        Assert.Equal(antes.VidaAtual - 10, (await MudouAsync(ana)).VidaAtual);
+        Assert.Equal(antes.VidaAtual - 10, (await RecursosAsync(ana)).VidaAtual);
     }
 
     [Fact]

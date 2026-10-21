@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using JogoDoGrupo.Server.Contratos.Combate;
 using JogoDoGrupo.Server.Contratos.Itens;
 using JogoDoGrupo.Server.Contratos.Mundo;
+using JogoDoGrupo.Server.Contratos.Social;
 using JogoDoGrupo.Shared.Features.Combate;
 using JogoDoGrupo.Shared.Features.Skills;
 
@@ -53,6 +54,8 @@ public sealed class NucleoDeSkills
     private readonly Func<long> _agoraMs;
     private readonly ITrocaDeArma? _troca;
     private readonly MotorDePoderes? _poderes;
+    private readonly IApoioDeCombate? _apoio;
+    private readonly IConsultaDeGrupo? _grupos;
 
     // Fim da recarga (ms) por (exemplar da arma, espaço).
     private readonly ConcurrentDictionary<(long Arma, int Espaco), long> _recargas = new();
@@ -70,9 +73,13 @@ public sealed class NucleoDeSkills
         IEnumerable<IAlvosDeCombate> alvos,
         Func<long> agoraMs,
         ITrocaDeArma? troca = null,
-        MotorDePoderes? poderes = null
+        MotorDePoderes? poderes = null,
+        IApoioDeCombate? apoio = null,
+        IConsultaDeGrupo? grupos = null
     )
     {
+        _apoio = apoio;
+        _grupos = grupos;
         _troca = troca;
         _poderes = poderes;
         _armas = armas;
@@ -408,14 +415,25 @@ public sealed class NucleoDeSkills
                 : await _poderes.AoUsarSkillAsync(personagemId, skill, c);
         avisos.AddRange(uso.Avisos);
 
-        var acertos = await AplicarDanoAsync(
-            personagemId,
-            skill,
-            direcaoY,
-            posicao,
-            uso.MultiplicadorDoDano,
-            c
-        );
+        // Skill de apoio não causa dano: dá escudo ou buff a quem usa e ao grupo em volta.
+        AcertoDeAtaque[] acertos;
+        if (skill.Apoio != TipoDeApoio.Nenhum)
+        {
+            await AplicarApoioAsync(personagemId, skill, posicao, c);
+            acertos = [];
+        }
+        else
+        {
+            acertos = await AplicarDanoAsync(
+                personagemId,
+                skill,
+                direcaoY,
+                posicao,
+                uso.MultiplicadorDoDano,
+                c
+            );
+        }
+
         var barraMudou = false;
         if (_poderes != null && acertos.Length > 0)
         {
@@ -449,6 +467,78 @@ public sealed class NucleoDeSkills
             Espaco: espaco,
             Sequencia: sequencia
         );
+    }
+
+    // Em área ao redor de quem usa (sem tab-target): ele mesmo e os do grupo na mesma área ao
+    // alcance. Combate aplica; quem está caído fica de fora.
+    private async Task AplicarApoioAsync(
+        long personagemId,
+        DefinicaoDeSkill skill,
+        PosicaoNoMundo posicao,
+        CancellationToken c
+    )
+    {
+        if (_apoio == null)
+        {
+            return;
+        }
+
+        foreach (var alvo in AlvosDoApoio(personagemId, posicao))
+        {
+            switch (skill.Apoio)
+            {
+                case TipoDeApoio.Escudo:
+                    await _apoio.AplicarEscudoAsync(
+                        alvo,
+                        ConfigApoioDeGrupo.FracaoDoEscudoPelaVidaMaxima,
+                        ConfigApoioDeGrupo.DuracaoDoEscudoSegundos,
+                        c
+                    );
+                    break;
+                case TipoDeApoio.Fortalecer:
+                    _apoio.AplicarBuff(
+                        alvo,
+                        TipoEfeitoDeStatus.Fortalecido,
+                        ConfigApoioDeGrupo.DuracaoDoBuffDeGrupoSegundos
+                    );
+                    break;
+                case TipoDeApoio.Proteger:
+                    _apoio.AplicarBuff(
+                        alvo,
+                        TipoEfeitoDeStatus.Protegido,
+                        ConfigApoioDeGrupo.DuracaoDoBuffDeGrupoSegundos
+                    );
+                    break;
+            }
+        }
+    }
+
+    private IEnumerable<long> AlvosDoApoio(long personagemId, PosicaoNoMundo posicao)
+    {
+        yield return personagemId;
+        var grupo = _grupos?.Consultar(personagemId);
+        if (grupo == null)
+        {
+            yield break;
+        }
+
+        var alcance = ConfigApoioDeGrupo.AlcanceDoApoioMetros;
+        foreach (var membro in grupo.Membros)
+        {
+            if (
+                membro != personagemId
+                && _posicoes.TentarObter(membro, out var p)
+                && p.Area == posicao.Area
+            )
+            {
+                var dx = p.X - posicao.X;
+                var dz = p.Z - posicao.Z;
+                if (dx * dx + dz * dz <= alcance * alcance)
+                {
+                    yield return membro;
+                }
+            }
+        }
     }
 
     // O volume é o cone do golpe básico (cada dono de alvo o mede); o mesmo alvo leva a skill
