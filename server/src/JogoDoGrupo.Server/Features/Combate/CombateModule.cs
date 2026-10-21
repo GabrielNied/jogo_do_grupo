@@ -2,6 +2,7 @@ using JogoDoGrupo.Server.Contratos.Combate;
 using JogoDoGrupo.Server.Contratos.Itens;
 using JogoDoGrupo.Server.Contratos.Mobs;
 using JogoDoGrupo.Server.Contratos.Mundo;
+using JogoDoGrupo.Server.Contratos.Personagem;
 using JogoDoGrupo.Server.Contratos.Social;
 using JogoDoGrupo.Server.Core;
 using JogoDoGrupo.Server.Core.Eventos;
@@ -191,7 +192,8 @@ public sealed class CombateModule : IFeatureModule
                 relogioMs: () => sp.GetRequiredService<RelogioDeCombate>().AgoraMs,
                 esperarAte: sp.GetRequiredService<RelogioDeCombate>().EsperarAteAsync,
                 armas: sp.GetService<IArmaEquipada>(),
-                projeteis: sp.GetService<ServicoDeProjeteis>()
+                projeteis: sp.GetService<ServicoDeProjeteis>(),
+                movimento: sp.GetService<IEstadoDeMovimento>()
             );
             _ataques = servico;
             _esquivas = sp.GetRequiredService<ServicoDeEsquivas>();

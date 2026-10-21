@@ -7,6 +7,9 @@ public class ContratoPersonagemTestes
     [Theory]
     [InlineData(PersonagemMessageIds.ExperienciaGanha)]
     [InlineData(PersonagemMessageIds.SubiuDeNivel)]
+    [InlineData(PersonagemMessageIds.IntencaoDeEscalada)]
+    [InlineData(PersonagemMessageIds.EstadoDoMovimento)]
+    [InlineData(PersonagemMessageIds.DanoDeQueda)]
     public void Id_esta_dentro_da_faixa_de_personagem(ushort id) =>
         Assert.True(
             PersonagemMessageIds.Faixa.Contem(id),
@@ -18,6 +21,9 @@ public class ContratoPersonagemTestes
     {
         Assert.Equal(3000, PersonagemMessageIds.ExperienciaGanha);
         Assert.Equal(3001, PersonagemMessageIds.SubiuDeNivel);
+        Assert.Equal(3002, PersonagemMessageIds.IntencaoDeEscalada);
+        Assert.Equal(3003, PersonagemMessageIds.EstadoDoMovimento);
+        Assert.Equal(3004, PersonagemMessageIds.DanoDeQueda);
     }
 
     [Fact]

@@ -27,5 +27,11 @@ namespace JogoDoGrupo.Shared.Features.Personagem
 
         /// <summary>400: tom de pele, cabelo ou cor de cabelo fora dos limites permitidos.</summary>
         public const string AparenciaInvalida = "AparenciaInvalida";
+
+        /// <summary>Tempo real, em <c>AtaqueRecusado.Codigo</c>: quem nada não ataca (#349).</summary>
+        public const string VoceEstaNadando = "VoceEstaNadando";
+
+        /// <summary>Tempo real, em <c>AtaqueRecusado.Codigo</c>: quem escala não ataca (#349).</summary>
+        public const string VoceEstaEscalando = "VoceEstaEscalando";
     }
 }

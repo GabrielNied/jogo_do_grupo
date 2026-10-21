@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using JogoDoGrupo.Server.Contratos.Combate;
 using JogoDoGrupo.Server.Contratos.Itens;
 using JogoDoGrupo.Server.Contratos.Mundo;
+using JogoDoGrupo.Server.Contratos.Personagem;
 using JogoDoGrupo.Server.Core.Eventos;
 using JogoDoGrupo.Server.Core.Persistencia;
 using JogoDoGrupo.Server.Core.TempoReal;
@@ -22,6 +23,17 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 namespace JogoDoGrupo.Server.Tests.Features.Combate;
 
 /// <summary>Alvo de mentira: fica sempre no volume enquanto <see cref="Ativo"/>.</summary>
+/// <summary>Nado e escalada falsos: quem estiver nas listas está nadando ou escalando.</summary>
+public sealed class MovimentoFalso : IEstadoDeMovimento
+{
+    public HashSet<long> Nadando { get; } = [];
+    public HashSet<long> Escalando { get; } = [];
+
+    public bool EstaNadando(long personagemId) => Nadando.Contains(personagemId);
+
+    public bool EstaEscalando(long personagemId) => Escalando.Contains(personagemId);
+}
+
 public sealed class AlvoFalso(long id) : IAlvosDeCombate
 {
     private int _aplicacoes;
@@ -104,6 +116,7 @@ public sealed class ServidorDeAtaque : IDisposable
     public BonusFalso Bonus { get; } = new();
     public BonecoDeTreino Boneco { get; }
     public LimiteDeVelocidadeFalso Limite { get; } = new();
+    public MovimentoFalso Movimento { get; } = new();
     public AlvoFalso Extra { get; } = new(-50);
     public AlvoFalso RepetidoDoBoneco { get; } = new(ConfigBonecoDeTreino.AlvoId);
     public WebApplicationFactory<Program> Falso { get; }
@@ -121,6 +134,8 @@ public sealed class ServidorDeAtaque : IDisposable
                 s.AddSingleton<IBonusDeAtributos>(Bonus);
                 s.AddSingleton<IAtributosDosEquipamentos>(Bonus);
                 s.AddSingleton<ILimiteDeVelocidadeDoMundo>(Limite);
+                s.RemoveAll<IEstadoDeMovimento>();
+                s.AddSingleton<IEstadoDeMovimento>(Movimento);
                 s.RemoveAll<IAlvosDeCombate>();
                 s.AddSingleton<IAlvosDeCombate>(Boneco);
                 s.AddSingleton<IAlvosDeCombate>(Extra);
@@ -446,6 +461,31 @@ public class AtaqueTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDeA
         Atacar(ana, TipoDeAtaque.Leve, sequencia: 6);
         await ana.Cliente.ReceberAsync<AtaqueAcertou>(CombateMessageIds.AtaqueAcertou);
         Assert.Equal(0, (await RecursosAsync(ana)).StaminaAtual);
+    }
+
+    [Fact]
+    public async Task Ataque_de_quem_nada_e_recusado_e_de_quem_escala_tambem()
+    {
+        using var ana = await NovoJogadorAsync();
+        servidor.Movimento.Nadando.Add(ana.Id);
+
+        Atacar(ana, TipoDeAtaque.Leve, sequencia: 1);
+
+        var recusa = await ana.Cliente.ReceberAsync<AtaqueRecusado>(
+            CombateMessageIds.AtaqueRecusado
+        );
+        Assert.Equal(CodigosErroPersonagem.VoceEstaNadando, recusa.Codigo);
+        Assert.False(ana.Recebeu(CombateMessageIds.AtaqueIniciado));
+
+        servidor.Movimento.Nadando.Remove(ana.Id);
+        servidor.Movimento.Escalando.Add(ana.Id);
+        Atacar(ana, TipoDeAtaque.Leve, sequencia: 2);
+
+        var segunda = await ana.Cliente.ReceberAsync<AtaqueRecusado>(
+            CombateMessageIds.AtaqueRecusado
+        );
+        Assert.Equal(CodigosErroPersonagem.VoceEstaEscalando, segunda.Codigo);
+        Assert.False(ana.Recebeu(CombateMessageIds.AtaqueIniciado));
     }
 
     [Fact]
