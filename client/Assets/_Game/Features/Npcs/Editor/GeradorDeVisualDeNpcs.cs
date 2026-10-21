@@ -867,6 +867,42 @@ namespace JogoDoGrupo.Client.Features.Npcs.Editor
             UnityEngine.Object.DestroyImmediate(folha);
         }
 
+        /// <summary>Desenha quadros do prologo (5 s, 20 s, 31 s, 40 s) numa folha PNG em NPC_PRINTS.</summary>
+        [MenuItem("Jogo do Grupo/Npcs/Capturar prologo")]
+        public static void CapturarPrologo()
+        {
+            var pasta = Environment.GetEnvironmentVariable("NPC_PRINTS");
+            if (string.IsNullOrEmpty(pasta))
+                pasta = Path.Combine(Path.GetTempPath(), "npcs-prints");
+            Directory.CreateDirectory(pasta);
+            var palco = PalcoDoPrologo.Criar();
+            var tempos = new[] { 5f, 20f, 31f, 40f };
+            const int largura = 640;
+            const int altura = 360;
+            var folha = new Texture2D(largura * 2, altura * 2, TextureFormat.RGB24, false);
+            var leitura = new RenderTexture(largura, altura, 24);
+            for (var i = 0; i < tempos.Length; i++)
+            {
+                palco.Mostrar(tempos[i]);
+                var camera = palco.GetComponentInChildren<Camera>();
+                camera.Render();
+                camera.Render();
+                Graphics.Blit(palco.Imagem, leitura);
+                RenderTexture.active = leitura;
+                folha.ReadPixels(
+                    new Rect(0, 0, largura, altura),
+                    (i % 2) * largura,
+                    (1 - i / 2) * altura
+                );
+            }
+
+            RenderTexture.active = null;
+            File.WriteAllBytes(Path.Combine(pasta, "prologo.png"), folha.EncodeToPNG());
+            UnityEngine.Object.DestroyImmediate(palco.gameObject);
+            UnityEngine.Object.DestroyImmediate(leitura);
+            UnityEngine.Object.DestroyImmediate(folha);
+        }
+
         // ---------- clipes ----------
 
         sealed class Clipes

@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using JogoDoGrupo.Client.Core.Jogo;
 using JogoDoGrupo.Client.Core.TempoReal;
+using JogoDoGrupo.Client.Features.Npcs.UI;
 using JogoDoGrupo.Shared.Features.Npcs;
 using UnityEngine;
 
@@ -16,6 +18,7 @@ namespace JogoDoGrupo.Client.Features.Npcs
         private readonly List<HabitanteNoMundo> _habitantes = new List<HabitanteNoMundo>();
         private IDisposable _assinaturaNpcs;
         private string _areaAtual = "";
+        private bool _prologoAgendado;
 
         public IReadOnlyDictionary<int, NpcNoMundo> NpcsInstanciados => _npcsInstanciados;
         public string AreaAtual => _areaAtual;
@@ -136,6 +139,12 @@ namespace JogoDoGrupo.Client.Features.Npcs
                 return;
             }
 
+            if (!_prologoAgendado)
+            {
+                _prologoAgendado = true;
+                StartCoroutine(OferecerPrologo());
+            }
+
             if (_habitantes.Count > 0)
             {
                 return;
@@ -149,6 +158,13 @@ namespace JogoDoGrupo.Client.Features.Npcs
                 habitante.Configurar(PopulacaoDaCidade.Todos[i]);
                 _habitantes.Add(habitante);
             }
+        }
+
+        // Prólogo opcional (#327): oferecido uma vez por personagem, logo depois de entrar na cidade.
+        private System.Collections.IEnumerator OferecerPrologo()
+        {
+            yield return new WaitForSecondsRealtime(JanelaPrologo.EsperaParaOferecerSegundos);
+            JanelaPrologo.OferecerSeNovo(EntradaNoJogo.PersonagemId);
         }
 
         private void LimparHabitantes()

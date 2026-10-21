@@ -69,6 +69,16 @@ Decidido por quem implementou a [#1064](https://github.com/GabrielNied/jogo_do_g
 - **Variação:** todo NPC tem altura de 93% a 107% pela semente; moradores sorteiam também cabelo (3 estilos ou nenhum), barba (2 ou nenhuma), cor da túnica e tom do corpo (`AparenciaDeNpc`). A mesma semente dá o mesmo rosto em qualquer client.
 - **Limite conhecido:** cabelo e rosto são formas simples sobre o Monk; modelos próprios por papel ficam para quando a arte do grupo chegar.
 
+### Prólogo: NPCs de cena
+
+Decidido por quem implementou a [#327](https://github.com/GabrielNied/jogo_do_grupo/issues/327); a regra do jogador está em [missões](missoes.md#começo-do-jogo).
+
+- **Onde mora:** os quatro magos são NPCs de cena e o prólogo é só encenação do client, então ficam em `Features/Npcs` (roteiro e linha do tempo em `PrologoDoSol`, no shared; palco e janela no client). Sem catálogo, sem mensagem e sem estado no servidor.
+- **Oferta:** ao entrar na cidade, 2 s depois, abre uma janela "O sol que nasceu na estrada" com **Assistir** e **Pular** (Esc também pula). Vale **uma vez por personagem neste aparelho** (`PlayerPrefs`, chave `npcs.prologo.visto.<id>`): não gasta banco nem rede, e quem trocar de aparelho vê a oferta de novo, sem custo.
+- **A cena:** 44 s, tela inteira. Uma clareira montada longe do mundo, vista por uma câmera própria: quatro magos (Veyra, Ilso, Oren e Tavi) sustentam uma esfera que cresce, uma manada de sombras vem pela estrada, o clarão cobre a tela e a manada se desfaz. O viajante fecha mandando ir à Brasa Mansa e falar com a Capitã Valéria. Textos do livro de ideias ([missões](missoes.md#livro-de-asterra-chegada-ao-mundo-proposta-do-board-2026-10-11)).
+- **Sem risco:** o personagem fica parado (o controle é desligado e devolvido ao fechar), nada dá loot e nada o mata. Quem pula ou assiste volta ao mesmo lugar, com a principal 1 como estava: o prólogo não entrega missão.
+- **Ajuste:** tempos e textos em `PrologoDoSol`; tamanhos e cores do palco em `PalcoDoPrologo`.
+
 ### Livro de Asterra: NPCs da cidade (proposta do board, 2026-10-11)
 
 Do "Livro de ideias" do [FigJam](../brainstorm/figjam.md) (seções 07 e 11). **Proposta do board, não validada pelo grupo.**
