@@ -1,0 +1,121 @@
+/* Rastreador de missões (direita, abaixo do minimapa), como o objective tracker do WoW. */
+.rastreador {
+    padding: var(--lumora-espacamento-pequeno) var(--lumora-espacamento-medio);
+    background-color: var(--lumora-cores-hud-fundo-leve);
+    border-radius: var(--lumora-bordas-raio-cartao);
+}
+
+.rastreador-topo {
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: var(--lumora-espacamento-curto);
+    padding-bottom: var(--lumora-espacamento-minimo);
+    border-bottom-width: 1px;
+    border-bottom-color: var(--lumora-cores-borda-botao);
+}
+
+.rastreador-cabecalho {
+    flex-grow: 1;
+    font-size: var(--lumora-tipografia-hud-nome);
+    color: var(--lumora-cores-ouro);
+    -unity-font-definition: url("../../../../../Core/UI/Visual/Resources/Lumora/Fontes/LumoraCinzel-700-SDF.asset");
+    letter-spacing: 1px;
+    text-shadow: 1px 1px 2px var(--lumora-cores-contorno);
+}
+
+.rastreador-alternar {
+    width: 24px;
+    height: 24px;
+    min-height: 24px;
+    padding: 0;
+    margin: 0;
+    font-size: var(--lumora-tipografia-hud);
+    -unity-text-align: middle-center;
+    color: var(--lumora-cores-texto-secundario);
+    background-color: var(--lumora-cores-transparente);
+    border-width: 1px;
+    border-color: var(--lumora-cores-borda-discreta);
+    border-radius: 3px;
+}
+
+.rastreador-alternar:hover {
+    color: var(--lumora-cores-ouro);
+    border-color: var(--lumora-cores-ouro);
+}
+
+.rastreador-missao {
+    margin-bottom: var(--lumora-espacamento-pequeno);
+}
+
+.rastreador-titulo {
+    font-size: var(--lumora-tipografia-hud);
+    color: var(--lumora-cores-hover-primario);
+    -unity-font-style: bold;
+    white-space: normal;
+    text-shadow: 1px 1px 2px var(--lumora-cores-contorno);
+}
+
+.rastreador-titulo-principal {
+    color: var(--lumora-cores-ouro);
+}
+
+.rastreador-titulo-pronta {
+    color: var(--lumora-cores-ganho);
+}
+
+.rastreador-objetivo {
+    margin-left: var(--lumora-espacamento-pequeno);
+    font-size: var(--lumora-tipografia-hud-pequeno);
+    color: var(--lumora-cores-marfim);
+    white-space: normal;
+    text-shadow: 1px 1px 1px var(--lumora-cores-contorno);
+}
+
+.rastreador-objetivo-feito {
+    color: var(--lumora-cores-ganho);
+}
+
+.rastreador-dica {
+    font-size: var(--lumora-tipografia-hud-pequeno);
+    color: var(--lumora-cores-texto-secundario);
+    white-space: normal;
+    -unity-font-style: italic;
+}
+
+/* Marcas "!" e "?" sobre os NPCs. */
+.missao-camada {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.missao-marca {
+    position: absolute;
+    translate: -50% -100%;
+    font-size: 44px;
+    color: var(--lumora-cores-aviso);
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    -unity-text-outline-width: 2px;
+    -unity-text-outline-color: var(--lumora-cores-contorno);
+    text-shadow: 2px 2px 3px var(--lumora-cores-contorno);
+}
+
+.missao-marca-pronta {
+    color: var(--lumora-cores-ouro);
+    font-size: 50px;
+}
+
+.missao-marca-pendente {
+    color: var(--lumora-cores-texto-desabilitado);
+}
+
+.missao-marca-dificil {
+    color: var(--lumora-cores-erro);
+}
+
+.missao-marca-trivial {
+    color: var(--lumora-cores-texto-desabilitado);
+}

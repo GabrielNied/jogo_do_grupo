@@ -1,8 +1,6 @@
 using System;
-using System.Collections.Generic;
 using JogoDoGrupo.Client.Core.Jogo;
 using JogoDoGrupo.Client.Core.UI;
-using JogoDoGrupo.Client.Core.Visual;
 using JogoDoGrupo.Shared.Features.Missoes;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -10,15 +8,21 @@ using UnityEngine.UIElements;
 namespace JogoDoGrupo.Client.Features.Missoes
 {
     /// <summary>
-    /// Rastreador de missões no HUD (#1061), exibindo as missões acompanhadas no canto da tela.
+    /// Rastreador de missões do HUD (#1061), como o "objective tracker" do World of Warcraft:
+    /// à direita, abaixo do minimapa, o título de cada missão acompanhada (dourado na história
+    /// principal) e os objetivos com a contagem. Sem fundo pesado, só sombra no texto. Vive na
+    /// região <see cref="RegiaoDoHud.Rastreador"/>, então só aparece dentro do mundo.
     /// </summary>
     internal sealed class RastreadorDeMissoesHud : MonoBehaviour
     {
+        private const string CaminhoEstilo = "Missoes/EstiloMissoes";
+
         private static RastreadorDeMissoesHud _instancia;
-        private UIDocument _documento;
+        private VisualElement _regiaoAtendida;
         private VisualElement _container;
         private VisualElement _corpoMissoes;
         private Label _cabecalho;
+        private Button _alternar;
         private bool _visivel = true;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
@@ -40,95 +44,69 @@ namespace JogoDoGrupo.Client.Features.Missoes
 
         private void Awake()
         {
-            MontarInterface();
             ControleDeMissoes.EstadoMudou += Redesenhar;
         }
 
         private void OnDestroy()
         {
             ControleDeMissoes.EstadoMudou -= Redesenhar;
-            if (_container != null && _container.parent != null)
+            _container?.RemoveFromHierarchy();
+        }
+
+        private void Update()
+        {
+            var regiao = Hud.Regiao(RegiaoDoHud.Rastreador);
+            if (regiao == _regiaoAtendida)
+                return;
+
+            _regiaoAtendida = regiao;
+            _container?.RemoveFromHierarchy();
+            _container = null;
+            if (regiao == null)
+                return;
+
+            try
             {
-                _container.parent.Remove(_container);
+                MontarInterface(regiao);
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
             }
         }
 
-        private void MontarInterface()
+        private void MontarInterface(VisualElement regiao)
         {
-            _documento = gameObject.AddComponent<UIDocument>();
-            _documento.panelSettings = EstiloCore.CriarConfiguracaoDoPainel(
-                "PainelRastreadorMissoes",
-                -0.5f
-            );
-
-            var raiz = _documento.rootVisualElement;
-            EstiloCore.Aplicar(raiz);
+            var estilo = Resources.Load<StyleSheet>(CaminhoEstilo);
+            if (estilo != null && !regiao.styleSheets.Contains(estilo))
+                regiao.styleSheets.Add(estilo);
 
             _container = new VisualElement { name = "MissoesRastreadorContainer" };
-            _container.AddToClassList(EstiloCore.RaizInterface);
             _container.pickingMode = PickingMode.Ignore;
-            _container.style.position = Position.Absolute;
-            _container.style.top = 100;
-            _container.style.right = 16;
-            _container.style.width = 240;
-            _container.style.paddingLeft = 8;
-            _container.style.paddingRight = 8;
-            _container.style.paddingTop = 6;
-            _container.style.paddingBottom = 6;
-            _container.style.backgroundColor = new StyleColor(
-                new Color(0.05f, 0.05f, 0.07f, 0.65f)
-            );
-            _container.style.borderTopLeftRadius = 6;
-            _container.style.borderTopRightRadius = 6;
-            _container.style.borderBottomLeftRadius = 6;
-            _container.style.borderBottomRightRadius = 6;
-            _container.style.borderLeftWidth = 1;
-            _container.style.borderRightWidth = 1;
-            _container.style.borderTopWidth = 1;
-            _container.style.borderBottomWidth = 1;
-            _container.style.borderLeftColor = new StyleColor(new Color(0.3f, 0.35f, 0.45f, 0.4f));
-            _container.style.borderRightColor = new StyleColor(new Color(0.3f, 0.35f, 0.45f, 0.4f));
-            _container.style.borderTopColor = new StyleColor(new Color(0.3f, 0.35f, 0.45f, 0.4f));
-            _container.style.borderBottomColor = new StyleColor(
-                new Color(0.3f, 0.35f, 0.45f, 0.4f)
-            );
+            _container.AddToClassList("rastreador");
 
-            var topo = new VisualElement();
-            topo.style.flexDirection = FlexDirection.Row;
-            topo.style.justifyContent = Justify.SpaceBetween;
-            topo.style.alignItems = Align.Center;
-            topo.style.marginBottom = 6;
-
-            _cabecalho = ComponentesVisuais.Texto("MISSÕES", subtitulo: true);
-            _cabecalho.style.fontSize = 12;
-            _cabecalho.style.color = new StyleColor(new Color(0.85f, 0.85f, 0.9f));
+            var topo = new VisualElement { pickingMode = PickingMode.Ignore };
+            topo.AddToClassList("rastreador-topo");
+            _cabecalho = ComponentesHud.Texto("Missões", "rastreador-cabecalho");
             topo.Add(_cabecalho);
-
-            var btnAlternar = new Button(() =>
-            {
-                _visivel = !_visivel;
-                _corpoMissoes.style.display = _visivel ? DisplayStyle.Flex : DisplayStyle.None;
-            })
-            {
-                text = "−",
-            };
-            btnAlternar.style.fontSize = 11;
-            btnAlternar.style.backgroundColor = new StyleColor(Color.clear);
-            btnAlternar.style.borderLeftWidth = 0;
-            btnAlternar.style.borderRightWidth = 0;
-            btnAlternar.style.borderTopWidth = 0;
-            btnAlternar.style.borderBottomWidth = 0;
-            btnAlternar.style.color = new StyleColor(new Color(0.7f, 0.7f, 0.7f));
-            topo.Add(btnAlternar);
-
+            _alternar = new Button(Alternar) { text = "−" };
+            _alternar.AddToClassList("rastreador-alternar");
+            topo.Add(_alternar);
             _container.Add(topo);
 
-            _corpoMissoes = new VisualElement();
-            _corpoMissoes.pickingMode = PickingMode.Ignore;
+            _corpoMissoes = new VisualElement { pickingMode = PickingMode.Ignore };
+            _corpoMissoes.AddToClassList("rastreador-corpo");
             _container.Add(_corpoMissoes);
 
-            raiz.Add(_container);
+            regiao.Add(_container);
             Redesenhar();
+        }
+
+        private void Alternar()
+        {
+            _visivel = !_visivel;
+            _corpoMissoes.style.display = _visivel ? DisplayStyle.Flex : DisplayStyle.None;
+            _alternar.text = _visivel ? "−" : "+";
         }
 
         private void Redesenhar()
@@ -140,15 +118,16 @@ namespace JogoDoGrupo.Client.Features.Missoes
 
             var acompanhadas = ControleDeMissoes.ObterAcompanhadas();
             _cabecalho.text =
-                $"MISSÕES ({acompanhadas.Count}/{ConfigMissoes.MaximoMissoesAcompanhadas})";
+                $"Missões  {acompanhadas.Count}/{ConfigMissoes.MaximoMissoesAcompanhadas}";
 
             if (acompanhadas.Count == 0)
             {
-                var dica = ComponentesVisuais.Texto("Pressione L para abrir o Diário de Missões.");
-                dica.style.fontSize = 11;
-                dica.style.opacity = 0.6f;
-                dica.style.whiteSpace = WhiteSpace.Normal;
-                _corpoMissoes.Add(dica);
+                _corpoMissoes.Add(
+                    ComponentesHud.Texto(
+                        "Nenhuma missão acompanhada. Abra o Diário de Missões (L) e marque as que quer seguir.",
+                        "rastreador-dica"
+                    )
+                );
                 return;
             }
 
@@ -159,35 +138,28 @@ namespace JogoDoGrupo.Client.Features.Missoes
                 if (def == null)
                     continue;
 
-                var bloco = new VisualElement();
-                bloco.pickingMode = PickingMode.Ignore;
-                bloco.style.marginBottom = 8;
+                var bloco = new VisualElement { pickingMode = PickingMode.Ignore };
+                bloco.AddToClassList("rastreador-missao");
 
-                // Título
-                var titulo = ComponentesVisuais.Texto(def.Titulo, subtitulo: true);
-                titulo.style.fontSize = 12;
-                titulo.style.whiteSpace = WhiteSpace.Normal;
-                if (prog.Estado == EstadoDaMissao.ProntaParaEntregar)
-                {
-                    titulo.style.color = new StyleColor(new Color(0.4f, 0.95f, 0.4f));
-                }
-                else if (def.Tipo == TipoDeMissao.Principal)
-                {
-                    titulo.style.color = new StyleColor(new Color(1f, 0.85f, 0.3f));
-                }
-                else
-                {
-                    titulo.style.color = new StyleColor(Color.white);
-                }
+                var titulo = ComponentesHud.Texto(def.Titulo, "rastreador-titulo");
+                titulo.EnableInClassList(
+                    "rastreador-titulo-principal",
+                    def.Tipo == TipoDeMissao.Principal
+                );
+                titulo.EnableInClassList(
+                    "rastreador-titulo-pronta",
+                    prog.Estado == EstadoDaMissao.ProntaParaEntregar
+                );
                 bloco.Add(titulo);
 
-                // Objetivos
                 if (prog.Estado == EstadoDaMissao.ProntaParaEntregar)
                 {
-                    var pronto = ComponentesVisuais.Texto("✔ Pronta! Entregue ao NPC.");
-                    pronto.style.fontSize = 11;
-                    pronto.style.color = new StyleColor(new Color(0.4f, 0.95f, 0.4f));
-                    bloco.Add(pronto);
+                    var pronta = ComponentesHud.Texto(
+                        "✔ Pronta: volte para entregar.",
+                        "rastreador-objetivo"
+                    );
+                    pronta.AddToClassList("rastreador-objetivo-feito");
+                    bloco.Add(pronta);
                 }
                 else
                 {
@@ -201,16 +173,13 @@ namespace JogoDoGrupo.Client.Features.Missoes
 
                         var atual = progObj != null ? progObj.QuantidadeAtual : 0;
                         var feito = progObj != null && progObj.Concluido;
-
-                        var objLinha = ComponentesVisuais.Texto(
-                            $" {(feito ? "[✔]" : "•")} {objDef.Descricao} ({atual}/{objDef.QuantidadeTotal})"
-                        );
-                        objLinha.style.fontSize = 11;
-                        objLinha.style.whiteSpace = WhiteSpace.Normal;
-                        objLinha.style.color = feito
-                            ? new StyleColor(new Color(0.5f, 0.85f, 0.5f))
-                            : new StyleColor(new Color(0.8f, 0.8f, 0.8f));
-                        bloco.Add(objLinha);
+                        var texto =
+                            objDef.QuantidadeTotal > 1
+                                ? $"{(feito ? "✔" : "-")} {objDef.Descricao}: {atual}/{objDef.QuantidadeTotal}"
+                                : $"{(feito ? "✔" : "-")} {objDef.Descricao}";
+                        var linha = ComponentesHud.Texto(texto, "rastreador-objetivo");
+                        linha.EnableInClassList("rastreador-objetivo-feito", feito);
+                        bloco.Add(linha);
                     }
                 }
 
