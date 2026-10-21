@@ -285,6 +285,46 @@ namespace JogoDoGrupo.Server.Core.Persistencia.Migrations.Postgres
                     b.ToTable("CartasCorreio", (string)null);
                 });
 
+            modelBuilder.Entity("JogoDoGrupo.Server.Features.Economia.ItemBancoGuildaEntidade", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<int>("Aba")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Casa")
+                        .HasColumnType("integer");
+
+                    b.Property<long>("DataDepositoUnix")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("DepositadoPorNome")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("EquipamentoJson")
+                        .HasColumnType("text");
+
+                    b.Property<long>("GuildaId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("ItemId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GuildaId");
+
+                    b.HasIndex("GuildaId", "Aba", "Casa")
+                        .IsUnique();
+
+                    b.ToTable("ItensBancoGuilda", (string)null);
+                });
+
             modelBuilder.Entity("JogoDoGrupo.Server.Features.Economia.OrdemMercado", b =>
                 {
                     b.Property<long>("Id")
@@ -338,6 +378,22 @@ namespace JogoDoGrupo.Server.Core.Persistencia.Migrations.Postgres
                         {
                             t.HasCheckConstraint("CK_OrdensMercado_PrecoUnitario", "\"PrecoUnitario\" > 0");
                         });
+                });
+
+            modelBuilder.Entity("JogoDoGrupo.Server.Features.Economia.SaldoBancoGuildaEntidade", b =>
+                {
+                    b.Property<long>("GuildaId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("GuildaId"));
+
+                    b.Property<long>("Coroas")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("GuildaId");
+
+                    b.ToTable("SaldosBancoGuilda", (string)null);
                 });
 
             modelBuilder.Entity("JogoDoGrupo.Server.Features.Economia.SaldoCoroas", b =>
