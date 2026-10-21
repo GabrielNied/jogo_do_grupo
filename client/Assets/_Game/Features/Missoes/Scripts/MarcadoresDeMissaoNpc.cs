@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using JogoDoGrupo.Shared.Features.Missoes;
 
 namespace JogoDoGrupo.Client.Features.Missoes

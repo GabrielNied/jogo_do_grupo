@@ -59,12 +59,12 @@ namespace JogoDoGrupo.Client.Features.Economia.UI
             topo.style.marginBottom = 10f;
 
             _rotuloGuilda = new Label("Guilda: -");
-            _rotuloGuilda.AddToClassList(EstiloCore.TextoSecundario);
+            _rotuloGuilda.AddToClassList(EstiloCore.Dica);
             _rotuloGuilda.style.fontSize = 14f;
             topo.Add(_rotuloGuilda);
 
             _rotuloSaldoCoroas = new Label("Cofre: 0 coroas");
-            _rotuloSaldoCoroas.AddToClassList(EstiloCore.TextoDourado);
+            _rotuloSaldoCoroas.AddToClassList(EstiloCore.TextoGanho);
             _rotuloSaldoCoroas.style.fontSize = 14f;
             topo.Add(_rotuloSaldoCoroas);
 
@@ -82,12 +82,12 @@ namespace JogoDoGrupo.Client.Features.Economia.UI
             secaoCoroas.Add(_campoCoroas);
 
             _botaoDepositarCoroas = new Button(AoClicarDepositarCoroas) { text = "Depositar" };
-            _botaoDepositarCoroas.AddToClassList(EstiloCore.BotaoPrimario);
+            _botaoDepositarCoroas.AddToClassList(EstiloCore.BotaoPrincipal);
             _botaoDepositarCoroas.style.marginRight = 6f;
             secaoCoroas.Add(_botaoDepositarCoroas);
 
             _botaoRetirarCoroas = new Button(AoClicarRetirarCoroas) { text = "Retirar" };
-            _botaoRetirarCoroas.AddToClassList(EstiloCore.BotaoSecundario);
+            _botaoRetirarCoroas.AddToClassList(EstiloCore.Botao);
             secaoCoroas.Add(_botaoRetirarCoroas);
 
             conteudo.Add(secaoCoroas);
@@ -105,12 +105,12 @@ namespace JogoDoGrupo.Client.Features.Economia.UI
             linhaAbas.style.marginBottom = 8f;
 
             _aba1Botao = new Button(() => TrocarAba(1)) { text = "Aba 1" };
-            _aba1Botao.AddToClassList(EstiloCore.BotaoSecundario);
+            _aba1Botao.AddToClassList(EstiloCore.Botao);
             _aba1Botao.style.marginRight = 6f;
             linhaAbas.Add(_aba1Botao);
 
             _aba2Botao = new Button(() => TrocarAba(2)) { text = "Aba 2" };
-            _aba2Botao.AddToClassList(EstiloCore.BotaoSecundario);
+            _aba2Botao.AddToClassList(EstiloCore.Botao);
             linhaAbas.Add(_aba2Botao);
 
             conteudo.Add(linhaAbas);
@@ -215,13 +215,13 @@ namespace JogoDoGrupo.Client.Features.Economia.UI
                         ? $"Item #{item.ItemId}"
                         : item.Detalhes.Nome
                 );
-                nome.AddToClassList(EstiloCore.TextoPrimario);
+                nome.AddToClassList(EstiloCore.Texto);
                 info.Add(nome);
 
                 var dep = new Label(
                     $"Depositado por: {item.DepositadoPorNome} (Casa {item.Casa + 1})"
                 );
-                dep.AddToClassList(EstiloCore.TextoSecundario);
+                dep.AddToClassList(EstiloCore.Dica);
                 dep.style.fontSize = 11f;
                 info.Add(dep);
 
@@ -236,7 +236,7 @@ namespace JogoDoGrupo.Client.Features.Economia.UI
                     {
                         text = "Retirar",
                     };
-                    btnRetirar.AddToClassList(EstiloCore.BotaoSecundario);
+                    btnRetirar.AddToClassList(EstiloCore.Botao);
                     linha.Add(btnRetirar);
                 }
 
@@ -246,7 +246,7 @@ namespace JogoDoGrupo.Client.Features.Economia.UI
             if (!temItens)
             {
                 var vazio = new Label("Nenhum item nesta aba do cofre.");
-                vazio.AddToClassList(EstiloCore.TextoSecundario);
+                vazio.AddToClassList(EstiloCore.Dica);
                 vazio.style.marginTop = 12f;
                 vazio.style.marginBottom = 12f;
                 vazio.style.unityTextAlign = TextAnchor.MiddleCenter;
