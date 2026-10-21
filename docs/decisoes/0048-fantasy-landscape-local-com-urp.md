@@ -1,7 +1,7 @@
 # 0048. Fantasy Landscape local com materiais URP
 
 **Data:** 2026-10-18
-**Status:** aceita
+**Status:** parcialmente substituída por [0053](0053-assets-usados-no-git.md) (distribuição e instalação); adaptação URP mantida
 
 ## Contexto
 
