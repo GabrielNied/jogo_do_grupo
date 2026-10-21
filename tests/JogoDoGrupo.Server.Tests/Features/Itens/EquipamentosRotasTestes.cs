@@ -31,13 +31,13 @@ public class EquipamentosRotasTestes(ServidorDeTeste servidor) : IClassFixture<S
         var estado = await ServidorDeTeste.LerJsonAsync<EquipamentosResponse>(resposta);
         var entrada = Assert.Single(estado.Inventario);
         Assert.Contains(entrada.ItemId, CatalogoEquipamentos.ModelosDeTeste);
-        Assert.Equal((GrauEquipamento)grau, entrada.Equipamento.Grau);
+        Assert.Equal((GrauEquipamento)grau, entrada.Equipamento!.Grau);
         Assert.Equal(requisito, entrada.Equipamento.NivelPersonagemMinimo);
         var volta = Assert.Single((await Ler(cliente, id)).Inventario);
         Assert.Equal(entrada.InstanciaId, volta.InstanciaId);
         Assert.Equal(
             entrada.Equipamento.Atributos.Select(a => a.Valor),
-            volta.Equipamento.Atributos.Select(a => a.Valor)
+            volta.Equipamento!.Atributos.Select(a => a.Valor)
         );
         Assert.Equal(entrada.Equipamento.Familia, volta.Equipamento.Familia);
     }
@@ -271,7 +271,7 @@ public class EquipamentosRotasTestes(ServidorDeTeste servidor) : IClassFixture<S
         Assert.Empty(estado.Equipados);
         Assert.False(estado.Atributos.TemArma);
         Assert.Empty(estado.Atributos.Linhas);
-        Assert.Equal(50, Assert.Single(estado.Inventario).Equipamento.Atributos[0].Valor);
+        Assert.Equal(50, Assert.Single(estado.Inventario).Equipamento!.Atributos[0].Valor);
         Assert.Equal(0, (await Recursos(cliente, id)).Atributos.Forca);
     }
 

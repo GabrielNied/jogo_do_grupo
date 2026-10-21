@@ -1,3 +1,4 @@
+#nullable enable annotations
 using System;
 using System.Collections.Generic;
 
@@ -275,7 +276,7 @@ namespace JogoDoGrupo.Shared.Features.Npcs
             return resultado.ToArray();
         }
 
-        public static DefinicaoNpc PorPapel(PapelNpc papel, string area = AreaCidade)
+        public static DefinicaoNpc? PorPapel(PapelNpc papel, string area = AreaCidade)
         {
             for (var i = 0; i < Todos.Length; i++)
             {

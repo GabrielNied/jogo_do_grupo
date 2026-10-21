@@ -4,6 +4,6 @@ namespace JogoDoGrupo.Shared.Features.Mundo
     public sealed class RespostaCanais
     {
         public int CanalAtual { get; set; }
-        public InfoCanal[] Canais { get; set; }
+        public InfoCanal[] Canais { get; set; } = new InfoCanal[0];
     }
 }

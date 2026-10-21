@@ -109,7 +109,7 @@ public sealed class ChefeDaDungeon : IAlvosDeCombate, IInimigosSimulados
 
         _definicao =
             CatalogoCriaturas.Obter(criaturaId ?? ConfigChefeDaDungeon.CriaturaId)
-            ?? CatalogoCriaturas.Obter(ConfigChefeDaDungeon.CriaturaId);
+            ?? CatalogoCriaturas.Obter(ConfigChefeDaDungeon.CriaturaId)!;
         Area = area;
         _origemX = origemX;
         _origemZ = origemZ;

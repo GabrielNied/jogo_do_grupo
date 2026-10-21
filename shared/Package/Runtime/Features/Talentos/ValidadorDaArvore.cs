@@ -1,3 +1,4 @@
+#nullable enable annotations
 using System;
 using System.Collections.Generic;
 
@@ -10,7 +11,7 @@ namespace JogoDoGrupo.Shared.Features.Talentos
     public static class ValidadorDaArvore
     {
         /// <summary>Lista vazia quando a configuração é válida.</summary>
-        public static List<string> Validar(ConfiguracaoDaArvore configuracao)
+        public static List<string> Validar(ConfiguracaoDaArvore? configuracao)
         {
             var problemas = new List<string>();
             if (configuracao == null)
@@ -244,7 +245,7 @@ namespace JogoDoGrupo.Shared.Features.Talentos
                     continue;
                 }
 
-                if (estado.TryGetValue(requisito.NoId, out var visita))
+                if (estado.TryGetValue(requisito.NoId ?? "", out var visita))
                 {
                     if (visita == 1)
                     {
@@ -254,7 +255,7 @@ namespace JogoDoGrupo.Shared.Features.Talentos
                     continue;
                 }
 
-                if (TemCiclo(requisito.NoId, porId, estado))
+                if (TemCiclo(requisito.NoId ?? "", porId, estado))
                 {
                     return true;
                 }

@@ -97,7 +97,7 @@ public class BancoServidorTestes(ServidorDeTeste servidor) : IClassFixture<Servi
         Assert.Equal(ConteinerItem.Banco, itemBanco.Conteiner);
         Assert.Equal(0, itemBanco.Aba);
         Assert.Equal(0, itemBanco.Casa);
-        Assert.Empty(banco.Bolsa.Inventario);
+        Assert.Empty(banco.Bolsa!.Inventario);
     }
 
     [Fact]
@@ -124,7 +124,7 @@ public class BancoServidorTestes(ServidorDeTeste servidor) : IClassFixture<Servi
         var banco = await ServidorDeTeste.LerJsonAsync<BancoResponse>(retResp);
 
         Assert.Empty(banco.Itens);
-        var itemBolsa = Assert.Single(banco.Bolsa.Inventario);
+        var itemBolsa = Assert.Single(banco.Bolsa!.Inventario);
         Assert.Equal(100, itemBolsa.ItemId);
         Assert.Equal(ConteinerItem.Bolsa, itemBolsa.Conteiner);
     }
@@ -163,7 +163,7 @@ public class BancoServidorTestes(ServidorDeTeste servidor) : IClassFixture<Servi
         var bancoAposRetirada = await ServidorDeTeste.LerJsonAsync<BancoResponse>(retResp);
 
         Assert.Empty(bancoAposRetirada.Itens);
-        Assert.Single(bancoAposRetirada.Bolsa.Inventario);
+        Assert.Single(bancoAposRetirada.Bolsa!.Inventario);
 
         // Personagem 1 consulta o banco e vê que está vazio
         var getP1 = await cliente.GetAsync(RotasItens.BancoDe(id1));

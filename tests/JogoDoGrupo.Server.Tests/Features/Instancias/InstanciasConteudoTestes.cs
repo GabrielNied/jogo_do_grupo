@@ -25,7 +25,7 @@ public sealed class InstanciasConteudoTestes
             relogioMs: () => agora
         );
         var doCampo = new GrupoDeInimigos(
-            CatalogoCriaturas.Obter(pedido.CriaturaId),
+            CatalogoCriaturas.Obter(pedido.CriaturaId)!,
             sorteador,
             pedido.Quantidade,
             () => agora

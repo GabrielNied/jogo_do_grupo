@@ -23,7 +23,7 @@ public class RitmoDeLootTestes
         var aleatorio = new Random(semente);
         var sorteador = new SorteadorDeLoot(aleatorio);
         var gerador = new GeradorEquipamentos(new ConfigEquipamentos());
-        var mob = CatalogoCriaturas.Obter(CatalogoCriaturas.JavaliDoCampo);
+        var mob = CatalogoCriaturas.Obter(CatalogoCriaturas.JavaliDoCampo)!;
         var equipado = new Dictionary<PosicaoEquipamento, Equipamento>();
         var upgrades = new List<double>();
         var nivel = 1;

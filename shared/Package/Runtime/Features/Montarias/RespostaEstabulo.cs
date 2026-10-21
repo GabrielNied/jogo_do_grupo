@@ -5,6 +5,6 @@ namespace JogoDoGrupo.Shared.Features.Montarias
     /// </summary>
     public sealed class RespostaEstabulo
     {
-        public MontariaEstabuloDto[] Ofertas { get; set; }
+        public MontariaEstabuloDto[] Ofertas { get; set; } = new MontariaEstabuloDto[0];
     }
 }

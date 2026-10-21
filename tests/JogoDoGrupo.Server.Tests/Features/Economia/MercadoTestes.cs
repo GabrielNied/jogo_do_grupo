@@ -159,7 +159,7 @@ public sealed class MercadoTestes(ServidorDeTeste servidor) : IClassFixture<Serv
         await MercadoAsync(s => s.ComprarOrdemAsync(comprador, ordem.Id, default));
 
         var depois = (await _ambiente.BolsaAsync(comprador)).Single();
-        Assert.Equal(antes.Equipamento.Nome, depois.Equipamento.Nome);
+        Assert.Equal(antes.Equipamento!.Nome, depois.Equipamento!.Nome);
         Assert.Equal(antes.Equipamento.TierOrigem, depois.Equipamento.TierOrigem);
         Assert.Equal(antes.Equipamento.Atributos.Length, depois.Equipamento.Atributos.Length);
         Assert.Equal(0, await NaBolsaAsync(vendedor, CatalogoItens.EspadaDeTeste));

@@ -1,3 +1,4 @@
+#nullable enable annotations
 namespace JogoDoGrupo.Shared.Features.Montarias
 {
     /// <summary>
@@ -50,7 +51,7 @@ namespace JogoDoGrupo.Shared.Features.Montarias
             return 0;
         }
 
-        public static MontariaEstabuloDto ObterOferta(int tipoMontaria)
+        public static MontariaEstabuloDto? ObterOferta(int tipoMontaria)
         {
             for (var i = 0; i < Ofertas.Length; i++)
             {

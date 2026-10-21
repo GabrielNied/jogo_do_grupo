@@ -1,3 +1,4 @@
+#nullable enable annotations
 using System;
 
 namespace JogoDoGrupo.Shared.Features.Npcs
@@ -46,7 +47,7 @@ namespace JogoDoGrupo.Shared.Features.Npcs
 
         public static readonly HabitanteDaCidade[] Todos = Montar();
 
-        public static HabitanteDaCidade Obter(int id)
+        public static HabitanteDaCidade? Obter(int id)
         {
             for (var i = 0; i < Todos.Length; i++)
             {

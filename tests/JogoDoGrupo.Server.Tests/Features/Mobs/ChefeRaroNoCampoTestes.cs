@@ -10,7 +10,7 @@ public class ChefeRaroNoCampoTestes
 
     private static readonly DefinicaoDeCriatura Presa = CatalogoCriaturas.Obter(
         CatalogoCriaturas.PresaVelha
-    );
+    )!;
 
     private static readonly long IntervaloMs = Presa.IntervaloDeAparicaoSegundos * 1000L;
 

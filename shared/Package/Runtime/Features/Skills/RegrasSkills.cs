@@ -1,3 +1,4 @@
+#nullable enable annotations
 using System;
 using System.Collections.Generic;
 using JogoDoGrupo.Shared.Features.Combate;
@@ -34,7 +35,7 @@ namespace JogoDoGrupo.Shared.Features.Skills
         /// Se os ids gravados num exemplar ainda valem para a arma: a quantidade certa, todos do
         /// pool do tipo e sem repetição. Um catálogo que mudou invalida o gravado (sorteia de novo).
         /// </summary>
-        public static bool IdsValidos(TipoEquipamento tipo, IReadOnlyList<string> ids)
+        public static bool IdsValidos(TipoEquipamento tipo, IReadOnlyList<string>? ids)
         {
             var pool = CatalogoDeSkills.Pool(tipo);
             if (ids == null || ids.Count != Math.Min(ConfigSkills.SkillsPorArma, pool.Count))

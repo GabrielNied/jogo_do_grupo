@@ -1,3 +1,4 @@
+#nullable enable annotations
 namespace JogoDoGrupo.Shared.Features.Montarias
 {
     /// <summary>
@@ -8,8 +9,8 @@ namespace JogoDoGrupo.Shared.Features.Montarias
         public bool Sucesso { get; set; }
         public int TipoMontaria { get; set; }
         public long SaldoRestante { get; set; }
-        public string CodigoErro { get; set; }
-        public string Mensagem { get; set; }
+        public string? CodigoErro { get; set; }
+        public string? Mensagem { get; set; }
 
         public RespostaCompraEstabulo() { }
 
@@ -17,8 +18,8 @@ namespace JogoDoGrupo.Shared.Features.Montarias
             bool sucesso,
             int tipoMontaria,
             long saldoRestante,
-            string codigoErro = null,
-            string mensagem = null
+            string? codigoErro = null,
+            string? mensagem = null
         )
         {
             Sucesso = sucesso;

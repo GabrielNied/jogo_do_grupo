@@ -82,7 +82,7 @@ public sealed class MobsModule : IFeatureModule
             ChaveDoChefeRaro,
             (sp, _) =>
                 new GrupoDeInimigos(
-                    CatalogoCriaturas.Obter(CatalogoCriaturas.PresaVelha),
+                    CatalogoCriaturas.Obter(CatalogoCriaturas.PresaVelha)!,
                     sp.GetRequiredService<ISorteadorDeCriaturas>(),
                     1,
                     pontoX: ConfigInimigosDoCampo.PontoDoChefeRaroX,
@@ -106,7 +106,7 @@ public sealed class MobsModule : IFeatureModule
             (sp, _) =>
             {
                 var proximoId = ConfigChefeDoCapitulo.PrimeiroId;
-                var def = CatalogoCriaturas.Obter(ConfigChefeDoCapitulo.CriaturaId);
+                var def = CatalogoCriaturas.Obter(ConfigChefeDoCapitulo.CriaturaId)!;
                 var multDano = (double)def.DanoBase / 120.0;
                 return new ChefeDaDungeon(
                     ConfigChefeDoCapitulo.Area,

@@ -9,8 +9,8 @@ namespace JogoDoGrupo.Shared.Features.Economia
     [Serializable]
     public class EconomiaRecusada
     {
-        public string Motivo;
-        public string Mensagem;
+        public string Motivo = "";
+        public string Mensagem = "";
 
         public EconomiaRecusada() { }
 

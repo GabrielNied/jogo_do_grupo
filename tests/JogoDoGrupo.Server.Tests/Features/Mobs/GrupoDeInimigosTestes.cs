@@ -17,7 +17,7 @@ public class GrupoDeInimigosTestes
 
     private static readonly DefinicaoDeCriatura Javali = CatalogoCriaturas.Obter(
         CatalogoCriaturas.JavaliDoCampo
-    );
+    )!;
 
     /// <summary>Marca quem está caído para a IA consultar <see cref="IEstadoDeQueda"/>.</summary>
     private sealed class QuedaFixa : IEstadoDeQueda
@@ -1285,7 +1285,7 @@ public class GrupoDeInimigosTestes
     public void ForcarAparicao_com_especie_nasce_da_especie_escolhida()
     {
         var campo = new Campo();
-        var lobo = CatalogoCriaturas.Obter(CatalogoCriaturas.LoboDoCampo);
+        var lobo = CatalogoCriaturas.Obter(CatalogoCriaturas.LoboDoCampo)!;
 
         var apareceu = campo.Grupo.ForcarAparicao(3, 4, lobo);
 

@@ -75,7 +75,7 @@ public sealed class ContratoInspecaoTestes
         Assert.Equal("Aventureiro", retrato.Nome);
         Assert.Equal(10, retrato.Nivel);
         Assert.Single(retrato.Equipados);
-        Assert.Equal(TierItem.A, retrato.Equipados[0].Equipamento.TierOrigem);
+        Assert.Equal(TierItem.A, retrato.Equipados[0].Equipamento!.TierOrigem);
         Assert.Equal(50, retrato.Atributos.DefesaFisica);
     }
 

@@ -41,7 +41,7 @@ public sealed class AmigosDoServidorTestes
         var pedidoId = _a.Pedir(AmbienteDeAmigos.A, AmbienteDeAmigos.B);
         _a.Saida.Limpar();
         _a.Amigos.ResponderPedido(AmbienteDeAmigos.B, pedidoId, false);
-        Assert.Empty(_a.Saida.Todas.Where(e => e.Para == AmbienteDeAmigos.A));
+        Assert.DoesNotContain(_a.Saida.Todas, e => e.Para == AmbienteDeAmigos.A);
     }
 
     [Fact]
