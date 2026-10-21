@@ -116,12 +116,24 @@ namespace JogoDoGrupo.Client.Features.Economia
             colisor.radius = Tamanho.x * 0.5f;
             colisor.center = new Vector3(0f, Tamanho.y / 2f, 0f);
 
-            var corpo = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+            // Os vendedores, ferreiro, taverneiro e leiloeiro já têm corpo e nome pela
+            // funcionalidade NPCs no mesmo ponto: aqui só fica o colisor. A caixa de correio e o
+            // cofre da guilda, que não são pessoas, ganham uma peça baixa em vez da cápsula.
+            if (tipo != TipoNpcEconomia.Correio && tipo != TipoNpcEconomia.BancoGuilda)
+            {
+                return raiz;
+            }
+
+            var corpo = GameObject.CreatePrimitive(PrimitiveType.Cube);
             corpo.name = "Corpo";
             corpo.transform.SetParent(raiz.transform, false);
-            corpo.transform.localScale = Tamanho;
-            corpo.transform.localPosition = new Vector3(0f, Tamanho.y / 2f, 0f);
-            Object.Destroy(corpo.GetComponent<CapsuleCollider>());
+            var tamanhoPeca =
+                tipo == TipoNpcEconomia.Correio
+                    ? new Vector3(0.6f, 1.2f, 0.5f)
+                    : new Vector3(1.2f, 0.8f, 0.8f);
+            corpo.transform.localScale = tamanhoPeca;
+            corpo.transform.localPosition = new Vector3(0f, tamanhoPeca.y / 2f, 0f);
+            Object.Destroy(corpo.GetComponent<BoxCollider>());
 
             var renderer = corpo.GetComponent<Renderer>();
             if (renderer != null)
