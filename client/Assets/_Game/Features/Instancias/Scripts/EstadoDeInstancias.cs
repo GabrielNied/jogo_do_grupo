@@ -30,12 +30,24 @@ namespace JogoDoGrupo.Client.Features.Instancias
                         TempoLimiteSegundos = m.TempoLimiteSegundos;
                         InicioLocal = UnityEngine.Time.unscaledTime;
                         VitoriaAlcancada = false;
+                        EhRaid = m.Raid;
+                        EtapaAtual = m.EtapaAtual;
+                        TotalEtapas = m.TotalEtapas;
                         DungeonIniciada?.Invoke(m);
                     }
                 ),
                 conexao.Assinar<EntradaRecusada>(
                     InstanciasMessageIds.EntradaRecusada,
                     m => EntradaRecusada?.Invoke(m)
+                ),
+                conexao.Assinar<EtapaRaidConcluida>(
+                    InstanciasMessageIds.EtapaRaidConcluida,
+                    m =>
+                    {
+                        EtapaAtual = m.ProximaEtapa;
+                        TotalEtapas = m.TotalEtapas;
+                        EtapaConcluida?.Invoke(m);
+                    }
                 ),
                 conexao.Assinar<ChefeDerrotadoNaDungeon>(
                     InstanciasMessageIds.ChefeDerrotadoNaDungeon,
@@ -60,6 +72,9 @@ namespace JogoDoGrupo.Client.Features.Instancias
                         AreaAtual = string.Empty;
                         IdInstancia = string.Empty;
                         VitoriaAlcancada = false;
+                        EhRaid = false;
+                        EtapaAtual = 1;
+                        TotalEtapas = 1;
                     }
                 ),
             };
@@ -70,6 +85,12 @@ namespace JogoDoGrupo.Client.Features.Instancias
         public string IdInstancia { get; private set; } = string.Empty;
 
         public bool VitoriaAlcancada { get; private set; }
+
+        public bool EhRaid { get; private set; }
+
+        public int EtapaAtual { get; private set; } = 1;
+
+        public int TotalEtapas { get; private set; } = 1;
 
         public int NivelAtual { get; private set; } = 1;
 
@@ -94,6 +115,8 @@ namespace JogoDoGrupo.Client.Features.Instancias
         public event Action<DungeonIniciada> DungeonIniciada;
 
         public event Action<EntradaRecusada> EntradaRecusada;
+
+        public event Action<EtapaRaidConcluida> EtapaConcluida;
 
         public event Action<ChefeDerrotadoNaDungeon> ChefeDerrotado;
 

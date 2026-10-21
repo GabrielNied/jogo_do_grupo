@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using JogoDoGrupo.Shared.Features.Mundo;
 using UnityEngine;
 
@@ -225,10 +225,57 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
                 || mercadoEspelho;
         }
 
+        public const string SetorPracaCentral = "PracaCentral";
+        public const string SetorPortaoNorte = "PortaoNorte";
+        public const string SetorPortaoSul = "PortaoSul";
+        public const string SetorDistritoComercial = "DistritoComercial";
+        public const string SetorDistritoForjasTaverna = "DistritoForjasTaverna";
+        public const string SetorDistritoAnimais = "DistritoAnimais";
+        public const string SetorDistritoResidencial = "DistritoResidencial";
+
+        /// <summary>
+        /// Informa em qual setor ou distrito funcional da cidade o ponto (x, z) se encontra (#1065).
+        /// </summary>
+        public static string SetorDoHubEm(float x, float z)
+        {
+            if (Mathf.Abs(x) < MetadePraca && Mathf.Abs(z) < MetadePraca)
+            {
+                return SetorPracaCentral;
+            }
+
+            if (z > 30f && Mathf.Abs(x) < MetadeDoPortao + Modulo)
+            {
+                return SetorPortaoNorte;
+            }
+
+            if (z < -30f && Mathf.Abs(x) < MetadeDoPortao + Modulo)
+            {
+                return SetorPortaoSul;
+            }
+
+            if (x < 0f && z > 0f)
+            {
+                return SetorDistritoAnimais;
+            }
+
+            if (x > 0f && z > 0f)
+            {
+                return SetorDistritoResidencial;
+            }
+
+            if (x < 0f && z < 0f)
+            {
+                return SetorDistritoForjasTaverna;
+            }
+
+            return SetorDistritoComercial;
+        }
+
         private static IReadOnlyList<PecaDoHub> MontarProps()
         {
             var lista = new List<PecaDoHub>
             {
+                // Praça Central (24 x 24 m)
                 new PecaDoHub("Fonte", 0f, 0f, 0f),
                 // Bancos em volta da fonte.
                 new PecaDoHub("Banco", -7f, -7f, 45f),
@@ -240,58 +287,142 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
                 new PecaDoHub("Lanterna", 11f, -11f, 0f),
                 new PecaDoHub("Lanterna", -11f, 11f, 0f),
                 new PecaDoHub("Lanterna", 11f, 11f, 0f),
-                // Lanternas do portão (as torres ficam em x = ±6, z = 38).
+                // Portão Norte (as torres ficam em x = ±6, z = 38).
                 new PecaDoHub("Lanterna", -5.2f, 33.8f, 0f),
                 new PecaDoHub("Lanterna", 5.2f, 33.8f, 0f),
             };
 
-            // Um quadrante (x e z positivos) é desenhado e espelhado para os outros três.
+            // Lanternas na esquina da rua em anel com cada estrada em cruz.
             for (var sx = -1; sx <= 1; sx += 2)
             {
                 for (var sz = -1; sz <= 1; sz += 2)
                 {
-                    var pedra = sx * sz > 0;
-                    var casaPequena = pedra ? "Casa_Pedra_Pequena" : "Casa_Madeira_Pequena";
-                    var casaLarga = pedra ? "Casa_Pedra_Larga" : "Casa_Madeira_Larga";
-
-                    // Lanternas na esquina da rua em anel com cada estrada em cruz.
                     lista.Add(new PecaDoHub("Lanterna", sx * 5.2f, sz * 20.6f, 0f));
-
-                    // Três casas pequenas em volta da praça, de porta para ela (as duas primeiras)
-                    // e para a rua em anel (a terceira).
-                    AdicionarCasa(lista, casaPequena, sx, sz, 8f, 16f, 0f, -1f);
-                    AdicionarCasa(lista, casaPequena, sx, sz, 16f, 8f, -1f, 0f);
-                    AdicionarCasa(lista, casaPequena, sx, sz, 16f, 16f, 1f, 0f);
-
-                    // Duas casas largas do outro lado da rua em anel, de porta para ela.
-                    AdicionarCasa(lista, casaLarga, sx, sz, 28f, 12f, -1f, 0f);
-                    AdicionarCasa(lista, casaLarga, sx, sz, 12f, 28f, 0f, -1f);
-
-                    // Sem quarteirão extra nem barracas no mercado: as casas (8 x 8 m e 12 x 8 m)
-                    // e as barracas que a #274 pôs ali ficavam em cima da rua em anel e das casas
-                    // vizinhas. O chão de pedra do mercado e das ruas laterais continua.
-
-                    // Praça do canto: barraca virada para a fonte, árvores e uma carroça ou pedra.
-                    var barraca = pedra ? "Barraca_Vermelha" : "Barraca_Verde";
-                    var guinada = sx < 0 ? (sz < 0 ? 45f : 135f) : (sz < 0 ? -45f : -135f);
-                    lista.Add(new PecaDoHub(barraca, sx * 28.8f, sz * 27.2f, guinada));
-                    lista.Add(new PecaDoHub("Arvore_Alta", sx * 33.2f, sz * 33.2f, 40f * (sx + 2)));
-                    lista.Add(new PecaDoHub("Arvore", sx * 32.8f, sz * 26.2f, 30f * (sz + 3)));
-                    lista.Add(
-                        pedra
-                            ? new PecaDoHub("Pedra_Pequena", sx * 26.6f, sz * 33.6f, 0f)
-                            : new PecaDoHub("Carroca", sx * 27f, sz * 33f, 0f)
-                    );
-
-                    // Árvores no que sobra ao lado das casas largas.
-                    lista.Add(new PecaDoHub("Arvore", sx * 33.8f, sz * 9f, 70f));
-                    lista.Add(new PecaDoHub("Arvore", sx * 33.8f, sz * 15f, 110f));
-                    lista.Add(new PecaDoHub("Arvore", sx * 9f, sz * 33.8f, 160f));
-                    lista.Add(new PecaDoHub("Arvore", sx * 15f, sz * 33.8f, 200f));
                 }
             }
 
+            // Cada quadrante representa um distrito temático com os serviços da cidade (#1065):
+            // 1. Sudeste (sx = 1, sz = -1): Distrito Comercial e Financeiro (Banco, Leilão, Lojas)
+            MontarDistritoComercial(lista);
+
+            // 2. Sudoeste (sx = -1, sz = -1): Distrito das Forjas e Taverna (Forja, Taverna, Cozinha)
+            MontarDistritoForjasETaverna(lista);
+
+            // 3. Noroeste (sx = -1, sz = 1): Distrito dos Animais (Estábulo e Cuidador de Pets)
+            MontarDistritoAnimais(lista);
+
+            // 4. Nordeste (sx = 1, sz = 1): Distrito Residencial e Jardins (Casas e Praça Residencial)
+            MontarDistritoResidencial(lista);
+
             return lista;
+        }
+
+        private static void MontarDistritoComercial(List<PecaDoHub> lista)
+        {
+            const int sx = 1;
+            const int sz = -1;
+
+            // Salão do Banco (Cassian) e Casa de Leilão (Dumas) de frente para o anel/cruz.
+            AdicionarCasa(lista, "Casa_Pedra_Pequena", sx, sz, 8f, 16f, 0f, -1f);
+            AdicionarCasa(lista, "Casa_Pedra_Pequena", sx, sz, 16f, 8f, -1f, 0f);
+            AdicionarCasa(lista, "Casa_Madeira_Pequena", sx, sz, 16f, 16f, 1f, 0f);
+
+            // Armazéns de comércio e alfândega do outro lado da rua em anel.
+            AdicionarCasa(lista, "Casa_Madeira_Larga", sx, sz, 28f, 12f, -1f, 0f);
+            AdicionarCasa(lista, "Casa_Pedra_Larga", sx, sz, 12f, 28f, 0f, -1f);
+
+            // Pátio comercial do canto: barraca mercantil, carroça de fardos e árvores.
+            lista.Add(new PecaDoHub("Barraca_Vermelha", 28.8f, -27.2f, -45f));
+            lista.Add(new PecaDoHub("Arvore_Alta", 33.2f, -33.2f, 120f));
+            lista.Add(new PecaDoHub("Arvore", 32.8f, -26.2f, 60f));
+            lista.Add(new PecaDoHub("Carroca", 27f, -33f, 0f));
+
+            // Árvores no perímetro.
+            lista.Add(new PecaDoHub("Arvore", 33.8f, -9f, 70f));
+            lista.Add(new PecaDoHub("Arvore", 33.8f, -15f, 110f));
+            lista.Add(new PecaDoHub("Arvore", 9f, -33.8f, 160f));
+            lista.Add(new PecaDoHub("Arvore", 15f, -33.8f, 200f));
+        }
+
+        private static void MontarDistritoForjasETaverna(List<PecaDoHub> lista)
+        {
+            const int sx = -1;
+            const int sz = -1;
+
+            // Beco das Forjas: Forja de pedra do Ferreiro Brom e Taverna de madeira do Barnabé.
+            AdicionarCasa(lista, "Casa_Pedra_Pequena", sx, sz, 16f, 8f, -1f, 0f);
+            AdicionarCasa(lista, "Casa_Madeira_Pequena", sx, sz, 8f, 16f, 0f, -1f);
+            AdicionarCasa(lista, "Casa_Pedra_Pequena", sx, sz, 16f, 16f, 1f, 0f);
+
+            // Salão da forja e alojamento dos artífices.
+            AdicionarCasa(lista, "Casa_Pedra_Larga", sx, sz, 28f, 12f, -1f, 0f);
+            AdicionarCasa(lista, "Casa_Madeira_Larga", sx, sz, 12f, 28f, 0f, -1f);
+
+            // Pátio de fundição: barraca de carvão, pedras e árvores.
+            lista.Add(new PecaDoHub("Barraca_Vermelha", -28.8f, -27.2f, 45f));
+            lista.Add(new PecaDoHub("Arvore_Alta", -33.2f, -33.2f, 40f));
+            lista.Add(new PecaDoHub("Arvore", -32.8f, -26.2f, 60f));
+            lista.Add(new PecaDoHub("Pedra_Pequena", -26.6f, -33.6f, 0f));
+
+            // Árvores no perímetro.
+            lista.Add(new PecaDoHub("Arvore", -33.8f, -9f, 70f));
+            lista.Add(new PecaDoHub("Arvore", -33.8f, -15f, 110f));
+            lista.Add(new PecaDoHub("Arvore", -9f, -33.8f, 160f));
+            lista.Add(new PecaDoHub("Arvore", -15f, -33.8f, 200f));
+        }
+
+        private static void MontarDistritoAnimais(List<PecaDoHub> lista)
+        {
+            const int sx = -1;
+            const int sz = 1;
+
+            // Galpão do estábulo (Roderic) e cercado dos pets (Mirna).
+            AdicionarCasa(lista, "Casa_Madeira_Pequena", sx, sz, 16f, 8f, -1f, 0f);
+            AdicionarCasa(lista, "Casa_Madeira_Pequena", sx, sz, 16f, 16f, 1f, 0f);
+            AdicionarCasa(lista, "Casa_Pedra_Pequena", sx, sz, 8f, 16f, 0f, -1f);
+
+            // Depósito de feno e arreios.
+            AdicionarCasa(lista, "Casa_Madeira_Larga", sx, sz, 28f, 12f, -1f, 0f);
+            AdicionarCasa(lista, "Casa_Pedra_Larga", sx, sz, 12f, 28f, 0f, -1f);
+
+            // Canto do cercado: barraca de suprimentos animais, carroça de transporte e árvores.
+            lista.Add(new PecaDoHub("Barraca_Verde", -28.8f, 27.2f, 135f));
+            lista.Add(new PecaDoHub("Arvore_Alta", -33.2f, 33.2f, 40f));
+            lista.Add(new PecaDoHub("Arvore", -32.8f, 26.2f, 120f));
+            lista.Add(new PecaDoHub("Carroca", -27f, 33f, 0f));
+
+            // Árvores no perímetro.
+            lista.Add(new PecaDoHub("Arvore", -33.8f, 9f, 70f));
+            lista.Add(new PecaDoHub("Arvore", -33.8f, 15f, 110f));
+            lista.Add(new PecaDoHub("Arvore", -9f, 33.8f, 160f));
+            lista.Add(new PecaDoHub("Arvore", -15f, 33.8f, 200f));
+        }
+
+        private static void MontarDistritoResidencial(List<PecaDoHub> lista)
+        {
+            const int sx = 1;
+            const int sz = 1;
+
+            // Casas residenciais de pedra e madeira com jardins.
+            AdicionarCasa(lista, "Casa_Pedra_Pequena", sx, sz, 8f, 16f, 0f, -1f);
+            AdicionarCasa(lista, "Casa_Madeira_Pequena", sx, sz, 16f, 8f, -1f, 0f);
+            AdicionarCasa(lista, "Casa_Pedra_Pequena", sx, sz, 16f, 16f, 1f, 0f);
+
+            // Mansões residenciais externas.
+            AdicionarCasa(lista, "Casa_Pedra_Larga", sx, sz, 28f, 12f, -1f, 0f);
+            AdicionarCasa(lista, "Casa_Madeira_Larga", sx, sz, 12f, 28f, 0f, -1f);
+
+            // Praça residencial do canto: quiosque dos jardins, árvores e pedra ornamental.
+            lista.Add(new PecaDoHub("Barraca_Verde", 28.8f, 27.2f, -135f));
+            lista.Add(new PecaDoHub("Arvore_Alta", 33.2f, 33.2f, 120f));
+            lista.Add(new PecaDoHub("Arvore", 32.8f, 26.2f, 120f));
+            lista.Add(new PecaDoHub("Pedra_Pequena", 26.6f, 33.6f, 0f));
+
+            // Árvores no perímetro.
+            lista.Add(new PecaDoHub("Arvore", 33.8f, 9f, 70f));
+            lista.Add(new PecaDoHub("Arvore", 33.8f, 15f, 110f));
+            lista.Add(new PecaDoHub("Arvore", 9f, 33.8f, 160f));
+            lista.Add(new PecaDoHub("Arvore", 15f, 33.8f, 200f));
         }
 
         // A porta do prefab da casa fica no lado -Z; a guinada gira a casa para a frente pedida

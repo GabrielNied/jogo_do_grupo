@@ -43,7 +43,11 @@ namespace JogoDoGrupo.Shared.Features.Npcs
                 PapelNpc.CuidadorDePets =>
                     "Esses pequenos companheiros são fiéis e trazem ânimo nas horas sombrias.",
                 PapelNpc.DadorDeMissao =>
-                    "Mantenha a guarda alta. A guarnição de Brasa Mansa precisa de combatentes disciplinados.",
+                    "Contratos, avisos de caça e missões diárias para proteger e abastecer a Brasa Mansa.",
+                PapelNpc.Guarda =>
+                    "Mantenha a ordem na cidade e a espada embainhada. Os portões da Brasa Mansa estão sob vigília.",
+                PapelNpc.Morador =>
+                    "Bom dia, viajante! É bom ver novos aventureiros trazendo vida e segurança à nossa cidade.",
                 _ => "Olá, viajante! Bem-vindo à Brasa Mansa.",
             };
 
@@ -154,10 +158,18 @@ namespace JogoDoGrupo.Shared.Features.Npcs
                 {
                     new OpcaoDeDialogo(
                         "missoes",
-                        "Ver Missões",
+                        "Ver Quadro de Missões",
                         AcaoDeDialogo.AbrirServico,
-                        "missoes.painel"
+                        "missoes.quadro"
                     ),
+                    new OpcaoDeDialogo("sair", "Até logo", AcaoDeDialogo.Fechar),
+                },
+                PapelNpc.Guarda => new[]
+                {
+                    new OpcaoDeDialogo("sair", "Até logo", AcaoDeDialogo.Fechar),
+                },
+                PapelNpc.Morador => new[]
+                {
                     new OpcaoDeDialogo("sair", "Até logo", AcaoDeDialogo.Fechar),
                 },
                 _ => new[] { new OpcaoDeDialogo("sair", "Até logo", AcaoDeDialogo.Fechar) },

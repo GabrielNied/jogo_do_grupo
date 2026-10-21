@@ -5,7 +5,6 @@ using JogoDoGrupo.Server.Contratos.Itens;
 using JogoDoGrupo.Server.Contratos.Mundo;
 using JogoDoGrupo.Server.Core.Persistencia;
 using JogoDoGrupo.Server.Core.TempoReal;
-using JogoDoGrupo.Server.Features.Itens;
 using JogoDoGrupo.Shared.Core.TempoReal;
 using JogoDoGrupo.Shared.Features.Npcs;
 using JogoDoGrupo.Shared.Features.Pets;
@@ -177,10 +176,9 @@ public sealed class ServicoDePets(
         }
 
         using var escopo = scopeFactory.CreateScope();
-        var db = escopo.ServiceProvider.GetRequiredService<JogoDbContext>();
+        var custodia = escopo.ServiceProvider.GetRequiredService<ICustodiaDeItens>();
 
-        var item = await db.Set<ItemInventario>()
-            .SingleOrDefaultAsync(i => i.Id == instanciaId && i.PersonagemId == personagemId);
+        var item = await custodia.ObterAsync(personagemId, instanciaId, CancellationToken.None);
 
         if (item == null)
         {
@@ -210,8 +208,17 @@ public sealed class ServicoDePets(
             return false;
         }
 
-        db.Set<ItemInventario>().Remove(item);
+        var retirado = await custodia.RetirarAsync(
+            personagemId,
+            instanciaId,
+            CancellationToken.None
+        );
+        if (retirado == null)
+        {
+            return false;
+        }
 
+        var db = escopo.ServiceProvider.GetRequiredService<JogoDbContext>();
         var registro = new PetDaConta
         {
             ContaId = contaId,

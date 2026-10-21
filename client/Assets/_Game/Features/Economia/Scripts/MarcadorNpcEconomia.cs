@@ -13,6 +13,7 @@ namespace JogoDoGrupo.Client.Features.Economia
         Taverneiro,
         Merceeiro,
         Leiloeiro,
+        Correio,
     }
 
     /// <summary>
@@ -58,6 +59,11 @@ namespace JogoDoGrupo.Client.Features.Economia
                     altura,
                     ConfigMercado.LeiloeiroZ
                 ),
+                TipoNpcEconomia.Correio => new Vector3(
+                    ConfigCorreio.CorreioX,
+                    altura,
+                    ConfigCorreio.CorreioZ
+                ),
                 _ => new Vector3(ConfigNpcEconomia.VendedorX, altura, ConfigNpcEconomia.VendedorZ),
             };
         }
@@ -79,6 +85,7 @@ namespace JogoDoGrupo.Client.Features.Economia
                 TipoNpcEconomia.Merceeiro => "NpcMerceeiro",
                 TipoNpcEconomia.Ferreiro => "NpcFerreiro",
                 TipoNpcEconomia.Leiloeiro => "NpcLeiloeiro",
+                TipoNpcEconomia.Correio => "CaixaDeCorreio",
                 _ => "NpcVendedor",
             };
             var cor = tipo switch
@@ -89,6 +96,7 @@ namespace JogoDoGrupo.Client.Features.Economia
                 TipoNpcEconomia.Merceeiro => new Color(0.95f, 0.75f, 0.25f),
                 TipoNpcEconomia.Ferreiro => new Color(0.55f, 0.35f, 0.22f),
                 TipoNpcEconomia.Leiloeiro => new Color(0.25f, 0.65f, 0.95f),
+                TipoNpcEconomia.Correio => new Color(0.95f, 0.45f, 0.15f),
                 _ => new Color(0.25f, 0.55f, 0.85f),
             };
 

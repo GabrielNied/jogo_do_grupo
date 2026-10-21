@@ -32,6 +32,20 @@ internal sealed class CustodiaDeItens(JogoDbContext db) : ICustodiaDeItens
             .ToList();
     }
 
+    public async Task<ItemEmCustodia?> ObterAsync(
+        long personagemId,
+        long instanciaId,
+        CancellationToken c
+    )
+    {
+        var item = await db.Set<ItemInventario>()
+            .AsNoTracking()
+            .SingleOrDefaultAsync(i => i.Id == instanciaId && i.PersonagemId == personagemId, c);
+        if (item == null || !Bolsa.EstaNaBolsa(item) || item.Conteiner != ConteinerItem.Bolsa)
+            return null;
+        return new ItemEmCustodia(item.ItemId, item.EquipamentoJson);
+    }
+
     public async Task<ItemEmCustodia?> RetirarAsync(
         long personagemId,
         long instanciaId,

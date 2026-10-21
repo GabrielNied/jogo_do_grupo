@@ -23,7 +23,8 @@ public sealed class ChefesDaDungeon(
         double x,
         double z,
         double multiplicadorVida = 1.0,
-        double multiplicadorDano = 1.0
+        double multiplicadorDano = 1.0,
+        int? criaturaId = null
     )
     {
         ArgumentException.ThrowIfNullOrEmpty(areaId);
@@ -35,7 +36,8 @@ public sealed class ChefesDaDungeon(
             relogioMs,
             historico,
             multiplicadorVida,
-            multiplicadorDano
+            multiplicadorDano,
+            criaturaId
         );
         _porArea[areaId] = chefe;
         return chefe.InimigoId;
