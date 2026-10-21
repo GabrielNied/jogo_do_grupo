@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using JogoDoGrupo.Client.Core.Audio;
 using JogoDoGrupo.Client.Core.Jogo;
 using JogoDoGrupo.Client.Core.TempoReal;
 using JogoDoGrupo.Client.Core.UI;
@@ -545,6 +546,21 @@ namespace JogoDoGrupo.Client.Features.Combate
                 return;
             }
 
+            // Os acertos têm som gravado (Kenney, CC0), com peso que o sintetizado não dá; o resto
+            // segue sintetizado.
+            var gravados = SonsGravados(som);
+            if (gravados.Length > 0)
+            {
+                var gravado = gravados[UnityEngine.Random.Range(0, gravados.Length)];
+                _fonte.pitch = UnityEngine.Random.Range(0.94f, 1.06f);
+                _fonte.PlayOneShot(
+                    gravado,
+                    Mathf.Clamp01(volume) * VolumeBase * VolumesDoJogo.Efeitos
+                );
+                return;
+            }
+
+            _fonte.pitch = 1f;
             if (!_clipes.TryGetValue(som, out var clipe))
             {
                 var amostras = SintetizadorDeSons.Gerar(som);
@@ -559,7 +575,39 @@ namespace JogoDoGrupo.Client.Features.Combate
                 _clipes[som] = clipe;
             }
 
-            _fonte.PlayOneShot(clipe, Mathf.Clamp01(volume) * VolumeBase);
+            _fonte.PlayOneShot(clipe, Mathf.Clamp01(volume) * VolumeBase * VolumesDoJogo.Efeitos);
+        }
+
+        private static readonly Dictionary<SomDeCombate, AudioClip[]> _gravados =
+            new Dictionary<SomDeCombate, AudioClip[]>();
+
+        private static AudioClip[] SonsGravados(SomDeCombate som)
+        {
+            if (_gravados.TryGetValue(som, out var clipes))
+            {
+                return clipes;
+            }
+
+            var (nome, quantos) = som switch
+            {
+                SomDeCombate.AcertoLeve => ("acerto_leve", 5),
+                SomDeCombate.AcertoPesado => ("acerto_pesado", 5),
+                SomDeCombate.GolpeRecebido => ("golpe_recebido", 3),
+                _ => (null, 0),
+            };
+            var lista = new List<AudioClip>();
+            for (var i = 0; i < quantos; i++)
+            {
+                var clipe = Resources.Load<AudioClip>($"Audio/Combate/{nome}_{i}");
+                if (clipe != null)
+                {
+                    lista.Add(clipe);
+                }
+            }
+
+            clipes = lista.ToArray();
+            _gravados[som] = clipes;
+            return clipes;
         }
     }
 }

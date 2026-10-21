@@ -1,5 +1,6 @@
 using System;
 using JogoDoGrupo.Client.Core.Api;
+using JogoDoGrupo.Client.Core.Audio;
 using JogoDoGrupo.Client.Core.Jogo;
 using JogoDoGrupo.Client.Core.TempoReal;
 using JogoDoGrupo.Shared.Features.Personagem;
@@ -64,6 +65,7 @@ namespace JogoDoGrupo.Client.Features.Personagem
             }
 
             AvisosDoJogo.Mostrar(TextosPersonagem.AvisoSubiuDeNivel(aviso.Nivel));
+            AudioDoJogo.TocarInterface(SomDeInterface.SubirNivel);
         }
 
         private void Update()

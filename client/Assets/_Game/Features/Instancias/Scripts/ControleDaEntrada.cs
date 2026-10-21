@@ -1,3 +1,4 @@
+using JogoDoGrupo.Client.Core.Audio;
 using JogoDoGrupo.Client.Core.Jogo;
 using JogoDoGrupo.Client.Core.Jogo.Janelas;
 using JogoDoGrupo.Client.Core.TempoReal;
@@ -22,6 +23,7 @@ namespace JogoDoGrupo.Client.Features.Instancias
         private Label _indicadorDungeon;
         private GameObject _jogador;
         private EstadoDeInstancias _estado;
+        private bool _estavaNaInstancia;
         private TelaDeResultadoDaDungeon _tela;
 
         public void Configurar(
@@ -118,11 +120,15 @@ namespace JogoDoGrupo.Client.Features.Instancias
                 TipoDeAviso.Informacao
             );
 
-        private static void AoChefeDerrotado(ChefeDerrotadoNaDungeon _) =>
+        private static void AoChefeDerrotado(ChefeDerrotadoNaDungeon _)
+        {
             AvisosDoJogo.Mostrar(
                 "Chefe derrotado! +1 Essência de instância obtida. Colete seus itens antes de sair.",
                 TipoDeAviso.Informacao
             );
+            // Toque de vitória uma vez; depois o áudio volta sozinho para a faixa da dungeon.
+            AudioDoJogo.PedirMusicaDoMundo(MusicaDoJogo.Vitoria);
+        }
 
         private void AoEncerrar(DungeonEncerrada encerrada) => _tela?.Mostrar(encerrada);
 
@@ -131,6 +137,15 @@ namespace JogoDoGrupo.Client.Features.Instancias
             if (_dica == null || _jogador == null || !EntradaNoJogo.NoJogo)
             {
                 return;
+            }
+
+            // Música da área: dungeon dentro da instância, cidade fora (só na troca).
+            if (_estado.NaInstancia != _estavaNaInstancia)
+            {
+                _estavaNaInstancia = _estado.NaInstancia;
+                AudioDoJogo.PedirMusicaDoMundo(
+                    _estavaNaInstancia ? MusicaDoJogo.Dungeon : MusicaDoJogo.Cidade
+                );
             }
 
             if (_indicadorDungeon != null)
@@ -146,12 +161,12 @@ namespace JogoDoGrupo.Client.Features.Instancias
                     if (_estado.EhRaid)
                     {
                         _indicadorDungeon.text =
-                            $"⚔️ Raid 10 — Portão {_estado.EtapaAtual}/{_estado.TotalEtapas} | ⏱️ {tempoStr}";
+                            $"Raid 10 · Portão {_estado.EtapaAtual}/{_estado.TotalEtapas} · {tempoStr}";
                     }
                     else
                     {
                         _indicadorDungeon.text =
-                            $"🏰 {TextosInstancias.NomeDaDungeon} (Nível {_estado.NivelAtual}) | ⏱️ {tempoStr}";
+                            $"{TextosInstancias.NomeDaDungeon} · nível {_estado.NivelAtual} · {tempoStr}";
                     }
                 }
                 else

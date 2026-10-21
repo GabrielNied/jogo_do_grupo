@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using JogoDoGrupo.Client.Core.Audio;
 using JogoDoGrupo.Client.Core.Jogo;
 using JogoDoGrupo.Client.Core.TempoReal;
 using JogoDoGrupo.Client.Core.UI;
@@ -370,6 +371,8 @@ namespace JogoDoGrupo.Client.Features.Personagem
 
             _visivel = visivel;
             _raiz.style.display = visivel ? DisplayStyle.Flex : DisplayStyle.None;
+            // Caído, a música baixa até levantar (interface.md, Áudio).
+            AudioDoJogo.AbafarMusica(visivel);
             if (visivel)
             {
                 _voltar.Focus();
