@@ -1,6 +1,7 @@
 using JogoDoGrupo.Server.Contratos.Combate;
 using JogoDoGrupo.Server.Contratos.Itens;
 using JogoDoGrupo.Server.Contratos.Mundo;
+using JogoDoGrupo.Server.Contratos.Social;
 using JogoDoGrupo.Server.Core;
 using JogoDoGrupo.Server.Core.TempoReal;
 using JogoDoGrupo.Shared.Features.Skills;
@@ -41,7 +42,9 @@ public sealed class SkillsModule : IFeatureModule
                 sp.GetServices<IAlvosDeCombate>(),
                 () => relogio.GetUtcNow().ToUnixTimeMilliseconds(),
                 sp.GetService<ITrocaDeArma>(),
-                sp.GetRequiredService<MotorDePoderes>()
+                sp.GetRequiredService<MotorDePoderes>(),
+                sp.GetService<IApoioDeCombate>(),
+                sp.GetService<IConsultaDeGrupo>()
             );
         });
         servicos.AddSingleton(sp =>

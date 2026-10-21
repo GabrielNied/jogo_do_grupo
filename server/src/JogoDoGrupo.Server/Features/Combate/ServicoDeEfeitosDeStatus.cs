@@ -21,6 +21,7 @@ public sealed class ServicoDeEfeitosDeStatus : IHostedService, IDisposable
     private readonly AvisosNaArea? _avisos;
     private readonly ServicoDeQueda? _queda;
     private readonly Func<long> _relogioMs;
+    private readonly GerenciadorDeEscudos? _escudos;
     private readonly CancellationTokenSource _parada = new();
     private Task _laco = Task.CompletedTask;
 
@@ -32,9 +33,11 @@ public sealed class ServicoDeEfeitosDeStatus : IHostedService, IDisposable
         IPosicoesDoMundo? posicoes = null,
         ServicoDeQueda? queda = null,
         Func<long>? relogioMs = null,
-        IVizinhanca? vizinhanca = null
+        IVizinhanca? vizinhanca = null,
+        GerenciadorDeEscudos? escudos = null
     )
     {
+        _escudos = escudos;
         _efeitos = efeitos;
         _tempoReal = tempoReal;
         _escopos = escopos;
@@ -183,10 +186,17 @@ public sealed class ServicoDeEfeitosDeStatus : IHostedService, IDisposable
                 return;
             }
 
+            // O DoT também passa pelo escudo.
+            var danoNaVida = _escudos?.Absorver(dano.EntidadeId, dano.Dano) ?? dano.Dano;
+            if (danoNaVida <= 0)
+            {
+                return;
+            }
+
             var recursos = await RecursosDoAtaque.TirarVidaAsync(
                 _escopos,
                 dano.EntidadeId,
-                dano.Dano,
+                danoNaVida,
                 _parada.Token
             );
 

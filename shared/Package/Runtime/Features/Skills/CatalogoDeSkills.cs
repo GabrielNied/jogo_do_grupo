@@ -10,7 +10,7 @@ namespace JogoDoGrupo.Shared.Features.Skills
     /// <summary>
     /// O catálogo inicial de skills de arma (nomes e custos do catálogo de proposta em
     /// docs/features/skills.md, números de teste). O conjunto de cada arma vem do seu
-    /// modelo-base: o tipo da arma (SKILL-004). Todas causam dano nesta fatia; os outros
+    /// modelo-base: o tipo da arma (SKILL-004). Quase todas causam dano nesta fatia (as de apoio de grupo, #170, dão escudo ou buff); os outros
     /// efeitos (cura, escudo, controle) entram com os poderes e os estados do Combate.
     /// </summary>
     public static class CatalogoDeSkills
@@ -37,7 +37,15 @@ namespace JogoDoGrupo.Shared.Features.Skills
                 Fisica("martelo.martelada-sismica", "Martelada Sísmica", 25, 12, 2.2),
                 Fisica("martelo.onda-de-choque", "Onda de Choque", 30, 15, 2.0),
                 Fisica("martelo.esmagar", "Esmagar", 35, 18, 2.8),
-                Fisica("martelo.queda-do-tita", "Queda do Titã", 40, 22, 3.2)
+                Fisica("martelo.queda-do-tita", "Queda do Titã", 40, 22, 3.2),
+                Apoio(
+                    "martelo.brado-do-guardiao",
+                    "Brado do Guardião",
+                    RecursoDeSkill.Stamina,
+                    25,
+                    24,
+                    TipoDeApoio.Proteger
+                )
             );
             Registrar(
                 TipoEquipamento.Arco,
@@ -53,7 +61,15 @@ namespace JogoDoGrupo.Shared.Features.Skills
                 Magica("cajado.raio-arcano", "Raio Arcano", 25, 12, 2.0, true),
                 Magica("cajado.nova-de-fogo", "Nova de Fogo", 30, 16, 2.4),
                 Magica("cajado.orbes-da-aurora", "Orbes da Aurora", 35, 20, 2.6),
-                Magica("cajado.surto-solar", "Surto Solar", 50, 30, 4.0)
+                Magica("cajado.surto-solar", "Surto Solar", 50, 30, 4.0),
+                Apoio(
+                    "cajado.manto-protetor",
+                    "Manto Protetor",
+                    RecursoDeSkill.Mana,
+                    30,
+                    20,
+                    TipoDeApoio.Escudo
+                )
             );
             Registrar(
                 TipoEquipamento.Foco,
@@ -61,7 +77,15 @@ namespace JogoDoGrupo.Shared.Features.Skills
                 Magica("foco.dardo-ressonante", "Dardo Ressonante", 20, 10, 1.7, true),
                 Magica("foco.lanca-de-energia", "Lança de Energia", 30, 14, 2.2),
                 Magica("foco.selo-explosivo", "Selo Explosivo", 35, 20, 2.8),
-                Magica("foco.vortice", "Vórtice", 45, 28, 3.4)
+                Magica("foco.vortice", "Vórtice", 45, 28, 3.4),
+                Apoio(
+                    "foco.fonte-arcana",
+                    "Fonte Arcana",
+                    RecursoDeSkill.Mana,
+                    30,
+                    24,
+                    TipoDeApoio.Fortalecer
+                )
             );
             Registrar(
                 TipoEquipamento.Escudo,
@@ -176,6 +200,34 @@ namespace JogoDoGrupo.Shared.Features.Skills
                 CategoriaDeDano.Magica,
                 critica
             );
+
+        // Apoio de grupo (#170): não causa dano nem crítico; a categoria segue o recurso (mana é
+        // mágica, stamina é física) e o multiplicador 1,0 só existe para a skill ser válida.
+        private static DefinicaoDeSkill Apoio(
+            string id,
+            string nome,
+            RecursoDeSkill recurso,
+            int custo,
+            int recargaSegundos,
+            TipoDeApoio apoio
+        )
+        {
+            var skill = Criar(
+                id,
+                nome,
+                recurso,
+                custo,
+                recargaSegundos,
+                1.0,
+                recurso == RecursoDeSkill.Mana ? CategoriaDeDano.Magica : CategoriaDeDano.Fisica,
+                false
+            );
+            skill.Apoio = apoio;
+            skill.Propriedades.Tipo =
+                apoio == TipoDeApoio.Escudo ? TipoDeEfeito.Escudo : TipoDeEfeito.Utilidade;
+            skill.Propriedades.PodeSerAcelerada = false;
+            return skill;
+        }
 
         // Híbrida: gasta stamina e divide o dano meio a meio entre físico e mágico.
         private static DefinicaoDeSkill Hibrida(

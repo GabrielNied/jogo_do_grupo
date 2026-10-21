@@ -43,6 +43,25 @@ namespace JogoDoGrupo.Client.Features.Combate
         }
     }
 
+    /// <summary>O escudo de absorção ativo pronto para exibição (#170).</summary>
+    internal readonly struct ItemDeEscudo
+    {
+        public ItemDeEscudo(int absorcao, int absorcaoMaxima, float duracaoRestante)
+        {
+            Absorcao = absorcao < 0 ? 0 : absorcao;
+            AbsorcaoMaxima = absorcaoMaxima < 1 ? 1 : absorcaoMaxima;
+            DuracaoRestante = duracaoRestante < 0f ? 0f : duracaoRestante;
+        }
+
+        public int Absorcao { get; }
+        public int AbsorcaoMaxima { get; }
+        public float DuracaoRestante { get; }
+
+        public bool Ativo => Absorcao > 0 && DuracaoRestante > 0f;
+
+        public string Texto => "Escudo " + Absorcao + " / " + AbsorcaoMaxima;
+    }
+
     /// <summary>Uma barra de quebra de chefe formatada para a interface.</summary>
     internal readonly struct ItemBarraDeQuebra
     {

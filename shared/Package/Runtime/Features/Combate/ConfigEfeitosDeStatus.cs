@@ -13,11 +13,13 @@ namespace JogoDoGrupo.Shared.Features.Combate
         public const double DuracaoQueimaduraSegundos = 5.0;
         public const double DuracaoVulneravelSegundos = 5.0;
         public const double DuracaoFortalecidoSegundos = 5.0;
+        public const double DuracaoProtegidoSegundos = 5.0;
 
         // ── Efeitos percentuais ──────────────────────────────────────────────────
         public const double PorcentagemLentidao = 0.30;
         public const double PorcentagemVulneravel = 0.15;
         public const double PorcentagemFortalecido = 0.15;
+        public const double PorcentagemProtegido = 0.15;
 
         // ── DoT (Dano por segundo por acúmulo) ───────────────────────────────────
         public const int DanoPorSegundoSangramento = 5;

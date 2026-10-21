@@ -84,7 +84,7 @@ O cajado (`TipoEquipamento.Cajado`) dispara projéteis mágicos lineares autorit
 - [x] ~~Como o servidor valida acertos com a latência (lag compensation)?~~ Implementado em 2026-10-15 ([#172](https://github.com/GabrielNied/jogo_do_grupo/issues/172), [ADR 0039](../decisoes/0039-compensacao-de-lag-no-servidor.md)): rewind de até 250 ms no teste de volume e na esquiva, via `TempoVistoMs` nas intenções.
 - [x] ~~Quais efeitos de status existem?~~ Adotado em 2026-10-11 (/decida, #171), fácil de mudar: seis efeitos, veja [Efeitos de status](#efeitos-de-status-171).
 - [x] ~~Como funciona o agro (ameaça) para o tank segurar os inimigos?~~ Adotado em 2026-10-12 (/decida, #169), fácil de mudar: tabela de ameaça por inimigo, veja [Ameaça (agro)](#ameaça-agro-169).
-- [x] **Cura, escudos e buffs de grupo ([#170](https://github.com/GabrielNied/jogo_do_grupo/issues/170)), na fila por prioridade (/decida 2026-10-19):** papel healer no Definido; mecânicas do livro ficam proposta até fechar buffs por papel (pergunta abaixo). A #170 foi reescopada em 2026-10-21 para o que falta: escudo e buffs de grupo por skill (a cura e a ameaça por cura já estão entregues).
+- [x] **Cura, escudos e buffs de grupo ([#170](https://github.com/GabrielNied/jogo_do_grupo/issues/170)), na fila por prioridade (/decida 2026-10-19):** papel healer no Definido; mecânicas do livro ficam proposta até fechar buffs por papel (pergunta abaixo). Escudo e buffs de grupo por skill entregues na #170 (veja [Escudo e buffs de grupo](#escudo-e-buffs-de-grupo-170)); a cura e a ameaça por cura já estavam entregues.
 - [x] Quais buffs cada papel traz? Eles acumulam? Decidido em 2026-10-16 (quiz de definições 2): vêm das skills; o mesmo tipo não acumula.
 - [x] Um jogador pode trocar de papel trocando de itens no meio da dungeon? Decidido em 2026-10-16 (quiz de definições 2): sim, fora de combate.
 - [x] **Atributos de 2026-10-12** ([personagem](personagem.md#atributos-do-personagem), prioridade alta): Combate é dono das fórmulas que juntam atributos do personagem, atributos próprios dos equipamentos e propriedades das skills, com uma pipeline única que guarda a origem de cada modificador ([#624](https://github.com/GabrielNied/jogo_do_grupo/issues/624)). **Estrutura do dano com arma** (decidida por Gabriel em 2026-10-12): `dano = dano-base da arma × (1 + % de Força ou Intelecto do personagem + % de Força ou Intelecto do item + árvore) × multiplicador do golpe ou da skill`. O dano-base e os % do item vêm da conversão dos [atributos dos equipamentos](itens.md#atributos-dos-equipamentos); a Força do item é fonte separada da do personagem e nunca soma nela. A pipeline dos secundários e o contrato da skill estão em [Atributos secundários e pipeline](#atributos-secundários-e-pipeline-624) (implementados na #624); o dano-base com arma está implementado ([abaixo](#dano-com-arma-e-atributos-do-equipamento-623)). **Números da [#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627)** aprovados como base (quiz 5); **mitigação** `K/(K+defesa)` com penetração (quiz 6, veja Definido). **Falta implementar** no código: dano de skill com % de Força/Intelecto; crítico e penetração no golpe básico; velocidade de ataque na animação/conjuração; regeneração de vida fora de combate pelos secundários; aplicar mitigação final em todos os caminhos de dano. Os recursos são vida, stamina e mana, e Vigor é só atributo ([personagem](personagem.md#atributos-do-personagem); nomes novos no código desde a [#622](https://github.com/GabrielNied/jogo_do_grupo/issues/622)).
@@ -340,7 +340,7 @@ Decisões de design (2026-10-11, do agente da funcionalidade; ajustáveis):
 - **Regra:** um golpe ou skill de área nunca acerta o **próprio atacante** nem **aliados**. Aliado = mesmo grupo ([social.md](social.md)). Boneco, inimigos, chefes e jogadores de fora do grupo continuam alvos válidos (PvP é futuro; hoje nenhum jogador é alvo).
 - **Onde:** `SelecaoDeAlvos.PodeAcertar` filtra os alvos do volume antes do dano em `ServicoDeAtaques`; vale para qualquer skill que use `IAlvosDeCombate`. `AlvoDeCombate.PersonagemId` (0 = não é jogador) diz que o alvo é um jogador.
 - **Sem referência a Social (ADR 0016):** Combate consulta `IAliadosDeCombate.SaoAliados` (`Contratos/Combate/`), implementado por Social em `AliadosDeCombateDoSocial` (consulta por demanda via `IConsultaDeGrupo`, sem evento nem cache: reflete o grupo na hora do acerto); sem implementação (ou em testes isolados) vale `NinguemEAliado`.
-- **Fora do escopo:** escudo e buffs de grupo em aliados ([#170](https://github.com/GabrielNied/jogo_do_grupo/issues/170)); a cura já existe (`OrbeDeCura`).
+- **Fora do escopo:** a cura já existe (`OrbeDeCura`); escudo e buffs de grupo estão em [Escudo e buffs de grupo](#escudo-e-buffs-de-grupo-170).
 
 ### Ameaça (agro) (#169)
 
@@ -365,7 +365,7 @@ Quem decide: **servidor**. O dono é [Mobs](mobs.md), que já escolhe o alvo; Co
 - **Sai da tabela** quem cai, sai da área ou desconecta. A tabela **zera** quando o inimigo desiste e volta para casa (junto com a vida e os participantes) e quando ele reaparece.
 - **Sem decaimento** com o tempo nesta versão.
 - **Chefe:** usa a mesma tabela no lugar do "mais próximo" (`ChefeDaDungeon`). Ataques de área do chefe (investida) continuam mirando como estão descritos em [mobs.md](mobs.md).
-- **Cura e tank:** a ameaça por cura (`AmeacaPorCura`) e o multiplicador do tank (`MultiplicadorDeAmeacaTank`) já estão em `RegrasAmeaca`; o item de tank vem com [itens.md](itens.md). Escudo e buffs de grupo (#170) ainda não geram ameaça.
+- **Cura e tank:** a ameaça por cura (`AmeacaPorCura`) e o multiplicador do tank (`MultiplicadorDeAmeacaTank`) já estão em `RegrasAmeaca`; o item de tank vem com [itens.md](itens.md). Escudo e buffs de grupo (#170) não geram ameaça nesta versão.
 - **Implementação:** contas puras em `RegrasAmeaca` e gerenciamento por criatura em `TabelaDeAmeaca` (`shared/Package/Runtime/Features/Mobs/`), integrado em `GrupoDeInimigos` e `ChefeDaDungeon`.
 - **Testes:** quem bate mais vira o alvo só depois de passar a margem (110% perto, 130% longe); empate não troca; tank com 3x segura o alvo contra quem dá o dobro de dano; provocar vira o alvo na hora e segura por 4 s; caído e quem saiu da área saem da tabela; desistir e reaparecer zeram a tabela; dano além da vida que restava não conta (`RegrasAmeacaTestes` e `AmeacaDeInimigosTestes`).
 
@@ -381,6 +381,7 @@ Adotado em 2026-10-11 (/decida), a partir da proposta da issue; é valor inicial
 | Queimadura | dano por segundo | até 3 acúmulos |
 | Vulnerável | +15% de dano recebido | não acumula |
 | Fortalecido | +15% de dano causado | não acumula |
+| Protegido | −15% de dano recebido (#170; vale junto com Vulnerável: 1,15 × 0,85) | não acumula |
 
 - Cada efeito tem duração própria, em constante nomeada (`ConfigEfeitosDeStatus`).
 - **Bosses são imunes a atordoado:** em vez disso acumulam uma barra de **quebra**; ao encher (100 pontos), abre a janela de vulnerabilidade da [fatia jogável](fatia-jogavel.md) com o status Vulnerável.
@@ -389,6 +390,25 @@ Adotado em 2026-10-11 (/decida), a partir da proposta da issue; é valor inicial
   - **Servidor:** `GerenciadorDeEfeitosDeStatus` autoritativo gerencia durações, acúmulos, ticks de DoT, período de 6 s de imunidade pós-atordoamento e barra de quebra de chefes; integrado ao `ControleDeAcoes` (bloqueia ataques, esquivas e guarda quando atordoado; `ServicoDeAtaques`, `ServicoDeEsquivas` e `ServicoDeGuarda` recusam com `VoceEstaAtordoado`), `ServicoDeAtaques` (multiplica dano causado por Fortalecido e dano no alvo por Vulnerável), `ServicoDeDanoRecebido` (multiplica dano recebido por Vulnerável) e `ServicoDeEfeitosDeStatus` (#751: envia 6040 e 6041 em tempo real, retrato na conexão e laço de ticks de DoT).
   - **Client:** `ControleEfeitosDeStatus`, `ControleBarraDeQuebra` e `ApresentacaoEfeitosDeStatus` integrados ao HUD via `PainelEfeitosDeStatus` e `PainelBarraDeQuebra` (UI Toolkit, tokens Lumora, montados por `ObservadorDoMundo` nas regiões InferiorEsquerda e TopoCentro; ocultam quando inativos, #751); `ApresentacaoAtaque`, `ApresentacaoEsquiva` e `ControleDefesa` mostram "Você está atordoado" ao tentar agir atordoado.
 - **Testes:** `RegrasEfeitosDeStatusTestes` (shared), `GerenciadorDeEfeitosDeStatusTestes` (servidor), `ApresentacaoEfeitosDeStatusTestes` (client), recusa de ações em `ControleDeAcoesTestes`, `AtaqueTestes`, `EsquivaTestes` e `ReacaoEGuardaRedeTestes`.
+
+### Escudo e buffs de grupo (#170)
+
+Decisões de design (2026-10-21, do agente da funcionalidade; ajustáveis em `ConfigApoioDeGrupo` e `ConfigEfeitosDeStatus`, regra 17). Vêm das **skills de apoio** (não de uma aura do papel) e são em área ao redor de quem usa, sem tab-target.
+
+| Skill (arma) | Efeito | Custo / recarga |
+|---|---|---|
+| Manto Protetor (cajado) | **Escudo**: absorve 20% da vida máxima de cada beneficiado por 8 s | 30 mana / 20 s |
+| Fonte Arcana (foco) | **Fortalecido** (+15% de dano causado) por 12 s | 30 mana / 24 s |
+| Brado do Guardião (martelo) | **Protegido** (−15% de dano recebido) por 12 s | 25 stamina / 24 s |
+
+- **Quem recebe:** quem usa e os membros do mesmo grupo na mesma área a até **12 m** (`AlcanceDoApoioMetros`). Sem grupo, só quem usa. Quem está caído não recebe.
+- **Escudo:** absorve o dano **antes da vida**, depois da defesa e da guarda; vale para golpe de inimigo, dano de ambiente e DoT. O dano que passa do escudo tira vida; um golpe que o escudo cobre inteiro não interrompe a ação. **Não acumula:** reaplicar mantém o mais forte e renova os 8 s. Expira no tempo; some ao sair do jogo.
+- **Cair:** o escudo **continua** até expirar (some só ao sair do jogo); quem está caído não recebe dano nem escudo novo, e levantar não o renova. Regra simples e fácil de mudar.
+- **Protegido** reduz só o **golpe direto de inimigo**, não o dano de ambiente nem o DoT (igual ao Vulnerável). O escudo absorve os três.
+- **Buffs:** o mesmo tipo não acumula (reaplicar renova a duração), como os demais [efeitos de status](#efeitos-de-status-171); buffs diferentes valem juntos.
+- **Servidor:** `GerenciadorDeEscudos` (absorção, expiração) e `ServicoDeApoio` (aplica, avisa, laço de expiração) em Combate; Skills pede pelo contrato `IApoioDeCombate` (`Contratos/Combate/`) e escolhe os alvos (`IConsultaDeGrupo` + posições). Mensagem `EscudoMudou` (6042) ao dono e à área.
+- **Client:** o escudo (`Escudo atual / máximo` e tempo) e o Protegido aparecem no painel de status do HUD (`PainelEfeitosDeStatus`).
+- **Fora desta entrega:** ameaça por escudo e buff, itens de healer/tank que alterem esses valores, ícone e efeito visual no corpo do personagem.
 
 ### Mira 3D, retículo dinâmico e carga de ataque pesado (#1010)
 

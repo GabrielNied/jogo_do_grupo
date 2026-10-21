@@ -36,6 +36,8 @@ namespace JogoDoGrupo.Shared.Features.Combate
                     return ConfigEfeitosDeStatus.DuracaoVulneravelSegundos;
                 case TipoEfeitoDeStatus.Fortalecido:
                     return ConfigEfeitosDeStatus.DuracaoFortalecidoSegundos;
+                case TipoEfeitoDeStatus.Protegido:
+                    return ConfigEfeitosDeStatus.DuracaoProtegidoSegundos;
                 default:
                     return 5.0;
             }
@@ -57,6 +59,16 @@ namespace JogoDoGrupo.Shared.Features.Combate
         public static double MultiplicadorDanoRecebido(bool temVulneravel)
         {
             return temVulneravel ? (1.0 + ConfigEfeitosDeStatus.PorcentagemVulneravel) : 1.0;
+        }
+
+        /// <summary>
+        /// Multiplicador de dano recebido com os dois efeitos: vulnerável soma 15% e protegido
+        /// tira 15%; valem juntos (1,15 x 0,85).
+        /// </summary>
+        public static double MultiplicadorDanoRecebido(bool temVulneravel, bool temProtegido)
+        {
+            var m = MultiplicadorDanoRecebido(temVulneravel);
+            return temProtegido ? m * (1.0 - ConfigEfeitosDeStatus.PorcentagemProtegido) : m;
         }
 
         /// <summary>Dano por segundo do DoT, multiplicado pelo número de acúmulos (1 a 3).</summary>
@@ -115,6 +127,8 @@ namespace JogoDoGrupo.Shared.Features.Combate
                     return "Vulnerável";
                 case TipoEfeitoDeStatus.Fortalecido:
                     return "Fortalecido";
+                case TipoEfeitoDeStatus.Protegido:
+                    return "Protegido";
                 default:
                     return tipo.ToString();
             }

@@ -59,6 +59,9 @@ public sealed class CombateModule : IFeatureModule
             sp.GetRequiredService<ServicoDeRecuperacao>()
         );
         servicos.AddSingleton<IBonusDeAtributos, SemBonusDeEfeitos>();
+        servicos.AddSingleton(sp => new GerenciadorDeEscudos(() =>
+            sp.GetRequiredService<RelogioDeCombate>().AgoraMs
+        ));
         servicos.AddSingleton(sp => new GerenciadorDeEfeitosDeStatus(() =>
             sp.GetRequiredService<RelogioDeCombate>().AgoraMs
         ));
@@ -150,6 +153,7 @@ public sealed class CombateModule : IFeatureModule
                 vizinhanca: sp.GetService<IVizinhanca>(),
                 equipamentos: sp.GetService<IAtributosDosEquipamentos>(),
                 eventos: sp.GetService<EventosDoServidor>(),
+                escudos: sp.GetRequiredService<GerenciadorDeEscudos>(),
                 relogioMs: () => sp.GetRequiredService<RelogioDeCombate>().AgoraMs
             );
             _danoRecebido = servico;
@@ -213,9 +217,22 @@ public sealed class CombateModule : IFeatureModule
             posicoes: sp.GetService<IPosicoesDoMundo>(),
             queda: sp.GetService<ServicoDeQueda>(),
             vizinhanca: sp.GetService<IVizinhanca>(),
+            escudos: sp.GetRequiredService<GerenciadorDeEscudos>(),
             relogioMs: () => sp.GetRequiredService<RelogioDeCombate>().AgoraMs
         ));
         servicos.AddHostedService(sp => sp.GetRequiredService<ServicoDeEfeitosDeStatus>());
+        servicos.AddSingleton(sp => new ServicoDeApoio(
+            sp.GetRequiredService<GerenciadorDeEscudos>(),
+            sp.GetRequiredService<GerenciadorDeEfeitosDeStatus>(),
+            sp.GetRequiredService<ServidorTempoReal>(),
+            sp.GetRequiredService<IServiceScopeFactory>(),
+            sp.GetRequiredService<ILogger<ServicoDeApoio>>(),
+            posicoes: sp.GetService<IPosicoesDoMundo>(),
+            queda: sp.GetService<ServicoDeQueda>(),
+            vizinhanca: sp.GetService<IVizinhanca>()
+        ));
+        servicos.AddHostedService(sp => sp.GetRequiredService<ServicoDeApoio>());
+        servicos.AddSingleton<IApoioDeCombate>(sp => sp.GetRequiredService<ServicoDeApoio>());
     }
 
     public void MapearRotas(IEndpointRouteBuilder rotas) => CombateRotas.Mapear(rotas);
