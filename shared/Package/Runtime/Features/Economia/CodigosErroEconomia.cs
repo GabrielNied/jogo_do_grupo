@@ -35,5 +35,15 @@ namespace JogoDoGrupo.Shared.Features.Economia
         public const string VendedorOfflineNaoAtivo = "vendedor_offline_nao_ativo";
         public const string DiariaInvalida = "diaria_invalida";
         public const string LongeDaBarraca = "longe_da_barraca";
+
+        // Correio entre jogadores (#212)
+        public const string DestinatarioNaoEncontrado = "destinatario_nao_encontrado";
+        public const string DestinatarioInvalido = "destinatario_invalido";
+        public const string CartaNaoEncontrada = "carta_nao_encontrada";
+        public const string CartaComAnexos = "carta_com_anexos";
+        public const string SemAnexos = "sem_anexos";
+        public const string AssuntoVazio = "assunto_vazio";
+        public const string LimiteDeAnexos = "limite_de_anexos";
+        public const string LongeDoCorreio = "longe_do_correio";
     }
 }

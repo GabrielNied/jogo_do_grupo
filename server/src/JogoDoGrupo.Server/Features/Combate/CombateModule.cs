@@ -22,12 +22,42 @@ public sealed class CombateModule : IFeatureModule
     private volatile ServicoDeDanoRecebido? _danoRecebido;
     private volatile ServicoDeQueda? _queda;
     private volatile RecursosEmMemoria? _recursos;
+    private volatile ServicoDeEstadoDeCombate? _estadoDeCombate;
+    private volatile ServicoDeRecuperacao? _recuperacao;
 
     public string Nome => "Combate";
 
     public void ConfigurarServicos(IServiceCollection servicos, IConfiguration configuracao)
     {
         servicos.TryAddSingleton<RelogioDeCombate>();
+        servicos.AddSingleton(sp => new ServicoDeEstadoDeCombate(() =>
+            sp.GetRequiredService<RelogioDeCombate>().AgoraMs
+        ));
+        servicos.AddSingleton<IEstadoDeCombate>(sp =>
+        {
+            var servico = sp.GetRequiredService<ServicoDeEstadoDeCombate>();
+            _estadoDeCombate = servico;
+            return servico;
+        });
+        servicos.AddSingleton(sp =>
+        {
+            var servico = new ServicoDeRecuperacao(
+                sp.GetRequiredService<ServidorTempoReal>(),
+                sp.GetRequiredService<ServicoDeEstadoDeCombate>(),
+                () => sp.GetRequiredService<RecursosEmMemoria>(),
+                sp.GetRequiredService<IServiceScopeFactory>(),
+                sp.GetRequiredService<ILogger<ServicoDeRecuperacao>>(),
+                posicoes: sp.GetService<IPosicoesDoMundo>(),
+                vizinhanca: sp.GetService<IVizinhanca>(),
+                eventos: sp.GetService<EventosDoServidor>(),
+                relogioMs: () => sp.GetRequiredService<RelogioDeCombate>().AgoraMs
+            );
+            _recuperacao = servico;
+            return servico;
+        });
+        servicos.AddSingleton<IFonteDeModificadores>(sp =>
+            sp.GetRequiredService<ServicoDeRecuperacao>()
+        );
         servicos.AddSingleton<IBonusDeAtributos, SemBonusDeEfeitos>();
         servicos.AddSingleton(sp => new GerenciadorDeEfeitosDeStatus(() =>
             sp.GetRequiredService<RelogioDeCombate>().AgoraMs
@@ -224,12 +254,33 @@ public sealed class CombateModule : IFeatureModule
             .Ao<ConsultarArmaAtiva>(
                 CombateMessageIds.ConsultarArmaAtiva,
                 (sessao, _) => _ataques?.AoConsultarArmaAtiva(sessao)
+            )
+            .Ao<ConsumirPocao>(
+                CombateMessageIds.ConsumirPocao,
+                (sessao, pedido) => _recuperacao?.AoConsumirPocao(sessao, pedido)
+            )
+            .Ao<ConsumirRefeicao>(
+                CombateMessageIds.ConsumirRefeicao,
+                (sessao, pedido) => _recuperacao?.AoConsumirRefeicao(sessao, pedido)
+            )
+            .Ao<IntencaoDeDescanso>(
+                CombateMessageIds.IntencaoDeDescanso,
+                (sessao, pedido) => _recuperacao?.AoDescansar(sessao, pedido)
+            )
+            .Ao<ConsultarEstadoDeRecuperacao>(
+                CombateMessageIds.ConsultarEstadoDeRecuperacao,
+                (sessao, _) => _recuperacao?.AoConsultarEstado(sessao)
             );
 
     public void Inicializar(ServerContext contexto)
     {
         contexto.Eventos.Assinar<GolpeDeInimigoAcertou>(evento =>
-            _danoRecebido?.AoGolpeDeInimigo(evento)
+        {
+            _danoRecebido?.AoGolpeDeInimigo(evento);
+            _estadoDeCombate?.RegistrarAtividade(evento.PersonagemId);
+        });
+        contexto.Eventos.Assinar<GolpeComumAcertou>(evento =>
+            _estadoDeCombate?.RegistrarAtividade(evento.PersonagemId)
         );
         contexto.Eventos.Assinar<EquipamentoMudou>(evento =>
             _recursos?.AoEquipamentoMudar(evento.PersonagemId)

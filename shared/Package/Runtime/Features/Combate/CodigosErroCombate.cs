@@ -56,5 +56,30 @@ namespace JogoDoGrupo.Shared.Features.Combate
         /// Tempo real: o personagem está atordoado e não pode realizar ações.
         /// </summary>
         public const string VoceEstaAtordoado = "VoceEstaAtordoado";
+
+        /// <summary>
+        /// Tempo real: a poção ainda está em recarga compartilhada de 30 s.
+        /// </summary>
+        public const string PocaoEmRecarga = "PocaoEmRecarga";
+
+        /// <summary>
+        /// Tempo real: o personagem não possui nenhuma poção na bolsa.
+        /// </summary>
+        public const string SemPocao = "SemPocao";
+
+        /// <summary>
+        /// Tempo real: o personagem não possui a refeição indicada na bolsa.
+        /// </summary>
+        public const string SemRefeicao = "SemRefeicao";
+
+        /// <summary>
+        /// Tempo real: ação proibida durante combate (ex.: descansar ou comer).
+        /// </summary>
+        public const string AcaoBloqueadaEmCombate = "AcaoBloqueadaEmCombate";
+
+        /// <summary>
+        /// Tempo real: a vida do personagem já está no valor máximo.
+        /// </summary>
+        public const string VidaCheia = "VidaCheia";
     }
 }
