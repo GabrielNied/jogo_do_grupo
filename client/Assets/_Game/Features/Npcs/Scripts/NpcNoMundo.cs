@@ -68,23 +68,7 @@ namespace JogoDoGrupo.Client.Features.Npcs
                 Destroy(_corpo);
             }
 
-            _corpo = GameObject.CreatePrimitive(PrimitiveType.Capsule);
-            _corpo.name = "CorpoVisual";
-            _corpo.transform.SetParent(transform, false);
-            _corpo.transform.localScale = TamanhoCorpo;
-            _corpo.transform.localPosition = new Vector3(0f, TamanhoCorpo.y * 0.5f, 0f);
-
-            var colisorFilho = _corpo.GetComponent<Collider>();
-            if (colisorFilho != null)
-            {
-                Destroy(colisorFilho);
-            }
-
-            var renderer = _corpo.GetComponent<Renderer>();
-            if (renderer != null)
-            {
-                renderer.material.color = ObterCorDoPapel(_definicao.Papel);
-            }
+            _corpo = FabricaDeCorpoDeNpc.Criar(_definicao.Papel, _definicao.Id, transform);
         }
 
         private void CriarPlacaDeNome()

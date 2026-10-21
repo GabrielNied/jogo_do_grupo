@@ -42,10 +42,22 @@ Decidido por Gabriel em 2026-10-18. Todo NPC tem corpo, nome sobre a cabeça, í
 | Cavalariço (estábulo) | Roderic | Vende montarias básicas | [Montarias](montarias.md) | [#1067](https://github.com/GabrielNied/jogo_do_grupo/issues/1067) |
 | Cuidador de pets | Mirna | Vende pets comuns | [Pets](pets.md) | [#1068](https://github.com/GabrielNied/jogo_do_grupo/issues/1068) |
 | Dadores de missão | Capitã Valéria e Alden | Dão e recebem missões; roteiro em [missões](missoes.md#capítulo-1-a-brasa-mansa-e-a-serra-do-vidro-frio-roteiro-completo-issue-1058) | [Missões](missoes.md) | [#179](https://github.com/GabrielNied/jogo_do_grupo/issues/179), [#1058](https://github.com/GabrielNied/jogo_do_grupo/issues/1058) |
-| Guardas | Guarnição | Portões e patrulha, sem combate | NPCs | [#1069](https://github.com/GabrielNied/jogo_do_grupo/issues/1069) |
-| Moradores | Cidadãos | Andam, conversam, falas curtas ao passar | NPCs | [#1069](https://github.com/GabrielNied/jogo_do_grupo/issues/1069) |
+| Guardas | Guarnição | Portões e patrulha, sem combate | NPCs | pronto ([#1069](https://github.com/GabrielNied/jogo_do_grupo/issues/1069), [vida na cidade](#vida-na-cidade)) |
+| Moradores | Cidadãos | Andam, conversam, falas curtas ao passar | NPCs | pronto ([#1069](https://github.com/GabrielNied/jogo_do_grupo/issues/1069), [vida na cidade](#vida-na-cidade)) |
 
 **Futuro** (entra quando o serviço existir): intendente de facção (troca [reputação](#definido) por receitas, descontos e aparências), mestres de [profissão](profissoes.md), registrador de [guilda](social.md) e treinador da [árvore](talentos.md).
+
+### Vida na cidade
+
+Decidido por quem implementou a [#1069](https://github.com/GabrielNied/jogo_do_grupo/issues/1069), seguindo o definido em 2026-10-18 (sem combate, falas curtas em balão).
+
+- **Quem:** 12 habitantes ambiente em `PopulacaoDaCidade` (shared), fora do `CatalogoNpcs`: 2 guardas parados nos portões (além da Capitã Valéria e do Guarda Kael, que continuam no catálogo), 4 patrulheiros (anel nos dois sentidos e um trecho de cada estrada do portão) e 6 moradores (dois pares que passeiam pela praça e param para conversar, e dois que vão e voltam pela rua em anel).
+- **Movimento só no client, sem rede:** a posição é função pura do relógio UTC e da rota (`RotaDeNpc.Amostrar`), então todos veem o mesmo lugar, o servidor não gasta CPU nem banda e o mapa não precisa de mudança. Os NPCs de serviço do catálogo ficam fixos e autoritativos (o servidor valida o alcance do diálogo contra o ponto do catálogo). Quem passa a mais de 90 m não desenha nem anima o habitante.
+- **Rotas em dados:** pontos `(x, z)`, pausa, olhar e velocidade (1,2 m/s moradores, 1,5 m/s guardas), seguindo os corredores livres do [Mundo](mundo.md) (estradas em cruz e anel em ±22) e a praça de 24 × 24 m sem cruzar a fonte. Mudar a cidade é mudar o dado, sem editar cena.
+- **Conversa:** o par tem rotas espelhadas de mesmo ciclo, para parar junto a 2,4 m um do outro, olhando-se. O balão alterna entre os dois a cada 4 s.
+- **Falas:** até 60 caracteres. Quem chega a menos de 8 m vê um balão de 4 s sobre o NPC, no máximo um a cada 25 s por NPC. Os textos são provisórios até o roteiro ([#1058](https://github.com/GabrielNied/jogo_do_grupo/issues/1058)) assumir.
+- **Sem alvo:** sem colisor, sem vida e sem dano: não aparecem para o combate nem empurram o jogador.
+- **Ajuste:** velocidades, raio e tempo do balão em `ConfigPopulacaoDaCidade`.
 
 ### Livro de Asterra: NPCs da cidade (proposta do board, 2026-10-11)
 
