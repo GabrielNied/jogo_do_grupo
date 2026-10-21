@@ -25,7 +25,7 @@ namespace JogoDoGrupo.Shared.Features.Missoes
         public const int Missao7OSenhorDaColinaDoVigia = 7;
 
         // =========================================================================
-        // MISSÕES SECUNDÁRIAS (Desbloqueadas com o fim do Capítulo 1 #1058, #1060)
+        // MISSÕES SECUNDÁRIAS (Desbloqueadas por etapas do Capítulo 1 #1058, #1060)
         // =========================================================================
         public const int Missao101CaldeiraoDaLareira = 101;
         public const int Missao102MinerioParaABigorna = 102;
@@ -35,6 +35,8 @@ namespace JogoDoGrupo.Shared.Features.Missoes
         public const int Missao104CorrespondenciaExtraviada = 104;
         public const int Missao105VigilanciaNoPortaoLeste = 105;
         public const int Missao106RemedioDasSombras = 106;
+        public const int Missao107ReforcoDaPalicada = 107; // Cadeia: liberada pela 102
+        public const int Missao108GuardaDeHonraDaBrasa = 108;
 
         // =========================================================================
         // MISSÕES DIÁRIAS (#1061)
@@ -347,8 +349,9 @@ namespace JogoDoGrupo.Shared.Features.Missoes
 
             // =====================================================================
             // SECUNDÁRIAS DA BRASA MANSA E ARREDORES (#1058, #1060)
-            // Todas exigem a conclusão do Capítulo 1 (Missao7OSenhorDaColinaDoVigia)
             // =====================================================================
+
+            // 1. Caldeirão da Lareira: liberada ao concluir Etapa 4
             Registrar(
                 new DefinicaoDeMissao
                 {
@@ -358,18 +361,18 @@ namespace JogoDoGrupo.Shared.Features.Missoes
                         "O Taverneiro Barnabé precisa de carne fresca dos campos norte para repor o ensopado comunitário da lareira.",
                     Tipo = TipoDeMissao.Secundaria,
                     Regiao = CatalogoNpcs.AreaCidade,
-                    NivelRecomendado = 3,
-                    NivelMinimo = 3,
+                    NivelRecomendado = 1,
+                    NivelMinimo = 1,
                     NpcDoadorId = CatalogoNpcs.IdTaverneiro,
                     NpcEntregadorId = CatalogoNpcs.IdTaverneiro,
-                    RequisitosMissaoIds = new int[] { Missao7OSenhorDaColinaDoVigia },
+                    RequisitosMissaoIds = new int[] { Missao4ProvisoesEGuardaVolumes },
                     Objetivos = new ObjetivoMissao[]
                     {
                         new ObjetivoMissao
                         {
                             Id = 1,
-                            Descricao = "Derrote 4 Javalis do Campo para coletar carne",
-                            Tipo = TipoDeObjetivo.Matar,
+                            Descricao = "Colete 4 Carnes Frescas com os caçadores nos campos",
+                            Tipo = TipoDeObjetivo.Coletar,
                             AlvoId = 1,
                             QuantidadeTotal = 4,
                             RegiaoAlvo = "campo",
@@ -378,13 +381,16 @@ namespace JogoDoGrupo.Shared.Features.Missoes
                             RaioAreaMetros = 50f,
                         },
                     },
-                    RecompensaXp = 200,
-                    RecompensaCoroas = 45,
+                    RecompensaXp = 180,
+                    RecompensaCoroas = 35,
+                    ReputacaoFaccao = "Mercadores",
+                    ReputacaoValor = 25,
                     ItensParaEscolha = System.Array.Empty<int>(),
                     ProximaMissaoPrincipalId = 0,
                 }
             );
 
+            // 2. Minério para a Bigorna: liberada ao concluir Etapa 5 (inicia cadeia para 107)
             Registrar(
                 new DefinicaoDeMissao
                 {
@@ -394,11 +400,11 @@ namespace JogoDoGrupo.Shared.Features.Missoes
                         "O Ferreiro Brom precisa de minérios e metais pesados para manter a forja produzindo armaduras para a guarda.",
                     Tipo = TipoDeMissao.Secundaria,
                     Regiao = CatalogoNpcs.AreaCidade,
-                    NivelRecomendado = 3,
-                    NivelMinimo = 3,
+                    NivelRecomendado = 2,
+                    NivelMinimo = 2,
                     NpcDoadorId = CatalogoNpcs.IdFerreiro,
                     NpcEntregadorId = CatalogoNpcs.IdFerreiro,
-                    RequisitosMissaoIds = new int[] { Missao7OSenhorDaColinaDoVigia },
+                    RequisitosMissaoIds = new int[] { Missao5LimpandoATrilhaNorte },
                     Objetivos = new ObjetivoMissao[]
                     {
                         new ObjetivoMissao
@@ -406,7 +412,7 @@ namespace JogoDoGrupo.Shared.Features.Missoes
                             Id = 1,
                             Descricao = "Colete 6 Minérios de Ferro nos afloramentos rochosos",
                             Tipo = TipoDeObjetivo.Coletar,
-                            AlvoId = 1,
+                            AlvoId = 2,
                             QuantidadeTotal = 6,
                             RegiaoAlvo = "campo",
                             CoordenadaX = 20f,
@@ -415,12 +421,15 @@ namespace JogoDoGrupo.Shared.Features.Missoes
                         },
                     },
                     RecompensaXp = 220,
-                    RecompensaCoroas = 50,
+                    RecompensaCoroas = 45,
+                    ReputacaoFaccao = "Forja",
+                    ReputacaoValor = 30,
                     ItensParaEscolha = System.Array.Empty<int>(),
                     ProximaMissaoPrincipalId = 0,
                 }
             );
 
+            // 3. O Mascote Fugitivo: liberada ao concluir Etapa 5 (exploração com IrA + Falar)
             Registrar(
                 new DefinicaoDeMissao
                 {
@@ -430,17 +439,29 @@ namespace JogoDoGrupo.Shared.Features.Missoes
                         "A Cuidadora Mirna relata que pequenos filhotes assustados fugiram para perto do moinho decrépito.",
                     Tipo = TipoDeMissao.Secundaria,
                     Regiao = CatalogoNpcs.AreaCidade,
-                    NivelRecomendado = 3,
-                    NivelMinimo = 3,
+                    NivelRecomendado = 2,
+                    NivelMinimo = 2,
                     NpcDoadorId = CatalogoNpcs.IdCuidadorDePets,
                     NpcEntregadorId = CatalogoNpcs.IdCuidadorDePets,
-                    RequisitosMissaoIds = new int[] { Missao7OSenhorDaColinaDoVigia },
+                    RequisitosMissaoIds = new int[] { Missao5LimpandoATrilhaNorte },
                     Objetivos = new ObjetivoMissao[]
                     {
                         new ObjetivoMissao
                         {
                             Id = 1,
-                            Descricao = "Fale com a Cuidadora Mirna após patrulhar o moinho",
+                            Descricao = "Vá até o Moinho Decrépito no campo norte",
+                            Tipo = TipoDeObjetivo.IrA,
+                            AlvoId = 0,
+                            QuantidadeTotal = 1,
+                            RegiaoAlvo = "campo",
+                            CoordenadaX = 25f,
+                            CoordenadaZ = 65f,
+                            RaioAreaMetros = 15f,
+                        },
+                        new ObjetivoMissao
+                        {
+                            Id = 2,
+                            Descricao = "Fale com a Cuidadora Mirna na alameda oeste",
                             Tipo = TipoDeObjetivo.Falar,
                             AlvoId = CatalogoNpcs.IdCuidadorDePets,
                             QuantidadeTotal = 1,
@@ -450,13 +471,16 @@ namespace JogoDoGrupo.Shared.Features.Missoes
                             RaioAreaMetros = 4f,
                         },
                     },
-                    RecompensaXp = 180,
-                    RecompensaCoroas = 35,
+                    RecompensaXp = 200,
+                    RecompensaCoroas = 40,
+                    ReputacaoFaccao = "Mercadores",
+                    ReputacaoValor = 25,
                     ItensParaEscolha = System.Array.Empty<int>(),
                     ProximaMissaoPrincipalId = 0,
                 }
             );
 
+            // 4. Correspondência Extraviada: liberada ao concluir Etapa 4
             Registrar(
                 new DefinicaoDeMissao
                 {
@@ -466,11 +490,11 @@ namespace JogoDoGrupo.Shared.Features.Missoes
                         "O Banqueiro Cassian precisa recuperar a pasta de ordens mercantis que caiu na estrada após um ataque de salteadores.",
                     Tipo = TipoDeMissao.Secundaria,
                     Regiao = CatalogoNpcs.AreaCidade,
-                    NivelRecomendado = 3,
-                    NivelMinimo = 3,
+                    NivelRecomendado = 1,
+                    NivelMinimo = 1,
                     NpcDoadorId = CatalogoNpcs.IdBanqueiro,
                     NpcEntregadorId = CatalogoNpcs.IdBanqueiro,
-                    RequisitosMissaoIds = new int[] { Missao7OSenhorDaColinaDoVigia },
+                    RequisitosMissaoIds = new int[] { Missao4ProvisoesEGuardaVolumes },
                     Objetivos = new ObjetivoMissao[]
                     {
                         new ObjetivoMissao
@@ -478,7 +502,7 @@ namespace JogoDoGrupo.Shared.Features.Missoes
                             Id = 1,
                             Descricao = "Colete a Pasta de Ordens Mercantis no vale",
                             Tipo = TipoDeObjetivo.Coletar,
-                            AlvoId = 4,
+                            AlvoId = 3,
                             QuantidadeTotal = 1,
                             RegiaoAlvo = "campo",
                             CoordenadaX = 15f,
@@ -486,13 +510,16 @@ namespace JogoDoGrupo.Shared.Features.Missoes
                             RaioAreaMetros = 30f,
                         },
                     },
-                    RecompensaXp = 210,
+                    RecompensaXp = 190,
                     RecompensaCoroas = 40,
+                    ReputacaoFaccao = "Mercadores",
+                    ReputacaoValor = 35,
                     ItensParaEscolha = System.Array.Empty<int>(),
                     ProximaMissaoPrincipalId = 0,
                 }
             );
 
+            // 5. Vigilância no Portão Leste: liberada ao concluir Etapa 6
             Registrar(
                 new DefinicaoDeMissao
                 {
@@ -502,11 +529,11 @@ namespace JogoDoGrupo.Shared.Features.Missoes
                         "A Capitã Valéria ordenou o reforço da patrulha e o abate de lobos que rondam a paliçada oriental sob a névoa.",
                     Tipo = TipoDeMissao.Secundaria,
                     Regiao = "campo",
-                    NivelRecomendado = 3,
-                    NivelMinimo = 3,
+                    NivelRecomendado = 2,
+                    NivelMinimo = 2,
                     NpcDoadorId = CatalogoNpcs.IdValeria,
                     NpcEntregadorId = CatalogoNpcs.IdValeria,
-                    RequisitosMissaoIds = new int[] { Missao7OSenhorDaColinaDoVigia },
+                    RequisitosMissaoIds = new int[] { Missao6OEnxameNaMataFria },
                     Objetivos = new ObjetivoMissao[]
                     {
                         new ObjetivoMissao
@@ -522,13 +549,16 @@ namespace JogoDoGrupo.Shared.Features.Missoes
                             RaioAreaMetros = 40f,
                         },
                     },
-                    RecompensaXp = 250,
+                    RecompensaXp = 260,
                     RecompensaCoroas = 55,
+                    ReputacaoFaccao = "Guarda",
+                    ReputacaoValor = 40,
                     ItensParaEscolha = System.Array.Empty<int>(),
                     ProximaMissaoPrincipalId = 0,
                 }
             );
 
+            // 6. Remédio das Sombras: liberada ao concluir Etapa 7 (fim do capítulo 1)
             Registrar(
                 new DefinicaoDeMissao
                 {
@@ -548,18 +578,111 @@ namespace JogoDoGrupo.Shared.Features.Missoes
                         new ObjetivoMissao
                         {
                             Id = 1,
+                            Descricao = "Vá até a Ravina Sombria na mata fria",
+                            Tipo = TipoDeObjetivo.IrA,
+                            AlvoId = 0,
+                            QuantidadeTotal = 1,
+                            RegiaoAlvo = "campo",
+                            CoordenadaX = 45f,
+                            CoordenadaZ = 120f,
+                            RaioAreaMetros = 20f,
+                        },
+                        new ObjetivoMissao
+                        {
+                            Id = 2,
                             Descricao = "Colete 5 Fungos Luminescentes nos troncos da mata",
                             Tipo = TipoDeObjetivo.Coletar,
-                            AlvoId = 2,
+                            AlvoId = 5,
                             QuantidadeTotal = 5,
                             RegiaoAlvo = "campo",
-                            CoordenadaX = 35f,
-                            CoordenadaZ = 110f,
-                            RaioAreaMetros = 45f,
+                            CoordenadaX = 45f,
+                            CoordenadaZ = 120f,
+                            RaioAreaMetros = 20f,
                         },
                     },
-                    RecompensaXp = 230,
+                    RecompensaXp = 300,
+                    RecompensaCoroas = 70,
+                    ReputacaoFaccao = "Mercadores",
+                    ReputacaoValor = 40,
+                    ItensParaEscolha = System.Array.Empty<int>(),
+                    ProximaMissaoPrincipalId = 0,
+                }
+            );
+
+            // 7. Reforço da Paliçada: liberada ao concluir a secundária 102 (Cadeia de secundárias!)
+            Registrar(
+                new DefinicaoDeMissao
+                {
+                    Id = Missao107ReforcoDaPalicada,
+                    Titulo = "Reforço da Paliçada",
+                    Descricao =
+                        "Brom forjou as chapas de reforço com os minérios coletados. Leve-as até a Capitã Valéria no portão sul da cidade.",
+                    Tipo = TipoDeMissao.Secundaria,
+                    Regiao = CatalogoNpcs.AreaCidade,
+                    NivelRecomendado = 2,
+                    NivelMinimo = 2,
+                    NpcDoadorId = CatalogoNpcs.IdFerreiro,
+                    NpcEntregadorId = CatalogoNpcs.IdValeria, // Entrega para outro NPC!
+                    RequisitosMissaoIds = new int[] { Missao102MinerioParaABigorna },
+                    Objetivos = new ObjetivoMissao[]
+                    {
+                        new ObjetivoMissao
+                        {
+                            Id = 1,
+                            Descricao =
+                                "Entregue os reforços de ferro à Capitã Valéria no portão sul",
+                            Tipo = TipoDeObjetivo.Falar,
+                            AlvoId = CatalogoNpcs.IdValeria,
+                            QuantidadeTotal = 1,
+                            RegiaoAlvo = CatalogoNpcs.AreaCidade,
+                            CoordenadaX = 0f,
+                            CoordenadaZ = -35f,
+                            RaioAreaMetros = 4f,
+                        },
+                    },
+                    RecompensaXp = 240,
                     RecompensaCoroas = 50,
+                    ReputacaoFaccao = "Forja",
+                    ReputacaoValor = 25,
+                    ItensParaEscolha = System.Array.Empty<int>(),
+                    ProximaMissaoPrincipalId = 0,
+                }
+            );
+
+            // 8. Guarda de Honra da Brasa: liberada ao concluir Etapa 7 (fim do capítulo 1)
+            Registrar(
+                new DefinicaoDeMissao
+                {
+                    Id = Missao108GuardaDeHonraDaBrasa,
+                    Titulo = "Guarda de Honra da Brasa",
+                    Descricao =
+                        "A Capitã Valéria convoca os veteranos que derrotaram o Presa Velha para eliminar javalis remanescentes no platô norte.",
+                    Tipo = TipoDeMissao.Secundaria,
+                    Regiao = "campo",
+                    NivelRecomendado = 3,
+                    NivelMinimo = 3,
+                    NpcDoadorId = CatalogoNpcs.IdValeria,
+                    NpcEntregadorId = CatalogoNpcs.IdValeria,
+                    RequisitosMissaoIds = new int[] { Missao7OSenhorDaColinaDoVigia },
+                    Objetivos = new ObjetivoMissao[]
+                    {
+                        new ObjetivoMissao
+                        {
+                            Id = 1,
+                            Descricao = "Derrote 8 Javalis Selvagens no platô norte",
+                            Tipo = TipoDeObjetivo.Matar,
+                            AlvoId = 1,
+                            QuantidadeTotal = 8,
+                            RegiaoAlvo = "campo",
+                            CoordenadaX = 20f,
+                            CoordenadaZ = 100f,
+                            RaioAreaMetros = 50f,
+                        },
+                    },
+                    RecompensaXp = 320,
+                    RecompensaCoroas = 75,
+                    ReputacaoFaccao = "Guarda",
+                    ReputacaoValor = 50,
                     ItensParaEscolha = System.Array.Empty<int>(),
                     ProximaMissaoPrincipalId = 0,
                 }

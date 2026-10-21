@@ -462,6 +462,150 @@ public sealed class ServicoDeMissoes
         return atualizadas;
     }
 
+    public async Task<List<ProgressoDeMissaoDto>> RegistrarColetaItemAsync(
+        long personagemId,
+        int itemId,
+        int quantidade = 1,
+        CancellationToken c = default
+    )
+    {
+        if (quantidade <= 0)
+            return new List<ProgressoDeMissaoDto>();
+
+        var ativas = await _db.Set<MissaoPersonagemEntidade>()
+            .Where(m => m.PersonagemId == personagemId && m.Estado == EstadoDaMissao.EmAndamento)
+            .ToListAsync(c);
+
+        var atualizadas = new List<ProgressoDeMissaoDto>();
+
+        foreach (var ent in ativas)
+        {
+            var def = CatalogoDeMissoes.Obter(ent.MissaoId);
+            if (def == null)
+                continue;
+
+            var objs = DeserializarObjetivos(ent.ObjetivosJson);
+            var mudou = false;
+
+            for (int i = 0; i < def.Objetivos.Length; i++)
+            {
+                var objDef = def.Objetivos[i];
+                if (
+                    objDef.Tipo == TipoDeObjetivo.Coletar
+                    && (objDef.AlvoId == itemId || objDef.AlvoId == 0)
+                )
+                {
+                    var objProg = objs.FirstOrDefault(o => o.ObjetivoId == objDef.Id);
+                    if (objProg != null && !objProg.Concluido)
+                    {
+                        objProg.QuantidadeAtual += quantidade;
+                        if (objProg.QuantidadeAtual >= objDef.QuantidadeTotal)
+                        {
+                            objProg.QuantidadeAtual = objDef.QuantidadeTotal;
+                            objProg.Concluido = true;
+                        }
+                        mudou = true;
+                    }
+                }
+            }
+
+            if (mudou)
+            {
+                ent.ObjetivosJson = JsonSerializer.Serialize(objs, _jsonOpcoes);
+                if (objs.All(o => o.Concluido))
+                {
+                    ent.Estado = EstadoDaMissao.ProntaParaEntregar;
+                }
+                atualizadas.Add(MapearParaDto(ent));
+            }
+        }
+
+        if (atualizadas.Count > 0)
+        {
+            await _db.SaveChangesAsync(c);
+        }
+
+        return atualizadas;
+    }
+
+    public async Task<List<ProgressoDeMissaoDto>> RegistrarChegadaLocalAsync(
+        long personagemId,
+        float x,
+        float z,
+        string? regiao = null,
+        CancellationToken c = default
+    )
+    {
+        var ativas = await _db.Set<MissaoPersonagemEntidade>()
+            .Where(m => m.PersonagemId == personagemId && m.Estado == EstadoDaMissao.EmAndamento)
+            .ToListAsync(c);
+
+        var atualizadas = new List<ProgressoDeMissaoDto>();
+
+        foreach (var ent in ativas)
+        {
+            var def = CatalogoDeMissoes.Obter(ent.MissaoId);
+            if (def == null)
+                continue;
+
+            var objs = DeserializarObjetivos(ent.ObjetivosJson);
+            var mudou = false;
+
+            for (int i = 0; i < def.Objetivos.Length; i++)
+            {
+                var objDef = def.Objetivos[i];
+                if (objDef.Tipo == TipoDeObjetivo.IrA)
+                {
+                    if (
+                        !string.IsNullOrEmpty(regiao)
+                        && !string.IsNullOrEmpty(objDef.RegiaoAlvo)
+                        && !string.Equals(
+                            objDef.RegiaoAlvo,
+                            regiao,
+                            StringComparison.OrdinalIgnoreCase
+                        )
+                    )
+                    {
+                        continue;
+                    }
+
+                    var dx = x - objDef.CoordenadaX;
+                    var dz = z - objDef.CoordenadaZ;
+                    var distSq = dx * dx + dz * dz;
+                    var raio = objDef.RaioAreaMetros > 0f ? objDef.RaioAreaMetros : 5f;
+
+                    if (distSq <= raio * raio)
+                    {
+                        var objProg = objs.FirstOrDefault(o => o.ObjetivoId == objDef.Id);
+                        if (objProg != null && !objProg.Concluido)
+                        {
+                            objProg.QuantidadeAtual = 1;
+                            objProg.Concluido = true;
+                            mudou = true;
+                        }
+                    }
+                }
+            }
+
+            if (mudou)
+            {
+                ent.ObjetivosJson = JsonSerializer.Serialize(objs, _jsonOpcoes);
+                if (objs.All(o => o.Concluido))
+                {
+                    ent.Estado = EstadoDaMissao.ProntaParaEntregar;
+                }
+                atualizadas.Add(MapearParaDto(ent));
+            }
+        }
+
+        if (atualizadas.Count > 0)
+        {
+            await _db.SaveChangesAsync(c);
+        }
+
+        return atualizadas;
+    }
+
     public async Task<(
         bool Sucesso,
         string? Erro,

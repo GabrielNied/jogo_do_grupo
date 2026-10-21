@@ -68,7 +68,7 @@ namespace JogoDoGrupo.Shared.Tests.Features.Missoes
             var ok = RegrasMissoes.PodeAceitar(
                 def,
                 nivelPersonagem: 5,
-                missoesConcluidas: new int[] { CatalogoDeMissoes.Missao7OSenhorDaColinaDoVigia },
+                missoesConcluidas: new int[] { CatalogoDeMissoes.Missao5LimpandoATrilhaNorte },
                 missoesAtivas: ativas,
                 out var erro
             );

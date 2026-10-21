@@ -188,14 +188,18 @@ Todas as etapas seguem objetivos estritamente verificáveis pelo motor autoritat
   - *Antes do confronto (Valéria):* *"Não o enfrente de frente sem esquivar. O peso daquele bicho quebra escudos como gravetos secos."*
   - *Após a vitória (Valéria):* *"O troféu das presas dele já está fincado no portão. Nenhuma fera ousará desafiar este marco novamente."*
 
-#### 5. Esboço das Missões Secundárias da Brasa Mansa (#1060)
-Concluir o Capítulo 1 destrava as seguintes missões secundárias na região da cidade e campos:
-1. **Caldeirão da Lareira** (Taverneiro Barnabé): Coletar 8x Ervas da Manhã e 4x Carnes Frescas nos campos norte para repor o ensopado comunitário.
-2. **Minério para a Bigorna** (Ferreiro Brom): Extrair 6x Minérios de Ferro nas encostas rochosas da ravina leste.
-3. **O Mascote Fugitivo** (Cuidadora Mirna): Encontrar o filhote assustado escondido perto do moinho decrépito e escoltá-lo até a segurança da cidade.
-4. **Correspondência Extraviada** (Banqueiro Cassian): Recuperar a bolsa de ordens mercantis caída no vale após o ataque de salteadores.
-5. **Vigilância no Portão Leste** (Guarda do Portão): Abater 5x Lobos Selvagens que rondam a cerca leste durante a névoa.
-6. **Remédio das Sombras** (Merceeiro Tomas): Colher 5x Fungos Luminescentes nos troncos caídos da mata fria para a produção de tônicos medicinais.
+#### 5. Missões Secundárias da Brasa Mansa e Arredores (#1060)
+
+O Capítulo 1 destrava progressivamente 8 missões secundárias na região da cidade e campos, com variedade de objetivos (Coletar, IrA, Falar, Matar), uma cadeia curta e reputação de facção:
+
+1. **Caldeirão da Lareira** (ID 101, Taverneiro Barnabé, Nível 1, Requer Etapa 4): Coletar 4x Carnes Frescas de javali nos pastos para abastecer a estalagem. Recompensa: 180 XP, 35 Coroas, +25 Reputação Mercadores.
+2. **Minério para a Bigorna** (ID 102, Ferreiro Brom, Nível 2, Requer Etapa 5): Coletar 6x Minérios de Ferro nos afloramentos rochosos para reforçar a forja. Inicia a cadeia curta de ferreiro. Recompensa: 220 XP, 45 Coroas, +30 Reputação Forja.
+3. **Reforço da Paliçada** (ID 107, Ferreiro Brom -> Capitã Valéria, Nível 2, Requer Missão 102): Cadeia curta da missão 102. Entregar as chapas forjadas à Capitã Valéria no portão sul. Recompensa: 240 XP, 50 Coroas, +25 Reputação Forja.
+4. **O Mascote Fugitivo** (ID 103, Cuidadora Mirna, Nível 2, Requer Etapa 5): Ir até o Moinho Decrépito no campo norte (área) e falar com Mirna na cidade. Recompensa: 200 XP, 40 Coroas, +25 Reputação Mercadores.
+5. **Correspondência Extraviada** (ID 104, Banqueiro Cassian, Nível 1, Requer Etapa 4): Coletar a Pasta de Ordens Mercantis extraviada na trilha após emboscada. Recompensa: 190 XP, 40 Coroas, +35 Reputação Mercadores.
+6. **Vigilância no Portão Leste** (ID 105, Capitã Valéria, Nível 2, Requer Etapa 6): Abater 5x Lobos Selvagens que rondam a paliçada oriental na névoa. Recompensa: 260 XP, 55 Coroas, +40 Reputação Guarda.
+7. **Remédio das Sombras** (ID 106, Merceeiro Tomas, Nível 3, Requer Etapa 7): Ir até a Ravina Sombria na mata fria e coletar 5x Fungos Luminescentes nos troncos. Recompensa: 300 XP, 70 Coroas, +40 Reputação Mercadores.
+8. **Guarda de Honra da Brasa** (ID 108, Capitã Valéria, Nível 3, Requer Etapa 7): Eliminar 8x Javalis Selvagens remanescentes no platô norte após a derrota do Presa Velha. Recompensa: 320 XP, 75 Coroas, +50 Reputação Guarda.
 
 ### Livro de Asterra: chegada ao mundo (proposta do board, 2026-10-11)
 
