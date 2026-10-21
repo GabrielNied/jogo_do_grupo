@@ -94,7 +94,8 @@ namespace JogoDoGrupo.Client.Features.Npcs.UI
             conteudo.style.alignItems = Align.Center;
             conteudo.style.justifyContent = Justify.Center;
             conteudo.style.flexGrow = 1f;
-            conteudo.style.backgroundColor = new Color(0.04f, 0.05f, 0.1f, 0.96f);
+            // Véu leve: a vista do mundo da tela cheia aparece por trás da oferta.
+            conteudo.style.backgroundColor = new Color(0.04f, 0.05f, 0.1f, 0.35f);
 
             var caixa = new VisualElement();
             caixa.style.maxWidth = 560f;

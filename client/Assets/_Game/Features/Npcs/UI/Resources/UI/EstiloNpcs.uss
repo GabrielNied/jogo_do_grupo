@@ -45,3 +45,21 @@
     border-color: var(--lumora-cores-borda-botao);
     border-radius: 3px;
 }
+
+/* Balão de fala dos moradores: texto curto em caixa escura com filete dourado, acima da
+   cabeça (o ponto de ancoragem fica na ponta de baixo do balão). */
+.npc-balao {
+    position: absolute;
+    max-width: 240px;
+    padding: 5px 10px 6px;
+    translate: -50% -100%;
+    font-size: var(--lumora-tipografia-hud);
+    color: var(--lumora-cores-marfim);
+    -unity-text-align: middle-center;
+    white-space: normal;
+    background-color: var(--lumora-cores-hud-fundo);
+    border-width: 1px;
+    border-color: var(--lumora-cores-borda-botao);
+    border-radius: 8px;
+    text-shadow: 1px 1px 1px var(--lumora-cores-contorno);
+}

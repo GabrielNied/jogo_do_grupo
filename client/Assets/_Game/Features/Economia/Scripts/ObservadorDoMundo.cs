@@ -132,39 +132,12 @@ namespace JogoDoGrupo.Client.Features.Economia
             documento.rootVisualElement.Add(container);
 
             var controle = raiz.AddComponent<ControleInteracaoEconomia>();
+            // Os serviços com NPC (ferreiro, armeiro, armadureira, taverneiro, merceeiro e
+            // leiloeiro) abrem pela conversa, com a opção do diálogo, como no WoW: o E direto aqui
+            // abria a loja junto com o diálogo. Ficam só os pontos sem NPC.
             controle.Configurar(
                 jogador,
                 container,
-                new PontoInteracaoEconomia(
-                    ferreiro.transform,
-                    "falar com o ferreiro",
-                    UI.JanelaFerreiro.Chave
-                ),
-                new PontoInteracaoEconomia(
-                    armeiro.transform,
-                    "falar com o armeiro",
-                    UI.JanelaVendedor.ChaveArmeiro
-                ),
-                new PontoInteracaoEconomia(
-                    armadureiro.transform,
-                    "falar com a armadureira",
-                    UI.JanelaVendedor.ChaveArmadureiro
-                ),
-                new PontoInteracaoEconomia(
-                    taverneiro.transform,
-                    "falar com o taverneiro",
-                    UI.JanelaVendedor.ChaveTaverneiro
-                ),
-                new PontoInteracaoEconomia(
-                    merceeiro.transform,
-                    "falar com o merceeiro",
-                    UI.JanelaVendedor.ChaveMerceeiro
-                ),
-                new PontoInteracaoEconomia(
-                    leiloeiro.transform,
-                    "falar com o leiloeiro",
-                    UI.JanelaLeilao.Chave
-                ),
                 new PontoInteracaoEconomia(
                     bancoGuilda.transform,
                     "abrir o banco da guilda",

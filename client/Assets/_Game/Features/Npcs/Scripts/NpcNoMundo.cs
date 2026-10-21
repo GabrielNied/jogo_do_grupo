@@ -166,6 +166,7 @@ namespace JogoDoGrupo.Client.Features.Npcs
                 _jogadorNoAlcance
                 && Keyboard.current != null
                 && Keyboard.current.eKey.wasPressedThisFrame
+                && EhOMaisPerto(posJogador)
             )
             {
                 InteragiuComNpc?.Invoke(_definicao);
@@ -188,6 +189,33 @@ namespace JogoDoGrupo.Client.Features.Npcs
             }
         }
 
+        // Com dois NPCs no alcance, só o mais perto responde ao E (antes os dois abriam conversa).
+        private bool EhOMaisPerto(Vector3 posJogador)
+        {
+            var minha = DistanciaHorizontal(posJogador);
+            foreach (var outro in _ativos)
+            {
+                if (
+                    outro != null
+                    && outro != this
+                    && outro._jogadorNoAlcance
+                    && outro.DistanciaHorizontal(posJogador) < minha
+                )
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private float DistanciaHorizontal(Vector3 posicao)
+        {
+            var dx = transform.position.x - posicao.x;
+            var dz = transform.position.z - posicao.z;
+            return dx * dx + dz * dz;
+        }
+
         private void LateUpdate()
         {
             if (_placaObjeto != null && Camera.main != null)
@@ -207,19 +235,36 @@ namespace JogoDoGrupo.Client.Features.Npcs
                 posicao.y = relevo;
             }
 
+            // Só conta como chão o terreno e as malhas do mapa. Cápsulas e caixas ficam de fora:
+            // a do próprio NPC (Configurar roda de novo a cada lista da área e ele subia 1,8 m
+            // por vez) e as dos pontos de serviço da Economia, no mesmo lugar dos NPCs.
             var origem = posicao + Vector3.up * AlturaBuscaChao;
-            if (
-                Physics.Raycast(
-                    origem,
-                    Vector3.down,
-                    out var batida,
-                    AlcanceBuscaChao,
-                    ~0,
-                    QueryTriggerInteraction.Ignore
-                )
-            )
+            var batidas = Physics.RaycastAll(
+                origem,
+                Vector3.down,
+                AlcanceBuscaChao,
+                ~0,
+                QueryTriggerInteraction.Ignore
+            );
+            var achouChao = false;
+            var alturaDoChao = 0f;
+            foreach (var batida in batidas)
             {
-                posicao.y = batida.point.y;
+                if (!(batida.collider is TerrainCollider) && !(batida.collider is MeshCollider))
+                {
+                    continue;
+                }
+
+                if (!achouChao || batida.point.y > alturaDoChao)
+                {
+                    alturaDoChao = batida.point.y;
+                    achouChao = true;
+                }
+            }
+
+            if (achouChao)
+            {
+                posicao.y = alturaDoChao;
             }
 
             return posicao;
