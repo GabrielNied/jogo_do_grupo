@@ -42,10 +42,42 @@ Decidido por Gabriel em 2026-10-18. Todo NPC tem corpo, nome sobre a cabeça, í
 | Cavalariço (estábulo) | Roderic | Vende montarias básicas | [Montarias](montarias.md) | [#1067](https://github.com/GabrielNied/jogo_do_grupo/issues/1067) |
 | Cuidador de pets | Mirna | Vende pets comuns | [Pets](pets.md) | [#1068](https://github.com/GabrielNied/jogo_do_grupo/issues/1068) |
 | Dadores de missão | Capitã Valéria e Alden | Dão e recebem missões; roteiro em [missões](missoes.md#capítulo-1-a-brasa-mansa-e-a-serra-do-vidro-frio-roteiro-completo-issue-1058) | [Missões](missoes.md) | [#179](https://github.com/GabrielNied/jogo_do_grupo/issues/179), [#1058](https://github.com/GabrielNied/jogo_do_grupo/issues/1058) |
-| Guardas | Guarnição | Portões e patrulha, sem combate | NPCs | [#1069](https://github.com/GabrielNied/jogo_do_grupo/issues/1069) |
-| Moradores | Cidadãos | Andam, conversam, falas curtas ao passar | NPCs | [#1069](https://github.com/GabrielNied/jogo_do_grupo/issues/1069) |
+| Guardas | Guarnição | Portões e patrulha, sem combate | NPCs | pronto ([#1069](https://github.com/GabrielNied/jogo_do_grupo/issues/1069), [vida na cidade](#vida-na-cidade)) |
+| Moradores | Cidadãos | Andam, conversam, falas curtas ao passar | NPCs | pronto ([#1069](https://github.com/GabrielNied/jogo_do_grupo/issues/1069), [vida na cidade](#vida-na-cidade)) |
 
 **Futuro** (entra quando o serviço existir): intendente de facção (troca [reputação](#definido) por receitas, descontos e aparências), mestres de [profissão](profissoes.md), registrador de [guilda](social.md) e treinador da [árvore](talentos.md).
+
+### Vida na cidade
+
+Decidido por quem implementou a [#1069](https://github.com/GabrielNied/jogo_do_grupo/issues/1069), seguindo o definido em 2026-10-18 (sem combate, falas curtas em balão).
+
+- **Quem:** 12 habitantes ambiente em `PopulacaoDaCidade` (shared), fora do `CatalogoNpcs`: 2 guardas parados nos portões (além da Capitã Valéria e do Guarda Kael, que continuam no catálogo), 4 patrulheiros (anel nos dois sentidos e um trecho de cada estrada do portão) e 6 moradores (dois pares que passeiam pela praça e param para conversar, e dois que vão e voltam pela rua em anel).
+- **Movimento só no client, sem rede:** a posição é função pura do relógio UTC e da rota (`RotaDeNpc.Amostrar`), então todos veem o mesmo lugar, o servidor não gasta CPU nem banda e o mapa não precisa de mudança. Os NPCs de serviço do catálogo ficam fixos e autoritativos (o servidor valida o alcance do diálogo contra o ponto do catálogo). Quem passa a mais de 90 m não desenha nem anima o habitante.
+- **Rotas em dados:** pontos `(x, z)`, pausa, olhar e velocidade (1,2 m/s moradores, 1,5 m/s guardas), seguindo os corredores livres do [Mundo](mundo.md) (estradas em cruz e anel em ±22) e a praça de 24 × 24 m sem cruzar a fonte. Mudar a cidade é mudar o dado, sem editar cena.
+- **Conversa:** o par tem rotas espelhadas de mesmo ciclo, para parar junto a 2,4 m um do outro, olhando-se. O balão alterna entre os dois a cada 4 s.
+- **Falas:** até 60 caracteres. Quem chega a menos de 8 m vê um balão de 4 s sobre o NPC, no máximo um a cada 25 s por NPC. Os textos são provisórios até o roteiro ([#1058](https://github.com/GabrielNied/jogo_do_grupo/issues/1058)) assumir.
+- **Sem alvo:** sem colisor, sem vida e sem dano: não aparecem para o combate nem empurram o jogador.
+- **Ajuste:** velocidades, raio e tempo do balão em `ConfigPopulacaoDaCidade`.
+
+### Visual dos NPCs
+
+Decidido por quem implementou a [#1064](https://github.com/GabrielNied/jogo_do_grupo/issues/1064).
+
+- **Base única:** o Monk do Quaternius (CC0, [licenças](../arte/licencas.md)), de 1,8 m, com um prefab por papel em `Resources/Npcs/Npc_<Papel>`, gerado por `GeradorDeVisualDeNpcs` (menu Jogo do Grupo/Npcs, ou `npm run unity:executar`). Papel sem prefab (estalajadeiro) cai na cápsula colorida.
+- **Reconhecível de longe:** túnica ou tabardo na cor do papel mais um acessório: ferreiro (avental de couro e martelo), guarda (elmo, peitoral e lança), armeiro (tabardo vermelho e espada), armadureiro (peitoral de aço e martelinho), taverneiro (avental e gorro brancos, panela), merceeiro e vendedor (chapéu de aba e bolsa), banqueiro (cartola verde e livro), leiloeiro (cartola azul e martelete), cavalariço (chapéu de palha e forcado), cuidador de pets (lenço verde e cesto), dador de missão (capa roxa e selo) e mago de cena do prólogo (chapéu pontudo, capa e cajado com orbe).
+- **Animação:** parado, andar (guardas e moradores), falar (acende quando o jogador está ao alcance ou o balão aparece) e trabalhar (martelar para ferreiro e armadureiro, mexer para taverneiro). Falar e trabalhar são o Idle do pacote com os braços trocados por script, sem animação nova de terceiros.
+- **Variação:** todo NPC tem altura de 93% a 107% pela semente; moradores sorteiam também cabelo (3 estilos ou nenhum), barba (2 ou nenhuma), cor da túnica e tom do corpo (`AparenciaDeNpc`). A mesma semente dá o mesmo rosto em qualquer client.
+- **Limite conhecido:** cabelo e rosto são formas simples sobre o Monk; modelos próprios por papel ficam para quando a arte do grupo chegar.
+
+### Prólogo: NPCs de cena
+
+Decidido por quem implementou a [#327](https://github.com/GabrielNied/jogo_do_grupo/issues/327); a regra do jogador está em [missões](missoes.md#começo-do-jogo).
+
+- **Onde mora:** os quatro magos são NPCs de cena e o prólogo é só encenação do client, então ficam em `Features/Npcs` (roteiro e linha do tempo em `PrologoDoSol`, no shared; palco e janela no client). Sem catálogo, sem mensagem e sem estado no servidor.
+- **Oferta:** ao entrar na cidade, 2 s depois, abre uma janela "O sol que nasceu na estrada" com **Assistir** e **Pular** (Esc também pula). Vale **uma vez por personagem neste aparelho** (`PlayerPrefs`, chave `npcs.prologo.visto.<id>`): não gasta banco nem rede, e quem trocar de aparelho vê a oferta de novo, sem custo.
+- **A cena:** 44 s, tela inteira. Uma clareira montada longe do mundo, vista por uma câmera própria: quatro magos (Veyra, Ilso, Oren e Tavi) sustentam uma esfera que cresce, uma manada de sombras vem pela estrada, o clarão cobre a tela e a manada se desfaz. O viajante fecha mandando ir à Brasa Mansa e falar com a Capitã Valéria. Textos do livro de ideias ([missões](missoes.md#livro-de-asterra-chegada-ao-mundo-proposta-do-board-2026-10-11)).
+- **Sem risco:** o personagem fica parado (o controle é desligado e devolvido ao fechar), nada dá loot e nada o mata. Quem pula ou assiste volta ao mesmo lugar, com a principal 1 como estava: o prólogo não entrega missão.
+- **Ajuste:** tempos e textos em `PrologoDoSol`; tamanhos e cores do palco em `PalcoDoPrologo`.
 
 ### Livro de Asterra: NPCs da cidade (proposta do board, 2026-10-11)
 

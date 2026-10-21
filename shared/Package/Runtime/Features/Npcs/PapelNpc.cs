@@ -18,5 +18,8 @@ namespace JogoDoGrupo.Shared.Features.Npcs
         Guarda = 12,
         Morador = 13,
         Cavalarico = 14,
+
+        /// <summary>NPC de cena do prólogo (#327); não aparece no catálogo da cidade.</summary>
+        Mago = 15,
     }
 }

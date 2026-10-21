@@ -48,7 +48,7 @@ Decidido em 2026-10-18 (veja [Definido](#definido)). É o fluxo clássico de MMO
 **Começo do jogo**
 
 - O personagem novo entra no mundo com a missão principal 1 **já aceita** e no rastreador: ir à Brasa Mansa e falar com o primeiro NPC.
-- O prólogo (#327) é **opcional e pulável**. Quem joga e quem pula termina no mesmo ponto, com a mesma missão.
+- O prólogo (#327) é **opcional e pulável**. Quem joga e quem pula termina no mesmo ponto, com a mesma missão. Implementado como cena do client em [NPCs](npcs.md#prólogo-npcs-de-cena): oferecido uma vez por personagem, sem estado no servidor.
 
 **Estados de uma missão (por personagem)**
 
