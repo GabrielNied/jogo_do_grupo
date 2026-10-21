@@ -4,15 +4,23 @@ using UnityEngine;
 namespace JogoDoGrupo.Client.Features.Profissoes
 {
     /// <summary>
-    /// Os marcadores procedurais dos pontos de coleta e da forja, até haver modelo (mesmo
-    /// caminho dos NPCs de economia). Só desenho: quem decide a coleta é o servidor.
+    /// O desenho dos pontos de coleta e das bancadas. Os pontos usam os modelos da Mata
+    /// (Quaternius, CC0) quando existem, com um detalhe que diz o material (veio de minério,
+    /// cristais); sem modelo, ficam as formas simples. Só desenho: quem decide a coleta é o
+    /// servidor.
     /// </summary>
     internal static class MarcadorDeProfissoes
     {
+        private const string PastaDaMata = "Mundo/MataEstilizada/";
+
         public static GameObject CriarPonto(PontoDeColeta ponto, Vector3 posicao)
         {
             var raiz = new GameObject("Coleta." + ponto.Nome + "." + ponto.Id);
             raiz.transform.position = posicao;
+            if (CriarComModelo(raiz, ponto))
+            {
+                return raiz;
+            }
 
             switch (ponto.MaterialId)
             {
@@ -216,6 +224,98 @@ namespace JogoDoGrupo.Client.Features.Profissoes
                 new Color(0.85f, 0.45f, 0.20f)
             );
             return raiz;
+        }
+
+        // Cada material com o modelo que lembra a coleta; o giro varia por ponto para os dois
+        // pontos do mesmo material não ficarem iguais.
+        private static bool CriarComModelo(GameObject raiz, PontoDeColeta ponto)
+        {
+            var giro = ponto.Id * 67f;
+            switch (ponto.MaterialId)
+            {
+                case ConfigProfissoes.MaterialMadeira:
+                    return Modelo(raiz, "CommonTree_3", 1f, giro) != null;
+                case ConfigProfissoes.MaterialErvaMedicinal:
+                    return Modelo(raiz, "Bush_Common_Flowers", 1.2f, giro) != null;
+                case ConfigProfissoes.MaterialGraos:
+                case ConfigProfissoes.MaterialCarneDeCaca:
+                    return Modelo(raiz, "Bush_Common", 1.1f, giro) != null;
+                case ConfigProfissoes.MaterialCouroCru:
+                    if (Modelo(raiz, "Rock_Medium_3", 0.7f, giro) == null)
+                    {
+                        return false;
+                    }
+
+                    // A carcaça: o couro estendido sobre a pedra.
+                    Parte(
+                        raiz,
+                        PrimitiveType.Cube,
+                        new Vector3(1.1f, 0.12f, 0.7f),
+                        new Vector3(0f, 0.7f, 0f),
+                        new Color(0.55f, 0.38f, 0.24f)
+                    );
+                    return true;
+                case ConfigProfissoes.MaterialMinerioDeFerro:
+                    if (Modelo(raiz, "Rock_Medium_1", 1f, giro) == null)
+                    {
+                        return false;
+                    }
+
+                    // Veio de minério: pedras cor de ferrugem saindo da rocha.
+                    Parte(
+                        raiz,
+                        PrimitiveType.Cube,
+                        new Vector3(0.35f, 0.3f, 0.3f),
+                        new Vector3(0.45f, 0.75f, 0.2f),
+                        new Color(0.72f, 0.42f, 0.2f)
+                    );
+                    Parte(
+                        raiz,
+                        PrimitiveType.Cube,
+                        new Vector3(0.25f, 0.22f, 0.25f),
+                        new Vector3(-0.35f, 0.6f, 0.35f),
+                        new Color(0.62f, 0.36f, 0.18f)
+                    );
+                    return true;
+                case ConfigProfissoes.MaterialCristalArcano:
+                    if (Modelo(raiz, "Rock_Medium_2", 0.9f, giro) == null)
+                    {
+                        return false;
+                    }
+
+                    Parte(
+                        raiz,
+                        PrimitiveType.Cube,
+                        new Vector3(0.3f, 1.1f, 0.3f),
+                        new Vector3(0.2f, 1.0f, 0f),
+                        new Color(0.35f, 0.8f, 0.98f)
+                    );
+                    Parte(
+                        raiz,
+                        PrimitiveType.Cube,
+                        new Vector3(0.22f, 0.7f, 0.22f),
+                        new Vector3(-0.2f, 0.8f, 0.2f),
+                        new Color(0.72f, 0.45f, 0.98f)
+                    );
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        private static GameObject Modelo(GameObject raiz, string nome, float escala, float giroY)
+        {
+            var prefab = Resources.Load<GameObject>(PastaDaMata + nome);
+            if (prefab == null)
+            {
+                return null;
+            }
+
+            var modelo = Object.Instantiate(prefab, raiz.transform);
+            modelo.transform.localPosition = Vector3.zero;
+            modelo.transform.localRotation = Quaternion.Euler(0f, giroY, 0f);
+            modelo.transform.localScale = Vector3.one * escala;
+            return modelo;
         }
 
         public static bool EstaPerto(Vector3 jogador, Vector3 marcador)

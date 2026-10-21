@@ -37,18 +37,28 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
                 null,
                 folhas: true
             );
-            if (casca == null || folhas == null)
+            var flores = Material(
+                "FloresDaMata",
+                PastaTexturas + "Flowers.png",
+                null,
+                folhas: true
+            );
+            if (casca == null || folhas == null || flores == null)
             {
                 Debug.LogError("[ArvoresDaMata] Texturas da Quaternius não encontradas.");
                 return;
             }
 
-            foreach (
-                var caminho in AssetDatabase.FindAssets(
-                    "CommonTree t:Model",
-                    new[] { PastaArvores }
-                )
-            )
+            // As árvores e os arbustos (que os pontos de coleta usam): todos com folhas
+            // verdes da árvore comum; os arbustos vinham com a folha vermelha da árvore torta.
+            var modelos = new List<string>();
+            modelos.AddRange(
+                AssetDatabase.FindAssets("CommonTree t:Model", new[] { PastaArvores })
+            );
+            modelos.AddRange(
+                AssetDatabase.FindAssets("Bush_Common t:Model", new[] { PastaArvores })
+            );
+            foreach (var caminho in modelos)
             {
                 var fbx = AssetDatabase.GUIDToAssetPath(caminho);
                 var importador = AssetImporter.GetAtPath(fbx) as ModelImporter;
@@ -63,6 +73,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
                     var destino =
                         embutido.name.StartsWith("Leaves") ? folhas
                         : embutido.name.StartsWith("Bark") ? casca
+                        : embutido.name.StartsWith("Flowers") ? flores
                         : null;
                     if (destino == null)
                         continue;
