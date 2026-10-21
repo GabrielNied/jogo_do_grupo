@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using JogoDoGrupo.Client.Core.Jogo.Janelas;
 using JogoDoGrupo.Client.Core.UI;
+using JogoDoGrupo.Client.Core.Visual;
 using JogoDoGrupo.Shared.Features.Pets;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -55,7 +56,7 @@ namespace JogoDoGrupo.Client.Features.Pets.UI
             abaPets.style.paddingRight = 16f;
             abaPets.style.paddingTop = 6f;
             abaPets.style.paddingBottom = 6f;
-            abaPets.style.backgroundColor = new Color(0.18f, 0.24f, 0.35f);
+            abaPets.style.backgroundColor = EstiloVisual.Cor(ConfigVisual.Cores.Selecionado);
             abaPets.style.color = new Color(0.95f, 0.95f, 1f);
             abaPets.style.unityFontStyleAndWeight = FontStyle.Bold;
             barraAbas.Add(abaPets);
@@ -76,7 +77,7 @@ namespace JogoDoGrupo.Client.Features.Pets.UI
             );
             descricao.AddToClassList(EstiloCore.Texto);
             descricao.style.fontSize = 11.5f;
-            descricao.style.color = new Color(0.72f, 0.76f, 0.84f);
+            descricao.style.color = EstiloVisual.Cor(ConfigVisual.Cores.TextoSecundario);
             descricao.style.marginBottom = 12f;
             conteudo.Add(descricao);
 
@@ -99,7 +100,7 @@ namespace JogoDoGrupo.Client.Features.Pets.UI
             rodape.AddToClassList(EstiloCore.Mensagem);
             rodape.style.fontSize = 11f;
             rodape.style.marginTop = 12f;
-            rodape.style.color = new Color(0.60f, 0.66f, 0.75f);
+            rodape.style.color = EstiloVisual.Cor(ConfigVisual.Cores.TextoDesabilitado);
             conteudo.Add(rodape);
         }
 
@@ -173,15 +174,19 @@ namespace JogoDoGrupo.Client.Features.Pets.UI
                 Elemento.style.paddingRight = 12f;
                 Elemento.style.paddingTop = 10f;
                 Elemento.style.paddingBottom = 10f;
-                Elemento.style.backgroundColor = new Color(0.10f, 0.12f, 0.16f, 0.92f);
+                Elemento.style.backgroundColor = EstiloVisual.Cor(ConfigVisual.Cores.Campo);
                 Elemento.style.borderLeftWidth = 1f;
                 Elemento.style.borderRightWidth = 1f;
                 Elemento.style.borderTopWidth = 1f;
                 Elemento.style.borderBottomWidth = 1f;
-                Elemento.style.borderLeftColor = new Color(0.24f, 0.28f, 0.36f, 0.6f);
-                Elemento.style.borderRightColor = new Color(0.24f, 0.28f, 0.36f, 0.6f);
-                Elemento.style.borderTopColor = new Color(0.24f, 0.28f, 0.36f, 0.6f);
-                Elemento.style.borderBottomColor = new Color(0.24f, 0.28f, 0.36f, 0.6f);
+                Elemento.style.borderLeftColor = EstiloVisual.Cor(ConfigVisual.Cores.BordaDiscreta);
+                Elemento.style.borderRightColor = EstiloVisual.Cor(
+                    ConfigVisual.Cores.BordaDiscreta
+                );
+                Elemento.style.borderTopColor = EstiloVisual.Cor(ConfigVisual.Cores.BordaDiscreta);
+                Elemento.style.borderBottomColor = EstiloVisual.Cor(
+                    ConfigVisual.Cores.BordaDiscreta
+                );
                 Elemento.style.borderTopLeftRadius = 6f;
                 Elemento.style.borderTopRightRadius = 6f;
                 Elemento.style.borderBottomLeftRadius = 6f;
@@ -245,11 +250,21 @@ namespace JogoDoGrupo.Client.Features.Pets.UI
                 _seloBloqueado.style.paddingTop = 4f;
                 _seloBloqueado.style.paddingBottom = 4f;
                 _seloBloqueado.style.marginBottom = 6f;
-                _seloBloqueado.style.backgroundColor = new Color(0.12f, 0.13f, 0.16f, 0.9f);
-                _seloBloqueado.style.borderLeftColor = new Color(0.28f, 0.30f, 0.36f, 0.7f);
-                _seloBloqueado.style.borderRightColor = new Color(0.28f, 0.30f, 0.36f, 0.7f);
-                _seloBloqueado.style.borderTopColor = new Color(0.28f, 0.30f, 0.36f, 0.7f);
-                _seloBloqueado.style.borderBottomColor = new Color(0.28f, 0.30f, 0.36f, 0.7f);
+                _seloBloqueado.style.backgroundColor = EstiloVisual.Cor(
+                    ConfigVisual.Cores.Desabilitado
+                );
+                _seloBloqueado.style.borderLeftColor = EstiloVisual.Cor(
+                    ConfigVisual.Cores.BordaDiscreta
+                );
+                _seloBloqueado.style.borderRightColor = EstiloVisual.Cor(
+                    ConfigVisual.Cores.BordaDiscreta
+                );
+                _seloBloqueado.style.borderTopColor = EstiloVisual.Cor(
+                    ConfigVisual.Cores.BordaDiscreta
+                );
+                _seloBloqueado.style.borderBottomColor = EstiloVisual.Cor(
+                    ConfigVisual.Cores.BordaDiscreta
+                );
                 _seloBloqueado.style.borderLeftWidth = 1f;
                 _seloBloqueado.style.borderRightWidth = 1f;
                 _seloBloqueado.style.borderTopWidth = 1f;
@@ -285,7 +300,7 @@ namespace JogoDoGrupo.Client.Features.Pets.UI
                 _botaoChamar.style.paddingBottom = 6f;
                 _botaoChamar.style.fontSize = 11.5f;
                 _botaoChamar.style.unityFontStyleAndWeight = FontStyle.Bold;
-                _botaoChamar.style.backgroundColor = new Color(0.18f, 0.22f, 0.30f);
+                _botaoChamar.style.backgroundColor = EstiloVisual.Cor(ConfigVisual.Cores.Hover);
                 _botaoChamar.style.color = new Color(0.90f, 0.94f, 1.0f);
                 Elemento.Add(_botaoChamar);
 
@@ -310,11 +325,19 @@ namespace JogoDoGrupo.Client.Features.Pets.UI
                 if (!desbloqueado)
                 {
                     Elemento.style.opacity = 0.55f;
-                    Elemento.style.backgroundColor = new Color(0.08f, 0.09f, 0.12f, 0.85f);
-                    Elemento.style.borderLeftColor = new Color(0.20f, 0.22f, 0.28f, 0.5f);
-                    Elemento.style.borderRightColor = new Color(0.20f, 0.22f, 0.28f, 0.5f);
-                    Elemento.style.borderTopColor = new Color(0.20f, 0.22f, 0.28f, 0.5f);
-                    Elemento.style.borderBottomColor = new Color(0.20f, 0.22f, 0.28f, 0.5f);
+                    Elemento.style.backgroundColor = EstiloVisual.Cor(ConfigVisual.Cores.Trilho);
+                    Elemento.style.borderLeftColor = EstiloVisual.Cor(
+                        ConfigVisual.Cores.BordaDiscreta
+                    );
+                    Elemento.style.borderRightColor = EstiloVisual.Cor(
+                        ConfigVisual.Cores.BordaDiscreta
+                    );
+                    Elemento.style.borderTopColor = EstiloVisual.Cor(
+                        ConfigVisual.Cores.BordaDiscreta
+                    );
+                    Elemento.style.borderBottomColor = EstiloVisual.Cor(
+                        ConfigVisual.Cores.BordaDiscreta
+                    );
                     _botaoChamar.style.display = DisplayStyle.None;
                     _botaoDispensar.style.display = DisplayStyle.None;
                     _seloObtido.style.display = DisplayStyle.None;
@@ -324,7 +347,9 @@ namespace JogoDoGrupo.Client.Features.Pets.UI
                 else
                 {
                     Elemento.style.opacity = 1f;
-                    Elemento.style.backgroundColor = new Color(0.12f, 0.15f, 0.20f, 0.95f);
+                    Elemento.style.backgroundColor = EstiloVisual.Cor(
+                        ConfigVisual.Cores.Selecionado
+                    );
                     Elemento.style.borderLeftColor = new Color(0.35f, 0.50f, 0.70f, 0.8f);
                     Elemento.style.borderRightColor = new Color(0.35f, 0.50f, 0.70f, 0.8f);
                     Elemento.style.borderTopColor = new Color(0.35f, 0.50f, 0.70f, 0.8f);

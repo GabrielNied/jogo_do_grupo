@@ -1,6 +1,7 @@
 using System;
 using JogoDoGrupo.Client.Core.Jogo.Janelas;
 using JogoDoGrupo.Client.Core.UI;
+using JogoDoGrupo.Client.Core.Visual;
 using JogoDoGrupo.Shared.Features.Economia;
 using JogoDoGrupo.Shared.Features.Itens;
 using UnityEngine;
@@ -105,7 +106,7 @@ namespace JogoDoGrupo.Client.Features.Economia.UI
             topo.style.marginBottom = 10f;
             topo.style.paddingBottom = 6f;
             topo.style.borderBottomWidth = 1f;
-            topo.style.borderBottomColor = new Color(0.25f, 0.28f, 0.35f, 0.8f);
+            topo.style.borderBottomColor = EstiloVisual.Cor(ConfigVisual.Cores.BordaDiscreta);
 
             var textoTitulo = _categoria switch
             {
@@ -119,7 +120,7 @@ namespace JogoDoGrupo.Client.Features.Economia.UI
             titulo.AddToClassList(EstiloCore.Titulo);
             titulo.style.fontSize = 15f;
             titulo.style.unityFontStyleAndWeight = FontStyle.Bold;
-            titulo.style.color = new Color(0.92f, 0.94f, 0.98f);
+            titulo.style.color = EstiloVisual.Cor(ConfigVisual.Cores.Marfim);
             topo.Add(titulo);
 
             _rotuloSaldo = new Label($"Coroas: {ControleDeEconomia.SaldoCoroas}");
@@ -178,7 +179,7 @@ namespace JogoDoGrupo.Client.Features.Economia.UI
             var desc = new Label(textoDesc);
             desc.AddToClassList(EstiloCore.Texto);
             desc.style.fontSize = 11.5f;
-            desc.style.color = new Color(0.72f, 0.76f, 0.84f);
+            desc.style.color = EstiloVisual.Cor(ConfigVisual.Cores.TextoSecundario);
             desc.style.marginBottom = 8f;
             painel.Add(desc);
 
@@ -196,7 +197,7 @@ namespace JogoDoGrupo.Client.Features.Economia.UI
                 linha.style.paddingTop = 6f;
                 linha.style.paddingBottom = 6f;
                 linha.style.marginBottom = 4f;
-                linha.style.backgroundColor = new Color(0.12f, 0.14f, 0.18f, 0.8f);
+                linha.style.backgroundColor = EstiloVisual.Cor(ConfigVisual.Cores.Campo);
                 linha.style.borderTopLeftRadius = 4f;
                 linha.style.borderTopRightRadius = 4f;
                 linha.style.borderBottomLeftRadius = 4f;
@@ -241,7 +242,7 @@ namespace JogoDoGrupo.Client.Features.Economia.UI
             );
             desc.AddToClassList(EstiloCore.Texto);
             desc.style.fontSize = 11.5f;
-            desc.style.color = new Color(0.72f, 0.76f, 0.84f);
+            desc.style.color = EstiloVisual.Cor(ConfigVisual.Cores.TextoSecundario);
             desc.style.marginBottom = 8f;
             painel.Add(desc);
 
@@ -281,7 +282,7 @@ namespace JogoDoGrupo.Client.Features.Economia.UI
             badge.style.paddingBottom = 4f;
             badge.style.marginRight = 6f;
             badge.style.marginBottom = 6f;
-            badge.style.backgroundColor = new Color(0.14f, 0.16f, 0.22f);
+            badge.style.backgroundColor = EstiloVisual.Cor(ConfigVisual.Cores.Retrato);
             badge.style.borderTopLeftRadius = 4f;
             badge.style.borderTopRightRadius = 4f;
             badge.style.borderBottomLeftRadius = 4f;
@@ -300,8 +301,8 @@ namespace JogoDoGrupo.Client.Features.Economia.UI
             _painelComprar.style.display = indice == 0 ? DisplayStyle.Flex : DisplayStyle.None;
             _painelVender.style.display = indice == 1 ? DisplayStyle.Flex : DisplayStyle.None;
 
-            Color corAtiva = new Color(0.20f, 0.28f, 0.42f);
-            Color corInativa = new Color(0.14f, 0.15f, 0.18f);
+            Color corAtiva = EstiloVisual.Cor(ConfigVisual.Cores.Selecionado);
+            Color corInativa = EstiloVisual.Cor(ConfigVisual.Cores.Desabilitado);
 
             _abaComprar.style.backgroundColor = indice == 0 ? corAtiva : corInativa;
             _abaVender.style.backgroundColor = indice == 1 ? corAtiva : corInativa;

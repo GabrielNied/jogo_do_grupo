@@ -135,11 +135,11 @@ namespace JogoDoGrupo.Client.Features.Mobs
 
             bool ativo = _filtro == filtro;
             btn.style.backgroundColor = ativo
-                ? new Color(0.28f, 0.26f, 0.22f, 1f)
-                : new Color(0.15f, 0.15f, 0.18f, 1f);
+                ? EstiloVisual.Cor(ConfigVisual.Cores.Selecionado)
+                : EstiloVisual.Cor(ConfigVisual.Cores.Desabilitado);
             btn.style.color = ativo
                 ? new Color(0.95f, 0.82f, 0.45f, 1f)
-                : new Color(0.65f, 0.65f, 0.7f, 1f);
+                : EstiloVisual.Cor(ConfigVisual.Cores.TextoSecundario);
             btn.style.borderBottomWidth = ativo ? 2 : 1;
             btn.style.borderBottomColor = ativo
                 ? new Color(0.95f, 0.82f, 0.45f, 1f)
@@ -228,8 +228,8 @@ namespace JogoDoGrupo.Client.Features.Mobs
 
             bool selecionada = criatura.Id == _criaturaSelecionadaId;
             card.style.backgroundColor = selecionada
-                ? new Color(0.24f, 0.22f, 0.2f, 1f)
-                : new Color(0.14f, 0.14f, 0.17f, 1f);
+                ? EstiloVisual.Cor(ConfigVisual.Cores.Selecionado)
+                : EstiloVisual.Cor(ConfigVisual.Cores.Campo);
 
             Color corBorda = ObterCorDoNivel(entrada.Nivel);
             card.style.borderLeftColor = corBorda;
@@ -341,7 +341,7 @@ namespace JogoDoGrupo.Client.Features.Mobs
             pillNivel.style.paddingRight = 8;
             pillNivel.style.paddingTop = 2;
             pillNivel.style.paddingBottom = 2;
-            pillNivel.style.backgroundColor = new Color(0.2f, 0.2f, 0.25f, 1f);
+            pillNivel.style.backgroundColor = EstiloVisual.Cor(ConfigVisual.Cores.Retrato);
             pillNivel.style.color = ObterCorDoNivel(entrada.Nivel);
             pillNivel.style.borderTopLeftRadius = 4;
             pillNivel.style.borderTopRightRadius = 4;
@@ -353,7 +353,7 @@ namespace JogoDoGrupo.Client.Features.Mobs
                 $"{FormatarCategoria(criatura.Categoria)} · Nível {criatura.Nivel} de Força"
             );
             subtitulo.style.fontSize = 12;
-            subtitulo.style.color = new Color(0.65f, 0.65f, 0.7f, 1f);
+            subtitulo.style.color = EstiloVisual.Cor(ConfigVisual.Cores.TextoSecundario);
             subtitulo.style.marginTop = 2;
             header.Add(subtitulo);
 
@@ -392,7 +392,7 @@ namespace JogoDoGrupo.Client.Features.Mobs
 
             var barraFundo = new VisualElement();
             barraFundo.style.height = 8;
-            barraFundo.style.backgroundColor = new Color(0.18f, 0.18f, 0.22f, 1f);
+            barraFundo.style.backgroundColor = EstiloVisual.Cor(ConfigVisual.Cores.Trilho);
             barraFundo.style.borderTopLeftRadius = 4;
             barraFundo.style.borderTopRightRadius = 4;
             barraFundo.style.borderBottomLeftRadius = 4;
@@ -477,7 +477,7 @@ namespace JogoDoGrupo.Client.Features.Mobs
                     fraseCard.style.paddingLeft = 14;
                     fraseCard.style.paddingRight = 14;
                     fraseCard.style.marginTop = 8;
-                    fraseCard.style.backgroundColor = new Color(0.12f, 0.12f, 0.14f, 0.8f);
+                    fraseCard.style.backgroundColor = EstiloVisual.Cor(ConfigVisual.Cores.Campo);
                     fraseCard.style.borderLeftWidth = 3;
                     fraseCard.style.borderLeftColor = new Color(0.95f, 0.82f, 0.45f, 1f);
 
@@ -513,7 +513,7 @@ namespace JogoDoGrupo.Client.Features.Mobs
         )
         {
             var card = new VisualElement();
-            card.style.backgroundColor = new Color(0.13f, 0.13f, 0.16f, 1f);
+            card.style.backgroundColor = EstiloVisual.Cor(ConfigVisual.Cores.Campo);
             card.style.paddingTop = 8;
             card.style.paddingBottom = 8;
             card.style.paddingLeft = 10;
@@ -551,7 +551,7 @@ namespace JogoDoGrupo.Client.Features.Mobs
         private void AdicionarCardBloqueado(VisualElement container, string titulo, string dica)
         {
             var card = new VisualElement();
-            card.style.backgroundColor = new Color(0.12f, 0.12f, 0.14f, 0.6f);
+            card.style.backgroundColor = EstiloVisual.Cor(ConfigVisual.Cores.Campo);
             card.style.paddingTop = 8;
             card.style.paddingBottom = 8;
             card.style.paddingLeft = 10;

@@ -148,10 +148,12 @@ const P = {
 };
 
 // Moldura de janela: borda dourada dupla, cantos com losango e corpo em gradiente escuro.
+// Corpo opaco: com a mistura em espaço linear, 3% de transparência já deixava o mundo claro
+// aparecer bem por trás do texto.
 function janela() {
   const t = tela(96, 96);
   const ret = (m, r) => (x, y) => dRet(x, y, m, m, 96 - 2 * m, 96 - 2 * m, r);
-  preencher(t, ret(2, 6), vertical(cor("#231B14", 0.97), cor("#0F0C09", 0.97), 0, 96));
+  preencher(t, ret(2, 6), vertical(cor("#231B14"), cor("#0F0C09"), 0, 96));
   granular(t, 0.035, 3);
   contornar(t, ret(0, 8), 1.2, fixa(cor("#000000", 0.85)));
   contornar(t, ret(1, 7), 2, vertical(P.ouroClaro, P.ouroEscuro, 0, 96));
@@ -248,7 +250,7 @@ function anel(lado, raioExterno, espessura, enfeites) {
 function dica() {
   const t = tela(48, 48);
   preencher(t, (x, y) => dRet(x, y, 0, 0, 48, 48, 4), fixa(cor("#000000", 0.9)));
-  preencher(t, (x, y) => dRet(x, y, 1, 1, 46, 46, 3), vertical(cor("#17120E", 0.97), cor("#0B0907", 0.97), 0, 48));
+  preencher(t, (x, y) => dRet(x, y, 1, 1, 46, 46, 3), vertical(cor("#17120E"), cor("#0B0907"), 0, 48));
   contornar(t, (x, y) => dRet(x, y, 1, 1, 46, 46, 3), 1, fixa(cor("#7A6545")));
   return t;
 }

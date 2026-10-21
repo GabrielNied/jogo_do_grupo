@@ -4,7 +4,8 @@
   "references": [
     "JogoDoGrupo.Client.Core",
     "JogoDoGrupo.Shared",
-    "Unity.InputSystem"
+    "Unity.InputSystem",
+    "JogoDoGrupo.Client.Visual"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

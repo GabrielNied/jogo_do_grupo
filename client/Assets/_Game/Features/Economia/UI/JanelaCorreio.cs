@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using JogoDoGrupo.Client.Core.Jogo.Janelas;
 using JogoDoGrupo.Client.Core.UI;
+using JogoDoGrupo.Client.Core.Visual;
 using JogoDoGrupo.Shared.Features.Economia;
 using JogoDoGrupo.Shared.Features.Itens;
 using UnityEngine;
@@ -275,7 +276,7 @@ namespace JogoDoGrupo.Client.Features.Economia.UI
             texto.style.paddingRight = 6f;
             texto.style.paddingTop = 6f;
             texto.style.paddingBottom = 6f;
-            texto.style.backgroundColor = new Color(0.08f, 0.08f, 0.1f, 0.5f);
+            texto.style.backgroundColor = EstiloVisual.Cor(ConfigVisual.Cores.Trilho);
             _leitorCarta.Add(texto);
 
             // Anexos
@@ -287,7 +288,7 @@ namespace JogoDoGrupo.Client.Features.Economia.UI
                 boxAnexos.style.paddingBottom = 6f;
                 boxAnexos.style.paddingLeft = 6f;
                 boxAnexos.style.paddingRight = 6f;
-                boxAnexos.style.backgroundColor = new Color(0.15f, 0.2f, 0.25f, 0.6f);
+                boxAnexos.style.backgroundColor = EstiloVisual.Cor(ConfigVisual.Cores.Campo);
                 boxAnexos.style.marginBottom = 10f;
 
                 var rotuloAnexos = new Label("Anexos:");
