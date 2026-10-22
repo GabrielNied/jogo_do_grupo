@@ -43,8 +43,8 @@ Decidido por Gabriel em 2026-10-12:
 Continua em aberto (não trava o jogo, nenhum nó depende disso):
 
 - [x] **Bônus por categoria de skill** nos nós grandes e avançados. Decidido em 2026-10-16 (quiz 6): placeholder **"+X% de dano de skills"** genérico até a lista final de categorias; ver Definido. **Falta implementar** placeholder e, depois, efeito por categoria.
-- **Regras de acúmulo** além das que a pipeline já tem (soma na ordem da árvore; percentuais da árvore somam entre si).
-- **Restrições de uso e recarga** da redistribuição além de "só fora de combate" (hoje não há recarga).
+- [x] **Regras de acúmulo** além das que a pipeline já tem. Decidido em 2026-10-22 (fácil de mudar): ficam as da pipeline (soma na ordem da árvore; percentuais da árvore somam entre si), nada além.
+- [x] **Restrições de uso e recarga** da redistribuição. Decidido em 2026-10-22 (fácil de mudar): só fora de combate e sem recarga; o custo em coroas por nível já freia o abuso. Se virar problema, a recarga entra em constante nomeada.
 
 ## Regras
 
