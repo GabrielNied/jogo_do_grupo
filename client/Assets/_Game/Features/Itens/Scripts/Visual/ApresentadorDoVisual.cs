@@ -291,10 +291,16 @@ namespace JogoDoGrupo.Client.Features.Itens.Visual
                         return (posArco, rotArco);
 
                     case TipoEquipamento.Cajado:
-                        // Empunhado na terça superior (y = 0.70m), gema para cima/à frente.
-                        var rotCajado = Quaternion.Euler(15f, 0f, 0f);
+                        // Empunhado na terça superior (y = 0.70m), gema para cima e um pouco à frente (o osso
+                        // da palma já vem inclinado para trás, por isso o giro maior).
+                        var rotCajado = Quaternion.Euler(35f, 0f, 0f);
                         var posCajado = rotCajado * new Vector3(0f, -0.70f, 0f);
                         return (posCajado, rotCajado);
+
+                    case TipoEquipamento.Escudo:
+                        // Preso ao antebraço: o centro do escudo logo à frente da palma, face para a frente e
+                        // em pé (o osso da palma vem inclinado para trás, por isso o giro).
+                        return (new Vector3(0f, 0f, 0.12f), Quaternion.Euler(22f, 0f, 0f));
 
                     default:
                         return (Vector3.zero, Quaternion.identity);
@@ -335,6 +341,10 @@ namespace JogoDoGrupo.Client.Features.Itens.Visual
                             rotCajado * new Vector3(0f, -comprimento / 2f, 0f)
                             + new Vector3(0f, 0f, -0.07f);
                         return (posCajado, rotCajado);
+
+                    case TipoEquipamento.Escudo:
+                        // Colado nas costas, de face para fora (o centro do modelo é a origem).
+                        return (new Vector3(0f, 0f, -0.12f), Quaternion.Euler(0f, 180f, 0f));
 
                     default:
                         var rotPadrao = Quaternion.Euler(0f, 0f, -GiroNasCostas);

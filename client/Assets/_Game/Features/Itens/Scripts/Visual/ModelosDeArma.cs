@@ -7,7 +7,8 @@ namespace JogoDoGrupo.Client.Features.Itens.Visual
     /// Os modelos de arma, um por tipo: prefabs CC0 em <c>Resources/Itens/Modelos/Arma_&lt;Tipo&gt;</c>
     /// (Quaternius, gerados por <c>ModelosDeItensImportador</c> no editor, #1188). Cada um tem o
     /// cabo na origem e aponta para +Y, com tudo em metros: assim o encaixe da mão ou das costas só
-    /// precisa pôr a origem no lugar certo. Sem o prefab (build sem o gerador rodado), o desenho de primitivas em código é a
+    /// precisa pôr a origem no lugar certo. O escudo é a exceção: tem o centro na origem e a face
+    /// para +Z. Sem o prefab (build sem o gerador rodado), o desenho de primitivas em código é a
     /// reserva.
     /// </summary>
     public static class ModelosDeArma
@@ -18,12 +19,13 @@ namespace JogoDoGrupo.Client.Features.Itens.Visual
         private static readonly Color Ouro = new Color(0.9f, 0.7f, 0.2f);
         private static readonly Color Cristal = new Color(0.4f, 0.75f, 1f);
 
-        /// <summary>Se o tipo tem modelo (as quatro armas principais).</summary>
+        /// <summary>Se o tipo tem modelo (as armas principais e o escudo).</summary>
         public static bool Tem(TipoEquipamento tipo) =>
             tipo == TipoEquipamento.Espada
             || tipo == TipoEquipamento.Martelo
             || tipo == TipoEquipamento.Arco
-            || tipo == TipoEquipamento.Cajado;
+            || tipo == TipoEquipamento.Cajado
+            || tipo == TipoEquipamento.Escudo;
 
         /// <summary>Comprimento do modelo do cabo à ponta, em metros (0 se o tipo não tem).</summary>
         public static float Comprimento(TipoEquipamento tipo)
@@ -38,6 +40,8 @@ namespace JogoDoGrupo.Client.Features.Itens.Visual
                     return 1.1f;
                 case TipoEquipamento.Cajado:
                     return 1.5f;
+                case TipoEquipamento.Escudo:
+                    return 0.7f;
                 default:
                     return 0f;
             }
@@ -158,6 +162,26 @@ namespace JogoDoGrupo.Client.Features.Itens.Visual
                         V(-0.04f, 0.45f, 0f),
                         V(0.008f, 0.95f, 0.008f),
                         Metal
+                    );
+                    break;
+                case TipoEquipamento.Escudo:
+                    Parte(
+                        raiz,
+                        materiais,
+                        PrimitiveType.Cube,
+                        "Placa",
+                        V(0f, 0f, 0f),
+                        V(0.5f, 0.62f, 0.05f),
+                        Metal
+                    );
+                    Parte(
+                        raiz,
+                        materiais,
+                        PrimitiveType.Cube,
+                        "Emblema",
+                        V(0f, 0f, 0.04f),
+                        V(0.2f, 0.26f, 0.03f),
+                        Ouro
                     );
                     break;
                 case TipoEquipamento.Cajado:

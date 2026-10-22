@@ -180,6 +180,8 @@ Decidido por Gabriel em 2026-10-13 ([#670](https://github.com/GabrielNied/jogo_d
 
 **Mundo 3D (implementado na [#926](https://github.com/GabrielNied/jogo_do_grupo/issues/926)):** brilho ao redor da peça **no chão** e no **equipamento no modelo 3D** — no estilo de drops raros em MMORPGs clássicos (luz pontual suave e emissão de material via `AuraDeTierVisual` e `ConfigAuraTier`). **Complementa** a letra na UI; não a substitui. A paleta da aura **pode divergir** das cores da bolsa, desde que a ordem B < A < S < S+ seja óbvia à distância.
 
+**Modelos das armas equipadas (#1188, #1197):** espada, martelo, arco e escudo são os modelos CC0 do Quaternius e o cajado é o do pacote "Low-poly Staffs" (créditos em [licencas](../arte/licencas.md)), normalizados em prefabs por `ModelosDeItensImportador` (cabo na origem, ponta para +Y, comprimento em metros de `ModelosDeArma.Comprimento`; o escudo tem o centro na origem e a face para +Z). O escudo equipado também aparece (na mão e nas costas). As primitivas de código só sobram como reserva se o prefab faltar. Capacete e peitoral seguem em primitivas até o encaixe no corpo ser conferido no editor (pendente do #1197).
+
 | Tier | Aura no mundo | Intensidade (referência) |
 |---|---|---|
 | D | nenhuma | — |

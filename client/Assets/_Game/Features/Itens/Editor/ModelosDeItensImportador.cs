@@ -78,6 +78,13 @@ namespace JogoDoGrupo.Client.Features.Itens.Editor
                 GiroEuler = Vector3.zero,
                 Origem = Origem.Base,
             },
+            new Especificacao
+            {
+                Tipo = TipoEquipamento.Escudo,
+                Fbx = PastaQuaternius + "Shield_Heater.fbx",
+                GiroEuler = new Vector3(-90f, 0f, 0f),
+                Origem = Origem.Centro,
+            },
         };
 
         /// <summary>Regrava os prefabs de arma.</summary>
