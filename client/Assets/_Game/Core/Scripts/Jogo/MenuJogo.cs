@@ -216,6 +216,7 @@ namespace JogoDoGrupo.Client.Core.Jogo
             CriarLinhaTecla("Interagir", TeclasDoJogo.Interagir);
             CriarLinhaTecla("Pegar item", TeclasDoJogo.Coletar);
             CriarLinhaTecla("Esconder HUD", TeclasDoJogo.EsconderHud);
+            CriarLinhaTecla("Liberar cursor", TeclasDoJogo.LiberarCursor);
 
             var janelas = new Label("Janelas");
             janelas.AddToClassList(EstiloCore.Subtitulo);

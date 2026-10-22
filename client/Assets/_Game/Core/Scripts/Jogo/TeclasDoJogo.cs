@@ -21,6 +21,7 @@ namespace JogoDoGrupo.Client.Core.Jogo
         public const string Interagir = "interagir";
         public const string Coletar = "coletar";
         public const string EsconderHud = "esconder-hud";
+        public const string LiberarCursor = "liberar-cursor";
 
         private static readonly Dictionary<string, string> _padroes = new Dictionary<string, string>
         {
@@ -36,6 +37,7 @@ namespace JogoDoGrupo.Client.Core.Jogo
             [Interagir] = "<Keyboard>/e",
             [Coletar] = "<Keyboard>/f",
             [EsconderHud] = "<Keyboard>/f11",
+            [LiberarCursor] = "<Keyboard>/leftAlt",
         };
 
         // Ações que saíram do jogo: a preferência salva delas é descartada e a tecla volta ao

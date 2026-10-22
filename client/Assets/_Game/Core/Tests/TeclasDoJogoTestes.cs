@@ -84,5 +84,15 @@ namespace JogoDoGrupo.Client.Core.Tests
             );
             Assert.AreEqual("<Keyboard>/f12", TeclasDoJogo.Caminho(TeclasDoJogo.EsconderHud));
         }
+
+        [Test]
+        public void LiberarCursor_PadraoELeftAltEPodeSerRemapeado()
+        {
+            Assert.AreEqual("<Keyboard>/leftAlt", TeclasDoJogo.Caminho(TeclasDoJogo.LiberarCursor));
+            Assert.IsTrue(
+                TeclasDoJogo.TentarTrocar(TeclasDoJogo.LiberarCursor, "<Keyboard>/tab", out _)
+            );
+            Assert.AreEqual("<Keyboard>/tab", TeclasDoJogo.Caminho(TeclasDoJogo.LiberarCursor));
+        }
     }
 }
