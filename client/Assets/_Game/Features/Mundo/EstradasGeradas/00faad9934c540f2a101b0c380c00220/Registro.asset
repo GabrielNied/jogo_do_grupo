@@ -1,0 +1,68 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 05ca949cfade7a64d91ef1d2b3729c51, type: 3}
+  m_Name: Registro
+  m_EditorClassIdentifier: JogoDoGrupo.Client.Mundo.Editor::JogoDoGrupo.Client.Features.Mundo.Editor.Estradas.RegistroDaEstrada
+  Aplicada: 1
+  EmAplicacao: 0
+  Caminho:
+  - {x: 44, y: 3, z: 6}
+  - {x: 44, y: 2.9999998, z: 6.487659}
+  - {x: 44, y: 3, z: 6.9959207}
+  - {x: 44, y: 3.0000002, z: 7.4939737}
+  - {x: 44, y: 3, z: 7.9901667}
+  - {x: 44, y: 3, z: 8.490532}
+  - {x: 44, y: 3, z: 8.997293}
+  - {x: 44, y: 3, z: 9.493047}
+  - {x: 44, y: 3, z: 9.993517}
+  - {x: 44, y: 3.0000002, z: 10.49747}
+  - {x: 44, y: 3, z: 10.993876}
+  - {x: 44, y: 3, z: 11.499878}
+  - {x: 44, y: 3, z: 11.99511}
+  - {x: 44, y: 3, z: 12.499252}
+  - {x: 44, y: 3, z: 12.996378}
+  - {x: 44, y: 3, z: 13.499406}
+  - {x: 44, y: 3, z: 13.997589}
+  - {x: 44, y: 3.0000002, z: 14.499758}
+  - {x: 44, y: 2.9999998, z: 14.998787}
+  - {x: 44, y: 3, z: 15.499987}
+  - {x: 44, y: 3, z: 16}
+  - {x: 44, y: 3, z: 16.500011}
+  - {x: 44, y: 3, z: 17.001213}
+  - {x: 44, y: 3, z: 17.500244}
+  - {x: 44, y: 2.9999998, z: 18.00241}
+  - {x: 43.999996, y: 3, z: 18.500595}
+  - {x: 44, y: 3, z: 19.00362}
+  - {x: 44, y: 3, z: 19.50075}
+  - {x: 44, y: 3, z: 20.004894}
+  - {x: 44, y: 3, z: 20.500122}
+  - {x: 44, y: 3, z: 21.006123}
+  - {x: 44, y: 3, z: 21.50253}
+  - {x: 44, y: 3, z: 22.006485}
+  - {x: 44, y: 3, z: 22.506954}
+  - {x: 44, y: 3, z: 23.002707}
+  - {x: 44, y: 3, z: 23.509464}
+  - {x: 44, y: 3, z: 24.00983}
+  - {x: 44, y: 3, z: 24.506027}
+  - {x: 44, y: 3, z: 25.004082}
+  - {x: 44, y: 3, z: 25.512344}
+  - {x: 44, y: 3, z: 26}
+  Raio: 3.6125
+  Largura: 3
+  Transicao: 1.5
+  Margem: 0.5
+  Variacao: 0.15
+  Semente: 17
+  _alteracoes: []
+  _rede: {fileID: 11400000, guid: b5d5762da8ae6b94faa7c6ab57ecad78, type: 2}
+  _possuiRede: 1
+  ConfiguracaoAplicada: '{"MonoBehaviour":{"m_Enabled":true,"m_EditorHideFlags":0,"m_Name":"","m_EditorClassIdentifier":"JogoDoGrupo.Client.Mundo::JogoDoGrupo.Client.Features.Mundo.Estradas.EstradaNativa","_largura":3.0,"_transicao":1.0,"_transicaoVisual":1.5,"_rebaixo":0.11999999731779099,"_variacaoLateral":0.15000000596046448,"_margemVegetacao":0.5,"_tipo":0,"_pedregulhos":true,"_densidadeCascalhos":2.0,"_corCascalhos":{"r":0.41999998688697815,"g":0.3199999928474426,"b":0.20999999344348907,"a":1.0},"_intensidadeCascos":0.15000000596046448,"_semente":17,"_material":{"instanceID":0},"_terrenos":[],"_id":"c97a0e37b9254a12bdeb9078edf99a40","_registroGuid":"0e46d1913b0ff194f89c3b725a057780"}}'

@@ -295,7 +295,8 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor.Estradas
                     .ArvoresRemovidas.Length;
                 AplicadorDeEstradas.Restaurar(terra);
                 Verificar(
-                    dados.treeInstanceCount == quantidadeAntes + removidas,
+                    dados.treeInstanceCount > quantidadeAntes
+                        && dados.treeInstanceCount <= quantidadeAntes + removidas,
                     "Restauração perdeu árvores externas ou não repôs as removidas."
                 );
                 Verificar(
@@ -319,6 +320,10 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor.Estradas
                     "Restaurar uma estrada prejudicou outra no mesmo bloco."
                 );
                 AplicadorDeEstradas.Restaurar(lajotas);
+                Verificar(
+                    dados.treeInstanceCount == quantidadeAntes + removidas,
+                    "Restaurar a rede completa perdeu árvores externas ou as removidas."
+                );
                 Verificar(
                     terrenos.All(t => Mathf.Approximately(t.heightmapPixelError, 5f)),
                     "A última restauração não repôs a precisão original do Terrain."
@@ -444,7 +449,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor.Estradas
             AplicadorDeEstradas.Aplicar(estrada);
         }
 
-        private static Terrain CriarTerreno(
+        internal static Terrain CriarTerreno(
             string pasta,
             Transform pai,
             float origemX,
@@ -553,7 +558,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor.Estradas
             return estrada;
         }
 
-        private static Texture2D Textura(string pasta, string nome, Color cor, bool transparente)
+        internal static Texture2D Textura(string pasta, string nome, Color cor, bool transparente)
         {
             const int tamanho = 32;
             var textura = new Texture2D(tamanho, tamanho, TextureFormat.RGBA32, true)
@@ -582,7 +587,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor.Estradas
             return textura;
         }
 
-        private static TerrainLayer Camada(string pasta, string nome, Texture2D textura)
+        internal static TerrainLayer Camada(string pasta, string nome, Texture2D textura)
         {
             var camada = new TerrainLayer
             {

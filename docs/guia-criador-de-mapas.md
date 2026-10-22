@@ -49,22 +49,24 @@ Esta ferramenta serve para caminhos de terra compactada por pessoas e cavalos, c
 2. Selecione a nova estrada e edite o componente **Spline Container** com as ferramentas nativas de Splines na vista **Scene**. Mova e acrescente pontos para definir o caminho. Cada estrada é independente; não há extremos presos às cidades.
 3. No Inspector da estrada, escolha terra ou lajotas e ajuste largura, rebaixo e bordas. Configure também a margem de limpeza da vegetação e os detalhes opcionais. O rebaixo é suave: comece pequeno e observe a escala do personagem.
 4. Ative **Prévia do corredor na cena** para conferir as linhas do traçado e da faixa de limpeza. Clique em **Aplicar e salvar** quando estiver satisfeito: essa operação modifica a altura do Terrain, limpa árvores, plantas e grama nativas dentro da faixa configurada e salva a cena e os assets, inclusive quando a estrada passa de um bloco a outro.
-5. Depois de editar a curva ou os parâmetros, clique em **Reaplicar e salvar**. A ferramenta recupera sua base anterior antes de refazer o resultado, evitando aprofundar o solo a cada aplicação. Use **Restaurar terreno e vegetação** para recuperar o trecho anterior. Restaure antes de apagar o objeto da estrada.
+5. Depois de editar a curva ou os parâmetros, clique em **Reaplicar e salvar**. A ferramenta recupera sua base anterior antes de refazer o resultado, evitando aprofundar o solo a cada aplicação. Use **Restaurar terreno e vegetação** para retirar essa via e recuperar somente a faixa que as outras não precisam. Restaure antes de apagar o objeto da estrada.
 6. Salve a cena e o projeto. Para levar o resultado ao jogo e ao servidor, siga o comando existente **Jogo do Grupo > Mundo > Publicar mapa feito à mão**. A estrada aplicada permanece somente na autoria até publicar.
 
 As árvores removidas são as pintadas por **Paint Trees** ou pelo pincel de vegetação; a grama e as plantas são as de **Paint Details**. Objetos decorativos colocados manualmente precisam ser movidos à mão. A limpeza não procura objetos pelo nome nem altera prefabs de espécies.
 
 Preserve os dados de recuperação da estrada enquanto precisar restaurar o trecho. Se você editar o mesmo solo ou vegetação depois da aplicação, a ferramenta pode indicar conflito para impedir a substituição dessas alterações. Restaure antes de repintar a faixa. As áreas fora do corredor continuam editáveis.
 
-Nesta versão, áreas modificadas por estradas diferentes não podem se sobrepor: a ferramenta informa o conflito. A resolução do Terrain limita depressões estreitas; o material fornece o detalhe fino. O servidor continua usando uma grade de alturas de **10 m**, que pode não captar o microperfil de uma estrada estreita. Mantenha o rebaixo pequeno; a superfície visual não cria um colisor independente nem altera a navegação automaticamente.
+Para criar um cruzamento em **T, Y ou X**, desenhe as splines se encontrando e aplique as estradas normalmente. As lajotas continuam pelo encontro; a terra mistura nas entradas. A malha contínua arredonda os cantos e remove bordas internas. O rebaixo é o maior dos caminhos em cada amostra, sem somar profundidades. Ao mover, reaplicar ou restaurar uma via, a ferramenta recompõe a rede da cena, incluindo a faixa antiga. Ajustes ainda não aplicados nas outras vias ficam no Inspector e não entram nessa recomposição. A resolução do Terrain limita depressões estreitas; o material fornece o detalhe fino. O servidor continua usando uma grade de alturas de **10 m**, que pode não captar o microperfil de uma estrada estreita. Mantenha o rebaixo pequeno; a superfície visual não cria um colisor independente nem altera a navegação automaticamente.
 
 O padrão é largura de **4 m**, rebaixo de **12 cm**, **Transição visual de 1,5 m**, **Suavização do relevo de 1 m** e margem adicional de limpeza de **0,5 m**. O rebaixo tem limite de **35 cm**. Aumente **Transição visual (m)** para prolongar a transparência entre estrada e grama, sem mudar o afundamento. **Suavização do relevo (m)** controla apenas a depressão física (era o antigo campo “Transição”). A faixa azul da prévia marca o limite da mistura, e a verde marca a limpeza, calculada pela maior das duas faixas mais a margem. Clique em **Reaplicar e salvar** depois de ajustar; mudar o Inspector não refaz a malha automaticamente.
 
-Ative **Cascalhos** e ajuste **Cascalhos por m²** (padrão **2**, até **8**) e **Cor dos cascalhos** (padrão terroso, independente das lajotas). Há pedras pelo leito e pelas margens, agrupadas em uma malha, sem um objeto por pedra. O limite é **8.192 pedras por estrada**, com aviso no Console quando a densidade solicitada exceder esse orçamento; divida caminhos muito longos em trechos para preservar o detalhe. A semente mantém bordas e pedras reproduzíveis. Um material próprio pode substituir o padrão pelo campo do Inspector, mas seu shader precisa respeitar o alpha da cor dos vértices para suavizar as bordas; materiais opacos não fazem essa mistura.
+Ative **Cascalhos** e ajuste **Cascalhos por m²** (padrão **2**, até **8**) e **Cor dos cascalhos** (padrão terroso, independente das lajotas). Há pedras pelo leito e pelas margens, agrupadas em uma malha, sem um objeto por pedra. No encontro, cada posição pertence a uma única via, evitando duplicar a distribuição. O limite é **8.192 pedras por estrada**, com aviso no Console quando a densidade solicitada exceder esse orçamento; divida caminhos muito longos em trechos para preservar o detalhe. A semente mantém bordas e pedras reproduzíveis. Um material próprio pode substituir o padrão pelo campo do Inspector, mas seu shader precisa respeitar o alpha da cor dos vértices para suavizar as bordas; materiais opacos não fazem essa mistura. Vias isoladas preservam esse material. Para cruzá-las, remova o material personalizado antes de aplicar: a superfície composta exige o shader nativo e a ferramenta recusa essa combinação antes de modificar o terreno.
 
 A aplicação também reduz o erro de simplificação visual do Terrain somente nos blocos tocados, para que o solo não atravesse a superfície da estrada à distância. Isso pode aumentar a quantidade de triângulos renderizados nesses blocos. Quando a última estrada do bloco é restaurada, a configuração anterior volta; um ajuste manual posterior de precisão é preservado.
 
-As saídas e os backups ficam em `Assets/_Game/Features/Mundo/EstradasGeradas/<id>/`; mantenha essa pasta junto da estrada ao versionar o mapa. Para uma nova estrada, use o menu: duplicar o objeto também duplica sua identidade e por isso é recusado. Pontes e estradas sobre buracos do Terrain precisam de autoria própria.
+As saídas e os backups ficam em `Assets/_Game/Features/Mundo/EstradasGeradas/<id>/`; mantenha todas as pastas das vias da cena ao versionar o mapa, incluindo o asset compartilhado **Rede**. Ele guarda uma única cópia do backup composto; mesmo a pasta de uma via já restaurada pode conter esse backup usado pelas restantes. Para uma nova estrada, use o menu: duplicar o objeto também duplica sua identidade e por isso é recusado. Pontes e estradas sobre buracos do Terrain precisam de autoria própria. Cada conjunto visual conectado aceita até **600.000 células de 30 cm**, somente ao longo dos corredores; se exceder, divida a autoria em cenas menores.
+
+Se o editor fechar no meio da aplicação, os dados de recuperação permanecem no disco. Use **Jogo do Grupo > Mundo > Estradas > Restaurar rede interrompida** para devolver a rede ao terreno original, preservando os traçados; depois aplique novamente. Esse comando também recusa edições externas conflitantes.
 
 Para experimentar sem mexer no mapa, use **Jogo do Grupo > Mundo > Estradas > Criar demonstração isolada**. O comando cria uma cena própria com duas estradas, dois blocos de terreno e vegetação de demonstração. A validação reproduzível, com o editor fechado, é:
 
@@ -75,6 +77,20 @@ npm run unity:executar -- JogoDoGrupo.Client.Features.Mundo.Editor.Estradas.Demo
 O comando mantém os assets da demonstração para inspeção e grava a captura local em `client/Library/ValidacaoEstradas.png`. A demonstração não publica nem altera o mapa de autoria.
 
 Para conferir só a independência das bordas/relevo e a densidade reproduzível dos cascalhos, sem criar assets ou salvar cenas, use **Jogo do Grupo > Mundo > Estradas > Validar bordas e cascalhos**. A mesma conferência também faz parte da validação completa acima.
+
+Para conferir cruzamentos no Terrain real e gerar uma cena própria, use **Jogo do Grupo > Mundo > Estradas > Validar cruzamentos e criar demonstração**, ou:
+
+```text
+npm run unity:executar -- JogoDoGrupo.Client.Features.Mundo.Editor.Estradas.ValidacaoDosCruzamentos.Executar
+```
+
+O ensaio inclui T, X e Y, larguras distintas, terra/lajotas, dois blocos, ordem inversa, reaplicação, movimento, restauração parcial/total, configuração pendente da vizinha, conflito manual e recarga. A cena final fica em `Assets/_Game/Features/Mundo/DemoCruzamentos*/` e a captura em `cruzamentos-validacao.png` na raiz do checkout. Não publica o mapa de autoria.
+
+Para validar a migração com cópias isoladas dos backups antigos reais, use **Estradas > Validar migração do backup anterior**. Esse ensaio confere o perfil exato, ajustes pendentes da vizinha, lajotas após restauração parcial, recarga e preservação da precisão manual do Terrain:
+
+```text
+npm run unity:executar -- JogoDoGrupo.Client.Features.Mundo.Editor.Estradas.ValidacaoDoBackupLegado.Executar
+```
 
 ## Protótipo da estrada do Passo
 
