@@ -34,7 +34,7 @@ Inventário, equipamentos, tier calculado pelos atributos e fusão determinísti
 - [x] ~~Infusão usa o atributo marcado e +2% do valor-base (#174).~~ Substituído em 2026-10-12 pela fusão v2 (#616).
 - [x] ~~Custo inicial configurável por raridade na #174.~~ Substituído em 2026-10-12: custo por nível de fusão (#616).
 - [x] ~~Ajustes à tabela de raridades~~: sem objeto desde 2026-10-12 (a raridade saiu).
-- [ ] Pendências do modelo v2: veja [Pendente](#pendente).
+- [x] Pendências do modelo v2: veja [Pendente](#pendente). Todas decididas em 2026-10-21; falta só calibrar os materiais ao implementar.
 
 ## Regras
 
@@ -356,7 +356,7 @@ Precisa de decisão do Gabriel. Até lá, vale a proposta indicada.
 - ~~**Descarte**~~ decidido em 2026-10-12: destino válido (ITEM-002 e ITEM-004).
 - ~~**Atributos de cada categoria de peça** e a conversão de cada um para o combate~~ decidido em 2026-10-12: [Atributos dos equipamentos](#atributos-dos-equipamentos). Os números da conversão seguem na [#627](https://github.com/GabrielNied/jogo_do_grupo/issues/627); a implementação é a [#623](https://github.com/GabrielNied/jogo_do_grupo/issues/623).
 - ~~**Poderes e sets:** poder fixo ou sorteado, foco do Cinto e do Brinco, marcos dos sets, Adorno como amuleto, quem tem poder~~ decididos em 2026-10-12 (PODER-006, PODER-007, SET-001, tabela de foco). O conteúdo de cada set vem na criação dos sets ([#630](https://github.com/GabrielNied/jogo_do_grupo/issues/630)).
-- **Materiais:** representação e fontes decididas em [Materiais de fusão](#materiais-de-fusão-617); quantidades e nomes de exibição seguem **proposta** em `ConfigFusao`. A raid ainda não tem issue de conteúdo.
+- ~~**Materiais:** representação e fontes decididas em [Materiais de fusão](#materiais-de-fusão-617); quantidades e nomes de exibição seguem **proposta** em `ConfigFusao`.~~ Decidido em 2026-10-21 (quiz de reports beta): quem implementa calibra quantidades e nomes de exibição em `ConfigFusao` (constante nomeada, ajustável na Sintonia) e registra o valor aqui; não precisa de decisão do Gabriel. A raid ainda não tem issue de conteúdo.
 - ~~**Vinculação na fatia**~~ Decidido em 2026-10-16 (quiz 5): nenhuma além do já definido (materiais raid). **Venda e fontes de coroas** seguem [#173](https://github.com/GabrielNied/jogo_do_grupo/issues/173).
 
 #### Depreciado em 2026-10-12
