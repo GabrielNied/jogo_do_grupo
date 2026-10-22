@@ -4,10 +4,11 @@ using UnityEngine;
 namespace JogoDoGrupo.Client.Features.Itens.Visual
 {
     /// <summary>
-    /// Os modelos simples de arma, um por tipo, feitos de primitivas em código (sem asset, como o
-    /// baú de teste). Cada um tem o cabo na origem e aponta para +Y, com tudo em metros: assim o
-    /// encaixe da mão ou das costas só precisa pôr a origem no lugar certo. Quando existir modelo
-    /// de verdade (artista de itens), é aqui que o desenho troca.
+    /// Os modelos de arma, um por tipo: prefabs CC0 em <c>Resources/Itens/Modelos/Arma_&lt;Tipo&gt;</c>
+    /// (Quaternius, gerados por <c>ModelosDeItensImportador</c> no editor, #1188). Cada um tem o
+    /// cabo na origem e aponta para +Y, com tudo em metros: assim o encaixe da mão ou das costas só
+    /// precisa pôr a origem no lugar certo. Sem o prefab (build sem o gerador rodado), o desenho de primitivas em código é a
+    /// reserva.
     /// </summary>
     public static class ModelosDeArma
     {
@@ -42,6 +43,9 @@ namespace JogoDoGrupo.Client.Features.Itens.Visual
             }
         }
 
+        /// <summary>Caminho em <c>Resources</c> do prefab do tipo.</summary>
+        public static string CaminhoDoModelo(TipoEquipamento tipo) => "Itens/Modelos/Arma_" + tipo;
+
         /// <summary>Cria o modelo (sem colisor), ou <c>null</c> se o tipo não tem.</summary>
         public static GameObject Criar(TipoEquipamento tipo)
         {
@@ -50,6 +54,19 @@ namespace JogoDoGrupo.Client.Features.Itens.Visual
                 return null;
             }
 
+            var prefab = Resources.Load<GameObject>(CaminhoDoModelo(tipo));
+            if (prefab != null)
+            {
+                var modelo = Object.Instantiate(prefab);
+                modelo.name = "Arma_" + tipo;
+                return modelo;
+            }
+
+            return CriarDePrimitivas(tipo);
+        }
+
+        private static GameObject CriarDePrimitivas(TipoEquipamento tipo)
+        {
             var raiz = new GameObject("Arma_" + tipo);
             var materiais = raiz.AddComponent<MateriaisDoBau>();
             switch (tipo)
@@ -201,7 +218,7 @@ namespace JogoDoGrupo.Client.Features.Itens.Visual
             parte.transform.localScale = escala;
 
             var renderizador = parte.GetComponent<Renderer>();
-            var material = new Material(renderizador.sharedMaterial) { color = cor };
+            var material = MateriaisSimples.Criar(cor);
             renderizador.sharedMaterial = material;
             materiais.Registrar(material);
         }

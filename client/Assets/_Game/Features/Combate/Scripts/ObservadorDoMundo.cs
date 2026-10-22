@@ -111,7 +111,7 @@ namespace JogoDoGrupo.Client.Features.Combate
             raiz.AddComponent<GerenciadorDeProjeteis>().Configurar(personagemId, impacto);
 
             // O boneco de treino da cidade (o servidor o trata como alvo fixo, id negativo).
-            var boneco = BonecoDeTreinoVisual.Criar();
+            var boneco = BonecoDeTreinoVisual.Criar(container);
             SceneManager.MoveGameObjectToScene(boneco.gameObject, jogador.scene);
         }
 
