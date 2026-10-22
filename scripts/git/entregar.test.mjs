@@ -3,11 +3,13 @@ import { test } from "node:test";
 import {
   arquivosCsharp,
   commitsParaLevar,
+  erroDeTitulo,
   lerArgumentos,
   mensagemDeCommit,
   nomeDaBranchSeguinte,
   quebrarLinhas,
 } from "./entregar.mjs";
+import { erroDeBranch } from "./validar-branch.mjs";
 
 test("linha curta permanece", () => {
   assert.equal(quebrarLinhas("uma linha curta"), "uma linha curta");
@@ -64,6 +66,34 @@ test("corpo na linha de comando não é argumento", () => {
     titulo: "chore(core): x",
     corpo: ".git/pr.md",
   });
+});
+
+test("título com escopo inexistente é recusado com a lista", () => {
+  const erro = erroDeTitulo("docs(interface): regras da hud");
+  assert.match(erro, /Escopo "interface" não existe; use core/);
+  assert.match(erro, /Escopos: core, mundo/);
+});
+
+test("título sem padrão, tipo inválido ou maiúsculo é recusado", () => {
+  assert.match(erroDeTitulo("arruma a hud"), /tipo\(escopo\)/);
+  assert.match(erroDeTitulo("feature(core): x"), /Tipo "feature"/);
+  assert.match(erroDeTitulo("docs(core): Regras"), /minúscula/);
+  assert.match(erroDeTitulo(`docs(core): ${"a".repeat(100)}`), /100/);
+});
+
+test("título no padrão passa", () => {
+  assert.equal(erroDeTitulo("feat(core): entregar valida o padrao"), null);
+});
+
+test("branch com escopo inexistente é recusada com a lista", () => {
+  const erro = erroDeBranch("docs/processo/x");
+  assert.match(erro, /Escopo "processo" não existe; use core/);
+  assert.match(erro, /Escopos: {2}core, mundo/);
+  assert.match(erroDeBranch("feat/core/x"), /fora do padrão/);
+});
+
+test("branch no padrão passa", () => {
+  assert.equal(erroDeBranch("feature/core/entregar-valida-padrao"), null);
 });
 
 test("só arquivos .cs vão para o CSharpier", () => {

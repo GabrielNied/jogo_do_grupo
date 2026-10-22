@@ -54,7 +54,7 @@ Filtros: licença MIT/Apache/BSD (assets CC0/CC-BY), Unity 6000.6 e C# 9 se toca
 
 ## 5. Entregar
 
-Doc mudou: um PR `docs` (skill [preparar-pr](../preparar-pr/SKILL.md)), sem esperar pedido. Relatório curto:
+Doc mudou: um PR `docs` (skill [preparar-pr](../preparar-pr/SKILL.md)), sem esperar pedido; sem funcionalidade, escopo `core` na branch e no título. Relatório curto:
 
 - fechadas, por motivo;
 - fichadas, na ordem em que o `/trabalhe` vai pegar, com os lotes sugeridos;
