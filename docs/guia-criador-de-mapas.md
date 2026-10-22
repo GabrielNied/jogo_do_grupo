@@ -8,7 +8,7 @@ O objetivo é **pintar o mundo**, sem montar árvore, textura e morro um a um ne
 
 O primeiro foco foi fazer a receita **Mata** realmente boa. Ela tem solo de floresta, relevo suave, troncos com espaço para caminhar e copas que formam uma massa vista de cima; foi aprovada no Unity. A próxima versão do mapa passa a usar o **Terrain nativo**: o relevo atual é exportado como ponto de partida editável no Unity, sem apagar a montagem procedural enquanto a conversão é validada.
 
-A ferramenta deve crescer como um único **Pintor do Mundo**. Lago e estrada, quando necessários, serão modos da mesma experiência: área fechada para lago e linha para estrada. A estrada Cidade central → Passo descrita abaixo continua como um **protótipo já disponível**, mas não está em expansão nesta fase.
+A ferramenta deve crescer como um único **Pintor do Mundo**. Lago usa uma área fechada; estrada usa uma linha. O [criador de estradas no Terrain](#criar-estradas-medievais-no-terrain) permite novas vias independentes com splines nativas. A estrada Cidade central → Passo descrita mais abaixo continua como um protótipo do mapa procedural anterior.
 
 ## Desenhar biomas
 
@@ -41,11 +41,42 @@ As imagens dos pacotes ficam nos locais de origem. A pintura usa **Terrain Layer
 
 Se usou a primeira versao do organizador, saia do Play e execute **Jogo do Grupo > Mundo > Texturas do terreno > Corrigir copias criadas pelo organizador**. O comando identifica apenas as copias intactas daquela ferramenta, troca suas referencias pelas originais e soma os pesos de pintura quando a mesma camada aparecia duas vezes. Copias editadas ou ainda usadas por outros assets ou terrenos nao salvos sao preservadas. Antes de modificar TerrainData ou remover copias, grava os arquivos e metadados em `client/Library/BackupCamadasDeTerreno/<instante>/Assets/`; o Console informa o caminho. A limpeza nao tem Undo: a recuperacao usa esse backup com o editor fechado. Os pacotes originais continuam instalados e suas licencas permanecem aplicaveis.
 
+## Criar estradas medievais no Terrain
+
+Esta ferramenta serve para caminhos de terra compactada por pessoas e cavalos, com o centro levemente mais baixo que as margens, e para trechos de lajotas. Trabalhe fora do Play na cena de autoria. Salve a cena antes de começar.
+
+1. Selecione o Terrain na **Hierarchy** e abra **Jogo do Grupo > Mundo > Estradas > Criar estrada de terra**. Na cena de autoria, a estrada fica sob `Hub`, para acompanhar a publicação do mapa.
+2. Selecione a nova estrada e edite o componente **Spline Container** com as ferramentas nativas de Splines na vista **Scene**. Mova e acrescente pontos para definir o caminho. Cada estrada é independente; não há extremos presos às cidades.
+3. No Inspector da estrada, escolha terra ou lajotas e ajuste largura, rebaixo e bordas. Configure também a margem de limpeza da vegetação e os detalhes opcionais. O rebaixo é suave: comece pequeno e observe a escala do personagem.
+4. Ative **Prévia do corredor na cena** para conferir as linhas do traçado e da faixa de limpeza. Clique em **Aplicar e salvar** quando estiver satisfeito: essa operação modifica a altura do Terrain, limpa árvores, plantas e grama nativas dentro da faixa configurada e salva a cena e os assets, inclusive quando a estrada passa de um bloco a outro.
+5. Depois de editar a curva ou os parâmetros, clique em **Reaplicar e salvar**. A ferramenta recupera sua base anterior antes de refazer o resultado, evitando aprofundar o solo a cada aplicação. Use **Restaurar terreno e vegetação** para recuperar o trecho anterior. Restaure antes de apagar o objeto da estrada.
+6. Salve a cena e o projeto. Para levar o resultado ao jogo e ao servidor, siga o comando existente **Jogo do Grupo > Mundo > Publicar mapa feito à mão**. A estrada aplicada permanece somente na autoria até publicar.
+
+As árvores removidas são as pintadas por **Paint Trees** ou pelo pincel de vegetação; a grama e as plantas são as de **Paint Details**. Objetos decorativos colocados manualmente precisam ser movidos à mão. A limpeza não procura objetos pelo nome nem altera prefabs de espécies.
+
+Preserve os dados de recuperação da estrada enquanto precisar restaurar o trecho. Se você editar o mesmo solo ou vegetação depois da aplicação, a ferramenta pode indicar conflito para impedir a substituição dessas alterações. Restaure antes de repintar a faixa. As áreas fora do corredor continuam editáveis.
+
+Nesta versão, áreas modificadas por estradas diferentes não podem se sobrepor: a ferramenta informa o conflito. A resolução do Terrain limita depressões estreitas; o material fornece o detalhe fino. O servidor continua usando uma grade de alturas de **10 m**, que pode não captar o microperfil de uma estrada estreita. Mantenha o rebaixo pequeno; a superfície visual não cria um colisor independente nem altera a navegação automaticamente.
+
+O padrão é largura de **4 m**, rebaixo de **12 cm**, transição lateral de **1 m** e margem adicional de limpeza de **0,5 m**. O rebaixo tem limite de **35 cm**. A semente mantém a variação de bordas e pedregulhos reproduzível. As lajotas aparecem pelo material; pedregulhos são agrupados em uma malha, sem um objeto por pedra. Um material próprio pode substituir o padrão pelo campo do Inspector.
+
+A aplicação também reduz o erro de simplificação visual do Terrain somente nos blocos tocados, para que o solo não atravesse a superfície da estrada à distância. Isso pode aumentar a quantidade de triângulos renderizados nesses blocos. Quando a última estrada do bloco é restaurada, a configuração anterior volta; um ajuste manual posterior de precisão é preservado.
+
+As saídas e os backups ficam em `Assets/_Game/Features/Mundo/EstradasGeradas/<id>/`; mantenha essa pasta junto da estrada ao versionar o mapa. Para uma nova estrada, use o menu: duplicar o objeto também duplica sua identidade e por isso é recusado. Pontes e estradas sobre buracos do Terrain precisam de autoria própria.
+
+Para experimentar sem mexer no mapa, use **Jogo do Grupo > Mundo > Estradas > Criar demonstração isolada**. O comando cria uma cena própria com duas estradas, dois blocos de terreno e vegetação de demonstração. A validação reproduzível, com o editor fechado, é:
+
+```text
+npm run unity:executar -- JogoDoGrupo.Client.Features.Mundo.Editor.Estradas.DemoDasEstradas.Validar
+```
+
+O comando mantém os assets da demonstração para inspeção e grava a captura local em `client/Library/ValidacaoEstradas.png`. A demonstração não publica nem altera o mapa de autoria.
+
 ## Protótipo da estrada do Passo
 
 A ferramenta permite **redesenhar a estrada Cidade central → Passo**. Você pode clicar pontos no terreno 3D, mover os pontos intermediários e ajustar a aparência da passagem enquanto vê uma prévia. A largura inicial é de **7 m**.
 
-**Ainda não existe um botão para criar uma segunda estrada independente.** A opção “Estrada” e a rota “Cidade central → Passo” são as únicas disponíveis nesta versão. Salvar substitui o traçado dessa rota. Quando a criação de novas rotas estiver pronta, este guia ganhará uma seção própria.
+Nesta ferramenta antiga, a opção “Estrada” e a rota “Cidade central → Passo” são as únicas disponíveis. Salvar substitui o traçado dessa rota. Para criar vias independentes no Terrain nativo, use o [criador de estradas](#criar-estradas-medievais-no-terrain).
 
 ## Abrir a ferramenta
 
@@ -87,6 +118,7 @@ Se um clique não adicionar ponto, confira se **Adicionar ponto por clique** est
 |---|---|
 | Pintar e aprovar uma receita Mata jogável | Concluído. A primeira mata está salva no mapa como base. |
 | Converter o relevo atual para Terrain nativo | Em andamento. O heightmap inicial já pode ser gerado e pré-visualizado no Unity; a edição manual ainda não substitui a altura compartilhada. |
-| Outras receitas de bioma, lagos, estradas e rios | Esperam a validação e a migração gradual para o Terrain nativo. |
+| Criar estradas independentes no Terrain | Splines nativas, terra/lajotas, rebaixo e limpeza da vegetação; procedimento acima. |
+| Outras receitas de bioma, lagos e rios | Esperam novas operações de autoria. |
 
 Ao concluir cada tarefa ou funcionalidade do criador de mapas, atualizar esta página com o caminho da tela, os controles, como salvar, como conferir o resultado e as limitações atuais. Se a tarefa não mudar as ações na interface, registrar seu efeito e indicar que o procedimento continua igual.
