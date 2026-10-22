@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using JogoDoGrupo.Client.Core.Jogo;
 
 namespace JogoDoGrupo.Client.Features.Pvp
 {
@@ -21,16 +22,38 @@ namespace JogoDoGrupo.Client.Features.Pvp
     }
 
     /// <summary>
-    /// De onde vêm os jogadores próximos. PvP não referencia Mundo nem Social (regra 2): quem
-    /// conhece os outros jogadores registra a fonte ao inicializar, como o Social faz com
-    /// <c>AliadosDoJogo.EhAliado</c>. Sem fonte registrada, não há alvo próximo.
+    /// De onde vêm os jogadores próximos. PvP não referencia Mundo nem Social (regra 2): o
+    /// <see cref="ObservadorDePvp"/> registra <see cref="DosAvataresNoJogo"/>, que lê os avatares
+    /// que o Mundo registra no Core (<see cref="AvataresNoJogo"/>). Sem fonte, não há alvo.
     /// </summary>
     public static class FonteDeAlvosDeDuelo
     {
+        private static readonly List<CandidatoDeDuelo> _doRegistro = new List<CandidatoDeDuelo>();
+
         public static Func<IReadOnlyList<CandidatoDeDuelo>> Candidatos { get; set; }
 
         public static IReadOnlyList<CandidatoDeDuelo> Listar() =>
             Candidatos?.Invoke() ?? Array.Empty<CandidatoDeDuelo>();
+
+        /// <summary>Os jogadores do <see cref="AvataresNoJogo"/> (o local sai na escolha, pelo id).</summary>
+        public static IReadOnlyList<CandidatoDeDuelo> DosAvataresNoJogo()
+        {
+            _doRegistro.Clear();
+            foreach (var avatar in AvataresNoJogo.Todos)
+            {
+                if (avatar.Raiz == null)
+                {
+                    continue;
+                }
+
+                var posicao = avatar.Raiz.position;
+                _doRegistro.Add(
+                    new CandidatoDeDuelo(avatar.PersonagemId, avatar.Nome, posicao.x, posicao.z)
+                );
+            }
+
+            return _doRegistro;
+        }
     }
 
     /// <summary>Regra pura da escolha do alvo do duelo: o mais perto dentro do alcance.</summary>

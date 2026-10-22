@@ -1,4 +1,6 @@
+using JogoDoGrupo.Client.Core.Jogo;
 using NUnit.Framework;
+using UnityEngine;
 
 namespace JogoDoGrupo.Client.Features.Pvp.Tests
 {
@@ -72,6 +74,40 @@ namespace JogoDoGrupo.Client.Features.Pvp.Tests
             Assert.IsFalse(EscolhaDoAlvoDeDuelo.TentarEscolher(0f, 0f, 1, null, Alcance, out _));
             FonteDeAlvosDeDuelo.Candidatos = null;
             Assert.AreEqual(0, FonteDeAlvosDeDuelo.Listar().Count);
+        }
+
+        [Test]
+        public void Fonte_dos_avatares_lista_o_outro_jogador_e_a_escolha_tira_o_proprio()
+        {
+            var eu = new GameObject("Eu");
+            var outro = new GameObject("Outro");
+            outro.transform.position = new Vector3(6f, 0f, 8f);
+            try
+            {
+                AvataresNoJogo.Registrar(1, eu.transform);
+                AvataresNoJogo.Registrar(2, outro.transform, "Bia");
+
+                var candidatos = FonteDeAlvosDeDuelo.DosAvataresNoJogo();
+                var achou = EscolhaDoAlvoDeDuelo.TentarEscolher(
+                    0f,
+                    0f,
+                    1,
+                    candidatos,
+                    Alcance,
+                    out var escolhido
+                );
+
+                Assert.AreEqual(2, candidatos.Count);
+                Assert.IsTrue(achou);
+                Assert.AreEqual(2, escolhido.PersonagemId);
+                Assert.AreEqual("Bia", escolhido.Nome);
+            }
+            finally
+            {
+                AvataresNoJogo.Limpar();
+                Object.DestroyImmediate(eu);
+                Object.DestroyImmediate(outro);
+            }
         }
     }
 }

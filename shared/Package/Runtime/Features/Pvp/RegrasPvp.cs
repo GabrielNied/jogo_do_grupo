@@ -10,7 +10,7 @@ namespace JogoDoGrupo.Shared.Features.Pvp
         public const float DistanciaMaximaConviteDueloMetros = 15f;
         public const float RaioMaximoDoDueloMetros = 50f;
         public const int TempoContagemRegressivaDueloSegundos = 3;
-        public const int TempoExpiracaoConviteDueloSegundos = 20;
+        public const int TempoExpiracaoConviteDueloSegundos = 30;
 
         public const int TamanhoEquipeArena = 3;
         public const int TotalJogadoresArena = 6;

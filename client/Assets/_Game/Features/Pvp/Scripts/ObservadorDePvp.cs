@@ -17,6 +17,7 @@ namespace JogoDoGrupo.Client.Features.Pvp
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void Iniciar()
         {
+            FonteDeAlvosDeDuelo.Candidatos = FonteDeAlvosDeDuelo.DosAvataresNoJogo;
             if (_instancia != null)
             {
                 return;
