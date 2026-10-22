@@ -92,19 +92,15 @@ public sealed class GerenciadorDeCanais : IGerenciadorDeCanais
                 }
             }
 
-            int? melhorCanal = null;
-            var menorOcupacao = int.MaxValue;
             for (var c = 1; c <= QuantidadeCanais; c++)
             {
-                var ocupacao = _jogadoresPorCanal[c].Count;
-                if (ocupacao < CapacidadePorCanal && ocupacao < menorOcupacao)
+                if (_jogadoresPorCanal[c].Count < CapacidadePorCanal)
                 {
-                    menorOcupacao = ocupacao;
-                    melhorCanal = c;
+                    return c;
                 }
             }
 
-            return melhorCanal;
+            return null;
         }
     }
 
