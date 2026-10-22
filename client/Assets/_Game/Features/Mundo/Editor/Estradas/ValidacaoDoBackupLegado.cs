@@ -17,11 +17,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor.Estradas
         [MenuItem("Jogo do Grupo/Mundo/Estradas/Validar migração do backup anterior")]
         public static void Executar()
         {
-            var cenaAnterior = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
-            if (!Application.isBatchMode && cenaAnterior.isDirty)
-                throw new InvalidOperationException(
-                    "Salve a cena atual antes da validação isolada."
-                );
+            ValidacaoDosCruzamentos.ValidarCenasSalvas();
             var retorno = "Assets/_Game/Features/Mundo/DemoCruzamentos/DemoCruzamentos.unity";
             var pasta = AssetDatabase.GenerateUniqueAssetPath(
                 "Assets/_Game/Features/Mundo/ValidacaoBackupLegado"

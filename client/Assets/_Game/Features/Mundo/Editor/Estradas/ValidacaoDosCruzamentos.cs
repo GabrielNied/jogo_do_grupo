@@ -26,14 +26,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor.Estradas
         [MenuItem("Jogo do Grupo/Mundo/Estradas/Validar cruzamentos e criar demonstração")]
         public static void Executar()
         {
-            var anterior = SceneManager.GetActiveScene();
-            if (
-                !Application.isBatchMode
-                && (anterior.isDirty || string.IsNullOrEmpty(anterior.path))
-            )
-                throw new InvalidOperationException(
-                    "Salve a cena atual antes de iniciar a demonstração isolada."
-                );
+            ValidarCenasSalvas();
             var cena = EditorSceneManager.NewScene(
                 NewSceneSetup.EmptyScene,
                 Application.isBatchMode ? NewSceneMode.Single : NewSceneMode.Additive
@@ -328,6 +321,20 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor.Estradas
                     + "; imagem: "
                     + saida
             );
+        }
+
+        internal static void ValidarCenasSalvas()
+        {
+            if (Application.isBatchMode)
+                return;
+            for (var i = 0; i < SceneManager.sceneCount; i++)
+            {
+                var cena = SceneManager.GetSceneAt(i);
+                if (cena.isDirty || string.IsNullOrEmpty(cena.path))
+                    throw new InvalidOperationException(
+                        "Salve todas as cenas abertas antes de executar a demonstração isolada."
+                    );
+            }
         }
 
         private static EstradaNativa CriarVia(
