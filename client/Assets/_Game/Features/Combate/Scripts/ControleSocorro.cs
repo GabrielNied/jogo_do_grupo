@@ -155,13 +155,12 @@ namespace JogoDoGrupo.Client.Features.Combate
             foreach (var kvp in _caidos)
             {
                 var id = kvp.Key;
-                var avatar = GameObject.Find("Jogador_" + id);
-                if (avatar == null)
+                if (id == _meuPersonagemId || !AvataresNoJogo.TentarObter(id, out var avatar))
                 {
                     continue;
                 }
 
-                var dist = Vector3.Distance(minhaPosicao, avatar.transform.position);
+                var dist = Vector3.Distance(minhaPosicao, avatar.position);
                 if (dist <= (float)RegrasQueda.AlcanceParaLevantarMetros && dist < menorDistancia)
                 {
                     menorDistancia = dist;

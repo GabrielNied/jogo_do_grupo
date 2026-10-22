@@ -214,10 +214,9 @@ namespace JogoDoGrupo.Client.Features.Social
                 return inimigoSub.transform;
             }
 
-            var jogador = GameObject.Find("Jogador_" + alvoId);
-            if (jogador != null)
+            if (AvataresNoJogo.TentarObter(alvoId, out var jogador))
             {
-                return jogador.transform;
+                return jogador;
             }
 
             if (

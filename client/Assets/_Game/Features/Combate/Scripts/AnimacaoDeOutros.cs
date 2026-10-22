@@ -1,4 +1,5 @@
 using System;
+using JogoDoGrupo.Client.Core.Jogo;
 using JogoDoGrupo.Shared.Features.Combate;
 using UnityEngine;
 
@@ -8,24 +9,18 @@ namespace JogoDoGrupo.Client.Features.Combate
     /// Toca golpe e esquiva dos outros jogadores no avatar deles (#481): vira o corpo para a
     /// <c>DirecaoY</c> do servidor e dispara o Trigger do Animator, com os mesmos animadores do
     /// próprio jogador. O próprio jogador nunca passa por aqui (já animou ao apertar, ADR 0024).
-    /// O avatar vem de <see cref="Buscar"/>: a convenção de nome do Mundo (<c>Jogador_&lt;id&gt;</c>),
-    /// sem referência à funcionalidade Mundo; trocável quando o Mundo publicar um contrato.
+    /// O avatar vem de <see cref="Buscar"/>: o <see cref="AvataresNoJogo"/> do Core, onde o Mundo
+    /// registra cada outro jogador, sem referência à funcionalidade Mundo.
     /// </summary>
     internal static class AnimacaoDeOutros
     {
-        /// <summary>Prefixo do nome do objeto que o Mundo cria para cada outro jogador.</summary>
-        public const string NomeDoAvatar = "Jogador_";
-
         /// <summary>Volume do som do golpe e da esquiva de quem não é você (baixo, para não cobrir os seus).</summary>
         public const float VolumeDeOutros = 0.2f;
 
         /// <summary>Como achar o avatar de um personagem; os testes trocam por um falso.</summary>
-        public static Func<long, GameObject> Buscar { get; set; } = BuscarPorNome;
+        public static Func<long, GameObject> Buscar { get; set; } = AvataresNoJogo.Obter;
 
-        public static void RestaurarBusca() => Buscar = BuscarPorNome;
-
-        private static GameObject BuscarPorNome(long personagemId) =>
-            personagemId > 0 ? GameObject.Find(NomeDoAvatar + personagemId) : null;
+        public static void RestaurarBusca() => Buscar = AvataresNoJogo.Obter;
 
         /// <summary>Se o golpe é de outro jogador (e portanto é aqui que ele se anima).</summary>
         public static bool EhDeOutro(long autorId, long meuPersonagemId) =>
