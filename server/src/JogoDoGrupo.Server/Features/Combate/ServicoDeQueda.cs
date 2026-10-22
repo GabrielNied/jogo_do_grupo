@@ -20,8 +20,9 @@ namespace JogoDoGrupo.Server.Features.Combate;
 /// threads diferentes, mas o controle devolve cada saída uma única vez: quem a recebe a aplica.
 /// </para>
 /// <para>
-/// O ajudante que levanta precisa pertencer ao mesmo grupo do caído (<see cref="IConsultaDeGrupo"/>).
-/// Estranhos recebem a recusa <see cref="CodigosErroCombate.NaoSaoDoMesmoGrupo"/>.
+/// Na dungeon (área de instância), o ajudante que levanta precisa pertencer ao mesmo grupo do caído
+/// (<see cref="IConsultaDeGrupo"/>); no mundo aberto qualquer jogador vivo levanta (#1204). Estranhos
+/// na dungeon recebem a recusa <see cref="CodigosErroCombate.NaoSaoDoMesmoGrupo"/>.
 /// </para>
 /// </summary>
 public sealed class ServicoDeQueda : IEstadoDeQueda, IHostedService, IDisposable
@@ -162,7 +163,7 @@ public sealed class ServicoDeQueda : IEstadoDeQueda, IHostedService, IDisposable
         var ajudanteId = sessao.PersonagemId;
         var alvoId = pedido.AlvoId;
 
-        if (_grupos != null)
+        if (_grupos != null && AreaDe(alvoId).StartsWith("instancia:", StringComparison.Ordinal))
         {
             var grupoAjudante = _grupos.Consultar(ajudanteId);
             var grupoAlvo = _grupos.Consultar(alvoId);

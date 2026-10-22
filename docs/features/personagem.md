@@ -330,7 +330,7 @@ Quem decide: **servidor** (quando cai, a contagem, quem está levantando, a vida
 
 #### Levantar um aliado
 
-- Quem pode: um jogador **vivo do mesmo grupo** (validado por `IConsultaDeGrupo`), da mesma instância, a até **2 m** do caído, segurando **Interagir** (E, veja [teclas](interface.md#teclas-e-atalhos)) por 3 s. Jogador sem grupo ou de outro grupo recebe `NaoSaoDoMesmoGrupo` (#832). Fora da dungeon, desde 2026-10-16, qualquer jogador vivo pode levantar (veja [Retorno à cidade](#retorno-à-cidade)).
+- Quem pode: na dungeon, um jogador **vivo do mesmo grupo** (validado por `IConsultaDeGrupo`), da mesma instância, a até **2 m** do caído, segurando **Interagir** (E, veja [teclas](interface.md#teclas-e-atalhos)) por 3 s. Na dungeon, jogador sem grupo ou de outro grupo recebe `NaoSaoDoMesmoGrupo` (#832). Fora da dungeon, desde 2026-10-16 (aplicado no servidor na #1204), qualquer jogador vivo pode levantar (veja [Retorno à cidade](#retorno-à-cidade)).
 - Interrompe e **zera o progresso**: soltar a tecla, afastar-se mais de 2 m, levar dano, cair, ou atacar e esquivar.
 - **Um ajudante por vez:** o primeiro que começou vale; o segundo recebe `JaEstaSendoLevantado` (é a regra da fatia: dois ajudantes não duplicam a cura).
 - A contagem de 45 s **pausa** enquanto alguém está levantando e volta a correr se a interação for interrompida (#895).
