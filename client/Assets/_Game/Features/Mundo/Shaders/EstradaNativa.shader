@@ -162,7 +162,7 @@ Shader "JogoDoGrupo/Mundo/EstradaNativa"
                 half3 albedo = terra;
                 half oclusao = 1.0 - marcas * 0.16;
 
-                if (_Tipo > 0.5 && _Tipo < 1.5)
+                if ((_Tipo > 0.5 && _Tipo < 1.5) || _Tipo > 2.5)
                 {
                     // Lajotas desencontradas em escala métrica, com juntas irregulares.
                     float2 grade = uv * float2(3.3, 2.35);
@@ -184,6 +184,14 @@ Shader "JogoDoGrupo/Mundo/EstradaNativa"
                     float detalheDaLajota = 1.0 - smoothstep(0.1, 0.32, metrosPorPixel);
                     albedo = lerp(_CorPedra.rgb * 0.86, albedo, detalheDaLajota);
                     altura *= detalheDaLajota;
+                    if (_Tipo > 2.5)
+                    {
+                        float pesoLajotas = smoothstep(0.0, 1.0, input.color.r);
+                        albedo = lerp(terra, albedo, pesoLajotas);
+                        altura = lerp(grao * 0.005 + micro * 0.0015 - marcas * 0.003,
+                            altura, pesoLajotas);
+                        oclusao = lerp(1.0 - marcas * 0.16, oclusao, pesoLajotas);
+                    }
                 }
                 else if (_Tipo > 1.5)
                 {

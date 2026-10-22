@@ -9,7 +9,7 @@ using UnityEngine.Rendering;
 namespace JogoDoGrupo.Client.Features.Mundo.Editor.Estradas
 {
     /// <summary>Gera somente a apresentação; o Terrain continua sendo o chão físico.</summary>
-    public static class VisualDaEstrada
+    public static partial class VisualDaEstrada
     {
         private const string NomeDaSuperficie = "SuperficieEstrada";
         private const string NomeDosPedregulhos = "PedregulhosEstrada";
@@ -321,7 +321,8 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor.Estradas
         internal static Mesh CriarPedregulhos(
             EstradaNativa estrada,
             IReadOnlyList<Vector3> pontos,
-            Func<Vector3, float> alturaEm
+            Func<Vector3, float> alturaEm,
+            Func<Vector3, bool> aceita = null
         )
         {
             var vertices = new List<Vector3>();
@@ -389,6 +390,8 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor.Estradas
                             : (float)aleatorio.NextDouble()
                     );
                 centro += Lateral(pontos, trecho) * afastamento * lado;
+                if (aceita != null && !aceita(centro))
+                    continue;
                 centro.y = alturaEm(centro) + FolgaVertical;
                 var raio = Mathf.Lerp(0.055f, 0.14f, (float)aleatorio.NextDouble());
                 var giro = Quaternion.Euler(0f, (float)aleatorio.NextDouble() * 360f, 0f);
