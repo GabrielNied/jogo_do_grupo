@@ -10,6 +10,7 @@ Shader "JogoDoGrupo/Mundo/EstradaNativa"
         _Cascos ("Vestígios de cascos", Range(0, 1)) = 0.25
         _Semente ("Semente", Float) = 17
         _Smoothness ("Suavidade", Range(0, 1)) = 0.12
+        [HideInInspector] _ZWrite ("Gravar profundidade", Float) = 0
     }
 
     SubShader
@@ -22,7 +23,7 @@ Shader "JogoDoGrupo/Mundo/EstradaNativa"
             Name "ForwardLit"
             Tags { "LightMode" = "UniversalForward" }
             Blend SrcAlpha OneMinusSrcAlpha
-            ZWrite Off
+            ZWrite [_ZWrite]
             Cull Back
 
             HLSLPROGRAM
