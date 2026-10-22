@@ -257,6 +257,7 @@ namespace JogoDoGrupo.Client.Features.Combate
         /// </summary>
         private static bool PodeAtacar() =>
             ConexaoTempoReal.Conectado
+            && !ControleSocorro.EuCaido
             && Cursor.lockState == CursorLockMode.Locked
             && !AmbienteDeMovimento.ImpedeAtaque;
 
