@@ -9,6 +9,9 @@ namespace JogoDoGrupo.Client.Core.Audio
     /// </summary>
     public static class VolumesDoJogo
     {
+        /// <summary>Volume geral (0 a 1), já na escala de amplitude (para o AudioListener).</summary>
+        public static float Geral => Amplitude(OpcoesLocais.Atual.VolumeGeral);
+
         /// <summary>Volume da música (0 a 1), já na escala de amplitude.</summary>
         public static float Musica => Amplitude(OpcoesLocais.Atual.VolumeMusica);
 

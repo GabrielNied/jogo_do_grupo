@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using JogoDoGrupo.Client.Core.Audio;
 using JogoDoGrupo.Client.Core.Jogo;
 using JogoDoGrupo.Shared.Features.Mobs;
 using UnityEngine;
@@ -38,6 +39,7 @@ namespace JogoDoGrupo.Client.Features.Mobs
             _painel?.Descartar();
             _painel = null;
             _regiaoAtendida = null;
+            AudioDoJogo.DefinirLutaContraChefe(false);
         }
 
         internal static void Atualizar(
@@ -116,6 +118,7 @@ namespace JogoDoGrupo.Client.Features.Mobs
             }
 
             _painel.Mostrar(boss, alvo);
+            AudioDoJogo.DefinirLutaContraChefe(boss != null);
         }
 
         private static RegrasAlvoDoHud.Candidato[] MontarCandidatos(

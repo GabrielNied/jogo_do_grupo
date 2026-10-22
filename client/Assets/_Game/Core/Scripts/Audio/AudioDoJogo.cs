@@ -21,6 +21,9 @@ namespace JogoDoGrupo.Client.Core.Audio
         private static AudioDoJogo _instancia;
         private static MusicaDoJogo _pedidaPeloMundo = MusicaDoJogo.Cidade;
         private static bool _abafada;
+        private static bool _bossEmLuta;
+
+        private readonly ControleDeVagasDeEfeitos _vagasDeEfeitos = new ControleDeVagasDeEfeitos();
 
         private readonly Dictionary<MusicaDoJogo, AudioClip> _faixas =
             new Dictionary<MusicaDoJogo, AudioClip>();
@@ -43,9 +46,11 @@ namespace JogoDoGrupo.Client.Core.Audio
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void Reiniciar()
         {
+            _instancia?._vagasDeEfeitos.Limpar();
             _instancia = null;
             _pedidaPeloMundo = MusicaDoJogo.Cidade;
             _abafada = false;
+            _bossEmLuta = false;
         }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
@@ -67,8 +72,41 @@ namespace JogoDoGrupo.Client.Core.Audio
         /// </summary>
         public static void PedirMusicaDoMundo(MusicaDoJogo musica) => _pedidaPeloMundo = musica;
 
+        /// <summary>
+        /// Avisa se há luta ativa com o chefe. Troca para a faixa do chefe e, ao encerrar, devolve a faixa da área.
+        /// </summary>
+        public static void DefinirLutaContraChefe(bool emLuta) => _bossEmLuta = emLuta;
+
         /// <summary>Baixa a música enquanto o personagem está caído (e volta ao levantar).</summary>
         public static void AbafarMusica(bool abafar) => _abafada = abafar;
+
+        /// <summary>
+        /// Solicita permissão para tocar um efeito sonoro considerando o limite de 16 simultâneos
+        /// e a distância máxima de 25m para outros jogadores.
+        /// </summary>
+        public static bool PodeTocarEfeito(
+            float distancia,
+            bool deOutroJogador,
+            out int? desalocadoId
+        )
+        {
+            desalocadoId = null;
+            if (deOutroJogador && !RegrasEfeitosAudio.PodeOuvirOutroJogador(distancia))
+            {
+                return false;
+            }
+
+            if (_instancia == null)
+            {
+                return true;
+            }
+
+            var vaga = _instancia._vagasDeEfeitos.TentarAlocar(distancia, out desalocadoId);
+            return vaga.HasValue;
+        }
+
+        /// <summary>Libera a vaga de um efeito que terminou de tocar.</summary>
+        public static void LiberarEfeito(int id) => _instancia?._vagasDeEfeitos.Liberar(id);
 
         /// <summary>Toca um som da interface (sem posição), no volume de Efeitos.</summary>
         public static void TocarInterface(SomDeInterface som, float volume = 1f)
@@ -139,16 +177,23 @@ namespace JogoDoGrupo.Client.Core.Audio
 
         private void Update()
         {
-            var desejada = EscolhaDaMusica.Escolher(EntradaNoJogo.NoJogo, _pedidaPeloMundo);
+            var desejada = EscolhaDaMusica.ResolverFaixa(
+                EntradaNoJogo.NoJogo,
+                _pedidaPeloMundo,
+                _bossEmLuta,
+                _tocando == MusicaDoJogo.Vitoria && Atual.isPlaying
+            );
+
             // A vitória que acabou devolve a faixa da dungeon.
-            if (
-                _tocando == MusicaDoJogo.Vitoria
-                && desejada == MusicaDoJogo.Vitoria
-                && !Atual.isPlaying
-            )
+            if (_tocando == MusicaDoJogo.Vitoria && !Atual.isPlaying)
             {
                 _pedidaPeloMundo = EscolhaDaMusica.DepoisDe(MusicaDoJogo.Vitoria);
-                desejada = _pedidaPeloMundo;
+                desejada = EscolhaDaMusica.ResolverFaixa(
+                    EntradaNoJogo.NoJogo,
+                    _pedidaPeloMundo,
+                    _bossEmLuta,
+                    false
+                );
             }
 
             if (desejada != _tocando)
@@ -182,6 +227,7 @@ namespace JogoDoGrupo.Client.Core.Audio
             var passo = dt / Mathf.Max(0.01f, ConfigAudio.TransicaoSegundos);
             _ganhoA = Mathf.MoveTowards(_ganhoA, _aEhAAtual ? 1f : 0f, passo);
             _ganhoB = Mathf.MoveTowards(_ganhoB, _aEhAAtual ? 0f : 1f, passo);
+            AudioListener.volume = VolumesDoJogo.Geral;
             var volume =
                 VolumesDoJogo.Musica
                 * ConfigAudio.VolumeDaMusica
