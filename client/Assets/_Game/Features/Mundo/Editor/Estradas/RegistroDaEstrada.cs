@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace JogoDoGrupo.Client.Features.Mundo.Editor.Estradas
 {
@@ -16,7 +17,39 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor.Estradas
         public float Margem;
         public float Variacao;
         public int Semente;
-        public List<AlteracaoDeTerreno> Alteracoes = new List<AlteracaoDeTerreno>();
+
+        // Registros anteriores continuam legíveis. A rede guarda uma só cópia da união.
+        [FormerlySerializedAs("Alteracoes"), SerializeField]
+        private List<AlteracaoDeTerreno> _alteracoes = new List<AlteracaoDeTerreno>();
+
+        [SerializeField]
+        private RegistroDaEstrada _rede;
+
+        [SerializeField]
+        private bool _possuiRede;
+        public RegistroDaEstrada Rede
+        {
+            get
+            {
+                if (_possuiRede && _rede == null)
+                    throw new InvalidOperationException(
+                        "O backup composto da rede está ausente. Recupere o asset Rede original antes de aplicar/restaurar."
+                    );
+                return _rede;
+            }
+            set
+            {
+                _rede = value;
+                _possuiRede = value != null;
+            }
+        }
+        public string ConfiguracaoAplicada;
+        public List<AlteracaoDeTerreno> PerfilLegado;
+        public List<AlteracaoDeTerreno> Alteracoes
+        {
+            get => Rede != null ? Rede._alteracoes : _alteracoes;
+            set => _alteracoes = value;
+        }
     }
 
     [Serializable]
@@ -32,6 +65,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor.Estradas
         public int[] IndicesAltura;
         public float[] AlturasAntes;
         public float[] AlturasDepois;
+        public float[] AlturasIntermediarias;
         public List<AlteracaoDeDetalhe> Detalhes = new List<AlteracaoDeDetalhe>();
         public ArvoreDaEstrada[] ArvoresRemovidas;
         public GameObject[] PrototiposArvores;

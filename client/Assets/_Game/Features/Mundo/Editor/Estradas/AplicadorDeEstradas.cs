@@ -9,7 +9,7 @@ using Object = UnityEngine.Object;
 
 namespace JogoDoGrupo.Client.Features.Mundo.Editor.Estradas
 {
-    public static class AplicadorDeEstradas
+    public static partial class AplicadorDeEstradas
     {
         public const string PastaGerada = "Assets/_Game/Features/Mundo/EstradasGeradas";
         private const float ToleranciaAltura = 0.0000001f;
@@ -27,145 +27,9 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor.Estradas
                 .ToArray();
         }
 
-        public static void Aplicar(EstradaNativa estrada)
-        {
-            ValidarEdicao(estrada);
-            ValidarIdentidade(estrada);
-            var pontos = PerfilDaEstrada.Amostrar(estrada);
-            var terrenos = TerrenosDa(estrada);
-            ValidarTerrenos(terrenos);
-            var raio = PerfilDaEstrada.RaioMaximo(estrada);
-            var corredor = new CorredorDaEstrada(pontos, raio);
-            ValidarCobertura(estrada, pontos, terrenos);
-            ValidarOutrasEstradas(estrada, pontos, raio);
-            var registro = estrada.Registro as RegistroDaEstrada;
-            if (registro != null && registro.EmAplicacao)
-                throw new InvalidOperationException(
-                    "Restaure a aplicação interrompida antes de aplicar novamente."
-                );
-            if (registro != null && registro.Aplicada)
-                ValidarIntegridade(registro, terrenos);
+        public static void Aplicar(EstradaNativa estrada) => Recompor(estrada, true);
 
-            // Planeja tudo antes de tocar o Terrain: reaplicar lê os valores anteriores do backup.
-            var novas = terrenos
-                .Where(t => Intersecta(corredor.Limites, t))
-                .Select(t => Preparar(estrada, t, corredor, registro))
-                .ToList();
-            ValidarCelulasCompartilhadas(estrada, novas);
-            GarantirPasta(PastaGerada);
-            if (string.IsNullOrEmpty(estrada.Id))
-                estrada.Id = Guid.NewGuid().ToString("N");
-            var pasta = PastaGerada + "/" + estrada.Id;
-            GarantirPasta(pasta);
-            var grupoUndo = Undo.GetCurrentGroup();
-            Undo.SetCurrentGroupName("Aplicar estrada nativa");
-            Undo.RecordObject(estrada, "Aplicar estrada nativa");
-            if (registro == null)
-            {
-                registro = ScriptableObject.CreateInstance<RegistroDaEstrada>();
-                AssetDatabase.CreateAsset(registro, pasta + "/Registro.asset");
-                estrada.Registro = registro;
-            }
-            Undo.RegisterCompleteObjectUndo(registro, "Backup da estrada");
-            var anteriores = registro.Alteracoes;
-            foreach (
-                var dado in novas
-                    .Select(a => a.Dados)
-                    .Concat(registro.Alteracoes.Select(a => a.Dados))
-                    .Distinct()
-            )
-                Undo.RegisterCompleteObjectUndo(dado, "Terreno da estrada");
-            if (registro.Aplicada)
-                Escrever(registro.Alteracoes, false);
-            registro.Alteracoes = novas;
-            registro.Caminho = pontos;
-            registro.Raio = raio;
-            registro.Largura = estrada.Largura;
-            // O registro guarda a faixa efetivamente protegida, inclusive em backups antigos.
-            registro.Transicao = estrada.TransicaoDoCorredor;
-            registro.Margem = estrada.MargemVegetacao;
-            registro.Variacao = estrada.VariacaoLateral;
-            registro.Semente = estrada.Semente;
-            registro.Aplicada = true;
-            registro.EmAplicacao = true;
-            foreach (var alteracao in novas)
-            {
-                var terreno = terrenos.First(t => t.terrainData == alteracao.Dados);
-                Undo.RecordObject(terreno, "Precisão do terreno da estrada");
-                terreno.heightmapPixelError = Mathf.Min(
-                    terreno.heightmapPixelError,
-                    ErroPixelDaEstrada
-                );
-                alteracao.ErroPixelAplicado = terreno.heightmapPixelError;
-                EditorUtility.SetDirty(terreno);
-            }
-            RestaurarQualidade(estrada, anteriores, terrenos);
-            EditorUtility.SetDirty(registro);
-            EditorUtility.SetDirty(estrada);
-            AssetDatabase.SaveAssets();
-            EditorSceneManager.MarkSceneDirty(estrada.gameObject.scene);
-            EditorSceneManager.SaveScene(estrada.gameObject.scene);
-            try
-            {
-                Escrever(novas, true);
-                foreach (var alteracao in novas)
-                    LerAlturas(
-                        alteracao,
-                        (i, valor) =>
-                        {
-                            alteracao.AlturasDepois[i] = valor;
-                            return valor;
-                        },
-                        false
-                    );
-                VisualDaEstrada.Gerar(estrada, pontos, p => AlturaEm(terrenos, p), pasta);
-                registro.EmAplicacao = false;
-            }
-            catch
-            {
-                Escrever(novas, false);
-                registro.Aplicada = false;
-                registro.EmAplicacao = false;
-                VisualDaEstrada.Remover(estrada);
-                RestaurarQualidade(estrada, novas.Concat(anteriores), terrenos);
-                throw;
-            }
-            finally
-            {
-                EditorUtility.SetDirty(registro);
-                EditorSceneManager.MarkSceneDirty(estrada.gameObject.scene);
-                AssetDatabase.SaveAssets();
-                EditorSceneManager.SaveScene(estrada.gameObject.scene);
-                Undo.CollapseUndoOperations(grupoUndo);
-            }
-            Debug.Log(
-                "[Estradas] Estrada aplicada e salva. O mapa publicado continua independente.",
-                estrada
-            );
-        }
-
-        public static void Restaurar(EstradaNativa estrada)
-        {
-            ValidarEdicao(estrada, false);
-            ValidarIdentidade(estrada);
-            var registro = estrada.Registro as RegistroDaEstrada;
-            if (registro == null || !registro.Aplicada)
-                return;
-            ValidarIntegridade(registro, TerrenosDa(estrada));
-            Undo.SetCurrentGroupName("Restaurar estrada nativa");
-            Undo.RegisterCompleteObjectUndo(registro, "Restaurar estrada nativa");
-            foreach (var alteracao in registro.Alteracoes)
-                Undo.RegisterCompleteObjectUndo(alteracao.Dados, "Restaurar terreno da estrada");
-            Escrever(registro.Alteracoes, false);
-            registro.Aplicada = false;
-            registro.EmAplicacao = false;
-            VisualDaEstrada.Remover(estrada);
-            RestaurarQualidade(estrada, registro.Alteracoes, TerrenosDa(estrada));
-            EditorUtility.SetDirty(registro);
-            EditorSceneManager.MarkSceneDirty(estrada.gameObject.scene);
-            AssetDatabase.SaveAssets();
-            EditorSceneManager.SaveScene(estrada.gameObject.scene);
-        }
+        public static void Restaurar(EstradaNativa estrada) => Recompor(estrada, false);
 
         public static float AlturaEm(IReadOnlyList<Terrain> terrenos, Vector3 ponto)
         {
@@ -322,38 +186,6 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor.Estradas
             }
         }
 
-        private static void ValidarOutrasEstradas(
-            EstradaNativa estrada,
-            List<Vector3> pontos,
-            float raio
-        )
-        {
-            foreach (
-                var outra in Object.FindObjectsByType<EstradaNativa>(FindObjectsInactive.Include)
-            )
-            {
-                if (outra == estrada || outra.gameObject.scene != estrada.gameObject.scene)
-                    continue;
-                var registro = outra.Registro as RegistroDaEstrada;
-                if (registro == null || !registro.Aplicada)
-                    continue;
-                var corredor = new CorredorDaEstrada(
-                    registro.Caminho,
-                    raio + registro.Raio + PerfilDaEstrada.Passo
-                );
-                if (
-                    pontos.Any(p =>
-                        corredor.Distancia(p) <= raio + registro.Raio + PerfilDaEstrada.Passo
-                    )
-                )
-                    throw new InvalidOperationException(
-                        "Esta faixa encosta na estrada '"
-                            + outra.name
-                            + "'. A versão inicial mantém corredores separados para preservar os backups. Restaure a outra ou afaste os traçados."
-                    );
-            }
-        }
-
         private static AlteracaoDeTerreno Preparar(
             EstradaNativa estrada,
             Terrain terreno,
@@ -374,6 +206,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor.Estradas
                 ResolucaoAltura = dados.heightmapResolution,
                 ResolucaoDetalhe = dados.detailResolution,
                 ErroPixelOriginal = ErroOriginal(estrada, terreno, anterior),
+                ErroPixelAplicado = Mathf.Min(terreno.heightmapPixelError, ErroPixelDaEstrada),
                 PrototiposArvores = dados
                     .treePrototypes.Select(p => p.prefab == null ? null : p.prefab)
                     .ToArray(),
@@ -545,52 +378,6 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor.Estradas
             }
         }
 
-        private static void ValidarCelulasCompartilhadas(
-            EstradaNativa estrada,
-            List<AlteracaoDeTerreno> novas
-        )
-        {
-            foreach (
-                var outra in Object.FindObjectsByType<EstradaNativa>(FindObjectsInactive.Include)
-            )
-            {
-                if (outra == estrada)
-                    continue;
-                var registro = outra.Registro as RegistroDaEstrada;
-                if (registro == null || !registro.Aplicada)
-                    continue;
-                foreach (var nova in novas)
-                {
-                    var antiga = registro.Alteracoes.FirstOrDefault(a => a.Dados == nova.Dados);
-                    if (antiga == null)
-                        continue;
-                    var alturas = new HashSet<int>(antiga.IndicesAltura);
-                    if (nova.IndicesAltura.Any(alturas.Contains))
-                        FalhaSobreposicao(outra);
-                    foreach (var camada in nova.Detalhes)
-                    {
-                        var outraCamada = antiga.Detalhes.FirstOrDefault(c =>
-                            c.Camada == camada.Camada
-                        );
-                        if (outraCamada == null)
-                            continue;
-                        var celulas = new HashSet<int>(outraCamada.Indices);
-                        if (camada.Indices.Any(celulas.Contains))
-                            FalhaSobreposicao(outra);
-                    }
-                }
-            }
-        }
-
-        private static void FalhaSobreposicao(EstradaNativa outra)
-        {
-            throw new InvalidOperationException(
-                "A resolução do Terrain faz esta faixa compartilhar células com '"
-                    + outra.name
-                    + "'. Afaste os corredores ou aumente a resolução de detalhes antes de aplicar."
-            );
-        }
-
         private static void PrepararDetalhes(
             EstradaNativa estrada,
             Terrain terreno,
@@ -658,8 +445,13 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor.Estradas
                     + extra;
         }
 
-        private static void ValidarIntegridade(RegistroDaEstrada registro, Terrain[] terrenos)
+        private static void ValidarIntegridade(
+            RegistroDaEstrada registro,
+            Terrain[] terrenos,
+            bool recuperacao = false
+        )
         {
+            var emAplicacao = recuperacao || registro.EmAplicacao;
             var corredor = new CorredorDaEstrada(registro.Caminho, registro.Raio);
             foreach (var a in registro.Alteracoes)
             {
@@ -695,12 +487,20 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor.Estradas
                     a,
                     (i, valor) =>
                     {
-                        var tolerancia = registro.EmAplicacao ? 2f / 65535f : ToleranciaAltura;
+                        var tolerancia = emAplicacao ? 2f / 65535f : ToleranciaAltura;
                         if (
                             Mathf.Abs(valor - a.AlturasDepois[i]) > tolerancia
                             && (
-                                !registro.EmAplicacao
-                                || Mathf.Abs(valor - a.AlturasAntes[i]) > tolerancia
+                                !emAplicacao
+                                || (
+                                    Mathf.Abs(valor - a.AlturasAntes[i]) > tolerancia
+                                    && (
+                                        a.AlturasIntermediarias == null
+                                        || a.AlturasIntermediarias.Length != a.IndicesAltura.Length
+                                        || Mathf.Abs(valor - a.AlturasIntermediarias[i])
+                                            > tolerancia
+                                    )
+                                )
                             )
                         )
                             Conflito();
@@ -714,14 +514,14 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor.Estradas
                         camada,
                         (i, valor) =>
                         {
-                            if (valor != 0 && (!registro.EmAplicacao || valor != camada.Antes[i]))
+                            if (valor != 0 && (!emAplicacao || valor != camada.Antes[i]))
                                 Conflito();
                             return valor;
                         },
                         false
                     );
                 if (
-                    !registro.EmAplicacao
+                    !emAplicacao
                     && dados.treeInstances.Any(arvore =>
                     {
                         var p = a.Origem + Vector3.Scale(arvore.position, dados.size);
@@ -810,6 +610,9 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor.Estradas
                 }
                 a.Dados.SetTreeInstances(arvores.ToArray(), false);
                 a.Dados.SyncHeightmap();
+                foreach (var terreno in Terrain.activeTerrains)
+                    if (terreno.terrainData == a.Dados)
+                        terreno.Flush();
                 EditorUtility.SetDirty(a.Dados);
             }
         }
