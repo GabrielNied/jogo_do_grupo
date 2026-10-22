@@ -1197,8 +1197,8 @@ namespace JogoDoGrupo.Client.Features.Npcs.Editor
                 corpo.name = "Modelo";
                 corpo.transform.SetParent(raiz.transform, false);
 
-                // O Monk olha para -Z no FBX: gira meio giro para a frente ser +Z (regra do Core).
-                corpo.transform.localRotation = Quaternion.Euler(0f, 180f, 0f);
+                // O Monk já olha para +Z no FBX (medido, #1173): sem giro, a frente da raiz é a do passo.
+                corpo.transform.localRotation = Quaternion.identity;
 
                 // Escala para 1,8 m (do chao ao alto da cabeca na pose parada) e pes no chao.
                 var parado = ObterClipe("Idle");
