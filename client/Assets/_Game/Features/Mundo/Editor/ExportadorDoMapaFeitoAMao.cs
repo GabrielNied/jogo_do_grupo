@@ -206,7 +206,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
                     || dados.size
                         != new Vector3(
                             GradeDeTerrenosDoMundo.LadoDoBloco,
-                            MapaDoMundo.AlturaMaxima - MapaDoMundo.AlturaMinima,
+                            terrenos[0].terrainData.size.y,
                             GradeDeTerrenosDoMundo.LadoDoBloco
                         )
                     || terreno.transform.lossyScale != Vector3.one

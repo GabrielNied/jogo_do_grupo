@@ -21,6 +21,34 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
         private const string Cena = "Assets/_Game/Features/Mundo/Scenes/AutoriaDoMapa.unity";
         private const float ToleranciaDaBorda = 0.001f;
 
+        [MenuItem("Jogo do Grupo/Mundo/Abrir autoria em blocos")]
+        public static void AbrirAutoria()
+        {
+            if (EditorApplication.isPlayingOrWillChangePlaymode)
+                throw new InvalidOperationException("Saia do Play antes de abrir a autoria.");
+            if (
+                !Application.isBatchMode
+                && !EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()
+            )
+                return;
+            if (SceneManager.GetActiveScene().path != Cena)
+                EditorSceneManager.OpenScene(Cena, OpenSceneMode.Single);
+            var terrenos = ExportadorDoMapaFeitoAMao.EncontrarTerrenos();
+            GradeDeTerrenosDoMundo.Conectar(terrenos);
+            var central =
+                terrenos.Length == 1
+                    ? terrenos[0]
+                    : terrenos[GradeDeTerrenosDoMundo.Indice(0f, 0f)];
+            Selection.activeGameObject = central.gameObject;
+            SceneView.lastActiveSceneView?.LookAt(
+                new Vector3(0f, 0f, 0f),
+                Quaternion.Euler(50f, 45f, 0f),
+                250f,
+                false,
+                true
+            );
+        }
+
         [MenuItem("Jogo do Grupo/Mundo/Dividir autoria em blocos de 500 m")]
         public static void Dividir()
         {
@@ -66,21 +94,14 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
                     original.transform.position,
                     GradeDeTerrenosDoMundo.Origem(0, 0)
                 ) > ToleranciaDaBorda
-                || Mathf.Abs(origem.size.y - (MapaDoMundo.AlturaMaxima - MapaDoMundo.AlturaMinima))
-                    > ToleranciaDaBorda
+                || origem.size.y <= 0f
             )
                 throw new InvalidOperationException(
-                    "O terreno original precisa ser persistente, alinhado e sem escala/rotação."
+                    $"Origem inválida: persistente={AssetDatabase.Contains(origem)}, posição={original.transform.position}, escala={original.transform.lossyScale}, rotação={original.transform.rotation.eulerAngles}, tamanho={origem.size}. Exigido: X/Z=-1500, base=-2, escala 1, rotação 0 e faixa vertical positiva (preservada da autoria)."
                 );
 
             Debug.Log(
-                $"[Mundo] Origem: {origem.heightmapResolution} relevo, {origem.alphamapResolution} pintura, {origem.detailResolution} detalhes, {origem.alphamapLayers} camadas. Árvores e detalhes não serão migrados."
-            );
-            var alturas = origem.GetHeights(
-                0,
-                0,
-                origem.heightmapResolution,
-                origem.heightmapResolution
+                $"[Mundo] Origem: tamanho={origem.size}, {origem.heightmapResolution} relevo, {origem.alphamapResolution} pintura, {origem.detailResolution} detalhes, {origem.alphamapLayers} camadas. Árvores e detalhes não serão migrados."
             );
             var pintura = origem.GetAlphamaps(0, 0, origem.alphamapWidth, origem.alphamapHeight);
             var buracos = origem.GetHoles(0, 0, origem.holesResolution, origem.holesResolution);
@@ -99,7 +120,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
                         $"Bloco {x}, {z}",
                         indice / (float)novos.Length
                     );
-                    var dados = ReamostrarBloco(origem, alturas, pintura, buracos, camadas, x, z);
+                    var dados = ReamostrarBloco(origem, pintura, buracos, camadas, x, z);
                     AssetDatabase.CreateAsset(dados, $"{PastaDosBlocos}/Terreno_{x}_{z}.asset");
                     grade.Blocos[indice] = dados;
                     var objeto = Terrain.CreateTerrainGameObject(dados);
@@ -128,6 +149,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
                 }
                 GradeDeTerrenosDoMundo.Conectar(novos);
                 ValidarBordas(novos);
+                ValidacaoDosBlocosDeTerreno.ConferirAlturas(origem, novos);
                 // Só troca a cena depois de gerar e conferir todos os blocos.
                 Object.DestroyImmediate(original.gameObject);
                 AssetDatabase.CreateAsset(grade, CaminhoDaGrade);
@@ -187,7 +209,6 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
 
         public static TerrainData ReamostrarBloco(
             TerrainData origem,
-            float[,] alturas,
             float[,,] pintura,
             bool[,] buracos,
             TerrainLayer[] camadas,
@@ -221,14 +242,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
                 GradeDeTerrenosDoMundo.DetalhesPorPatch
             );
             var resolucao = dados.heightmapResolution;
-            var novasAlturas = new float[resolucao, resolucao];
-            for (var z = 0; z < resolucao; z++)
-            for (var x = 0; x < resolucao; x++)
-                novasAlturas[z, x] = Amostrar(
-                    alturas,
-                    Coordenada(blocoX, x, resolucao),
-                    Coordenada(blocoZ, z, resolucao)
-                );
+            var novasAlturas = ReamostrarAlturas(origem, blocoX, blocoZ);
             dados.SetHeights(0, 0, novasAlturas);
             resolucao = dados.alphamapResolution;
             var novaPintura = new float[resolucao, resolucao, camadas.Length];
@@ -291,19 +305,18 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
             (bloco * (resolucao - 1) + indice)
             / (float)(GradeDeTerrenosDoMundo.BlocosPorLado * (resolucao - 1));
 
-        public static float Amostrar(float[,] valores, float x, float z)
+        public static float[,] ReamostrarAlturas(TerrainData origem, int blocoX, int blocoZ)
         {
-            var px = Mathf.Clamp01(x) * (valores.GetLength(1) - 1);
-            var pz = Mathf.Clamp01(z) * (valores.GetLength(0) - 1);
-            var x0 = Mathf.FloorToInt(px);
-            var z0 = Mathf.FloorToInt(pz);
-            var x1 = Mathf.Min(x0 + 1, valores.GetLength(1) - 1);
-            var z1 = Mathf.Min(z0 + 1, valores.GetLength(0) - 1);
-            return Mathf.Lerp(
-                Mathf.Lerp(valores[z0, x0], valores[z0, x1], px - x0),
-                Mathf.Lerp(valores[z1, x0], valores[z1, x1], px - x0),
-                pz - z0
-            );
+            var n = GradeDeTerrenosDoMundo.ResolucaoDoRelevo;
+            var alturas = new float[n, n];
+            // O Unity interpola os triângulos do heightmap, não a superfície bilinear.
+            // Consultar a mesma coordenada global nas duas bordas preserva também as emendas.
+            for (var z = 0; z < n; z++)
+            for (var x = 0; x < n; x++)
+                alturas[z, x] =
+                    origem.GetInterpolatedHeight(Coordenada(blocoX, x, n), Coordenada(blocoZ, z, n))
+                    / origem.size.y;
+            return alturas;
         }
 
         private static void CopiarConfiguracao(Terrain origem, Terrain destino)

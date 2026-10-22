@@ -16,6 +16,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
             var camada = new TerrainLayer();
             var outra = new TerrainLayer();
             var dados = new TerrainData[4];
+            ConjuntoDeVegetacao conjunto = null;
             try
             {
                 for (var z = 0; z < 2; z++)
@@ -115,8 +116,56 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
                             "A pintura não atravessou o canto do bloco " + i
                         );
                 }
+                var texturas = AssetDatabase.FindAssets(
+                    "t:Texture2D",
+                    new[] { "Assets/ThirdParty" }
+                );
+                if (texturas.Length == 0)
+                    throw new InvalidOperationException(
+                        "A validação de vegetação precisa de uma textura persistente do projeto."
+                    );
+                conjunto = ScriptableObject.CreateInstance<ConjuntoDeVegetacao>();
+                conjunto.Raio = 40f;
+                conjunto.CoberturaDeGrama = 1f;
+                conjunto.Gramas.Add(
+                    new EspecieDoPincel
+                    {
+                        Textura = AssetDatabase.LoadAssetAtPath<Texture2D>(
+                            AssetDatabase.GUIDToAssetPath(texturas[0])
+                        ),
+                    }
+                );
+                Undo.IncrementCurrentGroup();
+                var grupo = Undo.GetCurrentGroup();
+                foreach (var terreno in terrenos)
+                    PinturaDeVegetacao.Aplicar(
+                        terreno,
+                        conjunto,
+                        centro,
+                        false,
+                        true,
+                        new System.Random(12345),
+                        terrenos
+                    );
+                Undo.CollapseUndoOperations(grupo);
+                foreach (var terreno in dados)
+                {
+                    var total = 0;
+                    foreach (var valor in terreno.GetDetailLayer(0, 0, 32, 32, 0))
+                        total += valor;
+                    if (total == 0)
+                        throw new InvalidOperationException(
+                            "A vegetação não atravessou uma das quatro divisas."
+                        );
+                }
+                Undo.PerformUndo();
+                foreach (var terreno in dados)
+                    if (terreno.detailPrototypes.Length != 0)
+                        throw new InvalidOperationException(
+                            "Undo não desfez a vegetação nos quatro blocos."
+                        );
                 Debug.Log(
-                    "[Mundo] Validação: relevo e pintura nativos atravessaram quatro blocos; alturas dos cantos coincidem; pincel próprio alcança os quatro vizinhos."
+                    "[Mundo] Validação: relevo, pintura e vegetação atravessaram quatro blocos; alturas dos cantos coincidem; um Undo desfez os quatro blocos de vegetação."
                 );
             }
             finally
@@ -132,6 +181,8 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
                     }
                 Object.DestroyImmediate(camada);
                 Object.DestroyImmediate(outra);
+                if (conjunto != null)
+                    Object.DestroyImmediate(conjunto);
             }
         }
 
@@ -166,11 +217,32 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
         {
             Executar();
             DivisorDoTerrenoEmBlocos.Dividir();
+            ConferirMigracao();
+        }
+
+        public static void ConferirMigracao()
+        {
             var terrenos = ExportadorDoMapaFeitoAMao.EncontrarTerrenos();
             DivisorDoTerrenoEmBlocos.ValidarBordas(terrenos);
             var legado = AssetDatabase.LoadAssetAtPath<TerrainData>(
                 "Assets/_Game/Features/Mundo/Resources/Mundo/TerrenoDoMundo.asset"
             );
+            var erroMaximo = ConferirAlturas(legado, terrenos);
+            foreach (var terreno in terrenos)
+            {
+                if (terreno.terrainData.treeInstanceCount != 0)
+                    throw new InvalidOperationException("Uma árvore foi migrada sem autorização.");
+                if (terreno.GetComponent<TerrainCollider>().terrainData != terreno.terrainData)
+                    throw new InvalidOperationException("Colisor desconectado.");
+            }
+            Debug.Log(
+                $"[Mundo] Validação da migração: {terrenos.Length} blocos, 60 emendas, 90601 amostras de altura; maior diferença para a origem: {erroMaximo:F4} m. Colisores conectados. Grade do servidor inalterada."
+            );
+        }
+
+        public static float ConferirAlturas(TerrainData legado, Terrain[] terrenos)
+        {
+            const float ToleranciaEmMetros = 0.05f;
             var erroMaximo = 0f;
             for (var z = 0; z <= 300; z++)
             for (var x = 0; x <= 300; x++)
@@ -182,16 +254,11 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
                 var original = legado.GetInterpolatedHeight(x / 300f, z / 300f);
                 erroMaximo = Mathf.Max(erroMaximo, Mathf.Abs(altura - original));
             }
-            foreach (var terreno in terrenos)
-            {
-                if (terreno.terrainData.treeInstanceCount != 0)
-                    throw new InvalidOperationException("Uma árvore foi migrada sem autorização.");
-                if (terreno.GetComponent<TerrainCollider>().terrainData != terreno.terrainData)
-                    throw new InvalidOperationException("Colisor desconectado.");
-            }
-            Debug.Log(
-                $"[Mundo] Validação da migração: {terrenos.Length} blocos, 60 emendas, 90601 amostras de altura; maior diferença para a origem: {erroMaximo:F4} m. Colisores conectados. Grade do servidor inalterada."
-            );
+            if (erroMaximo > ToleranciaEmMetros)
+                throw new InvalidOperationException(
+                    $"A reamostragem alterou o relevo em {erroMaximo:F4} m (limite {ToleranciaEmMetros} m). A cena não deve ser trocada."
+                );
+            return erroMaximo;
         }
     }
 }
