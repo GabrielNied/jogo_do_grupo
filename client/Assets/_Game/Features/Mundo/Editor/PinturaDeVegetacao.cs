@@ -10,6 +10,46 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
     {
         private const int TentativasPorArvore = 12;
 
+        /// <summary>Segue apenas os vizinhos conectados ao terreno escolhido.</summary>
+        public static Terrain[] TerrenosConectados(Terrain origem)
+        {
+            var visitados = new HashSet<Terrain>();
+            var fila = new Queue<Terrain>();
+            fila.Enqueue(origem);
+            while (fila.Count > 0)
+            {
+                var terreno = fila.Dequeue();
+                if (terreno == null || !visitados.Add(terreno))
+                    continue;
+                fila.Enqueue(terreno.leftNeighbor);
+                fila.Enqueue(terreno.topNeighbor);
+                fila.Enqueue(terreno.rightNeighbor);
+                fila.Enqueue(terreno.bottomNeighbor);
+            }
+            var resultado = new List<Terrain>(visitados);
+            resultado.Sort(
+                (a, b) =>
+                {
+                    var linha = a.transform.position.z.CompareTo(b.transform.position.z);
+                    return linha != 0
+                        ? linha
+                        : a.transform.position.x.CompareTo(b.transform.position.x);
+                }
+            );
+            return resultado.ToArray();
+        }
+
+        public static bool Intersecta(Terrain terreno, Vector3 centro, float raio)
+        {
+            if (terreno == null || terreno.terrainData == null)
+                return false;
+            var origem = terreno.transform.position;
+            var tamanho = terreno.terrainData.size;
+            var x = Mathf.Clamp(centro.x, origem.x, origem.x + tamanho.x);
+            var z = Mathf.Clamp(centro.z, origem.z, origem.z + tamanho.z);
+            return (new Vector2(x - centro.x, z - centro.z)).sqrMagnitude < raio * raio;
+        }
+
         public static string Validar(ConjuntoDeVegetacao conjunto)
         {
             if (conjunto == null)
@@ -104,7 +144,8 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
             Vector3 centro,
             bool apagar,
             bool registrarUndo = true,
-            System.Random sorteio = null
+            System.Random sorteio = null,
+            Terrain[] vizinhos = null
         )
         {
             var erro = Validar(conjunto);
@@ -136,7 +177,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
                 );
             var local = centro - terreno.transform.position;
             var random = sorteio ?? new System.Random();
-            PintarArvores(dados, conjunto, local, apagar, random);
+            PintarArvores(dados, conjunto, local, apagar, random, terreno, vizinhos);
             PintarDetalhes(
                 dados,
                 conjunto,
@@ -200,7 +241,9 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
             ConjuntoDeVegetacao conjunto,
             Vector3 centro,
             bool apagar,
-            System.Random random
+            System.Random random,
+            Terrain terreno,
+            Terrain[] vizinhos
         )
         {
             var prototipos = new List<TreePrototype>(dados.treePrototypes);
@@ -235,9 +278,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
                 1,
                 (int)
                     Math.Floor(
-                        Math.PI
-                            * conjunto.Raio
-                            * conjunto.Raio
+                        AreaDoPincel(dados, centro, conjunto.Raio)
                             * conjunto.ArvoresPorCemMetros
                             / 100d
                     )
@@ -245,6 +286,28 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
             var existentes = 0;
             var grade = new Dictionary<Vector2Int, List<Vector2>>();
             var passo = conjunto.DistanciaEntreArvores;
+            if (vizinhos != null)
+                foreach (var vizinho in vizinhos)
+                {
+                    if (
+                        vizinho == terreno
+                        || !Intersecta(
+                            vizinho,
+                            terreno.transform.position + centro,
+                            conjunto.Raio + passo
+                        )
+                    )
+                        continue;
+                    foreach (var arvore in vizinho.terrainData.treeInstances)
+                    {
+                        var posicao =
+                            Metros(arvore, vizinho.terrainData)
+                            + vizinho.transform.position
+                            - terreno.transform.position;
+                        if (Dentro(posicao, centro, conjunto.Raio + passo))
+                            RegistrarNaGrade(grade, new Vector2(posicao.x, posicao.z), passo);
+                    }
+                }
             foreach (var arvore in arvores)
             {
                 var posicao = Metros(arvore, dados);
@@ -304,6 +367,33 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
                 existentes++;
             }
             dados.treeInstances = arvores.ToArray();
+        }
+
+        private static double AreaDoPincel(TerrainData dados, Vector3 centro, float raio)
+        {
+            if (
+                centro.x >= raio
+                && centro.z >= raio
+                && centro.x + raio <= dados.size.x
+                && centro.z + raio <= dados.size.z
+            )
+                return Math.PI * raio * raio;
+            const int Fatias = 64;
+            var inicio = Mathf.Max(0f, centro.x - raio);
+            var fim = Mathf.Min(dados.size.x, centro.x + raio);
+            var passo = (fim - inicio) / Fatias;
+            var area = 0d;
+            for (var i = 0; i < Fatias; i++)
+            {
+                var dx = inicio + (i + 0.5f) * passo - centro.x;
+                var dz = Mathf.Sqrt(Mathf.Max(0f, raio * raio - dx * dx));
+                area +=
+                    Mathf.Max(
+                        0f,
+                        Mathf.Min(dados.size.z, centro.z + dz) - Mathf.Max(0f, centro.z - dz)
+                    ) * passo;
+            }
+            return area;
         }
 
         private static Vector2Int Celula(Vector2 ponto, float passo) =>

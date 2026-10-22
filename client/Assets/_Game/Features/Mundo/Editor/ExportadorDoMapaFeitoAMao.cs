@@ -5,6 +5,7 @@ using System.IO;
 using System.Text;
 using JogoDoGrupo.Client.Features.Mundo.Autoria;
 using JogoDoGrupo.Client.Features.Mundo.Hub;
+using JogoDoGrupo.Client.Features.Mundo.Terreno;
 using JogoDoGrupo.Shared.Features.Mundo;
 using UnityEditor;
 using UnityEditor.Compilation;
@@ -53,14 +54,20 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
                 );
             }
 
-            terreno.terrainData = dados;
-            var colisor = terreno.GetComponent<TerrainCollider>();
-            if (colisor != null)
+            var grade = Resources.Load<GradeDeTerrenosDoMundo>(
+                GradeDeTerrenosDoMundo.CaminhoNosResources
+            );
+            foreach (var bloco in mapa.GetComponentsInChildren<Terrain>())
             {
-                colisor.terrainData = dados;
+                var posicao = bloco.transform.position;
+                bloco.terrainData =
+                    grade != null
+                        ? grade.Blocos[GradeDeTerrenosDoMundo.Indice(posicao.x, posicao.z)]
+                        : dados;
+                bloco.GetComponent<TerrainCollider>().terrainData = bloco.terrainData;
+                bloco.gameObject.AddComponent<ConfiguracaoDeAutoriaDoMapa>();
             }
-
-            terreno.gameObject.AddComponent<ConfiguracaoDeAutoriaDoMapa>();
+            GradeDeTerrenosDoMundo.Conectar(mapa.GetComponentsInChildren<Terrain>());
             new GameObject("Áreas do mapa");
             var pontos = new GameObject("Pontos do mapa");
             pontos.AddComponent<MarcadorDePontoDoMapa>();
@@ -102,12 +109,10 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
         [MenuItem("Jogo do Grupo/Mundo/Publicar mapa feito à mão")]
         public static void Publicar()
         {
-            var terrain = EncontrarTerrain();
-            ValidarTerrain(terrain);
+            var terrenos = EncontrarTerrenos();
             var alturas = new short[MapaDoMundo.PontosPorLado * MapaDoMundo.PontosPorLado];
             var biomas = new byte[alturas.Length];
             var areas = new byte[alturas.Length];
-            var configuracao = terrain.GetComponent<ConfiguracaoDeAutoriaDoMapa>();
             var marcadoresDeArea = Object.FindObjectsByType<MarcadorDeAreaDoMapa>(
                 FindObjectsInactive.Exclude
             );
@@ -119,6 +124,11 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
                     var indice = z * MapaDoMundo.PontosPorLado + x;
                     var mundoX = MapaDoMundo.CoordenadaDaGrade(x);
                     var mundoZ = MapaDoMundo.CoordenadaDaGrade(z);
+                    var terrain =
+                        terrenos.Length == 1
+                            ? terrenos[0]
+                            : terrenos[GradeDeTerrenosDoMundo.Indice(mundoX, mundoZ)];
+                    var configuracao = terrain.GetComponent<ConfiguracaoDeAutoriaDoMapa>();
                     alturas[indice] = (short)
                         Mathf.RoundToInt(
                             (
@@ -151,38 +161,64 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
             Debug.Log("[Mundo] Mapa feito à mão publicado para o shared.");
         }
 
-        private static Terrain EncontrarTerrain()
+        internal static Terrain[] EncontrarTerrenos()
         {
-            var terrain = Object.FindAnyObjectByType<Terrain>();
-            if (terrain == null && File.Exists(CaminhoDaCena))
+            var mapa = GameObject.Find(ConstrutorHub.NomeRaiz);
+            if (mapa == null && File.Exists(CaminhoDaCena))
             {
                 EditorSceneManager.OpenScene(CaminhoDaCena, OpenSceneMode.Single);
-                terrain = Object.FindAnyObjectByType<Terrain>();
+                mapa = GameObject.Find(ConstrutorHub.NomeRaiz);
             }
-
-            if (
-                terrain != null
-                && terrain.terrainData != null
-                && terrain.terrainData.size.x == MapaDoMundo.Lado
-            )
-            {
-                return terrain;
-            }
-
-            throw new InvalidOperationException(
-                "Abra a cena de autoria do mapa antes de publicar."
-            );
+            if (mapa == null)
+                throw new InvalidOperationException(
+                    "Abra a cena de autoria do mapa antes de publicar."
+                );
+            return OrdenarEValidarTerrenos(mapa.GetComponentsInChildren<Terrain>());
         }
 
-        private static void ValidarTerrain(Terrain terrain)
+        internal static Terrain[] OrdenarEValidarTerrenos(Terrain[] terrenos)
         {
             if (
-                terrain.terrainData.size.x != MapaDoMundo.Lado
-                || terrain.terrainData.size.z != MapaDoMundo.Lado
+                terrenos.Length == 1
+                && terrenos[0].terrainData != null
+                && terrenos[0].terrainData.size.x == MapaDoMundo.Lado
+                && terrenos[0].terrainData.size.z == MapaDoMundo.Lado
             )
+                return terrenos;
+            if (terrenos.Length != GradeDeTerrenosDoMundo.Quantidade)
+                throw new InvalidOperationException(
+                    "A autoria precisa ter os 36 blocos de terreno."
+                );
+            var ordenados = new Terrain[GradeDeTerrenosDoMundo.Quantidade];
+            foreach (var terreno in terrenos)
             {
-                throw new InvalidOperationException("O Terrain precisa medir 3 km por 3 km.");
+                var posicao = terreno.transform.position;
+                var indice = GradeDeTerrenosDoMundo.Indice(posicao.x, posicao.z);
+                var dados = terreno.terrainData;
+                var origem = GradeDeTerrenosDoMundo.Origem(
+                    indice % GradeDeTerrenosDoMundo.BlocosPorLado,
+                    indice / GradeDeTerrenosDoMundo.BlocosPorLado
+                );
+                if (
+                    dados == null
+                    || ordenados[indice] != null
+                    || Vector3.Distance(posicao, origem) > 0.001f
+                    || dados.size
+                        != new Vector3(
+                            GradeDeTerrenosDoMundo.LadoDoBloco,
+                            MapaDoMundo.AlturaMaxima - MapaDoMundo.AlturaMinima,
+                            GradeDeTerrenosDoMundo.LadoDoBloco
+                        )
+                    || terreno.transform.lossyScale != Vector3.one
+                    || terreno.transform.rotation != Quaternion.identity
+                )
+                    throw new InvalidOperationException(
+                        "Bloco ausente, duplicado, deslocado ou com dimensões inválidas: "
+                            + terreno.name
+                    );
+                ordenados[indice] = terreno;
             }
+            return ordenados;
         }
 
         private static Bioma BiomaDoTerrain(
@@ -201,14 +237,18 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
             var amostras = dados.GetAlphamaps(
                 Mathf.Clamp(
                     Mathf.RoundToInt(
-                        (x + MapaDoMundo.Metade) / MapaDoMundo.Lado * (dados.alphamapWidth - 1)
+                        (x - terrain.transform.position.x)
+                            / dados.size.x
+                            * (dados.alphamapWidth - 1)
                     ),
                     0,
                     dados.alphamapWidth - 1
                 ),
                 Mathf.Clamp(
                     Mathf.RoundToInt(
-                        (z + MapaDoMundo.Metade) / MapaDoMundo.Lado * (dados.alphamapHeight - 1)
+                        (z - terrain.transform.position.z)
+                            / dados.size.z
+                            * (dados.alphamapHeight - 1)
                     ),
                     0,
                     dados.alphamapHeight - 1
@@ -325,7 +365,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
             File.WriteAllText(caminho, texto.ToString(), new UTF8Encoding(false));
         }
 
-        private static void SalvarPrefabPublicado()
+        internal static void SalvarPrefabPublicado()
         {
             var mapa = GameObject.Find(ConstrutorHub.NomeRaiz);
             if (mapa == null)
@@ -333,22 +373,17 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
                 throw new InvalidOperationException("A cena de autoria precisa ter a raiz 'Hub'.");
             }
 
-            var terrain = mapa.GetComponentInChildren<Terrain>();
-            if (
-                terrain != null
-                && (terrain.terrainData == null || !AssetDatabase.Contains(terrain.terrainData))
-            )
+            foreach (var terrain in mapa.GetComponentsInChildren<Terrain>())
             {
-                var asset = AssetDatabase.LoadAssetAtPath<TerrainData>(CaminhoDoTerrain);
-                if (asset != null)
-                {
-                    terrain.terrainData = asset;
-                    var colisor = terrain.GetComponent<TerrainCollider>();
-                    if (colisor != null)
-                    {
-                        colisor.terrainData = asset;
-                    }
-                }
+                if (terrain.terrainData == null || !AssetDatabase.Contains(terrain.terrainData))
+                    throw new InvalidOperationException(
+                        "Terrain temporário: abra AutoriaDoMapa fora do Play antes de publicar."
+                    );
+                var colisor = terrain.GetComponent<TerrainCollider>();
+                if (colisor == null || colisor.terrainData != terrain.terrainData)
+                    throw new InvalidOperationException(
+                        "Colisor desconectado do bloco " + terrain.name
+                    );
             }
 
             ConstrutorHub.RemoverVegetacaoProcedural(mapa.transform);

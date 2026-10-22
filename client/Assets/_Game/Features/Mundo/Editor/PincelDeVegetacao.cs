@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.EditorTools;
 using UnityEngine;
@@ -22,6 +23,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
         private int _controle;
         private Vector3 _ultimaPintura;
         private Terrain _terrenoDoGesto;
+        private readonly HashSet<TerrainData> _dadosDoGesto = new HashSet<TerrainData>();
         private readonly System.Random _sorteio = new System.Random();
         private string _erro;
 
@@ -245,15 +247,22 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
             var controle = GUIUtility.GetControlID(FocusType.Passive);
             if (evento.type == EventType.Layout && !evento.alt)
                 HandleUtility.AddDefaultControl(controle);
-            var colisor = _terreno.GetComponent<TerrainCollider>();
-            if (
-                colisor == null
-                || !colisor.Raycast(
-                    HandleUtility.GUIPointToWorldRay(evento.mousePosition),
-                    out var hit,
-                    float.MaxValue
-                )
-            )
+            var terrenos = PinturaDeVegetacao.TerrenosConectados(_terreno);
+            var raio = HandleUtility.GUIPointToWorldRay(evento.mousePosition);
+            var hit = new RaycastHit();
+            var encontrou = false;
+            var distancia = float.MaxValue;
+            foreach (var terreno in terrenos)
+            {
+                var colisor = terreno.GetComponent<TerrainCollider>();
+                if (colisor != null && colisor.Raycast(raio, out var candidato, distancia))
+                {
+                    hit = candidato;
+                    distancia = candidato.distance;
+                    encontrou = true;
+                }
+            }
+            if (!encontrou)
                 return;
             Handles.DrawWireDisc(hit.point, Vector3.up, _conjunto.Raio);
             if (evento.type == EventType.MouseMove)
@@ -271,22 +280,11 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
                     Undo.IncrementCurrentGroup();
                     _grupoUndo = Undo.GetCurrentGroup();
                     Undo.SetCurrentGroupName("Pintar conjunto de vegetação");
-                    Undo.RegisterCompleteObjectUndo(
-                        _terreno.terrainData,
-                        "Pintar conjunto de vegetação"
-                    );
                     _controle = controle;
                     GUIUtility.hotControl = controle;
                     _terrenoDoGesto = _terreno;
                     _ultimaPintura = hit.point;
-                    PinturaDeVegetacao.Aplicar(
-                        _terreno,
-                        _conjunto,
-                        hit.point,
-                        evento.shift,
-                        false,
-                        _sorteio
-                    );
+                    PintarNosBlocos(terrenos, hit.point, evento.shift);
                 }
                 else if (_grupoUndo >= 0 && _terrenoDoGesto == _terreno)
                 {
@@ -297,14 +295,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
                     for (var i = 1; i <= quantidade; i++)
                     {
                         _ultimaPintura = inicio + direcao.normalized * (i * passo);
-                        PinturaDeVegetacao.Aplicar(
-                            _terreno,
-                            _conjunto,
-                            _ultimaPintura,
-                            evento.shift,
-                            false,
-                            _sorteio
-                        );
+                        PintarNosBlocos(terrenos, _ultimaPintura, evento.shift);
                     }
                 }
                 _erro = null;
@@ -326,6 +317,33 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
             }
         }
 
+        private void PintarNosBlocos(Terrain[] terrenos, Vector3 centro, bool apagar)
+        {
+            foreach (var terreno in terrenos)
+            {
+                if (!PinturaDeVegetacao.Intersecta(terreno, centro, _conjunto.Raio))
+                    continue;
+                if (!EditorUtility.IsPersistent(terreno.terrainData))
+                    throw new InvalidOperationException(
+                        "Um bloco vizinho não tem TerrainData persistente."
+                    );
+                if (_dadosDoGesto.Add(terreno.terrainData))
+                    Undo.RegisterCompleteObjectUndo(
+                        terreno.terrainData,
+                        "Pintar conjunto de vegetação"
+                    );
+                PinturaDeVegetacao.Aplicar(
+                    terreno,
+                    _conjunto,
+                    centro,
+                    apagar,
+                    false,
+                    _sorteio,
+                    terrenos
+                );
+            }
+        }
+
         private void FinalizarGesto()
         {
             if (_grupoUndo >= 0)
@@ -335,6 +353,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
             _grupoUndo = -1;
             _controle = 0;
             _terrenoDoGesto = null;
+            _dadosDoGesto.Clear();
         }
     }
 
