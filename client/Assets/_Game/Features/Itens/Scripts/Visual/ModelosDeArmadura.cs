@@ -138,7 +138,7 @@ namespace JogoDoGrupo.Client.Features.Itens.Visual
             parte.transform.localScale = escala;
 
             var renderizador = parte.GetComponent<Renderer>();
-            var material = new Material(renderizador.sharedMaterial) { color = cor };
+            var material = MateriaisSimples.Criar(cor);
             renderizador.sharedMaterial = material;
             materiais.Registrar(material);
         }

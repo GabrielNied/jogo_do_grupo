@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using JogoDoGrupo.Client.Core.Jogo;
+using JogoDoGrupo.Client.Features.Itens.Visual;
 using JogoDoGrupo.Shared.Features.Itens;
 using UnityEngine;
 
@@ -104,7 +105,7 @@ namespace JogoDoGrupo.Client.Features.Itens
             bloco.transform.localScale = escala;
 
             var renderizador = bloco.GetComponent<Renderer>();
-            var material = new Material(renderizador.sharedMaterial) { color = cor };
+            var material = MateriaisSimples.Criar(cor);
             renderizador.sharedMaterial = material;
             materiais.Registrar(material);
         }
