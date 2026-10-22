@@ -453,6 +453,11 @@ public sealed class AmigosDoServidor(
         _ultimoPedidoSegundos[deConta] = relogioSegundos();
         PersistirPedido(pedido);
         EnviarListas(deConta, dePersonagemId);
+        // Sem isto o alvo online só veria o pedido ao entrar de novo (#1200).
+        if (_onlinePorConta.TryGetValue(alvoConta, out var onlineAlvo))
+        {
+            EnviarListas(alvoConta, onlineAlvo.PersonagemId);
+        }
     }
 
     private void AceitarPedidoInterno(

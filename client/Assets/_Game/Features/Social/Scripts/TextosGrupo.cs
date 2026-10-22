@@ -14,6 +14,9 @@ namespace JogoDoGrupo.Client.Features.Social
         public const string AvisoSemGrupo = "Você não está em um grupo.";
         public const string NaoPodeConvidar = "Só o líder do grupo convida.";
 
+        public static string PedidoDeAmizade(string nome) =>
+            (string.IsNullOrEmpty(nome) ? "Alguém" : nome) + " quer ser seu amigo.";
+
         public static string Recusa(string codigo)
         {
             switch (codigo)

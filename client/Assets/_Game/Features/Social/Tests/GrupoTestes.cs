@@ -370,12 +370,22 @@ namespace JogoDoGrupo.Client.Features.Social.Tests
             {
                 ReceberConvite(5, "Bia");
                 aviso.Atualizar();
-                Click(_raiz.Query<Button>().ToList().First(b => b.text == "Aceitar (Y)"));
+                Click(
+                    _raiz
+                        .Query<Button>()
+                        .ToList()
+                        .First(b => b.text == TeclasDeConvite.TextoAceitar)
+                );
                 Assert.IsTrue(Ultimo<ResponderConvite>(SocialMessageIds.ResponderConvite).Aceitar);
 
                 ReceberConvite(6, "Caio");
                 aviso.Atualizar();
-                Click(_raiz.Query<Button>().ToList().First(b => b.text == "Recusar (N)"));
+                Click(
+                    _raiz
+                        .Query<Button>()
+                        .ToList()
+                        .First(b => b.text == TeclasDeConvite.TextoRecusar)
+                );
                 Assert.IsFalse(Ultimo<ResponderConvite>(SocialMessageIds.ResponderConvite).Aceitar);
             }
             finally

@@ -26,6 +26,30 @@ public sealed class AmigosDoServidorTestes
     }
 
     [Fact]
+    public void Pedido_chega_ao_alvo_online_na_hora()
+    {
+        _a.Amigos.PedirAmizade(AmbienteDeAmigos.A, "Bia");
+        var recebidos = _a.Saida.ListaAmigos(AmbienteDeAmigos.B).PedidosRecebidos;
+        var pedido = Assert.Single(recebidos);
+        Assert.Equal("Ana", pedido.Nome);
+    }
+
+    [Fact]
+    public void Pedido_recebido_aceito_aparece_na_lista_dos_dois_sem_pedidos()
+    {
+        _a.Amigos.PedirAmizade(AmbienteDeAmigos.A, "Bia");
+        var pedidoId = _a.Saida.ListaAmigos(AmbienteDeAmigos.B).PedidosRecebidos[0].PedidoId;
+        _a.Amigos.ResponderPedido(AmbienteDeAmigos.B, pedidoId, true);
+        foreach (var quem in new[] { AmbienteDeAmigos.A, AmbienteDeAmigos.B })
+        {
+            var lista = _a.Saida.ListaAmigos(quem);
+            Assert.Single(lista.Amigos);
+            Assert.Empty(lista.PedidosRecebidos);
+            Assert.Empty(lista.PedidosEnviados);
+        }
+    }
+
+    [Fact]
     public void Aceite_cria_amizade_nos_dois_lados()
     {
         var pedidoId = _a.Pedir(AmbienteDeAmigos.A, AmbienteDeAmigos.B);

@@ -9,8 +9,8 @@ namespace JogoDoGrupo.Client.Features.Social
 {
     /// <summary>
     /// A linha por cima do jogo com a janela fechada: o convite que espera resposta ("O:
-    /// responder") e as mensagens do grupo. Criada pelo <see cref="ObservadorDoGrupo"/> na cena
-    /// do mundo, então o "Sair" descarrega tudo junto.
+    /// responder"), o pedido de amizade recebido e as mensagens do
+    /// grupo. Criada pelo <see cref="ObservadorDoGrupo"/> na cena do mundo, então o "Sair" descarrega tudo junto.
     /// </summary>
     internal sealed class AvisoDoGrupoNaTela : MonoBehaviour
     {
@@ -18,18 +18,22 @@ namespace JogoDoGrupo.Client.Features.Social
         private VisualElement _convite;
         private Label _textoConvite;
         private long _conviteAtual;
+        private long _pedidoAtual;
         private EstadoDoGrupo _estado;
+        private EstadoDeAmigos _amigos;
         private PanelSettings _configuracaoDoPainel;
 
         /// <summary>Liga o aviso à interface. Chamar antes de ativar.</summary>
         public void Configurar(
             VisualElement raizDaInterface,
             PanelSettings configuracaoDoPainel,
-            EstadoDoGrupo estado = null
+            EstadoDoGrupo estado = null,
+            EstadoDeAmigos amigos = null
         )
         {
             _configuracaoDoPainel = configuracaoDoPainel;
             _estado = estado ?? GrupoDoClient.Estado;
+            _amigos = amigos ?? EstadoDeAmigos.DoClient;
 
             // O aviso não pode pegar o mouse nem esconder o jogo: texto solto embaixo da tela.
             _aviso = new Label();
@@ -45,10 +49,13 @@ namespace JogoDoGrupo.Client.Features.Social
             _convite.Add(_textoConvite);
             var acoes = new VisualElement();
             acoes.AddToClassList(EstiloCore.LinhaBotoes);
-            var aceitar = new Button(() => Responder(true)) { text = "Aceitar (Y)" };
+            var aceitar = new Button(() => Responder(true)) { text = TeclasDeConvite.TextoAceitar };
             aceitar.AddToClassList(EstiloCore.Botao);
             aceitar.AddToClassList(EstiloCore.BotaoPrincipal);
-            var recusar = new Button(() => Responder(false)) { text = "Recusar (N)" };
+            var recusar = new Button(() => Responder(false))
+            {
+                text = TeclasDeConvite.TextoRecusar,
+            };
             recusar.AddToClassList(EstiloCore.Botao);
             acoes.Add(aceitar);
             acoes.Add(recusar);
@@ -75,10 +82,9 @@ namespace JogoDoGrupo.Client.Features.Social
             )
                 return;
 
-            if (Keyboard.current.yKey.wasPressedThisFrame)
-                Responder(true);
-            else if (Keyboard.current.nKey.wasPressedThisFrame)
-                Responder(false);
+            var resposta = TeclasDeConvite.Resposta(Keyboard.current);
+            if (resposta != 0)
+                Responder(resposta > 0);
         }
 
         internal void Atualizar()
@@ -89,13 +95,25 @@ namespace JogoDoGrupo.Client.Features.Social
             }
 
             var estado = _estado;
-            var visivel = !JanelasDoJogo.AlgoAberto && estado.Convites.Count > 0;
+            // A troca tem a vez: com ela na tela, o pedido de amizade espera (as mesmas teclas).
+            var temPedido =
+                _amigos.PedidosRecebidos.Count > 0
+                && EstadoDaTrocaDoClient.Instancia.Convite == null;
+            var visivel = !JanelasDoJogo.AlgoAberto && (estado.Convites.Count > 0 || temPedido);
             _convite.style.display = visivel ? DisplayStyle.Flex : DisplayStyle.None;
-            if (visivel)
+            _conviteAtual = 0;
+            _pedidoAtual = 0;
+            if (visivel && estado.Convites.Count > 0)
             {
                 var convite = estado.Convites[estado.Convites.Count - 1];
                 _conviteAtual = convite.ConviteId;
                 _textoConvite.text = ApresentacaoGrupo.TextoDoConvite(convite);
+            }
+            else if (visivel)
+            {
+                var pedido = _amigos.PedidosRecebidos[_amigos.PedidosRecebidos.Count - 1];
+                _pedidoAtual = pedido.PedidoId;
+                _textoConvite.text = TextosGrupo.PedidoDeAmizade(pedido.Nome);
             }
             Mostrar(visivel || JanelasDoJogo.AlgoAberto ? "" : estado.Mensagem);
         }
@@ -104,6 +122,8 @@ namespace JogoDoGrupo.Client.Features.Social
         {
             if (_conviteAtual != 0)
                 _estado.Responder(_conviteAtual, aceitar);
+            else if (_pedidoAtual != 0)
+                _amigos.ResponderPedido(_pedidoAtual, aceitar);
         }
 
         private void Mostrar(string texto)

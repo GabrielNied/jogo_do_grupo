@@ -8,7 +8,7 @@ using UnityEngine.UIElements;
 namespace JogoDoGrupo.Client.Features.Social
 {
     /// <summary>
-    /// O convite de troca por cima do jogo, com a janela fechada: "Aceitar (Y)" e "Recusar (N)".
+    /// O convite de troca por cima do jogo, com a janela fechada: "Aceitar (F1)" e "Recusar (F2)".
     /// As teclas só valem quando não há convite de grupo na tela (que usa as mesmas teclas). Criada
     /// pelo <see cref="ObservadorDoGrupo"/> na cena do mundo.
     /// </summary>
@@ -39,12 +39,15 @@ namespace JogoDoGrupo.Client.Features.Social
 
             var acoes = new VisualElement();
             acoes.AddToClassList(EstiloCore.LinhaBotoes);
-            var aceitar = new Button(() => _estado.ResponderConvite(true)) { text = "Aceitar (Y)" };
+            var aceitar = new Button(() => _estado.ResponderConvite(true))
+            {
+                text = TeclasDeConvite.TextoAceitar,
+            };
             aceitar.AddToClassList(EstiloCore.Botao);
             aceitar.AddToClassList(EstiloCore.BotaoPrincipal);
             var recusar = new Button(() => _estado.ResponderConvite(false))
             {
-                text = "Recusar (N)",
+                text = TeclasDeConvite.TextoRecusar,
             };
             recusar.AddToClassList(EstiloCore.Botao);
             acoes.Add(aceitar);
@@ -86,13 +89,10 @@ namespace JogoDoGrupo.Client.Features.Social
                 return;
             }
 
-            if (Keyboard.current.yKey.wasPressedThisFrame)
+            var resposta = TeclasDeConvite.Resposta(Keyboard.current);
+            if (resposta != 0)
             {
-                _estado.ResponderConvite(true);
-            }
-            else if (Keyboard.current.nKey.wasPressedThisFrame)
-            {
-                _estado.ResponderConvite(false);
+                _estado.ResponderConvite(resposta > 0);
             }
         }
     }
