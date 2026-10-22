@@ -49,6 +49,44 @@ namespace JogoDoGrupo.Client.Features.Pvp
                 ? "🚩 Bandeira PvP Ativada! Cuidado fora da cidade."
                 : "🏳️ Bandeira PvP Desativada.";
 
+        // ── Janela de PvP ────────────────────────────────────────────────────
+
+        public const string TituloDaJanela = "PvP";
+        public const string SecaoBandeira = "Bandeira PvP";
+        public const string SecaoArena = "Arena 3v3";
+        public const string SecaoDuelo = "Duelo";
+        public const string LigarBandeira = "Ligar bandeira";
+        public const string DesligarBandeira = "Desligar bandeira";
+        public const string EntrarNaFila = "Entrar na fila";
+        public const string SairDaFila = "Sair da fila";
+        public const string AtualizarRanking = "Ver ranking";
+        public const string DesafiarProximo = "Desafiar jogador próximo";
+        public const string CancelarDuelo = "Cancelar duelo";
+        public const string SemAlvoProximo = "Nenhum jogador a até 15 m para desafiar.";
+        public const string EmDueloAgora = "Você está em duelo.";
+        public const string SemDuelo = "Sem duelo em andamento.";
+        public const string SemRanking = "Toque em Ver ranking para consultar seus pontos.";
+        public const string SemConexao = "PvP indisponível: entre no mundo primeiro.";
+
+        public static string EstadoDaBandeira(bool ativa) =>
+            ativa
+                ? "Bandeira ligada: você pode lutar com quem também ligou."
+                : "Bandeira desligada. Ligue na cidade para lutar com quem também ligou.";
+
+        public static string EstadoDaArena(bool naFila, bool emArena, int segundos)
+        {
+            if (emArena)
+                return "Partida de arena em andamento.";
+            return naFila ? MensagemFilaArena(true, segundos) : "Fora da fila de arena.";
+        }
+
+        public static string Ranking(RespostaRankingArena r) =>
+            $"Temporada {r.Temporada}: {r.Pontos} pontos, {r.Vitorias} vitórias, {r.Derrotas} derrotas.";
+
+        public static string AlvoProximo(string nome) => $"Alvo próximo: {nome}.";
+
+        public static string DesafioEnviado(string nome) => $"Desafio enviado a {nome}.";
+
         public static string TraduzirRecusa(string motivo) =>
             motivo switch
             {

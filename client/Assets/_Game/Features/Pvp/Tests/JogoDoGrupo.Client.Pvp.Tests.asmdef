@@ -1,0 +1,26 @@
+{
+  "name": "JogoDoGrupo.Client.Pvp.Tests",
+  "rootNamespace": "JogoDoGrupo.Client.Features.Pvp.Tests",
+  "references": [
+    "JogoDoGrupo.Client.Pvp",
+    "JogoDoGrupo.Client.Core",
+    "JogoDoGrupo.Shared",
+    "UnityEngine.TestRunner",
+    "UnityEditor.TestRunner"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": true,
+  "precompiledReferences": [
+    "nunit.framework.dll"
+  ],
+  "autoReferenced": false,
+  "defineConstraints": [
+    "UNITY_INCLUDE_TESTS"
+  ],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

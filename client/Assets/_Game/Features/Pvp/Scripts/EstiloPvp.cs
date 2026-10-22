@@ -18,9 +18,6 @@ namespace JogoDoGrupo.Client.Features.Pvp
         /// <summary>Bloco da janela (bandeira, arena, duelo) com espaço embaixo.</summary>
         public const string Secao = "pvp-secao";
 
-        /// <summary>Linha do ranking: posição e nome à esquerda, pontos à direita.</summary>
-        public const string LinhaRanking = "pvp-linha-ranking";
-
         public static void Aplicar(VisualElement raiz)
         {
             var estilo = Resources.Load<StyleSheet>(Caminho);

@@ -24,8 +24,3 @@
 .pvp-secao {
     margin-bottom: var(--lumora-espacamento-medio);
 }
-
-.pvp-linha-ranking {
-    flex-direction: row;
-    justify-content: space-between;
-}
