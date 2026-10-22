@@ -180,6 +180,7 @@ namespace JogoDoGrupo.Client.Core.Jogo
                 cancelar.ThrowIfCancellationRequested();
                 DesativarDeOutrasCenas();
                 Jogador = CriarJogador(personagemId, inicio);
+                AvataresNoJogo.Registrar(personagemId, Jogador.transform);
                 TelaCarregamento.Atual?.MostrarEtapa(EtapaDoCarregamento.Conexao);
                 var inicioDaEspera = Time.realtimeSinceStartup;
                 while (!ConexaoTempoReal.Conectado)
@@ -282,6 +283,7 @@ namespace JogoDoGrupo.Client.Core.Jogo
             _cancelamento = null;
             EntradaPendente = false;
             _posicaoConfirmada = false;
+            AvataresNoJogo.Limpar();
             if (!NoJogo)
             {
                 return;

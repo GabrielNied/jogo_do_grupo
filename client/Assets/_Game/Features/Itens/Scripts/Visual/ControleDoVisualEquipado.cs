@@ -7,34 +7,31 @@ namespace JogoDoGrupo.Client.Features.Itens.Visual
 {
     /// <summary>
     /// Mantém as armas nos avatares: para cada personagem com visual recebido, acha o avatar (o
-    /// jogador local, ou <c>Jogador_&lt;id&gt;</c> do Mundo para os outros) e aplica o estado quando
+    /// jogador local, ou o que o Mundo registrou em <see cref="AvataresNoJogo"/>) e aplica o estado quando
     /// ele é novo ou quando o avatar é outro objeto (entrou de novo na área). Confere poucas vezes
     /// por segundo: não precisa de evento do Mundo, que não conheço.
     /// </summary>
     public sealed class ControleDoVisualEquipado : MonoBehaviour
     {
-        /// <summary>Prefixo do nome do avatar que o Mundo cria para cada outro jogador.</summary>
-        public const string NomeDoAvatar = "Jogador_";
-
         /// <summary>Segundos entre uma conferência e outra.</summary>
         public const float Intervalo = 0.25f;
 
         /// <summary>Como achar o avatar de um personagem; os testes trocam por um falso.</summary>
-        public static Func<long, GameObject> Buscar { get; set; } = BuscarPorNome;
+        public static Func<long, GameObject> Buscar { get; set; } = BuscarNoRegistro;
 
         private readonly Dictionary<long, (GameObject Avatar, int Versao)> _aplicados =
             new Dictionary<long, (GameObject, int)>();
 
         private float _espera;
 
-        private static GameObject BuscarPorNome(long personagemId)
+        private static GameObject BuscarNoRegistro(long personagemId)
         {
             if (personagemId == EntradaNoJogo.PersonagemId && EntradaNoJogo.Jogador != null)
             {
                 return EntradaNoJogo.Jogador;
             }
 
-            return GameObject.Find(NomeDoAvatar + personagemId);
+            return AvataresNoJogo.Obter(personagemId);
         }
 
         private void Update()

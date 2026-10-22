@@ -178,8 +178,7 @@ namespace JogoDoGrupo.Client.Features.Social
                 return EntradaNoJogo.Jogador.transform;
             }
 
-            var objeto = GameObject.Find($"Jogador_{personagemId}");
-            return objeto != null ? objeto.transform : null;
+            return AvataresNoJogo.TentarObter(personagemId, out var raiz) ? raiz : null;
         }
 
         /// <summary>

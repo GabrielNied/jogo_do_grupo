@@ -591,7 +591,7 @@ namespace JogoDoGrupo.Client.Features.Montarias
                 return EntradaNoJogo.Jogador;
             }
 
-            return GameObject.Find($"Jogador_{personagemId}");
+            return AvataresNoJogo.Obter(personagemId);
         }
 
         private void OnDestroy()

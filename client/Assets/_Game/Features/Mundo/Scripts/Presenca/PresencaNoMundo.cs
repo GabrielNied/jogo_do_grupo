@@ -325,7 +325,8 @@ namespace JogoDoGrupo.Client.Features.Mundo.Presenca
         }
 
         // O visual da raça (gancho do Core, ou cápsula de reserva) vira filho de uma raiz
-        // "Jogador_<id>": Combate acha o Animator por esse nome e Itens prende a arma nela.
+        // "Jogador_<id>", registrada no AvataresNoJogo: Combate acha o Animator por ela, Itens
+        // prende a arma nela e o PvP lista quem está perto.
         private void CriarVisual(AvatarRemoto avatar)
         {
             var raiz = new GameObject($"Jogador_{avatar.PersonagemId}");
@@ -360,6 +361,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Presenca
             }
 
             _visuais[avatar.PersonagemId] = raiz;
+            AvataresNoJogo.Registrar(avatar.PersonagemId, raiz.transform, avatar.Nome);
             _animadores[avatar.PersonagemId] = new AnimadorDoVisual(animator);
         }
 
@@ -420,6 +422,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Presenca
             if (_visuais.TryGetValue(avatar.PersonagemId, out var visual))
             {
                 _visuais.Remove(avatar.PersonagemId);
+                AvataresNoJogo.Remover(avatar.PersonagemId);
                 if (visual != null)
                 {
                     Destroy(visual);
