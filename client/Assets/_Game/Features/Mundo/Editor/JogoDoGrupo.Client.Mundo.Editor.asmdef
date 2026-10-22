@@ -3,7 +3,9 @@
   "rootNamespace": "JogoDoGrupo.Client.Features.Mundo.Editor",
   "references": [
     "JogoDoGrupo.Client.Mundo",
-    "JogoDoGrupo.Shared"
+    "JogoDoGrupo.Shared",
+    "Unity.Splines",
+    "Unity.Mathematics"
   ],
   "includePlatforms": [
     "Editor"
