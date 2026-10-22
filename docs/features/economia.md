@@ -37,6 +37,8 @@ Moedas, mercado, comércio entre jogadores, saídas de recursos e taxas.
   - **Reparo de durabilidade:** sink **leve** (referência New World): reparo barato, desgaste lento; quebrado tira atributos mas é raro numa sessão típica da fatia. Números finos em constante nomeada (agente economia, [#173](https://github.com/GabrielNied/jogo_do_grupo/issues/173)).
   - **Loja de NPC (#173):** o vendedor **compra qualquer item** do inventário por preço **baixo fixo por tier** (sink de lixo); também vende. Preços em `ConfigEconomia`.
   - **Uma loja por categoria** (decidido por Gabriel em 2026-10-18): armeiro (armas), armadureiro (armaduras), taverneiro (comida e bebida) e merceeiro (consumíveis e materiais básicos) substituem o vendedor geral; cada um com catálogo próprio, e todos compram qualquer item pelo preço por tier ([npcs](npcs.md#elenco-da-brasa-mansa), [#1066](https://github.com/GabrielNied/jogo_do_grupo/issues/1066)).
+- **Decisões do Gabriel em 2026-10-22** (quiz de contratos de coleta):
+  - **Contratos de coleta descartados:** sem encomenda com depósito e prazo entre jogadores; os materiais circulam pela troca direta e pelo leilão de ordens (veja a [proposta do board](#proposta-do-board-2026-10-11-não-validada)).
 
 ## Em aberto
 
@@ -191,7 +193,7 @@ Proposta do board em 2026-10-11, **não validada pelo grupo** (seções 07, 08 e
 - ~~**Baú compartilhado:** grupo ou guilda compra acesso~~ Substituído em 2026-10-16 (quiz 3): só **guilda** (party saiu); banco pessoal por conta continua em Definido.
 - **Mercado:** ~~listagem simples a preço fixo, compra direta~~ (substituído em 2026-10-11 pelo leilão de ordens, veja Definido); filtros; o equipamento mantém atributos, raridade, skills e infusões. Troca direta mostra os dois lados antes de confirmar.
 - **Saídas de moeda:** o board não define custos; vale o Definido (custo em coroas na infusão, reparo, taxas).
-- **Expansão futura:** contratos de coleta (depósito do contratante; vencido, devolve). ~~Caravana da Forja (carga fora do inventário, rota segura ou contestada com +50% e aviso de PvP)~~ Removida em 2026-10-21 (Gabriel, quiz de reports beta): a Caravana saiu do jogo e não volta como tarefa. Os contratos vêm depois da troca direta e do leilão.
+- **Expansão futura:** ~~contratos de coleta (depósito do contratante; vencido, devolve)~~ Descartados em 2026-10-22 (Gabriel, quiz de contratos de coleta): a encomenda entre jogadores já cabe na troca direta e no leilão de ordens, e não volta como tarefa. ~~Caravana da Forja (carga fora do inventário, rota segura ou contestada com +50% e aviso de PvP)~~ Removida em 2026-10-21 (Gabriel, quiz de reports beta): a Caravana saiu do jogo e não volta como tarefa.
 
 ## Depende de
 

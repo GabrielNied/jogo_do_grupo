@@ -39,7 +39,7 @@ Conteúdo instanciado para grupos pequenos: dungeons e raids, com foco em derrot
 - [x] Vai ter cronômetro e modificadores, como no Mythic+? Decidido em 2026-10-16: cronômetro sim, modificadores não.
 - [x] **Conflito com o livro (proposta do board, 2026-10-11):** o livro fala em "instâncias de 20 jogadores" (seção 10); aqui continua valendo dungeon de 5 e raid de 10 (decididos em 2026-10-10). Respondido em 2026-10-11 (/decida, #351, [social](social.md#em-aberto)): party de 5, raid de 10, dungeon de 5; os 20 ficam só como proposta registrada.
 - [x] A Mina do Reflexo (três salões, chefe mineral) é a dungeon do MVP? Veja "Livro de Asterra: Mina do Reflexo". Decidido em 2026-10-16: sim.
-- [ ] Veja as [referências](../referencias.md) de dungeons, raids e bosses
+- [x] Veja as [referências](../referencias.md) de dungeons, raids e bosses. Conferidas em 2026-10-22: as decisões acima já seguem WoW (Mythic+) e New World.
 
 ## Regras
 
