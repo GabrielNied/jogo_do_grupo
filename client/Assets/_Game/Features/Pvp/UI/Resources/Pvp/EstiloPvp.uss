@@ -1,0 +1,26 @@
+.pvp-convite-tela {
+    position: absolute;
+    right: var(--lumora-espacamento-padrao);
+    bottom: 35%;
+    width: var(--lumora-dimensoes-chat-largura);
+    max-width: 92%;
+    padding: var(--lumora-espacamento-medio);
+    background-color: var(--lumora-cores-painel);
+    border-width: var(--lumora-bordas-fina);
+    border-color: var(--lumora-cores-ouro);
+    border-radius: var(--lumora-bordas-raio-cartao);
+}
+
+.pvp-convite-tela .linha-botoes {
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+.pvp-convite-tela .botao {
+    flex-grow: 1;
+    min-width: var(--lumora-dimensoes-social-acao);
+}
+
+.pvp-secao {
+    margin-bottom: var(--lumora-espacamento-medio);
+}

@@ -2,13 +2,13 @@ using System;
 using JogoDoGrupo.Client.Core.Jogo;
 using JogoDoGrupo.Shared.Features.Pvp;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 namespace JogoDoGrupo.Client.Features.Pvp
 {
     /// <summary>
     /// Componente Unity que gerencia o fluxo em jogo de PvP:
-    /// escuta convites e atalhos de duelo (Y/N), atualiza notificações e exibe resultados.
+    /// mostra avisos de duelo, arena e bandeira (a resposta ao convite é do
+    /// <see cref="ConviteDeDueloNaTela"/>), atualiza notificações e exibe resultados.
     /// </summary>
     public sealed class ControleDePvp : MonoBehaviour
     {
@@ -46,33 +46,6 @@ namespace JogoDoGrupo.Client.Features.Pvp
                 _estado.AoEncerrarPartidaArena -= AoEncerrarPartidaArena;
 
                 _estado.AoMudarBandeiraPvp -= AoMudarBandeiraPvp;
-            }
-        }
-
-        private void Update()
-        {
-            if (_estado == null)
-            {
-                return;
-            }
-
-            var teclado = Keyboard.current;
-            if (teclado == null)
-            {
-                return;
-            }
-
-            // Resposta a convite de duelo pendente com teclado (Y aceita, N recusa)
-            if (_estado.ConvitePendente != null)
-            {
-                if (teclado.yKey.wasPressedThisFrame)
-                {
-                    _estado.AceitarDuelo(_estado.ConvitePendente.DesafianteId);
-                }
-                else if (teclado.nKey.wasPressedThisFrame)
-                {
-                    _estado.RecusarDuelo(_estado.ConvitePendente.DesafianteId);
-                }
             }
         }
 

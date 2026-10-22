@@ -18,6 +18,12 @@ namespace JogoDoGrupo.Client.Features.Pvp
         public DueloIniciado DueloAtual { get; private set; }
         public ConviteDeDueloRecebido ConvitePendente { get; private set; }
 
+        /// <summary>Segundos que faltam para o convite pendente expirar no servidor.</summary>
+        public float SegundosRestantesConvite { get; private set; }
+
+        /// <summary>O estado do jogador que está no mundo, ou null fora dele.</summary>
+        public static EstadoDePvp Atual { get; private set; }
+
         public bool NaFilaArena { get; private set; }
         public int SegundosNaFilaArena { get; private set; }
         public bool EmArena { get; private set; }
@@ -42,6 +48,23 @@ namespace JogoDoGrupo.Client.Features.Pvp
         public EstadoDePvp()
         {
             RegistrarMensagens();
+            Atual = this;
+        }
+
+        /// <summary>Passa o tempo: o convite pendente some quando o prazo acaba.</summary>
+        public void Atualizar(float segundos)
+        {
+            if (ConvitePendente == null)
+            {
+                return;
+            }
+
+            SegundosRestantesConvite -= segundos;
+            if (SegundosRestantesConvite <= 0f)
+            {
+                ConvitePendente = null;
+                SegundosRestantesConvite = 0f;
+            }
         }
 
         private void RegistrarMensagens()
@@ -117,10 +140,15 @@ namespace JogoDoGrupo.Client.Features.Pvp
                 assinatura?.Dispose();
             }
             _assinaturas.Clear();
+            if (Atual == this)
+            {
+                Atual = null;
+            }
 
             EmDuelo = false;
             DueloAtual = null;
             ConvitePendente = null;
+            SegundosRestantesConvite = 0f;
             NaFilaArena = false;
             EmArena = false;
             PartidaArenaAtual = null;
@@ -190,6 +218,7 @@ namespace JogoDoGrupo.Client.Features.Pvp
         private void AoReceberConviteDueloInterno(ConviteDeDueloRecebido msg)
         {
             ConvitePendente = msg;
+            SegundosRestantesConvite = msg.SegundosParaExpirar;
             AoReceberConviteDuelo?.Invoke(msg);
         }
 

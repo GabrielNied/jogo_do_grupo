@@ -63,6 +63,9 @@ Arenas 3v3, duelos 1v1 e PvP por bandeira opcional no mundo aberto.
   - `PvpModule`: registro no DI, tratamento de mensagens e tick no game loop.
 - `client`:
   - `EstadoDePvp`: gerenciador de rede e estado local do PvP.
-  - `ControleDePvp`: atalhos interativos (Y/N para aceitar/recusar duelo).
+  - `ConviteDeDueloNaTela`: o convite de duelo por cima do jogo, sem abrir janela, com os botões "Aceitar (F1)" e "Recusar (F2)" (tecla ou clique); some ao responder ou quando o prazo do convite acaba. F1 e F2 no lugar de Y e N, que são de Conquistas e Talentos ([#1210](https://github.com/GabrielNied/jogo_do_grupo/issues/1210)).
+  - `ControleDePvp`: avisos de duelo, arena e bandeira.
+  - `JanelaPvp` (tecla **V**, [#1178](https://github.com/GabrielNied/jogo_do_grupo/issues/1178)): três blocos. **Bandeira** (liga ou desliga; estado de `EstadoDePvp`), **Arena 3v3** (entrar ou sair da fila com o tempo, pontos, vitórias, derrotas e temporada da consulta ao ranking) e **Duelo** (desafiar o jogador mais próximo a até 15 m, estado, cancelar). A recusa do servidor aparece com o motivo (`TextosPvp.TraduzirRecusa`). Decisões de design: tecla V por estar livre; o ranking é o do próprio jogador, porque `RespostaRankingArena` traz só os dados dele; botões desabilitados quando a ação não se aplica (em duelo ou arena não entra na fila nem desafia).
+  - `EscolhaDoAlvoDeDuelo` e `FonteDeAlvosDeDuelo`: o alvo é o mais próximo no alcance (regra pura, testada). PvP não referencia Mundo nem Social, então a lista de jogadores próximos vem de uma fonte que quem conhece os avatares registra (`FonteDeAlvosDeDuelo.Candidatos`). **Pendente:** registrar essa fonte (o Core ou o Mundo precisa expor os jogadores próximos); sem ela a janela mostra "Nenhum jogador a até 15 m" e o botão Desafiar fica desabilitado.
   - `TextosPvp`: formatação localizada de avisos e notificações.
   - `ObservadorDePvp`: ciclo de vida Unity e inicialização.
