@@ -670,6 +670,36 @@ namespace JogoDoGrupo.Server.Core.Persistencia.Migrations
                     b.ToTable("MontariasDaConta", (string)null);
                 });
 
+            modelBuilder.Entity("JogoDoGrupo.Server.Features.Mundo.PosicaoDoPersonagem", b =>
+                {
+                    b.Property<long>("PersonagemId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Area")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("AtualizadoEm")
+                        .HasColumnType("TEXT");
+
+                    b.Property<float>("RotacaoY")
+                        .HasColumnType("REAL");
+
+                    b.Property<float>("X")
+                        .HasColumnType("REAL");
+
+                    b.Property<float>("Y")
+                        .HasColumnType("REAL");
+
+                    b.Property<float>("Z")
+                        .HasColumnType("REAL");
+
+                    b.HasKey("PersonagemId");
+
+                    b.ToTable("PosicoesDosPersonagens", (string)null);
+                });
+
             modelBuilder.Entity("JogoDoGrupo.Server.Features.Personagem.NomeReservado", b =>
                 {
                     b.Property<long>("Id")

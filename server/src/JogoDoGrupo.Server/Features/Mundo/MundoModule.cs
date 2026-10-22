@@ -7,6 +7,7 @@ using JogoDoGrupo.Server.Core;
 using JogoDoGrupo.Server.Core.Canais;
 using JogoDoGrupo.Server.Core.Eventos;
 using JogoDoGrupo.Server.Core.TempoReal;
+using JogoDoGrupo.Shared.Features.Instancias;
 using JogoDoGrupo.Shared.Features.Mundo;
 
 namespace JogoDoGrupo.Server.Features.Mundo;
@@ -38,6 +39,7 @@ public sealed class MundoModule
     private IGerenciadorDeCanais? _gerenciadorCanais;
     private IConsultaDeGrupo? _consultaGrupo;
     private IEstadoDeCombate? _combate;
+    private IPersistenciaDePosicaoDoMundo? _persistencia;
     private IGerenciadorDeCanais Gerenciador => _gerenciadorCanais ??= new GerenciadorDeCanais();
 
     private GradeDeInteresse ObterGrade(string area) =>
@@ -55,19 +57,21 @@ public sealed class MundoModule
     }
 
     public MundoModule()
-        : this(null, null, null, null) { }
+        : this(null, null, null, null, null) { }
 
     public MundoModule(
         IEstadoDeQueda? queda = null,
         IGerenciadorDeCanais? gerenciadorCanais = null,
         IEstadoDeCombate? combate = null,
-        IConsultaDeGrupo? consultaGrupo = null
+        IConsultaDeGrupo? consultaGrupo = null,
+        IPersistenciaDePosicaoDoMundo? persistencia = null
     )
     {
         _queda = queda;
         _gerenciadorCanais = gerenciadorCanais;
         _combate = combate;
         _consultaGrupo = consultaGrupo;
+        _persistencia = persistencia;
     }
 
     // Criado pelo contêiner quando o app sobe (hosted service); o manipulador de rede só o usa
@@ -86,6 +90,10 @@ public sealed class MundoModule
         );
         servicos.AddSingleton<ITransicoesDeAreaDoMundo>(this);
         servicos.AddSingleton<IControleDeVelocidadeDoMundo>(this);
+        servicos.AddSingleton<IPersistenciaDePosicaoDoMundo>(sp => new PersistenciaDePosicaoDoMundo(
+            sp.GetRequiredService<IServiceScopeFactory>(),
+            sp.GetService<ILogger<PersistenciaDePosicaoDoMundo>>()
+        ));
         servicos.AddSingleton(sp => new TeleporteDeTeste(
             _areas,
             sp.GetRequiredService<ServidorTempoReal>(),
@@ -157,6 +165,7 @@ public sealed class MundoModule
         _gerenciadorCanais ??= servicos.GetService<IGerenciadorDeCanais>();
         _combate ??= servicos.GetService<IEstadoDeCombate>();
         _consultaGrupo ??= servicos.GetService<IConsultaDeGrupo>();
+        _persistencia ??= servicos.GetService<IPersistenciaDePosicaoDoMundo>();
         _permitirVelocidadeDeTeste = PoliticaDeVelocidadeDeTeste.Ligada(
             servicos.GetRequiredService<IConfiguration>(),
             servicos.GetRequiredService<IHostEnvironment>(),
@@ -271,11 +280,37 @@ public sealed class MundoModule
             return;
         }
 
+        PosicaoNaCidade posicaoInicial;
+        var salva = _persistencia?.Carregar(sessao.PersonagemId);
+        if (salva != null)
+        {
+            if (!AreasDoMundo.EhCidade(salva.Area))
+            {
+                posicaoInicial = new PosicaoNaCidade(
+                    LayoutDaMinaDoReflexo.EntradaX,
+                    LayoutDaMinaDoReflexo.EntradaY,
+                    LayoutDaMinaDoReflexo.EntradaZ,
+                    0f
+                );
+            }
+            else
+            {
+                var candidata = new PosicaoNaCidade(salva.X, salva.Y, salva.Z, salva.RotacaoY);
+                posicaoInicial = ValidadorDeMovimento.PosicaoSalvaValida(candidata)
+                    ? candidata
+                    : ValidadorDeMovimento.Nascimento;
+            }
+        }
+        else
+        {
+            posicaoInicial = ValidadorDeMovimento.Nascimento;
+        }
+
         var (novo, eu, outros) = _areas.Entrar(
             sessao.PersonagemId,
             sessao,
             areaCidade,
-            ValidadorDeMovimento.Nascimento
+            posicaoInicial
         );
         var grade = ObterGrade(areaCidade);
         // Na cidade cada um recebe só quem está dentro do raio de visão (#500).
@@ -639,6 +674,32 @@ public sealed class MundoModule
         }
 
         var (area, estadoArea) = localizado.Value;
+        if (estadoArea.Obter(sessao.PersonagemId) is { } avatar)
+        {
+            if (!AreasDoMundo.EhCidade(area))
+            {
+                _persistencia?.Salvar(
+                    sessao.PersonagemId,
+                    AreasDoMundo.Cidade,
+                    LayoutDaMinaDoReflexo.EntradaX,
+                    LayoutDaMinaDoReflexo.EntradaY,
+                    LayoutDaMinaDoReflexo.EntradaZ,
+                    0f
+                );
+            }
+            else
+            {
+                _persistencia?.Salvar(
+                    sessao.PersonagemId,
+                    area,
+                    avatar.Posicao.X,
+                    avatar.Posicao.Y,
+                    avatar.Posicao.Z,
+                    avatar.Posicao.RotacaoY
+                );
+            }
+        }
+
         if (!estadoArea.Sair(sessao.PersonagemId, sessao))
         {
             return;
