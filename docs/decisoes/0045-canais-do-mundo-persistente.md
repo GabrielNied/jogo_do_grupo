@@ -10,7 +10,7 @@ Com o mundo persistente (D1 opção A), falta como aguentar mais jogadores na me
 ## Decisão
 
 1. **Canais:** um processo de servidor roda **vários canais** (cópias lógicas do **mesmo** mundo). Cada canal tem lotação de **80 jogadores** (constante nomeada; calibrável).
-2. **Entrada:** ao entrar no mundo, o jogador vai para o **canal do grupo** (party/guilda conforme [social](../features/social.md)) ou, se avulso, para o canal **menos cheio**.
+2. **Entrada:** ao entrar no mundo, o jogador vai para o **canal do grupo** (party/guilda conforme [social](../features/social.md)) ou, se avulso, para o **primeiro canal com vaga** (1, depois 2, depois 3...). *Revisado em 2026-10-21 (Gabriel): era "canal menos cheio", que espalhava os primeiros jogadores sem motivo.*
 3. **Troca de canal:** permitida **fora de combate**; recusada em combate ([combate](../features/combate.md)).
 4. **Fora do escopo** desta decisão: sharding por região em vários processos, hub instanciado separado, matchmaking cross-server.
 5. **Quando implementar:** depois da [fatia jogável](../features/fatia-jogavel.md); a fatia pode rodar **um canal só** até a entrega de #188. A regra de produto já vale para ADRs e docs.

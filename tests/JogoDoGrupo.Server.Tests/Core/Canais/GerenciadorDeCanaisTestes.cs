@@ -7,21 +7,45 @@ namespace JogoDoGrupo.Server.Tests.Core.Canais;
 public sealed class GerenciadorDeCanaisTestes
 {
     [Fact]
-    public void Escolhe_canal_menos_cheio_para_jogador_avulso()
+    public void Jogadores_avulsos_entram_no_primeiro_canal_com_vaga()
     {
         var gerenciador = new GerenciadorDeCanais(
             new ConfiguracaoCanais(QuantidadeCanais: 3, CapacidadePorCanal: 10)
         );
 
-        // Entram jogadores no canal 1
-        gerenciador.RegistrarEntrada(1, 1);
-        gerenciador.RegistrarEntrada(2, 1);
-        // Entra um jogador no canal 2
-        gerenciador.RegistrarEntrada(3, 2);
+        var primeiro = gerenciador.EscolherCanalDeEntrada(1, membrosDoGrupo: null);
+        Assert.Equal(1, primeiro);
+        gerenciador.RegistrarEntrada(1, primeiro!.Value);
 
-        // O canal menos cheio agora é o canal 3 (0 jogadores)
-        var canalEscolhido = gerenciador.EscolherCanalDeEntrada(4, membrosDoGrupo: null);
-        Assert.Equal(3, canalEscolhido);
+        // Mesmo com o canal 2 e 3 vazios, o segundo avulso encontra o primeiro no canal 1
+        var segundo = gerenciador.EscolherCanalDeEntrada(2, membrosDoGrupo: null);
+        Assert.Equal(1, segundo);
+    }
+
+    [Fact]
+    public void Avulso_vai_ao_proximo_canal_quando_o_primeiro_esta_cheio()
+    {
+        var gerenciador = new GerenciadorDeCanais(
+            new ConfiguracaoCanais(QuantidadeCanais: 3, CapacidadePorCanal: 1)
+        );
+
+        gerenciador.RegistrarEntrada(1, 1);
+
+        Assert.Equal(2, gerenciador.EscolherCanalDeEntrada(2, membrosDoGrupo: null));
+    }
+
+    [Fact]
+    public void Canal_que_volta_a_ter_vaga_e_o_proximo_escolhido()
+    {
+        var gerenciador = new GerenciadorDeCanais(
+            new ConfiguracaoCanais(QuantidadeCanais: 3, CapacidadePorCanal: 1)
+        );
+
+        gerenciador.RegistrarEntrada(1, 1);
+        gerenciador.RegistrarEntrada(2, 2);
+        gerenciador.RegistrarSaida(1);
+
+        Assert.Equal(1, gerenciador.EscolherCanalDeEntrada(3, membrosDoGrupo: null));
     }
 
     [Fact]
@@ -35,7 +59,7 @@ public sealed class GerenciadorDeCanaisTestes
         gerenciador.RegistrarEntrada(1, 2);
         // Canal 3 está vazio (0 jogadores)
 
-        // Jogador 2 avulso iria para o canal 3, mas tem o jogador 1 no grupo
+        // Jogador 2 avulso iria para o canal 1, mas tem o jogador 1 no grupo
         var canalEscolhido = gerenciador.EscolherCanalDeEntrada(2, membrosDoGrupo: [1]);
         Assert.Equal(2, canalEscolhido);
     }

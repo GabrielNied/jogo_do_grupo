@@ -68,7 +68,7 @@ Esse modelo evita `lock` espalhado por `Combate`, `Mobs` e `Itens`, reduz a chan
 Para suportar capacidade escalável sem sharding geográfico complexo, cada processo de servidor roda múltiplos **canais** lógicos do mundo (`ConfigCanais.QuantidadeCanaisPadrao = 3`, configurável via `Canais:Quantidade`; capacidade de 80 jogadores por canal, `ConfigCanais.CapacidadePorCanal` / `Canais:Capacidade`).
 
 - **Instanciação:** áreas da cidade são particionadas por canal (`cidade`, `cidade:2`, `cidade:3`...) com grades de interesse (`GradeDeInteresse`) independentes e chat de cidade isolado por canal.
-- **Entrada:** membros do mesmo grupo são direcionados para o canal dos aliados se houver vaga; jogadores avulsos são alocados no canal menos cheio.
+- **Entrada:** membros do mesmo grupo são direcionados para o canal dos aliados se houver vaga; jogadores avulsos entram no primeiro canal com vaga (1, depois 2, depois 3...).
 - **Troca de canal:** o client pode consultar (`ConsultarCanais`, `/canais`) e solicitar troca (`PedirTrocaDeCanal`, `/canal <N>`). A troca é permitida fora de combate e recusada em combate (`EmCombate`), se o canal for inválido (`CanalInvalido`), se for o mesmo canal (`MesmoCanal`) ou se o canal estiver lotado (`CanalLotado`). Ao trocar, as coordenadas são mantidas na nova instância e os observadores antigos/novos são atualizados de forma atômica.
 
 ## Servidor: como uma funcionalidade se pluga
@@ -265,7 +265,7 @@ Cada funcionalidade recebe uma faixa de 1000 IDs, declarada em `shared/Package/R
 - ~~Biblioteca de rede para o **tempo real** (ex.: LiteNetLib).~~ Decidido em 2026-10-11: LiteNetLib por UDP ([ADR 0015](decisoes/0015-litenetlib-para-o-tempo-real.md)). Conta e personagens já usam HTTP ([ADR 0009](decisoes/0009-api-http-para-conta-e-personagens.md)).
 - ~~Banco de dados e persistência~~ decidido: EF Core com SQLite no desenvolvimento e PostgreSQL depois ([ADR 0010](decisoes/0010-banco-de-dados.md)).
 - ~~Como hospedar as sessões de grupo pequeno: um processo de servidor por sessão ou várias sessões por processo? Onde fica o hub social?~~ Substituído em 2026-10-11: o formato voltou a ser mundo persistente (D1 opção A da [validação](brainstorm/validacao.md)).
-- ~~Como dividir o mundo persistente entre servidores~~ Decidido em 2026-10-16: **canais** no mesmo processo (80 jogadores/canal, entrada pelo grupo ou canal menos cheio, troca fora de combate). Detalhe em [ADR 0045](decisoes/0045-canais-do-mundo-persistente.md); implementação [#188](https://github.com/GabrielNied/jogo_do_grupo/issues/188). Sharding geográfico em várias máquinas fica para depois.
+- ~~Como dividir o mundo persistente entre servidores~~ Decidido em 2026-10-16: **canais** no mesmo processo (80 jogadores/canal, entrada pelo grupo ou primeiro canal com vaga, troca fora de combate). Detalhe em [ADR 0045](decisoes/0045-canais-do-mundo-persistente.md); implementação [#188](https://github.com/GabrielNied/jogo_do_grupo/issues/188). Sharding geográfico em várias máquinas fica para depois.
 - Onde hospedar o servidor sem custo: proposta no [ADR 0021](decisoes/0021-hospedagem-gratuita.md) (PC do grupo agora, Oracle Cloud em São Paulo depois).
 - Sincronização do combate de ação: como o servidor autoritativo valida acertos com latência (D4).
 - ~~Testes automatizados~~ decidido: xUnit no shared e no servidor, com testes de integração da API ([ADR 0013](decisoes/0013-testes-automatizados.md)).
