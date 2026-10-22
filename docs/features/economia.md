@@ -191,7 +191,7 @@ Proposta do board em 2026-10-11, **não validada pelo grupo** (seções 07, 08 e
 - ~~**Baú compartilhado:** grupo ou guilda compra acesso~~ Substituído em 2026-10-16 (quiz 3): só **guilda** (party saiu); banco pessoal por conta continua em Definido.
 - **Mercado:** ~~listagem simples a preço fixo, compra direta~~ (substituído em 2026-10-11 pelo leilão de ordens, veja Definido); filtros; o equipamento mantém atributos, raridade, skills e infusões. Troca direta mostra os dois lados antes de confirmar.
 - **Saídas de moeda:** o board não define custos; vale o Definido (custo em coroas na infusão, reparo, taxas).
-- **Expansão futura:** contratos de coleta (depósito do contratante; vencido, devolve) e Caravana da Forja (carga fora do inventário, rota segura ou contestada com +50% e aviso de PvP). Vêm depois da troca direta e do leilão.
+- **Expansão futura:** contratos de coleta (depósito do contratante; vencido, devolve). ~~Caravana da Forja (carga fora do inventário, rota segura ou contestada com +50% e aviso de PvP)~~ Removida em 2026-10-21 (Gabriel, quiz de reports beta): a Caravana saiu do jogo e não volta como tarefa. Os contratos vêm depois da troca direta e do leilão.
 
 ## Depende de
 
