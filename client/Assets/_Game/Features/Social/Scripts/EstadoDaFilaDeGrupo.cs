@@ -82,11 +82,31 @@ namespace JogoDoGrupo.Client.Features.Social
             Mudou?.Invoke();
         }
 
+        private float _acumuladorSegundos;
+
         public void IncrementarTempo()
         {
             if (EmFila)
             {
                 SegundosNaFila++;
+                Mudou?.Invoke();
+            }
+        }
+
+        public void Atualizar(float segundos)
+        {
+            if (!EmFila)
+            {
+                _acumuladorSegundos = 0f;
+                return;
+            }
+
+            _acumuladorSegundos += segundos;
+            if (_acumuladorSegundos >= 1f)
+            {
+                var segs = (int)_acumuladorSegundos;
+                _acumuladorSegundos -= segs;
+                SegundosNaFila += segs;
                 Mudou?.Invoke();
             }
         }
@@ -98,6 +118,7 @@ namespace JogoDoGrupo.Client.Features.Social
                 return;
             }
 
+            _acumuladorSegundos = 0f;
             EmFila = status.EmFila;
             if (status.EmFila)
             {

@@ -24,6 +24,9 @@ namespace JogoDoGrupo.Client.Features.Social
             Amigos,
         }
 
+        private static AbaSocial _abaInicial = AbaSocial.Grupo;
+        private static JanelaGrupo _instanciaAberta;
+
         private PainelGrupo _painelGrupo;
         private PainelFilaGrupo _painelFila;
         private PainelAmigos _painelAmigos;
@@ -31,9 +34,25 @@ namespace JogoDoGrupo.Client.Features.Social
         private VisualElement _conteudoFila;
         private VisualElement _conteudoAmigos;
         private AbaSocial _abaAtiva = AbaSocial.Grupo;
-        private EstadoDaFilaDeGrupo _estadoFila;
+        private readonly EstadoDaFilaDeGrupo _estadoFilaCustomizado;
 
         public override bool MolduraSocial => true;
+
+        public JanelaGrupo()
+            : this(null) { }
+
+        internal JanelaGrupo(EstadoDaFilaDeGrupo estadoFila)
+        {
+            _estadoFilaCustomizado = estadoFila;
+        }
+
+        /// <summary>Abre a janela social focada na aba do Dungeon Finder.</summary>
+        public static void AbrirNaFila()
+        {
+            _abaInicial = AbaSocial.ProcurarGrupo;
+            JanelasDoJogo.Abrir(Chave);
+            _instanciaAberta?.SelecionarAba(AbaSocial.ProcurarGrupo);
+        }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void Registrar()
@@ -48,6 +67,7 @@ namespace JogoDoGrupo.Client.Features.Social
 
         protected override void Montar(VisualElement conteudo)
         {
+            _instanciaAberta = this;
             EstiloSocial.Aplicar(conteudo);
             var abas = new VisualElement();
             abas.AddToClassList(EstiloCore.LinhaBotoes);
@@ -76,26 +96,30 @@ namespace JogoDoGrupo.Client.Features.Social
             rolagemDeAmigos.Add(_conteudoAmigos);
             conteudo.Add(rolagemDeAmigos);
 
-            _estadoFila = new EstadoDaFilaDeGrupo();
+            var estadoFila = _estadoFilaCustomizado ?? FilaDeGrupoDoClient.Estado;
             _painelGrupo = new PainelGrupo(
                 _conteudoGrupo,
                 GrupoDoClient.Estado,
                 titulo =>
                     DefinirTitulo(_abaAtiva == AbaSocial.Grupo ? titulo : TituloDaAba(_abaAtiva))
             );
-            _painelFila = new PainelFilaGrupo(_conteudoFila, _estadoFila);
+            _painelFila = new PainelFilaGrupo(_conteudoFila, estadoFila);
             _painelAmigos = new PainelAmigos(_conteudoAmigos, EstadoDeAmigos.DoClient);
-            SelecionarAba(AbaSocial.Grupo);
+            SelecionarAba(_abaInicial);
+            _abaInicial = AbaSocial.Grupo;
         }
 
         protected override void AoFechar()
         {
+            if (_instanciaAberta == this)
+            {
+                _instanciaAberta = null;
+            }
+
             _painelGrupo?.Dispose();
             _painelGrupo = null;
             _painelFila?.Dispose();
             _painelFila = null;
-            _estadoFila?.Dispose();
-            _estadoFila = null;
             _painelAmigos?.Dispose();
             _painelAmigos = null;
         }

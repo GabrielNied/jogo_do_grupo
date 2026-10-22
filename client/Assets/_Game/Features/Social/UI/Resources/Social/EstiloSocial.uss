@@ -356,3 +356,67 @@
     bottom: 50%;
 }
 
+/* Indicador no HUD da fila de Dungeon Finder (perto do minimapa) */
+.social-fila-hud {
+    flex-direction: row;
+    align-items: center;
+    background-color: var(--lumora-cores-hud-fundo);
+    border-width: 1px;
+    border-color: var(--lumora-cores-ouro);
+    border-radius: 16px;
+    padding: 3px 8px;
+    margin-bottom: var(--lumora-espacamento-curto);
+    cursor: link;
+    transition-property: background-color, border-color;
+    transition-duration: 0.15s;
+}
+
+.social-fila-hud:hover {
+    background-color: var(--lumora-cores-hover);
+    border-color: var(--lumora-cores-hover-primario);
+}
+
+.social-fila-hud-corpo {
+    flex-direction: row;
+    align-items: center;
+    cursor: link;
+}
+
+.social-fila-hud-icone {
+    font-size: 16px;
+    margin-right: 6px;
+    -unity-text-align: middle-center;
+    width: 20px;
+    height: 20px;
+}
+
+.social-fila-hud-tempo {
+    color: var(--lumora-cores-ouro);
+    font-size: 13px;
+    -unity-font-style: bold;
+    margin-right: 8px;
+    -unity-text-align: middle-left;
+}
+
+.social-fila-hud-cancelar {
+    min-width: 18px;
+    min-height: 18px;
+    width: 18px;
+    height: 18px;
+    padding: 0;
+    margin: 0;
+    border-width: 0;
+    border-radius: 9px;
+    background-color: rgba(184, 50, 42, 0.6);
+    color: var(--lumora-cores-marfim);
+    font-size: 11px;
+    -unity-text-align: middle-center;
+    -unity-font-style: bold;
+    cursor: link;
+}
+
+.social-fila-hud-cancelar:hover {
+    background-color: var(--lumora-cores-vida);
+    color: #ffffff;
+}
+

@@ -193,6 +193,19 @@ Código em `server/src/JogoDoGrupo.Server/Features/Social/`: as regras vivem em 
 - **Líder offline:** a vaga guardada e a troca de liderança vencem juntas, passados os 60 s; ali ele sai do grupo como se tivesse saído.
 - **Reconvite bloqueado** vale para quem expulsou e para o grupo, e continua valendo se a expulsão desfez o grupo.
 
+### Fila de grupo (Dungeon Finder, issue #1201)
+
+Formação automática de grupos para dungeons no servidor (1 Tanque, 1 Healer e 3 DPS).
+
+#### Regras do client e HUD
+- **Persistência ao fechar janelas:** fechar a janela Social (`JanelaGrupo`, tecla O ou Esc) **não** cancela a busca nem descarta o estado da fila (`FilaDeGrupoDoClient`). Reabrir a janela a qualquer momento reflete exatamente o estado atualizado da fila (tempo decorrido, papel e contadores).
+- **Indicador no HUD (Minimapa):** enquanto o jogador estiver na fila (`EmFila == true`), um ícone animado e giratório fica visível no canto superior direito do HUD (`RegiaoDoHud.SuperiorDireita`), próximo ao minimapa.
+- **Interação pelo HUD:**
+  - **Clique no corpo do ícone:** abre a janela Social diretamente focada na aba do Dungeon Finder (`JanelaGrupo.AbrirNaFila`).
+  - **Botão Cancelar (✕):** cancela a fila imediatamente pelo HUD (`SairDaFilaDeGrupo`), sem necessidade de abrir a janela.
+  - **Dica de contexto (tooltip):** exibe o papel selecionado, tempo decorrido e composição atual (Tanques, Healers e DPS).
+- **Cancelamento e formação:** sair da fila ou ter o grupo formado (`GrupoDeFilaFormado`) encerra o estado ativo e remove automaticamente o indicador do HUD.
+
 ### Chat de texto (issue #95)
 
 ~~Tudo aqui é **proposta**; nada é decisão ainda.~~ Aprovado por Gabriel em 2026-10-16 (canais e limites). Base: chat do [World of Warcraft](../referencias.md) (canais com cor, sussurro por nome, comandos com barra). Igual: canal da área, canal do grupo, sussurro e abrir a caixa com Enter. Diferente: só três canais, sem canais criados por jogadores, sem canal de comércio e sem guilda por enquanto.
