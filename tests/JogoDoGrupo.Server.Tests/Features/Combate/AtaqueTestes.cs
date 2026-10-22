@@ -195,12 +195,18 @@ public class AtaqueTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDeA
 
     private int _sequenciaDeMovimento = 100;
 
+    // O boneco fica ao lado da praça (#1186), longe do nascimento: cada jogador de teste é posto
+    // 2 m atrás dele, olhando para +Z, como antes o nascimento deixava.
+    private static readonly float PostoX = (float)ConfigBonecoDeTreino.X;
+    private static readonly float PostoZ = (float)ConfigBonecoDeTreino.Z - 2f;
+
     /// <summary>
     /// Anda o personagem até <paramref name="x"/> sem esperar tempo fixo: o validador de movimento do
     /// Mundo (relógio real) só aceita o que dá correndo, então reenvia até a posição chegar.
     /// </summary>
-    private async Task MoverAsync(Jogador j, float x)
+    private async Task MoverAsync(Jogador j, float deslocamentoX)
     {
+        var x = PostoX + deslocamentoX;
         var fim = Environment.TickCount64 + 10_000;
         while (true)
         {
@@ -209,7 +215,7 @@ public class AtaqueTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDeA
                 new IntencaoDeMovimento
                 {
                     X = x,
-                    Z = ValidadorDeMovimento.Nascimento.Z,
+                    Z = PostoZ,
                     Sequencia = _sequenciaDeMovimento++,
                 }
             );
@@ -256,6 +262,21 @@ public class AtaqueTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDeA
         {
             cliente.Enviar(MundoMessageIds.EntrarNaCidade, new EntrarNaCidade());
             await cliente.ReceberAsync<EstadoDaCidade>(MundoMessageIds.EstadoDaCidade);
+            servidor
+                .Falso.Services.GetRequiredService<ITeleporteDeTeste>()
+                .Teleportar(personagem.Id, PostoX, ValidadorDeMovimento.Nascimento.Y, PostoZ);
+            var forcada = await cliente.ReceberAsync<PosicaoForcada>(
+                MundoMessageIds.PosicaoForcada
+            );
+            cliente.Enviar(
+                MundoMessageIds.ConfirmarPosicaoForcada,
+                new ConfirmarPosicaoForcada { Sequencia = forcada.Sequencia }
+            );
+            await PosicaoNoServidor.EsperarAsync(
+                servidor.Falso.Services,
+                personagem.Id,
+                p => p.X == PostoX && p.Z == PostoZ
+            );
         }
 
         return jogador;
@@ -268,8 +289,8 @@ public class AtaqueTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDeA
             MundoMessageIds.IntencaoDeMovimento,
             new IntencaoDeMovimento
             {
-                X = ValidadorDeMovimento.Nascimento.X,
-                Z = ValidadorDeMovimento.Nascimento.Z,
+                X = PostoX,
+                Z = PostoZ,
                 RotacaoY = 180f,
                 Sequencia = sequencia,
             }
@@ -705,8 +726,8 @@ public class AtaqueTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDeA
             MundoMessageIds.IntencaoDeMovimento,
             new IntencaoDeMovimento
             {
-                X = ValidadorDeMovimento.Nascimento.X,
-                Z = ValidadorDeMovimento.Nascimento.Z,
+                X = PostoX,
+                Z = PostoZ,
                 RotacaoY = 180f,
                 Sequencia = 1,
             }
@@ -744,7 +765,7 @@ public class AtaqueTestes(ServidorDeAtaque servidor) : IClassFixture<ServidorDeA
     {
         using var ana = await NovoJogadorAsync();
         // Mesma direção para o boneco antes e depois; só a distância muda.
-        const float DirecaoParaOBoneco = -56.3f; // de (3, -24) até (0, -22)
+        const float DirecaoParaOBoneco = -56.3f; // de (X + 3, Z - 2) até (X, Z)
 
         // O servidor não devolve a posição ao dono (ADR 0024): confere a dele.
         await MoverAsync(ana, 3f);

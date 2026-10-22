@@ -8,6 +8,7 @@ namespace JogoDoGrupo.Server.Tests.Features.Combate;
 
 public class BonecoDeTreinoTestes
 {
+    private const double X = ConfigBonecoDeTreino.X;
     private const double Z = ConfigBonecoDeTreino.Z;
     private long _agoraMs = 1_000;
 
@@ -18,7 +19,7 @@ public class BonecoDeTreinoTestes
 
     // 2 m atrás do boneco, olhando para ele (+Z).
     private static IReadOnlyList<AlvoDeCombate> NoVolume(IAlvosDeCombate b) =>
-        b.AlvosNoVolume(AreasDoMundo.Cidade, 0, Z - 2, 0);
+        b.AlvosNoVolume(AreasDoMundo.Cidade, X, Z - 2, 0);
 
     [Fact]
     public void Comeca_com_180_de_vida_e_aparece_no_volume_do_golpe()
@@ -33,15 +34,22 @@ public class BonecoDeTreinoTestes
     }
 
     [Fact]
-    public void Nascimento_do_hub_alcanca_o_boneco()
+    public void Nascimento_do_hub_nao_fica_em_cima_do_boneco_nem_na_linha_da_capita()
     {
-        // O jogador novo nasce no hub olhando para +Z e já deve alcançar o boneco.
         var nascimento = ValidadorDeMovimento.Nascimento;
 
-        var alvos = Novo()
-            .AlvosNoVolume(AreasDoMundo.Cidade, nascimento.X, nascimento.Z, nascimento.RotacaoY);
-
-        Assert.Single(alvos);
+        // Nasce fora do alcance do golpe: o boneco fica ao lado da praça (#1186).
+        Assert.Empty(
+            Novo()
+                .AlvosNoVolume(AreasDoMundo.Cidade, nascimento.X, nascimento.Z, nascimento.RotacaoY)
+        );
+        Assert.True(
+            Math.Abs(ConfigBonecoDeTreino.X - nascimento.X) >= 3.0,
+            "O boneco deve ficar ao lado do nascimento, não à frente dele."
+        );
+        // A linha reta do nascimento até a Capitã Valéria (x 0, z -32) fica livre.
+        var valeria = JogoDoGrupo.Shared.Features.Npcs.CatalogoNpcs.Valeria;
+        Assert.True(Math.Abs(ConfigBonecoDeTreino.X - valeria.X) > ConfigBonecoDeTreino.Raio + 1.0);
     }
 
     [Fact]
@@ -135,14 +143,14 @@ public class BonecoDeTreinoTestes
         var boneco = Novo();
 
         // Alcance 2,5 m mais o raio do corpo (0,5 m): 3 m ainda pega, 3,1 m não.
-        Assert.Single(boneco.AlvosNoVolume(AreasDoMundo.Cidade, 0, Z - 3.0, 0));
-        Assert.Empty(boneco.AlvosNoVolume(AreasDoMundo.Cidade, 0, Z - 3.1, 0));
+        Assert.Single(boneco.AlvosNoVolume(AreasDoMundo.Cidade, X, Z - 3.0, 0));
+        Assert.Empty(boneco.AlvosNoVolume(AreasDoMundo.Cidade, X, Z - 3.1, 0));
         // De costas para o boneco.
-        Assert.Empty(boneco.AlvosNoVolume(AreasDoMundo.Cidade, 0, Z - 2, 180));
+        Assert.Empty(boneco.AlvosNoVolume(AreasDoMundo.Cidade, X, Z - 2, 180));
         // Cone de 90 graus: 45 graus ainda pega, 50 não.
-        Assert.Single(boneco.AlvosNoVolume(AreasDoMundo.Cidade, 0, Z - 2, 45));
-        Assert.Empty(boneco.AlvosNoVolume(AreasDoMundo.Cidade, 0, Z - 2, 50));
-        Assert.Empty(boneco.AlvosNoVolume("dungeon", 0, Z - 2, 0));
+        Assert.Single(boneco.AlvosNoVolume(AreasDoMundo.Cidade, X, Z - 2, 45));
+        Assert.Empty(boneco.AlvosNoVolume(AreasDoMundo.Cidade, X, Z - 2, 50));
+        Assert.Empty(boneco.AlvosNoVolume("dungeon", X, Z - 2, 0));
     }
 
     [Fact]
@@ -174,11 +182,5 @@ public class BonecoDeTreinoTestes
     {
         Assert.Equal(180, ConfigBonecoDeTreino.Vida);
         Assert.Equal(5.0, ConfigBonecoDeTreino.SegundosParaRecuperar);
-        // Dentro do mundo e longe o bastante do nascimento para não nascer em cima dele.
-        Assert.InRange(
-            Math.Abs(ConfigBonecoDeTreino.Z - ValidadorDeMovimento.Nascimento.Z),
-            RegrasAtaque.AlcanceMetros * 0.5,
-            RegrasAtaque.AlcanceMetros + ConfigBonecoDeTreino.Raio
-        );
     }
 }

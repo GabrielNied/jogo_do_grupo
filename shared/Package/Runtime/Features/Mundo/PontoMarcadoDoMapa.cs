@@ -53,13 +53,16 @@ namespace JogoDoGrupo.Shared.Features.Mundo
             );
         }
 
+        // O nascimento fica sempre na altura do chão (a mesma que o servidor usa para validar o
+        // movimento). O Y do marcador não vale: um marcador acima do relevo (28,13 sobre um
+        // chão de 25,18) fazia o personagem nascer no ar e cair 3 m (#1186).
         private static PontoMarcadoDoMapa SobreOChao(PontoMarcadoDoMapa ponto) =>
             new PontoMarcadoDoMapa(
                 ponto.Id,
                 ponto.Tipo,
                 ponto.X,
                 ponto.Z,
-                System.Math.Max(ponto.Y ?? float.MinValue, MapaDoMundo.AlturaEm(ponto.X, ponto.Z))
+                MapaDoMundo.AlturaEm(ponto.X, ponto.Z)
             );
     }
 }

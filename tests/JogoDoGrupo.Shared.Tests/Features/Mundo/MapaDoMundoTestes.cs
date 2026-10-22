@@ -21,7 +21,7 @@ public class MapaDoMundoTestes : IDisposable
     [Theory]
     [InlineData(28.13f)]
     [InlineData(-200f)]
-    public void Nascimento_preserva_marcador_sem_enterrar_no_terreno(float y)
+    public void Nascimento_usa_x_e_z_do_marcador_na_altura_do_chao(float y)
     {
         var marcador = new PontoMarcadoDoMapa(
             "nascimento",
@@ -33,7 +33,7 @@ public class MapaDoMundoTestes : IDisposable
         var nascimento = NascimentoDoMapa.Resolver(new[] { marcador });
         Assert.Equal(30f, nascimento.X);
         Assert.Equal(-40f, nascimento.Z);
-        Assert.Equal(Math.Max(y, MapaDoMundo.AlturaEm(30f, -40f)), nascimento.Y);
+        Assert.Equal(MapaDoMundo.AlturaEm(30f, -40f), nascimento.Y);
     }
 
     [Fact]
