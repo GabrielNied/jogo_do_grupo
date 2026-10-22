@@ -39,6 +39,19 @@ namespace JogoDoGrupo.Shared.Tests.Features.Npcs
         }
 
         [Fact]
+        public void Rota_TrechoParaMaisZ_OlhaZeroGrau()
+        {
+            var rota = new RotaDeNpc(
+                new[] { new PontoDeRota(0f, 0f), new PontoDeRota(0f, 10f) },
+                ModoDeRota.Ciclo,
+                2f
+            );
+
+            Assert.Equal(0f, rota.Amostrar(2.0).RotacaoY, 3);
+            Assert.Equal(180f, Math.Abs(rota.Amostrar(7.0).RotacaoY), 3);
+        }
+
+        [Fact]
         public void Rota_VaiEVolta_RetornaPeloMesmoCaminho()
         {
             var rota = new RotaDeNpc(
