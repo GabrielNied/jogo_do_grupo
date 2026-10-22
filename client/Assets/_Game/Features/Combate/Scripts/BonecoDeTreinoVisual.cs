@@ -3,46 +3,45 @@ using System.Collections.Generic;
 using JogoDoGrupo.Client.Core.TempoReal;
 using JogoDoGrupo.Shared.Features.Combate;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace JogoDoGrupo.Client.Features.Combate
 {
     /// <summary>
-    /// O boneco de treino da cidade (<see cref="RegrasBonecoDeTreino"/>): um poste com tronco e
-    /// cabeça de palha montado em código, com barra de vida sobre a cabeça. Só mostra o que o
-    /// servidor confirma: a vida vem de <see cref="AtaqueAcertou"/> e a volta à vida cheia, depois
-    /// de <see cref="RegrasBonecoDeTreino.SegundosParaRecuperar"/> sem golpes, é a mesma conta que o
+    /// O boneco de treino da cidade (<see cref="RegrasBonecoDeTreino"/>): o modelo de palha CC0
+    /// (prefab <c>Combate/BonecoDeTreino</c>, gerado por <c>GeradorDoBonecoDeTreino</c>), ou um
+    /// poste de primitivas se o prefab faltar. A vida aparece na etiqueta de UI no estilo dos
+    /// inimigos (<see cref="EtiquetaDoBoneco"/>), sem barra 3D. Só mostra o que o servidor
+    /// confirma: a vida vem de <see cref="AtaqueAcertou"/> e a volta à vida cheia, depois de
+    /// <see cref="RegrasBonecoDeTreino.SegundosParaRecuperar"/> sem golpes, é a mesma conta que o
     /// servidor faz. O flash e o recuo são do <see cref="ControleImpacto"/>, que acha o boneco pelo
     /// <see cref="RegistroDeAlvos"/>.
     /// </summary>
     internal sealed class BonecoDeTreinoVisual : MonoBehaviour
     {
         public const string Nome = "Boneco de treino";
-        public const float LarguraDaBarra = 1.1f;
-        public const float AlturaDaBarra = 0.12f;
-        public const float AlturaSobreACabeca = 0.25f;
+        public const string CaminhoDoPrefab = "Combate/BonecoDeTreino";
+
+        /// <summary>Folga, em metros, entre o alto do boneco e a etiqueta.</summary>
+        public const float AlturaDaEtiqueta = 0.35f;
 
         private static readonly Color CorDaMadeira = new Color(0.45f, 0.32f, 0.2f);
         private static readonly Color CorDaPalha = new Color(0.78f, 0.66f, 0.38f);
-        private static readonly Color CorDoFundoDaBarra = new Color(0.08f, 0.06f, 0.06f, 0.85f);
-        private static readonly Color CorDaVida = new Color(0.78f, 0.18f, 0.16f);
-        private static readonly Color CorDaVidaZerada = new Color(0.3f, 0.3f, 0.3f);
 
         private readonly List<IDisposable> _assinaturas = new List<IDisposable>();
         private readonly List<Material> _materiais = new List<Material>();
         private Vector3 _posicao;
-        private Transform _barra;
-        private Transform _preenchimento;
-        private Renderer _renderPreenchimento;
+        private EtiquetaDoBoneco _etiqueta;
         private int _vida = RegrasBonecoDeTreino.Vida;
         private int _vidaMaxima = RegrasBonecoDeTreino.Vida;
         private float _ultimoGolpe = float.NegativeInfinity;
 
         /// <summary>Monta o boneco na posição do shared, sobre o chão.</summary>
-        public static BonecoDeTreinoVisual Criar()
+        public static BonecoDeTreinoVisual Criar(VisualElement camadaDaEtiqueta = null)
         {
             var raiz = new GameObject(Nome);
             var boneco = raiz.AddComponent<BonecoDeTreinoVisual>();
-            boneco.Montar();
+            boneco.Montar(camadaDaEtiqueta);
             return boneco;
         }
 
@@ -74,25 +73,10 @@ namespace JogoDoGrupo.Client.Features.Combate
                 _vida = _vidaMaxima;
             }
 
-            if (_preenchimento != null)
-            {
-                var fracao = Fracao;
-                _preenchimento.localScale = new Vector3(
-                    Mathf.Max(0.0001f, LarguraDaBarra * fracao),
-                    AlturaDaBarra,
-                    1f
-                );
-                _preenchimento.localPosition = new Vector3(
-                    -LarguraDaBarra * (1f - fracao) * 0.5f,
-                    0f,
-                    -0.001f
-                );
-                _renderPreenchimento.sharedMaterial.color =
-                    fracao <= 0f ? CorDaVidaZerada : CorDaVida;
-            }
+            _etiqueta?.MostrarVida(Fracao);
         }
 
-        private void Montar()
+        private void Montar(VisualElement camadaDaEtiqueta)
         {
             _posicao = new Vector3(
                 (float)RegrasBonecoDeTreino.X,
@@ -102,6 +86,41 @@ namespace JogoDoGrupo.Client.Features.Combate
             transform.position = _posicao;
 
             RegistroDeAlvos.Registrar(RegrasBonecoDeTreino.AlvoId, gameObject);
+            if (!MontarModelo())
+            {
+                MontarDePrimitivas();
+            }
+
+            if (camadaDaEtiqueta != null)
+            {
+                _etiqueta = new EtiquetaDoBoneco(camadaDaEtiqueta, Nome);
+            }
+
+            Atualizar(Time.unscaledTime);
+        }
+
+        private bool MontarModelo()
+        {
+            var prefab = Resources.Load<GameObject>(CaminhoDoPrefab);
+            if (prefab == null)
+            {
+                return false;
+            }
+
+            var modelo = Instantiate(prefab, transform);
+            modelo.name = "Modelo";
+            modelo.transform.localPosition = Vector3.zero;
+            modelo.transform.localRotation = Quaternion.identity;
+            foreach (var colisor in modelo.GetComponentsInChildren<Collider>())
+            {
+                RemoverColisor(colisor.gameObject);
+            }
+
+            return true;
+        }
+
+        private void MontarDePrimitivas()
+        {
             Parte(
                 PrimitiveType.Cylinder,
                 "Base",
@@ -137,9 +156,6 @@ namespace JogoDoGrupo.Client.Features.Combate
                 new Vector3(0.36f, 0.36f, 0.36f),
                 CorDaPalha
             );
-
-            MontarBarra();
-            Atualizar(Time.unscaledTime);
         }
 
         private Transform Parte(
@@ -162,38 +178,6 @@ namespace JogoDoGrupo.Client.Features.Combate
                 cor
             );
             return parte.transform;
-        }
-
-        private void MontarBarra()
-        {
-            var caixa = new GameObject("Barra de vida");
-            _barra = caixa.transform;
-            _barra.SetParent(transform, false);
-            _barra.localPosition = new Vector3(
-                0f,
-                (float)RegrasBonecoDeTreino.Altura + AlturaSobreACabeca,
-                0f
-            );
-
-            var fundo = Quadro("Fundo", CorDoFundoDaBarra);
-            fundo.localScale = new Vector3(LarguraDaBarra + 0.04f, AlturaDaBarra + 0.04f, 1f);
-            _preenchimento = Quadro("Vida", CorDaVida);
-            _renderPreenchimento = _preenchimento.GetComponent<Renderer>();
-        }
-
-        private Transform Quadro(string nome, Color cor)
-        {
-            var quadro = GameObject.CreatePrimitive(PrimitiveType.Quad);
-            quadro.name = nome;
-            RemoverColisor(quadro);
-
-            quadro.transform.SetParent(_barra, false);
-            var render = quadro.GetComponent<Renderer>();
-            // Sem iluminação e sem sombra: a barra se lê de longe, de qualquer lado.
-            render.sharedMaterial = NovoMaterial("Sprites/Default", cor);
-            render.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-            render.receiveShadows = false;
-            return quadro.transform;
         }
 
         // O boneco nao bloqueia ninguem: o servidor nao o conhece como obstaculo. Nos testes de edicao
@@ -249,6 +233,7 @@ namespace JogoDoGrupo.Client.Features.Combate
         private void OnDestroy()
         {
             RegistroDeAlvos.Remover(RegrasBonecoDeTreino.AlvoId, gameObject);
+            _etiqueta?.Remover();
             foreach (var material in _materiais)
             {
                 if (material == null)
@@ -300,14 +285,13 @@ namespace JogoDoGrupo.Client.Features.Combate
             Atualizar(Time.unscaledTime);
         }
 
-        // A barra de vida olha para a câmera.
+        // A etiqueta de vida segue a cabeça do boneco na tela.
         private void LateUpdate()
         {
-            var camera = Camera.main;
-            if (_barra != null && camera != null)
-            {
-                _barra.rotation = camera.transform.rotation;
-            }
+            _etiqueta?.Posicionar(
+                Camera.main,
+                _posicao + Vector3.up * ((float)RegrasBonecoDeTreino.Altura + AlturaDaEtiqueta)
+            );
         }
     }
 }

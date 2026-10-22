@@ -1,0 +1,4 @@
+"Low-poly Staffs" (só o cajado do feiticeiro, FBX renomeado de "Sorcerer's Staff.fbx"; cores lisas
+sem textura), publicado no OpenGameArt (https://opengameart.org/content/low-poly-staffs),
+licença CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/). Baixado em 2026-10-21.
+Uso (#1188): cajado equipado.

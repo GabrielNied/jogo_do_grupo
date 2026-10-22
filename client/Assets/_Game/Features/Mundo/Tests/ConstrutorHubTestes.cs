@@ -102,7 +102,10 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
             );
 
             Assert.IsTrue(achou, "Nada abaixo do nascimento.");
-            Assert.AreEqual(inicio.Posicao.y, batida.point.y, 0.01f);
+            // O nascimento usa a altura da grade publicada (a mesma do servidor); o Terrain da cena
+            // pode diferir dela por alguns decímetros até o #1132 reamostrar. O que não pode é
+            // nascer no ar: a queda de 3 m do #1186 vinha do Y do marcador (28,13 sobre 25,18).
+            Assert.AreEqual(inicio.Posicao.y, batida.point.y, 0.5f);
         }
 
         [Test]
@@ -129,7 +132,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
             var inicio = Construir();
 
             var frente = inicio.Rotacao * Vector3.forward;
-            var paraCentro = (Vector3.zero - inicio.Posicao).normalized;
+            var paraCentro = new Vector3(-inicio.Posicao.x, 0f, -inicio.Posicao.z).normalized;
 
             Assert.Greater(Vector3.Dot(frente, paraCentro), 0.99f);
         }
@@ -333,7 +336,8 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
         {
             var inicio = Construir();
 
-            Assert.AreEqual(new Vector3(0f, 0f, -24f), inicio.Posicao);
+            Assert.AreEqual(0f, inicio.Posicao.x);
+            Assert.AreEqual(-24f, inicio.Posicao.z);
             Assert.Less(Mathf.Abs(inicio.Posicao.x), LayoutDoHub.MetadeAndavel);
             Assert.Less(Mathf.Abs(inicio.Posicao.z), LayoutDoHub.MetadeAndavel);
             Assert.AreEqual(Vector3.forward, inicio.Rotacao * Vector3.forward);

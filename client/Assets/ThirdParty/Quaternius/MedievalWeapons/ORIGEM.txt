@@ -1,0 +1,6 @@
+"LowPoly Medieval Weapons" (Medieval Weapons Pack - Sept 2018), de Quaternius
+(https://opengameart.org/content/lowpoly-medieval-weapons), licença CC0 1.0
+(https://creativecommons.org/publicdomain/zero/1.0/). Baixado em 2026-10-21.
+Só os modelos usados (FBX, cores lisas sem textura): Sword, Bow_Wooden, Hammer_Double e Shield_Heater.
+Usos (#1188): espada, arco, martelo e escudo equipados. A origem e o tamanho de cada um são
+acertados pelo gerador de editor ModelosDeItensImportador (Itens), não pelo FBX.

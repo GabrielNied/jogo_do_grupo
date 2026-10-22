@@ -228,8 +228,39 @@ namespace JogoDoGrupo.Client.Features.Itens.Tests
                 TipoEquipamento.Cajado,
                 EncaixeDoVisual.MaoDireita
             );
-            Assert.AreEqual(15f, rotCajado.eulerAngles.x, 0.1f);
-            Assert.AreEqual(-0.70f, posCajado.y, 0.05f);
+            Assert.AreEqual(35f, rotCajado.eulerAngles.x, 0.1f);
+            Assert.AreEqual(-0.70f * Mathf.Cos(35f * Mathf.Deg2Rad), posCajado.y, 0.01f);
+
+            var (posEscudo, rotEscudo) = ApresentadorDoVisual.ObterTransformacao(
+                TipoEquipamento.Escudo,
+                EncaixeDoVisual.MaoDireita
+            );
+            Assert.AreEqual(22f, rotEscudo.eulerAngles.x, 0.1f);
+            Assert.Greater(posEscudo.z, 0f); // O escudo fica à frente da palma
+        }
+
+        [Test]
+        public void Escudo_TemModeloEVaiParaAsCostasDeFaceParaFora()
+        {
+            Assert.IsTrue(ModelosDeArma.Tem(TipoEquipamento.Escudo));
+            var modelo = ModelosDeArma.Criar(TipoEquipamento.Escudo);
+            try
+            {
+                Assert.IsNotNull(modelo);
+                Assert.IsNotEmpty(modelo.GetComponentsInChildren<Renderer>());
+                Assert.IsEmpty(modelo.GetComponentsInChildren<Collider>());
+            }
+            finally
+            {
+                Object.DestroyImmediate(modelo);
+            }
+
+            var (pos, rot) = ApresentadorDoVisual.ObterTransformacao(
+                TipoEquipamento.Escudo,
+                EncaixeDoVisual.Costas
+            );
+            Assert.Less(pos.z, 0f);
+            Assert.AreEqual(180f, rot.eulerAngles.y, 0.1f);
         }
 
         [Test]

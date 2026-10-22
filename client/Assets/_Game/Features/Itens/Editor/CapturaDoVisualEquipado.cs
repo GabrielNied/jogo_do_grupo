@@ -113,6 +113,8 @@ namespace JogoDoGrupo.Client.Features.Itens.Editor
                     },
                 };
                 ApresentadorDoVisual.Aplicar(jogador.transform, visualPadrao);
+                logBuffer.AppendLine(Diagnostico(jogador.transform));
+                Debug.Log(logBuffer.ToString());
                 Foto(camera, jogador.transform, 0f, Path.Combine(saida, "visual-frente.png"));
                 Foto(camera, jogador.transform, 90f, Path.Combine(saida, "visual-lado.png"));
                 Foto(camera, jogador.transform, 180f, Path.Combine(saida, "visual-costas.png"));
@@ -124,6 +126,7 @@ namespace JogoDoGrupo.Client.Features.Itens.Editor
                     TipoEquipamento.Martelo,
                     TipoEquipamento.Arco,
                     TipoEquipamento.Cajado,
+                    TipoEquipamento.Escudo,
                 };
                 for (int i = 0; i < armas.Length; i++)
                 {
@@ -166,6 +169,45 @@ namespace JogoDoGrupo.Client.Features.Itens.Editor
                 Object.DestroyImmediate(luz.gameObject);
                 Object.DestroyImmediate(camera.gameObject);
             }
+        }
+
+        private static string Diagnostico(Transform jogador)
+        {
+            var texto = new System.Text.StringBuilder("[VisualEquipado] armas no avatar:");
+            foreach (var arma in jogador.GetComponentsInChildren<ArmaNoAvatar>(true))
+            {
+                texto
+                    .AppendLine()
+                    .Append("  ")
+                    .Append(arma.name)
+                    .Append(" em ")
+                    .Append(arma.transform.position.ToString("F2"))
+                    .Append(" escala do mundo ")
+                    .Append(arma.transform.lossyScale.ToString("F3"))
+                    .Append(" pai ")
+                    .Append(
+                        arma.transform.parent != null
+                            ? arma.transform.parent.name
+                                + " "
+                                + arma.transform.parent.lossyScale.ToString("F3")
+                            : "nenhum"
+                    );
+                foreach (var r in arma.GetComponentsInChildren<Renderer>(true))
+                {
+                    texto
+                        .AppendLine()
+                        .Append("    ")
+                        .Append(r.name)
+                        .Append(" ativo=")
+                        .Append(r.gameObject.activeInHierarchy)
+                        .Append(" limites ")
+                        .Append(r.bounds.center.ToString("F2"))
+                        .Append(" tam ")
+                        .Append(r.bounds.size.ToString("F2"));
+                }
+            }
+
+            return texto.ToString();
         }
 
         private static void Foto(Camera camera, Transform alvo, float graus, string arquivo)

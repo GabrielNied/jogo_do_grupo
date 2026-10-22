@@ -1,0 +1,6 @@
+"Fantasy Props MegaKit" (versão Standard gratuita), de Quaternius
+(https://opengameart.org/content/fantasy-props-megakit, https://quaternius.com), licença CC0 1.0
+(License_Standard.txt, https://creativecommons.org/publicdomain/zero/1.0/). Baixado em 2026-10-21.
+Só o que o jogo usa: o modelo Dummy.fbx (boneco de treino de palha, #1188) e as três texturas de cor
+das placas de materiais que ele usa (Furniture, Metal e Cloth; sem normal nem ORM, para poupar
+espaço no LFS). Os materiais URP são gerados por ModelosDeItensImportador (Itens).

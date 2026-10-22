@@ -20,12 +20,14 @@ namespace JogoDoGrupo.Shared.Features.Combate
         public const double SegundosParaRecuperar = 5.0;
 
         /// <summary>
-        /// Posição na cidade (m, plano do chão): 2 m à frente do ponto de nascimento (0, -24),
-        /// olhando para +Z, para o jogador novo já alcançar o boneco com a espada.
+        /// <summary>
+        /// Posição na cidade (m, plano do chão): ao lado da praça, 4,5 m à esquerda e 3 m à frente
+        /// do ponto de nascimento (0, -24), olhando para +Z. Fora do caminho do jogador novo e da
+        /// linha reta do nascimento até a Capitã Valéria (x 0, z -32), e do outro lado do baú.
         /// </summary>
-        public const double X = 0.0;
+        public const double X = -4.5;
 
-        public const double Z = -22.0;
+        public const double Z = -21.0;
 
         /// <summary>Raio do corpo, em metros; desconta da distância do golpe.</summary>
         public const double Raio = 0.5;
