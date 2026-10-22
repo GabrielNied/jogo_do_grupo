@@ -23,6 +23,8 @@ namespace JogoDoGrupo.Client.Features.Social
         private GameObject _jogadorAtendido;
         private PainelListaGrupoHud _painelHud;
         private VisualElement _regiaoAtendida;
+        private IconeFilaGrupoHud _iconeFilaHud;
+        private VisualElement _regiaoMinimapaAtendida;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void Iniciar()
@@ -68,7 +70,9 @@ namespace JogoDoGrupo.Client.Features.Social
 
             estado.DefinirPersonagem(EntradaNoJogo.PersonagemId);
             estado.Atualizar(Time.unscaledDeltaTime);
+            FilaDeGrupoDoClient.Estado.Atualizar(Time.unscaledDeltaTime);
             GarantirHud(estado);
+            _iconeFilaHud?.AtualizarRotacao(Time.unscaledDeltaTime);
 
             if (jogador == _jogadorAtendido)
             {
@@ -122,19 +126,24 @@ namespace JogoDoGrupo.Client.Features.Social
         private void GarantirHud(EstadoDoGrupo estado)
         {
             var regiao = Hud.Regiao(RegiaoDoHud.LateralEsquerda);
-            if (regiao == null)
+            if (regiao != null && (_regiaoAtendida != regiao || _painelHud == null))
             {
-                return;
+                _painelHud?.Descartar();
+                _painelHud = new PainelListaGrupoHud(regiao, estado);
+                _regiaoAtendida = regiao;
             }
 
-            if (_regiaoAtendida == regiao && _painelHud != null)
+            var regiaoMinimapa = Hud.Regiao(RegiaoDoHud.SuperiorDireita);
+            if (
+                regiaoMinimapa != null
+                && (_regiaoMinimapaAtendida != regiaoMinimapa || _iconeFilaHud == null)
+            )
             {
-                return;
+                EstiloSocial.Aplicar(regiaoMinimapa);
+                _iconeFilaHud?.Dispose();
+                _iconeFilaHud = new IconeFilaGrupoHud(regiaoMinimapa, FilaDeGrupoDoClient.Estado);
+                _regiaoMinimapaAtendida = regiaoMinimapa;
             }
-
-            DescartarHud();
-            _painelHud = new PainelListaGrupoHud(regiao, estado);
-            _regiaoAtendida = regiao;
         }
 
         private void DescartarHud()
@@ -142,6 +151,10 @@ namespace JogoDoGrupo.Client.Features.Social
             _painelHud?.Descartar();
             _painelHud = null;
             _regiaoAtendida = null;
+
+            _iconeFilaHud?.Dispose();
+            _iconeFilaHud = null;
+            _regiaoMinimapaAtendida = null;
         }
     }
 }

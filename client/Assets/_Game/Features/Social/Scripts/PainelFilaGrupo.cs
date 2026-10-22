@@ -110,7 +110,7 @@ namespace JogoDoGrupo.Client.Features.Social
             _raiz.Add(_aviso);
 
             _estado.Mudou += AtualizarVisual;
-            SelecionarPapel(PapelNoGrupo.Dps);
+            SelecionarPapel(_estado.EmFila ? _estado.Papel : PapelNoGrupo.Dps);
             AtualizarVisual();
         }
 
