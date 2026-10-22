@@ -578,6 +578,10 @@ Nem o Core nem Personagem tinham um código para personagem inexistente em 2026-
 
 - Por serem HTTP, essas rotas não usam IDs da faixa 7000–7999.
 
+### Item de recompensa de missão (#1185)
+
+Contrato `IConcessaoDeItens` (servidor, `Contratos/Itens/`), usado por Missões na entrega, dentro da transação dela. Arma (espada, martelo, arco ou cajado) entregue a quem não tem nada nos dois conjuntos de armas é vestida na `Arma1` (conjunto 1) pela mesma regra de equipar do inventário (nível, duas mãos, espaço); com arma vestida, item que não é arma ou recusa da regra, vai para a bolsa. Depois do commit, o chamador chama `AvisarAsync` quando o destino foi `Equipado`: avisa a área do visual e publica `EquipamentoMudou`, e Skills reenvia a `BarraDeSkillsMudou` como no equipar pelo inventário. Não muda nenhuma invariante.
+
 ### Loot dos inimigos (#493)
 
 Matar um inimigo dá **peças reais** do catálogo de 72 (armaduras e acessórios), não mais os itens de teste. Os valores são **proposta a calibrar**, todos em `ConfigLoot` (shared); as contas puras ficam em `TabelaDeLoot`.
