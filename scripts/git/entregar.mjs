@@ -8,6 +8,8 @@ import { execFileSync } from "node:child_process";
 import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
+import { escopos, tipos } from "../../commitlint.config.mjs";
+import { erroDeBranch } from "./validar-branch.mjs";
 
 export const LIMITE_LINHA = 100;
 
@@ -29,6 +31,27 @@ export function quebrarLinhas(texto, limite = LIMITE_LINHA) {
     saida.push(resto);
   }
   return saida.join("\n").replace(/\n+$/, "");
+}
+
+// O que o commitlint e o job "Padrão do Git" recusariam no título, conferido antes do commit
+// (sem depender do husky). Devolve a mensagem do erro, ou null se o título passa.
+export function erroDeTitulo(titulo) {
+  const cabecalho = String(titulo ?? "").trim();
+  const lista = `Tipos: ${tipos.join(", ")}\n  Escopos: ${escopos.join(", ")}`;
+  const partes = /^(\w+)\(([^)]*)\)!?: (.+)$/.exec(cabecalho);
+  if (!partes) {
+    return `✖ Título fora do padrão "tipo(escopo): descricao": "${cabecalho}"\n  ${lista}`;
+  }
+  const [, tipo, escopo, descricao] = partes;
+  if (!tipos.includes(tipo)) return `✖ Tipo "${tipo}" não existe.\n  ${lista}`;
+  if (!escopos.includes(escopo)) {
+    return `✖ Escopo "${escopo}" não existe; use core para docs e processo gerais.\n  ${lista}`;
+  }
+  if (/^[A-Z]/.test(descricao)) return `✖ Descrição começa minúscula: "${descricao}".`;
+  if (cabecalho.length > LIMITE_LINHA) {
+    return `✖ Título com ${cabecalho.length} caracteres (máximo ${LIMITE_LINHA}).`;
+  }
+  return null;
 }
 
 export function mensagemDeCommit(titulo, corpo) {
@@ -148,9 +171,21 @@ function principal() {
     process.exit(2);
   }
 
+  // Título e branch antes de commitar: o hook do husky pode não rodar (worktree sem npm install).
+  const erroTitulo = erroDeTitulo(titulo);
+  if (erroTitulo) {
+    console.error(erroTitulo);
+    process.exit(1);
+  }
+
   const branchInicial = gitOut(["branch", "--show-current"]);
   if (!branchInicial || branchInicial === "main") {
     console.error("✖ Não entregue na main. Crie uma branch (docs/git.md).");
+    process.exit(1);
+  }
+  const erroBranch = erroDeBranch(branchInicial);
+  if (erroBranch) {
+    console.error(erroBranch);
     process.exit(1);
   }
 
