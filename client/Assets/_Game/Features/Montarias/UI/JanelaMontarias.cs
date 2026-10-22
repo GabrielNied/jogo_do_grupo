@@ -35,6 +35,18 @@ namespace JogoDoGrupo.Client.Features.Montarias.UI
             return new DefinicaoDeJanela(Chave, Titulo, Tecla, Ordem, () => new JanelaMontarias());
         }
 
+        public static string TextoDoSelo(int tipo)
+        {
+            return RegrasMontaria.ObterNome(tipo).ToUpperInvariant();
+        }
+
+        public static string ClasseDeRaridadeDoSelo(int tipo)
+        {
+            return RegrasMontaria.ObterRaridade(tipo) == "Raro"
+                ? "raridade-rara"
+                : "raridade-comum";
+        }
+
         protected override void Montar(VisualElement conteudo)
         {
             conteudo.style.minWidth = 520f;
@@ -189,7 +201,8 @@ namespace JogoDoGrupo.Client.Features.Montarias.UI
                 faixaVisual.style.justifyContent = Justify.Center;
                 faixaVisual.style.alignItems = Align.Center;
 
-                if (tipo == RegrasMontaria.TipoNoturno)
+                var eRaro = RegrasMontaria.ObterRaridade(tipo) == "Raro";
+                if (eRaro)
                 {
                     faixaVisual.style.backgroundColor = new Color(0.12f, 0.16f, 0.26f, 0.95f);
                     faixaVisual.style.borderLeftColor = new Color(0.28f, 0.70f, 0.95f, 0.6f);
@@ -214,17 +227,10 @@ namespace JogoDoGrupo.Client.Features.Montarias.UI
                     faixaVisual.style.borderBottomWidth = 1f;
                 }
 
-                var insignia = new Label(
-                    tipo == RegrasMontaria.TipoNoturno
-                        ? "✦ CORCEL NOTURNO ✦"
-                        : "❖ CORCEL CASTANHO ❖"
-                );
+                var insignia = new Label(TextoDoSelo(tipo));
                 insignia.style.fontSize = 11f;
                 insignia.style.unityFontStyleAndWeight = FontStyle.Bold;
-                insignia.style.color =
-                    tipo == RegrasMontaria.TipoNoturno
-                        ? new Color(0.50f, 0.88f, 1.0f)
-                        : new Color(0.95f, 0.80f, 0.40f);
+                insignia.AddToClassList(ClasseDeRaridadeDoSelo(tipo));
                 faixaVisual.Add(insignia);
                 Elemento.Add(faixaVisual);
 
@@ -239,10 +245,7 @@ namespace JogoDoGrupo.Client.Features.Montarias.UI
                 // Categoria e raridade
                 var raridade = new Label($"{RegrasMontaria.ObterRaridade(tipo)} • Terrestre");
                 raridade.style.fontSize = 10.5f;
-                raridade.style.color =
-                    tipo == RegrasMontaria.TipoNoturno
-                        ? new Color(0.40f, 0.80f, 1.0f)
-                        : new Color(0.80f, 0.70f, 0.45f);
+                raridade.AddToClassList(ClasseDeRaridadeDoSelo(tipo));
                 raridade.style.marginBottom = 8f;
                 Elemento.Add(raridade);
 
