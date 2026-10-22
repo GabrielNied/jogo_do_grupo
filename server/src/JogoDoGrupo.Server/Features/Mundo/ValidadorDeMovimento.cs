@@ -213,8 +213,36 @@ public static class ValidadorDeMovimento
     public static double DistanciaHorizontal(PosicaoNaCidade de, PosicaoNaCidade para) =>
         Distancia(de, para);
 
-    // Números finitos, dentro do mundo e perto do chão daquele ponto.
-    private static bool PosicaoValida(PosicaoNaCidade desejada)
+    /// <summary>
+    /// Confere se um ponto horizontal (m) coincide com as paredes dos muros da cidade murada
+    /// (quadrado de 80 x 80 m centrado na origem, com espessura de 1 m), exceto no vão do portão
+    /// norte (Z ~ 40 m com X entre -4 m e +4 m).
+    /// </summary>
+    public static bool DentroDeParede(float x, float z)
+    {
+        const float metade = MapaDoMundo.MetadeDaCidade;
+        const float folga = 0.5f;
+
+        bool pertoMuroX = Math.Abs(Math.Abs(x) - metade) <= folga && Math.Abs(z) <= metade + folga;
+        bool pertoMuroZ = Math.Abs(Math.Abs(z) - metade) <= folga && Math.Abs(x) <= metade + folga;
+
+        if (pertoMuroZ && z > 0 && Math.Abs(x) <= 4.0f)
+        {
+            return false;
+        }
+
+        return pertoMuroX || pertoMuroZ;
+    }
+
+    /// <summary>
+    /// Valida uma posição persistida antes de usá-la ao reconectar: precisa ser válida no mundo
+    /// e não pode estar dentro das paredes dos muros da cidade (issue #1203).
+    /// </summary>
+    public static bool PosicaoSalvaValida(PosicaoNaCidade desejada) =>
+        PosicaoValida(desejada) && !DentroDeParede(desejada.X, desejada.Z);
+
+    /// <summary>Números finitos, dentro do mundo e perto do chão daquele ponto.</summary>
+    public static bool PosicaoValida(PosicaoNaCidade desejada)
     {
         if (
             !float.IsFinite(desejada.X)

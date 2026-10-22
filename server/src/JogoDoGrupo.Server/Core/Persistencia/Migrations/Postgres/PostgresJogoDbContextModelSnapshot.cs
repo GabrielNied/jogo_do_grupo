@@ -703,6 +703,36 @@ namespace JogoDoGrupo.Server.Core.Persistencia.Migrations.Postgres
                     b.ToTable("MontariasDaConta", (string)null);
                 });
 
+            modelBuilder.Entity("JogoDoGrupo.Server.Features.Mundo.PosicaoDoPersonagem", b =>
+                {
+                    b.Property<long>("PersonagemId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Area")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<DateTime>("AtualizadoEm")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<float>("RotacaoY")
+                        .HasColumnType("real");
+
+                    b.Property<float>("X")
+                        .HasColumnType("real");
+
+                    b.Property<float>("Y")
+                        .HasColumnType("real");
+
+                    b.Property<float>("Z")
+                        .HasColumnType("real");
+
+                    b.HasKey("PersonagemId");
+
+                    b.ToTable("PosicoesDosPersonagens", (string)null);
+                });
+
             modelBuilder.Entity("JogoDoGrupo.Server.Features.Personagem.NomeReservado", b =>
                 {
                     b.Property<long>("Id")
