@@ -16,10 +16,11 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor.Estradas
         private const string NomeDoShader = "JogoDoGrupo/Mundo/EstradaNativa";
         private const string TexturaDaTerra =
             "Assets/ThirdParty/PolyHaven/Resources/Mundo/Estrada/dirt_diff_2k.jpg";
-        private const int FaixasTransversais = 16;
+        private const int FaixasDaBorda = 8;
+        private const int FaixasDoLeito = 8;
+        private const int FaixasTransversais = FaixasDaBorda * 2 + FaixasDoLeito;
         private const float FolgaVertical = 0.015f;
-        private const float PassoDosPedregulhos = 4.5f;
-        private const int LimiteDePedregulhos = 512;
+        public const int LimiteDePedregulhos = 8192;
 
         public static void Gerar(
             EstradaNativa estrada,
@@ -44,7 +45,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor.Estradas
             );
             AtualizarObjeto(estrada, NomeDaSuperficie, malha, material);
 
-            if (estrada.Pedregulhos)
+            if (estrada.Pedregulhos && estrada.DensidadeCascalhos > 0f)
             {
                 var pedras = PersistirMalha(
                     CriarPedregulhos(estrada, pontos, alturaEm),
@@ -224,7 +225,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor.Estradas
             }
         }
 
-        private static Mesh CriarSuperficie(
+        internal static Mesh CriarSuperficie(
             EstradaNativa estrada,
             IReadOnlyList<Vector3> pontos,
             Func<Vector3, float> alturaEm
@@ -236,7 +237,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor.Estradas
             var triangulos = new List<int>();
             var distancias = Distancias(pontos);
             var colunas = FaixasTransversais + 1;
-            var transicao = Mathf.Max(0.05f, estrada.Transicao);
+            var transicao = Mathf.Max(0.05f, estrada.TransicaoVisual);
 
             for (var i = 0; i < pontos.Count; i++)
             {
@@ -244,24 +245,31 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor.Estradas
                 var lateral = Lateral(pontos, i);
                 var meiaLargura = PerfilDaEstrada.MeiaLargura(estrada, centro);
                 var meiaLarguraVisual = meiaLargura + transicao;
-                var opacidadeDasPontas = Mathf.SmoothStep(
-                    0f,
-                    1f,
+                var opacidadeDasPontas = Mathf.Clamp01(
                     Mathf.Min(distancias[i], distancias[distancias.Length - 1] - distancias[i])
                         / transicao
                 );
 
                 for (var coluna = 0; coluna < colunas; coluna++)
                 {
+                    // Cada borda tem sua própria subdivisão, mesmo quando a mistura é maior que o leito.
                     var afastamento =
-                        (coluna / (float)FaixasTransversais * 2f - 1f) * meiaLarguraVisual;
+                        coluna <= FaixasDaBorda
+                            ? -meiaLarguraVisual + transicao * coluna / FaixasDaBorda
+                        : coluna <= FaixasDaBorda + FaixasDoLeito
+                            ? Mathf.Lerp(
+                                -meiaLargura,
+                                meiaLargura,
+                                (coluna - FaixasDaBorda) / (float)FaixasDoLeito
+                            )
+                        : meiaLargura
+                            + transicao * (coluna - FaixasDaBorda - FaixasDoLeito) / FaixasDaBorda;
                     var posicao = centro + lateral * afastamento;
                     posicao.y = alturaEm(posicao) + FolgaVertical;
                     vertices.Add(estrada.transform.InverseTransformPoint(posicao));
                     uvs.Add(new Vector2(afastamento, distancias[i]));
-                    var opacidadeLateral = Mathf.SmoothStep(
-                        0f,
-                        1f,
+                    // O shader suaviza uma única vez: repetir SmoothStep encurtava a mistura perceptível.
+                    var opacidadeLateral = Mathf.Clamp01(
                         (meiaLarguraVisual - Mathf.Abs(afastamento)) / transicao
                     );
                     cores.Add(new Color(1f, 1f, 1f, opacidadeLateral * opacidadeDasPontas));
@@ -288,7 +296,29 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor.Estradas
             return FinalizarMalha("Superfície da estrada", vertices, uvs, cores, triangulos);
         }
 
-        private static Mesh CriarPedregulhos(
+        public static int QuantidadeDePedregulhos(
+            EstradaNativa estrada,
+            IReadOnlyList<Vector3> pontos
+        )
+        {
+            var area = 0f;
+            for (var i = 1; i < pontos.Count; i++)
+            {
+                var comprimento = Vector2.Distance(
+                    new Vector2(pontos[i - 1].x, pontos[i - 1].z),
+                    new Vector2(pontos[i].x, pontos[i].z)
+                );
+                area +=
+                    comprimento
+                    * (
+                        PerfilDaEstrada.MeiaLargura(estrada, pontos[i - 1])
+                        + PerfilDaEstrada.MeiaLargura(estrada, pontos[i])
+                    );
+            }
+            return Mathf.FloorToInt(area * estrada.DensidadeCascalhos);
+        }
+
+        internal static Mesh CriarPedregulhos(
             EstradaNativa estrada,
             IReadOnlyList<Vector3> pontos,
             Func<Vector3, float> alturaEm
@@ -301,10 +331,13 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor.Estradas
             var aleatorio = new System.Random(estrada.Semente);
             var distancias = Distancias(pontos);
             var comprimento = distancias[distancias.Length - 1];
-            var quantidade = Mathf.Min(
-                LimiteDePedregulhos,
-                Mathf.FloorToInt(comprimento / PassoDosPedregulhos)
-            );
+            var quantidadeDesejada = QuantidadeDePedregulhos(estrada, pontos);
+            var quantidade = Mathf.Min(LimiteDePedregulhos, quantidadeDesejada);
+            if (quantidadeDesejada > quantidade)
+                Debug.LogWarning(
+                    "[Estradas] Densidade limitada a 8.192 cascalhos nesta estrada. Divida caminhos longos em trechos para manter o detalhe.",
+                    estrada
+                );
             var indices = new[]
             {
                 4,
@@ -347,9 +380,16 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor.Estradas
                 var centro = Vector3.Lerp(pontos[trecho], pontos[trecho + 1], t);
                 var largura = PerfilDaEstrada.MeiaLargura(estrada, centro);
                 var lado = aleatorio.Next(2) == 0 ? -1f : 1f;
-                var afastamento = largura * Mathf.Lerp(0.7f, 1.1f, (float)aleatorio.NextDouble());
+                // Espalha também pelo leito, mantendo uma concentração discreta junto às margens.
+                var afastamento =
+                    largura
+                    * (
+                        aleatorio.NextDouble() < 0.45
+                            ? Mathf.Lerp(0.65f, 1f, (float)aleatorio.NextDouble())
+                            : (float)aleatorio.NextDouble()
+                    );
                 centro += Lateral(pontos, trecho) * afastamento * lado;
-                centro.y = alturaEm(centro);
+                centro.y = alturaEm(centro) + FolgaVertical;
                 var raio = Mathf.Lerp(0.055f, 0.14f, (float)aleatorio.NextDouble());
                 var giro = Quaternion.Euler(0f, (float)aleatorio.NextDouble() * 360f, 0f);
                 var forma = new[]
@@ -457,8 +497,16 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor.Estradas
             }
 
             material.SetFloat("_Tipo", pedra ? 2f : (float)estrada.Tipo);
+            // Pedras são opacas e escrevem profundidade antes da faixa transparente da estrada.
+            // Caso contrário a superfície pode cobri-las conforme a ordenação dos renderizadores.
+            material.SetFloat("_ZWrite", pedra ? 1f : 0f);
+            material.renderQueue = pedra
+                ? (int)RenderQueue.Geometry + 1
+                : (int)RenderQueue.Transparent - 20;
             material.SetFloat("_Cascos", estrada.IntensidadeCascos);
             material.SetFloat("_Semente", estrada.Semente % 10000);
+            if (pedra)
+                material.SetColor("_CorPedra", estrada.CorCascalhos);
             var textura = AssetDatabase.LoadAssetAtPath<Texture2D>(TexturaDaTerra);
             material.SetTexture("_BaseMap", textura);
             material.SetFloat("_UsarTextura", textura == null ? 0f : 1f);

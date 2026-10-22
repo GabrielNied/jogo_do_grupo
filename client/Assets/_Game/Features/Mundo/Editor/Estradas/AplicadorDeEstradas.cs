@@ -81,7 +81,8 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor.Estradas
             registro.Caminho = pontos;
             registro.Raio = raio;
             registro.Largura = estrada.Largura;
-            registro.Transicao = estrada.Transicao;
+            // O registro guarda a faixa efetivamente protegida, inclusive em backups antigos.
+            registro.Transicao = estrada.TransicaoDoCorredor;
             registro.Margem = estrada.MargemVegetacao;
             registro.Variacao = estrada.VariacaoLateral;
             registro.Semente = estrada.Semente;
@@ -209,6 +210,11 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor.Estradas
             if (
                 !float.IsFinite(estrada.Largura)
                 || !float.IsFinite(estrada.Transicao)
+                || !float.IsFinite(estrada.TransicaoVisual)
+                || !float.IsFinite(estrada.DensidadeCascalhos)
+                || !float.IsFinite(estrada.CorCascalhos.r)
+                || !float.IsFinite(estrada.CorCascalhos.g)
+                || !float.IsFinite(estrada.CorCascalhos.b)
                 || !float.IsFinite(estrada.Rebaixo)
                 || !float.IsFinite(estrada.MargemVegetacao)
                 || !float.IsFinite(estrada.VariacaoLateral)
@@ -216,13 +222,17 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor.Estradas
                 || estrada.Largura > 100f
                 || estrada.Transicao < 0.2f
                 || estrada.Transicao > 50f
+                || estrada.TransicaoVisual < 0.2f
+                || estrada.TransicaoVisual > 50f
+                || estrada.DensidadeCascalhos < 0f
+                || estrada.DensidadeCascalhos > 8f
                 || estrada.Rebaixo < 0f
                 || estrada.Rebaixo > 0.35f
                 || estrada.MargemVegetacao < 0f
                 || estrada.MargemVegetacao > 50f
             )
                 throw new InvalidOperationException(
-                    "Largura, transição, rebaixo e margem estão fora dos limites."
+                    "Largura, transições, rebaixo, margem ou cascalhos estão fora dos limites."
                 );
         }
 
@@ -281,7 +291,8 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor.Estradas
                 var direcao =
                     pontos[Mathf.Min(i + 1, pontos.Count - 1)] - pontos[Mathf.Max(0, i - 1)];
                 var lado = new Vector3(-direcao.z, 0f, direcao.x).normalized;
-                var raio = PerfilDaEstrada.MeiaLargura(estrada, ponto) + estrada.Transicao;
+                var raio =
+                    PerfilDaEstrada.MeiaLargura(estrada, ponto) + estrada.TransicaoDoCorredor;
                 var passos = Mathf.Max(2, Mathf.CeilToInt(raio * 4f));
                 for (var lateral = 0; lateral <= passos; lateral++)
                 {
@@ -524,7 +535,9 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor.Estradas
                     );
                 if (
                     corredor.Distancia(ponto)
-                    <= PerfilDaEstrada.MeiaLargura(estrada, ponto) + estrada.Transicao + diagonal
+                    <= PerfilDaEstrada.MeiaLargura(estrada, ponto)
+                        + estrada.TransicaoDoCorredor
+                        + diagonal
                 )
                     throw new InvalidOperationException(
                         "A estrada cruza um buraco do Terrain. Ajuste o traçado; pontes precisam de autoria própria."
@@ -640,7 +653,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor.Estradas
         {
             return corredor.Distancia(ponto)
                 <= PerfilDaEstrada.MeiaLargura(estrada, ponto)
-                    + estrada.Transicao
+                    + estrada.TransicaoDoCorredor
                     + estrada.MargemVegetacao
                     + extra;
         }

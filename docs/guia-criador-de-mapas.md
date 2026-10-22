@@ -58,7 +58,9 @@ Preserve os dados de recuperação da estrada enquanto precisar restaurar o trec
 
 Nesta versão, áreas modificadas por estradas diferentes não podem se sobrepor: a ferramenta informa o conflito. A resolução do Terrain limita depressões estreitas; o material fornece o detalhe fino. O servidor continua usando uma grade de alturas de **10 m**, que pode não captar o microperfil de uma estrada estreita. Mantenha o rebaixo pequeno; a superfície visual não cria um colisor independente nem altera a navegação automaticamente.
 
-O padrão é largura de **4 m**, rebaixo de **12 cm**, transição lateral de **1 m** e margem adicional de limpeza de **0,5 m**. O rebaixo tem limite de **35 cm**. A semente mantém a variação de bordas e pedregulhos reproduzível. As lajotas aparecem pelo material; pedregulhos são agrupados em uma malha, sem um objeto por pedra. Um material próprio pode substituir o padrão pelo campo do Inspector.
+O padrão é largura de **4 m**, rebaixo de **12 cm**, **Transição visual de 1,5 m**, **Suavização do relevo de 1 m** e margem adicional de limpeza de **0,5 m**. O rebaixo tem limite de **35 cm**. Aumente **Transição visual (m)** para prolongar a transparência entre estrada e grama, sem mudar o afundamento. **Suavização do relevo (m)** controla apenas a depressão física (era o antigo campo “Transição”). A faixa azul da prévia marca o limite da mistura, e a verde marca a limpeza, calculada pela maior das duas faixas mais a margem. Clique em **Reaplicar e salvar** depois de ajustar; mudar o Inspector não refaz a malha automaticamente.
+
+Ative **Cascalhos** e ajuste **Cascalhos por m²** (padrão **2**, até **8**) e **Cor dos cascalhos** (padrão terroso, independente das lajotas). Há pedras pelo leito e pelas margens, agrupadas em uma malha, sem um objeto por pedra. O limite é **8.192 pedras por estrada**, com aviso no Console quando a densidade solicitada exceder esse orçamento; divida caminhos muito longos em trechos para preservar o detalhe. A semente mantém bordas e pedras reproduzíveis. Um material próprio pode substituir o padrão pelo campo do Inspector, mas seu shader precisa respeitar o alpha da cor dos vértices para suavizar as bordas; materiais opacos não fazem essa mistura.
 
 A aplicação também reduz o erro de simplificação visual do Terrain somente nos blocos tocados, para que o solo não atravesse a superfície da estrada à distância. Isso pode aumentar a quantidade de triângulos renderizados nesses blocos. Quando a última estrada do bloco é restaurada, a configuração anterior volta; um ajuste manual posterior de precisão é preservado.
 
@@ -71,6 +73,8 @@ npm run unity:executar -- JogoDoGrupo.Client.Features.Mundo.Editor.Estradas.Demo
 ```
 
 O comando mantém os assets da demonstração para inspeção e grava a captura local em `client/Library/ValidacaoEstradas.png`. A demonstração não publica nem altera o mapa de autoria.
+
+Para conferir só a independência das bordas/relevo e a densidade reproduzível dos cascalhos, sem criar assets ou salvar cenas, use **Jogo do Grupo > Mundo > Estradas > Validar bordas e cascalhos**. A mesma conferência também faz parte da validação completa acima.
 
 ## Protótipo da estrada do Passo
 

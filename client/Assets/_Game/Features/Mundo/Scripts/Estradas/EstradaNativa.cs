@@ -18,8 +18,21 @@ namespace JogoDoGrupo.Client.Features.Mundo.Estradas
         [SerializeField, Min(0.5f)]
         private float _largura = 4f;
 
-        [SerializeField, Min(0.2f)]
+        [
+            SerializeField,
+            Min(0.2f),
+            Tooltip("Suavização física do rebaixo, em metros. Não controla a transparência.")
+        ]
         private float _transicao = 1f;
+
+        [
+            SerializeField,
+            Range(0.2f, 50f),
+            Tooltip(
+                "Faixa de transparência em cada borda, em metros, além da largura do leito. Não aumenta o rebaixo."
+            )
+        ]
+        private float _transicaoVisual = 1.5f;
 
         [SerializeField, Range(0f, 0.35f)]
         private float _rebaixo = 0.12f;
@@ -35,6 +48,22 @@ namespace JogoDoGrupo.Client.Features.Mundo.Estradas
 
         [SerializeField]
         private bool _pedregulhos = true;
+
+        [
+            SerializeField,
+            Range(0f, 8f),
+            Tooltip(
+                "Quantidade de pedras por metro quadrado de leito. A malha tem limite de segurança de 8.192 pedras por estrada."
+            )
+        ]
+        private float _densidadeCascalhos = 2f;
+
+        [
+            SerializeField,
+            ColorUsage(false),
+            Tooltip("Tom dos cascalhos. O padrão é terroso; não altera a cor das lajotas.")
+        ]
+        private Color _corCascalhos = new Color(0.42f, 0.32f, 0.21f, 1f);
 
         [SerializeField, Range(0f, 1f)]
         private float _intensidadeCascos = 0.15f;
@@ -90,11 +119,15 @@ namespace JogoDoGrupo.Client.Features.Mundo.Estradas
         public SplineContainer Spline => GetComponent<SplineContainer>();
         public float Largura => _largura;
         public float Transicao => _transicao;
+        public float TransicaoVisual => _transicaoVisual;
+        public float TransicaoDoCorredor => Mathf.Max(Transicao, TransicaoVisual);
         public float Rebaixo => _rebaixo;
         public float VariacaoLateral => _variacaoLateral;
         public float MargemVegetacao => _margemVegetacao;
         public TipoDeEstrada Tipo => _tipo;
         public bool Pedregulhos => _pedregulhos;
+        public float DensidadeCascalhos => _densidadeCascalhos;
+        public Color CorCascalhos => _corCascalhos;
         public float IntensidadeCascos => _intensidadeCascos;
         public int Semente => _semente;
         public Material Material => _material;

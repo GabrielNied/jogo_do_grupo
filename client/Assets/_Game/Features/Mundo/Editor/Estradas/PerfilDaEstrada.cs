@@ -65,7 +65,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor.Estradas
         public static float RaioMaximo(EstradaNativa estrada)
         {
             return estrada.Largura * 0.5f * (1f + estrada.VariacaoLateral * 0.5f)
-                + estrada.Transicao
+                + estrada.TransicaoDoCorredor
                 + estrada.MargemVegetacao;
         }
     }

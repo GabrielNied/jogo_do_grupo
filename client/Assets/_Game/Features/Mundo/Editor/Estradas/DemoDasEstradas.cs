@@ -145,6 +145,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor.Estradas
         /// <summary>Executável por unity:executar; não publica nem abre o mapa do Gabriel.</summary>
         public static void Validar()
         {
+            ValidacaoVisualDasEstradas.Validar();
             var original = SceneManager.GetActiveScene();
             Criar(true);
             var cena = SceneManager.GetActiveScene();
@@ -175,6 +176,22 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor.Estradas
                 var estradas = raiz.GetComponentsInChildren<EstradaNativa>();
                 var terra = estradas.Single(e => e.Tipo == TipoDeEstrada.Terra);
                 var lajotas = estradas.Single(e => e.Tipo == TipoDeEstrada.Lajotas);
+                foreach (var estrada in estradas)
+                {
+                    var pedras = estrada
+                        .transform.Find("PedregulhosEstrada")
+                        .GetComponent<MeshRenderer>()
+                        .sharedMaterial;
+                    Verificar(
+                        pedras.renderQueue < (int)UnityEngine.Rendering.RenderQueue.AlphaTest
+                            && pedras.GetFloat("_ZWrite") == 1f,
+                        "Cascalhos devem escrever profundidade antes da superfície transparente."
+                    );
+                    Verificar(
+                        pedras.GetColor("_CorPedra") == estrada.CorCascalhos,
+                        "A cor escolhida para os cascalhos não chegou ao material."
+                    );
+                }
                 var terrenos = raiz.GetComponentsInChildren<Terrain>()
                     .OrderBy(t => t.transform.position.x)
                     .ToArray();

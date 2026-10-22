@@ -79,7 +79,48 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor.Estradas
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
-            DrawPropertiesExcluding(serializedObject, "m_Script", "_id", "_registroGuid");
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("_largura"));
+            EditorGUILayout.PropertyField(
+                serializedObject.FindProperty("_transicaoVisual"),
+                new GUIContent("Transição visual (m)")
+            );
+            EditorGUILayout.PropertyField(
+                serializedObject.FindProperty("_transicao"),
+                new GUIContent("Suavização do relevo (m)")
+            );
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("_rebaixo"));
+            EditorGUILayout.PropertyField(
+                serializedObject.FindProperty("_pedregulhos"),
+                new GUIContent("Cascalhos")
+            );
+            using (
+                new EditorGUI.DisabledScope(
+                    !serializedObject.FindProperty("_pedregulhos").boolValue
+                )
+            )
+            {
+                EditorGUILayout.PropertyField(
+                    serializedObject.FindProperty("_densidadeCascalhos"),
+                    new GUIContent("Cascalhos por m²")
+                );
+                EditorGUILayout.PropertyField(
+                    serializedObject.FindProperty("_corCascalhos"),
+                    new GUIContent("Cor dos cascalhos")
+                );
+            }
+            DrawPropertiesExcluding(
+                serializedObject,
+                "m_Script",
+                "_id",
+                "_registroGuid",
+                "_largura",
+                "_transicao",
+                "_transicaoVisual",
+                "_rebaixo",
+                "_pedregulhos",
+                "_densidadeCascalhos",
+                "_corCascalhos"
+            );
             serializedObject.ApplyModifiedProperties();
             var estrada = (EstradaNativa)target;
             var registro = estrada.Registro as RegistroDaEstrada;
@@ -88,6 +129,15 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor.Estradas
                 "Edite os pontos com as ferramentas oficiais do Spline Container (Edit Spline). A altura da spline é uma guia: a estrada acompanha o Terrain. O rebaixo forma uma depressão suave pelo uso de pessoas e cavalos.",
                 MessageType.Info
             );
+            EditorGUILayout.HelpBox(
+                "Transição visual prolonga a transparência da estrada sobre o solo, sem alargar o rebaixo. Suavização do relevo controla só a depressão física. Após mudar os valores, clique em Aplicar/Reaplicar e salvar para atualizar o resultado. A linha azul mostra o limite da mistura; a verde, a limpeza de vegetação.",
+                MessageType.Info
+            );
+            if (estrada.Material != null)
+                EditorGUILayout.HelpBox(
+                    "Material próprio: a transição visual exige que o shader respeite o alpha da cor dos vértices. Um material opaco não fará a mistura com o Terrain.",
+                    MessageType.Warning
+                );
             _previa = EditorGUILayout.Toggle("Prévia do corredor na cena", _previa);
             using (new EditorGUI.DisabledScope(EditorApplication.isPlayingOrWillChangePlaymode))
             {
@@ -165,6 +215,8 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor.Estradas
                 var centro = new Vector3[pontos.Count];
                 var esquerda = new Vector3[pontos.Count];
                 var direita = new Vector3[pontos.Count];
+                var visualEsquerda = new Vector3[pontos.Count];
+                var visualDireita = new Vector3[pontos.Count];
                 for (var i = 0; i < pontos.Count; i++)
                 {
                     var p = pontos[i];
@@ -173,14 +225,21 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor.Estradas
                     var lado = new Vector3(-direcao.z, 0f, direcao.x).normalized;
                     var raio =
                         PerfilDaEstrada.MeiaLargura(estrada, p)
-                        + estrada.Transicao
+                        + estrada.TransicaoDoCorredor
                         + estrada.MargemVegetacao;
                     centro[i] = Apoiar(p, terrenos);
                     esquerda[i] = Apoiar(p + lado * raio, terrenos);
                     direita[i] = Apoiar(p - lado * raio, terrenos);
+                    var raioVisual =
+                        PerfilDaEstrada.MeiaLargura(estrada, p) + estrada.TransicaoVisual;
+                    visualEsquerda[i] = Apoiar(p + lado * raioVisual, terrenos);
+                    visualDireita[i] = Apoiar(p - lado * raioVisual, terrenos);
                 }
                 Handles.color = new Color(1f, 0.7f, 0.2f);
                 Handles.DrawAAPolyLine(2f, centro);
+                Handles.color = new Color(0.3f, 0.65f, 1f);
+                Handles.DrawAAPolyLine(2f, visualEsquerda);
+                Handles.DrawAAPolyLine(2f, visualDireita);
                 Handles.color = new Color(0.3f, 0.9f, 0.6f);
                 Handles.DrawAAPolyLine(2f, esquerda);
                 Handles.DrawAAPolyLine(2f, direita);
