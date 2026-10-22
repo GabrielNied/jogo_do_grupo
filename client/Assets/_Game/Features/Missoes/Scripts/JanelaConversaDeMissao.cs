@@ -306,7 +306,7 @@ namespace JogoDoGrupo.Client.Features.Missoes
             situacao.AddToClassList("missao-conversa-situacao");
             caixa.Add(situacao);
 
-            var texto = new Label(def.Descricao);
+            var texto = new Label(TextoDaFala(entrada.Situacao, def));
             texto.AddToClassList(EstiloCore.Texto);
             texto.AddToClassList("missao-conversa-texto");
             caixa.Add(texto);
@@ -488,6 +488,17 @@ namespace JogoDoGrupo.Client.Features.Missoes
             var secao = new Label(texto);
             secao.AddToClassList("missao-conversa-secao");
             return secao;
+        }
+
+        private static string TextoDaFala(Situacao situacao, DefinicaoDeMissao def)
+        {
+            var fala = situacao switch
+            {
+                Situacao.Aceitar => def.TextoAoAceitar,
+                Situacao.Entregar => def.TextoAoEntregar,
+                _ => "",
+            };
+            return string.IsNullOrWhiteSpace(fala) ? def.Descricao : fala;
         }
 
         private static string TextoDaSituacao(Situacao situacao, DefinicaoDeMissao def)

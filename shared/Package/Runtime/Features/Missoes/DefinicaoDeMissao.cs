@@ -5,6 +5,8 @@ namespace JogoDoGrupo.Shared.Features.Missoes
         public int Id;
         public string Titulo = "";
         public string Descricao = "";
+        public string TextoAoAceitar = "";
+        public string TextoAoEntregar = "";
         public TipoDeMissao Tipo;
         public string Regiao = "";
         public int NivelRecomendado;

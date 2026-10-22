@@ -72,6 +72,10 @@ namespace JogoDoGrupo.Shared.Features.Missoes
                     Titulo = "Portões da Brasa Mansa",
                     Descricao =
                         "Você conseguiu atravessar a estrada da serra, mas está em farrapos. Entre na cidadela e procure Alden no mercado da praça; ele fornecerá suas primeiras informações.",
+                    TextoAoAceitar =
+                        "Você conseguiu atravessar a estrada da serra, mas está em farrapos. Entre na cidadela e procure Alden no mercado da praça; ele fornecerá suas primeiras informações.",
+                    TextoAoEntregar =
+                        "Vejo que Valéria mandou mais um sobrevivente. Bem-vindo à Brasa Mansa; aqui todo trabalho honesto é recompensado.",
                     Tipo = TipoDeMissao.Principal,
                     Regiao = CatalogoNpcs.AreaCidade,
                     NivelRecomendado = 1,
@@ -111,6 +115,10 @@ namespace JogoDoGrupo.Shared.Features.Missoes
                     Titulo = "A Primeira Ferramenta",
                     Descricao =
                         "Você não durará cinco minutos além das paliçadas desarmado. Vá até Gareth no beco das forjas e escolha a arma que melhor se adapta às suas mãos.",
+                    TextoAoAceitar =
+                        "Você não durará cinco minutos além das paliçadas desarmado. Vá até Gareth no beco das forjas e escolha a arma que melhor se adapta às suas mãos.",
+                    TextoAoEntregar =
+                        "Chegou na hora certa. Espada de lâmina larga, arco recurvo ou cajado esculpido? A escolha é sua, novato.",
                     Tipo = TipoDeMissao.Principal,
                     Regiao = CatalogoNpcs.AreaCidade,
                     NivelRecomendado = 1,
@@ -155,6 +163,10 @@ namespace JogoDoGrupo.Shared.Features.Missoes
                     Titulo = "Casca de Ferro e Couro",
                     Descricao =
                         "Uma boa arma exige um corpo protegido. Leve este lingote inicial até a forja de Brom e peça a ele para reforçar sua veste.",
+                    TextoAoAceitar =
+                        "Uma boa arma exige um corpo protegido. Leve este lingote inicial até a forja de Brom e peça a ele para reforçar sua veste.",
+                    TextoAoEntregar =
+                        "Gareth mandou você? Deixe-me ver esse metal. Nada mau. Aqui está uma peça reforçada para manter suas costelas inteiras.",
                     Tipo = TipoDeMissao.Principal,
                     Regiao = CatalogoNpcs.AreaCidade,
                     NivelRecomendado = 1,
@@ -197,6 +209,10 @@ namespace JogoDoGrupo.Shared.Features.Missoes
                     Titulo = "Provisões e Guarda-Volumes",
                     Descricao =
                         "Antes de marchar para o descampado, passe na taverna de Barnabé para encher o cantil e depois deixe suas sobras no banco com Cassian.",
+                    TextoAoAceitar =
+                        "Antes de marchar para o descampado, passe na taverna de Barnabé para encher o cantil e depois deixe suas sobras no banco com Cassian.",
+                    TextoAoEntregar =
+                        "Um aventureiro que sabe onde guardar seus pertences é um aventureiro que vive para gastá-los. Seu baú está pronto.",
                     Tipo = TipoDeMissao.Principal,
                     Regiao = CatalogoNpcs.AreaCidade,
                     NivelRecomendado = 1,
@@ -248,6 +264,10 @@ namespace JogoDoGrupo.Shared.Features.Missoes
                     Titulo = "Limpando a Trilha Norte",
                     Descricao =
                         "Chega de passeios pela praça. Uma vara de javalis selvagens está revirando os fardos dos comboios a norte da muralha. Vá lá e elimine a ameaça.",
+                    TextoAoAceitar =
+                        "Chega de passeios pela praça. Uma vara de javalis selvagens está revirando os fardos dos comboios a norte da muralha. Vá lá e elimine a ameaça.",
+                    TextoAoEntregar =
+                        "O sangue na sua lâmina prova sua utilidade. Os carroceiros já conseguem avistar a estrada sem pavor.",
                     Tipo = TipoDeMissao.Principal,
                     Regiao = "campo",
                     NivelRecomendado = 2,
@@ -287,6 +307,10 @@ namespace JogoDoGrupo.Shared.Features.Missoes
                     Titulo = "O Enxame na Mata Fria",
                     Descricao =
                         "Os javalis eram apenas o começo. Os lobos cinzentos desceram das ravinas e estão encurralando nossos lenhadores. Derrube as feras e garanta a segurança dos comboios.",
+                    TextoAoAceitar =
+                        "Os javalis eram apenas o começo. Os lobos cinzentos desceram das ravinas e estão encurralando nossos lenhadores. Derrube as feras e traga suas peles para nossos agasalhos.",
+                    TextoAoEntregar =
+                        "Excelente trabalho. Essas peles manterão nossos vigias aquecidos durante as noites de geada.",
                     Tipo = TipoDeMissao.Principal,
                     Regiao = "campo",
                     NivelRecomendado = 2,
@@ -326,6 +350,10 @@ namespace JogoDoGrupo.Shared.Features.Missoes
                     Titulo = "O Senhor da Colina do Vigia",
                     Descricao =
                         "Descobrimos o que está empurrando as feras contra nossos muros. O Presa Velha, um javali colossal com presas de obsidiana, estabeleceu território no topo da Colina do Vigia. Suba a colina e acabe com o monstro!",
+                    TextoAoAceitar =
+                        "Descobrimos o que está empurrando as feras contra nossos muros. O Presa Velha, um javali colossal com presas de obsidiana, estabeleceu território no topo da Colina do Vigia. Ele já esmagou duas patrulhas. Suba a colina e acabe com o monstro!",
+                    TextoAoEntregar =
+                        "Você abateu a lenda das ravinas! O silêncio voltou à Colina do Vigia. A Brasa Mansa tem uma dívida eterna com você, aventureiro. Considere-se um membro de honra da nossa cidadela.",
                     Tipo = TipoDeMissao.Principal,
                     Regiao = "campo",
                     NivelRecomendado = 3,
