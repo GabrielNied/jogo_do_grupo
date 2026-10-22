@@ -1,6 +1,7 @@
 using JogoDoGrupo.Client.Core.Jogo;
 using JogoDoGrupo.Client.Core.Jogo.Janelas;
 using JogoDoGrupo.Client.Core.UI;
+using JogoDoGrupo.Shared.Features.Npcs;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UIElements;
@@ -14,7 +15,7 @@ namespace JogoDoGrupo.Client.Features.Itens
     /// Criado pelo <see cref="ObservadorDoMundo"/> na cena do mundo, então o "Sair" descarrega
     /// tudo junto.
     /// </summary>
-    internal sealed class ControleItens : MonoBehaviour
+    internal sealed class ControleItens : MonoBehaviour, IInteragivelNoMundo
     {
         private const string TextoDicaBau = "E: abrir o baú";
 
@@ -24,6 +25,22 @@ namespace JogoDoGrupo.Client.Features.Itens
         private PanelSettings _configuracaoDoPainel;
         private Transform _bau;
         private GameObject _jogador;
+
+        public float PosicaoX => _bau != null ? _bau.position.x : 0f;
+        public float PosicaoZ => _bau != null ? _bau.position.z : 0f;
+        public float RaioInteracao => BauNoMundo.DistanciaParaAbrir;
+
+        public bool PodeInteragir() =>
+            isActiveAndEnabled && _bau != null && !JanelasDoJogo.MenuAberto;
+
+        public void Interagir()
+        {
+            var espera = JanelaInventario.BauLivreEm - Time.unscaledTime;
+            if (espera <= 0f)
+            {
+                JanelaInventario.AbrirComBau();
+            }
+        }
 
         /// <summary>Liga o controle ao jogador e ao baú. Chamar antes de ativar.</summary>
         public void Configurar(
@@ -56,11 +73,16 @@ namespace JogoDoGrupo.Client.Features.Itens
             {
                 _interagir.Enable();
             }
+            RegistroDeInteracao.Registrar(this);
         }
 
         private void OnEnable()
         {
             _interagir?.Enable();
+            if (_bau != null)
+            {
+                RegistroDeInteracao.Registrar(this);
+            }
         }
 
         private void AtualizarTecla() =>
@@ -69,11 +91,13 @@ namespace JogoDoGrupo.Client.Features.Itens
         private void OnDisable()
         {
             _interagir?.Disable();
+            RegistroDeInteracao.Desregistrar(this);
         }
 
         private void OnDestroy()
         {
             TeclasDoJogo.Mudou -= AtualizarTecla;
+            RegistroDeInteracao.Desregistrar(this);
             _interagir?.Dispose();
             _interagir = null;
 
@@ -90,25 +114,27 @@ namespace JogoDoGrupo.Client.Features.Itens
                 return;
             }
 
+            var posJogador = _jogador.transform.position;
             // Com o menu do Esc aberto, não mostra a dica nem abre o baú; janelas comuns não bloqueiam.
             var perto =
-                !JanelasDoJogo.MenuAberto
-                && BauNoMundo.EstaPerto(_jogador.transform.position, _bau.position);
-            MostrarDica(perto);
+                !JanelasDoJogo.MenuAberto && BauNoMundo.EstaPerto(posJogador, _bau.position);
+            var ehOMaisProximo =
+                perto && RegistroDeInteracao.EhOMaisProximo(this, posJogador.x, posJogador.z);
+            MostrarDica(ehOMaisProximo);
 
             // Em recarga a dica mostra a espera e o E não pede nada (o servidor recusaria).
             var espera = JanelaInventario.BauLivreEm - Time.unscaledTime;
             var recarregando = espera > 0f;
-            if (perto)
+            if (ehOMaisProximo)
             {
                 _dica.text = recarregando
                     ? "Baú recarregando (" + Mathf.CeilToInt(espera) + " s)"
                     : TeclasDoJogo.Rotulo(TeclasDoJogo.Interagir) + ": abrir o baú";
             }
 
-            if (perto && !recarregando && _interagir.WasPressedThisFrame())
+            if (ehOMaisProximo && !recarregando && _interagir.WasPressedThisFrame())
             {
-                JanelaInventario.AbrirComBau();
+                Interagir();
             }
         }
 

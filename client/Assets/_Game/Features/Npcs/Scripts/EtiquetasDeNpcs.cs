@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using JogoDoGrupo.Client.Core.Jogo;
 using JogoDoGrupo.Client.Core.UI;
+using JogoDoGrupo.Shared.Features.Npcs;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
@@ -92,6 +94,7 @@ namespace JogoDoGrupo.Client.Features.Npcs
 
         private static Etiqueta Criar(NpcNoMundo npc)
         {
+            var rotuloTecla = TeclasDoJogo.Rotulo(TeclasDoJogo.Interagir);
             var etiqueta = new Etiqueta
             {
                 Raiz = new VisualElement { pickingMode = PickingMode.Ignore },
@@ -102,7 +105,7 @@ namespace JogoDoGrupo.Client.Features.Npcs
                         : string.Empty,
                     "npc-titulo"
                 ),
-                Falar = ComponentesHud.Texto("[E] Falar", "npc-falar"),
+                Falar = ComponentesHud.Texto($"[{rotuloTecla}] Falar", "npc-falar"),
             };
             etiqueta.Raiz.AddToClassList("npc-etiqueta");
             etiqueta.Raiz.Add(etiqueta.Nome);
@@ -138,9 +141,15 @@ namespace JogoDoGrupo.Client.Features.Npcs
             etiqueta.Raiz.style.opacity = Mathf.Lerp(0.55f, 1f, proximidade);
             var escala = Mathf.Lerp(0.8f, 1f, proximidade);
             etiqueta.Raiz.style.scale = new Scale(new Vector3(escala, escala, 1f));
-            etiqueta.Falar.style.display = npc.JogadorNoAlcance
-                ? DisplayStyle.Flex
-                : DisplayStyle.None;
+
+            var jogador = EntradaNoJogo.Jogador;
+            var posJogador =
+                jogador != null ? jogador.transform.position : camera.transform.position;
+            var ehOMaisProximo =
+                npc.JogadorNoAlcance
+                && RegistroDeInteracao.EhOMaisProximo(npc, posJogador.x, posJogador.z);
+            etiqueta.Falar.text = $"[{TeclasDoJogo.Rotulo(TeclasDoJogo.Interagir)}] Falar";
+            etiqueta.Falar.style.display = ehOMaisProximo ? DisplayStyle.Flex : DisplayStyle.None;
         }
     }
 }

@@ -3,17 +3,32 @@ using JogoDoGrupo.Client.Core.Jogo;
 using JogoDoGrupo.Client.Core.Jogo.Janelas;
 using JogoDoGrupo.Client.Core.UI;
 using JogoDoGrupo.Client.Features.Economia.UI;
+using JogoDoGrupo.Shared.Features.Npcs;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UIElements;
 
 namespace JogoDoGrupo.Client.Features.Economia
 {
-    internal struct PontoInteracaoEconomia
+    internal sealed class PontoInteracaoEconomia : IInteragivelNoMundo
     {
-        public Transform Transform;
-        public string Rotulo;
-        public string ChaveJanela;
+        public Transform Transform { get; }
+        public string Rotulo { get; }
+        public string ChaveJanela { get; }
+
+        public float PosicaoX => Transform != null ? Transform.position.x : 0f;
+        public float PosicaoZ => Transform != null ? Transform.position.z : 0f;
+        public float RaioInteracao => MarcadorNpcEconomia.DistanciaParaInteragir;
+
+        public bool PodeInteragir() =>
+            Transform != null
+            && Transform.gameObject.activeInHierarchy
+            && !JanelasDoJogo.MenuAberto;
+
+        public void Interagir()
+        {
+            JanelasDoJogo.Abrir(ChaveJanela);
+        }
 
         public PontoInteracaoEconomia(Transform transform, string rotulo, string chaveJanela)
         {
@@ -40,10 +55,12 @@ namespace JogoDoGrupo.Client.Features.Economia
         )
         {
             _jogador = jogador;
+            DesregistrarTodos();
             _pontos.Clear();
             if (pontos != null)
             {
                 _pontos.AddRange(pontos);
+                RegistrarTodos();
             }
 
             _dica = new Label("");
@@ -101,6 +118,7 @@ namespace JogoDoGrupo.Client.Features.Economia
         private void OnEnable()
         {
             _interagir?.Enable();
+            RegistrarTodos();
         }
 
         private void AtualizarTecla() =>
@@ -109,13 +127,31 @@ namespace JogoDoGrupo.Client.Features.Economia
         private void OnDisable()
         {
             _interagir?.Disable();
+            DesregistrarTodos();
         }
 
         private void OnDestroy()
         {
             TeclasDoJogo.Mudou -= AtualizarTecla;
+            DesregistrarTodos();
             _interagir?.Dispose();
             _interagir = null;
+        }
+
+        private void RegistrarTodos()
+        {
+            for (var i = 0; i < _pontos.Count; i++)
+            {
+                RegistroDeInteracao.Registrar(_pontos[i]);
+            }
+        }
+
+        private void DesregistrarTodos()
+        {
+            for (var i = 0; i < _pontos.Count; i++)
+            {
+                RegistroDeInteracao.Desregistrar(_pontos[i]);
+            }
         }
 
         private void Update()
@@ -132,7 +168,7 @@ namespace JogoDoGrupo.Client.Features.Economia
             }
 
             var pos = _jogador.transform.position;
-            PontoInteracaoEconomia? maisProximo = null;
+            PontoInteracaoEconomia maisProximo = null;
             float menorDistanciaSq = float.MaxValue;
 
             for (var i = 0; i < _pontos.Count; i++)
@@ -154,19 +190,22 @@ namespace JogoDoGrupo.Client.Features.Economia
                 }
             }
 
-            if (!maisProximo.HasValue)
+            if (
+                maisProximo == null
+                || !RegistroDeInteracao.EhOMaisProximo(maisProximo, pos.x, pos.z)
+            )
             {
                 MostrarDica(false);
                 return;
             }
 
             var rotuloTecla = TeclasDoJogo.Rotulo(TeclasDoJogo.Interagir);
-            _dica.text = $"{rotuloTecla}: {maisProximo.Value.Rotulo}";
+            _dica.text = $"{rotuloTecla}: {maisProximo.Rotulo}";
             MostrarDica(true);
 
             if (_interagir != null && _interagir.WasPressedThisFrame())
             {
-                JanelasDoJogo.Abrir(maisProximo.Value.ChaveJanela);
+                maisProximo.Interagir();
             }
         }
 
