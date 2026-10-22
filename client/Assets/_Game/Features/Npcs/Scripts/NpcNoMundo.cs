@@ -15,7 +15,7 @@ namespace JogoDoGrupo.Client.Features.Npcs
     /// Possui corpo procedural com cápsula tingida pela cor do papel, colisor estático invencível,
     /// placa flutuante com nome/papel e prompt de interação quando o jogador está próximo.
     /// </summary>
-    public sealed class NpcNoMundo : MonoBehaviour
+    public sealed class NpcNoMundo : MonoBehaviour, IInteragivelNoMundo
     {
         public static readonly Vector3 TamanhoCorpo = new Vector3(0.85f, 1.8f, 0.85f);
         public const float AlturaPlaca = 2.3f;
@@ -31,6 +31,8 @@ namespace JogoDoGrupo.Client.Features.Npcs
 
         private static readonly System.Collections.Generic.List<NpcNoMundo> _ativos =
             new System.Collections.Generic.List<NpcNoMundo>();
+        private static InputAction _interagir;
+        private static int _instanciasAtivas;
 
         /// <summary>NPCs no mundo agora (para as etiquetas de nome).</summary>
         public static System.Collections.Generic.IReadOnlyList<NpcNoMundo> Ativos => _ativos;
@@ -39,6 +41,13 @@ namespace JogoDoGrupo.Client.Features.Npcs
 
         public DefinicaoNpc Definicao => _definicao;
         public bool JogadorNoAlcance => _jogadorNoAlcance;
+
+        public float PosicaoX => transform.position.x;
+        public float PosicaoZ => transform.position.z;
+        public float RaioInteracao => _definicao?.RaioInteracao ?? 3f;
+
+        public bool PodeInteragir() =>
+            isActiveAndEnabled && _definicao != null && !JanelasDoJogo.MenuAberto;
 
         /// <summary>Disparado quando o jogador pressiona o botão de interagir no raio deste NPC.</summary>
         public static event Action<DefinicaoNpc> InteragiuComNpc;
@@ -111,9 +120,10 @@ namespace JogoDoGrupo.Client.Features.Npcs
             }
 
             var titulo = ObterTituloDoPapel(_definicao.Papel);
+            var rotuloTecla = TeclasDoJogo.Rotulo(TeclasDoJogo.Interagir);
             if (noAlcance)
             {
-                _textoPlaca.text = $"{_definicao.Nome}\n<{titulo}>\n[E] Falar";
+                _textoPlaca.text = $"{_definicao.Nome}\n<{titulo}>\n[{rotuloTecla}] Falar";
             }
             else
             {
@@ -125,17 +135,75 @@ namespace JogoDoGrupo.Client.Features.Npcs
         {
             if (!_ativos.Contains(this))
                 _ativos.Add(this);
+            RegistroDeInteracao.Registrar(this);
+
+            _instanciasAtivas++;
+            if (_interagir == null)
+            {
+                _interagir = new InputAction(
+                    "InteragirNpc",
+                    InputActionType.Button,
+                    TeclasDoJogo.Caminho(TeclasDoJogo.Interagir)
+                );
+                TeclasDoJogo.Mudou += AtualizarTecla;
+                _interagir.AddBinding("<Gamepad>/buttonWest");
+                _interagir.Enable();
+            }
         }
+
+        private static void AtualizarTecla() =>
+            _interagir?.ApplyBindingOverride(0, TeclasDoJogo.Caminho(TeclasDoJogo.Interagir));
 
         private void OnDisable()
         {
             _ativos.Remove(this);
+            RegistroDeInteracao.Desregistrar(this);
+
+            _instanciasAtivas--;
+            if (_instanciasAtivas <= 0 && _interagir != null)
+            {
+                TeclasDoJogo.Mudou -= AtualizarTecla;
+                _interagir.Dispose();
+                _interagir = null;
+                _instanciasAtivas = 0;
+            }
         }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void ReiniciarAtivos()
         {
             _ativos.Clear();
+            RegistroDeInteracao.Limpar();
+            if (_interagir != null)
+            {
+                TeclasDoJogo.Mudou -= AtualizarTecla;
+                _interagir.Dispose();
+                _interagir = null;
+            }
+            _instanciasAtivas = 0;
+        }
+
+        public void Interagir()
+        {
+            if (_definicao == null)
+            {
+                return;
+            }
+
+            InteragiuComNpc?.Invoke(_definicao);
+            if (ConexaoTempoReal.Conectado)
+            {
+                ConexaoTempoReal.Enviar(NpcsMessageIds.FalarComNpc, new FalarComNpc(_definicao.Id));
+            }
+            else
+            {
+                var dialogo = CatalogoDialogosNpc.ObterDialogo(_definicao);
+                JanelasDoJogo.Abrir(JanelaDialogoNpc.Chave);
+                if (JanelaDialogoNpc.InstanciaAtual != null)
+                {
+                    JanelaDialogoNpc.InstanciaAtual.Atualizar(dialogo);
+                }
+            }
         }
 
         private void Update()
@@ -164,50 +232,19 @@ namespace JogoDoGrupo.Client.Features.Npcs
 
             if (
                 _jogadorNoAlcance
-                && Keyboard.current != null
-                && Keyboard.current.eKey.wasPressedThisFrame
-                && EhOMaisPerto(posJogador)
+                && !JanelasDoJogo.MenuAberto
+                && _interagir != null
+                && _interagir.WasPressedThisFrame()
+                && RegistroDeInteracao.EhOMaisProximo(this, posJogador.x, posJogador.z)
             )
             {
-                InteragiuComNpc?.Invoke(_definicao);
-                if (ConexaoTempoReal.Conectado)
-                {
-                    ConexaoTempoReal.Enviar(
-                        NpcsMessageIds.FalarComNpc,
-                        new FalarComNpc(_definicao.Id)
-                    );
-                }
-                else
-                {
-                    var dialogo = CatalogoDialogosNpc.ObterDialogo(_definicao);
-                    JanelasDoJogo.Abrir(JanelaDialogoNpc.Chave);
-                    if (JanelaDialogoNpc.InstanciaAtual != null)
-                    {
-                        JanelaDialogoNpc.InstanciaAtual.Atualizar(dialogo);
-                    }
-                }
+                Interagir();
             }
         }
 
-        // Com dois NPCs no alcance, só o mais perto responde ao E (antes os dois abriam conversa).
-        private bool EhOMaisPerto(Vector3 posJogador)
-        {
-            var minha = DistanciaHorizontal(posJogador);
-            foreach (var outro in _ativos)
-            {
-                if (
-                    outro != null
-                    && outro != this
-                    && outro._jogadorNoAlcance
-                    && outro.DistanciaHorizontal(posJogador) < minha
-                )
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
+        // Com dois NPCs ou outros interagíveis no alcance, só o mais perto responde ao botão.
+        private bool EhOMaisPerto(Vector3 posJogador) =>
+            RegistroDeInteracao.EhOMaisProximo(this, posJogador.x, posJogador.z);
 
         private float DistanciaHorizontal(Vector3 posicao)
         {

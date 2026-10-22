@@ -88,7 +88,8 @@ Do "Livro de ideias" do [FigJam](../brainstorm/figjam.md) (seções 07 e 11). **
 - Moradores e comerciantes não podem ser atacados por criaturas no MVP: manadas não entram na cidade ([mobs](mobs.md)).
 - **Catálogo autoritativo (`CatalogoNpcs`):** fonte canônica de coordenadas, identidade e alcance de interação dos NPCs por área (#1063). Economia e demais módulos alinham suas posições a ele.
 - **Presença e rede:** servidor publica `NpcsDaArea` (ID 2001) ao jogador entrar na área ou mediante `SolicitarNpcs` (ID 2002).
-- **Corpo e placa:** no client, cada NPC possui cápsula com colisor estático (imune a dano e empurrões), cor temática por papel, placa de nome/papel voltada para a câmera e prompt `[E] Falar` ao alcance.
+- **Corpo e placa:** no client, cada NPC possui cápsula com colisor estático (imune a dano e empurrões), cor temática por papel, placa de nome/papel voltada para a câmera e prompt `[{tecla}] Falar` ao alcance.
+- **Interação única ao alcance (`RegistroDeInteracao` e `IInteragivelNoMundo`):** quando múltiplos interagíveis (NPCs, baús, barracas) estão ao alcance, a tecla de interação (`TeclasDoJogo.Interagir`, remapeável) e o prompt visual destacam e acionam apenas o mais próximo horizontalmente (#1195).
 
 ## Depende de
 
@@ -101,6 +102,7 @@ Do "Livro de ideias" do [FigJam](../brainstorm/figjam.md) (seções 07 e 11). **
 - `CatalogoDialogosNpc`: catálogo de diálogos, falas e opções por papel de NPC.
 - `NpcsDaArea`: pacote com a lista de NPCs da área.
 - `FalarComNpc`, `DialogoDoNpc`, `ExecutarOpcaoDeDialogo`, `DialogoRecusado`: fluxo autoritativo de diálogo (IDs 2010 a 2013).
+- `IInteragivelNoMundo` e `RegistroDeInteracao`: contrato e registro compartilhado entre client/shared para seleção do interagível mais próximo ao alcance (#1195).
 - Conversa aceita (NPC existe, mesma área e dentro do raio, pela posição do servidor) publica o evento de servidor `JogadorFalouComNpc` (`Contratos/Npcs`); é por ele que as [missões](missoes.md) contam o objetivo **Falar**. Os canais da cidade (`cidade:2`...) têm os mesmos NPCs da cidade.
 
 
