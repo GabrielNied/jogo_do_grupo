@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using JogoDoGrupo.Client.Core.Audio;
 using JogoDoGrupo.Client.Core.TempoReal;
 using JogoDoGrupo.Shared.Features.Social;
 
@@ -338,6 +339,7 @@ namespace JogoDoGrupo.Client.Features.Social
                         Restante = convite.ValidadeSegundos,
                     }
                 );
+                AudioDoJogo.TocarInterface(SomDeInterface.Convite);
             }
 
             Mudou?.Invoke();

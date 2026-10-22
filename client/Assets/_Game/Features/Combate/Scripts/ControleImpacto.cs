@@ -313,7 +313,19 @@ namespace JogoDoGrupo.Client.Features.Combate
             {
                 if (AnimacaoDeOutros.EhDeOutro(ataque.AtacanteId, _personagemId))
                 {
-                    Tocar(SomDeCombate.Golpe, AnimacaoDeOutros.VolumeDeOutros);
+                    var avatar = AnimacaoDeOutros.Buscar(ataque.AtacanteId);
+                    var jogador = EntradaNoJogo.Jogador;
+                    var dist =
+                        (avatar != null && jogador != null)
+                            ? Vector3.Distance(
+                                avatar.transform.position,
+                                jogador.transform.position
+                            )
+                            : 0f;
+                    if (RegrasEfeitosAudio.PodeOuvirOutroJogador(dist))
+                    {
+                        Tocar(SomDeCombate.Golpe, AnimacaoDeOutros.VolumeDeOutros);
+                    }
                 }
 
                 return;
@@ -348,6 +360,29 @@ namespace JogoDoGrupo.Client.Features.Combate
                 }
 
                 var alvo = RegistroDeAlvos.Achar(acerto.AlvoId);
+                if (!meu)
+                {
+                    var avatar = AnimacaoDeOutros.Buscar(ataque.AtacanteId);
+                    var dist =
+                        (avatar != null && jogador != null)
+                            ? Vector3.Distance(
+                                avatar.transform.position,
+                                jogador.transform.position
+                            )
+                            : (
+                                alvo != null && jogador != null
+                                    ? Vector3.Distance(
+                                        alvo.transform.position,
+                                        jogador.transform.position
+                                    )
+                                    : 0f
+                            );
+                    if (!RegrasEfeitosAudio.PodeOuvirOutroJogador(dist))
+                    {
+                        continue;
+                    }
+                }
+
                 var origem = jogador != null ? jogador.transform.position : Vector3.zero;
                 Aplicar(efeito, alvo, origem);
 

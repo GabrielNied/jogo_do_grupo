@@ -25,5 +25,11 @@ namespace JogoDoGrupo.Client.Core.Audio
 
         /// <summary>Intervalo mínimo entre dois cliques de interface (evita estalo duplo).</summary>
         public const float IntervaloMinimoDoCliqueSegundos = 0.05f;
+
+        /// <summary>No máximo 16 efeitos sonoros simultâneos (cortando os mais distantes primeiro).</summary>
+        public const int MaximoDeEfeitosSimultaneos = 16;
+
+        /// <summary>Distância máxima (em metros) para ouvir sons de golpes e acertos de outros jogadores.</summary>
+        public const float DistanciaMaximaOutrosJogadoresMetros = 25f;
     }
 }

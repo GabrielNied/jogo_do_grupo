@@ -381,6 +381,7 @@ public sealed class InstanciasTempoRealTestes
         jogador.Cliente.Sair();
         await InstanciasFixture.EsperarAsync(() =>
             !f.TempoReal.TentarObterSessao(jogador.PersonagemId, out _)
+            && f.Posicoes.PersonagensNaArea(AreasDoMundo.Instancia(inicio.IdInstancia)).Count == 0
         );
         f.Instancias.Varrer();
         f.Relogio.Advance(ServicoDeInstancias.PrazoVazia);
