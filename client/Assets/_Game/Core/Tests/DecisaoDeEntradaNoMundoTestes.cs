@@ -185,5 +185,77 @@ namespace JogoDoGrupo.Client.Core.Tests
 
             Assert.AreEqual(DecisaoDoEsc.AlternarMenu, decisao);
         }
+
+        [Test]
+        public void DeveCapturarCursor_ComLiberacaoManualSegurada_RetornaFalso()
+        {
+            var captura = DecisaoDeEntradaNoMundo.DeveCapturarCursor(
+                algoAberto: false,
+                entradaPendente: false,
+                conectado: true,
+                liberacaoManualSegurada: true
+            );
+
+            Assert.IsFalse(captura);
+        }
+
+        [Test]
+        public void DeveCapturarCursor_SemLiberacaoManualESemJanelas_RetornaVerdadeiro()
+        {
+            var captura = DecisaoDeEntradaNoMundo.DeveCapturarCursor(
+                algoAberto: false,
+                entradaPendente: false,
+                conectado: true,
+                liberacaoManualSegurada: false
+            );
+
+            Assert.IsTrue(captura);
+        }
+
+        [Test]
+        public void DeveLiberarCursorManualmente_SemJanelaESegurado_RetornaVerdadeiro()
+        {
+            Assert.IsTrue(
+                DecisaoDeEntradaNoMundo.DeveLiberarCursorManualmente(
+                    algoAberto: false,
+                    liberacaoManualSegurada: true
+                )
+            );
+            Assert.IsFalse(
+                DecisaoDeEntradaNoMundo.DeveLiberarCursorManualmente(
+                    algoAberto: false,
+                    liberacaoManualSegurada: false
+                )
+            );
+            Assert.IsFalse(
+                DecisaoDeEntradaNoMundo.DeveLiberarCursorManualmente(
+                    algoAberto: true,
+                    liberacaoManualSegurada: true
+                )
+            );
+        }
+
+        [Test]
+        public void DeveBloquearGiroDaCamera_ComLiberacaoManualOuJanela_RetornaVerdadeiro()
+        {
+            Assert.IsTrue(
+                DecisaoDeEntradaNoMundo.DeveBloquearGiroDaCamera(
+                    janelaAberta: false,
+                    liberacaoManualSegurada: true
+                )
+            );
+            Assert.IsTrue(
+                DecisaoDeEntradaNoMundo.DeveBloquearGiroDaCamera(
+                    janelaAberta: true,
+                    liberacaoManualSegurada: false
+                )
+            );
+            Assert.IsFalse(
+                DecisaoDeEntradaNoMundo.DeveBloquearGiroDaCamera(
+                    janelaAberta: false,
+                    liberacaoManualSegurada: false
+                )
+            );
+        }
     }
 }

@@ -36,8 +36,27 @@ namespace JogoDoGrupo.Client.Core.Jogo
         internal static bool DeveCapturarCursor(
             bool algoAberto,
             bool entradaPendente,
-            bool conectado
-        ) => !algoAberto && !entradaPendente && conectado;
+            bool conectado,
+            bool liberacaoManualSegurada = false
+        ) => !algoAberto && !entradaPendente && conectado && !liberacaoManualSegurada;
+
+        /// <summary>
+        /// Com o jogo ativo sem janela aberta, segurar a tecla dedicada (Alt esquerdo) libera o
+        /// cursor temporariamente para interação com a UI (#1194).
+        /// </summary>
+        internal static bool DeveLiberarCursorManualmente(
+            bool algoAberto,
+            bool liberacaoManualSegurada
+        ) => !algoAberto && liberacaoManualSegurada;
+
+        /// <summary>
+        /// Se a câmera deve bloquear o giro por movimento do mouse: com janela aberta ou com a
+        /// tecla de liberação de cursor segurada sem janelas (#1194).
+        /// </summary>
+        internal static bool DeveBloquearGiroDaCamera(
+            bool janelaAberta,
+            bool liberacaoManualSegurada
+        ) => janelaAberta || liberacaoManualSegurada;
 
         /// <summary>
         /// Se o personagem lê o input de movimento: com janelas abertas, sim (anda com elas); só o

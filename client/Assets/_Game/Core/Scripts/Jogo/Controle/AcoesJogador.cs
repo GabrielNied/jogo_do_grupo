@@ -21,6 +21,7 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
         private readonly InputAction _girarCamera;
         private readonly InputAction _esconderHud;
         private readonly InputAction _clicar;
+        private readonly InputAction _liberarCursor;
 
         public AcoesJogador()
         {
@@ -79,6 +80,11 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
             );
             _esconderHud = new InputAction("EsconderHud", InputActionType.Button, "<Keyboard>/f11");
             _clicar = new InputAction("Clicar", InputActionType.Button, "<Mouse>/leftButton");
+            _liberarCursor = new InputAction(
+                "LiberarCursor",
+                InputActionType.Button,
+                "<Keyboard>/leftAlt"
+            );
             TeclasDoJogo.Mudou += AtualizarTeclas;
             AtualizarTeclas();
         }
@@ -93,6 +99,10 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
             _pular.ApplyBindingOverride(0, TeclasDoJogo.Caminho(TeclasDoJogo.Pular));
             _subir.ApplyBindingOverride(1, TeclasDoJogo.Caminho(TeclasDoJogo.Pular));
             _esconderHud.ApplyBindingOverride(0, TeclasDoJogo.Caminho(TeclasDoJogo.EsconderHud));
+            _liberarCursor.ApplyBindingOverride(
+                0,
+                TeclasDoJogo.Caminho(TeclasDoJogo.LiberarCursor)
+            );
         }
 
         /// <summary>Movimento (x = lado, y = frente), de -1 a 1.</summary>
@@ -152,6 +162,9 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
         /// <summary>Se o botão esquerdo do mouse foi solto neste frame.</summary>
         public bool ClicarSolto => _clicar.WasReleasedThisFrame();
 
+        /// <summary>Se a tecla de liberar cursor (Alt esquerdo) está segurada.</summary>
+        public bool LiberarCursorSegurado => _liberarCursor.IsPressed();
+
         /// <summary>Posição do mouse na tela, em pixels (origem embaixo à esquerda).</summary>
         public Vector2 PosicaoDoMouse =>
             Mouse.current != null ? Mouse.current.position.ReadValue() : Vector2.zero;
@@ -168,6 +181,7 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
             _girarCamera.Enable();
             _esconderHud.Enable();
             _clicar.Enable();
+            _liberarCursor.Enable();
         }
 
         public void Desativar()
@@ -182,6 +196,7 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
             _girarCamera.Disable();
             _esconderHud.Disable();
             _clicar.Disable();
+            _liberarCursor.Disable();
         }
 
         public void Dispose()
@@ -197,6 +212,7 @@ namespace JogoDoGrupo.Client.Core.Jogo.Controle
             _girarCamera.Dispose();
             _esconderHud.Dispose();
             _clicar.Dispose();
+            _liberarCursor.Dispose();
         }
     }
 }

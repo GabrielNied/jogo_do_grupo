@@ -35,6 +35,9 @@ namespace JogoDoGrupo.Client.Core.Jogo
         // esquiva, skills e troca de arma valem e a câmera gira livre.
         private bool _modoCombate;
 
+        // Segurar a tecla dedicada (Alt esquerdo) solta o cursor temporariamente sem abrir janelas (#1194).
+        private bool _cursorLiberadoPorTecla;
+
         public bool MenuAberto => _menu != null && _menu.Aberto;
 
         public void Configurar(
@@ -166,6 +169,7 @@ namespace JogoDoGrupo.Client.Core.Jogo
                 );
             }
 
+            AtualizarLiberacaoManualDoCursor();
             AtualizarGiroComJanela();
 
             if (_acoes.MenuApertado)
@@ -256,6 +260,44 @@ namespace JogoDoGrupo.Client.Core.Jogo
         }
 
         /// <summary>
+        /// Com o jogo ativo sem janelas abertas, segurar a tecla dedicada (Alt esquerdo) solta o
+        /// cursor para cliques na interface e trava o giro da câmera pelo mouse (#1194).
+        /// </summary>
+        private void AtualizarLiberacaoManualDoCursor()
+        {
+            if (_janelas.AlgoAberto)
+            {
+                if (_cursorLiberadoPorTecla)
+                {
+                    _cursorLiberadoPorTecla = false;
+                }
+                return;
+            }
+
+            var segurado = _acoes != null && _acoes.LiberarCursorSegurado;
+            if (segurado && !_cursorLiberadoPorTecla)
+            {
+                _cursorLiberadoPorTecla = true;
+                LiberarCursor();
+                if (_camera != null)
+                {
+                    _camera.GiroBloqueado = true;
+                }
+            }
+            else if (!segurado && _cursorLiberadoPorTecla)
+            {
+                _cursorLiberadoPorTecla = false;
+                if (_camera != null)
+                {
+                    _camera.GiroBloqueado = false;
+                }
+
+                Cursor.lockState = CursorLockMode.Locked;
+                Cursor.visible = false;
+            }
+        }
+
+        /// <summary>
         /// Com janela aberta: a câmera só gira enquanto o botão direito, apertado fora das
         /// janelas, está segurado (o cursor some e fica na janela do jogo); a roda só aproxima
         /// com o mouse fora das janelas. Sem janela, tudo livre como antes.
@@ -277,7 +319,7 @@ namespace JogoDoGrupo.Client.Core.Jogo
 
                 _cliqueNoMundo = false;
                 _modoCombate = false;
-                _camera.GiroBloqueado = false;
+                _camera.GiroBloqueado = _cursorLiberadoPorTecla;
                 _camera.ZoomBloqueado = false;
                 return;
             }
@@ -402,10 +444,12 @@ namespace JogoDoGrupo.Client.Core.Jogo
                 }
             }
 
+            var liberandoManual = _acoes != null && _acoes.LiberarCursorSegurado;
             var livre = DecisaoDeEntradaNoMundo.DeveCapturarCursor(
                 _janelas.AlgoAberto,
                 EntradaNoJogo.EntradaPendente,
-                ConexaoTempoReal.Conectado
+                ConexaoTempoReal.Conectado,
+                liberandoManual
             );
             Hud.DefinirVisivel(!_apresentador.TelaInteiraAberta);
 
@@ -425,9 +469,10 @@ namespace JogoDoGrupo.Client.Core.Jogo
             _girando = false;
             _cliqueNoMundo = false;
             _modoCombate = false;
+            _cursorLiberadoPorTecla = !_janelas.AlgoAberto && liberandoManual;
             if (_camera != null)
             {
-                _camera.GiroBloqueado = _janelas.JanelaAberta;
+                _camera.GiroBloqueado = _janelas.JanelaAberta || _cursorLiberadoPorTecla;
                 _camera.ZoomBloqueado = false;
             }
 
