@@ -649,10 +649,12 @@ public class QuedaTestes(ServidorDeQueda servidor) : IClassFixture<ServidorDeQue
     }
 
     [Fact]
-    public async Task Levantar_de_grupos_diferentes_e_recusado()
+    public async Task Levantar_na_dungeon_de_grupos_diferentes_e_recusado()
     {
         using var ana = await NovoJogadorAsync();
         using var beto = await NovoJogadorAsync(1f, 0f);
+        servidor.Posicoes.Colocar(ana.Id, "instancia:teste", 0f, 0f);
+        servidor.Posicoes.Colocar(beto.Id, "instancia:teste", 1f, 0f);
         servidor.Grupos.DefinirGrupo(ana.Id, 1);
         servidor.Grupos.DefinirGrupo(beto.Id, 2);
         await DerrubarAsync(ana);
@@ -664,10 +666,27 @@ public class QuedaTestes(ServidorDeQueda servidor) : IClassFixture<ServidorDeQue
     }
 
     [Fact]
-    public async Task Levantar_quando_ajudante_ou_alvo_esta_sem_grupo_e_recusado()
+    public async Task Levantar_no_mundo_aberto_vale_para_estranho_e_sem_grupo()
     {
         using var ana = await NovoJogadorAsync();
         using var beto = await NovoJogadorAsync(1f, 0f);
+        servidor.Grupos.DefinirGrupo(ana.Id, 1);
+        servidor.Grupos.DefinirGrupo(beto.Id, 0);
+        await DerrubarAsync(ana);
+
+        Levantar(beto, ana);
+
+        await EstadoAsync(ana, FaseDeQueda.Levantando);
+        await EstadoAsync(ana, FaseDeQueda.Vivo);
+    }
+
+    [Fact]
+    public async Task Levantar_na_dungeon_quando_ajudante_ou_alvo_esta_sem_grupo_e_recusado()
+    {
+        using var ana = await NovoJogadorAsync();
+        using var beto = await NovoJogadorAsync(1f, 0f);
+        servidor.Posicoes.Colocar(ana.Id, "instancia:teste", 0f, 0f);
+        servidor.Posicoes.Colocar(beto.Id, "instancia:teste", 1f, 0f);
         await DerrubarAsync(ana);
 
         // Alvo sem grupo (solo)

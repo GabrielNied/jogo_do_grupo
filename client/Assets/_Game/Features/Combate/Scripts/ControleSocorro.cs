@@ -16,10 +16,20 @@ namespace JogoDoGrupo.Client.Features.Combate
     /// </summary>
     internal sealed class ControleSocorro : MonoBehaviour
     {
+        /// <summary>
+        /// Verdadeiro enquanto o personagem local está caído (ou sendo levantado): nada de golpe,
+        /// esquiva, guarda ou skill, e o cursor fica livre para o botão de voltar à cidade (#1205).
+        /// </summary>
+        internal static bool EuCaido { get; private set; }
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void Reiniciar() => EuCaido = false;
+
         private readonly List<IDisposable> _assinaturas = new List<IDisposable>();
         private readonly Dictionary<long, EstadoDeQueda> _caidos =
             new Dictionary<long, EstadoDeQueda>();
         private long _meuPersonagemId;
+        private bool _liberouCursor;
         private InputAction _interagir;
         private Label _dica;
         private VisualElement _trilho;
@@ -83,6 +93,7 @@ namespace JogoDoGrupo.Client.Features.Combate
 
         private void OnDestroy()
         {
+            EuCaido = false;
             if (_canalizando)
             {
                 Cancelar();
@@ -106,6 +117,28 @@ namespace JogoDoGrupo.Client.Features.Combate
         {
             if (_dica == null || !EntradaNoJogo.NoJogo)
             {
+                return;
+            }
+
+            if (EuCaido)
+            {
+                // O cursor preso à câmera impede clicar no botão de voltar à cidade.
+                if (
+                    UnityEngine.Cursor.lockState != CursorLockMode.None
+                    || !UnityEngine.Cursor.visible
+                )
+                {
+                    UnityEngine.Cursor.lockState = CursorLockMode.None;
+                    UnityEngine.Cursor.visible = true;
+                    _liberouCursor = true;
+                }
+
+                if (_canalizando)
+                {
+                    Cancelar();
+                }
+                _dica.style.display = DisplayStyle.None;
+                _trilho.style.display = DisplayStyle.None;
                 return;
             }
 
@@ -211,9 +244,19 @@ namespace JogoDoGrupo.Client.Features.Combate
 
             if (estado.PersonagemId == _meuPersonagemId)
             {
-                if (estado.Estado == FaseDeQueda.Caido && _canalizando)
+                EuCaido =
+                    estado.Estado == FaseDeQueda.Caido || estado.Estado == FaseDeQueda.Levantando;
+                if (EuCaido && _canalizando)
                 {
                     Cancelar();
+                }
+
+                if (!EuCaido && _liberouCursor)
+                {
+                    // Levantou ou voltou: devolve o cursor ao modo de jogo (preso à câmera).
+                    _liberouCursor = false;
+                    UnityEngine.Cursor.lockState = CursorLockMode.Locked;
+                    UnityEngine.Cursor.visible = false;
                 }
                 return;
             }
@@ -232,8 +275,30 @@ namespace JogoDoGrupo.Client.Features.Combate
             }
         }
 
+        /// <summary>O aviso de por que não foi possível levantar o aliado (null: sem aviso).</summary>
+        internal static string TextoDaRecusaDeSocorro(string codigo)
+        {
+            switch (codigo)
+            {
+                case CodigosErroCombate.NaoSaoDoMesmoGrupo:
+                    return "Na dungeon só o grupo levanta aliados. Convide-o para o seu grupo.";
+                case CodigosErroCombate.LongeDemais:
+                    return "Chegue mais perto do aliado para levantá-lo.";
+                case CodigosErroCombate.JaEstaSendoLevantado:
+                    return "Outro aliado já está levantando.";
+                default:
+                    return null;
+            }
+        }
+
         private void AoRecusarAcao(AcaoRecusada recusa)
         {
+            var texto = TextoDaRecusaDeSocorro(recusa?.Codigo);
+            if (texto != null)
+            {
+                AvisosDoJogo.Mostrar(texto, TipoDeAviso.Aviso, CategoriaDeAviso.Combate);
+            }
+
             if (_canalizando)
             {
                 _canalizando = false;
