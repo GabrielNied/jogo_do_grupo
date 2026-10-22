@@ -46,7 +46,7 @@ Ler a resposta:
 
 ## 4. Registrar na doc
 
-Branch `docs/<escopo>/registra-quiz-<assunto>` a partir da `origin/main`. Por funcionalidade:
+Branch `docs/<escopo>/registra-quiz-<assunto>` a partir da `origin/main` (sem funcionalidade, escopo `core` na branch e no título). Por funcionalidade:
 
 - `Definido`: bloco "**Decisões do Gabriel em AAAA-MM-DD** (quiz de definições; números em constante nomeada)" com uma linha por decisão e link para a doc dona;
 - `Em aberto`: `[x]` + "Decidido em AAAA-MM-DD: …";
