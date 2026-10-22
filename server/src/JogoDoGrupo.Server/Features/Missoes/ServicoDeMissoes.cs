@@ -36,7 +36,7 @@ public sealed class ServicoDeMissoes
 
     private readonly JogoDbContext _db;
     private readonly ICarteiraCoroas _carteira;
-    private readonly IInventarioEconomia _inventario;
+    private readonly IConcessaoDeItens _inventario;
     private readonly IPontosDeNivel _pontosDeNivel;
     private readonly IAjusteDeExperienciaDeTeste _experiencia;
     private readonly IPosicoesDoMundo _posicoes;
@@ -47,7 +47,7 @@ public sealed class ServicoDeMissoes
     public ServicoDeMissoes(
         JogoDbContext db,
         ICarteiraCoroas carteira,
-        IInventarioEconomia inventario,
+        IConcessaoDeItens inventario,
         IPontosDeNivel pontosDeNivel,
         IAjusteDeExperienciaDeTeste experiencia,
         IPosicoesDoMundo posicoes,
@@ -423,12 +423,13 @@ public sealed class ServicoDeMissoes
                 await _carteira.CreditarAsync(personagemId, def.RecompensaCoroas, c);
             }
 
+            var destinoDoItem = DestinoDaConcessao.Recusado;
             if (itemIdEscolhido.HasValue && itemIdEscolhido.Value > 0)
             {
-                await _inventario.AdicionarItemCompradoAsync(
+                // Arma de quem está sem arma entra equipada no conjunto 1; o resto, na bolsa.
+                destinoDoItem = await _inventario.ConcederAsync(
                     personagemId,
                     itemIdEscolhido.Value,
-                    1,
                     c
                 );
             }
@@ -457,6 +458,12 @@ public sealed class ServicoDeMissoes
 
             await _db.SaveChangesAsync(c);
             await tx.CommitAsync(c);
+
+            // Só depois de gravado: visual da área e barra de skills da arma nova.
+            if (destinoDoItem == DestinoDaConcessao.Equipado)
+            {
+                await _inventario.AvisarAsync(personagemId, c);
+            }
 
             // Concessão de XP fora da transação de _db (possui escopo próprio de banco em Personagem)
             if (def.RecompensaXp > 0)

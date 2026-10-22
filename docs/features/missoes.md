@@ -148,7 +148,7 @@ Todas as etapas seguem objetivos estritamente verificáveis pelo motor autoritat
    - *Texto Aceitar:* *"Você não durará cinco minutos além das paliçadas desarmado. Vá até Gareth no beco das forjas e escolha a arma que melhor se adapta às suas mãos."*
    - *Objetivo:* `Falar` com Armeiro Gareth.
    - *Texto Entregar:* *"Chegou na hora certa. Espada de lâmina larga, arco recurvo ou cajado esculpido? A escolha é sua, novato."*
-   - *Recompensa:* 120 XP, 30 Coroas. Item à escolha: `Espada de Ferro Curta`, `Arco de Caça Simples` ou `Cajado de Madeira Polida`.
+   - *Recompensa:* 120 XP, 30 Coroas. Item à escolha: `Espada de Ferro Curta`, `Arco de Caça Simples` ou `Cajado de Madeira Polida`. **A arma sai equipada:** na entrega, se os dois conjuntos de armas estão vazios, o item escolhido entra equipado no conjunto 1 e as skills aparecem na barra na hora; com arma já vestida (ou se a regra de equipar recusar, como nível), vai para a bolsa. Item que não é arma vai sempre para a bolsa (#1185).
 3. **Etapa 3: Casca de Ferro e Couro**
    - *NPC Dador:* Armeiro Gareth | *NPC Entregador:* Ferreiro Brom
    - *Texto Aceitar:* *"Uma boa arma exige um corpo protegido. Leve este lingote inicial até a forja de Brom e peça a ele para reforçar sua veste."*
@@ -242,7 +242,7 @@ Do "Livro de ideias" do [FigJam](../brainstorm/figjam.md) (seção 11). **Propos
 ## Depende de
 
 - `Economia`: `ICarteiraCoroas` (recompensa de coroas)
-- `Itens`: `IInventarioEconomia` (recompensa de itens por escolha)
+- `Itens`: `IConcessaoDeItens` (recompensa de itens por escolha; arma de quem está sem arma entra equipada, [#1185](https://github.com/GabrielNied/jogo_do_grupo/issues/1185))
 - `Personagem`: `IPontosDeNivel`, `IAjusteDeExperienciaDeTeste` (nível mínimo e concessão de XP)
 - `Mundo`: `IPosicoesDoMundo` (validação de alcance de interação)
 - `Social`: `IConsultaDeGrupo` (compartilhamento com membros do grupo)

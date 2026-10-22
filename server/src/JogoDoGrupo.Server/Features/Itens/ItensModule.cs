@@ -26,6 +26,10 @@ public sealed class ItensModule : IFeatureModule
             JogoDoGrupo.Server.Contratos.Itens.IInventarioEconomia,
             InventarioEconomia
         >();
+        servicos.AddScoped<
+            JogoDoGrupo.Server.Contratos.Itens.IConcessaoDeItens,
+            ConcessaoDeItens
+        >();
         servicos.AddScoped<JogoDoGrupo.Server.Contratos.Itens.ICustodiaDeItens, CustodiaDeItens>();
         servicos.AddScoped<JogoDoGrupo.Server.Contratos.Itens.IConsumoDeItens, ConsumoDeItens>();
         servicos.AddScoped<
