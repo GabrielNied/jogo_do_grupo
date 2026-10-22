@@ -249,7 +249,7 @@ Quem decide: **servidor**. O client envia o texto e o canal; o servidor valida, 
 - A mensagem sem comando vai para o **último canal usado** (o primeiro é Cidade). `/r texto` responde ao último sussurro recebido.
 - Comando desconhecido não é enviado ao servidor: aparece uma linha de Sistema explicando. **`/comandos`** lista chat e, no editor ou build de desenvolvimento, os [comandos de teste](desenvolvimento.md). **Tab** completa o verbo depois de `/`.
 - ~~A tecla Enter para abrir o chat entra na tabela de teclas e atalhos quando o chat for implementado.~~ A tecla Enter já está na tabela de [teclas e atalhos](interface.md#teclas-e-atalhos) (client do chat, #240).
-- No client, o histórico de 100 linhas vale enquanto o jogo está aberto; a lista de ignorados vem do servidor. A Social copia os avisos do HUD para o canal Sistema. Convites pendentes mostram **Aceitar (Y)** e **Recusar (N)** no próprio aviso sobre o jogo, além da janela do grupo. Os atalhos funcionam com o cursor travado e não disparam enquanto a pessoa digita no chat.
+- No client, o histórico de 100 linhas vale enquanto o jogo está aberto; a lista de ignorados vem do servidor. A Social copia os avisos do HUD para o canal Sistema. Convites pendentes mostram **Aceitar (F1)** e **Recusar (F2)** no próprio aviso sobre o jogo (Y e N são atalhos das janelas de Conquistas e Talentos, #1198), além da janela do grupo; vale também para convite de troca e pedido de amizade recebido (a troca tem a vez). Os atalhos funcionam com o cursor travado e não disparam enquanto a pessoa digita no chat.
 
 #### Balões de fala no mundo (Speech Bubbles, #1017)
 
@@ -316,7 +316,7 @@ Quem decide: **servidor** (quem é amigo de quem, quem está online, o que o ign
 - **Pedido cruzado:** pedir amizade a quem já tinha pedido a você vale como aceitar o pedido dele.
 - **Remover** acaba com a amizade para os dois; o outro só recebe a lista nova, sem aviso.
 - Cada linha da lista mostra o nome do personagem pelo qual a amizade foi feita, se a conta está online e, se estiver, com qual personagem e em qual **área** (Cidade, Campo ou Dungeon; #904).
-- O servidor envia a lista inteira ao entrar no jogo e a cada mudança de amigos ou pedidos. Entrar, sair e trocar de personagem de um amigo chegam num aviso curto, só daquela linha.
+- O servidor envia a lista inteira ao entrar no jogo e a cada mudança de amigos ou pedidos, para os dois lados (o alvo online vê o pedido na hora, #1200). Entrar, sair e trocar de personagem de um amigo chegam num aviso curto, só daquela linha.
 
 #### Ignorar
 
