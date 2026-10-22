@@ -75,6 +75,8 @@ Primeira área jogável (issue #36): o Core chama o construtor do Mundo ao entra
 
 ### Biomas e relevo
 
+- **Autoria em blocos de 500 m:** o mundo mantém 3 × 3 km, com 36 Terrains conectados (6 × 6). Resoluções e decisões de migração: [ADR 0054](../decisoes/0054-terreno-em-blocos-de-500-metros.md). A cena `AutoriaDoMapa` mantém todos carregados, com Auto Connect e grupo compartilhado; esculpir e pintar texturas atravessa as divisas, inclusive o encontro de quatro blocos. O pincel próprio de vegetação acompanha os vizinhos e um Ctrl+Z desfaz o gesto inteiro. Relevo e pintura anteriores são reamostrados, sem recriar detalhes ausentes; árvores e detalhes começam vazios para pintura manual. Objetos manuais permanecem. Selecionar um `ChaoNativo_*` em `Hub/TerrenoFora` para editar. **Dividir autoria em blocos de 500 m** é migração única, não uma ferramenta de edição recorrente. **Publicar mapa feito à mão** salva os 36 blocos no prefab e amostra cada coordenada no bloco correto para a grade autoritativa de 10 m; dividir não altera sozinho os dados do servidor. Adicionar novas camadas de textura ao conjunto deve manter a mesma referência TerrainLayer entre vizinhos.
+
 Decidido pelo Gabriel em 2026-10-11 (issue #135). Substitui o terreno plano de 1 km. A decisão técnica (geração por semente) está no [ADR 0020](../decisoes/0020-mapa-do-mundo-no-shared.md), substituída pelo [ADR 0044](../decisoes/0044-mapa-feito-a-mao-exportado-para-o-shared.md).
 
 - **Tamanho:** quadrado de **3 km × 3 km** (de -1500 a +1500 m em X e Z), com a cidade no centro. Barreiras invisíveis na borda.

@@ -16,6 +16,32 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
 
         public static Terrain Criar(Transform pai)
         {
+            var grade = Resources.Load<GradeDeTerrenosDoMundo>(
+                GradeDeTerrenosDoMundo.CaminhoNosResources
+            );
+            if (grade != null)
+            {
+                if (grade.Blocos.Length != GradeDeTerrenosDoMundo.Quantidade)
+                    throw new System.InvalidOperationException("Grade de terrenos incompleta.");
+                var terrenos = new Terrain[grade.Blocos.Length];
+                for (var z = 0; z < GradeDeTerrenosDoMundo.BlocosPorLado; z++)
+                for (var x = 0; x < GradeDeTerrenosDoMundo.BlocosPorLado; x++)
+                {
+                    var indice = z * GradeDeTerrenosDoMundo.BlocosPorLado + x;
+                    if (grade.Blocos[indice] == null)
+                        throw new System.InvalidOperationException(
+                            "Bloco de terreno ausente: " + indice
+                        );
+                    var bloco = Terrain.CreateTerrainGameObject(grade.Blocos[indice]);
+                    bloco.name = indice == 0 ? Nome : $"{Nome}_{x}_{z}";
+                    bloco.transform.SetParent(pai, false);
+                    bloco.transform.localPosition = GradeDeTerrenosDoMundo.Origem(x, z);
+                    terrenos[indice] = bloco.GetComponent<Terrain>();
+                    GarantirDados(terrenos[indice]);
+                }
+                GradeDeTerrenosDoMundo.Conectar(terrenos);
+                return terrenos[0];
+            }
             var origem = Resources.Load<TerrainData>(CaminhoNosResources);
             if (origem == null)
             {
@@ -25,7 +51,6 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
             }
 
             var dados = Object.Instantiate(origem);
-            AbrirEntradaDaCaverna(dados);
             var objeto = Terrain.CreateTerrainGameObject(dados);
             objeto.name = Nome;
             objeto.transform.SetParent(pai, false);
@@ -34,6 +59,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
                 MapaDoMundo.AlturaMinima,
                 -MapaDoMundo.Metade
             );
+            AbrirEntradaDaCaverna(dados, objeto.transform.position);
 
             var terrain = objeto.GetComponent<Terrain>();
             terrain.drawTreesAndFoliage = true;
@@ -70,7 +96,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
             }
 
             var dados = Object.Instantiate(origem);
-            AbrirEntradaDaCaverna(dados);
+            AbrirEntradaDaCaverna(dados, terrain.transform.position);
             terrain.terrainData = dados;
             var colisor = terrain.GetComponent<TerrainCollider>();
             if (colisor != null)
@@ -92,54 +118,46 @@ namespace JogoDoGrupo.Client.Features.Mundo.Terreno
         /// <summary>Até onde as árvores do terreno são desenhadas como malha (m).</summary>
         public const float DistanciaDasArvoresEmMalha = 320f;
 
-        private static void AbrirEntradaDaCaverna(TerrainData dados)
+        private static void AbrirEntradaDaCaverna(TerrainData dados, Vector3 origem)
         {
             var resolucao = dados.holesResolution;
-            var superficie = new bool[resolucao, resolucao];
-            for (var z = 0; z < resolucao; z++)
-            {
-                for (var x = 0; x < resolucao; x++)
-                {
-                    superficie[z, x] = true;
-                }
-            }
-
             // Só a área da caverna pode ter furo: testar o mapa inteiro (um milhão de pontos)
             // travava a entrada no mundo por uns 15 s e a conexão caía por falta de resposta.
             PrimeiraCaverna.Limites(out var minX, out var minZ, out var maxX, out var maxZ);
-            var x0 = IndiceDaGrade(minX - MargemDaCaverna, resolucao);
-            var x1 = IndiceDaGrade(maxX + MargemDaCaverna, resolucao);
-            var z0 = IndiceDaGrade(minZ - MargemDaCaverna, resolucao);
-            var z1 = IndiceDaGrade(maxZ + MargemDaCaverna, resolucao);
+            if (
+                maxX + MargemDaCaverna < origem.x
+                || minX - MargemDaCaverna > origem.x + dados.size.x
+                || maxZ + MargemDaCaverna < origem.z
+                || minZ - MargemDaCaverna > origem.z + dados.size.z
+            )
+                return;
+            var x0 = IndiceDaGrade(minX - MargemDaCaverna - origem.x, dados.size.x, resolucao);
+            var x1 = IndiceDaGrade(maxX + MargemDaCaverna - origem.x, dados.size.x, resolucao);
+            var z0 = IndiceDaGrade(minZ - MargemDaCaverna - origem.z, dados.size.z, resolucao);
+            var z1 = IndiceDaGrade(maxZ + MargemDaCaverna - origem.z, dados.size.z, resolucao);
+            var superficie = dados.GetHoles(x0, z0, x1 - x0 + 1, z1 - z0 + 1);
             for (var z = z0; z <= z1; z++)
             {
-                var mundoZ = CoordenadaDoMundo(z, resolucao);
+                var mundoZ = origem.z + dados.size.z * (z + 0.5f) / resolucao;
                 for (var x = x0; x <= x1; x++)
                 {
-                    superficie[z, x] = !PrimeiraCaverna.FuraOTerreno(
-                        CoordenadaDoMundo(x, resolucao),
+                    superficie[z - z0, x - x0] &= !PrimeiraCaverna.FuraOTerreno(
+                        origem.x + dados.size.x * (x + 0.5f) / resolucao,
                         mundoZ
                     );
                 }
             }
 
-            dados.SetHoles(0, 0, superficie);
+            dados.SetHoles(x0, z0, superficie);
         }
 
         // Folga em volta dos limites da caverna (m), para o contorno do túnel caber inteiro.
         private const float MargemDaCaverna = 8f;
 
-        private static int IndiceDaGrade(float coordenada, int resolucao)
+        private static int IndiceDaGrade(float coordenada, float lado, int resolucao)
         {
-            var indice = Mathf.FloorToInt(
-                (coordenada + MapaDoMundo.Metade) / MapaDoMundo.Lado * resolucao
-            );
+            var indice = Mathf.FloorToInt(coordenada / lado * resolucao);
             return Mathf.Clamp(indice, 0, resolucao - 1);
-        }
-
-        private static float CoordenadaDoMundo(int indice, int resolucao)
-        {
-            return -MapaDoMundo.Metade + MapaDoMundo.Lado * (indice + 0.5f) / resolucao;
         }
     }
 }

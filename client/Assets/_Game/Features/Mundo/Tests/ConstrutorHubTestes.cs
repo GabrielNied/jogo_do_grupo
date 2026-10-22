@@ -350,7 +350,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
             var terreno = _hub.transform.Find(ConstrutorHub.NomeTerreno);
             Assert.IsNotNull(terreno, "O hub deveria ter o terreno de fora.");
 
-            // O chão agora é um Terrain editável, com um TerrainCollider só para todo o mundo.
+            // Cada bloco de Terrain tem o próprio colisor; juntos cobrem o mundo inteiro.
             // Logo fora dos muros ele sobe devagar (a faixa inicial, até 5 m): o laço abaixo
             // confere a face de cima contra MapaDoMundo.AlturaEm.
             var chaoNativo = terreno.Find(TerrenoNativoDoMundo.Nome);
@@ -358,6 +358,8 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
             var colisorNativo = chaoNativo.GetComponent<TerrainCollider>();
             Assert.IsNotNull(colisorNativo, "O Terrain precisa do próprio colisor.");
             var chao = colisorNativo.bounds;
+            foreach (var colisor in terreno.GetComponentsInChildren<TerrainCollider>())
+                chao.Encapsulate(colisor.bounds);
 
             Assert.GreaterOrEqual(chao.size.x, MapaDoMundo.Lado - 0.01f);
             Assert.GreaterOrEqual(chao.size.z, MapaDoMundo.Lado - 0.01f);

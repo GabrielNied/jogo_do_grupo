@@ -226,7 +226,9 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
                 var origem = new Vector3(ponto.x, MapaDoMundo.AlturaMaxima + 20f, ponto.y);
                 var noChao = Physics
                     .RaycastAll(origem, Vector3.down, MapaDoMundo.AlturaMaxima + 60f)
-                    .Where(b => b.collider.transform.IsChildOf(chaoNativo))
+                    .Where(b =>
+                        b.collider is TerrainCollider && b.collider.transform.IsChildOf(terreno)
+                    )
                     .ToArray();
 
                 Assert.AreEqual(1, noChao.Length, $"Chão em {ponto}: esperava uma batida só.");
@@ -877,12 +879,43 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
                     "O TerrainCollider precisa de TerrainData atribuído."
                 );
                 Assert.AreSame(terrain.terrainData, colisor.terrainData);
-                Assert.AreEqual(MapaDoMundo.Lado, terrain.terrainData.size.x, 0.01f);
+                var grade = Resources.Load<GradeDeTerrenosDoMundo>(
+                    GradeDeTerrenosDoMundo.CaminhoNosResources
+                );
+                Assert.AreEqual(
+                    grade != null ? GradeDeTerrenosDoMundo.LadoDoBloco : MapaDoMundo.Lado,
+                    terrain.terrainData.size.x,
+                    0.01f
+                );
+                if (grade != null)
+                {
+                    var terrenos = mapa.GetComponentsInChildren<Terrain>();
+                    Assert.AreEqual(GradeDeTerrenosDoMundo.Quantidade, terrenos.Length);
+                    foreach (var bloco in terrenos)
+                    {
+                        var posicao = bloco.transform.position;
+                        var dadosOriginais = grade.Blocos[
+                            GradeDeTerrenosDoMundo.Indice(posicao.x, posicao.z)
+                        ];
+                        Assert.AreNotSame(dadosOriginais, bloco.terrainData);
+                        Assert.AreSame(
+                            bloco.terrainData,
+                            bloco.GetComponent<TerrainCollider>().terrainData
+                        );
+                        Assert.AreEqual(
+                            dadosOriginais.treeInstanceCount,
+                            bloco.terrainData.treeInstanceCount
+                        );
+                    }
+                }
 
                 Assert.IsNull(mapa.transform.Find(ConstrutorHub.NomePecasDosBiomas));
                 Assert.IsNull(mapa.transform.Find(ConstrutorHub.NomePropsFora));
                 Assert.IsEmpty(mapa.GetComponentsInChildren<BlocosDeVegetacao>());
-                var origem = Resources.Load<TerrainData>("Mundo/TerrenoDoMundo");
+                var origem =
+                    grade != null
+                        ? grade.Blocos[0]
+                        : Resources.Load<TerrainData>("Mundo/TerrenoDoMundo");
                 Assert.AreEqual(origem.treeInstanceCount, terrain.terrainData.treeInstanceCount);
                 CollectionAssert.AreEqual(
                     origem.treePrototypes,

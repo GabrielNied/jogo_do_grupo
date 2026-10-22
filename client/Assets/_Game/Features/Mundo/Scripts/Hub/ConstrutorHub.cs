@@ -256,10 +256,12 @@ namespace JogoDoGrupo.Client.Features.Mundo.Hub
 
         private static void RestaurarTerrenoPublicado(GameObject mapa)
         {
-            var terrain = mapa.GetComponentInChildren<Terrain>();
-            if (terrain != null)
+            var terrenos = mapa.GetComponentsInChildren<Terrain>();
+            if (terrenos.Length > 0)
             {
-                TerrenoNativoDoMundo.GarantirDados(terrain);
+                foreach (var terrain in terrenos)
+                    TerrenoNativoDoMundo.GarantirDados(terrain);
+                GradeDeTerrenosDoMundo.Conectar(terrenos);
             }
             else
             {
