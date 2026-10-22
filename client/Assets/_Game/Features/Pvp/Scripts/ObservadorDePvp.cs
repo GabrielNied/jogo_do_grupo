@@ -61,6 +61,7 @@ namespace JogoDoGrupo.Client.Features.Pvp
 
             var controle = jogador.AddComponent<ControleDePvp>();
             controle.Configurar(_estado);
+            ConviteDeDueloNaTela.Criar(jogador, _estado);
         }
 
         private void OnDestroy()

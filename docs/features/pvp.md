@@ -63,6 +63,7 @@ Arenas 3v3, duelos 1v1 e PvP por bandeira opcional no mundo aberto.
   - `PvpModule`: registro no DI, tratamento de mensagens e tick no game loop.
 - `client`:
   - `EstadoDePvp`: gerenciador de rede e estado local do PvP.
-  - `ControleDePvp`: atalhos interativos (Y/N para aceitar/recusar duelo).
+  - `ConviteDeDueloNaTela`: o convite de duelo por cima do jogo, sem abrir janela, com os botões "Aceitar (F1)" e "Recusar (F2)" (tecla ou clique); some ao responder ou quando o prazo do convite acaba. F1 e F2 no lugar de Y e N, que são de Conquistas e Talentos ([#1210](https://github.com/GabrielNied/jogo_do_grupo/issues/1210)).
+  - `ControleDePvp`: avisos de duelo, arena e bandeira.
   - `TextosPvp`: formatação localizada de avisos e notificações.
   - `ObservadorDePvp`: ciclo de vida Unity e inicialização.

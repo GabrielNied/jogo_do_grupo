@@ -6,7 +6,10 @@ namespace JogoDoGrupo.Client.Features.Pvp
     public static class TextosPvp
     {
         public static string MensagemConviteDuelo(string desafianteNome) =>
-            $"{desafianteNome} desafiou você para um duelo! (Pressione Y para aceitar, N para recusar)";
+            $"{desafianteNome} desafiou você para um duelo! ({TeclasDeConviteDeDuelo.RotuloAceitar} aceita, {TeclasDeConviteDeDuelo.RotuloRecusar} recusa)";
+
+        public static string ConviteNaTela(string desafianteNome) =>
+            $"{desafianteNome} desafiou você para um duelo.";
 
         public static string MensagemDueloIniciado(int contagem) =>
             $"⚔️ Duelo iniciando em {contagem}s!";
