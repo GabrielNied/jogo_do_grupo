@@ -187,28 +187,21 @@ internal static class RecuperacaoDeContaRotas
         var conta = await db.Set<Conta>()
             .AsNoTracking()
             .FirstOrDefaultAsync(c => c.EmailNormalizado == normalizado, cancelamento);
-        if (conta == null || !conta.RecuperacaoAtiva(relogio.GetUtcNow().UtcDateTime))
+        if (conta?.CodigoRecuperacaoHash is not { } hashLido)
         {
-            hasher.VerifyHashedPassword(
-                ContasRotas.ContaFicticia,
-                ContasRotas.HashFicticio.Value,
-                requisicao.Codigo
-            );
-            return invalido;
+            return CompararFicticio(hasher, requisicao.Codigo, invalido);
         }
 
         // As escritas abaixo só valem se o código lido ainda for o ativo: um pedido novo ou outra
         // redefinição no meio do caminho fazem esta falhar (uso único mesmo em corrida).
-        var hashLido = conta.CodigoRecuperacaoHash!;
         var doCodigoLido = db.Set<Conta>()
             .Where(c => c.Id == conta.Id && c.CodigoRecuperacaoHash == hashLido);
 
-        if (
-            hasher.VerifyHashedPassword(conta, hashLido, requisicao.Codigo)
-            == PasswordVerificationResult.Failed
-        )
-        {
-            await doCodigoLido.ExecuteUpdateAsync(
+        // Gasta a tentativa antes de comparar, num comando só: a checagem do limite e o incremento
+        // são atômicos no banco, então uma rajada paralela compara no máximo 5 vezes (#1251).
+        var tentativa = await doCodigoLido
+            .Where(Conta.RecuperacaoAtiva(relogio.GetUtcNow().UtcDateTime))
+            .ExecuteUpdateAsync(
                 s =>
                     s.SetProperty(
                         c => c.CodigoRecuperacaoTentativas,
@@ -216,6 +209,16 @@ internal static class RecuperacaoDeContaRotas
                     ),
                 cancelamento
             );
+        if (tentativa == 0)
+        {
+            return CompararFicticio(hasher, requisicao.Codigo, invalido);
+        }
+
+        if (
+            hasher.VerifyHashedPassword(conta, hashLido, requisicao.Codigo)
+            == PasswordVerificationResult.Failed
+        )
+        {
             return invalido;
         }
 
@@ -243,6 +246,21 @@ internal static class RecuperacaoDeContaRotas
         var contaId = conta.Id;
         tempoReal.NoLaco(() => tempoReal.DesconectarConta(contaId));
         return Results.NoContent();
+    }
+
+    /// <summary>Compara com um hash fictício, para o tempo de resposta não revelar o motivo.</summary>
+    private static IResult CompararFicticio(
+        IPasswordHasher<Conta> hasher,
+        string codigo,
+        IResult invalido
+    )
+    {
+        hasher.VerifyHashedPassword(
+            ContasRotas.ContaFicticia,
+            ContasRotas.HashFicticio.Value,
+            codigo
+        );
+        return invalido;
     }
 
     /// <summary>Se outra conta (diferente de <paramref name="contaId"/>) já usa o e-mail.</summary>
