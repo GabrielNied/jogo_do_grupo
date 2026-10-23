@@ -4,9 +4,11 @@ using UnityEngine;
 namespace JogoDoGrupo.Client.Features.Itens.Visual
 {
     /// <summary>
-    /// Os modelos simples de armadura e acessórios (capacete e peito), feitos de primitivas
-    /// em código (sem asset binário). Cada um tem a origem centralizada no encaixe correspondente
-    /// (cabeça ou tronco).
+    /// Os modelos de armadura e acessórios (capacete e peito): prefabs CC0 em
+    /// <c>Resources/Itens/Modelos/Armadura_&lt;Tipo&gt;</c> (gerados por <c>ModelosDeItensImportador</c>
+    /// no editor, #1197), com a origem centralizada no encaixe correspondente (cabeça ou tronco) e
+    /// a face para +Z. Sem o prefab (build sem o gerador rodado), o desenho de primitivas em código
+    /// é a reserva.
     /// </summary>
     public static class ModelosDeArmadura
     {
@@ -19,6 +21,10 @@ namespace JogoDoGrupo.Client.Features.Itens.Visual
         public static bool Tem(TipoEquipamento tipo) =>
             tipo == TipoEquipamento.Capacete || tipo == TipoEquipamento.Peito;
 
+        /// <summary>Caminho em <c>Resources</c> do prefab do tipo.</summary>
+        public static string CaminhoDoModelo(TipoEquipamento tipo) =>
+            "Itens/Modelos/Armadura_" + tipo;
+
         /// <summary>Cria o modelo da peça no tamanho do avatar, ou <c>null</c> se não implementado.</summary>
         public static GameObject Criar(TipoEquipamento tipo)
         {
@@ -27,6 +33,19 @@ namespace JogoDoGrupo.Client.Features.Itens.Visual
                 return null;
             }
 
+            var prefab = Resources.Load<GameObject>(CaminhoDoModelo(tipo));
+            if (prefab != null)
+            {
+                var modelo = Object.Instantiate(prefab);
+                modelo.name = "Armadura_" + tipo;
+                return modelo;
+            }
+
+            return CriarDePrimitivas(tipo);
+        }
+
+        private static GameObject CriarDePrimitivas(TipoEquipamento tipo)
+        {
             var raiz = new GameObject("Armadura_" + tipo);
             var materiais = raiz.AddComponent<MateriaisDoBau>();
 

@@ -8,11 +8,15 @@ using UnityEngine;
 namespace JogoDoGrupo.Client.Features.Itens.Editor
 {
     /// <summary>
-    /// Gera os prefabs das armas equipadas a partir dos modelos CC0 de <c>ThirdParty/</c> (#1188):
+    /// Gera os prefabs das armas e armaduras equipadas a partir dos modelos CC0 de <c>ThirdParty/</c>
+    /// (#1188, #1197). Armas:
     /// espada, arco, martelo e escudo do Quaternius ("LowPoly Medieval Weapons") e o cajado do
     /// "Low-poly Staffs". Cada prefab segue o contrato de <see cref="ModelosDeArma"/>: cabo na
     /// origem, ponta para +Y e o comprimento em metros de <see cref="ModelosDeArma.Comprimento"/>
-    /// (o escudo tem o centro na origem e a face para +Z). Reproduzível: rodar de novo regrava os
+    /// (o escudo tem o centro na origem e a face para +Z). Armaduras (capacete "Bucket Helmet" e peitoral
+    /// do "low-poly RPG item collection 2"): centro do modelo na origem do encaixe, face para +Z, na
+    /// altura de <see cref="AlturaDoCapacete"/> e <see cref="AlturaDoPeito"/>, com material URP/Lit
+    /// feito aqui a partir da textura (salvo em <c>Modelos/Materiais</c>). Reproduzível: rodar de novo regrava os
     /// mesmos prefabs. Uso (editor fechado):
     /// <c>npm run unity:executar -- JogoDoGrupo.Client.Features.Itens.Editor.ModelosDeItensImportador.Gerar</c>.
     /// </summary>
@@ -21,6 +25,14 @@ namespace JogoDoGrupo.Client.Features.Itens.Editor
         private const string PastaDosPrefabs =
             "Assets/_Game/Features/Itens/Resources/Itens/Modelos";
         private const string PastaQuaternius = "Assets/ThirdParty/Quaternius/MedievalWeapons/";
+        private const string PastaDosMateriais = PastaDosPrefabs + "/Materiais";
+        private const string PastaOpenGameArt = "Assets/ThirdParty/OpenGameArt/";
+
+        /// <summary>Altura do capacete equipado, em metros (a cúpula de primitivas tinha 0,28).</summary>
+        private const float AlturaDoCapacete = 0.30f;
+
+        /// <summary>Altura do peitoral com as ombreiras, em metros (o de primitivas tinha 0,44).</summary>
+        private const float AlturaDoPeito = 0.48f;
 
         private enum Origem
         {
@@ -87,15 +99,33 @@ namespace JogoDoGrupo.Client.Features.Itens.Editor
             },
         };
 
-        /// <summary>Regrava os prefabs de arma.</summary>
+        /// <summary>Regrava os prefabs de arma e de armadura.</summary>
         public static void Gerar()
         {
             Directory.CreateDirectory(PastaDosPrefabs);
+            Directory.CreateDirectory(PastaDosMateriais);
             AssetDatabase.Refresh();
             foreach (var especificacao in Especificacoes)
             {
                 GerarUm(especificacao);
             }
+
+            GerarArmadura(
+                TipoEquipamento.Capacete,
+                PastaOpenGameArt + "BucketHelmet/BucketHelmet.fbx",
+                PastaOpenGameArt + "BucketHelmet/BucketHelmet.png",
+                AlturaDoCapacete,
+                new Vector3(0f, 0.05f, 0f),
+                duasFaces: false
+            );
+            GerarArmadura(
+                TipoEquipamento.Peito,
+                PastaOpenGameArt + "RpgItemCollection2/Armor.obj",
+                PastaOpenGameArt + "RpgItemCollection2/Armor.png",
+                AlturaDoPeito,
+                Vector3.zero,
+                duasFaces: true
+            );
 
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
@@ -236,6 +266,109 @@ namespace JogoDoGrupo.Client.Features.Itens.Editor
             PrefabUtility.SaveAsPrefabAsset(raiz, caminho);
             Object.DestroyImmediate(raiz);
             Debug.Log("[Itens] " + caminho + " escala " + escala.ToString("F4"));
+        }
+
+        // O FBX do capacete (Blender, Z para cima, frente em -Y) e o OBJ do peitoral (Y para cima, frente
+        // em +Z) já saem do importador em pé e de frente para +Z, então não pedem giro. A escala é
+        // uniforme, pela altura; o centro dos limites vai para o ponto dado (a origem do encaixe).
+        private static void GerarArmadura(
+            TipoEquipamento tipo,
+            string modelo,
+            string textura,
+            float altura,
+            Vector3 centro,
+            bool duasFaces
+        )
+        {
+            var fbx = AssetDatabase.LoadAssetAtPath<GameObject>(modelo);
+            if (fbx == null)
+            {
+                throw new FileNotFoundException("Modelo ausente: " + modelo);
+            }
+
+            var imagem = AssetDatabase.LoadAssetAtPath<Texture2D>(textura);
+            if (imagem == null)
+            {
+                throw new FileNotFoundException("Textura ausente: " + textura);
+            }
+
+            var material = CriarOuAtualizarMaterial(
+                PastaDosMateriais + "/Armadura_" + tipo + ".mat",
+                imagem,
+                duasFaces
+            );
+
+            var raiz = new GameObject("Armadura_" + tipo);
+            var instancia = (GameObject)PrefabUtility.InstantiatePrefab(fbx);
+            instancia.name = "Modelo";
+            instancia.transform.SetParent(raiz.transform, false);
+            foreach (var colisor in raiz.GetComponentsInChildren<Collider>())
+            {
+                Object.DestroyImmediate(colisor);
+            }
+
+            foreach (var renderizador in raiz.GetComponentsInChildren<Renderer>())
+            {
+                var materiais = new Material[renderizador.sharedMaterials.Length];
+                for (var i = 0; i < materiais.Length; i++)
+                {
+                    materiais[i] = material;
+                }
+
+                renderizador.sharedMaterials = materiais;
+            }
+
+            var limites = Limites(raiz);
+            var escala = altura / limites.size.y;
+            instancia.transform.localScale *= escala;
+            limites = Limites(raiz);
+            instancia.transform.localPosition += centro - limites.center;
+
+            var caminho = PastaDosPrefabs + "/Armadura_" + tipo + ".prefab";
+            PrefabUtility.SaveAsPrefabAsset(raiz, caminho);
+            var final = Limites(raiz);
+            Object.DestroyImmediate(raiz);
+            Debug.Log(
+                "[Itens] "
+                    + caminho
+                    + " escala "
+                    + escala.ToString("F4")
+                    + " tamanho "
+                    + final.size.ToString("F3")
+            );
+        }
+
+        private static Material CriarOuAtualizarMaterial(
+            string caminho,
+            Texture2D textura,
+            bool duasFaces
+        )
+        {
+            var shader = Shader.Find("Universal Render Pipeline/Lit");
+            if (shader == null)
+            {
+                throw new FileNotFoundException("Shader URP/Lit ausente.");
+            }
+
+            var material = AssetDatabase.LoadAssetAtPath<Material>(caminho);
+            if (material == null)
+            {
+                material = new Material(shader);
+                AssetDatabase.CreateAsset(material, caminho);
+            }
+
+            material.shader = shader;
+            material.SetTexture("_BaseMap", textura);
+            material.SetColor("_BaseColor", Color.white);
+            material.SetFloat("_Smoothness", 0.25f);
+            material.SetFloat("_Metallic", 0f);
+            if (duasFaces)
+            {
+                material.SetFloat("_Cull", 0f);
+            }
+
+            EditorUtility.SetDirty(material);
+            return material;
         }
 
         private static Bounds Limites(GameObject objeto)
