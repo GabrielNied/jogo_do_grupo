@@ -175,6 +175,12 @@ namespace JogoDoGrupo.Client.Core.UI
         /// <summary>Área da janela que recebe o conteúdo da funcionalidade.</summary>
         public const string JanelaConteudo = "janela-conteudo";
 
+        /// <summary>
+        /// Rolagem da janela comum, em volta do <see cref="JanelaConteudo"/>: só ela rola, entre o
+        /// cabeçalho e o rodapé fixos (o Core aplica).
+        /// </summary>
+        public const string JanelaRolagem = "janela-rolagem";
+
         /// <summary>Dica de como fechar, no pé da janela (ex.: "I ou Esc: fechar").</summary>
         public const string JanelaRodape = "janela-rodape";
 
