@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using JogoDoGrupo.Client.Core.Jogo.Janelas;
-using JogoDoGrupo.Client.Core.Visual;
 using JogoDoGrupo.Shared.Features.Mobs;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -195,7 +194,10 @@ namespace JogoDoGrupo.Client.Features.Mobs
         {
             var card = new VisualElement();
             card.AddToClassList("bestiario-item");
-            card.EnableInClassList("bestiario-item-selecionado", criatura.Id == _criaturaSelecionadaId);
+            card.EnableInClassList(
+                "bestiario-item-selecionado",
+                criatura.Id == _criaturaSelecionadaId
+            );
 
             Color corBorda = ObterCorDoNivel(entrada.Nivel);
             card.style.borderLeftColor = corBorda;

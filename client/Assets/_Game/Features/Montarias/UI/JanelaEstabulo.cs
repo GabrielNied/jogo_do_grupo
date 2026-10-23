@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using JogoDoGrupo.Client.Core.Jogo.Janelas;
 using JogoDoGrupo.Client.Core.UI;
-using JogoDoGrupo.Client.Core.Visual;
 using JogoDoGrupo.Shared.Features.Montarias;
 using UnityEngine;
 using UnityEngine.UIElements;
