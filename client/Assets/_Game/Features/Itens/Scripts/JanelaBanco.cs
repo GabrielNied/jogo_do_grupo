@@ -4,7 +4,6 @@ using JogoDoGrupo.Client.Core.Api;
 using JogoDoGrupo.Client.Core.Jogo;
 using JogoDoGrupo.Client.Core.Jogo.Janelas;
 using JogoDoGrupo.Client.Core.UI;
-using JogoDoGrupo.Client.Core.Visual;
 using JogoDoGrupo.Shared.Features.Itens;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -88,52 +87,37 @@ namespace JogoDoGrupo.Client.Features.Itens
 
         protected override void Montar(VisualElement conteudo)
         {
-            conteudo.style.minWidth = 520f;
-            conteudo.style.maxWidth = 600f;
-            conteudo.style.paddingLeft = 14f;
-            conteudo.style.paddingRight = 14f;
-            conteudo.style.paddingTop = 10f;
-            conteudo.style.paddingBottom = 12f;
-
             EstiloItens.Aplicar(conteudo);
+            conteudo.AddToClassList("itens-banco-conteudo");
 
             var topo = new VisualElement();
-            topo.style.flexDirection = FlexDirection.Row;
-            topo.style.justifyContent = Justify.SpaceBetween;
-            topo.style.alignItems = Align.Center;
-            topo.style.marginBottom = 6f;
-            topo.style.paddingBottom = 6f;
-            topo.style.borderBottomWidth = 1f;
-            topo.style.borderBottomColor = EstiloVisual.Cor(ConfigVisual.Cores.BordaDiscreta);
+            topo.AddToClassList("itens-banco-topo");
 
             var info = new VisualElement();
             var titulo = new Label("Banco da Conta");
             titulo.AddToClassList(EstiloCore.Titulo);
-            titulo.style.fontSize = 15f;
-            titulo.style.unityFontStyleAndWeight = FontStyle.Bold;
-            titulo.style.color = EstiloVisual.Cor(ConfigVisual.Cores.Marfim);
+            titulo.AddToClassList("itens-banco-titulo");
             info.Add(titulo);
 
             var subtitulo = new Label("Itens compartilhados entre todos os personagens");
             subtitulo.AddToClassList(EstiloCore.Subtitulo);
-            subtitulo.style.fontSize = 10.5f;
+            subtitulo.AddToClassList("itens-banco-subtitulo");
             subtitulo.style.color = new Color(0.65f, 0.70f, 0.80f);
             info.Add(subtitulo);
             topo.Add(info);
 
             var direita = new VisualElement();
-            direita.style.alignItems = Align.FlexEnd;
+            direita.AddToClassList("itens-banco-direita");
 
             _rotuloSaldo = new Label("Coroas: 0");
             _rotuloSaldo.AddToClassList(EstiloCore.Subtitulo);
-            _rotuloSaldo.style.fontSize = 13f;
-            _rotuloSaldo.style.unityFontStyleAndWeight = FontStyle.Bold;
+            _rotuloSaldo.AddToClassList("itens-banco-saldo");
             _rotuloSaldo.style.color = new Color(0.95f, 0.80f, 0.30f);
             direita.Add(_rotuloSaldo);
 
             _rotuloCapacidade = new Label("0 / 40");
             _rotuloCapacidade.AddToClassList(EstiloCore.Texto);
-            _rotuloCapacidade.style.fontSize = 11f;
+            _rotuloCapacidade.AddToClassList("itens-banco-capacidade");
             _rotuloCapacidade.style.color = new Color(0.70f, 0.75f, 0.85f);
             direita.Add(_rotuloCapacidade);
 
@@ -142,19 +126,15 @@ namespace JogoDoGrupo.Client.Features.Itens
 
             _rotuloAviso = new Label("");
             _rotuloAviso.AddToClassList(EstiloCore.Mensagem);
-            _rotuloAviso.style.fontSize = 11f;
-            _rotuloAviso.style.marginBottom = 6f;
+            _rotuloAviso.AddToClassList("itens-banco-aviso");
             _rotuloAviso.style.display = DisplayStyle.None;
             conteudo.Add(_rotuloAviso);
 
             var barraTopo = new VisualElement();
-            barraTopo.style.flexDirection = FlexDirection.Row;
-            barraTopo.style.justifyContent = Justify.SpaceBetween;
-            barraTopo.style.alignItems = Align.Center;
-            barraTopo.style.marginBottom = 8f;
+            barraTopo.AddToClassList("itens-banco-barra-topo");
 
             _barraAbas = new VisualElement();
-            _barraAbas.style.flexDirection = FlexDirection.Row;
+            _barraAbas.AddToClassList("itens-banco-abas");
             barraTopo.Add(_barraAbas);
 
             _botaoExpandir = new Button(AoClicarExpandir)
@@ -162,33 +142,23 @@ namespace JogoDoGrupo.Client.Features.Itens
                 text = $"+ Expandir ({RegrasBanco.CustoExpansaoBancoCoroas} coroas)",
             };
             _botaoExpandir.AddToClassList(EstiloCore.Botao);
-            _botaoExpandir.style.fontSize = 11f;
-            _botaoExpandir.style.paddingLeft = 8f;
-            _botaoExpandir.style.paddingRight = 8f;
-            _botaoExpandir.style.paddingTop = 3f;
-            _botaoExpandir.style.paddingBottom = 3f;
+            _botaoExpandir.AddToClassList("itens-banco-expandir");
             barraTopo.Add(_botaoExpandir);
 
             conteudo.Add(barraTopo);
 
             _grade = new VisualElement();
             _grade.AddToClassList(EstiloItens.Grade);
-            _grade.style.flexDirection = FlexDirection.Row;
-            _grade.style.flexWrap = Wrap.Wrap;
-            _grade.style.justifyContent = Justify.FlexStart;
-            _grade.style.alignItems = Align.FlexStart;
+            _grade.AddToClassList("itens-banco-grade");
             conteudo.Add(_grade);
 
             var rodape = new VisualElement();
-            rodape.style.marginTop = 8f;
-            rodape.style.paddingTop = 6f;
-            rodape.style.borderTopWidth = 1f;
-            rodape.style.borderTopColor = EstiloVisual.Cor(ConfigVisual.Cores.BordaDiscreta);
+            rodape.AddToClassList("itens-banco-rodape");
 
             var dicaCtrl = new Label(
                 "Dica: Ctrl+Clique move instantaneamente entre a bolsa e o banco."
             );
-            dicaCtrl.style.fontSize = 10.5f;
+            dicaCtrl.AddToClassList("itens-banco-dica");
             dicaCtrl.style.color = new Color(0.60f, 0.65f, 0.75f);
             rodape.Add(dicaCtrl);
             conteudo.Add(rodape);
@@ -493,10 +463,7 @@ namespace JogoDoGrupo.Client.Features.Itens
         {
             var slot = new VisualElement();
             slot.AddToClassList(EstiloItens.Slot);
-            slot.style.width = 44f;
-            slot.style.height = 44f;
-            slot.style.marginRight = 4f;
-            slot.style.marginBottom = 4f;
+            slot.AddToClassList("itens-banco-slot");
 
             var icone = new VisualElement { pickingMode = PickingMode.Ignore };
             icone.AddToClassList(EstiloItens.Icone);

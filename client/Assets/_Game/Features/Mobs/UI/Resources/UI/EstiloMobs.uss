@@ -161,3 +161,203 @@
     -unity-font-style: bold;
     text-shadow: 1px 1px 1px var(--lumora-cores-contorno);
 }
+
+/* Janela do Bestiário. Cores por nível de conhecimento e tons sem token ficam no C#. */
+.lumora-ui .bestiario-janela {
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.lumora-ui .bestiario-barra-superior {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.lumora-ui .bestiario-abas {
+    flex-direction: row;
+}
+
+.lumora-ui .bestiario-resumo {
+    font-size: 12px;
+}
+
+.lumora-ui .bestiario-corpo {
+    flex-direction: row;
+    flex-grow: 1;
+}
+
+.lumora-ui .bestiario-lista {
+    width: 280px;
+    margin-right: 12px;
+    border-right-width: 1px;
+}
+
+.lumora-ui .bestiario-detalhes {
+    flex-grow: 1;
+    padding-left: 8px;
+}
+
+.lumora-ui .bestiario-ficha {
+    flex-grow: 1;
+}
+
+.lumora-ui .bestiario-aba {
+    margin-right: 6px;
+    padding: 4px 12px 4px 12px;
+    border-radius: 4px;
+    background-color: var(--lumora-cores-desabilitado);
+    color: var(--lumora-cores-texto-secundario);
+    border-bottom-width: 1px;
+}
+
+.lumora-ui .bestiario-aba-ativa {
+    background-color: var(--lumora-cores-selecionado);
+    border-bottom-width: 2px;
+}
+
+/* Item da lista */
+.lumora-ui .bestiario-item {
+    flex-direction: column;
+    padding: 6px 8px 6px 8px;
+    margin-bottom: 6px;
+    border-left-width: 4px;
+    border-radius: 4px;
+    background-color: var(--lumora-cores-campo);
+}
+
+.lumora-ui .bestiario-item-selecionado {
+    background-color: var(--lumora-cores-selecionado);
+}
+
+.lumora-ui .bestiario-item-topo {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.lumora-ui .bestiario-item-nome {
+    font-size: 13px;
+    -unity-font-style: bold;
+}
+
+.lumora-ui .bestiario-item-nivel {
+    font-size: 10px;
+    -unity-font-style: bold;
+}
+
+.lumora-ui .bestiario-item-sub {
+    flex-direction: row;
+    justify-content: space-between;
+    margin-top: 3px;
+}
+
+.lumora-ui .bestiario-item-texto {
+    font-size: 11px;
+}
+
+/* Ficha */
+.lumora-ui .bestiario-vazio {
+    margin-top: 20px;
+}
+
+.lumora-ui .bestiario-ficha-topo {
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+    border-bottom-width: 1px;
+}
+
+.lumora-ui .bestiario-ficha-titulo-linha {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.lumora-ui .bestiario-ficha-titulo {
+    font-size: 20px;
+    -unity-font-style: bold;
+}
+
+.lumora-ui .bestiario-ficha-pill {
+    font-size: 11px;
+    padding: 2px 8px 2px 8px;
+    background-color: var(--lumora-cores-retrato);
+    border-radius: 4px;
+}
+
+.lumora-ui .bestiario-ficha-subtitulo {
+    font-size: 12px;
+    color: var(--lumora-cores-texto-secundario);
+    margin-top: 2px;
+}
+
+.lumora-ui .bestiario-progresso {
+    margin-bottom: 14px;
+}
+
+.lumora-ui .bestiario-progresso-texto {
+    font-size: 11px;
+    margin-bottom: 3px;
+}
+
+.lumora-ui .bestiario-barra-fundo {
+    height: 8px;
+    background-color: var(--lumora-cores-trilho);
+    border-radius: 4px;
+}
+
+.lumora-ui .bestiario-barra-preenchimento {
+    height: 8px;
+    border-top-left-radius: 4px;
+    border-bottom-left-radius: 4px;
+}
+
+.lumora-ui .bestiario-frase {
+    padding: 10px 14px 10px 14px;
+    margin-top: 8px;
+    background-color: var(--lumora-cores-campo);
+    border-left-width: 3px;
+}
+
+.lumora-ui .bestiario-frase-texto {
+    font-size: 12px;
+    -unity-font-style: italic;
+    white-space: normal;
+}
+
+.lumora-ui .bestiario-cartao {
+    background-color: var(--lumora-cores-campo);
+    padding: 8px 10px 8px 10px;
+    margin-bottom: 8px;
+    border-radius: 4px;
+}
+
+.lumora-ui .bestiario-cartao-bloqueado {
+    border-left-width: 2px;
+}
+
+.lumora-ui .bestiario-cartao-titulo {
+    font-size: 12px;
+    -unity-font-style: bold;
+}
+
+.lumora-ui .bestiario-cartao-titulo-bloqueado {
+    font-size: 12px;
+}
+
+.lumora-ui .bestiario-cartao-subtitulo {
+    font-size: 11px;
+    margin-bottom: 4px;
+}
+
+.lumora-ui .bestiario-cartao-corpo {
+    font-size: 12px;
+    white-space: normal;
+}
+
+.lumora-ui .bestiario-cartao-dica {
+    font-size: 11px;
+    margin-top: 2px;
+    white-space: normal;
+}

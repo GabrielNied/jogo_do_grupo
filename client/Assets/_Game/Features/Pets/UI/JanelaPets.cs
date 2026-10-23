@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using JogoDoGrupo.Client.Core.Jogo.Janelas;
 using JogoDoGrupo.Client.Core.UI;
-using JogoDoGrupo.Client.Core.Visual;
 using JogoDoGrupo.Shared.Features.Pets;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -37,28 +36,18 @@ namespace JogoDoGrupo.Client.Features.Pets.UI
 
         protected override void Montar(VisualElement conteudo)
         {
-            conteudo.style.minWidth = 520f;
-            conteudo.style.maxWidth = 640f;
-            conteudo.style.paddingLeft = 14f;
-            conteudo.style.paddingRight = 14f;
-            conteudo.style.paddingTop = 10f;
-            conteudo.style.paddingBottom = 12f;
+            EstiloPets.Aplicar(conteudo);
+            conteudo.AddToClassList("pets-conteudo");
 
             // Barra de abas
             var barraAbas = new VisualElement();
-            barraAbas.style.flexDirection = FlexDirection.Row;
-            barraAbas.style.marginBottom = 10f;
+            barraAbas.AddToClassList("pets-abas");
 
             var abaPets = new Button();
             abaPets.text = "Pets";
             abaPets.AddToClassList(EstiloCore.Botao);
-            abaPets.style.paddingLeft = 16f;
-            abaPets.style.paddingRight = 16f;
-            abaPets.style.paddingTop = 6f;
-            abaPets.style.paddingBottom = 6f;
-            abaPets.style.backgroundColor = EstiloVisual.Cor(ConfigVisual.Cores.Selecionado);
+            abaPets.AddToClassList("pets-aba");
             abaPets.style.color = new Color(0.95f, 0.95f, 1f);
-            abaPets.style.unityFontStyleAndWeight = FontStyle.Bold;
             barraAbas.Add(abaPets);
 
             conteudo.Add(barraAbas);
@@ -66,26 +55,20 @@ namespace JogoDoGrupo.Client.Features.Pets.UI
             // Cabeçalho descritivo
             var subtitulo = new Label("Companheiros - Coleção de Pets");
             subtitulo.AddToClassList(EstiloCore.Subtitulo);
-            subtitulo.style.fontSize = 14f;
-            subtitulo.style.unityFontStyleAndWeight = FontStyle.Bold;
+            subtitulo.AddToClassList("pets-subtitulo");
             subtitulo.style.color = new Color(0.85f, 0.70f, 0.30f);
-            subtitulo.style.marginBottom = 4f;
             conteudo.Add(subtitulo);
 
             var descricao = new Label(
                 "Seu pet o segue pelo mundo e recolhe automaticamente itens caídos ao chão."
             );
             descricao.AddToClassList(EstiloCore.Texto);
-            descricao.style.fontSize = 11.5f;
-            descricao.style.color = EstiloVisual.Cor(ConfigVisual.Cores.TextoSecundario);
-            descricao.style.marginBottom = 12f;
+            descricao.AddToClassList("pets-descricao");
             conteudo.Add(descricao);
 
             // Contêiner de cartões
             _cartoesContainer = new VisualElement();
-            _cartoesContainer.style.flexDirection = FlexDirection.Row;
-            _cartoesContainer.style.justifyContent = Justify.SpaceBetween;
-            _cartoesContainer.style.flexWrap = Wrap.Wrap;
+            _cartoesContainer.AddToClassList("pets-cartoes");
             conteudo.Add(_cartoesContainer);
 
             foreach (var especie in RegrasPets.EspeciesDoCatalogo)
@@ -98,9 +81,7 @@ namespace JogoDoGrupo.Client.Features.Pets.UI
                 "Dica: Pressione [U] para alternar Companheiros ou use /pet no chat."
             );
             rodape.AddToClassList(EstiloCore.Mensagem);
-            rodape.style.fontSize = 11f;
-            rodape.style.marginTop = 12f;
-            rodape.style.color = EstiloVisual.Cor(ConfigVisual.Cores.TextoDesabilitado);
+            rodape.AddToClassList("pets-rodape");
             conteudo.Add(rodape);
         }
 
@@ -167,116 +148,46 @@ namespace JogoDoGrupo.Client.Features.Pets.UI
                 _aoDispensar = aoDispensar;
 
                 Elemento = new VisualElement();
-                Elemento.style.width = 240f;
-                Elemento.style.minHeight = 220f;
-                Elemento.style.marginBottom = 10f;
-                Elemento.style.paddingLeft = 12f;
-                Elemento.style.paddingRight = 12f;
-                Elemento.style.paddingTop = 10f;
-                Elemento.style.paddingBottom = 10f;
-                Elemento.style.backgroundColor = EstiloVisual.Cor(ConfigVisual.Cores.Campo);
-                Elemento.style.borderLeftWidth = 1f;
-                Elemento.style.borderRightWidth = 1f;
-                Elemento.style.borderTopWidth = 1f;
-                Elemento.style.borderBottomWidth = 1f;
-                Elemento.style.borderLeftColor = EstiloVisual.Cor(ConfigVisual.Cores.BordaDiscreta);
-                Elemento.style.borderRightColor = EstiloVisual.Cor(
-                    ConfigVisual.Cores.BordaDiscreta
-                );
-                Elemento.style.borderTopColor = EstiloVisual.Cor(ConfigVisual.Cores.BordaDiscreta);
-                Elemento.style.borderBottomColor = EstiloVisual.Cor(
-                    ConfigVisual.Cores.BordaDiscreta
-                );
-                Elemento.style.borderTopLeftRadius = 6f;
-                Elemento.style.borderTopRightRadius = 6f;
-                Elemento.style.borderBottomLeftRadius = 6f;
-                Elemento.style.borderBottomRightRadius = 6f;
-                Elemento.style.flexDirection = FlexDirection.Column;
-                Elemento.style.justifyContent = Justify.SpaceBetween;
+                Elemento.AddToClassList("pets-cartao");
 
                 // Informações superiores
                 var topo = new VisualElement();
 
                 var nome = new Label(RegrasPets.ObterNome(especie));
-                nome.style.fontSize = 13.5f;
-                nome.style.unityFontStyleAndWeight = FontStyle.Bold;
+                nome.AddToClassList("pets-nome");
                 nome.style.color = new Color(0.95f, 0.92f, 0.85f);
-                nome.style.marginBottom = 4f;
                 topo.Add(nome);
 
                 var descricao = new Label(RegrasPets.ObterDescricao(especie));
-                descricao.style.fontSize = 10.5f;
+                descricao.AddToClassList("pets-desc");
                 descricao.style.color = new Color(0.72f, 0.75f, 0.82f);
-                descricao.style.whiteSpace = WhiteSpace.Normal;
-                descricao.style.marginBottom = 6f;
                 topo.Add(descricao);
 
                 Elemento.Add(topo);
 
                 // Selo Obtido
                 _seloObtido = new VisualElement();
-                _seloObtido.style.flexDirection = FlexDirection.Row;
-                _seloObtido.style.justifyContent = Justify.Center;
-                _seloObtido.style.alignItems = Align.Center;
-                _seloObtido.style.paddingTop = 4f;
-                _seloObtido.style.paddingBottom = 4f;
-                _seloObtido.style.marginBottom = 6f;
+                _seloObtido.AddToClassList("pets-selo");
+                var corSelo = new Color(0.35f, 0.80f, 0.35f, 0.9f);
                 _seloObtido.style.backgroundColor = new Color(0.18f, 0.28f, 0.16f, 0.9f);
-                _seloObtido.style.borderLeftColor = new Color(0.35f, 0.80f, 0.35f, 0.9f);
-                _seloObtido.style.borderRightColor = new Color(0.35f, 0.80f, 0.35f, 0.9f);
-                _seloObtido.style.borderTopColor = new Color(0.35f, 0.80f, 0.35f, 0.9f);
-                _seloObtido.style.borderBottomColor = new Color(0.35f, 0.80f, 0.35f, 0.9f);
-                _seloObtido.style.borderLeftWidth = 1f;
-                _seloObtido.style.borderRightWidth = 1f;
-                _seloObtido.style.borderTopWidth = 1f;
-                _seloObtido.style.borderBottomWidth = 1f;
-                _seloObtido.style.borderTopLeftRadius = 4f;
-                _seloObtido.style.borderTopRightRadius = 4f;
-                _seloObtido.style.borderBottomLeftRadius = 4f;
-                _seloObtido.style.borderBottomRightRadius = 4f;
+                _seloObtido.style.borderLeftColor = corSelo;
+                _seloObtido.style.borderRightColor = corSelo;
+                _seloObtido.style.borderTopColor = corSelo;
+                _seloObtido.style.borderBottomColor = corSelo;
 
                 var rotuloObtido = new Label("★ NA CONTA");
-                rotuloObtido.style.fontSize = 10.5f;
-                rotuloObtido.style.unityFontStyleAndWeight = FontStyle.Bold;
+                rotuloObtido.AddToClassList("pets-selo-rotulo");
                 rotuloObtido.style.color = new Color(0.50f, 0.95f, 0.50f);
                 _seloObtido.Add(rotuloObtido);
                 Elemento.Add(_seloObtido);
 
                 // Selo Bloqueado
                 _seloBloqueado = new VisualElement();
-                _seloBloqueado.style.flexDirection = FlexDirection.Row;
-                _seloBloqueado.style.justifyContent = Justify.Center;
-                _seloBloqueado.style.alignItems = Align.Center;
-                _seloBloqueado.style.paddingTop = 4f;
-                _seloBloqueado.style.paddingBottom = 4f;
-                _seloBloqueado.style.marginBottom = 6f;
-                _seloBloqueado.style.backgroundColor = EstiloVisual.Cor(
-                    ConfigVisual.Cores.Desabilitado
-                );
-                _seloBloqueado.style.borderLeftColor = EstiloVisual.Cor(
-                    ConfigVisual.Cores.BordaDiscreta
-                );
-                _seloBloqueado.style.borderRightColor = EstiloVisual.Cor(
-                    ConfigVisual.Cores.BordaDiscreta
-                );
-                _seloBloqueado.style.borderTopColor = EstiloVisual.Cor(
-                    ConfigVisual.Cores.BordaDiscreta
-                );
-                _seloBloqueado.style.borderBottomColor = EstiloVisual.Cor(
-                    ConfigVisual.Cores.BordaDiscreta
-                );
-                _seloBloqueado.style.borderLeftWidth = 1f;
-                _seloBloqueado.style.borderRightWidth = 1f;
-                _seloBloqueado.style.borderTopWidth = 1f;
-                _seloBloqueado.style.borderBottomWidth = 1f;
-                _seloBloqueado.style.borderTopLeftRadius = 4f;
-                _seloBloqueado.style.borderTopRightRadius = 4f;
-                _seloBloqueado.style.borderBottomLeftRadius = 4f;
-                _seloBloqueado.style.borderBottomRightRadius = 4f;
+                _seloBloqueado.AddToClassList("pets-selo");
+                _seloBloqueado.AddToClassList("pets-selo-bloqueado");
 
                 var rotuloBloqueado = new Label("🔒 BLOQUEADO");
-                rotuloBloqueado.style.fontSize = 10.5f;
-                rotuloBloqueado.style.unityFontStyleAndWeight = FontStyle.Bold;
+                rotuloBloqueado.AddToClassList("pets-selo-rotulo");
                 rotuloBloqueado.style.color = new Color(0.60f, 0.63f, 0.70f);
                 _seloBloqueado.Add(rotuloBloqueado);
                 Elemento.Add(_seloBloqueado);
@@ -284,23 +195,16 @@ namespace JogoDoGrupo.Client.Features.Pets.UI
                 // Origem do pet
                 var origem = RegrasPets.ObterOrigem(especie);
                 _rotuloOrigem = new Label(string.IsNullOrEmpty(origem) ? "" : $"Origem: {origem}");
-                _rotuloOrigem.style.fontSize = 10f;
+                _rotuloOrigem.AddToClassList("pets-origem");
                 _rotuloOrigem.style.color = new Color(0.68f, 0.72f, 0.80f);
-                _rotuloOrigem.style.marginBottom = 6f;
-                _rotuloOrigem.style.whiteSpace = WhiteSpace.Normal;
-                _rotuloOrigem.style.unityFontStyleAndWeight = FontStyle.Italic;
                 Elemento.Add(_rotuloOrigem);
 
                 // Botão Chamar
                 _botaoChamar = new Button(() => _aoChamar(Especie));
                 _botaoChamar.text = "Chamar Pet";
                 _botaoChamar.AddToClassList(EstiloCore.Botao);
-                _botaoChamar.style.alignSelf = Align.Stretch;
-                _botaoChamar.style.paddingTop = 6f;
-                _botaoChamar.style.paddingBottom = 6f;
-                _botaoChamar.style.fontSize = 11.5f;
-                _botaoChamar.style.unityFontStyleAndWeight = FontStyle.Bold;
-                _botaoChamar.style.backgroundColor = EstiloVisual.Cor(ConfigVisual.Cores.Hover);
+                _botaoChamar.AddToClassList("pets-acao");
+                _botaoChamar.AddToClassList("pets-chamar");
                 _botaoChamar.style.color = new Color(0.90f, 0.94f, 1.0f);
                 Elemento.Add(_botaoChamar);
 
@@ -308,11 +212,7 @@ namespace JogoDoGrupo.Client.Features.Pets.UI
                 _botaoDispensar = new Button(() => _aoDispensar());
                 _botaoDispensar.text = "Dispensar Pet";
                 _botaoDispensar.AddToClassList(EstiloCore.Botao);
-                _botaoDispensar.style.alignSelf = Align.Stretch;
-                _botaoDispensar.style.paddingTop = 6f;
-                _botaoDispensar.style.paddingBottom = 6f;
-                _botaoDispensar.style.fontSize = 11.5f;
-                _botaoDispensar.style.unityFontStyleAndWeight = FontStyle.Bold;
+                _botaoDispensar.AddToClassList("pets-acao");
                 _botaoDispensar.style.backgroundColor = new Color(0.30f, 0.18f, 0.18f);
                 _botaoDispensar.style.color = new Color(1.0f, 0.90f, 0.90f);
                 Elemento.Add(_botaoDispensar);
@@ -322,53 +222,33 @@ namespace JogoDoGrupo.Client.Features.Pets.UI
 
             public void AtualizarEstado(bool desbloqueado, bool petAtivo)
             {
-                if (!desbloqueado)
+                Elemento.EnableInClassList("pets-cartao-bloqueado", !desbloqueado);
+                Elemento.EnableInClassList("pets-cartao-obtido", desbloqueado);
+
+                // Pet obtido tem borda azulada (cor sem token); bloqueado usa a borda da classe.
+                if (desbloqueado)
                 {
-                    Elemento.style.opacity = 0.55f;
-                    Elemento.style.backgroundColor = EstiloVisual.Cor(ConfigVisual.Cores.Trilho);
-                    Elemento.style.borderLeftColor = EstiloVisual.Cor(
-                        ConfigVisual.Cores.BordaDiscreta
-                    );
-                    Elemento.style.borderRightColor = EstiloVisual.Cor(
-                        ConfigVisual.Cores.BordaDiscreta
-                    );
-                    Elemento.style.borderTopColor = EstiloVisual.Cor(
-                        ConfigVisual.Cores.BordaDiscreta
-                    );
-                    Elemento.style.borderBottomColor = EstiloVisual.Cor(
-                        ConfigVisual.Cores.BordaDiscreta
-                    );
-                    _botaoChamar.style.display = DisplayStyle.None;
-                    _botaoDispensar.style.display = DisplayStyle.None;
-                    _seloObtido.style.display = DisplayStyle.None;
-                    _seloBloqueado.style.display = DisplayStyle.Flex;
-                    _rotuloOrigem.style.display = DisplayStyle.Flex;
+                    var azul = new Color(0.35f, 0.50f, 0.70f, 0.8f);
+                    Elemento.style.borderLeftColor = azul;
+                    Elemento.style.borderRightColor = azul;
+                    Elemento.style.borderTopColor = azul;
+                    Elemento.style.borderBottomColor = azul;
                 }
                 else
                 {
-                    Elemento.style.opacity = 1f;
-                    Elemento.style.backgroundColor = EstiloVisual.Cor(
-                        ConfigVisual.Cores.Selecionado
-                    );
-                    Elemento.style.borderLeftColor = new Color(0.35f, 0.50f, 0.70f, 0.8f);
-                    Elemento.style.borderRightColor = new Color(0.35f, 0.50f, 0.70f, 0.8f);
-                    Elemento.style.borderTopColor = new Color(0.35f, 0.50f, 0.70f, 0.8f);
-                    Elemento.style.borderBottomColor = new Color(0.35f, 0.50f, 0.70f, 0.8f);
-                    _seloBloqueado.style.display = DisplayStyle.None;
-                    _seloObtido.style.display = DisplayStyle.Flex;
-                    _rotuloOrigem.style.display = DisplayStyle.None;
-
-                    if (petAtivo)
-                    {
-                        _botaoChamar.style.display = DisplayStyle.None;
-                        _botaoDispensar.style.display = DisplayStyle.Flex;
-                    }
-                    else
-                    {
-                        _botaoChamar.style.display = DisplayStyle.Flex;
-                        _botaoDispensar.style.display = DisplayStyle.None;
-                    }
+                    Elemento.style.borderLeftColor = StyleKeyword.Null;
+                    Elemento.style.borderRightColor = StyleKeyword.Null;
+                    Elemento.style.borderTopColor = StyleKeyword.Null;
+                    Elemento.style.borderBottomColor = StyleKeyword.Null;
                 }
+
+                _botaoChamar.style.display =
+                    desbloqueado && !petAtivo ? DisplayStyle.Flex : DisplayStyle.None;
+                _botaoDispensar.style.display =
+                    desbloqueado && petAtivo ? DisplayStyle.Flex : DisplayStyle.None;
+                _seloObtido.style.display = desbloqueado ? DisplayStyle.Flex : DisplayStyle.None;
+                _seloBloqueado.style.display = desbloqueado ? DisplayStyle.None : DisplayStyle.Flex;
+                _rotuloOrigem.style.display = desbloqueado ? DisplayStyle.None : DisplayStyle.Flex;
             }
         }
     }

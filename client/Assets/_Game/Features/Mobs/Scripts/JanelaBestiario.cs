@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using JogoDoGrupo.Client.Core.Jogo.Janelas;
-using JogoDoGrupo.Client.Core.Visual;
 using JogoDoGrupo.Shared.Features.Mobs;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -47,43 +46,35 @@ namespace JogoDoGrupo.Client.Features.Mobs
 
         protected override void Montar(VisualElement conteudo)
         {
+            EstiloMobs.Aplicar(conteudo);
             conteudo.AddToClassList("bestiario-janela");
-            conteudo.style.flexDirection = FlexDirection.Column;
-            conteudo.style.flexGrow = 1f;
 
             // Cabeçalho com abas e estatísticas de progresso
             var barraSuperior = new VisualElement();
-            barraSuperior.style.flexDirection = FlexDirection.Row;
-            barraSuperior.style.justifyContent = Justify.SpaceBetween;
-            barraSuperior.style.alignItems = Align.Center;
-            barraSuperior.style.marginBottom = 10;
+            barraSuperior.AddToClassList("bestiario-barra-superior");
             conteudo.Add(barraSuperior);
 
             _cabecalhoAbas = new VisualElement();
-            _cabecalhoAbas.style.flexDirection = FlexDirection.Row;
+            _cabecalhoAbas.AddToClassList("bestiario-abas");
             barraSuperior.Add(_cabecalhoAbas);
 
             _resumoStatus = new Label();
-            _resumoStatus.style.fontSize = 12;
+            _resumoStatus.AddToClassList("bestiario-resumo");
             _resumoStatus.style.color = new Color(0.7f, 0.7f, 0.75f, 1f);
             barraSuperior.Add(_resumoStatus);
 
             // Corpo dividido em duas colunas (lista à esquerda, ficha à direita)
             var corpo = new VisualElement();
-            corpo.style.flexDirection = FlexDirection.Row;
-            corpo.style.flexGrow = 1f;
+            corpo.AddToClassList("bestiario-corpo");
             conteudo.Add(corpo);
 
             _listaCriaturas = new ScrollView();
-            _listaCriaturas.style.width = 280;
-            _listaCriaturas.style.marginRight = 12;
-            _listaCriaturas.style.borderRightWidth = 1;
+            _listaCriaturas.AddToClassList("bestiario-lista");
             _listaCriaturas.style.borderRightColor = new Color(0.25f, 0.25f, 0.3f, 0.8f);
             corpo.Add(_listaCriaturas);
 
             _painelDetalhes = new VisualElement();
-            _painelDetalhes.style.flexGrow = 1f;
-            _painelDetalhes.style.paddingLeft = 8;
+            _painelDetalhes.AddToClassList("bestiario-detalhes");
             corpo.Add(_painelDetalhes);
 
             CriarBotoesDeFiltro();
@@ -123,24 +114,12 @@ namespace JogoDoGrupo.Client.Features.Mobs
                 text = texto,
             };
 
-            btn.style.marginRight = 6;
-            btn.style.paddingTop = 4;
-            btn.style.paddingBottom = 4;
-            btn.style.paddingLeft = 12;
-            btn.style.paddingRight = 12;
-            btn.style.borderTopLeftRadius = 4;
-            btn.style.borderTopRightRadius = 4;
-            btn.style.borderBottomLeftRadius = 4;
-            btn.style.borderBottomRightRadius = 4;
+            btn.AddToClassList("bestiario-aba");
 
             bool ativo = _filtro == filtro;
-            btn.style.backgroundColor = ativo
-                ? EstiloVisual.Cor(ConfigVisual.Cores.Selecionado)
-                : EstiloVisual.Cor(ConfigVisual.Cores.Desabilitado);
-            btn.style.color = ativo
-                ? new Color(0.95f, 0.82f, 0.45f, 1f)
-                : EstiloVisual.Cor(ConfigVisual.Cores.TextoSecundario);
-            btn.style.borderBottomWidth = ativo ? 2 : 1;
+            btn.EnableInClassList("bestiario-aba-ativa", ativo);
+            if (ativo)
+                btn.style.color = new Color(0.95f, 0.82f, 0.45f, 1f);
             btn.style.borderBottomColor = ativo
                 ? new Color(0.95f, 0.82f, 0.45f, 1f)
                 : new Color(0.25f, 0.25f, 0.3f, 1f);
@@ -214,22 +193,11 @@ namespace JogoDoGrupo.Client.Features.Mobs
         )
         {
             var card = new VisualElement();
-            card.style.flexDirection = FlexDirection.Column;
-            card.style.paddingLeft = 8;
-            card.style.paddingRight = 8;
-            card.style.paddingTop = 6;
-            card.style.paddingBottom = 6;
-            card.style.marginBottom = 6;
-            card.style.borderLeftWidth = 4;
-            card.style.borderTopLeftRadius = 4;
-            card.style.borderBottomLeftRadius = 4;
-            card.style.borderTopRightRadius = 4;
-            card.style.borderBottomRightRadius = 4;
-
-            bool selecionada = criatura.Id == _criaturaSelecionadaId;
-            card.style.backgroundColor = selecionada
-                ? EstiloVisual.Cor(ConfigVisual.Cores.Selecionado)
-                : EstiloVisual.Cor(ConfigVisual.Cores.Campo);
+            card.AddToClassList("bestiario-item");
+            card.EnableInClassList(
+                "bestiario-item-selecionado",
+                criatura.Id == _criaturaSelecionadaId
+            );
 
             Color corBorda = ObterCorDoNivel(entrada.Nivel);
             card.style.borderLeftColor = corBorda;
@@ -243,14 +211,11 @@ namespace JogoDoGrupo.Client.Features.Mobs
 
             // Linha superior: Nome e Nível de Conhecimento
             var linhaTopo = new VisualElement();
-            linhaTopo.style.flexDirection = FlexDirection.Row;
-            linhaTopo.style.justifyContent = Justify.SpaceBetween;
-            linhaTopo.style.alignItems = Align.Center;
+            linhaTopo.AddToClassList("bestiario-item-topo");
             card.Add(linhaTopo);
 
             var nomeLabel = new Label();
-            nomeLabel.style.fontSize = 13;
-            nomeLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
+            nomeLabel.AddToClassList("bestiario-item-nome");
 
             if (entrada.Nivel == NivelDeConhecimentoBestiario.Desconhecido)
             {
@@ -265,25 +230,22 @@ namespace JogoDoGrupo.Client.Features.Mobs
             linhaTopo.Add(nomeLabel);
 
             var badgeNivel = new Label(entrada.Nivel.ToString().ToUpperInvariant());
-            badgeNivel.style.fontSize = 10;
+            badgeNivel.AddToClassList("bestiario-item-nivel");
             badgeNivel.style.color = corBorda;
-            badgeNivel.style.unityFontStyleAndWeight = FontStyle.Bold;
             linhaTopo.Add(badgeNivel);
 
             // Linha inferior: Categoria e Derrotas
             var linhaSub = new VisualElement();
-            linhaSub.style.flexDirection = FlexDirection.Row;
-            linhaSub.style.justifyContent = Justify.SpaceBetween;
-            linhaSub.style.marginTop = 3;
+            linhaSub.AddToClassList("bestiario-item-sub");
             card.Add(linhaSub);
 
             var catLabel = new Label(FormatarCategoria(criatura.Categoria));
-            catLabel.style.fontSize = 11;
+            catLabel.AddToClassList("bestiario-item-texto");
             catLabel.style.color = new Color(0.6f, 0.6f, 0.65f, 1f);
             linhaSub.Add(catLabel);
 
             var derrotasLabel = new Label($"{entrada.Derrotas} derrotas");
-            derrotasLabel.style.fontSize = 11;
+            derrotasLabel.AddToClassList("bestiario-item-texto");
             derrotasLabel.style.color = new Color(0.6f, 0.6f, 0.65f, 1f);
             linhaSub.Add(derrotasLabel);
 
@@ -298,8 +260,8 @@ namespace JogoDoGrupo.Client.Features.Mobs
             if (criatura == null)
             {
                 var vazio = new Label("Selecione uma espécie para ver sua ficha no bestiário.");
+                vazio.AddToClassList("bestiario-vazio");
                 vazio.style.color = new Color(0.6f, 0.6f, 0.65f, 1f);
-                vazio.style.marginTop = 20;
                 _painelDetalhes.Add(vazio);
                 return;
             }
@@ -308,21 +270,17 @@ namespace JogoDoGrupo.Client.Features.Mobs
             var lore = CatalogoBestiario.Obter(criaturaId);
 
             var scroll = new ScrollView();
-            scroll.style.flexGrow = 1f;
+            scroll.AddToClassList("bestiario-ficha");
             _painelDetalhes.Add(scroll);
 
             // Bloco de cabeçalho da ficha
             var header = new VisualElement();
-            header.style.paddingBottom = 10;
-            header.style.marginBottom = 10;
-            header.style.borderBottomWidth = 1;
+            header.AddToClassList("bestiario-ficha-topo");
             header.style.borderBottomColor = new Color(0.25f, 0.25f, 0.3f, 0.6f);
             scroll.Add(header);
 
             var tituloLinha = new VisualElement();
-            tituloLinha.style.flexDirection = FlexDirection.Row;
-            tituloLinha.style.justifyContent = Justify.SpaceBetween;
-            tituloLinha.style.alignItems = Align.Center;
+            tituloLinha.AddToClassList("bestiario-ficha-titulo-linha");
             header.Add(tituloLinha);
 
             var tituloFicha = new Label(
@@ -330,36 +288,24 @@ namespace JogoDoGrupo.Client.Features.Mobs
                     ? "??? Criatura Não Identificada"
                     : criatura.Nome
             );
-            tituloFicha.style.fontSize = 20;
-            tituloFicha.style.unityFontStyleAndWeight = FontStyle.Bold;
+            tituloFicha.AddToClassList("bestiario-ficha-titulo");
             tituloFicha.style.color = ObterCorDoNivel(entrada.Nivel);
             tituloLinha.Add(tituloFicha);
 
             var pillNivel = new Label($"NÍVEL {entrada.Nivel.ToString().ToUpperInvariant()}");
-            pillNivel.style.fontSize = 11;
-            pillNivel.style.paddingLeft = 8;
-            pillNivel.style.paddingRight = 8;
-            pillNivel.style.paddingTop = 2;
-            pillNivel.style.paddingBottom = 2;
-            pillNivel.style.backgroundColor = EstiloVisual.Cor(ConfigVisual.Cores.Retrato);
+            pillNivel.AddToClassList("bestiario-ficha-pill");
             pillNivel.style.color = ObterCorDoNivel(entrada.Nivel);
-            pillNivel.style.borderTopLeftRadius = 4;
-            pillNivel.style.borderTopRightRadius = 4;
-            pillNivel.style.borderBottomLeftRadius = 4;
-            pillNivel.style.borderBottomRightRadius = 4;
             tituloLinha.Add(pillNivel);
 
             var subtitulo = new Label(
                 $"{FormatarCategoria(criatura.Categoria)} · Nível {criatura.Nivel} de Força"
             );
-            subtitulo.style.fontSize = 12;
-            subtitulo.style.color = EstiloVisual.Cor(ConfigVisual.Cores.TextoSecundario);
-            subtitulo.style.marginTop = 2;
+            subtitulo.AddToClassList("bestiario-ficha-subtitulo");
             header.Add(subtitulo);
 
             // Seção de barra de progresso para o próximo nível
             var progressoSecao = new VisualElement();
-            progressoSecao.style.marginBottom = 14;
+            progressoSecao.AddToClassList("bestiario-progresso");
             scroll.Add(progressoSecao);
 
             RegrasBestiario.ObterProgressoNoNivel(
@@ -370,8 +316,7 @@ namespace JogoDoGrupo.Client.Features.Mobs
             );
 
             var textoProgresso = new Label();
-            textoProgresso.style.fontSize = 11;
-            textoProgresso.style.marginBottom = 3;
+            textoProgresso.AddToClassList("bestiario-progresso-texto");
             textoProgresso.style.color = new Color(0.75f, 0.75f, 0.8f, 1f);
 
             if (entrada.Nivel == NivelDeConhecimentoBestiario.Mestre)
@@ -391,19 +336,12 @@ namespace JogoDoGrupo.Client.Features.Mobs
             progressoSecao.Add(textoProgresso);
 
             var barraFundo = new VisualElement();
-            barraFundo.style.height = 8;
-            barraFundo.style.backgroundColor = EstiloVisual.Cor(ConfigVisual.Cores.Trilho);
-            barraFundo.style.borderTopLeftRadius = 4;
-            barraFundo.style.borderTopRightRadius = 4;
-            barraFundo.style.borderBottomLeftRadius = 4;
-            barraFundo.style.borderBottomRightRadius = 4;
+            barraFundo.AddToClassList("bestiario-barra-fundo");
             progressoSecao.Add(barraFundo);
 
             var barraPreenchimento = new VisualElement();
-            barraPreenchimento.style.height = 8;
+            barraPreenchimento.AddToClassList("bestiario-barra-preenchimento");
             barraPreenchimento.style.backgroundColor = ObterCorDoNivel(entrada.Nivel);
-            barraPreenchimento.style.borderTopLeftRadius = 4;
-            barraPreenchimento.style.borderBottomLeftRadius = 4;
 
             float porcentagem = meta > 0 ? Mathf.Clamp01((float)progresso / meta) * 100f : 100f;
             barraPreenchimento.style.width = Length.Percent(porcentagem);
@@ -472,20 +410,12 @@ namespace JogoDoGrupo.Client.Features.Mobs
                 if (!string.IsNullOrEmpty(lore?.FraseBestiario))
                 {
                     var fraseCard = new VisualElement();
-                    fraseCard.style.paddingTop = 10;
-                    fraseCard.style.paddingBottom = 10;
-                    fraseCard.style.paddingLeft = 14;
-                    fraseCard.style.paddingRight = 14;
-                    fraseCard.style.marginTop = 8;
-                    fraseCard.style.backgroundColor = EstiloVisual.Cor(ConfigVisual.Cores.Campo);
-                    fraseCard.style.borderLeftWidth = 3;
+                    fraseCard.AddToClassList("bestiario-frase");
                     fraseCard.style.borderLeftColor = new Color(0.95f, 0.82f, 0.45f, 1f);
 
                     var fraseLabel = new Label($"\"{lore.FraseBestiario}\"");
-                    fraseLabel.style.fontSize = 12;
-                    fraseLabel.style.unityFontStyleAndWeight = FontStyle.Italic;
+                    fraseLabel.AddToClassList("bestiario-frase-texto");
                     fraseLabel.style.color = new Color(0.9f, 0.85f, 0.7f, 1f);
-                    fraseLabel.style.whiteSpace = WhiteSpace.Normal;
                     fraseCard.Add(fraseLabel);
 
                     scroll.Add(fraseCard);
@@ -513,36 +443,24 @@ namespace JogoDoGrupo.Client.Features.Mobs
         )
         {
             var card = new VisualElement();
-            card.style.backgroundColor = EstiloVisual.Cor(ConfigVisual.Cores.Campo);
-            card.style.paddingTop = 8;
-            card.style.paddingBottom = 8;
-            card.style.paddingLeft = 10;
-            card.style.paddingRight = 10;
-            card.style.marginBottom = 8;
-            card.style.borderTopLeftRadius = 4;
-            card.style.borderTopRightRadius = 4;
-            card.style.borderBottomLeftRadius = 4;
-            card.style.borderBottomRightRadius = 4;
+            card.AddToClassList("bestiario-cartao");
 
             var t = new Label(titulo);
-            t.style.fontSize = 12;
-            t.style.unityFontStyleAndWeight = FontStyle.Bold;
+            t.AddToClassList("bestiario-cartao-titulo");
             t.style.color = new Color(0.85f, 0.85f, 0.9f, 1f);
             card.Add(t);
 
             if (!string.IsNullOrEmpty(subtitulo))
             {
                 var s = new Label(subtitulo);
-                s.style.fontSize = 11;
+                s.AddToClassList("bestiario-cartao-subtitulo");
                 s.style.color = new Color(0.9f, 0.78f, 0.45f, 1f);
-                s.style.marginBottom = 4;
                 card.Add(s);
             }
 
             var c = new Label(corpo);
-            c.style.fontSize = 12;
+            c.AddToClassList("bestiario-cartao-corpo");
             c.style.color = new Color(0.72f, 0.72f, 0.76f, 1f);
-            c.style.whiteSpace = WhiteSpace.Normal;
             card.Add(c);
 
             container.Add(card);
@@ -551,29 +469,18 @@ namespace JogoDoGrupo.Client.Features.Mobs
         private void AdicionarCardBloqueado(VisualElement container, string titulo, string dica)
         {
             var card = new VisualElement();
-            card.style.backgroundColor = EstiloVisual.Cor(ConfigVisual.Cores.Campo);
-            card.style.paddingTop = 8;
-            card.style.paddingBottom = 8;
-            card.style.paddingLeft = 10;
-            card.style.paddingRight = 10;
-            card.style.marginBottom = 8;
-            card.style.borderLeftWidth = 2;
+            card.AddToClassList("bestiario-cartao");
+            card.AddToClassList("bestiario-cartao-bloqueado");
             card.style.borderLeftColor = new Color(0.4f, 0.4f, 0.45f, 0.5f);
-            card.style.borderTopLeftRadius = 4;
-            card.style.borderTopRightRadius = 4;
-            card.style.borderBottomLeftRadius = 4;
-            card.style.borderBottomRightRadius = 4;
 
             var t = new Label($"🔒 {titulo} (Bloqueado)");
-            t.style.fontSize = 12;
+            t.AddToClassList("bestiario-cartao-titulo-bloqueado");
             t.style.color = new Color(0.55f, 0.55f, 0.6f, 1f);
             card.Add(t);
 
             var d = new Label(dica);
-            d.style.fontSize = 11;
+            d.AddToClassList("bestiario-cartao-dica");
             d.style.color = new Color(0.45f, 0.45f, 0.5f, 1f);
-            d.style.marginTop = 2;
-            d.style.whiteSpace = WhiteSpace.Normal;
             card.Add(d);
 
             container.Add(card);

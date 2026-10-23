@@ -1,0 +1,210 @@
+/* Janelas de Montarias (coleção e estábulo). Cores sem token (tons de raridade, equipada, preço)
+   continuam no C#; as de token vêm daqui. */
+.lumora-ui .montarias-conteudo {
+    min-width: 520px;
+    max-width: 640px;
+    padding: 10px 14px 12px 14px;
+}
+
+.lumora-ui .montarias-conteudo-estabulo {
+    max-width: 620px;
+}
+
+.lumora-ui .montarias-subtitulo {
+    font-size: 14px;
+    -unity-font-style: bold;
+    margin-bottom: 4px;
+}
+
+.lumora-ui .montarias-descricao {
+    font-size: 11.5px;
+    color: var(--lumora-cores-texto-secundario);
+    margin-bottom: 12px;
+}
+
+.lumora-ui .montarias-cartoes {
+    flex-direction: row;
+    justify-content: space-between;
+    flex-wrap: wrap;
+}
+
+.lumora-ui .montarias-rodape {
+    font-size: 11px;
+    margin-top: 12px;
+    color: var(--lumora-cores-texto-desabilitado);
+}
+
+/* Cartão de montaria */
+.lumora-ui .montarias-cartao {
+    flex-grow: 1;
+    flex-basis: 230px;
+    margin: 0 6px 10px 6px;
+    padding: 10px 12px 12px 12px;
+    border-radius: 8px;
+    border-width: 1.5px;
+    background-color: var(--lumora-cores-campo);
+    border-color: var(--lumora-cores-borda-discreta);
+    opacity: 1;
+}
+
+.lumora-ui .montarias-cartao-equipado {
+    background-color: var(--lumora-cores-selecionado);
+}
+
+.lumora-ui .montarias-cartao-bloqueado {
+    opacity: 0.55;
+    background-color: var(--lumora-cores-trilho);
+    border-color: var(--lumora-cores-borda-discreta);
+}
+
+.lumora-ui .montarias-faixa {
+    height: 40px;
+    border-radius: 6px;
+    margin-bottom: 8px;
+    justify-content: center;
+    align-items: center;
+    border-width: 1px;
+}
+
+.lumora-ui .montarias-insignia {
+    font-size: 11px;
+    -unity-font-style: bold;
+}
+
+.lumora-ui .montarias-nome {
+    font-size: 15px;
+    margin-bottom: 2px;
+}
+
+.lumora-ui .montarias-raridade {
+    font-size: 10.5px;
+    margin-bottom: 8px;
+}
+
+.lumora-ui .montarias-desc {
+    font-size: 11px;
+    margin-bottom: 10px;
+}
+
+.lumora-ui .montarias-atributos {
+    margin-bottom: 10px;
+    background-color: var(--lumora-cores-trilho);
+    padding: 6px 8px 6px 8px;
+    border-radius: 4px;
+}
+
+.lumora-ui .montarias-linha-velocidade {
+    font-size: 11px;
+    margin-bottom: 2px;
+}
+
+.lumora-ui .montarias-linha-invocacao {
+    font-size: 11px;
+}
+
+.lumora-ui .botao.montarias-equipar {
+    align-self: stretch;
+    padding-top: 7px;
+    padding-bottom: 7px;
+    margin-top: 4px;
+    font-size: 12px;
+    -unity-font-style: bold;
+    background-color: var(--lumora-cores-hover);
+}
+
+.lumora-ui .montarias-selo {
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    padding-top: 6px;
+    padding-bottom: 6px;
+    margin-top: 4px;
+    border-width: 1px;
+    border-radius: 4px;
+}
+
+.lumora-ui .montarias-selo-bloqueado {
+    background-color: var(--lumora-cores-desabilitado);
+    border-color: var(--lumora-cores-borda-discreta);
+}
+
+.lumora-ui .montarias-selo-rotulo {
+    font-size: 11.5px;
+    -unity-font-style: bold;
+}
+
+.lumora-ui .montarias-origem {
+    font-size: 10px;
+    margin-top: 6px;
+    -unity-font-style: italic;
+}
+
+/* Estábulo */
+.lumora-ui .montarias-estabulo-topo {
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+    border-bottom-width: 1px;
+    border-bottom-color: var(--lumora-cores-borda-discreta);
+}
+
+.lumora-ui .montarias-estabulo-titulo {
+    font-size: 16px;
+    -unity-font-style: bold;
+    color: var(--lumora-cores-marfim);
+}
+
+.lumora-ui .montarias-estabulo-subtitulo {
+    font-size: 12px;
+    margin-top: 2px;
+}
+
+.lumora-ui .montarias-estabulo-lista {
+    flex-direction: column;
+}
+
+.lumora-ui .montarias-oferta {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 10px 8px 10px;
+    margin-bottom: 6px;
+    background-color: var(--lumora-cores-campo);
+    border-width: 1px;
+    border-color: var(--lumora-cores-borda-discreta);
+    border-radius: 4px;
+}
+
+.lumora-ui .montarias-oferta-info {
+    flex-grow: 1;
+    margin-right: 12px;
+}
+
+.lumora-ui .montarias-oferta-linha {
+    flex-direction: row;
+    align-items: center;
+}
+
+.lumora-ui .montarias-oferta-nome {
+    font-size: 13.5px;
+    -unity-font-style: bold;
+    color: var(--lumora-cores-marfim);
+}
+
+.lumora-ui .montarias-oferta-preco {
+    font-size: 12px;
+    -unity-font-style: bold;
+}
+
+.lumora-ui .montarias-oferta-desc {
+    font-size: 11px;
+    margin-top: 2px;
+}
+
+.lumora-ui .botao.montarias-oferta-comprar {
+    min-width: 130px;
+    height: 30px;
+}
+
+.lumora-ui .montarias-oferta-comprar-indisponivel {
+    opacity: 0.5;
+}
