@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Reflection;
 using JogoDoGrupo.Client.Features.Mundo.Editor;
 using NUnit.Framework;
 using UnityEditor;
@@ -8,6 +9,56 @@ using Object = UnityEngine.Object;
 
 namespace JogoDoGrupo.Client.Features.Mundo.Tests
 {
+    public sealed class PrimeiroUsoDeEncostasTestes
+    {
+        [Test]
+        public void SemReceitaSalva_PermiteEditarRascunhoEDescartaAoFechar()
+        {
+            var janela = ScriptableObject.CreateInstance<FerramentaDeEncostas>();
+            var camada = new TerrainLayer();
+            ReceitaDeEncostas rascunho = null;
+            try
+            {
+                rascunho = (ReceitaDeEncostas)
+                    typeof(FerramentaDeEncostas)
+                        .GetField("_temporaria", BindingFlags.Instance | BindingFlags.NonPublic)
+                        .GetValue(janela);
+                Assert.That(rascunho, Is.Not.Null);
+                Assert.That(EditorUtility.IsPersistent(rascunho), Is.False);
+                using var campos = new SerializedObject(rascunho);
+                foreach (
+                    var caminho in new[]
+                    {
+                        "Pintura.Camada",
+                        "Pintura.UsarAltitude",
+                        "Pintura.AltitudeInicial",
+                        "Rochas.Densidade",
+                    }
+                )
+                    Assert.That(campos.FindProperty(caminho).editable, Is.True, caminho);
+                campos.FindProperty("Pintura.Camada").objectReferenceValue = camada;
+                campos.FindProperty("Pintura.UsarAltitude").boolValue = true;
+                campos.FindProperty("Pintura.AltitudeInicial").floatValue = 75f;
+                campos.ApplyModifiedProperties();
+                Assert.That(rascunho.Pintura.Camada, Is.SameAs(camada));
+                Assert.That(rascunho.Pintura.UsarAltitude, Is.True);
+                Assert.That(rascunho.Pintura.AltitudeInicial, Is.EqualTo(75f));
+            }
+            finally
+            {
+                if (rascunho != null)
+                    Undo.ClearUndo(rascunho);
+                Object.DestroyImmediate(janela);
+                Object.DestroyImmediate(camada);
+            }
+            Assert.That(
+                rascunho == null,
+                Is.True,
+                "Fechar precisa descartar o rascunho temporario."
+            );
+        }
+    }
+
     public sealed class AutoriaDeEncostasTestes
     {
         private string _pasta;
