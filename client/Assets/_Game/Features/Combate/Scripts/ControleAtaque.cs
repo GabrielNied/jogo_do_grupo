@@ -145,7 +145,7 @@ namespace JogoDoGrupo.Client.Features.Combate
         }
 
         // Depois do Update do ControleTerceiraPessoa (que vira o corpo para onde anda): durante
-        // o preparo e o acerto o corpo acompanha a mira, só até o teto de giro do ataque.
+        // o preparo, o acerto e a mira de arma à distância, o corpo acompanha a mira.
         private void LateUpdate()
         {
             var agora = Time.unscaledTimeAsDouble;
@@ -155,13 +155,24 @@ namespace JogoDoGrupo.Client.Features.Combate
                 && jogador != null
                 && _prontidao != null
                 && _prontidao.Comprometido(agora);
-            if (!comprometido)
+            var mirando =
+                _armaLongoAlcance && _processadorClique != null && _processadorClique.Segurando;
+
+            if (!comprometido && !mirando)
             {
                 SoltarVelocidade();
                 return;
             }
 
-            PrenderVelocidade(jogador);
+            if (comprometido)
+            {
+                PrenderVelocidade(jogador);
+            }
+            else
+            {
+                SoltarVelocidade();
+            }
+
             _giroDoCorpo = ApresentacaoAtaque.GirarParaAMira(
                 _giroDoCorpo,
                 DirecaoDaMira(),

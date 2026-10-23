@@ -61,7 +61,8 @@ public sealed partial class GrupoDeInimigos
                             alvoZ,
                             RegrasInimigo.RaioDoCorpoMetros,
                             inimigo.Vida,
-                            inimigo.Criatura.VidaMaxima
+                            inimigo.Criatura.VidaMaxima,
+                            Y: Altura(inimigo)
                         )
                     );
                 }
@@ -119,7 +120,8 @@ public sealed partial class GrupoDeInimigos
                             alvoZ,
                             RegrasInimigo.RaioDoCorpoMetros,
                             inimigo.Vida,
-                            inimigo.Criatura.VidaMaxima
+                            inimigo.Criatura.VidaMaxima,
+                            Y: Altura(inimigo)
                         )
                     );
                 }

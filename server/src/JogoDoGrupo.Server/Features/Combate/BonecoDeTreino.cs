@@ -1,6 +1,7 @@
 using JogoDoGrupo.Server.Contratos.Combate;
 using JogoDoGrupo.Server.Contratos.Mundo;
 using JogoDoGrupo.Shared.Features.Combate;
+using JogoDoGrupo.Shared.Features.Mundo;
 
 namespace JogoDoGrupo.Server.Features.Combate;
 
@@ -74,7 +75,11 @@ public sealed class BonecoDeTreino(Func<long> relogioMs) : IAlvosDeCombate
                 ConfigBonecoDeTreino.Z,
                 ConfigBonecoDeTreino.Raio,
                 vida,
-                ConfigBonecoDeTreino.Vida
+                ConfigBonecoDeTreino.Vida,
+                Y: MapaDoMundo.AlturaEm(
+                    (float)ConfigBonecoDeTreino.X,
+                    (float)ConfigBonecoDeTreino.Z
+                )
             ),
         ];
     }
@@ -113,7 +118,11 @@ public sealed class BonecoDeTreino(Func<long> relogioMs) : IAlvosDeCombate
                 ConfigBonecoDeTreino.Z,
                 ConfigBonecoDeTreino.Raio,
                 vida,
-                ConfigBonecoDeTreino.Vida
+                ConfigBonecoDeTreino.Vida,
+                Y: MapaDoMundo.AlturaEm(
+                    (float)ConfigBonecoDeTreino.X,
+                    (float)ConfigBonecoDeTreino.Z
+                )
             ),
         ];
     }
