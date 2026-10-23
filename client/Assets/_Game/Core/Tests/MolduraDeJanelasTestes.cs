@@ -62,17 +62,39 @@ namespace JogoDoGrupo.Client.Core.Tests
         {
             var presenter = new ApresentadorDeJanelas(new VisualElement(), _ => { });
             presenter.Mostrar(Definicao(() => new JanelaDeTeste { Social = true }));
-            var painel = presenter.Raiz.Q<ScrollView>(null, EstiloCore.Painel);
+            var painel = presenter.Raiz.Q<VisualElement>(null, EstiloCore.Painel);
             Assert.IsNotNull(painel);
             Assert.IsTrue(painel.ClassListContains("ui-painel-social"));
-            Assert.IsNotNull(painel.Q<Label>("teste.rotulo"));
+            var rolagem = painel.Q<ScrollView>(null, EstiloCore.JanelaRolagem);
+            Assert.IsNotNull(rolagem);
+            Assert.IsNotNull(rolagem.Q<Label>("teste.rotulo"));
             presenter.Mostrar(Definicao(() => new JanelaDeTeste()));
             Assert.IsFalse(
                 presenter
-                    .Raiz.Q<ScrollView>(null, EstiloCore.Painel)
+                    .Raiz.Q<VisualElement>(null, EstiloCore.Painel)
                     .ClassListContains("ui-painel-social")
             );
             presenter.Esconder();
+        }
+
+        [Test]
+        public void JanelaComum_CabecalhoERodapeFicamForaDaRolagem()
+        {
+            var apresentador = new ApresentadorDeJanelas(new VisualElement(), null);
+            apresentador.Mostrar(Definicao(() => new JanelaDeTeste()));
+
+            var painel = apresentador.Raiz.Q<VisualElement>(null, EstiloCore.Painel);
+            Assert.IsNotInstanceOf<ScrollView>(painel, "A moldura não rola.");
+            var rolagem = painel.Q<ScrollView>(null, EstiloCore.JanelaRolagem);
+            Assert.AreSame(painel, rolagem.parent);
+            Assert.AreSame(
+                painel,
+                painel.Q<VisualElement>(null, EstiloCore.JanelaCabecalho).parent,
+                "O X fica fixo no topo, fora da rolagem."
+            );
+            Assert.AreSame(painel, painel.Q<Label>(null, EstiloCore.JanelaRodape).parent);
+            Assert.IsNotNull(rolagem.Q<VisualElement>(null, EstiloCore.JanelaConteudo));
+            apresentador.Esconder();
         }
 
         [Test]

@@ -180,7 +180,7 @@ Decidido por Gabriel em 2026-10-13 ([#670](https://github.com/GabrielNied/jogo_d
 
 **Mundo 3D (implementado na [#926](https://github.com/GabrielNied/jogo_do_grupo/issues/926)):** brilho ao redor da peça **no chão** e no **equipamento no modelo 3D** — no estilo de drops raros em MMORPGs clássicos (luz pontual suave e emissão de material via `AuraDeTierVisual` e `ConfigAuraTier`). **Complementa** a letra na UI; não a substitui. A paleta da aura **pode divergir** das cores da bolsa, desde que a ordem B < A < S < S+ seja óbvia à distância.
 
-**Modelos das armas equipadas (#1188, #1197):** espada, martelo, arco e escudo são os modelos CC0 do Quaternius e o cajado é o do pacote "Low-poly Staffs" (créditos em [licencas](../arte/licencas.md)), normalizados em prefabs por `ModelosDeItensImportador` (cabo na origem, ponta para +Y, comprimento em metros de `ModelosDeArma.Comprimento`; o escudo tem o centro na origem e a face para +Z). O escudo equipado também aparece (na mão e nas costas). As primitivas de código só sobram como reserva se o prefab faltar. Capacete e peitoral seguem em primitivas até o encaixe no corpo ser conferido no editor (pendente do #1197).
+**Modelos das armas e armaduras equipadas (#1188, #1197):** espada, martelo, arco e escudo são os modelos CC0 do Quaternius e o cajado é o do pacote "Low-poly Staffs" (créditos em [licencas](../arte/licencas.md)), normalizados em prefabs por `ModelosDeItensImportador` (cabo na origem, ponta para +Y, comprimento em metros de `ModelosDeArma.Comprimento`; o escudo tem o centro na origem e a face para +Z). O escudo equipado também aparece (na mão e nas costas). As primitivas de código só sobram como reserva se o prefab faltar. Capacete ("Bucket Helmet") e peitoral (peça `armor` do "low-poly RPG item collection 2"), também CC0, viram os prefabs `Armadura_Capacete` e `Armadura_Peito` (centro na origem do encaixe, face para +Z, altura de 0,30 m e 0,48 m) com material URP/Lit feito pelo gerador a partir da textura; as primitivas ficam de reserva. O gerador roda com `npm run unity:executar -- JogoDoGrupo.Client.Features.Itens.Editor.ModelosDeItensImportador.Gerar`. O ajuste fino do encaixe no corpo de cada raça é conferido no editor (`CapturaDoVisualEquipado.Capturar`).
 
 | Tier | Aura no mundo | Intensidade (referência) |
 |---|---|---|
@@ -658,8 +658,8 @@ O servidor avisa a área inteira sobre o que o personagem veste e se vê no mode
 
 - **Armas (#497):** a arma do conjunto ativo vai para a mão direita (`EncaixeMaoDireita`), e a arma do conjunto inativo vai para as costas (`EncaixeCostas`).
 - **Armadura e acessórios (#665):**
-  - **Capacete (`TipoEquipamento.Capacete`):** posicionado na cabeça do personagem (`EncaixeCabeca` ou osso `Cabeca`/`Head`). Modelo com cúpula metálica, visor frontal e crista superior.
-  - **Peitoral (`TipoEquipamento.Peito`):** posicionado no tronco do personagem (`EncaixeTronco` ou osso `Tronco`/`Chest`/`Spine`). Modelo com peitoral de metal, placa dorsal e ombreiras decorativas.
+  - **Capacete (`TipoEquipamento.Capacete`):** posicionado na cabeça do personagem (`EncaixeCabeca` ou osso `Cabeca`/`Head`). Modelo CC0 de elmo de balde com textura (reserva: cúpula metálica, visor frontal e crista).
+  - **Peitoral (`TipoEquipamento.Peito`):** posicionado no tronco do personagem (`EncaixeTronco` ou osso `Tronco`/`Chest`/`Spine`). Modelo CC0 de peitoral com ombreiras e textura (reserva: peitoral de metal, placa dorsal e ombreiras).
   - Quando um avatar não possui rig esqueletal (ex.: cápsula de visualização ou dummy), encaixes de fallback são criados nas alturas relativas correspondentes (`CabecaNaRaiz = 1.65m`, `TroncoNaRaiz = 1.15m`).
   - As peças refletem materiais URP estilizados e recebem emissão correspondente a auras de tier alto (`ConfigAuraTier`).
 

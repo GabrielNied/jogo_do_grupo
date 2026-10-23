@@ -243,14 +243,21 @@ namespace JogoDoGrupo.Client.Features.Instancias
             bloco.GetComponent<Renderer>().sharedMaterial = material;
         }
 
+        // Shader do URP pelo nome: copiar o sharedMaterial da primitiva dava um material da engine,
+        // sem a cor certa no build (#1199).
         private static Material CriarMaterial(Color cor)
         {
-            var modelo = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            var material = new Material(modelo.GetComponent<Renderer>().sharedMaterial)
+            var shader =
+                Shader.Find("Universal Render Pipeline/Lit")
+                ?? Shader.Find("Universal Render Pipeline/Simple Lit")
+                ?? Shader.Find("Universal Render Pipeline/Unlit")
+                ?? Shader.Find("Sprites/Default");
+            var material = new Material(shader) { color = cor };
+            if (material.HasProperty("_BaseColor"))
             {
-                color = cor,
-            };
-            Object.Destroy(modelo);
+                material.SetColor("_BaseColor", cor);
+            }
+
             return material;
         }
     }

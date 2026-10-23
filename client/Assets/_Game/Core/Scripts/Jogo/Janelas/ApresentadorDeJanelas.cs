@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using JogoDoGrupo.Client.Core.UI;
+using JogoDoGrupo.Client.Core.Visual;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -159,9 +160,11 @@ namespace JogoDoGrupo.Client.Core.Jogo.Janelas
                 raiz.AddToClassList(EstiloCore.JanelaRaiz);
             }
 
-            VisualElement painel = telaInteira ? new VisualElement() : EstiloCore.CriarPainel();
+            // A moldura não rola: cabeçalho (com o X) e rodapé ficam fixos e só o conteúdo rola.
+            VisualElement painel = telaInteira ? new VisualElement() : ComponentesVisuais.Painel();
             if (!telaInteira)
             {
+                painel.AddToClassList(EstiloCore.Painel);
                 painel.AddToClassList(EstiloCore.PainelLargo);
             }
             painel.AddToClassList(EstiloCore.Janela);
@@ -200,8 +203,15 @@ namespace JogoDoGrupo.Client.Core.Jogo.Janelas
             }
             else
             {
+                var rolagem = new ScrollView(ScrollViewMode.Vertical)
+                {
+                    horizontalScrollerVisibility = ScrollerVisibility.Hidden,
+                    verticalScrollerVisibility = ScrollerVisibility.Auto,
+                };
+                rolagem.AddToClassList(EstiloCore.JanelaRolagem);
+                rolagem.Add(conteudo);
                 painel.Add(cabecalho);
-                painel.Add(conteudo);
+                painel.Add(rolagem);
                 painel.Add(rodape);
             }
             raiz.Add(painel);
