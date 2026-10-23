@@ -14,6 +14,8 @@ namespace JogoDoGrupo.Client.Core.UI
     /// <summary>Mostra apenas etapas concluídas de verdade durante a entrada no mundo.</summary>
     internal sealed class TelaCarregamento : Tela
     {
+        internal const string ClasseTransicao = "tela-com-transicao";
+
         private readonly Label[] _etapas = new Label[3];
         private Label _estado;
         private Label _erro;
@@ -24,6 +26,10 @@ namespace JogoDoGrupo.Client.Core.UI
         protected override void Montar(VisualElement raiz)
         {
             raiz.AddToClassList("entrada-mundo-tela");
+            // A Navegacao abre toda tela transparente e faz o fade; a seleção já saiu, então o
+            // fade mostraria um instante sem nada. O carregamento cobre a tela desde o clique.
+            raiz.RemoveFromClassList(ClasseTransicao);
+            raiz.style.opacity = 1f;
             var painel = EstiloCore.CriarPainel();
             painel.AddToClassList("entrada-mundo-painel");
             painel.Add(ComponentesVisuais.Marca());
