@@ -1,0 +1,5 @@
+"Bucket Helmet", de Lucian Pavel (OpenGameArt), licença CC0 1.0
+(https://creativecommons.org/publicdomain/zero/1.0/). Fonte: https://opengameart.org/content/bucket-helmet
+Baixado em 2026-10-23. Só o modelo (BucketHelmet.fbx) e a textura (BucketHelmet.png).
+Uso (#1197): capacete equipado. Escala, origem e material URP vêm do gerador de editor
+ModelosDeItensImportador (Itens), não do FBX.

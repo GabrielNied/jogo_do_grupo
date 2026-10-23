@@ -1,0 +1,5 @@
+"low-poly RPG item collection 2" (OpenGameArt), licença CC0 1.0
+(https://creativecommons.org/publicdomain/zero/1.0/). Fonte: https://opengameart.org/content/rpg-item-collection-2
+Baixado em 2026-10-23. Só a peça de armadura (Armor.obj, de armor.obj) e a textura (Armor.png, de armor.png).
+Uso (#1197): peitoral equipado. Escala, origem e material URP vêm do gerador de editor
+ModelosDeItensImportador (Itens), não do OBJ.
