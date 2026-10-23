@@ -74,7 +74,7 @@ Para experimentar sem mexer no mapa, use **Jogo do Grupo > Mundo > Estradas > Cr
 npm run unity:executar -- JogoDoGrupo.Client.Features.Mundo.Editor.Estradas.DemoDasEstradas.Validar
 ```
 
-O comando mantém os assets da demonstração para inspeção e grava a captura local em `client/Library/ValidacaoEstradas.png`. A demonstração não publica nem altera o mapa de autoria.
+O comando gera os assets localmente e os mantém para inspeção em `Assets/_Game/Features/Mundo/DemoEstradas*/`, ignorada pelo Git, e grava a captura local em `client/Library/ValidacaoEstradas.png`. A demonstração não publica nem altera o mapa de autoria.
 
 Para conferir só a independência das bordas/relevo e a densidade reproduzível dos cascalhos, sem criar assets ou salvar cenas, use **Jogo do Grupo > Mundo > Estradas > Validar bordas e cascalhos**. A mesma conferência também faz parte da validação completa acima.
 
@@ -84,13 +84,9 @@ Para conferir cruzamentos no Terrain real e gerar uma cena própria, use **Jogo 
 npm run unity:executar -- JogoDoGrupo.Client.Features.Mundo.Editor.Estradas.ValidacaoDosCruzamentos.Executar
 ```
 
-O ensaio inclui T, X e Y, larguras distintas, terra/lajotas, dois blocos, ordem inversa, reaplicação, movimento, restauração parcial/total, configuração pendente da vizinha, conflito manual e recarga. A cena final fica em `Assets/_Game/Features/Mundo/DemoCruzamentos*/` e a captura em `cruzamentos-validacao.png` na raiz do checkout. Não publica o mapa de autoria.
+O ensaio inclui T, X e Y, larguras distintas, terra/lajotas, dois blocos, ordem inversa, reaplicação, movimento, restauração parcial/total, configuração pendente da vizinha, conflito manual e recarga. A cena final fica em `Assets/_Game/Features/Mundo/DemoCruzamentos*/` e a captura em `cruzamentos-validacao.png` na raiz do checkout, ambas saídas locais ignoradas pelo Git. Não publica o mapa de autoria.
 
-Para validar a migração com cópias isoladas dos backups antigos reais, use **Estradas > Validar migração do backup anterior**. Esse ensaio confere o perfil exato, ajustes pendentes da vizinha, lajotas após restauração parcial, recarga e preservação da precisão manual do Terrain:
-
-```text
-npm run unity:executar -- JogoDoGrupo.Client.Features.Mundo.Editor.Estradas.ValidacaoDoBackupLegado.Executar
-```
+Os geradores acima substituem a necessidade de manter cenas de demonstração no repositório. Os registros em `EstradasGeradas/<id>/` continuam versionáveis para o mapa real: antes de incluí-los em um commit, confira se pertencem à cena de autoria, e não a uma demonstração local. O ensaio pontual de migração dos backups antigos e seus fixtures de demonstração foram retirados na limpeza da [issue #1237](https://github.com/GabrielNied/jogo_do_grupo/issues/1237); a compatibilidade do aplicador com backups antigos permanece.
 
 ## Protótipo da estrada do Passo
 
