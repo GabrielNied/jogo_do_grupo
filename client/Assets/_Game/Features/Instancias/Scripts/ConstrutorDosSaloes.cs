@@ -25,7 +25,7 @@ namespace JogoDoGrupo.Client.Features.Instancias
         /// <summary>Quanto a parede afunda abaixo do ponto mais baixo do chão dela (m).</summary>
         public const float FolgaAbaixoDoChao = 3f;
 
-        private static readonly Color CorDaRocha = new Color(0.3f, 0.28f, 0.27f);
+        private static readonly Color CorDaRocha = new Color(0.24f, 0.27f, 0.33f);
         private static readonly Color CorDaLuz = new Color(1f, 0.72f, 0.42f);
 
         /// <summary>Altura do teto, igual em toda a dungeon: o ponto mais alto do chão mais o pé-direito.</summary>
@@ -141,6 +141,132 @@ namespace JogoDoGrupo.Client.Features.Instancias
             componente.range =
                 trecho.Tipo == LayoutDaMinaDoReflexo.TipoDeTrecho.Corredor ? 14f : 26f;
             componente.shadows = LightShadows.None;
+
+            Decorar(grupo, trecho, indice, x0, x1, z0, z1);
+        }
+
+        // Leitura do livro: cristais apagados escondem o enxame, orbes de luz o revelam e o chefe
+        // fica num salão de cristais acesos. Cada salão acende um pouco mais que o anterior.
+        private static void Decorar(
+            Transform grupo,
+            LayoutDaMinaDoReflexo.Trecho trecho,
+            int indice,
+            float x0,
+            float x1,
+            float z0,
+            float z1
+        )
+        {
+            var tipo = trecho.Tipo;
+            var meioZ = (z0 + z1) * 0.5f;
+            var nOrdem = 0;
+            for (var i = 0; i < indice; i++)
+            {
+                if (
+                    LayoutDaMinaDoReflexo.Trechos[i].Tipo
+                    == LayoutDaMinaDoReflexo.TipoDeTrecho.Salao
+                )
+                {
+                    nOrdem++;
+                }
+            }
+
+            // Brilho dos cristais: antecâmara e corredor mal acesos, salões em escada, chefe pleno.
+            float brilho;
+            Color cor;
+            switch (tipo)
+            {
+                case LayoutDaMinaDoReflexo.TipoDeTrecho.SalaoDoChefe:
+                    brilho = 2.2f;
+                    cor = AmbientacaoDoReflexo.CorDoChefe;
+                    break;
+                case LayoutDaMinaDoReflexo.TipoDeTrecho.Salao:
+                    brilho = 0.35f + (0.55f * nOrdem);
+                    cor = AmbientacaoDoReflexo.CorDoGelo;
+                    break;
+                default:
+                    brilho = 0.5f;
+                    cor = AmbientacaoDoReflexo.CorDoGelo;
+                    break;
+            }
+
+            var apagado = AmbientacaoDoReflexo.MaterialDeCristal(
+                AmbientacaoDoReflexo.CorDoCristalApagado,
+                0f
+            );
+            var aceso = AmbientacaoDoReflexo.MaterialDeCristal(cor, brilho);
+            var orbe = AmbientacaoDoReflexo.MaterialDeCristal(AmbientacaoDoReflexo.CorDoOrbe, 3f);
+
+            var comprimento = x1 - x0;
+            var folga = trecho.MetadeDaLargura - 1.6f;
+            var passo = tipo == LayoutDaMinaDoReflexo.TipoDeTrecho.Corredor ? 7f : 4.5f;
+            var rng = new System.Random(1000 + indice);
+            for (var x = x0 + 2f; x < x1 - 2f; x += passo)
+            {
+                foreach (var lado in new[] { -1f, 1f })
+                {
+                    if (rng.NextDouble() < 0.25)
+                    {
+                        continue;
+                    }
+
+                    var z = meioZ + (lado * (folga - ((float)rng.NextDouble() * 1.2f)));
+                    var xx = x + ((float)rng.NextDouble() * 2f);
+                    var altura = 1.2f + ((float)rng.NextDouble() * 2.2f);
+                    if (tipo == LayoutDaMinaDoReflexo.TipoDeTrecho.SalaoDoChefe)
+                    {
+                        altura *= 1.6f;
+                    }
+
+                    // Intercala apagados (escondem mobs) e acesos; o primeiro salão é quase todo apagado.
+                    var cristalApagado =
+                        tipo == LayoutDaMinaDoReflexo.TipoDeTrecho.Salao
+                        && rng.NextDouble()
+                            < (
+                                nOrdem == 0 ? 0.7
+                                : nOrdem == 1 ? 0.45
+                                : 0.25
+                            );
+                    AmbientacaoDoReflexo.Cristal(
+                        grupo,
+                        cristalApagado ? apagado : aceso,
+                        new Vector3(xx, MapaDoMundo.AlturaEm(xx, z) - 0.1f, z),
+                        altura,
+                        altura * 0.42f,
+                        (float)((rng.NextDouble() * 24.0) - 12.0),
+                        (float)(rng.NextDouble() * 360.0)
+                    );
+                }
+            }
+
+            // Orbes de luz: nos salões e no chefe, uns a mais a cada salão; luz em só alguns.
+            if (
+                tipo == LayoutDaMinaDoReflexo.TipoDeTrecho.Corredor
+                || tipo == LayoutDaMinaDoReflexo.TipoDeTrecho.Antecamara
+            )
+            {
+                return;
+            }
+
+            var quantidade =
+                tipo == LayoutDaMinaDoReflexo.TipoDeTrecho.SalaoDoChefe ? 7 : 3 + nOrdem;
+            for (var i = 0; i < quantidade; i++)
+            {
+                var fx = x0 + (comprimento * (i + 0.5f) / quantidade);
+                var fz = meioZ + (((i % 2 == 0) ? -1f : 1f) * trecho.MetadeDaLargura * 0.45f);
+                var y = MapaDoMundo.AlturaEm(fx, fz) + 2.2f + ((i % 3) * 0.6f);
+                AmbientacaoDoReflexo.Orbe(
+                    grupo,
+                    orbe,
+                    new Vector3(fx, y, fz),
+                    0.28f,
+                    tipo == LayoutDaMinaDoReflexo.TipoDeTrecho.SalaoDoChefe
+                        ? AmbientacaoDoReflexo.CorDoChefe
+                        : AmbientacaoDoReflexo.CorDoOrbe,
+                    i % 2 == 0 ? 2f : 0f,
+                    12f
+                );
+            }
         }
 
         // Parede paralela a X, em zCentro, entre x0 e x1; zBorda é o ponto do chão que ela cerca.

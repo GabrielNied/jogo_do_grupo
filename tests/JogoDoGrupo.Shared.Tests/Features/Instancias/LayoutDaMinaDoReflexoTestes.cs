@@ -17,16 +17,20 @@ public sealed class LayoutDaMinaDoReflexoTestes : IDisposable
     }
 
     [Fact]
-    public void Entrada_fica_na_colina_oeste_a_uns_200_m_da_cidade()
+    public void Entrada_fica_na_serra_nevada_perto_da_cidade_do_passo()
     {
+        var x = LayoutDaMinaDoReflexo.EntradaX;
+        var z = LayoutDaMinaDoReflexo.EntradaZ;
+        Assert.Equal(Bioma.Neve, MapaDoMundo.BiomaEm(x, z));
+        Assert.True(EstruturasDoMapa.ChaoSeco(x, z));
+        Assert.True(EstruturasDoMapa.EncostaAndavel(x, z));
         var distancia = LayoutDaMinaDoReflexo.Distancia(
-            0f,
-            0f,
-            LayoutDaMinaDoReflexo.EntradaX,
-            LayoutDaMinaDoReflexo.EntradaZ
+            MapaDoMundo.CidadeDaNeveX,
+            MapaDoMundo.CidadeDaNeveZ,
+            x,
+            z
         );
-        Assert.InRange(distancia, 150f, 250f);
-        Assert.True(LayoutDaMinaDoReflexo.EntradaX < 0f);
+        Assert.InRange(distancia, 60f, 160f);
     }
 
     [Fact]
