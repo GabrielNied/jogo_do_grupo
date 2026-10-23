@@ -23,7 +23,8 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
         private void OnEnable()
         {
             _temporaria = CreateInstance<ReceitaDeEncostas>();
-            _temporaria.hideFlags = HideFlags.HideAndDontSave;
+            // HideAndDontSave inclui NotEditable e bloqueia os PropertyFields do rascunho.
+            _temporaria.hideFlags = HideFlags.HideInHierarchy | HideFlags.DontSave;
             _previa = new PreviaDeEncostas();
             EditorApplication.playModeStateChanged += AoMudarPlay;
             Undo.undoRedoPerformed += AoDesfazer;
@@ -69,12 +70,17 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
             EditorGUILayout.HelpBox(
                 "Selecione Terrain(s) ou o grupo de blocos na Hierarchy. "
                     + "Previa e uma sobreposicao laranja na Scene; aplicar modifica as alphamaps nativas. "
-                    + "Nenhuma operacao e automatica.",
+                    + "Configure os campos abaixo; salvar uma receita e opcional. Nenhuma operacao e automatica.",
                 MessageType.Info
             );
             EditorGUILayout.LabelField("Terrenos selecionados", terrenos.Length.ToString());
             var receita = (ReceitaDeEncostas)
-                EditorGUILayout.ObjectField("Receita", _receita, typeof(ReceitaDeEncostas), false);
+                EditorGUILayout.ObjectField(
+                    "Receita (opcional)",
+                    _receita,
+                    typeof(ReceitaDeEncostas),
+                    false
+                );
             if (receita != _receita)
             {
                 _receita = receita;
