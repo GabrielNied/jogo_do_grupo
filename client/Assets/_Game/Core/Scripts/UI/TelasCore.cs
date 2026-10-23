@@ -16,6 +16,9 @@ namespace JogoDoGrupo.Client.Core.UI
         /// <summary>Login e registro de conta.</summary>
         public const string Login = "core.login";
 
+        /// <summary>"Esqueci a senha": código por e-mail e senha nova, aberta pelo login.</summary>
+        public const string RecuperarSenha = "core.recuperar-senha";
+
         /// <summary>
         /// Aberta depois do login quando nenhuma funcionalidade definiu a tela seguinte
         /// (<see cref="Navegacao.DefinirTelaAposLogin"/>) ou a chave definida não foi registrada.

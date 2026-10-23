@@ -288,6 +288,156 @@ public class SegurancaAutenticacaoTestes(ServidorDeTeste servidor) : IClassFixtu
         Assert.Equal(CodigosErro.NaoAutenticado, resultado.Codigo);
     }
 
+    [Fact]
+    public async Task Trocar_senha_com_senha_atual_errada_recusa_e_conta_falha()
+    {
+        var (cliente, usuario, _) = await RegistrarELogarAsync(servidor, "TrocaErr");
+
+        for (var i = 0; i < ControleDeFalhasLogin.FalhasParaBloqueio; i++)
+        {
+            var errada = await ServidorDeTeste.PostJsonAsync(
+                cliente,
+                RotasContas.TrocarSenha,
+                new TrocarSenhaRequest { SenhaAtual = "senha-errada", NovaSenha = "senha-nova-1" }
+            );
+            Assert.Equal(HttpStatusCode.BadRequest, errada.StatusCode);
+            var erro = await ServidorDeTeste.LerJsonAsync<ErroApi>(errada);
+            Assert.Equal(CodigosErro.SenhaAtualIncorreta, erro.Codigo);
+        }
+
+        // As falhas da troca valem para o mesmo controle do login: a conta fica bloqueada.
+        var login = await ServidorDeTeste.PostJsonAsync(
+            servidor.CreateClient(),
+            RotasContas.Login,
+            new LoginRequest { Usuario = usuario, Senha = SenhaPadrao }
+        );
+        Assert.Equal(HttpStatusCode.TooManyRequests, login.StatusCode);
+    }
+
+    [Fact]
+    public async Task Trocar_senha_exige_senha_nova_dentro_da_regra()
+    {
+        var (cliente, _, _) = await RegistrarELogarAsync(servidor, "TrocaReg");
+
+        var resposta = await ServidorDeTeste.PostJsonAsync(
+            cliente,
+            RotasContas.TrocarSenha,
+            new TrocarSenhaRequest { SenhaAtual = SenhaPadrao, NovaSenha = "curta" }
+        );
+
+        Assert.Equal(HttpStatusCode.BadRequest, resposta.StatusCode);
+        var erro = await ServidorDeTeste.LerJsonAsync<ErroApi>(resposta);
+        Assert.Equal(CodigosErro.SenhaInvalida, erro.Codigo);
+        // Nada mudou: o token e a senha antigos continuam valendo.
+        Assert.Equal(HttpStatusCode.OK, (await cliente.GetAsync("/api/personagens")).StatusCode);
+    }
+
+    [Fact]
+    public async Task Trocar_senha_invalida_token_antigo_no_HTTP_e_no_UDP()
+    {
+        var (cliente, usuario, tokenAntigo) = await RegistrarELogarAsync(servidor, "TrocaOk");
+        var novaSenha = "senha-nova-segura";
+
+        var resposta = await ServidorDeTeste.PostJsonAsync(
+            cliente,
+            RotasContas.TrocarSenha,
+            new TrocarSenhaRequest { SenhaAtual = SenhaPadrao, NovaSenha = novaSenha }
+        );
+        resposta.EnsureSuccessStatusCode();
+        var tokenNovo = (await ServidorDeTeste.LerJsonAsync<LoginResponse>(resposta)).Token;
+        Assert.NotEqual(tokenAntigo, tokenNovo);
+
+        await AssertTokenRevogadoAsync(servidor, tokenAntigo);
+
+        // A sessão de quem trocou segue com o token novo.
+        cliente.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", tokenNovo);
+        Assert.Equal(HttpStatusCode.OK, (await cliente.GetAsync("/api/personagens")).StatusCode);
+
+        // A senha antiga não entra mais; a nova entra.
+        var anonimo = servidor.CreateClient();
+        var antiga = await ServidorDeTeste.PostJsonAsync(
+            anonimo,
+            RotasContas.Login,
+            new LoginRequest { Usuario = usuario, Senha = SenhaPadrao }
+        );
+        Assert.Equal(HttpStatusCode.Unauthorized, antiga.StatusCode);
+        var nova = await ServidorDeTeste.PostJsonAsync(
+            anonimo,
+            RotasContas.Login,
+            new LoginRequest { Usuario = usuario, Senha = novaSenha }
+        );
+        Assert.Equal(HttpStatusCode.OK, nova.StatusCode);
+    }
+
+    [Fact]
+    public async Task Trocar_senha_sem_token_responde_401()
+    {
+        var resposta = await ServidorDeTeste.PostJsonAsync(
+            servidor.CreateClient(),
+            RotasContas.TrocarSenha,
+            new TrocarSenhaRequest { SenhaAtual = SenhaPadrao, NovaSenha = "senha-nova-1" }
+        );
+        Assert.Equal(HttpStatusCode.Unauthorized, resposta.StatusCode);
+    }
+
+    internal const string SenhaPadrao = "senha-segura";
+
+    /// <summary>Registra uma conta e devolve um cliente logado, o usuário e o token.</summary>
+    internal static async Task<(
+        HttpClient Cliente,
+        string Usuario,
+        string Token
+    )> RegistrarELogarAsync(
+        Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory<Program> fabrica,
+        string prefixo
+    )
+    {
+        var cliente = fabrica.CreateClient();
+        var usuario = ServidorDeTeste.NomeUnico(prefixo);
+        var registro = await ServidorDeTeste.PostJsonAsync(
+            cliente,
+            RotasContas.Registrar,
+            new RegistrarContaRequest { Usuario = usuario, Senha = SenhaPadrao }
+        );
+        registro.EnsureSuccessStatusCode();
+        var login = await ServidorDeTeste.PostJsonAsync(
+            cliente,
+            RotasContas.Login,
+            new LoginRequest { Usuario = usuario, Senha = SenhaPadrao }
+        );
+        login.EnsureSuccessStatusCode();
+        var token = (await ServidorDeTeste.LerJsonAsync<LoginResponse>(login)).Token;
+        cliente.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+        return (cliente, usuario, token);
+    }
+
+    /// <summary>O token não abre rota protegida no HTTP nem autentica no tempo real.</summary>
+    internal static async Task AssertTokenRevogadoAsync(
+        Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory<Program> fabrica,
+        string token
+    )
+    {
+        using var cliente = fabrica.CreateClient();
+        cliente.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+        var http = await cliente.GetAsync("/api/personagens");
+        Assert.Equal(HttpStatusCode.Unauthorized, http.StatusCode);
+
+        var autenticador = new AutenticadorTempoReal(
+            fabrica.Services.GetRequiredService<ConfiguracaoJwt>(),
+            fabrica.Services.GetRequiredService<IServiceScopeFactory>(),
+            NullLogger<AutenticadorTempoReal>.Instance
+        );
+        var udp = await autenticador.AutenticarAsync(
+            new AutenticarTempoReal { Token = token, PersonagemId = 1 },
+            CancellationToken.None
+        );
+        Assert.False(udp.Aceita);
+        Assert.Equal(CodigosErro.NaoAutenticado, udp.Codigo);
+    }
+
     private sealed class VerificadorPersonagemMock(long contaId, long personagemId)
         : IVerificadorPersonagem
     {

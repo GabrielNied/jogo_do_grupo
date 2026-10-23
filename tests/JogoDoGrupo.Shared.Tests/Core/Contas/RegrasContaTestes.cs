@@ -37,4 +37,40 @@ public class RegrasContaTestes
             CodigosErro.SenhaInvalida,
             RegrasConta.ValidarSenha(tamanho is null ? null : new string('a', tamanho.Value))
         );
+
+    [Theory]
+    [InlineData("ana@exemplo.com")]
+    [InlineData("Ana.Maria+jogo@sub.exemplo.com.br")]
+    public void ValidarEmail_aceita_formato_valido(string email) =>
+        Assert.Null(RegrasConta.ValidarEmail(email));
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("sem-arroba.com")]
+    [InlineData("@exemplo.com")]
+    [InlineData("ana@@exemplo.com")]
+    [InlineData("ana@exemplo")]
+    [InlineData("ana@.com")]
+    [InlineData("ana@exemplo.")]
+    [InlineData("ana maria@exemplo.com")]
+    public void ValidarEmail_recusa_formato_invalido(string? email) =>
+        Assert.Equal(CodigosErro.EmailInvalido, RegrasConta.ValidarEmail(email));
+
+    [Fact]
+    public void ValidarEmail_recusa_acima_do_maximo() =>
+        Assert.Equal(
+            CodigosErro.EmailInvalido,
+            RegrasConta.ValidarEmail(new string('a', RegrasConta.EmailMaximo) + "@a.com")
+        );
+
+    [Theory]
+    [InlineData("000000", true)]
+    [InlineData("123456", true)]
+    [InlineData("12345", false)]
+    [InlineData("1234567", false)]
+    [InlineData("12a456", false)]
+    [InlineData(null, false)]
+    public void CodigoRecuperacaoNoFormato_exige_seis_digitos(string? codigo, bool esperado) =>
+        Assert.Equal(esperado, RegrasConta.CodigoRecuperacaoNoFormato(codigo));
 }

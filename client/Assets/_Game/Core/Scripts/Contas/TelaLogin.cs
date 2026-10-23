@@ -23,6 +23,7 @@ namespace JogoDoGrupo.Client.Core.Contas
         private TextField _senha;
         private Button _entrar;
         private Button _criarConta;
+        private Button _esqueci;
         private Label _mensagem;
         private readonly EstadoDeEnvioLogin _estadoDeEnvio = new EstadoDeEnvioLogin();
 
@@ -60,6 +61,13 @@ namespace JogoDoGrupo.Client.Core.Contas
             _criarConta.AddToClassList(EstiloCore.Botao);
             _criarConta.AddToClassList("login-acao-secundaria");
 
+            _esqueci = new Button(() => Navegacao.Abrir(TelasCore.RecuperarSenha))
+            {
+                text = "Esqueci a senha",
+            };
+            _esqueci.AddToClassList(EstiloCore.Botao);
+            _esqueci.AddToClassList("login-esqueci");
+
             _mensagem = new Label();
             _mensagem.AddToClassList(EstiloCore.Mensagem);
             _mensagem.AddToClassList("login-mensagem");
@@ -74,6 +82,7 @@ namespace JogoDoGrupo.Client.Core.Contas
             painel.Add(_senha);
             painel.Add(_mensagem);
             painel.Add(acoes);
+            painel.Add(_esqueci);
             composicao.Add(titulo);
             composicao.Add(painel);
             raiz.Add(composicao);
@@ -284,6 +293,12 @@ namespace JogoDoGrupo.Client.Core.Contas
                         + "caracteres, só com letras sem acento, números e _.",
                 CodigosErro.SenhaInvalida =>
                     $"A senha deve ter de {RegrasConta.SenhaMinimo} a {RegrasConta.SenhaMaximo} caracteres.",
+                CodigosErro.EmailInvalido => "Confira o e-mail (ex.: nome@exemplo.com).",
+                CodigosErro.EmailJaEmUso => "Esse e-mail já está em outra conta.",
+                CodigosErro.CodigoRecuperacaoInvalido =>
+                    "Código incorreto ou vencido. Peça um novo código.",
+                CodigosErro.MuitasTentativas =>
+                    "Muitas tentativas. Aguarde alguns minutos e tente de novo.",
                 CodigosErroCliente.SemConexao =>
                     "Não foi possível conectar ao servidor. Verifique a conexão e tente de novo.",
                 CodigosErroCliente.HttpBloqueado =>
@@ -298,6 +313,7 @@ namespace JogoDoGrupo.Client.Core.Contas
             _senha.SetEnabled(!esperando);
             _entrar.SetEnabled(!esperando);
             _criarConta.SetEnabled(!esperando);
+            _esqueci.SetEnabled(!esperando);
         }
 
         private void MostrarMensagem(string texto, string classe = null)

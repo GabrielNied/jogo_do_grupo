@@ -22,5 +22,12 @@ internal sealed class ContaConfiguracao : IEntityTypeConfiguration<Conta>
         conta.Property(c => c.EhGm).IsRequired().HasDefaultValue(false);
         conta.Property(c => c.BanidaAte);
         conta.Property(c => c.MotivoBanimento).HasMaxLength(256);
+        conta.Property(c => c.Email).HasMaxLength(RegrasConta.EmailMaximo);
+        conta.Property(c => c.EmailNormalizado).HasMaxLength(RegrasConta.EmailMaximo);
+        // Único entre as contas com e-mail; várias contas sem e-mail (NULL) convivem.
+        conta.HasIndex(c => c.EmailNormalizado).IsUnique();
+        conta.Property(c => c.CodigoRecuperacaoHash).HasMaxLength(256);
+        conta.Property(c => c.CodigoRecuperacaoExpiraEm);
+        conta.Property(c => c.CodigoRecuperacaoTentativas).IsRequired();
     }
 }
