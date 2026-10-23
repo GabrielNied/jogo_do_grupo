@@ -1,3 +1,5 @@
+using System.Linq.Expressions;
+
 namespace JogoDoGrupo.Server.Core.Contas;
 
 /// <summary>Conta de jogador. As funcionalidades referenciam a conta só pelo <see cref="Id"/>.</summary>
@@ -70,12 +72,16 @@ public sealed class Conta
         CodigoRecuperacaoTentativas = 0;
     }
 
-    /// <summary>Se há código que ainda pode ser usado em <paramref name="agora"/> (UTC).</summary>
-    public bool RecuperacaoAtiva(DateTime agora) =>
-        CodigoRecuperacaoHash != null
-        && CodigoRecuperacaoExpiraEm is { } expira
-        && agora < expira
-        && CodigoRecuperacaoTentativas < RecuperacaoDeConta.TentativasPorCodigo;
+    /// <summary>
+    /// Se a conta tem código que ainda pode ser usado em <paramref name="agora"/> (UTC). É expressão
+    /// para valer dentro do <c>ExecuteUpdate</c> que gasta a tentativa: a checagem e o incremento
+    /// ficam num só comando no banco, e uma rajada não passa do limite (#1251).
+    /// </summary>
+    public static Expression<Func<Conta, bool>> RecuperacaoAtiva(DateTime agora) =>
+        c =>
+            c.CodigoRecuperacaoHash != null
+            && c.CodigoRecuperacaoExpiraEm > agora
+            && c.CodigoRecuperacaoTentativas < RecuperacaoDeConta.TentativasPorCodigo;
 
     public static string Normalizar(string usuario) => usuario.ToUpperInvariant();
 

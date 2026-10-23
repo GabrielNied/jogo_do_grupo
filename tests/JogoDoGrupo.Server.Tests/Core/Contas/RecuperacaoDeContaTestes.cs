@@ -12,6 +12,9 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Time.Testing;
 
 namespace JogoDoGrupo.Server.Tests.Core.Contas;
@@ -106,11 +109,146 @@ public sealed partial class RecuperacaoDeContaTestes : IClassFixture<ServidorDeT
         conta.IniciarRecuperacao("hash", agora + RecuperacaoDeConta.ValidadeCodigo);
 
         Assert.Equal(TimeSpan.FromMinutes(15), RecuperacaoDeConta.ValidadeCodigo);
-        Assert.True(conta.RecuperacaoAtiva(agora.AddMinutes(14).AddSeconds(59)));
-        Assert.False(conta.RecuperacaoAtiva(agora.AddMinutes(15)));
+        Assert.True(Ativa(conta, agora.AddMinutes(14).AddSeconds(59)));
+        Assert.False(Ativa(conta, agora.AddMinutes(15)));
 
         conta.CodigoRecuperacaoTentativas = RecuperacaoDeConta.TentativasPorCodigo;
-        Assert.False(conta.RecuperacaoAtiva(agora));
+        Assert.False(Ativa(conta, agora));
+
+        static bool Ativa(Conta conta, DateTime em) => Conta.RecuperacaoAtiva(em).Compile()(conta);
+    }
+
+    [Fact]
+    public async Task Rajada_de_tentativas_erradas_compara_no_maximo_o_limite()
+    {
+        var (usuario, email, _) = await RegistrarComEmailAsync();
+        var codigo = await PedirCodigoAsync(email);
+        var errado = codigo == "000000" ? "000001" : "000000";
+
+        // Sem a condição de limite no update atômico, todas as 20 passam pela checagem e comparam.
+        var respostas = await Task.WhenAll(
+            Enumerable.Range(0, 20).Select(_ => RedefinirAsync(email, errado, "senha-nova-um"))
+        );
+
+        foreach (var resposta in respostas)
+        {
+            await AssertCodigoInvalidoAsync(resposta);
+        }
+
+        Assert.Equal(RecuperacaoDeConta.TentativasPorCodigo, await TentativasAsync(usuario));
+        await AssertCodigoInvalidoAsync(await RedefinirAsync(email, codigo, "senha-nova-um"));
+    }
+
+    [Fact]
+    public async Task Rajada_de_redefinicoes_com_o_codigo_certo_aceita_uma_so()
+    {
+        var (usuario, email, _) = await RegistrarComEmailAsync();
+        var codigo = await PedirCodigoAsync(email);
+
+        var respostas = await Task.WhenAll(
+            Enumerable
+                .Range(0, 10)
+                .Select(i => RedefinirAsync(email, codigo, $"senha-paralela-{i}"))
+        );
+
+        var aceitas = respostas.Where(r => r.StatusCode == HttpStatusCode.NoContent).ToList();
+        Assert.Single(aceitas);
+        foreach (var resposta in respostas.Except(aceitas))
+        {
+            await AssertCodigoInvalidoAsync(resposta);
+        }
+
+        var vencedora = Array.IndexOf(respostas, aceitas[0]);
+        Assert.Equal(
+            HttpStatusCode.OK,
+            (await LoginAsync(usuario, $"senha-paralela-{vencedora}")).StatusCode
+        );
+    }
+
+    [Fact]
+    public async Task Redefinicoes_por_IP_acima_do_limite_da_hora_respondem_429()
+    {
+        using var fabrica = _fabrica.WithWebHostBuilder(builder =>
+        {
+            builder.UseSetting("Contas:RateLimit:Ativo", "true");
+            builder.UseSetting("Contas:Recuperacao:RedefinicoesPorHoraPorIp", "2");
+        });
+        using var cliente = fabrica.CreateClient();
+        var pedido = new RedefinirSenhaRequest
+        {
+            Email = $"ip-{Guid.NewGuid():N}@exemplo.com",
+            Codigo = "123456",
+            NovaSenha = "senha-nova-um",
+        };
+
+        for (var i = 0; i < 2; i++)
+        {
+            await AssertCodigoInvalidoAsync(
+                await ServidorDeTeste.PostJsonAsync(cliente, RotasContas.RedefinirSenha, pedido)
+            );
+        }
+
+        var acima = await ServidorDeTeste.PostJsonAsync(
+            cliente,
+            RotasContas.RedefinirSenha,
+            pedido
+        );
+        Assert.Equal(HttpStatusCode.TooManyRequests, acima.StatusCode);
+        Assert.Equal(
+            CodigosErro.MuitasTentativas,
+            (await ServidorDeTeste.LerJsonAsync<ErroApi>(acima)).Codigo
+        );
+    }
+
+    [Fact]
+    public async Task Trocar_o_email_descarta_o_codigo_pendente()
+    {
+        var (cliente, _, _) = await SegurancaAutenticacaoTestes.RegistrarELogarAsync(
+            _fabrica,
+            "Troca"
+        );
+        var antigo = $"antigo-{Guid.NewGuid():N}@exemplo.com";
+        var novo = $"novo-{Guid.NewGuid():N}@exemplo.com";
+        Assert.Equal(
+            HttpStatusCode.NoContent,
+            (await DefinirEmailAsync(cliente, antigo)).StatusCode
+        );
+        var codigo = await PedirCodigoAsync(antigo);
+
+        Assert.Equal(HttpStatusCode.NoContent, (await DefinirEmailAsync(cliente, novo)).StatusCode);
+
+        // Nem pelo e-mail antigo nem pelo novo: o código foi apagado, não só desligado do endereço.
+        await AssertCodigoInvalidoAsync(await RedefinirAsync(antigo, codigo, "senha-nova-um"));
+        await AssertCodigoInvalidoAsync(await RedefinirAsync(novo, codigo, "senha-nova-um"));
+    }
+
+    [Theory]
+    [InlineData("Production", false)]
+    [InlineData("Staging", false)]
+    [InlineData("Development", true)]
+    public async Task Provedor_so_de_log_mostra_o_codigo_apenas_em_Development(
+        string ambiente,
+        bool mostra
+    )
+    {
+        var log = new LogColetor<ProvedorEmailSoLog>();
+        var provedor = new ProvedorEmailSoLog(
+            new AmbienteFalso { EnvironmentName = ambiente },
+            log
+        );
+        const string codigo = "482913";
+
+        await provedor.EnviarAsync(
+            new MensagemEmail(
+                "alguem@exemplo.com",
+                RecuperacaoDeConta.AssuntoEmail,
+                RecuperacaoDeConta.TextoEmail("Alguem", codigo)
+            ),
+            CancellationToken.None
+        );
+
+        Assert.Single(log.Mensagens);
+        Assert.Equal(mostra, log.Mensagens[0].Contains(codigo, StringComparison.Ordinal));
     }
 
     [Fact]
@@ -365,6 +503,27 @@ public sealed partial class RecuperacaoDeContaTestes : IClassFixture<ServidorDeT
         );
     }
 
+    private static Task<HttpResponseMessage> DefinirEmailAsync(HttpClient cliente, string email) =>
+        ServidorDeTeste.PostJsonAsync(
+            cliente,
+            RotasContas.DefinirEmail,
+            new DefinirEmailRequest
+            {
+                SenhaAtual = SegurancaAutenticacaoTestes.SenhaPadrao,
+                Email = email,
+            }
+        );
+
+    private async Task<int> TentativasAsync(string usuario)
+    {
+        using var escopo = _fabrica.Services.CreateScope();
+        var db = escopo.ServiceProvider.GetRequiredService<JogoDbContext>();
+        return await db.Set<Conta>()
+            .Where(c => c.UsuarioNormalizado == Conta.Normalizar(usuario))
+            .Select(c => c.CodigoRecuperacaoTentativas)
+            .SingleAsync();
+    }
+
     private static async Task AssertCodigoInvalidoAsync(HttpResponseMessage resposta)
     {
         Assert.Equal(HttpStatusCode.BadRequest, resposta.StatusCode);
@@ -378,6 +537,32 @@ public sealed partial class RecuperacaoDeContaTestes : IClassFixture<ServidorDeT
 
     [GeneratedRegex(@"\b\d{6}\b")]
     private static partial Regex SeisDigitos();
+
+    private sealed class AmbienteFalso : IHostEnvironment
+    {
+        public string EnvironmentName { get; set; } = "";
+        public string ApplicationName { get; set; } = "";
+        public string ContentRootPath { get; set; } = "";
+        public IFileProvider ContentRootFileProvider { get; set; } = new NullFileProvider();
+    }
+
+    private sealed class LogColetor<T> : ILogger<T>
+    {
+        public List<string> Mensagens { get; } = [];
+
+        public IDisposable? BeginScope<TState>(TState state)
+            where TState : notnull => null;
+
+        public bool IsEnabled(LogLevel logLevel) => true;
+
+        public void Log<TState>(
+            LogLevel logLevel,
+            EventId eventId,
+            TState state,
+            Exception? exception,
+            Func<TState, Exception?, string> formatter
+        ) => Mensagens.Add(formatter(state, exception));
+    }
 
     /// <summary>Guarda os e-mails em vez de enviar.</summary>
     private sealed class ProvedorEmailFalso : IProvedorDeEmail
