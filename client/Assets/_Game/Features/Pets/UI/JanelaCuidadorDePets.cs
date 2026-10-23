@@ -40,31 +40,22 @@ namespace JogoDoGrupo.Client.Features.Pets.UI
 
         protected override void Montar(VisualElement conteudo)
         {
-            conteudo.style.minWidth = 520f;
-            conteudo.style.maxWidth = 620f;
-            conteudo.style.paddingLeft = 14f;
-            conteudo.style.paddingRight = 14f;
-            conteudo.style.paddingTop = 10f;
-            conteudo.style.paddingBottom = 12f;
+            EstiloPets.Aplicar(conteudo);
+            conteudo.AddToClassList("pets-conteudo");
+            conteudo.AddToClassList("pets-conteudo-cuidador");
 
             var topo = new VisualElement();
-            topo.style.marginBottom = 10f;
-            topo.style.paddingBottom = 6f;
-            topo.style.borderBottomWidth = 1f;
-            topo.style.borderBottomColor = EstiloVisual.Cor(ConfigVisual.Cores.BordaDiscreta);
+            topo.AddToClassList("pets-cuidador-topo");
 
             var titulo = new Label("Cercado da Brasa Mansa");
             titulo.AddToClassList(EstiloCore.Titulo);
-            titulo.style.fontSize = 16f;
-            titulo.style.unityFontStyleAndWeight = FontStyle.Bold;
-            titulo.style.color = EstiloVisual.Cor(ConfigVisual.Cores.Marfim);
+            titulo.AddToClassList("pets-cuidador-titulo");
             topo.Add(titulo);
 
             var subtitulo = new Label("Cuidadora Mirna · Pets Comuns e Companheiros");
             subtitulo.AddToClassList(EstiloCore.Subtitulo);
-            subtitulo.style.fontSize = 12f;
+            subtitulo.AddToClassList("pets-cuidador-subtitulo");
             subtitulo.style.color = new Color(0.85f, 0.70f, 0.30f);
-            subtitulo.style.marginTop = 2f;
             topo.Add(subtitulo);
 
             conteudo.Add(topo);
@@ -73,13 +64,11 @@ namespace JogoDoGrupo.Client.Features.Pets.UI
                 "Adquira companheiros fiéis por coroas para segui-lo pelo mundo e recolher itens caídos ao chão."
             );
             descricao.AddToClassList(EstiloCore.Texto);
-            descricao.style.fontSize = 11.5f;
-            descricao.style.color = EstiloVisual.Cor(ConfigVisual.Cores.TextoSecundario);
-            descricao.style.marginBottom = 12f;
+            descricao.AddToClassList("pets-descricao");
             conteudo.Add(descricao);
 
             _listaContainer = new VisualElement();
-            _listaContainer.style.flexDirection = FlexDirection.Column;
+            _listaContainer.AddToClassList("pets-cuidador-lista");
             conteudo.Add(_listaContainer);
 
             ConstruirOfertas();
@@ -88,9 +77,7 @@ namespace JogoDoGrupo.Client.Features.Pets.UI
                 "Dica: Após a compra, o pet é registrado em sua conta e pode ser chamado na janela [U] (Companheiros)."
             );
             rodape.AddToClassList(EstiloCore.Mensagem);
-            rodape.style.fontSize = 11f;
-            rodape.style.marginTop = 12f;
-            rodape.style.color = EstiloVisual.Cor(ConfigVisual.Cores.TextoDesabilitado);
+            rodape.AddToClassList("pets-rodape");
             conteudo.Add(rodape);
         }
 
@@ -152,63 +139,32 @@ namespace JogoDoGrupo.Client.Features.Pets.UI
                 _onComprar = onComprar;
 
                 Elemento = new VisualElement();
-                Elemento.style.flexDirection = FlexDirection.Row;
-                Elemento.style.alignItems = Align.Center;
-                Elemento.style.justifyContent = Justify.SpaceBetween;
-                Elemento.style.paddingLeft = 12f;
-                Elemento.style.paddingRight = 12f;
-                Elemento.style.paddingTop = 8f;
-                Elemento.style.paddingBottom = 8f;
-                Elemento.style.marginBottom = 6f;
-                Elemento.style.backgroundColor = EstiloVisual.Cor(ConfigVisual.Cores.Campo);
-                Elemento.style.borderTopWidth = 1f;
-                Elemento.style.borderBottomWidth = 1f;
-                Elemento.style.borderLeftWidth = 1f;
-                Elemento.style.borderRightWidth = 1f;
-                Elemento.style.borderTopColor = EstiloVisual.Cor(ConfigVisual.Cores.BordaDiscreta);
-                Elemento.style.borderBottomColor = EstiloVisual.Cor(
-                    ConfigVisual.Cores.BordaDiscreta
-                );
-                Elemento.style.borderLeftColor = EstiloVisual.Cor(ConfigVisual.Cores.BordaDiscreta);
-                Elemento.style.borderRightColor = EstiloVisual.Cor(
-                    ConfigVisual.Cores.BordaDiscreta
-                );
-                Elemento.style.borderTopLeftRadius = 4f;
-                Elemento.style.borderTopRightRadius = 4f;
-                Elemento.style.borderBottomLeftRadius = 4f;
-                Elemento.style.borderBottomRightRadius = 4f;
+                Elemento.AddToClassList("pets-oferta");
 
                 var info = new VisualElement();
-                info.style.flexDirection = FlexDirection.Column;
-                info.style.flexGrow = 1f;
-                info.style.marginRight = 12f;
+                info.AddToClassList("pets-oferta-info");
 
                 var linhaNome = new VisualElement();
-                linhaNome.style.flexDirection = FlexDirection.Row;
-                linhaNome.style.alignItems = Align.Center;
+                linhaNome.AddToClassList("pets-oferta-linha");
 
                 var rotuloNome = new Label(oferta.Nome);
                 rotuloNome.AddToClassList(EstiloCore.Texto);
-                rotuloNome.style.fontSize = 13f;
-                rotuloNome.style.unityFontStyleAndWeight = FontStyle.Bold;
+                rotuloNome.AddToClassList("pets-oferta-nome");
                 rotuloNome.style.color = new Color(0.94f, 0.94f, 0.98f);
                 linhaNome.Add(rotuloNome);
 
                 var badgePreco = new Label($" {oferta.PrecoCoroas} coroas");
                 badgePreco.AddToClassList(EstiloCore.Texto);
-                badgePreco.style.fontSize = 11.5f;
-                badgePreco.style.unityFontStyleAndWeight = FontStyle.Bold;
+                badgePreco.AddToClassList("pets-oferta-preco");
                 badgePreco.style.color = new Color(0.95f, 0.78f, 0.25f);
-                badgePreco.style.marginLeft = 8f;
                 linhaNome.Add(badgePreco);
 
                 info.Add(linhaNome);
 
                 var rotuloDesc = new Label(oferta.Descricao);
                 rotuloDesc.AddToClassList(EstiloCore.Texto);
-                rotuloDesc.style.fontSize = 11f;
+                rotuloDesc.AddToClassList("pets-oferta-desc");
                 rotuloDesc.style.color = new Color(0.65f, 0.70f, 0.78f);
-                rotuloDesc.style.marginTop = 2f;
                 info.Add(rotuloDesc);
 
                 Elemento.Add(info);
@@ -217,8 +173,7 @@ namespace JogoDoGrupo.Client.Features.Pets.UI
                 _botaoComprar.text = $"Comprar ({oferta.PrecoCoroas})";
                 _botaoComprar.AddToClassList(EstiloCore.Botao);
                 _botaoComprar.AddToClassList(EstiloCore.BotaoPrincipal);
-                _botaoComprar.style.minWidth = 130f;
-                _botaoComprar.style.height = 30f;
+                _botaoComprar.AddToClassList("pets-oferta-comprar");
                 Elemento.Add(_botaoComprar);
             }
 
@@ -228,13 +183,13 @@ namespace JogoDoGrupo.Client.Features.Pets.UI
                 {
                     _botaoComprar.text = "Já Possui";
                     _botaoComprar.SetEnabled(false);
-                    _botaoComprar.style.opacity = 0.5f;
+                    _botaoComprar.AddToClassList("pets-oferta-comprar-indisponivel");
                 }
                 else
                 {
                     _botaoComprar.text = $"Comprar ({Oferta.PrecoCoroas})";
                     _botaoComprar.SetEnabled(true);
-                    _botaoComprar.style.opacity = 1f;
+                    _botaoComprar.RemoveFromClassList("pets-oferta-comprar-indisponivel");
                 }
             }
         }
