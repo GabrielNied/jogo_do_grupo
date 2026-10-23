@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
@@ -11,6 +12,12 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
         public const float CoberturaPlenaPadrao = 55f;
         public const float IntensidadePadrao = 1f;
         private const int AlturaDaFaixa = 32;
+
+        public static bool Buraco(TerrainData dados, float u, float v) =>
+            dados.IsHole(
+                Mathf.Min((int)(u * dados.holesResolution), dados.holesResolution - 1),
+                Mathf.Min((int)(v * dados.holesResolution), dados.holesResolution - 1)
+            );
 
         public static void AplicarComUndo(
             TerrainData dados,
@@ -72,6 +79,31 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
                     "Use angulos crescentes entre 0 e 90 e intensidade entre 0 e 1."
                 );
 
+            Aplicar(
+                dados,
+                Vector3.zero,
+                new ConfigDeEncostas
+                {
+                    Camada = rocha,
+                    Inicio = inicio,
+                    Plena = coberturaPlena,
+                    Cobertura = intensidade,
+                },
+                cancelar
+            );
+        }
+
+        public static void Aplicar(
+            TerrainData dados,
+            Vector3 origem,
+            ConfigDeEncostas receita,
+            Func<float, bool> cancelar = null
+        )
+        {
+            var erro = receita.Validar();
+            if (erro != null)
+                throw new ArgumentException(erro);
+            var rocha = receita.Camada;
             var camadas = dados.terrainLayers;
             var indice = Array.IndexOf(camadas, rocha);
             if (indice < 0)
@@ -104,8 +136,14 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
                         )
                     )
                         continue;
-                    var t = Mathf.InverseLerp(inicio, coberturaPlena, dados.GetSteepness(u, v));
-                    var alvo = Mathf.SmoothStep(0f, intensidade, t);
+                    var mundo =
+                        origem
+                        + new Vector3(
+                            u * dados.size.x,
+                            dados.GetInterpolatedHeight(u, v),
+                            v * dados.size.z
+                        );
+                    var alvo = receita.Mascara(mundo, dados.GetSteepness(u, v));
                     var atual = pesos[z, x, indice];
                     if (alvo <= atual)
                         continue;
@@ -119,6 +157,101 @@ namespace JogoDoGrupo.Client.Features.Mundo.Editor
                     dados.SetAlphamaps(0, linha, pesos);
             }
             dados.SetBaseMapDirty();
+        }
+
+        public static void RegistrarUndo(TerrainData dados)
+        {
+            Undo.RegisterCompleteObjectUndo(dados, "Pintar encostas");
+            foreach (var textura in dados.alphamapTextures)
+                Undo.RegisterCompleteObjectUndo(textura, "Pintar encostas");
+        }
+
+        public static void AplicarLote(
+            Terrain[] terrenos,
+            ConfigDeEncostas receita,
+            bool restaurar,
+            Func<float, bool> cancelar = null
+        )
+        {
+            // Confere TODOS antes de escrever no primeiro. Nunca incorpora retoques implicitamente.
+            var erro = receita.Validar();
+            if (erro != null)
+                throw new ArgumentException(erro);
+            long bytesDeBase = 0;
+            foreach (var terreno in terrenos)
+            {
+                var dados = terreno.terrainData;
+                bytesDeBase +=
+                    (long)dados.alphamapWidth
+                    * dados.alphamapHeight
+                    * dados.alphamapLayers
+                    * sizeof(float);
+                if (bytesDeBase > 512L * 1024 * 1024)
+                    throw new InvalidOperationException(
+                        "Lote excede 512 MiB de pesos originais. Selecione menos terrenos para limitar backup e Undo."
+                    );
+                var registro = BaseDeEncostas.Obter(terreno.terrainData, false);
+                if (registro != null && !registro.Confere(terreno.terrainData))
+                    throw new InvalidOperationException(
+                        terreno.name
+                            + ": pintura/camadas alteradas desde a ultima aplicacao. "
+                            + "Use Assumir pintura atual como nova base para preservar os retoques."
+                    );
+            }
+            Undo.IncrementCurrentGroup();
+            var grupo = Undo.GetCurrentGroup();
+            Undo.SetCurrentGroupName(restaurar ? "Restaurar base das encostas" : "Pintar encostas");
+            var basesCriadas = new List<BaseDeEncostas>();
+            try
+            {
+                for (var i = 0; i < terrenos.Length; i++)
+                {
+                    if (cancelar?.Invoke((float)i / terrenos.Length) == true)
+                        throw new OperationCanceledException();
+                    var terreno = terrenos[i];
+                    var dados = terreno.terrainData;
+                    var registro = BaseDeEncostas.Obter(dados, false);
+                    if (registro == null && !restaurar)
+                    {
+                        registro = BaseDeEncostas.Obter(dados, true);
+                        basesCriadas.Add(registro);
+                    }
+                    if (registro == null)
+                        continue;
+                    RegistrarUndo(dados);
+                    Undo.RegisterCompleteObjectUndo(registro, "Atualizar base das encostas");
+                    registro.Restaurar(dados, receita, terreno.transform.position);
+                    if (!restaurar)
+                    {
+                        var progressoInicial = (float)i / terrenos.Length;
+                        Aplicar(
+                            dados,
+                            terreno.transform.position,
+                            receita,
+                            p => cancelar?.Invoke(progressoInicial + p / terrenos.Length) == true
+                        );
+                    }
+                    registro.HashEsperado = BaseDeEncostas.Assinatura(dados);
+                    EditorUtility.SetDirty(registro);
+                    EditorUtility.SetDirty(dados);
+                    terreno.Flush();
+                }
+                Undo.CollapseUndoOperations(grupo);
+            }
+            catch
+            {
+                Undo.RevertAllDownToGroup(grupo);
+                foreach (var registro in basesCriadas)
+                {
+                    Undo.ClearUndo(registro);
+                    AssetDatabase.DeleteAsset(AssetDatabase.GetAssetPath(registro));
+                }
+                throw;
+            }
+            finally
+            {
+                Undo.IncrementCurrentGroup();
+            }
         }
     }
 }

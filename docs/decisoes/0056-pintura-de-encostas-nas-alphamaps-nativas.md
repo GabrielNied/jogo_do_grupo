@@ -1,7 +1,7 @@
 # 0056. Pintura de encostas nas alphamaps nativas
 
 **Data:** 2026-10-22
-**Status:** aceita
+**Status:** substituída por [0057](0057-autoria-de-encostas-com-base-e-revestimento.md)
 
 ## Contexto
 
