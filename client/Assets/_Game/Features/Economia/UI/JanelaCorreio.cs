@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using JogoDoGrupo.Client.Core.Jogo.Janelas;
 using JogoDoGrupo.Client.Core.UI;
-using JogoDoGrupo.Client.Core.Visual;
 using JogoDoGrupo.Shared.Features.Economia;
 using JogoDoGrupo.Shared.Features.Itens;
 using UnityEngine;
@@ -57,17 +56,13 @@ namespace JogoDoGrupo.Client.Features.Economia.UI
 
         protected override void Montar(VisualElement conteudo)
         {
-            conteudo.style.minWidth = 520f;
-            conteudo.style.maxWidth = 640f;
-            conteudo.style.paddingLeft = 14f;
-            conteudo.style.paddingRight = 14f;
-            conteudo.style.paddingTop = 10f;
-            conteudo.style.paddingBottom = 12f;
+            EstiloEconomia.Aplicar(conteudo);
+            conteudo.AddToClassList("economia-conteudo");
+            conteudo.AddToClassList("economia-conteudo-correio");
 
             // Barra de abas
             var abas = new VisualElement();
-            abas.style.flexDirection = FlexDirection.Row;
-            abas.style.marginBottom = 10f;
+            abas.AddToClassList("economia-abas");
 
             _botaoAbaEntrada = CriarBotaoAba(
                 "Caixa de Entrada",
@@ -84,14 +79,14 @@ namespace JogoDoGrupo.Client.Features.Economia.UI
             abas.Add(_botaoAbaEscrever);
 
             var espacador = new VisualElement();
-            espacador.style.flexGrow = 1f;
+            espacador.AddToClassList("economia-espacador");
             abas.Add(espacador);
 
             var botaoAtualizar = CriarBotao(
                 "Atualizar",
                 () => ControleDeEconomia.ConsultarCorreio()
             );
-            botaoAtualizar.style.height = 28f;
+            botaoAtualizar.AddToClassList("economia-correio-atualizar");
             abas.Add(botaoAtualizar);
 
             conteudo.Add(abas);
@@ -149,7 +144,7 @@ namespace JogoDoGrupo.Client.Features.Economia.UI
         {
             var botao = CriarBotao(texto, acao);
             botao.EnableInClassList(EstiloCore.BotaoPrincipal, ativa);
-            botao.style.marginRight = 6f;
+            botao.AddToClassList("economia-aba-esquerda");
             return botao;
         }
 
@@ -174,14 +169,12 @@ namespace JogoDoGrupo.Client.Features.Economia.UI
         private void MontarPainelEntrada()
         {
             _listaCartas = new ScrollView();
-            _listaCartas.style.maxHeight = 240f;
-            _listaCartas.style.marginBottom = 10f;
+            _listaCartas.AddToClassList("economia-correio-lista");
             _painelEntrada.Add(_listaCartas);
 
             _leitorCarta = new VisualElement();
-            _leitorCarta.style.borderTopWidth = 1f;
+            _leitorCarta.AddToClassList("economia-correio-leitor");
             _leitorCarta.style.borderTopColor = new Color(0.3f, 0.3f, 0.35f, 0.6f);
-            _leitorCarta.style.paddingTop = 8f;
             _painelEntrada.Add(_leitorCarta);
         }
 
@@ -203,14 +196,7 @@ namespace JogoDoGrupo.Client.Features.Economia.UI
             {
                 var id = carta.Id;
                 var linha = new VisualElement();
-                linha.style.flexDirection = FlexDirection.Row;
-                linha.style.justifyContent = Justify.SpaceBetween;
-                linha.style.alignItems = Align.Center;
-                linha.style.paddingLeft = 8f;
-                linha.style.paddingRight = 8f;
-                linha.style.paddingTop = 6f;
-                linha.style.paddingBottom = 6f;
-                linha.style.marginBottom = 3f;
+                linha.AddToClassList("economia-carta");
                 linha.style.backgroundColor =
                     (id == _cartaSelecionadaId)
                         ? new Color(0.25f, 0.35f, 0.5f, 0.4f)
@@ -218,15 +204,13 @@ namespace JogoDoGrupo.Client.Features.Economia.UI
 
                 var textoBox = new VisualElement();
                 var titulo = new Label(carta.Assunto);
-                titulo.style.unityFontStyleAndWeight = carta.Lida
-                    ? FontStyle.Normal
-                    : FontStyle.Bold;
+                titulo.EnableInClassList("economia-carta-nova", !carta.Lida);
                 titulo.style.color = carta.Lida ? Color.white : new Color(1f, 0.85f, 0.4f);
 
                 var subtitulo = new Label(
                     $"De: {carta.Remetente} {(carta.TemAnexos ? "• [Anexo]" : "")}"
                 );
-                subtitulo.style.fontSize = 11f;
+                subtitulo.AddToClassList("economia-carta-remetente");
                 subtitulo.style.color = new Color(0.7f, 0.7f, 0.7f);
 
                 textoBox.Add(titulo);
@@ -242,7 +226,7 @@ namespace JogoDoGrupo.Client.Features.Economia.UI
                         RedesenharEntrada();
                     }
                 );
-                botaoLer.style.height = 26f;
+                botaoLer.AddToClassList("economia-correio-ler");
                 linha.Add(botaoLer);
 
                 _listaCartas.Add(linha);
@@ -259,24 +243,17 @@ namespace JogoDoGrupo.Client.Features.Economia.UI
             {
                 var ajuda = new Label("Selecione uma carta acima para ler seu conteúdo.");
                 ajuda.style.color = new Color(0.6f, 0.6f, 0.65f);
-                ajuda.style.fontSize = 12f;
+                ajuda.AddToClassList("economia-correio-ajuda");
                 _leitorCarta.Add(ajuda);
                 return;
             }
 
             var cabecalho = new Label($"De: {carta.Remetente}  |  Assunto: {carta.Assunto}");
-            cabecalho.style.unityFontStyleAndWeight = FontStyle.Bold;
-            cabecalho.style.marginBottom = 6f;
+            cabecalho.AddToClassList("economia-correio-cabecalho");
             _leitorCarta.Add(cabecalho);
 
             var texto = new Label(carta.Mensagem);
-            texto.style.whiteSpace = WhiteSpace.Normal;
-            texto.style.marginBottom = 10f;
-            texto.style.paddingLeft = 6f;
-            texto.style.paddingRight = 6f;
-            texto.style.paddingTop = 6f;
-            texto.style.paddingBottom = 6f;
-            texto.style.backgroundColor = EstiloVisual.Cor(ConfigVisual.Cores.Trilho);
+            texto.AddToClassList("economia-correio-texto");
             _leitorCarta.Add(texto);
 
             // Anexos
@@ -284,15 +261,10 @@ namespace JogoDoGrupo.Client.Features.Economia.UI
             if (temAnexos)
             {
                 var boxAnexos = new VisualElement();
-                boxAnexos.style.paddingTop = 6f;
-                boxAnexos.style.paddingBottom = 6f;
-                boxAnexos.style.paddingLeft = 6f;
-                boxAnexos.style.paddingRight = 6f;
-                boxAnexos.style.backgroundColor = EstiloVisual.Cor(ConfigVisual.Cores.Campo);
-                boxAnexos.style.marginBottom = 10f;
+                boxAnexos.AddToClassList("economia-correio-anexos");
 
                 var rotuloAnexos = new Label("Anexos:");
-                rotuloAnexos.style.unityFontStyleAndWeight = FontStyle.Bold;
+                rotuloAnexos.AddToClassList("economia-correio-anexos-titulo");
                 boxAnexos.Add(rotuloAnexos);
 
                 if (carta.Coroas > 0)
@@ -311,8 +283,7 @@ namespace JogoDoGrupo.Client.Features.Economia.UI
 
             // Ações
             var barraAcoes = new VisualElement();
-            barraAcoes.style.flexDirection = FlexDirection.Row;
-            barraAcoes.style.justifyContent = Justify.FlexEnd;
+            barraAcoes.AddToClassList("economia-correio-acoes");
 
             if (temAnexos)
             {
@@ -323,7 +294,7 @@ namespace JogoDoGrupo.Client.Features.Economia.UI
                         ControleDeEconomia.ColetarAnexos(carta.Id);
                     }
                 );
-                botaoColetar.style.marginRight = 8f;
+                botaoColetar.AddToClassList("economia-correio-coletar");
                 barraAcoes.Add(botaoColetar);
             }
             else
@@ -344,30 +315,28 @@ namespace JogoDoGrupo.Client.Features.Economia.UI
         private void MontarPainelEscrever()
         {
             _campoDestinatario = new TextField("Destinatário");
-            _campoDestinatario.style.marginBottom = 6f;
+            _campoDestinatario.AddToClassList("economia-campo-pequeno");
             _painelEscrever.Add(_campoDestinatario);
 
             _campoAssunto = new TextField("Assunto");
-            _campoAssunto.style.marginBottom = 6f;
+            _campoAssunto.AddToClassList("economia-campo-pequeno");
             _painelEscrever.Add(_campoAssunto);
 
             _campoMensagem = new TextField("Mensagem") { multiline = true };
-            _campoMensagem.style.minHeight = 80f;
-            _campoMensagem.style.marginBottom = 8f;
+            _campoMensagem.AddToClassList("economia-campo-mensagem");
             _painelEscrever.Add(_campoMensagem);
 
             _campoCoroas = new LongField("Coroas Anexadas");
             _campoCoroas.value = 0;
             _campoCoroas.RegisterValueChangedCallback(_ => AtualizarCustoEnvio());
-            _campoCoroas.style.marginBottom = 8f;
+            _campoCoroas.AddToClassList("economia-campo-medio");
             _painelEscrever.Add(_campoCoroas);
 
             _rotuloCusto = new Label(
                 $"Taxa de envio: {ConfigCorreio.TaxaEnvioCoroas} coroas | Total a pagar: {ConfigCorreio.TaxaEnvioCoroas} coroas"
             );
-            _rotuloCusto.style.fontSize = 11f;
+            _rotuloCusto.AddToClassList("economia-correio-custo");
             _rotuloCusto.style.color = new Color(0.8f, 0.8f, 0.85f);
-            _rotuloCusto.style.marginBottom = 10f;
             _painelEscrever.Add(_rotuloCusto);
 
             _botaoEnviar = CriarBotaoPrincipal("Enviar Carta", ExecutarEnvio);

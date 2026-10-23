@@ -125,3 +125,100 @@
 .lumora-ui .economia-dica {
     font-size: 10.5px;
 }
+
+/* Correio */
+.lumora-ui .economia-conteudo-correio {
+    min-width: 520px;
+    max-width: 640px;
+}
+
+.lumora-ui .economia-espacador {
+    flex-grow: 1;
+}
+
+.lumora-ui .botao.economia-correio-atualizar {
+    height: 28px;
+}
+
+.lumora-ui .botao.economia-correio-ler {
+    height: 26px;
+}
+
+.lumora-ui .economia-correio-lista {
+    max-height: 240px;
+    margin-bottom: 10px;
+}
+
+.lumora-ui .economia-correio-leitor {
+    border-top-width: 1px;
+    padding-top: 8px;
+}
+
+.lumora-ui .economia-carta {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 8px 6px 8px;
+    margin-bottom: 3px;
+}
+
+.lumora-ui .economia-carta-nova {
+    -unity-font-style: bold;
+}
+
+.lumora-ui .economia-carta-remetente {
+    font-size: 11px;
+}
+
+.lumora-ui .economia-correio-ajuda {
+    font-size: 12px;
+}
+
+.lumora-ui .economia-correio-cabecalho {
+    -unity-font-style: bold;
+    margin-bottom: 6px;
+}
+
+.lumora-ui .economia-correio-texto {
+    white-space: normal;
+    margin-bottom: 10px;
+    padding: 6px 6px 6px 6px;
+    background-color: var(--lumora-cores-trilho);
+}
+
+.lumora-ui .economia-correio-anexos {
+    padding: 6px 6px 6px 6px;
+    background-color: var(--lumora-cores-campo);
+    margin-bottom: 10px;
+}
+
+.lumora-ui .economia-correio-anexos-titulo {
+    -unity-font-style: bold;
+}
+
+.lumora-ui .economia-correio-acoes {
+    flex-direction: row;
+    justify-content: flex-end;
+}
+
+.lumora-ui .botao.economia-correio-coletar {
+    margin-right: 8px;
+}
+
+.lumora-ui .economia-campo-pequeno {
+    margin-bottom: 6px;
+}
+
+.lumora-ui .economia-campo-medio {
+    margin-bottom: 8px;
+}
+
+.lumora-ui .economia-campo-mensagem {
+    min-height: 80px;
+    margin-bottom: 8px;
+}
+
+.lumora-ui .economia-correio-custo {
+    font-size: 11px;
+    margin-bottom: 10px;
+}
