@@ -1,6 +1,5 @@
 using JogoDoGrupo.Client.Core.Jogo.Janelas;
 using JogoDoGrupo.Client.Core.UI;
-using JogoDoGrupo.Client.Core.Visual;
 using JogoDoGrupo.Shared.Features.Economia;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -32,33 +31,21 @@ namespace JogoDoGrupo.Client.Features.Economia.UI
 
         protected override void Montar(VisualElement conteudo)
         {
-            conteudo.style.minWidth = 480f;
-            conteudo.style.maxWidth = 560f;
-            conteudo.style.paddingLeft = 14f;
-            conteudo.style.paddingRight = 14f;
-            conteudo.style.paddingTop = 10f;
-            conteudo.style.paddingBottom = 12f;
+            EstiloEconomia.Aplicar(conteudo);
+            conteudo.AddToClassList("economia-conteudo");
+            conteudo.AddToClassList("economia-conteudo-ferreiro");
 
             var topo = new VisualElement();
-            topo.style.flexDirection = FlexDirection.Row;
-            topo.style.justifyContent = Justify.SpaceBetween;
-            topo.style.alignItems = Align.Center;
-            topo.style.marginBottom = 10f;
-            topo.style.paddingBottom = 6f;
-            topo.style.borderBottomWidth = 1f;
-            topo.style.borderBottomColor = EstiloVisual.Cor(ConfigVisual.Cores.BordaDiscreta);
+            topo.AddToClassList("economia-topo");
 
             var titulo = new Label("Ferreiro da Cidade");
             titulo.AddToClassList(EstiloCore.Titulo);
-            titulo.style.fontSize = 15f;
-            titulo.style.unityFontStyleAndWeight = FontStyle.Bold;
-            titulo.style.color = EstiloVisual.Cor(ConfigVisual.Cores.Marfim);
+            titulo.AddToClassList("economia-titulo");
             topo.Add(titulo);
 
             _rotuloSaldo = new Label($"Coroas: {ControleDeEconomia.SaldoCoroas}");
             _rotuloSaldo.AddToClassList(EstiloCore.Subtitulo);
-            _rotuloSaldo.style.fontSize = 14f;
-            _rotuloSaldo.style.unityFontStyleAndWeight = FontStyle.Bold;
+            _rotuloSaldo.AddToClassList("economia-saldo");
             _rotuloSaldo.style.color = new Color(0.95f, 0.80f, 0.30f);
             topo.Add(_rotuloSaldo);
 
@@ -66,9 +53,8 @@ namespace JogoDoGrupo.Client.Features.Economia.UI
 
             _rotuloAviso = new Label("");
             _rotuloAviso.AddToClassList(EstiloCore.Mensagem);
-            _rotuloAviso.style.fontSize = 11f;
+            _rotuloAviso.AddToClassList("economia-aviso");
             _rotuloAviso.style.color = new Color(0.60f, 0.85f, 0.60f);
-            _rotuloAviso.style.marginBottom = 6f;
             _rotuloAviso.style.display = DisplayStyle.None;
             conteudo.Add(_rotuloAviso);
 
@@ -77,9 +63,7 @@ namespace JogoDoGrupo.Client.Features.Economia.UI
                     + $"{ConfigEconomia.CustoReparoPorPontoPerdido} coroa por ponto restaurado."
             );
             desc.AddToClassList(EstiloCore.Texto);
-            desc.style.fontSize = 11.5f;
-            desc.style.color = EstiloVisual.Cor(ConfigVisual.Cores.TextoSecundario);
-            desc.style.marginBottom = 8f;
+            desc.AddToClassList("economia-descricao");
             conteudo.Add(desc);
 
             var info = new Label(
@@ -87,9 +71,8 @@ namespace JogoDoGrupo.Client.Features.Economia.UI
                     + "Repare pelo inventário (clique direito no item) enquanto esta janela estiver aberta."
             );
             info.AddToClassList(EstiloCore.Texto);
-            info.style.fontSize = 11f;
+            info.AddToClassList("economia-nota");
             info.style.color = new Color(0.95f, 0.65f, 0.45f);
-            info.style.whiteSpace = WhiteSpace.Normal;
             conteudo.Add(info);
         }
 
