@@ -34,31 +34,22 @@ namespace JogoDoGrupo.Client.Features.Montarias.UI
 
         protected override void Montar(VisualElement conteudo)
         {
-            conteudo.style.minWidth = 520f;
-            conteudo.style.maxWidth = 620f;
-            conteudo.style.paddingLeft = 14f;
-            conteudo.style.paddingRight = 14f;
-            conteudo.style.paddingTop = 10f;
-            conteudo.style.paddingBottom = 12f;
+            EstiloMontarias.Aplicar(conteudo);
+            conteudo.AddToClassList("montarias-conteudo");
+            conteudo.AddToClassList("montarias-conteudo-estabulo");
 
             var topo = new VisualElement();
-            topo.style.marginBottom = 10f;
-            topo.style.paddingBottom = 6f;
-            topo.style.borderBottomWidth = 1f;
-            topo.style.borderBottomColor = EstiloVisual.Cor(ConfigVisual.Cores.BordaDiscreta);
+            topo.AddToClassList("montarias-estabulo-topo");
 
             var titulo = new Label("Estábulo da Brasa Mansa");
             titulo.AddToClassList(EstiloCore.Titulo);
-            titulo.style.fontSize = 16f;
-            titulo.style.unityFontStyleAndWeight = FontStyle.Bold;
-            titulo.style.color = EstiloVisual.Cor(ConfigVisual.Cores.Marfim);
+            titulo.AddToClassList("montarias-estabulo-titulo");
             topo.Add(titulo);
 
             var subtitulo = new Label("Cavalariço Roderic · Montarias Básicas de Asterra");
             subtitulo.AddToClassList(EstiloCore.Subtitulo);
-            subtitulo.style.fontSize = 12f;
+            subtitulo.AddToClassList("montarias-estabulo-subtitulo");
             subtitulo.style.color = new Color(0.85f, 0.70f, 0.30f);
-            subtitulo.style.marginTop = 2f;
             topo.Add(subtitulo);
 
             conteudo.Add(topo);
@@ -67,13 +58,11 @@ namespace JogoDoGrupo.Client.Features.Montarias.UI
                 "Adquira montarias leais por coroas para cavalgar pelas trilhas a 9,0 m/s autoritativos (+63% de velocidade)."
             );
             descricao.AddToClassList(EstiloCore.Texto);
-            descricao.style.fontSize = 11.5f;
-            descricao.style.color = EstiloVisual.Cor(ConfigVisual.Cores.TextoSecundario);
-            descricao.style.marginBottom = 12f;
+            descricao.AddToClassList("montarias-descricao");
             conteudo.Add(descricao);
 
             _listaContainer = new VisualElement();
-            _listaContainer.style.flexDirection = FlexDirection.Column;
+            _listaContainer.AddToClassList("montarias-estabulo-lista");
             conteudo.Add(_listaContainer);
 
             ConstruirOfertas();
@@ -82,9 +71,7 @@ namespace JogoDoGrupo.Client.Features.Montarias.UI
                 "Dica: Após a compra, a montaria é registrada na sua conta e pode ser equipada na janela [P]."
             );
             rodape.AddToClassList(EstiloCore.Mensagem);
-            rodape.style.fontSize = 11f;
-            rodape.style.marginTop = 12f;
-            rodape.style.color = EstiloVisual.Cor(ConfigVisual.Cores.TextoDesabilitado);
+            rodape.AddToClassList("montarias-rodape");
             conteudo.Add(rodape);
         }
 
@@ -159,51 +146,22 @@ namespace JogoDoGrupo.Client.Features.Montarias.UI
                 _onComprar = onComprar;
 
                 Elemento = new VisualElement();
-                Elemento.style.flexDirection = FlexDirection.Row;
-                Elemento.style.justifyContent = Justify.SpaceBetween;
-                Elemento.style.alignItems = Align.Center;
-                Elemento.style.paddingTop = 8f;
-                Elemento.style.paddingBottom = 8f;
-                Elemento.style.paddingLeft = 10f;
-                Elemento.style.paddingRight = 10f;
-                Elemento.style.marginBottom = 6f;
-                Elemento.style.backgroundColor = EstiloVisual.Cor(ConfigVisual.Cores.Campo);
-                Elemento.style.borderTopWidth = 1f;
-                Elemento.style.borderBottomWidth = 1f;
-                Elemento.style.borderLeftWidth = 1f;
-                Elemento.style.borderRightWidth = 1f;
-                Elemento.style.borderTopColor = EstiloVisual.Cor(ConfigVisual.Cores.BordaDiscreta);
-                Elemento.style.borderBottomColor = EstiloVisual.Cor(
-                    ConfigVisual.Cores.BordaDiscreta
-                );
-                Elemento.style.borderLeftColor = EstiloVisual.Cor(ConfigVisual.Cores.BordaDiscreta);
-                Elemento.style.borderRightColor = EstiloVisual.Cor(
-                    ConfigVisual.Cores.BordaDiscreta
-                );
-                Elemento.style.borderTopLeftRadius = 4f;
-                Elemento.style.borderTopRightRadius = 4f;
-                Elemento.style.borderBottomLeftRadius = 4f;
-                Elemento.style.borderBottomRightRadius = 4f;
+                Elemento.AddToClassList("montarias-oferta");
 
                 var info = new VisualElement();
-                info.style.flexGrow = 1f;
-                info.style.marginRight = 12f;
+                info.AddToClassList("montarias-oferta-info");
 
                 var linhaNome = new VisualElement();
-                linhaNome.style.flexDirection = FlexDirection.Row;
-                linhaNome.style.alignItems = Align.Center;
+                linhaNome.AddToClassList("montarias-oferta-linha");
 
                 var rotuloNome = new Label(oferta.Nome);
                 rotuloNome.AddToClassList(EstiloCore.Texto);
-                rotuloNome.style.fontSize = 13.5f;
-                rotuloNome.style.unityFontStyleAndWeight = FontStyle.Bold;
-                rotuloNome.style.color = EstiloVisual.Cor(ConfigVisual.Cores.Marfim);
+                rotuloNome.AddToClassList("montarias-oferta-nome");
                 linhaNome.Add(rotuloNome);
 
                 var rotuloPreco = new Label($" · {oferta.PrecoCoroas} Coroas");
                 rotuloPreco.AddToClassList(EstiloCore.Texto);
-                rotuloPreco.style.fontSize = 12f;
-                rotuloPreco.style.unityFontStyleAndWeight = FontStyle.Bold;
+                rotuloPreco.AddToClassList("montarias-oferta-preco");
                 rotuloPreco.style.color = new Color(0.95f, 0.80f, 0.30f);
                 linhaNome.Add(rotuloPreco);
 
@@ -211,9 +169,8 @@ namespace JogoDoGrupo.Client.Features.Montarias.UI
 
                 var rotuloDesc = new Label(oferta.Descricao);
                 rotuloDesc.AddToClassList(EstiloCore.Texto);
-                rotuloDesc.style.fontSize = 11f;
+                rotuloDesc.AddToClassList("montarias-oferta-desc");
                 rotuloDesc.style.color = new Color(0.65f, 0.70f, 0.78f);
-                rotuloDesc.style.marginTop = 2f;
                 info.Add(rotuloDesc);
 
                 Elemento.Add(info);
@@ -222,8 +179,7 @@ namespace JogoDoGrupo.Client.Features.Montarias.UI
                 _botaoComprar.text = $"Comprar ({oferta.PrecoCoroas})";
                 _botaoComprar.AddToClassList(EstiloCore.Botao);
                 _botaoComprar.AddToClassList(EstiloCore.BotaoPrincipal);
-                _botaoComprar.style.minWidth = 130f;
-                _botaoComprar.style.height = 30f;
+                _botaoComprar.AddToClassList("montarias-oferta-comprar");
                 Elemento.Add(_botaoComprar);
             }
 
@@ -233,13 +189,13 @@ namespace JogoDoGrupo.Client.Features.Montarias.UI
                 {
                     _botaoComprar.text = "Já Possui";
                     _botaoComprar.SetEnabled(false);
-                    _botaoComprar.style.opacity = 0.5f;
+                    _botaoComprar.AddToClassList("montarias-oferta-comprar-indisponivel");
                 }
                 else
                 {
                     _botaoComprar.text = $"Comprar ({Oferta.PrecoCoroas})";
                     _botaoComprar.SetEnabled(true);
-                    _botaoComprar.style.opacity = 1f;
+                    _botaoComprar.RemoveFromClassList("montarias-oferta-comprar-indisponivel");
                 }
             }
         }
