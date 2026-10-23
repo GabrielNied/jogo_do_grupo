@@ -8,7 +8,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace JogoDoGrupo.Server.Core.Contas;
 
-/// <summary>Registro e login (rotas de <see cref="RotasContas"/>, sem token).</summary>
+/// <summary>
+/// Registro e login (rotas de <see cref="RotasContas"/>, sem token); a troca de senha fica em
+/// <see cref="TrocaDeSenhaRotas"/>.
+/// </summary>
 internal static class ContasRotas
 {
     // Hash fixo usado no login de conta inexistente, gerado uma vez com o hasher padrão.
@@ -31,7 +34,29 @@ internal static class ContasRotas
         rotas
             .MapPost(RotasContas.Login, LoginAsync)
             .RequireRateLimiting(RateLimitContas.PoliticaRateLimitContas);
+        rotas.MapearTrocaDeSenha();
         return rotas;
+    }
+
+    /// <summary>
+    /// Responde 429 se o usuário está bloqueado por falhas seguidas (login ou senha atual errada).
+    /// </summary>
+    internal static IResult? RespostaSeBloqueado(
+        ControleDeFalhasLogin controleFalhas,
+        string usuarioNormalizado
+    )
+    {
+        if (!controleFalhas.EstaBloqueado(usuarioNormalizado, out var tempoRestante))
+        {
+            return null;
+        }
+
+        var segundos = Math.Max(1, (int)Math.Ceiling(tempoRestante.TotalSeconds));
+        return RespostasApi.Erro(
+            StatusCodes.Status429TooManyRequests,
+            CodigosErro.MuitasTentativas,
+            $"Muitas tentativas falhas. Aguarde {segundos} segundo(s) antes de tentar novamente."
+        );
     }
 
     private static async Task<IResult> RegistrarAsync(
@@ -106,14 +131,9 @@ internal static class ContasRotas
 
         var normalizado = Conta.Normalizar(requisicao.Usuario);
 
-        if (controleFalhas.EstaBloqueado(normalizado, out var tempoRestante))
+        if (RespostaSeBloqueado(controleFalhas, normalizado) is { } bloqueado)
         {
-            var segundos = Math.Max(1, (int)Math.Ceiling(tempoRestante.TotalSeconds));
-            return RespostasApi.Erro(
-                StatusCodes.Status429TooManyRequests,
-                CodigosErro.MuitasTentativas,
-                $"Muitas tentativas falhas. Aguarde {segundos} segundo(s) antes de tentar novamente."
-            );
+            return bloqueado;
         }
 
         var conta = await db.Set<Conta>()

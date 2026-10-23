@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using JogoDoGrupo.Client.Core.Contas;
 using JogoDoGrupo.Client.Core.Jogo.Janelas;
 using JogoDoGrupo.Client.Core.UI;
 using UnityEngine;
@@ -23,6 +24,7 @@ namespace JogoDoGrupo.Client.Core.Jogo
         private Button _abaVideo;
         private Button _abaJogo;
         private Button _abaTeclas;
+        private Button _abaConta;
         private string _capturando;
         private int _capturaCanceladaNoFrame = -1;
         private Label _avisoTeclas;
@@ -38,6 +40,7 @@ namespace JogoDoGrupo.Client.Core.Jogo
             Video,
             Jogo,
             Teclas,
+            Conta,
         }
 
         public MenuJogo(Action aoContinuar)
@@ -145,10 +148,12 @@ namespace JogoDoGrupo.Client.Core.Jogo
             _abaVideo = CriarAba("Vídeo", AbaOpcoes.Video);
             _abaJogo = CriarAba("Jogo", AbaOpcoes.Jogo);
             _abaTeclas = CriarAba("Teclas", AbaOpcoes.Teclas);
+            _abaConta = CriarAba("Conta", AbaOpcoes.Conta);
             abas.Add(_abaAudio);
             abas.Add(_abaVideo);
             abas.Add(_abaJogo);
             abas.Add(_abaTeclas);
+            abas.Add(_abaConta);
             painel.Add(abas);
 
             _conteudoOpcoes = new ScrollView();
@@ -181,6 +186,7 @@ namespace JogoDoGrupo.Client.Core.Jogo
             _abaVideo.EnableInClassList("opcoes-aba-ativa", aba == AbaOpcoes.Video);
             _abaJogo.EnableInClassList("opcoes-aba-ativa", aba == AbaOpcoes.Jogo);
             _abaTeclas.EnableInClassList("opcoes-aba-ativa", aba == AbaOpcoes.Teclas);
+            _abaConta.EnableInClassList("opcoes-aba-ativa", aba == AbaOpcoes.Conta);
             _conteudoOpcoes.Clear();
             switch (aba)
             {
@@ -195,6 +201,9 @@ namespace JogoDoGrupo.Client.Core.Jogo
                     break;
                 case AbaOpcoes.Teclas:
                     MontarTeclas();
+                    break;
+                case AbaOpcoes.Conta:
+                    new PainelConta().Montar(_conteudoOpcoes);
                     break;
             }
         }

@@ -33,6 +33,12 @@ namespace JogoDoGrupo.Shared.Core.Api
         /// </summary>
         public const string NaoAutenticado = "NaoAutenticado";
 
+        /// <summary>
+        /// 400: senha atual errada ao trocar a senha logado. Não é 401, para o client não
+        /// tratar como sessão expirada; conta como falha de login.
+        /// </summary>
+        public const string SenhaAtualIncorreta = "SenhaAtualIncorreta";
+
         /// <summary>400: corpo ausente ou JSON malformado, em qualquer rota.</summary>
         public const string RequisicaoInvalida = "RequisicaoInvalida";
 
