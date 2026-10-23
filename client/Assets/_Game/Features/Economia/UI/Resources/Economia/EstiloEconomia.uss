@@ -222,3 +222,66 @@
     font-size: 11px;
     margin-bottom: 10px;
 }
+
+/* Banco da guilda */
+.lumora-ui .economia-conteudo-banco {
+    min-width: 560px;
+    max-width: 640px;
+}
+
+.lumora-ui .economia-banco-topo {
+    flex-direction: row;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.lumora-ui .economia-banco-rotulo {
+    font-size: 14px;
+}
+
+.lumora-ui .economia-banco-coroas {
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.lumora-ui .economia-banco-campo {
+    flex-grow: 1;
+    margin-right: 8px;
+}
+
+.lumora-ui .botao.economia-banco-depositar {
+    margin-right: 6px;
+}
+
+.lumora-ui .economia-banco-aviso {
+    margin-bottom: 8px;
+}
+
+.lumora-ui .economia-banco-abas {
+    flex-direction: row;
+    margin-bottom: 8px;
+}
+
+.lumora-ui .economia-banco-grade {
+    flex-direction: column;
+}
+
+.lumora-ui .economia-banco-linha {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 4px;
+    padding-bottom: 4px;
+    border-bottom-width: 1px;
+}
+
+.lumora-ui .economia-banco-deposito {
+    font-size: 11px;
+}
+
+.lumora-ui .economia-banco-vazio {
+    margin-top: 12px;
+    margin-bottom: 12px;
+    -unity-text-align: middle-center;
+}

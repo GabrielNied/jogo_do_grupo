@@ -45,45 +45,37 @@ namespace JogoDoGrupo.Client.Features.Economia.UI
 
         protected override void Montar(VisualElement conteudo)
         {
-            conteudo.style.minWidth = 560f;
-            conteudo.style.maxWidth = 640f;
-            conteudo.style.paddingLeft = 14f;
-            conteudo.style.paddingRight = 14f;
-            conteudo.style.paddingTop = 10f;
-            conteudo.style.paddingBottom = 12f;
+            EstiloEconomia.Aplicar(conteudo);
+            conteudo.AddToClassList("economia-conteudo");
+            conteudo.AddToClassList("economia-conteudo-banco");
 
             // Cabeçalho com nome da guilda e saldo
             var topo = new VisualElement();
-            topo.style.flexDirection = FlexDirection.Row;
-            topo.style.justifyContent = Justify.SpaceBetween;
-            topo.style.marginBottom = 10f;
+            topo.AddToClassList("economia-banco-topo");
 
             _rotuloGuilda = new Label("Guilda: -");
             _rotuloGuilda.AddToClassList(EstiloCore.Dica);
-            _rotuloGuilda.style.fontSize = 14f;
+            _rotuloGuilda.AddToClassList("economia-banco-rotulo");
             topo.Add(_rotuloGuilda);
 
             _rotuloSaldoCoroas = new Label("Cofre: 0 coroas");
             _rotuloSaldoCoroas.AddToClassList(EstiloCore.TextoGanho);
-            _rotuloSaldoCoroas.style.fontSize = 14f;
+            _rotuloSaldoCoroas.AddToClassList("economia-banco-rotulo");
             topo.Add(_rotuloSaldoCoroas);
 
             conteudo.Add(topo);
 
             // Seção de movimentação de coroas
             var secaoCoroas = new VisualElement();
-            secaoCoroas.style.flexDirection = FlexDirection.Row;
-            secaoCoroas.style.alignItems = Align.Center;
-            secaoCoroas.style.marginBottom = 10f;
+            secaoCoroas.AddToClassList("economia-banco-coroas");
 
             _campoCoroas = new IntegerField("Coroas:") { value = 10 };
-            _campoCoroas.style.flexGrow = 1f;
-            _campoCoroas.style.marginRight = 8f;
+            _campoCoroas.AddToClassList("economia-banco-campo");
             secaoCoroas.Add(_campoCoroas);
 
             _botaoDepositarCoroas = new Button(AoClicarDepositarCoroas) { text = "Depositar" };
             _botaoDepositarCoroas.AddToClassList(EstiloCore.BotaoPrincipal);
-            _botaoDepositarCoroas.style.marginRight = 6f;
+            _botaoDepositarCoroas.AddToClassList("economia-banco-depositar");
             secaoCoroas.Add(_botaoDepositarCoroas);
 
             _botaoRetirarCoroas = new Button(AoClicarRetirarCoroas) { text = "Retirar" };
@@ -95,18 +87,17 @@ namespace JogoDoGrupo.Client.Features.Economia.UI
             // Mensagem / Aviso
             _rotuloAviso = new Label();
             _rotuloAviso.AddToClassList(EstiloCore.Mensagem);
+            _rotuloAviso.AddToClassList("economia-banco-aviso");
             _rotuloAviso.style.display = DisplayStyle.None;
-            _rotuloAviso.style.marginBottom = 8f;
             conteudo.Add(_rotuloAviso);
 
             // Abas de itens
             var linhaAbas = new VisualElement();
-            linhaAbas.style.flexDirection = FlexDirection.Row;
-            linhaAbas.style.marginBottom = 8f;
+            linhaAbas.AddToClassList("economia-banco-abas");
 
             _aba1Botao = new Button(() => TrocarAba(1)) { text = "Aba 1" };
             _aba1Botao.AddToClassList(EstiloCore.Botao);
-            _aba1Botao.style.marginRight = 6f;
+            _aba1Botao.AddToClassList("economia-aba-esquerda");
             linhaAbas.Add(_aba1Botao);
 
             _aba2Botao = new Button(() => TrocarAba(2)) { text = "Aba 2" };
@@ -117,7 +108,7 @@ namespace JogoDoGrupo.Client.Features.Economia.UI
 
             // Grade de itens
             _gradeItens = new VisualElement();
-            _gradeItens.style.flexDirection = FlexDirection.Column;
+            _gradeItens.AddToClassList("economia-banco-grade");
             conteudo.Add(_gradeItens);
 
             AtualizarVisual();
@@ -201,12 +192,7 @@ namespace JogoDoGrupo.Client.Features.Economia.UI
 
                 temItens = true;
                 var linha = new VisualElement();
-                linha.style.flexDirection = FlexDirection.Row;
-                linha.style.justifyContent = Justify.SpaceBetween;
-                linha.style.alignItems = Align.Center;
-                linha.style.paddingTop = 4f;
-                linha.style.paddingBottom = 4f;
-                linha.style.borderBottomWidth = 1f;
+                linha.AddToClassList("economia-banco-linha");
                 linha.style.borderBottomColor = new Color(1f, 1f, 1f, 0.1f);
 
                 var info = new VisualElement();
@@ -222,7 +208,7 @@ namespace JogoDoGrupo.Client.Features.Economia.UI
                     $"Depositado por: {item.DepositadoPorNome} (Casa {item.Casa + 1})"
                 );
                 dep.AddToClassList(EstiloCore.Dica);
-                dep.style.fontSize = 11f;
+                dep.AddToClassList("economia-banco-deposito");
                 info.Add(dep);
 
                 linha.Add(info);
@@ -247,9 +233,7 @@ namespace JogoDoGrupo.Client.Features.Economia.UI
             {
                 var vazio = new Label("Nenhum item nesta aba do cofre.");
                 vazio.AddToClassList(EstiloCore.Dica);
-                vazio.style.marginTop = 12f;
-                vazio.style.marginBottom = 12f;
-                vazio.style.unityTextAlign = TextAnchor.MiddleCenter;
+                vazio.AddToClassList("economia-banco-vazio");
                 _gradeItens.Add(vazio);
             }
         }
