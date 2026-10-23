@@ -336,3 +336,11 @@ client/servidor.json
 
 # Saída das simulações (tools/JogoDoGrupo.Simulacoes)
 tools/JogoDoGrupo.Simulacoes/saida/
+
+# Cenas regeneráveis dos ensaios de estradas (os geradores de Editor ficam versionados).
+/client/Assets/_Game/Features/Mundo/DemoEstradas*/
+/client/Assets/_Game/Features/Mundo/DemoEstradas*.meta
+/client/Assets/_Game/Features/Mundo/DemoCruzamentos*/
+/client/Assets/_Game/Features/Mundo/DemoCruzamentos*.meta
+/cruzamentos-validacao.png
+/cruzamentos-validacao-panorama.png
