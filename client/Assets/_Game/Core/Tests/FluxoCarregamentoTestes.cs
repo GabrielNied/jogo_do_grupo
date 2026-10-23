@@ -13,6 +13,22 @@ namespace JogoDoGrupo.Client.Core.Tests
     public class FluxoCarregamentoTestes
     {
         [Test]
+        public void TelaDeEntrada_CobreATelaSemFadeDesdeOPrimeiroQuadro()
+        {
+            // Como a Navegacao entrega a raiz: transparente e com a transição de fade.
+            var raiz = new VisualElement();
+            raiz.AddToClassList(TelaCarregamento.ClasseTransicao);
+            raiz.style.opacity = 0f;
+            var tela = new TelaCarregamento();
+
+            tela.Abrir(raiz);
+
+            Assert.IsFalse(raiz.ClassListContains(TelaCarregamento.ClasseTransicao));
+            Assert.AreEqual(1f, raiz.style.opacity.value);
+            tela.Fechar();
+        }
+
+        [Test]
         public void TelaDeEntrada_MostraEtapaRealEFalhaRecuperavel()
         {
             var tela = new TelaCarregamento();
