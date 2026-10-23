@@ -5,7 +5,7 @@ using JogoDoGrupo.Shared.Features.Mundo;
 namespace JogoDoGrupo.Shared.Features.Instancias
 {
     /// <summary>
-    /// Desenho da Mina do Reflexo (issue #800): a porta no mundo aberto, na colina oeste, e os
+    /// Desenho da Mina do Reflexo (issue #800): a porta no mundo aberto, na Serra do Vidro Frio (montanhas de neve, ao norte da cidade do passo), e os
     /// salões da instância. Os números são proposta a calibrar.
     /// </summary>
     /// <remarks>
@@ -17,10 +17,18 @@ namespace JogoDoGrupo.Shared.Features.Instancias
     /// </remarks>
     public static class LayoutDaMinaDoReflexo
     {
-        /// <summary>Porta da dungeon na colina oeste, a uns 190 m do centro da cidade.</summary>
-        public const float EntradaX = -190f;
+        /// <summary>
+        /// Porta da dungeon na Serra do Vidro Frio, a uns 100 m ao norte da cidade do passo
+        /// (<see cref="MapaDoMundo.CidadeDaNeveX"/>), em chão de neve seco e andável.
+        /// </summary>
+        public const float EntradaX = -520f;
 
-        public const float EntradaZ = 30f;
+        public const float EntradaZ = 420f;
+
+        /// <summary>Para onde a porta olha: a cidade do passo, ao sul.</summary>
+        public const float OlharParaX = MapaDoMundo.CidadeDaNeveX;
+
+        public const float OlharParaZ = MapaDoMundo.CidadeDaNeveZ;
 
         /// <summary>Raio em que o client mostra a interação de entrar (m).</summary>
         public const float RaioDeInteracaoMetros = 4f;
