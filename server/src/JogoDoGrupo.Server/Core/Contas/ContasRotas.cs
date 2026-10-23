@@ -15,8 +15,8 @@ namespace JogoDoGrupo.Server.Core.Contas;
 internal static class ContasRotas
 {
     // Hash fixo usado no login de conta inexistente, gerado uma vez com o hasher padrão.
-    private static readonly Conta ContaFicticia = new();
-    private static readonly Lazy<string> HashFicticio = new(() =>
+    internal static readonly Conta ContaFicticia = new();
+    internal static readonly Lazy<string> HashFicticio = new(() =>
         new PasswordHasher<Conta>().HashPassword(ContaFicticia, Guid.NewGuid().ToString())
     );
 
@@ -35,6 +35,7 @@ internal static class ContasRotas
             .MapPost(RotasContas.Login, LoginAsync)
             .RequireRateLimiting(RateLimitContas.PoliticaRateLimitContas);
         rotas.MapearTrocaDeSenha();
+        rotas.MapearRecuperacaoDeConta();
         return rotas;
     }
 
@@ -67,9 +68,11 @@ internal static class ContasRotas
         CancellationToken cancelamento
     )
     {
+        var temEmail = !string.IsNullOrWhiteSpace(requisicao.Email);
         var erro =
             RegrasConta.ValidarUsuario(requisicao.Usuario)
-            ?? RegrasConta.ValidarSenha(requisicao.Senha);
+            ?? RegrasConta.ValidarSenha(requisicao.Senha)
+            ?? (temEmail ? RegrasConta.ValidarEmail(requisicao.Email.Trim()) : null);
         if (erro != null)
         {
             return RespostasApi.Erro(StatusCodes.Status400BadRequest, erro);
@@ -81,6 +84,14 @@ internal static class ContasRotas
             return UsuarioJaExiste();
         }
 
+        if (
+            temEmail
+            && await RecuperacaoDeContaRotas.EmailEmUsoAsync(db, requisicao.Email, 0, cancelamento)
+        )
+        {
+            return RecuperacaoDeContaRotas.EmailJaEmUso();
+        }
+
         var conta = new Conta
         {
             Usuario = requisicao.Usuario,
@@ -88,6 +99,7 @@ internal static class ContasRotas
             CriadaEm = relogio.GetUtcNow().UtcDateTime,
         };
         conta.SenhaHash = hasher.HashPassword(conta, requisicao.Senha);
+        conta.DefinirEmail(temEmail ? requisicao.Email : null);
         db.Add(conta);
 
         try
@@ -96,8 +108,13 @@ internal static class ContasRotas
         }
         catch (DbUpdateException e) when (e.EhViolacaoDeUnicidade())
         {
-            // Outra requisição registrou o mesmo usuário entre a checagem e o insert.
-            return UsuarioJaExiste();
+            // Outra requisição registrou o mesmo usuário (ou e-mail) entre a checagem e o insert.
+            return
+                temEmail
+                && !await db.Set<Conta>()
+                    .AnyAsync(c => c.UsuarioNormalizado == normalizado, cancelamento)
+                ? RecuperacaoDeContaRotas.EmailJaEmUso()
+                : UsuarioJaExiste();
         }
 
         return Results.StatusCode(StatusCodes.Status201Created);

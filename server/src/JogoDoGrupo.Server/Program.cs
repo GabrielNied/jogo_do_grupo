@@ -4,6 +4,7 @@ using JogoDoGrupo.Server.Core.Api;
 using JogoDoGrupo.Server.Core.Autenticacao;
 using JogoDoGrupo.Server.Core.Canais;
 using JogoDoGrupo.Server.Core.Contas;
+using JogoDoGrupo.Server.Core.Email;
 using JogoDoGrupo.Server.Core.Eventos;
 using JogoDoGrupo.Server.Core.Observabilidade;
 using JogoDoGrupo.Server.Core.Persistencia;
@@ -84,6 +85,8 @@ builder.Services.Configure<ForwardedHeadersOptions>(opcoes =>
 builder.Services.AdicionarBancoDeDados(builder.Configuration);
 builder.Services.AdicionarAutenticacaoJwt(builder.Configuration, builder.Environment);
 builder.Services.AdicionarContas();
+builder.Services.AdicionarEmail(builder.Configuration);
+builder.Services.AdicionarRecuperacaoDeConta(builder.Configuration);
 builder.Services.AdicionarRateLimiting(builder.Configuration);
 builder.Services.AdicionarTempoReal(builder.Configuration);
 builder.Services.AdicionarCanais(builder.Configuration);

@@ -256,6 +256,11 @@
     margin-bottom: 0;
 }
 
+.login-esqueci {
+    flex-grow: 0;
+    margin-top: var(--lumora-espacamento-pequeno);
+}
+
 .entrada-mundo-painel {
     width: var(--lumora-dimensoes-painel-entrada);
     max-width: 100%;

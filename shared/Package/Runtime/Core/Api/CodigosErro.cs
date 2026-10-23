@@ -39,6 +39,18 @@ namespace JogoDoGrupo.Shared.Core.Api
         /// </summary>
         public const string SenhaAtualIncorreta = "SenhaAtualIncorreta";
 
+        /// <summary>400: e-mail fora do formato de <c>RegrasConta.ValidarEmail</c>.</summary>
+        public const string EmailInvalido = "EmailInvalido";
+
+        /// <summary>409: outra conta já usa esse e-mail de recuperação.</summary>
+        public const string EmailJaEmUso = "EmailJaEmUso";
+
+        /// <summary>
+        /// 400: código de recuperação errado, vencido, já usado ou e-mail sem conta (a mesma
+        /// resposta para todos, para não revelar contas).
+        /// </summary>
+        public const string CodigoRecuperacaoInvalido = "CodigoRecuperacaoInvalido";
+
         /// <summary>400: corpo ausente ou JSON malformado, em qualquer rota.</summary>
         public const string RequisicaoInvalida = "RequisicaoInvalida";
 

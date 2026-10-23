@@ -33,6 +33,16 @@ namespace JogoDoGrupo.Server.Core.Persistencia.Migrations
                         .HasColumnType("TEXT")
                         .HasDefaultValue("");
 
+                    b.Property<DateTime?>("CodigoRecuperacaoExpiraEm")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("CodigoRecuperacaoHash")
+                        .HasMaxLength(256)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("CodigoRecuperacaoTentativas")
+                        .HasColumnType("INTEGER");
+
                     b.Property<DateTime>("CriadaEm")
                         .HasColumnType("TEXT");
 
@@ -40,6 +50,14 @@ namespace JogoDoGrupo.Server.Core.Persistencia.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER")
                         .HasDefaultValue(false);
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(254)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("EmailNormalizado")
+                        .HasMaxLength(254)
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("MotivoBanimento")
                         .HasMaxLength(256)
@@ -60,6 +78,9 @@ namespace JogoDoGrupo.Server.Core.Persistencia.Migrations
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("EmailNormalizado")
+                        .IsUnique();
 
                     b.HasIndex("UsuarioNormalizado")
                         .IsUnique();

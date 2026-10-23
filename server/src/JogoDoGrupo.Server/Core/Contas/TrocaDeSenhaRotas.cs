@@ -35,37 +35,18 @@ internal static class TrocaDeSenhaRotas
         CancellationToken cancelamento
     )
     {
-        var contaId = usuario.ObterContaId();
-        var conta = await db.Set<Conta>().FirstOrDefaultAsync(c => c.Id == contaId, cancelamento);
+        var (conta, recusa) = await ContaComSenhaAtualAsync(
+            usuario,
+            requisicao.SenhaAtual,
+            db,
+            hasher,
+            controleFalhas,
+            cancelamento
+        );
         if (conta == null)
         {
-            return RespostasApi.Erro(StatusCodes.Status401Unauthorized, CodigosErro.NaoAutenticado);
+            return recusa!;
         }
-
-        if (
-            ContasRotas.RespostaSeBloqueado(controleFalhas, conta.UsuarioNormalizado) is
-            { } bloqueado
-        )
-        {
-            return bloqueado;
-        }
-
-        // Senha atual vazia ou maior que o máximo nunca confere: recusa sem calcular hash.
-        var senhaAtualConfere =
-            !string.IsNullOrEmpty(requisicao.SenhaAtual)
-            && requisicao.SenhaAtual.Length <= RegrasConta.SenhaMaximo
-            && hasher.VerifyHashedPassword(conta, conta.SenhaHash, requisicao.SenhaAtual)
-                != PasswordVerificationResult.Failed;
-        if (!senhaAtualConfere)
-        {
-            await controleFalhas.RegistrarFalhaAsync(conta.UsuarioNormalizado, cancelamento);
-            return RespostasApi.Erro(
-                StatusCodes.Status400BadRequest,
-                CodigosErro.SenhaAtualIncorreta
-            );
-        }
-
-        controleFalhas.RegistrarSucesso(conta.UsuarioNormalizado);
 
         if (RegrasConta.ValidarSenha(requisicao.NovaSenha) is { } erro)
         {
@@ -81,5 +62,56 @@ internal static class TrocaDeSenhaRotas
         return Results.Ok(
             new LoginResponse { Token = token, ExpiraEmUnix = expiraEm.ToUnixTimeSeconds() }
         );
+    }
+
+    /// <summary>
+    /// Carrega a conta logada e confere a senha atual. Senha errada conta no
+    /// <see cref="ControleDeFalhasLogin"/> (o mesmo do login) e devolve 400
+    /// <c>SenhaAtualIncorreta</c>; bloqueado, 429. Sem conta, devolve a recusa.
+    /// </summary>
+    internal static async Task<(Conta? Conta, IResult? Recusa)> ContaComSenhaAtualAsync(
+        ClaimsPrincipal usuario,
+        string? senhaAtual,
+        JogoDbContext db,
+        IPasswordHasher<Conta> hasher,
+        ControleDeFalhasLogin controleFalhas,
+        CancellationToken cancelamento
+    )
+    {
+        var contaId = usuario.ObterContaId();
+        var conta = await db.Set<Conta>().FirstOrDefaultAsync(c => c.Id == contaId, cancelamento);
+        if (conta == null)
+        {
+            return (
+                null,
+                RespostasApi.Erro(StatusCodes.Status401Unauthorized, CodigosErro.NaoAutenticado)
+            );
+        }
+
+        if (
+            ContasRotas.RespostaSeBloqueado(controleFalhas, conta.UsuarioNormalizado) is
+            { } bloqueado
+        )
+        {
+            return (null, bloqueado);
+        }
+
+        // Senha atual vazia ou maior que o máximo nunca confere: recusa sem calcular hash.
+        var confere =
+            !string.IsNullOrEmpty(senhaAtual)
+            && senhaAtual.Length <= RegrasConta.SenhaMaximo
+            && hasher.VerifyHashedPassword(conta, conta.SenhaHash, senhaAtual)
+                != PasswordVerificationResult.Failed;
+        if (!confere)
+        {
+            await controleFalhas.RegistrarFalhaAsync(conta.UsuarioNormalizado, cancelamento);
+            return (
+                null,
+                RespostasApi.Erro(StatusCodes.Status400BadRequest, CodigosErro.SenhaAtualIncorreta)
+            );
+        }
+
+        controleFalhas.RegistrarSucesso(conta.UsuarioNormalizado);
+        return (conta, null);
     }
 }

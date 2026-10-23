@@ -9,8 +9,9 @@ using UnityEngine.UIElements;
 namespace JogoDoGrupo.Client.Core.Contas
 {
     /// <summary>
-    /// Aba "Conta" das Opções do menu do Esc: troca de senha logado (#183). Com sucesso, a
-    /// <see cref="Sessao"/> passa para o token novo; os tokens antigos (outros PCs) deixam de valer.
+    /// Aba "Conta" das Opções do menu do Esc: troca de senha logado (#183) e e-mail de
+    /// recuperação (#1167). Ao trocar a senha, a <see cref="Sessao"/> passa para o token novo;
+    /// os tokens antigos (outros PCs) deixam de valer.
     /// </summary>
     internal sealed class PainelConta
     {
@@ -19,6 +20,10 @@ namespace JogoDoGrupo.Client.Core.Contas
         private TextField _confirmacao;
         private Button _trocar;
         private Label _mensagemSenha;
+        private TextField _email;
+        private TextField _senhaEmail;
+        private Button _salvarEmail;
+        private Label _mensagemEmail;
         private bool _enviando;
         private VisualElement _raiz;
 
@@ -46,6 +51,145 @@ namespace JogoDoGrupo.Client.Core.Contas
             _trocar.AddToClassList(EstiloCore.Botao);
             _trocar.AddToClassList(EstiloCore.BotaoPrincipal);
             conteudo.Add(_trocar);
+
+            MontarEmail(conteudo);
+        }
+
+        /// <summary>E-mail de recuperação (#1167): mostra o atual e troca com a senha atual.</summary>
+        private void MontarEmail(VisualElement conteudo)
+        {
+            var subtitulo = new Label("E-mail de recuperação");
+            subtitulo.AddToClassList(EstiloCore.Subtitulo);
+            conteudo.Add(subtitulo);
+
+            var aviso = new Label(
+                "Usado só para recuperar a senha em \"Esqueci a senha\". Deixe vazio para tirar."
+            );
+            aviso.AddToClassList(EstiloCore.Texto);
+            conteudo.Add(aviso);
+
+            _email = new TextField("E-mail") { maxLength = RegrasConta.EmailMaximo };
+            _email.AddToClassList(EstiloCore.Campo);
+            _email.SetEnabled(false);
+            conteudo.Add(_email);
+            _senhaEmail = CriarCampoSenha(conteudo, "Senha atual");
+
+            _mensagemEmail = new Label("Carregando...");
+            _mensagemEmail.AddToClassList(EstiloCore.Mensagem);
+            conteudo.Add(_mensagemEmail);
+
+            _salvarEmail = new Button(AoClicarSalvarEmail) { text = "Salvar e-mail" };
+            _salvarEmail.AddToClassList(EstiloCore.Botao);
+            _salvarEmail.SetEnabled(false);
+            conteudo.Add(_salvarEmail);
+
+            CarregarEmail();
+        }
+
+        private async void CarregarEmail()
+        {
+            try
+            {
+                var resposta = await ClienteApi.Get<DadosContaResponse>(RotasContas.Dados);
+                if (!Aberto || resposta.CodigoErro == CodigosErroCliente.Cancelada)
+                {
+                    return;
+                }
+
+                if (!resposta.Sucesso || resposta.Corpo == null)
+                {
+                    Mostrar(
+                        _mensagemEmail,
+                        MensagemDoErro(resposta.CodigoErro),
+                        EstiloCore.MensagemErro
+                    );
+                    return;
+                }
+
+                _email.value = resposta.Corpo.Email ?? "";
+                _email.SetEnabled(true);
+                _salvarEmail.SetEnabled(true);
+                Mostrar(
+                    _mensagemEmail,
+                    string.IsNullOrEmpty(_email.value)
+                        ? "A conta não tem e-mail de recuperação."
+                        : ""
+                );
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+                if (Aberto)
+                {
+                    Mostrar(_mensagemEmail, MensagemDoErro(null), EstiloCore.MensagemErro);
+                }
+            }
+        }
+
+        private async void AoClicarSalvarEmail()
+        {
+            if (_enviando)
+            {
+                return;
+            }
+
+            var email = (_email.value ?? "").Trim();
+            var senha = _senhaEmail.value;
+            if (string.IsNullOrEmpty(senha))
+            {
+                Mostrar(_mensagemEmail, "Digite a senha atual.", EstiloCore.MensagemErro);
+                return;
+            }
+
+            if (email.Length > 0 && RegrasConta.ValidarEmail(email) is { } erro)
+            {
+                Mostrar(_mensagemEmail, MensagemDoErro(erro), EstiloCore.MensagemErro);
+                return;
+            }
+
+            _enviando = true;
+            _salvarEmail.SetEnabled(false);
+            Mostrar(_mensagemEmail, "Salvando...");
+            try
+            {
+                var resposta = await ClienteApi.Post(
+                    RotasContas.DefinirEmail,
+                    new DefinirEmailRequest { SenhaAtual = senha, Email = email }
+                );
+                if (!Aberto || resposta.CodigoErro == CodigosErroCliente.Cancelada)
+                {
+                    return;
+                }
+
+                if (!resposta.Sucesso)
+                {
+                    Mostrar(
+                        _mensagemEmail,
+                        MensagemDoErro(resposta.CodigoErro),
+                        EstiloCore.MensagemErro
+                    );
+                    return;
+                }
+
+                _senhaEmail.value = "";
+                Mostrar(_mensagemEmail, email.Length > 0 ? "E-mail salvo." : "E-mail retirado.");
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+                if (Aberto)
+                {
+                    Mostrar(_mensagemEmail, MensagemDoErro(null), EstiloCore.MensagemErro);
+                }
+            }
+            finally
+            {
+                _enviando = false;
+                if (Aberto)
+                {
+                    _salvarEmail.SetEnabled(true);
+                }
+            }
         }
 
         internal static TextField CriarCampoSenha(VisualElement conteudo, string rotulo)
@@ -134,6 +278,17 @@ namespace JogoDoGrupo.Client.Core.Contas
                 return "Preencha a senha atual e a nova.";
             }
 
+            return MensagemDeSenhaNova(nova, confirmacao);
+        }
+
+        /// <summary>Senha nova e repetição iguais e dentro de <see cref="RegrasConta"/>.</summary>
+        internal static string MensagemDeSenhaNova(string nova, string confirmacao)
+        {
+            if (string.IsNullOrEmpty(nova))
+            {
+                return "Preencha a nova senha.";
+            }
+
             if (!string.Equals(nova, confirmacao, StringComparison.Ordinal))
             {
                 return "A nova senha e a repetição não conferem.";
@@ -148,8 +303,6 @@ namespace JogoDoGrupo.Client.Core.Contas
             return codigo switch
             {
                 CodigosErro.SenhaAtualIncorreta => "A senha atual está incorreta.",
-                CodigosErro.MuitasTentativas =>
-                    "Muitas tentativas. Aguarde alguns minutos e tente de novo.",
                 _ => TelaLogin.MensagemDoErro(codigo),
             };
         }

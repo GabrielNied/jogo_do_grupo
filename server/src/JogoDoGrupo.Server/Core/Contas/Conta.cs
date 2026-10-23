@@ -29,7 +29,55 @@ public sealed class Conta
     /// <summary>Motivo descritivo do banimento para auditoria e aviso (#187).</summary>
     public string? MotivoBanimento { get; set; }
 
+    /// <summary>E-mail de recuperação como foi digitado, ou nulo (#1167). Sem e-mail, sem recuperação.</summary>
+    public string? Email { get; set; }
+
+    /// <summary>E-mail sem espaços nas pontas e em minúsculas, com índice único.</summary>
+    public string? EmailNormalizado { get; set; }
+
+    /// <summary>Hash do código de recuperação ativo (o código nunca é guardado), ou nulo.</summary>
+    public string? CodigoRecuperacaoHash { get; set; }
+
+    /// <summary>Quando o código ativo vence (UTC).</summary>
+    public DateTime? CodigoRecuperacaoExpiraEm { get; set; }
+
+    /// <summary>Tentativas erradas com o código ativo.</summary>
+    public int CodigoRecuperacaoTentativas { get; set; }
+
     public void RenovarCarimboSeguranca() => CarimboSeguranca = Guid.NewGuid().ToString("N");
 
+    /// <summary>Define ou tira (<c>null</c> ou vazio) o e-mail de recuperação.</summary>
+    public void DefinirEmail(string? email)
+    {
+        var limpo = string.IsNullOrWhiteSpace(email) ? null : email.Trim();
+        Email = limpo;
+        EmailNormalizado = limpo == null ? null : NormalizarEmail(limpo);
+    }
+
+    /// <summary>Troca o código ativo pelo novo: o pedido anterior deixa de valer.</summary>
+    public void IniciarRecuperacao(string codigoHash, DateTime expiraEm)
+    {
+        CodigoRecuperacaoHash = codigoHash;
+        CodigoRecuperacaoExpiraEm = expiraEm;
+        CodigoRecuperacaoTentativas = 0;
+    }
+
+    /// <summary>Descarta o código ativo, se houver.</summary>
+    public void EncerrarRecuperacao()
+    {
+        CodigoRecuperacaoHash = null;
+        CodigoRecuperacaoExpiraEm = null;
+        CodigoRecuperacaoTentativas = 0;
+    }
+
+    /// <summary>Se há código que ainda pode ser usado em <paramref name="agora"/> (UTC).</summary>
+    public bool RecuperacaoAtiva(DateTime agora) =>
+        CodigoRecuperacaoHash != null
+        && CodigoRecuperacaoExpiraEm is { } expira
+        && agora < expira
+        && CodigoRecuperacaoTentativas < RecuperacaoDeConta.TentativasPorCodigo;
+
     public static string Normalizar(string usuario) => usuario.ToUpperInvariant();
+
+    public static string NormalizarEmail(string email) => email.Trim().ToLowerInvariant();
 }

@@ -40,6 +40,16 @@ namespace JogoDoGrupo.Server.Core.Persistencia.Migrations.Postgres
                         .HasColumnType("character varying(64)")
                         .HasDefaultValue("");
 
+                    b.Property<DateTime?>("CodigoRecuperacaoExpiraEm")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CodigoRecuperacaoHash")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<int>("CodigoRecuperacaoTentativas")
+                        .HasColumnType("integer");
+
                     b.Property<DateTime>("CriadaEm")
                         .HasColumnType("timestamp with time zone");
 
@@ -47,6 +57,14 @@ namespace JogoDoGrupo.Server.Core.Persistencia.Migrations.Postgres
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
                         .HasDefaultValue(false);
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(254)
+                        .HasColumnType("character varying(254)");
+
+                    b.Property<string>("EmailNormalizado")
+                        .HasMaxLength(254)
+                        .HasColumnType("character varying(254)");
 
                     b.Property<string>("MotivoBanimento")
                         .HasMaxLength(256)
@@ -67,6 +85,9 @@ namespace JogoDoGrupo.Server.Core.Persistencia.Migrations.Postgres
                         .HasColumnType("character varying(20)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("EmailNormalizado")
+                        .IsUnique();
 
                     b.HasIndex("UsuarioNormalizado")
                         .IsUnique();

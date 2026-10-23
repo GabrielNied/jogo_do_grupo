@@ -17,6 +17,13 @@ namespace JogoDoGrupo.Shared.Core.Contas
         public const int UsuarioMaximo = 20;
         public const int SenhaMinimo = 8;
         public const int SenhaMaximo = 64;
+        public const int EmailMaximo = 254;
+
+        /// <summary>Dígitos do código de recuperação mandado por e-mail.</summary>
+        public const int CodigoRecuperacaoDigitos = 6;
+
+        /// <summary>Minutos de validade do código de recuperação.</summary>
+        public const int CodigoRecuperacaoMinutos = 15;
 
         /// <summary>
         /// Usuário com <see cref="UsuarioMinimo"/> a <see cref="UsuarioMaximo"/> caracteres,
@@ -56,6 +63,61 @@ namespace JogoDoGrupo.Shared.Core.Contas
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// E-mail com até <see cref="EmailMaximo"/> caracteres, sem espaços, com um só "@", algo
+        /// antes dele e um domínio com ponto depois (ex.: ana@exemplo.com). Não confere se existe.
+        /// </summary>
+        /// <returns><see cref="CodigosErro.EmailInvalido"/> ou <c>null</c> se válido.</returns>
+        public static string? ValidarEmail(string? email)
+        {
+            if (email == null || email.Length == 0 || email.Length > EmailMaximo)
+            {
+                return CodigosErro.EmailInvalido;
+            }
+
+            var arroba = email.IndexOf('@');
+            if (arroba <= 0 || arroba != email.LastIndexOf('@'))
+            {
+                return CodigosErro.EmailInvalido;
+            }
+
+            var dominio = email.Substring(arroba + 1);
+            var ponto = dominio.IndexOf('.');
+            if (ponto <= 0 || dominio.EndsWith(".", System.StringComparison.Ordinal))
+            {
+                return CodigosErro.EmailInvalido;
+            }
+
+            foreach (var c in email)
+            {
+                if (char.IsWhiteSpace(c) || char.IsControl(c))
+                {
+                    return CodigosErro.EmailInvalido;
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>Código de recuperação: exatamente <see cref="CodigoRecuperacaoDigitos"/> dígitos 0-9.</summary>
+        public static bool CodigoRecuperacaoNoFormato(string? codigo)
+        {
+            if (codigo == null || codigo.Length != CodigoRecuperacaoDigitos)
+            {
+                return false;
+            }
+
+            foreach (var c in codigo)
+            {
+                if (c < '0' || c > '9')
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
     }
 }
