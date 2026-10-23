@@ -1,7 +1,6 @@
 using System;
 using JogoDoGrupo.Client.Core.Jogo.Janelas;
 using JogoDoGrupo.Client.Core.UI;
-using JogoDoGrupo.Client.Core.Visual;
 using JogoDoGrupo.Shared.Features.Economia;
 using JogoDoGrupo.Shared.Features.Itens;
 using UnityEngine;
@@ -92,21 +91,12 @@ namespace JogoDoGrupo.Client.Features.Economia.UI
 
         protected override void Montar(VisualElement conteudo)
         {
-            conteudo.style.minWidth = 540f;
-            conteudo.style.maxWidth = 640f;
-            conteudo.style.paddingLeft = 14f;
-            conteudo.style.paddingRight = 14f;
-            conteudo.style.paddingTop = 10f;
-            conteudo.style.paddingBottom = 12f;
+            EstiloEconomia.Aplicar(conteudo);
+            conteudo.AddToClassList("economia-conteudo");
+            conteudo.AddToClassList("economia-conteudo-vendedor");
 
             var topo = new VisualElement();
-            topo.style.flexDirection = FlexDirection.Row;
-            topo.style.justifyContent = Justify.SpaceBetween;
-            topo.style.alignItems = Align.Center;
-            topo.style.marginBottom = 10f;
-            topo.style.paddingBottom = 6f;
-            topo.style.borderBottomWidth = 1f;
-            topo.style.borderBottomColor = EstiloVisual.Cor(ConfigVisual.Cores.BordaDiscreta);
+            topo.AddToClassList("economia-topo");
 
             var textoTitulo = _categoria switch
             {
@@ -118,40 +108,37 @@ namespace JogoDoGrupo.Client.Features.Economia.UI
             };
             var titulo = new Label(textoTitulo);
             titulo.AddToClassList(EstiloCore.Titulo);
-            titulo.style.fontSize = 15f;
-            titulo.style.unityFontStyleAndWeight = FontStyle.Bold;
-            titulo.style.color = EstiloVisual.Cor(ConfigVisual.Cores.Marfim);
+            titulo.AddToClassList("economia-titulo");
             topo.Add(titulo);
 
             _rotuloSaldo = new Label($"Coroas: {ControleDeEconomia.SaldoCoroas}");
             _rotuloSaldo.AddToClassList(EstiloCore.Subtitulo);
-            _rotuloSaldo.style.fontSize = 14f;
-            _rotuloSaldo.style.unityFontStyleAndWeight = FontStyle.Bold;
+            _rotuloSaldo.AddToClassList("economia-saldo");
             _rotuloSaldo.style.color = new Color(0.95f, 0.80f, 0.30f);
             topo.Add(_rotuloSaldo);
 
             conteudo.Add(topo);
 
             var barraAbas = new VisualElement();
-            barraAbas.style.flexDirection = FlexDirection.Row;
-            barraAbas.style.marginBottom = 10f;
+            barraAbas.AddToClassList("economia-abas");
 
             _abaComprar = new Button(() => SelecionarAba(0)) { text = "Comprar" };
             _abaComprar.AddToClassList(EstiloCore.Botao);
-            _abaComprar.style.marginRight = 6f;
+            _abaComprar.AddToClassList("economia-aba");
+            _abaComprar.AddToClassList("economia-aba-esquerda");
             barraAbas.Add(_abaComprar);
 
             _abaVender = new Button(() => SelecionarAba(1)) { text = "Vender (Lixo)" };
             _abaVender.AddToClassList(EstiloCore.Botao);
+            _abaVender.AddToClassList("economia-aba");
             barraAbas.Add(_abaVender);
 
             conteudo.Add(barraAbas);
 
             _rotuloAviso = new Label("");
             _rotuloAviso.AddToClassList(EstiloCore.Mensagem);
-            _rotuloAviso.style.fontSize = 11f;
+            _rotuloAviso.AddToClassList("economia-aviso");
             _rotuloAviso.style.color = new Color(0.60f, 0.85f, 0.60f);
-            _rotuloAviso.style.marginBottom = 6f;
             _rotuloAviso.style.display = DisplayStyle.None;
             conteudo.Add(_rotuloAviso);
 
@@ -178,54 +165,34 @@ namespace JogoDoGrupo.Client.Features.Economia.UI
             };
             var desc = new Label(textoDesc);
             desc.AddToClassList(EstiloCore.Texto);
-            desc.style.fontSize = 11.5f;
-            desc.style.color = EstiloVisual.Cor(ConfigVisual.Cores.TextoSecundario);
-            desc.style.marginBottom = 8f;
+            desc.AddToClassList("economia-descricao");
             painel.Add(desc);
 
             var lista = new ScrollView();
-            lista.style.maxHeight = 280f;
+            lista.AddToClassList("economia-lista");
 
             foreach (var item in ConfigEconomia.ObterCatalogo(_categoria))
             {
                 var linha = new VisualElement();
-                linha.style.flexDirection = FlexDirection.Row;
-                linha.style.justifyContent = Justify.SpaceBetween;
-                linha.style.alignItems = Align.Center;
-                linha.style.paddingLeft = 8f;
-                linha.style.paddingRight = 8f;
-                linha.style.paddingTop = 6f;
-                linha.style.paddingBottom = 6f;
-                linha.style.marginBottom = 4f;
-                linha.style.backgroundColor = EstiloVisual.Cor(ConfigVisual.Cores.Campo);
-                linha.style.borderTopLeftRadius = 4f;
-                linha.style.borderTopRightRadius = 4f;
-                linha.style.borderBottomLeftRadius = 4f;
-                linha.style.borderBottomRightRadius = 4f;
+                linha.AddToClassList("economia-linha");
 
                 var rotuloItem = new Label(item.Nome);
-                rotuloItem.style.fontSize = 12f;
-                rotuloItem.style.unityFontStyleAndWeight = FontStyle.Bold;
+                rotuloItem.AddToClassList("economia-linha-nome");
                 rotuloItem.style.color = new Color(0.90f, 0.92f, 0.98f);
                 linha.Add(rotuloItem);
 
                 var direita = new VisualElement();
-                direita.style.flexDirection = FlexDirection.Row;
-                direita.style.alignItems = Align.Center;
+                direita.AddToClassList("economia-linha-direita");
 
                 var rotuloPreco = new Label($"{item.PrecoCoroas} coroas");
-                rotuloPreco.style.fontSize = 11.5f;
+                rotuloPreco.AddToClassList("economia-linha-preco");
                 rotuloPreco.style.color = new Color(0.95f, 0.80f, 0.30f);
-                rotuloPreco.style.marginRight = 10f;
                 direita.Add(rotuloPreco);
 
                 var itemId = item.ItemId;
                 var botaoComprar = new Button(() => AoClicarComprar(itemId)) { text = "Comprar" };
                 botaoComprar.AddToClassList(EstiloCore.Botao);
-                botaoComprar.style.paddingLeft = 12f;
-                botaoComprar.style.paddingRight = 12f;
-                botaoComprar.style.paddingTop = 4f;
-                botaoComprar.style.paddingBottom = 4f;
+                botaoComprar.AddToClassList("economia-linha-acao");
                 direita.Add(botaoComprar);
 
                 linha.Add(direita);
@@ -241,15 +208,11 @@ namespace JogoDoGrupo.Client.Features.Economia.UI
                 "O comerciante compra qualquer peça do inventário por preço fixo baseado no tier (sink de lixo):"
             );
             desc.AddToClassList(EstiloCore.Texto);
-            desc.style.fontSize = 11.5f;
-            desc.style.color = EstiloVisual.Cor(ConfigVisual.Cores.TextoSecundario);
-            desc.style.marginBottom = 8f;
+            desc.AddToClassList("economia-descricao");
             painel.Add(desc);
 
             var tabelaPrecos = new VisualElement();
-            tabelaPrecos.style.flexDirection = FlexDirection.Row;
-            tabelaPrecos.style.flexWrap = Wrap.Wrap;
-            tabelaPrecos.style.marginBottom = 12f;
+            tabelaPrecos.AddToClassList("economia-tabela-precos");
 
             CriarBadgeTier(tabelaPrecos, TierItem.D, ConfigEconomia.PrecoVendaPorTier(TierItem.D));
             CriarBadgeTier(tabelaPrecos, TierItem.C, ConfigEconomia.PrecoVendaPorTier(TierItem.C));
@@ -268,7 +231,7 @@ namespace JogoDoGrupo.Client.Features.Economia.UI
                 "Dica: Itens marcados como Favorito são protegidos e não podem ser vendidos."
             );
             dica.AddToClassList(EstiloCore.Texto);
-            dica.style.fontSize = 10.5f;
+            dica.AddToClassList("economia-dica");
             dica.style.color = new Color(0.60f, 0.65f, 0.75f);
             painel.Add(dica);
         }
@@ -276,21 +239,10 @@ namespace JogoDoGrupo.Client.Features.Economia.UI
         private void CriarBadgeTier(VisualElement container, TierItem tier, long preco)
         {
             var badge = new VisualElement();
-            badge.style.paddingLeft = 8f;
-            badge.style.paddingRight = 8f;
-            badge.style.paddingTop = 4f;
-            badge.style.paddingBottom = 4f;
-            badge.style.marginRight = 6f;
-            badge.style.marginBottom = 6f;
-            badge.style.backgroundColor = EstiloVisual.Cor(ConfigVisual.Cores.Retrato);
-            badge.style.borderTopLeftRadius = 4f;
-            badge.style.borderTopRightRadius = 4f;
-            badge.style.borderBottomLeftRadius = 4f;
-            badge.style.borderBottomRightRadius = 4f;
+            badge.AddToClassList("economia-selo-tier");
 
             var texto = new Label($"Tier {RegrasTier.Letra(tier)}: {preco} coroas");
-            texto.style.fontSize = 11f;
-            texto.style.unityFontStyleAndWeight = FontStyle.Bold;
+            texto.AddToClassList("economia-selo-tier-texto");
             texto.style.color = new Color(0.85f, 0.88f, 0.95f);
             badge.Add(texto);
             container.Add(badge);
@@ -301,11 +253,8 @@ namespace JogoDoGrupo.Client.Features.Economia.UI
             _painelComprar.style.display = indice == 0 ? DisplayStyle.Flex : DisplayStyle.None;
             _painelVender.style.display = indice == 1 ? DisplayStyle.Flex : DisplayStyle.None;
 
-            Color corAtiva = EstiloVisual.Cor(ConfigVisual.Cores.Selecionado);
-            Color corInativa = EstiloVisual.Cor(ConfigVisual.Cores.Desabilitado);
-
-            _abaComprar.style.backgroundColor = indice == 0 ? corAtiva : corInativa;
-            _abaVender.style.backgroundColor = indice == 1 ? corAtiva : corInativa;
+            _abaComprar.EnableInClassList("economia-aba-ativa", indice == 0);
+            _abaVender.EnableInClassList("economia-aba-ativa", indice == 1);
         }
 
         private void AoClicarComprar(int itemId)
