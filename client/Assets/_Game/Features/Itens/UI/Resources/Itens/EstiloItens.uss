@@ -528,3 +528,90 @@
     margin: 0 var(--lumora-espacamento-pequeno);
     color: var(--lumora-cores-texto-secundario);
 }
+
+/* ---- janela do banco pessoal ---- */
+
+.lumora-ui .itens-banco-conteudo {
+    min-width: 520px;
+    max-width: 600px;
+    padding: 10px 14px 12px 14px;
+}
+
+.lumora-ui .itens-banco-topo {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+    padding-bottom: 6px;
+    border-bottom-width: 1px;
+    border-bottom-color: var(--lumora-cores-borda-discreta);
+}
+
+.lumora-ui .itens-banco-titulo {
+    font-size: 15px;
+    -unity-font-style: bold;
+    color: var(--lumora-cores-marfim);
+}
+
+.lumora-ui .itens-banco-subtitulo {
+    font-size: 10.5px;
+}
+
+.lumora-ui .itens-banco-direita {
+    align-items: flex-end;
+}
+
+.lumora-ui .itens-banco-saldo {
+    font-size: 13px;
+    -unity-font-style: bold;
+}
+
+.lumora-ui .itens-banco-capacidade {
+    font-size: 11px;
+}
+
+.lumora-ui .itens-banco-aviso {
+    font-size: 11px;
+    margin-bottom: 6px;
+}
+
+.lumora-ui .itens-banco-barra-topo {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.lumora-ui .itens-banco-abas {
+    flex-direction: row;
+}
+
+.lumora-ui .botao.itens-banco-expandir {
+    font-size: 11px;
+    padding: 3px 8px 3px 8px;
+}
+
+.lumora-ui .itens-banco-grade {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    align-items: flex-start;
+}
+
+.lumora-ui .itens-banco-slot {
+    width: 44px;
+    height: 44px;
+    margin-right: 4px;
+    margin-bottom: 4px;
+}
+
+.lumora-ui .itens-banco-rodape {
+    margin-top: 8px;
+    padding-top: 6px;
+    border-top-width: 1px;
+    border-top-color: var(--lumora-cores-borda-discreta);
+}
+
+.lumora-ui .itens-banco-dica {
+    font-size: 10.5px;
+}
