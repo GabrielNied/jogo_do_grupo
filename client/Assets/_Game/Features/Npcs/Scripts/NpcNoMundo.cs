@@ -321,6 +321,12 @@ namespace JogoDoGrupo.Client.Features.Npcs
                 PapelNpc.DadorDeMissao => new Color(0.75f, 0.35f, 0.9f), // Ametista / Roxo
                 PapelNpc.Cavalarico => new Color(0.60f, 0.40f, 0.20f), // Couro / Marrom
                 PapelNpc.CuidadorDePets => new Color(0.35f, 0.80f, 0.50f), // Verde Natureza / Pets
+                PapelNpc.MestreLenhador => new Color(0.30f, 0.55f, 0.25f), // Folha
+                PapelNpc.MestreMinerador => new Color(0.50f, 0.50f, 0.55f), // Rocha
+                PapelNpc.MestreCurtidor => new Color(0.60f, 0.42f, 0.25f), // Couro
+                PapelNpc.MestreFerreiro => new Color(0.80f, 0.35f, 0.15f), // Brasa
+                PapelNpc.MestreAlquimista => new Color(0.35f, 0.75f, 0.90f), // Cristal
+                PapelNpc.MestreCozinheiro => new Color(0.90f, 0.70f, 0.30f), // Trigo
                 _ => new Color(0.85f, 0.85f, 0.85f), // Neutro
             };
 
@@ -338,6 +344,12 @@ namespace JogoDoGrupo.Client.Features.Npcs
                 PapelNpc.DadorDeMissao => "Missões",
                 PapelNpc.Cavalarico => "Estábulo",
                 PapelNpc.CuidadorDePets => "Cuidador de Pets",
+                PapelNpc.MestreLenhador => "Mestre Lenhador",
+                PapelNpc.MestreMinerador => "Mestre Minerador",
+                PapelNpc.MestreCurtidor => "Mestre Curtidor",
+                PapelNpc.MestreFerreiro => "Mestre Ferreiro",
+                PapelNpc.MestreAlquimista => "Mestre Alquimista",
+                PapelNpc.MestreCozinheiro => "Mestre Cozinheiro",
                 _ => "Habitante",
             };
     }

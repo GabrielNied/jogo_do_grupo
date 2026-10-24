@@ -28,6 +28,14 @@ namespace JogoDoGrupo.Shared.Features.Npcs
         public const int IdMoradorElric = 14;
         public const int IdMoradoraLyra = 15;
 
+        // Mestres de ofício (#1257): um por profissão.
+        public const int IdMestreLenhador = 16;
+        public const int IdMestreMinerador = 17;
+        public const int IdMestreCurtidor = 18;
+        public const int IdMestreFerreiro = 19;
+        public const int IdMestreAlquimista = 20;
+        public const int IdMestreCozinheiro = 21;
+
         public static readonly DefinicaoNpc Vendedor = new DefinicaoNpc(
             id: IdVendedor,
             nome: "Mercador Alden",
@@ -208,6 +216,78 @@ namespace JogoDoGrupo.Shared.Features.Npcs
             raioInteracao: 4f
         );
 
+        public static readonly DefinicaoNpc MestreLenhador = new DefinicaoNpc(
+            id: IdMestreLenhador,
+            nome: "Lenhador Garrido",
+            papel: PapelNpc.MestreLenhador,
+            area: AreaCidade,
+            x: -4f,
+            y: 0f,
+            z: 24f,
+            rotacaoY: 180f,
+            raioInteracao: 4f
+        );
+
+        public static readonly DefinicaoNpc MestreMinerador = new DefinicaoNpc(
+            id: IdMestreMinerador,
+            nome: "Mineradora Petra",
+            papel: PapelNpc.MestreMinerador,
+            area: AreaCidade,
+            x: 4f,
+            y: 0f,
+            z: 24f,
+            rotacaoY: 180f,
+            raioInteracao: 4f
+        );
+
+        public static readonly DefinicaoNpc MestreCurtidor = new DefinicaoNpc(
+            id: IdMestreCurtidor,
+            nome: "Curtidora Sela",
+            papel: PapelNpc.MestreCurtidor,
+            area: AreaCidade,
+            x: -15f,
+            y: 0f,
+            z: -5.5f,
+            rotacaoY: 90f,
+            raioInteracao: 4f
+        );
+
+        public static readonly DefinicaoNpc MestreFerreiro = new DefinicaoNpc(
+            id: IdMestreFerreiro,
+            nome: "Mestre Ferreiro Torvin",
+            papel: PapelNpc.MestreFerreiro,
+            area: AreaCidade,
+            x: -12f,
+            y: 0f,
+            z: -11f,
+            rotacaoY: 270f,
+            raioInteracao: 4f
+        );
+
+        public static readonly DefinicaoNpc MestreAlquimista = new DefinicaoNpc(
+            id: IdMestreAlquimista,
+            nome: "Alquimista Zéfira",
+            papel: PapelNpc.MestreAlquimista,
+            area: AreaCidade,
+            x: -11.5f,
+            y: 0f,
+            z: -9.5f,
+            rotacaoY: 0f,
+            raioInteracao: 4f
+        );
+
+        public static readonly DefinicaoNpc MestreCozinheiro = new DefinicaoNpc(
+            id: IdMestreCozinheiro,
+            nome: "Cozinheira Cota",
+            papel: PapelNpc.MestreCozinheiro,
+            area: AreaCidade,
+            x: -8.5f,
+            y: 0f,
+            z: -9f,
+            rotacaoY: 270f,
+            raioInteracao: 4f
+        );
+
         public static readonly DefinicaoNpc[] Todos =
         {
             Vendedor,
@@ -225,6 +305,12 @@ namespace JogoDoGrupo.Shared.Features.Npcs
             QuadroDeDiarias,
             MoradorElric,
             MoradoraLyra,
+            MestreLenhador,
+            MestreMinerador,
+            MestreCurtidor,
+            MestreFerreiro,
+            MestreAlquimista,
+            MestreCozinheiro,
         };
 
         private static readonly Dictionary<int, DefinicaoNpc> _porId = new Dictionary<
@@ -247,6 +333,12 @@ namespace JogoDoGrupo.Shared.Features.Npcs
             { IdQuadroDeDiarias, QuadroDeDiarias },
             { IdMoradorElric, MoradorElric },
             { IdMoradoraLyra, MoradoraLyra },
+            { IdMestreLenhador, MestreLenhador },
+            { IdMestreMinerador, MestreMinerador },
+            { IdMestreCurtidor, MestreCurtidor },
+            { IdMestreFerreiro, MestreFerreiro },
+            { IdMestreAlquimista, MestreAlquimista },
+            { IdMestreCozinheiro, MestreCozinheiro },
         };
 
         public static DefinicaoNpc Obter(int id)

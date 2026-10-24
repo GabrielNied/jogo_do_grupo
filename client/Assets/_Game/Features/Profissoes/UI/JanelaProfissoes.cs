@@ -8,31 +8,43 @@ using UnityEngine.UIElements;
 namespace JogoDoGrupo.Client.Features.Profissoes.UI
 {
     /// <summary>
-    /// A forja da cidade (#192), aberta com E no marcador: aprender profissões, ver os
-    /// materiais e produzir as receitas do Ferreiro. O servidor decide; a janela só pede e
-    /// mostra o que ele mandou (botão desabilitado mostra o motivo, nunca esconde).
+    /// A janela de uma profissão (#192, #1257), aberta pelo mestre de ofício ou pela bancada:
+    /// aprender a profissão, ver os materiais dela e produzir as receitas dela. Cada profissão
+    /// tem a sua janela. O servidor decide; a janela só pede e mostra o que ele mandou (botão
+    /// desabilitado mostra o motivo, nunca esconde).
     /// </summary>
     public sealed class JanelaProfissoes : JanelaDoJogo
     {
-        public const string Chave = "profissoes.forja";
+        public const string PrefixoDaChave = "profissoes.";
         public const int Ordem = 103;
 
         private const string CaminhoEstilo = "Profissoes/EstiloProfissoes";
 
+        private readonly Profissao _profissao;
         private VisualElement _materiais;
         private VisualElement _profissoes;
         private VisualElement _receitas;
 
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-        private static void Registrar() => JanelasDoJogo.Registrar(CriarDefinicao());
+        private JanelaProfissoes(Profissao profissao) => _profissao = profissao;
 
-        public static DefinicaoDeJanela CriarDefinicao() =>
+        /// <summary>A chave da janela da profissão: "profissoes.lenhador", "profissoes.ferreiro"...</summary>
+        public static string ChaveDa(Profissao profissao) =>
+            PrefixoDaChave + ConfigProfissoes.NomeDaProfissao(profissao).ToLowerInvariant();
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+        private static void Registrar()
+        {
+            foreach (var profissao in ConfigProfissoes.Disponiveis)
+                JanelasDoJogo.Registrar(CriarDefinicao(profissao));
+        }
+
+        public static DefinicaoDeJanela CriarDefinicao(Profissao profissao) =>
             new DefinicaoDeJanela(
-                Chave,
-                TextosProfissoes.Titulo,
+                ChaveDa(profissao),
+                TextosProfissoes.TituloDa(profissao),
                 null,
                 Ordem,
-                () => new JanelaProfissoes()
+                () => new JanelaProfissoes(profissao)
             );
 
         protected override void Montar(VisualElement conteudo)
@@ -42,12 +54,12 @@ namespace JogoDoGrupo.Client.Features.Profissoes.UI
                 conteudo.styleSheets.Add(estilo);
             conteudo.AddToClassList("profissoes-janela");
 
-            var ajuda = ComponentesVisuais.Texto(TextosProfissoes.AjudaDaForja);
+            var ajuda = ComponentesVisuais.Texto(TextosProfissoes.AjudaDa(_profissao));
             ajuda.AddToClassList("profissoes-ajuda");
             conteudo.Add(ajuda);
 
             _materiais = Secao(conteudo, "Materiais");
-            _profissoes = Secao(conteudo, "Profissões");
+            _profissoes = Secao(conteudo, "Ofício");
             _receitas = Secao(conteudo, "Receitas de Produção");
             Redesenhar();
         }
@@ -85,7 +97,7 @@ namespace JogoDoGrupo.Client.Features.Profissoes.UI
         private void DesenharMateriais()
         {
             _materiais.Clear();
-            foreach (var material in ConfigProfissoes.Materiais)
+            foreach (var material in ConfigProfissoes.MateriaisDaProfissao(_profissao))
             {
                 var linha = Linha();
                 linha.Add(Texto(material.Nome));
@@ -97,9 +109,8 @@ namespace JogoDoGrupo.Client.Features.Profissoes.UI
         private void DesenharProfissoes()
         {
             _profissoes.Clear();
-            for (var numero = 1; numero <= 6; numero++)
             {
-                var profissao = (Profissao)numero;
+                var profissao = _profissao;
                 var linha = Linha();
                 linha.Add(Texto(ConfigProfissoes.NomeDaProfissao(profissao)));
 
@@ -131,7 +142,11 @@ namespace JogoDoGrupo.Client.Features.Profissoes.UI
         {
             _receitas.Clear();
 
-            foreach (var receita in ConfigProfissoes.Receitas)
+            var receitas = ConfigProfissoes.ReceitasDaProfissao(_profissao);
+            if (receitas.Length == 0)
+                _receitas.Add(Detalhe(TextosProfissoes.SemReceitas));
+
+            foreach (var receita in receitas)
             {
                 var temProfissao = ControleDeProfissoes.Aprendeu(receita.Profissao);
                 var linha = Linha();

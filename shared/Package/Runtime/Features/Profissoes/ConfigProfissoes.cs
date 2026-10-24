@@ -456,6 +456,50 @@ namespace JogoDoGrupo.Shared.Features.Profissoes
         public static bool PodeAprender(Profissao profissao) =>
             Array.IndexOf(Disponiveis, profissao) >= 0;
 
+        /// <summary>As receitas de produção de uma profissão (a janela do mestre de ofício, #1257).</summary>
+        public static ReceitaDeProducao[] ReceitasDaProfissao(Profissao profissao)
+        {
+            var lista = new System.Collections.Generic.List<ReceitaDeProducao>();
+            for (var i = 0; i < Receitas.Length; i++)
+            {
+                if (Receitas[i].Profissao == profissao)
+                    lista.Add(Receitas[i]);
+            }
+            return lista.ToArray();
+        }
+
+        /// <summary>
+        /// Os materiais que a profissão coleta ou gasta nas receitas, sem repetir, na ordem do
+        /// catálogo de materiais.
+        /// </summary>
+        public static MaterialDeProfissao[] MateriaisDaProfissao(Profissao profissao)
+        {
+            var lista = new System.Collections.Generic.List<MaterialDeProfissao>();
+            for (var i = 0; i < Materiais.Length; i++)
+            {
+                if (UsaMaterial(profissao, Materiais[i].Id))
+                    lista.Add(Materiais[i]);
+            }
+            return lista.ToArray();
+        }
+
+        private static bool UsaMaterial(Profissao profissao, int materialId)
+        {
+            for (var i = 0; i < Pontos.Length; i++)
+            {
+                if (Pontos[i].Profissao == profissao && Pontos[i].MaterialId == materialId)
+                    return true;
+            }
+            for (var i = 0; i < Receitas.Length; i++)
+            {
+                if (Receitas[i].Profissao != profissao)
+                    continue;
+                if (Array.IndexOf(Receitas[i].MateriaisIds, materialId) >= 0)
+                    return true;
+            }
+            return false;
+        }
+
         public static PontoDeColeta? ObterPonto(int id)
         {
             for (var i = 0; i < Pontos.Length; i++)

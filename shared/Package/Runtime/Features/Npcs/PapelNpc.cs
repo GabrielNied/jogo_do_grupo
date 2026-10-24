@@ -21,5 +21,13 @@ namespace JogoDoGrupo.Shared.Features.Npcs
 
         /// <summary>NPC de cena do prólogo (#327); não aparece no catálogo da cidade.</summary>
         Mago = 15,
+
+        /// <summary>Mestres de ofício: um por profissão (#1257), cada um abre só a sua.</summary>
+        MestreLenhador = 16,
+        MestreMinerador = 17,
+        MestreCurtidor = 18,
+        MestreFerreiro = 19,
+        MestreAlquimista = 20,
+        MestreCozinheiro = 21,
     }
 }

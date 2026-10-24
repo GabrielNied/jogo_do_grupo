@@ -45,7 +45,9 @@ Decidido por Gabriel em 2026-10-18. Todo NPC tem corpo, nome sobre a cabeça, í
 | Guardas | Guarnição | Portões e patrulha, sem combate | NPCs | pronto ([#1069](https://github.com/GabrielNied/jogo_do_grupo/issues/1069), [vida na cidade](#vida-na-cidade)) |
 | Moradores | Cidadãos | Andam, conversam, falas curtas ao passar | NPCs | pronto ([#1069](https://github.com/GabrielNied/jogo_do_grupo/issues/1069), [vida na cidade](#vida-na-cidade)) |
 
-**Futuro** (entra quando o serviço existir): intendente de facção (troca [reputação](#definido) por receitas, descontos e aparências), mestres de [profissão](profissoes.md), registrador de [guilda](social.md) e treinador da [árvore](talentos.md).
+**Mestres de ofício** (#1257): um NPC por [profissão](profissoes.md#mestres-de-ofício-1257), seis ao todo, cada um abrindo só a sua profissão.
+
+**Futuro** (entra quando o serviço existir): intendente de facção (troca [reputação](#definido) por receitas, descontos e aparências), registrador de [guilda](social.md) e treinador da [árvore](talentos.md).
 
 ### Vida na cidade
 

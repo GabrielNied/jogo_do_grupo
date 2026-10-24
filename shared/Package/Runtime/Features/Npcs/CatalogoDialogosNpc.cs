@@ -48,6 +48,18 @@ namespace JogoDoGrupo.Shared.Features.Npcs
                     "Mantenha a ordem na cidade e a espada embainhada. Os portões da Brasa Mansa estão sob vigília.",
                 PapelNpc.Morador =>
                     "Bom dia, viajante! É bom ver novos aventureiros trazendo vida e segurança à nossa cidade.",
+                PapelNpc.MestreLenhador =>
+                    "As árvores do campo ao norte rendem madeira e ervas boas. Quer aprender o ofício de lenhador?",
+                PapelNpc.MestreMinerador =>
+                    "O ferro e os cristais do campo norte esperam por picaretas firmes. Quer aprender a minerar?",
+                PapelNpc.MestreCurtidor =>
+                    "Couro bem tratado vale mais que ouro na estrada. Quer aprender a curtir e a trabalhar o couro?",
+                PapelNpc.MestreFerreiro =>
+                    "Ferro, fogo e paciência fazem uma lâmina. Quer aprender a forjar armas e armaduras pesadas?",
+                PapelNpc.MestreAlquimista =>
+                    "Cristais, ervas e uma boa fervura: é disso que se faz a magia de bolso. Quer aprender alquimia?",
+                PapelNpc.MestreCozinheiro =>
+                    "Barriga cheia faz herói forte. Quer aprender a preparar refeições de expedição?",
                 _ => "Olá, viajante! Bem-vindo à Brasa Mansa.",
             };
 
@@ -170,6 +182,66 @@ namespace JogoDoGrupo.Shared.Features.Npcs
                 },
                 PapelNpc.Morador => new[]
                 {
+                    new OpcaoDeDialogo("sair", "Até logo", AcaoDeDialogo.Fechar),
+                },
+                PapelNpc.MestreLenhador => new[]
+                {
+                    new OpcaoDeDialogo(
+                        "oficio",
+                        "Ofício de Lenhador",
+                        AcaoDeDialogo.AbrirServico,
+                        "profissoes.lenhador"
+                    ),
+                    new OpcaoDeDialogo("sair", "Até logo", AcaoDeDialogo.Fechar),
+                },
+                PapelNpc.MestreMinerador => new[]
+                {
+                    new OpcaoDeDialogo(
+                        "oficio",
+                        "Ofício de Minerador",
+                        AcaoDeDialogo.AbrirServico,
+                        "profissoes.minerador"
+                    ),
+                    new OpcaoDeDialogo("sair", "Até logo", AcaoDeDialogo.Fechar),
+                },
+                PapelNpc.MestreCurtidor => new[]
+                {
+                    new OpcaoDeDialogo(
+                        "oficio",
+                        "Ofício de Curtidor",
+                        AcaoDeDialogo.AbrirServico,
+                        "profissoes.curtidor"
+                    ),
+                    new OpcaoDeDialogo("sair", "Até logo", AcaoDeDialogo.Fechar),
+                },
+                PapelNpc.MestreFerreiro => new[]
+                {
+                    new OpcaoDeDialogo(
+                        "oficio",
+                        "Ofício de Ferreiro",
+                        AcaoDeDialogo.AbrirServico,
+                        "profissoes.ferreiro"
+                    ),
+                    new OpcaoDeDialogo("sair", "Até logo", AcaoDeDialogo.Fechar),
+                },
+                PapelNpc.MestreAlquimista => new[]
+                {
+                    new OpcaoDeDialogo(
+                        "oficio",
+                        "Ofício de Alquimista",
+                        AcaoDeDialogo.AbrirServico,
+                        "profissoes.alquimista"
+                    ),
+                    new OpcaoDeDialogo("sair", "Até logo", AcaoDeDialogo.Fechar),
+                },
+                PapelNpc.MestreCozinheiro => new[]
+                {
+                    new OpcaoDeDialogo(
+                        "oficio",
+                        "Ofício de Cozinheiro",
+                        AcaoDeDialogo.AbrirServico,
+                        "profissoes.cozinheiro"
+                    ),
                     new OpcaoDeDialogo("sair", "Até logo", AcaoDeDialogo.Fechar),
                 },
                 _ => new[] { new OpcaoDeDialogo("sair", "Até logo", AcaoDeDialogo.Fechar) },

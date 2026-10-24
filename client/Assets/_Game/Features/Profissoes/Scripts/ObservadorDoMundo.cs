@@ -82,28 +82,52 @@ namespace JogoDoGrupo.Client.Features.Profissoes
             );
             SceneManager.MoveGameObjectToScene(forja, cena);
             forja.transform.SetParent(raiz.transform, true);
-            pontos.Add(new PontoDeInteracaoProfissoes { Transform = forja.transform });
+            pontos.Add(
+                new PontoDeInteracaoProfissoes
+                {
+                    Transform = forja.transform,
+                    Bancada = Profissao.Ferreiro,
+                }
+            );
 
             var curtume = MarcadorDeProfissoes.CriarCurtume(
                 NoChao(new Vector3(ConfigProfissoes.CurtumeX, 0f, ConfigProfissoes.CurtumeZ))
             );
             SceneManager.MoveGameObjectToScene(curtume, cena);
             curtume.transform.SetParent(raiz.transform, true);
-            pontos.Add(new PontoDeInteracaoProfissoes { Transform = curtume.transform });
+            pontos.Add(
+                new PontoDeInteracaoProfissoes
+                {
+                    Transform = curtume.transform,
+                    Bancada = Profissao.Curtidor,
+                }
+            );
 
             var caldeirao = MarcadorDeProfissoes.CriarCaldeirao(
                 NoChao(new Vector3(ConfigProfissoes.CaldeiraoX, 0f, ConfigProfissoes.CaldeiraoZ))
             );
             SceneManager.MoveGameObjectToScene(caldeirao, cena);
             caldeirao.transform.SetParent(raiz.transform, true);
-            pontos.Add(new PontoDeInteracaoProfissoes { Transform = caldeirao.transform });
+            pontos.Add(
+                new PontoDeInteracaoProfissoes
+                {
+                    Transform = caldeirao.transform,
+                    Bancada = Profissao.Alquimista,
+                }
+            );
 
             var cozinha = MarcadorDeProfissoes.CriarCozinha(
                 NoChao(new Vector3(ConfigProfissoes.CozinhaX, 0f, ConfigProfissoes.CozinhaZ))
             );
             SceneManager.MoveGameObjectToScene(cozinha, cena);
             cozinha.transform.SetParent(raiz.transform, true);
-            pontos.Add(new PontoDeInteracaoProfissoes { Transform = cozinha.transform });
+            pontos.Add(
+                new PontoDeInteracaoProfissoes
+                {
+                    Transform = cozinha.transform,
+                    Bancada = Profissao.Cozinheiro,
+                }
+            );
 
             var documento = raiz.AddComponent<UIDocument>();
             documento.panelSettings = EstiloCore.CriarConfiguracaoDoPainel("PainelProfissoes", -1f);
