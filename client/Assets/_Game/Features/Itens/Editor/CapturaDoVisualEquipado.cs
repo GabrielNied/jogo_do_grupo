@@ -171,6 +171,78 @@ namespace JogoDoGrupo.Client.Features.Itens.Editor
             }
         }
 
+        /// <summary>
+        /// Capacete e peito no corpo de cada raça, de frente e de lado
+        /// (<c>armadura-&lt;Raca&gt;-frente.png</c> e <c>-lado.png</c>), para ajustar as constantes
+        /// de altura do <c>ModelosDeItensImportador</c>.
+        /// </summary>
+        public static void CapturarArmaduras()
+        {
+            var saida = System.Environment.GetEnvironmentVariable("VISUAL_SAIDA") ?? "prints";
+            Directory.CreateDirectory(saida);
+            var luz = new GameObject("Luz").AddComponent<Light>();
+            luz.type = LightType.Directional;
+            luz.transform.rotation = Quaternion.Euler(40f, 150f, 0f);
+            var camera = new GameObject("Camera").AddComponent<Camera>();
+            camera.clearFlags = CameraClearFlags.SolidColor;
+            camera.backgroundColor = new Color(0.3f, 0.35f, 0.4f);
+            try
+            {
+                foreach (
+                    var raca in new[] { "Valdren", "Aurideo", "Cinereo", "Granitico", "Silvano" }
+                )
+                {
+                    var modelo = AssetDatabase.LoadAssetAtPath<GameObject>(
+                        Prefab.Replace("Valdren", raca)
+                    );
+                    var jogador = (GameObject)PrefabUtility.InstantiatePrefab(modelo);
+                    try
+                    {
+                        var visual = new VisualEquipado
+                        {
+                            PersonagemId = 1,
+                            Armaduras = new[]
+                            {
+                                new ArmaduraVisual
+                                {
+                                    Posicao = PosicaoEquipamento.Capacete,
+                                    Tipo = TipoEquipamento.Capacete,
+                                },
+                                new ArmaduraVisual
+                                {
+                                    Posicao = PosicaoEquipamento.Peito,
+                                    Tipo = TipoEquipamento.Peito,
+                                },
+                            },
+                        };
+                        var postos = ApresentadorDoVisual.Aplicar(jogador.transform, visual);
+                        Debug.Log($"[VisualEquipado] {raca}: modelos postos {postos}");
+                        Foto(
+                            camera,
+                            jogador.transform,
+                            0f,
+                            Path.Combine(saida, $"armadura-{raca}-frente.png")
+                        );
+                        Foto(
+                            camera,
+                            jogador.transform,
+                            90f,
+                            Path.Combine(saida, $"armadura-{raca}-lado.png")
+                        );
+                    }
+                    finally
+                    {
+                        Object.DestroyImmediate(jogador);
+                    }
+                }
+            }
+            finally
+            {
+                Object.DestroyImmediate(luz.gameObject);
+                Object.DestroyImmediate(camera.gameObject);
+            }
+        }
+
         private static string Diagnostico(Transform jogador)
         {
             var texto = new System.Text.StringBuilder("[VisualEquipado] armas no avatar:");
