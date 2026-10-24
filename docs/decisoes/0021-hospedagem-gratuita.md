@@ -36,6 +36,20 @@ Opções avaliadas em out/2026:
 - **Logs:** Suporte a logs estruturados no console em formato JSON compacto (`Observabilidade:ConsoleEstruturado` ou padrão em `Production`) para captura direta por `systemd` / `journald`.
 - **Publicação:** Alvo de publicação self-contained documentado para `linux-arm64` e `linux-x64` via `npm run server:publicar`.
 
+### Possível melhoria para a primeira versão: VM paga no Brasil
+
+Em 2026-10-24 a conta Oracle foi criada, mas a VM A1 em São Paulo deu "Out of host capacity" em todas as tentativas (a região tem um só availability domain). Mesmo criada, uma VM A1 parada (Stop no console ou recolhida por ociosidade) pode não religar pelo mesmo motivo. Para a primeira versão aberta a mais gente, vale trocar por uma VM paga barata no Brasil.
+
+Preços pesquisados em out/2026 (máquina ligada o mês todo; conferir antes de contratar):
+
+| Opção | 1 GB de RAM | 2 GB de RAM | Observação |
+|---|---|---|---|
+| **Magalu Cloud** (Sudeste, `br-se1`) | R$ 34,99 | **R$ 44,99** (BV1-2-10) | Em reais, sem IOF; cobrança por segundo; IP público grátis por enquanto; preço do tráfego de saída não conferido ([preços](https://docs.magalu.cloud/docs/computing/virtual-machine/instance-types-and-pricing/pricing)) |
+| Vultr (São Paulo) | US$ 5 | US$ 10 a 15 | Cartão internacional |
+| Akamai/Linode (São Paulo) | US$ 7 | US$ 16,80 | Cartão internacional ([preços](https://www.akamai.com/cloud/pricing/sao-paulo)) |
+
+Candidata: **Magalu BV1-2-10** com Ubuntu 24.04, o mesmo serviço `systemd` + PostgreSQL desta decisão e `npm run server:publicar` para `linux-x64`. Contratar vira ADR novo que substitui a parte "sempre ligado" deste.
+
 ## Consequências
 
 - Custo zero, mas sem garantia de disponibilidade: um processo, uma VM, sem redundância.
