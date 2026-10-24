@@ -152,20 +152,6 @@ namespace JogoDoGrupo.Client.Features.Itens
                         }
                     }
                 );
-            _painel.ItemDeTestePedido += grau =>
-                _ = Postar(
-                    RegrasEquipamentos.RotaDe(EntradaNoJogo.PersonagemId)
-                        + "/bau-teste?grau="
-                        + grau,
-                    null,
-                    null
-                );
-            _painel.LimpezaDeTestePedida += () =>
-                _ = Postar(
-                    RegrasEquipamentos.RotaDe(EntradaNoJogo.PersonagemId) + "/limpar-teste",
-                    null,
-                    null
-                );
             _painel.ItemVisto += id => _novos.Remove(id);
             _fusao = new PainelFusao(_areaFusao, EnviarFusao);
         }
