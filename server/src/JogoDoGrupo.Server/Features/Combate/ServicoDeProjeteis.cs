@@ -7,6 +7,7 @@ using JogoDoGrupo.Server.Core.TempoReal;
 using JogoDoGrupo.Shared.Features.Combate;
 using JogoDoGrupo.Shared.Features.Itens;
 using JogoDoGrupo.Shared.Features.Mobs;
+using JogoDoGrupo.Shared.Features.Mundo;
 
 namespace JogoDoGrupo.Server.Features.Combate;
 
@@ -509,6 +510,7 @@ public sealed class ServicoDeProjeteis : IHostedService, IDisposable, IDisparoDe
                                 z1,
                                 proj.Raio,
                                 alvo.X,
+                                alvo.Y,
                                 alvo.Z,
                                 alvo.Raio,
                                 alvo.Altura
@@ -642,6 +644,7 @@ public sealed class ServicoDeProjeteis : IHostedService, IDisposable, IDisparoDe
                             z1,
                             proj.Raio,
                             pos.X,
+                            pos.Y,
                             pos.Z,
                             0.4,
                             1.8

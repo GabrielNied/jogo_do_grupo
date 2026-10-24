@@ -76,7 +76,8 @@ public sealed class AlvosDePvp : IAlvosDeCombate
                         VidaAtual: vidaAtual,
                         VidaMaxima: vidaMaxima,
                         PersonagemId: personagemId,
-                        Altura: AlturaCorpoJogador
+                        Altura: AlturaCorpoJogador,
+                        Y: pos.Y
                     )
                 );
             }
@@ -123,7 +124,8 @@ public sealed class AlvosDePvp : IAlvosDeCombate
                         VidaAtual: vidaAtual,
                         VidaMaxima: vidaMaxima,
                         PersonagemId: personagemId,
-                        Altura: AlturaCorpoJogador
+                        Altura: AlturaCorpoJogador,
+                        Y: pos.Y
                     )
                 );
             }

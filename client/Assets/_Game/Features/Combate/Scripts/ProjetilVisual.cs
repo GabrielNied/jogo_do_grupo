@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using JogoDoGrupo.Client.Core.Jogo;
 using JogoDoGrupo.Shared.Features.Combate;
 using UnityEngine;
 
@@ -121,11 +122,30 @@ namespace JogoDoGrupo.Client.Features.Combate
                 return;
             }
 
-            if (Physics.Raycast(transform.position, _direcao, out var hit, passo))
+            if (
+                Physics.Raycast(
+                    transform.position,
+                    _direcao,
+                    out var hit,
+                    passo,
+                    ~0,
+                    QueryTriggerInteraction.Ignore
+                )
+            )
             {
-                transform.position = hit.point;
-                Impactar(hit.point);
-                return;
+                var jogador = EntradaNoJogo.Jogador;
+                if (
+                    jogador == null
+                    || (
+                        hit.transform != jogador.transform
+                        && !hit.transform.IsChildOf(jogador.transform)
+                    )
+                )
+                {
+                    transform.position = hit.point;
+                    Impactar(hit.point);
+                    return;
+                }
             }
 
             transform.position += _direcao * passo;

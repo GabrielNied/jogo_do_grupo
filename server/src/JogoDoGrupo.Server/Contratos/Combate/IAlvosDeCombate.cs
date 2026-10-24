@@ -19,7 +19,8 @@ public readonly record struct AlvoDeCombate(
     int VidaAtual,
     int VidaMaxima,
     long PersonagemId = 0,
-    double Altura = ArcosDosGolpes.AlturaPadraoDoCorpoMetros
+    double Altura = ArcosDosGolpes.AlturaPadraoDoCorpoMetros,
+    double Y = 0.0
 );
 
 /// <summary>O que um golpe fez num alvo: o dano que ele realmente levou e a vida que sobrou.</summary>

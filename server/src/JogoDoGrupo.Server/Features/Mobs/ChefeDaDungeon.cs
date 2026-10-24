@@ -374,7 +374,8 @@ public sealed class ChefeDaDungeon : IAlvosDeCombate, IInimigosSimulados
                         alvoZ,
                         ConfigChefeDaDungeon.RaioDoCorpoMetros,
                         _vida,
-                        _vidaMaxima
+                        _vidaMaxima,
+                        Y: MapaDoMundo.AlturaEm((float)alvoX, (float)alvoZ)
                     ),
                 ];
             }
@@ -426,7 +427,8 @@ public sealed class ChefeDaDungeon : IAlvosDeCombate, IInimigosSimulados
                         alvoZ,
                         ConfigChefeDaDungeon.RaioDoCorpoMetros,
                         _vida,
-                        _vidaMaxima
+                        _vidaMaxima,
+                        Y: MapaDoMundo.AlturaEm((float)alvoX, (float)alvoZ)
                     ),
                 ];
             }

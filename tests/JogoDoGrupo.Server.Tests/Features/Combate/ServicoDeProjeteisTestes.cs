@@ -56,7 +56,7 @@ public class ServicoDeProjeteisTestes(TempoRealFixture f) : IClassFixture<TempoR
             double dist = Math.Sqrt(dx * dx + dz * dz);
             if (dist <= alcanceMetros + Raio)
             {
-                return [new AlvoDeCombate(Id, X, Z, Raio, 100, 100, PersonagemId, Altura)];
+                return [new AlvoDeCombate(Id, X, Z, Raio, 100, 100, PersonagemId, Altura, Y)];
             }
             return [];
         }
@@ -320,5 +320,44 @@ public class ServicoDeProjeteisTestes(TempoRealFixture f) : IClassFixture<TempoR
         long id = servico.DispararArco(1, acao, parcelas);
         Assert.True(id > 0);
         Assert.Equal(1, servico.ProjeteisAtivos);
+    }
+
+    [Fact]
+    public void Atualizar_acerta_alvo_em_terreno_elevado()
+    {
+        var posicoes = new PosicoesFalsas();
+        posicoes.Colocar(1, "mundo", 0f, 0f);
+
+        // Alvo elevado em Y = 28 metros, a 10 metros à frente (+Z)
+        var alvoElevado = new AlvoLocal(50, 0, 28, 10);
+
+        long agora = 1000;
+        using var servico = new ServicoDeProjeteis(
+            _tempoReal,
+            posicoes,
+            [alvoElevado],
+            NullLogger<ServicoDeProjeteis>.Instance,
+            relogioMs: () => agora
+        );
+
+        // Disparo a partir de Y = 28 + 1.2 (altura dos olhos do personagem em Y = 28)
+        servico.Disparar(
+            atacanteId: 1,
+            area: "mundo",
+            tipoProjetil: TipoDeProjetil.Flecha,
+            tipoAtaque: TipoDeAtaque.Leve,
+            origemX: 0f,
+            origemY: 28f + RegrasProjetil.AlturaOrigemDisparo,
+            origemZ: 0f,
+            direcaoYGraus: 0f,
+            dano: 35
+        );
+
+        agora += 350;
+        servico.Atualizar(agora, 0.35);
+
+        Assert.Equal(1, alvoElevado.Aplicacoes);
+        Assert.Equal(35, alvoElevado.DanoRecebido);
+        Assert.Equal(0, servico.ProjeteisAtivos);
     }
 }

@@ -32,9 +32,6 @@ namespace JogoDoGrupo.Client.Features.Combate
         // Abaixo disso de stamina o indicador avisa que a guarda está perto de quebrar.
         private const int StaminaBaixo = 20;
 
-        // Inclinação do corpo para trás enquanto dura a reação ao acerto.
-        private const float InclinacaoDaReacaoGraus = 14f;
-
         private readonly List<IDisposable> _assinaturas = new List<IDisposable>();
 
         private const string FonteDoTeto = "guarda";
@@ -172,7 +169,7 @@ namespace JogoDoGrupo.Client.Features.Combate
         }
 
         // Depois do Update do ControleTerceiraPessoa (que vira o corpo para onde anda): a
-        // postura de guarda olha para onde a câmera mira e anda a 40%; a reação inclina o corpo.
+        // postura de guarda olha para onde a câmera mira e anda a 40%.
         private void LateUpdate()
         {
             if (_prontidao == null)
@@ -203,11 +200,6 @@ namespace JogoDoGrupo.Client.Features.Combate
             else
             {
                 _prontidao.Teto.Soltar(FonteDoTeto);
-            }
-
-            if (Time.unscaledTimeAsDouble < _reagindoAte)
-            {
-                jogador.transform.rotation *= Quaternion.Euler(-InclinacaoDaReacaoGraus, 0f, 0f);
             }
         }
 
