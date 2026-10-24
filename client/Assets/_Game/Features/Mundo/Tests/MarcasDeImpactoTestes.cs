@@ -54,5 +54,38 @@ namespace JogoDoGrupo.Client.Features.Mundo.Tests
             Assert.IsFalse(DecisaoDeMarca.DoGolpePesadoDeMartelo(false, TipoEquipamento.Martelo));
             Assert.IsFalse(DecisaoDeMarca.DoGolpePesadoDeMartelo(true, TipoEquipamento.Espada));
         }
+
+        [Test]
+        public void Arma_ativa_segue_o_conjunto_ativo_e_sem_visual_nao_marca()
+        {
+            var visual = new VisualEquipado
+            {
+                PersonagemId = 7,
+                ConjuntoAtivo = 1,
+                Armas = new[]
+                {
+                    new ArmaVisual
+                    {
+                        Posicao = PosicaoEquipamento.Arma1,
+                        Tipo = TipoEquipamento.Espada,
+                    },
+                    new ArmaVisual
+                    {
+                        Posicao = PosicaoEquipamento.Arma2,
+                        Tipo = TipoEquipamento.Martelo,
+                    },
+                },
+            };
+            Assert.AreEqual(TipoEquipamento.Espada, DecisaoDeMarca.ArmaAtiva(visual));
+            visual.ConjuntoAtivo = 2;
+            Assert.AreEqual(TipoEquipamento.Martelo, DecisaoDeMarca.ArmaAtiva(visual));
+            Assert.IsTrue(
+                DecisaoDeMarca.DoGolpePesadoDeMartelo(true, DecisaoDeMarca.ArmaAtiva(visual))
+            );
+            visual.Armas = new ArmaVisual[0];
+            Assert.IsNull(DecisaoDeMarca.ArmaAtiva(visual));
+            Assert.IsNull(DecisaoDeMarca.ArmaAtiva(null));
+            Assert.IsFalse(DecisaoDeMarca.DoGolpePesadoDeMartelo(true, null));
+        }
     }
 }

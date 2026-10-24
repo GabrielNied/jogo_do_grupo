@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using JogoDoGrupo.Client.Core.Jogo;
 using JogoDoGrupo.Client.Core.TempoReal;
 using JogoDoGrupo.Shared.Features.Combate;
 using JogoDoGrupo.Shared.Features.Itens;
@@ -14,7 +13,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.MarcasDeImpacto
     /// Marcas de impacto no chão (mundo.md, "Luz e som"): martelada no impacto da Martelada Sísmica
     /// e do golpe pesado de martelo, fuligem no de skill de fogo e de bola de fogo. Só visual, em
     /// cada client: lê as mensagens que o servidor já manda (<see cref="SkillAcertou"/>,
-    /// <see cref="AtaqueAcertou"/>, <see cref="ProjetilLancado"/> e <see cref="ArmaAtivaInformada"/>,
+    /// <see cref="AtaqueAcertou"/>, <see cref="ProjetilLancado"/> e <see cref="VisualEquipado"/>,
     /// do shared) e não envia nada. A marca é um quadrado achatado sobre o chão, não toca no
     /// relevo nem em colisão, dura <see cref="ConfigMarcasDeImpacto.DuracaoSegundos"/> com fade e
     /// há no máximo <see cref="ConfigMarcasDeImpacto.MaximoDeMarcas"/> ao mesmo tempo.
@@ -28,7 +27,10 @@ namespace JogoDoGrupo.Client.Features.Mundo.MarcasDeImpacto
 
         private static MarcasDeImpactoNoChao _instancia;
         private static bool _ligado;
-        private static TipoEquipamento _armaLocal = TipoEquipamento.Espada;
+
+        // Arma em mãos de cada personagem da área, vinda de VisualEquipado (o Mundo não referencia Itens).
+        private static readonly Dictionary<long, TipoEquipamento> ArmaDoPersonagem =
+            new Dictionary<long, TipoEquipamento>();
 
         // Projéteis de fogo no ar: atacante -> até quando o acerto ainda conta.
         private static readonly Dictionary<long, List<double>> ProjeteisDeFogo =
@@ -48,7 +50,7 @@ namespace JogoDoGrupo.Client.Features.Mundo.MarcasDeImpacto
         {
             _instancia = null;
             _ligado = false;
-            _armaLocal = TipoEquipamento.Espada;
+            ArmaDoPersonagem.Clear();
             ProjeteisDeFogo.Clear();
         }
 
@@ -70,16 +72,28 @@ namespace JogoDoGrupo.Client.Features.Mundo.MarcasDeImpacto
                 CombateMessageIds.ProjetilLancado,
                 AoProjetilLancado
             );
-            ConexaoTempoReal.Assinar<ArmaAtivaInformada>(
-                CombateMessageIds.ArmaAtivaInformada,
-                info =>
-                {
-                    if (info != null)
-                    {
-                        _armaLocal = info.TipoArma;
-                    }
-                }
+            ConexaoTempoReal.Assinar<VisualEquipado>(
+                ItensMessageIds.VisualEquipado,
+                AoVisualEquipado
             );
+        }
+
+        private static void AoVisualEquipado(VisualEquipado visual)
+        {
+            if (visual == null || visual.PersonagemId <= 0)
+            {
+                return;
+            }
+
+            var arma = DecisaoDeMarca.ArmaAtiva(visual);
+            if (arma.HasValue)
+            {
+                ArmaDoPersonagem[visual.PersonagemId] = arma.Value;
+            }
+            else
+            {
+                ArmaDoPersonagem.Remove(visual.PersonagemId);
+            }
         }
 
         private static void AoSkillAcertar(SkillAcertou msg)
@@ -121,14 +135,10 @@ namespace JogoDoGrupo.Client.Features.Mundo.MarcasDeImpacto
                 return;
             }
 
-            // A arma só é conhecida para o jogador local (ArmaAtivaInformada vai ao dono).
-            if (
-                msg.AtacanteId == EntradaNoJogo.PersonagemId
-                && DecisaoDeMarca.DoGolpePesadoDeMartelo(
-                    msg.Tipo == TipoDeAtaque.Pesado,
-                    _armaLocal
-                )
-            )
+            TipoEquipamento? arma = ArmaDoPersonagem.TryGetValue(msg.AtacanteId, out var tipoDaArma)
+                ? tipoDaArma
+                : (TipoEquipamento?)null;
+            if (DecisaoDeMarca.DoGolpePesadoDeMartelo(msg.Tipo == TipoDeAtaque.Pesado, arma))
             {
                 MarcarAlvos(msg.Acertos, TipoDeMarca.Martelada);
             }
