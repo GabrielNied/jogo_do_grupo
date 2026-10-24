@@ -32,7 +32,10 @@ namespace JogoDoGrupo.Client.Features.Itens.Editor
         private const float AlturaDoCapacete = 0.30f;
 
         /// <summary>Altura do peitoral com as ombreiras, em metros (o de primitivas tinha 0,44).</summary>
-        private const float AlturaDoPeito = 0.48f;
+        private const float AlturaDoPeito = 0.55f;
+
+        /// <summary>Centro do peitoral em relação ao osso do tronco, que fica na cintura do avatar.</summary>
+        private static readonly Vector3 CentroDoPeito = new Vector3(0f, 0.12f, 0f);
 
         private enum Origem
         {
@@ -123,7 +126,7 @@ namespace JogoDoGrupo.Client.Features.Itens.Editor
                 PastaOpenGameArt + "RpgItemCollection2/Armor.obj",
                 PastaOpenGameArt + "RpgItemCollection2/Armor.png",
                 AlturaDoPeito,
-                Vector3.zero,
+                CentroDoPeito,
                 duasFaces: true
             );
 
