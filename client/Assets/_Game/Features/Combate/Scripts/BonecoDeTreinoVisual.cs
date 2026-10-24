@@ -35,6 +35,7 @@ namespace JogoDoGrupo.Client.Features.Combate
         private int _vida = RegrasBonecoDeTreino.Vida;
         private int _vidaMaxima = RegrasBonecoDeTreino.Vida;
         private float _ultimoGolpe = float.NegativeInfinity;
+        private bool _mostrarEtiqueta;
 
         /// <summary>Monta o boneco na posição do shared, sobre o chão.</summary>
         public static BonecoDeTreinoVisual Criar(VisualElement camadaDaEtiqueta = null)
@@ -47,6 +48,13 @@ namespace JogoDoGrupo.Client.Features.Combate
 
         /// <summary>A fração de vida (0 a 1) que a barra mostra agora.</summary>
         public float Fracao => _vidaMaxima <= 0 ? 0f : Mathf.Clamp01((float)_vida / _vidaMaxima);
+
+        /// <summary>
+        /// Se a etiqueta (nome e barra) aparece agora: só nos segundos depois de um golpe, até a
+        /// vida voltar a encher; parado e inteiro, o boneco fica sem etiqueta.
+        /// </summary>
+        public bool EtiquetaVisivel(float agora) =>
+            agora - _ultimoGolpe < RegrasBonecoDeTreino.SegundosParaRecuperar;
 
         /// <summary>Aplica um acerto confirmado pelo servidor (também usado nos testes).</summary>
         public void AplicarAcerto(AcertoDeAtaque acerto, float agora)
@@ -74,6 +82,7 @@ namespace JogoDoGrupo.Client.Features.Combate
             }
 
             _etiqueta?.MostrarVida(Fracao);
+            _mostrarEtiqueta = EtiquetaVisivel(agora);
         }
 
         private void Montar(VisualElement camadaDaEtiqueta)
@@ -289,7 +298,7 @@ namespace JogoDoGrupo.Client.Features.Combate
         private void LateUpdate()
         {
             _etiqueta?.Posicionar(
-                Camera.main,
+                _mostrarEtiqueta ? Camera.main : null,
                 _posicao + Vector3.up * ((float)RegrasBonecoDeTreino.Altura + AlturaDaEtiqueta)
             );
         }
