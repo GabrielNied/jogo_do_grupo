@@ -11,7 +11,7 @@ public class CatalogoNpcsTestes
     {
         Assert.NotEmpty(CatalogoNpcs.Todos);
         var cidadeNpcs = CatalogoNpcs.PorArea(CatalogoNpcs.AreaCidade);
-        Assert.Equal(15, cidadeNpcs.Length);
+        Assert.Equal(21, cidadeNpcs.Length);
 
         var vendedor = CatalogoNpcs.Obter(CatalogoNpcs.IdVendedor);
         Assert.NotNull(vendedor);
@@ -87,6 +87,36 @@ public class CatalogoNpcsTestes
         Assert.NotNull(lyra);
         Assert.Equal("Moradora Lyra", lyra.Nome);
         Assert.Equal(PapelNpc.Morador, lyra.Papel);
+
+        var lenhador = CatalogoNpcs.Obter(CatalogoNpcs.IdMestreLenhador);
+        Assert.NotNull(lenhador);
+        Assert.Equal("Lenhador Garrido", lenhador.Nome);
+        Assert.Equal(PapelNpc.MestreLenhador, lenhador.Papel);
+
+        var minerador = CatalogoNpcs.Obter(CatalogoNpcs.IdMestreMinerador);
+        Assert.NotNull(minerador);
+        Assert.Equal("Mineradora Petra", minerador.Nome);
+        Assert.Equal(PapelNpc.MestreMinerador, minerador.Papel);
+
+        var curtidor = CatalogoNpcs.Obter(CatalogoNpcs.IdMestreCurtidor);
+        Assert.NotNull(curtidor);
+        Assert.Equal("Curtidora Sela", curtidor.Nome);
+        Assert.Equal(PapelNpc.MestreCurtidor, curtidor.Papel);
+
+        var mestreFerreiro = CatalogoNpcs.Obter(CatalogoNpcs.IdMestreFerreiro);
+        Assert.NotNull(mestreFerreiro);
+        Assert.Equal("Mestre Ferreiro Torvin", mestreFerreiro.Nome);
+        Assert.Equal(PapelNpc.MestreFerreiro, mestreFerreiro.Papel);
+
+        var alquimista = CatalogoNpcs.Obter(CatalogoNpcs.IdMestreAlquimista);
+        Assert.NotNull(alquimista);
+        Assert.Equal("Alquimista Zéfira", alquimista.Nome);
+        Assert.Equal(PapelNpc.MestreAlquimista, alquimista.Papel);
+
+        var cozinheiro = CatalogoNpcs.Obter(CatalogoNpcs.IdMestreCozinheiro);
+        Assert.NotNull(cozinheiro);
+        Assert.Equal("Cozinheira Cota", cozinheiro.Nome);
+        Assert.Equal(PapelNpc.MestreCozinheiro, cozinheiro.Papel);
     }
 
     [Fact]
