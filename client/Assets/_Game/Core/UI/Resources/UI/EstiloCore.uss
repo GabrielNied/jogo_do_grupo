@@ -570,11 +570,6 @@
     align-self: center;
 }
 
-/* Barra de rolagem à vista (à direita): o mesmo espaço à esquerda deixa o conteúdo no centro. */
-.janela-rolagem-com-barra {
-    padding-left: 10px;
-}
-
 /* Janela arrastada: fica onde a pessoa soltou, por cima das outras da área. */
 .janelas-area > .janela-raiz.janela-solta {
     position: absolute;

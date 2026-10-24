@@ -197,8 +197,8 @@ namespace JogoDoGrupo.Client.Core.UI
         public const string JanelaSolta = "janela-solta";
 
         /// <summary>
-        /// <see cref="JanelaRolagem"/> com a barra de rolagem à vista: o mesmo espaço do outro lado
-        /// mantém o conteúdo no centro (o Core aplica).
+        /// <see cref="JanelaRolagem"/> com a barra de rolagem à vista; o Core põe à esquerda o
+        /// espaço da largura real da barra, para o conteúdo ficar no centro (o Core aplica).
         /// </summary>
         public const string JanelaRolagemComBarra = "janela-rolagem-com-barra";
 

@@ -89,6 +89,32 @@ namespace JogoDoGrupo.Client.Core.Tests
         }
 
         [Test]
+        public void Limitar_ComPaddingDaArea_NaoCobreABarraDeAtalhos()
+        {
+            // Área de 1920x1080 com padding 32 em cima, 24 dos lados e 96 embaixo.
+            var limite = new Rect(24f, 32f, 1920f - 48f, 1080f - 32f - 96f);
+            var tamanho = new Vector2(400f, 300f);
+
+            Assert.AreEqual(
+                new Vector2(24f, 32f),
+                PosicoesDeJanelas.Limitar(new Vector2(0f, 0f), tamanho, limite)
+            );
+            Assert.AreEqual(
+                new Vector2(1920f - 24f - 400f, 1080f - 96f - 300f),
+                PosicoesDeJanelas.Limitar(new Vector2(5000f, 5000f), tamanho, limite)
+            );
+            Assert.AreEqual(
+                new Vector2(24f, 32f),
+                PosicoesDeJanelas.Limitar(
+                    new Vector2(500f, 500f),
+                    new Vector2(3000f, 2000f),
+                    limite
+                ),
+                "Maior que a área: encosta no canto de cima à esquerda de dentro."
+            );
+        }
+
+        [Test]
         public void Limitar_JanelaMaiorQueAArea_FicaEmCimaAEsquerda()
         {
             Assert.AreEqual(

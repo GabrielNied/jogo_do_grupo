@@ -221,13 +221,11 @@ namespace JogoDoGrupo.Client.Core.Jogo.Janelas
                     verticalScrollerVisibility = ScrollerVisibility.Auto,
                 };
                 rolagem.AddToClassList(EstiloCore.JanelaRolagem);
-                EventCallback<GeometryChangedEvent> conferirBarra = _ =>
-                    rolagem.EnableInClassList(
-                        EstiloCore.JanelaRolagemComBarra,
-                        BarraVisivel(rolagem.verticalScroller)
-                    );
-                rolagem.contentViewport.RegisterCallback(conferirBarra);
+                // Só a barra aparecer ou sumir muda o espaço à esquerda (a largura real dela, sem
+                // repetir número): o próprio ajuste não realimenta o evento.
+                EventCallback<GeometryChangedEvent> conferirBarra = _ => CompensarBarra(rolagem);
                 rolagem.verticalScroller.RegisterCallback(conferirBarra);
+                rolagem.contentViewport.RegisterCallback(conferirBarra);
                 rolagem.Add(conteudo);
                 painel.Add(cabecalho);
                 painel.Add(rolagem);
@@ -348,6 +346,30 @@ namespace JogoDoGrupo.Client.Core.Jogo.Janelas
                 && barra.resolvedStyle.visibility == Visibility.Visible;
         }
 
+        private static void CompensarBarra(ScrollView rolagem)
+        {
+            var barra = rolagem.verticalScroller;
+            var visivel = BarraVisivel(barra);
+            var largura = visivel ? barra.resolvedStyle.width : 0f;
+            if (float.IsNaN(largura) || largura < 0f)
+            {
+                largura = 0f;
+            }
+
+            var marcada = rolagem.ClassListContains(EstiloCore.JanelaRolagemComBarra);
+            var atual =
+                rolagem.style.paddingLeft.keyword == StyleKeyword.Undefined
+                    ? rolagem.style.paddingLeft.value.value
+                    : 0f;
+            if (marcada == visivel && Mathf.Approximately(atual, largura))
+            {
+                return;
+            }
+
+            rolagem.EnableInClassList(EstiloCore.JanelaRolagemComBarra, visivel);
+            rolagem.style.paddingLeft = visivel ? largura : new StyleLength(StyleKeyword.Null);
+        }
+
         // Arrasta pelo cabeçalho (fora do X). Abaixo do limiar o clique só traz a janela para
         // cima; ao soltar, a posição fica gravada para a próxima vez que ela abrir.
         private void PermitirArrastar(Aberta aberta, VisualElement cabecalho, VisualElement fechar)
@@ -393,6 +415,13 @@ namespace JogoDoGrupo.Client.Core.Jogo.Janelas
                     }
 
                     arrasto.Arrastando = true;
+                    // Fora da fila deixa de encolher junto com as outras: fixa a largura de agora
+                    // para não dar pulo. A altura segue o conteúdo (presa pela max-height).
+                    var largura = aberta.Raiz.layout.width;
+                    if (!aberta.Solta && !float.IsNaN(largura) && largura > 0f)
+                    {
+                        aberta.Raiz.style.width = largura;
+                    }
                     aberta.Raiz.BringToFront();
                 }
 
@@ -490,8 +519,15 @@ namespace JogoDoGrupo.Client.Core.Jogo.Janelas
                 return posicao;
             }
 
+            // Só a parte de dentro do padding da área: a janela não cobre a barra de atalhos.
+            var limite = _area.contentRect;
+            if (float.IsNaN(limite.width) || float.IsNaN(limite.height))
+            {
+                limite = new Rect(Vector2.zero, area);
+            }
+
             var tamanho = aberta.Raiz.layout.size;
-            return PosicoesDeJanelas.Limitar(posicao, Valido(tamanho) ? tamanho : default, area);
+            return PosicoesDeJanelas.Limitar(posicao, Valido(tamanho) ? tamanho : default, limite);
         }
 
         private static void Posicionar(Aberta aberta, Vector2 posicao)
@@ -510,6 +546,7 @@ namespace JogoDoGrupo.Client.Core.Jogo.Janelas
             aberta.Raiz.RemoveFromClassList(EstiloCore.JanelaSolta);
             aberta.Raiz.style.left = StyleKeyword.Null;
             aberta.Raiz.style.top = StyleKeyword.Null;
+            aberta.Raiz.style.width = StyleKeyword.Null;
         }
 
         private static bool Valido(Vector2 v)

@@ -135,21 +135,30 @@ namespace JogoDoGrupo.Client.Core.Jogo.Janelas
         /// </summary>
         public static Vector2 Limitar(Vector2 posicao, Vector2 tamanhoJanela, Vector2 area)
         {
+            return Limitar(posicao, tamanhoJanela, new Rect(Vector2.zero, area));
+        }
+
+        /// <summary>
+        /// Como o outro, num retângulo que não começa no zero (a área menos o padding, para a
+        /// janela não cobrir a barra de atalhos embaixo).
+        /// </summary>
+        public static Vector2 Limitar(Vector2 posicao, Vector2 tamanhoJanela, Rect limite)
+        {
             return new Vector2(
-                LimitarEixo(posicao.x, tamanhoJanela.x, area.x),
-                LimitarEixo(posicao.y, tamanhoJanela.y, area.y)
+                LimitarEixo(posicao.x, tamanhoJanela.x, limite.xMin, limite.width),
+                LimitarEixo(posicao.y, tamanhoJanela.y, limite.yMin, limite.height)
             );
         }
 
-        private static float LimitarEixo(float valor, float tamanho, float area)
+        private static float LimitarEixo(float valor, float tamanho, float inicio, float extensao)
         {
             if (float.IsNaN(valor) || float.IsInfinity(valor))
             {
-                return 0f;
+                return inicio;
             }
 
-            var maximo = Mathf.Max(0f, area - Mathf.Max(0f, tamanho));
-            return Mathf.Clamp(valor, 0f, maximo);
+            var maximo = inicio + Mathf.Max(0f, extensao - Mathf.Max(0f, tamanho));
+            return Mathf.Clamp(valor, inicio, maximo);
         }
     }
 }
