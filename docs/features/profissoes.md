@@ -26,7 +26,7 @@ Craft e coleta, conectados à economia.
 
 As seis profissões completas e integradas em `ConfigProfissoes` (shared), com regras no servidor e marcadores/janela no client:
 
-- **Aprender:** de graça e na hora na oficina da cidade (rua oeste, polo de produção). O personagem pode aprender todas as 6 profissões sem limite (Lenhador, Minerador, Curtidor, Ferreiro, Alquimista, Cozinheiro). Sem nível, sem XP (coleta e craft não dão XP).
+- **Aprender:** de graça e na hora com o **mestre de ofício** da profissão, na cidade (um NPC por profissão, ver [mestres de ofício](#mestres-de-ofício-1257)). O personagem pode aprender todas as 6 profissões sem limite (Lenhador, Minerador, Curtidor, Ferreiro, Alquimista, Cozinheiro). Sem nível, sem XP (coleta e craft não dão XP).
 - **Coleta (14 pontos):** no campo ao norte do portão da cidade, tecla **E** a até 3 m (o servidor aceita 4 m). Exige a profissão correspondente. Cada coleta rende 2 do material e o ponto esgota por **60 s** com trava atômica no servidor.
   - *Lenhador:* Árvores (Madeira), Arbustos medicinais (Erva medicinal), Plantações (Grãos).
   - *Minerador:* Veios de ferro (Minério de ferro), Geodos arcanos (Cristal arcano).
@@ -61,6 +61,23 @@ Os seis nomes estão em Definido, e o personagem pode aprender todos. O resto de
 - **Receitas que atravessam níveis** (exemplos): couro reforçado, chapéu da aurora, poção de energia, ~~essência de promoção (consumida ao promover raridade)~~ (a promoção saiu em 2026-10-12; [itens](itens.md#modelo-de-itens-v2-documento-mestre-2026-10-12)). Craft cria itens no nível 1.
 - **Alimentação:** saciedade de 0 a 100; dano de 60% (vazia) a 100% (cheia), linear; perde 1/min fora de cidade (+1/min em combate), metade em área segura, nada desconectado. Três receitas de expedição (Caldo dos Errantes, Assado de Galhada, Ensopado da Fornalha) com buffs de 15 a 20 min. Valores do board.
 - **Forja (na cidade):** ~~infundir, promover raridade, transferir skills~~ fundir (desde 2026-10-12, [fusão v2](itens.md#fusão); promoção e transferência de skill saíram) e produzir equipamentos, conforme os requisitos da peça. Desmontar não existe (DEC-005).
+
+## Mestres de ofício (#1257)
+
+Decidido por quem implementou a [#1257](https://github.com/GabrielNied/jogo_do_grupo/issues/1257): cada profissão tem o seu NPC na cidade, e a conversa abre a janela **só daquela profissão** (aprender, materiais e receitas dela). Aproximar e interagir com o NPC é a entrada; a bancada de produção abre a janela da sua profissão.
+
+| Profissão | Mestre | Onde |
+|---|---|---|
+| Lenhador | Lenhador Garrido | (-4, 24), caminho do portão norte |
+| Minerador | Mineradora Petra | (4, 24), caminho do portão norte |
+| Curtidor | Curtidora Sela | (-15, -5,5), rua oeste, junto do Curtume |
+| Ferreiro | Mestre Ferreiro Torvin | (-12, -11), rua oeste, junto da Forja |
+| Alquimista | Alquimista Zéfira | (-11,5, -9,5), rua oeste, junto do Caldeirão |
+| Cozinheiro | Cozinheira Cota | (-8,5, -9), rua oeste, junto da Cozinha |
+
+- O **Ferreiro Brom** continua só com a forja de equipamento ([npcs](npcs.md#elenco-da-brasa-mansa)); não ensina profissão, e as missões dele não mudam.
+- Os mestres de produção ficam a menos de 4 m da própria bancada, para a produção valer logo depois da conversa (o servidor confere a distância à bancada).
+- Lenhador e Minerador não têm bancada: a janela mostra os materiais que coletam e avisa que não há receitas.
 
 ## Depende de
 

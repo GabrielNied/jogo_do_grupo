@@ -7,9 +7,24 @@ namespace JogoDoGrupo.Client.Features.Profissoes
     internal static class TextosProfissoes
     {
         public const string Titulo = "Profissões";
-        public const string RotuloDaForja = "usar a oficina de produção";
-        public const string AjudaDaForja =
-            "Aprenda as profissões aqui, de graça, e produza equipamentos e refeições com o que coletar no campo, ao norte do portão.";
+        public const string SemReceitas =
+            "Este ofício só coleta: leve o material do campo para quem produz.";
+
+        public static string TituloDa(Profissao profissao) =>
+            "Ofício de " + ConfigProfissoes.NomeDaProfissao(profissao);
+
+        public static string RotuloDaBancada(Profissao profissao) =>
+            "usar a bancada de " + ConfigProfissoes.NomeDaProfissao(profissao).ToLowerInvariant();
+
+        public static string AjudaDa(Profissao profissao) =>
+            "Aprenda o ofício de "
+            + ConfigProfissoes.NomeDaProfissao(profissao).ToLowerInvariant()
+            + " aqui, de graça. "
+            + (
+                ConfigProfissoes.ReceitasDaProfissao(profissao).Length == 0
+                    ? "Colete no campo, ao norte do portão."
+                    : "Produza na bancada com o que coletar no campo, ao norte do portão."
+            );
 
         public static string Recusa(string codigo)
         {

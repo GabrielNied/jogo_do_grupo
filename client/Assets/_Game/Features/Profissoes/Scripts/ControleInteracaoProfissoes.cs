@@ -10,11 +10,15 @@ using UnityEngine.UIElements;
 
 namespace JogoDoGrupo.Client.Features.Profissoes
 {
-    /// <summary>Um ponto do mundo com que se interage: um ponto de coleta (NoId) ou a forja.</summary>
+    /// <summary>
+    /// Um ponto do mundo com que se interage: um ponto de coleta (NoId) ou uma bancada, que abre
+    /// a janela da profissão dela.
+    /// </summary>
     internal struct PontoDeInteracaoProfissoes
     {
         public Transform Transform;
         public PontoDeColeta Coleta;
+        public Profissao Bancada;
 
         public bool EhForja => Coleta == null;
     }
@@ -109,7 +113,7 @@ namespace JogoDoGrupo.Client.Features.Profissoes
                 + ": "
                 + (
                     ponto2.EhForja
-                        ? TextosProfissoes.RotuloDaForja
+                        ? TextosProfissoes.RotuloDaBancada(ponto2.Bancada)
                         : TextosProfissoes.DicaDoPonto(
                             ponto2.Coleta,
                             ControleDeProfissoes.Aprendeu(ponto2.Coleta.Profissao)
@@ -122,7 +126,7 @@ namespace JogoDoGrupo.Client.Features.Profissoes
 
             if (ponto2.EhForja)
             {
-                JanelasDoJogo.Abrir(JanelaProfissoes.Chave);
+                JanelasDoJogo.Abrir(JanelaProfissoes.ChaveDa(ponto2.Bancada));
                 return;
             }
 
