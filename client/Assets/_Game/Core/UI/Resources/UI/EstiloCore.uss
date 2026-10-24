@@ -480,11 +480,13 @@
 }
 
 /* ---------- Janelas do jogo ---------- */
+/* Faixa de cima: título à esquerda e X à direita, com o mesmo respiro dos dois lados e o X
+   no meio da altura. É por ela que a pessoa arrasta a janela. */
 .janela-cabecalho {
     flex-direction: row;
     align-items: center;
     margin: -18px -18px var(--lumora-espacamento-medio) -18px;
-    padding: var(--lumora-espacamento-medio) var(--lumora-espacamento-medio) var(--lumora-espacamento-pequeno) var(--lumora-espacamento-grande);
+    padding: var(--lumora-espacamento-pequeno) var(--lumora-espacamento-padrao);
     min-height: 52px;
     background-image: url("../../Visual/Resources/Lumora/Arte/Hud/cabecalho.png");
     -unity-slice-left: var(--lumora-ornamentos-fatia-cabecalho);
@@ -497,6 +499,15 @@
 
 /* Painel com padding menor no modo estreito: a faixa do cabeçalho não passa da borda. */
 .lumora-estreito .janela-cabecalho {
+    margin: -10px -10px var(--lumora-espacamento-medio) -10px;
+}
+
+/* Moldura social tem mais padding: a faixa acompanha para ficar igual nas duas. */
+.ui-painel-social > .janela-cabecalho {
+    margin: -26px -26px var(--lumora-espacamento-medio) -26px;
+}
+
+.lumora-estreito .ui-painel-social > .janela-cabecalho {
     margin: -10px -10px var(--lumora-espacamento-medio) -10px;
 }
 
@@ -534,22 +545,35 @@
     letter-spacing: 2px;
 }
 
-.janela-fechar {
+/* Três classes para vencer o padding e a altura mínima do botão comum (.lumora-ui .botao),
+   que tiravam o X do centro do quadrado. */
+.janela-cabecalho > .botao.janela-fechar {
     flex-grow: 0;
     flex-shrink: 0;
+    align-self: center;
     width: 34px;
     height: 34px;
     min-height: 34px;
     min-width: 34px;
-    margin: 0;
+    margin: 0 0 0 var(--lumora-espacamento-pequeno);
     padding: 0;
     font-size: var(--lumora-tipografia-leitura);
     -unity-text-align: middle-center;
+    white-space: nowrap;
 }
 
+/* A feature pode limitar a largura do conteúdo; o que sobra fica igual dos dois lados. */
 .janela-conteudo {
     min-width: 0;
     flex-shrink: 0;
+    width: 100%;
+    align-self: center;
+}
+
+/* Janela arrastada: fica onde a pessoa soltou, por cima das outras da área. */
+.janelas-area > .janela-raiz.janela-solta {
+    position: absolute;
+    margin: 0;
 }
 
 .janela-rodape {

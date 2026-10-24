@@ -24,6 +24,7 @@ namespace JogoDoGrupo.Client.Core.Jogo.Janelas
         private readonly Action<string> _aoPedirFechar;
         private readonly Action<string> _aoFocar;
         private readonly VisualElement _area;
+        private readonly PosicoesDeJanelas _posicoes;
 
         // Na ordem em que foram mostradas; a focada é a de cima.
         private readonly List<Aberta> _abertas = new List<Aberta>();
@@ -32,17 +33,28 @@ namespace JogoDoGrupo.Client.Core.Jogo.Janelas
         /// <param name="container">Elemento que recebe as janelas (o das telas do Core).</param>
         /// <param name="aoPedirFechar">Chamado com a chave quando a pessoa clica no X.</param>
         /// <param name="aoFocar">Chamado com a chave quando a pessoa clica numa janela.</param>
+        /// <param name="posicoes">Onde cada janela arrastada ficou (padrão: PlayerPrefs).</param>
         public ApresentadorDeJanelas(
             VisualElement container,
             Action<string> aoPedirFechar,
-            Action<string> aoFocar = null
+            Action<string> aoFocar = null,
+            PosicoesDeJanelas posicoes = null
         )
         {
             _container = container;
             _aoPedirFechar = aoPedirFechar;
             _aoFocar = aoFocar;
+            _posicoes = posicoes ?? new PosicoesDeJanelas();
             _area = new VisualElement { name = NomeArea, pickingMode = PickingMode.Ignore };
             _area.AddToClassList(EstiloCore.JanelasArea);
+            // Tela mudou de tamanho com janelas soltas: cada uma volta para dentro da vista.
+            _area.RegisterCallback<GeometryChangedEvent>(_ =>
+            {
+                foreach (var aberta in _abertas)
+                {
+                    PrenderNaArea(aberta);
+                }
+            });
         }
 
         /// <summary>Elemento da janela focada (a de cima), ou <c>null</c> com tudo fechado.</summary>
@@ -209,6 +221,11 @@ namespace JogoDoGrupo.Client.Core.Jogo.Janelas
                     verticalScrollerVisibility = ScrollerVisibility.Auto,
                 };
                 rolagem.AddToClassList(EstiloCore.JanelaRolagem);
+                // Só a barra aparecer ou sumir muda o espaço à esquerda (a largura real dela, sem
+                // repetir número): o próprio ajuste não realimenta o evento.
+                EventCallback<GeometryChangedEvent> conferirBarra = _ => CompensarBarra(rolagem);
+                rolagem.verticalScroller.RegisterCallback(conferirBarra);
+                rolagem.contentViewport.RegisterCallback(conferirBarra);
                 rolagem.Add(conteudo);
                 painel.Add(cabecalho);
                 painel.Add(rolagem);
@@ -237,6 +254,11 @@ namespace JogoDoGrupo.Client.Core.Jogo.Janelas
             var aberta = new Aberta(chave, raiz, painel);
             _abertas.Add(aberta);
             Destacar(aberta);
+            if (!telaInteira)
+            {
+                PermitirArrastar(aberta, cabecalho, fechar);
+                VoltarAPosicaoGravada(aberta);
+            }
 
             // Janela com defeito não pode travar o jogo: mostra o aviso e segue fechável.
             if (janela == null)
@@ -306,6 +328,232 @@ namespace JogoDoGrupo.Client.Core.Jogo.Janelas
             _area.RemoveFromHierarchy();
         }
 
+        /// <summary>
+        /// Se a janela está solta (arrastada ou reaberta onde a pessoa deixou) e onde está, no
+        /// espaço da área das janelas. Para testes e diagnóstico.
+        /// </summary>
+        internal bool TentarPosicao(string chave, out Vector2 posicao)
+        {
+            var aberta = Procurar(chave);
+            posicao = aberta != null ? aberta.Posicao : default;
+            return aberta != null && aberta.Solta;
+        }
+
+        private static bool BarraVisivel(VisualElement barra)
+        {
+            return barra != null
+                && barra.resolvedStyle.display != DisplayStyle.None
+                && barra.resolvedStyle.visibility == Visibility.Visible;
+        }
+
+        private static void CompensarBarra(ScrollView rolagem)
+        {
+            var barra = rolagem.verticalScroller;
+            var visivel = BarraVisivel(barra);
+            var largura = visivel ? barra.resolvedStyle.width : 0f;
+            if (float.IsNaN(largura) || largura < 0f)
+            {
+                largura = 0f;
+            }
+
+            var marcada = rolagem.ClassListContains(EstiloCore.JanelaRolagemComBarra);
+            var atual =
+                rolagem.style.paddingLeft.keyword == StyleKeyword.Undefined
+                    ? rolagem.style.paddingLeft.value.value
+                    : 0f;
+            if (marcada == visivel && Mathf.Approximately(atual, largura))
+            {
+                return;
+            }
+
+            rolagem.EnableInClassList(EstiloCore.JanelaRolagemComBarra, visivel);
+            rolagem.style.paddingLeft = visivel ? largura : new StyleLength(StyleKeyword.Null);
+        }
+
+        // Arrasta pelo cabeçalho (fora do X). Abaixo do limiar o clique só traz a janela para
+        // cima; ao soltar, a posição fica gravada para a próxima vez que ela abrir.
+        private void PermitirArrastar(Aberta aberta, VisualElement cabecalho, VisualElement fechar)
+        {
+            cabecalho.RegisterCallback<PointerDownEvent>(evt =>
+            {
+                if (
+                    evt.button != 0
+                    || (evt.target is VisualElement alvo && fechar.Contains(alvo))
+                    || cabecalho.HasPointerCapture(evt.pointerId)
+                )
+                {
+                    return;
+                }
+
+                aberta.Arrasto = new Arrasto(
+                    evt.pointerId,
+                    evt.position,
+                    aberta.Solta ? aberta.Posicao : aberta.Raiz.layout.position
+                );
+                cabecalho.CapturePointer(evt.pointerId);
+            });
+
+            cabecalho.RegisterCallback<PointerMoveEvent>(evt =>
+            {
+                var arrasto = aberta.Arrasto;
+                if (arrasto == null || arrasto.PonteiroId != evt.pointerId)
+                {
+                    return;
+                }
+
+                var deslocamento = (Vector2)evt.position - arrasto.InicioDoPonteiro;
+                if (!arrasto.Arrastando)
+                {
+                    if (deslocamento.magnitude < ConfigJanelas.LimiarDeArrasto)
+                    {
+                        return;
+                    }
+
+                    if (!Valido(arrasto.InicioDaJanela))
+                    {
+                        return;
+                    }
+
+                    arrasto.Arrastando = true;
+                    // Fora da fila deixa de encolher junto com as outras: fixa a largura de agora
+                    // para não dar pulo. A altura segue o conteúdo (presa pela max-height).
+                    var largura = aberta.Raiz.layout.width;
+                    if (!aberta.Solta && !float.IsNaN(largura) && largura > 0f)
+                    {
+                        aberta.Raiz.style.width = largura;
+                    }
+                    aberta.Raiz.BringToFront();
+                }
+
+                Posicionar(aberta, Limitada(aberta, arrasto.InicioDaJanela + deslocamento));
+                evt.StopPropagation();
+            });
+
+            cabecalho.RegisterCallback<PointerUpEvent>(evt =>
+            {
+                if (aberta.Arrasto == null || aberta.Arrasto.PonteiroId != evt.pointerId)
+                {
+                    return;
+                }
+
+                if (cabecalho.HasPointerCapture(evt.pointerId))
+                {
+                    cabecalho.ReleasePointer(evt.pointerId);
+                }
+
+                TerminarArrasto(aberta);
+            });
+
+            cabecalho.RegisterCallback<PointerCaptureOutEvent>(_ => TerminarArrasto(aberta));
+        }
+
+        private void TerminarArrasto(Aberta aberta)
+        {
+            var arrasto = aberta.Arrasto;
+            aberta.Arrasto = null;
+            if (arrasto == null || !arrasto.Arrastando)
+            {
+                return;
+            }
+
+            var area = _area.layout.size;
+            if (Valido(area) && area.x > 0f && area.y > 0f)
+            {
+                _posicoes.Gravar(aberta.Chave, aberta.Posicao, area);
+            }
+        }
+
+        // Reabre onde a pessoa deixou. Aplica já (sem piscar no lugar padrão) e confere no
+        // primeiro layout: se a área mudou de tamanho (outra resolução), volta ao padrão.
+        private void VoltarAPosicaoGravada(Aberta aberta)
+        {
+            if (!_posicoes.TentarLerGravada(aberta.Chave, out var posicao, out var areaGravada))
+            {
+                return;
+            }
+
+            Posicionar(aberta, posicao);
+            aberta.AreaGravada = areaGravada;
+            aberta.Raiz.RegisterCallback<GeometryChangedEvent>(_ =>
+            {
+                if (aberta.AreaGravada.HasValue)
+                {
+                    var area = _area.layout.size;
+                    if (!Valido(area) || area.x <= 0f || area.y <= 0f)
+                    {
+                        return;
+                    }
+
+                    var mesma = PosicoesDeJanelas.MesmaArea(area, aberta.AreaGravada.Value);
+                    aberta.AreaGravada = null;
+                    if (!mesma)
+                    {
+                        VoltarAoPadrao(aberta);
+                        return;
+                    }
+                }
+
+                PrenderNaArea(aberta);
+            });
+        }
+
+        private void PrenderNaArea(Aberta aberta)
+        {
+            if (!aberta.Solta || aberta.AreaGravada.HasValue || aberta.Arrasto?.Arrastando == true)
+            {
+                return;
+            }
+
+            var limitada = Limitada(aberta, aberta.Posicao);
+            if (limitada != aberta.Posicao)
+            {
+                Posicionar(aberta, limitada);
+            }
+        }
+
+        private Vector2 Limitada(Aberta aberta, Vector2 posicao)
+        {
+            var area = _area.layout.size;
+            if (!Valido(area) || area.x <= 0f || area.y <= 0f)
+            {
+                return posicao;
+            }
+
+            // Só a parte de dentro do padding da área: a janela não cobre a barra de atalhos.
+            var limite = _area.contentRect;
+            if (float.IsNaN(limite.width) || float.IsNaN(limite.height))
+            {
+                limite = new Rect(Vector2.zero, area);
+            }
+
+            var tamanho = aberta.Raiz.layout.size;
+            return PosicoesDeJanelas.Limitar(posicao, Valido(tamanho) ? tamanho : default, limite);
+        }
+
+        private static void Posicionar(Aberta aberta, Vector2 posicao)
+        {
+            aberta.Solta = true;
+            aberta.Posicao = posicao;
+            aberta.Raiz.AddToClassList(EstiloCore.JanelaSolta);
+            aberta.Raiz.style.left = posicao.x;
+            aberta.Raiz.style.top = posicao.y;
+        }
+
+        private static void VoltarAoPadrao(Aberta aberta)
+        {
+            aberta.Solta = false;
+            aberta.Posicao = default;
+            aberta.Raiz.RemoveFromClassList(EstiloCore.JanelaSolta);
+            aberta.Raiz.style.left = StyleKeyword.Null;
+            aberta.Raiz.style.top = StyleKeyword.Null;
+            aberta.Raiz.style.width = StyleKeyword.Null;
+        }
+
+        private static bool Valido(Vector2 v)
+        {
+            return !float.IsNaN(v.x) && !float.IsNaN(v.y);
+        }
+
         private void Destacar(Aberta focada)
         {
             _focada = focada;
@@ -373,6 +621,29 @@ namespace JogoDoGrupo.Client.Core.Jogo.Janelas
             public VisualElement Raiz { get; }
             public VisualElement Painel { get; }
             public JanelaDoJogo Janela { get; set; }
+
+            // Arrastada ou reaberta onde a pessoa deixou: fora da fila lado a lado.
+            public bool Solta { get; set; }
+            public Vector2 Posicao { get; set; }
+
+            // Tamanho da área em que a posição foi gravada, até o primeiro layout conferir.
+            public Vector2? AreaGravada { get; set; }
+            public Arrasto Arrasto { get; set; }
+        }
+
+        private sealed class Arrasto
+        {
+            public Arrasto(int ponteiroId, Vector2 inicioDoPonteiro, Vector2 inicioDaJanela)
+            {
+                PonteiroId = ponteiroId;
+                InicioDoPonteiro = inicioDoPonteiro;
+                InicioDaJanela = inicioDaJanela;
+            }
+
+            public int PonteiroId { get; }
+            public Vector2 InicioDoPonteiro { get; }
+            public Vector2 InicioDaJanela { get; }
+            public bool Arrastando { get; set; }
         }
     }
 }
