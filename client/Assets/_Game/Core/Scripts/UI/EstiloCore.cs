@@ -190,6 +190,18 @@ namespace JogoDoGrupo.Client.Core.UI
         /// <summary>Elemento de cada janela comum dentro de <see cref="JanelasArea"/> (o Core aplica).</summary>
         public const string JanelaRaiz = "janela-raiz";
 
+        /// <summary>
+        /// <see cref="JanelaRaiz"/> que a pessoa arrastou: sai da fila lado a lado e fica onde foi
+        /// solta (o Core aplica).
+        /// </summary>
+        public const string JanelaSolta = "janela-solta";
+
+        /// <summary>
+        /// <see cref="JanelaRolagem"/> com a barra de rolagem à vista: o mesmo espaço do outro lado
+        /// mantém o conteúdo no centro (o Core aplica).
+        /// </summary>
+        public const string JanelaRolagemComBarra = "janela-rolagem-com-barra";
+
         /// <summary>Destaque da janela de cima, a próxima que o Esc fecha (use junto com <see cref="Janela"/>).</summary>
         public const string JanelaFocada = "janela-focada";
 
