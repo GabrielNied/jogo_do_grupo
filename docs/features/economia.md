@@ -83,7 +83,7 @@ Entregue na [#173](https://github.com/GabrielNied/jogo_do_grupo/issues/173) e ex
 
 Saldo persistente inteiro por personagem, inicialmente zero. `Contratos/Economia/ICarteiraCoroas` publica consulta, crédito e débito; operações de escrita exigem a transação do chamador e valores positivos. Débito confere saldo no banco, sem permitir negativo; crédito verifica overflow. A exclusão do personagem remove sua carteira. A infusão usa esse contrato na mesma transação dos equipamentos, conforme o [ADR 0032](../decisoes/0032-infusao-e-cobranca-atomicas.md).
 
-O crédito de teste é acessível pela bancada de Itens somente em Development. Ganho normal de coroas, loja e demais saídas seguem na #173.
+O crédito de teste é acessível pela aba Personagem da [F8](desenvolvimento.md#tela-de-admin-f8) (coroas) somente em Development. Ganho normal de coroas, loja e demais saídas seguem na #173.
 
 ### Mercado (leilão por ordens, #176)
 

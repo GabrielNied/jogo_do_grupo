@@ -69,10 +69,6 @@ namespace JogoDoGrupo.Client.Features.Itens
 
         /// <summary>Pede ao servidor para desbloquear a próxima aba da bolsa (#564).</summary>
         public event Action ExpansaoPedida;
-#pragma warning disable CS0067 // só é disparado em editor/build de desenvolvimento
-        public event Action<int> ItemDeTestePedido;
-#pragma warning restore CS0067
-        public event Action LimpezaDeTestePedida;
         public event Action<long> ItemVisto;
 
         public PainelInventario(VisualElement conteudo)
@@ -885,33 +881,6 @@ namespace JogoDoGrupo.Client.Features.Itens
                 Loot.FiltroDeLoot.TierMinimo = Loot.FiltroDeLoot.Normalizar(filtro.index)
             );
             _rodape.Add(filtro);
-#if DEBUG
-            var grau = new DropdownField(
-                "Grau de teste",
-                new List<string> { "Inicial", "Médio", "Forte" },
-                0
-            );
-            grau.AddToClassList(EstiloCore.Campo);
-            _rodape.Add(grau);
-            var obter = Botao(
-                "Obter equipamento de teste",
-                () => ItemDeTestePedido?.Invoke(grau.index)
-            );
-            obter.SetEnabled(!_ocupado);
-            _rodape.Add(obter);
-            var limpar = Botao(
-                "Limpar inventário",
-                () =>
-                    MostrarConfirmacao(
-                        "Isso destrói todos os itens da bolsa e os equipamentos de vez. Confirmar?",
-                        "Confirmar limpeza",
-                        () => LimpezaDeTestePedida?.Invoke(),
-                        null
-                    )
-            );
-            limpar.SetEnabled(!_ocupado);
-            _rodape.Add(limpar);
-#endif
         }
 
         // ---- slots ----
