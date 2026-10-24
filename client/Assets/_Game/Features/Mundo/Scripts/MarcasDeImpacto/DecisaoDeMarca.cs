@@ -33,8 +33,37 @@ namespace JogoDoGrupo.Client.Features.Mundo.MarcasDeImpacto
             }
         }
 
-        /// <summary>Golpe pesado de martelo deixa marca de martelada; os demais golpes, não.</summary>
-        public static bool DoGolpePesadoDeMartelo(bool pesado, TipoEquipamento arma) =>
+        /// <summary>
+        /// Golpe pesado de martelo deixa marca de martelada; os demais golpes, não. Sem arma
+        /// conhecida (<c>null</c>, o visual do atacante ainda não chegou), não marca.
+        /// </summary>
+        public static bool DoGolpePesadoDeMartelo(bool pesado, TipoEquipamento? arma) =>
             pesado && arma == TipoEquipamento.Martelo;
+
+        /// <summary>
+        /// A arma na mão do personagem: a do conjunto ativo do <see cref="VisualEquipado"/>
+        /// (regra de <see cref="RegrasVisualEquipado.EncaixeDe"/>), ou <c>null</c> se não há.
+        /// </summary>
+        public static TipoEquipamento? ArmaAtiva(VisualEquipado visual)
+        {
+            if (visual?.Armas == null)
+            {
+                return null;
+            }
+
+            foreach (var arma in visual.Armas)
+            {
+                if (
+                    arma != null
+                    && RegrasVisualEquipado.EncaixeDe(arma.Posicao, visual.ConjuntoAtivo)
+                        == EncaixeDoVisual.MaoDireita
+                )
+                {
+                    return arma.Tipo;
+                }
+            }
+
+            return null;
+        }
     }
 }
