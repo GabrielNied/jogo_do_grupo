@@ -70,6 +70,12 @@ public static class ConfigChefeDaDungeon
     public const double AlcanceDaInvestidaMetros = 25.0;
     public const double RecuperacaoDaInvestidaSegundos = 2.0;
 
+    /// <summary>
+    /// Velocidade do boss na investida (m/s): ele corre até o ponto marcado nos últimos instantes
+    /// do aviso, em vez de aparecer lá.
+    /// </summary>
+    public const double VelocidadeDaInvestidaMetrosPorSegundo = 40.0;
+
     /// <summary>Pisada: dano e raio da área em volta do boss.</summary>
     public const int DanoDaPisada = 100;
 

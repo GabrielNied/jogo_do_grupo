@@ -235,6 +235,32 @@ public class ChefeDaDungeonTestes
     }
 
     [Fact]
+    public void Investida_corre_ate_o_ponto_sem_teleportar()
+    {
+        var luta = new Luta();
+        var alvo = new JogadorNoCampo(1, 20, 0);
+        luta.AteOAviso(TipoDeAtaqueDeInimigo.Investida, alvo);
+
+        var xs = new List<float> { 0f };
+        for (var t = 0; t < AvisoMs; t += 50)
+        {
+            var passo = luta.Passo(50, alvo);
+            xs.AddRange(passo.Mudancas.Select(m => m.Mensagem.X));
+        }
+
+        // Anda a cada passo, sempre para a frente, sem salto maior que a velocidade permite.
+        var maxPasso = (float)(ConfigChefeDaDungeon.VelocidadeDaInvestidaMetrosPorSegundo * 0.05);
+        for (var i = 1; i < xs.Count; i++)
+        {
+            Assert.True(xs[i] >= xs[i - 1]);
+            Assert.True(xs[i] - xs[i - 1] <= maxPasso + 0.01f);
+        }
+
+        Assert.Contains(xs, x => x > 0.5f && x < 19.5f);
+        Assert.Equal(20f, xs[^1], 1);
+    }
+
+    [Fact]
     public void Investida_respeita_o_alcance_maximo()
     {
         var luta = new Luta();

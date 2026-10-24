@@ -75,6 +75,9 @@ public sealed class ChefeDaDungeon : IAlvosDeCombate, IInimigosSimulados
     private int _indiceDoAtaque;
     private int _rodizioDosRaios;
     private long _expostoAteMs;
+    private double _investidaDeX;
+    private double _investidaDeZ;
+    private long _investidaDuracaoMs;
     private long? _ultimoPassoMs;
     private long? _reporEmMs;
     private readonly int _vidaMaxima;
@@ -510,6 +513,13 @@ public sealed class ChefeDaDungeon : IAlvosDeCombate, IInimigosSimulados
                     out var destinoX,
                     out var destinoZ
                 );
+                _investidaDeX = _x;
+                _investidaDeZ = _z;
+                var percurso = RegrasInimigo.Distancia(_x, _z, destinoX, destinoZ);
+                _investidaDuracaoMs = Math.Min(
+                    AvisoMs,
+                    EmMs(percurso / ConfigChefeDaDungeon.VelocidadeDaInvestidaMetrosPorSegundo)
+                );
                 _areas.Add(
                     new AreaDoChefe(destinoX, destinoZ, ConfigChefeDaDungeon.RaioDaInvestidaMetros)
                 );
@@ -579,6 +589,11 @@ public sealed class ChefeDaDungeon : IAlvosDeCombate, IInimigosSimulados
     {
         if (agora < _faseAteMs)
         {
+            if (_fase == Fase.Aviso && _tipo == TipoDeAtaqueDeInimigo.Investida)
+            {
+                Deslizar(agora);
+            }
+
             return;
         }
 
@@ -591,6 +606,23 @@ public sealed class ChefeDaDungeon : IAlvosDeCombate, IInimigosSimulados
         _fase = Fase.Pausa;
         _proximoAtaqueMs = agora + PausaMs;
         Mudar(EstadoDeInimigo.Perseguicao);
+    }
+
+    // A investida corre até o ponto marcado nos últimos instantes do aviso, em velocidade
+    // constante: a posição avança a cada passo (o client interpola), sem salto. O acerto cai
+    // quando o aviso termina, com o boss já no ponto.
+    private void Deslizar(long agora)
+    {
+        var inicioMs = _faseAteMs - _investidaDuracaoMs;
+        if (agora <= inicioMs || _investidaDuracaoMs <= 0)
+        {
+            return;
+        }
+
+        var fracao = Math.Clamp((agora - inicioMs) / (double)_investidaDuracaoMs, 0.0, 1.0);
+        var destino = _areas[0];
+        _x = _investidaDeX + (destino.X - _investidaDeX) * fracao;
+        _z = _investidaDeZ + (destino.Z - _investidaDeZ) * fracao;
     }
 
     // O acerto: pega quem está numa das áreas agora, um evento por personagem.
