@@ -363,6 +363,7 @@ public class InventarioEmGradeTestes(ServidorDeTeste servidor) : IClassFixture<S
         var (cliente, id) = await Personagem();
         var a = await Item(id, Espada, casa: 0);
         await Item(id, Escudo, casa: 1);
+        var equipado = await Item(id, Capacete, posicao: PosicaoEquipamento.Capacete);
         (
             await ServidorDeTeste.PostJsonAsync(
                 cliente,
@@ -370,13 +371,9 @@ public class InventarioEmGradeTestes(ServidorDeTeste servidor) : IClassFixture<S
                 new PedidoDescartar { InstanciaId = a }
             )
         ).EnsureSuccessStatusCode();
-        var resposta = await ServidorDeTeste.PostJsonAsync(
-            cliente,
-            RegrasEquipamentos.RotaDe(id) + "/bau-teste",
-            new { }
-        );
-        resposta.EnsureSuccessStatusCode();
-        var estado = await ServidorDeTeste.LerJsonAsync<EquipamentosResponse>(resposta);
+        (await Desequipar(cliente, id, PosicaoEquipamento.Capacete)).EnsureSuccessStatusCode();
+        var estado = await Estado(cliente, id);
+        Assert.Equal(0, CasaDe(estado, equipado));
         Assert.Equal(new[] { 0, 1 }, estado.Inventario.Select(e => e.Casa).OrderBy(c => c));
     }
 
