@@ -15,130 +15,6 @@ namespace JogoDoGrupo.Server.Tests.Features.Itens;
 
 public class EquipamentosRotasTestes(ServidorDeTeste servidor) : IClassFixture<ServidorDeTeste>
 {
-    [Theory]
-    [InlineData(0, 1)]
-    [InlineData(1, 10)]
-    [InlineData(2, 20)]
-    public async Task BauDeTesteGeraGrauEscolhidoEPreservaAoReabrir(int grau, int requisito)
-    {
-        var (cliente, id) = await Personagem();
-        var resposta = await ServidorDeTeste.PostJsonAsync(
-            cliente,
-            RegrasEquipamentos.RotaDe(id) + "/bau-teste?grau=" + grau,
-            new { }
-        );
-        resposta.EnsureSuccessStatusCode();
-        var estado = await ServidorDeTeste.LerJsonAsync<EquipamentosResponse>(resposta);
-        var entrada = Assert.Single(estado.Inventario);
-        Assert.Contains(entrada.ItemId, CatalogoEquipamentos.ModelosDeTeste);
-        Assert.Equal((GrauEquipamento)grau, entrada.Equipamento!.Grau);
-        Assert.Equal(requisito, entrada.Equipamento.NivelPersonagemMinimo);
-        var volta = Assert.Single((await Ler(cliente, id)).Inventario);
-        Assert.Equal(entrada.InstanciaId, volta.InstanciaId);
-        Assert.Equal(
-            entrada.Equipamento.Atributos.Select(a => a.Valor),
-            volta.Equipamento!.Atributos.Select(a => a.Valor)
-        );
-        Assert.Equal(entrada.Equipamento.Familia, volta.Equipamento.Familia);
-    }
-
-    [Fact]
-    public async Task BauDeTesteRecusaGrauInvalidoSemCriarItem()
-    {
-        var (cliente, id) = await Personagem();
-        foreach (var grau in new[] { -1, 3, 99 })
-            Assert.Equal(
-                HttpStatusCode.BadRequest,
-                (
-                    await ServidorDeTeste.PostJsonAsync(
-                        cliente,
-                        RegrasEquipamentos.RotaDe(id) + "/bau-teste?grau=" + grau,
-                        new { }
-                    )
-                ).StatusCode
-            );
-        Assert.Empty((await Ler(cliente, id)).Inventario);
-    }
-
-    [Fact]
-    public async Task LimparInventarioDeTesteApagaBolsaEEquipamentosPreservandoConjuntoAtivo()
-    {
-        using var fabrica = servidor.WithWebHostBuilder(builder =>
-            builder.UseSetting("Desenvolvimento:PermitirComandos", "true")
-        );
-        var cliente = await ServidorDeTeste.CriarClienteLogadoEmAsync(fabrica);
-        var personagem = await ServidorDeTeste.PostJsonAsync(
-            cliente,
-            RotasPersonagem.Personagens,
-            new CriarPersonagemRequest { Nome = ServidorDeTeste.NomeUnico(), Raca = Raca.Valdren }
-        );
-        var id = (await ServidorDeTeste.LerJsonAsync<PersonagemResumo>(personagem)).Id;
-        var equipado = await Item(id, 100);
-        var naBolsa = await Item(id, 101);
-        (await Equipar(cliente, id, equipado, PosicaoEquipamento.Arma1)).EnsureSuccessStatusCode();
-        (
-            await ServidorDeTeste.PostJsonAsync(
-                cliente,
-                RegrasEquipamentos.RotaDe(id) + "/conjunto",
-                new PedidoConjunto { Conjunto = 2 }
-            )
-        ).EnsureSuccessStatusCode();
-        var antes = await Ler(cliente, id);
-        Assert.Equal(naBolsa, Assert.Single(antes.Inventario).InstanciaId);
-        Assert.Equal(equipado, Assert.Single(antes.Equipados).InstanciaId);
-
-        var resposta = await cliente.PostAsync(
-            RegrasEquipamentos.RotaDe(id) + "/limpar-teste",
-            null
-        );
-        resposta.EnsureSuccessStatusCode();
-        var estado = await ServidorDeTeste.LerJsonAsync<EquipamentosResponse>(resposta);
-
-        Assert.Empty(estado.Inventario);
-        Assert.Empty(estado.Equipados);
-        Assert.Equal(2, estado.ConjuntoAtivo);
-        Assert.Empty((await Ler(cliente, id)).Inventario);
-        using var escopo = servidor.Services.CreateScope();
-        var db = escopo.ServiceProvider.GetRequiredService<JogoDbContext>();
-        Assert.Empty(await db.Set<ItemInventario>().Where(i => i.PersonagemId == id).ToListAsync());
-    }
-
-    [Fact]
-    public async Task LimparInventarioDeTesteRecusaQuandoPoliticaDesligadaOuContaNaoPermitida()
-    {
-        using var fabricaDesligada = servidor.WithWebHostBuilder(builder =>
-            builder.UseSetting("Desenvolvimento:PermitirComandos", "false")
-        );
-        var cliente = await ServidorDeTeste.CriarClienteLogadoEmAsync(fabricaDesligada);
-        var personagem = await ServidorDeTeste.PostJsonAsync(
-            cliente,
-            RotasPersonagem.Personagens,
-            new CriarPersonagemRequest { Nome = ServidorDeTeste.NomeUnico(), Raca = Raca.Valdren }
-        );
-        var id = (await ServidorDeTeste.LerJsonAsync<PersonagemResumo>(personagem)).Id;
-        await Item(id, 101);
-        Assert.Equal(
-            HttpStatusCode.Forbidden,
-            (
-                await cliente.PostAsync(RegrasEquipamentos.RotaDe(id) + "/limpar-teste", null)
-            ).StatusCode
-        );
-
-        using var fabrica = servidor.WithWebHostBuilder(builder =>
-        {
-            builder.UseSetting("Desenvolvimento:PermitirComandos", "true");
-            builder.UseSetting("Desenvolvimento:Contas:0", "-1");
-        });
-        var outroCliente = await ServidorDeTeste.CriarClienteLogadoEmAsync(fabrica);
-        Assert.Equal(
-            HttpStatusCode.Forbidden,
-            (
-                await outroCliente.PostAsync(RegrasEquipamentos.RotaDe(id) + "/limpar-teste", null)
-            ).StatusCode
-        );
-        Assert.Single((await Ler(cliente, id)).Inventario);
-    }
-
     private async Task<(HttpClient Cliente, long Id)> Personagem()
     {
         var cliente = await servidor.CriarClienteLogadoAsync();
@@ -521,30 +397,19 @@ public class EquipamentosRotasTestes(ServidorDeTeste servidor) : IClassFixture<S
     public async Task Descartar_LiberaEspacoDaBolsaCheia()
     {
         var (cliente, id) = await Personagem();
+        await Item(id, 100, PosicaoEquipamento.Arma1);
         long ultimo = 0;
         for (var n = 0; n < RegrasItens.EspacosInventario; n++)
             ultimo = await Item(id, 107);
-        Assert.Equal(
-            HttpStatusCode.Conflict,
-            (
-                await ServidorDeTeste.PostJsonAsync(
-                    cliente,
-                    RegrasEquipamentos.RotaDe(id) + "/bau-teste",
-                    new { }
-                )
-            ).StatusCode
-        );
+        Task<HttpResponseMessage> Desequipar() =>
+            ServidorDeTeste.PostJsonAsync(
+                cliente,
+                RegrasEquipamentos.RotaDe(id) + "/desequipar",
+                new PedidoDesequipar { Posicao = PosicaoEquipamento.Arma1 }
+            );
+        Assert.Equal(HttpStatusCode.Conflict, (await Desequipar()).StatusCode);
         (await Descartar(cliente, id, ultimo)).EnsureSuccessStatusCode();
-        Assert.Equal(
-            HttpStatusCode.OK,
-            (
-                await ServidorDeTeste.PostJsonAsync(
-                    cliente,
-                    RegrasEquipamentos.RotaDe(id) + "/bau-teste",
-                    new { }
-                )
-            ).StatusCode
-        );
+        Assert.Equal(HttpStatusCode.OK, (await Desequipar()).StatusCode);
     }
 
     [Fact]

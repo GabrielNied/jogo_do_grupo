@@ -110,13 +110,6 @@ internal static class EquipamentosRotas
                     )
             )
             .RequireAuthorization();
-        if (rotas.ServiceProvider.GetRequiredService<IHostEnvironment>().IsDevelopment())
-        {
-            rotas.MapPost(RegrasEquipamentos.Rota + "/bau-teste", BauAsync).RequireAuthorization();
-            rotas
-                .MapPost(RegrasEquipamentos.Rota + "/limpar-teste", LimparTesteAsync)
-                .RequireAuthorization();
-        }
     }
 
     private static IResult Erro(string codigo, int status = 409) =>
@@ -344,113 +337,6 @@ internal static class EquipamentosRotas
             ocupadas.Add((destino.Value.Aba, destino.Value.Casa));
         }
         return null;
-    }
-
-    private static async Task<IResult> BauAsync(
-        string personagemId,
-        int? grau,
-        ClaimsPrincipal usuario,
-        JogoDbContext db,
-        GeradorEquipamentos gerador,
-        CancellationToken c
-    )
-    {
-        var grauEscolhido = (GrauEquipamento)(grau ?? 0);
-        if (!Enum.IsDefined(grauEscolhido))
-            return Erro(CodigosErro.RequisicaoInvalida, 400);
-        // Recorte de teste, como o baú já existente; não altera a tabela de loot de mobs.
-        await using var transacao = await db.Database.BeginTransactionAsync(
-            IsolationLevel.Serializable,
-            c
-        );
-        if (!await ItensRotas.PersonagemDaContaAsync(personagemId, usuario.ObterContaId(), db, c))
-            return Erro(CodigosErroItens.PersonagemNaoEncontrado, 404);
-        var id = long.Parse(personagemId, System.Globalization.CultureInfo.InvariantCulture);
-        var estado = await db.Set<EstadoEquipamentos>().FindAsync(new object[] { id }, c);
-        var capacidade = Bolsa.CapacidadeDe(estado);
-        var itens = await db.Set<ItemInventario>()
-            .Where(i => i.PersonagemId == id)
-            .OrderBy(i => i.Id)
-            .ToListAsync(c);
-        Bolsa.Normalizar(itens, capacidade);
-        var modelos = CatalogoEquipamentos.ModelosDeTeste;
-        var novo = new ItemInventario
-        {
-            PersonagemId = id,
-            ItemId = modelos[Random.Shared.Next(modelos.Length)],
-        };
-        novo.GravarEquipamento(gerador.Gerar(novo.ItemId, Random.Shared, grau: grauEscolhido)!);
-        if (!Bolsa.Guardar(itens, new[] { novo }, capacidade))
-            return Erro(CodigosErroItens.InventarioCheio);
-        db.Add(novo);
-        itens.Add(novo);
-        await db.SaveChangesAsync(c);
-        await transacao.CommitAsync(c);
-        return Results.Ok(
-            Resposta(
-                itens,
-                estado?.ConjuntoAtivo ?? 1,
-                await ItensRotas.NivelAsync(id, db, c),
-                capacidade
-            )
-        );
-    }
-
-    private static async Task<IResult> LimparTesteAsync(
-        string personagemId,
-        ClaimsPrincipal usuario,
-        JogoDbContext db,
-        IConfiguration configuracao,
-        IHostEnvironment ambiente,
-        VisualEquipadoServico visual,
-        EventosDoServidor eventos,
-        CancellationToken c
-    )
-    {
-        var contaId = usuario.ObterContaId();
-        var contas = configuracao.GetSection("Desenvolvimento:Contas").Get<long[]>() ?? [];
-        if (
-            !ambiente.IsDevelopment()
-            || !configuracao.GetValue<bool>("Desenvolvimento:PermitirComandos")
-            || (contas.Length > 0 && !contas.Contains(contaId))
-        )
-            return Erro("ComandoDeTesteDesligado", 403);
-
-        await using var transacao = await db.Database.BeginTransactionAsync(
-            IsolationLevel.Serializable,
-            c
-        );
-        if (!await ItensRotas.PersonagemDaContaAsync(personagemId, contaId, db, c))
-            return Erro(CodigosErroItens.PersonagemNaoEncontrado, 404);
-
-        var id = long.Parse(personagemId, System.Globalization.CultureInfo.InvariantCulture);
-        var itens = await db.Set<ItemInventario>()
-            .Where(i => i.PersonagemId == id)
-            .OrderBy(i => i.Id)
-            .ToListAsync(c);
-        var estado = await db.Set<EstadoEquipamentos>().FindAsync(new object[] { id }, c);
-        var conjunto = estado?.ConjuntoAtivo ?? 1;
-        db.RemoveRange(itens);
-        await db.SaveChangesAsync(c);
-        await transacao.CommitAsync(c);
-
-        visual.Publicar(
-            RegrasVisualEquipado.Montar(id, conjunto, Array.Empty<EntradaInventario>())
-        );
-        eventos.Publicar(new EquipamentoMudou(id));
-        return Results.Ok(
-            new EquipamentosResponse
-            {
-                Inventario = Array.Empty<EntradaInventario>(),
-                Equipados = Array.Empty<EntradaInventario>(),
-                Capacidade = Bolsa.CapacidadeDe(estado),
-                ConjuntoAtivo = conjunto,
-                Atributos = RegrasAtributosDeItem.Resumir(
-                    Array.Empty<EntradaInventario>(),
-                    conjunto
-                ),
-            }
-        );
     }
 
     internal static EquipamentosResponse Resposta(
