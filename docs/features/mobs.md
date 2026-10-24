@@ -137,7 +137,7 @@ Decidido em 2026-10-12. O golpe comum (javali, lobo, tatu e quem usa a mesma IA,
 - No começo do preparo a direção trava. Durante o preparo o inimigo dá um passo de até **1,0 m** nessa direção (`PassoDoGolpeMetros`), sem atravessar parede nem chegar a menos de 1,2 m de outro inimigo. Se o passo para antes, o contato é medido de onde ele parou.
 - No fim do preparo o volume é um cone à frente do corpo: **1,2 m** a partir do centro e **90°** (`AlcanceDoGolpeMetros`, `AberturaDoGolpeGraus`), na direção travada. Não fica desenhado no chão e não fica preso na posição do início do aviso.
 - O client toca o clipe `Atacar` na velocidade que faz a pose de contato cair nesse mesmo instante. O aviso visível é o preparo do modelo, não um decalque.
-- Investida, pisada e raios do chefe de dungeon continuam com a área marcada no chão, fixa desde o aviso.
+- Investida, pisada e raios do chefe de dungeon continuam com a área marcada no chão, fixa desde o aviso. A investida do boss corre até o ponto marcado nos últimos instantes do aviso (`VelocidadeDaInvestidaMetrosPorSegundo`, 40 m/s), com a posição avançando a cada passo do servidor; o acerto continua no fim do aviso (#1260).
 - Para implementar: a conta do cone reaproveita `RegrasAtaque.EstaNoVolume`, no instante do contato. Sem colisor de malha e sem física no servidor. O círculo antigo não volta. O client não manda "acertou" nem "errou"; quem decide o contato é o servidor. O corte entre animação e resultado está em [combate](combate.md#o-que-o-client-mostra-e-o-que-o-servidor-decide).
 
 Como ficou (issue #573, aprimorado na #794 e #821; decisões do agente, a calibrar):

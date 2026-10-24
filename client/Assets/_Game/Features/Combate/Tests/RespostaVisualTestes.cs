@@ -56,12 +56,25 @@ namespace JogoDoGrupo.Client.Features.Combate.Tests
                 10f
             );
             Assert.AreEqual((vida - 20f) / vida, boneco.Fracao, 0.001f);
+            Assert.IsTrue(boneco.EtiquetaVisivel(10f));
 
             boneco.Atualizar(10f + (float)RegrasBonecoDeTreino.SegundosParaRecuperar - 0.1f);
             Assert.Less(boneco.Fracao, 1f);
 
             boneco.Atualizar(10f + (float)RegrasBonecoDeTreino.SegundosParaRecuperar);
             Assert.AreEqual(1f, boneco.Fracao, 0.001f);
+            Assert.IsFalse(
+                boneco.EtiquetaVisivel(10f + (float)RegrasBonecoDeTreino.SegundosParaRecuperar)
+            );
+        }
+
+        [Test]
+        public void Boneco_SemGolpe_NaoMostraEtiqueta()
+        {
+            var boneco = BonecoDeTreinoVisual.Criar();
+            _boneco = boneco.gameObject;
+
+            Assert.IsFalse(boneco.EtiquetaVisivel(100f));
         }
 
         [Test]
